@@ -1,26 +1,28 @@
 /*
- Copyright (C) 2021 FMSoft (https://www.fmsoft.cn)
- Copyright (C) 2015-2017 Alexander Borisov
- 
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU Lesser General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Lesser General Public License for more details.
-
- You should have received a copy of the GNU Lesser General Public License
- along with this program.  If not, see <https://www.gnu.org/licenses/>.
- 
- Author: Vincent Wei (https://github.com/VincentWei)
- Author: lex.borisov@gmail.com (Alexander Borisov)
+** Copyright (C) 2021 FMSoft (https://www.fmsoft.cn)
+** Copyright (C) 2015-2017 Alexander Borisov
+**
+** This file is a part of Purring Cat 2, a HVML parser and interpreter.
+** 
+** This program is free software: you can redistribute it and/or modify
+** it under the terms of the GNU Lesser General Public License as published by
+** the Free Software Foundation, either version 3 of the License, or
+** (at your option) any later version.
+**
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU Lesser General Public License for more details.
+**
+** You should have received a copy of the GNU Lesser General Public License
+** along with this program.  If not, see <https://www.gnu.org/licenses/>.
+**
+** Author: Vincent Wei (https://github.com/VincentWei)
+** Author: lex.borisov@gmail.com (Alexander Borisov)
 */
 
-#ifndef PCAT2_PCAT2_H
-#define PCAT2_PCAT2_H
+#ifndef PCAT2_PCAT2_VERSION_H
+#define PCAT2_PCAT2_VERSION_H
 
 #pragma once
 
@@ -39,4 +41,5 @@
 
 #define PCAT2_VERSION_STRING MyCORE_STR(PCAT2_VERSION_MAJOR) MyCORE_STR(.) MyCORE_STR(PCAT2_VERSION_MINOR) MyCORE_STR(.) MyCORE_STR(PCAT2_VERSION_PATCH)
 
-#endif /* PCAT2_PCAT2_H */
+#endif /* PCAT2_PCAT2_VERSION_H */
+
