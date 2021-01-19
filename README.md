@@ -153,7 +153,8 @@ The source tree of Purring Cat contains the following modules:
 
 This project was launched in Jan. 2021.
 
-The source code derived from [MyHTML]<https://github.com/lexborisov/myhtml>, which is licensed under LGPL 2.1.
+The source code derived from [MyHTML](https://github.com/lexborisov/myhtml),
+which is licensed under LGPL 2.1.
 
 We welcome anybody to take part in the development and contribute your effort!
 
