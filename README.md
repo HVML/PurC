@@ -135,9 +135,6 @@ For more information about HVML, please refer to the following articles:
 Purring Cat implements the parser, the interpreter, and some built-in JSON objects for HVML.
 It is mainly written in C/C++ language and provides bindings for Python.
 
-The parser of HVML is derived from [MyHTML](https://github.com/lexborisov/myhtml),
-which is licensed under LGPL 2.1.
-
 The source tree of Purring Cat contains the following modules:
 
 - `include/`: The global header files.
@@ -151,6 +148,9 @@ The source tree of Purring Cat contains the following modules:
 - `src/bindings/`: The bindings for Python, Lua, and other programming languages.
 - `test/`: The unit test programs.
 - `docs/`: Some notes for developers.
+
+Note that the parser of HVML is derived from [MyHTML](https://github.com/lexborisov/myhtml),
+which is licensed under LGPL 2.1.
 
 ## Current Status
 
@@ -180,12 +180,12 @@ rm -rf build && cmake -B build && cmake --build build
 
 ## Authors and Contributors
 
-- Vincent Wei <https://github.com/VincentWei>
+- Vincent Wei (<https://github.com/VincentWei>)
 
 ## Copying
 
-Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
-Copyright (C) 2015-2017 Alexander Borisov <lex.borisov@gmail.com>
+Copyright (C) 2021 FMSoft (<https://www.fmsoft.cn>)  
+Copyright (C) 2015-2017 Alexander Borisov (<lex.borisov@gmail.com>)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
