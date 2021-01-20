@@ -32,9 +32,7 @@
  * Fast C/C++ HTML 5 Parser. Using threads.
  * With possibility of a Single Mode.
  * 
- * C99 and POSIX Threads! No dependencies!
- *
- * By https://html.spec.whatwg.org/ specification.
+ * Complies with specification on <https://html.spec.whatwg.org/>.
  *
  */
 
@@ -43,19 +41,12 @@
 #include <stdio.h>
 
 #include "pcat2_version.h"
+#include "pcat2_macros.h"
 #include "mycore/myosi.h"
 #include "mycore/incoming.h"
 #include "mycore/mystring.h"
 #include "mycore/utils/mchar_async.h"
 #include "myencoding/myosi.h"
-
-#if defined(_MSC_VER)
-#  define MyHTML_DEPRECATED(func) __declspec(deprecated) func
-#elif defined(__GNUC__) || defined(__INTEL_COMPILER)
-#  define MyHTML_DEPRECATED(func) func __attribute__((deprecated))
-#else
-#  define MyHTML_DEPRECATED(func) func
-#endif
 
 /**
  * @struct basic tag ids

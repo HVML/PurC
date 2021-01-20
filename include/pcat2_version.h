@@ -25,12 +25,9 @@
 #pragma once
 
 /**
- * @file pcat2.h
+ * @file pcat2_version.h
  *
- * Fast C/C++ HVML Parser and Interperter. Using threads.
- * With possibility of a Single Mode.
- * 
- * C99 and POSIX Threads!
+ * Version of Purring Cat 2.
  */
 
 #define PCAT2_VERSION_MAJOR 0
