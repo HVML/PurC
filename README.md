@@ -132,19 +132,22 @@ For more information about HVML, please refer to the following articles:
 
 ## Source Tree of Purring Cat
 
-Purring Cat is a reference implementation of HVML. It is mainly written
-in C/C++ language and provides bindings for Python.
+Purring Cat implements the parser, the interpreter, and some built-in JSON objects for HVML.
+It is mainly written in C/C++ language and provides bindings for Python.
+
+The parser of HVML is derived from [MyHTML](https://github.com/lexborisov/myhtml),
+which is licensed under LGPL 2.1.
 
 The source tree of Purring Cat contains the following modules:
 
 - `include/`: The global header files.
 - `src/mycore/`: Some basic utilities from MyHTML.
-- `src/parser/`: The HVML parser. The parser reads a HVML document and outputs a vDOM.
-- `src/ports/`: The ports for different operating systems, such as POSIX or Windows.
+- `src/parser/`: The HVML parser and HTML parser. The HVML parser reads a HVML document and creates a vDOM.
+- `src/ports/`: The ports for different operating systems, such as a POSIX-compliant system or Windows.
 - `src/interpreter/`: The interpreter of vDOM.
 - `src/json-eval/`: The parser of JSON evaluation expression.
 - `src/json-objects/`: The built-in dynamic JSON objects.
-- `src/web-renderer/`: A HTML/CSS renderer without JavaScript; It is derived from hiWebKit.
+- `src/webui-renderer/`: A simplified HTML/CSS renderer.
 - `src/bindings/`: The bindings for Python, Lua, and other programming languages.
 - `test/`: The unit test programs.
 - `docs/`: Some notes for developers.
@@ -152,9 +155,6 @@ The source tree of Purring Cat contains the following modules:
 ## Current Status
 
 This project was launched in Jan. 2021.
-
-The source code derived from [MyHTML](https://github.com/lexborisov/myhtml),
-which is licensed under LGPL 2.1.
 
 We welcome anybody to take part in the development and contribute your effort!
 
