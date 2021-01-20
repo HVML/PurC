@@ -1,6 +1,6 @@
 # Purring Cat 2
 
-Purring Cat 2 is the official implementation of HVML.
+This is yet another implementation of HVML.
 
 - [Introduction to HVML](#introduction-to-hvml)
 - [Source Tree of Purring Cat](#source-tree-of-purring-cat)
@@ -178,15 +178,14 @@ rm -rf build && cmake -B build && cmake --build build
 ### Other documents
 
 
-## Contributors
+## Authors and Contributors
 
-- Freemine
-- Tian Siyuan
-- Vincent Wei
+- Vincent Wei <https://github.com/VincentWei>
 
 ## Copying
 
-Copyright (C) 2021, [FMSoft]
+Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+Copyright (C) 2015-2017 Alexander Borisov <lex.borisov@gmail.com>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
