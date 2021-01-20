@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "pcat2_version.h"
+#include "myhtml.h"
 
 #include "mycore/myosi.h"
 
@@ -55,15 +55,6 @@ enum myhtml_tree_flags {
     MyHTML_TREE_FLAGS_PARSE_FLAG              = 0x040,
     MyHTML_TREE_FLAGS_PARSE_FLAG_EMIT_NEWLINE = 0x080
 };
-
-enum myhtml_tree_parse_flags {
-    MyHTML_TREE_PARSE_FLAGS_CLEAN                   = 0x000,
-    MyHTML_TREE_PARSE_FLAGS_WITHOUT_BUILD_TREE      = 0x001,
-    MyHTML_TREE_PARSE_FLAGS_WITHOUT_PROCESS_TOKEN   = 0x003,
-    MyHTML_TREE_PARSE_FLAGS_SKIP_WHITESPACE_TOKEN   = 0x004, /* skip ws token, but not for RCDATA, RAWTEXT, CDATA and PLAINTEXT */
-    MyHTML_TREE_PARSE_FLAGS_WITHOUT_DOCTYPE_IN_TREE = 0x008
-}
-typedef myhtml_tree_parse_flags_t;
 
 typedef struct myhtml_tree_temp_tag_name myhtml_tree_temp_tag_name_t;
 typedef struct myhtml_tree_insertion_list myhtml_tree_insertion_list_t;
@@ -229,74 +220,6 @@ enum myhtml_insertion_mode {
     MyHTML_INSERTION_MODE_LAST_ENTRY           = 0x017
 };
 
-// base
-/*
- Very important!!!
- See mycore/myosi.h:mystatus_t
-*/
-enum myhtml_status {
-    MyHTML_STATUS_OK                                   = 0x0000,
-    MyHTML_STATUS_ERROR                                = 0x0001,
-    MyHTML_STATUS_ERROR_MEMORY_ALLOCATION              = 0x0002,
-    MyHTML_STATUS_RULES_ERROR_MEMORY_ALLOCATION        = 0x9064,
-    MyHTML_STATUS_TOKENIZER_ERROR_MEMORY_ALLOCATION    = 0x912c,
-    MyHTML_STATUS_TOKENIZER_ERROR_FRAGMENT_INIT        = 0x912d,
-    MyHTML_STATUS_TAGS_ERROR_MEMORY_ALLOCATION         = 0x9190,
-    MyHTML_STATUS_TAGS_ERROR_MCOBJECT_CREATE           = 0x9191,
-    MyHTML_STATUS_TAGS_ERROR_MCOBJECT_MALLOC           = 0x9192,
-    MyHTML_STATUS_TAGS_ERROR_MCOBJECT_CREATE_NODE      = 0x9193,
-    MyHTML_STATUS_TAGS_ERROR_CACHE_MEMORY_ALLOCATION   = 0x9194,
-    MyHTML_STATUS_TAGS_ERROR_INDEX_MEMORY_ALLOCATION   = 0x9195,
-    MyHTML_STATUS_TREE_ERROR_MEMORY_ALLOCATION         = 0x91f4,
-    MyHTML_STATUS_TREE_ERROR_MCOBJECT_CREATE           = 0x91f5,
-    MyHTML_STATUS_TREE_ERROR_MCOBJECT_INIT             = 0x91f6,
-    MyHTML_STATUS_TREE_ERROR_MCOBJECT_CREATE_NODE      = 0x91f7,
-    MyHTML_STATUS_TREE_ERROR_INCOMING_BUFFER_CREATE    = 0x91f8,
-    MyHTML_STATUS_ATTR_ERROR_ALLOCATION                = 0x9258,
-    MyHTML_STATUS_ATTR_ERROR_CREATE                    = 0x9259,
-    MyHTML_STATUS_STREAM_BUFFER_ERROR_CREATE           = 0x9300,
-    MyHTML_STATUS_STREAM_BUFFER_ERROR_INIT             = 0x9301,
-    MyHTML_STATUS_STREAM_BUFFER_ENTRY_ERROR_CREATE     = 0x9302,
-    MyHTML_STATUS_STREAM_BUFFER_ENTRY_ERROR_INIT       = 0x9303,
-    MyHTML_STATUS_STREAM_BUFFER_ERROR_ADD_ENTRY        = 0x9304
-}
-typedef myhtml_status_t;
-
-enum myhtml_namespace {
-    MyHTML_NAMESPACE_UNDEF      = 0x00,
-    MyHTML_NAMESPACE_HTML       = 0x01,
-    MyHTML_NAMESPACE_MATHML     = 0x02,
-    MyHTML_NAMESPACE_SVG        = 0x03,
-    MyHTML_NAMESPACE_XLINK      = 0x04,
-    MyHTML_NAMESPACE_XML        = 0x05,
-    MyHTML_NAMESPACE_XMLNS      = 0x06,
-    
-    /* MyHTML_NAMESPACE_ANY == MyHTML_NAMESPACE_LAST_ENTRY */
-    MyHTML_NAMESPACE_ANY        = 0x07,
-    MyHTML_NAMESPACE_LAST_ENTRY = 0x07
-}
-typedef myhtml_namespace_t;
-
-enum myhtml_options {
-    MyHTML_OPTIONS_DEFAULT                 = 0x00,
-    MyHTML_OPTIONS_PARSE_MODE_SINGLE       = 0x01,
-    MyHTML_OPTIONS_PARSE_MODE_ALL_IN_ONE   = 0x02,
-    MyHTML_OPTIONS_PARSE_MODE_SEPARATELY   = 0x04
-};
-
-struct myhtml_position {
-    size_t begin;
-    size_t length;
-}
-typedef myhtml_position_t;
-
-struct myhtml_version {
-    int major;
-    int minor;
-    int patch;
-}
-typedef myhtml_version_t;
-
 typedef myhtml_token_attr_t myhtml_tree_attr_t;
 typedef struct myhtml_collection myhtml_collection_t;
 typedef struct myhtml myhtml_t;
@@ -309,10 +232,6 @@ typedef bool (*myhtml_insertion_f)(myhtml_tree_t* tree, myhtml_token_node_t* tok
 
 // char references state
 typedef size_t (*myhtml_data_process_state_f)(myhtml_data_process_entry_t* charef, mycore_string_t* str, const char* data, size_t offset, size_t size);
-
-// callback functions
-typedef void* (*myhtml_callback_token_f)(myhtml_tree_t* tree, myhtml_token_node_t* token, void* ctx);
-typedef void (*myhtml_callback_tree_node_f)(myhtml_tree_t* tree, myhtml_tree_node_t* node, void* ctx);
 
 // find attribute value functions
 typedef bool (*myhtml_attribute_value_find_f)(mycore_string_t* str_key, const char* value, size_t value_len);

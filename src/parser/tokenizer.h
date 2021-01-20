@@ -30,7 +30,7 @@ extern "C" {
 #include "myosi.h"
 #include "mycore/utils.h"
 #include "mycore/mythread.h"
-#include "myhtml_internal.h"
+#include "myhtml_internals.h"
 #include "tag.h"
 #include "tokenizer_doctype.h"
 #include "tokenizer_script.h"

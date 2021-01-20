@@ -29,7 +29,7 @@ extern "C" {
 
 #include "myosi.h"
 #include "mycore/utils.h"
-#include "myhtml_internal.h"
+#include "myhtml_internals.h"
 #include "tokenizer.h"
 
 size_t myhtml_tokenizer_state_script_data(myhtml_tree_t* tree, myhtml_token_node_t* token_node, const char* html, size_t html_offset, size_t html_size);

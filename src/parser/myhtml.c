@@ -19,7 +19,7 @@
 ** Author: lex.borisov@gmail.com (Alexander Borisov)
 */
 
-#include "myhtml_internal.h"
+#include "myhtml_internals.h"
 
 void myhtml_init_marker(myhtml_t* myhtml)
 {

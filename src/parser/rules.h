@@ -28,7 +28,7 @@ extern "C" {
 #endif
 
 #include "myosi.h"
-#include "myhtml_internal.h"
+#include "myhtml_internals.h"
 #include "tree.h"
 
 mystatus_t myhtml_rules_init(myhtml_t* myhtml);

@@ -28,7 +28,7 @@ extern "C" {
 #endif
 
 #include "myosi.h"
-#include "myhtml_internal.h"
+#include "myhtml_internals.h"
 #include "mystring.h"
 #include "tree.h"
 #include "token.h"

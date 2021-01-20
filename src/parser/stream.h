@@ -28,7 +28,7 @@ extern "C" {
 #endif
     
 #include "myosi.h"
-#include "myhtml_internal.h"
+#include "myhtml_internals.h"
 
 
 struct myhtml_stream_buffer_entry {

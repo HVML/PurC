@@ -28,7 +28,7 @@ extern "C" {
 #endif
 
 #include "myosi.h"
-#include "myhtml_internal.h"
+#include "myhtml_internals.h"
 #include "tokenizer.h"
 
 size_t myhtml_tokenizer_end_state_data(myhtml_tree_t* tree, myhtml_token_node_t* token_node, const char* html, size_t html_offset, size_t html_size);

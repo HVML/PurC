@@ -57,10 +57,6 @@
 #  define MyHTML_DEPRECATED(func) func
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * @struct basic tag ids
  */
@@ -474,6 +470,10 @@ typedef myhtml_version_t;
 // callback functions
 typedef void* (*myhtml_callback_token_f)(myhtml_tree_t* tree, myhtml_token_node_t* token, void* ctx);
 typedef void (*myhtml_callback_tree_node_f)(myhtml_tree_t* tree, myhtml_tree_node_t* node, void* ctx);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /***********************************************************************************
  *

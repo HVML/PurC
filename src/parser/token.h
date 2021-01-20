@@ -32,7 +32,7 @@ extern "C" {
 #include "myosi.h"
 #include "mycore/utils.h"
 #include "tag.h"
-#include "myhtml_internal.h"
+#include "myhtml_internals.h"
 #include "mystring.h"
 #include "mycore/utils/mcobject_async.h"
 #include "mycore/utils/mchar_async.h"
