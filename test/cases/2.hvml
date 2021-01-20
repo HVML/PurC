@@ -1,0 +1,24 @@
+<!DOCTYPE hvml>
+<hvml target="html" script="python">
+    <head>
+        <title>Hello, world!</title>
+
+        <init as="messages">
+            {
+              "zh_CN" : "世界，您好！",
+              "en_US" : "Hello, world!"
+            }
+        </init>
+    </head>
+
+    <body>
+        <p>
+            <choose on="$messages" to="update" by="KEY: $_SYSTEM.locale">
+                <update on="$@" textContent="$?" />
+                <except on="KeyError">
+                    No valid locale defined.
+                </except>
+            </choose>
+        </p>
+    </body>
+</hvml>

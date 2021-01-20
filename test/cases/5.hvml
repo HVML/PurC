@@ -1,0 +1,59 @@
+<!DOCTYPE hvml>
+<hvml target="xml" script="python">
+    <head>
+        <init as="fileInfo">
+            {
+                "curr_path": "/home/", 
+                "selected_type": "dir",
+                "selected_name": "..",
+            }
+        </init>
+    </head>
+
+    <body>
+        <label id="path">
+            $fileInfo.curr_path
+        </label>
+
+        <archetype id="dir-entry">
+            <item class="$?.type">$?.name</item>
+        </archetype>
+
+        <define as="fillDirEntries">
+            <choose on="$?" to="iterate" by="CLASS: CDirEntries">
+                <iterate on="$?" to="append" in="#entries" with="#dir-entry" by="RANGE: 0">
+                </iterate>
+            </choose>
+        </define>
+
+        <listbox id="entries">
+            <call on="$fillDirEntries" with="$fileInfo.curr_path" />
+        </listbox>
+
+        <button id="open">
+            Open
+        </button>
+
+        <observe on="$entries" for="selected-item-changed">
+            <update on="$fileInfo" key.selected_type="$?.type" key.selected_name="$?.name" />
+        </observe>
+
+        <observe on="$open" for="click">
+            <test on="$fileInfo.selected_type">
+                <match for="dir" to="empty call update update" exclusively>
+                    <init as="new_path">
+                        "$fileInfo.curr_path{$2.name}/"
+                    </init>
+
+                    <empty on="#entries" />
+                    <call on="$fillDirEntries" with="$new_path" />
+                    <update on="$fileInfo" key.curr_path="$new_path" />
+                    <update on="#path" textContent="$new_path" />
+                </match>
+                <match for="file" exclusively>
+                    <back to="_caller" with="$fileInfo" />
+                </match>
+            </test>
+        </observe>
+    </body>
+</hvml>
