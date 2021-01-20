@@ -8,7 +8,7 @@ This is yet another implementation of HVML.
 - [Building](#building)
    + [Commands](#commands)
    + [Using the test samples](#using-the-test-samples)
-- [Contributors](#contributors)
+- [Authors and Contributors](#authors-and-contributors)
 - [Copying](#copying)
 
 ## Introduction to HVML
