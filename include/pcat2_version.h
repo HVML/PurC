@@ -36,5 +36,32 @@
 
 #define PCAT2_VERSION_STRING MyCORE_STR(PCAT2_VERSION_MAJOR) MyCORE_STR(.) MyCORE_STR(PCAT2_VERSION_MINOR) MyCORE_STR(.) MyCORE_STR(PCAT2_VERSION_PATCH)
 
+/***********************************************************************************
+ *
+ * PCAT2_VERSION
+ *
+ ***********************************************************************************/
+
+/**
+ * @struct pcat2_version_t
+ */
+struct pcat2_version {
+    int major;
+    int minor;
+    int patch;
+}
+typedef pcat2_version_t;
+    
+/**
+ * Get current version
+ *
+ * @return pcat2_version_t
+ */
+static inline pcat2_version_t pcat2_version(void)
+{
+    return (pcat2_version_t) {
+        PCAT2_VERSION_MAJOR, PCAT2_VERSION_MINOR, PCAT2_VERSION_PATCH };
+}
+
 #endif /* PCAT2_PCAT2_VERSION_H */
 

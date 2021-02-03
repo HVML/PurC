@@ -37,12 +37,9 @@
 #include <stddef.h>
 #include <stdio.h>
 
-#include <pcat2_version.h>
-#include <mycore/myosi.h>
-#include <mycore/incoming.h>
-#include <mycore/mystring.h>
-#include <mycore/utils/mchar_async.h>
-#include <myencoding/myosi.h>
-#include <myhtml/myhtml.h>
+#include "pcat2_version.h"
+#include "mycore.h"
+#include "myencoding.h"
+#include "myhtml.h"
 
 #endif /* PCAT2_PCAT2_H */

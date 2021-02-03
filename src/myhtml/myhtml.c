@@ -1652,12 +1652,6 @@ bool myhtml_is_html_node(myhtml_tree_node_t *node, myhtml_tag_id_t tag_id)
     return node->tag_id == tag_id && node->ns == MyHTML_NAMESPACE_HTML;
 }
 
-/* version */
-myhtml_version_t myhtml_version(void)
-{
-    return (myhtml_version_t){PCAT2_VERSION_MAJOR, PCAT2_VERSION_MINOR, PCAT2_VERSION_PATCH};
-}
-
 myhtml_tree_node_t * myhtml_node_clone(myhtml_tree_t* dest_tree, myhtml_tree_node_t* src)
 {
     myhtml_tag_id_t tag_id;

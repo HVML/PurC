@@ -42,11 +42,8 @@
 
 #include "pcat2_version.h"
 #include "pcat2_macros.h"
-#include "mycore/myosi.h"
-#include "mycore/incoming.h"
-#include "mycore/mystring.h"
-#include "mycore/utils/mchar_async.h"
-#include "myencoding/myosi.h"
+#include "myencoding.h"
+#include "mycore.h"
 
 /**
  * @struct basic tag ids
@@ -448,16 +445,6 @@ typedef myhtml_position_t;
  */
 typedef struct myhtml_token_node myhtml_token_node_t;
 
-/**
- * @struct myhtml_version_t
- */
-struct myhtml_version {
-    int major;
-    int minor;
-    int patch;
-}
-typedef myhtml_version_t;
-    
 // callback functions
 typedef void* (*myhtml_callback_token_f)(myhtml_tree_t* tree, myhtml_token_node_t* token, void* ctx);
 typedef void (*myhtml_callback_tree_node_f)(myhtml_tree_t* tree, myhtml_tree_node_t* node, void* ctx);
@@ -836,6 +823,38 @@ myhtml_tree_get_mchar_node_id(myhtml_tree_t* tree);
  */
 mycore_incoming_buffer_t*
 myhtml_tree_incoming_buffer_first(myhtml_tree_t *tree);
+
+/**
+ * Set character encoding for input stream
+ *
+ * @param[in] myhtml_tree_t*
+ * @param[in] Input character encoding
+ *
+ */
+void
+myhtml_encoding_set(myhtml_tree_t* tree, myencoding_t encoding);
+
+/**
+ * Get character encoding for current stream
+ *
+ * @param[in] myhtml_tree_t*
+ *
+ * @return myencoding_t
+ */
+myencoding_t
+myhtml_encoding_get(myhtml_tree_t* tree);
+
+/**
+ * Convert Unicode Codepoint to UTF-8
+ *
+ * @param[in] Codepoint
+ * @param[in] Data to set characters. Minimum data length is 1 bytes, maximum is 4 byte
+ *   data length must be always available 4 bytes
+ *
+ * @return size character set
+ */
+size_t
+myencoding_codepoint_to_ascii_utf_8(size_t codepoint, char *data);
 
 /***********************************************************************************
  *
@@ -1807,555 +1826,6 @@ myhtml_collection_check_size(myhtml_collection_t *collection, size_t need, size_
 
 /***********************************************************************************
  *
- * MyHTML_ENCODING
- *
- ***********************************************************************************/
-
-/**
- * Set character encoding for input stream
- *
- * @param[in] myhtml_tree_t*
- * @param[in] Input character encoding
- *
- */
-void
-myhtml_encoding_set(myhtml_tree_t* tree, myencoding_t encoding);
-
-/**
- * Get character encoding for current stream
- *
- * @param[in] myhtml_tree_t*
- *
- * @return myencoding_t
- */
-myencoding_t
-myhtml_encoding_get(myhtml_tree_t* tree);
-
-/**
- * Convert Unicode Codepoint to UTF-8
- *
- * @param[in] Codepoint
- * @param[in] Data to set characters. Minimum data length is 1 bytes, maximum is 4 byte
- *   data length must be always available 4 bytes
- *
- * @return size character set
- */
-size_t
-myencoding_codepoint_to_ascii_utf_8(size_t codepoint, char *data);
-
-/**
- * Convert Unicode Codepoint to UTF-16LE
- *
- * I advise not to use UTF-16! Use UTF-8 and be happy!
- *
- * @param[in] Codepoint
- * @param[in] Data to set characters. Data length is 2 or 4 bytes
- *   data length must be always available 4 bytes
- *
- * @return size character set
- */
-size_t
-myencoding_codepoint_to_ascii_utf_16(size_t codepoint, char *data);
-
-/**
- * Detect character encoding
- *
- * Now available for detect UTF-8, UTF-16LE, UTF-16BE
- * and Russians: windows-1251,  koi8-r, iso-8859-5, x-mac-cyrillic, ibm866
- * Other in progress
- *
- * @param[in]  text
- * @param[in]  text length
- * @param[out] detected encoding
- *
- * @return true if encoding found, otherwise false
- */
-bool
-myencoding_detect(const char *text, size_t length, myencoding_t *encoding);
-
-/**
- * Detect Russian character encoding
- *
- * Now available for detect windows-1251,  koi8-r, iso-8859-5, x-mac-cyrillic, ibm866
- *
- * @param[in]  text
- * @param[in]  text length
- * @param[out] detected encoding
- *
- * @return true if encoding found, otherwise false
- */
-bool
-myencoding_detect_russian(const char *text, size_t length, myencoding_t *encoding);
-
-/**
- * Detect Unicode character encoding
- *
- * Now available for detect UTF-8, UTF-16LE, UTF-16BE
- *
- * @param[in]  text
- * @param[in]  text length
- * @param[out] detected encoding
- *
- * @return true if encoding found, otherwise false
- */
-bool
-myencoding_detect_unicode(const char *text, size_t length, myencoding_t *encoding);
-
-/**
- * Detect Unicode character encoding by BOM
- *
- * Now available for detect UTF-8, UTF-16LE, UTF-16BE
- *
- * @param[in]  text
- * @param[in]  text length
- * @param[out] detected encoding
- *
- * @return true if encoding found, otherwise false
- */
-bool
-myencoding_detect_bom(const char *text, size_t length, myencoding_t *encoding);
-
-/**
- * Detect Unicode character encoding by BOM. Cut BOM if will be found
- *
- * Now available for detect UTF-8, UTF-16LE, UTF-16BE
- *
- * @param[in]  text
- * @param[in]  text length
- * @param[out] detected encoding
- * @param[out] new text position
- * @param[out] new size position
- *
- * @return true if encoding found, otherwise false
- */
-bool
-myencoding_detect_and_cut_bom(const char *text, size_t length, myencoding_t *encoding,
-                                   const char **new_text, size_t *new_size);
-
-/**
- * Detect encoding by name
- * Names like: windows-1258 return MyENCODING_WINDOWS_1258
- *             cp1251 or windows-1251 return MyENCODING_WINDOWS_1251
- *
- * See https://encoding.spec.whatwg.org/#names-and-labels
- *
- * @param[in]  name
- * @param[in]  name length
- * @param[out] detected encoding
- *
- * @return true if encoding found, otherwise false
- */
-bool
-myencoding_by_name(const char *name, size_t length, myencoding_t *encoding);
-
-/**
- * Get Encoding name by myencoding_t (by id)
- *
- * @param[in]  myencoding_t, encoding id
- * @param[out] return name length
- *
- * @return encoding name, otherwise NULL value
- */
-const char*
-myencoding_name_by_id(myencoding_t encoding, size_t *length);
-
-/**
- * Detect encoding in meta tag (<meta ...>) before start parsing
- *
- * See https://html.spec.whatwg.org/multipage/syntax.html#prescan-a-byte-stream-to-determine-its-encoding
- *
- * @param[in]  html data bytes
- * @param[in]  html data length
- *
- * @return detected encoding if encoding found, otherwise MyENCODING_NOT_DETERMINED
- */
-myencoding_t
-myencoding_prescan_stream_to_determine_encoding(const char *data, size_t data_size);
-
-/**
- * Extracting character encoding from string. Find "charset=" and see encoding. 
- * For example: "text/html; charset=windows-1251". Return MyENCODING_WINDOWS_1251
- *
- *
- * See https://html.spec.whatwg.org/multipage/infrastructure.html#algorithm-for-extracting-a-character-encoding-from-a-meta-element
- *
- * @param[in]  data
- * @param[in]  data length
- * @param[out] return encoding
- *
- * @return true if encoding found
- */
-bool
-myencoding_extracting_character_encoding_from_charset(const char *data, size_t data_size,
-                                                           myencoding_t *encoding);
-
-/**
- * Detect encoding in meta tag (<meta ...>) before start parsing and return found raw data
- *
- * See https://html.spec.whatwg.org/multipage/syntax.html#prescan-a-byte-stream-to-determine-its-encoding
- *
- * @param[in]  html data bytes
- * @param[in]  html data length
- * @param[out] return raw char data point for find encoding
- * @param[out] return raw char length
- *
- * @return detected encoding if encoding found, otherwise MyENCODING_NOT_DETERMINED
- */
-myencoding_t
-myencoding_prescan_stream_to_determine_encoding_with_found(const char *data, size_t data_size,
-                                                           const char **found, size_t *found_length);
-
-/**
- * Extracting character encoding from string. Find "charset=" and see encoding. Return found raw data.
- * For example: "text/html; charset=windows-1251". Return MyENCODING_WINDOWS_1251
- *
- *
- * See https://html.spec.whatwg.org/multipage/infrastructure.html#algorithm-for-extracting-a-character-encoding-from-a-meta-element
- *
- * @param[in]  data
- * @param[in]  data length
- * @param[out] return encoding
- * @param[out] return raw char data point for find encoding
- * @param[out] return raw char length
- *
- * @return true if encoding found
- */
-bool
-myencoding_extracting_character_encoding_from_charset_with_found(const char *data, size_t data_size,
-                                                                 myencoding_t *encoding,
-                                                                 const char **found, size_t *found_length);
-
-/***********************************************************************************
- *
- * MyHTML_STRING
- *
- ***********************************************************************************/
-
-/**
- * Init mycore_string_t structure
- *
- * @param[in] mchar_async_t*. It can be obtained from myhtml_tree_t object
- *  (see myhtml_tree_get_mchar function) or create manualy
- *  For each Tree creates its object, I recommend to use it (myhtml_tree_get_mchar).
- *
- * @param[in] node_id. For all threads (and Main thread) identifier that is unique.
- *  if created mchar_async_t object manually you know it, if not then take from the Tree 
- *  (see myhtml_tree_get_mchar_node_id)
- *
- * @param[in] mycore_string_t*. It can be obtained from myhtml_tree_node_t object
- *  (see myhtml_node_string function) or create manualy
- *
- * @param[in] data size. Set the size you want for char*
- *
- * @return char* of the size if successful, otherwise a NULL value
- */
-char*
-mycore_string_init(mchar_async_t *mchar, size_t node_id,
-                   mycore_string_t* str, size_t size);
-
-/**
- * Increase the current size for mycore_string_t object
- *
- * @param[in] mycore_string_t*. See description for mycore_string_init function
- * @param[in] data size. Set the new size you want for mycore_string_t object
- *
- * @return char* of the size if successful, otherwise a NULL value
- */
-char*
-mycore_string_realloc(mycore_string_t *str, size_t new_size);
-
-/**
- * Clean mycore_string_t object. In reality, data length set to 0
- * Equivalently: mycore_string_length_set(str, 0);
- *
- * @param[in] mycore_string_t*. See description for mycore_string_init function
- */
-void
-mycore_string_clean(mycore_string_t* str);
-
-/**
- * Clean mycore_string_t object. Equivalently: memset(str, 0, sizeof(mycore_string_t))
- *
- * @param[in] mycore_string_t*. See description for mycore_string_init function
- */
-void
-mycore_string_clean_all(mycore_string_t* str);
-
-/**
- * Release all resources for mycore_string_t object
- *
- * @param[in] mycore_string_t*. See description for mycore_string_init function
- * @param[in] call free function for current object or not
- *
- * @return NULL if destroy_obj set true, otherwise a current mycore_string_t object
- */
-mycore_string_t*
-mycore_string_destroy(mycore_string_t* str, bool destroy_obj);
-
-/**
- * Get data (char*) from a mycore_string_t object
- *
- * @param[in] mycore_string_t*. See description for mycore_string_init function
- *
- * @return char* if exists, otherwise a NULL value
- */
-char*
-mycore_string_data(mycore_string_t *str);
-
-/**
- * Get data length from a mycore_string_t object
- *
- * @param[in] mycore_string_t*. See description for mycore_string_init function
- *
- * @return data length
- */
-size_t
-mycore_string_length(mycore_string_t *str);
-
-/**
- * Get data size from a mycore_string_t object
- *
- * @param[in] mycore_string_t*. See description for mycore_string_init function
- *
- * @return data size
- */
-size_t
-mycore_string_size(mycore_string_t *str);
-
-/**
- * Set data (char *) for a mycore_string_t object.
- *
- * Attention!!! Attention!!! Attention!!!
- *
- * You can assign only that it has been allocated from functions:
- * mycore_string_data_alloc
- * mycore_string_data_realloc
- * or obtained manually created from mchar_async_t object
- *
- * Attention!!! Do not try set chat* from allocated by malloc or realloc!!!
- *
- * @param[in] mycore_string_t*. See description for mycore_string_init function
- * @param[in] you data to want assign
- *
- * @return assigned data if successful, otherwise a NULL value
- */
-char*
-mycore_string_data_set(mycore_string_t *str, char *data);
-
-/**
- * Set data size for a mycore_string_t object.
- *
- * @param[in] mycore_string_t*. See description for mycore_string_init function
- * @param[in] you size to want assign
- *
- * @return assigned size
- */
-size_t
-mycore_string_size_set(mycore_string_t *str, size_t size);
-
-/**
- * Set data length for a mycore_string_t object.
- *
- * @param[in] mycore_string_t*. See description for mycore_string_init function
- * @param[in] you length to want assign
- *
- * @return assigned length
- */
-size_t
-mycore_string_length_set(mycore_string_t *str, size_t length);
-
-/**
- * Allocate data (char*) from a mchar_async_t object
- *
- * @param[in] mchar_async_t*. See description for mycore_string_init function
- * @param[in] node id. See description for mycore_string_init function
- * @param[in] you size to want assign
- *
- * @return data if successful, otherwise a NULL value
- */
-char*
-mycore_string_data_alloc(mchar_async_t *mchar, size_t node_id, size_t size);
-
-/**
- * Allocate data (char*) from a mchar_async_t object
- *
- * @param[in] mchar_async_t*. See description for mycore_string_init function
- * @param[in] node id. See description for mycore_string_init function
- * @param[in] old data
- * @param[in] how much data is copied from the old data to new data
- * @param[in] new size
- *
- * @return data if successful, otherwise a NULL value
- */
-char*
-mycore_string_data_realloc(mchar_async_t *mchar, size_t node_id,
-                           char *data,  size_t len_to_copy, size_t size);
-
-/**
- * Release allocated data
- *
- * @param[in] mchar_async_t*. See description for mycore_string_init function
- * @param[in] node id. See description for mycore_string_init function
- * @param[in] data to release
- *
- * @return data if successful, otherwise a NULL value
- */
-void
-mycore_string_data_free(mchar_async_t *mchar, size_t node_id, char *data);
-
-/***********************************************************************************
- *
- * MyHTML_STRING_RAW
- *
- * All work with mycore_string_raw_t object occurs through 
- *    mycore_malloc (standart malloc), mycore_realloc (standart realloc),
- *    mycore_free (standart free).
- * 
- * You are free to change them on without fear that something will happen
- * You can call free for str_raw.data, or change str_raw.length = 0
- *
- ***********************************************************************************/
-
-/**
- * Clean mycore_string_raw_t object. In reality, data length set to 0
- *
- * @param[in] mycore_string_raw_t*
- */
-void
-mycore_string_raw_clean(mycore_string_raw_t* str_raw);
-
-/**
- * Full clean mycore_string_raw_t object.
- * Equivalently: memset(str_raw, 0, sizeof(mycore_string_raw_t))
- *
- * @param[in] mycore_string_raw_t*
- */
-void
-mycore_string_raw_clean_all(mycore_string_raw_t* str_raw);
-
-/**
- * Free resources for mycore_string_raw_t object
- *
- * @param[in] mycore_string_raw_t*
- * @param[in] call free function for current object or not
- *
- * @return NULL if destroy_obj set true, otherwise a current mycore_string_raw_t object
- */
-mycore_string_raw_t*
-mycore_string_raw_destroy(mycore_string_raw_t* str_raw, bool destroy_obj);
-
-
-/***********************************************************************************
- *
- * MyHTML_INCOMING
- *
- * @description
- * For example, three buffer:
- *   1) Data: "bebebe";        Prev: 0; Next: 2; Size: 6;  Length: 6;  Offset: 0
- *   2) Data: "lalala-lululu"; Prev: 1; Next: 3; Size: 13; Length: 13; Offset: 6
- *   3) Data: "huy";           Prev: 2; Next: 0; Size: 3;  Length: 1;  Offset: 19
- *
- ***********************************************************************************/
-
-/**
- * Get Incoming Buffer by position
- *
- * @param[in] current mycore_incoming_buffer_t*
- * @param[in] begin position
- *
- * @return mycore_incoming_buffer_t if successful, otherwise a NULL value
- */
-mycore_incoming_buffer_t*
-mycore_incoming_buffer_find_by_position(mycore_incoming_buffer_t *inc_buf, size_t begin);
-
-/**
- * Get data of Incoming Buffer
- *
- * @param[in] mycore_incoming_buffer_t*
- *
- * @return const char* if successful, otherwise a NULL value
- */
-const char*
-mycore_incoming_buffer_data(mycore_incoming_buffer_t *inc_buf);
-
-/**
- * Get data length of Incoming Buffer
- *
- * @param[in] mycore_incoming_buffer_t*
- *
- * @return size_t
- */
-size_t
-mycore_incoming_buffer_length(mycore_incoming_buffer_t *inc_buf);
-
-/**
- * Get data size of Incoming Buffer
- *
- * @param[in] mycore_incoming_buffer_t*
- *
- * @return size_t
- */
-size_t
-mycore_incoming_buffer_size(mycore_incoming_buffer_t *inc_buf);
-
-/**
- * Get data offset of Incoming Buffer. Global position of begin Incoming Buffer.
- * See description for MyHTML_INCOMING title
- *
- * @param[in] mycore_incoming_buffer_t*
- *
- * @return size_t
- */
-size_t
-mycore_incoming_buffer_offset(mycore_incoming_buffer_t *inc_buf);
-
-/**
- * Get Relative Position for Incoming Buffer.
- * Incoming Buffer should be prepared by mycore_incoming_buffer_find_by_position
- *
- * @param[in] mycore_incoming_buffer_t*
- * @param[in] global begin
- *
- * @return size_t
- */
-size_t
-mycore_incoming_buffer_relative_begin(mycore_incoming_buffer_t *inc_buf, size_t begin);
-
-/**
- * This function returns number of available data by Incoming Buffer
- * Incoming buffer may be incomplete. See mycore_incoming_buffer_next
- *
- * @param[in] mycore_incoming_buffer_t*
- * @param[in] global begin
- *
- * @return size_t
- */
-size_t
-mycore_incoming_buffer_available_length(mycore_incoming_buffer_t *inc_buf,
-                                        size_t relative_begin, size_t length);
-
-/**
- * Get next buffer
- *
- * @param[in] mycore_incoming_buffer_t*
- *
- * @return mycore_incoming_buffer_t*
- */
-mycore_incoming_buffer_t*
-mycore_incoming_buffer_next(mycore_incoming_buffer_t *inc_buf);
-
-/**
- * Get prev buffer
- *
- * @param[in] mycore_incoming_buffer_t*
- *
- * @return mycore_incoming_buffer_t*
- */
-mycore_incoming_buffer_t*
-mycore_incoming_buffer_prev(mycore_incoming_buffer_t *inc_buf);
-
-/***********************************************************************************
- *
  * MyHTML_NAMESPACE
  *
  ***********************************************************************************/
@@ -2495,34 +1965,6 @@ myhtml_callback_tree_node_remove_set(myhtml_tree_t* tree, myhtml_callback_tree_n
 
 /***********************************************************************************
  *
- * MyHTML_UTILS
- *
- ***********************************************************************************/
-
-/**
- * Compare two strings ignoring case
- *
- * @param[in] myhtml_collection_t*
- * @param[in] count of add nodes
- *
- * @return 0 if match, otherwise index of break position
- */
-size_t
-mycore_strcasecmp(const char* str1, const char* str2);
-
-/**
- * Compare two strings ignoring case of the first n characters
- *
- * @param[in] myhtml_collection_t*
- * @param[in] count of add nodes
- *
- * @return 0 if match, otherwise index of break position
- */
-size_t
-mycore_strncasecmp(const char* str1, const char* str2, size_t size);
-
-/***********************************************************************************
- *
  * MyHTML_SERIALIZATION
  *
  ***********************************************************************************/
@@ -2592,20 +2034,6 @@ myhtml_serialization_tree_callback(myhtml_tree_node_t* scope_node,
 mystatus_t
 myhtml_serialization_node_callback(myhtml_tree_node_t* node,
                                    mycore_callback_serialize_f callback, void* ptr);
-
-/***********************************************************************************
- *
- * MyHTML_VERSION
- *
- ***********************************************************************************/
-
-/**
- * Get current version
- *
- * @return myhtml_version_t
- */
-myhtml_version_t
-myhtml_version(void);
 
 #ifdef __cplusplus
 } /* extern "C" */
