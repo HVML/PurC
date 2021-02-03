@@ -23,7 +23,7 @@
 #define MyENCODING_MYOSI_H
 #pragma once
 
-#include <mycore/myosi.h>
+#include "mycore/myosi.h"
 
 #define MyENCODING_VERSION_MAJOR 0
 #define MyENCODING_VERSION_MINOR 1

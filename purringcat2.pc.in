@@ -1,0 +1,10 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+includedir=${prefix}/@includedir@
+libdir=${prefix}/@libdir@
+
+Name: @libname@
+Description: @description@
+Version: @version@
+Cflags: @cflags@ -I${prefix}/@includedir@
+Libs: -L${prefix}/@libdir@ -l@libname@

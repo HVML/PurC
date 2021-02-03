@@ -27,8 +27,9 @@ endif()
 ## version and path
 #########################
 set(PROJECT_NAME "purringcat2")
+set(PROJECT_DESCRIPTION "The HVML Interpreter.")
 set(PROJECT_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/src")
-set(PROJECT_DIR_LIB "${CMAKE_CURRENT_SOURCE_DIR}/lib")
+#set(PROJECT_DIR_LIB "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 set(PROJECT_DIR_HEADER "${PROJECT_SOURCE}")
 set(PROJECT_DIR_API_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/include")
 set(PROJECT_SOURCE_PORT_DIR "${PROJECT_SOURCE}/ports")
@@ -205,13 +206,29 @@ if(PCAT2_BUILD_STATIC)
 endif()
 
 ################
+# generate the .pc file used by pkg-config
+#########################
+set(prefix ${CMAKE_INSTALL_PREFIX})
+set(exec_prefix "${CMAKE_INSTALL_PREFIX}/${PROJECT_INSTALL_DLL_EXE_DIR}")
+set(libdir ${CMAKE_INSTALL_LIBDIR})
+set(includedir "include/pcat2")
+set(libname ${PROJECT_LIB_NAME})
+set(description ${PROJECT_DESCRIPTION})
+set(version ${PROJECT_VERSION_STRING})
+configure_file (
+    "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pc.in"
+    "${PROJECT_BINARY_DIR}/${PROJECT_NAME}.pc")
+
+################
 ## install
 #########################
 if(PCAT2_INSTALL_HEADER)
     file(GLOB PROJECT_HEADER_DIRS "${PROJECT_DIR_API_HEADER}/*")
     foreach(ITEM ${PROJECT_HEADER_DIRS})                                                                                                                                                
         if(IS_DIRECTORY "${ITEM}")
-            install(DIRECTORY "${ITEM}" DESTINATION "include" FILES_MATCHING PATTERN "*.h")
+            install(DIRECTORY "${ITEM}" DESTINATION "include/pcat2" FILES_MATCHING PATTERN "*.h")
+        elseif("${ITEM}" MATCHES ".*\\.h")
+            install(FILES "${ITEM}" DESTINATION "include/pcat2")
         endif()
     endforeach()
 endif()
@@ -227,6 +244,10 @@ if(PCAT2_BUILD_STATIC)
     RUNTIME DESTINATION "${PROJECT_INSTALL_DLL_EXE_DIR}"
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
 endif()
+
+# pkgconfig
+install (FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}.pc"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 
 ################
 ## Build an RPM.
@@ -245,7 +266,7 @@ endif()
 
 set(CPACK_PACKAGE_NAME "${PROJECT_NAME}")
 set(CPACK_PACKAGE_RELEASE 1)
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Fast C/C++ HVML Parser. Using threads.")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PROJECT_DESCRIPTION}")
 set(CPACK_PACKAGE_CONTACT "hvml@fmsoft.cn")
 set(CPACK_PACKAGE_VENDOR "FMSoft.CN")
 
