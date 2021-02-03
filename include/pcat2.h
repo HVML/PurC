@@ -43,6 +43,6 @@
 #include <mycore/mystring.h>
 #include <mycore/utils/mchar_async.h>
 #include <myencoding/myosi.h>
-#include <parser/myhtml.h>
+#include <myhtml/myhtml.h>
 
 #endif /* PCAT2_PCAT2_H */

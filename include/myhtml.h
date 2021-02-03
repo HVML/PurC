@@ -671,7 +671,7 @@ myhtml_tree_create(void);
  * Allocating and Initialization resources for a MyHTML_TREE structure
  *
  * @param[in] myhtml_tree_t*
- * @param[in] workmyhtml_t*
+ * @param[in] myhtml_t*
  *
  * @return MyHTML_STATUS_OK if successful, otherwise an error status
  */
