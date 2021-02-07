@@ -30,6 +30,7 @@
 #include "mycore/utils/mcobject_async.h"
 #include "mycore/mythread.h"
 #include "mycore/incoming.h"
+#include "mycore/charef.h"
 #include "myencoding/encoding.h"
 #include "tree.h"
 #include "tag.h"
@@ -38,7 +39,6 @@
 #include "tokenizer.h"
 #include "rules.h"
 #include "token.h"
-#include "charef.h"
 #include "callback.h"
 
 #define mh_queue_current() tree->queue

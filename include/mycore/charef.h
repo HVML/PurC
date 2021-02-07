@@ -19,15 +19,12 @@
 ** Author: lex.borisov@gmail.com (Alexander Borisov)
 */
 
-#ifndef MyHTML_CHAREF_H
-#define MyHTML_CHAREF_H
+#ifndef MyCORE_CHAREF_H
+#define MyCORE_CHAREF_H
+
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-    
-#include "myosi.h"
+#include <stddef.h>
 
 struct charef_entry {
     unsigned char ch;
@@ -46,12 +43,16 @@ struct charef_entry_result {
 }
 typedef charef_entry_result_t;
 
-const charef_entry_t * myhtml_charef_find(const char *begin, size_t *offset, size_t size, size_t *data_size);
-const charef_entry_t * myhtml_charef_find_by_pos(size_t pos, const char *begin, size_t *offset, size_t size, charef_entry_result_t *result);
-const charef_entry_t * myhtml_charef_get_first_position(const char begin);
+#ifdef __cplusplus
+extern "C" {
+#endif
+    
+const charef_entry_t * mycore_charef_find(const char *begin, size_t *offset, size_t size, size_t *data_size);
+const charef_entry_t * mycore_charef_find_by_pos(size_t pos, const char *begin, size_t *offset, size_t size, charef_entry_result_t *result);
+const charef_entry_t * mycore_charef_get_first_position(const char begin);
 
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
 
-#endif /* charef_h */
+#endif /* MyCORE_CHAREF_H */

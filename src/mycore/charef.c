@@ -19,10 +19,10 @@
 ** Author: lex.borisov@gmail.com (Alexander Borisov)
 */
 
-#include "charef.h"
+#include "mycore/charef.h"
 #include "charef_resource.h"
 
-const charef_entry_t * myhtml_charef_find(const char *begin, size_t *offset, size_t size, size_t *data_size)
+const charef_entry_t * mycore_charef_find(const char *begin, size_t *offset, size_t size, size_t *data_size)
 {
     unsigned const char* u_begin = (unsigned const char*)begin;
     size_t pos = (size_t)(*u_begin);
@@ -56,12 +56,12 @@ const charef_entry_t * myhtml_charef_find(const char *begin, size_t *offset, siz
     return &named_character_references[pos];
 }
 
-const charef_entry_t * myhtml_charef_get_first_position(const char begin)
+const charef_entry_t * mycore_charef_get_first_position(const char begin)
 {
     return &named_character_references[ (unsigned const char)begin ];
 }
 
-const charef_entry_t * myhtml_charef_find_by_pos(size_t pos, const char *begin, size_t *offset, size_t size, charef_entry_result_t *result)
+const charef_entry_t * mycore_charef_find_by_pos(size_t pos, const char *begin, size_t *offset, size_t size, charef_entry_result_t *result)
 {
     unsigned const char* u_begin = (unsigned const char*)begin;
     

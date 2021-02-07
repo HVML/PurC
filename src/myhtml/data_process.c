@@ -119,7 +119,7 @@ size_t myhtml_data_process_state_ampersand(myhtml_data_process_entry_t* proc_ent
     }
     else {
         proc_entry->charef_res.last_entry = NULL;
-        proc_entry->charef_res.curr_entry = myhtml_charef_get_first_position(data[offset]);
+        proc_entry->charef_res.curr_entry = mycore_charef_get_first_position(data[offset]);
         
         if(proc_entry->charef_res.curr_entry->ch == '\0')
             proc_entry->state = myhtml_data_process_state_data;
@@ -138,7 +138,7 @@ size_t myhtml_data_process_state_ampersand_data(myhtml_data_process_entry_t* pro
 {
     size_t tmp_offset = offset;
     
-    const charef_entry_t *current_entry = myhtml_charef_find_by_pos(proc_entry->charef_res.curr_entry->next, data, &offset, size, &proc_entry->charef_res);
+    const charef_entry_t *current_entry = mycore_charef_find_by_pos(proc_entry->charef_res.curr_entry->next, data, &offset, size, &proc_entry->charef_res);
     
     if(proc_entry->charef_res.is_done) {
         proc_entry->state = myhtml_data_process_state_data;

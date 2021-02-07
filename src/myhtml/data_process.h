@@ -28,7 +28,7 @@ extern "C" {
 #endif
 
 #include "myosi.h"
-#include "charef.h"
+#include "mycore.h"
 #include "mystring.h"
 
 struct myhtml_data_process_entry {

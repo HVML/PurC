@@ -45,6 +45,7 @@
 #include "mycore/myosi.h"
 #include "mycore/incoming.h"
 #include "mycore/mystring.h"
+#include "mycore/charef.h"
 #include "mycore/utils/mchar_async.h"
 
 #ifdef __cplusplus
