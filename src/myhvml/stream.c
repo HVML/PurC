@@ -1,5 +1,5 @@
 /*
-** Copyright (C) 2015-2017 Alexander Borisov
+** Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
 **
 ** This file is a part of Purring Cat 2, a HVML parser and interpreter.
 ** 
@@ -16,7 +16,7 @@
 ** You should have received a copy of the GNU Lesser General Public License
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 **
-** Author: lex.borisov@gmail.com (Alexander Borisov)
+** Author: Vincent Wei <https://github.com/VincentWei>
 */
 
 #include "stream.h"
