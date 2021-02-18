@@ -47,8 +47,9 @@ enum myhvml_tags {
     MyHVML_TAG__TEXT,
     MyHVML_TAG__COMMENT,
     MyHVML_TAG__DOCTYPE,
-    MyHVML_TAG_ARCHDATA,
-    MyHVML_TAG_ARCHTYPE,
+    MyHVML_TAG__FOREIGN,
+    MyHVML_TAG_ARCHEDATA,
+    MyHVML_TAG_ARCHETYPE,
     MyHVML_TAG_BACK,
     MyHVML_TAG_BODY,
     MyHVML_TAG_CALL,
@@ -57,6 +58,7 @@ enum myhvml_tags {
     MyHVML_TAG_DEFINE,
     MyHVML_TAG_EMPTY,
     MyHVML_TAG_ERROR,
+    MyHVML_TAG_EXCEPT,
     MyHVML_TAG_HEAD,
     MyHVML_TAG_HVML,
     MyHVML_TAG_INIT,
@@ -66,6 +68,7 @@ enum myhvml_tags {
     MyHVML_TAG_LOAD,
     MyHVML_TAG_MATCH,
     MyHVML_TAG_OBSERVE,
+    MyHVML_TAG_RAWTEXT,
     MyHVML_TAG_REMOVE,
     MyHVML_TAG_REQUEST,
     MyHVML_TAG_REDUCE,
@@ -126,6 +129,20 @@ typedef myhvml_status_t;
 #define MyHVML_FAILED(_status_) ((_status_) != MyHVML_STATUS_OK)
 
 /**
+ * @enum myhvml target
+ */
+enum myhvml_target {
+    MyHVML_TARGET_UNDEF     = 0x00,
+    MyHVML_TARGET_HTML,
+    MyHVML_TARGET_XML,
+
+    /* MyHVML_TARGET_ANY == MyHVML_TARGET_LAST_ENTRY */
+    MyHVML_TARGET_ANY        = MyHVML_TARGET_XML,
+    MyHVML_TARGET_LAST_ENTRY = MyHVML_TARGET_XML,
+}
+typedef myhvml_target_t;
+
+/*
  * @struct myhvml namespace
  */
 enum myhvml_namespace {

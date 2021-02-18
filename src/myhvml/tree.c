@@ -723,10 +723,12 @@ myhvml_tree_node_t * myhvml_tree_element_in_scope(myhvml_tree_t* tree, myhvml_ta
            (mynamespace == MyHVML_NAMESPACE_UNDEF || list[i]->ns == mynamespace))
             return list[i];
         else if(category == MyHVML_TAG_CATEGORIES_SCOPE_SELECT) {
-            if((tag_ctx->cats[list[i]->ns] & category) == 0)
+            // VW: if((tag_ctx->cats[list[i]->ns] & category) == 0)
+            if((tag_ctx->cats & category) == 0)
                 break;
         }
-        else if(tag_ctx->cats[list[i]->ns] & category)
+        // VW: else if(tag_ctx->cats[list[i]->ns] & category)
+        else if(tag_ctx->cats & category)
             break;
     }
     
@@ -749,10 +751,12 @@ bool myhvml_tree_element_in_scope_by_node(myhvml_tree_node_t* node, enum myhvml_
         if(list[i] == node)
             return true;
         else if(category == MyHVML_TAG_CATEGORIES_SCOPE_SELECT) {
-            if((tag_ctx->cats[list[i]->ns] & category) == 0)
+            // VW: if((tag_ctx->cats[list[i]->ns] & category) == 0)
+            if((tag_ctx->cats & category) == 0)
                 break;
         }
-        else if(tag_ctx->cats[list[i]->ns] & category)
+        // VW: else if(tag_ctx->cats[list[i]->ns] & category)
+        else if(tag_ctx->cats & category)
             break;
     }
     
@@ -1716,7 +1720,8 @@ bool myhvml_tree_adoption_agency_algorithm(myhvml_tree_t* tree, myhvml_token_nod
         {
             const myhvml_tag_context_t *tag_ctx = myhvml_tag_get_by_id(tree->tags, oel_list[idx_furthest_block]->tag_id);
             
-            if(tag_ctx->cats[oel_list[idx_furthest_block]->ns] & MyHVML_TAG_CATEGORIES_SPECIAL) {
+            // VW: if(tag_ctx->cats[oel_list[idx_furthest_block]->ns] & MyHVML_TAG_CATEGORIES_SPECIAL) {
+            if(tag_ctx->cats & MyHVML_TAG_CATEGORIES_SPECIAL) {
                 furthest_block = oel_list[idx_furthest_block];
                 break;
             }

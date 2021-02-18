@@ -104,10 +104,10 @@ myhvml_tag_id_t myhvml_tag_add(myhvml_tag_t* tags, const char* key, size_t key_s
     tag_ctx->name        = cache;
     tag_ctx->name_length = key_size;
     tag_ctx->data_parser = data_parser;
+    // VW: memset(tag_ctx->cats, 0, sizeof(enum myhtml_tag_categories) * MyHTML_NAMESPACE_LAST_ENTRY);
+    tag_ctx->cats = 0;
     
     tags->tags_count++;
-    
-    memset(tag_ctx->cats, 0, sizeof(enum myhvml_tag_categories) * MyHVML_NAMESPACE_LAST_ENTRY);
     
     return tag_ctx->id;
 }
@@ -119,7 +119,9 @@ void myhvml_tag_set_category(myhvml_tag_t* tags, myhvml_tag_id_t tag_idx,
         return;
     
     myhvml_tag_context_t *tag_ctx = mcsimple_get_by_absolute_position(tags->mcsimple_context, (tag_idx - MyHVML_TAG_LAST_ENTRY));
-    tag_ctx->cats[ns] = cats;
+
+    // VW: tag_ctx->cats[ns] = cats;
+    tag_ctx->cats = cats;
 }
 
 const myhvml_tag_context_t * myhvml_tag_get_by_id(myhvml_tag_t* tags, myhvml_tag_id_t tag_id)

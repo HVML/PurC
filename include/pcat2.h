@@ -38,8 +38,10 @@
 #include <stdio.h>
 
 #include "pcat2_version.h"
+#include "pcat2_macros.h"
 #include "mycore.h"
 #include "myencoding.h"
 #include "myhtml.h"
+#include "myhvml.h"
 
 #endif /* PCAT2_PCAT2_H */

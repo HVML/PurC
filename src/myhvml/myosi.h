@@ -86,12 +86,12 @@ enum myhvml_tag_categories {
     MyHVML_TAG_CATEGORIES_UNDEF            = 0x000,
     MyHVML_TAG_CATEGORIES_ORDINARY         = 0x001,
     MyHVML_TAG_CATEGORIES_SPECIAL          = 0x002,
-    MyHVML_TAG_CATEGORIES_FORMATTING       = 0x004,
+    MyHVML_TAG_CATEGORIES_FORMATTING       = 0x004, /* VW: no use for HVML */
     MyHVML_TAG_CATEGORIES_SCOPE            = 0x008,
-    MyHVML_TAG_CATEGORIES_SCOPE_LIST_ITEM  = 0x010,
-    MyHVML_TAG_CATEGORIES_SCOPE_BUTTON     = 0x020,
-    MyHVML_TAG_CATEGORIES_SCOPE_TABLE      = 0x040,
-    MyHVML_TAG_CATEGORIES_SCOPE_SELECT     = 0x080
+    MyHVML_TAG_CATEGORIES_SCOPE_LIST_ITEM  = 0x010, /* VW: no use for HVML */
+    MyHVML_TAG_CATEGORIES_SCOPE_BUTTON     = 0x020, /* VW: no use for HVML */
+    MyHVML_TAG_CATEGORIES_SCOPE_TABLE      = 0x040, /* VW: no use for HVML */
+    MyHVML_TAG_CATEGORIES_SCOPE_SELECT     = 0x080, /* VW: no use for HVML */
 };
 
 typedef struct myhvml_tag_index_node myhvml_tag_index_node_t;

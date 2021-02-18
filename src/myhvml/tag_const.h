@@ -26,6 +26,4 @@
 
 #include "myhvml.h"
 
-#define MyHVML_BASE_STATIC_SIZE 479
-
 #endif  /* MyHVML_TAG_CONST_H */

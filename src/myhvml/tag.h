@@ -26,7 +26,6 @@
 
 #include "myosi.h"
 
-#include "tag_const.h"
 #include "tokenizer.h"
 #include "tree.h"
 #include "mycore/utils.h"
@@ -65,14 +64,13 @@ struct myhvml_tag_context {
     size_t name_length;
     
     enum myhvml_tokenizer_state data_parser;
-    enum myhvml_tag_categories cats[MyHVML_NAMESPACE_LAST_ENTRY];
+    enum myhvml_tag_categories cats;
 }
 typedef myhvml_tag_context_t;
 
 struct myhvml_tag_static_list {
     const myhvml_tag_context_t* ctx;
     size_t next;
-    size_t cur;
 }
 typedef myhvml_tag_static_list_t;
 

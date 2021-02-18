@@ -60,5 +60,13 @@
 #define PCAT2_UNLIKELY(expr) (expr)
 #endif
 
+#if defined(_WIN64)
+#   define SIZEOF_PTR   8
+#elif defined(__LP64__)
+#   define SIZEOF_PTR   8
+#else
+#   define SIZEOF_PTR   4
+#endif
+
 #endif /* PCAT2_PCAT2_MACROS_H */
 
