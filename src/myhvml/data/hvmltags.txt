@@ -1,0 +1,115 @@
+!DOCTYPE
+    kind: noun
+    categories: special
+
+archedata
+    kind: noun
+    categories: special scope
+
+archetype
+    kind: noun
+    categories: special scope
+
+back
+    kind: verb
+    categories: ordinary
+
+body
+    kind: noun
+    categories: ordinary
+
+call
+    kind: verb
+    categories: ordinary
+
+catch
+    kind: verb
+    categories: ordinary
+
+close
+    kind: verb
+    categories: ordinary
+
+define
+    kind: verb
+    categories: ordinary
+
+empty
+    kind: verb
+    categories: ordinary
+
+error
+    kind: noun
+    categories: ordinary
+
+except
+    kind: noun
+    categories: ordinary
+
+head
+    kind: noun
+    categories: ordinary
+
+hvml
+    kind: noun
+    categories: ordinary
+
+init
+    kind: verb
+    categories: ordinary
+
+include
+    kind: verb
+    categories: ordinary
+
+iterate
+    kind: verb
+    categories: ordinary
+
+listen
+    kind: verb
+    categories: ordinary
+
+load
+    kind: verb
+    categories: ordinary
+
+match
+    kind: verb
+    categories: ordinary
+
+observe
+    kind: verb
+    categories: ordinary
+
+rawtext
+    kind: noun
+    categories: special
+
+remove
+    kind: verb
+    categories: ordinary
+
+request
+    kind: verb
+    categories: ordinary
+
+reduce
+    kind: verb
+    categories: ordinary
+
+return
+    kind: verb
+    categories: ordinary
+
+set
+    kind: verb
+    categories: ordinary
+
+test
+    kind: verb
+    categories: ordinary
+
+update
+    kind: verb
+    categories: ordinary
