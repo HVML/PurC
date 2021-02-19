@@ -43,11 +43,11 @@
  * @struct basic tag ids
  */
 enum myhvml_tags {
-    MyHVML_TAG__UNDEF = 0x000,
+    MyHVML_TAG__UNDEF = 0,
     MyHVML_TAG__TEXT,
     MyHVML_TAG__COMMENT,
-    MyHVML_TAG__DOCTYPE,
     MyHVML_TAG__FOREIGN,
+    MyHVML_TAG__DOCTYPE,
     MyHVML_TAG_ARCHEDATA,
     MyHVML_TAG_ARCHETYPE,
     MyHVML_TAG_BACK,
