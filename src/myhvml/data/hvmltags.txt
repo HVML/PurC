@@ -1,115 +1,173 @@
+# -undef should always be the first one.
+-undef
+    kind: noun
+    state: data
+    categories: ordinary
+
+# -text should always be the second one.
+-text
+    kind: noun
+    state: data
+    categories: ordinary
+
+_comment
+    kind: noun
+    state: data
+    categories: ordinary
+
+_foreign
+    kind: noun
+    state: rawtext
+    categories: ordinary
+
 !DOCTYPE
     kind: noun
+    state: data
     categories: special
 
 archedata
     kind: noun
+    state: rawtext
     categories: special scope
 
 archetype
     kind: noun
+    state: rawtext
     categories: special scope
 
 back
     kind: verb
+    state: data
     categories: ordinary
 
 body
     kind: noun
+    state: data
     categories: ordinary
 
 call
     kind: verb
+    state: data
     categories: ordinary
 
 catch
     kind: verb
+    state: data
     categories: ordinary
 
 close
     kind: verb
+    state: data
     categories: ordinary
 
 define
     kind: verb
+    state: data
     categories: ordinary
 
 empty
     kind: verb
+    state: data
     categories: ordinary
 
 error
     kind: noun
+    state: rawtext
     categories: ordinary
 
 except
     kind: noun
+    state: rawtext
     categories: ordinary
 
 head
     kind: noun
+    state: data
     categories: ordinary
 
 hvml
     kind: noun
+    state: data
     categories: ordinary
 
 init
     kind: verb
+    state: data
     categories: ordinary
 
 include
     kind: verb
+    state: data
     categories: ordinary
 
 iterate
     kind: verb
+    state: data
     categories: ordinary
 
 listen
     kind: verb
+    state: data
     categories: ordinary
 
 load
     kind: verb
+    state: data
     categories: ordinary
 
 match
     kind: verb
+    state: data
     categories: ordinary
 
 observe
     kind: verb
+    state: data
     categories: ordinary
 
 rawtext
     kind: noun
+    state: rawtext
     categories: special
 
 remove
     kind: verb
+    state: data
     categories: ordinary
 
 request
     kind: verb
+    state: data
     categories: ordinary
 
 reduce
     kind: verb
+    state: data
     categories: ordinary
 
 return
     kind: verb
+    state: data
     categories: ordinary
 
 set
     kind: verb
+    state: data
     categories: ordinary
 
 test
     kind: verb
+    state: data
     categories: ordinary
 
 update
     kind: verb
+    state: data
     categories: ordinary
+
+# -end-of-file should always be the last one.
+-end-of-file
+    kind: noun
+    state: data
+    categories: ordinary
+
