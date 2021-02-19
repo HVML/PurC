@@ -71,6 +71,12 @@ def start_with_kind(line):
         return False
     return True
 
+RE_START_WITH_STATE = re.compile(r"^\s+state:")
+def start_with_state(line):
+    if RE_START_WITH_STATE.match(line) == None:
+        return False
+    return True
+
 RE_START_WITH_CATEGORIES = re.compile(r"^\s+categories:")
 def start_with_categories(line):
     if RE_START_WITH_CATEGORIES.match(line) == None:
@@ -230,6 +236,14 @@ def scan_src_file(fsrc):
                 else:
                     tag_info[tag_token]['kind'] = kind_value
 
+            elif start_with_state (org_line):
+                state_value = get_value(stripped_line)
+                if state_value is None:
+                    print("scan_src_file (Line %d): state value expected (%s)" % (line_no, stripped_line, ))
+                    return None
+                else:
+                    tag_info[tag_token]['state'] = state_value
+
             elif start_with_categories (org_line):
                 categories = get_value(stripped_line)
                 if categories is None:
@@ -332,6 +346,27 @@ def make_tag_id(tag_token):
 
     return "MyHVML_TAG_" + tag_id;
 
+def make_state_id(state_token):
+    state_id = state_token.upper()
+
+    return "MyHVML_TOKENIZER_STATE_" + state_id;
+
+def make_category_id(category_token):
+    category_id = category_token.upper()
+
+    return "MyHVML_TAG_CATEGORIES_" + category_id;
+
+def make_categories_value (categories_list):
+
+    value = ""
+    idx = 0
+    for c in categories_list:
+        if idx > 0:
+            value += " | "
+        value += make_category_id (c)
+        idx += 1
+
+    return value
 
 def generate_static_tag_table (tag_info, str2key):
     nr_tags = len (tag_info)
@@ -418,9 +453,6 @@ def make_common_checker_name(value_token):
     return "check_" + name;
 
 def write_static_tag_tables (fout, tag_info, best_slots_64b, tag_table_64b, best_slots_32b, tag_table_32b):
-    tag_tokens = list(tag_info.keys())
-    tag_tokens.sort()
-
     fout.write ("/*\n")
     fout.write ("** Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>\n")
     fout.write ("**\n")
@@ -447,6 +479,19 @@ def write_static_tag_tables (fout, tag_info, best_slots_64b, tag_table_64b, best
     fout.write ("// Please take care when you modify this file mannually.\n")
     fout.write ("\n")
 
+    fout.write ("static const myhvml_tag_context_t myhvml_tag_base_list[MyHVML_TAG_LAST_ENTRY] =\n")
+    fout.write ("{\n")
+
+    tag_tokens = list(tag_info.keys())
+    #tag_tokens.sort()
+
+    for tag in tag_tokens:
+        fout.write ("    { %s, \"%s\", %d, %s,\n" % (make_tag_id (tag), tag, len (tag), make_state_id (tag_info[tag]['state']), ))
+        fout.write ("        %s },\n" % (make_categories_value (tag_info[tag]['categories']), ))
+
+    fout.write ("};\n")
+    fout.write ("\n")
+
     fout.write ("#if SIZEOF_PTR == 8\n")
     fout.write ("\n")
     fout.write ("#define MyHVML_BASE_STATIC_SIZE %d\n" % (best_slots_64b, ))
@@ -457,10 +502,10 @@ def write_static_tag_tables (fout, tag_info, best_slots_64b, tag_table_64b, best
     for tag_slot in tag_table_64b:
         if tag_slot:
             key = str2key_64b (tag_slot['tag'])
-            fout.write ("    // hash value of this tag: 0x%016x, slot index: %d\n" % (key, key % best_slots_64b, ))
-            fout.write ("    { &myhvml_tag_base_list[%s], %d},\n" % (make_tag_id (tag_slot['tag']), tag_slot['next'], ))
+            fout.write ("   // hash value of this tag: 0x%016x, slot index: %d\n" % (key, key % best_slots_64b, ))
+            fout.write ("   { &myhvml_tag_base_list[%s], %d},\n" % (make_tag_id (tag_slot['tag']), tag_slot['next'], ))
         else:
-            fout.write ("    { NULL, 0},\n")
+            fout.write ("   { NULL, 0},\n")
 
     fout.write ("};\n")
     fout.write ("\n")
@@ -474,14 +519,37 @@ def write_static_tag_tables (fout, tag_info, best_slots_64b, tag_table_64b, best
     for tag_slot in tag_table_32b:
         if tag_slot:
             key = str2key_32b (tag_slot['tag'])
-            fout.write ("    // hash value of this tag: 0x%016x, slot index: %d\n" % (key, key % best_slots_32b, ))
-            fout.write ("    { &myhvml_tag_base_list[%s], %d},\n" % (make_tag_id (tag_slot['tag']), tag_slot['next'], ))
+            fout.write ("   // hash value of this tag: 0x%016x, slot index: %d\n" % (key, key % best_slots_32b, ))
+            fout.write ("   { &myhvml_tag_base_list[%s], %d},\n" % (make_tag_id (tag_slot['tag']), tag_slot['next'], ))
         else:
-            fout.write ("    { NULL, 0},\n")
+            fout.write ("   { NULL, 0},\n")
 
     fout.write ("};\n")
     fout.write ("\n")
     fout.write ("#endif  /* SIZEOF_PTR == 4 */\n")
+    fout.write ("\n")
+
+def write_tag_ids (fout, tag_info):
+
+    tag_tokens = list(tag_info.keys())
+
+    fout.write ("enum myhvml_tags {\n")
+    idx = 0
+    for tag in tag_tokens:
+        if idx == 0:
+            fout.write ("    %s = 0, \n" % (make_tag_id (tag), ))
+        else:
+            fout.write ("    %s, \n" % (make_tag_id (tag), ))
+
+        if idx == 1:
+            first_tag = tag
+        last_tag = tag
+
+        idx += 1
+
+    fout.write ("    MyHVML_TAG_FIRST_ENTRY = %s,\n" % (make_tag_id (first_tag), ))
+    fout.write ("    MyHVML_TAG_LAST_ENTRY  = %s + 1,\n" % (make_tag_id (last_tag), ))
+    fout.write ("};\n")
     fout.write ("\n")
 
 if __name__ == "__main__":
@@ -521,6 +589,15 @@ if __name__ == "__main__":
         traceback.print_exc()
         sys.exit(13)
     fdst.close()
+    print("DONE")
+
+    print("Writting HVML tag identifiers to standard output...")
+    try:
+        write_tag_ids (sys.stdout, tag_info)
+    except:
+        print("FAILED")
+        traceback.print_exc()
+        sys.exit(13)
     print("DONE")
 
     sys.exit(0)
