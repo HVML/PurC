@@ -130,11 +130,7 @@ static const myhvml_tag_context_t myhvml_tag_base_list[MyHVML_TAG_LAST_ENTRY] =
     }
 };
 
-#define MyHVML_BASE_STATIC_SIZE 479
-
-static const myhvml_tag_static_list_t myhvml_tag_static_list_index[] = 
-{
-};
+#include "tag_static_list.inc"
 
 #if SIZEOF_PTR == 8
 // 2^40 + 2^8 + 0xb3 = 1099511628211
