@@ -75,7 +75,7 @@ static const myhvml_tag_context_t myhvml_tag_base_list[MyHVML_TAG_LAST_ENTRY] =
         MyHVML_TAG_CATEGORIES_ORDINARY },
     { MyHVML_TAG_OBSERVE, "observe", 7, MyHVML_TOKENIZER_STATE_DATA,
         MyHVML_TAG_CATEGORIES_ORDINARY },
-    { MyHVML_TAG_RAWTEXT, "rawtext", 7, MyHVML_TOKENIZER_STATE_RAWTEXT,
+    { MyHVML_TAG_RAWPART, "rawpart", 7, MyHVML_TOKENIZER_STATE_RAWTEXT,
         MyHVML_TAG_CATEGORIES_SPECIAL },
     { MyHVML_TAG_REMOVE, "remove", 6, MyHVML_TOKENIZER_STATE_DATA,
         MyHVML_TAG_CATEGORIES_ORDINARY },
@@ -105,13 +105,13 @@ static const myhvml_tag_static_list_t myhvml_tag_static_list_index[] =
    { NULL, 0},
    // hash value of this tag: 0x656069f20e4b131e, slot index: 2
    { &myhvml_tag_base_list[MyHVML_TAG__FOREIGN], 46},
-   // hash value of this tag: 0xb6f86524115cb542, slot index: 3
-   { &myhvml_tag_base_list[MyHVML_TAG_RAWTEXT], 0},
+   { NULL, 0},
    { NULL, 0},
    { NULL, 0},
    // hash value of this tag: 0x9ec2699513c0f9c3, slot index: 6
    { &myhvml_tag_base_list[MyHVML_TAG_CLOSE], 0},
-   { NULL, 0},
+   // hash value of this tag: 0x03c43d0057227e28, slot index: 7
+   { &myhvml_tag_base_list[MyHVML_TAG_RAWPART], 0},
    // hash value of this tag: 0xe424d04ed760ceb5, slot index: 8
    { &myhvml_tag_base_list[MyHVML_TAG_ITERATE], 0},
    { NULL, 0},
@@ -225,7 +225,7 @@ static const myhvml_tag_static_list_t myhvml_tag_static_list_index[] =
    // hash value of this tag: 0x00000000e60759e9, slot index: 19
    { &myhvml_tag_base_list[MyHVML_TAG_LOAD], 0},
    // hash value of this tag: 0x000000005bb421a2, slot index: 20
-   { &myhvml_tag_base_list[MyHVML_TAG_BACK], 41},
+   { &myhvml_tag_base_list[MyHVML_TAG_BACK], 0},
    { NULL, 0},
    { NULL, 0},
    { NULL, 0},
@@ -239,7 +239,7 @@ static const myhvml_tag_static_list_t myhvml_tag_static_list_index[] =
    // hash value of this tag: 0x00000000b9696f03, slot index: 29
    { &myhvml_tag_base_list[MyHVML_TAG__COMMENT], 39},
    // hash value of this tag: 0x000000009bc6b072, slot index: 30
-   { &myhvml_tag_base_list[MyHVML_TAG__DOCTYPE], 0},
+   { &myhvml_tag_base_list[MyHVML_TAG__DOCTYPE], 41},
    // hash value of this tag: 0x000000004223db9f, slot index: 31
    { &myhvml_tag_base_list[MyHVML_TAG__TEXT], 0},
    // hash value of this tag: 0x000000007b39379e, slot index: 32
@@ -259,8 +259,8 @@ static const myhvml_tag_static_list_t myhvml_tag_static_list_index[] =
    { &myhvml_tag_base_list[MyHVML_TAG_ERROR], 0},
    // hash value of this tag: 0x00000000fff3c0e2, slot index: 14
    { &myhvml_tag_base_list[MyHVML_TAG_HVML], 0},
-   // hash value of this tag: 0x00000000d4c848c2, slot index: 20
-   { &myhvml_tag_base_list[MyHVML_TAG_RAWTEXT], 0},
+   // hash value of this tag: 0x000000001e2be028, slot index: 30
+   { &myhvml_tag_base_list[MyHVML_TAG_RAWPART], 0},
    // hash value of this tag: 0x000000003eaa09b2, slot index: 4
    { &myhvml_tag_base_list[MyHVML_TAG_REQUEST], 0},
    // hash value of this tag: 0x0000000077548ee7, slot index: 7

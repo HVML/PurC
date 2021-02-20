@@ -125,7 +125,7 @@ observe
     state: data
     categories: ordinary
 
-rawtext
+rawpart
     kind: noun
     state: rawtext
     categories: special
