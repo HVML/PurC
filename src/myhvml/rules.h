@@ -34,11 +34,7 @@ extern "C" {
 
 mystatus_t myhvml_rules_init(myhvml_t* myhvml);
 void myhvml_rules_stop_parsing(myhvml_tree_t* tree);
-
 bool myhvml_rules_tree_dispatcher(myhvml_tree_t* tree, myhvml_token_node_t* token);
-bool myhvml_insertion_mode_in_body_other_end_tag(myhvml_tree_t* tree, myhvml_token_node_t* token);
-bool myhvml_insertion_mode_in_body(myhvml_tree_t* tree, myhvml_token_node_t* token);
-bool myhvml_insertion_mode_in_template(myhvml_tree_t* tree, myhvml_token_node_t* token);
 
 #ifdef __cplusplus
 } /* extern "C" */
