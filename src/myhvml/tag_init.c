@@ -74,7 +74,8 @@ const myhvml_tag_context_t * myhvml_tag_static_search(const char* name, size_t l
 {
     size_t idx;
 
-    if (mycore_strncmp (name, "v:", 2) == 0) {
+    /* TODO: use PREFIX defined in DOCTYPE */
+    if (mycore_strncmp (name, "v:", 2) == 0 && length > 2) {
         name += 2;
         length -= 2;
     }
@@ -84,24 +85,14 @@ const myhvml_tag_context_t * myhvml_tag_static_search(const char* name, size_t l
         return NULL;
 
     idx %= MyHVML_BASE_STATIC_SIZE;
-    idx += 1;
-
     while (myhvml_tag_static_list_index[idx].ctx) {
-        if (myhvml_tag_static_list_index[idx].ctx->name_length == length) {
-            if (mycore_strncmp(myhvml_tag_static_list_index[idx].ctx->name, name, length) == 0)
-                return myhvml_tag_static_list_index[idx].ctx;
+        if (mycore_strncmp(myhvml_tag_static_list_index[idx].ctx->name, name, length) == 0)
+            return myhvml_tag_static_list_index[idx].ctx;
 
-            if (myhvml_tag_static_list_index[idx].next)
-                idx = myhvml_tag_static_list_index[idx].next;
-            else
-                return NULL;
-        }
-        else if (myhvml_tag_static_list_index[idx].ctx->name_length > length) {
-            return NULL;
-        }
-        else {
+        if (myhvml_tag_static_list_index[idx].next)
             idx = myhvml_tag_static_list_index[idx].next;
-        }
+        else
+            return NULL;
     }
 
     return NULL;
