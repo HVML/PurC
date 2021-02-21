@@ -1,173 +1,139 @@
 # -undef should always be the first one.
 -undef
-    kind: noun
     state: data
-    categories: ordinary
+    categories: noun ordinary
 
 # -text should always be the second one.
 -text
-    kind: noun
     state: data
-    categories: ordinary
+    categories: noun ordinary
 
 _comment
-    kind: noun
     state: data
-    categories: ordinary
+    categories: noun ordinary
 
 _foreign
-    kind: noun
     state: rawtext
-    categories: ordinary
+    categories: foreign ordinary
 
 !DOCTYPE
-    kind: noun
     state: data
-    categories: special
+    categories: noun special
 
 archedata
-    kind: noun
     state: rawtext
-    categories: special scope
+    categories: noun special scope
 
 archetype
-    kind: noun
     state: rawtext
-    categories: special scope
+    categories: noun special scope
 
 back
-    kind: verb
     state: data
-    categories: ordinary
+    categories: verb ordinary
 
 body
-    kind: noun
     state: data
-    categories: ordinary
+    categories: noun ordinary
 
 call
-    kind: verb
     state: data
-    categories: ordinary
+    categories: verb ordinary
 
 catch
-    kind: verb
     state: data
-    categories: ordinary
+    categories: verb ordinary
 
 close
-    kind: verb
     state: data
-    categories: ordinary
+    categories: verb ordinary
 
 define
-    kind: verb
     state: data
-    categories: ordinary
+    categories: verb ordinary
 
 empty
-    kind: verb
     state: data
-    categories: ordinary
+    categories: verb ordinary
 
 error
-    kind: noun
     state: rawtext
-    categories: ordinary
+    categories: noun ordinary
 
 except
-    kind: noun
     state: rawtext
-    categories: ordinary
+    categories: noun ordinary
 
 head
-    kind: noun
     state: data
-    categories: ordinary
+    categories: noun ordinary
 
 hvml
-    kind: noun
     state: data
-    categories: ordinary
+    categories: noun ordinary
 
 init
-    kind: verb
     state: data
-    categories: ordinary
+    categories: verb ordinary
 
 include
-    kind: verb
     state: data
-    categories: ordinary
+    categories: verb ordinary
 
 iterate
-    kind: verb
     state: data
-    categories: ordinary
+    categories: verb ordinary
 
 listen
-    kind: verb
     state: data
-    categories: ordinary
+    categories: verb ordinary
 
 load
-    kind: verb
     state: data
-    categories: ordinary
+    categories: verb ordinary
 
 match
-    kind: verb
     state: data
-    categories: ordinary
+    categories: verb ordinary
 
 observe
-    kind: verb
     state: data
-    categories: ordinary
+    categories: verb ordinary
 
 rawpart
-    kind: noun
     state: rawtext
-    categories: special
+    categories: noun special
 
 remove
-    kind: verb
     state: data
-    categories: ordinary
+    categories: verb ordinary
 
 request
-    kind: verb
     state: data
-    categories: ordinary
+    categories: verb ordinary
 
 reduce
-    kind: verb
     state: data
-    categories: ordinary
+    categories: verb ordinary
 
 return
-    kind: verb
     state: data
-    categories: ordinary
+    categories: verb ordinary
 
 set
-    kind: verb
     state: data
-    categories: ordinary
+    categories: verb ordinary
 
 test
-    kind: verb
     state: data
-    categories: ordinary
+    categories: verb ordinary
 
 update
-    kind: verb
     state: data
-    categories: ordinary
+    categories: verb ordinary
 
 # -end-of-file should always be the last one.
 -end-of-file
-    kind: noun
     state: data
-    categories: ordinary
+    categories: noun ordinary
 
