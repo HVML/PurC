@@ -103,3 +103,38 @@ const myhvml_tag_context_t * myhvml_tag_static_get_by_id(size_t idx)
     return &myhvml_tag_base_list[idx];
 }
 
+#include "attr_static_list.inc"
+
+static size_t str2key_simple (const char* str, size_t length)
+{
+    const unsigned char* s = (const unsigned char*)str;
+    size_t key = s [0];
+
+    if (str == NULL || length == 0)
+        return 0;
+
+    return key * s [length - 1];
+}
+
+int myhvml_attr_search_for_type(const char* name, size_t length)
+{
+    size_t idx;
+
+    idx = str2key_simple (name, length);
+    if (idx == 0)
+        return MyHVML_ATTR_TYPE_ORDINARY;
+
+    idx %= MyHVML_ATTR_STATIC_SIZE;
+    while (myhvml_attr_static_list_index[idx].name) {
+        if (mycore_strcmp(myhvml_attr_static_list_index[idx].name, name) == 0)
+            return myhvml_attr_static_list_index[idx].type;
+
+        if (myhvml_tag_static_list_index[idx].next)
+            idx = myhvml_tag_static_list_index[idx].next;
+        else
+            return MyHVML_ATTR_TYPE_ORDINARY;
+    }
+
+    return MyHVML_ATTR_TYPE_ORDINARY;
+}
+
