@@ -57,19 +57,20 @@ typedef struct myhvml_tree myhvml_tree_t;
 
 // token
 enum myhvml_token_type {
-    MyHVML_TOKEN_TYPE_OPEN             = 0x000,
-    MyHVML_TOKEN_TYPE_CLOSE            = 0x001,
-    MyHVML_TOKEN_TYPE_CLOSE_SELF       = 0x002,
-    MyHVML_TOKEN_TYPE_DONE             = 0x004,
-    MyHVML_TOKEN_TYPE_WHITESPACE       = 0x008,
-    MyHVML_TOKEN_TYPE_RCDATA           = 0x010,
-    MyHVML_TOKEN_TYPE_RAWTEXT          = 0x020,
-    MyHVML_TOKEN_TYPE_SCRIPT           = 0x040,
-    MyHVML_TOKEN_TYPE_PLAINTEXT        = 0x080,
-    MyHVML_TOKEN_TYPE_CDATA            = 0x100,
-    MyHVML_TOKEN_TYPE_DATA             = 0x200,
-    MyHVML_TOKEN_TYPE_COMMENT          = 0x400,
-    MyHVML_TOKEN_TYPE_NULL             = 0x800
+    MyHVML_TOKEN_TYPE_OPEN             = 0x0000,
+    MyHVML_TOKEN_TYPE_CLOSE            = 0x0001,
+    MyHVML_TOKEN_TYPE_CLOSE_SELF       = 0x0002,
+    MyHVML_TOKEN_TYPE_DONE             = 0x0004,
+    MyHVML_TOKEN_TYPE_WHITESPACE       = 0x0008,
+    MyHVML_TOKEN_TYPE_RCDATA           = 0x0010,
+    MyHVML_TOKEN_TYPE_RAWTEXT          = 0x0020,
+    MyHVML_TOKEN_TYPE_SCRIPT           = 0x0040,
+    MyHVML_TOKEN_TYPE_PLAINTEXT        = 0x0080,
+    MyHVML_TOKEN_TYPE_CDATA            = 0x0100,
+    MyHVML_TOKEN_TYPE_DATA             = 0x0200,
+    MyHVML_TOKEN_TYPE_COMMENT          = 0x0400,
+    MyHVML_TOKEN_TYPE_NULL             = 0x0800,
+    MyHVML_TOKEN_TYPE_JSONEE           = 0x1000,
 };
 
 typedef size_t myhvml_token_index_t;
