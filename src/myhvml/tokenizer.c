@@ -1759,20 +1759,10 @@ mystatus_t myhvml_tokenizer_state_init(myhvml_t* myhvml)
     myhvml->parse_state_func[MyHVML_TOKENIZER_STATE_DOCTYPE_NAME]                            = myhvml_tokenizer_state_doctype_name;
     myhvml->parse_state_func[MyHVML_TOKENIZER_STATE_AFTER_DOCTYPE_NAME]                      = myhvml_tokenizer_state_after_doctype_name;
     myhvml->parse_state_func[MyHVML_TOKENIZER_STATE_CUSTOM_AFTER_DOCTYPE_NAME_A_Z]           = myhvml_tokenizer_state_custom_after_doctype_name_a_z;
-
-    myhvml->parse_state_func[MyHVML_TOKENIZER_STATE_BEFORE_DOCTYPE_PREFIX_IDENTIFIER]        = myhvml_tokenizer_state_before_doctype_prefix_identifier;
-    myhvml->parse_state_func[MyHVML_TOKENIZER_STATE_DOCTYPE_PREFIX_IDENTIFIER_DOUBLE_QUOTED] = myhvml_tokenizer_state_doctype_prefix_identifier_double_quoted;
-    myhvml->parse_state_func[MyHVML_TOKENIZER_STATE_DOCTYPE_PREFIX_IDENTIFIER_SINGLE_QUOTED] = myhvml_tokenizer_state_doctype_prefix_identifier_single_quoted;
-    myhvml->parse_state_func[MyHVML_TOKENIZER_STATE_AFTER_DOCTYPE_PREFIX_IDENTIFIER]         = myhvml_tokenizer_state_after_doctype_prefix_identifier;
-
-    myhvml->parse_state_func[MyHVML_TOKENIZER_STATE_DOCTYPE_TARGET_IDENTIFIER_DOUBLE_QUOTED] = myhvml_tokenizer_state_doctype_target_identifier_double_quoted;
-    myhvml->parse_state_func[MyHVML_TOKENIZER_STATE_DOCTYPE_TARGET_IDENTIFIER_SINGLE_QUOTED] = myhvml_tokenizer_state_doctype_target_identifier_single_quoted;
-    myhvml->parse_state_func[MyHVML_TOKENIZER_STATE_AFTER_DOCTYPE_TARGET_IDENTIFIER]         = myhvml_tokenizer_state_after_doctype_target_identifier;
-
+    myhvml->parse_state_func[MyHVML_TOKENIZER_STATE_BEFORE_DOCTYPE_SYSTEM_IDENTIFIER]        = myhvml_tokenizer_state_before_doctype_system_identifier;
     myhvml->parse_state_func[MyHVML_TOKENIZER_STATE_DOCTYPE_SYSTEM_IDENTIFIER_DOUBLE_QUOTED] = myhvml_tokenizer_state_doctype_system_identifier_double_quoted;
     myhvml->parse_state_func[MyHVML_TOKENIZER_STATE_DOCTYPE_SYSTEM_IDENTIFIER_SINGLE_QUOTED] = myhvml_tokenizer_state_doctype_system_identifier_single_quoted;
     myhvml->parse_state_func[MyHVML_TOKENIZER_STATE_AFTER_DOCTYPE_SYSTEM_IDENTIFIER]         = myhvml_tokenizer_state_after_doctype_system_identifier;
-
     myhvml->parse_state_func[MyHVML_TOKENIZER_STATE_BOGUS_DOCTYPE]                           = myhvml_tokenizer_state_bogus_doctype;
     
 #if 0 /* VW */
@@ -1887,30 +1877,14 @@ mystatus_t myhvml_tokenizer_state_init(myhvml_t* myhvml)
                               + MyHVML_TOKENIZER_STATE_AFTER_DOCTYPE_NAME)]                      = myhvml_tokenizer_end_state_after_doctype_name;
     myhvml->parse_state_func[(MyHVML_TOKENIZER_STATE_LAST_ENTRY
                               + MyHVML_TOKENIZER_STATE_CUSTOM_AFTER_DOCTYPE_NAME_A_Z)]           = myhvml_tokenizer_end_state_custom_after_doctype_name_a_z;
-
     myhvml->parse_state_func[(MyHVML_TOKENIZER_STATE_LAST_ENTRY
-                              + MyHVML_TOKENIZER_STATE_BEFORE_DOCTYPE_PREFIX_IDENTIFIER)]        = myhvml_tokenizer_end_state_before_doctype_prefix_identifier;
-    myhvml->parse_state_func[(MyHVML_TOKENIZER_STATE_LAST_ENTRY
-                              + MyHVML_TOKENIZER_STATE_DOCTYPE_PREFIX_IDENTIFIER_DOUBLE_QUOTED)] = myhvml_tokenizer_end_state_doctype_prefix_identifier_double_quoted;
-    myhvml->parse_state_func[(MyHVML_TOKENIZER_STATE_LAST_ENTRY
-                              + MyHVML_TOKENIZER_STATE_DOCTYPE_PREFIX_IDENTIFIER_SINGLE_QUOTED)] = myhvml_tokenizer_end_state_doctype_prefix_identifier_single_quoted;
-    myhvml->parse_state_func[(MyHVML_TOKENIZER_STATE_LAST_ENTRY
-                              + MyHVML_TOKENIZER_STATE_AFTER_DOCTYPE_PREFIX_IDENTIFIER)]         = myhvml_tokenizer_end_state_after_doctype_prefix_identifier;
-
-    myhvml->parse_state_func[(MyHVML_TOKENIZER_STATE_LAST_ENTRY
-                              + MyHVML_TOKENIZER_STATE_DOCTYPE_TARGET_IDENTIFIER_DOUBLE_QUOTED)] = myhvml_tokenizer_end_state_doctype_target_identifier_double_quoted;
-    myhvml->parse_state_func[(MyHVML_TOKENIZER_STATE_LAST_ENTRY
-                              + MyHVML_TOKENIZER_STATE_DOCTYPE_TARGET_IDENTIFIER_SINGLE_QUOTED)] = myhvml_tokenizer_end_state_doctype_target_identifier_single_quoted;
-    myhvml->parse_state_func[(MyHVML_TOKENIZER_STATE_LAST_ENTRY
-                              + MyHVML_TOKENIZER_STATE_AFTER_DOCTYPE_TARGET_IDENTIFIER)]         = myhvml_tokenizer_end_state_after_doctype_target_identifier;
-
+                              + MyHVML_TOKENIZER_STATE_BEFORE_DOCTYPE_SYSTEM_IDENTIFIER)]        = myhvml_tokenizer_end_state_before_doctype_system_identifier;
     myhvml->parse_state_func[(MyHVML_TOKENIZER_STATE_LAST_ENTRY
                               + MyHVML_TOKENIZER_STATE_DOCTYPE_SYSTEM_IDENTIFIER_DOUBLE_QUOTED)] = myhvml_tokenizer_end_state_doctype_system_identifier_double_quoted;
     myhvml->parse_state_func[(MyHVML_TOKENIZER_STATE_LAST_ENTRY
                               + MyHVML_TOKENIZER_STATE_DOCTYPE_SYSTEM_IDENTIFIER_SINGLE_QUOTED)] = myhvml_tokenizer_end_state_doctype_system_identifier_single_quoted;
     myhvml->parse_state_func[(MyHVML_TOKENIZER_STATE_LAST_ENTRY
                               + MyHVML_TOKENIZER_STATE_AFTER_DOCTYPE_SYSTEM_IDENTIFIER)]         = myhvml_tokenizer_end_state_after_doctype_system_identifier;
-
     myhvml->parse_state_func[(MyHVML_TOKENIZER_STATE_LAST_ENTRY
                               + MyHVML_TOKENIZER_STATE_BOGUS_DOCTYPE)]                           = myhvml_tokenizer_end_state_bogus_doctype;
     

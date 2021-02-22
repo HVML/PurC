@@ -49,29 +49,9 @@ size_t myhvml_tokenizer_state_custom_after_doctype_name_a_z(
         myhvml_tree_t* tree, myhvml_token_node_t* token_node,
         const char* hvml, size_t hvml_offset, size_t hvml_size);
 
-size_t myhvml_tokenizer_state_before_doctype_prefix_identifier(
+size_t myhvml_tokenizer_state_before_doctype_system_identifier(
         myhvml_tree_t* tree, myhvml_token_node_t* token_node,
         const char* hvml, size_t hvml_offset, size_t hvml_size);
-size_t myhvml_tokenizer_state_doctype_prefix_identifier_double_quoted(
-        myhvml_tree_t* tree, myhvml_token_node_t* token_node,
-        const char* hvml, size_t hvml_offset, size_t hvml_size);
-size_t myhvml_tokenizer_state_doctype_prefix_identifier_single_quoted(
-        myhvml_tree_t* tree, myhvml_token_node_t* token_node,
-        const char* hvml, size_t hvml_offset, size_t hvml_size);
-size_t myhvml_tokenizer_state_after_doctype_prefix_identifier(
-        myhvml_tree_t* tree, myhvml_token_node_t* token_node,
-        const char* hvml, size_t hvml_offset, size_t hvml_size);
-
-size_t myhvml_tokenizer_state_doctype_target_identifier_double_quoted(
-        myhvml_tree_t* tree, myhvml_token_node_t* token_node,
-        const char* hvml, size_t hvml_offset, size_t hvml_size);
-size_t myhvml_tokenizer_state_doctype_target_identifier_single_quoted(
-        myhvml_tree_t* tree, myhvml_token_node_t* token_node,
-        const char* hvml, size_t hvml_offset, size_t hvml_size);
-size_t myhvml_tokenizer_state_after_doctype_target_identifier(
-        myhvml_tree_t* tree, myhvml_token_node_t* token_node,
-        const char* hvml, size_t hvml_offset, size_t hvml_size);
-
 size_t myhvml_tokenizer_state_doctype_system_identifier_double_quoted(
         myhvml_tree_t* tree, myhvml_token_node_t* token_node,
         const char* hvml, size_t hvml_offset, size_t hvml_size);
