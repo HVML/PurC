@@ -490,7 +490,7 @@ size_t myhvml_tokenizer_end_state_custom_after_doctype_name_a_z(myhvml_tree_t* t
     return hvml_offset;
 }
 
-size_t myhvml_tokenizer_end_state_before_doctype_public_identifier(myhvml_tree_t* tree, myhvml_token_node_t* token_node, const char* hvml, size_t hvml_offset, size_t hvml_size)
+size_t myhvml_tokenizer_end_state_before_doctype_prefix_identifier(myhvml_tree_t* tree, myhvml_token_node_t* token_node, const char* hvml, size_t hvml_offset, size_t hvml_size)
 {
     token_node->element_length = (tree->global_offset + hvml_size) - token_node->element_begin;
     
@@ -504,7 +504,7 @@ size_t myhvml_tokenizer_end_state_before_doctype_public_identifier(myhvml_tree_t
     return hvml_offset;
 }
 
-size_t myhvml_tokenizer_end_state_doctype_public_identifier_double_quoted(myhvml_tree_t* tree, myhvml_token_node_t* token_node, const char* hvml, size_t hvml_offset, size_t hvml_size)
+size_t myhvml_tokenizer_end_state_doctype_prefix_identifier_double_quoted(myhvml_tree_t* tree, myhvml_token_node_t* token_node, const char* hvml, size_t hvml_offset, size_t hvml_size)
 {
     token_node->element_length = (tree->global_offset + hvml_size) - token_node->element_begin;
     
@@ -522,15 +522,53 @@ size_t myhvml_tokenizer_end_state_doctype_public_identifier_double_quoted(myhvml
     return hvml_offset;
 }
 
-size_t myhvml_tokenizer_end_state_doctype_public_identifier_single_quoted(myhvml_tree_t* tree, myhvml_token_node_t* token_node, const char* hvml, size_t hvml_offset, size_t hvml_size)
+size_t myhvml_tokenizer_end_state_doctype_prefix_identifier_single_quoted(myhvml_tree_t* tree, myhvml_token_node_t* token_node, const char* hvml, size_t hvml_offset, size_t hvml_size)
 {
     token_node->element_length = (tree->global_offset + hvml_size) - token_node->element_begin;
     
-    myhvml_tokenizer_end_state_doctype_public_identifier_double_quoted(tree, token_node, hvml, (hvml_offset + tree->global_offset), hvml_size);
+    myhvml_tokenizer_end_state_doctype_prefix_identifier_double_quoted(tree, token_node, hvml, (hvml_offset + tree->global_offset), hvml_size);
     return hvml_offset;
 }
 
-size_t myhvml_tokenizer_end_state_after_doctype_public_identifier(myhvml_tree_t* tree, myhvml_token_node_t* token_node, const char* hvml, size_t hvml_offset, size_t hvml_size)
+size_t myhvml_tokenizer_end_state_after_doctype_prefix_identifier(myhvml_tree_t* tree, myhvml_token_node_t* token_node, const char* hvml, size_t hvml_offset, size_t hvml_size)
+{
+    token_node->element_length = (tree->global_offset + hvml_size) - token_node->element_begin;
+    
+    if(myhvml_queue_add(tree, hvml_offset, token_node) != MyHVML_STATUS_OK) {
+        myhvml_tokenizer_state_set(tree) = MyHVML_TOKENIZER_STATE_PARSE_ERROR_STOP;
+        return 0;
+    }
+    
+    return hvml_offset;
+}
+
+size_t myhvml_tokenizer_end_state_doctype_target_identifier_double_quoted(myhvml_tree_t* tree, myhvml_token_node_t* token_node, const char* hvml, size_t hvml_offset, size_t hvml_size)
+{
+    token_node->element_length = (tree->global_offset + hvml_size) - token_node->element_begin;
+    
+    tree->compat_mode = MyHVML_TREE_COMPAT_MODE_QUIRKS;
+    
+    if(tree->attr_current->raw_key_begin && hvml_size) {
+        tree->attr_current->raw_key_length = (hvml_offset + tree->global_offset) - tree->attr_current->raw_key_begin;
+    }
+    
+    if(myhvml_queue_add(tree, hvml_offset, token_node) != MyHVML_STATUS_OK) {
+        myhvml_tokenizer_state_set(tree) = MyHVML_TOKENIZER_STATE_PARSE_ERROR_STOP;
+        return 0;
+    }
+    
+    return hvml_offset;
+}
+
+size_t myhvml_tokenizer_end_state_doctype_target_identifier_single_quoted(myhvml_tree_t* tree, myhvml_token_node_t* token_node, const char* hvml, size_t hvml_offset, size_t hvml_size)
+{
+    token_node->element_length = (tree->global_offset + hvml_size) - token_node->element_begin;
+    
+    myhvml_tokenizer_end_state_doctype_target_identifier_double_quoted(tree, token_node, hvml, (hvml_offset + tree->global_offset), hvml_size);
+    return hvml_offset;
+}
+
+size_t myhvml_tokenizer_end_state_after_doctype_target_identifier(myhvml_tree_t* tree, myhvml_token_node_t* token_node, const char* hvml, size_t hvml_offset, size_t hvml_size)
 {
     token_node->element_length = (tree->global_offset + hvml_size) - token_node->element_begin;
     
