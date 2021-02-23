@@ -15,13 +15,13 @@
             $fileInfo.curr_path
         </label>
 
-        <archetype id="dir-entry">
+        <archetype name="dir_entry">
             <item class="$?.type">$?.name</item>
         </archetype>
 
         <define as="fillDirEntries">
             <choose on="$?" to="iterate" by="CLASS: CDirEntries">
-                <iterate on="$?" to="append" in="#entries" with="#dir-entry" by="RANGE: 0">
+                <iterate on="$?" to="append" in="#entries" with="$dir_entry" by="RANGE: 0">
                 </iterate>
             </choose>
         </define>

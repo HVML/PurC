@@ -19,14 +19,14 @@
     </head>
 
     <body>
-        <archetype id="user-item">
+        <archetype name="user_item">
             <li class="user-item" id="user-$?.id" data-value="$?.id" data-region="$?.region">
                 <img class="avatar" src="$?.avatar" data-value="$?.id" />
                 <span>$?.name</span>
             </li>
         </archetype>
 
-        <archedata id="item-user">
+        <archedata name="item_user">
             {
                 "id": "$?.attr.data-value", "avatar": "$?.content[0].attr.src",
                 "name": "$?.children[1].textContent", "region": "$?.attr.data-region"
@@ -52,25 +52,25 @@
             </iterate>
         </ul>
 
-        <archetype id="footer-cn">
+        <archetype name="footer_cn">
             <p><a href="http://www.baidu.com">Baidu</a></p>
         </archetype>
 
-        <archetype id="footer-tw">
+        <archetype name="footer_tw">
             <p><a href="http://www.bing.com">Bing</a></p>
         </archetype>
 
-        <archetype id="footer-def">
+        <archetype name="footer_def">
             <p><a href="http://www.google.com">Google</a></p>
         </archetype>
 
         <footer id="the-footer">
-            <test on="$_SYSTEM.locale" in='the-footer'>
-                <match for="~zh_CN" to="displace" with="#footer-cn" exclusively>
+            <test on="$_SYSTEM.locale" in='#the-footer'>
+                <match for="~zh_CN" to="displace" with="$footer_cn" exclusively>
                 </match>
-                <match for="~zh_TW" to="displace" with="#footer-tw" exclusively>
+                <match for="~zh_TW" to="displace" with="$footer_tw" exclusively>
                 </match>
-                <match for="*" to="displace" with="#footer-def">
+                <match for="*" to="displace" with="$footer_def">
                 </match>
                 <error on="nodata">
                     <p>You forget to define the global variable!</p>

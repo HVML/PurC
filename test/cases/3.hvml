@@ -16,14 +16,14 @@
     </head>
 
     <body>
-        <archetype id="user-item">
+        <archetype name="user_item">
             <li class="user-item" id="user-$?.id" data-value="$?.id" data-region="$?.region">
                 <img class="avatar" src="$?.avatar" />
                 <span>$?.name</span>
             </li>
         </archetype>
 
-        <archedata id="item-user">
+        <archedata name="item_user">
             {
                 "id": "$?.attr.data-value", "avatar": "$?.content[0].attr.src",
                 "name": "$?.children[1].textContent", "region": "$?.attr.data-region"
@@ -39,7 +39,7 @@
         </header>
 
         <ul class="user-list">
-            <iterate on="$users" with="#user-item" to="append" by="CLASS: IUser">
+            <iterate on="$users" with="$user_item" to="append" by="CLASS: IUser">
                 <nodata>
                     <img src="wait.png" />
                 </nodata>
@@ -49,15 +49,15 @@
             </iterate>
         </ul>
 
-        <archetype id="footer-cn">
+        <archetype name="footer-cn">
             <p><a href="http://www.baidu.com">Baidu</a></p>
         </archetype>
 
-        <archetype id="footer-tw">
+        <archetype name="footer-tw">
             <p><a href="http://www.bing.com">Bing</a></p>
         </archetype>
 
-        <archetype id="footer-def">
+        <archetype name="footer-def">
             <p><a href="http://www.google.com">Google</a></p>
         </archetype>
 

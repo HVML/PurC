@@ -47,12 +47,12 @@
             </div>
 
             <div id="c_value">
-                <archetype id="button">
+                <archetype name="button">
                     <li class="$?.class">$?.letters</li>
                 </archetype>
 
                 <ul>
-                    <iterate on="$buttons" with="#button" to="append">
+                    <iterate on="$buttons" with="$button" to="append">
                         <error>
                             <p>Bad data!</p>
                         </error>
