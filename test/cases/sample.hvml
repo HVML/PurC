@@ -1,11 +1,11 @@
 <!DOCTYPE hvml>
 <hvml target="html" script="python" lang="en">
     <head>
-        <init as="global">
+        <init as "global">
             { "locale" : "zh_CN" }
         </init>
 
-        <init as="users">
+        <init as "users">
             [
                 { "id": "1", "avatar": "/img/avatars/1.png", "name": "Tom", "region": "en_US" },
                 { "id": "2", "avatar": "/img/avatars/2.png",,,,,   ,,,, "name": "Jerry", "region": "zh_CN",,, , },
@@ -28,7 +28,7 @@
             ]
         </init>
 
-        <listen on="hibus://system/status" as="systemStatus" />
+        <listen on "hibus://system/status" as "systemStatus" />
     </head>
 
     <body>
