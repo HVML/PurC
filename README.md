@@ -1,15 +1,17 @@
 # PurC
 
-PurC is an hVml inteRpreter for C language.
+PurC is an hVml inteRpreter for C language. PurC is also the abbreviation of Purring Cat.
 
 - [Introduction to HVML](#introduction-to-hvml)
-- [Source Tree of Purring Cat](#source-tree-of-purring-cat)
+- [Source Tree of PurC](#source-tree-of-purc)
 - [Current Status](#current-status)
 - [Building](#building)
    + [Commands](#commands)
    + [Using the test samples](#using-the-test-samples)
+   + [Other documents](#other-documents)
 - [Authors and Contributors](#authors-and-contributors)
 - [Copying](#copying)
+- [Tradmarks](#tradmarks)
 
 ## Introduction to HVML
 
@@ -130,21 +132,26 @@ For more information about HVML, please refer to the following articles:
 - [A brief introduction to HVML](https://github.com/HVML/hvml-docs/blob/master/zh/brief-introduction-to-hvml-zh.md) - Chinese Version
 - [Overview of HVML](https://github.com/HVML/hvml-docs/blob/master/zh/hvml-overview-zh.md) - Chinese Version
 
-## Source Tree of Purring Cat
+## Source Tree of PurC
 
-Purring Cat implements the parser, the interpreter, and some built-in JSON objects for HVML.
+PurC implements the parser, the interpreter, and some built-in JSON objects for HVML.
 It is mainly written in C/C++ language and provides bindings for Python.
 
-The source tree of Purring Cat contains the following modules:
+The source tree of PurC contains the following modules:
 
 - `include/`: The global header files.
 - `src/ports/`: The ports for different operating systems, such as a POSIX-compliant system or Windows.
 - `src/mycore/`: Some basic and common utilities from MyHTML.
-- `src/variant/`: The variant and variant creatation tree.
-- `src/myhtml/`: The HTML parser. The HTML parser reads a HTML document and creates a eDOM.
-- `src/myhvml/`: The HVML parser. The HTML parser reads a HVML document and creates a vDOM.
+- `src/variant/`: The variant and the constructor of the variant model tree.
+- `src/edom/`: The constructor of the effective DOM tree.
+- `src/vdom/`: The constructor of the virtual DOM tree.
+- `src/parser-html/`: The HTML parser. The HTML parser reads a HTML document and constructs a eDOM.
+- `src/parser-hvml/`: The HVML parser. The HTML parser reads a HVML document and constructs a vDOM.
+- `src/parser-xgml/`: The XGML parser. The XGML parser reads a XGML document and constructs a eDOM.
+- `src/parser-xml/`: The XML parser. The XML parser reads a XML document and constructs a eDOM.
 - `src/dvobjs/`: The built-in dynamic variant objects.
-- `src/purc/`: The HVML interpreter.
+- `src/executors/`: The internal/external executors.
+- `src/actuator/`: The vDOM actuator.
 - `src/bindings/`: The bindings for Python, Lua, and other programming languages.
 - `test/`: The unit test programs.
 - `docs/`: Some notes for developers.
@@ -180,7 +187,7 @@ rm -rf build && cmake -B build && cmake --build build
 
 ## Authors and Contributors
 
-- Engineers of FMSoft (<https://www.fmsoft.cn>)
+- R&D Team of FMSoft (<https://www.fmsoft.cn>)
 
 ## Copying
 
@@ -200,6 +207,19 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+## Tradmarks
+
+1) `HVML` is a registered tradmark of Beijing FMSoft Technologies. Co., Ltd. in China and other contries or regions.
+
+![HVML](https://www.fmsoft.cn/application/files/8116/1931/8777/HVML256132.jpg)
+
+2) `呼噜猫` is a registered tradmark of Beijing FMSoft Technologies. Co., Ltd. in China and other contries or regions.
+
+![呼噜猫](https://www.fmsoft.cn/application/files/8416/1931/8781/256132.jpg)
+
+3) `Purring Cat` is a registered tradmark of Beijing FMSoft Technologies. Co., Ltd. in China and other contries or regions.
+
+![Purring Cat](https://www.fmsoft.cn/application/files/2816/1931/9258/PurringCat256132.jpg)
 
 [Beijing FMSoft Technologies Co., Ltd.]: https://www.fmsoft.cn
 [FMSoft Technologies]: https://www.fmsoft.cn
