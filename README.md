@@ -1,6 +1,6 @@
-# Purring Cat 2
+# PurC
 
-This is yet another implementation of HVML.
+PurC is an hVml inteRpreter for C language.
 
 - [Introduction to HVML](#introduction-to-hvml)
 - [Source Tree of Purring Cat](#source-tree-of-purring-cat)
@@ -100,7 +100,7 @@ Or,
 
 ```html
 <!DOCTYPE hvml>
-<hvml target="html" script="python">
+<hvml target="html">
     <head>
         <title>Hello, world!</title>
 
@@ -138,13 +138,13 @@ It is mainly written in C/C++ language and provides bindings for Python.
 The source tree of Purring Cat contains the following modules:
 
 - `include/`: The global header files.
-- `src/mycore/`: Some basic utilities from MyHTML.
-- `src/parser/`: The HVML parser and HTML parser. The HVML parser reads a HVML document and creates a vDOM.
 - `src/ports/`: The ports for different operating systems, such as a POSIX-compliant system or Windows.
-- `src/interpreter/`: The interpreter of vDOM.
-- `src/json-eval/`: The parser of JSON evaluation expression.
-- `src/json-objects/`: The built-in dynamic JSON objects.
-- `src/webui-renderer/`: A simplified HTML/CSS renderer.
+- `src/mycore/`: Some basic and common utilities from MyHTML.
+- `src/variant/`: The variant and variant creatation tree.
+- `src/myhtml/`: The HTML parser. The HTML parser reads a HTML document and creates a eDOM.
+- `src/myhvml/`: The HVML parser. The HTML parser reads a HVML document and creates a vDOM.
+- `src/dvobjs/`: The built-in dynamic variant objects.
+- `src/purc/`: The HVML interpreter.
 - `src/bindings/`: The bindings for Python, Lua, and other programming languages.
 - `test/`: The unit test programs.
 - `docs/`: Some notes for developers.
@@ -154,7 +154,7 @@ which is licensed under LGPL 2.1.
 
 ## Current Status
 
-This project was launched in Jan. 2021.
+This project was launched in June. 2021.
 
 We welcome anybody to take part in the development and contribute your effort!
 
@@ -180,7 +180,7 @@ rm -rf build && cmake -B build && cmake --build build
 
 ## Authors and Contributors
 
-- Vincent Wei (<https://github.com/VincentWei>)
+- Engineers of FMSoft (<https://www.fmsoft.cn>)
 
 ## Copying
 
