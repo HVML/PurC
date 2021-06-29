@@ -150,9 +150,10 @@ The source tree of PurC contains the following modules:
 - `src/parser-xgml/`: The XGML parser. The XGML parser reads a XGML document and constructs a eDOM.
 - `src/parser-xml/`: The XML parser. The XML parser reads a XML document and constructs a eDOM.
 - `src/dvobjs/`: The dynamic variant objects.
-- `src/fetchers/`: The data fetchers to fetch data from various data sources (HTTP, WebSocket, and so on).
+- `src/fetchers/`: The data fetchers to fetch data from various data sources (HTTP, FTP, and so on).
+- `src/listeners/`: The data listeners to listen events and/or send requests on various long-time connnection (hiDataBus, MQTT, WebSocket, and so on).
 - `src/executors/`: The internal/external executors.
-- `src/actuator/`: The vDOM actuator.
+- `src/interpreter/`: The vDOM interpreter.
 - `src/bindings/`: The bindings for Python, Lua, and other programming languages.
 - `test/`: The unit test programs.
 - `docs/`: Some notes for developers.
