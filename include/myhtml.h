@@ -22,8 +22,8 @@
 ** Author: lex.borisov@gmail.com (Alexander Borisov)
 */
 
-#ifndef PCAT2_MyHTML_H
-#define PCAT2_MyHTML_H
+#ifndef PURC_MyHTML_H
+#define PURC_MyHTML_H
 
 #pragma once
 
@@ -41,8 +41,8 @@
 #include <stddef.h>
 #include <stdio.h>
 
-#include "pcat2_version.h"
-#include "pcat2_macros.h"
+#include "purc_version.h"
+#include "purc_macros.h"
 #include "myencoding.h"
 #include "mycore.h"
 
@@ -2040,4 +2040,4 @@ myhtml_serialization_node_callback(myhtml_tree_node_t* node,
 } /* extern "C" */
 #endif
 
-#endif /* PCAT2_MyHTML_H */
+#endif /* PURC_MyHTML_H */

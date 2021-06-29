@@ -22,8 +22,8 @@
 ** Author: lex.borisov@gmail.com (Alexander Borisov)
 */
 
-#ifndef PCAT2_MyCORE_H
-#define PCAT2_MyCORE_H
+#ifndef PURC_MyCORE_H
+#define PURC_MyCORE_H
 
 #pragma once
 
@@ -41,8 +41,8 @@
 #include <stddef.h>
 #include <stdio.h>
 
-#include "pcat2_version.h"
-#include "pcat2_macros.h"
+#include "purc_version.h"
+#include "purc_macros.h"
 #include "mycore/myosi.h"
 #include "mycore/incoming.h"
 #include "mycore/mystring.h"
@@ -415,5 +415,5 @@ mycore_strncasecmp(const char* str1, const char* str2, size_t size);
 } /* extern "C" */
 #endif
 
-#endif /* PCAT2_MyCORE_H */
+#endif /* PURC_MyCORE_H */
 

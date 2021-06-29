@@ -5,9 +5,9 @@ project(purring-cat-2)
 ################
 ## options
 #########################
-option(PCAT2_BUILD_SHARED "Build shared library" ON)
-option(PCAT2_BUILD_STATIC "Build static library" ON)
-option(PCAT2_INSTALL_HEADER "Install header files" ON)
+option(PURC_BUILD_SHARED "Build shared library" ON)
+option(PURC_BUILD_STATIC "Build static library" ON)
+option(PURC_INSTALL_HEADER "Install header files" ON)
 
 option(PARSER_BUILD_WITHOUT_THREADS "Build Parser without POSIX Threads" OFF)
 option(MyCORE_BUILD_WITHOUT_THREADS "Build MyCORE without POSIX Threads" OFF)
@@ -39,18 +39,18 @@ set(PROJECT_INSTALL_DLL_EXE_DIR "bin")
 ################
 ## Project Version
 #########################
-set(PROJECT_VERSION_HEADER_FILE "${PROJECT_DIR_API_HEADER}/pcat2_version.h")
+set(PROJECT_VERSION_HEADER_FILE "${PROJECT_DIR_API_HEADER}/purc_version.h")
 
 file(STRINGS ${PROJECT_VERSION_HEADER_FILE} PROJECT_VERSION_PARTS
-REGEX "^#define[ \t]+PCAT2_VERSION_(MAJOR|MINOR|PATCH)[ \t]+[0-9]+$")
+REGEX "^#define[ \t]+PURC_VERSION_(MAJOR|MINOR|PATCH)[ \t]+[0-9]+$")
 
 list(GET PROJECT_VERSION_PARTS 0 PROJECT_VERSION_MAJOR_PART)
 list(GET PROJECT_VERSION_PARTS 1 PROJECT_VERSION_MINOR_PART)
 list(GET PROJECT_VERSION_PARTS 2 PROJECT_VERSION_PATCH_PART)
 
-string(REGEX REPLACE "#define[ \t]+PCAT2_VERSION_MAJOR[ \t]+([0-9]+).*" "\\1" PROJECT_VERSION_MAJOR ${PROJECT_VERSION_MAJOR_PART})
-string(REGEX REPLACE "#define[ \t]+PCAT2_VERSION_MINOR[ \t]+([0-9]+).*" "\\1" PROJECT_VERSION_MINOR ${PROJECT_VERSION_MINOR_PART})
-string(REGEX REPLACE "#define[ \t]+PCAT2_VERSION_PATCH[ \t]+([0-9]+).*" "\\1" PROJECT_VERSION_PATCH ${PROJECT_VERSION_PATCH_PART})
+string(REGEX REPLACE "#define[ \t]+PURC_VERSION_MAJOR[ \t]+([0-9]+).*" "\\1" PROJECT_VERSION_MAJOR ${PROJECT_VERSION_MAJOR_PART})
+string(REGEX REPLACE "#define[ \t]+PURC_VERSION_MINOR[ \t]+([0-9]+).*" "\\1" PROJECT_VERSION_MINOR ${PROJECT_VERSION_MINOR_PART})
+string(REGEX REPLACE "#define[ \t]+PURC_VERSION_PATCH[ \t]+([0-9]+).*" "\\1" PROJECT_VERSION_PATCH ${PROJECT_VERSION_PATCH_PART})
 
 set(PROJECT_VERSION_STRING "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
 message(STATUS "Project version: ${PROJECT_VERSION_STRING}")
@@ -180,22 +180,22 @@ else ()
 endif (WIN32)
 
 ################
-## export PCAT2_INCLUDE_DIRS and STXXLPCAT2_LIBRARIES to global CACHE
+## export PURC_INCLUDE_DIRS and STXXLPURC_LIBRARIES to global CACHE
 #########################
-set(PCAT2_INCLUDE_DIRS ${PROJECT_DIR_API_HEADER} CACHE STRING "Include paths for PCAT2")
-set(PCAT2_LIBRARIES pcat2 CACHE STRING "Libraries to link for PCAT2")
+set(PURC_INCLUDE_DIRS ${PROJECT_DIR_API_HEADER} CACHE STRING "Include paths for PURC")
+set(PURC_LIBRARIES purc CACHE STRING "Libraries to link for PURC")
 
 ################
 ## Create static/dynamic library
 #########################
-if(PCAT2_BUILD_SHARED)
+if(PURC_BUILD_SHARED)
     add_library(${PROJECT_LIB_NAME} SHARED ${PROJECT_SOURCES} ${PROJECT_SOURCES_PORT})
     target_link_libraries(${PROJECT_LIB_NAME} ${CMAKE_THREAD_LIBS_INIT})
     set_target_properties(${PROJECT_LIB_NAME} PROPERTIES OUTPUT_NAME ${PROJECT_LIB_NAME})
     set_target_properties(${PROJECT_LIB_NAME} PROPERTIES VERSION ${PROJECT_VERSION_STRING} SOVERSION ${PROJECT_VERSION_MAJOR})
 endif()
 
-if(PCAT2_BUILD_STATIC)
+if(PURC_BUILD_STATIC)
     add_library(${PROJECT_LIB_NAME_STATIC} STATIC ${PROJECT_SOURCES} ${PROJECT_SOURCES_PORT})
     target_link_libraries(${PROJECT_LIB_NAME_STATIC} ${CMAKE_THREAD_LIBS_INIT})
     set_target_properties(${PROJECT_LIB_NAME_STATIC} PROPERTIES OUTPUT_NAME ${PROJECT_LIB_NAME_STATIC})
@@ -208,7 +208,7 @@ endif()
 set(prefix ${CMAKE_INSTALL_PREFIX})
 set(exec_prefix "${CMAKE_INSTALL_PREFIX}/${PROJECT_INSTALL_DLL_EXE_DIR}")
 set(libdir ${CMAKE_INSTALL_LIBDIR})
-set(includedir "include/pcat2")
+set(includedir "include/purc")
 set(libname ${PROJECT_LIB_NAME})
 set(description ${PROJECT_DESCRIPTION})
 set(version ${PROJECT_VERSION_STRING})
@@ -219,24 +219,24 @@ configure_file (
 ################
 ## install
 #########################
-if(PCAT2_INSTALL_HEADER)
+if(PURC_INSTALL_HEADER)
     file(GLOB PROJECT_HEADER_DIRS "${PROJECT_DIR_API_HEADER}/*")
     foreach(ITEM ${PROJECT_HEADER_DIRS})                                                                                                                                                
         if(IS_DIRECTORY "${ITEM}")
-            install(DIRECTORY "${ITEM}" DESTINATION "include/pcat2" FILES_MATCHING PATTERN "*.h")
+            install(DIRECTORY "${ITEM}" DESTINATION "include/purc" FILES_MATCHING PATTERN "*.h")
         elseif("${ITEM}" MATCHES ".*\\.h")
-            install(FILES "${ITEM}" DESTINATION "include/pcat2")
+            install(FILES "${ITEM}" DESTINATION "include/purc")
         endif()
     endforeach()
 endif()
 
-if(PCAT2_BUILD_SHARED)
+if(PURC_BUILD_SHARED)
     install(TARGETS ${PROJECT_LIB_NAME}
     RUNTIME DESTINATION "${PROJECT_INSTALL_DLL_EXE_DIR}"
     LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}")
 endif()
 
-if(PCAT2_BUILD_STATIC)
+if(PURC_BUILD_STATIC)
     install(TARGETS ${PROJECT_LIB_NAME_STATIC}
     RUNTIME DESTINATION "${PROJECT_INSTALL_DLL_EXE_DIR}"
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")

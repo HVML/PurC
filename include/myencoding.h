@@ -22,8 +22,8 @@
 ** Author: lex.borisov@gmail.com (Alexander Borisov)
 */
 
-#ifndef PCAT2_MyENCODING_H
-#define PCAT2_MyENCODING_H
+#ifndef PURC_MyENCODING_H
+#define PURC_MyENCODING_H
 
 #pragma once
 
@@ -35,8 +35,8 @@
 #include <stddef.h>
 #include <stdio.h>
 
-#include "pcat2_version.h"
-#include "pcat2_macros.h"
+#include "purc_version.h"
+#include "purc_macros.h"
 #include "myencoding/myosi.h"
 
 #ifdef __cplusplus
@@ -235,5 +235,5 @@ myencoding_extracting_character_encoding_from_charset_with_found(const char *dat
 } /* extern "C" */
 #endif
 
-#endif /* PCAT2_MyENCODING_H */
+#endif /* PURC_MyENCODING_H */
 

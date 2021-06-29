@@ -24,7 +24,7 @@
 #include <stdbool.h>
 #include <memory.h>
 
-#include <pcat2/myhtml.h>
+#include <purc/myhtml.h>
 
 #include "example.h"
 

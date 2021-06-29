@@ -20,13 +20,13 @@
 ** Author: lex.borisov@gmail.com (Alexander Borisov)
 */
 
-#ifndef PCAT2_PCAT2_H
-#define PCAT2_PCAT2_H
+#ifndef PURC_PURC_H
+#define PURC_PURC_H
 
 #pragma once
 
 /**
- * @file pcat2.h
+ * @file purc.h
  *
  * Fast C/C++ HVML Parser and Interperter. Using threads.
  * With possibility of a Single Mode.
@@ -38,11 +38,11 @@
 #include <stddef.h>
 #include <stdio.h>
 
-#include "pcat2_version.h"
-#include "pcat2_macros.h"
+#include "purc_version.h"
+#include "purc_macros.h"
 #include "mycore.h"
 #include "myencoding.h"
 #include "myhtml.h"
 #include "myhvml.h"
 
-#endif /* PCAT2_PCAT2_H */
+#endif /* PURC_PURC_H */
