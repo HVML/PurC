@@ -19,8 +19,8 @@
 **
 */
 
-#ifndef PURC_MYCORE_RWSTREAM_H
-#define PURC_MYCORE_RWSTREAM_H
+#ifndef PURC_RWSTREAM_H
+#define PURC_RWSTREAM_H
 
 #pragma once
 
@@ -209,5 +209,5 @@ int purc_rwstream_close (purc_rwstream_t rws);
 
 
 
-#endif /* PURC_MYCORE_RWSTREAM_H */
+#endif /* PURC_RWSTREAM_H */
 
