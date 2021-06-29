@@ -1,7 +1,8 @@
 /*
 ** Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
 **
-** This file is a part of Purring Cat 2, a HVML parser and interpreter.
+** This file is a part of PurC (short for Purring Cat), an HVML parser
+** and interpreter.
 **
 ** This program is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU Lesser General Public License as published by
@@ -25,115 +26,126 @@
 
 struct _PURC_RWSTREAM;
 typedef struct _PURC_RWSTREAM PURC_RWSTREAM;
+typedef struct _PURC_RWSTREAM* purc_rwstream_t;
 
 /**
- * Creates a new PURC_RWSTREAM for the given file and mode.
+ * Creates a new purc_rwstream_t for the given memory buffer.
+ *
+ * @param mem: pointer to memory buffer
+ * @param sz:  size of memory buffer
+ *
+ * Returns: A purc_rwstream_t on success, NULL on failure.
+ *
+ * Since: 0.0.1
+ */
+purc_rwstream_t purc_rwstream_new_from_mem (void* mem, size_t sz);
+
+/**
+ * Creates a new purc_rwstream_t for the given file and mode.
  *
  * @param file: the file will be opened
  * @param mode: One of "r", "w", "a", "r+", "w+", "a+". These have the same
  *        meaning as in fopen()
  *
- * Returns: A PURC_RWSTREAM on success, NULL on failure.
+ * Returns: A purc_rwstream_t on success, NULL on failure.
  *
  * Since: 0.0.1
  */
-PURC_RWSTREAM* purc_rwstream_from_file (const char* file, const char* mode);
+purc_rwstream_t purc_rwstream_new_from_file (const char* file, const char* mode);
 
 /**
- * Creates a new PURC_RWSTREAM for the given FILE pointer.
+ * Creates a new purc_rwstream_t for the given FILE pointer.
  *
  * @param fp: FILE pointer
- * @param autoclose: Whether to automatically close the fp when the
- *        PURC_RWSTREAM is freed.
  *
- * Returns: A PURC_RWSTREAM on success, NULL on failure.
+ * Returns: A purc_rwstream_t on success, NULL on failure.
  *
  * Since: 0.0.1
  */
-PURC_RWSTREAM* purc_rwstream_from_fp (FILE* fp, bool autoclose);
+purc_rwstream_t purc_rwstream_new_from_fp (FILE* fp);
 
 /**
- * Creates a new PURC_RWSTREAM for the given file descriptor.
+ * Creates a new purc_rwstream_t for the given file descriptor (Unix only).
  *
  * @param fd: file descriptor
- * @param autoclose: Whether to automatically close the fp when the
- *        PURC_RWSTREAM is freed.
+ * @param sz_buf: buffer size
  *
- * Returns: A PURC_RWSTREAM on success, NULL on failure.
- *
- * Since: 0.0.1
- */
-PURC_RWSTREAM* purc_rwstream_from_fd (int fd, bool autoclose);
-
-/**
- * Creates a new PURC_RWSTREAM for the given memory buffer.
- *
- * @param mem: pointer to memory buffer
- * @param sz:  size of memory buffer
- *
- * Returns: A PURC_RWSTREAM on success, NULL on failure.
+ * Returns: A purc_rwstream_t on success, NULL on failure.
  *
  * Since: 0.0.1
  */
-PURC_RWSTREAM* purc_rwstream_from_mem (void* mem, size_t sz);
+purc_rwstream_t purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf);
+
 
 /**
- * Release the PURC_RWSTREAM
+ * Creates a new purc_rwstream_t for the given socket on Windows (Win32 only).
  *
- * @param rws: pointer to PURC_RWSTREAM
+ * @param socket:  sockets created by Winsock
+ * @param sz_buf: buffer size
+ *
+ * Returns: A purc_rwstream_t on success, NULL on failure.
+ *
+ * Since: 0.0.1
+ */
+purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf);
+
+/**
+ * Release the purc_rwstream_t
+ *
+ * @param rws: purc_rwstream_t
  *
  * Returns: 0 success, non-zero otherwise.
  *
  * Since: 0.0.1
  */
-int purc_rwstream_free (PURC_RWSTREAM* rws);
+int purc_rwstream_delete (purc_rwstream_t rws);
 
 /**
- * Sets the current position in the PURC_RWSTREAM, similar to the standard
+ * Sets the current position in the purc_rwstream_t, similar to the standard
  * library function fseek().
  *
- * @param rws: pointer to PURC_RWSTREAM
+ * @param rws: purc_rwstream_t
  * @param offset: n offset, in bytes, which is added to the position specified
  *        by whence
- * @param whence: the position in the file, which can be PURC_RWSTREAM_SEEK_CUR (the
- *        current position), PURC_RWSTREAM_SEEK_SET (the start of the file),
- *        or PURC_RWSTREAM_SEEK_END (the end of the file)
+ * @param whence: the position in the file, which can be purc_rwstream_t_SEEK_CUR (the
+ *        current position), purc_rwstream_t_SEEK_SET (the start of the file),
+ *        or purc_rwstream_t_SEEK_END (the end of the file)
  *
  * Returns: success returns the resulting offset location as measured in bytes from
  *        the beginning of the file,  (off_t) -1 otherwise.
  *
  * Since: 0.0.1
  */
-off_t purc_rwstream_seek (PURC_RWSTREAM* rws, off_t offset, int whence);
+off_t purc_rwstream_seek (purc_rwstream_t rws, off_t offset, int whence);
 
 /**
- * Obtains the current position of PURC_RWSTREAM, similar to the standard
+ * Obtains the current position of purc_rwstream_t, similar to the standard
  * library function ftell().
  *
- * @param rws: pointer to PURC_RWSTREAM
+ * @param rws: pointer to purc_rwstream_t
  *
- * Returns: success returns the current offset, (off_t) -1 otherwise.
+ * Returns: success returns the current offset, (off_t) -1 not support.
  *
  * Since: 0.0.1
  */
-off_t purc_rwstream_tell (PURC_RWSTREAM* rws);
+off_t purc_rwstream_tell (purc_rwstream_t rws);
 
 /**
- * Tests the end-of-file indicator for PURC_RWSTREAM
+ * Tests the end-of-file indicator for purc_rwstream_t
  * library function feof().
  *
- * @param rws: pointer to PURC_RWSTREAM
+ * @param rws: purc_rwstream_t
  *
- * Returns: nonzero if end-of-file indicator is set.
+ * Returns: 1 yes, 0 no, -1 not support.
  *
  * Since: 0.0.1
  */
-int purc_rwstream_eof (PURC_RWSTREAM* rws);
+int purc_rwstream_eof (purc_rwstream_t rws);
 
 /**
- * Reads data from a PURC_RWSTREAM
+ * Reads data from a purc_rwstream_t
  *
- * @param rws: pointer to PURC_RWSTREAM
+ * @param rws: purc_rwstream_t
  * @param buf: a buffer to read the data into
  * @param count: the number of bytes to read
  *
@@ -141,26 +153,13 @@ int purc_rwstream_eof (PURC_RWSTREAM* rws);
  *
  * Since: 0.0.1
  */
-ssize_t purc_rwstream_read (PURC_RWSTREAM* rws, void* buf, size_t count);
+ssize_t purc_rwstream_read (purc_rwstream_t rws, void* buf, size_t count);
 
 /**
- * Reads data to PURC_RWSTREAM
- *
- * @param rws: pointer to PURC_RWSTREAM
- * @param buf: the buffer containing the data to write
- * @param count: the number of bytes to write
- *
- * Returns: the number of bytes actually written
- *
- * Since: 0.0.1
- */
-ssize_t purc_rwstream_write (PURC_RWSTREAM* rws, const void* buf, size_t count);
-
-/**
- * Reads a character(UTF-8) from PURC_RWSTREAM and convert to wchat_t.
+ * Reads a character(UTF-8) from purc_rwstream_t and convert to wchat_t.
  * not be freed until using purc_rwstream_free.
  *
- * @param rws: pointer to PURC_RWSTREAM
+ * @param rws: purc_rwstream_t
  * @param buf_utf8: the buffer to read character into
  * @param buf_wc: the buffer to convert character into
  *
@@ -168,19 +167,45 @@ ssize_t purc_rwstream_write (PURC_RWSTREAM* rws, const void* buf, size_t count);
  *
  * Since: 0.0.1
  */
-int purc_rwstream_read_utf8_char (PURC_RWSTREAM* rws, char* buf_utf8, wchar_t* buf_wc);
+int purc_rwstream_read_utf8_char (purc_rwstream_t rws, char* buf_utf8, wchar_t* buf_wc);
+
 
 /**
- * Close an PURC_RWSTREAM. Any pending data to be written will be flushed. The channel will
- * not be freed until using purc_rwstream_free.
+ * Write data to purc_rwstream_t
  *
- * @param rws: pointer to PURC_RWSTREAM
+ * @param rws: purc_rwstream_t
+ * @param buf: the buffer containing the data to write
+ * @param count: the number of bytes to write
+ *
+ * Returns: the number of bytes actually written
+ *
+ * Since: 0.0.1
+ */
+ssize_t purc_rwstream_write (purc_rwstream_t rws, const void* buf, size_t count);
+
+
+/**
+ * Flushes the write buffer for the purc_rwstream_t.
+ *
+ * @param rws: pointer to purc_rwstream_t
  *
  * Returns: 0 success, non-zero otherwise.
  *
  * Since: 0.0.1
  */
-int purc_rwstream_close (PURC_RWSTREAM* rws);
+ssize_t purc_rwstream_flush (purc_rwstream_t rws);
+
+/**
+ * Close an purc_rwstream_t. Any pending data to be written will be flushed. The channel will
+ * not be freed until using purc_rwstream_free.
+ *
+ * @param rws: pointer to purc_rwstream_t
+ *
+ * Returns: 0 success, non-zero otherwise.
+ *
+ * Since: 0.0.1
+ */
+int purc_rwstream_close (purc_rwstream_t rws);
 
 
 
