@@ -118,7 +118,6 @@ purc_variant_t purc_variant_make_string (const char* str_utf8);
 purc_variant_t purc_variant_make_string_with_check (const char* str_utf8);
 
 
-// 获取字符串地址
 /**
  * Gets the pointer of string which is encapsulated in string type.
  *
@@ -130,16 +129,411 @@ purc_variant_t purc_variant_make_string_with_check (const char* str_utf8);
  */
 const char* purc_variant_get_string_const (purc_variant_t value);
 
-// 构造字节序列
+/**
+ * Creates a variant data of char sequence.
+ *
+ * @param bytes: the pointer of a char sequence
+ *
+ * @param nr_bytes: the number of chars in sequence
+ *
+ * Returns: A purc_variant_t on success, NULL on failure.
+ *
+ * Since: 0.0.1
+ */
 purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes, size_t nr_bytes);
+
+
+/**
+ * Gets the pointer of char array which is encapsulated in char sequence type.
+ *
+ * @param value: the data of char sequence type
+ *
+ * @param nr_bytes: the size of char sequence
+ *
+ * Returns: the pointer of char array on success, NULL on failure.
+ *
+ * Since: 0.0.1
+ */
 const unsigned char* purc_variant_get_bytes_const (purc_variant_t value, size_t* nr_bytes);
 
-// 构造动态值
+
 typedef purc_variant_t (*PCB_DYNAMIC_VARIANT) (purc_variant_t root, int nr_args, purc_variant_t arg0, ...);
+
+
+/**
+ * Creates dynamic value by setter and getter functions
+ *
+ * @param getter: the getter funciton pointer
+ *
+ * @param setter: the setter function pointer
+ *
+ * Returns: A purc_variant_t on success, NULL on failure.
+ *
+ * Since: 0.0.1
+ */
 purc_variant_t purc_variant_make_dynamic_value (CB_DYNAMIC_VARIANT getter, CB_DYNAMIC_VARIANT setter);
 
 
-// https://gitlab.fmsoft.cn/hvml/docs-undisclosed/blob/master/design/purc-architecture-zh.md#4-%E6%A8%A1%E5%9D%97%E5%AE%9E%E7%8E%B0%E5%8F%8A%E5%AF%B9%E5%86%85%E6%8E%A5%E5%8F%A3
+/**
+ * Creates a variant data of array type.
+ *
+ * @param sz: the size of array
+ *
+ * @param value0 ..... valuen: enumerate every elements in array 
+ *
+ * Returns: A purc_variant_t on success, NULL on failure.
+ *
+ * Since: 0.0.1
+ */
+purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...);
+
+
+/**
+ * Appends a variant data to the tail of an array.
+ *
+ * @param array: the variant data of array type
+ *
+ * @param value: the element to be appended
+ *
+ * Returns: the size of array after appending operation.
+ *
+ * Since: 0.0.1
+ */
+int purc_variant_array_append (purc_variant_t array, purc_variant_t value);
+
+
+/**
+ * Gets an element from an array by index.
+ *
+ * @param array: the variant data of array type
+ *
+ * @param idx: the index of wanted element 
+ *
+ * Returns: A purc_variant_t on success, NULL on failure.
+ *
+ * Since: 0.0.1
+ */
+purc_variant_t purc_variant_array_get (purc_variant_t array, int idx);
+
+
+/**
+ * Sets an element value in an array by index.
+ *
+ * @param array: the variant data of array type
+ *
+ * @param idx: the index of replaced element 
+ *
+ * @param value: the element to replace
+ *
+ * Returns: The replaced purc_variant_t on success, NULL on failure.
+ *
+ * Since: 0.0.1
+ */
+???
+purc_variant_t purc_variant_array_set (purc_variant_t array, int idx, purc_variant_t value);
+
+
+/**
+ * Remove an element from an array by index.
+ *
+ * @param array: the variant data of array type
+ *
+ * @param idx: the index of element to be removed
+ *
+ * Returns: The removed purc_variant_t on success, NULL on failure.
+ *
+ * Since: 0.0.1
+ */
+???
+purc_variant_t purc_variant_array_remove (purc_variant_t array, int idx);
+
+
+/**
+ * Inserts an element to an array, places it before an indicated element.
+ *
+ * @param array: the variant data of array type
+ *
+ * @param idx: the index of element before which the new element will be placed
+ *
+ * @param value: the inserted element 
+ *
+ * Returns: The inserted purc_variant_t on success, NULL on failure.
+ *
+ * Since: 0.0.1
+ */
+???
+purc_variant_t purc_variant_array_insert_before (purc_variant_t array, int idx, purc_variant_t value);
+
+
+/**
+ * Inserts an element to an array, places it after an indicated element.
+ *
+ * @param array: the variant data of array type
+ *
+ * @param idx: the index of element after which the new element will be placed
+ *
+ * @param value: the inserted element 
+ *
+ * Returns: The inserted purc_variant_t on success, NULL on failure.
+ *
+ * Since: 0.0.1
+ */
+???
+purc_variant_t purc_variant_array_insert_after (purc_variant_t array, int idx, purc_variant_t value);
+
+
+/**
+ * Creates a variant data of object type.
+ *
+ * @param nr_kv_pairs: the minimum of key-value pairs
+ *
+ * @param key0 ..... keyn: the keys of key-value pairs 
+ *
+ * @param value0 ..... valuen: the values of key-value pairs 
+ *
+ * Returns: A purc_variant_t on success, NULL on failure.
+ *
+ * Since: 0.0.1
+ */
+purc_variant_t purc_variant_object_make (size_t nr_kv_pairs, const char* key0, purc_variant_t value0, ...);
+
+
+/**
+ * Gets the value by key from an object.
+ *
+ * @param obj: the variant data of obj type
+ *
+ * @param key: the key of key-value pair 
+ *
+ * Returns: A purc_variant_t on success, NULL on failure.
+ *
+ * Since: 0.0.1
+ */
+purc_variant_t purc_variant_object_get (purc_variant_t obj, const char* key);
+
+
+/**
+ * Sets the value by key in an object.
+ *
+ * @param obj: the variant data of obj type
+ *
+ * @param key: the key of key-value pair 
+ *
+ * @param value: the value of key-value pair
+ *
+ * Returns: True on success, False on failure.
+ *
+ * Since: 0.0.1
+ */
+bool purc_variant_object_set (purc_variant_t obj, const char* key, purc_variant_t value);
+
+
+/**
+ * Remove a key-value pair from an object by key.
+ *
+ * @param obj: the variant data of obj type
+ *
+ * Returns: True on success, False on failure.
+ *
+ * Since: 0.0.1
+ */
+bool purc_variant_object_remove (purc_variant_t obj, const char* key);
+
+
+/**
+ * Creates a variant data of set type.
+ *
+ * @param sz: the number of elements in a set
+ *
+ * @param unique_key0 ..... unique_keyn: the keys of unique key-value pairs 
+ *
+ * @param value0 ..... valuen: the values of unique key-value pairs 
+ *
+ * Returns: A purc_variant_t on success, NULL on failure.
+ *
+ * Since: 0.0.1
+ */
+purc_variant_t purc_variant_set_make (size_t sz, const char* unique_key, purc_variant_t value0, ...);
+
+
+/**
+ * Adds a unique key-value pair to a set.
+ *
+ * @param set: the set to be added
+ *
+ * @param key: the key of key-value pair
+ *
+ * @param value: the value of key-value pair
+ *
+ * Returns: True on success, False on failure
+ *
+ * Since: 0.0.1
+ */
+???
+bool purc_variant_set_add (purc_variant_t set, const char* key, purc_variant_t value);
+
+
+/**
+ * Remove a unique key-value pair from a set.
+ *
+ * @param set: the set to be operated 
+ *
+ * @param key: the key of key-value pair
+ *
+ * Returns: True on success, False on failure
+ *
+ * Since: 0.0.1
+ */
+ ???
+bool purc_variant_set_remove (purc_variant_t set, const char* key);
+
+
+/**
+ * Gets an element from an array by index.
+ *
+ * @param array: the variant data of array type
+ *
+ * @param idx: the index of wanted element 
+ *
+ * Returns: A purc_variant_t on success, NULL on failure.
+ *
+ * Since: 0.0.1
+ */
+purc_variant_array_get????
+purc_variant_t purc_variant_get_value_in_array (const purc_variant_t array, size_t idx);
+
+/**
+ * Gets the value by key from an object.
+ *
+ * @param obj: the variant data of obj type
+ *
+ * @param key: the key of key-value pair 
+ *
+ * Returns: A purc_variant_t on success, NULL on failure.
+ *
+ * Since: 0.0.1
+ */
+purc_variant_object_get????
+purc_variant_t purc_variant_get_value_in_object (const purc_variant_t obj, const char *key);
+
+/**
+ * Gets the value by key from a set.
+ *
+ * @param set: the variant data of obj type
+ *
+ * @param match_key: the unique key of key-value pair 
+ *
+ * Returns: A purc_variant_t on success, NULL on failure.
+ *
+ * Since: 0.0.1
+ */
+ ????
+purc_variant_t purc_variant_get_value_in_set (const purc_variant_t set, const char * match_key);
+
+
+/**
+ * Adds ref for a variant data
+ *
+ * @param value: variant data to be operated
+ *
+ * Returns: A purc_variant_t on success, NULL on failure.
+ *
+ * Since: 0.0.1
+ */
+purc_variant_t purc_variant_ref (purc_variant_t value);
+
+// 反引用变体型数据。引用计数减 1；当引用计数为 0 时，释放资源
+/**
+ * substract ref for a variant data. When ref is zero, releases the resource occupied by the data
+ *
+ * @param value: variant data to be operated
+ *
+ * Since: 0.0.1
+ */
+void purc_variant_unref (purc_variant_t value);
+
+
+/**
+ * Creates a variant data from Json data
+ *
+ * @param json: the pointer of string which contents json data
+ *
+ * @param sz: the size of string 
+ *
+ * Returns: A purc_variant_t on success, NULL on failure.
+ *
+ * Since: 0.0.1
+ */
+purc_variant_t purc_variant_make_from_json_string (const char* json, size_t sz);
+
+
+/**
+ * Creates a variant data from Json file 
+ *
+ * @param file: the Json file name
+ *
+ * Returns: A purc_variant_t on success, NULL on failure.
+ *
+ * Since: 0.0.1
+ */
+purc_variant_t purc_variant_load_from_json_file (const char* file);
+
+
+/**
+ * Creates a variant data from stream 
+ *
+ * @param stream: the stream of purc_rwstream_t type
+ *
+ * Returns: A purc_variant_t on success, NULL on failure.
+ *
+ * Since: 0.0.1
+ */
+purc_variant_t purc_variant_load_from_json_stream (purc_rwstream_t stream);
+
+
+/**
+ * Compares two variant data 
+ *
+ * @param v1: one of compared variant data
+ *
+ * @param v2: the other variant data to be compared
+ *
+ * Returns: return an integer less than, equal to, or greater than zero if.
+.*
+ * Since: 0.0.1
+ */
+???
+int purc_variant_cmp (purc_variant_t v1, purc_variant v2);
+
+
+/**
+ * Serialize a variant data 
+ *
+ * @param value: the variant data to be serialized
+ *
+ * @param steam: the stream to which the serialized data write
+ *
+ * @param opts: the serialization options
+ *
+ * Returns: return the size of serialized data.
+.*
+ * Since: 0.0.1
+ */
+size_t purc_variant_serialize (purc_variant_t value, purc_rwstream_t stream, unsigned int opts);
+
+
+/**
+ * Loads a variant data from an indicated library
+ *
+ * @param so_name: the library name
+ *
+ * @param var_name: the variant data name
+ *
+ * Returns: A purc_variant_t on success, NULL on failure.
+.*
+ * Since: 0.0.1
+ */
+purc_variant_t purc_variant_dynamic_value_load_from_so (const char* so_name, const char* var_name);
 
 #endif /* PURC_VARIANT_VARIANT_H */
 
