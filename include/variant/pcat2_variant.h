@@ -120,9 +120,9 @@ purc_variant_t purc_variant_make_string_with_check (const char* str_utf8);
 
 // 获取字符串地址
 /**
- * Gets the pointer of string.
+ * Gets the pointer of string which is encapsulated in string type.
  *
- * @param str_utf8: the pointer of a string with UTF-8 encoding
+ * @param value: the data of string type
  *
  * Returns: A purc_variant_t on success, NULL on failure.
  *
