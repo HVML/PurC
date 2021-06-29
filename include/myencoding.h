@@ -2,7 +2,8 @@
 ** Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
 ** Copyright (C) 2015-2017 Alexander Borisov
 **
-** This file is a part of Purring Cat 2, a HVML parser and interpreter.
+** This file is a part of PurC (short for Purring Cat), an HVML parser
+** and interpreter.
 ** 
 ** This program is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU Lesser General Public License as published by
