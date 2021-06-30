@@ -60,20 +60,11 @@ typedef struct _PURC_MEM_RWSTREAM
     uint8_t* stop;
 } PURC_MEM_RWSTREAM;
 
-typedef struct _PURC_FD_RWSTREAM
+typedef struct _PURC_GIO_RWSTREAM
 {
     PURC_RWSTREAM rwstream;
     GIOChannel* gio_channel;
-    int fd;
-} PURC_FD_RWSTREAM;
-
-typedef struct _PURC_WIN32_SOCKET_RWSTREAM
-{
-    PURC_RWSTREAM rwstream;
-    GIOChannel* gio_channel;
-    int socket;
-} PURC_WIN32_SOCKET_RWSTREAM;
-
+} PURC_GIO_RWSTREAM;
 
 off_t stdio_seek (purc_rwstream_t rws, off_t offset, int whence);
 off_t stdio_tell (purc_rwstream_t rws);
@@ -189,12 +180,11 @@ purc_rwstream_t purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf)
         g_io_channel_set_buffer_size(gio_channel, sz_buf);
     }
 
-    PURC_FD_RWSTREAM* fd_rwstream = (PURC_FD_RWSTREAM*) calloc(
-            sizeof(PURC_FD_RWSTREAM), 1);
-    fd_rwstream->rwstream.rw_funcs = &gio_rw_funcs;
-    fd_rwstream->gio_channel = gio_channel;
-    fd_rwstream->fd = fd;
-    return (purc_rwstream_t) fd_rwstream;
+    PURC_GIO_RWSTREAM* gio_rwstream = (PURC_GIO_RWSTREAM*) calloc(
+            sizeof(PURC_GIO_RWSTREAM), 1);
+    gio_rwstream->rwstream.rw_funcs = &gio_rw_funcs;
+    gio_rwstream->gio_channel = gio_channel;
+    return (purc_rwstream_t) gio_rwstream;
 }
 
 purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf)
@@ -211,12 +201,11 @@ purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf)
         g_io_channel_set_buffer_size(gio_channel, sz_buf);
     }
 
-    PURC_WIN32_SOCKET_RWSTREAM* socket_rwstream = (PURC_WIN32_SOCKET_RWSTREAM*) calloc(
-            sizeof(PURC_WIN32_SOCKET_RWSTREAM), 1);
-    socket_rwstream->rwstream.rw_funcs = &gio_rw_funcs;
-    socket_rwstream->gio_channel = gio_channel;
-    socket_rwstream->socket = socket;
-    return (purc_rwstream_t) socket_rwstream;
+    PURC_GIO_RWSTREAM* gio_rwstream = (PURC_GIO_RWSTREAM*) calloc(
+            sizeof(PURC_GIO_RWSTREAM), 1);
+    gio_rwstream->rwstream.rw_funcs = &gio_rw_funcs;
+    gio_rwstream->gio_channel = gio_channel;
+    return (purc_rwstream_t) gio_rwstream;
 #else
     return NULL;
 #endif
@@ -424,3 +413,85 @@ int mem_destroy (purc_rwstream_t rws)
     return 0;
 }
 
+/* gio rwstream functions */
+off_t gio_seek (purc_rwstream_t rws, off_t offset, int whence)
+{
+    PURC_GIO_RWSTREAM* gio = (PURC_GIO_RWSTREAM *)rws;
+    GSeekType type;
+    switch (whence) {
+        case SEEK_SET:
+            type = G_SEEK_SET;
+            break;
+        case SEEK_CUR:
+            type = G_SEEK_CUR;
+            break;
+        case SEEK_END:
+            type = G_SEEK_END;
+            break;
+        default:
+            return(-1);
+    }
+    g_io_channel_seek_position (gio->gio_channel, offset, type, NULL);
+    // TODO
+    return 0;
+}
+
+off_t gio_tell (purc_rwstream_t rws)
+{
+    return -1;
+}
+
+int gio_eof (purc_rwstream_t rws)
+{
+    return -1;
+}
+
+ssize_t gio_read (purc_rwstream_t rws, void* buf, size_t count)
+{
+    PURC_GIO_RWSTREAM* gio = (PURC_GIO_RWSTREAM *)rws;
+    gsize read = 0;
+    g_io_channel_read_chars (gio->gio_channel, buf, count, &read, NULL);
+    // TODO
+    return read;
+}
+
+int gio_read_utf8_char (purc_rwstream_t rws, char* buf_utf8, wchar_t* buf_wc)
+{
+    PURC_GIO_RWSTREAM* gio = (PURC_GIO_RWSTREAM *)rws;
+    gunichar uchar = 0;
+    g_io_channel_read_unichar (gio->gio_channel, &uchar, NULL);
+    // TODO
+    // TODO
+    return 0;
+}
+
+ssize_t gio_write (purc_rwstream_t rws, const void* buf, size_t count)
+{
+    PURC_GIO_RWSTREAM* gio = (PURC_GIO_RWSTREAM *)rws;
+    gsize write = 0;
+    g_io_channel_write_chars (gio->gio_channel, buf, count, &write, NULL);
+    // TODO
+    return write;
+}
+
+ssize_t gio_flush (purc_rwstream_t rws)
+{
+    PURC_GIO_RWSTREAM* gio = (PURC_GIO_RWSTREAM *)rws;
+    g_io_channel_flush (gio->gio_channel, NULL);
+    // TODO
+    return 0;
+}
+
+int gio_close (purc_rwstream_t rws)
+{
+    PURC_GIO_RWSTREAM* gio = (PURC_GIO_RWSTREAM *)rws;
+    g_io_channel_shutdown(gio->gio_channel, TRUE, NULL);
+    g_io_channel_unref(gio->gio_channel);
+    gio->gio_channel = NULL;
+    return 0;
+}
+int gio_destroy (purc_rwstream_t rws)
+{
+    free(rws);
+    return 0;
+}
