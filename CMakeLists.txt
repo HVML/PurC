@@ -1,4 +1,5 @@
 cmake_minimum_required (VERSION 3.0)
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 project(purring-cat-2)
 
@@ -22,6 +23,8 @@ if(NOT PARSER_BUILD_WITHOUT_THREADS)
         message(FATAL_ERROR "Could NOT find pthreads (missing: CMAKE_USE_PTHREADS_INIT)")
     endif()
 endif()
+
+find_package(GLIB 2.40.0 REQUIRED COMPONENTS gio gio-unix gobject gthread gmodule)
 
 ################
 ## version and path
