@@ -24,6 +24,11 @@
 
 #pragma once
 
+#include <stdio.h>
+#include <stdint.h>
+#include <wchar.h>
+#include <sys/types.h>
+
 struct _PURC_RWSTREAM;
 typedef struct _PURC_RWSTREAM PURC_RWSTREAM;
 typedef struct _PURC_RWSTREAM* purc_rwstream_t;
@@ -98,7 +103,7 @@ purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf);
  *
  * Since: 0.0.1
  */
-int purc_rwstream_delete (purc_rwstream_t rws);
+int purc_rwstream_destroy (purc_rwstream_t rws);
 
 /**
  * Sets the current position in the purc_rwstream_t, similar to the standard
