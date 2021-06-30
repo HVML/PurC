@@ -162,7 +162,7 @@ endif()
 ################
 ## Includes
 #########################
-include_directories(${PROJECT_DIR_API_HEADER})
+include_directories(${PROJECT_DIR_API_HEADER} ${GLIB_INCLUDE_DIRS})
 file(GLOB_RECURSE PROJECT_HEADERS ${PROJECT_DIR_API_HEADER}/*.h)
 
 ################
@@ -193,14 +193,14 @@ set(PURC_LIBRARIES purc CACHE STRING "Libraries to link for PURC")
 #########################
 if(PURC_BUILD_SHARED)
     add_library(${PROJECT_LIB_NAME} SHARED ${PROJECT_SOURCES} ${PROJECT_SOURCES_PORT})
-    target_link_libraries(${PROJECT_LIB_NAME} ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries(${PROJECT_LIB_NAME} ${CMAKE_THREAD_LIBS_INIT} ${GLIB_LIBRARIES})
     set_target_properties(${PROJECT_LIB_NAME} PROPERTIES OUTPUT_NAME ${PROJECT_LIB_NAME})
     set_target_properties(${PROJECT_LIB_NAME} PROPERTIES VERSION ${PROJECT_VERSION_STRING} SOVERSION ${PROJECT_VERSION_MAJOR})
 endif()
 
 if(PURC_BUILD_STATIC)
     add_library(${PROJECT_LIB_NAME_STATIC} STATIC ${PROJECT_SOURCES} ${PROJECT_SOURCES_PORT})
-    target_link_libraries(${PROJECT_LIB_NAME_STATIC} ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries(${PROJECT_LIB_NAME_STATIC} ${CMAKE_THREAD_LIBS_INIT} ${GLIB_LIBRARIES})
     set_target_properties(${PROJECT_LIB_NAME_STATIC} PROPERTIES OUTPUT_NAME ${PROJECT_LIB_NAME_STATIC})
     set_target_properties(${PROJECT_LIB_NAME_STATIC} PROPERTIES VERSION ${PROJECT_VERSION_STRING} SOVERSION ${PROJECT_VERSION_MAJOR})
 endif()

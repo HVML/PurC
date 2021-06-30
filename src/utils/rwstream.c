@@ -22,6 +22,7 @@
 
 #include "rwstream.h"
 #include <stdlib.h>
+#include <glib.h>
 
 typedef struct _PURC_RWSTREAM PURC_RWSTREAM;
 typedef struct _PURC_RWSTREAM* purc_rwstream_t;
