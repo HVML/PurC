@@ -141,14 +141,15 @@ The source tree of PurC contains the following modules:
 
 - `include/`: The global header files.
 - `src/ports/`: The ports for different operating systems, such as a POSIX-compliant system or Windows.
-- `src/mycore/`: Some basic and common utilities from MyHTML.
+- `src/utils/`: Some basic and common utilities.
 - `src/variant/`: The variant and the constructor of the variant model tree.
 - `src/edom/`: The constructor of the effective DOM tree.
 - `src/vdom/`: The constructor of the virtual DOM tree.
-- `src/parser-html/`: The HTML parser. The HTML parser reads a HTML document and constructs a eDOM.
-- `src/parser-hvml/`: The HVML parser. The HTML parser reads a HVML document and constructs a vDOM.
-- `src/parser-xgml/`: The XGML parser. The XGML parser reads a XGML document and constructs a eDOM.
-- `src/parser-xml/`: The XML parser. The XML parser reads a XML document and constructs a eDOM.
+- `src/html/`: The HTML parser. The HTML parser reads a HTML document and constructs a eDOM.
+- `src/hvml/`: The HVML parser. The HTML parser reads a HVML document and constructs a vDOM.
+- `src/xgml/`: The XGML parser. The XGML parser reads a XGML document and constructs a eDOM.
+- `src/xml/`: The XML parser. The XML parser reads a XML document and constructs a eDOM.
+- `src/ejson/`: The eJSON parser. The eJSON parser reads a eJSON and constructs a variant.
 - `src/dvobjs/`: The dynamic variant objects.
 - `src/fetchers/`: The data fetchers to fetch data from various data sources (HTTP, FTP, and so on).
 - `src/listeners/`: The data listeners to listen events and/or send requests on various long-time connnection (hiDataBus, MQTT, WebSocket, and so on).
