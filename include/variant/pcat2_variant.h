@@ -17,6 +17,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 **
 */
+// 头文件说明改
 
 #ifndef PURC_VARIANT_VARIANT_H
 #define PURC_VARIANT_VARIANT_H
@@ -39,20 +40,22 @@ typedef struct _PURC_VARIANT* purc_variant_t;
 /**
  * Creates a variant data of undefined type.
  *
- * Returns: A purc_variant_t on success, NULL on failure.
+ * Returns: A purc_variant_t on success.
  *
  * Since: 0.0.1
  */
+ // 直接调用宏，不可能错误
 purc_variant_t purc_variant_make_undefined (void);
 
 
 /**
  * Creates a variant data of null type.
  *
- * Returns: A purc_variant_t on success, NULL on failure.
+ * Returns: A purc_variant_t.
  *
  * Since: 0.0.1
  */
+ // 直接调用宏，不可能错误
 purc_variant_t purc_variant_make_null (void);
 
 
@@ -61,10 +64,11 @@ purc_variant_t purc_variant_make_null (void);
  *
  * @param b: the initial value of created data
  *
- * Returns: A purc_variant_t on success, NULL on failure.
+ * Returns: A purc_variant_t.
  *
  * Since: 0.0.1
  */
+ // 直接调用宏，不可能错误
 purc_variant_t purc_variant_make_boolean (bool b);
 
 
@@ -77,6 +81,7 @@ purc_variant_t purc_variant_make_boolean (bool b);
  *
  * Since: 0.0.1
  */
+// make 错误，返回 undefined
 purc_variant_t purc_variant_make_number (double d);
 
 
@@ -91,14 +96,14 @@ purc_variant_t purc_variant_make_number (double d);
  *
  * Since: 0.0.1
  */
- ???
+// 分成两个，带符号，不带符号
 purc_variant_t purc_variant_make_longint (uint64_t u64, bool sign);
 
 
 /**
  * Creates a variant data of string type.
  *
- * @param str_utf8: the pointer of a string which is in UTF-8 format
+ * @param str_utf8: the pointer of a string which is in UTF-8 encoding 
  *
  * Returns: A purc_variant_t on success, NULL on failure.
  *
@@ -110,12 +115,14 @@ purc_variant_t purc_variant_make_string (const char* str_utf8);
 /**
  * Checks the format of input parameter, and creates a variant data of string type.
  *
- * @param str_utf8: the pointer of a string encoded in UTF-8 format
+ * @param str_utf8: the pointer of a string which is in UTF-8 encoding
  *
  * Returns: A purc_variant_t on success, NULL on failure.
  *
  * Since: 0.0.1
  */
+// 没有出错信息，是否废弃
+// 
 purc_variant_t purc_variant_make_string_with_check (const char* str_utf8);
 
 
@@ -200,7 +207,7 @@ purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...);
  *
  * Since: 0.0.1
  */
- ???
+// 0 成功，-1 失败
 int purc_variant_array_append (purc_variant_t array, purc_variant_t value);
 
 
@@ -231,8 +238,9 @@ purc_variant_t purc_variant_array_get (purc_variant_t array, int idx);
  *
  * Since: 0.0.1
  */
-???
-purc_variant_t purc_variant_array_set (purc_variant_t array, int idx, purc_variant_t value);
+// 1、扩大，2、返回错误
+// 绑定时候，ref怎么处理
+int purc_variant_array_set (purc_variant_t array, int idx, purc_variant_t value);
 
 
 /**
@@ -246,8 +254,7 @@ purc_variant_t purc_variant_array_set (purc_variant_t array, int idx, purc_varia
  *
  * Since: 0.0.1
  */
-???
-purc_variant_t purc_variant_array_remove (purc_variant_t array, int idx);
+int purc_variant_array_remove (purc_variant_t array, int idx);
 
 
 /**
@@ -263,8 +270,7 @@ purc_variant_t purc_variant_array_remove (purc_variant_t array, int idx);
  *
  * Since: 0.0.1
  */
-???
-purc_variant_t purc_variant_array_insert_before (purc_variant_t array, int idx, purc_variant_t value);
+int purc_variant_array_insert_before (purc_variant_t array, int idx, purc_variant_t value);
 
 
 /**
@@ -280,8 +286,7 @@ purc_variant_t purc_variant_array_insert_before (purc_variant_t array, int idx, 
  *
  * Since: 0.0.1
  */
-???
-purc_variant_t purc_variant_array_insert_after (purc_variant_t array, int idx, purc_variant_t value);
+int purc_variant_array_insert_after (purc_variant_t array, int idx, purc_variant_t value);
 
 
 /**
@@ -297,8 +302,7 @@ purc_variant_t purc_variant_array_insert_after (purc_variant_t array, int idx, p
  *
  * Since: 0.0.1
  */
- ???
-purc_variant_t purc_variant_object_make (size_t nr_kv_pairs, const char* key0, purc_variant_t value0, ...);
+purc_variant_t purc_variant_make_object (size_t nr_kv_pairs, const char* key0, purc_variant_t value0, ...);
 
 
 /**
@@ -358,7 +362,10 @@ bool purc_variant_object_remove (purc_variant_t obj, const char* key);
  *
  * Since: 0.0.1
  */
-purc_variant_t purc_variant_set_make (size_t sz, const char* unique_key, purc_variant_t value0, ...);
+// key 只有在 value 是 object 时候才有效
+// https://gitlab.fmsoft.cn/hvml/hvml-docs/blob/master/zh/hvml-spec-v1.0-zh.md#2127-%E9%9B%86%E5%90%88
+// avl 树。没有指定 key，序列化，是value值，加入树。如果有key，则取
+purc_variant_t purc_variant_make_set (size_t sz, const char* unique_key, purc_variant_t value0, ...);
 
 
 /**
@@ -374,8 +381,7 @@ purc_variant_t purc_variant_set_make (size_t sz, const char* unique_key, purc_va
  *
  * Since: 0.0.1
  */
-???
-bool purc_variant_set_add (purc_variant_t set, const char* key, purc_variant_t value);
+bool purc_variant_set_add (purc_variant_t set, purc_variant_t value);
 
 
 /**
@@ -389,37 +395,8 @@ bool purc_variant_set_add (purc_variant_t set, const char* key, purc_variant_t v
  *
  * Since: 0.0.1
  */
- ???
-bool purc_variant_set_remove (purc_variant_t set, const char* key);
+bool purc_variant_set_remove (purc_variant_t set, purc_variant_t value);
 
-
-/**
- * Gets an element from an array by index.
- *
- * @param array: the variant data of array type
- *
- * @param idx: the index of wanted element 
- *
- * Returns: A purc_variant_t on success, NULL on failure.
- *
- * Since: 0.0.1
- */
-purc_variant_array_get????
-purc_variant_t purc_variant_get_value_in_array (const purc_variant_t array, size_t idx);
-
-/**
- * Gets the value by key from an object.
- *
- * @param obj: the variant data of obj type
- *
- * @param key: the key of key-value pair 
- *
- * Returns: A purc_variant_t on success, NULL on failure.
- *
- * Since: 0.0.1
- */
-purc_variant_object_get????
-purc_variant_t purc_variant_get_value_in_object (const purc_variant_t obj, const char *key);
 
 /**
  * Gets the value by key from a set.
@@ -432,7 +409,6 @@ purc_variant_t purc_variant_get_value_in_object (const purc_variant_t obj, const
  *
  * Since: 0.0.1
  */
- ????
 purc_variant_t purc_variant_get_value_in_set (const purc_variant_t set, const char * match_key);
 
 
@@ -445,8 +421,7 @@ purc_variant_t purc_variant_get_value_in_set (const purc_variant_t set, const ch
  *
  * Since: 0.0.1
  */
- ???
-purc_variant_t purc_variant_ref (purc_variant_t value);
+int purc_variant_ref (purc_variant_t value);
 
 // 反引用变体型数据。引用计数减 1；当引用计数为 0 时，释放资源
 /**
@@ -456,7 +431,7 @@ purc_variant_t purc_variant_ref (purc_variant_t value);
  *
  * Since: 0.0.1
  */
-void purc_variant_unref (purc_variant_t value);
+int purc_variant_unref (purc_variant_t value);
 
 
 /**
@@ -508,7 +483,6 @@ purc_variant_t purc_variant_load_from_json_stream (purc_rwstream_t stream);
 .*
  * Since: 0.0.1
  */
-???
 int purc_variant_cmp (purc_variant_t v1, purc_variant v2);
 
 
@@ -525,7 +499,7 @@ int purc_variant_cmp (purc_variant_t v1, purc_variant v2);
 .*
  * Since: 0.0.1
  */
- ???
+// opts 自己看着办
 size_t purc_variant_serialize (purc_variant_t value, purc_rwstream_t stream, unsigned int opts);
 
 
