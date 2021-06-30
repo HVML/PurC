@@ -24,10 +24,10 @@
 #pragma once
 
 struct _PURC_VARIANT;
+
 typedef struct _PURC_VARIANT PURC_VARIANT;
 typedef struct _PURC_VARIANT* purc_variant_t;
 
-// 几个特殊变体数据
 #define PURC_VARIANT_UNDEFINED          ((purc_variant_t)(-1))
 #define PURC_VARIANT_NULL               ((purc_variant_t)(0))
 
