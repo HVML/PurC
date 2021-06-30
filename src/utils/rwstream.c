@@ -63,12 +63,14 @@ typedef struct _PURC_MEM_RWSTREAM
 typedef struct _PURC_FD_RWSTREAM
 {
     PURC_RWSTREAM rwstream;
+    GIOChannel* gio_channel;
     int fd;
 } PURC_FD_RWSTREAM;
 
 typedef struct _PURC_WIN32_SOCKET_RWSTREAM
 {
     PURC_RWSTREAM rwstream;
+    GIOChannel* gio_channel;
     int socket;
 } PURC_WIN32_SOCKET_RWSTREAM;
 
@@ -176,12 +178,48 @@ purc_rwstream_t purc_rwstream_new_from_fp (FILE* fp)
 
 purc_rwstream_t purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf)
 {
-    return NULL;
+    GIOChannel* gio_channel = g_io_channel_unix_new(fd);
+    if (gio_channel == NULL)
+    {
+        return NULL;
+    }
+
+    if (sz_buf > 0)
+    {
+        g_io_channel_set_buffer_size(gio_channel, sz_buf);
+    }
+
+    PURC_FD_RWSTREAM* fd_rwstream = (PURC_FD_RWSTREAM*) calloc(
+            sizeof(PURC_FD_RWSTREAM), 1);
+    fd_rwstream->rwstream.rw_funcs = &gio_rw_funcs;
+    fd_rwstream->gio_channel = gio_channel;
+    fd_rwstream->fd = fd;
+    return (purc_rwstream_t) fd_rwstream;
 }
 
 purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf)
 {
+#ifdef G_OS_WIN32
+    GIOChannel* gio_channel = g_io_channel_win32_new_socket(socket);
+    if (gio_channel == NULL)
+    {
+        return NULL;
+    }
+
+    if (sz_buf > 0)
+    {
+        g_io_channel_set_buffer_size(gio_channel, sz_buf);
+    }
+
+    PURC_WIN32_SOCKET_RWSTREAM* socket_rwstream = (PURC_WIN32_SOCKET_RWSTREAM*) calloc(
+            sizeof(PURC_WIN32_SOCKET_RWSTREAM), 1);
+    socket_rwstream->rwstream.rw_funcs = &gio_rw_funcs;
+    socket_rwstream->gio_channel = gio_channel;
+    socket_rwstream->socket = socket;
+    return (purc_rwstream_t) socket_rwstream;
+#else
     return NULL;
+#endif
 }
 
 int purc_rwstream_destroy (purc_rwstream_t rws)
