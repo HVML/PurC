@@ -1,7 +1,8 @@
 /*
 ** Copyright (C) 2015-2017 Alexander Borisov
 **
-** This file is a part of Purring Cat 2, a HVML parser and interpreter.
+** This file is a part of PurC (short for Purring Cat), an HVML parser
+** and interpreter.
 ** 
 ** This program is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU Lesser General Public License as published by
@@ -19,49 +20,49 @@
 ** Author: lex.borisov@gmail.com (Alexander Borisov)
 */
 
-#ifndef PCAT2_PCAT2_VERSION_H
-#define PCAT2_PCAT2_VERSION_H
+#ifndef PURC_PURC_VERSION_H
+#define PURC_PURC_VERSION_H
 
 #pragma once
 
 /**
- * @file pcat2_version.h
+ * @file purc_version.h
  *
  * Version of Purring Cat 2.
  */
 
-#define PCAT2_VERSION_MAJOR 0
-#define PCAT2_VERSION_MINOR 0
-#define PCAT2_VERSION_PATCH 1
+#define PURC_VERSION_MAJOR 0
+#define PURC_VERSION_MINOR 0
+#define PURC_VERSION_PATCH 1
 
-#define PCAT2_VERSION_STRING MyCORE_STR(PCAT2_VERSION_MAJOR) MyCORE_STR(.) MyCORE_STR(PCAT2_VERSION_MINOR) MyCORE_STR(.) MyCORE_STR(PCAT2_VERSION_PATCH)
+#define PURC_VERSION_STRING MyCORE_STR(PURC_VERSION_MAJOR) MyCORE_STR(.) MyCORE_STR(PURC_VERSION_MINOR) MyCORE_STR(.) MyCORE_STR(PURC_VERSION_PATCH)
 
 /***********************************************************************************
  *
- * PCAT2_VERSION
+ * PURC_VERSION
  *
  ***********************************************************************************/
 
 /**
- * @struct pcat2_version_t
+ * @struct purc_version_t
  */
-struct pcat2_version {
+struct purc_version {
     int major;
     int minor;
     int patch;
 }
-typedef pcat2_version_t;
+typedef purc_version_t;
     
 /**
  * Get current version
  *
- * @return pcat2_version_t
+ * @return purc_version_t
  */
-static inline pcat2_version_t pcat2_version(void)
+static inline purc_version_t purc_version(void)
 {
-    return (pcat2_version_t) {
-        PCAT2_VERSION_MAJOR, PCAT2_VERSION_MINOR, PCAT2_VERSION_PATCH };
+    return (purc_version_t) {
+        PURC_VERSION_MAJOR, PURC_VERSION_MINOR, PURC_VERSION_PATCH };
 }
 
-#endif /* PCAT2_PCAT2_VERSION_H */
+#endif /* PURC_PURC_VERSION_H */
 

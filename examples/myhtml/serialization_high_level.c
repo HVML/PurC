@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <pcat2/myhtml.h>
+#include <purc/myhtml.h>
 
 #include "example.h"
 
