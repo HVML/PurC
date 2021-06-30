@@ -85,19 +85,20 @@ purc_variant_t purc_variant_make_number (double d);
  *
  * @param u64: the initial value of created data
  *
- * @param sign: ture for positive, and flase for nagative
+ * @param sign: ture for positive, or flase for nagative
  *
  * Returns: A purc_variant_t on success, NULL on failure.
  *
  * Since: 0.0.1
  */
+ ???
 purc_variant_t purc_variant_make_longint (uint64_t u64, bool sign);
 
 
 /**
  * Creates a variant data of string type.
  *
- * @param str_utf8: the pointer of a string with UTF-8 encoding
+ * @param str_utf8: the pointer of a string which is in UTF-8 format
  *
  * Returns: A purc_variant_t on success, NULL on failure.
  *
@@ -107,9 +108,9 @@ purc_variant_t purc_variant_make_string (const char* str_utf8);
 
 
 /**
- * Checks and Creates a variant data of string type.
+ * Checks the format of input parameter, and creates a variant data of string type.
  *
- * @param str_utf8: the pointer of a string with UTF-8 encoding
+ * @param str_utf8: the pointer of a string encoded in UTF-8 format
  *
  * Returns: A purc_variant_t on success, NULL on failure.
  *
@@ -123,7 +124,7 @@ purc_variant_t purc_variant_make_string_with_check (const char* str_utf8);
  *
  * @param value: the data of string type
  *
- * Returns: A purc_variant_t on success, NULL on failure.
+ * Returns: The pointer of char string, or NULL on failure.
  *
  * Since: 0.0.1
  */
@@ -150,7 +151,7 @@ purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes, size
  *
  * @param nr_bytes: the size of char sequence
  *
- * Returns: the pointer of char array on success, NULL on failure.
+ * Returns: the pointer of char array on success, or NULL on failure.
  *
  * Since: 0.0.1
  */
@@ -179,7 +180,7 @@ purc_variant_t purc_variant_make_dynamic_value (CB_DYNAMIC_VARIANT getter, CB_DY
  *
  * @param sz: the size of array
  *
- * @param value0 ..... valuen: enumerate every elements in array 
+ * @param value0 ..... valuen: enumerates every elements in array 
  *
  * Returns: A purc_variant_t on success, NULL on failure.
  *
@@ -199,6 +200,7 @@ purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...);
  *
  * Since: 0.0.1
  */
+ ???
 int purc_variant_array_append (purc_variant_t array, purc_variant_t value);
 
 
@@ -209,7 +211,7 @@ int purc_variant_array_append (purc_variant_t array, purc_variant_t value);
  *
  * @param idx: the index of wanted element 
  *
- * Returns: A purc_variant_t on success, NULL on failure.
+ * Returns: A purc_variant_t on success, or NULL on failure.
  *
  * Since: 0.0.1
  */
@@ -225,7 +227,7 @@ purc_variant_t purc_variant_array_get (purc_variant_t array, int idx);
  *
  * @param value: the element to replace
  *
- * Returns: The replaced purc_variant_t on success, NULL on failure.
+ * Returns: The replaced purc_variant_t on success, or NULL on failure.
  *
  * Since: 0.0.1
  */
@@ -295,6 +297,7 @@ purc_variant_t purc_variant_array_insert_after (purc_variant_t array, int idx, p
  *
  * Since: 0.0.1
  */
+ ???
 purc_variant_t purc_variant_object_make (size_t nr_kv_pairs, const char* key0, purc_variant_t value0, ...);
 
 
@@ -332,6 +335,8 @@ bool purc_variant_object_set (purc_variant_t obj, const char* key, purc_variant_
  * Remove a key-value pair from an object by key.
  *
  * @param obj: the variant data of obj type
+ *
+ * @param key: the key of key-value pair 
  *
  * Returns: True on success, False on failure.
  *
@@ -440,6 +445,7 @@ purc_variant_t purc_variant_get_value_in_set (const purc_variant_t set, const ch
  *
  * Since: 0.0.1
  */
+ ???
 purc_variant_t purc_variant_ref (purc_variant_t value);
 
 // 反引用变体型数据。引用计数减 1；当引用计数为 0 时，释放资源
@@ -454,7 +460,7 @@ void purc_variant_unref (purc_variant_t value);
 
 
 /**
- * Creates a variant data from Json data
+ * Creates a variant data from a string which contents Json data
  *
  * @param json: the pointer of string which contents json data
  *
@@ -519,6 +525,7 @@ int purc_variant_cmp (purc_variant_t v1, purc_variant v2);
 .*
  * Since: 0.0.1
  */
+ ???
 size_t purc_variant_serialize (purc_variant_t value, purc_rwstream_t stream, unsigned int opts);
 
 
