@@ -1,7 +1,8 @@
 /*
 ** Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
 **
-** This file is a part of Purring Cat 2, a HVML parser and interpreter.
+** This file is a part of PurC (short for Purring Cat), an HVML parser
+** and interpreter.
 ** 
 ** This program is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU Lesser General Public License as published by
@@ -19,33 +20,33 @@
 ** Author: Vincent Wei <https://github.com/VincentWei>
 */
 
-#ifndef PCAT2_PCAT2_MACROS_H
-#define PCAT2_PCAT2_MACROS_H
+#ifndef PURC_PURC_MACROS_H
+#define PURC_PURC_MACROS_H
 
 #pragma once
 
 /**
- * @file pcat2_macros.h
+ * @file purc_macros.h
  *
  * Global macros.
  */
 
 #if defined(_MSC_VER)
-#  define PCAT2_DEPRECATED(func) __declspec(deprecated) func
+#  define PURC_DEPRECATED(func) __declspec(deprecated) func
 #elif defined(__GNUC__) || defined(__INTEL_COMPILER)
-#  define PCAT2_DEPRECATED(func) func __attribute__((deprecated))
+#  define PURC_DEPRECATED(func) func __attribute__((deprecated))
 #else
-#  define PCAT2_DEPRECATED(func) func
+#  define PURC_DEPRECATED(func) func
 #endif
 
 /*
- * The PCAT2_LIKELY and PCAT2_UNLIKELY macros let the programmer give hints to
+ * The PURC_LIKELY and PURC_UNLIKELY macros let the programmer give hints to
  * the compiler about the expected result of an expression. Some compilers
  * can use this information for optimizations.
  */
 #if defined(__GNUC__) && (__GNUC__ > 2) && defined(__OPTIMIZE__)
-#define _PCAT2_BOOLEAN_EXPR(expr)                  \
- PCAT2_GNUC_EXTENSION ({                           \
+#define _PURC_BOOLEAN_EXPR(expr)                  \
+ PURC_GNUC_EXTENSION ({                           \
    int _g_boolean_var_;                         \
    if (expr)                                    \
       _g_boolean_var_ = 1;                      \
@@ -53,11 +54,11 @@
       _g_boolean_var_ = 0;                      \
    _g_boolean_var_;                             \
 })
-#define PCAT2_LIKELY(expr) (__builtin_expect (_PCAT2_BOOLEAN_EXPR(expr), 1))
-#define PCAT2_UNLIKELY(expr) (__builtin_expect (_PCAT2_BOOLEAN_EXPR(expr), 0))
+#define PURC_LIKELY(expr) (__builtin_expect (_PURC_BOOLEAN_EXPR(expr), 1))
+#define PURC_UNLIKELY(expr) (__builtin_expect (_PURC_BOOLEAN_EXPR(expr), 0))
 #else
-#define PCAT2_LIKELY(expr) (expr)
-#define PCAT2_UNLIKELY(expr) (expr)
+#define PURC_LIKELY(expr) (expr)
+#define PURC_UNLIKELY(expr) (expr)
 #endif
 
 #if defined(_WIN64)
@@ -68,5 +69,5 @@
 #   define SIZEOF_PTR   4
 #endif
 
-#endif /* PCAT2_PCAT2_MACROS_H */
+#endif /* PURC_PURC_MACROS_H */
 
