@@ -225,6 +225,7 @@ purc_rwstream_t purc_rwstream_new_from_file (const char* file, const char* mode)
     FILE* fp = fopen(file, mode);
     if (fp == NULL)
     {
+        purc_set_last_error(rwstream_error_code_from_errno(errno));
         return NULL;
     }
     return purc_rwstream_new_from_fp(fp);
@@ -373,10 +374,9 @@ static off_t stdio_seek (purc_rwstream_t rws, off_t offset, int whence)
     if ( fseek(stdio->fp, offset, whence) == 0 )
     {
         return ftell(stdio->fp);
-    } else {
-        purc_set_last_error(rwstream_error_code_from_errno(errno));
-        return -1;
     }
+    purc_set_last_error(rwstream_error_code_from_errno(errno));
+    return -1;
 }
 
 static off_t stdio_tell (purc_rwstream_t rws)
@@ -394,7 +394,7 @@ static ssize_t stdio_read (purc_rwstream_t rws, void* buf, size_t count)
     stdio_rwstream* stdio = (stdio_rwstream *)rws;
     ssize_t nread = fread(buf, count, 1, stdio->fp);
     if ( nread == 0 && ferror(stdio->fp) ) {
-        // error
+        purc_set_last_error(PCRWSTREAM_ERROR_IO);
     }
     return(nread);
 
@@ -405,7 +405,7 @@ static ssize_t stdio_write (purc_rwstream_t rws, const void* buf, size_t count)
     stdio_rwstream* stdio = (stdio_rwstream *)rws;
     ssize_t nwrote = fwrite(buf, count, 1, stdio->fp);
     if ( nwrote == 0 && ferror(stdio->fp) ) {
-        // error
+        purc_set_last_error(PCRWSTREAM_ERROR_IO);
     }
     return(nwrote);
 
@@ -418,11 +418,24 @@ static ssize_t stdio_flush (purc_rwstream_t rws)
 
 static int stdio_close (purc_rwstream_t rws)
 {
-    return fclose(((stdio_rwstream *)rws)->fp);
+    int ret = fclose(((stdio_rwstream *)rws)->fp);
+    if (ret == 0)
+    {
+        ((stdio_rwstream *)rws)->fp = NULL;
+    }
+    else
+    {
+        purc_set_last_error(rwstream_error_code_from_errno(errno));
+    }
+    return ret;
 }
 
 static int stdio_destroy (purc_rwstream_t rws)
 {
+    if (((stdio_rwstream *)rws)->fp)
+    {
+        stdio_close(rws);
+    }
     free(rws);
     return 0;
 }
