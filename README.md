@@ -140,21 +140,23 @@ It is mainly written in C/C++ language and provides bindings for Python.
 The source tree of PurC contains the following modules:
 
 - `include/`: The global header files.
-- `src/ports/`: The ports for different operating systems, such as a POSIX-compliant system or Windows.
 - `src/utils/`: Some basic and common utilities.
-- `src/variant/`: The variant and the constructor of the variant model tree.
-- `src/edom/`: The constructor of the effective DOM tree.
-- `src/vdom/`: The constructor of the virtual DOM tree.
-- `src/html/`: The HTML parser. The HTML parser reads a HTML document and constructs a eDOM.
-- `src/hvml/`: The HVML parser. The HTML parser reads a HVML document and constructs a vDOM.
-- `src/xgml/`: The XGML parser. The XGML parser reads a XGML document and constructs a eDOM.
-- `src/xml/`: The XML parser. The XML parser reads a XML document and constructs a eDOM.
-- `src/ejson/`: The eJSON parser. The eJSON parser reads a eJSON and constructs a variant.
+- `src/instance/`: The operations of PurC instances and sessions.
+- `src/variant/`: The operations of variant.
+- `src/vcm/`: The operations of variant creation model tree.
+- `src/ejson/`: The eJSON parser. The eJSON parser reads a eJSON and constructs a variant creation model tree.
 - `src/dvobjs/`: The dynamic variant objects.
+- `src/edom/`: The operations of the effective DOM tree.
+- `src/vdom/`: The operations of the virtual DOM tree.
+- `src/html/`: The HTML parser. The HTML parser reads a HTML document and constructs a eDOM tree.
+- `src/hvml/`: The HVML parser. The HTML parser reads a HVML document and constructs a vDOM tree.
+- `src/xgml/`: The XGML parser. The XGML parser reads a XGML document and constructs a eDOM tree.
+- `src/xml/`: The XML parser. The XML parser reads a XML document and constructs a eDOM tree.
 - `src/fetchers/`: The data fetchers to fetch data from various data sources (HTTP, FTP, and so on).
 - `src/listeners/`: The data listeners to listen events and/or send requests on various long-time connnection (hiDataBus, MQTT, WebSocket, and so on).
 - `src/executors/`: The internal/external executors.
 - `src/interpreter/`: The vDOM interpreter.
+- `src/ports/`: The ports for different operating systems, such as a POSIX-compliant system or Windows.
 - `src/bindings/`: The bindings for Python, Lua, and other programming languages.
 - `test/`: The unit test programs.
 - `docs/`: Some notes for developers.
