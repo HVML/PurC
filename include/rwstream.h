@@ -24,12 +24,12 @@
 
 #pragma once
 
+#include "errcode.h"
+
 #include <stdio.h>
 #include <stdint.h>
 #include <wchar.h>
 #include <sys/types.h>
-
-#include "errno.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,7 +43,16 @@ typedef struct purc_rwstream* purc_rwstream_t;
 enum pcrwstream_error
 {
     PCRWSTREAM_SUCCESS = PURC_ERROR_OK,
-    PCRWSTREAM_ERROR_INVALID_PARAM = PURC_ERROR_FIRST_RWSTREAM
+    PCRWSTREAM_ERROR_INVALID_PARAM = PURC_ERROR_FIRST_RWSTREAM,
+    PCRWSTREAM_ERROR_FAILED,
+    PCRWSTREAM_ERROR_FBIG,
+    PCRWSTREAM_ERROR_INVAL,
+    PCRWSTREAM_ERROR_IO,
+    PCRWSTREAM_ERROR_ISDIR,
+    PCRWSTREAM_ERROR_NOSPC,
+    PCRWSTREAM_ERROR_NXIO,
+    PCRWSTREAM_ERROR_OVERFLOW,
+    PCRWSTREAM_ERROR_PIPE,
 };
 
 

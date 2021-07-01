@@ -19,8 +19,8 @@
 **
 */
 
-#ifndef PURC_ERRNO_H
-#define PURC_ERRNO_H
+#ifndef PURC_ERRCODE_H
+#define PURC_ERRCODE_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -82,5 +82,5 @@ const char* purc_get_error_message (purc_error_t err_code);
 } /* extern "C" */
 #endif
 
-#endif /* PURC_ERRNO_H */
+#endif /* PURC_ERRCODE_H */
 

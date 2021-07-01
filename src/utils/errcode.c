@@ -20,7 +20,7 @@
 */
 
 
-#include "errno.h"
+#include "errcode.h"
 #include <stdio.h>
 
 purc_error_t purc_err_code;

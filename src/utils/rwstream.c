@@ -22,6 +22,7 @@
 
 #include "rwstream.h"
 #include <stdlib.h>
+#include <errno.h>
 #include <glib.h>
 
 struct purc_rwstream;
@@ -125,6 +126,86 @@ rwstream_funcs gio_funcs = {
     gio_destroy
 };
 
+purc_error_t rwstream_error_code_from_errno (int en)
+{
+
+    switch (en)
+    {
+#ifdef EAGAIN
+        case EAGAIN:
+            return PCRWSTREAM_ERROR_FAILED;
+#endif
+#ifdef EBADF
+        case EBADF:
+            g_warning ("Invalid file descriptor.");
+            return PCRWSTREAM_ERROR_FAILED;
+#endif
+
+#ifdef EFAULT
+        case EFAULT:
+            g_warning ("Buffer outside valid address space.");
+            return PCRWSTREAM_ERROR_FAILED;
+#endif
+
+#ifdef EFBIG
+        case EFBIG:
+            return PCRWSTREAM_ERROR_FBIG;
+#endif
+
+#ifdef EINTR
+            /* In general, we should catch EINTR before we get here,
+             * but close() is allowed to return EINTR by POSIX, so
+             * we need to catch it here; EINTR from close() is
+             * unrecoverable, because it's undefined whether
+             * the fd was actually closed or not, so we just return
+             * a generic error code.
+             */
+        case EINTR:
+            return PCRWSTREAM_ERROR_FAILED;
+#endif
+
+#ifdef EINVAL
+        case EINVAL:
+            return PCRWSTREAM_ERROR_INVAL;
+#endif
+
+#ifdef EIO
+        case EIO:
+            return PCRWSTREAM_ERROR_IO;
+#endif
+
+#ifdef EISDIR
+        case EISDIR:
+            return PCRWSTREAM_ERROR_ISDIR;
+#endif
+
+#ifdef ENOSPC
+        case ENOSPC:
+            return PCRWSTREAM_ERROR_NOSPC;
+#endif
+
+#ifdef ENXIO
+        case ENXIO:
+            return PCRWSTREAM_ERROR_NXIO;
+#endif
+
+#ifdef EOVERFLOW
+#if EOVERFLOW != EFBIG
+        case EOVERFLOW:
+            return PCRWSTREAM_ERROR_OVERFLOW;
+#endif
+#endif
+
+#ifdef EPIPE
+        case EPIPE:
+            return PCRWSTREAM_ERROR_PIPE;
+#endif
+
+        default:
+            return PCRWSTREAM_ERROR_FAILED;
+    }
+}
+
 /* rwstream api */
 
 purc_rwstream_t purc_rwstream_new_from_mem (void* mem, size_t sz)
@@ -163,6 +244,7 @@ purc_rwstream_t purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf)
     GIOChannel* gio_channel = g_io_channel_unix_new(fd);
     if (gio_channel == NULL)
     {
+        purc_set_last_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
 
@@ -183,6 +265,7 @@ purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf)
     GIOChannel* gio_channel = g_io_channel_win32_new_socket(socket);
     if (gio_channel == NULL)
     {
+        purc_set_last_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
 
@@ -197,49 +280,90 @@ purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf)
     gio_rwstream->gio_channel = gio_channel;
     return (purc_rwstream_t) gio_rwstream;
 #else
+    purc_set_last_error(PURC_ERROR_NOT_IMPLEMENTED);
     return NULL;
 #endif
 }
 
 int purc_rwstream_destroy (purc_rwstream_t rws)
 {
-    return rws ? rws->funcs->destroy(rws) : -1;
+    if (rws == NULL)
+    {
+        purc_set_last_error(PCRWSTREAM_ERROR_INVALID_PARAM);
+        return -1;
+    }
+    return rws->funcs->destroy(rws);
 }
 
 off_t purc_rwstream_seek (purc_rwstream_t rws, off_t offset, int whence)
 {
-    return rws ? rws->funcs->seek(rws, offset, whence) : -1;
+    if (rws == NULL)
+    {
+        purc_set_last_error(PCRWSTREAM_ERROR_INVALID_PARAM);
+        return -1;
+    }
+    return rws->funcs->seek(rws, offset, whence);
 }
 
 off_t purc_rwstream_tell (purc_rwstream_t rws)
 {
-    return rws ? rws->funcs->tell(rws) : -1;
+    if (rws == NULL)
+    {
+        purc_set_last_error(PCRWSTREAM_ERROR_INVALID_PARAM);
+        return -1;
+    }
+    return rws->funcs->tell(rws);
 }
 
 ssize_t purc_rwstream_read (purc_rwstream_t rws, void* buf, size_t count)
 {
-    return rws ? rws->funcs->read(rws, buf, count) : -1;
+    if (rws == NULL)
+    {
+        purc_set_last_error(PCRWSTREAM_ERROR_INVALID_PARAM);
+        return -1;
+    }
+    return rws->funcs->read(rws, buf, count);
 }
 
 int purc_rwstream_read_utf8_char (purc_rwstream_t rws, char* buf_utf8, wchar_t* buf_wc)
 {
+    if (rws == NULL)
+    {
+        purc_set_last_error(PCRWSTREAM_ERROR_INVALID_PARAM);
+        return -1;
+    }
     //TODO
     return 0;
 }
 
 ssize_t purc_rwstream_write (purc_rwstream_t rws, const void* buf, size_t count)
 {
-    return rws ? rws->funcs->write(rws, buf, count) : -1;
+    if (rws == NULL)
+    {
+        purc_set_last_error(PCRWSTREAM_ERROR_INVALID_PARAM);
+        return -1;
+    }
+    return rws->funcs->write(rws, buf, count);
 }
 
 ssize_t purc_rwstream_flush (purc_rwstream_t rws)
 {
-    return rws ? rws->funcs->flush(rws) : -1;
+    if (rws == NULL)
+    {
+        purc_set_last_error(PCRWSTREAM_ERROR_INVALID_PARAM);
+        return -1;
+    }
+    return rws->funcs->flush(rws);
 }
 
 int purc_rwstream_close (purc_rwstream_t rws)
 {
-    return rws ? rws->funcs->close(rws) : -1;
+    if (rws == NULL)
+    {
+        purc_set_last_error(PCRWSTREAM_ERROR_INVALID_PARAM);
+        return -1;
+    }
+    return rws->funcs->close(rws);
 }
 
 /* stdio rwstream functions */
@@ -250,6 +374,7 @@ static off_t stdio_seek (purc_rwstream_t rws, off_t offset, int whence)
     {
         return ftell(stdio->fp);
     } else {
+        purc_set_last_error(rwstream_error_code_from_errno(errno));
         return -1;
     }
 }
