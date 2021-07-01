@@ -25,17 +25,25 @@
 
 #pragma once
 
-struct _PURC_VARIANT;
+struct purc_variant;
+typedef struct purc_variant purc_variant;
+typedef struct purc_variant* purc_variant_t;
 
-typedef struct _PURC_VARIANT PURC_VARIANT;
-typedef struct _PURC_VARIANT* purc_variant_t;
 
-#define PURC_VARIANT_UNDEFINED          ((purc_variant_t)(-1))
-#define PURC_VARIANT_NULL               ((purc_variant_t)(0))
+#define PURC_VARIANT_INVALID            ((purc_variant_t)(0))
+
+enum pcvariant_error
+{
+    PCVARIANT_SUCCESS = PURC_ERROR_OK,
+    PCVARIANT_BAD_ENCODING = PURC_ERROR_FIRST_VARIANT,
+};
+
+//#define PURC_VARIANT_UNDEFINED          ((purc_variant_t)(-1))
+//#define PURC_VARIANT_NULL               ((purc_variant_t)(0))
 
 // TODO
-#define PURC_VARIANT_TRUE               ((purc_variant_t)(1))
-#define PURC_VARIANT_FALSE              ((purc_variant_t)(2))
+//#define PURC_VARIANT_TRUE               ((purc_variant_t)(1))
+//#define PURC_VARIANT_FALSE              ((purc_variant_t)(2))
 
 
 /**
@@ -75,8 +83,7 @@ purc_variant_t purc_variant_make_boolean (bool b);
  *
  * @param d: the initial value of created data
  *
- * Returns: A purc_variant_t with number type, or with undefined 
- *          type on failure.
+ * Returns: A purc_variant_t with number type, or PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
@@ -88,12 +95,11 @@ purc_variant_t purc_variant_make_number (double d);
  *
  * @param u64: the initial value of unsigned long int type
  *
- * Returns: A purc_variant_t with long int type, or with undefined
- *          type on failure.
+ * Returns: A purc_variant_t with long int type, or PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
-purc_variant_t purc_variant_make_unsigned_longint (uint64_t u64);
+purc_variant_t purc_variant_make_longuint (uint64_t u64);
 
 
 /**
@@ -101,12 +107,23 @@ purc_variant_t purc_variant_make_unsigned_longint (uint64_t u64);
  *
  * @param u64: the initial value of signed long int type
  *
- * Returns: A purc_variant_t with long int type, or with undefined 
- *          type on failure.
+ * Returns: A purc_variant_t with long int type, or PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
-purc_variant_t purc_variant_make_signed_longint (uint64_t u64);
+purc_variant_t purc_variant_make_longint (int64_t u64);
+
+
+/**
+ * Creates a variant value of long double type.
+ *
+ * @param d: the initial value of created data
+ *
+ * Returns: A purc_variant_t with long double type, or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.0.1
+ */
+purc_variant_t purc_variant_make_longdouble (long double lf);
 
 
 /**
@@ -114,8 +131,7 @@ purc_variant_t purc_variant_make_signed_longint (uint64_t u64);
  *
  * @param str_utf8: the pointer of a string which is in UTF-8 encoding 
  *
- * Returns: A purc_variant_t with string type, or with undefined 
- *          type on failure.
+ * Returns: A purc_variant_t with string type, or PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
@@ -128,10 +144,9 @@ purc_variant_t purc_variant_make_string (const char* str_utf8);
  *
  * @param str_utf8: the pointer of a string which is in UTF-8 encoding
  *
- * Returns: A purc_variant_t with string type, or with undefined 
- *          type on failure.
+ * Returns: A purc_variant_t with string type, or PURC_VARIANT_INVALID on failure.
  *
- * Note: If str_utf8 is not in UTF-8 encoding, return undefined type.
+ * Note: If str_utf8 is not in UTF-8 encoding, return PURC_VARIANT_INVALID.
  *
  * Since: 0.0.1
  */
@@ -143,7 +158,7 @@ purc_variant_t purc_variant_make_string_with_check (const char* str_utf8);
  *
  * @param value: the data of string type
  *
- * Returns: The pointer of char string, or NULL if value with undefined type.
+ * Returns: The pointer of char string, or NULL if value is not string type.
  *
  * Since: 0.0.1
  */
@@ -153,13 +168,13 @@ const char* purc_variant_get_string_const (purc_variant_t value);
 /**
  * Get the number of characters in an string variant value.
  *
- * @param string: the variant value of string type
+ * @param value: the variant value of string type
  *
  * Returns: The number of characters in an string variant value.
  *
  * Since: 0.0.1
  */
-size_t purc_variant_string_length(const purc_variant_t string);
+size_t purc_variant_string_length(const purc_variant_t value);
 
 
 /**
@@ -168,8 +183,7 @@ size_t purc_variant_string_length(const purc_variant_t string);
  * @param bytes: the pointer of a byte sequence
  * @param nr_bytes: the number of bytes in sequence
  *
- * Returns: A purc_variant_t with byte sequence type, or with undefined 
- *          type on failure.
+ * Returns: A purc_variant_t with byte sequence type, or PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
@@ -201,7 +215,6 @@ const unsigned char* purc_variant_get_bytes_const (purc_variant_t value, size_t*
 size_t purc_variant_sequence_length(const purc_variant_t sequence);
 
 
-
 typedef purc_variant_t (*PCB_DYNAMIC_VARIANT) (purc_variant_t root, int nr_args, purc_variant_t arg0, ...);
 
 
@@ -211,12 +224,27 @@ typedef purc_variant_t (*PCB_DYNAMIC_VARIANT) (purc_variant_t root, int nr_args,
  * @param getter: the getter funciton pointer
  * @param setter: the setter function pointer
  *
- * Returns: A purc_variant_t with dynamic value, or undefined 
- *          type on failure.
+ * Returns: A purc_variant_t with dynamic value, or PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
 purc_variant_t purc_variant_make_dynamic_value (CB_DYNAMIC_VARIANT getter, CB_DYNAMIC_VARIANT setter);
+
+
+typedef bool (*purc_nvariant_releaser) (void* native_obj);
+
+
+/**
+ * Creates a variant value of native type. 
+ *
+ * @param native_obj: the pointer of native ojbect
+ * @param releaser: the purc_nvariant_releaser function pointer
+ *
+ * Returns: A purc_variant_t with native value, or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.0.1
+ */
+purc_variant_t purc_variant_make_native (void *native_obj, purc_nvariant_releaser releaser);
 
 
 /**
@@ -225,8 +253,7 @@ purc_variant_t purc_variant_make_dynamic_value (CB_DYNAMIC_VARIANT getter, CB_DY
  * @param sz: the size of array
  * @param value0 ..... valuen: enumerates every elements in array 
  *
- * Returns: A purc_variant_t with array type, or undefined
- *          type on failure.
+ * Returns: A purc_variant_t with array type, or PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
@@ -239,11 +266,24 @@ purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...);
  * @param array: the variant data of array type
  * @param value: the element to be appended
  *
- * Returns: Zero on success, or -1 on failure.
+ * Returns: True on success, otherwise False.
  *
  * Since: 0.0.1
  */
-int purc_variant_array_append (purc_variant_t array, purc_variant_t value);
+bool purc_variant_array_append (purc_variant_t array, purc_variant_t value);
+
+
+/**
+ * Insert a variant data to the head of an array.
+ *
+ * @param array: the variant data of array type
+ * @param value: the element to be insert
+ *
+ * Returns: True on success, otherwise False.
+ *
+ * Since: 0.0.1
+ */
+bool purc_variant_array_prepend (purc_variant_t array, purc_variant_t value);
 
 
 /**
@@ -252,11 +292,10 @@ int purc_variant_array_append (purc_variant_t array, purc_variant_t value);
  * @param array: the variant data of array type
  * @param idx: the index of wanted element 
  *
- * Returns: A purc_variant_t on success, or undefined type  on failure.
+ * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
- ???
 purc_variant_t purc_variant_array_get (purc_variant_t array, int idx);
 
 
@@ -267,14 +306,14 @@ purc_variant_t purc_variant_array_get (purc_variant_t array, int idx);
  * @param idx: the index of replaced element 
  * @param value: the element to replace
  *
- * Returns: Zero on success, or -1 on failure.
+ * Returns: True on success, otherwise False.
  *
  * Note: If idx is greater than max index of array, return -1. 
  *       Whether free the replaced element, depends on its ref.
  *
  * Since: 0.0.1
  */
-int purc_variant_array_set (purc_variant_t array, int idx, purc_variant_t value);
+bool purc_variant_array_set (purc_variant_t array, int idx, purc_variant_t value);
 
 
 /**
@@ -283,14 +322,14 @@ int purc_variant_array_set (purc_variant_t array, int idx, purc_variant_t value)
  * @param array: the variant data of array type
  * @param idx: the index of element to be removed
  *
- * Returns: Zero on success, or -1 on failure.
+ * Returns: True on success, otherwise False.
  *
  * Note: If idx is greater than max index of array, return -1.
  *       Whether free the removed element, depends on its ref.
  *
  * Since: 0.0.1
  */
-int purc_variant_array_remove (purc_variant_t array, int idx);
+bool purc_variant_array_remove (purc_variant_t array, int idx);
 
 
 /**
@@ -301,13 +340,13 @@ int purc_variant_array_remove (purc_variant_t array, int idx);
  *
  * @param value: the inserted element 
  *
- * Returns: Zero on success, or -1 on failure.
+ * Returns: True on success, otherwise False.
  *
  * Note: If idx is greater than max index of array, return -1.
  *
  * Since: 0.0.1
  */
-int purc_variant_array_insert_before (purc_variant_t array, int idx, purc_variant_t value);
+bool purc_variant_array_insert_before (purc_variant_t array, int idx, purc_variant_t value);
 
 
 /**
@@ -317,13 +356,13 @@ int purc_variant_array_insert_before (purc_variant_t array, int idx, purc_varian
  * @param idx: the index of element after which the new element will be placed
  * @param value: the inserted element 
  *
- * Returns: Zero on success, or -1 on failure.
+ * Returns: True on success, otherwise False.
  *
  * Note: If idx is greater than sum of one plus max index of array, return -1.
  *
  * Since: 0.0.1
  */
-int purc_variant_array_insert_after (purc_variant_t array, int idx, purc_variant_t value);
+bool purc_variant_array_insert_after (purc_variant_t array, int idx, purc_variant_t value);
 
 
 /**
@@ -335,7 +374,7 @@ int purc_variant_array_insert_after (purc_variant_t array, int idx, purc_variant
  *
  * Since: 0.0.1
  */
-size_t purc_variant_array_length(const purc_variant_t array);
+size_t purc_variant_array_get_size(const purc_variant_t array);
 
 
 /**
@@ -345,8 +384,7 @@ size_t purc_variant_array_length(const purc_variant_t array);
  * @param key0 ..... keyn: the keys of key-value pairs 
  * @param value0 ..... valuen: the values of key-value pairs 
  *
- * Returns: A purc_variant_t with object type, or with undefined
- *          type on failure.
+ * Returns: A purc_variant_t with object type, or PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
@@ -359,12 +397,10 @@ purc_variant_t purc_variant_make_object (size_t nr_kv_pairs, const char* key0, p
  * @param obj: the variant data of obj type
  * @param key: the key of key-value pair 
  *
- * Returns: A purc_variant_t on success, or with undefined
- *          type on failure.
+ * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
-???
 purc_variant_t purc_variant_object_get (purc_variant_t obj, const char* key);
 
 
@@ -404,7 +440,7 @@ bool purc_variant_object_remove (purc_variant_t obj, const char* key);
  *
  * Since: 0.0.1
  */
-size_t purc_variant_object_length(const purc_variant_t obj);
+size_t purc_variant_object_get_size (const purc_variant_t obj);
 
 
 /**
@@ -414,7 +450,7 @@ size_t purc_variant_object_length(const purc_variant_t obj);
  * @param unique_key0 ..... unique_keyn: the keys of unique value 
  * @param value0 ..... valuen: the values related to the key. 
  *
- * Returns: A purc_variant_t on success, with undefined type on failure.
+ * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
  *
  * Note: The key is legal, only when the value is object type.
  * 
@@ -455,12 +491,11 @@ bool purc_variant_set_remove (purc_variant_t set, purc_variant_t value);
  * @param set: the variant data of obj type
  * @param match_key: the unique key related to the value 
  *
- * Returns: A purc_variant_t on success, with undefined type on failure.
+ * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
- ???
-purc_variant_t purc_variant_get_value_in_set (const purc_variant_t set, const char * match_key);
+purc_variant_t purc_variant_set_get_value (const purc_variant_t set, const char * match_key);
 
 
 /**
@@ -472,7 +507,7 @@ purc_variant_t purc_variant_get_value_in_set (const purc_variant_t set, const ch
  *
  * Since: 0.0.1
  */
-size_t purc_variant_set_length(const purc_variant_t set);
+size_t purc_variant_set_get_size(const purc_variant_t set);
 
 
 /**
@@ -484,7 +519,7 @@ size_t purc_variant_set_length(const purc_variant_t set);
  *
  * Since: 0.0.1
  */
-int purc_variant_ref (purc_variant_t value);
+unsigned int purc_variant_ref (purc_variant_t value);
 
 
 /**
@@ -496,7 +531,7 @@ int purc_variant_ref (purc_variant_t value);
  *
  * Since: 0.0.1
  */
-int purc_variant_unref (purc_variant_t value);
+unsigned int purc_variant_unref (purc_variant_t value);
 
 
 /**
@@ -506,11 +541,10 @@ int purc_variant_unref (purc_variant_t value);
  *
  * @param sz: the size of string 
  *
- * Returns: A purc_variant_t on success, with undefined type on failure.
+ * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
- ????
 purc_variant_t purc_variant_make_from_json_string (const char* json, size_t sz);
 
 
@@ -519,11 +553,10 @@ purc_variant_t purc_variant_make_from_json_string (const char* json, size_t sz);
  *
  * @param file: the Json file name
  *
- * Returns: A purc_variant_t on success, with undefined type on failure.
+ * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
- ???
 purc_variant_t purc_variant_load_from_json_file (const char* file);
 
 
@@ -532,11 +565,10 @@ purc_variant_t purc_variant_load_from_json_file (const char* file);
  *
  * @param stream: the stream of purc_rwstream_t type
  *
- * Returns: A purc_variant_t on success, with undefined type on failure.
+ * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
- ???
 purc_variant_t purc_variant_load_from_json_stream (purc_rwstream_t stream);
 
 
@@ -550,7 +582,7 @@ purc_variant_t purc_variant_load_from_json_stream (purc_rwstream_t stream);
 .*
  * Since: 0.0.1
  */
-int purc_variant_cmp (purc_variant_t v1, purc_variant v2);
+int purc_variant_compare (purc_variant_t v1, purc_variant v2);
 
 
 /**
@@ -575,11 +607,10 @@ size_t purc_variant_serialize (purc_variant_t value, purc_rwstream_t stream, uns
  *
  * @param var_name: the variant data name
  *
- * Returns: A purc_variant_t on success, with undefined type on failure.
+ * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
 .*
  * Since: 0.0.1
  */
- ???
 purc_variant_t purc_variant_dynamic_value_load_from_so (const char* so_name, const char* var_name);
 
 
@@ -591,9 +622,11 @@ typedef enum variant_type
     variant_type_boolean,
     variant_type_number,
     variant_type_longint,
+    variant_type_longdouble,
     variant_type_string,
     variant_type_sequence,
     variant_type_dynamic,
+    variant_type_native,
     variant_type_object,
     variant_type_array,
     variant_type_set,
@@ -624,6 +657,38 @@ bool purc_variant_is_type(const purc_variant_t value, enum variant_type type);
  */
 enum variant_type purc_variant_get_type(const purc_variant_t value);
 
+
+struct purc_variant_stat {
+    // to be defined
+};
+
+
+/**
+ * Statistic of variant status.
+ *
+ * @param stat: the pointer of purc_variant_stat
+ *
+ * Returns: True on success, otherwise False.
+ *
+ * Since: 0.0.1
+ */
+bool purc_variant_usage_stat (struct purc_variant_stat* stat);
+
+
+// 遍历数组中的每个变体型数据，将其值赋值给 `value`
+foreach_value_in_variant_array(array, value)
+
+// 遍历对象中的每个具有键名的变体型数据，将其值赋值给 `value`
+foreach_value_in_variant_object(obj, value)
+
+// 遍历对象中的每个具有键名的变体型数据，将键名赋值给 `key`，值赋值给 `value`
+foreach_key_value_in_variant_object(obj, key, value)
+
+// 遍历集合中的每个具有键名的变体型数据，将其值赋值给 `value`
+foreach_value_in_variant_set(set, value)
+
+// 结束遍历
+end_foreach
 
 #endif /* PURC_VARIANT_H */
 
