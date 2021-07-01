@@ -23,9 +23,13 @@
 #include "rwstream.h"
 #include <stdlib.h>
 #include <errno.h>
+#include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+#ifdef PURC_BUILD_WITH_GLIB
 #include <glib.h>
+#endif // PURC_BUILD_WITH_GLIB
 
 struct purc_rwstream;
 typedef struct purc_rwstream purc_rwstream;
@@ -62,12 +66,14 @@ typedef struct mem_rwstream
     uint8_t* stop;
 } mem_rwstream;
 
+#ifdef PURC_BUILD_WITH_GLIB
 typedef struct gio_rwstream
 {
     purc_rwstream rwstream;
     GIOChannel* gio_channel;
     int fd;
 } gio_rwstream;
+#endif // PURC_BUILD_WITH_GLIB
 
 static off_t stdio_seek (purc_rwstream_t rws, off_t offset, int whence);
 static off_t stdio_tell (purc_rwstream_t rws);
@@ -109,6 +115,7 @@ rwstream_funcs mem_funcs = {
     mem_destroy
 };
 
+#ifdef PURC_BUILD_WITH_GLIB
 static off_t win_socket_seek (purc_rwstream_t rws, off_t offset, int whence);
 static off_t gio_seek (purc_rwstream_t rws, off_t offset, int whence);
 static off_t gio_tell (purc_rwstream_t rws);
@@ -141,6 +148,39 @@ rwstream_funcs win_socket_funcs = {
     gio_destroy
 };
 
+purc_error_t rwstream_error_code_from_gerror (GError* err)
+{
+    if (err == NULL)
+    {
+        return PURC_ERROR_OK;
+    }
+
+    switch (err->code)
+    {
+        case G_IO_CHANNEL_ERROR_FBIG:
+            return PCRWSTREAM_ERROR_FBIG;
+        case G_IO_CHANNEL_ERROR_INVAL:
+            return PCRWSTREAM_ERROR_INVAL;
+        case G_IO_CHANNEL_ERROR_IO:
+            return PCRWSTREAM_ERROR_IO;
+        case G_IO_CHANNEL_ERROR_ISDIR:
+            return PCRWSTREAM_ERROR_ISDIR;
+        case G_IO_CHANNEL_ERROR_NOSPC:
+            return PCRWSTREAM_ERROR_NOSPC;
+        case G_IO_CHANNEL_ERROR_NXIO:
+            return PCRWSTREAM_ERROR_NXIO;
+        case G_IO_CHANNEL_ERROR_OVERFLOW:
+            return PCRWSTREAM_ERROR_OVERFLOW;
+        case G_IO_CHANNEL_ERROR_PIPE:
+            return PCRWSTREAM_ERROR_PIPE;
+        case G_IO_CHANNEL_ERROR_FAILED:
+            return PCRWSTREAM_ERROR_FAILED;
+        default:
+            return PCRWSTREAM_ERROR_FAILED;
+    }
+}
+#endif // PURC_BUILD_WITH_GLIB
+
 purc_error_t rwstream_error_code_from_errno (int en)
 {
 
@@ -152,13 +192,11 @@ purc_error_t rwstream_error_code_from_errno (int en)
 #endif
 #ifdef EBADF
         case EBADF:
-            g_warning ("Invalid file descriptor.");
             return PCRWSTREAM_ERROR_FAILED;
 #endif
 
 #ifdef EFAULT
         case EFAULT:
-            g_warning ("Buffer outside valid address space.");
             return PCRWSTREAM_ERROR_FAILED;
 #endif
 
@@ -221,37 +259,6 @@ purc_error_t rwstream_error_code_from_errno (int en)
     }
 }
 
-purc_error_t rwstream_error_code_from_gerror (GError* err)
-{
-    if (err == NULL)
-    {
-        return PURC_ERROR_OK;
-    }
-
-    switch (err->code)
-    {
-        case G_IO_CHANNEL_ERROR_FBIG:
-            return PCRWSTREAM_ERROR_FBIG;
-        case G_IO_CHANNEL_ERROR_INVAL:
-            return PCRWSTREAM_ERROR_INVAL;
-        case G_IO_CHANNEL_ERROR_IO:
-            return PCRWSTREAM_ERROR_IO;
-        case G_IO_CHANNEL_ERROR_ISDIR:
-            return PCRWSTREAM_ERROR_ISDIR;
-        case G_IO_CHANNEL_ERROR_NOSPC:
-            return PCRWSTREAM_ERROR_NOSPC;
-        case G_IO_CHANNEL_ERROR_NXIO:
-            return PCRWSTREAM_ERROR_NXIO;
-        case G_IO_CHANNEL_ERROR_OVERFLOW:
-            return PCRWSTREAM_ERROR_OVERFLOW;
-        case G_IO_CHANNEL_ERROR_PIPE:
-            return PCRWSTREAM_ERROR_PIPE;
-        case G_IO_CHANNEL_ERROR_FAILED:
-            return PCRWSTREAM_ERROR_FAILED;
-        default:
-            return PCRWSTREAM_ERROR_FAILED;
-    }
-}
 
 /* rwstream api */
 
@@ -287,6 +294,7 @@ purc_rwstream_t purc_rwstream_new_from_fp (FILE* fp)
     return (purc_rwstream_t) rws;
 }
 
+#ifdef PURC_BUILD_WITH_GLIB
 purc_rwstream_t purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf)
 {
     GIOChannel* gio_channel = g_io_channel_unix_new(fd);
@@ -307,10 +315,11 @@ purc_rwstream_t purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf)
     rws->fd = fd;
     return (purc_rwstream_t) rws;
 }
+#endif // PURC_BUILD_WITH_GLIB
 
+#if defined(PURC_BUILD_WITH_GLIB) && defined(G_OS_WIN32)
 purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf)
 {
-#ifdef G_OS_WIN32
     GIOChannel* gio_channel = g_io_channel_win32_new_socket(socket);
     if (gio_channel == NULL)
     {
@@ -328,11 +337,8 @@ purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf)
     gio_rwstream->rwstream.funcs = &win_socket_funcs;
     gio_rwstream->gio_channel = gio_channel;
     return (purc_rwstream_t) gio_rwstream;
-#else
-    purc_set_last_error(PURC_ERROR_NOT_IMPLEMENTED);
-    return NULL;
-#endif
 }
+#endif // defined(PURC_BUILD_WITH_GLIB) && defined(G_OS_WIN32)
 
 int purc_rwstream_destroy (purc_rwstream_t rws)
 {
@@ -575,7 +581,8 @@ static int mem_destroy (purc_rwstream_t rws)
     return 0;
 }
 
-/* gio rwstream functions */
+#ifdef PURC_BUILD_WITH_GLIB
+/* glib rwstream functions */
 static off_t win_socket_seek (purc_rwstream_t rws, off_t offset, int whence)
 {
     purc_set_last_error(PURC_ERROR_NOT_IMPLEMENTED);
@@ -602,7 +609,7 @@ static off_t gio_seek (purc_rwstream_t rws, off_t offset, int whence)
     }
 
     GError* err = NULL;
-    GIOStatus ios = g_io_channel_seek_position (gio->gio_channel, offset, 
+    GIOStatus ios = g_io_channel_seek_position (gio->gio_channel, offset,
             type, &err);
     if (ios == G_IO_STATUS_NORMAL)
     {
@@ -685,3 +692,4 @@ static int gio_destroy (purc_rwstream_t rws)
     free(rws);
     return 0;
 }
+#endif // PURC_BUILD_WITH_GLIB

@@ -13,6 +13,8 @@ option(PURC_INSTALL_HEADER "Install header files" ON)
 option(PARSER_BUILD_WITHOUT_THREADS "Build Parser without POSIX Threads" OFF)
 option(MyCORE_BUILD_WITHOUT_THREADS "Build MyCORE without POSIX Threads" OFF)
 
+option(PURC_BUILD_WITH_GLIB "Build PurC with Glib" ON)
+
 ################
 ## dependencies
 #########################
@@ -24,7 +26,10 @@ if(NOT PARSER_BUILD_WITHOUT_THREADS)
     endif()
 endif()
 
+if(PURC_BUILD_WITH_GLIB)
 find_package(GLIB 2.40.0 REQUIRED COMPONENTS gio gio-unix gobject gthread gmodule)
+ADD_DEFINITIONS(-DPURC_BUILD_WITH_GLIB)
+endif()
 
 ################
 ## version and path
@@ -162,7 +167,11 @@ endif()
 ################
 ## Includes
 #########################
+if(PURC_BUILD_WITH_GLIB)
 include_directories(${PROJECT_DIR_API_HEADER} ${GLIB_INCLUDE_DIRS})
+else()
+include_directories(${PROJECT_DIR_API_HEADER})
+endif()
 file(GLOB_RECURSE PROJECT_HEADERS ${PROJECT_DIR_API_HEADER}/*.h)
 
 ################
@@ -193,14 +202,22 @@ set(PURC_LIBRARIES purc CACHE STRING "Libraries to link for PURC")
 #########################
 if(PURC_BUILD_SHARED)
     add_library(${PROJECT_LIB_NAME} SHARED ${PROJECT_SOURCES} ${PROJECT_SOURCES_PORT})
+if(PURC_BUILD_WITH_GLIB)
     target_link_libraries(${PROJECT_LIB_NAME} ${CMAKE_THREAD_LIBS_INIT} ${GLIB_LIBRARIES})
+else()
+    target_link_libraries(${PROJECT_LIB_NAME} ${CMAKE_THREAD_LIBS_INIT})
+endif()
     set_target_properties(${PROJECT_LIB_NAME} PROPERTIES OUTPUT_NAME ${PROJECT_LIB_NAME})
     set_target_properties(${PROJECT_LIB_NAME} PROPERTIES VERSION ${PROJECT_VERSION_STRING} SOVERSION ${PROJECT_VERSION_MAJOR})
 endif()
 
 if(PURC_BUILD_STATIC)
     add_library(${PROJECT_LIB_NAME_STATIC} STATIC ${PROJECT_SOURCES} ${PROJECT_SOURCES_PORT})
+if(PURC_BUILD_WITH_GLIB)
     target_link_libraries(${PROJECT_LIB_NAME_STATIC} ${CMAKE_THREAD_LIBS_INIT} ${GLIB_LIBRARIES})
+else()
+    target_link_libraries(${PROJECT_LIB_NAME_STATIC} ${CMAKE_THREAD_LIBS_INIT})
+endif()
     set_target_properties(${PROJECT_LIB_NAME_STATIC} PROPERTIES OUTPUT_NAME ${PROJECT_LIB_NAME_STATIC})
     set_target_properties(${PROJECT_LIB_NAME_STATIC} PROPERTIES VERSION ${PROJECT_VERSION_STRING} SOVERSION ${PROJECT_VERSION_MAJOR})
 endif()
