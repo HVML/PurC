@@ -24,8 +24,9 @@
 #include <stdlib.h>
 #include <glib.h>
 
-typedef struct _PURC_RWSTREAM PURC_RWSTREAM;
-typedef struct _PURC_RWSTREAM* purc_rwstream_t;
+struct purc_rwstream;
+typedef struct purc_rwstream purc_rwstream;
+typedef struct purc_rwstream* purc_rwstream_t;
 
 typedef struct _RW_FUNCS
 {
@@ -41,20 +42,20 @@ typedef struct _RW_FUNCS
     int     (*destroy) (purc_rwstream_t rws);
 } RW_FUNCS;
 
-struct _PURC_RWSTREAM
+struct purc_rwstream
 {
     RW_FUNCS* rw_funcs;
 };
 
 typedef struct _PURC_STDIO_RWSTREAM
 {
-    PURC_RWSTREAM rwstream;
+    purc_rwstream rwstream;
     FILE* fp;
 } PURC_STDIO_RWSTREAM;
 
 typedef struct _PURC_MEM_RWSTREAM
 {
-    PURC_RWSTREAM rwstream;
+    purc_rwstream rwstream;
     uint8_t* base;
     uint8_t* here;
     uint8_t* stop;
@@ -62,7 +63,7 @@ typedef struct _PURC_MEM_RWSTREAM
 
 typedef struct _PURC_GIO_RWSTREAM
 {
-    PURC_RWSTREAM rwstream;
+    purc_rwstream rwstream;
     GIOChannel* gio_channel;
 } PURC_GIO_RWSTREAM;
 

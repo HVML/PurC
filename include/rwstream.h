@@ -29,9 +29,10 @@
 #include <wchar.h>
 #include <sys/types.h>
 
-struct _PURC_RWSTREAM;
-typedef struct _PURC_RWSTREAM PURC_RWSTREAM;
-typedef struct _PURC_RWSTREAM* purc_rwstream_t;
+
+struct purc_rwstream;
+typedef struct purc_rwstream purc_rwstream;
+typedef struct purc_rwstream* purc_rwstream_t;
 
 /**
  * Creates a new purc_rwstream_t for the given memory buffer.
