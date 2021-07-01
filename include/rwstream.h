@@ -29,6 +29,8 @@
 #include <wchar.h>
 #include <sys/types.h>
 
+#include "errno.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -36,6 +38,14 @@ extern "C" {
 struct purc_rwstream;
 typedef struct purc_rwstream purc_rwstream;
 typedef struct purc_rwstream* purc_rwstream_t;
+
+
+enum pcrwstream_error
+{
+    PCRWSTREAM_SUCCESS = PURC_ERROR_OK,
+    PCRWSTREAM_ERROR_INVALID_PARAM = PURC_ERROR_FIRST_RWSTREAM
+};
+
 
 /**
  * Creates a new purc_rwstream_t for the given memory buffer.
