@@ -38,74 +38,83 @@ typedef struct _PURC_VARIANT* purc_variant_t;
 
 
 /**
- * Creates a variant data of undefined type.
+ * Creates a variant value of undefined type.
  *
- * Returns: A purc_variant_t on success.
+ * Returns: A purc_variant_t with undefined type.
  *
  * Since: 0.0.1
  */
- // 直接调用宏，不可能错误
 purc_variant_t purc_variant_make_undefined (void);
 
 
 /**
- * Creates a variant data of null type.
+ * Creates a variant value of null type.
  *
- * Returns: A purc_variant_t.
+ * Returns: A purc_variant_t with null type.
  *
  * Since: 0.0.1
  */
- // 直接调用宏，不可能错误
 purc_variant_t purc_variant_make_null (void);
 
 
 /**
- * Creates a variant data of boolean type.
+ * Creates a variant value of boolean type.
  *
  * @param b: the initial value of created data
  *
- * Returns: A purc_variant_t.
+ * Returns: A purc_variant_t with boolean type.
  *
  * Since: 0.0.1
  */
- // 直接调用宏，不可能错误
 purc_variant_t purc_variant_make_boolean (bool b);
 
 
 /**
- * Creates a variant data of number type.
+ * Creates a variant value of number type.
  *
  * @param d: the initial value of created data
  *
- * Returns: A purc_variant_t on success, NULL on failure.
+ * Returns: A purc_variant_t with number type, or with undefined 
+ *          type on failure.
  *
  * Since: 0.0.1
  */
-// make 错误，返回 undefined
 purc_variant_t purc_variant_make_number (double d);
 
 
 /**
- * Creates a variant data of long int type.
+ * Creates a variant value of long int type.
  *
- * @param u64: the initial value of created data
+ * @param u64: the initial value of unsigned long int type
  *
- * @param sign: ture for positive, or flase for nagative
- *
- * Returns: A purc_variant_t on success, NULL on failure.
+ * Returns: A purc_variant_t with long int type, or with undefined
+ *          type on failure.
  *
  * Since: 0.0.1
  */
-// 分成两个，带符号，不带符号
-purc_variant_t purc_variant_make_longint (uint64_t u64, bool sign);
+purc_variant_t purc_variant_make_unsigned_longint (uint64_t u64);
 
 
 /**
- * Creates a variant data of string type.
+ * Creates a variant value of long int type.
+ *
+ * @param u64: the initial value of signed long int type
+ *
+ * Returns: A purc_variant_t with long int type, or with undefined 
+ *          type on failure.
+ *
+ * Since: 0.0.1
+ */
+purc_variant_t purc_variant_make_signed_longint (uint64_t u64);
+
+
+/**
+ * Creates a variant value of string type.
  *
  * @param str_utf8: the pointer of a string which is in UTF-8 encoding 
  *
- * Returns: A purc_variant_t on success, NULL on failure.
+ * Returns: A purc_variant_t with string type, or with undefined 
+ *          type on failure.
  *
  * Since: 0.0.1
  */
@@ -113,16 +122,18 @@ purc_variant_t purc_variant_make_string (const char* str_utf8);
 
 
 /**
- * Checks the format of input parameter, and creates a variant data of string type.
+ * Checks the encoding format of input parameter, and creates a variant 
+ * value of string type.
  *
  * @param str_utf8: the pointer of a string which is in UTF-8 encoding
  *
- * Returns: A purc_variant_t on success, NULL on failure.
+ * Returns: A purc_variant_t with string type, or with undefined 
+ *          type on failure.
+ *
+ * Note: If str_utf8 is not in UTF-8 encoding, return undefined type.
  *
  * Since: 0.0.1
  */
-// 没有出错信息，是否废弃
-// 
 purc_variant_t purc_variant_make_string_with_check (const char* str_utf8);
 
 
@@ -131,20 +142,21 @@ purc_variant_t purc_variant_make_string_with_check (const char* str_utf8);
  *
  * @param value: the data of string type
  *
- * Returns: The pointer of char string, or NULL on failure.
+ * Returns: The pointer of char string, or NULL if value with undefined type.
  *
  * Since: 0.0.1
  */
 const char* purc_variant_get_string_const (purc_variant_t value);
 
+
 /**
- * Creates a variant data of char sequence.
+ * Creates a variant value of byte sequence type.
  *
- * @param bytes: the pointer of a char sequence
+ * @param bytes: the pointer of a byte sequence
+ * @param nr_bytes: the number of bytes in sequence
  *
- * @param nr_bytes: the number of chars in sequence
- *
- * Returns: A purc_variant_t on success, NULL on failure.
+ * Returns: A purc_variant_t with byte sequence type, or with undefined 
+ *          type on failure.
  *
  * Since: 0.0.1
  */
@@ -152,13 +164,12 @@ purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes, size
 
 
 /**
- * Gets the pointer of char array which is encapsulated in char sequence type.
+ * Gets the pointer of byte array which is encapsulated in byte sequence type.
  *
- * @param value: the data of char sequence type
+ * @param value: the data of byte sequence type
+ * @param nr_bytes: the size of byte sequence
  *
- * @param nr_bytes: the size of char sequence
- *
- * Returns: the pointer of char array on success, or NULL on failure.
+ * Returns: the pointer of byte array on success, or NULL on failure.
  *
  * Since: 0.0.1
  */
@@ -172,10 +183,10 @@ typedef purc_variant_t (*PCB_DYNAMIC_VARIANT) (purc_variant_t root, int nr_args,
  * Creates dynamic value by setter and getter functions
  *
  * @param getter: the getter funciton pointer
- *
  * @param setter: the setter function pointer
  *
- * Returns: A purc_variant_t on success, NULL on failure.
+ * Returns: A purc_variant_t with dynamic value, or undefined 
+ *          type on failure.
  *
  * Since: 0.0.1
  */
@@ -183,13 +194,13 @@ purc_variant_t purc_variant_make_dynamic_value (CB_DYNAMIC_VARIANT getter, CB_DY
 
 
 /**
- * Creates a variant data of array type.
+ * Creates a variant value of array type.
  *
  * @param sz: the size of array
- *
  * @param value0 ..... valuen: enumerates every elements in array 
  *
- * Returns: A purc_variant_t on success, NULL on failure.
+ * Returns: A purc_variant_t with array type, or undefined
+ *          type on failure.
  *
  * Since: 0.0.1
  */
@@ -200,14 +211,12 @@ purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...);
  * Appends a variant data to the tail of an array.
  *
  * @param array: the variant data of array type
- *
  * @param value: the element to be appended
  *
- * Returns: the size of array after appending operation.
+ * Returns: Zero on success, or -1 on failure.
  *
  * Since: 0.0.1
  */
-// 0 成功，-1 失败
 int purc_variant_array_append (purc_variant_t array, purc_variant_t value);
 
 
@@ -215,13 +224,13 @@ int purc_variant_array_append (purc_variant_t array, purc_variant_t value);
  * Gets an element from an array by index.
  *
  * @param array: the variant data of array type
- *
  * @param idx: the index of wanted element 
  *
- * Returns: A purc_variant_t on success, or NULL on failure.
+ * Returns: A purc_variant_t on success, or undefined type  on failure.
  *
  * Since: 0.0.1
  */
+ ???
 purc_variant_t purc_variant_array_get (purc_variant_t array, int idx);
 
 
@@ -229,17 +238,16 @@ purc_variant_t purc_variant_array_get (purc_variant_t array, int idx);
  * Sets an element value in an array by index.
  *
  * @param array: the variant data of array type
- *
  * @param idx: the index of replaced element 
- *
  * @param value: the element to replace
  *
- * Returns: The replaced purc_variant_t on success, or NULL on failure.
+ * Returns: Zero on success, or -1 on failure.
+ *
+ * Note: If idx is greater than max index of array, return -1. 
+ *       Whether free the replaced element, depends on its ref.
  *
  * Since: 0.0.1
  */
-// 1、扩大，2、返回错误
-// 绑定时候，ref怎么处理
 int purc_variant_array_set (purc_variant_t array, int idx, purc_variant_t value);
 
 
@@ -247,10 +255,12 @@ int purc_variant_array_set (purc_variant_t array, int idx, purc_variant_t value)
  * Remove an element from an array by index.
  *
  * @param array: the variant data of array type
- *
  * @param idx: the index of element to be removed
  *
- * Returns: The removed purc_variant_t on success, NULL on failure.
+ * Returns: Zero on success, or -1 on failure.
+ *
+ * Note: If idx is greater than max index of array, return -1.
+ *       Whether free the removed element, depends on its ref.
  *
  * Since: 0.0.1
  */
@@ -261,12 +271,13 @@ int purc_variant_array_remove (purc_variant_t array, int idx);
  * Inserts an element to an array, places it before an indicated element.
  *
  * @param array: the variant data of array type
- *
  * @param idx: the index of element before which the new element will be placed
  *
  * @param value: the inserted element 
  *
- * Returns: The inserted purc_variant_t on success, NULL on failure.
+ * Returns: Zero on success, or -1 on failure.
+ *
+ * Note: If idx is greater than max index of array, return -1.
  *
  * Since: 0.0.1
  */
@@ -277,12 +288,12 @@ int purc_variant_array_insert_before (purc_variant_t array, int idx, purc_varian
  * Inserts an element to an array, places it after an indicated element.
  *
  * @param array: the variant data of array type
- *
  * @param idx: the index of element after which the new element will be placed
- *
  * @param value: the inserted element 
  *
- * Returns: The inserted purc_variant_t on success, NULL on failure.
+ * Returns: Zero on success, or -1 on failure.
+ *
+ * Note: If idx is greater than sum of one plus max index of array, return -1.
  *
  * Since: 0.0.1
  */
@@ -290,15 +301,14 @@ int purc_variant_array_insert_after (purc_variant_t array, int idx, purc_variant
 
 
 /**
- * Creates a variant data of object type.
+ * Creates a variant value of object type.
  *
  * @param nr_kv_pairs: the minimum of key-value pairs
- *
  * @param key0 ..... keyn: the keys of key-value pairs 
- *
  * @param value0 ..... valuen: the values of key-value pairs 
  *
- * Returns: A purc_variant_t on success, NULL on failure.
+ * Returns: A purc_variant_t with object type, or with undefined
+ *          type on failure.
  *
  * Since: 0.0.1
  */
@@ -309,13 +319,14 @@ purc_variant_t purc_variant_make_object (size_t nr_kv_pairs, const char* key0, p
  * Gets the value by key from an object.
  *
  * @param obj: the variant data of obj type
- *
  * @param key: the key of key-value pair 
  *
- * Returns: A purc_variant_t on success, NULL on failure.
+ * Returns: A purc_variant_t on success, or with undefined
+ *          type on failure.
  *
  * Since: 0.0.1
  */
+???
 purc_variant_t purc_variant_object_get (purc_variant_t obj, const char* key);
 
 
@@ -323,12 +334,10 @@ purc_variant_t purc_variant_object_get (purc_variant_t obj, const char* key);
  * Sets the value by key in an object.
  *
  * @param obj: the variant data of obj type
- *
  * @param key: the key of key-value pair 
- *
  * @param value: the value of key-value pair
  *
- * Returns: True on success, False on failure.
+ * Returns: True on success, otherwise False.
  *
  * Since: 0.0.1
  */
@@ -339,10 +348,9 @@ bool purc_variant_object_set (purc_variant_t obj, const char* key, purc_variant_
  * Remove a key-value pair from an object by key.
  *
  * @param obj: the variant data of obj type
- *
  * @param key: the key of key-value pair 
  *
- * Returns: True on success, False on failure.
+ * Returns: True on success, otherwise False.
  *
  * Since: 0.0.1
  */
@@ -516,5 +524,31 @@ size_t purc_variant_serialize (purc_variant_t value, purc_rwstream_t stream, uns
  */
 purc_variant_t purc_variant_dynamic_value_load_from_so (const char* so_name, const char* var_name);
 
+
+
+typedef enum variant_type
+{
+    variant_type_null,
+    variant_type_undefined,
+    variant_type_boolean,
+    variant_type_number,
+    variant_type_longint,
+    variant_type_string,
+    variant_type_sequence,
+    variant_type_dynamic,
+    variant_type_object,
+    variant_type_array,
+    variant_type_set,
+} variant_type;
+
+bool purc_variant_is_type(const purc_variant_t value, enum variant_type type);
+
+enum variant_type purc_variant_get_type(const purc_variant_t value);
+
+size_t purc_variant_object_length(const purc_variant_t obj);
+
+size_t purc_variant_array_length(const purc_variant_t array);
+
+size_t purc_variant_set_length(const purc_variant_t set);
 #endif /* PURC_VARIANT_VARIANT_H */
 
