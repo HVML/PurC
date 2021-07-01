@@ -129,7 +129,7 @@ purc_variant_t purc_variant_make_longdouble (long double lf);
 /**
  * Creates a variant value of string type.
  *
- * @param str_utf8: the pointer of a string which is in UTF-8 encoding 
+ * @param str_utf8: the pointer of a string which is in UTF-8 encoding
  *
  * Returns: A purc_variant_t with string type, or PURC_VARIANT_INVALID on failure.
  *
@@ -139,7 +139,7 @@ purc_variant_t purc_variant_make_string (const char* str_utf8);
 
 
 /**
- * Checks the encoding format of input parameter, and creates a variant 
+ * Checks the encoding format of input parameter, and creates a variant
  * value of string type.
  *
  * @param str_utf8: the pointer of a string which is in UTF-8 encoding
@@ -235,7 +235,7 @@ typedef bool (*purc_nvariant_releaser) (void* native_obj);
 
 
 /**
- * Creates a variant value of native type. 
+ * Creates a variant value of native type.
  *
  * @param native_obj: the pointer of native ojbect
  * @param releaser: the purc_nvariant_releaser function pointer
@@ -251,7 +251,7 @@ purc_variant_t purc_variant_make_native (void *native_obj, purc_nvariant_release
  * Creates a variant value of array type.
  *
  * @param sz: the size of array
- * @param value0 ..... valuen: enumerates every elements in array 
+ * @param value0 ..... valuen: enumerates every elements in array
  *
  * Returns: A purc_variant_t with array type, or PURC_VARIANT_INVALID on failure.
  *
@@ -290,7 +290,7 @@ bool purc_variant_array_prepend (purc_variant_t array, purc_variant_t value);
  * Gets an element from an array by index.
  *
  * @param array: the variant data of array type
- * @param idx: the index of wanted element 
+ * @param idx: the index of wanted element
  *
  * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
  *
@@ -303,12 +303,12 @@ purc_variant_t purc_variant_array_get (purc_variant_t array, int idx);
  * Sets an element value in an array by index.
  *
  * @param array: the variant data of array type
- * @param idx: the index of replaced element 
+ * @param idx: the index of replaced element
  * @param value: the element to replace
  *
  * Returns: True on success, otherwise False.
  *
- * Note: If idx is greater than max index of array, return -1. 
+ * Note: If idx is greater than max index of array, return -1.
  *       Whether free the replaced element, depends on its ref.
  *
  * Since: 0.0.1
@@ -338,7 +338,7 @@ bool purc_variant_array_remove (purc_variant_t array, int idx);
  * @param array: the variant data of array type
  * @param idx: the index of element before which the new element will be placed
  *
- * @param value: the inserted element 
+ * @param value: the inserted element
  *
  * Returns: True on success, otherwise False.
  *
@@ -354,7 +354,7 @@ bool purc_variant_array_insert_before (purc_variant_t array, int idx, purc_varia
  *
  * @param array: the variant data of array type
  * @param idx: the index of element after which the new element will be placed
- * @param value: the inserted element 
+ * @param value: the inserted element
  *
  * Returns: True on success, otherwise False.
  *
@@ -381,8 +381,8 @@ size_t purc_variant_array_get_size(const purc_variant_t array);
  * Creates a variant value of object type.
  *
  * @param nr_kv_pairs: the minimum of key-value pairs
- * @param key0 ..... keyn: the keys of key-value pairs 
- * @param value0 ..... valuen: the values of key-value pairs 
+ * @param key0 ..... keyn: the keys of key-value pairs
+ * @param value0 ..... valuen: the values of key-value pairs
  *
  * Returns: A purc_variant_t with object type, or PURC_VARIANT_INVALID on failure.
  *
@@ -395,7 +395,7 @@ purc_variant_t purc_variant_make_object (size_t nr_kv_pairs, const char* key0, p
  * Gets the value by key from an object.
  *
  * @param obj: the variant data of obj type
- * @param key: the key of key-value pair 
+ * @param key: the key of key-value pair
  *
  * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
  *
@@ -408,7 +408,7 @@ purc_variant_t purc_variant_object_get (purc_variant_t obj, const char* key);
  * Sets the value by key in an object.
  *
  * @param obj: the variant data of obj type
- * @param key: the key of key-value pair 
+ * @param key: the key of key-value pair
  * @param value: the value of key-value pair
  *
  * Returns: True on success, otherwise False.
@@ -422,7 +422,7 @@ bool purc_variant_object_set (purc_variant_t obj, const char* key, purc_variant_
  * Remove a key-value pair from an object by key.
  *
  * @param obj: the variant data of obj type
- * @param key: the key of key-value pair 
+ * @param key: the key of key-value pair
  *
  * Returns: True on success, otherwise False.
  *
@@ -455,11 +455,14 @@ size_t purc_variant_object_get_size (const purc_variant_t obj);
  *     const char     *key = purc_variant_object_iterator_get_key(it);
  *     purc_variant_t  val = purc_variant_object_iterator_get_value(it);
  *     ...
- *     if (!purc_variant_object_iterator_next(it)) {
+ *     bool having = purc_variant_object_iterator_next(it);
+ *     // behavior of accessing `val`/`key` is un-defined
+ *     if (!having) {
  *         break;
  *     }
  * }
  * purc_variant_object_release_iterator(it);
+ * // behavior of accessing `it` is un-defined
  */
 
 struct purc_variant_object_iterator;
@@ -495,7 +498,7 @@ struct purc_variant_object_iterator* purc_variant_object_make_iterator_begin (pu
 struct purc_variant_object_iterator* purc_variant_object_make_iterator_end (purc_variant_t object);
 
 /**
- * Release the iterator
+ * Release the object's iterator
  *
  * @param it: iterator of itself
  *
@@ -561,13 +564,13 @@ purc_variant_t purc_variant_object_iterator_get_value (struct purc_variant_objec
  * Creates a variant data of set type.
  *
  * @param sz: the number of elements in a set
- * @param unique_key0 ..... unique_keyn: the keys of unique value 
- * @param value0 ..... valuen: the values related to the key. 
+ * @param unique_key0 ..... unique_keyn: the keys of unique value
+ * @param value0 ..... valuen: the values related to the key.
  *
  * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
  *
  * Note: The key is legal, only when the value is object type.
- * 
+ *
  * Since: 0.0.1
  */
 purc_variant_t purc_variant_make_set (size_t sz, const char* unique_key, purc_variant_t value0, ...);
@@ -577,7 +580,7 @@ purc_variant_t purc_variant_make_set (size_t sz, const char* unique_key, purc_va
  * Adds a unique key-value pair to a set.
  *
  * @param set: the set to be added
- * @param value: the value to be added 
+ * @param value: the value to be added
  *
  * Returns: True on success, False on failure
  *
@@ -589,7 +592,7 @@ bool purc_variant_set_add (purc_variant_t set, purc_variant_t value);
 /**
  * Remove a unique key-value pair from a set.
  *
- * @param set: the set to be operated 
+ * @param set: the set to be operated
  * @param value: the value to be removed
  *
  * Returns: True on success, False on failure
@@ -603,7 +606,7 @@ bool purc_variant_set_remove (purc_variant_t set, purc_variant_t value);
  * Gets the value by key from a set.
  *
  * @param set: the variant data of obj type
- * @param match_key: the unique key related to the value 
+ * @param match_key: the unique key related to the value
  *
  * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
  *
@@ -622,6 +625,112 @@ purc_variant_t purc_variant_set_get_value (const purc_variant_t set, const char 
  * Since: 0.0.1
  */
 size_t purc_variant_set_get_size(const purc_variant_t set);
+
+
+
+/**
+ * set iterator usage example:
+ *
+ * purc_variant_t obj;
+ * ...
+ * purc_variant_set_iterator* it = purc_variant_set_make_iterator_begin(obj);
+ * while (it) {
+ *     purc_variant_t  val = purc_variant_set_iterator_get_value(it);
+ *     ...
+ *     bool having = purc_variant_set_iterator_next(it);
+ *     // behavior of accessing `val`/`key` is un-defined
+ *     if (!having) {
+ *         break;
+ *     }
+ * }
+ * purc_variant_set_release_iterator(it);
+ * // behavior of accessing `it` is un-defined
+ */
+
+struct purc_variant_set_iterator;
+
+/**
+ * Get the begin-iterator of the set,
+ * which points to the head element of the set
+ *
+ * @param set: the variant value of set type
+ *
+ * Returns: the begin-iterator of the set.
+ *          NULL if no element in the set
+ *          returned iterator will inc set's ref for iterator's lifetime
+ *          returned iterator shall also inc the pointed element's ref
+ *
+ * Since: 0.0.1
+ */
+struct purc_variant_set_iterator* purc_variant_set_make_iterator_begin (purc_variant_t set);
+
+/**
+ * Get the end-iterator of the set,
+ * which points to the head element of the set
+ *
+ * @param set: the variant value of set type
+ *
+ * Returns: the end-iterator of the set.
+ *          NULL if no element in the set
+ *          returned iterator will inc set's ref for iterator's lifetime
+ *          returned iterator shall also inc the pointed element's ref
+ *
+ * Since: 0.0.1
+ */
+struct purc_variant_set_iterator* purc_variant_set_make_iterator_end (purc_variant_t set);
+
+/**
+ * Release the set's iterator
+ *
+ * @param it: iterator of itself
+ *
+ * Returns: void
+ *          both set's ref and the pointed element's ref shall be dec`d
+ *
+ * Since: 0.0.1
+ */
+void itpurc_variant_set_release_iterator (struct purc_variant_set_iterator* it);
+
+/**
+ * Make the set's iterator point to it's successor,
+ * or the next element of the bounded set
+ *
+ * @param it: iterator of itself
+ *
+ * Returns: True if iterator `it` has no following element, False otherwise
+ *          dec original element's ref
+ *          inc current element's ref
+ *
+ * Since: 0.0.1
+ */
+bool purc_variant_set_iterator_next (struct purc_variant_set_iterator* it);
+
+/**
+ * Make the set's iterator point to it's predecessor,
+ * or the prev element of the bounded set
+ *
+ * @param it: iterator of itself
+ *
+ * Returns: True if iterator `it` has no leading element, False otherwise
+ *          dec original element's ref
+ *          inc current element's ref
+ *
+ * Since: 0.0.1
+ */
+bool purc_variant_set_iterator_prev (struct purc_variant_set_iterator* it);
+
+/**
+ * Get the value of the element that the iterator points to
+ *
+ * @param it: iterator of itself
+ *
+ * Returns: the value of the element
+ *          the returned value's ref remains unchanged
+ *
+ * Since: 0.0.1
+ */
+purc_variant_t purc_variant_set_iterator_get_value (struct purc_variant_set_iterator* it);
+
 
 
 /**
@@ -653,7 +762,7 @@ unsigned int purc_variant_unref (purc_variant_t value);
  *
  * @param json: the pointer of string which contents json data
  *
- * @param sz: the size of string 
+ * @param sz: the size of string
  *
  * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
  *
@@ -663,7 +772,7 @@ purc_variant_t purc_variant_make_from_json_string (const char* json, size_t sz);
 
 
 /**
- * Creates a variant data from Json file 
+ * Creates a variant data from Json file
  *
  * @param file: the Json file name
  *
@@ -675,7 +784,7 @@ purc_variant_t purc_variant_load_from_json_file (const char* file);
 
 
 /**
- * Creates a variant data from stream 
+ * Creates a variant data from stream
  *
  * @param stream: the stream of purc_rwstream_t type
  *
@@ -687,7 +796,7 @@ purc_variant_t purc_variant_load_from_json_stream (purc_rwstream_t stream);
 
 
 /**
- * Compares two variant data 
+ * Compares two variant data
  *
  * @param v1: one of compared variant data
  * @param v2: the other variant data to be compared
@@ -700,7 +809,7 @@ int purc_variant_compare (purc_variant_t v1, purc_variant v2);
 
 
 /**
- * Serialize a variant data 
+ * Serialize a variant data
  *
  * @param value: the variant data to be serialized
  *
@@ -751,7 +860,7 @@ typedef enum variant_type
  * Whether the vairant is indicated type.
  *
  * @param value: the variant value
- * @param type: wanted type 
+ * @param type: wanted type
  *
  * Returns: True on success, otherwise False.
  *
@@ -793,7 +902,7 @@ bool purc_variant_usage_stat (struct purc_variant_stat* stat);
     int array_size = purc_variant_array_get_size (array)        \
     for (int i = 0; i < array_size,                             \
                     value = purc_variant_array_get (array, i);  \
-         i++)                        
+         i++)
 
 // 遍历对象中的每个具有键名的变体型数据，将其值赋值给 `value`
 #define foreach_value_in_variant_object(obj, value)
