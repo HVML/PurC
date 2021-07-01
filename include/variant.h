@@ -19,8 +19,8 @@
 */
 // 头文件说明改
 
-#ifndef PURC_VARIANT_VARIANT_H
-#define PURC_VARIANT_VARIANT_H
+#ifndef PURC_VARIANT_H
+#define PURC_VARIANT_H
 
 #pragma once
 
@@ -150,6 +150,18 @@ const char* purc_variant_get_string_const (purc_variant_t value);
 
 
 /**
+ * Get the number of characters in an string variant value.
+ *
+ * @param string: the variant value of string type
+ *
+ * Returns: The number of characters in an string variant value.
+ *
+ * Since: 0.0.1
+ */
+size_t purc_variant_string_length(const purc_variant_t string);
+
+
+/**
  * Creates a variant value of byte sequence type.
  *
  * @param bytes: the pointer of a byte sequence
@@ -174,6 +186,19 @@ purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes, size
  * Since: 0.0.1
  */
 const unsigned char* purc_variant_get_bytes_const (purc_variant_t value, size_t* nr_bytes);
+
+
+/**
+ * Get the number of bytes in an sequence variant value.
+ *
+ * @param sequence: the variant value of sequence type
+ *
+ * Returns: The number of bytes in an sequence variant value.
+ *
+ * Since: 0.0.1
+ */
+size_t purc_variant_sequence_length(const purc_variant_t sequence);
+
 
 
 typedef purc_variant_t (*PCB_DYNAMIC_VARIANT) (purc_variant_t root, int nr_args, purc_variant_t arg0, ...);
@@ -301,6 +326,18 @@ int purc_variant_array_insert_after (purc_variant_t array, int idx, purc_variant
 
 
 /**
+ * Get the number of elements in an array variant value.
+ *
+ * @param array: the variant value of array type
+ *
+ * Returns: The number of elements in an array variant value.
+ *
+ * Since: 0.0.1
+ */
+size_t purc_variant_array_length(const purc_variant_t array);
+
+
+/**
  * Creates a variant value of object type.
  *
  * @param nr_kv_pairs: the minimum of key-value pairs
@@ -358,21 +395,30 @@ bool purc_variant_object_remove (purc_variant_t obj, const char* key);
 
 
 /**
- * Creates a variant data of set type.
+ * Get the number of key-value pairs in an object variant value.
  *
- * @param sz: the number of elements in a set
+ * @param obj: the variant value of object type
  *
- * @param unique_key0 ..... unique_keyn: the keys of unique key-value pairs 
- *
- * @param value0 ..... valuen: the values of unique key-value pairs 
- *
- * Returns: A purc_variant_t on success, NULL on failure.
+ * Returns: The number of key-value pairs in an object variant value.
  *
  * Since: 0.0.1
  */
-// key 只有在 value 是 object 时候才有效
-// https://gitlab.fmsoft.cn/hvml/hvml-docs/blob/master/zh/hvml-spec-v1.0-zh.md#2127-%E9%9B%86%E5%90%88
-// avl 树。没有指定 key，序列化，是value值，加入树。如果有key，则取
+size_t purc_variant_object_length(const purc_variant_t obj);
+
+
+/**
+ * Creates a variant data of set type.
+ *
+ * @param sz: the number of elements in a set
+ * @param unique_key0 ..... unique_keyn: the keys of unique value 
+ * @param value0 ..... valuen: the values related to the key. 
+ *
+ * Returns: A purc_variant_t on success, with undefined type on failure.
+ *
+ * Note: The key is legal, only when the value is object type.
+ * 
+ * Since: 0.0.1
+ */
 purc_variant_t purc_variant_make_set (size_t sz, const char* unique_key, purc_variant_t value0, ...);
 
 
@@ -380,10 +426,7 @@ purc_variant_t purc_variant_make_set (size_t sz, const char* unique_key, purc_va
  * Adds a unique key-value pair to a set.
  *
  * @param set: the set to be added
- *
- * @param key: the key of key-value pair
- *
- * @param value: the value of key-value pair
+ * @param value: the value to be added 
  *
  * Returns: True on success, False on failure
  *
@@ -396,8 +439,7 @@ bool purc_variant_set_add (purc_variant_t set, purc_variant_t value);
  * Remove a unique key-value pair from a set.
  *
  * @param set: the set to be operated 
- *
- * @param key: the key of key-value pair
+ * @param value: the value to be removed
  *
  * Returns: True on success, False on failure
  *
@@ -410,14 +452,26 @@ bool purc_variant_set_remove (purc_variant_t set, purc_variant_t value);
  * Gets the value by key from a set.
  *
  * @param set: the variant data of obj type
+ * @param match_key: the unique key related to the value 
  *
- * @param match_key: the unique key of key-value pair 
- *
- * Returns: A purc_variant_t on success, NULL on failure.
+ * Returns: A purc_variant_t on success, with undefined type on failure.
  *
  * Since: 0.0.1
  */
+ ???
 purc_variant_t purc_variant_get_value_in_set (const purc_variant_t set, const char * match_key);
+
+
+/**
+ * Get the number of elements in a set variant value.
+ *
+ * @param set: the variant value of set type
+ *
+ * Returns: The number of elements in a set variant value.
+ *
+ * Since: 0.0.1
+ */
+size_t purc_variant_set_length(const purc_variant_t set);
 
 
 /**
@@ -431,11 +485,13 @@ purc_variant_t purc_variant_get_value_in_set (const purc_variant_t set, const ch
  */
 int purc_variant_ref (purc_variant_t value);
 
-// 反引用变体型数据。引用计数减 1；当引用计数为 0 时，释放资源
+
 /**
  * substract ref for a variant data. When ref is zero, releases the resource occupied by the data
  *
  * @param value: variant data to be operated
+ *
+ * Note: When the ref is zero, the system will release all resource ocupied by value.
  *
  * Since: 0.0.1
  */
@@ -449,10 +505,11 @@ int purc_variant_unref (purc_variant_t value);
  *
  * @param sz: the size of string 
  *
- * Returns: A purc_variant_t on success, NULL on failure.
+ * Returns: A purc_variant_t on success, with undefined type on failure.
  *
  * Since: 0.0.1
  */
+ ????
 purc_variant_t purc_variant_make_from_json_string (const char* json, size_t sz);
 
 
@@ -461,10 +518,11 @@ purc_variant_t purc_variant_make_from_json_string (const char* json, size_t sz);
  *
  * @param file: the Json file name
  *
- * Returns: A purc_variant_t on success, NULL on failure.
+ * Returns: A purc_variant_t on success, with undefined type on failure.
  *
  * Since: 0.0.1
  */
+ ???
 purc_variant_t purc_variant_load_from_json_file (const char* file);
 
 
@@ -473,10 +531,11 @@ purc_variant_t purc_variant_load_from_json_file (const char* file);
  *
  * @param stream: the stream of purc_rwstream_t type
  *
- * Returns: A purc_variant_t on success, NULL on failure.
+ * Returns: A purc_variant_t on success, with undefined type on failure.
  *
  * Since: 0.0.1
  */
+ ???
 purc_variant_t purc_variant_load_from_json_stream (purc_rwstream_t stream);
 
 
@@ -484,10 +543,9 @@ purc_variant_t purc_variant_load_from_json_stream (purc_rwstream_t stream);
  * Compares two variant data 
  *
  * @param v1: one of compared variant data
- *
  * @param v2: the other variant data to be compared
  *
- * Returns: return an integer less than, equal to, or greater than zero if.
+ * Returns: return zero for identical, otherwise -1.
 .*
  * Since: 0.0.1
  */
@@ -500,14 +558,12 @@ int purc_variant_cmp (purc_variant_t v1, purc_variant v2);
  * @param value: the variant data to be serialized
  *
  * @param steam: the stream to which the serialized data write
- *
- * @param opts: the serialization options
+ * @param opts: the serialization options       // To be defined
  *
  * Returns: return the size of serialized data.
 .*
  * Since: 0.0.1
  */
-// opts 自己看着办
 size_t purc_variant_serialize (purc_variant_t value, purc_rwstream_t stream, unsigned int opts);
 
 
@@ -518,10 +574,11 @@ size_t purc_variant_serialize (purc_variant_t value, purc_rwstream_t stream, uns
  *
  * @param var_name: the variant data name
  *
- * Returns: A purc_variant_t on success, NULL on failure.
+ * Returns: A purc_variant_t on success, with undefined type on failure.
 .*
  * Since: 0.0.1
  */
+ ???
 purc_variant_t purc_variant_dynamic_value_load_from_so (const char* so_name, const char* var_name);
 
 
@@ -541,14 +598,31 @@ typedef enum variant_type
     variant_type_set,
 } variant_type;
 
+
+/**
+ * Whether the vairant is indicated type.
+ *
+ * @param value: the variant value
+ * @param type: wanted type 
+ *
+ * Returns: True on success, otherwise False.
+ *
+ * Since: 0.0.1
+ */
 bool purc_variant_is_type(const purc_variant_t value, enum variant_type type);
 
+
+/**
+ * Get the type of a vairant value.
+ *
+ * @param value: the variant value
+ *
+ * Returns: The type of input variant value
+ *
+ * Since: 0.0.1
+ */
 enum variant_type purc_variant_get_type(const purc_variant_t value);
 
-size_t purc_variant_object_length(const purc_variant_t obj);
 
-size_t purc_variant_array_length(const purc_variant_t array);
-
-size_t purc_variant_set_length(const purc_variant_t set);
-#endif /* PURC_VARIANT_VARIANT_H */
+#endif /* PURC_VARIANT_H */
 
