@@ -10,8 +10,10 @@ TEST(HelloTest, BasicAssertions) {
 }
 
 
-
 TEST(stdio_rwstream, new_destroy) {
   purc_rwstream_t rws = purc_rwstream_new_from_file("/tmp/x.c", "r");
   ASSERT_NE(rws, nullptr);
+
+  int ret = purc_rwstream_close(rws);
+  ASSERT_EQ(ret, 0);
 }
