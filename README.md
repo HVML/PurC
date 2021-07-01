@@ -1,6 +1,7 @@
 # PurC
 
-PurC is an hVml inteRpreter for C language. PurC is also the abbreviation of Purring Cat.
+PurC is an hVml inteRpreter for C language. PurC is also the abbreviation of Purring Cat,
+while Purring Cat is the nickname for the reference implementation of an HVML interpreter.
 
 - [Introduction to HVML](#introduction-to-hvml)
 - [Source Tree of PurC](#source-tree-of-purc)
@@ -83,10 +84,9 @@ The classical `helloworld` program in HVML looks like:
 
 ```html
 <!DOCTYPE hvml>
-<hvml target="html" script="python">
+<hvml target="html">
     <head>
-        <init as="_" with="https://foo.bar/messages/$_SYSTEM.locale">
-        </init>
+        <set on="$_" to="merge" with="https://foo.bar/messages/$_SYSTEM.locale" />
 
         <title>Hello, world!</title>
     </head>
@@ -127,25 +127,25 @@ Or,
 </hvml>
 ```
 
-For more information about HVML, please refer to the following articles:
+For more information about HVML, please refer to the documents in the following repository:
 
-- [A brief introduction to HVML](https://github.com/HVML/hvml-docs/blob/master/zh/brief-introduction-to-hvml-zh.md) - Chinese Version
-- [Overview of HVML](https://github.com/HVML/hvml-docs/blob/master/zh/hvml-overview-zh.md) - Chinese Version
+- [HVML Documents](https://gitlab.fmsoft.cn/hvml/hvml-docs)
 
 ## Source Tree of PurC
 
-PurC implements the parser, the interpreter, and some built-in JSON objects for HVML.
+PurC implements the parser, the interpreter, and some built-in dynamic variant objects for HVML.
 It is mainly written in C/C++ language and provides bindings for Python.
 
 The source tree of PurC contains the following modules:
 
 - `include/`: The global header files.
+- `src/include/`: The internal header files.
 - `src/utils/`: Some basic and common utilities.
 - `src/instance/`: The operations of PurC instances and sessions.
 - `src/variant/`: The operations of variant.
 - `src/vcm/`: The operations of variant creation model tree.
-- `src/ejson/`: The eJSON parser. The eJSON parser reads a eJSON and constructs a variant creation model tree.
 - `src/dvobjs/`: The dynamic variant objects.
+- `src/ejson/`: The eJSON parser. The eJSON parser reads a eJSON and constructs a variant creation model tree.
 - `src/edom/`: The operations of the effective DOM tree.
 - `src/vdom/`: The operations of the virtual DOM tree.
 - `src/html/`: The HTML parser. The HTML parser reads a HTML document and constructs a eDOM tree.
@@ -161,8 +161,10 @@ The source tree of PurC contains the following modules:
 - `test/`: The unit test programs.
 - `docs/`: Some notes for developers.
 
-Note that the parser of HVML is derived from [MyHTML](https://github.com/lexborisov/myhtml),
-which is licensed under LGPL 2.1.
+Note that the HTML parser and DOM operations of PurC is derived from:
+
+ - [Lexbor](https://github.com/lexbor/lexbor), which is licensed under Apache 2.0.
+ - [MyHTML](https://github.com/lexborisov/myhtml), which is licensed under LGPL 2.1.
 
 ## Current Status
 
@@ -172,7 +174,7 @@ We welcome anybody to take part in the development and contribute your effort!
 
 For the community conduct, please refer to [Code of Conduct](CODE_OF_CONDUCT.md).
 
-For the coding style, please refer to [HybridOS-Code-and-Development-Convention](https://github.com/FMSoftCN/hybridos/blob/master/docs/specs/HybridOS-Code-and-Development-Convention.md).
+For the coding style, please refer to [HybridOS-Code-and-Development-Convention](https://gitlab.fmsoft.cn/hybridos/hybridos/blob/master/docs/specs/HybridOS-Code-and-Development-Convention.md).
 
 ## Building
 
@@ -196,8 +198,7 @@ rm -rf build && cmake -B build && cmake --build build
 
 ## Copying
 
-Copyright (C) 2021 FMSoft (<https://www.fmsoft.cn>)  
-Copyright (C) 2015-2017 Alexander Borisov (<lex.borisov@gmail.com>)
+Copyright (C) 2021 FMSoft (<https://www.fmsoft.cn>)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
