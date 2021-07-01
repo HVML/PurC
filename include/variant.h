@@ -675,11 +675,14 @@ struct purc_variant_stat {
 bool purc_variant_usage_stat (struct purc_variant_stat* stat);
 
 
-// 遍历数组中的每个变体型数据，将其值赋值给 `value`
-foreach_value_in_variant_array(array, value)
+#define foreach_value_in_variant_array(array, value)            \
+    int array_size = purc_variant_array_get_size (array)        \
+    for (int i = 0; i < array_size,                             \
+                    value = purc_variant_array_get (array, i);  \
+         i++)                        
 
 // 遍历对象中的每个具有键名的变体型数据，将其值赋值给 `value`
-foreach_value_in_variant_object(obj, value)
+#define foreach_value_in_variant_object(obj, value)
 
 // 遍历对象中的每个具有键名的变体型数据，将键名赋值给 `key`，值赋值给 `value`
 foreach_key_value_in_variant_object(obj, key, value)
