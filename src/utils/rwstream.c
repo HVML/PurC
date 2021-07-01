@@ -65,14 +65,14 @@ typedef struct gio_rwstream
     GIOChannel* gio_channel;
 } gio_rwstream;
 
-off_t stdio_seek (purc_rwstream_t rws, off_t offset, int whence);
-off_t stdio_tell (purc_rwstream_t rws);
-int stdio_eof (purc_rwstream_t rws);
-ssize_t stdio_read (purc_rwstream_t rws, void* buf, size_t count);
-ssize_t stdio_write (purc_rwstream_t rws, const void* buf, size_t count);
-ssize_t stdio_flush (purc_rwstream_t rws);
-int stdio_close (purc_rwstream_t rws);
-int stdio_destroy (purc_rwstream_t rws);
+static off_t stdio_seek (purc_rwstream_t rws, off_t offset, int whence);
+static off_t stdio_tell (purc_rwstream_t rws);
+static int stdio_eof (purc_rwstream_t rws);
+static ssize_t stdio_read (purc_rwstream_t rws, void* buf, size_t count);
+static ssize_t stdio_write (purc_rwstream_t rws, const void* buf, size_t count);
+static ssize_t stdio_flush (purc_rwstream_t rws);
+static int stdio_close (purc_rwstream_t rws);
+static int stdio_destroy (purc_rwstream_t rws);
 
 rwstream_funcs stdio_funcs = {
     stdio_seek,
@@ -85,14 +85,14 @@ rwstream_funcs stdio_funcs = {
     stdio_destroy
 };
 
-off_t mem_seek (purc_rwstream_t rws, off_t offset, int whence);
-off_t mem_tell (purc_rwstream_t rws);
-int mem_eof (purc_rwstream_t rws);
-ssize_t mem_read (purc_rwstream_t rws, void* buf, size_t count);
-ssize_t mem_write (purc_rwstream_t rws, const void* buf, size_t count);
-ssize_t mem_flush (purc_rwstream_t rws);
-int mem_close (purc_rwstream_t rws);
-int mem_destroy (purc_rwstream_t rws);
+static off_t mem_seek (purc_rwstream_t rws, off_t offset, int whence);
+static off_t mem_tell (purc_rwstream_t rws);
+static int mem_eof (purc_rwstream_t rws);
+static ssize_t mem_read (purc_rwstream_t rws, void* buf, size_t count);
+static ssize_t mem_write (purc_rwstream_t rws, const void* buf, size_t count);
+static ssize_t mem_flush (purc_rwstream_t rws);
+static int mem_close (purc_rwstream_t rws);
+static int mem_destroy (purc_rwstream_t rws);
 
 rwstream_funcs mem_funcs = {
     mem_seek,
@@ -105,14 +105,14 @@ rwstream_funcs mem_funcs = {
     mem_destroy
 };
 
-off_t gio_seek (purc_rwstream_t rws, off_t offset, int whence);
-off_t gio_tell (purc_rwstream_t rws);
-int gio_eof (purc_rwstream_t rws);
-ssize_t gio_read (purc_rwstream_t rws, void* buf, size_t count);
-ssize_t gio_write (purc_rwstream_t rws, const void* buf, size_t count);
-ssize_t gio_flush (purc_rwstream_t rws);
-int gio_close (purc_rwstream_t rws);
-int gio_destroy (purc_rwstream_t rws);
+static off_t gio_seek (purc_rwstream_t rws, off_t offset, int whence);
+static off_t gio_tell (purc_rwstream_t rws);
+static int gio_eof (purc_rwstream_t rws);
+static ssize_t gio_read (purc_rwstream_t rws, void* buf, size_t count);
+static ssize_t gio_write (purc_rwstream_t rws, const void* buf, size_t count);
+static ssize_t gio_flush (purc_rwstream_t rws);
+static int gio_close (purc_rwstream_t rws);
+static int gio_destroy (purc_rwstream_t rws);
 
 rwstream_funcs gio_funcs = {
     gio_seek,
@@ -243,7 +243,7 @@ int purc_rwstream_close (purc_rwstream_t rws)
 }
 
 /* stdio rwstream functions */
-off_t stdio_seek (purc_rwstream_t rws, off_t offset, int whence)
+static off_t stdio_seek (purc_rwstream_t rws, off_t offset, int whence)
 {
     stdio_rwstream* stdio = (stdio_rwstream *)rws;
     if ( fseek(stdio->fp, offset, whence) == 0 )
@@ -254,17 +254,17 @@ off_t stdio_seek (purc_rwstream_t rws, off_t offset, int whence)
     }
 }
 
-off_t stdio_tell (purc_rwstream_t rws)
+static off_t stdio_tell (purc_rwstream_t rws)
 {
     return ftell(((stdio_rwstream *)rws)->fp);
 }
 
-int stdio_eof (purc_rwstream_t rws)
+static int stdio_eof (purc_rwstream_t rws)
 {
     return feof(((stdio_rwstream *)rws)->fp);
 }
 
-ssize_t stdio_read (purc_rwstream_t rws, void* buf, size_t count)
+static ssize_t stdio_read (purc_rwstream_t rws, void* buf, size_t count)
 {
     stdio_rwstream* stdio = (stdio_rwstream *)rws;
     ssize_t nread = fread(buf, count, 1, stdio->fp);
@@ -275,7 +275,7 @@ ssize_t stdio_read (purc_rwstream_t rws, void* buf, size_t count)
 
 }
 
-ssize_t stdio_write (purc_rwstream_t rws, const void* buf, size_t count)
+static ssize_t stdio_write (purc_rwstream_t rws, const void* buf, size_t count)
 {
     stdio_rwstream* stdio = (stdio_rwstream *)rws;
     ssize_t nwrote = fwrite(buf, count, 1, stdio->fp);
@@ -286,17 +286,17 @@ ssize_t stdio_write (purc_rwstream_t rws, const void* buf, size_t count)
 
 }
 
-ssize_t stdio_flush (purc_rwstream_t rws)
+static ssize_t stdio_flush (purc_rwstream_t rws)
 {
     return fflush(((stdio_rwstream *)rws)->fp);
 }
 
-int stdio_close (purc_rwstream_t rws)
+static int stdio_close (purc_rwstream_t rws)
 {
     return fclose(((stdio_rwstream *)rws)->fp);
 }
 
-int stdio_destroy (purc_rwstream_t rws)
+static int stdio_destroy (purc_rwstream_t rws)
 {
     free(rws);
     return 0;
@@ -304,7 +304,7 @@ int stdio_destroy (purc_rwstream_t rws)
 
 
 /* memory rwstream functions */
-off_t mem_seek (purc_rwstream_t rws, off_t offset, int whence)
+static off_t mem_seek (purc_rwstream_t rws, off_t offset, int whence)
 {
     mem_rwstream* mem = (mem_rwstream *)rws;
     uint8_t* newpos;
@@ -332,13 +332,13 @@ off_t mem_seek (purc_rwstream_t rws, off_t offset, int whence)
     return(mem->here - mem->base);
 }
 
-off_t mem_tell (purc_rwstream_t rws)
+static off_t mem_tell (purc_rwstream_t rws)
 {
     mem_rwstream* mem = (mem_rwstream *)rws;
     return (mem->here - mem->base);
 }
 
-int mem_eof (purc_rwstream_t rws)
+static int mem_eof (purc_rwstream_t rws)
 {
     mem_rwstream* mem = (mem_rwstream *)rws;
     if (mem->here >= mem->stop)
@@ -347,7 +347,7 @@ int mem_eof (purc_rwstream_t rws)
 
 }
 
-ssize_t mem_read (purc_rwstream_t rws, void* buf, size_t count)
+static ssize_t mem_read (purc_rwstream_t rws, void* buf, size_t count)
 {
     mem_rwstream* mem = (mem_rwstream *)rws;
     if ( (mem->here + count) > mem->stop )
@@ -360,7 +360,7 @@ ssize_t mem_read (purc_rwstream_t rws, void* buf, size_t count)
 
 }
 
-ssize_t mem_write (purc_rwstream_t rws, const void* buf, size_t count)
+static ssize_t mem_write (purc_rwstream_t rws, const void* buf, size_t count)
 {
     mem_rwstream* mem = (mem_rwstream *)rws;
     if ( (mem->here + count) > mem->stop ) {
@@ -371,12 +371,12 @@ ssize_t mem_write (purc_rwstream_t rws, const void* buf, size_t count)
     return count;
 }
 
-ssize_t mem_flush (purc_rwstream_t rws)
+static ssize_t mem_flush (purc_rwstream_t rws)
 {
     return 0;
 }
 
-int mem_close (purc_rwstream_t rws)
+static int mem_close (purc_rwstream_t rws)
 {
     mem_rwstream* mem = (mem_rwstream *)rws;
     mem->base = NULL;
@@ -385,14 +385,14 @@ int mem_close (purc_rwstream_t rws)
     return 0;
 }
 
-int mem_destroy (purc_rwstream_t rws)
+static int mem_destroy (purc_rwstream_t rws)
 {
     free(rws);
     return 0;
 }
 
 /* gio rwstream functions */
-off_t gio_seek (purc_rwstream_t rws, off_t offset, int whence)
+static off_t gio_seek (purc_rwstream_t rws, off_t offset, int whence)
 {
     gio_rwstream* gio = (gio_rwstream *)rws;
     GSeekType type;
@@ -414,17 +414,17 @@ off_t gio_seek (purc_rwstream_t rws, off_t offset, int whence)
     return 0;
 }
 
-off_t gio_tell (purc_rwstream_t rws)
+static off_t gio_tell (purc_rwstream_t rws)
 {
     return -1;
 }
 
-int gio_eof (purc_rwstream_t rws)
+static int gio_eof (purc_rwstream_t rws)
 {
     return -1;
 }
 
-ssize_t gio_read (purc_rwstream_t rws, void* buf, size_t count)
+static ssize_t gio_read (purc_rwstream_t rws, void* buf, size_t count)
 {
     gio_rwstream* gio = (gio_rwstream *)rws;
     gsize read = 0;
@@ -433,7 +433,7 @@ ssize_t gio_read (purc_rwstream_t rws, void* buf, size_t count)
     return read;
 }
 
-ssize_t gio_write (purc_rwstream_t rws, const void* buf, size_t count)
+static ssize_t gio_write (purc_rwstream_t rws, const void* buf, size_t count)
 {
     gio_rwstream* gio = (gio_rwstream *)rws;
     gsize write = 0;
@@ -442,7 +442,7 @@ ssize_t gio_write (purc_rwstream_t rws, const void* buf, size_t count)
     return write;
 }
 
-ssize_t gio_flush (purc_rwstream_t rws)
+static ssize_t gio_flush (purc_rwstream_t rws)
 {
     gio_rwstream* gio = (gio_rwstream *)rws;
     g_io_channel_flush (gio->gio_channel, NULL);
@@ -450,7 +450,7 @@ ssize_t gio_flush (purc_rwstream_t rws)
     return 0;
 }
 
-int gio_close (purc_rwstream_t rws)
+static int gio_close (purc_rwstream_t rws)
 {
     gio_rwstream* gio = (gio_rwstream *)rws;
     g_io_channel_shutdown(gio->gio_channel, TRUE, NULL);
@@ -458,7 +458,8 @@ int gio_close (purc_rwstream_t rws)
     gio->gio_channel = NULL;
     return 0;
 }
-int gio_destroy (purc_rwstream_t rws)
+
+static int gio_destroy (purc_rwstream_t rws)
 {
     free(rws);
     return 0;
