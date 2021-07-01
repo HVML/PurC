@@ -458,11 +458,11 @@ size_t purc_variant_object_get_size (const purc_variant_t obj);
  *     bool having = purc_variant_object_iterator_next(it);
  *     // behavior of accessing `val`/`key` is un-defined
  *     if (!having) {
+ *         purc_variant_object_release_iterator(it);
+ *         // behavior of accessing `it` is un-defined
  *         break;
  *     }
  * }
- * purc_variant_object_release_iterator(it);
- * // behavior of accessing `it` is un-defined
  */
 
 struct purc_variant_object_iterator;
@@ -640,11 +640,11 @@ size_t purc_variant_set_get_size(const purc_variant_t set);
  *     bool having = purc_variant_set_iterator_next(it);
  *     // behavior of accessing `val`/`key` is un-defined
  *     if (!having) {
+ *         purc_variant_set_release_iterator(it);
+ *         // behavior of accessing `it` is un-defined
  *         break;
  *     }
  * }
- * purc_variant_set_release_iterator(it);
- * // behavior of accessing `it` is un-defined
  */
 
 struct purc_variant_set_iterator;
