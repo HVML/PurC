@@ -29,6 +29,9 @@
 #include <wchar.h>
 #include <sys/types.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct purc_rwstream;
 typedef struct purc_rwstream purc_rwstream;
@@ -214,6 +217,9 @@ ssize_t purc_rwstream_flush (purc_rwstream_t rws);
 int purc_rwstream_close (purc_rwstream_t rws);
 
 
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* PURC_RWSTREAM_H */
 
