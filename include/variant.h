@@ -689,7 +689,7 @@ struct purc_variant_set_iterator* purc_variant_set_make_iterator_end (purc_varia
  *
  * Since: 0.0.1
  */
-void itpurc_variant_set_release_iterator (struct purc_variant_set_iterator* it);
+void purc_variant_set_release_iterator (struct purc_variant_set_iterator* it);
 
 /**
  * Make the set's iterator point to it's successor,
