@@ -482,7 +482,6 @@ static int mem_eof (purc_rwstream_t rws)
     if (mem->here >= mem->stop)
         return 1;
     return 0;
-
 }
 
 static ssize_t mem_read (purc_rwstream_t rws, void* buf, size_t count)
@@ -495,7 +494,6 @@ static ssize_t mem_read (purc_rwstream_t rws, void* buf, size_t count)
     memcpy(buf, mem->here, count);
     mem->here += count;
     return count;
-
 }
 
 static ssize_t mem_write (purc_rwstream_t rws, const void* buf, size_t count)
