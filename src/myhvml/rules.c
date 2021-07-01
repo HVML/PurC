@@ -25,7 +25,16 @@
 #include "rules.h"
 
 /* TODO */
-bool myhvml_insertion_mode_in_body(myhvml_tree_t* tree, myhvml_token_node_t* token);
+bool myhvml_insertion_mode_in_body(myhvml_tree_t* tree, myhvml_token_node_t* token)
+{
+    return false;
+}
+
+// TODO
+bool myhvml_rules_tree_dispatcher(myhvml_tree_t* tree, myhvml_token_node_t* token)
+{
+    return false;
+}
 
 void myhvml_insertion_fix_emit_for_text_begin_ws(myhvml_token_t* token, myhvml_token_node_t* node)
 {
