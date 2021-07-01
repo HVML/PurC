@@ -443,6 +443,120 @@ bool purc_variant_object_remove (purc_variant_t obj, const char* key);
 size_t purc_variant_object_get_size (const purc_variant_t obj);
 
 
+
+
+/**
+ * object iterator usage example:
+ *
+ * purc_variant_t obj;
+ * ...
+ * purc_variant_object_iterator* it = purc_variant_object_make_iterator_begin(obj);
+ * while (it) {
+ *     const char     *key = purc_variant_object_iterator_get_key(it);
+ *     purc_variant_t  val = purc_variant_object_iterator_get_value(it);
+ *     ...
+ *     if (!purc_variant_object_iterator_next(it)) {
+ *         break;
+ *     }
+ * }
+ * purc_variant_object_release_iterator(it);
+ */
+
+struct purc_variant_object_iterator;
+
+/**
+ * Get the begin-iterator of the object,
+ * which points to the head key-val-pair of the object
+ *
+ * @param object: the variant value of object type
+ *
+ * Returns: the begin-iterator of the object.
+ *          NULL if no key-val-pair in the object
+ *          returned iterator will inc object's ref for iterator's lifetime
+ *          returned iterator shall also inc the pointed key-val-pair's ref
+ *
+ * Since: 0.0.1
+ */
+struct purc_variant_object_iterator* purc_variant_object_make_iterator_begin (purc_variant_t object);
+
+/**
+ * Get the end-iterator of the object,
+ * which points to the tail key-val-pair of the object
+ *
+ * @param object: the variant value of object type
+ *
+ * Returns: the end-iterator of the object
+ *          NULL if no key-val-pair in the object
+ *          returned iterator will hold object's ref for iterator's lifetime
+ *          returned iterator shall also hold the pointed key-val-pair's ref
+ *
+ * Since: 0.0.1
+ */
+struct purc_variant_object_iterator* purc_variant_object_make_iterator_end (purc_variant_t object);
+
+/**
+ * Release the iterator
+ *
+ * @param it: iterator of itself
+ *
+ * Returns: void
+ *          both object's ref and the pointed key-val-pair's ref shall be dec`d
+ *
+ * Since: 0.0.1
+ */
+void purc_variant_object_release_iterator (struct purc_variant_object_iterator* it);
+
+/**
+ * Make the iterator point to it's successor,
+ * or the next key-val-pair of the bounded object value
+ *
+ * @param it: iterator of itself
+ *
+ * Returns: True if iterator `it` has no following key-val-pair, False otherwise
+ *          dec original key-val-pair's ref
+ *          inc current key-val-pair's ref
+ *
+ * Since: 0.0.1
+ */
+bool purc_variant_object_iterator_next (struct purc_variant_object_iterator* it);
+
+/**
+ * Make the iterator point to it's predecessor,
+ * or the previous key-val-pair of the bounded object value
+ *
+ * @param it: iterator of itself
+ *
+ * Returns: True if iterator `it` has no leading key-val-pair, False otherwise
+ *          dec original key-val-pair's ref
+ *          inc current key-val-pair's ref
+ *
+ * Since: 0.0.1
+ */
+bool purc_variant_object_iterator_prev (struct purc_variant_object_iterator* it);
+
+/**
+ * Get the key of key-val-pair that the iterator points to
+ *
+ * @param it: iterator of itself
+ *
+ * Returns: the key of key-val-pair, not duplicated
+ *
+ * Since: 0.0.1
+ */
+const char *purc_variant_object_iterator_get_key (struct purc_variant_object_iterator* it);
+
+/**
+ * Get the value of key-val-pair that the iterator points to
+ *
+ * @param it: iterator of itself
+ *
+ * Returns: the value of key-val-pair, not duplicated
+ *          the returned value's ref remains unchanged
+ *
+ * Since: 0.0.1
+ */
+purc_variant_t purc_variant_object_iterator_get_value (struct purc_variant_object_iterator* it);
+
 /**
  * Creates a variant data of set type.
  *
