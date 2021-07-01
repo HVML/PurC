@@ -380,6 +380,23 @@ ssize_t purc_rwstream_read (purc_rwstream_t rws, void* buf, size_t count)
     return rws->funcs->read(rws, buf, count);
 }
 
+static wchar_t utf8_to_wchar_t (const unsigned char* utf8_char, int utf8_char_len)
+{
+    wchar_t wc = *((unsigned char *)(utf8_char++));
+    int n = utf8_char_len;
+    int t = 0;
+
+    if (wc & 0x80) {
+        wc &= (1 << (8-n)) - 1;
+        while (--n > 0) {
+            t = *((unsigned char *)(utf8_char++));
+            wc = (wc << 6) | (t & 0x3F);
+        }
+    }
+
+    return wc;
+}
+
 int purc_rwstream_read_utf8_char (purc_rwstream_t rws, char* buf_utf8, wchar_t* buf_wc)
 {
     if (rws == NULL)
@@ -387,8 +404,42 @@ int purc_rwstream_read_utf8_char (purc_rwstream_t rws, char* buf_utf8, wchar_t* 
         purc_set_last_error(PCRWSTREAM_ERROR_INVALID_PARAM);
         return -1;
     }
-    //TODO
-    return 0;
+
+    ssize_t ret =  purc_rwstream_read (rws, buf_utf8, 1);
+    if (ret != 1)
+    {
+        purc_set_last_error(PCRWSTREAM_ERROR_IO);
+        return -1;
+    }
+
+    int n = 1;
+    int ch_len = 0;
+    int c = buf_utf8[0];
+    if (c & 0x80)
+    {
+        while (c & (0x80 >> n))
+            n++;
+
+        ch_len = n;
+    }
+    else
+    {
+        ch_len = 1;
+    }
+
+    int read_len = ch_len - 1;
+    if (read_len > 0)
+    {
+        ret =  purc_rwstream_read (rws, buf_utf8+1, read_len);
+        if (ret != read_len)
+        {
+            purc_set_last_error(PCRWSTREAM_ERROR_IO);
+            return -1;
+        }
+    }
+
+    *buf_wc = utf8_to_wchar_t((const unsigned char*)buf_utf8, ch_len);
+    return ch_len;
 }
 
 ssize_t purc_rwstream_write (purc_rwstream_t rws, const void* buf, size_t count)
