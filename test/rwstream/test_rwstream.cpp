@@ -1,6 +1,7 @@
 #include "rwstream.h"
 
 #include <stdio.h>
+#include <errno.h>
 #include <gtest/gtest.h>
 
 
@@ -163,6 +164,47 @@ TEST(stdio_rwstream, read_utf8_char)
     ASSERT_EQ(read_len, 3);
     ASSERT_EQ(wc, 0x3002);
     ASSERT_STREQ(read_buf, "。");
+
+    int ret = purc_rwstream_close(rws);
+    ASSERT_EQ(ret, 0);
+
+    ret = purc_rwstream_destroy (rws);
+    ASSERT_EQ(ret, 0);
+
+    remove_temp_file(tmp_file);
+}
+
+
+TEST(stdio_rwstream, seek_tell)
+{
+    char tmp_file[] = "/tmp/stdio.txt";
+    char buf[] = "This is test file. 这是测试文件。";
+    size_t buf_len = strlen(buf);
+    create_temp_file(tmp_file, buf, buf_len);
+
+    purc_rwstream_t rws = purc_rwstream_new_from_file(tmp_file, "rb");
+    ASSERT_NE(rws, nullptr);
+
+    off_t pos = purc_rwstream_seek (rws, 1, SEEK_SET);
+    ASSERT_EQ(pos, 1);
+
+    pos = purc_rwstream_seek (rws, 10, SEEK_CUR);
+    ASSERT_EQ(pos, 11);
+
+    off_t tpos = purc_rwstream_tell (rws);
+    ASSERT_EQ(pos, tpos);
+
+    pos = purc_rwstream_seek (rws, -1, SEEK_END);
+    tpos = purc_rwstream_tell (rws);
+    ASSERT_EQ(pos, tpos);
+
+    pos = purc_rwstream_seek (rws, 0, SEEK_END);
+    tpos = purc_rwstream_tell (rws);
+    ASSERT_EQ(pos, tpos);
+
+    pos = purc_rwstream_seek (rws, 10, SEEK_END);
+    tpos = purc_rwstream_tell (rws);
+    ASSERT_EQ(pos, tpos);
 
     int ret = purc_rwstream_close(rws);
     ASSERT_EQ(ret, 0);
