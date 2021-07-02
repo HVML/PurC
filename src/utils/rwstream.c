@@ -419,7 +419,7 @@ static int stdio_eof (purc_rwstream_t rws)
 static ssize_t stdio_read (purc_rwstream_t rws, void* buf, size_t count)
 {
     stdio_rwstream* stdio = (stdio_rwstream *)rws;
-    ssize_t nread = fread(buf, count, 1, stdio->fp);
+    ssize_t nread = fread(buf, 1, count, stdio->fp);
     if ( nread == 0 && ferror(stdio->fp) ) {
         purc_set_last_error(PCRWSTREAM_ERROR_IO);
     }
