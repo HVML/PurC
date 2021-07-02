@@ -60,3 +60,32 @@ TEST(stdio_rwstream, read_char)
     remove_temp_file(tmp_file);
 }
 
+TEST(stdio_rwstream, write_char)
+{
+    char tmp_file[] = "/tmp/stdio.txt";
+    char buf[] = "This is test file. 这是测试文件。";
+    size_t buf_len = strlen(buf);
+
+    purc_rwstream_t rws = purc_rwstream_new_from_file(tmp_file, "w");
+    ASSERT_NE(rws, nullptr);
+
+    int write_len = purc_rwstream_write (rws, buf, buf_len);
+    ASSERT_EQ(write_len, buf_len);
+
+    int ret = purc_rwstream_close(rws);
+    ASSERT_EQ(ret, 0);
+
+    ret = purc_rwstream_destroy (rws);
+    ASSERT_EQ(ret, 0);
+
+
+    FILE* fp = fopen(tmp_file, "r");
+    char read_buf[1024] = {0};
+    fread(read_buf, buf_len, 1, fp);
+    fclose(fp);
+
+    ASSERT_STREQ(buf, read_buf);
+
+    remove_temp_file(tmp_file);
+}
+

@@ -430,7 +430,7 @@ static ssize_t stdio_read (purc_rwstream_t rws, void* buf, size_t count)
 static ssize_t stdio_write (purc_rwstream_t rws, const void* buf, size_t count)
 {
     stdio_rwstream* stdio = (stdio_rwstream *)rws;
-    ssize_t nwrote = fwrite(buf, count, 1, stdio->fp);
+    ssize_t nwrote = fwrite(buf, 1, count, stdio->fp);
     if ( nwrote == 0 && ferror(stdio->fp) ) {
         purc_set_last_error(PCRWSTREAM_ERROR_IO);
     }
