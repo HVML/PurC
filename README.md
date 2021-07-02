@@ -86,13 +86,13 @@ The classical `helloworld` program in HVML looks like:
 <!DOCTYPE hvml>
 <hvml target="html">
     <head>
-        <set on="$_" to="merge" with="https://foo.bar/messages/$_SYSTEM.locale" />
+        <set on="$_T.map" to="replace" with="https://foo.bar/messages/$_SYSTEM.locale" />
 
         <title>Hello, world!</title>
     </head>
 
     <body>
-        <p>$_("Hello, world!")</p>
+        <p>$_T.get("Hello, world!")</p>
     </body>
 
 </hvml>
