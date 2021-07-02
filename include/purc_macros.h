@@ -26,8 +26,6 @@
 #ifndef PURC_PURC_MACROS_H
 #define PURC_PURC_MACROS_H
 
-#pragma once
-
 /* COMPILER() - the compiler being used to build the project */
 #define COMPILER(PURC_FEATURE) (defined PURC_COMPILER_##PURC_FEATURE  && PURC_COMPILER_##PURC_FEATURE)
 
