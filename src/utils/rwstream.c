@@ -292,6 +292,16 @@ off_t purc_rwstream_tell (purc_rwstream_t rws)
     return rws->funcs->tell(rws);
 }
 
+int purc_rwstream_eof (purc_rwstream_t rws)
+{
+    if (rws == NULL)
+    {
+        purc_set_last_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+    return rws->funcs->eof(rws);
+}
+
 ssize_t purc_rwstream_read (purc_rwstream_t rws, void* buf, size_t count)
 {
     if (rws == NULL)

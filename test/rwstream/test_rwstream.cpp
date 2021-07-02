@@ -182,7 +182,7 @@ TEST(stdio_rwstream, read_utf8_char)
 }
 
 
-TEST(stdio_rwstream, seek_tell)
+TEST(stdio_rwstream, seek_tell_eof)
 {
     char tmp_file[] = "/tmp/stdio.txt";
     char buf[] = "This is test file. 这是测试文件。";
@@ -195,19 +195,35 @@ TEST(stdio_rwstream, seek_tell)
     off_t pos = purc_rwstream_seek (rws, 1, SEEK_SET);
     ASSERT_EQ(pos, 1);
 
+    int eof = purc_rwstream_eof(rws);
+    ASSERT_EQ(eof, 0);
+
     pos = purc_rwstream_seek (rws, 10, SEEK_CUR);
     ASSERT_EQ(pos, 11);
 
     off_t tpos = purc_rwstream_tell (rws);
     ASSERT_EQ(pos, tpos);
 
+    eof = purc_rwstream_eof(rws);
+    ASSERT_EQ(eof, 0);
+
     pos = purc_rwstream_seek (rws, -1, SEEK_END);
     tpos = purc_rwstream_tell (rws);
     ASSERT_EQ(pos, tpos);
 
+    eof = purc_rwstream_eof(rws);
+    ASSERT_EQ(eof, 0);
+
     pos = purc_rwstream_seek (rws, 0, SEEK_END);
     tpos = purc_rwstream_tell (rws);
     ASSERT_EQ(pos, tpos);
+
+    char read_buf[10] = {0};
+    int read_len = purc_rwstream_read (rws, read_buf, 1);
+    ASSERT_EQ(read_len, 0);
+
+    eof = purc_rwstream_eof(rws);
+    ASSERT_EQ(eof, 1);
 
     pos = purc_rwstream_seek (rws, 10, SEEK_END);
     tpos = purc_rwstream_tell (rws);
