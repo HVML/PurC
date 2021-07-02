@@ -89,3 +89,86 @@ TEST(stdio_rwstream, write_char)
     remove_temp_file(tmp_file);
 }
 
+TEST(stdio_rwstream, read_utf8_char)
+{
+    char tmp_file[] = "/tmp/stdio.txt";
+    char buf[] = "This这 is 测。";
+    size_t buf_len = strlen(buf);
+    create_temp_file(tmp_file, buf, buf_len);
+
+    purc_rwstream_t rws = purc_rwstream_new_from_file(tmp_file, "r");
+    ASSERT_NE(rws, nullptr);
+
+    char read_buf[100] = {0};
+    wchar_t wc = 0;
+    int read_len = 0;
+
+    read_len = purc_rwstream_read_utf8_char (rws, read_buf, &wc);
+    ASSERT_EQ(read_len, 1);
+    ASSERT_STREQ(read_buf, "T");
+
+    memset(read_buf, 0, sizeof(read_buf));
+    read_len = purc_rwstream_read_utf8_char (rws, read_buf, &wc);
+    ASSERT_EQ(read_len, 1);
+    ASSERT_STREQ(read_buf, "h");
+
+    memset(read_buf, 0, sizeof(read_buf));
+    read_len = purc_rwstream_read_utf8_char (rws, read_buf, &wc);
+    ASSERT_EQ(read_len, 1);
+    ASSERT_STREQ(read_buf, "i");
+
+    memset(read_buf, 0, sizeof(read_buf));
+    read_len = purc_rwstream_read_utf8_char (rws, read_buf, &wc);
+    ASSERT_EQ(read_len, 1);
+    ASSERT_STREQ(read_buf, "s");
+
+    memset(read_buf, 0, sizeof(read_buf));
+    read_len = purc_rwstream_read_utf8_char (rws, read_buf, &wc);
+    ASSERT_EQ(read_len, 3);
+    ASSERT_EQ(wc, 0x8FD9);
+    ASSERT_STREQ(read_buf, "这");
+
+    memset(read_buf, 0, sizeof(read_buf));
+    read_len = purc_rwstream_read_utf8_char (rws, read_buf, &wc);
+    ASSERT_EQ(read_len, 1);
+    ASSERT_EQ(wc, ' ');
+    ASSERT_STREQ(read_buf, " ");
+
+    memset(read_buf, 0, sizeof(read_buf));
+    read_len = purc_rwstream_read_utf8_char (rws, read_buf, &wc);
+    ASSERT_EQ(read_len, 1);
+    ASSERT_EQ(wc, 'i');
+    ASSERT_STREQ(read_buf, "i");
+
+    memset(read_buf, 0, sizeof(read_buf));
+    read_len = purc_rwstream_read_utf8_char (rws, read_buf, &wc);
+    ASSERT_EQ(read_len, 1);
+    ASSERT_EQ(wc, 's');
+    ASSERT_STREQ(read_buf, "s");
+
+    memset(read_buf, 0, sizeof(read_buf));
+    read_len = purc_rwstream_read_utf8_char (rws, read_buf, &wc);
+    ASSERT_EQ(read_len, 1);
+    ASSERT_EQ(wc, ' ');
+    ASSERT_STREQ(read_buf, " ");
+
+    memset(read_buf, 0, sizeof(read_buf));
+    read_len = purc_rwstream_read_utf8_char (rws, read_buf, &wc);
+    ASSERT_EQ(read_len, 3);
+    ASSERT_EQ(wc, 0x6D4B);
+    ASSERT_STREQ(read_buf, "测");
+
+    memset(read_buf, 0, sizeof(read_buf));
+    read_len = purc_rwstream_read_utf8_char (rws, read_buf, &wc);
+    ASSERT_EQ(read_len, 3);
+    ASSERT_EQ(wc, 0x3002);
+    ASSERT_STREQ(read_buf, "。");
+
+    int ret = purc_rwstream_close(rws);
+    ASSERT_EQ(ret, 0);
+
+    ret = purc_rwstream_destroy (rws);
+    ASSERT_EQ(ret, 0);
+
+    remove_temp_file(tmp_file);
+}
