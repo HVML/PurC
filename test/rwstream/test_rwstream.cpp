@@ -588,7 +588,7 @@ TEST(mem_rwstream, seek_read)
 }
 
 /* test gio fd rwstream */
-TEST(fd_rwstream, new_destroy)
+TEST(gio_rwstream, new_destroy)
 {
     char tmp_file[] = "/tmp/rwstream.txt";
     char buf[] = "This is test file. 这是测试文件。";
@@ -609,7 +609,7 @@ TEST(fd_rwstream, new_destroy)
     remove_temp_file(tmp_file);
 }
 
-TEST(fd_rwstream, read_char)
+TEST(gio_rwstream, read_char)
 {
     char tmp_file[] = "/tmp/rwstream.txt";
     char buf[] = "This is test file. 这是测试文件。";
@@ -637,7 +637,7 @@ TEST(fd_rwstream, read_char)
     remove_temp_file(tmp_file);
 }
 
-TEST(fd_rwstream, write_char)
+TEST(gio_rwstream, write_char)
 {
 
     char tmp_file[] = "/tmp/rwstream.txt";
@@ -670,7 +670,6 @@ TEST(fd_rwstream, write_char)
     remove_temp_file(tmp_file);
 }
 
-#if 0
 TEST(gio_rwstream, read_utf8_char)
 {
     char tmp_file[] = "/tmp/rwstream.txt";
@@ -764,7 +763,6 @@ TEST(gio_rwstream, read_utf8_char)
 
     remove_temp_file(tmp_file);
 }
-#endif
 
 TEST(gio_rwstream, seek_tell_eof)
 {
@@ -849,7 +847,7 @@ TEST(gio_rwstream, seek_read)
     read_len = purc_rwstream_read_utf8_char (rws, read_buf, &wc);
     ASSERT_EQ(read_len, 1);
     ASSERT_STREQ(read_buf, "s");
-#if 0
+
     memset(read_buf, 0, sizeof(read_buf));
     read_len = purc_rwstream_read_utf8_char (rws, read_buf, &wc);
     ASSERT_EQ(read_len, 3);
@@ -881,7 +879,6 @@ TEST(gio_rwstream, seek_read)
     read_len = purc_rwstream_read_utf8_char (rws, read_buf, &wc);
     ASSERT_EQ(read_len, 1);
     ASSERT_EQ(read_buf[0], buf[5]);
-#endif
 
     int ret = purc_rwstream_close(rws);
     ASSERT_EQ(ret, 0);

@@ -226,6 +226,8 @@ purc_rwstream_t purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf)
         return NULL;
     }
 
+    g_io_channel_set_encoding (gio_channel, NULL, NULL);
+
     if (sz_buf > 0)
     {
         g_io_channel_set_buffer_size(gio_channel, sz_buf);
@@ -248,6 +250,8 @@ purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf)
         purc_set_last_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
+
+    g_io_channel_set_encoding (gio_channel, NULL, NULL);
 
     if (sz_buf > 0)
     {
