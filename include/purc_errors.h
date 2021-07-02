@@ -26,8 +26,6 @@
 #ifndef PURC_PURC_ERRORS_H
 #define PURC_PURC_ERRORS_H
 
-#pragma once
-
 #include "purc_macros.h"
 
 #define PURC_ERRORS_OK                   0
