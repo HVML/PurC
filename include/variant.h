@@ -905,7 +905,9 @@ bool purc_variant_usage_stat (struct purc_variant_stat* stat);
         int array_size = purc_variant_array_get_size (array)        \
         for (int i = 0; i < array_size,                             \
                         value = purc_variant_array_get (array, i);  \
-             i++) {
+             i++) {                                                 \
+     /* } */                                                        \
+ /* } while (0) */
 
 // 遍历对象中的每个具有键名的变体型数据，将其值赋值给 `value`
 #define foreach_value_in_variant_object(obj, value)                               \
@@ -917,7 +919,9 @@ bool purc_variant_usage_stat (struct purc_variant_stat* stat);
              oit9311 && having9311;                                               \
              having9311 = purc_variant_object_iterator_next(oit9311) )            \
         {                                                                         \
-            value = purc_variant_object_iterator_get_value(oit9311);
+            value = purc_variant_object_iterator_get_value(oit9311);              \
+     /* } */                                                                      \
+ /* } while (0) */
         
 
 // 遍历对象中的每个具有键名的变体型数据，将键名赋值给 `key`，值赋值给 `value`
@@ -931,7 +935,9 @@ bool purc_variant_usage_stat (struct purc_variant_stat* stat);
              having9311 = purc_variant_object_iterator_next(oit9311) )            \
         {                                                                         \
             key   = purc_variant_object_iterator_get_key(oit9311);                \
-            value = purc_variant_object_iterator_get_value(oit9311);
+            value = purc_variant_object_iterator_get_value(oit9311);              \
+     /* } */                                                                      \
+ /* } while (0) */
         
 
 // 遍历集合中的每个具有键名的变体型数据，将其值赋值给 `value`
@@ -944,11 +950,14 @@ bool purc_variant_usage_stat (struct purc_variant_stat* stat);
              sit9311 && having9311;                                               \
              having9311 = purc_variant_object_iterator_next(sit9311) )            \
         {                                                                         \
-            key   = purc_variant_object_iterator_get_key(sit9311);                \
-            value = purc_variant_object_iterator_get_value(sit9311);
+            value = purc_variant_object_iterator_get_value(sit9311);              \
+     /* } */                                                                      \
+  /* } while (0) */
 
 // 结束遍历
 #define end_foreach                                                     \
+ /* do { */                                                             \
+     /* for (...) { */                                                  \
         }                                                               \
         if (oit9311) purc_variant_object_release_iterator(oit9311);     \
         if (sit9311) purc_variant_set_release_iterator(sit9311);        \
