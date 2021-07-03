@@ -27,7 +27,7 @@ else ()
     message(STATUS "The CMake build type is: ${CMAKE_BUILD_TYPE}")
 endif ()
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/Source/cmake")
 
 # -----------------------------------------------------------------------------
 # Determine which port will be built
@@ -143,7 +143,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE True)
 #------------------------------------------------------------------------------
 include(PurCCommon)
 
-add_subdirectory(src)
+add_subdirectory(Source)
 
 # -----------------------------------------------------------------------------
 # Print the features list last, for maximum visibility.
