@@ -1,278 +1,165 @@
-cmake_minimum_required (VERSION 3.0)
+# -----------------------------------------------------------------------------
+# Determine CMake version and build type.
+# -----------------------------------------------------------------------------
+#
+# NOTE: cmake_minimum_required() and project() *MUST* be the two first commands
+# used, see https://cmake.org/cmake/help/v3.3/command/project.html -- the
+# latter in particular handles loading a bunch of shared CMake definitions
+# and loading the cross-compilation settings from CMAKE_TOOLCHAIN_FILE.
+#
 
-project(purring-cat-2)
+cmake_minimum_required(VERSION 3.10)
 
-################
-## options
-#########################
-option(PURC_BUILD_SHARED "Build shared library" ON)
-option(PURC_BUILD_STATIC "Build static library" ON)
-option(PURC_INSTALL_HEADER "Install header files" ON)
+project(PurC C CXX)
 
-option(PARSER_BUILD_WITHOUT_THREADS "Build Parser without POSIX Threads" OFF)
-option(MyCORE_BUILD_WITHOUT_THREADS "Build MyCORE without POSIX Threads" OFF)
+set(PROJECT_NAME "PurC")
+set(PROJECT_VERSION "0.0.1")
+set(VERSION_MAJOR 0)
+set(VERSION_MINOR 0)
+set(VERSION_PATCH 1)
 
-################
-## dependencies
-#########################
-if(NOT PARSER_BUILD_WITHOUT_THREADS)
-    set(CMAKE_THREAD_PREFER_PTHREAD 1)
-    find_package(Threads REQUIRED)
-    if(NOT CMAKE_USE_PTHREADS_INIT)
-        message(FATAL_ERROR "Could NOT find pthreads (missing: CMAKE_USE_PTHREADS_INIT)")
-    endif()
-endif()
+set(ENABLE_GRAPHICS_CONTEXT_GL OFF)
 
-################
-## version and path
-#########################
-set(PROJECT_NAME "purringcat2")
-set(PROJECT_DESCRIPTION "The HVML Interpreter.")
-set(PROJECT_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/src")
-#set(PROJECT_DIR_LIB "${CMAKE_CURRENT_SOURCE_DIR}/lib")
-set(PROJECT_DIR_HEADER "${PROJECT_SOURCE}")
-set(PROJECT_DIR_API_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/include")
-set(PROJECT_SOURCE_PORT_DIR "${PROJECT_SOURCE}/ports")
-
-set(PROJECT_INSTALL_DLL_EXE_DIR "bin")
-
-################
-## Project Version
-#########################
-set(PROJECT_VERSION_HEADER_FILE "${PROJECT_DIR_API_HEADER}/purc_version.h")
-
-file(STRINGS ${PROJECT_VERSION_HEADER_FILE} PROJECT_VERSION_PARTS
-REGEX "^#define[ \t]+PURC_VERSION_(MAJOR|MINOR|PATCH)[ \t]+[0-9]+$")
-
-list(GET PROJECT_VERSION_PARTS 0 PROJECT_VERSION_MAJOR_PART)
-list(GET PROJECT_VERSION_PARTS 1 PROJECT_VERSION_MINOR_PART)
-list(GET PROJECT_VERSION_PARTS 2 PROJECT_VERSION_PATCH_PART)
-
-string(REGEX REPLACE "#define[ \t]+PURC_VERSION_MAJOR[ \t]+([0-9]+).*" "\\1" PROJECT_VERSION_MAJOR ${PROJECT_VERSION_MAJOR_PART})
-string(REGEX REPLACE "#define[ \t]+PURC_VERSION_MINOR[ \t]+([0-9]+).*" "\\1" PROJECT_VERSION_MINOR ${PROJECT_VERSION_MINOR_PART})
-string(REGEX REPLACE "#define[ \t]+PURC_VERSION_PATCH[ \t]+([0-9]+).*" "\\1" PROJECT_VERSION_PATCH ${PROJECT_VERSION_PATCH_PART})
-
-set(PROJECT_VERSION_STRING "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
-message(STATUS "Project version: ${PROJECT_VERSION_STRING}")
-
-################
-## Macro
-#########################
-MACRO(GET_MODULES_LIST result curdir)
-FILE(GLOB children ${curdir}/ ${curdir}/*)
-    SET(dirlist "")
-    FOREACH(child ${children})
-        string(REGEX MATCH "\\.[^/]+$" MATCHSTR ${child})
-        IF(IS_DIRECTORY ${child} AND MATCHSTR STREQUAL "")
-            string(REGEX MATCH "[^/]+$" MATCHSTR ${child})
-            IF(NOT MATCHSTR STREQUAL "ports")
-                LIST(APPEND dirlist ${MATCHSTR})
-            ENDIF()
-        ENDIF()
-    ENDFOREACH()
-    SET(${result} ${dirlist})
-ENDMACRO()
-
-MACRO(CREATE_MODULES_SOURCE_PATH result dirpath modules)
-    SET(dirlist "")
-    FOREACH(module ${modules})
-        message(STATUS ${module})
-        LIST(APPEND dirlist ${dirpath}/${module}/*.c)
-    ENDFOREACH()
-    SET(${result} ${dirlist})
-ENDMACRO()
-
-################
-## Detect OS
-#########################
-set(PROJECT_PLATFORM "UNDEF")
-
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  if(EXISTS "/etc/debian_version")
-    set(PROJECT_PLATFORM "Debian")
-  endif(EXISTS "/etc/debian_version")
-  
-  if(EXISTS "/etc/redhat-release")
-    set(PROJECT_PLATFORM "Redhat")
-  endif(EXISTS "/etc/redhat-release")
-  
-  if(EXISTS "/etc/fedora-release")
-    set(PROJECT_PLATFORM "Redhat")
-  endif(EXISTS "/etc/fedora-release")
-  
-  if(EXISTS "/etc/SuSE-release")
-    set(PROJECT_PLATFORM "SuSe")
-  endif(EXISTS "/etc/SuSE-release")
-  
-  if(EXISTS "/etc/gentoo-release")
-    set(PROJECT_PLATFORM "Gentoo")
-  endif(EXISTS "/etc/gentoo-release")
-endif()
-
-################
-## lib param
-#########################
-set(PROJECT_LIB_NAME "${PROJECT_NAME}")
-set(PROJECT_LIB_NAME_STATIC "${PROJECT_NAME}_static")
-
-if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
-set(CMAKE_INSTALL_LIBDIR "lib")
-endif()
-
-if(NOT DEFINED PROJECT_OPTIMIZATION_LEVEL)
-set(PROJECT_OPTIMIZATION_LEVEL "-O2")
-endif()
-
-################
-## ARGS
-#########################
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PROJECT_OPTIMIZATION_LEVEL}")
-
-if (!UNIX AND WIN32)
-  if(${CMAKE_CL_64})
-    add_definitions(-D_WIN64)
-  else()
-    add_definitions(-D_WIN32)
-  endif()
-endif()
-
-if(${CMAKE_C_COMPILER_ID} STREQUAL MSVC)
-  add_definitions(/wd4100 /wd4255 /wd4820 /wd4668)
-  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-  
-  message(STATUS "Windows set definitions")
-else()
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -fmax-errors=10 --std=c99 -fPIC")
-  
-  if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    add_definitions(-D_POSIX_C_SOURCE=199309L)
-  endif()
-endif()
-
-if(MyCORE_BUILD_WITHOUT_THREADS)
-  message(STATUS "Build without POSIX Threads")
-  add_definitions(-DMyCORE_BUILD_WITHOUT_THREADS)
-else()
-  message(STATUS "Build with POSIX Threads")
-endif()
-
-################
-## Includes
-#########################
-include_directories(${PROJECT_DIR_API_HEADER})
-file(GLOB_RECURSE PROJECT_HEADERS ${PROJECT_DIR_API_HEADER}/*.h)
-
-################
-## Sources
-#########################
-GET_MODULES_LIST(MODULES ${PROJECT_SOURCE})
-CREATE_MODULES_SOURCE_PATH(MODULES_PATH ${PROJECT_SOURCE} "${MODULES}")
-
-file(GLOB_RECURSE PROJECT_SOURCES ${MODULES_PATH})
-
-################
-## Include port based on OS
-#########################
-if (WIN32)
-    file(GLOB_RECURSE PROJECT_SOURCES_PORT ${PROJECT_SOURCE_PORT_DIR}/windows_nt/*.c)
+if (NOT CMAKE_BUILD_TYPE)
+    message(WARNING "No CMAKE_BUILD_TYPE value specified, defaulting to RelWithDebInfo.")
+    set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Choose the type of build." FORCE)
 else ()
-    file(GLOB_RECURSE PROJECT_SOURCES_PORT ${PROJECT_SOURCE_PORT_DIR}/posix/*.c)
-endif (WIN32)
+    message(STATUS "The CMake build type is: ${CMAKE_BUILD_TYPE}")
+endif ()
 
-################
-## export PURC_INCLUDE_DIRS and STXXLPURC_LIBRARIES to global CACHE
-#########################
-set(PURC_INCLUDE_DIRS ${PROJECT_DIR_API_HEADER} CACHE STRING "Include paths for PURC")
-set(PURC_LIBRARIES purc CACHE STRING "Libraries to link for PURC")
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
-################
-## Create static/dynamic library
-#########################
-if(PURC_BUILD_SHARED)
-    add_library(${PROJECT_LIB_NAME} SHARED ${PROJECT_SOURCES} ${PROJECT_SOURCES_PORT})
-    target_link_libraries(${PROJECT_LIB_NAME} ${CMAKE_THREAD_LIBS_INIT})
-    set_target_properties(${PROJECT_LIB_NAME} PROPERTIES OUTPUT_NAME ${PROJECT_LIB_NAME})
-    set_target_properties(${PROJECT_LIB_NAME} PROPERTIES VERSION ${PROJECT_VERSION_STRING} SOVERSION ${PROJECT_VERSION_MAJOR})
-endif()
+# -----------------------------------------------------------------------------
+# Determine which port will be built
+# -----------------------------------------------------------------------------
+set(ALL_PORTS
+    HybridOS
+    Debian
+    Mac
+    Windows
+)
+set(PORT "NOPORT" CACHE STRING "choose which PurC port to build (one of ${ALL_PORTS})")
 
-if(PURC_BUILD_STATIC)
-    add_library(${PROJECT_LIB_NAME_STATIC} STATIC ${PROJECT_SOURCES} ${PROJECT_SOURCES_PORT})
-    target_link_libraries(${PROJECT_LIB_NAME_STATIC} ${CMAKE_THREAD_LIBS_INIT})
-    set_target_properties(${PROJECT_LIB_NAME_STATIC} PROPERTIES OUTPUT_NAME ${PROJECT_LIB_NAME_STATIC})
-    set_target_properties(${PROJECT_LIB_NAME_STATIC} PROPERTIES VERSION ${PROJECT_VERSION_STRING} SOVERSION ${PROJECT_VERSION_MAJOR})
-endif()
+list(FIND ALL_PORTS ${PORT} RET)
+if (${RET} EQUAL -1)
+    message(FATAL_ERROR "Please choose which PurC port to build (one of ${ALL_PORTS})")
+endif ()
 
-################
-# generate the .pc file used by pkg-config
-#########################
-set(prefix ${CMAKE_INSTALL_PREFIX})
-set(exec_prefix "${CMAKE_INSTALL_PREFIX}/${PROJECT_INSTALL_DLL_EXE_DIR}")
-set(libdir ${CMAKE_INSTALL_LIBDIR})
-set(includedir "include/purc")
-set(libname ${PROJECT_LIB_NAME})
-set(description ${PROJECT_DESCRIPTION})
-set(version ${PROJECT_VERSION_STRING})
-configure_file (
-    "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pc.in"
-    "${PROJECT_BINARY_DIR}/${PROJECT_NAME}.pc")
+string(TOLOWER ${PORT} PURC_PORT_DIR)
 
-################
-## install
-#########################
-if(PURC_INSTALL_HEADER)
-    file(GLOB PROJECT_HEADER_DIRS "${PROJECT_DIR_API_HEADER}/*")
-    foreach(ITEM ${PROJECT_HEADER_DIRS})                                                                                                                                                
-        if(IS_DIRECTORY "${ITEM}")
-            install(DIRECTORY "${ITEM}" DESTINATION "include/purc" FILES_MATCHING PATTERN "*.h")
-        elseif("${ITEM}" MATCHES ".*\\.h")
-            install(FILES "${ITEM}" DESTINATION "include/purc")
-        endif()
-    endforeach()
-endif()
+# -----------------------------------------------------------------------------
+# Determine the compiler
+# -----------------------------------------------------------------------------
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang")
+    set(COMPILER_IS_CLANG ON)
+endif ()
 
-if(PURC_BUILD_SHARED)
-    install(TARGETS ${PROJECT_LIB_NAME}
-    RUNTIME DESTINATION "${PROJECT_INSTALL_DLL_EXE_DIR}"
-    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}")
-endif()
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS "7.3.0")
+        message(FATAL_ERROR "GCC 7.3 or newer is required to build PurC. Use a newer GCC version or Clang.")
+    endif ()
+endif ()
 
-if(PURC_BUILD_STATIC)
-    install(TARGETS ${PROJECT_LIB_NAME_STATIC}
-    RUNTIME DESTINATION "${PROJECT_INSTALL_DLL_EXE_DIR}"
-    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
-endif()
+if (CMAKE_COMPILER_IS_GNUCXX OR COMPILER_IS_CLANG)
+    set(COMPILER_IS_GCC_OR_CLANG ON)
+endif ()
 
-# pkgconfig
-install (FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}.pc"
-    DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+if (MSVC AND COMPILER_IS_CLANG)
+    set(COMPILER_IS_CLANG_CL ON)
+endif ()
 
-################
-## Build an RPM.
-#########################
-set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION_STRING})
+# -----------------------------------------------------------------------------
+# Determine the target processor
+# -----------------------------------------------------------------------------
+# Use MSVC_CXX_ARCHITECTURE_ID instead of CMAKE_SYSTEM_PROCESSOR when defined,
+# since the later one just resolves to the host processor on Windows.
+if (MSVC_CXX_ARCHITECTURE_ID)
+    string(TOLOWER ${MSVC_CXX_ARCHITECTURE_ID} LOWERCASE_CMAKE_SYSTEM_PROCESSOR)
+else ()
+    string(TOLOWER ${CMAKE_SYSTEM_PROCESSOR} LOWERCASE_CMAKE_SYSTEM_PROCESSOR)
+endif ()
+if (LOWERCASE_CMAKE_SYSTEM_PROCESSOR MATCHES "(^aarch64|^arm64)")
+    set(WTF_CPU_ARM64 1)
+elseif (LOWERCASE_CMAKE_SYSTEM_PROCESSOR MATCHES "^arm")
+    set(WTF_CPU_ARM 1)
+elseif (LOWERCASE_CMAKE_SYSTEM_PROCESSOR MATCHES "^mips64")
+    set(WTF_CPU_MIPS64 1)
+elseif (LOWERCASE_CMAKE_SYSTEM_PROCESSOR MATCHES "^mips")
+    set(WTF_CPU_MIPS 1)
+elseif (LOWERCASE_CMAKE_SYSTEM_PROCESSOR MATCHES "(x64|x86_64|amd64)")
+    # FORCE_32BIT is set in the build script when --32-bit is passed
+    # on a Linux/intel 64bit host. This allows us to produce 32bit
+    # binaries without setting the build up as a crosscompilation,
+    # which is the only way to modify CMAKE_SYSTEM_PROCESSOR.
+    if (FORCE_32BIT)
+        set(WTF_CPU_X86 1)
+    else ()
+        set(WTF_CPU_X86_64 1)
+    endif ()
+elseif (LOWERCASE_CMAKE_SYSTEM_PROCESSOR MATCHES "(i[3-6]86|x86)")
+    set(WTF_CPU_X86 1)
+elseif (LOWERCASE_CMAKE_SYSTEM_PROCESSOR MATCHES "ppc")
+    set(WTF_CPU_PPC 1)
+elseif (LOWERCASE_CMAKE_SYSTEM_PROCESSOR MATCHES "ppc64")
+    set(WTF_CPU_PPC64 1)
+elseif (LOWERCASE_CMAKE_SYSTEM_PROCESSOR MATCHES "ppc64le")
+    set(WTF_CPU_PPC64LE 1)
+else ()
+    set(WTF_CPU_UNKNOWN 1)
+endif ()
 
-if(PROJECT_PLATFORM STREQUAL "Debian")
-  set(CPACK_GENERATOR "DEB")
-elseif(PROJECT_PLATFORM STREQUAL "Redhat")
-  set(CPACK_GENERATOR "RPM")
-elseif(PROJECT_PLATFORM STREQUAL "SuSe")
-  set(CPACK_GENERATOR "RPM")
-else()
-  set(CPACK_GENERATOR "TGZ")
-endif()
+# -----------------------------------------------------------------------------
+# Determine the operating system
+# -----------------------------------------------------------------------------
+if (UNIX)
+    if (APPLE)
+        set(WTF_OS_MAC_OS_X 1)
+    elseif (CMAKE_SYSTEM_NAME MATCHES "Linux")
+        set(WTF_OS_LINUX 1)
+    else ()
+        set(WTF_OS_UNIX 1)
+    endif ()
+elseif (CMAKE_SYSTEM_NAME MATCHES "Windows")
+    set(WTF_OS_WINDOWS 1)
+elseif (CMAKE_SYSTEM_NAME MATCHES "Fuchsia")
+    set(WTF_OS_FUCHSIA 1)
+else ()
+    message(FATAL_ERROR "Unknown OS '${CMAKE_SYSTEM_NAME}'")
+endif ()
 
-set(CPACK_PACKAGE_NAME "${PROJECT_NAME}")
-set(CPACK_PACKAGE_RELEASE 1)
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PROJECT_DESCRIPTION}")
-set(CPACK_PACKAGE_CONTACT "hvml@fmsoft.cn")
-set(CPACK_PACKAGE_VENDOR "FMSoft.CN")
+# -----------------------------------------------------------------------------
+# Default library types
+# -----------------------------------------------------------------------------
+# By default, only the highest-level libraries, PurC, is
+# shared, because properly building shared libraries that depend on each other
+# can be tricky. Override these in Options*.cmake for your port as needed.
+set(bmalloc_LIBRARY_TYPE STATIC)
+set(PurC_LIBRARY_TYPE SHARED)
 
-if(32BIT)
-  set(CPACK_RPM_PACKAGE_ARCHITECTURE i686)
-else()
-  set(CPACK_RPM_PACKAGE_ARCHITECTURE x86_64)
-endif()
+set(CMAKE_POSITION_INDEPENDENT_CODE True)
 
-set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_PACKAGE_RELEASE}.${CPACK_RPM_PACKAGE_ARCHITECTURE}")
+# -----------------------------------------------------------------------------
+# Common configuration
+#------------------------------------------------------------------------------
+include(PurCCommon)
 
-include(CPack)
+add_subdirectory(src)
+
+# -----------------------------------------------------------------------------
+# Print the features list last, for maximum visibility.
+# -----------------------------------------------------------------------------
+PRINT_PURC_OPTIONS()
+
+# Packing stuff
+set(CPACK_PACKAGE_VENDOR "FMSoft")
+set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "PurC: an HVML parser and interpreter in C/C++ lanuage")
+set(CPACK_SOURCE_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}")
+set(CPACK_SOURCE_GENERATOR "TGZ")
+set(CPACK_SOURCE_IGNORE_FILES
+      "/auto/;/cmake/;/.svn/;/.git/;/.bzr/;/CMakeFiles/;/_CPack_Packages/;CMakeCache.txt$;
+      ~$;.swp$;.cmake$;
+      ${CPACK_SOURCE_IGNORE_FILES}")
+
+#include(CPack)
+
