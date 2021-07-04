@@ -12,14 +12,6 @@ cmake_minimum_required(VERSION 3.10)
 
 project(PurC C CXX)
 
-set(PROJECT_NAME "PurC")
-set(PROJECT_VERSION "0.0.1")
-set(VERSION_MAJOR 0)
-set(VERSION_MINOR 0)
-set(VERSION_PATCH 1)
-
-set(ENABLE_GRAPHICS_CONTEXT_GL OFF)
-
 if (NOT CMAKE_BUILD_TYPE)
     message(WARNING "No CMAKE_BUILD_TYPE value specified, defaulting to RelWithDebInfo.")
     set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Choose the type of build." FORCE)
@@ -134,6 +126,7 @@ endif ()
 # shared, because properly building shared libraries that depend on each other
 # can be tricky. Override these in Options*.cmake for your port as needed.
 set(bmalloc_LIBRARY_TYPE STATIC)
+set(WTF_LIBRARY_TYPE STATIC)
 set(PurC_LIBRARY_TYPE SHARED)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE True)

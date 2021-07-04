@@ -3,16 +3,21 @@ set_property(DIRECTORY . PROPERTY FOLDER "PurC")
 include(PurCCommon)
 include(MyMacros.cmake)
 
+configure_file(include/purc-version.h.in ${PurC_DERIVED_SOURCES_DIR}/purc-version.h)
+
 set(PurC_PRIVATE_INCLUDE_DIRECTORIES
     "${CMAKE_BINARY_DIR}"
     "${PURC_DIR}"
     "${PURC_DIR}/include"
-    "${DERIVED_SOURCES_PURC_DIR}"
+    "${PurC_DERIVED_SOURCES_DIR}"
 )
 
 set(PurC_INSTALLED_HEADERS
     "${CMAKE_BINARY_DIR}/cmakeconfig.h"
+    "${PurC_DERIVED_SOURCES_DIR}/purc-version.h"
     "${PURC_DIR}/purc-config.h"
+    "${PURC_DIR}/include/purc-errors.h"
+    "${PURC_DIR}/include/purc.h"
 )
 
 # List the directorires which do not contain any platform-dependent C source files

@@ -33,4 +33,4 @@
 #include "purc-version.h"
 #include "purc-errors.h"
 
-#endif /* PURC_PURC_H */
+#endif /* not defined PURC_PURC_H */

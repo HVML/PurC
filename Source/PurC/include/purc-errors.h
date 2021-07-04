@@ -22,7 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#ifndef PURC_PURC_ERROS_H
+#define PURC_PURC_ERROS_H
 
 #include "purc-config.h"
 
@@ -75,4 +76,6 @@ bool purc_set_error_messages (int first, const char* msgs[], size_t nr_msgs);
 void purc_set_error (int err_code);
 
 WTF_EXTERN_C_END
+
+#endif /* not defined PURC_PURC_ERROS_H */
 

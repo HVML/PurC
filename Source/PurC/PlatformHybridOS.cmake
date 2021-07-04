@@ -1,0 +1,21 @@
+set(PurC_OUTPUT_NAME purc)
+
+list(APPEND PurC_PRIVATE_INCLUDE_DIRECTORIES
+)
+
+list(APPEND PurC_UNIFIED_SOURCE_LIST_FILES
+)
+
+list(APPEND PurC_SYSTEM_INCLUDE_DIRECTORIES
+    ${GLIB_INCLUDE_DIRS}
+)
+
+list(APPEND PurC_PRIVATE_LIBRARIES
+    ${HiBox_LIBRARIES}
+)
+
+configure_file(ports/hbd/purc.pc.in ${PurC_PKGCONFIG_FILE} @ONLY)
+install(FILES "${PurC_PKGCONFIG_FILE}"
+        DESTINATION "${LIB_INSTALL_DIR}/pkgconfig"
+)
+
