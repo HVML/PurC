@@ -52,27 +52,27 @@ struct purc_rwstream
     rwstream_funcs* funcs;
 };
 
-typedef struct stdio_rwstream
+struct stdio_rwstream
 {
     purc_rwstream rwstream;
     FILE* fp;
-} stdio_rwstream;
+};
 
-typedef struct mem_rwstream
+struct mem_rwstream
 {
     purc_rwstream rwstream;
     uint8_t* base;
     uint8_t* here;
     uint8_t* stop;
-} mem_rwstream;
+};
 
 #ifdef PURC_BUILD_WITH_GLIB
-typedef struct gio_rwstream
+struct gio_rwstream
 {
     purc_rwstream rwstream;
     GIOChannel* gio_channel;
     int fd;
-} gio_rwstream;
+};
 #endif // PURC_BUILD_WITH_GLIB
 
 static off_t stdio_seek (purc_rwstream_t rws, off_t offset, int whence);
@@ -186,7 +186,8 @@ purc_error_t rwstream_error_code_from_gerror (GError* err)
 
 purc_rwstream_t purc_rwstream_new_from_mem (void* mem, size_t sz)
 {
-    mem_rwstream* rws = (mem_rwstream*) calloc(sizeof(mem_rwstream), 1);
+    struct mem_rwstream* rws = (struct mem_rwstream*) calloc(
+            sizeof(struct mem_rwstream), 1);
 
     rws->rwstream.funcs = &mem_funcs;
     rws->base = mem;
@@ -209,7 +210,8 @@ purc_rwstream_t purc_rwstream_new_from_file (const char* file, const char* mode)
 
 purc_rwstream_t purc_rwstream_new_from_fp (FILE* fp)
 {
-    stdio_rwstream* rws = (stdio_rwstream*) calloc(sizeof(stdio_rwstream), 1);
+    struct stdio_rwstream* rws = (struct stdio_rwstream*) calloc(
+            sizeof(struct stdio_rwstream), 1);
 
     rws->rwstream.funcs = &stdio_funcs;
     rws->fp = fp;
@@ -233,11 +235,12 @@ purc_rwstream_t purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf)
         g_io_channel_set_buffer_size(gio_channel, sz_buf);
     }
 
-    gio_rwstream* rws = (gio_rwstream*) calloc(sizeof(gio_rwstream), 1);
-    rws->rwstream.funcs = &gio_funcs;
-    rws->gio_channel = gio_channel;
-    rws->fd = fd;
-    return (purc_rwstream_t) rws;
+    struct gio_rwstream* gio = (struct gio_rwstream*) calloc(
+            sizeof(struct gio_rwstream), 1);
+    gio->rwstream.funcs = &gio_funcs;
+    gio->gio_channel = gio_channel;
+    gio->fd = fd;
+    return (purc_rwstream_t) gio;
 }
 #endif // PURC_BUILD_WITH_GLIB
 
@@ -258,11 +261,11 @@ purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf)
         g_io_channel_set_buffer_size(gio_channel, sz_buf);
     }
 
-    gio_rwstream* gio_rwstream = (gio_rwstream*) calloc(
-            sizeof(gio_rwstream), 1);
-    gio_rwstream->rwstream.funcs = &win_socket_funcs;
-    gio_rwstream->gio_channel = gio_channel;
-    return (purc_rwstream_t) gio_rwstream;
+    struct gio_rwstream* gio = (struct gio_rwstream*) calloc(
+            sizeof(struct gio_rwstream), 1);
+    gio->rwstream.funcs = &win_socket_funcs;
+    gio->gio_channel = gio_channel;
+    return (purc_rwstream_t) rws;
 }
 #endif // defined(PURC_BUILD_WITH_GLIB) && defined(G_OS_WIN32)
 
@@ -316,7 +319,8 @@ ssize_t purc_rwstream_read (purc_rwstream_t rws, void* buf, size_t count)
     return rws->funcs->read(rws, buf, count);
 }
 
-static wchar_t utf8_to_wchar_t (const unsigned char* utf8_char, int utf8_char_len)
+static wchar_t utf8_to_wchar_t (const unsigned char* utf8_char,
+        int utf8_char_len)
 {
     wchar_t wc = *((unsigned char *)(utf8_char++));
     int n = utf8_char_len;
@@ -333,7 +337,8 @@ static wchar_t utf8_to_wchar_t (const unsigned char* utf8_char, int utf8_char_le
     return wc;
 }
 
-int purc_rwstream_read_utf8_char (purc_rwstream_t rws, char* buf_utf8, wchar_t* buf_wc)
+int purc_rwstream_read_utf8_char (purc_rwstream_t rws, char* buf_utf8,
+        wchar_t* buf_wc)
 {
     if (rws == NULL)
     {
@@ -411,7 +416,7 @@ int purc_rwstream_close (purc_rwstream_t rws)
 /* stdio rwstream functions */
 static off_t stdio_seek (purc_rwstream_t rws, off_t offset, int whence)
 {
-    stdio_rwstream* stdio = (stdio_rwstream *)rws;
+    struct stdio_rwstream* stdio = (struct stdio_rwstream *)rws;
     if ( fseek(stdio->fp, offset, whence) == 0 )
     {
         return ftell(stdio->fp);
@@ -422,17 +427,17 @@ static off_t stdio_seek (purc_rwstream_t rws, off_t offset, int whence)
 
 static off_t stdio_tell (purc_rwstream_t rws)
 {
-    return ftell(((stdio_rwstream *)rws)->fp);
+    return ftell(((struct stdio_rwstream *)rws)->fp);
 }
 
 static int stdio_eof (purc_rwstream_t rws)
 {
-    return feof(((stdio_rwstream *)rws)->fp);
+    return feof(((struct stdio_rwstream *)rws)->fp);
 }
 
 static ssize_t stdio_read (purc_rwstream_t rws, void* buf, size_t count)
 {
-    stdio_rwstream* stdio = (stdio_rwstream *)rws;
+    struct stdio_rwstream* stdio = (struct stdio_rwstream *)rws;
     ssize_t nread = fread(buf, 1, count, stdio->fp);
     if ( nread == 0 && ferror(stdio->fp) ) {
         purc_set_last_error(PCRWSTREAM_ERROR_IO);
@@ -443,7 +448,7 @@ static ssize_t stdio_read (purc_rwstream_t rws, void* buf, size_t count)
 
 static ssize_t stdio_write (purc_rwstream_t rws, const void* buf, size_t count)
 {
-    stdio_rwstream* stdio = (stdio_rwstream *)rws;
+    struct stdio_rwstream* stdio = (struct stdio_rwstream *)rws;
     ssize_t nwrote = fwrite(buf, 1, count, stdio->fp);
     if ( nwrote == 0 && ferror(stdio->fp) ) {
         purc_set_last_error(PCRWSTREAM_ERROR_IO);
@@ -454,15 +459,15 @@ static ssize_t stdio_write (purc_rwstream_t rws, const void* buf, size_t count)
 
 static ssize_t stdio_flush (purc_rwstream_t rws)
 {
-    return fflush(((stdio_rwstream *)rws)->fp);
+    return fflush(((struct stdio_rwstream *)rws)->fp);
 }
 
 static int stdio_close (purc_rwstream_t rws)
 {
-    int ret = fclose(((stdio_rwstream *)rws)->fp);
+    int ret = fclose(((struct stdio_rwstream *)rws)->fp);
     if (ret == 0)
     {
-        ((stdio_rwstream *)rws)->fp = NULL;
+        ((struct stdio_rwstream *)rws)->fp = NULL;
     }
     else
     {
@@ -473,7 +478,7 @@ static int stdio_close (purc_rwstream_t rws)
 
 static int stdio_destroy (purc_rwstream_t rws)
 {
-    if (((stdio_rwstream *)rws)->fp)
+    if (((struct stdio_rwstream *)rws)->fp)
     {
         stdio_close(rws);
     }
@@ -485,7 +490,7 @@ static int stdio_destroy (purc_rwstream_t rws)
 /* memory rwstream functions */
 static off_t mem_seek (purc_rwstream_t rws, off_t offset, int whence)
 {
-    mem_rwstream* mem = (mem_rwstream *)rws;
+    struct mem_rwstream* mem = (struct mem_rwstream *)rws;
     uint8_t* newpos;
 
     switch (whence) {
@@ -513,13 +518,13 @@ static off_t mem_seek (purc_rwstream_t rws, off_t offset, int whence)
 
 static off_t mem_tell (purc_rwstream_t rws)
 {
-    mem_rwstream* mem = (mem_rwstream *)rws;
+    struct mem_rwstream* mem = (struct mem_rwstream *)rws;
     return (mem->here - mem->base);
 }
 
 static int mem_eof (purc_rwstream_t rws)
 {
-    mem_rwstream* mem = (mem_rwstream *)rws;
+    struct mem_rwstream* mem = (struct mem_rwstream *)rws;
     if (mem->here >= mem->stop)
         return 1;
     return 0;
@@ -527,7 +532,7 @@ static int mem_eof (purc_rwstream_t rws)
 
 static ssize_t mem_read (purc_rwstream_t rws, void* buf, size_t count)
 {
-    mem_rwstream* mem = (mem_rwstream *)rws;
+    struct mem_rwstream* mem = (struct mem_rwstream *)rws;
     if ( (mem->here + count) > mem->stop )
     {
         count = mem->stop - mem->here;
@@ -539,7 +544,7 @@ static ssize_t mem_read (purc_rwstream_t rws, void* buf, size_t count)
 
 static ssize_t mem_write (purc_rwstream_t rws, const void* buf, size_t count)
 {
-    mem_rwstream* mem = (mem_rwstream *)rws;
+    struct mem_rwstream* mem = (struct mem_rwstream *)rws;
     if ( (mem->here + count) > mem->stop ) {
         count = mem->stop - mem->here;
     }
@@ -555,7 +560,7 @@ static ssize_t mem_flush (purc_rwstream_t rws)
 
 static int mem_close (purc_rwstream_t rws)
 {
-    mem_rwstream* mem = (mem_rwstream *)rws;
+    struct mem_rwstream* mem = (struct mem_rwstream *)rws;
     mem->base = NULL;
     mem->here = NULL;
     mem->stop = NULL;
@@ -578,7 +583,7 @@ static off_t win_socket_seek (purc_rwstream_t rws, off_t offset, int whence)
 
 static off_t gio_seek (purc_rwstream_t rws, off_t offset, int whence)
 {
-    gio_rwstream* gio = (gio_rwstream *)rws;
+    struct gio_rwstream* gio = (struct gio_rwstream *)rws;
     GSeekType type;
     switch (whence) {
         case SEEK_SET:
@@ -623,7 +628,7 @@ static int gio_eof (purc_rwstream_t rws)
 
 static ssize_t gio_read (purc_rwstream_t rws, void* buf, size_t count)
 {
-    gio_rwstream* gio = (gio_rwstream *)rws;
+    struct gio_rwstream* gio = (struct gio_rwstream *)rws;
     gsize read = 0;
     GError* err = NULL;
     g_io_channel_read_chars (gio->gio_channel, buf, count, &read, &err);
@@ -635,7 +640,7 @@ static ssize_t gio_read (purc_rwstream_t rws, void* buf, size_t count)
 
 static ssize_t gio_write (purc_rwstream_t rws, const void* buf, size_t count)
 {
-    gio_rwstream* gio = (gio_rwstream *)rws;
+    struct gio_rwstream* gio = (struct gio_rwstream *)rws;
     gsize write = 0;
     GError* err = NULL;
     g_io_channel_write_chars (gio->gio_channel, buf, count, &write, &err);
@@ -647,7 +652,7 @@ static ssize_t gio_write (purc_rwstream_t rws, const void* buf, size_t count)
 
 static ssize_t gio_flush (purc_rwstream_t rws)
 {
-    gio_rwstream* gio = (gio_rwstream *)rws;
+    struct gio_rwstream* gio = (struct gio_rwstream *)rws;
     GError* err = NULL;
     GIOStatus ios = g_io_channel_flush (gio->gio_channel, &err);
     if (ios == G_IO_STATUS_NORMAL)
@@ -661,7 +666,7 @@ static ssize_t gio_flush (purc_rwstream_t rws)
 
 static int gio_close (purc_rwstream_t rws)
 {
-    gio_rwstream* gio = (gio_rwstream *)rws;
+    struct gio_rwstream* gio = (struct gio_rwstream *)rws;
     g_io_channel_shutdown(gio->gio_channel, TRUE, NULL);
     g_io_channel_unref(gio->gio_channel);
     gio->gio_channel = NULL;
@@ -671,7 +676,7 @@ static int gio_close (purc_rwstream_t rws)
 
 static int gio_destroy (purc_rwstream_t rws)
 {
-    gio_rwstream* gio = (gio_rwstream *)rws;
+    struct gio_rwstream* gio = (struct gio_rwstream *)rws;
     if (gio->gio_channel)
     {
         gio_close(rws);
