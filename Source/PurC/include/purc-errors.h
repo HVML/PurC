@@ -22,8 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef PURC_PURC_ERROS_H
-#define PURC_PURC_ERROS_H
+#ifndef PURC_PURC_ERRORS_H
+#define PURC_PURC_ERRORS_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -82,5 +82,5 @@ purc_set_error (int err_code);
 
 PCA_EXTERN_C_END
 
-#endif /* not defined PURC_PURC_ERROS_H */
+#endif /* not defined PURC_PURC_ERRORS_H */
 

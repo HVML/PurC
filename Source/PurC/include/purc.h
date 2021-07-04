@@ -32,5 +32,60 @@
 #include "purc-macros.h"
 #include "purc-version.h"
 #include "purc-errors.h"
+#include "purc-variant.h"
+#include "purc-rwstream.h"
+
+typedef struct purc_instance_extra_info {
+    int foo;
+    int bar;
+} purc_instance_extra_info;
+
+typedef struct purc_hvml_extra_info {
+    int foo;
+    int bar;
+} purc_hvml_extra_info;
+
+typedef int (*purc_event_handler) (pcvdom_tree_t vdom, purc_variant_t event);
+
+PCA_EXTERN_C_BEGIN
+
+PCA_EXPORT bool
+purc_init (const char* app_name, const char* runner_name,
+        const purc_instance_extra_info* extra_info);
+
+PCA_EXPORT bool
+purc_cleanup (void);
+
+PCA_EXPORT bool
+purc_bind_session_variable (const char* name, purc_variant_t variant);
+
+struct pcvdom_tree;
+typedef struct pcvdom_tree  pcvdom_tree;
+typedef struct pcvdom_tree* pcvdom_tree_t;
+
+PCA_EXPORT pcvdom_tree_t
+purc_load_hvml_from_string (const char* string);
+
+PCA_EXPORT pcvdom_tree_t
+purc_load_hvml_from_file (const char* file);
+
+PCA_EXPORT pcvdom_tree_t
+purc_load_hvml_from_url (const char* url);
+
+PCA_EXPORT pcvdom_tree_t
+purc_load_hvml_from_rwstream (purc_rwstream_t stream);
+
+PCA_EXPORT bool
+purc_bind_document_variable (pcvdom_tree_t vdom, const char* name, purc_variant_t variant);
+
+PCA_EXPORT bool
+purc_register_hvml_to_renderer (pcvdom_tree_t vdom,
+        const const* type, const char* name,
+        const purc_hvml_extra_info* extra_info);
+
+PCA_EXPORT bool
+purc_run (purc_variant_t request, purc_event_handler handler);
+
+PCA_EXTERN_C_END
 
 #endif /* not defined PURC_PURC_H */
