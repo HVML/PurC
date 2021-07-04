@@ -1,6 +1,7 @@
 set_property(DIRECTORY . PROPERTY FOLDER "PurC")
 
 include(PurCCommon)
+include(MyMacros.cmake)
 
 set(PurC_PRIVATE_INCLUDE_DIRECTORIES
     "${CMAKE_BINARY_DIR}"
@@ -11,13 +12,19 @@ set(PurC_PRIVATE_INCLUDE_DIRECTORIES
 
 set(PurC_INSTALLED_HEADERS
     "${CMAKE_BINARY_DIR}/cmakeconfig.h"
-    "${PURC_DIR}/config.h"
+    "${PURC_DIR}/purc-config.h"
 )
 
-set(PurC_SOURCES
-    instance/errors.c
+# List the directorires which do not contain any platform-dependent C source files
+set(PurC_PLATFORM_INDEPENDENT_DIRS
+    "instance"
 )
 
+# This macro will append all C/CXX source files in ${PurC_PLATFORM_INDEPENDENT_DIRS}
+# to ${PurC_SOURCES}
+APPEND_ALL_SOURCE_FILES_IN_DIRLIST(PurC_SOURCES ${PurC_PLATFORM_INDEPENDENT_DIRS})
+
+# Put the CXX source files which can be unified in `Sources.txt`
 list(APPEND PurC_UNIFIED_SOURCE_LIST_FILES
     "Sources.txt"
 )

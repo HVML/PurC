@@ -1,13 +1,12 @@
 /**
- * @file purc_errors.h
+ * @file purc-errors.h
  * @author Vincent Wei (https://github.com/VincentWei)
  * @date 2021/07/02
  * @brief The error codes of PurC.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
- * This file is a part of PurC (short for Purring Cat), an HVML parser
- * and interpreter.
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,32 +22,34 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef PURC_PURC_ERRORS_H
-#define PURC_PURC_ERRORS_H
+#pragma once
 
-#include "purc_macros.h"
+#include "purc-config.h"
 
-#define PURC_ERRORS_OK                   0
-#define PURC_ERRORS_BAD_SYSTEM_CALL      1
-#define PURC_ERRORS_BAD_STDC             2
-#define PURC_ERRORS_OUT_OF_MEMORY        3
-#define PURC_ERRORS_INVALID_VALUE        4
-#define PURC_ERRORS_DUPLICATED           5
-#define PURC_ERRORS_NOT_IMPLEMENTED      6
+#include <stdbool.h>
+#include <stddef.h>
+
+#define PURC_ERROR_OK                   0
+#define PURC_ERROR_BAD_SYSTEM_CALL      1
+#define PURC_ERROR_BAD_STDC             2
+#define PURC_ERROR_OUT_OF_MEMORY        3
+#define PURC_ERROR_INVALID_VALUE        4
+#define PURC_ERROR_DUPLICATED           5
+#define PURC_ERROR_NOT_IMPLEMENTED      6
 
 // the first error codes for various modules:
-#define PURC_ERRORS_FIRST_VARIANT        100
-#define PURC_ERRORS_FIRST_RWSTREAM       200
+#define PURC_ERROR_FIRST_VARIANT        100
+#define PURC_ERROR_FIRST_RWSTREAM       200
 
-#define PURC_ERRORS_FIRST_EJSON          1100
-#define PURC_ERRORS_FIRST_HVML           1200
-#define PURC_ERRORS_FIRST_HTML           1300
-#define PURC_ERRORS_FIRST_XGML           1400
-#define PURC_ERRORS_FIRST_XML            1500
+#define PURC_ERROR_FIRST_EJSON          1100
+#define PURC_ERROR_FIRST_HVML           1200
+#define PURC_ERROR_FIRST_HTML           1300
+#define PURC_ERROR_FIRST_XGML           1400
+#define PURC_ERROR_FIRST_XML            1500
 
-#define PURC_ERRORS_FIRST_VDOM           2100
-#define PURC_ERRORS_FIRST_EDOM           2200
-#define PURC_ERRORS_FIRST_VCM            2300
+#define PURC_ERROR_FIRST_VDOM           2100
+#define PURC_ERROR_FIRST_EDOM           2200
+#define PURC_ERROR_FIRST_VCM            2300
 
 // TODO: error codes for variant go here
 enum pcvariant_error
@@ -64,7 +65,7 @@ enum pcrwstream_error
     // PCRWSTREAM_BAD_ENCODING = PURC_ERROR_FIRST_RWSTREAM,
 };
 
-PURC_EXTERN_C_BEGIN
+WTF_EXTERN_C_BEGIN
 
 int purc_get_last_error (void);
 
@@ -73,7 +74,5 @@ const char* purc_get_error_message (int err_code);
 bool purc_set_error_messages (int first, const char* msgs[], size_t nr_msgs);
 void purc_set_error (int err_code);
 
-PURC_EXTERN_C_END
-
-#endif /* PURC_PURC_ERRORS_H */
+WTF_EXTERN_C_END
 

@@ -1,6 +1,6 @@
 # This file is for macros that are used by multiple projects. If your macro is
 # exclusively needed in only one subdirectory of Source (e.g. only needed by
-# xCore), then put it there instead.
+# PurC), then put it there instead.
 
 macro(PURC_COMPUTE_SOURCES _framework)
     set(_derivedSourcesPath ${${_framework}_DERIVED_SOURCES_DIR})
@@ -124,13 +124,13 @@ macro(PURC_WRAP_SOURCELIST)
         get_filename_component(_basename ${_file} NAME_WE)
         get_filename_component(_path ${_file} PATH)
 
-        if (NOT _file MATCHES "${DERIVED_SOURCES_XCORE_DIR}")
+        if (NOT _file MATCHES "${DERIVED_SOURCES_PURC_DIR}")
             string(REGEX REPLACE "/" "\\\\\\\\" _sourcegroup "${_path}")
             source_group("${_sourcegroup}" FILES ${_file})
         endif ()
     endforeach ()
 
-    source_group("DerivedSources" REGULAR_EXPRESSION "${DERIVED_SOURCES_XCORE_DIR}")
+    source_group("DerivedSources" REGULAR_EXPRESSION "${DERIVED_SOURCES_PURC_DIR}")
 endmacro()
 
 macro(PURC_FRAMEWORK_DECLARE _target)

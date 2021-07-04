@@ -29,8 +29,8 @@
 #include <stddef.h>
 #include <stdio.h>
 
-#include "purc_macros.h"
-#include "purc_version.h"
-#include "purc_errors.h"
+#include "config.h"
+#include "purc-version.h"
+#include "purc-errors.h"
 
 #endif /* PURC_PURC_H */

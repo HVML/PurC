@@ -113,8 +113,8 @@ set(ENABLE_PURC_LEGACY ON)
 set(ENABLE_PURC ON)
 
 set(JavaScriptCore_LIBRARY_TYPE SHARED)
-set(xCore_LIBRARY_TYPE SHARED)
-set(xCoreTestSupport_LIBRARY_TYPE SHARED)
+set(PurC_LIBRARY_TYPE SHARED)
+set(PurCTestSupport_LIBRARY_TYPE SHARED)
 
 find_package(ICU 60.2 REQUIRED COMPONENTS data i18n uc)
 find_package(LibXml2 2.8.0 REQUIRED)
