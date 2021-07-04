@@ -9,13 +9,13 @@ set(PurC_PRIVATE_INCLUDE_DIRECTORIES
     "${CMAKE_BINARY_DIR}"
     "${PURC_DIR}"
     "${PURC_DIR}/include"
+    "${PURC_DIR}/include/private"
     "${PurC_DERIVED_SOURCES_DIR}"
 )
 
 set(PurC_INSTALLED_HEADERS
-    "${CMAKE_BINARY_DIR}/cmakeconfig.h"
     "${PurC_DERIVED_SOURCES_DIR}/purc-version.h"
-    "${PURC_DIR}/purc-config.h"
+    "${PURC_DIR}/include/purc-macros.h"
     "${PURC_DIR}/include/purc-errors.h"
     "${PURC_DIR}/include/purc.h"
 )

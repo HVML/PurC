@@ -29,7 +29,7 @@
 #include <stddef.h>
 #include <stdio.h>
 
-#include "config.h"
+#include "purc-macros.h"
 #include "purc-version.h"
 #include "purc-errors.h"
 

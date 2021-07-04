@@ -24,6 +24,8 @@
 
 #include "purc-errors.h"
 
+#include "config.h"
+
 static int my_last_error = PURC_ERROR_OK;
 
 int purc_get_last_error (void)

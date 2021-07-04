@@ -22,10 +22,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef PURC_PURC_TLS_H
-#define PURC_PURC_TLS_H
+#ifndef PURC_PRIVATE_TLS_H
+#define PURC_PRIVATE_TLS_H
 
 #include "purc-config.h"
+
+#include <wtf/TLSKeyword.h>
 
 #if HAVE(TLS_KEYWORD)
 
@@ -158,5 +160,5 @@
 
 #    warn "No TLS (thread local storage) support for this system. PurC will work without multiple threads."
 
-#endif /* not defined PURC_PURC_TLS_H */
+#endif /* not defined PURC_PRIVATE_TLS_H */
 

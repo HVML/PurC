@@ -25,10 +25,10 @@
 #ifndef PURC_PURC_ERROS_H
 #define PURC_PURC_ERROS_H
 
-#include "purc-config.h"
-
 #include <stdbool.h>
 #include <stddef.h>
+
+#include "purc-macros.h"
 
 #define PURC_ERROR_OK                   0
 #define PURC_ERROR_BAD_SYSTEM_CALL      1
@@ -66,16 +66,21 @@ enum pcrwstream_error
     // PCRWSTREAM_BAD_ENCODING = PURC_ERROR_FIRST_RWSTREAM,
 };
 
-WTF_EXTERN_C_BEGIN
+PCA_EXTERN_C_BEGIN
 
-int purc_get_last_error (void);
+PCA_EXPORT int
+purc_get_last_error (void);
 
-const char* purc_get_error_message (int err_code);
+PCA_EXPORT const char*
+purc_get_error_message (int err_code);
 
-bool purc_set_error_messages (int first, const char* msgs[], size_t nr_msgs);
-void purc_set_error (int err_code);
+bool
+purc_set_error_messages (int first, const char* msgs[], size_t nr_msgs);
 
-WTF_EXTERN_C_END
+void
+purc_set_error (int err_code);
+
+PCA_EXTERN_C_END
 
 #endif /* not defined PURC_PURC_ERROS_H */
 
