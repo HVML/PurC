@@ -26,11 +26,13 @@ set(PurC_INSTALLED_HEADERS
 # TODO: List the directorires which do not contain any platform-dependent C source files
 set(PurC_PLATFORM_INDEPENDENT_DIRS
     "instance"
+    "utils"
 )
+
 
 # This macro will append all C/CXX source files in ${PurC_PLATFORM_INDEPENDENT_DIRS}
 # to ${PurC_SOURCES}
-APPEND_ALL_SOURCE_FILES_IN_DIRLIST(PurC_SOURCES ${PurC_PLATFORM_INDEPENDENT_DIRS})
+APPEND_ALL_SOURCE_FILES_IN_DIRLIST(PurC_SOURCES "${PurC_PLATFORM_INDEPENDENT_DIRS}")
 
 # TODO: List the source files individually.
 list(APPEND PurC_SOURCES
