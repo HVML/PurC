@@ -20,7 +20,6 @@ set(PURC_HEADER_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}/purc" CACHE PATH "Absol
 add_definitions(-DBUILDING_HBD__=1)
 add_definitions(-DPURC_API_VERSION_STRING="${PURC_API_VERSION}")
 
-find_package(HiBox REQUIRED)
 find_package(GLIB 2.44.0 COMPONENTS gio gio-unix)
 find_package(HiBus)
 find_package(LibXml2 2.8.0)

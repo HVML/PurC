@@ -11,7 +11,6 @@ list(APPEND PurC_SYSTEM_INCLUDE_DIRECTORIES
 )
 
 list(APPEND PurC_LIBRARIES
-    ${HiBox_LIBRARIES}
     -lpthread
 )
 
