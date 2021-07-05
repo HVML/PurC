@@ -22,7 +22,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #ifndef PURC_PURC_VARIANT_H
 #define PURC_PURC_VARIANT_H
 
@@ -30,7 +29,6 @@
 #include <stddef.h>
 
 #include "purc-macros.h"
-
 
 struct purc_variant;
 typedef struct purc_variant purc_variant;
@@ -45,6 +43,7 @@ enum pcvariant_error
 };
 
 PCA_EXTERN_C_BEGIN
+
 
 /**
  * Creates a variant value of undefined type.
