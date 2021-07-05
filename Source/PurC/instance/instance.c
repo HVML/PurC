@@ -130,6 +130,9 @@ int purc_init(const char* app_name, const char* runner_name,
     if (curr_inst == NULL)
         return PURC_ERROR_OUT_OF_MEMORY;
 
+    if (curr_inst->app_name)
+        return PURC_ERROR_DUPLICATED;
+
     curr_inst->errcode = PURC_ERROR_OK;
     if (app_name)
         curr_inst->app_name = strdup(app_name);
