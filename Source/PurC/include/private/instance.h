@@ -29,11 +29,16 @@
 
 #include "config.h"
 
+// TODO: for struct pcvariant_heap
+// #include "private/variant.h"
+
 struct pcinst {
     int errcode;
 
     char* app_name;
     char* runner_name;
+
+    // TODO: struct pcvariant_heap variant_heap;
 };
 
 /* gets the current instance */
