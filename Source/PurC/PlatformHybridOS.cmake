@@ -10,9 +10,17 @@ list(APPEND PurC_SYSTEM_INCLUDE_DIRECTORIES
     ${GLIB_INCLUDE_DIRS}
 )
 
-list(APPEND PurC_PRIVATE_LIBRARIES
+list(APPEND PurC_LIBRARIES
     ${HiBox_LIBRARIES}
+    -lpthread
 )
+
+if (ENABLE_SOCKET_STREAM)
+    list(APPEND PurC_LIBRARIES
+        ${GLIB_GIO_LIBRARIES}
+        ${GLIB_LIBRARIES}
+    )
+endif ()
 
 configure_file(ports/hbd/purc.pc.in ${PurC_PKGCONFIG_FILE} @ONLY)
 install(FILES "${PurC_PKGCONFIG_FILE}"

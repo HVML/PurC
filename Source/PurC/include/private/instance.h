@@ -31,6 +31,9 @@
 
 struct pcinst {
     int errcode;
+
+    char* app_name;
+    char* runner_name;
 };
 
 /* gets the current instance */

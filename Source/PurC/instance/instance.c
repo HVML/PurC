@@ -55,19 +55,48 @@ static struct err_msg_seg _generic_err_msgs_seg = {
     generic_err_msgs
 };
 
-int purc_init (const char* app_name, const char* runner_name,
+static void init_modules(void)
+{
+    pcinst_register_error_message_segment(&_generic_err_msgs_seg);
+
+    // TODO: init other modules here.
+}
+
+#if USE(PTHREADS)
+#include <pthread.h>
+
+static pthread_once_t once = PTHREAD_ONCE_INIT;
+static inline void init_once(void) {
+    pthread_once(&once, init_modules);
+}
+
+#else
+
+static inline void init_once(void) {
+    init_modules();
+}
+
+#endif
+
+struct pcinst* pcinst_current(void)
+{
+    return NULL;
+}
+
+int purc_init(const char* app_name, const char* runner_name,
         const purc_instance_extra_info* extra_info)
 {
     UNUSED_PARAM(app_name);
     UNUSED_PARAM(runner_name);
     UNUSED_PARAM(extra_info);
 
-    pcinst_register_error_message_segment(&_generic_err_msgs_seg);
+    init_once();
+
     return PURC_ERROR_OK;
 }
 
-struct pcinst* pcinst_current(void)
+bool purc_cleanup(void)
 {
-    return NULL;
+    return true;
 }
 
