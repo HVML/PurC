@@ -111,4 +111,224 @@
 #define GTEST_OS_XTENSA 1
 #endif  // __CYGWIN__
 
+#ifndef GTEST_OS_CYGWIN
+# define GTEST_OS_CYGWIN 0
+#endif
+
+#ifndef GTEST_OS_WINDOWS_MINGW
+# define GTEST_OS_WINDOWS_MINGW 0
+#endif
+
+#ifndef GTEST_OS_WINDOWS
+# define GTEST_OS_WINDOWS 0
+#endif
+
+#ifndef GTEST_OS_WINDOWS
+# define GTEST_OS_WINDOWS 0
+#endif
+
+#ifndef GTEST_OS_WINDOWS_MOBILE
+# define GTEST_OS_WINDOWS_MOBILE 0
+#endif
+
+#ifndef GTEST_OS_WINDOWS_DESKTOP
+# define GTEST_OS_WINDOWS_DESKTOP 0
+#endif
+
+#ifndef GTEST_OS_WINDOWS_PHONE
+# define GTEST_OS_WINDOWS_PHONE 0
+#endif
+
+#ifndef GTEST_OS_WINDOWS_RT
+# define GTEST_OS_WINDOWS_RT 0
+#endif
+
+#ifndef GTEST_OS_WINDOWS_PHONE
+# define GTEST_OS_WINDOWS_PHONE 0
+#endif
+
+#ifndef GTEST_OS_WINDOWS_TV_TITLE
+# define GTEST_OS_WINDOWS_TV_TITLE 0
+#endif
+
+#ifndef GTEST_OS_WINDOWS_DESKTOP
+# define GTEST_OS_WINDOWS_DESKTOP 0
+#endif
+
+#ifndef GTEST_OS_WINDOWS_DESKTOP
+# define GTEST_OS_WINDOWS_DESKTOP 0
+#endif
+
+#ifndef GTEST_OS_OS2
+# define GTEST_OS_OS2 0
+#endif
+
+#ifndef GTEST_OS_MAC
+# define GTEST_OS_MAC 0
+#endif
+
+#ifndef GTEST_OS_IOS
+# define GTEST_OS_IOS 0
+#endif
+
+#ifndef GTEST_OS_DRAGONFLY
+# define GTEST_OS_DRAGONFLY 0
+#endif
+
+#ifndef GTEST_OS_FREEBSD
+# define GTEST_OS_FREEBSD 0
+#endif
+
+#ifndef GTEST_OS_FUCHSIA
+# define GTEST_OS_FUCHSIA 0
+#endif
+
+#ifndef GTEST_OS_GNU_KFREEBSD
+# define GTEST_OS_GNU_KFREEBSD 0
+#endif
+
+#ifndef GTEST_OS_LINUX
+# define GTEST_OS_LINUX 0
+#endif
+
+#ifndef GTEST_OS_LINUX_ANDROID
+# define GTEST_OS_LINUX_ANDROID 0
+#endif
+
+#ifndef GTEST_OS_ZOS
+# define GTEST_OS_ZOS 0
+#endif
+
+#ifndef GTEST_OS_SOLARIS
+# define GTEST_OS_SOLARIS 0
+#endif
+
+#ifndef GTEST_OS_AIX
+# define GTEST_OS_AIX 0
+#endif
+
+#ifndef GTEST_OS_HPUX
+# define GTEST_OS_HPUX 0
+#endif
+
+#ifndef GTEST_OS_NACL
+# define GTEST_OS_NACL 0
+#endif
+
+#ifndef GTEST_OS_NETBSD
+# define GTEST_OS_NETBSD 0
+#endif
+
+#ifndef GTEST_OS_OPENBSD
+# define GTEST_OS_OPENBSD 0
+#endif
+
+#ifndef GTEST_OS_QNX
+# define GTEST_OS_QNX 0
+#endif
+
+#ifndef GTEST_OS_HAIKU
+# define GTEST_OS_HAIKU 0
+#endif
+
+#ifndef GTEST_OS_ESP8266
+# define GTEST_OS_ESP8266 0
+#endif
+
+#ifndef GTEST_OS_ESP32
+# define GTEST_OS_ESP32 0
+#endif
+
+#ifndef GTEST_OS_XTENSA
+# define GTEST_OS_XTENSA 0
+#endif
+
+#ifndef GTEST_USES_PCRE
+# define GTEST_USES_PCRE 0
+#endif
+
+#ifndef GTEST_HAS_DOWNCAST_
+# define GTEST_HAS_DOWNCAST_ 0
+#endif
+
+#ifndef GTEST_HAS_MUTEX_AND_THREAD_LOCAL_
+# define GTEST_HAS_MUTEX_AND_THREAD_LOCAL_ 0
+#endif
+
+#ifndef GTEST_HAS_NOTIFICATION_
+# define GTEST_HAS_NOTIFICATION_ 0
+#endif
+
+#ifndef GTEST_HAS_ABSL
+# define GTEST_HAS_ABSL 0
+#endif
+
+#ifndef GTEST_LINKED_AS_SHARED_LIBRARY
+# define GTEST_LINKED_AS_SHARED_LIBRARY 0
+#endif
+
+#ifndef GTEST_CREATE_SHARED_LIBRARY
+# define GTEST_CREATE_SHARED_LIBRARY 0
+#endif
+
+#ifndef GTEST_DONT_DEFINE_FAIL
+# define GTEST_DONT_DEFINE_FAIL 0
+#endif
+
+#ifndef GTEST_DONT_DEFINE_SUCCEED
+# define GTEST_DONT_DEFINE_SUCCEED 0
+#endif
+
+#ifndef GTEST_DONT_DEFINE_EXPECT_TRUE
+# define GTEST_DONT_DEFINE_EXPECT_TRUE 0
+#endif
+
+#ifndef GTEST_DONT_DEFINE_EXPECT_FALSE
+# define GTEST_DONT_DEFINE_EXPECT_FALSE 0
+#endif
+
+#ifndef GTEST_DONT_DEFINE_ASSERT_EQ
+# define GTEST_DONT_DEFINE_ASSERT_EQ 0
+#endif
+
+#ifndef GTEST_DONT_DEFINE_ASSERT_NE
+# define GTEST_DONT_DEFINE_ASSERT_NE 0
+#endif
+
+#ifndef GTEST_DONT_DEFINE_ASSERT_LE
+# define GTEST_DONT_DEFINE_ASSERT_LE 0
+#endif
+
+#ifndef GTEST_DONT_DEFINE_ASSERT_LT
+# define GTEST_DONT_DEFINE_ASSERT_LT 0
+#endif
+
+#ifndef GTEST_DONT_DEFINE_ASSERT_GE
+# define GTEST_DONT_DEFINE_ASSERT_GE 0
+#endif
+
+#ifndef GTEST_DONT_DEFINE_ASSERT_GT
+# define GTEST_DONT_DEFINE_ASSERT_GT 0
+#endif
+
+#ifndef GTEST_DONT_DEFINE_ASSERT_TRUE
+# define GTEST_DONT_DEFINE_ASSERT_TRUE 0
+#endif
+
+#ifndef GTEST_DONT_DEFINE_ASSERT_FALSE
+# define GTEST_DONT_DEFINE_ASSERT_FALSE 0
+#endif
+
+#ifndef GTEST_DONT_DEFINE_TEST
+# define GTEST_DONT_DEFINE_TEST 0
+#endif
+
+#ifndef GTEST_USES_SIMPLE_RE
+# define GTEST_USES_SIMPLE_RE 0
+#endif
+
+#ifndef GTEST_FOR_GOOGLE_
+# define GTEST_FOR_GOOGLE_ 0
+#endif
+
 #endif  // GOOGLETEST_INCLUDE_GTEST_INTERNAL_GTEST_PORT_ARCH_H_
