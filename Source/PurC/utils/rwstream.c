@@ -251,8 +251,8 @@ purc_rwstream_t purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf)
 #else
 purc_rwstream_t purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf)
 {
-    (void)fd;
-    (void)sz_buf;
+    UNUSED_PARAM(fd);
+    UNUSED_PARAM(sz_buf);
     pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
     return NULL;
 }
@@ -284,8 +284,8 @@ purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf)
 #else
 purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf)
 {
-    (void)socket;
-    (void)sz_buf;
+    UNUSED_PARAM(socket);
+    UNUSED_PARAM(sz_buf);
     pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
     return NULL;
 }
@@ -577,7 +577,7 @@ static ssize_t mem_write (purc_rwstream_t rws, const void* buf, size_t count)
 
 static ssize_t mem_flush (purc_rwstream_t rws)
 {
-    (void)rws;
+    UNUSED_PARAM(rws);
     return 0;
 }
 
@@ -600,9 +600,9 @@ static int mem_destroy (purc_rwstream_t rws)
 /* glib rwstream functions */
 static off_t win_socket_seek (purc_rwstream_t rws, off_t offset, int whence)
 {
-    (void)rws;
-    (void)offset;
-    (void)whence;
+    UNUSED_PARAM(rws);
+    UNUSED_PARAM(offset);
+    UNUSED_PARAM(whence);
     pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
     return -1;
 }
@@ -640,9 +640,9 @@ static off_t gio_seek (purc_rwstream_t rws, off_t offset, int whence)
         g_error_free(err);
     return -1;
 #else
-    (void)rws;
-    (void)offset;
-    (void)whence;
+    UNUSED_PARAM(rws);
+    UNUSED_PARAM(offset);
+    UNUSED_PARAM(whence);
     pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
     return -1;
 #endif // OS(UNIX)
@@ -650,14 +650,14 @@ static off_t gio_seek (purc_rwstream_t rws, off_t offset, int whence)
 
 static off_t gio_tell (purc_rwstream_t rws)
 {
-    (void)rws;
+    UNUSED_PARAM(rws);
     pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
     return -1;
 }
 
 static int gio_eof (purc_rwstream_t rws)
 {
-    (void)rws;
+    UNUSED_PARAM(rws);
     pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
     return -1;
 }
