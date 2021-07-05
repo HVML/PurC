@@ -1879,7 +1879,7 @@ mystatus_t myhvml_tokenizer_state_init(myhvml_t* myhvml)
     myhvml->parse_state_func[(MyHVML_TOKENIZER_STATE_LAST_ENTRY
                               + MyHVML_TOKENIZER_STATE_CUSTOM_AFTER_DOCTYPE_NAME_A_Z)]           = myhvml_tokenizer_end_state_custom_after_doctype_name_a_z;
     myhvml->parse_state_func[(MyHVML_TOKENIZER_STATE_LAST_ENTRY
-                              + MyHVML_TOKENIZER_STATE_BEFORE_DOCTYPE_SYSTEM_IDENTIFIER)]        = myhvml_tokenizer_end_state_before_doctype_system_identifier;
+                              + MyHVML_TOKENIZER_STATE_BEFORE_DOCTYPE_SYSTEM_IDENTIFIER)]        = NULL; //myhvml_tokenizer_end_state_before_doctype_system_identifier;
     myhvml->parse_state_func[(MyHVML_TOKENIZER_STATE_LAST_ENTRY
                               + MyHVML_TOKENIZER_STATE_DOCTYPE_SYSTEM_IDENTIFIER_DOUBLE_QUOTED)] = myhvml_tokenizer_end_state_doctype_system_identifier_double_quoted;
     myhvml->parse_state_func[(MyHVML_TOKENIZER_STATE_LAST_ENTRY

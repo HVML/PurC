@@ -9,8 +9,9 @@ add_subdirectory(WTF)
 
 add_subdirectory(PurC)
 
-#if (ENABLE_API_TESTS)
+if (ENABLE_API_TESTS)
 #    add_subdirectory(ThirdParty/gtest)
-#endif ()
+add_subdirectory(test)
+endif ()
 
 PURC_INCLUDE_CONFIG_FILES_IF_EXISTS()
