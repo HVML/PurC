@@ -29,6 +29,7 @@ set(PurC_INSTALLED_HEADERS
 set(PurC_PLATFORM_INDEPENDENT_DIRS
     "instance"
     "utils"
+    "purc-variant"
 )
 
 

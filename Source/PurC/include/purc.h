@@ -33,8 +33,8 @@
 #include "purc-version.h"
 #include "purc-features.h"
 #include "purc-errors.h"
-#include "purc-variant.h"
 #include "purc-rwstream.h"
+#include "purc-variant.h"
 
 typedef struct purc_instance_extra_info {
     int foo;

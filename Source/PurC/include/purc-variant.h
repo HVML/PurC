@@ -27,6 +27,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #include "purc-macros.h"
 
@@ -35,12 +36,6 @@ typedef struct purc_variant purc_variant;
 typedef struct purc_variant* purc_variant_t;
 
 #define PURC_VARIANT_INVALID            ((purc_variant_t)(0))
-
-enum pcvariant_error
-{
-    PCVARIANT_SUCCESS = PURC_ERROR_OK,
-    PCVARIANT_BAD_ENCODING = PURC_ERROR_FIRST_VARIANT,
-};
 
 PCA_EXTERN_C_BEGIN
 
@@ -214,7 +209,7 @@ PCA_EXPORT const unsigned char* purc_variant_get_bytes_const (purc_variant_t val
 PCA_EXPORT size_t purc_variant_sequence_length(const purc_variant_t sequence);
 
 
-typedef purc_variant_t (*PCB_DYNAMIC_VARIANT) (purc_variant_t root, int nr_args, purc_variant_t arg0, ...);
+typedef purc_variant_t (*purc_dvariant_method) (purc_variant_t root, int nr_args, purc_variant_t arg0, ...);
 
 
 /**
@@ -227,7 +222,7 @@ typedef purc_variant_t (*PCB_DYNAMIC_VARIANT) (purc_variant_t root, int nr_args,
  *
  * Since: 0.0.1
  */
-PCA_EXPORT purc_variant_t purc_variant_make_dynamic_value (CB_DYNAMIC_VARIANT getter, CB_DYNAMIC_VARIANT setter);
+PCA_EXPORT purc_variant_t purc_variant_make_dynamic_value (purc_dvariant_method getter, purc_dvariant_method setter);
 
 
 typedef bool (*purc_nvariant_releaser) (void* native_obj);
