@@ -138,13 +138,13 @@ static void purc_variant_free (purc_variant_t value)
     free(value);
 }
 
-unsigned int purc_variant_ref (purc_variant_t value)
+PCA_EXPORT unsigned int purc_variant_ref (purc_variant_t value)
 {
     PCVARIANT_ASSERT(value);
     return ++value->refc;
 }
 
-unsigned int purc_variant_unref (purc_variant_t value)
+PCA_EXPORT unsigned int purc_variant_unref (purc_variant_t value)
 {
     PCVARIANT_ASSERT(value);
     unsigned int refc = --value->refc;
@@ -158,28 +158,28 @@ unsigned int purc_variant_unref (purc_variant_t value)
     return refc;
 }
 
-purc_variant_t purc_variant_make_undefined (void)
+PCA_EXPORT purc_variant_t purc_variant_make_undefined (void)
 {
     purc_variant_t var = &pcvariant_undefined;
     purc_variant_ref(var);
     return var;
 }
 
-purc_variant_t purc_variant_make_null (void)
+PCA_EXPORT purc_variant_t purc_variant_make_null (void)
 {
     purc_variant_t var = &pcvariant_null;
     purc_variant_ref(var);
     return var;
 }
 
-purc_variant_t purc_variant_make_boolean (bool b)
+PCA_EXPORT purc_variant_t purc_variant_make_boolean (bool b)
 {
     purc_variant_t var = b ? &pcvariant_true : &pcvariant_false;
     purc_variant_ref(var);
     return var;
 }
 
-purc_variant_t purc_variant_make_number (double d)
+PCA_EXPORT purc_variant_t purc_variant_make_number (double d)
 {
     purc_variant_t var = (purc_variant_t)calloc(1, sizeof(*var));
 
@@ -192,7 +192,7 @@ purc_variant_t purc_variant_make_number (double d)
     return var;
 }
 
-purc_variant_t purc_variant_make_longuint (uint64_t u64)
+PCA_EXPORT purc_variant_t purc_variant_make_longuint (uint64_t u64)
 {
     purc_variant_t var = (purc_variant_t)calloc(1, sizeof(*var));
 
@@ -205,7 +205,7 @@ purc_variant_t purc_variant_make_longuint (uint64_t u64)
     return var;
 }
 
-purc_variant_t purc_variant_make_longint (int64_t i64)
+PCA_EXPORT purc_variant_t purc_variant_make_longint (int64_t i64)
 {
     purc_variant_t var = (purc_variant_t)calloc(1, sizeof(*var));
 
@@ -218,7 +218,7 @@ purc_variant_t purc_variant_make_longint (int64_t i64)
     return var;
 }
 
-purc_variant_t purc_variant_make_longdouble (long double lf)
+PCA_EXPORT purc_variant_t purc_variant_make_longdouble (long double lf)
 {
     purc_variant_t var = (purc_variant_t)calloc(1, sizeof(*var));
 
@@ -231,7 +231,7 @@ purc_variant_t purc_variant_make_longdouble (long double lf)
     return var;
 }
 
-purc_variant_t purc_variant_make_string (const char* str_utf8)
+PCA_EXPORT purc_variant_t purc_variant_make_string (const char* str_utf8)
 {
     PCVARIANT_ASSERT(str_utf8);
 
@@ -270,7 +270,7 @@ static bool purc_variant_string_check_utf8(const char* str_utf8)
     return true;
 }
 
-purc_variant_t purc_variant_make_string_with_check (const char* str_utf8)
+PCA_EXPORT purc_variant_t purc_variant_make_string_with_check (const char* str_utf8)
 {
     if (!purc_variant_string_check_utf8(str_utf8)) {
         return PURC_VARIANT_INVALID;
@@ -279,7 +279,7 @@ purc_variant_t purc_variant_make_string_with_check (const char* str_utf8)
     return purc_variant_make_string(str_utf8);
 }
 
-const char* purc_variant_get_string_const (purc_variant_t value)
+PCA_EXPORT const char* purc_variant_get_string_const (purc_variant_t value)
 {
     PCVARIANT_ASSERT(value);
     PCVARIANT_ASSERT(value->type==PCVARIANT_TYPE_STRING);
@@ -291,7 +291,7 @@ const char* purc_variant_get_string_const (purc_variant_t value)
     }
 }
 
-size_t purc_variant_string_length(const purc_variant_t value)
+PCA_EXPORT size_t purc_variant_string_length(const purc_variant_t value)
 {
     PCVARIANT_ASSERT(value);
     PCVARIANT_ASSERT(value->type==PCVARIANT_TYPE_STRING);
@@ -303,7 +303,7 @@ size_t purc_variant_string_length(const purc_variant_t value)
     }
 }
 
-purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes, size_t nr_bytes)
+PCA_EXPORT purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes, size_t nr_bytes)
 {
     PCVARIANT_ASSERT(bytes);
     PCVARIANT_ASSERT(nr_bytes>=0);
@@ -336,7 +336,7 @@ purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes, size
     }
 }
 
-const unsigned char* purc_variant_get_bytes_const (purc_variant_t value, size_t* nr_bytes)
+PCA_EXPORT const unsigned char* purc_variant_get_bytes_const (purc_variant_t value, size_t* nr_bytes)
 {
     PCVARIANT_ASSERT(value);
     PCVARIANT_ASSERT(value->type==PCVARIANT_TYPE_BYTESEQ);
@@ -350,7 +350,7 @@ const unsigned char* purc_variant_get_bytes_const (purc_variant_t value, size_t*
     }
 }
 
-size_t purc_variant_sequence_length(const purc_variant_t sequence)
+PCA_EXPORT size_t purc_variant_sequence_length(const purc_variant_t sequence)
 {
     PCVARIANT_ASSERT(sequence);
     PCVARIANT_ASSERT(sequence->type==PCVARIANT_TYPE_BYTESEQ);
@@ -360,5 +360,31 @@ size_t purc_variant_sequence_length(const purc_variant_t sequence)
     } else {
         return (size_t)sequence->size;
     }
+}
+
+PCA_EXPORT purc_variant_t purc_variant_make_dynamic_value (purc_dvariant_method getter, purc_dvariant_method setter)
+{
+    purc_variant_t var = (purc_variant_t)malloc(sizeof(*var));
+    if (var==NULL) return PURC_VARIANT_INVALID;
+
+    var->type        = PCVARIANT_TYPE_DYNAMIC;
+    var->refc        = 1;
+    var->flags       = PCVARIANT_FLAG_LONG;
+    var->u.sz_ptr[0] = (uintptr_t)getter;
+    var->u.sz_ptr[1] = (uintptr_t)setter;
+    return var;
+}
+
+PCA_EXPORT purc_variant_t purc_variant_make_native (void *native_obj, purc_nvariant_releaser releaser)
+{
+    purc_variant_t var = (purc_variant_t)malloc(sizeof(*var));
+    if (var==NULL) return PURC_VARIANT_INVALID;
+
+    var->type        = PCVARIANT_TYPE_NATIVE;
+    var->refc        = 1;
+    var->flags       = PCVARIANT_FLAG_LONG;
+    var->u.sz_ptr[0] = (uintptr_t)native_obj;
+    var->u.sz_ptr[1] = (uintptr_t)releaser;
+    return var;
 }
 
