@@ -30,6 +30,9 @@
 #include "private/errors.h"
 #include "private/tls.h"
 
+#include <stdlib.h>
+#include <string.h>
+
 static const char* generic_err_msgs[] = {
     /* PURC_ERROR_OK (0) */
     "Ok",
@@ -66,37 +69,99 @@ static void init_modules(void)
 #include <pthread.h>
 
 static pthread_once_t once = PTHREAD_ONCE_INIT;
-static inline void init_once(void) {
+static inline void init_once(void)
+{
     pthread_once(&once, init_modules);
 }
 
 #else
 
-static inline void init_once(void) {
+static inline void init_once(void)
+{
+    static bool inited = false;
+    if (inited)
+        return;
+
     init_modules();
+    inited = true;
 }
 
-#endif
+#endif /* not USE_PTHREADS */
+
+PURC_DEFINE_THREAD_LOCAL(struct pcinst, inst);
 
 struct pcinst* pcinst_current(void)
 {
-    return NULL;
+    struct pcinst* curr_inst;
+    curr_inst = PURC_GET_THREAD_LOCAL(inst);
+
+    if (curr_inst == NULL || curr_inst->app_name == NULL) {
+        return NULL;
+    }
+
+    return curr_inst;
+}
+
+static void cleanup_instance (struct pcinst *curr_inst)
+{
+    if (curr_inst->app_name) {
+        free (curr_inst->app_name);
+        curr_inst->app_name = NULL;
+    }
+
+    if (curr_inst->runner_name) {
+        free (curr_inst->runner_name);
+        curr_inst->runner_name = NULL;
+    }
 }
 
 int purc_init(const char* app_name, const char* runner_name,
         const purc_instance_extra_info* extra_info)
 {
+    struct pcinst* curr_inst;
+
     UNUSED_PARAM(app_name);
     UNUSED_PARAM(runner_name);
     UNUSED_PARAM(extra_info);
 
     init_once();
 
+    curr_inst = PURC_GET_THREAD_LOCAL(inst);
+    if (curr_inst == NULL)
+        return PURC_ERROR_OUT_OF_MEMORY;
+
+    curr_inst->errcode = PURC_ERROR_OK;
+    if (app_name)
+        curr_inst->app_name = strdup(app_name);
+    else
+        curr_inst->app_name = strdup("unknown");
+
+    if (runner_name)
+        curr_inst->runner_name = strdup(runner_name);
+    else
+        curr_inst->runner_name = strdup("unknown");
+
+    if (curr_inst->app_name == NULL || curr_inst->runner_name == NULL)
+        goto failed;
+
+    // TODO: init other fields
     return PURC_ERROR_OK;
+
+failed:
+    cleanup_instance(curr_inst);
+
+    return PURC_ERROR_OUT_OF_MEMORY;
 }
 
 bool purc_cleanup(void)
 {
+    struct pcinst* curr_inst;
+
+    curr_inst = PURC_GET_THREAD_LOCAL(inst);
+    if (curr_inst == NULL || curr_inst->app_name == NULL)
+        return false;
+
+    cleanup_instance(curr_inst);
     return true;
 }
 
