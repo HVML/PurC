@@ -21,7 +21,9 @@
 
 
 #include "purc-rwstream.h"
+#include "purc-errors.h"
 #include "private/errors.h"
+#include "config.h"
 
 #include <stdlib.h>
 #include <errno.h>
@@ -150,7 +152,7 @@ rwstream_funcs win_socket_funcs = {
     gio_destroy
 };
 
-purc_error_t rwstream_error_code_from_gerror (GError* err)
+int rwstream_error_code_from_gerror (GError* err)
 {
     if (err == NULL)
     {
@@ -596,6 +598,9 @@ static int mem_destroy (purc_rwstream_t rws)
 /* glib rwstream functions */
 static off_t win_socket_seek (purc_rwstream_t rws, off_t offset, int whence)
 {
+    (void)rws;
+    (void)offset;
+    (void)whence;
     pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
     return -1;
 }
@@ -635,12 +640,14 @@ static off_t gio_seek (purc_rwstream_t rws, off_t offset, int whence)
 
 static off_t gio_tell (purc_rwstream_t rws)
 {
+    (void)rws;
     pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
     return -1;
 }
 
 static int gio_eof (purc_rwstream_t rws)
 {
+    (void)rws;
     pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
     return -1;
 }
