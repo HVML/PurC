@@ -88,9 +88,10 @@ TEST(stdio_rwstream, write_char)
 
     FILE* fp = fopen(tmp_file, "r");
     char read_buf[1024] = {0};
-    fread(read_buf, buf_len, 1, fp);
+    size_t rdlen = fread(read_buf, buf_len, 1, fp);
     fclose(fp);
 
+    ASSERT_EQ(1, rdlen);
     ASSERT_STREQ(buf, read_buf);
 
     remove_temp_file(tmp_file);
@@ -659,9 +660,10 @@ TEST(gio_rwstream, write_char)
 
     FILE* fp = fopen(tmp_file, "r");
     char read_buf[1024] = {0};
-    fread(read_buf, buf_len, 1, fp);
+    size_t rdlen = fread(read_buf, buf_len, 1, fp);
     fclose(fp);
 
+    ASSERT_EQ(1, rdlen);
     ASSERT_STREQ(buf, read_buf);
 
     remove_temp_file(tmp_file);
