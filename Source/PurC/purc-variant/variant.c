@@ -331,7 +331,7 @@ purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes, size
             return PURC_VARIANT_INVALID;
         }
         memcpy((void*)var->u.sz_ptr[1], bytes, nr_bytes);
-        *((char*)var->u.sz_ptr[1]) = '\0';
+        ((char*)var->u.sz_ptr[1])[nr_bytes] = '\0';
         return var;
     }
 }
