@@ -909,7 +909,6 @@ bool purc_variant_usage_stat (struct purc_variant_stat* stat);
      /* } */                                                        \
  /* } while (0) */
 
-// 遍历对象中的每个具有键名的变体型数据，将其值赋值给 `value`
 #define foreach_value_in_variant_object(obj, value)                               \
     do {                                                                          \
         purc_variant_object_iterator *oit9311 = NULL;                             \
@@ -924,7 +923,6 @@ bool purc_variant_usage_stat (struct purc_variant_stat* stat);
  /* } while (0) */
         
 
-// 遍历对象中的每个具有键名的变体型数据，将键名赋值给 `key`，值赋值给 `value`
 #define foreach_key_value_in_variant_object(obj, key, value)                      \
     do {                                                                          \
         purc_variant_object_iterator *oit9311 = NULL;                             \
@@ -940,7 +938,6 @@ bool purc_variant_usage_stat (struct purc_variant_stat* stat);
  /* } while (0) */
         
 
-// 遍历集合中的每个具有键名的变体型数据，将其值赋值给 `value`
 #define foreach_value_in_variant_set(set, value)                                  \
     do {                                                                          \
         purc_variant_object_iterator *oit9311 = NULL;                             \
@@ -954,7 +951,7 @@ bool purc_variant_usage_stat (struct purc_variant_stat* stat);
      /* } */                                                                      \
   /* } while (0) */
 
-// 结束遍历
+
 #define end_foreach                                                     \
  /* do { */                                                             \
      /* for (...) { */                                                  \
