@@ -4,6 +4,7 @@ include(PurCCommon)
 include(MyMacros.cmake)
 
 configure_file(include/purc-version.h.in ${PurC_DERIVED_SOURCES_DIR}/purc-version.h)
+configure_file(include/purc-features.h.in ${PurC_DERIVED_SOURCES_DIR}/purc-features.h)
 
 set(PurC_PRIVATE_INCLUDE_DIRECTORIES
     "${CMAKE_BINARY_DIR}"
@@ -13,8 +14,10 @@ set(PurC_PRIVATE_INCLUDE_DIRECTORIES
     "${FORWARDING_HEADERS_DIR}"
 )
 
+# TODO: List the headers should be installed to system here.
 set(PurC_INSTALLED_HEADERS
     "${PurC_DERIVED_SOURCES_DIR}/purc-version.h"
+    "${PurC_DERIVED_SOURCES_DIR}/purc-features.h"
     "${PURC_DIR}/include/purc-macros.h"
     "${PURC_DIR}/include/purc-errors.h"
     "${PURC_DIR}/include/purc-variant.h"
@@ -22,32 +25,38 @@ set(PurC_INSTALLED_HEADERS
     "${PURC_DIR}/include/purc.h"
 )
 
-# List the directorires which do not contain any platform-dependent C source files
+# TODO: List the directorires which do not contain any platform-dependent C source files
 set(PurC_PLATFORM_INDEPENDENT_DIRS
     "instance"
+    "utils"
 )
+
 
 # This macro will append all C/CXX source files in ${PurC_PLATFORM_INDEPENDENT_DIRS}
 # to ${PurC_SOURCES}
-APPEND_ALL_SOURCE_FILES_IN_DIRLIST(PurC_SOURCES ${PurC_PLATFORM_INDEPENDENT_DIRS})
+APPEND_ALL_SOURCE_FILES_IN_DIRLIST(PurC_SOURCES "${PurC_PLATFORM_INDEPENDENT_DIRS}")
 
-#list(APPEND PurC_SOURCES
-#)
+# TODO: List the source files individually.
+list(APPEND PurC_SOURCES
+)
 
 # Put the CXX source files which can be unified in `Sources.txt`
 list(APPEND PurC_UNIFIED_SOURCE_LIST_FILES
     "Sources.txt"
 )
 
+set(PurC_LIBRARIES)
+
+# TODO: the source files and libraries for optional features.
 if (ENABLE_WEBSOCKET)
     list(APPEND PurC_UNIFIED_SOURCE_LIST_FILES
         "SourcesWebSocket.txt"
     )
     list(APPEND PurC_PRIVATE_INCLUDE_DIRECTORIES
     )
+    list(APPEND PurC_SOURCES 
+    )
 endif ()
-
-set(PurC_LIBRARIES)
 
 if (ENABLE_LSQL)
     list(APPEND PurC_LIBRARIES SQLite::SQLite3)

@@ -24,9 +24,36 @@
 
 #pragma once
 
-struct _PURC_RWSTREAM;
-typedef struct _PURC_RWSTREAM PURC_RWSTREAM;
-typedef struct _PURC_RWSTREAM* purc_rwstream_t;
+#include "errcode.h"
+
+#include <stdio.h>
+#include <stdint.h>
+#include <wchar.h>
+#include <sys/types.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+struct purc_rwstream;
+typedef struct purc_rwstream purc_rwstream;
+typedef struct purc_rwstream* purc_rwstream_t;
+
+
+enum pcrwstream_error
+{
+    PCRWSTREAM_SUCCESS = PURC_ERROR_OK,
+    PCRWSTREAM_ERROR_FAILED = PURC_ERROR_FIRST_RWSTREAM,
+    PCRWSTREAM_ERROR_FBIG,
+    PCRWSTREAM_ERROR_INVAL,
+    PCRWSTREAM_ERROR_IO,
+    PCRWSTREAM_ERROR_ISDIR,
+    PCRWSTREAM_ERROR_NOSPC,
+    PCRWSTREAM_ERROR_NXIO,
+    PCRWSTREAM_ERROR_OVERFLOW,
+    PCRWSTREAM_ERROR_PIPE,
+};
+
 
 /**
  * Creates a new purc_rwstream_t for the given memory buffer.
@@ -64,6 +91,7 @@ purc_rwstream_t purc_rwstream_new_from_file (const char* file, const char* mode)
  */
 purc_rwstream_t purc_rwstream_new_from_fp (FILE* fp);
 
+#ifdef PURC_BUILD_WITH_GLIB
 /**
  * Creates a new purc_rwstream_t for the given file descriptor (Unix only).
  *
@@ -77,6 +105,7 @@ purc_rwstream_t purc_rwstream_new_from_fp (FILE* fp);
 purc_rwstream_t purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf);
 
 
+#ifdef G_OS_WIN32
 /**
  * Creates a new purc_rwstream_t for the given socket on Windows (Win32 only).
  *
@@ -88,6 +117,9 @@ purc_rwstream_t purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf);
  * Since: 0.0.1
  */
 purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf);
+#endif
+
+#endif
 
 /**
  * Release the purc_rwstream_t
@@ -98,7 +130,7 @@ purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf);
  *
  * Since: 0.0.1
  */
-int purc_rwstream_delete (purc_rwstream_t rws);
+int purc_rwstream_destroy (purc_rwstream_t rws);
 
 /**
  * Sets the current position in the purc_rwstream_t, similar to the standard
@@ -208,6 +240,9 @@ ssize_t purc_rwstream_flush (purc_rwstream_t rws);
 int purc_rwstream_close (purc_rwstream_t rws);
 
 
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* PURC_RWSTREAM_H */
 
