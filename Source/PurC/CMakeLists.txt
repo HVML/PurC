@@ -4,6 +4,7 @@ include(PurCCommon)
 include(MyMacros.cmake)
 
 configure_file(include/purc-version.h.in ${PurC_DERIVED_SOURCES_DIR}/purc-version.h)
+configure_file(include/purc-features.h.in ${PurC_DERIVED_SOURCES_DIR}/purc-features.h)
 
 set(PurC_PRIVATE_INCLUDE_DIRECTORIES
     "${CMAKE_BINARY_DIR}"
@@ -16,6 +17,7 @@ set(PurC_PRIVATE_INCLUDE_DIRECTORIES
 # TODO: List the headers should be installed to system here.
 set(PurC_INSTALLED_HEADERS
     "${PurC_DERIVED_SOURCES_DIR}/purc-version.h"
+    "${PurC_DERIVED_SOURCES_DIR}/purc-features.h"
     "${PURC_DIR}/include/purc-macros.h"
     "${PURC_DIR}/include/purc-errors.h"
     "${PURC_DIR}/include/purc-variant.h"
