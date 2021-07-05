@@ -29,9 +29,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#ifdef PURC_BUILD_WITH_GLIB
+#ifdef ENABLE_SOCKET_STREAM
 #include <glib.h>
-#endif // PURC_BUILD_WITH_GLIB
+#endif // ENABLE_SOCKET_STREAM
 
 struct purc_rwstream;
 typedef struct purc_rwstream purc_rwstream;
@@ -68,14 +68,14 @@ struct mem_rwstream
     uint8_t* stop;
 };
 
-#ifdef PURC_BUILD_WITH_GLIB
+#ifdef ENABLE_SOCKET_STREAM
 struct gio_rwstream
 {
     purc_rwstream rwstream;
     GIOChannel* gio_channel;
     int fd;
 };
-#endif // PURC_BUILD_WITH_GLIB
+#endif // ENABLE_SOCKET_STREAM
 
 static off_t stdio_seek (purc_rwstream_t rws, off_t offset, int whence);
 static off_t stdio_tell (purc_rwstream_t rws);
@@ -117,7 +117,7 @@ rwstream_funcs mem_funcs = {
     mem_destroy
 };
 
-#ifdef PURC_BUILD_WITH_GLIB
+#ifdef ENABLE_SOCKET_STREAM
 static off_t win_socket_seek (purc_rwstream_t rws, off_t offset, int whence);
 static off_t gio_seek (purc_rwstream_t rws, off_t offset, int whence);
 static off_t gio_tell (purc_rwstream_t rws);
@@ -181,7 +181,7 @@ purc_error_t rwstream_error_code_from_gerror (GError* err)
             return PCRWSTREAM_ERROR_FAILED;
     }
 }
-#endif // PURC_BUILD_WITH_GLIB
+#endif // ENABLE_SOCKET_STREAM
 
 
 /* rwstream api */
@@ -220,7 +220,7 @@ purc_rwstream_t purc_rwstream_new_from_fp (FILE* fp)
     return (purc_rwstream_t) rws;
 }
 
-#ifdef PURC_BUILD_WITH_GLIB
+#ifdef ENABLE_SOCKET_STREAM
 purc_rwstream_t purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf)
 {
     GIOChannel* gio_channel = g_io_channel_unix_new(fd);
@@ -244,9 +244,17 @@ purc_rwstream_t purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf)
     gio->fd = fd;
     return (purc_rwstream_t) gio;
 }
-#endif // PURC_BUILD_WITH_GLIB
+#else
+purc_rwstream_t purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf)
+{
+    (void)fd;
+    (void)sz_buf;
+    pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+    return NULL;
+}
+#endif // ENABLE_SOCKET_STREAM
 
-#if defined(PURC_BUILD_WITH_GLIB) && defined(G_OS_WIN32)
+#if defined(ENABLE_SOCKET_STREAM) && defined(G_OS_WIN32)
 purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf)
 {
     GIOChannel* gio_channel = g_io_channel_win32_new_socket(socket);
@@ -269,7 +277,15 @@ purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf)
     gio->gio_channel = gio_channel;
     return (purc_rwstream_t) rws;
 }
-#endif // defined(PURC_BUILD_WITH_GLIB) && defined(G_OS_WIN32)
+#else
+purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf)
+{
+    (void)socket;
+    (void)sz_buf;
+    pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+    return NULL;
+}
+#endif // defined(ENABLE_SOCKET_STREAM) && defined(G_OS_WIN32)
 
 int purc_rwstream_destroy (purc_rwstream_t rws)
 {
@@ -576,7 +592,7 @@ static int mem_destroy (purc_rwstream_t rws)
     return 0;
 }
 
-#ifdef PURC_BUILD_WITH_GLIB
+#ifdef ENABLE_SOCKET_STREAM
 /* glib rwstream functions */
 static off_t win_socket_seek (purc_rwstream_t rws, off_t offset, int whence)
 {
@@ -687,4 +703,4 @@ static int gio_destroy (purc_rwstream_t rws)
     free(rws);
     return 0;
 }
-#endif // PURC_BUILD_WITH_GLIB
+#endif // ENABLE_SOCKET_STREAM

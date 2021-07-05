@@ -77,9 +77,8 @@ purc_rwstream_t purc_rwstream_new_from_file (const char* file, const char* mode)
  */
 purc_rwstream_t purc_rwstream_new_from_fp (FILE* fp);
 
-#ifdef PURC_BUILD_WITH_GLIB
 /**
- * Creates a new purc_rwstream_t for the given file descriptor (Unix only).
+ * Creates a new purc_rwstream_t for the given file descriptor (Unix && GLIB).
  *
  * @param fd: file descriptor
  * @param sz_buf: buffer size
@@ -90,10 +89,8 @@ purc_rwstream_t purc_rwstream_new_from_fp (FILE* fp);
  */
 purc_rwstream_t purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf);
 
-
-#ifdef G_OS_WIN32
 /**
- * Creates a new purc_rwstream_t for the given socket on Windows (Win32 only).
+ * Creates a new purc_rwstream_t for the given socket on Windows (Win32 && GLIB).
  *
  * @param socket:  sockets created by Winsock
  * @param sz_buf: buffer size
@@ -103,9 +100,6 @@ purc_rwstream_t purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf);
  * Since: 0.0.1
  */
 purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf);
-#endif
-
-#endif
 
 /**
  * Release the purc_rwstream_t
