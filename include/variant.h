@@ -957,6 +957,8 @@ bool purc_variant_usage_stat (struct purc_variant_stat* stat);
 
 PCA_EXTERN_C_END
 
+// test from xuxiaohong
+
 #endif /* not defined PURC_PURC_VARIANT_H */
 
 
