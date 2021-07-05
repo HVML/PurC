@@ -53,7 +53,7 @@ PCA_EXTERN_C_BEGIN
  *
  * Since: 0.0.1
  */
-purc_variant_t purc_variant_make_undefined (void);
+PCA_EXPORT purc_variant_t purc_variant_make_undefined (void);
 
 
 /**
@@ -63,7 +63,7 @@ purc_variant_t purc_variant_make_undefined (void);
  *
  * Since: 0.0.1
  */
-purc_variant_t purc_variant_make_null (void);
+PCA_EXPORT purc_variant_t purc_variant_make_null (void);
 
 
 /**
@@ -75,7 +75,7 @@ purc_variant_t purc_variant_make_null (void);
  *
  * Since: 0.0.1
  */
-purc_variant_t purc_variant_make_boolean (bool b);
+PCA_EXPORT purc_variant_t purc_variant_make_boolean (bool b);
 
 
 /**
@@ -87,7 +87,7 @@ purc_variant_t purc_variant_make_boolean (bool b);
  *
  * Since: 0.0.1
  */
-purc_variant_t purc_variant_make_number (double d);
+PCA_EXPORT purc_variant_t purc_variant_make_number (double d);
 
 
 /**
@@ -99,7 +99,7 @@ purc_variant_t purc_variant_make_number (double d);
  *
  * Since: 0.0.1
  */
-purc_variant_t purc_variant_make_longuint (uint64_t u64);
+PCA_EXPORT purc_variant_t purc_variant_make_longuint (uint64_t u64);
 
 
 /**
@@ -111,7 +111,7 @@ purc_variant_t purc_variant_make_longuint (uint64_t u64);
  *
  * Since: 0.0.1
  */
-purc_variant_t purc_variant_make_longint (int64_t u64);
+PCA_EXPORT purc_variant_t purc_variant_make_longint (int64_t u64);
 
 
 /**
@@ -123,7 +123,7 @@ purc_variant_t purc_variant_make_longint (int64_t u64);
  *
  * Since: 0.0.1
  */
-purc_variant_t purc_variant_make_longdouble (long double lf);
+PCA_EXPORT purc_variant_t purc_variant_make_longdouble (long double lf);
 
 
 /**
@@ -135,7 +135,7 @@ purc_variant_t purc_variant_make_longdouble (long double lf);
  *
  * Since: 0.0.1
  */
-purc_variant_t purc_variant_make_string (const char* str_utf8);
+PCA_EXPORT purc_variant_t purc_variant_make_string (const char* str_utf8);
 
 
 /**
@@ -150,7 +150,7 @@ purc_variant_t purc_variant_make_string (const char* str_utf8);
  *
  * Since: 0.0.1
  */
-purc_variant_t purc_variant_make_string_with_check (const char* str_utf8);
+PCA_EXPORT purc_variant_t purc_variant_make_string_with_check (const char* str_utf8);
 
 
 /**
@@ -162,7 +162,7 @@ purc_variant_t purc_variant_make_string_with_check (const char* str_utf8);
  *
  * Since: 0.0.1
  */
-const char* purc_variant_get_string_const (purc_variant_t value);
+PCA_EXPORT const char* purc_variant_get_string_const (purc_variant_t value);
 
 
 /**
@@ -174,7 +174,7 @@ const char* purc_variant_get_string_const (purc_variant_t value);
  *
  * Since: 0.0.1
  */
-size_t purc_variant_string_length(const purc_variant_t value);
+PCA_EXPORT size_t purc_variant_string_length(const purc_variant_t value);
 
 
 /**
@@ -187,7 +187,7 @@ size_t purc_variant_string_length(const purc_variant_t value);
  *
  * Since: 0.0.1
  */
-purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes, size_t nr_bytes);
+PCA_EXPORT purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes, size_t nr_bytes);
 
 
 /**
@@ -200,7 +200,7 @@ purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes, size
  *
  * Since: 0.0.1
  */
-const unsigned char* purc_variant_get_bytes_const (purc_variant_t value, size_t* nr_bytes);
+PCA_EXPORT const unsigned char* purc_variant_get_bytes_const (purc_variant_t value, size_t* nr_bytes);
 
 
 /**
@@ -212,7 +212,7 @@ const unsigned char* purc_variant_get_bytes_const (purc_variant_t value, size_t*
  *
  * Since: 0.0.1
  */
-size_t purc_variant_sequence_length(const purc_variant_t sequence);
+PCA_EXPORT size_t purc_variant_sequence_length(const purc_variant_t sequence);
 
 
 typedef purc_variant_t (*PCB_DYNAMIC_VARIANT) (purc_variant_t root, int nr_args, purc_variant_t arg0, ...);
@@ -228,7 +228,7 @@ typedef purc_variant_t (*PCB_DYNAMIC_VARIANT) (purc_variant_t root, int nr_args,
  *
  * Since: 0.0.1
  */
-purc_variant_t purc_variant_make_dynamic_value (CB_DYNAMIC_VARIANT getter, CB_DYNAMIC_VARIANT setter);
+PCA_EXPORT purc_variant_t purc_variant_make_dynamic_value (CB_DYNAMIC_VARIANT getter, CB_DYNAMIC_VARIANT setter);
 
 
 typedef bool (*purc_nvariant_releaser) (void* native_obj);
@@ -244,7 +244,7 @@ typedef bool (*purc_nvariant_releaser) (void* native_obj);
  *
  * Since: 0.0.1
  */
-purc_variant_t purc_variant_make_native (void *native_obj, purc_nvariant_releaser releaser);
+PCA_EXPORT purc_variant_t purc_variant_make_native (void *native_obj, purc_nvariant_releaser releaser);
 
 
 /**
@@ -257,7 +257,7 @@ purc_variant_t purc_variant_make_native (void *native_obj, purc_nvariant_release
  *
  * Since: 0.0.1
  */
-purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...);
+PCA_EXPORT purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...);
 
 
 /**
@@ -270,7 +270,7 @@ purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...);
  *
  * Since: 0.0.1
  */
-bool purc_variant_array_append (purc_variant_t array, purc_variant_t value);
+PCA_EXPORT bool purc_variant_array_append (purc_variant_t array, purc_variant_t value);
 
 
 /**
@@ -283,7 +283,7 @@ bool purc_variant_array_append (purc_variant_t array, purc_variant_t value);
  *
  * Since: 0.0.1
  */
-bool purc_variant_array_prepend (purc_variant_t array, purc_variant_t value);
+PCA_EXPORT bool purc_variant_array_prepend (purc_variant_t array, purc_variant_t value);
 
 
 /**
@@ -296,7 +296,7 @@ bool purc_variant_array_prepend (purc_variant_t array, purc_variant_t value);
  *
  * Since: 0.0.1
  */
-purc_variant_t purc_variant_array_get (purc_variant_t array, int idx);
+PCA_EXPORT purc_variant_t purc_variant_array_get (purc_variant_t array, int idx);
 
 
 /**
@@ -313,7 +313,7 @@ purc_variant_t purc_variant_array_get (purc_variant_t array, int idx);
  *
  * Since: 0.0.1
  */
-bool purc_variant_array_set (purc_variant_t array, int idx, purc_variant_t value);
+PCA_EXPORT bool purc_variant_array_set (purc_variant_t array, int idx, purc_variant_t value);
 
 
 /**
@@ -329,7 +329,7 @@ bool purc_variant_array_set (purc_variant_t array, int idx, purc_variant_t value
  *
  * Since: 0.0.1
  */
-bool purc_variant_array_remove (purc_variant_t array, int idx);
+PCA_EXPORT bool purc_variant_array_remove (purc_variant_t array, int idx);
 
 
 /**
@@ -346,7 +346,7 @@ bool purc_variant_array_remove (purc_variant_t array, int idx);
  *
  * Since: 0.0.1
  */
-bool purc_variant_array_insert_before (purc_variant_t array, int idx, purc_variant_t value);
+PCA_EXPORT bool purc_variant_array_insert_before (purc_variant_t array, int idx, purc_variant_t value);
 
 
 /**
@@ -362,7 +362,7 @@ bool purc_variant_array_insert_before (purc_variant_t array, int idx, purc_varia
  *
  * Since: 0.0.1
  */
-bool purc_variant_array_insert_after (purc_variant_t array, int idx, purc_variant_t value);
+PCA_EXPORT bool purc_variant_array_insert_after (purc_variant_t array, int idx, purc_variant_t value);
 
 
 /**
@@ -374,7 +374,7 @@ bool purc_variant_array_insert_after (purc_variant_t array, int idx, purc_varian
  *
  * Since: 0.0.1
  */
-size_t purc_variant_array_get_size(const purc_variant_t array);
+PCA_EXPORT size_t purc_variant_array_get_size(const purc_variant_t array);
 
 
 /**
@@ -388,7 +388,7 @@ size_t purc_variant_array_get_size(const purc_variant_t array);
  *
  * Since: 0.0.1
  */
-purc_variant_t purc_variant_make_object (size_t nr_kv_pairs, const char* key0, purc_variant_t value0, ...);
+PCA_EXPORT purc_variant_t purc_variant_make_object (size_t nr_kv_pairs, const char* key0, purc_variant_t value0, ...);
 
 
 /**
@@ -401,7 +401,7 @@ purc_variant_t purc_variant_make_object (size_t nr_kv_pairs, const char* key0, p
  *
  * Since: 0.0.1
  */
-purc_variant_t purc_variant_object_get (purc_variant_t obj, const char* key);
+PCA_EXPORT purc_variant_t purc_variant_object_get (purc_variant_t obj, const char* key);
 
 
 /**
@@ -415,7 +415,7 @@ purc_variant_t purc_variant_object_get (purc_variant_t obj, const char* key);
  *
  * Since: 0.0.1
  */
-bool purc_variant_object_set (purc_variant_t obj, const char* key, purc_variant_t value);
+PCA_EXPORT bool purc_variant_object_set (purc_variant_t obj, const char* key, purc_variant_t value);
 
 
 /**
@@ -428,7 +428,7 @@ bool purc_variant_object_set (purc_variant_t obj, const char* key, purc_variant_
  *
  * Since: 0.0.1
  */
-bool purc_variant_object_remove (purc_variant_t obj, const char* key);
+PCA_EXPORT bool purc_variant_object_remove (purc_variant_t obj, const char* key);
 
 
 /**
@@ -440,9 +440,7 @@ bool purc_variant_object_remove (purc_variant_t obj, const char* key);
  *
  * Since: 0.0.1
  */
-size_t purc_variant_object_get_size (const purc_variant_t obj);
-
-
+PCA_EXPORT size_t purc_variant_object_get_size (const purc_variant_t obj);
 
 
 /**
@@ -480,7 +478,7 @@ struct purc_variant_object_iterator;
  *
  * Since: 0.0.1
  */
-struct purc_variant_object_iterator* purc_variant_object_make_iterator_begin (purc_variant_t object);
+PCA_EXPORT struct purc_variant_object_iterator* purc_variant_object_make_iterator_begin (purc_variant_t object);
 
 /**
  * Get the end-iterator of the object,
@@ -495,7 +493,7 @@ struct purc_variant_object_iterator* purc_variant_object_make_iterator_begin (pu
  *
  * Since: 0.0.1
  */
-struct purc_variant_object_iterator* purc_variant_object_make_iterator_end (purc_variant_t object);
+PCA_EXPORT struct purc_variant_object_iterator* purc_variant_object_make_iterator_end (purc_variant_t object);
 
 /**
  * Release the object's iterator
@@ -507,7 +505,7 @@ struct purc_variant_object_iterator* purc_variant_object_make_iterator_end (purc
  *
  * Since: 0.0.1
  */
-void purc_variant_object_release_iterator (struct purc_variant_object_iterator* it);
+PCA_EXPORT void purc_variant_object_release_iterator (struct purc_variant_object_iterator* it);
 
 /**
  * Make the iterator point to it's successor,
@@ -521,7 +519,7 @@ void purc_variant_object_release_iterator (struct purc_variant_object_iterator* 
  *
  * Since: 0.0.1
  */
-bool purc_variant_object_iterator_next (struct purc_variant_object_iterator* it);
+PCA_EXPORT bool purc_variant_object_iterator_next (struct purc_variant_object_iterator* it);
 
 /**
  * Make the iterator point to it's predecessor,
@@ -535,7 +533,7 @@ bool purc_variant_object_iterator_next (struct purc_variant_object_iterator* it)
  *
  * Since: 0.0.1
  */
-bool purc_variant_object_iterator_prev (struct purc_variant_object_iterator* it);
+PCA_EXPORT bool purc_variant_object_iterator_prev (struct purc_variant_object_iterator* it);
 
 /**
  * Get the key of key-val-pair that the iterator points to
@@ -546,7 +544,7 @@ bool purc_variant_object_iterator_prev (struct purc_variant_object_iterator* it)
  *
  * Since: 0.0.1
  */
-const char *purc_variant_object_iterator_get_key (struct purc_variant_object_iterator* it);
+PCA_EXPORT const char *purc_variant_object_iterator_get_key (struct purc_variant_object_iterator* it);
 
 /**
  * Get the value of key-val-pair that the iterator points to
@@ -558,7 +556,8 @@ const char *purc_variant_object_iterator_get_key (struct purc_variant_object_ite
  *
  * Since: 0.0.1
  */
-purc_variant_t purc_variant_object_iterator_get_value (struct purc_variant_object_iterator* it);
+PCA_EXPORT purc_variant_t purc_variant_object_iterator_get_value (struct purc_variant_object_iterator* it);
+
 
 /**
  * Creates a variant data of set type.
@@ -573,7 +572,7 @@ purc_variant_t purc_variant_object_iterator_get_value (struct purc_variant_objec
  *
  * Since: 0.0.1
  */
-purc_variant_t purc_variant_make_set (size_t sz, const char* unique_key, purc_variant_t value0, ...);
+PCA_EXPORT purc_variant_t purc_variant_make_set (size_t sz, const char* unique_key, purc_variant_t value0, ...);
 
 
 /**
@@ -586,7 +585,7 @@ purc_variant_t purc_variant_make_set (size_t sz, const char* unique_key, purc_va
  *
  * Since: 0.0.1
  */
-bool purc_variant_set_add (purc_variant_t set, purc_variant_t value);
+PCA_EXPORT bool purc_variant_set_add (purc_variant_t set, purc_variant_t value);
 
 
 /**
@@ -599,7 +598,7 @@ bool purc_variant_set_add (purc_variant_t set, purc_variant_t value);
  *
  * Since: 0.0.1
  */
-bool purc_variant_set_remove (purc_variant_t set, purc_variant_t value);
+PCA_EXPORT bool purc_variant_set_remove (purc_variant_t set, purc_variant_t value);
 
 
 /**
@@ -612,7 +611,7 @@ bool purc_variant_set_remove (purc_variant_t set, purc_variant_t value);
  *
  * Since: 0.0.1
  */
-purc_variant_t purc_variant_set_get_value (const purc_variant_t set, const char * match_key);
+PCA_EXPORT purc_variant_t purc_variant_set_get_value (const purc_variant_t set, const char * match_key);
 
 
 /**
@@ -624,8 +623,7 @@ purc_variant_t purc_variant_set_get_value (const purc_variant_t set, const char 
  *
  * Since: 0.0.1
  */
-size_t purc_variant_set_get_size(const purc_variant_t set);
-
+PCA_EXPORT size_t purc_variant_set_get_size(const purc_variant_t set);
 
 
 /**
@@ -654,7 +652,7 @@ struct purc_variant_set_iterator;
  * which points to the head element of the set
  *
  * @param set: the variant value of set type
- *
+ * 
  * Returns: the begin-iterator of the set.
  *          NULL if no element in the set
  *          returned iterator will inc set's ref for iterator's lifetime
@@ -662,7 +660,7 @@ struct purc_variant_set_iterator;
  *
  * Since: 0.0.1
  */
-struct purc_variant_set_iterator* purc_variant_set_make_iterator_begin (purc_variant_t set);
+PCA_EXPORT struct purc_variant_set_iterator* purc_variant_set_make_iterator_begin (purc_variant_t set);
 
 /**
  * Get the end-iterator of the set,
@@ -677,7 +675,7 @@ struct purc_variant_set_iterator* purc_variant_set_make_iterator_begin (purc_var
  *
  * Since: 0.0.1
  */
-struct purc_variant_set_iterator* purc_variant_set_make_iterator_end (purc_variant_t set);
+PCA_EXPORT struct purc_variant_set_iterator* purc_variant_set_make_iterator_end (purc_variant_t set);
 
 /**
  * Release the set's iterator
@@ -689,7 +687,7 @@ struct purc_variant_set_iterator* purc_variant_set_make_iterator_end (purc_varia
  *
  * Since: 0.0.1
  */
-void purc_variant_set_release_iterator (struct purc_variant_set_iterator* it);
+PCA_EXPORT void purc_variant_set_release_iterator (struct purc_variant_set_iterator* it);
 
 /**
  * Make the set's iterator point to it's successor,
@@ -703,7 +701,7 @@ void purc_variant_set_release_iterator (struct purc_variant_set_iterator* it);
  *
  * Since: 0.0.1
  */
-bool purc_variant_set_iterator_next (struct purc_variant_set_iterator* it);
+PCA_EXPORT bool purc_variant_set_iterator_next (struct purc_variant_set_iterator* it);
 
 /**
  * Make the set's iterator point to it's predecessor,
@@ -717,7 +715,7 @@ bool purc_variant_set_iterator_next (struct purc_variant_set_iterator* it);
  *
  * Since: 0.0.1
  */
-bool purc_variant_set_iterator_prev (struct purc_variant_set_iterator* it);
+PCA_EXPORT bool purc_variant_set_iterator_prev (struct purc_variant_set_iterator* it);
 
 /**
  * Get the value of the element that the iterator points to
@@ -729,7 +727,7 @@ bool purc_variant_set_iterator_prev (struct purc_variant_set_iterator* it);
  *
  * Since: 0.0.1
  */
-purc_variant_t purc_variant_set_iterator_get_value (struct purc_variant_set_iterator* it);
+PCA_EXPORT purc_variant_t purc_variant_set_iterator_get_value (struct purc_variant_set_iterator* it);
 
 
 
@@ -742,7 +740,7 @@ purc_variant_t purc_variant_set_iterator_get_value (struct purc_variant_set_iter
  *
  * Since: 0.0.1
  */
-unsigned int purc_variant_ref (purc_variant_t value);
+PCA_EXPORT unsigned int purc_variant_ref (purc_variant_t value);
 
 
 /**
@@ -754,7 +752,7 @@ unsigned int purc_variant_ref (purc_variant_t value);
  *
  * Since: 0.0.1
  */
-unsigned int purc_variant_unref (purc_variant_t value);
+PCA_EXPORT unsigned int purc_variant_unref (purc_variant_t value);
 
 
 /**
@@ -768,7 +766,7 @@ unsigned int purc_variant_unref (purc_variant_t value);
  *
  * Since: 0.0.1
  */
-purc_variant_t purc_variant_make_from_json_string (const char* json, size_t sz);
+PCA_EXPORT purc_variant_t purc_variant_make_from_json_string (const char* json, size_t sz);
 
 
 /**
@@ -780,7 +778,7 @@ purc_variant_t purc_variant_make_from_json_string (const char* json, size_t sz);
  *
  * Since: 0.0.1
  */
-purc_variant_t purc_variant_load_from_json_file (const char* file);
+PCA_EXPORT purc_variant_t purc_variant_load_from_json_file (const char* file);
 
 
 /**
@@ -792,7 +790,7 @@ purc_variant_t purc_variant_load_from_json_file (const char* file);
  *
  * Since: 0.0.1
  */
-purc_variant_t purc_variant_load_from_json_stream (purc_rwstream_t stream);
+PCA_EXPORT purc_variant_t purc_variant_load_from_json_stream (purc_rwstream_t stream);
 
 
 /**
@@ -805,7 +803,7 @@ purc_variant_t purc_variant_load_from_json_stream (purc_rwstream_t stream);
 .*
  * Since: 0.0.1
  */
-int purc_variant_compare (purc_variant_t v1, purc_variant v2);
+PCA_EXPORT int purc_variant_compare (purc_variant_t v1, purc_variant v2);
 
 
 /**
@@ -820,7 +818,7 @@ int purc_variant_compare (purc_variant_t v1, purc_variant v2);
 .*
  * Since: 0.0.1
  */
-size_t purc_variant_serialize (purc_variant_t value, purc_rwstream_t stream, unsigned int opts);
+PCA_EXPORT size_t purc_variant_serialize (purc_variant_t value, purc_rwstream_t stream, unsigned int opts);
 
 
 /**
@@ -834,8 +832,7 @@ size_t purc_variant_serialize (purc_variant_t value, purc_rwstream_t stream, uns
 .*
  * Since: 0.0.1
  */
-purc_variant_t purc_variant_dynamic_value_load_from_so (const char* so_name, const char* var_name);
-
+PCA_EXPORT purc_variant_t purc_variant_dynamic_value_load_from_so (const char* so_name, const char* var_name);
 
 
 typedef enum variant_type
@@ -866,7 +863,7 @@ typedef enum variant_type
  *
  * Since: 0.0.1
  */
-bool purc_variant_is_type(const purc_variant_t value, enum variant_type type);
+PCA_EXPORT bool purc_variant_is_type(const purc_variant_t value, enum variant_type type);
 
 
 /**
@@ -878,7 +875,7 @@ bool purc_variant_is_type(const purc_variant_t value, enum variant_type type);
  *
  * Since: 0.0.1
  */
-enum variant_type purc_variant_get_type(const purc_variant_t value);
+PCA_EXPORT enum variant_type purc_variant_get_type(const purc_variant_t value);
 
 
 struct purc_variant_stat {
@@ -895,7 +892,8 @@ struct purc_variant_stat {
  *
  * Since: 0.0.1
  */
-bool purc_variant_usage_stat (struct purc_variant_stat* stat);
+PCA_EXPORT bool purc_variant_usage_stat (struct purc_variant_stat* stat);
+
 
 
 #define foreach_value_in_variant_array(array, value)                \
