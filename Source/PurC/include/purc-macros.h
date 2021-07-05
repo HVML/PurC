@@ -79,3 +79,5 @@
 #define PCA_EXTERN_C_END
 #endif
 
+#define PCA_TABLESIZE(table)    (sizeof(table)/sizeof(table[0]))
+

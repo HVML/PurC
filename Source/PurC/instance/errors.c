@@ -2,7 +2,7 @@
  * @file errors.c
  * @author Vincent Wei (https://github.com/VincentWei)
  * @date 2021/07/02
- * @brief The error codes of PurC.
+ * @brief The get/set error code of PurC.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -24,31 +24,51 @@
 
 #include "purc-errors.h"
 
-#include "config.h"
+#include "private/errors.h"
+#include "private/instance.h"
 
-static int my_last_error = PURC_ERROR_OK;
-
-int purc_get_last_error (void)
+int purc_get_last_error(void)
 {
-    return my_last_error;
+    const struct pcinst* inst = pcinst_current();
+    if (inst) {
+        return inst->errcode;
+    }
+
+    return PURC_ERROR_NO_INSTANCE;
 }
 
-void purc_set_error (int err_code)
+int pcinst_set_error(int errcode)
 {
-    my_last_error = err_code;
+    struct pcinst* inst = pcinst_current();
+    if (inst) {
+        inst->errcode = errcode;
+        return PURC_ERROR_OK;
+    }
+
+    return PURC_ERROR_NO_INSTANCE;
 }
 
-const char* purc_get_error_message (int err_code)
+static LIST_HEAD(_err_msg_seg_list);
+
+/* Error Messages */
+#define UNKNOWN_ERR_CODE    "Unknown Error Code"
+
+const char* purc_get_error_message(int errcode)
 {
-    UNUSED_PARAM(err_code);
-    return "Unknown";
+    struct list_head *p;
+
+    list_for_each(p, &_err_msg_seg_list) {
+        struct err_msg_seg *seg = (struct err_msg_seg *)p;
+        if (errcode >= seg->first_errcode && errcode <= seg->last_errcode) {
+            return seg->msgs[errcode - seg->first_errcode];
+        }
+    }
+
+    return UNKNOWN_ERR_CODE;
 }
 
-bool purc_set_error_messages (int first, const char* msgs[], size_t nr_msgs)
+void pcinst_register_error_message_segment(struct err_msg_seg* seg)
 {
-    UNUSED_PARAM(first);
-    UNUSED_PARAM(msgs);
-    UNUSED_PARAM(nr_msgs);
-    return true;
+    list_add (&seg->list, &_err_msg_seg_list);
 }
 

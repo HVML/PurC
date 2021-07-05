@@ -10,6 +10,7 @@ set(PurC_PRIVATE_INCLUDE_DIRECTORIES
     "${PURC_DIR}"
     "${PURC_DIR}/include"
     "${PurC_DERIVED_SOURCES_DIR}"
+    "${FORWARDING_HEADERS_DIR}"
 )
 
 set(PurC_INSTALLED_HEADERS
@@ -29,6 +30,9 @@ set(PurC_PLATFORM_INDEPENDENT_DIRS
 # This macro will append all C/CXX source files in ${PurC_PLATFORM_INDEPENDENT_DIRS}
 # to ${PurC_SOURCES}
 APPEND_ALL_SOURCE_FILES_IN_DIRLIST(PurC_SOURCES ${PurC_PLATFORM_INDEPENDENT_DIRS})
+
+#list(APPEND PurC_SOURCES
+#)
 
 # Put the CXX source files which can be unified in `Sources.txt`
 list(APPEND PurC_UNIFIED_SOURCE_LIST_FILES

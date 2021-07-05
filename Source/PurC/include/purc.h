@@ -45,11 +45,9 @@ typedef struct purc_hvml_extra_info {
     int bar;
 } purc_hvml_extra_info;
 
-typedef int (*purc_event_handler) (pcvdom_tree_t vdom, purc_variant_t event);
-
 PCA_EXTERN_C_BEGIN
 
-PCA_EXPORT bool
+PCA_EXPORT int
 purc_init (const char* app_name, const char* runner_name,
         const purc_instance_extra_info* extra_info);
 
@@ -80,8 +78,10 @@ purc_bind_document_variable (pcvdom_tree_t vdom, const char* name, purc_variant_
 
 PCA_EXPORT bool
 purc_register_hvml_to_renderer (pcvdom_tree_t vdom,
-        const const* type, const char* name,
+        const char* type, const char* name,
         const purc_hvml_extra_info* extra_info);
+
+typedef int (*purc_event_handler) (pcvdom_tree_t vdom, purc_variant_t event);
 
 PCA_EXPORT bool
 purc_run (purc_variant_t request, purc_event_handler handler);

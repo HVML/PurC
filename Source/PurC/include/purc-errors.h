@@ -32,11 +32,12 @@
 
 #define PURC_ERROR_OK                   0
 #define PURC_ERROR_BAD_SYSTEM_CALL      1
-#define PURC_ERROR_BAD_STDC             2
+#define PURC_ERROR_BAD_STDC_CALL        2
 #define PURC_ERROR_OUT_OF_MEMORY        3
 #define PURC_ERROR_INVALID_VALUE        4
 #define PURC_ERROR_DUPLICATED           5
 #define PURC_ERROR_NOT_IMPLEMENTED      6
+#define PURC_ERROR_NO_INSTANCE          7
 
 // the first error codes for various modules:
 #define PURC_ERROR_FIRST_VARIANT        100
@@ -68,17 +69,23 @@ enum pcrwstream_error
 
 PCA_EXTERN_C_BEGIN
 
+/**
+ * purc_get_last_error:
+ *
+ * Returns: The last error code.
+ */
 PCA_EXPORT int
 purc_get_last_error (void);
 
+/**
+ * purc_get_error_message:
+ *
+ * @errcode: the error code.
+ *
+ * Returns: The message for the specified error code.
+ */
 PCA_EXPORT const char*
-purc_get_error_message (int err_code);
-
-bool
-purc_set_error_messages (int first, const char* msgs[], size_t nr_msgs);
-
-void
-purc_set_error (int err_code);
+purc_get_error_message (int errcode);
 
 PCA_EXTERN_C_END
 
