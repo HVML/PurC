@@ -1,13 +1,12 @@
-/**
- * @file purc.h
+/*
+ * @file instance.h
  * @author Vincent Wei (https://github.com/VincentWei)
- * @date 2021/07/02
- * @brief The main header file of PurC.
+ * @date 2021/07/05
+ * @brief The structures for PurC instance.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
- * This file is a part of PurC (short for Purring Cat), an HVML parser
- * and interpreter.
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,18 +20,24 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- *
  */
 
-#ifndef PURC_PURC_H
-#define PURC_PURC_H
+#ifndef PURC_PRIVATE_INSTANCE_H
+#define PURC_PRIVATE_INSTANCE_H
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdio.h>
+#include "purc.h"
 
-#include "purc_macros.h"
-#include "purc_version.h"
-#include "purc_errors.h"
+#include "config.h"
 
-#endif /* PURC_PURC_H */
+struct pcinst {
+    int errcode;
+
+    char* app_name;
+    char* runner_name;
+};
+
+/* gets the current instance */
+struct pcinst* pcinst_current(void);
+
+#endif /* not defined PURC_PRIVATE_INSTANCE_H */
+

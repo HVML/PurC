@@ -1,39 +1,38 @@
-/**
- * @file purc_macros.h
- * @author Vincent Wei (https://github.com/VincentWei)
- * @date 2021/07/02
- * @brief Some macros related to compiler features.
+/*
+ * Copyright (C) 2011-2020 Apple Inc. All rights reserved.
  *
- * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
  *
- * This file is a part of PurC (short for Purring Cat), an HVML parser
- * and interpreter.
- * 
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * THIS SOFTWARE IS PROVIDED BY APPLE INC. ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE INC. OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#ifndef PURC_PURC_MACROS_H
-#define PURC_PURC_MACROS_H
+#pragma once
 
 /* COMPILER() - the compiler being used to build the project */
-#define COMPILER(PURC_FEATURE) (defined PURC_COMPILER_##PURC_FEATURE  && PURC_COMPILER_##PURC_FEATURE)
+#define COMPILER(WTF_FEATURE) (defined WTF_COMPILER_##WTF_FEATURE  && WTF_COMPILER_##WTF_FEATURE)
 
 /* COMPILER_SUPPORTS() - whether the compiler being used to build the project supports the given feature. */
-#define COMPILER_SUPPORTS(PURC_COMPILER_FEATURE) (defined PURC_COMPILER_SUPPORTS_##PURC_COMPILER_FEATURE  && PURC_COMPILER_SUPPORTS_##PURC_COMPILER_FEATURE)
+#define COMPILER_SUPPORTS(WTF_COMPILER_FEATURE) (defined WTF_COMPILER_SUPPORTS_##WTF_COMPILER_FEATURE  && WTF_COMPILER_SUPPORTS_##WTF_COMPILER_FEATURE)
 
 /* COMPILER_QUIRK() - whether the compiler being used to build the project requires a given quirk. */
-#define COMPILER_QUIRK(PURC_COMPILER_QUIRK) (defined PURC_COMPILER_QUIRK_##PURC_COMPILER_QUIRK  && PURC_COMPILER_QUIRK_##PURC_COMPILER_QUIRK)
+#define COMPILER_QUIRK(WTF_COMPILER_QUIRK) (defined WTF_COMPILER_QUIRK_##WTF_COMPILER_QUIRK  && WTF_COMPILER_QUIRK_##WTF_COMPILER_QUIRK)
 
 /* COMPILER_HAS_CLANG_BUILTIN() - whether the compiler supports a particular clang builtin. */
 #ifdef __has_builtin
@@ -63,19 +62,19 @@
 /* COMPILER(CLANG) - Clang  */
 
 #if defined(__clang__)
-#define PURC_COMPILER_CLANG 1
-#define PURC_COMPILER_SUPPORTS_BLOCKS COMPILER_HAS_CLANG_FEATURE(blocks)
-#define PURC_COMPILER_SUPPORTS_C_STATIC_ASSERT COMPILER_HAS_CLANG_FEATURE(c_static_assert)
-#define PURC_COMPILER_SUPPORTS_CXX_EXCEPTIONS COMPILER_HAS_CLANG_FEATURE(cxx_exceptions)
-#define PURC_COMPILER_SUPPORTS_BUILTIN_IS_TRIVIALLY_COPYABLE COMPILER_HAS_CLANG_FEATURE(is_trivially_copyable)
+#define WTF_COMPILER_CLANG 1
+#define WTF_COMPILER_SUPPORTS_BLOCKS COMPILER_HAS_CLANG_FEATURE(blocks)
+#define WTF_COMPILER_SUPPORTS_C_STATIC_ASSERT COMPILER_HAS_CLANG_FEATURE(c_static_assert)
+#define WTF_COMPILER_SUPPORTS_CXX_EXCEPTIONS COMPILER_HAS_CLANG_FEATURE(cxx_exceptions)
+#define WTF_COMPILER_SUPPORTS_BUILTIN_IS_TRIVIALLY_COPYABLE COMPILER_HAS_CLANG_FEATURE(is_trivially_copyable)
 
 #ifdef __cplusplus
 #if __cplusplus <= 201103L
-#define PURC_CPP_STD_VER 11
+#define WTF_CPP_STD_VER 11
 #elif __cplusplus <= 201402L
-#define PURC_CPP_STD_VER 14
+#define WTF_CPP_STD_VER 14
 #elif __cplusplus <= 201703L
-#define PURC_CPP_STD_VER 17
+#define WTF_CPP_STD_VER 17
 #endif
 #endif
 
@@ -83,19 +82,19 @@
 
 /* COMPILER(GCC_COMPATIBLE) - GNU Compiler Collection or compatibles */
 #if defined(__GNUC__)
-#define PURC_COMPILER_GCC_COMPATIBLE 1
+#define WTF_COMPILER_GCC_COMPATIBLE 1
 #endif
 
 /* COMPILER(GCC) - GNU Compiler Collection */
 /* Note: This section must come after the Clang section since we check !COMPILER(CLANG) here. */
 #if COMPILER(GCC_COMPATIBLE) && !COMPILER(CLANG)
-#define PURC_COMPILER_GCC 1
+#define WTF_COMPILER_GCC 1
 
 #define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 #define GCC_VERSION_AT_LEAST(major, minor, patch) (GCC_VERSION >= (major * 10000 + minor * 100 + patch))
 
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
-#define PURC_COMPILER_SUPPORTS_C_STATIC_ASSERT 1
+#define WTF_COMPILER_SUPPORTS_C_STATIC_ASSERT 1
 #endif
 
 #endif /* COMPILER(GCC) */
@@ -107,7 +106,7 @@
 /* COMPILER(MINGW) - MinGW GCC */
 
 #if defined(__MINGW32__)
-#define PURC_COMPILER_MINGW 1
+#define WTF_COMPILER_MINGW 1
 #include <_mingw.h>
 #endif
 
@@ -116,14 +115,14 @@
 /* Note: This section must come after the MinGW section since we check COMPILER(MINGW) here. */
 
 #if COMPILER(MINGW) && defined(__MINGW64_VERSION_MAJOR) /* best way to check for mingw-w64 vs mingw.org */
-#define PURC_COMPILER_MINGW64 1
+#define WTF_COMPILER_MINGW64 1
 #endif
 
 /* COMPILER(MSVC) - Microsoft Visual C++ */
 
 #if defined(_MSC_VER)
 
-#define PURC_COMPILER_MSVC 1
+#define WTF_COMPILER_MSVC 1
 
 #if _MSC_VER < 1910
 #error "Please use a newer version of Visual Studio. xGUI requires VS2017 or newer to compile."
@@ -132,7 +131,7 @@
 #endif
 
 #if !COMPILER(CLANG) && !COMPILER(MSVC)
-#define PURC_COMPILER_QUIRK_CONSIDERS_UNREACHABLE_CODE 1
+#define WTF_COMPILER_QUIRK_CONSIDERS_UNREACHABLE_CODE 1
 #endif
 
 /* ==== COMPILER_SUPPORTS - additional compiler feature detection, in alphabetical order ==== */
@@ -140,7 +139,7 @@
 /* COMPILER_SUPPORTS(EABI) */
 
 #if defined(__ARM_EABI__) || defined(__EABI__)
-#define PURC_COMPILER_SUPPORTS_EABI 1
+#define WTF_COMPILER_SUPPORTS_EABI 1
 #endif
 
 /* ASAN_ENABLED and SUPPRESS_ASAN */
@@ -181,14 +180,14 @@
 #define ALWAYS_INLINE_EXCEPT_MSVC ALWAYS_INLINE
 #endif
 
-/* PURC_EXTERN_C_{BEGIN, END} */
+/* WTF_EXTERN_C_{BEGIN, END} */
 
 #ifdef __cplusplus
-#define PURC_EXTERN_C_BEGIN extern "C" {
-#define PURC_EXTERN_C_END }
+#define WTF_EXTERN_C_BEGIN extern "C" {
+#define WTF_EXTERN_C_END }
 #else
-#define PURC_EXTERN_C_BEGIN
-#define PURC_EXTERN_C_END
+#define WTF_EXTERN_C_BEGIN
+#define WTF_EXTERN_C_END
 #endif
 
 /* FALLTHROUGH */
@@ -287,6 +286,28 @@
 #define NO_RETURN_WITH_VALUE
 #endif
 
+/* OBJC_CLASS */
+
+#if !defined(OBJC_CLASS) && defined(__OBJC__)
+#define OBJC_CLASS @class
+#endif
+
+#if !defined(OBJC_CLASS)
+#define OBJC_CLASS class
+#endif
+
+/* OBJC_PROTOCOL */
+
+#if !defined(OBJC_PROTOCOL) && defined(__OBJC__)
+/* This forward-declares a protocol, then also creates a type of the same name based on NSObject.
+ * This allows us to use "NSObject<MyProtocol> *" or "MyProtocol *" more-or-less interchangably. */
+#define OBJC_PROTOCOL(protocolName) @protocol protocolName; using protocolName = NSObject<protocolName>
+#endif
+
+#if !defined(OBJC_PROTOCOL)
+#define OBJC_PROTOCOL(protocolName) class protocolName
+#endif
+
 /* PURE_FUNCTION */
 
 #if !defined(PURE_FUNCTION) && COMPILER(GCC_COMPATIBLE)
@@ -297,14 +318,14 @@
 #define PURE_FUNCTION
 #endif
 
-/* MAYBE_UNUSED */
+/* WK_UNUSED_INSTANCE_VARIABLE */
 
-#if !defined(MAYBE_UNUSED) && COMPILER(GCC_COMPATIBLE)
-#define MAYBE_UNUSED __attribute__((unused))
+#if !defined(WK_UNUSED_INSTANCE_VARIABLE) && COMPILER(GCC_COMPATIBLE)
+#define WK_UNUSED_INSTANCE_VARIABLE __attribute__((unused))
 #endif
 
-#if !defined(MAYBE_UNUSED)
-#define MAYBE_UNUSED
+#if !defined(WK_UNUSED_INSTANCE_VARIABLE)
+#define WK_UNUSED_INSTANCE_VARIABLE
 #endif
 
 /* UNUSED_FUNCTION */
@@ -388,7 +409,7 @@
 
 /* IGNORE_WARNINGS */
 
-/* Can't use PURC_CONCAT() and STRINGIZE() because they are defined in
+/* Can't use WTF_CONCAT() and STRINGIZE() because they are defined in
  * StdLibExtras.h, which includes this file. */
 #define _COMPILER_CONCAT_I(a, b) a ## b
 #define _COMPILER_CONCAT(a, b) _COMPILER_CONCAT_I(a, b)
@@ -467,21 +488,3 @@
 
 #define IGNORE_NULL_CHECK_WARNINGS_BEGIN IGNORE_WARNINGS_BEGIN("nonnull")
 #define IGNORE_NULL_CHECK_WARNINGS_END IGNORE_WARNINGS_END
-#if defined(_MSC_VER)
-#  define PURC_DEPRECATED(func) __declspec(deprecated) func
-#elif defined(__GNUC__) || defined(__INTEL_COMPILER)
-#  define PURC_DEPRECATED(func) func __attribute__((deprecated))
-#else
-#  define PURC_DEPRECATED(func) func
-#endif
-
-#if defined(_WIN64)
-#   define SIZEOF_PTR   8
-#elif defined(__LP64__)
-#   define SIZEOF_PTR   8
-#else
-#   define SIZEOF_PTR   4
-#endif
-
-#endif /* PURC_PURC_MACROS_H */
-

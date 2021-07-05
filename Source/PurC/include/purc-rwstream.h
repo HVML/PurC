@@ -1,13 +1,12 @@
 /**
- * @file purc.h
- * @author Vincent Wei (https://github.com/VincentWei)
+ * @file purc-rwstream.h
+ * @author 
  * @date 2021/07/02
- * @brief The main header file of PurC.
+ * @brief The API for RWStream.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
- * This file is a part of PurC (short for Purring Cat), an HVML parser
- * and interpreter.
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,18 +20,24 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- *
  */
 
-#ifndef PURC_PURC_H
-#define PURC_PURC_H
+#ifndef PURC_PURC_RWSTREAM_H
+#define PURC_PURC_RWSTREAM_H
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdio.h>
 
-#include "purc_macros.h"
-#include "purc_version.h"
-#include "purc_errors.h"
+#include "purc-macros.h"
 
-#endif /* PURC_PURC_H */
+struct purc_rwstream;
+typedef struct purc_rwstream purc_rwstream;
+typedef struct purc_rwstream* purc_rwstream_t;
+
+PCA_EXTERN_C_BEGIN
+
+
+PCA_EXTERN_C_END
+
+#endif /* not defined PURC_PURC_RWSTREAM_H */
+

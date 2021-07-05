@@ -1,13 +1,12 @@
 /**
- * @file purc.h
+ * @file config.h
  * @author Vincent Wei (https://github.com/VincentWei)
- * @date 2021/07/02
- * @brief The main header file of PurC.
+ * @date 2021/07/03
+ * @brief The configuration header file of PurC.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
- * This file is a part of PurC (short for Purring Cat), an HVML parser
- * and interpreter.
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,18 +20,22 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- *
  */
 
-#ifndef PURC_PURC_H
-#define PURC_PURC_H
+#if defined(HAVE_CONFIG_H) && HAVE_CONFIG_H && defined(BUILDING_WITH_CMAKE)
+#include "cmakeconfig.h"
+#endif
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdio.h>
+#include <wtf/Platform.h>
 
-#include "purc_macros.h"
-#include "purc_version.h"
-#include "purc_errors.h"
+#include <wtf/ExportMacros.h>
 
-#endif /* PURC_PURC_H */
+#if !defined(PURC_EXPORT)
+
+#if defined(BUILDING_PURC) || defined(STATICALLY_LINKED_WITH_PURC)
+#define PURC_EXPORT WTF_EXPORT_DECLARATION
+#else
+#define PURC_EXPORT WTF_IMPORT_DECLARATION
+#endif
+
+#endif
