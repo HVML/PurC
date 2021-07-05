@@ -31,6 +31,7 @@
 
 #include "purc-macros.h"
 #include "purc-version.h"
+#include "purc-features.h"
 #include "purc-errors.h"
 #include "purc-variant.h"
 #include "purc-rwstream.h"
