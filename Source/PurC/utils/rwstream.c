@@ -28,10 +28,12 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-#include <sys/types.h>
-#include <unistd.h>
 
 #if ENABLE(SOCKET_STREAM)
+#if OS(UNIX)
+#include <sys/types.h>
+#include <unistd.h>
+#endif // 0S(UNIX)
 #include <glib.h>
 #endif // ENABLE(SOCKET_STREAM)
 
@@ -256,7 +258,7 @@ purc_rwstream_t purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf)
 }
 #endif // ENABLE(SOCKET_STREAM)
 
-#if ENABLE(SOCKET_STREAM) && defined(G_OS_WIN32)
+#if ENABLE(SOCKET_STREAM) && OS(WINDOWS) && defined(G_OS_WIN32)
 purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf)
 {
     GIOChannel* gio_channel = g_io_channel_win32_new_socket(socket);
@@ -287,7 +289,7 @@ purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf)
     pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
     return NULL;
 }
-#endif // ENABLE(SOCKET_STREAM) && defined(G_OS_WIN32)
+#endif // ENABLE(SOCKET_STREAM) && OS(WINDOWS) && defined(G_OS_WIN32)
 
 int purc_rwstream_destroy (purc_rwstream_t rws)
 {
@@ -607,6 +609,7 @@ static off_t win_socket_seek (purc_rwstream_t rws, off_t offset, int whence)
 
 static off_t gio_seek (purc_rwstream_t rws, off_t offset, int whence)
 {
+#if OS(UNIX)
     struct gio_rwstream* gio = (struct gio_rwstream *)rws;
     GSeekType type;
     switch (whence) {
@@ -636,6 +639,13 @@ static off_t gio_seek (purc_rwstream_t rws, off_t offset, int whence)
     if (err)
         g_error_free(err);
     return -1;
+#else
+    (void)rws;
+    (void)offset;
+    (void)whence;
+    pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+    return -1;
+#endif // OS(UNIX)
 }
 
 static off_t gio_tell (purc_rwstream_t rws)
