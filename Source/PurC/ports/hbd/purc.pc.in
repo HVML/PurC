@@ -1,0 +1,13 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+includedir=${prefix}/@includedir@
+libdir=${prefix}/@libdir@
+
+Name: PurC
+Description: The prime HVML interpreter for C/C++
+URL: https://gitlab.fmsoft.cn/hvml/purc
+Version: @PROJECT_VERSION@
+Requires.private: @PURC_PKGCONFIG_REQUIRES@
+Libs: -L${libdir} -lpurc
+Libs.private: @PURC_PKGCONFIG_LIBS@
+Cflags: -I${includedir} @PURC_PKGCONFIG_CFLAGS@

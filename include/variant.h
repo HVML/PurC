@@ -26,10 +26,15 @@
 #ifndef PURC_PURC_VARIANT_H
 #define PURC_PURC_VARIANT_H
 
+#include <stdbool.h>
+#include <stddef.h>
+
+#include "purc-macros.h"
+
+
 struct purc_variant;
 typedef struct purc_variant purc_variant;
 typedef struct purc_variant* purc_variant_t;
-
 
 #define PURC_VARIANT_INVALID            ((purc_variant_t)(0))
 

@@ -1,7 +1,8 @@
 /*
 ** Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
 **
-** This file is a part of Purring Cat 2, a HVML parser and interpreter.
+** This file is a part of PurC (short for Purring Cat), an HVML parser
+** and interpreter.
 ** 
 ** This program is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU Lesser General Public License as published by
@@ -19,8 +20,8 @@
 ** Author: Vincent Wei <https://github.com/VincentWei>
 */
 
-#ifndef PCAT2_MyHVML_H
-#define PCAT2_MyHVML_H
+#ifndef PURC_MyHVML_H
+#define PURC_MyHVML_H
 
 #pragma once
 
@@ -34,8 +35,8 @@
 #include <stddef.h>
 #include <stdio.h>
 
-#include "pcat2_version.h"
-#include "pcat2_macros.h"
+#include "purc_version.h"
+#include "purc_macros.h"
 #include "myencoding.h"
 #include "mycore.h"
 
@@ -1783,4 +1784,4 @@ myhvml_serialization_node_callback(myhvml_tree_node_t* node,
 } /* extern "C" */
 #endif
 
-#endif /* PCAT2_MyHVML_H */
+#endif /* PURC_MyHVML_H */
