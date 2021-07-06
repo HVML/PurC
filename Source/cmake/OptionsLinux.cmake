@@ -17,7 +17,7 @@ set(LIBEXEC_INSTALL_DIR "${CMAKE_INSTALL_FULL_LIBEXECDIR}/purc" CACHE PATH "Abso
 set(HEADER_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}" CACHE PATH "Absolute path to header installation directory")
 set(PURC_HEADER_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}/purc" CACHE PATH "Absolute path to PurC header installation directory")
 
-add_definitions(-DBUILDING_HBD__=1)
+add_definitions(-DBUILDING_LINUX__=1)
 add_definitions(-DPURC_API_VERSION_STRING="${PURC_API_VERSION}")
 
 find_package(GLIB 2.44.0 QUIET COMPONENTS gio gio-unix)
@@ -31,6 +31,9 @@ find_package(ZLIB QUIET)
 set(ENABLE_SOCKET_STREAM_DEFAULT ON)
 if (NOT GLIB_FOUND)
     set(ENABLE_SOCKET_STREAM_DEFAULT OFF)
+    SET_AND_EXPOSE_TO_BUILD(HAVE_GLIB OFF)
+else ()
+    SET_AND_EXPOSE_TO_BUILD(HAVE_GLIB ON)
 endif ()
 
 set(ENABLE_XML_DEFAULT ON)
