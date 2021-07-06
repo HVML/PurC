@@ -308,17 +308,6 @@ purc_variant_t purc_variant_make_native (void *native_obj, purc_nvariant_release
     return purc_variant_native;
 }
 
-inline bool purc_variant_is_type(const purc_variant_t value, enum purc_variant_type type)
-{
-    return (value->type == type);
-}
-
-
-inline enum purc_variant_type purc_variant_get_type(const purc_variant_t value)
-{
-    return value->type;
-}
-
 
 // todo
 unsigned int purc_variant_ref (purc_variant_t value)
