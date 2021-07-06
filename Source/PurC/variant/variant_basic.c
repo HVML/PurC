@@ -22,6 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <stdlib.h>
+#include <string.h>
 
 #include "purc_variant.h"
 #include "variant_types.h"
@@ -138,7 +140,10 @@ purc_variant_t purc_variant_make_string (const char* str_utf8)
     purc_variant_string->flags = 0;
     purc_variant_string->refc = 1;
 
-    memcpy(purc_variant_string->bytes, str_utf8, str_size + 1);
+    if(real_size)
+        memcpy(purc_variant_string->sz_ptr, str_utf8, str_size + 1);
+    else
+        memcpy(purc_variant_string->bytes, str_utf8, str_size + 1);
 
     return purc_variant_string;
 
@@ -167,9 +172,15 @@ purc_variant_t purc_variant_make_string_with_check (const char* str_utf8)
 const char* purc_variant_get_string_const (purc_variant_t value)
 {
     const char * str_str = NULL;
+    int real_size = MAX(sizeof(long double), sizeof(void*) * 2);
 
     if(purc_variant_is_type(value, VARIANT_TYPE_STRING))
-        str_str = value->bytes;
+    {
+        if(value->size < real_size)
+            str_str = value->bytes;
+        else
+            str_str = value->sz_ptr;
+    }
 
     return str_str;
 }
@@ -204,7 +215,10 @@ purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes, size
     purc_variant_sequence->flags = 0;
     purc_variant_sequence->refc = 1;
 
-    memcpy(purc_variant_sequence->bytes, bytes, nr_bytes);
+    if(real_size)
+        memcpy(purc_variant_sequence->sz_ptr, bytes, nr_bytes);
+    else
+        memcpy(purc_variant_sequence->bytes, bytes, nr_bytes);
 
     return purc_variant_sequence;
 }
@@ -212,9 +226,15 @@ purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes, size
 const unsigned char* purc_variant_get_bytes_const (purc_variant_t value, size_t* nr_bytes)
 {
     const unsigned char * bytes = NULL;
+    int real_size = MAX(sizeof(long double), sizeof(void*) * 2);
 
     if(purc_variant_is_type(value, VARIANT_TYPE_SEQUENCE))
-        bytes = value->bytes;
+    {
+        if(value->size <= real_size)
+            bytes = value->bytes;
+        else
+            bytes = value->sz_ptr;
+    }
 
     return bytes;
 }
@@ -227,4 +247,126 @@ size_t purc_variant_sequence_length(const purc_variant_t sequence)
         nr_bytes = value->size;
 
     return nr_bytes;
+}
+
+purc_variant_t purc_variant_make_dynamic_value (CB_DYNAMIC_VARIANT getter, CB_DYNAMIC_VARIANT setter)
+{
+    purc_variant_t purc_variant_dynamic = (purc_variant_t)malloc(sizeof(purc_variant));
+
+    if(purc_variant_dynamic == NULL)
+        return PURC_VARIANT_INVALID;
+
+    purc_variant_dynamic->type = VARIANT_TYPE_DYNAMIC;
+    purc_variant_dynamic->size = 0;
+    purc_variant_dynamic->flags = 0;
+    purc_variant_dynamic->refc = 1;
+    purc_variant_dynamic->ptr2[0] = getter;
+    purc_variant_dynamic->ptr2[1] = setter;
+
+    return purc_variant_dynamic;
+}
+
+purc_variant_t purc_variant_make_native (void *native_obj, purc_nvariant_releaser releaser)
+{
+    purc_variant_t purc_variant_native = (purc_variant_t)malloc(sizeof(purc_variant));
+
+    if(purc_variant_native == NULL)
+        return PURC_VARIANT_INVALID;
+
+    purc_variant_native->type = VARIANT_TYPE_NATIVE;
+    purc_variant_native->size = 0;
+    purc_variant_native->flags = 0;
+    purc_variant_native->refc = 1;
+    purc_variant_native->ptr2[0] = native_obj;
+    purc_variant_native->ptr2[1] = releaser;
+
+    return purc_variant_native;
+}
+
+unsigned int purc_variant_ref (purc_variant_t value)
+{
+    enum variant_type type = purc_variant_get_type(value);
+
+    if((type != VARIANT_TYPE_NULL) && (type != VARIANT_TYPE_UNDEFINED) && \
+       (type != VARIANT_TYPE_BOOLEAN))
+        value->refc ++;
+
+    return value->refc;
+}
+
+
+bool purc_variant_is_type(const purc_variant_t value, enum variant_type type)
+{
+    return (value->type == type);
+}
+
+
+enum variant_type purc_variant_get_type(const purc_variant_t value)
+{
+    return value->type;
+}
+
+
+// todo
+unsigned int purc_variant_ref (purc_variant_t value)
+{
+    enum variant_type type = purc_variant_get_type(value);
+
+    if((type != VARIANT_TYPE_NULL) && (type != VARIANT_TYPE_UNDEFINED) && \
+       (type != VARIANT_TYPE_BOOLEAN))
+        value->refc ++;
+
+    return value->refc;
+}
+
+// todo
+unsigned int purc_variant_unref (purc_variant_t value)
+{
+    enum variant_type type = purc_variant_get_type(value);
+
+    if((type == VARIANT_TYPE_NULL) || (type == VARIANT_TYPE_UNDEFINED) || \
+       (type == VARIANT_TYPE_BOOLEAN))
+        return 0;
+
+    if(value->refc == 0)
+    {
+        if(value->flags & PCVARIANT_FLAG_NOFREE)
+        {
+        }
+        else
+        {
+            free(value);
+            return 0;
+        }
+    }
+    else
+        value->refc --;
+
+    return value->refc;
+}
+
+purc_variant_t purc_variant_make_from_json_string (const char* json, size_t sz)
+{
+}
+
+purc_variant_t purc_variant_load_from_json_file (const char* file)
+{
+}
+
+purc_variant_t purc_variant_load_from_json_stream (purc_rwstream_t stream)
+{
+}
+
+purc_variant_t purc_variant_dynamic_value_load_from_so (const char* so_name, \
+                                                        const char* var_name)
+{
+}
+
+size_t purc_variant_serialize (purc_variant_t value, purc_rwstream_t stream, \
+                                                            unsigned int opts)
+{
+}
+
+int purc_variant_compare (purc_variant_t v1, purc_variant v2)
+{
 }
