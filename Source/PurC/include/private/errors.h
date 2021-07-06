@@ -27,7 +27,7 @@
 
 #include "purc.h"
 
-#include <hibox/list.h>
+#include "private/list.h"
 
 struct err_msg_seg {
     struct list_head list;

@@ -1,0 +1,111 @@
+/**
+ * @file purc-features.h
+ * @author 
+ * @date 2021/07/05
+ * @brief The API to test features enabled in compile time.
+ *
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#ifndef PURC_PURC_FEATURES_H
+#define PURC_PURC_FEATURES_H
+
+#include <stdbool.h>
+#include <stddef.h>
+
+/**
+ * purc_feature:
+ *
+ * @PURC_FEATURE_SOCKET_STREAM:
+ *      The RWStream on Unix file descriptor or Windows socket is enabled.
+ * @PURC_FEATURE_HTML:
+ *      The HTML parser is enabled.
+ * @PURC_FEATURE_XGML:
+ *      The XGML parser is enabled.
+ * @PURC_FEATURE_XML:
+ *      The XML parser is enabled.
+ * @PURC_FEATURE_LCMD:
+ *      The URL schema LCMD is enabled.
+ * @PURC_FEATURE_LSQL:
+ *      The URL schema LSQL is enabled.
+ * @PURC_FEATURE_RSQL:
+ *      The URL schema RSQL is enabled.
+ * @PURC_FEATURE_HTTP:
+ *      The URL schema HTTP is enabled.
+ * @PURC_FEATURE_HIBUS:
+ *      The listener on hiDataBus is enabled.
+ * @PURC_FEATURE_WEB_SOCKET:
+ *      The listener on WebSocket is enabled.
+ * @PURC_FEATURE_MQTT:
+ *      The listener on connnection MQTT is enabled.
+ * @PURC_FEATURE_SSL:
+ *      The secure socket connection is enabled.
+ *
+ * Enum values used for testing feature.
+ */
+#include "purc-macros.h"
+
+enum purc_feature {
+    PURC_FEATURE_SOCKET_STREAM,
+    PURC_FEATURE_HTML,
+    PURC_FEATURE_XGML,
+    PURC_FEATURE_XML,
+    PURC_FEATURE_LCMD,
+    PURC_FEATURE_LSQL,
+    PURC_FEATURE_RSQL,
+    PURC_FEATURE_HTTP,
+    PURC_FEATURE_HIBUS,
+    PURC_FEATURE_WEB_SOCKET,
+    PURC_FEATURE_MQTT,
+    PURC_FEATURE_SSL,
+};
+
+#define _PURC_ON      1
+#define _PURC_OFF     0
+
+#define PCA_ENABLE_SOCKET_STREAM        _PURC_@ENABLE_SOCKET_STREAM@
+#define PCA_ENABLE_HTML                 _PURC_@ENABLE_HTML@
+#define PCA_ENABLE_XGML                 _PURC_@ENABLE_XGML@
+#define PCA_ENABLE_XML                  _PURC_@ENABLE_XML@
+#define PCA_ENABLE_LCMD                 _PURC_@ENABLE_LCMD@
+#define PCA_ENABLE_LSQL                 _PURC_@ENABLE_LSQL@
+#define PCA_ENABLE_RSQL                 _PURC_@ENABLE_RSQL@
+#define PCA_ENABLE_HTTP                 _PURC_@ENABLE_HTTP@
+#define PCA_ENABLE_HIBUS                _PURC_@ENABLE_HIBUS@
+#define PCA_ENABLE_WEB_SOCKET           _PURC_@ENABLE_WEB_SOCKET@
+#define PCA_ENABLE_MQTT                 _PURC_@ENABLE_MQTT@
+#define PCA_ENABLE_SSL                  _PURC_@ENABLE_SSL@
+
+PCA_EXTERN_C_BEGIN
+
+/**
+ * purc_is_feature_enabled:
+ *
+ * @feature: the feature identifier.
+ *
+ * @see_also #purc_feature
+ *
+ * Returns: @true for enabled, otherwise false.
+ */
+PCA_EXPORT bool
+purc_is_feature_enabled(enum purc_feature feature);
+
+PCA_EXTERN_C_END
+
+#endif /* not defined PURC_PURC_FEATURES_H */
+

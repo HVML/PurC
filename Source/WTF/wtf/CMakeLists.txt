@@ -1,5 +1,6 @@
 set(WTF_PUBLIC_HEADERS
     Compiler.h
+    ExportMacros.h
     Platform.h
     PlatformCallingConventions.h
     PlatformCPU.h
