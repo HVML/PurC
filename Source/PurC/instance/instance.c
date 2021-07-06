@@ -29,6 +29,7 @@
 #include "private/instance.h"
 #include "private/errors.h"
 #include "private/tls.h"
+#include "private/utils.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -165,8 +166,15 @@ int purc_init(const char* app_name, const char* runner_name,
     curr_inst->errcode = PURC_ERROR_OK;
     if (app_name)
         curr_inst->app_name = strdup(app_name);
-    else
-        curr_inst->app_name = strdup("unknown");
+    else {
+        char cmdline[128];
+        size_t len;
+        len = pcutils_get_cmdline_arg (0, cmdline, sizeof(cmdline));
+        if (len > 0)
+            curr_inst->app_name = strdup(cmdline);
+        else
+            curr_inst->app_name = strdup("unknown");
+    }
 
     if (runner_name)
         curr_inst->runner_name = strdup(runner_name);
