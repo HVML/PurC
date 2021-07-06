@@ -1,8 +1,8 @@
 # PurC
 
-`PurC` is the `P`rime h`V`ml inte`R`preter for `C` language. It is also
-the abbreviation of `Purring Cat`, as Purring Cat is the nickname and mascot
-of HVML.
+`PurC` is the Prime hVml inteRpreter for C language. It is also
+the abbreviation of `Purring Cat`, while Purring Cat is the nickname
+and the mascot of HVML.
 
 - [Introduction to HVML](#introduction-to-hvml)
 - [Source Tree of PurC](#source-tree-of-purc)
