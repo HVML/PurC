@@ -25,10 +25,10 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/Source/cmake")
 # Determine which port will be built
 # -----------------------------------------------------------------------------
 set(ALL_PORTS
-    HybridOS
-    Debian
-    macOS
+    Linux
+    Mac
     Windows
+    AppleWin
 )
 set(PORT "NOPORT" CACHE STRING "choose which PurC port to build (one of ${ALL_PORTS})")
 
