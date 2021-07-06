@@ -189,7 +189,7 @@ For the coding style, please refer to [HybridOS-Code-and-Development-Convention]
 To build:
 
 ```
-rm -rf build && cmake -DCMAKE_BUILD_TYPE=Debug -DPORT=HybridOS -DUSE_LD_GOLD=OFF -B build && cmake --build build
+rm -rf build && cmake -DCMAKE_BUILD_TYPE=Debug -DPORT=Linux -B build && cmake --build build
 ```
 
 ### Using the test samples
