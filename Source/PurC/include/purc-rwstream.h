@@ -147,18 +147,6 @@ purc_rwstream_seek (purc_rwstream_t rws, off_t offset, int whence);
 PCA_EXPORT off_t purc_rwstream_tell (purc_rwstream_t rws);
 
 /**
- * Tests the end-of-file indicator for purc_rwstream_t
- * library function feof().
- *
- * @param rws: purc_rwstream_t
- *
- * Returns: 1 yes, 0 no, -1 not support.
- *
- * Since: 0.0.1
- */
-PCA_EXPORT int purc_rwstream_eof (purc_rwstream_t rws);
-
-/**
  * Reads data from a purc_rwstream_t
  *
  * @param rws: purc_rwstream_t

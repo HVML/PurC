@@ -47,7 +47,6 @@ typedef struct rwstream_funcs
 {
     off_t   (*seek) (purc_rwstream_t rws, off_t offset, int whence);
     off_t   (*tell) (purc_rwstream_t rws);
-    int     (*eof) (purc_rwstream_t rws);
     ssize_t (*read) (purc_rwstream_t rws, void* buf, size_t count);
     ssize_t (*write) (purc_rwstream_t rws, const void* buf, size_t count);
     ssize_t (*flush) (purc_rwstream_t rws);
@@ -85,7 +84,6 @@ struct gio_rwstream
 
 static off_t stdio_seek (purc_rwstream_t rws, off_t offset, int whence);
 static off_t stdio_tell (purc_rwstream_t rws);
-static int stdio_eof (purc_rwstream_t rws);
 static ssize_t stdio_read (purc_rwstream_t rws, void* buf, size_t count);
 static ssize_t stdio_write (purc_rwstream_t rws, const void* buf, size_t count);
 static ssize_t stdio_flush (purc_rwstream_t rws);
@@ -95,7 +93,6 @@ static int stdio_destroy (purc_rwstream_t rws);
 rwstream_funcs stdio_funcs = {
     stdio_seek,
     stdio_tell,
-    stdio_eof,
     stdio_read,
     stdio_write,
     stdio_flush,
@@ -105,7 +102,6 @@ rwstream_funcs stdio_funcs = {
 
 static off_t mem_seek (purc_rwstream_t rws, off_t offset, int whence);
 static off_t mem_tell (purc_rwstream_t rws);
-static int mem_eof (purc_rwstream_t rws);
 static ssize_t mem_read (purc_rwstream_t rws, void* buf, size_t count);
 static ssize_t mem_write (purc_rwstream_t rws, const void* buf, size_t count);
 static ssize_t mem_flush (purc_rwstream_t rws);
@@ -115,7 +111,6 @@ static int mem_destroy (purc_rwstream_t rws);
 rwstream_funcs mem_funcs = {
     mem_seek,
     mem_tell,
-    mem_eof,
     mem_read,
     mem_write,
     mem_flush,
@@ -127,7 +122,6 @@ rwstream_funcs mem_funcs = {
 static off_t win_socket_seek (purc_rwstream_t rws, off_t offset, int whence);
 static off_t gio_seek (purc_rwstream_t rws, off_t offset, int whence);
 static off_t gio_tell (purc_rwstream_t rws);
-static int gio_eof (purc_rwstream_t rws);
 static ssize_t gio_read (purc_rwstream_t rws, void* buf, size_t count);
 static ssize_t gio_write (purc_rwstream_t rws, const void* buf, size_t count);
 static ssize_t gio_flush (purc_rwstream_t rws);
@@ -137,7 +131,6 @@ static int gio_destroy (purc_rwstream_t rws);
 rwstream_funcs gio_funcs = {
     gio_seek,
     gio_tell,
-    gio_eof,
     gio_read,
     gio_write,
     gio_flush,
@@ -148,7 +141,6 @@ rwstream_funcs gio_funcs = {
 rwstream_funcs win_socket_funcs = {
     win_socket_seek,
     gio_tell,
-    gio_eof,
     gio_read,
     gio_write,
     gio_flush,
@@ -323,16 +315,6 @@ off_t purc_rwstream_tell (purc_rwstream_t rws)
     return rws->funcs->tell(rws);
 }
 
-int purc_rwstream_eof (purc_rwstream_t rws)
-{
-    if (rws == NULL)
-    {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return -1;
-    }
-    return rws->funcs->eof(rws);
-}
-
 ssize_t purc_rwstream_read (purc_rwstream_t rws, void* buf, size_t count)
 {
     if (rws == NULL)
@@ -454,11 +436,6 @@ static off_t stdio_tell (purc_rwstream_t rws)
     return ftell(((struct stdio_rwstream *)rws)->fp);
 }
 
-static int stdio_eof (purc_rwstream_t rws)
-{
-    return feof(((struct stdio_rwstream *)rws)->fp);
-}
-
 static ssize_t stdio_read (purc_rwstream_t rws, void* buf, size_t count)
 {
     struct stdio_rwstream* stdio = (struct stdio_rwstream *)rws;
@@ -544,14 +521,6 @@ static off_t mem_tell (purc_rwstream_t rws)
 {
     struct mem_rwstream* mem = (struct mem_rwstream *)rws;
     return (mem->here - mem->base);
-}
-
-static int mem_eof (purc_rwstream_t rws)
-{
-    struct mem_rwstream* mem = (struct mem_rwstream *)rws;
-    if (mem->here >= mem->stop)
-        return 1;
-    return 0;
 }
 
 static ssize_t mem_read (purc_rwstream_t rws, void* buf, size_t count)
@@ -651,13 +620,6 @@ static off_t gio_seek (purc_rwstream_t rws, off_t offset, int whence)
 }
 
 static off_t gio_tell (purc_rwstream_t rws)
-{
-    UNUSED_PARAM(rws);
-    pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
-    return -1;
-}
-
-static int gio_eof (purc_rwstream_t rws)
 {
     UNUSED_PARAM(rws);
     pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
