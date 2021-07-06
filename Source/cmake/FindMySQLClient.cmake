@@ -46,11 +46,6 @@
 # from time to time. For more information, please see
 # <https://www.fmsoft.cn/exception-list>.
 
-if (MYSQLCLIENT_INCLUDE_DIR AND MYSQLCLIENT_LIBRARIES)
-    # in cache already
-    set(MySQLClient_FIND_QUIETLY TRUE)
-endif (MYSQLCLIENT_INCLUDE_DIR AND MYSQLCLIENT_LIBRARIES)
-
 # use pkg-config to get the directories and then use these values
 # in the find_path() and find_library() calls
 if (NOT WIN32)
@@ -59,6 +54,7 @@ if (NOT WIN32)
     pkg_check_modules(PC_MYSQLCLIENT mysqlclient)
 
     set(MYSQLCLIENT_DEFINITIONS ${PC_MYSQLCLIENT_CFLAGS_OTHER})
+    set(MYSQLCLIENT_VERSION "${PC_MYSQLCLIENT_VERSION}")
 endif (NOT WIN32)
 
 find_path(MYSQLCLIENT_INCLUDE_DIR NAMES mysql.h
@@ -74,7 +70,12 @@ find_library(MYSQLCLIENT_LIBRARIES NAMES mysqlclient
 )
 
 include(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(MySQLClient DEFAULT_MSG MYSQLCLIENT_INCLUDE_DIR MYSQLCLIENT_LIBRARIES)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(MySQLClient
+        REQUIRED_VARS MYSQLCLIENT_INCLUDE_DIR MYSQLCLIENT_LIBRARIES
+        VERSION_VAR   MYSQLCLIENT_VERSION)
 
 # show the MYSQLCLIENT_INCLUDE_DIR and MYSQLCLIENT_LIBRARIES variables only in the advanced view
-mark_as_advanced(MYSQLCLIENT_INCLUDE_DIR MYSQLCLIENT_LIBRARIES)
+mark_as_advanced(
+    MYSQLCLIENT_INCLUDE_DIR
+    MYSQLCLIENT_LIBRARIES
+)
