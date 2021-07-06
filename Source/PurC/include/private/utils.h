@@ -25,7 +25,7 @@
 #ifndef PURC_PRIVATE_UTILS_H
 #define PURC_PRIVATE_UTILS_H
 
-#include "purc.h"
+#include <stddef.h>
 
 /*
  * calloc_a(size_t len, [void **addr, size_t len,...], NULL)
@@ -49,6 +49,8 @@ void pcutils_bin2hex (const unsigned char *bin, int len, char *hex);
 /* bin must be long enough to hold the bytes.
    return the number of bytes converted, <= 0 for error */
 int pcutils_hex2bin (const char *hex, unsigned char *bin);
+
+size_t pcutils_get_cmdline_arg (int arg, char* buf, size_t sz_buf);
 
 #ifdef __cplusplus
 }
