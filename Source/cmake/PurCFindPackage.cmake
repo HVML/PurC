@@ -11,13 +11,9 @@
 # CMake provided targets. Remove wrappers whenever the minimum version is bumped.
 #
 # CURL::libcurl : since 3.12
-# ICU::<C> : since 3.7
-# Freetype::Freetype: since 3.10
 # LibXml2::LibXml2: since 3.12
 # LibXslt::LibXslt: since never
-# JPEG::JPEG: since 3.12
 # OpenSSL::SSL: Since 3.4
-# PNG::PNG : since 3.4
 # Threads::Threads: since 3.1
 # ZLIB::ZLIB: Since 3.1
 
