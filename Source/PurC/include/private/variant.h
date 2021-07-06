@@ -38,10 +38,13 @@ extern "C" {
 #define PURC_ERROR_VARIANT_INVALID_VALUE    (PURC_ERROR_FIRST_VARIANT + 1)
 #define PURC_ERROR_VARIANT_INVALID_TYPE     (PURC_ERROR_FIRST_VARIANT + 2)
 
+// set purc_variant->size = PURC_VARIANT_FLAG_LONG, for long string or sequence
+#define PURC_VARIANT_FLAG_LONG  0xFF
+
 #define MAX(a, b)   (a) > (b)? (a): (b);
 
-#define PCVARIANT_FLAG_NOREF     0x0001
-#define PCVARIANT_FLAG_NOFREE    0x0002
+#define PCVARIANT_FLAG_NOREF    0x0001
+#define PCVARIANT_FLAG_NOFREE   0x0002
 
 // for variant const, registered in thread instance
 struct purc_variant_const {
@@ -86,7 +89,7 @@ struct purc_variant {
         /* for dynamic and native variant (two pointers) */
         void*       ptr2[2];
 
-        /* for long string, long byte sequence, array, and object (one for size and the other for pointer). */
+        /* for long string, long byte sequence, array, and object (sz_ptr[0] for pointer, sz_ptr[1] for size). */
         uintptr_t   sz_ptr[2];
 
         /* for short string and byte sequence; the real space size of `bytes` is `max(sizeof(long double), sizeof(void*) * 2)` */
@@ -94,6 +97,7 @@ struct purc_variant {
     };
 };
 
+void init_variant_modules(void);
 
 #ifdef __cplusplus
 }
