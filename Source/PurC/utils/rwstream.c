@@ -39,10 +39,6 @@
 #include <glib.h>
 #endif // ENABLE(SOCKET_STREAM) && HAVE(GLIB)
 
-struct purc_rwstream;
-typedef struct purc_rwstream purc_rwstream;
-typedef struct purc_rwstream* purc_rwstream_t;
-
 typedef struct rwstream_funcs
 {
     off_t   (*seek) (purc_rwstream_t rws, off_t offset, int whence);
