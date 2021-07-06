@@ -35,22 +35,25 @@ static struct purc_variant pcvariant_true = { PURC_VARIANT_TYPE_BOOLEAN, 0, 0, P
 
 purc_variant_t purc_variant_make_undefined (void)
 {
-    return &pcvariant_undefined;
+    struct pcinst * pcinstance = pcinst_current();
+    return pcinstance->variant_const->pcvariant_undefined;
 }
 
 purc_variant_t purc_variant_make_null (void)
 {
-    return &pcvariant_null;
+    struct pcinst * pcinstance = pcinst_current();
+    return pcinstance->variant_const->pcvariant_null;
 }
 
 purc_variant_t purc_variant_make_boolean (bool b)
 {
     purc_variant_t purc_variant_bool = NULL;
+    struct pcinst * pcinstance = pcinst_current();
 
     if(b)
-        purc_variant_bool = &pcvariant_true;
+        purc_variant_bool = pcinstance->variant_const->pcvariant_true;
     else
-        purc_variant_bool = &pcvariant_false;
+        purc_variant_bool = pcinstance->variant_const->pcvariant_false;
 
     return purc_variant_bool;
 }
