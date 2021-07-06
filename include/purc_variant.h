@@ -563,7 +563,7 @@ PCA_EXPORT purc_variant_t purc_variant_object_iterator_get_value (struct purc_va
  * Creates a variant data of set type.
  *
  * @param sz: the number of elements in a set
- * @param unique_key0 ..... unique_keyn: the keys of unique value
+ * @param unique_key: the keys of values
  * @param value0 ..... valuen: the values related to the key.
  *
  * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
@@ -835,23 +835,22 @@ PCA_EXPORT size_t purc_variant_serialize (purc_variant_t value, purc_rwstream_t 
 PCA_EXPORT purc_variant_t purc_variant_dynamic_value_load_from_so (const char* so_name, const char* var_name);
 
 
-typedef enum variant_type
+typedef enum purc_variant_type
 {
-    VARIANT_TYPE_NULL,
-    VARIANT_TYPE_UNDEFINED,
-    VARIANT_TYPE_BOOLEAN,
-    VARIANT_TYPE_NUMBER,
-    VARIANT_TYPE_LONGINT,
-    VARIANT_TYPE_LONGDOUBLE,
-    VARIANT_TYPE_STRING,
-    VARIANT_TYPE_SEQUENCE,
-    VARIANT_TYPE_DYNAMIC,
-    VARIANT_TYPE_NATIVE,
-    VARIANT_TYPE_OBJECT,
-    VARIANT_TYPE_ARRAY,
-    VARIANT_TYPE_SET,
-} variant_type;
-
+    PURC_VARIANT_TYPE_NULL,
+    PURC_VARIANT_TYPE_UNDEFINED,
+    PURC_VARIANT_TYPE_BOOLEAN,
+    PURC_VARIANT_TYPE_NUMBER,
+    PURC_VARIANT_TYPE_LONGINT,
+    PURC_VARIANT_TYPE_LONGDOUBLE,
+    PURC_VARIANT_TYPE_STRING,
+    PURC_VARIANT_TYPE_SEQUENCE,
+    PURC_VARIANT_TYPE_DYNAMIC,
+    PURC_VARIANT_TYPE_NATIVE,
+    PURC_VARIANT_TYPE_OBJECT,
+    PURC_VARIANT_TYPE_ARRAY,
+    PURC_VARIANT_TYPE_SET,
+} purc_variant_type;
 
 /**
  * Whether the vairant is indicated type.
@@ -863,7 +862,7 @@ typedef enum variant_type
  *
  * Since: 0.0.1
  */
-PCA_EXPORT bool purc_variant_is_type(const purc_variant_t value, enum variant_type type);
+PCA_EXPORT bool purc_variant_is_type(const purc_variant_t value, enum purc_variant_type type);
 
 
 /**
@@ -875,7 +874,72 @@ PCA_EXPORT bool purc_variant_is_type(const purc_variant_t value, enum variant_ty
  *
  * Since: 0.0.1
  */
-PCA_EXPORT enum variant_type purc_variant_get_type(const purc_variant_t value);
+PCA_EXPORT enum purc_variant_type purc_variant_get_type(const purc_variant_t value);
+
+
+/**
+ * Whether the value is of indicated type.
+ *
+ * @param v: the variant value
+ *
+ * Returns: True if Yes, otherwise False.
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT inline bool purc_variant_is_boolean (purc_variant_t v)
+{
+    return purc_variant_is_type(v, PURC_VARIANT_TYPE_BOOLEAN);
+}
+
+PCA_EXPORT inline bool purc_variant_is_number (purc_variant_t v)
+{
+    return purc_variant_is_type(v, PURC_VARIANT_TYPE_NUMBER);
+}
+
+PCA_EXPORT inline bool purc_variant_is_longint (purc_variant_t v)
+{
+    return purc_variant_is_type(v, PURC_VARIANT_TYPE_LONGINT);
+}
+
+PCA_EXPORT inline bool purc_variant_is_longdouble (purc_variant_t v)
+{
+    return purc_variant_is_type(v, PURC_VARIANT_TYPE_LONGDOUBLE);
+}
+
+PCA_EXPORT inline bool purc_variant_is_string (purc_variant_t v)
+{
+    return purc_variant_is_type(v, PURC_VARIANT_TYPE_STRING);
+}
+
+PCA_EXPORT inline bool purc_variant_is_sequence (purc_variant_t v)
+{
+    return purc_variant_is_type(v, PURC_VARIANT_TYPE_SEQUENCE);
+}
+
+PCA_EXPORT inline bool purc_variant_is_dynamic_value (purc_variant_t v)
+{
+    return purc_variant_is_type(v, PURC_VARIANT_TYPE_DYNAMIC);
+}
+
+PCA_EXPORT inline bool purc_variant_is_native (purc_variant_t v)
+{
+    return purc_variant_is_type(v, PURC_VARIANT_TYPE_NATIVE);
+}
+
+PCA_EXPORT inline bool purc_variant_is_object (purc_variant_t v)
+{
+    return purc_variant_is_type(v, PURC_VARIANT_TYPE_OBJECT);
+}
+
+PCA_EXPORT inline bool purc_variant_is_array (purc_variant_t v)
+{
+    return purc_variant_is_type(v, PURC_VARIANT_TYPE_ARRAY);
+}
+
+PCA_EXPORT inline bool purc_variant_is_set (purc_variant_t v)
+{
+    return purc_variant_is_type(v, PURC_VARIANT_TYPE_SET);
+}
 
 
 struct purc_variant_stat {

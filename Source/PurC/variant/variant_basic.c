@@ -1,5 +1,5 @@
-/**
- * @file purc-variant.h
+/*
+ * @file variant-basic.c
  * @author 
  * @date 2021/07/02
  * @brief The API for variant.
@@ -28,10 +28,10 @@
 #include "purc_variant.h"
 #include "variant_types.h"
 
-static struct purc_variant pcvariant_undefined = { PCVARIANT_TYPE_UNDEFINED, 0, 0, PCVARIANT_FLAG_NOFREE };
-static struct purc_variant pcvariant_null = { PCVARIANT_TYPE_NULL, 0, 0, PCVARIANT_FLAG_NOFREE };
-static struct purc_variant pcvariant_false = { PCVARIANT_TYPE_BOOLEAN, 0, 0, PCVARIANT_FLAG_NOFREE, { b:0 } };
-static struct purc_variant pcvariant_true = { PCVARIANT_TYPE_BOOLEAN, 0, 0, PCVARIANT_FLAG_NOFREE, { b:1 } };
+static struct purc_variant pcvariant_null = { PURC_VARIANT_TYPE_NULL, 0, 0, PCVARIANT_FLAG_NOFREE };
+static struct purc_variant pcvariant_undefined = { PURC_VARIANT_TYPE_UNDEFINED, 0, 0, PCVARIANT_FLAG_NOFREE };
+static struct purc_variant pcvariant_false = { PURC_VARIANT_TYPE_BOOLEAN, 0, 0, PCVARIANT_FLAG_NOFREE, { b:0 } };
+static struct purc_variant pcvariant_true = { PURC_VARIANT_TYPE_BOOLEAN, 0, 0, PCVARIANT_FLAG_NOFREE, { b:1 } };
 
 purc_variant_t purc_variant_make_undefined (void)
 {
@@ -62,7 +62,7 @@ purc_variant_t purc_variant_make_number (double d)
     if(purc_variant_number == NULL)
         return PURC_VARIANT_INVALID;
 
-    purc_variant_number->type = VARIANT_TYPE_NUMBER;
+    purc_variant_number->type = PURC_VARIANT_TYPE_NUMBER;
     purc_variant_number->size = 0;
     purc_variant_number->flags = 0;
     purc_variant_number->refc = 1;
@@ -78,7 +78,7 @@ purc_variant_t purc_variant_make_longuint (uint64_t u64)
     if(purc_variant_longuint == NULL)
         return PURC_VARIANT_INVALID;
 
-    purc_variant_longuint->type = VARIANT_TYPE_LONGINT;
+    purc_variant_longuint->type = PURC_VARIANT_TYPE_LONGINT;
     purc_variant_longuint->size = 0;
     purc_variant_longuint->flags = 0;
     purc_variant_longuint->refc = 1;
@@ -94,7 +94,7 @@ purc_variant_t purc_variant_make_longint (uint64_t u64)
     if(purc_variant_longint == NULL)
         return PURC_VARIANT_INVALID;
 
-    purc_variant_longint->type = VARIANT_TYPE_LONGINT;
+    purc_variant_longint->type = PURC_VARIANT_TYPE_LONGINT;
     purc_variant_longint->size = 0;
     purc_variant_longint->flags = 0;
     purc_variant_longint->refc = 1;
@@ -110,7 +110,7 @@ purc_variant_t purc_variant_make_longdouble (long double lf)
     if(purc_variant_longdouble == NULL)
         return PURC_VARIANT_INVALID;
 
-    purc_variant_longdouble->type = VARIANT_TYPE_LONGDOUBLE;
+    purc_variant_longdouble->type = PURC_VARIANT_TYPE_LONGDOUBLE;
     purc_variant_longdouble->size = 0;
     purc_variant_longdouble->flags = 0;
     purc_variant_longdouble->refc = 1;
@@ -135,7 +135,7 @@ purc_variant_t purc_variant_make_string (const char* str_utf8)
     if(purc_variant_string == NULL)
         return PURC_VARIANT_INVALID;
 
-    purc_variant_string->type = VARIANT_TYPE_STRING;
+    purc_variant_string->type = PURC_VARIANT_TYPE_STRING;
     purc_variant_string->size = str_size;
     purc_variant_string->flags = 0;
     purc_variant_string->refc = 1;
@@ -164,7 +164,7 @@ purc_variant_t purc_variant_make_string_with_check (const char* str_utf8)
     if(b_check)
         purc_variant_string = purc_variant_make_string(str_utf8)
     else
-        purc_variant_string = VARIANT_TYPE_STRING;
+        purc_variant_string = PURC_VARIANT_TYPE_STRING;
 
     return purc_variant_string;
 }
@@ -174,7 +174,7 @@ const char* purc_variant_get_string_const (purc_variant_t value)
     const char * str_str = NULL;
     int real_size = MAX(sizeof(long double), sizeof(void*) * 2);
 
-    if(purc_variant_is_type(value, VARIANT_TYPE_STRING))
+    if(purc_variant_is_type(value, PURC_VARIANT_TYPE_STRING))
     {
         if(value->size < real_size)
             str_str = value->bytes;
@@ -189,7 +189,7 @@ size_t purc_variant_string_length(const purc_variant_t value)
 {
     size_t str_size = 0;
 
-    if(purc_variant_is_type(value, VARIANT_TYPE_STRING))
+    if(purc_variant_is_type(value, PURC_VARIANT_TYPE_STRING))
         str_size = value->size;
 
     return size;
@@ -210,7 +210,7 @@ purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes, size
     if(purc_variant_sequence == NULL)
         return PURC_VARIANT_INVALID;
 
-    purc_variant_sequence->type = VARIANT_TYPE_SEQUENCE;
+    purc_variant_sequence->type = PURC_VARIANT_TYPE_SEQUENCE;
     purc_variant_sequence->size = nr_bytes;
     purc_variant_sequence->flags = 0;
     purc_variant_sequence->refc = 1;
@@ -228,7 +228,7 @@ const unsigned char* purc_variant_get_bytes_const (purc_variant_t value, size_t*
     const unsigned char * bytes = NULL;
     int real_size = MAX(sizeof(long double), sizeof(void*) * 2);
 
-    if(purc_variant_is_type(value, VARIANT_TYPE_SEQUENCE))
+    if(purc_variant_is_type(value, PURC_VARIANT_TYPE_SEQUENCE))
     {
         if(value->size <= real_size)
             bytes = value->bytes;
@@ -243,7 +243,7 @@ size_t purc_variant_sequence_length(const purc_variant_t sequence)
 {
     size_t nr_bytes = 0;
 
-    if(purc_variant_is_type(value, VARIANT_TYPE_SEQUENCE))
+    if(purc_variant_is_type(value, PURC_VARIANT_TYPE_SEQUENCE))
         nr_bytes = value->size;
 
     return nr_bytes;
@@ -256,7 +256,7 @@ purc_variant_t purc_variant_make_dynamic_value (CB_DYNAMIC_VARIANT getter, CB_DY
     if(purc_variant_dynamic == NULL)
         return PURC_VARIANT_INVALID;
 
-    purc_variant_dynamic->type = VARIANT_TYPE_DYNAMIC;
+    purc_variant_dynamic->type = PURC_VARIANT_TYPE_DYNAMIC;
     purc_variant_dynamic->size = 0;
     purc_variant_dynamic->flags = 0;
     purc_variant_dynamic->refc = 1;
@@ -273,7 +273,7 @@ purc_variant_t purc_variant_make_native (void *native_obj, purc_nvariant_release
     if(purc_variant_native == NULL)
         return PURC_VARIANT_INVALID;
 
-    purc_variant_native->type = VARIANT_TYPE_NATIVE;
+    purc_variant_native->type = PURC_VARIANT_TYPE_NATIVE;
     purc_variant_native->size = 0;
     purc_variant_native->flags = 0;
     purc_variant_native->refc = 1;
@@ -285,23 +285,23 @@ purc_variant_t purc_variant_make_native (void *native_obj, purc_nvariant_release
 
 unsigned int purc_variant_ref (purc_variant_t value)
 {
-    enum variant_type type = purc_variant_get_type(value);
+    enum purc_variant_type type = purc_variant_get_type(value);
 
-    if((type != VARIANT_TYPE_NULL) && (type != VARIANT_TYPE_UNDEFINED) && \
-       (type != VARIANT_TYPE_BOOLEAN))
+    if((type != PURC_VARIANT_TYPE_NULL) && (type != PURC_VARIANT_TYPE_UNDEFINED) && \
+       (type != PURC_VARIANT_TYPE_BOOLEAN))
         value->refc ++;
 
     return value->refc;
 }
 
 
-bool purc_variant_is_type(const purc_variant_t value, enum variant_type type)
+bool purc_variant_is_type(const purc_variant_t value, enum purc_variant_type type)
 {
     return (value->type == type);
 }
 
 
-enum variant_type purc_variant_get_type(const purc_variant_t value)
+enum purc_variant_type purc_variant_get_type(const purc_variant_t value)
 {
     return value->type;
 }
@@ -310,10 +310,10 @@ enum variant_type purc_variant_get_type(const purc_variant_t value)
 // todo
 unsigned int purc_variant_ref (purc_variant_t value)
 {
-    enum variant_type type = purc_variant_get_type(value);
+    enum purc_variant_type type = purc_variant_get_type(value);
 
-    if((type != VARIANT_TYPE_NULL) && (type != VARIANT_TYPE_UNDEFINED) && \
-       (type != VARIANT_TYPE_BOOLEAN))
+    if((type != PURC_VARIANT_TYPE_NULL) && (type != PURC_VARIANT_TYPE_UNDEFINED) && \
+       (type != PURC_VARIANT_TYPE_BOOLEAN))
         value->refc ++;
 
     return value->refc;
@@ -322,10 +322,10 @@ unsigned int purc_variant_ref (purc_variant_t value)
 // todo
 unsigned int purc_variant_unref (purc_variant_t value)
 {
-    enum variant_type type = purc_variant_get_type(value);
+    enum purc_variant_type type = purc_variant_get_type(value);
 
-    if((type == VARIANT_TYPE_NULL) || (type == VARIANT_TYPE_UNDEFINED) || \
-       (type == VARIANT_TYPE_BOOLEAN))
+    if((type == PURC_VARIANT_TYPE_NULL) || (type == PURC_VARIANT_TYPE_UNDEFINED) || \
+       (type == PURC_VARIANT_TYPE_BOOLEAN))
         return 0;
 
     if(value->refc == 0)
