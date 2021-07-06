@@ -1,13 +1,13 @@
 /**
  * @file purc-rwstream.h
- * @author 
+ * @author XueShuming
  * @date 2021/07/02
  * @brief The API for RWStream.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -51,7 +51,7 @@ PCA_EXTERN_C_BEGIN
  *
  * Since: 0.0.1
  */
-purc_rwstream_t purc_rwstream_new_from_mem (void* mem, size_t sz);
+PCA_EXPORT purc_rwstream_t purc_rwstream_new_from_mem (void* mem, size_t sz);
 
 /**
  * Creates a new purc_rwstream_t for the given file and mode.
@@ -64,7 +64,8 @@ purc_rwstream_t purc_rwstream_new_from_mem (void* mem, size_t sz);
  *
  * Since: 0.0.1
  */
-purc_rwstream_t purc_rwstream_new_from_file (const char* file, const char* mode);
+PCA_EXPORT purc_rwstream_t
+purc_rwstream_new_from_file (const char* file, const char* mode);
 
 /**
  * Creates a new purc_rwstream_t for the given FILE pointer.
@@ -75,7 +76,7 @@ purc_rwstream_t purc_rwstream_new_from_file (const char* file, const char* mode)
  *
  * Since: 0.0.1
  */
-purc_rwstream_t purc_rwstream_new_from_fp (FILE* fp);
+PCA_EXPORT purc_rwstream_t purc_rwstream_new_from_fp (FILE* fp);
 
 /**
  * Creates a new purc_rwstream_t for the given file descriptor (Unix && GLIB).
@@ -87,7 +88,8 @@ purc_rwstream_t purc_rwstream_new_from_fp (FILE* fp);
  *
  * Since: 0.0.1
  */
-purc_rwstream_t purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf);
+PCA_EXPORT purc_rwstream_t
+purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf);
 
 /**
  * Creates a new purc_rwstream_t for the given socket on Windows (Win32 && GLIB).
@@ -99,7 +101,8 @@ purc_rwstream_t purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf);
  *
  * Since: 0.0.1
  */
-purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf);
+PCA_EXPORT purc_rwstream_t
+purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf);
 
 /**
  * Release the purc_rwstream_t
@@ -110,7 +113,7 @@ purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf);
  *
  * Since: 0.0.1
  */
-int purc_rwstream_destroy (purc_rwstream_t rws);
+PCA_EXPORT int purc_rwstream_destroy (purc_rwstream_t rws);
 
 /**
  * Sets the current position in the purc_rwstream_t, similar to the standard
@@ -128,7 +131,8 @@ int purc_rwstream_destroy (purc_rwstream_t rws);
  *
  * Since: 0.0.1
  */
-off_t purc_rwstream_seek (purc_rwstream_t rws, off_t offset, int whence);
+PCA_EXPORT off_t
+purc_rwstream_seek (purc_rwstream_t rws, off_t offset, int whence);
 
 /**
  * Obtains the current position of purc_rwstream_t, similar to the standard
@@ -140,7 +144,7 @@ off_t purc_rwstream_seek (purc_rwstream_t rws, off_t offset, int whence);
  *
  * Since: 0.0.1
  */
-off_t purc_rwstream_tell (purc_rwstream_t rws);
+PCA_EXPORT off_t purc_rwstream_tell (purc_rwstream_t rws);
 
 /**
  * Tests the end-of-file indicator for purc_rwstream_t
@@ -152,7 +156,7 @@ off_t purc_rwstream_tell (purc_rwstream_t rws);
  *
  * Since: 0.0.1
  */
-int purc_rwstream_eof (purc_rwstream_t rws);
+PCA_EXPORT int purc_rwstream_eof (purc_rwstream_t rws);
 
 /**
  * Reads data from a purc_rwstream_t
@@ -165,7 +169,8 @@ int purc_rwstream_eof (purc_rwstream_t rws);
  *
  * Since: 0.0.1
  */
-ssize_t purc_rwstream_read (purc_rwstream_t rws, void* buf, size_t count);
+PCA_EXPORT ssize_t
+purc_rwstream_read (purc_rwstream_t rws, void* buf, size_t count);
 
 /**
  * Reads a character(UTF-8) from purc_rwstream_t and convert to wchat_t.
@@ -179,7 +184,8 @@ ssize_t purc_rwstream_read (purc_rwstream_t rws, void* buf, size_t count);
  *
  * Since: 0.0.1
  */
-int purc_rwstream_read_utf8_char (purc_rwstream_t rws, char* buf_utf8, wchar_t* buf_wc);
+PCA_EXPORT int
+purc_rwstream_read_utf8_char (purc_rwstream_t rws, char* buf_utf8, wchar_t* buf_wc);
 
 
 /**
@@ -193,7 +199,8 @@ int purc_rwstream_read_utf8_char (purc_rwstream_t rws, char* buf_utf8, wchar_t* 
  *
  * Since: 0.0.1
  */
-ssize_t purc_rwstream_write (purc_rwstream_t rws, const void* buf, size_t count);
+PCA_EXPORT ssize_t
+purc_rwstream_write (purc_rwstream_t rws, const void* buf, size_t count);
 
 
 /**
@@ -205,7 +212,7 @@ ssize_t purc_rwstream_write (purc_rwstream_t rws, const void* buf, size_t count)
  *
  * Since: 0.0.1
  */
-ssize_t purc_rwstream_flush (purc_rwstream_t rws);
+PCA_EXPORT ssize_t purc_rwstream_flush (purc_rwstream_t rws);
 
 /**
  * Close an purc_rwstream_t. Any pending data to be written will be flushed. The channel will
@@ -217,7 +224,7 @@ ssize_t purc_rwstream_flush (purc_rwstream_t rws);
  *
  * Since: 0.0.1
  */
-int purc_rwstream_close (purc_rwstream_t rws);
+PCA_EXPORT int purc_rwstream_close (purc_rwstream_t rws);
 
 PCA_EXTERN_C_END
 
