@@ -160,7 +160,7 @@ int rwstream_error_code_from_gerror (GError* err)
         case G_IO_CHANNEL_ERROR_FBIG:
             return PCRWSTREAM_ERROR_FBIG;
         case G_IO_CHANNEL_ERROR_INVAL:
-            return PCRWSTREAM_ERROR_INVAL;
+            return PURC_ERROR_INVALID_VALUE;
         case G_IO_CHANNEL_ERROR_IO:
             return PCRWSTREAM_ERROR_IO;
         case G_IO_CHANNEL_ERROR_ISDIR:
