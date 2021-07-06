@@ -163,8 +163,9 @@ The source tree of PurC contains the following modules:
 - `Source/bmalloc/`: The `bmalloc` from WebKit.
 - `Source/cmake/`: The cmake modules.
 - `Source/test/`: The unit test programs.
-- `Tools/`: The tools (executables).
-- `docs/`: Some notes for developers.
+- `Tools/`: The tools (executables), e.g., the command line program.
+- `Documents/`: Some notes for developers.
+- `Examples/`: Examples.
 
 Note that the HTML parser and DOM operations of PurC are derived from:
 
