@@ -26,19 +26,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef PURC_PRIVATE_H
-#define PURC_PRIVATE_H
+#ifndef PURC_PRIVATE_LIST_H
+#define PURC_PRIVATE_LIST_H
 
 #include <stddef.h>
 #include <stdbool.h>
 
-#define	prefetch(x)
-
 #ifndef container_of
-#define container_of(ptr, type, member)					\
-	({								\
+#define container_of(ptr, type, member)					            \
+	({								                                \
 		const __typeof__(((type *) NULL)->member) *__mptr = (ptr);	\
-		(type *) ((char *) __mptr - offsetof(type, member));	\
+		(type *) (void*) (((char *)__mptr) - offsetof(type, member));	\
 	})
 #endif
 
@@ -113,23 +111,23 @@ list_del_init(struct list_head *entry)
 #define	list_first_entry(ptr, type, field)	list_entry((ptr)->next, type, field)
 #define	list_last_entry(ptr, type, field)	list_entry((ptr)->prev, type, field)
 
-#define	list_for_each(p, head)						\
+#define	list_for_each(p, head)						    \
 	for (p = (head)->next; p != (head); p = p->next)
 
 #define	list_for_each_safe(p, n, head)					\
 	for (p = (head)->next, n = p->next; p != (head); p = n, n = p->next)
 
-#define list_for_each_entry(p, h, field)				\
-	for (p = list_first_entry(h, __typeof__(*p), field); &p->field != (h); \
+#define list_for_each_entry(p, h, field)				                    \
+	for (p = list_first_entry(h, __typeof__(*p), field); &p->field != (h);  \
 	    p = list_entry(p->field.next, __typeof__(*p), field))
 
-#define list_for_each_entry_safe(p, n, h, field)			\
-	for (p = list_first_entry(h, __typeof__(*p), field),		\
-	    n = list_entry(p->field.next, __typeof__(*p), field); &p->field != (h);\
+#define list_for_each_entry_safe(p, n, h, field)			                    \
+	for (p = list_first_entry(h, __typeof__(*p), field),		                \
+	    n = list_entry(p->field.next, __typeof__(*p), field); &p->field != (h); \
 	    p = n, n = list_entry(n->field.next, __typeof__(*n), field))
 
-#define	list_for_each_entry_reverse(p, h, field)			\
-	for (p = list_last_entry(h, __typeof__(*p), field); &p->field != (h); \
+#define	list_for_each_entry_reverse(p, h, field)			                \
+	for (p = list_last_entry(h, __typeof__(*p), field); &p->field != (h);   \
 	    p = list_entry(p->field.prev, __typeof__(*p), field))
 
 #define	list_for_each_prev(p, h) for (p = (h)->prev; p != (h); p = p->prev)
@@ -205,4 +203,4 @@ list_splice_tail_init(struct list_head *list, struct list_head *head)
 	INIT_LIST_HEAD(list);
 }
 
-#endif /* PURC_PRIVATE_H */
+#endif /* PURC_PRIVATE_LIST_H */
