@@ -837,19 +837,19 @@ PCA_EXPORT purc_variant_t purc_variant_dynamic_value_load_from_so (const char* s
 
 typedef enum variant_type
 {
-    variant_type_null,
-    variant_type_undefined,
-    variant_type_boolean,
-    variant_type_number,
-    variant_type_longint,
-    variant_type_longdouble,
-    variant_type_string,
-    variant_type_sequence,
-    variant_type_dynamic,
-    variant_type_native,
-    variant_type_object,
-    variant_type_array,
-    variant_type_set,
+    VARIANT_TYPE_NULL,
+    VARIANT_TYPE_UNDEFINED,
+    VARIANT_TYPE_BOOLEAN,
+    VARIANT_TYPE_NUMBER,
+    VARIANT_TYPE_LONGINT,
+    VARIANT_TYPE_LONGDOUBLE,
+    VARIANT_TYPE_STRING,
+    VARIANT_TYPE_SEQUENCE,
+    VARIANT_TYPE_DYNAMIC,
+    VARIANT_TYPE_NATIVE,
+    VARIANT_TYPE_OBJECT,
+    VARIANT_TYPE_ARRAY,
+    VARIANT_TYPE_SET,
 } variant_type;
 
 
