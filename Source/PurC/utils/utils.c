@@ -16,12 +16,15 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include "config.h"
+
+#include "purc-errors.h"
+#include "private/utils.h"
+#include "private/errors.h"
+
 #include <stdarg.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <ctype.h>
-
-#include "private/utils.h"
 
 #define foreach_arg(_arg, _addr, _len, _first_addr, _first_len) \
 	for (_addr = (_first_addr), _len = (_first_len); \
@@ -115,3 +118,63 @@ int pcutils_hex2bin (const char *hex, unsigned char *bin)
     return sz;
 }
 
+#if OS(LINUX)
+
+size_t pcutils_get_cmdline_arg(int arg, char* buf, size_t sz_buf)
+{
+    size_t i, n = 0;
+    FILE *fp = fopen("/proc/self/cmdline", "rb");
+
+    if (fp == NULL) {
+        pcinst_set_error (PURC_ERROR_BAD_STDC_CALL);
+        return 0;
+    }
+
+    if (arg > 0) {
+        while (1) {
+            int ch = fgetc(fp);
+            if (ch == '\0') {
+                n++;
+            }
+            else if (ch == EOF) {
+                pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+                return 0;
+            }
+
+            if (n == (size_t)arg)
+                break;
+        }
+    }
+
+    for (i = 0; i < sz_buf - 1; i++) {
+        int ch = fgetc(fp);
+
+        if (isalnum(ch))
+            buf[n++] = ch;
+    }
+
+    buf[n] = '\0';
+    fclose(fp);
+    return n;
+}
+
+#else /* OS(LINUX) */
+
+size_t pcutils_get_cmdline_arg(int arg, char* buf, size_t sz_buf)
+{
+    size_t i;
+    const char* unknown = "unknown-cmdline";
+
+    UNUSED_PARAM(arg);
+
+    for (i = 0; i < sz_buf - 1; i++) {
+        if (unknown[i])
+            buf[i] = unknown[i];
+        else
+            break;
+    }
+
+    buf[i] = '\0';
+    return i;
+}
+#endif /* not OS(LINUX) */
