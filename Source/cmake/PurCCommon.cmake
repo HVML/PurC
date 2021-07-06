@@ -32,6 +32,7 @@ if (NOT HAS_RUN_PURC_COMMON)
     include(CMakeDependentOption)
     include(CMakeParseArguments)
     include(ProcessorCount)
+    include(VersioningUtils)
 
     include(PurCPackaging)
     include(PurCMacros)
