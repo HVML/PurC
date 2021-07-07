@@ -76,7 +76,7 @@ PCA_EXTERN_C_BEGIN
  * Returns: the #purc_atom_t identifying the string, or 0 if @string is %NULL
  */
 PCA_EXPORT purc_atom_t
-purc_atom_make_from_string(const char* string);
+purc_atom_from_string(const char* string);
 
 /**
  * purc_atom_from_static_string:
@@ -102,7 +102,7 @@ purc_atom_make_from_string(const char* string);
  * Returns: the #purc_atom_t identifying the string, or 0 if @string is %NULL
  */
 PCA_EXPORT purc_atom_t
-purc_atom_make_from_static_string(const char* string);
+purc_atom_from_static_string(const char* string);
  
 /**
  * purc_atom_try_string:
