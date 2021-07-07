@@ -1,6 +1,7 @@
 /*
- * utils.c - misc libubox utility functions
+ * utils.c - misc utility and helper functions
  *
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  * Copyright (C) 2012 Felix Fietkau <nbd@openwrt.org>
  *
  * Permission to use, copy, modify, and/or distribute this software for any

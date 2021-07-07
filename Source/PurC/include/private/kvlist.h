@@ -1,6 +1,9 @@
 /*
- * kvlist - simple key/value store
+ * @file kvlist.h
+ * @date 2021/07/05
+ * @brief simple key/value store
  *
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  * Copyright (C) 2014 Felix Fietkau <nbd@openwrt.org>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,8 +18,8 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#ifndef __LIBHIBOX_KVLIST_H
-#define __LIBHIBOX_KVLIST_H
+#ifndef PURC_PRIVATE_KVLIST_H
+#define PURC_PRIVATE_KVLIST_H
 
 #include "private/avl.h"
 
@@ -78,4 +81,4 @@ int pcutils_kvlist_strlen(struct kvlist *kv, const void *data);
 }
 #endif
 
-#endif  /* __LIBHIBOX_KVLIST_H */
+#endif  /* PURC_PRIVATE_KVLIST_H */

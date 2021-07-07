@@ -1,6 +1,7 @@
 /*
  * safe_list - linked list protected against recursive iteration with deletes
  *
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  * Copyright (C) 2013 Felix Fietkau <nbd@openwrt.org>
  *
  * Permission to use, copy, modify, and/or distribute this software for any

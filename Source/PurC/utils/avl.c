@@ -1,5 +1,7 @@
 /*
- * PacketBB handler library (see RFC 5444)
+ * avl - the implementation of AVL tree.
+ *
+ * Copyright (c) 2021 FMSoft <https://www.fmsoft.cn>
  * Copyright (c) 2010 Henning Rogge <hrogge@googlemail.com>
  * Original OLSRd implementation by Hannes Gredler <hannes@gredler.at>
  * All rights reserved.
