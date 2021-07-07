@@ -30,8 +30,9 @@
 
 #include "purc-macros.h"
 
-struct purc_mutex;
-typedef struct purc_mutex purc_mutex;
+typedef struct purc_mutex {
+    void *native_impl;
+} purc_mutex;
 
 typedef struct purc_rwlock {
     void *native_impl;
