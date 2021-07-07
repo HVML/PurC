@@ -99,6 +99,10 @@ struct purc_variant {
 
 void init_variant_modules(void);
 
+//  for custom serialization function.
+typedef int(variant_to_json_string_fn)(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags);
+
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

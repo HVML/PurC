@@ -28,10 +28,89 @@
 #include "purc_variant.h"
 #include "variant_types.h"
 
-static struct purc_variant pcvariant_null = { PURC_VARIANT_TYPE_NULL, 0, 0, PCVARIANT_FLAG_NOFREE };
-static struct purc_variant pcvariant_undefined = { PURC_VARIANT_TYPE_UNDEFINED, 0, 0, PCVARIANT_FLAG_NOFREE };
-static struct purc_variant pcvariant_false = { PURC_VARIANT_TYPE_BOOLEAN, 0, 0, PCVARIANT_FLAG_NOFREE, { b:0 } };
-static struct purc_variant pcvariant_true = { PURC_VARIANT_TYPE_BOOLEAN, 0, 0, PCVARIANT_FLAG_NOFREE, { b:1 } };
+static int variant_undefined_to_json_string(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags);
+static int variant_null_to_json_string(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags);
+static int variant_boolean_to_json_string(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags);
+static int variant_number_to_json_string(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags);
+static int variant_longint_to_json_string(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags);
+static int variant_longdouble_to_json_string(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags);
+static int variant_string_to_json_string(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags);
+static int variant_sequence_to_json_string(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags);
+static int variant_dynamic_to_json_string(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags);
+static int variant_native_to_json_string(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags);
+static int variant_object_to_json_string(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags);
+static int variant_array_to_json_string(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags);
+static int variant_set_to_json_string(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags);
+
+
+static variant_to_json_string_fn variant_serialize[PURC_VARIANT_TYPE_MAX] = 
+{
+    variant_null_to_json_string,        // PURC_VARIANT_TYPE_NULL
+    variant_undefined_to_json_string,   // PURC_VARIANT_TYPE_UNDEFINED
+    variant_boolean_to_json_string,     // PURC_VARIANT_TYPE_BOOLEAN
+    variant_number_to_json_string,      // PURC_VARIANT_TYPE_NUMBER
+    variant_longint_to_json_string,     // PURC_VARIANT_TYPE_LONGINT
+    variant_longdouble_to_json_string,  // PURC_VARIANT_TYPE_LONGDOUBLE
+    variant_string_to_json_string,      // PURC_VARIANT_TYPE_STRING
+    variant_sequence_to_json_string,    // PURC_VARIANT_TYPE_SEQUENCE
+    variant_dynamic_to_json_string,     // PURC_VARIANT_TYPE_DYNAMIC
+    variant_native_to_json_string,      // PURC_VARIANT_TYPE_NATIVE
+    variant_object_to_json_string,      // PURC_VARIANT_TYPE_OBJECT
+    variant_array_to_json_string,       // PURC_VARIANT_TYPE_ARRAY
+    variant_set_to_json_string,         // PURC_VARIANT_TYPE_SET
+};
+
+static int variant_undefined_to_json_string(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags)
+{
+}
+
+static int variant_null_to_json_string(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags)
+{
+}
+
+static int variant_boolean_to_json_string(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags)
+{
+}
+
+static int variant_number_to_json_string(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags)
+{
+}
+
+static int variant_longint_to_json_string(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags)
+{
+}
+
+static int variant_longdouble_to_json_string(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags)
+{
+}
+
+static int variant_string_to_json_string(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags)
+{
+}
+
+static int variant_sequence_to_json_string(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags)
+{
+}
+
+static int variant_dynamic_to_json_string(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags)
+{
+}
+
+static int variant_native_to_json_string(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags)
+{
+}
+
+static int variant_object_to_json_string(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags)
+{
+}
+
+static int variant_array_to_json_string(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags)
+{
+}
+
+static int variant_set_to_json_string(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags)
+{
+}
 
 purc_variant_t purc_variant_make_undefined (void)
 {
@@ -372,3 +451,4 @@ size_t purc_variant_serialize (purc_variant_t value, purc_rwstream_t stream, \
 int purc_variant_compare (purc_variant_t v1, purc_variant v2)
 {
 }
+
