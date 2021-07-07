@@ -58,7 +58,7 @@ const char* purc_get_error_message(int errcode)
     struct list_head *p;
 
     list_for_each(p, &_err_msg_seg_list) {
-        struct err_msg_seg *seg = (struct err_msg_seg *)p;
+        struct err_msg_seg *seg = container_of (p, struct err_msg_seg, list);
         if (errcode >= seg->first_errcode && errcode <= seg->last_errcode) {
             return seg->msgs[errcode - seg->first_errcode];
         }
@@ -69,6 +69,6 @@ const char* purc_get_error_message(int errcode)
 
 void pcinst_register_error_message_segment(struct err_msg_seg* seg)
 {
-    list_add (&seg->list, &_err_msg_seg_list);
+    list_add(&seg->list, &_err_msg_seg_list);
 }
 
