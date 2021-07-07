@@ -46,7 +46,10 @@ extern "C" {
 
 #if !HAVE(VASPRINTF)
 int vasprintf(char **buf, const char *fmt, va_list ap)
-    __attribute__ ((format (gnu_printf, 2, 0)));
+# if COMPILER(GCC)
+    __attribute__ ((format (gnu_printf, 2, 0)))
+# endif
+;
 #endif
 
 void pcutils_init_atom(void) WTF_INTERNAL;
