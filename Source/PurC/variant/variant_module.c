@@ -40,21 +40,17 @@ static struct purc_variant pcvariant_true = { PURC_VARIANT_TYPE_BOOLEAN, 0, 0, P
 static struct purc_variant_const = {&pcvariant_null, &pcvariant_undefined, &pcvariant_false, &pcvariant_true};
 
 static const char* variant_err_msgs[] = {
-    /* PURC_ERROR_VARIANT_NO_MEMORY */
-    "No memory for creating variant",
-    /* PURC_ERROR_VARIANT_INVALID_VALUE */
-    "Invalid variant value",
     /* PURC_ERROR_VARIANT_INVALID_TYPE */
     "Invalid variant type",
 };
 
 static struct err_msg_seg _variant_err_msgs_seg = {
     { NULL, NULL },
-    PURC_ERROR_FIRST_VARIANT, PURC_ERROR_FIRST_VARIANT + PCA_TABLESIZE(variant_err_msgs),
+    PURC_ERROR_FIRST_VARIANT, PURC_ERROR_FIRST_VARIANT + PCA_TABLESIZE(variant_err_msgs) - 1,
     variant_err_msgs
 };
 
-void init_variant_modules(void)
+bool pcvariant_init_module(void)
 {
     struct pcinst * pcinstance = NULL;
 

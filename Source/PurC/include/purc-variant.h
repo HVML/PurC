@@ -844,6 +844,8 @@ typedef enum purc_variant_type
     PURC_VARIANT_TYPE_OBJECT,
     PURC_VARIANT_TYPE_ARRAY,
     PURC_VARIANT_TYPE_SET,
+    /* critical: this MUST be the last enum */
+    PURC_VARIANT_TYPE_MAX,
 } purc_variant_type;
 
 

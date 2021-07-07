@@ -27,6 +27,9 @@
 #ifndef _VARIANT_TYPES_H_
 #define _VARIANT_TYPES_H_
 
+#include <assert.h>
+
+#include "config.h"
 #include "purc_variant.h"
 
 #ifdef __cplusplus
@@ -34,17 +37,21 @@ extern "C" {
 #endif  /* __cplusplus */
 
 // define errors for variant
-#define PURC_ERROR_VARIANT_NO_MEMORY        (PURC_ERROR_FIRST_VARIANT + 0)
-#define PURC_ERROR_VARIANT_INVALID_VALUE    (PURC_ERROR_FIRST_VARIANT + 1)
-#define PURC_ERROR_VARIANT_INVALID_TYPE     (PURC_ERROR_FIRST_VARIANT + 2)
+#define PURC_ERROR_VARIANT_INVALID_TYPE     (PURC_ERROR_FIRST_VARIANT + 0)
 
-// set purc_variant->size = PURC_VARIANT_FLAG_LONG, for long string or sequence
-#define PURC_VARIANT_FLAG_LONG  0xFF
+// set purc_variant->size
+#define PCVARIANT_FLAG_LONG     0xFF        // for long string or sequence
+#define PCVARIANT_FLAG_SIGNED   0xFF        // for signed int
 
 #define MAX(a, b)   (a) > (b)? (a): (b);
 
-#define PCVARIANT_FLAG_NOREF    0x0001
-#define PCVARIANT_FLAG_NOFREE   0x0002
+#define PCVARIANT_FLAG_NOREF    (0x01 << 0)
+#define PCVARIANT_FLAG_NOFREE   (0x01 << 1)
+
+#define PVT(t) (PURC_VARIANT_TYPE##t)
+
+// fix me: if we need `assert` in both debug and release build, better approach?
+#define PURC_VARIANT_ASSERT(s) assert(s)
 
 // for variant const, registered in thread instance
 struct purc_variant_const {
@@ -97,11 +104,24 @@ struct purc_variant {
     };
 };
 
-void init_variant_modules(void);
+// for custom serialization function.
+typedef int (* pcvariant_to_json_string_fn)(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags);
 
-//  for custom serialization function.
-typedef int(variant_to_json_string_fn)(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags);
+// for release the resource in a variant
+typedef void (* pcvariant_release_fn)(purc_variant_t value);
 
+// initialize variant module
+bool pcvariant_init_module(void)   WTF_INTERNAL;
+
+#if HAVE(GLIB)
+inline void * pcvariant_alloc_mem(size_t size)           { return (void *)g_slice_alloc((gsize)size); }
+inline void * pcvariant_alloc_mem_0(size_t size)         { return (void *)g_slice_alloc0((gsize)size); }
+inline void pcvariant_free_mem(size_t size, void *ptr)   { return g_slice_free1((gsize)size, (gconstpointer)ptr); }
+#else
+inline void * pcvariant_alloc_mem(size_t size)           { return malloc(size); }
+inline void * pcvariant_alloc_mem_0(size_t size)         { return (void *)calloc(size); }
+inline void pcvariant_free_mem(size_t size, void *ptr)   { return free(ptr); }
+#endif
 
 #ifdef __cplusplus
 }
