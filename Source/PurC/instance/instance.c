@@ -93,6 +93,7 @@ static void init_modules(void)
     pcinst_register_error_message_segment(&_rwstream_err_msgs_seg);
 
     // TODO: init other modules here.
+    pcutils_init_atom();
 }
 
 #if USE(PTHREADS)
