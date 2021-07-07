@@ -25,6 +25,8 @@
 #ifndef PURC_PRIVATE_UTILS_H
 #define PURC_PRIVATE_UTILS_H
 
+#include "config.h"
+
 #include <stddef.h>
 
 /*
@@ -40,6 +42,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+void pcutils_init_atom(void) WTF_INTERNAL;
 
 void *pcutils_calloc_a(size_t len, ...);
 
