@@ -37,7 +37,7 @@
 #define ATOM_BLOCK_SIZE         2048
 #define ATOM_STRING_BLOCK_SIZE (4096 - sizeof (size_t))
 
-static inline purc_atom_t  atom_new (char *string);
+static inline purc_atom_t atom_new (char *string);
 
 static purc_rwlock atom_rwlock;
 static KVLIST (atom_ht, NULL);
@@ -90,8 +90,7 @@ atom_strdup (const char *string)
         return strdup (string);
 
     if (atom_block == NULL ||
-            ATOM_STRING_BLOCK_SIZE - atom_block_offset < len)
-    {
+            ATOM_STRING_BLOCK_SIZE - atom_block_offset < len) {
         atom_block = malloc (ATOM_STRING_BLOCK_SIZE);
         atom_block_offset = 0;
     }
@@ -103,7 +102,7 @@ atom_strdup (const char *string)
     return copy;
 }
 
-/* HOLDS: atom_rwlock_lock */
+/* HOLDS: purc_atom_rwlock_writer_lock */
 static inline purc_atom_t
 atom_from_string (const char *string, bool duplicate)
 {
@@ -156,7 +155,7 @@ purc_atom_to_string (purc_atom_t atom)
     return result;
 }
 
-/* HOLDS: purc_atom_rwlock_lock */
+/* HOLDS: purc_atom_rwlock_writer_lock */
 static inline purc_atom_t
 atom_new (char *string)
 {
@@ -168,10 +167,6 @@ atom_new (char *string)
         if (atom_seq_id != 0)
             memcpy (atoms_new, quarks, sizeof (char *) * atom_seq_id);
         memset (atoms_new + atom_seq_id, 0, sizeof (char *) * ATOM_BLOCK_SIZE);
-        /* This leaks the old quarks array. Its unfortunate, but it allows
-         * us to do lockless lookup of the arrays, and there shouldn't be that
-         * many quarks in an app
-         */
         quarks = atoms_new;
     }
 
