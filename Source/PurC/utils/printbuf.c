@@ -2,7 +2,7 @@
  * @file printbuf.c
  * @author gengyue 
  * @date 2021/07/02
- * @brief The API for print buffer.
+ * @brief The implementation of print buffer.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -33,39 +33,7 @@
 #include "private/errors.h"
 #include "private/printbuf.h"
 
-static int purc_printbuf_extend(struct purc_printbuf *p, int min_size);
-
-int purc_printbuf_init(struct purc_printbuf *p)
-{
-    p->size = 32;
-    p->bpos = 0;
-    if(!(p->buf = (char *)malloc(p->size))) 
-    {
-        p->size = 0;
-        return -1;
-    }
-
-    p->buf[0] = '\0';
-
-    return 0;
-}
-
-struct purc_printbuf * purc_printbuf_new(void)
-{
-    struct purc_printbuf * p = NULL;
-
-    p = (struct purc_printbuf *)calloc(1, sizeof(struct purc_printbuf));
-    if(!p)
-        return NULL;
-
-    if(purc_printbuf_init (p)) 
-    {
-        free(p);
-        return NULL;
-    }
-
-    return p;
-}
+static int printbuf_extend(struct pcutils_printbuf *p, int min_size);
 
 /**
  * Extend the buffer p so it has a size of at least min_size.
@@ -75,7 +43,7 @@ struct purc_printbuf * purc_printbuf_new(void)
  * Note: this does not check the available space!  The caller
  *  is responsible for performing those calculations.
  */
-static int purc_printbuf_extend(struct purc_printbuf *p, int min_size)
+static int printbuf_extend(struct pcutils_printbuf *p, int min_size)
 {
     char *t;
     int new_size;
@@ -108,7 +76,39 @@ static int purc_printbuf_extend(struct purc_printbuf *p, int min_size)
     return 0;
 }
 
-int purc_printbuf_memappend(struct purc_printbuf *p, const char *buf, int size)
+int pcutils_printbuf_init(struct pcutils_printbuf *p)
+{
+    p->size = 32;
+    p->bpos = 0;
+    if(!(p->buf = (char *)malloc(p->size))) 
+    {
+        p->size = 0;
+        return -1;
+    }
+
+    p->buf[0] = '\0';
+
+    return 0;
+}
+
+struct pcutils_printbuf * pcutils_printbuf_new(void)
+{
+    struct pcutils_printbuf * p = NULL;
+
+    p = (struct pcutils_printbuf *)calloc(1, sizeof(struct pcutils_printbuf));
+    if(!p)
+        return NULL;
+
+    if(pcutils_printbuf_init(p)) 
+    {
+        free(p);
+        return NULL;
+    }
+
+    return p;
+}
+
+int pcutils_printbuf_memappend(struct pcutils_printbuf *p, const char *buf, int size)
 {
     if(!p->buf)
         return -1;
@@ -121,7 +121,7 @@ int purc_printbuf_memappend(struct purc_printbuf *p, const char *buf, int size)
         return -1;
     if(p->size <= p->bpos + size + 1)
     {
-        if(purc_printbuf_extend(p, p->bpos + size + 1) < 0)
+        if(printbuf_extend(p, p->bpos + size + 1) < 0)
             return -1;
     }
 
@@ -132,7 +132,7 @@ int purc_printbuf_memappend(struct purc_printbuf *p, const char *buf, int size)
     return size;
 }
 
-int purc_printbuf_memset(struct purc_printbuf *pb, int offset, int charvalue, int len)
+int pcutils_printbuf_memset(struct pcutils_printbuf *pb, int offset, int charvalue, int len)
 {
     int size_needed;
 
@@ -149,7 +149,7 @@ int purc_printbuf_memset(struct purc_printbuf *pb, int offset, int charvalue, in
     size_needed = offset + len;
     if(pb->size < size_needed)
     {
-        if(purc_printbuf_extend(pb, size_needed) < 0)
+        if(printbuf_extend(pb, size_needed) < 0)
             return -1;
     }
 
@@ -160,7 +160,7 @@ int purc_printbuf_memset(struct purc_printbuf *pb, int offset, int charvalue, in
     return 0;
 }
 
-int purc_printbuf_shrink(struct purc_printbuf *pb, int len)
+int pcutils_printbuf_shrink(struct pcutils_printbuf *pb, int len)
 {
     if(!pb->buf)
         return -1;
@@ -174,7 +174,7 @@ int purc_printbuf_shrink(struct purc_printbuf *pb, int len)
     return 0;
 }
 
-int purc_sprintbuf(struct purc_printbuf *p, const char *msg, ...)
+int pcutils_sprintbuf(struct pcutils_printbuf *p, const char *msg, ...)
 {
     va_list ap;
     char *t;
@@ -202,18 +202,18 @@ int purc_sprintbuf(struct purc_printbuf *p, const char *msg, ...)
             return -1;
         }
         va_end(ap);
-        purc_printbuf_memappend(p, t, size);
+        pcutils_printbuf_memappend(p, t, size);
         free(t);
         return size;
     }
     else
     {
-        purc_printbuf_memappend(p, buf, size);
+        pcutils_printbuf_memappend(p, buf, size);
         return size;
     }
 }
 
-void purc_printbuf_reset(struct purc_printbuf *p)
+void pcutils_printbuf_reset(struct pcutils_printbuf *p)
 {
     if(!p->buf)
         return;
@@ -222,7 +222,7 @@ void purc_printbuf_reset(struct purc_printbuf *p)
     p->bpos = 0;
 }
 
-void purc_printbuf_free(struct purc_printbuf *p)
+void pcutils_printbuf_free(struct pcutils_printbuf *p)
 {
     if(p) 
     {

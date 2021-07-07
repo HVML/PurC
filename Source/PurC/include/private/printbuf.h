@@ -1,8 +1,8 @@
 /*
- * @file printbuf.c
+ * @file printbuf.h
  * @author gengyue 
  * @date 2021/07/02
- * @brief The API for print buffer.
+ * @brief The implementation of print buffer.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -29,17 +29,17 @@
 extern "C" {
 #endif
 
-struct purc_printbuf
+struct pcutils_printbuf
 {
-	char *buf;
-	int bpos;
-	int size;
+    char *buf;
+    int bpos;
+    int size;
 };
-typedef struct purc_printbuf purc_printbuf;
+typedef struct pcutils_printbuf pcutils_printbuf;
 
-int purc_printbuf_init(struct purc_printbuf *pb);
+int pcutils_printbuf_init(struct pcutils_printbuf *pb);
 
-struct purc_printbuf * purc_printbuf_new(void);
+struct pcutils_printbuf * pcutils_printbuf_new(void);
 
 /* As an optimization, printbuf_memappend_fast() is defined as a macro
  * that handles copying data if the buffer is large enough; otherwise
@@ -49,39 +49,39 @@ struct purc_printbuf * purc_printbuf_new(void);
  * Your code should not use printbuf_memappend() directly unless it
  * checks the return code. Use printbuf_memappend_fast() instead.
  */
-int purc_printbuf_memappend(struct purc_printbuf *p, const char *buf, int size);
+int pcutils_printbuf_memappend(struct pcutils_printbuf *p, const char *buf, int size);
 
-#define purc_printbuf_memappend_fast(p, bufptr, bufsize)         \
-	do                                                           \
-	{                                                            \
-		if ((p->size - p->bpos) > bufsize)                       \
-		{                                                        \
-			memcpy(p->buf + p->bpos, (bufptr), bufsize);         \
-			p->bpos += bufsize;                                  \
-			p->buf[p->bpos] = '\0';                              \
-		}                                                        \
-		else                                                     \
-		{                                                        \
-			purc_printbuf_memappend(p, (bufptr), bufsize);       \
-		}                                                        \
-	} while (0)
+#define pcutils_printbuf_memappend_fast(p, bufptr, bufsize)         \
+    do                                                           \
+    {                                                            \
+        if ((p->size - p->bpos) > bufsize)                       \
+        {                                                        \
+            memcpy(p->buf + p->bpos, (bufptr), bufsize);         \
+            p->bpos += bufsize;                                  \
+            p->buf[p->bpos] = '\0';                              \
+        }                                                        \
+        else                                                     \
+        {                                                        \
+            pcutils_printbuf_memappend(p, (bufptr), bufsize);       \
+        }                                                        \
+    } while (0)
 
-#define purc_printbuf_length(p) ((p)->bpos)
+#define pcutils_printbuf_length(p) ((p)->bpos)
 
-#define _purc_printbuf_check_literal(mystr) ("" mystr)
+#define _printbuf_check_literal(mystr) ("" mystr)
 
-#define purc_printbuf_strappend(pb, str) \
-	purc_printbuf_memappend((pb), _purc_printbuf_check_literal(str), sizeof(str) - 1)
+#define pcutils_printbuf_strappend(pb, str) \
+    pcutils_printbuf_memappend((pb), _printbuf_check_literal(str), sizeof(str) - 1)
 
-int purc_printbuf_memset(struct purc_printbuf *pb, int offset, int charvalue, int len);
+int pcutils_printbuf_memset(struct pcutils_printbuf *pb, int offset, int charvalue, int len);
 
-int purc_printbuf_shrink(struct purc_printbuf *pb, int len);
+int pcutils_printbuf_shrink(struct pcutils_printbuf *pb, int len);
 
-int purc_sprintbuf(struct purc_printbuf *p, const char *msg, ...);
+int pcutils_sprintbuf(struct pcutils_printbuf *p, const char *msg, ...);
 
-void purc_printbuf_reset(struct purc_printbuf *p);
+void pcutils_printbuf_reset(struct pcutils_printbuf *p);
 
-void purc_printbuf_free(struct purc_printbuf *p);
+void pcutils_printbuf_free(struct pcutils_printbuf *p);
 
 #ifdef __cplusplus
 }
