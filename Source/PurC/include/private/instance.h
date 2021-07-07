@@ -42,7 +42,7 @@ struct pcinst {
 };
 
 /* gets the current instance */
-struct pcinst* pcinst_current(void);
+struct pcinst* pcinst_current(void) WTF_INTERNAL;
 
 #endif /* not defined PURC_PRIVATE_INSTANCE_H */
 

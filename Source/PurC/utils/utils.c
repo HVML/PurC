@@ -24,6 +24,7 @@
 
 #include <stdarg.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <ctype.h>
 
 #define foreach_arg(_arg, _addr, _len, _first_addr, _first_len) \
