@@ -29,6 +29,8 @@
 #include "private/instance.h"
 #include "private/errors.h"
 #include "private/tls.h"
+#include "private/utils.h"
+#include "private/rwstream.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -58,40 +60,13 @@ static struct err_msg_seg _generic_err_msgs_seg = {
     generic_err_msgs
 };
 
-static const char* rwstream_err_msgs[] = {
-    /* PCRWSTREAM_ERROR_FAILED (200) */
-    "Rwstream failed with some other error",
-    /* PCRWSTREAM_ERROR_FBIG */
-    "File too large",
-    /* PCRWSTREAM_ERROR_IO */
-    "IO error",
-    /* PCRWSTREAM_ERROR_ISDIR */
-    "File is a directory.",
-    /* PCRWSTREAM_ERROR_NOSPC */
-    "No space left on device.",
-    /* PPCRWSTREAM_ERROR_NXIO */
-    "No such device or address",
-    /* PCRWSTREAM_ERROR_OVERFLOW */
-    "Value too large for defined datatype",
-    /* PCRWSTREAM_ERROR_PIPE */
-    "Broken pipe",
-    /* PCRWSTREAM_BAD_ENCODING */
-    "Bad encoding",
-};
-
-static struct err_msg_seg _rwstream_err_msgs_seg = {
-    { NULL, NULL },
-    PURC_ERROR_FIRST_RWSTREAM,
-    PURC_ERROR_FIRST_RWSTREAM + PCA_TABLESIZE(rwstream_err_msgs),
-    rwstream_err_msgs
-};
-
 static void init_modules(void)
 {
     pcinst_register_error_message_segment(&_generic_err_msgs_seg);
-    pcinst_register_error_message_segment(&_rwstream_err_msgs_seg);
 
     // TODO: init other modules here.
+    pcutils_init_atom();
+    pcrwstream_init();
 }
 
 #if USE(PTHREADS)
@@ -165,8 +140,15 @@ int purc_init(const char* app_name, const char* runner_name,
     curr_inst->errcode = PURC_ERROR_OK;
     if (app_name)
         curr_inst->app_name = strdup(app_name);
-    else
-        curr_inst->app_name = strdup("unknown");
+    else {
+        char cmdline[128];
+        size_t len;
+        len = pcutils_get_cmdline_arg (0, cmdline, sizeof(cmdline));
+        if (len > 0)
+            curr_inst->app_name = strdup(cmdline);
+        else
+            curr_inst->app_name = strdup("unknown");
+    }
 
     if (runner_name)
         curr_inst->runner_name = strdup(runner_name);

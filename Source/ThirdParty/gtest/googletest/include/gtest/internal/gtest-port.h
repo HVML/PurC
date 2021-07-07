@@ -609,6 +609,8 @@ typedef struct _RTL_CRITICAL_SECTION GTEST_CRITICAL_SECTION;
      GTEST_OS_FREEBSD || GTEST_OS_NETBSD || GTEST_OS_FUCHSIA ||           \
      GTEST_OS_DRAGONFLY || GTEST_OS_GNU_KFREEBSD || GTEST_OS_HAIKU)
 # define GTEST_HAS_DEATH_TEST 1
+#else
+# define GTEST_HAS_DEATH_TEST 0
 #endif
 
 // Determines whether to support type-driven tests.
@@ -619,6 +621,9 @@ typedef struct _RTL_CRITICAL_SECTION GTEST_CRITICAL_SECTION;
     defined(__IBMCPP__) || defined(__HP_aCC)
 # define GTEST_HAS_TYPED_TEST 1
 # define GTEST_HAS_TYPED_TEST_P 1
+#else
+# define GTEST_HAS_TYPED_TEST 0
+# define GTEST_HAS_TYPED_TEST_P 0
 #endif
 
 // Determines whether the system compiler uses UTF-16 for encoding wide strings.
@@ -629,6 +634,8 @@ typedef struct _RTL_CRITICAL_SECTION GTEST_CRITICAL_SECTION;
 #if GTEST_OS_LINUX || GTEST_OS_GNU_KFREEBSD || GTEST_OS_DRAGONFLY || \
     GTEST_OS_FREEBSD || GTEST_OS_NETBSD || GTEST_OS_OPENBSD
 # define GTEST_CAN_STREAM_RESULTS_ 1
+#else
+# define GTEST_CAN_STREAM_RESULTS_ 0
 #endif
 
 // Defines some utility macros.

@@ -60,7 +60,7 @@ enum pcvariant_error
     PCVARIANT_BAD_ENCODING = PURC_ERROR_FIRST_VARIANT,
 };
 
-// TODO: error codes for variant go here
+// TODO: error codes for rwstream go here
 enum pcrwstream_error
 {
     PCRWSTREAM_SUCCESS = PURC_ERROR_OK,

@@ -1,6 +1,9 @@
 /*
- * kvlist - simple key/value store
+ * @file kvlist.h
+ * @date 2021/07/05
+ * @brief simple key/value store
  *
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  * Copyright (C) 2014 Felix Fietkau <nbd@openwrt.org>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -15,43 +18,43 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#ifndef __LIBHIBOX_KVLIST_H
-#define __LIBHIBOX_KVLIST_H
+#ifndef PURC_PRIVATE_KVLIST_H
+#define PURC_PRIVATE_KVLIST_H
 
 #include "private/avl.h"
 
 struct kvlist {
-	struct avl_tree avl;
+    struct avl_tree avl;
 
     /* VW: can be NULL for pointer */
-	int (*get_len)(struct kvlist *kv, const void *data);
+    int (*get_len)(struct kvlist *kv, const void *data);
 };
 
 struct kvlist_node {
-	struct avl_node avl;
+    struct avl_node avl;
 
     /* VW: use the maximum alignment instead of 4 (pointer safe)*/
-	char data[0] __attribute__((aligned));
+    char data[0] __attribute__((aligned));
 };
 
-#define KVLIST_INIT(_name, _get_len)						\
-	{									\
-		.avl = AVL_TREE_INIT(_name.avl, avl_strcmp, false, NULL),	\
-		.get_len = _get_len						\
-	}
+#define KVLIST_INIT(_name, _get_len)                        \
+    {                                    \
+        .avl = AVL_TREE_INIT(_name.avl, pcutils_avl_strcmp, false, NULL),    \
+        .get_len = _get_len                        \
+    }
 
-#define KVLIST(_name, _get_len)							\
-	struct kvlist _name = KVLIST_INIT(_name, _get_len)
+#define KVLIST(_name, _get_len)                            \
+    struct kvlist _name = KVLIST_INIT(_name, _get_len)
 
 #define __ptr_to_kv(_ptr) container_of(((char *) (_ptr)), struct kvlist_node, data[0])
 #define __avl_list_to_kv(_l) container_of(_l, struct kvlist_node, avl.list)
 
 #define kvlist_for_each(kv, name, value) \
-	for (value = (void *) __avl_list_to_kv((kv)->avl.list_head.next)->data,			\
-	     name = (const char *) __ptr_to_kv(value)->avl.key, (void) name;			\
-	     &__ptr_to_kv(value)->avl.list != &(kv)->avl.list_head;				\
-	     value = (void *) (__avl_list_to_kv(__ptr_to_kv(value)->avl.list.next))->data,	\
-	     name = (const char *) __ptr_to_kv(value)->avl.key)
+    for (value = (void *) __avl_list_to_kv((kv)->avl.list_head.next)->data,            \
+         name = (const char *) __ptr_to_kv(value)->avl.key, (void) name;            \
+         &__ptr_to_kv(value)->avl.list != &(kv)->avl.list_head;                \
+         value = (void *) (__avl_list_to_kv(__ptr_to_kv(value)->avl.list.next))->data,    \
+         name = (const char *) __ptr_to_kv(value)->avl.key)
 
 #define kvlist_for_each_safe(kv, name, next, value) \
     for (value = (void *) __avl_list_to_kv((kv)->avl.list_head.next)->data,             \
@@ -78,4 +81,4 @@ int pcutils_kvlist_strlen(struct kvlist *kv, const void *data);
 }
 #endif
 
-#endif  /* __LIBHIBOX_KVLIST_H */
+#endif  /* PURC_PRIVATE_KVLIST_H */

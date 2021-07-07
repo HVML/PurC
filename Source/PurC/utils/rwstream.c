@@ -39,9 +39,38 @@
 #include <glib.h>
 #endif // ENABLE(SOCKET_STREAM) && HAVE(GLIB)
 
-struct purc_rwstream;
-typedef struct purc_rwstream purc_rwstream;
-typedef struct purc_rwstream* purc_rwstream_t;
+static const char* rwstream_err_msgs[] = {
+    /* PCRWSTREAM_ERROR_FAILED (200) */
+    "Rwstream failed with some other error",
+    /* PCRWSTREAM_ERROR_FBIG */
+    "File too large",
+    /* PCRWSTREAM_ERROR_IO */
+    "IO error",
+    /* PCRWSTREAM_ERROR_ISDIR */
+    "File is a directory.",
+    /* PCRWSTREAM_ERROR_NOSPC */
+    "No space left on device.",
+    /* PPCRWSTREAM_ERROR_NXIO */
+    "No such device or address",
+    /* PCRWSTREAM_ERROR_OVERFLOW */
+    "Value too large for defined datatype",
+    /* PCRWSTREAM_ERROR_PIPE */
+    "Broken pipe",
+    /* PCRWSTREAM_BAD_ENCODING */
+    "Bad encoding",
+};
+
+static struct err_msg_seg _rwstream_err_msgs_seg = {
+    { NULL, NULL },
+    PURC_ERROR_FIRST_RWSTREAM,
+    PURC_ERROR_FIRST_RWSTREAM + PCA_TABLESIZE(rwstream_err_msgs) - 1,
+    rwstream_err_msgs
+};
+
+void pcrwstream_init(void)
+{
+    pcinst_register_error_message_segment(&_rwstream_err_msgs_seg);
+}
 
 typedef struct rwstream_funcs
 {

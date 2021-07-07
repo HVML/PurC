@@ -25,7 +25,10 @@
 #ifndef PURC_PRIVATE_UTILS_H
 #define PURC_PRIVATE_UTILS_H
 
-#include "purc.h"
+#include "config.h"
+
+#include <stddef.h>
+#include <stdarg.h>
 
 /*
  * calloc_a(size_t len, [void **addr, size_t len,...], NULL)
@@ -41,6 +44,16 @@
 extern "C" {
 #endif
 
+#if !HAVE(VASPRINTF)
+int vasprintf(char **buf, const char *fmt, va_list ap)
+# if COMPILER(GCC)
+    __attribute__ ((format (gnu_printf, 2, 0)))
+# endif
+;
+#endif
+
+void pcutils_init_atom(void) WTF_INTERNAL;
+
 void *pcutils_calloc_a(size_t len, ...);
 
 /* hex must be long enough to hold the heximal characters */
@@ -49,6 +62,8 @@ void pcutils_bin2hex (const unsigned char *bin, int len, char *hex);
 /* bin must be long enough to hold the bytes.
    return the number of bytes converted, <= 0 for error */
 int pcutils_hex2bin (const char *hex, unsigned char *bin);
+
+size_t pcutils_get_cmdline_arg (int arg, char* buf, size_t sz_buf);
 
 #ifdef __cplusplus
 }
