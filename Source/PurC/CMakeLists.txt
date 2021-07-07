@@ -38,6 +38,7 @@ APPEND_ALL_SOURCE_FILES_IN_DIRLIST(PurC_SOURCES "${PurC_PLATFORM_INDEPENDENT_DIR
 
 # TODO: List the source files individually.
 list(APPEND PurC_SOURCES
+    "${PURC_DIR}/ports/vasprintf.c"
 )
 
 # Put the CXX source files which can be unified in `Sources.txt`

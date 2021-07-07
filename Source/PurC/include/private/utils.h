@@ -28,6 +28,7 @@
 #include "config.h"
 
 #include <stddef.h>
+#include <stdarg.h>
 
 /*
  * calloc_a(size_t len, [void **addr, size_t len,...], NULL)
@@ -41,6 +42,11 @@
 
 #ifdef __cplusplus
 extern "C" {
+#endif
+
+#if !HAVE(VASPRINTF)
+int vasprintf(char **buf, const char *fmt, va_list ap)
+    __attribute__ ((format (gnu_printf, 2, 0)));
 #endif
 
 void pcutils_init_atom(void) WTF_INTERNAL;
