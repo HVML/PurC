@@ -1,6 +1,7 @@
 /*
  * kvlist - simple key/value store
  *
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  * Copyright (C) 2014 Felix Fietkau <nbd@openwrt.org>
  *
  * Permission to use, copy, modify, and/or distribute this software for any

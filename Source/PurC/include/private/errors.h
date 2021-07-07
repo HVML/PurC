@@ -25,7 +25,7 @@
 #ifndef PURC_PRIVATE_ERRORS_H
 #define PURC_PRIVATE_ERRORS_H
 
-#include "purc.h"
+#include "config.h"
 
 #include "private/list.h"
 
@@ -36,10 +36,10 @@ struct err_msg_seg {
 };
 
 /* registers the messages for a segment of error codes */
-void pcinst_register_error_message_segment(struct err_msg_seg* seg);
+void pcinst_register_error_message_segment(struct err_msg_seg* seg) WTF_INTERNAL;
 
 /* sets the the last error code */
-int pcinst_set_error(int err_code);
+int pcinst_set_error(int err_code) WTF_INTERNAL;
 
 #endif /* not defined PURC_PRIVATE_ERRORS_H */
 

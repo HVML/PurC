@@ -1,5 +1,9 @@
 /*
- * PacketBB handler library (see RFC 5444)
+ * @file avl.h
+ * @date 2021/07/05
+ * @brief The interfaces for AVL tree - derived from OLSRd implemenation.
+ *
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  * Copyright (c) 2010 Henning Rogge <hrogge@googlemail.com>
  * Original OLSRd implementation by Hannes Gredler <hannes@gredler.at>
  * All rights reserved.
@@ -150,17 +154,17 @@ enum avl_find_mode {
   AVL_FIND_GREATEREQUAL
 };
 
-#define AVL_TREE_INIT(_name, _comp, _allow_dups, _cmp_ptr)	\
-	{							\
-		.list_head = LIST_HEAD_INIT(_name.list_head),	\
-		.comp = _comp,					\
-		.allow_dups = _allow_dups,			\
-		.cmp_ptr = _cmp_ptr				\
-	}
+#define AVL_TREE_INIT(_name, _comp, _allow_dups, _cmp_ptr)      \
+    {                                                           \
+        .list_head = LIST_HEAD_INIT(_name.list_head),           \
+        .comp = _comp,                                          \
+        .allow_dups = _allow_dups,                              \
+        .cmp_ptr = _cmp_ptr                                     \
+    }
 
-#define AVL_TREE(_name, _comp, _allow_dups, _cmp_ptr)		\
-	struct avl_tree _name =					\
-		AVL_TREE_INIT(_name, _comp, _allow_dups, _cmp_ptr)
+#define AVL_TREE(_name, _comp, _allow_dups, _cmp_ptr)           \
+    struct avl_tree _name =                                     \
+        AVL_TREE_INIT(_name, _comp, _allow_dups, _cmp_ptr)
 
 #ifdef __cplusplus
 extern "C" {

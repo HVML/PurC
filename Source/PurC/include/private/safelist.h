@@ -1,6 +1,9 @@
 /*
- * safelist.c - linked list protected against recursive iteration with deletes
+ * @file safelist.h
+ * @date 2021/07/05
+ * @brief linked list protected against recursive iteration with deletes
  *
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  * Copyright (C) 2013 Felix Fietkau <nbd@openwrt.org>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -33,8 +36,8 @@ struct safe_list;
 struct safe_list_iterator;
 
 struct safe_list {
-	struct list_head list;
-	struct safe_list_iterator *i;
+    struct list_head list;
+    struct safe_list_iterator *i;
 };
 
 #ifdef __cplusplus
@@ -42,8 +45,8 @@ extern "C" {
 #endif
 
 int pcutils_safelist_for_each(struct safe_list *list,
-		       int (*cb)(void *ctx, struct safe_list *list),
-		       void *ctx);
+        int (*cb)(void *ctx, struct safe_list *list),
+        void *ctx);
 
 void pcutils_safelist_add(struct safe_list *list, struct safe_list *head);
 void pcutils_safelist_add_first(struct safe_list *list, struct safe_list *head);
@@ -53,18 +56,18 @@ void pcutils_safelist_del(struct safe_list *list);
 }
 #endif
 
-#define INIT_SAFE_LIST(_head) \
-	do { \
-		INIT_LIST_HEAD(_head.list); \
-		(_head)->i = NULL; \
-	} while (0)
+#define INIT_SAFE_LIST(_head)           \
+    do {                                \
+        INIT_LIST_HEAD(_head.list);     \
+        (_head)->i = NULL;              \
+    } while (0)
 
 #define SAFE_LIST_INIT(_name) { LIST_HEAD_INIT(_name.list), NULL }
-#define SAFE_LIST(_name)	struct safe_list _name = SAFE_LIST_INIT(_name)
+#define SAFE_LIST(_name)    struct safe_list _name = SAFE_LIST_INIT(_name)
 
 static inline bool pcutils_safelist_empty(struct safe_list *head)
 {
-	return list_empty(&head->list);
+    return list_empty(&head->list);
 }
 
 #endif  /* PURC_PRIVATE_SAFELIST_H */
