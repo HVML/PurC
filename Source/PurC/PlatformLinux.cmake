@@ -6,6 +6,10 @@ list(APPEND PurC_PRIVATE_INCLUDE_DIRECTORIES
 list(APPEND PurC_UNIFIED_SOURCE_LIST_FILES
 )
 
+list(APPEND PurC_SOURCES
+    "${PURC_DIR}/ports/posix/rwlock.c"
+)
+
 list(APPEND PurC_LIBRARIES
     -lpthread
 )

@@ -35,6 +35,7 @@
 #include "purc-errors.h"
 #include "purc-variant.h"
 #include "purc-rwstream.h"
+#include "purc-ports.h"
 
 typedef struct purc_instance_extra_info {
     int foo;
