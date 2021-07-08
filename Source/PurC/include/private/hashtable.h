@@ -50,6 +50,8 @@
 extern "C" {
 #endif
 
+#define HASHTABLE_DEFAULT_SIZE    32
+
 unsigned long pchash_default_char_hash(const void *k);
 unsigned long pchash_perllike_str_hash(const void *k);
 
@@ -175,7 +177,8 @@ struct pchash_table *pchash_table_new(int size, pchash_entry_free_fn *free_fn,
  * @return On success, a pointer to the new hash table is returned.
  *     On error, a null pointer is returned.
  */
-static inline struct pchash_table *pchash_kchar_table_new(int size, pchash_entry_free_fn *free_fn);
+struct pchash_table *pchash_kchar_table_new(int size, pchash_entry_free_fn *free_fn);
+
 
 /**
  * Convenience function to create a new hash table with string keys
@@ -186,7 +189,7 @@ static inline struct pchash_table *pchash_kchar_table_new(int size, pchash_entry
  * @return On success, a pointer to the new hash table is returned.
  *     On error, a null pointer is returned.
  */
-static inline struct pchash_table *pchash_kstr_table_new(int size, pchash_entry_free_fn *free_fn);
+struct pchash_table *pchash_kstr_table_new(int size, pchash_entry_free_fn *free_fn);
 
 /**
  * Convenience function to create a new hash table with ptr keys.

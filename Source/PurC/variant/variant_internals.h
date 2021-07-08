@@ -29,6 +29,11 @@
 #include "config.h"
 #include "purc-variant.h"
 
+#define PCVARIANT_CHECK_ARGS(cond, ret)                         \
+    if (cond)                                                   \
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);             \
+        return (ret);
+
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */

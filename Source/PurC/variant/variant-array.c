@@ -87,24 +87,19 @@ purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
         return PURC_VARIANT_INVALID;
     }
 
-    PURC_VARIANT_ASSERT(sz>=1); 
-    // what about create empty array [] ?
-    // in case when user want to create an empty array [],
-    // how shall he call this api?
-    // purc_variant_make_array(0, NULL);
-    PURC_VARIANT_ASSERT(value0);
-
     // later, we'll use MACRO rather than malloc directly
     purc_variant_t var = (purc_variant_t)malloc(sizeof(*var));
-    if (!var)
+    if (!var) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
+    }
 
     do {
         var->type          = PVT(_ARRAY);
         var->refc          = 1;
 
         size_t initial_size = ARRAY_LIST_DEFAULT_SIZE;
-        if (sz)
+        if (sz>initial_size)
             initial_size = sz;
 
         struct pcutils_arrlist *al = pcutils_arrlist_new_ex(_array_item_free, initial_size);
@@ -113,12 +108,19 @@ purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
             break;
         var->sz_ptr[1]     = (uintptr_t)al;
 
+        if (sz==0) {
+            // empty array
+            return var;
+        }
+
         va_list ap;
         va_start(ap, value0);
 
         purc_variant_t v = value0;
-        if (pcutils_arrlist_add(al, v))
+        if (pcutils_arrlist_add(al, v)) {
+            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
             break;
+        }
         // add ref
         purc_variant_ref(v);
 
@@ -130,22 +132,19 @@ purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
                 break;
             }
 
-            if (pcutils_arrlist_add(al, v))
+            if (pcutils_arrlist_add(al, v)) {
+                pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
                 break;
+            }
             // add ref
             purc_variant_ref(v);
         }
         va_end(ap);
 
-        if (i==sz)
-            return var;
+        if (i<sz)
+            break;
 
-        // not full added due to bad arg
-        // first unref those ref'd
-        for (size_t j=0; j<i; ++j) {
-            purc_variant_t v = (purc_variant_t)pcutils_arrlist_get_idx(al, j);
-            purc_variant_unref(v);
-        }
+        return var;
     } while (0);
 
     // cleanup
