@@ -1,7 +1,27 @@
 /*
- * avl - the implementation of AVL tree.
+ * @file avl.c
+ * @date 2021/07/07
+ * @brief A implementation of AVL tree.
  *
- * Copyright (c) 2021 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * This implementation of AVL tree is derived from OLSRd <http://www.olsr.org>.
+ *
  * Copyright (c) 2010 Henning Rogge <hrogge@googlemail.com>
  * Original OLSRd implementation by Hannes Gredler <hannes@gredler.at>
  * All rights reserved.
@@ -32,12 +52,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
- *
- * Visit http://www.olsr.org/git for more information.
- *
- * If you find this software useful feel free to make a donation
- * to the project. For more information see the website or contact
- * the copyright holders.
  */
 
 #include <stdbool.h>
@@ -45,11 +59,9 @@
 #include <stdint.h>
 #include <time.h>
 #include <string.h>
-#include <assert.h>
-
-#include "config.h"
 
 #include "private/avl.h"
+#include "private/debug.h"
 
 /**
  * internal type save inline function to calculate the maximum of
@@ -672,7 +684,7 @@ avl_delete_worker(struct avl_tree *tree, struct avl_node *node)
       return;
     }
 
-    assert(node->right);
+    PC_ASSERT(node->right);
     node->right->parent = parent;
 
     if (parent->left == node)
