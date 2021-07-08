@@ -28,7 +28,7 @@
 #include "private/hashtable.h"
 #include "private/errors.h"
 #include "purc-errors.h"
-#include "variant_internals.h"
+#include "variant-internals.h"
 
 
 #include <limits.h>
