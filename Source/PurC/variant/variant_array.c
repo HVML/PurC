@@ -28,6 +28,7 @@
 #include "private/errors.h"
 #include "purc-errors.h"
 
+
 #include <limits.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -50,6 +51,31 @@
  *           children element?
  */
 
+static void _array_item_free(void *data)
+// shall we move implementation of this function to the bottom of this file?
+{
+    PURC_VARIANT_ASSERT(data);
+    purc_variant_t val = (purc_variant_t)data;
+    purc_variant_unref(val);
+}
+
+static void _fill_empty_with_undefined(purc_variant_t array, struct array_list *al)
+{
+    PURC_VARIANT_ASSERT(al);
+    for (size_t i=0; i<array_list_length(al); ++i) {
+        purc_variant_t val = (purc_variant_t)array_list_get_idx(al, i);
+        if (!val) {
+            // this is an empty slot
+            // we might choose to let it be
+            // and check NULL elsewhere
+            val = purc_variant_make_undefined();
+            int r = array_list_put_idx(al, i, val);
+            PURC_VARIANT_ASSERT(r==0); // shall NOT happen
+            // no need unref val, ownership is transfered to array
+        }
+    }
+}
+
 PCA_EXPORT purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
 {
     if (sz<0) {
@@ -60,6 +86,13 @@ PCA_EXPORT purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t val
         pcinst_set_error(PCVARIANT_INVALID_ARG);
         return PURC_VARIANT_INVALID;
     }
+
+    PURC_VARIANT_ASSERT(sz>=1); 
+    // what about create empty array [] ?
+    // in case when user want to create an empty array [],
+    // how shall he call this api?
+    // purc_variant_make_array(0, NULL);
+    PURC_VARIANT_ASSERT(value0);
 
     // later, we'll use MACRO rather than malloc directly
     purc_variant_t var = (purc_variant_t)malloc(sizeof(*var));
@@ -74,7 +107,8 @@ PCA_EXPORT purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t val
         if (sz)
             initial_size = sz;
 
-        struct array_list *al = array_list_new2(array_item_free, initial_size);
+        struct array_list *al = array_list_new2(_array_item_free, initial_size);
+
         if (!al)
             break;
         var->sz_ptr[1]     = al;
@@ -128,6 +162,7 @@ extern void _variant_array_release (purc_variant_t value)
 {
     // this would be called only via purc_variant_unref once value's refc dec'd to 0
     // thus we don't check argument
+
     struct array_list *al = (struct array_list*)array->sz_ptr[1];
     if (!al) {
         // this shall happen only when purc_variant_make_array failed OOM
@@ -177,6 +212,7 @@ PCA_EXPORT purc_variant_t purc_variant_array_get (purc_variant_t array, int idx)
         pcinst_set_error(PCVARIANT_INVALID_ARG);
         return PURC_VARIANT_INVALID;
     }
+
     struct array_list *al = (struct array_list*)array->sz_ptr[1];
     size_t             nr = array_list_length(al);
     if (idx<0 || idx>=nr) {
@@ -199,6 +235,7 @@ PCA_EXPORT size_t purc_variant_array_get_size(const purc_variant_t array)
         pcinst_set_error(PCVARIANT_INVALID_ARG);
         return PURC_VARIANT_INVALID;
     }
+
     struct array_list *al = (struct array_list*)array->sz_ptr[1];
     return array_list_length(al);
 }
@@ -219,7 +256,7 @@ PCA_EXPORT bool purc_variant_array_set (purc_variant_t array, int idx, purc_vari
         return false;
     }
     // fill empty slot with undefined value
-    _fill_empty_with_undefined(al);
+    _fill_empty_with_undefined(array, al);
     // above two steps might be combined into one for better performance
 
     // since value is put into array
