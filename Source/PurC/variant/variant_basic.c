@@ -26,103 +26,14 @@
 #include <string.h>
 
 #include "purc-variant.h"
-#include "/private/variant.h"
-#include "variant.h"
-
-static pcvariant_release_fn pcvariant_release[PURC_VARIANT_TYPE_MAX] = 
-{
-    NULL,                           // PURC_VARIANT_TYPE_UNDEFINED
-    NULL,                           // PURC_VARIANT_TYPE_NULL
-    NULL,                           // PURC_VARIANT_TYPE_BOOLEAN
-    NULL,                           // PURC_VARIANT_TYPE_NUMBER
-    NULL,                           // PURC_VARIANT_TYPE_LONGINT
-    NULL,                           // PURC_VARIANT_TYPE_LONGDOUBLE
-    pcvariant_string_release,       // PURC_VARIANT_TYPE_STRING
-    pcvariant_atom_string_release,  // PURC_VARIANT_TYPE_ATOM_STRING
-    pcvariant_sequence_release,     // PURC_VARIANT_TYPE_SEQUENCE
-    pcvariant_dynamic_release,      // PURC_VARIANT_TYPE_DYNAMIC
-    pcvariant_native_release,       // PURC_VARIANT_TYPE_NATIVE
-    pcvariant_object_release,       // PURC_VARIANT_TYPE_OBJECT
-    pcvariant_array_release,        // PURC_VARIANT_TYPE_ARRAY
-    pcvariant_set_release,          // PURC_VARIANT_TYPE_SET
-};
-
-static pcvariant_to_json_string_fn pcvariant_serialize[PURC_VARIANT_TYPE_MAX] = 
-{
-    pcvariant_null_to_json_string,        // PURC_VARIANT_TYPE_NULL
-    pcvariant_undefined_to_json_string,   // PURC_VARIANT_TYPE_UNDEFINED
-    pcvariant_boolean_to_json_string,     // PURC_VARIANT_TYPE_BOOLEAN
-    pcvariant_number_to_json_string,      // PURC_VARIANT_TYPE_NUMBER
-    pcvariant_longint_to_json_string,     // PURC_VARIANT_TYPE_LONGINT
-    pcvariant_longdouble_to_json_string,  // PURC_VARIANT_TYPE_LONGDOUBLE
-    pcvariant_string_to_json_string,      // PURC_VARIANT_TYPE_STRING
-    pcvariant_atom_string_to_json_string, // PURC_VARIANT_TYPE_ATOM_STRING
-    pcvariant_sequence_to_json_string,    // PURC_VARIANT_TYPE_SEQUENCE
-    pcvariant_dynamic_to_json_string,     // PURC_VARIANT_TYPE_DYNAMIC
-    pcvariant_native_to_json_string,      // PURC_VARIANT_TYPE_NATIVE
-    pcvariant_object_to_json_string,      // PURC_VARIANT_TYPE_OBJECT
-    pcvariant_array_to_json_string,       // PURC_VARIANT_TYPE_ARRAY
-    pcvariant_set_to_json_string,         // PURC_VARIANT_TYPE_SET
-};
-
-static int pcvariant_undefined_to_json_string(struct purc_variant_t value, struct purc_printbuf *pb, int level, int flags)
-{
-}
-
-static int pcvariant_null_to_json_string(struct purc_variant_t value, struct purc_printbuf *pb, int level, int flags)
-{
-}
-
-static int pcvariant_boolean_to_json_string(struct purc_variant_t value, struct purc_printbuf *pb, int level, int flags)
-{
-}
-
-static int pcvariant_number_to_json_string(struct purc_variant_t value, struct purc_printbuf *pb, int level, int flags)
-{
-}
-
-static int pcvariant_longint_to_json_string(struct purc_variant_t value, struct purc_printbuf *pb, int level, int flags)
-{
-}
-
-static int pcvariant_longdouble_to_json_string(struct purc_variant_t value, struct purc_printbuf *pb, int level, int flags)
-{
-}
-
-static int pcvariant_string_to_json_string(struct purc_variant_t value, struct purc_printbuf *pb, int level, int flags)
-{
-}
-
-static int pcvariant_sequence_to_json_string(struct purc_variant_t value, struct purc_printbuf *pb, int level, int flags)
-{
-}
-
-static int pcvariant_dynamic_to_json_string(struct purc_variant_t value, struct purc_printbuf *pb, int level, int flags)
-{
-}
-
-static int pcvariant_native_to_json_string(struct purc_variant_t value, struct purc_printbuf *pb, int level, int flags)
-{
-}
-
-static int pcvariant_object_to_json_string(struct purc_variant_t value, struct purc_printbuf *pb, int level, int flags)
-{
-}
-
-static int pcvariant_array_to_json_string(struct purc_variant_t value, struct purc_printbuf *pb, int level, int flags)
-{
-}
-
-static int pcvariant_set_to_json_string(struct purc_variant_t value, struct purc_printbuf *pb, int level, int flags)
-{
-}
-
+#include "private/variant.h"
+#include "private/instance.h"
 
 // API for variant
 purc_variant_t purc_variant_make_undefined (void)
 {
     struct pcinst * instance = pcinst_current();
-    purc_variant_t variant_undefined = &(instance->variant_heap.v_null);
+    purc_variant_t variant_undefined = &(instance->variant_heap.v_undefined);
 
     purc_variant_ref(variant_undefined);
     return variant_undefined;
@@ -131,7 +42,7 @@ purc_variant_t purc_variant_make_undefined (void)
 purc_variant_t purc_variant_make_null (void)
 {
     struct pcinst * instance = pcinst_current();
-    purc_variant_t variant_null = &(instance->variant_heap.v_undefined);
+    purc_variant_t variant_null = &(instance->variant_heap.v_null);
 
     purc_variant_ref(variant_null);
     return variant_null;
@@ -185,7 +96,7 @@ purc_variant_t purc_variant_make_longuint (uint64_t u64)
     return variant_longuint;
 }
 
-purc_variant_t purc_variant_make_longint (uint64_t u64)
+purc_variant_t purc_variant_make_longint (int64_t i64)
 {
     purc_variant_t variant_longint = (purc_variant_t)pcvariant_alloc_mem_0 \
                                                 (sizeof(struct purc_variant));
@@ -197,7 +108,7 @@ purc_variant_t purc_variant_make_longint (uint64_t u64)
     variant_longint->flags = 0;
     variant_longint->flags |= PCVARIANT_FLAG_SIGNED;
     variant_longint->refc = 1;
-    variant_longint->u64 = i64;
+    variant_longint->i64 = i64;
 
     return variant_longint;
 }
@@ -241,15 +152,15 @@ purc_variant_t purc_variant_make_string (const char* str_utf8)
     else
     {
         variant_string->flags |= PCVARIANT_FLAG_LONG;
-        variant_string->sz_ptr[0] = pcvariant_alloc_mem_0(str_size + 1);
-        if(variant_string->sz_ptr[0] == NULL)
+        variant_string->sz_ptr[0] = (uintptr_t)pcvariant_alloc_mem_0(str_size + 1);
+        if(variant_string->sz_ptr[0] == 0)
         {
             pcvariant_free_mem(sizeof(struct purc_variant), variant_string);
             return PURC_VARIANT_INVALID;
         }
 
         variant_string->sz_ptr[1] = (uintptr_t)str_size;
-        memcpy(variant_string->sz_ptr[0], str_utf8, str_size);
+        memcpy((void*)variant_string->sz_ptr[0], str_utf8, str_size);
     }
 
     return variant_string;
@@ -261,7 +172,7 @@ static bool purc_variant_string_check_utf8(const char* str_utf8)
     size_t i = 0;
     int nBytes = 0;
     unsigned char ch = 0;
-    int length = strlen(str_utf8);
+    size_t length = strlen(str_utf8);
 
     while(i < length)
     {
@@ -302,9 +213,9 @@ purc_variant_t purc_variant_make_string_with_check (const char* str_utf8)
     bool b_check = purc_variant_string_check_utf8(str_utf8);
 
     if(b_check)
-        variant_string = purc_variant_make_string(str_utf8)
+        variant_string = purc_variant_make_string(str_utf8);
     else
-        variant_string = PURC_VARIANT_TYPE_STRING;
+        variant_string = PURC_VARIANT_INVALID;
 
     return variant_string;
 }
@@ -318,9 +229,9 @@ const char* purc_variant_get_string_const (purc_variant_t string)
     if(purc_variant_is_type(string, PURC_VARIANT_TYPE_STRING))
     {
         if(string->flags & PCVARIANT_FLAG_LONG)
-            str_str = string->sz_ptr[0];
+            str_str = (const char *)string->sz_ptr[0];
         else
-            str_str = string->bytes;
+            str_str = (const char *)string->bytes;
     }
 
     return str_str;
@@ -343,7 +254,7 @@ size_t purc_variant_string_length(const purc_variant_t string)
     return str_size;
 }
 
-void pcvariant_string_release(struct purc_variant_t string)
+void pcvariant_string_release(purc_variant_t string)
 {
     PURC_VARIANT_ASSERT(string);
 
@@ -351,11 +262,12 @@ void pcvariant_string_release(struct purc_variant_t string)
     {
         if(string->flags & PCVARIANT_FLAG_LONG)
         {
-            pcvariant_free_mem((size_t)string->sz_ptr[1], string->sz_ptr[0]);
+            pcvariant_free_mem((size_t)string->sz_ptr[1], (void *)string->sz_ptr[0]);
         }
     }
 }
 
+#if 0
 // todo
 purc_variant_t purc_variant_make_atom_string (const char* str_utf8)
 {
@@ -394,8 +306,7 @@ purc_variant_t purc_variant_make_atom_string (const char* str_utf8)
 }
 
 // todo
-purc_variant_t purc_variant_make_atom_string_static (const char* str_utf8, \
-                                                        bool check_encoding)
+purc_variant_t purc_variant_make_atom_string_static (const char* str_utf8, bool check_encoding)
 {
     purc_variant_t variant_string = NULL;
     bool b_check = purc_variant_string_check_utf8(str_utf8);
@@ -559,3 +470,75 @@ void pcvariant_native_release  (struct purc_variant_t value)
 {
     // do nothing now
 }
+
+static pcvariant_to_json_string_fn pcvariant_serialize[PURC_VARIANT_TYPE_MAX] = 
+{
+    pcvariant_null_to_json_string,        // PURC_VARIANT_TYPE_NULL
+    pcvariant_undefined_to_json_string,   // PURC_VARIANT_TYPE_UNDEFINED
+    pcvariant_boolean_to_json_string,     // PURC_VARIANT_TYPE_BOOLEAN
+    pcvariant_number_to_json_string,      // PURC_VARIANT_TYPE_NUMBER
+    pcvariant_longint_to_json_string,     // PURC_VARIANT_TYPE_LONGINT
+    pcvariant_longdouble_to_json_string,  // PURC_VARIANT_TYPE_LONGDOUBLE
+    pcvariant_string_to_json_string,      // PURC_VARIANT_TYPE_STRING
+    pcvariant_atom_string_to_json_string, // PURC_VARIANT_TYPE_ATOM_STRING
+    pcvariant_sequence_to_json_string,    // PURC_VARIANT_TYPE_SEQUENCE
+    pcvariant_dynamic_to_json_string,     // PURC_VARIANT_TYPE_DYNAMIC
+    pcvariant_native_to_json_string,      // PURC_VARIANT_TYPE_NATIVE
+    pcvariant_object_to_json_string,      // PURC_VARIANT_TYPE_OBJECT
+    pcvariant_array_to_json_string,       // PURC_VARIANT_TYPE_ARRAY
+    pcvariant_set_to_json_string,         // PURC_VARIANT_TYPE_SET
+};
+
+static int pcvariant_undefined_to_json_string(struct purc_variant_t value, struct purc_printbuf *pb, int level, int flags)
+{
+}
+
+static int pcvariant_null_to_json_string(struct purc_variant_t value, struct purc_printbuf *pb, int level, int flags)
+{
+}
+
+static int pcvariant_boolean_to_json_string(struct purc_variant_t value, struct purc_printbuf *pb, int level, int flags)
+{
+}
+
+static int pcvariant_number_to_json_string(struct purc_variant_t value, struct purc_printbuf *pb, int level, int flags)
+{
+}
+
+static int pcvariant_longint_to_json_string(struct purc_variant_t value, struct purc_printbuf *pb, int level, int flags)
+{
+}
+
+static int pcvariant_longdouble_to_json_string(struct purc_variant_t value, struct purc_printbuf *pb, int level, int flags)
+{
+}
+
+static int pcvariant_string_to_json_string(struct purc_variant_t value, struct purc_printbuf *pb, int level, int flags)
+{
+}
+
+static int pcvariant_sequence_to_json_string(struct purc_variant_t value, struct purc_printbuf *pb, int level, int flags)
+{
+}
+
+static int pcvariant_dynamic_to_json_string(struct purc_variant_t value, struct purc_printbuf *pb, int level, int flags)
+{
+}
+
+static int pcvariant_native_to_json_string(struct purc_variant_t value, struct purc_printbuf *pb, int level, int flags)
+{
+}
+
+static int pcvariant_object_to_json_string(struct purc_variant_t value, struct purc_printbuf *pb, int level, int flags)
+{
+}
+
+static int pcvariant_array_to_json_string(struct purc_variant_t value, struct purc_printbuf *pb, int level, int flags)
+{
+}
+
+static int pcvariant_set_to_json_string(struct purc_variant_t value, struct purc_printbuf *pb, int level, int flags)
+{
+}
+#endif
+

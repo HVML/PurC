@@ -57,10 +57,23 @@ bool pcvariant_init_module(void)
     // register const value in instance
     instance = pcinst_current();
 
-    instance->variant_heap.v_null = { PURC_VARIANT_TYPE_NULL, 0, 0, PCVARIANT_FLAG_NOFREE };
-    instance->variant_heap.v_undefined = { PURC_VARIANT_TYPE_UNDEFINED, 0, 0, PCVARIANT_FLAG_NOFREE };
-    instance->variant_heap.v_false = { PURC_VARIANT_TYPE_BOOLEAN, 0, 0, PCVARIANT_FLAG_NOFREE, { b:0 } };
-    instance->variant_heap.v_true = { PURC_VARIANT_TYPE_BOOLEAN, 0, 0, PCVARIANT_FLAG_NOFREE, { b:1 } };
+    instance->variant_heap.v_null.type = PURC_VARIANT_TYPE_NULL;
+    instance->variant_heap.v_null.refc = 1;
+    instance->variant_heap.v_null.flags = PCVARIANT_FLAG_NOFREE;
+
+    instance->variant_heap.v_undefined.type = PURC_VARIANT_TYPE_UNDEFINED;
+    instance->variant_heap.v_undefined.refc = 1;
+    instance->variant_heap.v_undefined.flags = PCVARIANT_FLAG_NOFREE;
+
+    instance->variant_heap.v_false.type = PURC_VARIANT_TYPE_UNDEFINED;
+    instance->variant_heap.v_false.refc = 1;
+    instance->variant_heap.v_false.flags = PCVARIANT_FLAG_NOFREE;
+    instance->variant_heap.v_false.b = false;
+
+    instance->variant_heap.v_true.type = PURC_VARIANT_TYPE_UNDEFINED;
+    instance->variant_heap.v_true.refc = 1;
+    instance->variant_heap.v_true.flags = PCVARIANT_FLAG_NOFREE;
+    instance->variant_heap.v_true.b = true;
 
     return true;
 }

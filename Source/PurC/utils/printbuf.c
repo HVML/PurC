@@ -22,16 +22,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <limits.h>
+#include "private/printbuf.h"
+
+#define _GNU_SOURCE
 #include <stdio.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-
-#include "config.h"
-#include "purc-errors.h"
-#include "private/errors.h"
-#include "private/printbuf.h"
 
 static int printbuf_extend(struct pcutils_printbuf *p, int min_size);
 
