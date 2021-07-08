@@ -230,207 +230,209 @@ purc_variant_t purc_variant_make_object (size_t nr_kv_pairs, purc_variant_t key0
     return PURC_VARIANT_INVALID;
 }
 
-#if 0
+purc_variant_t purc_variant_object_get_c (purc_variant_t obj, const char* key)
+{
+    PCVARIANT_CHECK_ARGS((obj && obj->type==PVT(_OBJECT) && obj->sz_ptr[1] && key),
+        PURC_VARIANT_INVALID);
 
-/**
- * Gets the value by key from an object with key as c string
- *
- * @param obj: the variant data of obj type
- * @param key: the key of key-value pair
- *
- * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
- *
- * Since: 0.0.1
- */
-bool purc_variant_object_get_c (purc_variant_t obj, const char* key);
+    struct pchash_table *ht = (struct pchash_table*)obj->sz_ptr[1];
+    void *v = NULL;
+    if (!pchash_table_lookup_ex(ht, key, &v)) {
+        pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
+        return PURC_VARIANT_INVALID;
+    }
+    if (!v) {
+        // seems like internal logic error
+        // abort or fail-return?
+        // fail-return for now
+        pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
+        return PURC_VARIANT_INVALID;
+    }
 
-/**
- * Gets the value by key from an object with key as another variant
- *
- * @param obj: the variant data of obj type
- * @param key: the key of key-value pair
- *
- * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
- *
- * Since: 0.0.1
- */
-bool purc_variant_object_get (purc_variant_t obj, purc_variant_t key);
+    return (purc_variant_t)v;
+}
 
-/**
- * Sets the value by key in an object with key as c string
- *
- * @param obj: the variant data of obj type
- * @param key: the key of key-value pair
- * @param value: the value of key-value pair
- *
- * Returns: True on success, otherwise False.
- *
- * Since: 0.0.1
- */
-bool purc_variant_object_set_c (purc_variant_t obj, const char* key, purc_variant_t value);
+bool purc_variant_object_set_c (purc_variant_t obj, const char* key, purc_variant_t value)
+{
+    PCVARIANT_CHECK_ARGS((obj && obj->type==PVT(_OBJECT) && obj->sz_ptr[1] && key && *key && value),
+        false);
 
-/**
- * Sets the value by key in an object with key as another variant
- *
- * @param obj: the variant data of obj type
- * @param key: the key of key-value pair
- * @param value: the value of key-value pair
- *
- * Returns: True on success, otherwise False.
- *
- * Since: 0.0.1
- */
-bool purc_variant_object_set (purc_variant_t obj, purc_variant_t key, purc_variant_t value);
+    struct pchash_table *ht = (struct pchash_table*)obj->sz_ptr[1];
 
-/**
- * Remove a key-value pair from an object by key with key as c string
- *
- * @param obj: the variant data of obj type
- * @param key: the key of key-value pair
- *
- * Returns: True on success, otherwise False.
- *
- * Since: 0.0.1
- */
-bool purc_variant_object_remove_c (purc_variant_t obj, const char* key);
+    if (pchash_table_insert(ht, key, value)) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return false;
+    }
+    // add ref
+    purc_variant_ref(value);
 
-/**
- * Remove a key-value pair from an object by key with key as another variant
- *
- * @param obj: the variant data of obj type
- * @param key: the key of key-value pair
- *
- * Returns: True on success, otherwise False.
- *
- * Since: 0.0.1
- */
-bool purc_variant_object_remove (purc_variant_t obj, purc_variant_t key);
+    return true;
+}
 
-/**
- * Get the number of key-value pairs in an object variant value.
- *
- * @param obj: the variant value of object type
- *
- * Returns: The number of key-value pairs in an object variant value.
- *
- * Since: 0.0.1
- */
-size_t purc_variant_object_get_size (const purc_variant_t obj);
+bool purc_variant_object_remove_c (purc_variant_t obj, const char* key)
+{
+    PCVARIANT_CHECK_ARGS((obj && obj->type==PVT(_OBJECT) && obj->sz_ptr[1] && key && *key),
+        false);
 
-/**
- * object iterator usage example:
- *
- * purc_variant_t obj;
- * ...
- * purc_variant_object_iterator* it = purc_variant_object_make_iterator_begin(obj);
- * while (it) {
- *     const char     *key = purc_variant_object_iterator_get_key(it);
- *     purc_variant_t  val = purc_variant_object_iterator_get_value(it);
- *     ...
- *     bool having = purc_variant_object_iterator_next(it);
- *     // behavior of accessing `val`/`key` is un-defined
- *     if (!having) {
- *         purc_variant_object_release_iterator(it);
- *         // behavior of accessing `it` is un-defined
- *         break;
- *     }
- * }
- */
+    struct pchash_table *ht = (struct pchash_table*)obj->sz_ptr[1];
 
-struct purc_variant_object_iterator;
+    if (pchash_table_delete(ht, key)) {
+        pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
+        return false;
+    }
 
-/**
- * Get the begin-iterator of the object,
- * which points to the head key-val-pair of the object
- *
- * @param object: the variant value of object type
- *
- * Returns: the begin-iterator of the object.
- *          NULL if no key-val-pair in the object
- *          returned iterator will inc object's ref for iterator's lifetime
- *          returned iterator shall also inc the pointed key-val-pair's ref
- *
- * Since: 0.0.1
- */
-struct purc_variant_object_iterator* purc_variant_object_make_iterator_begin (purc_variant_t object);
+    return true;
+}
 
-/**
- * Get the end-iterator of the object,
- * which points to the tail key-val-pair of the object
- *
- * @param object: the variant value of object type
- *
- * Returns: the end-iterator of the object
- *          NULL if no key-val-pair in the object
- *          returned iterator will hold object's ref for iterator's lifetime
- *          returned iterator shall also hold the pointed key-val-pair's ref
- *
- * Since: 0.0.1
- */
-struct purc_variant_object_iterator* purc_variant_object_make_iterator_end (purc_variant_t object);
+size_t purc_variant_object_get_size (const purc_variant_t obj)
+{
+    PCVARIANT_CHECK_ARGS((obj && obj->type==PVT(_OBJECT) && obj->sz_ptr[1]),
+        (size_t)-1);
 
-/**
- * Release the object's iterator
- *
- * @param it: iterator of itself
- *
- * Returns: void
- *          both object's ref and the pointed key-val-pair's ref shall be dec`d
- *
- * Since: 0.0.1
- */
-void purc_variant_object_release_iterator (struct purc_variant_object_iterator* it);
+    struct pchash_table *ht = (struct pchash_table*)obj->sz_ptr[1];
 
-/**
- * Make the iterator point to it's successor,
- * or the next key-val-pair of the bounded object value
- *
- * @param it: iterator of itself
- *
- * Returns: True if iterator `it` has no following key-val-pair, False otherwise
- *          dec original key-val-pair's ref
- *          inc current key-val-pair's ref
- *
- * Since: 0.0.1
- */
-bool purc_variant_object_iterator_next (struct purc_variant_object_iterator* it);
+    int nr = pchash_table_length(ht);
+    PURC_VARIANT_ASSERT(nr>=0);
 
-/**
- * Make the iterator point to it's predecessor,
- * or the previous key-val-pair of the bounded object value
- *
- * @param it: iterator of itself
- *
- * Returns: True if iterator `it` has no leading key-val-pair, False otherwise
- *          dec original key-val-pair's ref
- *          inc current key-val-pair's ref
- *
- * Since: 0.0.1
- */
-bool purc_variant_object_iterator_prev (struct purc_variant_object_iterator* it);
+    return (size_t)nr;
+}
 
-/**
- * Get the key of key-val-pair that the iterator points to
- *
- * @param it: iterator of itself
- *
- * Returns: the key of key-val-pair, not duplicated
- *
- * Since: 0.0.1
- */
-const char *purc_variant_object_iterator_get_key (struct purc_variant_object_iterator* it);
+struct purc_variant_object_iterator {
+    purc_variant_t           obj;
 
-/**
- * Get the value of key-val-pair that the iterator points to
- *
- * @param it: iterator of itself
- *
- * Returns: the value of key-val-pair, not duplicated
- *          the returned value's ref remains unchanged
- *
- * Since: 0.0.1
- */
-purc_variant_t purc_variant_object_iterator_get_value (struct purc_variant_object_iterator* it);
+    struct pchash_entry     *curr;
+};
 
-#endif // 0
+struct purc_variant_object_iterator* purc_variant_object_make_iterator_begin (purc_variant_t object) {
+    PCVARIANT_CHECK_ARGS((object && object->type==PVT(_OBJECT) && object->sz_ptr[1]),
+        NULL);
+
+    struct pchash_table *ht = (struct pchash_table*)object->sz_ptr[1];
+    if (ht->head==NULL) {
+        pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
+        return NULL;
+    }
+
+    struct purc_variant_object_iterator *it = (struct purc_variant_object_iterator*)malloc(sizeof(*it));
+    if (!it) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+    it->obj = object;
+    purc_variant_ref(object);
+
+    it->curr = ht->head;
+
+    purc_variant_t v = (purc_variant_t)pchash_entry_v(it->curr);
+    PURC_VARIANT_ASSERT(v);
+    purc_variant_ref(v);
+
+    return it;
+}
+
+struct purc_variant_object_iterator* purc_variant_object_make_iterator_end (purc_variant_t object) {
+    PCVARIANT_CHECK_ARGS((object && object->type==PVT(_OBJECT) && object->sz_ptr[1]),
+        NULL);
+
+    struct pchash_table *ht = (struct pchash_table*)object->sz_ptr[1];
+    if (ht->tail==NULL) {
+        pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
+        return NULL;
+    }
+
+    struct purc_variant_object_iterator *it = (struct purc_variant_object_iterator*)malloc(sizeof(*it));
+    if (!it) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+    it->obj = object;
+    purc_variant_ref(object);
+
+    it->curr = ht->tail;
+
+    purc_variant_t v = (purc_variant_t)pchash_entry_v(it->curr);
+    PURC_VARIANT_ASSERT(v);
+    purc_variant_ref(v);
+
+    return it;
+}
+
+void purc_variant_object_release_iterator (struct purc_variant_object_iterator* it) {
+    if (!it)
+        return;
+    PURC_VARIANT_ASSERT(it->obj);
+
+    purc_variant_unref(it->obj);
+    it->obj = NULL;
+
+    if (it->curr) {
+        purc_variant_t v = (purc_variant_t)pchash_entry_v(it->curr);
+        purc_variant_unref(v);
+        it->curr = NULL;
+    }
+
+    free(it);
+}
+
+bool purc_variant_object_iterator_next (struct purc_variant_object_iterator* it) {
+    PCVARIANT_CHECK_ARGS(it, false);
+
+    PURC_VARIANT_ASSERT(it->obj);
+
+    if (it->curr) {
+        purc_variant_t v = (purc_variant_t)pchash_entry_v(it->curr);
+        purc_variant_unref(v);
+        it->curr = it->curr->next;
+    }
+
+    if (it->curr) {
+        purc_variant_t v = (purc_variant_t)pchash_entry_v(it->curr);
+        purc_variant_ref(v);
+        return true;
+    }
+
+    pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
+    return false;
+}
+
+bool purc_variant_object_iterator_prev (struct purc_variant_object_iterator* it) {
+    PCVARIANT_CHECK_ARGS(it, false);
+
+    PURC_VARIANT_ASSERT(it->obj);
+
+    if (it->curr) {
+        purc_variant_t v = (purc_variant_t)pchash_entry_v(it->curr);
+        purc_variant_unref(v);
+        it->curr = it->curr->prev;
+    }
+
+    if (it->curr) {
+        purc_variant_t v = (purc_variant_t)pchash_entry_v(it->curr);
+        purc_variant_ref(v);
+        return true;
+    }
+
+    pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
+    return false;
+}
+
+const char *purc_variant_object_iterator_get_key (struct purc_variant_object_iterator* it) {
+    PCVARIANT_CHECK_ARGS(it, NULL);
+
+    PURC_VARIANT_ASSERT(it->obj);
+    PURC_VARIANT_ASSERT(it->curr);
+
+    return (const char*)pchash_entry_k(it->curr);
+}
+
+purc_variant_t purc_variant_object_iterator_get_value (struct purc_variant_object_iterator* it) {
+    PCVARIANT_CHECK_ARGS(it, NULL);
+
+    PURC_VARIANT_ASSERT(it->obj);
+    PURC_VARIANT_ASSERT(it->curr);
+
+    purc_variant_t  v = (purc_variant_t)pchash_entry_v(it->curr);
+    // not add ref
+    return v;
+}
 

@@ -432,7 +432,7 @@ PCA_EXPORT purc_variant_t purc_variant_make_object (size_t nr_kv_pairs, purc_var
  *
  * Since: 0.0.1
  */
-PCA_EXPORT bool purc_variant_object_get_c (purc_variant_t obj, const char* key);
+PCA_EXPORT purc_variant_t purc_variant_object_get_c (purc_variant_t obj, const char* key);
 
 /**
  * Gets the value by key from an object with key as another variant
@@ -444,7 +444,11 @@ PCA_EXPORT bool purc_variant_object_get_c (purc_variant_t obj, const char* key);
  *
  * Since: 0.0.1
  */
-PCA_EXPORT bool purc_variant_object_get (purc_variant_t obj, purc_variant_t key);
+static inline purc_variant_t purc_variant_object_get (purc_variant_t obj, purc_variant_t key)
+{
+    return purc_variant_object_get_c (obj, purc_variant_get_string_const(key));
+}
+
 
 /**
  * Sets the value by key in an object with key as c string
@@ -470,7 +474,11 @@ PCA_EXPORT bool purc_variant_object_set_c (purc_variant_t obj, const char* key, 
  *
  * Since: 0.0.1
  */
-PCA_EXPORT bool purc_variant_object_set (purc_variant_t obj, purc_variant_t key, purc_variant_t value);
+static inline bool
+purc_variant_object_set (purc_variant_t obj, purc_variant_t key, purc_variant_t value)
+{
+    return purc_variant_object_set_c (obj, purc_variant_get_string_const(key), value);
+}
 
 /**
  * Remove a key-value pair from an object by key with key as c string
@@ -494,7 +502,10 @@ PCA_EXPORT bool purc_variant_object_remove_c (purc_variant_t obj, const char* ke
  *
  * Since: 0.0.1
  */
-PCA_EXPORT bool purc_variant_object_remove (purc_variant_t obj, purc_variant_t key);
+static inline bool purc_variant_object_remove (purc_variant_t obj, purc_variant_t key)
+{
+    return purc_variant_object_remove_c (obj, purc_variant_get_string_const(key));
+}
 
 /**
  * Get the number of key-value pairs in an object variant value.
