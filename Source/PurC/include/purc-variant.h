@@ -634,7 +634,7 @@ PCA_EXPORT const char *purc_variant_object_iterator_get_key (struct purc_variant
 PCA_EXPORT purc_variant_t purc_variant_object_iterator_get_value (struct purc_variant_object_iterator* it);
 
 /**
- * Creates a variant data of set type.
+ * Creates a variant data of set type with key as c string
  *
  * @param sz: the number of elements in a set
  * @param unique_key: the keys for one record 
@@ -646,8 +646,22 @@ PCA_EXPORT purc_variant_t purc_variant_object_iterator_get_value (struct purc_va
  *
  * Since: 0.0.1
  */
-PCA_EXPORT purc_variant_t purc_variant_make_set (size_t sz, const char* unique_key, purc_variant_t value0, ...);
+PCA_EXPORT purc_variant_t purc_variant_make_set_c (size_t sz, const char* unique_key, purc_variant_t value0, ...);
 
+/**
+ * Creates a variant data of set type with key as another variant
+ *
+ * @param sz: the number of elements in a set
+ * @param unique_key: the keys for one record 
+ * @param value0 ..... valuen: the values.
+ *
+ * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ *
+ * Note: The key is legal, only when the value is object type.
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT purc_variant_t purc_variant_make_set (size_t sz, purc_variant_t unique_key, purc_variant_t value0, ...);
 
 /**
  * Adds a unique key-value pair to a set.
@@ -659,8 +673,7 @@ PCA_EXPORT purc_variant_t purc_variant_make_set (size_t sz, const char* unique_k
  *
  * Since: 0.0.1
  */
-PCA_EXPORT bool purc_variant_set_add (purc_variant_t set, purc_variant_t value);
-
+PCA_EXPORT bool purc_variant_set_add (purc_variant_t obj, purc_variant_t value);
 
 /**
  * Remove a unique key-value pair from a set.
@@ -672,11 +685,10 @@ PCA_EXPORT bool purc_variant_set_add (purc_variant_t set, purc_variant_t value);
  *
  * Since: 0.0.1
  */
-PCA_EXPORT bool purc_variant_set_remove (purc_variant_t set, purc_variant_t value);
-
+PCA_EXPORT bool purc_variant_set_remove (purc_variant_t obj, purc_variant_t value);
 
 /**
- * Gets the value by key from a set.
+ * Gets the value by key from a set with key as a c string
  *
  * @param set: the variant data of obj type
  * @param match_key: the unique key related to the value
@@ -685,8 +697,23 @@ PCA_EXPORT bool purc_variant_set_remove (purc_variant_t set, purc_variant_t valu
  *
  * Since: 0.0.1
  */
-PCA_EXPORT purc_variant_t purc_variant_set_get_value (const purc_variant_t set, const char * match_key);
+PCA_EXPORT purc_variant_t purc_variant_set_get_value_c (const purc_variant_t set, const char * match_key);
 
+/**
+ * Gets the value by key from a set with key as another variant
+ *
+ * @param set: the variant data of obj type
+ * @param match_key: the unique key related to the value
+ *
+ * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.0.1
+ */
+static inline purc_variant_t purc_variant_set_get_value (const purc_variant_t obj, purc_variant_t match_key)
+{
+    return purc_variant_set_get_value_c(obj,
+            purc_variant_get_string_const(match_key));
+}
 
 /**
  * Get the number of elements in a set variant value.
@@ -698,7 +725,6 @@ PCA_EXPORT purc_variant_t purc_variant_set_get_value (const purc_variant_t set, 
  * Since: 0.0.1
  */
 PCA_EXPORT size_t purc_variant_set_get_size(const purc_variant_t set);
-
 
 /**
  * set iterator usage example:
@@ -802,8 +828,6 @@ PCA_EXPORT bool purc_variant_set_iterator_prev (struct purc_variant_set_iterator
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t purc_variant_set_iterator_get_value (struct purc_variant_set_iterator* it);
-
-
 
 /**
  * Adds ref for a variant data
