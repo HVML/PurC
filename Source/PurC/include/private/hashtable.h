@@ -1,8 +1,10 @@
 /*
- * @file linkhash.h
- * @author
+ * @file hashtable.h
+ * @author Michael Clark <michael@metaparadigm.com>
  * @date 2021/07/07
+ * @brief The interfaces for hash table.
  *
+ * Cleaned up by Vincent Wei
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
@@ -19,127 +21,84 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-/*
- * $Id: linkhash.h,v 1.6 2006/01/30 23:07:57 mclark Exp $
+ *
+ * Note that the code is derived from json-c which is licensed under MIT Licence.
  *
  * Copyright (c) 2004, 2005 Metaparadigm Pte. Ltd.
- * Michael Clark <michael@metaparadigm.com>
  * Copyright (c) 2009 Hewlett-Packard Development Company, L.P.
  *
- * This library is free software; you can redistribute it and/or modify
- * it under the terms of the MIT license. See COPYING for details.
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
  *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/**
- * @file
- * @brief Internal methods for working with json_type_object objects.  Although
- *        this is exposed by the json_object_get_object() function and within the
- *        json_object_iter type, it is not recommended for direct use.
- */
-#ifndef _pcutils_linkhash_h_
-#define _pcutils_linkhash_h_
+#ifndef PURC_PRIVATE_HASHTABLE_H
+#define PURC_PRIVATE_HASHTABLE_H
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <inttypes.h>
-#include "config.h"
-#include "purc-macros.h"
-
-// #include "json_object.h"
+#define PCHASH_OBJECT_KEY_IS_NEW        (1 << 1)
+#define PCHASH_OBJECT_KEY_IS_CONSTANT   (1 << 2)
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/**
- * golden prime used in hash functions
- */
-#define PCUTILS_LH_PRIME 0x9e370001UL
+unsigned long pchash_default_char_hash(const void *k);
+unsigned long pchash_perllike_str_hash(const void *k);
 
-/**
- * The fraction of filled hash buckets until an insert will cause the table
- * to be resized.
- * This can range from just above 0 up to 1.0.
- */
-#define PCUTILS_LH_LOAD_FACTOR 0.66
-
-/**
- * sentinel pointer value for empty slots
- */
-#define PCUTILS_LH_EMPTY (void *)-1
-
-/**
- * sentinel pointer value for freed slots
- */
-#define PCUTILS_LH_FREED (void *)-2
-
-/**
- * default string hash function
- */
-#define PCUTILS_JSON_C_STR_HASH_DFLT 0
-
-/**
- * perl-like string hash function
- */
-#define PCUTILS_JSON_C_STR_HASH_PERLLIKE 1
-
-/**
- * This function sets the hash function to be used for strings.
- * Must be one of the PCUTILS_JSON_C_STR_HASH_* values.
- * @returns 0 - ok, -1 if parameter was invalid
- */
-int pcutils_json_global_set_string_hash(const int h);
-
-struct lh_entry;
+struct pchash_entry;
 
 /**
  * callback function prototypes
  */
-typedef void(lh_entry_free_fn)(struct lh_entry *e);
+typedef void(pchash_entry_free_fn)(struct pchash_entry *e);
 /**
  * callback function prototypes
  */
-typedef unsigned long(lh_hash_fn)(const void *k);
+typedef unsigned long(pchash_hash_fn)(const void *k);
 /**
  * callback function prototypes
  */
-typedef int(lh_equal_fn)(const void *k1, const void *k2);
+typedef int(pchash_equal_fn)(const void *k1, const void *k2);
 
 /**
  * An entry in the hash table
  */
-struct lh_entry
-{
+struct pchash_entry {
     /**
-     * The key.  Use lh_entry_k() instead of accessing this directly.
+     * The key.  Use pchash_entry_k() instead of accessing this directly.
      */
     const void *k;
     /**
-     * A flag for users of linkhash to know whether or not they
+     * A flag for users of hash to know whether or not they
      * need to free k.
      */
     int k_is_constant;
     /**
-     * The value.  Use lh_entry_v() instead of accessing this directly.
+     * The value.  Use pchash_entry_v() instead of accessing this directly.
      */
     const void *v;
     /**
      * The next entry
      */
-    struct lh_entry *next;
+    struct pchash_entry *next;
     /**
      * The previous entry.
      */
-    struct lh_entry *prev;
+    struct pchash_entry *prev;
 };
 
 /**
  * The hash table structure.
  */
-struct lh_table
-{
+struct pchash_table {
     /**
      * Size of our hash.
      */
@@ -152,89 +111,102 @@ struct lh_table
     /**
      * The first entry.
      */
-    struct lh_entry *head;
+    struct pchash_entry *head;
 
     /**
      * The last entry.
      */
-    struct lh_entry *tail;
+    struct pchash_entry *tail;
 
-    struct lh_entry *table;
+    struct pchash_entry *table;
 
     /**
      * A pointer onto the function responsible for freeing an entry.
      */
-    lh_entry_free_fn *free_fn;
-    lh_hash_fn *hash_fn;
-    lh_equal_fn *equal_fn;
+    pchash_entry_free_fn *free_fn;
+    pchash_hash_fn *hash_fn;
+    pchash_equal_fn *equal_fn;
 };
-typedef struct lh_table lh_table;
+
+typedef struct pchash_table pchash_table;
 
 /**
  * Convenience list iterator.
  */
-#define lh_foreach(table, entry) for (entry = table->head; entry; entry = entry->next)
+#define pchash_foreach(table, entry) for (entry = table->head; entry; entry = entry->next)
 
 /**
- * lh_foreach_safe allows calling of deletion routine while iterating.
+ * pchash_foreach_safe allows calling of deletion routine while iterating.
  *
- * @param table a struct lh_table * to iterate over
- * @param entry a struct lh_entry * variable to hold each element
- * @param tmp a struct lh_entry * variable to hold a temporary pointer to the next element
+ * @param table a struct pchash_table * to iterate over
+ * @param entry a struct pchash_entry * variable to hold each element
+ * @param tmp a struct pchash_entry * variable to hold a temporary pointer to the next element
  */
-#define lh_foreach_safe(table, entry, tmp) \
+#define pchash_foreach_safe(table, entry, tmp) \
     for (entry = table->head; entry && ((tmp = entry->next) || 1); entry = tmp)
 
 /**
- * Create a new linkhash table.
+ * Create a new hash table.
  *
  * @param size initial table size. The table is automatically resized
  * although this incurs a performance penalty.
  * @param free_fn callback function used to free memory for entries
- * when lh_table_free or lh_table_delete is called.
+ * when pchash_table_free or pchash_table_delete is called.
  * If NULL is provided, then memory for keys and values
  * must be freed by the caller.
  * @param hash_fn  function used to hash keys. 2 standard ones are defined:
- * lh_ptr_hash and lh_char_hash for hashing pointer values
+ * pchash_ptr_hash and pchash_char_hash for hashing pointer values
  * and C strings respectively.
  * @param equal_fn comparison function to compare keys. 2 standard ones defined:
- * lh_ptr_hash and lh_char_hash for comparing pointer values
+ * pchash_ptr_hash and pchash_char_hash for comparing pointer values
  * and C strings respectively.
- * @return On success, a pointer to the new linkhash table is returned.
+ * @return On success, a pointer to the new hash table is returned.
  *     On error, a null pointer is returned.
  */
-extern struct lh_table *lh_table_new(int size, lh_entry_free_fn *free_fn, lh_hash_fn *hash_fn,
-                                     lh_equal_fn *equal_fn);
+struct pchash_table *pchash_table_new(int size, pchash_entry_free_fn *free_fn,
+        pchash_hash_fn *hash_fn, pchash_equal_fn *equal_fn);
 
 /**
- * Convenience function to create a new linkhash table with char keys.
+ * Convenience function to create a new hash table with char keys
+ * by using the @pchash_default_char_hash hash function.
  *
  * @param size initial table size.
  * @param free_fn callback function used to free memory for entries.
- * @return On success, a pointer to the new linkhash table is returned.
+ * @return On success, a pointer to the new hash table is returned.
  *     On error, a null pointer is returned.
  */
-extern struct lh_table *lh_kchar_table_new(int size, lh_entry_free_fn *free_fn);
+static inline struct pchash_table *pchash_kchar_table_new(int size, pchash_entry_free_fn *free_fn);
 
 /**
- * Convenience function to create a new linkhash table with ptr keys.
+ * Convenience function to create a new hash table with string keys
+ * by using the @pchash_perllike_str_hash hash function.
  *
  * @param size initial table size.
  * @param free_fn callback function used to free memory for entries.
- * @return On success, a pointer to the new linkhash table is returned.
+ * @return On success, a pointer to the new hash table is returned.
  *     On error, a null pointer is returned.
  */
-extern struct lh_table *lh_kptr_table_new(int size, lh_entry_free_fn *free_fn);
+static inline struct pchash_table *pchash_kstr_table_new(int size, pchash_entry_free_fn *free_fn);
 
 /**
- * Free a linkhash table.
+ * Convenience function to create a new hash table with ptr keys.
  *
- * If a lh_entry_free_fn callback free function was provided then it is
+ * @param size initial table size.
+ * @param free_fn callback function used to free memory for entries.
+ * @return On success, a pointer to the new hash table is returned.
+ *     On error, a null pointer is returned.
+ */
+struct pchash_table *pchash_kptr_table_new(int size, pchash_entry_free_fn *free_fn);
+
+/**
+ * Free a hash table.
+ *
+ * If a pchash_entry_free_fn callback free function was provided then it is
  * called for all entries in the table.
  *
  * @param t table to free.
  */
-extern void lh_table_free(struct lh_table *t);
+void pchash_table_free(struct pchash_table *t);
 
 /**
  * Insert a record into the table.
@@ -246,12 +218,12 @@ extern void lh_table_free(struct lh_table *t);
  * @return On success, <code>0</code> is returned.
  *     On error, a negative value is returned.
  */
-extern int lh_table_insert(struct lh_table *t, const void *k, const void *v);
+int pchash_table_insert(struct pchash_table *t, const void *k, const void *v);
 
 /**
  * Insert a record into the table using a precalculated key hash.
  *
- * The hash h, which should be calculated with lh_get_hash() on k, is provided by
+ * The hash h, which should be calculated with pchash_get_hash() on k, is provided by
  *  the caller, to allow for optimization when multiple operations with the same
  *  key are known to be needed.
  *
@@ -259,10 +231,10 @@ extern int lh_table_insert(struct lh_table *t, const void *k, const void *v);
  * @param k a pointer to the key to insert.
  * @param v a pointer to the value to insert.
  * @param h hash value of the key to insert
- * @param opts if set to PCUTILS_JSON_C_OBJECT_KEY_IS_CONSTANT, sets lh_entry.k_is_constant
+ * @param opts if set to PCUTILS_JSON_C_OBJECT_KEY_IS_CONSTANT, sets pchash_entry.k_is_constant
  *             so t's free function knows to avoid freeing the key.
  */
-extern int lh_table_insert_w_hash(struct lh_table *t, const void *k, const void *v,
+int pchash_table_insert_w_hash(struct pchash_table *t, const void *k, const void *v,
                                   const unsigned long h, const unsigned opts);
 
 /**
@@ -272,12 +244,12 @@ extern int lh_table_insert_w_hash(struct lh_table *t, const void *k, const void 
  * @param k a pointer to the key to lookup
  * @return a pointer to the record structure of the value or NULL if it does not exist.
  */
-extern struct lh_entry *lh_table_lookup_entry(struct lh_table *t, const void *k);
+struct pchash_entry *pchash_table_lookup_entry(struct pchash_table *t, const void *k);
 
 /**
  * Lookup a record in the table using a precalculated key hash.
  *
- * The hash h, which should be calculated with lh_get_hash() on k, is provided by
+ * The hash h, which should be calculated with pchash_get_hash() on k, is provided by
  *  the caller, to allow for optimization when multiple operations with the same
  *  key are known to be needed.
  *
@@ -286,7 +258,7 @@ extern struct lh_entry *lh_table_lookup_entry(struct lh_table *t, const void *k)
  * @param h hash value of the key to lookup
  * @return a pointer to the record structure of the value or NULL if it does not exist.
  */
-extern struct lh_entry *lh_table_lookup_entry_w_hash(struct lh_table *t, const void *k,
+struct pchash_entry *pchash_table_lookup_entry_w_hash(struct pchash_table *t, const void *k,
                                                      const unsigned long h);
 
 /**
@@ -297,7 +269,7 @@ extern struct lh_entry *lh_table_lookup_entry_w_hash(struct lh_table *t, const v
  * @param v a pointer to a where to store the found value (set to NULL if it doesn't exist).
  * @return whether or not the key was found
  */
-extern bool lh_table_lookup_ex(struct lh_table *t, const void *k, void **v);
+bool pchash_table_lookup_ex(struct pchash_table *t, const void *k, void **v);
 
 /**
  * Delete a record from the table.
@@ -309,7 +281,7 @@ extern bool lh_table_lookup_ex(struct lh_table *t, const void *k, void **v);
  * @return 0 if the item was deleted.
  * @return -1 if it was not found.
  */
-extern int lh_table_delete_entry(struct lh_table *t, struct lh_entry *e);
+int pchash_table_delete_entry(struct pchash_table *t, struct pchash_entry *e);
 
 /**
  * Delete a record from the table.
@@ -321,9 +293,9 @@ extern int lh_table_delete_entry(struct lh_table *t, struct lh_entry *e);
  * @return 0 if the item was deleted.
  * @return -1 if it was not found.
  */
-extern int lh_table_delete(struct lh_table *t, const void *k);
+int pchash_table_delete(struct pchash_table *t, const void *k);
 
-extern int lh_table_length(struct lh_table *t);
+int pchash_table_length(struct pchash_table *t);
 
 /**
  * Resizes the specified table.
@@ -334,7 +306,7 @@ extern int lh_table_length(struct lh_table *t);
  * @return On success, <code>0</code> is returned.
  *     On error, a negative value is returned.
  */
-int lh_table_resize(struct lh_table *t, int new_size);
+int pchash_table_resize(struct pchash_table *t, int new_size);
 
 /**
  * Calculate the hash of a key for a given table.
@@ -347,39 +319,39 @@ int lh_table_resize(struct lh_table *t, int new_size);
  * @param k a pointer to the key to lookup
  * @return the key's hash
  */
-PCA_INLINE unsigned long lh_get_hash(const struct lh_table *t, const void *k)
+static inline unsigned long pchash_get_hash(const struct pchash_table *t, const void *k)
 {
     return t->hash_fn(k);
 }
 
 /**
- * @deprecated Don't use this outside of linkhash.h:
+ * @deprecated Don't use this outside of hash.h:
  */
 #ifdef __UNCONST
-#define _PCUTILS_LH_UNCONST(a) __UNCONST(a)
+#define _PCHASH_UNCONST(a) __UNCONST(a)
 #else
-#define _PCUTILS_LH_UNCONST(a) ((void *)(uintptr_t)(const void *)(a))
+#define _PCHASH_UNCONST(a) ((void *)(uintptr_t)(const void *)(a))
 #endif
 
 /**
- * Return a non-const version of lh_entry.k.
+ * Return a non-const version of pchash_entry.k.
  *
- * lh_entry.k is const to indicate and help ensure that linkhash itself doesn't modify
+ * pchash_entry.k is const to indicate and help ensure that hash itself doesn't modify
  * it, but callers are allowed to do what they want with it.
- * See also lh_entry.k_is_constant
+ * See also pchash_entry.k_is_constant
  */
-#define lh_entry_k(entry) _PCUTILS_LH_UNCONST((entry)->k)
+#define pchash_entry_k(entry) _PCHASH_UNCONST((entry)->k)
 
 /**
- * Return a non-const version of lh_entry.v.
+ * Return a non-const version of pchash_entry.v.
  *
- * v is const to indicate and help ensure that linkhash itself doesn't modify
+ * v is const to indicate and help ensure that hash itself doesn't modify
  * it, but callers are allowed to do what they want with it.
  */
-#define lh_entry_v(entry) _PCUTILS_LH_UNCONST((entry)->v)
+#define pchash_entry_v(entry) _PCHASH_UNCONST((entry)->v)
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif
+#endif /* PURC_PRIVATE_HASHTABLE_H */

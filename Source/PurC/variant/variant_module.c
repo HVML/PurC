@@ -30,14 +30,10 @@
 #include "private/instance.h"
 #include "private/errors.h"
 #include "private/tls.h"
-#include "purc-variant.h"
-#include "variant.h"
 
-static struct purc_variant pcvariant_null = { PURC_VARIANT_TYPE_NULL, 0, 0, PCVARIANT_FLAG_NOFREE };
-static struct purc_variant pcvariant_undefined = { PURC_VARIANT_TYPE_UNDEFINED, 0, 0, PCVARIANT_FLAG_NOFREE };
-static struct purc_variant pcvariant_false = { PURC_VARIANT_TYPE_BOOLEAN, 0, 0, PCVARIANT_FLAG_NOFREE, { b:0 } };
-static struct purc_variant pcvariant_true = { PURC_VARIANT_TYPE_BOOLEAN, 0, 0, PCVARIANT_FLAG_NOFREE, { b:1 } };
-static struct purc_variant_const = {&pcvariant_null, &pcvariant_undefined, &pcvariant_false, &pcvariant_true};
+#include "purc-variant.h"
+#include "/private/variant.h"
+#include "variant.h"
 
 static const char* variant_err_msgs[] = {
     /* PURC_ERROR_VARIANT_INVALID_TYPE */
@@ -52,12 +48,22 @@ static struct err_msg_seg _variant_err_msgs_seg = {
 
 bool pcvariant_init_module(void)
 {
-    struct pcinst * pcinstance = NULL;
+    struct pcinst * instance = NULL;
 
     // register error message
     pcinst_register_error_message_segment(&_variant_err_msgs_seg);
 
     // register const value in instance
-    pcinstance = pcinst_current();
-    pcinstance->variant_const = &purc_variant_const;
+    instance = pcinst_current();
+
+    memset(&(instance->variant_heap), 0, sizeof(struct pcvariant_heap));
+    if(instance->variant_heap == NULL)
+        return false;
+
+    instance->variant_heap.v_null = { PURC_VARIANT_TYPE_NULL, 0, 0, PCVARIANT_FLAG_NOFREE };
+    instance->variant_heap.v_undefined = { PURC_VARIANT_TYPE_UNDEFINED, 0, 0, PCVARIANT_FLAG_NOFREE };
+    instance->variant_heap.v_false = { PURC_VARIANT_TYPE_BOOLEAN, 0, 0, PCVARIANT_FLAG_NOFREE, { b:0 } };
+    instance->variant_heap.v_true = { PURC_VARIANT_TYPE_BOOLEAN, 0, 0, PCVARIANT_FLAG_NOFREE, { b:1 } };
+
+    return true;
 }

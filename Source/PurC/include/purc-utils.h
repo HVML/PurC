@@ -134,6 +134,22 @@ purc_atom_try_string(const char* string);
 PCA_EXPORT const char*
 purc_atom_to_string(purc_atom_t atom);
 
+/**
+ * SECTION:misc_utils
+ * @title: Misc. Utilities
+ * @short_description: Some useful helpers and utilities.
+ *
+ */
+
+/**
+ * pcutils_get_random_seed:
+ *
+ * Gets a good and safe random seed.
+ *
+ * Returns: the random seed.
+ */
+int pcutils_get_random_seed(void);
+
 PCA_EXTERN_C_END
 
 #endif /* not defined PURC_PURC_UTILS_H */

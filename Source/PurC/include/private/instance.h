@@ -29,8 +29,7 @@
 
 #include "config.h"
 
-// TODO: for struct pcvariant_heap
-// #include "private/variant.h"
+#include "private/variant.h"
 
 struct pcinst {
     int errcode;
