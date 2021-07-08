@@ -22,8 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef PURC_PRIVATE_H
-#define PURC_PRIVATE_H
+#ifndef PURC_PRIVATE_VARIANT_H
+#define PURC_PRIVATE_VARIANT_H
 
 #include "config.h"
 #include "purc-variant.h"
@@ -38,8 +38,6 @@
 extern "C" {
 #endif  /* __cplusplus */
 
-// #define MAX(a, b)   (a) > (b)? (a): (b);
-
 #define PCVARIANT_FLAG_NOREF    (0x01 << 0)
 #define PCVARIANT_FLAG_NOFREE   (0x01 << 1)
 #define PCVARIANT_FLAG_LONG     (0x01 << 15)    // for long string or sequence
@@ -49,6 +47,8 @@ extern "C" {
 
 // fix me: if we need `assert` in both debug and release build, better approach?
 #define PURC_VARIANT_ASSERT(s) assert(s)
+
+#define MAX_RESERVED_VARIANTS  32
 
 // structure for variant
 struct purc_variant {
@@ -93,23 +93,30 @@ struct purc_variant {
     };
 };
 
-#define MAX_RESERVED_VARIANTS  32
+#define MAX_RESERVED_VARIANTS   32
+#define SZ_COMMON_BUFFER        1024
 
 struct pcvariant_heap {
-    struct purc_variant v_null;
+    // the constant values.
     struct purc_variant v_undefined;
+    struct purc_variant v_null;
     struct purc_variant v_false;
     struct purc_variant v_true;
 
+    // the statistics of memory usage of variant values
     struct purc_variant_stat stat;
 
+    // the loop buffer for reserved values.
     purc_variant_t nr_reserved [MAX_RESERVED_VARIANTS];
     int readpos;
     int writepos;
+
+    // the fixed-size buffer for serializing the values
+    char buff[SZ_COMMON_BUFFER];
 };
 
 // initialize variant module
-bool pcvariant_init_module(void) WTF_INTERNAL;
+void pcvariant_init(void) WTF_INTERNAL;
 
 #if HAVE(GLIB)
 static inline void * pcvariant_alloc_mem(size_t size)           \
@@ -132,4 +139,4 @@ static inline void pcvariant_free_mem(size_t size, void *ptr)   \
 }
 #endif  /* __cplusplus */
 
-#endif  /* PURC_PRIVATE_H */
+#endif  /* PURC_PRIVATE_VARIANT_H */

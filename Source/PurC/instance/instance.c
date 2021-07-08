@@ -52,6 +52,12 @@ static const char* generic_err_msgs[] = {
     "Not implemented",
     /* PURC_ERROR_NO_INSTANCE (7) */
     "No instance",
+    /* PURC_ERROR_TOO_LARGE_ENTITY (8) */
+    "No instance",
+    /* PURC_ERROR_BAD_ENCODING (9) */
+    "Bad encoding",
+    /* PURC_ERROR_NOT_SUPPORTED (10) */
+    "Not supported",
 };
 
 static struct err_msg_seg _generic_err_msgs_seg = {
@@ -67,6 +73,7 @@ static void init_modules(void)
     // TODO: init other modules here.
     pcutils_init_atom();
     pcrwstream_init();
+    pcvariant_init();
 }
 
 #if USE(PTHREADS)

@@ -1,20 +1,20 @@
 1. files:
-    variant_basic.c: for all basic variant types
+    basic_type.c: for all basic variant types
     variant_object.c: for object type
     variant_array.c: for array type
     variant_set.c:     for set type
 
-    variant_module.c: for initialize and destroy variant module
-    variant.c: for all used, such as ref, unref, and creates variant from rwsteam.
+    variant.c:  for initialize and destroy variant module,
+                for all used, such as ref, unref, and creates variant from rwsteam.
 
-    variant.h: header file only for files in this directroy.
+    variant_internal.h: header file only for files in this directroy.
 
 2. add and remove variant type:
     modify /Source/Purc/include/purc-variant.h, add type in purc_variant_type.
     modify /Source/Purc/include/purc-variant.h, add the interfaces for new type.
-    modify /Source/Purc/variant/variant_basic.c, for basic type or
+    modify /Source/Purc/variant/basic_type.c, for basic type or
     create /Source/Purc/include/variant_NewType.c, for abstract type.
 
 3. add a function:
-    it is a internal interface for one file, write it in this file with static
-    it is for two or above files, wite is in variant.c and variant.h
+    If it is a internal interface for one file, write it in this file with static
+    If it is for two or above files, wite is in variant.c and variant_internal.h

@@ -25,8 +25,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "purc-variant.h"
 #include "private/variant.h"
+#include "private/instance.h"
+#include "private/errors.h"
 #include "private/debug.h"
 #include "variant_internals.h"
 
@@ -49,6 +50,46 @@ static pcvariant_release_fn pcvariant_releasers[PURC_VARIANT_TYPE_MAX] =
     pcvariant_set_release,          // PURC_VARIANT_TYPE_SET
 };
 
+
+static const char* variant_err_msgs[] = {
+    /* PCVARIANT_INVALID_TYPE */
+    "Invalid variant type",
+};
+
+static struct err_msg_seg _variant_err_msgs_seg = {
+    { NULL, NULL },
+    PURC_ERROR_FIRST_VARIANT, PURC_ERROR_FIRST_VARIANT + PCA_TABLESIZE(variant_err_msgs) - 1,
+    variant_err_msgs
+};
+
+void pcvariant_init(void)
+{
+    struct pcinst * instance = NULL;
+
+    // register error message
+    pcinst_register_error_message_segment(&_variant_err_msgs_seg);
+
+    // register const value in instance
+    instance = pcinst_current();
+
+    instance->variant_heap.v_null.type = PURC_VARIANT_TYPE_NULL;
+    instance->variant_heap.v_null.refc = 1;
+    instance->variant_heap.v_null.flags = PCVARIANT_FLAG_NOFREE;
+
+    instance->variant_heap.v_undefined.type = PURC_VARIANT_TYPE_UNDEFINED;
+    instance->variant_heap.v_undefined.refc = 1;
+    instance->variant_heap.v_undefined.flags = PCVARIANT_FLAG_NOFREE;
+
+    instance->variant_heap.v_false.type = PURC_VARIANT_TYPE_UNDEFINED;
+    instance->variant_heap.v_false.refc = 1;
+    instance->variant_heap.v_false.flags = PCVARIANT_FLAG_NOFREE;
+    instance->variant_heap.v_false.b = false;
+
+    instance->variant_heap.v_true.type = PURC_VARIANT_TYPE_UNDEFINED;
+    instance->variant_heap.v_true.refc = 1;
+    instance->variant_heap.v_true.flags = PCVARIANT_FLAG_NOFREE;
+    instance->variant_heap.v_true.b = true;
+}
 
 bool purc_variant_is_type(const purc_variant_t value, enum purc_variant_type type)
 {
