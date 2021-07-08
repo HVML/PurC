@@ -501,11 +501,7 @@ unsigned long pchash_default_char_hash(const void *k)
     {
         RANDOM_SEED_TYPE seed;
         /* we can't use -1 as it is the unitialized sentinel */
-<<<<<<< HEAD:Source/PurC/utils/linkhash.c
-        while ((seed = pcutils_json_c_get_random_seed()) == -1) {}
-=======
         while ((seed = pcutils_get_random_seed()) == -1) {}
->>>>>>> 284d708a249c1697867d3440757b605f4d14b107:Source/PurC/utils/hashtable.c
 // hacking: sizeof can't be used when pre-processing, because it's compiler-level calculation
 //          https://stackoverflow.com/questions/2319519/why-cant-i-use-sizeof-in-a-if
 // better in config.h

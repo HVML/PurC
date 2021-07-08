@@ -38,17 +38,7 @@
 extern "C" {
 #endif  /* __cplusplus */
 
-<<<<<<< HEAD
-// define errors for variant
-#define PURC_ERROR_VARIANT_INVALID_TYPE     (PURC_ERROR_FIRST_VARIANT + 0)
-
-
-#if !HAVE(GLIB)
-    #define MAX(a, b)   (a) > (b)? (a): (b);
-#endif
-=======
 // #define MAX(a, b)   (a) > (b)? (a): (b);
->>>>>>> 284d708a249c1697867d3440757b605f4d14b107
 
 #define PCVARIANT_FLAG_NOREF    (0x01 << 0)
 #define PCVARIANT_FLAG_NOFREE   (0x01 << 1)
@@ -60,20 +50,11 @@ extern "C" {
 // fix me: if we need `assert` in both debug and release build, better approach?
 #define PURC_VARIANT_ASSERT(s) assert(s)
 
-<<<<<<< HEAD
-#define MAX_RESERVED_VARIANTS  32
-
-=======
->>>>>>> 284d708a249c1697867d3440757b605f4d14b107
 // structure for variant
 struct purc_variant {
 
     /* variant type */
-<<<<<<< HEAD
-    enum purc_variant_type type;
-=======
     unsigned int type:8;
->>>>>>> 284d708a249c1697867d3440757b605f4d14b107
 
     /* real length for short string and byte sequence */
     unsigned int size:8;        
@@ -112,12 +93,8 @@ struct purc_variant {
     };
 };
 
-<<<<<<< HEAD
-// for registered in thread instance
-=======
 #define MAX_RESERVED_VARIANTS  32
 
->>>>>>> 284d708a249c1697867d3440757b605f4d14b107
 struct pcvariant_heap {
     struct purc_variant v_null;
     struct purc_variant v_undefined;
