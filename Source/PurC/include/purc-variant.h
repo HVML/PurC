@@ -171,6 +171,24 @@ PCA_EXPORT const char* purc_variant_get_string_const (purc_variant_t value);
 PCA_EXPORT size_t purc_variant_string_length(const purc_variant_t value);
 
 
+// 20210707：构造原子字符串，字符串必须是 UTF-8 编码
+// 用于原子字符串的变体值，在 struct purc_variant 中保存字符串对应的原子值（一般是一个 uint32_t 值），
+// 而字符串本身则在一个全局的结构中保存单个副本。
+// 参见：https://developer.gnome.org/glib/stable/glib-Quarks.html
+PCA_EXPORT purc_variant_t purc_variant_make_atom_string (const char* str_utf8, bool check_encoding);
+
+// 20210707：检查并构造原子字符串数据，字符串地址是静态的（不复制）
+// 用于原子字符串的变体值，在 struct purc_variant 中保存字符串对应的原子值（一般是一个 uint32_t 值），
+// 而字符串本身则在一个全局的结构中保存单个副本。
+PCA_EXPORT purc_variant_t purc_variant_make_atom_string_static (const char* str_utf8, bool check_encoding);
+
+// 20210707：获取原子字符串地址（只读）
+PCA_EXPORT const char* purc_variant_get_atom_string_const (purc_variant_t value);
+
+
+
+
+
 /**
  * Creates a variant value of byte sequence type.
  *
@@ -838,6 +856,7 @@ typedef enum purc_variant_type
     PURC_VARIANT_TYPE_LONGINT,
     PURC_VARIANT_TYPE_LONGDOUBLE,
     PURC_VARIANT_TYPE_STRING,
+    PURC_VARIANT_TYPE_ATOM_STRING,
     PURC_VARIANT_TYPE_SEQUENCE,
     PURC_VARIANT_TYPE_DYNAMIC,
     PURC_VARIANT_TYPE_NATIVE,
@@ -940,16 +959,13 @@ PCA_EXPORT inline bool purc_variant_is_set (purc_variant_t v)
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_SET);
 }
 
-struct purc_variant_type_stat   {
-    int number;
-    int memory;
-}
-
 struct purc_variant_stat {
-    struct purc_variant_type_stat using_type[PURC_VARIANT_TYPE_MAX];
-    struct purc_variant_type_stat reserved_total;
-    struct purc_variant_type_stat using_total;
-    struct purc_variant_type_stat total_stat;
+    size_t nr_values[PURC_VARIANT_TYPE_MAX];
+    size_t sz_mem [PURC_VARIANT_TYPE_MAX];
+    size_t nr_total_values;
+    size_t sz_total_mem;
+    size_t nr_reserved;
+    size_t nr_max_reserved;
 };
 
 /**
