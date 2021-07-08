@@ -29,7 +29,7 @@
 #include "private/tls.h"
 
 #include "purc-variant.h"
-#include "/private/variant.h"
+#include "private/variant.h"
 #include "variant.h"
 
 #include <stdlib.h>
@@ -56,10 +56,6 @@ bool pcvariant_init_module(void)
 
     // register const value in instance
     instance = pcinst_current();
-
-    memset(&(instance->variant_heap), 0, sizeof(struct pcvariant_heap));
-    if(instance->variant_heap == NULL)
-        return false;
 
     instance->variant_heap.v_null = { PURC_VARIANT_TYPE_NULL, 0, 0, PCVARIANT_FLAG_NOFREE };
     instance->variant_heap.v_undefined = { PURC_VARIANT_TYPE_UNDEFINED, 0, 0, PCVARIANT_FLAG_NOFREE };

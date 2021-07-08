@@ -489,7 +489,7 @@ static unsigned long lh_char_hash(const void *k)
     {
         RANDOM_SEED_TYPE seed;
         /* we can't use -1 as it is the unitialized sentinel */
-        while ((seed = json_c_get_random_seed()) == -1) {}
+        while ((seed = pcutils_json_c_get_random_seed()) == -1) {}
 // hacking: sizeof can't be used when pre-processing, because it's compiler-level calculation
 //          https://stackoverflow.com/questions/2319519/why-cant-i-use-sizeof-in-a-if
 // better in config.h
