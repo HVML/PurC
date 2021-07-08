@@ -25,6 +25,8 @@
 
 #include "config.h"
 #include "private/variant.h"
+#include "private/errors.h"
+#include "purc-errors.h"
 
 #include <limits.h>
 #include <stdarg.h>
@@ -48,39 +50,16 @@
  *           children element?
  */
 
-static void _array_item_free(void *data)
-// shall we move implementation of this function to the bottom of this file?
-{
-    PURC_VARIANT_ASSERT(data);
-    purc_variant_t val = (purc_variant_t)data;
-    purc_variant_unref(val);
-}
-
-static void _fill_empty_with_undefined(purc_variant_t array, struct array_list *al)
-{
-    PURC_VARIANT_ASSERT(al);
-    for (size_t i=0; i<array_list_length(al); ++i) {
-        purc_variant_t val = (purc_variant_t)array_list_get_idx(al, i);
-        if (!val) {
-            // this is an empty slot
-            // we might choose to let it be
-            // and check NULL elsewhere
-            val = purc_variant_make_undefined();
-            int r = array_list_put_idx(al, i, val);
-            PURC_VARIANT_ASSERT(r==0); // shall NOT happen
-            // no need unref val, ownership is transfered to array
-        }
-    }
-}
-
 PCA_EXPORT purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
 {
-    PURC_VARIANT_ASSERT(sz>=1); 
-    // what about create empty array [] ?
-    // in case when user want to create an empty array [],
-    // how shall he call this api?
-    // purc_variant_make_array(0, NULL);
-    PURC_VARIANT_ASSERT(value0);
+    if (sz<0) {
+        pcinst_set_error(PCVARIANT_INVALID_ARG);
+        return PURC_VARIANT_INVALID;
+    }
+    if (sz==0 && value0) {
+        pcinst_set_error(PCVARIANT_INVALID_ARG);
+        return PURC_VARIANT_INVALID;
+    }
 
     // later, we'll use MACRO rather than malloc directly
     purc_variant_t var = (purc_variant_t)malloc(sizeof(*var));
@@ -91,7 +70,11 @@ PCA_EXPORT purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t val
         var->type          = PVT(_ARRAY);
         var->refc          = 1;
 
-        struct array_list *al = array_list_new2(_array_item_free, sz); // what if sz==0, test it!
+        size_t initial_size = ARRAY_LIST_DEFAULT_SIZE;
+        if (sz)
+            initial_size = sz;
+
+        struct array_list *al = array_list_new2(array_item_free, initial_size);
         if (!al)
             break;
         var->sz_ptr[1]     = al;
@@ -108,7 +91,10 @@ PCA_EXPORT purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t val
         size_t i = 1;
         while (i<sz) {
             v = va_arg(ap, purc_variant_t);
-            PURC_VARIANT_ASSERT(v);
+            if (!v) {
+                pcinst_set_error(PCVARIANT_INVALID_ARG);
+                break;
+            }
 
             if (array_list_add(al, v))
                 break;
@@ -117,19 +103,31 @@ PCA_EXPORT purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t val
         }
         va_end(ap);
 
-        return var;
+        if (i==sz)
+            return var;
+
+        // not full added due to bad arg
+        // first unref those ref'd
+        for (size_t j=0; j<i; ++j) {
+            purc_variant_t v = (purc_variant_t)array_list_get_idx(al, j);
+            purc_variant_unref(v);
+        }
     } while (0);
 
-    purc_variant_unref(var);
+    // cleanup
+    struct array_list *al = (struct array_list*)var->sz_ptr[1];
+    array_list_free(al);
+    var->sz_ptr[1] = NULL; // say no to double free
+    // todo: use macro instead
+    free(var);
+
     return PURC_VARIANT_INVALID;
 }
 
 extern void _variant_array_release (purc_variant_t value)
 {
     // this would be called only via purc_variant_unref once value's refc dec'd to 0
-    PURC_VARIANT_ASSERT(array);
-    PURC_VARIANT_ASSERT(array->type==PVT(_ARRAY));
-
+    // thus we don't check argument
     struct array_list *al = (struct array_list*)array->sz_ptr[1];
     if (!al) {
         // this shall happen only when purc_variant_make_array failed OOM
@@ -152,11 +150,11 @@ extern int _variant_array_compare (purc_variant_t lv, purc_variant_t rv)
 
 PCA_EXPORT bool purc_variant_array_append (purc_variant_t array, purc_variant_t value)
 {
-    PURC_VARIANT_ASSERT(array);
-    PURC_VARIANT_ASSERT(array->type==PVT(_ARRAY));
-    PURC_VARIANT_ASSERT(value);
-    PURC_VARIANT_ASSERT(array != value);
-    PURC_VARIANT_ASSERT(array->sz_ptr[1]);
+    if (!array || array->type!=PVT(_ARRAY) || !value || array == value || !array->sz_ptr[1]) {
+        pcinst_set_error(PCVARIANT_INVALID_ARG);
+        return PURC_VARIANT_INVALID;
+    }
+
     struct array_list *al = (struct array_list*)array->sz_ptr[1];
     size_t             nr = array_list_length(al);
     return purc_variant_array_insert_before (array, nr, value);
@@ -164,23 +162,25 @@ PCA_EXPORT bool purc_variant_array_append (purc_variant_t array, purc_variant_t 
 
 PCA_EXPORT bool purc_variant_array_prepend (purc_variant_t array, purc_variant_t value)
 {
-    PURC_VARIANT_ASSERT(array);
-    PURC_VARIANT_ASSERT(array->type==PVT(_ARRAY));
-    PURC_VARIANT_ASSERT(value);
-    PURC_VARIANT_ASSERT(array != value);
-    PURC_VARIANT_ASSERT(array->sz_ptr[1]);
+    if (!array || array->type!=PVT(_ARRAY) || !value || array == value || !array->sz_ptr[1]) {
+        pcinst_set_error(PCVARIANT_INVALID_ARG);
+        return PURC_VARIANT_INVALID;
+    }
+
     struct array_list *al = (struct array_list*)array->sz_ptr[1];
     return purc_variant_array_insert_before (array, 0, value);
 }
 
 PCA_EXPORT purc_variant_t purc_variant_array_get (purc_variant_t array, int idx)
 {
-    PURC_VARIANT_ASSERT(array);
-    PURC_VARIANT_ASSERT(array->type==PVT(_ARRAY));
-    PURC_VARIANT_ASSERT(array->sz_ptr[1]);
+    if (!array || array->type!=PVT(_ARRAY) || !array->sz_ptr[1]) {
+        pcinst_set_error(PCVARIANT_INVALID_ARG);
+        return PURC_VARIANT_INVALID;
+    }
     struct array_list *al = (struct array_list*)array->sz_ptr[1];
     size_t             nr = array_list_length(al);
     if (idx<0 || idx>=nr) {
+        pcinst_set_error(PCVARIANT_INVALID_ARG);
         return PURC_VARIANT_INVALID; // NULL or undefined variant?
     }
 
@@ -188,27 +188,28 @@ PCA_EXPORT purc_variant_t purc_variant_array_get (purc_variant_t array, int idx)
     PURC_VARIANT_ASSERT(var); // must valid element, even if undefined or null
     // shall we ref+1?
     // we choose ref+1 here, currently, thus, caller shall unref
-    purc_variant_unref(var);
+    purc_variant_ref(var);
 
     return var;
 }
 
 PCA_EXPORT size_t purc_variant_array_get_size(const purc_variant_t array)
 {
-    PURC_VARIANT_ASSERT(array);
-    PURC_VARIANT_ASSERT(array->type==PVT(_ARRAY));
-    PURC_VARIANT_ASSERT(array->sz_ptr[1]);
+    if (!array || array->type!=PVT(_ARRAY) || !array->sz_ptr[1]) {
+        pcinst_set_error(PCVARIANT_INVALID_ARG);
+        return PURC_VARIANT_INVALID;
+    }
     struct array_list *al = (struct array_list*)array->sz_ptr[1];
     return array_list_length(al);
 }
 
 PCA_EXPORT bool purc_variant_array_set (purc_variant_t array, int idx, purc_variant_t value)
 {
-    PURC_VARIANT_ASSERT(array);
-    PURC_VARIANT_ASSERT(array->type==PVT(_ARRAY));
-    PURC_VARIANT_ASSERT(value);
-    PURC_VARIANT_ASSERT(idx>=0);
-    PURC_VARIANT_ASSERT(array->sz_ptr[1]);
+    if (!array || array->type!=PVT(_ARRAY) || !value || array == value || idx<0 || !array->sz_ptr[1]) {
+        pcinst_set_error(PCVARIANT_INVALID_ARG);
+        return PURC_VARIANT_INVALID;
+    }
+
     struct array_list *al = (struct array_list*)array->sz_ptr[1];
 
     // note: for a valid element in al[idx], al->free_fn would be called upon,
@@ -218,7 +219,7 @@ PCA_EXPORT bool purc_variant_array_set (purc_variant_t array, int idx, purc_vari
         return false;
     }
     // fill empty slot with undefined value
-    _fill_empty_with_undefined(array, al);
+    _fill_empty_with_undefined(al);
     // above two steps might be combined into one for better performance
 
     // since value is put into array
@@ -229,10 +230,11 @@ PCA_EXPORT bool purc_variant_array_set (purc_variant_t array, int idx, purc_vari
 
 PCA_EXPORT bool purc_variant_array_remove (purc_variant_t array, int idx)
 {
-    PURC_VARIANT_ASSERT(array);
-    PURC_VARIANT_ASSERT(array->type==PVT(_ARRAY));
-    PURC_VARIANT_ASSERT(idx>=0);
-    PURC_VARIANT_ASSERT(array->sz_ptr[1]);
+    if (!array || array->type!=PVT(_ARRAY) || !value || array == value || idx<0 || !array->sz_ptr[1]) {
+        pcinst_set_error(PCVARIANT_INVALID_ARG);
+        return PURC_VARIANT_INVALID;
+    }
+
     struct array_list *al = (struct array_list*)array->sz_ptr[1];
     size_t             nr = array_list_length(al);
     if (idx>=nr)
@@ -248,11 +250,11 @@ PCA_EXPORT bool purc_variant_array_remove (purc_variant_t array, int idx)
 
 PCA_EXPORT bool purc_variant_array_insert_before (purc_variant_t array, int idx, purc_variant_t value)
 {
-    PURC_VARIANT_ASSERT(array);
-    PURC_VARIANT_ASSERT(array->type==PVT(_ARRAY));
-    PURC_VARIANT_ASSERT(value);
-    PURC_VARIANT_ASSERT(idx>=0);
-    PURC_VARIANT_ASSERT(array->sz_ptr[1]);
+    if (!array || array->type!=PVT(_ARRAY) || !value || array == value || idx<0 || !array->sz_ptr[1]) {
+        pcinst_set_error(PCVARIANT_INVALID_ARG);
+        return PURC_VARIANT_INVALID;
+    }
+
     struct array_list *al = (struct array_list*)array->sz_ptr[1];
     size_t             nr = array_list_length(al);
     if (idx>=nr)
