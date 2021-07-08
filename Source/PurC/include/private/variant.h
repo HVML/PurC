@@ -22,8 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef PURC_PRIVATE_H
-#define PURC_PRIVATE_H
+#ifndef PURC_PRIVATE_VARIANT_H
+#define PURC_PRIVATE_VARIANT_H
 
 #include "config.h"
 #include "purc-variant.h"
@@ -137,4 +137,4 @@ typedef int (* pcvariant_to_json_string_fn)(purc_variant_t * value, purc_rwstrea
 }
 #endif  /* __cplusplus */
 
-#endif  /* PURC_PRIVATE_H */
+#endif  /* PURC_PRIVATE_VARIANT_H */
