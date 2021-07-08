@@ -61,7 +61,6 @@ enum pcvariant_error
 {
     PCVARIANT_SUCCESS = PURC_ERROR_OK,
     PCVARIANT_INVALID_TYPE = PURC_ERROR_FIRST_VARIANT,
-    PCVARIANT_INVALID_ARG,
 };
 
 // TODO: error codes for rwstream go here

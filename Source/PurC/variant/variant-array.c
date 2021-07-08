@@ -83,7 +83,7 @@ static void _fill_empty_with_undefined(struct pcutils_arrlist *al)
 PCA_EXPORT purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
 {
     if (sz==0 && value0) {
-        pcinst_set_error(PCVARIANT_INVALID_ARG);
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
 
@@ -126,7 +126,7 @@ PCA_EXPORT purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t val
         while (i<sz) {
             v = va_arg(ap, purc_variant_t);
             if (!v) {
-                pcinst_set_error(PCVARIANT_INVALID_ARG);
+                pcinst_set_error(PURC_ERROR_INVALID_VALUE);
                 break;
             }
 
@@ -186,7 +186,7 @@ extern int _variant_array_compare (purc_variant_t lv, purc_variant_t rv)
 PCA_EXPORT bool purc_variant_array_append (purc_variant_t array, purc_variant_t value)
 {
     if (!array || array->type!=PVT(_ARRAY) || !value || array == value || !array->sz_ptr[1]) {
-        pcinst_set_error(PCVARIANT_INVALID_ARG);
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
 
@@ -198,7 +198,7 @@ PCA_EXPORT bool purc_variant_array_append (purc_variant_t array, purc_variant_t 
 PCA_EXPORT bool purc_variant_array_prepend (purc_variant_t array, purc_variant_t value)
 {
     if (!array || array->type!=PVT(_ARRAY) || !value || array == value || !array->sz_ptr[1]) {
-        pcinst_set_error(PCVARIANT_INVALID_ARG);
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
 
@@ -207,16 +207,15 @@ PCA_EXPORT bool purc_variant_array_prepend (purc_variant_t array, purc_variant_t
 
 PCA_EXPORT purc_variant_t purc_variant_array_get (purc_variant_t array, int idx)
 {
-    if (!array || array->type!=PVT(_ARRAY) || !array->sz_ptr[1]) {
-        pcinst_set_error(PCVARIANT_INVALID_ARG);
+    if (!array || array->type!=PVT(_ARRAY) || idx<0 || !array->sz_ptr[1]) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
 
     struct pcutils_arrlist *al = (struct pcutils_arrlist*)array->sz_ptr[1];
     size_t             nr = pcutils_arrlist_length(al);
-    if (idx<0 || idx>=(int)nr) {
-        // or (size_t)idx>=nr ?
-        pcinst_set_error(PCVARIANT_INVALID_ARG);
+    if ((size_t)idx>=nr) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID; // NULL or undefined variant?
     }
 
@@ -232,7 +231,7 @@ PCA_EXPORT purc_variant_t purc_variant_array_get (purc_variant_t array, int idx)
 PCA_EXPORT size_t purc_variant_array_get_size(const purc_variant_t array)
 {
     if (!array || array->type!=PVT(_ARRAY) || !array->sz_ptr[1]) {
-        pcinst_set_error(PCVARIANT_INVALID_ARG);
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return -1; // api signature?
     }
 
@@ -243,7 +242,7 @@ PCA_EXPORT size_t purc_variant_array_get_size(const purc_variant_t array)
 PCA_EXPORT bool purc_variant_array_set (purc_variant_t array, int idx, purc_variant_t value)
 {
     if (!array || array->type!=PVT(_ARRAY) || !value || array == value || idx<0 || !array->sz_ptr[1]) {
-        pcinst_set_error(PCVARIANT_INVALID_ARG);
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
 
@@ -253,6 +252,7 @@ PCA_EXPORT bool purc_variant_array_set (purc_variant_t array, int idx, purc_vari
     //       we shall unref that element via al->free_fn
     //       to make element's ref count balance
     if (pcutils_arrlist_put_idx(al, idx, value)) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return false;
     }
     // fill empty slot with undefined value
@@ -268,17 +268,18 @@ PCA_EXPORT bool purc_variant_array_set (purc_variant_t array, int idx, purc_vari
 PCA_EXPORT bool purc_variant_array_remove (purc_variant_t array, int idx)
 {
     if (!array || array->type!=PVT(_ARRAY) || idx<0 || !array->sz_ptr[1]) {
-        pcinst_set_error(PCVARIANT_INVALID_ARG);
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
 
     struct pcutils_arrlist *al = (struct pcutils_arrlist*)array->sz_ptr[1];
     size_t             nr = pcutils_arrlist_length(al);
-    if (idx>=(int)nr)
+    if ((size_t)idx>=nr)
         return true; // or false?
 
     // pcutils_arrlist_del_idx will shrink internally
     if (pcutils_arrlist_del_idx(al, idx, 1)) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return false;
     }
 
@@ -288,17 +289,18 @@ PCA_EXPORT bool purc_variant_array_remove (purc_variant_t array, int idx)
 PCA_EXPORT bool purc_variant_array_insert_before (purc_variant_t array, int idx, purc_variant_t value)
 {
     if (!array || array->type!=PVT(_ARRAY) || !value || array == value || idx<0 || !array->sz_ptr[1]) {
-        pcinst_set_error(PCVARIANT_INVALID_ARG);
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
 
     struct pcutils_arrlist *al = (struct pcutils_arrlist*)array->sz_ptr[1];
     size_t             nr = pcutils_arrlist_length(al);
-    if (idx>=(int)nr)
-        idx = nr;
+    if ((size_t)idx>=nr)
+        idx = (int)nr;
 
     // expand by 1 empty slot
     if (pcutils_arrlist_shrink(al, 1)) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return false;
     }
     // move idx~nr-1 to idx+1~nr
@@ -311,6 +313,7 @@ PCA_EXPORT bool purc_variant_array_insert_before (purc_variant_t array, int idx,
     //       we shall unref that element via al->free_fn
     //       to make ref count balance
     if (pcutils_arrlist_put_idx(al, idx, value)) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return false;
     }
 
