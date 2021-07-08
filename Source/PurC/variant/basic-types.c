@@ -28,9 +28,10 @@
 #include "private/errors.h"
 #include "private/tls.h"
 
+#include "purc-utils.h"
 #include "purc-variant.h"
 #include "private/variant.h"
-#include "variant_internals.h"
+#include "variant-internals.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -256,7 +257,6 @@ purc_variant_t purc_variant_make_string (const char* str_utf8, bool check_encodi
     int real_size = MAX(sizeof(long double), sizeof(void*) * 2);
     purc_variant_t variant_string = NULL;
     
-    
     if(check_encoding)
     {
         if(!purc_variant_string_check_utf8(str_utf8))
@@ -342,89 +342,82 @@ void pcvariant_string_release(purc_variant_t string)
     }
 }
 
-// todo
 purc_variant_t purc_variant_make_atom_string (const char* str_utf8, bool check_encoding)
 {
-    int str_size = strlen(str_utf8);
-    int real_size = MAX(sizeof(long double), sizeof(void*) * 2);
-    purc_variant_t variant_string = (purc_variant_t)pcvariant_alloc_mem_0 \
-                                                (sizeof(struct purc_variant));
-    
-    check_encoding = check_encoding;
+    PURC_VARIANT_ASSERT(str_utf8);
 
-    if(variant_string == NULL)
+    purc_variant_t variant_atom_string = NULL;
+
+    if(check_encoding)
+    {
+        if(!purc_variant_string_check_utf8(str_utf8))
+            return PURC_VARIANT_INVALID;
+    }
+    
+    purc_atom_t atom = purc_atom_from_string(str_utf8);
+    if(atom == 0)
         return PURC_VARIANT_INVALID;
 
-    variant_string->type = PURC_VARIANT_TYPE_STRING;
-    variant_string->flags = 0;
-    variant_string->refc = 1;
+    variant_atom_string = (purc_variant_t)pcvariant_alloc_mem_0(sizeof(struct purc_variant));
+    
+    if(variant_atom_string == NULL)
+        return PURC_VARIANT_INVALID;
 
-    if(str_size < (real_size - 1))
-    {
-        memcpy(variant_string->bytes, str_utf8, str_size + 1);
-        variant_string->size = str_size;
-    }
-    else
-    {
-        variant_string->flags |= PCVARIANT_FLAG_LONG;
-        variant_string->sz_ptr[0] = (uintptr_t)pcvariant_alloc_mem_0(str_size + 1);
-        if(variant_string->sz_ptr[0] == 0)
-        {
-            pcvariant_free_mem(sizeof(struct purc_variant), variant_string);
-            return PURC_VARIANT_INVALID;
-        }
+    variant_atom_string->type = PURC_VARIANT_TYPE_ATOM_STRING;
+    variant_atom_string->flags = 0;
+    variant_atom_string->refc = 1;
+    variant_atom_string->sz_ptr[0] = atom;
 
-        variant_string->sz_ptr[1] = (uintptr_t)str_size;
-        memcpy((void *)variant_string->sz_ptr[0], str_utf8, str_size);
-    }
-
-    return variant_string;
+    return variant_atom_string;
 }
 
-// todo
 purc_variant_t purc_variant_make_atom_string_static (const char* str_utf8, \
                                                         bool check_encoding)
 {
-    purc_variant_t variant_string = NULL;
-    bool b_check = purc_variant_string_check_utf8(str_utf8);
+    PURC_VARIANT_ASSERT(str_utf8);
 
-    check_encoding = check_encoding;
+    purc_variant_t variant_atom_string = NULL;
 
-    if(b_check)
-        variant_string = purc_variant_make_string(str_utf8, check_encoding);
-    else
-        variant_string = PURC_VARIANT_INVALID;
+    if(check_encoding)
+    {
+        if(!purc_variant_string_check_utf8(str_utf8))
+            return PURC_VARIANT_INVALID;
+    }
+    
+    purc_atom_t atom = purc_atom_from_static_string(str_utf8);
+    if(atom == 0)
+        return PURC_VARIANT_INVALID;
 
-    return variant_string;
+    variant_atom_string = (purc_variant_t)pcvariant_alloc_mem_0(sizeof(struct purc_variant));
+    
+    if(variant_atom_string == NULL)
+        return PURC_VARIANT_INVALID;
+
+    variant_atom_string->type = PURC_VARIANT_TYPE_ATOM_STRING;
+    variant_atom_string->flags |= PCVARIANT_FLAG_ATOM_STATIC;
+    variant_atom_string->refc = 1;
+    variant_atom_string->sz_ptr[0] = atom;
+
+    return variant_atom_string;
 }
 
-// todo
-const char* purc_variant_get_atom_string_const (purc_variant_t string)
+const char* purc_variant_get_atom_string_const (purc_variant_t atom_string)
 {
     const char * str_str = NULL;
 
     PURC_VARIANT_ASSERT(string);
 
-    if(purc_variant_is_type(string, PURC_VARIANT_TYPE_STRING))
-    {
-        if(string->flags & PCVARIANT_FLAG_LONG)
-            str_str = (char *)string->sz_ptr[0];
-        else
-            str_str = (char *)string->bytes;
-    }
+    if(purc_variant_is_type(atom_string, PURC_VARIANT_TYPE_ATOM_STRING))
+        str_str = (char *)atom_string->sz_ptr[0];
 
     return str_str;
 }
 
-void pcvariant_atom_string_release(purc_variant_t string)
+
+void pcvariant_atom_string_release(purc_variant_t atom_string)
 {
-    PURC_VARIANT_ASSERT(string);
-
-    if(purc_variant_is_type(string, PURC_VARIANT_TYPE_ATOM_STRING))
-    {
-    }
+    UNUSED_PARAM(atom_string);
 }
-
 
 purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes, \
                                                             size_t nr_bytes)

@@ -22,14 +22,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <stdlib.h>
-#include <string.h>
-
 #include "private/variant.h"
 #include "private/instance.h"
 #include "private/errors.h"
 #include "private/debug.h"
-#include "variant_internals.h"
+#include "variant-internals.h"
+
+#include <stdlib.h>
+#include <string.h>
+
+#if OS(LINUX) || OS(UNIX)
+    #include <dlfcn.h>
+#endif
 
 // TODO: initialize the table here
 static pcvariant_release_fn pcvariant_releasers[PURC_VARIANT_TYPE_MAX] = 
@@ -217,21 +221,79 @@ unsigned int purc_variant_unref (purc_variant_t value)
     return value->refc;
 }
 
-#if 0 /* TODO */
+
+// todo
 purc_variant_t purc_variant_make_from_json_string (const char* json, size_t sz)
 {
+    UNUSED_PARAM(json);
+    UNUSED_PARAM(sz);
+
+    purc_variant_t value = (purc_variant_t)pcvariant_alloc_mem_0 \
+                                                (sizeof(struct purc_variant));
+
+    return value;
 }
 
+// todo
 purc_variant_t purc_variant_load_from_json_file (const char* file)
 {
-}
+    purc_rwstream_t rwstream = purc_rwstream_new_from_file(file, "r");
+    if(rwstream == NULL)
+        return PURC_VARIANT_INVALID;
+    
+    // how to get file size? use new rwstream type?
+    size_t size = 100;
+    size_t read_size = 0;
+    unsigned char * buf = malloc(size);
 
-purc_variant_t purc_variant_load_from_json_stream (purc_rwstream_t stream)
-{
+    read_size = purc_rwstream_read(rwstream, buf, size);
+    if(read_size == 0)
+        return PURC_VARIANT_INVALID;
+
+    purc_variant_t value =  purc_variant_make_from_json_string((const char *)buf, size);
+
+    free(buf);
+    purc_rwstream_close(rwstream);
+
+    return value;
 }
 
 purc_variant_t purc_variant_dynamic_value_load_from_so (const char* so_name, \
                                                         const char* var_name)
+{
+    purc_variant_t value = PURC_VARIANT_INVALID;
+
+#if OS(LINUX) || OS(UNIX)
+    void * library_handle = NULL;
+
+    library_handle = dlopen(so_name, RTLD_LAZY);
+    if(!library_handle)
+        return PURC_VARIANT_INVALID;
+
+    purc_variant_t (* get_variant_by_name)(const char *);
+
+    get_variant_by_name = (purc_variant_t (*) (const char *))dlsym(library_handle, "get_variant_by_name");
+    if(dlerror() != NULL)
+    {
+        dlclose(library_handle);
+        return PURC_VARIANT_INVALID;
+    }
+
+    value = get_variant_by_name(var_name);
+    if(value == NULL)
+    {
+        dlclose(library_handle);
+        return PURC_VARIANT_INVALID;
+    }
+
+    // ??? long string, sequence, atom string, dynamic, native..... can not dlclose....
+#endif
+    return value;
+
+}
+
+#if 0
+purc_variant_t purc_variant_load_from_json_stream (purc_rwstream_t stream)
 {
 }
 
