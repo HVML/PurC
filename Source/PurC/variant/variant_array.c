@@ -48,6 +48,31 @@
  *           children element?
  */
 
+static void _array_item_free(void *data)
+// shall we move implementation of this function to the bottom of this file?
+{
+    PURC_VARIANT_ASSERT(data);
+    purc_variant_t val = (purc_variant_t)data;
+    purc_variant_unref(val);
+}
+
+static void _fill_empty_with_undefined(purc_variant_t array, struct array_list *al)
+{
+    PURC_VARIANT_ASSERT(al);
+    for (size_t i=0; i<array_list_length(al); ++i) {
+        purc_variant_t val = (purc_variant_t)array_list_get_idx(al, i);
+        if (!val) {
+            // this is an empty slot
+            // we might choose to let it be
+            // and check NULL elsewhere
+            val = purc_variant_make_undefined();
+            int r = array_list_put_idx(al, i, val);
+            PURC_VARIANT_ASSERT(r==0); // shall NOT happen
+            // no need unref val, ownership is transfered to array
+        }
+    }
+}
+
 PCA_EXPORT purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
 {
     PURC_VARIANT_ASSERT(sz>=1); 
@@ -66,7 +91,7 @@ PCA_EXPORT purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t val
         var->type          = PVT(_ARRAY);
         var->refc          = 1;
 
-        struct array_list *al = array_list_new2(array_item_free, sz); // what if sz==0, test it!
+        struct array_list *al = array_list_new2(_array_item_free, sz); // what if sz==0, test it!
         if (!al)
             break;
         var->sz_ptr[1]     = al;
@@ -193,7 +218,7 @@ PCA_EXPORT bool purc_variant_array_set (purc_variant_t array, int idx, purc_vari
         return false;
     }
     // fill empty slot with undefined value
-    _fill_empty_with_undefined(al);
+    _fill_empty_with_undefined(array, al);
     // above two steps might be combined into one for better performance
 
     // since value is put into array
