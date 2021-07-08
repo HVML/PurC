@@ -390,7 +390,7 @@ PCA_EXPORT size_t purc_variant_array_get_size(const purc_variant_t array);
 
 
 /**
- * Creates a variant value of object type.
+ * Creates a variant value of object type with key as c string
  *
  * @param nr_kv_pairs: the minimum of key-value pairs
  * @param key0 ..... keyn: the keys of key-value pairs
@@ -400,11 +400,24 @@ PCA_EXPORT size_t purc_variant_array_get_size(const purc_variant_t array);
  *
  * Since: 0.0.1
  */
-PCA_EXPORT purc_variant_t purc_variant_make_object (size_t nr_kv_pairs, const char* key0, purc_variant_t value0, ...);
+PCA_EXPORT purc_variant_t purc_variant_make_object_c (size_t nr_kv_pairs, const char* key0, purc_variant_t value0, ...);
+
+/**
+ * Creates a variant value of object type with key as another variant
+ *
+ * @param nr_kv_pairs: the minimum of key-value pairs
+ * @param key0 ..... keyn: the keys of key-value pairs
+ * @param value0 ..... valuen: the values of key-value pairs
+ *
+ * Returns: A purc_variant_t with object type, or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT purc_variant_t purc_variant_make_object (size_t nr_kv_pairs, purc_variant_t key0, purc_variant_t value0, ...);
 
 
 /**
- * Gets the value by key from an object.
+ * Gets the value by key from an object with key as c string
  *
  * @param obj: the variant data of obj type
  * @param key: the key of key-value pair
@@ -413,11 +426,22 @@ PCA_EXPORT purc_variant_t purc_variant_make_object (size_t nr_kv_pairs, const ch
  *
  * Since: 0.0.1
  */
-PCA_EXPORT purc_variant_t purc_variant_object_get (purc_variant_t obj, const char* key);
-
+PCA_EXPORT bool purc_variant_object_get_c (purc_variant_t obj, const char* key);
 
 /**
- * Sets the value by key in an object.
+ * Gets the value by key from an object with key as another variant
+ *
+ * @param obj: the variant data of obj type
+ * @param key: the key of key-value pair
+ *
+ * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT bool purc_variant_object_get (purc_variant_t obj, purc_variant_t key);
+
+/**
+ * Sets the value by key in an object with key as c string
  *
  * @param obj: the variant data of obj type
  * @param key: the key of key-value pair
@@ -427,11 +451,23 @@ PCA_EXPORT purc_variant_t purc_variant_object_get (purc_variant_t obj, const cha
  *
  * Since: 0.0.1
  */
-PCA_EXPORT bool purc_variant_object_set (purc_variant_t obj, const char* key, purc_variant_t value);
-
+PCA_EXPORT bool purc_variant_object_set_c (purc_variant_t obj, const char* key, purc_variant_t value);
 
 /**
- * Remove a key-value pair from an object by key.
+ * Sets the value by key in an object with key as another variant
+ *
+ * @param obj: the variant data of obj type
+ * @param key: the key of key-value pair
+ * @param value: the value of key-value pair
+ *
+ * Returns: True on success, otherwise False.
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT bool purc_variant_object_set (purc_variant_t obj, purc_variant_t key, purc_variant_t value);
+
+/**
+ * Remove a key-value pair from an object by key with key as c string
  *
  * @param obj: the variant data of obj type
  * @param key: the key of key-value pair
@@ -440,8 +476,19 @@ PCA_EXPORT bool purc_variant_object_set (purc_variant_t obj, const char* key, pu
  *
  * Since: 0.0.1
  */
-PCA_EXPORT bool purc_variant_object_remove (purc_variant_t obj, const char* key);
+PCA_EXPORT bool purc_variant_object_remove_c (purc_variant_t obj, const char* key);
 
+/**
+ * Remove a key-value pair from an object by key with key as another variant
+ *
+ * @param obj: the variant data of obj type
+ * @param key: the key of key-value pair
+ *
+ * Returns: True on success, otherwise False.
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT bool purc_variant_object_remove (purc_variant_t obj, purc_variant_t key);
 
 /**
  * Get the number of key-value pairs in an object variant value.
@@ -453,7 +500,6 @@ PCA_EXPORT bool purc_variant_object_remove (purc_variant_t obj, const char* key)
  * Since: 0.0.1
  */
 PCA_EXPORT size_t purc_variant_object_get_size (const purc_variant_t obj);
-
 
 /**
  * object iterator usage example:
@@ -569,7 +615,6 @@ PCA_EXPORT const char *purc_variant_object_iterator_get_key (struct purc_variant
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t purc_variant_object_iterator_get_value (struct purc_variant_object_iterator* it);
-
 
 /**
  * Creates a variant data of set type.
