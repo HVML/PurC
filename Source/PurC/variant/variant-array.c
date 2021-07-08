@@ -42,7 +42,7 @@
  * no matter via `purc_variant_make_array` or `purc_variant_array_set/append/...`,
  * this value's ref + 1
  * once a purc_variant_t value in array get removed,
- * no matter via `_variant_array_release` or `purc_variant_array_remove`
+ * no matter via `pcvariant_array_release` or `purc_variant_array_remove`
  * or even implicitly being overwritten by `purc_variant_array_set/append/...`,
  * this value's ref - 1
  * note: value can be added into array for more than 1 times,
@@ -157,7 +157,7 @@ purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
     return PURC_VARIANT_INVALID;
 }
 
-extern void _variant_array_release (purc_variant_t value)
+void pcvariant_array_release (purc_variant_t value)
 {
     // this would be called only via purc_variant_unref once value's refc dec'd to 0
     // thus we don't check argument
@@ -174,7 +174,7 @@ extern void _variant_array_release (purc_variant_t value)
     value->sz_ptr[1] = (uintptr_t)NULL; // no dangling pointer
 }
 
-extern int _variant_array_compare (purc_variant_t lv, purc_variant_t rv)
+int pcvariant_array_compare (purc_variant_t lv, purc_variant_t rv)
 {
     // todo
     UNUSED_PARAM(lv);
@@ -325,42 +325,5 @@ bool purc_variant_array_insert_before (purc_variant_t array, int idx, purc_varia
 bool purc_variant_array_insert_after (purc_variant_t array, int idx, purc_variant_t value)
 {
     return purc_variant_array_insert_before(array, idx+1, value);
-}
-
-
-
-
-
-
-
-
-
-// funcs other than array-related to implement later
-extern void _variant_object_release (purc_variant_t value)
-{
-    // todo
-    UNUSED_PARAM(value);
-}
-
-extern int _variant_object_compare (purc_variant_t lv, purc_variant_t rv)
-{
-    // todo
-    UNUSED_PARAM(lv);
-    UNUSED_PARAM(rv);
-    return -1;
-}
-
-extern void _variant_set_release (purc_variant_t value)
-{
-    // todo
-    UNUSED_PARAM(value);
-}
-
-extern int _variant_set_compare (purc_variant_t lv, purc_variant_t rv)
-{
-    // todo
-    UNUSED_PARAM(lv);
-    UNUSED_PARAM(rv);
-    return -1;
 }
 

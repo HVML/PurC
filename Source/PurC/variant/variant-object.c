@@ -231,6 +231,12 @@ purc_variant_t purc_variant_make_object (size_t nr_kv_pairs, purc_variant_t key0
     return PURC_VARIANT_INVALID;
 }
 
+void pcvariant_object_release (purc_variant_t value)
+{
+    // todo
+    UNUSED_PARAM(value);
+}
+
 purc_variant_t purc_variant_object_get_c (purc_variant_t obj, const char* key)
 {
     PCVARIANT_CHECK_ARGS((obj && obj->type==PVT(_OBJECT) && obj->sz_ptr[1] && key),
@@ -435,5 +441,13 @@ purc_variant_t purc_variant_object_iterator_get_value (struct purc_variant_objec
     purc_variant_t  v = (purc_variant_t)pchash_entry_v(it->curr);
     // not add ref
     return v;
+}
+
+int pcvariant_object_compare (purc_variant_t lv, purc_variant_t rv)
+{
+    // todo
+    UNUSED_PARAM(lv);
+    UNUSED_PARAM(rv);
+    return -1;
 }
 
