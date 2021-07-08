@@ -41,6 +41,7 @@ list(APPEND PurC_SOURCES
     "${PURC_DIR}/ports/misc.c"
     "${PURC_DIR}/variant/variant.c"
     "${PURC_DIR}/variant/basic-types.c"
+    "${PURC_DIR}/variant/variant-array.c"
 )
 
 # Put the CXX source files which can be unified in `Sources.txt`
