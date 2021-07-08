@@ -209,42 +209,6 @@ purc_variant_t purc_variant_make_longdouble (long double lf)
     return variant_longdouble;
 }
 
-purc_variant_t purc_variant_make_string (const char* str_utf8)
-{
-    int str_size = strlen(str_utf8);
-    int real_size = MAX(sizeof(long double), sizeof(void*) * 2);
-    purc_variant_t variant_string = (purc_variant_t)pcvariant_alloc_mem_0 \
-                                                (sizeof(struct purc_variant));
-    
-    if(variant_string == NULL)
-        return PURC_VARIANT_INVALID;
-
-    variant_string->type = PURC_VARIANT_TYPE_STRING;
-    variant_string->flags = 0;
-    variant_string->refc = 1;
-
-    if(str_size < (real_size - 1))
-    {
-        memcpy(variant_string->bytes, str_utf8, str_size + 1);
-        variant_string->size = str_size;
-    }
-    else
-    {
-        variant_string->flags |= PCVARIANT_FLAG_LONG;
-        variant_string->sz_ptr[0] = (uintptr_t)pcvariant_alloc_mem_0(str_size + 1);
-        if(variant_string->sz_ptr[0] == 0)
-        {
-            pcvariant_free_mem(sizeof(struct purc_variant), variant_string);
-            return PURC_VARIANT_INVALID;
-        }
-
-        variant_string->sz_ptr[1] = (uintptr_t)str_size;
-        memcpy((void *)variant_string->sz_ptr[0], str_utf8, str_size);
-    }
-
-    return variant_string;
-
-}
 
 static bool purc_variant_string_check_utf8(const char* str_utf8)
 {
@@ -286,17 +250,49 @@ static bool purc_variant_string_check_utf8(const char* str_utf8)
     return (nBytes == 0);
 }
 
-purc_variant_t purc_variant_make_string_with_check (const char* str_utf8)
+purc_variant_t purc_variant_make_string (const char* str_utf8, bool check_encoding)
 {
+    int str_size = strlen(str_utf8);
+    int real_size = MAX(sizeof(long double), sizeof(void*) * 2);
     purc_variant_t variant_string = NULL;
-    bool b_check = purc_variant_string_check_utf8(str_utf8);
+    
+    
+    if(check_encoding)
+    {
+        if(!purc_variant_string_check_utf8(str_utf8))
+            return PURC_VARIANT_INVALID;
+    }
+    
+    variant_string = (purc_variant_t)pcvariant_alloc_mem_0(sizeof(struct purc_variant));
+    
+    if(variant_string == NULL)
+        return PURC_VARIANT_INVALID;
 
-    if(b_check)
-        variant_string = purc_variant_make_string(str_utf8);
+    variant_string->type = PURC_VARIANT_TYPE_STRING;
+    variant_string->flags = 0;
+    variant_string->refc = 1;
+
+    if(str_size < (real_size - 1))
+    {
+        memcpy(variant_string->bytes, str_utf8, str_size + 1);
+        variant_string->size = str_size;
+    }
     else
-        variant_string = PURC_VARIANT_INVALID;
+    {
+        variant_string->flags |= PCVARIANT_FLAG_LONG;
+        variant_string->sz_ptr[0] = (uintptr_t)pcvariant_alloc_mem_0(str_size + 1);
+        if(variant_string->sz_ptr[0] == 0)
+        {
+            pcvariant_free_mem(sizeof(struct purc_variant), variant_string);
+            return PURC_VARIANT_INVALID;
+        }
+
+        variant_string->sz_ptr[1] = (uintptr_t)str_size;
+        memcpy((void *)variant_string->sz_ptr[0], str_utf8, str_size);
+    }
 
     return variant_string;
+
 }
 
 const char* purc_variant_get_string_const (purc_variant_t string)

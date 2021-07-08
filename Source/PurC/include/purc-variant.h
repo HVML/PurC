@@ -124,27 +124,13 @@ PCA_EXPORT purc_variant_t purc_variant_make_longdouble (long double lf);
  * Creates a variant value of string type.
  *
  * @param str_utf8: the pointer of a string which is in UTF-8 encoding
+ * @param check_encoding: whether check str_utf8 in UTF-8 encoding
  *
  * Returns: A purc_variant_t with string type, or PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
-PCA_EXPORT purc_variant_t purc_variant_make_string (const char* str_utf8);
-
-
-/**
- * Checks the encoding format of input parameter, and creates a variant
- * value of string type.
- *
- * @param str_utf8: the pointer of a string which is in UTF-8 encoding
- *
- * Returns: A purc_variant_t with string type, or PURC_VARIANT_INVALID on failure.
- *
- * Note: If str_utf8 is not in UTF-8 encoding, return PURC_VARIANT_INVALID.
- *
- * Since: 0.0.1
- */
-PCA_EXPORT purc_variant_t purc_variant_make_string_with_check (const char* str_utf8);
+PCA_EXPORT purc_variant_t purc_variant_make_string (const char* str_utf8, bool check_encoding);
 
 
 /**
@@ -171,22 +157,42 @@ PCA_EXPORT const char* purc_variant_get_string_const (purc_variant_t value);
 PCA_EXPORT size_t purc_variant_string_length(const purc_variant_t value);
 
 
-// 20210707：构造原子字符串，字符串必须是 UTF-8 编码
-// 用于原子字符串的变体值，在 struct purc_variant 中保存字符串对应的原子值（一般是一个 uint32_t 值），
-// 而字符串本身则在一个全局的结构中保存单个副本。
-// 参见：https://developer.gnome.org/glib/stable/glib-Quarks.html
+/**
+ * Creates a variant value of atom string type.
+ *
+ * @param str_utf8: the pointer of a string which is in UTF-8 encoding
+ * @param check_encoding: whether check str_utf8 in UTF-8 encoding
+ *
+ * Returns: A purc_variant_t with atom string type, or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.0.1
+ */
 PCA_EXPORT purc_variant_t purc_variant_make_atom_string (const char* str_utf8, bool check_encoding);
 
-// 20210707：检查并构造原子字符串数据，字符串地址是静态的（不复制）
-// 用于原子字符串的变体值，在 struct purc_variant 中保存字符串对应的原子值（一般是一个 uint32_t 值），
-// 而字符串本身则在一个全局的结构中保存单个副本。
+
+/**
+ * Creates a variant value of atom string type.
+ *
+ * @param str_utf8: the pointer of a string which is in UTF-8 encoding
+ * @param check_encoding: whether check str_utf8 in UTF-8 encoding
+ *
+ * Returns: A purc_variant_t with atom string type, or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.0.1
+ */
 PCA_EXPORT purc_variant_t purc_variant_make_atom_string_static (const char* str_utf8, bool check_encoding);
 
-// 20210707：获取原子字符串地址（只读）
+
+/**
+ * Gets the pointer of string which is encapsulated in atom string type.
+ *
+ * @param value: the data of atom string type
+ *
+ * Returns: The pointer of const char string, or NULL if value is not string type.
+ *
+ * Since: 0.0.1
+ */
 PCA_EXPORT const char* purc_variant_get_atom_string_const (purc_variant_t value);
-
-
-
 
 
 /**
