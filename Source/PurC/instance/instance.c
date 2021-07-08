@@ -67,6 +67,7 @@ static void init_modules(void)
     // TODO: init other modules here.
     pcutils_init_atom();
     pcrwstream_init();
+    pcvariant_init();
 }
 
 #if USE(PTHREADS)

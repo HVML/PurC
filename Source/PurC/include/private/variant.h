@@ -109,7 +109,7 @@ struct pcvariant_heap {
 };
 
 // initialize variant module
-bool pcvariant_init_module(void) WTF_INTERNAL;
+void pcvariant_init(void) WTF_INTERNAL;
 
 #if HAVE(GLIB)
 static inline void * pcvariant_alloc_mem(size_t size)           \
