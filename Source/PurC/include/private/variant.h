@@ -43,38 +43,36 @@ extern "C" {
 // define errors for variant
 #define PURC_ERROR_VARIANT_INVALID_TYPE     (PURC_ERROR_FIRST_VARIANT + 0)
 
-// set purc_variant->size
-#define PCVARIANT_FLAG_LONG     0xFF        // for long string or sequence
-#define PCVARIANT_FLAG_SIGNED   0xFF        // for signed int
 
 #define MAX(a, b)   (a) > (b)? (a): (b);
 
 #define PCVARIANT_FLAG_NOREF    (0x01 << 0)
 #define PCVARIANT_FLAG_NOFREE   (0x01 << 1)
+#define PCVARIANT_FLAG_LONG     (0x01 << 15)    // for long string or sequence
+#define PCVARIANT_FLAG_SIGNED   (0x01 << 15)    // for signed int
 
 #define PVT(t) (PURC_VARIANT_TYPE##t)
 
 // fix me: if we need `assert` in both debug and release build, better approach?
 #define PURC_VARIANT_ASSERT(s) assert(s)
 
-#define VARIANT_LOOP_BUFFER_NUMBER  32
-struct purc_variant_buffer
-{
-    purc_variant_t value[VARIANT_LOOP_BUFFER_NUMBER];
+#define MAX_RESERVED_VARIANTS  32
+
+// for registered in thread instance
+struct pcvariant_heap {
+    struct purc_variant v_null;
+    struct purc_variant v_undefined;
+    struct purc_variant v_false;
+    struct purc_variant v_true;
+
+    struct purc_variant_stat stat;
+
+    purc_variant_t nr_reserved [MAX_RESERVED_VARIANTS];
     int readpos;
     int writepos;
 }
 
-// for registered in thread instance
-struct pcvariant_heap {
-    struct purc_variant pcvariant_null;
-    struct purc_variant pcvariant_undefined;
-    struct purc_variant pcvariant_false;
-    struct purc_variant pcvariant_true;
-    struct purc_variant_stat stat;
-    struct purc_variant_buffer pcvariant_buffer;
-}
-
+// structure for variant
 struct purc_variant {
 
     /* variant type */
@@ -116,12 +114,6 @@ struct purc_variant {
         uint8_t     bytes[0];
     };
 };
-
-// for custom serialization function.
-typedef int (* pcvariant_to_json_string_fn)(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags);
-
-// for release the resource in a variant
-typedef void (* pcvariant_release_fn)(purc_variant_t value);
 
 // initialize variant module
 bool pcvariant_init_module(void)   WTF_INTERNAL;
