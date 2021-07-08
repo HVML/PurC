@@ -93,6 +93,8 @@ struct purc_variant {
     };
 };
 
+#define MAX_RESERVED_VARIANTS  32
+
 struct pcvariant_heap {
     struct purc_variant v_undefined;
     struct purc_variant v_null;
