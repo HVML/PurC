@@ -940,68 +940,16 @@ PCA_EXPORT inline bool purc_variant_is_set (purc_variant_t v)
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_SET);
 }
 
+struct purc_variant_type_stat   {
+    int number;
+    int memory;
+}
 
 struct purc_variant_stat {
-    unsigned short purc_variant_using_null;
-    unsigned short purc_variant_using_undefined;
-    unsigned short purc_variant_using_boolean;
-
-    unsigned short purc_variant_using_number;
-    unsigned short purc_variant_destroyed_number;
-
-    unsigned short purc_variant_using_longint;
-    unsigned short purc_variant_using_memory_longint;
-    unsigned short purc_variant_destroyed_longint;
-    unsigned short purc_variant_destroyed_momory_longint;
-    unsigned short purc_variant_total_momory_longint;
-
-    unsigned short purc_variant_using_longdouble;
-    unsigned short purc_variant_using_memory_longdouble;
-    unsigned short purc_variant_destroyed_longdouble;
-    unsigned short purc_variant_destroyed_memory_longdouble;
-    unsigned short purc_variant_total_memory_longdouble;
-
-    unsigned short purc_variant_using_string;
-    unsigned short purc_variant_using_memory_string;
-    unsigned short purc_variant_destroyed_string;
-    unsigned short purc_variant_destroyed_memory_string;
-    unsigned short purc_variant_total_memory_string;
-
-    unsigned short purc_variant_using_sequence;
-    unsigned short purc_variant_using_memory_sequence;
-    unsigned short purc_variant_destroyed_sequence;
-    unsigned short purc_variant_destroyed_memory_sequence;
-    unsigned short purc_variant_total_memory_sequence;
-
-    unsigned short purc_variant_using_dynamic;
-    unsigned short purc_variant_using_memory_dynamic;
-    unsigned short purc_variant_destroyed_dynamic;
-    unsigned short purc_variant_destroyed_memory_dynamic;
-    unsigned short purc_variant_total_memory_dynamic;
-
-    unsigned short purc_variant_using_native;
-    unsigned short purc_variant_using_memory_native;
-    unsigned short purc_variant_destroyed_native;
-    unsigned short purc_variant_destroyed_memory_native;
-    unsigned short purc_variant_total_memory_native;
-
-    unsigned short purc_variant_using_object;
-    unsigned short purc_variant_using_memory_object;
-    unsigned short purc_variant_destroyed_object;
-    unsigned short purc_variant_destroyed_memory_object;
-    unsigned short purc_variant_total_memory_object;
-
-    unsigned short purc_variant_using_array;
-    unsigned short purc_variant_using_memory_array;
-    unsigned short purc_variant_destroyed_array;
-    unsigned short purc_variant_destroyed_memory_array;
-    unsigned short purc_variant_total_memory_array;
-
-    unsigned short purc_variant_using_set;
-    unsigned short purc_variant_using_memory_set;
-    unsigned short purc_variant_destroyed_set;
-    unsigned short purc_variant_destroyed_memory_set;
-    unsigned short purc_variant_total_memory_set;
+    struct purc_variant_type_stat using_type[PURC_VARIANT_TYPE_MAX];
+    struct purc_variant_type_stat reserved_total;
+    struct purc_variant_type_stat using_total;
+    struct purc_variant_type_stat total_stat;
 };
 
 /**

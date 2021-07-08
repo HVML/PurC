@@ -57,6 +57,14 @@ extern "C" {
 // fix me: if we need `assert` in both debug and release build, better approach?
 #define PURC_VARIANT_ASSERT(s) assert(s)
 
+#define VARIANT_LOOP_BUFFER_NUMBER  32
+struct purc_variant_buffer
+{
+    purc_variant_t value[VARIANT_LOOP_BUFFER_NUMBER];
+    int readpos;
+    int writepos;
+}
+
 // for registered in thread instance
 struct pcvariant_heap {
     struct purc_variant pcvariant_null;
@@ -64,8 +72,8 @@ struct pcvariant_heap {
     struct purc_variant pcvariant_false;
     struct purc_variant pcvariant_true;
     struct purc_variant_stat stat;
+    struct purc_variant_buffer pcvariant_buffer;
 }
-
 
 struct purc_variant {
 
