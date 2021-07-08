@@ -30,6 +30,7 @@
 #include <stdint.h>
 
 #include "purc-macros.h"
+#include "purc-rwstream.h"
 
 struct purc_variant;
 typedef struct purc_variant purc_variant;
@@ -38,7 +39,6 @@ typedef struct purc_variant* purc_variant_t;
 #define PURC_VARIANT_INVALID            ((purc_variant_t)(0))
 
 PCA_EXTERN_C_BEGIN
-
 
 /**
  * Creates a variant value of undefined type.
@@ -979,23 +979,20 @@ struct purc_variant_stat {
  */
 PCA_EXPORT bool purc_variant_usage_stat (struct purc_variant_stat* stat);
 
-
-
 #define foreach_value_in_variant_array(array, value)                \
     do {                                                            \
-        purc_variant_object_iterator *__oite = NULL;                \
-        purc_variant_set_iterator *__site    = NULL;                \
-        int array_size = purc_variant_array_get_size (array)        \
-        for (int i = 0; i < array_size,                             \
-                        value = purc_variant_array_get (array, i);  \
-             i++) {                                                 \
+        struct purc_variant_object_iterator *__oite = NULL;         \
+        struct purc_variant_set_iterator *__site    = NULL;         \
+        int array_size = purc_variant_array_get_size (array);       \
+        for (int i = 0; i < array_size; i++) {                      \
+            value = purc_variant_array_get (array, i);              \
      /* } */                                                        \
  /* } while (0) */
 
 #define foreach_value_in_variant_object(obj, value)                               \
     do {                                                                          \
-        purc_variant_object_iterator *__oite = NULL;                              \
-        purc_variant_set_iterator *__site    = NULL;                              \
+        struct purc_variant_object_iterator *__oite = NULL;                       \
+        struct purc_variant_set_iterator *__site    = NULL;                       \
         bool __having = true;                                                     \
         for (__oite = purc_variant_object_make_iterator_begin(obj);               \
              __oite && __having;                                                  \
@@ -1008,8 +1005,8 @@ PCA_EXPORT bool purc_variant_usage_stat (struct purc_variant_stat* stat);
 
 #define foreach_key_value_in_variant_object(obj, key, value)                      \
     do {                                                                          \
-        purc_variant_object_iterator *__oite = NULL;                              \
-        purc_variant_set_iterator *__site    = NULL;                              \
+        struct purc_variant_object_iterator *__oite = NULL;                       \
+        struct purc_variant_set_iterator *__site    = NULL;                       \
         bool __having = true;                                                     \
         for (__oite = purc_variant_object_make_iterator_begin(obj);               \
              __oite && __having;                                                  \
@@ -1023,14 +1020,14 @@ PCA_EXPORT bool purc_variant_usage_stat (struct purc_variant_stat* stat);
 
 #define foreach_value_in_variant_set(set, value)                                  \
     do {                                                                          \
-        purc_variant_object_iterator *__oite = NULL;                              \
-        purc_variant_set_iterator *__site    = NULL;                              \
+        struct purc_variant_object_iterator *__oite = NULL;                       \
+        struct purc_variant_set_iterator *__site    = NULL;                       \
         bool __having = true;                                                     \
-        for (__site = purc_variant_object_make_iterator_begin(obj);               \
+        for (__site = purc_variant_set_make_iterator_begin(set);                  \
              __site && __having;                                                  \
-             __having = purc_variant_object_iterator_next(__site) )               \
+             __having = purc_variant_set_iterator_next(__site) )                  \
         {                                                                         \
-            value = purc_variant_object_iterator_get_value(__site);               \
+            value = purc_variant_set_iterator_get_value(__site);                  \
      /* } */                                                                      \
   /* } while (0) */
 

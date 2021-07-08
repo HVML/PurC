@@ -26,27 +26,27 @@
 #include <string.h>
 
 #include "purc-variant.h"
-#include "variant.h"
+#include "private/variant.h"
+#include "private/debug.h"
+
+// TODO: initialize the table here
+static pcvariant_release_fn variant_releasers[PURC_VARIANT_TYPE_MAX];
 
 bool purc_variant_is_type(const purc_variant_t value, enum purc_variant_type type)
 {
     return (value->type == type);
 }
 
-
 enum purc_variant_type purc_variant_get_type(const purc_variant_t value)
 {
     return value->type;
 }
 
-
 unsigned int purc_variant_ref (purc_variant_t value)
 {
     PURC_VARIANT_ASSERT(value);
 
-    enum purc_variant_type type = purc_variant_get_type(value);
     purc_variant_t variant = NULL;
-
     switch((int)value->type)
     {
         case PURC_VARIANT_TYPE_NULL:
@@ -65,19 +65,19 @@ unsigned int purc_variant_ref (purc_variant_t value)
         case PURC_VARIANT_TYPE_OBJECT:
             foreach_value_in_variant_object(value, variant)
                 purc_variant_ref(variant);
-            end_foreach
+            end_foreach;
             break;
 
         case PURC_VARIANT_TYPE_ARRAY:
             foreach_value_in_variant_array(value, variant)
                 purc_variant_ref(variant);
-            end_foreach
+            end_foreach;
             break;
 
         case PURC_VARIANT_TYPE_SET:
             foreach_value_in_variant_set(value, variant)
                 purc_variant_ref(variant);
-            end_foreach
+            end_foreach;
             break;
 
         default:
@@ -91,8 +91,13 @@ unsigned int purc_variant_unref (purc_variant_t value)
     PURC_VARIANT_ASSERT(value);
     PURC_VARIANT_ASSERT(value->refc);
 
-    enum purc_variant_type type = purc_variant_get_type(value);
     purc_variant_t variant = NULL;
+
+    /* this should not occure */
+    if (value->refc == 0) {
+        PC_ASSERT (0);
+        return 0;
+    }
 
     switch((int)value->type)
     {
@@ -111,19 +116,19 @@ unsigned int purc_variant_unref (purc_variant_t value)
         case PURC_VARIANT_TYPE_OBJECT:
             foreach_value_in_variant_object(value, variant)
                 purc_variant_unref(variant);
-            end_foreach
+            end_foreach;
             break;
 
         case PURC_VARIANT_TYPE_ARRAY:
             foreach_value_in_variant_array(value, variant)
                 purc_variant_unref(variant);
-            end_foreach
+            end_foreach;
             break;
 
         case PURC_VARIANT_TYPE_SET:
             foreach_value_in_variant_set(value, variant)
                 purc_variant_unref(variant);
-            end_foreach
+            end_foreach;
             break;
 
         default:
@@ -135,7 +140,7 @@ unsigned int purc_variant_unref (purc_variant_t value)
     if(value->refc == 0)
     {
         // release resource occupied by variant
-        pcvariant_release_fn release = pcvariant_release[value->type];
+        pcvariant_release_fn release = variant_releasers[value->type];
         if(release) 
             release(value);
 
@@ -149,12 +154,11 @@ unsigned int purc_variant_unref (purc_variant_t value)
             return 0;
         }
     }
-    else if(value->refc < 0)
-        value->refc = 0;
 
     return value->refc;
 }
 
+#if 0 /* TODO */
 purc_variant_t purc_variant_make_from_json_string (const char* json, size_t sz)
 {
 }
@@ -180,3 +184,4 @@ size_t purc_variant_serialize (purc_variant_t value, purc_rwstream_t stream, \
 int purc_variant_compare (purc_variant_t v1, purc_variant v2)
 {
 }
+#endif

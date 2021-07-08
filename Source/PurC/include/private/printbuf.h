@@ -77,7 +77,8 @@ int pcutils_printbuf_memset(struct pcutils_printbuf *pb, int offset, int charval
 
 int pcutils_printbuf_shrink(struct pcutils_printbuf *pb, int len);
 
-int pcutils_sprintbuf(struct pcutils_printbuf *p, const char *msg, ...);
+int pcutils_sprintbuf(struct pcutils_printbuf *p, const char *msg, ...)
+    __attribute__ ((format (printf, 2, 3)));
 
 void pcutils_printbuf_reset(struct pcutils_printbuf *p);
 
