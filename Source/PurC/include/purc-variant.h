@@ -849,6 +849,7 @@ typedef enum purc_variant_type
 } purc_variant_type;
 
 
+
 /**
  * Whether the vairant is indicated type.
  *
@@ -859,10 +860,8 @@ typedef enum purc_variant_type
  *
  * Since: 0.0.1
  */
-PCA_EXPORT inline bool purc_variant_is_type(const purc_variant_t value, enum purc_variant_type type)
-{
-    return (value->type == type);
-}
+PCA_EXPORT bool purc_variant_is_type(const purc_variant_t value, \
+                                        enum purc_variant_type type);
 
 
 /**
@@ -874,10 +873,7 @@ PCA_EXPORT inline bool purc_variant_is_type(const purc_variant_t value, enum pur
  *
  * Since: 0.0.1
  */
-PCA_EXPORT inline enum purc_variant_type purc_variant_get_type(const purc_variant_t value)
-{
-    return value->type;
-}
+PCA_EXPORT enum purc_variant_type purc_variant_get_type(const purc_variant_t value);
 
 
 /**
@@ -946,9 +942,67 @@ PCA_EXPORT inline bool purc_variant_is_set (purc_variant_t v)
 
 
 struct purc_variant_stat {
-    // to be defined
-};
+    unsigned short purc_variant_using_null;
+    unsigned short purc_variant_using_undefined;
+    unsigned short purc_variant_using_boolean;
 
+    unsigned short purc_variant_using_number;
+    unsigned short purc_variant_destroyed_number;
+
+    unsigned short purc_variant_using_longint;
+    unsigned short purc_variant_using_memory_longint;
+    unsigned short purc_variant_destroyed_longint;
+    unsigned short purc_variant_destroyed_momory_longint;
+    unsigned short purc_variant_total_momory_longint;
+
+    unsigned short purc_variant_using_longdouble;
+    unsigned short purc_variant_using_memory_longdouble;
+    unsigned short purc_variant_destroyed_longdouble;
+    unsigned short purc_variant_destroyed_memory_longdouble;
+    unsigned short purc_variant_total_memory_longdouble;
+
+    unsigned short purc_variant_using_string;
+    unsigned short purc_variant_using_memory_string;
+    unsigned short purc_variant_destroyed_string;
+    unsigned short purc_variant_destroyed_memory_string;
+    unsigned short purc_variant_total_memory_string;
+
+    unsigned short purc_variant_using_sequence;
+    unsigned short purc_variant_using_memory_sequence;
+    unsigned short purc_variant_destroyed_sequence;
+    unsigned short purc_variant_destroyed_memory_sequence;
+    unsigned short purc_variant_total_memory_sequence;
+
+    unsigned short purc_variant_using_dynamic;
+    unsigned short purc_variant_using_memory_dynamic;
+    unsigned short purc_variant_destroyed_dynamic;
+    unsigned short purc_variant_destroyed_memory_dynamic;
+    unsigned short purc_variant_total_memory_dynamic;
+
+    unsigned short purc_variant_using_native;
+    unsigned short purc_variant_using_memory_native;
+    unsigned short purc_variant_destroyed_native;
+    unsigned short purc_variant_destroyed_memory_native;
+    unsigned short purc_variant_total_memory_native;
+
+    unsigned short purc_variant_using_object;
+    unsigned short purc_variant_using_memory_object;
+    unsigned short purc_variant_destroyed_object;
+    unsigned short purc_variant_destroyed_memory_object;
+    unsigned short purc_variant_total_memory_object;
+
+    unsigned short purc_variant_using_array;
+    unsigned short purc_variant_using_memory_array;
+    unsigned short purc_variant_destroyed_array;
+    unsigned short purc_variant_destroyed_memory_array;
+    unsigned short purc_variant_total_memory_array;
+
+    unsigned short purc_variant_using_set;
+    unsigned short purc_variant_using_memory_set;
+    unsigned short purc_variant_destroyed_set;
+    unsigned short purc_variant_destroyed_memory_set;
+    unsigned short purc_variant_total_memory_set;
+};
 
 /**
  * Statistic of variant status.

@@ -30,8 +30,8 @@
 #include "private/instance.h"
 #include "private/errors.h"
 #include "private/tls.h"
-#include "purc_variant.h"
-#include "variant_types.h"
+#include "purc-variant.h"
+#include "variant.h"
 
 static struct purc_variant pcvariant_null = { PURC_VARIANT_TYPE_NULL, 0, 0, PCVARIANT_FLAG_NOFREE };
 static struct purc_variant pcvariant_undefined = { PURC_VARIANT_TYPE_UNDEFINED, 0, 0, PCVARIANT_FLAG_NOFREE };

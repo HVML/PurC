@@ -25,11 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if HAVE(GLIB)
-    #include <gmodule.h>
-#endif
-
-#include "purc_variant.h"
+#include "purc-variant.h"
 #include "variant.h"
 
 // for release the resource in a variant
@@ -227,7 +223,8 @@ purc_variant_t purc_variant_make_boolean (bool b)
 
 purc_variant_t purc_variant_make_number (double d)
 {
-    purc_variant_t variant_number = (purc_variant_t)pcvariant_alloc_mem_0(sizeof(struct purc_variant));
+    purc_variant_t variant_number = (purc_variant_t)pcvariant_alloc_mem_0 \
+                                                (sizeof(struct purc_variant));
 
     if(variant_number == NULL)
         return PURC_VARIANT_INVALID;
@@ -243,7 +240,8 @@ purc_variant_t purc_variant_make_number (double d)
 
 purc_variant_t purc_variant_make_longuint (uint64_t u64)
 {
-    purc_variant_t variant_longuint = (purc_variant_t)pcvariant_alloc_mem_0(sizeof(struct purc_variant));
+    purc_variant_t variant_longuint = (purc_variant_t)pcvariant_alloc_mem_0 \
+                                                (sizeof(struct purc_variant));
 
     if(variant_longuint == NULL)
         return PURC_VARIANT_INVALID;
@@ -259,7 +257,8 @@ purc_variant_t purc_variant_make_longuint (uint64_t u64)
 
 purc_variant_t purc_variant_make_longint (uint64_t u64)
 {
-    purc_variant_t variant_longint = (purc_variant_t)pcvariant_alloc_mem_0(sizeof(struct purc_variant));
+    purc_variant_t variant_longint = (purc_variant_t)pcvariant_alloc_mem_0 \
+                                                (sizeof(struct purc_variant));
 
     if(variant_longint == NULL)
         return PURC_VARIANT_INVALID;
@@ -275,7 +274,8 @@ purc_variant_t purc_variant_make_longint (uint64_t u64)
 
 purc_variant_t purc_variant_make_longdouble (long double lf)
 {
-    purc_variant_t variant_longdouble = (purc_variant_t)pcvariant_alloc_mem_0(sizeof(struct purc_variant));
+    purc_variant_t variant_longdouble = (purc_variant_t)pcvariant_alloc_mem_0 \
+                                                (sizeof(struct purc_variant));
 
     if(variant_longdouble == NULL)
         return PURC_VARIANT_INVALID;
@@ -293,7 +293,8 @@ purc_variant_t purc_variant_make_string (const char* str_utf8)
 {
     int str_size = strlen(str_utf8);
     int real_size = MAX(sizeof(long double), sizeof(void*) * 2);
-    purc_variant_t variant_string = (purc_variant_t)pcvariant_alloc_mem_0(sizeof(struct purc_variant));
+    purc_variant_t variant_string = (purc_variant_t)pcvariant_alloc_mem_0 \
+                                                (sizeof(struct purc_variant));
     
     if(variant_string == NULL)
         return PURC_VARIANT_INVALID;
@@ -379,12 +380,14 @@ size_t purc_variant_string_length(const purc_variant_t string)
     return str_size;
 }
 
-purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes, size_t nr_bytes)
+purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes, \
+                                                            size_t nr_bytes)
 {
     PURC_VARIANT_ASSERT(byte);
 
     int real_size = MAX(sizeof(long double), sizeof(void*) * 2);
-    purc_variant_t variant_sequence = (purc_variant_t)pcvariant_alloc_mem_0(sizeof(struct purc_variant)); 
+    purc_variant_t variant_sequence = (purc_variant_t)pcvariant_alloc_mem_0 \
+                                                (sizeof(struct purc_variant)); 
     
     if(variant_sequence == NULL)
         return PURC_VARIANT_INVALID;
@@ -415,7 +418,8 @@ purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes, size
     return variant_sequence;
 }
 
-const unsigned char* purc_variant_get_bytes_const (purc_variant_t sequence, size_t* nr_bytes)
+const unsigned char* purc_variant_get_bytes_const (purc_variant_t sequence, \
+                                                            size_t* nr_bytes)
 {
     const unsigned char * bytes = NULL;
 
@@ -449,10 +453,12 @@ size_t purc_variant_sequence_length(const purc_variant_t sequence)
     return nr_bytes;
 }
 
-purc_variant_t purc_variant_make_dynamic_value (CB_DYNAMIC_VARIANT getter, CB_DYNAMIC_VARIANT setter)
+purc_variant_t purc_variant_make_dynamic_value (CB_DYNAMIC_VARIANT getter, \
+                                                        CB_DYNAMIC_VARIANT setter)
 {
     // getter and setter can be NULL
-    purc_variant_t purc_variant_dynamic = (purc_variant_t)pcvariant_alloc_mem_0(sizeof(purc_variant));
+    purc_variant_t purc_variant_dynamic = (purc_variant_t)pcvariant_alloc_mem_0 \
+                                                        (sizeof(purc_variant));
 
     if(purc_variant_dynamic == NULL)
         return PURC_VARIANT_INVALID;
@@ -467,9 +473,11 @@ purc_variant_t purc_variant_make_dynamic_value (CB_DYNAMIC_VARIANT getter, CB_DY
     return purc_variant_dynamic;
 }
 
-purc_variant_t purc_variant_make_native (void *native_obj, purc_nvariant_releaser releaser)
+purc_variant_t purc_variant_make_native (void *native_obj, \
+                                            purc_nvariant_releaser releaser)
 {
-    purc_variant_t purc_variant_native = (purc_variant_t)pcvariant_alloc_mem_0(sizeof(purc_variant));
+    purc_variant_t purc_variant_native = (purc_variant_t)pcvariant_alloc_mem_0 \
+                                                        (sizeof(purc_variant));
 
     if(purc_variant_native == NULL)
         return PURC_VARIANT_INVALID;
@@ -482,6 +490,17 @@ purc_variant_t purc_variant_make_native (void *native_obj, purc_nvariant_release
     purc_variant_native->ptr2[1] = releaser;
 
     return purc_variant_native;
+}
+
+bool purc_variant_is_type(const purc_variant_t value, enum purc_variant_type type)
+{
+    return (value->type == type);
+}
+
+
+enum purc_variant_type purc_variant_get_type(const purc_variant_t value)
+{
+    return value->type;
 }
 
 
@@ -534,6 +553,7 @@ unsigned int purc_variant_ref (purc_variant_t value)
 unsigned int purc_variant_unref (purc_variant_t value)
 {
     PURC_VARIANT_ASSERT(value);
+    PURC_VARIANT_ASSERT(value->refc);
 
     enum purc_variant_type type = purc_variant_get_type(value);
     purc_variant_t variant = NULL;

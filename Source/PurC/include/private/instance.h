@@ -38,7 +38,7 @@ struct pcinst {
     char* app_name;
     char* runner_name;
 
-    // TODO: struct pcvariant_heap variant_heap;
+    struct pcvariant_heap variant_heap;
 };
 
 /* gets the current instance */
