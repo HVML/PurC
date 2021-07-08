@@ -127,11 +127,6 @@ static inline void pcvariant_free_mem(size_t size, void *ptr)   \
                 { return free(ptr); }
 #endif
 
-// for release the resource in a variant
-typedef void (* pcvariant_release_fn)(purc_variant_t value);
-
-// for custom serialization function.
-typedef int (* pcvariant_to_json_string_fn)(purc_variant_t * value, purc_rwstream *rw, int level, int flags);
 
 #ifdef __cplusplus
 }

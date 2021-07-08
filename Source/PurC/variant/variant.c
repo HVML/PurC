@@ -28,9 +28,27 @@
 #include "purc-variant.h"
 #include "private/variant.h"
 #include "private/debug.h"
+#include "variant_internals.h"
 
 // TODO: initialize the table here
-static pcvariant_release_fn variant_releasers[PURC_VARIANT_TYPE_MAX];
+static pcvariant_release_fn pcvariant_releasers[PURC_VARIANT_TYPE_MAX] = 
+{
+    NULL,                           // PURC_VARIANT_TYPE_UNDEFINED
+    NULL,                           // PURC_VARIANT_TYPE_NULL
+    NULL,                           // PURC_VARIANT_TYPE_BOOLEAN
+    NULL,                           // PURC_VARIANT_TYPE_NUMBER
+    NULL,                           // PURC_VARIANT_TYPE_LONGINT
+    NULL,                           // PURC_VARIANT_TYPE_LONGDOUBLE
+    pcvariant_string_release,       // PURC_VARIANT_TYPE_STRING
+    pcvariant_atom_string_release,  // PURC_VARIANT_TYPE_ATOM_STRING
+    pcvariant_sequence_release,     // PURC_VARIANT_TYPE_SEQUENCE
+    NULL,                           // PURC_VARIANT_TYPE_DYNAMIC
+    NULL,                           // PURC_VARIANT_TYPE_NATIVE
+    pcvariant_object_release,       // PURC_VARIANT_TYPE_OBJECT
+    pcvariant_array_release,        // PURC_VARIANT_TYPE_ARRAY
+    pcvariant_set_release,          // PURC_VARIANT_TYPE_SET
+};
+
 
 bool purc_variant_is_type(const purc_variant_t value, enum purc_variant_type type)
 {
@@ -140,7 +158,7 @@ unsigned int purc_variant_unref (purc_variant_t value)
     if(value->refc == 0)
     {
         // release resource occupied by variant
-        pcvariant_release_fn release = variant_releasers[value->type];
+        pcvariant_release_fn release = pcvariant_releasers[value->type];
         if(release) 
             release(value);
 
