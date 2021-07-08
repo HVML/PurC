@@ -233,8 +233,17 @@ purc_variant_t purc_variant_make_object (size_t nr_kv_pairs, purc_variant_t key0
 
 void pcvariant_object_release (purc_variant_t value)
 {
+    struct pchash_table *ht = (struct pchash_table*)value->sz_ptr[1];
+    pchash_table_free(ht);
+    value->sz_ptr[1] = (uintptr_t)NULL; // say no to double free
+}
+
+int pcvariant_object_compare (purc_variant_t lv, purc_variant_t rv)
+{
     // todo
-    UNUSED_PARAM(value);
+    UNUSED_PARAM(lv);
+    UNUSED_PARAM(rv);
+    return -1;
 }
 
 purc_variant_t purc_variant_object_get_c (purc_variant_t obj, const char* key)
@@ -441,13 +450,5 @@ purc_variant_t purc_variant_object_iterator_get_value (struct purc_variant_objec
     purc_variant_t  v = (purc_variant_t)pchash_entry_v(it->curr);
     // not add ref
     return v;
-}
-
-int pcvariant_object_compare (purc_variant_t lv, purc_variant_t rv)
-{
-    // todo
-    UNUSED_PARAM(lv);
-    UNUSED_PARAM(rv);
-    return -1;
 }
 
