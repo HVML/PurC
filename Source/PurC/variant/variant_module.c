@@ -22,9 +22,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <stdlib.h>
-#include <string.h>
-
 #include "purc.h"
 #include "config.h"
 #include "private/instance.h"
@@ -32,8 +29,12 @@
 #include "private/tls.h"
 
 #include "purc-variant.h"
-#include "/private/variant.h"
+#include "private/variant.h"
 #include "variant.h"
+
+#include <stdlib.h>
+#include <string.h>
+
 
 static const char* variant_err_msgs[] = {
     /* PURC_ERROR_VARIANT_INVALID_TYPE */
@@ -56,14 +57,23 @@ bool pcvariant_init_module(void)
     // register const value in instance
     instance = pcinst_current();
 
-    memset(&(instance->variant_heap), 0, sizeof(struct pcvariant_heap));
-    if(instance->variant_heap == NULL)
-        return false;
+    instance->variant_heap.v_null.type = PURC_VARIANT_TYPE_NULL;
+    instance->variant_heap.v_null.refc = 1;
+    instance->variant_heap.v_null.flags = PCVARIANT_FLAG_NOFREE;
 
-    instance->variant_heap.v_null = { PURC_VARIANT_TYPE_NULL, 0, 0, PCVARIANT_FLAG_NOFREE };
-    instance->variant_heap.v_undefined = { PURC_VARIANT_TYPE_UNDEFINED, 0, 0, PCVARIANT_FLAG_NOFREE };
-    instance->variant_heap.v_false = { PURC_VARIANT_TYPE_BOOLEAN, 0, 0, PCVARIANT_FLAG_NOFREE, { b:0 } };
-    instance->variant_heap.v_true = { PURC_VARIANT_TYPE_BOOLEAN, 0, 0, PCVARIANT_FLAG_NOFREE, { b:1 } };
+    instance->variant_heap.v_undefined.type = PURC_VARIANT_TYPE_UNDEFINED;
+    instance->variant_heap.v_undefined.refc = 1;
+    instance->variant_heap.v_undefined.flags = PCVARIANT_FLAG_NOFREE;
+
+    instance->variant_heap.v_false.type = PURC_VARIANT_TYPE_UNDEFINED;
+    instance->variant_heap.v_false.refc = 1;
+    instance->variant_heap.v_false.flags = PCVARIANT_FLAG_NOFREE;
+    instance->variant_heap.v_false.b = false;
+
+    instance->variant_heap.v_true.type = PURC_VARIANT_TYPE_UNDEFINED;
+    instance->variant_heap.v_true.refc = 1;
+    instance->variant_heap.v_true.flags = PCVARIANT_FLAG_NOFREE;
+    instance->variant_heap.v_true.b = true;
 
     return true;
 }

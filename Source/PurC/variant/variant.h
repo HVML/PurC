@@ -37,14 +37,15 @@ extern "C" {
 typedef void (* pcvariant_release_fn)(purc_variant_t value);
 
 // for release the resource in a variant
-void pcvariant_string_release  (struct purc_variant_t value)    WTF_INTERNAL;
-void pcvariant_sequence_release(struct purc_variant_t value)    WTF_INTERNAL;
-void pcvariant_dynamic_release (struct purc_variant_t value)    WTF_INTERNAL;
-void pcvariant_native_release  (struct purc_variant_t value)    WTF_INTERNAL;
-void pcvariant_object_release  (struct purc_variant_t value)    WTF_INTERNAL;
-void pcvariant_array_release   (struct purc_variant_t value)    WTF_INTERNAL;
-void pcvariant_set_release     (struct purc_variant_t value)    WTF_INTERNAL;
+void pcvariant_string_release  (purc_variant_t value)    WTF_INTERNAL;
+void pcvariant_sequence_release(purc_variant_t value)    WTF_INTERNAL;
+void pcvariant_dynamic_release (purc_variant_t value)    WTF_INTERNAL;
+void pcvariant_native_release  (purc_variant_t value)    WTF_INTERNAL;
+void pcvariant_object_release  (purc_variant_t value)    WTF_INTERNAL;
+void pcvariant_array_release   (purc_variant_t value)    WTF_INTERNAL;
+void pcvariant_set_release     (purc_variant_t value)    WTF_INTERNAL;
 
+#if 0
 // for custom serialization function.
 typedef int (* pcvariant_to_json_string_fn)(struct purc_variant_t * value, struct purc_printbuf *pb, int level, int flags);
 
@@ -62,6 +63,7 @@ int pcvariant_native_to_json_string     (struct purc_variant_t value, struct pur
 int pcvariant_object_to_json_string     (struct purc_variant_t value, struct purc_printbuf *pb, int level, int flags)   WTF_INTERNAL;
 int pcvariant_array_to_json_string      (struct purc_variant_t value, struct purc_printbuf *pb, int level, int flags)   WTF_INTERNAL;
 int pcvariant_set_to_json_string        (struct purc_variant_t value, struct purc_printbuf *pb, int level, int flags)   WTF_INTERNAL;
+#endif
 
 #ifdef __cplusplus
 }

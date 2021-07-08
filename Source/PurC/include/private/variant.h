@@ -38,8 +38,6 @@
 extern "C" {
 #endif  /* __cplusplus */
 
-// #define MAX(a, b)   (a) > (b)? (a): (b);
-
 #define PCVARIANT_FLAG_NOREF    (0x01 << 0)
 #define PCVARIANT_FLAG_NOFREE   (0x01 << 1)
 #define PCVARIANT_FLAG_LONG     (0x01 << 15)    // for long string or sequence
@@ -49,6 +47,8 @@ extern "C" {
 
 // fix me: if we need `assert` in both debug and release build, better approach?
 #define PURC_VARIANT_ASSERT(s) assert(s)
+
+#define MAX_RESERVED_VARIANTS  32
 
 // structure for variant
 struct purc_variant {
@@ -96,8 +96,8 @@ struct purc_variant {
 #define MAX_RESERVED_VARIANTS  32
 
 struct pcvariant_heap {
-    struct purc_variant v_null;
     struct purc_variant v_undefined;
+    struct purc_variant v_null;
     struct purc_variant v_false;
     struct purc_variant v_true;
 
