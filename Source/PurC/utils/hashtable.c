@@ -1,8 +1,9 @@
 /*
- * @file linkhash.c
- * @author
+ * @file hashtable.c
+ * @author Michael Clark <michael@metaparadigm.com>
  * @date 2021/07/07
  *
+ * Cleaned up by Vincent Wei.
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
@@ -19,17 +20,23 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-/*
- * $Id: linkhash.c,v 1.4 2006/01/26 02:16:28 mclark Exp $
+ *
+ * Note that the code is derived from json-c which is licensed under MIT Licence.
  *
  * Copyright (c) 2004, 2005 Metaparadigm Pte. Ltd.
- * Michael Clark <michael@metaparadigm.com>
  * Copyright (c) 2009 Hewlett-Packard Development Company, L.P.
  *
- * This library is free software; you can redistribute it and/or modify
- * it under the terms of the MIT license. See COPYING for details.
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
  *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
 #include "config.h"
@@ -51,37 +58,42 @@
 #include <windows.h> /* Get InterlockedCompareExchange */
 #endif
 
-#include "private/json_object.h"
-#include "private/linkhash.h"
-#include "private/random_seed.h"
+#include "purc-utils.h"
+#include "private/hashtable.h"
 
-/* hash functions */
-static unsigned long lh_char_hash(const void *k);
-static unsigned long lh_perllike_str_hash(const void *k);
-static lh_hash_fn *char_hash_fn = lh_char_hash;
+/**
+ * golden prime used in hash functions
+ */
+#define PCHASH_PRIME 0x9e370001UL
+
+/**
+ * The fraction of filled hash buckets until an insert will cause the table
+ * to be resized.
+ * This can range from just above 0 up to 1.0.
+ */
+#define PCHASH_LOAD_FACTOR 0.66
+
+/**
+ * sentinel pointer value for empty slots
+ */
+#define PCHASH_EMPTY (void *)-1
+
+/**
+ * sentinel pointer value for freed slots
+ */
+#define PCHASH_FREED (void *)-2
 
 /* comparison functions */
-int lh_char_equal(const void *k1, const void *k2);
-int lh_ptr_equal(const void *k1, const void *k2);
+static int pchash_char_equal(const void *k1, const void *k2);
+static int pchash_ptr_equal(const void *k1, const void *k2);
 
-int pcutils_json_global_set_string_hash(const int h)
-{
-    switch (h)
-    {
-    case PCUTILS_JSON_C_STR_HASH_DFLT: char_hash_fn = lh_char_hash; break;
-    case PCUTILS_JSON_C_STR_HASH_PERLLIKE: char_hash_fn = lh_perllike_str_hash; break;
-    default: return -1;
-    }
-    return 0;
-}
-
-static unsigned long lh_ptr_hash(const void *k)
+unsigned long pchash_ptr_hash(const void *k)
 {
     /* CAW: refactored to be 64bit nice */
-    return (unsigned long)((((ptrdiff_t)k * PCUTILS_LH_PRIME) >> 4) & ULONG_MAX);
+    return (unsigned long)((((ptrdiff_t)k * PCHASH_PRIME) >> 4) & ULONG_MAX);
 }
 
-int lh_ptr_equal(const void *k1, const void *k2)
+int pchash_ptr_equal(const void *k1, const void *k2)
 {
     return (k1 == k2);
 }
@@ -465,7 +477,7 @@ static uint32_t hashlittle(const void *key, size_t length, uint32_t initval)
 /* a simple hash function similiar to what perl does for strings.
  * for good results, the string should not be excessivly large.
  */
-static unsigned long lh_perllike_str_hash(const void *k)
+unsigned long pchash_perllike_str_hash(const void *k)
 {
     const char *rkey = (const char *)k;
     unsigned hashval = 1;
@@ -476,7 +488,7 @@ static unsigned long lh_perllike_str_hash(const void *k)
     return hashval;
 }
 
-static unsigned long lh_char_hash(const void *k)
+unsigned long pchash_default_char_hash(const void *k)
 {
 #if defined _MSC_VER || defined __MINGW32__
 #define RANDOM_SEED_TYPE LONG
@@ -489,7 +501,11 @@ static unsigned long lh_char_hash(const void *k)
     {
         RANDOM_SEED_TYPE seed;
         /* we can't use -1 as it is the unitialized sentinel */
+<<<<<<< HEAD:Source/PurC/utils/linkhash.c
         while ((seed = pcutils_json_c_get_random_seed()) == -1) {}
+=======
+        while ((seed = pcutils_get_random_seed()) == -1) {}
+>>>>>>> 284d708a249c1697867d3440757b605f4d14b107:Source/PurC/utils/hashtable.c
 // hacking: sizeof can't be used when pre-processing, because it's compiler-level calculation
 //          https://stackoverflow.com/questions/2319519/why-cant-i-use-sizeof-in-a-if
 // better in config.h
@@ -520,26 +536,26 @@ static unsigned long lh_char_hash(const void *k)
     return hashlittle((const char *)k, strlen((const char *)k), random_seed);
 }
 
-int lh_char_equal(const void *k1, const void *k2)
+int pchash_char_equal(const void *k1, const void *k2)
 {
     return (strcmp((const char *)k1, (const char *)k2) == 0);
 }
 
-struct lh_table *lh_table_new(int size, lh_entry_free_fn *free_fn, lh_hash_fn *hash_fn,
-                              lh_equal_fn *equal_fn)
+struct pchash_table *pchash_table_new(int size, pchash_entry_free_fn *free_fn, pchash_hash_fn *hash_fn,
+                              pchash_equal_fn *equal_fn)
 {
     int i;
-    struct lh_table *t;
+    struct pchash_table *t;
 
     /* Allocate space for elements to avoid divisions by zero. */
     assert(size > 0);
-    t = (struct lh_table *)calloc(1, sizeof(struct lh_table));
+    t = (struct pchash_table *)calloc(1, sizeof(struct pchash_table));
     if (!t)
         return NULL;
 
     t->count = 0;
     t->size = size;
-    t->table = (struct lh_entry *)calloc(size, sizeof(struct lh_entry));
+    t->table = (struct pchash_entry *)calloc(size, sizeof(struct pchash_entry));
     if (!t->table)
     {
         free(t);
@@ -549,38 +565,43 @@ struct lh_table *lh_table_new(int size, lh_entry_free_fn *free_fn, lh_hash_fn *h
     t->hash_fn = hash_fn;
     t->equal_fn = equal_fn;
     for (i = 0; i < size; i++)
-        t->table[i].k = PCUTILS_LH_EMPTY;
+        t->table[i].k = PCHASH_EMPTY;
     return t;
 }
 
-struct lh_table *lh_kchar_table_new(int size, lh_entry_free_fn *free_fn)
+struct pchash_table *pchash_kchar_table_new(int size, pchash_entry_free_fn *free_fn)
 {
-    return lh_table_new(size, free_fn, char_hash_fn, lh_char_equal);
+    return pchash_table_new(size, free_fn, pchash_default_char_hash, pchash_char_equal);
 }
 
-struct lh_table *lh_kptr_table_new(int size, lh_entry_free_fn *free_fn)
+struct pchash_table *pchash_kstr_table_new(int size, pchash_entry_free_fn *free_fn)
 {
-    return lh_table_new(size, free_fn, lh_ptr_hash, lh_ptr_equal);
+    return pchash_table_new(size, free_fn, pchash_perllike_str_hash, pchash_char_equal);
 }
 
-int lh_table_resize(struct lh_table *t, int new_size)
+struct pchash_table *pchash_kptr_table_new(int size, pchash_entry_free_fn *free_fn)
 {
-    struct lh_table *new_t;
-    struct lh_entry *ent;
+    return pchash_table_new(size, free_fn, pchash_ptr_hash, pchash_ptr_equal);
+}
 
-    new_t = lh_table_new(new_size, NULL, t->hash_fn, t->equal_fn);
+int pchash_table_resize(struct pchash_table *t, int new_size)
+{
+    struct pchash_table *new_t;
+    struct pchash_entry *ent;
+
+    new_t = pchash_table_new(new_size, NULL, t->hash_fn, t->equal_fn);
     if (new_t == NULL)
         return -1;
 
     for (ent = t->head; ent != NULL; ent = ent->next)
     {
-        unsigned long h = lh_get_hash(new_t, ent->k);
+        unsigned long h = pchash_get_hash(new_t, ent->k);
         unsigned int opts = 0;
         if (ent->k_is_constant)
-            opts = PCUTILS_JSON_C_OBJECT_KEY_IS_CONSTANT;
-        if (lh_table_insert_w_hash(new_t, ent->k, ent->v, h, opts) != 0)
+            opts = PCHASH_OBJECT_KEY_IS_CONSTANT;
+        if (pchash_table_insert_w_hash(new_t, ent->k, ent->v, h, opts) != 0)
         {
-            lh_table_free(new_t);
+            pchash_table_free(new_t);
             return -1;
         }
     }
@@ -594,9 +615,9 @@ int lh_table_resize(struct lh_table *t, int new_size)
     return 0;
 }
 
-void lh_table_free(struct lh_table *t)
+void pchash_table_free(struct pchash_table *t)
 {
-    struct lh_entry *c;
+    struct pchash_entry *c;
     if (t->free_fn)
     {
         for (c = t->head; c != NULL; c = c->next)
@@ -606,16 +627,16 @@ void lh_table_free(struct lh_table *t)
     free(t);
 }
 
-int lh_table_insert_w_hash(struct lh_table *t, const void *k, const void *v, const unsigned long h,
+int pchash_table_insert_w_hash(struct pchash_table *t, const void *k, const void *v, const unsigned long h,
                            const unsigned opts)
 {
     unsigned long n;
 
-    if (t->count >= t->size * PCUTILS_LH_LOAD_FACTOR)
+    if (t->count >= t->size * PCHASH_LOAD_FACTOR)
     {
         /* Avoid signed integer overflow with large tables. */
         int new_size = (t->size > INT_MAX / 2) ? INT_MAX : (t->size * 2);
-        if (t->size == INT_MAX || lh_table_resize(t, new_size) != 0)
+        if (t->size == INT_MAX || pchash_table_resize(t, new_size) != 0)
             return -1;
     }
 
@@ -623,14 +644,14 @@ int lh_table_insert_w_hash(struct lh_table *t, const void *k, const void *v, con
 
     while (1)
     {
-        if (t->table[n].k == PCUTILS_LH_EMPTY || t->table[n].k == PCUTILS_LH_FREED)
+        if (t->table[n].k == PCHASH_EMPTY || t->table[n].k == PCHASH_FREED)
             break;
         if ((int)++n == t->size)
             n = 0;
     }
 
     t->table[n].k = k;
-    t->table[n].k_is_constant = (opts & PCUTILS_JSON_C_OBJECT_KEY_IS_CONSTANT);
+    t->table[n].k_is_constant = (opts & PCHASH_OBJECT_KEY_IS_CONSTANT);
     t->table[n].v = v;
     t->count++;
 
@@ -649,12 +670,12 @@ int lh_table_insert_w_hash(struct lh_table *t, const void *k, const void *v, con
 
     return 0;
 }
-int lh_table_insert(struct lh_table *t, const void *k, const void *v)
+int pchash_table_insert(struct pchash_table *t, const void *k, const void *v)
 {
-    return lh_table_insert_w_hash(t, k, v, lh_get_hash(t, k), 0);
+    return pchash_table_insert_w_hash(t, k, v, pchash_get_hash(t, k), 0);
 }
 
-struct lh_entry *lh_table_lookup_entry_w_hash(struct lh_table *t, const void *k,
+struct pchash_entry *pchash_table_lookup_entry_w_hash(struct pchash_table *t, const void *k,
                                               const unsigned long h)
 {
     unsigned long n = h % t->size;
@@ -662,9 +683,9 @@ struct lh_entry *lh_table_lookup_entry_w_hash(struct lh_table *t, const void *k,
 
     while (count < t->size)
     {
-        if (t->table[n].k == PCUTILS_LH_EMPTY)
+        if (t->table[n].k == PCHASH_EMPTY)
             return NULL;
-        if (t->table[n].k != PCUTILS_LH_FREED && t->equal_fn(t->table[n].k, k))
+        if (t->table[n].k != PCHASH_FREED && t->equal_fn(t->table[n].k, k))
             return &t->table[n];
         if ((int)++n == t->size)
             n = 0;
@@ -673,18 +694,18 @@ struct lh_entry *lh_table_lookup_entry_w_hash(struct lh_table *t, const void *k,
     return NULL;
 }
 
-struct lh_entry *lh_table_lookup_entry(struct lh_table *t, const void *k)
+struct pchash_entry *pchash_table_lookup_entry(struct pchash_table *t, const void *k)
 {
-    return lh_table_lookup_entry_w_hash(t, k, lh_get_hash(t, k));
+    return pchash_table_lookup_entry_w_hash(t, k, pchash_get_hash(t, k));
 }
 
-bool lh_table_lookup_ex(struct lh_table *t, const void *k, void **v)
+bool pchash_table_lookup_ex(struct pchash_table *t, const void *k, void **v)
 {
-    struct lh_entry *e = lh_table_lookup_entry(t, k);
+    struct pchash_entry *e = pchash_table_lookup_entry(t, k);
     if (e != NULL)
     {
         if (v != NULL)
-            *v = lh_entry_v(e);
+            *v = pchash_entry_v(e);
         return 1; /* key found */
     }
     if (v != NULL)
@@ -692,7 +713,7 @@ bool lh_table_lookup_ex(struct lh_table *t, const void *k, void **v)
     return 0; /* key not found */
 }
 
-int lh_table_delete_entry(struct lh_table *t, struct lh_entry *e)
+int pchash_table_delete_entry(struct pchash_table *t, struct pchash_entry *e)
 {
     /* CAW: fixed to be 64bit nice, still need the crazy negative case... */
     ptrdiff_t n = (ptrdiff_t)(e - t->table);
@@ -703,13 +724,13 @@ int lh_table_delete_entry(struct lh_table *t, struct lh_entry *e)
         return -2;
     }
 
-    if (t->table[n].k == PCUTILS_LH_EMPTY || t->table[n].k == PCUTILS_LH_FREED)
+    if (t->table[n].k == PCHASH_EMPTY || t->table[n].k == PCHASH_FREED)
         return -1;
     t->count--;
     if (t->free_fn)
         t->free_fn(e);
     t->table[n].v = NULL;
-    t->table[n].k = PCUTILS_LH_FREED;
+    t->table[n].k = PCHASH_FREED;
     if (t->tail == &t->table[n] && t->head == &t->table[n])
     {
         t->head = t->tail = NULL;
@@ -733,15 +754,15 @@ int lh_table_delete_entry(struct lh_table *t, struct lh_entry *e)
     return 0;
 }
 
-int lh_table_delete(struct lh_table *t, const void *k)
+int pchash_table_delete(struct pchash_table *t, const void *k)
 {
-    struct lh_entry *e = lh_table_lookup_entry(t, k);
+    struct pchash_entry *e = pchash_table_lookup_entry(t, k);
     if (!e)
         return -1;
-    return lh_table_delete_entry(t, e);
+    return pchash_table_delete_entry(t, e);
 }
 
-int lh_table_length(struct lh_table *t)
+int pchash_table_length(struct pchash_table *t)
 {
     return t->count;
 }

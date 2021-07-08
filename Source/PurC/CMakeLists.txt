@@ -31,7 +31,6 @@ set(PurC_PLATFORM_INDEPENDENT_DIRS
     "utils"
 )
 
-
 # This macro will append all C/CXX source files in ${PurC_PLATFORM_INDEPENDENT_DIRS}
 # to ${PurC_SOURCES}
 APPEND_ALL_SOURCE_FILES_IN_DIRLIST(PurC_SOURCES "${PurC_PLATFORM_INDEPENDENT_DIRS}")
@@ -40,8 +39,12 @@ APPEND_ALL_SOURCE_FILES_IN_DIRLIST(PurC_SOURCES "${PurC_PLATFORM_INDEPENDENT_DIR
 list(APPEND PurC_SOURCES
     "${PURC_DIR}/ports/vasprintf.c"
     "${PURC_DIR}/ports/misc.c"
+<<<<<<< HEAD
     "${PURC_DIR}/variant/variant_module.c"
     "${PURC_DIR}/variant/variant_basic.c"
+=======
+    "${PURC_DIR}/variant/variant.c"
+>>>>>>> 284d708a249c1697867d3440757b605f4d14b107
 )
 
 # Put the CXX source files which can be unified in `Sources.txt`

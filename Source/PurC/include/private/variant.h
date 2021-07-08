@@ -1,8 +1,8 @@
 /**
- * @file variant-type.h
+ * @file variant.h
  * @author 
  * @date 2021/07/02
- * @brief The API for variant.
+ * @brief The internal interfaces for variant.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -22,10 +22,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#ifndef PURC_PRIVATE_H
+#define PURC_PRIVATE_H
 
-
-#ifndef _VARIANT_TYPES_H_
-#define _VARIANT_TYPES_H_
+#include "config.h"
+#include "purc-variant.h"
 
 #include <assert.h>
 
@@ -33,13 +34,11 @@
     #include <gmodule.h>
 #endif
 
-#include "config.h"
-#include "purc-variant.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
 
+<<<<<<< HEAD
 // define errors for variant
 #define PURC_ERROR_VARIANT_INVALID_TYPE     (PURC_ERROR_FIRST_VARIANT + 0)
 
@@ -47,6 +46,9 @@ extern "C" {
 #if !HAVE(GLIB)
     #define MAX(a, b)   (a) > (b)? (a): (b);
 #endif
+=======
+// #define MAX(a, b)   (a) > (b)? (a): (b);
+>>>>>>> 284d708a249c1697867d3440757b605f4d14b107
 
 #define PCVARIANT_FLAG_NOREF    (0x01 << 0)
 #define PCVARIANT_FLAG_NOFREE   (0x01 << 1)
@@ -58,13 +60,20 @@ extern "C" {
 // fix me: if we need `assert` in both debug and release build, better approach?
 #define PURC_VARIANT_ASSERT(s) assert(s)
 
+<<<<<<< HEAD
 #define MAX_RESERVED_VARIANTS  32
 
+=======
+>>>>>>> 284d708a249c1697867d3440757b605f4d14b107
 // structure for variant
 struct purc_variant {
 
     /* variant type */
+<<<<<<< HEAD
     enum purc_variant_type type;
+=======
+    unsigned int type:8;
+>>>>>>> 284d708a249c1697867d3440757b605f4d14b107
 
     /* real length for short string and byte sequence */
     unsigned int size:8;        
@@ -103,7 +112,12 @@ struct purc_variant {
     };
 };
 
+<<<<<<< HEAD
 // for registered in thread instance
+=======
+#define MAX_RESERVED_VARIANTS  32
+
+>>>>>>> 284d708a249c1697867d3440757b605f4d14b107
 struct pcvariant_heap {
     struct purc_variant v_null;
     struct purc_variant v_undefined;
@@ -118,7 +132,7 @@ struct pcvariant_heap {
 };
 
 // initialize variant module
-bool pcvariant_init_module(void)   WTF_INTERNAL;
+bool pcvariant_init_module(void) WTF_INTERNAL;
 
 #if HAVE(GLIB)
 static inline void * pcvariant_alloc_mem(size_t size)           \
@@ -136,8 +150,14 @@ static inline void pcvariant_free_mem(size_t size, void *ptr)   \
                 { return free(ptr); }
 #endif
 
+// for release the resource in a variant
+typedef void (* pcvariant_release_fn)(purc_variant_t value);
+
+// for custom serialization function.
+typedef int (* pcvariant_to_json_string_fn)(purc_variant_t * value, purc_rwstream *rw, int level, int flags);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
 
-#endif  /* _VARIANT_TYPES_H_ */
+#endif  /* PURC_PRIVATE_H */
