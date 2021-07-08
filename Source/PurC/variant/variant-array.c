@@ -176,10 +176,20 @@ void pcvariant_array_release (purc_variant_t value)
 
 int pcvariant_array_compare (purc_variant_t lv, purc_variant_t rv)
 {
-    // todo
-    UNUSED_PARAM(lv);
-    UNUSED_PARAM(rv);
-    return -1;
+    // only called via purc_variant_compare
+    size_t llen = purc_variant_array_get_size(lv);
+    size_t rlen = purc_variant_array_get_size(rv);
+
+    size_t i = 0;
+    for (; i<llen && i<rlen; ++i) {
+        int r = pcvariant_array_compare(
+                    purc_variant_array_get(lv, i),
+                    purc_variant_array_get(rv, i));
+        if (r)
+            return r;
+    }
+
+    return i<llen ? 1 : -1;
 }
 
 bool purc_variant_array_append (purc_variant_t array, purc_variant_t value)
