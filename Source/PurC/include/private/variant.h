@@ -44,7 +44,9 @@ extern "C" {
 #define PURC_ERROR_VARIANT_INVALID_TYPE     (PURC_ERROR_FIRST_VARIANT + 0)
 
 
-#define MAX(a, b)   (a) > (b)? (a): (b);
+#if !HAVE(GLIB)
+    #define MAX(a, b)   (a) > (b)? (a): (b);
+#endif
 
 #define PCVARIANT_FLAG_NOREF    (0x01 << 0)
 #define PCVARIANT_FLAG_NOFREE   (0x01 << 1)
@@ -58,25 +60,11 @@ extern "C" {
 
 #define MAX_RESERVED_VARIANTS  32
 
-// for registered in thread instance
-struct pcvariant_heap {
-    struct purc_variant v_null;
-    struct purc_variant v_undefined;
-    struct purc_variant v_false;
-    struct purc_variant v_true;
-
-    struct purc_variant_stat stat;
-
-    purc_variant_t nr_reserved [MAX_RESERVED_VARIANTS];
-    int readpos;
-    int writepos;
-}
-
 // structure for variant
 struct purc_variant {
 
     /* variant type */
-    enum variant_type type:8;
+    enum purc_variant_type type;
 
     /* real length for short string and byte sequence */
     unsigned int size:8;        
@@ -115,6 +103,20 @@ struct purc_variant {
     };
 };
 
+// for registered in thread instance
+struct pcvariant_heap {
+    struct purc_variant v_null;
+    struct purc_variant v_undefined;
+    struct purc_variant v_false;
+    struct purc_variant v_true;
+
+    struct purc_variant_stat stat;
+
+    purc_variant_t nr_reserved [MAX_RESERVED_VARIANTS];
+    int readpos;
+    int writepos;
+};
+
 // initialize variant module
 bool pcvariant_init_module(void)   WTF_INTERNAL;
 
@@ -124,7 +126,7 @@ static inline void * pcvariant_alloc_mem(size_t size)           \
 static inline void * pcvariant_alloc_mem_0(size_t size)         \
                 { return (void *)g_slice_alloc0((gsize)size); }
 static inline void pcvariant_free_mem(size_t size, void *ptr)   \
-                { return g_slice_free1((gsize)size, (gconstpointer)ptr); }
+                { return g_slice_free1((gsize)size, (gpointer)ptr); }
 #else
 static inline void * pcvariant_alloc_mem(size_t size)           \
                 { return malloc(size); }

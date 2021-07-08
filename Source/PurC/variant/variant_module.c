@@ -22,9 +22,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <stdlib.h>
-#include <string.h>
-
 #include "purc.h"
 #include "config.h"
 #include "private/instance.h"
@@ -34,6 +31,10 @@
 #include "purc-variant.h"
 #include "/private/variant.h"
 #include "variant.h"
+
+#include <stdlib.h>
+#include <string.h>
+
 
 static const char* variant_err_msgs[] = {
     /* PURC_ERROR_VARIANT_INVALID_TYPE */
