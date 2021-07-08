@@ -240,10 +240,22 @@ void pcvariant_object_release (purc_variant_t value)
 
 int pcvariant_object_compare (purc_variant_t lv, purc_variant_t rv)
 {
-    // todo
-    UNUSED_PARAM(lv);
-    UNUSED_PARAM(rv);
-    return -1;
+    // only called via purc_variant_compare
+    struct pchash_table *lht = (struct pchash_table*)lv->sz_ptr[1];
+    struct pchash_table *rht = (struct pchash_table*)rv->sz_ptr[1];
+
+    struct pchash_entry *lcurr = lht->head;
+    struct pchash_entry *rcurr = rht->head;
+
+    for (; lcurr && rcurr; lcurr=lcurr->next, rcurr=rcurr->next) {
+        int r = pcvariant_object_compare(
+                    (purc_variant_t)pchash_entry_v(lcurr),
+                    (purc_variant_t)pchash_entry_v(rcurr));
+        if (r)
+            return r;
+    }
+
+    return lcurr ? 1 : -1;
 }
 
 purc_variant_t purc_variant_object_get_c (purc_variant_t obj, const char* key)
