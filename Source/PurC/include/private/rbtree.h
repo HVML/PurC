@@ -2,7 +2,7 @@
  * @file rbtree.h
  * @author Vincent Wei (https://github.com/VincentWei)
  * @date 2021/07/08
- * @brief The internal utility interfaces.
+ * @brief The interface of red-black tree.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *

@@ -38,10 +38,11 @@
 extern "C" {
 #endif  /* __cplusplus */
 
-#define PCVARIANT_FLAG_NOREF    (0x01 << 0)
-#define PCVARIANT_FLAG_NOFREE   (0x01 << 1)
-#define PCVARIANT_FLAG_LONG     (0x01 << 15)    // for long string or sequence
-#define PCVARIANT_FLAG_SIGNED   (0x01 << 15)    // for signed int
+#define PCVARIANT_FLAG_NOREF        (0x01 << 0)
+#define PCVARIANT_FLAG_NOFREE       (0x01 << 1)
+#define PCVARIANT_FLAG_LONG         (0x01 << 15)    // for long string or sequence
+#define PCVARIANT_FLAG_SIGNED       (0x01 << 15)    // for signed int
+#define PCVARIANT_FLAG_ATOM_STATIC  (0x01 << 15)    // for static atom string
 
 #define PVT(t) (PURC_VARIANT_TYPE##t)
 

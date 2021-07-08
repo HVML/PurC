@@ -22,6 +22,8 @@ set(PurC_INSTALLED_HEADERS
     "${PURC_DIR}/include/purc-errors.h"
     "${PURC_DIR}/include/purc-variant.h"
     "${PURC_DIR}/include/purc-rwstream.h"
+    "${PURC_DIR}/include/purc-utils.h"
+    "${PURC_DIR}/include/purc-ports.h"
     "${PURC_DIR}/include/purc.h"
 )
 

@@ -56,8 +56,12 @@ void pcutils_info(const char *msg, ...) WTF_INTERNAL
 
 #ifdef NDEBUG
 
-#define PC_ASSERT(cond)  \
-    do {                \
+#define PC_ASSERT(cond)                                 \
+    do {                                                \
+        if (!(cond)) {                                  \
+            pcutils_error("PurC assert failed.\n");     \
+            abort();                                    \
+        }                                               \
     } while (0)
 
 #else /* define NDEBUG */
@@ -67,8 +71,7 @@ void pcutils_info(const char *msg, ...) WTF_INTERNAL
         if (!(cond)) {                                                                          \
             pcutils_error("PurC assert failure %s:%d: condition \"" __STRING(cond) " failed\n", \
                      __FILE__, __LINE__);                                                       \
-            *(int *)0 = 1;                                                                      \
-            abort();                                                                            \
+            assert(0);                                                                          \
         }                                                                                       \
     } while (0)
 
