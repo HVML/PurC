@@ -32,8 +32,8 @@
  */
 
 #include "config.h"
-#include "private/random_seed.h"
-// #include "strerror_override.h"
+#include "purc-utils.h"
+
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
@@ -333,9 +333,7 @@ static int get_time_seed(void)
     return (unsigned)time(NULL) * 433494437;
 }
 
-/* pcutils_json_c_get_random_seed */
-
-int pcutils_json_c_get_random_seed(void)
+int pcutils_get_random_seed(void)
 {
 #ifdef OVERRIDE_GET_RANDOM_SEED
     OVERRIDE_GET_RANDOM_SEED;
