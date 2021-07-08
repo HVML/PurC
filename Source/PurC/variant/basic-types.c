@@ -391,7 +391,7 @@ purc_variant_t purc_variant_make_atom_string_static (const char* str_utf8, \
     check_encoding = check_encoding;
 
     if(b_check)
-        variant_string = purc_variant_make_string(str_utf8);
+        variant_string = purc_variant_make_string(str_utf8, check_encoding);
     else
         variant_string = PURC_VARIANT_INVALID;
 
