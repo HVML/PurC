@@ -38,6 +38,9 @@
 #define PURC_ERROR_DUPLICATED           5
 #define PURC_ERROR_NOT_IMPLEMENTED      6
 #define PURC_ERROR_NO_INSTANCE          7
+#define PURC_ERROR_TOO_LARGE_ENTITY     8
+#define PURC_ERROR_BAD_ENCODING         9
+#define PURC_ERROR_NOT_SUPPORTED        10
 
 // the first error codes for various modules:
 #define PURC_ERROR_FIRST_VARIANT        100
@@ -58,7 +61,6 @@ enum pcvariant_error
 {
     PCVARIANT_SUCCESS = PURC_ERROR_OK,
     PCVARIANT_INVALID_TYPE = PURC_ERROR_FIRST_VARIANT,
-    PCVARIANT_BAD_ENCODING,
     PCVARIANT_INVALID_ARG,
 };
 
