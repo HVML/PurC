@@ -93,19 +93,26 @@ struct purc_variant {
     };
 };
 
-#define MAX_RESERVED_VARIANTS  32
+#define MAX_RESERVED_VARIANTS   32
+#define SZ_COMMON_BUFFER        1024
 
 struct pcvariant_heap {
+    // the constant values.
     struct purc_variant v_undefined;
     struct purc_variant v_null;
     struct purc_variant v_false;
     struct purc_variant v_true;
 
+    // the statistics of memory usage of variant values
     struct purc_variant_stat stat;
 
+    // the loop buffer for reserved values.
     purc_variant_t nr_reserved [MAX_RESERVED_VARIANTS];
     int readpos;
     int writepos;
+
+    // the fixed-size buffer for serializing the values
+    char buff[SZ_COMMON_BUFFER];
 };
 
 // initialize variant module
