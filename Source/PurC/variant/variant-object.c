@@ -38,18 +38,19 @@
 
 
 /*
- * array holds purc_variant_t values
- * once a purc_variant_t value is added into array,
- * no matter via `purc_variant_make_array` or `purc_variant_array_set/append/...`,
+ * object holds optionally key-value-pairs,
+ * with key as c string, value as variant
+ * once a purc_variant_t value is added into object,
+ * no matter via `purc_variant_make_object` or `purc_variant_object_set/...`,
  * this value's ref + 1
- * once a purc_variant_t value in array get removed,
- * no matter via `_variant_array_release` or `purc_variant_array_remove`
- * or even implicitly being overwritten by `purc_variant_array_set/append/...`,
+ * once a purc_variant_t value in object get removed,
+ * no matter via `_variant_object_release` or `purc_variant_object_remove`
+ * or even implicitly being overwritten by `purc_variant_object_set/...`,
  * this value's ref - 1
- * note: value can be added into array for more than 1 times,
+ * note: value can be added into object for more than 1 times,
  *       but being noted, ref + 1 once it gets added
  *
- * thinking: shall we recursively check if there's ref-loop among array and it's
+ * thinking: shall we recursively check if there's ref-loop among object and it's
  *           children element?
  */
 static void _object_kv_free(struct pchash_entry *e)
