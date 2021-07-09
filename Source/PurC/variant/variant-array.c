@@ -27,6 +27,7 @@
 #include "private/variant.h"
 #include "private/arraylist.h"
 #include "private/errors.h"
+#include "variant-internals.h"
 #include "purc-errors.h"
 
 
@@ -55,14 +56,14 @@
 static void _array_item_free(void *data)
 // shall we move implementation of this function to the bottom of this file?
 {
-    PURC_VARIANT_ASSERT(data);
+    PCVARIANT_ALWAYS_ASSERT(data);
     purc_variant_t val = (purc_variant_t)data;
     purc_variant_unref(val);
 }
 
 static void _fill_empty_with_undefined(struct pcutils_arrlist *al)
 {
-    PURC_VARIANT_ASSERT(al);
+    PCVARIANT_ALWAYS_ASSERT(al);
     for (size_t i=0; i<pcutils_arrlist_length(al); ++i) {
         purc_variant_t val = (purc_variant_t)pcutils_arrlist_get_idx(al, i);
         if (!val) {
@@ -73,7 +74,7 @@ static void _fill_empty_with_undefined(struct pcutils_arrlist *al)
             int r = pcutils_arrlist_put_idx(al, i, val);
             if (r) {
                 // we shall check in both debug and release build
-                PURC_VARIANT_ASSERT(r==0); // shall NOT happen
+                PCVARIANT_ALWAYS_ASSERT(r==0); // shall NOT happen
             }
             // no need unref val, ownership is transfered to array
         }
@@ -231,7 +232,7 @@ purc_variant_t purc_variant_array_get (purc_variant_t array, int idx)
     }
 
     purc_variant_t var = (purc_variant_t)pcutils_arrlist_get_idx(al, idx);
-    PURC_VARIANT_ASSERT(var); // must valid element, even if undefined or null
+    PCVARIANT_ALWAYS_ASSERT(var); // must valid element, even if undefined or null
     // shall we ref+1?
     // we choose ref+1 here, currently, thus, caller shall unref
     purc_variant_ref(var);

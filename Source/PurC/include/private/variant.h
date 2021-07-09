@@ -46,9 +46,6 @@ extern "C" {
 
 #define PVT(t) (PURC_VARIANT_TYPE##t)
 
-// fix me: if we need `assert` in both debug and release build, better approach?
-#define PURC_VARIANT_ASSERT(s) assert(s)
-
 #define MAX_RESERVED_VARIANTS  32
 
 // structure for variant

@@ -27,12 +27,21 @@
 #define _VARIANT_PUBLIC_H_
 
 #include "config.h"
+#include "private/debug.h"
 #include "purc-variant.h"
 
 #define PCVARIANT_CHECK_ARGS(cond, ret)                         \
-    if (cond)                                                   \
+    if (cond) {                                                 \
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);             \
-        return (ret);
+        return (ret);                                           \
+    }
+
+#define PCVARIANT_ALWAYS_ASSERT(s) do {                     \
+    if (s) {                                                \
+        pcutils_error("purc-variant assert failed.\n");     \
+        abort();                                            \
+    }                                                       \
+} while (0)
 
 #ifdef __cplusplus
 extern "C" {

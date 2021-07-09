@@ -107,7 +107,7 @@ enum purc_variant_type purc_variant_get_type(const purc_variant_t value)
 
 unsigned int purc_variant_ref (purc_variant_t value)
 {
-    PURC_VARIANT_ASSERT(value);
+    PCVARIANT_ALWAYS_ASSERT(value);
 
     purc_variant_t variant = NULL;
     switch((int)value->type)
@@ -151,8 +151,8 @@ unsigned int purc_variant_ref (purc_variant_t value)
 
 unsigned int purc_variant_unref (purc_variant_t value)
 {
-    PURC_VARIANT_ASSERT(value);
-    PURC_VARIANT_ASSERT(value->refc);
+    PCVARIANT_ALWAYS_ASSERT(value);
+    PCVARIANT_ALWAYS_ASSERT(value->refc);
 
     purc_variant_t variant = NULL;
 
