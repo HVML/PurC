@@ -177,19 +177,21 @@ void pcvariant_array_release (purc_variant_t value)
 int pcvariant_array_compare (purc_variant_t lv, purc_variant_t rv)
 {
     // only called via purc_variant_compare
-    size_t llen = purc_variant_array_get_size(lv);
-    size_t rlen = purc_variant_array_get_size(rv);
+    struct pcutils_arrlist *lal = (struct pcutils_arrlist*)lv->sz_ptr[1];
+    struct pcutils_arrlist *ral = (struct pcutils_arrlist*)rv->sz_ptr[1];
+    size_t                  lnr = pcutils_arrlist_length(lal);
+    size_t                  rnr = pcutils_arrlist_length(ral);
 
     size_t i = 0;
-    for (; i<llen && i<rlen; ++i) {
-        int r = pcvariant_array_compare(
-                    purc_variant_array_get(lv, i),
-                    purc_variant_array_get(rv, i));
-        if (r)
-            return r;
+    for (; i<lnr && i<rnr; ++i) {
+        purc_variant_t l = (purc_variant_t)lal->array[i];
+        purc_variant_t r = (purc_variant_t)ral->array[i];
+        int t = pcvariant_array_compare(l, r);
+        if (t)
+            return t;
     }
 
-    return i<llen ? 1 : -1;
+    return i<lnr ? 1 : -1;
 }
 
 bool purc_variant_array_append (purc_variant_t array, purc_variant_t value)
