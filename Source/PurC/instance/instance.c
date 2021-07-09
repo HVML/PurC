@@ -131,8 +131,6 @@ int purc_init(const char* app_name, const char* runner_name,
 {
     struct pcinst* curr_inst;
 
-    UNUSED_PARAM(app_name);
-    UNUSED_PARAM(runner_name);
     UNUSED_PARAM(extra_info);
 
     init_once();
@@ -166,6 +164,7 @@ int purc_init(const char* app_name, const char* runner_name,
         goto failed;
 
     // TODO: init other fields
+    pcvariant_init_instance(curr_inst);
     return PURC_ERROR_OK;
 
 failed:
@@ -181,6 +180,9 @@ bool purc_cleanup(void)
     curr_inst = PURC_GET_THREAD_LOCAL(inst);
     if (curr_inst == NULL || curr_inst->app_name == NULL)
         return false;
+
+    // TODO: clean up other fields
+    pcvariant_cleanup_instance(curr_inst);
 
     cleanup_instance(curr_inst);
     return true;

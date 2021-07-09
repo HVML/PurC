@@ -116,6 +116,10 @@ struct pcvariant_heap {
 // initialize variant module
 void pcvariant_init(void) WTF_INTERNAL;
 
+struct pcinst;
+void pcvariant_init_instance(struct pcinst* inst) WTF_INTERNAL;
+void pcvariant_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
+
 #if HAVE(GLIB)
 static inline void * pcvariant_alloc_mem(size_t size)           \
                 { return (void *)g_slice_alloc((gsize)size); }
