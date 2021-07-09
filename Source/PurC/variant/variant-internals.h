@@ -49,6 +49,7 @@
         abort();                                            \
     }                                                       \
 } while (0)
+
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
