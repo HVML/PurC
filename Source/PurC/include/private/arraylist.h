@@ -72,6 +72,8 @@ typedef struct pcutils_arrlist pcutils_arrlist;
  * - too large - will waste memory, but that can be mitigated
  *   by calling pcutils_arrlist_shrink() once the final size is known.
  *
+ * VW: @free_fn is nullable.
+ *
  * @see pcutils_arrlist_shrink
  */
 struct pcutils_arrlist *pcutils_arrlist_new_ex(array_list_free_fn *free_fn, int initial_size);
