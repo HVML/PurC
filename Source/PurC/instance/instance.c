@@ -7,7 +7,7 @@
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -53,7 +53,7 @@ static const char* generic_err_msgs[] = {
     /* PURC_ERROR_NO_INSTANCE (7) */
     "No instance",
     /* PURC_ERROR_TOO_LARGE_ENTITY (8) */
-    "No instance",
+    "Tool large entity",
     /* PURC_ERROR_BAD_ENCODING (9) */
     "Bad encoding",
     /* PURC_ERROR_NOT_SUPPORTED (10) */
