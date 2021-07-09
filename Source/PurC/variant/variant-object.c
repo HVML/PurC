@@ -287,10 +287,16 @@ bool purc_variant_object_set_c (purc_variant_t obj, const char* key, purc_varian
 
     struct pchash_table *ht = (struct pchash_table*)obj->sz_ptr[1];
 
-    if (pchash_table_insert(ht, key, value)) {
+    // to avoid self-overwritten
+    purc_variant_ref(value);
+    int t = pchash_table_insert(ht, key, value);
+    purc_variant_unref(value);
+
+    if (t) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return false;
     }
+
     // add ref
     purc_variant_ref(value);
 
