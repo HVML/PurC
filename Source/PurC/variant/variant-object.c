@@ -44,7 +44,7 @@
  * no matter via `purc_variant_make_object` or `purc_variant_object_set/...`,
  * this value's ref + 1
  * once a purc_variant_t value in object get removed,
- * no matter via `_variant_object_release` or `purc_variant_object_remove`
+ * no matter via `pcvariant_object_release` or `purc_variant_object_remove`
  * or even implicitly being overwritten by `purc_variant_object_set/...`,
  * this value's ref - 1
  * note: value can be added into object for more than 1 times,

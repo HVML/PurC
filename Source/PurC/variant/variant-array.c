@@ -44,7 +44,7 @@
  * this value's ref + 1
  * once a purc_variant_t value in array get removed,
  * no matter via `pcvariant_array_release` or `purc_variant_array_remove`
- * or even implicitly being overwritten by `purc_variant_array_set/append/...`,
+ * or even implicitly being overwritten by `purc_variant_array_set/...`,
  * this value's ref - 1
  * note: value can be added into array for more than 1 times,
  *       but being noted, ref + 1 once it gets added
