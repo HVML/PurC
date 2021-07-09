@@ -262,7 +262,13 @@ bool purc_variant_array_set (purc_variant_t array, int idx, purc_variant_t value
     // note: for a valid element in al[idx], al->free_fn would be called upon,
     //       we shall unref that element via al->free_fn
     //       to make element's ref count balance
-    if (pcutils_arrlist_put_idx(al, idx, value)) {
+
+    // to avoid self-overwritten
+    purc_variant_ref(value);
+    int t = pcutils_arrlist_put_idx(al, idx, value);
+    purc_variant_unref(value);
+
+    if (t) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return false;
     }
