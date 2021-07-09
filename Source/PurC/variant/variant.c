@@ -169,6 +169,7 @@ unsigned int purc_variant_ref (purc_variant_t value)
             break;
 
         case PURC_VARIANT_TYPE_SET:
+            PCVARIANT_ALWAYS_ASSERT(0);
             foreach_value_in_variant_set (value, variant)
                 purc_variant_ref (variant);
             end_foreach;
@@ -186,7 +187,7 @@ unsigned int purc_variant_unref (purc_variant_t value)
 
     purc_variant_t variant = NULL;
 
-    /* this should not occure */
+    /* this should not occur */
     if (value->refc == 0) {
         PC_ASSERT (0);
         return 0;
@@ -219,6 +220,7 @@ unsigned int purc_variant_unref (purc_variant_t value)
             break;
 
         case PURC_VARIANT_TYPE_SET:
+            PCVARIANT_ALWAYS_ASSERT(0);
             foreach_value_in_variant_set (value, variant)
                 purc_variant_unref (variant);
             end_foreach;

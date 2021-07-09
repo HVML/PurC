@@ -67,7 +67,7 @@ static void _object_kv_free(struct pchash_entry *e)
 
 purc_variant_t purc_variant_make_object_c (size_t nr_kv_pairs, const char* key0, purc_variant_t value0, ...)
 {
-    PCVARIANT_CHECK_ARGS((nr_kv_pairs==0 && key0==NULL && value0==NULL) ||
+    PCVARIANT_ASSERT_ARGS((nr_kv_pairs==0 && key0==NULL && value0==NULL) ||
                          (nr_kv_pairs>0 && key0 && *key0),
         PURC_VARIANT_INVALID);
 
@@ -145,7 +145,7 @@ purc_variant_t purc_variant_make_object_c (size_t nr_kv_pairs, const char* key0,
 
 purc_variant_t purc_variant_make_object (size_t nr_kv_pairs, purc_variant_t key0, purc_variant_t value0, ...)
 {
-    PCVARIANT_CHECK_ARGS((nr_kv_pairs==0 && key0==NULL && value0==NULL) ||
+    PCVARIANT_ASSERT_ARGS((nr_kv_pairs==0 && key0==NULL && value0==NULL) ||
                          (nr_kv_pairs>0 && key0 && value0),
         PURC_VARIANT_INVALID);
 
@@ -260,7 +260,7 @@ int pcvariant_object_compare (purc_variant_t lv, purc_variant_t rv)
 
 purc_variant_t purc_variant_object_get_c (purc_variant_t obj, const char* key)
 {
-    PCVARIANT_CHECK_ARGS((obj && obj->type==PVT(_OBJECT) && obj->sz_ptr[1] && key),
+    PCVARIANT_ASSERT_ARGS((obj && obj->type==PVT(_OBJECT) && obj->sz_ptr[1] && key),
         PURC_VARIANT_INVALID);
 
     struct pchash_table *ht = (struct pchash_table*)obj->sz_ptr[1];
@@ -282,7 +282,7 @@ purc_variant_t purc_variant_object_get_c (purc_variant_t obj, const char* key)
 
 bool purc_variant_object_set_c (purc_variant_t obj, const char* key, purc_variant_t value)
 {
-    PCVARIANT_CHECK_ARGS((obj && obj->type==PVT(_OBJECT) && obj->sz_ptr[1] && key && *key && value),
+    PCVARIANT_ASSERT_ARGS((obj && obj->type==PVT(_OBJECT) && obj->sz_ptr[1] && key && *key && value),
         false);
 
     struct pchash_table *ht = (struct pchash_table*)obj->sz_ptr[1];
@@ -302,7 +302,7 @@ bool purc_variant_object_set_c (purc_variant_t obj, const char* key, purc_varian
 
 bool purc_variant_object_remove_c (purc_variant_t obj, const char* key)
 {
-    PCVARIANT_CHECK_ARGS((obj && obj->type==PVT(_OBJECT) && obj->sz_ptr[1] && key && *key),
+    PCVARIANT_ASSERT_ARGS((obj && obj->type==PVT(_OBJECT) && obj->sz_ptr[1] && key && *key),
         false);
 
     struct pchash_table *ht = (struct pchash_table*)obj->sz_ptr[1];
@@ -317,7 +317,7 @@ bool purc_variant_object_remove_c (purc_variant_t obj, const char* key)
 
 size_t purc_variant_object_get_size (const purc_variant_t obj)
 {
-    PCVARIANT_CHECK_ARGS((obj && obj->type==PVT(_OBJECT) && obj->sz_ptr[1]),
+    PCVARIANT_ASSERT_ARGS((obj && obj->type==PVT(_OBJECT) && obj->sz_ptr[1]),
         (size_t)-1);
 
     struct pchash_table *ht = (struct pchash_table*)obj->sz_ptr[1];
@@ -335,7 +335,7 @@ struct purc_variant_object_iterator {
 };
 
 struct purc_variant_object_iterator* purc_variant_object_make_iterator_begin (purc_variant_t object) {
-    PCVARIANT_CHECK_ARGS((object && object->type==PVT(_OBJECT) && object->sz_ptr[1]),
+    PCVARIANT_ASSERT_ARGS((object && object->type==PVT(_OBJECT) && object->sz_ptr[1]),
         NULL);
 
     struct pchash_table *ht = (struct pchash_table*)object->sz_ptr[1];
@@ -362,7 +362,7 @@ struct purc_variant_object_iterator* purc_variant_object_make_iterator_begin (pu
 }
 
 struct purc_variant_object_iterator* purc_variant_object_make_iterator_end (purc_variant_t object) {
-    PCVARIANT_CHECK_ARGS((object && object->type==PVT(_OBJECT) && object->sz_ptr[1]),
+    PCVARIANT_ASSERT_ARGS((object && object->type==PVT(_OBJECT) && object->sz_ptr[1]),
         NULL);
 
     struct pchash_table *ht = (struct pchash_table*)object->sz_ptr[1];
@@ -406,7 +406,7 @@ void purc_variant_object_release_iterator (struct purc_variant_object_iterator* 
 }
 
 bool purc_variant_object_iterator_next (struct purc_variant_object_iterator* it) {
-    PCVARIANT_CHECK_ARGS(it, false);
+    PCVARIANT_ASSERT_ARGS(it, false);
 
     PCVARIANT_ALWAYS_ASSERT(it->obj);
 
@@ -427,7 +427,7 @@ bool purc_variant_object_iterator_next (struct purc_variant_object_iterator* it)
 }
 
 bool purc_variant_object_iterator_prev (struct purc_variant_object_iterator* it) {
-    PCVARIANT_CHECK_ARGS(it, false);
+    PCVARIANT_ASSERT_ARGS(it, false);
 
     PCVARIANT_ALWAYS_ASSERT(it->obj);
 
@@ -448,7 +448,7 @@ bool purc_variant_object_iterator_prev (struct purc_variant_object_iterator* it)
 }
 
 const char *purc_variant_object_iterator_get_key (struct purc_variant_object_iterator* it) {
-    PCVARIANT_CHECK_ARGS(it, NULL);
+    PCVARIANT_ASSERT_ARGS(it, NULL);
 
     PCVARIANT_ALWAYS_ASSERT(it->obj);
     PCVARIANT_ALWAYS_ASSERT(it->curr);
@@ -457,7 +457,7 @@ const char *purc_variant_object_iterator_get_key (struct purc_variant_object_ite
 }
 
 purc_variant_t purc_variant_object_iterator_get_value (struct purc_variant_object_iterator* it) {
-    PCVARIANT_CHECK_ARGS(it, NULL);
+    PCVARIANT_ASSERT_ARGS(it, NULL);
 
     PCVARIANT_ALWAYS_ASSERT(it->obj);
     PCVARIANT_ALWAYS_ASSERT(it->curr);

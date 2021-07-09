@@ -30,14 +30,14 @@
 #include "private/debug.h"
 #include "purc-variant.h"
 
-#define PCVARIANT_CHECK_ARGS(cond, ret)                         \
-    if (cond) {                                                 \
+#define PCVARIANT_ASSERT_ARGS(cond, ret)                        \
+    if (!(cond)) {                                              \
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);             \
         return (ret);                                           \
     }
 
-#define PCVARIANT_ALWAYS_ASSERT(s) do {                     \
-    if (s) {                                                \
+#define PCVARIANT_ALWAYS_ASSERT(cond) do {                  \
+    if (!(cond)) {                                          \
         pcutils_error("purc-variant assert failed.\n");     \
         abort();                                            \
     }                                                       \
