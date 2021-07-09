@@ -148,7 +148,10 @@ purc_variant_t purc_variant_make_number (double d)
                                                 (sizeof(struct purc_variant));
 
     if(variant_number == NULL)
+    {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
+    }
 
     variant_number->type = PURC_VARIANT_TYPE_NUMBER;
     variant_number->size = 0;
@@ -165,7 +168,10 @@ purc_variant_t purc_variant_make_longuint (uint64_t u64)
                                                 (sizeof(struct purc_variant));
 
     if(variant_longuint == NULL)
+    {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
+    }
 
     variant_longuint->type = PURC_VARIANT_TYPE_LONGINT;
     variant_longuint->size = 0;
@@ -182,7 +188,10 @@ purc_variant_t purc_variant_make_longint (int64_t u64)
                                                 (sizeof(struct purc_variant));
 
     if(variant_longint == NULL)
+    {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
+    }
 
     variant_longint->type = PURC_VARIANT_TYPE_LONGINT;
     variant_longint->flags = 0;
@@ -199,7 +208,10 @@ purc_variant_t purc_variant_make_longdouble (long double lf)
                                                 (sizeof(struct purc_variant));
 
     if(variant_longdouble == NULL)
+    {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
+    }
 
     variant_longdouble->type = PURC_VARIANT_TYPE_LONGDOUBLE;
     variant_longdouble->size = 0;
@@ -260,13 +272,19 @@ purc_variant_t purc_variant_make_string (const char* str_utf8, bool check_encodi
     if(check_encoding)
     {
         if(!purc_variant_string_check_utf8(str_utf8))
+        {
+            pcinst_set_error(PCVARIANT_STRING_NOT_UTF8);
             return PURC_VARIANT_INVALID;
+        }
     }
     
     variant_string = (purc_variant_t)pcvariant_alloc_mem_0(sizeof(struct purc_variant));
     
     if(variant_string == NULL)
+    {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
+    }
 
     variant_string->type = PURC_VARIANT_TYPE_STRING;
     variant_string->flags = 0;
@@ -284,7 +302,10 @@ purc_variant_t purc_variant_make_string (const char* str_utf8, bool check_encodi
         if(variant_string->sz_ptr[0] == 0)
         {
             pcvariant_free_mem(sizeof(struct purc_variant), variant_string);
-            return PURC_VARIANT_INVALID;
+            {
+                pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                return PURC_VARIANT_INVALID;
+            }
         }
 
         variant_string->sz_ptr[1] = (uintptr_t)str_size;
@@ -308,6 +329,8 @@ const char* purc_variant_get_string_const (purc_variant_t string)
         else
             str_str = (char *)string->bytes;
     }
+    else
+        pcinst_set_error(PCVARIANT_INVALID_TYPE);
 
     return str_str;
 }
@@ -325,6 +348,8 @@ size_t purc_variant_string_length(const purc_variant_t string)
         else
             str_size = string->size;
     }
+    else
+        pcinst_set_error(PCVARIANT_INVALID_TYPE);
 
     return str_size;
 }
@@ -340,6 +365,8 @@ void pcvariant_string_release(purc_variant_t string)
             pcvariant_free_mem((size_t)string->sz_ptr[1], (void *)string->sz_ptr[0]);
         }
     }
+    else
+        pcinst_set_error(PCVARIANT_INVALID_TYPE);
 }
 
 purc_variant_t purc_variant_make_atom_string (const char* str_utf8, bool check_encoding)
@@ -351,17 +378,26 @@ purc_variant_t purc_variant_make_atom_string (const char* str_utf8, bool check_e
     if(check_encoding)
     {
         if(!purc_variant_string_check_utf8(str_utf8))
+        {
+            pcinst_set_error(PCVARIANT_STRING_NOT_UTF8);
             return PURC_VARIANT_INVALID;
+        }
     }
     
     purc_atom_t atom = purc_atom_from_string(str_utf8);
     if(atom == 0)
+    {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
+    }
 
     variant_atom_string = (purc_variant_t)pcvariant_alloc_mem_0(sizeof(struct purc_variant));
     
     if(variant_atom_string == NULL)
+    {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
+    }
 
     variant_atom_string->type = PURC_VARIANT_TYPE_ATOM_STRING;
     variant_atom_string->flags = 0;
@@ -381,17 +417,26 @@ purc_variant_t purc_variant_make_atom_string_static (const char* str_utf8, \
     if(check_encoding)
     {
         if(!purc_variant_string_check_utf8(str_utf8))
+        {
+            pcinst_set_error(PCVARIANT_STRING_NOT_UTF8);
             return PURC_VARIANT_INVALID;
+        }
     }
     
     purc_atom_t atom = purc_atom_from_static_string(str_utf8);
     if(atom == 0)
+    {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
 
     variant_atom_string = (purc_variant_t)pcvariant_alloc_mem_0(sizeof(struct purc_variant));
     
     if(variant_atom_string == NULL)
+    {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
+    }
 
     variant_atom_string->type = PURC_VARIANT_TYPE_ATOM_STRING;
     variant_atom_string->flags |= PCVARIANT_FLAG_ATOM_STATIC;
@@ -409,6 +454,8 @@ const char* purc_variant_get_atom_string_const (purc_variant_t atom_string)
 
     if(purc_variant_is_type(atom_string, PURC_VARIANT_TYPE_ATOM_STRING))
         str_str = (char *)atom_string->sz_ptr[0];
+    else
+        pcinst_set_error(PCVARIANT_INVALID_TYPE);
 
     return str_str;
 }
@@ -429,7 +476,10 @@ purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes, \
                                                 (sizeof(struct purc_variant)); 
     
     if(variant_sequence == NULL)
+    {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
+    }
 
     variant_sequence->type = PURC_VARIANT_TYPE_SEQUENCE;
     variant_sequence->flags = 0;
@@ -447,6 +497,7 @@ purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes, \
         if(variant_sequence->sz_ptr[0] == 0)
         {
             free(variant_sequence);
+            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
             return PURC_VARIANT_INVALID;
         }
 
@@ -477,6 +528,8 @@ const unsigned char* purc_variant_get_bytes_const (purc_variant_t sequence, \
             * nr_bytes = sequence->size;
         }
     }
+    else
+        pcinst_set_error(PCVARIANT_INVALID_TYPE);
 
     return bytes;
 }
@@ -494,6 +547,8 @@ size_t purc_variant_sequence_length(const purc_variant_t sequence)
         else
             nr_bytes = sequence->size;
     }
+    else
+        pcinst_set_error(PCVARIANT_INVALID_TYPE);
 
     return nr_bytes;
 }
@@ -509,6 +564,8 @@ void pcvariant_sequence_release(purc_variant_t sequence)
             pcvariant_free_mem((size_t)sequence->sz_ptr[1], (void *)sequence->sz_ptr[0]);
         }
     }
+    else
+        pcinst_set_error(PCVARIANT_INVALID_TYPE);
 }
 
 purc_variant_t purc_variant_make_dynamic_value (purc_dvariant_method getter, \
@@ -519,7 +576,10 @@ purc_variant_t purc_variant_make_dynamic_value (purc_dvariant_method getter, \
                                                         (sizeof(purc_variant));
 
     if(purc_variant_dynamic == NULL)
+    {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
+    }
 
     purc_variant_dynamic->type = PURC_VARIANT_TYPE_DYNAMIC;
     purc_variant_dynamic->size = 0;
@@ -539,7 +599,10 @@ purc_variant_t purc_variant_make_native (void *native_obj, \
                                                         (sizeof(purc_variant));
 
     if(purc_variant_native == NULL)
+    {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
+    }
 
     purc_variant_native->type = PURC_VARIANT_TYPE_NATIVE;
     purc_variant_native->size = 0;

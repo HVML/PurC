@@ -171,6 +171,7 @@ unsigned int purc_variant_unref (purc_variant_t value)
         case PURC_VARIANT_TYPE_LONGINT:
         case PURC_VARIANT_TYPE_LONGDOUBLE:
         case PURC_VARIANT_TYPE_STRING:
+        case PURC_VARIANT_TYPE_ATOM_STRING:
         case PURC_VARIANT_TYPE_SEQUENCE:
         case PURC_VARIANT_TYPE_DYNAMIC:
         case PURC_VARIANT_TYPE_NATIVE:
@@ -237,6 +238,8 @@ purc_variant_t purc_variant_make_from_json_string (const char* json, size_t sz)
 // todo
 purc_variant_t purc_variant_load_from_json_file (const char* file)
 {
+    PCVARIANT_ALWAYS_ASSERT(file);
+
     purc_rwstream_t rwstream = purc_rwstream_new_from_file(file, "r");
     if(rwstream == NULL)
         return PURC_VARIANT_INVALID;
@@ -258,9 +261,13 @@ purc_variant_t purc_variant_load_from_json_file (const char* file)
     return value;
 }
 
+#if 0 
 purc_variant_t purc_variant_dynamic_value_load_from_so (const char* so_name, \
                                                         const char* var_name)
 {
+    PCVARIANT_ALWAYS_ASSERT(so_name);
+    PCVARIANT_ALWAYS_ASSERT(var_name);
+
     purc_variant_t value = PURC_VARIANT_INVALID;
 
 #if OS(LINUX) || OS(UNIX)
@@ -290,6 +297,50 @@ purc_variant_t purc_variant_dynamic_value_load_from_so (const char* so_name, \
 #endif
     return value;
 
+}
+#endif
+
+void set_stat_info(purc_variant_t value)
+{
+    PCVARIANT_ALWAYS_ASSERT(value);
+
+    struct pcinst * instance = pcinst_current();
+    int type = value->type;
+
+    instance->variant_heap.stat.nr_values[type] ++ ;
+
+    switch(type)
+    {
+        case PURC_VARIANT_TYPE_NULL:
+        case PURC_VARIANT_TYPE_UNDEFINED:
+        case PURC_VARIANT_TYPE_BOOLEAN:
+            break;
+
+        case PURC_VARIANT_TYPE_NUMBER:
+        case PURC_VARIANT_TYPE_LONGINT:
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+        case PURC_VARIANT_TYPE_ATOM_STRING:
+        case PURC_VARIANT_TYPE_DYNAMIC:
+        case PURC_VARIANT_TYPE_NATIVE:
+            instance->variant_heap.stat.sz_mem[type] += sizeof(struct purc_variant);
+            break;
+
+        case PURC_VARIANT_TYPE_STRING:
+        case PURC_VARIANT_TYPE_SEQUENCE:
+            break;
+
+        case PURC_VARIANT_TYPE_OBJECT:
+            break;
+
+        case PURC_VARIANT_TYPE_ARRAY:
+            break;
+
+        case PURC_VARIANT_TYPE_SET:
+            break;
+
+        default:
+            break;
+    }
 }
 
 #if 0
