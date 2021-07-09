@@ -30,10 +30,6 @@
 
 #include <assert.h>
 
-#if HAVE(GLIB)
-    #include <gmodule.h>
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
@@ -106,8 +102,8 @@ struct pcvariant_heap {
 
     // the loop buffer for reserved values.
     purc_variant_t nr_reserved [MAX_RESERVED_VARIANTS];
-    int readpos;
-    int writepos;
+    int headpos;
+    int tailpos;
 
     // the fixed-size buffer for serializing the values
     char buff[SZ_COMMON_BUFFER];
@@ -115,22 +111,6 @@ struct pcvariant_heap {
 
 // initialize variant module
 void pcvariant_init(void) WTF_INTERNAL;
-
-#if HAVE(GLIB)
-static inline void * pcvariant_alloc_mem(size_t size)           \
-                { return (void *)g_slice_alloc((gsize)size); }
-static inline void * pcvariant_alloc_mem_0(size_t size)         \
-                { return (void *)g_slice_alloc0((gsize)size); }
-static inline void pcvariant_free_mem(size_t size, void *ptr)   \
-                { return g_slice_free1((gsize)size, (gpointer)ptr); }
-#else
-static inline void * pcvariant_alloc_mem(size_t size)           \
-                { return malloc(size); }
-static inline void * pcvariant_alloc_mem_0(size_t size)         \
-                { return (void *)calloc(size); }
-static inline void pcvariant_free_mem(size_t size, void *ptr)   \
-                { return free(ptr); }
-#endif
 
 
 #ifdef __cplusplus

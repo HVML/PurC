@@ -43,9 +43,21 @@
     }                                                       \
 } while (0)
 
+#define PCVARIANT_ASSERT(s) do {                            \
+    if (!s) {                                               \
+        pcutils_error("purc-variant assert failed.\n");     \
+        abort();                                            \
+    }                                                       \
+} while (0)
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
+
+// get the purc_variant_t from heap loop buffer
+purc_variant_t pcvariant_get(void);
+
+// reserve freed purc_variant in loop buffer
+void pcvariant_put (purc_variant_t value);
 
 // for release the resource in a variant
 typedef void (* pcvariant_release_fn)(purc_variant_t value);
