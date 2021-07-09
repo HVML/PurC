@@ -70,7 +70,7 @@ extern void pcutils_arrlist_free(struct pcutils_arrlist *arr)
 {
     size_t i;
     for (i = 0; i < arr->length; i++)
-        if (arr->array[i])
+        if (arr->array[i] && arr->free_fn)
             arr->free_fn(arr->array[i]);
     free(arr->array);
     free(arr);
@@ -138,7 +138,7 @@ int pcutils_arrlist_put_idx(struct pcutils_arrlist *arr, size_t idx, void *data)
     if (pcutils_arrlist_expand_internal(arr, idx + 1))
         return -1;
     if (idx < arr->length && arr->array[idx]) {
-        if (arr->array[idx]!=data) {
+        if (arr->array[idx]!=data && arr->free_fn) {
             // avoid double-free
             arr->free_fn(arr->array[idx]);
         }
@@ -205,7 +205,7 @@ int pcutils_arrlist_del_idx(struct pcutils_arrlist *arr, size_t idx, size_t coun
     {
         // Because put_idx can skip entries, we need to check if
         // there's actually anything in each slot we're erasing.
-        if (arr->array[i])
+        if (arr->array[i] && arr->free_fn)
             arr->free_fn(arr->array[i]);
     }
     memmove(arr->array + idx, arr->array + stop, (arr->length - stop) * sizeof(void *));

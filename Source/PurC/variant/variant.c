@@ -74,13 +74,11 @@ static struct err_msg_seg _variant_err_msgs_seg = {
 
 void pcvariant_init (void)
 {
-    struct pcinst * instance = NULL;
-
     // register error message
     pcinst_register_error_message_segment (&_variant_err_msgs_seg);
 
     // register const value in instance
-    instance = pcinst_current ();
+    struct pcinst * instance = pcinst_current ();
 
     instance->variant_heap.v_null.type = PURC_VARIANT_TYPE_NULL;
     instance->variant_heap.v_null.refc = 1;
@@ -94,11 +92,38 @@ void pcvariant_init (void)
     instance->variant_heap.v_false.refc = 1;
     instance->variant_heap.v_false.flags = PCVARIANT_FLAG_NOFREE;
     instance->variant_heap.v_false.b = false;
+}
 
-    instance->variant_heap.v_true.type = PURC_VARIANT_TYPE_UNDEFINED;
-    instance->variant_heap.v_true.refc = 1;
-    instance->variant_heap.v_true.flags = PCVARIANT_FLAG_NOFREE;
-    instance->variant_heap.v_true.b = true;
+void pcvariant_init_instance(struct pcinst* inst)
+{
+    pcinst_register_error_message_segment(&_variant_err_msgs_seg);
+
+    // initialize const values in instance
+    inst->variant_heap.v_null.type = PURC_VARIANT_TYPE_NULL;
+    inst->variant_heap.v_null.refc = 1;
+    inst->variant_heap.v_null.flags = PCVARIANT_FLAG_NOFREE;
+
+    inst->variant_heap.v_undefined.type = PURC_VARIANT_TYPE_UNDEFINED;
+    inst->variant_heap.v_undefined.refc = 1;
+    inst->variant_heap.v_undefined.flags = PCVARIANT_FLAG_NOFREE;
+
+    inst->variant_heap.v_false.type = PURC_VARIANT_TYPE_UNDEFINED;
+    inst->variant_heap.v_false.refc = 1;
+    inst->variant_heap.v_false.flags = PCVARIANT_FLAG_NOFREE;
+    inst->variant_heap.v_false.b = false;
+
+    inst->variant_heap.v_true.type = PURC_VARIANT_TYPE_UNDEFINED;
+    inst->variant_heap.v_true.refc = 1;
+    inst->variant_heap.v_true.flags = PCVARIANT_FLAG_NOFREE;
+    inst->variant_heap.v_true.b = true;
+
+    // initialize others
+}
+
+void pcvariant_cleanup_instance(struct pcinst* inst)
+{
+    // TODO: release reserved values here.
+    UNUSED_PARAM(inst);
 }
 
 bool purc_variant_is_type (const purc_variant_t value, 
@@ -128,7 +153,7 @@ unsigned int purc_variant_ref (purc_variant_t value)
         case PURC_VARIANT_TYPE_SEQUENCE:
         case PURC_VARIANT_TYPE_DYNAMIC:
         case PURC_VARIANT_TYPE_NATIVE:
-            value->refc ++;
+            value->refc++;
             break;
 
         case PURC_VARIANT_TYPE_OBJECT:
@@ -203,7 +228,7 @@ unsigned int purc_variant_unref (purc_variant_t value)
             break;
     }
 
-    value->refc --;
+    value->refc--;
 
     if (value->refc == 0) {
         // release resource occupied by variant

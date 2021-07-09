@@ -7,7 +7,7 @@
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -53,7 +53,7 @@ static const char* generic_err_msgs[] = {
     /* PURC_ERROR_NO_INSTANCE (7) */
     "No instance",
     /* PURC_ERROR_TOO_LARGE_ENTITY (8) */
-    "No instance",
+    "Tool large entity",
     /* PURC_ERROR_BAD_ENCODING (9) */
     "Bad encoding",
     /* PURC_ERROR_NOT_SUPPORTED (10) */
@@ -131,8 +131,6 @@ int purc_init(const char* app_name, const char* runner_name,
 {
     struct pcinst* curr_inst;
 
-    UNUSED_PARAM(app_name);
-    UNUSED_PARAM(runner_name);
     UNUSED_PARAM(extra_info);
 
     init_once();
@@ -166,6 +164,7 @@ int purc_init(const char* app_name, const char* runner_name,
         goto failed;
 
     // TODO: init other fields
+    pcvariant_init_instance(curr_inst);
     return PURC_ERROR_OK;
 
 failed:
@@ -181,6 +180,9 @@ bool purc_cleanup(void)
     curr_inst = PURC_GET_THREAD_LOCAL(inst);
     if (curr_inst == NULL || curr_inst->app_name == NULL)
         return false;
+
+    // TODO: clean up other fields
+    pcvariant_cleanup_instance(curr_inst);
 
     cleanup_instance(curr_inst);
     return true;

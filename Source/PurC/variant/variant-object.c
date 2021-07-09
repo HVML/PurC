@@ -44,7 +44,7 @@
  * no matter via `purc_variant_make_object` or `purc_variant_object_set/...`,
  * this value's ref + 1
  * once a purc_variant_t value in object get removed,
- * no matter via `_variant_object_release` or `purc_variant_object_remove`
+ * no matter via `pcvariant_object_release` or `purc_variant_object_remove`
  * or even implicitly being overwritten by `purc_variant_object_set/...`,
  * this value's ref - 1
  * note: value can be added into object for more than 1 times,
@@ -287,10 +287,7 @@ bool purc_variant_object_set_c (purc_variant_t obj, const char* key, purc_varian
 
     struct pchash_table *ht = (struct pchash_table*)obj->sz_ptr[1];
 
-    // to avoid self-overwritten
-    purc_variant_ref(value);
     int t = pchash_table_insert(ht, key, value);
-    purc_variant_unref(value);
 
     if (t) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);

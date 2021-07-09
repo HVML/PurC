@@ -35,3 +35,32 @@ TEST(variant, pcutils_arrlist_double_free)
     ASSERT_EQ(_arrlist_items_free, 1);
 }
 
+/* test variant.pchash_table_double_free */
+static size_t _hash_table_items_free = 0;
+static void _hash_table_item_free(pchash_entry *e)
+{
+    free(pchash_entry_v(e));
+    ++_hash_table_items_free;
+}
+
+TEST(variant, pchash_table_double_free)
+{
+    int t;
+    // reset
+    _hash_table_items_free = 0;
+
+    struct pchash_table *ht = pchash_kchar_table_new(3, _hash_table_item_free);
+
+    char *s1 = strdup("hello");
+    t = pchash_table_insert(ht, "hello", s1);
+    ASSERT_EQ(t, 0);
+
+    t = pchash_table_insert(ht, "hello", s1);
+    ASSERT_EQ(t, 0);
+
+    pchash_table_free(ht);
+
+    // test check
+    ASSERT_EQ(_hash_table_items_free, 1);
+}
+

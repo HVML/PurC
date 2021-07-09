@@ -112,6 +112,10 @@ struct pcvariant_heap {
 // initialize variant module
 void pcvariant_init(void) WTF_INTERNAL;
 
+struct pcinst;
+void pcvariant_init_instance(struct pcinst* inst) WTF_INTERNAL;
+void pcvariant_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
+
 
 #ifdef __cplusplus
 }
