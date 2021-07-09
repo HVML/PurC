@@ -263,6 +263,8 @@ purc_variant_t purc_variant_dynamic_value_load_from_so (const char* so_name, \
 {
     purc_variant_t value = PURC_VARIANT_INVALID;
 
+// temporarily disable to make sure test cases available
+#if 0
 #if OS(LINUX) || OS(UNIX)
     void * library_handle = NULL;
 
@@ -288,6 +290,10 @@ purc_variant_t purc_variant_dynamic_value_load_from_so (const char* so_name, \
 
     // ??? long string, sequence, atom string, dynamic, native..... can not dlclose....
 #endif
+#else // 0
+    UNUSED_PARAM(so_name);
+    UNUSED_PARAM(var_name);
+#endif // !0
     return value;
 
 }

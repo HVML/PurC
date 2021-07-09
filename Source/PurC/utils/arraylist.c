@@ -137,8 +137,12 @@ int pcutils_arrlist_put_idx(struct pcutils_arrlist *arr, size_t idx, void *data)
         return -1;
     if (pcutils_arrlist_expand_internal(arr, idx + 1))
         return -1;
-    if (idx < arr->length && arr->array[idx])
-        arr->free_fn(arr->array[idx]);
+    if (idx < arr->length && arr->array[idx]) {
+        if (arr->array[idx]!=data) {
+            // avoid double-free
+            arr->free_fn(arr->array[idx]);
+        }
+    }
     arr->array[idx] = data;
     if (idx > arr->length)
     {
