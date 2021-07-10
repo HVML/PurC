@@ -83,6 +83,10 @@ void pcvariant_init (void)
 
 void pcvariant_init_instance(struct pcinst* inst)
 {
+/* VWNOTE (ERROR):
+ * This is a very bad implementation. You must restore the old implementation.
+ */
+#if 0
     // this is initialization for purc-instance or `app` in other words
     // which is called once such instance is created via purc-runtime
 
@@ -102,6 +106,9 @@ void pcvariant_init_instance(struct pcinst* inst)
 
     // register const value in instance
     inst->variant_heap = g_heap;
+#else
+    UNUSED_PARAM(inst);
+#endif
 
     // initialize others
 }
@@ -355,24 +362,40 @@ int purc_variant_compare (purc_variant_t v1, purc_variant v2)
 }
 #endif
 
+/* VWNOTE (WARNING):
+ * to find errors in advance, please change the conditional compilation manually:
+ *  `#if 0`
+ * before commit code to make sure the code in other branches can be compiled correctly.
+ */
+
+/* VWNOTE (WARNING):
+ * there are extra spaces in the end of code lines.
+ * use vim command `set listchars=tab:>·,trail:·` to show tabs and spaces in the line end.
+ */
+
 #if HAVE(GLIB)
-static inline void * pcvariant_alloc_mem(size_t size)           
+static inline UNUSED_FUNCTION void * pcvariant_alloc_mem(size_t size)           
                 { return (void *)g_slice_alloc((gsize)size); }
 static inline void * pcvariant_alloc_mem_0(size_t size)         
                 { return (void *)g_slice_alloc0((gsize)size); }
 static inline void pcvariant_free_mem(size_t size, void *ptr)   
                 { return g_slice_free1((gsize)size, (gpointer)ptr); }
 #else
-static inline void * pcvariant_alloc_mem(size_t size)           
+static inline UNUSED_FUNCTION void * pcvariant_alloc_mem(size_t size)
                 { return malloc(size); }
 static inline void * pcvariant_alloc_mem_0(size_t size)         
-                { return (void *)calloc(size); }
+                { return (void *)calloc(1, size); }
 static inline void pcvariant_free_mem(size_t size, void *ptr)   
-                { return free(ptr); }
+                { UNUSED_PARAM(size); return free(ptr); }
 #endif
 
 
 // set statistic for additional memory for one variant
+/*
+ * VWNOTE (WARNING):
+ *  - no need define a function for this work, especially an extern one.
+ *  - recommend to merge the code to pcvariant_set_stat.
+ */
 void pcvariant_stat_additional_memory (purc_variant_t value, bool add)
 {
     struct pcinst * instance = pcinst_current ();
@@ -415,8 +438,12 @@ void pcvariant_stat_additional_memory (purc_variant_t value, bool add)
     }
 }
 
-static void 
-    pcvariant_set_stat (enum purc_variant_type type, bool reserved, bool direct)
+/*
+ * VWNOTE (WARNING):
+ *  - no need to use prefix for a static function.
+ */
+static void
+pcvariant_set_stat (enum purc_variant_type type, bool reserved, bool direct)
 {
     struct pcinst * instance = pcinst_current ();
     PCVARIANT_ALWAYS_ASSERT(instance);
@@ -478,6 +505,7 @@ purc_variant_t pcvariant_get (enum purc_variant_type type)
         value = heap->nr_reserved[heap->tailpos];
         heap->tailpos = (heap->tailpos + 1) % MAX_RESERVED_VARIANTS;
 
+        /* VWNOTE (WARNING): redundant code */
         if (value == NULL) {
             value = (purc_variant_t)pcvariant_alloc_mem_0 (sizeof(purc_variant));
             if (value == NULL)
