@@ -77,38 +77,14 @@ void pcvariant_init (void)
     // register error message
     pcinst_register_error_message_segment (&_variant_err_msgs_seg);
 
-    // register const value in instance
-    struct pcinst * instance = pcinst_current ();
-
-    instance->variant_heap.v_null.type = PURC_VARIANT_TYPE_NULL;
-    instance->variant_heap.v_null.refc = 1;
-    instance->variant_heap.v_null.flags = PCVARIANT_FLAG_NOFREE;
-
-    instance->variant_heap.v_undefined.type = PURC_VARIANT_TYPE_UNDEFINED;
-    instance->variant_heap.v_undefined.refc = 1;
-    instance->variant_heap.v_undefined.flags = PCVARIANT_FLAG_NOFREE;
-
-    instance->variant_heap.v_false.type = PURC_VARIANT_TYPE_UNDEFINED;
-    instance->variant_heap.v_false.refc = 1;
-    instance->variant_heap.v_false.flags = PCVARIANT_FLAG_NOFREE;
-    instance->variant_heap.v_false.b = false;
-
-    struct purc_variant_stat * stat = &(instance->variant_heap.stat);
-    stat->nr_values[PURC_VARIANT_TYPE_NULL] = 1;
-    stat->sz_mem[PURC_VARIANT_TYPE_NULL] = sizeof(purc_variant);
-    stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED] = 1;
-    stat->sz_mem[PURC_VARIANT_TYPE_UNDEFINED] = sizeof(purc_variant);
-    stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN] = 1;
-    stat->sz_mem[PURC_VARIANT_TYPE_BOOLEAN] = sizeof(purc_variant);
-    stat->nr_total_values = 3;
-    stat->sz_total_mem = 3 * sizeof(purc_variant);
-
     // initialize others
 }
 
 void pcvariant_init_instance(struct pcinst* inst)
 {
+    /* VWNOTE: do not call this when initializing the instance
     pcinst_register_error_message_segment(&_variant_err_msgs_seg);
+    */
 
     // initialize const values in instance
     inst->variant_heap.v_null.type = PURC_VARIANT_TYPE_NULL;
@@ -129,15 +105,16 @@ void pcvariant_init_instance(struct pcinst* inst)
     inst->variant_heap.v_true.flags = PCVARIANT_FLAG_NOFREE;
     inst->variant_heap.v_true.b = true;
 
+    /* VWNOTE: there are two values of boolean.  */
     struct purc_variant_stat * stat = &(inst->variant_heap.stat);
     stat->nr_values[PURC_VARIANT_TYPE_NULL] = 1;
     stat->sz_mem[PURC_VARIANT_TYPE_NULL] = sizeof(purc_variant);
     stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED] = 1;
     stat->sz_mem[PURC_VARIANT_TYPE_UNDEFINED] = sizeof(purc_variant);
-    stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN] = 1;
-    stat->sz_mem[PURC_VARIANT_TYPE_BOOLEAN] = sizeof(purc_variant);
-    stat->nr_total_values = 3;
-    stat->sz_total_mem = 3 * sizeof(purc_variant);
+    stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN] = 2;
+    stat->sz_mem[PURC_VARIANT_TYPE_BOOLEAN] = sizeof(purc_variant) * 2;
+    stat->nr_total_values = 4;
+    stat->sz_total_mem = 4 * sizeof(purc_variant);
 
     // initialize others
 }
