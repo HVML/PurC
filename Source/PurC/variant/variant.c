@@ -74,24 +74,21 @@ static struct err_msg_seg _variant_err_msgs_seg = {
 
 void pcvariant_init (void)
 {
+    static struct purc_variant g_null      = {PVT(_NULL),      0, PVF(_NOFREE), 1, {0}};
+    static struct purc_variant g_undefined = {PVT(_UNDEFINED), 0, PVF(_NOFREE), 1, {0}};
+    static struct purc_variant g_true      = {PVT(_BOOLEAN),   0, PVF(_NOFREE), 1, {b:1}};
+    static struct purc_variant g_false     = {PVT(_BOOLEAN),   0, PVF(_NOFREE), 1, {b:0}};
+
     // register error message
     pcinst_register_error_message_segment (&_variant_err_msgs_seg);
 
     // register const value in instance
     struct pcinst * instance = pcinst_current ();
 
-    instance->variant_heap.v_null.type = PURC_VARIANT_TYPE_NULL;
-    instance->variant_heap.v_null.refc = 1;
-    instance->variant_heap.v_null.flags = PCVARIANT_FLAG_NOFREE;
-
-    instance->variant_heap.v_undefined.type = PURC_VARIANT_TYPE_UNDEFINED;
-    instance->variant_heap.v_undefined.refc = 1;
-    instance->variant_heap.v_undefined.flags = PCVARIANT_FLAG_NOFREE;
-
-    instance->variant_heap.v_false.type = PURC_VARIANT_TYPE_UNDEFINED;
-    instance->variant_heap.v_false.refc = 1;
-    instance->variant_heap.v_false.flags = PCVARIANT_FLAG_NOFREE;
-    instance->variant_heap.v_false.b = false;
+    instance->variant_heap.v_null      = g_null;
+    instance->variant_heap.v_undefined = g_undefined;
+    instance->variant_heap.v_true      = g_true;
+    instance->variant_heap.v_false     = g_false;
 
     struct purc_variant_stat * stat = &(instance->variant_heap.stat);
     stat->nr_values[PURC_VARIANT_TYPE_NULL] = 1;
