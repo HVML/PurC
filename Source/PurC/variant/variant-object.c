@@ -65,8 +65,7 @@ static void _object_kv_free(struct pchash_entry *e)
 
 static purc_variant_t _variant_object_new_with_capacity(size_t initial_size)
 {
-    // later, we'll use MACRO rather than malloc directly
-    purc_variant_t var = (purc_variant_t)malloc(sizeof(*var));
+    purc_variant_t var = pcvariant_get(PVT(_OBJECT));
     if (!var) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
@@ -79,7 +78,7 @@ static purc_variant_t _variant_object_new_with_capacity(size_t initial_size)
 
     struct pchash_table *ht = pchash_kchar_table_new(initial_size, _object_kv_free);
     if (!ht) {
-        free(var);
+        pcvariant_put(var);
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
     }

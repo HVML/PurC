@@ -88,8 +88,7 @@ purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
         return PURC_VARIANT_INVALID;
     }
 
-    // later, we'll use MACRO rather than malloc directly
-    purc_variant_t var = (purc_variant_t)malloc(sizeof(*var));
+    purc_variant_t var = pcvariant_get(PVT(_ARRAY));
     if (!var) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
@@ -153,7 +152,7 @@ purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
     pcutils_arrlist_free(al);
     var->sz_ptr[1] = (uintptr_t)NULL; // say no to double free
     // todo: use macro instead
-    free(var);
+    pcvariant_put(var);
 
     return PURC_VARIANT_INVALID;
 }
