@@ -82,7 +82,7 @@ void pcvariant_init (void)
 
 void pcvariant_init_instance(struct pcinst* inst)
 {
-    /* VWNOTE: do not call this when initializing the instance
+    /* VWNOTE (ERROR): do not call this when initializing the instance
     pcinst_register_error_message_segment(&_variant_err_msgs_seg);
     */
 
@@ -105,7 +105,7 @@ void pcvariant_init_instance(struct pcinst* inst)
     inst->variant_heap.v_true.flags = PCVARIANT_FLAG_NOFREE;
     inst->variant_heap.v_true.b = true;
 
-    /* VWNOTE: there are two values of boolean.  */
+    /* VWNOTE (ERROR): there are two values of boolean.  */
     struct purc_variant_stat * stat = &(inst->variant_heap.stat);
     stat->nr_values[PURC_VARIANT_TYPE_NULL] = 1;
     stat->sz_mem[PURC_VARIANT_TYPE_NULL] = sizeof(purc_variant);
@@ -126,7 +126,7 @@ void pcvariant_cleanup_instance(struct pcinst* inst)
 }
 
 bool purc_variant_is_type (const purc_variant_t value,
-                            enum purc_variant_type type)
+        enum purc_variant_type type)
 {
     return (value->type == type);
 }
@@ -310,80 +310,47 @@ purc_variant_t purc_variant_load_from_json_file (const char* file)
     return value;
 }
 
-#if 0
-purc_variant_t purc_variant_dynamic_value_load_from_so (const char* so_name,
-                                                        const char* var_name)
-{
-    PCVARIANT_ALWAYS_ASSERT(so_name);
-    PCVARIANT_ALWAYS_ASSERT(var_name);
-
-    purc_variant_t value = PURC_VARIANT_INVALID;
-
-// temporarily disable to make sure test cases available
-#if OS(LINUX) || OS(UNIX)
-    void * library_handle = NULL;
-
-    library_handle = dlopen(so_name, RTLD_LAZY);
-    if(!library_handle)
-        return PURC_VARIANT_INVALID;
-
-    purc_variant_t (* get_variant_by_name)(const char *);
-
-    get_variant_by_name = (purc_variant_t (*) (const char *))dlsym(library_handle, "get_variant_by_name");
-    if(dlerror() != NULL)
-    {
-        dlclose(library_handle);
-        return PURC_VARIANT_INVALID;
-    }
-
-    value = get_variant_by_name(var_name);
-    if(value == NULL)
-    {
-        dlclose(library_handle);
-        return PURC_VARIANT_INVALID;
-    }
-
-    // ??? long string, sequence, atom string, dynamic, native..... can not dlclose....
-#else // 0
-    UNUSED_PARAM(so_name);
-    UNUSED_PARAM(var_name);
-#endif // !0
-    return value;
-
-}
-#endif
-
-#if 0
-purc_variant_t purc_variant_load_from_json_stream (purc_rwstream_t stream)
-{
-}
-
-size_t purc_variant_serialize (purc_variant_t value, purc_rwstream_t stream, \
-                                                            unsigned int opts)
-{
-}
-
-int purc_variant_compare (purc_variant_t v1, purc_variant v2)
-{
-}
-#endif
-
+/*
+ * VWNOTE (ERROR):
+ * The author should change the condition mannually to
+ *      #if 0
+ * in order to compile the statements in other branch
+ * to find the potential errors in advance.
+ */
 #if HAVE(GLIB)
-static inline void * pcvariant_alloc_mem(size_t size)
+static inline UNUSED_FUNCTION void * pcvariant_alloc_mem(size_t size)
                 { return (void *)g_slice_alloc((gsize)size); }
 static inline void * pcvariant_alloc_mem_0(size_t size)
                 { return (void *)g_slice_alloc0((gsize)size); }
 static inline void pcvariant_free_mem(size_t size, void *ptr)
                 { return g_slice_free1((gsize)size, (gpointer)ptr); }
 #else
-static inline void * pcvariant_alloc_mem(size_t size)
+/*
+ * VWNOTE (ERROR):
+ *  - Use UNUSED_FUNCTION for unused inline functions to avoid warnings.
+ *  - Only one argument passed to calloc.
+ *  - Use UNUSED_PARAM to avoid compilation warnings.
+ */
+static inline UNUSED_FUNCTION void * pcvariant_alloc_mem(size_t size)
                 { return malloc(size); }
 static inline void * pcvariant_alloc_mem_0(size_t size)
-                { return (void *)calloc(size); }
+                { return (void *)calloc(1, size); }
 static inline void pcvariant_free_mem(size_t size, void *ptr)
-                { return free(ptr); }
+                { UNUSED_PARAM(size); return free(ptr); }
 #endif
 
+/* VWNOTE (INFO): No need to write a new function for this work.
+   Check the type in pcvariant_get() and pcvariant_put(), and
+   set the stat information directly.
+
+   A better writing (the author should maintain a new flag):
+
+   if (value->flags | PCVARIANT_FLAG_HAS_EXTRA_SIZE) {
+       size_t extra_size = (size_t)value->sz_ptr[1];
+       stat->sz_mem[type] += extra_size;
+       stat->sz_total_mem += extra_size;
+   }
+ */
 
 // set statistic for additional memory for one variant
 void pcvariant_stat_additional_memory (purc_variant_t value, bool add)
@@ -412,6 +379,7 @@ void pcvariant_stat_additional_memory (purc_variant_t value, bool add)
             }
             break;
 
+            /* VWNOTE (FIXME): DO NOT COUNT SIZE OF ATOM STRING */
         case PURC_VARIANT_TYPE_ATOM_STRING:
             if (!(value->flags & PCVARIANT_FLAG_ATOM_STATIC)) {
                 if (add) {
@@ -444,7 +412,7 @@ void pcvariant_stat_additional_memory (purc_variant_t value, bool add)
  * in pcvariant_get() and pcvariant_put() separately and directly.
  */
 static void
-    pcvariant_set_stat (enum purc_variant_type type, bool reserved, bool direct)
+pcvariant_set_stat (enum purc_variant_type type, bool reserved, bool direct)
 {
     struct pcinst * instance = pcinst_current ();
     PCVARIANT_ALWAYS_ASSERT(instance);
@@ -466,6 +434,9 @@ static void
         case PURC_VARIANT_TYPE_ARRAY:
         case PURC_VARIANT_TYPE_SET:
             if (direct) {
+                /* VWNOTE (INFO):
+                 * DO NOT USE WHITESPACES BEFORE AND AFTER `++` or `--`
+                 */
                 stat->nr_values[type] ++ ;
                 stat->nr_total_values ++ ;
                 if (!reserved) {
@@ -537,4 +508,60 @@ void pcvariant_put (purc_variant_t value)
         pcvariant_set_stat (value->type, true, false);
     }
 }
+
+#if 0
+purc_variant_t purc_variant_dynamic_value_load_from_so (const char* so_name,
+                                                        const char* var_name)
+{
+    PCVARIANT_ALWAYS_ASSERT(so_name);
+    PCVARIANT_ALWAYS_ASSERT(var_name);
+
+    purc_variant_t value = PURC_VARIANT_INVALID;
+
+// temporarily disable to make sure test cases available
+#if OS(LINUX) || OS(UNIX)
+    void * library_handle = NULL;
+
+    library_handle = dlopen(so_name, RTLD_LAZY);
+    if(!library_handle)
+        return PURC_VARIANT_INVALID;
+
+    purc_variant_t (* get_variant_by_name)(const char *);
+
+    get_variant_by_name = (purc_variant_t (*) (const char *))dlsym(library_handle, "get_variant_by_name");
+    if(dlerror() != NULL)
+    {
+        dlclose(library_handle);
+        return PURC_VARIANT_INVALID;
+    }
+
+    value = get_variant_by_name(var_name);
+    if(value == NULL)
+    {
+        dlclose(library_handle);
+        return PURC_VARIANT_INVALID;
+    }
+
+    // ??? long string, sequence, atom string, dynamic, native..... can not dlclose....
+#else // 0
+    UNUSED_PARAM(so_name);
+    UNUSED_PARAM(var_name);
+#endif // !0
+    return value;
+
+}
+
+purc_variant_t purc_variant_load_from_json_stream (purc_rwstream_t stream)
+{
+}
+
+size_t purc_variant_serialize (purc_variant_t value, purc_rwstream_t stream,
+                                                            unsigned int opts)
+{
+}
+
+int purc_variant_compare (purc_variant_t v1, purc_variant v2)
+{
+}
+#endif
 
