@@ -40,8 +40,7 @@ extern "C" {
 #define PCVARIANT_FLAG_SIGNED       (0x01 << 15)    // for signed int
 #define PCVARIANT_FLAG_ATOM_STATIC  (0x01 << 15)    // for static atom string
 
-#define PVT(t) (PURC_VARIANT_TYPE ## t)
-#define PVF(f) (PCVARIANT_FLAG ## f)
+#define PVT(t) (PURC_VARIANT_TYPE##t)
 
 #define MAX_RESERVED_VARIANTS  32
 

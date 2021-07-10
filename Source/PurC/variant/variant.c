@@ -67,48 +67,77 @@ static const char* variant_err_msgs[] = {
 
 static struct err_msg_seg _variant_err_msgs_seg = {
     { NULL, NULL },
-    PURC_ERROR_FIRST_VARIANT, 
+    PURC_ERROR_FIRST_VARIANT,
     PURC_ERROR_FIRST_VARIANT + PCA_TABLESIZE(variant_err_msgs) - 1,
     variant_err_msgs
 };
 
 void pcvariant_init (void)
 {
-    // this is module initialization
-    // called only once by purc-runtime for it's whole life time
-
     // register error message
     pcinst_register_error_message_segment (&_variant_err_msgs_seg);
+
+    // register const value in instance
+    struct pcinst * instance = pcinst_current ();
+
+    instance->variant_heap.v_null.type = PURC_VARIANT_TYPE_NULL;
+    instance->variant_heap.v_null.refc = 1;
+    instance->variant_heap.v_null.flags = PCVARIANT_FLAG_NOFREE;
+
+    instance->variant_heap.v_undefined.type = PURC_VARIANT_TYPE_UNDEFINED;
+    instance->variant_heap.v_undefined.refc = 1;
+    instance->variant_heap.v_undefined.flags = PCVARIANT_FLAG_NOFREE;
+
+    instance->variant_heap.v_false.type = PURC_VARIANT_TYPE_UNDEFINED;
+    instance->variant_heap.v_false.refc = 1;
+    instance->variant_heap.v_false.flags = PCVARIANT_FLAG_NOFREE;
+    instance->variant_heap.v_false.b = false;
+
+    struct purc_variant_stat * stat = &(instance->variant_heap.stat);
+    stat->nr_values[PURC_VARIANT_TYPE_NULL] = 1;
+    stat->sz_mem[PURC_VARIANT_TYPE_NULL] = sizeof(purc_variant);
+    stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED] = 1;
+    stat->sz_mem[PURC_VARIANT_TYPE_UNDEFINED] = sizeof(purc_variant);
+    stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN] = 1;
+    stat->sz_mem[PURC_VARIANT_TYPE_BOOLEAN] = sizeof(purc_variant);
+    stat->nr_total_values = 3;
+    stat->sz_total_mem = 3 * sizeof(purc_variant);
+
+    // initialize others
 }
 
 void pcvariant_init_instance(struct pcinst* inst)
 {
-/* VWNOTE (ERROR):
- * This is a very bad implementation. You must restore the old implementation.
- */
-#if 0
-    // this is initialization for purc-instance or `app` in other words
-    // which is called once such instance is created via purc-runtime
+    pcinst_register_error_message_segment(&_variant_err_msgs_seg);
 
-    // these are static storages, but visible locally and non-modified
-    static const struct purc_variant g_null      = {PVT(_NULL),      0, PVF(_NOFREE), 1, {0}};
-    static const struct purc_variant g_undefined = {PVT(_UNDEFINED), 0, PVF(_NOFREE), 1, {0}};
-    static const struct purc_variant g_true      = {PVT(_BOOLEAN),   0, PVF(_NOFREE), 1, {b:1}};
-    static const struct purc_variant g_false     = {PVT(_BOOLEAN),   0, PVF(_NOFREE), 1, {b:0}};
+    // initialize const values in instance
+    inst->variant_heap.v_null.type = PURC_VARIANT_TYPE_NULL;
+    inst->variant_heap.v_null.refc = 1;
+    inst->variant_heap.v_null.flags = PCVARIANT_FLAG_NOFREE;
 
-    static const struct pcvariant_heap g_heap = {
-        v_null:g_null,
-        v_undefined:g_undefined,
-        v_true:g_true,
-        v_false:g_false,
-        // default to all-zeros
-    };
+    inst->variant_heap.v_undefined.type = PURC_VARIANT_TYPE_UNDEFINED;
+    inst->variant_heap.v_undefined.refc = 1;
+    inst->variant_heap.v_undefined.flags = PCVARIANT_FLAG_NOFREE;
 
-    // register const value in instance
-    inst->variant_heap = g_heap;
-#else
-    UNUSED_PARAM(inst);
-#endif
+    inst->variant_heap.v_false.type = PURC_VARIANT_TYPE_UNDEFINED;
+    inst->variant_heap.v_false.refc = 1;
+    inst->variant_heap.v_false.flags = PCVARIANT_FLAG_NOFREE;
+    inst->variant_heap.v_false.b = false;
+
+    inst->variant_heap.v_true.type = PURC_VARIANT_TYPE_UNDEFINED;
+    inst->variant_heap.v_true.refc = 1;
+    inst->variant_heap.v_true.flags = PCVARIANT_FLAG_NOFREE;
+    inst->variant_heap.v_true.b = true;
+
+    struct purc_variant_stat * stat = &(inst->variant_heap.stat);
+    stat->nr_values[PURC_VARIANT_TYPE_NULL] = 1;
+    stat->sz_mem[PURC_VARIANT_TYPE_NULL] = sizeof(purc_variant);
+    stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED] = 1;
+    stat->sz_mem[PURC_VARIANT_TYPE_UNDEFINED] = sizeof(purc_variant);
+    stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN] = 1;
+    stat->sz_mem[PURC_VARIANT_TYPE_BOOLEAN] = sizeof(purc_variant);
+    stat->nr_total_values = 3;
+    stat->sz_total_mem = 3 * sizeof(purc_variant);
 
     // initialize others
 }
@@ -119,7 +148,7 @@ void pcvariant_cleanup_instance(struct pcinst* inst)
     UNUSED_PARAM(inst);
 }
 
-bool purc_variant_is_type (const purc_variant_t value, 
+bool purc_variant_is_type (const purc_variant_t value,
                             enum purc_variant_type type)
 {
     return (value->type == type);
@@ -228,7 +257,7 @@ unsigned int purc_variant_unref (purc_variant_t value)
     if (value->refc == 0) {
         // release resource occupied by variant
         pcvariant_release_fn release = pcvariant_releasers[value->type];
-        if (release) 
+        if (release)
             release (value);
 
         if (value->flags & PCVARIANT_FLAG_NOFREE) {
@@ -239,7 +268,7 @@ unsigned int purc_variant_unref (purc_variant_t value)
                 struct purc_variant_stat * stat = &(instance->variant_heap.stat);
 
                 stat->nr_reserved ++;
-            } 
+            }
         }
         else
         {
@@ -285,7 +314,7 @@ purc_variant_t purc_variant_load_from_json_file (const char* file)
     purc_rwstream_t rwstream = purc_rwstream_new_from_file (file, "r");
     if (rwstream == NULL)
         return PURC_VARIANT_INVALID;
-    
+
     // how to get file size? use new rwstream type?
     size_t size = 100;
     size_t read_size = 0;
@@ -295,7 +324,7 @@ purc_variant_t purc_variant_load_from_json_file (const char* file)
     if (read_size == 0)
         return PURC_VARIANT_INVALID;
 
-    purc_variant_t value = 
+    purc_variant_t value =
             purc_variant_make_from_json_string ((const char *)buf, size);
 
     free (buf);
@@ -304,8 +333,8 @@ purc_variant_t purc_variant_load_from_json_file (const char* file)
     return value;
 }
 
-#if 0 
-purc_variant_t purc_variant_dynamic_value_load_from_so (const char* so_name, 
+#if 0
+purc_variant_t purc_variant_dynamic_value_load_from_so (const char* so_name,
                                                         const char* var_name)
 {
     PCVARIANT_ALWAYS_ASSERT(so_name);
@@ -362,40 +391,24 @@ int purc_variant_compare (purc_variant_t v1, purc_variant v2)
 }
 #endif
 
-/* VWNOTE (WARNING):
- * to find errors in advance, please change the conditional compilation manually:
- *  `#if 0`
- * before commit code to make sure the code in other branches can be compiled correctly.
- */
-
-/* VWNOTE (WARNING):
- * there are extra spaces in the end of code lines.
- * use vim command `set listchars=tab:>·,trail:·` to show tabs and spaces in the line end.
- */
-
 #if HAVE(GLIB)
-static inline UNUSED_FUNCTION void * pcvariant_alloc_mem(size_t size)           
+static inline void * pcvariant_alloc_mem(size_t size)
                 { return (void *)g_slice_alloc((gsize)size); }
-static inline void * pcvariant_alloc_mem_0(size_t size)         
+static inline void * pcvariant_alloc_mem_0(size_t size)
                 { return (void *)g_slice_alloc0((gsize)size); }
-static inline void pcvariant_free_mem(size_t size, void *ptr)   
+static inline void pcvariant_free_mem(size_t size, void *ptr)
                 { return g_slice_free1((gsize)size, (gpointer)ptr); }
 #else
-static inline UNUSED_FUNCTION void * pcvariant_alloc_mem(size_t size)
+static inline void * pcvariant_alloc_mem(size_t size)
                 { return malloc(size); }
-static inline void * pcvariant_alloc_mem_0(size_t size)         
-                { return (void *)calloc(1, size); }
-static inline void pcvariant_free_mem(size_t size, void *ptr)   
-                { UNUSED_PARAM(size); return free(ptr); }
+static inline void * pcvariant_alloc_mem_0(size_t size)
+                { return (void *)calloc(size); }
+static inline void pcvariant_free_mem(size_t size, void *ptr)
+                { return free(ptr); }
 #endif
 
 
 // set statistic for additional memory for one variant
-/*
- * VWNOTE (WARNING):
- *  - no need define a function for this work, especially an extern one.
- *  - recommend to merge the code to pcvariant_set_stat.
- */
 void pcvariant_stat_additional_memory (purc_variant_t value, bool add)
 {
     struct pcinst * instance = pcinst_current ();
@@ -438,12 +451,8 @@ void pcvariant_stat_additional_memory (purc_variant_t value, bool add)
     }
 }
 
-/*
- * VWNOTE (WARNING):
- *  - no need to use prefix for a static function.
- */
 static void
-pcvariant_set_stat (enum purc_variant_type type, bool reserved, bool direct)
+    pcvariant_set_stat (enum purc_variant_type type, bool reserved, bool direct)
 {
     struct pcinst * instance = pcinst_current ();
     PCVARIANT_ALWAYS_ASSERT(instance);
@@ -505,7 +514,6 @@ purc_variant_t pcvariant_get (enum purc_variant_type type)
         value = heap->nr_reserved[heap->tailpos];
         heap->tailpos = (heap->tailpos + 1) % MAX_RESERVED_VARIANTS;
 
-        /* VWNOTE (WARNING): redundant code */
         if (value == NULL) {
             value = (purc_variant_t)pcvariant_alloc_mem_0 (sizeof(purc_variant));
             if (value == NULL)
