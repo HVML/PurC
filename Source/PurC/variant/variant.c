@@ -138,7 +138,7 @@ enum purc_variant_type purc_variant_get_type (const purc_variant_t value)
 
 unsigned int purc_variant_ref (purc_variant_t value)
 {
-    PCVARIANT_ALWAYS_ASSERT(value);
+    PC_ASSERT(value);
 
     purc_variant_t variant = NULL;
     switch ((int)value->type) {
@@ -168,7 +168,7 @@ unsigned int purc_variant_ref (purc_variant_t value)
             break;
 
         case PURC_VARIANT_TYPE_SET:
-            PCVARIANT_ALWAYS_ASSERT(0);
+            PC_ASSERT(0);
             foreach_value_in_variant_set (value, variant)
                 purc_variant_ref (variant);
             end_foreach;
@@ -182,7 +182,7 @@ unsigned int purc_variant_ref (purc_variant_t value)
 
 unsigned int purc_variant_unref (purc_variant_t value)
 {
-    PCVARIANT_ALWAYS_ASSERT(value);
+    PC_ASSERT(value);
 
     purc_variant_t variant = NULL;
 
@@ -219,7 +219,7 @@ unsigned int purc_variant_unref (purc_variant_t value)
             break;
 
         case PURC_VARIANT_TYPE_SET:
-            PCVARIANT_ALWAYS_ASSERT(0);
+            PC_ASSERT(0);
             foreach_value_in_variant_set (value, variant)
                 purc_variant_unref (variant);
             end_foreach;
@@ -240,7 +240,7 @@ unsigned int purc_variant_unref (purc_variant_t value)
         if (value->flags & PCVARIANT_FLAG_NOFREE) {
             if (value->type > PURC_VARIANT_TYPE_BOOLEAN) {
                 struct pcinst * instance = pcinst_current ();
-                PCVARIANT_ALWAYS_ASSERT(instance);
+                PC_ASSERT(instance);
 
                 struct purc_variant_stat * stat = &(instance->variant_heap.stat);
 
@@ -262,10 +262,10 @@ unsigned int purc_variant_unref (purc_variant_t value)
 
 bool purc_variant_usage_stat (struct purc_variant_stat* stat)
 {
-    PCVARIANT_ALWAYS_ASSERT(stat);
+    PC_ASSERT(stat);
 
     struct pcinst * instance = pcinst_current ();
-    PCVARIANT_ALWAYS_ASSERT(instance);
+    PC_ASSERT(instance);
 
     memcpy(stat, &(instance->variant_heap.stat), sizeof(struct purc_variant_stat));
 
@@ -286,7 +286,7 @@ purc_variant_t purc_variant_make_from_json_string (const char* json, size_t sz)
 // todo
 purc_variant_t purc_variant_load_from_json_file (const char* file)
 {
-    PCVARIANT_ALWAYS_ASSERT(file);
+    PC_ASSERT(file);
 
     purc_rwstream_t rwstream = purc_rwstream_new_from_file (file, "r");
     if (rwstream == NULL)
@@ -314,8 +314,8 @@ purc_variant_t purc_variant_load_from_json_file (const char* file)
 purc_variant_t purc_variant_dynamic_value_load_from_so (const char* so_name,
                                                         const char* var_name)
 {
-    PCVARIANT_ALWAYS_ASSERT(so_name);
-    PCVARIANT_ALWAYS_ASSERT(var_name);
+    PC_ASSERT(so_name);
+    PC_ASSERT(var_name);
 
     purc_variant_t value = PURC_VARIANT_INVALID;
 
@@ -390,8 +390,8 @@ void pcvariant_stat_additional_memory (purc_variant_t value, bool add)
 {
     struct pcinst * instance = pcinst_current ();
 
-    PCVARIANT_ALWAYS_ASSERT(value);
-    PCVARIANT_ALWAYS_ASSERT(instance);
+    PC_ASSERT(value);
+    PC_ASSERT(instance);
 
     struct purc_variant_stat * stat = &(instance->variant_heap.stat);
     int type = value->type;
@@ -447,7 +447,7 @@ static void
     pcvariant_set_stat (enum purc_variant_type type, bool reserved, bool direct)
 {
     struct pcinst * instance = pcinst_current ();
-    PCVARIANT_ALWAYS_ASSERT(instance);
+    PC_ASSERT(instance);
 
     struct purc_variant_stat * stat = &(instance->variant_heap.stat);
 
@@ -522,7 +522,7 @@ purc_variant_t pcvariant_get (enum purc_variant_type type)
 
 void pcvariant_put (purc_variant_t value)
 {
-    PCVARIANT_ALWAYS_ASSERT(value);
+    PC_ASSERT(value);
 
     struct pcinst * instance = pcinst_current ();
     struct pcvariant_heap * heap = &(instance->variant_heap);

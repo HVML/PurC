@@ -304,7 +304,7 @@ const char* purc_variant_get_string_const (purc_variant_t string)
 {
     const char * str_str = NULL;
 
-    PCVARIANT_ALWAYS_ASSERT(string);
+    PC_ASSERT(string);
 
     if (purc_variant_is_type (string, PURC_VARIANT_TYPE_STRING)) {
         if (string->flags & PCVARIANT_FLAG_LONG)
@@ -322,7 +322,7 @@ size_t purc_variant_string_length (const purc_variant_t string)
 {
     size_t str_size = 0;
 
-    PCVARIANT_ALWAYS_ASSERT(string);
+    PC_ASSERT(string);
 
     if (purc_variant_is_type(string, PURC_VARIANT_TYPE_STRING)) {
         if (string->flags & PCVARIANT_FLAG_LONG)
@@ -338,7 +338,7 @@ size_t purc_variant_string_length (const purc_variant_t string)
 
 void pcvariant_string_release (purc_variant_t string)
 {
-    PCVARIANT_ALWAYS_ASSERT(string);
+    PC_ASSERT(string);
 
     if (purc_variant_is_type (string, PURC_VARIANT_TYPE_STRING)) {
         if (string->flags & PCVARIANT_FLAG_LONG) {
@@ -353,7 +353,7 @@ void pcvariant_string_release (purc_variant_t string)
 purc_variant_t 
     purc_variant_make_atom_string (const char* str_utf8, bool check_encoding)
 {
-    PCVARIANT_ALWAYS_ASSERT(str_utf8);
+    PC_ASSERT(str_utf8);
 
     purc_variant_t value = NULL;
 
@@ -392,7 +392,7 @@ purc_variant_t
     purc_variant_make_atom_string_static (const char* str_utf8, 
                                             bool check_encoding)
 {
-    PCVARIANT_ALWAYS_ASSERT(str_utf8);
+    PC_ASSERT(str_utf8);
 
     purc_variant_t value = NULL;
 
@@ -429,7 +429,7 @@ const char* purc_variant_get_atom_string_const (purc_variant_t atom_string)
 {
     const char * str_str = NULL;
 
-    PCVARIANT_ALWAYS_ASSERT(atom_string);
+    PC_ASSERT(atom_string);
 
     if (purc_variant_is_type (atom_string, PURC_VARIANT_TYPE_ATOM_STRING))
         str_str = (char *)atom_string->sz_ptr[0];
@@ -448,7 +448,7 @@ void pcvariant_atom_string_release(purc_variant_t atom_string)
 purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes, 
                                                             size_t nr_bytes)
 {
-    PCVARIANT_ALWAYS_ASSERT(bytes);
+    PC_ASSERT(bytes);
 
     int real_size = MAX (sizeof(long double), sizeof(void*) * 2);
     purc_variant_t value = pcvariant_get (PURC_VARIANT_TYPE_SEQUENCE); 
@@ -489,7 +489,7 @@ const unsigned char *
 {
     const unsigned char * bytes = NULL;
 
-    PCVARIANT_ALWAYS_ASSERT(sequence);
+    PC_ASSERT(sequence);
 
     if (purc_variant_is_type(sequence, PURC_VARIANT_TYPE_SEQUENCE)) {
         if (sequence->flags & PCVARIANT_FLAG_LONG) {
@@ -511,7 +511,7 @@ size_t purc_variant_sequence_length(const purc_variant_t sequence)
 {
     size_t nr_bytes = 0;
 
-    PCVARIANT_ALWAYS_ASSERT(sequence);
+    PC_ASSERT(sequence);
 
     if (purc_variant_is_type (sequence, PURC_VARIANT_TYPE_SEQUENCE)) {
         if (sequence->flags & PCVARIANT_FLAG_LONG)
@@ -527,7 +527,7 @@ size_t purc_variant_sequence_length(const purc_variant_t sequence)
 
 void pcvariant_sequence_release(purc_variant_t sequence)
 {
-    PCVARIANT_ALWAYS_ASSERT(sequence);
+    PC_ASSERT(sequence);
 
     if (purc_variant_is_type(sequence, PURC_VARIANT_TYPE_STRING)) {
         if (sequence->flags & PCVARIANT_FLAG_LONG) { 
