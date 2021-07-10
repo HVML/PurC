@@ -428,6 +428,21 @@ void pcvariant_stat_additional_memory (purc_variant_t value, bool add)
     }
 }
 
+/* VWNOTE (WARNING):
+ *
+ * This function has bad interface (ambiguous arguments),
+ * this breaks the readability of the function.
+ *
+ * The better implementation is spliting into two functions,
+ * one for get, one for put.
+ *
+ * Another problem is this impelmentation does not count
+ * the memory cosumed by a complex variant value, e.g., a
+ * long string or an array.
+ *
+ * I think the best way is changing the stat structure
+ * in pcvariant_get() and pcvariant_put() separately and directly.
+ */
 static void
     pcvariant_set_stat (enum purc_variant_type type, bool reserved, bool direct)
 {
