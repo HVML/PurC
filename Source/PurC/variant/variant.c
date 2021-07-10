@@ -349,20 +349,30 @@ int purc_variant_compare (purc_variant_t v1, purc_variant v2)
 }
 #endif
 
+/* VWNOTE (WARNING):
+ * to find errors in advance, please change the conditional compilation manually:
+ *  `#if 0`
+ * to make sure the code in other branches can be compiled correctly.
+ */
+
+/* VWNOTE (WARNING):
+ * there are extra spaces in the end of code lines.
+ * use vim command `set listchars=tab:>·,trail:·` to show tabs and spaces in the line end.
+ */
 #if HAVE(GLIB)
-static inline void * pcvariant_alloc_mem(size_t size)           
+static inline UNUSED_FUNCTION void * pcvariant_alloc_mem(size_t size)           
                 { return (void *)g_slice_alloc((gsize)size); }
 static inline void * pcvariant_alloc_mem_0(size_t size)         
                 { return (void *)g_slice_alloc0((gsize)size); }
 static inline void pcvariant_free_mem(size_t size, void *ptr)   
                 { return g_slice_free1((gsize)size, (gpointer)ptr); }
 #else
-static inline void * pcvariant_alloc_mem(size_t size)           
+static inline UNUSED_FUNCTION void * pcvariant_alloc_mem(size_t size)
                 { return malloc(size); }
 static inline void * pcvariant_alloc_mem_0(size_t size)         
-                { return (void *)calloc(size); }
+                { return (void *)calloc(1, size); }
 static inline void pcvariant_free_mem(size_t size, void *ptr)   
-                { return free(ptr); }
+                { UNUSED_PARAM(size); return free(ptr); }
 #endif
 
 
@@ -382,6 +392,7 @@ purc_variant_t pcvariant_get (void)
         value = heap->nr_reserved[heap->tailpos];
         heap->tailpos = (heap->tailpos + 1) % MAX_RESERVED_VARIANTS;
 
+        /* VWNOTE (WARNING): redundant code */
         if (value == NULL) {
             value = (purc_variant_t)pcvariant_alloc_mem_0 (sizeof(purc_variant));
             if (value == NULL)
@@ -408,6 +419,13 @@ void pcvariant_put (purc_variant_t value)
     }
 }
 
+/* VWNOTE (ERROR):
+   - bad name for an extern function.
+   - no any caller.
+
+   This function should be implemented as a static function called
+   by pcvairant_get and pcvariant_put.
+*/
 void set_stat_info (purc_variant_t value)
 {
     struct pcinst * instance = pcinst_current ();
