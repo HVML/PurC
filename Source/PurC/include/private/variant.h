@@ -34,10 +34,15 @@
 extern "C" {
 #endif  /* __cplusplus */
 
-#define PCVARIANT_FLAG_NOREF        (0x01 << 0)
-#define PCVARIANT_FLAG_NOFREE       (0x01 << 1)
+#define PCVARIANT_FLAG_CONSTANT     (0x01 << 0)     // for null, true, ...
+#define PCVARIANT_FLAG_NOFREE       PCVARIANT_FLAG_CONSTANT
+#define PCVARIANT_FLAG_EXTRA_SIZE   (0x01 << 1)     // when use extra space
+
+/* VWNOTE: use value->size instead: value->size == 0 */
 #define PCVARIANT_FLAG_LONG         (0x01 << 15)    // for long string or sequence
+/* VWNOTE: no need */
 #define PCVARIANT_FLAG_SIGNED       (0x01 << 15)    // for signed int
+/* VWNOTE: no need. */
 #define PCVARIANT_FLAG_ATOM_STATIC  (0x01 << 15)    // for static atom string
 
 #define PVT(t) (PURC_VARIANT_TYPE##t)
@@ -50,8 +55,10 @@ struct purc_variant {
     /* variant type */
     unsigned int type:8;
 
-    /* real length for short string and byte sequence */
-    unsigned int size:8;        
+    /* real length for short string and byte sequence.
+       use the extra space (long string and byte sequence)
+       if the value of this field is 0. */
+    unsigned int size:8;
 
     /* flags */
     unsigned int flags:16;
@@ -79,10 +86,12 @@ struct purc_variant {
         /* for dynamic and native variant (two pointers) */
         void*       ptr2[2];
 
-        /* for long string, long byte sequence, array, and object (sz_ptr[0] for pointer, sz_ptr[1] for size). */
+        /* for long string, long byte sequence, array, object,
+           and set (sz_ptr[0] for size, sz_ptr[1] for pointer). */
         uintptr_t   sz_ptr[2];
 
-        /* for short string and byte sequence; the real space size of `bytes` is `max(sizeof(long double), sizeof(void*) * 2)` */
+        /* for short string and byte sequence; the real space size of `bytes`
+           is `max(sizeof(long double), sizeof(void*) * 2)` */
         uint8_t     bytes[0];
     };
 };
