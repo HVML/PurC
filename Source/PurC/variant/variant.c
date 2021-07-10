@@ -92,6 +92,18 @@ void pcvariant_init (void)
     instance->variant_heap.v_false.refc = 1;
     instance->variant_heap.v_false.flags = PCVARIANT_FLAG_NOFREE;
     instance->variant_heap.v_false.b = false;
+
+    struct purc_variant_stat * stat = &(instance->variant_heap.stat);
+    stat->nr_values[PURC_VARIANT_TYPE_NULL] = 1;
+    stat->sz_mem[PURC_VARIANT_TYPE_NULL] = sizeof(purc_variant);
+    stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED] = 1;
+    stat->sz_mem[PURC_VARIANT_TYPE_UNDEFINED] = sizeof(purc_variant);
+    stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN] = 1;
+    stat->sz_mem[PURC_VARIANT_TYPE_BOOLEAN] = sizeof(purc_variant);
+    stat->nr_total_values = 3;
+    stat->sz_total_mem = 3 * sizeof(purc_variant);
+
+    // initialize others
 }
 
 void pcvariant_init_instance(struct pcinst* inst)
@@ -116,6 +128,16 @@ void pcvariant_init_instance(struct pcinst* inst)
     inst->variant_heap.v_true.refc = 1;
     inst->variant_heap.v_true.flags = PCVARIANT_FLAG_NOFREE;
     inst->variant_heap.v_true.b = true;
+
+    struct purc_variant_stat * stat = &(inst->variant_heap.stat);
+    stat->nr_values[PURC_VARIANT_TYPE_NULL] = 1;
+    stat->sz_mem[PURC_VARIANT_TYPE_NULL] = sizeof(purc_variant);
+    stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED] = 1;
+    stat->sz_mem[PURC_VARIANT_TYPE_UNDEFINED] = sizeof(purc_variant);
+    stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN] = 1;
+    stat->sz_mem[PURC_VARIANT_TYPE_BOOLEAN] = sizeof(purc_variant);
+    stat->nr_total_values = 3;
+    stat->sz_total_mem = 3 * sizeof(purc_variant);
 
     // initialize others
 }
@@ -239,19 +261,39 @@ unsigned int purc_variant_unref (purc_variant_t value)
             release (value);
 
         if (value->flags & PCVARIANT_FLAG_NOFREE) {
-            // do nothing
+            if (value->type > PURC_VARIANT_TYPE_BOOLEAN) {
+                struct pcinst * instance = pcinst_current ();
+                PCVARIANT_ALWAYS_ASSERT(instance);
+
+                struct purc_variant_stat * stat = &(instance->variant_heap.stat);
+
+                stat->nr_reserved ++;
+            } 
         }
         else
         {
             // release variant
-            pcvariant_put (value);
-            return 0;
+            if (value->type > PURC_VARIANT_TYPE_BOOLEAN) {
+                pcvariant_put (value);
+                return 0;
+            }
         }
     }
 
     return value->refc;
 }
 
+bool purc_variant_usage_stat (struct purc_variant_stat* stat)
+{
+    PCVARIANT_ALWAYS_ASSERT(stat);
+
+    struct pcinst * instance = pcinst_current ();
+    PCVARIANT_ALWAYS_ASSERT(instance);
+
+    memcpy(stat, &(instance->variant_heap.stat), sizeof(struct purc_variant_stat));
+
+    return true;
+}
 
 // todo
 purc_variant_t purc_variant_make_from_json_string (const char* json, size_t sz)
@@ -259,7 +301,7 @@ purc_variant_t purc_variant_make_from_json_string (const char* json, size_t sz)
     UNUSED_PARAM(json);
     UNUSED_PARAM(sz);
 
-    purc_variant_t value = pcvariant_get ();
+    purc_variant_t value = pcvariant_get (PURC_VARIANT_TYPE_STRING);
 
     return value;
 }
@@ -267,7 +309,7 @@ purc_variant_t purc_variant_make_from_json_string (const char* json, size_t sz)
 // todo
 purc_variant_t purc_variant_load_from_json_file (const char* file)
 {
-    PCVARIANT_ASSERT(file);
+    PCVARIANT_ALWAYS_ASSERT(file);
 
     purc_rwstream_t rwstream = purc_rwstream_new_from_file (file, "r");
     if (rwstream == NULL)
@@ -295,8 +337,8 @@ purc_variant_t purc_variant_load_from_json_file (const char* file)
 purc_variant_t purc_variant_dynamic_value_load_from_so (const char* so_name, 
                                                         const char* var_name)
 {
-    PCVARIANT_ASSERT(so_name);
-    PCVARIANT_ASSERT(var_name);
+    PCVARIANT_ALWAYS_ASSERT(so_name);
+    PCVARIANT_ALWAYS_ASSERT(var_name);
 
     purc_variant_t value = PURC_VARIANT_INVALID;
 
@@ -366,7 +408,95 @@ static inline void pcvariant_free_mem(size_t size, void *ptr)
 #endif
 
 
-purc_variant_t pcvariant_get (void)
+// set statistic for additional memory for one variant
+void pcvariant_stat_additional_memory (purc_variant_t value, bool add)
+{
+    struct pcinst * instance = pcinst_current ();
+
+    PCVARIANT_ALWAYS_ASSERT(value);
+    PCVARIANT_ALWAYS_ASSERT(instance);
+
+    struct purc_variant_stat * stat = &(instance->variant_heap.stat);
+    int type = value->type;
+
+    switch (type)
+    {
+        case PURC_VARIANT_TYPE_STRING:
+        case PURC_VARIANT_TYPE_SEQUENCE:
+            if (value->flags & PCVARIANT_FLAG_LONG) {
+                if (add) {
+                    stat->sz_mem[type] += (size_t)value->sz_ptr[1];
+                    stat->sz_total_mem += (size_t)value->sz_ptr[1];
+                }
+                else {
+                    stat->sz_mem[type] -= (size_t)value->sz_ptr[1];
+                    stat->sz_total_mem -= (size_t)value->sz_ptr[1];
+                }
+            }
+            break;
+
+        case PURC_VARIANT_TYPE_ATOM_STRING:
+            if (!(value->flags & PCVARIANT_FLAG_ATOM_STATIC)) {
+                if (add) {
+                    stat->sz_mem[type] += (size_t)value->size;
+                    stat->sz_total_mem += (size_t)value->size;
+                }
+                else {
+                    // whether invoke it, depend on atom string release
+                    stat->sz_mem[type] -= (size_t)value->size;
+                    stat->sz_total_mem -= (size_t)value->size;
+                }
+            }
+            break;
+    }
+}
+
+static void 
+    pcvariant_set_stat (enum purc_variant_type type, bool reserved, bool direct)
+{
+    struct pcinst * instance = pcinst_current ();
+    PCVARIANT_ALWAYS_ASSERT(instance);
+
+    struct purc_variant_stat * stat = &(instance->variant_heap.stat);
+
+    switch (type)
+    {
+        // do not set null, undefined, boolean type
+        case PURC_VARIANT_TYPE_NUMBER:
+        case PURC_VARIANT_TYPE_LONGINT:
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+        case PURC_VARIANT_TYPE_DYNAMIC:
+        case PURC_VARIANT_TYPE_NATIVE:
+        case PURC_VARIANT_TYPE_STRING:
+        case PURC_VARIANT_TYPE_SEQUENCE:
+        case PURC_VARIANT_TYPE_ATOM_STRING:
+        case PURC_VARIANT_TYPE_OBJECT:
+        case PURC_VARIANT_TYPE_ARRAY:
+        case PURC_VARIANT_TYPE_SET:
+            if (direct) {
+                stat->nr_values[type] ++ ;
+                stat->nr_total_values ++ ;
+                if (!reserved) {
+                    stat->sz_mem[type] += sizeof(purc_variant);
+                    stat->sz_total_mem += sizeof(purc_variant);
+                }
+            }
+            else {
+                stat->nr_values[type] -- ;
+                stat->nr_total_values -- ;
+                if (!reserved) {
+                    stat->sz_mem[type] -= sizeof(purc_variant);
+                    stat->sz_total_mem -= sizeof(purc_variant);
+                }
+            }
+            break;
+
+        default:
+            break;
+    }
+}
+
+purc_variant_t pcvariant_get (enum purc_variant_type type)
 {
     purc_variant_t value = NULL;
     struct pcinst * instance = pcinst_current ();
@@ -377,6 +507,8 @@ purc_variant_t pcvariant_get (void)
         value = (purc_variant_t)pcvariant_alloc_mem_0 (sizeof(purc_variant));
         if (value == NULL)
             value = PURC_VARIANT_INVALID;
+        else
+            pcvariant_set_stat (type, false, true);
     }
     else {
         value = heap->nr_reserved[heap->tailpos];
@@ -386,7 +518,11 @@ purc_variant_t pcvariant_get (void)
             value = (purc_variant_t)pcvariant_alloc_mem_0 (sizeof(purc_variant));
             if (value == NULL)
                 value = PURC_VARIANT_INVALID;
+            else
+                pcvariant_set_stat (type, false, true);
         }
+        else
+            pcvariant_set_stat (type, true, true);
     }
 
     return value;
@@ -394,81 +530,19 @@ purc_variant_t pcvariant_get (void)
 
 void pcvariant_put (purc_variant_t value)
 {
-    PCVARIANT_ASSERT(value);
+    PCVARIANT_ALWAYS_ASSERT(value);
 
     struct pcinst * instance = pcinst_current ();
     struct pcvariant_heap * heap = &(instance->variant_heap);
 
     if ((heap->headpos + 1) % MAX_RESERVED_VARIANTS == heap->tailpos) {
         pcvariant_free_mem (sizeof(struct purc_variant), value);
+        pcvariant_set_stat (value->type, false, false);
     }
     else {
         heap->nr_reserved[heap->headpos] = value;
         heap->headpos = (heap->headpos + 1) % MAX_RESERVED_VARIANTS;
-    }
-}
-
-void set_stat_info (purc_variant_t value)
-{
-    struct pcinst * instance = pcinst_current ();
-
-    PCVARIANT_ASSERT(value);
-    PCVARIANT_ASSERT(instance);
-
-    struct purc_variant_stat * stat = &(instance->variant_heap.stat);
-    int type = value->type;
-
-    stat->nr_values[type] ++ ;
-    stat->nr_total_values ++ ;
-
-    switch (type)
-    {
-        case PURC_VARIANT_TYPE_NULL:
-        case PURC_VARIANT_TYPE_UNDEFINED:
-        case PURC_VARIANT_TYPE_BOOLEAN:
-            break;
-
-        case PURC_VARIANT_TYPE_NUMBER:
-        case PURC_VARIANT_TYPE_LONGINT:
-        case PURC_VARIANT_TYPE_LONGDOUBLE:
-        case PURC_VARIANT_TYPE_DYNAMIC:
-        case PURC_VARIANT_TYPE_NATIVE:
-            stat->sz_mem[type] += sizeof(purc_variant);
-            stat->sz_total_mem += sizeof(purc_variant);
-            break;
-
-        case PURC_VARIANT_TYPE_STRING:
-        case PURC_VARIANT_TYPE_SEQUENCE:
-            if (value->flags & PCVARIANT_FLAG_LONG) {
-                stat->sz_mem[type] += (size_t)value->sz_ptr[1];
-                stat->sz_total_mem += (size_t)value->sz_ptr[1];
-            }
-            break;
-
-        case PURC_VARIANT_TYPE_ATOM_STRING:
-            if (!(value->flags & PCVARIANT_FLAG_ATOM_STATIC)) {
-                stat->sz_mem[type] += (size_t)value->size;
-                stat->sz_total_mem += (size_t)value->size;
-            }
-            break;
-
-        case PURC_VARIANT_TYPE_OBJECT:
-            stat->sz_mem[type] += sizeof(purc_variant);
-            stat->sz_total_mem += sizeof(purc_variant);
-            break;
-
-        case PURC_VARIANT_TYPE_ARRAY:
-            stat->sz_mem[type] += sizeof(purc_variant);
-            stat->sz_total_mem += sizeof(purc_variant);
-            break;
-
-        case PURC_VARIANT_TYPE_SET:
-            stat->sz_mem[type] += sizeof(purc_variant);
-            stat->sz_total_mem += sizeof(purc_variant);
-            break;
-
-        default:
-            break;
+        pcvariant_set_stat (value->type, true, false);
     }
 }
 
