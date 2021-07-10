@@ -38,7 +38,7 @@ extern "C" {
 #define PCVARIANT_FLAG_NOFREE       PCVARIANT_FLAG_CONSTANT
 #define PCVARIANT_FLAG_EXTRA_SIZE   (0x01 << 1)     // when use extra space
 
-/* VWNOTE: use value->size instead: value->size == 0 */
+/* VWNOTE: use value->size or PCVARIANT_FLAG_EXTRA_SIZE flag */
 #define PCVARIANT_FLAG_LONG         (0x01 << 15)    // for long string or sequence
 /* VWNOTE: no need */
 #define PCVARIANT_FLAG_SIGNED       (0x01 << 15)    // for signed int
