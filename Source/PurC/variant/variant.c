@@ -193,6 +193,7 @@ unsigned int purc_variant_unref (purc_variant_t value)
     }
 
     switch ((int)value->type) {
+        /* VWNOTE (WARN): Why not use default to bypass all other types? */
         case PURC_VARIANT_TYPE_NULL:
         case PURC_VARIANT_TYPE_UNDEFINED:
         case PURC_VARIANT_TYPE_BOOLEAN:
@@ -260,11 +261,22 @@ unsigned int purc_variant_unref (purc_variant_t value)
     return value->refc;
 }
 
+/*
+ * VWNOTE (INFO):
+ * change the prototype to
+ *
+ *    const struct purc_variant_stat* purc_variant_usage_stat (void)
+ *
+ * to avoid copy the data. (NULL for no instance)
+ */
+
 bool purc_variant_usage_stat (struct purc_variant_stat* stat)
 {
     PC_ASSERT(stat);
 
     struct pcinst * instance = pcinst_current ();
+
+    /* VWNOTE (ERROR): Do not assert, set error and return instead. */
     PC_ASSERT(instance);
 
     memcpy(stat, &(instance->variant_heap.stat), sizeof(struct purc_variant_stat));
@@ -419,6 +431,18 @@ pcvariant_set_stat (enum purc_variant_type type, bool reserved, bool direct)
 
     struct purc_variant_stat * stat = &(instance->variant_heap.stat);
 
+   /* VWNOTE (WARN):
+    * use a flag for constant values (PCVARIANT_FLAG_NOFREE), and a flag
+    * for values having an extra size will simplify the code to:
+    *
+    * size_t value_sz = 0;
+    * if (!(value->flags & PCVARIANT_FLAG_NOFREE)) {
+    *    value_sz = sizeof(purc_variant);
+    * }
+    *
+    * ...
+    *
+    */
     switch (type)
     {
         // do not set null, undefined, boolean type
