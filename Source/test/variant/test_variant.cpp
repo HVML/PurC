@@ -39,6 +39,7 @@ TEST(variant, pcutils_arrlist_double_free)
 static size_t _hash_table_items_free = 0;
 static void _hash_table_item_free(pchash_entry *e)
 {
+    free(pchash_entry_k(e));
     free(pchash_entry_v(e));
     ++_hash_table_items_free;
 }
@@ -51,13 +52,16 @@ TEST(variant, pchash_table_double_free)
 
     struct pchash_table *ht = pchash_kchar_table_new(3, _hash_table_item_free);
 
-    char *s1 = strdup("hello");
-    t = pchash_table_insert(ht, "hello", s1);
+    const char *k1 = "hello";
+    t = pchash_table_insert(ht, strdup(k1), strdup(k1));
     ASSERT_EQ(t, 0);
 
-    t = pchash_table_insert(ht, "hello", s1);
-    ASSERT_EQ(t, 0);
-
+    struct pchash_entry *e = pchash_table_lookup_entry(ht, k1);
+    EXPECT_NE(e, (void*)NULL);
+    const char *kk = (const char*)pchash_entry_k(e);
+    ASSERT_NE(k1, kk);
+    EXPECT_STREQ(k1, kk);
+    ASSERT_EQ(0, strcmp(k1, kk));
     pchash_table_free(ht);
 
     // test check

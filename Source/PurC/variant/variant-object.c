@@ -57,12 +57,104 @@ static void _object_kv_free(struct pchash_entry *e)
 {
     char           *k = (char*)pchash_entry_k(e);
     purc_variant_t  v = (purc_variant_t)pchash_entry_v(e);
-    if (!e->k_is_constant) {
-        free(k);
-    }
+    free(k);
     purc_variant_unref(v);
     // no need to free e
     // hashtable will take care
+}
+
+static purc_variant_t _variant_object_new_with_capacity(size_t initial_size)
+{
+    // later, we'll use MACRO rather than malloc directly
+    purc_variant_t var = (purc_variant_t)malloc(sizeof(*var));
+    if (!var) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return PURC_VARIANT_INVALID;
+    }
+
+    var->type          = PVT(_OBJECT);
+
+    if (initial_size==0)
+        initial_size = HASHTABLE_DEFAULT_SIZE;
+
+    struct pchash_table *ht = pchash_kchar_table_new(initial_size, _object_kv_free);
+    if (!ht) {
+        free(var);
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return PURC_VARIANT_INVALID;
+    }
+    var->sz_ptr[1]     = (uintptr_t)ht;
+    var->refc          = 1;
+    // an empty variant is born
+
+    return var;
+}
+
+static int _variant_object_set(purc_variant_t obj, const char *k, purc_variant_t val)
+{
+    int r;
+    struct pchash_table *ht = (struct pchash_table*)obj->sz_ptr[1];
+    struct pchash_entry *e  = pchash_table_lookup_entry(ht, k);
+    if (e) {
+        if (pchash_entry_v(e)==val)
+            return 0;
+        r = pchash_table_delete_entry(ht, e);
+        PCVARIANT_ALWAYS_ASSERT(r==0);
+    }
+    if (pchash_table_resize(ht, pchash_table_length(ht)+1) ||
+        pchash_table_insert(ht, k, val))
+    {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+
+    return 0;
+}
+
+static int _variant_object_set_kvs_n(purc_variant_t obj, size_t nr_kv_pairs, int _c, va_list ap)
+{
+    const char *k_c;
+    purc_variant_t k, v;
+
+    size_t i = 1;
+    while (i<nr_kv_pairs) {
+        if (_c) {
+            k_c = va_arg(ap, const char*);
+        } else {
+            k = va_arg(ap, purc_variant_t);
+            if (!k) {
+                pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+                break;
+            }
+            k_c = purc_variant_get_string_const(k);
+            PCVARIANT_ALWAYS_ASSERT(k_c);
+        }
+        v = va_arg(ap, purc_variant_t);
+        if (!k_c || !*k_c || !v) {
+            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            break;
+        }
+
+        if (_variant_object_set(obj, k_c, v)) {
+            // errcode already by _variant_object_set
+            break;
+        }
+        // add ref
+        purc_variant_ref(v);
+    }
+    return i<nr_kv_pairs ? -1 : 0;
+}
+
+static int _variant_object_remove(purc_variant_t obj, const char *key)
+{
+    struct pchash_table *ht = (struct pchash_table*)obj->sz_ptr[1];
+
+    if (pchash_table_delete(ht, key)) {
+        pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
+        return false;
+    }
+
+    return true;
 }
 
 purc_variant_t purc_variant_make_object_c (size_t nr_kv_pairs, const char* key0, purc_variant_t value0, ...)
@@ -71,74 +163,45 @@ purc_variant_t purc_variant_make_object_c (size_t nr_kv_pairs, const char* key0,
                          (nr_kv_pairs>0 && key0 && *key0),
         PURC_VARIANT_INVALID);
 
-    // later, we'll use MACRO rather than malloc directly
-    purc_variant_t var = (purc_variant_t)malloc(sizeof(*var));
-    if (!var) {
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+    purc_variant_t obj = _variant_object_new_with_capacity(nr_kv_pairs);
+    if (!obj) {
+        // errcode already by _variant_object_set
         return PURC_VARIANT_INVALID;
+    }
+    if (nr_kv_pairs==0) {
+        // object with no kv
+        return obj;
     }
 
     do {
-        var->type          = PVT(_OBJECT);
-        var->refc          = 1;
-
-        size_t initial_size = HASHTABLE_DEFAULT_SIZE;
-        if (nr_kv_pairs)
-            initial_size = nr_kv_pairs;
-
-        struct pchash_table *ht = pchash_kchar_table_new(initial_size, _object_kv_free);
-
-        if (!ht)
-            break;
-        var->sz_ptr[1]     = (uintptr_t)ht;
-
-        if (nr_kv_pairs==0) {
-            // object with no kv
-            return var;
-        }
-
-        va_list ap;
-        va_start(ap, value0);
-
         const char     *k = key0;
         purc_variant_t  v = value0;
-        if (pchash_table_insert(ht, k, v)) {
-            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        if (_variant_object_set(obj, k, v)) {
+            // errcode already by _variant_object_set
             break;
         }
         // add ref
         purc_variant_ref(v);
 
-        size_t i = 1;
-        while (i<nr_kv_pairs) {
-            k = va_arg(ap, const char*);
-            v = va_arg(ap, purc_variant_t);
-            if (!k || !*k || !v) {
-                pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        if (nr_kv_pairs>1) {
+            va_list ap;
+            va_start(ap, value0);
+            int r = _variant_object_set_kvs_n(obj, nr_kv_pairs-1, 1, ap);
+            va_end(ap);
+            if (r) {
+                // errcode already by _variant_object_set
                 break;
             }
-
-            if (pchash_table_insert(ht, k, v)) {
-                pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-                break;
-            }
-            // add ref
-            purc_variant_ref(v);
         }
-        va_end(ap);
 
-        if (i<nr_kv_pairs)
-            break;
-
-        return var;
+        return obj;
     } while (0);
 
     // cleanup
-    struct pchash_table *ht = (struct pchash_table*)var->sz_ptr[1];
-    pchash_table_free(ht);
-    var->sz_ptr[1] = (uintptr_t)NULL; // say no to double free
+    --obj->refc;
+    pcvariant_object_release(obj);
     // todo: use macro instead
-    free(var);
+    free(obj);
 
     return PURC_VARIANT_INVALID;
 }
@@ -149,84 +212,49 @@ purc_variant_t purc_variant_make_object (size_t nr_kv_pairs, purc_variant_t key0
                          (nr_kv_pairs>0 && key0 && value0),
         PURC_VARIANT_INVALID);
 
-    // later, we'll use MACRO rather than malloc directly
-    purc_variant_t var = (purc_variant_t)malloc(sizeof(*var));
-    if (!var) {
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+    purc_variant_t obj = _variant_object_new_with_capacity(nr_kv_pairs);
+    if (!obj) {
+        // errcode already by _variant_object_set
         return PURC_VARIANT_INVALID;
+    }
+    if (nr_kv_pairs==0) {
+        // object with no kv
+        return obj;
     }
 
     do {
-        var->type          = PVT(_OBJECT);
-        var->refc          = 1;
-
-        size_t initial_size = HASHTABLE_DEFAULT_SIZE;
-        if (nr_kv_pairs>initial_size)
-            initial_size = nr_kv_pairs;
-
-        struct pchash_table *ht = pchash_kchar_table_new(initial_size, _object_kv_free);
-
-        if (!ht)
-            break;
-        var->sz_ptr[1]     = (uintptr_t)ht;
-
-        if (nr_kv_pairs==0) {
-            // object with no kv
-            return var;
-        }
-
-        va_list ap;
-        va_start(ap, value0);
-
-        purc_variant_t k = key0;
+        const char *k = purc_variant_get_string_const(key0);
         purc_variant_t v = value0;
-        const char *key = purc_variant_get_string_const (k);
-        if (!key) {
+        if (!k) {
             pcinst_set_error(PURC_ERROR_INVALID_VALUE);
             break;
         }
-        if (pchash_table_insert(ht, key, v)) {
-            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        if (_variant_object_set(obj, k, v)) {
+            // errcode already by _variant_object_set
             break;
         }
         // add ref
         purc_variant_ref(v);
 
-        size_t i = 1;
-        while (i<nr_kv_pairs) {
-            k = va_arg(ap, purc_variant_t);
-            v = va_arg(ap, purc_variant_t);
-            if (!k || !v) {
-                pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        if (nr_kv_pairs>1) {
+            va_list ap;
+            va_start(ap, value0);
+            int r = _variant_object_set_kvs_n(obj, nr_kv_pairs-1, 0, ap);
+            va_end(ap);
+            if (r) {
+                // errcode already by _variant_object_set
                 break;
             }
-            key = purc_variant_get_string_const (k);
-            if (!key) {
-                pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-                break;
-            }
-
-            if (pchash_table_insert(ht, key, v)) {
-                pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-                break;
-            }
-            // add ref
-            purc_variant_ref(v);
         }
-        va_end(ap);
 
-        if (i<nr_kv_pairs)
-            break;
-
-        return var;
+        return obj;
     } while (0);
 
     // cleanup
-    struct pchash_table *ht = (struct pchash_table*)var->sz_ptr[1];
-    pchash_table_free(ht);
-    var->sz_ptr[1] = (uintptr_t)NULL; // say no to double free
+    --obj->refc;
+    pcvariant_object_release(obj);
     // todo: use macro instead
-    free(var);
+    free(obj);
 
     return PURC_VARIANT_INVALID;
 }
@@ -285,15 +313,10 @@ bool purc_variant_object_set_c (purc_variant_t obj, const char* key, purc_varian
     PCVARIANT_ASSERT_ARGS((obj && obj->type==PVT(_OBJECT) && obj->sz_ptr[1] && key && *key && value),
         false);
 
-    struct pchash_table *ht = (struct pchash_table*)obj->sz_ptr[1];
-
-    int t = pchash_table_insert(ht, key, value);
-
-    if (t) {
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+    if (_variant_object_set(obj, key, value)) {
+        // errcode already by _variant_object_set
         return false;
     }
-
     // add ref
     purc_variant_ref(value);
 
@@ -305,10 +328,8 @@ bool purc_variant_object_remove_c (purc_variant_t obj, const char* key)
     PCVARIANT_ASSERT_ARGS((obj && obj->type==PVT(_OBJECT) && obj->sz_ptr[1] && key && *key),
         false);
 
-    struct pchash_table *ht = (struct pchash_table*)obj->sz_ptr[1];
-
-    if (pchash_table_delete(ht, key)) {
-        pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
+    if (_variant_object_remove(obj, key)) {
+        // errcode already by _variant_object_remove
         return false;
     }
 
