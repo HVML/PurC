@@ -74,67 +74,34 @@ static struct err_msg_seg _variant_err_msgs_seg = {
 
 void pcvariant_init (void)
 {
-    static struct purc_variant g_null      = {PVT(_NULL),      0, PVF(_NOFREE), 1, {0}};
-    static struct purc_variant g_undefined = {PVT(_UNDEFINED), 0, PVF(_NOFREE), 1, {0}};
-    static struct purc_variant g_true      = {PVT(_BOOLEAN),   0, PVF(_NOFREE), 1, {b:1}};
-    static struct purc_variant g_false     = {PVT(_BOOLEAN),   0, PVF(_NOFREE), 1, {b:0}};
+    // this is module initialization
+    // called only once by purc-runtime for it's whole life time
 
     // register error message
     pcinst_register_error_message_segment (&_variant_err_msgs_seg);
-
-    // register const value in instance
-    struct pcinst * instance = pcinst_current ();
-
-    instance->variant_heap.v_null      = g_null;
-    instance->variant_heap.v_undefined = g_undefined;
-    instance->variant_heap.v_true      = g_true;
-    instance->variant_heap.v_false     = g_false;
-
-    struct purc_variant_stat * stat = &(instance->variant_heap.stat);
-    stat->nr_values[PURC_VARIANT_TYPE_NULL] = 1;
-    stat->sz_mem[PURC_VARIANT_TYPE_NULL] = sizeof(purc_variant);
-    stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED] = 1;
-    stat->sz_mem[PURC_VARIANT_TYPE_UNDEFINED] = sizeof(purc_variant);
-    stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN] = 1;
-    stat->sz_mem[PURC_VARIANT_TYPE_BOOLEAN] = sizeof(purc_variant);
-    stat->nr_total_values = 3;
-    stat->sz_total_mem = 3 * sizeof(purc_variant);
-
-    // initialize others
 }
 
 void pcvariant_init_instance(struct pcinst* inst)
 {
-    pcinst_register_error_message_segment(&_variant_err_msgs_seg);
+    // this is initialization for purc-instance or `app` in other words
+    // which is called once such instance is created via purc-runtime
 
-    // initialize const values in instance
-    inst->variant_heap.v_null.type = PURC_VARIANT_TYPE_NULL;
-    inst->variant_heap.v_null.refc = 1;
-    inst->variant_heap.v_null.flags = PCVARIANT_FLAG_NOFREE;
+    // these are static storages, but visible locally and non-modified
+    static const struct purc_variant g_null      = {PVT(_NULL),      0, PVF(_NOFREE), 1, {0}};
+    static const struct purc_variant g_undefined = {PVT(_UNDEFINED), 0, PVF(_NOFREE), 1, {0}};
+    static const struct purc_variant g_true      = {PVT(_BOOLEAN),   0, PVF(_NOFREE), 1, {b:1}};
+    static const struct purc_variant g_false     = {PVT(_BOOLEAN),   0, PVF(_NOFREE), 1, {b:0}};
 
-    inst->variant_heap.v_undefined.type = PURC_VARIANT_TYPE_UNDEFINED;
-    inst->variant_heap.v_undefined.refc = 1;
-    inst->variant_heap.v_undefined.flags = PCVARIANT_FLAG_NOFREE;
+    static const struct pcvariant_heap g_heap = {
+        v_null:g_null,
+        v_undefined:g_undefined,
+        v_true:g_true,
+        v_false:g_false,
+        // default to all-zeros
+    };
 
-    inst->variant_heap.v_false.type = PURC_VARIANT_TYPE_UNDEFINED;
-    inst->variant_heap.v_false.refc = 1;
-    inst->variant_heap.v_false.flags = PCVARIANT_FLAG_NOFREE;
-    inst->variant_heap.v_false.b = false;
-
-    inst->variant_heap.v_true.type = PURC_VARIANT_TYPE_UNDEFINED;
-    inst->variant_heap.v_true.refc = 1;
-    inst->variant_heap.v_true.flags = PCVARIANT_FLAG_NOFREE;
-    inst->variant_heap.v_true.b = true;
-
-    struct purc_variant_stat * stat = &(inst->variant_heap.stat);
-    stat->nr_values[PURC_VARIANT_TYPE_NULL] = 1;
-    stat->sz_mem[PURC_VARIANT_TYPE_NULL] = sizeof(purc_variant);
-    stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED] = 1;
-    stat->sz_mem[PURC_VARIANT_TYPE_UNDEFINED] = sizeof(purc_variant);
-    stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN] = 1;
-    stat->sz_mem[PURC_VARIANT_TYPE_BOOLEAN] = sizeof(purc_variant);
-    stat->nr_total_values = 3;
-    stat->sz_total_mem = 3 * sizeof(purc_variant);
+    // register const value in instance
+    inst->variant_heap = g_heap;
 
     // initialize others
 }
