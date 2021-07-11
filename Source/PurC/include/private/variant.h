@@ -121,7 +121,8 @@ void pcvariant_init_instance(struct pcinst* inst) WTF_INTERNAL;
 void pcvariant_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 
 // set statistic for additional memory for one variant
-void pcvariant_stat_additional_memory (purc_variant_t value, bool add) WTF_INTERNAL;
+void pcvariant_stat_extra_memory (purc_variant_t value, bool add, 
+                                        size_t szie) WTF_INTERNAL;
 
 #ifdef __cplusplus
 }
