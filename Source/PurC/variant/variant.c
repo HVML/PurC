@@ -270,18 +270,13 @@ unsigned int purc_variant_unref (purc_variant_t value)
  * to avoid copy the data. (NULL for no instance)
  */
 
-bool purc_variant_usage_stat (struct purc_variant_stat* stat)
+struct purc_variant_stat * purc_variant_usage_stat (void)
 {
-    PC_ASSERT(stat);
-
     struct pcinst * instance = pcinst_current ();
+    if(instance == NULL)
+        return NULL;
 
-    /* VWNOTE (ERROR): Do not assert, set error and return instead. */
-    PC_ASSERT(instance);
-
-    memcpy(stat, &(instance->variant_heap.stat), sizeof(struct purc_variant_stat));
-
-    return true;
+    return &(instance->variant_heap.stat);
 }
 
 // todo
@@ -379,29 +374,14 @@ void pcvariant_stat_additional_memory (purc_variant_t value, bool add)
     {
         case PURC_VARIANT_TYPE_STRING:
         case PURC_VARIANT_TYPE_SEQUENCE:
-            if (value->flags & PCVARIANT_FLAG_LONG) {
+            if (value->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
                 if (add) {
-                    stat->sz_mem[type] += (size_t)value->sz_ptr[1];
-                    stat->sz_total_mem += (size_t)value->sz_ptr[1];
+                    stat->sz_mem[type] += (size_t)value->sz_ptr[0];
+                    stat->sz_total_mem += (size_t)value->sz_ptr[0];
                 }
                 else {
-                    stat->sz_mem[type] -= (size_t)value->sz_ptr[1];
-                    stat->sz_total_mem -= (size_t)value->sz_ptr[1];
-                }
-            }
-            break;
-
-            /* VWNOTE (FIXME): DO NOT COUNT SIZE OF ATOM STRING */
-        case PURC_VARIANT_TYPE_ATOM_STRING:
-            if (!(value->flags & PCVARIANT_FLAG_ATOM_STATIC)) {
-                if (add) {
-                    stat->sz_mem[type] += (size_t)value->size;
-                    stat->sz_total_mem += (size_t)value->size;
-                }
-                else {
-                    // whether invoke it, depend on atom string release
-                    stat->sz_mem[type] -= (size_t)value->size;
-                    stat->sz_total_mem -= (size_t)value->size;
+                    stat->sz_mem[type] -= (size_t)value->sz_ptr[0];
+                    stat->sz_total_mem -= (size_t)value->sz_ptr[0];
                 }
             }
             break;
@@ -423,8 +403,7 @@ void pcvariant_stat_additional_memory (purc_variant_t value, bool add)
  * I think the best way is changing the stat structure
  * in pcvariant_get() and pcvariant_put() separately and directly.
  */
-static void
-pcvariant_set_stat (enum purc_variant_type type, bool reserved, bool direct)
+static void pcvariant_stat_add (enum purc_variant_type type, bool reserved)
 {
     struct pcinst * instance = pcinst_current ();
     PC_ASSERT(instance);
@@ -457,24 +436,48 @@ pcvariant_set_stat (enum purc_variant_type type, bool reserved, bool direct)
         case PURC_VARIANT_TYPE_OBJECT:
         case PURC_VARIANT_TYPE_ARRAY:
         case PURC_VARIANT_TYPE_SET:
-            if (direct) {
-                /* VWNOTE (INFO):
-                 * DO NOT USE WHITESPACES BEFORE AND AFTER `++` or `--`
-                 */
-                stat->nr_values[type] ++ ;
-                stat->nr_total_values ++ ;
-                if (!reserved) {
-                    stat->sz_mem[type] += sizeof(purc_variant);
-                    stat->sz_total_mem += sizeof(purc_variant);
-                }
+            /* VWNOTE (INFO):
+             * DO NOT USE WHITESPACES BEFORE AND AFTER `++` or `--`
+             */
+            stat->nr_values[type] ++ ;
+            stat->nr_total_values ++ ;
+            if (!reserved) {
+                stat->sz_mem[type] += sizeof(purc_variant);
+                stat->sz_total_mem += sizeof(purc_variant);
             }
-            else {
-                stat->nr_values[type] -- ;
-                stat->nr_total_values -- ;
-                if (!reserved) {
-                    stat->sz_mem[type] -= sizeof(purc_variant);
-                    stat->sz_total_mem -= sizeof(purc_variant);
-                }
+            break;
+
+        default:
+            break;
+    }
+}
+
+static void pcvariant_stat_sub (enum purc_variant_type type, bool reserved)
+{
+    struct pcinst * instance = pcinst_current ();
+    PC_ASSERT(instance);
+
+    struct purc_variant_stat * stat = &(instance->variant_heap.stat);
+
+    switch (type)
+    {
+        // do not set null, undefined, boolean type
+        case PURC_VARIANT_TYPE_NUMBER:
+        case PURC_VARIANT_TYPE_LONGINT:
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+        case PURC_VARIANT_TYPE_DYNAMIC:
+        case PURC_VARIANT_TYPE_NATIVE:
+        case PURC_VARIANT_TYPE_STRING:
+        case PURC_VARIANT_TYPE_SEQUENCE:
+        case PURC_VARIANT_TYPE_ATOM_STRING:
+        case PURC_VARIANT_TYPE_OBJECT:
+        case PURC_VARIANT_TYPE_ARRAY:
+        case PURC_VARIANT_TYPE_SET:
+            stat->nr_values[type] -- ;
+            stat->nr_total_values -- ;
+            if (!reserved) {
+                stat->sz_mem[type] -= sizeof(purc_variant);
+                stat->sz_total_mem -= sizeof(purc_variant);
             }
             break;
 
@@ -495,7 +498,7 @@ purc_variant_t pcvariant_get (enum purc_variant_type type)
         if (value == NULL)
             value = PURC_VARIANT_INVALID;
         else
-            pcvariant_set_stat (type, false, true);
+            pcvariant_stat_add (type, false);
     }
     else {
         value = heap->nr_reserved[heap->tailpos];
@@ -506,10 +509,10 @@ purc_variant_t pcvariant_get (enum purc_variant_type type)
             if (value == NULL)
                 value = PURC_VARIANT_INVALID;
             else
-                pcvariant_set_stat (type, false, true);
+                pcvariant_stat_add (type, false);
         }
         else
-            pcvariant_set_stat (type, true, true);
+            pcvariant_stat_add (type, true);
     }
 
     return value;
@@ -524,12 +527,12 @@ void pcvariant_put (purc_variant_t value)
 
     if ((heap->headpos + 1) % MAX_RESERVED_VARIANTS == heap->tailpos) {
         pcvariant_free_mem (sizeof(struct purc_variant), value);
-        pcvariant_set_stat (value->type, false, false);
+        pcvariant_stat_sub (value->type, false);
     }
     else {
         heap->nr_reserved[heap->headpos] = value;
         heap->headpos = (heap->headpos + 1) % MAX_RESERVED_VARIANTS;
-        pcvariant_set_stat (value->type, true, false);
+        pcvariant_stat_sub (value->type, true);
     }
 }
 

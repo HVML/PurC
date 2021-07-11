@@ -38,13 +38,6 @@ extern "C" {
 #define PCVARIANT_FLAG_NOFREE       PCVARIANT_FLAG_CONSTANT
 #define PCVARIANT_FLAG_EXTRA_SIZE   (0x01 << 1)     // when use extra space
 
-/* VWNOTE: use value->size or PCVARIANT_FLAG_EXTRA_SIZE flag */
-#define PCVARIANT_FLAG_LONG         (0x01 << 15)    // for long string or sequence
-/* VWNOTE: no need */
-#define PCVARIANT_FLAG_SIGNED       (0x01 << 15)    // for signed int
-/* VWNOTE: no need. */
-#define PCVARIANT_FLAG_ATOM_STATIC  (0x01 << 15)    // for static atom string
-
 #define PVT(t) (PURC_VARIANT_TYPE##t)
 
 #define MAX_RESERVED_VARIANTS  32
@@ -87,7 +80,9 @@ struct purc_variant {
         void*       ptr2[2];
 
         /* for long string, long byte sequence, array, object,
-           and set (sz_ptr[0] for size, sz_ptr[1] for pointer). */
+           and set (sz_ptr[0] for size, sz_ptr[1] for pointer).
+           for atom string, sz_ptr[0] stores the atom.  */
+
         uintptr_t   sz_ptr[2];
 
         /* for short string and byte sequence; the real space size of `bytes`

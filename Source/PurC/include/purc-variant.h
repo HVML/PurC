@@ -1057,13 +1057,11 @@ struct purc_variant_stat {
 /**
  * Statistic of variant status.
  *
- * @param stat: the pointer of purc_variant_stat
- *
- * Returns: True on success, otherwise False.
+ * Returns: The pointer to struct purc_variant_stat on success, otherwise NULL.
  *
  * Since: 0.0.1
  */
-PCA_EXPORT bool purc_variant_usage_stat (struct purc_variant_stat* stat);
+PCA_EXPORT struct purc_variant_stat*  purc_variant_usage_stat (void);
 
 #define foreach_value_in_variant_array(array, value)                \
     do {                                                            \

@@ -196,7 +196,7 @@ purc_variant_t purc_variant_make_longint (int64_t u64)
 
     value->type = PURC_VARIANT_TYPE_LONGINT;
     value->flags = 0;
-    value->flags |= PCVARIANT_FLAG_SIGNED;
+    value->size = 8;            // marked, if size == 8, it is signed long int
     value->refc = 1;
     value->u64 = u64;
 
@@ -284,16 +284,16 @@ purc_variant_t
         value->size = str_size;
     }
     else {
-        value->flags |= PCVARIANT_FLAG_LONG;
-        value->sz_ptr[0] = (uintptr_t)malloc (str_size + 1);
-        if(value->sz_ptr[0] == 0) {
+        value->flags |= PCVARIANT_FLAG_EXTRA_SIZE;
+        value->sz_ptr[1] = (uintptr_t)malloc (str_size + 1);
+        if(value->sz_ptr[1] == 0) {
             pcvariant_put (value);
             pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PURC_VARIANT_INVALID;
         }
 
-        value->sz_ptr[1] = (uintptr_t)str_size;
-        memcpy ((void *)value->sz_ptr[0], str_utf8, str_size);
+        value->sz_ptr[0] = (uintptr_t)str_size;
+        memcpy ((void *)value->sz_ptr[1], str_utf8, str_size);
         pcvariant_stat_additional_memory (value, true);
     }
 
@@ -307,8 +307,8 @@ const char* purc_variant_get_string_const (purc_variant_t string)
     PC_ASSERT(string);
 
     if (purc_variant_is_type (string, PURC_VARIANT_TYPE_STRING)) {
-        if (string->flags & PCVARIANT_FLAG_LONG)
-            str_str = (char *)string->sz_ptr[0];
+        if (string->flags & PCVARIANT_FLAG_EXTRA_SIZE)
+            str_str = (char *)string->sz_ptr[1];
         else
             str_str = (char *)string->bytes;
     }
@@ -325,8 +325,8 @@ size_t purc_variant_string_length (const purc_variant_t string)
     PC_ASSERT(string);
 
     if (purc_variant_is_type(string, PURC_VARIANT_TYPE_STRING)) {
-        if (string->flags & PCVARIANT_FLAG_LONG)
-            str_size = (size_t)string->sz_ptr[1];
+        if (string->flags & PCVARIANT_FLAG_EXTRA_SIZE)
+            str_size = (size_t)string->sz_ptr[0];
         else
             str_size = string->size;
     }
@@ -341,8 +341,8 @@ void pcvariant_string_release (purc_variant_t string)
     PC_ASSERT(string);
 
     if (purc_variant_is_type (string, PURC_VARIANT_TYPE_STRING)) {
-        if (string->flags & PCVARIANT_FLAG_LONG) {
-            free ((void *)string->sz_ptr[0]);
+        if (string->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
+            free ((void *)string->sz_ptr[1]);
             pcvariant_stat_additional_memory (string, false);
         }
     }
@@ -379,7 +379,7 @@ purc_variant_t
 
     value->type = PURC_VARIANT_TYPE_ATOM_STRING;
     value->size = strlen (str_utf8);
-    value->flags = 0;
+    value->flags |= PCVARIANT_FLAG_EXTRA_SIZE;
     value->refc = 1;
     value->sz_ptr[0] = atom;
 
@@ -418,7 +418,7 @@ purc_variant_t
 
     value->type = PURC_VARIANT_TYPE_ATOM_STRING;
     value->size = strlen (str_utf8);
-    value->flags |= PCVARIANT_FLAG_ATOM_STATIC;
+    value->flags = 0;
     value->refc = 1;
     value->sz_ptr[0] = atom;
 
@@ -432,7 +432,7 @@ const char* purc_variant_get_atom_string_const (purc_variant_t atom_string)
     PC_ASSERT(atom_string);
 
     if (purc_variant_is_type (atom_string, PURC_VARIANT_TYPE_ATOM_STRING))
-        str_str = (char *)atom_string->sz_ptr[0];
+        str_str = purc_atom_to_string(atom_string->sz_ptr[0]);
     else
         pcinst_set_error (PCVARIANT_INVALID_TYPE);
 
@@ -469,16 +469,16 @@ purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes,
     }
     else
     {
-        value->flags |= PCVARIANT_FLAG_LONG;
-        value->sz_ptr[0] = (uintptr_t) malloc (nr_bytes);
-        if (value->sz_ptr[0] == 0) {
+        value->flags |= PCVARIANT_FLAG_EXTRA_SIZE;
+        value->sz_ptr[1] = (uintptr_t) malloc (nr_bytes);
+        if (value->sz_ptr[1] == 0) {
             pcvariant_put (value);
             pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PURC_VARIANT_INVALID;
         }
 
-        value->sz_ptr[1] = nr_bytes;
-        memcpy ((void *)value->sz_ptr[0], bytes, nr_bytes);
+        value->sz_ptr[0] = nr_bytes;
+        memcpy ((void *)value->sz_ptr[1], bytes, nr_bytes);
     }
 
     return value;
@@ -492,9 +492,9 @@ const unsigned char *
     PC_ASSERT(sequence);
 
     if (purc_variant_is_type(sequence, PURC_VARIANT_TYPE_SEQUENCE)) {
-        if (sequence->flags & PCVARIANT_FLAG_LONG) {
-            bytes = (unsigned char *)sequence->sz_ptr[0];
-            * nr_bytes = (size_t)sequence->sz_ptr[1];
+        if (sequence->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
+            bytes = (unsigned char *)sequence->sz_ptr[1];
+            * nr_bytes = (size_t)sequence->sz_ptr[0];
         }
         else {
             bytes = sequence->bytes;
@@ -514,8 +514,8 @@ size_t purc_variant_sequence_length(const purc_variant_t sequence)
     PC_ASSERT(sequence);
 
     if (purc_variant_is_type (sequence, PURC_VARIANT_TYPE_SEQUENCE)) {
-        if (sequence->flags & PCVARIANT_FLAG_LONG)
-            nr_bytes = (size_t)sequence->sz_ptr[1];
+        if (sequence->flags & PCVARIANT_FLAG_EXTRA_SIZE)
+            nr_bytes = (size_t)sequence->sz_ptr[0];
         else
             nr_bytes = sequence->size;
     }
@@ -530,8 +530,8 @@ void pcvariant_sequence_release(purc_variant_t sequence)
     PC_ASSERT(sequence);
 
     if (purc_variant_is_type(sequence, PURC_VARIANT_TYPE_STRING)) {
-        if (sequence->flags & PCVARIANT_FLAG_LONG) { 
-            free((void *)sequence->sz_ptr[0]);
+        if (sequence->flags & PCVARIANT_FLAG_EXTRA_SIZE) { 
+            free((void *)sequence->sz_ptr[1]);
             pcvariant_stat_additional_memory (sequence, false);
         }
     }
