@@ -7,7 +7,7 @@
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -82,10 +82,6 @@ void pcvariant_init (void)
 
 void pcvariant_init_instance(struct pcinst* inst)
 {
-    /* VWNOTE (ERROR): do not call this when initializing the instance
-    pcinst_register_error_message_segment(&_variant_err_msgs_seg);
-    */
-
     // initialize const values in instance
     inst->variant_heap.v_null.type = PURC_VARIANT_TYPE_NULL;
     inst->variant_heap.v_null.refc = 1;
@@ -105,7 +101,7 @@ void pcvariant_init_instance(struct pcinst* inst)
     inst->variant_heap.v_true.flags = PCVARIANT_FLAG_NOFREE;
     inst->variant_heap.v_true.b = true;
 
-    /* VWNOTE (ERROR): there are two values of boolean.  */
+    /* VWNOTE: there are two values of boolean.  */
     struct purc_variant_stat * stat = &(inst->variant_heap.stat);
     stat->nr_values[PURC_VARIANT_TYPE_NULL] = 1;
     stat->sz_mem[PURC_VARIANT_TYPE_NULL] = sizeof(purc_variant);
@@ -121,8 +117,9 @@ void pcvariant_init_instance(struct pcinst* inst)
 
 void pcvariant_cleanup_instance(struct pcinst* inst)
 {
-    // TODO: release reserved values here.
     UNUSED_PARAM(inst);
+
+    // VWNOTE (TODO): release reserved values here.
 }
 
 bool purc_variant_is_type (const purc_variant_t value,
@@ -193,7 +190,6 @@ unsigned int purc_variant_unref (purc_variant_t value)
     }
 
     switch ((int)value->type) {
-        /* VWNOTE (WARN): Why not use default to bypass all other types? */
         case PURC_VARIANT_TYPE_OBJECT:
             foreach_value_in_variant_object (value, variant)
                 purc_variant_unref (variant);
@@ -248,20 +244,13 @@ unsigned int purc_variant_unref (purc_variant_t value)
     return value->refc;
 }
 
-/*
- * VWNOTE (INFO):
- * change the prototype to
- *
- *    const struct purc_variant_stat* purc_variant_usage_stat (void)
- *
- * to avoid copy the data. (NULL for no instance)
- */
-
 struct purc_variant_stat * purc_variant_usage_stat (void)
 {
     struct pcinst * instance = pcinst_current ();
-    if(instance == NULL)
+    if(instance == NULL) {
+        // VWNOTE (TODO): set error code here.
         return NULL;
+    }
 
     return &(instance->variant_heap.stat);
 }
@@ -305,7 +294,7 @@ purc_variant_t purc_variant_load_from_json_file (const char* file)
 }
 
 /*
- * VWNOTE (ERROR):
+ * VWNOTE:
  * The author should change the condition mannually to
  *      #if 0
  * in order to compile the statements in other branch
@@ -320,9 +309,8 @@ static inline void pcvariant_free_mem(size_t size, void *ptr)
                 { return g_slice_free1((gsize)size, (gpointer)ptr); }
 #else
 /*
- * VWNOTE (ERROR):
+ * VWNOTE:
  *  - Use UNUSED_FUNCTION for unused inline functions to avoid warnings.
- *  - Only one argument passed to calloc before change.
  *  - Use UNUSED_PARAM to avoid compilation warnings.
  */
 static inline UNUSED_FUNCTION void * pcvariant_alloc_mem(size_t size)
@@ -333,22 +321,27 @@ static inline void pcvariant_free_mem(size_t size, void *ptr)
                 { UNUSED_PARAM(size); return free(ptr); }
 #endif
 
-/* VWNOTE (INFO): No need to write a new function for this work.
-   Check the type in pcvariant_get() and pcvariant_put(), and
-   set the stat information directly.
+/* VWNOTE (ERROR):
+ *
+ * Bad implementation:
+ *
+ * 1. only handle two types? You should chech the PCVARIANT_FLAG_EXTRA_SIZE
+      flag instead of the type.
+ * 2. arugment `add` is redundant; always do:
 
-   A better writing (the author should maintain a new flag):
+                    stat->sz_mem[type] -= value->sz_ptr[0];
+                    stat->sz_total_mem -= value->sz_ptr[0];
 
-   if (value->flags | PCVARIANT_FLAG_HAS_EXTRA_SIZE) {
-       size_t extra_size = (size_t)value->sz_ptr[1];
-       stat->sz_mem[type] += extra_size;
-       stat->sz_total_mem += extra_size;
-   }
+                    value->sz_ptr[0] = extra_size;
+
+                    stat->sz_mem[type] += extra_size;
+                    stat->sz_total_mem += extra_size;
+
+ * 3. change the function name to pcvariant_stat_set_extra_size
  */
-
 // set statistic for additional memory for one variant
-void pcvariant_stat_extra_memory (purc_variant_t value, bool add, 
-                                                    size_t extra_size)
+void pcvariant_stat_extra_memory (purc_variant_t value, bool add,
+        size_t extra_size)
 {
     struct pcinst * instance = pcinst_current ();
 
@@ -376,20 +369,10 @@ void pcvariant_stat_extra_memory (purc_variant_t value, bool add,
     }
 }
 
-/* VWNOTE (WARNING):
+/* VWNOTE (ERROR):
  *
- * This function has bad interface (ambiguous arguments),
- * this breaks the readability of the function.
- *
- * The better implementation is spliting into two functions,
- * one for get, one for put.
- *
- * Another problem is this impelmentation does not count
- * the memory cosumed by a complex variant value, e.g., a
- * long string or an array.
- *
- * I think the best way is changing the stat structure
- * in pcvariant_get() and pcvariant_put() separately and directly.
+ * Remove this function and change the stat data in pcvariant_get()
+ * and pcvariant_put().
  */
 static void pcvariant_stat_add (struct purc_variant_stat * stat, 
                             enum purc_variant_type type, bool reserved)
@@ -421,6 +404,11 @@ static void pcvariant_stat_add (struct purc_variant_stat * stat,
     }
 }
 
+/* VWNOTE (ERROR):
+ *
+ * Remove this function and change the stat data in pcvariant_get()
+ * and pcvariant_put().
+ */
 static void pcvariant_stat_sub (struct purc_variant_stat * stat,
                             enum purc_variant_type type, bool reserved)
 {
