@@ -72,6 +72,35 @@ static struct err_msg_seg _variant_err_msgs_seg = {
     variant_err_msgs
 };
 
+/*
+ * VWNOTE:
+ * The author should change the condition mannually to
+ *      #if 0
+ * in order to compile the statements in other branch
+ * to find the potential errors in advance.
+ */
+#if HAVE(GLIB)
+static inline UNUSED_FUNCTION void * pcvariant_alloc_mem(size_t size)
+                { return (void *)g_slice_alloc((gsize)size); }
+static inline void * pcvariant_alloc_mem_0(size_t size)
+                { return (void *)g_slice_alloc0((gsize)size); }
+static inline void pcvariant_free_mem(size_t size, void *ptr)
+                { return g_slice_free1((gsize)size, (gpointer)ptr); }
+#else
+/*
+ * VWNOTE:
+ *  - Use UNUSED_FUNCTION for unused inline functions to avoid warnings.
+ *  - Use UNUSED_PARAM to avoid compilation warnings.
+ */
+static inline UNUSED_FUNCTION void * pcvariant_alloc_mem(size_t size)
+                { return malloc(size); }
+static inline void * pcvariant_alloc_mem_0(size_t size)
+                { return (void *)calloc(1, size); }
+static inline void pcvariant_free_mem(size_t size, void *ptr)
+                { UNUSED_PARAM(size); return free(ptr); }
+#endif
+
+
 void pcvariant_init (void)
 {
     // register error message
@@ -117,9 +146,31 @@ void pcvariant_init_instance(struct pcinst* inst)
 
 void pcvariant_cleanup_instance(struct pcinst* inst)
 {
-    UNUSED_PARAM(inst);
-
     // VWNOTE (TODO): release reserved values here.
+    struct pcvariant_heap * heap = &(inst->variant_heap);
+    purc_variant_t variant = NULL;
+
+    while (heap->headpos != heap->tailpos) {
+        variant = heap->nr_reserved[heap->tailpos];
+        if (variant) {
+            switch (variant->type) {
+                case PURC_VARIANT_TYPE_STRING:
+                case PURC_VARIANT_TYPE_SEQUENCE:
+                    if (variant->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
+                        pcvariant_stat_extra_memory (variant, false,
+                                (size_t)variant->sz_ptr[0]);
+                        free ((void *)variant->sz_ptr[1]);
+                    }
+                    pcvariant_free_mem (sizeof(struct purc_variant), variant);
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        heap->tailpos = (heap->tailpos + 1) % MAX_RESERVED_VARIANTS;
+    }
 }
 
 bool purc_variant_is_type (const purc_variant_t value,
@@ -249,6 +300,7 @@ struct purc_variant_stat * purc_variant_usage_stat (void)
     struct pcinst * instance = pcinst_current ();
     if(instance == NULL) {
         // VWNOTE (TODO): set error code here.
+        pcinst_set_error (PURC_ERROR_NO_INSTANCE);
         return NULL;
     }
 
@@ -292,34 +344,6 @@ purc_variant_t purc_variant_load_from_json_file (const char* file)
 
     return value;
 }
-
-/*
- * VWNOTE:
- * The author should change the condition mannually to
- *      #if 0
- * in order to compile the statements in other branch
- * to find the potential errors in advance.
- */
-#if HAVE(GLIB)
-static inline UNUSED_FUNCTION void * pcvariant_alloc_mem(size_t size)
-                { return (void *)g_slice_alloc((gsize)size); }
-static inline void * pcvariant_alloc_mem_0(size_t size)
-                { return (void *)g_slice_alloc0((gsize)size); }
-static inline void pcvariant_free_mem(size_t size, void *ptr)
-                { return g_slice_free1((gsize)size, (gpointer)ptr); }
-#else
-/*
- * VWNOTE:
- *  - Use UNUSED_FUNCTION for unused inline functions to avoid warnings.
- *  - Use UNUSED_PARAM to avoid compilation warnings.
- */
-static inline UNUSED_FUNCTION void * pcvariant_alloc_mem(size_t size)
-                { return malloc(size); }
-static inline void * pcvariant_alloc_mem_0(size_t size)
-                { return (void *)calloc(1, size); }
-static inline void pcvariant_free_mem(size_t size, void *ptr)
-                { UNUSED_PARAM(size); return free(ptr); }
-#endif
 
 /* VWNOTE (ERROR):
  *
