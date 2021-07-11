@@ -46,9 +46,6 @@ purc_variant_t pcvariant_get (enum purc_variant_type type) WTF_INTERNAL;
 // reserve freed purc_variant in loop buffer
 void pcvariant_put (purc_variant_t value) WTF_INTERNAL;
 
-// set statistic for additional memory for one variant
-void pcvariant_stat_additional_memory (purc_variant_t value, bool add) WTF_INTERNAL;
-
 // for release the resource in a variant
 typedef void (* pcvariant_release_fn) (purc_variant_t value);
 
