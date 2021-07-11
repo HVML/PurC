@@ -7,7 +7,7 @@
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -254,20 +254,20 @@ static bool purc_variant_string_check_utf8 (const char* str_utf8)
     return (nBytes == 0);
 }
 
-purc_variant_t 
-    purc_variant_make_string (const char* str_utf8, bool check_encoding)
+purc_variant_t
+purc_variant_make_string (const char* str_utf8, bool check_encoding)
 {
     int str_size = strlen (str_utf8);
     int real_size = MAX (sizeof(long double), sizeof(void*) * 2);
     purc_variant_t value = NULL;
-    
+
     if (check_encoding) {
         if (!purc_variant_string_check_utf8 (str_utf8)) {
             pcinst_set_error (PCVARIANT_STRING_NOT_UTF8);
             return PURC_VARIANT_INVALID;
         }
     }
-    
+
     value = pcvariant_get (PURC_VARIANT_TYPE_STRING);
 
     if (value == NULL) {
@@ -342,7 +342,7 @@ void pcvariant_string_release (purc_variant_t string)
 
     if (purc_variant_is_type (string, PURC_VARIANT_TYPE_STRING)) {
         if (string->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
-            pcvariant_stat_extra_memory (string, false, 
+            pcvariant_stat_extra_memory (string, false,
                                         (size_t)string->sz_ptr[0]);
             free ((void *)string->sz_ptr[1]);
         }
@@ -351,8 +351,8 @@ void pcvariant_string_release (purc_variant_t string)
         pcinst_set_error (PCVARIANT_INVALID_TYPE);
 }
 
-purc_variant_t 
-    purc_variant_make_atom_string (const char* str_utf8, bool check_encoding)
+purc_variant_t
+purc_variant_make_atom_string (const char* str_utf8, bool check_encoding)
 {
     PC_ASSERT(str_utf8);
 
@@ -364,7 +364,7 @@ purc_variant_t
             return PURC_VARIANT_INVALID;
         }
     }
-    
+
     purc_atom_t atom = purc_atom_from_string (str_utf8);
     if (atom == 0) {
         pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
@@ -372,7 +372,7 @@ purc_variant_t
     }
 
     value = pcvariant_get (PURC_VARIANT_TYPE_ATOM_STRING);
-    
+
     if (value == NULL) {
         pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
@@ -387,8 +387,8 @@ purc_variant_t
     return value;
 }
 
-purc_variant_t 
-    purc_variant_make_atom_string_static (const char* str_utf8, 
+purc_variant_t
+purc_variant_make_atom_string_static (const char* str_utf8, 
                                             bool check_encoding)
 {
     PC_ASSERT(str_utf8);
@@ -401,7 +401,7 @@ purc_variant_t
             return PURC_VARIANT_INVALID;
         }
     }
-    
+
     purc_atom_t atom = purc_atom_from_static_string (str_utf8);
     if (atom == 0) {
         pcinst_set_error (PURC_ERROR_INVALID_VALUE);
@@ -409,7 +409,7 @@ purc_variant_t
     }
 
     value = pcvariant_get (PURC_VARIANT_TYPE_ATOM_STRING);
-    
+
     if (value == NULL) {
         pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
@@ -444,14 +444,14 @@ void pcvariant_atom_string_release(purc_variant_t atom_string)
     UNUSED_PARAM(atom_string);
 }
 
-purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes, 
-                                                            size_t nr_bytes)
+purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes,
+        size_t nr_bytes)
 {
     PC_ASSERT(bytes);
 
     int real_size = MAX (sizeof(long double), sizeof(void*) * 2);
     purc_variant_t value = pcvariant_get (PURC_VARIANT_TYPE_SEQUENCE); 
-    
+
     if (value == NULL) {
         pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
@@ -484,8 +484,8 @@ purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes,
     return value;
 }
 
-const unsigned char * 
-    purc_variant_get_bytes_const (purc_variant_t sequence, size_t* nr_bytes)
+const unsigned char *
+purc_variant_get_bytes_const (purc_variant_t sequence, size_t* nr_bytes)
 {
     const unsigned char * bytes = NULL;
 
@@ -530,8 +530,8 @@ void pcvariant_sequence_release(purc_variant_t sequence)
     PC_ASSERT(sequence);
 
     if (purc_variant_is_type(sequence, PURC_VARIANT_TYPE_STRING)) {
-        if (sequence->flags & PCVARIANT_FLAG_EXTRA_SIZE) { 
-            pcvariant_stat_extra_memory (sequence, false, 
+        if (sequence->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
+            pcvariant_stat_extra_memory (sequence, false,
                                         (size_t)sequence->sz_ptr[0]);
             free((void *)sequence->sz_ptr[1]);
         }
@@ -540,8 +540,8 @@ void pcvariant_sequence_release(purc_variant_t sequence)
         pcinst_set_error (PCVARIANT_INVALID_TYPE);
 }
 
-purc_variant_t purc_variant_make_dynamic_value (purc_dvariant_method getter, 
-                                                purc_dvariant_method setter)
+purc_variant_t purc_variant_make_dynamic_value (purc_dvariant_method getter,
+        purc_dvariant_method setter)
 {
     // getter and setter can be NULL
     purc_variant_t value = pcvariant_get (PURC_VARIANT_TYPE_DYNAMIC);
