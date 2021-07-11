@@ -549,7 +549,7 @@ size_t purc_variant_serialize (purc_variant_t value, purc_rwstream_t stream,
 {
 }
 
-int purc_variant_compare (purc_variant_t v1, purc_variant v2)
+int purc_variant_compare (purc_variant_t v1, purc_variant_t v2)
 {
 }
 #endif

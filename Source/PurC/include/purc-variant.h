@@ -901,7 +901,7 @@ PCA_EXPORT purc_variant_t purc_variant_load_from_json_stream (purc_rwstream_t st
 .*
  * Since: 0.0.1
  */
-PCA_EXPORT int purc_variant_compare (purc_variant_t v1, purc_variant v2);
+PCA_EXPORT int purc_variant_compare (purc_variant_t v1, purc_variant_t v2);
 
 
 /**
