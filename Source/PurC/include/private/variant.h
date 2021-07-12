@@ -27,6 +27,7 @@
 
 #include "config.h"
 #include "purc-variant.h"
+#include "arraylist.h"
 
 #include <assert.h>
 
@@ -135,13 +136,28 @@ void pcvariant_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
  * 2. Implement the _safe version for easy change, e.g. removing an item,
  *  in an interation.
  */
-#define foreach_value_in_variant_array(array, value)                \
+#define foreach_value_in_variant_array(_array, _value)              \
     do {                                                            \
         struct purc_variant_object_iterator *__oite = NULL;         \
         struct purc_variant_set_iterator *__site    = NULL;         \
-        int array_size = purc_variant_array_get_size (array);       \
-        for (int i = 0; i < array_size; i++) {                      \
-            value = purc_variant_array_get (array, i);              \
+        struct pcutils_arrlist *_al;                                \
+        _al = (struct pcutils_arrlist*)_array->sz_ptr[1];           \
+        for (size_t _i = 0; _i < _al->length; _i++) {               \
+            _value = (purc_variant_t)_al->array[_i];                \
+     /* } */                                                        \
+ /* } while (0) */
+
+#define foreach_value_in_variant_array_safe(_array, _value, _inext) \
+    do {                                                            \
+        struct purc_variant_object_iterator *__oite = NULL;         \
+        struct purc_variant_set_iterator *__site    = NULL;         \
+        struct pcutils_arrlist *_al;                                \
+        _al = (struct pcutils_arrlist*)_array->sz_ptr[1];           \
+        for (size_t _i = 0, _inext = 1;                             \
+             _i < _al->length;                                      \
+             _i = _inext, ++_inext)                                 \
+        {                                                           \
+            _value = (purc_variant_t)_al->array[_i];                \
      /* } */                                                        \
  /* } while (0) */
 
