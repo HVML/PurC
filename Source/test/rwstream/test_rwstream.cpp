@@ -316,6 +316,11 @@ TEST(mem_rwstream, new_destroy)
     purc_rwstream_t rws = purc_rwstream_new_from_mem (buf, buf_len);
     ASSERT_NE(rws, nullptr);
 
+    size_t sz = 0;
+    const char* mem_buffer = purc_rwstream_get_mem_buffer (rws, &sz);
+    ASSERT_EQ(mem_buffer, buf);
+    ASSERT_EQ(sz, buf_len);
+
     int ret = purc_rwstream_close(rws);
     ASSERT_EQ(ret, 0);
 
