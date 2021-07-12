@@ -126,8 +126,8 @@ PCA_EXPORT int purc_rwstream_destroy (purc_rwstream_t rws);
  *        current position), purc_rwstream_t_SEEK_SET (the start of the file),
  *        or purc_rwstream_t_SEEK_END (the end of the file)
  *
- * Returns: success returns the resulting offset location as measured in bytes from
- *        the beginning of the file,  (off_t) -1 otherwise.
+ * Returns: success returns the resulting offset location as measured in bytes
+ *      from the beginning of the file,  (off_t) -1 otherwise.
  *
  * Since: 0.0.1
  */
@@ -162,7 +162,6 @@ purc_rwstream_read (purc_rwstream_t rws, void* buf, size_t count);
 
 /**
  * Reads a character(UTF-8) from purc_rwstream_t and convert to wchat_t.
- * not be freed until using purc_rwstream_free.
  *
  * @param rws: purc_rwstream_t
  * @param buf_utf8: the buffer to read character into
@@ -173,7 +172,8 @@ purc_rwstream_read (purc_rwstream_t rws, void* buf, size_t count);
  * Since: 0.0.1
  */
 PCA_EXPORT int
-purc_rwstream_read_utf8_char (purc_rwstream_t rws, char* buf_utf8, wchar_t* buf_wc);
+purc_rwstream_read_utf8_char (purc_rwstream_t rws,
+        char* buf_utf8, wchar_t* buf_wc);
 
 
 /**
@@ -203,8 +203,8 @@ purc_rwstream_write (purc_rwstream_t rws, const void* buf, size_t count);
 PCA_EXPORT ssize_t purc_rwstream_flush (purc_rwstream_t rws);
 
 /**
- * Close an purc_rwstream_t. Any pending data to be written will be flushed. The channel will
- * not be freed until using purc_rwstream_free.
+ * Close an purc_rwstream_t. Any pending data to be written will be flushed.
+ * The stream will not be freed until using purc_rwstream_destroy.
  *
  * @param rws: pointer to purc_rwstream_t
  *
