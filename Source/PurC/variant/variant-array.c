@@ -198,7 +198,8 @@ size_t purc_variant_array_get_size(const purc_variant_t array)
     return pcutils_arrlist_length(al);
 }
 
-bool purc_variant_array_set (purc_variant_t array, int idx, purc_variant_t value)
+bool purc_variant_array_set (purc_variant_t array, int idx,
+        purc_variant_t value)
 {
     PCVARIANT_CHECK_FAIL_RET(array && array->type==PVT(_ARRAY) &&
         idx>=0 && value && array != value,
@@ -259,7 +260,8 @@ bool purc_variant_array_remove (purc_variant_t array, int idx)
     return true;
 }
 
-bool purc_variant_array_insert_before (purc_variant_t array, int idx, purc_variant_t value)
+bool purc_variant_array_insert_before (purc_variant_t array, int idx,
+        purc_variant_t value)
 {
     PCVARIANT_CHECK_FAIL_RET(array && array->type==PVT(_ARRAY) &&
         idx>=0 && value && array != value,
@@ -280,7 +282,9 @@ bool purc_variant_array_insert_before (purc_variant_t array, int idx, purc_varia
         // move idx~nr-1 to idx+1~nr
         // pcutils_arrlist has no such api, we have to hack it whatsoever
         // note: overlap problem? man or test!
-        memmove(al->array + idx + 1, al->array + idx, (nr-idx) * sizeof(void *));
+        memmove(al->array + idx + 1,
+                al->array + idx,
+                (nr-idx) * sizeof(void *));
     }
     al->array[idx] = value;
 
@@ -292,7 +296,8 @@ bool purc_variant_array_insert_before (purc_variant_t array, int idx, purc_varia
     return true;
 }
 
-bool purc_variant_array_insert_after (purc_variant_t array, int idx, purc_variant_t value)
+bool purc_variant_array_insert_after (purc_variant_t array, int idx,
+        purc_variant_t value)
 {
     return purc_variant_array_insert_before(array, idx+1, value);
 }
