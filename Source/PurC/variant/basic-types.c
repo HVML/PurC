@@ -1,6 +1,6 @@
 /*
  * @file variant-basic.c
- * @author 
+ * @author Geng Yue
  * @date 2021/07/02
  * @brief The implementation of variant.
  *
@@ -35,79 +35,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-
-#if 0
-static pcvariant_to_json_string_fn pcvariant_serialize[PURC_VARIANT_TYPE_MAX] = 
-{
-    pcvariant_null_to_json_string,        // PURC_VARIANT_TYPE_NULL
-    pcvariant_undefined_to_json_string,   // PURC_VARIANT_TYPE_UNDEFINED
-    pcvariant_boolean_to_json_string,     // PURC_VARIANT_TYPE_BOOLEAN
-    pcvariant_number_to_json_string,      // PURC_VARIANT_TYPE_NUMBER
-    pcvariant_longint_to_json_string,     // PURC_VARIANT_TYPE_LONGINT
-    pcvariant_longdouble_to_json_string,  // PURC_VARIANT_TYPE_LONGDOUBLE
-    pcvariant_string_to_json_string,      // PURC_VARIANT_TYPE_STRING
-    pcvariant_atom_string_to_json_string, // PURC_VARIANT_TYPE_ATOM_STRING
-    pcvariant_sequence_to_json_string,    // PURC_VARIANT_TYPE_SEQUENCE
-    pcvariant_dynamic_to_json_string,     // PURC_VARIANT_TYPE_DYNAMIC
-    pcvariant_native_to_json_string,      // PURC_VARIANT_TYPE_NATIVE
-    pcvariant_object_to_json_string,      // PURC_VARIANT_TYPE_OBJECT
-    pcvariant_array_to_json_string,       // PURC_VARIANT_TYPE_ARRAY
-    pcvariant_set_to_json_string,         // PURC_VARIANT_TYPE_SET
-};
-
-int pcvariant_undefined_to_json_string(purc_variant_t value, purc_rwstream * rw, int level, int flags)
-{
-}
-
-int pcvariant_null_to_json_string(purc_variant_t value, purc_rwstream * rw, int level, int flags)
-{
-}
-
-int pcvariant_boolean_to_json_string(purc_variant_t value, purc_rwstream * rw, int level, int flags)
-{
-}
-
-int pcvariant_number_to_json_string(purc_variant_t value, purc_rwstream * rw, int level, int flags)
-{
-}
-
-int pcvariant_longint_to_json_string(purc_variant_t value, purc_rwstream * rw, int level, int flags)
-{
-}
-
-int pcvariant_longdouble_to_json_string(purc_variant_t value, purc_rwstream * rw, int level, int flags)
-{
-}
-
-int pcvariant_string_to_json_string(purc_variant_t value, purc_rwstream * rw, int level, int flags)
-{
-}
-
-int pcvariant_sequence_to_json_string(purc_variant_t value, purc_rwstream * rw, int level, int flags)
-{
-}
-
-int pcvariant_dynamic_to_json_string(purc_variant_t value, purc_rwstream * rw, int level, int flags)
-{
-}
-
-int pcvariant_native_to_json_string(purc_variant_t value, purc_rwstream * rw, int level, int flags)
-{
-}
-
-int pcvariant_object_to_json_string(purc_variant_t value, purc_rwstream * rw, int level, int flags)
-{
-}
-
-int pcvariant_array_to_json_string(purc_variant_t value, purc_rwstream * rw, int level, int flags)
-{
-}
-
-int pcvariant_set_to_json_string(purc_variant_t value, purc_rwstream * rw, int level, int flags)
-{
-}
-
-#endif
 
 #ifndef MAX
 #define MAX(a, b)   (a) > (b)? (a) : (b)
@@ -169,14 +96,14 @@ purc_variant_t purc_variant_make_number (double d)
 
 purc_variant_t purc_variant_make_longuint (uint64_t u64)
 {
-    purc_variant_t value = pcvariant_get (PURC_VARIANT_TYPE_LONGINT);
+    purc_variant_t value = pcvariant_get (PURC_VARIANT_TYPE_LONGUINT);
 
     if (value == NULL) {
         pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
     }
 
-    value->type = PURC_VARIANT_TYPE_LONGINT;
+    value->type = PURC_VARIANT_TYPE_LONGUINT;
     value->size = 0;
     value->flags = 0;
     value->refc = 1;
@@ -185,7 +112,7 @@ purc_variant_t purc_variant_make_longuint (uint64_t u64)
     return value;
 }
 
-purc_variant_t purc_variant_make_longint (int64_t u64)
+purc_variant_t purc_variant_make_longint (int64_t i64)
 {
     purc_variant_t value = pcvariant_get (PURC_VARIANT_TYPE_LONGINT);
 
@@ -198,7 +125,7 @@ purc_variant_t purc_variant_make_longint (int64_t u64)
     value->flags = 0;
     value->size = 8;            // marked, if size == 8, it is signed long int
     value->refc = 1;
-    value->u64 = u64;
+    value->i64 = i64;
 
     return value;
 }
@@ -292,7 +219,8 @@ purc_variant_make_string (const char* str_utf8, bool check_encoding)
             return PURC_VARIANT_INVALID;
         }
 
-        value->sz_ptr[0] = 0;
+        // VWNOTE: sz_ptr[0] will be set in pcvariant_stat_set_extra_size
+        //value->sz_ptr[0] = (uintptr_t)str_size;
         memcpy ((void *)value->sz_ptr[1], str_utf8, str_size);
         pcvariant_stat_set_extra_size (value, str_size);
     }
@@ -342,6 +270,7 @@ void pcvariant_string_release (purc_variant_t string)
 
     if (purc_variant_is_type (string, PURC_VARIANT_TYPE_STRING)) {
         if (string->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
+            // VWNOTE: sz_ptr[0] will be set in pcvariant_stat_set_extra_size
             pcvariant_stat_set_extra_size (string, 0);
             free ((void *)string->sz_ptr[1]);
         }
@@ -370,25 +299,26 @@ purc_variant_make_atom_string (const char* str_utf8, bool check_encoding)
         return PURC_VARIANT_INVALID;
     }
 
-    value = pcvariant_get (PURC_VARIANT_TYPE_ATOM_STRING);
+    value = pcvariant_get (PURC_VARIANT_TYPE_ATOMSTRING);
 
     if (value == NULL) {
         pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
     }
 
-    value->type = PURC_VARIANT_TYPE_ATOM_STRING;
-    value->size = strlen (str_utf8);
-    value->flags |= PCVARIANT_FLAG_EXTRA_SIZE;
+    /* VWNOTE: for atomstring, only store the atom value */
+    value->type = PURC_VARIANT_TYPE_ATOMSTRING;
+    value->size = 0;
+    value->flags = 0;
     value->refc = 1;
-    value->sz_ptr[0] = atom;
+    value->sz_ptr[1] = atom;
 
     return value;
 }
 
 purc_variant_t
-purc_variant_make_atom_string_static (const char* str_utf8, 
-                                            bool check_encoding)
+purc_variant_make_atom_string_static (const char* str_utf8,
+        bool check_encoding)
 {
     PC_ASSERT(str_utf8);
 
@@ -407,18 +337,19 @@ purc_variant_make_atom_string_static (const char* str_utf8,
         return PURC_VARIANT_INVALID;
     }
 
-    value = pcvariant_get (PURC_VARIANT_TYPE_ATOM_STRING);
+    value = pcvariant_get (PURC_VARIANT_TYPE_ATOMSTRING);
 
     if (value == NULL) {
         pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
     }
 
-    value->type = PURC_VARIANT_TYPE_ATOM_STRING;
-    value->size = strlen (str_utf8);
+    /* VWNOTE: for atomstring, only store the atom value */
+    value->type = PURC_VARIANT_TYPE_ATOMSTRING;
+    value->size = 0;
     value->flags = 0;
     value->refc = 1;
-    value->sz_ptr[0] = atom;
+    value->sz_ptr[1] = atom;
 
     return value;
 }
@@ -429,18 +360,12 @@ const char* purc_variant_get_atom_string_const (purc_variant_t atom_string)
 
     PC_ASSERT(atom_string);
 
-    if (purc_variant_is_type (atom_string, PURC_VARIANT_TYPE_ATOM_STRING))
-        str_str = purc_atom_to_string(atom_string->sz_ptr[0]);
+    if (purc_variant_is_type (atom_string, PURC_VARIANT_TYPE_ATOMSTRING))
+        str_str = purc_atom_to_string(atom_string->sz_ptr[1]);
     else
         pcinst_set_error (PCVARIANT_INVALID_TYPE);
 
     return str_str;
-}
-
-
-void pcvariant_atom_string_release(purc_variant_t atom_string)
-{
-    UNUSED_PARAM(atom_string);
 }
 
 purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes,
@@ -449,14 +374,14 @@ purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes,
     PC_ASSERT(bytes);
 
     int real_size = MAX (sizeof(long double), sizeof(void*) * 2);
-    purc_variant_t value = pcvariant_get (PURC_VARIANT_TYPE_SEQUENCE); 
+    purc_variant_t value = pcvariant_get (PURC_VARIANT_TYPE_BSEQUENCE);
 
     if (value == NULL) {
         pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
     }
 
-    value->type = PURC_VARIANT_TYPE_SEQUENCE;
+    value->type = PURC_VARIANT_TYPE_BSEQUENCE;
     value->flags = 0;
     value->refc = 1;
 
@@ -475,7 +400,8 @@ purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes,
             return PURC_VARIANT_INVALID;
         }
 
-        value->sz_ptr[0] = 0;
+        // VWNOTE: sz_ptr[0] will be set in pcvariant_stat_set_extra_size
+        // value->sz_ptr[0] = nr_bytes;
         memcpy ((void *)value->sz_ptr[1], bytes, nr_bytes);
         pcvariant_stat_set_extra_size (value, nr_bytes);
     }
@@ -490,7 +416,7 @@ purc_variant_get_bytes_const (purc_variant_t sequence, size_t* nr_bytes)
 
     PC_ASSERT(sequence);
 
-    if (purc_variant_is_type(sequence, PURC_VARIANT_TYPE_SEQUENCE)) {
+    if (purc_variant_is_type(sequence, PURC_VARIANT_TYPE_BSEQUENCE)) {
         if (sequence->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
             bytes = (unsigned char *)sequence->sz_ptr[1];
             * nr_bytes = (size_t)sequence->sz_ptr[0];
@@ -512,7 +438,7 @@ size_t purc_variant_sequence_length(const purc_variant_t sequence)
 
     PC_ASSERT(sequence);
 
-    if (purc_variant_is_type (sequence, PURC_VARIANT_TYPE_SEQUENCE)) {
+    if (purc_variant_is_type (sequence, PURC_VARIANT_TYPE_BSEQUENCE)) {
         if (sequence->flags & PCVARIANT_FLAG_EXTRA_SIZE)
             nr_bytes = (size_t)sequence->sz_ptr[0];
         else
@@ -530,6 +456,7 @@ void pcvariant_sequence_release(purc_variant_t sequence)
 
     if (purc_variant_is_type(sequence, PURC_VARIANT_TYPE_STRING)) {
         if (sequence->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
+            // VWNOTE: sz_ptr[0] will be set in pcvariant_stat_set_extra_size
             pcvariant_stat_set_extra_size (sequence, 0);
             free((void *)sequence->sz_ptr[1]);
         }
