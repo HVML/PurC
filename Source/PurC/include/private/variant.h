@@ -113,18 +113,87 @@ struct pcvariant_heap {
     char buff[SZ_COMMON_BUFFER];
 };
 
-// initialize variant module
+// initialize variant module (once)
 void pcvariant_init_once(void) WTF_INTERNAL;
 
 struct pcinst;
-void pcvariant_init_instance(struct pcinst* inst) WTF_INTERNAL;
-void pcvariant_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 
-// set statistic for additional memory for one variant
-void pcvariant_stat_set_extra_size(purc_variant_t value, size_t szie) WTF_INTERNAL;
+// initialize the variant module for a PurC instance.
+void pcvariant_init_instance(struct pcinst* inst) WTF_INTERNAL;
+// clean up the variant module for a PurC instance.
+void pcvariant_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
 
+/* VWNOTE (WARN)
+ * 1. Make these macros as private interfaces. Please reimplement them
+ *   by using the internal structure of the variant type for
+ *   a better performance.
+ *
+ * 2. Implement the _safe version for easy change, e.g. removing an item,
+ *  in an interation.
+ */
+#define foreach_value_in_variant_array(array, value)                \
+    do {                                                            \
+        struct purc_variant_object_iterator *__oite = NULL;         \
+        struct purc_variant_set_iterator *__site    = NULL;         \
+        int array_size = purc_variant_array_get_size (array);       \
+        for (int i = 0; i < array_size; i++) {                      \
+            value = purc_variant_array_get (array, i);              \
+     /* } */                                                        \
+ /* } while (0) */
+
+#define foreach_value_in_variant_object(obj, value)                     \
+    do {                                                                \
+        struct purc_variant_object_iterator *__oite = NULL;             \
+        struct purc_variant_set_iterator *__site    = NULL;             \
+        bool __having = true;                                           \
+        for (__oite = purc_variant_object_make_iterator_begin(obj);     \
+             __oite && __having;                                        \
+             __having = purc_variant_object_iterator_next(__oite) )     \
+        {                                                               \
+            value = purc_variant_object_iterator_get_value(__oite);     \
+     /* } */                                                            \
+ /* } while (0) */
+
+
+#define foreach_key_value_in_variant_object(obj, key, value)            \
+    do {                                                                \
+        struct purc_variant_object_iterator *__oite = NULL;             \
+        struct purc_variant_set_iterator *__site    = NULL;             \
+        bool __having = true;                                           \
+        for (__oite = purc_variant_object_make_iterator_begin(obj);     \
+             __oite && __having;                                        \
+             __having = purc_variant_object_iterator_next(__oite) )     \
+        {                                                               \
+            key   = purc_variant_object_iterator_get_key(__oite);       \
+            value = purc_variant_object_iterator_get_value(__oite);     \
+     /* } */                                                            \
+ /* } while (0) */
+
+
+#define foreach_value_in_variant_set(set, value)                        \
+    do {                                                                \
+        struct purc_variant_object_iterator *__oite = NULL;             \
+        struct purc_variant_set_iterator *__site    = NULL;             \
+        bool __having = true;                                           \
+        for (__site = purc_variant_set_make_iterator_begin(set);        \
+             __site && __having;                                        \
+             __having = purc_variant_set_iterator_next(__site) )        \
+        {                                                               \
+            value = purc_variant_set_iterator_get_value(__site);        \
+     /* } */                                                            \
+  /* } while (0) */
+
+
+#define end_foreach                                                     \
+ /* do { */                                                             \
+     /* for (...) { */                                                  \
+        }                                                               \
+        if (__oite) purc_variant_object_release_iterator(__oite);       \
+        if (__site) purc_variant_set_release_iterator(__site);          \
+    } while (0)
 #endif  /* PURC_PRIVATE_VARIANT_H */
+
