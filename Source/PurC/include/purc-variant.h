@@ -975,13 +975,13 @@ PCA_EXPORT int purc_variant_compare(purc_variant_t v1, purc_variant_t v2);
  * A flag for the purc_variant_serialize() function which causes the output
  * to have no extra whitespace or formatting applied.
  */
-#define PCVARIANT_SERIALIZE_OPT_PLAIN   0
+#define PCVARIANT_SERIALIZE_OPT_PLAIN           0x0000
 
 /**
  * A flag for the purc_variant_serialize() function which causes the output to have
  * minimal whitespace inserted to make things slightly more readable.
  */
-#define PCVARIANT_SERIALIZE_OPT_SPACED  (1 << 0)
+#define PCVARIANT_SERIALIZE_OPT_SPACED          0x0001
 
 /**
  * A flag for the purc_variant_serialize() function which causes
@@ -990,13 +990,13 @@ PCA_EXPORT int purc_variant_compare(purc_variant_t v1, purc_variant_t v2);
  * See the "Two Space Tab" option at http://jsonformatter.curiousconcept.com/
  * for an example of the format.
  */
-#define PCVARIANT_SERIALIZE_OPT_PRETTY  (1 << 1)
+#define PCVARIANT_SERIALIZE_OPT_PRETTY          0x0002
 
 /**
  * A flag for the purc_variant_serialize() function which causes
  * the output to drop trailing zero for float values.
  */
-#define PCVARIANT_SERIALIZE_OPT_NOZERO          (1 << 2)
+#define PCVARIANT_SERIALIZE_OPT_NOZERO          0x0004
 
 /**
  * A flag for the purc_variant_serialize() function which causes
@@ -1004,31 +1004,38 @@ PCA_EXPORT int purc_variant_compare(purc_variant_t v1, purc_variant_t v2);
  *
  * Instead of a "Two Space Tab" this gives a single tab character.
  */
-#define PCVARIANT_SERIALIZE_OPT_PRETTY_TAB      (1 << 3)
+#define PCVARIANT_SERIALIZE_OPT_PRETTY_TAB      0x0010
 
 /**
  * A flag for the purc_variant_serialize() function which causes
  * the output to not escape the forward slashes.
  */
-#define PCVARIANT_SERIALIZE_OPT_NOSLASHESCAPE   (1 << 4)
+#define PCVARIANT_SERIALIZE_OPT_NOSLASHESCAPE   0x0020
 
+#define PCVARIANT_SERIALIZE_OPT_BSEQUECE_MASK   0x0F00
 /**
  * A flag for the purc_variant_serialize() function which causes
  * the output to use hexadecimal characters for byte sequence.
  */
-#define PCVARIANT_SERIALIZE_OPT_BSEQUECE_HEX    (1 << 5)
+#define PCVARIANT_SERIALIZE_OPT_BSEQUECE_HEX    0x0100
 
 /**
  * A flag for the purc_variant_serialize() function which causes
  * the output to use binary characters for byte sequence.
  */
-#define PCVARIANT_SERIALIZE_OPT_BSEQUECE_BIN    (1 << 6)
+#define PCVARIANT_SERIALIZE_OPT_BSEQUECE_BIN    0x0200
 
 /**
  * A flag for the purc_variant_serialize() function which causes
  * the output to use BASE64 encoding for byte sequence.
  */
-#define PCVARIANT_SERIALIZE_OPT_BSEQUECE_BASE64 (1 << 7)
+#define PCVARIANT_SERIALIZE_OPT_BSEQUECE_BASE64 0x0300
+
+/**
+ * A flag for the purc_variant_serialize() function which causes
+ * the output to have dot for binary sequence.
+ */
+#define PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BIN_DOT       0x0020
 
 /**
  * Serialize a variant value
@@ -1039,7 +1046,7 @@ PCA_EXPORT int purc_variant_compare(purc_variant_t v1, purc_variant_t v2);
  * @param flags: the serialization flags
  *
  * Returns: return the size of serialized data.
-.*
+ *
  * Since: 0.0.1
  */
 PCA_EXPORT ssize_t
