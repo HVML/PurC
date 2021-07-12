@@ -37,56 +37,22 @@
 #include <string.h>
 
 
-/*
- * array holds purc_variant_t values
- * once a purc_variant_t value is added into array,
- * no matter via `purc_variant_make_array` or `purc_variant_array_set/append/...`,
- * this value's ref + 1
- * once a purc_variant_t value in array get removed,
- * no matter via `pcvariant_array_release` or `purc_variant_array_remove`
- * or even implicitly being overwritten by `purc_variant_array_set/...`,
- * this value's ref - 1
- * note: value can be added into array for more than 1 times,
- *       but being noted, ref + 1 once it gets added
- *
- * thinking: shall we recursively check if there's ref-loop among array and it's
- *           children element?
- */
-
-static void _array_item_free(void *data)
-// shall we move implementation of this function to the bottom of this file?
-{
-    PC_ASSERT(data);
-    purc_variant_t val = (purc_variant_t)data;
-    purc_variant_unref(val);
-}
-
 static void _fill_empty_with_undefined(struct pcutils_arrlist *al)
 {
     PC_ASSERT(al);
-    for (size_t i=0; i<pcutils_arrlist_length(al); ++i) {
-        purc_variant_t val = (purc_variant_t)pcutils_arrlist_get_idx(al, i);
+    for (size_t i=0; i<al->length; ++i) {
+        purc_variant_t val = (purc_variant_t)al->array[i];
         if (!val) {
-            // this is an empty slot
-            // we might choose to let it be
-            // and check NULL elsewhere
             val = purc_variant_make_undefined();
-            int r = pcutils_arrlist_put_idx(al, i, val);
-            if (r) {
-                // we shall check in both debug and release build
-                PC_ASSERT(r==0); // shall NOT happen
-            }
-            // no need unref val, ownership is transfered to array
+            al->array[i] = val;
         }
     }
 }
 
 purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
 {
-    if (sz==0 && value0) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
-    }
+    PCVARIANT_CHECK_FAIL_RET((sz==0 && value0==NULL) || (sz>0 && value0),
+        PURC_VARIANT_INVALID);
 
     purc_variant_t var = pcvariant_get(PVT(_ARRAY));
     if (!var) {
@@ -96,20 +62,24 @@ purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
 
     do {
         var->type          = PVT(_ARRAY);
-        var->refc          = 1;
+        var->refc          = 0; // we'll call purc_variant_ref later
 
         size_t initial_size = ARRAY_LIST_DEFAULT_SIZE;
         if (sz>initial_size)
             initial_size = sz;
 
-        struct pcutils_arrlist *al = pcutils_arrlist_new_ex(_array_item_free, initial_size);
+        struct pcutils_arrlist *al;
+        al = pcutils_arrlist_new_ex(NULL, initial_size);
 
-        if (!al)
+        if (!al) {
+            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
             break;
+        }
         var->sz_ptr[1]     = (uintptr_t)al;
 
         if (sz==0) {
             // empty array
+            purc_variant_ref(var);
             return var;
         }
 
@@ -117,12 +87,11 @@ purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
         va_start(ap, value0);
 
         purc_variant_t v = value0;
+        // question: shall we track mem for al->array?
         if (pcutils_arrlist_add(al, v)) {
             pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
             break;
         }
-        // add ref
-        purc_variant_ref(v);
 
         size_t i = 1;
         while (i<sz) {
@@ -136,23 +105,21 @@ purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
                 pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
                 break;
             }
-            // add ref
-            purc_variant_ref(v);
         }
         va_end(ap);
 
         if (i<sz)
             break;
 
-        // sizeof(*var) + sizeof(*al) + sz * sizeof(void*)
+        purc_variant_ref(var);
+
+        size_t extra = sizeof(*al) + al->size * sizeof(*al->array);
+        pcvariant_stat_set_extra_size(var, extra);
+
         return var;
     } while (0);
 
-    // cleanup
-    struct pcutils_arrlist *al = (struct pcutils_arrlist*)var->sz_ptr[1];
-    pcutils_arrlist_free(al);
-    var->sz_ptr[1] = (uintptr_t)NULL; // say no to double free
-    // todo: use macro instead
+    pcvariant_array_release(var);
     pcvariant_put(var);
 
     return PURC_VARIANT_INVALID;
@@ -160,19 +127,12 @@ purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
 
 void pcvariant_array_release (purc_variant_t value)
 {
-    // this would be called only via purc_variant_unref once value's refc dec'd to 0
-    // thus we don't check argument
-
     struct pcutils_arrlist *al = (struct pcutils_arrlist*)value->sz_ptr[1];
-    if (!al) {
-        // this shall happen only when purc_variant_make_array failed OOM
+    if (!al)
         return;
-    }
 
-    // all element in pcutils_arrlist shall be called upon being removed
-    // we choose unref via free_fn
     pcutils_arrlist_free(al);
-    value->sz_ptr[1] = (uintptr_t)NULL; // no dangling pointer
+    value->sz_ptr[1] = (uintptr_t)NULL;
 }
 
 int pcvariant_array_compare (purc_variant_t lv, purc_variant_t rv)
@@ -197,10 +157,8 @@ int pcvariant_array_compare (purc_variant_t lv, purc_variant_t rv)
 
 bool purc_variant_array_append (purc_variant_t array, purc_variant_t value)
 {
-    if (!array || array->type!=PVT(_ARRAY) || !value || array == value || !array->sz_ptr[1]) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
-    }
+    PCVARIANT_CHECK_FAIL_RET(array && array->type==PVT(_ARRAY) && value,
+        PURC_VARIANT_INVALID);
 
     struct pcutils_arrlist *al = (struct pcutils_arrlist*)array->sz_ptr[1];
     size_t             nr = pcutils_arrlist_length(al);
@@ -209,106 +167,105 @@ bool purc_variant_array_append (purc_variant_t array, purc_variant_t value)
 
 bool purc_variant_array_prepend (purc_variant_t array, purc_variant_t value)
 {
-    if (!array || array->type!=PVT(_ARRAY) || !value || array == value || !array->sz_ptr[1]) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
-    }
+    PCVARIANT_CHECK_FAIL_RET(array && array->type==PVT(_ARRAY) && value,
+        PURC_VARIANT_INVALID);
 
     return purc_variant_array_insert_before (array, 0, value);
 }
 
 purc_variant_t purc_variant_array_get (purc_variant_t array, int idx)
 {
-    if (!array || array->type!=PVT(_ARRAY) || idx<0 || !array->sz_ptr[1]) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
-    }
+    PCVARIANT_CHECK_FAIL_RET(array && array->type==PVT(_ARRAY) && idx>=0,
+        PURC_VARIANT_INVALID);
 
     struct pcutils_arrlist *al = (struct pcutils_arrlist*)array->sz_ptr[1];
     size_t             nr = pcutils_arrlist_length(al);
-    if ((size_t)idx>=nr) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID; // NULL or undefined variant?
-    }
+    PCVARIANT_CHECK_FAIL_RET((size_t)idx>=nr,
+        PURC_VARIANT_INVALID);
 
     purc_variant_t var = (purc_variant_t)pcutils_arrlist_get_idx(al, idx);
-    PC_ASSERT(var); // must valid element, even if undefined or null
-    // shall we ref+1?
-    // we choose ref+1 here, currently, thus, caller shall unref
-    purc_variant_ref(var);
+    PC_ASSERT(var);
 
     return var;
 }
 
 size_t purc_variant_array_get_size(const purc_variant_t array)
 {
-    if (!array || array->type!=PVT(_ARRAY) || !array->sz_ptr[1]) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return -1; // api signature?
-    }
+    PCVARIANT_CHECK_FAIL_RET(array && array->type==PVT(_ARRAY),
+        (size_t)-1);
 
     struct pcutils_arrlist *al = (struct pcutils_arrlist*)array->sz_ptr[1];
     return pcutils_arrlist_length(al);
 }
 
-bool purc_variant_array_set (purc_variant_t array, int idx, purc_variant_t value)
+bool purc_variant_array_set (purc_variant_t array, int idx,
+        purc_variant_t value)
 {
-    if (!array || array->type!=PVT(_ARRAY) || !value || array == value || idx<0 || !array->sz_ptr[1]) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
-    }
+    PCVARIANT_CHECK_FAIL_RET(array && array->type==PVT(_ARRAY) &&
+        idx>=0 && value && array != value,
+        PURC_VARIANT_INVALID);
 
     struct pcutils_arrlist *al = (struct pcutils_arrlist*)array->sz_ptr[1];
+    size_t             nr = pcutils_arrlist_length(al);
+    if ((size_t)idx>=nr) {
+        int t = pcutils_arrlist_put_idx(al, idx, value);
 
-    // note: for a valid element in al[idx], al->free_fn would be called upon,
-    //       we shall unref that element via al->free_fn
-    //       to make element's ref count balance
+        if (t) {
+            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            return false;
+        }
+        // fill empty slot with undefined value
+        _fill_empty_with_undefined(al);
+        // above two steps might be combined into one for better performance
 
-    // fix me: if al[idx] is valid and equal to value,
-    //         pcutils_arrlist_put_idx shall not call free_fn internally
-    int t = pcutils_arrlist_put_idx(al, idx, value);
+        // since value is put into array
+        purc_variant_ref(value);
 
-    if (t) {
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return false;
+        size_t extra = sizeof(*al) + al->size * sizeof(*al->array);
+        pcvariant_stat_set_extra_size(array, extra);
+
+        return true;
+    } else {
+        purc_variant_t v = (purc_variant_t)al->array[idx];
+        if (v!=value) {
+            purc_variant_unref(v);
+            al->array[idx] = value;
+        }
+        purc_variant_ref(value);
+        return true;
     }
-    // fill empty slot with undefined value
-    _fill_empty_with_undefined(al);
-    // above two steps might be combined into one for better performance
-
-    // since value is put into array
-    purc_variant_ref(value);
-
-    return true;
 }
 
 bool purc_variant_array_remove (purc_variant_t array, int idx)
 {
-    if (!array || array->type!=PVT(_ARRAY) || idx<0 || !array->sz_ptr[1]) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
-    }
+    PCVARIANT_CHECK_FAIL_RET(array && array->type==PVT(_ARRAY) && idx>=0,
+        PURC_VARIANT_INVALID);
 
     struct pcutils_arrlist *al = (struct pcutils_arrlist*)array->sz_ptr[1];
     size_t             nr = pcutils_arrlist_length(al);
     if ((size_t)idx>=nr)
         return true; // or false?
 
+    purc_variant_t v = (purc_variant_t)al->array[idx];
     // pcutils_arrlist_del_idx will shrink internally
     if (pcutils_arrlist_del_idx(al, idx, 1)) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return false;
     }
+    purc_variant_unref(v);
+
+    size_t extra = sizeof(*al) + al->size * sizeof(*al->array);
+    pcvariant_stat_set_extra_size(array, extra);
 
     return true;
 }
 
-bool purc_variant_array_insert_before (purc_variant_t array, int idx, purc_variant_t value)
+bool purc_variant_array_insert_before (purc_variant_t array, int idx,
+        purc_variant_t value)
 {
-    if (!array || array->type!=PVT(_ARRAY) || !value || array == value || idx<0 || !array->sz_ptr[1]) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
-    }
+    PCVARIANT_CHECK_FAIL_RET(array && array->type==PVT(_ARRAY) &&
+        idx>=0 && value && array != value,
+        PURC_VARIANT_INVALID);
 
     struct pcutils_arrlist *al = (struct pcutils_arrlist*)array->sz_ptr[1];
     size_t             nr = pcutils_arrlist_length(al);
@@ -320,27 +277,27 @@ bool purc_variant_array_insert_before (purc_variant_t array, int idx, purc_varia
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return false;
     }
-    // move idx~nr-1 to idx+1~nr
-    // pcutils_arrlist has no such api, we have to hack it whatsoever
-    // note: overlap problem? man or test!
-	memmove(al->array + idx + 1, al->array + idx, 1 * sizeof(void *));
-    al->array[idx] = NULL; // say no to double free
 
-    // note: for a valid element in al[idx], al->free_fn would be called upon,
-    //       we shall unref that element via al->free_fn
-    //       to make ref count balance
-    if (pcutils_arrlist_put_idx(al, idx, value)) {
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return false;
+    if ((size_t)idx<nr) {
+        // move idx~nr-1 to idx+1~nr
+        // pcutils_arrlist has no such api, we have to hack it whatsoever
+        // note: overlap problem? man or test!
+        memmove(al->array + idx + 1,
+                al->array + idx,
+                (nr-idx) * sizeof(void *));
     }
+    al->array[idx] = value;
 
-    // since this value is added
     purc_variant_ref(value);
+
+    size_t extra = sizeof(*al) + al->size * sizeof(*al->array);
+    pcvariant_stat_set_extra_size(array, extra);
 
     return true;
 }
 
-bool purc_variant_array_insert_after (purc_variant_t array, int idx, purc_variant_t value)
+bool purc_variant_array_insert_after (purc_variant_t array, int idx,
+        purc_variant_t value)
 {
     return purc_variant_array_insert_before(array, idx+1, value);
 }
