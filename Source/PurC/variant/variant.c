@@ -101,7 +101,7 @@ static inline UNUSED_FUNCTION purc_variant *alloc_variant(void) {
 }
 
 static inline purc_variant *alloc_variant_0(void) {
-    return (purc_variant *)calloc(1, (sizeof(purc_variant));
+    return (purc_variant *)calloc(1, sizeof(purc_variant));
 }
 
 static inline void free_variant(purc_variant *v) {
