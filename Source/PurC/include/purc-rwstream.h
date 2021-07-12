@@ -41,6 +41,20 @@ typedef struct purc_rwstream* purc_rwstream_t;
 
 PCA_EXTERN_C_BEGIN
 
+
+/**
+ * Creates a new purc_rwstream_t for the automatic memory buffer.
+ *
+ * @param sz_init: the init size of the memory buffer
+ * @param sz_max: thie max size of the memory buffer
+ *
+ * Returns: A purc_rwstream_t on success, NULL on failure.
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT
+purc_rwstream_t purc_rwstream_new_buffer (size_t sz_init, size_t sz_max);
+
 /**
  * Creates a new purc_rwstream_t for the given memory buffer.
  *
@@ -122,12 +136,13 @@ PCA_EXPORT int purc_rwstream_destroy (purc_rwstream_t rws);
  * @param rws: purc_rwstream_t
  * @param offset: n offset, in bytes, which is added to the position specified
  *        by whence
- * @param whence: the position in the file, which can be purc_rwstream_t_SEEK_CUR (the
- *        current position), purc_rwstream_t_SEEK_SET (the start of the file),
+ * @param whence: the position in the file, which can be
+ *        purc_rwstream_t_SEEK_CUR (the current position),
+ *        purc_rwstream_t_SEEK_SET (the start of the file),
  *        or purc_rwstream_t_SEEK_END (the end of the file)
  *
- * Returns: success returns the resulting offset location as measured in bytes from
- *        the beginning of the file,  (off_t) -1 otherwise.
+ * Returns: success returns the resulting offset location as measured in bytes
+ *         from the beginning of the file,  (off_t) -1 otherwise.
  *
  * Since: 0.0.1
  */
@@ -172,8 +187,8 @@ purc_rwstream_read (purc_rwstream_t rws, void* buf, size_t count);
  *
  * Since: 0.0.1
  */
-PCA_EXPORT int
-purc_rwstream_read_utf8_char (purc_rwstream_t rws, char* buf_utf8, wchar_t* buf_wc);
+PCA_EXPORT int purc_rwstream_read_utf8_char (purc_rwstream_t rws,
+        char* buf_utf8, wchar_t* buf_wc);
 
 
 /**
@@ -203,8 +218,8 @@ purc_rwstream_write (purc_rwstream_t rws, const void* buf, size_t count);
 PCA_EXPORT ssize_t purc_rwstream_flush (purc_rwstream_t rws);
 
 /**
- * Close an purc_rwstream_t. Any pending data to be written will be flushed. The channel will
- * not be freed until using purc_rwstream_free.
+ * Close an purc_rwstream_t. Any pending data to be written will be flushed.
+ * The channel will not be freed until using purc_rwstream_free.
  *
  * @param rws: pointer to purc_rwstream_t
  *
@@ -213,6 +228,35 @@ PCA_EXPORT ssize_t purc_rwstream_flush (purc_rwstream_t rws);
  * Since: 0.0.1
  */
 PCA_EXPORT int purc_rwstream_close (purc_rwstream_t rws);
+
+/**
+ * Read the count bytes from the in rwstream, write to out rwstream,
+ * and return the number of bytes written
+ *
+ * @param in: pointer to purc_rwstream_t to be read
+ * @param out: pointer to purc_rwstream_t to be write
+ * @param count: the read/write count. -1 means until EOF
+ *
+ * Returns: success, the number of bytes written. -1 otherwise.
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT ssize_t purc_rwstream_dump_to_another (purc_rwstream_t in,
+        purc_rwstream_t out, ssize_t count);
+
+/**
+ * Get the pointer and size of the rwstream whose type is memory (Created by
+ * purc_rwstream_new_buffer or purc_rwstream_new_from_mem).
+ *
+ * @param rw_mem: pointer to purc_rwstream_t
+ * @param sz: pointer to receive size of the rwstream
+ *
+ * Returns: success returns the pointer of the memory, NULL not support.
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT const char* purc_rwstream_get_mem_buffer (purc_rwstream_t rw_mem,
+        size_t *sz);
 
 PCA_EXTERN_C_END
 
