@@ -47,7 +47,7 @@ static char *atom_block = NULL;
 static int  atom_block_offset = 0;
 
 void
-pcutils_init_atom (void)
+pcutils_atom_init_once (void)
 {
     assert (atom_seq_id == 0);
 

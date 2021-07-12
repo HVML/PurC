@@ -67,7 +67,7 @@ static struct err_msg_seg _rwstream_err_msgs_seg = {
     rwstream_err_msgs
 };
 
-void pcrwstream_init(void)
+void pcrwstream_init_once(void)
 {
     pcinst_register_error_message_segment(&_rwstream_err_msgs_seg);
 }

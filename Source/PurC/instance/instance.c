@@ -71,9 +71,9 @@ static void init_modules(void)
     pcinst_register_error_message_segment(&_generic_err_msgs_seg);
 
     // TODO: init other modules here.
-    pcutils_init_atom();
-    pcrwstream_init();
-    pcvariant_init();
+    pcutils_atom_init_once();
+    pcrwstream_init_once();
+    pcvariant_init_once();
 }
 
 #if USE(PTHREADS)

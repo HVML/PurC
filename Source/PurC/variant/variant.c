@@ -101,7 +101,7 @@ static inline void pcvariant_free_mem(size_t size, void *ptr)
 #endif
 
 
-void pcvariant_init (void)
+void pcvariant_init_once(void)
 {
     // register error message
     pcinst_register_error_message_segment (&_variant_err_msgs_seg);
