@@ -101,7 +101,7 @@ static inline void pcvariant_free_mem(size_t size, void *ptr)
 #endif
 
 
-void pcvariant_init (void)
+void pcvariant_init_once(void)
 {
     // register error message
     pcinst_register_error_message_segment (&_variant_err_msgs_seg);
@@ -505,9 +505,13 @@ size_t purc_variant_serialize (purc_variant_t value, purc_rwstream_t stream,
                                                             unsigned int opts)
 {
 }
-
-int purc_variant_compare (purc_variant_t v1, purc_variant v2)
-{
-}
 #endif
+
+int purc_variant_compare (purc_variant_t v1, purc_variant_t v2)
+{
+    UNUSED_PARAM(v1);
+    UNUSED_PARAM(v2);
+    PC_ASSERT(0);
+    return -1;
+}
 

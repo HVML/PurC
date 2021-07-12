@@ -115,7 +115,7 @@ static int _variant_object_set_kvs_n(purc_variant_t obj, size_t nr_kv_pairs, int
     const char *k_c;
     purc_variant_t k, v;
 
-    size_t i = 1;
+    size_t i = 0;
     while (i<nr_kv_pairs) {
         if (_c) {
             k_c = va_arg(ap, const char*);
