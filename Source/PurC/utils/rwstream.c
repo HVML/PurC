@@ -213,6 +213,13 @@ int rwstream_error_code_from_gerror (GError* err)
 
 /* rwstream api */
 
+purc_rwstream_t purc_rwstream_new_buffer (size_t sz_init, size_t sz_max)
+{
+    UNUSED_PARAM(sz_init);
+    UNUSED_PARAM(sz_max);
+    return NULL;
+}
+
 purc_rwstream_t purc_rwstream_new_from_mem (void* mem, size_t sz)
 {
     struct mem_rwstream* rws = (struct mem_rwstream*) calloc(
@@ -446,6 +453,22 @@ int purc_rwstream_close (purc_rwstream_t rws)
         return -1;
     }
     return rws->funcs->close(rws);
+}
+
+ssize_t purc_rwstream_dump_to_another (purc_rwstream_t in,
+        purc_rwstream_t out, ssize_t count)
+{
+    UNUSED_PARAM(in);
+    UNUSED_PARAM(out);
+    UNUSED_PARAM(count);
+    return -1;
+}
+
+const char* purc_rwstream_get_mem_buffer (purc_rwstream_t rw_mem, size_t *sz)
+{
+    UNUSED_PARAM(rw_mem);
+    UNUSED_PARAM(sz);
+    return NULL;
 }
 
 /* stdio rwstream functions */
