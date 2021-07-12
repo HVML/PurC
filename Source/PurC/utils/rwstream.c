@@ -39,6 +39,8 @@
 #include <glib.h>
 #endif // ENABLE(SOCKET_STREAM) && HAVE(GLIB)
 
+#define BUFFER_SIZE 4096
+
 static const char* rwstream_err_msgs[] = {
     /* PCRWSTREAM_ERROR_FAILED (200) */
     "Rwstream failed with some other error",
@@ -466,10 +468,47 @@ int purc_rwstream_close (purc_rwstream_t rws)
 ssize_t purc_rwstream_dump_to_another (purc_rwstream_t in,
         purc_rwstream_t out, ssize_t count)
 {
-    UNUSED_PARAM(in);
-    UNUSED_PARAM(out);
-    UNUSED_PARAM(count);
-    return -1;
+    char buffer[BUFFER_SIZE] = {0};
+    ssize_t ret_count = 0;
+    ssize_t write_len = 0;
+    int read_len = 0;
+
+    size_t read_size = 0;
+
+    if (count == -1)
+    {
+        while ((read_len = purc_rwstream_read(in, buffer, BUFFER_SIZE)) != -1)
+        {
+            write_len = purc_rwstream_write (out, buffer, read_len);
+            if (write_len != read_len) {
+                return -1;
+            }
+            ret_count += read_len;
+        }
+    }
+    else
+    {
+        read_size = count > BUFFER_SIZE ? BUFFER_SIZE : count;
+        while (read_size > 0 )
+        {
+            read_len = purc_rwstream_read(in, buffer, read_size);
+            if (read_len == -1)
+            {
+                return -1;
+            }
+
+            write_len = purc_rwstream_write (out, buffer, read_len);
+            if (write_len != read_len) {
+                return -1;
+            }
+
+            ret_count += read_len;
+            count = count - write_len;
+            read_size = count > BUFFER_SIZE ? BUFFER_SIZE : count;
+        }
+    }
+
+    return ret_count;
 }
 
 const char* purc_rwstream_get_mem_buffer (purc_rwstream_t rws, size_t *sz)
