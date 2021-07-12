@@ -105,7 +105,7 @@ struct pcvariant_heap {
     struct purc_variant_stat stat;
 
     // the loop buffer for reserved values.
-    purc_variant_t nr_reserved [MAX_RESERVED_VARIANTS];
+    purc_variant_t v_reserved [MAX_RESERVED_VARIANTS];
     int headpos;
     int tailpos;
 
@@ -121,8 +121,7 @@ void pcvariant_init_instance(struct pcinst* inst) WTF_INTERNAL;
 void pcvariant_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 
 // set statistic for additional memory for one variant
-void pcvariant_stat_extra_memory (purc_variant_t value, bool add, 
-                                        size_t szie) WTF_INTERNAL;
+void pcvariant_stat_set_extra_size(purc_variant_t value, size_t szie) WTF_INTERNAL;
 
 #ifdef __cplusplus
 }

@@ -68,3 +68,19 @@ TEST(variant, pchash_table_double_free)
     ASSERT_EQ(_hash_table_items_free, 1);
 }
 
+TEST(variant, pcvariant_create)
+{
+}
+
+TEST(variant, pcvariant_ref_unref)
+{
+}
+
+TEST(variant, pcvariant_type_long)
+{
+}
+
+TEST(variant, pcvariant_stat)
+{
+    
+}
