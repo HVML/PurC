@@ -563,7 +563,7 @@ purc_variant_t purc_variant_make_dynamic_value (purc_dvariant_method getter,
 
 
 purc_variant_t purc_variant_make_native (void *native_obj, 
-                                            purc_nvariant_releaser releaser)
+                                            purc_navtive_releaser releaser)
 {
     purc_variant_t value = pcvariant_get (PURC_VARIANT_TYPE_NATIVE);
 
