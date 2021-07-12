@@ -300,9 +300,9 @@ purc_variant_make_array(size_t sz, purc_variant_t value0, ...);
 
 
 /**
- * Appends a variant data to the tail of an array.
+ * Appends a variant value to the tail of an array.
  *
- * @param array: the variant data of array type
+ * @param array: the variant value of array type
  * @param value: the element to be appended
  *
  * Returns: True on success, otherwise False.
@@ -314,9 +314,9 @@ purc_variant_array_append(purc_variant_t array, purc_variant_t value);
 
 
 /**
- * Insert a variant data to the head of an array.
+ * Insert a variant value to the head of an array.
  *
- * @param array: the variant data of array type
+ * @param array: the variant value of array type
  * @param value: the element to be insert
  *
  * Returns: True on success, otherwise False.
@@ -330,7 +330,7 @@ purc_variant_array_prepend(purc_variant_t array, purc_variant_t value);
 /**
  * Gets an element from an array by index.
  *
- * @param array: the variant data of array type
+ * @param array: the variant value of array type
  * @param idx: the index of wanted element
  *
  * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
@@ -344,7 +344,7 @@ purc_variant_array_get(purc_variant_t array, int idx);
 /**
  * Sets an element value in an array by index.
  *
- * @param array: the variant data of array type
+ * @param array: the variant value of array type
  * @param idx: the index of replaced element
  * @param value: the element to replace
  *
@@ -362,7 +362,7 @@ purc_variant_array_set(purc_variant_t array, int idx, purc_variant_t value);
 /**
  * Remove an element from an array by index.
  *
- * @param array: the variant data of array type
+ * @param array: the variant value of array type
  * @param idx: the index of element to be removed
  *
  * Returns: True on success, otherwise False.
@@ -378,7 +378,7 @@ PCA_EXPORT bool purc_variant_array_remove(purc_variant_t array, int idx);
 /**
  * Inserts an element to an array, places it before an indicated element.
  *
- * @param array: the variant data of array type
+ * @param array: the variant value of array type
  * @param idx: the index of element before which the new element will be placed
  *
  * @param value: the inserted element
@@ -397,7 +397,7 @@ purc_variant_array_insert_before(purc_variant_t array,
 /**
  * Inserts an element to an array, places it after an indicated element.
  *
- * @param array: the variant data of array type
+ * @param array: the variant value of array type
  * @param idx: the index of element after which the new element will be placed
  * @param value: the inserted element
  *
@@ -459,7 +459,7 @@ purc_variant_make_object(size_t nr_kv_pairs,
 /**
  * Gets the value by key from an object with key as c string
  *
- * @param obj: the variant data of obj type
+ * @param obj: the variant value of obj type
  * @param key: the key of key-value pair
  *
  * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
@@ -472,7 +472,7 @@ purc_variant_object_get_c(purc_variant_t obj, const char* key);
 /**
  * Gets the value by key from an object with key as another variant
  *
- * @param obj: the variant data of obj type
+ * @param obj: the variant value of obj type
  * @param key: the key of key-value pair
  *
  * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
@@ -489,7 +489,7 @@ purc_variant_object_get(purc_variant_t obj, purc_variant_t key)
 /**
  * Sets the value by key in an object with key as c string
  *
- * @param obj: the variant data of obj type
+ * @param obj: the variant value of obj type
  * @param key: the key of key-value pair
  * @param value: the value of key-value pair
  *
@@ -504,7 +504,7 @@ purc_variant_object_set_c(purc_variant_t obj, const char* key,
 /**
  * Sets the value by key in an object with key as another variant
  *
- * @param obj: the variant data of obj type
+ * @param obj: the variant value of obj type
  * @param key: the key of key-value pair
  * @param value: the value of key-value pair
  *
@@ -523,7 +523,7 @@ purc_variant_object_set(purc_variant_t obj,
 /**
  * Remove a key-value pair from an object by key with key as c string
  *
- * @param obj: the variant data of obj type
+ * @param obj: the variant value of obj type
  * @param key: the key of key-value pair
  *
  * Returns: True on success, otherwise False.
@@ -536,7 +536,7 @@ purc_variant_object_remove_c(purc_variant_t obj, const char* key);
 /**
  * Remove a key-value pair from an object by key with key as another variant
  *
- * @param obj: the variant data of obj type
+ * @param obj: the variant value of obj type
  * @param key: the key of key-value pair
  *
  * Returns: True on success, otherwise False.
@@ -684,7 +684,7 @@ PCA_EXPORT purc_variant_t
 purc_variant_object_iterator_get_value(struct purc_variant_object_iterator* it);
 
 /**
- * Creates a variant data of set type with key as c string
+ * Creates a variant value of set type with key as c string
  *
  * @param sz: the number of elements in a set
  * @param unique_key: the keys for one record 
@@ -701,7 +701,7 @@ purc_variant_make_set_c(size_t sz, const char* unique_key,
         purc_variant_t value0, ...);
 
 /**
- * Creates a variant data of set type with key as another variant
+ * Creates a variant value of set type with key as another variant
  *
  * @param sz: the number of elements in a set
  * @param unique_key: the keys for one record 
@@ -746,7 +746,7 @@ purc_variant_set_remove(purc_variant_t obj, purc_variant_t value);
 /**
  * Gets the value by key from a set with key as a c string
  *
- * @param set: the variant data of obj type
+ * @param set: the variant value of obj type
  * @param match_key: the unique key related to the value
  *
  * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
@@ -759,7 +759,7 @@ purc_variant_set_get_value_c(const purc_variant_t set, const char * match_key);
 /**
  * Gets the value by key from a set with key as another variant
  *
- * @param set: the variant data of obj type
+ * @param set: the variant value of obj type
  * @param match_key: the unique key related to the value
  *
  * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
@@ -894,9 +894,9 @@ PCA_EXPORT purc_variant_t
 purc_variant_set_iterator_get_value(struct purc_variant_set_iterator* it);
 
 /**
- * Adds ref for a variant data
+ * Adds ref for a variant value
  *
- * @param value: variant data to be operated
+ * @param value: variant value to be operated
  *
  * Returns: A purc_variant_t on success, NULL on failure.
  *
@@ -905,10 +905,10 @@ purc_variant_set_iterator_get_value(struct purc_variant_set_iterator* it);
 PCA_EXPORT unsigned int purc_variant_ref(purc_variant_t value);
 
 /**
- * substract ref for a variant data. When ref is zero, releases the resource
+ * substract ref for a variant value. When ref is zero, releases the resource
  * occupied by the data
  *
- * @param value: variant data to be operated
+ * @param value: variant value to be operated
  *
  * Note: When the reference count reaches zero, the system will release
  *      all memory used by value.
@@ -919,7 +919,7 @@ PCA_EXPORT unsigned int purc_variant_unref(purc_variant_t value);
 
 
 /**
- * Creates a variant data from a string which contents Json data
+ * Creates a variant value from a string which contents Json data
  *
  * @param json: the pointer of string which contents json data
  *
@@ -934,7 +934,7 @@ PCA_EXPORT purc_variant_t purc_variant_make_from_json_string
 
 
 /**
- * Creates a variant data from Json file
+ * Creates a variant value from Json file
  *
  * @param file: the Json file name
  *
@@ -947,7 +947,7 @@ purc_variant_load_from_json_file(const char* file);
 
 
 /**
- * Creates a variant data from stream
+ * Creates a variant value from stream
  *
  * @param stream: the stream of purc_rwstream_t type
  *
@@ -960,10 +960,10 @@ purc_variant_load_from_json_stream(purc_rwstream_t stream);
 
 
 /**
- * Compares two variant data
+ * Compares two variant value
  *
- * @param v1: one of compared variant data
- * @param v2: the other variant data to be compared
+ * @param v1: one of compared variant value
+ * @param v2: the other variant value to be compared
  *
  * Returns: return zero for identical, otherwise -1.
 .*
@@ -973,9 +973,9 @@ PCA_EXPORT int purc_variant_compare(purc_variant_t v1, purc_variant_t v2);
 
 
 /**
- * Serialize a variant data
+ * Serialize a variant value
  *
- * @param value: the variant data to be serialized
+ * @param value: the variant value to be serialized
  *
  * @param steam: the stream to which the serialized data write
  * @param opts: the serialization options       // To be defined
@@ -990,11 +990,11 @@ purc_variant_serialize(purc_variant_t value, purc_rwstream_t stream,
 
 
 /**
- * Loads a variant data from an indicated library
+ * Loads a variant value from an indicated library
  *
  * @param so_name: the library name
  *
- * @param var_name: the variant data name
+ * @param var_name: the variant value name
  *
  * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
 .*
