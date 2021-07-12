@@ -41,7 +41,8 @@ extern "C" {
 
 #define PVT(t) (PURC_VARIANT_TYPE##t)
 
-#define MAX_RESERVED_VARIANTS  32
+#define MAX_RESERVED_VARIANTS   32
+#define MAX_EMBEDDED_LEVELS     64
 
 // structure for variant
 struct purc_variant {
