@@ -971,6 +971,64 @@ purc_variant_load_from_json_stream(purc_rwstream_t stream);
  */
 PCA_EXPORT int purc_variant_compare(purc_variant_t v1, purc_variant_t v2);
 
+/**
+ * A flag for the purc_variant_serialize() function which causes the output
+ * to have no extra whitespace or formatting applied.
+ */
+#define PCVARIANT_SERIALIZE_OPT_PLAIN   0
+
+/**
+ * A flag for the purc_variant_serialize() function which causes the output to have
+ * minimal whitespace inserted to make things slightly more readable.
+ */
+#define PCVARIANT_SERIALIZE_OPT_SPACED  (1 << 0)
+
+/**
+ * A flag for the purc_variant_serialize() function which causes
+ * the output to be formatted.
+ *
+ * See the "Two Space Tab" option at http://jsonformatter.curiousconcept.com/
+ * for an example of the format.
+ */
+#define PCVARIANT_SERIALIZE_OPT_PRETTY  (1 << 1)
+
+/**
+ * A flag for the purc_variant_serialize() function which causes
+ * the output to drop trailing zero for float values.
+ */
+#define PCVARIANT_SERIALIZE_OPT_NOZERO          (1 << 2)
+
+/**
+ * A flag for the purc_variant_serialize() function which causes
+ * the output to be formatted.
+ *
+ * Instead of a "Two Space Tab" this gives a single tab character.
+ */
+#define PCVARIANT_SERIALIZE_OPT_PRETTY_TAB      (1 << 3)
+
+/**
+ * A flag for the purc_variant_serialize() function which causes
+ * the output to not escape the forward slashes.
+ */
+#define PCVARIANT_SERIALIZE_OPT_NOSLASHESCAPE   (1 << 4)
+
+/**
+ * A flag for the purc_variant_serialize() function which causes
+ * the output to use hexadecimal characters for byte sequence.
+ */
+#define PCVARIANT_SERIALIZE_OPT_BSEQUECE_HEX    (1 << 5)
+
+/**
+ * A flag for the purc_variant_serialize() function which causes
+ * the output to use binary characters for byte sequence.
+ */
+#define PCVARIANT_SERIALIZE_OPT_BSEQUECE_BIN    (1 << 6)
+
+/**
+ * A flag for the purc_variant_serialize() function which causes
+ * the output to use BASE64 encoding for byte sequence.
+ */
+#define PCVARIANT_SERIALIZE_OPT_BSEQUECE_BASE64 (1 << 7)
 
 /**
  * Serialize a variant value
@@ -1011,10 +1069,11 @@ typedef enum purc_variant_type
     PURC_VARIANT_TYPE_BOOLEAN,
     PURC_VARIANT_TYPE_NUMBER,
     PURC_VARIANT_TYPE_LONGINT,
+    PURC_VARIANT_TYPE_LONGUINT,
     PURC_VARIANT_TYPE_LONGDOUBLE,
+    PURC_VARIANT_TYPE_ATOMSTRING,
     PURC_VARIANT_TYPE_STRING,
-    PURC_VARIANT_TYPE_ATOM_STRING,
-    PURC_VARIANT_TYPE_SEQUENCE,
+    PURC_VARIANT_TYPE_BSEQUENCE,
     PURC_VARIANT_TYPE_DYNAMIC,
     PURC_VARIANT_TYPE_NATIVE,
     PURC_VARIANT_TYPE_OBJECT,
@@ -1075,9 +1134,19 @@ PCA_EXPORT inline bool purc_variant_is_longint(purc_variant_t v)
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_LONGINT);
 }
 
+PCA_EXPORT inline bool purc_variant_is_longuint(purc_variant_t v)
+{
+    return purc_variant_is_type(v, PURC_VARIANT_TYPE_LONGUINT);
+}
+
 PCA_EXPORT inline bool purc_variant_is_longdouble(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_LONGDOUBLE);
+}
+
+PCA_EXPORT inline bool purc_variant_is_atomstring(purc_variant_t v)
+{
+    return purc_variant_is_type(v, PURC_VARIANT_TYPE_ATOMSTRING);
 }
 
 PCA_EXPORT inline bool purc_variant_is_string(purc_variant_t v)
@@ -1087,7 +1156,7 @@ PCA_EXPORT inline bool purc_variant_is_string(purc_variant_t v)
 
 PCA_EXPORT inline bool purc_variant_is_sequence(purc_variant_t v)
 {
-    return purc_variant_is_type(v, PURC_VARIANT_TYPE_SEQUENCE);
+    return purc_variant_is_type(v, PURC_VARIANT_TYPE_BSEQUENCE);
 }
 
 PCA_EXPORT inline bool purc_variant_is_dynamic_value(purc_variant_t v)
