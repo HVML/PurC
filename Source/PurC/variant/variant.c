@@ -1,6 +1,6 @@
 /*
- * @file variant-public.c
- * @author 
+ * @file variant.c
+ * @author Geng Yue
  * @date 2021/07/02
  * @brief The implementation of public part for variant.
  *
@@ -45,11 +45,13 @@ static pcvariant_release_fn variant_releasers[PURC_VARIANT_TYPE_MAX] = {
     NULL,                           // PURC_VARIANT_TYPE_BOOLEAN
     NULL,                           // PURC_VARIANT_TYPE_NUMBER
     NULL,                           // PURC_VARIANT_TYPE_LONGINT
+    NULL,                           // PURC_VARIANT_TYPE_LONGUINT
     NULL,                           // PURC_VARIANT_TYPE_LONGDOUBLE
+    NULL,                           // PURC_VARIANT_TYPE_ATOM_STRING
     pcvariant_string_release,       // PURC_VARIANT_TYPE_STRING
-    pcvariant_atom_string_release,  // PURC_VARIANT_TYPE_ATOM_STRING
     pcvariant_sequence_release,     // PURC_VARIANT_TYPE_SEQUENCE
     NULL,                           // PURC_VARIANT_TYPE_DYNAMIC
+    // VWNOTE (ERROR): Please define a releaser for PURC_VARIANT_TYPE_NATIVE
     NULL,                           // PURC_VARIANT_TYPE_NATIVE
     pcvariant_object_release,       // PURC_VARIANT_TYPE_OBJECT
     pcvariant_array_release,        // PURC_VARIANT_TYPE_ARRAY
@@ -194,20 +196,9 @@ unsigned int purc_variant_ref (purc_variant_t value)
     PC_ASSERT(value);
 
     purc_variant_t variant = NULL;
-    switch ((int)value->type) {
-        case PURC_VARIANT_TYPE_NULL:
-        case PURC_VARIANT_TYPE_UNDEFINED:
-        case PURC_VARIANT_TYPE_BOOLEAN:
-        case PURC_VARIANT_TYPE_NUMBER:
-        case PURC_VARIANT_TYPE_LONGINT:
-        case PURC_VARIANT_TYPE_LONGDOUBLE:
-        case PURC_VARIANT_TYPE_STRING:
-        case PURC_VARIANT_TYPE_SEQUENCE:
-        case PURC_VARIANT_TYPE_DYNAMIC:
-        case PURC_VARIANT_TYPE_NATIVE:
-            value->refc++;
-            break;
 
+    value->refc++;
+    switch (value->type) {
         case PURC_VARIANT_TYPE_OBJECT:
             foreach_value_in_variant_object(value, variant)
                 purc_variant_ref(variant);
@@ -464,13 +455,5 @@ purc_variant_t purc_variant_dynamic_value_load_from_so(const char* so_name,
 
 }
 
-purc_variant_t purc_variant_load_from_json_stream(purc_rwstream_t stream)
-{
-}
-
-size_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t stream,
-                                                            unsigned int opts)
-{
-}
 #endif
 
