@@ -28,6 +28,9 @@
 #include "config.h"
 
 #include <stdlib.h>
+#ifndef NDEBUG
+#include <assert.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
