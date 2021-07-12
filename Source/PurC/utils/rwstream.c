@@ -736,8 +736,25 @@ static const char* mem_get_mem_buffer (purc_rwstream_t rws, size_t *sz)
 /* buffer rwstream functions */
 static int buffer_extend (struct buffer_rwstream* buffer, size_t size)
 {
-    UNUSED_PARAM(buffer);
-    UNUSED_PARAM(size);
+    if (buffer->sz > size || buffer->sz == buffer->sz_max) {
+        return 0;
+    }
+
+    size_t new_size = size > buffer->sz_max ? size : buffer->sz_max;
+    off_t here_offset = buffer->here - buffer->base;
+
+    uint8_t* newbuf = (uint8_t*) realloc(buffer->base, new_size);
+    if (newbuf == NULL)
+    {
+        pcinst_set_error(PCRWSTREAM_ERROR_IO);
+        return -1;
+    }
+
+    buffer->base = newbuf;
+    buffer->here = buffer->base + here_offset;
+    buffer->stop = buffer->base + new_size;
+    buffer->sz = new_size;
+
     return 0;
 }
 
