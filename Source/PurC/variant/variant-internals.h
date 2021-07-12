@@ -65,7 +65,6 @@ typedef void (* pcvariant_release_fn) (purc_variant_t value);
 
 // for release the resource in a variant
 void pcvariant_string_release  (purc_variant_t value)    WTF_INTERNAL;
-void pcvariant_atom_string_release(purc_variant_t value) WTF_INTERNAL;
 void pcvariant_sequence_release(purc_variant_t value)    WTF_INTERNAL;
 void pcvariant_object_release  (purc_variant_t value)    WTF_INTERNAL;
 void pcvariant_array_release   (purc_variant_t value)    WTF_INTERNAL;
