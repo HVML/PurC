@@ -33,41 +33,149 @@
 #include <stdlib.h>
 #include <string.h>
 
-static size_t
-serialize_string(purc_rwstream_t rws, const char* content,
-        size_t sz_content, unsigned int opts)
-{
-    UNUSED_PARAM(rws);
-    UNUSED_PARAM(content);
-    UNUSED_PARAM(sz_content);
-    UNUSED_PARAM(opts);
+static const char *hex_chars = "0123456789abcdefABCDEF";
 
-    return 0;
+static size_t
+serialize_string(purc_rwstream_t rws, const char* str,
+        size_t len, unsigned int flags)
+{
+    int nr_written = 0;
+    size_t pos = 0, start_offset = 0;
+    unsigned char c;
+
+    while (len--) {
+        c = str[pos];
+        switch (c) {
+        case '\b':
+        case '\n':
+        case '\r':
+        case '\t':
+        case '\f':
+        case '"':
+        case '\\':
+        case '/':
+            if ((flags & PCVARIANT_SERIALIZE_OPT_NOSLASHESCAPE) && c == '/') {
+                pos++;
+                break;
+            }
+
+            if (pos - start_offset > 0)
+                nr_written += purc_rwstream_write(rws,
+                        str + start_offset, pos - start_offset);
+
+            if (c == '\b')
+                nr_written += purc_rwstream_write(rws, "\\b", 2);
+            else if (c == '\n')
+                nr_written += purc_rwstream_write(rws, "\\n", 2);
+            else if (c == '\r')
+                nr_written += purc_rwstream_write(rws, "\\r", 2);
+            else if (c == '\t')
+                nr_written += purc_rwstream_write(rws, "\\t", 2);
+            else if (c == '\f')
+                nr_written += purc_rwstream_write(rws, "\\f", 2);
+            else if (c == '"')
+                nr_written += purc_rwstream_write(rws, "\\\"", 2);
+            else if (c == '\\')
+                nr_written += purc_rwstream_write(rws, "\\\\", 2);
+            else if (c == '/')
+                nr_written += purc_rwstream_write(rws, "\\/", 2);
+
+            start_offset = ++pos;
+            break;
+        default:
+            if (c < ' ')
+            {
+                char sbuf[7];
+                if (pos - start_offset > 0)
+                    nr_written += purc_rwstream_write(rws, str + start_offset,
+                                       pos - start_offset);
+                snprintf(sbuf, sizeof(sbuf), "\\u00%c%c", hex_chars[c >> 4],
+                         hex_chars[c & 0xf]);
+                purc_rwstream_write(rws, sbuf, (int)sizeof(sbuf) - 1);
+                start_offset = ++pos;
+            }
+            else
+                pos++;
+        }
+    }
+    if (pos - start_offset > 0)
+        nr_written += purc_rwstream_write(rws,
+                str + start_offset, pos - start_offset);
+
+    return nr_written;
 }
 
 static size_t
 serialize_bsequence(purc_rwstream_t rws, const char* content,
-        size_t sz_content, unsigned int opts)
+        size_t sz_content, unsigned int flags)
 {
     UNUSED_PARAM(rws);
     UNUSED_PARAM(content);
     UNUSED_PARAM(sz_content);
-    UNUSED_PARAM(opts);
+    UNUSED_PARAM(flags);
 
     return 0;
 }
 
-size_t purc_variant_serialize(purc_variant_t value,
-        purc_rwstream_t rws, unsigned int opts)
+static ssize_t
+print_newline(purc_rwstream_t rws, int level, unsigned int flags)
+{
+    ssize_t nr_written = 0;
+
+    if (flags & PCVARIANT_SERIALIZE_OPT_PRETTY) {
+        nr_written += purc_rwstream_write(rws, "\n", 1);
+        if (flags & PCVARIANT_SERIALIZE_OPT_PRETTY_TAB) {
+            int n = level;
+            while (n > 0) {
+                nr_written += purc_rwstream_write(rws, "\t", 1);
+                n--;
+            }
+        }
+        else {
+            int n = level * 2;
+            while (n > 0) {
+                nr_written += purc_rwstream_write(rws, " ", 1);
+                n--;
+            }
+        }
+    }
+
+    return nr_written;
+}
+
+static inline ssize_t print_space(purc_rwstream_t rws, unsigned int flags)
+{
+    ssize_t nr_written = 0;
+
+    if (flags & PCVARIANT_SERIALIZE_OPT_SPACED)
+        nr_written = purc_rwstream_write(rws, " ", 1);
+
+    return nr_written;
+}
+
+static inline ssize_t print_space_no_pretty(purc_rwstream_t rws,
+        unsigned int flags)
+{
+    ssize_t nr_written = 0;
+    if (flags & PCVARIANT_SERIALIZE_OPT_SPACED &&
+            !(flags & PCVARIANT_SERIALIZE_OPT_PRETTY))
+        nr_written = purc_rwstream_write(rws, " ", 1);
+
+    return nr_written;
+}
+
+ssize_t purc_variant_serialize(purc_variant_t value,
+        purc_rwstream_t rws, int level, unsigned int flags)
 {
     ssize_t nr_written = 0;
     const char* content = NULL;
     size_t sz_content = 0;
+    int i;
     char buff [128];
+    purc_variant_t member = NULL;
+    const char* key;
 
     PC_ASSERT(value);
-
-    purc_variant_t member = NULL;
 
     switch (value->type) {
         case PURC_VARIANT_TYPE_NULL:
@@ -119,7 +227,7 @@ size_t purc_variant_serialize(purc_variant_t value,
             content = purc_atom_to_string(value->sz_ptr[1]);
             sz_content = strlen(content);
             nr_written +=
-                serialize_string(rws, content, sz_content, opts);
+                serialize_string(rws, content, sz_content, flags);
             content = NULL;
             break;
 
@@ -135,10 +243,10 @@ size_t purc_variant_serialize(purc_variant_t value,
             }
             if (value->type == PURC_VARIANT_TYPE_STRING)
                 nr_written +=
-                    serialize_string(rws, content, sz_content, opts);
+                    serialize_string(rws, content, sz_content, flags);
             else
                 nr_written +=
-                    serialize_bsequence(rws, content, sz_content, opts);
+                    serialize_bsequence(rws, content, sz_content, flags);
             content = NULL;
             break;
 
@@ -154,30 +262,57 @@ size_t purc_variant_serialize(purc_variant_t value,
 
         case PURC_VARIANT_TYPE_OBJECT:
             content = NULL;
+            i = 0;
             nr_written += purc_rwstream_write(rws, "{", 1);
-            foreach_value_in_variant_object(value, member)
-                nr_written += purc_variant_serialize(member, rws, opts);
-                nr_written += purc_rwstream_write(rws, ",", 1);
+            nr_written += print_newline(rws, level, flags);
+            foreach_key_value_in_variant_object(value, key, member)
+                if (i > 0) {
+                    nr_written += purc_rwstream_write(rws, ",", 1);
+                    nr_written += print_space(rws, flags);
+                }
+
+                nr_written +=
+                    serialize_string(rws, key, strlen(key), flags);
+                nr_written += purc_rwstream_write(rws, ":", 1);
+                nr_written += print_space(rws, flags);
+                nr_written += purc_variant_serialize(member,
+                        rws, level + 1, flags);
+                i++;
             end_foreach;
+            nr_written += print_newline(rws, level, flags);
             nr_written += purc_rwstream_write(rws, "}", 1);
             break;
 
         case PURC_VARIANT_TYPE_ARRAY:
             content = NULL;
+            i = 0;
             nr_written += purc_rwstream_write(rws, "[", 1);
+            nr_written += print_newline(rws, level, flags);
             foreach_value_in_variant_array(value, member)
-                nr_written += purc_variant_serialize(member, rws, opts);
-                nr_written += purc_rwstream_write(rws, ",", 1);
+                if (i > 0) {
+                    nr_written += purc_rwstream_write(rws, ",", 1);
+                    nr_written += print_space(rws, flags);
+                }
+                nr_written += purc_variant_serialize(member,
+                        rws, level + 1, flags);
+                i++;
             end_foreach;
+            nr_written += print_newline(rws, level, flags);
             nr_written += purc_rwstream_write(rws, "]", 1);
             break;
 
         case PURC_VARIANT_TYPE_SET:
             content = NULL;
+            i = 0;
             nr_written += purc_rwstream_write(rws, "[", 1);
             foreach_value_in_variant_set(value, member)
-                nr_written += purc_variant_serialize(member, rws, opts);
-                nr_written += purc_rwstream_write(rws, ",", 1);
+                if (i > 0) {
+                    nr_written += purc_rwstream_write(rws, ",", 1);
+                    nr_written += print_space(rws, flags);
+                }
+                nr_written += purc_variant_serialize(member,
+                        rws, level + 1, flags);
+                i++;
             end_foreach;
             nr_written += purc_rwstream_write(rws, "]", 1);
             break;
@@ -188,12 +323,9 @@ size_t purc_variant_serialize(purc_variant_t value,
 
     if (content) {
         // for simple types
-        nr_written = purc_rwstream_write(rws, content, strlen (content));
+        nr_written += purc_rwstream_write(rws, content, strlen (content));
     }
 
-    buff [0] = 0;
-    // write an null character.
-    nr_written += purc_rwstream_write(rws, buff, 1);
     return nr_written;
 }
 

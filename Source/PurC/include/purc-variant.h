@@ -1036,15 +1036,15 @@ PCA_EXPORT int purc_variant_compare(purc_variant_t v1, purc_variant_t v2);
  * @param value: the variant value to be serialized
  *
  * @param steam: the stream to which the serialized data write
- * @param opts: the serialization options       // To be defined
+ * @param flags: the serialization flags
  *
  * Returns: return the size of serialized data.
 .*
  * Since: 0.0.1
  */
-PCA_EXPORT size_t
+PCA_EXPORT ssize_t
 purc_variant_serialize(purc_variant_t value, purc_rwstream_t stream,
-        unsigned int opts);
+        int indent_level, unsigned int flags);
 
 
 /**
