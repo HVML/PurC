@@ -292,7 +292,7 @@ purc_variant_make_string (const char* str_utf8, bool check_encoding)
             return PURC_VARIANT_INVALID;
         }
 
-        value->sz_ptr[0] = (uintptr_t)str_size;
+        value->sz_ptr[0] = 0;
         memcpy ((void *)value->sz_ptr[1], str_utf8, str_size);
         pcvariant_stat_set_extra_size (value, str_size);
     }
@@ -342,8 +342,7 @@ void pcvariant_string_release (purc_variant_t string)
 
     if (purc_variant_is_type (string, PURC_VARIANT_TYPE_STRING)) {
         if (string->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
-            string->sz_ptr[0] = 0;
-            pcvariant_stat_set_extra_size (string, (size_t)string->sz_ptr[0]);
+            pcvariant_stat_set_extra_size (string, 0);
             free ((void *)string->sz_ptr[1]);
         }
     }
@@ -476,7 +475,7 @@ purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes,
             return PURC_VARIANT_INVALID;
         }
 
-        value->sz_ptr[0] = nr_bytes;
+        value->sz_ptr[0] = 0;
         memcpy ((void *)value->sz_ptr[1], bytes, nr_bytes);
         pcvariant_stat_set_extra_size (value, nr_bytes);
     }
@@ -531,8 +530,7 @@ void pcvariant_sequence_release(purc_variant_t sequence)
 
     if (purc_variant_is_type(sequence, PURC_VARIANT_TYPE_STRING)) {
         if (sequence->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
-            sequence->sz_ptr[0] = 0;
-            pcvariant_stat_set_extra_size (sequence, (size_t)sequence->sz_ptr[0]);
+            pcvariant_stat_set_extra_size (sequence, 0);
             free((void *)sequence->sz_ptr[1]);
         }
     }
