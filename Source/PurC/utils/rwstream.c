@@ -268,7 +268,7 @@ purc_rwstream_t purc_rwstream_new_buffer (size_t sz_init, size_t sz_max)
     sz_max = sz_max < sz_init ? sz_init : sz_max;
 
     rws->rwstream.funcs = &buffer_funcs;
-    rws->base = (uint8_t*) calloc(sz_init, 1);
+    rws->base = (uint8_t*) calloc(sz_init + 1, 1);
     rws->here = rws->base;
     rws->stop = rws->base + sz_init;
     rws->sz = sz_init;
@@ -743,7 +743,7 @@ static int buffer_extend (struct buffer_rwstream* buffer, size_t size)
     size_t new_size = size > buffer->sz_max ? size : buffer->sz_max;
     off_t here_offset = buffer->here - buffer->base;
 
-    uint8_t* newbuf = (uint8_t*) realloc(buffer->base, new_size);
+    uint8_t* newbuf = (uint8_t*) realloc(buffer->base, new_size + 1);
     if (newbuf == NULL)
     {
         pcinst_set_error(PCRWSTREAM_ERROR_IO);
@@ -754,6 +754,7 @@ static int buffer_extend (struct buffer_rwstream* buffer, size_t size)
     buffer->here = buffer->base + here_offset;
     buffer->stop = buffer->base + new_size;
     buffer->sz = new_size;
+    *buffer->here = 0;
 
     return 0;
 }
