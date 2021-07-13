@@ -189,7 +189,7 @@ static const char base64_pad = '=';
    characters. The character referenced by the index is placed in the
    output string.
 
-                         Table 1: The base64_chars Alphabet
+                         Table 1: The Base64 Alphabet
 
       Value Encoding  Value Encoding  Value Encoding  Value Encoding
           0 A            17 R            34 i            51 z
@@ -645,7 +645,8 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
                 MY_CHECK(n);
 
                 // key
-                n = serialize_string(rws, key, strlen(key), flags, len_expected);
+                n = serialize_string(rws, key, strlen(key),
+                        flags, len_expected);
                 MY_CHECK(n);
 
                 MY_WRITE(rws, ":", 1);
