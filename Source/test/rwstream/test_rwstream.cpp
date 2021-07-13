@@ -1233,3 +1233,116 @@ TEST(dump_rwstream, stdio)
 
     remove_temp_file(out_file);
 }
+
+TEST(dump_rwstream, stdio_mem)
+{
+    char in_file[] = "/tmp/rwstream.txt";
+    char buf[] = "This is test file. 这是测试文件。";
+    size_t buf_len = strlen(buf);
+    create_temp_file(in_file, buf, buf_len);
+
+    purc_rwstream_t rws = purc_rwstream_new_from_file(in_file, "r");
+    ASSERT_NE(rws, nullptr);
+
+    char out_buf[1024] = {0};
+    size_t out_buf_len = 1024;
+    purc_rwstream_t rws_out = purc_rwstream_new_from_mem (out_buf, out_buf_len);
+    ASSERT_NE(rws_out, nullptr);
+
+    size_t sz = 0;
+    const char* mem_buffer = purc_rwstream_get_mem_buffer (rws_out, &sz);
+    ASSERT_EQ(mem_buffer, out_buf);
+    ASSERT_EQ(sz, out_buf_len);
+
+    sz = purc_rwstream_dump_to_another (rws, rws_out, -1);
+    ASSERT_EQ(sz, buf_len);
+    ASSERT_STREQ(mem_buffer, buf);
+
+    int ret = purc_rwstream_close(rws_out);
+    ASSERT_EQ(ret, 0);
+
+    ret = purc_rwstream_destroy (rws_out);
+    ASSERT_EQ(ret, 0);
+
+    ret = purc_rwstream_close(rws);
+    ASSERT_EQ(ret, 0);
+
+    ret = purc_rwstream_destroy (rws);
+    ASSERT_EQ(ret, 0);
+
+    remove_temp_file(in_file);
+}
+
+TEST(dump_rwstream, stdio_buffer)
+{
+    char in_file[] = "/tmp/rwstream.txt";
+    char buf[] = "This is test file. 这是测试文件。";
+    size_t buf_len = strlen(buf);
+    create_temp_file(in_file, buf, buf_len);
+
+    purc_rwstream_t rws = purc_rwstream_new_from_file(in_file, "r");
+    ASSERT_NE(rws, nullptr);
+
+    purc_rwstream_t rws_out = purc_rwstream_new_buffer (buf_len, buf_len*2);
+    ASSERT_NE(rws_out, nullptr);
+
+    size_t sz = 0;
+    const char* mem_buffer = purc_rwstream_get_mem_buffer (rws_out, &sz);
+
+    sz = purc_rwstream_dump_to_another (rws, rws_out, -1);
+    ASSERT_EQ(sz, buf_len);
+    ASSERT_STREQ(mem_buffer, buf);
+    ASSERT_EQ(sz, purc_rwstream_tell(rws_out));
+
+    int ret = purc_rwstream_close(rws_out);
+    ASSERT_EQ(ret, 0);
+
+    ret = purc_rwstream_destroy (rws_out);
+    ASSERT_EQ(ret, 0);
+
+    ret = purc_rwstream_close(rws);
+    ASSERT_EQ(ret, 0);
+
+    ret = purc_rwstream_destroy (rws);
+    ASSERT_EQ(ret, 0);
+
+    remove_temp_file(in_file);
+}
+
+TEST(dump_rwstream, stdio_gio)
+{
+    char in_file[] = "/tmp/rwstream.txt";
+    char out_file[] = "/tmp/rwstream2.txt";
+    char buf[] = "This is test file. 这是测试文件。";
+    size_t buf_len = strlen(buf);
+    create_temp_file(in_file, buf, buf_len);
+
+    purc_rwstream_t rws = purc_rwstream_new_from_file(in_file, "r");
+    ASSERT_NE(rws, nullptr);
+
+    int fd = open(out_file, O_RDWR);
+    purc_rwstream_t rws_out = purc_rwstream_new_from_unix_fd (fd, 1024);
+    ASSERT_NE(rws_out, nullptr);
+
+    size_t sz = 0;
+    const char* mem_buffer = purc_rwstream_get_mem_buffer (rws_out, &sz);
+    ASSERT_EQ(mem_buffer, nullptr);
+    ASSERT_EQ(sz, 0);
+
+    sz = purc_rwstream_dump_to_another (rws, rws_out, -1);
+    ASSERT_EQ(sz, buf_len);
+
+    int ret = purc_rwstream_close(rws_out);
+    ASSERT_EQ(ret, 0);
+
+    ret = purc_rwstream_destroy (rws_out);
+    ASSERT_EQ(ret, 0);
+
+    ret = purc_rwstream_close(rws);
+    ASSERT_EQ(ret, 0);
+
+    ret = purc_rwstream_destroy (rws);
+    ASSERT_EQ(ret, 0);
+
+    remove_temp_file(in_file);
+}
