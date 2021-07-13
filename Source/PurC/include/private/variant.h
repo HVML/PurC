@@ -28,6 +28,7 @@
 #include "config.h"
 #include "purc-variant.h"
 #include "arraylist.h"
+#include "hashtable.h"
 
 #include <assert.h>
 
@@ -166,13 +167,26 @@ void pcvariant_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
     do {                                                                \
         struct purc_variant_object_iterator *__oite = NULL;             \
         struct purc_variant_set_iterator *__site    = NULL;             \
-        bool __having = true;                                           \
-        for (__oite = purc_variant_object_make_iterator_begin(obj);     \
-             __oite && __having;                                        \
-             __having = purc_variant_object_iterator_next(__oite) )     \
+        struct pchash_table *_ht;                                       \
+        _ht = (struct pchash_table*)obj->sz_ptr[1];                     \
+        struct pchash_entry *_entry;                                    \
+        pchash_foreach(_ht, _entry)                                     \
         {                                                               \
-            value = purc_variant_object_iterator_get_value(__oite);     \
-     /* } */                                                            \
+            value = (purc_variant_t)_entry->v;                          \
+     /* } */
+ /* } while (0) */
+
+#define foreach_value_in_variant_object_safe(obj, value)                \
+    do {                                                                \
+        struct purc_variant_object_iterator *__oite = NULL;             \
+        struct purc_variant_set_iterator *__site    = NULL;             \
+        struct pchash_table *_ht;                                       \
+        _ht = (struct pchash_table*)obj->sz_ptr[1];                     \
+        struct pchash_entry *_entry, *_tmp;                             \
+        pchash_foreach_safe(_ht, _entry, _tmp)                          \
+        {                                                               \
+            value = (purc_variant_t)_entry->v;                          \
+     /* } */
  /* } while (0) */
 
 
