@@ -548,14 +548,16 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
             break;
 
         case PURC_VARIANT_TYPE_LONGINT:
-            if (snprintf(buff, sizeof(buff), "%ldL", value->i64) < 0)
+            if (snprintf(buff, sizeof(buff), "%lldL",
+                        (long long int)value->i64) < 0)
                 goto failed;
             content = buff;
             sz_content = strlen(buff);
             break;
 
         case PURC_VARIANT_TYPE_LONGUINT:
-            if (snprintf(buff, sizeof(buff), "%luUL", value->u64) < 0)
+            if (snprintf(buff, sizeof(buff), "%lluUL",
+                        (long long unsigned)value->u64) < 0)
                 goto failed;
             content = buff;
             sz_content = strlen(buff);
