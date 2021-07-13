@@ -1359,8 +1359,14 @@ TEST(dump_rwstream, mem_buffer)
     ASSERT_NE(rws_out, nullptr);
 
     size_t sz = 0;
-    const char* mem_buffer = purc_rwstream_get_mem_buffer (rws_out, &sz);
+    sz = purc_rwstream_dump_to_another (rws, rws_out, 5);
+    ASSERT_EQ(sz, 5);
 
+    const char* mem_buffer = purc_rwstream_get_mem_buffer (rws_out, &sz);
+    ASSERT_EQ(0, strncmp(buf, mem_buffer, 5));
+
+    purc_rwstream_seek (rws, 0, SEEK_SET);
+    purc_rwstream_seek (rws_out, 0, SEEK_SET);
     sz = purc_rwstream_dump_to_another (rws, rws_out, -1);
     ASSERT_EQ(sz, buf_len);
     ASSERT_STREQ(mem_buffer, buf);
