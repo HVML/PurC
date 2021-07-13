@@ -1346,3 +1346,35 @@ TEST(dump_rwstream, stdio_gio)
 
     remove_temp_file(in_file);
 }
+
+TEST(dump_rwstream, mem_buffer)
+{
+    char buf[] = "This is test file. 这是测试文件。";
+    size_t buf_len = strlen(buf);
+
+    purc_rwstream_t rws = purc_rwstream_new_from_mem (buf, buf_len);
+    ASSERT_NE(rws, nullptr);
+
+    purc_rwstream_t rws_out = purc_rwstream_new_buffer (buf_len, buf_len*2);
+    ASSERT_NE(rws_out, nullptr);
+
+    size_t sz = 0;
+    const char* mem_buffer = purc_rwstream_get_mem_buffer (rws_out, &sz);
+
+    sz = purc_rwstream_dump_to_another (rws, rws_out, -1);
+    ASSERT_EQ(sz, buf_len);
+    ASSERT_STREQ(mem_buffer, buf);
+    ASSERT_EQ(sz, purc_rwstream_tell(rws_out));
+
+    int ret = purc_rwstream_close(rws_out);
+    ASSERT_EQ(ret, 0);
+
+    ret = purc_rwstream_destroy (rws_out);
+    ASSERT_EQ(ret, 0);
+
+    ret = purc_rwstream_close(rws);
+    ASSERT_EQ(ret, 0);
+
+    ret = purc_rwstream_destroy (rws);
+    ASSERT_EQ(ret, 0);
+}
