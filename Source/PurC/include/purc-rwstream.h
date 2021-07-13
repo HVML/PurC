@@ -34,6 +34,11 @@
 #include "purc-macros.h"
 #include "purc-errors.h"
 
+
+#define purc_rwstream_t_SEEK_SET    0
+#define purc_rwstream_t_SEEK_CUR    1
+#define purc_rwstream_t_SEEK_END    2
+
 struct purc_rwstream;
 typedef struct purc_rwstream purc_rwstream;
 typedef struct purc_rwstream* purc_rwstream_t;
