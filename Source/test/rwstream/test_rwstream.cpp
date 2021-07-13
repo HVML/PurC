@@ -1194,3 +1194,42 @@ TEST(gio_rwstream, seek_read)
 
     remove_temp_file(tmp_file);
 }
+
+
+off_t filesize(const char* filename)
+{
+    struct stat statbuf;
+    stat(filename,&statbuf);
+    return statbuf.st_size;
+}
+
+TEST(dump_rwstream, stdio)
+{
+    char in_file[] = "/bin/ls";
+    char out_file[] = "/tmp/ls2";
+
+    off_t in_size = filesize(in_file);
+
+    purc_rwstream_t rws = purc_rwstream_new_from_file(in_file, "r");
+    ASSERT_NE(rws, nullptr);
+
+    purc_rwstream_t rws2 = purc_rwstream_new_from_file(out_file, "w");
+    ASSERT_NE(rws2, nullptr);
+
+    ssize_t sz = purc_rwstream_dump_to_another (rws, rws2, -1);
+    ASSERT_EQ(sz, in_size);
+
+    int ret = purc_rwstream_close(rws);
+    ASSERT_EQ(ret, 0);
+
+    ret = purc_rwstream_destroy (rws);
+    ASSERT_EQ(ret, 0);
+
+    ret = purc_rwstream_close(rws2);
+    ASSERT_EQ(ret, 0);
+
+    ret = purc_rwstream_destroy (rws2);
+    ASSERT_EQ(ret, 0);
+
+    remove_temp_file(out_file);
+}

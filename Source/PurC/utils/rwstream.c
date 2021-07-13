@@ -545,7 +545,7 @@ ssize_t purc_rwstream_dump_to_another (purc_rwstream_t in,
 
     if (count == -1)
     {
-        while ((read_len = purc_rwstream_read(in, buffer, BUFFER_SIZE)) != -1)
+        while ((read_len = purc_rwstream_read(in, buffer, BUFFER_SIZE)) > 0)
         {
             write_len = purc_rwstream_write (out, buffer, read_len);
             if (write_len != read_len) {
