@@ -79,7 +79,7 @@ struct purc_variant {
         long double ld;
 
         /* for dynamic and native variant (two pointers) */
-        void*       ptr2[2];
+        void*       ptr_ptr[2];
 
         /* for long string, long byte sequence, array, object,
            and set (sz_ptr[0] for size, sz_ptr[1] for pointer).
