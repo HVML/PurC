@@ -978,8 +978,8 @@ PCA_EXPORT int purc_variant_compare(purc_variant_t v1, purc_variant_t v2);
 #define PCVARIANT_SERIALIZE_OPT_PLAIN           0x0000
 
 /**
- * A flag for the purc_variant_serialize() function which causes the output to have
- * minimal whitespace inserted to make things slightly more readable.
+ * A flag for the purc_variant_serialize() function which causes the output to
+ * have minimal whitespace inserted to make things slightly more readable.
  */
 #define PCVARIANT_SERIALIZE_OPT_SPACED          0x0001
 
@@ -1040,18 +1040,32 @@ PCA_EXPORT int purc_variant_compare(purc_variant_t v1, purc_variant_t v2);
 /**
  * Serialize a variant value
  *
- * @param value: the variant value to be serialized
+ * @param value: the variant value to be serialized.
+ * @param stream: the stream to which the serialized data write.
+ * @param indent_level: the initial indent level. 0 for most cases.
+ * @param flags: the serialization flags.
+ * @param len_expected: The buffer to receive the expected length of
+ *      the serialized data (nullable). The value in the buffer should be
+ *      set to 0 initially.
  *
- * @param steam: the stream to which the serialized data write
- * @param flags: the serialization flags
+ * Returns: The size of the serialized data written to the stream;
+ *      On error, -1 is returned, and error code is set to indicate
+ *      the cause of the error.
  *
- * Returns: return the size of serialized data.
+ * If @len_expected is not null, the expected length of the serialized
+ * data will be returned through this buffer. If the returned size
+ * of the serialized data written to the stream is smaller
+ * than the expected length, this shows that only part of the data is
+ * actually written to the stream.
+ *
+ * However, you can prepare a small memory stream to count the
+ * expected length of the serialized data.
  *
  * Since: 0.0.1
  */
 PCA_EXPORT ssize_t
 purc_variant_serialize(purc_variant_t value, purc_rwstream_t stream,
-        int indent_level, unsigned int flags);
+        int indent_level, unsigned int flags, size_t *len_expected);
 
 
 /**
