@@ -958,6 +958,60 @@ purc_variant_load_from_json_file(const char* file);
 PCA_EXPORT purc_variant_t
 purc_variant_load_from_json_stream(purc_rwstream_t stream);
 
+/**
+ * Trys to cast a variant value to a nubmer.
+ *
+ * @param v: the variant value.
+ * @param d: the buffer to receive the casted number if success.
+ *
+ * Returns: @TRUE on success, or @FALSE on failure (the variant value can not
+ *      be casted to a number).
+ *
+ * Note: Only a null, a boolean, a number, a long integer,
+ *      an unsigned long integer, or a long double can be casted to
+ *      a number (double float number).
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT bool
+purc_variant_cast_to_number(purc_variant_t v, double *d);
+
+/**
+ * Trys to cast a variant value to a long double float number.
+ *
+ * @param v: the variant value.
+ * @param ld: the buffer to receive the casted long double if success.
+ *
+ * Returns: @TRUE on success, or @FALSE on failure (the variant value can not
+ *      be casted to a long double).
+ *
+ * Note: Only a null, a boolean, a number, a long integer,
+ *      an unsigned long integer, or a long double can be casted to
+ *      a long double float number.
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT bool
+purc_variant_cast_to_long_double(purc_variant_t v, long double *ld);
+
+/**
+ * Trys to cast a variant value to a byte sequence.
+ *
+ * @param v: the variant value.
+ * @param bytes: the buffer to receive the pointer to the byte sequence.
+ * @param sz: the buffer to receive the size of the byte sequence in bytes.
+ *
+ * Returns: @TRUE on success, or @FALSE on failure (the variant value can not
+ *      be casted to a byte sequence).
+ *
+ * Note: Only a string, an atom string, or a byte sequence can be casted to
+ *      a byte sequence.
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT bool
+purc_variant_cast_to_byte_sequence(purc_variant_t v,
+        const void **bytes, size_t *sz);
 
 /**
  * Compares two variant value
@@ -965,8 +1019,10 @@ purc_variant_load_from_json_stream(purc_rwstream_t stream);
  * @param v1: one of compared variant value
  * @param v2: the other variant value to be compared
  *
- * Returns: return zero for identical, otherwise -1.
-.*
+ * Returns: The function returns an integer less than, equal to, or greater
+ *      than zero if v1 is found, respectively, to be less than, to match,
+ *      or be greater than v2.
+ *
  * Since: 0.0.1
  */
 PCA_EXPORT int purc_variant_compare(purc_variant_t v1, purc_variant_t v2);
@@ -978,8 +1034,8 @@ PCA_EXPORT int purc_variant_compare(purc_variant_t v1, purc_variant_t v2);
 #define PCVARIANT_SERIALIZE_OPT_PLAIN           0x0000
 
 /**
- * A flag for the purc_variant_serialize() function which causes the output to have
- * minimal whitespace inserted to make things slightly more readable.
+ * A flag for the purc_variant_serialize() function which causes the output to
+ * have minimal whitespace inserted to make things slightly more readable.
  */
 #define PCVARIANT_SERIALIZE_OPT_SPACED          0x0001
 
@@ -1040,18 +1096,32 @@ PCA_EXPORT int purc_variant_compare(purc_variant_t v1, purc_variant_t v2);
 /**
  * Serialize a variant value
  *
- * @param value: the variant value to be serialized
+ * @param value: the variant value to be serialized.
+ * @param stream: the stream to which the serialized data write.
+ * @param indent_level: the initial indent level. 0 for most cases.
+ * @param flags: the serialization flags.
+ * @param len_expected: The buffer to receive the expected length of
+ *      the serialized data (nullable). The value in the buffer should be
+ *      set to 0 initially.
  *
- * @param steam: the stream to which the serialized data write
- * @param flags: the serialization flags
+ * Returns: The size of the serialized data written to the stream;
+ *      On error, -1 is returned, and error code is set to indicate
+ *      the cause of the error.
  *
- * Returns: return the size of serialized data.
+ * If @len_expected is not null, the expected length of the serialized
+ * data will be returned through this buffer. If the returned size
+ * of the serialized data written to the stream is smaller
+ * than the expected length, this shows that only part of the data is
+ * actually written to the stream.
+ *
+ * However, you can prepare a small memory stream to count the
+ * expected length of the serialized data.
  *
  * Since: 0.0.1
  */
 PCA_EXPORT ssize_t
 purc_variant_serialize(purc_variant_t value, purc_rwstream_t stream,
-        int indent_level, unsigned int flags);
+        int indent_level, unsigned int flags, size_t *len_expected);
 
 
 /**

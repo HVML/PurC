@@ -372,12 +372,284 @@ void pcvariant_put(purc_variant_t value)
     stat->nr_total_values--;
 }
 
+static int compare_objects(purc_variant_t v1, purc_variant_t v2)
+{
+    int i;
+    const char* key;
+    purc_variant_t m1, m2;
+    size_t sz1 = purc_variant_object_get_size(v1);
+    size_t sz2 = purc_variant_object_get_size(v2);
+
+    if (sz1 != sz2)
+        return (int)(sz1 - sz2);
+
+    foreach_key_value_in_variant_object(v1, key, m1)
+
+        m2 = purc_variant_object_get_c(v2, key);
+        i = purc_variant_compare(m1, m2);
+        if (i != 0)
+            return i;
+    end_foreach;
+
+    return 0;
+}
+
+static int compare_arrays(purc_variant_t v1, purc_variant_t v2)
+{
+    int i;
+    size_t idx;
+    size_t sz1 = purc_variant_array_get_size(v1);
+    size_t sz2 = purc_variant_array_get_size(v2);
+    purc_variant_t m1, m2;
+
+    if (sz1 != sz2)
+        return (int)(sz1 - sz2);
+
+    idx = 0;
+    foreach_value_in_variant_array(v1, m1)
+
+        m2 = purc_variant_array_get(v2, idx);
+        i = purc_variant_compare(m1, m2);
+        if (i != 0)
+            return i;
+
+        idx++;
+    end_foreach;
+
+    return 0;
+}
+
+bool purc_variant_cast_to_number(purc_variant_t v, double *d)
+{
+    PC_ASSERT(v);
+
+    switch (v->type) {
+        case PURC_VARIANT_TYPE_NULL:
+            *d = 0;
+            return true;
+
+        case PURC_VARIANT_TYPE_BOOLEAN:
+            *d = (double)v->b;
+            return true;
+
+        case PURC_VARIANT_TYPE_NUMBER:
+            *d = (double)v->d;
+            return true;
+
+        case PURC_VARIANT_TYPE_LONGINT:
+            *d = (double)v->i64;
+            return true;
+
+        case PURC_VARIANT_TYPE_LONGUINT:
+            *d = (double)v->u64;
+            return true;
+
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+            *d = (double)v->ld;
+            return true;
+        default:
+            break;
+    }
+
+    return false;
+}
+
+bool purc_variant_cast_to_long_double(purc_variant_t v, long double *d)
+{
+    PC_ASSERT(v);
+
+    switch (v->type) {
+        case PURC_VARIANT_TYPE_NULL:
+            *d = 0;
+            return true;
+
+        case PURC_VARIANT_TYPE_BOOLEAN:
+            *d = (long double)v->b;
+            return true;
+
+        case PURC_VARIANT_TYPE_NUMBER:
+            *d = (long double)v->d;
+            return true;
+
+        case PURC_VARIANT_TYPE_LONGINT:
+            *d = (long double)v->i64;
+            return true;
+
+        case PURC_VARIANT_TYPE_LONGUINT:
+            *d = (long double)v->u64;
+            return true;
+
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+            *d = (long double)v->ld;
+            return true;
+        default:
+            break;
+    }
+
+    return false;
+}
+
+bool purc_variant_cast_to_byte_sequence(purc_variant_t v,
+        const void **bytes, size_t *sz)
+{
+    PC_ASSERT(v);
+
+    switch (v->type) {
+        case PURC_VARIANT_TYPE_ATOMSTRING:
+            *bytes = purc_atom_to_string(v->sz_ptr[1]);
+            *sz = strlen(*bytes);
+            return true;
+
+        case PURC_VARIANT_TYPE_STRING:
+        case PURC_VARIANT_TYPE_BSEQUENCE:
+            if (v->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
+                *bytes = (void*)v->sz_ptr[1];
+                *sz = v->sz_ptr[0];
+            }
+            else {
+                *bytes = (void*)v->bytes;
+                *sz = v->size;
+            }
+            return true;
+
+        default:
+            break;
+    }
+
+    return false;
+}
+
 int purc_variant_compare(purc_variant_t v1, purc_variant_t v2)
 {
-    UNUSED_PARAM(v1);
-    UNUSED_PARAM(v2);
-    PC_ASSERT(0);
-    return -1;
+    int i;
+    const char *str1, *str2;
+    size_t len1, len2;
+
+    if (v1 == NULL)
+        return v2 ? 1 : 0;
+    if (v2 == NULL)
+        return v1 ? 1 : 0;
+
+    if (v1->type == v2->type) {
+    switch (v1->type) {
+        case PURC_VARIANT_TYPE_NULL:
+        case PURC_VARIANT_TYPE_UNDEFINED:
+            return 0;
+
+        case PURC_VARIANT_TYPE_BOOLEAN:
+            return (int)v1->b - (int)v2->b;
+
+        case PURC_VARIANT_TYPE_NUMBER:
+            if (v1->d > v2->d)
+                return 1;
+            else if (v1->d < v2->d)
+                return -1;
+            return 0;
+
+        case PURC_VARIANT_TYPE_LONGINT:
+            return (int)(v1->i64 - v2->i64);
+
+        case PURC_VARIANT_TYPE_LONGUINT:
+            return (int)(v1->u64 - v2->u64);
+
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+            if (v1->d > v2->d)
+                return 1;
+            else if (v1->d < v2->d)
+                return -1;
+            return 0;
+
+        case PURC_VARIANT_TYPE_ATOMSTRING:
+            str1 = purc_atom_to_string(v1->sz_ptr[1]);
+            str2 = purc_atom_to_string(v2->sz_ptr[1]);
+            return strcmp(str1, str2);
+
+        case PURC_VARIANT_TYPE_STRING:
+        case PURC_VARIANT_TYPE_BSEQUENCE:
+            if (v1->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
+                str1 = (const char*)v1->sz_ptr[1];
+                len1 = v1->sz_ptr[0];
+            }
+            else {
+                str1 = (const char*)v1->bytes;
+                len1 = v1->size;
+            }
+
+            if (v2->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
+                str2 = (const char*)v2->sz_ptr[2];
+                len2 = v2->sz_ptr[0];
+            }
+            else {
+                str2 = (const char*)v2->bytes;
+                len2 = v2->size;
+            }
+
+            if (v1->type == PURC_VARIANT_TYPE_STRING)
+                return strcmp(str1, str2);
+
+            i = memcmp(str1, str2, (len1 > len2)?len2:len1);
+            if (i == 0 && len1 != len2) {
+                return (int)(len1 - len2);
+            }
+            return i;
+
+        case PURC_VARIANT_TYPE_DYNAMIC:
+        case PURC_VARIANT_TYPE_NATIVE:
+            return memcmp(v1->ptr_ptr, v2->ptr_ptr, sizeof(void *) * 2);
+
+        case PURC_VARIANT_TYPE_OBJECT:
+            return compare_objects(v1, v2);
+
+        case PURC_VARIANT_TYPE_ARRAY:
+        case PURC_VARIANT_TYPE_SET:
+            return compare_arrays(v1, v2);
+
+        default:
+            PC_ASSERT(0);
+            break;
+    }
+    }
+    else {
+        long double ld1, ld2;
+        if (purc_variant_cast_to_long_double(v1, &ld1) &&
+                purc_variant_cast_to_long_double(v2, &ld2)) {
+            return (int)(ld1 - ld2);
+        }
+
+        const void *bytes1, *bytes2;
+        size_t sz1, sz2;
+        if (purc_variant_cast_to_byte_sequence(v1, &bytes1, &sz1) &&
+                purc_variant_cast_to_byte_sequence(v2, &bytes2, &sz2)) {
+
+            int i = memcmp(bytes1, bytes2, (sz1 > sz2) ? sz2 : sz1);
+            if (i == 0 && sz2 != sz1) {
+                return (int)(sz1 - sz2);
+            }
+            return i;
+        }
+
+        static const char* type_names[PURC_VARIANT_TYPE_MAX] = {
+            "undefined",        // PURC_VARIANT_TYPE_UNDEFINED
+            "null",             // PURC_VARIANT_TYPE_NULL
+            "boolean",          // PURC_VARIANT_TYPE_BOOLEAN
+            "0",                // PURC_VARIANT_TYPE_NUMBER
+            "0",                // PURC_VARIANT_TYPE_LONGINT
+            "0",                // PURC_VARIANT_TYPE_LONGUINT
+            "0",                // PURC_VARIANT_TYPE_LONGDOUBLE
+            "\"\"",             // PURC_VARIANT_TYPE_ATOM_STRING
+            "\"\"",             // PURC_VARIANT_TYPE_STRING
+            "b",                // PURC_VARIANT_TYPE_SEQUENCE
+            "<dynamic>",        // PURC_VARIANT_TYPE_DYNAMIC
+            "<native>",         // PURC_VARIANT_TYPE_NATIVE
+            "{}",               // PURC_VARIANT_TYPE_OBJECT
+            "[]",               // PURC_VARIANT_TYPE_ARRAY
+            "[<set>]",          // PURC_VARIANT_TYPE_SET
+        };
+
+        return strcmp(type_names[v1->type], type_names[v2->type]);
+    }
+
+    return 0;
 }
 
 purc_variant_t purc_variant_load_from_json_stream(purc_rwstream_t stream)

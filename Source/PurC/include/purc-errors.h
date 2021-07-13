@@ -7,7 +7,7 @@
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -41,6 +41,7 @@
 #define PURC_ERROR_TOO_LARGE_ENTITY     8
 #define PURC_ERROR_BAD_ENCODING         9
 #define PURC_ERROR_NOT_SUPPORTED        10
+#define PURC_ERROR_OUTPUT               11
 
 // the first error codes for various modules:
 #define PURC_ERROR_FIRST_VARIANT        100

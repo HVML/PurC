@@ -480,8 +480,8 @@ purc_variant_t purc_variant_make_dynamic_value (purc_dvariant_method getter,
     value->size = 0;
     value->flags = 0;
     value->refc = 1;
-    value->ptr2[0] = getter;
-    value->ptr2[1] = setter;
+    value->ptr_ptr[0] = getter;
+    value->ptr_ptr[1] = setter;
 
     return value;
 }
@@ -501,8 +501,8 @@ purc_variant_t purc_variant_make_native (void *native_obj,
     value->size = 0;
     value->flags = 0;
     value->refc = 1;
-    value->ptr2[0] = native_obj;
-    value->ptr2[1] = releaser;
+    value->ptr_ptr[0] = native_obj;
+    value->ptr_ptr[1] = releaser;
 
     return value;
 }
