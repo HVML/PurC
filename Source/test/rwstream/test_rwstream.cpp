@@ -579,7 +579,7 @@ TEST(buffer_rwstream, new_destroy)
     const char* mem_buffer = purc_rwstream_get_mem_buffer (rws, &sz);
     ASSERT_NE(mem_buffer, nullptr);
 
-    ASSERT_EQ(sz, buf_len);
+    ASSERT_GE(sz, buf_len);
 
     int ret = purc_rwstream_close(rws);
     ASSERT_EQ(ret, 0);
@@ -641,6 +641,42 @@ TEST(buffer_rwstream, write_char)
     ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 }
+
+TEST(buffer_rwstream, extend_memory)
+{
+    char buf[] = "This is test file. 这是测试文件。";
+    size_t buf_len = strlen(buf);
+
+    purc_rwstream_t rws = purc_rwstream_new_buffer (buf_len, buf_len * 2);
+    ASSERT_NE(rws, nullptr);
+
+    size_t sz = 0;
+    const char* mem_buffer = purc_rwstream_get_mem_buffer (rws, &sz);
+    ASSERT_NE(mem_buffer, nullptr);
+
+    int write_len = purc_rwstream_write (rws, buf, buf_len);
+    ASSERT_EQ(write_len, buf_len);
+    ASSERT_STREQ(mem_buffer, buf);
+
+    write_len = purc_rwstream_write (rws, buf, buf_len);
+    ASSERT_EQ(write_len, buf_len);
+
+    size_t sz2 = 0;
+    const char* mem_buffer2 = purc_rwstream_get_mem_buffer (rws, &sz2);
+    ASSERT_NE(mem_buffer2, nullptr);
+    ASSERT_NE(sz, sz2);
+    ASSERT_GE(sz2, sz);
+
+    write_len = purc_rwstream_write (rws, buf, buf_len);
+    ASSERT_EQ(write_len, 0);
+
+    int ret = purc_rwstream_close(rws);
+    ASSERT_EQ(ret, 0);
+
+    ret = purc_rwstream_destroy (rws);
+    ASSERT_EQ(ret, 0);
+}
+
 
 TEST(buffer_rwstream, read_utf8_char)
 {

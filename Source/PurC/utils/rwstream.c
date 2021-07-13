@@ -40,6 +40,7 @@
 #endif // ENABLE(SOCKET_STREAM) && HAVE(GLIB)
 
 #define BUFFER_SIZE 4096
+#define MIN_BUFFER_SIZE 32
 
 static const char* rwstream_err_msgs[] = {
     /* PCRWSTREAM_ERROR_FAILED (200) */
@@ -252,8 +253,26 @@ int rwstream_error_code_from_gerror (GError* err)
 #endif // ENABLE(SOCKET_STREAM) && HAVE(GLIB)
 
 
-/* rwstream api */
+static size_t get_min_size(size_t sz_min, size_t sz_max) {
+    size_t fib0 = 0;
+    size_t fib1 = 1;
+    size_t fibN = 0;
 
+    if (sz_min <= 1) {
+        fibN = sz_min;
+    }
+    else {
+        for (size_t i = 2; fibN < sz_min; i++) {
+            fibN = fib1 + fib0;
+            fib0 = fib1;
+            fib1 = fibN;
+        }
+    }
+    fibN = fibN < MIN_BUFFER_SIZE ?  MIN_BUFFER_SIZE : fibN;
+    return fibN = fibN < sz_max ? fibN : sz_max;
+}
+
+/* rwstream api */
 purc_rwstream_t purc_rwstream_new_buffer (size_t sz_init, size_t sz_max)
 {
     if (sz_init == 0 && sz_max == 0)
@@ -267,11 +286,13 @@ purc_rwstream_t purc_rwstream_new_buffer (size_t sz_init, size_t sz_max)
 
     sz_max = sz_max < sz_init ? sz_init : sz_max;
 
+    size_t sz = get_min_size(sz_init, sz_max);
+
     rws->rwstream.funcs = &buffer_funcs;
-    rws->base = (uint8_t*) calloc(sz_init + 1, 1);
+    rws->base = (uint8_t*) calloc(sz + 1, 1);
     rws->here = rws->base;
-    rws->stop = rws->base + sz_init;
-    rws->sz = sz_init;
+    rws->stop = rws->base + sz;
+    rws->sz = sz;
     rws->sz_max = sz_max;
 
     return (purc_rwstream_t) rws;
@@ -740,7 +761,7 @@ static int buffer_extend (struct buffer_rwstream* buffer, size_t size)
         return 0;
     }
 
-    size_t new_size = size > buffer->sz_max ? size : buffer->sz_max;
+    size_t new_size = get_min_size(size, buffer->sz_max);
     off_t here_offset = buffer->here - buffer->base;
 
     uint8_t* newbuf = (uint8_t*) realloc(buffer->base, new_size + 1);
