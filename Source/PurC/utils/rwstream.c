@@ -53,7 +53,7 @@ static const char* rwstream_err_msgs[] = {
     "File is a directory.",
     /* PCRWSTREAM_ERROR_NOSPC */
     "No space left on device.",
-    /* PPCRWSTREAM_ERROR_NXIO */
+    /* PCRWSTREAM_ERROR_NXIO */
     "No such device or address",
     /* PCRWSTREAM_ERROR_OVERFLOW */
     "Value too large for defined datatype",

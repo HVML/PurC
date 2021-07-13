@@ -65,6 +65,7 @@ purc_rwstream_t purc_rwstream_new_buffer (size_t sz_init, size_t sz_max);
  *
  * @return A purc_rwstream_t on success, @NULL on failure and the error code
  *         is set to indicate the error. The error code:
+ *  - @PURC_ERROR_INVALID_VALUE: Invalid value
  *
  * Since: 0.0.1
  */
@@ -79,6 +80,8 @@ PCA_EXPORT purc_rwstream_t purc_rwstream_new_from_mem (void* mem, size_t sz);
  *
  * @return A purc_rwstream_t on success, @NULL on failure and the error code
  *         is set to indicate the error. The error code:
+ *  - @PURC_ERROR_INVALID_VALUE: Invalid value
+ *  - @PURC_ERROR_BAD_SYSTEM_CALL: Bad system call
  *
  * Since: 0.0.1
  */
@@ -92,6 +95,8 @@ purc_rwstream_new_from_file (const char* file, const char* mode);
  *
  * @return A purc_rwstream_t on success, @NULL on failure and the error code
  *         is set to indicate the error. The error code:
+ *  - @PURC_ERROR_INVALID_VALUE: Invalid value
+ *  - @PURC_ERROR_BAD_SYSTEM_CALL: Bad system call
  *
  * Since: 0.0.1
  */
@@ -105,6 +110,10 @@ PCA_EXPORT purc_rwstream_t purc_rwstream_new_from_fp (FILE* fp);
  *
  * @return A purc_rwstream_t on success, @NULL on failure and the error code
  *         is set to indicate the error. The error code:
+ *  - @PURC_ERROR_INVALID_VALUE: Invalid value
+ *  - @PURC_ERROR_BAD_SYSTEM_CALL: Bad system call
+ *  - @PURC_ERROR_OUT_OF_MEMORY: Out of memory
+ *  - @PURC_ERROR_NOT_IMPLEMENTED: Not implemented
  *
  * Since: 0.0.1
  */
@@ -119,6 +128,10 @@ purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf);
  *
  * @return A purc_rwstream_t on success, @NULL on failure and the error code
  *         is set to indicate the error. The error code:
+ *  - @PURC_ERROR_INVALID_VALUE: Invalid value
+ *  - @PURC_ERROR_BAD_SYSTEM_CALL: Bad system call
+ *  - @PURC_ERROR_OUT_OF_MEMORY: Out of memory
+ *  - @PURC_ERROR_NOT_IMPLEMENTED: Not implemented
  *
  * Since: 0.0.1
  */
@@ -130,7 +143,12 @@ purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf);
  *
  * @param rws: purc_rwstream_t
  *
- * @return 0 success, non-zero otherwise.
+ * @return 0 success, -1 otherwise and the error code is set to indicate
+ *         the error. The error code:
+ *  - @PURC_ERROR_INVALID_VALUE: Invalid value
+ *  - @PURC_ERROR_BAD_SYSTEM_CALL: Bad system call
+ *  - @PURC_ERROR_OUT_OF_MEMORY: Out of memory
+ *  - @PURC_ERROR_NOT_IMPLEMENTED: Not implemented
  *
  * Since: 0.0.1
  */
@@ -149,8 +167,18 @@ PCA_EXPORT int purc_rwstream_destroy (purc_rwstream_t rws);
  *        or purc_rwstream_t_SEEK_END (the end of the file)
  *
  * @return success returns the resulting offset location as measured in bytes
- *         from the beginning of the file,  (off_t) -1 otherwise.
- *
+ *         from the beginning of the file,  (off_t) -1 otherwise and the error
+ *         code is set to indicate the error. The error code:
+ *  - @PURC_ERROR_INVALID_VALUE: Invalid value
+ *  - @PURC_ERROR_BAD_SYSTEM_CALL: Bad system call
+ *  - @PURC_ERROR_NOT_IMPLEMENTED: Not implemented
+ *  - @PCRWSTREAM_ERROR_FBIG: File too large"
+ *  - @PCRWSTREAM_ERROR_IO: IO error
+ *  - @PCRWSTREAM_ERROR_ISDIR: File is a directory
+ *  - @PCRWSTREAM_ERROR_NOSPC: No space left on device
+ *  - @PCRWSTREAM_ERROR_NXIO: No such device or address
+ *  - @PCRWSTREAM_ERROR_OVERFLOW: Value too large for defined datatype
+ *  - @PCRWSTREAM_ERROR_FAILED: Rwstream failed with some other error
  * Since: 0.0.1
  */
 PCA_EXPORT off_t
@@ -162,7 +190,10 @@ purc_rwstream_seek (purc_rwstream_t rws, off_t offset, int whence);
  *
  * @param rws: pointer to purc_rwstream_t
  *
- * @return success returns the current offset, (off_t) -1 not support.
+ * @return success returns the current offset, (off_t) -1 otherwise and
+ *         the error code is set to indicate the error. The error code:
+ *  - @PURC_ERROR_INVALID_VALUE: Invalid value
+ *  - @PURC_ERROR_NOT_IMPLEMENTED: Not implemented
  *
  * Since: 0.0.1
  */
@@ -175,8 +206,16 @@ PCA_EXPORT off_t purc_rwstream_tell (purc_rwstream_t rws);
  * @param buf: a buffer to read the data into
  * @param count: the number of bytes to read
  *
- * @return the number of bytes actually read
- *
+ * @return the number of bytes actually read and the error code is set to
+ *         indicate the error. The error code:
+ *  - @PURC_ERROR_INVALID_VALUE: Invalid value
+ *  - @PCRWSTREAM_ERROR_FBIG: File too large"
+ *  - @PCRWSTREAM_ERROR_IO: IO error
+ *  - @PCRWSTREAM_ERROR_ISDIR: File is a directory
+ *  - @PCRWSTREAM_ERROR_NOSPC: No space left on device
+ *  - @PCRWSTREAM_ERROR_NXIO: No such device or address
+ *  - @PCRWSTREAM_ERROR_OVERFLOW: Value too large for defined datatype
+ *  - @PCRWSTREAM_ERROR_FAILED: Rwstream failed with some other error
  * Since: 0.0.1
  */
 PCA_EXPORT ssize_t
@@ -190,7 +229,16 @@ purc_rwstream_read (purc_rwstream_t rws, void* buf, size_t count);
  * @param buf_utf8: the buffer to read character into
  * @param buf_wc: the buffer to convert character into
  *
- * @return the length of character
+ * @return the length of character and the error code is set to indicate the
+ *         error. The error code:
+ *  - @PURC_ERROR_INVALID_VALUE: Invalid value
+ *  - @PCRWSTREAM_ERROR_FBIG: File too large"
+ *  - @PCRWSTREAM_ERROR_IO: IO error
+ *  - @PCRWSTREAM_ERROR_ISDIR: File is a directory
+ *  - @PCRWSTREAM_ERROR_NOSPC: No space left on device
+ *  - @PCRWSTREAM_ERROR_NXIO: No such device or address
+ *  - @PCRWSTREAM_ERROR_OVERFLOW: Value too large for defined datatype
+ *  - @PCRWSTREAM_ERROR_FAILED: Rwstream failed with some other error
  *
  * Since: 0.0.1
  */
@@ -205,7 +253,16 @@ PCA_EXPORT int purc_rwstream_read_utf8_char (purc_rwstream_t rws,
  * @param buf: the buffer containing the data to write
  * @param count: the number of bytes to write
  *
- * @return the number of bytes actually written
+ * @return the number of bytes actually written and the error code is set to
+ *         indicate the error. The error code:
+ *  - @PURC_ERROR_INVALID_VALUE: Invalid value
+ *  - @PCRWSTREAM_ERROR_FBIG: File too large"
+ *  - @PCRWSTREAM_ERROR_IO: IO error
+ *  - @PCRWSTREAM_ERROR_ISDIR: File is a directory
+ *  - @PCRWSTREAM_ERROR_NOSPC: No space left on device
+ *  - @PCRWSTREAM_ERROR_NXIO: No such device or address
+ *  - @PCRWSTREAM_ERROR_OVERFLOW: Value too large for defined datatype
+ *  - @PCRWSTREAM_ERROR_FAILED: Rwstream failed with some other error
  *
  * Since: 0.0.1
  */
@@ -218,7 +275,10 @@ purc_rwstream_write (purc_rwstream_t rws, const void* buf, size_t count);
  *
  * @param rws: pointer to purc_rwstream_t
  *
- * @return 0 success, non-zero otherwise.
+ * @return 0 success, non-zero otherwise and the error code is set to indicate
+ *         the error. The error code:
+ *  - @PURC_ERROR_INVALID_VALUE: Invalid value
+ *  - @PURC_ERROR_NOT_IMPLEMENTED: Not implemented
  *
  * Since: 0.0.1
  */
@@ -230,7 +290,10 @@ PCA_EXPORT ssize_t purc_rwstream_flush (purc_rwstream_t rws);
  *
  * @param rws: pointer to purc_rwstream_t
  *
- * @return 0 success, non-zero otherwise.
+ * @return 0 success, non-zero otherwise. and the error code is set to indicate
+ *         the error. The error code:
+ *  - @PURC_ERROR_INVALID_VALUE: Invalid value
+ *  - @PURC_ERROR_BAD_SYSTEM_CALL: Bad system call
  *
  * Since: 0.0.1
  */
@@ -244,7 +307,16 @@ PCA_EXPORT int purc_rwstream_close (purc_rwstream_t rws);
  * @param out: pointer to purc_rwstream_t to be write
  * @param count: the read/write count. -1 means until EOF
  *
- * @return success, the number of bytes written. -1 otherwise.
+ * @return success, the number of bytes written. -1 otherwise and the error code
+ *         is set to indicate the error. The error code:
+ *  - @PURC_ERROR_INVALID_VALUE: Invalid value
+ *  - @PCRWSTREAM_ERROR_FBIG: File too large"
+ *  - @PCRWSTREAM_ERROR_IO: IO error
+ *  - @PCRWSTREAM_ERROR_ISDIR: File is a directory
+ *  - @PCRWSTREAM_ERROR_NOSPC: No space left on device
+ *  - @PCRWSTREAM_ERROR_NXIO: No such device or address
+ *  - @PCRWSTREAM_ERROR_OVERFLOW: Value too large for defined datatype
+ *  - @PCRWSTREAM_ERROR_FAILED: Rwstream failed with some other error
  *
  * Since: 0.0.1
  */
@@ -258,7 +330,10 @@ PCA_EXPORT ssize_t purc_rwstream_dump_to_another (purc_rwstream_t in,
  * @param rw_mem: pointer to purc_rwstream_t
  * @param sz: pointer to receive size of the rwstream
  *
- * @return success returns the pointer of the memory, @NULL not support.
+ * @return success returns the pointer of the memory, @NULL not support and
+ *         the error code is set to indicate the error. The error code:
+ *  - @PURC_ERROR_INVALID_VALUE: Invalid value
+ *  - @PURC_ERROR_NOT_IMPLEMENTED: Not implemented
  *
  * Since: 0.0.1
  */
