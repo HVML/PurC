@@ -48,7 +48,9 @@ PCA_EXTERN_C_BEGIN
  * @param sz_init: the init size of the memory buffer
  * @param sz_max: thie max size of the memory buffer
  *
- * Returns: A purc_rwstream_t on success, NULL on failure.
+ * @return A purc_rwstream_t on success, @NULL on failure and the error code
+ *         is set to indicate the error. The error code:
+ *  - @PURC_ERROR_INVALID_VALUE: Invalid value
  *
  * Since: 0.0.1
  */
@@ -61,7 +63,8 @@ purc_rwstream_t purc_rwstream_new_buffer (size_t sz_init, size_t sz_max);
  * @param mem: pointer to memory buffer
  * @param sz:  size of memory buffer
  *
- * Returns: A purc_rwstream_t on success, NULL on failure.
+ * @return A purc_rwstream_t on success, @NULL on failure and the error code
+ *         is set to indicate the error. The error code:
  *
  * Since: 0.0.1
  */
@@ -74,7 +77,8 @@ PCA_EXPORT purc_rwstream_t purc_rwstream_new_from_mem (void* mem, size_t sz);
  * @param mode: One of "r", "w", "a", "r+", "w+", "a+". These have the same
  *        meaning as in fopen()
  *
- * Returns: A purc_rwstream_t on success, NULL on failure.
+ * @return A purc_rwstream_t on success, @NULL on failure and the error code
+ *         is set to indicate the error. The error code:
  *
  * Since: 0.0.1
  */
@@ -86,7 +90,8 @@ purc_rwstream_new_from_file (const char* file, const char* mode);
  *
  * @param fp: FILE pointer
  *
- * Returns: A purc_rwstream_t on success, NULL on failure.
+ * @return A purc_rwstream_t on success, @NULL on failure and the error code
+ *         is set to indicate the error. The error code:
  *
  * Since: 0.0.1
  */
@@ -98,7 +103,8 @@ PCA_EXPORT purc_rwstream_t purc_rwstream_new_from_fp (FILE* fp);
  * @param fd: file descriptor
  * @param sz_buf: buffer size
  *
- * Returns: A purc_rwstream_t on success, NULL on failure.
+ * @return A purc_rwstream_t on success, @NULL on failure and the error code
+ *         is set to indicate the error. The error code:
  *
  * Since: 0.0.1
  */
@@ -111,7 +117,8 @@ purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf);
  * @param socket:  sockets created by Winsock
  * @param sz_buf: buffer size
  *
- * Returns: A purc_rwstream_t on success, NULL on failure.
+ * @return A purc_rwstream_t on success, @NULL on failure and the error code
+ *         is set to indicate the error. The error code:
  *
  * Since: 0.0.1
  */
@@ -123,7 +130,7 @@ purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf);
  *
  * @param rws: purc_rwstream_t
  *
- * Returns: 0 success, non-zero otherwise.
+ * @return 0 success, non-zero otherwise.
  *
  * Since: 0.0.1
  */
@@ -141,7 +148,7 @@ PCA_EXPORT int purc_rwstream_destroy (purc_rwstream_t rws);
  *        purc_rwstream_t_SEEK_SET (the start of the file),
  *        or purc_rwstream_t_SEEK_END (the end of the file)
  *
- * Returns: success returns the resulting offset location as measured in bytes
+ * @return success returns the resulting offset location as measured in bytes
  *         from the beginning of the file,  (off_t) -1 otherwise.
  *
  * Since: 0.0.1
@@ -155,7 +162,7 @@ purc_rwstream_seek (purc_rwstream_t rws, off_t offset, int whence);
  *
  * @param rws: pointer to purc_rwstream_t
  *
- * Returns: success returns the current offset, (off_t) -1 not support.
+ * @return success returns the current offset, (off_t) -1 not support.
  *
  * Since: 0.0.1
  */
@@ -168,7 +175,7 @@ PCA_EXPORT off_t purc_rwstream_tell (purc_rwstream_t rws);
  * @param buf: a buffer to read the data into
  * @param count: the number of bytes to read
  *
- * Returns: the number of bytes actually read
+ * @return the number of bytes actually read
  *
  * Since: 0.0.1
  */
@@ -183,7 +190,7 @@ purc_rwstream_read (purc_rwstream_t rws, void* buf, size_t count);
  * @param buf_utf8: the buffer to read character into
  * @param buf_wc: the buffer to convert character into
  *
- * Returns: the length of character
+ * @return the length of character
  *
  * Since: 0.0.1
  */
@@ -198,7 +205,7 @@ PCA_EXPORT int purc_rwstream_read_utf8_char (purc_rwstream_t rws,
  * @param buf: the buffer containing the data to write
  * @param count: the number of bytes to write
  *
- * Returns: the number of bytes actually written
+ * @return the number of bytes actually written
  *
  * Since: 0.0.1
  */
@@ -211,7 +218,7 @@ purc_rwstream_write (purc_rwstream_t rws, const void* buf, size_t count);
  *
  * @param rws: pointer to purc_rwstream_t
  *
- * Returns: 0 success, non-zero otherwise.
+ * @return 0 success, non-zero otherwise.
  *
  * Since: 0.0.1
  */
@@ -223,7 +230,7 @@ PCA_EXPORT ssize_t purc_rwstream_flush (purc_rwstream_t rws);
  *
  * @param rws: pointer to purc_rwstream_t
  *
- * Returns: 0 success, non-zero otherwise.
+ * @return 0 success, non-zero otherwise.
  *
  * Since: 0.0.1
  */
@@ -237,7 +244,7 @@ PCA_EXPORT int purc_rwstream_close (purc_rwstream_t rws);
  * @param out: pointer to purc_rwstream_t to be write
  * @param count: the read/write count. -1 means until EOF
  *
- * Returns: success, the number of bytes written. -1 otherwise.
+ * @return success, the number of bytes written. -1 otherwise.
  *
  * Since: 0.0.1
  */
@@ -251,7 +258,7 @@ PCA_EXPORT ssize_t purc_rwstream_dump_to_another (purc_rwstream_t in,
  * @param rw_mem: pointer to purc_rwstream_t
  * @param sz: pointer to receive size of the rwstream
  *
- * Returns: success returns the pointer of the memory, NULL not support.
+ * @return success returns the pointer of the memory, @NULL not support.
  *
  * Since: 0.0.1
  */
