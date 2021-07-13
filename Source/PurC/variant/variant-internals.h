@@ -30,48 +30,51 @@
 #include "private/debug.h"
 #include "purc-variant.h"
 
-#define PCVARIANT_ASSERT_ARGS(cond, ret)                        \
+#define PCVARIANT_CHECK_FAIL_RET(cond, ret)                     \
     if (!(cond)) {                                              \
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);             \
         return (ret);                                           \
     }
 
-#define PCVARIANT_ALWAYS_ASSERT(cond) do {                  \
-    if (!(cond)) {                                          \
-        pcutils_error("purc-variant assert failed.\n");     \
-        abort();                                            \
-    }                                                       \
-} while (0)
-
-
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
 
-// get the purc_variant_t from heap loop buffer
+/*
+ * Set the extra size sz_ptr[0] of one variant, and update the statistics data.
+ * This function should be called only for variant with
+ * the flag PCVARIANT_FLAG_EXTRA_SIZE
+ *
+ * Note that the caller should not set the sz_ptr[0] directly.
+ */
+void pcvariant_stat_set_extra_size(purc_variant_t v, size_t sz) WTF_INTERNAL;
+
+/* Allocate a variant for the specific type. */
 purc_variant_t pcvariant_get (enum purc_variant_type type) WTF_INTERNAL;
 
-// reserve freed purc_variant in loop buffer
-void pcvariant_put (purc_variant_t value) WTF_INTERNAL;
-
-// set statistic for additional memory for one variant
-void pcvariant_stat_additional_memory (purc_variant_t value, bool add) WTF_INTERNAL;
+/*
+ * Release a unused variant.
+ *
+ * Note that the caller is responsible to release the extra memory
+ * used by the variant.
+ */
+void pcvariant_put(purc_variant_t value) WTF_INTERNAL;
 
 // for release the resource in a variant
 typedef void (* pcvariant_release_fn) (purc_variant_t value);
 
 // for release the resource in a variant
 void pcvariant_string_release  (purc_variant_t value)    WTF_INTERNAL;
-void pcvariant_atom_string_release(purc_variant_t value) WTF_INTERNAL;
 void pcvariant_sequence_release(purc_variant_t value)    WTF_INTERNAL;
 void pcvariant_object_release  (purc_variant_t value)    WTF_INTERNAL;
 void pcvariant_array_release   (purc_variant_t value)    WTF_INTERNAL;
 void pcvariant_set_release     (purc_variant_t value)    WTF_INTERNAL;
 
-// for custom serialization function.
-typedef int (* pcvariant_to_json_string_fn)(purc_variant_t * value, purc_rwstream *rw, int level, int flags);
-
 #if 0
+// for custom serialization function.
+typedef int (* pcvariant_to_json_string_fn)(purc_variant_t * value,
+        purc_rwstream *rw, int level, int flags);
+
 // for serialize a variant
 int pcvariant_undefined_to_json_string  (purc_variant_t value, purc_rwstream * rw, int level, int flags)   WTF_INTERNAL;
 int pcvariant_null_to_json_string       (purc_variant_t value, purc_rwstream * rw, int level, int flags)   WTF_INTERNAL;

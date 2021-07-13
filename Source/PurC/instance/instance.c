@@ -58,6 +58,8 @@ static const char* generic_err_msgs[] = {
     "Bad encoding",
     /* PURC_ERROR_NOT_SUPPORTED (10) */
     "Not supported",
+    /* PURC_ERROR_OUTPUT (11) */
+    "An output error is encountered",
 };
 
 static struct err_msg_seg _generic_err_msgs_seg = {
@@ -71,9 +73,9 @@ static void init_modules(void)
     pcinst_register_error_message_segment(&_generic_err_msgs_seg);
 
     // TODO: init other modules here.
-    pcutils_init_atom();
-    pcrwstream_init();
-    pcvariant_init();
+    pcutils_atom_init_once();
+    pcrwstream_init_once();
+    pcvariant_init_once();
 }
 
 #if USE(PTHREADS)

@@ -30,7 +30,6 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <wchar.h>
-#include <sys/types.h>
 
 #include "purc-macros.h"
 #include "purc-errors.h"
@@ -179,6 +178,7 @@ PCA_EXPORT int purc_rwstream_destroy (purc_rwstream_t rws);
  *  - @PCRWSTREAM_ERROR_NXIO: No such device or address
  *  - @PCRWSTREAM_ERROR_OVERFLOW: Value too large for defined datatype
  *  - @PCRWSTREAM_ERROR_FAILED: Rwstream failed with some other error
+ *
  * Since: 0.0.1
  */
 PCA_EXPORT off_t
@@ -223,7 +223,6 @@ purc_rwstream_read (purc_rwstream_t rws, void* buf, size_t count);
 
 /**
  * Reads a character(UTF-8) from purc_rwstream_t and convert to wchat_t.
- * not be freed until using purc_rwstream_free.
  *
  * @param rws: purc_rwstream_t
  * @param buf_utf8: the buffer to read character into
@@ -242,7 +241,8 @@ purc_rwstream_read (purc_rwstream_t rws, void* buf, size_t count);
  *
  * Since: 0.0.1
  */
-PCA_EXPORT int purc_rwstream_read_utf8_char (purc_rwstream_t rws,
+PCA_EXPORT int
+purc_rwstream_read_utf8_char (purc_rwstream_t rws,
         char* buf_utf8, wchar_t* buf_wc);
 
 
@@ -286,7 +286,7 @@ PCA_EXPORT ssize_t purc_rwstream_flush (purc_rwstream_t rws);
 
 /**
  * Close an purc_rwstream_t. Any pending data to be written will be flushed.
- * The channel will not be freed until using purc_rwstream_free.
+ * The stream will not be freed until using purc_rwstream_destroy.
  *
  * @param rws: pointer to purc_rwstream_t
  *

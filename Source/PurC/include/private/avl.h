@@ -249,7 +249,7 @@ __avl_find_element(const struct avl_tree *tree, const void *key, size_t offset, 
  *    NULL if no element was found
  */
 #define avl_find_element(tree, key, element, node_element) \
-  ((__typeof__(*(element)) *)__avl_find_element(tree, key, offsetof(typeof(*(element)), node_element), AVL_FIND_EQUAL))
+  ((__typeof__(*(element)) *)__avl_find_element(tree, key, offsetof(__typeof__(*(element)), node_element), AVL_FIND_EQUAL))
 
 /**
  * @param tree pointer to avl-tree
@@ -262,7 +262,7 @@ __avl_find_element(const struct avl_tree *tree, const void *key, size_t offset, 
  *    NULL if no element was found
  */
 #define avl_find_le_element(tree, key, element, node_element) \
-  ((__typeof__(*(element)) *)__avl_find_element(tree, key, offsetof(typeof(*(element)), node_element), AVL_FIND_LESSEQUAL))
+  ((__typeof__(*(element)) *)__avl_find_element(tree, key, offsetof(__typeof__(*(element)), node_element), AVL_FIND_LESSEQUAL))
 
 /**
  * @param tree pointer to avl-tree
@@ -275,7 +275,7 @@ __avl_find_element(const struct avl_tree *tree, const void *key, size_t offset, 
  *    NULL if no element was found
  */
 #define avl_find_ge_element(tree, key, element, node_element) \
-  ((__typeof__(*(element)) *)__avl_find_element(tree, key, offsetof(typeof(*(element)), node_element), AVL_FIND_GREATEREQUAL))
+  ((__typeof__(*(element)) *)__avl_find_element(tree, key, offsetof(__typeof__(*(element)), node_element), AVL_FIND_GREATEREQUAL))
 
 /**
  * This function must not be called for an empty tree

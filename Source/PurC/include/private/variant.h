@@ -27,6 +27,7 @@
 
 #include "config.h"
 #include "purc-variant.h"
+#include "arraylist.h"
 
 #include <assert.h>
 
@@ -34,15 +35,14 @@
 extern "C" {
 #endif  /* __cplusplus */
 
-#define PCVARIANT_FLAG_NOREF        (0x01 << 0)
-#define PCVARIANT_FLAG_NOFREE       (0x01 << 1)
-#define PCVARIANT_FLAG_LONG         (0x01 << 15)    // for long string or sequence
-#define PCVARIANT_FLAG_SIGNED       (0x01 << 15)    // for signed int
-#define PCVARIANT_FLAG_ATOM_STATIC  (0x01 << 15)    // for static atom string
+#define PCVARIANT_FLAG_CONSTANT     (0x01 << 0)     // for null, true, ...
+#define PCVARIANT_FLAG_NOFREE       PCVARIANT_FLAG_CONSTANT
+#define PCVARIANT_FLAG_EXTRA_SIZE   (0x01 << 1)     // when use extra space
 
 #define PVT(t) (PURC_VARIANT_TYPE##t)
 
-#define MAX_RESERVED_VARIANTS  32
+#define MAX_RESERVED_VARIANTS   32
+#define MAX_EMBEDDED_LEVELS     64
 
 // structure for variant
 struct purc_variant {
@@ -50,8 +50,10 @@ struct purc_variant {
     /* variant type */
     unsigned int type:8;
 
-    /* real length for short string and byte sequence */
-    unsigned int size:8;        
+    /* real length for short string and byte sequence.
+       use the extra space (long string and byte sequence)
+       if the value of this field is 0. */
+    unsigned int size:8;
 
     /* flags */
     unsigned int flags:16;
@@ -77,12 +79,16 @@ struct purc_variant {
         long double ld;
 
         /* for dynamic and native variant (two pointers) */
-        void*       ptr2[2];
+        void*       ptr_ptr[2];
 
-        /* for long string, long byte sequence, array, and object (sz_ptr[0] for pointer, sz_ptr[1] for size). */
+        /* for long string, long byte sequence, array, object,
+           and set (sz_ptr[0] for size, sz_ptr[1] for pointer).
+           for atom string, sz_ptr[0] stores the atom.  */
+
         uintptr_t   sz_ptr[2];
 
-        /* for short string and byte sequence; the real space size of `bytes` is `max(sizeof(long double), sizeof(void*) * 2)` */
+        /* for short string and byte sequence; the real space size of `bytes`
+           is `max(sizeof(long double), sizeof(void*) * 2)` */
         uint8_t     bytes[0];
     };
 };
@@ -101,7 +107,7 @@ struct pcvariant_heap {
     struct purc_variant_stat stat;
 
     // the loop buffer for reserved values.
-    purc_variant_t nr_reserved [MAX_RESERVED_VARIANTS];
+    purc_variant_t v_reserved [MAX_RESERVED_VARIANTS];
     int headpos;
     int tailpos;
 
@@ -109,16 +115,102 @@ struct pcvariant_heap {
     char buff[SZ_COMMON_BUFFER];
 };
 
-// initialize variant module
-void pcvariant_init(void) WTF_INTERNAL;
+// initialize variant module (once)
+void pcvariant_init_once(void) WTF_INTERNAL;
 
 struct pcinst;
-void pcvariant_init_instance(struct pcinst* inst) WTF_INTERNAL;
-void pcvariant_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 
+// initialize the variant module for a PurC instance.
+void pcvariant_init_instance(struct pcinst* inst) WTF_INTERNAL;
+// clean up the variant module for a PurC instance.
+void pcvariant_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
 
+/* VWNOTE (WARN)
+ * 1. Make these macros as private interfaces. Please reimplement them
+ *   by using the internal structure of the variant type for
+ *   a better performance.
+ *
+ * 2. Implement the _safe version for easy change, e.g. removing an item,
+ *  in an interation.
+ */
+#define foreach_value_in_variant_array(_array, _value)              \
+    do {                                                            \
+        struct purc_variant_object_iterator *__oite = NULL;         \
+        struct purc_variant_set_iterator *__site    = NULL;         \
+        struct pcutils_arrlist *_al;                                \
+        _al = (struct pcutils_arrlist*)_array->sz_ptr[1];           \
+        for (size_t _i = 0; _i < _al->length; _i++) {               \
+            _value = (purc_variant_t)_al->array[_i];                \
+     /* } */                                                        \
+ /* } while (0) */
+
+#define foreach_value_in_variant_array_safe(_array, _value, _inext) \
+    do {                                                            \
+        struct purc_variant_object_iterator *__oite = NULL;         \
+        struct purc_variant_set_iterator *__site    = NULL;         \
+        struct pcutils_arrlist *_al;                                \
+        _al = (struct pcutils_arrlist*)_array->sz_ptr[1];           \
+        for (size_t _i = 0, _inext = 1;                             \
+             _i < _al->length;                                      \
+             _i = _inext, ++_inext)                                 \
+        {                                                           \
+            _value = (purc_variant_t)_al->array[_i];                \
+     /* } */                                                        \
+ /* } while (0) */
+
+#define foreach_value_in_variant_object(obj, value)                     \
+    do {                                                                \
+        struct purc_variant_object_iterator *__oite = NULL;             \
+        struct purc_variant_set_iterator *__site    = NULL;             \
+        bool __having = true;                                           \
+        for (__oite = purc_variant_object_make_iterator_begin(obj);     \
+             __oite && __having;                                        \
+             __having = purc_variant_object_iterator_next(__oite) )     \
+        {                                                               \
+            value = purc_variant_object_iterator_get_value(__oite);     \
+     /* } */                                                            \
+ /* } while (0) */
+
+
+#define foreach_key_value_in_variant_object(obj, key, value)            \
+    do {                                                                \
+        struct purc_variant_object_iterator *__oite = NULL;             \
+        struct purc_variant_set_iterator *__site    = NULL;             \
+        bool __having = true;                                           \
+        for (__oite = purc_variant_object_make_iterator_begin(obj);     \
+             __oite && __having;                                        \
+             __having = purc_variant_object_iterator_next(__oite) )     \
+        {                                                               \
+            key   = purc_variant_object_iterator_get_key(__oite);       \
+            value = purc_variant_object_iterator_get_value(__oite);     \
+     /* } */                                                            \
+ /* } while (0) */
+
+
+#define foreach_value_in_variant_set(set, value)                        \
+    do {                                                                \
+        struct purc_variant_object_iterator *__oite = NULL;             \
+        struct purc_variant_set_iterator *__site    = NULL;             \
+        bool __having = true;                                           \
+        for (__site = purc_variant_set_make_iterator_begin(set);        \
+             __site && __having;                                        \
+             __having = purc_variant_set_iterator_next(__site) )        \
+        {                                                               \
+            value = purc_variant_set_iterator_get_value(__site);        \
+     /* } */                                                            \
+  /* } while (0) */
+
+
+#define end_foreach                                                     \
+ /* do { */                                                             \
+     /* for (...) { */                                                  \
+        }                                                               \
+        if (__oite) purc_variant_object_release_iterator(__oite);       \
+        if (__site) purc_variant_set_release_iterator(__site);          \
+    } while (0)
 #endif  /* PURC_PRIVATE_VARIANT_H */
+

@@ -52,9 +52,9 @@ int vasprintf(char **buf, const char *fmt, va_list ap)
 ;
 #endif
 
-void pcutils_init_atom(void) WTF_INTERNAL;
+void pcutils_atom_init_once(void) WTF_INTERNAL;
 
-void *pcutils_calloc_a(size_t len, ...);
+void *pcutils_calloc_a(size_t len, ...) WTF_INTERNAL;
 
 /* hex must be long enough to hold the heximal characters */
 void pcutils_bin2hex (const unsigned char *bin, int len, char *hex);
