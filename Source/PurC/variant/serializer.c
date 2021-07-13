@@ -555,7 +555,7 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
             sz_content = strlen(buff);
             break;
 
-        case PURC_VARIANT_TYPE_LONGUINT:
+        case PURC_VARIANT_TYPE_ULONGINT:
             if (snprintf(buff, sizeof(buff), "%lluUL",
                         (long long unsigned)value->u64) < 0)
                 goto failed;

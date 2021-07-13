@@ -95,7 +95,7 @@ PCA_EXPORT purc_variant_t purc_variant_make_number(double d);
  *
  * Since: 0.0.1
  */
-PCA_EXPORT purc_variant_t purc_variant_make_longuint(uint64_t u64);
+PCA_EXPORT purc_variant_t purc_variant_make_ulongint(uint64_t u64);
 
 
 /**
@@ -959,40 +959,86 @@ PCA_EXPORT purc_variant_t
 purc_variant_load_from_json_stream(purc_rwstream_t stream);
 
 /**
+ * Trys to cast a variant value to a long integer.
+ *
+ * @param v: the variant value.
+ * @param i64: the buffer to receive the casted long integer if success.
+ * @param parse_str: a boolean indicates whether to parse a string for
+ *      casting.
+ *
+ * Returns: @TRUE on success, or @FALSE on failure (the variant value can not
+ *      be casted to a long integer).
+ *
+ * Note: A null, a boolean, a number, a long integer,
+ *      an unsigned long integer, or a long double can always be casted to
+ *      a long integer. If 
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT bool
+purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool parse_str);
+
+/**
+ * Trys to cast a variant value to a unsigned long integer.
+ *
+ * @param v: the variant value.
+ * @param u64: the buffer to receive the casted unsigned long integer
+ *      if success.
+ * @param parse_str: a boolean indicates whether to parse a string for
+ *      casting.
+ *
+ * Returns: @TRUE on success, or @FALSE on failure (the variant value can not
+ *      be casted to an unsigned long integer).
+ *
+ * Note: A null, a boolean, a number, a long integer,
+ *      an unsigned long integer, or a long double can always be casted to
+ *      an unsigned long integer.
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT bool
+purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool parse_str);
+
+/**
  * Trys to cast a variant value to a nubmer.
  *
  * @param v: the variant value.
  * @param d: the buffer to receive the casted number if success.
+ * @param parse_str: a boolean indicates whether to parse a string for
+ *      casting.
  *
  * Returns: @TRUE on success, or @FALSE on failure (the variant value can not
  *      be casted to a number).
  *
- * Note: Only a null, a boolean, a number, a long integer,
- *      an unsigned long integer, or a long double can be casted to
+ * Note: A null, a boolean, a number, a long integer,
+ *      an unsigned long integer, or a long double can always be casted to
  *      a number (double float number).
  *
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_cast_to_number(purc_variant_t v, double *d);
+purc_variant_cast_to_number(purc_variant_t v, double *d, bool parse_str);
 
 /**
  * Trys to cast a variant value to a long double float number.
  *
  * @param v: the variant value.
  * @param ld: the buffer to receive the casted long double if success.
+ * @param parse_str: a boolean indicates whether to parse a string for
+ *      casting.
  *
  * Returns: @TRUE on success, or @FALSE on failure (the variant value can not
  *      be casted to a long double).
  *
- * Note: Only a null, a boolean, a number, a long integer,
- *      an unsigned long integer, or a long double can be casted to
+ * Note: A null, a boolean, a number, a long integer,
+ *      an unsigned long integer, or a long double can always be casted to
  *      a long double float number.
  *
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_cast_to_long_double(purc_variant_t v, long double *ld);
+purc_variant_cast_to_long_double(purc_variant_t v, long double *ld,
+        bool parse_str);
 
 /**
  * Trys to cast a variant value to a byte sequence.
@@ -1146,7 +1192,7 @@ typedef enum purc_variant_type
     PURC_VARIANT_TYPE_BOOLEAN,
     PURC_VARIANT_TYPE_NUMBER,
     PURC_VARIANT_TYPE_LONGINT,
-    PURC_VARIANT_TYPE_LONGUINT,
+    PURC_VARIANT_TYPE_ULONGINT,
     PURC_VARIANT_TYPE_LONGDOUBLE,
     PURC_VARIANT_TYPE_ATOMSTRING,
     PURC_VARIANT_TYPE_STRING,
@@ -1211,9 +1257,9 @@ PCA_EXPORT inline bool purc_variant_is_longint(purc_variant_t v)
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_LONGINT);
 }
 
-PCA_EXPORT inline bool purc_variant_is_longuint(purc_variant_t v)
+PCA_EXPORT inline bool purc_variant_is_ulongint(purc_variant_t v)
 {
-    return purc_variant_is_type(v, PURC_VARIANT_TYPE_LONGUINT);
+    return purc_variant_is_type(v, PURC_VARIANT_TYPE_ULONGINT);
 }
 
 PCA_EXPORT inline bool purc_variant_is_longdouble(purc_variant_t v)

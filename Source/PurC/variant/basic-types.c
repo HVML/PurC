@@ -96,14 +96,14 @@ purc_variant_t purc_variant_make_number (double d)
 
 purc_variant_t purc_variant_make_longuint (uint64_t u64)
 {
-    purc_variant_t value = pcvariant_get (PURC_VARIANT_TYPE_LONGUINT);
+    purc_variant_t value = pcvariant_get (PURC_VARIANT_TYPE_ULONGINT);
 
     if (value == NULL) {
         pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
     }
 
-    value->type = PURC_VARIANT_TYPE_LONGUINT;
+    value->type = PURC_VARIANT_TYPE_ULONGINT;
     value->size = 0;
     value->flags = 0;
     value->refc = 1;
