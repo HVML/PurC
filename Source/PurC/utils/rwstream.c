@@ -664,13 +664,13 @@ static off_t mem_seek (purc_rwstream_t rws, off_t offset, int whence)
     uint8_t* newpos;
 
     switch (whence) {
-        case purc_rwstream_t_SEEK_SET:
+        case SEEK_SET:
             newpos = mem->base + offset;
             break;
-        case purc_rwstream_t_SEEK_CUR:
+        case SEEK_CUR:
             newpos = mem->here + offset;
             break;
-        case purc_rwstream_t_SEEK_END:
+        case SEEK_END:
             newpos = mem->stop + offset;
             break;
         default:
@@ -778,13 +778,13 @@ static off_t buffer_seek (purc_rwstream_t rws, off_t offset, int whence)
     uint8_t* newpos;
 
     switch (whence) {
-        case purc_rwstream_t_SEEK_SET:
+        case SEEK_SET:
             newpos = buffer->base + offset;
             break;
-        case purc_rwstream_t_SEEK_CUR:
+        case SEEK_CUR:
             newpos = buffer->here + offset;
             break;
-        case purc_rwstream_t_SEEK_END:
+        case SEEK_END:
             newpos = buffer->stop + offset;
             break;
         default:
@@ -906,13 +906,13 @@ static off_t gio_seek (purc_rwstream_t rws, off_t offset, int whence)
     struct gio_rwstream* gio = (struct gio_rwstream *)rws;
     GSeekType type;
     switch (whence) {
-        case purc_rwstream_t_SEEK_SET:
+        case SEEK_SET:
             type = G_SEEK_SET;
             break;
-        case purc_rwstream_t_SEEK_CUR:
+        case SEEK_CUR:
             type = G_SEEK_CUR;
             break;
-        case purc_rwstream_t_SEEK_END:
+        case SEEK_END:
             type = G_SEEK_END;
             break;
         default:
