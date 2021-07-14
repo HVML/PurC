@@ -25,6 +25,9 @@
 #ifndef PURC_PRIVATE_TREE_H
 #define PURC_PRIVATE_TREE_H
 
+#include <stddef.h>
+#include <stdbool.h>
+
 #define PURC_TREE_NODE_VCM_FUNC         0
 #define PURC_TREE_NODE_VCM_VALUE        1
 #define PURC_TREE_NODE_DOM_ELEMENT      2
@@ -67,7 +70,8 @@ typedef void(purc_tree_node_for_each_fn)(purc_tree_node_t node,  void* data);
  *
  * Since: 0.0.1
  */
-bool purc_tree_node_append_child (purc_tree_node_t parent, purc_tree_node_t node);
+bool purc_tree_node_append_child (purc_tree_node_t parent,
+        purc_tree_node_t node);
 
 /**
  * Inserts a node as the first child of the given parent.
@@ -81,7 +85,8 @@ bool purc_tree_node_append_child (purc_tree_node_t parent, purc_tree_node_t node
  *
  * Since: 0.0.1
  */
-bool purc_tree_node_prepend_child (purc_tree_node_t parent, purc_tree_node_t node);
+bool purc_tree_node_prepend_child (purc_tree_node_t parent,
+        purc_tree_node_t node);
 
 /**
  * Inserts a node before the given sibling.
@@ -95,7 +100,8 @@ bool purc_tree_node_prepend_child (purc_tree_node_t parent, purc_tree_node_t nod
  *
  * Since: 0.0.1
  */
-bool purc_tree_node_insert_before (purc_tree_node_t current, purc_tree_node_t node);
+bool purc_tree_node_insert_before (purc_tree_node_t current,
+        purc_tree_node_t node);
 
 /**
  * Inserts a node after the given sibling.
@@ -109,7 +115,8 @@ bool purc_tree_node_insert_before (purc_tree_node_t current, purc_tree_node_t no
  *
  * Since: 0.0.1
  */
-bool purc_tree_node_insert_after (purc_tree_node_t current, purc_tree_node_t node);
+bool purc_tree_node_insert_after (purc_tree_node_t current,
+        purc_tree_node_t node);
 
 /**
  * Get the parent node of the given node.
