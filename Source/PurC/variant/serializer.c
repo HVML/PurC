@@ -85,12 +85,12 @@ static const char *hex_chars = "0123456789abcdefABCDEF";
 
 #define MY_CHECK(n)                                                     \
     do {                                                                \
-        if ((n) < 0 &&                                                  \
+        if ((n) <= 0 &&                                                 \
                 !(flags & PCVARIANT_SERIALIZE_OPT_IGNORE_ERRORS)) {     \
             goto failed;                                                \
         }                                                               \
         else {                                                          \
-            nr_written += n;                                            \
+            nr_written += (n);                                          \
         }                                                               \
     } while (0)
 
