@@ -134,7 +134,7 @@ TEST(variant, serialize_string)
 
     purc_variant_unref(my_variant);
 
-    memset(buf, '.', sizeof(buf));
+    memset(buf, '~', sizeof(buf));
     buf[sizeof(buf) - 1] = 0;
     purc_rwstream_seek(my_rws, 0, SEEK_SET);
 
@@ -150,6 +150,100 @@ TEST(variant, serialize_string)
 
     buf[n] = 0;
     ASSERT_STREQ(buf, "\"这是一个很长的中文字符串\"");
+    purc_cleanup ();
+}
+
+// to test: serialize a byte sequence
+TEST(variant, serialize_bsequence)
+{
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    purc_variant_t my_variant =
+        purc_variant_make_byte_sequence("\x59\x1C\x88\xAF", 4);
+    ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
+
+    char buf[128];
+    size_t len_expected;
+    ssize_t n;
+
+    purc_rwstream_t my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    ASSERT_NE(my_rws, nullptr);
+
+    /* case 1: hex */
+    memset(buf, '~', sizeof(buf));
+    buf[sizeof(buf) - 1] = 0;
+    purc_rwstream_seek(my_rws, 0, SEEK_SET);
+    len_expected = 0;
+    n = purc_variant_serialize(my_variant, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_BSEQUECE_HEX, &len_expected);
+    ASSERT_GT(n, 0);
+    puts("Serialized byte sequence with PCVARIANT_SERIALIZE_OPT_BSEQUECE_HEX flag:");
+    puts(buf);
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "bx591c88af");
+
+    /* case 2: binary */
+    memset(buf, '~', sizeof(buf));
+    buf[sizeof(buf) - 1] = 0;
+    purc_rwstream_seek(my_rws, 0, SEEK_SET);
+    len_expected = 0;
+    n = purc_variant_serialize(my_variant, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_BSEQUECE_BIN, &len_expected);
+    ASSERT_GT(n, 0);
+    puts("Serialized byte sequence with PCVARIANT_SERIALIZE_OPT_BSEQUECE_BIN flag:");
+    puts(buf);
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "bb01011001000111001000100010101111");
+
+    /* case 3: binary with dot */
+    memset(buf, '~', sizeof(buf));
+    buf[sizeof(buf) - 1] = 0;
+    purc_rwstream_seek(my_rws, 0, SEEK_SET);
+    len_expected = 0;
+    n = purc_variant_serialize(my_variant, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_BSEQUECE_BIN |
+            PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BIN_DOT, &len_expected);
+    ASSERT_GT(n, 0);
+    puts("Serialized byte sequence with PCVARIANT_SERIALIZE_OPT_BSEQUECE_BIN | PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BIN_DOT flag:");
+    puts(buf);
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "bb0101.1001.0001.1100.1000.1000.1010.1111");
+
+    /* case 4: Base64 */
+    memset(buf, '~', sizeof(buf));
+    buf[sizeof(buf) - 1] = 0;
+    purc_rwstream_seek(my_rws, 0, SEEK_SET);
+    len_expected = 0;
+    n = purc_variant_serialize(my_variant, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_BSEQUECE_BASE64, &len_expected);
+    ASSERT_GT(n, 0);
+    puts("Serialized byte sequence with PCVARIANT_SERIALIZE_OPT_BSEQUECE_BASE64 flag:");
+    puts(buf);
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "b64WRyIrw==");
+
+    purc_variant_unref(my_variant);
+
+    /* case 4: long sequence */
+    my_variant =
+        purc_variant_make_byte_sequence("\x59\x1C\x88\xAF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\xEF\x00", 55);
+    ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
+
+    memset(buf, '~', sizeof(buf));
+    buf[sizeof(buf) - 1] = 0;
+    purc_rwstream_seek(my_rws, 0, SEEK_SET);
+    len_expected = 0;
+    n = purc_variant_serialize(my_variant, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_BSEQUECE_HEX, &len_expected);
+    ASSERT_GT(n, 0);
+    puts("Serialized byte sequence with PCVARIANT_SERIALIZE_OPT_BSEQUECE_HEX flag:");
+    puts(buf);
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "bx591c88afefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefef00");
+
+    purc_variant_unref(my_variant);
+
     purc_cleanup ();
 }
 
@@ -259,7 +353,7 @@ TEST(variant, serialize_object)
     ASSERT_GT(n, 0);
 
     buf[n] = 0;
-    ASSERT_STREQ(buf, "{\"v1\":123,\"v2\":123.45600000000000000}");
+    ASSERT_STREQ(buf, "{\"v1\":123,\"v2\":123.456}");
 
     purc_rwstream_seek(my_rws, 0, SEEK_SET);
 
