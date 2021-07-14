@@ -34,7 +34,7 @@ typedef struct purc_tree_node {
     unsigned int type:8;
 
     /* number of children */
-    unsigned int nr_children;
+    size_t nr_children;
 
     struct purc_tree_node* parent;
     struct purc_tree_node* child;
@@ -47,6 +47,13 @@ typedef struct purc_tree_node* purc_tree_node_t;
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
+
+/**
+ *
+ * callback function for traverse node children
+ *
+ */
+typedef void(purc_tree_node_for_each_fn)(purc_tree_node_t node,  void* data);
 
 /**
  * Inserts a node as the last child of the given parent.
@@ -169,6 +176,58 @@ purc_tree_node_t purc_tree_node_next (purc_tree_node_t node);
  */
 purc_tree_node_t purc_tree_node_prev (purc_tree_node_t node);
 
+/**
+ * Gets the number of children of a node.
+ *
+ * @param node: the given node
+ *
+ * @return the number of children of node. The error code is set to indicate
+ *         the error. The error code:
+ *  - @PURC_ERROR_INVALID_VALUE: Invalid value
+ *
+ * Since: 0.0.1
+ */
+size_t purc_tree_node_children_number (purc_tree_node_t node);
+
+/**
+ * Gets the type of a node.
+ *
+ * @param node: the given node
+ *
+ * @return the type of node. The error code is set to indicate
+ *         the error. The error code:
+ *  - @PURC_ERROR_INVALID_VALUE: Invalid value
+ *
+ * Since: 0.0.1
+ */
+unsigned int purc_tree_node_type (purc_tree_node_t node);
+
+
+/**
+ * Calls a function for each of the children of a node. Note that it doesn't
+ * descend beneath the child nodes. func must not do anything that would
+ * modify the structure of the tree.
+ *
+ * @param node: the given node
+ * @param func: the function to call for each visited node
+ * @param data: user data to pass to the function
+ * Since: 0.0.1
+ */
+void purc_tree_node_children_for_each (purc_tree_node_t node,
+        purc_tree_node_for_each_fn* func, void* data);
+
+/**
+ * Traverses a tree starting at the given root node. It calls the given
+ * function for each node visited. func must not do anything that would
+ * modify the structure of the tree
+ *
+ * @param node: the given node
+ * @param func: the function to call for each visited node
+ * @param data: user data to pass to the function
+ * Since: 0.0.1
+ */
+void purc_tree_node_traverse (purc_tree_node_t node,
+        purc_tree_node_for_each_fn* func, void* data);
 
 #ifdef __cplusplus
 }
