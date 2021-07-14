@@ -85,7 +85,7 @@ static const char *hex_chars = "0123456789abcdefABCDEF";
 
 #define MY_CHECK(n)                                                     \
     do {                                                                \
-        if ((n) <= 0 &&                                                 \
+        if ((n) < 0 &&                                                  \
                 !(flags & PCVARIANT_SERIALIZE_OPT_IGNORE_ERRORS)) {     \
             goto failed;                                                \
         }                                                               \
@@ -595,18 +595,22 @@ print_indent(purc_rwstream_t rws, int level, unsigned int flags,
     if (level < 0 || level > MAX_EMBEDDED_LEVELS)
         return 0;
 
-    if (flags & PCVARIANT_SERIALIZE_OPT_PRETTY_TAB) {
-        n = level;
-        memset(buff, '\t', n);
-    }
-    else {
-        n = level * 2;
-        memset(buff, ' ', n);
+    if (flags & PCVARIANT_SERIALIZE_OPT_PRETTY) {
+        if (flags & PCVARIANT_SERIALIZE_OPT_PRETTY_TAB) {
+            n = level;
+            memset(buff, '\t', n);
+        }
+        else {
+            n = level * 2;
+            memset(buff, ' ', n);
+        }
+
+        if (len_expected)
+            *len_expected += n;
+        return purc_rwstream_write(rws, buff, n);
     }
 
-    if (len_expected)
-        *len_expected += n;
-    return purc_rwstream_write(rws, buff, n);
+    return 0;
 }
 
 static inline ssize_t
@@ -814,7 +818,7 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
             n = print_indent(rws, level, flags, len_expected);
             MY_CHECK(n);
 
-            MY_WRITE(rws, "{", 1);
+            MY_WRITE(rws, "[", 1);
             n = print_newline(rws, flags, len_expected);
             MY_CHECK(n);
 

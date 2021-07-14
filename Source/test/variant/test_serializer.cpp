@@ -120,27 +120,47 @@ TEST(variant, serialize_array)
     purc_variant_t my_variant = purc_variant_make_array(2, v1, v2);
     ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
 
-    char buf[32];
+    char buf[64] = { };
     purc_rwstream_t my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
     ASSERT_NE(my_rws, nullptr);
 
     size_t len_expected = 0;
     ssize_t n = purc_variant_serialize(my_variant, my_rws,
             0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+    puts(buf);
     ASSERT_GT(n, 0);
+    ASSERT_GT(len_expected, 0);
 
     buf[n] = 0;
-    ASSERT_STREQ(buf, "[123,123.45600000000000000]");
-
-    purc_rwstream_seek(my_rws, 0, SEEK_SET);
+    ASSERT_STREQ(buf, "[123,123.456]");
 
     len_expected = 0;
+    purc_rwstream_seek(my_rws, 0, SEEK_SET);
     n = purc_variant_serialize(my_variant, my_rws,
             0, PCVARIANT_SERIALIZE_OPT_NOZERO, &len_expected);
     ASSERT_GT(n, 0);
 
     buf[n] = 0;
     ASSERT_STREQ(buf, "[123,123.456]");
+
+    len_expected = 0;
+    purc_rwstream_seek(my_rws, 0, SEEK_SET);
+    n = purc_variant_serialize(my_variant, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_PRETTY, &len_expected);
+    ASSERT_GT(n, 0);
+
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "[\n  123,\n  123.456\n]");
+
+    len_expected = 0;
+    purc_rwstream_seek(my_rws, 0, SEEK_SET);
+    n = purc_variant_serialize(my_variant, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_PRETTY |
+            PCVARIANT_SERIALIZE_OPT_PRETTY_TAB, &len_expected);
+    ASSERT_GT(n, 0);
+
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "[\n\t123,\n\t123.456\n]");
 
     purc_variant_unref(my_variant);
     purc_variant_unref(v1);
