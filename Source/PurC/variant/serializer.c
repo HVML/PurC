@@ -322,7 +322,7 @@ serialize_bsequence(purc_rwstream_t rws, const char* content,
 
     switch (flags & PCVARIANT_SERIALIZE_OPT_BSEQUECE_MASK) {
         case PCVARIANT_SERIALIZE_OPT_BSEQUECE_HEX:
-            MY_WRITE(rws, "bh", 2);
+            MY_WRITE(rws, "bx", 2);
             for (i = 0; i < sz_content; i++) {
                 unsigned char byte = (unsigned char)content[i];
                 char buff[2];
@@ -346,7 +346,7 @@ serialize_bsequence(purc_rwstream_t rws, const char* content,
                     k++;
 
                     if (flags & PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BIN_DOT &&
-                            j == 3) {
+                            (j == 3 || (j == 7 && i != sz_content - 1))) {
                         buff[k] = '.';
                         k++;
                     }
@@ -357,14 +357,11 @@ serialize_bsequence(purc_rwstream_t rws, const char* content,
             break;
 
         case PCVARIANT_SERIALIZE_OPT_BSEQUECE_BASE64:
+        default:
             MY_WRITE(rws, "b64", 3);
             n = serialize_bsequence_base64(rws, content, sz_content,
                     flags, len_expected);
             MY_CHECK(n);
-            break;
-
-        default:
-            PC_ASSERT(0);
             break;
     }
 
@@ -788,9 +785,11 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
                 MY_CHECK(n);
 
                 // key
+                MY_WRITE(rws, "\"", 1);
                 n = serialize_string(rws, key, strlen(key),
                         flags, len_expected);
                 MY_CHECK(n);
+                MY_WRITE(rws, "\"", 1);
 
                 MY_WRITE(rws, ":", 1);
                 n = print_space(rws, flags, len_expected);

@@ -374,12 +374,14 @@ const char* purc_variant_get_atom_string_const (purc_variant_t atom_string)
     return str_str;
 }
 
-purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes,
+purc_variant_t purc_variant_make_byte_sequence (const void* bytes,
         size_t nr_bytes)
 {
-    PC_ASSERT(bytes);
+    // VWNOTE: check nr_bytes is not zero.
+    PCVARIANT_CHECK_FAIL_RET((bytes != NULL && nr_bytes > 0),
+        PURC_VARIANT_INVALID);
 
-    int real_size = MAX (sizeof(long double), sizeof(void*) * 2);
+    size_t real_size = MAX (sizeof(long double), sizeof(void*) * 2);
     purc_variant_t value = pcvariant_get (PURC_VARIANT_TYPE_BSEQUENCE);
 
     if (value == NULL) {
@@ -391,13 +393,11 @@ purc_variant_t purc_variant_make_byte_sequence (const unsigned char* bytes,
     value->flags = 0;
     value->refc = 1;
 
-    if((int)nr_bytes <= real_size)
-    {
+    if (nr_bytes <= real_size) {
         value->size = nr_bytes;
         memcpy (value->bytes, bytes, nr_bytes);
     }
-    else
-    {
+    else {
         value->flags |= PCVARIANT_FLAG_EXTRA_SIZE;
         value->sz_ptr[1] = (uintptr_t) malloc (nr_bytes);
         if (value->sz_ptr[1] == 0) {
