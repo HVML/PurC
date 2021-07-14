@@ -26,6 +26,7 @@
 #define PURC_PRIVATE_TREE_H
 
 #include <stddef.h>
+#include <stdint.h>
 #include <stdbool.h>
 
 #define PURC_TREE_NODE_VCM_FUNC         0
@@ -34,7 +35,7 @@
 
 typedef struct purc_tree_node {
     /* type of node */
-    unsigned int type:8;
+    uint8_t type;
 
     /* number of children */
     size_t nr_children;
@@ -207,7 +208,7 @@ size_t purc_tree_node_children_number (purc_tree_node_t node);
  *
  * Since: 0.0.1
  */
-unsigned int purc_tree_node_type (purc_tree_node_t node);
+uint8_t purc_tree_node_type (purc_tree_node_t node);
 
 
 /**

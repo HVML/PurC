@@ -144,7 +144,7 @@ size_t purc_tree_node_children_number (purc_tree_node_t node)
     return node ? node->nr_children : 0;
 }
 
-unsigned int purc_tree_node_type (purc_tree_node_t node)
+uint8_t purc_tree_node_type (purc_tree_node_t node)
 {
     return node ? node->type : 0;
 }
