@@ -328,23 +328,15 @@ purc_rwstream_t purc_rwstream_new_from_fp (FILE* fp)
 #if ENABLE(SOCKET_STREAM) && HAVE(GLIB)
 purc_rwstream_t purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf)
 {
-    int flags = fcntl (fd, F_GETFL);
-#ifdef O_NONBLOCK
-    if (flags & O_NONBLOCK)
-#else
-    if (flags & O_NDELAY)
-#endif
-    {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return NULL;
-    }
-
     GIOChannel* gio_channel = g_io_channel_unix_new(fd);
     if (gio_channel == NULL)
     {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
+
+    GIOFlags flags = g_io_channel_get_flags(gio_channel);
+    g_io_channel_set_flags(gio_channel, flags & ~G_IO_FLAG_NONBLOCK, NULL);
 
     g_io_channel_set_encoding (gio_channel, NULL, NULL);
 
@@ -379,6 +371,9 @@ purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf)
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
+
+    GIOFlags flags = g_io_channel_get_flags(gio_channel);
+    g_io_channel_set_flags(gio_channel, flags & ~G_IO_FLAG_NONBLOCK, NULL);
 
     g_io_channel_set_encoding (gio_channel, NULL, NULL);
 
