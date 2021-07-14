@@ -927,9 +927,20 @@ TEST(gio_rwstream, new_destroy)
 
     fd = open(tmp_file, O_RDWR | O_NONBLOCK);
     rws = purc_rwstream_new_from_unix_fd (fd, 1024);
-    ASSERT_EQ(rws, nullptr);
-    close(fd);
+    ASSERT_NE(rws, nullptr);
 
+    int flags = fcntl (fd, F_GETFL);
+#ifdef O_NONBLOCK
+    ASSERT_EQ(flags & O_NONBLOCK, 0);
+#else
+    ASSERT_EQ(flags & O_NDELAY, 0);
+#endif
+
+    ret = purc_rwstream_close(rws);
+    ASSERT_EQ(ret, 0);
+
+    ret = purc_rwstream_destroy (rws);
+    ASSERT_EQ(ret, 0);
     remove_temp_file(tmp_file);
 }
 
