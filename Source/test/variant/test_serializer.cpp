@@ -149,4 +149,45 @@ TEST(variant, serialize_array)
     purc_cleanup ();
 }
 
+// to test: serialize an object
+TEST(variant, serialize_object)
+{
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    purc_variant_t v1 = purc_variant_make_number(123.0);
+    purc_variant_t v2 = purc_variant_make_number(123.456);
+
+    purc_variant_t my_variant =
+        purc_variant_make_object_c(2, "v1", v1, "v2", v2);
+    ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
+
+    char buf[32];
+    purc_rwstream_t my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    ASSERT_NE(my_rws, nullptr);
+
+    size_t len_expected = 0;
+    ssize_t n = purc_variant_serialize(my_variant, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+    ASSERT_GT(n, 0);
+
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "[\"v1\":123,\"v2\":123.45600000000000000]");
+
+    purc_rwstream_seek(my_rws, 0, SEEK_SET);
+
+    len_expected = 0;
+    n = purc_variant_serialize(my_variant, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_NOZERO, &len_expected);
+    ASSERT_GT(n, 0);
+
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "[\"v1\":123,\"v2\":123.456]");
+
+    purc_variant_unref(my_variant);
+    purc_variant_unref(v1);
+    purc_variant_unref(v2);
+
+    purc_cleanup ();
+}
 
