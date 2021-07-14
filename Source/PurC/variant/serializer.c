@@ -592,7 +592,7 @@ print_indent(purc_rwstream_t rws, int level, unsigned int flags,
     size_t n;
     char buff[MAX_EMBEDDED_LEVELS * 2];
 
-    if (level < 0 || level > MAX_EMBEDDED_LEVELS)
+    if (level <= 0 || level > MAX_EMBEDDED_LEVELS)
         return 0;
 
     if (flags & PCVARIANT_SERIALIZE_OPT_PRETTY) {
@@ -631,6 +631,7 @@ static inline ssize_t print_space_no_pretty(purc_rwstream_t rws,
         unsigned int flags, size_t *len_expected)
 {
     ssize_t nr_written = 0;
+
     if (flags & PCVARIANT_SERIALIZE_OPT_SPACED &&
             !(flags & PCVARIANT_SERIALIZE_OPT_PRETTY)) {
         if (len_expected)
