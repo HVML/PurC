@@ -32,7 +32,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <limits.h>
+#include <float.h>
 
 #if OS(LINUX) || OS(UNIX)
     #include <dlfcn.h>
