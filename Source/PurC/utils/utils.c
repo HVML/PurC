@@ -122,6 +122,24 @@ int pcutils_hex2bin (const char *hex, unsigned char *bin)
     return sz;
 }
 
+size_t pcutils_get_next_fibonacci_number(size_t n)
+{
+    size_t fib_0 = 0;
+    size_t fib_1 = 1;
+    size_t fib_n = 0;
+
+    if (n < 2) {
+        return n + 1;
+    }
+
+    for (size_t i = 2; fib_n <= n; i++) {
+        fib_n = fib_1 + fib_0;
+        fib_0 = fib_1;
+        fib_1 = fib_n;
+    }
+    return fib_n;
+}
+
 #define MAX_NUMBER_STRING       128
 
 #ifndef MIN
@@ -193,4 +211,3 @@ int pcutils_parse_long_double(const char *buf, size_t len, long double *retval)
         return 0; // It worked
     return 1;
 }
-

@@ -51,6 +51,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <float.h>
 #include <ctype.h>
 
 static const char *hex_chars = "0123456789abcdefABCDEF";
@@ -351,11 +352,28 @@ failed:
     return -1;
 }
 
-static ssize_t
-serialize_double(purc_rwstream_t rws, double d, int flags,
-        const char *format, size_t *len_expected)
+/* securely comparison of floating-point variables */
+static inline UNUSED_FUNCTION bool equal_doubles(double a, double b)
 {
-    char buf[128], *p, *q;
+    double max_val = fabs(a) > fabs(b) ? fabs(a) : fabs(b);
+    return (fabs(a - b) <= max_val * DBL_EPSILON);
+}
+
+/* securely comparison of floating-point variables */
+static inline UNUSED_FUNCTION bool equal_long_doubles(long double a,
+        long double b)
+{
+    long double max_val = fabsl(a) > fabsl(b) ? fabsl(a) : fabsl(b);
+    return (fabsl(a - b) <= max_val * LDBL_EPSILON);
+}
+
+/* strlen of character literals resolved at compile time */
+#define static_strlen(string_literal) (sizeof(string_literal) - sizeof(""))
+
+static ssize_t
+serialize_number(purc_rwstream_t rws, double d, size_t *len_expected)
+{
+    char buf[128];
     int size;
 
     /* Although JSON RFC does not support
@@ -364,49 +382,149 @@ serialize_double(purc_rwstream_t rws, double d, int flags,
      * how to handle these cases as strings
      */
     if (isnan(d)) {
-        size = snprintf(buf, sizeof(buf), "NaN");
+        strcpy(buf, "NaN");
+        size = static_strlen("NaN");
     }
     else if (isinf(d)) {
-        if (d > 0)
-            size = snprintf(buf, sizeof(buf), "Infinity");
-        else
-            size = snprintf(buf, sizeof(buf), "-Infinity");
+        if (d > 0) {
+            strcpy(buf, "Infinity");
+            size = static_strlen("Infinity");
+        }
+        else {
+            strcpy(buf, "-Infinity");
+            size = static_strlen("-Infinity");
+        }
     }
     else {
-        static const char *std_format = "%.17g";
-        int format_drops_decimals = 0;
-        int looks_numeric = 0;
+        double test;
 
-        if (!format) {
-            format = std_format;
-        }
-        size = snprintf(buf, sizeof(buf), format, d);
-
-        if (size < 0)
+        /* try to format the double without decimals */
+        size = snprintf(buf, sizeof(buf), "%.0f", d);
+        if (size < 0 || size >= (int)sizeof(buf)) {
+            pcinst_set_error(PURC_ERROR_TOO_SMALL_BUFF);
             return -1;
+        }
+
+        /* Check whether the original double can be recovered */
+        if ((sscanf(buf, "%lg", &test) != 1) || !equal_doubles(test, d)) {
+            /* If not, return 0 and call serialize_double */
+            return 0;
+        }
+    }
+
+    if (len_expected)
+        *len_expected += size;
+    return purc_rwstream_write(rws, buf, size);
+}
+
+static ssize_t
+serialize_double(purc_rwstream_t rws, double d, int flags,
+        const char *format, size_t *len_expected)
+{
+    char buf[128], *p, *q;
+    int size;
+
+    static const char *std_format = "%.17g";
+    int format_drops_decimals = 0;
+    int looks_numeric = 0;
+
+    if (!format) {
+        format = std_format;
+    }
+
+    size = snprintf(buf, sizeof(buf), format, d);
+    // although unlikely, snprintf might fail
+    if (UNLIKELY(size < 0)) {
+        pcinst_set_error(PURC_ERROR_OUTPUT);
+        return -1;
+    }
+
+    p = strchr(buf, ',');
+    if (p)
+        *p = '.';
+    else
+        p = strchr(buf, '.');
+
+    if (format == std_format || strstr(format, ".0f") == NULL)
+        format_drops_decimals = 1;
+
+    looks_numeric = /* Looks like *some* kind of number */
+        isdigit((unsigned char)buf[0]) ||
+        (size > 1 && buf[0] == '-' && isdigit((unsigned char)buf[1]));
+
+    if (size < (int)sizeof(buf) - 2 &&
+            looks_numeric && !p && /* Has no decimal point */
+            strchr(buf, 'e') == NULL && /* Not scientific notation */
+            format_drops_decimals) {
+        // Ensure it looks like a float, even if snprintf didn't,
+        // unless a custom format is set to omit the decimal.
+        strcat(buf, ".0");
+        size += 2;
+    }
+
+    if (p && (flags & PCVARIANT_SERIALIZE_OPT_NOZERO)) {
+        /* last useful digit, always keep 1 zero */
+        p++;
+        for (q = p; *q; q++) {
+            if (*q != '0')
+                p = q;
+        }
+        /* drop trailing zeroes */
+        if (*p != 0)
+            *(++p) = 0;
+        size = p - buf;
+    }
+
+    if (size >= (int)sizeof(buf))
+        // The standard formats are guaranteed not to overrun the buffer,
+        // but if a custom one happens to do so, just silently truncate.
+        size = sizeof(buf) - 1;
+
+    if (len_expected)
+        *len_expected += size;
+    return purc_rwstream_write(rws, buf, size);
+}
+
+static ssize_t
+serialize_long_double(purc_rwstream_t rws, long double ld, int flags,
+        size_t *len_expected)
+{
+    char buf[256], *p, *q;
+    int size;
+
+    if (isnan(ld)) {
+        strcpy(buf, "NaN");
+        size = static_strlen("NaN");
+    }
+    else if (isinf(ld)) {
+        if (ld > 0) {
+            strcpy(buf, "Infinity");
+            size = static_strlen("Infinity");
+        }
+        else {
+            strcpy(buf, "-Infinity");
+            size = static_strlen("-Infinity");
+        }
+    }
+    else {
+        size = snprintf(buf, sizeof(buf) - 2, "%.17Lg", ld);
+        if (UNLIKELY(size < 0)) {
+            pcinst_set_error(PURC_ERROR_OUTPUT);
+            return -1;
+        }
+
+        if (size >= (int)sizeof(buf) - 2) {
+            // The standard formats are guaranteed not to overrun the buffer,
+            // but if a custom one happens to do so, just silently truncate.
+            size = sizeof(buf) - 3;
+            buf[size] = 0;
+        }
 
         p = strchr(buf, ',');
         if (p)
             *p = '.';
         else
             p = strchr(buf, '.');
-
-        if (format == std_format || strstr(format, ".0f") == NULL)
-            format_drops_decimals = 1;
-
-        looks_numeric = /* Looks like *some* kind of number */
-            isdigit((unsigned char)buf[0]) ||
-            (size > 1 && buf[0] == '-' && isdigit((unsigned char)buf[1]));
-
-        if (size < (int)sizeof(buf) - 2 &&
-                looks_numeric && !p && /* Has no decimal point */
-                strchr(buf, 'e') == NULL && /* Not scientific notation */
-                format_drops_decimals) {
-            // Ensure it looks like a float, even if snprintf didn't,
-            // unless a custom format is set to omit the decimal.
-            strcat(buf, ".0");
-            size += 2;
-        }
 
         if (p && (flags & PCVARIANT_SERIALIZE_OPT_NOZERO)) {
             /* last useful digit, always keep 1 zero */
@@ -420,18 +538,11 @@ serialize_double(purc_rwstream_t rws, double d, int flags,
                 *(++p) = 0;
             size = p - buf;
         }
-    }
 
-    // although unlikely, snprintf might fail
-    if (UNLIKELY(size < 0)) {
-        pcinst_set_error (PURC_ERROR_OUTPUT);
-        return -1;
+        // append FL postfix
+        strcat(buf, "FL");
+        size += 2;
     }
-
-    if (size >= (int)sizeof(buf))
-        // The standard formats are guaranteed not to overrun the buffer,
-        // but if a custom one happens to do so, just silently truncate.
-        size = sizeof(buf) - 1;
 
     if (len_expected)
         *len_expected += size;
@@ -511,7 +622,7 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
     const char* content = NULL;
     size_t sz_content = 0;
     int i;
-    char buff [128];
+    char buff [256];
     purc_variant_t member = NULL;
     const char* key;
 
@@ -540,10 +651,19 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
             break;
 
         case PURC_VARIANT_TYPE_NUMBER:
-            n = serialize_double(rws, value->d, flags,
-                    NULL, /* TODO: format string */
-                    len_expected);
-            MY_CHECK(n);
+            /* try to serialize the number as an integer first */
+            n = serialize_number(rws, value->d, len_expected);
+            if (n < 0)
+                goto failed;
+            if (n == 0) {
+                n = serialize_double(rws, value->d, flags,
+                        NULL, /* TODO: format string */
+                        len_expected);
+                if (n < 0)
+                    goto failed;
+            }
+            nr_written += n;
+
             content = NULL;
             break;
 
@@ -564,19 +684,10 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
             break;
 
         case PURC_VARIANT_TYPE_LONGDOUBLE:
-            if (isnan(value->ld)) {
-                snprintf(buff, sizeof(buff), "NaN");
-            }
-            else if (isinf(value->ld)) {
-                if (value->ld > 0)
-                    snprintf(buff, sizeof(buff), "Infinity");
-                else
-                    snprintf(buff, sizeof(buff), "-Infinity");
-            }
-            else if (snprintf(buff, sizeof(buff), "%LgFL", value->ld) < 0)
-                goto failed;
-            content = buff;
-            sz_content = strlen(buff);
+            n = serialize_long_double(rws, value->ld, flags, len_expected);
+            MY_CHECK(n);
+
+            content = NULL;
             break;
 
         case PURC_VARIANT_TYPE_ATOMSTRING:

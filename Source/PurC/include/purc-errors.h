@@ -42,6 +42,7 @@
 #define PURC_ERROR_BAD_ENCODING         9
 #define PURC_ERROR_NOT_SUPPORTED        10
 #define PURC_ERROR_OUTPUT               11
+#define PURC_ERROR_TOO_SMALL_BUFF       12
 
 // the first error codes for various modules:
 #define PURC_ERROR_FIRST_VARIANT        100
