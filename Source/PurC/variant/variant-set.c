@@ -289,6 +289,8 @@ static int _variant_set_add_valsn(variant_set_t set, size_t sz, va_list ap)
         if (_variant_set_add_val(set, v)) {
             break;
         }
+
+        ++i;
     }
     return i<sz ? -1 : 0;
 }

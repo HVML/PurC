@@ -127,6 +127,7 @@ _variant_object_set_kvs_n(purc_variant_t obj, size_t nr_kv_pairs,
 
         if (_variant_object_set(obj, k_c, v))
             break;
+        ++i;
     }
     return i<nr_kv_pairs ? -1 : 0;
 }
