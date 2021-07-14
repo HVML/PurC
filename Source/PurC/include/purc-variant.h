@@ -1171,7 +1171,13 @@ purc_variant_compare(purc_variant_t v1, purc_variant_t v2);
  * A flag for the purc_variant_serialize() function which causes
  * the output to have dot for binary sequence.
  */
-#define PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BIN_DOT       0x0020
+#define PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BIN_DOT       0x0040
+
+/**
+ * A flag for the purc_variant_serialize() function which causes
+ * the function ignores the output errors.
+ */
+#define PCVARIANT_SERIALIZE_OPT_IGNORE_ERRORS           0x0080
 
 /**
  * Serialize a variant value
@@ -1184,17 +1190,19 @@ purc_variant_compare(purc_variant_t v1, purc_variant_t v2);
  *      the serialized data (nullable). The value in the buffer should be
  *      set to 0 initially.
  *
- * Returns: The size of the serialized data written to the stream;
- *      On error, -1 is returned, and error code is set to indicate
- *      the cause of the error.
+ * Returns:
+ * The size of the serialized data written to the stream;
+ * On error, -1 is returned, and error code is set to indicate
+ * the cause of the error.
  *
- * If @len_expected is not null, the expected length of the serialized
- * data will be returned through this buffer. If the returned size
- * of the serialized data written to the stream is smaller
- * than the expected length, this shows that only part of the data is
- * actually written to the stream.
+ * If the function is called with the flag
+ * PCVARIANT_SERIALIZE_OPT_IGNORE_ERRORS set, this function always
+ * returned the number of bytes written to the stream actually.
+ * Meanwhile, if @len_expected is not null, the expected length of
+ * the serialized data will be returned through this buffer.
  *
- * However, you can prepare a small memory stream to count the
+ * Therefore, you can prepare a small memory stream with the flag
+ * PCVARIANT_SERIALIZE_OPT_IGNORE_ERRORS set to count the
  * expected length of the serialized data.
  *
  * Since: 0.0.1
