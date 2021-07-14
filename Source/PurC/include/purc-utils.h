@@ -150,6 +150,17 @@ purc_atom_to_string(purc_atom_t atom);
  */
 int pcutils_get_random_seed(void);
 
+/**
+ * pcutils_get_next_fibonacci_number:
+ *
+ * Gets next fibonacci sequence number.
+ *
+ * @param n: current number
+ *
+ * @return the next fibonacci sequence number.
+ */
+size_t pcutils_get_next_fibonacci_number(size_t n);
+
 PCA_EXTERN_C_END
 
 #endif /* not defined PURC_PURC_UTILS_H */
