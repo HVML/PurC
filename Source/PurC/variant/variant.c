@@ -360,7 +360,10 @@ void pcvariant_put(purc_variant_t value)
     struct purc_variant_stat * stat = &(heap->stat);
 
     PC_ASSERT(value);
-    int type = value->type;
+
+    // set stat information
+    stat->nr_values[value->type]--;
+    stat->nr_total_values--;
 
     if ((heap->headpos + 1) % MAX_RESERVED_VARIANTS == heap->tailpos) {
         stat->sz_mem[value->type] -= sizeof(purc_variant);
@@ -375,10 +378,6 @@ void pcvariant_put(purc_variant_t value)
         /* VWNOTE: do not forget to set nr_reserved. */
         stat->nr_reserved++;
     }
-
-    // set stat information
-    stat->nr_values[type]--;
-    stat->nr_total_values--;
 }
 
 /* securely comparison of floating-point variables */
