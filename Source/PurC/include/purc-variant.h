@@ -220,7 +220,7 @@ purc_variant_get_atom_string_const(purc_variant_t value);
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t
-purc_variant_make_byte_sequence(const unsigned char* bytes, size_t nr_bytes);
+purc_variant_make_byte_sequence(const void* bytes, size_t nr_bytes);
 
 
 /**
