@@ -25,8 +25,10 @@
 
 #include <stdarg.h>
 #include <stdlib.h>
-#include <stdio.h>
+#include <stdint.h>
 #include <ctype.h>
+#include <string.h>
+#include <errno.h>
 
 #define foreach_arg(_arg, _addr, _len, _first_addr, _first_len) \
     for (_addr = (_first_addr), _len = (_first_len); \
@@ -136,4 +138,76 @@ size_t pcutils_get_next_fibonacci_number(size_t n)
         fib_1 = fib_n;
     }
     return fib_n;
+}
+
+#define MAX_NUMBER_STRING       128
+
+#ifndef MIN
+#define MIN(x, y) (((x) > (y)) ? (y) : (x))
+#endif
+
+#define COPY_STRING(buf, len)                           \
+    char my_buf[MAX_NUMBER_STRING];                     \
+    if (buf[len]) { /* not a string */                  \
+        size_t my_len = MIN(len, sizeof(my_buf) - 1);   \
+        memcpy(my_buf, buf, my_len);                    \
+        my_buf[my_len] = 0;                             \
+        buf = my_buf;                                   \
+    }
+
+int pcutils_parse_int64(const char *buf, size_t len, int64_t *retval)
+{
+    char *end = NULL;
+    int64_t val;
+
+    COPY_STRING(buf, len);
+
+    errno = 0;
+    val = strtoll(buf, &end, 10);
+    if (end != buf)
+        *retval = val;
+    return ((val == 0 && errno != 0) || (end == buf)) ? 1 : 0;
+}
+
+int pcutils_parse_uint64(const char *buf, size_t len, uint64_t *retval)
+{
+    char *end = NULL;
+    uint64_t val;
+
+    COPY_STRING(buf, len);
+
+    errno = 0;
+    while (*buf == ' ')
+        buf++;
+    if (*buf == '-')
+        return 1; /* error: uint cannot be negative */
+
+    val = strtoull(buf, &end, 10);
+    if (end != buf)
+        *retval = val;
+    return ((val == 0 && errno != 0) || (end == buf)) ? 1 : 0;
+}
+
+int pcutils_parse_double(const char *buf, size_t len, double *retval)
+{
+    char *end;
+
+    COPY_STRING(buf, len);
+
+    *retval = strtod(buf, &end);
+    if (buf + len == end)
+        return 0; // It worked
+    return 1;
+}
+
+int pcutils_parse_long_double(const char *buf, size_t len, long double *retval)
+{
+    char *end;
+
+    COPY_STRING(buf, len);
+
+    *retval = strtold(buf, &end);
+    if (buf + len == end)
+        return 0; // It worked
+    return 1;
 }

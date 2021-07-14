@@ -60,6 +60,8 @@ static const char* generic_err_msgs[] = {
     "Not supported",
     /* PURC_ERROR_OUTPUT (11) */
     "An output error is encountered",
+    /* PURC_ERROR_TOO_SMALL_BUFF (12) */
+    "Too small buffer",
 };
 
 static struct err_msg_seg _generic_err_msgs_seg = {

@@ -1,5 +1,6 @@
 /*
  * @file debug.h
+ * @author Vincent Wei
  * @date 2021/07/07
  * @brief The internal interfaces for debug.
  *

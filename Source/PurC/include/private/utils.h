@@ -29,6 +29,7 @@
 
 #include <stddef.h>
 #include <stdarg.h>
+#include <stdint.h>
 
 /*
  * calloc_a(size_t len, [void **addr, size_t len,...], NULL)
@@ -64,6 +65,11 @@ void pcutils_bin2hex (const unsigned char *bin, int len, char *hex);
 int pcutils_hex2bin (const char *hex, unsigned char *bin);
 
 size_t pcutils_get_cmdline_arg (int arg, char* buf, size_t sz_buf);
+
+int pcutils_parse_int64(const char *buf, size_t len, int64_t *retval);
+int pcutils_parse_uint64(const char *buf, size_t len, uint64_t *retval);
+int pcutils_parse_double(const char *buf, size_t len, double *retval);
+int pcutils_parse_long_double(const char *buf, size_t len, long double *retval);
 
 #ifdef __cplusplus
 }

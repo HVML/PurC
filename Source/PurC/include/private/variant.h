@@ -28,6 +28,8 @@
 #include "config.h"
 #include "purc-variant.h"
 #include "arraylist.h"
+#include "avl.h"
+#include "hashtable.h"
 
 #include <assert.h>
 
@@ -125,6 +127,30 @@ void pcvariant_init_instance(struct pcinst* inst) WTF_INTERNAL;
 // clean up the variant module for a PurC instance.
 void pcvariant_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 
+// internal struct used by variant-set object
+typedef struct variant_set      *variant_set_t;
+struct keyname {
+    struct list_head  list;
+    const char       *keyname;   // key name, no ownership
+};
+
+struct keyval {
+    struct list_head list;
+    purc_variant_t   val;    // value bounded to keyname
+};
+
+struct obj_node {
+    struct avl_node  avl;
+    purc_variant_t   obj;       // actual variant-object
+    struct list_head keyvals;   // keyvals of this variant-object
+};
+
+struct variant_set {
+    char                   *unique_key; // unique-key duplicated
+    struct list_head        keynames;   // multiple-keys parsed from unique
+    struct avl_tree         objs;       // multiple-variant-objects stored in set
+};
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
@@ -166,27 +192,53 @@ void pcvariant_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
     do {                                                                \
         struct purc_variant_object_iterator *__oite = NULL;             \
         struct purc_variant_set_iterator *__site    = NULL;             \
-        bool __having = true;                                           \
-        for (__oite = purc_variant_object_make_iterator_begin(obj);     \
-             __oite && __having;                                        \
-             __having = purc_variant_object_iterator_next(__oite) )     \
+        struct pchash_table *_ht;                                       \
+        _ht = (struct pchash_table*)obj->sz_ptr[1];                     \
+        struct pchash_entry *_entry;                                    \
+        pchash_foreach(_ht, _entry)                                     \
         {                                                               \
-            value = purc_variant_object_iterator_get_value(__oite);     \
-     /* } */                                                            \
+            value = (purc_variant_t)_entry->v;                          \
+     /* } */
  /* } while (0) */
 
+#define foreach_value_in_variant_object_safe(obj, value)                \
+    do {                                                                \
+        struct purc_variant_object_iterator *__oite = NULL;             \
+        struct purc_variant_set_iterator *__site    = NULL;             \
+        struct pchash_table *_ht;                                       \
+        _ht = (struct pchash_table*)obj->sz_ptr[1];                     \
+        struct pchash_entry *_entry, *_tmp;                             \
+        pchash_foreach_safe(_ht, _entry, _tmp)                          \
+        {                                                               \
+            value = (purc_variant_t)_entry->v;                          \
+     /* } */
+ /* } while (0) */
 
 #define foreach_key_value_in_variant_object(obj, key, value)            \
     do {                                                                \
         struct purc_variant_object_iterator *__oite = NULL;             \
         struct purc_variant_set_iterator *__site    = NULL;             \
-        bool __having = true;                                           \
-        for (__oite = purc_variant_object_make_iterator_begin(obj);     \
-             __oite && __having;                                        \
-             __having = purc_variant_object_iterator_next(__oite) )     \
+        struct pchash_table *_ht;                                       \
+        _ht = (struct pchash_table*)obj->sz_ptr[1];                     \
+        struct pchash_entry *_entry;                                    \
+        pchash_foreach(_ht, _entry)                                     \
         {                                                               \
-            key   = purc_variant_object_iterator_get_key(__oite);       \
-            value = purc_variant_object_iterator_get_value(__oite);     \
+            key   = (const char*)_entry->k;                             \
+            value = (purc_variant_t)_entry->v;                          \
+     /* } */                                                            \
+ /* } while (0) */
+
+#define foreach_key_value_in_variant_object_safe(obj, key, value)       \
+    do {                                                                \
+        struct purc_variant_object_iterator *__oite = NULL;             \
+        struct purc_variant_set_iterator *__site    = NULL;             \
+        struct pchash_table *_ht;                                       \
+        _ht = (struct pchash_table*)obj->sz_ptr[1];                     \
+        struct pchash_entry *_entry, *_tmp;                             \
+        pchash_foreach_safe(_ht, _entry, _tmp)                          \
+        {                                                               \
+            key   = (const char*)_entry->k;                             \
+            value = (purc_variant_t)_entry->v;                          \
      /* } */                                                            \
  /* } while (0) */
 
@@ -195,12 +247,11 @@ void pcvariant_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
     do {                                                                \
         struct purc_variant_object_iterator *__oite = NULL;             \
         struct purc_variant_set_iterator *__site    = NULL;             \
-        bool __having = true;                                           \
-        for (__site = purc_variant_set_make_iterator_begin(set);        \
-             __site && __having;                                        \
-             __having = purc_variant_set_iterator_next(__site) )        \
-        {                                                               \
-            value = purc_variant_set_iterator_get_value(__site);        \
+        struct avl_tree *_tree;                                         \
+        _tree = (struct avl_tree*)set->sz_ptr[1];                       \
+        struct obj_node *_elem;                                         \
+        avl_for_each_element(_tree, _elem, avl) {                       \
+            value = _elem->obj;                                         \
      /* } */                                                            \
   /* } while (0) */
 
