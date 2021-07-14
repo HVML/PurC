@@ -172,7 +172,7 @@ TEST(variant, serialize_object)
     ASSERT_GT(n, 0);
 
     buf[n] = 0;
-    ASSERT_STREQ(buf, "[\"v1\":123,\"v2\":123.45600000000000000]");
+    ASSERT_STREQ(buf, "{\"v1\":123,\"v2\":123.45600000000000000}");
 
     purc_rwstream_seek(my_rws, 0, SEEK_SET);
 
@@ -182,7 +182,7 @@ TEST(variant, serialize_object)
     ASSERT_GT(n, 0);
 
     buf[n] = 0;
-    ASSERT_STREQ(buf, "[\"v1\":123,\"v2\":123.456]");
+    ASSERT_STREQ(buf, "{\"v1\":123,\"v2\":123.456}");
 
     purc_variant_unref(my_variant);
     purc_variant_unref(v1);
