@@ -2,7 +2,7 @@
  * @file rwstream.h
  * @author XueShuming
  * @date 2021/07/07
- * @brief The structures for PurC instance.
+ * @brief The internal interfaces for rwstream.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
