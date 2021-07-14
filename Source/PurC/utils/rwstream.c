@@ -287,7 +287,7 @@ purc_rwstream_t purc_rwstream_new_buffer (size_t sz_init, size_t sz_max)
     rws->sz = sz;
     rws->sz_max = sz_max;
 
-    return (purc_rwstream_t) rws;
+    return (purc_rwstream_t)rws;
 }
 
 purc_rwstream_t purc_rwstream_new_from_mem (void* mem, size_t sz)
@@ -300,7 +300,7 @@ purc_rwstream_t purc_rwstream_new_from_mem (void* mem, size_t sz)
     rws->here = rws->base;
     rws->stop = rws->base + sz;
 
-    return (purc_rwstream_t) rws;
+    return (purc_rwstream_t)rws;
 }
 
 purc_rwstream_t purc_rwstream_new_from_file (const char* file, const char* mode)
@@ -321,7 +321,7 @@ purc_rwstream_t purc_rwstream_new_from_fp (FILE* fp)
 
     rws->rwstream.funcs = &stdio_funcs;
     rws->fp = fp;
-    return (purc_rwstream_t) rws;
+    return (purc_rwstream_t)rws;
 }
 
 #if ENABLE(SOCKET_STREAM) && HAVE(GLIB)
@@ -379,7 +379,7 @@ purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf)
             sizeof(struct gio_rwstream), 1);
     gio->rwstream.funcs = &win_socket_funcs;
     gio->gio_channel = gio_channel;
-    return (purc_rwstream_t) rws;
+    return (purc_rwstream_t)rws;
 }
 #else
 purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf)
