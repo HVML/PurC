@@ -417,7 +417,12 @@ purc_variant_array_insert_after(purc_variant_t array,
  *
  * @param array: the variant value of array type
  *
- * Returns: The number of elements in an array variant value.
+ * Returns: The number of elements in the array; -1 on failure:
+ *      - the variant value is not an array.
+ *
+ * VWNOTE: the prototype of this function should be changed to:
+ *
+ *      ssize_t purc_variant_array_get_size(const purc_variant_t set);
  *
  * Since: 0.0.1
  */
@@ -554,7 +559,12 @@ purc_variant_object_remove(purc_variant_t obj, purc_variant_t key)
  *
  * @param obj: the variant value of object type
  *
- * Returns: The number of key-value pairs in an object variant value.
+ * Returns: The number of key-value pairs in the object; -1 on failure:
+ *      - the variant value is not an object.
+ *
+ * VWNOTE: the prototype of this function should be changed to:
+ *
+ *      ssize_t purc_variant_object_get_size(const purc_variant_t set);
  *
  * Since: 0.0.1
  */
@@ -684,10 +694,12 @@ PCA_EXPORT purc_variant_t
 purc_variant_object_iterator_get_value(struct purc_variant_object_iterator* it);
 
 /**
- * Creates a variant value of set type with key as c string
+ * Creates a variant value of set type.
  *
- * @param sz: the number of elements in a set
- * @param unique_key: the keys for one record 
+ * @param sz: the initial number of elements in a set.
+ * @param unique_key: the unique keys specified in a C string (nullable).
+ *      If the unique keyis NULL, the set is a generic one.
+ *
  * @param value0 ..... valuen: the values.
  *
  * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
@@ -701,11 +713,12 @@ purc_variant_make_set_c(size_t sz, const char* unique_key,
         purc_variant_t value0, ...);
 
 /**
- * Creates a variant value of set type with key as another variant
+ * Creates a variant value of set type.
  *
- * @param sz: the number of elements in a set
- * @param unique_key: the keys for one record 
- * @param value0 ..... valuen: the values.
+ * @param sz: the initial number of elements in a set.
+ * @param unique_key: the unique keys specified in a variant. If the unique key
+ *      is PURC_VARIANT_INVALID, the set is a generic one.
+ * @param value0 ... valuen: the values will be add to the set.
  *
  * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
  *
@@ -718,12 +731,13 @@ purc_variant_make_set(size_t sz, purc_variant_t unique_key,
         purc_variant_t value0, ...);
 
 /**
- * Adds a unique key-value pair to a set.
+ * Adds a variant value to a set.
  *
- * @param set: the set to be added
- * @param value: the value to be added
+ * @param set: the variant value of the set type.
+ * @param value: the value to be added.
  *
- * Returns: True on success, False on failure
+ * Returns: @true on success, @false if:
+ *      - there is already such a value in the set.
  *
  * Since: 0.0.1
  */
@@ -736,7 +750,8 @@ purc_variant_set_add(purc_variant_t obj, purc_variant_t value);
  * @param set: the set to be operated
  * @param value: the value to be removed
  *
- * Returns: True on success, False on failure
+ * Returns: @true on success, @false if:
+ *      - no any matching member in the set.
  *
  * Since: 0.0.1
  */
@@ -744,41 +759,59 @@ PCA_EXPORT bool
 purc_variant_set_remove(purc_variant_t obj, purc_variant_t value);
 
 /**
- * Gets the value by key from a set with key as a c string
+ * Gets the member by the values of unique keys from a set.
  *
- * @param set: the variant value of obj type
- * @param match_key: the unique key related to the value
+ * @param set: the variant value of the set type.
+ * @param v1...vN: the values for matching. The caller should pass one value
+ *      for each unique key.
  *
- * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ * Returns: The memeber matched on success, or PURC_VARIANT_INVALID if:
+ *      - the set does not managed by the unique keys, or
+ *      - no any matching member, or
+ *      - the number of the matching values do not match the number of the
+ *        unique keys.
+ *
+ * VWNOTE: new API (replacement of old purc_variant_set_get_value).
  *
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t
-purc_variant_set_get_value_c(const purc_variant_t set, const char * match_key);
+purc_variant_set_get_member_by_key_values(purc_variant_t set,
+        purc_variant_t v1, ...);
 
 /**
- * Gets the value by key from a set with key as another variant
+ * Removes the member by the values of unique keys from a set.
  *
- * @param set: the variant value of obj type
- * @param match_key: the unique key related to the value
+ * @param set: the variant value of the set type. The set should be managed
+ *      by unique keys.
+ * @param v1...vN: the values for matching. The caller should pass one value
+ *      for each unique key.
  *
- * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ * Returns: @true on success, or @false if:
+ *      - the set does not managed by unique keys, or
+ *      - no any matching member, or
+ *      - the number of the matching values do not match the number of the
+ *        unique keys.
+ *
+ * VWNOTE: new API.
  *
  * Since: 0.0.1
  */
-static inline purc_variant_t
-purc_variant_set_get_value(const purc_variant_t obj, purc_variant_t match_key)
-{
-    return purc_variant_set_get_value_c(obj,
-            purc_variant_get_string_const(match_key));
-}
+PCA_EXPORT purc_variant_t
+purc_variant_set_remove_member_by_key_values(purc_variant_t set,
+        purc_variant_t v1, ...);
 
 /**
  * Get the number of elements in a set variant value.
  *
  * @param set: the variant value of set type
  *
- * Returns: The number of elements in a set variant value.
+ * Returns: The number of elements in a set variant value; -1 on failure:
+ *      - the variant value is not a set.
+ *
+ * VWNOTE: the prototype of this function should be changed to:
+ *
+ *      ssize_t purc_variant_set_get_size(const purc_variant_t set);
  *
  * Since: 0.0.1
  */
