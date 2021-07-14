@@ -51,7 +51,7 @@ static void _fill_empty_with_undefined(struct pcutils_arrlist *al)
 
 purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
 {
-    PCVARIANT_CHECK_FAIL_RET((sz==0 && value0==NULL) || (sz>0 && value0),
+    PCVARIANT_CHECK_FAIL_RET((sz > 0 && value0),
         PURC_VARIANT_INVALID);
 
     purc_variant_t var = pcvariant_get(PVT(_ARRAY));
@@ -63,7 +63,7 @@ purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
     do {
         var->type          = PVT(_ARRAY);
         var->flags         = PCVARIANT_FLAG_EXTRA_SIZE;
-        var->refc          = 0; // we'll call purc_variant_ref later
+        var->refc          = 1;
 
         size_t initial_size = ARRAY_LIST_DEFAULT_SIZE;
         if (sz>initial_size)
@@ -78,46 +78,46 @@ purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
         }
         var->sz_ptr[1]     = (uintptr_t)al;
 
-        if (sz==0) {
-            // empty array
-            purc_variant_ref(var);
-            return var;
-        }
+        if (sz > 0) {
 
-        va_list ap;
-        va_start(ap, value0);
+            va_list ap;
+            va_start(ap, value0);
 
-        purc_variant_t v = value0;
-        // question: shall we track mem for al->array?
-        if (pcutils_arrlist_add(al, v)) {
-            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            break;
-        }
-
-        size_t i = 1;
-        while (i<sz) {
-            v = va_arg(ap, purc_variant_t);
-            if (!v) {
-                pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-                break;
-            }
-
+            purc_variant_t v = value0;
+            // question: shall we track mem for al->array?
             if (pcutils_arrlist_add(al, v)) {
                 pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
                 break;
             }
+            purc_variant_ref(v);
+
+            size_t i = 1;
+            while (i < sz) {
+                v = va_arg(ap, purc_variant_t);
+                if (!v) {
+                    pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+                    break;
+                }
+
+                if (pcutils_arrlist_add(al, v)) {
+                    pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                    break;
+                }
+
+                purc_variant_ref(v);
+
+                i++;
+            }
+            va_end(ap);
+
+            if (i < sz)
+                break;
         }
-        va_end(ap);
-
-        if (i<sz)
-            break;
-
-        purc_variant_ref(var);
 
         size_t extra = sizeof(*al) + al->size * sizeof(*al->array);
         pcvariant_stat_set_extra_size(var, extra);
-
         return var;
+
     } while (0);
 
     pcvariant_array_release(var);
@@ -136,6 +136,7 @@ void pcvariant_array_release (purc_variant_t value)
     value->sz_ptr[1] = (uintptr_t)NULL;
 }
 
+/* VWNOTE: unnecessary
 int pcvariant_array_compare (purc_variant_t lv, purc_variant_t rv)
 {
     // only called via purc_variant_compare
@@ -155,6 +156,7 @@ int pcvariant_array_compare (purc_variant_t lv, purc_variant_t rv)
 
     return i<lnr ? 1 : -1;
 }
+*/
 
 bool purc_variant_array_append (purc_variant_t array, purc_variant_t value)
 {

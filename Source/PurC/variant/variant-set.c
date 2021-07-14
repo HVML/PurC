@@ -603,6 +603,7 @@ void pcvariant_set_release (purc_variant_t value)
     _variant_set_release(data);
 }
 
+/* VWNOTE: unnecessary
 int pcvariant_set_compare (purc_variant_t lv, purc_variant_t rv)
 {
     variant_set_t ldata = _pcv_set_get_data(lv);
@@ -623,4 +624,5 @@ int pcvariant_set_compare (purc_variant_t lv, purc_variant_t rv)
 
     return ln ? 1 : -1;
 }
+*/
 
