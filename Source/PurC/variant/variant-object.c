@@ -55,6 +55,7 @@ static purc_variant_t _variant_object_new_with_capacity(size_t initial_size)
     }
 
     var->type          = PVT(_OBJECT);
+    var->flags         = PCVARIANT_FLAG_EXTRA_SIZE;
 
     if (initial_size==0)
         initial_size = HASHTABLE_DEFAULT_SIZE;

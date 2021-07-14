@@ -62,6 +62,7 @@ purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
 
     do {
         var->type          = PVT(_ARRAY);
+        var->flags         = PCVARIANT_FLAG_EXTRA_SIZE;
         var->refc          = 0; // we'll call purc_variant_ref later
 
         size_t initial_size = ARRAY_LIST_DEFAULT_SIZE;
