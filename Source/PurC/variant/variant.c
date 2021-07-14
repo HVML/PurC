@@ -31,6 +31,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
+#include <limits.h>
 
 #if OS(LINUX) || OS(UNIX)
     #include <dlfcn.h>
@@ -371,6 +373,20 @@ void pcvariant_put(purc_variant_t value)
     // set stat information
     stat->nr_values[value->type]--;
     stat->nr_total_values--;
+}
+
+/* securely comparison of floating-point variables */
+static inline bool equal_doubles(double a, double b)
+{
+    double max_val = fabs(a) > fabs(b) ? fabs(a) : fabs(b);
+    return (fabs(a - b) <= max_val * DBL_EPSILON);
+}
+
+/* securely comparison of floating-point variables */
+static inline bool equal_long_doubles(long double a, long double b)
+{
+    long double max_val = fabsl(a) > fabsl(b) ? fabsl(a) : fabsl(b);
+    return (fabsl(a - b) <= max_val * LDBL_EPSILON);
 }
 
 static int compare_objects(purc_variant_t v1, purc_variant_t v2)
@@ -785,11 +801,13 @@ int purc_variant_compare(purc_variant_t v1, purc_variant_t v2)
             return (int)v1->b - (int)v2->b;
 
         case PURC_VARIANT_TYPE_NUMBER:
+            if (equal_doubles(v1->d, v2->d))
+                return 0;
+            // VWNOTE: this may get zero because of too small difference:
+            // return (int)(v1->d - v2->d);
             if (v1->d > v2->d)
                 return 1;
-            else if (v1->d < v2->d)
-                return -1;
-            return 0;
+            return -1;
 
         case PURC_VARIANT_TYPE_LONGINT:
             return (int)(v1->i64 - v2->i64);
@@ -798,11 +816,13 @@ int purc_variant_compare(purc_variant_t v1, purc_variant_t v2)
             return (int)(v1->u64 - v2->u64);
 
         case PURC_VARIANT_TYPE_LONGDOUBLE:
-            if (v1->d > v2->d)
+            if (equal_long_doubles(v1->ld, v2->ld))
+                return 0;
+            // VWNOTE: this may get zero because of too small difference:
+            // return (int)(v1->d - v2->d);
+            if (v1->ld > v2->ld)
                 return 1;
-            else if (v1->d < v2->d)
-                return -1;
-            return 0;
+            return -1;
 
         case PURC_VARIANT_TYPE_ATOMSTRING:
             str1 = purc_atom_to_string(v1->sz_ptr[1]);
@@ -858,7 +878,14 @@ int purc_variant_compare(purc_variant_t v1, purc_variant_t v2)
         long double ld1, ld2;
         if (purc_variant_cast_to_long_double(v1, &ld1, false) &&
                 purc_variant_cast_to_long_double(v2, &ld2, false)) {
-            return (int)(ld1 - ld2);
+            if (equal_long_doubles(ld1, ld2))
+                return 0;
+
+            // VWNOTE: this may get zero because of too small difference:
+            // return (int)(ld1 - ld2);
+            if (ld1 > ld2)
+                return 1;
+            return -1;
         }
 
         const void *bytes1, *bytes2;
