@@ -507,16 +507,16 @@ serialize_long_double(purc_rwstream_t rws, long double ld, int flags,
         }
     }
     else {
-        size = snprintf(buf, sizeof(buf), "%.17Lg", ld);
+        size = snprintf(buf, sizeof(buf) - 2, "%.17Lg", ld);
         if (UNLIKELY(size < 0)) {
             pcinst_set_error(PURC_ERROR_OUTPUT);
             return -1;
         }
 
-        if (size >= (int)sizeof(buf)) {
+        if (size >= (int)sizeof(buf) - 2) {
             // The standard formats are guaranteed not to overrun the buffer,
             // but if a custom one happens to do so, just silently truncate.
-            size = sizeof(buf) - 1;
+            size = sizeof(buf) - 3;
             buf[size] = 0;
         }
 
@@ -538,6 +538,10 @@ serialize_long_double(purc_rwstream_t rws, long double ld, int flags,
                 *(++p) = 0;
             size = p - buf;
         }
+
+        // append FL postfix
+        strcat(buf, "FL");
+        size += 2;
     }
 
     if (len_expected)
@@ -618,7 +622,7 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
     const char* content = NULL;
     size_t sz_content = 0;
     int i;
-    char buff [128];
+    char buff [256];
     purc_variant_t member = NULL;
     const char* key;
 
