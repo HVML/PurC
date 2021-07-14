@@ -239,23 +239,28 @@ unsigned int purc_variant_unref(purc_variant_t value)
 
     switch ((int)value->type) {
         case PURC_VARIANT_TYPE_OBJECT:
-            foreach_value_in_variant_object(value, variant)
+        {
+            foreach_value_in_variant_object(value, variant) {
                 purc_variant_unref(variant);
-            end_foreach;
+            } end_foreach;
             break;
+        }
 
         case PURC_VARIANT_TYPE_ARRAY:
-            foreach_value_in_variant_array(value, variant)
+        {
+            foreach_value_in_variant_array(value, variant) {
                 purc_variant_unref(variant);
-            end_foreach;
+            } end_foreach;
             break;
+        }
 
         case PURC_VARIANT_TYPE_SET:
-            PC_ASSERT(0);
-            foreach_value_in_variant_set(value, variant)
+        {
+            foreach_value_in_variant_set(value, variant) {
                 purc_variant_unref(variant);
-            end_foreach;
+            } end_foreach;
             break;
+        }
 
         default:
             break;

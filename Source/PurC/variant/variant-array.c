@@ -288,6 +288,7 @@ bool purc_variant_array_insert_before (purc_variant_t array, int idx,
                 (nr-idx) * sizeof(void *));
     }
     al->array[idx] = value;
+    al->length    += 1;
 
     purc_variant_ref(value);
 
