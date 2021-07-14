@@ -24,6 +24,7 @@
 
 #include "purc-rwstream.h"
 #include "purc-errors.h"
+#include "purc-utils.h"
 #include "private/errors.h"
 #include "config.h"
 
@@ -254,22 +255,13 @@ int rwstream_error_code_from_gerror (GError* err)
 
 
 static size_t get_min_size(size_t sz_min, size_t sz_max) {
-    size_t fib0 = 0;
-    size_t fib1 = 1;
-    size_t fibN = 0;
-
-    if (sz_min <= 1) {
-        fibN = sz_min;
+    size_t min = pcutils_get_next_fibonacci_number(sz_min);
+    if (min < MIN_BUFFER_SIZE) {
+        min = MIN_BUFFER_SIZE;
+    } else if (min > sz_max) {
+        min = sz_max;
     }
-    else {
-        for (size_t i = 2; fibN < sz_min; i++) {
-            fibN = fib1 + fib0;
-            fib0 = fib1;
-            fib1 = fibN;
-        }
-    }
-    fibN = fibN < MIN_BUFFER_SIZE ?  MIN_BUFFER_SIZE : fibN;
-    return fibN = fibN < sz_max ? fibN : sz_max;
+    return min;
 }
 
 /* rwstream api */
