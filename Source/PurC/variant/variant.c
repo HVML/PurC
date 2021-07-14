@@ -363,10 +363,10 @@ void pcvariant_put(purc_variant_t value)
     int type = value->type;
 
     if ((heap->headpos + 1) % MAX_RESERVED_VARIANTS == heap->tailpos) {
-        free_variant(value);
-
         stat->sz_mem[value->type] -= sizeof(purc_variant);
         stat->sz_total_mem -= sizeof(purc_variant);
+
+        free_variant(value);
     }
     else {
         heap->v_reserved[heap->headpos] = value;

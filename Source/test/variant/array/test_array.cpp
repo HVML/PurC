@@ -187,7 +187,7 @@ TEST(array, add_n_str)
         ASSERT_EQ(stat->nr_values[PVT(_ARRAY)], 1);
         ASSERT_EQ(arr->refc, 1);
 
-        int count = 10;
+        int count = 100;
         for (int j=0; j<count; ++j) {
             char buf[64];
             snprintf(buf, sizeof(buf), "%d", j);
