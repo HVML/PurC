@@ -35,10 +35,6 @@
 #include "purc-errors.h"
 
 
-#define purc_rwstream_t_SEEK_SET    0
-#define purc_rwstream_t_SEEK_CUR    1
-#define purc_rwstream_t_SEEK_END    2
-
 struct purc_rwstream;
 typedef struct purc_rwstream purc_rwstream;
 typedef struct purc_rwstream* purc_rwstream_t;
@@ -166,9 +162,9 @@ PCA_EXPORT int purc_rwstream_destroy (purc_rwstream_t rws);
  * @param offset: n offset, in bytes, which is added to the position specified
  *        by whence
  * @param whence: the position in the file, which can be
- *        purc_rwstream_t_SEEK_CUR (the current position),
- *        purc_rwstream_t_SEEK_SET (the start of the file),
- *        or purc_rwstream_t_SEEK_END (the end of the file)
+ *        SEEK_CUR (the current position),
+ *        SEEK_SET (the start of the file),
+ *        SEEK_END (the end of the file)
  *
  * @return success returns the resulting offset location as measured in bytes
  *         from the beginning of the file,  (off_t) -1 otherwise and the error
