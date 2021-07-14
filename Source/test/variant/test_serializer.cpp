@@ -108,6 +108,51 @@ TEST(variant, serialize_number)
     purc_cleanup ();
 }
 
+// to test: serialize a string
+TEST(variant, serialize_string)
+{
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    purc_variant_t my_variant =
+        purc_variant_make_string("\r\n\b\f\t\"\x1c'", false);
+    ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
+
+    char buf[64] = { };
+    purc_rwstream_t my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    ASSERT_NE(my_rws, nullptr);
+
+    size_t len_expected = 0;
+    ssize_t n = purc_variant_serialize(my_variant, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+    ASSERT_GT(n, 0);
+    puts("Serialized string with PCVARIANT_SERIALIZE_OPT_PLAIN flag:");
+    puts(buf);
+
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "\"\\r\\n\\b\\f\\t\\\"\\u001c'\"");
+
+    purc_variant_unref(my_variant);
+
+    memset(buf, '.', sizeof(buf));
+    buf[sizeof(buf) - 1] = 0;
+    purc_rwstream_seek(my_rws, 0, SEEK_SET);
+
+    my_variant =
+        purc_variant_make_string("这是一个很长的中文字符串", false);
+    ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
+
+    n = purc_variant_serialize(my_variant, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+    puts("Serialized string with PCVARIANT_SERIALIZE_OPT_PLAIN flag:");
+    puts(buf);
+    ASSERT_GT(n, 0);
+
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "\"这是一个很长的中文字符串\"");
+    purc_cleanup ();
+}
+
 // to test: serialize an array
 TEST(variant, serialize_array)
 {

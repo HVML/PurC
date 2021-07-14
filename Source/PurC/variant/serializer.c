@@ -720,9 +720,11 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
         case PURC_VARIANT_TYPE_ATOMSTRING:
             content = purc_atom_to_string(value->sz_ptr[1]);
             sz_content = strlen(content);
+            MY_WRITE(rws, "\"", 1);
             n = serialize_string(rws, content, sz_content,
                         flags, len_expected);
             MY_CHECK(n);
+            MY_WRITE(rws, "\"", 1);
 
             content = NULL;
             break;
@@ -737,9 +739,12 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
                 content = (char*)value->bytes;
                 sz_content = value->size;
             }
-            if (value->type == PURC_VARIANT_TYPE_STRING)
-                n = serialize_string(rws, content, sz_content,
+            if (value->type == PURC_VARIANT_TYPE_STRING) {
+                MY_WRITE(rws, "\"", 1);
+                n = serialize_string(rws, content, sz_content - 1,
                             flags, len_expected);
+                MY_WRITE(rws, "\"", 1);
+            }
             else
                 n = serialize_bsequence(rws, content, sz_content,
                             flags, len_expected);
