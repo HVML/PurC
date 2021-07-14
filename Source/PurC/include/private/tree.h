@@ -71,8 +71,29 @@ typedef void(purc_tree_node_for_each_fn)(purc_tree_node_t node,  void* data);
  *
  * Since: 0.0.1
  */
+static inline
 bool purc_tree_node_append_child (purc_tree_node_t parent,
-        purc_tree_node_t node);
+        purc_tree_node_t node)
+{
+    if (parent == NULL || node == NULL) {
+        return false;
+    }
+
+    purc_tree_node_t sibling = NULL;
+    node->parent = parent;
+    if (parent->child) {
+        sibling = parent->child;
+        while (sibling->next) {
+            sibling = sibling->next;
+        }
+        node->prev = sibling;
+        sibling->next = node;
+    }
+    else {
+        node->parent->child = node;
+    }
+    return true;
+}
 
 /**
  * Inserts a node as the first child of the given parent.
@@ -86,8 +107,22 @@ bool purc_tree_node_append_child (purc_tree_node_t parent,
  *
  * Since: 0.0.1
  */
+static inline
 bool purc_tree_node_prepend_child (purc_tree_node_t parent,
-        purc_tree_node_t node);
+        purc_tree_node_t node)
+{
+    if (parent == NULL || node == NULL) {
+        return false;
+    }
+
+    if (parent->child) {
+        node->next = parent->child;
+        parent->child->prev = node;
+    }
+    node->parent = parent;
+    parent->child = node;
+    return true;
+}
 
 /**
  * Inserts a node before the given sibling.
@@ -101,8 +136,29 @@ bool purc_tree_node_prepend_child (purc_tree_node_t parent,
  *
  * Since: 0.0.1
  */
+static inline
 bool purc_tree_node_insert_before (purc_tree_node_t current,
-        purc_tree_node_t node);
+        purc_tree_node_t node)
+{
+    if (current == NULL || node == NULL) {
+        return false;
+    }
+
+    node->parent = current->parent;
+    node->prev = current->prev;
+
+    if (current->prev)
+    {
+        node->prev->next = node;
+    }
+    else {
+        node->parent->child = node;
+    }
+
+    node->next = current;
+    current->prev = node;
+    return true;
+}
 
 /**
  * Inserts a node after the given sibling.
@@ -116,8 +172,24 @@ bool purc_tree_node_insert_before (purc_tree_node_t current,
  *
  * Since: 0.0.1
  */
+static inline
 bool purc_tree_node_insert_after (purc_tree_node_t current,
-        purc_tree_node_t node);
+        purc_tree_node_t node)
+{
+    if (current == NULL || node == NULL) {
+        return false;
+    }
+
+    node->parent = current->parent;
+    if (current->next)
+    {
+        current->next->prev = node;
+    }
+    node->next = current->next;
+    node->prev = current;
+    current->next = node;
+    return true;
+}
 
 /**
  * Get the parent node of the given node.
@@ -130,7 +202,11 @@ bool purc_tree_node_insert_after (purc_tree_node_t current,
  *
  * Since: 0.0.1
  */
-purc_tree_node_t purc_tree_node_parent (purc_tree_node_t node);
+static inline
+purc_tree_node_t purc_tree_node_parent (purc_tree_node_t node)
+{
+    return node ? node->parent : NULL;
+}
 
 /**
  * Get first child node of the given node.
@@ -143,7 +219,11 @@ purc_tree_node_t purc_tree_node_parent (purc_tree_node_t node);
  *
  * Since: 0.0.1
  */
-purc_tree_node_t purc_tree_node_child (purc_tree_node_t node);
+static inline
+purc_tree_node_t purc_tree_node_child (purc_tree_node_t node)
+{
+    return node ? node->child : NULL;
+}
 
 /**
  * Get last child node of the given node.
@@ -156,7 +236,22 @@ purc_tree_node_t purc_tree_node_child (purc_tree_node_t node);
  *
  * Since: 0.0.1
  */
-purc_tree_node_t purc_tree_node_last_child (purc_tree_node_t node);
+static inline
+purc_tree_node_t purc_tree_node_last_child (purc_tree_node_t node)
+{
+    if (node == NULL)
+    {
+        return NULL;
+    }
+
+    node = node->child;
+    if (node) {
+        while (node->next) {
+            node = node->next;
+        }
+    }
+    return node;
+}
 
 /**
  * Gets the next sibling of a node.
@@ -169,7 +264,11 @@ purc_tree_node_t purc_tree_node_last_child (purc_tree_node_t node);
  *
  * Since: 0.0.1
  */
-purc_tree_node_t purc_tree_node_next (purc_tree_node_t node);
+static inline
+purc_tree_node_t purc_tree_node_next (purc_tree_node_t node)
+{
+    return node ? node->next : NULL;
+}
 
 /**
  * Gets the previous sibling of a node.
@@ -182,7 +281,11 @@ purc_tree_node_t purc_tree_node_next (purc_tree_node_t node);
  *
  * Since: 0.0.1
  */
-purc_tree_node_t purc_tree_node_prev (purc_tree_node_t node);
+static inline
+purc_tree_node_t purc_tree_node_prev (purc_tree_node_t node)
+{
+    return node ? node->prev : NULL;
+}
 
 /**
  * Gets the number of children of a node.
@@ -195,7 +298,11 @@ purc_tree_node_t purc_tree_node_prev (purc_tree_node_t node);
  *
  * Since: 0.0.1
  */
-size_t purc_tree_node_children_number (purc_tree_node_t node);
+static inline
+size_t purc_tree_node_children_number (purc_tree_node_t node)
+{
+    return node ? node->nr_children : 0;
+}
 
 /**
  * Gets the type of a node.
@@ -208,7 +315,11 @@ size_t purc_tree_node_children_number (purc_tree_node_t node);
  *
  * Since: 0.0.1
  */
-uint8_t purc_tree_node_type (purc_tree_node_t node);
+static inline
+uint8_t purc_tree_node_type (purc_tree_node_t node)
+{
+    return node ? node->type : 0;
+}
 
 
 /**
@@ -221,8 +332,23 @@ uint8_t purc_tree_node_type (purc_tree_node_t node);
  * @param data: user data to pass to the function
  * Since: 0.0.1
  */
+static inline
 void purc_tree_node_children_for_each (purc_tree_node_t node,
-        purc_tree_node_for_each_fn* func, void* data);
+        purc_tree_node_for_each_fn* func, void* data)
+{
+    if (node == NULL)
+    {
+        return;
+    }
+
+    node = node->child;
+    while (node)
+    {
+        purc_tree_node_t current = node;
+        node = current->next;
+        func (current, data);
+    }
+}
 
 /**
  * Traverses a tree starting at the given root node. It calls the given
@@ -234,8 +360,24 @@ void purc_tree_node_children_for_each (purc_tree_node_t node,
  * @param data: user data to pass to the function
  * Since: 0.0.1
  */
+static inline
 void purc_tree_node_traverse (purc_tree_node_t node,
-        purc_tree_node_for_each_fn* func, void* data);
+        purc_tree_node_for_each_fn* func, void* data)
+{
+    if (node == NULL)
+    {
+        return;
+    }
+
+    func (node, data);
+    node = node->child;
+    while (node)
+    {
+        purc_tree_node_t current = node;
+        node = current->next;
+        purc_tree_node_traverse (current, func, data);
+    }
+}
 
 #ifdef __cplusplus
 }
