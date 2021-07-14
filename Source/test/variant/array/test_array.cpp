@@ -11,7 +11,7 @@
 
 TEST(array, init_with_1_str)
 {
-    for (int i=1; i>0; ++i) {
+    for (int i=0; i<10; ++i) {
         purc_instance_extra_info info = {0, 0};
         int ret = 0;
         bool cleanup = false;
@@ -67,7 +67,7 @@ TEST(array, init_with_1_str)
 
 TEST(array, add_1_str)
 {
-    for (int i=1; i>0; ++i) {
+    for (int i=0; i<10; ++i) {
         purc_instance_extra_info info = {0, 0};
         int ret = 0;
         bool cleanup = false;
