@@ -39,6 +39,9 @@
 #include <glib.h>
 #endif // ENABLE(SOCKET_STREAM) && HAVE(GLIB)
 
+#define BUFFER_SIZE 4096
+#define MIN_BUFFER_SIZE 32
+
 static const char* rwstream_err_msgs[] = {
     /* PCRWSTREAM_ERROR_FAILED (200) */
     "Rwstream failed with some other error",
@@ -50,7 +53,7 @@ static const char* rwstream_err_msgs[] = {
     "File is a directory.",
     /* PCRWSTREAM_ERROR_NOSPC */
     "No space left on device.",
-    /* PPCRWSTREAM_ERROR_NXIO */
+    /* PCRWSTREAM_ERROR_NXIO */
     "No such device or address",
     /* PCRWSTREAM_ERROR_OVERFLOW */
     "Value too large for defined datatype",
@@ -81,6 +84,7 @@ typedef struct rwstream_funcs
     ssize_t (*flush) (purc_rwstream_t rws);
     int     (*close) (purc_rwstream_t rws);
     int     (*destroy) (purc_rwstream_t rws);
+    const char* (*get_mem_buffer) (purc_rwstream_t rws, size_t *sz);
 } rwstream_funcs;
 
 struct purc_rwstream
@@ -102,6 +106,16 @@ struct mem_rwstream
     uint8_t* stop;
 };
 
+struct buffer_rwstream
+{
+    purc_rwstream rwstream;
+    uint8_t* base;
+    uint8_t* here;
+    uint8_t* stop;
+    size_t sz;
+    size_t sz_max;
+};
+
 #if ENABLE(SOCKET_STREAM) && HAVE(GLIB)
 struct gio_rwstream
 {
@@ -118,6 +132,7 @@ static ssize_t stdio_write (purc_rwstream_t rws, const void* buf, size_t count);
 static ssize_t stdio_flush (purc_rwstream_t rws);
 static int stdio_close (purc_rwstream_t rws);
 static int stdio_destroy (purc_rwstream_t rws);
+static const char* stdio_get_mem_buffer (purc_rwstream_t rws, size_t *sz);
 
 rwstream_funcs stdio_funcs = {
     stdio_seek,
@@ -126,7 +141,8 @@ rwstream_funcs stdio_funcs = {
     stdio_write,
     stdio_flush,
     stdio_close,
-    stdio_destroy
+    stdio_destroy,
+    stdio_get_mem_buffer
 };
 
 static off_t mem_seek (purc_rwstream_t rws, off_t offset, int whence);
@@ -136,6 +152,7 @@ static ssize_t mem_write (purc_rwstream_t rws, const void* buf, size_t count);
 static ssize_t mem_flush (purc_rwstream_t rws);
 static int mem_close (purc_rwstream_t rws);
 static int mem_destroy (purc_rwstream_t rws);
+static const char* mem_get_mem_buffer (purc_rwstream_t rws, size_t *sz);
 
 rwstream_funcs mem_funcs = {
     mem_seek,
@@ -144,8 +161,30 @@ rwstream_funcs mem_funcs = {
     mem_write,
     mem_flush,
     mem_close,
-    mem_destroy
+    mem_destroy,
+    mem_get_mem_buffer
 };
+
+static off_t buffer_seek (purc_rwstream_t rws, off_t offset, int whence);
+static off_t buffer_tell (purc_rwstream_t rws);
+static ssize_t buffer_read (purc_rwstream_t rws, void* buf, size_t count);
+static ssize_t buffer_write (purc_rwstream_t rws, const void* buf, size_t count);
+static ssize_t buffer_flush (purc_rwstream_t rws);
+static int buffer_close (purc_rwstream_t rws);
+static int buffer_destroy (purc_rwstream_t rws);
+static const char* buffer_get_mem_buffer (purc_rwstream_t rws, size_t *sz);
+
+rwstream_funcs buffer_funcs = {
+    buffer_seek,
+    buffer_tell,
+    buffer_read,
+    buffer_write,
+    buffer_flush,
+    buffer_close,
+    buffer_destroy,
+    buffer_get_mem_buffer
+};
+
 
 #if ENABLE(SOCKET_STREAM) && HAVE(GLIB)
 static off_t win_socket_seek (purc_rwstream_t rws, off_t offset, int whence);
@@ -156,6 +195,7 @@ static ssize_t gio_write (purc_rwstream_t rws, const void* buf, size_t count);
 static ssize_t gio_flush (purc_rwstream_t rws);
 static int gio_close (purc_rwstream_t rws);
 static int gio_destroy (purc_rwstream_t rws);
+static const char* gio_get_mem_buffer (purc_rwstream_t rws, size_t *sz);
 
 rwstream_funcs gio_funcs = {
     gio_seek,
@@ -164,7 +204,8 @@ rwstream_funcs gio_funcs = {
     gio_write,
     gio_flush,
     gio_close,
-    gio_destroy
+    gio_destroy,
+    gio_get_mem_buffer,
 };
 
 rwstream_funcs win_socket_funcs = {
@@ -174,7 +215,8 @@ rwstream_funcs win_socket_funcs = {
     gio_write,
     gio_flush,
     gio_close,
-    gio_destroy
+    gio_destroy,
+    gio_get_mem_buffer
 };
 
 int rwstream_error_code_from_gerror (GError* err)
@@ -211,7 +253,50 @@ int rwstream_error_code_from_gerror (GError* err)
 #endif // ENABLE(SOCKET_STREAM) && HAVE(GLIB)
 
 
+static size_t get_min_size(size_t sz_min, size_t sz_max) {
+    size_t fib0 = 0;
+    size_t fib1 = 1;
+    size_t fibN = 0;
+
+    if (sz_min <= 1) {
+        fibN = sz_min;
+    }
+    else {
+        for (size_t i = 2; fibN < sz_min; i++) {
+            fibN = fib1 + fib0;
+            fib0 = fib1;
+            fib1 = fibN;
+        }
+    }
+    fibN = fibN < MIN_BUFFER_SIZE ?  MIN_BUFFER_SIZE : fibN;
+    return fibN = fibN < sz_max ? fibN : sz_max;
+}
+
 /* rwstream api */
+purc_rwstream_t purc_rwstream_new_buffer (size_t sz_init, size_t sz_max)
+{
+    if (sz_init == 0 && sz_max == 0)
+    {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return NULL;
+    }
+
+    struct buffer_rwstream* rws = (struct buffer_rwstream*) calloc(
+            sizeof(struct buffer_rwstream), 1);
+
+    sz_max = sz_max < sz_init ? sz_init : sz_max;
+
+    size_t sz = get_min_size(sz_init, sz_max);
+
+    rws->rwstream.funcs = &buffer_funcs;
+    rws->base = (uint8_t*) calloc(sz + 1, 1);
+    rws->here = rws->base;
+    rws->stop = rws->base + sz;
+    rws->sz = sz;
+    rws->sz_max = sz_max;
+
+    return (purc_rwstream_t) rws;
+}
 
 purc_rwstream_t purc_rwstream_new_from_mem (void* mem, size_t sz)
 {
@@ -448,6 +533,62 @@ int purc_rwstream_close (purc_rwstream_t rws)
     return rws->funcs->close(rws);
 }
 
+ssize_t purc_rwstream_dump_to_another (purc_rwstream_t in,
+        purc_rwstream_t out, ssize_t count)
+{
+    char buffer[BUFFER_SIZE] = {0};
+    ssize_t ret_count = 0;
+    ssize_t write_len = 0;
+    int read_len = 0;
+
+    size_t read_size = 0;
+
+    if (count == -1)
+    {
+        while ((read_len = purc_rwstream_read(in, buffer, BUFFER_SIZE)) > 0)
+        {
+            write_len = purc_rwstream_write (out, buffer, read_len);
+            if (write_len != read_len) {
+                return -1;
+            }
+            ret_count += read_len;
+        }
+    }
+    else
+    {
+        read_size = count > BUFFER_SIZE ? BUFFER_SIZE : count;
+        while (read_size > 0 )
+        {
+            read_len = purc_rwstream_read(in, buffer, read_size);
+            if (read_len == -1)
+            {
+                return -1;
+            }
+
+            write_len = purc_rwstream_write (out, buffer, read_len);
+            if (write_len != read_len) {
+                return -1;
+            }
+
+            ret_count += read_len;
+            count = count - write_len;
+            read_size = count > BUFFER_SIZE ? BUFFER_SIZE : count;
+        }
+    }
+
+    return ret_count;
+}
+
+const char* purc_rwstream_get_mem_buffer (purc_rwstream_t rws, size_t *sz)
+{
+    if (rws == NULL || sz == NULL)
+    {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return NULL;
+    }
+    return rws->funcs->get_mem_buffer(rws, sz);
+}
+
 /* stdio rwstream functions */
 static off_t stdio_seek (purc_rwstream_t rws, off_t offset, int whence)
 {
@@ -516,6 +657,13 @@ static int stdio_destroy (purc_rwstream_t rws)
     return 0;
 }
 
+static const char* stdio_get_mem_buffer (purc_rwstream_t rws, size_t *sz)
+{
+    UNUSED_PARAM(rws);
+    UNUSED_PARAM(sz);
+    pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+    return NULL;
+}
 
 /* memory rwstream functions */
 static off_t mem_seek (purc_rwstream_t rws, off_t offset, int whence)
@@ -524,13 +672,13 @@ static off_t mem_seek (purc_rwstream_t rws, off_t offset, int whence)
     uint8_t* newpos;
 
     switch (whence) {
-        case SEEK_SET:
+        case purc_rwstream_t_SEEK_SET:
             newpos = mem->base + offset;
             break;
-        case SEEK_CUR:
+        case purc_rwstream_t_SEEK_CUR:
             newpos = mem->here + offset;
             break;
-        case SEEK_END:
+        case purc_rwstream_t_SEEK_END:
             newpos = mem->stop + offset;
             break;
         default:
@@ -596,6 +744,159 @@ static int mem_destroy (purc_rwstream_t rws)
     return 0;
 }
 
+static const char* mem_get_mem_buffer (purc_rwstream_t rws, size_t *sz)
+{
+    struct mem_rwstream* mem = (struct mem_rwstream *)rws;
+    if (sz)
+    {
+        *sz = mem->stop - mem->base;
+    }
+    return (const char*)mem->base;
+}
+
+/* buffer rwstream functions */
+static int buffer_extend (struct buffer_rwstream* buffer, size_t size)
+{
+    if (buffer->sz > size || buffer->sz == buffer->sz_max) {
+        return 0;
+    }
+
+    size_t new_size = get_min_size(size, buffer->sz_max);
+    off_t here_offset = buffer->here - buffer->base;
+
+    uint8_t* newbuf = (uint8_t*) realloc(buffer->base, new_size + 1);
+    if (newbuf == NULL)
+    {
+        pcinst_set_error(PCRWSTREAM_ERROR_IO);
+        return -1;
+    }
+
+    buffer->base = newbuf;
+    buffer->here = buffer->base + here_offset;
+    buffer->stop = buffer->base + new_size;
+    buffer->sz = new_size;
+    *buffer->here = 0;
+
+    return 0;
+}
+
+static off_t buffer_seek (purc_rwstream_t rws, off_t offset, int whence)
+{
+    struct buffer_rwstream* buffer = (struct buffer_rwstream *)rws;
+    uint8_t* newpos;
+
+    switch (whence) {
+        case purc_rwstream_t_SEEK_SET:
+            newpos = buffer->base + offset;
+            break;
+        case purc_rwstream_t_SEEK_CUR:
+            newpos = buffer->here + offset;
+            break;
+        case purc_rwstream_t_SEEK_END:
+            newpos = buffer->stop + offset;
+            break;
+        default:
+            return(-1);
+    }
+    if ( newpos < buffer->base ) {
+        newpos = buffer->base;
+    }
+
+    if ( newpos > buffer->stop ) {
+        if (buffer->sz == buffer->sz_max) {
+            newpos = buffer->stop;
+        }
+        else {
+            size_t new_offset = newpos - buffer->base;
+            int ret = buffer_extend (buffer, newpos - buffer->base);
+            if (ret == -1) {
+                return -1;
+            }
+            newpos = new_offset > buffer->sz ? buffer->stop :
+                buffer->base + new_offset;
+        }
+    }
+
+    buffer->here = newpos;
+    return(buffer->here - buffer->base);
+}
+
+static off_t buffer_tell (purc_rwstream_t rws)
+{
+    struct buffer_rwstream* buffer = (struct buffer_rwstream *)rws;
+    return (buffer->here - buffer->base);
+}
+
+static ssize_t buffer_read (purc_rwstream_t rws, void* buf, size_t count)
+{
+    struct buffer_rwstream* buffer = (struct buffer_rwstream *)rws;
+    if ( (buffer->here + count) > buffer->stop )
+    {
+        count = buffer->stop - buffer->here;
+    }
+    memcpy(buf, buffer->here, count);
+    buffer->here += count;
+    return count;
+}
+
+static ssize_t buffer_write (purc_rwstream_t rws, const void* buf, size_t count)
+{
+    struct buffer_rwstream* buffer = (struct buffer_rwstream *)rws;
+    uint8_t* newpos = buffer->here + count;
+    if ( newpos > buffer->stop ) {
+        if (buffer->sz == buffer->sz_max) {
+            count = buffer->stop - buffer->here;
+        }
+        else {
+            int ret = buffer_extend (buffer, newpos - buffer->base);
+            if (ret == -1) {
+                return -1;
+            }
+            newpos = buffer->here + count;
+            if(newpos > buffer->stop) {
+                count = buffer->stop - buffer->here;
+            }
+        }
+    }
+    memcpy(buffer->here, buf, count);
+    buffer->here += count;
+    return count;
+}
+
+static ssize_t buffer_flush (purc_rwstream_t rws)
+{
+    UNUSED_PARAM(rws);
+    return 0;
+}
+
+static int buffer_close (purc_rwstream_t rws)
+{
+    struct buffer_rwstream* buffer = (struct buffer_rwstream *)rws;
+    free(buffer->base);
+    buffer->base = NULL;
+    buffer->here = NULL;
+    buffer->stop = NULL;
+    buffer->sz = 0;
+    buffer->sz_max = 0;
+    return 0;
+}
+
+static int buffer_destroy (purc_rwstream_t rws)
+{
+    free(rws);
+    return 0;
+}
+
+static const char* buffer_get_mem_buffer (purc_rwstream_t rws, size_t *sz)
+{
+    struct buffer_rwstream* buffer = (struct buffer_rwstream *)rws;
+    if (sz)
+    {
+        *sz = buffer->stop - buffer->base;
+    }
+    return (const char*)buffer->base;
+}
+
 #if ENABLE(SOCKET_STREAM) && HAVE(GLIB)
 /* glib rwstream functions */
 static off_t win_socket_seek (purc_rwstream_t rws, off_t offset, int whence)
@@ -613,13 +914,13 @@ static off_t gio_seek (purc_rwstream_t rws, off_t offset, int whence)
     struct gio_rwstream* gio = (struct gio_rwstream *)rws;
     GSeekType type;
     switch (whence) {
-        case SEEK_SET:
+        case purc_rwstream_t_SEEK_SET:
             type = G_SEEK_SET;
             break;
-        case SEEK_CUR:
+        case purc_rwstream_t_SEEK_CUR:
             type = G_SEEK_CUR;
             break;
-        case SEEK_END:
+        case purc_rwstream_t_SEEK_END:
             type = G_SEEK_END;
             break;
         default:
@@ -712,5 +1013,13 @@ static int gio_destroy (purc_rwstream_t rws)
     }
     free(rws);
     return 0;
+}
+
+static const char* gio_get_mem_buffer (purc_rwstream_t rws, size_t *sz)
+{
+    UNUSED_PARAM(rws);
+    UNUSED_PARAM(sz);
+    pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+    return NULL;
 }
 #endif // ENABLE(SOCKET_STREAM)
