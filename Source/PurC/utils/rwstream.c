@@ -710,9 +710,14 @@ static ssize_t mem_write (purc_rwstream_t rws, const void* buf, size_t count)
     if ( (mem->here + count) > mem->stop ) {
         count = mem->stop - mem->here;
     }
-    memcpy(mem->here, buf, count);
-    mem->here += count;
-    return count;
+    if (count > 0)
+    {
+        memcpy(mem->here, buf, count);
+        mem->here += count;
+        return count;
+    }
+    pcinst_set_error(PCRWSTREAM_ERROR_NOSPC);
+    return -1;
 }
 
 static ssize_t mem_flush (purc_rwstream_t rws)
@@ -842,6 +847,7 @@ static ssize_t buffer_write (purc_rwstream_t rws, const void* buf, size_t count)
         else {
             int ret = buffer_extend (buffer, newpos - buffer->base);
             if (ret == -1) {
+                pcinst_set_error(PCRWSTREAM_ERROR_NOSPC);
                 return -1;
             }
             newpos = buffer->here + count;
@@ -850,9 +856,14 @@ static ssize_t buffer_write (purc_rwstream_t rws, const void* buf, size_t count)
             }
         }
     }
-    memcpy(buffer->here, buf, count);
-    buffer->here += count;
-    return count;
+    if (count > 0)
+    {
+        memcpy(buffer->here, buf, count);
+        buffer->here += count;
+        return count;
+    }
+    pcinst_set_error(PCRWSTREAM_ERROR_NOSPC);
+    return -1;
 }
 
 static ssize_t buffer_flush (purc_rwstream_t rws)
