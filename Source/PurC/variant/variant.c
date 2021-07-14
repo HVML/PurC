@@ -442,6 +442,32 @@ static int compare_arrays(purc_variant_t v1, purc_variant_t v2)
     return 0;
 }
 
+static int compare_sets(purc_variant_t v1, purc_variant_t v2)
+{
+    int i;
+    size_t idx;
+    size_t sz1 = purc_variant_set_get_size(v1);
+    size_t sz2 = purc_variant_set_get_size(v2);
+    purc_variant_t m1, m2;
+
+    if (sz1 != sz2)
+        return (int)(sz1 - sz2);
+
+    idx = 0;
+    foreach_value_in_variant_set(v1, m1)
+
+        // TODO: how to get the member in another set?
+        m2 = NULL; // purc_variant_set_get(v2, idx);
+        i = purc_variant_compare(m1, m2);
+        if (i != 0)
+            return i;
+
+        idx++;
+    end_foreach;
+
+    return 0;
+}
+
 bool
 purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool parse_str)
 {
@@ -872,8 +898,10 @@ int purc_variant_compare(purc_variant_t v1, purc_variant_t v2)
             return compare_objects(v1, v2);
 
         case PURC_VARIANT_TYPE_ARRAY:
-        case PURC_VARIANT_TYPE_SET:
             return compare_arrays(v1, v2);
+
+        case PURC_VARIANT_TYPE_SET:
+            return compare_sets(v1, v2);
 
         default:
             PC_ASSERT(0);
