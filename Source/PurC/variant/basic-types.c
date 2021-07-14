@@ -184,8 +184,8 @@ static bool purc_variant_string_check_utf8 (const char* str_utf8)
 purc_variant_t
 purc_variant_make_string (const char* str_utf8, bool check_encoding)
 {
-    int str_size = strlen (str_utf8);
-    int real_size = MAX (sizeof(long double), sizeof(void*) * 2);
+    size_t str_size = strlen (str_utf8);
+    size_t real_size = MAX (sizeof(long double), sizeof(void*) * 2);
     purc_variant_t value = NULL;
 
     if (check_encoding) {
@@ -207,22 +207,28 @@ purc_variant_make_string (const char* str_utf8, bool check_encoding)
     value->refc = 1;
 
     if (str_size < (real_size - 1)) {
-        memcpy (value->bytes, str_utf8, str_size + 1);
-        value->size = str_size;
+        // VWNOTE: use strcpy instead of memcpy
+        strcpy ((char *)value->bytes, str_utf8);
+        // VWNOTE: always store the size including the terminating null byte.
+        value->size = str_size + 1;
     }
     else {
-        value->flags |= PCVARIANT_FLAG_EXTRA_SIZE;
-        value->sz_ptr[1] = (uintptr_t)malloc (str_size + 1);
-        if(value->sz_ptr[1] == 0) {
+        char* new_buf;
+        new_buf = malloc (str_size + 1);
+        if(new_buf == NULL) {
             pcvariant_put (value);
             pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PURC_VARIANT_INVALID;
         }
 
+        value->flags |= PCVARIANT_FLAG_EXTRA_SIZE;
+        value->sz_ptr[1] = (uintptr_t)new_buf;
         // VWNOTE: sz_ptr[0] will be set in pcvariant_stat_set_extra_size
+        // VWNOTE: use strcpy instead of memcpy
         //value->sz_ptr[0] = (uintptr_t)str_size;
-        memcpy ((void *)value->sz_ptr[1], str_utf8, str_size);
-        pcvariant_stat_set_extra_size (value, str_size);
+        strcpy (new_buf, str_utf8);
+        // VWNOTE: always store the size including the terminating null byte.
+        pcvariant_stat_set_extra_size (value, str_size + 1);
     }
 
     return value;
