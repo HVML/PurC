@@ -51,7 +51,7 @@ static void _fill_empty_with_undefined(struct pcutils_arrlist *al)
 
 purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
 {
-    PCVARIANT_CHECK_FAIL_RET((sz > 0 && value0),
+    PCVARIANT_CHECK_FAIL_RET((sz==0 && value0==NULL) || (sz > 0 && value0),
         PURC_VARIANT_INVALID);
 
     purc_variant_t var = pcvariant_get(PVT(_ARRAY));
