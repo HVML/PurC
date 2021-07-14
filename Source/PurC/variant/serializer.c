@@ -56,21 +56,42 @@
 
 static const char *hex_chars = "0123456789abcdefABCDEF";
 
-#define MY_WRITE(rws, buff, count)                              \
-    do {                                                        \
-        ssize_t n;                                              \
-        if (len_expected)                                       \
-            *len_expected += (count);                           \
-        n = purc_rwstream_write((rws), (buff), (count));        \
-        if (n < 0)                                              \
-            goto failed;                                        \
-        nr_written += n;                                        \
+#define MY_WRITE(rws, buff, count)                                      \
+    do {                                                                \
+        const char* _buff = buff;                                       \
+        ssize_t n;                                                      \
+        size_t nr_left = (count);                                       \
+        if (len_expected)                                               \
+            *len_expected += (count);                                   \
+        while (1) {                                                     \
+            n = purc_rwstream_write((rws), _buff, nr_left);             \
+            if (n <= 0) {                                               \
+                if (flags & PCVARIANT_SERIALIZE_OPT_IGNORE_ERRORS)      \
+                    break;                                              \
+                else                                                    \
+                    goto failed;                                        \
+            }                                                           \
+            else if ((size_t)n < nr_left) {                             \
+                nr_written += n;                                        \
+                _buff += n;                                             \
+                continue;                                               \
+            }                                                           \
+            else {                                                      \
+                nr_written += n;                                        \
+                break;                                                  \
+            }                                                           \
+        }                                                               \
     } while (0)
 
-#define MY_CHECK(n)                                             \
-    do {                                                        \
-        if ((n) < 0) goto failed;                               \
-        nr_written += n;                                        \
+#define MY_CHECK(n)                                                     \
+    do {                                                                \
+        if ((n) < 0 &&                                                  \
+                !(flags & PCVARIANT_SERIALIZE_OPT_IGNORE_ERRORS)) {     \
+            goto failed;                                                \
+        }                                                               \
+        else {                                                          \
+            nr_written += n;                                            \
+        }                                                               \
     } while (0)
 
 static ssize_t
@@ -235,7 +256,8 @@ static const char base64_pad = '=';
    */
 
 static ssize_t serialize_bsequence_base64(purc_rwstream_t rws,
-        const void *_src, size_t srclength, size_t *len_expected)
+        const void *_src, size_t srclength,
+        unsigned int flags, size_t *len_expected)
 {
     const unsigned char *src = _src;
     ssize_t nr_written = 0;
@@ -337,7 +359,7 @@ serialize_bsequence(purc_rwstream_t rws, const char* content,
         case PCVARIANT_SERIALIZE_OPT_BSEQUECE_BASE64:
             MY_WRITE(rws, "b64", 3);
             n = serialize_bsequence_base64(rws, content, sz_content,
-                    len_expected);
+                    flags, len_expected);
             MY_CHECK(n);
             break;
 
