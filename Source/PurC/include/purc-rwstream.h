@@ -104,6 +104,8 @@ PCA_EXPORT purc_rwstream_t purc_rwstream_new_from_fp (FILE* fp);
 
 /**
  * Creates a new purc_rwstream_t for the given file descriptor (Unix && GLIB).
+ * The fd must be in blocking mode, otherwise the fd will be set in blocking
+ * mode.
  *
  * @param fd: file descriptor
  * @param sz_buf: buffer size
@@ -122,6 +124,8 @@ purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf);
 
 /**
  * Creates a new purc_rwstream_t for the given socket on Windows (Win32 && GLIB).
+ * The socket must be in blocking mode, otherwise the socket will be set in
+ * blocking mode.
  *
  * @param socket:  sockets created by Winsock
  * @param sz_buf: buffer size

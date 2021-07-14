@@ -56,21 +56,42 @@
 
 static const char *hex_chars = "0123456789abcdefABCDEF";
 
-#define MY_WRITE(rws, buff, count)                              \
-    do {                                                        \
-        ssize_t n;                                              \
-        if (len_expected)                                       \
-            *len_expected += (count);                           \
-        n = purc_rwstream_write((rws), (buff), (count));        \
-        if (n < 0)                                              \
-            goto failed;                                        \
-        nr_written += n;                                        \
+#define MY_WRITE(rws, buff, count)                                      \
+    do {                                                                \
+        const char* _buff = buff;                                       \
+        ssize_t n;                                                      \
+        size_t nr_left = (count);                                       \
+        if (len_expected)                                               \
+            *len_expected += (count);                                   \
+        while (1) {                                                     \
+            n = purc_rwstream_write((rws), _buff, nr_left);             \
+            if (n <= 0) {                                               \
+                if (flags & PCVARIANT_SERIALIZE_OPT_IGNORE_ERRORS)      \
+                    break;                                              \
+                else                                                    \
+                    goto failed;                                        \
+            }                                                           \
+            else if ((size_t)n < nr_left) {                             \
+                nr_written += n;                                        \
+                _buff += n;                                             \
+                continue;                                               \
+            }                                                           \
+            else {                                                      \
+                nr_written += n;                                        \
+                break;                                                  \
+            }                                                           \
+        }                                                               \
     } while (0)
 
-#define MY_CHECK(n)                                             \
-    do {                                                        \
-        if ((n) < 0) goto failed;                               \
-        nr_written += n;                                        \
+#define MY_CHECK(n)                                                     \
+    do {                                                                \
+        if ((n) < 0 &&                                                  \
+                !(flags & PCVARIANT_SERIALIZE_OPT_IGNORE_ERRORS)) {     \
+            goto failed;                                                \
+        }                                                               \
+        else {                                                          \
+            nr_written += (n);                                          \
+        }                                                               \
     } while (0)
 
 static ssize_t
@@ -235,7 +256,8 @@ static const char base64_pad = '=';
    */
 
 static ssize_t serialize_bsequence_base64(purc_rwstream_t rws,
-        const void *_src, size_t srclength, size_t *len_expected)
+        const void *_src, size_t srclength,
+        unsigned int flags, size_t *len_expected)
 {
     const unsigned char *src = _src;
     ssize_t nr_written = 0;
@@ -337,7 +359,7 @@ serialize_bsequence(purc_rwstream_t rws, const char* content,
         case PCVARIANT_SERIALIZE_OPT_BSEQUECE_BASE64:
             MY_WRITE(rws, "b64", 3);
             n = serialize_bsequence_base64(rws, content, sz_content,
-                    len_expected);
+                    flags, len_expected);
             MY_CHECK(n);
             break;
 
@@ -570,21 +592,25 @@ print_indent(purc_rwstream_t rws, int level, unsigned int flags,
     size_t n;
     char buff[MAX_EMBEDDED_LEVELS * 2];
 
-    if (level < 0 || level > MAX_EMBEDDED_LEVELS)
+    if (level <= 0 || level > MAX_EMBEDDED_LEVELS)
         return 0;
 
-    if (flags & PCVARIANT_SERIALIZE_OPT_PRETTY_TAB) {
-        n = level;
-        memset(buff, '\t', n);
-    }
-    else {
-        n = level * 2;
-        memset(buff, ' ', n);
+    if (flags & PCVARIANT_SERIALIZE_OPT_PRETTY) {
+        if (flags & PCVARIANT_SERIALIZE_OPT_PRETTY_TAB) {
+            n = level;
+            memset(buff, '\t', n);
+        }
+        else {
+            n = level * 2;
+            memset(buff, ' ', n);
+        }
+
+        if (len_expected)
+            *len_expected += n;
+        return purc_rwstream_write(rws, buff, n);
     }
 
-    if (len_expected)
-        *len_expected += n;
-    return purc_rwstream_write(rws, buff, n);
+    return 0;
 }
 
 static inline ssize_t
@@ -605,6 +631,7 @@ static inline ssize_t print_space_no_pretty(purc_rwstream_t rws,
         unsigned int flags, size_t *len_expected)
 {
     ssize_t nr_written = 0;
+
     if (flags & PCVARIANT_SERIALIZE_OPT_SPACED &&
             !(flags & PCVARIANT_SERIALIZE_OPT_PRETTY)) {
         if (len_expected)
@@ -792,7 +819,7 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
             n = print_indent(rws, level, flags, len_expected);
             MY_CHECK(n);
 
-            MY_WRITE(rws, "{", 1);
+            MY_WRITE(rws, "[", 1);
             n = print_newline(rws, flags, len_expected);
             MY_CHECK(n);
 

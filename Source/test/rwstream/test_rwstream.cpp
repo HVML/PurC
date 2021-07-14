@@ -355,7 +355,7 @@ TEST(mem_rwstream, write_char)
     size_t buf_len = strlen(buf);
 
     char write_buf[1024] = {0};
-    size_t write_buf_len = 1024;
+    size_t write_buf_len = buf_len + 5;
     purc_rwstream_t rws = purc_rwstream_new_from_mem (write_buf, write_buf_len);
     ASSERT_NE(rws, nullptr);
 
@@ -363,6 +363,12 @@ TEST(mem_rwstream, write_char)
     ASSERT_EQ(write_len, buf_len);
 
     ASSERT_STREQ(write_buf, buf);
+
+    write_len = purc_rwstream_write (rws, buf, buf_len);
+    ASSERT_EQ(write_len, 5);
+
+    write_len = purc_rwstream_write (rws, buf, buf_len);
+    ASSERT_EQ(write_len, -1);
 
     int ret = purc_rwstream_close(rws);
     ASSERT_EQ(ret, 0);
@@ -668,7 +674,7 @@ TEST(buffer_rwstream, extend_memory)
     ASSERT_GE(sz2, sz);
 
     write_len = purc_rwstream_write (rws, buf, buf_len);
-    ASSERT_EQ(write_len, 0);
+    ASSERT_EQ(write_len, -1);
 
     int ret = purc_rwstream_close(rws);
     ASSERT_EQ(ret, 0);
@@ -910,7 +916,6 @@ TEST(gio_rwstream, new_destroy)
     create_temp_file(tmp_file, buf, buf_len);
 
     int fd = open(tmp_file, O_RDWR);
-
     purc_rwstream_t rws = purc_rwstream_new_from_unix_fd (fd, 1024);
     ASSERT_NE(rws, nullptr);
 
@@ -920,6 +925,22 @@ TEST(gio_rwstream, new_destroy)
     ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 
+    fd = open(tmp_file, O_RDWR | O_NONBLOCK);
+    rws = purc_rwstream_new_from_unix_fd (fd, 1024);
+    ASSERT_NE(rws, nullptr);
+
+    int flags = fcntl (fd, F_GETFL);
+#ifdef O_NONBLOCK
+    ASSERT_EQ(flags & O_NONBLOCK, 0);
+#else
+    ASSERT_EQ(flags & O_NDELAY, 0);
+#endif
+
+    ret = purc_rwstream_close(rws);
+    ASSERT_EQ(ret, 0);
+
+    ret = purc_rwstream_destroy (rws);
+    ASSERT_EQ(ret, 0);
     remove_temp_file(tmp_file);
 }
 

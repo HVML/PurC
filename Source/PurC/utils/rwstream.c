@@ -36,6 +36,7 @@
 #if OS(UNIX)
 #include <sys/types.h>
 #include <unistd.h>
+#include <fcntl.h>
 #endif // 0S(UNIX)
 #include <glib.h>
 #endif // ENABLE(SOCKET_STREAM) && HAVE(GLIB)
@@ -334,6 +335,9 @@ purc_rwstream_t purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf)
         return NULL;
     }
 
+    GIOFlags flags = g_io_channel_get_flags(gio_channel);
+    g_io_channel_set_flags(gio_channel, flags & ~G_IO_FLAG_NONBLOCK, NULL);
+
     g_io_channel_set_encoding (gio_channel, NULL, NULL);
 
     if (sz_buf > 0)
@@ -367,6 +371,9 @@ purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf)
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
+
+    GIOFlags flags = g_io_channel_get_flags(gio_channel);
+    g_io_channel_set_flags(gio_channel, flags & ~G_IO_FLAG_NONBLOCK, NULL);
 
     g_io_channel_set_encoding (gio_channel, NULL, NULL);
 
@@ -710,9 +717,14 @@ static ssize_t mem_write (purc_rwstream_t rws, const void* buf, size_t count)
     if ( (mem->here + count) > mem->stop ) {
         count = mem->stop - mem->here;
     }
-    memcpy(mem->here, buf, count);
-    mem->here += count;
-    return count;
+    if (count > 0)
+    {
+        memcpy(mem->here, buf, count);
+        mem->here += count;
+        return count;
+    }
+    pcinst_set_error(PCRWSTREAM_ERROR_NOSPC);
+    return -1;
 }
 
 static ssize_t mem_flush (purc_rwstream_t rws)
@@ -842,6 +854,7 @@ static ssize_t buffer_write (purc_rwstream_t rws, const void* buf, size_t count)
         else {
             int ret = buffer_extend (buffer, newpos - buffer->base);
             if (ret == -1) {
+                pcinst_set_error(PCRWSTREAM_ERROR_NOSPC);
                 return -1;
             }
             newpos = buffer->here + count;
@@ -850,9 +863,14 @@ static ssize_t buffer_write (purc_rwstream_t rws, const void* buf, size_t count)
             }
         }
     }
-    memcpy(buffer->here, buf, count);
-    buffer->here += count;
-    return count;
+    if (count > 0)
+    {
+        memcpy(buffer->here, buf, count);
+        buffer->here += count;
+        return count;
+    }
+    pcinst_set_error(PCRWSTREAM_ERROR_NOSPC);
+    return -1;
 }
 
 static ssize_t buffer_flush (purc_rwstream_t rws)
