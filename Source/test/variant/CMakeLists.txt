@@ -11,4 +11,5 @@ add_executable(test_serializer test_serializer.cpp)
 target_link_libraries(test_serializer purc gtest_main gtest pthread)
 
 include(GoogleTest)
-gtest_discover_tests(test_variant test_serializer)
+gtest_discover_tests(test_variant)
+gtest_discover_tests(test_serializer)
