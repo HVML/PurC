@@ -29,89 +29,157 @@
 bool purc_tree_node_append_child (purc_tree_node_t parent,
         purc_tree_node_t node)
 {
-    UNUSED_PARAM(parent);
-    UNUSED_PARAM(node);
-    return false;
+    if (parent == NULL || node == NULL) {
+        return false;
+    }
+
+    purc_tree_node_t sibling = NULL;
+    node->parent = parent;
+    if (parent->child) {
+        sibling = parent->child;
+        while (sibling->next) {
+            sibling = sibling->next;
+        }
+        node->prev = sibling;
+        sibling->next = node;
+    }
+    else {
+        node->parent->child = node;
+    }
+    return true;
 }
 
 bool purc_tree_node_prepend_child (purc_tree_node_t parent,
         purc_tree_node_t node)
 {
-    UNUSED_PARAM(parent);
-    UNUSED_PARAM(node);
-    return false;
+    if (parent == NULL || node == NULL) {
+        return false;
+    }
+
+    if (parent->child) {
+        return purc_tree_node_insert_before (parent->child, node);
+    }
+    return purc_tree_node_append_child (parent, node);
 }
 
 bool purc_tree_node_insert_before (purc_tree_node_t current,
         purc_tree_node_t node)
 {
-    UNUSED_PARAM(current);
-    UNUSED_PARAM(node);
-    return false;
+    if (current == NULL || node == NULL) {
+        return false;
+    }
+
+    node->parent = current->parent;
+    node->prev = current->prev;
+
+    if (current->prev)
+    {
+        node->prev->next = node;
+    }
+    else {
+        node->parent->child = node;
+    }
+
+    node->next = current;
+    current->prev = node;
+    return true;
 }
 
 bool purc_tree_node_insert_after (purc_tree_node_t current,
         purc_tree_node_t node)
 {
-    UNUSED_PARAM(current);
-    UNUSED_PARAM(node);
-    return false;
+    if (current == NULL || node == NULL) {
+        return false;
+    }
+
+    node->parent = current->parent;
+    if (current->next)
+    {
+        current->next->prev = node;
+    }
+    node->next = current->next;
+    node->prev = current;
+    current->next = node;
+    return true;
 }
 
 purc_tree_node_t purc_tree_node_parent (purc_tree_node_t node)
 {
-    UNUSED_PARAM(node);
-    return NULL;
+    return node ? node->parent : NULL;
 }
 
 purc_tree_node_t purc_tree_node_child (purc_tree_node_t node)
 {
-    UNUSED_PARAM(node);
-    return NULL;
+    return node ? node->child : NULL;
 }
 
 purc_tree_node_t purc_tree_node_last_child (purc_tree_node_t node)
 {
-    UNUSED_PARAM(node);
-    return NULL;
+    if (node == NULL)
+    {
+        return NULL;
+    }
+
+    node = node->child;
+    if (node) {
+        while (node->next) {
+            node = node->next;
+        }
+    }
+    return node;
 }
 
 purc_tree_node_t purc_tree_node_next (purc_tree_node_t node)
 {
-    UNUSED_PARAM(node);
-    return NULL;
+    return node ? node->next : NULL;
 }
 
 purc_tree_node_t purc_tree_node_prev (purc_tree_node_t node)
 {
-    UNUSED_PARAM(node);
-    return NULL;
+    return node ? node->prev : NULL;
 }
 
 size_t purc_tree_node_children_number (purc_tree_node_t node)
 {
-    UNUSED_PARAM(node);
-    return 0;
+    return node ? node->nr_children : 0;
 }
 
 unsigned int purc_tree_node_type (purc_tree_node_t node)
 {
-    UNUSED_PARAM(node);
-    return 0;
+    return node ? node->type : 0;
 }
 
 void purc_tree_node_children_for_each (purc_tree_node_t node,
         purc_tree_node_for_each_fn* func, void* data)
 {
-    UNUSED_PARAM(node);
-    UNUSED_PARAM(func);
-    UNUSED_PARAM(data);
+    if (node == NULL)
+    {
+        return;
+    }
+
+    node = node->child;
+    while (node)
+    {
+        purc_tree_node_t current = node;
+        node = current->next;
+        func (current, data);
+    }
 }
 
 void purc_tree_node_traverse (purc_tree_node_t node,
         purc_tree_node_for_each_fn* func, void* data)
 {
-    UNUSED_PARAM(node);
-    UNUSED_PARAM(func);
-    UNUSED_PARAM(data);
+    if (node == NULL)
+    {
+        return;
+    }
+
+    func (node, data);
+    node = node->child;
+    while (node)
+    {
+        purc_tree_node_t current = node;
+        node = current->next;
+        purc_tree_node_traverse (current, func, data);
+    }
 }
