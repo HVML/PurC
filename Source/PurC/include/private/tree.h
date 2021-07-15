@@ -33,20 +33,20 @@
 #define PURC_TREE_NODE_VCM_VALUE        1
 #define PURC_TREE_NODE_DOM_ELEMENT      2
 
-typedef struct purc_tree_node {
+typedef struct pctree_node {
     /* type of node */
     uint8_t type;
 
     /* number of children */
     size_t nr_children;
 
-    struct purc_tree_node* parent;
-    struct purc_tree_node* child;
-    struct purc_tree_node* prev;
-    struct purc_tree_node* next;
-} purc_tree_node;
+    struct pctree_node* parent;
+    struct pctree_node* child;
+    struct pctree_node* prev;
+    struct pctree_node* next;
+} pctree_node;
 
-typedef struct purc_tree_node* purc_tree_node_t;
+typedef struct pctree_node* pctree_node_t;
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,7 +57,7 @@ extern "C" {
  * callback function for traverse node children
  *
  */
-typedef void(purc_tree_node_for_each_fn)(purc_tree_node_t node,  void* data);
+typedef void(pctree_node_for_each_fn)(pctree_node_t node,  void* data);
 
 /**
  * Inserts a node as the last child of the given parent.
@@ -72,10 +72,10 @@ typedef void(purc_tree_node_for_each_fn)(purc_tree_node_t node,  void* data);
  * Since: 0.0.1
  */
 static inline
-bool purc_tree_node_append_child (purc_tree_node_t parent,
-        purc_tree_node_t node)
+bool pctree_node_append_child (pctree_node_t parent,
+        pctree_node_t node)
 {
-    purc_tree_node_t sibling = NULL;
+    pctree_node_t sibling = NULL;
     node->parent = parent;
     if (parent->child) {
         sibling = parent->child;
@@ -104,8 +104,8 @@ bool purc_tree_node_append_child (purc_tree_node_t parent,
  * Since: 0.0.1
  */
 static inline
-bool purc_tree_node_prepend_child (purc_tree_node_t parent,
-        purc_tree_node_t node)
+bool pctree_node_prepend_child (pctree_node_t parent,
+        pctree_node_t node)
 {
     if (parent->child) {
         node->next = parent->child;
@@ -129,8 +129,8 @@ bool purc_tree_node_prepend_child (purc_tree_node_t parent,
  * Since: 0.0.1
  */
 static inline
-bool purc_tree_node_insert_before (purc_tree_node_t current,
-        purc_tree_node_t node)
+bool pctree_node_insert_before (pctree_node_t current,
+        pctree_node_t node)
 {
     node->parent = current->parent;
     node->prev = current->prev;
@@ -160,8 +160,8 @@ bool purc_tree_node_insert_before (purc_tree_node_t current,
  * Since: 0.0.1
  */
 static inline
-bool purc_tree_node_insert_after (purc_tree_node_t current,
-        purc_tree_node_t node)
+bool pctree_node_insert_after (pctree_node_t current,
+        pctree_node_t node)
 {
     node->parent = current->parent;
     if (current->next) {
@@ -185,7 +185,7 @@ bool purc_tree_node_insert_after (purc_tree_node_t current,
  * Since: 0.0.1
  */
 static inline
-purc_tree_node_t purc_tree_node_parent (purc_tree_node_t node)
+pctree_node_t pctree_node_parent (pctree_node_t node)
 {
     return node ? node->parent : NULL;
 }
@@ -202,7 +202,7 @@ purc_tree_node_t purc_tree_node_parent (purc_tree_node_t node)
  * Since: 0.0.1
  */
 static inline
-purc_tree_node_t purc_tree_node_child (purc_tree_node_t node)
+pctree_node_t pctree_node_child (pctree_node_t node)
 {
     return node ? node->child : NULL;
 }
@@ -219,7 +219,7 @@ purc_tree_node_t purc_tree_node_child (purc_tree_node_t node)
  * Since: 0.0.1
  */
 static inline
-purc_tree_node_t purc_tree_node_last_child (purc_tree_node_t node)
+pctree_node_t pctree_node_last_child (pctree_node_t node)
 {
     node = node->child;
     if (node) {
@@ -242,7 +242,7 @@ purc_tree_node_t purc_tree_node_last_child (purc_tree_node_t node)
  * Since: 0.0.1
  */
 static inline
-purc_tree_node_t purc_tree_node_next (purc_tree_node_t node)
+pctree_node_t pctree_node_next (pctree_node_t node)
 {
     return node ? node->next : NULL;
 }
@@ -259,7 +259,7 @@ purc_tree_node_t purc_tree_node_next (purc_tree_node_t node)
  * Since: 0.0.1
  */
 static inline
-purc_tree_node_t purc_tree_node_prev (purc_tree_node_t node)
+pctree_node_t pctree_node_prev (pctree_node_t node)
 {
     return node ? node->prev : NULL;
 }
@@ -276,7 +276,7 @@ purc_tree_node_t purc_tree_node_prev (purc_tree_node_t node)
  * Since: 0.0.1
  */
 static inline
-size_t purc_tree_node_children_number (purc_tree_node_t node)
+size_t pctree_node_children_number (pctree_node_t node)
 {
     return node ? node->nr_children : 0;
 }
@@ -293,7 +293,7 @@ size_t purc_tree_node_children_number (purc_tree_node_t node)
  * Since: 0.0.1
  */
 static inline
-uint8_t purc_tree_node_type (purc_tree_node_t node)
+uint8_t pctree_node_type (pctree_node_t node)
 {
     return node ? node->type : 0;
 }
@@ -310,12 +310,12 @@ uint8_t purc_tree_node_type (purc_tree_node_t node)
  * Since: 0.0.1
  */
 static inline
-void purc_tree_node_children_for_each (purc_tree_node_t node,
-        purc_tree_node_for_each_fn* func, void* data)
+void pctree_node_children_for_each (pctree_node_t node,
+        pctree_node_for_each_fn* func, void* data)
 {
     node = node->child;
     while (node) {
-        purc_tree_node_t current = node;
+        pctree_node_t current = node;
         node = current->next;
         func (current, data);
     }
@@ -332,15 +332,15 @@ void purc_tree_node_children_for_each (purc_tree_node_t node,
  * Since: 0.0.1
  */
 static inline
-void purc_tree_node_traverse (purc_tree_node_t node,
-        purc_tree_node_for_each_fn* func, void* data)
+void pctree_node_traverse (pctree_node_t node,
+        pctree_node_for_each_fn* func, void* data)
 {
     func (node, data);
     node = node->child;
     while (node) {
-        purc_tree_node_t current = node;
+        pctree_node_t current = node;
         node = current->next;
-        purc_tree_node_traverse (current, func, data);
+        pctree_node_traverse (current, func, data);
     }
 }
 
