@@ -26,6 +26,69 @@
 #include "private/errors.h"
 #include "config.h"
 
+bool pctree_node_append_child (pctree_node_t parent,
+        pctree_node_t node)
+{
+    node->parent = parent;
+    if (parent->last_child) {
+        node->prev = parent->last_child;
+        parent->last_child->next = node;
+    }
+    else {
+        parent->first_child = node;
+    }
+    parent->last_child = node;
+    return true;
+}
+
+bool pctree_node_prepend_child (pctree_node_t parent,
+        pctree_node_t node)
+{
+    node->parent = parent;
+    if (parent->first_child) {
+        node->next = parent->first_child;
+        parent->first_child->prev = node;
+    }
+    else {
+        parent->last_child = node;
+    }
+    parent->first_child = node;
+    return true;
+}
+
+bool pctree_node_insert_before (pctree_node_t current,
+        pctree_node_t node)
+{
+    node->parent = current->parent;
+    node->prev = current->prev;
+    if (current->prev) {
+        node->prev->next = node;
+    }
+    else {
+        node->parent->first_child = node;
+        node->parent->last_child = node;
+    }
+    node->next = current;
+    current->prev = node;
+    return true;
+}
+
+bool pctree_node_insert_after (pctree_node_t current,
+        pctree_node_t node)
+{
+    node->parent = current->parent;
+    if (current->next) {
+        current->next->prev = node;
+    }
+    else {
+        node->parent->last_child = node;
+    }
+    node->next = current->next;
+    node->prev = current;
+    current->next = node;
+    return true;
+}
+
 void pctree_node_children_for_each (pctree_node_t node,
         pctree_node_for_each_fn* func, void* data)
 {
