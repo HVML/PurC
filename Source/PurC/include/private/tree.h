@@ -41,7 +41,8 @@ typedef struct pctree_node {
     size_t nr_children;
 
     struct pctree_node* parent;
-    struct pctree_node* child;
+    struct pctree_node* first_child;
+    struct pctree_node* last_child;
     struct pctree_node* prev;
     struct pctree_node* next;
 } pctree_node;
@@ -75,18 +76,15 @@ static inline
 bool pctree_node_append_child (pctree_node_t parent,
         pctree_node_t node)
 {
-    pctree_node_t sibling = NULL;
     node->parent = parent;
-    if (parent->child) {
-        sibling = parent->child;
-        while (sibling->next) {
-            sibling = sibling->next;
-        }
-        node->prev = sibling;
-        sibling->next = node;
+    if (parent->last_child) {
+        node->prev = parent->last_child;
+        parent->last_child->next = node;
+        parent->last_child = node;
     }
     else {
-        node->parent->child = node;
+        node->parent->first_child = node;
+        node->parent->last_child = node;
     }
     return true;
 }
@@ -107,12 +105,15 @@ static inline
 bool pctree_node_prepend_child (pctree_node_t parent,
         pctree_node_t node)
 {
-    if (parent->child) {
-        node->next = parent->child;
-        parent->child->prev = node;
-    }
     node->parent = parent;
-    parent->child = node;
+    if (parent->first_child) {
+        node->next = parent->first_child;
+        parent->first_child->prev = node;
+    }
+    else {
+        parent->last_child = node;
+    }
+    parent->first_child = node;
     return true;
 }
 
@@ -139,7 +140,8 @@ bool pctree_node_insert_before (pctree_node_t current,
         node->prev->next = node;
     }
     else {
-        node->parent->child = node;
+        node->parent->first_child = node;
+        node->parent->last_child = node;
     }
 
     node->next = current;
@@ -167,6 +169,9 @@ bool pctree_node_insert_after (pctree_node_t current,
     if (current->next) {
         current->next->prev = node;
     }
+    else {
+        node->parent->last_child = node;
+    }
     node->next = current->next;
     node->prev = current;
     current->next = node;
@@ -187,7 +192,7 @@ bool pctree_node_insert_after (pctree_node_t current,
 static inline
 pctree_node_t pctree_node_parent (pctree_node_t node)
 {
-    return node ? node->parent : NULL;
+    return node->parent;
 }
 
 /**
@@ -204,7 +209,7 @@ pctree_node_t pctree_node_parent (pctree_node_t node)
 static inline
 pctree_node_t pctree_node_child (pctree_node_t node)
 {
-    return node ? node->child : NULL;
+    return node->first_child;
 }
 
 /**
@@ -221,13 +226,7 @@ pctree_node_t pctree_node_child (pctree_node_t node)
 static inline
 pctree_node_t pctree_node_last_child (pctree_node_t node)
 {
-    node = node->child;
-    if (node) {
-        while (node->next) {
-            node = node->next;
-        }
-    }
-    return node;
+    return node->last_child;
 }
 
 /**
@@ -244,7 +243,7 @@ pctree_node_t pctree_node_last_child (pctree_node_t node)
 static inline
 pctree_node_t pctree_node_next (pctree_node_t node)
 {
-    return node ? node->next : NULL;
+    return node->next;
 }
 
 /**
@@ -261,7 +260,7 @@ pctree_node_t pctree_node_next (pctree_node_t node)
 static inline
 pctree_node_t pctree_node_prev (pctree_node_t node)
 {
-    return node ? node->prev : NULL;
+    return node->prev;
 }
 
 /**
@@ -278,7 +277,7 @@ pctree_node_t pctree_node_prev (pctree_node_t node)
 static inline
 size_t pctree_node_children_number (pctree_node_t node)
 {
-    return node ? node->nr_children : 0;
+    return node->nr_children;
 }
 
 /**
@@ -295,7 +294,7 @@ size_t pctree_node_children_number (pctree_node_t node)
 static inline
 uint8_t pctree_node_type (pctree_node_t node)
 {
-    return node ? node->type : 0;
+    return node->type;
 }
 
 

@@ -29,7 +29,7 @@
 void pctree_node_children_for_each (pctree_node_t node,
         pctree_node_for_each_fn* func, void* data)
 {
-    node = node->child;
+    node = node->first_child;
     while (node) {
         pctree_node_t current = node;
         node = current->next;
@@ -41,7 +41,7 @@ void pctree_node_traverse (pctree_node_t node,
         pctree_node_for_each_fn* func, void* data)
 {
     func (node, data);
-    node = node->child;
+    node = node->first_child;
     while (node) {
         pctree_node_t current = node;
         node = current->next;
