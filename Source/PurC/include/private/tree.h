@@ -309,17 +309,8 @@ uint8_t pctree_node_type (pctree_node_t node)
  * @param data: user data to pass to the function
  * Since: 0.0.1
  */
-static inline
 void pctree_node_children_for_each (pctree_node_t node,
-        pctree_node_for_each_fn* func, void* data)
-{
-    node = node->child;
-    while (node) {
-        pctree_node_t current = node;
-        node = current->next;
-        func (current, data);
-    }
-}
+        pctree_node_for_each_fn* func, void* data);
 
 /**
  * Traverses a tree starting at the given root node. It calls the given
@@ -331,18 +322,8 @@ void pctree_node_children_for_each (pctree_node_t node,
  * @param data: user data to pass to the function
  * Since: 0.0.1
  */
-static inline
 void pctree_node_traverse (pctree_node_t node,
-        pctree_node_for_each_fn* func, void* data)
-{
-    func (node, data);
-    node = node->child;
-    while (node) {
-        pctree_node_t current = node;
-        node = current->next;
-        pctree_node_traverse (current, func, data);
-    }
-}
+        pctree_node_for_each_fn* func, void* data);
 
 #ifdef __cplusplus
 }
