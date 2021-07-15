@@ -54,8 +54,7 @@ static pcvariant_release_fn variant_releasers[PURC_VARIANT_TYPE_MAX] = {
     pcvariant_string_release,       // PURC_VARIANT_TYPE_STRING
     pcvariant_sequence_release,     // PURC_VARIANT_TYPE_SEQUENCE
     NULL,                           // PURC_VARIANT_TYPE_DYNAMIC
-    // VWNOTE (ERROR): Please define a releaser for PURC_VARIANT_TYPE_NATIVE
-    NULL,                           // PURC_VARIANT_TYPE_NATIVE
+    pcvariant_native_release,       // PURC_VARIANT_TYPE_NATIVE
     pcvariant_object_release,       // PURC_VARIANT_TYPE_OBJECT
     pcvariant_array_release,        // PURC_VARIANT_TYPE_ARRAY
     pcvariant_set_release,          // PURC_VARIANT_TYPE_SET
