@@ -231,6 +231,10 @@ static inline void _variant_set_release(variant_set_t set)
 
 static int _variant_set_add_val(variant_set_t set, purc_variant_t val)
 {
+    if (!val) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
     struct obj_node *_new = (struct obj_node*)calloc(1, sizeof(*_new));
     if (!_new) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -300,7 +304,7 @@ purc_variant_make_set_c (size_t sz, const char* unique_key,
     purc_variant_t value0, ...)
 {
     PCVARIANT_CHECK_FAIL_RET((sz==0 && unique_key && *unique_key &&
-        value0==NULL) || (sz>0 && unique_key && value0),
+        value0==NULL) || (sz>0 && unique_key && *unique_key && value0),
         PURC_VARIANT_INVALID);
 
     purc_variant_t set = _pcv_set_new();
@@ -313,11 +317,11 @@ purc_variant_make_set_c (size_t sz, const char* unique_key,
         if (_variant_set_init(data, unique_key))
             break;
 
-        purc_variant_t  v = value0;
-        if (_variant_set_add_val(data, v))
-            break;
+        if (sz>0) {
+            purc_variant_t  v = value0;
+            if (_variant_set_add_val(data, v))
+                break;
 
-        if (sz>1) {
             va_list ap;
             va_start(ap, value0);
             int r = _variant_set_add_valsn(data, sz-1, ap);
@@ -361,11 +365,11 @@ purc_variant_make_set (size_t sz, purc_variant_t unique_key,
         if (_variant_set_init(data, key))
             break;
 
-        purc_variant_t  v = value0;
-        if (_variant_set_add_val(data, v))
-            break;
+        if (sz>0) {
+            purc_variant_t  v = value0;
+            if (_variant_set_add_val(data, v))
+                break;
 
-        if (sz>1) {
             va_list ap;
             va_start(ap, value0);
             int r = _variant_set_add_valsn(data, sz-1, ap);

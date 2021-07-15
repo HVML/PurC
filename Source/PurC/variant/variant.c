@@ -214,7 +214,6 @@ unsigned int purc_variant_ref (purc_variant_t value)
             break;
 
         case PURC_VARIANT_TYPE_SET:
-            PC_ASSERT(0);
             foreach_value_in_variant_set(value, variant)
                 purc_variant_ref(variant);
             end_foreach;

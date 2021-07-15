@@ -227,9 +227,11 @@ struct variant_set {
 
 #define foreach_value_in_variant_set(_set, _val)                        \
     do {                                                                \
+        variant_set_t _data;                                            \
         struct avl_tree *_tree;                                         \
-        _tree = (struct avl_tree*)_set->sz_ptr[1];                      \
         struct obj_node *_elem;                                         \
+        _data = (variant_set_t)_set->sz_ptr[1];                         \
+        _tree = &_data->objs;                                           \
         avl_for_each_element(_tree, _elem, avl) {                       \
             _val = _elem->obj;                                          \
      /* } */                                                            \
@@ -237,8 +239,11 @@ struct variant_set {
 
 #define foreach_value_in_variant_set_safe(_set, _val, _curr, _tmp)      \
     do {                                                                \
+        variant_set_t _data;                                            \
         struct avl_tree *_tree;                                         \
-        _tree = (struct avl_tree*)_set->sz_ptr[1];                      \
+        struct obj_node *_elem;                                         \
+        _data = (variant_set_t)_set->sz_ptr[1];                         \
+        _tree = &_data->objs;                                           \
         avl_for_each_element_safe(_tree, _curr, avl, _tmp) {            \
             _val = _curr->obj;                                          \
      /* } */                                                            \

@@ -389,17 +389,25 @@ TEST(variant_object, init_with_1_str)
         "helloworld damngood foobar ";
     purc_variant_t str = purc_variant_make_string(s, false);
     ASSERT_EQ(stat->nr_values[PVT(_STRING)], 1);
+    ASSERT_EQ(str->refc, 1);
 
     purc_variant_t obj = purc_variant_make_object_c(1, "foo", str);
     ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], 1);
     ASSERT_EQ(stat->nr_values[PVT(_STRING)], 1);
+    ASSERT_EQ(str->refc, 2);
 
-    purc_variant_ref(obj);
-    ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], 1);
-    ASSERT_EQ(stat->nr_values[PVT(_STRING)], 1);
-    purc_variant_unref(obj);
+    int to_demon_bug = 1;
+    if (to_demon_bug) {
+        purc_variant_ref(obj);
+        ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], 1);
+        ASSERT_EQ(stat->nr_values[PVT(_STRING)], 1);
+        ASSERT_EQ(str->refc, 3);
+        purc_variant_unref(obj);
+        ASSERT_EQ(str->refc, 2);
+    }
 
     purc_variant_unref(obj);
+    ASSERT_EQ(str->refc, 1);
     purc_variant_unref(str);
     ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], 0);
     ASSERT_EQ(stat->nr_values[PVT(_STRING)], 0);
@@ -528,7 +536,7 @@ TEST(variant_object, add_n_str)
     stat = purc_variant_usage_stat();
     ASSERT_NE(stat, nullptr);
 
-    purc_variant_t obj = purc_variant_make_object(0, NULL, NULL);
+    purc_variant_t obj = purc_variant_make_object_c(0, NULL, NULL);
     ASSERT_NE(obj, nullptr);
     ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], 1);
     ASSERT_EQ(obj->refc, 1);
@@ -567,6 +575,60 @@ TEST(variant_object, add_n_str)
                 purc_variant_make_null()));
     ASSERT_NE(obj, nullptr);
     purc_variant_unref(obj);
+#endif // 0
+    cleanup = purc_cleanup ();
+    ASSERT_EQ (cleanup, true);
+}
+
+TEST(variant_set, init_with_1_str)
+{
+    purc_instance_extra_info info = {0, 0};
+    int ret = 0;
+    bool cleanup = false;
+    struct purc_variant_stat *stat;
+
+    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ(ret, PURC_ERROR_OK);
+
+    stat = purc_variant_usage_stat();
+    ASSERT_NE(stat, nullptr);
+
+    const char *s = "helloworld damngood foobar "
+        "helloworld damngood foobar "
+        "helloworld damngood foobar "
+        "helloworld damngood foobar "
+        "helloworld damngood foobar "
+        "helloworld damngood foobar "
+        "helloworld damngood foobar "
+        "helloworld damngood foobar "
+        "helloworld damngood foobar "
+        "helloworld damngood foobar "
+        "helloworld damngood foobar "
+        "helloworld damngood foobar ";
+    purc_variant_t str = purc_variant_make_string(s, false);
+    ASSERT_EQ(stat->nr_values[PVT(_STRING)], 1);
+
+    purc_variant_t var = purc_variant_make_set_c(0, "hello", NULL);
+    ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
+    ASSERT_EQ(stat->nr_values[PVT(_STRING)], 1);
+
+    purc_variant_ref(var);
+    ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
+    ASSERT_EQ(stat->nr_values[PVT(_STRING)], 1);
+    purc_variant_unref(var);
+
+    purc_variant_unref(var);
+    purc_variant_unref(str);
+    ASSERT_EQ(stat->nr_values[PVT(_SET)], 0);
+    ASSERT_EQ(stat->nr_values[PVT(_STRING)], 0);
+
+#if 0
+    // testing anonymous object
+    var = purc_variant_make_set(1,
+            purc_variant_make_set(1,
+                purc_variant_make_null()));
+    ASSERT_NE(var, nullptr);
+    purc_variant_unref(var);
 #endif // 0
     cleanup = purc_cleanup ();
     ASSERT_EQ (cleanup, true);
