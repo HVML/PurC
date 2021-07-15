@@ -119,6 +119,11 @@ struct pcinst* pcinst_current(void)
 
 static void cleanup_instance (struct pcinst *curr_inst)
 {
+    if (curr_inst->local_data_map) {
+        pcutils_map_destroy(curr_inst->local_data_map);
+        curr_inst->local_data_map = NULL;
+    }
+
     if (curr_inst->app_name) {
         free (curr_inst->app_name);
         curr_inst->app_name = NULL;
@@ -164,7 +169,14 @@ int purc_init(const char* app_name, const char* runner_name,
     else
         curr_inst->runner_name = strdup("unknown");
 
-    if (curr_inst->app_name == NULL || curr_inst->runner_name == NULL)
+    // map for local data
+    curr_inst->local_data_map =
+        pcutils_map_create (copy_key_string,
+                free_key_string, NULL, NULL, comp_key_string, false);
+
+    if (curr_inst->app_name == NULL ||
+            curr_inst->runner_name == NULL ||
+            curr_inst->local_data_map == NULL)
         goto failed;
 
     // TODO: init other fields
@@ -190,5 +202,70 @@ bool purc_cleanup(void)
 
     cleanup_instance(curr_inst);
     return true;
+}
+
+bool
+purc_set_local_data(const char* data_name, void *local_data,
+        cb_free_local_data cb_free)
+{
+    struct pcinst* inst = pcinst_current();
+    if (inst == NULL)
+        return false;
+
+    if (pcutils_map_find_replace_or_insert(inst->local_data_map,
+                data_name, local_data, (free_val_fn)cb_free)) {
+        inst->errcode = PURC_ERROR_OUT_OF_MEMORY;
+        return false;
+    }
+
+    return true;
+}
+
+ssize_t
+purc_remove_local_data(const char* data_name)
+{
+    struct pcinst* inst = pcinst_current();
+    if (inst == NULL)
+        return -1;
+
+    if (data_name) {
+        if (pcutils_map_erase (inst->local_data_map, (void*)data_name))
+            return 1;
+    }
+    else {
+        ssize_t sz = pcutils_map_get_size(inst->local_data_map);
+        pcutils_map_clear(inst->local_data_map);
+        return sz;
+    }
+
+    return 0;
+}
+
+int
+purc_get_local_data(const char* data_name, void **local_data,
+        cb_free_local_data* cb_free)
+{
+    struct pcinst* inst;
+    const pcutils_map_entry* entry = NULL;
+
+    if ((inst = pcinst_current()) == NULL)
+        return -1;
+
+    if (data_name == NULL) {
+        inst->errcode = PURC_ERROR_INVALID_VALUE;
+        return -1;
+    }
+
+    if ((entry = pcutils_map_find(inst->local_data_map, data_name))) {
+        if (local_data)
+            *local_data = entry->val;
+
+        if (cb_free)
+            *cb_free = (cb_free_local_data)entry->free_val_alt;
+
+        return 1;
+    }
+
+    return 0;
 }
 
