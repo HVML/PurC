@@ -108,6 +108,232 @@ TEST(variant, serialize_number)
     purc_cleanup ();
 }
 
+// to test: serialize a long integer
+TEST(variant, serialize_longint)
+{
+    purc_variant_t my_variant;
+    purc_rwstream_t my_rws;
+    size_t len_expected;
+    ssize_t n;
+    char buf[64];
+
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    ASSERT_NE(my_rws, nullptr);
+
+    /* case 1: unsigned long int */
+    my_variant = purc_variant_make_longint(123456789L);
+    ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
+
+    purc_rwstream_seek(my_rws, 0, SEEK_SET);
+    len_expected = 0;
+    n = purc_variant_serialize(my_variant, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+    ASSERT_GT(n, 0);
+
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "123456789L");
+
+    purc_variant_unref(my_variant);
+
+    /* case 2: unsigned long int */
+    my_variant = purc_variant_make_ulongint(123456789UL);
+    ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
+
+    purc_rwstream_seek(my_rws, 0, SEEK_SET);
+    len_expected = 0;
+    n = purc_variant_serialize(my_variant, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_NOZERO, &len_expected);
+    ASSERT_GT(n, 0);
+
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "123456789UL");
+
+    purc_variant_unref(my_variant);
+
+    purc_rwstream_destroy(my_rws);
+    purc_cleanup ();
+}
+
+// to test: serialize a long double
+TEST(variant, serialize_longdouble)
+{
+    purc_variant_t my_variant;
+    purc_rwstream_t my_rws;
+    size_t len_expected;
+    ssize_t n;
+    char buf[128];
+
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    ASSERT_NE(my_rws, nullptr);
+
+    /* case 1: long double */
+    my_variant = purc_variant_make_longdouble(123456789.2345);
+    ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
+
+    purc_rwstream_seek(my_rws, 0, SEEK_SET);
+    len_expected = 0;
+    n = purc_variant_serialize(my_variant, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+    ASSERT_GT(n, 0);
+
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "123456789.23450001FL");
+
+    purc_variant_unref(my_variant);
+
+    purc_rwstream_destroy(my_rws);
+    purc_cleanup ();
+}
+
+static purc_variant_t my_getter(purc_variant_t root,
+        int nr_args, purc_variant_t arg0, ...)
+{
+    (void)root;
+
+    if (nr_args > 0)
+        return arg0;
+
+    return purc_variant_make_undefined();
+}
+
+static purc_variant_t my_setter(purc_variant_t root,
+        int nr_args, purc_variant_t arg0, ...)
+{
+    (void)(root);
+    (void)(nr_args);
+    (void)(arg0);
+
+    return purc_variant_make_boolean(false);
+}
+
+// to test: serialize a dynamic value
+TEST(variant, serialize_dynamic)
+{
+    purc_variant_t my_variant;
+    purc_rwstream_t my_rws;
+    size_t len_expected;
+    ssize_t n;
+    char buf[128];
+
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    ASSERT_NE(my_rws, nullptr);
+
+    my_variant = purc_variant_make_dynamic(my_getter, my_setter);
+    ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
+
+    purc_rwstream_seek(my_rws, 0, SEEK_SET);
+    len_expected = 0;
+    n = purc_variant_serialize(my_variant, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+    ASSERT_GT(n, 0);
+
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "<dynamic>");
+
+    purc_variant_unref(my_variant);
+
+    purc_rwstream_destroy(my_rws);
+    purc_cleanup ();
+}
+
+static bool my_releaser (void* native_entity)
+{
+    printf ("my_releaser is called\n");
+    free (native_entity);
+    return true;
+}
+
+// to test: serialize a native entity
+TEST(variant, serialize_native)
+{
+    purc_variant_t my_variant;
+    purc_rwstream_t my_rws;
+    size_t len_expected;
+    ssize_t n;
+    char buf[128];
+
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    ASSERT_NE(my_rws, nullptr);
+
+    my_variant = purc_variant_make_native(strdup("HVML"), my_releaser);
+    ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
+
+    purc_rwstream_seek(my_rws, 0, SEEK_SET);
+    len_expected = 0;
+    n = purc_variant_serialize(my_variant, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+    ASSERT_GT(n, 0);
+
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "<native>");
+
+    purc_variant_unref(my_variant);
+
+    purc_rwstream_destroy(my_rws);
+    purc_cleanup ();
+}
+
+// to test: serialize an atomstring
+TEST(variant, serialize_atomstring)
+{
+    purc_variant_t my_variant;
+    purc_rwstream_t my_rws;
+    size_t len_expected;
+    ssize_t n;
+    char buf[64];
+
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    ASSERT_NE(my_rws, nullptr);
+
+    /* case 1: static string */
+    my_variant = purc_variant_make_atom_string_static("HVML", false);
+    ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
+
+    purc_rwstream_seek(my_rws, 0, SEEK_SET);
+    len_expected = 0;
+    n = purc_variant_serialize(my_variant, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+    ASSERT_GT(n, 0);
+
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "\"HVML\"");
+
+    purc_variant_unref(my_variant);
+
+    /* case 2: non-static string */
+    my_variant = purc_variant_make_atom_string("PurC", false);
+    ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
+
+    purc_rwstream_seek(my_rws, 0, SEEK_SET);
+    len_expected = 0;
+    n = purc_variant_serialize(my_variant, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_NOZERO, &len_expected);
+    ASSERT_GT(n, 0);
+
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "\"PurC\"");
+
+    purc_variant_unref(my_variant);
+
+    purc_rwstream_destroy(my_rws);
+    purc_cleanup ();
+}
+
 // to test: serialize a string
 TEST(variant, serialize_string)
 {

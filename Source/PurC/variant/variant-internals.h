@@ -66,30 +66,10 @@ typedef void (* pcvariant_release_fn) (purc_variant_t value);
 // for release the resource in a variant
 void pcvariant_string_release  (purc_variant_t value)    WTF_INTERNAL;
 void pcvariant_sequence_release(purc_variant_t value)    WTF_INTERNAL;
+void pcvariant_native_release  (purc_variant_t value)    WTF_INTERNAL;
 void pcvariant_object_release  (purc_variant_t value)    WTF_INTERNAL;
 void pcvariant_array_release   (purc_variant_t value)    WTF_INTERNAL;
 void pcvariant_set_release     (purc_variant_t value)    WTF_INTERNAL;
-
-#if 0
-// for custom serialization function.
-typedef int (* pcvariant_to_json_string_fn)(purc_variant_t * value,
-        purc_rwstream *rw, int level, int flags);
-
-// for serialize a variant
-int pcvariant_undefined_to_json_string  (purc_variant_t value, purc_rwstream * rw, int level, int flags)   WTF_INTERNAL;
-int pcvariant_null_to_json_string       (purc_variant_t value, purc_rwstream * rw, int level, int flags)   WTF_INTERNAL;
-int pcvariant_boolean_to_json_string    (purc_variant_t value, purc_rwstream * rw, int level, int flags)   WTF_INTERNAL;
-int pcvariant_number_to_json_string     (purc_variant_t value, purc_rwstream * rw, int level, int flags)   WTF_INTERNAL;
-int pcvariant_longint_to_json_string    (purc_variant_t value, purc_rwstream * rw, int level, int flags)   WTF_INTERNAL;
-int pcvariant_longdouble_to_json_string (purc_variant_t value, purc_rwstream * rw, int level, int flags)   WTF_INTERNAL;
-int pcvariant_string_to_json_string     (purc_variant_t value, purc_rwstream * rw, int level, int flags)   WTF_INTERNAL;
-int pcvariant_sequence_to_json_string   (purc_variant_t value, purc_rwstream * rw, int level, int flags)   WTF_INTERNAL;
-int pcvariant_dynamic_to_json_string    (purc_variant_t value, purc_rwstream * rw, int level, int flags)   WTF_INTERNAL;
-int pcvariant_native_to_json_string     (purc_variant_t value, purc_rwstream * rw, int level, int flags)   WTF_INTERNAL;
-int pcvariant_object_to_json_string     (purc_variant_t value, purc_rwstream * rw, int level, int flags)   WTF_INTERNAL;
-int pcvariant_array_to_json_string      (purc_variant_t value, purc_rwstream * rw, int level, int flags)   WTF_INTERNAL;
-int pcvariant_set_to_json_string        (purc_variant_t value, purc_rwstream * rw, int level, int flags)   WTF_INTERNAL;
-#endif
 
 #ifdef __cplusplus
 }

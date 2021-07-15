@@ -94,7 +94,7 @@ purc_variant_t purc_variant_make_number (double d)
     return value;
 }
 
-purc_variant_t purc_variant_make_longuint (uint64_t u64)
+purc_variant_t purc_variant_make_ulongint (uint64_t u64)
 {
     purc_variant_t value = pcvariant_get (PURC_VARIANT_TYPE_ULONGINT);
 
@@ -471,9 +471,12 @@ void pcvariant_sequence_release(purc_variant_t sequence)
         pcinst_set_error (PCVARIANT_INVALID_TYPE);
 }
 
-purc_variant_t purc_variant_make_dynamic_value (purc_dvariant_method getter,
+purc_variant_t purc_variant_make_dynamic (purc_dvariant_method getter,
         purc_dvariant_method setter)
 {
+    // VWNOTE: check getter is not NULL.
+    PCVARIANT_CHECK_FAIL_RET((getter != NULL), PURC_VARIANT_INVALID);
+
     // getter and setter can be NULL
     purc_variant_t value = pcvariant_get (PURC_VARIANT_TYPE_DYNAMIC);
 
@@ -493,9 +496,12 @@ purc_variant_t purc_variant_make_dynamic_value (purc_dvariant_method getter,
 }
 
 
-purc_variant_t purc_variant_make_native (void *native_obj, 
-                                            purc_navtive_releaser releaser)
+purc_variant_t purc_variant_make_native (void *entity,
+        purc_navtive_releaser releaser)
 {
+    // VWNOTE: check entity is not NULL.
+    PCVARIANT_CHECK_FAIL_RET((entity != NULL), PURC_VARIANT_INVALID);
+
     purc_variant_t value = pcvariant_get (PURC_VARIANT_TYPE_NATIVE);
 
     if (value == NULL) {
@@ -507,8 +513,19 @@ purc_variant_t purc_variant_make_native (void *native_obj,
     value->size = 0;
     value->flags = 0;
     value->refc = 1;
-    value->ptr_ptr[0] = native_obj;
+    value->ptr_ptr[0] = entity;
     value->ptr_ptr[1] = releaser;
 
     return value;
 }
+
+void pcvariant_native_release(purc_variant_t value)
+{
+    if (value->type == PURC_VARIANT_TYPE_NATIVE) {
+        purc_navtive_releaser releaser = value->ptr_ptr[1];
+        if (releaser) {
+            releaser (value->ptr_ptr[0]);
+        }
+    }
+}
+

@@ -51,7 +51,8 @@ int pcutils_kvlist_strlen(struct kvlist *kv, const void *data)
     return strlen(data) + 1;
 }
 
-void pcutils_kvlist_init(struct kvlist *kv, int (*get_len)(struct kvlist *kv, const void *data))
+void pcutils_kvlist_init(struct kvlist *kv, int (*get_len)(struct kvlist *kv,
+            const void *data))
 {
     pcutils_avl_init(&kv->avl, pcutils_avl_strcmp, false, NULL);
     kv->get_len = get_len;
