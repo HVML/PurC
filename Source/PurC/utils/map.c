@@ -118,7 +118,7 @@ static inline UNUSED_FUNCTION pcutils_map_entry *alloc_entry(void) {
     return (pcutils_map_entry *)g_slice_alloc(sizeof(pcutils_map_entry));
 }
 
-static inline pcutils_map_entry *alloc_entry_0(void) {
+static inline UNUSED_FUNCTION pcutils_map_entry *alloc_entry_0(void) {
     return (pcutils_map_entry *)g_slice_alloc0(sizeof(pcutils_map_entry));
 }
 
@@ -130,7 +130,7 @@ static inline UNUSED_FUNCTION pcutils_map_entry *alloc_entry(void) {
     return (pcutils_map_entry *)malloc(sizeof(pcutils_map_entry));
 }
 
-static inline pcutils_map_entry *alloc_entry_0(void) {
+static inline UNUSED_FUNCTION pcutils_map_entry *alloc_entry_0(void) {
     return (pcutils_map_entry *)calloc(1, sizeof(pcutils_map_entry));
 }
 
