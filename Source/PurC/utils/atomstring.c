@@ -63,13 +63,17 @@ pcutils_atom_init_once (void)
 purc_atom_t
 purc_atom_try_string (const char *string)
 {
+    purc_atom_t *data;
     purc_atom_t atom = 0;
 
     if (string == NULL)
         return 0;
 
     purc_rwlock_reader_lock (&atom_rwlock);
-    atom = (uint32_t)(uintptr_t)pcutils_kvlist_get (&atom_ht, string);
+    data = pcutils_kvlist_get (&atom_ht, string);
+    atom = *data;
+    // memcpy (&atom, data, sizeof(purc_atom_t));
+    //atom = (uint32_t)(uintptr_t)pcutils_kvlist_get (&atom_ht, string);
     purc_rwlock_reader_unlock (&atom_rwlock);
 
     return atom;
@@ -163,7 +167,8 @@ atom_new (char *string)
     char **atoms_new;
 
     if (atom_seq_id % ATOM_BLOCK_SIZE == 0) {
-        atoms_new = (char **)malloc (sizeof (char *) * (atom_seq_id + ATOM_BLOCK_SIZE));
+        atoms_new = (char **)malloc (sizeof (char *) *
+                (atom_seq_id + ATOM_BLOCK_SIZE));
         if (atom_seq_id != 0)
             memcpy (atoms_new, quarks, sizeof (char *) * atom_seq_id);
         memset (atoms_new + atom_seq_id, 0, sizeof (char *) * ATOM_BLOCK_SIZE);
@@ -172,7 +177,7 @@ atom_new (char *string)
 
     atom = atom_seq_id;
     quarks[atom] = string;
-    pcutils_kvlist_set (&atom_ht, string, (void *)atom);
+    pcutils_kvlist_set (&atom_ht, string, &atom);
     atom_seq_id++;
 
     return atom;
