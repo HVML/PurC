@@ -30,12 +30,15 @@
 #include "config.h"
 
 #include "private/variant.h"
+#include "private/map.h"
 
 struct pcinst {
     int errcode;
 
     char* app_name;
     char* runner_name;
+
+    pcutils_map* local_data_map;
 
     struct pcvariant_heap variant_heap;
 };
