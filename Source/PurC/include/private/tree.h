@@ -75,10 +75,6 @@ static inline
 bool purc_tree_node_append_child (purc_tree_node_t parent,
         purc_tree_node_t node)
 {
-    if (parent == NULL || node == NULL) {
-        return false;
-    }
-
     purc_tree_node_t sibling = NULL;
     node->parent = parent;
     if (parent->child) {
@@ -111,10 +107,6 @@ static inline
 bool purc_tree_node_prepend_child (purc_tree_node_t parent,
         purc_tree_node_t node)
 {
-    if (parent == NULL || node == NULL) {
-        return false;
-    }
-
     if (parent->child) {
         node->next = parent->child;
         parent->child->prev = node;
@@ -140,15 +132,10 @@ static inline
 bool purc_tree_node_insert_before (purc_tree_node_t current,
         purc_tree_node_t node)
 {
-    if (current == NULL || node == NULL) {
-        return false;
-    }
-
     node->parent = current->parent;
     node->prev = current->prev;
 
-    if (current->prev)
-    {
+    if (current->prev) {
         node->prev->next = node;
     }
     else {
@@ -176,13 +163,8 @@ static inline
 bool purc_tree_node_insert_after (purc_tree_node_t current,
         purc_tree_node_t node)
 {
-    if (current == NULL || node == NULL) {
-        return false;
-    }
-
     node->parent = current->parent;
-    if (current->next)
-    {
+    if (current->next) {
         current->next->prev = node;
     }
     node->next = current->next;
@@ -239,11 +221,6 @@ purc_tree_node_t purc_tree_node_child (purc_tree_node_t node)
 static inline
 purc_tree_node_t purc_tree_node_last_child (purc_tree_node_t node)
 {
-    if (node == NULL)
-    {
-        return NULL;
-    }
-
     node = node->child;
     if (node) {
         while (node->next) {
@@ -336,14 +313,8 @@ static inline
 void purc_tree_node_children_for_each (purc_tree_node_t node,
         purc_tree_node_for_each_fn* func, void* data)
 {
-    if (node == NULL)
-    {
-        return;
-    }
-
     node = node->child;
-    while (node)
-    {
+    while (node) {
         purc_tree_node_t current = node;
         node = current->next;
         func (current, data);
@@ -364,15 +335,9 @@ static inline
 void purc_tree_node_traverse (purc_tree_node_t node,
         purc_tree_node_for_each_fn* func, void* data)
 {
-    if (node == NULL)
-    {
-        return;
-    }
-
     func (node, data);
     node = node->child;
-    while (node)
-    {
+    while (node) {
         purc_tree_node_t current = node;
         node = current->next;
         purc_tree_node_traverse (current, func, data);
