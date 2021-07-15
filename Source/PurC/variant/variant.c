@@ -395,7 +395,7 @@ static inline bool equal_long_doubles(long double a, long double b)
 
 static int compare_objects(purc_variant_t v1, purc_variant_t v2)
 {
-    int i;
+    int diff;
     const char* key;
     purc_variant_t m1, m2;
     size_t sz1 = purc_variant_object_get_size(v1);
@@ -407,9 +407,9 @@ static int compare_objects(purc_variant_t v1, purc_variant_t v2)
     foreach_key_value_in_variant_object(v1, key, m1)
 
         m2 = purc_variant_object_get_c(v2, key);
-        i = purc_variant_compare(m1, m2);
-        if (i != 0)
-            return i;
+        diff = purc_variant_compare(m1, m2);
+        if (diff != 0)
+            return diff;
     end_foreach;
 
     return 0;
@@ -417,7 +417,7 @@ static int compare_objects(purc_variant_t v1, purc_variant_t v2)
 
 static int compare_arrays(purc_variant_t v1, purc_variant_t v2)
 {
-    int i;
+    int diff;
     size_t idx;
     size_t sz1 = purc_variant_array_get_size(v1);
     size_t sz2 = purc_variant_array_get_size(v2);
@@ -430,9 +430,9 @@ static int compare_arrays(purc_variant_t v1, purc_variant_t v2)
     foreach_value_in_variant_array(v1, m1)
 
         m2 = purc_variant_array_get(v2, idx);
-        i = purc_variant_compare(m1, m2);
-        if (i != 0)
-            return i;
+        diff = purc_variant_compare(m1, m2);
+        if (diff != 0)
+            return diff;
 
         idx++;
     end_foreach;
@@ -442,28 +442,32 @@ static int compare_arrays(purc_variant_t v1, purc_variant_t v2)
 
 static int compare_sets(purc_variant_t v1, purc_variant_t v2)
 {
-    int i;
-    size_t idx;
+    int diff;
     size_t sz1 = purc_variant_set_get_size(v1);
     size_t sz2 = purc_variant_set_get_size(v2);
+    struct purc_variant_set_iterator* it;
     purc_variant_t m1, m2;
 
     if (sz1 != sz2)
         return (int)(sz1 - sz2);
 
-    idx = 0;
+    it = purc_variant_set_make_iterator_begin(v2);
     foreach_value_in_variant_set(v1, m1)
 
-        // TODO: how to get the member in another set?
-        m2 = NULL; // purc_variant_set_get(v2, idx);
-        i = purc_variant_compare(m1, m2);
-        if (i != 0)
-            return i;
+        m2 = purc_variant_set_iterator_get_value(it);
+        diff = purc_variant_compare(m1, m2);
+        if (diff != 0)
+            goto ret;
 
-        idx++;
+    purc_variant_set_iterator_next(it);
     end_foreach;
 
+    purc_variant_set_release_iterator(it);
     return 0;
+
+ret:
+    purc_variant_set_release_iterator(it);
+    return diff;
 }
 
 bool
