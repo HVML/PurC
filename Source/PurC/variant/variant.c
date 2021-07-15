@@ -241,7 +241,9 @@ unsigned int purc_variant_unref(purc_variant_t value)
     switch ((int)value->type) {
         case PURC_VARIANT_TYPE_OBJECT:
         {
-            foreach_value_in_variant_object(value, variant) {
+            const char *key;
+            foreach_key_value_in_variant_object(value, key, variant) {
+                free((void*)key);
                 purc_variant_unref(variant);
             } end_foreach;
             break;
