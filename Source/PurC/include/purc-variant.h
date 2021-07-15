@@ -263,17 +263,17 @@ typedef purc_variant_t (*purc_dvariant_method) (purc_variant_t root,
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t
-purc_variant_make_dynamic_value(purc_dvariant_method getter,
+purc_variant_make_dynamic(purc_dvariant_method getter,
         purc_dvariant_method setter);
 
 
-typedef bool (*purc_navtive_releaser) (void* native_obj);
+typedef bool (*purc_navtive_releaser) (void* entity);
 
 /**
  * Creates a variant value of native type.
  *
- * @param native_entity: the pointer of native entity.
- * @param releaser: the purc_navtive_releaser function pointer
+ * @param entity: the pointer to the native entity.
+ * @param releaser: the pointer to a purc_navtive_releaser function.
  *
  * Returns: A purc_variant_t with native value,
  *      or PURC_VARIANT_INVALID on failure.
@@ -281,7 +281,7 @@ typedef bool (*purc_navtive_releaser) (void* native_obj);
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t
-purc_variant_make_native(void *native_entity, purc_navtive_releaser releaser);
+purc_variant_make_native(void *entity, purc_navtive_releaser releaser);
 
 
 /**
@@ -1324,7 +1324,7 @@ PCA_EXPORT inline bool purc_variant_is_sequence(purc_variant_t v)
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_BSEQUENCE);
 }
 
-PCA_EXPORT inline bool purc_variant_is_dynamic_value(purc_variant_t v)
+PCA_EXPORT inline bool purc_variant_is_dynamic(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_DYNAMIC);
 }
