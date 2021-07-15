@@ -29,6 +29,7 @@
 bool pctree_node_append_child (pctree_node_t parent,
         pctree_node_t node)
 {
+    parent->nr_children++;
     node->parent = parent;
     if (parent->last_child) {
         node->prev = parent->last_child;
@@ -44,6 +45,7 @@ bool pctree_node_append_child (pctree_node_t parent,
 bool pctree_node_prepend_child (pctree_node_t parent,
         pctree_node_t node)
 {
+    parent->nr_children++;
     node->parent = parent;
     if (parent->first_child) {
         node->next = parent->first_child;
@@ -64,9 +66,10 @@ bool pctree_node_insert_before (pctree_node_t current,
     if (current->prev) {
         node->prev->next = node;
     }
-    else {
+    else if (node->parent) {
         node->parent->first_child = node;
         node->parent->last_child = node;
+        node->parent->nr_children++;
     }
     node->next = current;
     current->prev = node;
@@ -77,6 +80,7 @@ bool pctree_node_insert_after (pctree_node_t current,
         pctree_node_t node)
 {
     node->parent = current->parent;
+    node->parent->nr_children++;
     if (current->next) {
         current->next->prev = node;
     }
