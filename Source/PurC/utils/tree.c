@@ -63,13 +63,15 @@ bool pctree_node_insert_before (pctree_node_t current,
 {
     node->parent = current->parent;
     node->prev = current->prev;
+    if (node->parent) {
+        node->parent->nr_children++;
+    }
+
     if (current->prev) {
         node->prev->next = node;
     }
     else if (node->parent) {
         node->parent->first_child = node;
-        node->parent->last_child = node;
-        node->parent->nr_children++;
     }
     node->next = current;
     current->prev = node;
