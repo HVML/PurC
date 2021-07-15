@@ -541,10 +541,7 @@ TEST(variant_object, add_n_str)
         ASSERT_NE(s, nullptr);
         int t = purc_variant_object_set_c(obj, buf, s);
         ASSERT_EQ(t, true);
-        ASSERT_EQ(s->refc, 2);
-        ASSERT_EQ(obj->refc, 1);
         purc_variant_unref(s);
-        ASSERT_EQ(s->refc, 1);
     }
     ASSERT_EQ(stat->nr_values[PVT(_STRING)], count);
     ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], 1);
