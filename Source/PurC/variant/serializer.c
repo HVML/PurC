@@ -506,7 +506,7 @@ serialize_double(purc_rwstream_t rws, double d, int flags,
 
 static ssize_t
 serialize_long_double(purc_rwstream_t rws, long double ld, int flags,
-        size_t *len_expected)
+        const char *format, size_t *len_expected)
 {
     char buf[256], *p, *q;
     int size;
@@ -526,7 +526,12 @@ serialize_long_double(purc_rwstream_t rws, long double ld, int flags,
         }
     }
     else {
-        size = snprintf(buf, sizeof(buf) - 2, "%.17Lg", ld);
+        static const char *std_format = "%.17Lg";
+        if (!format) {
+            format = std_format;
+        }
+
+        size = snprintf(buf, sizeof(buf) - 2, format, ld);
         if (UNLIKELY(size < 0)) {
             pcinst_set_error(PURC_ERROR_OUTPUT);
             return -1;
@@ -649,6 +654,13 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
     char buff [256];
     purc_variant_t member = NULL;
     const char* key;
+    char* format_double = NULL;
+    char* format_long_double = NULL;
+
+    purc_get_local_data("format-double",
+            (void **)&format_double, NULL);
+    purc_get_local_data("format-long-double",
+            (void **)&format_long_double, NULL);
 
     PC_ASSERT(value);
 
@@ -681,7 +693,7 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
                 goto failed;
             if (n == 0) {
                 n = serialize_double(rws, value->d, flags,
-                        NULL, /* TODO: format string */
+                        format_double,
                         len_expected);
                 if (n < 0)
                     goto failed;
@@ -708,7 +720,8 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
             break;
 
         case PURC_VARIANT_TYPE_LONGDOUBLE:
-            n = serialize_long_double(rws, value->ld, flags, len_expected);
+            n = serialize_long_double(rws, value->ld, flags,
+                    format_long_double, len_expected);
             MY_CHECK(n);
 
             content = NULL;
