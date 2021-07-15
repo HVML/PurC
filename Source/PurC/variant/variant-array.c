@@ -183,7 +183,7 @@ purc_variant_t purc_variant_array_get (purc_variant_t array, int idx)
 
     struct pcutils_arrlist *al = (struct pcutils_arrlist*)array->sz_ptr[1];
     size_t             nr = pcutils_arrlist_length(al);
-    PCVARIANT_CHECK_FAIL_RET((size_t)idx>=nr,
+    PCVARIANT_CHECK_FAIL_RET((size_t)idx<nr,
         PURC_VARIANT_INVALID);
 
     purc_variant_t var = (purc_variant_t)pcutils_arrlist_get_idx(al, idx);
