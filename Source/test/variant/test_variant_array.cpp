@@ -406,6 +406,7 @@ TEST(variant_object, init_with_1_str)
         ASSERT_EQ(str->refc, 2);
     }
 
+    ASSERT_EQ(obj->refc, 1);
     purc_variant_unref(obj);
     ASSERT_EQ(str->refc, 1);
     purc_variant_unref(str);

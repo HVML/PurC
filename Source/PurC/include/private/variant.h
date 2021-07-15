@@ -147,6 +147,8 @@ struct variant_set {
     struct avl_tree         objs;       // multiple-variant-objects stored in set
 };
 
+void pcvariant_set_release_obj(struct obj_node *p);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
@@ -214,7 +216,7 @@ struct variant_set {
  /* } while (0) */
 
 #define foreach_key_value_in_variant_object_safe(_obj, _key, _val,      \
-            _curr, _tmp)                                                \
+        _curr, _tmp)                                                    \
     do {                                                                \
         struct pchash_table *_ht;                                       \
         _ht = (struct pchash_table*)_obj->sz_ptr[1];                    \
@@ -241,7 +243,6 @@ struct variant_set {
     do {                                                                \
         variant_set_t _data;                                            \
         struct avl_tree *_tree;                                         \
-        struct obj_node *_elem;                                         \
         _data = (variant_set_t)_set->sz_ptr[1];                         \
         _tree = &_data->objs;                                           \
         avl_for_each_element_safe(_tree, _curr, avl, _tmp) {            \

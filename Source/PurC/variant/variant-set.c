@@ -196,7 +196,7 @@ static inline void pcvariant_set_obj_release_kvs(struct obj_node *on)
     }
 }
 
-static inline void pcvariant_set_release_obj(struct obj_node *p)
+void pcvariant_set_release_obj(struct obj_node *p)
 {
     pcvariant_set_obj_release_kvs(p);
     purc_variant_unref(p->obj);
