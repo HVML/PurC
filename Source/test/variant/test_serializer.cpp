@@ -117,7 +117,7 @@ TEST(variant, serialize_number)
 
     len_expected = 0;
     purc_rwstream_seek(my_rws, 0, SEEK_SET);
-    purc_set_local_data("format-double", (void *)"%.6f", NULL);
+    purc_set_local_data("format-double", (uintptr_t)"%.6f", NULL);
     n = purc_variant_serialize(my_variant, my_rws,
             0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
     ASSERT_GT(n, 0);
@@ -132,7 +132,7 @@ TEST(variant, serialize_number)
 
     len_expected = 0;
     purc_rwstream_seek(my_rws, 0, SEEK_SET);
-    purc_set_local_data("format-double", (void *)"%.7f", NULL);
+    purc_set_local_data("format-double", (uintptr_t)"%.7f", NULL);
     n = purc_variant_serialize(my_variant, my_rws,
             0, PCVARIANT_SERIALIZE_OPT_NOZERO, &len_expected);
     ASSERT_GT(n, 0);
@@ -228,7 +228,7 @@ TEST(variant, serialize_longdouble)
 
     len_expected = 0;
     purc_rwstream_seek(my_rws, 0, SEEK_SET);
-    purc_set_local_data("format-long-double", (void *)"%.6Lf", NULL);
+    purc_set_local_data("format-long-double", (uintptr_t)"%.6Lf", NULL);
     n = purc_variant_serialize(my_variant, my_rws,
             0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
     ASSERT_GT(n, 0);
@@ -243,7 +243,7 @@ TEST(variant, serialize_longdouble)
 
     len_expected = 0;
     purc_rwstream_seek(my_rws, 0, SEEK_SET);
-    purc_set_local_data("format-long-double", (void *)"%.7Lf", NULL);
+    purc_set_local_data("format-long-double", (uintptr_t)"%.7Lf", NULL);
     n = purc_variant_serialize(my_variant, my_rws,
             0, PCVARIANT_SERIALIZE_OPT_NOZERO, &len_expected);
     ASSERT_GT(n, 0);
