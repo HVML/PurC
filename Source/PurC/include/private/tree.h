@@ -248,22 +248,66 @@ uint8_t pctree_node_type (pctree_node_t node)
  * @param node: the given node
  * @param func: the function to call for each visited node
  * @param data: user data to pass to the function
+ *
  * Since: 0.0.1
  */
 void pctree_node_children_for_each (pctree_node_t node,
         pctree_node_for_each_fn* func, void* data);
 
 /**
- * Traverses a tree starting at the given root node. It calls the given
- * function for each node visited. func must not do anything that would
- * modify the structure of the tree
+ * Pre order traversal a tree starting at the given root node. It calls
+ * the given function for each node visited. func must not do anything
+ * that would modify the structure of the tree
  *
  * @param node: the given node
  * @param func: the function to call for each visited node
  * @param data: user data to pass to the function
+ *
  * Since: 0.0.1
  */
-void pctree_node_traverse (pctree_node_t node,
+void pctree_node_pre_order_traversal (pctree_node_t node,
+        pctree_node_for_each_fn* func, void* data);
+
+/**
+ * In order traversal a tree starting at the given root node. It calls
+ * the given function for each node visited. func must not do anything
+ * that would modify the structure of the tree
+ *
+ * @param node: the given node
+ * @param func: the function to call for each visited node
+ * @param data: user data to pass to the function
+ *
+ * Since: 0.0.1
+ */
+void pctree_node_in_order_traversal (pctree_node_t node,
+        pctree_node_for_each_fn* func, void* data);
+
+/**
+ * Post order traversal a tree starting at the given root node. It calls
+ * the given function for each node visited. func must not do anything
+ * that would modify the structure of the tree
+ *
+ * @param node: the given node
+ * @param func: the function to call for each visited node
+ * @param data: user data to pass to the function
+ *
+ * Since: 0.0.1
+ */
+void pctree_node_post_order_traversal (pctree_node_t node,
+        pctree_node_for_each_fn* func, void* data);
+
+/**
+ * Level order traversal a tree starting at the given root node. It calls
+ * the given function for each node visited. func must not do anything
+ * that would modify the structure of the tree
+ *
+ * @param node: the given node
+ * @param func: the function to call for each visited node
+ * @param data: user data to pass to the function
+ *
+ * Since: 0.0.1
+ */
+void pctree_node_level_order_traversal (pctree_node_t node,
         pctree_node_for_each_fn* func, void* data);
 
 #ifdef __cplusplus

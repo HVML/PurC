@@ -100,7 +100,7 @@ void pctree_node_children_for_each (pctree_node_t node,
     }
 }
 
-void pctree_node_traverse (pctree_node_t node,
+void pctree_node_pre_order_traversal (pctree_node_t node,
         pctree_node_for_each_fn* func, void* data)
 {
     func (node, data);
@@ -108,6 +108,89 @@ void pctree_node_traverse (pctree_node_t node,
     while (node) {
         pctree_node_t current = node;
         node = current->next;
-        pctree_node_traverse (current, func, data);
+        pctree_node_pre_order_traversal (current, func, data);
+    }
+}
+
+void pctree_node_in_order_traversal (pctree_node_t node,
+        pctree_node_for_each_fn* func, void* data)
+{
+    if (node->first_child)
+    {
+        pctree_node_t child = node->first_child;
+        pctree_node_t current = child;
+        child = current->next;
+        pctree_node_in_order_traversal(current, func, data);
+        func (node, data);
+        while (child)
+        {
+            current = child;
+            child = current->next;
+            pctree_node_in_order_traversal(current, func, data);
+        }
+    }
+    else {
+        func (node, data);
+    }
+}
+
+void pctree_node_post_order_traversal (pctree_node_t node,
+        pctree_node_for_each_fn* func, void* data)
+{
+    if (node->first_child)
+    {
+        pctree_node_t child = node->first_child;
+        pctree_node_t current = NULL;
+        while (child)
+        {
+            current = child;
+            child = current->next;
+            pctree_node_post_order_traversal(current, func, data);
+        }
+        func(node, data);
+    }
+    else {
+        func (node, data);
+    }
+}
+
+static void pctree_traverse_level (pctree_node_t node, pctree_node_for_each_fn* func,
+        void* data, size_t level, bool *more_levels)
+{
+    if (level == 0)
+    {
+        if (node->first_child)
+        {
+            *more_levels = true;
+            func(node, data);
+        }
+        else
+        {
+            func(node, data);
+        }
+    }
+    else
+    {
+        node = node->first_child;
+        while (node)
+        {
+            pctree_traverse_level (node, func, data, level - 1, more_levels);
+            node = node->next;
+        }
+    }
+}
+
+void pctree_node_level_order_traversal (pctree_node_t node,
+        pctree_node_for_each_fn* func, void* data)
+{
+    size_t level = 0;
+    bool more_levels = false;
+    while (true) {
+        more_levels = false;
+        pctree_traverse_level (node, func, data, level, &more_levels);
+        if (!more_levels) {
+            break;
+        }
+        level++;
     }
 }
