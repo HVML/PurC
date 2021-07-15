@@ -54,8 +54,8 @@ PCA_EXTERN_C_BEGIN
  * purc_init:
  *
  * @app_name: a pointer to the string contains the app name.
- *      If this argument is null, the executable program name of the command line
- *      will be used for the app name.
+ *      If this argument is null, the executable program name of the command
+ *      line will be used for the app name.
  * @runner_name: a pointer to the string contains the runner name.
  *      If this argument is null, `unknown` will be used for the runner name.
  * @extra_info: a pointer (nullable) to the extra information for
@@ -68,8 +68,9 @@ PCA_EXTERN_C_BEGIN
  *  - @PURC_ERROR_DUPLICATED: duplicated call of this function.
  *  - @PURC_ERROR_OUT_OF_MEMORY: Out of memory.
  *
- * Note that this function is the only one which returns the error code directly.
- * Because if it fails, there is no any space to store the error code.
+ * Note that this function is the only one which returns the error code
+ * directly. Because if it fails, there is no any space to store
+ * the error code.
  *
  * Since 0.0.1
  */
@@ -89,6 +90,85 @@ purc_init(const char* app_name, const char* runner_name,
  */
 PCA_EXPORT bool
 purc_cleanup(void);
+
+typedef void (*cb_free_local_data) (void *local_data);
+
+/**
+ * purc_set_local_data:
+ *
+ * @param data_name: The name of the local data.
+ * @param local_data: The value of the local data.
+ * @param cb_free: A callback function which will be called automatically
+ *  by PurC to free the local data when the PurC instance is being destroyed
+ *  or the local data is being removed or overwritten. If it is NULL,
+ *  the system does nothing to the local data.
+ *
+ * This function sets the local data as @local_data which is bound with the
+ * name @data_name for the current PurC instance. If you passed a non-NULL
+ * function pointer for \a cb_free, the system will call this function to free
+ * the local data when you clean up the instance, remove the local data, or
+ * when you call this function to overwrite the old local data for the name.
+ *
+ * PurC uses the following local data for some functions:
+ *
+ *  - `format-double`: This local data contains the format (should be a
+ *     pointer to a static string) which will be used to serilize a variant
+ *     of double (number) type. If not defined, use the default format
+ *     (`%.17g`).
+ *  - `format-long-double`: This local data contains the format (should be
+ *     a pointer to a static string), which will be  used to serilize a
+ *     variant of long double type. If not defined, use the default format
+ *     (%.17Lg).
+ *
+ * Returns: @true for success; @false on error.
+ *
+ * Since 0.0.1
+ */
+PCA_EXPORT bool
+purc_set_local_data(const char* data_name, void *locale_data,
+        cb_free_local_data cb_free);
+
+/**
+ * purc_remove_local_data:
+ *
+ * Remove the local data bound with a name.
+ *
+ * \param data_name The name for the local data.
+ *
+ * This function removes the local data which is bound with the
+ * name \a data_name for the current PurC instance. When you pass NULL
+ * for \a data_name, this function will remove all local data of it.
+ * Note that this function will call the callback procedure for releasing
+ * the local data, if you had set it, when removing the local data.
+ *
+ * Returns: @true for success; @false on error.
+ *
+ * Since 0.0.1
+ */
+PCA_EXPORT bool
+purc_remove_local_data(const char* data_name);
+
+/**
+ * purc_get_local_data:
+ *
+ * Retrieve the local data bound with a name.
+ *
+ * This function retrieves the local data which is bound with the
+ * name \a data_name for the current PurC instance.
+ *
+ * @param data_name: The name for the local data.
+ * @param local_data: The pointer to a uinptr_t variable to return
+ *  the local data.
+ * @param cb_free: The pointer to a cb_free_local_data variable to return
+ *  the pointer to the callback function which is used to free the local data.
+ *
+ * Returns: @true for success; @false on error.
+ *
+ * Since 0.0.1
+ */
+PCA_EXPORT bool
+purc_get_local_data(const char* data_name, void **local_data,
+        cb_free_local_data* cb_free);
 
 /**
  * purc_bind_session_variable:
