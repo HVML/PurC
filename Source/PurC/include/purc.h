@@ -258,16 +258,19 @@ purc_load_hvml_from_rwstream(purc_rwstream_t stream);
  * Since 0.0.1
  */
 PCA_EXPORT bool
-purc_bind_document_variable(pcvdom_tree_t vdom, const char* name, purc_variant_t variant);
+purc_bind_document_variable(pcvdom_tree_t vdom, const char* name,
+        purc_variant_t variant);
 
 /**
  * purc_connnect_vdom_to_renderer:
  *
  * @vdom: The pointer to the string contains the name for the variable.
  * @type: The pointer to the string contains the type of the expected renderer.
- * @classes: The pointer to the string contains the classes of the expected renderer.
+ * @classes: The pointer to the string contains the classes of the expected
+ *      renderer.
  * @name: The pointer to the string contains the name of the expected renderer.
- * @extra_info: The structure pointer to the extra information of the expected renderer.
+ * @extra_info: The structure pointer to the extra information of the expected
+ *      renderer.
  *
  * Connects a vDOM tree to an renderer.
  *
