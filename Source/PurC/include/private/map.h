@@ -71,7 +71,7 @@ pcutils_map* pcutils_map_create (copy_key_fn copy_key, free_key_fn free_key,
         comp_key_fn comp_key, bool threads);
 int pcutils_map_destroy (pcutils_map* map);
 int pcutils_map_clear (pcutils_map* map);
-int pcutils_map_get_size (pcutils_map* map);
+size_t pcutils_map_get_size (pcutils_map* map);
 
 pcutils_map_entry* pcutils_map_find (pcutils_map* map, const void* key);
 
@@ -90,7 +90,6 @@ int pcutils_map_replace (pcutils_map* map, const void* key,
         const void* val, free_val_fn free_val_alt);
 
 int pcutils_map_erase (pcutils_map* map, void* key);
-int pcutils_map_get_size (pcutils_map* map);
 
 #ifdef __cplusplus
 }

@@ -141,11 +141,11 @@ purc_set_local_data(const char* data_name, void *locale_data,
  * Note that this function will call the callback procedure for releasing
  * the local data, if you had set it, when removing the local data.
  *
- * Returns: @true for success; @false on error.
+ * Returns: The number of entries removed, 0 means no entry found. -1 on error.
  *
  * Since 0.0.1
  */
-PCA_EXPORT bool
+PCA_EXPORT ssize_t
 purc_remove_local_data(const char* data_name);
 
 /**
@@ -162,11 +162,11 @@ purc_remove_local_data(const char* data_name);
  * @param cb_free: The pointer to a cb_free_local_data variable to return
  *  the pointer to the callback function which is used to free the local data.
  *
- * Returns: @true for success; @false on error.
+ * Returns: 1 for success; 0 for no entry found; -1 on error.
  *
  * Since 0.0.1
  */
-PCA_EXPORT bool
+PCA_EXPORT int
 purc_get_local_data(const char* data_name, void **local_data,
         cb_free_local_data* cb_free);
 

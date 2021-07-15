@@ -95,7 +95,7 @@ pcutils_map* pcutils_map_create (copy_key_fn copy_key, free_key_fn free_key,
     return map;
 }
 
-int pcutils_map_get_size (pcutils_map* map)
+size_t pcutils_map_get_size (pcutils_map* map)
 {
     return map->size;
 }

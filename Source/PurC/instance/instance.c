@@ -214,53 +214,58 @@ purc_set_local_data(const char* data_name, void *local_data,
 
     if (pcutils_map_find_replace_or_insert(inst->local_data_map,
                 data_name, local_data, (free_val_fn)cb_free)) {
+        inst->errcode = PURC_ERROR_OUT_OF_MEMORY;
         return false;
     }
 
     return true;
 }
 
-bool
+ssize_t
 purc_remove_local_data(const char* data_name)
 {
     struct pcinst* inst = pcinst_current();
     if (inst == NULL)
-        return false;
+        return -1;
 
     if (data_name) {
         if (pcutils_map_erase (inst->local_data_map, (void*)data_name))
-            return false;
+            return 1;
     }
     else {
-        pcutils_map_clear (inst->local_data_map);
+        ssize_t sz = pcutils_map_get_size(inst->local_data_map);
+        pcutils_map_clear(inst->local_data_map);
+        return sz;
     }
 
-    return true;
+    return 0;
 }
 
-bool
+int
 purc_get_local_data(const char* data_name, void **local_data,
         cb_free_local_data* cb_free)
 {
     struct pcinst* inst;
     const pcutils_map_entry* entry = NULL;
 
-    if (data_name == NULL)
-        return false;
-
     if ((inst = pcinst_current()) == NULL)
-        return false;
+        return -1;
 
-    if ((entry = pcutils_map_find (inst->local_data_map, data_name))) {
+    if (data_name == NULL) {
+        inst->errcode = PURC_ERROR_INVALID_VALUE;
+        return -1;
+    }
+
+    if ((entry = pcutils_map_find(inst->local_data_map, data_name))) {
         if (local_data)
             *local_data = entry->val;
 
         if (cb_free)
             *cb_free = (cb_free_local_data)entry->free_val_alt;
 
-        return true;
+        return 1;
     }
 
-    return false;
+    return 0;
 }
 
