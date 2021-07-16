@@ -38,12 +38,26 @@ TEST(tree, append)
     ASSERT_EQ(((pctree_node_t)root)->nr_children, 1);
     ASSERT_EQ(((pctree_node_t)root)->first_child, (pctree_node_t)node_1);
     ASSERT_EQ(((pctree_node_t)root)->last_child, (pctree_node_t)node_1);
+    ASSERT_EQ((pctree_node_t)pctree_node_parent((pctree_node_t)node_1),
+            (pctree_node_t)root);
+    ASSERT_EQ(pctree_node_child((pctree_node_t)root), (pctree_node_t)node_1);
+    ASSERT_EQ(pctree_node_last_child((pctree_node_t)root),
+            (pctree_node_t)node_1);
+    ASSERT_EQ(pctree_node_children_number((pctree_node_t)root), 1);
 
     pctree_node_append_child((pctree_node_t)root, (pctree_node_t)node_2);
     ASSERT_EQ(((pctree_node_t)root)->nr_children, 2);
     ASSERT_EQ(((pctree_node_t)root)->first_child, (pctree_node_t)node_1);
     ASSERT_NE(((pctree_node_t)root)->last_child, (pctree_node_t)node_1);
     ASSERT_EQ(((pctree_node_t)root)->last_child, (pctree_node_t)node_2);
+    ASSERT_EQ((pctree_node_t)pctree_node_parent((pctree_node_t)node_1),
+            (pctree_node_t)root);
+    ASSERT_EQ((pctree_node_t)pctree_node_parent((pctree_node_t)node_2),
+            (pctree_node_t)root);
+    ASSERT_EQ(pctree_node_child((pctree_node_t)root), (pctree_node_t)node_1);
+    ASSERT_EQ(pctree_node_last_child((pctree_node_t)root),
+            (pctree_node_t)node_2);
+    ASSERT_EQ(pctree_node_children_number((pctree_node_t)root), 2);
 
     pctree_node_append_child((pctree_node_t)root, (pctree_node_t)node_3);
     ASSERT_EQ(((pctree_node_t)root)->nr_children, 3);
@@ -51,6 +65,18 @@ TEST(tree, append)
     ASSERT_NE(((pctree_node_t)root)->last_child, (pctree_node_t)node_1);
     ASSERT_NE(((pctree_node_t)root)->last_child, (pctree_node_t)node_2);
     ASSERT_EQ(((pctree_node_t)root)->last_child, (pctree_node_t)node_3);
+    ASSERT_EQ((pctree_node_t)pctree_node_parent((pctree_node_t)node_1),
+            (pctree_node_t)root);
+    ASSERT_EQ((pctree_node_t)pctree_node_parent((pctree_node_t)node_2),
+            (pctree_node_t)root);
+    ASSERT_EQ((pctree_node_t)pctree_node_parent((pctree_node_t)node_3),
+            (pctree_node_t)root);
+    ASSERT_EQ(pctree_node_child((pctree_node_t)root), (pctree_node_t)node_1);
+    ASSERT_EQ(pctree_node_last_child((pctree_node_t)root),
+            (pctree_node_t)node_3);
+    ASSERT_EQ(pctree_node_children_number((pctree_node_t)root), 3);
+
+    ASSERT_EQ(pctree_node_type((pctree_node_t)root), 0);
 
     destroy_tree_node(root);
     destroy_tree_node(node_1);
@@ -69,17 +95,27 @@ TEST(tree, prepend)
     ASSERT_EQ(((pctree_node_t)root)->nr_children, 1);
     ASSERT_EQ(((pctree_node_t)root)->first_child, (pctree_node_t)node_1);
     ASSERT_EQ(((pctree_node_t)root)->last_child, (pctree_node_t)node_1);
+    ASSERT_EQ((pctree_node_t)pctree_node_next((pctree_node_t)node_1),
+            nullptr);
 
     pctree_node_prepend_child((pctree_node_t)root, (pctree_node_t)node_2);
     ASSERT_EQ(((pctree_node_t)root)->nr_children, 2);
     ASSERT_EQ(((pctree_node_t)root)->first_child, (pctree_node_t)node_2);
     ASSERT_EQ(((pctree_node_t)root)->last_child, (pctree_node_t)node_1);
+    ASSERT_EQ((pctree_node_t)pctree_node_next((pctree_node_t)node_2),
+            (pctree_node_t)node_1);
+    ASSERT_EQ((pctree_node_t)pctree_node_prev((pctree_node_t)node_1),
+            (pctree_node_t)node_2);
 
     pctree_node_prepend_child((pctree_node_t)root, (pctree_node_t)node_3);
     ASSERT_EQ(((pctree_node_t)root)->nr_children, 3);
     ASSERT_EQ(((pctree_node_t)root)->first_child, (pctree_node_t)node_3);
     ASSERT_NE(((pctree_node_t)root)->first_child, (pctree_node_t)node_2);
     ASSERT_EQ(((pctree_node_t)root)->last_child, (pctree_node_t)node_1);
+    ASSERT_EQ((pctree_node_t)pctree_node_next((pctree_node_t)node_3),
+            (pctree_node_t)node_2);
+    ASSERT_EQ((pctree_node_t)pctree_node_prev((pctree_node_t)node_1),
+            (pctree_node_t)node_2);
 
     destroy_tree_node(root);
     destroy_tree_node(node_1);
@@ -244,18 +280,23 @@ TEST(tree, traversal)
     struct test_tree_node* node_11 = create_tree_node(11);
 
     pctree_node_append_child((pctree_node_t)node_1, (pctree_node_t)node_2);
+    ASSERT_EQ(pctree_node_children_number((pctree_node_t)node_1), 1);
     pctree_node_append_child((pctree_node_t)node_1, (pctree_node_t)node_3);
+    ASSERT_EQ(pctree_node_children_number((pctree_node_t)node_1), 2);
 
     pctree_node_append_child((pctree_node_t)node_2, (pctree_node_t)node_4);
     pctree_node_append_child((pctree_node_t)node_2, (pctree_node_t)node_5);
     pctree_node_append_child((pctree_node_t)node_2, (pctree_node_t)node_6);
+    ASSERT_EQ(pctree_node_children_number((pctree_node_t)node_2), 3);
 
     pctree_node_append_child((pctree_node_t)node_3, (pctree_node_t)node_7);
+    ASSERT_EQ(pctree_node_children_number((pctree_node_t)node_3), 1);
 
     pctree_node_append_child((pctree_node_t)node_7, (pctree_node_t)node_8);
     pctree_node_append_child((pctree_node_t)node_7, (pctree_node_t)node_9);
     pctree_node_append_child((pctree_node_t)node_7, (pctree_node_t)node_10);
     pctree_node_append_child((pctree_node_t)node_7, (pctree_node_t)node_11);
+    ASSERT_EQ(pctree_node_children_number((pctree_node_t)node_7), 4);
 
 
     char buf[1024] = {0};
