@@ -13,11 +13,16 @@ target_link_libraries(test_serializer purc gtest_main gtest pthread)
 add_executable(test_variant_array test_variant_array.cpp)
 target_link_libraries(test_variant_array purc gtest_main gtest pthread)
 
+add_executable(test_variant_object test_variant_object.cpp)
+target_link_libraries(test_variant_object purc gtest_main gtest pthread)
+
+add_executable(test_variant_set test_variant_set.cpp)
+target_link_libraries(test_variant_set purc gtest_main gtest pthread)
+
 include(GoogleTest)
 gtest_discover_tests(test_variant)
 gtest_discover_tests(test_serializer)
 gtest_discover_tests(test_variant_array)
-# gtest_discover_tests(test_variant_array
-#     EXTRA_ARGS "--gtest_repeat=5"
-# )
+gtest_discover_tests(test_variant_object)
+gtest_discover_tests(test_variant_set)
 
