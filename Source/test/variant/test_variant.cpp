@@ -4,10 +4,18 @@
 #include "private/hashtable.h"
 #include "purc-variant.h"
 #include "private/variant.h"
+//#include "private/instance.h"
+#include "private/errors.h"
+#include "private/debug.h"
+#include "private/utils.h"
 
 #include <stdio.h>
 #include <errno.h>
 #include <gtest/gtest.h>
+
+#ifndef MAX
+#define MAX(a, b)   (a) > (b)? (a) : (b)
+#endif
 
 /* test variant.pcutils_arrlist_double_free */
 static size_t _arrlist_items_free = 0;
@@ -255,18 +263,312 @@ TEST(variant, pcvariant_init_10_times)
     }
 }
 
+// to test: only one instance of null variant type.
+// purc_variant_make_null
+TEST(variant, pcvariant_null)
+{
+    size_t size = sizeof(purc_variant);
+    int times = 0;
+    int module_times = 0;
+    struct purc_variant_stat * stat = NULL;
+    purc_variant_t value = NULL;
+    purc_variant_t value_prev = NULL;
+
+    // init and deinit module for 10 times
+    for (module_times = 0; module_times < 10; module_times++) {
+
+        purc_instance_extra_info info = {0, 0};
+        int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+        ASSERT_EQ (ret, PURC_ERROR_OK);
+
+        // get initial statitics information
+        stat = purc_variant_usage_stat ();
+        ASSERT_NE(stat, nullptr);
+
+        size_t nr_values_before = stat->nr_values[PURC_VARIANT_TYPE_NULL];
+        size_t sz_mem_before = stat->sz_mem[PURC_VARIANT_TYPE_NULL];
+        size_t nr_total_values_before = stat->nr_total_values;
+        size_t sz_total_mem_before = stat->sz_total_mem;
+        EXPECT_EQ (nr_values_before, 1);
+        EXPECT_EQ (sz_mem_before, size);
+        EXPECT_EQ (nr_total_values_before, 4);
+        EXPECT_EQ (sz_total_mem_before, 4 * size);
+
+        // create constant variant for 5 times, check the statistics
+        for (times = 0; times < 5; times++) {
+
+            // create null variant
+            value = purc_variant_make_null ();
+            ASSERT_NE(value, nullptr);
+
+            if (value_prev == NULL)
+                value_prev = value;
+
+            // all undefined purc_variant_t are same
+            ASSERT_EQ (value, value_prev);
+
+            // check ref
+            ASSERT_EQ (value->refc, 1 + times + 1);
+
+            // check statitics information
+            stat = purc_variant_usage_stat ();
+            ASSERT_NE(stat, nullptr);
+
+            EXPECT_EQ (nr_values_before, stat->nr_values[PURC_VARIANT_TYPE_NULL]);
+            EXPECT_EQ (sz_mem_before, stat->sz_mem[PURC_VARIANT_TYPE_NULL]);
+            EXPECT_EQ (nr_total_values_before, stat->nr_total_values);
+            EXPECT_EQ (sz_total_mem_before, stat->sz_total_mem);
+        }
+
+        // invoke unref 6 times.
+        // for null variant, the minimum refc is 1 or 0 ???
+        unsigned int refc = 0;
+        for (; times >= 0; times--) {
+            refc = purc_variant_unref (value);
+            ASSERT_GE (refc, 0);
+        }
+
+        // check statitics information
+        stat = purc_variant_usage_stat ();
+        ASSERT_NE(stat, nullptr);
+
+        EXPECT_EQ (nr_values_before, stat->nr_values[PURC_VARIANT_TYPE_NULL]);
+        EXPECT_EQ (sz_mem_before, stat->sz_mem[PURC_VARIANT_TYPE_NULL]);
+        EXPECT_EQ (nr_total_values_before, stat->nr_total_values);
+        EXPECT_EQ (sz_total_mem_before, stat->sz_total_mem);
+
+        purc_cleanup ();
+
+        value = NULL;
+        value_prev = NULL;
+    }
+}
+
+
+// to test: only one instance of undefined variant type.
+// purc_variant_make_undefined
+TEST(variant, pcvariant_undefined)
+{
+    size_t size = sizeof(purc_variant);
+    int times = 0;
+    int module_times = 0;
+    struct purc_variant_stat * stat = NULL;
+    purc_variant_t value = NULL;
+    purc_variant_t value_prev = NULL;
+
+    // init and deinit module for 10 times
+    for (module_times = 0; module_times < 10; module_times++) {
+
+        purc_instance_extra_info info = {0, 0};
+        int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+        ASSERT_EQ (ret, PURC_ERROR_OK);
+
+        // get initial statitics information
+        stat = purc_variant_usage_stat ();
+        ASSERT_NE(stat, nullptr);
+
+        size_t nr_values_before = stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED];
+        size_t sz_mem_before = stat->sz_mem[PURC_VARIANT_TYPE_UNDEFINED];
+        size_t nr_total_values_before = stat->nr_total_values;
+        size_t sz_total_mem_before = stat->sz_total_mem;
+        EXPECT_EQ (nr_values_before, 1);
+        EXPECT_EQ (sz_mem_before, size);
+        EXPECT_EQ (nr_total_values_before, 4);
+        EXPECT_EQ (sz_total_mem_before, 4 * size);
+
+        // create constant variant for 5 times, check the statistics
+        for (times = 0; times < 5; times++) {
+
+            // create undefined variant
+            value = purc_variant_make_undefined ();
+            ASSERT_NE(value, nullptr);
+
+            if (value_prev == NULL)
+                value_prev = value;
+
+            // all undefined purc_variant_t are same
+            ASSERT_EQ (value, value_prev);
+
+            // check ref
+            ASSERT_EQ (value->refc, 1 + times + 1);
+
+            // check statitics information
+            stat = purc_variant_usage_stat ();
+            ASSERT_NE(stat, nullptr);
+
+            EXPECT_EQ (nr_values_before, stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED]);
+            EXPECT_EQ (sz_mem_before, stat->sz_mem[PURC_VARIANT_TYPE_UNDEFINED]);
+            EXPECT_EQ (nr_total_values_before, stat->nr_total_values);
+            EXPECT_EQ (sz_total_mem_before, stat->sz_total_mem);
+        }
+
+        // invoke unref 6 times.
+        // for undefined variant, the minimum refc is 1 or 0 ???
+        unsigned int refc = 0;
+        for (; times >= 0; times--) {
+            refc = purc_variant_unref (value);
+            ASSERT_GE (refc, 0);
+        }
+
+        // check statitics information
+        stat = purc_variant_usage_stat ();
+        ASSERT_NE(stat, nullptr);
+
+        EXPECT_EQ (nr_values_before, stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED]);
+        EXPECT_EQ (sz_mem_before, stat->sz_mem[PURC_VARIANT_TYPE_UNDEFINED]);
+        EXPECT_EQ (nr_total_values_before, stat->nr_total_values);
+        EXPECT_EQ (sz_total_mem_before, stat->sz_total_mem);
+
+        purc_cleanup ();
+
+        value = NULL;
+        value_prev = NULL;
+    }
+}
+
+// to test: only one true and one false variant instance, but they are calculated
+//          in one field of struct purc_variant_stat
+// purc_variant_make_undefined
+TEST(variant, pcvariant_boolean)
+{
+    size_t size = sizeof(purc_variant);
+    int times = 0;
+    int module_times = 0;
+    struct purc_variant_stat * stat = NULL;
+    purc_variant_t value_true = NULL;
+    purc_variant_t value_true_prev = NULL;
+    purc_variant_t value_false = NULL;
+    purc_variant_t value_false_prev = NULL;
+
+    // init and deinit module for 10 times
+    for (module_times = 0; module_times < 10; module_times++) {
+
+        purc_instance_extra_info info = {0, 0};
+        int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+        ASSERT_EQ (ret, PURC_ERROR_OK);
+
+        // get initial statitics information
+        stat = purc_variant_usage_stat ();
+        ASSERT_NE(stat, nullptr);
+
+        size_t nr_values_before = stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN];
+        size_t sz_mem_before = stat->sz_mem[PURC_VARIANT_TYPE_BOOLEAN];
+        size_t nr_total_values_before = stat->nr_total_values;
+        size_t sz_total_mem_before = stat->sz_total_mem;
+        EXPECT_EQ (nr_values_before, 2);
+        EXPECT_EQ (sz_mem_before, 2 * size);
+        EXPECT_EQ (nr_total_values_before, 4);
+        EXPECT_EQ (sz_total_mem_before, 4 * size);
+
+        // create constant variant for 5 times, check the statistics
+        for (times = 0; times < 5; times++) {
+
+            // create true variant
+            value_true = purc_variant_make_boolean (true);
+            ASSERT_NE(value_true, nullptr);
+
+            if (value_true_prev == NULL)
+                value_true_prev = value_true;
+
+            // all undefined purc_variant_t are same
+            ASSERT_EQ (value_true, value_true_prev);
+
+            // check ref
+            ASSERT_EQ (value_true->refc, 1 + times + 1);
+
+            // check statitics information
+            stat = purc_variant_usage_stat ();
+            ASSERT_NE(stat, nullptr);
+
+            EXPECT_EQ (nr_values_before, stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN]);
+            EXPECT_EQ (sz_mem_before, stat->sz_mem[PURC_VARIANT_TYPE_BOOLEAN]);
+            EXPECT_EQ (nr_total_values_before, stat->nr_total_values);
+            EXPECT_EQ (sz_total_mem_before, stat->sz_total_mem);
+
+
+            // create false variant
+            value_false = purc_variant_make_boolean (false);
+            ASSERT_NE(value_false, nullptr);
+
+            if (value_false_prev == NULL)
+                value_false_prev = value_false;
+
+            // all undefined purc_variant_t are same
+            ASSERT_EQ (value_false, value_false_prev);
+
+            // check ref
+            ASSERT_EQ (value_false->refc, 1 + times + 1);
+
+            // check statitics information
+            stat = purc_variant_usage_stat ();
+            ASSERT_NE(stat, nullptr);
+
+            EXPECT_EQ (nr_values_before, stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN]);
+            EXPECT_EQ (sz_mem_before, stat->sz_mem[PURC_VARIANT_TYPE_BOOLEAN]);
+            EXPECT_EQ (nr_total_values_before, stat->nr_total_values);
+            EXPECT_EQ (sz_total_mem_before, stat->sz_total_mem);
+        }
+
+        // invoke unref 6 times.
+        // for boolean variant, the minimum refc is 2 or 0 ???
+        unsigned int refc = 0;
+        for (times = 5; times >= 0; times--) {
+            refc = purc_variant_unref (value_true);
+            ASSERT_GE (refc, 0);
+        }
+
+        for (times = 5; times >= 0; times--) {
+            refc = purc_variant_unref (value_false);
+            ASSERT_GE (refc, 0);
+        }
+
+        // check statitics information
+        stat = purc_variant_usage_stat ();
+        ASSERT_NE(stat, nullptr);
+
+        EXPECT_EQ (nr_values_before, stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN]);
+        EXPECT_EQ (sz_mem_before, stat->sz_mem[PURC_VARIANT_TYPE_BOOLEAN]);
+        EXPECT_EQ (nr_total_values_before, stat->nr_total_values);
+        EXPECT_EQ (sz_total_mem_before, stat->sz_total_mem);
+
+        purc_cleanup ();
+
+        value_true = NULL;
+        value_true_prev = NULL;
+        value_false = NULL;
+        value_false_prev = NULL;
+    }
+}
+
 
 // to test:
 // purc_variant_make_number ()
 // purc_variant_serialize ()
 TEST(variant, pcvariant_number)
 {
+    purc_variant_t value = NULL;
     purc_instance_extra_info info = {0, 0};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    // create number variant with valild value, and serialize
-    // expected: get the variant
+    // create with double
+    // serialize option ???
+    double number = 123.4560000;
+    value = purc_variant_make_number (number);
+    ASSERT_NE(value, PURC_VARIANT_INVALID);
+
+    // serialize
+    char buf[32];
+    purc_rwstream_t my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    ASSERT_NE(my_rws, nullptr);
+
+    size_t len_expected = 0;
+    ssize_t n = purc_variant_serialize(value, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_NOZERO, &len_expected);
+    ASSERT_GT(n, 0);
+
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "123.456");
 
     purc_cleanup ();
 }
@@ -274,17 +576,51 @@ TEST(variant, pcvariant_number)
 // to test:
 // purc_variant_make_longuint ()
 // purc_variant_serialize ()
-TEST(variant, pcvariant_longuint)
+TEST(variant, pcvariant_ulongint)
 {
+    purc_variant_t value = NULL;
     purc_instance_extra_info info = {0, 0};
+
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     // create longuint variant with valild value, and serialize
     // expected: get the variant
+    uint64_t number = 0xFFFFFFFFFFFFFFFF;
+    value = purc_variant_make_ulongint (number);
+    ASSERT_NE(value, PURC_VARIANT_INVALID);
+
+    // serialize
+    char buf[128];
+    purc_rwstream_t my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    ASSERT_NE(my_rws, nullptr);
+
+    purc_rwstream_seek(my_rws, 0, SEEK_SET);
+    size_t len_expected = 0;
+    ssize_t n = purc_variant_serialize(value, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_NOZERO, &len_expected);
+    ASSERT_GT(n, 0);
+
+    buf[n] = 0;
+
+    char buffer [256];
+    snprintf (buffer, sizeof(buffer), "%luUL", number);
+
+    ASSERT_STREQ(buffer, buf);
 
     // create longuint variant with negatives, and serialize
-    // expected: get the variant with convert value
+    int64_t negative = 0xFFFFFFFFFFFFFFFF;
+    value = purc_variant_make_ulongint (negative);
+    ASSERT_NE(value, PURC_VARIANT_INVALID);
+
+    purc_rwstream_seek(my_rws, 0, SEEK_SET);
+    len_expected = 0;
+    n = purc_variant_serialize(value, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_NOZERO, &len_expected);
+    ASSERT_GT(n, 0);
+
+    buf[n] = 0;
+    ASSERT_STREQ(buffer, buf);
 
     purc_cleanup ();
 }
@@ -294,15 +630,51 @@ TEST(variant, pcvariant_longuint)
 // purc_variant_serialize ()
 TEST(variant, pcvariant_longint)
 {
+    purc_variant_t value = NULL;
     purc_instance_extra_info info = {0, 0};
+
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     // create longint variant with valild value, and serialize
     // expected: get the variant
+    int64_t number = 0x7FFFFFFFFFFFFFFF;
+    value = purc_variant_make_longint (number);
+    ASSERT_NE(value, PURC_VARIANT_INVALID);
 
-    // create longint variant with invalid value, and serialize
-    // expected: get the variant with convert value
+    // serialize
+    char buf[128];
+    purc_rwstream_t my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    ASSERT_NE(my_rws, nullptr);
+
+    purc_rwstream_seek(my_rws, 0, SEEK_SET);
+    size_t len_expected = 0;
+    ssize_t n = purc_variant_serialize(value, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_NOZERO, &len_expected);
+    ASSERT_GT(n, 0);
+
+    buf[n] = 0;
+
+    char buffer [256];
+    snprintf (buffer, sizeof(buffer), "%ldL", number);
+
+    ASSERT_STREQ(buffer, buf);
+
+
+    // create longuint variant with negatives, and serialize
+    uint64_t positive = 0xFFFFFFFFFFFFFFFF;
+    value = purc_variant_make_longint (positive);
+    ASSERT_NE(value, PURC_VARIANT_INVALID);
+
+    purc_rwstream_seek(my_rws, 0, SEEK_SET);
+    len_expected = 0;
+    n = purc_variant_serialize(value, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_NOZERO, &len_expected);
+    ASSERT_GT(n, 0);
+
+    buf[n] = 0;
+    snprintf (buffer, sizeof(buffer), "%ldL", positive);
+    ASSERT_STREQ(buffer, buf);
 
     purc_cleanup ();
 }
@@ -312,12 +684,30 @@ TEST(variant, pcvariant_longint)
 // purc_variant_serialize ()
 TEST(variant, pcvariant_longdouble)
 {
+    purc_variant_t value = NULL;
     purc_instance_extra_info info = {0, 0};
+
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     // create longdouble variant with valild value, and serialize
     // expected: get the variant
+    long double number = 123.4560000;
+    value = purc_variant_make_number (number);
+    ASSERT_NE(value, PURC_VARIANT_INVALID);
+
+    // serialize
+    char buf[32];
+    purc_rwstream_t my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    ASSERT_NE(my_rws, nullptr);
+
+    size_t len_expected = 0;
+    ssize_t n = purc_variant_serialize(value, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_NOZERO, &len_expected);
+    ASSERT_GT(n, 0);
+
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "123.456");
 
     purc_cleanup ();
 }
@@ -329,42 +719,80 @@ TEST(variant, pcvariant_longdouble)
 // purc_variant_serialize ()
 TEST(variant, pcvariant_string)
 {
+    purc_variant_t value = NULL;
     purc_instance_extra_info info = {0, 0};
+
+    const char short_ok[] = "\x61\x62\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\x00";   // ab北京上海
+    const char short_err[] = "\x61\x62\xE5\x02\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\x00";   // ab北京上海
+    const char long_ok[] = "\x61\x62\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\x00";   // ab北京上海北京上海
+    const char long_err[] = "\x61\x62\xE5\x02\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\x00";   // ab北京上海北京上海
+    size_t length = 0;
+    size_t real_size = MAX (sizeof(long double), sizeof(void*) * 2);
+
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     // create short string variant without checking, input in utf8-encoding
     // expected: get the variant with original string
+    value = purc_variant_make_string (short_ok, false);
+    ASSERT_NE(value, PURC_VARIANT_INVALID);
+    length = purc_variant_string_length (value);
+    ASSERT_EQ (length, strlen(purc_variant_get_string_const (value)) + 1);
+    ASSERT_LT (length, real_size);
 
     // create short string variant without checking, input not in utf8-encoding
     // expected: get the variant with original string
+    value = purc_variant_make_string (short_err, false);
+    ASSERT_NE(value, PURC_VARIANT_INVALID);
+    length = purc_variant_string_length (value);
+    ASSERT_EQ (length, strlen(purc_variant_get_string_const (value)) + 1);
+    ASSERT_LT (length, real_size);
 
     // create short string variant with checking, input in utf8-encoding
     // expected: get the variant with original string
+    value = purc_variant_make_string (short_ok, true);
+    ASSERT_NE(value, PURC_VARIANT_INVALID);
+    length = purc_variant_string_length (value);
+    ASSERT_EQ (length, strlen(purc_variant_get_string_const (value)) + 1);
+    ASSERT_LT (length, real_size);
 
     // create short string variant with checking, input is not in utf8-encoding
     // expected: get PURC_VARIANT_INVALID
+    value = purc_variant_make_string (short_err, true);
+    ASSERT_EQ(value, PURC_VARIANT_INVALID);
 
     // create long string variant without checking, input in utf8-encoding
     // expected: get the variant with original string
+    value = purc_variant_make_string (long_ok, false);
+    ASSERT_NE(value, PURC_VARIANT_INVALID);
+    length = purc_variant_string_length (value);
+    ASSERT_EQ (length, strlen(purc_variant_get_string_const (value)) + 1);
+    ASSERT_GT (length, real_size);
 
     // create long string variant without checking, input not in utf8-encoding
     // expected: get the variant with original string
+    value = purc_variant_make_string (long_err, false);
+    ASSERT_NE(value, PURC_VARIANT_INVALID);
+    length = purc_variant_string_length (value);
+    ASSERT_EQ (length, strlen(purc_variant_get_string_const (value)) + 1);
+    ASSERT_GT (length, real_size);
 
     // create long string variant with checking, input in utf8-encoding
     // expected: get the variant with original string
+    value = purc_variant_make_string (long_ok, true);
+    ASSERT_NE(value, PURC_VARIANT_INVALID);
+    length = purc_variant_string_length (value);
+    ASSERT_EQ (length, strlen(purc_variant_get_string_const (value)) + 1);
+    ASSERT_GT (length, real_size);
 
     // create long string variant with checking, input not in utf8-encoding
     // expected: get PURC_VARIANT_INVALID
+    value = purc_variant_make_string (long_err, true);
+    ASSERT_EQ(value, PURC_VARIANT_INVALID);
 
     // create short string variant with null pointer
-    // expected: return an empty string variant, with size is 0, and pointer is NULL. 
-
-    // create long string variant with null pointer
-    // expected: return an empty string variant, with size is 0, and pointer is NULL. 
-
-    // create string variant with extraordinary long string 
-    // expected: it is depend on the free memory. 
+    // ????
+//    value = purc_variant_make_string (NULL, true);
 
     purc_cleanup ();
 }
@@ -377,54 +805,83 @@ TEST(variant, pcvariant_string)
 // purc_variant_serialize ()
 TEST(variant, pcvariant_atom_string)
 {
+    purc_variant_t value = NULL;
+//    purc_variant_t dup = NULL;
     purc_instance_extra_info info = {0, 0};
+
+    const char string_ok[] = "\x61\x62\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\x00";   // ab北京上海北京上海
+//    const char string_err[] = "\x61\x62\xE5\x02\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\x00";   // ab北京上海北京上海
+
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     // create atom string variant without checking, input in utf8-encoding,
-    //        and check the input pointer and pointer from variant API.
-    // expected: get the variant with string, and pointers are not same.
+    // expected: get the variant with string.
+    value = purc_variant_make_atom_string (string_ok, false);
+    ASSERT_NE(value, PURC_VARIANT_INVALID);
+    ASSERT_STREQ (string_ok, purc_variant_get_atom_string_const (value));
 
+/*
     // create atom string variant without checking, input not in utf8-encoding
-    //        and check the input pointer and pointer from variant API.
-    // expected: get the variant with string, and pointers are not same.
-
+    // expected: get the variant with string.
+    value = purc_variant_make_atom_string (string_err, false);
+    ASSERT_NE(value, PURC_VARIANT_INVALID);
+    ASSERT_STREQ (string_err, purc_variant_get_atom_string_const (value));
+*/
     // create atom string variant with checking, input in utf8-encoding
-    //        and check the input pointer and pointer from variant API.
-    // expected: get the variant with string, and pointers are not same.
+    // expected: get the variant with string.
+    value = purc_variant_make_atom_string (string_ok, true);
+    ASSERT_NE(value, PURC_VARIANT_INVALID);
+    ASSERT_STREQ (string_ok, purc_variant_get_atom_string_const (value));
 
+/*
     // create atom string variant with checking, input is not in utf8-encoding
     // expected: get PURC_VARIANT_INVALID
+    value = purc_variant_make_atom_string (string_err, true);
+    ASSERT_EQ(value, PURC_VARIANT_INVALID);
 
     // create static atom string variant without checking, input in utf8-encoding
-    //        and check the input pointer and pointer from variant API.
-    // expected: get the variant with string, and pointers are same.
+    // expected: get the variant with string.
+    value = purc_variant_make_atom_string_static (string_ok, false);
+    ASSERT_NE(value, PURC_VARIANT_INVALID);
+    ASSERT_STREQ (string_ok, purc_variant_get_atom_string_const (value));
 
     // create static atom string variant without checking, input not in utf8-encoding
-    //        and check the input pointer and pointer from variant API.
-    // expected: get the variant with string, and pointers are same.
+    // expected: get the variant with string.
+    value = purc_variant_make_atom_string_static (string_err, false);
+    ASSERT_NE(value, PURC_VARIANT_INVALID);
+    ASSERT_STREQ (string_err, purc_variant_get_atom_string_const (value));
 
     // create static atom string variant with checking, input in utf8-encoding
-    //        and check the input pointer and pointer from variant API.
-    // expected: get the variant with string, and pointers are same.
+    // expected: get the variant with string.
+    value = purc_variant_make_atom_string_static (string_ok, true);
+    ASSERT_NE(value, PURC_VARIANT_INVALID);
+    ASSERT_STREQ (string_ok, purc_variant_get_atom_string_const (value));
+
 
     // create static atom string variant with checking, input not in utf8-encoding
     // expected: get PURC_VARIANT_INVALID
+    value = purc_variant_make_atom_string_static (string_err, true);
+    ASSERT_EQ(value, PURC_VARIANT_INVALID);
+
+    // create two atom string variants with same input string, check the atom 
+    //        and string pointer whether are equal 
+    // expected: atom and string pointer is same. 
+    value = purc_variant_make_atom_string_static (string_ok, true);
+    ASSERT_NE(value, PURC_VARIANT_INVALID);
+    dup = purc_variant_make_atom_string_static (string_ok, true);
+    ASSERT_NE(dup, PURC_VARIANT_INVALID);
+
+    // create two static atom string variants with same input string, check the atom 
+    //        and string pointer
+    // expected: atom and string pointer is same. 
 
     // create atom string variant with null pointer
     // expected: depend on code. 
 
     // create static atom string variant with null pointer
     // expected: depend on code. 
-
-    // create two atom string variants with same input string, check the atom 
-    //        and string pointer whether are equal 
-    // expected: atom and string pointer is same. 
-
-    // create two static atom string variants with same input string, check the atom 
-    //        and string pointer
-    // expected: atom and string pointer is same. 
-
+*/
     purc_cleanup ();
 }
 
@@ -543,12 +1000,26 @@ TEST(variant, pcvariant_serialize)
 // loop buffer in heap 
 TEST(variant, pcvariant_loopbuffer)
 {
+/*
+    int i = 0;
+    struct pcinst * inst = NULL;
+    struct pcvariant_heap * heap = NULL;
+
     purc_instance_extra_info info = {0, 0};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     // 1. check heap nr_reserved, and v_reserved, headpos, writepos, nr_reserved
+    inst = pcinst_current();
+    ASSERT_NE (inst, nullptr);
 
+    heap = &(inst->variant_heap);
+
+    EXPECT_EQ (heap->headpos, 0);
+    EXPECT_EQ (heap->tailpos, 0);
+    for (i = 0; i < MAX_RESERVED_VARIANTS; i++) 
+        EXPECT_EQ (heap->v_reserved[i], nullptr);
+*/
     // 2. create 32 variants, store the pointer in an array
 
     // 3. unref 31 variants one by one, and check v_reserved, headpos, writepos,
