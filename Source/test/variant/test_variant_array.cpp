@@ -362,3 +362,51 @@ TEST(variant_array, add_n_str_and_remove_pub)
     ASSERT_EQ (cleanup, true);
 }
 
+TEST(variant_array, make_ref_add_unref_unref)
+{
+    purc_instance_extra_info info = {0, 0};
+    int ret = 0;
+    bool cleanup = false;
+    struct purc_variant_stat *stat;
+
+    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ(ret, PURC_ERROR_OK);
+
+    stat = purc_variant_usage_stat();
+    ASSERT_NE(stat, nullptr);
+
+    purc_variant_t s1 = purc_variant_make_string("hello", false);
+    purc_variant_t arr = purc_variant_make_array(1, s1);
+    purc_variant_unref(s1);
+
+    purc_variant_ref(arr);
+    s1 = purc_variant_make_string("world", false);
+    purc_variant_array_append(arr, s1);
+    purc_variant_unref(s1);
+    size_t n = purc_variant_array_get_size(arr);
+    ASSERT_EQ(n, 2);
+    // unref will implicitly remove the latter string just added
+    // in level 2
+    // consideration: is this expected behaviour?
+    purc_variant_unref(arr);
+    n = purc_variant_array_get_size(arr);
+    ASSERT_EQ(n, 1); // removed
+
+
+    ASSERT_EQ(arr->refc, 1);
+    purc_variant_unref(arr);
+    ASSERT_EQ(stat->nr_values[PVT(_ARRAY)], 0);
+    ASSERT_EQ(stat->nr_values[PVT(_STRING)], 0);
+
+#if 0
+    // testing anonymous object
+    arr = purc_variant_make_array(1,
+            purc_variant_make_array(1,
+                purc_variant_make_null()));
+    ASSERT_NE(arr, nullptr);
+    purc_variant_unref(arr);
+#endif // 0
+    cleanup = purc_cleanup ();
+    ASSERT_EQ (cleanup, true);
+}
+
