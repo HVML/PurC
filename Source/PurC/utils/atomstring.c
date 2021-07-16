@@ -110,10 +110,15 @@ atom_strdup (const char *string)
 static inline purc_atom_t
 atom_from_string (const char *string, bool duplicate)
 {
+    purc_atom_t *data;
     purc_atom_t atom = 0;
 
-    atom = (uintptr_t)pcutils_kvlist_get (&atom_ht, string);
-    if (!atom) {
+    data = pcutils_kvlist_get (&atom_ht, string);
+    if (data) {
+        atom = *data;
+        assert (atom);
+    }
+    else {
         atom = atom_new (duplicate ? atom_strdup (string) : (char *)string);
     }
 
