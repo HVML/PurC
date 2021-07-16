@@ -96,7 +96,6 @@ struct purc_variant {
 };
 
 #define MAX_RESERVED_VARIANTS   32
-#define SZ_COMMON_BUFFER        1024
 
 struct pcvariant_heap {
     // the constant values.
@@ -112,9 +111,6 @@ struct pcvariant_heap {
     purc_variant_t v_reserved [MAX_RESERVED_VARIANTS];
     int headpos;
     int tailpos;
-
-    // the fixed-size buffer for serializing the values
-    char buff[SZ_COMMON_BUFFER];
 };
 
 // initialize variant module (once)
@@ -163,105 +159,95 @@ struct variant_set {
  * 2. Implement the _safe version for easy change, e.g. removing an item,
  *  in an interation.
  */
-#define foreach_value_in_variant_array(_array, _value)              \
-    do {                                                            \
-        struct purc_variant_object_iterator *__oite = NULL;         \
-        struct purc_variant_set_iterator *__site    = NULL;         \
-        struct pcutils_arrlist *_al;                                \
-        _al = (struct pcutils_arrlist*)_array->sz_ptr[1];           \
-        for (size_t _i = 0; _i < _al->length; _i++) {               \
-            _value = (purc_variant_t)_al->array[_i];                \
-     /* } */                                                        \
+#define foreach_value_in_variant_array(_arr, _val)          \
+    do {                                                    \
+        struct pcutils_arrlist *_al;                        \
+        _al = (struct pcutils_arrlist*)_arr->sz_ptr[1];     \
+        for (size_t _i = 0; _i < _al->length; _i++) {       \
+            _val = (purc_variant_t)_al->array[_i];          \
+     /* } */                                                \
  /* } while (0) */
 
-#define foreach_value_in_variant_array_safe(_array, _value, _inext) \
+#define foreach_value_in_variant_array_safe(_arr, _val, _curr, _tmp)   \
+    do {                                                               \
+        struct pcutils_arrlist *_al;                                   \
+        _al = (struct pcutils_arrlist*)_arr->sz_ptr[1];                \
+        for (_curr = 0, _tmp = 1;                                      \
+             _curr < _al->length;                                      \
+             _curr = _tmp, ++_tmp)                                     \
+        {                                                              \
+            _val = (purc_variant_t)_al->array[_curr];                  \
+     /* } */                                                           \
+ /* } while (0) */
+
+#define foreach_value_in_variant_object(_obj, _val)                 \
     do {                                                            \
-        struct purc_variant_object_iterator *__oite = NULL;         \
-        struct purc_variant_set_iterator *__site    = NULL;         \
-        struct pcutils_arrlist *_al;                                \
-        _al = (struct pcutils_arrlist*)_array->sz_ptr[1];           \
-        for (size_t _i = 0, _inext = 1;                             \
-             _i < _al->length;                                      \
-             _i = _inext, ++_inext)                                 \
+        struct pchash_table *_ht;                                   \
+        _ht = (struct pchash_table*)_obj->sz_ptr[1];                \
+        struct pchash_entry *_entry;                                \
+        pchash_foreach(_ht, _entry)                                 \
         {                                                           \
-            _value = (purc_variant_t)_al->array[_i];                \
+            _val = (purc_variant_t)_entry->v;                       \
      /* } */                                                        \
  /* } while (0) */
 
-#define foreach_value_in_variant_object(obj, value)                     \
+#define foreach_value_in_variant_object_safe(_obj, _val, _curr, _tmp)   \
     do {                                                                \
-        struct purc_variant_object_iterator *__oite = NULL;             \
-        struct purc_variant_set_iterator *__site    = NULL;             \
         struct pchash_table *_ht;                                       \
-        _ht = (struct pchash_table*)obj->sz_ptr[1];                     \
-        struct pchash_entry *_entry;                                    \
-        pchash_foreach(_ht, _entry)                                     \
+        _ht = (struct pchash_table*)_obj->sz_ptr[1];                    \
+        pchash_foreach_safe(_ht, _curr, _tmp)                           \
         {                                                               \
-            value = (purc_variant_t)_entry->v;                          \
-     /* } */
- /* } while (0) */
-
-#define foreach_value_in_variant_object_safe(obj, value)                \
-    do {                                                                \
-        struct purc_variant_object_iterator *__oite = NULL;             \
-        struct purc_variant_set_iterator *__site    = NULL;             \
-        struct pchash_table *_ht;                                       \
-        _ht = (struct pchash_table*)obj->sz_ptr[1];                     \
-        struct pchash_entry *_entry, *_tmp;                             \
-        pchash_foreach_safe(_ht, _entry, _tmp)                          \
-        {                                                               \
-            value = (purc_variant_t)_entry->v;                          \
-     /* } */
- /* } while (0) */
-
-#define foreach_key_value_in_variant_object(obj, key, value)            \
-    do {                                                                \
-        struct purc_variant_object_iterator *__oite = NULL;             \
-        struct purc_variant_set_iterator *__site    = NULL;             \
-        struct pchash_table *_ht;                                       \
-        _ht = (struct pchash_table*)obj->sz_ptr[1];                     \
-        struct pchash_entry *_entry;                                    \
-        pchash_foreach(_ht, _entry)                                     \
-        {                                                               \
-            key   = (const char*)_entry->k;                             \
-            value = (purc_variant_t)_entry->v;                          \
+            _val = (purc_variant_t)_curr->v;                            \
      /* } */                                                            \
  /* } while (0) */
 
-#define foreach_key_value_in_variant_object_safe(obj, key, value)       \
+#define foreach_key_value_in_variant_object(_obj, _key, _val)       \
+    do {                                                            \
+        struct pchash_table *_ht;                                   \
+        _ht = (struct pchash_table*)_obj->sz_ptr[1];                \
+        struct pchash_entry *_entry;                                \
+        pchash_foreach(_ht, _entry)                                 \
+        {                                                           \
+            _key   = (const char*)_entry->k;                        \
+            _val = (purc_variant_t)_entry->v;                       \
+     /* } */                                                        \
+ /* } while (0) */
+
+#define foreach_key_value_in_variant_object_safe(_obj, _key, _val,      \
+            _curr, _tmp)                                                \
     do {                                                                \
-        struct purc_variant_object_iterator *__oite = NULL;             \
-        struct purc_variant_set_iterator *__site    = NULL;             \
         struct pchash_table *_ht;                                       \
-        _ht = (struct pchash_table*)obj->sz_ptr[1];                     \
-        struct pchash_entry *_entry, *_tmp;                             \
-        pchash_foreach_safe(_ht, _entry, _tmp)                          \
+        _ht = (struct pchash_table*)_obj->sz_ptr[1];                    \
+        pchash_foreach_safe(_ht, _curr, _tmp)                           \
         {                                                               \
-            key   = (const char*)_entry->k;                             \
-            value = (purc_variant_t)_entry->v;                          \
+            _key   = (const char*)_curr->k;                             \
+            _val = (purc_variant_t)_curr->v;                            \
      /* } */                                                            \
  /* } while (0) */
 
-
-#define foreach_value_in_variant_set(set, value)                        \
+#define foreach_value_in_variant_set(_set, _val)                        \
     do {                                                                \
-        struct purc_variant_object_iterator *__oite = NULL;             \
-        struct purc_variant_set_iterator *__site    = NULL;             \
         struct avl_tree *_tree;                                         \
-        _tree = (struct avl_tree*)set->sz_ptr[1];                       \
+        _tree = (struct avl_tree*)_set->sz_ptr[1];                      \
         struct obj_node *_elem;                                         \
         avl_for_each_element(_tree, _elem, avl) {                       \
-            value = _elem->obj;                                         \
+            _val = _elem->obj;                                          \
      /* } */                                                            \
   /* } while (0) */
 
+#define foreach_value_in_variant_set_safe(_set, _val, _curr, _tmp)      \
+    do {                                                                \
+        struct avl_tree *_tree;                                         \
+        _tree = (struct avl_tree*)_set->sz_ptr[1];                      \
+        avl_for_each_element_safe(_tree, _curr, avl, _tmp) {            \
+            _val = _curr->obj;                                          \
+     /* } */                                                            \
+  /* } while (0) */
 
 #define end_foreach                                                     \
  /* do { */                                                             \
      /* for (...) { */                                                  \
         }                                                               \
-        if (__oite) purc_variant_object_release_iterator(__oite);       \
-        if (__site) purc_variant_set_release_iterator(__site);          \
     } while (0)
 #endif  /* PURC_PRIVATE_VARIANT_H */
 

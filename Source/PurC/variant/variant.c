@@ -54,8 +54,7 @@ static pcvariant_release_fn variant_releasers[PURC_VARIANT_TYPE_MAX] = {
     pcvariant_string_release,       // PURC_VARIANT_TYPE_STRING
     pcvariant_sequence_release,     // PURC_VARIANT_TYPE_SEQUENCE
     NULL,                           // PURC_VARIANT_TYPE_DYNAMIC
-    // VWNOTE (ERROR): Please define a releaser for PURC_VARIANT_TYPE_NATIVE
-    NULL,                           // PURC_VARIANT_TYPE_NATIVE
+    pcvariant_native_release,       // PURC_VARIANT_TYPE_NATIVE
     pcvariant_object_release,       // PURC_VARIANT_TYPE_OBJECT
     pcvariant_array_release,        // PURC_VARIANT_TYPE_ARRAY
     pcvariant_set_release,          // PURC_VARIANT_TYPE_SET
@@ -241,23 +240,28 @@ unsigned int purc_variant_unref(purc_variant_t value)
 
     switch ((int)value->type) {
         case PURC_VARIANT_TYPE_OBJECT:
-            foreach_value_in_variant_object(value, variant)
+        {
+            foreach_value_in_variant_object(value, variant) {
                 purc_variant_unref(variant);
-            end_foreach;
+            } end_foreach;
             break;
+        }
 
         case PURC_VARIANT_TYPE_ARRAY:
-            foreach_value_in_variant_array(value, variant)
+        {
+            foreach_value_in_variant_array(value, variant) {
                 purc_variant_unref(variant);
-            end_foreach;
+            } end_foreach;
             break;
+        }
 
         case PURC_VARIANT_TYPE_SET:
-            PC_ASSERT(0);
-            foreach_value_in_variant_set(value, variant)
+        {
+            foreach_value_in_variant_set(value, variant) {
                 purc_variant_unref(variant);
-            end_foreach;
+            } end_foreach;
             break;
+        }
 
         default:
             break;
@@ -356,11 +360,15 @@ void pcvariant_put(purc_variant_t value)
 
     PC_ASSERT(value);
 
-    if ((heap->headpos + 1) % MAX_RESERVED_VARIANTS == heap->tailpos) {
-        free_variant(value);
+    // set stat information
+    stat->nr_values[value->type]--;
+    stat->nr_total_values--;
 
+    if ((heap->headpos + 1) % MAX_RESERVED_VARIANTS == heap->tailpos) {
         stat->sz_mem[value->type] -= sizeof(purc_variant);
         stat->sz_total_mem -= sizeof(purc_variant);
+
+        free_variant(value);
     }
     else {
         heap->v_reserved[heap->headpos] = value;
@@ -369,10 +377,6 @@ void pcvariant_put(purc_variant_t value)
         /* VWNOTE: do not forget to set nr_reserved. */
         stat->nr_reserved++;
     }
-
-    // set stat information
-    stat->nr_values[value->type]--;
-    stat->nr_total_values--;
 }
 
 /* securely comparison of floating-point variables */
@@ -391,7 +395,7 @@ static inline bool equal_long_doubles(long double a, long double b)
 
 static int compare_objects(purc_variant_t v1, purc_variant_t v2)
 {
-    int i;
+    int diff;
     const char* key;
     purc_variant_t m1, m2;
     size_t sz1 = purc_variant_object_get_size(v1);
@@ -403,9 +407,9 @@ static int compare_objects(purc_variant_t v1, purc_variant_t v2)
     foreach_key_value_in_variant_object(v1, key, m1)
 
         m2 = purc_variant_object_get_c(v2, key);
-        i = purc_variant_compare(m1, m2);
-        if (i != 0)
-            return i;
+        diff = purc_variant_compare(m1, m2);
+        if (diff != 0)
+            return diff;
     end_foreach;
 
     return 0;
@@ -413,7 +417,7 @@ static int compare_objects(purc_variant_t v1, purc_variant_t v2)
 
 static int compare_arrays(purc_variant_t v1, purc_variant_t v2)
 {
-    int i;
+    int diff;
     size_t idx;
     size_t sz1 = purc_variant_array_get_size(v1);
     size_t sz2 = purc_variant_array_get_size(v2);
@@ -426,14 +430,44 @@ static int compare_arrays(purc_variant_t v1, purc_variant_t v2)
     foreach_value_in_variant_array(v1, m1)
 
         m2 = purc_variant_array_get(v2, idx);
-        i = purc_variant_compare(m1, m2);
-        if (i != 0)
-            return i;
+        diff = purc_variant_compare(m1, m2);
+        if (diff != 0)
+            return diff;
 
         idx++;
     end_foreach;
 
     return 0;
+}
+
+static int compare_sets(purc_variant_t v1, purc_variant_t v2)
+{
+    int diff;
+    size_t sz1 = purc_variant_set_get_size(v1);
+    size_t sz2 = purc_variant_set_get_size(v2);
+    struct purc_variant_set_iterator* it;
+    purc_variant_t m1, m2;
+
+    if (sz1 != sz2)
+        return (int)(sz1 - sz2);
+
+    it = purc_variant_set_make_iterator_begin(v2);
+    foreach_value_in_variant_set(v1, m1)
+
+        m2 = purc_variant_set_iterator_get_value(it);
+        diff = purc_variant_compare(m1, m2);
+        if (diff != 0)
+            goto ret;
+
+    purc_variant_set_iterator_next(it);
+    end_foreach;
+
+    purc_variant_set_release_iterator(it);
+    return 0;
+
+ret:
+    purc_variant_set_release_iterator(it);
+    return diff;
 }
 
 bool
@@ -866,8 +900,10 @@ int purc_variant_compare(purc_variant_t v1, purc_variant_t v2)
             return compare_objects(v1, v2);
 
         case PURC_VARIANT_TYPE_ARRAY:
-        case PURC_VARIANT_TYPE_SET:
             return compare_arrays(v1, v2);
+
+        case PURC_VARIANT_TYPE_SET:
+            return compare_sets(v1, v2);
 
         default:
             PC_ASSERT(0);

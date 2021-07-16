@@ -127,6 +127,7 @@ _variant_object_set_kvs_n(purc_variant_t obj, size_t nr_kv_pairs,
 
         if (_variant_object_set(obj, k_c, v))
             break;
+        ++i;
     }
     return i<nr_kv_pairs ? -1 : 0;
 }
@@ -261,6 +262,7 @@ void pcvariant_object_release (purc_variant_t value)
     pcvariant_stat_set_extra_size(value, 0);
 }
 
+/* VWNOTE: unnecessary
 int pcvariant_object_compare (purc_variant_t lv, purc_variant_t rv)
 {
     // only called via purc_variant_compare
@@ -280,6 +282,7 @@ int pcvariant_object_compare (purc_variant_t lv, purc_variant_t rv)
 
     return lcurr ? 1 : -1;
 }
+*/
 
 purc_variant_t purc_variant_object_get_c (purc_variant_t obj, const char* key)
 {

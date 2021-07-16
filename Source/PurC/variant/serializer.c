@@ -56,21 +56,42 @@
 
 static const char *hex_chars = "0123456789abcdefABCDEF";
 
-#define MY_WRITE(rws, buff, count)                              \
-    do {                                                        \
-        ssize_t n;                                              \
-        if (len_expected)                                       \
-            *len_expected += (count);                           \
-        n = purc_rwstream_write((rws), (buff), (count));        \
-        if (n < 0)                                              \
-            goto failed;                                        \
-        nr_written += n;                                        \
+#define MY_WRITE(rws, buff, count)                                      \
+    do {                                                                \
+        const char* _buff = buff;                                       \
+        ssize_t n;                                                      \
+        size_t nr_left = (count);                                       \
+        if (len_expected)                                               \
+            *len_expected += (count);                                   \
+        while (1) {                                                     \
+            n = purc_rwstream_write((rws), _buff, nr_left);             \
+            if (n <= 0) {                                               \
+                if (flags & PCVARIANT_SERIALIZE_OPT_IGNORE_ERRORS)      \
+                    break;                                              \
+                else                                                    \
+                    goto failed;                                        \
+            }                                                           \
+            else if ((size_t)n < nr_left) {                             \
+                nr_written += n;                                        \
+                _buff += n;                                             \
+                continue;                                               \
+            }                                                           \
+            else {                                                      \
+                nr_written += n;                                        \
+                break;                                                  \
+            }                                                           \
+        }                                                               \
     } while (0)
 
-#define MY_CHECK(n)                                             \
-    do {                                                        \
-        if ((n) < 0) goto failed;                               \
-        nr_written += n;                                        \
+#define MY_CHECK(n)                                                     \
+    do {                                                                \
+        if ((n) < 0 &&                                                  \
+                !(flags & PCVARIANT_SERIALIZE_OPT_IGNORE_ERRORS)) {     \
+            goto failed;                                                \
+        }                                                               \
+        else {                                                          \
+            nr_written += (n);                                          \
+        }                                                               \
     } while (0)
 
 static ssize_t
@@ -235,7 +256,8 @@ static const char base64_pad = '=';
    */
 
 static ssize_t serialize_bsequence_base64(purc_rwstream_t rws,
-        const void *_src, size_t srclength, size_t *len_expected)
+        const void *_src, size_t srclength,
+        unsigned int flags, size_t *len_expected)
 {
     const unsigned char *src = _src;
     ssize_t nr_written = 0;
@@ -300,7 +322,7 @@ serialize_bsequence(purc_rwstream_t rws, const char* content,
 
     switch (flags & PCVARIANT_SERIALIZE_OPT_BSEQUECE_MASK) {
         case PCVARIANT_SERIALIZE_OPT_BSEQUECE_HEX:
-            MY_WRITE(rws, "bh", 2);
+            MY_WRITE(rws, "bx", 2);
             for (i = 0; i < sz_content; i++) {
                 unsigned char byte = (unsigned char)content[i];
                 char buff[2];
@@ -324,7 +346,7 @@ serialize_bsequence(purc_rwstream_t rws, const char* content,
                     k++;
 
                     if (flags & PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BIN_DOT &&
-                            j == 3) {
+                            (j == 3 || (j == 7 && i != sz_content - 1))) {
                         buff[k] = '.';
                         k++;
                     }
@@ -335,14 +357,11 @@ serialize_bsequence(purc_rwstream_t rws, const char* content,
             break;
 
         case PCVARIANT_SERIALIZE_OPT_BSEQUECE_BASE64:
+        default:
             MY_WRITE(rws, "b64", 3);
             n = serialize_bsequence_base64(rws, content, sz_content,
-                    len_expected);
+                    flags, len_expected);
             MY_CHECK(n);
-            break;
-
-        default:
-            PC_ASSERT(0);
             break;
     }
 
@@ -487,7 +506,7 @@ serialize_double(purc_rwstream_t rws, double d, int flags,
 
 static ssize_t
 serialize_long_double(purc_rwstream_t rws, long double ld, int flags,
-        size_t *len_expected)
+        const char *format, size_t *len_expected)
 {
     char buf[256], *p, *q;
     int size;
@@ -507,16 +526,21 @@ serialize_long_double(purc_rwstream_t rws, long double ld, int flags,
         }
     }
     else {
-        size = snprintf(buf, sizeof(buf), "%.17Lg", ld);
+        static const char *std_format = "%.17Lg";
+        if (!format) {
+            format = std_format;
+        }
+
+        size = snprintf(buf, sizeof(buf) - 2, format, ld);
         if (UNLIKELY(size < 0)) {
             pcinst_set_error(PURC_ERROR_OUTPUT);
             return -1;
         }
 
-        if (size >= (int)sizeof(buf)) {
+        if (size >= (int)sizeof(buf) - 2) {
             // The standard formats are guaranteed not to overrun the buffer,
             // but if a custom one happens to do so, just silently truncate.
-            size = sizeof(buf) - 1;
+            size = sizeof(buf) - 3;
             buf[size] = 0;
         }
 
@@ -538,6 +562,10 @@ serialize_long_double(purc_rwstream_t rws, long double ld, int flags,
                 *(++p) = 0;
             size = p - buf;
         }
+
+        // append FL postfix
+        strcat(buf, "FL");
+        size += 2;
     }
 
     if (len_expected)
@@ -566,21 +594,25 @@ print_indent(purc_rwstream_t rws, int level, unsigned int flags,
     size_t n;
     char buff[MAX_EMBEDDED_LEVELS * 2];
 
-    if (level < 0 || level > MAX_EMBEDDED_LEVELS)
+    if (level <= 0 || level > MAX_EMBEDDED_LEVELS)
         return 0;
 
-    if (flags & PCVARIANT_SERIALIZE_OPT_PRETTY_TAB) {
-        n = level;
-        memset(buff, '\t', n);
-    }
-    else {
-        n = level * 2;
-        memset(buff, ' ', n);
+    if (flags & PCVARIANT_SERIALIZE_OPT_PRETTY) {
+        if (flags & PCVARIANT_SERIALIZE_OPT_PRETTY_TAB) {
+            n = level;
+            memset(buff, '\t', n);
+        }
+        else {
+            n = level * 2;
+            memset(buff, ' ', n);
+        }
+
+        if (len_expected)
+            *len_expected += n;
+        return purc_rwstream_write(rws, buff, n);
     }
 
-    if (len_expected)
-        *len_expected += n;
-    return purc_rwstream_write(rws, buff, n);
+    return 0;
 }
 
 static inline ssize_t
@@ -601,6 +633,7 @@ static inline ssize_t print_space_no_pretty(purc_rwstream_t rws,
         unsigned int flags, size_t *len_expected)
 {
     ssize_t nr_written = 0;
+
     if (flags & PCVARIANT_SERIALIZE_OPT_SPACED &&
             !(flags & PCVARIANT_SERIALIZE_OPT_PRETTY)) {
         if (len_expected)
@@ -618,9 +651,16 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
     const char* content = NULL;
     size_t sz_content = 0;
     int i;
-    char buff [128];
+    char buff [256];
     purc_variant_t member = NULL;
     const char* key;
+    char* format_double = NULL;
+    char* format_long_double = NULL;
+
+    purc_get_local_data("format-double",
+            (void **)&format_double, NULL);
+    purc_get_local_data("format-long-double",
+            (void **)&format_long_double, NULL);
 
     PC_ASSERT(value);
 
@@ -653,7 +693,7 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
                 goto failed;
             if (n == 0) {
                 n = serialize_double(rws, value->d, flags,
-                        NULL, /* TODO: format string */
+                        format_double,
                         len_expected);
                 if (n < 0)
                     goto failed;
@@ -680,7 +720,8 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
             break;
 
         case PURC_VARIANT_TYPE_LONGDOUBLE:
-            n = serialize_long_double(rws, value->ld, flags, len_expected);
+            n = serialize_long_double(rws, value->ld, flags,
+                    format_long_double, len_expected);
             MY_CHECK(n);
 
             content = NULL;
@@ -689,9 +730,11 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
         case PURC_VARIANT_TYPE_ATOMSTRING:
             content = purc_atom_to_string(value->sz_ptr[1]);
             sz_content = strlen(content);
+            MY_WRITE(rws, "\"", 1);
             n = serialize_string(rws, content, sz_content,
                         flags, len_expected);
             MY_CHECK(n);
+            MY_WRITE(rws, "\"", 1);
 
             content = NULL;
             break;
@@ -706,9 +749,12 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
                 content = (char*)value->bytes;
                 sz_content = value->size;
             }
-            if (value->type == PURC_VARIANT_TYPE_STRING)
-                n = serialize_string(rws, content, sz_content,
+            if (value->type == PURC_VARIANT_TYPE_STRING) {
+                MY_WRITE(rws, "\"", 1);
+                n = serialize_string(rws, content, sz_content - 1,
                             flags, len_expected);
+                MY_WRITE(rws, "\"", 1);
+            }
             else
                 n = serialize_bsequence(rws, content, sz_content,
                             flags, len_expected);
@@ -752,9 +798,11 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
                 MY_CHECK(n);
 
                 // key
+                MY_WRITE(rws, "\"", 1);
                 n = serialize_string(rws, key, strlen(key),
                         flags, len_expected);
                 MY_CHECK(n);
+                MY_WRITE(rws, "\"", 1);
 
                 MY_WRITE(rws, ":", 1);
                 n = print_space(rws, flags, len_expected);
@@ -788,7 +836,7 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
             n = print_indent(rws, level, flags, len_expected);
             MY_CHECK(n);
 
-            MY_WRITE(rws, "{", 1);
+            MY_WRITE(rws, "[", 1);
             n = print_newline(rws, flags, len_expected);
             MY_CHECK(n);
 

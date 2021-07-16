@@ -185,21 +185,20 @@ static purc_variant_t _pcv_set_new(void)
     return set;
 }
 
-static void _variant_set_obj_release_kvs(struct obj_node *on)
+static inline void pcvariant_set_obj_release_kvs(struct obj_node *on)
 {
     struct list_head *p, *n;
     list_for_each_safe(p, n, &on->keyvals) {
         struct keyval *kv = container_of(p, struct keyval, list);
-        n = kv->list.next;
         list_del(&kv->list);
         purc_variant_unref(kv->val);
         free(kv);
     }
 }
 
-static inline void _variant_set_release_obj(struct obj_node *p)
+static inline void pcvariant_set_release_obj(struct obj_node *p)
 {
-    _variant_set_obj_release_kvs(p);
+    pcvariant_set_obj_release_kvs(p);
     purc_variant_unref(p->obj);
 }
 
@@ -207,7 +206,7 @@ static void _variant_set_release_objs(variant_set_t set)
 {
     struct obj_node *p, *n;
     avl_remove_all_elements(&set->objs, p, avl, n) {
-        _variant_set_release_obj(p);
+        pcvariant_set_release_obj(p);
     }
 }
 
@@ -238,7 +237,7 @@ static int _variant_set_add_val(variant_set_t set, purc_variant_t val)
         return -1;
     }
     if (_variant_set_cache_obj_keyval(set, val, &_new->keyvals)) {
-        _variant_set_release_obj(_new);
+        pcvariant_set_release_obj(_new);
         free(_new);
         return -1;
     }
@@ -253,7 +252,7 @@ static int _variant_set_add_val(variant_set_t set, purc_variant_t val)
     if (p) {
         if (p->obj == val) {
             // already in
-            _variant_set_release_obj(_new);
+            pcvariant_set_release_obj(_new);
             free(_new);
             return 0;
         }
@@ -262,13 +261,13 @@ static int _variant_set_add_val(variant_set_t set, purc_variant_t val)
         p->obj = val;
         purc_variant_ref(val);
 
-        _variant_set_release_obj(_new);
+        pcvariant_set_release_obj(_new);
         free(_new);
         return 0;
     }
 
     if (pcutils_avl_insert(&set->objs, &_new->avl)) {
-        _variant_set_release_obj(_new);
+        pcvariant_set_release_obj(_new);
         free(_new);
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return -1;
@@ -290,6 +289,8 @@ static int _variant_set_add_valsn(variant_set_t set, size_t sz, va_list ap)
         if (_variant_set_add_val(set, v)) {
             break;
         }
+
+        ++i;
     }
     return i<sz ? -1 : 0;
 }
@@ -415,7 +416,7 @@ bool purc_variant_set_remove (purc_variant_t set, purc_variant_t value)
         return -1;
     }
     if (_variant_set_cache_obj_keyval(data, value, &_qry->keyvals)) {
-        _variant_set_release_obj(_qry);
+        pcvariant_set_release_obj(_qry);
         free(_qry);
         return -1;
     }
@@ -428,15 +429,15 @@ bool purc_variant_set_remove (purc_variant_t set, purc_variant_t value)
     p = avl_find_element(&data->objs, _qry->avl.key, p, avl);
     if (!p || p->obj!=value) {
         pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
-        _variant_set_release_obj(_qry);
+        pcvariant_set_release_obj(_qry);
         free(_qry);
         return false;
     }
 
     pcutils_avl_delete(&data->objs, &p->avl);
-    _variant_set_release_obj(p);
+    pcvariant_set_release_obj(p);
     free(p);
-    _variant_set_release_obj(_qry);
+    pcvariant_set_release_obj(_qry);
     free(_qry);
 
     size_t extra = _variant_set_get_extra_size(data);
@@ -603,6 +604,7 @@ void pcvariant_set_release (purc_variant_t value)
     _variant_set_release(data);
 }
 
+/* VWNOTE: unnecessary
 int pcvariant_set_compare (purc_variant_t lv, purc_variant_t rv)
 {
     variant_set_t ldata = _pcv_set_get_data(lv);
@@ -623,4 +625,5 @@ int pcvariant_set_compare (purc_variant_t lv, purc_variant_t rv)
 
     return ln ? 1 : -1;
 }
+*/
 

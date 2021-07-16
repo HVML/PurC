@@ -220,7 +220,7 @@ purc_variant_get_atom_string_const(purc_variant_t value);
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t
-purc_variant_make_byte_sequence(const unsigned char* bytes, size_t nr_bytes);
+purc_variant_make_byte_sequence(const void* bytes, size_t nr_bytes);
 
 
 /**
@@ -263,17 +263,17 @@ typedef purc_variant_t (*purc_dvariant_method) (purc_variant_t root,
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t
-purc_variant_make_dynamic_value(purc_dvariant_method getter,
+purc_variant_make_dynamic(purc_dvariant_method getter,
         purc_dvariant_method setter);
 
 
-typedef bool (*purc_navtive_releaser) (void* native_obj);
+typedef bool (*purc_navtive_releaser) (void* entity);
 
 /**
  * Creates a variant value of native type.
  *
- * @param native_entity: the pointer of native entity.
- * @param releaser: the purc_navtive_releaser function pointer
+ * @param entity: the pointer to the native entity.
+ * @param releaser: the pointer to a purc_navtive_releaser function.
  *
  * Returns: A purc_variant_t with native value,
  *      or PURC_VARIANT_INVALID on failure.
@@ -281,7 +281,7 @@ typedef bool (*purc_navtive_releaser) (void* native_obj);
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t
-purc_variant_make_native(void *native_entity, purc_navtive_releaser releaser);
+purc_variant_make_native(void *entity, purc_navtive_releaser releaser);
 
 
 /**
@@ -417,7 +417,12 @@ purc_variant_array_insert_after(purc_variant_t array,
  *
  * @param array: the variant value of array type
  *
- * Returns: The number of elements in an array variant value.
+ * Returns: The number of elements in the array; -1 on failure:
+ *      - the variant value is not an array.
+ *
+ * VWNOTE: the prototype of this function should be changed to:
+ *
+ *      ssize_t purc_variant_array_get_size(const purc_variant_t set);
  *
  * Since: 0.0.1
  */
@@ -554,7 +559,12 @@ purc_variant_object_remove(purc_variant_t obj, purc_variant_t key)
  *
  * @param obj: the variant value of object type
  *
- * Returns: The number of key-value pairs in an object variant value.
+ * Returns: The number of key-value pairs in the object; -1 on failure:
+ *      - the variant value is not an object.
+ *
+ * VWNOTE: the prototype of this function should be changed to:
+ *
+ *      ssize_t purc_variant_object_get_size(const purc_variant_t set);
  *
  * Since: 0.0.1
  */
@@ -684,10 +694,12 @@ PCA_EXPORT purc_variant_t
 purc_variant_object_iterator_get_value(struct purc_variant_object_iterator* it);
 
 /**
- * Creates a variant value of set type with key as c string
+ * Creates a variant value of set type.
  *
- * @param sz: the number of elements in a set
- * @param unique_key: the keys for one record 
+ * @param sz: the initial number of elements in a set.
+ * @param unique_key: the unique keys specified in a C string (nullable).
+ *      If the unique keyis NULL, the set is a generic one.
+ *
  * @param value0 ..... valuen: the values.
  *
  * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
@@ -701,11 +713,12 @@ purc_variant_make_set_c(size_t sz, const char* unique_key,
         purc_variant_t value0, ...);
 
 /**
- * Creates a variant value of set type with key as another variant
+ * Creates a variant value of set type.
  *
- * @param sz: the number of elements in a set
- * @param unique_key: the keys for one record 
- * @param value0 ..... valuen: the values.
+ * @param sz: the initial number of elements in a set.
+ * @param unique_key: the unique keys specified in a variant. If the unique key
+ *      is PURC_VARIANT_INVALID, the set is a generic one.
+ * @param value0 ... valuen: the values will be add to the set.
  *
  * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
  *
@@ -718,12 +731,13 @@ purc_variant_make_set(size_t sz, purc_variant_t unique_key,
         purc_variant_t value0, ...);
 
 /**
- * Adds a unique key-value pair to a set.
+ * Adds a variant value to a set.
  *
- * @param set: the set to be added
- * @param value: the value to be added
+ * @param set: the variant value of the set type.
+ * @param value: the value to be added.
  *
- * Returns: True on success, False on failure
+ * Returns: @true on success, @false if:
+ *      - there is already such a value in the set.
  *
  * Since: 0.0.1
  */
@@ -736,7 +750,8 @@ purc_variant_set_add(purc_variant_t obj, purc_variant_t value);
  * @param set: the set to be operated
  * @param value: the value to be removed
  *
- * Returns: True on success, False on failure
+ * Returns: @true on success, @false if:
+ *      - no any matching member in the set.
  *
  * Since: 0.0.1
  */
@@ -744,41 +759,59 @@ PCA_EXPORT bool
 purc_variant_set_remove(purc_variant_t obj, purc_variant_t value);
 
 /**
- * Gets the value by key from a set with key as a c string
+ * Gets the member by the values of unique keys from a set.
  *
- * @param set: the variant value of obj type
- * @param match_key: the unique key related to the value
+ * @param set: the variant value of the set type.
+ * @param v1...vN: the values for matching. The caller should pass one value
+ *      for each unique key.
  *
- * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ * Returns: The memeber matched on success, or PURC_VARIANT_INVALID if:
+ *      - the set does not managed by the unique keys, or
+ *      - no any matching member, or
+ *      - the number of the matching values do not match the number of the
+ *        unique keys.
+ *
+ * VWNOTE: new API (replacement of old purc_variant_set_get_value).
  *
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t
-purc_variant_set_get_value_c(const purc_variant_t set, const char * match_key);
+purc_variant_set_get_member_by_key_values(purc_variant_t set,
+        purc_variant_t v1, ...);
 
 /**
- * Gets the value by key from a set with key as another variant
+ * Removes the member by the values of unique keys from a set.
  *
- * @param set: the variant value of obj type
- * @param match_key: the unique key related to the value
+ * @param set: the variant value of the set type. The set should be managed
+ *      by unique keys.
+ * @param v1...vN: the values for matching. The caller should pass one value
+ *      for each unique key.
  *
- * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ * Returns: @true on success, or @false if:
+ *      - the set does not managed by unique keys, or
+ *      - no any matching member, or
+ *      - the number of the matching values do not match the number of the
+ *        unique keys.
+ *
+ * VWNOTE: new API.
  *
  * Since: 0.0.1
  */
-static inline purc_variant_t
-purc_variant_set_get_value(const purc_variant_t obj, purc_variant_t match_key)
-{
-    return purc_variant_set_get_value_c(obj,
-            purc_variant_get_string_const(match_key));
-}
+PCA_EXPORT purc_variant_t
+purc_variant_set_remove_member_by_key_values(purc_variant_t set,
+        purc_variant_t v1, ...);
 
 /**
  * Get the number of elements in a set variant value.
  *
  * @param set: the variant value of set type
  *
- * Returns: The number of elements in a set variant value.
+ * Returns: The number of elements in a set variant value; -1 on failure:
+ *      - the variant value is not a set.
+ *
+ * VWNOTE: the prototype of this function should be changed to:
+ *
+ *      ssize_t purc_variant_set_get_size(const purc_variant_t set);
  *
  * Since: 0.0.1
  */
@@ -1071,7 +1104,8 @@ purc_variant_cast_to_byte_sequence(purc_variant_t v,
  *
  * Since: 0.0.1
  */
-PCA_EXPORT int purc_variant_compare(purc_variant_t v1, purc_variant_t v2);
+PCA_EXPORT int
+purc_variant_compare(purc_variant_t v1, purc_variant_t v2);
 
 /**
  * A flag for the purc_variant_serialize() function which causes the output
@@ -1137,7 +1171,13 @@ PCA_EXPORT int purc_variant_compare(purc_variant_t v1, purc_variant_t v2);
  * A flag for the purc_variant_serialize() function which causes
  * the output to have dot for binary sequence.
  */
-#define PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BIN_DOT       0x0020
+#define PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BIN_DOT       0x0040
+
+/**
+ * A flag for the purc_variant_serialize() function which causes
+ * the function ignores the output errors.
+ */
+#define PCVARIANT_SERIALIZE_OPT_IGNORE_ERRORS           0x0080
 
 /**
  * Serialize a variant value
@@ -1150,17 +1190,19 @@ PCA_EXPORT int purc_variant_compare(purc_variant_t v1, purc_variant_t v2);
  *      the serialized data (nullable). The value in the buffer should be
  *      set to 0 initially.
  *
- * Returns: The size of the serialized data written to the stream;
- *      On error, -1 is returned, and error code is set to indicate
- *      the cause of the error.
+ * Returns:
+ * The size of the serialized data written to the stream;
+ * On error, -1 is returned, and error code is set to indicate
+ * the cause of the error.
  *
- * If @len_expected is not null, the expected length of the serialized
- * data will be returned through this buffer. If the returned size
- * of the serialized data written to the stream is smaller
- * than the expected length, this shows that only part of the data is
- * actually written to the stream.
+ * If the function is called with the flag
+ * PCVARIANT_SERIALIZE_OPT_IGNORE_ERRORS set, this function always
+ * returned the number of bytes written to the stream actually.
+ * Meanwhile, if @len_expected is not null, the expected length of
+ * the serialized data will be returned through this buffer.
  *
- * However, you can prepare a small memory stream to count the
+ * Therefore, you can prepare a small memory stream with the flag
+ * PCVARIANT_SERIALIZE_OPT_IGNORE_ERRORS set to count the
  * expected length of the serialized data.
  *
  * Since: 0.0.1
@@ -1282,7 +1324,7 @@ PCA_EXPORT inline bool purc_variant_is_sequence(purc_variant_t v)
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_BSEQUENCE);
 }
 
-PCA_EXPORT inline bool purc_variant_is_dynamic_value(purc_variant_t v)
+PCA_EXPORT inline bool purc_variant_is_dynamic(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_DYNAMIC);
 }
