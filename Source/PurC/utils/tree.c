@@ -26,6 +26,45 @@
 #include "private/errors.h"
 #include "config.h"
 
+#if HAVE(GLIB)
+#include <gmodule.h>
+#endif
+
+#if HAVE(GLIB)
+static inline UNUSED_FUNCTION pctree_node_t alloc_pctree_node(void) {
+    return (pctree_node_t)g_slice_alloc(sizeof(pctree_node));
+}
+
+static inline UNUSED_FUNCTION pctree_node_t alloc_pctree_node_0(void) {
+    return (pctree_node_t)g_slice_alloc0(sizeof(pctree_node));
+}
+
+static inline void free_pctree_node(pctree_node_t v) {
+    return g_slice_free1(sizeof(pctree_node), (gpointer)v);
+}
+#else
+static inline UNUSED_FUNCTION pctree_node_t alloc_pctree_node(void) {
+    return (pctree_node_t)malloc(sizeof(pctree_node));
+}
+
+static inline UNUSED_FUNCTION pctree_node_t alloc_pctree_node_0(void) {
+    return (pctree_node_t)calloc(1, sizeof(pctree_node));
+}
+
+static inline void free_pctree_node(pctree_node_t v) {
+    return free(v);
+}
+#endif
+
+pctree_node_t pctree_node_new (void* user_data)
+{
+    pctree_node_t node = alloc_pctree_node_0 ();
+    if (node) {
+        node->user_data = user_data;
+    }
+    return node;
+}
+
 bool pctree_node_append_child (pctree_node_t parent,
         pctree_node_t node)
 {

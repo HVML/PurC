@@ -34,8 +34,7 @@
 #define PURC_TREE_NODE_DOM_ELEMENT      2
 
 typedef struct pctree_node {
-    /* type of node */
-    uint8_t type;
+    void* user_data;
 
     /* number of children */
     size_t nr_children;
@@ -59,6 +58,21 @@ extern "C" {
  *
  */
 typedef void(pctree_node_for_each_fn)(pctree_node_t node,  void* data);
+
+
+/**
+ * Creates a new node containing the given data
+ *
+ * @param user_data: the user data of the new node
+ *
+ * @return A pctree_node_t on success, @NULL on failure and the error code
+ *         is set to indicate the error. The error code:
+ *  - @PURC_ERROR_INVALID_VALUE: Invalid value
+ *  - @PURC_ERROR_OUT_OF_MEMORY: Out of memory
+ *
+ * Since: 0.0.1
+ */
+pctree_node_t pctree_node_new (void* user_data);
 
 /**
  * Inserts a node as the last child of the given parent.
@@ -223,20 +237,18 @@ size_t pctree_node_children_number (pctree_node_t node)
 }
 
 /**
- * Gets the type of a node.
+ * Gets the user_data of a node.
  *
  * @param node: the given node
  *
- * @return the type of node. The error code is set to indicate
- *         the error. The error code:
- *  - @PURC_ERROR_INVALID_VALUE: Invalid value
+ * @return the user_data of node.
  *
  * Since: 0.0.1
  */
 static inline
-uint8_t pctree_node_type (pctree_node_t node)
+void* pctree_node_user_data (pctree_node_t node)
 {
-    return node->type;
+    return node->user_data;
 }
 
 
