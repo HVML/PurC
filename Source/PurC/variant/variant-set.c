@@ -240,6 +240,7 @@ static int _variant_set_add_val(variant_set_t set, purc_variant_t val)
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return -1;
     }
+    INIT_LIST_HEAD(&_new->keyvals);
     if (_variant_set_cache_obj_keyval(set, val, &_new->keyvals)) {
         pcvariant_set_release_obj(_new);
         free(_new);
@@ -419,6 +420,7 @@ bool purc_variant_set_remove (purc_variant_t set, purc_variant_t value)
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return -1;
     }
+    INIT_LIST_HEAD(&_qry->keyvals);
     if (_variant_set_cache_obj_keyval(data, value, &_qry->keyvals)) {
         pcvariant_set_release_obj(_qry);
         free(_qry);
