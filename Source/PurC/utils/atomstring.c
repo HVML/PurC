@@ -71,7 +71,8 @@ purc_atom_try_string (const char *string)
 
     purc_rwlock_reader_lock (&atom_rwlock);
     data = pcutils_kvlist_get (&atom_ht, string);
-    atom = *data;
+    if (data)
+        atom = *data;
     // memcpy (&atom, data, sizeof(purc_atom_t));
     //atom = (uint32_t)(uintptr_t)pcutils_kvlist_get (&atom_ht, string);
     purc_rwlock_reader_unlock (&atom_rwlock);
