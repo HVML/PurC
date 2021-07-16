@@ -479,8 +479,6 @@ size_t purc_variant_set_get_size(const purc_variant_t set)
 struct purc_variant_set_iterator {
     purc_variant_t       set;
     struct obj_node     *curr;
-    struct obj_node     *next;
-    struct obj_node     *prev;
 };
 
 struct purc_variant_set_iterator*
@@ -511,36 +509,7 @@ purc_variant_set_make_iterator_begin (purc_variant_t set)
 
     it->curr = p;
 
-    p = avl_last_element(&data->objs, p, avl);
-    if (it->curr==p) {
-        it->next = NULL;
-        it->prev = NULL;
-    } else {
-        it->next = avl_next_element(it->curr, avl);
-        it->prev = avl_prev_element(it->curr, avl);
-    }
-
     return it;
-}
-
-static inline void
-_pcvariant_set_iterator_set_next_prev(struct purc_variant_set_iterator *it)
-{
-    variant_set_t data = _pcv_set_get_data(it->set);
-    PC_ASSERT(data);
-
-    struct obj_node *p;
-    p = avl_last_element(&data->objs, p, avl);
-    if (it->curr == p)
-        it->next = NULL;
-    else
-        it->next = avl_next_element(it->curr, avl);
-
-    p = avl_first_element(&data->objs, p, avl);
-    if (it->curr == p)
-        it->prev = NULL;
-    else
-        it->prev = avl_prev_element(it->curr, avl);
 }
 
 struct purc_variant_set_iterator*
@@ -571,8 +540,6 @@ purc_variant_set_make_iterator_end (purc_variant_t set)
 
     it->curr = p;
 
-    _pcvariant_set_iterator_set_next_prev(it);
-
     return it;
 }
 
@@ -589,15 +556,17 @@ bool purc_variant_set_iterator_next (struct purc_variant_set_iterator* it)
         it->set->type==PVT(_SET) && it->curr,
         false);
 
-    it->curr = it->next;
-    if (!it->curr) {
-        it->next = NULL;
-        it->prev = NULL;
+    variant_set_t data = _pcv_set_get_data(it->set);
+    PC_ASSERT(data);
+
+    struct obj_node *p;
+    p = avl_last_element(&data->objs, p, avl);
+    if (it->curr==p) {
         pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
         return false;
     }
 
-    _pcvariant_set_iterator_set_next_prev(it);
+    it->curr = avl_next_element(it->curr, avl);
 
     return true;
 }
@@ -608,15 +577,17 @@ bool purc_variant_set_iterator_prev (struct purc_variant_set_iterator* it)
         it->set->type==PVT(_SET) && it->curr,
         false);
 
-    it->curr = it->prev;
-    if (!it->curr) {
-        it->next = NULL;
-        it->prev = NULL;
+    variant_set_t data = _pcv_set_get_data(it->set);
+    PC_ASSERT(data);
+
+    struct obj_node *p;
+    p = avl_first_element(&data->objs, p, avl);
+    if (it->curr==p) {
         pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
         return false;
     }
 
-    _pcvariant_set_iterator_set_next_prev(it);
+    it->curr = avl_prev_element(it->curr, avl);
 
     return true;
 }
