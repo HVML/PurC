@@ -479,6 +479,8 @@ size_t purc_variant_set_get_size(const purc_variant_t set)
 struct purc_variant_set_iterator {
     purc_variant_t       set;
     struct obj_node     *curr;
+    struct obj_node     *next;
+    struct obj_node     *prev;
 };
 
 struct purc_variant_set_iterator*
@@ -486,6 +488,15 @@ purc_variant_set_make_iterator_begin (purc_variant_t set)
 {
     PCVARIANT_CHECK_FAIL_RET(set && set->type==PVT(_SET),
         NULL);
+
+    variant_set_t data = _pcv_set_get_data(set);
+    PC_ASSERT(data);
+
+    if (data->objs.count==0) {
+        pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
+        return NULL;
+    }
+    
     struct purc_variant_set_iterator *it;
     it = (struct purc_variant_set_iterator*)calloc(1, sizeof(*it));
     if (!it) {
@@ -494,19 +505,42 @@ purc_variant_set_make_iterator_begin (purc_variant_t set)
     }
     it->set = set;
 
-    variant_set_t data = _pcv_set_get_data(set);
+    struct obj_node *p;
+    p = avl_first_element(&data->objs, p, avl);
+    PC_ASSERT(p);
+
+    it->curr = p;
+
+    p = avl_last_element(&data->objs, p, avl);
+    if (it->curr==p) {
+        it->next = NULL;
+        it->prev = NULL;
+    } else {
+        it->next = avl_next_element(it->curr, avl);
+        it->prev = avl_prev_element(it->curr, avl);
+    }
+
+    return it;
+}
+
+static inline void
+_pcvariant_set_iterator_set_next_prev(struct purc_variant_set_iterator *it)
+{
+    variant_set_t data = _pcv_set_get_data(it->set);
     PC_ASSERT(data);
 
     struct obj_node *p;
-    p = avl_first_element(&data->objs, p, avl);
-    if (!p) {
-        pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
-        free(it);
-        return NULL;
-    }
+    p = avl_last_element(&data->objs, p, avl);
+    if (it->curr == p)
+        it->next = NULL;
+    else
+        it->next = avl_next_element(it->curr, avl);
 
-    it->curr = p;
-    return it;
+    p = avl_first_element(&data->objs, p, avl);
+    if (it->curr == p)
+        it->prev = NULL;
+    else
+        it->prev = avl_prev_element(it->curr, avl);
 }
 
 struct purc_variant_set_iterator*
@@ -514,6 +548,15 @@ purc_variant_set_make_iterator_end (purc_variant_t set)
 {
     PCVARIANT_CHECK_FAIL_RET(set && set->type==PVT(_SET),
         NULL);
+
+    variant_set_t data = _pcv_set_get_data(set);
+    PC_ASSERT(data);
+
+    if (data->objs.count==0) {
+        pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
+        return NULL;
+    }
+    
     struct purc_variant_set_iterator *it;
     it = (struct purc_variant_set_iterator*)calloc(1, sizeof(*it));
     if (!it) {
@@ -522,18 +565,14 @@ purc_variant_set_make_iterator_end (purc_variant_t set)
     }
     it->set = set;
 
-    variant_set_t data = _pcv_set_get_data(set);
-    PC_ASSERT(data);
-
     struct obj_node *p;
     p = avl_last_element(&data->objs, p, avl);
-    if (!p) {
-        pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
-        free(it);
-        return NULL;
-    }
+    PC_ASSERT(p);
 
     it->curr = p;
+
+    _pcvariant_set_iterator_set_next_prev(it);
+
     return it;
 }
 
@@ -550,21 +589,16 @@ bool purc_variant_set_iterator_next (struct purc_variant_set_iterator* it)
         it->set->type==PVT(_SET) && it->curr,
         false);
 
-    variant_set_t data = _pcv_set_get_data(it->set);
-    PC_ASSERT(data);
-
-    struct obj_node *p;
-    p = avl_last_element(&data->objs, p, avl);
-    if (it->curr==p) {
-        it->curr = NULL;
-        pcinst_set_error(PURC_ERROR_OK);
-        return false;
-    }
-    it->curr = avl_next_element(it->curr, avl);
+    it->curr = it->next;
     if (!it->curr) {
-        pcinst_set_error(PURC_ERROR_OK);
+        it->next = NULL;
+        it->prev = NULL;
+        pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
         return false;
     }
+
+    _pcvariant_set_iterator_set_next_prev(it);
+
     return true;
 }
 
@@ -574,21 +608,16 @@ bool purc_variant_set_iterator_prev (struct purc_variant_set_iterator* it)
         it->set->type==PVT(_SET) && it->curr,
         false);
 
-    variant_set_t data = _pcv_set_get_data(it->set);
-    PC_ASSERT(data);
-
-    struct obj_node *p;
-    p = avl_first_element(&data->objs, p, avl);
-    if (it->curr==p) {
-        it->curr = NULL;
-        pcinst_set_error(PURC_ERROR_OK);
-        return false;
-    }
-    it->curr = avl_prev_element(it->curr, avl);
+    it->curr = it->prev;
     if (!it->curr) {
-        pcinst_set_error(PURC_ERROR_OK);
+        it->next = NULL;
+        it->prev = NULL;
+        pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
         return false;
     }
+
+    _pcvariant_set_iterator_set_next_prev(it);
+
     return true;
 }
 

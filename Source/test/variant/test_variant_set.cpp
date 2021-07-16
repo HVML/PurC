@@ -81,10 +81,9 @@ TEST(variant_set, init_0_elem)
     ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
     ASSERT_EQ(var->refc, 1);
 
-    // purc_variant_ref(var);
-    // ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
-    // ASSERT_EQ(stat->nr_values[PVT(_STRING)], 1);
-    // purc_variant_unref(var);
+    purc_variant_ref(var);
+    ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
+    purc_variant_unref(var);
 
     purc_variant_unref(var);
     ASSERT_EQ(stat->nr_values[PVT(_SET)], 0);
@@ -119,7 +118,7 @@ TEST(variant_set, add_n_str)
     ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
     ASSERT_EQ(var->refc, 1);
 
-    int count = 100;
+    int count = 1024;
     for (int j=0; j<count; ++j) {
         char buf[64];
         snprintf(buf, sizeof(buf), "%d", j);
@@ -136,13 +135,16 @@ TEST(variant_set, add_n_str)
     ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], count);
     ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
 
-    // int j = 0;
-    // purc_variant_t val;
-    // foreach_value_in_variant_set(var, val)
-    //     ASSERT_EQ(val->type, PVT(_OBJECT));
-    //     ++j;
-    // end_foreach;
-    // ASSERT_EQ(j, count);
+    int j = 0;
+    purc_variant_set_iterator *it;
+    bool having = true;
+    for (it = purc_variant_set_make_iterator_begin(var);
+         it && having;
+         having = purc_variant_set_iterator_next(it))
+    {
+        ++j;
+    }
+    ASSERT_EQ(j, count);
 
     ASSERT_EQ(var->refc, 1);
     purc_variant_unref(var);
