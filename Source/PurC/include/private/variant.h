@@ -147,6 +147,8 @@ struct variant_set {
     struct avl_tree         objs;       // multiple-variant-objects stored in set
 };
 
+void pcvariant_set_release_obj(struct obj_node *p);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
@@ -214,7 +216,7 @@ struct variant_set {
  /* } while (0) */
 
 #define foreach_key_value_in_variant_object_safe(_obj, _key, _val,      \
-            _curr, _tmp)                                                \
+        _curr, _tmp)                                                    \
     do {                                                                \
         struct pchash_table *_ht;                                       \
         _ht = (struct pchash_table*)_obj->sz_ptr[1];                    \
@@ -227,9 +229,11 @@ struct variant_set {
 
 #define foreach_value_in_variant_set(_set, _val)                        \
     do {                                                                \
+        variant_set_t _data;                                            \
         struct avl_tree *_tree;                                         \
-        _tree = (struct avl_tree*)_set->sz_ptr[1];                      \
         struct obj_node *_elem;                                         \
+        _data = (variant_set_t)_set->sz_ptr[1];                         \
+        _tree = &_data->objs;                                           \
         avl_for_each_element(_tree, _elem, avl) {                       \
             _val = _elem->obj;                                          \
      /* } */                                                            \
@@ -237,8 +241,10 @@ struct variant_set {
 
 #define foreach_value_in_variant_set_safe(_set, _val, _curr, _tmp)      \
     do {                                                                \
+        variant_set_t _data;                                            \
         struct avl_tree *_tree;                                         \
-        _tree = (struct avl_tree*)_set->sz_ptr[1];                      \
+        _data = (variant_set_t)_set->sz_ptr[1];                         \
+        _tree = &_data->objs;                                           \
         avl_for_each_element_safe(_tree, _curr, avl, _tmp) {            \
             _val = _curr->obj;                                          \
      /* } */                                                            \

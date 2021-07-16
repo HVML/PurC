@@ -181,19 +181,14 @@ purc_variant_make_object_c (size_t nr_kv_pairs,
 
     struct pchash_table *ht = _variant_object_get_ht(obj);
     PC_ASSERT(ht);
-    if (nr_kv_pairs==0) {
-        size_t extra = _HT_EXTRA_SIZE(ht);
-        pcvariant_stat_set_extra_size(obj, extra);
-        return obj;
-    }
 
     do {
-        const char     *k = key0;
-        purc_variant_t  v = value0;
-        if (_variant_object_set(obj, k, v))
-            break;
+        if (nr_kv_pairs>0) {
+            const char     *k = key0;
+            purc_variant_t  v = value0;
+            if (_variant_object_set(obj, k, v))
+                break;
 
-        if (nr_kv_pairs>1) {
             va_list ap;
             va_start(ap, value0);
             int r = _variant_object_set_kvs_n(obj, nr_kv_pairs-1, 1, ap);
@@ -228,23 +223,18 @@ purc_variant_make_object (size_t nr_kv_pairs,
 
     struct pchash_table *ht = _variant_object_get_ht(obj);
     PC_ASSERT(ht);
-    if (nr_kv_pairs==0) {
-        size_t extra = _HT_EXTRA_SIZE(ht);
-        pcvariant_stat_set_extra_size(obj, extra);
-        return obj;
-    }
 
     do {
-        const char *k = purc_variant_get_string_const(key0);
-        purc_variant_t v = value0;
-        if (!k) {
-            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-            break;
-        }
-        if (_variant_object_set(obj, k, v))
-            break;
+        if (nr_kv_pairs>0) {
+            const char *k = purc_variant_get_string_const(key0);
+            purc_variant_t v = value0;
+            if (!k) {
+                pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+                break;
+            }
+            if (_variant_object_set(obj, k, v))
+                break;
 
-        if (nr_kv_pairs>1) {
             va_list ap;
             va_start(ap, value0);
             int r = _variant_object_set_kvs_n(obj, nr_kv_pairs-1, 0, ap);
