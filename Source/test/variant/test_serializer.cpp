@@ -6,7 +6,12 @@
 
 static inline int my_puts(const char* str)
 {
+#if 0
     return fputs(str, stderr);
+#else
+    (void)str;
+    return 0;
+#endif
 }
 
 // to test: serialize a null
