@@ -14,7 +14,7 @@ struct test_tree_node {
 };
 
 
-pctree_node_t create_tree_node(uint32_t id)
+struct pctree_node* create_tree_node(uint32_t id)
 {
     struct test_tree_node* node = (struct test_tree_node*) calloc(sizeof(struct test_tree_node), 1);
     node->id = id;
@@ -30,10 +30,10 @@ void destroy_tree_node(void* node)
 
 TEST(tree, append)
 {
-    pctree_node_t root = create_tree_node(0);
-    pctree_node_t node_1 = create_tree_node(1);
-    pctree_node_t node_2 = create_tree_node(2);
-    pctree_node_t node_3 = create_tree_node(3);
+    struct pctree_node* root = create_tree_node(0);
+    struct pctree_node* node_1 = create_tree_node(1);
+    struct pctree_node* node_2 = create_tree_node(2);
+    struct pctree_node* node_3 = create_tree_node(3);
 
     pctree_node_append_child(root, node_1);
     ASSERT_EQ(root->nr_children, 1);
@@ -73,10 +73,10 @@ TEST(tree, append)
 
 TEST(tree, prepend)
 {
-    pctree_node_t root = create_tree_node(0);
-    pctree_node_t node_1 = create_tree_node(1);
-    pctree_node_t node_2 = create_tree_node(2);
-    pctree_node_t node_3 = create_tree_node(3);
+    struct pctree_node* root = create_tree_node(0);
+    struct pctree_node* node_1 = create_tree_node(1);
+    struct pctree_node* node_2 = create_tree_node(2);
+    struct pctree_node* node_3 = create_tree_node(3);
 
     pctree_node_append_child(root, node_1);
     ASSERT_EQ(root->nr_children, 1);
@@ -104,10 +104,10 @@ TEST(tree, prepend)
 
 TEST(tree, insert_before)
 {
-    pctree_node_t root = create_tree_node(0);
-    pctree_node_t node_1 = create_tree_node(1);
-    pctree_node_t node_2 = create_tree_node(2);
-    pctree_node_t node_3 = create_tree_node(3);
+    struct pctree_node* root = create_tree_node(0);
+    struct pctree_node* node_1 = create_tree_node(1);
+    struct pctree_node* node_2 = create_tree_node(2);
+    struct pctree_node* node_3 = create_tree_node(3);
 
     pctree_node_append_child(root, node_1);
     ASSERT_EQ(root->nr_children, 1);
@@ -130,10 +130,10 @@ TEST(tree, insert_before)
 
 TEST(tree, insert_after)
 {
-    pctree_node_t root = create_tree_node(0);
-    pctree_node_t node_1 = create_tree_node(1);
-    pctree_node_t node_2 = create_tree_node(2);
-    pctree_node_t node_3 = create_tree_node(3);
+    struct pctree_node* root = create_tree_node(0);
+    struct pctree_node* node_1 = create_tree_node(1);
+    struct pctree_node* node_2 = create_tree_node(2);
+    struct pctree_node* node_3 = create_tree_node(3);
 
     pctree_node_append_child(root, node_1);
     ASSERT_EQ(root->nr_children, 1);
@@ -156,10 +156,10 @@ TEST(tree, insert_after)
 
 TEST(tree, insert)
 {
-    pctree_node_t root = create_tree_node(0);
-    pctree_node_t node_1 = create_tree_node(1);
-    pctree_node_t node_2 = create_tree_node(2);
-    pctree_node_t node_3 = create_tree_node(3);
+    struct pctree_node* root = create_tree_node(0);
+    struct pctree_node* node_1 = create_tree_node(1);
+    struct pctree_node* node_2 = create_tree_node(2);
+    struct pctree_node* node_3 = create_tree_node(3);
 
     pctree_node_append_child(root, node_1);
     ASSERT_EQ(root->nr_children, 1);
@@ -182,11 +182,11 @@ TEST(tree, insert)
 
 TEST(tree, build_tree)
 {
-    pctree_node_t root = create_tree_node(0);
-    pctree_node_t node_1 = create_tree_node(1);
-    pctree_node_t node_2 = create_tree_node(2);
-    pctree_node_t node_3 = create_tree_node(3);
-    pctree_node_t node_4 = create_tree_node(4);
+    struct pctree_node* root = create_tree_node(0);
+    struct pctree_node* node_1 = create_tree_node(1);
+    struct pctree_node* node_2 = create_tree_node(2);
+    struct pctree_node* node_3 = create_tree_node(3);
+    struct pctree_node* node_4 = create_tree_node(4);
 
     pctree_node_prepend_child(root, node_1);
     ASSERT_EQ(root->nr_children, 1);
@@ -214,7 +214,7 @@ TEST(tree, build_tree)
 }
 
 
-void  build_output_buf(pctree_node_t node,  void* data)
+void  build_output_buf(struct pctree_node* node,  void* data)
 {
     char buf[1000] = {0};
     purc_rwstream_t rws = (purc_rwstream_t) data;
@@ -234,17 +234,17 @@ void  build_output_buf(pctree_node_t node,  void* data)
  */
 TEST(tree, traversal)
 {
-    pctree_node_t node_1 = create_tree_node(1);
-    pctree_node_t node_2 = create_tree_node(2);
-    pctree_node_t node_3 = create_tree_node(3);
-    pctree_node_t node_4 = create_tree_node(4);
-    pctree_node_t node_5 = create_tree_node(5);
-    pctree_node_t node_6 = create_tree_node(6);
-    pctree_node_t node_7 = create_tree_node(7);
-    pctree_node_t node_8 = create_tree_node(8);
-    pctree_node_t node_9 = create_tree_node(9);
-    pctree_node_t node_10 = create_tree_node(10);
-    pctree_node_t node_11 = create_tree_node(11);
+    struct pctree_node* node_1 = create_tree_node(1);
+    struct pctree_node* node_2 = create_tree_node(2);
+    struct pctree_node* node_3 = create_tree_node(3);
+    struct pctree_node* node_4 = create_tree_node(4);
+    struct pctree_node* node_5 = create_tree_node(5);
+    struct pctree_node* node_6 = create_tree_node(6);
+    struct pctree_node* node_7 = create_tree_node(7);
+    struct pctree_node* node_8 = create_tree_node(8);
+    struct pctree_node* node_9 = create_tree_node(9);
+    struct pctree_node* node_10 = create_tree_node(10);
+    struct pctree_node* node_11 = create_tree_node(11);
 
     pctree_node_append_child(node_1, node_2);
     ASSERT_EQ(pctree_node_children_number(node_1), 1);

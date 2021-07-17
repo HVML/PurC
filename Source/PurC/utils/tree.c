@@ -31,46 +31,46 @@
 #endif
 
 #if HAVE(GLIB)
-static inline UNUSED_FUNCTION pctree_node_t alloc_pctree_node(void) {
-    return (pctree_node_t)g_slice_alloc(sizeof(pctree_node));
+static inline UNUSED_FUNCTION struct pctree_node* alloc_pctree_node(void) {
+    return (struct pctree_node*)g_slice_alloc(sizeof(struct pctree_node));
 }
 
-static inline UNUSED_FUNCTION pctree_node_t alloc_pctree_node_0(void) {
-    return (pctree_node_t)g_slice_alloc0(sizeof(pctree_node));
+static inline UNUSED_FUNCTION struct pctree_node* alloc_pctree_node_0(void) {
+    return (struct pctree_node*)g_slice_alloc0(sizeof(struct pctree_node));
 }
 
-static inline void free_pctree_node(pctree_node_t v) {
-    return g_slice_free1(sizeof(pctree_node), (gpointer)v);
+static inline void free_pctree_node(struct pctree_node* v) {
+    return g_slice_free1(sizeof(struct pctree_node), (gpointer)v);
 }
 #else
-static inline UNUSED_FUNCTION pctree_node_t alloc_pctree_node(void) {
-    return (pctree_node_t)malloc(sizeof(pctree_node));
+static inline UNUSED_FUNCTION struct pctree_node* alloc_pctree_node(void) {
+    return (struct pctree_node*)malloc(sizeof(struct pctree_node));
 }
 
-static inline UNUSED_FUNCTION pctree_node_t alloc_pctree_node_0(void) {
-    return (pctree_node_t)calloc(1, sizeof(pctree_node));
+static inline UNUSED_FUNCTION struct pctree_node* alloc_pctree_node_0(void) {
+    return (struct pctree_node*)calloc(1, sizeof(struct pctree_node));
 }
 
-static inline void free_pctree_node(pctree_node_t v) {
+static inline void free_pctree_node(struct pctree_node* v) {
     return free(v);
 }
 #endif
 
-pctree_node_t pctree_node_new (void* user_data)
+struct pctree_node* pctree_node_new (void* user_data)
 {
-    pctree_node_t node = alloc_pctree_node_0 ();
+    struct pctree_node* node = alloc_pctree_node_0 ();
     if (node) {
         node->user_data = user_data;
     }
     return node;
 }
 
-void pctree_node_destroy (pctree_node_t node,
+void pctree_node_destroy (struct pctree_node* node,
         pctree_node_destroy_callback callback)
 {
     while (node)
     {
-        pctree_node_t next = node->next;
+        struct pctree_node* next = node->next;
         if (node->first_child) {
             pctree_node_destroy (node->first_child, callback);
         }
@@ -82,8 +82,8 @@ void pctree_node_destroy (pctree_node_t node,
     }
 }
 
-bool pctree_node_append_child (pctree_node_t parent,
-        pctree_node_t node)
+bool pctree_node_append_child (struct pctree_node* parent,
+        struct pctree_node* node)
 {
     parent->nr_children++;
     node->parent = parent;
@@ -98,8 +98,8 @@ bool pctree_node_append_child (pctree_node_t parent,
     return true;
 }
 
-bool pctree_node_prepend_child (pctree_node_t parent,
-        pctree_node_t node)
+bool pctree_node_prepend_child (struct pctree_node* parent,
+        struct pctree_node* node)
 {
     parent->nr_children++;
     node->parent = parent;
@@ -114,8 +114,8 @@ bool pctree_node_prepend_child (pctree_node_t parent,
     return true;
 }
 
-bool pctree_node_insert_before (pctree_node_t current,
-        pctree_node_t node)
+bool pctree_node_insert_before (struct pctree_node* current,
+        struct pctree_node* node)
 {
     node->parent = current->parent;
     node->prev = current->prev;
@@ -134,8 +134,8 @@ bool pctree_node_insert_before (pctree_node_t current,
     return true;
 }
 
-bool pctree_node_insert_after (pctree_node_t current,
-        pctree_node_t node)
+bool pctree_node_insert_after (struct pctree_node* current,
+        struct pctree_node* node)
 {
     node->parent = current->parent;
     node->parent->nr_children++;
@@ -151,36 +151,36 @@ bool pctree_node_insert_after (pctree_node_t current,
     return true;
 }
 
-void pctree_node_children_for_each (pctree_node_t node,
+void pctree_node_children_for_each (struct pctree_node* node,
         pctree_node_for_each_fn* func, void* data)
 {
     node = node->first_child;
     while (node) {
-        pctree_node_t current = node;
+        struct pctree_node* current = node;
         node = current->next;
         func (current, data);
     }
 }
 
-void pctree_node_pre_order_traversal (pctree_node_t node,
+void pctree_node_pre_order_traversal (struct pctree_node* node,
         pctree_node_for_each_fn* func, void* data)
 {
     func (node, data);
     node = node->first_child;
     while (node) {
-        pctree_node_t current = node;
+        struct pctree_node* current = node;
         node = current->next;
         pctree_node_pre_order_traversal (current, func, data);
     }
 }
 
-void pctree_node_in_order_traversal (pctree_node_t node,
+void pctree_node_in_order_traversal (struct pctree_node* node,
         pctree_node_for_each_fn* func, void* data)
 {
     if (node->first_child)
     {
-        pctree_node_t child = node->first_child;
-        pctree_node_t current = child;
+        struct pctree_node* child = node->first_child;
+        struct pctree_node* current = child;
         child = current->next;
         pctree_node_in_order_traversal(current, func, data);
         func (node, data);
@@ -196,13 +196,13 @@ void pctree_node_in_order_traversal (pctree_node_t node,
     }
 }
 
-void pctree_node_post_order_traversal (pctree_node_t node,
+void pctree_node_post_order_traversal (struct pctree_node* node,
         pctree_node_for_each_fn* func, void* data)
 {
     if (node->first_child)
     {
-        pctree_node_t child = node->first_child;
-        pctree_node_t current = NULL;
+        struct pctree_node* child = node->first_child;
+        struct pctree_node* current = NULL;
         while (child)
         {
             current = child;
@@ -216,8 +216,9 @@ void pctree_node_post_order_traversal (pctree_node_t node,
     }
 }
 
-static void pctree_traverse_level (pctree_node_t node, pctree_node_for_each_fn* func,
-        void* data, size_t level, bool *more_levels)
+static void pctree_traverse_level (struct pctree_node* node,
+        pctree_node_for_each_fn* func, void* data, size_t level,
+        bool* more_levels)
 {
     if (level == 0)
     {
@@ -242,7 +243,7 @@ static void pctree_traverse_level (pctree_node_t node, pctree_node_for_each_fn* 
     }
 }
 
-void pctree_node_level_order_traversal (pctree_node_t node,
+void pctree_node_level_order_traversal (struct pctree_node* node,
         pctree_node_for_each_fn* func, void* data)
 {
     size_t level = 0;

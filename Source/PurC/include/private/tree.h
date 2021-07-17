@@ -33,7 +33,7 @@
 #define PURC_TREE_NODE_VCM_VALUE        1
 #define PURC_TREE_NODE_DOM_ELEMENT      2
 
-typedef struct pctree_node {
+struct pctree_node {
     void* user_data;
 
     /* number of children */
@@ -44,9 +44,7 @@ typedef struct pctree_node {
     struct pctree_node* last_child;
     struct pctree_node* prev;
     struct pctree_node* next;
-} pctree_node;
-
-typedef struct pctree_node* pctree_node_t;
+};
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,7 +55,7 @@ extern "C" {
  * callback function for traverse node children
  *
  */
-typedef void(pctree_node_for_each_fn)(pctree_node_t node,  void* data);
+typedef void(pctree_node_for_each_fn)(struct pctree_node* node,  void* data);
 typedef void (pctree_node_destroy_callback)(void* data);
 
 
@@ -66,14 +64,14 @@ typedef void (pctree_node_destroy_callback)(void* data);
  *
  * @param user_data: the user data of the new node
  *
- * @return A pctree_node_t on success, @NULL on failure and the error code
+ * @return A new struct pctree_node on success, @NULL on failure and the error code
  *         is set to indicate the error. The error code:
  *  - @PURC_ERROR_INVALID_VALUE: Invalid value
  *  - @PURC_ERROR_OUT_OF_MEMORY: Out of memory
  *
  * Since: 0.0.1
  */
-pctree_node_t pctree_node_new (void* user_data);
+struct pctree_node* pctree_node_new (void* user_data);
 
 /**
  * Removes root and its children from the tree, freeing any memory allocated.
@@ -85,7 +83,7 @@ pctree_node_t pctree_node_new (void* user_data);
  *
  * Since: 0.0.1
  */
-void pctree_node_destroy (pctree_node_t node,
+void pctree_node_destroy (struct pctree_node* node,
         pctree_node_destroy_callback callback);
 
 /**
@@ -100,8 +98,8 @@ void pctree_node_destroy (pctree_node_t node,
  *
  * Since: 0.0.1
  */
-bool pctree_node_append_child (pctree_node_t parent,
-        pctree_node_t node);
+bool pctree_node_append_child (struct pctree_node* parent,
+        struct pctree_node* node);
 
 /**
  * Inserts a node as the first child of the given parent.
@@ -115,8 +113,8 @@ bool pctree_node_append_child (pctree_node_t parent,
  *
  * Since: 0.0.1
  */
-bool pctree_node_prepend_child (pctree_node_t parent,
-        pctree_node_t node);
+bool pctree_node_prepend_child (struct pctree_node* parent,
+        struct pctree_node* node);
 
 /**
  * Inserts a node before the given sibling.
@@ -130,8 +128,8 @@ bool pctree_node_prepend_child (pctree_node_t parent,
  *
  * Since: 0.0.1
  */
-bool pctree_node_insert_before (pctree_node_t current,
-        pctree_node_t node);
+bool pctree_node_insert_before (struct pctree_node* current,
+        struct pctree_node* node);
 
 /**
  * Inserts a node after the given sibling.
@@ -145,8 +143,8 @@ bool pctree_node_insert_before (pctree_node_t current,
  *
  * Since: 0.0.1
  */
-bool pctree_node_insert_after (pctree_node_t current,
-        pctree_node_t node);
+bool pctree_node_insert_after (struct pctree_node* current,
+        struct pctree_node* node);
 
 /**
  * Get the parent node of the given node.
@@ -160,7 +158,7 @@ bool pctree_node_insert_after (pctree_node_t current,
  * Since: 0.0.1
  */
 static inline
-pctree_node_t pctree_node_parent (pctree_node_t node)
+struct pctree_node* pctree_node_parent (struct pctree_node* node)
 {
     return node->parent;
 }
@@ -177,7 +175,7 @@ pctree_node_t pctree_node_parent (pctree_node_t node)
  * Since: 0.0.1
  */
 static inline
-pctree_node_t pctree_node_child (pctree_node_t node)
+struct pctree_node* pctree_node_child (struct pctree_node* node)
 {
     return node->first_child;
 }
@@ -194,7 +192,7 @@ pctree_node_t pctree_node_child (pctree_node_t node)
  * Since: 0.0.1
  */
 static inline
-pctree_node_t pctree_node_last_child (pctree_node_t node)
+struct pctree_node* pctree_node_last_child (struct pctree_node* node)
 {
     return node->last_child;
 }
@@ -211,7 +209,7 @@ pctree_node_t pctree_node_last_child (pctree_node_t node)
  * Since: 0.0.1
  */
 static inline
-pctree_node_t pctree_node_next (pctree_node_t node)
+struct pctree_node* pctree_node_next (struct pctree_node* node)
 {
     return node->next;
 }
@@ -228,7 +226,7 @@ pctree_node_t pctree_node_next (pctree_node_t node)
  * Since: 0.0.1
  */
 static inline
-pctree_node_t pctree_node_prev (pctree_node_t node)
+struct pctree_node* pctree_node_prev (struct pctree_node* node)
 {
     return node->prev;
 }
@@ -245,7 +243,7 @@ pctree_node_t pctree_node_prev (pctree_node_t node)
  * Since: 0.0.1
  */
 static inline
-size_t pctree_node_children_number (pctree_node_t node)
+size_t pctree_node_children_number (struct pctree_node* node)
 {
     return node->nr_children;
 }
@@ -260,7 +258,7 @@ size_t pctree_node_children_number (pctree_node_t node)
  * Since: 0.0.1
  */
 static inline
-void* pctree_node_user_data (pctree_node_t node)
+void* pctree_node_user_data (struct pctree_node* node)
 {
     return node->user_data;
 }
@@ -277,7 +275,7 @@ void* pctree_node_user_data (pctree_node_t node)
  *
  * Since: 0.0.1
  */
-void pctree_node_children_for_each (pctree_node_t node,
+void pctree_node_children_for_each (struct pctree_node* node,
         pctree_node_for_each_fn* func, void* data);
 
 /**
@@ -291,7 +289,7 @@ void pctree_node_children_for_each (pctree_node_t node,
  *
  * Since: 0.0.1
  */
-void pctree_node_pre_order_traversal (pctree_node_t node,
+void pctree_node_pre_order_traversal (struct pctree_node* node,
         pctree_node_for_each_fn* func, void* data);
 
 /**
@@ -305,7 +303,7 @@ void pctree_node_pre_order_traversal (pctree_node_t node,
  *
  * Since: 0.0.1
  */
-void pctree_node_in_order_traversal (pctree_node_t node,
+void pctree_node_in_order_traversal (struct pctree_node* node,
         pctree_node_for_each_fn* func, void* data);
 
 /**
@@ -319,7 +317,7 @@ void pctree_node_in_order_traversal (pctree_node_t node,
  *
  * Since: 0.0.1
  */
-void pctree_node_post_order_traversal (pctree_node_t node,
+void pctree_node_post_order_traversal (struct pctree_node* node,
         pctree_node_for_each_fn* func, void* data);
 
 /**
@@ -333,7 +331,7 @@ void pctree_node_post_order_traversal (pctree_node_t node,
  *
  * Since: 0.0.1
  */
-void pctree_node_level_order_traversal (pctree_node_t node,
+void pctree_node_level_order_traversal (struct pctree_node* node,
         pctree_node_for_each_fn* func, void* data);
 
 #ifdef __cplusplus
