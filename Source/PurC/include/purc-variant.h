@@ -783,13 +783,12 @@ purc_variant_set_remove(purc_variant_t obj, purc_variant_t value);
  *
  * @param set: the variant value of the set type.
  * @param v1...vN: the values for matching. The caller should pass one value
- *      for each unique key.
+ *      for each unique key. The number of the matching values must match
+ *      the number of the unique keys.
  *
  * Returns: The memeber matched on success, or PURC_VARIANT_INVALID if:
  *      - the set does not managed by the unique keys, or
- *      - no any matching member, or
- *      - the number of the matching values do not match the number of the
- *        unique keys.
+ *      - no any matching member.
  *
  * VWNOTE: new API (replacement of old purc_variant_set_get_value).
  *
@@ -805,13 +804,12 @@ purc_variant_set_get_member_by_key_values(purc_variant_t set,
  * @param set: the variant value of the set type. The set should be managed
  *      by unique keys.
  * @param v1...vN: the values for matching. The caller should pass one value
- *      for each unique key.
+ *      for each unique key. The number of the matching values must match
+ *      the number of the unique keys.
  *
  * Returns: @true on success, or @false if:
  *      - the set does not managed by unique keys, or
- *      - no any matching member, or
- *      - the number of the matching values do not match the number of the
- *        unique keys.
+ *      - no any matching member.
  *
  * VWNOTE: new API.
  *
