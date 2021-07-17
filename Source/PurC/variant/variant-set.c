@@ -68,13 +68,20 @@ static int _variant_set_keyvals_cmp (const void *k1, const void *k2, void *ptr)
     purc_variant_t *kvs2 = (purc_variant_t*)k2;
     variant_set_t   set  = (variant_set_t)ptr;
 
+    int diff = 0;
+    purc_variant_t ud = purc_variant_make_undefined();
     for (size_t i=0; i<set->nr_keynames; ++i) {
-        int t = purc_variant_compare(kvs1[i], kvs2[i]);
-        if (t)
-            return t;
+        purc_variant_t kv1 = kvs1[i];
+        purc_variant_t kv2 = kvs2[i];
+        if (kv1==NULL) kv1 = ud;
+        if (kv2==NULL) kv2 = ud;
+        diff = purc_variant_compare(kv1, kv2);
+        if (diff)
+            break;
     }
+    purc_variant_unref(ud);
 
-    return 0;
+    return diff;
 }
 
 static int _variant_set_init(variant_set_t set, const char *unique_key)
@@ -135,7 +142,7 @@ _variant_set_cache_obj_keyval(variant_set_t set,
         for (size_t i=0; i<set->nr_keynames; ++i) {
             purc_variant_t v;
             v = purc_variant_object_get_c(value, set->keynames[i]);
-            kvs[i] = v;
+            kvs[i] = v; // NULL if no property was found
         }
     } else {
         kvs[0] = value;
