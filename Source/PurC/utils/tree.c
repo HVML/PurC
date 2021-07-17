@@ -65,6 +65,23 @@ pctree_node_t pctree_node_new (void* user_data)
     return node;
 }
 
+void pctree_node_destroy (pctree_node_t node,
+        pctree_node_destroy_callback callback)
+{
+    while (node)
+    {
+        pctree_node_t next = node->next;
+        if (node->first_child) {
+            pctree_node_destroy (node->first_child, callback);
+        }
+        if (callback) {
+            callback (node->user_data);
+        }
+        free_pctree_node (node);
+        node = next;
+    }
+}
+
 bool pctree_node_append_child (pctree_node_t parent,
         pctree_node_t node)
 {

@@ -58,6 +58,7 @@ extern "C" {
  *
  */
 typedef void(pctree_node_for_each_fn)(pctree_node_t node,  void* data);
+typedef void (pctree_node_destroy_callback)(void* data);
 
 
 /**
@@ -73,6 +74,19 @@ typedef void(pctree_node_for_each_fn)(pctree_node_t node,  void* data);
  * Since: 0.0.1
  */
 pctree_node_t pctree_node_new (void* user_data);
+
+/**
+ * Removes root and its children from the tree, freeing any memory allocated.
+ *
+ * @param node: the root of the tree/subtree to destroy
+ * @param callback: the function to call when the node is destroy.
+ *                  This function will be called with the user_data and
+ *                  can be used to free any memory allocated for it.
+ *
+ * Since: 0.0.1
+ */
+void pctree_node_destroy (pctree_node_t node,
+        pctree_node_destroy_callback callback);
 
 /**
  * Inserts a node as the last child of the given parent.
