@@ -738,6 +738,19 @@ purc_variant_make_set(size_t sz, purc_variant_t unique_key,
  *
  * Returns: @true on success, @false if:
  *      - there is already such a value in the set.
+ *      - the value is not an object if the set is managed by unique keys.
+ *
+ * VWNOTE: We should change the prototype of this function:
+ *
+ * bool purc_variant_set_add(purc_variant_t obj, purc_variant_t value,
+ *      bool override)
+ *
+ * @param override: If the set is managed by unique keys, if @override is true,
+ *  the function will override the old value and return true, otherwise, it
+ *  returns false.
+ *
+ * VWNOTE: If the new value has not a property under a certain unique key,
+ * the value of the key should be treated as `undefined`.
  *
  * Since: 0.0.1
  */
@@ -745,13 +758,19 @@ PCA_EXPORT bool
 purc_variant_set_add(purc_variant_t obj, purc_variant_t value);
 
 /**
- * Remove a unique key-value pair from a set.
+ * Remove a variant value from a set.
  *
  * @param set: the set to be operated
  * @param value: the value to be removed
  *
  * Returns: @true on success, @false if:
  *      - no any matching member in the set.
+ *
+ * VWNOTE: See notes below.
+ *
+ * Notes: This function works if the set is not managed by unique keys, or
+ *  there is only one unique key. If there are multiple unique keys,
+ *  use @purc_variant_set_remove_member_by_key_values() instead.
  *
  * Since: 0.0.1
  */
