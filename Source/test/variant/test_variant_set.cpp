@@ -129,7 +129,7 @@ TEST(variant_set, add_n_str)
     ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
     ASSERT_EQ(var->refc, 1);
 
-    int count = 1024;
+    int count = 1;
     char buf[64];
     for (int j=0; j<count; ++j) {
         snprintf(buf, sizeof(buf), "%d", j);
@@ -137,6 +137,7 @@ TEST(variant_set, add_n_str)
         ASSERT_NE(s, nullptr);
         purc_variant_t obj = purc_variant_make_object_c(1, "hello", s);
         ASSERT_NE(obj, nullptr);
+        ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], 1);
         bool t = purc_variant_set_add(var, obj, false);
         ASSERT_EQ(t, true);
         purc_variant_unref(obj);
@@ -156,6 +157,24 @@ TEST(variant_set, add_n_str)
         ++j;
     }
     ASSERT_EQ(j, count);
+    if (it)
+        purc_variant_set_release_iterator(it);
+
+    having = true;
+    for (it = purc_variant_set_make_iterator_begin(var);
+         it && having;
+         having = purc_variant_set_iterator_next(it))
+    {
+        purc_variant_t v = purc_variant_set_iterator_get_value(it);
+        ASSERT_NE(v, nullptr);
+        ASSERT_EQ(v->type, PVT(_OBJECT));
+        bool ok = purc_variant_set_remove(var, v);
+        ASSERT_EQ(ok, true);
+        break;
+    }
+    if (it)
+        purc_variant_set_release_iterator(it);
+    purc_variant_set_release_iterator(NULL);
 
     // int idx = _get_random(count);
     // snprintf(buf, sizeof(buf), "%d", idx);
@@ -169,6 +188,7 @@ TEST(variant_set, add_n_str)
     ASSERT_EQ(var->refc, 1);
     purc_variant_unref(var);
     ASSERT_EQ(stat->nr_values[PVT(_SET)], 0);
+    ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], 0);
     ASSERT_EQ(stat->nr_values[PVT(_STRING)], 0);
 
 #if 0
