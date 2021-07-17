@@ -503,6 +503,9 @@ bool purc_variant_set_remove (purc_variant_t set, purc_variant_t value)
         pcutils_avl_delete(&data->objs, &p->avl);
         pcvariant_set_release_obj(p);
         free(p);
+
+        size_t extra = _variant_set_get_extra_size(data);
+        pcvariant_stat_set_extra_size(set, extra);
     }
 
     return p ? true : false;
@@ -571,6 +574,9 @@ purc_variant_set_remove_member_by_key_values(purc_variant_t set,
     pcutils_avl_delete(&data->objs, &p->avl);
     pcvariant_set_release_obj(p);
     free(p);
+
+    size_t extra = _variant_set_get_extra_size(data);
+    pcvariant_stat_set_extra_size(set, extra);
 
     return v;
 }
