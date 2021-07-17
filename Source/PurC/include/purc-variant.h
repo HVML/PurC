@@ -745,12 +745,13 @@ purc_variant_make_set(size_t sz, purc_variant_t unique_key,
  * bool purc_variant_set_add(purc_variant_t obj, purc_variant_t value,
  *      bool override)
  *
- * @param override: If the set is managed by unique keys, if @override is true,
- *  the function will override the old value and return true, otherwise, it
- *  returns false.
+ * @param override: If the set is managed by unique keys and @override is true,
+ *  the function will override the old value which is equal to the new value
+ *  under the unique keys, and return true. otherwise, it returns false.
  *
- * VWNOTE: If the new value has not a property under a certain unique key,
- * the value of the key should be treated as `undefined`.
+ * VWNOTE: If the new value has not a property (a key-value pair) under
+ *  a specific unique key, the value of the key should be treated
+ *  as `undefined`.
  *
  * Since: 0.0.1
  */
@@ -782,13 +783,12 @@ purc_variant_set_remove(purc_variant_t obj, purc_variant_t value);
  *
  * @param set: the variant value of the set type.
  * @param v1...vN: the values for matching. The caller should pass one value
- *      for each unique key.
+ *      for each unique key. The number of the matching values must match
+ *      the number of the unique keys.
  *
  * Returns: The memeber matched on success, or PURC_VARIANT_INVALID if:
  *      - the set does not managed by the unique keys, or
- *      - no any matching member, or
- *      - the number of the matching values do not match the number of the
- *        unique keys.
+ *      - no any matching member.
  *
  * VWNOTE: new API (replacement of old purc_variant_set_get_value).
  *
@@ -804,13 +804,12 @@ purc_variant_set_get_member_by_key_values(purc_variant_t set,
  * @param set: the variant value of the set type. The set should be managed
  *      by unique keys.
  * @param v1...vN: the values for matching. The caller should pass one value
- *      for each unique key.
+ *      for each unique key. The number of the matching values must match
+ *      the number of the unique keys.
  *
  * Returns: @true on success, or @false if:
  *      - the set does not managed by unique keys, or
- *      - no any matching member, or
- *      - the number of the matching values do not match the number of the
- *        unique keys.
+ *      - no any matching member.
  *
  * VWNOTE: new API.
  *
