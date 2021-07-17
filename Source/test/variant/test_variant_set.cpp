@@ -137,7 +137,7 @@ TEST(variant_set, add_n_str)
         ASSERT_NE(s, nullptr);
         purc_variant_t obj = purc_variant_make_object_c(1, "hello", s);
         ASSERT_NE(obj, nullptr);
-        int t = purc_variant_set_add(var, obj, false);
+        bool t = purc_variant_set_add(var, obj, false);
         ASSERT_EQ(t, true);
         purc_variant_unref(obj);
         purc_variant_unref(s);

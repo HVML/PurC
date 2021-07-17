@@ -43,42 +43,17 @@ static inline variant_set_t _pcv_set_get_data(purc_variant_t set)
     return (variant_set_t)set->sz_ptr[1];
 }
 
-static inline size_t _keynames_get_extra_size(struct list_head *keynames)
-{
-    size_t extra = 0;
-    struct list_head *p;
-    list_for_each(p, keynames) {
-        extra += sizeof(struct keyname);
-    }
-    return extra;
-}
-
-static inline size_t _keyvals_get_extra_size(struct list_head *keyvals)
-{
-    size_t extra = 0;
-    struct list_head *p;
-    list_for_each(p, keyvals) {
-        extra += sizeof(struct keyval);
-    }
-    return extra;
-}
-
-static inline size_t _objs_get_extra_size(struct avl_tree *objs)
-{
-    size_t extra = 0;
-    struct obj_node *p;
-    avl_for_each_element(objs, p, avl) {
-        extra += sizeof(*p);
-        extra += _keyvals_get_extra_size(&p->keyvals);
-    }
-    return extra;
-}
-
 static inline size_t _variant_set_get_extra_size(variant_set_t set)
 {
-    size_t extra = strlen(set->unique_key) + 1;
-    extra += _keynames_get_extra_size(&set->keynames);
-    extra += _objs_get_extra_size(&set->objs);
+    size_t extra = 0;
+    if (set->unique_key) {
+        extra += strlen(set->unique_key) + 1;
+        extra += sizeof(*set->keynames) * set->nr_keynames;
+    }
+    size_t sz_record = sizeof(struct obj_node) +
+        sizeof(purc_variant_t) * set->nr_keynames;
+    extra += sz_record * set->objs.count;
+
     return extra;
 }
 
@@ -89,28 +64,26 @@ static inline void _pcv_set_set_data(purc_variant_t set, variant_set_t data)
 
 static int _variant_set_keyvals_cmp (const void *k1, const void *k2, void *ptr)
 {
-    UNUSED_PARAM(ptr);
-    struct list_head *kvs1 = (struct list_head*)k1;
-    struct list_head *kvs2 = (struct list_head*)k2;
+    purc_variant_t *kvs1 = (purc_variant_t*)k1;
+    purc_variant_t *kvs2 = (purc_variant_t*)k2;
+    variant_set_t   set  = (variant_set_t)ptr;
 
-    struct list_head *p1, *p2;
-    for (p1=kvs1->next, p2=kvs2->next;
-         p1 && p2;
-         p1=p1->next, p2=p2->next)
-    {
-        struct keyval *kv1 = container_of(p1, struct keyval, list);
-        struct keyval *kv2 = container_of(p2, struct keyval, list);
-        int t = purc_variant_compare(kv1->val, kv2->val);
+    for (size_t i=0; i<set->nr_keynames; ++i) {
+        int t = purc_variant_compare(kvs1[i], kvs2[i]);
         if (t) return t;
     }
 
-    return p1 ? 1 : -1;
+    return 0;
 }
 
 static int _variant_set_init(variant_set_t set, const char *unique_key)
 {
-    INIT_LIST_HEAD(&set->keynames);
     pcutils_avl_init(&set->objs, _variant_set_keyvals_cmp, false, set);
+
+    if (!unique_key || !*unique_key) {
+        set->nr_keynames = 1;
+        return 0;
+    }
 
     set->unique_key = strdup(unique_key);
     if (!set->unique_key) {
@@ -119,42 +92,52 @@ static int _variant_set_init(variant_set_t set, const char *unique_key)
     }
     char *ctx = set->unique_key;
     char *tok = strtok_r(ctx, " ", &ctx);
+    size_t n = 0;
     while (tok) {
-        struct keyname *k = (struct keyname*)malloc(sizeof(*k));
-        if (!k) {
-            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            break;
-        }
-
-        k->keyname = tok;
-        list_add_tail(&k->list, &set->keynames);
-
+        ++n;
         tok = strtok_r(ctx, " ", &ctx);
     }
 
-    if (tok)
+    if (n==0) {
+        free(set->unique_key);
+        set->unique_key = NULL;
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return -1;
+    }
+
+    set->keynames = (char**)calloc(n, sizeof(*set->keynames));
+    if (!set->keynames) {
+        free(set->unique_key);
+        set->unique_key = NULL;
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+    set->nr_keynames = n;
+
+    strcpy(set->unique_key, unique_key);
+    ctx = set->unique_key;
+    tok = strtok_r(ctx, " ", &ctx);
+    int idx = 0;
+    while (tok) {
+        set->keynames[idx++] = tok;
+        tok = strtok_r(ctx, " ", &ctx);
+    }
 
     return 0;
 }
 
 static int
 _variant_set_cache_obj_keyval(variant_set_t set,
-    purc_variant_t value, struct list_head *kvs)
+    purc_variant_t value, struct obj_node *obj)
 {
-    struct list_head *p;
-    list_for_each(p, &set->keynames) {
-        struct keyname *kn = container_of(p, struct keyname, list);
-        purc_variant_t vk = purc_variant_object_get_c (value, kn->keyname);
-        PC_ASSERT(vk);
-        struct keyval *kv = (struct keyval*)calloc(1, sizeof(*kv));
-        if (!kv) {
-            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            return -1;
+    if (set->unique_key) {
+        for (size_t i=0; i<set->nr_keynames; ++i) {
+            purc_variant_t v;
+            v = purc_variant_object_get_c(value, set->keynames[i]);
+            obj->kvs[i] = v;
         }
-        kv->val = vk;
-        purc_variant_ref(vk);
-        list_add_tail(&kv->list, kvs);
+    } else {
+        obj->kvs[0] = value;
     }
     return 0;
 }
@@ -185,21 +168,16 @@ static purc_variant_t _pcv_set_new(void)
     return set;
 }
 
-static inline void pcvariant_set_obj_release_kvs(struct obj_node *on)
+void pcvariant_set_release_obj(struct obj_node *obj)
 {
-    struct list_head *p, *n;
-    list_for_each_safe(p, n, &on->keyvals) {
-        struct keyval *kv = container_of(p, struct keyval, list);
-        list_del(&kv->list);
-        purc_variant_unref(kv->val);
-        free(kv);
+    if (obj->obj) {
+        purc_variant_unref(obj->obj);
+        obj->obj = PURC_VARIANT_INVALID;
     }
-}
-
-void pcvariant_set_release_obj(struct obj_node *p)
-{
-    pcvariant_set_obj_release_kvs(p);
-    purc_variant_unref(p->obj);
+    if (obj->kvs) {
+        free(obj->kvs);
+        obj->kvs = NULL;
+    }
 }
 
 static void _variant_set_release_objs(variant_set_t set)
@@ -207,26 +185,47 @@ static void _variant_set_release_objs(variant_set_t set)
     struct obj_node *p, *n;
     avl_remove_all_elements(&set->objs, p, avl, n) {
         pcvariant_set_release_obj(p);
+        free(p);
     }
-}
-
-static void _variant_set_release_keynames(variant_set_t set)
-{
-    struct list_head *p, *n;
-    list_for_each_safe(p, n, &set->keynames) {
-        struct keyname *kn = container_of(p, struct keyname, list);
-        n = kn->list.next;
-        list_del(&kn->list);
-        free(kn);
-    }
-    free(set->unique_key);
-    set->unique_key = NULL;
 }
 
 static inline void _variant_set_release(variant_set_t set)
 {
     _variant_set_release_objs(set);
-    _variant_set_release_keynames(set);
+
+    free(set->keynames);
+    set->keynames = NULL;
+    set->nr_keynames = 0;
+    free(set->unique_key);
+    set->unique_key = NULL;
+}
+
+static struct obj_node*
+_variant_set_create_obj_node (variant_set_t set, purc_variant_t val)
+{
+    struct obj_node *_new = (struct obj_node*)calloc(1, sizeof(*_new));
+    if (!_new) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+    _new->kvs = (purc_variant_t*)calloc(set->nr_keynames, sizeof(*_new->kvs));
+    if (!_new->kvs) {
+        free(_new);
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    if (_variant_set_cache_obj_keyval(set, val, _new)) {
+        free(_new->kvs);
+        free(_new);
+        return NULL;
+    }
+
+    _new->avl.key = _new->kvs;
+    _new->obj = val;
+    purc_variant_ref(val);
+
+    return _new;
 }
 
 static int
@@ -236,52 +235,55 @@ _variant_set_add_val(variant_set_t set, purc_variant_t val, bool override)
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return -1;
     }
-    struct obj_node *_new = (struct obj_node*)calloc(1, sizeof(*_new));
+    struct obj_node *_new;
+    _new = _variant_set_create_obj_node(set, val);
+
     if (!_new) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return -1;
     }
-    INIT_LIST_HEAD(&_new->keyvals);
-    if (_variant_set_cache_obj_keyval(set, val, &_new->keyvals)) {
-        pcvariant_set_release_obj(_new);
-        free(_new);
-        return -1;
-    }
-
-    _new->avl.key = &_new->keyvals;
-    _new->obj = val;
-    purc_variant_ref(val);
 
     struct obj_node *p;
     p = avl_find_element(&set->objs, _new->avl.key, p, avl);
 
-    if (p) {
-        if (!override) {
-            pcvariant_set_release_obj(_new);
-            free(_new);
-            pcinst_set_error(PURC_ERROR_DUPLICATED);
-            return -1;
-        }
-        if (p->obj == val) {
-            // already in
-            pcvariant_set_release_obj(_new);
-            free(_new);
-            return 0;
-        }
-        // unref obj on the node
-        purc_variant_unref(p->obj);
-        p->obj = val;
-        purc_variant_ref(val);
+    int err = PURC_ERROR_OK;
 
+    do {
+        if (p) {
+            if (!override) {
+                err = PURC_ERROR_DUPLICATED;
+                break;
+            }
+            if (p->obj == val) {
+                // already in
+                break;
+            }
+            // replace-in-site
+            for (size_t i=0; i<set->nr_keynames; ++i) {
+                p->kvs[i] = _new->kvs[i];
+            }
+            purc_variant_unref(p->obj);
+            p->obj = val;
+            purc_variant_ref(val);
+
+            break;
+        }
+
+        if (pcutils_avl_insert(&set->objs, &_new->avl)) {
+            err = PURC_ERROR_OUT_OF_MEMORY;
+            break;
+        }
+
+        return 0;
+    } while (0);
+
+    if (_new) {
         pcvariant_set_release_obj(_new);
         free(_new);
-        return 0;
     }
 
-    if (pcutils_avl_insert(&set->objs, &_new->avl)) {
-        pcvariant_set_release_obj(_new);
-        free(_new);
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+    if (err) {
+        pcinst_set_error(PURC_ERROR_DUPLICATED);
         return -1;
     }
 
@@ -418,48 +420,50 @@ purc_variant_set_add (purc_variant_t set, purc_variant_t value, bool override)
 
 bool purc_variant_set_remove (purc_variant_t set, purc_variant_t value)
 {
+    UNUSED_PARAM(set);
+    UNUSED_PARAM(value);
+    return false;
     // remove `value` rather than by key that `value` represents
-    PCVARIANT_CHECK_FAIL_RET(set && set->type==PVT(_SET) && value,
-        PURC_VARIANT_INVALID);
+    // PCVARIANT_CHECK_FAIL_RET(set && set->type==PVT(_SET) && value,
+    //     PURC_VARIANT_INVALID);
 
-    variant_set_t data = _pcv_set_get_data(set);
-    PC_ASSERT(data);
+    // variant_set_t data = _pcv_set_get_data(set);
+    // PC_ASSERT(data);
 
-    struct obj_node *_qry = (struct obj_node*)calloc(1, sizeof(*_qry));
-    if (!_qry) {
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return -1;
-    }
-    INIT_LIST_HEAD(&_qry->keyvals);
-    if (_variant_set_cache_obj_keyval(data, value, &_qry->keyvals)) {
-        pcvariant_set_release_obj(_qry);
-        free(_qry);
-        return -1;
-    }
+    // struct obj_node *_qry = (struct obj_node*)calloc(1, sizeof(*_qry));
+    // if (!_qry) {
+    //     pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+    //     return -1;
+    // }
+    // if (_variant_set_cache_obj_keyval(data, value, &_qry->keyvals)) {
+    //     pcvariant_set_release_obj(_qry);
+    //     free(_qry);
+    //     return -1;
+    // }
 
-    _qry->avl.key = &_qry->keyvals;
-    _qry->obj = value;
-    purc_variant_ref(value);
+    // _qry->avl.key = &_qry->keyvals;
+    // _qry->obj = value;
+    // purc_variant_ref(value);
 
-    struct obj_node *p;
-    p = avl_find_element(&data->objs, _qry->avl.key, p, avl);
-    if (!p || p->obj!=value) {
-        pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
-        pcvariant_set_release_obj(_qry);
-        free(_qry);
-        return false;
-    }
+    // struct obj_node *p;
+    // p = avl_find_element(&data->objs, _qry->avl.key, p, avl);
+    // if (!p || p->obj!=value) {
+    //     pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
+    //     pcvariant_set_release_obj(_qry);
+    //     free(_qry);
+    //     return false;
+    // }
 
-    pcutils_avl_delete(&data->objs, &p->avl);
-    pcvariant_set_release_obj(p);
-    free(p);
-    pcvariant_set_release_obj(_qry);
-    free(_qry);
+    // pcutils_avl_delete(&data->objs, &p->avl);
+    // pcvariant_set_release_obj(p);
+    // free(p);
+    // pcvariant_set_release_obj(_qry);
+    // free(_qry);
 
-    size_t extra = _variant_set_get_extra_size(data);
-    pcvariant_stat_set_extra_size(set, extra);
+    // size_t extra = _variant_set_get_extra_size(data);
+    // pcvariant_stat_set_extra_size(set, extra);
 
-    return true;
+    // return true;
 }
 
 purc_variant_t

@@ -125,25 +125,17 @@ void pcvariant_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 
 // internal struct used by variant-set object
 typedef struct variant_set      *variant_set_t;
-struct keyname {
-    struct list_head  list;
-    const char       *keyname;   // key name, no ownership
-};
-
-struct keyval {
-    struct list_head list;
-    purc_variant_t   val;    // value bounded to keyname
-};
 
 struct obj_node {
     struct avl_node  avl;
     purc_variant_t   obj;       // actual variant-object
-    struct list_head keyvals;   // keyvals of this variant-object
+    purc_variant_t  *kvs;
 };
 
 struct variant_set {
     char                   *unique_key; // unique-key duplicated
-    struct list_head        keynames;   // multiple-keys parsed from unique
+    char                  **keynames;
+    size_t                  nr_keynames;
     struct avl_tree         objs;       // multiple-variant-objects stored in set
 };
 
