@@ -745,12 +745,13 @@ purc_variant_make_set(size_t sz, purc_variant_t unique_key,
  * bool purc_variant_set_add(purc_variant_t obj, purc_variant_t value,
  *      bool override)
  *
- * @param override: If the set is managed by unique keys, if @override is true,
- *  the function will override the old value and return true, otherwise, it
- *  returns false.
+ * @param override: If the set is managed by unique keys and @override is true,
+ *  the function will override the old value which is equal to the new value
+ *  under the unique keys, and return true. otherwise, it returns false.
  *
- * VWNOTE: If the new value has not a property under a certain unique key,
- * the value of the key should be treated as `undefined`.
+ * VWNOTE: If the new value has not a property (a key-value pair) under
+ *  a specific unique key, the value of the key should be treated
+ *  as `undefined`.
  *
  * Since: 0.0.1
  */
