@@ -10,249 +10,216 @@
 #include <fcntl.h>
 
 struct test_tree_node {
-    struct pctree_node base;
     uint32_t id;
 };
 
 
-struct test_tree_node* create_tree_node(uint32_t id)
+pctree_node_t create_tree_node(uint32_t id)
 {
     struct test_tree_node* node = (struct test_tree_node*) calloc(sizeof(struct test_tree_node), 1);
     node->id = id;
-    return node;
+    return pctree_node_new(node);
 }
 
-void destroy_tree_node(struct test_tree_node* node)
+void destroy_tree_node(void* node)
 {
+//    struct test_tree_node* tn = (struct test_tree_node*) node;
+//    fprintf(stderr, "free tree node : %d\n", tn->id);
     free(node);
 }
 
 TEST(tree, append)
 {
-    struct test_tree_node* root = create_tree_node(0);
-    struct test_tree_node* node_1 = create_tree_node(1);
-    struct test_tree_node* node_2 = create_tree_node(2);
-    struct test_tree_node* node_3 = create_tree_node(2);
+    pctree_node_t root = create_tree_node(0);
+    pctree_node_t node_1 = create_tree_node(1);
+    pctree_node_t node_2 = create_tree_node(2);
+    pctree_node_t node_3 = create_tree_node(3);
 
-    pctree_node_append_child((pctree_node_t)root, (pctree_node_t)node_1);
-    ASSERT_EQ(((pctree_node_t)root)->nr_children, 1);
-    ASSERT_EQ(((pctree_node_t)root)->first_child, (pctree_node_t)node_1);
-    ASSERT_EQ(((pctree_node_t)root)->last_child, (pctree_node_t)node_1);
-    ASSERT_EQ((pctree_node_t)pctree_node_parent((pctree_node_t)node_1),
-            (pctree_node_t)root);
-    ASSERT_EQ(pctree_node_child((pctree_node_t)root), (pctree_node_t)node_1);
-    ASSERT_EQ(pctree_node_last_child((pctree_node_t)root),
-            (pctree_node_t)node_1);
-    ASSERT_EQ(pctree_node_children_number((pctree_node_t)root), 1);
+    pctree_node_append_child(root, node_1);
+    ASSERT_EQ(root->nr_children, 1);
+    ASSERT_EQ(root->first_child, node_1);
+    ASSERT_EQ(root->last_child, node_1);
+    ASSERT_EQ(pctree_node_parent(node_1), root);
+    ASSERT_EQ(pctree_node_child(root), node_1);
+    ASSERT_EQ(pctree_node_last_child(root), node_1);
+    ASSERT_EQ(pctree_node_children_number(root), 1);
 
-    pctree_node_append_child((pctree_node_t)root, (pctree_node_t)node_2);
-    ASSERT_EQ(((pctree_node_t)root)->nr_children, 2);
-    ASSERT_EQ(((pctree_node_t)root)->first_child, (pctree_node_t)node_1);
-    ASSERT_NE(((pctree_node_t)root)->last_child, (pctree_node_t)node_1);
-    ASSERT_EQ(((pctree_node_t)root)->last_child, (pctree_node_t)node_2);
-    ASSERT_EQ((pctree_node_t)pctree_node_parent((pctree_node_t)node_1),
-            (pctree_node_t)root);
-    ASSERT_EQ((pctree_node_t)pctree_node_parent((pctree_node_t)node_2),
-            (pctree_node_t)root);
-    ASSERT_EQ(pctree_node_child((pctree_node_t)root), (pctree_node_t)node_1);
-    ASSERT_EQ(pctree_node_last_child((pctree_node_t)root),
-            (pctree_node_t)node_2);
-    ASSERT_EQ(pctree_node_children_number((pctree_node_t)root), 2);
+    pctree_node_append_child(root, node_2);
+    ASSERT_EQ(root->nr_children, 2);
+    ASSERT_EQ(root->first_child, node_1);
+    ASSERT_NE(root->last_child, node_1);
+    ASSERT_EQ(root->last_child, node_2);
+    ASSERT_EQ(pctree_node_parent(node_1), root);
+    ASSERT_EQ(pctree_node_parent(node_2), root);
+    ASSERT_EQ(pctree_node_child(root), node_1);
+    ASSERT_EQ(pctree_node_last_child(root), node_2);
+    ASSERT_EQ(pctree_node_children_number(root), 2);
 
-    pctree_node_append_child((pctree_node_t)root, (pctree_node_t)node_3);
-    ASSERT_EQ(((pctree_node_t)root)->nr_children, 3);
-    ASSERT_EQ(((pctree_node_t)root)->first_child, (pctree_node_t)node_1);
-    ASSERT_NE(((pctree_node_t)root)->last_child, (pctree_node_t)node_1);
-    ASSERT_NE(((pctree_node_t)root)->last_child, (pctree_node_t)node_2);
-    ASSERT_EQ(((pctree_node_t)root)->last_child, (pctree_node_t)node_3);
-    ASSERT_EQ((pctree_node_t)pctree_node_parent((pctree_node_t)node_1),
-            (pctree_node_t)root);
-    ASSERT_EQ((pctree_node_t)pctree_node_parent((pctree_node_t)node_2),
-            (pctree_node_t)root);
-    ASSERT_EQ((pctree_node_t)pctree_node_parent((pctree_node_t)node_3),
-            (pctree_node_t)root);
-    ASSERT_EQ(pctree_node_child((pctree_node_t)root), (pctree_node_t)node_1);
-    ASSERT_EQ(pctree_node_last_child((pctree_node_t)root),
-            (pctree_node_t)node_3);
-    ASSERT_EQ(pctree_node_children_number((pctree_node_t)root), 3);
+    pctree_node_append_child(root, node_3);
+    ASSERT_EQ(root->nr_children, 3);
+    ASSERT_EQ(root->first_child, node_1);
+    ASSERT_NE(root->last_child, node_1);
+    ASSERT_NE(root->last_child, node_2);
+    ASSERT_EQ(root->last_child, node_3);
+    ASSERT_EQ(pctree_node_parent(node_1), root);
+    ASSERT_EQ(pctree_node_parent(node_2), root);
+    ASSERT_EQ(pctree_node_parent(node_3), root);
+    ASSERT_EQ(pctree_node_child(root), node_1);
+    ASSERT_EQ(pctree_node_last_child(root), node_3);
+    ASSERT_EQ(pctree_node_children_number(root), 3);
 
-    ASSERT_EQ(pctree_node_type((pctree_node_t)root), 0);
-
-    destroy_tree_node(root);
-    destroy_tree_node(node_1);
-    destroy_tree_node(node_2);
-    destroy_tree_node(node_3);
+    pctree_node_destroy(root, destroy_tree_node);
 }
 
 TEST(tree, prepend)
 {
-    struct test_tree_node* root = create_tree_node(0);
-    struct test_tree_node* node_1 = create_tree_node(1);
-    struct test_tree_node* node_2 = create_tree_node(2);
-    struct test_tree_node* node_3 = create_tree_node(3);
+    pctree_node_t root = create_tree_node(0);
+    pctree_node_t node_1 = create_tree_node(1);
+    pctree_node_t node_2 = create_tree_node(2);
+    pctree_node_t node_3 = create_tree_node(3);
 
-    pctree_node_append_child((pctree_node_t)root, (pctree_node_t)node_1);
-    ASSERT_EQ(((pctree_node_t)root)->nr_children, 1);
-    ASSERT_EQ(((pctree_node_t)root)->first_child, (pctree_node_t)node_1);
-    ASSERT_EQ(((pctree_node_t)root)->last_child, (pctree_node_t)node_1);
-    ASSERT_EQ((pctree_node_t)pctree_node_next((pctree_node_t)node_1),
-            nullptr);
+    pctree_node_append_child(root, node_1);
+    ASSERT_EQ(root->nr_children, 1);
+    ASSERT_EQ(root->first_child, node_1);
+    ASSERT_EQ(root->last_child, node_1);
+    ASSERT_EQ(pctree_node_next(node_1), nullptr);
 
-    pctree_node_prepend_child((pctree_node_t)root, (pctree_node_t)node_2);
-    ASSERT_EQ(((pctree_node_t)root)->nr_children, 2);
-    ASSERT_EQ(((pctree_node_t)root)->first_child, (pctree_node_t)node_2);
-    ASSERT_EQ(((pctree_node_t)root)->last_child, (pctree_node_t)node_1);
-    ASSERT_EQ((pctree_node_t)pctree_node_next((pctree_node_t)node_2),
-            (pctree_node_t)node_1);
-    ASSERT_EQ((pctree_node_t)pctree_node_prev((pctree_node_t)node_1),
-            (pctree_node_t)node_2);
+    pctree_node_prepend_child(root, node_2);
+    ASSERT_EQ(root->nr_children, 2);
+    ASSERT_EQ(root->first_child, node_2);
+    ASSERT_EQ(root->last_child, node_1);
+    ASSERT_EQ(pctree_node_next(node_2), node_1);
+    ASSERT_EQ(pctree_node_prev(node_1), node_2);
 
-    pctree_node_prepend_child((pctree_node_t)root, (pctree_node_t)node_3);
-    ASSERT_EQ(((pctree_node_t)root)->nr_children, 3);
-    ASSERT_EQ(((pctree_node_t)root)->first_child, (pctree_node_t)node_3);
-    ASSERT_NE(((pctree_node_t)root)->first_child, (pctree_node_t)node_2);
-    ASSERT_EQ(((pctree_node_t)root)->last_child, (pctree_node_t)node_1);
-    ASSERT_EQ((pctree_node_t)pctree_node_next((pctree_node_t)node_3),
-            (pctree_node_t)node_2);
-    ASSERT_EQ((pctree_node_t)pctree_node_prev((pctree_node_t)node_1),
-            (pctree_node_t)node_2);
+    pctree_node_prepend_child(root, node_3);
+    ASSERT_EQ(root->nr_children, 3);
+    ASSERT_EQ(root->first_child, node_3);
+    ASSERT_NE(root->first_child, node_2);
+    ASSERT_EQ(root->last_child, node_1);
+    ASSERT_EQ(pctree_node_next(node_3), node_2);
+    ASSERT_EQ(pctree_node_prev(node_1), node_2);
 
-    destroy_tree_node(root);
-    destroy_tree_node(node_1);
-    destroy_tree_node(node_2);
-    destroy_tree_node(node_3);
+    pctree_node_destroy(root, destroy_tree_node);
 }
 
 TEST(tree, insert_before)
 {
-    struct test_tree_node* root = create_tree_node(0);
-    struct test_tree_node* node_1 = create_tree_node(1);
-    struct test_tree_node* node_2 = create_tree_node(2);
-    struct test_tree_node* node_3 = create_tree_node(3);
+    pctree_node_t root = create_tree_node(0);
+    pctree_node_t node_1 = create_tree_node(1);
+    pctree_node_t node_2 = create_tree_node(2);
+    pctree_node_t node_3 = create_tree_node(3);
 
-    pctree_node_append_child((pctree_node_t)root, (pctree_node_t)node_1);
-    ASSERT_EQ(((pctree_node_t)root)->nr_children, 1);
-    ASSERT_EQ(((pctree_node_t)root)->first_child, (pctree_node_t)node_1);
-    ASSERT_EQ(((pctree_node_t)root)->last_child, (pctree_node_t)node_1);
+    pctree_node_append_child(root, node_1);
+    ASSERT_EQ(root->nr_children, 1);
+    ASSERT_EQ(root->first_child, node_1);
+    ASSERT_EQ(root->last_child, node_1);
 
-    pctree_node_insert_before((pctree_node_t)node_1,(pctree_node_t)node_2);
-    ASSERT_EQ(((pctree_node_t)root)->nr_children, 2);
-    ASSERT_EQ(((pctree_node_t)root)->first_child, (pctree_node_t)node_2);
-    ASSERT_EQ(((pctree_node_t)root)->last_child, (pctree_node_t)node_1);
+    pctree_node_insert_before(node_1,node_2);
+    ASSERT_EQ(root->nr_children, 2);
+    ASSERT_EQ(root->first_child, node_2);
+    ASSERT_EQ(root->last_child, node_1);
 
-    pctree_node_insert_before((pctree_node_t)node_1,(pctree_node_t)node_3);
-    ASSERT_EQ(((pctree_node_t)root)->nr_children, 3);
-    ASSERT_EQ(((pctree_node_t)root)->first_child, (pctree_node_t)node_2);
-    ASSERT_NE(((pctree_node_t)root)->first_child, (pctree_node_t)node_3);
-    ASSERT_EQ(((pctree_node_t)root)->last_child, (pctree_node_t)node_1);
+    pctree_node_insert_before(node_1,node_3);
+    ASSERT_EQ(root->nr_children, 3);
+    ASSERT_EQ(root->first_child, node_2);
+    ASSERT_NE(root->first_child, node_3);
+    ASSERT_EQ(root->last_child, node_1);
 
-    destroy_tree_node(root);
-    destroy_tree_node(node_1);
-    destroy_tree_node(node_2);
-    destroy_tree_node(node_3);
+    pctree_node_destroy(root, destroy_tree_node);
 }
 
 TEST(tree, insert_after)
 {
-    struct test_tree_node* root = create_tree_node(0);
-    struct test_tree_node* node_1 = create_tree_node(1);
-    struct test_tree_node* node_2 = create_tree_node(2);
-    struct test_tree_node* node_3 = create_tree_node(3);
+    pctree_node_t root = create_tree_node(0);
+    pctree_node_t node_1 = create_tree_node(1);
+    pctree_node_t node_2 = create_tree_node(2);
+    pctree_node_t node_3 = create_tree_node(3);
 
-    pctree_node_append_child((pctree_node_t)root, (pctree_node_t)node_1);
-    ASSERT_EQ(((pctree_node_t)root)->nr_children, 1);
-    ASSERT_EQ(((pctree_node_t)root)->first_child, (pctree_node_t)node_1);
-    ASSERT_EQ(((pctree_node_t)root)->last_child, (pctree_node_t)node_1);
+    pctree_node_append_child(root, node_1);
+    ASSERT_EQ(root->nr_children, 1);
+    ASSERT_EQ(root->first_child, node_1);
+    ASSERT_EQ(root->last_child, node_1);
 
-    pctree_node_insert_after((pctree_node_t)node_1,(pctree_node_t)node_2);
-    ASSERT_EQ(((pctree_node_t)root)->nr_children, 2);
-    ASSERT_EQ(((pctree_node_t)root)->first_child, (pctree_node_t)node_1);
-    ASSERT_EQ(((pctree_node_t)root)->last_child, (pctree_node_t)node_2);
+    pctree_node_insert_after(node_1,node_2);
+    ASSERT_EQ(root->nr_children, 2);
+    ASSERT_EQ(root->first_child, node_1);
+    ASSERT_EQ(root->last_child, node_2);
 
-    pctree_node_insert_after((pctree_node_t)node_1,(pctree_node_t)node_3);
-    ASSERT_EQ(((pctree_node_t)root)->nr_children, 3);
-    ASSERT_EQ(((pctree_node_t)root)->first_child, (pctree_node_t)node_1);
-    ASSERT_NE(((pctree_node_t)root)->first_child, (pctree_node_t)node_2);
-    ASSERT_EQ(((pctree_node_t)root)->last_child, (pctree_node_t)node_2);
+    pctree_node_insert_after(node_1,node_3);
+    ASSERT_EQ(root->nr_children, 3);
+    ASSERT_EQ(root->first_child, node_1);
+    ASSERT_NE(root->first_child, node_2);
+    ASSERT_EQ(root->last_child, node_2);
 
-    destroy_tree_node(root);
-    destroy_tree_node(node_1);
-    destroy_tree_node(node_2);
-    destroy_tree_node(node_3);
+    pctree_node_destroy(root, destroy_tree_node);
 }
 
 TEST(tree, insert)
 {
-    struct test_tree_node* root = create_tree_node(0);
-    struct test_tree_node* node_1 = create_tree_node(1);
-    struct test_tree_node* node_2 = create_tree_node(2);
-    struct test_tree_node* node_3 = create_tree_node(3);
+    pctree_node_t root = create_tree_node(0);
+    pctree_node_t node_1 = create_tree_node(1);
+    pctree_node_t node_2 = create_tree_node(2);
+    pctree_node_t node_3 = create_tree_node(3);
 
-    pctree_node_append_child((pctree_node_t)root, (pctree_node_t)node_1);
-    ASSERT_EQ(((pctree_node_t)root)->nr_children, 1);
-    ASSERT_EQ(((pctree_node_t)root)->first_child, (pctree_node_t)node_1);
-    ASSERT_EQ(((pctree_node_t)root)->last_child, (pctree_node_t)node_1);
+    pctree_node_append_child(root, node_1);
+    ASSERT_EQ(root->nr_children, 1);
+    ASSERT_EQ(root->first_child, node_1);
+    ASSERT_EQ(root->last_child, node_1);
 
-    pctree_node_insert_after((pctree_node_t)node_1,(pctree_node_t)node_2);
-    ASSERT_EQ(((pctree_node_t)root)->nr_children, 2);
-    ASSERT_EQ(((pctree_node_t)root)->first_child, (pctree_node_t)node_1);
-    ASSERT_EQ(((pctree_node_t)root)->last_child, (pctree_node_t)node_2);
+    pctree_node_insert_after(node_1,node_2);
+    ASSERT_EQ(root->nr_children, 2);
+    ASSERT_EQ(root->first_child, node_1);
+    ASSERT_EQ(root->last_child, node_2);
 
-    pctree_node_insert_before((pctree_node_t)node_1,(pctree_node_t)node_3);
-    ASSERT_EQ(((pctree_node_t)root)->nr_children, 3);
-    ASSERT_EQ(((pctree_node_t)root)->first_child, (pctree_node_t)node_3);
-    ASSERT_NE(((pctree_node_t)root)->first_child, (pctree_node_t)node_2);
-    ASSERT_EQ(((pctree_node_t)root)->last_child, (pctree_node_t)node_2);
+    pctree_node_insert_before(node_1,node_3);
+    ASSERT_EQ(root->nr_children, 3);
+    ASSERT_EQ(root->first_child, node_3);
+    ASSERT_NE(root->first_child, node_2);
+    ASSERT_EQ(root->last_child, node_2);
 
-    destroy_tree_node(root);
-    destroy_tree_node(node_1);
-    destroy_tree_node(node_2);
-    destroy_tree_node(node_3);
+    pctree_node_destroy(root, destroy_tree_node);
 }
 
 TEST(tree, build_tree)
 {
-    struct test_tree_node* root = create_tree_node(0);
-    struct test_tree_node* node_1 = create_tree_node(1);
-    struct test_tree_node* node_2 = create_tree_node(2);
-    struct test_tree_node* node_3 = create_tree_node(3);
-    struct test_tree_node* node_4 = create_tree_node(4);
+    pctree_node_t root = create_tree_node(0);
+    pctree_node_t node_1 = create_tree_node(1);
+    pctree_node_t node_2 = create_tree_node(2);
+    pctree_node_t node_3 = create_tree_node(3);
+    pctree_node_t node_4 = create_tree_node(4);
 
-    pctree_node_prepend_child((pctree_node_t)root, (pctree_node_t)node_1);
-    ASSERT_EQ(((pctree_node_t)root)->nr_children, 1);
-    ASSERT_EQ(((pctree_node_t)node_1)->nr_children, 0);
-    ASSERT_EQ(((pctree_node_t)root)->first_child, (pctree_node_t)node_1);
-    ASSERT_EQ(((pctree_node_t)root)->first_child, (pctree_node_t)node_1);
+    pctree_node_prepend_child(root, node_1);
+    ASSERT_EQ(root->nr_children, 1);
+    ASSERT_EQ((node_1)->nr_children, 0);
+    ASSERT_EQ(root->first_child, node_1);
+    ASSERT_EQ(root->first_child, node_1);
 
-    pctree_node_append_child((pctree_node_t)root, (pctree_node_t)node_2);
-    ASSERT_EQ(((pctree_node_t)root)->nr_children, 2);
-    ASSERT_EQ(((pctree_node_t)root)->first_child, (pctree_node_t)node_1);
-    ASSERT_NE(((pctree_node_t)root)->last_child, (pctree_node_t)node_1);
-    ASSERT_EQ(((pctree_node_t)root)->last_child, (pctree_node_t)node_2);
+    pctree_node_append_child(root, node_2);
+    ASSERT_EQ(root->nr_children, 2);
+    ASSERT_EQ(root->first_child, node_1);
+    ASSERT_NE(root->last_child, node_1);
+    ASSERT_EQ(root->last_child, node_2);
 
-    pctree_node_insert_before((pctree_node_t)node_1,(pctree_node_t)node_3);
-    ASSERT_EQ(((pctree_node_t)root)->nr_children, 3);
-    ASSERT_EQ(((pctree_node_t)root)->first_child, (pctree_node_t)node_3);
-    ASSERT_EQ(((pctree_node_t)root)->last_child, (pctree_node_t)node_2);
+    pctree_node_insert_before(node_1,node_3);
+    ASSERT_EQ(root->nr_children, 3);
+    ASSERT_EQ(root->first_child, node_3);
+    ASSERT_EQ(root->last_child, node_2);
 
-    pctree_node_insert_after((pctree_node_t)node_3,(pctree_node_t)node_4);
-    ASSERT_EQ(((pctree_node_t)root)->nr_children, 4);
-    ASSERT_EQ(((pctree_node_t)root)->first_child, (pctree_node_t)node_3);
-    ASSERT_EQ(((pctree_node_t)root)->last_child, (pctree_node_t)node_2);
+    pctree_node_insert_after(node_3,node_4);
+    ASSERT_EQ(root->nr_children, 4);
+    ASSERT_EQ(root->first_child, node_3);
+    ASSERT_EQ(root->last_child, node_2);
 
-    destroy_tree_node(root);
-    destroy_tree_node(node_1);
-    destroy_tree_node(node_2);
-    destroy_tree_node(node_3);
-    destroy_tree_node(node_4);
+    pctree_node_destroy(root, destroy_tree_node);
 }
 
 
 void  build_output_buf(pctree_node_t node,  void* data)
 {
-    purc_rwstream_t rws = (purc_rwstream_t) data;
     char buf[1000] = {0};
-    snprintf(buf, 1000, "%d ", ((struct test_tree_node*)node)->id);
+    purc_rwstream_t rws = (purc_rwstream_t) data;
+    struct test_tree_node* tree_node = (struct test_tree_node*)node->user_data;
+    snprintf(buf, 1000, "%d ", tree_node->id);
     purc_rwstream_write (rws, buf, strlen(buf));
 }
 
@@ -267,36 +234,36 @@ void  build_output_buf(pctree_node_t node,  void* data)
  */
 TEST(tree, traversal)
 {
-    struct test_tree_node* node_1 = create_tree_node(1);
-    struct test_tree_node* node_2 = create_tree_node(2);
-    struct test_tree_node* node_3 = create_tree_node(3);
-    struct test_tree_node* node_4 = create_tree_node(4);
-    struct test_tree_node* node_5 = create_tree_node(5);
-    struct test_tree_node* node_6 = create_tree_node(6);
-    struct test_tree_node* node_7 = create_tree_node(7);
-    struct test_tree_node* node_8 = create_tree_node(8);
-    struct test_tree_node* node_9 = create_tree_node(9);
-    struct test_tree_node* node_10 = create_tree_node(10);
-    struct test_tree_node* node_11 = create_tree_node(11);
+    pctree_node_t node_1 = create_tree_node(1);
+    pctree_node_t node_2 = create_tree_node(2);
+    pctree_node_t node_3 = create_tree_node(3);
+    pctree_node_t node_4 = create_tree_node(4);
+    pctree_node_t node_5 = create_tree_node(5);
+    pctree_node_t node_6 = create_tree_node(6);
+    pctree_node_t node_7 = create_tree_node(7);
+    pctree_node_t node_8 = create_tree_node(8);
+    pctree_node_t node_9 = create_tree_node(9);
+    pctree_node_t node_10 = create_tree_node(10);
+    pctree_node_t node_11 = create_tree_node(11);
 
-    pctree_node_append_child((pctree_node_t)node_1, (pctree_node_t)node_2);
-    ASSERT_EQ(pctree_node_children_number((pctree_node_t)node_1), 1);
-    pctree_node_append_child((pctree_node_t)node_1, (pctree_node_t)node_3);
-    ASSERT_EQ(pctree_node_children_number((pctree_node_t)node_1), 2);
+    pctree_node_append_child(node_1, node_2);
+    ASSERT_EQ(pctree_node_children_number(node_1), 1);
+    pctree_node_append_child(node_1, node_3);
+    ASSERT_EQ(pctree_node_children_number(node_1), 2);
 
-    pctree_node_append_child((pctree_node_t)node_2, (pctree_node_t)node_4);
-    pctree_node_append_child((pctree_node_t)node_2, (pctree_node_t)node_5);
-    pctree_node_append_child((pctree_node_t)node_2, (pctree_node_t)node_6);
-    ASSERT_EQ(pctree_node_children_number((pctree_node_t)node_2), 3);
+    pctree_node_append_child(node_2, node_4);
+    pctree_node_append_child(node_2, node_5);
+    pctree_node_append_child(node_2, node_6);
+    ASSERT_EQ(pctree_node_children_number(node_2), 3);
 
-    pctree_node_append_child((pctree_node_t)node_3, (pctree_node_t)node_7);
-    ASSERT_EQ(pctree_node_children_number((pctree_node_t)node_3), 1);
+    pctree_node_append_child(node_3, node_7);
+    ASSERT_EQ(pctree_node_children_number(node_3), 1);
 
-    pctree_node_append_child((pctree_node_t)node_7, (pctree_node_t)node_8);
-    pctree_node_append_child((pctree_node_t)node_7, (pctree_node_t)node_9);
-    pctree_node_append_child((pctree_node_t)node_7, (pctree_node_t)node_10);
-    pctree_node_append_child((pctree_node_t)node_7, (pctree_node_t)node_11);
-    ASSERT_EQ(pctree_node_children_number((pctree_node_t)node_7), 4);
+    pctree_node_append_child(node_7, node_8);
+    pctree_node_append_child(node_7, node_9);
+    pctree_node_append_child(node_7, node_10);
+    pctree_node_append_child(node_7, node_11);
+    ASSERT_EQ(pctree_node_children_number(node_7), 4);
 
 
     char buf[1024] = {0};
@@ -304,22 +271,22 @@ TEST(tree, traversal)
     purc_rwstream_t rws = purc_rwstream_new_from_mem (buf, buf_len);
     ASSERT_NE(rws, nullptr);
 
-    pctree_node_pre_order_traversal((pctree_node_t)node_1, build_output_buf, rws);
+    pctree_node_pre_order_traversal(node_1, build_output_buf, rws);
 //    fprintf(stderr, "pre order = %s\n", buf);
     ASSERT_STREQ(buf, "1 2 4 5 6 3 7 8 9 10 11 ");
 
     purc_rwstream_seek (rws, 0, SEEK_SET);
-    pctree_node_in_order_traversal((pctree_node_t)node_1, build_output_buf, rws);
+    pctree_node_in_order_traversal(node_1, build_output_buf, rws);
 //    fprintf(stderr, "in order = %s\n", buf);
     ASSERT_STREQ(buf, "4 2 5 6 1 8 7 9 10 11 3 ");
 
     purc_rwstream_seek (rws, 0, SEEK_SET);
-    pctree_node_post_order_traversal((pctree_node_t)node_1, build_output_buf, rws);
+    pctree_node_post_order_traversal(node_1, build_output_buf, rws);
 //    fprintf(stderr, "post order = %s\n", buf);
     ASSERT_STREQ(buf, "4 5 6 2 8 9 10 11 7 3 1 ");
 
     purc_rwstream_seek (rws, 0, SEEK_SET);
-    pctree_node_level_order_traversal((pctree_node_t)node_1, build_output_buf, rws);
+    pctree_node_level_order_traversal(node_1, build_output_buf, rws);
 //    fprintf(stderr, "level order = %s\n", buf);
     ASSERT_STREQ(buf, "1 2 3 4 5 6 7 8 9 10 11 ");
 
@@ -329,15 +296,5 @@ TEST(tree, traversal)
     ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 
-    destroy_tree_node(node_1);
-    destroy_tree_node(node_2);
-    destroy_tree_node(node_3);
-    destroy_tree_node(node_4);
-    destroy_tree_node(node_5);
-    destroy_tree_node(node_6);
-    destroy_tree_node(node_7);
-    destroy_tree_node(node_8);
-    destroy_tree_node(node_9);
-    destroy_tree_node(node_10);
-    destroy_tree_node(node_11);
+    pctree_node_destroy(node_1, destroy_tree_node);
 }
