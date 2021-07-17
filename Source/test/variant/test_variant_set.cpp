@@ -129,7 +129,7 @@ TEST(variant_set, add_n_str)
     ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
     ASSERT_EQ(var->refc, 1);
 
-    int count = 1;
+    int count = 1024;
     char buf[64];
     for (int j=0; j<count; ++j) {
         snprintf(buf, sizeof(buf), "%d", j);
@@ -137,7 +137,7 @@ TEST(variant_set, add_n_str)
         ASSERT_NE(s, nullptr);
         purc_variant_t obj = purc_variant_make_object_c(1, "hello", s);
         ASSERT_NE(obj, nullptr);
-        ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], 1);
+        ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], j+1);
         bool t = purc_variant_set_add(var, obj, false);
         ASSERT_EQ(t, true);
         purc_variant_unref(obj);
@@ -174,7 +174,31 @@ TEST(variant_set, add_n_str)
     }
     if (it)
         purc_variant_set_release_iterator(it);
-    purc_variant_set_release_iterator(NULL);
+
+    if (1) {
+        purc_variant_t v;
+        purc_variant_t q = purc_variant_make_string("20", false);
+        v = purc_variant_set_get_member_by_key_values(var, q);
+        ASSERT_NE(v, nullptr);
+        purc_variant_unref(q);
+        q = purc_variant_make_string("abc", false);
+        v = purc_variant_set_get_member_by_key_values(var, q);
+        ASSERT_EQ(v, nullptr);
+        purc_variant_unref(q);
+    }
+
+    if (1) {
+        purc_variant_t v;
+        purc_variant_t q = purc_variant_make_string("20", false);
+        v = purc_variant_set_remove_member_by_key_values(var, q);
+        ASSERT_NE(v, nullptr);
+        purc_variant_unref(v);
+        purc_variant_unref(q);
+        q = purc_variant_make_string("abc", false);
+        v = purc_variant_set_get_member_by_key_values(var, q);
+        ASSERT_EQ(v, nullptr);
+        purc_variant_unref(q);
+    }
 
     // int idx = _get_random(count);
     // snprintf(buf, sizeof(buf), "%d", idx);
