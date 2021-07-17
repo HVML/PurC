@@ -229,7 +229,8 @@ static inline void _variant_set_release(variant_set_t set)
     _variant_set_release_keynames(set);
 }
 
-static int _variant_set_add_val(variant_set_t set, purc_variant_t val)
+static int
+_variant_set_add_val(variant_set_t set, purc_variant_t val, bool override)
 {
     if (!val) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
@@ -255,6 +256,12 @@ static int _variant_set_add_val(variant_set_t set, purc_variant_t val)
     p = avl_find_element(&set->objs, _new->avl.key, p, avl);
 
     if (p) {
+        if (!override) {
+            pcvariant_set_release_obj(_new);
+            free(_new);
+            pcinst_set_error(PURC_ERROR_DUPLICATED);
+            return -1;
+        }
         if (p->obj == val) {
             // already in
             pcvariant_set_release_obj(_new);
@@ -281,7 +288,9 @@ static int _variant_set_add_val(variant_set_t set, purc_variant_t val)
     return 0;
 }
 
-static int _variant_set_add_valsn(variant_set_t set, size_t sz, va_list ap)
+static int
+_variant_set_add_valsn(variant_set_t set, bool override,
+    size_t sz, va_list ap)
 {
     size_t i = 0;
     while (i<sz) {
@@ -291,7 +300,7 @@ static int _variant_set_add_valsn(variant_set_t set, size_t sz, va_list ap)
             break;
         }
 
-        if (_variant_set_add_val(set, v)) {
+        if (_variant_set_add_val(set, v, override)) {
             break;
         }
 
@@ -320,12 +329,12 @@ purc_variant_make_set_c (size_t sz, const char* unique_key,
 
         if (sz>0) {
             purc_variant_t  v = value0;
-            if (_variant_set_add_val(data, v))
+            if (_variant_set_add_val(data, v, true))
                 break;
 
             va_list ap;
             va_start(ap, value0);
-            int r = _variant_set_add_valsn(data, sz-1, ap);
+            int r = _variant_set_add_valsn(data, true, sz-1, ap);
             va_end(ap);
             if (r)
                 break;
@@ -368,12 +377,12 @@ purc_variant_make_set (size_t sz, purc_variant_t unique_key,
 
         if (sz>0) {
             purc_variant_t  v = value0;
-            if (_variant_set_add_val(data, v))
+            if (_variant_set_add_val(data, v, true))
                 break;
 
             va_list ap;
             va_start(ap, value0);
-            int r = _variant_set_add_valsn(data, sz-1, ap);
+            int r = _variant_set_add_valsn(data, true, sz-1, ap);
             va_end(ap);
             if (r)
                 break;
@@ -390,7 +399,8 @@ purc_variant_make_set (size_t sz, purc_variant_t unique_key,
     return PURC_VARIANT_INVALID;
 }
 
-bool purc_variant_set_add (purc_variant_t set, purc_variant_t value)
+bool
+purc_variant_set_add (purc_variant_t set, purc_variant_t value, bool override)
 {
     PCVARIANT_CHECK_FAIL_RET(set && set->type==PVT(_SET) && value,
         PURC_VARIANT_INVALID);
@@ -398,7 +408,7 @@ bool purc_variant_set_add (purc_variant_t set, purc_variant_t value)
     variant_set_t data = _pcv_set_get_data(set);
     PC_ASSERT(data);
 
-    if (_variant_set_add_val(data, value))
+    if (_variant_set_add_val(data, value, override))
         return false;
 
     size_t extra = _variant_set_get_extra_size(data);

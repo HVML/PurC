@@ -755,7 +755,7 @@ purc_variant_make_set(size_t sz, purc_variant_t unique_key,
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_set_add(purc_variant_t obj, purc_variant_t value);
+purc_variant_set_add(purc_variant_t obj, purc_variant_t value, bool override);
 
 /**
  * Remove a variant value from a set.

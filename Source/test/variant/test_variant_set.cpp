@@ -9,6 +9,17 @@
 #include <errno.h>
 #include <gtest/gtest.h>
 
+static int _get_random(int max)
+{
+    static int seeded = 0;
+    if (!seeded) {
+        srand(time(0));
+        seeded = 1;
+    }
+
+    return (max<=0) ? rand() : rand() % max;
+}
+
 TEST(variant_set, init_with_1_str)
 {
     purc_instance_extra_info info = {0, 0};
@@ -119,14 +130,14 @@ TEST(variant_set, add_n_str)
     ASSERT_EQ(var->refc, 1);
 
     int count = 1024;
+    char buf[64];
     for (int j=0; j<count; ++j) {
-        char buf[64];
         snprintf(buf, sizeof(buf), "%d", j);
         purc_variant_t s = purc_variant_make_string(buf, false);
         ASSERT_NE(s, nullptr);
         purc_variant_t obj = purc_variant_make_object_c(1, "hello", s);
         ASSERT_NE(obj, nullptr);
-        int t = purc_variant_set_add(var, obj);
+        int t = purc_variant_set_add(var, obj, false);
         ASSERT_EQ(t, true);
         purc_variant_unref(obj);
         purc_variant_unref(s);
@@ -145,6 +156,15 @@ TEST(variant_set, add_n_str)
         ++j;
     }
     ASSERT_EQ(j, count);
+
+    // int idx = _get_random(count);
+    // snprintf(buf, sizeof(buf), "%d", idx);
+    // purc_variant_t k = purc_variant_make_string(buf, false);
+    // purc_variant_t v;
+    // v = purc_variant_set_get_member_by_key_values(var, k);
+    // ASSERT_NE(v, nullptr);
+    // purc_variant_unref(v);
+    // purc_variant_unref(k);
 
     ASSERT_EQ(var->refc, 1);
     purc_variant_unref(var);
@@ -192,15 +212,14 @@ TEST(avl, init)
     struct avl_tree avl;
     pcutils_avl_init(&avl, _avl_tree_comp, false, NULL);
     int r;
-    srand(time(0));
     int count = 10240;
     for (int i=0; i<count; ++i) {
-        size_t key = rand();
+        size_t key = _get_random(0);
         if (pcutils_avl_find(&avl, &key)) {
             --i;
             continue;
         }
-        struct _avl_node *p = _make_avl_node(key, rand());
+        struct _avl_node *p = _make_avl_node(key, _get_random(0));
         r = pcutils_avl_insert(&avl, &p->node);
         ASSERT_EQ(r, 0);
     }
