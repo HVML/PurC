@@ -307,7 +307,7 @@ TEST(variant, pcvariant_null)
             ASSERT_EQ (value, value_prev);
 
             // check ref
-            ASSERT_EQ (value->refc, 1 + times + 1);
+            ASSERT_EQ (value->refc, 1 + times);
 
             // check statitics information
             stat = purc_variant_usage_stat ();
@@ -322,7 +322,7 @@ TEST(variant, pcvariant_null)
         // invoke unref 6 times.
         // for null variant, the minimum refc is 1 or 0 ???
         unsigned int refc = 0;
-        for (; times >= 0; times--) {
+        for (; times > 0; times--) {
             refc = purc_variant_unref (value);
             ASSERT_GE (refc, 0);
         }
@@ -389,7 +389,7 @@ TEST(variant, pcvariant_undefined)
             ASSERT_EQ (value, value_prev);
 
             // check ref
-            ASSERT_EQ (value->refc, 1 + times + 1);
+            ASSERT_EQ (value->refc, 1 + times);
 
             // check statitics information
             stat = purc_variant_usage_stat ();
@@ -404,7 +404,7 @@ TEST(variant, pcvariant_undefined)
         // invoke unref 6 times.
         // for undefined variant, the minimum refc is 1 or 0 ???
         unsigned int refc = 0;
-        for (; times >= 0; times--) {
+        for (; times > 0; times--) {
             refc = purc_variant_unref (value);
             ASSERT_GE (refc, 0);
         }
@@ -473,7 +473,7 @@ TEST(variant, pcvariant_boolean)
             ASSERT_EQ (value_true, value_true_prev);
 
             // check ref
-            ASSERT_EQ (value_true->refc, 1 + times + 1);
+            ASSERT_EQ (value_true->refc, 1 + times);
 
             // check statitics information
             stat = purc_variant_usage_stat ();
@@ -496,7 +496,7 @@ TEST(variant, pcvariant_boolean)
             ASSERT_EQ (value_false, value_false_prev);
 
             // check ref
-            ASSERT_EQ (value_false->refc, 1 + times + 1);
+            ASSERT_EQ (value_false->refc, 1 + times);
 
             // check statitics information
             stat = purc_variant_usage_stat ();
@@ -511,12 +511,12 @@ TEST(variant, pcvariant_boolean)
         // invoke unref 6 times.
         // for boolean variant, the minimum refc is 2 or 0 ???
         unsigned int refc = 0;
-        for (times = 5; times >= 0; times--) {
+        for (; times > 0; times--) {
             refc = purc_variant_unref (value_true);
             ASSERT_GE (refc, 0);
         }
 
-        for (times = 5; times >= 0; times--) {
+        for (times = 5; times > 0; times--) {
             refc = purc_variant_unref (value_false);
             ASSERT_GE (refc, 0);
         }
@@ -1034,73 +1034,10 @@ TEST(variant, pcvariant_native)
 }
 
 // to test:
-// purc_variant_ref 
-TEST(variant, pcvariant_ref)
-{
-    purc_instance_extra_info info = {0, 0};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
-    ASSERT_EQ (ret, PURC_ERROR_OK);
-
-
-    purc_cleanup ();
-}
-
-
-// to test:
-// purc_variant_unref and memory 
-TEST(variant, pcvariant_unref)
-{
-    purc_instance_extra_info info = {0, 0};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
-    ASSERT_EQ (ret, PURC_ERROR_OK);
-
-
-    purc_cleanup ();
-}
-
-
-
-// to test:
 // loop buffer in heap 
-TEST(variant, pcvariant_loopbuffer)
+TEST(variant, pcvariant_loopbuffer_one)
 {
-/*
-    int i = 0;
-    struct pcinst * inst = NULL;
-    struct pcvariant_heap * heap = NULL;
-
-    purc_instance_extra_info info = {0, 0};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
-    ASSERT_EQ (ret, PURC_ERROR_OK);
-
-    // 1. check heap nr_reserved, and v_reserved, headpos, writepos, nr_reserved
-    inst = pcinst_current();
-    ASSERT_NE (inst, nullptr);
-
-    heap = &(inst->variant_heap);
-
-    EXPECT_EQ (heap->headpos, 0);
-    EXPECT_EQ (heap->tailpos, 0);
-    for (i = 0; i < MAX_RESERVED_VARIANTS; i++) 
-        EXPECT_EQ (heap->v_reserved[i], nullptr);
-*/
-    // 2. create 32 variants, store the pointer in an array
-
-    // 3. unref 31 variants one by one, and check v_reserved, headpos, writepos,
-    //       and nr_reserved
-
-    // 4. unref the last, and check v_reserved, headpos, writepos, nr_reserved
-
-    // 5. create a new variant, check the pointer whether in an array
-
-    purc_cleanup ();
-}
-
-// to test:
-// memery leak
-TEST(variant, pcvariant_memory_leak)
-{
-/*
+    int times = 0;
     purc_variant_t value = NULL;
     purc_instance_extra_info info = {0, 0};
     const char long_str[] = "\x61\x62\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\x00";   // ab北京上海北京上海
@@ -1116,27 +1053,121 @@ TEST(variant, pcvariant_memory_leak)
     ASSERT_NE(stat, nullptr);
     old_size = stat->sz_total_mem;
 
-    // create variant
-    value = purc_variant_make_string (long_str, true);
+    // create one variant value, and release it. check totol_mem
+    // expect : initial value + sizeof(purc_variant)
+    // note: only use one resered memory space
+    for (times = 0; times < MAX_RESERVED_VARIANTS - 1; times++) { 
+        // create variant
+        value = purc_variant_make_string (long_str, true);
 
-    // get the total memory
-    stat = purc_variant_usage_stat ();
-    ASSERT_NE(stat, nullptr);
-    new_size = stat->sz_total_mem;
-    ASSERT_EQ (new_size, old_size + block + purc_variant_string_length (value));
+        // get the total memory
+        stat = purc_variant_usage_stat ();
+        ASSERT_NE(stat, nullptr);
+        new_size = stat->sz_total_mem;
 
-    // unref
-    purc_variant_unref (value);
+        ASSERT_EQ (new_size, old_size + block + purc_variant_string_length (value));
 
-    // get the total memory
-    stat = purc_variant_usage_stat ();
-    ASSERT_NE(stat, nullptr);
-    new_size = stat->sz_total_mem;
+        // unref
+        purc_variant_unref (value);
 
-    ASSERT_EQ (new_size, old_size);
+        // get the total memory
+        stat = purc_variant_usage_stat ();
+        ASSERT_NE(stat, nullptr);
+        new_size = stat->sz_total_mem;
+
+        ASSERT_EQ (new_size, old_size + block);
+    }
 
     purc_cleanup ();
-*/
+}
+
+
+// to test:
+// loop buffer in heap 
+TEST(variant, pcvariant_loopbuffer_all)
+{
+    int i = 0;
+    purc_variant_t value[MAX_RESERVED_VARIANTS];
+    purc_instance_extra_info info = {0, 0};
+    const char long_str[] = "\x61\x62\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\x00";   // ab北京上海北京上海
+    size_t old_size = 0;
+    size_t calc_size = 0;
+    size_t new_size = 0;
+    size_t block = sizeof(purc_variant);
+
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    // get statitics information
+    struct purc_variant_stat * stat = purc_variant_usage_stat ();
+    ASSERT_NE(stat, nullptr);
+    old_size = stat->sz_total_mem;
+
+    // create MAX_RESERVED_VARIANTS variant values, and release it. check totol_mem
+    // expect : initial value + sizeof(purc_variant) * (MAX_RESERVED_VARIANTS - 1)
+    // note: only (MAX_RESERVED_VARIANTS - 1) spaces can be used
+    for (i = 0; i < MAX_RESERVED_VARIANTS; i++) { 
+        // create variant
+        value[i] = purc_variant_make_string (long_str, true);
+
+        // get the total memory
+        stat = purc_variant_usage_stat ();
+        ASSERT_NE(stat, nullptr);
+        new_size = stat->sz_total_mem;
+        calc_size += block + purc_variant_string_length (value[i]);
+
+        ASSERT_EQ (new_size, old_size + calc_size);
+    }
+
+    // release all variant, the loop buufers are not released
+    for (i = 0; i < MAX_RESERVED_VARIANTS - 1; i++) { 
+        calc_size -= purc_variant_string_length (value[i]);
+        purc_variant_unref (value[i]);
+
+        // get the total memory
+        stat = purc_variant_usage_stat ();
+        ASSERT_NE(stat, nullptr);
+        new_size = stat->sz_total_mem;
+
+        ASSERT_EQ (new_size, old_size + calc_size);
+
+    }
+
+    calc_size -= purc_variant_string_length (value[MAX_RESERVED_VARIANTS - 1]);
+    purc_variant_unref (value[MAX_RESERVED_VARIANTS - 1]);
+    stat = purc_variant_usage_stat ();
+    ASSERT_NE(stat, nullptr);
+    new_size = stat->sz_total_mem;
+    calc_size -= block;
+
+    ASSERT_EQ (new_size, old_size + calc_size);
+
+    // buffers are full, create MAX_RESERVED_VARIANTS variant values again
+    for (i = 0; i < MAX_RESERVED_VARIANTS - 1; i++) { 
+        // create variant
+        value[i] = purc_variant_make_string (long_str, true);
+
+        // get the total memory
+        stat = purc_variant_usage_stat ();
+        ASSERT_NE(stat, nullptr);
+        new_size = stat->sz_total_mem;
+        calc_size += purc_variant_string_length (value[i]);
+
+        ASSERT_EQ (new_size, old_size + calc_size);
+    }
+
+    // create another variant
+    value[MAX_RESERVED_VARIANTS -1] = purc_variant_make_string (long_str, true);
+    stat = purc_variant_usage_stat ();
+    ASSERT_NE(stat, nullptr);
+    new_size = stat->sz_total_mem;
+    calc_size += purc_variant_string_length (value[i]);
+
+    ASSERT_EQ (new_size, old_size + calc_size + block);
+
+
+
+    purc_cleanup ();
 }
 
 
