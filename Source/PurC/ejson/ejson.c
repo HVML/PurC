@@ -31,34 +31,16 @@
 #endif
 
 #if HAVE(GLIB)
-static inline UNUSED_FUNCTION struct pcejson* alloc_pcejson(void) {
-    return (struct pcejson*)g_slice_alloc(sizeof(struct pcejson));
-}
-
-static inline UNUSED_FUNCTION struct pcejson* alloc_pcejson_0(void) {
-    return (struct pcejson*)g_slice_alloc0(sizeof(struct pcejson));
-}
-
-static inline void free_pcejson(struct pcejson* v) {
-    return g_slice_free1(sizeof(struct pcejson), (gpointer)v);
-}
+#define    ejson_alloc(sz)   g_slice_alloc0(sz)
+#define    ejson_free(p)     g_slice_free1(sizeof(*p), (gpointer)p)
 #else
-static inline UNUSED_FUNCTION struct pcejson* alloc_pcejson(void) {
-    return (struct pcejson*)malloc(sizeof(struct pcejson));
-}
-
-static inline UNUSED_FUNCTION struct pcejson* alloc_pcejson_0(void) {
-    return (struct pcejson*)calloc(1, sizeof(struct pcejson));
-}
-
-static inline void free_pcejson(struct pcejson* v) {
-    return free(v);
-}
+#define    ejson_alloc(sz)   calloc(1, sz)
+#define    ejson_free(p)     free(p)
 #endif
 
 struct pcejson* pcejson_create(int32_t depth, uint32_t flags)
 {
-    struct pcejson* parser = alloc_pcejson_0();
+    struct pcejson* parser = (struct pcejson*)ejson_alloc(sizeof(struct pcejson));
     parser->state = ejson_init_state;
     parser->depth = depth;
     parser->flags = flags;
@@ -67,7 +49,7 @@ struct pcejson* pcejson_create(int32_t depth, uint32_t flags)
 
 void pcejson_destroy(struct pcejson* parser)
 {
-    free_pcejson(parser);
+    ejson_free(parser);
 }
 
 void pcejson_reset(struct pcejson* parser, int32_t depth, uint32_t flags)
@@ -75,4 +57,31 @@ void pcejson_reset(struct pcejson* parser, int32_t depth, uint32_t flags)
     parser->state = ejson_init_state;
     parser->depth = depth;
     parser->flags = flags;
+}
+
+// TODO
+int pcejson_parse(pcvcm_tree_t vcm_tree, purc_rwstream_t rwstream)
+{
+    UNUSED_PARAM(vcm_tree);
+    UNUSED_PARAM(rwstream);
+    pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+    return -1;
+}
+
+// eJSON tokenizer
+struct pcejson_token* pcejson_token_new(enum ejson_token_type type,
+        size_t sz_min, size_t sz_max)
+{
+    struct pcejson_token* token = ejson_alloc(sizeof(struct pcejson_token));
+    token->type = type;
+    token->rws = purc_rwstream_new_buffer(sz_min, sz_max);
+    return token;
+}
+
+void pcejson_token_destroy(struct pcejson_token* token)
+{
+    if (token->rws) {
+        purc_rwstream_destroy(token->rws);
+    }
+    ejson_free(token);
 }

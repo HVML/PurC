@@ -25,9 +25,34 @@
 #ifndef PURC_PRIVATE_EJSON_H
 #define PURC_PRIVATE_EJSON_H
 
+#include "purc-rwstream.h"
+
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
+
+#define BEGIN_STATE(state_name)                                  \
+    case state_name:                                             \
+    state_name: {                                                \
+        enum ejson_state current_state = state_name;             \
+        UNUSED_PARAM(current_state);
+
+#define END_STATE()                                             \
+        break;                                                  \
+    }
+
+#define RETURN_IN_CURRENT_STATE(expression)                     \
+    do {                                                        \
+        tokenizer->state = current_state;                       \
+        return expression;                                      \
+    } while (false)
+
+#define RECONSUME_IN(new_state)                                 \
+    do {                                                        \
+        goto new_state;                                         \
+    } while (false)
+
+
 
 enum ejson_state {
     ejson_init_state,
@@ -75,27 +100,10 @@ enum ejson_state {
     ejson_string_escape_four_hexadecimal_digits_state
 };
 
-#define BEGIN_STATE(state_name)                                  \
-    case state_name:                                             \
-    state_name: {                                                \
-        enum ejson_state current_state = state_name;             \
-        UNUSED_PARAM(current_state);
-
-#define END_STATE()                                             \
-        break;                                                  \
-    }
-
-#define RETURN_IN_CURRENT_STATE(expression)                     \
-    do {                                                        \
-        tokenizer->state = current_state;                       \
-        return expression;                                      \
-    } while (false)
-
-#define RECONSUME_IN(new_state)                                 \
-    do {                                                        \
-        goto new_state;                                         \
-    } while (false)
-
+enum ejson_token_type {
+    ejson_token_start_object,
+    ejson_token_end_object
+};
 
 struct pcejson {
     enum ejson_state state;
@@ -103,13 +111,49 @@ struct pcejson {
     uint32_t flags;
 };
 
+struct pcejson_token {
+    enum ejson_token_type type;
+    purc_rwstream_t rws;
+};
+
+struct pcvcm_tree;
+typedef struct pcvcm_tree* pcvcm_tree_t;
+
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
 
+
+/**
+ * Create ejson parser.
+ */
 struct pcejson* pcejson_create(int32_t depth, uint32_t flags);
+
+/**
+ * Destroy ejson parser.
+ */
 void pcejson_destroy(struct pcejson* parser);
+
+/**
+ * Reset ejson parser.
+ */
 void pcejson_reset(struct pcejson* parser, int32_t depth, uint32_t flags);
+
+/**
+ * Parse ejson.
+ */
+int pcejson_parse(pcvcm_tree_t vcm_tree, purc_rwstream_t rwstream);
+
+/**
+ * Create a new pcejson token.
+ */
+struct pcejson_token* pcejson_token_new(enum ejson_token_type type,
+        size_t sz_min, size_t sz_max);
+
+/**
+ * Destory pcejson token.
+ */
+void pcejson_token_destroy(struct pcejson_token* token);
 
 #ifdef __cplusplus
 }
