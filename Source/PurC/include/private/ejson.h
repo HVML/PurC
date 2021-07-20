@@ -53,6 +53,15 @@
     } while (false)
 
 
+#define ADVANCE_TO(new_state)                                    \
+    do {                                                         \
+        ret = purc_rwstream_read_utf8_char (rws, buf_utf8, &wc); \
+        if (ret <= 0) {                                          \
+            return NULL;                                         \
+        }                                                        \
+        goto new_state;                                          \
+    } while (false)
+
 
 enum ejson_state {
     ejson_init_state,
@@ -102,7 +111,22 @@ enum ejson_state {
 
 enum ejson_token_type {
     ejson_token_start_object,
-    ejson_token_end_object
+    ejson_token_end_object,
+    ejson_token_start_array,
+    ejson_token_end_array,
+    ejson_token_key,
+    ejson_token_string,
+    ejson_token_null,
+    ejson_token_boolean,
+    ejson_token_number,
+    ejson_token_long_integer_number,
+    ejson_token_unsigned_long_integer_number,
+    ejson_token_long_double_number,
+    ejson_token_colon,
+    ejson_token_comma,
+    ejson_token_text,
+    ejson_token_byte_squence,
+    ejson_token_eof,
 };
 
 struct pcejson {
