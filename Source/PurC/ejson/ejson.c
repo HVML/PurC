@@ -123,6 +123,19 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
         END_STATE()
 
         BEGIN_STATE(ejson_finished_state)
+            switch (wc) {
+                case ' ':
+                case '\x0A':
+                case '\x09':
+                case '\x0C':
+                    ADVANCE_TO(ejson_finished_state);
+                    break;
+                case END_OF_FILE_MARKER:
+                    return pcejson_token_new(ejson_token_eof, 0, 0);
+                default:
+                    pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
+                    return NULL;
+            }
         END_STATE()
 
         BEGIN_STATE(ejson_object_state)
