@@ -893,6 +893,10 @@ static int buffer_close (purc_rwstream_t rws)
 
 static int buffer_destroy (purc_rwstream_t rws)
 {
+    struct buffer_rwstream* buffer = (struct buffer_rwstream *)rws;
+    if (buffer->base) {
+        buffer_close(rws);
+    }
     free(rws);
     return 0;
 }
