@@ -80,8 +80,198 @@ struct pcejson_token* pcejson_token_new(enum ejson_token_type type,
 
 void pcejson_token_destroy(struct pcejson_token* token)
 {
-    if (token->rws) {
+    if (token && token->rws) {
         purc_rwstream_destroy(token->rws);
     }
     ejson_free(token);
+}
+
+struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t rws)
+{
+    char buf_utf8[8] = {0};
+    wchar_t wc = 0;
+
+    int ret = purc_rwstream_read_utf8_char (rws, buf_utf8, &wc);
+    if (ret <= 0) {
+        return NULL;
+    }
+
+    switch (ejson->state) {
+
+        BEGIN_STATE(ejson_init_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_finished_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_object_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_after_object_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_array_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_after_array_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_before_name_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_after_name_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_before_value_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_after_value_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_name_unquoted_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_after_name_unquoted_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_name_single_quoted_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_after_name_single_quoted_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_name_double_quoted_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_after_name_double_quoted_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_value_single_quoted_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_after_value_single_quoted_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_value_double_quoted_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_after_value_double_quoted_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_value_two_double_quoted_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_after_value_two_double_quoted_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_value_three_double_quoted_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_after_value_three_double_quoted_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_keyword_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_after_keyword_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_byte_sequence_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_after_byte_sequence_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_hex_byte_sequence_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_binary_byte_sequence_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_base64_byte_sequence_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_value_number_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_after_value_number_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_value_number_integer_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_value_number_fraction_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_after_value_number_fraction_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_value_number_exponent_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_value_number_exponent_integer_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_after_value_number_exponent_integer_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_value_number_suffix_integer_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_after_value_number_suffix_integer_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_string_escape_state)
+        END_STATE()
+
+        BEGIN_STATE(ejson_string_escape_four_hexadecimal_digits_state)
+        END_STATE()
+
+        default:
+            break;
+    }
+    UNUSED_LABEL(ejson_init_state);
+    UNUSED_LABEL(ejson_finished_state);
+    UNUSED_LABEL(ejson_object_state);
+    UNUSED_LABEL(ejson_after_object_state);
+    UNUSED_LABEL(ejson_array_state);
+    UNUSED_LABEL(ejson_after_array_state);
+    UNUSED_LABEL(ejson_before_name_state);
+    UNUSED_LABEL(ejson_after_name_state);
+    UNUSED_LABEL(ejson_before_value_state);
+    UNUSED_LABEL(ejson_after_value_state);
+    UNUSED_LABEL(ejson_name_unquoted_state);
+    UNUSED_LABEL(ejson_after_name_unquoted_state);
+    UNUSED_LABEL(ejson_name_single_quoted_state);
+    UNUSED_LABEL(ejson_after_name_single_quoted_state);
+    UNUSED_LABEL(ejson_name_double_quoted_state);
+    UNUSED_LABEL(ejson_after_name_double_quoted_state);
+    UNUSED_LABEL(ejson_value_single_quoted_state);
+    UNUSED_LABEL(ejson_after_value_single_quoted_state);
+    UNUSED_LABEL(ejson_value_double_quoted_state);
+    UNUSED_LABEL(ejson_after_value_double_quoted_state);
+    UNUSED_LABEL(ejson_value_two_double_quoted_state);
+    UNUSED_LABEL(ejson_after_value_two_double_quoted_state);
+    UNUSED_LABEL(ejson_value_three_double_quoted_state);
+    UNUSED_LABEL(ejson_after_value_three_double_quoted_state);
+    UNUSED_LABEL(ejson_keyword_state);
+    UNUSED_LABEL(ejson_after_keyword_state);
+    UNUSED_LABEL(ejson_byte_sequence_state);
+    UNUSED_LABEL(ejson_after_byte_sequence_state);
+    UNUSED_LABEL(ejson_hex_byte_sequence_state);
+    UNUSED_LABEL(ejson_binary_byte_sequence_state);
+    UNUSED_LABEL(ejson_base64_byte_sequence_state);
+    UNUSED_LABEL(ejson_value_number_state);
+    UNUSED_LABEL(ejson_after_value_number_state);
+    UNUSED_LABEL(ejson_value_number_integer_state);
+    UNUSED_LABEL(ejson_value_number_fraction_state);
+    UNUSED_LABEL(ejson_after_value_number_fraction_state);
+    UNUSED_LABEL(ejson_value_number_exponent_state);
+    UNUSED_LABEL(ejson_value_number_exponent_integer_state);
+    UNUSED_LABEL(ejson_after_value_number_exponent_integer_state);
+    UNUSED_LABEL(ejson_value_number_suffix_integer_state);
+    UNUSED_LABEL(ejson_after_value_number_suffix_integer_state);
+    UNUSED_LABEL(ejson_string_escape_state);
+    UNUSED_LABEL(ejson_string_escape_four_hexadecimal_digits_state);
+    return NULL;
 }

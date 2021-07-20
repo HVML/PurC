@@ -39,3 +39,18 @@ TEST(ejson_token, create_destroy)
 
     pcejson_token_destroy(token);
 }
+
+TEST(ejson_token, next_token)
+{
+    char json[] = "{ \"key\" : \"value\" }";
+
+    purc_rwstream_t rws = purc_rwstream_new_from_mem(json, strlen(json));
+    struct pcejson* parser = pcejson_create(10, 1);
+
+    struct pcejson_token* token = pcejson_next_token(parser, rws);
+    ASSERT_EQ(token, nullptr);
+
+    pcejson_token_destroy(token);
+    pcejson_destroy(parser);
+    purc_rwstream_destroy(rws);
+}

@@ -155,6 +155,12 @@ struct pcejson_token* pcejson_token_new(enum ejson_token_type type,
  */
 void pcejson_token_destroy(struct pcejson_token* token);
 
+
+/**
+ * Get one pcejson token from rwstream.
+ */
+struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t rws);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
