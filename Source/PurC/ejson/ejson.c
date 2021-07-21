@@ -276,9 +276,45 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
         END_STATE()
 
         BEGIN_STATE(ejson_array_state)
+            switch (wc) {
+                case ' ':
+                case '\x0A':
+                case '\x09':
+                case '\x0C':
+                    ADVANCE_TO(ejson_before_value_state);
+                    break;
+                case '{':
+                    pcejson_stack_push (ejson->stack, '[');
+                    pcejson_reset_temp_buffer(ejson);
+                    return pcejson_token_new(ejson_token_start_array, 0, 0);
+                default:
+                    pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
+                    return NULL;
+            }
         END_STATE()
 
         BEGIN_STATE(ejson_after_array_state)
+            if (wc == ']') {
+                uint8_t c = pcejson_stack_last(ejson->stack);
+                if (c == '[') {
+                    pcejson_stack_pop(ejson->stack);
+                    if (pcejson_stack_is_empty(ejson->stack)) {
+                        SWITCH_TO(ejson_finished_state);
+                    }
+                    else {
+                        SWITCH_TO(ejson_init_state);
+                    }
+                    return pcejson_token_new(ejson_token_end_array, 0, 0);
+                }
+                else {
+                    pcinst_set_error(PCEJSON_UNEXPECTED_RIGHT_BRACKET_PARSE_ERROR);
+                    return NULL;
+                }
+            }
+            else {
+                pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
+                return NULL;
+            }
         END_STATE()
 
         BEGIN_STATE(ejson_before_name_state)
