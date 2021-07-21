@@ -252,6 +252,24 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
         END_STATE()
 
         BEGIN_STATE(ejson_after_object_state)
+            if (wc == '}') {
+                uint8_t c = pcejson_stack_last(ejson->stack);
+                if (c == '{') {
+                    pcejson_stack_pop(ejson->stack);
+                    // TODO: define macro
+                    if (pcejson_stack_is_empty(ejson->stack)) {
+                        ejson->state = ejson_finished_state;
+                    }
+                    else {
+                        ejson->state = ejson_init_state;
+                    }
+                    return pcejson_token_new(ejson_token_end_object, 0, 0);
+                }
+            }
+            else {
+                pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
+                return NULL;
+            }
         END_STATE()
 
         BEGIN_STATE(ejson_array_state)
