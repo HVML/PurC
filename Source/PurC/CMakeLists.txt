@@ -31,6 +31,7 @@ set(PurC_INSTALLED_HEADERS
 set(PurC_PLATFORM_INDEPENDENT_DIRS
     "instance"
     "utils"
+    "html"
 )
 
 # This macro will append all C/CXX source files in ${PurC_PLATFORM_INDEPENDENT_DIRS}
