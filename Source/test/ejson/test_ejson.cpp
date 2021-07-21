@@ -32,10 +32,10 @@ TEST(ejson, create_reset_destroy)
 
 TEST(ejson_token, create_destroy)
 {
-    struct pcejson_token* token = pcejson_token_new(ejson_token_start_object, -1, 0);
+    struct pcejson_token* token = pcejson_token_new(ejson_token_start_object, NULL);
     ASSERT_NE(token, nullptr);
     ASSERT_EQ(token->type, ejson_token_start_object);
-    ASSERT_EQ(token->rws, nullptr);
+    ASSERT_EQ(token->buf, nullptr);
 
     pcejson_token_destroy(token);
 }

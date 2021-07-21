@@ -202,7 +202,7 @@ void pcejson_destroy(struct pcejson* parser)
     }
 }
 
-void pcejson_reset_temp_buffer(struct pcejson* parser)
+void pcejson_temp_buffer_reset(struct pcejson* parser)
 {
     size_t sz = 0;
     const char* p = purc_rwstream_get_mem_buffer (parser->rws, &sz);
@@ -210,12 +210,27 @@ void pcejson_reset_temp_buffer(struct pcejson* parser)
     purc_rwstream_seek(parser->rws, 0, SEEK_SET);
 }
 
+char* pcejson_temp_buffer_dup(struct pcejson* parser)
+{
+    size_t sz = 0;
+    const char* p = purc_rwstream_get_mem_buffer (parser->rws, &sz);
+    char* dup = (char*)malloc(sz + 1);
+    strncpy(dup, p, sz);
+    dup[sz] = 0;
+    return dup;
+}
+
+bool pcejson_temp_buffer_is_empty(struct pcejson* parser)
+{
+    return (0 == purc_rwstream_tell(parser->rws));
+}
+
 void pcejson_reset(struct pcejson* parser, int32_t depth, uint32_t flags)
 {
     parser->state = ejson_init_state;
     parser->depth = depth;
     parser->flags = flags;
-    pcejson_reset_temp_buffer(parser);
+    pcejson_temp_buffer_reset(parser);
 }
 
 // TODO
@@ -228,19 +243,18 @@ int pcejson_parse(pcvcm_tree_t vcm_tree, purc_rwstream_t rwstream)
 }
 
 // eJSON tokenizer
-struct pcejson_token* pcejson_token_new(enum ejson_token_type type,
-        size_t sz_min, size_t sz_max)
+struct pcejson_token* pcejson_token_new(enum ejson_token_type type, char* buf)
 {
     struct pcejson_token* token = ejson_alloc(sizeof(struct pcejson_token));
     token->type = type;
-    token->rws = purc_rwstream_new_buffer(sz_min, sz_max);
+    token->buf = buf;
     return token;
 }
 
 void pcejson_token_destroy(struct pcejson_token* token)
 {
-    if (token && token->rws) {
-        purc_rwstream_destroy(token->rws);
+    if (token && token->buf) {
+        free(token->buf);
     }
     ejson_free(token);
 }
@@ -274,7 +288,7 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
                     RECONSUME_IN(ejson_object_state);
                     break;
                 case END_OF_FILE_MARKER:
-                    return pcejson_token_new(ejson_token_eof, 0, 0);
+                    return pcejson_token_new(ejson_token_eof, NULL);
                 default:
                     pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
                     return NULL;
@@ -290,7 +304,7 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
                     ADVANCE_TO(ejson_finished_state);
                     break;
                 case END_OF_FILE_MARKER:
-                    return pcejson_token_new(ejson_token_eof, 0, 0);
+                    return pcejson_token_new(ejson_token_eof, NULL);
                 default:
                     pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
                     return NULL;
@@ -307,8 +321,8 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
                     break;
                 case '{':
                     pcejson_stack_push (ejson->stack, '{');
-                    pcejson_reset_temp_buffer(ejson);
-                    return pcejson_token_new(ejson_token_start_object, 0, 0);
+                    pcejson_temp_buffer_reset(ejson);
+                    return pcejson_token_new(ejson_token_start_object, NULL);
                 default:
                     pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
                     return NULL;
@@ -326,7 +340,7 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
                     else {
                         SWITCH_TO(ejson_init_state);
                     }
-                    return pcejson_token_new(ejson_token_end_object, 0, 0);
+                    return pcejson_token_new(ejson_token_end_object, NULL);
                 }
                 else {
                     pcinst_set_error(PCEJSON_UNEXPECTED_RIGHT_BRACE_PARSE_ERROR);
@@ -349,8 +363,8 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
                     break;
                 case '{':
                     pcejson_stack_push (ejson->stack, '[');
-                    pcejson_reset_temp_buffer(ejson);
-                    return pcejson_token_new(ejson_token_start_array, 0, 0);
+                    pcejson_temp_buffer_reset(ejson);
+                    return pcejson_token_new(ejson_token_start_array, NULL);
                 default:
                     pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
                     return NULL;
@@ -368,7 +382,7 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
                     else {
                         SWITCH_TO(ejson_init_state);
                     }
-                    return pcejson_token_new(ejson_token_end_array, 0, 0);
+                    return pcejson_token_new(ejson_token_end_array, NULL);
                 }
                 else {
                     pcinst_set_error(PCEJSON_UNEXPECTED_RIGHT_BRACKET_PARSE_ERROR);
@@ -386,7 +400,7 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
                 ADVANCE_TO(ejson_before_name_state);
             }
             else if (wc == '"') {
-                pcejson_reset_temp_buffer(ejson);
+                pcejson_temp_buffer_reset(ejson);
                 uint8_t c = pcejson_stack_last(ejson->stack);
                 if (c == '{') {
                     pcejson_stack_push (ejson->stack, ':');
@@ -394,7 +408,7 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
                 RECONSUME_IN(ejson_name_double_quoted_state);
             }
             else if (wc == '\'') {
-                pcejson_reset_temp_buffer(ejson);
+                pcejson_temp_buffer_reset(ejson);
                 uint8_t c = pcejson_stack_last(ejson->stack);
                 if (c == '{') {
                     pcejson_stack_push (ejson->stack, ':');
@@ -402,7 +416,7 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
                 RECONSUME_IN(ejson_value_single_quoted_state);
             }
             else if (is_ascii_alpha(wc)) {
-                pcejson_reset_temp_buffer(ejson);
+                pcejson_temp_buffer_reset(ejson);
                 uint8_t c = pcejson_stack_last(ejson->stack);
                 if (c == '{') {
                     pcejson_stack_push (ejson->stack, ':');
@@ -416,6 +430,28 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
         END_STATE()
 
         BEGIN_STATE(ejson_after_name_state)
+            switch (wc) {
+                case ' ':
+                case '\x0A':
+                case '\x09':
+                case '\x0C':
+                    ADVANCE_TO(ejson_after_name_state);
+                    break;
+                case ':':
+                    if (pcejson_temp_buffer_is_empty(ejson)) {
+                        pcinst_set_error(
+                                PCEJSON_UNEXPECTED_JSON_KEY_NAME_PARSE_ERROR);
+                        return NULL;
+                    }
+                    else {
+                        SWITCH_TO(ejson_before_value_state);
+                        return pcejson_token_new(ejson_token_key,
+                                pcejson_temp_buffer_dup(ejson));
+                    }
+                default:
+                    pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
+                    return NULL;
+            }
         END_STATE()
 
         BEGIN_STATE(ejson_before_value_state)

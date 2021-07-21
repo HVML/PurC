@@ -153,7 +153,7 @@ struct pcejson {
 
 struct pcejson_token {
     enum ejson_token_type type;
-    purc_rwstream_t rws;
+    char* buf;
 };
 
 struct pcvcm_tree;
@@ -221,8 +221,7 @@ int pcejson_parse(pcvcm_tree_t vcm_tree, purc_rwstream_t rwstream);
 /**
  * Create a new pcejson token.
  */
-struct pcejson_token* pcejson_token_new(enum ejson_token_type type,
-        size_t sz_min, size_t sz_max);
+struct pcejson_token* pcejson_token_new(enum ejson_token_type type, char* buf);
 
 /**
  * Destory pcejson token.
