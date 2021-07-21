@@ -48,6 +48,70 @@ static size_t get_stack_size(size_t sz_stack) {
     return stack < MIN_STACK_CAPACITY ? MIN_STACK_CAPACITY : stack;
 }
 
+static inline bool is_whitespace(wchar_t character)
+{
+    return character == ' ' || character == '\x0A'
+        || character == '\x09' || character == '\x0C';
+}
+
+static inline wchar_t to_ascii_lower_unchecked(wchar_t character)
+{
+        return character | 0x20;
+}
+
+static inline bool is_ascii(wchar_t character)
+{
+    return !(character & ~0x7F);
+}
+
+static inline bool is_ascii_lower(wchar_t character)
+{
+    return character >= 'a' && character <= 'z';
+}
+
+static inline bool is_ascii_upper(wchar_t character)
+{
+     return character >= 'A' && character <= 'Z';
+}
+
+static inline bool is_ascii_space(wchar_t character)
+{
+    return character <= ' ' &&
+        (character == ' ' || (character <= 0xD && character >= 0x9));
+}
+
+static inline bool is_ascii_digit(wchar_t character)
+{
+    return character >= '0' && character <= '9';
+}
+
+static inline bool is_ascii_binary_digit(wchar_t character)
+{
+     return character == '0' || character == '1';
+}
+
+static inline bool is_ascii_hex_digit(wchar_t character)
+{
+     return is_ascii_digit(character) ||
+         (to_ascii_lower_unchecked(character) >= 'a'
+          && to_ascii_lower_unchecked(character) <= 'f');
+}
+
+static inline bool is_ascii_octal_digit(wchar_t character)
+{
+     return character >= '0' && character <= '7';
+}
+
+static inline bool is_ascii_alpha(wchar_t character)
+{
+    return is_ascii_lower(to_ascii_lower_unchecked(character));
+}
+
+static inline bool is_ascii_alpha_numeric(wchar_t character)
+{
+    return is_ascii_digit(character) || is_ascii_alpha(character);
+}
+
 struct pcejson_stack* pcejson_stack_new(size_t sz_init)
 {
     struct pcejson_stack* stack = (struct pcejson_stack*) ejson_alloc(
