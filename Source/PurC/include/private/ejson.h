@@ -43,12 +43,13 @@
 
 #define RETURN_IN_CURRENT_STATE(expression)                     \
     do {                                                        \
-        tokenizer->state = current_state;                       \
+        ejson->state = current_state;                           \
         return expression;                                      \
     } while (false)
 
 #define RECONSUME_IN(new_state)                                 \
     do {                                                        \
+        ejson->state = new_state;                               \
         goto new_state;                                         \
     } while (false)
 
@@ -59,6 +60,7 @@
         if (ret <= 0) {                                          \
             return NULL;                                         \
         }                                                        \
+        ejson->state = new_state;                                \
         goto new_state;                                          \
     } while (false)
 
@@ -141,6 +143,7 @@ struct pcejson {
     int32_t depth;
     uint32_t flags;
     struct pcejson_stack* stack;
+    purc_rwstream_t rws;
 };
 
 struct pcejson_token {

@@ -32,6 +32,8 @@
 #endif
 
 #define MIN_STACK_CAPACITY 32
+#define MIN_EJSON_BUFFER_SIZE 128
+#define MAX_EJSON_BUFFER_SIZE 1024 * 1024 * 1024
 
 #if HAVE(GLIB)
 #define    ejson_alloc(sz)   g_slice_alloc0(sz)
@@ -121,12 +123,27 @@ struct pcejson* pcejson_create(int32_t depth, uint32_t flags)
     parser->state = ejson_init_state;
     parser->depth = depth;
     parser->flags = flags;
+    parser->stack = pcejson_stack_new(2 * depth);
+    parser->rws = purc_rwstream_new_buffer(MIN_EJSON_BUFFER_SIZE,
+            MAX_EJSON_BUFFER_SIZE);
     return parser;
 }
 
 void pcejson_destroy(struct pcejson* parser)
 {
-    ejson_free(parser);
+    if (parser) {
+        pcejson_stack_destroy(parser->stack);
+        purc_rwstream_destroy(parser->rws);
+        ejson_free(parser);
+    }
+}
+
+void pcejson_reset_temp_buffer(struct pcejson* parser)
+{
+    size_t sz = 0;
+    const char* p = purc_rwstream_get_mem_buffer (parser->rws, &sz);
+    memset((void*)p, 0, sz);
+    purc_rwstream_seek(parser->rws, 0, SEEK_SET);
 }
 
 void pcejson_reset(struct pcejson* parser, int32_t depth, uint32_t flags)
@@ -134,6 +151,7 @@ void pcejson_reset(struct pcejson* parser, int32_t depth, uint32_t flags)
     parser->state = ejson_init_state;
     parser->depth = depth;
     parser->flags = flags;
+    pcejson_reset_temp_buffer(parser);
 }
 
 // TODO
@@ -216,11 +234,20 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
         END_STATE()
 
         BEGIN_STATE(ejson_object_state)
-            if (wc == '{') {
-            }
-            else {
-                pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
-                return NULL;
+            switch (wc) {
+                case ' ':
+                case '\x0A':
+                case '\x09':
+                case '\x0C':
+                    ADVANCE_TO(ejson_before_name_state);
+                    break;
+                case '{':
+                    pcejson_stack_push (ejson->stack, '{');
+                    pcejson_reset_temp_buffer(ejson);
+                    return pcejson_token_new(ejson_token_start_object, 0, 0);
+                default:
+                    pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
+                    return NULL;
             }
         END_STATE()
 

@@ -48,7 +48,8 @@ TEST(ejson_token, next_token)
     struct pcejson* parser = pcejson_create(10, 1);
 
     struct pcejson_token* token = pcejson_next_token(parser, rws);
-    ASSERT_EQ(token, nullptr);
+    ASSERT_NE(token, nullptr);
+    ASSERT_EQ(token->type, ejson_token_start_object);
 
     pcejson_token_destroy(token);
     pcejson_destroy(parser);
