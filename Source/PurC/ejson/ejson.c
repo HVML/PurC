@@ -24,11 +24,14 @@
 
 #include "private/ejson.h"
 #include "private/errors.h"
+#include "purc-utils.h"
 #include "config.h"
 
 #if HAVE(GLIB)
 #include <gmodule.h>
 #endif
+
+#define MIN_STACK_CAPACITY 32
 
 #if HAVE(GLIB)
 #define    ejson_alloc(sz)   g_slice_alloc0(sz)
@@ -37,6 +40,80 @@
 #define    ejson_alloc(sz)   calloc(1, sz)
 #define    ejson_free(p)     free(p)
 #endif
+
+static size_t get_stack_size(size_t sz_stack) {
+    size_t stack = pcutils_get_next_fibonacci_number(sz_stack);
+    return stack < MIN_STACK_CAPACITY ? MIN_STACK_CAPACITY : stack;
+}
+
+struct pcejson_stack* pcejson_stack_new(size_t sz_init)
+{
+    struct pcejson_stack* stack = (struct pcejson_stack*) ejson_alloc(
+            sizeof(struct pcejson_stack));
+    sz_init = get_stack_size(sz_init);
+    stack->buf = (uint8_t*) calloc (1, sz_init);
+    stack->last = -1;
+    stack->capacity = sz_init;
+    return stack;
+}
+
+bool pcejson_stack_is_empty(struct pcejson_stack* stack)
+{
+    return stack->last == -1;
+}
+
+void pcejson_stack_push(struct pcejson_stack* stack, uint8_t c)
+{
+    if (stack->last == (int32_t)(stack->capacity - 1))
+    {
+        size_t sz = get_stack_size(stack->capacity);
+        uint8_t* newbuf = (uint8_t*) realloc(stack->buf, sz);
+        if (newbuf == NULL)
+        {
+            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            return;
+        }
+        stack->capacity = sz;
+    }
+    stack->buf[++stack->last] = c;
+}
+
+uint8_t pcejson_stack_pop(struct pcejson_stack* stack)
+{
+    if (pcejson_stack_is_empty(stack))
+    {
+        return -1;
+    }
+    return stack->buf[stack->last--];
+}
+
+uint8_t pcejson_stack_first(struct pcejson_stack* stack)
+{
+    if (pcejson_stack_is_empty(stack))
+    {
+        return -1;
+    }
+    return stack->buf[0];
+}
+
+uint8_t pcejson_stack_last(struct pcejson_stack* stack)
+{
+    if (pcejson_stack_is_empty(stack)) {
+        return -1;
+    }
+    return stack->buf[stack->last];
+}
+
+void pcejson_stack_destroy(struct pcejson_stack* stack)
+{
+    if (stack) {
+        free(stack->buf);
+        stack->buf = NULL;
+        stack->last = -1;
+        stack->capacity = 0;
+        ejson_free(stack);
+    }
+}
 
 struct pcejson* pcejson_create(int32_t depth, uint32_t flags)
 {
@@ -142,8 +219,8 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
             if (wc == '{') {
             }
             else {
-                    pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
-                    return NULL;
+                pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
+                return NULL;
             }
         END_STATE()
 

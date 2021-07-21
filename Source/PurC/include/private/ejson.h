@@ -129,10 +129,18 @@ enum ejson_token_type {
     ejson_token_eof,
 };
 
+
+struct pcejson_stack {
+    uint8_t* buf;
+    uint32_t capacity;
+    int32_t last;
+};
+
 struct pcejson {
     enum ejson_state state;
     int32_t depth;
     uint32_t flags;
+    struct pcejson_stack* stack;
 };
 
 struct pcejson_token {
@@ -147,6 +155,40 @@ typedef struct pcvcm_tree* pcvcm_tree_t;
 extern "C" {
 #endif  /* __cplusplus */
 
+/**
+ * Create a new pcejson stack.
+ */
+struct pcejson_stack* pcejson_stack_new(size_t sz_init);
+
+/**
+ * Check if the stack is empty.
+ */
+bool pcejson_stack_is_empty(struct pcejson_stack* stack);
+
+/**
+ * Push a character to the pcejson stack.
+ */
+void pcejson_stack_push(struct pcejson_stack* stack, uint8_t c);
+
+/**
+ * Pop a character from the pcejson stack.
+ */
+uint8_t pcejson_stack_pop(struct pcejson_stack* stack);
+
+/**
+ * Get the first character of the pcejson stack.
+ */
+uint8_t pcejson_stack_first(struct pcejson_stack* stack);
+
+/**
+ * Get the last character of the pcejson stack.
+ */
+uint8_t pcejson_stack_last(struct pcejson_stack* stack);
+
+/**
+ * Destory pcejson stack.
+ */
+void pcejson_stack_destroy(struct pcejson_stack* stack);
 
 /**
  * Create ejson parser.
