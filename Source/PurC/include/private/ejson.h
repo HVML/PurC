@@ -64,6 +64,11 @@
         goto new_state;                                          \
     } while (false)
 
+#define SWITCH_TO(new_state)                                    \
+    do {                                                        \
+        ejson->state = new_state;                               \
+    } while (false)
+
 
 enum ejson_state {
     ejson_init_state,
