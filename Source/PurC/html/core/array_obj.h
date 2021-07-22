@@ -1,11 +1,29 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file array_object.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for array object.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_ARRAY_OBJ_H
-#define LEXBOR_ARRAY_OBJ_H
+#ifndef PCHTML_ARRAY_OBJ_H
+#define PCHTML_ARRAY_OBJ_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,48 +38,45 @@ typedef struct {
     size_t  length;
     size_t  struct_size;
 }
-lexbor_array_obj_t;
+pchtml_array_obj_t;
 
 
-LXB_API lexbor_array_obj_t *
-lexbor_array_obj_create(void);
+pchtml_array_obj_t * pchtml_array_obj_create(void) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lexbor_array_obj_init(lexbor_array_obj_t *array,
-                      size_t size, size_t struct_size);
+unsigned int 
+pchtml_array_obj_init(pchtml_array_obj_t *array,
+                      size_t size, size_t struct_size) WTF_INTERNAL;
 
-LXB_API void
-lexbor_array_obj_clean(lexbor_array_obj_t *array);
+void 
+pchtml_array_obj_clean(pchtml_array_obj_t *array) WTF_INTERNAL;
 
-LXB_API lexbor_array_obj_t *
-lexbor_array_obj_destroy(lexbor_array_obj_t *array, bool self_destroy);
+pchtml_array_obj_t * 
+pchtml_array_obj_destroy(pchtml_array_obj_t *array, bool self_destroy) WTF_INTERNAL;
 
+uint8_t *
+pchtml_array_obj_expand(pchtml_array_obj_t *array, size_t up_to) WTF_INTERNAL;
 
-LXB_API uint8_t *
-lexbor_array_obj_expand(lexbor_array_obj_t *array, size_t up_to);
+void * 
+pchtml_array_obj_push(pchtml_array_obj_t *array) WTF_INTERNAL;
 
+void * 
+pchtml_array_obj_pop(pchtml_array_obj_t *array) WTF_INTERNAL;
 
-LXB_API void *
-lexbor_array_obj_push(lexbor_array_obj_t *array);
-
-LXB_API void *
-lexbor_array_obj_pop(lexbor_array_obj_t *array);
-
-LXB_API void
-lexbor_array_obj_delete(lexbor_array_obj_t *array, size_t begin, size_t length);
+void
+pchtml_array_obj_delete(pchtml_array_obj_t *array, size_t begin, size_t length) WTF_INTERNAL;
 
 
 /*
  * Inline functions
  */
-lxb_inline void
-lexbor_array_obj_erase(lexbor_array_obj_t *array)
+static inline void
+pchtml_array_obj_erase(pchtml_array_obj_t *array)
 {
-    memset(array, 0, sizeof(lexbor_array_obj_t));
+    memset(array, 0, sizeof(pchtml_array_obj_t));
 }
 
-lxb_inline void *
-lexbor_array_obj_get(lexbor_array_obj_t *array, size_t idx)
+static inline void *
+pchtml_array_obj_get(pchtml_array_obj_t *array, size_t idx)
 {
     if (idx >= array->length) {
         return NULL;
@@ -70,26 +85,26 @@ lexbor_array_obj_get(lexbor_array_obj_t *array, size_t idx)
     return array->list + (idx * array->struct_size);
 }
 
-lxb_inline size_t
-lexbor_array_obj_length(lexbor_array_obj_t *array)
+static inline size_t
+pchtml_array_obj_length(pchtml_array_obj_t *array)
 {
     return array->length;
 }
 
-lxb_inline size_t
-lexbor_array_obj_size(lexbor_array_obj_t *array)
+static inline size_t
+pchtml_array_obj_size(pchtml_array_obj_t *array)
 {
     return array->size;
 }
 
-lxb_inline size_t
-lexbor_array_obj_struct_size(lexbor_array_obj_t *array)
+static inline size_t
+pchtml_array_obj_struct_size(pchtml_array_obj_t *array)
 {
     return array->struct_size;
 }
 
-lxb_inline void *
-lexbor_array_obj_last(lexbor_array_obj_t *array)
+static inline void *
+pchtml_array_obj_last(pchtml_array_obj_t *array)
 {
     if (array->length == 0) {
         return NULL;
@@ -103,26 +118,26 @@ lexbor_array_obj_last(lexbor_array_obj_t *array)
  * No inline functions for ABI.
  */
 void
-lexbor_array_obj_erase_noi(lexbor_array_obj_t *array);
+pchtml_array_obj_erase_noi(pchtml_array_obj_t *array) WTF_INTERNAL;
 
 void *
-lexbor_array_obj_get_noi(lexbor_array_obj_t *array, size_t idx);
+pchtml_array_obj_get_noi(pchtml_array_obj_t *array, size_t idx) WTF_INTERNAL;
 
 size_t
-lexbor_array_obj_length_noi(lexbor_array_obj_t *array);
+pchtml_array_obj_length_noi(pchtml_array_obj_t *array) WTF_INTERNAL;
 
 size_t
-lexbor_array_obj_size_noi(lexbor_array_obj_t *array);
+pchtml_array_obj_size_noi(pchtml_array_obj_t *array) WTF_INTERNAL;
 
 size_t
-lexbor_array_obj_struct_size_noi(lexbor_array_obj_t *array);
+pchtml_array_obj_struct_size_noi(pchtml_array_obj_t *array) WTF_INTERNAL;
 
 void *
-lexbor_array_obj_last_noi(lexbor_array_obj_t *array);
+pchtml_array_obj_last_noi(pchtml_array_obj_t *array) WTF_INTERNAL;
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LEXBOR_ARRAY_OBJ_H */
+#endif  /* PCHTML_ARRAY_OBJ_H */

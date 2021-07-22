@@ -1,11 +1,29 @@
-/*
- * Copyright (C) 2018-2020 Alexander Borisov
+/**
+ * @file base.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The basic hearder file for html core.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_BASE_H
-#define LEXBOR_BASE_H
+#ifndef PCHTML_BASE_H
+#define PCHTML_BASE_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,59 +39,59 @@ extern "C" {
 
 #include "html/core/def.h"
 #include "html/core/types.h"
-#include "html/core/lexbor.h"
+#include "html/core/pchtml.h"
 
-#define LEXBOR_VERSION_MAJOR 1
-#define LEXBOR_VERSION_MINOR 3
-#define LEXBOR_VERSION_PATCH 2
+#define PCHTML_VERSION_MAJOR 1
+#define PCHTML_VERSION_MINOR 3
+#define PCHTML_VERSION_PATCH 2
 
-#define LEXBOR_VERSION_STRING LEXBOR_STRINGIZE(LEXBOR_VERSION_MAJOR) "."       \
-                              LEXBOR_STRINGIZE(LEXBOR_VERSION_MINOR) "."       \
-                              LEXBOR_STRINGIZE(LEXBOR_VERSION_PATCH)
+#define PCHTML_VERSION_STRING PCHTML_STRINGIZE(PCHTML_VERSION_MAJOR) "."       \
+                              PCHTML_STRINGIZE(PCHTML_VERSION_MINOR) "."       \
+                              PCHTML_STRINGIZE(PCHTML_VERSION_PATCH)
 
-#define lexbor_assert(val)
+#define pchtml_assert(val)
 
 
 /*
  * Very important!!!
  *
- * for lexbor 0..00AFFF; LXB_STATUS_OK == 0x000000
+ * for 0..00AFFF; PCHTML_STATUS_OK == 0x000000
  */
 typedef enum {
-    LXB_STATUS_OK                       = 0x0000,
-    LXB_STATUS_ERROR                    = 0x0001,
-    LXB_STATUS_ERROR_MEMORY_ALLOCATION,
-    LXB_STATUS_ERROR_OBJECT_IS_NULL,
-    LXB_STATUS_ERROR_SMALL_BUFFER,
-    LXB_STATUS_ERROR_INCOMPLETE_OBJECT,
-    LXB_STATUS_ERROR_NO_FREE_SLOT,
-    LXB_STATUS_ERROR_TOO_SMALL_SIZE,
-    LXB_STATUS_ERROR_NOT_EXISTS,
-    LXB_STATUS_ERROR_WRONG_ARGS,
-    LXB_STATUS_ERROR_WRONG_STAGE,
-    LXB_STATUS_ERROR_UNEXPECTED_RESULT,
-    LXB_STATUS_ERROR_UNEXPECTED_DATA,
-    LXB_STATUS_ERROR_OVERFLOW,
-    LXB_STATUS_CONTINUE,
-    LXB_STATUS_SMALL_BUFFER,
-    LXB_STATUS_ABORTED,
-    LXB_STATUS_STOPPED,
-    LXB_STATUS_NEXT,
-    LXB_STATUS_STOP,
+    PCHTML_STATUS_OK                       = 0x0000,
+    PCHTML_STATUS_ERROR                    = 0x0001,
+    PCHTML_STATUS_ERROR_MEMORY_ALLOCATION,
+    PCHTML_STATUS_ERROR_OBJECT_IS_NULL,
+    PCHTML_STATUS_ERROR_SMALL_BUFFER,
+    PCHTML_STATUS_ERROR_INCOMPLETE_OBJECT,
+    PCHTML_STATUS_ERROR_NO_FREE_SLOT,
+    PCHTML_STATUS_ERROR_TOO_SMALL_SIZE,
+    PCHTML_STATUS_ERROR_NOT_EXISTS,
+    PCHTML_STATUS_ERROR_WRONG_ARGS,
+    PCHTML_STATUS_ERROR_WRONG_STAGE,
+    PCHTML_STATUS_ERROR_UNEXPECTED_RESULT,
+    PCHTML_STATUS_ERROR_UNEXPECTED_DATA,
+    PCHTML_STATUS_ERROR_OVERFLOW,
+    PCHTML_STATUS_CONTINUE,
+    PCHTML_STATUS_SMALL_BUFFER,
+    PCHTML_STATUS_ABORTED,
+    PCHTML_STATUS_STOPPED,
+    PCHTML_STATUS_NEXT,
+    PCHTML_STATUS_STOP,
 }
-lexbor_status_t;
+pchtml_status_t;
 
 typedef enum {
-    LEXBOR_ACTION_OK    = 0x00,
-    LEXBOR_ACTION_STOP  = 0x01,
-    LEXBOR_ACTION_NEXT  = 0x02
+    PCHTML_ACTION_OK    = 0x00,
+    PCHTML_ACTION_STOP  = 0x01,
+    PCHTML_ACTION_NEXT  = 0x02
 }
-lexbor_action_t;
+pchtml_action_t;
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LEXBOR_BASE_H */
+#endif  /* PCHTML_BASE_H */
 
