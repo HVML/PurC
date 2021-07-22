@@ -1,20 +1,39 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file utils.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for html parser.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_UTILS_H
-#define LEXBOR_UTILS_H
+#ifndef PCHTML_UTILS_H
+#define PCHTML_UTILS_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "config.h"
 #include "html/core/base.h"
 
 
-#define lexbor_utils_whitespace(onechar, action, logic)                        \
+#define pchtml_utils_whitespace(onechar, action, logic)                        \
     (onechar action ' '  logic                                                 \
      onechar action '\t' logic                                                 \
      onechar action '\n' logic                                                 \
@@ -22,15 +41,14 @@ extern "C" {
      onechar action '\r')
 
 
-LXB_API size_t
-lexbor_utils_power(size_t t, size_t k);
+size_t pchtml_utils_power(size_t t, size_t k) WTF_INTERNAL;
 
-LXB_API size_t
-lexbor_utils_hash_hash(const lxb_char_t *key, size_t key_size);
+size_t 
+pchtml_utils_hash_hash(const unsigned char *key, size_t key_size) WTF_INTERNAL;
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LEXBOR_UTILS_H */
+#endif  /* PCHTML_UTILS_H */

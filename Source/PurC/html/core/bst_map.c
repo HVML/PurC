@@ -85,7 +85,7 @@ lexbor_bst_map_search(lexbor_bst_map_t *bst_map, lexbor_bst_entry_t *scope,
     lexbor_bst_map_entry_t *entry;
     lexbor_bst_entry_t *bst_entry;
 
-    size_t hash_id = lexbor_utils_hash_hash(key, key_len);
+    size_t hash_id = pchtml_utils_hash_hash(key, key_len);
 
     bst_entry = lexbor_bst_search(bst_map->bst, scope, hash_id);
     if (bst_entry == NULL) {
@@ -133,7 +133,7 @@ lexbor_bst_map_insert_not_exists(lexbor_bst_map_t *bst_map,
     lexbor_bst_map_entry_t *entry;
     lexbor_bst_entry_t *bst_entry;
 
-    size_t hash_id = lexbor_utils_hash_hash(key, key_len);
+    size_t hash_id = pchtml_utils_hash_hash(key, key_len);
 
     bst_entry = lexbor_bst_insert_not_exists(bst_map->bst, scope, hash_id);
     if (bst_entry == NULL) {
@@ -198,7 +198,7 @@ lexbor_bst_map_remove(lexbor_bst_map_t *bst_map, lexbor_bst_entry_t **scope,
     lexbor_bst_map_entry_t *entry;
     lexbor_bst_entry_t *bst_entry;
 
-    size_t hash_id = lexbor_utils_hash_hash(key, key_len);
+    size_t hash_id = pchtml_utils_hash_hash(key, key_len);
 
     bst_entry = lexbor_bst_search(bst_map->bst, *scope, hash_id);
     if (bst_entry == NULL) {

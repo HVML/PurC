@@ -244,7 +244,7 @@ lexbor_str_stay_only_whitespace(lexbor_str_t *target)
     lxb_char_t *data = target->data;
 
     for (i = 0; i < target->length; i++) {
-        if (lexbor_utils_whitespace(data[i], ==, ||)) {
+        if (pchtml_utils_whitespace(data[i], ==, ||)) {
             data[pos] = data[i];
             pos++;
         }
@@ -263,13 +263,13 @@ lexbor_str_strip_collapse_whitespace(lexbor_str_t *target)
         return;
     }
 
-    if (lexbor_utils_whitespace(*data, ==, ||)) {
+    if (pchtml_utils_whitespace(*data, ==, ||)) {
         *data = 0x20;
     }
 
     for (i = 0, offset = 0, ws_i = 0; i < target->length; i++)
     {
-        if (lexbor_utils_whitespace(data[i], ==, ||)) {
+        if (pchtml_utils_whitespace(data[i], ==, ||)) {
             if (data[ws_i] != 0x20) {
                 data[offset] = 0x20;
 
@@ -306,7 +306,7 @@ lexbor_str_crop_whitespace_from_begin(lexbor_str_t *target)
     lxb_char_t *data = target->data;
 
     for (i = 0; i < target->length; i++) {
-        if (lexbor_utils_whitespace(data[i], !=, &&)) {
+        if (pchtml_utils_whitespace(data[i], !=, &&)) {
             break;
         }
     }
@@ -326,7 +326,7 @@ lexbor_str_whitespace_from_begin(lexbor_str_t *target)
     lxb_char_t *data = target->data;
 
     for (i = 0; i < target->length; i++) {
-        if (lexbor_utils_whitespace(data[i], !=, &&)) {
+        if (pchtml_utils_whitespace(data[i], !=, &&)) {
             break;
         }
     }
@@ -343,7 +343,7 @@ lexbor_str_whitespace_from_end(lexbor_str_t *target)
     while (i) {
         i--;
 
-        if (lexbor_utils_whitespace(data[i], !=, &&)) {
+        if (pchtml_utils_whitespace(data[i], !=, &&)) {
             return target->length - (i + 1);
         }
     }
@@ -526,7 +526,7 @@ lexbor_str_data_cmp_ws(const lxb_char_t *first, const lxb_char_t *sec)
             return false;
         }
 
-        if (lexbor_utils_whitespace(*first, ==, ||) || *first == '\0') {
+        if (pchtml_utils_whitespace(*first, ==, ||) || *first == '\0') {
             return true;
         }
 

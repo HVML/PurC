@@ -1412,7 +1412,7 @@ lxb_css_syntax_consume_ident_like_check_url(lxb_css_syntax_tokenizer_t *tkz,
         return lxb_css_syntax_tokenizer_change_incoming(tkz, tkz->begin);
     }
 
-    if (lexbor_utils_whitespace(*data, !=, &&)) {
+    if (pchtml_utils_whitespace(*data, !=, &&)) {
         /* U+0022 QUOTATION MARK (") or U+0027 APOSTROPHE (') */
         if (*data == 0x22 || *data == 0x27) {
             lxb_css_syntax_token(tkz)->type = LXB_CSS_SYNTAX_TOKEN_FUNCTION;
@@ -1436,7 +1436,7 @@ lxb_css_syntax_consume_ident_like_check_url(lxb_css_syntax_tokenizer_t *tkz,
     data += 1;
 
     for (; data != end; data++) {
-        if (lexbor_utils_whitespace(*data, !=, &&)) {
+        if (pchtml_utils_whitespace(*data, !=, &&)) {
             /* U+0022 QUOTATION MARK (") or U+0027 APOSTROPHE (') */
             if (*data == 0x22 || *data == 0x27) {
                 lxb_css_syntax_token(tkz)->type = LXB_CSS_SYNTAX_TOKEN_FUNCTION;
@@ -1574,7 +1574,7 @@ lxb_css_syntax_consume_url(lxb_css_syntax_tokenizer_t *tkz,
                 data += 1;
 
                 for (; data != end; data++) {
-                    if (lexbor_utils_whitespace(*data, !=, &&)) {
+                    if (pchtml_utils_whitespace(*data, !=, &&)) {
                         /* U+0029 RIGHT PARENTHESIS ()) */
                         if (*data == 0x29) {
                             lxb_css_syntax_token(tkz)->type = LXB_CSS_SYNTAX_TOKEN_URL;
@@ -1677,7 +1677,7 @@ lxb_css_syntax_consume_url_end(lxb_css_syntax_tokenizer_t *tkz,
     }
 
     for (; data != end; data++) {
-        if (lexbor_utils_whitespace(*data, !=, &&)) {
+        if (pchtml_utils_whitespace(*data, !=, &&)) {
             /* U+0029 RIGHT PARENTHESIS ()) */
             if (*data == 0x29) {
                 lxb_css_syntax_token(tkz)->type = LXB_CSS_SYNTAX_TOKEN_URL;

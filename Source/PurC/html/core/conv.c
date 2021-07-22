@@ -112,7 +112,7 @@ lexbor_conv_data_to_double(const lxb_char_t **start, size_t len)
 
     exponent += insignf;
 
-    return lexbor_strtod_internal(data, pos - data, exponent);
+    return pchtml_strtod_internal(data, pos - data, exponent);
 }
 
 unsigned long

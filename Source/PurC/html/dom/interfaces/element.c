@@ -808,7 +808,7 @@ lxb_dom_elements_by_class_name_cb(lxb_dom_node_t *node, void *ctx)
     lxb_dom_document_t *doc = el->node.owner_document;
 
     for (; data < end; data++) {
-        if (lexbor_utils_whitespace(*data, ==, ||)) {
+        if (pchtml_utils_whitespace(*data, ==, ||)) {
 
             if (pos != data && (data - pos) == (int)cb_ctx->value_length) {
                 if (doc->compat_mode == LXB_DOM_DOCUMENT_CMODE_QUIRKS) {
