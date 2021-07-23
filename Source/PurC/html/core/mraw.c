@@ -1,155 +1,173 @@
-/*
- * Copyright (C) 2018-2019 Alexander Borisov
+/**
+ * @file mraw.c
+ * @author 
+ * @date 2021/07/02
+ * @brief The complementation of mraw.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include "html/core/mraw.h"
 
 
-#if defined(LEXBOR_HAVE_ADDRESS_SANITIZER)
+#if defined(PCHTML_HAVE_ADDRESS_SANITIZER)
     #include <sanitizer/asan_interface.h>
 #endif
 
 
-#define lexbor_mraw_meta_set(data, size)                                       \
+#define pchtml_mraw_meta_set(data, size)                                       \
     do {                                                                       \
         memcpy(data, size, sizeof(size_t));                                    \
     }                                                                          \
     while (0)
 
-#define lexbor_mraw_data_begin(data)                                           \
-    &((uint8_t *) (data))[ lexbor_mraw_meta_size() ]
+#define pchtml_mraw_data_begin(data)                                           \
+    &((uint8_t *) (data))[ pchtml_mraw_meta_size() ]
 
 
-lxb_inline void *
-lexbor_mraw_realloc_tail(lexbor_mraw_t *mraw, void *data, void *begin,
+static inline void *
+pchtml_mraw_realloc_tail(pchtml_mraw_t *mraw, void *data, void *begin,
                          size_t size, size_t begin_len, size_t new_size,
                          bool *is_valid);
 
 
-lexbor_mraw_t *
-lexbor_mraw_create(void)
+pchtml_mraw_t *
+pchtml_mraw_create(void)
 {
-    return lexbor_calloc(1, sizeof(lexbor_mraw_t));
+    return pchtml_calloc(1, sizeof(pchtml_mraw_t));
 }
 
-lxb_status_t
-lexbor_mraw_init(lexbor_mraw_t *mraw, size_t chunk_size)
+unsigned int
+pchtml_mraw_init(pchtml_mraw_t *mraw, size_t chunk_size)
 {
-    lxb_status_t status;
+    unsigned int status;
 
     if (mraw == NULL) {
-        return LXB_STATUS_ERROR_OBJECT_IS_NULL;
+        return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
     }
 
     if (chunk_size == 0) {
-        return LXB_STATUS_ERROR_WRONG_ARGS;
+        return PCHTML_STATUS_ERROR_WRONG_ARGS;
     }
 
     /* Init memory */
-    mraw->mem = lexbor_mem_create();
+    mraw->mem = pchtml_mem_create();
 
-    status = lexbor_mem_init(mraw->mem, chunk_size + lexbor_mraw_meta_size());
+    status = pchtml_mem_init(mraw->mem, chunk_size + pchtml_mraw_meta_size());
     if (status) {
         return status;
     }
 
-#if defined(LEXBOR_HAVE_ADDRESS_SANITIZER)
+#if defined(PCHTML_HAVE_ADDRESS_SANITIZER)
     ASAN_POISON_MEMORY_REGION(mraw->mem->chunk->data, mraw->mem->chunk->size);
 #endif
 
     /* Cache */
-    mraw->cache = lexbor_bst_create();
+    mraw->cache = pchtml_bst_create();
 
-    status = lexbor_bst_init(mraw->cache, 512);
+    status = pchtml_bst_init(mraw->cache, 512);
     if (status) {
         return status;
     }
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
 void
-lexbor_mraw_clean(lexbor_mraw_t *mraw)
+pchtml_mraw_clean(pchtml_mraw_t *mraw)
 {
-    lexbor_mem_clean(mraw->mem);
-    lexbor_bst_clean(mraw->cache);
+    pchtml_mem_clean(mraw->mem);
+    pchtml_bst_clean(mraw->cache);
 }
 
-lexbor_mraw_t *
-lexbor_mraw_destroy(lexbor_mraw_t *mraw, bool destroy_self)
+pchtml_mraw_t *
+pchtml_mraw_destroy(pchtml_mraw_t *mraw, bool destroy_self)
 {
     if (mraw == NULL) {
         return NULL;
     }
 
-    mraw->mem = lexbor_mem_destroy(mraw->mem, true);
-    mraw->cache = lexbor_bst_destroy(mraw->cache, true);
+    mraw->mem = pchtml_mem_destroy(mraw->mem, true);
+    mraw->cache = pchtml_bst_destroy(mraw->cache, true);
 
     if (destroy_self) {
-        return lexbor_free(mraw);
+        return pchtml_free(mraw);
     }
 
     return mraw;
 }
 
-lxb_inline void *
-lexbor_mraw_mem_alloc(lexbor_mraw_t *mraw, size_t length)
+static inline void *
+pchtml_mraw_mem_alloc(pchtml_mraw_t *mraw, size_t length)
 {
     uint8_t *data;
-    lexbor_mem_t *mem = mraw->mem;
+    pchtml_mem_t *mem = mraw->mem;
 
     if (length == 0) {
         return NULL;
     }
 
     if ((mem->chunk->length + length) > mem->chunk->size) {
-        lexbor_mem_chunk_t *chunk = mem->chunk;
+        pchtml_mem_chunk_t *chunk = mem->chunk;
 
         if ((SIZE_MAX - mem->chunk_length) == 0) {
             return NULL;
         }
 
         if (chunk->length == 0) {
-            lexbor_mem_chunk_destroy(mem, chunk, false);
-            lexbor_mem_chunk_init(mem, chunk, length);
+            pchtml_mem_chunk_destroy(mem, chunk, false);
+            pchtml_mem_chunk_init(mem, chunk, length);
 
             chunk->length = length;
 
-#if defined(LEXBOR_HAVE_ADDRESS_SANITIZER)
+#if defined(PCHTML_HAVE_ADDRESS_SANITIZER)
             ASAN_POISON_MEMORY_REGION(chunk->data, chunk->size);
 #endif
 
             return chunk->data;
         }
 
-        size_t diff = lexbor_mem_align_floor(chunk->size - chunk->length);
+        size_t diff = pchtml_mem_align_floor(chunk->size - chunk->length);
 
         /* Save tail to cache */
-        if (diff > lexbor_mraw_meta_size()) {
-            diff -= lexbor_mraw_meta_size();
+        if (diff > pchtml_mraw_meta_size()) {
+            diff -= pchtml_mraw_meta_size();
 
-#if defined(LEXBOR_HAVE_ADDRESS_SANITIZER)
+#if defined(PCHTML_HAVE_ADDRESS_SANITIZER)
             ASAN_UNPOISON_MEMORY_REGION(&chunk->data[chunk->length],
-                                        lexbor_mraw_meta_size());
+                                        pchtml_mraw_meta_size());
 #endif
 
-            lexbor_mraw_meta_set(&chunk->data[chunk->length], &diff);
+            pchtml_mraw_meta_set(&chunk->data[chunk->length], &diff);
 
-#if defined(LEXBOR_HAVE_ADDRESS_SANITIZER)
+#if defined(PCHTML_HAVE_ADDRESS_SANITIZER)
             ASAN_POISON_MEMORY_REGION(&chunk->data[chunk->length],
-                                      diff + lexbor_mraw_meta_size());
+                                      diff + pchtml_mraw_meta_size());
 #endif
 
-            lexbor_bst_insert(mraw->cache,
-                              lexbor_bst_root_ref(mraw->cache), diff,
-                              lexbor_mraw_data_begin(&chunk->data[chunk->length]));
+            pchtml_bst_insert(mraw->cache,
+                              pchtml_bst_root_ref(mraw->cache), diff,
+                              pchtml_mraw_data_begin(&chunk->data[chunk->length]));
 
             chunk->length = chunk->size;
         }
 
-        chunk->next = lexbor_mem_chunk_make(mem, length);
+        chunk->next = pchtml_mem_chunk_make(mem, length);
         if (chunk->next == NULL) {
             return NULL;
         }
@@ -159,7 +177,7 @@ lexbor_mraw_mem_alloc(lexbor_mraw_t *mraw, size_t length)
 
         mem->chunk_length++;
 
-#if defined(LEXBOR_HAVE_ADDRESS_SANITIZER)
+#if defined(PCHTML_HAVE_ADDRESS_SANITIZER)
         ASAN_POISON_MEMORY_REGION(mem->chunk->data, mem->chunk->size);
 #endif
     }
@@ -171,55 +189,55 @@ lexbor_mraw_mem_alloc(lexbor_mraw_t *mraw, size_t length)
 }
 
 void *
-lexbor_mraw_alloc(lexbor_mraw_t *mraw, size_t size)
+pchtml_mraw_alloc(pchtml_mraw_t *mraw, size_t size)
 {
     void *data;
 
-    size = lexbor_mem_align(size);
+    size = pchtml_mem_align(size);
 
     if (mraw->cache->tree_length != 0) {
-        data = lexbor_bst_remove_close(mraw->cache,
-                                       lexbor_bst_root_ref(mraw->cache),
+        data = pchtml_bst_remove_close(mraw->cache,
+                                       pchtml_bst_root_ref(mraw->cache),
                                        size, NULL);
         if (data != NULL) {
 
-#if defined(LEXBOR_HAVE_ADDRESS_SANITIZER)
-            uint8_t *real_data = ((uint8_t *) data) - lexbor_mraw_meta_size();
+#if defined(PCHTML_HAVE_ADDRESS_SANITIZER)
+            uint8_t *real_data = ((uint8_t *) data) - pchtml_mraw_meta_size();
 
             /* Set unpoison for current data size */
             ASAN_UNPOISON_MEMORY_REGION(real_data, size);
 
-            size_t cur_size = lexbor_mraw_data_size(data);
+            size_t cur_size = pchtml_mraw_data_size(data);
 
             ASAN_UNPOISON_MEMORY_REGION(real_data,
-                                        (cur_size + lexbor_mraw_meta_size()));
+                                        (cur_size + pchtml_mraw_meta_size()));
 #endif
 
             return data;
         }
     }
 
-    data = lexbor_mraw_mem_alloc(mraw, (size + lexbor_mraw_meta_size()));
+    data = pchtml_mraw_mem_alloc(mraw, (size + pchtml_mraw_meta_size()));
 
     if (data == NULL) {
         return NULL;
     }
 
-#if defined(LEXBOR_HAVE_ADDRESS_SANITIZER)
-    ASAN_UNPOISON_MEMORY_REGION(data, (size + lexbor_mraw_meta_size()));
+#if defined(PCHTML_HAVE_ADDRESS_SANITIZER)
+    ASAN_UNPOISON_MEMORY_REGION(data, (size + pchtml_mraw_meta_size()));
 #endif
 
-    lexbor_mraw_meta_set(data, &size);
-    return lexbor_mraw_data_begin(data);
+    pchtml_mraw_meta_set(data, &size);
+    return pchtml_mraw_data_begin(data);
 }
 
 void *
-lexbor_mraw_calloc(lexbor_mraw_t *mraw, size_t size)
+pchtml_mraw_calloc(pchtml_mraw_t *mraw, size_t size)
 {
-    void *data = lexbor_mraw_alloc(mraw, size);
+    void *data = pchtml_mraw_alloc(mraw, size);
 
     if (data != NULL) {
-        memset(data, 0, lexbor_mraw_data_size(data));
+        memset(data, 0, pchtml_mraw_data_size(data));
     }
 
     return data;
@@ -228,23 +246,23 @@ lexbor_mraw_calloc(lexbor_mraw_t *mraw, size_t size)
 /*
  * TODO: I don't really like this interface. Perhaps need to simplify.
  */
-lxb_inline void *
-lexbor_mraw_realloc_tail(lexbor_mraw_t *mraw, void *data, void *begin,
+static inline void *
+pchtml_mraw_realloc_tail(pchtml_mraw_t *mraw, void *data, void *begin,
                          size_t size, size_t begin_len, size_t new_size,
                          bool *is_valid)
 {
-    lexbor_mem_chunk_t *chunk = mraw->mem->chunk;
+    pchtml_mem_chunk_t *chunk = mraw->mem->chunk;
 
     if (chunk->size > (begin_len + new_size)) {
         *is_valid = true;
 
         if (new_size == 0) {
-            chunk->length = begin_len - lexbor_mraw_meta_size();
+            chunk->length = begin_len - pchtml_mraw_meta_size();
             return NULL;
         }
 
-#if defined(LEXBOR_HAVE_ADDRESS_SANITIZER)
-        ASAN_UNPOISON_MEMORY_REGION(begin, new_size + lexbor_mraw_meta_size());
+#if defined(PCHTML_HAVE_ADDRESS_SANITIZER)
+        ASAN_UNPOISON_MEMORY_REGION(begin, new_size + pchtml_mraw_meta_size());
 #endif
 
         chunk->length = begin_len + new_size;
@@ -256,34 +274,34 @@ lexbor_mraw_realloc_tail(lexbor_mraw_t *mraw, void *data, void *begin,
     /*
      * If the tail is short then we increase the current data.
      */
-    if (begin_len == lexbor_mraw_meta_size()) {
+    if (begin_len == pchtml_mraw_meta_size()) {
         void *new_data;
-        lexbor_mem_chunk_t new_chunk;
+        pchtml_mem_chunk_t new_chunk;
 
         *is_valid = true;
 
-        lexbor_mem_chunk_init(mraw->mem, &new_chunk,
-                              new_size + lexbor_mraw_meta_size());
+        pchtml_mem_chunk_init(mraw->mem, &new_chunk,
+                              new_size + pchtml_mraw_meta_size());
         if(new_chunk.data == NULL) {
             return NULL;
         }
 
-        lexbor_mraw_meta_set(new_chunk.data, &new_size);
-        new_data = lexbor_mraw_data_begin(new_chunk.data);
+        pchtml_mraw_meta_set(new_chunk.data, &new_size);
+        new_data = pchtml_mraw_data_begin(new_chunk.data);
 
         if (size != 0) {
             memcpy(new_data, data, sizeof(uint8_t) * size);
         }
 
-#if defined(LEXBOR_HAVE_ADDRESS_SANITIZER)
+#if defined(PCHTML_HAVE_ADDRESS_SANITIZER)
         ASAN_UNPOISON_MEMORY_REGION(chunk->data, chunk->size);
 #endif
 
-        lexbor_mem_chunk_destroy(mraw->mem, chunk, false);
+        pchtml_mem_chunk_destroy(mraw->mem, chunk, false);
 
         chunk->data = new_chunk.data;
         chunk->size = new_chunk.size;
-        chunk->length = new_size + lexbor_mraw_meta_size();
+        chunk->length = new_size + pchtml_mraw_meta_size();
 
         return new_data;
     }
@@ -293,7 +311,7 @@ lexbor_mraw_realloc_tail(lexbor_mraw_t *mraw, void *data, void *begin,
     /*
      * Next, this piece will go into the cache.
      */
-    size = lexbor_mem_align_floor(size + (chunk->size - chunk->length));
+    size = pchtml_mem_align_floor(size + (chunk->size - chunk->length));
     memcpy(begin, &size, sizeof(size_t));
 
     chunk->length = chunk->size;
@@ -302,16 +320,16 @@ lexbor_mraw_realloc_tail(lexbor_mraw_t *mraw, void *data, void *begin,
 }
 
 void *
-lexbor_mraw_realloc(lexbor_mraw_t *mraw, void *data, size_t new_size)
+pchtml_mraw_realloc(pchtml_mraw_t *mraw, void *data, size_t new_size)
 {
     void *begin;
     size_t size, begin_len;
-    lexbor_mem_chunk_t *chunk = mraw->mem->chunk;
+    pchtml_mem_chunk_t *chunk = mraw->mem->chunk;
 
-    begin = ((uint8_t *) data) - lexbor_mraw_meta_size();
+    begin = ((uint8_t *) data) - pchtml_mraw_meta_size();
     memcpy(&size, begin, sizeof(size_t));
 
-    new_size = lexbor_mem_align(new_size);
+    new_size = pchtml_mem_align(new_size);
 
     /*
      * Look, whether there is an opportunity
@@ -322,7 +340,7 @@ lexbor_mraw_realloc(lexbor_mraw_t *mraw, void *data, size_t new_size)
 
         if (&chunk->data[begin_len] == data) {
             bool is_valid;
-            void *ptr = lexbor_mraw_realloc_tail(mraw, data, begin,
+            void *ptr = pchtml_mraw_realloc_tail(mraw, data, begin,
                                                  size, begin_len, new_size,
                                                  &is_valid);
             if (is_valid == true) {
@@ -334,35 +352,35 @@ lexbor_mraw_realloc(lexbor_mraw_t *mraw, void *data, size_t new_size)
     if (new_size < size) {
         if (new_size == 0) {
 
-#if defined(LEXBOR_HAVE_ADDRESS_SANITIZER)
-            ASAN_POISON_MEMORY_REGION(begin, size + lexbor_mraw_meta_size());
+#if defined(PCHTML_HAVE_ADDRESS_SANITIZER)
+            ASAN_POISON_MEMORY_REGION(begin, size + pchtml_mraw_meta_size());
 #endif
-            lexbor_bst_insert(mraw->cache, lexbor_bst_root_ref(mraw->cache),
+            pchtml_bst_insert(mraw->cache, pchtml_bst_root_ref(mraw->cache),
                               size, data);
             return NULL;
         }
 
-        size_t diff = lexbor_mem_align_floor(size - new_size);
+        size_t diff = pchtml_mem_align_floor(size - new_size);
 
-        if (diff > lexbor_mraw_meta_size()) {
+        if (diff > pchtml_mraw_meta_size()) {
             memcpy(begin, &new_size, sizeof(size_t));
 
-            new_size = diff - lexbor_mraw_meta_size();
+            new_size = diff - pchtml_mraw_meta_size();
             begin = &((uint8_t *) data)[diff];
 
-            lexbor_mraw_meta_set(begin, &new_size);
+            pchtml_mraw_meta_set(begin, &new_size);
 
-#if defined(LEXBOR_HAVE_ADDRESS_SANITIZER)
-            ASAN_POISON_MEMORY_REGION(begin, new_size + lexbor_mraw_meta_size());
+#if defined(PCHTML_HAVE_ADDRESS_SANITIZER)
+            ASAN_POISON_MEMORY_REGION(begin, new_size + pchtml_mraw_meta_size());
 #endif
-            lexbor_bst_insert(mraw->cache, lexbor_bst_root_ref(mraw->cache),
-                              new_size, lexbor_mraw_data_begin(begin));
+            pchtml_bst_insert(mraw->cache, pchtml_bst_root_ref(mraw->cache),
+                              new_size, pchtml_mraw_data_begin(begin));
         }
 
         return data;
     }
 
-    begin = lexbor_mraw_alloc(mraw, new_size);
+    begin = pchtml_mraw_alloc(mraw, new_size);
     if (begin == NULL) {
         return NULL;
     }
@@ -371,22 +389,22 @@ lexbor_mraw_realloc(lexbor_mraw_t *mraw, void *data, size_t new_size)
         memcpy(begin, data, sizeof(uint8_t) * size);
     }
 
-    lexbor_mraw_free(mraw, data);
+    pchtml_mraw_free(mraw, data);
 
     return begin;
 }
 
 void *
-lexbor_mraw_free(lexbor_mraw_t *mraw, void *data)
+pchtml_mraw_free(pchtml_mraw_t *mraw, void *data)
 {
-    size_t size = lexbor_mraw_data_size(data);
+    size_t size = pchtml_mraw_data_size(data);
 
-#if defined(LEXBOR_HAVE_ADDRESS_SANITIZER)
-    uint8_t *real_data = ((uint8_t *) data) - lexbor_mraw_meta_size();
-    ASAN_POISON_MEMORY_REGION(real_data, size + lexbor_mraw_meta_size());
+#if defined(PCHTML_HAVE_ADDRESS_SANITIZER)
+    uint8_t *real_data = ((uint8_t *) data) - pchtml_mraw_meta_size();
+    ASAN_POISON_MEMORY_REGION(real_data, size + pchtml_mraw_meta_size());
 #endif
 
-    lexbor_bst_insert(mraw->cache, lexbor_bst_root_ref(mraw->cache),
+    pchtml_bst_insert(mraw->cache, pchtml_bst_root_ref(mraw->cache),
                       size, data);
 
     return NULL;
@@ -396,19 +414,19 @@ lexbor_mraw_free(lexbor_mraw_t *mraw, void *data)
  * No inline functions for ABI.
  */
 size_t
-lexbor_mraw_data_size_noi(void *data)
+pchtml_mraw_data_size_noi(void *data)
 {
-    return lexbor_mraw_data_size(data);
+    return pchtml_mraw_data_size(data);
 }
 
 void
-lexbor_mraw_data_size_set_noi(void *data, size_t size)
+pchtml_mraw_data_size_set_noi(void *data, size_t size)
 {
-    lexbor_mraw_data_size_set(data, size);
+    pchtml_mraw_data_size_set(data, size);
 }
 
 void *
-lexbor_mraw_dup_noi(lexbor_mraw_t *mraw, const void *src, size_t size)
+pchtml_mraw_dup_noi(pchtml_mraw_t *mraw, const void *src, size_t size)
 {
-    return lexbor_mraw_dup(mraw, src, size);
+    return pchtml_mraw_dup(mraw, src, size);
 }

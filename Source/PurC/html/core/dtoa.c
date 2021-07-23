@@ -1,39 +1,25 @@
-/*
- * Copyright (C) Alexander Borisov
+/**
+ * @file dtoa.c
+ * @author 
+ * @date 2021/07/02
+ * @brief The complementation of dtoa.
  *
- * Based on nxt_dtoa.c from NGINX NJS project
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
- * Copyright (C) Dmitry Volyntsev
- * Copyright (C) NGINX, Inc.
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * Grisu2 algorithm implementation for printing floating-point numbers based
- * upon the work of Milo Yip and Doug Currie.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
  *
- * For algorithm information, see Loitsch, Florian. "Printing
- * floating-point numbers quickly and accurately with integers." ACM Sigplan
- * Notices 45.6 (2010): 233-243.
- *
- * Copyright (C) 2015 Doug Currie
- * based on dtoa_milo.h
- * Copyright (C) 2014 Milo Yip
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include "html/core/str.h"
@@ -44,8 +30,8 @@
 #include <string.h>
 
 
-lxb_inline void
-lexbor_grisu2_round(lxb_char_t *start, size_t len, uint64_t delta, uint64_t rest,
+static inline void
+pchtml_grisu2_round(unsigned char *start, size_t len, uint64_t delta, uint64_t rest,
                     uint64_t ten_kappa, uint64_t wp_w)
 {
     while (rest < wp_w && delta - rest >= ten_kappa
@@ -57,8 +43,8 @@ lexbor_grisu2_round(lxb_char_t *start, size_t len, uint64_t delta, uint64_t rest
     }
 }
 
-lxb_inline int
-lexbor_dec_count(uint32_t n)
+static inline int
+pchtml_dec_count(uint32_t n)
 {
     if (n < 10) return 1;
     if (n < 100) return 2;
@@ -73,15 +59,15 @@ lexbor_dec_count(uint32_t n)
     return 10;
 }
 
-lxb_inline size_t
-lexbor_grisu2_gen(lexbor_diyfp_t W, lexbor_diyfp_t Mp, uint64_t delta,
-                  lxb_char_t *begin, lxb_char_t *end, int *dec_exp)
+static inline size_t
+pchtml_grisu2_gen(pchtml_diyfp_t W, pchtml_diyfp_t Mp, uint64_t delta,
+                  unsigned char *begin, unsigned char *end, int *dec_exp)
 {
     int kappa;
-    lxb_char_t c, *p;
+    unsigned char c, *p;
     uint32_t p1, d;
     uint64_t p2, tmp;
-    lexbor_diyfp_t one, wp_w;
+    pchtml_diyfp_t one, wp_w;
 
     static const uint64_t pow10[] = {
         1,
@@ -96,9 +82,9 @@ lexbor_grisu2_gen(lexbor_diyfp_t W, lexbor_diyfp_t Mp, uint64_t delta,
         1000000000
     };
 
-    wp_w = lexbor_diyfp_sub(Mp, W);
+    wp_w = pchtml_diyfp_sub(Mp, W);
 
-    one = lexbor_diyfp((uint64_t) 1 << -Mp.exp, Mp.exp);
+    one = pchtml_diyfp((uint64_t) 1 << -Mp.exp, Mp.exp);
     p1 = (uint32_t) (Mp.significand >> -one.exp);
     p2 = Mp.significand & (one.significand - 1);
 
@@ -107,7 +93,7 @@ lexbor_grisu2_gen(lexbor_diyfp_t W, lexbor_diyfp_t Mp, uint64_t delta,
     /* GCC 4.2 complains about uninitialized d. */
     d = 0;
 
-    kappa = lexbor_dec_count(p1);
+    kappa = pchtml_dec_count(p1);
 
     while (kappa > 0) {
         switch (kappa) {
@@ -141,7 +127,7 @@ lexbor_grisu2_gen(lexbor_diyfp_t W, lexbor_diyfp_t Mp, uint64_t delta,
 
         if (tmp <= delta) {
             *dec_exp += kappa;
-            lexbor_grisu2_round(begin, p - begin, delta, tmp,
+            pchtml_grisu2_round(begin, p - begin, delta, tmp,
                                 pow10[kappa] << -one.exp, wp_w.significand);
             return p - begin;
         }
@@ -169,7 +155,7 @@ lexbor_grisu2_gen(lexbor_diyfp_t W, lexbor_diyfp_t Mp, uint64_t delta,
         if (p2 < delta) {
             *dec_exp += kappa;
             tmp = (-kappa < 10) ? pow10[-kappa] : 0;
-            lexbor_grisu2_round(begin, p - begin, delta, p2, one.significand,
+            pchtml_grisu2_round(begin, p - begin, delta, p2, one.significand,
                                 wp_w.significand * tmp);
             break;
         }
@@ -178,31 +164,31 @@ lexbor_grisu2_gen(lexbor_diyfp_t W, lexbor_diyfp_t Mp, uint64_t delta,
     return p - begin;
 }
 
-lxb_inline lexbor_diyfp_t
-lexbor_diyfp_normalize_boundary(lexbor_diyfp_t v)
+static inline pchtml_diyfp_t
+pchtml_diyfp_normalize_boundary(pchtml_diyfp_t v)
 {
     while ((v.significand & (LEXBOR_DBL_HIDDEN_BIT << 1)) == 0) {
             v.significand <<= 1;
             v.exp--;
     }
 
-    return lexbor_diyfp_shift_left(v, LEXBOR_SIGNIFICAND_SHIFT - 2);
+    return pchtml_diyfp_shift_left(v, LEXBOR_SIGNIFICAND_SHIFT - 2);
 }
 
-lxb_inline void
-lexbor_diyfp_normalize_boundaries(lexbor_diyfp_t v, lexbor_diyfp_t* minus,
-                                  lexbor_diyfp_t* plus)
+static inline void
+pchtml_diyfp_normalize_boundaries(pchtml_diyfp_t v, pchtml_diyfp_t* minus,
+                                  pchtml_diyfp_t* plus)
 {
-    lexbor_diyfp_t pl, mi;
+    pchtml_diyfp_t pl, mi;
 
-    pl = lexbor_diyfp_normalize_boundary(lexbor_diyfp((v.significand << 1) + 1,
+    pl = pchtml_diyfp_normalize_boundary(pchtml_diyfp((v.significand << 1) + 1,
                                                       v.exp - 1));
 
     if (v.significand == LEXBOR_DBL_HIDDEN_BIT) {
-        mi = lexbor_diyfp((v.significand << 2) - 1, v.exp - 2);
+        mi = pchtml_diyfp((v.significand << 2) - 1, v.exp - 2);
 
     } else {
-        mi = lexbor_diyfp((v.significand << 1) - 1, v.exp - 1);
+        mi = pchtml_diyfp((v.significand << 1) - 1, v.exp - 1);
     }
 
     mi.significand <<= mi.exp - pl.exp;
@@ -212,30 +198,30 @@ lexbor_diyfp_normalize_boundaries(lexbor_diyfp_t v, lexbor_diyfp_t* minus,
     *minus = mi;
 }
 
-lxb_inline size_t
-lexbor_grisu2(double value, lxb_char_t *begin, lxb_char_t *end, int *dec_exp)
+static inline size_t
+pchtml_grisu2(double value, unsigned char *begin, unsigned char *end, int *dec_exp)
 {
-    lexbor_diyfp_t v, w_m, w_p, c_mk, W, Wp, Wm;
+    pchtml_diyfp_t v, w_m, w_p, c_mk, W, Wp, Wm;
 
-    v = lexbor_diyfp_from_d2(value);
+    v = pchtml_diyfp_from_d2(value);
 
-    lexbor_diyfp_normalize_boundaries(v, &w_m, &w_p);
+    pchtml_diyfp_normalize_boundaries(v, &w_m, &w_p);
 
-    c_mk = lexbor_cached_power_bin(w_p.exp, dec_exp);
-    W = lexbor_diyfp_mul(lexbor_diyfp_normalize(v), c_mk);
+    c_mk = pchtml_cached_power_bin(w_p.exp, dec_exp);
+    W = pchtml_diyfp_mul(pchtml_diyfp_normalize(v), c_mk);
 
-    Wp = lexbor_diyfp_mul(w_p, c_mk);
-    Wm = lexbor_diyfp_mul(w_m, c_mk);
+    Wp = pchtml_diyfp_mul(w_p, c_mk);
+    Wm = pchtml_diyfp_mul(w_m, c_mk);
 
     Wm.significand++;
     Wp.significand--;
 
-   return lexbor_grisu2_gen(W, Wp, Wp.significand - Wm.significand, begin, end,
+   return pchtml_grisu2_gen(W, Wp, Wp.significand - Wm.significand, begin, end,
                             dec_exp);
 }
 
-lxb_inline size_t
-lexbor_write_exponent(int exp, lxb_char_t *begin, lxb_char_t *end)
+static inline size_t
+pchtml_write_exponent(int exp, unsigned char *begin, unsigned char *end)
 {
     char *p;
     size_t len;
@@ -274,8 +260,8 @@ lexbor_write_exponent(int exp, lxb_char_t *begin, lxb_char_t *end)
     return len + 1;
 }
 
-lxb_inline size_t
-lexbor_prettify(lxb_char_t *begin, lxb_char_t *end, size_t len, int dec_exp)
+static inline size_t
+pchtml_prettify(unsigned char *begin, unsigned char *end, size_t len, int dec_exp)
 {
     int kk, offset, length;
     size_t size;
@@ -344,7 +330,7 @@ lexbor_prettify(lxb_char_t *begin, lxb_char_t *end, size_t len, int dec_exp)
 
         begin[1] = 'e';
 
-        size =  lexbor_write_exponent(kk - 1, &begin[2], end);
+        size =  pchtml_write_exponent(kk - 1, &begin[2], end);
 
         return (size + 2);
     }
@@ -359,17 +345,17 @@ lexbor_prettify(lxb_char_t *begin, lxb_char_t *end, size_t len, int dec_exp)
     begin[1] = '.';
     begin[length + 1] = 'e';
 
-    size = lexbor_write_exponent(kk - 1, &begin[length + 2], end);
+    size = pchtml_write_exponent(kk - 1, &begin[length + 2], end);
 
     return (size + length + 2);
 }
 
 size_t
-lexbor_dtoa(double value, lxb_char_t *begin, size_t len)
+pchtml_dtoa(double value, unsigned char *begin, size_t len)
 {
     int dec_exp, minus;
     size_t length;
-    lxb_char_t *end = begin + len;
+    unsigned char *end = begin + len;
 
     /* Not handling NaN and inf. */
 
@@ -393,8 +379,8 @@ lexbor_dtoa(double value, lxb_char_t *begin, size_t len)
         minus = 1;
     }
 
-    length = lexbor_grisu2(value, begin, end, &dec_exp);
-    length = lexbor_prettify(begin, end, length, dec_exp);
+    length = pchtml_grisu2(value, begin, end, &dec_exp);
+    length = pchtml_prettify(begin, end, length, dec_exp);
 
     return (minus + length);
 }

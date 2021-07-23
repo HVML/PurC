@@ -1,7 +1,25 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file avl.c
+ * @author 
+ * @date 2021/07/02
+ * @brief The complementation of html utils.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include "private/errors.h"
@@ -9,81 +27,81 @@
 #include "html/core/avl.h"
 
 
-lxb_inline short
-lexbor_avl_node_height(lexbor_avl_node_t *node);
+static inline short
+pchtml_avl_node_height(pchtml_avl_node_t *node);
 
-lxb_inline short
-lexbor_avl_node_balance_factor(lexbor_avl_node_t *node);
+static inline short
+pchtml_avl_node_balance_factor(pchtml_avl_node_t *node);
 
-lxb_inline void
-lexbor_avl_node_set_height(lexbor_avl_node_t *node);
+static inline void
+pchtml_avl_node_set_height(pchtml_avl_node_t *node);
 
-static lexbor_avl_node_t *
-lexbor_avl_node_rotate_right(lexbor_avl_node_t *pos);
+static pchtml_avl_node_t *
+pchtml_avl_node_rotate_right(pchtml_avl_node_t *pos);
 
-static lexbor_avl_node_t *
-lexbor_avl_node_rotate_left(lexbor_avl_node_t *pos);
+static pchtml_avl_node_t *
+pchtml_avl_node_rotate_left(pchtml_avl_node_t *pos);
 
-static lexbor_avl_node_t *
-lexbor_avl_node_balance(lexbor_avl_node_t *node,
-                             lexbor_avl_node_t **scope);
+static pchtml_avl_node_t *
+pchtml_avl_node_balance(pchtml_avl_node_t *node,
+                             pchtml_avl_node_t **scope);
 
-lxb_inline lexbor_avl_node_t *
-lexbor_avl_find_min(lexbor_avl_node_t *node);
+static inline pchtml_avl_node_t *
+pchtml_avl_find_min(pchtml_avl_node_t *node);
 
-lxb_inline void
-lexbor_avl_rotate_for_delete(lexbor_avl_node_t *delete_node,
-                             lexbor_avl_node_t *node,
-                             lexbor_avl_node_t **root);
+static inline void
+pchtml_avl_rotate_for_delete(pchtml_avl_node_t *delete_node,
+                             pchtml_avl_node_t *node,
+                             pchtml_avl_node_t **root);
 
 
-lexbor_avl_t *
-lexbor_avl_create(void)
+pchtml_avl_t *
+pchtml_avl_create(void)
 {
-    return lexbor_calloc(1, sizeof(lexbor_avl_t));
+    return pchtml_calloc(1, sizeof(pchtml_avl_t));
 }
 
-lxb_status_t
-lexbor_avl_init(lexbor_avl_t *avl, size_t chunk_len)
+unsigned int
+pchtml_avl_init(pchtml_avl_t *avl, size_t chunk_len)
 {
     if (avl == NULL) {
-        return LXB_STATUS_ERROR_OBJECT_IS_NULL;
+        return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
     }
 
     if (chunk_len == 0) {
-        return LXB_STATUS_ERROR_WRONG_ARGS;
+        return PCHTML_STATUS_ERROR_WRONG_ARGS;
     }
 
-    avl->nodes = lexbor_dobject_create();
-    return lexbor_dobject_init(avl->nodes,
-                               chunk_len, sizeof(lexbor_avl_node_t));
+    avl->nodes = pchtml_dobject_create();
+    return pchtml_dobject_init(avl->nodes,
+                               chunk_len, sizeof(pchtml_avl_node_t));
 }
 
 void
-lexbor_avl_clean(lexbor_avl_t *avl)
+pchtml_avl_clean(pchtml_avl_t *avl)
 {
-    lexbor_dobject_clean(avl->nodes);
+    pchtml_dobject_clean(avl->nodes);
 }
 
-lexbor_avl_t *
-lexbor_avl_destroy(lexbor_avl_t *avl, bool self_destroy)
+pchtml_avl_t *
+pchtml_avl_destroy(pchtml_avl_t *avl, bool self_destroy)
 {
     if (avl == NULL)
         return NULL;
 
-    avl->nodes = lexbor_dobject_destroy(avl->nodes, true);
+    avl->nodes = pchtml_dobject_destroy(avl->nodes, true);
 
     if (self_destroy) {
-        return lexbor_free(avl);
+        return pchtml_free(avl);
     }
 
     return avl;
 }
 
-lexbor_avl_node_t *
-lexbor_avl_node_make(lexbor_avl_t *avl, size_t type, void *value)
+pchtml_avl_node_t *
+pchtml_avl_node_make(pchtml_avl_t *avl, size_t type, void *value)
 {
-    lexbor_avl_node_t *node = lexbor_dobject_calloc(avl->nodes);
+    pchtml_avl_node_t *node = pchtml_dobject_calloc(avl->nodes);
     if (node == NULL) {
         return NULL;
     }
@@ -95,53 +113,53 @@ lexbor_avl_node_make(lexbor_avl_t *avl, size_t type, void *value)
 }
 
 void
-lexbor_avl_node_clean(lexbor_avl_node_t *node)
+pchtml_avl_node_clean(pchtml_avl_node_t *node)
 {
-    memset(node, 0, sizeof(lexbor_avl_node_t));
+    memset(node, 0, sizeof(pchtml_avl_node_t));
 }
 
-lexbor_avl_node_t *
-lexbor_avl_node_destroy(lexbor_avl_t *avl,
-                        lexbor_avl_node_t *node, bool self_destroy)
+pchtml_avl_node_t *
+pchtml_avl_node_destroy(pchtml_avl_t *avl,
+                        pchtml_avl_node_t *node, bool self_destroy)
 {
     if (node == NULL) {
         return NULL;
     }
 
     if (self_destroy) {
-        return lexbor_dobject_free(avl->nodes, node);
+        return pchtml_dobject_free(avl->nodes, node);
     }
 
     return node;
 }
 
-lxb_inline short
-lexbor_avl_node_height(lexbor_avl_node_t *node)
+static inline short
+pchtml_avl_node_height(pchtml_avl_node_t *node)
 {
     return (node) ? node->height : 0;
 }
 
-lxb_inline short
-lexbor_avl_node_balance_factor(lexbor_avl_node_t *node)
+static inline short
+pchtml_avl_node_balance_factor(pchtml_avl_node_t *node)
 {
-    return (lexbor_avl_node_height(node->right)
-            - lexbor_avl_node_height(node->left));
+    return (pchtml_avl_node_height(node->right)
+            - pchtml_avl_node_height(node->left));
 }
 
-lxb_inline void
-lexbor_avl_node_set_height(lexbor_avl_node_t *node)
+static inline void
+pchtml_avl_node_set_height(pchtml_avl_node_t *node)
 {
-    short left_height = lexbor_avl_node_height(node->left);
-    short right_height = lexbor_avl_node_height(node->right);
+    short left_height = pchtml_avl_node_height(node->left);
+    short right_height = pchtml_avl_node_height(node->right);
 
     node->height = ((left_height > right_height)
                     ? left_height : right_height) + 1;
 }
 
-static lexbor_avl_node_t *
-lexbor_avl_node_rotate_right(lexbor_avl_node_t *pos)
+static pchtml_avl_node_t *
+pchtml_avl_node_rotate_right(pchtml_avl_node_t *pos)
 {
-    lexbor_avl_node_t *node = pos->left;
+    pchtml_avl_node_t *node = pos->left;
 
     node->parent = pos->parent;
 
@@ -154,16 +172,16 @@ lexbor_avl_node_rotate_right(lexbor_avl_node_t *pos)
 
     node->right = pos;
 
-    lexbor_avl_node_set_height(pos);
-    lexbor_avl_node_set_height(node);
+    pchtml_avl_node_set_height(pos);
+    pchtml_avl_node_set_height(node);
 
     return node;
 }
 
-static lexbor_avl_node_t *
-lexbor_avl_node_rotate_left(lexbor_avl_node_t *pos)
+static pchtml_avl_node_t *
+pchtml_avl_node_rotate_left(pchtml_avl_node_t *pos)
 {
-    lexbor_avl_node_t *node = pos->right;
+    pchtml_avl_node_t *node = pos->right;
 
     node->parent = pos->parent;
 
@@ -176,20 +194,20 @@ lexbor_avl_node_rotate_left(lexbor_avl_node_t *pos)
 
     node->left = pos;
 
-    lexbor_avl_node_set_height(pos);
-    lexbor_avl_node_set_height(node);
+    pchtml_avl_node_set_height(pos);
+    pchtml_avl_node_set_height(node);
 
     return node;
 }
 
-static lexbor_avl_node_t *
-lexbor_avl_node_balance(lexbor_avl_node_t *node, lexbor_avl_node_t **scope)
+static pchtml_avl_node_t *
+pchtml_avl_node_balance(pchtml_avl_node_t *node, pchtml_avl_node_t **scope)
 {
     /* Set height */
-    lexbor_avl_node_t *parent;
+    pchtml_avl_node_t *parent;
 
-    short left_height = lexbor_avl_node_height(node->left);
-    short right_height = lexbor_avl_node_height(node->right);
+    short left_height = pchtml_avl_node_height(node->left);
+    short right_height = pchtml_avl_node_height(node->right);
 
     node->height = ((left_height > right_height)
                     ? left_height : right_height) + 1;
@@ -197,44 +215,44 @@ lexbor_avl_node_balance(lexbor_avl_node_t *node, lexbor_avl_node_t **scope)
     /* Check balance */
     switch ((right_height - left_height)) {
         case 2: {
-            if (lexbor_avl_node_balance_factor(node->right) < 0) {
-                node->right = lexbor_avl_node_rotate_right(node->right);
+            if (pchtml_avl_node_balance_factor(node->right) < 0) {
+                node->right = pchtml_avl_node_rotate_right(node->right);
             }
 
             parent = node->parent;
 
             if (parent != NULL) {
                 if (parent->right == node) {
-                    parent->right = lexbor_avl_node_rotate_left(node);
+                    parent->right = pchtml_avl_node_rotate_left(node);
                     return parent->right;
                 }
                 else {
-                    parent->left = lexbor_avl_node_rotate_left(node);
+                    parent->left = pchtml_avl_node_rotate_left(node);
                     return parent->left;
                 }
             }
 
-            return lexbor_avl_node_rotate_left(node);
+            return pchtml_avl_node_rotate_left(node);
         }
         case -2: {
-            if (lexbor_avl_node_balance_factor(node->left) > 0) {
-                node->left = lexbor_avl_node_rotate_left(node->left);
+            if (pchtml_avl_node_balance_factor(node->left) > 0) {
+                node->left = pchtml_avl_node_rotate_left(node->left);
             }
 
             parent = node->parent;
 
             if (parent != NULL) {
                 if (parent->right == node) {
-                    parent->right = lexbor_avl_node_rotate_right(node);
+                    parent->right = pchtml_avl_node_rotate_right(node);
                     return parent->right;
                 }
                 else {
-                    parent->left = lexbor_avl_node_rotate_right(node);
+                    parent->left = pchtml_avl_node_rotate_right(node);
                     return parent->left;
                 }
             }
 
-            return lexbor_avl_node_rotate_right(node);
+            return pchtml_avl_node_rotate_right(node);
         }
         default:
             break;
@@ -247,19 +265,19 @@ lexbor_avl_node_balance(lexbor_avl_node_t *node, lexbor_avl_node_t **scope)
     return node->parent;
 }
 
-lexbor_avl_node_t *
-lexbor_avl_insert(lexbor_avl_t *avl, lexbor_avl_node_t **scope,
+pchtml_avl_node_t *
+pchtml_avl_insert(pchtml_avl_t *avl, pchtml_avl_node_t **scope,
                   size_t type, void *value)
 {
-    lexbor_avl_node_t *node, *new_node;
+    pchtml_avl_node_t *node, *new_node;
 
     if (*scope == NULL) {
-        *scope = lexbor_avl_node_make(avl, type, value);
+        *scope = pchtml_avl_node_make(avl, type, value);
         return *scope;
     }
 
     node = *scope;
-    new_node = lexbor_dobject_calloc(avl->nodes);
+    new_node = pchtml_dobject_calloc(avl->nodes);
 
     for (;;) {
         if (type == node->type) {
@@ -297,14 +315,14 @@ lexbor_avl_insert(lexbor_avl_t *avl, lexbor_avl_node_t **scope,
     }
 
     while (node != NULL) {
-        node = lexbor_avl_node_balance(node, scope);
+        node = pchtml_avl_node_balance(node, scope);
     }
 
     return new_node;
 }
 
-lxb_inline lexbor_avl_node_t *
-lexbor_avl_find_min(lexbor_avl_node_t *node)
+static inline pchtml_avl_node_t *
+pchtml_avl_find_min(pchtml_avl_node_t *node)
 {
     if (node == NULL) {
         return NULL;
@@ -317,11 +335,11 @@ lexbor_avl_find_min(lexbor_avl_node_t *node)
     return node;
 }
 
-lxb_inline void
-lexbor_avl_rotate_for_delete(lexbor_avl_node_t *delete_node,
-                             lexbor_avl_node_t *node, lexbor_avl_node_t **scope)
+static inline void
+pchtml_avl_rotate_for_delete(pchtml_avl_node_t *delete_node,
+                             pchtml_avl_node_t *node, pchtml_avl_node_t **scope)
 {
-    lexbor_avl_node_t *balance_node;
+    pchtml_avl_node_t *balance_node;
 
     if (node) {
         if (delete_node->left == node) {
@@ -380,23 +398,23 @@ lexbor_avl_rotate_for_delete(lexbor_avl_node_t *delete_node,
     }
 
     while (balance_node != NULL) {
-        balance_node = lexbor_avl_node_balance(balance_node, scope);
+        balance_node = pchtml_avl_node_balance(balance_node, scope);
     }
 }
 
 void *
-lexbor_avl_remove(lexbor_avl_t *avl, lexbor_avl_node_t **scope, size_t type)
+pchtml_avl_remove(pchtml_avl_t *avl, pchtml_avl_node_t **scope, size_t type)
 {
-    lexbor_avl_node_t *node = *scope;
+    pchtml_avl_node_t *node = *scope;
 
     while (node != NULL) {
         if (type == node->type) {
-            lexbor_avl_rotate_for_delete(node,
-                                        lexbor_avl_find_min(node->left), scope);
+            pchtml_avl_rotate_for_delete(node,
+                                        pchtml_avl_find_min(node->left), scope);
 
             void *value = node->value;
 
-            lexbor_dobject_free(avl->nodes, node);
+            pchtml_dobject_free(avl->nodes, node);
 
             return value;
         }
@@ -411,8 +429,8 @@ lexbor_avl_remove(lexbor_avl_t *avl, lexbor_avl_node_t **scope, size_t type)
     return NULL;
 }
 
-lexbor_avl_node_t *
-lexbor_avl_search(lexbor_avl_t *avl, lexbor_avl_node_t *node, size_t type)
+pchtml_avl_node_t *
+pchtml_avl_search(pchtml_avl_t *avl, pchtml_avl_node_t *node, size_t type)
 {
     UNUSED_PARAM(avl);
 
@@ -432,8 +450,8 @@ lexbor_avl_search(lexbor_avl_t *avl, lexbor_avl_node_t *node, size_t type)
 }
 
 void
-lexbor_avl_foreach_recursion(lexbor_avl_t *avl, lexbor_avl_node_t *scope,
-                             lexbor_avl_node_f callback, void *ctx)
+pchtml_avl_foreach_recursion(pchtml_avl_t *avl, pchtml_avl_node_t *scope,
+                             pchtml_avl_node_f callback, void *ctx)
 {
     if (scope == NULL) {
         return;
@@ -441,6 +459,6 @@ lexbor_avl_foreach_recursion(lexbor_avl_t *avl, lexbor_avl_node_t *scope,
 
     callback(scope, ctx);
 
-    lexbor_avl_foreach_recursion(avl, scope->left, callback, ctx);
-    lexbor_avl_foreach_recursion(avl, scope->right, callback, ctx);
+    pchtml_avl_foreach_recursion(avl, scope->left, callback, ctx);
+    pchtml_avl_foreach_recursion(avl, scope->right, callback, ctx);
 }

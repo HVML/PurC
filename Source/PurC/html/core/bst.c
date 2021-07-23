@@ -1,75 +1,94 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file utils.c
+ * @author 
+ * @date 2021/07/02
+ * @brief The complementation of html utils.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 
 #include "private/errors.h"
 
 #include "html/core/bst.h"
 
 
-lexbor_bst_t *
-lexbor_bst_create(void)
+pchtml_bst_t *
+pchtml_bst_create(void)
 {
-    return lexbor_calloc(1, sizeof(lexbor_bst_t));
+    return pchtml_calloc(1, sizeof(pchtml_bst_t));
 }
 
-lxb_status_t
-lexbor_bst_init(lexbor_bst_t *bst, size_t size)
+unsigned int
+pchtml_bst_init(pchtml_bst_t *bst, size_t size)
 {
-    lxb_status_t status;
+    unsigned int status;
 
     if (bst == NULL) {
-        return LXB_STATUS_ERROR_OBJECT_IS_NULL;
+        return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
     }
 
     if (size == 0) {
-        return LXB_STATUS_ERROR_WRONG_ARGS;
+        return PCHTML_STATUS_ERROR_WRONG_ARGS;
     }
 
-    bst->dobject = lexbor_dobject_create();
-    status = lexbor_dobject_init(bst->dobject, size,
-                                 sizeof(lexbor_bst_entry_t));
-    if (status != LXB_STATUS_OK) {
+    bst->dobject = pchtml_dobject_create();
+    status = pchtml_dobject_init(bst->dobject, size,
+                                 sizeof(pchtml_bst_entry_t));
+    if (status != PCHTML_STATUS_OK) {
         return status;
     }
 
     bst->root = 0;
     bst->tree_length = 0;
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
 void
-lexbor_bst_clean(lexbor_bst_t *bst)
+pchtml_bst_clean(pchtml_bst_t *bst)
 {
-    lexbor_dobject_clean(bst->dobject);
+    pchtml_dobject_clean(bst->dobject);
 
     bst->root = 0;
     bst->tree_length = 0;
 }
 
-lexbor_bst_t *
-lexbor_bst_destroy(lexbor_bst_t *bst, bool self_destroy)
+pchtml_bst_t *
+pchtml_bst_destroy(pchtml_bst_t *bst, bool self_destroy)
 {
     if (bst == NULL) {
         return NULL;
     }
 
-    bst->dobject = lexbor_dobject_destroy(bst->dobject, true);
+    bst->dobject = pchtml_dobject_destroy(bst->dobject, true);
 
     if (self_destroy) {
-        return lexbor_free(bst);
+        return pchtml_free(bst);
     }
 
     return bst;
 }
 
-lexbor_bst_entry_t *
-lexbor_bst_entry_make(lexbor_bst_t *bst, size_t size)
+pchtml_bst_entry_t *
+pchtml_bst_entry_make(pchtml_bst_t *bst, size_t size)
 {
-    lexbor_bst_entry_t *new_entry = lexbor_dobject_calloc(bst->dobject);
+    pchtml_bst_entry_t *new_entry = pchtml_dobject_calloc(bst->dobject);
     if (new_entry == NULL) {
         return NULL;
     }
@@ -81,13 +100,13 @@ lexbor_bst_entry_make(lexbor_bst_t *bst, size_t size)
     return new_entry;
 }
 
-lexbor_bst_entry_t *
-lexbor_bst_insert(lexbor_bst_t *bst, lexbor_bst_entry_t **scope,
+pchtml_bst_entry_t *
+pchtml_bst_insert(pchtml_bst_t *bst, pchtml_bst_entry_t **scope,
                   size_t size, void *value)
 {
-    lexbor_bst_entry_t *new_entry, *entry;
+    pchtml_bst_entry_t *new_entry, *entry;
 
-    new_entry = lexbor_dobject_calloc(bst->dobject);
+    new_entry = pchtml_dobject_calloc(bst->dobject);
     if (new_entry == NULL) {
         return NULL;
     }
@@ -140,14 +159,14 @@ lexbor_bst_insert(lexbor_bst_t *bst, lexbor_bst_entry_t **scope,
     return NULL;
 }
 
-lexbor_bst_entry_t *
-lexbor_bst_insert_not_exists(lexbor_bst_t *bst, lexbor_bst_entry_t **scope,
+pchtml_bst_entry_t *
+pchtml_bst_insert_not_exists(pchtml_bst_t *bst, pchtml_bst_entry_t **scope,
                              size_t size)
 {
-    lexbor_bst_entry_t *entry;
+    pchtml_bst_entry_t *entry;
 
     if (*scope == NULL) {
-        *scope = lexbor_bst_entry_make(bst, size);
+        *scope = pchtml_bst_entry_make(bst, size);
 
         return *scope;
     }
@@ -160,7 +179,7 @@ lexbor_bst_insert_not_exists(lexbor_bst_t *bst, lexbor_bst_entry_t **scope,
         }
         else if (size > entry->size) {
             if (entry->right == NULL) {
-                entry->right = lexbor_bst_entry_make(bst, size);
+                entry->right = pchtml_bst_entry_make(bst, size);
                 entry->right->parent = entry;
 
                 return entry->right;
@@ -170,7 +189,7 @@ lexbor_bst_insert_not_exists(lexbor_bst_t *bst, lexbor_bst_entry_t **scope,
         }
         else {
             if (entry->left == NULL) {
-                entry->left = lexbor_bst_entry_make(bst, size);
+                entry->left = pchtml_bst_entry_make(bst, size);
                 entry->left->parent = entry;
 
                 return entry->left;
@@ -183,8 +202,8 @@ lexbor_bst_insert_not_exists(lexbor_bst_t *bst, lexbor_bst_entry_t **scope,
     return NULL;
 }
 
-lexbor_bst_entry_t *
-lexbor_bst_search(lexbor_bst_t *bst, lexbor_bst_entry_t *scope, size_t size)
+pchtml_bst_entry_t *
+pchtml_bst_search(pchtml_bst_t *bst, pchtml_bst_entry_t *scope, size_t size)
 {
     UNUSED_PARAM(bst);
 
@@ -203,13 +222,13 @@ lexbor_bst_search(lexbor_bst_t *bst, lexbor_bst_entry_t *scope, size_t size)
     return NULL;
 }
 
-lexbor_bst_entry_t *
-lexbor_bst_search_close(lexbor_bst_t *bst, lexbor_bst_entry_t *scope,
+pchtml_bst_entry_t *
+pchtml_bst_search_close(pchtml_bst_t *bst, pchtml_bst_entry_t *scope,
                         size_t size)
 {
     UNUSED_PARAM(bst);
 
-    lexbor_bst_entry_t *max = NULL;
+    pchtml_bst_entry_t *max = NULL;
 
     while (scope != NULL) {
         if (scope->size == size) {
@@ -228,13 +247,13 @@ lexbor_bst_search_close(lexbor_bst_t *bst, lexbor_bst_entry_t *scope,
 }
 
 void *
-lexbor_bst_remove(lexbor_bst_t *bst, lexbor_bst_entry_t **scope, size_t size)
+pchtml_bst_remove(pchtml_bst_t *bst, pchtml_bst_entry_t **scope, size_t size)
 {
-    lexbor_bst_entry_t *entry = *scope;
+    pchtml_bst_entry_t *entry = *scope;
 
     while (entry != NULL) {
         if (entry->size == size) {
-            return lexbor_bst_remove_by_pointer(bst, entry, scope);
+            return pchtml_bst_remove_by_pointer(bst, entry, scope);
         }
         else if (size > entry->size) {
             entry = entry->right;
@@ -248,11 +267,11 @@ lexbor_bst_remove(lexbor_bst_t *bst, lexbor_bst_entry_t **scope, size_t size)
 }
 
 void *
-lexbor_bst_remove_close(lexbor_bst_t *bst, lexbor_bst_entry_t **scope,
+pchtml_bst_remove_close(pchtml_bst_t *bst, pchtml_bst_entry_t **scope,
                         size_t size, size_t *found_size)
 {
-    lexbor_bst_entry_t *entry = *scope;
-    lexbor_bst_entry_t *max = NULL;
+    pchtml_bst_entry_t *entry = *scope;
+    pchtml_bst_entry_t *max = NULL;
 
     while (entry != NULL) {
         if (entry->size == size) {
@@ -260,7 +279,7 @@ lexbor_bst_remove_close(lexbor_bst_t *bst, lexbor_bst_entry_t **scope,
                 *found_size = entry->size;
             }
 
-            return lexbor_bst_remove_by_pointer(bst, entry, scope);
+            return pchtml_bst_remove_by_pointer(bst, entry, scope);
         }
         else if (size > entry->size) {
             entry = entry->right;
@@ -276,7 +295,7 @@ lexbor_bst_remove_close(lexbor_bst_t *bst, lexbor_bst_entry_t **scope,
             *found_size = max->size;
         }
 
-        return lexbor_bst_remove_by_pointer(bst, max, scope);
+        return pchtml_bst_remove_by_pointer(bst, max, scope);
     }
 
     if (found_size != NULL) {
@@ -287,11 +306,11 @@ lexbor_bst_remove_close(lexbor_bst_t *bst, lexbor_bst_entry_t **scope,
 }
 
 void *
-lexbor_bst_remove_by_pointer(lexbor_bst_t *bst, lexbor_bst_entry_t *entry,
-                             lexbor_bst_entry_t **root)
+pchtml_bst_remove_by_pointer(pchtml_bst_t *bst, pchtml_bst_entry_t *entry,
+                             pchtml_bst_entry_t **root)
 {
     void *value;
-    lexbor_bst_entry_t *next, *right, *left;
+    pchtml_bst_entry_t *next, *right, *left;
 
     bst->tree_length--;
 
@@ -301,7 +320,7 @@ lexbor_bst_remove_by_pointer(lexbor_bst_t *bst, lexbor_bst_entry_t *entry,
 
         value = next->value;
 
-        lexbor_dobject_free(bst->dobject, next);
+        pchtml_dobject_free(bst->dobject, next);
 
         return value;
     }
@@ -317,7 +336,7 @@ lexbor_bst_remove_by_pointer(lexbor_bst_t *bst, lexbor_bst_entry_t *entry,
             *root = NULL;
         }
 
-        lexbor_dobject_free(bst->dobject, entry);
+        pchtml_dobject_free(bst->dobject, entry);
     }
     else if (entry->left == NULL) {
         if (entry->parent == NULL) {
@@ -325,7 +344,7 @@ lexbor_bst_remove_by_pointer(lexbor_bst_t *bst, lexbor_bst_entry_t *entry,
 
             *root = entry->right;
 
-            lexbor_dobject_free(bst->dobject, entry);
+            pchtml_dobject_free(bst->dobject, entry);
 
             entry = *root;
         }
@@ -333,9 +352,9 @@ lexbor_bst_remove_by_pointer(lexbor_bst_t *bst, lexbor_bst_entry_t *entry,
             right = entry->right;
             right->parent = entry->parent;
 
-            memcpy(entry, right, sizeof(lexbor_bst_entry_t));
+            memcpy(entry, right, sizeof(pchtml_bst_entry_t));
 
-            lexbor_dobject_free(bst->dobject, right);
+            pchtml_dobject_free(bst->dobject, right);
         }
 
         if (entry->right != NULL) {
@@ -352,7 +371,7 @@ lexbor_bst_remove_by_pointer(lexbor_bst_t *bst, lexbor_bst_entry_t *entry,
 
             *root = entry->left;
 
-            lexbor_dobject_free(bst->dobject, entry);
+            pchtml_dobject_free(bst->dobject, entry);
 
             entry = *root;
         }
@@ -360,9 +379,9 @@ lexbor_bst_remove_by_pointer(lexbor_bst_t *bst, lexbor_bst_entry_t *entry,
             left = entry->left;
             left->parent = entry->parent;
 
-            memcpy(entry, left, sizeof(lexbor_bst_entry_t));
+            memcpy(entry, left, sizeof(pchtml_bst_entry_t));
 
-            lexbor_dobject_free(bst->dobject, left);
+            pchtml_dobject_free(bst->dobject, left);
         }
 
         if (entry->right != NULL) {
@@ -401,21 +420,21 @@ lexbor_bst_remove_by_pointer(lexbor_bst_t *bst, lexbor_bst_entry_t *entry,
             }
         }
 
-        lexbor_dobject_free(bst->dobject, left);
+        pchtml_dobject_free(bst->dobject, left);
     }
 
     return value;
 }
 
 void
-lexbor_bst_serialize(lexbor_bst_t *bst, lexbor_callback_f callback, void *ctx)
+pchtml_bst_serialize(pchtml_bst_t *bst, pchtml_callback_f callback, void *ctx)
 {
-    lexbor_bst_serialize_entry(bst->root, callback, ctx, 0);
+    pchtml_bst_serialize_entry(bst->root, callback, ctx, 0);
 }
 
 void
-lexbor_bst_serialize_entry(lexbor_bst_entry_t *entry,
-                           lexbor_callback_f callback, void *ctx, size_t tabs)
+pchtml_bst_serialize_entry(pchtml_bst_entry_t *entry,
+                           pchtml_callback_f callback, void *ctx, size_t tabs)
 {
     size_t buff_len;
     char buff[1024];
@@ -426,47 +445,47 @@ lexbor_bst_serialize_entry(lexbor_bst_entry_t *entry,
 
     /* Left */
     for (size_t i = 0; i < tabs; i++) {
-        callback((lxb_char_t *) "\t", 1, ctx);
+        callback((unsigned char *) "\t", 1, ctx);
     }
-    callback((lxb_char_t *) "<left ", 6, ctx);
+    callback((unsigned char *) "<left ", 6, ctx);
 
     if (entry->left) {
         buff_len = sprintf(buff, LEXBOR_FORMAT_Z, entry->left->size);
-        callback((lxb_char_t *) buff, buff_len, ctx);
+        callback((unsigned char *) buff, buff_len, ctx);
 
-        callback((lxb_char_t *) ">\n", 2, ctx);
-        lexbor_bst_serialize_entry(entry->left, callback, ctx, (tabs + 1));
+        callback((unsigned char *) ">\n", 2, ctx);
+        pchtml_bst_serialize_entry(entry->left, callback, ctx, (tabs + 1));
 
         for (size_t i = 0; i < tabs; i++) {
-            callback((lxb_char_t *) "\t", 1, ctx);
+            callback((unsigned char *) "\t", 1, ctx);
         }
     }
     else {
-        callback((lxb_char_t *) "NULL>", 5, ctx);
+        callback((unsigned char *) "NULL>", 5, ctx);
     }
 
-    callback((lxb_char_t *) "</left>\n", 8, ctx);
+    callback((unsigned char *) "</left>\n", 8, ctx);
 
     /* Right */
     for (size_t i = 0; i < tabs; i++) {
-        callback((lxb_char_t *) "\t", 1, ctx);
+        callback((unsigned char *) "\t", 1, ctx);
     }
-    callback((lxb_char_t *) "<right ", 7, ctx);
+    callback((unsigned char *) "<right ", 7, ctx);
 
     if (entry->right) {
         buff_len = sprintf(buff, LEXBOR_FORMAT_Z, entry->right->size);
-        callback((lxb_char_t *) buff, buff_len, ctx);
+        callback((unsigned char *) buff, buff_len, ctx);
 
-        callback((lxb_char_t *) ">\n", 2, ctx);
-        lexbor_bst_serialize_entry(entry->right, callback, ctx, (tabs + 1));
+        callback((unsigned char *) ">\n", 2, ctx);
+        pchtml_bst_serialize_entry(entry->right, callback, ctx, (tabs + 1));
 
         for (size_t i = 0; i < tabs; i++) {
-            callback((lxb_char_t *) "\t", 1, ctx);
+            callback((unsigned char *) "\t", 1, ctx);
         }
     }
     else {
-        callback((lxb_char_t *) "NULL>", 5, ctx);
+        callback((unsigned char *) "NULL>", 5, ctx);
     }
 
-    callback((lxb_char_t *) "</right>\n", 9, ctx);
+    callback((unsigned char *) "</right>\n", 9, ctx);
 }

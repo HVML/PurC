@@ -1,82 +1,106 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file avl.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for avl tree.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_AVL_H
-#define LEXBOR_AVL_H
+
+#ifndef PCHTML_AVL_H
+#define PCHTML_AVL_H
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "config.h"
 #include "html/core/base.h"
 #include "html/core/dobject.h"
 
 
-typedef struct lexbor_avl_node lexbor_avl_node_t;
+typedef struct pchtml_avl_node pchtml_avl_node_t;
 
-typedef void (*lexbor_avl_node_f)(lexbor_avl_node_t *avl_node, void *ctx);
+typedef void (*pchtml_avl_node_f)(pchtml_avl_node_t *avl_node, void *ctx);
 
-struct lexbor_avl_node {
+struct pchtml_avl_node {
     size_t            type;
     short             height;
     void              *value;
 
-    lexbor_avl_node_t *left;
-    lexbor_avl_node_t *right;
-    lexbor_avl_node_t *parent;
+    pchtml_avl_node_t *left;
+    pchtml_avl_node_t *right;
+    pchtml_avl_node_t *parent;
 };
 
 typedef struct {
-    lexbor_dobject_t *nodes;
+    pchtml_dobject_t *nodes;
 }
-lexbor_avl_t;
+pchtml_avl_t;
 
 
-LXB_API lexbor_avl_t *
-lexbor_avl_create(void);
+pchtml_avl_t *
+pchtml_avl_create(void) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lexbor_avl_init(lexbor_avl_t *avl, size_t chunk_len);
+unsigned int
+pchtml_avl_init(pchtml_avl_t *avl, size_t chunk_len) WTF_INTERNAL;
 
-LXB_API void
-lexbor_avl_clean(lexbor_avl_t *avl);
+void
+pchtml_avl_clean(pchtml_avl_t *avl) WTF_INTERNAL;
 
-LXB_API lexbor_avl_t *
-lexbor_avl_destroy(lexbor_avl_t *avl, bool self_destroy);
-
-
-LXB_API lexbor_avl_node_t *
-lexbor_avl_node_make(lexbor_avl_t *avl, size_t type, void *value);
-
-LXB_API void
-lexbor_avl_node_clean(lexbor_avl_node_t *node);
-
-LXB_API lexbor_avl_node_t *
-lexbor_avl_node_destroy(lexbor_avl_t *avl, lexbor_avl_node_t *node,
-                        bool self_destroy);
+pchtml_avl_t *
+pchtml_avl_destroy(pchtml_avl_t *avl, bool self_destroy) WTF_INTERNAL;
 
 
-LXB_API lexbor_avl_node_t *
-lexbor_avl_insert(lexbor_avl_t *avl, lexbor_avl_node_t **scope,
-                  size_t type, void *value);
+pchtml_avl_node_t *
+pchtml_avl_node_make(pchtml_avl_t *avl, size_t type, 
+                                        void *value) WTF_INTERNAL;
 
-LXB_API lexbor_avl_node_t *
-lexbor_avl_search(lexbor_avl_t *avl, lexbor_avl_node_t *scope, size_t type);
+void
+pchtml_avl_node_clean(pchtml_avl_node_t *node) WTF_INTERNAL;
 
-LXB_API void *
-lexbor_avl_remove(lexbor_avl_t *avl, lexbor_avl_node_t **scope, size_t type);
+pchtml_avl_node_t *
+pchtml_avl_node_destroy(pchtml_avl_t *avl, pchtml_avl_node_t *node,
+                        bool self_destroy) WTF_INTERNAL;
 
 
-LXB_API void
-lexbor_avl_foreach_recursion(lexbor_avl_t *avl, lexbor_avl_node_t *scope,
-                             lexbor_avl_node_f callback, void *ctx);
+pchtml_avl_node_t *
+pchtml_avl_insert(pchtml_avl_t *avl, pchtml_avl_node_t **scope,
+                  size_t type, void *value) WTF_INTERNAL;
+
+pchtml_avl_node_t *
+pchtml_avl_search(pchtml_avl_t *avl, pchtml_avl_node_t *scope, 
+                                        size_t type) WTF_INTERNAL;
+
+void *
+pchtml_avl_remove(pchtml_avl_t *avl, pchtml_avl_node_t **scope, 
+                                        size_t type) WTF_INTERNAL;
+
+
+void
+pchtml_avl_foreach_recursion(pchtml_avl_t *avl, pchtml_avl_node_t *scope,
+                             pchtml_avl_node_f callback, void *ctx) WTF_INTERNAL;
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LEXBOR_AVL_H */
+#endif  /* PCHTML_AVL_H */

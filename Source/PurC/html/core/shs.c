@@ -1,46 +1,64 @@
-/*
- * Copyright (C) 2018-2019 Alexander Borisov
+/**
+ * @file shs.c
+ * @author 
+ * @date 2021/07/02
+ * @brief The complementation of shs.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include "html/core/shs.h"
 #include "html/core/str.h"
 
-#define LEXBOR_STR_RES_MAP_LOWERCASE
-#define LEXBOR_STR_RES_MAP_UPPERCASE
+#define PCHTML_STR_RES_MAP_LOWERCASE
+#define PCHTML_STR_RES_MAP_UPPERCASE
 #include "html/core/str_res.h"
 
 
-#define lexbor_shs_make_id_m(key, size, table_size)                            \
+#define pchtml_shs_make_id_m(key, size, table_size)                            \
     (((((key[0] * key[size - 1]) * key[0]) + size) % table_size) + 0x01)
 
-#define lexbor_shs_make_id_lower_m(key, size, table_size)                      \
-    (((((lexbor_str_res_map_lowercase[key[0]]                                  \
-     * lexbor_str_res_map_lowercase[key[size - 1]])                            \
-     * lexbor_str_res_map_lowercase[key[0]])                                   \
+#define pchtml_shs_make_id_lower_m(key, size, table_size)                      \
+    (((((pchtml_str_res_map_lowercase[key[0]]                                  \
+     * pchtml_str_res_map_lowercase[key[size - 1]])                            \
+     * pchtml_str_res_map_lowercase[key[0]])                                   \
      + size)                                                                   \
      % table_size) + 0x01)
 
-#define lexbor_shs_make_id_upper_m(key, size, table_size)                      \
-    (((((lexbor_str_res_map_uppercase[key[0]]                                  \
-     * lexbor_str_res_map_uppercase[key[size - 1]])                            \
-     * lexbor_str_res_map_uppercase[key[0]])                                   \
+#define pchtml_shs_make_id_upper_m(key, size, table_size)                      \
+    (((((pchtml_str_res_map_uppercase[key[0]]                                  \
+     * pchtml_str_res_map_uppercase[key[size - 1]])                            \
+     * pchtml_str_res_map_uppercase[key[0]])                                   \
      + size)                                                                   \
      % table_size) + 0x01)
 
 
-const lexbor_shs_entry_t *
-lexbor_shs_entry_get_static(const lexbor_shs_entry_t *root,
-                            const lxb_char_t *key, size_t key_len)
+const pchtml_shs_entry_t *
+pchtml_shs_entry_get_static(const pchtml_shs_entry_t *root,
+                            const unsigned char *key, size_t key_len)
 {
-    const lexbor_shs_entry_t *entry;
-    entry = root + lexbor_shs_make_id_m(key, key_len, root->key_len);
+    const pchtml_shs_entry_t *entry;
+    entry = root + pchtml_shs_make_id_m(key, key_len, root->key_len);
 
     while (entry->key != NULL)
     {
         if (entry->key_len == key_len) {
-            if (lexbor_str_data_ncmp((const lxb_char_t *) entry->key,
+            if (pchtml_str_data_ncmp((const unsigned char *) entry->key,
                                      key, key_len))
             {
                 return entry;
@@ -59,17 +77,17 @@ lexbor_shs_entry_get_static(const lexbor_shs_entry_t *root,
     return NULL;
 }
 
-const lexbor_shs_entry_t *
-lexbor_shs_entry_get_lower_static(const lexbor_shs_entry_t *root,
-                                  const lxb_char_t *key, size_t key_len)
+const pchtml_shs_entry_t *
+pchtml_shs_entry_get_lower_static(const pchtml_shs_entry_t *root,
+                                  const unsigned char *key, size_t key_len)
 {
-    const lexbor_shs_entry_t *entry;
-    entry = root + lexbor_shs_make_id_lower_m(key, key_len, root->key_len);
+    const pchtml_shs_entry_t *entry;
+    entry = root + pchtml_shs_make_id_lower_m(key, key_len, root->key_len);
 
     while (entry->key != NULL)
     {
         if (entry->key_len == key_len) {
-            if (lexbor_str_data_nlocmp_right((const lxb_char_t *) entry->key,
+            if (pchtml_str_data_nlocmp_right((const unsigned char *) entry->key,
                                              key, key_len))
             {
                 return entry;
@@ -88,17 +106,17 @@ lexbor_shs_entry_get_lower_static(const lexbor_shs_entry_t *root,
     return NULL;
 }
 
-const lexbor_shs_entry_t *
-lexbor_shs_entry_get_upper_static(const lexbor_shs_entry_t *root,
-                                  const lxb_char_t *key, size_t key_len)
+const pchtml_shs_entry_t *
+pchtml_shs_entry_get_upper_static(const pchtml_shs_entry_t *root,
+                                  const unsigned char *key, size_t key_len)
 {
-    const lexbor_shs_entry_t *entry;
-    entry = root + lexbor_shs_make_id_upper_m(key, key_len, root->key_len);
+    const pchtml_shs_entry_t *entry;
+    entry = root + pchtml_shs_make_id_upper_m(key, key_len, root->key_len);
 
     while (entry->key != NULL)
     {
         if (entry->key_len == key_len) {
-            if (lexbor_str_data_nupcmp_right((const lxb_char_t *) entry->key,
+            if (pchtml_str_data_nupcmp_right((const unsigned char *) entry->key,
                                              key, key_len))
             {
                 return entry;

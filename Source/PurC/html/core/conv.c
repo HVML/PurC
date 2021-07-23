@@ -1,8 +1,27 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file conv.c
+ * @author 
+ * @date 2021/07/02
+ * @brief The complementation of data convertion.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 
 #include <math.h>
 #include <float.h>
@@ -13,19 +32,19 @@
 
 
 size_t
-lexbor_conv_float_to_data(double num, lxb_char_t *buf, size_t len)
+pchtml_conv_float_to_data(double num, unsigned chr *buf, size_t len)
 {
-    return lexbor_dtoa(num, buf, len);
+    return pchtml_dtoa(num, buf, len);
 }
 
 double
-lexbor_conv_data_to_double(const lxb_char_t **start, size_t len)
+pchtml_conv_data_to_double(const unsigned chr **start, size_t len)
 {
     int exponent, exp, insignf;
-    lxb_char_t c, *pos;
+    unsigned chr c, *pos;
     bool minus;
-    const lxb_char_t  *e, *p, *last, *end;
-    lxb_char_t data[128];
+    const unsigned chr  *e, *p, *last, *end;
+    unsigned chr data[128];
 
     end = *start + len;
 
@@ -116,10 +135,10 @@ lexbor_conv_data_to_double(const lxb_char_t **start, size_t len)
 }
 
 unsigned long
-lexbor_conv_data_to_ulong(const lxb_char_t **data, size_t length)
+pchtml_conv_data_to_ulong(const unsigned chr **data, size_t length)
 {
-    const lxb_char_t *p = *data;
-    const lxb_char_t *end = p + length;
+    const unsigned chr *p = *data;
+    const unsigned chr *end = p + length;
     unsigned long last_number = 0, number = 0;
 
     for (; p < end; p++) {
@@ -145,10 +164,10 @@ done:
 }
 
 unsigned
-lexbor_conv_data_to_uint(const lxb_char_t **data, size_t length)
+pchtml_conv_data_to_uint(const unsigned chr **data, size_t length)
 {
-    const lxb_char_t *p = *data;
-    const lxb_char_t *end = p + length;
+    const unsigned chr *p = *data;
+    const unsigned chr *end = p + length;
     unsigned last_number = 0, number = 0;
 
     for (; p < end; p++) {

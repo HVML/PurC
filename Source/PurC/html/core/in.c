@@ -1,63 +1,81 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file in.c
+ * @author 
+ * @date 2021/07/02
+ * @brief The complementation of in.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include "html/core/in.h"
 #include "html/core/str_res.h"
 
 
-lexbor_in_t *
-lexbor_in_create(void)
+pchtml_in_t *
+pchtml_in_create(void)
 {
-    return lexbor_calloc(1, sizeof(lexbor_in_t));
+    return pchtml_calloc(1, sizeof(pchtml_in_t));
 }
 
-lxb_status_t
-lexbor_in_init(lexbor_in_t *incoming, size_t chunk_size)
+unsigned int
+pchtml_in_init(pchtml_in_t *incoming, size_t chunk_size)
 {
     if (incoming == NULL) {
-        return LXB_STATUS_ERROR_OBJECT_IS_NULL;
+        return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
     }
 
     if (chunk_size == 0) {
-        return LXB_STATUS_ERROR_WRONG_ARGS;
+        return PCHTML_STATUS_ERROR_WRONG_ARGS;
     }
 
-    incoming->nodes = lexbor_dobject_create();
+    incoming->nodes = pchtml_dobject_create();
 
-    return lexbor_dobject_init(incoming->nodes, chunk_size,
-                               sizeof(lexbor_in_node_t));
+    return pchtml_dobject_init(incoming->nodes, chunk_size,
+                               sizeof(pchtml_in_node_t));
 }
 
 void
-lexbor_in_clean(lexbor_in_t *incoming)
+pchtml_in_clean(pchtml_in_t *incoming)
 {
-    lexbor_dobject_clean(incoming->nodes);
+    pchtml_dobject_clean(incoming->nodes);
 }
 
-lexbor_in_t *
-lexbor_in_destroy(lexbor_in_t *incoming, bool self_destroy)
+pchtml_in_t *
+pchtml_in_destroy(pchtml_in_t *incoming, bool self_destroy)
 {
     if (incoming == NULL) {
         return NULL;
     }
 
-    incoming->nodes = lexbor_dobject_destroy(incoming->nodes, true);
+    incoming->nodes = pchtml_dobject_destroy(incoming->nodes, true);
 
     if (self_destroy == true) {
-        return lexbor_free(incoming);
+        return pchtml_free(incoming);
     }
 
     return incoming;
 }
 
-lexbor_in_node_t *
-lexbor_in_node_make(lexbor_in_t *incoming, lexbor_in_node_t *last_node,
-                    const lxb_char_t *buf, size_t buf_size)
+pchtml_in_node_t *
+pchtml_in_node_make(pchtml_in_t *incoming, pchtml_in_node_t *last_node,
+                    const unsigned char *buf, size_t buf_size)
 {
-    lexbor_in_node_t *node = lexbor_dobject_alloc(incoming->nodes);
+    pchtml_in_node_t *node = pchtml_dobject_alloc(incoming->nodes);
 
     if (node == NULL) {
         return NULL;
@@ -84,36 +102,36 @@ lexbor_in_node_make(lexbor_in_t *incoming, lexbor_in_node_t *last_node,
 }
 
 void
-lexbor_in_node_clean(lexbor_in_node_t *node)
+pchtml_in_node_clean(pchtml_in_node_t *node)
 {
-    lexbor_in_t *incoming = node->incoming;
+    pchtml_in_t *incoming = node->incoming;
 
-    memset(node, 0, sizeof(lexbor_in_node_t));
+    memset(node, 0, sizeof(pchtml_in_node_t));
 
     node->incoming = incoming;
 }
 
-lexbor_in_node_t *
-lexbor_in_node_destroy(lexbor_in_t *incoming,
-                       lexbor_in_node_t *node, bool self_destroy)
+pchtml_in_node_t *
+pchtml_in_node_destroy(pchtml_in_t *incoming,
+                       pchtml_in_node_t *node, bool self_destroy)
 {
     if (node == NULL) {
         return NULL;
     }
 
     if (self_destroy) {
-        return lexbor_dobject_free(incoming->nodes, node);
+        return pchtml_dobject_free(incoming->nodes, node);
     }
 
     return node;
 }
 
-lexbor_in_node_t *
-lexbor_in_node_split(lexbor_in_node_t *node, const lxb_char_t *pos)
+pchtml_in_node_t *
+pchtml_in_node_split(pchtml_in_node_t *node, const unsigned char *pos)
 {
-    lexbor_in_node_t *new_node;
+    pchtml_in_node_t *new_node;
 
-    new_node = lexbor_dobject_alloc(node->incoming->nodes);
+    new_node = pchtml_dobject_alloc(node->incoming->nodes);
 
     if (new_node == NULL) {
         return NULL;
@@ -141,8 +159,8 @@ lexbor_in_node_split(lexbor_in_node_t *node, const lxb_char_t *pos)
     return new_node;
 }
 
-lexbor_in_node_t *
-lexbor_in_node_find(lexbor_in_node_t *node, const lxb_char_t *pos)
+pchtml_in_node_t *
+pchtml_in_node_find(pchtml_in_node_t *node, const unsigned char *pos)
 {
     while (node->next) {
         node = node->next;
@@ -155,9 +173,9 @@ lexbor_in_node_find(lexbor_in_node_t *node, const lxb_char_t *pos)
     return node;
 }
 
-const lxb_char_t *
-lexbor_in_node_pos_up(lexbor_in_node_t *node, lexbor_in_node_t **return_node,
-                      const lxb_char_t *pos, size_t offset)
+const unsigned char *
+pchtml_in_node_pos_up(pchtml_in_node_t *node, pchtml_in_node_t **return_node,
+                      const unsigned char *pos, size_t offset)
 {
     do {
         pos = pos + offset;
@@ -188,9 +206,9 @@ lexbor_in_node_pos_up(lexbor_in_node_t *node, lexbor_in_node_t **return_node,
     return NULL;
 }
 
-const lxb_char_t *
-lexbor_in_node_pos_down(lexbor_in_node_t *node, lexbor_in_node_t **return_node,
-                        const lxb_char_t *pos, size_t offset)
+const unsigned char *
+pchtml_in_node_pos_down(pchtml_in_node_t *node, pchtml_in_node_t **return_node,
+                        const unsigned char *pos, size_t offset)
 {
     do {
         pos = pos - offset;
@@ -224,44 +242,44 @@ lexbor_in_node_pos_down(lexbor_in_node_t *node, lexbor_in_node_t **return_node,
 /*
 * No inline functions for ABI.
 */
-const lxb_char_t *
-lexbor_in_node_begin_noi(const lexbor_in_node_t *node)
+const unsigned char *
+pchtml_in_node_begin_noi(const pchtml_in_node_t *node)
 {
-    return lexbor_in_node_begin(node);
+    return pchtml_in_node_begin(node);
 }
 
-const lxb_char_t *
-lexbor_in_node_end_noi(const lexbor_in_node_t *node)
+const unsigned char *
+pchtml_in_node_end_noi(const pchtml_in_node_t *node)
 {
-    return lexbor_in_node_end(node);
+    return pchtml_in_node_end(node);
 }
 
 size_t
-lexbor_in_node_offset_noi(const lexbor_in_node_t *node)
+pchtml_in_node_offset_noi(const pchtml_in_node_t *node)
 {
-    return lexbor_in_node_offset(node);
+    return pchtml_in_node_offset(node);
 }
 
-lexbor_in_node_t *
-lexbor_in_node_next_noi(const lexbor_in_node_t *node)
+pchtml_in_node_t *
+pchtml_in_node_next_noi(const pchtml_in_node_t *node)
 {
-    return lexbor_in_node_next(node);
+    return pchtml_in_node_next(node);
 }
 
-lexbor_in_node_t *
-lexbor_in_node_prev_noi(const lexbor_in_node_t *node)
+pchtml_in_node_t *
+pchtml_in_node_prev_noi(const pchtml_in_node_t *node)
 {
-    return lexbor_in_node_prev(node);
+    return pchtml_in_node_prev(node);
 }
 
-lexbor_in_t *
-lexbor_in_node_in_noi(const lexbor_in_node_t *node)
+pchtml_in_t *
+pchtml_in_node_in_noi(const pchtml_in_node_t *node)
 {
-    return lexbor_in_node_in(node);
+    return pchtml_in_node_in(node);
 }
 
 bool
-lexbor_in_segment_noi(const lexbor_in_node_t *node, const lxb_char_t *data)
+pchtml_in_segment_noi(const pchtml_in_node_t *node, const unsigned char *data)
 {
-    return lexbor_in_segment(node, data);
+    return pchtml_in_segment(node, data);
 }

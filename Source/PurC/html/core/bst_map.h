@@ -1,11 +1,29 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file bst_map.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for bst_map.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_BST_MAP_H
-#define LEXBOR_BST_MAP_H
+#ifndef PCHTML_BST_MAP_H
+#define PCHTML_BST_MAP_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,56 +36,56 @@ extern "C" {
 
 
 typedef struct {
-    lexbor_str_t str;
+    pchtml_str_t str;
     void         *value;
 }
-lexbor_bst_map_entry_t;
+pchtml_bst_map_entry_t;
 
 typedef struct {
-    lexbor_bst_t     *bst;
-    lexbor_mraw_t    *mraw;
-    lexbor_dobject_t *entries;
+    pchtml_bst_t     *bst;
+    pchtml_mraw_t    *mraw;
+    pchtml_dobject_t *entries;
 
 }
-lexbor_bst_map_t;
+pchtml_bst_map_t;
 
 
-LXB_API lexbor_bst_map_t *
-lexbor_bst_map_create(void);
+pchtml_bst_map_t *
+pchtml_bst_map_create(void) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lexbor_bst_map_init(lexbor_bst_map_t *bst_map, size_t size);
+unsigned int
+pchtml_bst_map_init(pchtml_bst_map_t *bst_map, size_t size) WTF_INTERNAL;
 
-LXB_API void
-lexbor_bst_map_clean(lexbor_bst_map_t *bst_map);
+void
+pchtml_bst_map_clean(pchtml_bst_map_t *bst_map) WTF_INTERNAL;
 
-LXB_API lexbor_bst_map_t *
-lexbor_bst_map_destroy(lexbor_bst_map_t *bst_map, bool self_destroy);
+pchtml_bst_map_t *
+pchtml_bst_map_destroy(pchtml_bst_map_t *bst_map, bool self_destroy) WTF_INTERNAL;
 
 
-LXB_API lexbor_bst_map_entry_t *
-lexbor_bst_map_search(lexbor_bst_map_t *bst_map, lexbor_bst_entry_t *scope,
-                      const lxb_char_t *key, size_t key_len);
+pchtml_bst_map_entry_t *
+pchtml_bst_map_search(pchtml_bst_map_t *bst_map, pchtml_bst_entry_t *scope,
+                      const unsigned char *key, size_t key_len) WTF_INTERNAL;
 
-LXB_API lexbor_bst_map_entry_t *
-lexbor_bst_map_insert(lexbor_bst_map_t *bst_map, lexbor_bst_entry_t **scope,
-                      const lxb_char_t *key, size_t key_len, void *value);
+pchtml_bst_map_entry_t *
+pchtml_bst_map_insert(pchtml_bst_map_t *bst_map, pchtml_bst_entry_t **scope,
+                      const unsigned char *key, size_t key_len, void *value) WTF_INTERNAL;
 
-LXB_API lexbor_bst_map_entry_t *
-lexbor_bst_map_insert_not_exists(lexbor_bst_map_t *bst_map,
-                                 lexbor_bst_entry_t **scope,
-                                 const lxb_char_t *key, size_t key_len);
+pchtml_bst_map_entry_t *
+pchtml_bst_map_insert_not_exists(pchtml_bst_map_t *bst_map,
+                                 pchtml_bst_entry_t **scope,
+                                 const unsigned char *key, size_t key_len) WTF_INTERNAL;
 
-LXB_API void *
-lexbor_bst_map_remove(lexbor_bst_map_t *bst_map, lexbor_bst_entry_t **scope,
-                      const lxb_char_t *key, size_t key_len);
+void *
+pchtml_bst_map_remove(pchtml_bst_map_t *bst_map, pchtml_bst_entry_t **scope,
+                      const unsigned char *key, size_t key_len) WTF_INTERNAL;
 
 
 /*
  * Inline functions
  */
-lxb_inline lexbor_mraw_t *
-lexbor_bst_map_mraw(lexbor_bst_map_t *bst_map)
+static inline pchtml_mraw_t *
+pchtml_bst_map_mraw(pchtml_bst_map_t *bst_map)
 {
     return bst_map->mraw;
 }
@@ -75,13 +93,13 @@ lexbor_bst_map_mraw(lexbor_bst_map_t *bst_map)
 /*
  * No inline functions for ABI.
  */
-lexbor_mraw_t *
-lexbor_bst_map_mraw_noi(lexbor_bst_map_t *bst_map);
+pchtml_mraw_t *
+pchtml_bst_map_mraw_noi(pchtml_bst_map_t *bst_map);
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LEXBOR_BST_MAP_H */
+#endif  /* PCHTML_BST_MAP_H */
 
