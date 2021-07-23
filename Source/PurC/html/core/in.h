@@ -1,11 +1,29 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file in.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for in.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_IN_H
-#define LEXBOR_IN_H
+#ifndef PCHTML_IN_H
+#define PCHTML_IN_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -15,127 +33,127 @@ extern "C" {
 #include "html/core/dobject.h"
 
 
-typedef struct lexbor_in_node lexbor_in_node_t;
-typedef int lexbor_in_opt_t;
+typedef struct pchtml_in_node pchtml_in_node_t;
+typedef int pchtml_in_opt_t;
 
-enum lexbor_in_opt {
-    LEXBOR_IN_OPT_UNDEF    = 0x00,
-    LEXBOR_IN_OPT_READONLY = 0x01,
-    LEXBOR_IN_OPT_DONE     = 0x02,
-    LEXBOR_IN_OPT_FAKE     = 0x04,
-    LEXBOR_IN_OPT_ALLOC    = 0x08
+enum pchtml_in_opt {
+    PCHTML_IN_OPT_UNDEF    = 0x00,
+    PCHTML_IN_OPT_READONLY = 0x01,
+    PCHTML_IN_OPT_DONE     = 0x02,
+    PCHTML_IN_OPT_FAKE     = 0x04,
+    PCHTML_IN_OPT_ALLOC    = 0x08
 };
 
 typedef struct {
-    lexbor_dobject_t *nodes;
+    pchtml_dobject_t *nodes;
 }
-lexbor_in_t;
+pchtml_in_t;
 
-struct lexbor_in_node {
+struct pchtml_in_node {
     size_t            offset;
-    lexbor_in_opt_t   opt;
+    pchtml_in_opt_t   opt;
 
-    const lxb_char_t  *begin;
-    const lxb_char_t  *end;
-    const lxb_char_t  *use;
+    const unsigned char  *begin;
+    const unsigned char  *end;
+    const unsigned char  *use;
 
-    lexbor_in_node_t  *next;
-    lexbor_in_node_t  *prev;
+    pchtml_in_node_t  *next;
+    pchtml_in_node_t  *prev;
 
-    lexbor_in_t       *incoming;
+    pchtml_in_t       *incoming;
 };
 
 
-LXB_API lexbor_in_t *
-lexbor_in_create(void);
+pchtml_in_t *
+pchtml_in_create(void) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lexbor_in_init(lexbor_in_t *incoming, size_t chunk_size);
+lxb_status_t
+pchtml_in_init(pchtml_in_t *incoming, size_t chunk_size) WTF_INTERNAL;
 
-LXB_API void
-lexbor_in_clean(lexbor_in_t *incoming);
+void
+pchtml_in_clean(pchtml_in_t *incoming) WTF_INTERNAL;
 
-LXB_API lexbor_in_t *
-lexbor_in_destroy(lexbor_in_t *incoming, bool self_destroy);
-
-
-LXB_API lexbor_in_node_t *
-lexbor_in_node_make(lexbor_in_t *incoming, lexbor_in_node_t *last_node,
-                    const lxb_char_t *buf, size_t buf_size);
-
-LXB_API void
-lexbor_in_node_clean(lexbor_in_node_t *node);
-
-LXB_API lexbor_in_node_t *
-lexbor_in_node_destroy(lexbor_in_t *incoming,
-                       lexbor_in_node_t *node, bool self_destroy);
+pchtml_in_t *
+pchtml_in_destroy(pchtml_in_t *incoming, bool self_destroy) WTF_INTERNAL;
 
 
-LXB_API lexbor_in_node_t *
-lexbor_in_node_split(lexbor_in_node_t *node, const lxb_char_t *pos);
+pchtml_in_node_t *
+pchtml_in_node_make(pchtml_in_t *incoming, pchtml_in_node_t *last_node,
+                    const unsigned char *buf, size_t buf_size) WTF_INTERNAL;
 
-LXB_API lexbor_in_node_t *
-lexbor_in_node_find(lexbor_in_node_t *node, const lxb_char_t *pos);
+void
+pchtml_in_node_clean(pchtml_in_node_t *node) WTF_INTERNAL;
+
+pchtml_in_node_t *
+pchtml_in_node_destroy(pchtml_in_t *incoming,
+                       pchtml_in_node_t *node, bool self_destroy) WTF_INTERNAL;
+
+
+pchtml_in_node_t *
+pchtml_in_node_split(pchtml_in_node_t *node, const unsigned char *pos) WTF_INTERNAL;
+
+pchtml_in_node_t *
+pchtml_in_node_find(pchtml_in_node_t *node, const unsigned char *pos) WTF_INTERNAL;
 
 /**
  * Get position by `offset`.
  * If position outside of nodes return `begin` position of first node
  * in nodes chain.
  */
-LXB_API const lxb_char_t *
-lexbor_in_node_pos_up(lexbor_in_node_t *node, lexbor_in_node_t **return_node,
-                      const lxb_char_t *pos, size_t offset);
+const unsigned char *
+pchtml_in_node_pos_up(pchtml_in_node_t *node, pchtml_in_node_t **return_node,
+                      const unsigned char *pos, size_t offset) WTF_INTERNAL;
 
 /**
  * Get position by `offset`.
  * If position outside of nodes return `end`
  * position of last node in nodes chain.
  */
-LXB_API const lxb_char_t *
-lexbor_in_node_pos_down(lexbor_in_node_t *node, lexbor_in_node_t **return_node,
-                        const lxb_char_t *pos, size_t offset);
+const unsigned char *
+pchtml_in_node_pos_down(pchtml_in_node_t *node, pchtml_in_node_t **return_node,
+                        const unsigned char *pos, size_t offset) WTF_INTERNAL;
 
 /*
  * Inline functions
  */
-lxb_inline const lxb_char_t *
-lexbor_in_node_begin(const lexbor_in_node_t *node)
+static inline const unsigned char *
+pchtml_in_node_begin(const pchtml_in_node_t *node)
 {
     return node->begin;
 }
 
-lxb_inline const lxb_char_t *
-lexbor_in_node_end(const lexbor_in_node_t *node)
+static inline const unsigned char *
+pchtml_in_node_end(const pchtml_in_node_t *node)
 {
     return node->end;
 }
 
-lxb_inline size_t
-lexbor_in_node_offset(const lexbor_in_node_t *node)
+static inline size_t
+pchtml_in_node_offset(const pchtml_in_node_t *node)
 {
     return node->offset;
 }
 
-lxb_inline lexbor_in_node_t *
-lexbor_in_node_next(const lexbor_in_node_t *node)
+static inline pchtml_in_node_t *
+pchtml_in_node_next(const pchtml_in_node_t *node)
 {
     return node->next;
 }
 
-lxb_inline lexbor_in_node_t *
-lexbor_in_node_prev(const lexbor_in_node_t *node)
+static inline pchtml_in_node_t *
+pchtml_in_node_prev(const pchtml_in_node_t *node)
 {
     return node->prev;
 }
 
-lxb_inline lexbor_in_t *
-lexbor_in_node_in(const lexbor_in_node_t *node)
+static inline pchtml_in_t *
+pchtml_in_node_in(const pchtml_in_node_t *node)
 {
     return node->incoming;
 }
 
-lxb_inline bool
-lexbor_in_segment(const lexbor_in_node_t *node, const lxb_char_t *data)
+static inline bool
+pchtml_in_segment(const pchtml_in_node_t *node, const unsigned char *data)
 {
     return node->begin <= data && node->end >= data;
 }
@@ -143,30 +161,30 @@ lexbor_in_segment(const lexbor_in_node_t *node, const lxb_char_t *data)
 /*
  * No inline functions for ABI.
  */
-const lxb_char_t *
-lexbor_in_node_begin_noi(const lexbor_in_node_t *node);
+const unsigned char *
+pchtml_in_node_begin_noi(const pchtml_in_node_t *node);
 
-const lxb_char_t *
-lexbor_in_node_end_noi(const lexbor_in_node_t *node);
+const unsigned char *
+pchtml_in_node_end_noi(const pchtml_in_node_t *node);
 
 size_t
-lexbor_in_node_offset_noi(const lexbor_in_node_t *node);
+pchtml_in_node_offset_noi(const pchtml_in_node_t *node);
 
-lexbor_in_node_t *
-lexbor_in_node_next_noi(const lexbor_in_node_t *node);
+pchtml_in_node_t *
+pchtml_in_node_next_noi(const pchtml_in_node_t *node);
 
-lexbor_in_node_t *
-lexbor_in_node_prev_noi(const lexbor_in_node_t *node);
+pchtml_in_node_t *
+pchtml_in_node_prev_noi(const pchtml_in_node_t *node);
 
-lexbor_in_t *
-lexbor_in_node_in_noi(const lexbor_in_node_t *node);
+pchtml_in_t *
+pchtml_in_node_in_noi(const pchtml_in_node_t *node);
 
 bool
-lexbor_in_segment_noi(const lexbor_in_node_t *node, const lxb_char_t *data);
+pchtml_in_segment_noi(const pchtml_in_node_t *node, const unsigned char *data);
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LEXBOR_IN_H */
+#endif  /* PCHTML_IN_H */

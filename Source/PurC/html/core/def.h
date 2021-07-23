@@ -1,61 +1,79 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file def.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for whole html core.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_DEF_H
-#define LEXBOR_DEF_H
+#ifndef PCHTML_DEF_H
+#define PCHTML_DEF_H
 
-#define LEXBOR_STRINGIZE_HELPER(x) #x
-#define LEXBOR_STRINGIZE(x) LEXBOR_STRINGIZE_HELPER(x)
+#define PCHTML_STRINGIZE_HELPER(x) #x
+#define PCHTML_STRINGIZE(x) PCHTML_STRINGIZE_HELPER(x)
 
 /* Format */
 #ifdef _WIN32
-    #define LEXBOR_FORMAT_Z "%Iu"
+    #define PCHTML_FORMAT_Z "%Iu"
 #else
-    #define LEXBOR_FORMAT_Z "%zu"
+    #define PCHTML_FORMAT_Z "%zu"
 #endif
 
 /* Deprecated */
 #ifdef _MSC_VER
-    #define LXB_DEPRECATED(func) __declspec(deprecated) func
+    #define PCHTML_DEPRECATED(func) __declspec(deprecated) func
 #elif defined(__GNUC__) || defined(__INTEL_COMPILER)
-    #define LXB_DEPRECATED(func) func __attribute__((deprecated))
+    #define PCHTML_DEPRECATED(func) func __attribute__((deprecated))
 #else
-    #define LXB_DEPRECATED(func) func
+    #define PCHTML_DEPRECATED(func) func
 #endif
 
 /* Debug */
-//#define LEXBOR_DEBUG(...) do {} while (0)
-//#define LEXBOR_DEBUG_ERROR(...) do {} while (0)
+//#define PCHTML_DEBUG(...) do {} while (0)
+//#define PCHTML_DEBUG_ERROR(...) do {} while (0)
 
-#define LEXBOR_MEM_ALIGN_STEP sizeof(void *)
+#define PCHTML_MEM_ALIGN_STEP sizeof(void *)
 
-#ifndef LEXBOR_STATIC
+#ifndef PCHTML_STATIC
     #ifdef _WIN32
-        #ifdef LEXBOR_SHARED
-            #define LXB_API __declspec(dllexport)
+        #ifdef PCHTML_SHARED
+            #define PCHTML_API __declspec(dllexport)
         #else
-            #define LXB_API __declspec(dllimport)
+            #define PCHTML_API __declspec(dllimport)
         #endif
     #elif (defined(__SUNPRO_C)  || defined(__SUNPRO_CC))
-        #define LXB_API __global
+        #define PCHTML_API __global
     #else
         #if (defined(__GNUC__) && __GNUC__ >= 4) || defined(__INTEL_COMPILER)
-            #define LXB_API __attribute__ ((visibility("default")))
+            #define PCHTML_API __attribute__ ((visibility("default")))
         #else
-            #define LXB_API
+            #define PCHTML_API
         #endif
     #endif
 #else
-    #define LXB_API
+    #define PCHTML_API
 #endif
 
 #ifdef _WIN32
-    #define LXB_EXTERN extern __declspec(dllimport)
+    #define PCHTML_EXTERN extern __declspec(dllimport)
 #else
-    #define LXB_EXTERN extern
+    #define PCHTML_EXTERN extern
 #endif
 
-#endif /* LEXBOR_DEF_H */
+#endif  /* PCHTML_DEF_H */

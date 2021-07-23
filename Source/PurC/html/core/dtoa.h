@@ -1,28 +1,44 @@
-/*
- * Copyright (C) Alexander Borisov
+/**
+ * @file dtoa.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for dtoa.
  *
- * Based on nxt_dtoa.h from NGINX NJS project
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
- * Copyright (C) Dmitry Volyntsev
- * Copyright (C) Nginx, Inc.
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_DTOA_H
-#define LEXBOR_DTOA_H
+#ifndef PCHTML_DTOA_H
+#define PCHTML_DTOA_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "config.h"
 #include "html/core/base.h"
 
 
-LXB_API size_t
-lexbor_dtoa(double value, lxb_char_t *begin, size_t len);
+size_t
+pchtml_dtoa(double value, lxb_char_t *begin, size_t len) WTF_INTERNAL;
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LEXBOR_DTOA_H */
+#endif  /* PCHTML_DTOA_H */

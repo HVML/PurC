@@ -31,6 +31,7 @@ extern "C" {
 
 #include <string.h>
 
+#include "config.h"
 #include "html/core/base.h"
 #include "html/core/dobject.h"
 

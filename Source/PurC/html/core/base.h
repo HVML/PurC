@@ -37,6 +37,7 @@ extern "C" {
 #include <limits.h>
 #include <string.h>
 
+#include "config.h"
 #include "html/core/def.h"
 #include "html/core/types.h"
 #include "html/core/pchtml.h"

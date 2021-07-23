@@ -29,20 +29,21 @@
 extern "C" {
 #endif
 
+#include "config.h"
 #include "html/core/base.h"
 
 
 size_t
-lexbor_conv_float_to_data(double num, unsigned char *buf, size_t len) WTF_INTERNAL;
+pchtml_conv_float_to_data(double num, unsigned char *buf, size_t len) WTF_INTERNAL;
 
 double
-lexbor_conv_data_to_double(const unsigned char **start, size_t len) WTF_INTERNAL;
+pchtml_conv_data_to_double(const unsigned char **start, size_t len) WTF_INTERNAL;
 
 unsigned long
-lexbor_conv_data_to_ulong(const unsigned char **data, size_t length) WTF_INTERNAL;
+pchtml_conv_data_to_ulong(const unsigned char **data, size_t length) WTF_INTERNAL;
 
 unsigned
-lexbor_conv_data_to_uint(const unsigned char **data, size_t length) WTF_INTERNAL;
+pchtml_conv_data_to_uint(const unsigned char **data, size_t length) WTF_INTERNAL;
 
 
 #ifdef __cplusplus

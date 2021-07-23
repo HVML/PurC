@@ -1,79 +1,91 @@
-/*
- * Copyright (C) Alexander Borisov
+/**
+ * @file diyfp.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for diyfp.
  *
- * Based on nxt_diyfp.h from NGINX NJS project
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
- * Copyright (C) Dmitry Volyntsev
- * Copyright (C) NGINX, Inc.
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * An internal diy_fp implementation.
- * For details, see Loitsch, Florian. "Printing floating-point numbers quickly
- * and accurately with integers." ACM Sigplan Notices 45.6 (2010): 233-243.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_DIYFP_H
-#define LEXBOR_DIYFP_H
+#ifndef PCHTML_DIYFP_H
+#define PCHTML_DIYFP_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "config.h"
 #include "html/core/base.h"
 
 #include <math.h>
 
 
-#define lexbor_diyfp(_s, _e)           (lexbor_diyfp_t)                        \
-                                       { .significand = (_s), .exp = (_e) }
-#define lexbor_uint64_hl(h, l)   (((uint64_t) (h) << 32) + (l))
+#define pchtml_diyfp(_s, _e)            (pchtml_diyfp_t)                        \
+                                        { .significand = (_s), .exp = (_e) }
+#define pchtml_uint64_hl(h, l)          (((uint64_t) (h) << 32) + (l))
 
 
-#define LEXBOR_DBL_SIGNIFICAND_SIZE    52
-#define LEXBOR_DBL_EXPONENT_BIAS       (0x3FF + LEXBOR_DBL_SIGNIFICAND_SIZE)
-#define LEXBOR_DBL_EXPONENT_MIN        (-LEXBOR_DBL_EXPONENT_BIAS)
-#define LEXBOR_DBL_EXPONENT_MAX        (0x7FF - LEXBOR_DBL_EXPONENT_BIAS)
-#define LEXBOR_DBL_EXPONENT_DENORMAL   (-LEXBOR_DBL_EXPONENT_BIAS + 1)
+#define PCHTML_DBL_SIGNIFICAND_SIZE    52
+#define PCHTML_DBL_EXPONENT_BIAS       (0x3FF + PCHTML_DBL_SIGNIFICAND_SIZE)
+#define PCHTML_DBL_EXPONENT_MIN        (-PCHTML_DBL_EXPONENT_BIAS)
+#define PCHTML_DBL_EXPONENT_MAX        (0x7FF - PCHTML_DBL_EXPONENT_BIAS)
+#define PCHTML_DBL_EXPONENT_DENORMAL   (-PCHTML_DBL_EXPONENT_BIAS + 1)
 
-#define LEXBOR_DBL_SIGNIFICAND_MASK    lexbor_uint64_hl(0x000FFFFF, 0xFFFFFFFF)
-#define LEXBOR_DBL_HIDDEN_BIT          lexbor_uint64_hl(0x00100000, 0x00000000)
-#define LEXBOR_DBL_EXPONENT_MASK       lexbor_uint64_hl(0x7FF00000, 0x00000000)
+#define PCHTML_DBL_SIGNIFICAND_MASK    pchtml_uint64_hl(0x000FFFFF, 0xFFFFFFFF)
+#define PCHTML_DBL_HIDDEN_BIT          pchtml_uint64_hl(0x00100000, 0x00000000)
+#define PCHTML_DBL_EXPONENT_MASK       pchtml_uint64_hl(0x7FF00000, 0x00000000)
 
-#define LEXBOR_DIYFP_SIGNIFICAND_SIZE  64
+#define PCHTML_DIYFP_SIGNIFICAND_SIZE  64
 
-#define LEXBOR_SIGNIFICAND_SIZE        53
-#define LEXBOR_SIGNIFICAND_SHIFT       (LEXBOR_DIYFP_SIGNIFICAND_SIZE          \
-                                       - LEXBOR_DBL_SIGNIFICAND_SIZE)
+#define PCHTML_SIGNIFICAND_SIZE        53
+#define PCHTML_SIGNIFICAND_SHIFT       (PCHTML_DIYFP_SIGNIFICAND_SIZE          \
+                                       - PCHTML_DBL_SIGNIFICAND_SIZE)
 
-#define LEXBOR_DECIMAL_EXPONENT_OFF    348
-#define LEXBOR_DECIMAL_EXPONENT_MIN    (-348)
-#define LEXBOR_DECIMAL_EXPONENT_MAX    340
-#define LEXBOR_DECIMAL_EXPONENT_DIST   8
+#define PCHTML_DECIMAL_EXPONENT_OFF    348
+#define PCHTML_DECIMAL_EXPONENT_MIN    (-348)
+#define PCHTML_DECIMAL_EXPONENT_MAX    340
+#define PCHTML_DECIMAL_EXPONENT_DIST   8
 
 
 typedef struct {
     uint64_t significand;
     int      exp;
 }
-lexbor_diyfp_t;
+pchtml_diyfp_t;
 
 
-LXB_API lexbor_diyfp_t
-lexbor_cached_power_dec(int exp, int *dec_exp);
+pchtml_diyfp_t
+pchtml_cached_power_dec(int exp, int *dec_exp) WTF_INTERNAL;
 
-LXB_API lexbor_diyfp_t
-lexbor_cached_power_bin(int exp, int *dec_exp);
+pchtml_diyfp_t
+pchtml_cached_power_bin(int exp, int *dec_exp) WTF_INTERNAL;
 
 
 /*
  * Inline functions
  */
-// #if (LEXBOR_HAVE_BUILTIN_CLZLL)      // gengyue
+// #if (PCHTML_HAVE_BUILTIN_CLZLL)      // gengyue
 // #define nxt_leading_zeros64(x)  (((x) == 0) ? 64 : __builtin_clzll(x))
 
 // #else
 
-lxb_inline uint64_t
-lexbor_diyfp_leading_zeros64(uint64_t x)
+static inline uint64_t
+pchtml_diyfp_leading_zeros64(uint64_t x)
 {
     uint64_t  n;
 
@@ -93,12 +105,12 @@ lexbor_diyfp_leading_zeros64(uint64_t x)
 
 // #endif
 
-lxb_inline lexbor_diyfp_t
-lexbor_diyfp_from_d2(double d)
+static inline pchtml_diyfp_t
+pchtml_diyfp_from_d2(double d)
 {
     int biased_exp;
     uint64_t significand;
-    lexbor_diyfp_t r;
+    pchtml_diyfp_t r;
 
     union {
         double   d;
@@ -108,24 +120,24 @@ lexbor_diyfp_from_d2(double d)
 
     u.d = d;
 
-    biased_exp = (u.u64 & LEXBOR_DBL_EXPONENT_MASK)
-                 >> LEXBOR_DBL_SIGNIFICAND_SIZE;
-    significand = u.u64 & LEXBOR_DBL_SIGNIFICAND_MASK;
+    biased_exp = (u.u64 & PCHTML_DBL_EXPONENT_MASK)
+                 >> PCHTML_DBL_SIGNIFICAND_SIZE;
+    significand = u.u64 & PCHTML_DBL_SIGNIFICAND_MASK;
 
     if (biased_exp != 0) {
-        r.significand = significand + LEXBOR_DBL_HIDDEN_BIT;
-        r.exp = biased_exp - LEXBOR_DBL_EXPONENT_BIAS;
+        r.significand = significand + PCHTML_DBL_HIDDEN_BIT;
+        r.exp = biased_exp - PCHTML_DBL_EXPONENT_BIAS;
     }
     else {
         r.significand = significand;
-        r.exp = LEXBOR_DBL_EXPONENT_MIN + 1;
+        r.exp = PCHTML_DBL_EXPONENT_MIN + 1;
     }
 
     return r;
 }
 
-lxb_inline double
-lexbor_diyfp_2d(lexbor_diyfp_t v)
+static inline double
+pchtml_diyfp_2d(pchtml_diyfp_t v)
 {
     int exp;
     uint64_t significand, biased_exp;
@@ -139,63 +151,63 @@ lexbor_diyfp_2d(lexbor_diyfp_t v)
     exp = v.exp;
     significand = v.significand;
 
-    while (significand > LEXBOR_DBL_HIDDEN_BIT + LEXBOR_DBL_SIGNIFICAND_MASK) {
+    while (significand > PCHTML_DBL_HIDDEN_BIT + PCHTML_DBL_SIGNIFICAND_MASK) {
         significand >>= 1;
         exp++;
     }
 
-    if (exp >= LEXBOR_DBL_EXPONENT_MAX) {
+    if (exp >= PCHTML_DBL_EXPONENT_MAX) {
         return INFINITY;
     }
 
-    if (exp < LEXBOR_DBL_EXPONENT_DENORMAL) {
+    if (exp < PCHTML_DBL_EXPONENT_DENORMAL) {
         return 0.0;
     }
 
-    while (exp > LEXBOR_DBL_EXPONENT_DENORMAL
-           && (significand & LEXBOR_DBL_HIDDEN_BIT) == 0)
+    while (exp > PCHTML_DBL_EXPONENT_DENORMAL
+           && (significand & PCHTML_DBL_HIDDEN_BIT) == 0)
     {
         significand <<= 1;
         exp--;
     }
 
-    if (exp == LEXBOR_DBL_EXPONENT_DENORMAL
-        && (significand & LEXBOR_DBL_HIDDEN_BIT) == 0)
+    if (exp == PCHTML_DBL_EXPONENT_DENORMAL
+        && (significand & PCHTML_DBL_HIDDEN_BIT) == 0)
     {
         biased_exp = 0;
 
     } else {
-        biased_exp = (uint64_t) (exp + LEXBOR_DBL_EXPONENT_BIAS);
+        biased_exp = (uint64_t) (exp + PCHTML_DBL_EXPONENT_BIAS);
     }
 
-    u.u64 = (significand & LEXBOR_DBL_SIGNIFICAND_MASK)
-            | (biased_exp << LEXBOR_DBL_SIGNIFICAND_SIZE);
+    u.u64 = (significand & PCHTML_DBL_SIGNIFICAND_MASK)
+            | (biased_exp << PCHTML_DBL_SIGNIFICAND_SIZE);
 
     return u.d;
 }
 
-lxb_inline lexbor_diyfp_t
-lexbor_diyfp_shift_left(lexbor_diyfp_t v, unsigned shift)
+static inline pchtml_diyfp_t
+pchtml_diyfp_shift_left(pchtml_diyfp_t v, unsigned shift)
 {
-    return lexbor_diyfp(v.significand << shift, v.exp - shift);
+    return pchtml_diyfp(v.significand << shift, v.exp - shift);
 }
 
-lxb_inline lexbor_diyfp_t
-lexbor_diyfp_shift_right(lexbor_diyfp_t v, unsigned shift)
+static inline pchtml_diyfp_t
+pchtml_diyfp_shift_right(pchtml_diyfp_t v, unsigned shift)
 {
-    return lexbor_diyfp(v.significand >> shift, v.exp + shift);
+    return pchtml_diyfp(v.significand >> shift, v.exp + shift);
 }
 
-lxb_inline lexbor_diyfp_t
-lexbor_diyfp_sub(lexbor_diyfp_t lhs, lexbor_diyfp_t rhs)
+static inline pchtml_diyfp_t
+pchtml_diyfp_sub(pchtml_diyfp_t lhs, pchtml_diyfp_t rhs)
 {
-    return lexbor_diyfp(lhs.significand - rhs.significand, lhs.exp);
+    return pchtml_diyfp(lhs.significand - rhs.significand, lhs.exp);
 }
 
-lxb_inline lexbor_diyfp_t
-lexbor_diyfp_mul(lexbor_diyfp_t lhs, lexbor_diyfp_t rhs)
+static inline pchtml_diyfp_t
+pchtml_diyfp_mul(pchtml_diyfp_t lhs, pchtml_diyfp_t rhs)
 {
-//#if (LEXBOR_HAVE_UNSIGNED_INT128)     // gengyue
+//#if (PCHTML_HAVE_UNSIGNED_INT128)     // gengyue
 
 //    uint64_t l, h;
 //    lxb_uint128_t u128;
@@ -212,7 +224,7 @@ lexbor_diyfp_mul(lexbor_diyfp_t lhs, lexbor_diyfp_t rhs)
 //        h++;
 //    }
 
-//    return lexbor_diyfp(h, lhs.exp + rhs.exp + 64);
+//    return pchtml_diyfp(h, lhs.exp + rhs.exp + 64);
 
 //#else
 
@@ -234,21 +246,21 @@ lexbor_diyfp_mul(lexbor_diyfp_t lhs, lexbor_diyfp_t rhs)
 
     tmp += 1U << 31;
 
-    return lexbor_diyfp(ac + (ad >> 32) + (bc >> 32) + (tmp >> 32),
+    return pchtml_diyfp(ac + (ad >> 32) + (bc >> 32) + (tmp >> 32),
                         lhs.exp + rhs.exp + 64);
 //#endif
 }
 
-lxb_inline lexbor_diyfp_t
-lexbor_diyfp_normalize(lexbor_diyfp_t v)
+static inline pchtml_diyfp_t
+pchtml_diyfp_normalize(pchtml_diyfp_t v)
 {
-    return lexbor_diyfp_shift_left(v,
-                        (unsigned) lexbor_diyfp_leading_zeros64(v.significand));
+    return pchtml_diyfp_shift_left(v,
+                        (unsigned) pchtml_diyfp_leading_zeros64(v.significand));
 }
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LEXBOR_DIYFP_H */
+#endif  /* PCHTML_DIYFP_H */

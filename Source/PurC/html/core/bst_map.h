@@ -29,6 +29,7 @@
 extern "C" {
 #endif
 
+#include "config.h"
 #include "html/core/bst.h"
 #include "html/core/str.h"
 #include "html/core/mraw.h"
