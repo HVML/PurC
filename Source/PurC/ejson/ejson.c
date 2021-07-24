@@ -741,6 +741,105 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
         END_STATE()
 
         BEGIN_STATE(ejson_keyword_state)
+            if (is_delimiter(wc)) {
+                RECONSUME_IN(ejson_after_keyword_state);
+            }
+            switch (wc)
+            {
+                case 't':
+                case 'f':
+                case 'n':
+                    if (pcejson_temp_buffer_is_empty(ejson)) {
+                        pcejson_temp_buffer_append(ejson,
+                                (uint8_t*)buf_utf8, len);
+                    }
+                    else {
+                        pcinst_set_error(
+                                PCEJSON_UNEXPECTED_JSON_KEYWORD_PARSE_ERROR);
+                        return NULL;
+                    }
+                    break;
+
+                case 'r':
+                    if (pcejson_temp_buffer_equal(ejson, "t")) {
+                        pcejson_temp_buffer_append(ejson,
+                                (uint8_t*)buf_utf8, len);
+                    }
+                    else {
+                        pcinst_set_error(
+                                PCEJSON_UNEXPECTED_JSON_KEYWORD_PARSE_ERROR);
+                        return NULL;
+                    }
+                    break;
+
+                case 'u':
+                    if (pcejson_temp_buffer_equal(ejson, "tr")
+                        || pcejson_temp_buffer_equal(ejson, "n")) {
+                        pcejson_temp_buffer_append(ejson,
+                                (uint8_t*)buf_utf8, len);
+                    }
+                    else {
+                        pcinst_set_error(
+                                PCEJSON_UNEXPECTED_JSON_KEYWORD_PARSE_ERROR);
+                        return NULL;
+                    }
+                    break;
+
+                case 'e':
+                    if (pcejson_temp_buffer_equal(ejson, "tru")
+                        || pcejson_temp_buffer_equal(ejson, "fals")) {
+                        pcejson_temp_buffer_append(ejson,
+                                (uint8_t*)buf_utf8, len);
+                    }
+                    else {
+                        pcinst_set_error(
+                                PCEJSON_UNEXPECTED_JSON_KEYWORD_PARSE_ERROR);
+                        return NULL;
+                    }
+                    break;
+
+                case 'a':
+                    if (pcejson_temp_buffer_equal(ejson, "f")) {
+                        pcejson_temp_buffer_append(ejson,
+                                (uint8_t*)buf_utf8, len);
+                    }
+                    else {
+                        pcinst_set_error(
+                                PCEJSON_UNEXPECTED_JSON_KEYWORD_PARSE_ERROR);
+                        return NULL;
+                    }
+                    break;
+
+                case 'l':
+                    if (pcejson_temp_buffer_equal(ejson, "nu")
+                        || pcejson_temp_buffer_equal(ejson, "nul")
+                        || pcejson_temp_buffer_equal(ejson, "fa")) {
+                        pcejson_temp_buffer_append(ejson,
+                                (uint8_t*)buf_utf8, len);
+                    }
+                    else {
+                        pcinst_set_error(
+                                PCEJSON_UNEXPECTED_JSON_KEYWORD_PARSE_ERROR);
+                        return NULL;
+                    }
+                    break;
+
+                case 's':
+                    if (pcejson_temp_buffer_equal(ejson, "fal")) {
+                        pcejson_temp_buffer_append(ejson,
+                                (uint8_t*)buf_utf8, len);
+                    }
+                    else {
+                        pcinst_set_error(
+                                PCEJSON_UNEXPECTED_JSON_KEYWORD_PARSE_ERROR);
+                        return NULL;
+                    }
+                    break;
+
+                default:
+                    pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
+                    return NULL;
+            }
         END_STATE()
 
         BEGIN_STATE(ejson_after_keyword_state)
