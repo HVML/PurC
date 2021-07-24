@@ -955,6 +955,19 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
         END_STATE()
 
         BEGIN_STATE(ejson_after_value_number_state)
+            if (is_delimiter(wc)) {
+                if (pcejson_temp_buffer_end_with(ejson, "-")
+                        || pcejson_temp_buffer_end_with(ejson, "E")
+                        || pcejson_temp_buffer_end_with(ejson, "e")) {
+                    pcinst_set_error(PCEJSON_BAD_JSON_NUMBER_PARSE_ERROR);
+                    return NULL;
+                }
+                else {
+                    SWITCH_TO(ejson_after_value_state);
+                    return pcejson_token_new(ejson_token_number,
+                                pcejson_temp_buffer_dup(ejson));
+                }
+            }
         END_STATE()
 
         BEGIN_STATE(ejson_value_number_integer_state)
