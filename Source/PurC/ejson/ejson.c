@@ -672,6 +672,14 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
         END_STATE()
 
         BEGIN_STATE(ejson_after_value_double_quoted_state)
+            if (wc == '\"') {
+                pcejson_temp_buffer_clear_head_tail_characters(ejson, 1, 0);
+                RECONSUME_IN(ejson_after_value_state);
+            }
+            else {
+                pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
+                return NULL;
+            }
         END_STATE()
 
         BEGIN_STATE(ejson_value_two_double_quoted_state)
