@@ -879,6 +879,13 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
         END_STATE()
 
         BEGIN_STATE(ejson_after_byte_sequence_state)
+            if (is_delimiter(wc)) {
+                SWITCH_TO(ejson_after_value_state);
+                return pcejson_token_new(ejson_token_byte_squence,
+                                pcejson_temp_buffer_dup(ejson));
+            }
+            pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
+            return NULL;
         END_STATE()
 
         BEGIN_STATE(ejson_hex_byte_sequence_state)
