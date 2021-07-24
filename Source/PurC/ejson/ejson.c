@@ -578,15 +578,51 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
         END_STATE()
 
         BEGIN_STATE(ejson_name_double_quoted_state)
-        END_STATE()
-
-        BEGIN_STATE(ejson_after_name_double_quoted_state)
+            if (wc == '"') {
+                size_t tmp_buf_len = pcejson_temp_buffer_length(ejson);
+                if (tmp_buf_len >= 1) {
+                    ADVANCE_TO(ejson_after_name_state);
+                }
+                else {
+                    ADVANCE_TO(ejson_name_double_quoted_state);
+                }
+            }
+            else if (wc == '\\') {
+                ejson->return_state = ejson->state;
+                ADVANCE_TO(ejson_string_escape_state);
+            }
+            else if (wc == END_OF_FILE_MARKER) {
+                pcinst_set_error(PCEJSON_EOF_IN_STRING_PARSE_ERROR);
+                return pcejson_token_new(ejson_token_eof, NULL);
+            }
+            else {
+                pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
+                return NULL;
+            }
         END_STATE()
 
         BEGIN_STATE(ejson_value_single_quoted_state)
-        END_STATE()
-
-        BEGIN_STATE(ejson_after_value_single_quoted_state)
+            if (wc == '\'') {
+                size_t tmp_buf_len = pcejson_temp_buffer_length(ejson);
+                if (tmp_buf_len >= 1) {
+                    ADVANCE_TO(ejson_after_value_state);
+                }
+                else {
+                    ADVANCE_TO(ejson_value_single_quoted_state);
+                }
+            }
+            else if (wc == '\\') {
+                ejson->return_state = ejson->state;
+                ADVANCE_TO(ejson_string_escape_state);
+            }
+            else if (wc == END_OF_FILE_MARKER) {
+                pcinst_set_error(PCEJSON_EOF_IN_STRING_PARSE_ERROR);
+                return pcejson_token_new(ejson_token_eof, NULL);
+            }
+            else {
+                pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
+                return NULL;
+            }
         END_STATE()
 
         BEGIN_STATE(ejson_value_double_quoted_state)
@@ -680,9 +716,7 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
     UNUSED_LABEL(ejson_name_unquoted_state);
     UNUSED_LABEL(ejson_name_single_quoted_state);
     UNUSED_LABEL(ejson_name_double_quoted_state);
-    UNUSED_LABEL(ejson_after_name_double_quoted_state);
     UNUSED_LABEL(ejson_value_single_quoted_state);
-    UNUSED_LABEL(ejson_after_value_single_quoted_state);
     UNUSED_LABEL(ejson_value_double_quoted_state);
     UNUSED_LABEL(ejson_after_value_double_quoted_state);
     UNUSED_LABEL(ejson_value_two_double_quoted_state);
