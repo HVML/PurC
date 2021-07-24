@@ -239,6 +239,15 @@ size_t pcejson_temp_buffer_length(struct pcejson* parser)
     return purc_rwstream_tell (parser->rws);
 }
 
+void pcejson_temp_buffer_clear_head_tail_characters(struct pcejson* parser,
+        size_t head, size_t tail)
+{
+    char* dup = pcejson_temp_buffer_dup(parser);
+    pcejson_temp_buffer_reset(parser);
+    purc_rwstream_write(parser->rws, dup + head, strlen(dup) - head - tail);
+    free(dup);
+}
+
 void pcejson_reset(struct pcejson* parser, int32_t depth, uint32_t flags)
 {
     parser->state = ejson_init_state;
