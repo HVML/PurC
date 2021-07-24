@@ -491,6 +491,40 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
         END_STATE()
 
         BEGIN_STATE(ejson_after_value_state)
+            if (is_whitespace(wc)) {
+                ADVANCE_TO(ejson_after_value_state);
+            }
+            else if (wc == '"' || wc == '\'') {
+                // FIXME
+                pcejson_stack_pop(ejson->stack);
+                return pcejson_token_new(ejson_token_key,
+                        pcejson_temp_buffer_dup(ejson));
+            }
+            else if (wc == '}') {
+                RECONSUME_IN(ejson_after_value_state);
+            }
+            else if (wc == ']') {
+                RECONSUME_IN(ejson_after_array_state);
+            }
+            else if (wc == ',') {
+                uint8_t c = pcejson_stack_last(ejson->stack);
+                if (c == '{') {
+                    SWITCH_TO(ejson_before_name_state);
+                    return pcejson_token_new(ejson_token_comma, NULL);
+                }
+                else if (c == '[') {
+                    SWITCH_TO(ejson_before_value_state);
+                    return pcejson_token_new(ejson_token_comma, NULL);
+                }
+                else {
+                    pcinst_set_error(PCEJSON_UNEXPECTED_COMMA_PARSE_ERROR);
+                    return NULL;
+                }
+            }
+            else {
+                pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
+                return NULL;
+            }
         END_STATE()
 
         BEGIN_STATE(ejson_name_unquoted_state)
