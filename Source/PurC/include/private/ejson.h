@@ -144,6 +144,7 @@ struct pcejson_stack {
 
 struct pcejson {
     enum ejson_state state;
+    enum ejson_state return_state;
     int32_t depth;
     uint32_t flags;
     struct pcejson_stack* stack;

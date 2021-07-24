@@ -231,6 +231,11 @@ ssize_t pcejson_temp_buffer_append(struct pcejson* parser, uint8_t* buf,
     return purc_rwstream_write (parser->rws, buf, sz);
 }
 
+size_t pcejson_temp_buffer_length(struct pcejson* parser)
+{
+    return purc_rwstream_tell (parser->rws);
+}
+
 void pcejson_reset(struct pcejson* parser, int32_t depth, uint32_t flags)
 {
     parser->state = ejson_init_state;
@@ -549,6 +554,24 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
         END_STATE()
 
         BEGIN_STATE(ejson_name_single_quoted_state)
+            if (wc == '\'') {
+                pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
+                size_t tmp_buf_len = pcejson_temp_buffer_length(ejson);
+                if (tmp_buf_len > 1) {
+                    ADVANCE_TO(ejson_after_name_single_quoted_state);
+                }
+            }
+            else if (wc == '\\') {
+                ejson->return_state = ejson->state;
+                ADVANCE_TO(ejson_string_escape_state);
+            }
+            else if (wc == END_OF_FILE_MARKER) {
+                pcinst_set_error(PCEJSON_EOF_IN_STRING_PARSE_ERROR);
+                return pcejson_token_new(ejson_token_eof, NULL);
+            }
+            else {
+                pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
+            }
         END_STATE()
 
         BEGIN_STATE(ejson_after_name_single_quoted_state)
