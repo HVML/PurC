@@ -88,7 +88,6 @@ enum ejson_state {
     ejson_value_double_quoted_state,
     ejson_after_value_double_quoted_state,
     ejson_value_two_double_quoted_state,
-    ejson_after_value_two_double_quoted_state,
     ejson_value_three_double_quoted_state,
     ejson_after_value_three_double_quoted_state,
     ejson_keyword_state,
