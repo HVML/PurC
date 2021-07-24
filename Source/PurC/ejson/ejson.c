@@ -255,6 +255,15 @@ bool pcejson_temp_buffer_euqal(struct pcejson* parser, const char* s)
     return strcmp(p, s) == 0;
 }
 
+bool pcejson_temp_buffer_end_with(struct pcejson* parser, const char* s)
+{
+    size_t sz = 0;
+    const char* p = purc_rwstream_get_mem_buffer (parser->rws, &sz);
+    size_t len = pcejson_temp_buffer_length (parser);
+    size_t cmp_len = strlen(s);
+    return strncmp(p + len - cmp_len, s, cmp_len) == 0;
+}
+
 void pcejson_reset(struct pcejson* parser, int32_t depth, uint32_t flags)
 {
     parser->state = ejson_init_state;
@@ -702,6 +711,25 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
         END_STATE()
 
         BEGIN_STATE(ejson_value_three_double_quoted_state)
+            if (wc == '\"') {
+                pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
+                size_t buf_len = pcejson_temp_buffer_length(ejson);
+                if (buf_len >= 6
+                        && pcejson_temp_buffer_end_with(ejson, "\"\"\"")) {
+                    ADVANCE_TO(ejson_after_value_three_double_quoted_state);
+                }
+                else {
+                    ADVANCE_TO(ejson_value_three_double_quoted_state);
+                }
+            }
+            else if (wc == END_OF_FILE_MARKER) {
+                pcinst_set_error(PCEJSON_EOF_IN_STRING_PARSE_ERROR);
+                return pcejson_token_new(ejson_token_eof, NULL);
+            }
+            else {
+                pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
+                ADVANCE_TO(ejson_value_three_double_quoted_state);
+            }
         END_STATE()
 
         BEGIN_STATE(ejson_after_value_three_double_quoted_state)
