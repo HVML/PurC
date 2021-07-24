@@ -190,6 +190,8 @@ struct pcejson* pcejson_create(int32_t depth, uint32_t flags)
     parser->stack = pcejson_stack_new(2 * depth);
     parser->rws = purc_rwstream_new_buffer(MIN_EJSON_BUFFER_SIZE,
             MAX_EJSON_BUFFER_SIZE);
+    parser->rws2 = purc_rwstream_new_buffer(MIN_EJSON_BUFFER_SIZE,
+            MAX_EJSON_BUFFER_SIZE);
     return parser;
 }
 
@@ -198,6 +200,7 @@ void pcejson_destroy(struct pcejson* parser)
     if (parser) {
         pcejson_stack_destroy(parser->stack);
         purc_rwstream_destroy(parser->rws);
+        purc_rwstream_destroy(parser->rws2);
         ejson_free(parser);
     }
 }
