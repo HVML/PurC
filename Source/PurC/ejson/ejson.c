@@ -112,6 +112,11 @@ static inline bool is_ascii_alpha_numeric(wchar_t character)
     return is_ascii_digit(character) || is_ascii_alpha(character);
 }
 
+static inline bool is_delimiter(wchar_t c)
+{
+    return is_whitespace(c) || c == '}' || c == ']' || c == ',';
+}
+
 struct pcejson_stack* pcejson_stack_new(size_t sz_init)
 {
     struct pcejson_stack* stack = (struct pcejson_stack*) ejson_alloc(
@@ -248,7 +253,7 @@ void pcejson_temp_buffer_clear_head_tail_characters(struct pcejson* parser,
     free(dup);
 }
 
-bool pcejson_temp_buffer_euqal(struct pcejson* parser, const char* s)
+bool pcejson_temp_buffer_equal(struct pcejson* parser, const char* s)
 {
     size_t sz = 0;
     const char* p = purc_rwstream_get_mem_buffer (parser->rws, &sz);
@@ -659,7 +664,7 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
                     pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
                     ADVANCE_TO(ejson_value_double_quoted_state);
                 }
-                else if (pcejson_temp_buffer_euqal(ejson, "\"")) {
+                else if (pcejson_temp_buffer_equal(ejson, "\"")) {
                     RECONSUME_IN(ejson_value_two_double_quoted_state);
                 }
                 else {
@@ -693,10 +698,10 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
 
         BEGIN_STATE(ejson_value_two_double_quoted_state)
             if (wc == '"') {
-                if (pcejson_temp_buffer_euqal(ejson, "\"")) {
+                if (pcejson_temp_buffer_equal(ejson, "\"")) {
                     ADVANCE_TO(ejson_value_two_double_quoted_state);
                 }
-                else if (pcejson_temp_buffer_euqal(ejson, "\"\"")) {
+                else if (pcejson_temp_buffer_equal(ejson, "\"\"")) {
                     RECONSUME_IN(ejson_value_three_double_quoted_state);
                 }
             }
@@ -739,6 +744,18 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
         END_STATE()
 
         BEGIN_STATE(ejson_after_keyword_state)
+            if (is_delimiter(wc)) {
+                if (pcejson_temp_buffer_equal(ejson, "true")
+                        || pcejson_temp_buffer_equal(ejson, "false")) {
+                    return pcejson_token_new(ejson_token_boolean,
+                                pcejson_temp_buffer_dup(ejson));
+                }
+                else if (pcejson_temp_buffer_equal(ejson, "null")) {
+                    return pcejson_token_new(ejson_token_null, NULL);
+                }
+            }
+            pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
+            return NULL;
         END_STATE()
 
         BEGIN_STATE(ejson_byte_sequence_state)
