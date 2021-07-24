@@ -716,7 +716,9 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
                 size_t buf_len = pcejson_temp_buffer_length(ejson);
                 if (buf_len >= 6
                         && pcejson_temp_buffer_end_with(ejson, "\"\"\"")) {
-                    ADVANCE_TO(ejson_after_value_three_double_quoted_state);
+                    pcejson_temp_buffer_clear_head_tail_characters(ejson, 1, 1);
+                    SWITCH_TO(ejson_after_value_state);
+                    return pcejson_token_new(ejson_token_text, NULL);
                 }
                 else {
                     ADVANCE_TO(ejson_value_three_double_quoted_state);
@@ -724,15 +726,13 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
             }
             else if (wc == END_OF_FILE_MARKER) {
                 pcinst_set_error(PCEJSON_EOF_IN_STRING_PARSE_ERROR);
-                return pcejson_token_new(ejson_token_eof, NULL);
+                return pcejson_token_new(ejson_token_eof,
+                                pcejson_temp_buffer_dup(ejson));
             }
             else {
                 pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
                 ADVANCE_TO(ejson_value_three_double_quoted_state);
             }
-        END_STATE()
-
-        BEGIN_STATE(ejson_after_value_three_double_quoted_state)
         END_STATE()
 
         BEGIN_STATE(ejson_keyword_state)
@@ -813,7 +813,6 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
     UNUSED_LABEL(ejson_after_value_double_quoted_state);
     UNUSED_LABEL(ejson_value_two_double_quoted_state);
     UNUSED_LABEL(ejson_value_three_double_quoted_state);
-    UNUSED_LABEL(ejson_after_value_three_double_quoted_state);
     UNUSED_LABEL(ejson_keyword_state);
     UNUSED_LABEL(ejson_after_keyword_state);
     UNUSED_LABEL(ejson_byte_sequence_state);
