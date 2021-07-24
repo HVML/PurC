@@ -56,8 +56,8 @@
 
 #define ADVANCE_TO(new_state)                                    \
     do {                                                         \
-        ret = purc_rwstream_read_utf8_char (rws, buf_utf8, &wc); \
-        if (ret <= 0) {                                          \
+        len = purc_rwstream_read_utf8_char (rws, buf_utf8, &wc); \
+        if (len <= 0) {                                          \
             return NULL;                                         \
         }                                                        \
         ejson->state = new_state;                                \
@@ -82,7 +82,6 @@ enum ejson_state {
     ejson_before_value_state,
     ejson_after_value_state,
     ejson_name_unquoted_state,
-    ejson_after_name_unquoted_state,
     ejson_name_single_quoted_state,
     ejson_after_name_single_quoted_state,
     ejson_name_double_quoted_state,

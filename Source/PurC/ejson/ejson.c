@@ -225,6 +225,12 @@ bool pcejson_temp_buffer_is_empty(struct pcejson* parser)
     return (0 == purc_rwstream_tell(parser->rws));
 }
 
+ssize_t pcejson_temp_buffer_append(struct pcejson* parser, uint8_t* buf,
+        size_t sz)
+{
+    return purc_rwstream_write (parser->rws, buf, sz);
+}
+
 void pcejson_reset(struct pcejson* parser, int32_t depth, uint32_t flags)
 {
     parser->state = ejson_init_state;
@@ -266,8 +272,8 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
     char buf_utf8[8] = {0};
     wchar_t wc = 0;
 
-    int ret = purc_rwstream_read_utf8_char (rws, buf_utf8, &wc);
-    if (ret <= 0) {
+    int len = purc_rwstream_read_utf8_char (rws, buf_utf8, &wc);
+    if (len <= 0) {
         return NULL;
     }
 
@@ -528,9 +534,18 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
         END_STATE()
 
         BEGIN_STATE(ejson_name_unquoted_state)
-        END_STATE()
-
-        BEGIN_STATE(ejson_after_name_unquoted_state)
+            if (is_whitespace(wc) || wc == ':') {
+                RECONSUME_IN(ejson_after_name_state);
+            }
+            else if (is_ascii_alpha(wc) || is_ascii_digit(wc) || wc == '-'
+                    || wc == '_') {
+                pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
+                ADVANCE_TO(ejson_name_unquoted_state);
+            }
+            else {
+                pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
+                return NULL;
+            }
         END_STATE()
 
         BEGIN_STATE(ejson_name_single_quoted_state)
@@ -640,7 +655,6 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
     UNUSED_LABEL(ejson_before_value_state);
     UNUSED_LABEL(ejson_after_value_state);
     UNUSED_LABEL(ejson_name_unquoted_state);
-    UNUSED_LABEL(ejson_after_name_unquoted_state);
     UNUSED_LABEL(ejson_name_single_quoted_state);
     UNUSED_LABEL(ejson_after_name_single_quoted_state);
     UNUSED_LABEL(ejson_name_double_quoted_state);
