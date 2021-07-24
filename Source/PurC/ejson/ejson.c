@@ -683,6 +683,21 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
         END_STATE()
 
         BEGIN_STATE(ejson_value_two_double_quoted_state)
+            if (wc == '"') {
+                if (pcejson_temp_buffer_euqal(ejson, "\"")) {
+                    ADVANCE_TO(ejson_value_two_double_quoted_state);
+                }
+                else if (pcejson_temp_buffer_euqal(ejson, "\"\"")) {
+                    RECONSUME_IN(ejson_value_three_double_quoted_state);
+                }
+            }
+            else if (wc == END_OF_FILE_MARKER) {
+                pcinst_set_error(PCEJSON_EOF_IN_STRING_PARSE_ERROR);
+                return pcejson_token_new(ejson_token_eof, NULL);
+            }
+            else {
+                ADVANCE_TO(ejson_after_value_two_double_quoted_state);
+            }
         END_STATE()
 
         BEGIN_STATE(ejson_after_value_two_double_quoted_state)
