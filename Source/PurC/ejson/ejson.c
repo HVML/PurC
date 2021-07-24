@@ -424,7 +424,7 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
                 if (c == '{') {
                     pcejson_stack_push (ejson->stack, ':');
                 }
-                RECONSUME_IN(ejson_value_single_quoted_state);
+                RECONSUME_IN(ejson_name_single_quoted_state);
             }
             else if (is_ascii_alpha(wc)) {
                 pcejson_temp_buffer_reset(ejson);
@@ -555,10 +555,12 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
 
         BEGIN_STATE(ejson_name_single_quoted_state)
             if (wc == '\'') {
-                pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
                 size_t tmp_buf_len = pcejson_temp_buffer_length(ejson);
-                if (tmp_buf_len > 1) {
-                    ADVANCE_TO(ejson_after_name_single_quoted_state);
+                if (tmp_buf_len >= 1) {
+                    ADVANCE_TO(ejson_after_name_state);
+                }
+                else {
+                    ADVANCE_TO(ejson_name_single_quoted_state);
                 }
             }
             else if (wc == '\\') {
@@ -571,10 +573,8 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
             }
             else {
                 pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
+                return NULL;
             }
-        END_STATE()
-
-        BEGIN_STATE(ejson_after_name_single_quoted_state)
         END_STATE()
 
         BEGIN_STATE(ejson_name_double_quoted_state)
@@ -679,7 +679,6 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
     UNUSED_LABEL(ejson_after_value_state);
     UNUSED_LABEL(ejson_name_unquoted_state);
     UNUSED_LABEL(ejson_name_single_quoted_state);
-    UNUSED_LABEL(ejson_after_name_single_quoted_state);
     UNUSED_LABEL(ejson_name_double_quoted_state);
     UNUSED_LABEL(ejson_after_name_double_quoted_state);
     UNUSED_LABEL(ejson_value_single_quoted_state);
