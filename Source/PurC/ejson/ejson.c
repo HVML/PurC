@@ -858,6 +858,24 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
         END_STATE()
 
         BEGIN_STATE(ejson_byte_sequence_state)
+            if (wc == 'b') {
+                if (pcejson_temp_buffer_is_empty(ejson)) {
+                    pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
+                    ADVANCE_TO(ejson_byte_sequence_state);
+                }
+                pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
+                ADVANCE_TO(ejson_binary_byte_sequence_state);
+            }
+            else if (wc == 'x') {
+                pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
+                ADVANCE_TO(ejson_hex_byte_sequence_state);
+            }
+            else if (wc == '6') {
+                pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
+                ADVANCE_TO(ejson_base64_byte_sequence_state);
+            }
+            pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
+            return NULL;
         END_STATE()
 
         BEGIN_STATE(ejson_after_byte_sequence_state)
