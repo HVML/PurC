@@ -1,7 +1,25 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file fs.c
+ * @author 
+ * @date 2021/07/02
+ * @brief The complementation of file system.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #ifndef _DEFAULT_SOURCE
@@ -21,27 +39,27 @@
 #include "html/core/fs.h"
 
 
-lxb_status_t
-lexbor_fs_dir_read(const lxb_char_t *dirpath, lexbor_fs_dir_opt_t opt,
-                   lexbor_fs_dir_file_f callback, void *ctx)
+unsigned int
+pchtml_fs_dir_read(const unsigned char *dirpath, pchtml_fs_dir_opt_t opt,
+                   pchtml_fs_dir_file_f callback, void *ctx)
 {
     DIR *dir;
     size_t path_len, free_len, d_namlen;
     struct dirent *entry;
-    lexbor_action_t action;
-    lexbor_fs_file_type_t f_type;
+    pchtml_action_t action;
+    pchtml_fs_file_type_t f_type;
 
     char *file_begin;
     char full_path[4096];
 
     path_len = strlen((const char *) dirpath);
     if (path_len == 0 || path_len >= (sizeof(full_path) - 1)) {
-        return LXB_STATUS_ERROR;
+        return PCHTML_STATUS_ERROR;
     }
 
     dir = opendir((const char *) dirpath);
     if (dir == NULL) {
-        return LXB_STATUS_ERROR;
+        return PCHTML_STATUS_ERROR;
     }
 
     memcpy(full_path, dirpath, path_len);
@@ -60,7 +78,7 @@ lexbor_fs_dir_read(const lxb_char_t *dirpath, lexbor_fs_dir_opt_t opt,
     file_begin = &full_path[path_len];
     free_len = (sizeof(full_path) - 1) - path_len;
 
-    if (opt == LEXBOR_FS_DIR_OPT_UNDEF)
+    if (opt == PCHTML_FS_DIR_OPT_UNDEF)
     {
         while ((entry = readdir(dir)) != NULL) {
             d_namlen = strlen(entry->d_name);
@@ -72,11 +90,11 @@ lexbor_fs_dir_read(const lxb_char_t *dirpath, lexbor_fs_dir_opt_t opt,
             /* +1 copy terminating null byte '\0' */
             memcpy(file_begin, entry->d_name, (d_namlen + 1));
 
-            action = callback((const lxb_char_t *) full_path,
+            action = callback((const unsigned char *) full_path,
                               (path_len + d_namlen),
-                              (const lxb_char_t *) entry->d_name,
+                              (const unsigned char *) entry->d_name,
                               d_namlen, ctx);
-            if (action == LEXBOR_ACTION_STOP) {
+            if (action == PCHTML_ACTION_STOP) {
                 break;
             }
         }
@@ -85,7 +103,7 @@ lexbor_fs_dir_read(const lxb_char_t *dirpath, lexbor_fs_dir_opt_t opt,
     }
 
     while ((entry = readdir(dir)) != NULL) {
-        if (opt & LEXBOR_FS_DIR_OPT_WITHOUT_HIDDEN
+        if (opt & PCHTML_FS_DIR_OPT_WITHOUT_HIDDEN
             && *entry->d_name == '.')
         {
             continue;
@@ -97,16 +115,16 @@ lexbor_fs_dir_read(const lxb_char_t *dirpath, lexbor_fs_dir_opt_t opt,
             goto error;
         }
 
-        f_type = lexbor_fs_file_type((const lxb_char_t *) entry->d_name);
+        f_type = pchtml_fs_file_type((const unsigned char *) entry->d_name);
 
-        if (opt & LEXBOR_FS_DIR_OPT_WITHOUT_DIR
-            && f_type == LEXBOR_FS_FILE_TYPE_DIRECTORY)
+        if (opt & PCHTML_FS_DIR_OPT_WITHOUT_DIR
+            && f_type == PCHTML_FS_FILE_TYPE_DIRECTORY)
         {
             continue;
         }
 
-        if (opt & LEXBOR_FS_DIR_OPT_WITHOUT_FILE
-            && f_type == LEXBOR_FS_FILE_TYPE_FILE)
+        if (opt & PCHTML_FS_DIR_OPT_WITHOUT_FILE
+            && f_type == PCHTML_FS_FILE_TYPE_FILE)
         {
             continue;
         }
@@ -114,11 +132,11 @@ lexbor_fs_dir_read(const lxb_char_t *dirpath, lexbor_fs_dir_opt_t opt,
         /* +1 copy terminating null byte '\0' */
         memcpy(file_begin, entry->d_name, (d_namlen + 1));
 
-        action = callback((const lxb_char_t *) full_path,
+        action = callback((const unsigned char *) full_path,
                           (path_len + d_namlen),
-                          (const lxb_char_t *) entry->d_name,
+                          (const unsigned char *) entry->d_name,
                           d_namlen, ctx);
-        if (action == LEXBOR_ACTION_STOP) {
+        if (action == PCHTML_ACTION_STOP) {
             break;
         }
     }
@@ -127,60 +145,60 @@ done:
 
     closedir(dir);
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 
 error:
 
     closedir(dir);
 
-    return LXB_STATUS_ERROR;
+    return PCHTML_STATUS_ERROR;
 }
 
-lexbor_fs_file_type_t
-lexbor_fs_file_type(const lxb_char_t *full_path)
+pchtml_fs_file_type_t
+pchtml_fs_file_type(const unsigned char *full_path)
 {
     struct stat sb;
 
     if (stat((const char *) full_path, &sb) == -1) {
-        return LEXBOR_FS_FILE_TYPE_UNDEF;
+        return PCHTML_FS_FILE_TYPE_UNDEF;
     }
 
     switch (sb.st_mode & S_IFMT) {
         case S_IFBLK:
-            return LEXBOR_FS_FILE_TYPE_BLOCK_DEVICE;
+            return PCHTML_FS_FILE_TYPE_BLOCK_DEVICE;
 
         case S_IFCHR:
-            return LEXBOR_FS_FILE_TYPE_CHARACTER_DEVICE;
+            return PCHTML_FS_FILE_TYPE_CHARACTER_DEVICE;
 
         case S_IFDIR:
-            return LEXBOR_FS_FILE_TYPE_DIRECTORY;
+            return PCHTML_FS_FILE_TYPE_DIRECTORY;
 
         case S_IFIFO:
-            return LEXBOR_FS_FILE_TYPE_PIPE;
+            return PCHTML_FS_FILE_TYPE_PIPE;
 
         case S_IFLNK:
-            return LEXBOR_FS_FILE_TYPE_SYMLINK;
+            return PCHTML_FS_FILE_TYPE_SYMLINK;
 
         case S_IFREG:
-            return LEXBOR_FS_FILE_TYPE_FILE;
+            return PCHTML_FS_FILE_TYPE_FILE;
 
         case S_IFSOCK:
-            return LEXBOR_FS_FILE_TYPE_SOCKET;
+            return PCHTML_FS_FILE_TYPE_SOCKET;
 
         default:
-            return LEXBOR_FS_FILE_TYPE_UNDEF;
+            return PCHTML_FS_FILE_TYPE_UNDEF;
     }
 
-    return LEXBOR_FS_FILE_TYPE_UNDEF;
+    return PCHTML_FS_FILE_TYPE_UNDEF;
 }
 
-lxb_char_t *
-lexbor_fs_file_easy_read(const lxb_char_t *full_path, size_t *len)
+unsigned char *
+pchtml_fs_file_easy_read(const unsigned char *full_path, size_t *len)
 {
     FILE *fh;
     long size;
     size_t nread;
-    lxb_char_t *data;
+    unsigned char *data;
 
     fh = fopen((const char *) full_path, "rb");
     if (fh == NULL) {
@@ -200,14 +218,14 @@ lexbor_fs_file_easy_read(const lxb_char_t *full_path, size_t *len)
         goto error_close;
     }
 
-    data = lexbor_malloc(size + 1);
+    data = pchtml_malloc(size + 1);
     if (data == NULL) {
         goto error_close;
     }
 
     nread = fread(data, 1, size, fh);
     if (nread != (size_t) size) {
-        lexbor_free(data);
+        pchtml_free(data);
 
         goto error_close;
     }
