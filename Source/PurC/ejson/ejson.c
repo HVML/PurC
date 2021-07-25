@@ -218,6 +218,14 @@ void pcejson_temp_buffer_reset(struct pcejson* parser)
     purc_rwstream_seek(parser->rws, 0, SEEK_SET);
 }
 
+void pcejson_temp_buffer_reset2(struct pcejson* parser)
+{
+    size_t sz = 0;
+    const char* p = purc_rwstream_get_mem_buffer (parser->rws2, &sz);
+    memset((void*)p, 0, sz);
+    purc_rwstream_seek(parser->rws2, 0, SEEK_SET);
+}
+
 char* pcejson_temp_buffer_dup(struct pcejson* parser)
 {
     size_t sz = 0;
@@ -316,8 +324,10 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
 {
     char buf_utf8[8] = {0};
     wchar_t wc = 0;
+    int len = 0;
 
-    int len = purc_rwstream_read_utf8_char (rws, buf_utf8, &wc);
+next_input:
+    len = purc_rwstream_read_utf8_char (rws, buf_utf8, &wc);
     if (len <= 0) {
         return NULL;
     }
@@ -1123,6 +1133,30 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
         END_STATE()
 
         BEGIN_STATE(ejson_string_escape_state)
+            switch (wc)
+            {
+                case '\\':
+                case '/':
+                case '"':
+                case 'b':
+                case 'f':
+                case 'n':
+                case 'r':
+                case 't':
+                    pcejson_temp_buffer_append(ejson, (uint8_t*)"\\", 1);
+                    pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
+                    RETURN_TO(ejson->return_state);
+                    break;
+                case 'u':
+                    pcejson_temp_buffer_reset2(ejson);
+                    ADVANCE_TO(
+                            ejson_string_escape_four_hexadecimal_digits_state);
+                    break;
+                default:
+                    pcinst_set_error(
+                         PCEJSON_BAD_JSON_STRING_ESCAPE_ENTITY_PARSE_ERROR);
+                    return NULL;
+            }
         END_STATE()
 
         BEGIN_STATE(ejson_string_escape_four_hexadecimal_digits_state)

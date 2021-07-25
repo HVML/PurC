@@ -69,6 +69,11 @@
         ejson->state = new_state;                               \
     } while (false)
 
+#define RETURN_TO(new_state)                                    \
+    do {                                                        \
+        ejson->state = new_state;                               \
+        goto next_input;                                       \
+    } while (false)
 
 enum ejson_state {
     ejson_init_state,
