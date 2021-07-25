@@ -31,11 +31,19 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#ifdef NDEBUG
+#define PRINT_STATE(state_name)
+#else
+#define PRINT_STATE(state_name)                                           \
+        fprintf(stderr, "in %s\n", pcejson_ejson_state_desc(state_name));
+#endif
+
 #define BEGIN_STATE(state_name)                                  \
     case state_name:                                             \
     state_name: {                                                \
         enum ejson_state current_state = state_name;             \
-        UNUSED_PARAM(current_state);
+        UNUSED_PARAM(current_state);                             \
+        PRINT_STATE(current_state);
 
 #define END_STATE()                                             \
         break;                                                  \
@@ -231,6 +239,11 @@ void pcejson_token_destroy(struct pcejson_token* token);
  * Get one pcejson token from rwstream.
  */
 struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t rws);
+
+/**
+ * Get ejson desc message
+ */
+const char* pcejson_ejson_state_desc(enum ejson_state state);
 
 #ifdef __cplusplus
 }

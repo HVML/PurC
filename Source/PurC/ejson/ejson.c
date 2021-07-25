@@ -666,7 +666,7 @@ next_input:
             if (wc == '\'') {
                 size_t tmp_buf_len = pcejson_temp_buffer_length(ejson);
                 if (tmp_buf_len >= 1) {
-                    ADVANCE_TO(ejson_after_value_state);
+                    RECONSUME_IN(ejson_after_value_state);
                 }
                 else {
                     ADVANCE_TO(ejson_value_single_quoted_state);
@@ -1189,39 +1189,52 @@ next_input:
         default:
             break;
     }
-    UNUSED_LABEL(ejson_init_state);
-    UNUSED_LABEL(ejson_finished_state);
-    UNUSED_LABEL(ejson_object_state);
-    UNUSED_LABEL(ejson_after_object_state);
-    UNUSED_LABEL(ejson_array_state);
-    UNUSED_LABEL(ejson_after_array_state);
-    UNUSED_LABEL(ejson_before_name_state);
-    UNUSED_LABEL(ejson_after_name_state);
-    UNUSED_LABEL(ejson_before_value_state);
-    UNUSED_LABEL(ejson_after_value_state);
-    UNUSED_LABEL(ejson_name_unquoted_state);
-    UNUSED_LABEL(ejson_name_single_quoted_state);
-    UNUSED_LABEL(ejson_name_double_quoted_state);
-    UNUSED_LABEL(ejson_value_single_quoted_state);
-    UNUSED_LABEL(ejson_value_double_quoted_state);
-    UNUSED_LABEL(ejson_after_value_double_quoted_state);
-    UNUSED_LABEL(ejson_value_two_double_quoted_state);
-    UNUSED_LABEL(ejson_value_three_double_quoted_state);
-    UNUSED_LABEL(ejson_keyword_state);
-    UNUSED_LABEL(ejson_after_keyword_state);
-    UNUSED_LABEL(ejson_byte_sequence_state);
-    UNUSED_LABEL(ejson_after_byte_sequence_state);
-    UNUSED_LABEL(ejson_hex_byte_sequence_state);
-    UNUSED_LABEL(ejson_binary_byte_sequence_state);
-    UNUSED_LABEL(ejson_base64_byte_sequence_state);
-    UNUSED_LABEL(ejson_value_number_state);
-    UNUSED_LABEL(ejson_after_value_number_state);
-    UNUSED_LABEL(ejson_value_number_integer_state);
-    UNUSED_LABEL(ejson_value_number_fraction_state);
-    UNUSED_LABEL(ejson_value_number_exponent_state);
-    UNUSED_LABEL(ejson_value_number_exponent_integer_state);
-    UNUSED_LABEL(ejson_value_number_suffix_integer_state);
-    UNUSED_LABEL(ejson_string_escape_state);
-    UNUSED_LABEL(ejson_string_escape_four_hexadecimal_digits_state);
+    return NULL;
+}
+
+
+
+#define STATE_DESC(state_name)                                 \
+    case state_name:                                           \
+        return ""#state_name;                                  \
+
+const char* pcejson_ejson_state_desc(enum ejson_state state)
+{
+    switch (state) {
+        STATE_DESC(ejson_init_state)
+        STATE_DESC(ejson_finished_state)
+        STATE_DESC(ejson_object_state)
+        STATE_DESC(ejson_after_object_state)
+        STATE_DESC(ejson_array_state)
+        STATE_DESC(ejson_after_array_state)
+        STATE_DESC(ejson_before_name_state)
+        STATE_DESC(ejson_after_name_state)
+        STATE_DESC(ejson_before_value_state)
+        STATE_DESC(ejson_after_value_state)
+        STATE_DESC(ejson_name_unquoted_state)
+        STATE_DESC(ejson_name_single_quoted_state)
+        STATE_DESC(ejson_name_double_quoted_state)
+        STATE_DESC(ejson_value_single_quoted_state)
+        STATE_DESC(ejson_value_double_quoted_state)
+        STATE_DESC(ejson_after_value_double_quoted_state)
+        STATE_DESC(ejson_value_two_double_quoted_state)
+        STATE_DESC(ejson_value_three_double_quoted_state)
+        STATE_DESC(ejson_keyword_state)
+        STATE_DESC(ejson_after_keyword_state)
+        STATE_DESC(ejson_byte_sequence_state)
+        STATE_DESC(ejson_after_byte_sequence_state)
+        STATE_DESC(ejson_hex_byte_sequence_state)
+        STATE_DESC(ejson_binary_byte_sequence_state)
+        STATE_DESC(ejson_base64_byte_sequence_state)
+        STATE_DESC(ejson_value_number_state)
+        STATE_DESC(ejson_after_value_number_state)
+        STATE_DESC(ejson_value_number_integer_state)
+        STATE_DESC(ejson_value_number_fraction_state)
+        STATE_DESC(ejson_value_number_exponent_state)
+        STATE_DESC(ejson_value_number_exponent_integer_state)
+        STATE_DESC(ejson_value_number_suffix_integer_state)
+        STATE_DESC(ejson_string_escape_state)
+        STATE_DESC(ejson_string_escape_four_hexadecimal_digits_state)
+    }
     return NULL;
 }
