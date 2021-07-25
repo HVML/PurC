@@ -1,32 +1,52 @@
-/*
- * Copyright (C) 2018-2020 Alexander Borisov
+/**
+ * @file state.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for html parser status.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_HTML_TOKENIZER_STATE_H
-#define LEXBOR_HTML_TOKENIZER_STATE_H
+
+#ifndef PCHTML_HTML_TOKENIZER_STATE_H
+#define PCHTML_HTML_TOKENIZER_STATE_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "config.h"
 #include "html/html/tokenizer.h"
 
-#define lxb_html_tokenizer_state_begin_set(tkz, v_data)                        \
+#define pchtml_html_tokenizer_state_begin_set(tkz, v_data)                        \
     (tkz->begin = v_data)
 
-#define lxb_html_tokenizer_state_append_data_m(tkz, v_data)                    \
+#define pchtml_html_tokenizer_state_append_data_m(tkz, v_data)                    \
     do {                                                                       \
-        if (lxb_html_tokenizer_temp_append_data(tkz, v_data)) {                \
+        if (pchtml_html_tokenizer_temp_append_data(tkz, v_data)) {                \
             return end;                                                        \
         }                                                                      \
     }                                                                          \
     while (0)
 
-#define lxb_html_tokenizer_state_append_m(tkz, v_data, size)                   \
+#define pchtml_html_tokenizer_state_append_m(tkz, v_data, size)                   \
     do {                                                                       \
-        if (lxb_html_tokenizer_temp_append(tkz, (const lxb_char_t *) (v_data), \
+        if (pchtml_html_tokenizer_temp_append(tkz, (const unsigned char *) (v_data), \
                                            (size)))                            \
         {                                                                      \
             return end;                                                        \
@@ -34,51 +54,51 @@ extern "C" {
     }                                                                          \
     while (0)
 
-#define lxb_html_tokenizer_state_append_replace_m(tkz)                         \
+#define pchtml_html_tokenizer_state_append_replace_m(tkz)                         \
     do {                                                                       \
-        if (lxb_html_tokenizer_temp_append(tkz,                                \
-                        lexbor_str_res_ansi_replacement_character,             \
-                        sizeof(lexbor_str_res_ansi_replacement_character) - 1))\
+        if (pchtml_html_tokenizer_temp_append(tkz,                                \
+                        pchtml_str_res_ansi_replacement_character,             \
+                        sizeof(pchtml_str_res_ansi_replacement_character) - 1))\
         {                                                                      \
             return end;                                                        \
         }                                                                      \
     }                                                                          \
     while (0)
 
-#define lxb_html_tokenizer_state_set_tag_m(tkz, _start, _end)                  \
+#define pchtml_html_tokenizer_state_set_tag_m(tkz, _start, _end)                  \
     do {                                                                       \
-        const lxb_tag_data_t *tag;                                             \
-        tag = lxb_tag_append_lower(tkz->tags, (_start), (_end) - (_start));    \
+        const pchtml_tag_data_t *tag;                                             \
+        tag = pchtml_tag_append_lower(tkz->tags, (_start), (_end) - (_start));    \
         if (tag == NULL) {                                                     \
-            tkz->status = LXB_STATUS_ERROR_MEMORY_ALLOCATION;                  \
+            tkz->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;                  \
             return end;                                                        \
         }                                                                      \
         tkz->token->tag_id = tag->tag_id;                                      \
     }                                                                          \
     while (0)
 
-#define lxb_html_tokenizer_state_set_name_m(tkz)                               \
+#define pchtml_html_tokenizer_state_set_name_m(tkz)                               \
     do {                                                                       \
-        lxb_dom_attr_data_t *data;                                             \
-        data = lxb_dom_attr_local_name_append(tkz->attrs, tkz->start,          \
+        pchtml_dom_attr_data_t *data;                                             \
+        data = pchtml_dom_attr_local_name_append(tkz->attrs, tkz->start,          \
                                               tkz->pos - tkz->start);          \
         if (data == NULL) {                                                    \
-            tkz->status = LXB_STATUS_ERROR_MEMORY_ALLOCATION;                  \
+            tkz->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;                  \
             return end;                                                        \
         }                                                                      \
         tkz->token->attr_last->name = data;                                    \
     }                                                                          \
     while (0)
 
-#define lxb_html_tokenizer_state_set_value_m(tkz)                              \
+#define pchtml_html_tokenizer_state_set_value_m(tkz)                              \
     do {                                                                       \
-        lxb_html_token_attr_t *attr = tkz->token->attr_last;                   \
+        pchtml_html_token_attr_t *attr = tkz->token->attr_last;                   \
                                                                                \
         attr->value_size = (size_t) (tkz->pos - tkz->start);                   \
                                                                                \
-        attr->value = lexbor_mraw_alloc(tkz->attrs_mraw, attr->value_size + 1);\
+        attr->value = pchtml_mraw_alloc(tkz->attrs_mraw, attr->value_size + 1);\
         if (attr->value == NULL) {                                             \
-            tkz->status = LXB_STATUS_ERROR_MEMORY_ALLOCATION;                  \
+            tkz->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;                  \
             return end;                                                        \
         }                                                                      \
         memcpy(attr->value, tkz->start, attr->value_size);                     \
@@ -86,140 +106,136 @@ extern "C" {
     }                                                                          \
     while (0)
 
-#define lxb_html_tokenizer_state_token_set_begin(tkz, v_begin)                 \
+#define pchtml_html_tokenizer_state_token_set_begin(tkz, v_begin)                 \
     do {                                                                       \
         tkz->pos = tkz->start;                                                 \
         tkz->token->begin = v_begin;                                           \
     }                                                                          \
     while (0)
 
-#define lxb_html_tokenizer_state_token_set_end(tkz, v_end)                     \
+#define pchtml_html_tokenizer_state_token_set_end(tkz, v_end)                     \
     (tkz->token->end = v_end)
 
-#define lxb_html_tokenizer_state_token_set_end_down(tkz, v_end, offset)        \
+#define pchtml_html_tokenizer_state_token_set_end_down(tkz, v_end, offset)        \
     do {                                                                       \
-        tkz->token->end = lexbor_in_node_pos_down(tkz->incoming_node, NULL,    \
+        tkz->token->end = pchtml_in_node_pos_down(tkz->incoming_node, NULL,    \
                                                   v_end, offset);              \
     }                                                                          \
     while (0)
 
-#define lxb_html_tokenizer_state_token_set_end_oef(tkz)                        \
+#define pchtml_html_tokenizer_state_token_set_end_oef(tkz)                        \
     (tkz->token->end = tkz->last)
 
-#define lxb_html_tokenizer_state_token_attr_add_m(tkz, attr, v_return)         \
+#define pchtml_html_tokenizer_state_token_attr_add_m(tkz, attr, v_return)         \
     do {                                                                       \
-        attr = lxb_html_token_attr_append(tkz->token, tkz->dobj_token_attr);   \
+        attr = pchtml_html_token_attr_append(tkz->token, tkz->dobj_token_attr);   \
         if (attr == NULL) {                                                    \
-            tkz->status = LXB_STATUS_ERROR_MEMORY_ALLOCATION;                  \
+            tkz->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;                  \
             return v_return;                                                   \
         }                                                                      \
     }                                                                          \
     while (0)
 
-#define lxb_html_tokenizer_state_token_attr_set_name_begin(tkz, v_begin)       \
+#define pchtml_html_tokenizer_state_token_attr_set_name_begin(tkz, v_begin)       \
     do {                                                                       \
         tkz->pos = tkz->start;                                                 \
         tkz->token->attr_last->name_begin = v_begin;                           \
     }                                                                          \
     while (0)
 
-#define lxb_html_tokenizer_state_token_attr_set_name_end(tkz, v_end)           \
+#define pchtml_html_tokenizer_state_token_attr_set_name_end(tkz, v_end)           \
     (tkz->token->attr_last->name_end = v_end)
 
-#define lxb_html_tokenizer_state_token_attr_set_name_end_oef(tkz)              \
+#define pchtml_html_tokenizer_state_token_attr_set_name_end_oef(tkz)              \
     (tkz->token->attr_last->name_end = tkz->last)
 
-#define lxb_html_tokenizer_state_token_attr_set_value_begin(tkz, v_begin)      \
+#define pchtml_html_tokenizer_state_token_attr_set_value_begin(tkz, v_begin)      \
     do {                                                                       \
         tkz->pos = tkz->start;                                                 \
         tkz->token->attr_last->value_begin = v_begin;                          \
     }                                                                          \
     while (0)
 
-#define lxb_html_tokenizer_state_token_attr_set_value_end(tkz, v_end)          \
+#define pchtml_html_tokenizer_state_token_attr_set_value_end(tkz, v_end)          \
     (tkz->token->attr_last->value_end = v_end)
 
-#define lxb_html_tokenizer_state_token_attr_set_value_end_oef(tkz)             \
+#define pchtml_html_tokenizer_state_token_attr_set_value_end_oef(tkz)             \
     (tkz->token->attr_last->value_end = tkz->last)
 
-#define _lxb_html_tokenizer_state_token_done_m(tkz, v_end)                     \
+#define _pchtml_html_tokenizer_state_token_done_m(tkz, v_end)                     \
     tkz->token = tkz->callback_token_done(tkz, tkz->token,                     \
                                           tkz->callback_token_ctx);            \
     if (tkz->token == NULL) {                                                  \
-        if (tkz->status == LXB_STATUS_OK) {                                    \
-            tkz->status = LXB_STATUS_ERROR;                                    \
+        if (tkz->status == PCHTML_STATUS_OK) {                                    \
+            tkz->status = PCHTML_STATUS_ERROR;                                    \
         }                                                                      \
         return v_end;                                                          \
     }
 
-#define lxb_html_tokenizer_state_token_done_m(tkz, v_end)                      \
+#define pchtml_html_tokenizer_state_token_done_m(tkz, v_end)                      \
     do {                                                                       \
         if (tkz->token->begin != tkz->token->end) {                            \
-            _lxb_html_tokenizer_state_token_done_m(tkz, v_end)                 \
+            _pchtml_html_tokenizer_state_token_done_m(tkz, v_end)                 \
         }                                                                      \
-        lxb_html_token_clean(tkz->token);                                      \
+        pchtml_html_token_clean(tkz->token);                                      \
         tkz->pos = tkz->start;                                                 \
     }                                                                          \
     while (0)
 
-#define lxb_html_tokenizer_state_token_done_wo_check_m(tkz, v_end)             \
+#define pchtml_html_tokenizer_state_token_done_wo_check_m(tkz, v_end)             \
     do {                                                                       \
-        _lxb_html_tokenizer_state_token_done_m(tkz, v_end)                     \
-        lxb_html_token_clean(tkz->token);                                      \
+        _pchtml_html_tokenizer_state_token_done_m(tkz, v_end)                     \
+        pchtml_html_token_clean(tkz->token);                                      \
     }                                                                          \
     while (0)
 
-#define lxb_html_tokenizer_state_set_text(tkz)                                 \
+#define pchtml_html_tokenizer_state_set_text(tkz)                                 \
     do {                                                                       \
         tkz->token->text_start = tkz->start;                                   \
         tkz->token->text_end = tkz->pos;                                       \
     }                                                                          \
     while (0)
 
-#define lxb_html_tokenizer_state_token_emit_text_not_empty_m(tkz, v_end)       \
+#define pchtml_html_tokenizer_state_token_emit_text_not_empty_m(tkz, v_end)       \
     do {                                                                       \
         if (tkz->token->begin != tkz->token->end) {                            \
-            tkz->token->tag_id = LXB_TAG__TEXT;                                \
+            tkz->token->tag_id = PCHTML_TAG__TEXT;                                \
                                                                                \
-            lxb_html_tokenizer_state_set_text(tkz);                            \
-            _lxb_html_tokenizer_state_token_done_m(tkz, v_end)                 \
-            lxb_html_token_clean(tkz->token);                                  \
+            pchtml_html_tokenizer_state_set_text(tkz);                            \
+            _pchtml_html_tokenizer_state_token_done_m(tkz, v_end)                 \
+            pchtml_html_token_clean(tkz->token);                                  \
         }                                                                      \
     }                                                                          \
     while (0)
 
 
-LXB_API const lxb_char_t *
-lxb_html_tokenizer_state_data_before(lxb_html_tokenizer_t *tkz,
-                                     const lxb_char_t *data,
-                                     const lxb_char_t *end);
+const unsigned char *
+pchtml_html_tokenizer_state_data_before(pchtml_html_tokenizer_t *tkz,
+                const unsigned char *data, const unsigned char *end) WTF_INTERNAL;
 
-LXB_API const lxb_char_t *
-lxb_html_tokenizer_state_plaintext_before(lxb_html_tokenizer_t *tkz,
-                                          const lxb_char_t *data,
-                                          const lxb_char_t *end);
+const unsigned char *
+pchtml_html_tokenizer_state_plaintext_before(pchtml_html_tokenizer_t *tkz,
+                const unsigned char *data, const unsigned char *end) WTF_INTERNAL;
 
-LXB_API const lxb_char_t *
-lxb_html_tokenizer_state_before_attribute_name(lxb_html_tokenizer_t *tkz,
-                                               const lxb_char_t *data,
-                                               const lxb_char_t *end);
+const unsigned char *
+pchtml_html_tokenizer_state_before_attribute_name(pchtml_html_tokenizer_t *tkz,
+                const unsigned char *data, const unsigned char *end) WTF_INTERNAL;
 
-LXB_API const lxb_char_t *
-lxb_html_tokenizer_state_self_closing_start_tag(lxb_html_tokenizer_t *tkz,
-                                                const lxb_char_t *data,
-                                                const lxb_char_t *end);
+const unsigned char *
+pchtml_html_tokenizer_state_self_closing_start_tag(pchtml_html_tokenizer_t *tkz,
+                const unsigned char *data, const unsigned char *end) WTF_INTERNAL;
 
-LXB_API const lxb_char_t *
-lxb_html_tokenizer_state_cr(lxb_html_tokenizer_t *tkz, const lxb_char_t *data,
-                            const lxb_char_t *end);
+const unsigned char *
+pchtml_html_tokenizer_state_cr(pchtml_html_tokenizer_t *tkz, const unsigned char *data,
+                const unsigned char *end) WTF_INTERNAL;
 
-LXB_API const lxb_char_t *
-lxb_html_tokenizer_state_char_ref(lxb_html_tokenizer_t *tkz,
-                                  const lxb_char_t *data, const lxb_char_t *end);
+const unsigned char *
+pchtml_html_tokenizer_state_char_ref(pchtml_html_tokenizer_t *tkz,
+                const unsigned char *data, const unsigned char *end) WTF_INTERNAL;
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LEXBOR_HTML_TOKENIZER_STATE_H */
+#endif  /* PCHTML_HTML_TOKENIZER_STATE_H */

@@ -1,8 +1,27 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file res.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for html parser resource.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 
 /*
  * Caution!!! Important!!!
@@ -12,16 +31,16 @@
  */
 
 
-#ifndef LXB_HTML_TOKENIZER_RES_H
-#define LXB_HTML_TOKENIZER_RES_H
+#ifndef PCHTML_HTML_TOKENIZER_RES_H
+#define PCHTML_HTML_TOKENIZER_RES_H
 
-#endif /* LXB_HTML_TOKENIZER_RES */
+#endif /* PCHTML_HTML_TOKENIZER_RES */
 
 
-#ifdef LXB_HTML_TOKENIZER_RES_ENTITIES_SBST
-#ifndef LXB_HTML_TOKENIZER_RES_ENTITIES_SBST_ENABLED
-#define LXB_HTML_TOKENIZER_RES_ENTITIES_SBST_ENABLED
-static const lexbor_sbst_entry_static_t lxb_html_tokenizer_res_entities_sbst[] =
+#ifdef PCHTML_HTML_TOKENIZER_RES_ENTITIES_SBST
+#ifndef PCHTML_HTML_TOKENIZER_RES_ENTITIES_SBST_ENABLED
+#define PCHTML_HTML_TOKENIZER_RES_ENTITIES_SBST_ENABLED
+static const pchtml_sbst_entry_static_t pchtml_html_tokenizer_res_entities_sbst[] =
 {
 	{0x00, NULL, 0, 0, 0, 0}, {0x61, NULL, 0, 3, 2, 53},
 	{0x6e, NULL, 0, 30, 29, 257}, {0x4e, NULL, 0, 5, 4, 856},
@@ -4951,6 +4970,6 @@ static const lexbor_sbst_entry_static_t lxb_html_tokenizer_res_entities_sbst[] =
 	{0x3b, (char *)"\xd1\x8e", 2, 0, 0, 0}, {0x70, NULL, 0, 0, 0, 9852},
 	{0x66, NULL, 0, 0, 0, 9853}, {0x3b, (char *)"\xf0\x9d\x95\xaa", 4, 0, 0, 0}
 };
-#endif /* LXB_HTML_TOKENIZER_RES_ENTITIES_SBST_ENABLED */
-#endif /* LXB_HTML_TOKENIZER_RES_ENTITIES_SBST */
+#endif  /* PCHTML_HTML_TOKENIZER_RES_ENTITIES_SBST_ENABLED */
+#endif  /* PCHTML_HTML_TOKENIZER_RES_ENTITIES_SBST */
 
