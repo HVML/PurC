@@ -1,39 +1,61 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file processing_instruction.h 
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for processsing instruction.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_DOM_PROCESSING_INSTRUCTION_H
-#define LEXBOR_DOM_PROCESSING_INSTRUCTION_H
+
+#ifndef PCHTML_DOM_PROCESSING_INSTRUCTION_H
+#define PCHTML_DOM_PROCESSING_INSTRUCTION_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "config.h"
 #include "html/dom/interfaces/document.h"
 #include "html/dom/interfaces/text.h"
 
 
-struct lxb_dom_processing_instruction {
-    lxb_dom_character_data_t char_data;
+struct pchtml_dom_processing_instruction {
+    pchtml_dom_character_data_t char_data;
 
-    lexbor_str_t             target;
+    pchtml_str_t             target;
 };
 
 
-LXB_API lxb_dom_processing_instruction_t *
-lxb_dom_processing_instruction_interface_create(lxb_dom_document_t *document);
+pchtml_dom_processing_instruction_t *
+pchtml_dom_processing_instruction_interface_create(
+        pchtml_dom_document_t *document) WTF_INTERNAL;
 
-LXB_API lxb_dom_processing_instruction_t *
-lxb_dom_processing_instruction_interface_destroy(lxb_dom_processing_instruction_t *processing_instruction);
+pchtml_dom_processing_instruction_t *
+pchtml_dom_processing_instruction_interface_destroy(
+        pchtml_dom_processing_instruction_t *processing_instruction) WTF_INTERNAL;
 
 
 /*
  * Inline functions
  */
-lxb_inline const lxb_char_t *
-lxb_dom_processing_instruction_target(lxb_dom_processing_instruction_t *pi,
+static inline const unsigned char *
+pchtml_dom_processing_instruction_target(pchtml_dom_processing_instruction_t *pi,
                                       size_t *len)
 {
     if (len != NULL) {
@@ -46,13 +68,13 @@ lxb_dom_processing_instruction_target(lxb_dom_processing_instruction_t *pi,
 /*
  * No inline functions for ABI.
  */
-const lxb_char_t *
-lxb_dom_processing_instruction_target_noi(lxb_dom_processing_instruction_t *pi,
+const unsigned char *
+pchtml_dom_processing_instruction_target_noi(pchtml_dom_processing_instruction_t *pi,
                                           size_t *len);
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LEXBOR_DOM_PROCESSING_INSTRUCTION_H */
+#endif  /* PCHTML_DOM_PROCESSING_INSTRUCTION_H */

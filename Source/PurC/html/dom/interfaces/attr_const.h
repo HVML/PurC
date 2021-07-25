@@ -1,7 +1,25 @@
-/*
- * Copyright (C) 2019-2020 Alexander Borisov
+/**
+ * @file attr_const.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for attribution constant.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 /*
@@ -11,45 +29,45 @@
  */
 
 
-#ifndef LXB_DOM_ATTR_CONST_H
-#define LXB_DOM_ATTR_CONST_H
+#ifndef PCHTML_DOM_ATTR_CONST_H
+#define PCHTML_DOM_ATTR_CONST_H
 
 
-typedef uintptr_t lxb_dom_attr_id_t;
+typedef uintptr_t pchtml_dom_attr_id_t;
 
 typedef enum {
-    LXB_DOM_ATTR__UNDEF      = 0x0000,
-    LXB_DOM_ATTR_ALT         = 0x0001,
-    LXB_DOM_ATTR_CHARSER     = 0x0002,
-    LXB_DOM_ATTR_CHECKED     = 0x0003,
-    LXB_DOM_ATTR_CLASS       = 0x0004,
-    LXB_DOM_ATTR_COLOR       = 0x0005,
-    LXB_DOM_ATTR_CONTENT     = 0x0006,
-    LXB_DOM_ATTR_DIR         = 0x0007,
-    LXB_DOM_ATTR_DISABLED    = 0x0008,
-    LXB_DOM_ATTR_FACE        = 0x0009,
-    LXB_DOM_ATTR_FOR         = 0x000a,
-    LXB_DOM_ATTR_HEIGHT      = 0x000b,
-    LXB_DOM_ATTR_HREF        = 0x000c,
-    LXB_DOM_ATTR_HTML        = 0x000d,
-    LXB_DOM_ATTR_HTTP_EQUIV  = 0x000e,
-    LXB_DOM_ATTR_ID          = 0x000f,
-    LXB_DOM_ATTR_IS          = 0x0010,
-    LXB_DOM_ATTR_MAXLENGTH   = 0x0011,
-    LXB_DOM_ATTR_POOL        = 0x0012,
-    LXB_DOM_ATTR_PUBLIC      = 0x0013,
-    LXB_DOM_ATTR_SCHEME      = 0x0014,
-    LXB_DOM_ATTR_SIZE        = 0x0015,
-    LXB_DOM_ATTR_SLOT        = 0x0016,
-    LXB_DOM_ATTR_SRC         = 0x0017,
-    LXB_DOM_ATTR_STYLE       = 0x0018,
-    LXB_DOM_ATTR_SYSTEM      = 0x0019,
-    LXB_DOM_ATTR_TITLE       = 0x001a,
-    LXB_DOM_ATTR_TYPE        = 0x001b,
-    LXB_DOM_ATTR_WIDTH       = 0x001c,
-    LXB_DOM_ATTR__LAST_ENTRY = 0x001d
+    PCHTML_DOM_ATTR__UNDEF      = 0x0000,
+    PCHTML_DOM_ATTR_ALT         = 0x0001,
+    PCHTML_DOM_ATTR_CHARSER     = 0x0002,
+    PCHTML_DOM_ATTR_CHECKED     = 0x0003,
+    PCHTML_DOM_ATTR_CLASS       = 0x0004,
+    PCHTML_DOM_ATTR_COLOR       = 0x0005,
+    PCHTML_DOM_ATTR_CONTENT     = 0x0006,
+    PCHTML_DOM_ATTR_DIR         = 0x0007,
+    PCHTML_DOM_ATTR_DISABLED    = 0x0008,
+    PCHTML_DOM_ATTR_FACE        = 0x0009,
+    PCHTML_DOM_ATTR_FOR         = 0x000a,
+    PCHTML_DOM_ATTR_HEIGHT      = 0x000b,
+    PCHTML_DOM_ATTR_HREF        = 0x000c,
+    PCHTML_DOM_ATTR_HTML        = 0x000d,
+    PCHTML_DOM_ATTR_HTTP_EQUIV  = 0x000e,
+    PCHTML_DOM_ATTR_ID          = 0x000f,
+    PCHTML_DOM_ATTR_IS          = 0x0010,
+    PCHTML_DOM_ATTR_MAXLENGTH   = 0x0011,
+    PCHTML_DOM_ATTR_POOL        = 0x0012,
+    PCHTML_DOM_ATTR_PUBLIC      = 0x0013,
+    PCHTML_DOM_ATTR_SCHEME      = 0x0014,
+    PCHTML_DOM_ATTR_SIZE        = 0x0015,
+    PCHTML_DOM_ATTR_SLOT        = 0x0016,
+    PCHTML_DOM_ATTR_SRC         = 0x0017,
+    PCHTML_DOM_ATTR_STYLE       = 0x0018,
+    PCHTML_DOM_ATTR_SYSTEM      = 0x0019,
+    PCHTML_DOM_ATTR_TITLE       = 0x001a,
+    PCHTML_DOM_ATTR_TYPE        = 0x001b,
+    PCHTML_DOM_ATTR_WIDTH       = 0x001c,
+    PCHTML_DOM_ATTR__LAST_ENTRY = 0x001d
 }
-lxb_dom_attr_id_enum_t;
+pchtml_dom_attr_id_enum_t;
 
 
-#endif /* LXB_DOM_ATTR_CONST_H */
+#endif  /* PCHTML_DOM_ATTR_CONST_H */

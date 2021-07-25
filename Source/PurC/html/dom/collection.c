@@ -1,19 +1,38 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file collection.c
+ * @author
+ * @date 2021/07/02
+ * @brief The complementation of collection container.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 
 #include "html/dom/collection.h"
 #include "html/dom/interfaces/document.h"
 
 
-lxb_dom_collection_t *
-lxb_dom_collection_create(lxb_dom_document_t *document)
+pchtml_dom_collection_t *
+pchtml_dom_collection_create(pchtml_dom_document_t *document)
 {
-    lxb_dom_collection_t *col;
+    pchtml_dom_collection_t *col;
 
-    col = lexbor_mraw_calloc(document->mraw, sizeof(lxb_dom_collection_t));
+    col = pchtml_mraw_calloc(document->mraw, sizeof(pchtml_dom_collection_t));
     if (col == NULL) {
         return NULL;
     }
@@ -23,36 +42,36 @@ lxb_dom_collection_create(lxb_dom_document_t *document)
     return col;
 }
 
-lxb_status_t
-lxb_dom_collection_init(lxb_dom_collection_t *col, size_t start_list_size)
+unsigned int
+pchtml_dom_collection_init(pchtml_dom_collection_t *col, size_t start_list_size)
 {
     if (col == NULL) {
-        return LXB_STATUS_ERROR_WRONG_ARGS;
+        return PCHTML_STATUS_ERROR_WRONG_ARGS;
     }
 
     if (col->document == NULL) {
-        return LXB_STATUS_ERROR_INCOMPLETE_OBJECT;
+        return PCHTML_STATUS_ERROR_INCOMPLETE_OBJECT;
     }
 
-    return lexbor_array_init(&col->array, start_list_size);
+    return pchtml_array_init(&col->array, start_list_size);
 }
 
-lxb_dom_collection_t *
-lxb_dom_collection_destroy(lxb_dom_collection_t *col, bool self_destroy)
+pchtml_dom_collection_t *
+pchtml_dom_collection_destroy(pchtml_dom_collection_t *col, bool self_destroy)
 {
     if (col == NULL) {
         return NULL;
     }
 
     if (col->array.list != NULL) {
-        lexbor_array_destroy(&col->array, false);
+        pchtml_array_destroy(&col->array, false);
 
         col->array.list = NULL;
     }
 
     if (self_destroy) {
         if (col->document != NULL) {
-            return lexbor_mraw_free(col->document->mraw, col);
+            return pchtml_mraw_free(col->document->mraw, col);
         }
 
         return NULL;
@@ -64,38 +83,38 @@ lxb_dom_collection_destroy(lxb_dom_collection_t *col, bool self_destroy)
 /*
  * No inline functions for ABI.
  */
-lxb_dom_collection_t *
-lxb_dom_collection_make_noi(lxb_dom_document_t *document, size_t start_list_size)
+pchtml_dom_collection_t *
+pchtml_dom_collection_make_noi(pchtml_dom_document_t *document, size_t start_list_size)
 {
-    return lxb_dom_collection_make(document, start_list_size);
+    return pchtml_dom_collection_make(document, start_list_size);
 }
 
 void
-lxb_dom_collection_clean_noi(lxb_dom_collection_t *col)
+pchtml_dom_collection_clean_noi(pchtml_dom_collection_t *col)
 {
-    lxb_dom_collection_clean(col);
+    pchtml_dom_collection_clean(col);
 }
 
-lxb_status_t
-lxb_dom_collection_append_noi(lxb_dom_collection_t *col, void *value)
+unsigned int
+pchtml_dom_collection_append_noi(pchtml_dom_collection_t *col, void *value)
 {
-    return lxb_dom_collection_append(col, value);
+    return pchtml_dom_collection_append(col, value);
 }
 
-lxb_dom_element_t *
-lxb_dom_collection_element_noi(lxb_dom_collection_t *col, size_t idx)
+pchtml_dom_element_t *
+pchtml_dom_collection_element_noi(pchtml_dom_collection_t *col, size_t idx)
 {
-    return lxb_dom_collection_element(col, idx);
+    return pchtml_dom_collection_element(col, idx);
 }
 
-lxb_dom_node_t *
-lxb_dom_collection_node_noi(lxb_dom_collection_t *col, size_t idx)
+pchtml_dom_node_t *
+pchtml_dom_collection_node_noi(pchtml_dom_collection_t *col, size_t idx)
 {
-    return lxb_dom_collection_node(col, idx);
+    return pchtml_dom_collection_node(col, idx);
 }
 
 size_t
-lxb_dom_collection_length_noi(lxb_dom_collection_t *col)
+pchtml_dom_collection_length_noi(pchtml_dom_collection_t *col)
 {
-    return lxb_dom_collection_length(col);
+    return pchtml_dom_collection_length(col);
 }

@@ -1,44 +1,66 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file shadow_root.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for shadow root.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_DOM_SHADOW_ROOT_H
-#define LEXBOR_DOM_SHADOW_ROOT_H
+
+#ifndef PCHTML_DOM_SHADOW_ROOT_H
+#define PCHTML_DOM_SHADOW_ROOT_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "config.h"
 #include "html/dom/interfaces/document.h"
 #include "html/dom/interfaces/element.h"
 #include "html/dom/interfaces/document_fragment.h"
 
 
 typedef enum {
-    LXB_DOM_SHADOW_ROOT_MODE_OPEN   = 0x00,
-    LXB_DOM_SHADOW_ROOT_MODE_CLOSED = 0x01
+    PCHTML_DOM_SHADOW_ROOT_MODE_OPEN   = 0x00,
+    PCHTML_DOM_SHADOW_ROOT_MODE_CLOSED = 0x01
 }
-lxb_dom_shadow_root_mode_t;
+pchtml_dom_shadow_root_mode_t;
 
-struct lxb_dom_shadow_root {
-    lxb_dom_document_fragment_t document_fragment;
+struct pchtml_dom_shadow_root {
+    pchtml_dom_document_fragment_t document_fragment;
 
-    lxb_dom_shadow_root_mode_t  mode;
-    lxb_dom_element_t           *host;
+    pchtml_dom_shadow_root_mode_t  mode;
+    pchtml_dom_element_t           *host;
 };
 
 
-LXB_API lxb_dom_shadow_root_t *
-lxb_dom_shadow_root_interface_create(lxb_dom_document_t *document);
+pchtml_dom_shadow_root_t *
+pchtml_dom_shadow_root_interface_create(
+                pchtml_dom_document_t *document) WTF_INTERNAL;
 
-LXB_API lxb_dom_shadow_root_t *
-lxb_dom_shadow_root_interface_destroy(lxb_dom_shadow_root_t *shadow_root);
+pchtml_dom_shadow_root_t *
+pchtml_dom_shadow_root_interface_destroy(
+                pchtml_dom_shadow_root_t *shadow_root) WTF_INTERNAL;
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LEXBOR_DOM_SHADOW_ROOT_H */
+#endif  /* PCHTML_DOM_SHADOW_ROOT_H */

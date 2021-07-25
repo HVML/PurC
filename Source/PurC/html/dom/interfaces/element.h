@@ -1,16 +1,36 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file element.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for html element.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_DOM_ELEMENT_H
-#define LEXBOR_DOM_ELEMENT_H
+
+#ifndef PCHTML_DOM_ELEMENT_H
+#define PCHTML_DOM_ELEMENT_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "config.h"
 #include "html/core/str.h"
 
 #include "html/dom/interfaces/document.h"
@@ -22,166 +42,176 @@ extern "C" {
 
 
 typedef enum {
-    LXB_DOM_ELEMENT_CUSTOM_STATE_UNDEFINED      = 0x00,
-    LXB_DOM_ELEMENT_CUSTOM_STATE_FAILED         = 0x01,
-    LXB_DOM_ELEMENT_CUSTOM_STATE_UNCUSTOMIZED   = 0x02,
-    LXB_DOM_ELEMENT_CUSTOM_STATE_CUSTOM         = 0x03
+    PCHTML_DOM_ELEMENT_CUSTOM_STATE_UNDEFINED      = 0x00,
+    PCHTML_DOM_ELEMENT_CUSTOM_STATE_FAILED         = 0x01,
+    PCHTML_DOM_ELEMENT_CUSTOM_STATE_UNCUSTOMIZED   = 0x02,
+    PCHTML_DOM_ELEMENT_CUSTOM_STATE_CUSTOM         = 0x03
 }
-lxb_dom_element_custom_state_t;
+pchtml_dom_element_custom_state_t;
 
-struct lxb_dom_element {
-    lxb_dom_node_t                 node;
+struct pchtml_dom_element {
+    pchtml_dom_node_t                 node;
 
     /* For example: <LalAla:DiV Fix:Me="value"> */
 
     /* uppercase, with prefix: LALALA:DIV */
-    lxb_dom_attr_id_t              upper_name;
+    pchtml_dom_attr_id_t              upper_name;
 
     /* original, with prefix: LalAla:DiV */
-    lxb_dom_attr_id_t              qualified_name;
+    pchtml_dom_attr_id_t              qualified_name;
 
-    lexbor_str_t                   *is_value;
+    pchtml_str_t                   *is_value;
 
-    lxb_dom_attr_t                 *first_attr;
-    lxb_dom_attr_t                 *last_attr;
+    pchtml_dom_attr_t                 *first_attr;
+    pchtml_dom_attr_t                 *last_attr;
 
-    lxb_dom_attr_t                 *attr_id;
-    lxb_dom_attr_t                 *attr_class;
+    pchtml_dom_attr_t                 *attr_id;
+    pchtml_dom_attr_t                 *attr_class;
 
-    lxb_dom_element_custom_state_t custom_state;
+    pchtml_dom_element_custom_state_t custom_state;
 };
 
 
-LXB_API lxb_dom_element_t *
-lxb_dom_element_interface_create(lxb_dom_document_t *document);
+pchtml_dom_element_t *
+pchtml_dom_element_interface_create(
+                pchtml_dom_document_t *document) WTF_INTERNAL;
 
-LXB_API lxb_dom_element_t *
-lxb_dom_element_interface_destroy(lxb_dom_element_t *element);
+pchtml_dom_element_t *
+pchtml_dom_element_interface_destroy(
+                pchtml_dom_element_t *element) WTF_INTERNAL;
 
-LXB_API lxb_dom_element_t *
-lxb_dom_element_create(lxb_dom_document_t *document,
-                       const lxb_char_t *local_name, size_t lname_len,
-                       const lxb_char_t *ns_name, size_t ns_len,
-                       const lxb_char_t *prefix, size_t prefix_len,
-                       const lxb_char_t *is, size_t is_len,
-                       bool sync_custom);
+pchtml_dom_element_t *
+pchtml_dom_element_create(pchtml_dom_document_t *document,
+                const unsigned char *local_name, size_t lname_len,
+                const unsigned char *ns_name, size_t ns_len,
+                const unsigned char *prefix, size_t prefix_len,
+                const unsigned char *is, size_t is_len,
+                bool sync_custom) WTF_INTERNAL;
 
-LXB_API lxb_dom_element_t *
-lxb_dom_element_destroy(lxb_dom_element_t *element);
+pchtml_dom_element_t *
+pchtml_dom_element_destroy(pchtml_dom_element_t *element) WTF_INTERNAL;
 
-LXB_API bool
-lxb_dom_element_has_attributes(lxb_dom_element_t *element);
+bool
+pchtml_dom_element_has_attributes(pchtml_dom_element_t *element) WTF_INTERNAL;
 
-LXB_API lxb_dom_attr_t *
-lxb_dom_element_set_attribute(lxb_dom_element_t *element,
-                              const lxb_char_t *qualified_name, size_t qn_len,
-                              const lxb_char_t *value, size_t value_len);
+pchtml_dom_attr_t *
+pchtml_dom_element_set_attribute(pchtml_dom_element_t *element,
+                const unsigned char *qualified_name, size_t qn_len,
+                const unsigned char *value, size_t value_len) WTF_INTERNAL;
 
-LXB_API const lxb_char_t *
-lxb_dom_element_get_attribute(lxb_dom_element_t *element,
-                              const lxb_char_t *qualified_name, size_t qn_len,
-                              size_t *value_len);
+const unsigned char *
+pchtml_dom_element_get_attribute(pchtml_dom_element_t *element,
+                const unsigned char *qualified_name, size_t qn_len,
+                size_t *value_len) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_dom_element_remove_attribute(lxb_dom_element_t *element,
-                                 const lxb_char_t *qualified_name, size_t qn_len);
+unsigned int
+pchtml_dom_element_remove_attribute(pchtml_dom_element_t *element,
+                const unsigned char *qualified_name, size_t qn_len) WTF_INTERNAL;
 
-LXB_API bool
-lxb_dom_element_has_attribute(lxb_dom_element_t *element,
-                              const lxb_char_t *qualified_name, size_t qn_len);
+bool
+pchtml_dom_element_has_attribute(pchtml_dom_element_t *element,
+                const unsigned char *qualified_name, size_t qn_len) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_dom_element_attr_append(lxb_dom_element_t *element, lxb_dom_attr_t *attr);
+unsigned int
+pchtml_dom_element_attr_append(pchtml_dom_element_t *element, 
+                pchtml_dom_attr_t *attr) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_dom_element_attr_remove(lxb_dom_element_t *element, lxb_dom_attr_t *attr);
+unsigned int
+pchtml_dom_element_attr_remove(pchtml_dom_element_t *element, 
+                pchtml_dom_attr_t *attr) WTF_INTERNAL;
 
-LXB_API lxb_dom_attr_t *
-lxb_dom_element_attr_by_name(lxb_dom_element_t *element,
-                             const lxb_char_t *qualified_name, size_t length);
+pchtml_dom_attr_t *
+pchtml_dom_element_attr_by_name(pchtml_dom_element_t *element,
+                const unsigned char *qualified_name, size_t length) WTF_INTERNAL;
 
-LXB_API lxb_dom_attr_t *
-lxb_dom_element_attr_by_local_name_data(lxb_dom_element_t *element,
-                                        const lxb_dom_attr_data_t *data);
+pchtml_dom_attr_t *
+pchtml_dom_element_attr_by_local_name_data(pchtml_dom_element_t *element,
+                const pchtml_dom_attr_data_t *data) WTF_INTERNAL;
 
-LXB_API lxb_dom_attr_t *
-lxb_dom_element_attr_by_id(lxb_dom_element_t *element,
-                           lxb_dom_attr_id_t attr_id);
+pchtml_dom_attr_t *
+pchtml_dom_element_attr_by_id(pchtml_dom_element_t *element,
+                pchtml_dom_attr_id_t attr_id) WTF_INTERNAL;
 
-LXB_API lxb_dom_attr_t *
-lxb_dom_element_attr_by_data(lxb_dom_element_t *element,
-                             const lxb_dom_attr_data_t *data);
+pchtml_dom_attr_t *
+pchtml_dom_element_attr_by_data(pchtml_dom_element_t *element,
+                const pchtml_dom_attr_data_t *data) WTF_INTERNAL;
 
-LXB_API bool
-lxb_dom_element_compare(lxb_dom_element_t *first, lxb_dom_element_t *second);
+bool
+pchtml_dom_element_compare(pchtml_dom_element_t *first, 
+                pchtml_dom_element_t *second) WTF_INTERNAL;
 
-LXB_API lxb_dom_attr_t *
-lxb_dom_element_attr_is_exist(lxb_dom_element_t *element,
-                              const lxb_char_t *qualified_name, size_t length);
+pchtml_dom_attr_t *
+pchtml_dom_element_attr_is_exist(pchtml_dom_element_t *element,
+                const unsigned char *qualified_name, size_t length) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_dom_element_is_set(lxb_dom_element_t *element,
-                       const lxb_char_t *is, size_t is_len);
+unsigned int
+pchtml_dom_element_is_set(pchtml_dom_element_t *element,
+                const unsigned char *is, size_t is_len) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_dom_elements_by_tag_name(lxb_dom_element_t *root,
-                             lxb_dom_collection_t *collection,
-                             const lxb_char_t *qualified_name, size_t len);
+unsigned int
+pchtml_dom_elements_by_tag_name(pchtml_dom_element_t *root,
+                pchtml_dom_collection_t *collection,
+                const unsigned char *qualified_name, size_t len) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_dom_elements_by_class_name(lxb_dom_element_t *root,
-                               lxb_dom_collection_t *collection,
-                               const lxb_char_t *class_name, size_t len);
+unsigned int
+pchtml_dom_elements_by_class_name(pchtml_dom_element_t *root,
+                pchtml_dom_collection_t *collection,
+                const unsigned char *class_name, size_t len) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_dom_elements_by_attr(lxb_dom_element_t *root,
-                         lxb_dom_collection_t *collection,
-                         const lxb_char_t *qualified_name, size_t qname_len,
-                         const lxb_char_t *value, size_t value_len,
-                         bool case_insensitive);
+unsigned int
+pchtml_dom_elements_by_attr(pchtml_dom_element_t *root,
+                pchtml_dom_collection_t *collection,
+                const unsigned char *qualified_name, size_t qname_len,
+                const unsigned char *value, size_t value_len,
+                bool case_insensitive) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_dom_elements_by_attr_begin(lxb_dom_element_t *root,
-                               lxb_dom_collection_t *collection,
-                               const lxb_char_t *qualified_name, size_t qname_len,
-                               const lxb_char_t *value, size_t value_len,
-                               bool case_insensitive);
+unsigned int
+pchtml_dom_elements_by_attr_begin(pchtml_dom_element_t *root,
+                pchtml_dom_collection_t *collection,
+                const unsigned char *qualified_name, size_t qname_len,
+                const unsigned char *value, size_t value_len,
+                bool case_insensitive) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_dom_elements_by_attr_end(lxb_dom_element_t *root,
-                             lxb_dom_collection_t *collection,
-                             const lxb_char_t *qualified_name, size_t qname_len,
-                             const lxb_char_t *value, size_t value_len,
-                             bool case_insensitive);
+unsigned int
+pchtml_dom_elements_by_attr_end(pchtml_dom_element_t *root,
+                pchtml_dom_collection_t *collection,
+                const unsigned char *qualified_name, size_t qname_len,
+                const unsigned char *value, size_t value_len,
+                bool case_insensitive) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_dom_elements_by_attr_contain(lxb_dom_element_t *root,
-                                 lxb_dom_collection_t *collection,
-                                 const lxb_char_t *qualified_name, size_t qname_len,
-                                 const lxb_char_t *value, size_t value_len,
-                                 bool case_insensitive);
+unsigned int
+pchtml_dom_elements_by_attr_contain(pchtml_dom_element_t *root,
+                pchtml_dom_collection_t *collection,
+                const unsigned char *qualified_name, size_t qname_len,
+                const unsigned char *value, size_t value_len,
+                bool case_insensitive) WTF_INTERNAL;
 
-LXB_API const lxb_char_t *
-lxb_dom_element_qualified_name(lxb_dom_element_t *element, size_t *len);
+const unsigned char *
+pchtml_dom_element_qualified_name(pchtml_dom_element_t *element, 
+                size_t *len) WTF_INTERNAL;
 
-LXB_API const lxb_char_t *
-lxb_dom_element_qualified_name_upper(lxb_dom_element_t *element, size_t *len);
+const unsigned char *
+pchtml_dom_element_qualified_name_upper(pchtml_dom_element_t *element, 
+                size_t *len) WTF_INTERNAL;
 
-LXB_API const lxb_char_t *
-lxb_dom_element_local_name(lxb_dom_element_t *element, size_t *len);
+const unsigned char *
+pchtml_dom_element_local_name(pchtml_dom_element_t *element, 
+                size_t *len) WTF_INTERNAL;
 
-LXB_API const lxb_char_t *
-lxb_dom_element_prefix(lxb_dom_element_t *element, size_t *len);
+const unsigned char *
+pchtml_dom_element_prefix(pchtml_dom_element_t *element, 
+                size_t *len) WTF_INTERNAL;
 
-LXB_API const lxb_char_t *
-lxb_dom_element_tag_name(lxb_dom_element_t *element, size_t *len);
+const unsigned char *
+pchtml_dom_element_tag_name(pchtml_dom_element_t *element, 
+                size_t *len) WTF_INTERNAL;
 
 
 /*
  * Inline functions
  */
-lxb_inline const lxb_char_t *
-lxb_dom_element_id(lxb_dom_element_t *element, size_t *len)
+static inline const unsigned char *
+pchtml_dom_element_id(pchtml_dom_element_t *element, size_t *len)
 {
     if (element->attr_id == NULL) {
         if (len != NULL) {
@@ -191,11 +221,11 @@ lxb_dom_element_id(lxb_dom_element_t *element, size_t *len)
         return NULL;
     }
 
-    return lxb_dom_attr_value(element->attr_id, len);
+    return pchtml_dom_attr_value(element->attr_id, len);
 }
 
-lxb_inline const lxb_char_t *
-lxb_dom_element_class(lxb_dom_element_t *element, size_t *len)
+static inline const unsigned char *
+pchtml_dom_element_class(pchtml_dom_element_t *element, size_t *len)
 {
     if (element->attr_class == NULL) {
         if (len != NULL) {
@@ -205,107 +235,107 @@ lxb_dom_element_class(lxb_dom_element_t *element, size_t *len)
         return NULL;
     }
 
-    return lxb_dom_attr_value(element->attr_class, len);
+    return pchtml_dom_attr_value(element->attr_class, len);
 }
 
-lxb_inline bool
-lxb_dom_element_is_custom(lxb_dom_element_t *element)
+static inline bool
+pchtml_dom_element_is_custom(pchtml_dom_element_t *element)
 {
-    return element->custom_state & LXB_DOM_ELEMENT_CUSTOM_STATE_CUSTOM;
+    return element->custom_state & PCHTML_DOM_ELEMENT_CUSTOM_STATE_CUSTOM;
 }
 
-lxb_inline bool
-lxb_dom_element_custom_is_defined(lxb_dom_element_t *element)
+static inline bool
+pchtml_dom_element_custom_is_defined(pchtml_dom_element_t *element)
 {
-    return element->custom_state & LXB_DOM_ELEMENT_CUSTOM_STATE_CUSTOM
-        || element->custom_state & LXB_DOM_ELEMENT_CUSTOM_STATE_UNCUSTOMIZED;
+    return element->custom_state & PCHTML_DOM_ELEMENT_CUSTOM_STATE_CUSTOM
+        || element->custom_state & PCHTML_DOM_ELEMENT_CUSTOM_STATE_UNCUSTOMIZED;
 }
 
-lxb_inline lxb_dom_attr_t *
-lxb_dom_element_first_attribute(lxb_dom_element_t *element)
+static inline pchtml_dom_attr_t *
+pchtml_dom_element_first_attribute(pchtml_dom_element_t *element)
 {
     return element->first_attr;
 }
 
-lxb_inline lxb_dom_attr_t *
-lxb_dom_element_next_attribute(lxb_dom_attr_t *attr)
+static inline pchtml_dom_attr_t *
+pchtml_dom_element_next_attribute(pchtml_dom_attr_t *attr)
 {
     return attr->next;
 }
 
-lxb_inline lxb_dom_attr_t *
-lxb_dom_element_prev_attribute(lxb_dom_attr_t *attr)
+static inline pchtml_dom_attr_t *
+pchtml_dom_element_prev_attribute(pchtml_dom_attr_t *attr)
 {
     return attr->prev;
 }
 
-lxb_inline lxb_dom_attr_t *
-lxb_dom_element_last_attribute(lxb_dom_element_t *element)
+static inline pchtml_dom_attr_t *
+pchtml_dom_element_last_attribute(pchtml_dom_element_t *element)
 {
     return element->last_attr;
 }
 
-lxb_inline lxb_dom_attr_t *
-lxb_dom_element_id_attribute(lxb_dom_element_t *element)
+static inline pchtml_dom_attr_t *
+pchtml_dom_element_id_attribute(pchtml_dom_element_t *element)
 {
     return element->attr_id;
 }
 
-lxb_inline lxb_dom_attr_t *
-lxb_dom_element_class_attribute(lxb_dom_element_t *element)
+static inline pchtml_dom_attr_t *
+pchtml_dom_element_class_attribute(pchtml_dom_element_t *element)
 {
     return element->attr_class;
 }
 
-lxb_inline lxb_tag_id_t
-lxb_dom_element_tag_id(lxb_dom_element_t *element)
+static inline pchtml_tag_id_t
+pchtml_dom_element_tag_id(pchtml_dom_element_t *element)
 {
-    return lxb_dom_interface_node(element)->local_name;
+    return pchtml_dom_interface_node(element)->local_name;
 }
 
-lxb_inline lxb_ns_id_t
-lxb_dom_element_ns_id(lxb_dom_element_t *element)
+static inline pchtml_ns_id_t
+pchtml_dom_element_ns_id(pchtml_dom_element_t *element)
 {
-    return lxb_dom_interface_node(element)->ns;
+    return pchtml_dom_interface_node(element)->ns;
 }
 
 
 /*
  * No inline functions for ABI.
  */
-const lxb_char_t *
-lxb_dom_element_id_noi(lxb_dom_element_t *element, size_t *len);
+const unsigned char *
+pchtml_dom_element_id_noi(pchtml_dom_element_t *element, size_t *len);
 
-const lxb_char_t *
-lxb_dom_element_class_noi(lxb_dom_element_t *element, size_t *len);
-
-bool
-lxb_dom_element_is_custom_noi(lxb_dom_element_t *element);
+const unsigned char *
+pchtml_dom_element_class_noi(pchtml_dom_element_t *element, size_t *len);
 
 bool
-lxb_dom_element_custom_is_defined_noi(lxb_dom_element_t *element);
+pchtml_dom_element_is_custom_noi(pchtml_dom_element_t *element);
 
-lxb_dom_attr_t *
-lxb_dom_element_first_attribute_noi(lxb_dom_element_t *element);
+bool
+pchtml_dom_element_custom_is_defined_noi(pchtml_dom_element_t *element);
 
-lxb_dom_attr_t *
-lxb_dom_element_next_attribute_noi(lxb_dom_attr_t *attr);
+pchtml_dom_attr_t *
+pchtml_dom_element_first_attribute_noi(pchtml_dom_element_t *element);
 
-lxb_dom_attr_t *
-lxb_dom_element_prev_attribute_noi(lxb_dom_attr_t *attr);
+pchtml_dom_attr_t *
+pchtml_dom_element_next_attribute_noi(pchtml_dom_attr_t *attr);
 
-lxb_dom_attr_t *
-lxb_dom_element_last_attribute_noi(lxb_dom_element_t *element);
+pchtml_dom_attr_t *
+pchtml_dom_element_prev_attribute_noi(pchtml_dom_attr_t *attr);
 
-lxb_dom_attr_t *
-lxb_dom_element_id_attribute_noi(lxb_dom_element_t *element);
+pchtml_dom_attr_t *
+pchtml_dom_element_last_attribute_noi(pchtml_dom_element_t *element);
 
-lxb_dom_attr_t *
-lxb_dom_element_class_attribute_noi(lxb_dom_element_t *element);
+pchtml_dom_attr_t *
+pchtml_dom_element_id_attribute_noi(pchtml_dom_element_t *element);
+
+pchtml_dom_attr_t *
+pchtml_dom_element_class_attribute_noi(pchtml_dom_element_t *element);
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LEXBOR_DOM_ELEMENT_H */
+#endif  /* PCHTML_DOM_ELEMENT_H */

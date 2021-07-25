@@ -1,8 +1,27 @@
-/*
- * Copyright (C) 2018-2019 Alexander Borisov
+/**
+ * @file document.c
+ * @author
+ * @date 2021/07/02
+ * @brief The complementation of document.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 #include "private/errors.h"
 
 #include "html/dom/interfaces/document.h"
@@ -15,61 +34,61 @@
 #include "html/dom/interfaces/processing_instruction.h"
 
 
-lxb_dom_document_t *
-lxb_dom_document_interface_create(lxb_dom_document_t *document)
+pchtml_dom_document_t *
+pchtml_dom_document_interface_create(pchtml_dom_document_t *document)
 {
-    lxb_dom_document_t *doc;
+    pchtml_dom_document_t *doc;
 
-    doc = lexbor_mraw_calloc(document->mraw, sizeof(lxb_dom_document_t));
+    doc = pchtml_mraw_calloc(document->mraw, sizeof(pchtml_dom_document_t));
     if (doc == NULL) {
         return NULL;
     }
 
-    (void) lxb_dom_document_init(doc, document, lxb_dom_interface_create,
-                    lxb_dom_interface_destroy, LXB_DOM_DOCUMENT_DTYPE_UNDEF, 0);
+    (void) pchtml_dom_document_init(doc, document, pchtml_dom_interface_create,
+                    pchtml_dom_interface_destroy, PCHTML_DOM_DOCUMENT_DTYPE_UNDEF, 0);
 
     return doc;
 }
 
-lxb_dom_document_t *
-lxb_dom_document_interface_destroy(lxb_dom_document_t *document)
+pchtml_dom_document_t *
+pchtml_dom_document_interface_destroy(pchtml_dom_document_t *document)
 {
-    return lexbor_mraw_free(
-        lxb_dom_interface_node(document)->owner_document->mraw,
+    return pchtml_mraw_free(
+        pchtml_dom_interface_node(document)->owner_document->mraw,
         document);
 }
 
-lxb_dom_document_t *
-lxb_dom_document_create(lxb_dom_document_t *owner)
+pchtml_dom_document_t *
+pchtml_dom_document_create(pchtml_dom_document_t *owner)
 {
     if (owner != NULL) {
-        return lexbor_mraw_calloc(owner->mraw, sizeof(lxb_dom_document_t));
+        return pchtml_mraw_calloc(owner->mraw, sizeof(pchtml_dom_document_t));
     }
 
-    return lexbor_calloc(1, sizeof(lxb_dom_document_t));
+    return pchtml_calloc(1, sizeof(pchtml_dom_document_t));
 }
 
-lxb_status_t
-lxb_dom_document_init(lxb_dom_document_t *document, lxb_dom_document_t *owner,
-                      lxb_dom_interface_create_f create_interface,
-                      lxb_dom_interface_destroy_f destroy_interface,
-                      lxb_dom_document_dtype_t type, unsigned int ns)
+unsigned int
+pchtml_dom_document_init(pchtml_dom_document_t *document, pchtml_dom_document_t *owner,
+                      pchtml_dom_interface_create_f create_interface,
+                      pchtml_dom_interface_destroy_f destroy_interface,
+                      pchtml_dom_document_dtype_t type, unsigned int ns)
 {
-    lxb_status_t status;
-    lxb_dom_node_t *node;
+    unsigned int status;
+    pchtml_dom_node_t *node;
 
     if (document == NULL) {
-        return LXB_STATUS_ERROR_OBJECT_IS_NULL;
+        return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
     }
 
     document->type = type;
     document->create_interface = create_interface;
     document->destroy_interface = destroy_interface;
 
-    node = lxb_dom_interface_node(document);
+    node = pchtml_dom_interface_node(document);
 
-    node->type = LXB_DOM_NODE_TYPE_DOCUMENT;
-    node->local_name = LXB_TAG__DOCUMENT;
+    node->type = PCHTML_DOM_NODE_TYPE_DOCUMENT;
+    node->local_name = PCHTML_TAG__DOCUMENT;
     node->ns = ns;
 
     if (owner != NULL) {
@@ -89,77 +108,77 @@ lxb_dom_document_init(lxb_dom_document_t *document, lxb_dom_document_t *owner,
 
         node->owner_document = owner;
 
-        return LXB_STATUS_OK;
+        return PCHTML_STATUS_OK;
     }
 
     /* For nodes */
-    document->mraw = lexbor_mraw_create();
-    status = lexbor_mraw_init(document->mraw, (4096 * 8));
+    document->mraw = pchtml_mraw_create();
+    status = pchtml_mraw_init(document->mraw, (4096 * 8));
 
-    if (status != LXB_STATUS_OK) {
+    if (status != PCHTML_STATUS_OK) {
         goto failed;
     }
 
     /* For text */
-    document->text = lexbor_mraw_create();
-    status = lexbor_mraw_init(document->text, (4096 * 12));
+    document->text = pchtml_mraw_create();
+    status = pchtml_mraw_init(document->text, (4096 * 12));
 
-    if (status != LXB_STATUS_OK) {
+    if (status != PCHTML_STATUS_OK) {
         goto failed;
     }
 
-    document->tags = lexbor_hash_create();
-    status = lexbor_hash_init(document->tags, 128, sizeof(lxb_tag_data_t));
-    if (status != LXB_STATUS_OK) {
+    document->tags = pchtml_hash_create();
+    status = pchtml_hash_init(document->tags, 128, sizeof(pchtml_tag_data_t));
+    if (status != PCHTML_STATUS_OK) {
         goto failed;
     }
 
-    document->ns = lexbor_hash_create();
-    status = lexbor_hash_init(document->ns, 128, sizeof(lxb_ns_data_t));
-    if (status != LXB_STATUS_OK) {
+    document->ns = pchtml_hash_create();
+    status = pchtml_hash_init(document->ns, 128, sizeof(pchtml_ns_data_t));
+    if (status != PCHTML_STATUS_OK) {
         goto failed;
     }
 
-    document->prefix = lexbor_hash_create();
-    status = lexbor_hash_init(document->prefix, 128,
-                              sizeof(lxb_dom_attr_data_t));
-    if (status != LXB_STATUS_OK) {
+    document->prefix = pchtml_hash_create();
+    status = pchtml_hash_init(document->prefix, 128,
+                              sizeof(pchtml_dom_attr_data_t));
+    if (status != PCHTML_STATUS_OK) {
         goto failed;
     }
 
-    document->attrs = lexbor_hash_create();
-    status = lexbor_hash_init(document->attrs, 128,
-                              sizeof(lxb_dom_attr_data_t));
-    if (status != LXB_STATUS_OK) {
+    document->attrs = pchtml_hash_create();
+    status = pchtml_hash_init(document->attrs, 128,
+                              sizeof(pchtml_dom_attr_data_t));
+    if (status != PCHTML_STATUS_OK) {
         goto failed;
     }
 
     node->owner_document = document;
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 
 failed:
 
-    lexbor_mraw_destroy(document->mraw, true);
-    lexbor_mraw_destroy(document->text, true);
-    lexbor_hash_destroy(document->tags, true);
-    lexbor_hash_destroy(document->ns, true);
-    lexbor_hash_destroy(document->attrs, true);
-    lexbor_hash_destroy(document->prefix, true);
+    pchtml_mraw_destroy(document->mraw, true);
+    pchtml_mraw_destroy(document->text, true);
+    pchtml_hash_destroy(document->tags, true);
+    pchtml_hash_destroy(document->ns, true);
+    pchtml_hash_destroy(document->attrs, true);
+    pchtml_hash_destroy(document->prefix, true);
 
-    return LXB_STATUS_ERROR;
+    return PCHTML_STATUS_ERROR;
 }
 
-lxb_status_t
-lxb_dom_document_clean(lxb_dom_document_t *document)
+unsigned int
+pchtml_dom_document_clean(pchtml_dom_document_t *document)
 {
-    if (lxb_dom_interface_node(document)->owner_document == document) {
-        lexbor_mraw_clean(document->mraw);
-        lexbor_mraw_clean(document->text);
-        lexbor_hash_clean(document->tags);
-        lexbor_hash_clean(document->ns);
-        lexbor_hash_clean(document->attrs);
-        lexbor_hash_clean(document->prefix);
+    if (pchtml_dom_interface_node(document)->owner_document == document) {
+        pchtml_mraw_clean(document->mraw);
+        pchtml_mraw_clean(document->text);
+        pchtml_hash_clean(document->tags);
+        pchtml_hash_clean(document->ns);
+        pchtml_hash_clean(document->attrs);
+        pchtml_hash_clean(document->prefix);
     }
 
     document->node.first_child = NULL;
@@ -167,61 +186,61 @@ lxb_dom_document_clean(lxb_dom_document_t *document)
     document->element = NULL;
     document->doctype = NULL;
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_dom_document_t *
-lxb_dom_document_destroy(lxb_dom_document_t *document)
+pchtml_dom_document_t *
+pchtml_dom_document_destroy(pchtml_dom_document_t *document)
 {
     if (document == NULL) {
         return NULL;
     }
 
-    if (lxb_dom_interface_node(document)->owner_document != document) {
-        lxb_dom_document_t *owner;
+    if (pchtml_dom_interface_node(document)->owner_document != document) {
+        pchtml_dom_document_t *owner;
 
-        owner = lxb_dom_interface_node(document)->owner_document;
+        owner = pchtml_dom_interface_node(document)->owner_document;
 
-        return lexbor_mraw_free(owner->mraw, document);
+        return pchtml_mraw_free(owner->mraw, document);
     }
 
-    lexbor_mraw_destroy(document->text, true);
-    lexbor_mraw_destroy(document->mraw, true);
-    lexbor_hash_destroy(document->tags, true);
-    lexbor_hash_destroy(document->ns, true);
-    lexbor_hash_destroy(document->attrs, true);
-    lexbor_hash_destroy(document->prefix, true);
+    pchtml_mraw_destroy(document->text, true);
+    pchtml_mraw_destroy(document->mraw, true);
+    pchtml_hash_destroy(document->tags, true);
+    pchtml_hash_destroy(document->ns, true);
+    pchtml_hash_destroy(document->attrs, true);
+    pchtml_hash_destroy(document->prefix, true);
 
-    return lexbor_free(document);
+    return pchtml_free(document);
 }
 
 void
-lxb_dom_document_attach_doctype(lxb_dom_document_t *document,
-                                lxb_dom_document_type_t *doctype)
+pchtml_dom_document_attach_doctype(pchtml_dom_document_t *document,
+                                pchtml_dom_document_type_t *doctype)
 {
     document->doctype = doctype;
 }
 
 void
-lxb_dom_document_attach_element(lxb_dom_document_t *document,
-                                lxb_dom_element_t *element)
+pchtml_dom_document_attach_element(pchtml_dom_document_t *document,
+                                pchtml_dom_element_t *element)
 {
     document->element = element;
 }
 
-lxb_dom_element_t *
-lxb_dom_document_create_element(lxb_dom_document_t *document,
-                                const lxb_char_t *local_name, size_t lname_len,
+pchtml_dom_element_t *
+pchtml_dom_document_create_element(pchtml_dom_document_t *document,
+                                const unsigned char *local_name, size_t lname_len,
                                 void *reserved_for_opt)
 {
     /* TODO: If localName does not match the Name production... */
     UNUSED_PARAM(reserved_for_opt);
 
-    const lxb_char_t *ns_link;
+    const unsigned char *ns_link;
     size_t ns_len;
 
-    if (document->type == LXB_DOM_DOCUMENT_DTYPE_HTML) {
-        ns_link = (const lxb_char_t *) "http://www.w3.org/1999/xhtml";
+    if (document->type == PCHTML_DOM_DOCUMENT_DTYPE_HTML) {
+        ns_link = (const unsigned char *) "http://www.w3.org/1999/xhtml";
 
         /* FIXME: he will get len at the compilation stage?!? */
         ns_len = strlen((const char *) ns_link);
@@ -231,54 +250,54 @@ lxb_dom_document_create_element(lxb_dom_document_t *document,
         ns_len = 0;
     }
 
-    return lxb_dom_element_create(document, local_name, lname_len,
+    return pchtml_dom_element_create(document, local_name, lname_len,
                                   ns_link, ns_len, NULL, 0, NULL, 0, true);
 }
 
-lxb_dom_element_t *
-lxb_dom_document_destroy_element(lxb_dom_element_t *element)
+pchtml_dom_element_t *
+pchtml_dom_document_destroy_element(pchtml_dom_element_t *element)
 {
-    return lxb_dom_element_destroy(element);
+    return pchtml_dom_element_destroy(element);
 }
 
-lxb_dom_document_fragment_t *
-lxb_dom_document_create_document_fragment(lxb_dom_document_t *document)
+pchtml_dom_document_fragment_t *
+pchtml_dom_document_create_document_fragment(pchtml_dom_document_t *document)
 {
-    return lxb_dom_document_fragment_interface_create(document);
+    return pchtml_dom_document_fragment_interface_create(document);
 }
 
-lxb_dom_text_t *
-lxb_dom_document_create_text_node(lxb_dom_document_t *document,
-                                  const lxb_char_t *data, size_t len)
+pchtml_dom_text_t *
+pchtml_dom_document_create_text_node(pchtml_dom_document_t *document,
+                                  const unsigned char *data, size_t len)
 {
-    lxb_dom_text_t *text;
+    pchtml_dom_text_t *text;
 
-    text = lxb_dom_document_create_interface(document,
-                                             LXB_TAG__TEXT, LXB_NS_HTML);
+    text = pchtml_dom_document_create_interface(document,
+                                             PCHTML_TAG__TEXT, PCHTML_NS_HTML);
     if (text == NULL) {
         return NULL;
     }
 
-    lexbor_str_init(&text->char_data.data, document->text, len);
+    pchtml_str_init(&text->char_data.data, document->text, len);
     if (text->char_data.data.data == NULL) {
-        return lxb_dom_document_destroy_interface(text);
+        return pchtml_dom_document_destroy_interface(text);
     }
 
-    lexbor_str_append(&text->char_data.data, document->text, data, len);
+    pchtml_str_append(&text->char_data.data, document->text, data, len);
 
     return text;
 }
 
-lxb_dom_cdata_section_t *
-lxb_dom_document_create_cdata_section(lxb_dom_document_t *document,
-                                      const lxb_char_t *data, size_t len)
+pchtml_dom_cdata_section_t *
+pchtml_dom_document_create_cdata_section(pchtml_dom_document_t *document,
+                                      const unsigned char *data, size_t len)
 {
-    if (document->type != LXB_DOM_DOCUMENT_DTYPE_HTML) {
+    if (document->type != PCHTML_DOM_DOCUMENT_DTYPE_HTML) {
         return NULL;
     }
 
-    const lxb_char_t *end = data + len;
-    const lxb_char_t *ch = memchr(data, ']', sizeof(lxb_char_t) * len);
+    const unsigned char *end = data + len;
+    const unsigned char *ch = memchr(data, ']', sizeof(unsigned char) * len);
 
     while (ch != NULL) {
         if ((end - ch) < 3) {
@@ -290,38 +309,38 @@ lxb_dom_document_create_cdata_section(lxb_dom_document_t *document,
         }
 
         ch++;
-        ch = memchr(ch, ']', sizeof(lxb_char_t) * (end - ch));
+        ch = memchr(ch, ']', sizeof(unsigned char) * (end - ch));
     }
 
-    lxb_dom_cdata_section_t *cdata;
+    pchtml_dom_cdata_section_t *cdata;
 
-    cdata = lxb_dom_cdata_section_interface_create(document);
+    cdata = pchtml_dom_cdata_section_interface_create(document);
     if (cdata == NULL) {
         return NULL;
     }
 
-    lexbor_str_init(&cdata->text.char_data.data, document->text, len);
+    pchtml_str_init(&cdata->text.char_data.data, document->text, len);
     if (cdata->text.char_data.data.data == NULL) {
-        return lxb_dom_cdata_section_interface_destroy(cdata);
+        return pchtml_dom_cdata_section_interface_destroy(cdata);
     }
 
-    lexbor_str_append(&cdata->text.char_data.data, document->text, data, len);
+    pchtml_str_append(&cdata->text.char_data.data, document->text, data, len);
 
     return cdata;
 }
 
-lxb_dom_processing_instruction_t *
-lxb_dom_document_create_processing_instruction(lxb_dom_document_t *document,
-                                               const lxb_char_t *target, size_t target_len,
-                                               const lxb_char_t *data, size_t data_len)
+pchtml_dom_processing_instruction_t *
+pchtml_dom_document_create_processing_instruction(pchtml_dom_document_t *document,
+                                               const unsigned char *target, size_t target_len,
+                                               const unsigned char *data, size_t data_len)
 {
     /*
      * TODO: If target does not match the Name production,
      * then throw an "InvalidCharacterError" DOMException.
      */
 
-    const lxb_char_t *end = data + data_len;
-    const lxb_char_t *ch = memchr(data, '?', sizeof(lxb_char_t) * data_len);
+    const unsigned char *end = data + data_len;
+    const unsigned char *ch = memchr(data, '?', sizeof(unsigned char) * data_len);
 
     while (ch != NULL) {
         if ((end - ch) < 2) {
@@ -333,53 +352,53 @@ lxb_dom_document_create_processing_instruction(lxb_dom_document_t *document,
         }
 
         ch++;
-        ch = memchr(ch, '?', sizeof(lxb_char_t) * (end - ch));
+        ch = memchr(ch, '?', sizeof(unsigned char) * (end - ch));
     }
 
-    lxb_dom_processing_instruction_t *pi;
+    pchtml_dom_processing_instruction_t *pi;
 
-    pi = lxb_dom_processing_instruction_interface_create(document);
+    pi = pchtml_dom_processing_instruction_interface_create(document);
     if (pi == NULL) {
         return NULL;
     }
 
-    lexbor_str_init(&pi->char_data.data, document->text, data_len);
+    pchtml_str_init(&pi->char_data.data, document->text, data_len);
     if (pi->char_data.data.data == NULL) {
-        return lxb_dom_processing_instruction_interface_destroy(pi);
+        return pchtml_dom_processing_instruction_interface_destroy(pi);
     }
 
-    lexbor_str_init(&pi->target, document->text, target_len);
+    pchtml_str_init(&pi->target, document->text, target_len);
     if (pi->target.data == NULL) {
-        lexbor_str_destroy(&pi->char_data.data, document->text, false);
+        pchtml_str_destroy(&pi->char_data.data, document->text, false);
 
-        return lxb_dom_processing_instruction_interface_destroy(pi);
+        return pchtml_dom_processing_instruction_interface_destroy(pi);
     }
 
-    lexbor_str_append(&pi->char_data.data, document->text, data, data_len);
-    lexbor_str_append(&pi->target, document->text, target, target_len);
+    pchtml_str_append(&pi->char_data.data, document->text, data, data_len);
+    pchtml_str_append(&pi->target, document->text, target, target_len);
 
     return pi;
 }
 
 
-lxb_dom_comment_t *
-lxb_dom_document_create_comment(lxb_dom_document_t *document,
-                                const lxb_char_t *data, size_t len)
+pchtml_dom_comment_t *
+pchtml_dom_document_create_comment(pchtml_dom_document_t *document,
+                                const unsigned char *data, size_t len)
 {
-    lxb_dom_comment_t *comment;
+    pchtml_dom_comment_t *comment;
 
-    comment = lxb_dom_document_create_interface(document, LXB_TAG__EM_COMMENT,
-                                                LXB_NS_HTML);
+    comment = pchtml_dom_document_create_interface(document, PCHTML_TAG__EM_COMMENT,
+                                                PCHTML_NS_HTML);
     if (comment == NULL) {
         return NULL;
     }
 
-    lexbor_str_init(&comment->char_data.data, document->text, len);
+    pchtml_str_init(&comment->char_data.data, document->text, len);
     if (comment->char_data.data.data == NULL) {
-        return lxb_dom_document_destroy_interface(comment);
+        return pchtml_dom_document_destroy_interface(comment);
     }
 
-    lexbor_str_append(&comment->char_data.data, document->text, data, len);
+    pchtml_str_append(&comment->char_data.data, document->text, data, len);
 
     return comment;
 }
@@ -387,48 +406,48 @@ lxb_dom_document_create_comment(lxb_dom_document_t *document,
 /*
  * No inline functions for ABI.
  */
-lxb_dom_interface_t *
-lxb_dom_document_create_interface_noi(lxb_dom_document_t *document,
-                                      lxb_tag_id_t tag_id, lxb_ns_id_t ns)
+pchtml_dom_interface_t *
+pchtml_dom_document_create_interface_noi(pchtml_dom_document_t *document,
+                                      pchtml_tag_id_t tag_id, pchtml_ns_id_t ns)
 {
-    return lxb_dom_document_create_interface(document, tag_id, ns);
+    return pchtml_dom_document_create_interface(document, tag_id, ns);
 }
 
-lxb_dom_interface_t *
-lxb_dom_document_destroy_interface_noi(lxb_dom_interface_t *intrfc)
+pchtml_dom_interface_t *
+pchtml_dom_document_destroy_interface_noi(pchtml_dom_interface_t *intrfc)
 {
-    return lxb_dom_document_destroy_interface(intrfc);
+    return pchtml_dom_document_destroy_interface(intrfc);
 }
 
 void *
-lxb_dom_document_create_struct_noi(lxb_dom_document_t *document,
+pchtml_dom_document_create_struct_noi(pchtml_dom_document_t *document,
                                    size_t struct_size)
 {
-    return lxb_dom_document_create_struct(document, struct_size);
+    return pchtml_dom_document_create_struct(document, struct_size);
 }
 
 void *
-lxb_dom_document_destroy_struct_noi(lxb_dom_document_t *document,
+pchtml_dom_document_destroy_struct_noi(pchtml_dom_document_t *document,
                                     void *structure)
 {
-    return lxb_dom_document_destroy_struct(document, structure);
+    return pchtml_dom_document_destroy_struct(document, structure);
 }
 
-lxb_char_t *
-lxb_dom_document_create_text_noi(lxb_dom_document_t *document, size_t len)
+unsigned char *
+pchtml_dom_document_create_text_noi(pchtml_dom_document_t *document, size_t len)
 {
-    return lxb_dom_document_create_text(document, len);
+    return pchtml_dom_document_create_text(document, len);
 }
 
 void *
-lxb_dom_document_destroy_text_noi(lxb_dom_document_t *document,
-                                  lxb_char_t *text)
+pchtml_dom_document_destroy_text_noi(pchtml_dom_document_t *document,
+                                  unsigned char *text)
 {
-    return lxb_dom_document_destroy_text(document, text);
+    return pchtml_dom_document_destroy_text(document, text);
 }
 
-lxb_dom_element_t *
-lxb_dom_document_element_noi(lxb_dom_document_t *document)
+pchtml_dom_element_t *
+pchtml_dom_document_element_noi(pchtml_dom_document_t *document)
 {
-    return lxb_dom_document_element(document);
+    return pchtml_dom_document_element(document);
 }
