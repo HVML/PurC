@@ -1,37 +1,56 @@
-/*
-* Copyright (C) 2019 Alexander Borisov
-*
-* Author: Alexander Borisov <borisov@lexbor.com>
-*/
+/**
+ * @file http.c
+ * @author
+ * @date 2021/07/02
+ * @brief The complementation of http protocol.
+ *
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include "private/errors.h"
 #include "html/utils/http.h"
 #include "html/core/conv.h"
 
 
-#ifndef LXB_UTILS_HTTP_MAX_HEADER_FIELD
-    #define LXB_UTILS_HTTP_MAX_HEADER_FIELD 4096 * 32
+#ifndef PCHTML_UTILS_HTTP_MAX_HEADER_FIELD
+    #define PCHTML_UTILS_HTTP_MAX_HEADER_FIELD 4096 * 32
 #endif
 
 
 enum {
-    LXB_UTILS_HTTP_STATE_HEAD_VERSION = 0x00,
-    LXB_UTILS_HTTP_STATE_HEAD_FIELD,
-    LXB_UTILS_HTTP_STATE_HEAD_FIELD_WS,
-    LXB_UTILS_HTTP_STATE_HEAD_END,
-    LXB_UTILS_HTTP_STATE_BODY,
-    LXB_UTILS_HTTP_STATE_BODY_END
+    PCHTML_UTILS_HTTP_STATE_HEAD_VERSION = 0x00,
+    PCHTML_UTILS_HTTP_STATE_HEAD_FIELD,
+    PCHTML_UTILS_HTTP_STATE_HEAD_FIELD_WS,
+    PCHTML_UTILS_HTTP_STATE_HEAD_END,
+    PCHTML_UTILS_HTTP_STATE_BODY,
+    PCHTML_UTILS_HTTP_STATE_BODY_END
 };
 
 
-lxb_inline lxb_status_t
-lxb_utils_http_split_field(lxb_utils_http_t *http, const lexbor_str_t *str)
+static inline unsigned int
+pchtml_utils_http_split_field(pchtml_utils_http_t *http, const pchtml_str_t *str)
 {
-    lxb_char_t *p, *end;
-    lxb_utils_http_field_t *field;
+    unsigned char *p, *end;
+    pchtml_utils_http_field_t *field;
 
-    field = lexbor_array_obj_push(http->fields);
+    field = pchtml_array_obj_push(http->fields);
     if (field == NULL) {
-        return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+        return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
     p = memchr(str->data, ':', str->length);
@@ -39,18 +58,18 @@ lxb_utils_http_split_field(lxb_utils_http_t *http, const lexbor_str_t *str)
     if (p == NULL) {
         http->error = "Wrong header field format.";
 
-        (void) lexbor_array_obj_pop(http->fields);
+        (void) pchtml_array_obj_pop(http->fields);
 
-        return LXB_STATUS_ABORTED;
+        return PCHTML_STATUS_ABORTED;
     }
 
     field->name.data = str->data;
     field->name.length = p - str->data;
 
     if (field->name.length == 0) {
-        (void) lexbor_array_obj_pop(http->fields);
+        (void) pchtml_array_obj_pop(http->fields);
 
-        return LXB_STATUS_OK;
+        return PCHTML_STATUS_OK;
     }
 
     p++;
@@ -76,27 +95,27 @@ lxb_utils_http_split_field(lxb_utils_http_t *http, const lexbor_str_t *str)
     field->value.data = p;
     field->value.length = end - p;
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_utils_http_t *
-lxb_utils_http_create(void)
+pchtml_utils_http_t *
+pchtml_utils_http_create(void)
 {
-    return lexbor_calloc(1, sizeof(lxb_utils_http_t));
+    return pchtml_calloc(1, sizeof(pchtml_utils_http_t));
 }
 
-lxb_status_t
-lxb_utils_http_init(lxb_utils_http_t *http, lexbor_mraw_t *mraw)
+unsigned int
+pchtml_utils_http_init(pchtml_utils_http_t *http, pchtml_mraw_t *mraw)
 {
-    lxb_status_t status;
+    unsigned int status;
 
     if (http == NULL) {
-        return LXB_STATUS_ERROR_OBJECT_IS_NULL;
+        return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
     }
 
     if (mraw == NULL) {
-        mraw = lexbor_mraw_create();
-        status = lexbor_mraw_init(mraw, 4096 * 4);
+        mraw = pchtml_mraw_create();
+        status = pchtml_mraw_init(mraw, 4096 * 4);
         if (status) {
             return status;
         }
@@ -104,116 +123,116 @@ lxb_utils_http_init(lxb_utils_http_t *http, lexbor_mraw_t *mraw)
 
     http->mraw = mraw;
 
-    http->fields = lexbor_array_obj_create();
-    status = lexbor_array_obj_init(http->fields, 32,
-                                   sizeof(lxb_utils_http_field_t));
+    http->fields = pchtml_array_obj_create();
+    status = pchtml_array_obj_init(http->fields, 32,
+                                   sizeof(pchtml_utils_http_field_t));
     if (status) {
         return status;
     }
 
-    lexbor_str_init(&http->tmp, http->mraw, 64);
+    pchtml_str_init(&http->tmp, http->mraw, 64);
     if (http->tmp.data == NULL) {
-        return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+        return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
-    lexbor_str_init(&http->version.name, http->mraw, 8);
+    pchtml_str_init(&http->version.name, http->mraw, 8);
     if (http->version.name.data == NULL) {
-        return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+        return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
     http->error = NULL;
-    http->state = LXB_UTILS_HTTP_STATE_HEAD_VERSION;
+    http->state = PCHTML_UTILS_HTTP_STATE_HEAD_VERSION;
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_status_t
-lxb_utils_http_clear(lxb_utils_http_t *http)
+unsigned int
+pchtml_utils_http_clear(pchtml_utils_http_t *http)
 {
-    lexbor_mraw_clean(http->mraw);
-    lexbor_array_obj_clean(http->fields);
-    lexbor_str_clean_all(&http->tmp);
+    pchtml_mraw_clean(http->mraw);
+    pchtml_array_obj_clean(http->fields);
+    pchtml_str_clean_all(&http->tmp);
 
     http->tmp.data = NULL;
 
-    lexbor_str_init(&http->tmp, http->mraw, 64);
+    pchtml_str_init(&http->tmp, http->mraw, 64);
     if (http->tmp.data == NULL) {
-        return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+        return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
     http->version.name.data = NULL;
     http->version.number = 0;
 
-    lexbor_str_init(&http->version.name, http->mraw, 8);
+    pchtml_str_init(&http->version.name, http->mraw, 8);
     if (http->version.name.data == NULL) {
-        return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+        return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
     http->error = NULL;
-    http->state = LXB_UTILS_HTTP_STATE_HEAD_VERSION;
+    http->state = PCHTML_UTILS_HTTP_STATE_HEAD_VERSION;
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_utils_http_t *
-lxb_utils_http_destroy(lxb_utils_http_t *http, bool self_destroy)
+pchtml_utils_http_t *
+pchtml_utils_http_destroy(pchtml_utils_http_t *http, bool self_destroy)
 {
     if (http == NULL) {
         return NULL;
     }
 
-    http->mraw = lexbor_mraw_destroy(http->mraw, true);
-    http->fields = lexbor_array_obj_destroy(http->fields, true);
+    http->mraw = pchtml_mraw_destroy(http->mraw, true);
+    http->fields = pchtml_array_obj_destroy(http->fields, true);
 
     if (self_destroy) {
-        return lexbor_free(http);
+        return pchtml_free(http);
     }
 
     return http;
 }
 
-lxb_status_t
-lxb_utils_http_header_parse_eof(lxb_utils_http_t *http)
+unsigned int
+pchtml_utils_http_header_parse_eof(pchtml_utils_http_t *http)
 {
-    if (http->state != LXB_UTILS_HTTP_STATE_HEAD_END) {
+    if (http->state != PCHTML_UTILS_HTTP_STATE_HEAD_END) {
         http->error = "Unexpected data termination.";
 
-        return LXB_STATUS_ABORTED;
+        return PCHTML_STATUS_ABORTED;
     }
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_inline lxb_status_t
-lxb_utils_http_parse_version(lxb_utils_http_t *http, const lxb_char_t **data,
-                             const lxb_char_t *end)
+static inline unsigned int
+pchtml_utils_http_parse_version(pchtml_utils_http_t *http, const unsigned char **data,
+                             const unsigned char *end)
 {
-    lexbor_str_t *str;
-    const lxb_char_t *p;
+    pchtml_str_t *str;
+    const unsigned char *p;
 
     str = &http->version.name;
 
     p = memchr(*data, '\n', (end - *data));
 
     if (p == NULL) {
-        p = lexbor_str_append(str, http->mraw, *data, (end - *data));
+        p = pchtml_str_append(str, http->mraw, *data, (end - *data));
         if (p == NULL) {
-            return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+            return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
         *data = end;
 
-        if (str->length > LXB_UTILS_HTTP_MAX_HEADER_FIELD) {
+        if (str->length > PCHTML_UTILS_HTTP_MAX_HEADER_FIELD) {
             goto to_large;
         }
 
-        return LXB_STATUS_OK;
+        return PCHTML_STATUS_OK;
     }
 
-    *data = lexbor_str_append(str, http->mraw, *data, (p - *data));
+    *data = pchtml_str_append(str, http->mraw, *data, (p - *data));
     if (*data == NULL) {
         *data = p;
-        return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+        return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
     *data = p + 1;
@@ -222,14 +241,14 @@ lxb_utils_http_parse_version(lxb_utils_http_t *http, const lxb_char_t **data,
         goto failed;
     }
 
-    (void) lexbor_str_length_set(str, http->mraw, (str->length - 1));
+    (void) pchtml_str_length_set(str, http->mraw, (str->length - 1));
 
-    if (str->length > LXB_UTILS_HTTP_MAX_HEADER_FIELD) {
+    if (str->length > PCHTML_UTILS_HTTP_MAX_HEADER_FIELD) {
         goto to_large;
     }
 
-    if (lexbor_str_data_ncasecmp(str->data,
-                                 (const lxb_char_t *) "HTTP/", 5) == false)
+    if (pchtml_str_data_ncasecmp(str->data,
+                                 (const unsigned char *) "HTTP/", 5) == false)
     {
         goto failed;
     }
@@ -237,7 +256,7 @@ lxb_utils_http_parse_version(lxb_utils_http_t *http, const lxb_char_t **data,
     /* Skip version */
     p = str->data + 5;
 
-    http->version.number = lexbor_conv_data_to_double(&p, 3);
+    http->version.number = pchtml_conv_data_to_double(&p, 3);
     if (http->version.number < 1.0 || http->version.number > 1.1) {
         goto failed;
     }
@@ -257,60 +276,60 @@ lxb_utils_http_parse_version(lxb_utils_http_t *http, const lxb_char_t **data,
             }
         }
 
-        http->version.status = lexbor_conv_data_to_uint(&p, end - p);
+        http->version.status = pchtml_conv_data_to_uint(&p, end - p);
         if (http->version.status < 100 || http->version.status >= 600) {
             goto failed;
         }
     }
 
-    http->state = LXB_UTILS_HTTP_STATE_HEAD_FIELD;
+    http->state = PCHTML_UTILS_HTTP_STATE_HEAD_FIELD;
     http->tmp.length = 0;
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 
 to_large:
 
     http->error = "Too large header version field.";
 
-    return LXB_STATUS_ABORTED;
+    return PCHTML_STATUS_ABORTED;
 
 failed:
 
     http->error = "Wrong HTTP version.";
 
-    return LXB_STATUS_ABORTED;
+    return PCHTML_STATUS_ABORTED;
 }
 
-lxb_inline lxb_status_t
-lxb_utils_http_parse_field(lxb_utils_http_t *http, const lxb_char_t **data,
-                           const lxb_char_t *end)
+static inline unsigned int
+pchtml_utils_http_parse_field(pchtml_utils_http_t *http, const unsigned char **data,
+                           const unsigned char *end)
 {
-    lexbor_str_t *str;
-    const lxb_char_t *p;
+    pchtml_str_t *str;
+    const unsigned char *p;
 
     str = &http->tmp;
 
     p = memchr(*data, '\n', (end - *data));
 
     if (p == NULL) {
-        p = lexbor_str_append(str, http->mraw, *data, (end - *data));
+        p = pchtml_str_append(str, http->mraw, *data, (end - *data));
         if (p == NULL) {
-            return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+            return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
         *data = end;
 
-        if (str->length > LXB_UTILS_HTTP_MAX_HEADER_FIELD) {
+        if (str->length > PCHTML_UTILS_HTTP_MAX_HEADER_FIELD) {
             goto to_large;
         }
 
-        return LXB_STATUS_OK;
+        return PCHTML_STATUS_OK;
     }
 
-    *data = lexbor_str_append(str, http->mraw, *data, (p - *data));
+    *data = pchtml_str_append(str, http->mraw, *data, (p - *data));
     if (*data == NULL) {
         *data = p;
-        return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+        return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
     *data = p + 1;
@@ -319,126 +338,126 @@ lxb_utils_http_parse_field(lxb_utils_http_t *http, const lxb_char_t **data,
         goto failed;
     }
 
-    (void) lexbor_str_length_set(str, http->mraw, (str->length - 1));
+    (void) pchtml_str_length_set(str, http->mraw, (str->length - 1));
 
     /* Check for end of header */
     if (str->length != 0) {
-        if (str->length > LXB_UTILS_HTTP_MAX_HEADER_FIELD) {
+        if (str->length > PCHTML_UTILS_HTTP_MAX_HEADER_FIELD) {
             goto to_large;
         }
 
-        http->state = LXB_UTILS_HTTP_STATE_HEAD_FIELD_WS;
+        http->state = PCHTML_UTILS_HTTP_STATE_HEAD_FIELD_WS;
 
-        return LXB_STATUS_OK;
+        return PCHTML_STATUS_OK;
     }
 
-    http->state = LXB_UTILS_HTTP_STATE_HEAD_END;
+    http->state = PCHTML_UTILS_HTTP_STATE_HEAD_END;
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 
 to_large:
 
     http->error = "Too large header field.";
 
-    return LXB_STATUS_ABORTED;
+    return PCHTML_STATUS_ABORTED;
 
 failed:
 
     http->error = "Wrong HTTP header filed.";
 
-    return LXB_STATUS_ABORTED;
+    return PCHTML_STATUS_ABORTED;
 }
 
-lxb_inline lxb_status_t
-lxb_utils_http_parse_field_ws(lxb_utils_http_t *http, const lxb_char_t **data,
-                              const lxb_char_t *end)
+static inline unsigned int
+pchtml_utils_http_parse_field_ws(pchtml_utils_http_t *http, const unsigned char **data,
+                              const unsigned char *end)
 {
-    lxb_status_t status;
-    const lxb_char_t *p = *data;
+    unsigned int status;
+    const unsigned char *p = *data;
 
     if (*p != ' ' && *p != '\t') {
-        status = lxb_utils_http_split_field(http, &http->tmp);
-        if (status != LXB_STATUS_OK) {
+        status = pchtml_utils_http_split_field(http, &http->tmp);
+        if (status != PCHTML_STATUS_OK) {
             return status;
         }
 
-        lexbor_str_clean_all(&http->tmp);
+        pchtml_str_clean_all(&http->tmp);
 
-        lexbor_str_init(&http->tmp, http->mraw, 64);
+        pchtml_str_init(&http->tmp, http->mraw, 64);
         if (http->tmp.data == NULL) {
-            return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+            return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
-        http->state = LXB_UTILS_HTTP_STATE_HEAD_FIELD;
+        http->state = PCHTML_UTILS_HTTP_STATE_HEAD_FIELD;
 
-        return LXB_STATUS_OK;
+        return PCHTML_STATUS_OK;
     }
 
     for (; p < end; p++) {
         if (*p != ' ' && *p != '\t') {
             *data = p;
 
-            http->state = LXB_UTILS_HTTP_STATE_HEAD_FIELD;
+            http->state = PCHTML_UTILS_HTTP_STATE_HEAD_FIELD;
 
-            return LXB_STATUS_OK;
+            return PCHTML_STATUS_OK;
         }
     }
 
     *data = p;
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
 /*
-lxb_inline lxb_status_t
-lxb_utils_http_parse_body(lxb_utils_http_t *http, const lxb_char_t **data,
-                          const lxb_char_t *end)
+static inline unsigned int
+pchtml_utils_http_parse_body(pchtml_utils_http_t *http, const unsigned char **data,
+                          const unsigned char *end)
 {
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 */
 
-lxb_inline lxb_status_t
-lxb_utils_http_parse_body_end(lxb_utils_http_t *http,
-                              const lxb_char_t **data, const lxb_char_t *end)
+static inline unsigned int
+pchtml_utils_http_parse_body_end(pchtml_utils_http_t *http,
+                              const unsigned char **data, const unsigned char *end)
 {
     UNUSED_PARAM(http);
     UNUSED_PARAM(data);
     UNUSED_PARAM(end);
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_status_t
-lxb_utils_http_parse(lxb_utils_http_t *http,
-                     const lxb_char_t **data, const lxb_char_t *end)
+unsigned int
+pchtml_utils_http_parse(pchtml_utils_http_t *http,
+                     const unsigned char **data, const unsigned char *end)
 {
-    lxb_status_t status = LXB_STATUS_ERROR;
+    unsigned int status = PCHTML_STATUS_ERROR;
 
     while (*data < end) {
         switch (http->state) {
 
-            case LXB_UTILS_HTTP_STATE_HEAD_VERSION:
-                status = lxb_utils_http_parse_version(http, data, end);
+            case PCHTML_UTILS_HTTP_STATE_HEAD_VERSION:
+                status = pchtml_utils_http_parse_version(http, data, end);
                 break;
 
-            case LXB_UTILS_HTTP_STATE_HEAD_FIELD:
-                status = lxb_utils_http_parse_field(http, data, end);
+            case PCHTML_UTILS_HTTP_STATE_HEAD_FIELD:
+                status = pchtml_utils_http_parse_field(http, data, end);
                 break;
 
-            case LXB_UTILS_HTTP_STATE_HEAD_FIELD_WS:
-                status = lxb_utils_http_parse_field_ws(http, data, end);
+            case PCHTML_UTILS_HTTP_STATE_HEAD_FIELD_WS:
+                status = pchtml_utils_http_parse_field_ws(http, data, end);
                 break;
 
-            case LXB_UTILS_HTTP_STATE_HEAD_END:
-                return LXB_STATUS_OK;
+            case PCHTML_UTILS_HTTP_STATE_HEAD_END:
+                return PCHTML_STATUS_OK;
 
-            case LXB_UTILS_HTTP_STATE_BODY_END:
-                status = lxb_utils_http_parse_body_end(http, data, end);
+            case PCHTML_UTILS_HTTP_STATE_BODY_END:
+                status = pchtml_utils_http_parse_body_end(http, data, end);
                 break;
         }
 
-        if (status != LXB_STATUS_OK) {
+        if (status != PCHTML_STATUS_OK) {
             return status;
         }
     }
@@ -450,24 +469,24 @@ lxb_utils_http_parse(lxb_utils_http_t *http,
      *
      * Please, see Content-Length and Transfer-Encoding with "chunked".
      */
-    if (http->state == LXB_UTILS_HTTP_STATE_HEAD_END) {
-        return LXB_STATUS_OK;
+    if (http->state == PCHTML_UTILS_HTTP_STATE_HEAD_END) {
+        return PCHTML_STATUS_OK;
     }
 
-    return LXB_STATUS_NEXT;
+    return PCHTML_STATUS_NEXT;
 }
 
-lxb_utils_http_field_t *
-lxb_utils_http_header_field(lxb_utils_http_t *http, const lxb_char_t *name,
+pchtml_utils_http_field_t *
+pchtml_utils_http_header_field(pchtml_utils_http_t *http, const unsigned char *name,
                             size_t len, size_t offset)
 {
-    lxb_utils_http_field_t *field;
+    pchtml_utils_http_field_t *field;
 
-    for (size_t i = 0; i < lexbor_array_obj_length(http->fields); i++) {
-        field = lexbor_array_obj_get(http->fields, i);
+    for (size_t i = 0; i < pchtml_array_obj_length(http->fields); i++) {
+        field = pchtml_array_obj_get(http->fields, i);
 
         if (field->name.length == len
-            && lexbor_str_data_ncasecmp(field->name.data, name, len))
+            && pchtml_str_data_ncasecmp(field->name.data, name, len))
         {
             if (offset == 0) {
                 return field;
@@ -480,58 +499,58 @@ lxb_utils_http_header_field(lxb_utils_http_t *http, const lxb_char_t *name,
     return NULL;
 }
 
-lxb_status_t
-lxb_utils_http_header_serialize(lxb_utils_http_t *http, lexbor_str_t *str)
+unsigned int
+pchtml_utils_http_header_serialize(pchtml_utils_http_t *http, pchtml_str_t *str)
 {
-    lxb_status_t status;
-    const lxb_utils_http_field_t *field;
+    unsigned int status;
+    const pchtml_utils_http_field_t *field;
 
     if (str->data == NULL) {
-        lexbor_str_init(str, http->mraw, 256);
+        pchtml_str_init(str, http->mraw, 256);
         if (str->data == NULL) {
-            return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+            return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
     }
 
-    for (size_t i = 0; i < lexbor_array_obj_length(http->fields); i++) {
-        field = lexbor_array_obj_get(http->fields, i);
+    for (size_t i = 0; i < pchtml_array_obj_length(http->fields); i++) {
+        field = pchtml_array_obj_get(http->fields, i);
 
-        status = lxb_utils_http_field_serialize(http, str, field);
-        if (status != LXB_STATUS_OK) {
+        status = pchtml_utils_http_field_serialize(http, str, field);
+        if (status != PCHTML_STATUS_OK) {
             return status;
         }
     }
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_status_t
-lxb_utils_http_field_serialize(lxb_utils_http_t *http, lexbor_str_t *str,
-                               const lxb_utils_http_field_t *field)
+unsigned int
+pchtml_utils_http_field_serialize(pchtml_utils_http_t *http, pchtml_str_t *str,
+                               const pchtml_utils_http_field_t *field)
 {
-    lxb_char_t *data;
+    unsigned char *data;
 
-    data = lexbor_str_append(str, http->mraw, field->name.data,
+    data = pchtml_str_append(str, http->mraw, field->name.data,
                              field->name.length);
     if (data == NULL) {
-        return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+        return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
-    data = lexbor_str_append(str, http->mraw, (lxb_char_t *) ": ", 2);
+    data = pchtml_str_append(str, http->mraw, (unsigned char *) ": ", 2);
     if (data == NULL) {
-        return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+        return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
-    data = lexbor_str_append(str, http->mraw, field->value.data,
+    data = pchtml_str_append(str, http->mraw, field->value.data,
                              field->value.length);
     if (data == NULL) {
-        return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+        return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
-    data = lexbor_str_append_one(str, http->mraw, '\n');
+    data = pchtml_str_append_one(str, http->mraw, '\n');
     if (data == NULL) {
-        return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+        return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }

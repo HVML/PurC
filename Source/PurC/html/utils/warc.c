@@ -1,8 +1,27 @@
-/*
-* Copyright (C) 2019 Alexander Borisov
-*
-* Author: Alexander Borisov <borisov@lexbor.com>
-*/
+/**
+ * @file warc.c
+ * @author
+ * @date 2021/07/02
+ * @brief The complementation of html parser.
+ *
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include "private/errors.h"
 
 #include "html/utils/warc.h"
@@ -11,29 +30,29 @@
 #include "html/core/conv.h"
 
 
-#ifndef LXB_UTILS_WARC_MAX_HEADER_NAME
-    #define LXB_UTILS_WARC_MAX_HEADER_NAME 4096 * 4
+#ifndef PCHTML_UTILS_WARC_MAX_HEADER_NAME
+    #define PCHTML_UTILS_WARC_MAX_HEADER_NAME 4096 * 4
 #endif
 
-#ifndef LXB_UTILS_WARC_MAX_HEADER_VALUE
-    #define LXB_UTILS_WARC_MAX_HEADER_VALUE 4096 * 32
+#ifndef PCHTML_UTILS_WARC_MAX_HEADER_VALUE
+    #define PCHTML_UTILS_WARC_MAX_HEADER_VALUE 4096 * 32
 #endif
 
 
 enum {
-    LXB_UTILS_WARC_STATE_HEAD_VERSION = 0x00,
-    LXB_UTILS_WARC_STATE_HEAD_VERSION_AFTER,
-    LXB_UTILS_WARC_STATE_HEAD_FIELD_NAME,
-    LXB_UTILS_WARC_STATE_HEAD_FIELD_VALUE,
-    LXB_UTILS_WARC_STATE_HEAD_FIELD_VALUE_QUOTED,
-    LXB_UTILS_WARC_STATE_HEAD_FIELD_VALUE_AFTER,
-    LXB_UTILS_WARC_STATE_HEAD_FIELD_VALUE_WS,
-    LXB_UTILS_WARC_STATE_HEAD_END,
-    LXB_UTILS_WARC_STATE_BLOCK,
-    LXB_UTILS_WARC_STATE_BLOCK_AFTER
+    PCHTML_UTILS_WARC_STATE_HEAD_VERSION = 0x00,
+    PCHTML_UTILS_WARC_STATE_HEAD_VERSION_AFTER,
+    PCHTML_UTILS_WARC_STATE_HEAD_FIELD_NAME,
+    PCHTML_UTILS_WARC_STATE_HEAD_FIELD_VALUE,
+    PCHTML_UTILS_WARC_STATE_HEAD_FIELD_VALUE_QUOTED,
+    PCHTML_UTILS_WARC_STATE_HEAD_FIELD_VALUE_AFTER,
+    PCHTML_UTILS_WARC_STATE_HEAD_FIELD_VALUE_WS,
+    PCHTML_UTILS_WARC_STATE_HEAD_END,
+    PCHTML_UTILS_WARC_STATE_BLOCK,
+    PCHTML_UTILS_WARC_STATE_BLOCK_AFTER
 };
 
-static const lxb_char_t lxb_utils_warc_seporators_ctl[0x80] =
+static const unsigned char pchtml_utils_warc_seporators_ctl[0x80] =
 {
     0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
     0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
@@ -49,7 +68,7 @@ static const lxb_char_t lxb_utils_warc_seporators_ctl[0x80] =
 };
 
 /*
-static const lxb_char_t lxb_utils_warc_ctl[0x80] =
+static const unsigned char pchtml_utils_warc_ctl[0x80] =
 {
     0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
     0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
@@ -66,13 +85,13 @@ static const lxb_char_t lxb_utils_warc_ctl[0x80] =
 */
 
 
-lxb_inline lxb_utils_warc_field_t *
-lxb_utils_warc_field_append(lxb_utils_warc_t *warc, lxb_char_t *name,
+static inline pchtml_utils_warc_field_t *
+pchtml_utils_warc_field_append(pchtml_utils_warc_t *warc, unsigned char *name,
                             size_t len)
 {
-    lxb_utils_warc_field_t *field;
+    pchtml_utils_warc_field_t *field;
 
-    field = lexbor_array_obj_push(warc->fields);
+    field = pchtml_array_obj_push(warc->fields);
     if (field == NULL) {
         return NULL;
     }
@@ -83,51 +102,51 @@ lxb_utils_warc_field_append(lxb_utils_warc_t *warc, lxb_char_t *name,
     return field;
 }
 
-lxb_inline lxb_utils_warc_field_t *
-lxb_utils_warc_field_last(lxb_utils_warc_t *warc)
+static inline pchtml_utils_warc_field_t *
+pchtml_utils_warc_field_last(pchtml_utils_warc_t *warc)
 {
-    return lexbor_array_obj_last(warc->fields);
+    return pchtml_array_obj_last(warc->fields);
 }
 
 
-lxb_utils_warc_t *
-lxb_utils_warc_create(void)
+pchtml_utils_warc_t *
+pchtml_utils_warc_create(void)
 {
-    return lexbor_calloc(1, sizeof(lxb_utils_warc_t));
+    return pchtml_calloc(1, sizeof(pchtml_utils_warc_t));
 }
 
-lxb_status_t
-lxb_utils_warc_init(lxb_utils_warc_t *warc, lxb_utils_warc_header_cb_f h_cd,
-                    lxb_utils_warc_content_cb_f c_cb,
-                    lxb_utils_warc_content_end_cb_f c_end_cb, void *ctx)
+unsigned int
+pchtml_utils_warc_init(pchtml_utils_warc_t *warc, pchtml_utils_warc_header_cb_f h_cd,
+                    pchtml_utils_warc_content_cb_f c_cb,
+                    pchtml_utils_warc_content_end_cb_f c_end_cb, void *ctx)
 {
-    lxb_status_t status;
+    unsigned int status;
 
     if (warc == NULL) {
-        return LXB_STATUS_ERROR_OBJECT_IS_NULL;
+        return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
     }
 
-    warc->mraw = lexbor_mraw_create();
-    status = lexbor_mraw_init(warc->mraw, 4096 * 4);
+    warc->mraw = pchtml_mraw_create();
+    status = pchtml_mraw_init(warc->mraw, 4096 * 4);
     if (status) {
         return status;
     }
 
-    warc->fields = lexbor_array_obj_create();
-    status = lexbor_array_obj_init(warc->fields, 32,
-                                   sizeof(lxb_utils_warc_field_t));
+    warc->fields = pchtml_array_obj_create();
+    status = pchtml_array_obj_init(warc->fields, 32,
+                                   sizeof(pchtml_utils_warc_field_t));
     if (status) {
         return status;
     }
 
-    lexbor_str_init(&warc->tmp, warc->mraw, 64);
+    pchtml_str_init(&warc->tmp, warc->mraw, 64);
     if (warc->tmp.data == NULL) {
-        return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+        return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
-    lexbor_str_init(&warc->version.type, warc->mraw, 8);
+    pchtml_str_init(&warc->version.type, warc->mraw, 8);
     if (warc->version.type.data == NULL) {
-        return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+        return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
     warc->header_cb = h_cd;
@@ -135,122 +154,122 @@ lxb_utils_warc_init(lxb_utils_warc_t *warc, lxb_utils_warc_header_cb_f h_cd,
     warc->content_end_cb = c_end_cb;
 
     warc->error = NULL;
-    warc->state = LXB_UTILS_WARC_STATE_HEAD_VERSION;
+    warc->state = PCHTML_UTILS_WARC_STATE_HEAD_VERSION;
     warc->count = 0;
     warc->ctx = ctx;
     warc->skip = false;
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_status_t
-lxb_utils_warc_clear(lxb_utils_warc_t *warc)
+unsigned int
+pchtml_utils_warc_clear(pchtml_utils_warc_t *warc)
 {
-    lexbor_mraw_clean(warc->mraw);
-    lexbor_array_obj_clean(warc->fields);
-    lexbor_str_clean_all(&warc->tmp);
+    pchtml_mraw_clean(warc->mraw);
+    pchtml_array_obj_clean(warc->fields);
+    pchtml_str_clean_all(&warc->tmp);
 
     warc->tmp.data = NULL;
 
-    lexbor_str_init(&warc->tmp, warc->mraw, 64);
+    pchtml_str_init(&warc->tmp, warc->mraw, 64);
     if (warc->tmp.data == NULL) {
-        return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+        return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
     warc->version.type.data = NULL;
     warc->version.number = 0;
 
-    lexbor_str_init(&warc->version.type, warc->mraw, 8);
+    pchtml_str_init(&warc->version.type, warc->mraw, 8);
     if (warc->version.type.data == NULL) {
-        return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+        return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
     warc->error = NULL;
-    warc->state = LXB_UTILS_WARC_STATE_HEAD_VERSION;
+    warc->state = PCHTML_UTILS_WARC_STATE_HEAD_VERSION;
     warc->skip = false;
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_utils_warc_t *
-lxb_utils_warc_destroy(lxb_utils_warc_t *warc, bool self_destroy)
+pchtml_utils_warc_t *
+pchtml_utils_warc_destroy(pchtml_utils_warc_t *warc, bool self_destroy)
 {
     if (warc == NULL) {
         return NULL;
     }
 
-    warc->mraw = lexbor_mraw_destroy(warc->mraw, true);
-    warc->fields = lexbor_array_obj_destroy(warc->fields, true);
+    warc->mraw = pchtml_mraw_destroy(warc->mraw, true);
+    warc->fields = pchtml_array_obj_destroy(warc->fields, true);
 
     if (self_destroy) {
-        return lexbor_free(warc);
+        return pchtml_free(warc);
     }
 
     return warc;
 }
 
-lxb_status_t
-lxb_utils_warc_parse_file(lxb_utils_warc_t *warc, FILE *fh)
+unsigned int
+pchtml_utils_warc_parse_file(pchtml_utils_warc_t *warc, FILE *fh)
 {
     size_t size;
-    lxb_status_t status;
+    unsigned int status;
 
-    const lxb_char_t *buf_ref;
-    lxb_char_t buffer[4096 * 2];
+    const unsigned char *buf_ref;
+    unsigned char buffer[4096 * 2];
 
     if (fh == NULL) {
-        return LXB_STATUS_ERROR_WRONG_ARGS;
+        return PCHTML_STATUS_ERROR_WRONG_ARGS;
     }
 
     do {
         buf_ref = buffer;
 
-        size = fread(buffer, sizeof(lxb_char_t), sizeof(buffer), fh);
+        size = fread(buffer, sizeof(unsigned char), sizeof(buffer), fh);
         if (size != sizeof(buffer)) {
             if (feof(fh)) {
-                return lxb_utils_warc_parse(warc, &buf_ref, (buffer + size));
+                return pchtml_utils_warc_parse(warc, &buf_ref, (buffer + size));
             }
 
-            return LXB_STATUS_ERROR;
+            return PCHTML_STATUS_ERROR;
         }
 
-        status = lxb_utils_warc_parse(warc, &buf_ref,
+        status = pchtml_utils_warc_parse(warc, &buf_ref,
                                       (buffer + sizeof(buffer)));
     }
-    while (status == LXB_STATUS_OK);
+    while (status == PCHTML_STATUS_OK);
 
-    return lxb_utils_warc_parse_eof(warc);
+    return pchtml_utils_warc_parse_eof(warc);
 }
 
-lxb_status_t
-lxb_utils_warc_parse_eof(lxb_utils_warc_t *warc)
+unsigned int
+pchtml_utils_warc_parse_eof(pchtml_utils_warc_t *warc)
 {
-    if (warc->state != LXB_UTILS_WARC_STATE_HEAD_VERSION) {
+    if (warc->state != PCHTML_UTILS_WARC_STATE_HEAD_VERSION) {
         warc->error = "Unexpected data termination.";
 
-        return LXB_STATUS_ABORTED;
+        return PCHTML_STATUS_ABORTED;
     }
 
     warc->count = 0;
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_inline lxb_status_t
-lxb_utils_warc_parse_version(lxb_utils_warc_t *warc, const lxb_char_t **data,
-                             const lxb_char_t *end)
+static inline unsigned int
+pchtml_utils_warc_parse_version(pchtml_utils_warc_t *warc, const unsigned char **data,
+                             const unsigned char *end)
 {
-    lexbor_str_t *str;
-    const lxb_char_t *p;
+    pchtml_str_t *str;
+    const unsigned char *p;
 
     str = &warc->version.type;
 
     p = memchr(*data, '\n', (end - *data));
 
     if (p == NULL) {
-        p = lexbor_str_append(str, warc->mraw, *data, (end - *data));
+        p = pchtml_str_append(str, warc->mraw, *data, (end - *data));
         if (p == NULL) {
-            return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+            return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
         *data = end;
@@ -259,13 +278,13 @@ lxb_utils_warc_parse_version(lxb_utils_warc_t *warc, const lxb_char_t **data,
             goto failed;
         }
 
-        return LXB_STATUS_OK;
+        return PCHTML_STATUS_OK;
     }
 
-    *data = lexbor_str_append(str, warc->mraw, *data, (p - *data));
+    *data = pchtml_str_append(str, warc->mraw, *data, (p - *data));
     if (*data == NULL) {
         *data = p;
-        return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+        return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
     *data = p + 1;
@@ -274,153 +293,153 @@ lxb_utils_warc_parse_version(lxb_utils_warc_t *warc, const lxb_char_t **data,
         goto failed;
     }
 
-    lexbor_str_length_set(str, warc->mraw, (str->length - 1));
+    pchtml_str_length_set(str, warc->mraw, (str->length - 1));
 
-    if (lexbor_str_data_ncasecmp(str->data,
-                                 (const lxb_char_t *) "warc/", 5) == false)
+    if (pchtml_str_data_ncasecmp(str->data,
+                                 (const unsigned char *) "warc/", 5) == false)
     {
         goto failed;
     }
 
     p = str->data + 5;
 
-    warc->version.number = lexbor_conv_data_to_double(&p, 3);
+    warc->version.number = pchtml_conv_data_to_double(&p, 3);
     if (warc->version.number != 1.0) {
         goto failed;
     }
 
-    warc->state = LXB_UTILS_WARC_STATE_HEAD_VERSION_AFTER;
+    warc->state = PCHTML_UTILS_WARC_STATE_HEAD_VERSION_AFTER;
     warc->tmp.length = 0;
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 
 failed:
 
     warc->error = "Wrong warc version.";
 
-    return LXB_STATUS_ABORTED;
+    return PCHTML_STATUS_ABORTED;
 }
 
-lxb_inline lxb_status_t
-lxb_utils_warc_parse_field_version_after(lxb_utils_warc_t *warc,
-                                 const lxb_char_t **data, const lxb_char_t *end)
+static inline unsigned int
+pchtml_utils_warc_parse_field_version_after(pchtml_utils_warc_t *warc,
+                                 const unsigned char **data, const unsigned char *end)
 {
     UNUSED_PARAM(end);
 
     warc->content_length = 0;
 
     if (**data != '\r') {
-        warc->state = LXB_UTILS_WARC_STATE_HEAD_FIELD_NAME;
+        warc->state = PCHTML_UTILS_WARC_STATE_HEAD_FIELD_NAME;
 
-        return LXB_STATUS_OK;
+        return PCHTML_STATUS_OK;
     }
 
     (*data)++;
 
-    warc->state = LXB_UTILS_WARC_STATE_HEAD_END;
+    warc->state = PCHTML_UTILS_WARC_STATE_HEAD_END;
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_inline lxb_status_t
-lxb_utils_warc_parse_field_name(lxb_utils_warc_t *warc, const lxb_char_t **data,
-                          const lxb_char_t *end)
+static inline unsigned int
+pchtml_utils_warc_parse_field_name(pchtml_utils_warc_t *warc, const unsigned char **data,
+                          const unsigned char *end)
 {
-    const lxb_char_t *p;
-    lxb_utils_warc_field_t *field;
+    const unsigned char *p;
+    pchtml_utils_warc_field_t *field;
 
     for (p = *data; p < end; p++) {
         if (*p == ':') {
-            *data = lexbor_str_append(&warc->tmp, warc->mraw, *data,
+            *data = pchtml_str_append(&warc->tmp, warc->mraw, *data,
                                       (p - *data));
             if (*data == NULL) {
                 *data = p;
-                return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+                return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
             }
 
             *data = p + 1;
 
-            field = lxb_utils_warc_field_append(warc, warc->tmp.data,
+            field = pchtml_utils_warc_field_append(warc, warc->tmp.data,
                                           warc->tmp.length);
             if (field == NULL) {
-                return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+                return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
             }
 
-            lexbor_str_init(&field->value, warc->mraw, 0);
+            pchtml_str_init(&field->value, warc->mraw, 0);
             if (field->value.data == NULL) {
-                return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+                return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
             }
 
-            lexbor_str_clean_all(&warc->tmp);
+            pchtml_str_clean_all(&warc->tmp);
 
-            lexbor_str_init(&warc->tmp, warc->mraw, 64);
+            pchtml_str_init(&warc->tmp, warc->mraw, 64);
             if (warc->tmp.data == NULL) {
-                return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+                return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
             }
 
-            warc->state = LXB_UTILS_WARC_STATE_HEAD_FIELD_VALUE_WS;
+            warc->state = PCHTML_UTILS_WARC_STATE_HEAD_FIELD_VALUE_WS;
 
-            return LXB_STATUS_OK;
+            return PCHTML_STATUS_OK;
         }
 
-        if (*p > 0x7F || lxb_utils_warc_seporators_ctl[*p] != 0x00) {
+        if (*p > 0x7F || pchtml_utils_warc_seporators_ctl[*p] != 0x00) {
             *data = p;
 
             warc->error = "Wrong header field name.";
 
-            return LXB_STATUS_ABORTED;
+            return PCHTML_STATUS_ABORTED;
         }
     }
 
-    p = lexbor_str_append(&warc->tmp, warc->mraw, *data, (p - *data));
+    p = pchtml_str_append(&warc->tmp, warc->mraw, *data, (p - *data));
     if (p == NULL) {
-        return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+        return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
-    if (warc->tmp.length > LXB_UTILS_WARC_MAX_HEADER_NAME) {
+    if (warc->tmp.length > PCHTML_UTILS_WARC_MAX_HEADER_NAME) {
         warc->error = "Too large header field name.";
 
-        return LXB_STATUS_ABORTED;
+        return PCHTML_STATUS_ABORTED;
     }
 
     *data = end;
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_inline lxb_status_t
-lxb_utils_warc_parse_field_value(lxb_utils_warc_t *warc,
-                                 const lxb_char_t **data, const lxb_char_t *end)
+static inline unsigned int
+pchtml_utils_warc_parse_field_value(pchtml_utils_warc_t *warc,
+                                 const unsigned char **data, const unsigned char *end)
 {
-    const lxb_char_t *p;
-    lxb_utils_warc_field_t *field = lxb_utils_warc_field_last(warc);
+    const unsigned char *p;
+    pchtml_utils_warc_field_t *field = pchtml_utils_warc_field_last(warc);
 
     for (p = *data; p < end; p++) {
         if (*p == '"') {
             p++;
 
-            *data = lexbor_str_append(&field->value, warc->mraw,
+            *data = pchtml_str_append(&field->value, warc->mraw,
                                       *data, (p - *data));
             if (*data == NULL) {
                 *data = p - 1;
-                return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+                return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
             }
 
             *data = p;
 
-            warc->state = LXB_UTILS_WARC_STATE_HEAD_FIELD_VALUE_QUOTED;
+            warc->state = PCHTML_UTILS_WARC_STATE_HEAD_FIELD_VALUE_QUOTED;
 
-            return LXB_STATUS_OK;
+            return PCHTML_STATUS_OK;
         }
 
         if (*p == '\n') {
             p++;
 
-            *data = lexbor_str_append(&field->value, warc->mraw,
+            *data = pchtml_str_append(&field->value, warc->mraw,
                                       *data, (p - *data));
             if (*data == NULL) {
                 *data = p - 1;
-                return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+                return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
             }
 
             *data = p;
@@ -428,67 +447,67 @@ lxb_utils_warc_parse_field_value(lxb_utils_warc_t *warc,
             if (field->value.length > 1) {
                 if (field->value.data[(field->value.length - 2)] == '\r') {
 
-                    lexbor_str_length_set(&field->value, warc->mraw,
+                    pchtml_str_length_set(&field->value, warc->mraw,
                                           (field->value.length - 2));
 
-                    warc->state = LXB_UTILS_WARC_STATE_HEAD_FIELD_VALUE_AFTER;
+                    warc->state = PCHTML_UTILS_WARC_STATE_HEAD_FIELD_VALUE_AFTER;
 
-                    return LXB_STATUS_OK;
+                    return PCHTML_STATUS_OK;
                 }
             }
 
             p--;
         }
 /*
-        if (*p > 0x7F || lxb_utils_warc_ctl[*p] != 0x00) {
+        if (*p > 0x7F || pchtml_utils_warc_ctl[*p] != 0x00) {
             *data = p;
 
             warc->error = "Wrong header field value.";
 
-            return LXB_STATUS_ABORTED;
+            return PCHTML_STATUS_ABORTED;
         }
  */
     }
 
-    p = lexbor_str_append(&field->value, warc->mraw, *data, (end - *data));
+    p = pchtml_str_append(&field->value, warc->mraw, *data, (end - *data));
     if (p == NULL) {
         *data = end;
-        return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+        return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
-    if (field->value.length > LXB_UTILS_WARC_MAX_HEADER_VALUE) {
+    if (field->value.length > PCHTML_UTILS_WARC_MAX_HEADER_VALUE) {
         warc->error = "Too large header field name.";
 
-        return LXB_STATUS_ABORTED;
+        return PCHTML_STATUS_ABORTED;
     }
 
     *data = end;
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_inline lxb_status_t
-lxb_utils_warc_parse_field_value_quoted(lxb_utils_warc_t *warc,
-                                 const lxb_char_t **data, const lxb_char_t *end)
+static inline unsigned int
+pchtml_utils_warc_parse_field_value_quoted(pchtml_utils_warc_t *warc,
+                                 const unsigned char **data, const unsigned char *end)
 {
-    const lxb_char_t *p;
-    lxb_utils_warc_field_t *field = lxb_utils_warc_field_last(warc);
+    const unsigned char *p;
+    pchtml_utils_warc_field_t *field = pchtml_utils_warc_field_last(warc);
 
     for (p = *data; p < end; p++) {
         if (*p == '"') {
             *data = p + 1;
 
-            warc->state = LXB_UTILS_WARC_STATE_HEAD_FIELD_VALUE;
+            warc->state = PCHTML_UTILS_WARC_STATE_HEAD_FIELD_VALUE;
 
             goto done;
         }
 
         if (*p == '\\') {
-            *data = lexbor_str_append(&field->value, warc->mraw,
+            *data = pchtml_str_append(&field->value, warc->mraw,
                                       *data, (p - *data));
             if (*data == NULL) {
                 *data = p;
-                return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+                return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
             }
 
             *data = ++p;
@@ -497,108 +516,108 @@ lxb_utils_warc_parse_field_value_quoted(lxb_utils_warc_t *warc,
 
 done:
 
-    p = lexbor_str_append(&field->value, warc->mraw, *data, (end - *data));
+    p = pchtml_str_append(&field->value, warc->mraw, *data, (end - *data));
     if (p == NULL) {
         *data = end;
-        return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+        return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
     *data = end;
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_inline lxb_status_t
-lxb_utils_warc_parse_field_value_after(lxb_utils_warc_t *warc,
-                                 const lxb_char_t **data, const lxb_char_t *end)
+static inline unsigned int
+pchtml_utils_warc_parse_field_value_after(pchtml_utils_warc_t *warc,
+                                 const unsigned char **data, const unsigned char *end)
 {
     UNUSED_PARAM(end);
 
-    const lxb_utils_warc_field_t *field = lxb_utils_warc_field_last(warc);
-    const lxb_char_t ch = **data;
+    const pchtml_utils_warc_field_t *field = pchtml_utils_warc_field_last(warc);
+    const unsigned char ch = **data;
 
-    static const lxb_char_t lxb_utils_warc_clen[] = "Content-Length";
+    static const unsigned char pchtml_utils_warc_clen[] = "Content-Length";
 
     if (ch == ' ' || ch == '\t') {
         (*data)++;
 
-        warc->state = LXB_UTILS_WARC_STATE_HEAD_FIELD_VALUE_WS;
+        warc->state = PCHTML_UTILS_WARC_STATE_HEAD_FIELD_VALUE_WS;
 
-        return LXB_STATUS_OK;
+        return PCHTML_STATUS_OK;
     }
 
     /* Parse Content-Length value */
     if (warc->content_length == 0
-        && field->name.length == (sizeof(lxb_utils_warc_clen) - 1)
-        && lexbor_str_data_ncasecmp(field->name.data, lxb_utils_warc_clen,
-                                    (sizeof(lxb_utils_warc_clen) - 1)))
+        && field->name.length == (sizeof(pchtml_utils_warc_clen) - 1)
+        && pchtml_str_data_ncasecmp(field->name.data, pchtml_utils_warc_clen,
+                                    (sizeof(pchtml_utils_warc_clen) - 1)))
     {
-        const lxb_char_t *p = field->value.data;
-        const lxb_char_t *p_end = p + field->value.length;
+        const unsigned char *p = field->value.data;
+        const unsigned char *p_end = p + field->value.length;
 
-        warc->content_length = lexbor_conv_data_to_ulong(&p,
+        warc->content_length = pchtml_conv_data_to_ulong(&p,
                                                          field->value.length);
         if (p != p_end) {
             warc->error = "Wrong \"Content-Length\" value.";
 
-            return LXB_STATUS_ABORTED;
+            return PCHTML_STATUS_ABORTED;
         }
     }
 
     if (ch == '\r') {
         (*data)++;
 
-        warc->state = LXB_UTILS_WARC_STATE_HEAD_END;
+        warc->state = PCHTML_UTILS_WARC_STATE_HEAD_END;
 
-        return LXB_STATUS_OK;
+        return PCHTML_STATUS_OK;
     }
 
-    warc->state = LXB_UTILS_WARC_STATE_HEAD_FIELD_NAME;
+    warc->state = PCHTML_UTILS_WARC_STATE_HEAD_FIELD_NAME;
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_inline lxb_status_t
-lxb_utils_warc_parse_field_value_ws(lxb_utils_warc_t *warc,
-                                 const lxb_char_t **data, const lxb_char_t *end)
+static inline unsigned int
+pchtml_utils_warc_parse_field_value_ws(pchtml_utils_warc_t *warc,
+                                 const unsigned char **data, const unsigned char *end)
 {
-    const lxb_char_t *p;
+    const unsigned char *p;
 
     for (p = *data; p < end; p++) {
         if (*p != ' ' && *p != '\t') {
             *data = p;
 
-            warc->state = LXB_UTILS_WARC_STATE_HEAD_FIELD_VALUE;
+            warc->state = PCHTML_UTILS_WARC_STATE_HEAD_FIELD_VALUE;
 
-            return LXB_STATUS_OK;
+            return PCHTML_STATUS_OK;
         }
     }
 
     *data = p;
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_inline lxb_status_t
-lxb_utils_warc_parse_header_end(lxb_utils_warc_t *warc, const lxb_char_t **data,
-                                const lxb_char_t *end)
+static inline unsigned int
+pchtml_utils_warc_parse_header_end(pchtml_utils_warc_t *warc, const unsigned char **data,
+                                const unsigned char *end)
 {
     UNUSED_PARAM(end);
 
-    lxb_status_t status;
+    unsigned int status;
 
     if (**data != '\n') {
         warc->error = "Wrong end of header.";
 
-        return LXB_STATUS_ABORTED;
+        return PCHTML_STATUS_ABORTED;
     }
 
     (*data)++;
 
     if (warc->header_cb != NULL) {
         status = warc->header_cb(warc);
-        if (status != LXB_STATUS_OK) {
-            if (status != LXB_STATUS_NEXT) {
+        if (status != PCHTML_STATUS_OK) {
+            if (status != PCHTML_STATUS_NEXT) {
                 return status;
             }
 
@@ -607,24 +626,24 @@ lxb_utils_warc_parse_header_end(lxb_utils_warc_t *warc, const lxb_char_t **data,
     }
 
     if (warc->content_length != 0) {
-        warc->state = LXB_UTILS_WARC_STATE_BLOCK;
+        warc->state = PCHTML_UTILS_WARC_STATE_BLOCK;
     }
     else {
-        warc->state = LXB_UTILS_WARC_STATE_BLOCK_AFTER;
+        warc->state = PCHTML_UTILS_WARC_STATE_BLOCK_AFTER;
     }
 
     warc->content_read = 0;
     warc->ends = 0;
     warc->count++;
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_inline lxb_status_t
-lxb_utils_warc_parse_block(lxb_utils_warc_t *warc, const lxb_char_t **data,
-                           const lxb_char_t *end)
+static inline unsigned int
+pchtml_utils_warc_parse_block(pchtml_utils_warc_t *warc, const unsigned char **data,
+                           const unsigned char *end)
 {
-    lxb_status_t status = LXB_STATUS_OK;
+    unsigned int status = PCHTML_STATUS_OK;
 
     if ((end - *data) >= (int)(warc->content_length - warc->content_read)) {
         end = *data + (warc->content_length - warc->content_read);
@@ -632,13 +651,13 @@ lxb_utils_warc_parse_block(lxb_utils_warc_t *warc, const lxb_char_t **data,
         if (warc->skip == false && warc->content_cb != NULL) {
             status = warc->content_cb(warc, *data, end);
 
-            if (status != LXB_STATUS_OK) {
+            if (status != PCHTML_STATUS_OK) {
                 warc->skip = true;
             }
         }
 
         warc->content_read = warc->content_length;
-        warc->state = LXB_UTILS_WARC_STATE_BLOCK_AFTER;
+        warc->state = PCHTML_UTILS_WARC_STATE_BLOCK_AFTER;
         warc->ends = 0;
 
         *data = end;
@@ -649,7 +668,7 @@ lxb_utils_warc_parse_block(lxb_utils_warc_t *warc, const lxb_char_t **data,
     if (warc->skip == false && warc->content_cb != NULL) {
         status = warc->content_cb(warc, *data, end);
 
-        if (status != LXB_STATUS_OK) {
+        if (status != PCHTML_STATUS_OK) {
             warc->skip = true;
         }
     }
@@ -660,106 +679,106 @@ lxb_utils_warc_parse_block(lxb_utils_warc_t *warc, const lxb_char_t **data,
     return status;
 }
 
-lxb_inline lxb_status_t
-lxb_utils_warc_parse_block_after(lxb_utils_warc_t *warc,
-                                 const lxb_char_t **data, const lxb_char_t *end)
+static inline unsigned int
+pchtml_utils_warc_parse_block_after(pchtml_utils_warc_t *warc,
+                                 const unsigned char **data, const unsigned char *end)
 {
-    lxb_status_t status;
-    static const lxb_char_t lxb_utils_warc_ends[] = "\r\n\r\n";
+    unsigned int status;
+    static const unsigned char pchtml_utils_warc_ends[] = "\r\n\r\n";
 
     while (warc->ends < 4) {
-        if (**data != lxb_utils_warc_ends[warc->ends]) {
+        if (**data != pchtml_utils_warc_ends[warc->ends]) {
             warc->error = "Wrong end of block.";
 
-            return LXB_STATUS_ERROR;
+            return PCHTML_STATUS_ERROR;
         }
 
         warc->ends++;
 
         if (++(*data) == end) {
-            return LXB_STATUS_OK;
+            return PCHTML_STATUS_OK;
         }
     }
 
     if (warc->skip == false && warc->content_end_cb != NULL) {
         status = warc->content_end_cb(warc);
-        if (status != LXB_STATUS_OK) {
+        if (status != PCHTML_STATUS_OK) {
             return status;
         }
     }
 
-    return lxb_utils_warc_clear(warc);
+    return pchtml_utils_warc_clear(warc);
 }
 
-lxb_status_t
-lxb_utils_warc_parse(lxb_utils_warc_t *warc,
-                     const lxb_char_t **data, const lxb_char_t *end)
+unsigned int
+pchtml_utils_warc_parse(pchtml_utils_warc_t *warc,
+                     const unsigned char **data, const unsigned char *end)
 {
-    lxb_status_t status = LXB_STATUS_ERROR;
+    unsigned int status = PCHTML_STATUS_ERROR;
 
     while (*data < end) {
         switch (warc->state) {
 
-            case LXB_UTILS_WARC_STATE_HEAD_VERSION:
-                status = lxb_utils_warc_parse_version(warc, data, end);
+            case PCHTML_UTILS_WARC_STATE_HEAD_VERSION:
+                status = pchtml_utils_warc_parse_version(warc, data, end);
                 break;
 
-            case LXB_UTILS_WARC_STATE_HEAD_VERSION_AFTER:
-                status = lxb_utils_warc_parse_field_version_after(warc, data, end);
+            case PCHTML_UTILS_WARC_STATE_HEAD_VERSION_AFTER:
+                status = pchtml_utils_warc_parse_field_version_after(warc, data, end);
                 break;
 
-            case LXB_UTILS_WARC_STATE_HEAD_FIELD_NAME:
-                status = lxb_utils_warc_parse_field_name(warc, data, end);
+            case PCHTML_UTILS_WARC_STATE_HEAD_FIELD_NAME:
+                status = pchtml_utils_warc_parse_field_name(warc, data, end);
                 break;
 
-            case LXB_UTILS_WARC_STATE_HEAD_FIELD_VALUE:
-                status = lxb_utils_warc_parse_field_value(warc, data, end);
+            case PCHTML_UTILS_WARC_STATE_HEAD_FIELD_VALUE:
+                status = pchtml_utils_warc_parse_field_value(warc, data, end);
                 break;
 
-            case LXB_UTILS_WARC_STATE_HEAD_FIELD_VALUE_QUOTED:
-                status = lxb_utils_warc_parse_field_value_quoted(warc, data, end);
+            case PCHTML_UTILS_WARC_STATE_HEAD_FIELD_VALUE_QUOTED:
+                status = pchtml_utils_warc_parse_field_value_quoted(warc, data, end);
                 break;
 
-            case LXB_UTILS_WARC_STATE_HEAD_FIELD_VALUE_AFTER:
-                status = lxb_utils_warc_parse_field_value_after(warc, data, end);
+            case PCHTML_UTILS_WARC_STATE_HEAD_FIELD_VALUE_AFTER:
+                status = pchtml_utils_warc_parse_field_value_after(warc, data, end);
                 break;
 
-            case LXB_UTILS_WARC_STATE_HEAD_FIELD_VALUE_WS:
-                status = lxb_utils_warc_parse_field_value_ws(warc, data, end);
+            case PCHTML_UTILS_WARC_STATE_HEAD_FIELD_VALUE_WS:
+                status = pchtml_utils_warc_parse_field_value_ws(warc, data, end);
                 break;
 
-            case LXB_UTILS_WARC_STATE_HEAD_END:
-                status = lxb_utils_warc_parse_header_end(warc, data, end);
+            case PCHTML_UTILS_WARC_STATE_HEAD_END:
+                status = pchtml_utils_warc_parse_header_end(warc, data, end);
                 break;
 
-            case LXB_UTILS_WARC_STATE_BLOCK:
-                status = lxb_utils_warc_parse_block(warc, data, end);
+            case PCHTML_UTILS_WARC_STATE_BLOCK:
+                status = pchtml_utils_warc_parse_block(warc, data, end);
                 break;
 
-            case LXB_UTILS_WARC_STATE_BLOCK_AFTER:
-                status = lxb_utils_warc_parse_block_after(warc, data, end);
+            case PCHTML_UTILS_WARC_STATE_BLOCK_AFTER:
+                status = pchtml_utils_warc_parse_block_after(warc, data, end);
                 break;
         }
 
-        if (status != LXB_STATUS_OK) {
+        if (status != PCHTML_STATUS_OK) {
             return status;
         }
     }
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_utils_warc_field_t *
-lxb_utils_warc_header_field(lxb_utils_warc_t *warc, const lxb_char_t *name,
+pchtml_utils_warc_field_t *
+pchtml_utils_warc_header_field(pchtml_utils_warc_t *warc, const unsigned char *name,
                             size_t len, size_t offset)
 {
-    lxb_utils_warc_field_t *field;
+    pchtml_utils_warc_field_t *field;
 
-    for (size_t i = 0; i < lexbor_array_obj_length(warc->fields); i++) {
-        field = lexbor_array_obj_get(warc->fields, i);
+    for (size_t i = 0; i < pchtml_array_obj_length(warc->fields); i++) {
+        field = pchtml_array_obj_get(warc->fields, i);
 
         if (field->name.length == len
-            && lexbor_str_data_ncasecmp(field->name.data, name, len))
+            && pchtml_str_data_ncasecmp(field->name.data, name, len))
         {
             if (offset == 0) {
                 return field;
@@ -772,53 +791,53 @@ lxb_utils_warc_header_field(lxb_utils_warc_t *warc, const lxb_char_t *name,
     return NULL;
 }
 
-lxb_status_t
-lxb_utils_warc_header_serialize(lxb_utils_warc_t *warc, lexbor_str_t *str)
+unsigned int
+pchtml_utils_warc_header_serialize(pchtml_utils_warc_t *warc, pchtml_str_t *str)
 {
-    lxb_char_t *data;
-    const lxb_utils_warc_field_t *field;
+    unsigned char *data;
+    const pchtml_utils_warc_field_t *field;
 
     if (str->data == NULL) {
-        lexbor_str_init(str, warc->mraw, 256);
+        pchtml_str_init(str, warc->mraw, 256);
         if (str->data == NULL) {
-            return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+            return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
     }
 
-    for (size_t i = 0; i < lexbor_array_obj_length(warc->fields); i++) {
-        field = lexbor_array_obj_get(warc->fields, i);
+    for (size_t i = 0; i < pchtml_array_obj_length(warc->fields); i++) {
+        field = pchtml_array_obj_get(warc->fields, i);
 
-        data = lexbor_str_append(str, warc->mraw, field->name.data,
+        data = pchtml_str_append(str, warc->mraw, field->name.data,
                                  field->name.length);
         if (data == NULL) {
-            return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+            return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
-        data = lexbor_str_append(str, warc->mraw, (lxb_char_t *) ": ", 2);
+        data = pchtml_str_append(str, warc->mraw, (unsigned char *) ": ", 2);
         if (data == NULL) {
-            return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+            return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
-        data = lexbor_str_append(str, warc->mraw, field->value.data,
+        data = pchtml_str_append(str, warc->mraw, field->value.data,
                                  field->value.length);
         if (data == NULL) {
-            return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+            return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
-        data = lexbor_str_append_one(str, warc->mraw, '\n');
+        data = pchtml_str_append_one(str, warc->mraw, '\n');
         if (data == NULL) {
-            return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+            return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
     }
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
 /*
  * No inline functions for ABI.
  */
 size_t
-lxb_utils_warc_content_length_noi(lxb_utils_warc_t *warc)
+pchtml_utils_warc_content_length_noi(pchtml_utils_warc_t *warc)
 {
-    return lxb_utils_warc_content_length(warc);
+    return pchtml_utils_warc_content_length(warc);
 }

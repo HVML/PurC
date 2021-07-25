@@ -1,19 +1,36 @@
-/*
- * Copyright (C) 2019 Alexander Borisov
+/**
+ * @file http.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for http protocol.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
- * This code only for parsing HTTP/1.x header and split with body.
- * Body parsing is not completed.
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LXB_UTILS_HTTP_H
-#define LXB_UTILS_HTTP_H
+
+#ifndef PCHTML_UTILS_HTTP_H
+#define PCHTML_UTILS_HTTP_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "config.h"
 #include "html/utils/base.h"
 
 #include "html/core/mraw.h"
@@ -22,69 +39,73 @@ extern "C" {
 
 
 typedef struct {
-    lexbor_str_t name;
+    pchtml_str_t name;
     double       number;
     unsigned     status;
 }
-lxb_utils_http_version_t;
+pchtml_utils_http_version_t;
 
 typedef struct {
-    lexbor_str_t name;
-    lexbor_str_t value;
+    pchtml_str_t name;
+    pchtml_str_t value;
 }
-lxb_utils_http_field_t;
+pchtml_utils_http_field_t;
 
 typedef struct {
-    lexbor_mraw_t            *mraw;
-    lexbor_array_obj_t       *fields;
+    pchtml_mraw_t            *mraw;
+    pchtml_array_obj_t       *fields;
 
-    lexbor_str_t             tmp;
-    lxb_utils_http_version_t version;
+    pchtml_str_t             tmp;
+    pchtml_utils_http_version_t version;
 
     const char               *error;
     unsigned                 state;
 }
-lxb_utils_http_t;
+pchtml_utils_http_t;
 
 
-LXB_API lxb_utils_http_t *
-lxb_utils_http_create(void);
+pchtml_utils_http_t *
+pchtml_utils_http_create(void) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_utils_http_init(lxb_utils_http_t *http, lexbor_mraw_t *mraw);
+unsigned int
+pchtml_utils_http_init(pchtml_utils_http_t *http, 
+            pchtml_mraw_t *mraw) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_utils_http_clear(lxb_utils_http_t *http);
+unsigned int
+pchtml_utils_http_clear(pchtml_utils_http_t *http) WTF_INTERNAL;
 
-LXB_API lxb_utils_http_t *
-lxb_utils_http_destroy(lxb_utils_http_t *http, bool self_destroy);
+pchtml_utils_http_t *
+pchtml_utils_http_destroy(pchtml_utils_http_t *http, 
+                bool self_destroy) WTF_INTERNAL;
 
 /*
- * Before new processing we must call lxb_utils_http_clear function.
+ * Before new processing we must call pchtml_utils_http_clear function.
  */
-LXB_API lxb_status_t
-lxb_utils_http_parse(lxb_utils_http_t *http,
-                     const lxb_char_t **data, const lxb_char_t *end);
+unsigned int
+pchtml_utils_http_parse(pchtml_utils_http_t *http,
+                const unsigned char **data, 
+                const unsigned char *end) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_utils_http_header_parse_eof(lxb_utils_http_t *http);
+unsigned int
+pchtml_utils_http_header_parse_eof(pchtml_utils_http_t *http) WTF_INTERNAL;
 
 
-LXB_API lxb_utils_http_field_t *
-lxb_utils_http_header_field(lxb_utils_http_t *http, const lxb_char_t *name,
-                            size_t len, size_t offset);
+pchtml_utils_http_field_t *
+pchtml_utils_http_header_field(pchtml_utils_http_t *http, const unsigned char *name,
+                size_t len, size_t offset) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_utils_http_header_serialize(lxb_utils_http_t *http, lexbor_str_t *str);
+unsigned int
+pchtml_utils_http_header_serialize(pchtml_utils_http_t *http, 
+                pchtml_str_t *str) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_utils_http_field_serialize(lxb_utils_http_t *http, lexbor_str_t *str,
-                               const lxb_utils_http_field_t *field);
+unsigned int
+pchtml_utils_http_field_serialize(pchtml_utils_http_t *http, pchtml_str_t *str,
+                const pchtml_utils_http_field_t *field) WTF_INTERNAL;
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* UTILS_LXB_HTTP_H */
+#endif  /* UTILS_PCHTML_HTTP_H */
 

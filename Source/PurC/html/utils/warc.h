@@ -1,16 +1,36 @@
-/*
- * Copyright (C) 2019 Alexander Borisov
+/**
+ * @file warc.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for warc.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LXB_UTILS_WARC_H
-#define LXB_UTILS_WARC_H
+
+#ifndef PCHTML_UTILS_WARC_H
+#define PCHTML_UTILS_WARC_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "config.h"
 #include "html/utils/base.h"
 
 #include "html/core/mraw.h"
@@ -18,39 +38,39 @@ extern "C" {
 #include "html/core/array_obj.h"
 
 
-typedef struct lxb_utils_warc lxb_utils_warc_t;
+typedef struct pchtml_utils_warc pchtml_utils_warc_t;
 
 typedef struct {
-    lexbor_str_t type;
+    pchtml_str_t type;
     double       number;
 }
-lxb_utils_warc_version_t;
+pchtml_utils_warc_version_t;
 
 typedef struct {
-    lexbor_str_t name;
-    lexbor_str_t value;
+    pchtml_str_t name;
+    pchtml_str_t value;
 }
-lxb_utils_warc_field_t;
+pchtml_utils_warc_field_t;
 
-typedef lxb_status_t
-(*lxb_utils_warc_header_cb_f)(lxb_utils_warc_t *warc);
+typedef unsigned int
+(*pchtml_utils_warc_header_cb_f)(pchtml_utils_warc_t *warc);
 
-typedef lxb_status_t
-(*lxb_utils_warc_content_cb_f)(lxb_utils_warc_t *warc, const lxb_char_t *data,
-                               const lxb_char_t *end);
-typedef lxb_status_t
-(*lxb_utils_warc_content_end_cb_f)(lxb_utils_warc_t *warc);
+typedef unsigned int
+(*pchtml_utils_warc_content_cb_f)(pchtml_utils_warc_t *warc, const unsigned char *data,
+                               const unsigned char *end);
+typedef unsigned int
+(*pchtml_utils_warc_content_end_cb_f)(pchtml_utils_warc_t *warc);
 
-struct lxb_utils_warc {
-    lexbor_mraw_t                   *mraw;
-    lexbor_array_obj_t              *fields;
+struct pchtml_utils_warc {
+    pchtml_mraw_t                   *mraw;
+    pchtml_array_obj_t              *fields;
 
-    lexbor_str_t                    tmp;
-    lxb_utils_warc_version_t        version;
+    pchtml_str_t                    tmp;
+    pchtml_utils_warc_version_t        version;
 
-    lxb_utils_warc_header_cb_f      header_cb;
-    lxb_utils_warc_content_cb_f     content_cb;
-    lxb_utils_warc_content_end_cb_f content_end_cb;
+    pchtml_utils_warc_header_cb_f      header_cb;
+    pchtml_utils_warc_content_cb_f     content_cb;
+    pchtml_utils_warc_content_end_cb_f content_end_cb;
     void                            *ctx;
 
     size_t                          content_length;
@@ -64,49 +84,50 @@ struct lxb_utils_warc {
 };
 
 
-LXB_API lxb_utils_warc_t *
-lxb_utils_warc_create(void);
+pchtml_utils_warc_t *
+pchtml_utils_warc_create(void);
 
-LXB_API lxb_status_t
-lxb_utils_warc_init(lxb_utils_warc_t *warc, lxb_utils_warc_header_cb_f h_cd,
-                    lxb_utils_warc_content_cb_f c_cb,
-                    lxb_utils_warc_content_end_cb_f c_end_cb, void *ctx);
+unsigned int
+pchtml_utils_warc_init(pchtml_utils_warc_t *warc, pchtml_utils_warc_header_cb_f h_cd,
+                pchtml_utils_warc_content_cb_f c_cb,
+                pchtml_utils_warc_content_end_cb_f c_end_cb, void *ctx) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_utils_warc_clear(lxb_utils_warc_t *warc);
+unsigned int
+pchtml_utils_warc_clear(pchtml_utils_warc_t *warc) WTF_INTERNAL;
 
-LXB_API lxb_utils_warc_t *
-lxb_utils_warc_destroy(lxb_utils_warc_t *warc, bool self_destroy);
+pchtml_utils_warc_t *
+pchtml_utils_warc_destroy(pchtml_utils_warc_t *warc, bool self_destroy) WTF_INTERNAL;
 
 
-LXB_API lxb_status_t
-lxb_utils_warc_parse_file(lxb_utils_warc_t *warc, FILE *fh);
+unsigned int
+pchtml_utils_warc_parse_file(pchtml_utils_warc_t *warc, FILE *fh) WTF_INTERNAL;
 
 /*
- * We must call lxb_warc_parse_eof after processing.
- * Before new processing we must call lxb_warc_clear
+ * We must call pchtml_warc_parse_eof after processing.
+ * Before new processing we must call pchtml_warc_clear
  * if previously ends with error.
  */
-LXB_API lxb_status_t
-lxb_utils_warc_parse(lxb_utils_warc_t *warc,
-                     const lxb_char_t **data, const lxb_char_t *end);
+unsigned int
+pchtml_utils_warc_parse(pchtml_utils_warc_t *warc,
+                const unsigned char **data, const unsigned char *end) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_utils_warc_parse_eof(lxb_utils_warc_t *warc);
+unsigned int
+pchtml_utils_warc_parse_eof(pchtml_utils_warc_t *warc) WTF_INTERNAL;
 
 
-LXB_API lxb_utils_warc_field_t *
-lxb_utils_warc_header_field(lxb_utils_warc_t *warc, const lxb_char_t *name,
-                            size_t len, size_t offset);
+pchtml_utils_warc_field_t *
+pchtml_utils_warc_header_field(pchtml_utils_warc_t *warc, const unsigned char *name,
+                size_t len, size_t offset) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_utils_warc_header_serialize(lxb_utils_warc_t *warc, lexbor_str_t *str);
+unsigned int
+pchtml_utils_warc_header_serialize(pchtml_utils_warc_t *warc, 
+                pchtml_str_t *str) WTF_INTERNAL;
 
 /*
  * Inline functions
  */
-lxb_inline size_t
-lxb_utils_warc_content_length(lxb_utils_warc_t *warc)
+static inline size_t
+pchtml_utils_warc_content_length(pchtml_utils_warc_t *warc)
 {
     return warc->content_length;
 }
@@ -114,13 +135,13 @@ lxb_utils_warc_content_length(lxb_utils_warc_t *warc)
 /*
  * No inline functions for ABI.
  */
-LXB_API size_t
-lxb_utils_warc_content_length_noi(lxb_utils_warc_t *warc);
+size_t
+pchtml_utils_warc_content_length_noi(pchtml_utils_warc_t *warc) WTF_INTERNAL;
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LXB_UTILS_WARC_H */
+#endif  /* PCHTML_UTILS_WARC_H */
 
