@@ -569,11 +569,11 @@ next_input:
             else if (wc == '"' || wc == '\'') {
                 // FIXME
                 pcejson_stack_pop(ejson->stack);
-                return pcejson_token_new(ejson_token_key,
+                return pcejson_token_new(ejson_token_string,
                         pcejson_temp_buffer_dup(ejson));
             }
             else if (wc == '}') {
-                RECONSUME_IN(ejson_after_value_state);
+                RECONSUME_IN(ejson_after_object_state);
             }
             else if (wc == ']') {
                 RECONSUME_IN(ejson_after_array_state);
