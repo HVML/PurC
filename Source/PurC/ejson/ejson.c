@@ -269,6 +269,13 @@ bool pcejson_temp_buffer_end_with(struct pcejson* parser, const char* s)
     return strncmp(p + len - cmp_len, s, cmp_len) == 0;
 }
 
+char pcejson_temp_buffer_last_char(struct pcejson* parser) {
+    size_t sz = 0;
+    const char* p = purc_rwstream_get_mem_buffer (parser->rws, &sz);
+    size_t len = pcejson_temp_buffer_length (parser);
+    return p[len - 1];
+}
+
 void pcejson_reset(struct pcejson* parser, int32_t depth, uint32_t flags)
 {
     parser->state = ejson_init_state;
@@ -1053,15 +1060,66 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
         END_STATE()
 
         BEGIN_STATE(ejson_value_number_exponent_integer_state)
-        END_STATE()
-
-        BEGIN_STATE(ejson_after_value_number_exponent_integer_state)
+            if (is_delimiter(wc)) {
+                RECONSUME_IN(ejson_after_value_number_state);
+            }
+            else if (is_ascii_digit(wc)) {
+                if (pcejson_temp_buffer_end_with(ejson, "F")) {
+                    pcinst_set_error(PCEJSON_BAD_JSON_NUMBER_PARSE_ERROR);
+                    return NULL;
+                }
+                else {
+                    pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
+                    ADVANCE_TO(ejson_value_number_exponent_integer_state);
+                }
+            }
+            else if (wc == 'F') {
+                pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
+                ADVANCE_TO(ejson_value_number_exponent_integer_state);
+            }
+            else if (wc == 'L') {
+                if (pcejson_temp_buffer_end_with(ejson, "F")) {
+                    pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
+                    SWITCH_TO(ejson_after_value_number_state);
+                    return pcejson_token_new(ejson_token_long_double_number,
+                                pcejson_temp_buffer_dup(ejson));
+                }
+            }
+            pcinst_set_error(
+                    PCEJSON_UNEXPECTED_JSON_NUMBER_EXPONENT_PARSE_ERROR);
+            return NULL;
         END_STATE()
 
         BEGIN_STATE(ejson_value_number_suffix_integer_state)
-        END_STATE()
-
-        BEGIN_STATE(ejson_after_value_number_suffix_integer_state)
+            char last_c = pcejson_temp_buffer_last_char(ejson);
+            if (is_delimiter(wc)) {
+                RECONSUME_IN(ejson_after_value_number_state);
+            }
+            else if (wc == 'U') {
+                if (is_ascii_digit(last_c)) {
+                    pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
+                    ADVANCE_TO(ejson_value_number_suffix_integer_state);
+                }
+            }
+            else if (wc == 'L') {
+                if (is_ascii_digit(last_c) || last_c == 'U') {
+                    pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
+                    if (pcejson_temp_buffer_end_with(ejson, "UL")) {
+                        SWITCH_TO(ejson_after_value_number_state);
+                        return pcejson_token_new(
+                                ejson_token_unsigned_long_integer_number,
+                                pcejson_temp_buffer_dup(ejson));
+                    }
+                    else if (pcejson_temp_buffer_end_with(ejson, "L")) {
+                        SWITCH_TO(ejson_after_value_number_state);
+                        return pcejson_token_new(ejson_token_long_integer_number,
+                                    pcejson_temp_buffer_dup(ejson));
+                    }
+                }
+            }
+            pcinst_set_error(
+                    PCEJSON_UNEXPECTED_JSON_NUMBER_INTEGER_PARSE_ERROR);
+            return NULL;
         END_STATE()
 
         BEGIN_STATE(ejson_string_escape_state)
@@ -1104,9 +1162,7 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
     UNUSED_LABEL(ejson_value_number_fraction_state);
     UNUSED_LABEL(ejson_value_number_exponent_state);
     UNUSED_LABEL(ejson_value_number_exponent_integer_state);
-    UNUSED_LABEL(ejson_after_value_number_exponent_integer_state);
     UNUSED_LABEL(ejson_value_number_suffix_integer_state);
-    UNUSED_LABEL(ejson_after_value_number_suffix_integer_state);
     UNUSED_LABEL(ejson_string_escape_state);
     UNUSED_LABEL(ejson_string_escape_four_hexadecimal_digits_state);
     return NULL;
