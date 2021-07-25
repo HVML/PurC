@@ -247,9 +247,20 @@ ssize_t pcejson_temp_buffer_append(struct pcejson* parser, uint8_t* buf,
     return purc_rwstream_write (parser->rws, buf, sz);
 }
 
+ssize_t pcejson_temp_buffer_append2(struct pcejson* parser, uint8_t* buf,
+        size_t sz)
+{
+    return purc_rwstream_write (parser->rws2, buf, sz);
+}
+
 size_t pcejson_temp_buffer_length(struct pcejson* parser)
 {
     return purc_rwstream_tell (parser->rws);
+}
+
+size_t pcejson_temp_buffer_length2(struct pcejson* parser)
+{
+    return purc_rwstream_tell (parser->rws2);
 }
 
 void pcejson_temp_buffer_clear_head_tail_characters(struct pcejson* parser,
@@ -1160,6 +1171,19 @@ next_input:
         END_STATE()
 
         BEGIN_STATE(ejson_string_escape_four_hexadecimal_digits_state)
+            if (is_ascii_hex_digit(wc)) {
+                pcejson_temp_buffer_append2(ejson, (uint8_t*)buf_utf8, len);
+                size_t buf2_len = pcejson_temp_buffer_length2(ejson);
+                if (buf2_len == 4) {
+                    pcejson_temp_buffer_append(ejson, (uint8_t*)"\\u", 2);
+                    purc_rwstream_dump_to_another(ejson->rws2, ejson->rws, 4);
+                    RETURN_TO(ejson->return_state);
+                }
+                ADVANCE_TO(ejson_string_escape_four_hexadecimal_digits_state);
+            }
+            pcinst_set_error(
+                    PCEJSON_BAD_JSON_STRING_ESCAPE_ENTITY_PARSE_ERROR);
+            return NULL;
         END_STATE()
 
         default:
