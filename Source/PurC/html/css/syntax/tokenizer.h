@@ -1,16 +1,36 @@
-/*
- * Copyright (C) 2018-2019 Alexander Borisov
+/**
+ * @file tokenizer.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for css tokenizer.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_CSS_SYNTAX_TOKENIZER_H
-#define LEXBOR_CSS_SYNTAX_TOKENIZER_H
+
+#ifndef PCHTML_CSS_SYNTAX_TOKENIZER_H
+#define PCHTML_CSS_SYNTAX_TOKENIZER_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "config.h"
 #include "html/core/in.h"
 #include "html/core/array_obj.h"
 
@@ -18,153 +38,158 @@ extern "C" {
 #include "html/css/syntax/token.h"
 
 
-typedef struct lxb_css_syntax_tokenizer lxb_css_syntax_tokenizer_t;
+typedef struct pchtml_css_syntax_tokenizer pchtml_css_syntax_tokenizer_t;
 
 /* State */
-typedef const lxb_char_t *
-(*lxb_css_syntax_tokenizer_state_f)(lxb_css_syntax_tokenizer_t *tkz,
-                                 const lxb_char_t *data, const lxb_char_t *end);
+typedef const unsigned char *
+(*pchtml_css_syntax_tokenizer_state_f)(pchtml_css_syntax_tokenizer_t *tkz,
+                                 const unsigned char *data, const unsigned char *end);
 
-typedef lxb_css_syntax_token_t *
-(*lxb_css_syntax_tokenizer_cb_f)(lxb_css_syntax_tokenizer_t *tkz,
-                                 lxb_css_syntax_token_t *token, void *ctx);
+typedef pchtml_css_syntax_token_t *
+(*pchtml_css_syntax_tokenizer_cb_f)(pchtml_css_syntax_tokenizer_t *tkz,
+                                 pchtml_css_syntax_token_t *token, void *ctx);
 
 
-enum lxb_css_syntax_tokenizer_opt {
-    LXB_CSS_SYNTAX_TOKENIZER_OPT_UNDEF   = 0x00,
-    LXB_CSS_SYNTAX_TOKENIZER_OPT_WO_COPY = 0x01
+enum pchtml_css_syntax_tokenizer_opt {
+    PCHTML_CSS_SYNTAX_TOKENIZER_OPT_UNDEF   = 0x00,
+    PCHTML_CSS_SYNTAX_TOKENIZER_OPT_WO_COPY = 0x01
 };
 
 typedef enum {
-    LXB_CSS_SYNTAX_TOKENIZER_BEGIN   = 0x00,
-    LXB_CSS_SYNTAX_TOKENIZER_PROCESS = 0x01,
-    LXB_CSS_SYNTAX_TOKENIZER_END     = 0x02
+    PCHTML_CSS_SYNTAX_TOKENIZER_BEGIN   = 0x00,
+    PCHTML_CSS_SYNTAX_TOKENIZER_PROCESS = 0x01,
+    PCHTML_CSS_SYNTAX_TOKENIZER_END     = 0x02
 }
-lxb_css_syntax_process_state_t;
+pchtml_css_syntax_process_state_t;
 
 
-typedef struct lxb_css_syntax_tokenizer_numeric {
-    lxb_char_t data[128];
-    lxb_char_t *buf;
-    lxb_char_t *end;
+typedef struct pchtml_css_syntax_tokenizer_numeric {
+    unsigned char data[128];
+    unsigned char *buf;
+    unsigned char *end;
 
     int        exponent;
     int        e_digit;
     bool       is_negative;
     bool       e_is_negative;
 }
-lxb_css_syntax_tokenizer_numeric_t;
+pchtml_css_syntax_tokenizer_numeric_t;
 
-struct lxb_css_syntax_tokenizer {
-    lxb_css_syntax_tokenizer_state_f   state;
-    lxb_css_syntax_tokenizer_state_f   return_state;
+struct pchtml_css_syntax_tokenizer {
+    pchtml_css_syntax_tokenizer_state_f   state;
+    pchtml_css_syntax_tokenizer_state_f   return_state;
 
-    lxb_css_syntax_tokenizer_cb_f      cb_token_done;
+    pchtml_css_syntax_tokenizer_cb_f      cb_token_done;
     void                               *cb_token_ctx;
 
     /* Current process token */
-    lxb_css_syntax_token_t             *token;
+    pchtml_css_syntax_token_t             *token;
 
     /* Memory for tokens */
-    lexbor_dobject_t                   *dobj_token;
-    lexbor_mraw_t                      *mraw;
+    pchtml_dobject_t                   *dobj_token;
+    pchtml_mraw_t                      *mraw;
 
     /* Incoming Buffer and current process buffer */
-    lexbor_in_t                        *incoming;
-    lexbor_in_node_t                   *incoming_first;
-    lexbor_in_node_t                   *incoming_node;
-    lexbor_in_node_t                   *incoming_done;
+    pchtml_in_t                        *incoming;
+    pchtml_in_node_t                   *incoming_first;
+    pchtml_in_node_t                   *incoming_node;
+    pchtml_in_node_t                   *incoming_done;
 
-    lexbor_array_obj_t                 *parse_errors;
+    pchtml_array_obj_t                 *parse_errors;
 
     /* Temp */
     int                                count;
     size_t                             num;
-    const lxb_char_t                   *begin;
-    const lxb_char_t                   *end;
-    lxb_char_t                         str_ending;
-    lxb_css_syntax_tokenizer_numeric_t numeric;
-    lxb_css_syntax_token_data_t        token_data;
+    const unsigned char                   *begin;
+    const unsigned char                   *end;
+    unsigned char                         str_ending;
+    pchtml_css_syntax_tokenizer_numeric_t numeric;
+    pchtml_css_syntax_token_data_t        token_data;
 
     /* Process */
     unsigned int                       opt;             /* bitmap */
-    lxb_css_syntax_process_state_t     process_state;
-    lxb_status_t                       status;
+    pchtml_css_syntax_process_state_t     process_state;
+    unsigned int                       status;
     bool                               is_eof;
     bool                               reuse;
 };
 
 
-LXB_API lxb_css_syntax_tokenizer_t *
-lxb_css_syntax_tokenizer_create(void);
+pchtml_css_syntax_tokenizer_t *
+pchtml_css_syntax_tokenizer_create(void) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_css_syntax_tokenizer_init(lxb_css_syntax_tokenizer_t *tkz);
+unsigned int
+pchtml_css_syntax_tokenizer_init(
+                pchtml_css_syntax_tokenizer_t *tkz) WTF_INTERNAL;
 
-LXB_API void
-lxb_css_syntax_tokenizer_clean(lxb_css_syntax_tokenizer_t *tkz);
+void
+pchtml_css_syntax_tokenizer_clean(
+                pchtml_css_syntax_tokenizer_t *tkz) WTF_INTERNAL;
 
-LXB_API lxb_css_syntax_tokenizer_t *
-lxb_css_syntax_tokenizer_destroy(lxb_css_syntax_tokenizer_t *tkz);
+pchtml_css_syntax_tokenizer_t *
+pchtml_css_syntax_tokenizer_destroy(
+                pchtml_css_syntax_tokenizer_t *tkz) WTF_INTERNAL;
 
 
-LXB_API lxb_status_t
-lxb_css_syntax_tokenizer_parse(lxb_css_syntax_tokenizer_t *tkz,
-                               const lxb_char_t *data, size_t size);
+unsigned int
+pchtml_css_syntax_tokenizer_parse(pchtml_css_syntax_tokenizer_t *tkz,
+                const unsigned char *data, size_t size) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_css_syntax_tokenizer_begin(lxb_css_syntax_tokenizer_t *tkz);
+unsigned int
+pchtml_css_syntax_tokenizer_begin(
+                pchtml_css_syntax_tokenizer_t *tkz) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_css_syntax_tokenizer_chunk(lxb_css_syntax_tokenizer_t *tkz,
-                               const lxb_char_t *data, size_t size);
+unsigned int
+pchtml_css_syntax_tokenizer_chunk(pchtml_css_syntax_tokenizer_t *tkz,
+                const unsigned char *data, size_t size) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_css_syntax_tokenizer_end(lxb_css_syntax_tokenizer_t *tkz);
+unsigned int
+pchtml_css_syntax_tokenizer_end(
+                pchtml_css_syntax_tokenizer_t *tkz) WTF_INTERNAL;
 
-LXB_API const lxb_char_t *
-lxb_css_syntax_tokenizer_change_incoming(lxb_css_syntax_tokenizer_t *tkz,
-                                         const lxb_char_t *pos);
+const unsigned char *
+pchtml_css_syntax_tokenizer_change_incoming(pchtml_css_syntax_tokenizer_t *tkz,
+                const unsigned char *pos) WTF_INTERNAL;
 
 
 /*
  * Inline functions
  */
-lxb_inline void
-lxb_css_syntax_tokenizer_token_cb_set(lxb_css_syntax_tokenizer_t *tkz,
-                                      lxb_css_syntax_tokenizer_cb_f cb_done,
+static inline void
+pchtml_css_syntax_tokenizer_token_cb_set(pchtml_css_syntax_tokenizer_t *tkz,
+                                      pchtml_css_syntax_tokenizer_cb_f cb_done,
                                       void *ctx)
 {
     tkz->cb_token_done = cb_done;
     tkz->cb_token_ctx = ctx;
 }
 
-lxb_inline void
-lxb_css_syntax_tokenizer_last_needed_in(lxb_css_syntax_tokenizer_t *tkz,
-                                        lexbor_in_node_t *in)
+static inline void
+pchtml_css_syntax_tokenizer_last_needed_in(pchtml_css_syntax_tokenizer_t *tkz,
+                                        pchtml_in_node_t *in)
 {
     tkz->incoming_done = in;
 }
 
-lxb_inline lxb_status_t
-lxb_css_syntax_tokenizer_make_data(lxb_css_syntax_tokenizer_t *tkz,
-                                   lxb_css_syntax_token_t *token)
+static inline unsigned int
+pchtml_css_syntax_tokenizer_make_data(pchtml_css_syntax_tokenizer_t *tkz,
+                                   pchtml_css_syntax_token_t *token)
 {
-    lxb_status_t status;
+    unsigned int status;
 
-    status = lxb_css_syntax_token_make_data(token, tkz->incoming_node,
+    status = pchtml_css_syntax_token_make_data(token, tkz->incoming_node,
                                             tkz->mraw, &tkz->token_data);
-    if (status != LXB_STATUS_OK) {
+    if (status != PCHTML_STATUS_OK) {
         return status;
     }
 
-    lxb_css_syntax_tokenizer_last_needed_in(tkz, tkz->token_data.node_done);
+    pchtml_css_syntax_tokenizer_last_needed_in(tkz, tkz->token_data.node_done);
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_inline lxb_status_t
-lxb_css_syntax_tokenizer_status(lxb_css_syntax_tokenizer_t *tkz)
+static inline unsigned int
+pchtml_css_syntax_tokenizer_status(pchtml_css_syntax_tokenizer_t *tkz)
 {
     return tkz->status;
 }
@@ -173,24 +198,24 @@ lxb_css_syntax_tokenizer_status(lxb_css_syntax_tokenizer_t *tkz)
  * No inline functions for ABI.
  */
 void
-lxb_css_syntax_tokenizer_token_cb_set_noi(lxb_css_syntax_tokenizer_t *tkz,
-                                          lxb_css_syntax_tokenizer_cb_f cb_done,
+pchtml_css_syntax_tokenizer_token_cb_set_noi(pchtml_css_syntax_tokenizer_t *tkz,
+                                          pchtml_css_syntax_tokenizer_cb_f cb_done,
                                           void *ctx);
 
 void
-lxb_css_syntax_tokenizer_last_needed_in_noi(lxb_css_syntax_tokenizer_t *tkz,
-                                            lexbor_in_node_t *in);
+pchtml_css_syntax_tokenizer_last_needed_in_noi(pchtml_css_syntax_tokenizer_t *tkz,
+                                            pchtml_in_node_t *in);
 
-lxb_status_t
-lxb_css_syntax_tokenizer_make_data_noi(lxb_css_syntax_tokenizer_t *tkz,
-                                       lxb_css_syntax_token_t *token);
+unsigned int
+pchtml_css_syntax_tokenizer_make_data_noi(pchtml_css_syntax_tokenizer_t *tkz,
+                                       pchtml_css_syntax_token_t *token);
 
-lxb_status_t
-lxb_css_syntax_tokenizer_status_noi(lxb_css_syntax_tokenizer_t *tkz);
+unsigned int
+pchtml_css_syntax_tokenizer_status_noi(pchtml_css_syntax_tokenizer_t *tkz);
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LEXBOR_CSS_SYNTAX_TOKENIZER_H */
+#endif  /* PCHTML_CSS_SYNTAX_TOKENIZER_H */

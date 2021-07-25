@@ -1,8 +1,28 @@
-/*
- * Copyright (C) 2018-2019 Alexander Borisov
+/**
+ * @file tokenizer.c
+ * @author
+ * @date 2021/07/02
+ * @brief The complementation of css tokenizer.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+
 #include "private/errors.h"
 
 #include "html/css/syntax/tokenizer.h"
@@ -10,54 +30,54 @@
 #include "html/css/syntax/state.h"
 
 
-const lxb_char_t *lxb_css_syntax_tokenizer_eof = (const lxb_char_t *) "\x00";
+const unsigned char *pchtml_css_syntax_tokenizer_eof = (const unsigned char *) "\x00";
 
 
 static void
-lxb_css_syntax_tokenizer_erase_incoming(lxb_css_syntax_tokenizer_t *tkz);
+pchtml_css_syntax_tokenizer_erase_incoming(pchtml_css_syntax_tokenizer_t *tkz);
 
-static lxb_css_syntax_token_t *
-lxb_css_syntax_tokenizer_cb_done(lxb_css_syntax_tokenizer_t *tkz,
-                                 lxb_css_syntax_token_t *token, void *ctx);
+static pchtml_css_syntax_token_t *
+pchtml_css_syntax_tokenizer_cb_done(pchtml_css_syntax_tokenizer_t *tkz,
+                                 pchtml_css_syntax_token_t *token, void *ctx);
 
 static void
-lxb_css_syntax_tokenizer_process(lxb_css_syntax_tokenizer_t *tkz,
-                                 const lxb_char_t *data, size_t size);
+pchtml_css_syntax_tokenizer_process(pchtml_css_syntax_tokenizer_t *tkz,
+                                 const unsigned char *data, size_t size);
 
-static const lxb_char_t *
-lxb_css_syntax_tokenizer_change_incoming_eof(lxb_css_syntax_tokenizer_t *tkz,
-                                             const lxb_char_t *pos);
+static const unsigned char *
+pchtml_css_syntax_tokenizer_change_incoming_eof(pchtml_css_syntax_tokenizer_t *tkz,
+                                             const unsigned char *pos);
 
 
-lxb_css_syntax_tokenizer_t *
-lxb_css_syntax_tokenizer_create(void)
+pchtml_css_syntax_tokenizer_t *
+pchtml_css_syntax_tokenizer_create(void)
 {
-    return lexbor_calloc(1, sizeof(lxb_css_syntax_tokenizer_t));
+    return pchtml_calloc(1, sizeof(pchtml_css_syntax_tokenizer_t));
 }
 
-lxb_status_t
-lxb_css_syntax_tokenizer_init(lxb_css_syntax_tokenizer_t *tkz)
+unsigned int
+pchtml_css_syntax_tokenizer_init(pchtml_css_syntax_tokenizer_t *tkz)
 {
     if (tkz == NULL) {
-        return LXB_STATUS_ERROR_OBJECT_IS_NULL;
+        return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
     }
 
-    lxb_status_t status;
+    unsigned int status;
 
     /* Init Token */
     tkz->token = NULL;
 
-    tkz->dobj_token = lexbor_dobject_create();
-    status = lexbor_dobject_init(tkz->dobj_token,
-                                 4096, sizeof(lxb_css_syntax_token_t));
-    if (status != LXB_STATUS_OK) {
+    tkz->dobj_token = pchtml_dobject_create();
+    status = pchtml_dobject_init(tkz->dobj_token,
+                                 4096, sizeof(pchtml_css_syntax_token_t));
+    if (status != PCHTML_STATUS_OK) {
         return status;
     }
 
     /* Incoming */
-    tkz->incoming = lexbor_in_create();
-    status = lexbor_in_init(tkz->incoming, 32);
-    if (status != LXB_STATUS_OK) {
+    tkz->incoming = pchtml_in_create();
+    status = pchtml_in_init(tkz->incoming, 32);
+    if (status != PCHTML_STATUS_OK) {
         return status;
     }
 
@@ -66,82 +86,82 @@ lxb_css_syntax_tokenizer_init(lxb_css_syntax_tokenizer_t *tkz)
     tkz->incoming_done = NULL;
 
     /* mraw */
-    tkz->mraw = lexbor_mraw_create();
-    status = lexbor_mraw_init(tkz->mraw, 1024);
-    if (status != LXB_STATUS_OK) {
+    tkz->mraw = pchtml_mraw_create();
+    status = pchtml_mraw_init(tkz->mraw, 1024);
+    if (status != PCHTML_STATUS_OK) {
         return status;
     }
 
     /* Parse errors */
-    tkz->parse_errors = lexbor_array_obj_create();
-    status = lexbor_array_obj_init(tkz->parse_errors, 16,
-                                   sizeof(lxb_css_syntax_tokenizer_error_t));
-    if (status != LXB_STATUS_OK) {
+    tkz->parse_errors = pchtml_array_obj_create();
+    status = pchtml_array_obj_init(tkz->parse_errors, 16,
+                                   sizeof(pchtml_css_syntax_tokenizer_error_t));
+    if (status != PCHTML_STATUS_OK) {
         return status;
     }
 
-    tkz->cb_token_done = lxb_css_syntax_tokenizer_cb_done;
+    tkz->cb_token_done = pchtml_css_syntax_tokenizer_cb_done;
     tkz->cb_token_ctx = NULL;
 
     tkz->is_eof = false;
-    tkz->status = LXB_STATUS_OK;
+    tkz->status = PCHTML_STATUS_OK;
 
-    tkz->opt = LXB_CSS_SYNTAX_TOKENIZER_OPT_UNDEF;
-    tkz->process_state = LXB_CSS_SYNTAX_TOKENIZER_BEGIN;
+    tkz->opt = PCHTML_CSS_SYNTAX_TOKENIZER_OPT_UNDEF;
+    tkz->process_state = PCHTML_CSS_SYNTAX_TOKENIZER_BEGIN;
 
     tkz->numeric.end = tkz->numeric.data
-        + sizeof(tkz->numeric.data) / sizeof(lxb_char_t);
+        + sizeof(tkz->numeric.data) / sizeof(unsigned char);
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
 void
-lxb_css_syntax_tokenizer_clean(lxb_css_syntax_tokenizer_t *tkz)
+pchtml_css_syntax_tokenizer_clean(pchtml_css_syntax_tokenizer_t *tkz)
 {
-    lxb_css_syntax_tokenizer_erase_incoming(tkz);
+    pchtml_css_syntax_tokenizer_erase_incoming(tkz);
 
-    lexbor_in_clean(tkz->incoming);
+    pchtml_in_clean(tkz->incoming);
 
-    lexbor_mraw_clean(tkz->mraw);
-    lexbor_dobject_clean(tkz->dobj_token);
-    lexbor_array_obj_clean(tkz->parse_errors);
+    pchtml_mraw_clean(tkz->mraw);
+    pchtml_dobject_clean(tkz->dobj_token);
+    pchtml_array_obj_clean(tkz->parse_errors);
 
-    tkz->status = LXB_STATUS_OK;
-    tkz->process_state = LXB_CSS_SYNTAX_TOKENIZER_BEGIN;
+    tkz->status = PCHTML_STATUS_OK;
+    tkz->process_state = PCHTML_CSS_SYNTAX_TOKENIZER_BEGIN;
 }
 
-lxb_css_syntax_tokenizer_t *
-lxb_css_syntax_tokenizer_destroy(lxb_css_syntax_tokenizer_t *tkz)
+pchtml_css_syntax_tokenizer_t *
+pchtml_css_syntax_tokenizer_destroy(pchtml_css_syntax_tokenizer_t *tkz)
 {
     if (tkz == NULL) {
         return NULL;
     }
 
-    lxb_css_syntax_tokenizer_erase_incoming(tkz);
+    pchtml_css_syntax_tokenizer_erase_incoming(tkz);
 
-    tkz->incoming = lexbor_in_destroy(tkz->incoming, true);
+    tkz->incoming = pchtml_in_destroy(tkz->incoming, true);
 
-    tkz->mraw = lexbor_mraw_destroy(tkz->mraw, true);
-    tkz->dobj_token = lexbor_dobject_destroy(tkz->dobj_token, true);
-    tkz->parse_errors = lexbor_array_obj_destroy(tkz->parse_errors, true);
+    tkz->mraw = pchtml_mraw_destroy(tkz->mraw, true);
+    tkz->dobj_token = pchtml_dobject_destroy(tkz->dobj_token, true);
+    tkz->parse_errors = pchtml_array_obj_destroy(tkz->parse_errors, true);
 
-    return lexbor_free(tkz);
+    return pchtml_free(tkz);
 }
 
 static void
-lxb_css_syntax_tokenizer_erase_incoming(lxb_css_syntax_tokenizer_t *tkz)
+pchtml_css_syntax_tokenizer_erase_incoming(pchtml_css_syntax_tokenizer_t *tkz)
 {
-    lexbor_in_node_t *next_node;
+    pchtml_in_node_t *next_node;
 
     while (tkz->incoming_first != NULL)
     {
-        if (tkz->incoming_first->opt & LEXBOR_IN_OPT_ALLOC) {
-            lexbor_free((lxb_char_t *) tkz->incoming_first->begin);
+        if (tkz->incoming_first->opt & PCHTML_IN_OPT_ALLOC) {
+            pchtml_free((unsigned char *) tkz->incoming_first->begin);
         }
 
         next_node = tkz->incoming_first->next;
 
-        lexbor_in_node_destroy(tkz->incoming, tkz->incoming_first, true);
+        pchtml_in_node_destroy(tkz->incoming, tkz->incoming_first, true);
 
         tkz->incoming_first = next_node;
     }
@@ -149,9 +169,9 @@ lxb_css_syntax_tokenizer_erase_incoming(lxb_css_syntax_tokenizer_t *tkz)
     tkz->incoming_done = NULL;
 }
 
-static lxb_css_syntax_token_t *
-lxb_css_syntax_tokenizer_cb_done(lxb_css_syntax_tokenizer_t *tkz,
-                                 lxb_css_syntax_token_t *token, void *ctx)
+static pchtml_css_syntax_token_t *
+pchtml_css_syntax_tokenizer_cb_done(pchtml_css_syntax_tokenizer_t *tkz,
+                                 pchtml_css_syntax_token_t *token, void *ctx)
 {
     UNUSED_PARAM(tkz);
     UNUSED_PARAM(token);
@@ -159,50 +179,50 @@ lxb_css_syntax_tokenizer_cb_done(lxb_css_syntax_tokenizer_t *tkz,
     return token;
 }
 
-lxb_status_t
-lxb_css_syntax_tokenizer_begin(lxb_css_syntax_tokenizer_t *tkz)
+unsigned int
+pchtml_css_syntax_tokenizer_begin(pchtml_css_syntax_tokenizer_t *tkz)
 {
-    if (tkz->process_state == LXB_CSS_SYNTAX_TOKENIZER_PROCESS) {
-        return LXB_STATUS_ERROR_WRONG_STAGE;
+    if (tkz->process_state == PCHTML_CSS_SYNTAX_TOKENIZER_PROCESS) {
+        return PCHTML_STATUS_ERROR_WRONG_STAGE;
     }
 
     tkz->is_eof = false;
-    tkz->status = LXB_STATUS_OK;
-    tkz->state = lxb_css_syntax_state_data;
-    tkz->opt = LXB_CSS_SYNTAX_TOKENIZER_OPT_UNDEF;
+    tkz->status = PCHTML_STATUS_OK;
+    tkz->state = pchtml_css_syntax_state_data;
+    tkz->opt = PCHTML_CSS_SYNTAX_TOKENIZER_OPT_UNDEF;
 
     if (tkz->token == NULL) {
-        tkz->token = lxb_css_syntax_token_create(tkz->dobj_token);
+        tkz->token = pchtml_css_syntax_token_create(tkz->dobj_token);
         if (tkz->token == NULL) {
-            return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+            return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
     }
 
-    tkz->process_state = LXB_CSS_SYNTAX_TOKENIZER_PROCESS;
+    tkz->process_state = PCHTML_CSS_SYNTAX_TOKENIZER_PROCESS;
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_status_t
-lxb_css_syntax_tokenizer_chunk(lxb_css_syntax_tokenizer_t *tkz,
-                               const lxb_char_t *data, size_t size)
+unsigned int
+pchtml_css_syntax_tokenizer_chunk(pchtml_css_syntax_tokenizer_t *tkz,
+                               const unsigned char *data, size_t size)
 {
-    if (tkz->process_state != LXB_CSS_SYNTAX_TOKENIZER_PROCESS) {
-        tkz->status = LXB_STATUS_ERROR_WRONG_STAGE;
+    if (tkz->process_state != PCHTML_CSS_SYNTAX_TOKENIZER_PROCESS) {
+        tkz->status = PCHTML_STATUS_ERROR_WRONG_STAGE;
 
         return tkz->status;
     }
 
-    lxb_char_t *copied;
-    lexbor_in_node_t *next_node;
+    unsigned char *copied;
+    pchtml_in_node_t *next_node;
 
-    if (tkz->opt & LXB_CSS_SYNTAX_TOKENIZER_OPT_WO_COPY) {
-        tkz->incoming_node = lexbor_in_node_make(tkz->incoming, tkz->incoming_node,
+    if (tkz->opt & PCHTML_CSS_SYNTAX_TOKENIZER_OPT_WO_COPY) {
+        tkz->incoming_node = pchtml_in_node_make(tkz->incoming, tkz->incoming_node,
                                                  data, size);
         if (tkz->incoming_node == NULL) {
-            lxb_css_syntax_tokenizer_erase_incoming(tkz);
+            pchtml_css_syntax_tokenizer_erase_incoming(tkz);
 
-            tkz->status = LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+            tkz->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
             return tkz->status;
         }
@@ -211,29 +231,29 @@ lxb_css_syntax_tokenizer_chunk(lxb_css_syntax_tokenizer_t *tkz,
             tkz->incoming_first = tkz->incoming_node;
         }
 
-        lxb_css_syntax_tokenizer_process(tkz, data, size);
+        pchtml_css_syntax_tokenizer_process(tkz, data, size);
 
         goto done;
     }
 
-    copied = lexbor_malloc(sizeof(lxb_char_t) * size);
+    copied = pchtml_malloc(sizeof(unsigned char) * size);
     if (copied == NULL) {
-        lxb_css_syntax_tokenizer_erase_incoming(tkz);
+        pchtml_css_syntax_tokenizer_erase_incoming(tkz);
 
-        tkz->status = LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+        tkz->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return tkz->status;
     }
 
-    memcpy(copied, data, sizeof(lxb_char_t) * size);
+    memcpy(copied, data, sizeof(unsigned char) * size);
 
-    tkz->incoming_node = lexbor_in_node_make(tkz->incoming, tkz->incoming_node,
+    tkz->incoming_node = pchtml_in_node_make(tkz->incoming, tkz->incoming_node,
                                              copied, size);
     if (tkz->incoming_node == NULL) {
-        lexbor_free(copied);
-        lxb_css_syntax_tokenizer_erase_incoming(tkz);
+        pchtml_free(copied);
+        pchtml_css_syntax_tokenizer_erase_incoming(tkz);
 
-        tkz->status = LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+        tkz->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return tkz->status;
     }
@@ -242,27 +262,27 @@ lxb_css_syntax_tokenizer_chunk(lxb_css_syntax_tokenizer_t *tkz,
         tkz->incoming_first = tkz->incoming_node;
     }
 
-    tkz->incoming_node->opt = LEXBOR_IN_OPT_ALLOC;
+    tkz->incoming_node->opt = PCHTML_IN_OPT_ALLOC;
 
-    lxb_css_syntax_tokenizer_process(tkz, copied, size);
+    pchtml_css_syntax_tokenizer_process(tkz, copied, size);
 
 done:
 
-    if (tkz->status != LXB_STATUS_OK) {
-        lxb_css_syntax_tokenizer_erase_incoming(tkz);
+    if (tkz->status != PCHTML_STATUS_OK) {
+        pchtml_css_syntax_tokenizer_erase_incoming(tkz);
 
         return tkz->status;
     }
 
     if (tkz->incoming_done != NULL) {
         while (tkz->incoming_first != tkz->incoming_done) {
-            if (tkz->incoming_first->opt & LEXBOR_IN_OPT_ALLOC) {
-                lexbor_free((lxb_char_t *) tkz->incoming_first->begin);
+            if (tkz->incoming_first->opt & PCHTML_IN_OPT_ALLOC) {
+                pchtml_free((unsigned char *) tkz->incoming_first->begin);
             }
 
             next_node = tkz->incoming_first->next;
 
-            lexbor_in_node_destroy(tkz->incoming, tkz->incoming_first, true);
+            pchtml_in_node_destroy(tkz->incoming, tkz->incoming_first, true);
 
             tkz->incoming_first = next_node;
             next_node->prev = NULL;
@@ -273,11 +293,11 @@ done:
 }
 
 static void
-lxb_css_syntax_tokenizer_process(lxb_css_syntax_tokenizer_t *tkz,
-                                 const lxb_char_t *data, size_t size)
+pchtml_css_syntax_tokenizer_process(pchtml_css_syntax_tokenizer_t *tkz,
+                                 const unsigned char *data, size_t size)
 {
-    lexbor_in_node_t *in_node;
-    const lxb_char_t *end = data + size;
+    pchtml_in_node_t *in_node;
+    const unsigned char *end = data + size;
 
     while (data < end) {
         data = tkz->state(tkz, data, end);
@@ -315,16 +335,16 @@ reuse:
     tkz->incoming_node->use = end;
 }
 
-lxb_status_t
-lxb_css_syntax_tokenizer_end(lxb_css_syntax_tokenizer_t *tkz)
+unsigned int
+pchtml_css_syntax_tokenizer_end(pchtml_css_syntax_tokenizer_t *tkz)
 {
-    if (tkz->process_state != LXB_CSS_SYNTAX_TOKENIZER_PROCESS) {
-        tkz->status = LXB_STATUS_ERROR_WRONG_STAGE;
+    if (tkz->process_state != PCHTML_CSS_SYNTAX_TOKENIZER_PROCESS) {
+        tkz->status = PCHTML_STATUS_ERROR_WRONG_STAGE;
 
         return tkz->status;
     }
 
-    const lxb_char_t *data, *end;
+    const unsigned char *data, *end;
 
     /*
      * Send a fake EOF data (not added in to incoming buffer chain)
@@ -333,8 +353,8 @@ lxb_css_syntax_tokenizer_end(lxb_css_syntax_tokenizer_t *tkz)
      * and try again send fake EOF.
      */
     do {
-        data = lxb_css_syntax_tokenizer_eof;
-        end = lxb_css_syntax_tokenizer_eof + 1UL;
+        data = pchtml_css_syntax_tokenizer_eof;
+        end = pchtml_css_syntax_tokenizer_eof + 1UL;
 
         tkz->is_eof = true;
 
@@ -369,47 +389,47 @@ lxb_css_syntax_tokenizer_end(lxb_css_syntax_tokenizer_t *tkz)
     }
     while (1);
 
-    if (tkz->status != LXB_STATUS_OK) {
+    if (tkz->status != PCHTML_STATUS_OK) {
         return tkz->status;
     }
 
     tkz->is_eof = false;
 
     /* Emit token: END OF FILE */
-    lxb_css_syntax_token_clean(tkz->token);
+    pchtml_css_syntax_token_clean(tkz->token);
 
-    tkz->token->types.base.type = LXB_CSS_SYNTAX_TOKEN__EOF;
+    tkz->token->types.base.type = PCHTML_CSS_SYNTAX_TOKEN__EOF;
 
     tkz->token = tkz->cb_token_done(tkz, tkz->token, tkz->cb_token_ctx);
 
-    if (tkz->token == NULL && tkz->status == LXB_STATUS_OK) {
-        tkz->status = LXB_STATUS_ERROR;
+    if (tkz->token == NULL && tkz->status == PCHTML_STATUS_OK) {
+        tkz->status = PCHTML_STATUS_ERROR;
     }
 
-    tkz->process_state = LXB_CSS_SYNTAX_TOKENIZER_END;
+    tkz->process_state = PCHTML_CSS_SYNTAX_TOKENIZER_END;
 
     return tkz->status;
 }
 
-lxb_status_t
-lxb_css_syntax_tokenizer_parse(lxb_css_syntax_tokenizer_t *tkz,
-                               const lxb_char_t *data, size_t size)
+unsigned int
+pchtml_css_syntax_tokenizer_parse(pchtml_css_syntax_tokenizer_t *tkz,
+                               const unsigned char *data, size_t size)
 {
     unsigned int old_opt = tkz->opt;
 
-    tkz->opt |= LXB_CSS_SYNTAX_TOKENIZER_OPT_WO_COPY;
+    tkz->opt |= PCHTML_CSS_SYNTAX_TOKENIZER_OPT_WO_COPY;
 
-    lxb_css_syntax_tokenizer_begin(tkz);
-    if (tkz->status != LXB_STATUS_OK) {
+    pchtml_css_syntax_tokenizer_begin(tkz);
+    if (tkz->status != PCHTML_STATUS_OK) {
         goto done;
     }
 
-    lxb_css_syntax_tokenizer_chunk(tkz, data, size);
-    if (tkz->status != LXB_STATUS_OK) {
+    pchtml_css_syntax_tokenizer_chunk(tkz, data, size);
+    if (tkz->status != PCHTML_STATUS_OK) {
         goto done;
     }
 
-    lxb_css_syntax_tokenizer_end(tkz);
+    pchtml_css_syntax_tokenizer_end(tkz);
 
 done:
 
@@ -418,25 +438,25 @@ done:
     return tkz->status;
 }
 
-const lxb_char_t *
-lxb_css_syntax_tokenizer_change_incoming(lxb_css_syntax_tokenizer_t *tkz,
-                                         const lxb_char_t *pos)
+const unsigned char *
+pchtml_css_syntax_tokenizer_change_incoming(pchtml_css_syntax_tokenizer_t *tkz,
+                                         const unsigned char *pos)
 {
     if (tkz->is_eof) {
-        return lxb_css_syntax_tokenizer_change_incoming_eof(tkz, pos);
+        return pchtml_css_syntax_tokenizer_change_incoming_eof(tkz, pos);
     }
 
-    if (lexbor_in_segment(tkz->incoming_node, pos)) {
+    if (pchtml_in_segment(tkz->incoming_node, pos)) {
         tkz->incoming_node->use = pos;
 
         return pos;
     }
 
-    lexbor_in_node_t *node = tkz->incoming_node;
-    tkz->incoming_node = lexbor_in_node_find(tkz->incoming_node, pos);
+    pchtml_in_node_t *node = tkz->incoming_node;
+    tkz->incoming_node = pchtml_in_node_find(tkz->incoming_node, pos);
 
     if (tkz->incoming_node == NULL) {
-        tkz->status = LXB_STATUS_ERROR;
+        tkz->status = PCHTML_STATUS_ERROR;
         tkz->incoming_node = node;
 
         return tkz->incoming_node->end;
@@ -447,66 +467,66 @@ lxb_css_syntax_tokenizer_change_incoming(lxb_css_syntax_tokenizer_t *tkz,
     return node->end;
 }
 
-static const lxb_char_t *
-lxb_css_syntax_tokenizer_change_incoming_eof(lxb_css_syntax_tokenizer_t *tkz,
-                                             const lxb_char_t *pos)
+static const unsigned char *
+pchtml_css_syntax_tokenizer_change_incoming_eof(pchtml_css_syntax_tokenizer_t *tkz,
+                                             const unsigned char *pos)
 {
-    if (pos == lxb_css_syntax_tokenizer_eof) {
+    if (pos == pchtml_css_syntax_tokenizer_eof) {
         return pos;
     }
 
     tkz->reuse = true;
 
-    if (lexbor_in_segment(tkz->incoming_node, pos)) {
+    if (pchtml_in_segment(tkz->incoming_node, pos)) {
         tkz->incoming_node->use = pos;
 
-        return lxb_css_syntax_tokenizer_eof + 1;
+        return pchtml_css_syntax_tokenizer_eof + 1;
     }
 
-    lexbor_in_node_t *node = tkz->incoming_node;
-    tkz->incoming_node = lexbor_in_node_find(tkz->incoming_node, pos);
+    pchtml_in_node_t *node = tkz->incoming_node;
+    tkz->incoming_node = pchtml_in_node_find(tkz->incoming_node, pos);
 
     if (tkz->incoming_node == NULL) {
         tkz->reuse = false;
 
-        tkz->status = LXB_STATUS_ERROR;
+        tkz->status = PCHTML_STATUS_ERROR;
         tkz->incoming_node = node;
 
-        return lxb_css_syntax_tokenizer_eof + 1;
+        return pchtml_css_syntax_tokenizer_eof + 1;
     }
 
     tkz->incoming_node->use = pos;
 
-    return lxb_css_syntax_tokenizer_eof + 1;
+    return pchtml_css_syntax_tokenizer_eof + 1;
 }
 
 /*
  * No inline functions for ABI.
  */
 void
-lxb_css_syntax_tokenizer_token_cb_set_noi(lxb_css_syntax_tokenizer_t *tkz,
-                                          lxb_css_syntax_tokenizer_cb_f cb_done,
+pchtml_css_syntax_tokenizer_token_cb_set_noi(pchtml_css_syntax_tokenizer_t *tkz,
+                                          pchtml_css_syntax_tokenizer_cb_f cb_done,
                                           void *ctx)
 {
-    lxb_css_syntax_tokenizer_token_cb_set(tkz, cb_done, ctx);
+    pchtml_css_syntax_tokenizer_token_cb_set(tkz, cb_done, ctx);
 }
 
 void
-lxb_css_syntax_tokenizer_last_needed_in_noi(lxb_css_syntax_tokenizer_t *tkz,
-                                            lexbor_in_node_t *in)
+pchtml_css_syntax_tokenizer_last_needed_in_noi(pchtml_css_syntax_tokenizer_t *tkz,
+                                            pchtml_in_node_t *in)
 {
-    lxb_css_syntax_tokenizer_last_needed_in(tkz, in);
+    pchtml_css_syntax_tokenizer_last_needed_in(tkz, in);
 }
 
-lxb_status_t
-lxb_css_syntax_tokenizer_make_data_noi(lxb_css_syntax_tokenizer_t *tkz,
-                                       lxb_css_syntax_token_t *token)
+unsigned int
+pchtml_css_syntax_tokenizer_make_data_noi(pchtml_css_syntax_tokenizer_t *tkz,
+                                       pchtml_css_syntax_token_t *token)
 {
-    return lxb_css_syntax_tokenizer_make_data(tkz, token);
+    return pchtml_css_syntax_tokenizer_make_data(tkz, token);
 }
 
-lxb_status_t
-lxb_css_syntax_tokenizer_status_noi(lxb_css_syntax_tokenizer_t *tkz)
+unsigned int
+pchtml_css_syntax_tokenizer_status_noi(pchtml_css_syntax_tokenizer_t *tkz)
 {
-    return lxb_css_syntax_tokenizer_status(tkz);
+    return pchtml_css_syntax_tokenizer_status(tkz);
 }

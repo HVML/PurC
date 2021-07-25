@@ -1,58 +1,77 @@
-/*
- * Copyright (C) 2018-2019 Alexander Borisov
+/**
+ * @file error.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for css error.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_CSS_SYNTAX_TOKENIZER_ERROR_H
-#define LEXBOR_CSS_SYNTAX_TOKENIZER_ERROR_H
+#ifndef PCHTML_CSS_SYNTAX_TOKENIZER_ERROR_H
+#define PCHTML_CSS_SYNTAX_TOKENIZER_ERROR_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "config.h"
 #include "html/core/base.h"
 #include "html/core/array_obj.h"
 
 
 typedef enum {
     /* unexpected-eof */
-    LXB_CSS_SYNTAX_TOKENIZER_ERROR_UNEOF = 0x0000,
+    PCHTML_CSS_SYNTAX_TOKENIZER_ERROR_UNEOF = 0x0000,
     /* eof-in-comment */
-    LXB_CSS_SYNTAX_TOKENIZER_ERROR_EOINCO,
+    PCHTML_CSS_SYNTAX_TOKENIZER_ERROR_EOINCO,
     /* eof-in-string */
-    LXB_CSS_SYNTAX_TOKENIZER_ERROR_EOINST,
+    PCHTML_CSS_SYNTAX_TOKENIZER_ERROR_EOINST,
     /* eof-in-url */
-    LXB_CSS_SYNTAX_TOKENIZER_ERROR_EOINUR,
+    PCHTML_CSS_SYNTAX_TOKENIZER_ERROR_EOINUR,
     /* qo-in-url */
-    LXB_CSS_SYNTAX_TOKENIZER_ERROR_QOINUR,
+    PCHTML_CSS_SYNTAX_TOKENIZER_ERROR_QOINUR,
     /* wrong-escape-in-url */
-    LXB_CSS_SYNTAX_TOKENIZER_ERROR_WRESINUR,
+    PCHTML_CSS_SYNTAX_TOKENIZER_ERROR_WRESINUR,
     /* newline-in-string */
-    LXB_CSS_SYNTAX_TOKENIZER_ERROR_NEINST,
+    PCHTML_CSS_SYNTAX_TOKENIZER_ERROR_NEINST,
     /* bad-char */
-    LXB_CSS_SYNTAX_TOKENIZER_ERROR_BACH,
+    PCHTML_CSS_SYNTAX_TOKENIZER_ERROR_BACH,
     /* bad-code-point */
-    LXB_CSS_SYNTAX_TOKENIZER_ERROR_BACOPO,
+    PCHTML_CSS_SYNTAX_TOKENIZER_ERROR_BACOPO,
 }
-lxb_css_syntax_tokenizer_error_id_t;
+pchtml_css_syntax_tokenizer_error_id_t;
 
 typedef struct {
-    const lxb_char_t                    *pos;
-    lxb_css_syntax_tokenizer_error_id_t id;
+    const unsigned char                    *pos;
+    pchtml_css_syntax_tokenizer_error_id_t id;
 }
-lxb_css_syntax_tokenizer_error_t;
+pchtml_css_syntax_tokenizer_error_t;
 
 
-LXB_API lxb_css_syntax_tokenizer_error_t *
-lxb_css_syntax_tokenizer_error_add(lexbor_array_obj_t *parse_errors,
-                                   const lxb_char_t *pos,
-                                   lxb_css_syntax_tokenizer_error_id_t id);
+pchtml_css_syntax_tokenizer_error_t *
+pchtml_css_syntax_tokenizer_error_add(pchtml_array_obj_t *parse_errors,
+                const unsigned char *pos,
+                pchtml_css_syntax_tokenizer_error_id_t id) WTF_INTERNAL;
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LEXBOR_CSS_SYNTAX_TOKENIZER_ERROR_H */
+#endif  /* PCHTML_CSS_SYNTAX_TOKENIZER_ERROR_H */
 

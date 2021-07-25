@@ -1,18 +1,37 @@
-/*
- * Copyright (C) 2018-2019 Alexander Borisov
+/**
+ * @file res.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for css resource.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_CSS_SYNTAX_RES_H
-#define LEXBOR_CSS_SYNTAX_RES_H
 
-#ifdef LXB_CSS_SYNTAX_RES_NAME_MAP
-#ifndef LXB_CSS_SYNTAX_RES_NAME_MAP_ENABLED
-#define LXB_CSS_SYNTAX_RES_NAME_MAP_ENABLED
-#define LXB_CSS_SYNTAX_RES_NAME_START 0x01
+#ifndef PCHTML_CSS_SYNTAX_RES_H
+#define PCHTML_CSS_SYNTAX_RES_H
 
-static const lxb_char_t lxb_css_syntax_res_name_map[256] =
+#ifdef PCHTML_CSS_SYNTAX_RES_NAME_MAP
+#ifndef PCHTML_CSS_SYNTAX_RES_NAME_MAP_ENABLED
+#define PCHTML_CSS_SYNTAX_RES_NAME_MAP_ENABLED
+#define PCHTML_CSS_SYNTAX_RES_NAME_START 0x01
+
+static const unsigned char pchtml_css_syntax_res_name_map[256] =
 {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -42,7 +61,7 @@ static const lxb_char_t lxb_css_syntax_res_name_map[256] =
     0x01, 0x01, 0x01, 0x01, 0x01
 };
 
-#endif /* LXB_CSS_SYNTAX_RES_NAME_MAP_ENABLED */
-#endif /* LXB_CSS_SYNTAX_RES_NAME_MAP */
+#endif  /* PCHTML_CSS_SYNTAX_RES_NAME_MAP_ENABLED */
+#endif  /* PCHTML_CSS_SYNTAX_RES_NAME_MAP */
 
-#endif /* LEXBOR_CSS_SYNTAX_RES_H */
+#endif  /* PCHTML_CSS_SYNTAX_RES_H */
