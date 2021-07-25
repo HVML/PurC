@@ -1,8 +1,27 @@
-/*
- * Copyright (C) 2018-2020 Alexander Borisov
+/**
+ * @file initial.c.
+ * @author 
+ * @date 2021/07/02
+ * @brief The complementation of initializing html parser.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 
 #include "html/html/tree/insertion_mode.h"
 #include "html/dom/interfaces/document_type.h"
@@ -12,25 +31,25 @@ typedef struct {
     const char *data;
     size_t len;
 }
-lxb_html_tree_insertion_mode_initial_str_t;
+pchtml_html_tree_insertion_mode_initial_str_t;
 
 
-static lxb_html_tree_insertion_mode_initial_str_t
-lxb_html_tree_insertion_mode_initial_doctype_public_is[] =
+static pchtml_html_tree_insertion_mode_initial_str_t
+pchtml_html_tree_insertion_mode_initial_doctype_public_is[] =
 {
     {"-//W3O//DTD W3 HTML Strict 3.0//EN//", 36},
     {"-/W3C/DTD HTML 4.0 Transitional/EN", 34},
     {"HTML", 4}
 };
 
-static lxb_html_tree_insertion_mode_initial_str_t
-lxb_html_tree_insertion_mode_initial_doctype_system_is[] =
+static pchtml_html_tree_insertion_mode_initial_str_t
+pchtml_html_tree_insertion_mode_initial_doctype_system_is[] =
 {
     {"http://www.ibm.com/data/dtd/v11/ibmxhtml1-transitional.dtd", 58}
 };
 
-static lxb_html_tree_insertion_mode_initial_str_t
-lxb_html_tree_insertion_mode_initial_doctype_public_start[] =
+static pchtml_html_tree_insertion_mode_initial_str_t
+pchtml_html_tree_insertion_mode_initial_doctype_public_start[] =
 {
     {"+//Silmaril//dtd html Pro v0r11 19970101//", 42},
     {"-//AS//DTD HTML 3.0 asWedit + extensions//", 42},
@@ -89,15 +108,15 @@ lxb_html_tree_insertion_mode_initial_doctype_public_start[] =
     {"-//WebTechs//DTD Mozilla HTML//", 31}
 };
 
-static lxb_html_tree_insertion_mode_initial_str_t
-lxb_html_tree_insertion_mode_initial_doctype_sys_pub_start[] =
+static pchtml_html_tree_insertion_mode_initial_str_t
+pchtml_html_tree_insertion_mode_initial_doctype_sys_pub_start[] =
 {
     {"-//W3C//DTD HTML 4.01 Frameset//", 32},
     {"-//W3C//DTD HTML 4.01 Transitional//", 36}
 };
 
-static lxb_html_tree_insertion_mode_initial_str_t
-lxb_html_tree_insertion_mode_initial_doctype_lim_pub_start[] =
+static pchtml_html_tree_insertion_mode_initial_str_t
+pchtml_html_tree_insertion_mode_initial_doctype_lim_pub_start[] =
 {
     {"-//W3C//DTD XHTML 1.0 Frameset//", 32},
     {"-//W3C//DTD XHTML 1.0 Transitional//", 36}
@@ -105,57 +124,57 @@ lxb_html_tree_insertion_mode_initial_doctype_lim_pub_start[] =
 
 
 static bool
-lxb_html_tree_insertion_mode_initial_doctype(lxb_html_tree_t *tree,
-                                             lxb_html_token_t *token);
+pchtml_html_tree_insertion_mode_initial_doctype(pchtml_html_tree_t *tree,
+                                             pchtml_html_token_t *token);
 
 static void
-lxb_html_tree_insertion_mode_initial_doctype_ckeck(lxb_html_tree_t *tree,
-                                         lxb_dom_document_type_t *doc_type,
-                                         lxb_html_token_t *token, bool is_html);
+pchtml_html_tree_insertion_mode_initial_doctype_ckeck(pchtml_html_tree_t *tree,
+                                         pchtml_dom_document_type_t *doc_type,
+                                         pchtml_html_token_t *token, bool is_html);
 
 static bool
-lxb_html_tree_insertion_mode_initial_doctype_ckeck_public(
-                                             lxb_dom_document_type_t *doc_type);
+pchtml_html_tree_insertion_mode_initial_doctype_ckeck_public(
+                                             pchtml_dom_document_type_t *doc_type);
 
 static bool
-lxb_html_tree_insertion_mode_initial_doctype_ckeck_system(
-                                             lxb_dom_document_type_t *doc_type);
+pchtml_html_tree_insertion_mode_initial_doctype_ckeck_system(
+                                             pchtml_dom_document_type_t *doc_type);
 
 static bool
-lxb_html_tree_insertion_mode_initial_doctype_ckeck_pubsys(
-                                             lxb_dom_document_type_t *doc_type);
+pchtml_html_tree_insertion_mode_initial_doctype_ckeck_pubsys(
+                                             pchtml_dom_document_type_t *doc_type);
 
 static bool
-lxb_html_tree_insertion_mode_initial_doctype_check_limq(
-                                             lxb_dom_document_type_t *doc_type);
+pchtml_html_tree_insertion_mode_initial_doctype_check_limq(
+                                             pchtml_dom_document_type_t *doc_type);
 
 
 bool
-lxb_html_tree_insertion_mode_initial(lxb_html_tree_t *tree,
-                                     lxb_html_token_t *token)
+pchtml_html_tree_insertion_mode_initial(pchtml_html_tree_t *tree,
+                                     pchtml_html_token_t *token)
 {
     switch (token->tag_id) {
-        case LXB_TAG__EM_COMMENT: {
-            lxb_dom_comment_t *comment;
+        case PCHTML_TAG__EM_COMMENT: {
+            pchtml_dom_comment_t *comment;
 
-            comment = lxb_html_tree_insert_comment(tree, token,
-                                        lxb_dom_interface_node(tree->document));
+            comment = pchtml_html_tree_insert_comment(tree, token,
+                                        pchtml_dom_interface_node(tree->document));
             if (comment == NULL) {
-                return lxb_html_tree_process_abort(tree);
+                return pchtml_html_tree_process_abort(tree);
             }
 
             break;
         }
 
-        case LXB_TAG__EM_DOCTYPE:
-            tree->mode = lxb_html_tree_insertion_mode_before_html;
+        case PCHTML_TAG__EM_DOCTYPE:
+            tree->mode = pchtml_html_tree_insertion_mode_before_html;
 
-            return lxb_html_tree_insertion_mode_initial_doctype(tree, token);
+            return pchtml_html_tree_insertion_mode_initial_doctype(tree, token);
 
-        case LXB_TAG__TEXT:
-            tree->status = lxb_html_token_data_skip_ws_begin(token);
-            if (tree->status != LXB_STATUS_OK) {
-                return lxb_html_tree_process_abort(tree);
+        case PCHTML_TAG__TEXT:
+            tree->status = pchtml_html_token_data_skip_ws_begin(token);
+            if (tree->status != PCHTML_STATUS_OK) {
+                return pchtml_html_tree_process_abort(tree);
             }
 
             if (token->text_start == token->text_end) {
@@ -164,16 +183,16 @@ lxb_html_tree_insertion_mode_initial(lxb_html_tree_t *tree,
             /* fall through */
 
         default: {
-            lxb_dom_document_t *document = &tree->document->dom_document;
+            pchtml_dom_document_t *document = &tree->document->dom_document;
 
             if (tree->document->iframe_srcdoc == NULL) {
-                lxb_html_tree_parse_error(tree, token,
-                                          LXB_HTML_RULES_ERROR_UNTOININMO);
+                pchtml_html_tree_parse_error(tree, token,
+                                          PCHTML_HTML_RULES_ERROR_UNTOININMO);
 
-                document->compat_mode = LXB_DOM_DOCUMENT_CMODE_QUIRKS;
+                document->compat_mode = PCHTML_DOM_DOCUMENT_CMODE_QUIRKS;
             }
 
-            tree->mode = lxb_html_tree_insertion_mode_before_html;
+            tree->mode = pchtml_html_tree_insertion_mode_before_html;
 
             return false;
         }
@@ -183,21 +202,21 @@ lxb_html_tree_insertion_mode_initial(lxb_html_tree_t *tree,
 }
 
 static bool
-lxb_html_tree_insertion_mode_initial_doctype(lxb_html_tree_t *tree,
-                                             lxb_html_token_t *token)
+pchtml_html_tree_insertion_mode_initial_doctype(pchtml_html_tree_t *tree,
+                                             pchtml_html_token_t *token)
 {
-    lxb_dom_document_type_t *doc_type;
+    pchtml_dom_document_type_t *doc_type;
 
     /* Create */
-    doc_type = lxb_html_tree_create_document_type_from_token(tree, token);
+    doc_type = pchtml_html_tree_create_document_type_from_token(tree, token);
     if (doc_type == NULL) {
-        tree->status = LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+        tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
-        return lxb_html_tree_process_abort(tree);
+        return pchtml_html_tree_process_abort(tree);
     }
 
     /* Check */
-    bool is_html = (doc_type->name == LXB_DOM_ATTR_HTML);
+    bool is_html = (doc_type->name == PCHTML_DOM_ATTR_HTML);
 
     if (is_html == false
         || doc_type->public_id.length != 0
@@ -206,34 +225,34 @@ lxb_html_tree_insertion_mode_initial_doctype(lxb_html_tree_t *tree,
                        (const char *) doc_type->system_id.data, 19) != 0)
         )
     {
-        lxb_html_tree_parse_error(tree, token,
-                                  LXB_HTML_RULES_ERROR_BADOTOININMO);
+        pchtml_html_tree_parse_error(tree, token,
+                                  PCHTML_HTML_RULES_ERROR_BADOTOININMO);
     }
 
-    lxb_html_tree_insertion_mode_initial_doctype_ckeck(tree, doc_type,
+    pchtml_html_tree_insertion_mode_initial_doctype_ckeck(tree, doc_type,
                                                        token, is_html);
 
-    lxb_dom_node_insert_child(&tree->document->dom_document.node,
-                              lxb_dom_interface_node(doc_type));
+    pchtml_dom_node_insert_child(&tree->document->dom_document.node,
+                              pchtml_dom_interface_node(doc_type));
 
-    lxb_dom_document_attach_doctype(&tree->document->dom_document, doc_type);
+    pchtml_dom_document_attach_doctype(&tree->document->dom_document, doc_type);
 
     return true;
 }
 
 static void
-lxb_html_tree_insertion_mode_initial_doctype_ckeck(lxb_html_tree_t *tree,
-                                          lxb_dom_document_type_t *doc_type,
-                                          lxb_html_token_t *token, bool is_html)
+pchtml_html_tree_insertion_mode_initial_doctype_ckeck(pchtml_html_tree_t *tree,
+                                          pchtml_dom_document_type_t *doc_type,
+                                          pchtml_html_token_t *token, bool is_html)
 {
     if (tree->document->iframe_srcdoc != NULL) {
         return;
     }
 
     bool quirks;
-    lxb_dom_document_t *document = &tree->document->dom_document;
+    pchtml_dom_document_t *document = &tree->document->dom_document;
 
-    if (token->type & LXB_HTML_TOKEN_TYPE_FORCE_QUIRKS) {
+    if (token->type & PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS) {
         goto set_quirks;
     }
 
@@ -243,7 +262,7 @@ lxb_html_tree_insertion_mode_initial_doctype_ckeck(lxb_html_tree_t *tree,
 
     if (doc_type->public_id.length != 0) {
         quirks =
-            lxb_html_tree_insertion_mode_initial_doctype_ckeck_public(doc_type);
+            pchtml_html_tree_insertion_mode_initial_doctype_ckeck_public(doc_type);
 
         if (quirks) {
             goto set_quirks;
@@ -252,7 +271,7 @@ lxb_html_tree_insertion_mode_initial_doctype_ckeck(lxb_html_tree_t *tree,
 
     if (doc_type->system_id.length != 0) {
         quirks =
-            lxb_html_tree_insertion_mode_initial_doctype_ckeck_system(doc_type);
+            pchtml_html_tree_insertion_mode_initial_doctype_ckeck_system(doc_type);
 
         if (quirks) {
             goto set_quirks;
@@ -261,7 +280,7 @@ lxb_html_tree_insertion_mode_initial_doctype_ckeck(lxb_html_tree_t *tree,
 
     if (doc_type->public_id.length != 0 && doc_type->system_id.length == 0) {
         quirks =
-            lxb_html_tree_insertion_mode_initial_doctype_ckeck_pubsys(doc_type);
+            pchtml_html_tree_insertion_mode_initial_doctype_ckeck_pubsys(doc_type);
 
         if (quirks) {
             goto set_quirks;
@@ -270,10 +289,10 @@ lxb_html_tree_insertion_mode_initial_doctype_ckeck(lxb_html_tree_t *tree,
 
     if (doc_type->public_id.length != 0) {
         quirks =
-            lxb_html_tree_insertion_mode_initial_doctype_check_limq(doc_type);
+            pchtml_html_tree_insertion_mode_initial_doctype_check_limq(doc_type);
 
         if (quirks) {
-            document->compat_mode = LXB_DOM_DOCUMENT_CMODE_LIMITED_QUIRKS;
+            document->compat_mode = PCHTML_DOM_DOCUMENT_CMODE_LIMITED_QUIRKS;
             return;
         }
     }
@@ -282,25 +301,25 @@ lxb_html_tree_insertion_mode_initial_doctype_ckeck(lxb_html_tree_t *tree,
 
 set_quirks:
 
-    document->compat_mode = LXB_DOM_DOCUMENT_CMODE_QUIRKS;
+    document->compat_mode = PCHTML_DOM_DOCUMENT_CMODE_QUIRKS;
 }
 
 static bool
-lxb_html_tree_insertion_mode_initial_doctype_ckeck_public(
-                                              lxb_dom_document_type_t *doc_type)
+pchtml_html_tree_insertion_mode_initial_doctype_ckeck_public(
+                                              pchtml_dom_document_type_t *doc_type)
 {
     size_t size, i;
-    lxb_html_tree_insertion_mode_initial_str_t *str;
+    pchtml_html_tree_insertion_mode_initial_str_t *str;
 
     /* The public identifier is set to */
-    size = sizeof(lxb_html_tree_insertion_mode_initial_doctype_public_is)
-        / sizeof(lxb_html_tree_insertion_mode_initial_str_t);
+    size = sizeof(pchtml_html_tree_insertion_mode_initial_doctype_public_is)
+        / sizeof(pchtml_html_tree_insertion_mode_initial_str_t);
 
     for (i = 0; i < size; i++) {
-        str = &lxb_html_tree_insertion_mode_initial_doctype_public_is[i];
+        str = &pchtml_html_tree_insertion_mode_initial_doctype_public_is[i];
 
         if (str->len == doc_type->public_id.length
-            && lexbor_str_data_casecmp((const lxb_char_t *) str->data,
+            && pchtml_str_data_casecmp((const unsigned char *) str->data,
                                        doc_type->public_id.data))
         {
             return true;
@@ -308,14 +327,14 @@ lxb_html_tree_insertion_mode_initial_doctype_ckeck_public(
     }
 
     /* The public identifier starts with */
-    size = sizeof(lxb_html_tree_insertion_mode_initial_doctype_public_start)
-        / sizeof(lxb_html_tree_insertion_mode_initial_str_t);
+    size = sizeof(pchtml_html_tree_insertion_mode_initial_doctype_public_start)
+        / sizeof(pchtml_html_tree_insertion_mode_initial_str_t);
 
     for (i = 0; i < size; i++) {
-        str = &lxb_html_tree_insertion_mode_initial_doctype_public_start[i];
+        str = &pchtml_html_tree_insertion_mode_initial_doctype_public_start[i];
 
         if (str->len <= doc_type->public_id.length
-            && lexbor_str_data_ncasecmp((const lxb_char_t *) str->data,
+            && pchtml_str_data_ncasecmp((const unsigned char *) str->data,
                                         doc_type->public_id.data, str->len))
         {
             return true;
@@ -326,21 +345,21 @@ lxb_html_tree_insertion_mode_initial_doctype_ckeck_public(
 }
 
 static bool
-lxb_html_tree_insertion_mode_initial_doctype_ckeck_system(
-                                              lxb_dom_document_type_t *doc_type)
+pchtml_html_tree_insertion_mode_initial_doctype_ckeck_system(
+                                              pchtml_dom_document_type_t *doc_type)
 {
     size_t size;
-    lxb_html_tree_insertion_mode_initial_str_t *str;
+    pchtml_html_tree_insertion_mode_initial_str_t *str;
 
     /* The system identifier is set to */
-    size = sizeof(lxb_html_tree_insertion_mode_initial_doctype_system_is)
-        / sizeof(lxb_html_tree_insertion_mode_initial_str_t);
+    size = sizeof(pchtml_html_tree_insertion_mode_initial_doctype_system_is)
+        / sizeof(pchtml_html_tree_insertion_mode_initial_str_t);
 
     for (size_t i = 0; i < size; i++) {
-        str = &lxb_html_tree_insertion_mode_initial_doctype_system_is[i];
+        str = &pchtml_html_tree_insertion_mode_initial_doctype_system_is[i];
 
         if (str->len == doc_type->system_id.length
-            && lexbor_str_data_casecmp((const lxb_char_t *) str->data,
+            && pchtml_str_data_casecmp((const unsigned char *) str->data,
                                        doc_type->system_id.data))
         {
             return true;
@@ -351,21 +370,21 @@ lxb_html_tree_insertion_mode_initial_doctype_ckeck_system(
 }
 
 static bool
-lxb_html_tree_insertion_mode_initial_doctype_ckeck_pubsys(
-                                              lxb_dom_document_type_t *doc_type)
+pchtml_html_tree_insertion_mode_initial_doctype_ckeck_pubsys(
+                                              pchtml_dom_document_type_t *doc_type)
 {
     size_t size;
-    lxb_html_tree_insertion_mode_initial_str_t *str;
+    pchtml_html_tree_insertion_mode_initial_str_t *str;
 
     /* The system identifier is missing and the public identifier starts with */
-    size = sizeof(lxb_html_tree_insertion_mode_initial_doctype_sys_pub_start)
-        / sizeof(lxb_html_tree_insertion_mode_initial_str_t);
+    size = sizeof(pchtml_html_tree_insertion_mode_initial_doctype_sys_pub_start)
+        / sizeof(pchtml_html_tree_insertion_mode_initial_str_t);
 
     for (size_t i = 0; i < size; i++) {
-        str = &lxb_html_tree_insertion_mode_initial_doctype_sys_pub_start[i];
+        str = &pchtml_html_tree_insertion_mode_initial_doctype_sys_pub_start[i];
 
         if (str->len <= doc_type->public_id.length
-            && lexbor_str_data_ncasecmp((const lxb_char_t *) str->data,
+            && pchtml_str_data_ncasecmp((const unsigned char *) str->data,
                                         doc_type->public_id.data, str->len))
         {
             return true;
@@ -376,16 +395,16 @@ lxb_html_tree_insertion_mode_initial_doctype_ckeck_pubsys(
 }
 
 static bool
-lxb_html_tree_insertion_mode_initial_doctype_check_limq(
-                                              lxb_dom_document_type_t *doc_type)
+pchtml_html_tree_insertion_mode_initial_doctype_check_limq(
+                                              pchtml_dom_document_type_t *doc_type)
 {
     bool quirks;
     size_t size;
-    lxb_html_tree_insertion_mode_initial_str_t *str;
+    pchtml_html_tree_insertion_mode_initial_str_t *str;
 
     if (doc_type->system_id.length != 0) {
         quirks =
-            lxb_html_tree_insertion_mode_initial_doctype_ckeck_pubsys(doc_type);
+            pchtml_html_tree_insertion_mode_initial_doctype_ckeck_pubsys(doc_type);
 
         if (quirks) {
             return true;
@@ -393,14 +412,14 @@ lxb_html_tree_insertion_mode_initial_doctype_check_limq(
     }
 
     /* The public identifier starts with */
-    size = sizeof(lxb_html_tree_insertion_mode_initial_doctype_lim_pub_start)
-        / sizeof(lxb_html_tree_insertion_mode_initial_str_t);
+    size = sizeof(pchtml_html_tree_insertion_mode_initial_doctype_lim_pub_start)
+        / sizeof(pchtml_html_tree_insertion_mode_initial_str_t);
 
     for (size_t i = 0; i < size; i++) {
-        str = &lxb_html_tree_insertion_mode_initial_doctype_lim_pub_start[i];
+        str = &pchtml_html_tree_insertion_mode_initial_doctype_lim_pub_start[i];
 
         if (str->len <= doc_type->public_id.length
-            && lexbor_str_data_ncasecmp((const lxb_char_t *) str->data,
+            && pchtml_str_data_ncasecmp((const unsigned char *) str->data,
                                         doc_type->public_id.data, str->len))
         {
             return true;

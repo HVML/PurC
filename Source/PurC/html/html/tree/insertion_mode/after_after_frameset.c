@@ -1,60 +1,78 @@
-/*
- * Copyright (C) 2018-2020 Alexander Borisov
+/**
+ * @file after_after_frameset.c
+ * @author 
+ * @date 2021/07/02
+ * @brief The complementation of pseudo after tag after frameset tag.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include "html/html/tree/insertion_mode.h"
 
 
 bool
-lxb_html_tree_insertion_mode_after_after_frameset(lxb_html_tree_t *tree,
-                                                  lxb_html_token_t *token)
+pchtml_html_tree_insertion_mode_after_after_frameset(pchtml_html_tree_t *tree,
+                                                  pchtml_html_token_t *token)
 {
     switch (token->tag_id) {
-        case LXB_TAG__EM_COMMENT: {
-            lxb_dom_comment_t *comment;
+        case PCHTML_TAG__EM_COMMENT: {
+            pchtml_dom_comment_t *comment;
 
-            comment = lxb_html_tree_insert_comment(tree, token,
-                                                   lxb_dom_interface_node(tree->document));
+            comment = pchtml_html_tree_insert_comment(tree, token,
+                                                   pchtml_dom_interface_node(tree->document));
             if (comment == NULL) {
-                return lxb_html_tree_process_abort(tree);
+                return pchtml_html_tree_process_abort(tree);
             }
 
             break;
         }
 
-        case LXB_TAG__EM_DOCTYPE:
-        case LXB_TAG_HTML:
-            return lxb_html_tree_insertion_mode_in_body(tree, token);
+        case PCHTML_TAG__EM_DOCTYPE:
+        case PCHTML_TAG_HTML:
+            return pchtml_html_tree_insertion_mode_in_body(tree, token);
 
-        case LXB_TAG__END_OF_FILE:
-            tree->status = lxb_html_tree_stop_parsing(tree);
-            if (tree->status != LXB_STATUS_OK) {
-                return lxb_html_tree_process_abort(tree);
+        case PCHTML_TAG__END_OF_FILE:
+            tree->status = pchtml_html_tree_stop_parsing(tree);
+            if (tree->status != PCHTML_STATUS_OK) {
+                return pchtml_html_tree_process_abort(tree);
             }
 
             break;
 
-        case LXB_TAG_NOFRAMES:
-            return lxb_html_tree_insertion_mode_in_head(tree, token);
+        case PCHTML_TAG_NOFRAMES:
+            return pchtml_html_tree_insertion_mode_in_head(tree, token);
 
-        case LXB_TAG__TEXT: {
-            lxb_html_token_t ws_token = *token;
+        case PCHTML_TAG__TEXT: {
+            pchtml_html_token_t ws_token = *token;
 
-            tree->status = lxb_html_token_data_skip_ws_begin(&ws_token);
-            if (tree->status != LXB_STATUS_OK) {
-                return lxb_html_tree_process_abort(tree);
+            tree->status = pchtml_html_token_data_skip_ws_begin(&ws_token);
+            if (tree->status != PCHTML_STATUS_OK) {
+                return pchtml_html_tree_process_abort(tree);
             }
 
             if (ws_token.text_start == ws_token.text_end) {
-                return lxb_html_tree_insertion_mode_in_body(tree, token);
+                return pchtml_html_tree_insertion_mode_in_body(tree, token);
             }
         }
         /* fall through */
 
         default:
-            lxb_html_tree_parse_error(tree, token, LXB_HTML_RULES_ERROR_UNTO);
+            pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_UNTO);
 
             break;
     }

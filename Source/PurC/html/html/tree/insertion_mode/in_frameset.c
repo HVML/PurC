@@ -1,135 +1,154 @@
-/*
- * Copyright (C) 2018-2020 Alexander Borisov
+/**
+ * @file in_frameset.c.
+ * @author 
+ * @date 2021/07/02
+ * @brief The complementation of parsing html in frameset tag.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 
 #include "html/html/tree/insertion_mode.h"
 #include "html/html/tree/open_elements.h"
 
 
 bool
-lxb_html_tree_insertion_mode_in_frameset(lxb_html_tree_t *tree,
-                                         lxb_html_token_t *token)
+pchtml_html_tree_insertion_mode_in_frameset(pchtml_html_tree_t *tree,
+                                         pchtml_html_token_t *token)
 {
-    if (token->type & LXB_HTML_TOKEN_TYPE_CLOSE) {
-        if (token->tag_id == LXB_TAG_FRAMESET)
+    if (token->type & PCHTML_HTML_TOKEN_TYPE_CLOSE) {
+        if (token->tag_id == PCHTML_TAG_FRAMESET)
         {
-            lxb_dom_node_t *node;
-            node = lxb_html_tree_current_node(tree);
+            pchtml_dom_node_t *node;
+            node = pchtml_html_tree_current_node(tree);
 
-            if (node == lxb_html_tree_open_elements_first(tree)) {
-                lxb_html_tree_parse_error(tree, token,
-                                          LXB_HTML_RULES_ERROR_UNELINOPELST);
+            if (node == pchtml_html_tree_open_elements_first(tree)) {
+                pchtml_html_tree_parse_error(tree, token,
+                                          PCHTML_HTML_RULES_ERROR_UNELINOPELST);
                 return true;
             }
 
-            lxb_html_tree_open_elements_pop(tree);
+            pchtml_html_tree_open_elements_pop(tree);
 
-            node = lxb_html_tree_current_node(tree);
+            node = pchtml_html_tree_current_node(tree);
 
             if (tree->fragment == NULL
-                && lxb_html_tree_node_is(node, LXB_TAG_FRAMESET) == false)
+                && pchtml_html_tree_node_is(node, PCHTML_TAG_FRAMESET) == false)
             {
-                tree->mode = lxb_html_tree_insertion_mode_after_frameset;
+                tree->mode = pchtml_html_tree_insertion_mode_after_frameset;
             }
 
             return true;
         }
 
-        lxb_html_tree_parse_error(tree, token, LXB_HTML_RULES_ERROR_UNTO);
+        pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_UNTO);
 
         return true;
     }
 
     switch (token->tag_id) {
-        case LXB_TAG__EM_COMMENT: {
-            lxb_dom_comment_t *comment;
+        case PCHTML_TAG__EM_COMMENT: {
+            pchtml_dom_comment_t *comment;
 
-            comment = lxb_html_tree_insert_comment(tree, token, NULL);
+            comment = pchtml_html_tree_insert_comment(tree, token, NULL);
             if (comment == NULL) {
-                return lxb_html_tree_process_abort(tree);
+                return pchtml_html_tree_process_abort(tree);
             }
 
             break;
         }
 
-        case LXB_TAG__EM_DOCTYPE:
-            lxb_html_tree_parse_error(tree, token,
-                                      LXB_HTML_RULES_ERROR_DOTOINFRMO);
+        case PCHTML_TAG__EM_DOCTYPE:
+            pchtml_html_tree_parse_error(tree, token,
+                                      PCHTML_HTML_RULES_ERROR_DOTOINFRMO);
             break;
 
-        case LXB_TAG_HTML:
-            return lxb_html_tree_insertion_mode_in_body(tree, token);
+        case PCHTML_TAG_HTML:
+            return pchtml_html_tree_insertion_mode_in_body(tree, token);
 
-        case LXB_TAG_FRAMESET: {
-            lxb_html_element_t *element;
+        case PCHTML_TAG_FRAMESET: {
+            pchtml_html_element_t *element;
 
-            element = lxb_html_tree_insert_html_element(tree, token);
+            element = pchtml_html_tree_insert_html_element(tree, token);
             if (element == NULL) {
-                tree->status = LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+                tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
-                return lxb_html_tree_process_abort(tree);
+                return pchtml_html_tree_process_abort(tree);
             }
 
             break;
         }
 
-        case LXB_TAG_FRAME: {
-            lxb_html_element_t *element;
+        case PCHTML_TAG_FRAME: {
+            pchtml_html_element_t *element;
 
-            element = lxb_html_tree_insert_html_element(tree, token);
+            element = pchtml_html_tree_insert_html_element(tree, token);
             if (element == NULL) {
-                tree->status = LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+                tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
-                return lxb_html_tree_process_abort(tree);
+                return pchtml_html_tree_process_abort(tree);
             }
 
-            lxb_html_tree_open_elements_pop(tree);
-            lxb_html_tree_acknowledge_token_self_closing(tree, token);
+            pchtml_html_tree_open_elements_pop(tree);
+            pchtml_html_tree_acknowledge_token_self_closing(tree, token);
 
             break;
         }
 
-        case LXB_TAG_NOFRAMES:
-            return lxb_html_tree_insertion_mode_in_head(tree, token);
+        case PCHTML_TAG_NOFRAMES:
+            return pchtml_html_tree_insertion_mode_in_head(tree, token);
 
-        case LXB_TAG__END_OF_FILE: {
-            lxb_dom_node_t *node = lxb_html_tree_current_node(tree);
+        case PCHTML_TAG__END_OF_FILE: {
+            pchtml_dom_node_t *node = pchtml_html_tree_current_node(tree);
 
-            if (node != lxb_html_tree_open_elements_first(tree)) {
-                lxb_html_tree_parse_error(tree, token,
-                                          LXB_HTML_RULES_ERROR_UNELINOPELST);
+            if (node != pchtml_html_tree_open_elements_first(tree)) {
+                pchtml_html_tree_parse_error(tree, token,
+                                          PCHTML_HTML_RULES_ERROR_UNELINOPELST);
             }
 
-            tree->status = lxb_html_tree_stop_parsing(tree);
-            if (tree->status != LXB_STATUS_OK) {
-                return lxb_html_tree_process_abort(tree);
+            tree->status = pchtml_html_tree_stop_parsing(tree);
+            if (tree->status != PCHTML_STATUS_OK) {
+                return pchtml_html_tree_process_abort(tree);
             }
 
             break;
         }
 
-        case LXB_TAG__TEXT: {
+        case PCHTML_TAG__TEXT: {
             size_t cur_len;
-            lexbor_str_t str;
+            pchtml_str_t str;
 
-            tree->status = lxb_html_token_make_text(token, &str,
+            tree->status = pchtml_html_token_make_text(token, &str,
                                                     tree->document->dom_document.text);
-            if (tree->status != LXB_STATUS_OK) {
-                return lxb_html_tree_process_abort(tree);
+            if (tree->status != PCHTML_STATUS_OK) {
+                return pchtml_html_tree_process_abort(tree);
             }
 
             cur_len = str.length;
 
-            lexbor_str_stay_only_whitespace(&str);
+            pchtml_str_stay_only_whitespace(&str);
 
             if (str.length != 0) {
-                tree->status = lxb_html_tree_insert_character_for_data(tree,
+                tree->status = pchtml_html_tree_insert_character_for_data(tree,
                                                                        &str,
                                                                        NULL);
-                if (tree->status != LXB_STATUS_OK) {
-                    return lxb_html_tree_process_abort(tree);
+                if (tree->status != PCHTML_STATUS_OK) {
+                    return pchtml_html_tree_process_abort(tree);
                 }
             }
 
@@ -140,7 +159,7 @@ lxb_html_tree_insertion_mode_in_frameset(lxb_html_tree_t *tree,
         /* fall through */
 
         default:
-            lxb_html_tree_parse_error(tree, token, LXB_HTML_RULES_ERROR_UNTO);
+            pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_UNTO);
 
             break;
     }

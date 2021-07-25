@@ -1,80 +1,99 @@
-/*
- * Copyright (C) 2018-2020 Alexander Borisov
+/**
+ * @file before_head.c
+ * @author 
+ * @date 2021/07/02
+ * @brief The complementation of pseudo before tag before head tag.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 
 #include "html/html/tree/insertion_mode.h"
 
 
 static bool
-lxb_html_tree_insertion_mode_before_head_open(lxb_html_tree_t *tree,
-                                              lxb_html_token_t *token);
+pchtml_html_tree_insertion_mode_before_head_open(pchtml_html_tree_t *tree,
+                                              pchtml_html_token_t *token);
 
 static bool
-lxb_html_tree_insertion_mode_before_head_closed(lxb_html_tree_t *tree,
-                                                lxb_html_token_t *token);
+pchtml_html_tree_insertion_mode_before_head_closed(pchtml_html_tree_t *tree,
+                                                pchtml_html_token_t *token);
 
-lxb_inline bool
-lxb_html_tree_insertion_mode_before_head_anything_else(lxb_html_tree_t *tree);
+static inline bool
+pchtml_html_tree_insertion_mode_before_head_anything_else(pchtml_html_tree_t *tree);
 
-lxb_inline lxb_status_t
-lxb_html_tree_insertion_mode_before_head_head(lxb_html_tree_t *tree,
-                                              lxb_html_token_t *token);
+static inline unsigned int
+pchtml_html_tree_insertion_mode_before_head_head(pchtml_html_tree_t *tree,
+                                              pchtml_html_token_t *token);
 
 
 bool
-lxb_html_tree_insertion_mode_before_head(lxb_html_tree_t *tree,
-                                         lxb_html_token_t *token)
+pchtml_html_tree_insertion_mode_before_head(pchtml_html_tree_t *tree,
+                                         pchtml_html_token_t *token)
 {
-    if (token->type & LXB_HTML_TOKEN_TYPE_CLOSE) {
-        return lxb_html_tree_insertion_mode_before_head_closed(tree, token);
+    if (token->type & PCHTML_HTML_TOKEN_TYPE_CLOSE) {
+        return pchtml_html_tree_insertion_mode_before_head_closed(tree, token);
     }
 
-    return lxb_html_tree_insertion_mode_before_head_open(tree, token);
+    return pchtml_html_tree_insertion_mode_before_head_open(tree, token);
 }
 
 static bool
-lxb_html_tree_insertion_mode_before_head_open(lxb_html_tree_t *tree,
-                                              lxb_html_token_t *token)
+pchtml_html_tree_insertion_mode_before_head_open(pchtml_html_tree_t *tree,
+                                              pchtml_html_token_t *token)
 {
     switch (token->tag_id) {
-        case LXB_TAG__EM_COMMENT: {
-            lxb_dom_comment_t *comment;
+        case PCHTML_TAG__EM_COMMENT: {
+            pchtml_dom_comment_t *comment;
 
-            comment = lxb_html_tree_insert_comment(tree, token, NULL);
+            comment = pchtml_html_tree_insert_comment(tree, token, NULL);
             if (comment == NULL) {
-                tree->status = LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+                tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
-                return lxb_html_tree_process_abort(tree);
+                return pchtml_html_tree_process_abort(tree);
             }
 
             break;
         }
 
-        case LXB_TAG__EM_DOCTYPE:
-            lxb_html_tree_parse_error(tree, token,
-                                      LXB_HTML_RULES_ERROR_DOTOINBEHEMO);
+        case PCHTML_TAG__EM_DOCTYPE:
+            pchtml_html_tree_parse_error(tree, token,
+                                      PCHTML_HTML_RULES_ERROR_DOTOINBEHEMO);
             break;
 
-        case LXB_TAG_HTML:
-            return lxb_html_tree_insertion_mode_in_body(tree, token);
+        case PCHTML_TAG_HTML:
+            return pchtml_html_tree_insertion_mode_in_body(tree, token);
 
-        case LXB_TAG_HEAD:
-            tree->status = lxb_html_tree_insertion_mode_before_head_head(tree,
+        case PCHTML_TAG_HEAD:
+            tree->status = pchtml_html_tree_insertion_mode_before_head_head(tree,
                                                                          token);
-            if (tree->status != LXB_STATUS_OK) {
-                return lxb_html_tree_process_abort(tree);
+            if (tree->status != PCHTML_STATUS_OK) {
+                return pchtml_html_tree_process_abort(tree);
             }
 
-            tree->mode = lxb_html_tree_insertion_mode_in_head;
+            tree->mode = pchtml_html_tree_insertion_mode_in_head;
 
             break;
 
-        case LXB_TAG__TEXT:
-            tree->status = lxb_html_token_data_skip_ws_begin(token);
-            if (tree->status != LXB_STATUS_OK) {
-                return lxb_html_tree_process_abort(tree);
+        case PCHTML_TAG__TEXT:
+            tree->status = pchtml_html_token_data_skip_ws_begin(token);
+            if (tree->status != PCHTML_STATUS_OK) {
+                return pchtml_html_tree_process_abort(tree);
             }
 
             if (token->text_start == token->text_end) {
@@ -83,62 +102,62 @@ lxb_html_tree_insertion_mode_before_head_open(lxb_html_tree_t *tree,
             /* fall through */
 
         default:
-            return lxb_html_tree_insertion_mode_before_head_anything_else(tree);
+            return pchtml_html_tree_insertion_mode_before_head_anything_else(tree);
     }
 
     return true;
 }
 
 static bool
-lxb_html_tree_insertion_mode_before_head_closed(lxb_html_tree_t *tree,
-                                                lxb_html_token_t *token)
+pchtml_html_tree_insertion_mode_before_head_closed(pchtml_html_tree_t *tree,
+                                                pchtml_html_token_t *token)
 {
     switch (token->tag_id) {
-        case LXB_TAG_HEAD:
-        case LXB_TAG_BODY:
-        case LXB_TAG_HTML:
-        case LXB_TAG_BR:
-            return lxb_html_tree_insertion_mode_before_head_anything_else(tree);
+        case PCHTML_TAG_HEAD:
+        case PCHTML_TAG_BODY:
+        case PCHTML_TAG_HTML:
+        case PCHTML_TAG_BR:
+            return pchtml_html_tree_insertion_mode_before_head_anything_else(tree);
 
         default:
-            lxb_html_tree_parse_error(tree, token,
-                                      LXB_HTML_RULES_ERROR_UNCLTOINBEHEMO);
+            pchtml_html_tree_parse_error(tree, token,
+                                      PCHTML_HTML_RULES_ERROR_UNCLTOINBEHEMO);
             break;
     }
 
     return true;
 }
 
-lxb_inline bool
-lxb_html_tree_insertion_mode_before_head_anything_else(lxb_html_tree_t *tree)
+static inline bool
+pchtml_html_tree_insertion_mode_before_head_anything_else(pchtml_html_tree_t *tree)
 {
-    lxb_html_token_t fake_token = {0};
+    pchtml_html_token_t fake_token = {0};
 
-    fake_token.tag_id = LXB_TAG_HEAD;
+    fake_token.tag_id = PCHTML_TAG_HEAD;
 
-    tree->status = lxb_html_tree_insertion_mode_before_head_head(tree,
+    tree->status = pchtml_html_tree_insertion_mode_before_head_head(tree,
                                                                  &fake_token);
-    if (tree->status != LXB_STATUS_OK) {
-        return lxb_html_tree_process_abort(tree);
+    if (tree->status != PCHTML_STATUS_OK) {
+        return pchtml_html_tree_process_abort(tree);
     }
 
-    tree->mode = lxb_html_tree_insertion_mode_in_head;
+    tree->mode = pchtml_html_tree_insertion_mode_in_head;
 
     return false;
 }
 
-lxb_inline lxb_status_t
-lxb_html_tree_insertion_mode_before_head_head(lxb_html_tree_t *tree,
-                                              lxb_html_token_t *token)
+static inline unsigned int
+pchtml_html_tree_insertion_mode_before_head_head(pchtml_html_tree_t *tree,
+                                              pchtml_html_token_t *token)
 {
-    lxb_html_element_t *element;
+    pchtml_html_element_t *element;
 
-    element = lxb_html_tree_insert_html_element(tree, token);
+    element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
-        return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+        return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
-    tree->document->head = lxb_html_interface_head(element);
+    tree->document->head = pchtml_html_interface_head(element);
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }

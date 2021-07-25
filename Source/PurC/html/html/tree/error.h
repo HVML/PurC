@@ -1,16 +1,36 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file error.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for error type.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_HTML_TREE_ERROR_H
-#define LEXBOR_HTML_TREE_ERROR_H
+
+#ifndef PCHTML_HTML_TREE_ERROR_H
+#define PCHTML_HTML_TREE_ERROR_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "config.h"
 #include "html/core/base.h"
 #include "html/core/array_obj.h"
 
@@ -19,96 +39,96 @@ extern "C" {
 
 typedef enum {
     /* unexpected-token */
-    LXB_HTML_RULES_ERROR_UNTO = 0x0000,
+    PCHTML_HTML_RULES_ERROR_UNTO = 0x0000,
     /* unexpected-closed-token */
-    LXB_HTML_RULES_ERROR_UNCLTO,
+    PCHTML_HTML_RULES_ERROR_UNCLTO,
     /* null-character */
-    LXB_HTML_RULES_ERROR_NUCH,
+    PCHTML_HTML_RULES_ERROR_NUCH,
     /* unexpected-character-token */
-    LXB_HTML_RULES_ERROR_UNCHTO,
+    PCHTML_HTML_RULES_ERROR_UNCHTO,
     /* unexpected-token-in-initial-mode */
-    LXB_HTML_RULES_ERROR_UNTOININMO,
+    PCHTML_HTML_RULES_ERROR_UNTOININMO,
     /* bad-doctype-token-in-initial-mode */
-    LXB_HTML_RULES_ERROR_BADOTOININMO,
+    PCHTML_HTML_RULES_ERROR_BADOTOININMO,
     /* doctype-token-in-before-html-mode */
-    LXB_HTML_RULES_ERROR_DOTOINBEHTMO,
+    PCHTML_HTML_RULES_ERROR_DOTOINBEHTMO,
     /* unexpected-closed-token-in-before-html-mode */
-    LXB_HTML_RULES_ERROR_UNCLTOINBEHTMO,
+    PCHTML_HTML_RULES_ERROR_UNCLTOINBEHTMO,
     /* doctype-token-in-before-head-mode */
-    LXB_HTML_RULES_ERROR_DOTOINBEHEMO,
+    PCHTML_HTML_RULES_ERROR_DOTOINBEHEMO,
     /* unexpected-closed_token-in-before-head-mode */
-    LXB_HTML_RULES_ERROR_UNCLTOINBEHEMO,
+    PCHTML_HTML_RULES_ERROR_UNCLTOINBEHEMO,
     /* doctype-token-in-head-mode */
-    LXB_HTML_RULES_ERROR_DOTOINHEMO,
+    PCHTML_HTML_RULES_ERROR_DOTOINHEMO,
     /* non-void-html-element-start-tag-with-trailing-solidus */
-    LXB_HTML_RULES_ERROR_NOVOHTELSTTAWITRSO,
+    PCHTML_HTML_RULES_ERROR_NOVOHTELSTTAWITRSO,
     /* head-token-in-head-mode */
-    LXB_HTML_RULES_ERROR_HETOINHEMO,
+    PCHTML_HTML_RULES_ERROR_HETOINHEMO,
     /* unexpected-closed-token-in-head-mode */
-    LXB_HTML_RULES_ERROR_UNCLTOINHEMO,
+    PCHTML_HTML_RULES_ERROR_UNCLTOINHEMO,
     /* template-closed-token-without-opening-in-head-mode */
-    LXB_HTML_RULES_ERROR_TECLTOWIOPINHEMO,
+    PCHTML_HTML_RULES_ERROR_TECLTOWIOPINHEMO,
     /* template-element-is-not-current-in-head-mode */
-    LXB_HTML_RULES_ERROR_TEELISNOCUINHEMO,
+    PCHTML_HTML_RULES_ERROR_TEELISNOCUINHEMO,
     /* doctype-token-in-head-noscript-mode */
-    LXB_HTML_RULES_ERROR_DOTOINHENOMO,
+    PCHTML_HTML_RULES_ERROR_DOTOINHENOMO,
     /* doctype-token-after-head-mode */
-    LXB_HTML_RULES_ERROR_DOTOAFHEMO,
+    PCHTML_HTML_RULES_ERROR_DOTOAFHEMO,
     /* head-token-after-head-mode */
-    LXB_HTML_RULES_ERROR_HETOAFHEMO,
+    PCHTML_HTML_RULES_ERROR_HETOAFHEMO,
     /* doctype-token-in-body-mode */
-    LXB_HTML_RULES_ERROR_DOTOINBOMO,
+    PCHTML_HTML_RULES_ERROR_DOTOINBOMO,
     /* bad-ending-open-elements-is-wrong */
-    LXB_HTML_RULES_ERROR_BAENOPELISWR,
+    PCHTML_HTML_RULES_ERROR_BAENOPELISWR,
     /* open-elements-is-wrong */
-    LXB_HTML_RULES_ERROR_OPELISWR,
+    PCHTML_HTML_RULES_ERROR_OPELISWR,
     /* unexpected-element-in-open-elements-stack */
-    LXB_HTML_RULES_ERROR_UNELINOPELST,
+    PCHTML_HTML_RULES_ERROR_UNELINOPELST,
     /* missing-element-in-open-elements-stack */
-    LXB_HTML_RULES_ERROR_MIELINOPELST,
+    PCHTML_HTML_RULES_ERROR_MIELINOPELST,
     /* no-body-element-in-scope */
-    LXB_HTML_RULES_ERROR_NOBOELINSC,
+    PCHTML_HTML_RULES_ERROR_NOBOELINSC,
     /* missing-element-in-scope */
-    LXB_HTML_RULES_ERROR_MIELINSC,
+    PCHTML_HTML_RULES_ERROR_MIELINSC,
     /* unexpected-element-in-scope */
-    LXB_HTML_RULES_ERROR_UNELINSC,
+    PCHTML_HTML_RULES_ERROR_UNELINSC,
     /* unexpected-element-in-active-formatting-stack */
-    LXB_HTML_RULES_ERROR_UNELINACFOST,
+    PCHTML_HTML_RULES_ERROR_UNELINACFOST,
     /* unexpected-end-of-file */
-    LXB_HTML_RULES_ERROR_UNENOFFI,
+    PCHTML_HTML_RULES_ERROR_UNENOFFI,
     /* characters-in-table-text */
-    LXB_HTML_RULES_ERROR_CHINTATE,
+    PCHTML_HTML_RULES_ERROR_CHINTATE,
     /* doctype-token-in-table-mode */
-    LXB_HTML_RULES_ERROR_DOTOINTAMO,
+    PCHTML_HTML_RULES_ERROR_DOTOINTAMO,
     /* doctype-token-in-select-mode */
-    LXB_HTML_RULES_ERROR_DOTOINSEMO,
+    PCHTML_HTML_RULES_ERROR_DOTOINSEMO,
     /* doctype-token-after-body-mode */
-    LXB_HTML_RULES_ERROR_DOTOAFBOMO,
+    PCHTML_HTML_RULES_ERROR_DOTOAFBOMO,
     /* doctype-token-in-frameset-mode */
-    LXB_HTML_RULES_ERROR_DOTOINFRMO,
+    PCHTML_HTML_RULES_ERROR_DOTOINFRMO,
     /* doctype-token-after-frameset-mode */
-    LXB_HTML_RULES_ERROR_DOTOAFFRMO,
+    PCHTML_HTML_RULES_ERROR_DOTOAFFRMO,
     /* doctype-token-foreign-content-mode */
-    LXB_HTML_RULES_ERROR_DOTOFOCOMO,
+    PCHTML_HTML_RULES_ERROR_DOTOFOCOMO,
 
-    LXB_HTML_RULES_ERROR_LAST_ENTRY
+    PCHTML_HTML_RULES_ERROR_LAST_ENTRY
 }
-lxb_html_tree_error_id_t;
+pchtml_html_tree_error_id_t;
 
 typedef struct {
-    lxb_html_tree_error_id_t id;
+    pchtml_html_tree_error_id_t id;
 }
-lxb_html_tree_error_t;
+pchtml_html_tree_error_t;
 
 
-LXB_API lxb_html_tree_error_t *
-lxb_html_tree_error_add(lexbor_array_obj_t *parse_errors,
-                        lxb_html_token_t *token, lxb_html_tree_error_id_t id);
+pchtml_html_tree_error_t *
+pchtml_html_tree_error_add(pchtml_array_obj_t *parse_errors,
+        pchtml_html_token_t *token, pchtml_html_tree_error_id_t id) WTF_INTERNAL;
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LEXBOR_HTML_TREE_ERROR_H */
+#endif  /* PCHTML_HTML_TREE_ERROR_H */
 

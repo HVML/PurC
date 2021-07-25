@@ -1,52 +1,72 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file template_insertion.h 
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for html template insertion.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_HTML_TEMPLATE_INSERTION_H
-#define LEXBOR_HTML_TEMPLATE_INSERTION_H
+
+#ifndef PCHTML_HTML_TEMPLATE_INSERTION_H
+#define PCHTML_HTML_TEMPLATE_INSERTION_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "config.h"
 #include "html/core/array.h"
 
 #include "html/html/tree.h"
 
 
 typedef struct {
-    lxb_html_tree_insertion_mode_f mode;
+    pchtml_html_tree_insertion_mode_f mode;
 }
-lxb_html_tree_template_insertion_t;
+pchtml_html_tree_template_insertion_t;
 
 
 /*
  * Inline functions
  */
-lxb_inline lxb_html_tree_insertion_mode_f
-lxb_html_tree_template_insertion_current(lxb_html_tree_t *tree)
+static inline pchtml_html_tree_insertion_mode_f
+pchtml_html_tree_template_insertion_current(pchtml_html_tree_t *tree)
 {
-    if (lexbor_array_obj_length(tree->template_insertion_modes) == 0) {
+    if (pchtml_array_obj_length(tree->template_insertion_modes) == 0) {
         return NULL;
     }
 
-    lxb_html_tree_template_insertion_t *tmp_ins;
+    pchtml_html_tree_template_insertion_t *tmp_ins;
 
-    tmp_ins = (lxb_html_tree_template_insertion_t *)
-              lexbor_array_obj_last(tree->template_insertion_modes);
+    tmp_ins = (pchtml_html_tree_template_insertion_t *)
+              pchtml_array_obj_last(tree->template_insertion_modes);
 
     return tmp_ins->mode;
 }
 
-lxb_inline lxb_html_tree_insertion_mode_f
-lxb_html_tree_template_insertion_get(lxb_html_tree_t *tree, size_t idx)
+static inline pchtml_html_tree_insertion_mode_f
+pchtml_html_tree_template_insertion_get(pchtml_html_tree_t *tree, size_t idx)
 {
-    lxb_html_tree_template_insertion_t *tmp_ins;
+    pchtml_html_tree_template_insertion_t *tmp_ins;
 
-    tmp_ins = (lxb_html_tree_template_insertion_t *)
-              lexbor_array_obj_get(tree->template_insertion_modes, idx);
+    tmp_ins = (pchtml_html_tree_template_insertion_t *)
+              pchtml_array_obj_get(tree->template_insertion_modes, idx);
     if (tmp_ins == NULL) {
         return NULL;
     }
@@ -54,36 +74,36 @@ lxb_html_tree_template_insertion_get(lxb_html_tree_t *tree, size_t idx)
     return tmp_ins->mode;
 }
 
-lxb_inline lxb_html_tree_insertion_mode_f
-lxb_html_tree_template_insertion_first(lxb_html_tree_t *tree)
+static inline pchtml_html_tree_insertion_mode_f
+pchtml_html_tree_template_insertion_first(pchtml_html_tree_t *tree)
 {
-    return lxb_html_tree_template_insertion_get(tree, 0);
+    return pchtml_html_tree_template_insertion_get(tree, 0);
 }
 
-lxb_inline lxb_status_t
-lxb_html_tree_template_insertion_push(lxb_html_tree_t *tree,
-                                      lxb_html_tree_insertion_mode_f mode)
+static inline unsigned int
+pchtml_html_tree_template_insertion_push(pchtml_html_tree_t *tree,
+                                      pchtml_html_tree_insertion_mode_f mode)
 {
-    lxb_html_tree_template_insertion_t *tmp_ins;
+    pchtml_html_tree_template_insertion_t *tmp_ins;
 
-    tmp_ins = (lxb_html_tree_template_insertion_t *)
-              lexbor_array_obj_push(tree->template_insertion_modes);
+    tmp_ins = (pchtml_html_tree_template_insertion_t *)
+              pchtml_array_obj_push(tree->template_insertion_modes);
     if (tmp_ins == NULL) {
-        return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+        return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
     tmp_ins->mode = mode;
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_inline lxb_html_tree_insertion_mode_f
-lxb_html_tree_template_insertion_pop(lxb_html_tree_t *tree)
+static inline pchtml_html_tree_insertion_mode_f
+pchtml_html_tree_template_insertion_pop(pchtml_html_tree_t *tree)
 {
-    lxb_html_tree_template_insertion_t *tmp_ins;
+    pchtml_html_tree_template_insertion_t *tmp_ins;
 
-    tmp_ins = (lxb_html_tree_template_insertion_t *)
-              lexbor_array_obj_pop(tree->template_insertion_modes);
+    tmp_ins = (pchtml_html_tree_template_insertion_t *)
+              pchtml_array_obj_pop(tree->template_insertion_modes);
     if (tmp_ins == NULL) {
         return NULL;
     }
@@ -93,8 +113,8 @@ lxb_html_tree_template_insertion_pop(lxb_html_tree_t *tree)
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LEXBOR_HTML_TEMPLATE_INSERTION_H */
+#endif  /* PCHTML_HTML_TEMPLATE_INSERTION_H */
 

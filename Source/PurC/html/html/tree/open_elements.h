@@ -1,105 +1,125 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file open_elements.h 
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for html openning element.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_HTML_OPEN_ELEMENTS_H
-#define LEXBOR_HTML_OPEN_ELEMENTS_H
+
+#ifndef PCHTML_HTML_OPEN_ELEMENTS_H
+#define PCHTML_HTML_OPEN_ELEMENTS_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "config.h"
 #include "html/core/array.h"
 
 #include "html/html/tree.h"
 
 
-LXB_API void
-lxb_html_tree_open_elements_remove_by_node(lxb_html_tree_t *tree,
-                                           lxb_dom_node_t *node);
+void
+pchtml_html_tree_open_elements_remove_by_node(pchtml_html_tree_t *tree,
+                    pchtml_dom_node_t *node) WTF_INTERNAL;
 
 void
-lxb_html_tree_open_elements_pop_until_tag_id(lxb_html_tree_t *tree,
-                                             lxb_tag_id_t tag_id,
-                                             lxb_ns_id_t ns,
+pchtml_html_tree_open_elements_pop_until_tag_id(pchtml_html_tree_t *tree,
+                                             pchtml_tag_id_t tag_id,
+                                             pchtml_ns_id_t ns,
                                              bool exclude);
 
 void
-lxb_html_tree_open_elements_pop_until_h123456(lxb_html_tree_t *tree);
+pchtml_html_tree_open_elements_pop_until_h123456(pchtml_html_tree_t *tree);
 
 void
-lxb_html_tree_open_elements_pop_until_td_th(lxb_html_tree_t *tree);
+pchtml_html_tree_open_elements_pop_until_td_th(pchtml_html_tree_t *tree);
 
 void
-lxb_html_tree_open_elements_pop_until_node(lxb_html_tree_t *tree,
-                                           lxb_dom_node_t *node,
+pchtml_html_tree_open_elements_pop_until_node(pchtml_html_tree_t *tree,
+                                           pchtml_dom_node_t *node,
                                            bool exclude);
 
 void
-lxb_html_tree_open_elements_pop_until(lxb_html_tree_t *tree, size_t idx,
+pchtml_html_tree_open_elements_pop_until(pchtml_html_tree_t *tree, size_t idx,
                                       bool exclude);
 
 bool
-lxb_html_tree_open_elements_find_by_node(lxb_html_tree_t *tree,
-                                         lxb_dom_node_t *node,
+pchtml_html_tree_open_elements_find_by_node(pchtml_html_tree_t *tree,
+                                         pchtml_dom_node_t *node,
                                          size_t *return_pos);
 
 bool
-lxb_html_tree_open_elements_find_by_node_reverse(lxb_html_tree_t *tree,
-                                                 lxb_dom_node_t *node,
+pchtml_html_tree_open_elements_find_by_node_reverse(pchtml_html_tree_t *tree,
+                                                 pchtml_dom_node_t *node,
                                                  size_t *return_pos);
 
-lxb_dom_node_t *
-lxb_html_tree_open_elements_find(lxb_html_tree_t *tree,
-                                 lxb_tag_id_t tag_id, lxb_ns_id_t ns,
+pchtml_dom_node_t *
+pchtml_html_tree_open_elements_find(pchtml_html_tree_t *tree,
+                                 pchtml_tag_id_t tag_id, pchtml_ns_id_t ns,
                                  size_t *return_index);
 
-lxb_dom_node_t *
-lxb_html_tree_open_elements_find_reverse(lxb_html_tree_t *tree,
-                                         lxb_tag_id_t tag_id, lxb_ns_id_t ns,
+pchtml_dom_node_t *
+pchtml_html_tree_open_elements_find_reverse(pchtml_html_tree_t *tree,
+                                         pchtml_tag_id_t tag_id, pchtml_ns_id_t ns,
                                          size_t *return_index);
 
 
 /*
  * Inline functions
  */
-lxb_inline lxb_dom_node_t *
-lxb_html_tree_open_elements_first(lxb_html_tree_t *tree)
+static inline pchtml_dom_node_t *
+pchtml_html_tree_open_elements_first(pchtml_html_tree_t *tree)
 {
-    return (lxb_dom_node_t *) lexbor_array_get(tree->open_elements, 0);
+    return (pchtml_dom_node_t *) pchtml_array_get(tree->open_elements, 0);
 }
 
-lxb_inline lxb_dom_node_t *
-lxb_html_tree_open_elements_get(lxb_html_tree_t *tree, size_t idx)
+static inline pchtml_dom_node_t *
+pchtml_html_tree_open_elements_get(pchtml_html_tree_t *tree, size_t idx)
 {
-    return (lxb_dom_node_t *) lexbor_array_get(tree->open_elements, idx);
+    return (pchtml_dom_node_t *) pchtml_array_get(tree->open_elements, idx);
 }
 
-lxb_inline lxb_status_t
-lxb_html_tree_open_elements_push(lxb_html_tree_t *tree, lxb_dom_node_t *node)
+static inline unsigned int
+pchtml_html_tree_open_elements_push(pchtml_html_tree_t *tree, pchtml_dom_node_t *node)
 {
-    return lexbor_array_push(tree->open_elements, node);
+    return pchtml_array_push(tree->open_elements, node);
 }
 
-lxb_inline lxb_dom_node_t *
-lxb_html_tree_open_elements_pop(lxb_html_tree_t *tree)
+static inline pchtml_dom_node_t *
+pchtml_html_tree_open_elements_pop(pchtml_html_tree_t *tree)
 {
-    return (lxb_dom_node_t *) lexbor_array_pop(tree->open_elements);
+    return (pchtml_dom_node_t *) pchtml_array_pop(tree->open_elements);
 }
 
-lxb_inline lxb_status_t
-lxb_html_tree_open_elements_insert_after(lxb_html_tree_t *tree, lxb_dom_node_t *node,
+static inline unsigned int
+pchtml_html_tree_open_elements_insert_after(pchtml_html_tree_t *tree, pchtml_dom_node_t *node,
                                     size_t idx)
 {
-    return lexbor_array_insert(tree->open_elements, (idx + 1), node);
+    return pchtml_array_insert(tree->open_elements, (idx + 1), node);
 }
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LEXBOR_HTML_OPEN_ELEMENTS_H */
+#endif  /* PCHTML_HTML_OPEN_ELEMENTS_H */
 

@@ -1,135 +1,155 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file insertion_mode.h 
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for html insertion mode.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_HTML_TREE_INSERTION_MODE_H
-#define LEXBOR_HTML_TREE_INSERTION_MODE_H
+
+#ifndef PCHTML_HTML_TREE_INSERTION_MODE_H
+#define PCHTML_HTML_TREE_INSERTION_MODE_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "config.h"
 #include "html/html/token.h"
 #include "html/html/tree.h"
 
 
-LXB_API bool
-lxb_html_tree_insertion_mode_initial(lxb_html_tree_t *tree,
-                                     lxb_html_token_t *token);
+bool
+pchtml_html_tree_insertion_mode_initial(pchtml_html_tree_t *tree,
+                pchtml_html_token_t *token) WTF_INTERNAL;
 
-LXB_API bool
-lxb_html_tree_insertion_mode_before_html(lxb_html_tree_t *tree,
-                                         lxb_html_token_t *token);
+bool
+pchtml_html_tree_insertion_mode_before_html(pchtml_html_tree_t *tree,
+                pchtml_html_token_t *token) WTF_INTERNAL;
 
-LXB_API bool
-lxb_html_tree_insertion_mode_before_head(lxb_html_tree_t *tree,
-                                         lxb_html_token_t *token);
+bool
+pchtml_html_tree_insertion_mode_before_head(pchtml_html_tree_t *tree,
+                pchtml_html_token_t *token) WTF_INTERNAL;
 
-LXB_API bool
-lxb_html_tree_insertion_mode_in_head(lxb_html_tree_t *tree,
-                                     lxb_html_token_t *token);
+bool
+pchtml_html_tree_insertion_mode_in_head(pchtml_html_tree_t *tree,
+                pchtml_html_token_t *token) WTF_INTERNAL;
 
-LXB_API bool
-lxb_html_tree_insertion_mode_in_head_noscript(lxb_html_tree_t *tree,
-                                              lxb_html_token_t *token);
+bool
+pchtml_html_tree_insertion_mode_in_head_noscript(pchtml_html_tree_t *tree,
+                pchtml_html_token_t *token) WTF_INTERNAL;
 
-LXB_API bool
-lxb_html_tree_insertion_mode_after_head(lxb_html_tree_t *tree,
-                                        lxb_html_token_t *token);
+bool
+pchtml_html_tree_insertion_mode_after_head(pchtml_html_tree_t *tree,
+                pchtml_html_token_t *token) WTF_INTERNAL;
 
-LXB_API bool
-lxb_html_tree_insertion_mode_in_body(lxb_html_tree_t *tree,
-                                     lxb_html_token_t *token);
+bool
+pchtml_html_tree_insertion_mode_in_body(pchtml_html_tree_t *tree,
+                pchtml_html_token_t *token) WTF_INTERNAL;
 
-LXB_API bool
-lxb_html_tree_insertion_mode_in_body_skip_new_line(lxb_html_tree_t *tree,
-                                                   lxb_html_token_t *token);
+bool
+pchtml_html_tree_insertion_mode_in_body_skip_new_line(pchtml_html_tree_t *tree,
+                pchtml_html_token_t *token) WTF_INTERNAL;
 
-LXB_API bool
-lxb_html_tree_insertion_mode_in_body_skip_new_line_textarea(lxb_html_tree_t *tree,
-                                                            lxb_html_token_t *token);
+bool
+pchtml_html_tree_insertion_mode_in_body_skip_new_line_textarea(pchtml_html_tree_t *tree,
+                pchtml_html_token_t *token) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_tree_insertion_mode_in_body_text_append(lxb_html_tree_t *tree,
-                                                 lexbor_str_t *str);
+unsigned int
+pchtml_html_tree_insertion_mode_in_body_text_append(pchtml_html_tree_t *tree,
+                pchtml_str_t *str) WTF_INTERNAL;
 
-LXB_API bool
-lxb_html_tree_insertion_mode_text(lxb_html_tree_t *tree,
-                                  lxb_html_token_t *token);
+bool
+pchtml_html_tree_insertion_mode_text(pchtml_html_tree_t *tree,
+                pchtml_html_token_t *token) WTF_INTERNAL;
 
-LXB_API bool
-lxb_html_tree_insertion_mode_in_table(lxb_html_tree_t *tree,
-                                      lxb_html_token_t *token);
+bool
+pchtml_html_tree_insertion_mode_in_table(pchtml_html_tree_t *tree,
+                pchtml_html_token_t *token) WTF_INTERNAL;
 
-LXB_API bool
-lxb_html_tree_insertion_mode_in_table_anything_else(lxb_html_tree_t *tree,
-                                                    lxb_html_token_t *token);
+bool
+pchtml_html_tree_insertion_mode_in_table_anything_else(pchtml_html_tree_t *tree,
+                pchtml_html_token_t *token) WTF_INTERNAL;
 
-LXB_API bool
-lxb_html_tree_insertion_mode_in_table_text(lxb_html_tree_t *tree,
-                                           lxb_html_token_t *token);
+bool
+pchtml_html_tree_insertion_mode_in_table_text(pchtml_html_tree_t *tree,
+                pchtml_html_token_t *token) WTF_INTERNAL;
 
-LXB_API bool
-lxb_html_tree_insertion_mode_in_caption(lxb_html_tree_t *tree,
-                                        lxb_html_token_t *token);
+bool
+pchtml_html_tree_insertion_mode_in_caption(pchtml_html_tree_t *tree,
+                pchtml_html_token_t *token) WTF_INTERNAL;
 
-LXB_API bool
-lxb_html_tree_insertion_mode_in_column_group(lxb_html_tree_t *tree,
-                                             lxb_html_token_t *token);
+bool
+pchtml_html_tree_insertion_mode_in_column_group(pchtml_html_tree_t *tree,
+                pchtml_html_token_t *token) WTF_INTERNAL;
 
-LXB_API bool
-lxb_html_tree_insertion_mode_in_table_body(lxb_html_tree_t *tree,
-                                           lxb_html_token_t *token);
+bool
+pchtml_html_tree_insertion_mode_in_table_body(pchtml_html_tree_t *tree,
+                pchtml_html_token_t *token) WTF_INTERNAL;
 
-LXB_API bool
-lxb_html_tree_insertion_mode_in_row(lxb_html_tree_t *tree,
-                                    lxb_html_token_t *token);
+bool
+pchtml_html_tree_insertion_mode_in_row(pchtml_html_tree_t *tree,
+                pchtml_html_token_t *token) WTF_INTERNAL;
 
-LXB_API bool
-lxb_html_tree_insertion_mode_in_cell(lxb_html_tree_t *tree,
-                                     lxb_html_token_t *token);
+bool
+pchtml_html_tree_insertion_mode_in_cell(pchtml_html_tree_t *tree,
+                pchtml_html_token_t *token) WTF_INTERNAL;
 
-LXB_API bool
-lxb_html_tree_insertion_mode_in_select(lxb_html_tree_t *tree,
-                                       lxb_html_token_t *token);
+bool
+pchtml_html_tree_insertion_mode_in_select(pchtml_html_tree_t *tree,
+                pchtml_html_token_t *token) WTF_INTERNAL;
 
-LXB_API bool
-lxb_html_tree_insertion_mode_in_select_in_table(lxb_html_tree_t *tree,
-                                                lxb_html_token_t *token);
+bool
+pchtml_html_tree_insertion_mode_in_select_in_table(pchtml_html_tree_t *tree,
+                pchtml_html_token_t *token) WTF_INTERNAL;
 
-LXB_API bool
-lxb_html_tree_insertion_mode_in_template(lxb_html_tree_t *tree,
-                                         lxb_html_token_t *token);
+bool
+pchtml_html_tree_insertion_mode_in_template(pchtml_html_tree_t *tree,
+                pchtml_html_token_t *token) WTF_INTERNAL;
 
-LXB_API bool
-lxb_html_tree_insertion_mode_after_body(lxb_html_tree_t *tree,
-                                        lxb_html_token_t *token);
+bool
+pchtml_html_tree_insertion_mode_after_body(pchtml_html_tree_t *tree,
+                pchtml_html_token_t *token) WTF_INTERNAL;
 
-LXB_API bool
-lxb_html_tree_insertion_mode_in_frameset(lxb_html_tree_t *tree,
-                                         lxb_html_token_t *token);
+bool
+pchtml_html_tree_insertion_mode_in_frameset(pchtml_html_tree_t *tree,
+                pchtml_html_token_t *token) WTF_INTERNAL;
 
-LXB_API bool
-lxb_html_tree_insertion_mode_after_frameset(lxb_html_tree_t *tree,
-                                            lxb_html_token_t *token);
+bool
+pchtml_html_tree_insertion_mode_after_frameset(pchtml_html_tree_t *tree,
+                pchtml_html_token_t *token) WTF_INTERNAL;
 
-LXB_API bool
-lxb_html_tree_insertion_mode_after_after_body(lxb_html_tree_t *tree,
-                                              lxb_html_token_t *token);
+bool
+pchtml_html_tree_insertion_mode_after_after_body(pchtml_html_tree_t *tree,
+                pchtml_html_token_t *token) WTF_INTERNAL;
 
-LXB_API bool
-lxb_html_tree_insertion_mode_after_after_frameset(lxb_html_tree_t *tree,
-                                                  lxb_html_token_t *token);
+bool
+pchtml_html_tree_insertion_mode_after_after_frameset(pchtml_html_tree_t *tree,
+                pchtml_html_token_t *token) WTF_INTERNAL;
 
-LXB_API bool
-lxb_html_tree_insertion_mode_foreign_content(lxb_html_tree_t *tree,
-                                             lxb_html_token_t *token);
+bool
+pchtml_html_tree_insertion_mode_foreign_content(pchtml_html_tree_t *tree,
+                pchtml_html_token_t *token) WTF_INTERNAL;
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LEXBOR_HTML_TREE_INSERTION_MODE_H */
+#endif  /* PCHTML_HTML_TREE_INSERTION_MODE_H */

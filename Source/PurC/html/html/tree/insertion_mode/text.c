@@ -1,40 +1,59 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file text.c.
+ * @author 
+ * @date 2021/07/02
+ * @brief The complementation of parsing html text content.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 
 #include "html/html/tree/insertion_mode.h"
 #include "html/html/tree/open_elements.h"
 
 
 bool
-lxb_html_tree_insertion_mode_text(lxb_html_tree_t *tree,
-                                  lxb_html_token_t *token)
+pchtml_html_tree_insertion_mode_text(pchtml_html_tree_t *tree,
+                                  pchtml_html_token_t *token)
 {
     switch (token->tag_id) {
-        case LXB_TAG__TEXT: {
-            tree->status = lxb_html_tree_insert_character(tree, token, NULL);
-            if (tree->status != LXB_STATUS_OK) {
-                return lxb_html_tree_process_abort(tree);
+        case PCHTML_TAG__TEXT: {
+            tree->status = pchtml_html_tree_insert_character(tree, token, NULL);
+            if (tree->status != PCHTML_STATUS_OK) {
+                return pchtml_html_tree_process_abort(tree);
             }
 
             break;
         }
 
-        case LXB_TAG__END_OF_FILE: {
-            lxb_dom_node_t *node;
+        case PCHTML_TAG__END_OF_FILE: {
+            pchtml_dom_node_t *node;
 
-            lxb_html_tree_parse_error(tree, token,
-                                      LXB_HTML_RULES_ERROR_UNENOFFI);
+            pchtml_html_tree_parse_error(tree, token,
+                                      PCHTML_HTML_RULES_ERROR_UNENOFFI);
 
-            node = lxb_html_tree_current_node(tree);
+            node = pchtml_html_tree_current_node(tree);
 
-            if (lxb_html_tree_node_is(node, LXB_TAG_SCRIPT)) {
+            if (pchtml_html_tree_node_is(node, PCHTML_TAG_SCRIPT)) {
                 /* TODO: mark the script element as "already started" */
             }
 
-            lxb_html_tree_open_elements_pop(tree);
+            pchtml_html_tree_open_elements_pop(tree);
 
             tree->mode = tree->original_mode;
 
@@ -42,15 +61,15 @@ lxb_html_tree_insertion_mode_text(lxb_html_tree_t *tree,
         }
 
         /* TODO: need to implement */
-        case LXB_TAG_SCRIPT:
-            lxb_html_tree_open_elements_pop(tree);
+        case PCHTML_TAG_SCRIPT:
+            pchtml_html_tree_open_elements_pop(tree);
 
             tree->mode = tree->original_mode;
 
             break;
 
         default:
-            lxb_html_tree_open_elements_pop(tree);
+            pchtml_html_tree_open_elements_pop(tree);
 
             tree->mode = tree->original_mode;
 

@@ -1,16 +1,35 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file open_elements.c
+ * @author 
+ * @date 2021/07/02
+ * @brief The complementation of html open elements.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 
 #include "html/html/tree/open_elements.h"
 #include "html/html/tree.h"
 
 
-LXB_API void
-lxb_html_tree_open_elements_remove_by_node(lxb_html_tree_t *tree,
-                                           lxb_dom_node_t *node)
+void
+pchtml_html_tree_open_elements_remove_by_node(pchtml_html_tree_t *tree,
+                                           pchtml_dom_node_t *node)
 {
     size_t delta;
     void **list = tree->open_elements->list;
@@ -32,13 +51,13 @@ lxb_html_tree_open_elements_remove_by_node(lxb_html_tree_t *tree,
 }
 
 void
-lxb_html_tree_open_elements_pop_until_tag_id(lxb_html_tree_t *tree,
-                                             lxb_tag_id_t tag_id,
-                                             lxb_ns_id_t ns,
+pchtml_html_tree_open_elements_pop_until_tag_id(pchtml_html_tree_t *tree,
+                                             pchtml_tag_id_t tag_id,
+                                             pchtml_ns_id_t ns,
                                              bool exclude)
 {
     void **list = tree->open_elements->list;
-    lxb_dom_node_t *node;
+    pchtml_dom_node_t *node;
 
     while (tree->open_elements->length != 0) {
         tree->open_elements->length--;
@@ -56,10 +75,10 @@ lxb_html_tree_open_elements_pop_until_tag_id(lxb_html_tree_t *tree,
 }
 
 void
-lxb_html_tree_open_elements_pop_until_h123456(lxb_html_tree_t *tree)
+pchtml_html_tree_open_elements_pop_until_h123456(pchtml_html_tree_t *tree)
 {
     void **list = tree->open_elements->list;
-    lxb_dom_node_t *node;
+    pchtml_dom_node_t *node;
 
     while (tree->open_elements->length != 0) {
         tree->open_elements->length--;
@@ -67,13 +86,13 @@ lxb_html_tree_open_elements_pop_until_h123456(lxb_html_tree_t *tree)
         node = list[ tree->open_elements->length ];
 
         switch (node->local_name) {
-            case LXB_TAG_H1:
-            case LXB_TAG_H2:
-            case LXB_TAG_H3:
-            case LXB_TAG_H4:
-            case LXB_TAG_H5:
-            case LXB_TAG_H6:
-                if (node->ns == LXB_NS_HTML) {
+            case PCHTML_TAG_H1:
+            case PCHTML_TAG_H2:
+            case PCHTML_TAG_H3:
+            case PCHTML_TAG_H4:
+            case PCHTML_TAG_H5:
+            case PCHTML_TAG_H6:
+                if (node->ns == PCHTML_NS_HTML) {
                     return;
                 }
 
@@ -86,10 +105,10 @@ lxb_html_tree_open_elements_pop_until_h123456(lxb_html_tree_t *tree)
 }
 
 void
-lxb_html_tree_open_elements_pop_until_td_th(lxb_html_tree_t *tree)
+pchtml_html_tree_open_elements_pop_until_td_th(pchtml_html_tree_t *tree)
 {
     void **list = tree->open_elements->list;
-    lxb_dom_node_t *node;
+    pchtml_dom_node_t *node;
 
     while (tree->open_elements->length != 0) {
         tree->open_elements->length--;
@@ -97,9 +116,9 @@ lxb_html_tree_open_elements_pop_until_td_th(lxb_html_tree_t *tree)
         node = list[ tree->open_elements->length ];
 
         switch (node->local_name) {
-            case LXB_TAG_TD:
-            case LXB_TAG_TH:
-                if (node->ns == LXB_NS_HTML) {
+            case PCHTML_TAG_TD:
+            case PCHTML_TAG_TH:
+                if (node->ns == PCHTML_NS_HTML) {
                     return;
                 }
 
@@ -112,8 +131,8 @@ lxb_html_tree_open_elements_pop_until_td_th(lxb_html_tree_t *tree)
 }
 
 void
-lxb_html_tree_open_elements_pop_until_node(lxb_html_tree_t *tree,
-                                           lxb_dom_node_t *node,
+pchtml_html_tree_open_elements_pop_until_node(pchtml_html_tree_t *tree,
+                                           pchtml_dom_node_t *node,
                                            bool exclude)
 {
     void **list = tree->open_elements->list;
@@ -132,7 +151,7 @@ lxb_html_tree_open_elements_pop_until_node(lxb_html_tree_t *tree,
 }
 
 void
-lxb_html_tree_open_elements_pop_until(lxb_html_tree_t *tree, size_t idx,
+pchtml_html_tree_open_elements_pop_until(pchtml_html_tree_t *tree, size_t idx,
                                       bool exclude)
 {
     tree->open_elements->length = idx;
@@ -143,8 +162,8 @@ lxb_html_tree_open_elements_pop_until(lxb_html_tree_t *tree, size_t idx,
 }
 
 bool
-lxb_html_tree_open_elements_find_by_node(lxb_html_tree_t *tree,
-                                         lxb_dom_node_t *node,
+pchtml_html_tree_open_elements_find_by_node(pchtml_html_tree_t *tree,
+                                         pchtml_dom_node_t *node,
                                          size_t *return_pos)
 {
     void **list = tree->open_elements->list;
@@ -167,8 +186,8 @@ lxb_html_tree_open_elements_find_by_node(lxb_html_tree_t *tree,
 }
 
 bool
-lxb_html_tree_open_elements_find_by_node_reverse(lxb_html_tree_t *tree,
-                                                 lxb_dom_node_t *node,
+pchtml_html_tree_open_elements_find_by_node_reverse(pchtml_html_tree_t *tree,
+                                                 pchtml_dom_node_t *node,
                                                  size_t *return_pos)
 {
     void **list = tree->open_elements->list;
@@ -193,13 +212,13 @@ lxb_html_tree_open_elements_find_by_node_reverse(lxb_html_tree_t *tree,
     return false;
 }
 
-lxb_dom_node_t *
-lxb_html_tree_open_elements_find(lxb_html_tree_t *tree,
-                                 lxb_tag_id_t tag_id, lxb_ns_id_t ns,
+pchtml_dom_node_t *
+pchtml_html_tree_open_elements_find(pchtml_html_tree_t *tree,
+                                 pchtml_tag_id_t tag_id, pchtml_ns_id_t ns,
                                  size_t *return_index)
 {
     void **list = tree->open_elements->list;
-    lxb_dom_node_t *node;
+    pchtml_dom_node_t *node;
 
     for (size_t i = 0; i < tree->open_elements->length; i++) {
         node = list[i];
@@ -220,15 +239,15 @@ lxb_html_tree_open_elements_find(lxb_html_tree_t *tree,
     return NULL;
 }
 
-lxb_dom_node_t *
-lxb_html_tree_open_elements_find_reverse(lxb_html_tree_t *tree,
-                                         lxb_tag_id_t tag_id, lxb_ns_id_t ns,
+pchtml_dom_node_t *
+pchtml_html_tree_open_elements_find_reverse(pchtml_html_tree_t *tree,
+                                         pchtml_tag_id_t tag_id, pchtml_ns_id_t ns,
                                          size_t *return_index)
 {
     void **list = tree->open_elements->list;
     size_t len = tree->open_elements->length;
 
-    lxb_dom_node_t *node;
+    pchtml_dom_node_t *node;
 
     while (len != 0) {
         len--;
