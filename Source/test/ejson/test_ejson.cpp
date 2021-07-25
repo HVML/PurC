@@ -213,7 +213,42 @@ TEST(ejson_token, parse_unquoted_key_AND_double_quoted_value)
     purc_rwstream_destroy(rws);
 }
 
-TEST(ejson_token, parse_double_quoted_key)
+TEST(ejson_token, parse_double_quoted_key_AND_single_quoted_value)
+{
+    char json[] = "{ \"key\" : 'value' }";
+
+    purc_rwstream_t rws = purc_rwstream_new_from_mem(json, strlen(json));
+    struct pcejson* parser = pcejson_create(10, 1);
+
+    struct pcejson_token* token = pcejson_next_token(parser, rws);
+    ASSERT_NE(token, nullptr);
+    ASSERT_EQ(token->type, ejson_token_start_object);
+    ASSERT_STREQ(token->buf, nullptr);
+
+    token = pcejson_next_token(parser, rws);
+    ASSERT_NE(token, nullptr);
+    ASSERT_EQ(token->type, ejson_token_key);
+    ASSERT_STREQ(token->buf, "key");
+
+    token = pcejson_next_token(parser, rws);
+    ASSERT_NE(token, nullptr);
+    ASSERT_EQ(token->type, ejson_token_string);
+    ASSERT_STREQ(token->buf, "value");
+
+    token = pcejson_next_token(parser, rws);
+    ASSERT_NE(token, nullptr);
+    ASSERT_EQ(token->type, ejson_token_end_object);
+    ASSERT_STREQ(token->buf, nullptr);
+
+    token = pcejson_next_token(parser, rws);
+    ASSERT_EQ(token, nullptr);
+
+    pcejson_token_destroy(token);
+    pcejson_destroy(parser);
+    purc_rwstream_destroy(rws);
+}
+
+TEST(ejson_token, parse_double_quoted_key_AND_double_quoted_value)
 {
     char json[] = "{ \"key\" : \"value\" }";
 
@@ -248,7 +283,42 @@ TEST(ejson_token, parse_double_quoted_key)
     purc_rwstream_destroy(rws);
 }
 
-TEST(ejson_token, parse_single_quoted_key)
+TEST(ejson_token, parse_single_quoted_key_AND_single_quoted_value)
+{
+    char json[] = "{ 'key' : 'value' }";
+
+    purc_rwstream_t rws = purc_rwstream_new_from_mem(json, strlen(json));
+    struct pcejson* parser = pcejson_create(10, 1);
+
+    struct pcejson_token* token = pcejson_next_token(parser, rws);
+    ASSERT_NE(token, nullptr);
+    ASSERT_EQ(token->type, ejson_token_start_object);
+    ASSERT_STREQ(token->buf, nullptr);
+
+    token = pcejson_next_token(parser, rws);
+    ASSERT_NE(token, nullptr);
+    ASSERT_EQ(token->type, ejson_token_key);
+    ASSERT_STREQ(token->buf, "key");
+
+    token = pcejson_next_token(parser, rws);
+    ASSERT_NE(token, nullptr);
+    ASSERT_EQ(token->type, ejson_token_string);
+    ASSERT_STREQ(token->buf, "value");
+
+    token = pcejson_next_token(parser, rws);
+    ASSERT_NE(token, nullptr);
+    ASSERT_EQ(token->type, ejson_token_end_object);
+    ASSERT_STREQ(token->buf, nullptr);
+
+    token = pcejson_next_token(parser, rws);
+    ASSERT_EQ(token, nullptr);
+
+    pcejson_token_destroy(token);
+    pcejson_destroy(parser);
+    purc_rwstream_destroy(rws);
+}
+
+TEST(ejson_token, parse_single_quoted_key_AND_double_quoted_value)
 {
     char json[] = "{ 'key' : \"value\" }";
 
