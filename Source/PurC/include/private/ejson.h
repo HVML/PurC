@@ -31,7 +31,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#ifdef NDEBUG
+#if 1
 #define PRINT_STATE(state_name)
 #else
 #define PRINT_STATE(state_name)                                           \
