@@ -1015,7 +1015,9 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
             else if (wc == 'L') {
                 if (pcejson_temp_buffer_end_with(ejson, "F")) {
                     pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
-                    ADVANCE_TO(ejson_after_value_number_fraction_state);
+                    SWITCH_TO(ejson_after_value_number_state);
+                    return pcejson_token_new(ejson_token_long_double_number,
+                                pcejson_temp_buffer_dup(ejson));
                 }
             }
             else if (wc == 'E' || wc == 'e') {
@@ -1032,9 +1034,6 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
             pcinst_set_error(
                     PCEJSON_UNEXPECTED_JSON_NUMBER_FRACTION_PARSE_ERROR);
             return NULL;
-        END_STATE()
-
-        BEGIN_STATE(ejson_after_value_number_fraction_state)
         END_STATE()
 
         BEGIN_STATE(ejson_value_number_exponent_state)
@@ -1090,7 +1089,6 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
     UNUSED_LABEL(ejson_after_value_number_state);
     UNUSED_LABEL(ejson_value_number_integer_state);
     UNUSED_LABEL(ejson_value_number_fraction_state);
-    UNUSED_LABEL(ejson_after_value_number_fraction_state);
     UNUSED_LABEL(ejson_value_number_exponent_state);
     UNUSED_LABEL(ejson_value_number_exponent_integer_state);
     UNUSED_LABEL(ejson_after_value_number_exponent_integer_state);

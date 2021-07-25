@@ -100,7 +100,6 @@ enum ejson_state {
     ejson_after_value_number_state,
     ejson_value_number_integer_state,
     ejson_value_number_fraction_state,
-    ejson_after_value_number_fraction_state,
     ejson_value_number_exponent_state,
     ejson_value_number_exponent_integer_state,
     ejson_after_value_number_exponent_integer_state,
