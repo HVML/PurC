@@ -1,8 +1,27 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file const.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for constants.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 
 /*
  * Caution!
@@ -11,27 +30,27 @@
  */
 
 
-#ifndef LXB_NS_CONST_H
-#define LXB_NS_CONST_H
+#ifndef PCHTML_NS_CONST_H
+#define PCHTML_NS_CONST_H
 
-#define LXB_NS_CONST_VERSION "253D4AFDA959234B48A478B956C3C777"
-#define LXB_NS_CONST_VERSION_253D4AFDA959234B48A478B956C3C777
+#define PCHTML_NS_CONST_VERSION "253D4AFDA959234B48A478B956C3C777"
+#define PCHTML_NS_CONST_VERSION_253D4AFDA959234B48A478B956C3C777
 
-typedef uintptr_t lxb_ns_id_t;
-typedef uintptr_t lxb_ns_prefix_id_t;
+typedef uintptr_t pchtml_ns_id_t;
+typedef uintptr_t pchtml_ns_prefix_id_t;
 
 typedef enum {
-    LXB_NS__UNDEF      = 0x00,
-    LXB_NS__ANY        = 0x01,
-    LXB_NS_HTML        = 0x02,
-    LXB_NS_MATH        = 0x03,
-    LXB_NS_SVG         = 0x04,
-    LXB_NS_XLINK       = 0x05,
-    LXB_NS_XML         = 0x06,
-    LXB_NS_XMLNS       = 0x07,
-    LXB_NS__LAST_ENTRY = 0x08
+    PCHTML_NS__UNDEF      = 0x00,
+    PCHTML_NS__ANY        = 0x01,
+    PCHTML_NS_HTML        = 0x02,
+    PCHTML_NS_MATH        = 0x03,
+    PCHTML_NS_SVG         = 0x04,
+    PCHTML_NS_XLINK       = 0x05,
+    PCHTML_NS_XML         = 0x06,
+    PCHTML_NS_XMLNS       = 0x07,
+    PCHTML_NS__LAST_ENTRY = 0x08
 }
-lxb_ns_id_enum_t;
+pchtml_ns_id_enum_t;
 
 
-#endif /* LXB_NS_CONST_H */
+#endif  /* PCHTML_NS_CONST_H */

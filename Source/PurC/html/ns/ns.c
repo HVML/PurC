@@ -1,50 +1,70 @@
-/*
- * Copyright (C) 2018-2019 Alexander Borisov
+/**
+ * @file ns.c
+ * @author
+ * @date 2021/07/02
+ * @brief The complementation of name space.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+
 #include "private/errors.h"
 #include "html/core/shs.h"
 
-#define LEXBOR_STR_RES_MAP_LOWERCASE
+#define PCHTML_STR_RES_MAP_LOWERCASE
 #include "html/core/str_res.h"
 
 #include "html/ns/ns.h"
 #include "html/ns/res.h"
 
 
-LXB_API const lxb_ns_data_t *
-lxb_ns_append(lexbor_hash_t *hash, const lxb_char_t *link, size_t length)
+const pchtml_ns_data_t *
+pchtml_ns_append(pchtml_hash_t *hash, const unsigned char *link, size_t length)
 {
-    lxb_ns_data_t *data;
-    const lexbor_shs_entry_t *entry;
+    pchtml_ns_data_t *data;
+    const pchtml_shs_entry_t *entry;
 
     if (link == NULL || length == 0) {
         return NULL;
     }
 
-    entry = lexbor_shs_entry_get_lower_static(lxb_ns_res_shs_link_data,
+    entry = pchtml_shs_entry_get_lower_static(pchtml_ns_res_shs_link_data,
                                               link, length);
     if (entry != NULL) {
         return entry->value;
     }
 
-    data = lexbor_hash_insert(hash, lexbor_hash_insert_lower, link, length);
-    if ((lxb_ns_id_t) data <= LXB_NS__LAST_ENTRY) {
+    data = pchtml_hash_insert(hash, pchtml_hash_insert_lower, link, length);
+    if ((pchtml_ns_id_t) data <= PCHTML_NS__LAST_ENTRY) {
         return NULL;
     }
 
-    data->ns_id = (lxb_ns_id_t) data;
+    data->ns_id = (pchtml_ns_id_t) data;
 
     return data;
 }
 
-const lxb_char_t *
-lxb_ns_by_id(lexbor_hash_t *hash, lxb_ns_id_t ns_id, size_t *length)
+const unsigned char *
+pchtml_ns_by_id(pchtml_hash_t *hash, pchtml_ns_id_t ns_id, size_t *length)
 {
-    const lxb_ns_data_t *data;
+    const pchtml_ns_data_t *data;
 
-    data = lxb_ns_data_by_id(hash, ns_id);
+    data = pchtml_ns_data_by_id(hash, ns_id);
     if (data == NULL) {
         if (length != NULL) {
             *length = 0;
@@ -57,102 +77,102 @@ lxb_ns_by_id(lexbor_hash_t *hash, lxb_ns_id_t ns_id, size_t *length)
         *length = data->entry.length;
     }
 
-    return lexbor_hash_entry_str(&data->entry);
+    return pchtml_hash_entry_str(&data->entry);
 }
 
-const lxb_ns_data_t *
-lxb_ns_data_by_id(lexbor_hash_t *hash, lxb_ns_id_t ns_id)
+const pchtml_ns_data_t *
+pchtml_ns_data_by_id(pchtml_hash_t *hash, pchtml_ns_id_t ns_id)
 {
     UNUSED_PARAM(hash);
 
-    if (ns_id >= LXB_NS__LAST_ENTRY) {
-        if (ns_id == LXB_NS__LAST_ENTRY) {
+    if (ns_id >= PCHTML_NS__LAST_ENTRY) {
+        if (ns_id == PCHTML_NS__LAST_ENTRY) {
             return NULL;
         }
 
-        return (const lxb_ns_data_t *) ns_id;
+        return (const pchtml_ns_data_t *) ns_id;
     }
 
-    return &lxb_ns_res_data[ns_id];
+    return &pchtml_ns_res_data[ns_id];
 }
 
-const lxb_ns_data_t *
-lxb_ns_data_by_link(lexbor_hash_t *hash, const lxb_char_t *link, size_t length)
+const pchtml_ns_data_t *
+pchtml_ns_data_by_link(pchtml_hash_t *hash, const unsigned char *link, size_t length)
 {
-    const lexbor_shs_entry_t *entry;
+    const pchtml_shs_entry_t *entry;
 
     if (link == NULL || length == 0) {
         return NULL;
     }
 
-    entry = lexbor_shs_entry_get_lower_static(lxb_ns_res_shs_link_data,
+    entry = pchtml_shs_entry_get_lower_static(pchtml_ns_res_shs_link_data,
                                               link, length);
     if (entry != NULL) {
         return entry->value;
     }
 
-    return lexbor_hash_search(hash, lexbor_hash_search_lower, link, length);
+    return pchtml_hash_search(hash, pchtml_hash_search_lower, link, length);
 }
 
 /* Prefix */
-const lxb_ns_prefix_data_t *
-lxb_ns_prefix_append(lexbor_hash_t *hash,
-                     const lxb_char_t *prefix, size_t length)
+const pchtml_ns_prefix_data_t *
+pchtml_ns_prefix_append(pchtml_hash_t *hash,
+                     const unsigned char *prefix, size_t length)
 {
-    lxb_ns_prefix_data_t *data;
-    const lexbor_shs_entry_t *entry;
+    pchtml_ns_prefix_data_t *data;
+    const pchtml_shs_entry_t *entry;
 
     if (prefix == NULL || length == 0) {
         return NULL;
     }
 
-    entry = lexbor_shs_entry_get_lower_static(lxb_ns_res_shs_data,
+    entry = pchtml_shs_entry_get_lower_static(pchtml_ns_res_shs_data,
                                               prefix, length);
     if (entry != NULL) {
         return entry->value;
     }
 
-    data = lexbor_hash_insert(hash, lexbor_hash_insert_lower, prefix, length);
-    if ((lxb_ns_prefix_id_t) data <= LXB_NS__LAST_ENTRY) {
+    data = pchtml_hash_insert(hash, pchtml_hash_insert_lower, prefix, length);
+    if ((pchtml_ns_prefix_id_t) data <= PCHTML_NS__LAST_ENTRY) {
         return NULL;
     }
 
-    data->prefix_id = (lxb_ns_prefix_id_t) data;
+    data->prefix_id = (pchtml_ns_prefix_id_t) data;
 
     return data;
 }
 
-const lxb_ns_prefix_data_t *
-lxb_ns_prefix_data_by_id(lexbor_hash_t *hash, lxb_ns_prefix_id_t prefix_id)
+const pchtml_ns_prefix_data_t *
+pchtml_ns_prefix_data_by_id(pchtml_hash_t *hash, pchtml_ns_prefix_id_t prefix_id)
 {
     UNUSED_PARAM(hash);
 
-    if (prefix_id >= LXB_NS__LAST_ENTRY) {
-        if (prefix_id == LXB_NS__LAST_ENTRY) {
+    if (prefix_id >= PCHTML_NS__LAST_ENTRY) {
+        if (prefix_id == PCHTML_NS__LAST_ENTRY) {
             return NULL;
         }
 
-        return (const lxb_ns_prefix_data_t *) prefix_id;
+        return (const pchtml_ns_prefix_data_t *) prefix_id;
     }
 
-    return &lxb_ns_prefix_res_data[prefix_id];
+    return &pchtml_ns_prefix_res_data[prefix_id];
 }
 
-const lxb_ns_prefix_data_t *
-lxb_ns_prefix_data_by_name(lexbor_hash_t *hash,
-                           const lxb_char_t *prefix, size_t length)
+const pchtml_ns_prefix_data_t *
+pchtml_ns_prefix_data_by_name(pchtml_hash_t *hash,
+                           const unsigned char *prefix, size_t length)
 {
-    const lexbor_shs_entry_t *entry;
+    const pchtml_shs_entry_t *entry;
 
     if (prefix == NULL || length == 0) {
         return NULL;
     }
 
-    entry = lexbor_shs_entry_get_lower_static(lxb_ns_res_shs_data,
+    entry = pchtml_shs_entry_get_lower_static(pchtml_ns_res_shs_data,
                                               prefix, length);
     if (entry != NULL) {
         return entry->value;
     }
 
-    return lexbor_hash_search(hash, lexbor_hash_search_lower, prefix, length);
+    return pchtml_hash_search(hash, pchtml_hash_search_lower, prefix, length);
 }
