@@ -1,7 +1,25 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file document_element.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for html document element.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #ifndef PCHTML_HTML_DOCUMENT_H
@@ -11,6 +29,7 @@
 extern "C" {
 #endif
 
+#include "config.h"
 #include "html/core/mraw.h"
 
 #include "html/tag/tag.h"
@@ -49,62 +68,70 @@ struct pchtml_html_document {
     pchtml_html_document_opt_t         opt;
 };
 
-GENGYUE_API pchtml_html_document_t *
-pchtml_html_document_interface_create(pchtml_html_document_t *document);
+pchtml_html_document_t *
+pchtml_html_document_interface_create(
+                pchtml_html_document_t *document) WTF_INTERNAL;
 
-GENGYUE_API pchtml_html_document_t *
-pchtml_html_document_interface_destroy(pchtml_html_document_t *document);
-
-
-GENGYUE_API pchtml_html_document_t *
-pchtml_html_document_create(void);
-
-GENGYUE_API void
-pchtml_html_document_clean(pchtml_html_document_t *document);
-
-GENGYUE_API pchtml_html_document_t *
-pchtml_html_document_destroy(pchtml_html_document_t *document);
+pchtml_html_document_t *
+pchtml_html_document_interface_destroy(
+                pchtml_html_document_t *document) WTF_INTERNAL;
 
 
-GENGYUE_API unsigned int
+pchtml_html_document_t *
+pchtml_html_document_create(void) WTF_INTERNAL;
+
+void
+pchtml_html_document_clean(pchtml_html_document_t *document) WTF_INTERNAL;
+
+pchtml_html_document_t *
+pchtml_html_document_destroy(pchtml_html_document_t *document) WTF_INTERNAL;
+
+
+unsigned int
 pchtml_html_document_parse(pchtml_html_document_t *document,
-                        const unsigned char *html, size_t size);
+                const unsigned char *html, size_t size) WTF_INTERNAL;
 
-GENGYUE_API unsigned int
-pchtml_html_document_parse_chunk_begin(pchtml_html_document_t *document);
+unsigned int
+pchtml_html_document_parse_chunk_begin(
+                pchtml_html_document_t *document) WTF_INTERNAL;
 
-GENGYUE_API unsigned int
+unsigned int
 pchtml_html_document_parse_chunk(pchtml_html_document_t *document,
-                              const unsigned char *html, size_t size);
+                const unsigned char *html, size_t size) WTF_INTERNAL;
 
-GENGYUE_API unsigned int
-pchtml_html_document_parse_chunk_end(pchtml_html_document_t *document);
+unsigned int
+pchtml_html_document_parse_chunk_end(
+                pchtml_html_document_t *document) WTF_INTERNAL;
 
-GENGYUE_API pchtml_dom_node_t *
+pchtml_dom_node_t *
 pchtml_html_document_parse_fragment(pchtml_html_document_t *document,
-                                 pchtml_dom_element_t *element,
-                                 const unsigned char *html, size_t size);
+                pchtml_dom_element_t *element,
+                const unsigned char *html, size_t size) WTF_INTERNAL;
 
-GENGYUE_API unsigned int
-pchtml_html_document_parse_fragment_chunk_begin(pchtml_html_document_t *document,
-                                             pchtml_dom_element_t *element);
+unsigned int
+pchtml_html_document_parse_fragment_chunk_begin(
+                pchtml_html_document_t *document,
+                pchtml_dom_element_t *element) WTF_INTERNAL;
 
-GENGYUE_API unsigned int
+unsigned int
 pchtml_html_document_parse_fragment_chunk(pchtml_html_document_t *document,
-                                       const unsigned char *html, size_t size);
+                const unsigned char *html, size_t size) WTF_INTERNAL;
 
-GENGYUE_API pchtml_dom_node_t *
-pchtml_html_document_parse_fragment_chunk_end(pchtml_html_document_t *document);
+pchtml_dom_node_t *
+pchtml_html_document_parse_fragment_chunk_end(
+                pchtml_html_document_t *document) WTF_INTERNAL;
 
-GENGYUE_API const unsigned char *
-pchtml_html_document_title(pchtml_html_document_t *document, size_t *len);
+const unsigned char *
+pchtml_html_document_title(
+                pchtml_html_document_t *document, size_t *len) WTF_INTERNAL;
 
-GENGYUE_API unsigned int
+unsigned int
 pchtml_html_document_title_set(pchtml_html_document_t *document,
-                            const unsigned char *title, size_t len);
+                const unsigned char *title, size_t len) WTF_INTERNAL;
 
-GENGYUE_API const unsigned char *
-pchtml_html_document_title_raw(pchtml_html_document_t *document, size_t *len);
+const unsigned char *
+pchtml_html_document_title_raw(
+                pchtml_html_document_t *document, size_t *len) WTF_INTERNAL;
 
 
 /*
@@ -247,7 +274,7 @@ pchtml_html_document_destroy_element_noi(pchtml_dom_element_t *element);
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* PCHTML_HTML_DOCUMENT_H */
+#endif  /* PCHTML_HTML_DOCUMENT_H */
