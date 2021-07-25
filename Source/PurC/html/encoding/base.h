@@ -1,112 +1,132 @@
-/*
- * Copyright (C) 2019 Alexander Borisov
+/**
+ * @file base.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The basic hearder file for encoding.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_ENCODING_BASE_H
-#define LEXBOR_ENCODING_BASE_H
+
+#ifndef PCHTML_ENCODING_BASE_H
+#define PCHTML_ENCODING_BASE_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "config.h"
 #include "html/core/base.h"
 #include "html/encoding/const.h"
 
 
-#define LXB_ENCODING_VERSION_MAJOR 2
-#define LXB_ENCODING_VERSION_MINOR 0
-#define LXB_ENCODING_VERSION_PATCH 1
+#define PCHTML_ENCODING_VERSION_MAJOR 2
+#define PCHTML_ENCODING_VERSION_MINOR 0
+#define PCHTML_ENCODING_VERSION_PATCH 1
 
-#define LXB_ENCODING_VERSION_STRING                                            \
-        LEXBOR_STRINGIZE(LXB_ENCODING_VERSION_MAJOR) "."                       \
-        LEXBOR_STRINGIZE(LXB_ENCODING_VERSION_MINOR) "."                       \
-        LEXBOR_STRINGIZE(LXB_ENCODING_VERSION_PATCH)
+#define PCHTML_ENCODING_VERSION_STRING                                            \
+        PCHTML_STRINGIZE(PCHTML_ENCODING_VERSION_MAJOR) "."                       \
+        PCHTML_STRINGIZE(PCHTML_ENCODING_VERSION_MINOR) "."                       \
+        PCHTML_STRINGIZE(PCHTML_ENCODING_VERSION_PATCH)
 
 
-#define LXB_ENCODING_REPLACEMENT_BYTES ((lxb_char_t *) "\xEF\xBF\xBD")
+#define PCHTML_ENCODING_REPLACEMENT_BYTES ((unsigned char *) "\xEF\xBF\xBD")
 
-#define LXB_ENCODING_REPLACEMENT_BUFFER_LEN 1
-#define LXB_ENCODING_REPLACEMENT_BUFFER                                        \
-    (&(const lxb_codepoint_t) {LXB_ENCODING_REPLACEMENT_CODEPOINT})
+#define PCHTML_ENCODING_REPLACEMENT_BUFFER_LEN 1
+#define PCHTML_ENCODING_REPLACEMENT_BUFFER                                        \
+    (&(const uint32_t) {PCHTML_ENCODING_REPLACEMENT_CODEPOINT})
 
 
 /*
  * In UTF-8 0x10FFFF value is maximum (inclusive)
  */
 enum {
-    LXB_ENCODING_REPLACEMENT_SIZE      = 0x03,
-    LXB_ENCODING_REPLACEMENT_CODEPOINT = 0xFFFD,
-    LXB_ENCODING_MAX_CODEPOINT         = 0x10FFFF,
-    LXB_ENCODING_ERROR_CODEPOINT       = 0x1FFFFF
+    PCHTML_ENCODING_REPLACEMENT_SIZE      = 0x03,
+    PCHTML_ENCODING_REPLACEMENT_CODEPOINT = 0xFFFD,
+    PCHTML_ENCODING_MAX_CODEPOINT         = 0x10FFFF,
+    PCHTML_ENCODING_ERROR_CODEPOINT       = 0x1FFFFF
 };
 
 enum {
-    LXB_ENCODING_ENCODE_OK           =  0x00,
-    LXB_ENCODING_ENCODE_ERROR        = -0x01,
-    LXB_ENCODING_ENCODE_SMALL_BUFFER = -0x02
+    PCHTML_ENCODING_ENCODE_OK           =  0x00,
+    PCHTML_ENCODING_ENCODE_ERROR        = -0x01,
+    PCHTML_ENCODING_ENCODE_SMALL_BUFFER = -0x02
 };
 
 enum {
-    LXB_ENCODING_DECODE_MAX_CODEPOINT = LXB_ENCODING_MAX_CODEPOINT,
-    LXB_ENCODING_DECODE_ERROR         = LXB_ENCODING_ERROR_CODEPOINT,
-    LXB_ENCODING_DECODE_CONTINUE      = 0x2FFFFF
+    PCHTML_ENCODING_DECODE_MAX_CODEPOINT = PCHTML_ENCODING_MAX_CODEPOINT,
+    PCHTML_ENCODING_DECODE_ERROR         = PCHTML_ENCODING_ERROR_CODEPOINT,
+    PCHTML_ENCODING_DECODE_CONTINUE      = 0x2FFFFF
 };
 
 enum {
-    LXB_ENCODING_DECODE_2022_JP_ASCII = 0x00,
-    LXB_ENCODING_DECODE_2022_JP_ROMAN,
-    LXB_ENCODING_DECODE_2022_JP_KATAKANA,
-    LXB_ENCODING_DECODE_2022_JP_LEAD,
-    LXB_ENCODING_DECODE_2022_JP_TRAIL,
-    LXB_ENCODING_DECODE_2022_JP_ESCAPE_START,
-    LXB_ENCODING_DECODE_2022_JP_ESCAPE,
-    LXB_ENCODING_DECODE_2022_JP_UNSET
+    PCHTML_ENCODING_DECODE_2022_JP_ASCII = 0x00,
+    PCHTML_ENCODING_DECODE_2022_JP_ROMAN,
+    PCHTML_ENCODING_DECODE_2022_JP_KATAKANA,
+    PCHTML_ENCODING_DECODE_2022_JP_LEAD,
+    PCHTML_ENCODING_DECODE_2022_JP_TRAIL,
+    PCHTML_ENCODING_DECODE_2022_JP_ESCAPE_START,
+    PCHTML_ENCODING_DECODE_2022_JP_ESCAPE,
+    PCHTML_ENCODING_DECODE_2022_JP_UNSET
 };
 
 enum {
-    LXB_ENCODING_ENCODE_2022_JP_ASCII = 0x00,
-    LXB_ENCODING_ENCODE_2022_JP_ROMAN,
-    LXB_ENCODING_ENCODE_2022_JP_JIS0208
+    PCHTML_ENCODING_ENCODE_2022_JP_ASCII = 0x00,
+    PCHTML_ENCODING_ENCODE_2022_JP_ROMAN,
+    PCHTML_ENCODING_ENCODE_2022_JP_JIS0208
 };
 
 typedef struct {
     unsigned   need;
-    lxb_char_t lower;
-    lxb_char_t upper;
+    unsigned char lower;
+    unsigned char upper;
 }
-lxb_encoding_ctx_utf_8_t;
+pchtml_encoding_ctx_utf_8_t;
 
 typedef struct {
-    lxb_char_t first;
-    lxb_char_t second;
-    lxb_char_t third;
+    unsigned char first;
+    unsigned char second;
+    unsigned char third;
 }
-lxb_encoding_ctx_gb18030_t;
+pchtml_encoding_ctx_gb18030_t;
 
 typedef struct {
-    lxb_char_t lead;
+    unsigned char lead;
     bool       is_jis0212;
 }
-lxb_encoding_ctx_euc_jp_t;
+pchtml_encoding_ctx_euc_jp_t;
 
 typedef struct {
-    lxb_char_t lead;
-    lxb_char_t prepand;
+    unsigned char lead;
+    unsigned char prepand;
     unsigned   state;
     unsigned   out_state;
     bool       out_flag;
 }
-lxb_encoding_ctx_2022_jp_t;
+pchtml_encoding_ctx_2022_jp_t;
 
-typedef struct lxb_encoding_data lxb_encoding_data_t;
+typedef struct pchtml_encoding_data pchtml_encoding_data_t;
 
 typedef struct {
-    const lxb_encoding_data_t *encoding_data;
+    const pchtml_encoding_data_t *encoding_data;
 
     /* Out buffer */
-    lxb_codepoint_t           *buffer_out;
+    uint32_t           *buffer_out;
     size_t                    buffer_length;
     size_t                    buffer_used;
 
@@ -114,32 +134,32 @@ typedef struct {
      * Bad code points will be replaced to user code point.
      * If replace_to == 0 stop parsing and return error ot user.
      */
-    const lxb_codepoint_t     *replace_to;
+    const uint32_t     *replace_to;
     size_t                    replace_len;
 
     /* Not for users */
-    lxb_codepoint_t           codepoint;
-    lxb_codepoint_t           second_codepoint;
+    uint32_t           codepoint;
+    uint32_t           second_codepoint;
     bool                      prepend;
     bool                      have_error;
 
-    lxb_status_t              status;
+    unsigned int              status;
 
     union {
-        lxb_encoding_ctx_utf_8_t   utf_8;
-        lxb_encoding_ctx_gb18030_t gb18030;
+        pchtml_encoding_ctx_utf_8_t   utf_8;
+        pchtml_encoding_ctx_gb18030_t gb18030;
         unsigned                   lead;
-        lxb_encoding_ctx_euc_jp_t  euc_jp;
-        lxb_encoding_ctx_2022_jp_t iso_2022_jp;
+        pchtml_encoding_ctx_euc_jp_t  euc_jp;
+        pchtml_encoding_ctx_2022_jp_t iso_2022_jp;
     } u;
 }
-lxb_encoding_decode_t;
+pchtml_encoding_decode_t;
 
 typedef struct {
-    const lxb_encoding_data_t *encoding_data;
+    const pchtml_encoding_data_t *encoding_data;
 
     /* Out buffer */
-    lxb_char_t                *buffer_out;
+    unsigned char                *buffer_out;
     size_t                    buffer_length;
     size_t                    buffer_used;
 
@@ -147,12 +167,12 @@ typedef struct {
      * Bad code points will be replaced to user bytes.
      * If replace_to == NULL stop parsing and return error ot user.
      */
-    const lxb_char_t          *replace_to;
+    const unsigned char          *replace_to;
     size_t                    replace_len;
 
     unsigned                  state;
 }
-lxb_encoding_encode_t;
+pchtml_encoding_encode_t;
 
 /*
 * Why can't I pass a char ** to a function which expects a const char **?
@@ -161,58 +181,58 @@ lxb_encoding_encode_t;
 * Short answer: use cast (const char **).
 *
 * For example:
-*     lxb_encoding_ctx_t ctx = {0};
-*     const lxb_encoding_data_t *enc;
+*     pchtml_encoding_ctx_t ctx = {0};
+*     const pchtml_encoding_data_t *enc;
 *
-*     lxb_char_t *data = (lxb_char_t *) "\x81\x30\x84\x36";
+*     unsigned char *data = (unsigned char *) "\x81\x30\x84\x36";
 *
-*     enc = lxb_encoding_data(LXB_ENCODING_GB18030);
+*     enc = pchtml_encoding_data(PCHTML_ENCODING_GB18030);
 *
-*     enc->decode(&ctx, (const lxb_char_t **) &data, data + 4);
+*     enc->decode(&ctx, (const unsigned char **) &data, data + 4);
 */
-typedef lxb_status_t
-(*lxb_encoding_encode_f)(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cp,
-                         const lxb_codepoint_t *end);
+typedef unsigned int
+(*pchtml_encoding_encode_f)(pchtml_encoding_encode_t *ctx, const uint32_t **cp,
+                         const uint32_t *end);
 
-typedef lxb_status_t
-(*lxb_encoding_decode_f)(lxb_encoding_decode_t *ctx,
-                         const lxb_char_t **data, const lxb_char_t *end);
+typedef unsigned int
+(*pchtml_encoding_decode_f)(pchtml_encoding_decode_t *ctx,
+                         const unsigned char **data, const unsigned char *end);
 
 typedef int8_t
-(*lxb_encoding_encode_single_f)(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                const lxb_char_t *end, lxb_codepoint_t cp);
+(*pchtml_encoding_encode_single_f)(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                const unsigned char *end, uint32_t cp);
 
-typedef lxb_codepoint_t
-(*lxb_encoding_decode_single_f)(lxb_encoding_decode_t *ctx,
-                                const lxb_char_t **data, const lxb_char_t *end);
+typedef uint32_t
+(*pchtml_encoding_decode_single_f)(pchtml_encoding_decode_t *ctx,
+                                const unsigned char **data, const unsigned char *end);
 
-struct lxb_encoding_data {
-    lxb_encoding_t               encoding;
-    lxb_encoding_encode_f        encode;
-    lxb_encoding_decode_f        decode;
-    lxb_encoding_encode_single_f encode_single;
-    lxb_encoding_decode_single_f decode_single;
-    lxb_char_t                   *name;
+struct pchtml_encoding_data {
+    pchtml_encoding_t               encoding;
+    pchtml_encoding_encode_f        encode;
+    pchtml_encoding_decode_f        decode;
+    pchtml_encoding_encode_single_f encode_single;
+    pchtml_encoding_decode_single_f decode_single;
+    unsigned char                   *name;
 };
 
 typedef struct {
-    lxb_char_t      *name;
+    unsigned char      *name;
     unsigned        size;
-    lxb_codepoint_t codepoint;
+    uint32_t codepoint;
 }
-lxb_encoding_single_index_t;
+pchtml_encoding_single_index_t;
 
-typedef lxb_encoding_single_index_t lxb_encoding_multi_index_t;
+typedef pchtml_encoding_single_index_t pchtml_encoding_multi_index_t;
 
 typedef struct {
     unsigned        index;
-    lxb_codepoint_t codepoint;
+    uint32_t codepoint;
 }
-lxb_encoding_range_index_t;
+pchtml_encoding_range_index_t;
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LEXBOR_ENCODING_BASE_H */
+#endif  /* PCHTML_ENCODING_BASE_H */

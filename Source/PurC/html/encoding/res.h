@@ -1,8 +1,27 @@
-/*
- * Copyright (C) 2019-2020 Alexander Borisov
+/**
+ * @file res.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for resource of encoding.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 
 /*
  * Caution!
@@ -11,24 +30,25 @@
  */
 
 
-#ifndef LEXBOR_ENCODING_RES_H
-#define LEXBOR_ENCODING_RES_H
+#ifndef PCHTML_ENCODING_RES_H
+#define PCHTML_ENCODING_RES_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 
+#include "config.h"
 #include "html/encoding/base.h"
 #include "html/core/shs.h"
 
 
-LXB_EXTERN const lxb_encoding_data_t lxb_encoding_res_map[LXB_ENCODING_LAST_ENTRY];
-LXB_EXTERN const lexbor_shs_entry_t lxb_encoding_res_shs_entities[220];
+PCHTML_EXTERN const pchtml_encoding_data_t pchtml_encoding_res_map[PCHTML_ENCODING_LAST_ENTRY];
+PCHTML_EXTERN const pchtml_shs_entry_t pchtml_encoding_res_shs_entities[220];
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LEXBOR_ENCODING_RES_H */
+#endif  /* PCHTML_ENCODING_RES_H */

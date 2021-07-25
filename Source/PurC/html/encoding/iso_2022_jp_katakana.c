@@ -1,8 +1,27 @@
-/*
- * Copyright (C) 2019 Alexander Borisov
+/**
+ * @file iso_2022_jp_katakana.c 
+ * @author 
+ * @date 2021/07/02
+ * @brief The complementation of encoding iso_2022_jp_katakana.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 
 /*
  * Caution!
@@ -15,75 +34,75 @@
 #include "html/core/shs.h"
 
 
-LXB_API const lxb_encoding_multi_index_t lxb_encoding_multi_index_iso_2022_jp_katakana[63] = 
+const pchtml_encoding_multi_index_t pchtml_encoding_multi_index_iso_2022_jp_katakana[63] = 
 {
-    {(lxb_char_t *) "\xe3\x80\x82", 3, 0x3002}, /* (IDEOGRAPHIC FULL STOP) */
-    {(lxb_char_t *) "\xe3\x80\x8c", 3, 0x300C}, /* (LEFT CORNER BRACKET) */
-    {(lxb_char_t *) "\xe3\x80\x8d", 3, 0x300D}, /* (RIGHT CORNER BRACKET) */
-    {(lxb_char_t *) "\xe3\x80\x81", 3, 0x3001}, /* (IDEOGRAPHIC COMMA) */
-    {(lxb_char_t *) "\xe3\x83\xbb", 3, 0x30FB}, /* (KATAKANA MIDDLE DOT) */
-    {(lxb_char_t *) "\xe3\x83\xb2", 3, 0x30F2}, /* (KATAKANA LETTER WO) */
-    {(lxb_char_t *) "\xe3\x82\xa1", 3, 0x30A1}, /* (KATAKANA LETTER SMALL A) */
-    {(lxb_char_t *) "\xe3\x82\xa3", 3, 0x30A3}, /* (KATAKANA LETTER SMALL I) */
-    {(lxb_char_t *) "\xe3\x82\xa5", 3, 0x30A5}, /* (KATAKANA LETTER SMALL U) */
-    {(lxb_char_t *) "\xe3\x82\xa7", 3, 0x30A7}, /* (KATAKANA LETTER SMALL E) */
-    {(lxb_char_t *) "\xe3\x82\xa9", 3, 0x30A9}, /* (KATAKANA LETTER SMALL O) */
-    {(lxb_char_t *) "\xe3\x83\xa3", 3, 0x30E3}, /* (KATAKANA LETTER SMALL YA) */
-    {(lxb_char_t *) "\xe3\x83\xa5", 3, 0x30E5}, /* (KATAKANA LETTER SMALL YU) */
-    {(lxb_char_t *) "\xe3\x83\xa7", 3, 0x30E7}, /* (KATAKANA LETTER SMALL YO) */
-    {(lxb_char_t *) "\xe3\x83\x83", 3, 0x30C3}, /* (KATAKANA LETTER SMALL TU) */
-    {(lxb_char_t *) "\xe3\x83\xbc", 3, 0x30FC}, /* (KATAKANA-HIRAGANA PROLONGED SOUND MARK) */
-    {(lxb_char_t *) "\xe3\x82\xa2", 3, 0x30A2}, /* (KATAKANA LETTER A) */
-    {(lxb_char_t *) "\xe3\x82\xa4", 3, 0x30A4}, /* (KATAKANA LETTER I) */
-    {(lxb_char_t *) "\xe3\x82\xa6", 3, 0x30A6}, /* (KATAKANA LETTER U) */
-    {(lxb_char_t *) "\xe3\x82\xa8", 3, 0x30A8}, /* (KATAKANA LETTER E) */
-    {(lxb_char_t *) "\xe3\x82\xaa", 3, 0x30AA}, /* (KATAKANA LETTER O) */
-    {(lxb_char_t *) "\xe3\x82\xab", 3, 0x30AB}, /* (KATAKANA LETTER KA) */
-    {(lxb_char_t *) "\xe3\x82\xad", 3, 0x30AD}, /* (KATAKANA LETTER KI) */
-    {(lxb_char_t *) "\xe3\x82\xaf", 3, 0x30AF}, /* (KATAKANA LETTER KU) */
-    {(lxb_char_t *) "\xe3\x82\xb1", 3, 0x30B1}, /* (KATAKANA LETTER KE) */
-    {(lxb_char_t *) "\xe3\x82\xb3", 3, 0x30B3}, /* (KATAKANA LETTER KO) */
-    {(lxb_char_t *) "\xe3\x82\xb5", 3, 0x30B5}, /* (KATAKANA LETTER SA) */
-    {(lxb_char_t *) "\xe3\x82\xb7", 3, 0x30B7}, /* (KATAKANA LETTER SI) */
-    {(lxb_char_t *) "\xe3\x82\xb9", 3, 0x30B9}, /* (KATAKANA LETTER SU) */
-    {(lxb_char_t *) "\xe3\x82\xbb", 3, 0x30BB}, /* (KATAKANA LETTER SE) */
-    {(lxb_char_t *) "\xe3\x82\xbd", 3, 0x30BD}, /* (KATAKANA LETTER SO) */
-    {(lxb_char_t *) "\xe3\x82\xbf", 3, 0x30BF}, /* (KATAKANA LETTER TA) */
-    {(lxb_char_t *) "\xe3\x83\x81", 3, 0x30C1}, /* (KATAKANA LETTER TI) */
-    {(lxb_char_t *) "\xe3\x83\x84", 3, 0x30C4}, /* (KATAKANA LETTER TU) */
-    {(lxb_char_t *) "\xe3\x83\x86", 3, 0x30C6}, /* (KATAKANA LETTER TE) */
-    {(lxb_char_t *) "\xe3\x83\x88", 3, 0x30C8}, /* (KATAKANA LETTER TO) */
-    {(lxb_char_t *) "\xe3\x83\x8a", 3, 0x30CA}, /* (KATAKANA LETTER NA) */
-    {(lxb_char_t *) "\xe3\x83\x8b", 3, 0x30CB}, /* (KATAKANA LETTER NI) */
-    {(lxb_char_t *) "\xe3\x83\x8c", 3, 0x30CC}, /* (KATAKANA LETTER NU) */
-    {(lxb_char_t *) "\xe3\x83\x8d", 3, 0x30CD}, /* (KATAKANA LETTER NE) */
-    {(lxb_char_t *) "\xe3\x83\x8e", 3, 0x30CE}, /* (KATAKANA LETTER NO) */
-    {(lxb_char_t *) "\xe3\x83\x8f", 3, 0x30CF}, /* (KATAKANA LETTER HA) */
-    {(lxb_char_t *) "\xe3\x83\x92", 3, 0x30D2}, /* (KATAKANA LETTER HI) */
-    {(lxb_char_t *) "\xe3\x83\x95", 3, 0x30D5}, /* (KATAKANA LETTER HU) */
-    {(lxb_char_t *) "\xe3\x83\x98", 3, 0x30D8}, /* (KATAKANA LETTER HE) */
-    {(lxb_char_t *) "\xe3\x83\x9b", 3, 0x30DB}, /* (KATAKANA LETTER HO) */
-    {(lxb_char_t *) "\xe3\x83\x9e", 3, 0x30DE}, /* (KATAKANA LETTER MA) */
-    {(lxb_char_t *) "\xe3\x83\x9f", 3, 0x30DF}, /* (KATAKANA LETTER MI) */
-    {(lxb_char_t *) "\xe3\x83\xa0", 3, 0x30E0}, /* (KATAKANA LETTER MU) */
-    {(lxb_char_t *) "\xe3\x83\xa1", 3, 0x30E1}, /* (KATAKANA LETTER ME) */
-    {(lxb_char_t *) "\xe3\x83\xa2", 3, 0x30E2}, /* (KATAKANA LETTER MO) */
-    {(lxb_char_t *) "\xe3\x83\xa4", 3, 0x30E4}, /* (KATAKANA LETTER YA) */
-    {(lxb_char_t *) "\xe3\x83\xa6", 3, 0x30E6}, /* (KATAKANA LETTER YU) */
-    {(lxb_char_t *) "\xe3\x83\xa8", 3, 0x30E8}, /* (KATAKANA LETTER YO) */
-    {(lxb_char_t *) "\xe3\x83\xa9", 3, 0x30E9}, /* (KATAKANA LETTER RA) */
-    {(lxb_char_t *) "\xe3\x83\xaa", 3, 0x30EA}, /* (KATAKANA LETTER RI) */
-    {(lxb_char_t *) "\xe3\x83\xab", 3, 0x30EB}, /* (KATAKANA LETTER RU) */
-    {(lxb_char_t *) "\xe3\x83\xac", 3, 0x30EC}, /* (KATAKANA LETTER RE) */
-    {(lxb_char_t *) "\xe3\x83\xad", 3, 0x30ED}, /* (KATAKANA LETTER RO) */
-    {(lxb_char_t *) "\xe3\x83\xaf", 3, 0x30EF}, /* (KATAKANA LETTER WA) */
-    {(lxb_char_t *) "\xe3\x83\xb3", 3, 0x30F3}, /* (KATAKANA LETTER N) */
-    {(lxb_char_t *) "\xe3\x82\x9b", 3, 0x309B}, /* (KATAKANA-HIRAGANA VOICED SOUND MARK) */
-    {(lxb_char_t *) "\xe3\x82\x9c", 3, 0x309C}, /* (KATAKANA-HIRAGANA SEMI-VOICED SOUND MARK) */
+    {(unsigned char *) "\xe3\x80\x82", 3, 0x3002}, /* (IDEOGRAPHIC FULL STOP) */
+    {(unsigned char *) "\xe3\x80\x8c", 3, 0x300C}, /* (LEFT CORNER BRACKET) */
+    {(unsigned char *) "\xe3\x80\x8d", 3, 0x300D}, /* (RIGHT CORNER BRACKET) */
+    {(unsigned char *) "\xe3\x80\x81", 3, 0x3001}, /* (IDEOGRAPHIC COMMA) */
+    {(unsigned char *) "\xe3\x83\xbb", 3, 0x30FB}, /* (KATAKANA MIDDLE DOT) */
+    {(unsigned char *) "\xe3\x83\xb2", 3, 0x30F2}, /* (KATAKANA LETTER WO) */
+    {(unsigned char *) "\xe3\x82\xa1", 3, 0x30A1}, /* (KATAKANA LETTER SMALL A) */
+    {(unsigned char *) "\xe3\x82\xa3", 3, 0x30A3}, /* (KATAKANA LETTER SMALL I) */
+    {(unsigned char *) "\xe3\x82\xa5", 3, 0x30A5}, /* (KATAKANA LETTER SMALL U) */
+    {(unsigned char *) "\xe3\x82\xa7", 3, 0x30A7}, /* (KATAKANA LETTER SMALL E) */
+    {(unsigned char *) "\xe3\x82\xa9", 3, 0x30A9}, /* (KATAKANA LETTER SMALL O) */
+    {(unsigned char *) "\xe3\x83\xa3", 3, 0x30E3}, /* (KATAKANA LETTER SMALL YA) */
+    {(unsigned char *) "\xe3\x83\xa5", 3, 0x30E5}, /* (KATAKANA LETTER SMALL YU) */
+    {(unsigned char *) "\xe3\x83\xa7", 3, 0x30E7}, /* (KATAKANA LETTER SMALL YO) */
+    {(unsigned char *) "\xe3\x83\x83", 3, 0x30C3}, /* (KATAKANA LETTER SMALL TU) */
+    {(unsigned char *) "\xe3\x83\xbc", 3, 0x30FC}, /* (KATAKANA-HIRAGANA PROLONGED SOUND MARK) */
+    {(unsigned char *) "\xe3\x82\xa2", 3, 0x30A2}, /* (KATAKANA LETTER A) */
+    {(unsigned char *) "\xe3\x82\xa4", 3, 0x30A4}, /* (KATAKANA LETTER I) */
+    {(unsigned char *) "\xe3\x82\xa6", 3, 0x30A6}, /* (KATAKANA LETTER U) */
+    {(unsigned char *) "\xe3\x82\xa8", 3, 0x30A8}, /* (KATAKANA LETTER E) */
+    {(unsigned char *) "\xe3\x82\xaa", 3, 0x30AA}, /* (KATAKANA LETTER O) */
+    {(unsigned char *) "\xe3\x82\xab", 3, 0x30AB}, /* (KATAKANA LETTER KA) */
+    {(unsigned char *) "\xe3\x82\xad", 3, 0x30AD}, /* (KATAKANA LETTER KI) */
+    {(unsigned char *) "\xe3\x82\xaf", 3, 0x30AF}, /* (KATAKANA LETTER KU) */
+    {(unsigned char *) "\xe3\x82\xb1", 3, 0x30B1}, /* (KATAKANA LETTER KE) */
+    {(unsigned char *) "\xe3\x82\xb3", 3, 0x30B3}, /* (KATAKANA LETTER KO) */
+    {(unsigned char *) "\xe3\x82\xb5", 3, 0x30B5}, /* (KATAKANA LETTER SA) */
+    {(unsigned char *) "\xe3\x82\xb7", 3, 0x30B7}, /* (KATAKANA LETTER SI) */
+    {(unsigned char *) "\xe3\x82\xb9", 3, 0x30B9}, /* (KATAKANA LETTER SU) */
+    {(unsigned char *) "\xe3\x82\xbb", 3, 0x30BB}, /* (KATAKANA LETTER SE) */
+    {(unsigned char *) "\xe3\x82\xbd", 3, 0x30BD}, /* (KATAKANA LETTER SO) */
+    {(unsigned char *) "\xe3\x82\xbf", 3, 0x30BF}, /* (KATAKANA LETTER TA) */
+    {(unsigned char *) "\xe3\x83\x81", 3, 0x30C1}, /* (KATAKANA LETTER TI) */
+    {(unsigned char *) "\xe3\x83\x84", 3, 0x30C4}, /* (KATAKANA LETTER TU) */
+    {(unsigned char *) "\xe3\x83\x86", 3, 0x30C6}, /* (KATAKANA LETTER TE) */
+    {(unsigned char *) "\xe3\x83\x88", 3, 0x30C8}, /* (KATAKANA LETTER TO) */
+    {(unsigned char *) "\xe3\x83\x8a", 3, 0x30CA}, /* (KATAKANA LETTER NA) */
+    {(unsigned char *) "\xe3\x83\x8b", 3, 0x30CB}, /* (KATAKANA LETTER NI) */
+    {(unsigned char *) "\xe3\x83\x8c", 3, 0x30CC}, /* (KATAKANA LETTER NU) */
+    {(unsigned char *) "\xe3\x83\x8d", 3, 0x30CD}, /* (KATAKANA LETTER NE) */
+    {(unsigned char *) "\xe3\x83\x8e", 3, 0x30CE}, /* (KATAKANA LETTER NO) */
+    {(unsigned char *) "\xe3\x83\x8f", 3, 0x30CF}, /* (KATAKANA LETTER HA) */
+    {(unsigned char *) "\xe3\x83\x92", 3, 0x30D2}, /* (KATAKANA LETTER HI) */
+    {(unsigned char *) "\xe3\x83\x95", 3, 0x30D5}, /* (KATAKANA LETTER HU) */
+    {(unsigned char *) "\xe3\x83\x98", 3, 0x30D8}, /* (KATAKANA LETTER HE) */
+    {(unsigned char *) "\xe3\x83\x9b", 3, 0x30DB}, /* (KATAKANA LETTER HO) */
+    {(unsigned char *) "\xe3\x83\x9e", 3, 0x30DE}, /* (KATAKANA LETTER MA) */
+    {(unsigned char *) "\xe3\x83\x9f", 3, 0x30DF}, /* (KATAKANA LETTER MI) */
+    {(unsigned char *) "\xe3\x83\xa0", 3, 0x30E0}, /* (KATAKANA LETTER MU) */
+    {(unsigned char *) "\xe3\x83\xa1", 3, 0x30E1}, /* (KATAKANA LETTER ME) */
+    {(unsigned char *) "\xe3\x83\xa2", 3, 0x30E2}, /* (KATAKANA LETTER MO) */
+    {(unsigned char *) "\xe3\x83\xa4", 3, 0x30E4}, /* (KATAKANA LETTER YA) */
+    {(unsigned char *) "\xe3\x83\xa6", 3, 0x30E6}, /* (KATAKANA LETTER YU) */
+    {(unsigned char *) "\xe3\x83\xa8", 3, 0x30E8}, /* (KATAKANA LETTER YO) */
+    {(unsigned char *) "\xe3\x83\xa9", 3, 0x30E9}, /* (KATAKANA LETTER RA) */
+    {(unsigned char *) "\xe3\x83\xaa", 3, 0x30EA}, /* (KATAKANA LETTER RI) */
+    {(unsigned char *) "\xe3\x83\xab", 3, 0x30EB}, /* (KATAKANA LETTER RU) */
+    {(unsigned char *) "\xe3\x83\xac", 3, 0x30EC}, /* (KATAKANA LETTER RE) */
+    {(unsigned char *) "\xe3\x83\xad", 3, 0x30ED}, /* (KATAKANA LETTER RO) */
+    {(unsigned char *) "\xe3\x83\xaf", 3, 0x30EF}, /* (KATAKANA LETTER WA) */
+    {(unsigned char *) "\xe3\x83\xb3", 3, 0x30F3}, /* (KATAKANA LETTER N) */
+    {(unsigned char *) "\xe3\x82\x9b", 3, 0x309B}, /* (KATAKANA-HIRAGANA VOICED SOUND MARK) */
+    {(unsigned char *) "\xe3\x82\x9c", 3, 0x309C}, /* (KATAKANA-HIRAGANA SEMI-VOICED SOUND MARK) */
 };
 
 /* Table size: 52; Max deep: 2 */
-LXB_API const lexbor_shs_hash_t lxb_encoding_multi_hash_iso_2022_jp_katakana[72] = 
+const pchtml_shs_hash_t pchtml_encoding_multi_hash_iso_2022_jp_katakana[72] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {12481, (void *) 32, 0},

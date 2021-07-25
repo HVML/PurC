@@ -1,8 +1,27 @@
-/*
- * Copyright (C) 2019 Alexander Borisov
+/**
+ * @file encode.c
+ * @author 
+ * @date 2021/07/02
+ * @brief The complementation of encode.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 #include "private/errors.h"
 
 #include "html/encoding/encode.h"
@@ -11,35 +30,35 @@
 #include "html/encoding/range.h"
 
 
-#define LXB_ENCODING_ENCODE_APPEND(ctx, cp)                                    \
+#define PCHTML_ENCODING_ENCODE_APPEND(ctx, cp)                                    \
     do {                                                                       \
         if ((ctx)->buffer_used == (ctx)->buffer_length) {                      \
-            return LXB_STATUS_SMALL_BUFFER;                                    \
+            return PCHTML_STATUS_SMALL_BUFFER;                                    \
         }                                                                      \
                                                                                \
-        (ctx)->buffer_out[(ctx)->buffer_used++] = (lxb_char_t) cp;             \
+        (ctx)->buffer_out[(ctx)->buffer_used++] = (unsigned char) cp;             \
     }                                                                          \
     while (0)
 
-#define LXB_ENCODING_ENCODE_APPEND_P(ctx, cp)                                  \
+#define PCHTML_ENCODING_ENCODE_APPEND_P(ctx, cp)                                  \
     do {                                                                       \
         if ((ctx)->buffer_used == (ctx)->buffer_length) {                      \
             *cps = p;                                                          \
-            return LXB_STATUS_SMALL_BUFFER;                                    \
+            return PCHTML_STATUS_SMALL_BUFFER;                                    \
         }                                                                      \
                                                                                \
-        (ctx)->buffer_out[(ctx)->buffer_used++] = (lxb_char_t) cp;             \
+        (ctx)->buffer_out[(ctx)->buffer_used++] = (unsigned char) cp;             \
     }                                                                          \
     while (0)
 
-#define LXB_ENCODING_ENCODE_ERROR(ctx)                                         \
+#define PCHTML_ENCODING_ENCODE_ERROR(ctx)                                         \
     do {                                                                       \
         if (ctx->replace_to == NULL) {                                         \
-            return LXB_STATUS_ERROR;                                           \
+            return PCHTML_STATUS_ERROR;                                           \
         }                                                                      \
                                                                                \
         if ((ctx->buffer_used + ctx->replace_len) > ctx->buffer_length) {      \
-            return LXB_STATUS_SMALL_BUFFER;                                    \
+            return PCHTML_STATUS_SMALL_BUFFER;                                    \
         }                                                                      \
                                                                                \
         memcpy(&ctx->buffer_out[ctx->buffer_used], ctx->replace_to,            \
@@ -49,16 +68,16 @@
     }                                                                          \
     while (0)
 
-#define LXB_ENCODING_ENCODE_ERROR_P(ctx)                                       \
+#define PCHTML_ENCODING_ENCODE_ERROR_P(ctx)                                       \
     do {                                                                       \
         if (ctx->replace_to == NULL) {                                         \
             *cps = p;                                                          \
-            return LXB_STATUS_ERROR;                                           \
+            return PCHTML_STATUS_ERROR;                                           \
         }                                                                      \
                                                                                \
         if ((ctx->buffer_used + ctx->replace_len) > ctx->buffer_length) {      \
             *cps = p;                                                          \
-            return LXB_STATUS_SMALL_BUFFER;                                    \
+            return PCHTML_STATUS_SMALL_BUFFER;                                    \
         }                                                                      \
                                                                                \
         memcpy(&ctx->buffer_out[ctx->buffer_used], ctx->replace_to,            \
@@ -68,101 +87,101 @@
     }                                                                          \
     while (0)
 
-#define LXB_ENCODING_ENCODE_SINGLE_BYTE(table, table_size)                     \
+#define PCHTML_ENCODING_ENCODE_SINGLE_BYTE(table, table_size)                     \
     do {                                                                       \
-        lxb_codepoint_t cp;                                                    \
-        const lxb_codepoint_t *p = *cps;                                       \
-        const lexbor_shs_hash_t *hash;                                         \
+        uint32_t cp;                                                    \
+        const uint32_t *p = *cps;                                       \
+        const pchtml_shs_hash_t *hash;                                         \
                                                                                \
         for (; p < end; p++) {                                                 \
             cp = *p;                                                           \
                                                                                \
             if (cp < 0x80) {                                                   \
-                LXB_ENCODING_ENCODE_APPEND_P(ctx, cp);                         \
+                PCHTML_ENCODING_ENCODE_APPEND_P(ctx, cp);                         \
                 continue;                                                      \
             }                                                                  \
                                                                                \
-            hash = lexbor_shs_hash_get_static(table, table_size, cp);          \
+            hash = pchtml_shs_hash_get_static(table, table_size, cp);          \
             if (hash == NULL) {                                                \
-                LXB_ENCODING_ENCODE_ERROR_P(ctx);                              \
+                PCHTML_ENCODING_ENCODE_ERROR_P(ctx);                              \
                 continue;                                                      \
             }                                                                  \
                                                                                \
-            LXB_ENCODING_ENCODE_APPEND_P(ctx, (uintptr_t) hash->value);        \
+            PCHTML_ENCODING_ENCODE_APPEND_P(ctx, (uintptr_t) hash->value);        \
         }                                                                      \
                                                                                \
-        return LXB_STATUS_OK;                                                  \
+        return PCHTML_STATUS_OK;                                                  \
     }                                                                          \
     while (0)
 
-#define LXB_ENCODING_ENCODE_BYTE_SINGLE(table, table_size)                     \
-    const lexbor_shs_hash_t *hash;                                             \
+#define PCHTML_ENCODING_ENCODE_BYTE_SINGLE(table, table_size)                     \
+    const pchtml_shs_hash_t *hash;                                             \
                                                                                \
     if (cp < 0x80) {                                                           \
-        *(*data)++ = (lxb_char_t) cp;                                          \
+        *(*data)++ = (unsigned char) cp;                                          \
         return 1;                                                              \
     }                                                                          \
                                                                                \
-    hash = lexbor_shs_hash_get_static(table, table_size, cp);                  \
+    hash = pchtml_shs_hash_get_static(table, table_size, cp);                  \
     if (hash == NULL) {                                                        \
-        return LXB_ENCODING_ENCODE_ERROR;                                      \
+        return PCHTML_ENCODING_ENCODE_ERROR;                                      \
     }                                                                          \
                                                                                \
-    *(*data)++ = (lxb_char_t) (uintptr_t) hash->value;                         \
+    *(*data)++ = (unsigned char) (uintptr_t) hash->value;                         \
     return 1
 
 
-lxb_status_t
-lxb_encoding_encode_default(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                            const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_default(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                            const uint32_t *end)
 {
-    return lxb_encoding_encode_utf_8(ctx, cps, end);
+    return pchtml_encoding_encode_utf_8(ctx, cps, end);
 }
 
-lxb_status_t
-lxb_encoding_encode_auto(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                         const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_auto(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                         const uint32_t *end)
 {
     UNUSED_PARAM(ctx);
 
     *cps = end;
-    return LXB_STATUS_ERROR;
+    return PCHTML_STATUS_ERROR;
 }
 
-lxb_status_t
-lxb_encoding_encode_undefined(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                              const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_undefined(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                              const uint32_t *end)
 {
     UNUSED_PARAM(ctx);
 
     *cps = end;
-    return LXB_STATUS_ERROR;
+    return PCHTML_STATUS_ERROR;
 }
 
-lxb_status_t
-lxb_encoding_encode_big5(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                         const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_big5(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                         const uint32_t *end)
 {
-    lxb_codepoint_t cp;
-    const lexbor_shs_hash_t *hash;
+    uint32_t cp;
+    const pchtml_shs_hash_t *hash;
 
     for (; *cps < end; (*cps)++) {
         cp = **cps;
 
         if (cp < 0x80) {
-            LXB_ENCODING_ENCODE_APPEND(ctx, cp);
+            PCHTML_ENCODING_ENCODE_APPEND(ctx, cp);
             continue;
         }
 
-        hash = lexbor_shs_hash_get_static(lxb_encoding_multi_hash_big5,
-                                          LXB_ENCODING_MULTI_HASH_BIG5_SIZE, cp);
+        hash = pchtml_shs_hash_get_static(pchtml_encoding_multi_hash_big5,
+                                          PCHTML_ENCODING_MULTI_HASH_BIG5_SIZE, cp);
         if (hash == NULL) {
-            LXB_ENCODING_ENCODE_ERROR(ctx);
+            PCHTML_ENCODING_ENCODE_ERROR(ctx);
             continue;
         }
 
         if ((ctx->buffer_used + 2) > ctx->buffer_length) {
-            return LXB_STATUS_SMALL_BUFFER;
+            return PCHTML_STATUS_SMALL_BUFFER;
         }
 
         ctx->buffer_out[ ctx->buffer_used++ ] = ((uint32_t) (uintptr_t) hash->value) / 157 + 0x81;
@@ -175,37 +194,37 @@ lxb_encoding_encode_big5(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps
         }
     }
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_status_t
-lxb_encoding_encode_euc_jp(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                           const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_euc_jp(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                           const uint32_t *end)
 {
-    lxb_codepoint_t cp;
-    const lexbor_shs_hash_t *hash;
+    uint32_t cp;
+    const pchtml_shs_hash_t *hash;
 
     for (; *cps < end; (*cps)++) {
         cp = **cps;
 
         if (cp < 0x80) {
-            LXB_ENCODING_ENCODE_APPEND(ctx, cp);
+            PCHTML_ENCODING_ENCODE_APPEND(ctx, cp);
             continue;
         }
 
         if (cp == 0x00A5) {
-            LXB_ENCODING_ENCODE_APPEND(ctx, 0x5C);
+            PCHTML_ENCODING_ENCODE_APPEND(ctx, 0x5C);
             continue;
         }
 
         if (cp == 0x203E) {
-            LXB_ENCODING_ENCODE_APPEND(ctx, 0x7E);
+            PCHTML_ENCODING_ENCODE_APPEND(ctx, 0x7E);
             continue;
         }
 
         if ((unsigned) (cp - 0xFF61) <= (0xFF9F - 0xFF61)) {
             if ((ctx->buffer_used + 2) > ctx->buffer_length) {
-                return LXB_STATUS_SMALL_BUFFER;
+                return PCHTML_STATUS_SMALL_BUFFER;
             }
 
             ctx->buffer_out[ ctx->buffer_used++ ] = 0x8E;
@@ -218,123 +237,123 @@ lxb_encoding_encode_euc_jp(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **c
             cp = 0xFF0D;
         }
 
-        hash = lexbor_shs_hash_get_static(lxb_encoding_multi_hash_jis0208,
-                                          LXB_ENCODING_MULTI_HASH_JIS0208_SIZE, cp);
+        hash = pchtml_shs_hash_get_static(pchtml_encoding_multi_hash_jis0208,
+                                          PCHTML_ENCODING_MULTI_HASH_JIS0208_SIZE, cp);
         if (hash == NULL) {
-            LXB_ENCODING_ENCODE_ERROR(ctx);
+            PCHTML_ENCODING_ENCODE_ERROR(ctx);
             continue;
         }
 
         if ((ctx->buffer_used + 2) > ctx->buffer_length) {
-            return LXB_STATUS_SMALL_BUFFER;
+            return PCHTML_STATUS_SMALL_BUFFER;
         }
 
         ctx->buffer_out[ ctx->buffer_used++ ] = (uint32_t) (uintptr_t) hash->value / 94 + 0xA1;
         ctx->buffer_out[ ctx->buffer_used++ ] = (uint32_t) (uintptr_t) hash->value % 94 + 0xA1;
     }
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_status_t
-lxb_encoding_encode_euc_kr(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                           const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_euc_kr(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                           const uint32_t *end)
 {
-    lxb_codepoint_t cp;
-    const lexbor_shs_hash_t *hash;
+    uint32_t cp;
+    const pchtml_shs_hash_t *hash;
 
     for (; *cps < end; (*cps)++) {
         cp = **cps;
 
         if (cp < 0x80) {
-            LXB_ENCODING_ENCODE_APPEND(ctx, cp);
+            PCHTML_ENCODING_ENCODE_APPEND(ctx, cp);
             continue;
         }
 
-        hash = lexbor_shs_hash_get_static(lxb_encoding_multi_hash_euc_kr,
-                                          LXB_ENCODING_MULTI_HASH_EUC_KR_SIZE, cp);
+        hash = pchtml_shs_hash_get_static(pchtml_encoding_multi_hash_euc_kr,
+                                          PCHTML_ENCODING_MULTI_HASH_EUC_KR_SIZE, cp);
         if (hash == NULL) {
-            LXB_ENCODING_ENCODE_ERROR(ctx);
+            PCHTML_ENCODING_ENCODE_ERROR(ctx);
             continue;
         }
 
         if ((ctx->buffer_used + 2) > ctx->buffer_length) {
-            return LXB_STATUS_SMALL_BUFFER;
+            return PCHTML_STATUS_SMALL_BUFFER;
         }
 
         ctx->buffer_out[ ctx->buffer_used++ ] = (uint32_t) (uintptr_t) hash->value / 190 + 0x81;
         ctx->buffer_out[ ctx->buffer_used++ ] = (uint32_t) (uintptr_t) hash->value % 190 + 0x41;
     }
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_status_t
-lxb_encoding_encode_gbk(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                        const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_gbk(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                        const uint32_t *end)
 {
-    lxb_codepoint_t cp;
-    const lexbor_shs_hash_t *hash;
+    uint32_t cp;
+    const pchtml_shs_hash_t *hash;
 
     for (; *cps < end; (*cps)++) {
         cp = **cps;
 
         if (cp < 0x80) {
-            LXB_ENCODING_ENCODE_APPEND(ctx, cp);
+            PCHTML_ENCODING_ENCODE_APPEND(ctx, cp);
             continue;
         }
 
         if (cp == 0xE5E5) {
-            LXB_ENCODING_ENCODE_ERROR(ctx);
+            PCHTML_ENCODING_ENCODE_ERROR(ctx);
             continue;
         }
 
         if (cp == 0x20AC) {
-            LXB_ENCODING_ENCODE_APPEND(ctx, 0x80);
+            PCHTML_ENCODING_ENCODE_APPEND(ctx, 0x80);
             continue;
         }
 
-        hash = lexbor_shs_hash_get_static(lxb_encoding_multi_hash_gb18030,
-                                          LXB_ENCODING_MULTI_HASH_GB18030_SIZE, cp);
+        hash = pchtml_shs_hash_get_static(pchtml_encoding_multi_hash_gb18030,
+                                          PCHTML_ENCODING_MULTI_HASH_GB18030_SIZE, cp);
         if (hash == NULL) {
-            LXB_ENCODING_ENCODE_ERROR(ctx);
+            PCHTML_ENCODING_ENCODE_ERROR(ctx);
             continue;
         }
 
         if ((ctx->buffer_used + 2) > ctx->buffer_length) {
-            return LXB_STATUS_SMALL_BUFFER;
+            return PCHTML_STATUS_SMALL_BUFFER;
         }
 
-        ctx->buffer_out[ ctx->buffer_used++ ] = (lxb_char_t) (uintptr_t) hash->value / 190 + 0x81;
+        ctx->buffer_out[ ctx->buffer_used++ ] = (unsigned char) (uintptr_t) hash->value / 190 + 0x81;
 
-        if (((lxb_char_t) (uintptr_t) hash->value % 190) < 0x3F) {
-            ctx->buffer_out[ ctx->buffer_used++ ] = ((lxb_char_t) (uintptr_t) hash->value % 190) + 0x40;
+        if (((unsigned char) (uintptr_t) hash->value % 190) < 0x3F) {
+            ctx->buffer_out[ ctx->buffer_used++ ] = ((unsigned char) (uintptr_t) hash->value % 190) + 0x40;
         }
         else {
-            ctx->buffer_out[ ctx->buffer_used++ ] = ((lxb_char_t) (uintptr_t) hash->value % 190) + 0x41;
+            ctx->buffer_out[ ctx->buffer_used++ ] = ((unsigned char) (uintptr_t) hash->value % 190) + 0x41;
         }
     }
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_status_t
-lxb_encoding_encode_ibm866(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                           const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_ibm866(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                           const uint32_t *end)
 {
 
-    LXB_ENCODING_ENCODE_SINGLE_BYTE(lxb_encoding_single_hash_ibm866,
-                                    LXB_ENCODING_SINGLE_HASH_IBM866_SIZE);
+    PCHTML_ENCODING_ENCODE_SINGLE_BYTE(pchtml_encoding_single_hash_ibm866,
+                                    PCHTML_ENCODING_SINGLE_HASH_IBM866_SIZE);
 }
 
-lxb_status_t
-lxb_encoding_encode_iso_2022_jp(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                                const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_iso_2022_jp(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                                const uint32_t *end)
 {
     int8_t size;
     unsigned state;
-    lxb_codepoint_t cp;
-    const lexbor_shs_hash_t *hash;
+    uint32_t cp;
+    const pchtml_shs_hash_t *hash;
 
     size = 0;
     state = ctx->state;
@@ -345,13 +364,13 @@ lxb_encoding_encode_iso_2022_jp(lxb_encoding_encode_t *ctx, const lxb_codepoint_
     begin:
 
         switch (ctx->state) {
-            case LXB_ENCODING_ENCODE_2022_JP_ASCII:
+            case PCHTML_ENCODING_ENCODE_2022_JP_ASCII:
                 if (cp == 0x000E || cp == 0x000F || cp == 0x001B) {
                     goto failed;
                 }
 
                 if (cp < 0x80) {
-                    LXB_ENCODING_ENCODE_APPEND(ctx, cp);
+                    PCHTML_ENCODING_ENCODE_APPEND(ctx, cp);
                     continue;
                 }
 
@@ -364,7 +383,7 @@ lxb_encoding_encode_iso_2022_jp(lxb_encoding_encode_t *ctx, const lxb_codepoint_
                         goto small_buffer;
                     }
 
-                    ctx->state = LXB_ENCODING_ENCODE_2022_JP_ROMAN;
+                    ctx->state = PCHTML_ENCODING_ENCODE_2022_JP_ROMAN;
 
                     if (cp == 0x00A5) {
                         memcpy(&ctx->buffer_out[ctx->buffer_used],
@@ -383,7 +402,7 @@ lxb_encoding_encode_iso_2022_jp(lxb_encoding_encode_t *ctx, const lxb_codepoint_
 
                 break;
 
-            case LXB_ENCODING_ENCODE_2022_JP_ROMAN:
+            case PCHTML_ENCODING_ENCODE_2022_JP_ROMAN:
                 if (cp == 0x000E || cp == 0x000F || cp == 0x001B) {
                     goto failed;
                 }
@@ -395,15 +414,15 @@ lxb_encoding_encode_iso_2022_jp(lxb_encoding_encode_t *ctx, const lxb_codepoint_
                             break;
 
                         case 0x00A5:
-                            LXB_ENCODING_ENCODE_APPEND(ctx, 0x5C);
+                            PCHTML_ENCODING_ENCODE_APPEND(ctx, 0x5C);
                             continue;
 
                         case 0x203E:
-                            LXB_ENCODING_ENCODE_APPEND(ctx, 0x7E);
+                            PCHTML_ENCODING_ENCODE_APPEND(ctx, 0x7E);
                             continue;
 
                         default:
-                            LXB_ENCODING_ENCODE_APPEND(ctx, cp);
+                            PCHTML_ENCODING_ENCODE_APPEND(ctx, cp);
                             continue;
                     }
 
@@ -415,29 +434,29 @@ lxb_encoding_encode_iso_2022_jp(lxb_encoding_encode_t *ctx, const lxb_codepoint_
                         goto small_buffer;
                     }
 
-                    ctx->state = LXB_ENCODING_ENCODE_2022_JP_ASCII;
+                    ctx->state = PCHTML_ENCODING_ENCODE_2022_JP_ASCII;
 
                     memcpy(&ctx->buffer_out[ctx->buffer_used], "\x1B\x28\x42", 3);
                     ctx->buffer_used += 3;
 
-                    ctx->buffer_out[ ctx->buffer_used++ ] = (lxb_char_t) cp;
+                    ctx->buffer_out[ ctx->buffer_used++ ] = (unsigned char) cp;
                     continue;
                 }
 
                 break;
 
-            case LXB_ENCODING_ENCODE_2022_JP_JIS0208:
+            case PCHTML_ENCODING_ENCODE_2022_JP_JIS0208:
                 if (cp < 0x80) {
                     if ((ctx->buffer_used + 4) > ctx->buffer_length) {
                         goto small_buffer;
                     }
 
-                    ctx->state = LXB_ENCODING_ENCODE_2022_JP_ASCII;
+                    ctx->state = PCHTML_ENCODING_ENCODE_2022_JP_ASCII;
 
                     memcpy(&ctx->buffer_out[ctx->buffer_used], "\x1B\x28\x42", 3);
                     ctx->buffer_used += 3;
 
-                    ctx->buffer_out[ ctx->buffer_used++ ] = (lxb_char_t) cp;
+                    ctx->buffer_out[ ctx->buffer_used++ ] = (unsigned char) cp;
                     continue;
                 }
 
@@ -446,7 +465,7 @@ lxb_encoding_encode_iso_2022_jp(lxb_encoding_encode_t *ctx, const lxb_codepoint_
                         goto small_buffer;
                     }
 
-                    ctx->state = LXB_ENCODING_ENCODE_2022_JP_ROMAN;
+                    ctx->state = PCHTML_ENCODING_ENCODE_2022_JP_ROMAN;
 
                     if (cp == 0x00A5) {
                         memcpy(&ctx->buffer_out[ctx->buffer_used],
@@ -475,16 +494,16 @@ lxb_encoding_encode_iso_2022_jp(lxb_encoding_encode_t *ctx, const lxb_codepoint_
         }
 
         if ((unsigned) (cp - 0xFF61) <= (0xFF9F - 0xFF61)) {
-            cp = lxb_encoding_multi_index_iso_2022_jp_katakana[cp - 0xFF61].codepoint;
+            cp = pchtml_encoding_multi_index_iso_2022_jp_katakana[cp - 0xFF61].codepoint;
         }
 
-        hash = lexbor_shs_hash_get_static(lxb_encoding_multi_hash_jis0208,
-                                          LXB_ENCODING_MULTI_HASH_JIS0208_SIZE, cp);
+        hash = pchtml_shs_hash_get_static(pchtml_encoding_multi_hash_jis0208,
+                                          PCHTML_ENCODING_MULTI_HASH_JIS0208_SIZE, cp);
         if (hash == NULL) {
             goto failed;
         }
 
-        if (ctx->state != LXB_ENCODING_ENCODE_2022_JP_JIS0208) {
+        if (ctx->state != PCHTML_ENCODING_ENCODE_2022_JP_JIS0208) {
             if ((ctx->buffer_used + 3) > ctx->buffer_length) {
                 goto small_buffer;
             }
@@ -492,7 +511,7 @@ lxb_encoding_encode_iso_2022_jp(lxb_encoding_encode_t *ctx, const lxb_codepoint_
             memcpy(&ctx->buffer_out[ctx->buffer_used], "\x1B\x24\x42", 3);
             ctx->buffer_used += 3;
 
-            ctx->state = LXB_ENCODING_ENCODE_2022_JP_JIS0208;
+            ctx->state = PCHTML_ENCODING_ENCODE_2022_JP_JIS0208;
             size += 3;
 
             goto begin;
@@ -508,158 +527,158 @@ lxb_encoding_encode_iso_2022_jp(lxb_encoding_encode_t *ctx, const lxb_codepoint_
         ctx->state = state;
         ctx->buffer_used -= size;
 
-        return LXB_STATUS_SMALL_BUFFER;
+        return PCHTML_STATUS_SMALL_BUFFER;
 
     failed:
 
         ctx->buffer_used -= size;
-        LXB_ENCODING_ENCODE_ERROR(ctx);
+        PCHTML_ENCODING_ENCODE_ERROR(ctx);
     }
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_status_t
-lxb_encoding_encode_iso_2022_jp_eof(lxb_encoding_encode_t *ctx)
+unsigned int
+pchtml_encoding_encode_iso_2022_jp_eof(pchtml_encoding_encode_t *ctx)
 {
-    if (ctx->state != LXB_ENCODING_ENCODE_2022_JP_ASCII) {
+    if (ctx->state != PCHTML_ENCODING_ENCODE_2022_JP_ASCII) {
         if ((ctx->buffer_used + 3) > ctx->buffer_length) {
-            return LXB_STATUS_SMALL_BUFFER;
+            return PCHTML_STATUS_SMALL_BUFFER;
         }
 
         memcpy(&ctx->buffer_out[ctx->buffer_used], "\x1B\x28\x42", 3);
         ctx->buffer_used += 3;
     }
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_status_t
-lxb_encoding_encode_iso_8859_10(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                                const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_iso_8859_10(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                                const uint32_t *end)
 {
-    LXB_ENCODING_ENCODE_SINGLE_BYTE(lxb_encoding_single_hash_iso_8859_10,
-                                    LXB_ENCODING_SINGLE_HASH_ISO_8859_10_SIZE);
+    PCHTML_ENCODING_ENCODE_SINGLE_BYTE(pchtml_encoding_single_hash_iso_8859_10,
+                                    PCHTML_ENCODING_SINGLE_HASH_ISO_8859_10_SIZE);
 }
 
-lxb_status_t
-lxb_encoding_encode_iso_8859_13(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                                const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_iso_8859_13(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                                const uint32_t *end)
 {
-    LXB_ENCODING_ENCODE_SINGLE_BYTE(lxb_encoding_single_hash_iso_8859_13,
-                                    LXB_ENCODING_SINGLE_HASH_ISO_8859_13_SIZE);
+    PCHTML_ENCODING_ENCODE_SINGLE_BYTE(pchtml_encoding_single_hash_iso_8859_13,
+                                    PCHTML_ENCODING_SINGLE_HASH_ISO_8859_13_SIZE);
 }
 
-lxb_status_t
-lxb_encoding_encode_iso_8859_14(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                                const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_iso_8859_14(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                                const uint32_t *end)
 {
-    LXB_ENCODING_ENCODE_SINGLE_BYTE(lxb_encoding_single_hash_iso_8859_14,
-                                    LXB_ENCODING_SINGLE_HASH_ISO_8859_14_SIZE);
+    PCHTML_ENCODING_ENCODE_SINGLE_BYTE(pchtml_encoding_single_hash_iso_8859_14,
+                                    PCHTML_ENCODING_SINGLE_HASH_ISO_8859_14_SIZE);
 }
 
-lxb_status_t
-lxb_encoding_encode_iso_8859_15(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                                const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_iso_8859_15(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                                const uint32_t *end)
 {
-    LXB_ENCODING_ENCODE_SINGLE_BYTE(lxb_encoding_single_hash_iso_8859_15,
-                                    LXB_ENCODING_SINGLE_HASH_ISO_8859_15_SIZE);
+    PCHTML_ENCODING_ENCODE_SINGLE_BYTE(pchtml_encoding_single_hash_iso_8859_15,
+                                    PCHTML_ENCODING_SINGLE_HASH_ISO_8859_15_SIZE);
 }
 
-lxb_status_t
-lxb_encoding_encode_iso_8859_16(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                                const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_iso_8859_16(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                                const uint32_t *end)
 {
-    LXB_ENCODING_ENCODE_SINGLE_BYTE(lxb_encoding_single_hash_iso_8859_16,
-                                    LXB_ENCODING_SINGLE_HASH_ISO_8859_16_SIZE);
+    PCHTML_ENCODING_ENCODE_SINGLE_BYTE(pchtml_encoding_single_hash_iso_8859_16,
+                                    PCHTML_ENCODING_SINGLE_HASH_ISO_8859_16_SIZE);
 }
 
-lxb_status_t
-lxb_encoding_encode_iso_8859_2(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                               const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_iso_8859_2(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                               const uint32_t *end)
 {
-    LXB_ENCODING_ENCODE_SINGLE_BYTE(lxb_encoding_single_hash_iso_8859_2,
-                                    LXB_ENCODING_SINGLE_HASH_ISO_8859_2_SIZE);
+    PCHTML_ENCODING_ENCODE_SINGLE_BYTE(pchtml_encoding_single_hash_iso_8859_2,
+                                    PCHTML_ENCODING_SINGLE_HASH_ISO_8859_2_SIZE);
 }
 
-lxb_status_t
-lxb_encoding_encode_iso_8859_3(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                               const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_iso_8859_3(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                               const uint32_t *end)
 {
-    LXB_ENCODING_ENCODE_SINGLE_BYTE(lxb_encoding_single_hash_iso_8859_3,
-                                    LXB_ENCODING_SINGLE_HASH_ISO_8859_3_SIZE);
+    PCHTML_ENCODING_ENCODE_SINGLE_BYTE(pchtml_encoding_single_hash_iso_8859_3,
+                                    PCHTML_ENCODING_SINGLE_HASH_ISO_8859_3_SIZE);
 }
 
-lxb_status_t
-lxb_encoding_encode_iso_8859_4(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                               const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_iso_8859_4(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                               const uint32_t *end)
 {
-    LXB_ENCODING_ENCODE_SINGLE_BYTE(lxb_encoding_single_hash_iso_8859_4,
-                                    LXB_ENCODING_SINGLE_HASH_ISO_8859_4_SIZE);
+    PCHTML_ENCODING_ENCODE_SINGLE_BYTE(pchtml_encoding_single_hash_iso_8859_4,
+                                    PCHTML_ENCODING_SINGLE_HASH_ISO_8859_4_SIZE);
 }
 
-lxb_status_t
-lxb_encoding_encode_iso_8859_5(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                               const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_iso_8859_5(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                               const uint32_t *end)
 {
-    LXB_ENCODING_ENCODE_SINGLE_BYTE(lxb_encoding_single_hash_iso_8859_5,
-                                    LXB_ENCODING_SINGLE_HASH_ISO_8859_5_SIZE);
+    PCHTML_ENCODING_ENCODE_SINGLE_BYTE(pchtml_encoding_single_hash_iso_8859_5,
+                                    PCHTML_ENCODING_SINGLE_HASH_ISO_8859_5_SIZE);
 }
 
-lxb_status_t
-lxb_encoding_encode_iso_8859_6(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                               const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_iso_8859_6(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                               const uint32_t *end)
 {
-    LXB_ENCODING_ENCODE_SINGLE_BYTE(lxb_encoding_single_hash_iso_8859_6,
-                                    LXB_ENCODING_SINGLE_HASH_ISO_8859_6_SIZE);
+    PCHTML_ENCODING_ENCODE_SINGLE_BYTE(pchtml_encoding_single_hash_iso_8859_6,
+                                    PCHTML_ENCODING_SINGLE_HASH_ISO_8859_6_SIZE);
 }
 
-lxb_status_t
-lxb_encoding_encode_iso_8859_7(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                               const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_iso_8859_7(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                               const uint32_t *end)
 {
-    LXB_ENCODING_ENCODE_SINGLE_BYTE(lxb_encoding_single_hash_iso_8859_7,
-                                    LXB_ENCODING_SINGLE_HASH_ISO_8859_7_SIZE);
+    PCHTML_ENCODING_ENCODE_SINGLE_BYTE(pchtml_encoding_single_hash_iso_8859_7,
+                                    PCHTML_ENCODING_SINGLE_HASH_ISO_8859_7_SIZE);
 }
 
-lxb_status_t
-lxb_encoding_encode_iso_8859_8(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                               const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_iso_8859_8(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                               const uint32_t *end)
 {
-    LXB_ENCODING_ENCODE_SINGLE_BYTE(lxb_encoding_single_hash_iso_8859_8,
-                                    LXB_ENCODING_SINGLE_HASH_ISO_8859_8_SIZE);
+    PCHTML_ENCODING_ENCODE_SINGLE_BYTE(pchtml_encoding_single_hash_iso_8859_8,
+                                    PCHTML_ENCODING_SINGLE_HASH_ISO_8859_8_SIZE);
 }
 
-lxb_status_t
-lxb_encoding_encode_iso_8859_8_i(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                                 const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_iso_8859_8_i(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                                 const uint32_t *end)
 {
-    LXB_ENCODING_ENCODE_SINGLE_BYTE(lxb_encoding_single_hash_iso_8859_8,
-                                    LXB_ENCODING_SINGLE_HASH_ISO_8859_8_SIZE);
+    PCHTML_ENCODING_ENCODE_SINGLE_BYTE(pchtml_encoding_single_hash_iso_8859_8,
+                                    PCHTML_ENCODING_SINGLE_HASH_ISO_8859_8_SIZE);
 }
 
-lxb_status_t
-lxb_encoding_encode_koi8_r(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                           const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_koi8_r(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                           const uint32_t *end)
 {
-    LXB_ENCODING_ENCODE_SINGLE_BYTE(lxb_encoding_single_hash_koi8_r,
-                                    LXB_ENCODING_SINGLE_HASH_KOI8_R_SIZE);
+    PCHTML_ENCODING_ENCODE_SINGLE_BYTE(pchtml_encoding_single_hash_koi8_r,
+                                    PCHTML_ENCODING_SINGLE_HASH_KOI8_R_SIZE);
 }
 
-lxb_status_t
-lxb_encoding_encode_koi8_u(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                           const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_koi8_u(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                           const uint32_t *end)
 {
-    LXB_ENCODING_ENCODE_SINGLE_BYTE(lxb_encoding_single_hash_koi8_u,
-                                    LXB_ENCODING_SINGLE_HASH_KOI8_U_SIZE);
+    PCHTML_ENCODING_ENCODE_SINGLE_BYTE(pchtml_encoding_single_hash_koi8_u,
+                                    PCHTML_ENCODING_SINGLE_HASH_KOI8_U_SIZE);
 }
 
-lxb_inline const lexbor_shs_hash_t *
-lxb_encoding_encode_shift_jis_index(lxb_codepoint_t cp)
+static inline const pchtml_shs_hash_t *
+pchtml_encoding_encode_shift_jis_index(uint32_t cp)
 {
-    const lexbor_shs_hash_t *entry;
+    const pchtml_shs_hash_t *entry;
 
-    entry = &lxb_encoding_multi_hash_jis0208[ (cp % LXB_ENCODING_MULTI_HASH_JIS0208_SIZE) + 1 ];
+    entry = &pchtml_encoding_multi_hash_jis0208[ (cp % PCHTML_ENCODING_MULTI_HASH_JIS0208_SIZE) + 1 ];
 
     do {
         if (entry->key == cp) {
@@ -668,41 +687,41 @@ lxb_encoding_encode_shift_jis_index(lxb_codepoint_t cp)
             }
         }
 
-        entry = &lxb_encoding_multi_hash_jis0208[entry->next];
+        entry = &pchtml_encoding_multi_hash_jis0208[entry->next];
     }
-    while (entry != lxb_encoding_multi_hash_jis0208);
+    while (entry != pchtml_encoding_multi_hash_jis0208);
 
     return NULL;
 }
 
-lxb_status_t
-lxb_encoding_encode_shift_jis(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                              const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_shift_jis(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                              const uint32_t *end)
 {
     uint32_t lead, trail;
-    lxb_codepoint_t cp;
-    const lexbor_shs_hash_t *hash;
+    uint32_t cp;
+    const pchtml_shs_hash_t *hash;
 
     for (; *cps < end; (*cps)++) {
         cp = **cps;
 
         if (cp <= 0x80) {
-            LXB_ENCODING_ENCODE_APPEND(ctx, cp);
+            PCHTML_ENCODING_ENCODE_APPEND(ctx, cp);
             continue;
         }
 
         if ((unsigned) (cp - 0xFF61) <= (0xFF9F - 0xFF61)) {
-            LXB_ENCODING_ENCODE_APPEND(ctx, cp - 0xFF61 + 0xA1);
+            PCHTML_ENCODING_ENCODE_APPEND(ctx, cp - 0xFF61 + 0xA1);
             continue;
         }
 
         switch (cp) {
             case 0x00A5:
-                LXB_ENCODING_ENCODE_APPEND(ctx, 0x5C);
+                PCHTML_ENCODING_ENCODE_APPEND(ctx, 0x5C);
                 continue;
 
             case 0x203E:
-                LXB_ENCODING_ENCODE_APPEND(ctx, 0x7E);
+                PCHTML_ENCODING_ENCODE_APPEND(ctx, 0x7E);
                 continue;
 
             case 0x2212:
@@ -710,14 +729,14 @@ lxb_encoding_encode_shift_jis(lxb_encoding_encode_t *ctx, const lxb_codepoint_t 
                 break;
         }
 
-        hash = lxb_encoding_encode_shift_jis_index(cp);
+        hash = pchtml_encoding_encode_shift_jis_index(cp);
         if (hash == NULL) {
-            LXB_ENCODING_ENCODE_ERROR(ctx);
+            PCHTML_ENCODING_ENCODE_ERROR(ctx);
             continue;
         }
 
         if ((ctx->buffer_used + 2) > ctx->buffer_length) {
-            return LXB_STATUS_SMALL_BUFFER;
+            return PCHTML_STATUS_SMALL_BUFFER;
         }
 
         lead = (uint32_t) (uintptr_t) hash->value / 188;
@@ -727,12 +746,12 @@ lxb_encoding_encode_shift_jis(lxb_encoding_encode_t *ctx, const lxb_codepoint_t 
         ctx->buffer_out[ctx->buffer_used++ ] = trail + ((trail < 0x3F) ? 0x40 : 0x41);
     }
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_inline void
-lxb_encoding_encode_utf_16_write(lxb_encoding_encode_t *ctx, bool is_be,
-                                 lxb_codepoint_t cp)
+static inline void
+pchtml_encoding_encode_utf_16_write(pchtml_encoding_encode_t *ctx, bool is_be,
+                                 uint32_t cp)
 {
     if (is_be) {
         ctx->buffer_out[ctx->buffer_used++] = cp >> 8;
@@ -745,58 +764,58 @@ lxb_encoding_encode_utf_16_write(lxb_encoding_encode_t *ctx, bool is_be,
     ctx->buffer_out[ctx->buffer_used++] = cp >> 8;
 }
 
-lxb_inline int8_t
-lxb_encoding_encode_utf_16(lxb_encoding_encode_t *ctx, bool is_be,
-                        const lxb_codepoint_t **cps, const lxb_codepoint_t *end)
+static inline int8_t
+pchtml_encoding_encode_utf_16(pchtml_encoding_encode_t *ctx, bool is_be,
+                        const uint32_t **cps, const uint32_t *end)
 {
-    lxb_codepoint_t cp;
+    uint32_t cp;
 
     for (; *cps < end; (*cps)++) {
         cp = **cps;
 
         if (cp < 0x10000) {
             if ((ctx->buffer_used + 2) > ctx->buffer_length) {
-                return LXB_STATUS_SMALL_BUFFER;
+                return PCHTML_STATUS_SMALL_BUFFER;
             }
 
-            lxb_encoding_encode_utf_16_write(ctx, is_be, cp);
+            pchtml_encoding_encode_utf_16_write(ctx, is_be, cp);
 
             continue;
         }
 
         if ((ctx->buffer_used + 4) > ctx->buffer_length) {
-            return LXB_STATUS_SMALL_BUFFER;
+            return PCHTML_STATUS_SMALL_BUFFER;
         }
 
         cp -= 0x10000;
 
-        lxb_encoding_encode_utf_16_write(ctx, is_be, (0xD800 | (cp >> 0x0A)));
-        lxb_encoding_encode_utf_16_write(ctx, is_be, (0xDC00 | (cp & 0x03FF)));
+        pchtml_encoding_encode_utf_16_write(ctx, is_be, (0xD800 | (cp >> 0x0A)));
+        pchtml_encoding_encode_utf_16_write(ctx, is_be, (0xDC00 | (cp & 0x03FF)));
     }
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_status_t
-lxb_encoding_encode_utf_16be(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                             const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_utf_16be(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                             const uint32_t *end)
 {
-    return lxb_encoding_encode_utf_16(ctx, true, cps, end);
+    return pchtml_encoding_encode_utf_16(ctx, true, cps, end);
 }
 
-lxb_status_t
-lxb_encoding_encode_utf_16le(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                             const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_utf_16le(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                             const uint32_t *end)
 {
-    return lxb_encoding_encode_utf_16(ctx, false, cps, end);
+    return pchtml_encoding_encode_utf_16(ctx, false, cps, end);
 }
 
-lxb_status_t
-lxb_encoding_encode_utf_8(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                          const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_utf_8(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                          const uint32_t *end)
 {
-    lxb_codepoint_t cp;
-    const lxb_codepoint_t *p = *cps;
+    uint32_t cp;
+    const uint32_t *p = *cps;
 
     for (; p < end; p++) {
         cp = *p;
@@ -805,72 +824,72 @@ lxb_encoding_encode_utf_8(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cp
             if ((ctx->buffer_used + 1) > ctx->buffer_length) {
                 *cps = p;
 
-                return LXB_STATUS_SMALL_BUFFER;
+                return PCHTML_STATUS_SMALL_BUFFER;
             }
 
             /* 0xxxxxxx */
-            ctx->buffer_out[ ctx->buffer_used++ ] = (lxb_char_t) cp;
+            ctx->buffer_out[ ctx->buffer_used++ ] = (unsigned char) cp;
         }
         else if (cp < 0x800) {
             if ((ctx->buffer_used + 2) > ctx->buffer_length) {
                 *cps = p;
 
-                return LXB_STATUS_SMALL_BUFFER;
+                return PCHTML_STATUS_SMALL_BUFFER;
             }
 
             /* 110xxxxx 10xxxxxx */
-            ctx->buffer_out[ ctx->buffer_used++ ] = (lxb_char_t) (0xC0 | (cp >> 6  ));
-            ctx->buffer_out[ ctx->buffer_used++ ] = (lxb_char_t) (0x80 | (cp & 0x3F));
+            ctx->buffer_out[ ctx->buffer_used++ ] = (unsigned char) (0xC0 | (cp >> 6  ));
+            ctx->buffer_out[ ctx->buffer_used++ ] = (unsigned char) (0x80 | (cp & 0x3F));
         }
         else if (cp < 0x10000) {
             if ((ctx->buffer_used + 3) > ctx->buffer_length) {
                 *cps = p;
 
-                return LXB_STATUS_SMALL_BUFFER;
+                return PCHTML_STATUS_SMALL_BUFFER;
             }
 
             /* 1110xxxx 10xxxxxx 10xxxxxx */
-            ctx->buffer_out[ ctx->buffer_used++ ] = (lxb_char_t) (0xE0 | ((cp >> 12)));
-            ctx->buffer_out[ ctx->buffer_used++ ] = (lxb_char_t) (0x80 | ((cp >> 6 ) & 0x3F));
-            ctx->buffer_out[ ctx->buffer_used++ ] = (lxb_char_t) (0x80 | ( cp        & 0x3F));
+            ctx->buffer_out[ ctx->buffer_used++ ] = (unsigned char) (0xE0 | ((cp >> 12)));
+            ctx->buffer_out[ ctx->buffer_used++ ] = (unsigned char) (0x80 | ((cp >> 6 ) & 0x3F));
+            ctx->buffer_out[ ctx->buffer_used++ ] = (unsigned char) (0x80 | ( cp        & 0x3F));
         }
         else if (cp < 0x110000) {
             if ((ctx->buffer_used + 4) > ctx->buffer_length) {
                 *cps = p;
 
-                return LXB_STATUS_SMALL_BUFFER;
+                return PCHTML_STATUS_SMALL_BUFFER;
             }
 
             /* 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx */
-            ctx->buffer_out[ ctx->buffer_used++ ] = (lxb_char_t) (0xF0 | ( cp >> 18));
-            ctx->buffer_out[ ctx->buffer_used++ ] = (lxb_char_t) (0x80 | ((cp >> 12) & 0x3F));
-            ctx->buffer_out[ ctx->buffer_used++ ] = (lxb_char_t) (0x80 | ((cp >> 6 ) & 0x3F));
-            ctx->buffer_out[ ctx->buffer_used++ ] = (lxb_char_t) (0x80 | ( cp        & 0x3F));
+            ctx->buffer_out[ ctx->buffer_used++ ] = (unsigned char) (0xF0 | ( cp >> 18));
+            ctx->buffer_out[ ctx->buffer_used++ ] = (unsigned char) (0x80 | ((cp >> 12) & 0x3F));
+            ctx->buffer_out[ ctx->buffer_used++ ] = (unsigned char) (0x80 | ((cp >> 6 ) & 0x3F));
+            ctx->buffer_out[ ctx->buffer_used++ ] = (unsigned char) (0x80 | ( cp        & 0x3F));
         }
         else {
             *cps = p;
-            LXB_ENCODING_ENCODE_ERROR(ctx);
+            PCHTML_ENCODING_ENCODE_ERROR(ctx);
         }
     }
 
     *cps = p;
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_inline uint32_t
-lxb_encoding_encode_gb18030_range(lxb_codepoint_t cp)
+static inline uint32_t
+pchtml_encoding_encode_gb18030_range(uint32_t cp)
 {
     size_t mid, left, right;
-    const lxb_encoding_range_index_t *range;
+    const pchtml_encoding_range_index_t *range;
 
     if (cp == 0xE7C7) {
         return 7457;
     }
 
     left = 0;
-    right = LXB_ENCODING_RANGE_INDEX_GB18030_SIZE;
-    range = lxb_encoding_range_index_gb18030;
+    right = PCHTML_ENCODING_RANGE_INDEX_GB18030_SIZE;
+    range = pchtml_encoding_range_index_gb18030;
 
     /* Some compilers say about uninitialized mid */
     mid = 0;
@@ -901,32 +920,32 @@ lxb_encoding_encode_gb18030_range(lxb_codepoint_t cp)
     return range[mid].index + cp - range[mid].codepoint;
 }
 
-lxb_status_t
-lxb_encoding_encode_gb18030(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                            const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_gb18030(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                            const uint32_t *end)
 {
     uint32_t index;
-    lxb_codepoint_t cp;
-    const lexbor_shs_hash_t *hash;
+    uint32_t cp;
+    const pchtml_shs_hash_t *hash;
 
     for (; *cps < end; (*cps)++) {
         cp = **cps;
 
         if (cp < 0x80) {
-            LXB_ENCODING_ENCODE_APPEND(ctx, cp);
+            PCHTML_ENCODING_ENCODE_APPEND(ctx, cp);
             continue;
         }
 
         if (cp == 0xE5E5) {
-            LXB_ENCODING_ENCODE_ERROR(ctx);
+            PCHTML_ENCODING_ENCODE_ERROR(ctx);
             continue;
         }
 
-        hash = lexbor_shs_hash_get_static(lxb_encoding_multi_hash_gb18030,
-                                          LXB_ENCODING_MULTI_HASH_GB18030_SIZE, cp);
+        hash = pchtml_shs_hash_get_static(pchtml_encoding_multi_hash_gb18030,
+                                          PCHTML_ENCODING_MULTI_HASH_GB18030_SIZE, cp);
         if (hash != NULL) {
             if ((ctx->buffer_used + 2) > ctx->buffer_length) {
-                return LXB_STATUS_SMALL_BUFFER;
+                return PCHTML_STATUS_SMALL_BUFFER;
             }
 
             ctx->buffer_out[ ctx->buffer_used++ ] = (uint32_t) (uintptr_t) hash->value / 190 + 0x81;
@@ -942,10 +961,10 @@ lxb_encoding_encode_gb18030(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **
         }
 
         if ((ctx->buffer_used + 4) > ctx->buffer_length) {
-            return LXB_STATUS_SMALL_BUFFER;
+            return PCHTML_STATUS_SMALL_BUFFER;
         }
 
-        index = lxb_encoding_encode_gb18030_range(cp);
+        index = pchtml_encoding_encode_gb18030_range(cp);
 
         ctx->buffer_out[ ctx->buffer_used++ ] = (index / (10 * 126 * 10)) + 0x81;
         ctx->buffer_out[ ctx->buffer_used++ ] = ((index % (10 * 126 * 10)) / (10 * 126)) + 0x30;
@@ -956,196 +975,196 @@ lxb_encoding_encode_gb18030(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **
         ctx->buffer_out[ ctx->buffer_used++ ] = (index % 10) + 0x30;
     }
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_status_t
-lxb_encoding_encode_macintosh(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                              const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_macintosh(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                              const uint32_t *end)
 {
-    LXB_ENCODING_ENCODE_SINGLE_BYTE(lxb_encoding_single_hash_macintosh,
-                                    LXB_ENCODING_SINGLE_HASH_MACINTOSH_SIZE);
+    PCHTML_ENCODING_ENCODE_SINGLE_BYTE(pchtml_encoding_single_hash_macintosh,
+                                    PCHTML_ENCODING_SINGLE_HASH_MACINTOSH_SIZE);
 }
 
-lxb_status_t
-lxb_encoding_encode_replacement(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                                const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_replacement(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                                const uint32_t *end)
 {
     UNUSED_PARAM(ctx);
 
     *cps = end;
-    return LXB_STATUS_ERROR;
+    return PCHTML_STATUS_ERROR;
 }
 
-lxb_status_t
-lxb_encoding_encode_windows_1250(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                                 const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_windows_1250(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                                 const uint32_t *end)
 {
     UNUSED_PARAM(ctx);
 
-    LXB_ENCODING_ENCODE_SINGLE_BYTE(lxb_encoding_single_hash_windows_1250,
-                                    LXB_ENCODING_SINGLE_HASH_WINDOWS_1250_SIZE);
+    PCHTML_ENCODING_ENCODE_SINGLE_BYTE(pchtml_encoding_single_hash_windows_1250,
+                                    PCHTML_ENCODING_SINGLE_HASH_WINDOWS_1250_SIZE);
 }
 
-lxb_status_t
-lxb_encoding_encode_windows_1251(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                                 const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_windows_1251(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                                 const uint32_t *end)
 {
-    LXB_ENCODING_ENCODE_SINGLE_BYTE(lxb_encoding_single_hash_windows_1251,
-                                    LXB_ENCODING_SINGLE_HASH_WINDOWS_1251_SIZE);
+    PCHTML_ENCODING_ENCODE_SINGLE_BYTE(pchtml_encoding_single_hash_windows_1251,
+                                    PCHTML_ENCODING_SINGLE_HASH_WINDOWS_1251_SIZE);
 }
 
-lxb_status_t
-lxb_encoding_encode_windows_1252(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                                 const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_windows_1252(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                                 const uint32_t *end)
 {
-    LXB_ENCODING_ENCODE_SINGLE_BYTE(lxb_encoding_single_hash_windows_1252,
-                                    LXB_ENCODING_SINGLE_HASH_WINDOWS_1252_SIZE);
+    PCHTML_ENCODING_ENCODE_SINGLE_BYTE(pchtml_encoding_single_hash_windows_1252,
+                                    PCHTML_ENCODING_SINGLE_HASH_WINDOWS_1252_SIZE);
 }
 
-lxb_status_t
-lxb_encoding_encode_windows_1253(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                                 const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_windows_1253(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                                 const uint32_t *end)
 {
-    LXB_ENCODING_ENCODE_SINGLE_BYTE(lxb_encoding_single_hash_windows_1253,
-                                    LXB_ENCODING_SINGLE_HASH_WINDOWS_1253_SIZE);
+    PCHTML_ENCODING_ENCODE_SINGLE_BYTE(pchtml_encoding_single_hash_windows_1253,
+                                    PCHTML_ENCODING_SINGLE_HASH_WINDOWS_1253_SIZE);
 }
 
-lxb_status_t
-lxb_encoding_encode_windows_1254(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                                 const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_windows_1254(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                                 const uint32_t *end)
 {
-    LXB_ENCODING_ENCODE_SINGLE_BYTE(lxb_encoding_single_hash_windows_1254,
-                                    LXB_ENCODING_SINGLE_HASH_WINDOWS_1254_SIZE);
+    PCHTML_ENCODING_ENCODE_SINGLE_BYTE(pchtml_encoding_single_hash_windows_1254,
+                                    PCHTML_ENCODING_SINGLE_HASH_WINDOWS_1254_SIZE);
 }
 
-lxb_status_t
-lxb_encoding_encode_windows_1255(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                                 const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_windows_1255(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                                 const uint32_t *end)
 {
-    LXB_ENCODING_ENCODE_SINGLE_BYTE(lxb_encoding_single_hash_windows_1255,
-                                    LXB_ENCODING_SINGLE_HASH_WINDOWS_1255_SIZE);
+    PCHTML_ENCODING_ENCODE_SINGLE_BYTE(pchtml_encoding_single_hash_windows_1255,
+                                    PCHTML_ENCODING_SINGLE_HASH_WINDOWS_1255_SIZE);
 }
 
-lxb_status_t
-lxb_encoding_encode_windows_1256(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                                 const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_windows_1256(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                                 const uint32_t *end)
 {
-    LXB_ENCODING_ENCODE_SINGLE_BYTE(lxb_encoding_single_hash_windows_1256,
-                                    LXB_ENCODING_SINGLE_HASH_WINDOWS_1256_SIZE);
+    PCHTML_ENCODING_ENCODE_SINGLE_BYTE(pchtml_encoding_single_hash_windows_1256,
+                                    PCHTML_ENCODING_SINGLE_HASH_WINDOWS_1256_SIZE);
 }
 
-lxb_status_t
-lxb_encoding_encode_windows_1257(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                                 const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_windows_1257(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                                 const uint32_t *end)
 {
-    LXB_ENCODING_ENCODE_SINGLE_BYTE(lxb_encoding_single_hash_windows_1257,
-                                    LXB_ENCODING_SINGLE_HASH_WINDOWS_1257_SIZE);
+    PCHTML_ENCODING_ENCODE_SINGLE_BYTE(pchtml_encoding_single_hash_windows_1257,
+                                    PCHTML_ENCODING_SINGLE_HASH_WINDOWS_1257_SIZE);
 }
 
-lxb_status_t
-lxb_encoding_encode_windows_1258(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                                 const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_windows_1258(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                                 const uint32_t *end)
 {
-    LXB_ENCODING_ENCODE_SINGLE_BYTE(lxb_encoding_single_hash_windows_1258,
-                                    LXB_ENCODING_SINGLE_HASH_WINDOWS_1258_SIZE);
+    PCHTML_ENCODING_ENCODE_SINGLE_BYTE(pchtml_encoding_single_hash_windows_1258,
+                                    PCHTML_ENCODING_SINGLE_HASH_WINDOWS_1258_SIZE);
 }
 
-lxb_status_t
-lxb_encoding_encode_windows_874(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                                const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_windows_874(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                                const uint32_t *end)
 {
-    LXB_ENCODING_ENCODE_SINGLE_BYTE(lxb_encoding_single_hash_windows_874,
-                                    LXB_ENCODING_SINGLE_HASH_WINDOWS_874_SIZE);
+    PCHTML_ENCODING_ENCODE_SINGLE_BYTE(pchtml_encoding_single_hash_windows_874,
+                                    PCHTML_ENCODING_SINGLE_HASH_WINDOWS_874_SIZE);
 }
 
-lxb_status_t
-lxb_encoding_encode_x_mac_cyrillic(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                                   const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_x_mac_cyrillic(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                                   const uint32_t *end)
 {
-    LXB_ENCODING_ENCODE_SINGLE_BYTE(lxb_encoding_single_hash_x_mac_cyrillic,
-                                  LXB_ENCODING_SINGLE_HASH_X_MAC_CYRILLIC_SIZE);
+    PCHTML_ENCODING_ENCODE_SINGLE_BYTE(pchtml_encoding_single_hash_x_mac_cyrillic,
+                                  PCHTML_ENCODING_SINGLE_HASH_X_MAC_CYRILLIC_SIZE);
 }
 
-lxb_status_t
-lxb_encoding_encode_x_user_defined(lxb_encoding_encode_t *ctx, const lxb_codepoint_t **cps,
-                                   const lxb_codepoint_t *end)
+unsigned int
+pchtml_encoding_encode_x_user_defined(pchtml_encoding_encode_t *ctx, const uint32_t **cps,
+                                   const uint32_t *end)
 {
-    lxb_codepoint_t cp;
+    uint32_t cp;
 
     for (; *cps < end; (*cps)++) {
         cp = **cps;
 
         if (cp < 0x80) {
-            LXB_ENCODING_ENCODE_APPEND(ctx, cp);
+            PCHTML_ENCODING_ENCODE_APPEND(ctx, cp);
         }
         else if (cp >= 0xF780 && cp <= 0xF7FF) {
-            LXB_ENCODING_ENCODE_APPEND(ctx, (cp - 0xF780 + 0x80));
+            PCHTML_ENCODING_ENCODE_APPEND(ctx, (cp - 0xF780 + 0x80));
         }
         else {
-            LXB_ENCODING_ENCODE_ERROR(ctx);
+            PCHTML_ENCODING_ENCODE_ERROR(ctx);
         }
     }
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
 /*
  * Single
  */
 int8_t
-lxb_encoding_encode_default_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                   const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_default_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                   const unsigned char *end, uint32_t cp)
 {
-    return lxb_encoding_encode_utf_8_single(ctx, data, end, cp);
+    return pchtml_encoding_encode_utf_8_single(ctx, data, end, cp);
 }
 
 int8_t
-lxb_encoding_encode_auto_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_auto_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(data);
     UNUSED_PARAM(end);
     UNUSED_PARAM(cp);
 
-    return LXB_ENCODING_ENCODE_ERROR;
+    return PCHTML_ENCODING_ENCODE_ERROR;
 }
 
 int8_t
-lxb_encoding_encode_undefined_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                     const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_undefined_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                     const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(data);
     UNUSED_PARAM(end);
     UNUSED_PARAM(cp);
 
-    return LXB_ENCODING_ENCODE_ERROR;
+    return PCHTML_ENCODING_ENCODE_ERROR;
 }
 
 int8_t
-lxb_encoding_encode_big5_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_big5_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
 
-    const lexbor_shs_hash_t *hash;
+    const pchtml_shs_hash_t *hash;
 
     if (cp < 0x80) {
-        *(*data)++ = (lxb_char_t) cp;
+        *(*data)++ = (unsigned char) cp;
 
         return 1;
     }
 
-    hash = lexbor_shs_hash_get_static(lxb_encoding_multi_hash_big5,
-                                      LXB_ENCODING_MULTI_HASH_BIG5_SIZE, cp);
+    hash = pchtml_shs_hash_get_static(pchtml_encoding_multi_hash_big5,
+                                      PCHTML_ENCODING_MULTI_HASH_BIG5_SIZE, cp);
     if (hash == NULL) {
-        return LXB_ENCODING_ENCODE_ERROR;
+        return PCHTML_ENCODING_ENCODE_ERROR;
     }
 
     if ((*data + 2) > end) {
-        return LXB_ENCODING_ENCODE_SMALL_BUFFER;
+        return PCHTML_ENCODING_ENCODE_SMALL_BUFFER;
     }
 
     *(*data)++ = ((uint32_t) (uintptr_t) hash->value) / 157 + 0x81;
@@ -1161,15 +1180,15 @@ lxb_encoding_encode_big5_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
 }
 
 int8_t
-lxb_encoding_encode_euc_jp_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                  const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_euc_jp_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                  const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
 
-    const lexbor_shs_hash_t *hash;
+    const pchtml_shs_hash_t *hash;
 
     if (cp < 0x80) {
-        *(*data)++ = (lxb_char_t) cp;
+        *(*data)++ = (unsigned char) cp;
 
         return 1;
     }
@@ -1187,7 +1206,7 @@ lxb_encoding_encode_euc_jp_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
     }
 
     if ((*data + 2) > end) {
-        return LXB_ENCODING_ENCODE_SMALL_BUFFER;
+        return PCHTML_ENCODING_ENCODE_SMALL_BUFFER;
     }
 
     if ((unsigned) (cp - 0xFF61) <= (0xFF9F - 0xFF61)) {
@@ -1201,10 +1220,10 @@ lxb_encoding_encode_euc_jp_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
         cp = 0xFF0D;
     }
 
-    hash = lexbor_shs_hash_get_static(lxb_encoding_multi_hash_jis0208,
-                                      LXB_ENCODING_MULTI_HASH_JIS0208_SIZE, cp);
+    hash = pchtml_shs_hash_get_static(pchtml_encoding_multi_hash_jis0208,
+                                      PCHTML_ENCODING_MULTI_HASH_JIS0208_SIZE, cp);
     if (hash == NULL) {
-        return LXB_ENCODING_ENCODE_ERROR;
+        return PCHTML_ENCODING_ENCODE_ERROR;
     }
 
     *(*data)++ = (uint32_t) (uintptr_t) hash->value / 94 + 0xA1;
@@ -1214,27 +1233,27 @@ lxb_encoding_encode_euc_jp_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
 }
 
 int8_t
-lxb_encoding_encode_euc_kr_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                  const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_euc_kr_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                  const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
 
-    const lexbor_shs_hash_t *hash;
+    const pchtml_shs_hash_t *hash;
 
     if (cp < 0x80) {
-        *(*data)++ = (lxb_char_t) cp;
+        *(*data)++ = (unsigned char) cp;
 
         return 1;
     }
 
     if ((*data + 2) > end) {
-        return LXB_ENCODING_ENCODE_SMALL_BUFFER;
+        return PCHTML_ENCODING_ENCODE_SMALL_BUFFER;
     }
 
-    hash = lexbor_shs_hash_get_static(lxb_encoding_multi_hash_euc_kr,
-                                      LXB_ENCODING_MULTI_HASH_EUC_KR_SIZE, cp);
+    hash = pchtml_shs_hash_get_static(pchtml_encoding_multi_hash_euc_kr,
+                                      PCHTML_ENCODING_MULTI_HASH_EUC_KR_SIZE, cp);
     if (hash == NULL) {
-        return LXB_ENCODING_ENCODE_ERROR;
+        return PCHTML_ENCODING_ENCODE_ERROR;
     }
 
     *(*data)++ = (uint32_t) (uintptr_t) hash->value / 190 + 0x81;
@@ -1244,21 +1263,21 @@ lxb_encoding_encode_euc_kr_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
 }
 
 int8_t
-lxb_encoding_encode_gbk_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                               const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_gbk_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                               const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
 
-    const lexbor_shs_hash_t *hash;
+    const pchtml_shs_hash_t *hash;
 
     if (cp < 0x80) {
-        *(*data)++ = (lxb_char_t) cp;
+        *(*data)++ = (unsigned char) cp;
 
         return 1;
     }
 
     if (cp == 0xE5E5) {
-        return LXB_ENCODING_ENCODE_ERROR;
+        return PCHTML_ENCODING_ENCODE_ERROR;
     }
 
     if (cp == 0x20AC) {
@@ -1267,46 +1286,46 @@ lxb_encoding_encode_gbk_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
         return 1;
     }
 
-    hash = lexbor_shs_hash_get_static(lxb_encoding_multi_hash_gb18030,
-                                      LXB_ENCODING_MULTI_HASH_GB18030_SIZE, cp);
+    hash = pchtml_shs_hash_get_static(pchtml_encoding_multi_hash_gb18030,
+                                      PCHTML_ENCODING_MULTI_HASH_GB18030_SIZE, cp);
     if (hash != NULL) {
         if ((*data + 2) > end) {
-            return LXB_ENCODING_ENCODE_SMALL_BUFFER;
+            return PCHTML_ENCODING_ENCODE_SMALL_BUFFER;
         }
 
-        *(*data)++ = (lxb_char_t) (uintptr_t) hash->value / 190 + 0x81;
+        *(*data)++ = (unsigned char) (uintptr_t) hash->value / 190 + 0x81;
 
-        if (((lxb_char_t) (uintptr_t) hash->value % 190) < 0x3F) {
-            *(*data)++ = ((lxb_char_t) (uintptr_t) hash->value % 190) + 0x40;
+        if (((unsigned char) (uintptr_t) hash->value % 190) < 0x3F) {
+            *(*data)++ = ((unsigned char) (uintptr_t) hash->value % 190) + 0x40;
         }
         else {
-            *(*data)++ = ((lxb_char_t) (uintptr_t) hash->value % 190) + 0x41;
+            *(*data)++ = ((unsigned char) (uintptr_t) hash->value % 190) + 0x41;
         }
 
         return 2;
     }
 
-    return LXB_ENCODING_ENCODE_ERROR;
+    return PCHTML_ENCODING_ENCODE_ERROR;
 }
 
 int8_t
-lxb_encoding_encode_ibm866_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                  const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_ibm866_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                  const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(end);
 
-    LXB_ENCODING_ENCODE_BYTE_SINGLE(lxb_encoding_single_hash_ibm866,
-                                    LXB_ENCODING_SINGLE_HASH_IBM866_SIZE);
+    PCHTML_ENCODING_ENCODE_BYTE_SINGLE(pchtml_encoding_single_hash_ibm866,
+                                    PCHTML_ENCODING_SINGLE_HASH_IBM866_SIZE);
 }
 
 int8_t
-lxb_encoding_encode_iso_2022_jp_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                       const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_iso_2022_jp_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                       const unsigned char *end, uint32_t cp)
 {
     int8_t size;
     unsigned state;
-    const lexbor_shs_hash_t *hash;
+    const pchtml_shs_hash_t *hash;
 
     size = 0;
     state = ctx->state;
@@ -1314,13 +1333,13 @@ lxb_encoding_encode_iso_2022_jp_single(lxb_encoding_encode_t *ctx, lxb_char_t **
 begin:
 
     switch (ctx->state) {
-        case LXB_ENCODING_ENCODE_2022_JP_ASCII:
+        case PCHTML_ENCODING_ENCODE_2022_JP_ASCII:
             if (cp == 0x000E || cp == 0x000F || cp == 0x001B) {
                 goto failed;
             }
 
             if (cp < 0x80) {
-                *(*data)++ = (lxb_char_t) cp;
+                *(*data)++ = (unsigned char) cp;
 
                 return size + 1;
             }
@@ -1334,7 +1353,7 @@ begin:
                     goto small_buffer;
                 }
 
-                ctx->state = LXB_ENCODING_ENCODE_2022_JP_ROMAN;
+                ctx->state = PCHTML_ENCODING_ENCODE_2022_JP_ROMAN;
 
                 if (cp == 0x00A5) {
                     memcpy(*data, "\x1B\x28\x4A\x5C", 4);
@@ -1351,7 +1370,7 @@ begin:
 
             break;
 
-        case LXB_ENCODING_ENCODE_2022_JP_ROMAN:
+        case PCHTML_ENCODING_ENCODE_2022_JP_ROMAN:
             if (cp == 0x000E || cp == 0x000F || cp == 0x001B) {
                 goto failed;
             }
@@ -1371,7 +1390,7 @@ begin:
                         return size + 1;
 
                     default:
-                        *(*data)++ = (lxb_char_t) cp;
+                        *(*data)++ = (unsigned char) cp;
                         return size + 1;
                 }
 
@@ -1383,30 +1402,30 @@ begin:
                     goto small_buffer;
                 }
 
-                ctx->state = LXB_ENCODING_ENCODE_2022_JP_ASCII;
+                ctx->state = PCHTML_ENCODING_ENCODE_2022_JP_ASCII;
 
                 memcpy(*data, "\x1B\x28\x42", 3);
                 *data = *data + 3;
 
-                *(*data)++ = (lxb_char_t) cp;
+                *(*data)++ = (unsigned char) cp;
 
                 return size + 4;
             }
 
             break;
 
-        case LXB_ENCODING_ENCODE_2022_JP_JIS0208:
+        case PCHTML_ENCODING_ENCODE_2022_JP_JIS0208:
             if (cp < 0x80) {
                 if ((*data + 4) > end) {
                     goto small_buffer;
                 }
 
-                ctx->state = LXB_ENCODING_ENCODE_2022_JP_ASCII;
+                ctx->state = PCHTML_ENCODING_ENCODE_2022_JP_ASCII;
 
                 memcpy(*data, "\x1B\x28\x42", 3);
                 *data = *data + 3;
 
-                *(*data)++ = (lxb_char_t) cp;
+                *(*data)++ = (unsigned char) cp;
 
                 return size + 4;
             }
@@ -1416,7 +1435,7 @@ begin:
                     goto small_buffer;
                 }
 
-                ctx->state = LXB_ENCODING_ENCODE_2022_JP_ROMAN;
+                ctx->state = PCHTML_ENCODING_ENCODE_2022_JP_ROMAN;
 
                 if (cp == 0x00A5) {
                     memcpy(*data, "\x1B\x28\x4A\x5C", 4);
@@ -1443,16 +1462,16 @@ begin:
     }
 
     if ((unsigned) (cp - 0xFF61) <= (0xFF9F - 0xFF61)) {
-        cp = lxb_encoding_multi_index_iso_2022_jp_katakana[cp - 0xFF61].codepoint;
+        cp = pchtml_encoding_multi_index_iso_2022_jp_katakana[cp - 0xFF61].codepoint;
     }
 
-    hash = lexbor_shs_hash_get_static(lxb_encoding_multi_hash_jis0208,
-                                      LXB_ENCODING_MULTI_HASH_JIS0208_SIZE, cp);
+    hash = pchtml_shs_hash_get_static(pchtml_encoding_multi_hash_jis0208,
+                                      PCHTML_ENCODING_MULTI_HASH_JIS0208_SIZE, cp);
     if (hash == NULL) {
         goto failed;
     }
 
-    if (ctx->state != LXB_ENCODING_ENCODE_2022_JP_JIS0208) {
+    if (ctx->state != PCHTML_ENCODING_ENCODE_2022_JP_JIS0208) {
         if ((*data + 3) > end) {
             goto small_buffer;
         }
@@ -1460,7 +1479,7 @@ begin:
         memcpy(*data, "\x1B\x24\x42", 3);
         *data = *data + 3;
 
-        ctx->state = LXB_ENCODING_ENCODE_2022_JP_JIS0208;
+        ctx->state = PCHTML_ENCODING_ENCODE_2022_JP_JIS0208;
         size += 3;
 
         goto begin;
@@ -1476,28 +1495,28 @@ small_buffer:
     ctx->state = state;
     *data = *data - size;
 
-    return LXB_ENCODING_ENCODE_SMALL_BUFFER;
+    return PCHTML_ENCODING_ENCODE_SMALL_BUFFER;
 
 failed:
 
     *data = *data - size;
 
-    return LXB_ENCODING_ENCODE_ERROR;
+    return PCHTML_ENCODING_ENCODE_ERROR;
 }
 
 int8_t
-lxb_encoding_encode_iso_2022_jp_eof_single(lxb_encoding_encode_t *ctx,
-                                       lxb_char_t **data, const lxb_char_t *end)
+pchtml_encoding_encode_iso_2022_jp_eof_single(pchtml_encoding_encode_t *ctx,
+                                       unsigned char **data, const unsigned char *end)
 {
-    if (ctx->state != LXB_ENCODING_ENCODE_2022_JP_ASCII) {
+    if (ctx->state != PCHTML_ENCODING_ENCODE_2022_JP_ASCII) {
         if ((*data + 3) > end) {
-            return LXB_ENCODING_ENCODE_SMALL_BUFFER;
+            return PCHTML_ENCODING_ENCODE_SMALL_BUFFER;
         }
 
         memcpy(*data, "\x1B\x28\x42", 3);
         *data = *data + 3;
 
-        ctx->state = LXB_ENCODING_ENCODE_2022_JP_ASCII;
+        ctx->state = PCHTML_ENCODING_ENCODE_2022_JP_ASCII;
 
         return 3;
     }
@@ -1506,181 +1525,181 @@ lxb_encoding_encode_iso_2022_jp_eof_single(lxb_encoding_encode_t *ctx,
 }
 
 int8_t
-lxb_encoding_encode_iso_8859_10_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                       const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_iso_8859_10_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                       const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(end);
 
-    LXB_ENCODING_ENCODE_BYTE_SINGLE(lxb_encoding_single_hash_iso_8859_10,
-                                    LXB_ENCODING_SINGLE_HASH_ISO_8859_10_SIZE);
+    PCHTML_ENCODING_ENCODE_BYTE_SINGLE(pchtml_encoding_single_hash_iso_8859_10,
+                                    PCHTML_ENCODING_SINGLE_HASH_ISO_8859_10_SIZE);
 }
 
 int8_t
-lxb_encoding_encode_iso_8859_13_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                       const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_iso_8859_13_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                       const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(end);
 
-    LXB_ENCODING_ENCODE_BYTE_SINGLE(lxb_encoding_single_hash_iso_8859_13,
-                                    LXB_ENCODING_SINGLE_HASH_ISO_8859_13_SIZE);
+    PCHTML_ENCODING_ENCODE_BYTE_SINGLE(pchtml_encoding_single_hash_iso_8859_13,
+                                    PCHTML_ENCODING_SINGLE_HASH_ISO_8859_13_SIZE);
 }
 
 int8_t
-lxb_encoding_encode_iso_8859_14_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                       const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_iso_8859_14_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                       const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(end);
 
-    LXB_ENCODING_ENCODE_BYTE_SINGLE(lxb_encoding_single_hash_iso_8859_14,
-                                    LXB_ENCODING_SINGLE_HASH_ISO_8859_14_SIZE);
+    PCHTML_ENCODING_ENCODE_BYTE_SINGLE(pchtml_encoding_single_hash_iso_8859_14,
+                                    PCHTML_ENCODING_SINGLE_HASH_ISO_8859_14_SIZE);
 }
 
 int8_t
-lxb_encoding_encode_iso_8859_15_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                       const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_iso_8859_15_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                       const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(end);
 
-    LXB_ENCODING_ENCODE_BYTE_SINGLE(lxb_encoding_single_hash_iso_8859_15,
-                                    LXB_ENCODING_SINGLE_HASH_ISO_8859_15_SIZE);
+    PCHTML_ENCODING_ENCODE_BYTE_SINGLE(pchtml_encoding_single_hash_iso_8859_15,
+                                    PCHTML_ENCODING_SINGLE_HASH_ISO_8859_15_SIZE);
 }
 
 int8_t
-lxb_encoding_encode_iso_8859_16_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                       const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_iso_8859_16_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                       const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(end);
 
-    LXB_ENCODING_ENCODE_BYTE_SINGLE(lxb_encoding_single_hash_iso_8859_16,
-                                    LXB_ENCODING_SINGLE_HASH_ISO_8859_16_SIZE);
+    PCHTML_ENCODING_ENCODE_BYTE_SINGLE(pchtml_encoding_single_hash_iso_8859_16,
+                                    PCHTML_ENCODING_SINGLE_HASH_ISO_8859_16_SIZE);
 }
 
 int8_t
-lxb_encoding_encode_iso_8859_2_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                      const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_iso_8859_2_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                      const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(end);
 
-    LXB_ENCODING_ENCODE_BYTE_SINGLE(lxb_encoding_single_hash_iso_8859_2,
-                                    LXB_ENCODING_SINGLE_HASH_ISO_8859_2_SIZE);
+    PCHTML_ENCODING_ENCODE_BYTE_SINGLE(pchtml_encoding_single_hash_iso_8859_2,
+                                    PCHTML_ENCODING_SINGLE_HASH_ISO_8859_2_SIZE);
 }
 
 int8_t
-lxb_encoding_encode_iso_8859_3_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                      const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_iso_8859_3_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                      const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(end);
 
-    LXB_ENCODING_ENCODE_BYTE_SINGLE(lxb_encoding_single_hash_iso_8859_3,
-                                    LXB_ENCODING_SINGLE_HASH_ISO_8859_3_SIZE);
+    PCHTML_ENCODING_ENCODE_BYTE_SINGLE(pchtml_encoding_single_hash_iso_8859_3,
+                                    PCHTML_ENCODING_SINGLE_HASH_ISO_8859_3_SIZE);
 }
 
 int8_t
-lxb_encoding_encode_iso_8859_4_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                      const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_iso_8859_4_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                      const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(end);
 
-    LXB_ENCODING_ENCODE_BYTE_SINGLE(lxb_encoding_single_hash_iso_8859_4,
-                                    LXB_ENCODING_SINGLE_HASH_ISO_8859_4_SIZE);
+    PCHTML_ENCODING_ENCODE_BYTE_SINGLE(pchtml_encoding_single_hash_iso_8859_4,
+                                    PCHTML_ENCODING_SINGLE_HASH_ISO_8859_4_SIZE);
 }
 
 int8_t
-lxb_encoding_encode_iso_8859_5_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                      const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_iso_8859_5_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                      const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(end);
 
-    LXB_ENCODING_ENCODE_BYTE_SINGLE(lxb_encoding_single_hash_iso_8859_5,
-                                    LXB_ENCODING_SINGLE_HASH_ISO_8859_5_SIZE);
+    PCHTML_ENCODING_ENCODE_BYTE_SINGLE(pchtml_encoding_single_hash_iso_8859_5,
+                                    PCHTML_ENCODING_SINGLE_HASH_ISO_8859_5_SIZE);
 }
 
 int8_t
-lxb_encoding_encode_iso_8859_6_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                      const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_iso_8859_6_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                      const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(end);
 
-    LXB_ENCODING_ENCODE_BYTE_SINGLE(lxb_encoding_single_hash_iso_8859_6,
-                                    LXB_ENCODING_SINGLE_HASH_ISO_8859_6_SIZE);
+    PCHTML_ENCODING_ENCODE_BYTE_SINGLE(pchtml_encoding_single_hash_iso_8859_6,
+                                    PCHTML_ENCODING_SINGLE_HASH_ISO_8859_6_SIZE);
 }
 
 int8_t
-lxb_encoding_encode_iso_8859_7_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                      const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_iso_8859_7_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                      const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(end);
 
-    LXB_ENCODING_ENCODE_BYTE_SINGLE(lxb_encoding_single_hash_iso_8859_7,
-                                    LXB_ENCODING_SINGLE_HASH_ISO_8859_7_SIZE);
+    PCHTML_ENCODING_ENCODE_BYTE_SINGLE(pchtml_encoding_single_hash_iso_8859_7,
+                                    PCHTML_ENCODING_SINGLE_HASH_ISO_8859_7_SIZE);
 }
 
 int8_t
-lxb_encoding_encode_iso_8859_8_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                      const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_iso_8859_8_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                      const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(end);
 
-    LXB_ENCODING_ENCODE_BYTE_SINGLE(lxb_encoding_single_hash_iso_8859_8,
-                                    LXB_ENCODING_SINGLE_HASH_ISO_8859_8_SIZE);
+    PCHTML_ENCODING_ENCODE_BYTE_SINGLE(pchtml_encoding_single_hash_iso_8859_8,
+                                    PCHTML_ENCODING_SINGLE_HASH_ISO_8859_8_SIZE);
 }
 
 int8_t
-lxb_encoding_encode_iso_8859_8_i_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                        const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_iso_8859_8_i_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                        const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(end);
 
-    LXB_ENCODING_ENCODE_BYTE_SINGLE(lxb_encoding_single_hash_iso_8859_8,
-                                    LXB_ENCODING_SINGLE_HASH_ISO_8859_8_SIZE);
+    PCHTML_ENCODING_ENCODE_BYTE_SINGLE(pchtml_encoding_single_hash_iso_8859_8,
+                                    PCHTML_ENCODING_SINGLE_HASH_ISO_8859_8_SIZE);
 }
 
 int8_t
-lxb_encoding_encode_koi8_r_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                  const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_koi8_r_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                  const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(end);
 
-    LXB_ENCODING_ENCODE_BYTE_SINGLE(lxb_encoding_single_hash_koi8_r,
-                                    LXB_ENCODING_SINGLE_HASH_KOI8_R_SIZE);
+    PCHTML_ENCODING_ENCODE_BYTE_SINGLE(pchtml_encoding_single_hash_koi8_r,
+                                    PCHTML_ENCODING_SINGLE_HASH_KOI8_R_SIZE);
 }
 
 int8_t
-lxb_encoding_encode_koi8_u_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                  const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_koi8_u_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                  const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(end);
 
-    LXB_ENCODING_ENCODE_BYTE_SINGLE(lxb_encoding_single_hash_koi8_u,
-                                    LXB_ENCODING_SINGLE_HASH_KOI8_U_SIZE);
+    PCHTML_ENCODING_ENCODE_BYTE_SINGLE(pchtml_encoding_single_hash_koi8_u,
+                                    PCHTML_ENCODING_SINGLE_HASH_KOI8_U_SIZE);
 }
 
 int8_t
-lxb_encoding_encode_shift_jis_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                     const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_shift_jis_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                     const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
 
     uint32_t lead, trail;
-    const lexbor_shs_hash_t *hash;
+    const pchtml_shs_hash_t *hash;
 
     if (cp <= 0x80) {
-        *(*data)++ = (lxb_char_t) cp;
+        *(*data)++ = (unsigned char) cp;
 
         return 1;
     }
@@ -1705,13 +1724,13 @@ lxb_encoding_encode_shift_jis_single(lxb_encoding_encode_t *ctx, lxb_char_t **da
             break;
     }
 
-    hash = lxb_encoding_encode_shift_jis_index(cp);
+    hash = pchtml_encoding_encode_shift_jis_index(cp);
     if (hash == NULL) {
-        return LXB_ENCODING_ENCODE_ERROR;
+        return PCHTML_ENCODING_ENCODE_ERROR;
     }
 
     if ((*data + 2) > end) {
-        return LXB_ENCODING_ENCODE_SMALL_BUFFER;
+        return PCHTML_ENCODING_ENCODE_SMALL_BUFFER;
     }
 
     lead = (uint32_t) (uintptr_t) hash->value / 188;
@@ -1723,9 +1742,9 @@ lxb_encoding_encode_shift_jis_single(lxb_encoding_encode_t *ctx, lxb_char_t **da
     return 2;
 }
 
-lxb_inline void
-lxb_encoding_encode_utf_16_write_single(bool is_be, lxb_char_t **data,
-                                        lxb_codepoint_t cp)
+static inline void
+pchtml_encoding_encode_utf_16_write_single(bool is_be, unsigned char **data,
+                                        uint32_t cp)
 {
     if (is_be) {
         *(*data)++ = cp >> 8;
@@ -1738,127 +1757,127 @@ lxb_encoding_encode_utf_16_write_single(bool is_be, lxb_char_t **data,
     *(*data)++ = cp >> 8;
 }
 
-lxb_inline int8_t
-lxb_encoding_encode_utf_16_single(lxb_encoding_encode_t *ctx, bool is_be,
-                   lxb_char_t **data, const lxb_char_t *end, lxb_codepoint_t cp)
+static inline int8_t
+pchtml_encoding_encode_utf_16_single(pchtml_encoding_encode_t *ctx, bool is_be,
+                   unsigned char **data, const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
 
     if ((*data + 2) > end) {
-        return LXB_ENCODING_ENCODE_SMALL_BUFFER;
+        return PCHTML_ENCODING_ENCODE_SMALL_BUFFER;
     }
 
     if (cp < 0x10000) {
-        lxb_encoding_encode_utf_16_write_single(is_be, data, cp);
+        pchtml_encoding_encode_utf_16_write_single(is_be, data, cp);
 
         return 2;
     }
 
     if ((*data + 4) > end) {
-        return LXB_ENCODING_ENCODE_SMALL_BUFFER;
+        return PCHTML_ENCODING_ENCODE_SMALL_BUFFER;
     }
 
     cp -= 0x10000;
 
-    lxb_encoding_encode_utf_16_write_single(is_be, data, (0xD800 | (cp >> 0x0A)));
-    lxb_encoding_encode_utf_16_write_single(is_be, data, (0xDC00 | (cp & 0x03FF)));
+    pchtml_encoding_encode_utf_16_write_single(is_be, data, (0xD800 | (cp >> 0x0A)));
+    pchtml_encoding_encode_utf_16_write_single(is_be, data, (0xDC00 | (cp & 0x03FF)));
 
     return 4;
 }
 
 int8_t
-lxb_encoding_encode_utf_16be_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                    const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_utf_16be_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                    const unsigned char *end, uint32_t cp)
 {
-    return lxb_encoding_encode_utf_16_single(ctx, true, data, end, cp);
+    return pchtml_encoding_encode_utf_16_single(ctx, true, data, end, cp);
 }
 
 int8_t
-lxb_encoding_encode_utf_16le_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                    const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_utf_16le_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                    const unsigned char *end, uint32_t cp)
 {
-    return lxb_encoding_encode_utf_16_single(ctx, false, data, end, cp);
+    return pchtml_encoding_encode_utf_16_single(ctx, false, data, end, cp);
 }
 
 int8_t
-lxb_encoding_encode_utf_8_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                 const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_utf_8_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                 const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
 
     if (cp < 0x80) {
         /* 0xxxxxxx */
-        *(*data)++ = (lxb_char_t) cp;
+        *(*data)++ = (unsigned char) cp;
 
         return 1;
     }
 
     if (cp < 0x800) {
         if ((*data + 2) > end) {
-            return LXB_ENCODING_ENCODE_SMALL_BUFFER;
+            return PCHTML_ENCODING_ENCODE_SMALL_BUFFER;
         }
 
         /* 110xxxxx 10xxxxxx */
-        *(*data)++ = (lxb_char_t) (0xC0 | (cp >> 6  ));
-        *(*data)++ = (lxb_char_t) (0x80 | (cp & 0x3F));
+        *(*data)++ = (unsigned char) (0xC0 | (cp >> 6  ));
+        *(*data)++ = (unsigned char) (0x80 | (cp & 0x3F));
 
         return 2;
     }
 
     if (cp < 0x10000) {
         if ((*data + 3) > end) {
-            return LXB_ENCODING_ENCODE_SMALL_BUFFER;
+            return PCHTML_ENCODING_ENCODE_SMALL_BUFFER;
         }
 
         /* 1110xxxx 10xxxxxx 10xxxxxx */
-        *(*data)++ = (lxb_char_t) (0xE0 | ((cp >> 12)));
-        *(*data)++ = (lxb_char_t) (0x80 | ((cp >> 6 ) & 0x3F));
-        *(*data)++ = (lxb_char_t) (0x80 | ( cp        & 0x3F));
+        *(*data)++ = (unsigned char) (0xE0 | ((cp >> 12)));
+        *(*data)++ = (unsigned char) (0x80 | ((cp >> 6 ) & 0x3F));
+        *(*data)++ = (unsigned char) (0x80 | ( cp        & 0x3F));
 
         return 3;
     }
 
     if (cp < 0x110000) {
         if ((*data + 4) > end) {
-            return LXB_ENCODING_ENCODE_SMALL_BUFFER;
+            return PCHTML_ENCODING_ENCODE_SMALL_BUFFER;
         }
 
         /* 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx */
-        *(*data)++ = (lxb_char_t) (0xF0 | ( cp >> 18));
-        *(*data)++ = (lxb_char_t) (0x80 | ((cp >> 12) & 0x3F));
-        *(*data)++ = (lxb_char_t) (0x80 | ((cp >> 6 ) & 0x3F));
-        *(*data)++ = (lxb_char_t) (0x80 | ( cp        & 0x3F));
+        *(*data)++ = (unsigned char) (0xF0 | ( cp >> 18));
+        *(*data)++ = (unsigned char) (0x80 | ((cp >> 12) & 0x3F));
+        *(*data)++ = (unsigned char) (0x80 | ((cp >> 6 ) & 0x3F));
+        *(*data)++ = (unsigned char) (0x80 | ( cp        & 0x3F));
 
         return 4;
     }
 
-    return LXB_ENCODING_ENCODE_ERROR;
+    return PCHTML_ENCODING_ENCODE_ERROR;
 }
 
 int8_t
-lxb_encoding_encode_gb18030_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                   const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_gb18030_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                   const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
 
     uint32_t index;
-    const lexbor_shs_hash_t *hash;
+    const pchtml_shs_hash_t *hash;
 
     if (cp < 0x80) {
-        *(*data)++ = (lxb_char_t) cp;
+        *(*data)++ = (unsigned char) cp;
 
         return 1;
     }
 
     if (cp == 0xE5E5) {
-        return LXB_ENCODING_ENCODE_ERROR;
+        return PCHTML_ENCODING_ENCODE_ERROR;
     }
 
-    hash = lexbor_shs_hash_get_static(lxb_encoding_multi_hash_gb18030,
-                                      LXB_ENCODING_MULTI_HASH_GB18030_SIZE, cp);
+    hash = pchtml_shs_hash_get_static(pchtml_encoding_multi_hash_gb18030,
+                                      PCHTML_ENCODING_MULTI_HASH_GB18030_SIZE, cp);
     if (hash != NULL) {
         if ((*data + 2) > end) {
-            return LXB_ENCODING_ENCODE_SMALL_BUFFER;
+            return PCHTML_ENCODING_ENCODE_SMALL_BUFFER;
         }
 
         *(*data)++ = (uint32_t) (uintptr_t) hash->value / 190 + 0x81;
@@ -1874,10 +1893,10 @@ lxb_encoding_encode_gb18030_single(lxb_encoding_encode_t *ctx, lxb_char_t **data
     }
 
     if ((*data + 4) > end) {
-        return LXB_ENCODING_ENCODE_SMALL_BUFFER;
+        return PCHTML_ENCODING_ENCODE_SMALL_BUFFER;
     }
 
-    index = lxb_encoding_encode_gb18030_range(cp);
+    index = pchtml_encoding_encode_gb18030_range(cp);
 
     *(*data)++ = (index / (10 * 126 * 10)) + 0x81;
     *(*data)++ = ((index % (10 * 126 * 10)) / (10 * 126)) + 0x30;
@@ -1891,167 +1910,167 @@ lxb_encoding_encode_gb18030_single(lxb_encoding_encode_t *ctx, lxb_char_t **data
 }
 
 int8_t
-lxb_encoding_encode_macintosh_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                     const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_macintosh_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                     const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(end);
 
-    LXB_ENCODING_ENCODE_BYTE_SINGLE(lxb_encoding_single_hash_macintosh,
-                                    LXB_ENCODING_SINGLE_HASH_MACINTOSH_SIZE);
+    PCHTML_ENCODING_ENCODE_BYTE_SINGLE(pchtml_encoding_single_hash_macintosh,
+                                    PCHTML_ENCODING_SINGLE_HASH_MACINTOSH_SIZE);
 }
 
 int8_t
-lxb_encoding_encode_replacement_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                       const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_replacement_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                       const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(end);
     UNUSED_PARAM(cp);
 
     (*data)++;
-    return LXB_ENCODING_ENCODE_ERROR;
+    return PCHTML_ENCODING_ENCODE_ERROR;
 }
 
 int8_t
-lxb_encoding_encode_windows_1250_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                        const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_windows_1250_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                        const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(end);
 
-    LXB_ENCODING_ENCODE_BYTE_SINGLE(lxb_encoding_single_hash_windows_1250,
-                                    LXB_ENCODING_SINGLE_HASH_WINDOWS_1250_SIZE);
+    PCHTML_ENCODING_ENCODE_BYTE_SINGLE(pchtml_encoding_single_hash_windows_1250,
+                                    PCHTML_ENCODING_SINGLE_HASH_WINDOWS_1250_SIZE);
 }
 
 int8_t
-lxb_encoding_encode_windows_1251_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                        const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_windows_1251_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                        const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(end);
 
-    LXB_ENCODING_ENCODE_BYTE_SINGLE(lxb_encoding_single_hash_windows_1251,
-                                    LXB_ENCODING_SINGLE_HASH_WINDOWS_1251_SIZE);
+    PCHTML_ENCODING_ENCODE_BYTE_SINGLE(pchtml_encoding_single_hash_windows_1251,
+                                    PCHTML_ENCODING_SINGLE_HASH_WINDOWS_1251_SIZE);
 }
 
 int8_t
-lxb_encoding_encode_windows_1252_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                        const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_windows_1252_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                        const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(end);
 
-    LXB_ENCODING_ENCODE_BYTE_SINGLE(lxb_encoding_single_hash_windows_1252,
-                                    LXB_ENCODING_SINGLE_HASH_WINDOWS_1252_SIZE);
+    PCHTML_ENCODING_ENCODE_BYTE_SINGLE(pchtml_encoding_single_hash_windows_1252,
+                                    PCHTML_ENCODING_SINGLE_HASH_WINDOWS_1252_SIZE);
 }
 
 int8_t
-lxb_encoding_encode_windows_1253_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                        const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_windows_1253_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                        const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(end);
 
-    LXB_ENCODING_ENCODE_BYTE_SINGLE(lxb_encoding_single_hash_windows_1253,
-                                    LXB_ENCODING_SINGLE_HASH_WINDOWS_1253_SIZE);
+    PCHTML_ENCODING_ENCODE_BYTE_SINGLE(pchtml_encoding_single_hash_windows_1253,
+                                    PCHTML_ENCODING_SINGLE_HASH_WINDOWS_1253_SIZE);
 }
 
 int8_t
-lxb_encoding_encode_windows_1254_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                        const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_windows_1254_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                        const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(end);
 
-    LXB_ENCODING_ENCODE_BYTE_SINGLE(lxb_encoding_single_hash_windows_1254,
-                                    LXB_ENCODING_SINGLE_HASH_WINDOWS_1254_SIZE);
+    PCHTML_ENCODING_ENCODE_BYTE_SINGLE(pchtml_encoding_single_hash_windows_1254,
+                                    PCHTML_ENCODING_SINGLE_HASH_WINDOWS_1254_SIZE);
 }
 
 int8_t
-lxb_encoding_encode_windows_1255_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                        const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_windows_1255_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                        const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(end);
 
-    LXB_ENCODING_ENCODE_BYTE_SINGLE(lxb_encoding_single_hash_windows_1255,
-                                    LXB_ENCODING_SINGLE_HASH_WINDOWS_1255_SIZE);
+    PCHTML_ENCODING_ENCODE_BYTE_SINGLE(pchtml_encoding_single_hash_windows_1255,
+                                    PCHTML_ENCODING_SINGLE_HASH_WINDOWS_1255_SIZE);
 }
 
 int8_t
-lxb_encoding_encode_windows_1256_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                        const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_windows_1256_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                        const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(end);
 
-    LXB_ENCODING_ENCODE_BYTE_SINGLE(lxb_encoding_single_hash_windows_1256,
-                                    LXB_ENCODING_SINGLE_HASH_WINDOWS_1256_SIZE);
+    PCHTML_ENCODING_ENCODE_BYTE_SINGLE(pchtml_encoding_single_hash_windows_1256,
+                                    PCHTML_ENCODING_SINGLE_HASH_WINDOWS_1256_SIZE);
 }
 
 int8_t
-lxb_encoding_encode_windows_1257_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                        const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_windows_1257_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                        const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(end);
 
-    LXB_ENCODING_ENCODE_BYTE_SINGLE(lxb_encoding_single_hash_windows_1257,
-                                    LXB_ENCODING_SINGLE_HASH_WINDOWS_1257_SIZE);
+    PCHTML_ENCODING_ENCODE_BYTE_SINGLE(pchtml_encoding_single_hash_windows_1257,
+                                    PCHTML_ENCODING_SINGLE_HASH_WINDOWS_1257_SIZE);
 }
 
 int8_t
-lxb_encoding_encode_windows_1258_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                        const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_windows_1258_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                        const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(end);
 
-    LXB_ENCODING_ENCODE_BYTE_SINGLE(lxb_encoding_single_hash_windows_1258,
-                                    LXB_ENCODING_SINGLE_HASH_WINDOWS_1258_SIZE);
+    PCHTML_ENCODING_ENCODE_BYTE_SINGLE(pchtml_encoding_single_hash_windows_1258,
+                                    PCHTML_ENCODING_SINGLE_HASH_WINDOWS_1258_SIZE);
 }
 
 int8_t
-lxb_encoding_encode_windows_874_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                       const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_windows_874_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                       const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(end);
 
-    LXB_ENCODING_ENCODE_BYTE_SINGLE(lxb_encoding_single_hash_windows_874,
-                                    LXB_ENCODING_SINGLE_HASH_WINDOWS_874_SIZE);
+    PCHTML_ENCODING_ENCODE_BYTE_SINGLE(pchtml_encoding_single_hash_windows_874,
+                                    PCHTML_ENCODING_SINGLE_HASH_WINDOWS_874_SIZE);
 }
 
 int8_t
-lxb_encoding_encode_x_mac_cyrillic_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                          const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_x_mac_cyrillic_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                          const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(end);
 
-    LXB_ENCODING_ENCODE_BYTE_SINGLE(lxb_encoding_single_hash_x_mac_cyrillic,
-                                  LXB_ENCODING_SINGLE_HASH_X_MAC_CYRILLIC_SIZE);
+    PCHTML_ENCODING_ENCODE_BYTE_SINGLE(pchtml_encoding_single_hash_x_mac_cyrillic,
+                                  PCHTML_ENCODING_SINGLE_HASH_X_MAC_CYRILLIC_SIZE);
 }
 
 int8_t
-lxb_encoding_encode_x_user_defined_single(lxb_encoding_encode_t *ctx, lxb_char_t **data,
-                                          const lxb_char_t *end, lxb_codepoint_t cp)
+pchtml_encoding_encode_x_user_defined_single(pchtml_encoding_encode_t *ctx, unsigned char **data,
+                                          const unsigned char *end, uint32_t cp)
 {
     UNUSED_PARAM(ctx);
     UNUSED_PARAM(end);
 
     if (cp < 0x80) {
-        *(*data)++ = (lxb_char_t) cp;
+        *(*data)++ = (unsigned char) cp;
 
         return 1;
     }
 
     if (cp >= 0xF780 && cp <= 0xF7FF) {
-        *(*data)++ = (lxb_char_t) (cp - 0xF780 + 0x80);
+        *(*data)++ = (unsigned char) (cp - 0xF780 + 0x80);
 
         return 1;
     }
 
-    return LXB_ENCODING_ENCODE_ERROR;
+    return PCHTML_ENCODING_ENCODE_ERROR;
 }

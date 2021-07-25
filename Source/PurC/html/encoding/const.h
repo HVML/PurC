@@ -1,7 +1,25 @@
-/*
- * Copyright (C) 2019 Alexander Borisov
+/**
+ * @file const.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for encoding constant.
  *
- * Author: Alexander Borisov <lex.borisov@gmail.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 /*
@@ -11,55 +29,55 @@
  */
 
 
-#ifndef LEXBOR_ENCODING_CONST_H
-#define LEXBOR_ENCODING_CONST_H
+#ifndef PCHTML_ENCODING_CONST_H
+#define PCHTML_ENCODING_CONST_H
 
 typedef enum {
-    LXB_ENCODING_DEFAULT        = 0x00,
-    LXB_ENCODING_AUTO           = 0x01,
-    LXB_ENCODING_UNDEFINED      = 0x02,
-    LXB_ENCODING_BIG5           = 0x03,
-    LXB_ENCODING_EUC_JP         = 0x04,
-    LXB_ENCODING_EUC_KR         = 0x05,
-    LXB_ENCODING_GBK            = 0x06,
-    LXB_ENCODING_IBM866         = 0x07,
-    LXB_ENCODING_ISO_2022_JP    = 0x08,
-    LXB_ENCODING_ISO_8859_10    = 0x09,
-    LXB_ENCODING_ISO_8859_13    = 0x0a,
-    LXB_ENCODING_ISO_8859_14    = 0x0b,
-    LXB_ENCODING_ISO_8859_15    = 0x0c,
-    LXB_ENCODING_ISO_8859_16    = 0x0d,
-    LXB_ENCODING_ISO_8859_2     = 0x0e,
-    LXB_ENCODING_ISO_8859_3     = 0x0f,
-    LXB_ENCODING_ISO_8859_4     = 0x10,
-    LXB_ENCODING_ISO_8859_5     = 0x11,
-    LXB_ENCODING_ISO_8859_6     = 0x12,
-    LXB_ENCODING_ISO_8859_7     = 0x13,
-    LXB_ENCODING_ISO_8859_8     = 0x14,
-    LXB_ENCODING_ISO_8859_8_I   = 0x15,
-    LXB_ENCODING_KOI8_R         = 0x16,
-    LXB_ENCODING_KOI8_U         = 0x17,
-    LXB_ENCODING_SHIFT_JIS      = 0x18,
-    LXB_ENCODING_UTF_16BE       = 0x19,
-    LXB_ENCODING_UTF_16LE       = 0x1a,
-    LXB_ENCODING_UTF_8          = 0x1b,
-    LXB_ENCODING_GB18030        = 0x1c,
-    LXB_ENCODING_MACINTOSH      = 0x1d,
-    LXB_ENCODING_REPLACEMENT    = 0x1e,
-    LXB_ENCODING_WINDOWS_1250   = 0x1f,
-    LXB_ENCODING_WINDOWS_1251   = 0x20,
-    LXB_ENCODING_WINDOWS_1252   = 0x21,
-    LXB_ENCODING_WINDOWS_1253   = 0x22,
-    LXB_ENCODING_WINDOWS_1254   = 0x23,
-    LXB_ENCODING_WINDOWS_1255   = 0x24,
-    LXB_ENCODING_WINDOWS_1256   = 0x25,
-    LXB_ENCODING_WINDOWS_1257   = 0x26,
-    LXB_ENCODING_WINDOWS_1258   = 0x27,
-    LXB_ENCODING_WINDOWS_874    = 0x28,
-    LXB_ENCODING_X_MAC_CYRILLIC = 0x29,
-    LXB_ENCODING_X_USER_DEFINED = 0x2a,
-    LXB_ENCODING_LAST_ENTRY     = 0x2b
+    PCHTML_ENCODING_DEFAULT        = 0x00,
+    PCHTML_ENCODING_AUTO           = 0x01,
+    PCHTML_ENCODING_UNDEFINED      = 0x02,
+    PCHTML_ENCODING_BIG5           = 0x03,
+    PCHTML_ENCODING_EUC_JP         = 0x04,
+    PCHTML_ENCODING_EUC_KR         = 0x05,
+    PCHTML_ENCODING_GBK            = 0x06,
+    PCHTML_ENCODING_IBM866         = 0x07,
+    PCHTML_ENCODING_ISO_2022_JP    = 0x08,
+    PCHTML_ENCODING_ISO_8859_10    = 0x09,
+    PCHTML_ENCODING_ISO_8859_13    = 0x0a,
+    PCHTML_ENCODING_ISO_8859_14    = 0x0b,
+    PCHTML_ENCODING_ISO_8859_15    = 0x0c,
+    PCHTML_ENCODING_ISO_8859_16    = 0x0d,
+    PCHTML_ENCODING_ISO_8859_2     = 0x0e,
+    PCHTML_ENCODING_ISO_8859_3     = 0x0f,
+    PCHTML_ENCODING_ISO_8859_4     = 0x10,
+    PCHTML_ENCODING_ISO_8859_5     = 0x11,
+    PCHTML_ENCODING_ISO_8859_6     = 0x12,
+    PCHTML_ENCODING_ISO_8859_7     = 0x13,
+    PCHTML_ENCODING_ISO_8859_8     = 0x14,
+    PCHTML_ENCODING_ISO_8859_8_I   = 0x15,
+    PCHTML_ENCODING_KOI8_R         = 0x16,
+    PCHTML_ENCODING_KOI8_U         = 0x17,
+    PCHTML_ENCODING_SHIFT_JIS      = 0x18,
+    PCHTML_ENCODING_UTF_16BE       = 0x19,
+    PCHTML_ENCODING_UTF_16LE       = 0x1a,
+    PCHTML_ENCODING_UTF_8          = 0x1b,
+    PCHTML_ENCODING_GB18030        = 0x1c,
+    PCHTML_ENCODING_MACINTOSH      = 0x1d,
+    PCHTML_ENCODING_REPLACEMENT    = 0x1e,
+    PCHTML_ENCODING_WINDOWS_1250   = 0x1f,
+    PCHTML_ENCODING_WINDOWS_1251   = 0x20,
+    PCHTML_ENCODING_WINDOWS_1252   = 0x21,
+    PCHTML_ENCODING_WINDOWS_1253   = 0x22,
+    PCHTML_ENCODING_WINDOWS_1254   = 0x23,
+    PCHTML_ENCODING_WINDOWS_1255   = 0x24,
+    PCHTML_ENCODING_WINDOWS_1256   = 0x25,
+    PCHTML_ENCODING_WINDOWS_1257   = 0x26,
+    PCHTML_ENCODING_WINDOWS_1258   = 0x27,
+    PCHTML_ENCODING_WINDOWS_874    = 0x28,
+    PCHTML_ENCODING_X_MAC_CYRILLIC = 0x29,
+    PCHTML_ENCODING_X_USER_DEFINED = 0x2a,
+    PCHTML_ENCODING_LAST_ENTRY     = 0x2b
 }
-lxb_encoding_t;
+pchtml_encoding_t;
 
-#endif /* LEXBOR_ENCODING_CONST_H */
+#endif  /* PCHTML_ENCODING_CONST_H */

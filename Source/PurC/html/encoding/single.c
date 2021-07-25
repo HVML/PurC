@@ -1,7 +1,25 @@
-/*
- * Copyright (C) 2019 Alexander Borisov
+/**
+ * @file single.c 
+ * @author 
+ * @date 2021/07/02
+ * @brief The complementation of encoding.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 /*
@@ -15,3572 +33,3572 @@
 #include "html/core/shs.h"
 
 
-LXB_API const lxb_encoding_single_index_t lxb_encoding_single_index_ibm866[128] = 
+GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_ibm866[128] = 
 {
-    {(lxb_char_t *) "\xd0\x90", 2, 0x0410}, /* (CYRILLIC CAPITAL LETTER A) */
-    {(lxb_char_t *) "\xd0\x91", 2, 0x0411}, /* (CYRILLIC CAPITAL LETTER BE) */
-    {(lxb_char_t *) "\xd0\x92", 2, 0x0412}, /* (CYRILLIC CAPITAL LETTER VE) */
-    {(lxb_char_t *) "\xd0\x93", 2, 0x0413}, /* (CYRILLIC CAPITAL LETTER GHE) */
-    {(lxb_char_t *) "\xd0\x94", 2, 0x0414}, /* (CYRILLIC CAPITAL LETTER DE) */
-    {(lxb_char_t *) "\xd0\x95", 2, 0x0415}, /* (CYRILLIC CAPITAL LETTER IE) */
-    {(lxb_char_t *) "\xd0\x96", 2, 0x0416}, /* (CYRILLIC CAPITAL LETTER ZHE) */
-    {(lxb_char_t *) "\xd0\x97", 2, 0x0417}, /* (CYRILLIC CAPITAL LETTER ZE) */
-    {(lxb_char_t *) "\xd0\x98", 2, 0x0418}, /* (CYRILLIC CAPITAL LETTER I) */
-    {(lxb_char_t *) "\xd0\x99", 2, 0x0419}, /* (CYRILLIC CAPITAL LETTER SHORT I) */
-    {(lxb_char_t *) "\xd0\x9a", 2, 0x041A}, /* (CYRILLIC CAPITAL LETTER KA) */
-    {(lxb_char_t *) "\xd0\x9b", 2, 0x041B}, /* (CYRILLIC CAPITAL LETTER EL) */
-    {(lxb_char_t *) "\xd0\x9c", 2, 0x041C}, /* (CYRILLIC CAPITAL LETTER EM) */
-    {(lxb_char_t *) "\xd0\x9d", 2, 0x041D}, /* (CYRILLIC CAPITAL LETTER EN) */
-    {(lxb_char_t *) "\xd0\x9e", 2, 0x041E}, /* (CYRILLIC CAPITAL LETTER O) */
-    {(lxb_char_t *) "\xd0\x9f", 2, 0x041F}, /* (CYRILLIC CAPITAL LETTER PE) */
-    {(lxb_char_t *) "\xd0\xa0", 2, 0x0420}, /* (CYRILLIC CAPITAL LETTER ER) */
-    {(lxb_char_t *) "\xd0\xa1", 2, 0x0421}, /* (CYRILLIC CAPITAL LETTER ES) */
-    {(lxb_char_t *) "\xd0\xa2", 2, 0x0422}, /* (CYRILLIC CAPITAL LETTER TE) */
-    {(lxb_char_t *) "\xd0\xa3", 2, 0x0423}, /* (CYRILLIC CAPITAL LETTER U) */
-    {(lxb_char_t *) "\xd0\xa4", 2, 0x0424}, /* (CYRILLIC CAPITAL LETTER EF) */
-    {(lxb_char_t *) "\xd0\xa5", 2, 0x0425}, /* (CYRILLIC CAPITAL LETTER HA) */
-    {(lxb_char_t *) "\xd0\xa6", 2, 0x0426}, /* (CYRILLIC CAPITAL LETTER TSE) */
-    {(lxb_char_t *) "\xd0\xa7", 2, 0x0427}, /* (CYRILLIC CAPITAL LETTER CHE) */
-    {(lxb_char_t *) "\xd0\xa8", 2, 0x0428}, /* (CYRILLIC CAPITAL LETTER SHA) */
-    {(lxb_char_t *) "\xd0\xa9", 2, 0x0429}, /* (CYRILLIC CAPITAL LETTER SHCHA) */
-    {(lxb_char_t *) "\xd0\xaa", 2, 0x042A}, /* (CYRILLIC CAPITAL LETTER HARD SIGN) */
-    {(lxb_char_t *) "\xd0\xab", 2, 0x042B}, /* (CYRILLIC CAPITAL LETTER YERU) */
-    {(lxb_char_t *) "\xd0\xac", 2, 0x042C}, /* (CYRILLIC CAPITAL LETTER SOFT SIGN) */
-    {(lxb_char_t *) "\xd0\xad", 2, 0x042D}, /* (CYRILLIC CAPITAL LETTER E) */
-    {(lxb_char_t *) "\xd0\xae", 2, 0x042E}, /* (CYRILLIC CAPITAL LETTER YU) */
-    {(lxb_char_t *) "\xd0\xaf", 2, 0x042F}, /* (CYRILLIC CAPITAL LETTER YA) */
-    {(lxb_char_t *) "\xd0\xb0", 2, 0x0430}, /* (CYRILLIC SMALL LETTER A) */
-    {(lxb_char_t *) "\xd0\xb1", 2, 0x0431}, /* (CYRILLIC SMALL LETTER BE) */
-    {(lxb_char_t *) "\xd0\xb2", 2, 0x0432}, /* (CYRILLIC SMALL LETTER VE) */
-    {(lxb_char_t *) "\xd0\xb3", 2, 0x0433}, /* (CYRILLIC SMALL LETTER GHE) */
-    {(lxb_char_t *) "\xd0\xb4", 2, 0x0434}, /* (CYRILLIC SMALL LETTER DE) */
-    {(lxb_char_t *) "\xd0\xb5", 2, 0x0435}, /* (CYRILLIC SMALL LETTER IE) */
-    {(lxb_char_t *) "\xd0\xb6", 2, 0x0436}, /* (CYRILLIC SMALL LETTER ZHE) */
-    {(lxb_char_t *) "\xd0\xb7", 2, 0x0437}, /* (CYRILLIC SMALL LETTER ZE) */
-    {(lxb_char_t *) "\xd0\xb8", 2, 0x0438}, /* (CYRILLIC SMALL LETTER I) */
-    {(lxb_char_t *) "\xd0\xb9", 2, 0x0439}, /* (CYRILLIC SMALL LETTER SHORT I) */
-    {(lxb_char_t *) "\xd0\xba", 2, 0x043A}, /* (CYRILLIC SMALL LETTER KA) */
-    {(lxb_char_t *) "\xd0\xbb", 2, 0x043B}, /* (CYRILLIC SMALL LETTER EL) */
-    {(lxb_char_t *) "\xd0\xbc", 2, 0x043C}, /* (CYRILLIC SMALL LETTER EM) */
-    {(lxb_char_t *) "\xd0\xbd", 2, 0x043D}, /* (CYRILLIC SMALL LETTER EN) */
-    {(lxb_char_t *) "\xd0\xbe", 2, 0x043E}, /* (CYRILLIC SMALL LETTER O) */
-    {(lxb_char_t *) "\xd0\xbf", 2, 0x043F}, /* (CYRILLIC SMALL LETTER PE) */
-    {(lxb_char_t *) "\xe2\x96\x91", 3, 0x2591}, /* (LIGHT SHADE) */
-    {(lxb_char_t *) "\xe2\x96\x92", 3, 0x2592}, /* (MEDIUM SHADE) */
-    {(lxb_char_t *) "\xe2\x96\x93", 3, 0x2593}, /* (DARK SHADE) */
-    {(lxb_char_t *) "\xe2\x94\x82", 3, 0x2502}, /* (BOX DRAWINGS LIGHT VERTICAL) */
-    {(lxb_char_t *) "\xe2\x94\xa4", 3, 0x2524}, /* (BOX DRAWINGS LIGHT VERTICAL AND LEFT) */
-    {(lxb_char_t *) "\xe2\x95\xa1", 3, 0x2561}, /* (BOX DRAWINGS VERTICAL SINGLE AND LEFT DOUBLE) */
-    {(lxb_char_t *) "\xe2\x95\xa2", 3, 0x2562}, /* (BOX DRAWINGS VERTICAL DOUBLE AND LEFT SINGLE) */
-    {(lxb_char_t *) "\xe2\x95\x96", 3, 0x2556}, /* (BOX DRAWINGS DOWN DOUBLE AND LEFT SINGLE) */
-    {(lxb_char_t *) "\xe2\x95\x95", 3, 0x2555}, /* (BOX DRAWINGS DOWN SINGLE AND LEFT DOUBLE) */
-    {(lxb_char_t *) "\xe2\x95\xa3", 3, 0x2563}, /* (BOX DRAWINGS DOUBLE VERTICAL AND LEFT) */
-    {(lxb_char_t *) "\xe2\x95\x91", 3, 0x2551}, /* (BOX DRAWINGS DOUBLE VERTICAL) */
-    {(lxb_char_t *) "\xe2\x95\x97", 3, 0x2557}, /* (BOX DRAWINGS DOUBLE DOWN AND LEFT) */
-    {(lxb_char_t *) "\xe2\x95\x9d", 3, 0x255D}, /* (BOX DRAWINGS DOUBLE UP AND LEFT) */
-    {(lxb_char_t *) "\xe2\x95\x9c", 3, 0x255C}, /* (BOX DRAWINGS UP DOUBLE AND LEFT SINGLE) */
-    {(lxb_char_t *) "\xe2\x95\x9b", 3, 0x255B}, /* (BOX DRAWINGS UP SINGLE AND LEFT DOUBLE) */
-    {(lxb_char_t *) "\xe2\x94\x90", 3, 0x2510}, /* (BOX DRAWINGS LIGHT DOWN AND LEFT) */
-    {(lxb_char_t *) "\xe2\x94\x94", 3, 0x2514}, /* (BOX DRAWINGS LIGHT UP AND RIGHT) */
-    {(lxb_char_t *) "\xe2\x94\xb4", 3, 0x2534}, /* (BOX DRAWINGS LIGHT UP AND HORIZONTAL) */
-    {(lxb_char_t *) "\xe2\x94\xac", 3, 0x252C}, /* (BOX DRAWINGS LIGHT DOWN AND HORIZONTAL) */
-    {(lxb_char_t *) "\xe2\x94\x9c", 3, 0x251C}, /* (BOX DRAWINGS LIGHT VERTICAL AND RIGHT) */
-    {(lxb_char_t *) "\xe2\x94\x80", 3, 0x2500}, /* (BOX DRAWINGS LIGHT HORIZONTAL) */
-    {(lxb_char_t *) "\xe2\x94\xbc", 3, 0x253C}, /* (BOX DRAWINGS LIGHT VERTICAL AND HORIZONTAL) */
-    {(lxb_char_t *) "\xe2\x95\x9e", 3, 0x255E}, /* (BOX DRAWINGS VERTICAL SINGLE AND RIGHT DOUBLE) */
-    {(lxb_char_t *) "\xe2\x95\x9f", 3, 0x255F}, /* (BOX DRAWINGS VERTICAL DOUBLE AND RIGHT SINGLE) */
-    {(lxb_char_t *) "\xe2\x95\x9a", 3, 0x255A}, /* (BOX DRAWINGS DOUBLE UP AND RIGHT) */
-    {(lxb_char_t *) "\xe2\x95\x94", 3, 0x2554}, /* (BOX DRAWINGS DOUBLE DOWN AND RIGHT) */
-    {(lxb_char_t *) "\xe2\x95\xa9", 3, 0x2569}, /* (BOX DRAWINGS DOUBLE UP AND HORIZONTAL) */
-    {(lxb_char_t *) "\xe2\x95\xa6", 3, 0x2566}, /* (BOX DRAWINGS DOUBLE DOWN AND HORIZONTAL) */
-    {(lxb_char_t *) "\xe2\x95\xa0", 3, 0x2560}, /* (BOX DRAWINGS DOUBLE VERTICAL AND RIGHT) */
-    {(lxb_char_t *) "\xe2\x95\x90", 3, 0x2550}, /* (BOX DRAWINGS DOUBLE HORIZONTAL) */
-    {(lxb_char_t *) "\xe2\x95\xac", 3, 0x256C}, /* (BOX DRAWINGS DOUBLE VERTICAL AND HORIZONTAL) */
-    {(lxb_char_t *) "\xe2\x95\xa7", 3, 0x2567}, /* (BOX DRAWINGS UP SINGLE AND HORIZONTAL DOUBLE) */
-    {(lxb_char_t *) "\xe2\x95\xa8", 3, 0x2568}, /* (BOX DRAWINGS UP DOUBLE AND HORIZONTAL SINGLE) */
-    {(lxb_char_t *) "\xe2\x95\xa4", 3, 0x2564}, /* (BOX DRAWINGS DOWN SINGLE AND HORIZONTAL DOUBLE) */
-    {(lxb_char_t *) "\xe2\x95\xa5", 3, 0x2565}, /* (BOX DRAWINGS DOWN DOUBLE AND HORIZONTAL SINGLE) */
-    {(lxb_char_t *) "\xe2\x95\x99", 3, 0x2559}, /* (BOX DRAWINGS UP DOUBLE AND RIGHT SINGLE) */
-    {(lxb_char_t *) "\xe2\x95\x98", 3, 0x2558}, /* (BOX DRAWINGS UP SINGLE AND RIGHT DOUBLE) */
-    {(lxb_char_t *) "\xe2\x95\x92", 3, 0x2552}, /* (BOX DRAWINGS DOWN SINGLE AND RIGHT DOUBLE) */
-    {(lxb_char_t *) "\xe2\x95\x93", 3, 0x2553}, /* (BOX DRAWINGS DOWN DOUBLE AND RIGHT SINGLE) */
-    {(lxb_char_t *) "\xe2\x95\xab", 3, 0x256B}, /* (BOX DRAWINGS VERTICAL DOUBLE AND HORIZONTAL SINGLE) */
-    {(lxb_char_t *) "\xe2\x95\xaa", 3, 0x256A}, /* (BOX DRAWINGS VERTICAL SINGLE AND HORIZONTAL DOUBLE) */
-    {(lxb_char_t *) "\xe2\x94\x98", 3, 0x2518}, /* (BOX DRAWINGS LIGHT UP AND LEFT) */
-    {(lxb_char_t *) "\xe2\x94\x8c", 3, 0x250C}, /* (BOX DRAWINGS LIGHT DOWN AND RIGHT) */
-    {(lxb_char_t *) "\xe2\x96\x88", 3, 0x2588}, /* (FULL BLOCK) */
-    {(lxb_char_t *) "\xe2\x96\x84", 3, 0x2584}, /* (LOWER HALF BLOCK) */
-    {(lxb_char_t *) "\xe2\x96\x8c", 3, 0x258C}, /* (LEFT HALF BLOCK) */
-    {(lxb_char_t *) "\xe2\x96\x90", 3, 0x2590}, /* (RIGHT HALF BLOCK) */
-    {(lxb_char_t *) "\xe2\x96\x80", 3, 0x2580}, /* (UPPER HALF BLOCK) */
-    {(lxb_char_t *) "\xd1\x80", 2, 0x0440}, /* (CYRILLIC SMALL LETTER ER) */
-    {(lxb_char_t *) "\xd1\x81", 2, 0x0441}, /* (CYRILLIC SMALL LETTER ES) */
-    {(lxb_char_t *) "\xd1\x82", 2, 0x0442}, /* (CYRILLIC SMALL LETTER TE) */
-    {(lxb_char_t *) "\xd1\x83", 2, 0x0443}, /* (CYRILLIC SMALL LETTER U) */
-    {(lxb_char_t *) "\xd1\x84", 2, 0x0444}, /* (CYRILLIC SMALL LETTER EF) */
-    {(lxb_char_t *) "\xd1\x85", 2, 0x0445}, /* (CYRILLIC SMALL LETTER HA) */
-    {(lxb_char_t *) "\xd1\x86", 2, 0x0446}, /* (CYRILLIC SMALL LETTER TSE) */
-    {(lxb_char_t *) "\xd1\x87", 2, 0x0447}, /* (CYRILLIC SMALL LETTER CHE) */
-    {(lxb_char_t *) "\xd1\x88", 2, 0x0448}, /* (CYRILLIC SMALL LETTER SHA) */
-    {(lxb_char_t *) "\xd1\x89", 2, 0x0449}, /* (CYRILLIC SMALL LETTER SHCHA) */
-    {(lxb_char_t *) "\xd1\x8a", 2, 0x044A}, /* (CYRILLIC SMALL LETTER HARD SIGN) */
-    {(lxb_char_t *) "\xd1\x8b", 2, 0x044B}, /* (CYRILLIC SMALL LETTER YERU) */
-    {(lxb_char_t *) "\xd1\x8c", 2, 0x044C}, /* (CYRILLIC SMALL LETTER SOFT SIGN) */
-    {(lxb_char_t *) "\xd1\x8d", 2, 0x044D}, /* (CYRILLIC SMALL LETTER E) */
-    {(lxb_char_t *) "\xd1\x8e", 2, 0x044E}, /* (CYRILLIC SMALL LETTER YU) */
-    {(lxb_char_t *) "\xd1\x8f", 2, 0x044F}, /* (CYRILLIC SMALL LETTER YA) */
-    {(lxb_char_t *) "\xd0\x81", 2, 0x0401}, /* (CYRILLIC CAPITAL LETTER IO) */
-    {(lxb_char_t *) "\xd1\x91", 2, 0x0451}, /* (CYRILLIC SMALL LETTER IO) */
-    {(lxb_char_t *) "\xd0\x84", 2, 0x0404}, /* (CYRILLIC CAPITAL LETTER UKRAINIAN IE) */
-    {(lxb_char_t *) "\xd1\x94", 2, 0x0454}, /* (CYRILLIC SMALL LETTER UKRAINIAN IE) */
-    {(lxb_char_t *) "\xd0\x87", 2, 0x0407}, /* (CYRILLIC CAPITAL LETTER YI) */
-    {(lxb_char_t *) "\xd1\x97", 2, 0x0457}, /* (CYRILLIC SMALL LETTER YI) */
-    {(lxb_char_t *) "\xd0\x8e", 2, 0x040E}, /* (CYRILLIC CAPITAL LETTER SHORT U) */
-    {(lxb_char_t *) "\xd1\x9e", 2, 0x045E}, /* (CYRILLIC SMALL LETTER SHORT U) */
-    {(lxb_char_t *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
-    {(lxb_char_t *) "\xe2\x88\x99", 3, 0x2219}, /* (BULLET OPERATOR) */
-    {(lxb_char_t *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
-    {(lxb_char_t *) "\xe2\x88\x9a", 3, 0x221A}, /* (SQUARE ROOT) */
-    {(lxb_char_t *) "\xe2\x84\x96", 3, 0x2116}, /* (NUMERO SIGN) */
-    {(lxb_char_t *) "\xc2\xa4", 2, 0x00A4}, /* (CURRENCY SIGN) */
-    {(lxb_char_t *) "\xe2\x96\xa0", 3, 0x25A0}, /* (BLACK SQUARE) */
-    {(lxb_char_t *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
+    {(unsigned char *) "\xd0\x90", 2, 0x0410}, /* (CYRILLIC CAPITAL LETTER A) */
+    {(unsigned char *) "\xd0\x91", 2, 0x0411}, /* (CYRILLIC CAPITAL LETTER BE) */
+    {(unsigned char *) "\xd0\x92", 2, 0x0412}, /* (CYRILLIC CAPITAL LETTER VE) */
+    {(unsigned char *) "\xd0\x93", 2, 0x0413}, /* (CYRILLIC CAPITAL LETTER GHE) */
+    {(unsigned char *) "\xd0\x94", 2, 0x0414}, /* (CYRILLIC CAPITAL LETTER DE) */
+    {(unsigned char *) "\xd0\x95", 2, 0x0415}, /* (CYRILLIC CAPITAL LETTER IE) */
+    {(unsigned char *) "\xd0\x96", 2, 0x0416}, /* (CYRILLIC CAPITAL LETTER ZHE) */
+    {(unsigned char *) "\xd0\x97", 2, 0x0417}, /* (CYRILLIC CAPITAL LETTER ZE) */
+    {(unsigned char *) "\xd0\x98", 2, 0x0418}, /* (CYRILLIC CAPITAL LETTER I) */
+    {(unsigned char *) "\xd0\x99", 2, 0x0419}, /* (CYRILLIC CAPITAL LETTER SHORT I) */
+    {(unsigned char *) "\xd0\x9a", 2, 0x041A}, /* (CYRILLIC CAPITAL LETTER KA) */
+    {(unsigned char *) "\xd0\x9b", 2, 0x041B}, /* (CYRILLIC CAPITAL LETTER EL) */
+    {(unsigned char *) "\xd0\x9c", 2, 0x041C}, /* (CYRILLIC CAPITAL LETTER EM) */
+    {(unsigned char *) "\xd0\x9d", 2, 0x041D}, /* (CYRILLIC CAPITAL LETTER EN) */
+    {(unsigned char *) "\xd0\x9e", 2, 0x041E}, /* (CYRILLIC CAPITAL LETTER O) */
+    {(unsigned char *) "\xd0\x9f", 2, 0x041F}, /* (CYRILLIC CAPITAL LETTER PE) */
+    {(unsigned char *) "\xd0\xa0", 2, 0x0420}, /* (CYRILLIC CAPITAL LETTER ER) */
+    {(unsigned char *) "\xd0\xa1", 2, 0x0421}, /* (CYRILLIC CAPITAL LETTER ES) */
+    {(unsigned char *) "\xd0\xa2", 2, 0x0422}, /* (CYRILLIC CAPITAL LETTER TE) */
+    {(unsigned char *) "\xd0\xa3", 2, 0x0423}, /* (CYRILLIC CAPITAL LETTER U) */
+    {(unsigned char *) "\xd0\xa4", 2, 0x0424}, /* (CYRILLIC CAPITAL LETTER EF) */
+    {(unsigned char *) "\xd0\xa5", 2, 0x0425}, /* (CYRILLIC CAPITAL LETTER HA) */
+    {(unsigned char *) "\xd0\xa6", 2, 0x0426}, /* (CYRILLIC CAPITAL LETTER TSE) */
+    {(unsigned char *) "\xd0\xa7", 2, 0x0427}, /* (CYRILLIC CAPITAL LETTER CHE) */
+    {(unsigned char *) "\xd0\xa8", 2, 0x0428}, /* (CYRILLIC CAPITAL LETTER SHA) */
+    {(unsigned char *) "\xd0\xa9", 2, 0x0429}, /* (CYRILLIC CAPITAL LETTER SHCHA) */
+    {(unsigned char *) "\xd0\xaa", 2, 0x042A}, /* (CYRILLIC CAPITAL LETTER HARD SIGN) */
+    {(unsigned char *) "\xd0\xab", 2, 0x042B}, /* (CYRILLIC CAPITAL LETTER YERU) */
+    {(unsigned char *) "\xd0\xac", 2, 0x042C}, /* (CYRILLIC CAPITAL LETTER SOFT SIGN) */
+    {(unsigned char *) "\xd0\xad", 2, 0x042D}, /* (CYRILLIC CAPITAL LETTER E) */
+    {(unsigned char *) "\xd0\xae", 2, 0x042E}, /* (CYRILLIC CAPITAL LETTER YU) */
+    {(unsigned char *) "\xd0\xaf", 2, 0x042F}, /* (CYRILLIC CAPITAL LETTER YA) */
+    {(unsigned char *) "\xd0\xb0", 2, 0x0430}, /* (CYRILLIC SMALL LETTER A) */
+    {(unsigned char *) "\xd0\xb1", 2, 0x0431}, /* (CYRILLIC SMALL LETTER BE) */
+    {(unsigned char *) "\xd0\xb2", 2, 0x0432}, /* (CYRILLIC SMALL LETTER VE) */
+    {(unsigned char *) "\xd0\xb3", 2, 0x0433}, /* (CYRILLIC SMALL LETTER GHE) */
+    {(unsigned char *) "\xd0\xb4", 2, 0x0434}, /* (CYRILLIC SMALL LETTER DE) */
+    {(unsigned char *) "\xd0\xb5", 2, 0x0435}, /* (CYRILLIC SMALL LETTER IE) */
+    {(unsigned char *) "\xd0\xb6", 2, 0x0436}, /* (CYRILLIC SMALL LETTER ZHE) */
+    {(unsigned char *) "\xd0\xb7", 2, 0x0437}, /* (CYRILLIC SMALL LETTER ZE) */
+    {(unsigned char *) "\xd0\xb8", 2, 0x0438}, /* (CYRILLIC SMALL LETTER I) */
+    {(unsigned char *) "\xd0\xb9", 2, 0x0439}, /* (CYRILLIC SMALL LETTER SHORT I) */
+    {(unsigned char *) "\xd0\xba", 2, 0x043A}, /* (CYRILLIC SMALL LETTER KA) */
+    {(unsigned char *) "\xd0\xbb", 2, 0x043B}, /* (CYRILLIC SMALL LETTER EL) */
+    {(unsigned char *) "\xd0\xbc", 2, 0x043C}, /* (CYRILLIC SMALL LETTER EM) */
+    {(unsigned char *) "\xd0\xbd", 2, 0x043D}, /* (CYRILLIC SMALL LETTER EN) */
+    {(unsigned char *) "\xd0\xbe", 2, 0x043E}, /* (CYRILLIC SMALL LETTER O) */
+    {(unsigned char *) "\xd0\xbf", 2, 0x043F}, /* (CYRILLIC SMALL LETTER PE) */
+    {(unsigned char *) "\xe2\x96\x91", 3, 0x2591}, /* (LIGHT SHADE) */
+    {(unsigned char *) "\xe2\x96\x92", 3, 0x2592}, /* (MEDIUM SHADE) */
+    {(unsigned char *) "\xe2\x96\x93", 3, 0x2593}, /* (DARK SHADE) */
+    {(unsigned char *) "\xe2\x94\x82", 3, 0x2502}, /* (BOX DRAWINGS LIGHT VERTICAL) */
+    {(unsigned char *) "\xe2\x94\xa4", 3, 0x2524}, /* (BOX DRAWINGS LIGHT VERTICAL AND LEFT) */
+    {(unsigned char *) "\xe2\x95\xa1", 3, 0x2561}, /* (BOX DRAWINGS VERTICAL SINGLE AND LEFT DOUBLE) */
+    {(unsigned char *) "\xe2\x95\xa2", 3, 0x2562}, /* (BOX DRAWINGS VERTICAL DOUBLE AND LEFT SINGLE) */
+    {(unsigned char *) "\xe2\x95\x96", 3, 0x2556}, /* (BOX DRAWINGS DOWN DOUBLE AND LEFT SINGLE) */
+    {(unsigned char *) "\xe2\x95\x95", 3, 0x2555}, /* (BOX DRAWINGS DOWN SINGLE AND LEFT DOUBLE) */
+    {(unsigned char *) "\xe2\x95\xa3", 3, 0x2563}, /* (BOX DRAWINGS DOUBLE VERTICAL AND LEFT) */
+    {(unsigned char *) "\xe2\x95\x91", 3, 0x2551}, /* (BOX DRAWINGS DOUBLE VERTICAL) */
+    {(unsigned char *) "\xe2\x95\x97", 3, 0x2557}, /* (BOX DRAWINGS DOUBLE DOWN AND LEFT) */
+    {(unsigned char *) "\xe2\x95\x9d", 3, 0x255D}, /* (BOX DRAWINGS DOUBLE UP AND LEFT) */
+    {(unsigned char *) "\xe2\x95\x9c", 3, 0x255C}, /* (BOX DRAWINGS UP DOUBLE AND LEFT SINGLE) */
+    {(unsigned char *) "\xe2\x95\x9b", 3, 0x255B}, /* (BOX DRAWINGS UP SINGLE AND LEFT DOUBLE) */
+    {(unsigned char *) "\xe2\x94\x90", 3, 0x2510}, /* (BOX DRAWINGS LIGHT DOWN AND LEFT) */
+    {(unsigned char *) "\xe2\x94\x94", 3, 0x2514}, /* (BOX DRAWINGS LIGHT UP AND RIGHT) */
+    {(unsigned char *) "\xe2\x94\xb4", 3, 0x2534}, /* (BOX DRAWINGS LIGHT UP AND HORIZONTAL) */
+    {(unsigned char *) "\xe2\x94\xac", 3, 0x252C}, /* (BOX DRAWINGS LIGHT DOWN AND HORIZONTAL) */
+    {(unsigned char *) "\xe2\x94\x9c", 3, 0x251C}, /* (BOX DRAWINGS LIGHT VERTICAL AND RIGHT) */
+    {(unsigned char *) "\xe2\x94\x80", 3, 0x2500}, /* (BOX DRAWINGS LIGHT HORIZONTAL) */
+    {(unsigned char *) "\xe2\x94\xbc", 3, 0x253C}, /* (BOX DRAWINGS LIGHT VERTICAL AND HORIZONTAL) */
+    {(unsigned char *) "\xe2\x95\x9e", 3, 0x255E}, /* (BOX DRAWINGS VERTICAL SINGLE AND RIGHT DOUBLE) */
+    {(unsigned char *) "\xe2\x95\x9f", 3, 0x255F}, /* (BOX DRAWINGS VERTICAL DOUBLE AND RIGHT SINGLE) */
+    {(unsigned char *) "\xe2\x95\x9a", 3, 0x255A}, /* (BOX DRAWINGS DOUBLE UP AND RIGHT) */
+    {(unsigned char *) "\xe2\x95\x94", 3, 0x2554}, /* (BOX DRAWINGS DOUBLE DOWN AND RIGHT) */
+    {(unsigned char *) "\xe2\x95\xa9", 3, 0x2569}, /* (BOX DRAWINGS DOUBLE UP AND HORIZONTAL) */
+    {(unsigned char *) "\xe2\x95\xa6", 3, 0x2566}, /* (BOX DRAWINGS DOUBLE DOWN AND HORIZONTAL) */
+    {(unsigned char *) "\xe2\x95\xa0", 3, 0x2560}, /* (BOX DRAWINGS DOUBLE VERTICAL AND RIGHT) */
+    {(unsigned char *) "\xe2\x95\x90", 3, 0x2550}, /* (BOX DRAWINGS DOUBLE HORIZONTAL) */
+    {(unsigned char *) "\xe2\x95\xac", 3, 0x256C}, /* (BOX DRAWINGS DOUBLE VERTICAL AND HORIZONTAL) */
+    {(unsigned char *) "\xe2\x95\xa7", 3, 0x2567}, /* (BOX DRAWINGS UP SINGLE AND HORIZONTAL DOUBLE) */
+    {(unsigned char *) "\xe2\x95\xa8", 3, 0x2568}, /* (BOX DRAWINGS UP DOUBLE AND HORIZONTAL SINGLE) */
+    {(unsigned char *) "\xe2\x95\xa4", 3, 0x2564}, /* (BOX DRAWINGS DOWN SINGLE AND HORIZONTAL DOUBLE) */
+    {(unsigned char *) "\xe2\x95\xa5", 3, 0x2565}, /* (BOX DRAWINGS DOWN DOUBLE AND HORIZONTAL SINGLE) */
+    {(unsigned char *) "\xe2\x95\x99", 3, 0x2559}, /* (BOX DRAWINGS UP DOUBLE AND RIGHT SINGLE) */
+    {(unsigned char *) "\xe2\x95\x98", 3, 0x2558}, /* (BOX DRAWINGS UP SINGLE AND RIGHT DOUBLE) */
+    {(unsigned char *) "\xe2\x95\x92", 3, 0x2552}, /* (BOX DRAWINGS DOWN SINGLE AND RIGHT DOUBLE) */
+    {(unsigned char *) "\xe2\x95\x93", 3, 0x2553}, /* (BOX DRAWINGS DOWN DOUBLE AND RIGHT SINGLE) */
+    {(unsigned char *) "\xe2\x95\xab", 3, 0x256B}, /* (BOX DRAWINGS VERTICAL DOUBLE AND HORIZONTAL SINGLE) */
+    {(unsigned char *) "\xe2\x95\xaa", 3, 0x256A}, /* (BOX DRAWINGS VERTICAL SINGLE AND HORIZONTAL DOUBLE) */
+    {(unsigned char *) "\xe2\x94\x98", 3, 0x2518}, /* (BOX DRAWINGS LIGHT UP AND LEFT) */
+    {(unsigned char *) "\xe2\x94\x8c", 3, 0x250C}, /* (BOX DRAWINGS LIGHT DOWN AND RIGHT) */
+    {(unsigned char *) "\xe2\x96\x88", 3, 0x2588}, /* (FULL BLOCK) */
+    {(unsigned char *) "\xe2\x96\x84", 3, 0x2584}, /* (LOWER HALF BLOCK) */
+    {(unsigned char *) "\xe2\x96\x8c", 3, 0x258C}, /* (LEFT HALF BLOCK) */
+    {(unsigned char *) "\xe2\x96\x90", 3, 0x2590}, /* (RIGHT HALF BLOCK) */
+    {(unsigned char *) "\xe2\x96\x80", 3, 0x2580}, /* (UPPER HALF BLOCK) */
+    {(unsigned char *) "\xd1\x80", 2, 0x0440}, /* (CYRILLIC SMALL LETTER ER) */
+    {(unsigned char *) "\xd1\x81", 2, 0x0441}, /* (CYRILLIC SMALL LETTER ES) */
+    {(unsigned char *) "\xd1\x82", 2, 0x0442}, /* (CYRILLIC SMALL LETTER TE) */
+    {(unsigned char *) "\xd1\x83", 2, 0x0443}, /* (CYRILLIC SMALL LETTER U) */
+    {(unsigned char *) "\xd1\x84", 2, 0x0444}, /* (CYRILLIC SMALL LETTER EF) */
+    {(unsigned char *) "\xd1\x85", 2, 0x0445}, /* (CYRILLIC SMALL LETTER HA) */
+    {(unsigned char *) "\xd1\x86", 2, 0x0446}, /* (CYRILLIC SMALL LETTER TSE) */
+    {(unsigned char *) "\xd1\x87", 2, 0x0447}, /* (CYRILLIC SMALL LETTER CHE) */
+    {(unsigned char *) "\xd1\x88", 2, 0x0448}, /* (CYRILLIC SMALL LETTER SHA) */
+    {(unsigned char *) "\xd1\x89", 2, 0x0449}, /* (CYRILLIC SMALL LETTER SHCHA) */
+    {(unsigned char *) "\xd1\x8a", 2, 0x044A}, /* (CYRILLIC SMALL LETTER HARD SIGN) */
+    {(unsigned char *) "\xd1\x8b", 2, 0x044B}, /* (CYRILLIC SMALL LETTER YERU) */
+    {(unsigned char *) "\xd1\x8c", 2, 0x044C}, /* (CYRILLIC SMALL LETTER SOFT SIGN) */
+    {(unsigned char *) "\xd1\x8d", 2, 0x044D}, /* (CYRILLIC SMALL LETTER E) */
+    {(unsigned char *) "\xd1\x8e", 2, 0x044E}, /* (CYRILLIC SMALL LETTER YU) */
+    {(unsigned char *) "\xd1\x8f", 2, 0x044F}, /* (CYRILLIC SMALL LETTER YA) */
+    {(unsigned char *) "\xd0\x81", 2, 0x0401}, /* (CYRILLIC CAPITAL LETTER IO) */
+    {(unsigned char *) "\xd1\x91", 2, 0x0451}, /* (CYRILLIC SMALL LETTER IO) */
+    {(unsigned char *) "\xd0\x84", 2, 0x0404}, /* (CYRILLIC CAPITAL LETTER UKRAINIAN IE) */
+    {(unsigned char *) "\xd1\x94", 2, 0x0454}, /* (CYRILLIC SMALL LETTER UKRAINIAN IE) */
+    {(unsigned char *) "\xd0\x87", 2, 0x0407}, /* (CYRILLIC CAPITAL LETTER YI) */
+    {(unsigned char *) "\xd1\x97", 2, 0x0457}, /* (CYRILLIC SMALL LETTER YI) */
+    {(unsigned char *) "\xd0\x8e", 2, 0x040E}, /* (CYRILLIC CAPITAL LETTER SHORT U) */
+    {(unsigned char *) "\xd1\x9e", 2, 0x045E}, /* (CYRILLIC SMALL LETTER SHORT U) */
+    {(unsigned char *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
+    {(unsigned char *) "\xe2\x88\x99", 3, 0x2219}, /* (BULLET OPERATOR) */
+    {(unsigned char *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
+    {(unsigned char *) "\xe2\x88\x9a", 3, 0x221A}, /* (SQUARE ROOT) */
+    {(unsigned char *) "\xe2\x84\x96", 3, 0x2116}, /* (NUMERO SIGN) */
+    {(unsigned char *) "\xc2\xa4", 2, 0x00A4}, /* (CURRENCY SIGN) */
+    {(unsigned char *) "\xe2\x96\xa0", 3, 0x25A0}, /* (BLACK SQUARE) */
+    {(unsigned char *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
 };
 
-LXB_API const lxb_encoding_single_index_t lxb_encoding_single_index_iso_8859_10[128] = 
+GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_10[128] = 
 {
-    {(lxb_char_t *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x82", 2, 0x0082}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x83", 2, 0x0083}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x84", 2, 0x0084}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x85", 2, 0x0085}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x86", 2, 0x0086}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x87", 2, 0x0087}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x89", 2, 0x0089}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8b", 2, 0x008B}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x91", 2, 0x0091}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x92", 2, 0x0092}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x93", 2, 0x0093}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x94", 2, 0x0094}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x95", 2, 0x0095}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x96", 2, 0x0096}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x97", 2, 0x0097}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x99", 2, 0x0099}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9b", 2, 0x009B}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
-    {(lxb_char_t *) "\xc4\x84", 2, 0x0104}, /* (LATIN CAPITAL LETTER A WITH OGONEK) */
-    {(lxb_char_t *) "\xc4\x92", 2, 0x0112}, /* (LATIN CAPITAL LETTER E WITH MACRON) */
-    {(lxb_char_t *) "\xc4\xa2", 2, 0x0122}, /* (LATIN CAPITAL LETTER G WITH CEDILLA) */
-    {(lxb_char_t *) "\xc4\xaa", 2, 0x012A}, /* (LATIN CAPITAL LETTER I WITH MACRON) */
-    {(lxb_char_t *) "\xc4\xa8", 2, 0x0128}, /* (LATIN CAPITAL LETTER I WITH TILDE) */
-    {(lxb_char_t *) "\xc4\xb6", 2, 0x0136}, /* (LATIN CAPITAL LETTER K WITH CEDILLA) */
-    {(lxb_char_t *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
-    {(lxb_char_t *) "\xc4\xbb", 2, 0x013B}, /* (LATIN CAPITAL LETTER L WITH CEDILLA) */
-    {(lxb_char_t *) "\xc4\x90", 2, 0x0110}, /* (LATIN CAPITAL LETTER D WITH STROKE) */
-    {(lxb_char_t *) "\xc5\xa0", 2, 0x0160}, /* (LATIN CAPITAL LETTER S WITH CARON) */
-    {(lxb_char_t *) "\xc5\xa6", 2, 0x0166}, /* (LATIN CAPITAL LETTER T WITH STROKE) */
-    {(lxb_char_t *) "\xc5\xbd", 2, 0x017D}, /* (LATIN CAPITAL LETTER Z WITH CARON) */
-    {(lxb_char_t *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
-    {(lxb_char_t *) "\xc5\xaa", 2, 0x016A}, /* (LATIN CAPITAL LETTER U WITH MACRON) */
-    {(lxb_char_t *) "\xc5\x8a", 2, 0x014A}, /* (LATIN CAPITAL LETTER ENG) */
-    {(lxb_char_t *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
-    {(lxb_char_t *) "\xc4\x85", 2, 0x0105}, /* (LATIN SMALL LETTER A WITH OGONEK) */
-    {(lxb_char_t *) "\xc4\x93", 2, 0x0113}, /* (LATIN SMALL LETTER E WITH MACRON) */
-    {(lxb_char_t *) "\xc4\xa3", 2, 0x0123}, /* (LATIN SMALL LETTER G WITH CEDILLA) */
-    {(lxb_char_t *) "\xc4\xab", 2, 0x012B}, /* (LATIN SMALL LETTER I WITH MACRON) */
-    {(lxb_char_t *) "\xc4\xa9", 2, 0x0129}, /* (LATIN SMALL LETTER I WITH TILDE) */
-    {(lxb_char_t *) "\xc4\xb7", 2, 0x0137}, /* (LATIN SMALL LETTER K WITH CEDILLA) */
-    {(lxb_char_t *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
-    {(lxb_char_t *) "\xc4\xbc", 2, 0x013C}, /* (LATIN SMALL LETTER L WITH CEDILLA) */
-    {(lxb_char_t *) "\xc4\x91", 2, 0x0111}, /* (LATIN SMALL LETTER D WITH STROKE) */
-    {(lxb_char_t *) "\xc5\xa1", 2, 0x0161}, /* (LATIN SMALL LETTER S WITH CARON) */
-    {(lxb_char_t *) "\xc5\xa7", 2, 0x0167}, /* (LATIN SMALL LETTER T WITH STROKE) */
-    {(lxb_char_t *) "\xc5\xbe", 2, 0x017E}, /* (LATIN SMALL LETTER Z WITH CARON) */
-    {(lxb_char_t *) "\xe2\x80\x95", 3, 0x2015}, /* (HORIZONTAL BAR) */
-    {(lxb_char_t *) "\xc5\xab", 2, 0x016B}, /* (LATIN SMALL LETTER U WITH MACRON) */
-    {(lxb_char_t *) "\xc5\x8b", 2, 0x014B}, /* (LATIN SMALL LETTER ENG) */
-    {(lxb_char_t *) "\xc4\x80", 2, 0x0100}, /* (LATIN CAPITAL LETTER A WITH MACRON) */
-    {(lxb_char_t *) "\xc3\x81", 2, 0x00C1}, /* (LATIN CAPITAL LETTER A WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x82", 2, 0x00C2}, /* (LATIN CAPITAL LETTER A WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x83", 2, 0x00C3}, /* (LATIN CAPITAL LETTER A WITH TILDE) */
-    {(lxb_char_t *) "\xc3\x84", 2, 0x00C4}, /* (LATIN CAPITAL LETTER A WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x85", 2, 0x00C5}, /* (LATIN CAPITAL LETTER A WITH RING ABOVE) */
-    {(lxb_char_t *) "\xc3\x86", 2, 0x00C6}, /* (LATIN CAPITAL LETTER AE) */
-    {(lxb_char_t *) "\xc4\xae", 2, 0x012E}, /* (LATIN CAPITAL LETTER I WITH OGONEK) */
-    {(lxb_char_t *) "\xc4\x8c", 2, 0x010C}, /* (LATIN CAPITAL LETTER C WITH CARON) */
-    {(lxb_char_t *) "\xc3\x89", 2, 0x00C9}, /* (LATIN CAPITAL LETTER E WITH ACUTE) */
-    {(lxb_char_t *) "\xc4\x98", 2, 0x0118}, /* (LATIN CAPITAL LETTER E WITH OGONEK) */
-    {(lxb_char_t *) "\xc3\x8b", 2, 0x00CB}, /* (LATIN CAPITAL LETTER E WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc4\x96", 2, 0x0116}, /* (LATIN CAPITAL LETTER E WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc3\x8d", 2, 0x00CD}, /* (LATIN CAPITAL LETTER I WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x8e", 2, 0x00CE}, /* (LATIN CAPITAL LETTER I WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x8f", 2, 0x00CF}, /* (LATIN CAPITAL LETTER I WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x90", 2, 0x00D0}, /* (LATIN CAPITAL LETTER ETH) */
-    {(lxb_char_t *) "\xc5\x85", 2, 0x0145}, /* (LATIN CAPITAL LETTER N WITH CEDILLA) */
-    {(lxb_char_t *) "\xc5\x8c", 2, 0x014C}, /* (LATIN CAPITAL LETTER O WITH MACRON) */
-    {(lxb_char_t *) "\xc3\x93", 2, 0x00D3}, /* (LATIN CAPITAL LETTER O WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x94", 2, 0x00D4}, /* (LATIN CAPITAL LETTER O WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x95", 2, 0x00D5}, /* (LATIN CAPITAL LETTER O WITH TILDE) */
-    {(lxb_char_t *) "\xc3\x96", 2, 0x00D6}, /* (LATIN CAPITAL LETTER O WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc5\xa8", 2, 0x0168}, /* (LATIN CAPITAL LETTER U WITH TILDE) */
-    {(lxb_char_t *) "\xc3\x98", 2, 0x00D8}, /* (LATIN CAPITAL LETTER O WITH STROKE) */
-    {(lxb_char_t *) "\xc5\xb2", 2, 0x0172}, /* (LATIN CAPITAL LETTER U WITH OGONEK) */
-    {(lxb_char_t *) "\xc3\x9a", 2, 0x00DA}, /* (LATIN CAPITAL LETTER U WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x9b", 2, 0x00DB}, /* (LATIN CAPITAL LETTER U WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x9c", 2, 0x00DC}, /* (LATIN CAPITAL LETTER U WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x9d", 2, 0x00DD}, /* (LATIN CAPITAL LETTER Y WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x9e", 2, 0x00DE}, /* (LATIN CAPITAL LETTER THORN) */
-    {(lxb_char_t *) "\xc3\x9f", 2, 0x00DF}, /* (LATIN SMALL LETTER SHARP S) */
-    {(lxb_char_t *) "\xc4\x81", 2, 0x0101}, /* (LATIN SMALL LETTER A WITH MACRON) */
-    {(lxb_char_t *) "\xc3\xa1", 2, 0x00E1}, /* (LATIN SMALL LETTER A WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xa2", 2, 0x00E2}, /* (LATIN SMALL LETTER A WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xa3", 2, 0x00E3}, /* (LATIN SMALL LETTER A WITH TILDE) */
-    {(lxb_char_t *) "\xc3\xa4", 2, 0x00E4}, /* (LATIN SMALL LETTER A WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xa5", 2, 0x00E5}, /* (LATIN SMALL LETTER A WITH RING ABOVE) */
-    {(lxb_char_t *) "\xc3\xa6", 2, 0x00E6}, /* (LATIN SMALL LETTER AE) */
-    {(lxb_char_t *) "\xc4\xaf", 2, 0x012F}, /* (LATIN SMALL LETTER I WITH OGONEK) */
-    {(lxb_char_t *) "\xc4\x8d", 2, 0x010D}, /* (LATIN SMALL LETTER C WITH CARON) */
-    {(lxb_char_t *) "\xc3\xa9", 2, 0x00E9}, /* (LATIN SMALL LETTER E WITH ACUTE) */
-    {(lxb_char_t *) "\xc4\x99", 2, 0x0119}, /* (LATIN SMALL LETTER E WITH OGONEK) */
-    {(lxb_char_t *) "\xc3\xab", 2, 0x00EB}, /* (LATIN SMALL LETTER E WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc4\x97", 2, 0x0117}, /* (LATIN SMALL LETTER E WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc3\xad", 2, 0x00ED}, /* (LATIN SMALL LETTER I WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xae", 2, 0x00EE}, /* (LATIN SMALL LETTER I WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xaf", 2, 0x00EF}, /* (LATIN SMALL LETTER I WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xb0", 2, 0x00F0}, /* (LATIN SMALL LETTER ETH) */
-    {(lxb_char_t *) "\xc5\x86", 2, 0x0146}, /* (LATIN SMALL LETTER N WITH CEDILLA) */
-    {(lxb_char_t *) "\xc5\x8d", 2, 0x014D}, /* (LATIN SMALL LETTER O WITH MACRON) */
-    {(lxb_char_t *) "\xc3\xb3", 2, 0x00F3}, /* (LATIN SMALL LETTER O WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xb4", 2, 0x00F4}, /* (LATIN SMALL LETTER O WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xb5", 2, 0x00F5}, /* (LATIN SMALL LETTER O WITH TILDE) */
-    {(lxb_char_t *) "\xc3\xb6", 2, 0x00F6}, /* (LATIN SMALL LETTER O WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc5\xa9", 2, 0x0169}, /* (LATIN SMALL LETTER U WITH TILDE) */
-    {(lxb_char_t *) "\xc3\xb8", 2, 0x00F8}, /* (LATIN SMALL LETTER O WITH STROKE) */
-    {(lxb_char_t *) "\xc5\xb3", 2, 0x0173}, /* (LATIN SMALL LETTER U WITH OGONEK) */
-    {(lxb_char_t *) "\xc3\xba", 2, 0x00FA}, /* (LATIN SMALL LETTER U WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xbb", 2, 0x00FB}, /* (LATIN SMALL LETTER U WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xbc", 2, 0x00FC}, /* (LATIN SMALL LETTER U WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xbd", 2, 0x00FD}, /* (LATIN SMALL LETTER Y WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xbe", 2, 0x00FE}, /* (LATIN SMALL LETTER THORN) */
-    {(lxb_char_t *) "\xc4\xb8", 2, 0x0138}, /* (LATIN SMALL LETTER KRA) */
+    {(unsigned char *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
+    {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
+    {(unsigned char *) "\xc2\x82", 2, 0x0082}, /* (<control>) */
+    {(unsigned char *) "\xc2\x83", 2, 0x0083}, /* (<control>) */
+    {(unsigned char *) "\xc2\x84", 2, 0x0084}, /* (<control>) */
+    {(unsigned char *) "\xc2\x85", 2, 0x0085}, /* (<control>) */
+    {(unsigned char *) "\xc2\x86", 2, 0x0086}, /* (<control>) */
+    {(unsigned char *) "\xc2\x87", 2, 0x0087}, /* (<control>) */
+    {(unsigned char *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
+    {(unsigned char *) "\xc2\x89", 2, 0x0089}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8b", 2, 0x008B}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
+    {(unsigned char *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
+    {(unsigned char *) "\xc2\x91", 2, 0x0091}, /* (<control>) */
+    {(unsigned char *) "\xc2\x92", 2, 0x0092}, /* (<control>) */
+    {(unsigned char *) "\xc2\x93", 2, 0x0093}, /* (<control>) */
+    {(unsigned char *) "\xc2\x94", 2, 0x0094}, /* (<control>) */
+    {(unsigned char *) "\xc2\x95", 2, 0x0095}, /* (<control>) */
+    {(unsigned char *) "\xc2\x96", 2, 0x0096}, /* (<control>) */
+    {(unsigned char *) "\xc2\x97", 2, 0x0097}, /* (<control>) */
+    {(unsigned char *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
+    {(unsigned char *) "\xc2\x99", 2, 0x0099}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9b", 2, 0x009B}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
+    {(unsigned char *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
+    {(unsigned char *) "\xc4\x84", 2, 0x0104}, /* (LATIN CAPITAL LETTER A WITH OGONEK) */
+    {(unsigned char *) "\xc4\x92", 2, 0x0112}, /* (LATIN CAPITAL LETTER E WITH MACRON) */
+    {(unsigned char *) "\xc4\xa2", 2, 0x0122}, /* (LATIN CAPITAL LETTER G WITH CEDILLA) */
+    {(unsigned char *) "\xc4\xaa", 2, 0x012A}, /* (LATIN CAPITAL LETTER I WITH MACRON) */
+    {(unsigned char *) "\xc4\xa8", 2, 0x0128}, /* (LATIN CAPITAL LETTER I WITH TILDE) */
+    {(unsigned char *) "\xc4\xb6", 2, 0x0136}, /* (LATIN CAPITAL LETTER K WITH CEDILLA) */
+    {(unsigned char *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
+    {(unsigned char *) "\xc4\xbb", 2, 0x013B}, /* (LATIN CAPITAL LETTER L WITH CEDILLA) */
+    {(unsigned char *) "\xc4\x90", 2, 0x0110}, /* (LATIN CAPITAL LETTER D WITH STROKE) */
+    {(unsigned char *) "\xc5\xa0", 2, 0x0160}, /* (LATIN CAPITAL LETTER S WITH CARON) */
+    {(unsigned char *) "\xc5\xa6", 2, 0x0166}, /* (LATIN CAPITAL LETTER T WITH STROKE) */
+    {(unsigned char *) "\xc5\xbd", 2, 0x017D}, /* (LATIN CAPITAL LETTER Z WITH CARON) */
+    {(unsigned char *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
+    {(unsigned char *) "\xc5\xaa", 2, 0x016A}, /* (LATIN CAPITAL LETTER U WITH MACRON) */
+    {(unsigned char *) "\xc5\x8a", 2, 0x014A}, /* (LATIN CAPITAL LETTER ENG) */
+    {(unsigned char *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
+    {(unsigned char *) "\xc4\x85", 2, 0x0105}, /* (LATIN SMALL LETTER A WITH OGONEK) */
+    {(unsigned char *) "\xc4\x93", 2, 0x0113}, /* (LATIN SMALL LETTER E WITH MACRON) */
+    {(unsigned char *) "\xc4\xa3", 2, 0x0123}, /* (LATIN SMALL LETTER G WITH CEDILLA) */
+    {(unsigned char *) "\xc4\xab", 2, 0x012B}, /* (LATIN SMALL LETTER I WITH MACRON) */
+    {(unsigned char *) "\xc4\xa9", 2, 0x0129}, /* (LATIN SMALL LETTER I WITH TILDE) */
+    {(unsigned char *) "\xc4\xb7", 2, 0x0137}, /* (LATIN SMALL LETTER K WITH CEDILLA) */
+    {(unsigned char *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
+    {(unsigned char *) "\xc4\xbc", 2, 0x013C}, /* (LATIN SMALL LETTER L WITH CEDILLA) */
+    {(unsigned char *) "\xc4\x91", 2, 0x0111}, /* (LATIN SMALL LETTER D WITH STROKE) */
+    {(unsigned char *) "\xc5\xa1", 2, 0x0161}, /* (LATIN SMALL LETTER S WITH CARON) */
+    {(unsigned char *) "\xc5\xa7", 2, 0x0167}, /* (LATIN SMALL LETTER T WITH STROKE) */
+    {(unsigned char *) "\xc5\xbe", 2, 0x017E}, /* (LATIN SMALL LETTER Z WITH CARON) */
+    {(unsigned char *) "\xe2\x80\x95", 3, 0x2015}, /* (HORIZONTAL BAR) */
+    {(unsigned char *) "\xc5\xab", 2, 0x016B}, /* (LATIN SMALL LETTER U WITH MACRON) */
+    {(unsigned char *) "\xc5\x8b", 2, 0x014B}, /* (LATIN SMALL LETTER ENG) */
+    {(unsigned char *) "\xc4\x80", 2, 0x0100}, /* (LATIN CAPITAL LETTER A WITH MACRON) */
+    {(unsigned char *) "\xc3\x81", 2, 0x00C1}, /* (LATIN CAPITAL LETTER A WITH ACUTE) */
+    {(unsigned char *) "\xc3\x82", 2, 0x00C2}, /* (LATIN CAPITAL LETTER A WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x83", 2, 0x00C3}, /* (LATIN CAPITAL LETTER A WITH TILDE) */
+    {(unsigned char *) "\xc3\x84", 2, 0x00C4}, /* (LATIN CAPITAL LETTER A WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x85", 2, 0x00C5}, /* (LATIN CAPITAL LETTER A WITH RING ABOVE) */
+    {(unsigned char *) "\xc3\x86", 2, 0x00C6}, /* (LATIN CAPITAL LETTER AE) */
+    {(unsigned char *) "\xc4\xae", 2, 0x012E}, /* (LATIN CAPITAL LETTER I WITH OGONEK) */
+    {(unsigned char *) "\xc4\x8c", 2, 0x010C}, /* (LATIN CAPITAL LETTER C WITH CARON) */
+    {(unsigned char *) "\xc3\x89", 2, 0x00C9}, /* (LATIN CAPITAL LETTER E WITH ACUTE) */
+    {(unsigned char *) "\xc4\x98", 2, 0x0118}, /* (LATIN CAPITAL LETTER E WITH OGONEK) */
+    {(unsigned char *) "\xc3\x8b", 2, 0x00CB}, /* (LATIN CAPITAL LETTER E WITH DIAERESIS) */
+    {(unsigned char *) "\xc4\x96", 2, 0x0116}, /* (LATIN CAPITAL LETTER E WITH DOT ABOVE) */
+    {(unsigned char *) "\xc3\x8d", 2, 0x00CD}, /* (LATIN CAPITAL LETTER I WITH ACUTE) */
+    {(unsigned char *) "\xc3\x8e", 2, 0x00CE}, /* (LATIN CAPITAL LETTER I WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x8f", 2, 0x00CF}, /* (LATIN CAPITAL LETTER I WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x90", 2, 0x00D0}, /* (LATIN CAPITAL LETTER ETH) */
+    {(unsigned char *) "\xc5\x85", 2, 0x0145}, /* (LATIN CAPITAL LETTER N WITH CEDILLA) */
+    {(unsigned char *) "\xc5\x8c", 2, 0x014C}, /* (LATIN CAPITAL LETTER O WITH MACRON) */
+    {(unsigned char *) "\xc3\x93", 2, 0x00D3}, /* (LATIN CAPITAL LETTER O WITH ACUTE) */
+    {(unsigned char *) "\xc3\x94", 2, 0x00D4}, /* (LATIN CAPITAL LETTER O WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x95", 2, 0x00D5}, /* (LATIN CAPITAL LETTER O WITH TILDE) */
+    {(unsigned char *) "\xc3\x96", 2, 0x00D6}, /* (LATIN CAPITAL LETTER O WITH DIAERESIS) */
+    {(unsigned char *) "\xc5\xa8", 2, 0x0168}, /* (LATIN CAPITAL LETTER U WITH TILDE) */
+    {(unsigned char *) "\xc3\x98", 2, 0x00D8}, /* (LATIN CAPITAL LETTER O WITH STROKE) */
+    {(unsigned char *) "\xc5\xb2", 2, 0x0172}, /* (LATIN CAPITAL LETTER U WITH OGONEK) */
+    {(unsigned char *) "\xc3\x9a", 2, 0x00DA}, /* (LATIN CAPITAL LETTER U WITH ACUTE) */
+    {(unsigned char *) "\xc3\x9b", 2, 0x00DB}, /* (LATIN CAPITAL LETTER U WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x9c", 2, 0x00DC}, /* (LATIN CAPITAL LETTER U WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x9d", 2, 0x00DD}, /* (LATIN CAPITAL LETTER Y WITH ACUTE) */
+    {(unsigned char *) "\xc3\x9e", 2, 0x00DE}, /* (LATIN CAPITAL LETTER THORN) */
+    {(unsigned char *) "\xc3\x9f", 2, 0x00DF}, /* (LATIN SMALL LETTER SHARP S) */
+    {(unsigned char *) "\xc4\x81", 2, 0x0101}, /* (LATIN SMALL LETTER A WITH MACRON) */
+    {(unsigned char *) "\xc3\xa1", 2, 0x00E1}, /* (LATIN SMALL LETTER A WITH ACUTE) */
+    {(unsigned char *) "\xc3\xa2", 2, 0x00E2}, /* (LATIN SMALL LETTER A WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xa3", 2, 0x00E3}, /* (LATIN SMALL LETTER A WITH TILDE) */
+    {(unsigned char *) "\xc3\xa4", 2, 0x00E4}, /* (LATIN SMALL LETTER A WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xa5", 2, 0x00E5}, /* (LATIN SMALL LETTER A WITH RING ABOVE) */
+    {(unsigned char *) "\xc3\xa6", 2, 0x00E6}, /* (LATIN SMALL LETTER AE) */
+    {(unsigned char *) "\xc4\xaf", 2, 0x012F}, /* (LATIN SMALL LETTER I WITH OGONEK) */
+    {(unsigned char *) "\xc4\x8d", 2, 0x010D}, /* (LATIN SMALL LETTER C WITH CARON) */
+    {(unsigned char *) "\xc3\xa9", 2, 0x00E9}, /* (LATIN SMALL LETTER E WITH ACUTE) */
+    {(unsigned char *) "\xc4\x99", 2, 0x0119}, /* (LATIN SMALL LETTER E WITH OGONEK) */
+    {(unsigned char *) "\xc3\xab", 2, 0x00EB}, /* (LATIN SMALL LETTER E WITH DIAERESIS) */
+    {(unsigned char *) "\xc4\x97", 2, 0x0117}, /* (LATIN SMALL LETTER E WITH DOT ABOVE) */
+    {(unsigned char *) "\xc3\xad", 2, 0x00ED}, /* (LATIN SMALL LETTER I WITH ACUTE) */
+    {(unsigned char *) "\xc3\xae", 2, 0x00EE}, /* (LATIN SMALL LETTER I WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xaf", 2, 0x00EF}, /* (LATIN SMALL LETTER I WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xb0", 2, 0x00F0}, /* (LATIN SMALL LETTER ETH) */
+    {(unsigned char *) "\xc5\x86", 2, 0x0146}, /* (LATIN SMALL LETTER N WITH CEDILLA) */
+    {(unsigned char *) "\xc5\x8d", 2, 0x014D}, /* (LATIN SMALL LETTER O WITH MACRON) */
+    {(unsigned char *) "\xc3\xb3", 2, 0x00F3}, /* (LATIN SMALL LETTER O WITH ACUTE) */
+    {(unsigned char *) "\xc3\xb4", 2, 0x00F4}, /* (LATIN SMALL LETTER O WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xb5", 2, 0x00F5}, /* (LATIN SMALL LETTER O WITH TILDE) */
+    {(unsigned char *) "\xc3\xb6", 2, 0x00F6}, /* (LATIN SMALL LETTER O WITH DIAERESIS) */
+    {(unsigned char *) "\xc5\xa9", 2, 0x0169}, /* (LATIN SMALL LETTER U WITH TILDE) */
+    {(unsigned char *) "\xc3\xb8", 2, 0x00F8}, /* (LATIN SMALL LETTER O WITH STROKE) */
+    {(unsigned char *) "\xc5\xb3", 2, 0x0173}, /* (LATIN SMALL LETTER U WITH OGONEK) */
+    {(unsigned char *) "\xc3\xba", 2, 0x00FA}, /* (LATIN SMALL LETTER U WITH ACUTE) */
+    {(unsigned char *) "\xc3\xbb", 2, 0x00FB}, /* (LATIN SMALL LETTER U WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xbc", 2, 0x00FC}, /* (LATIN SMALL LETTER U WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xbd", 2, 0x00FD}, /* (LATIN SMALL LETTER Y WITH ACUTE) */
+    {(unsigned char *) "\xc3\xbe", 2, 0x00FE}, /* (LATIN SMALL LETTER THORN) */
+    {(unsigned char *) "\xc4\xb8", 2, 0x0138}, /* (LATIN SMALL LETTER KRA) */
 };
 
-LXB_API const lxb_encoding_single_index_t lxb_encoding_single_index_iso_8859_13[128] = 
+GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_13[128] = 
 {
-    {(lxb_char_t *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x82", 2, 0x0082}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x83", 2, 0x0083}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x84", 2, 0x0084}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x85", 2, 0x0085}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x86", 2, 0x0086}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x87", 2, 0x0087}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x89", 2, 0x0089}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8b", 2, 0x008B}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x91", 2, 0x0091}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x92", 2, 0x0092}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x93", 2, 0x0093}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x94", 2, 0x0094}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x95", 2, 0x0095}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x96", 2, 0x0096}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x97", 2, 0x0097}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x99", 2, 0x0099}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9b", 2, 0x009B}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
-    {(lxb_char_t *) "\xe2\x80\x9d", 3, 0x201D}, /* (RIGHT DOUBLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\xa2", 2, 0x00A2}, /* (CENT SIGN) */
-    {(lxb_char_t *) "\xc2\xa3", 2, 0x00A3}, /* (POUND SIGN) */
-    {(lxb_char_t *) "\xc2\xa4", 2, 0x00A4}, /* (CURRENCY SIGN) */
-    {(lxb_char_t *) "\xe2\x80\x9e", 3, 0x201E}, /* (DOUBLE LOW-9 QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\xa6", 2, 0x00A6}, /* (BROKEN BAR) */
-    {(lxb_char_t *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
-    {(lxb_char_t *) "\xc3\x98", 2, 0x00D8}, /* (LATIN CAPITAL LETTER O WITH STROKE) */
-    {(lxb_char_t *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
-    {(lxb_char_t *) "\xc5\x96", 2, 0x0156}, /* (LATIN CAPITAL LETTER R WITH CEDILLA) */
-    {(lxb_char_t *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\xac", 2, 0x00AC}, /* (NOT SIGN) */
-    {(lxb_char_t *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
-    {(lxb_char_t *) "\xc2\xae", 2, 0x00AE}, /* (REGISTERED SIGN) */
-    {(lxb_char_t *) "\xc3\x86", 2, 0x00C6}, /* (LATIN CAPITAL LETTER AE) */
-    {(lxb_char_t *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
-    {(lxb_char_t *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
-    {(lxb_char_t *) "\xc2\xb2", 2, 0x00B2}, /* (SUPERSCRIPT TWO) */
-    {(lxb_char_t *) "\xc2\xb3", 2, 0x00B3}, /* (SUPERSCRIPT THREE) */
-    {(lxb_char_t *) "\xe2\x80\x9c", 3, 0x201C}, /* (LEFT DOUBLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\xb5", 2, 0x00B5}, /* (MICRO SIGN) */
-    {(lxb_char_t *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
-    {(lxb_char_t *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
-    {(lxb_char_t *) "\xc3\xb8", 2, 0x00F8}, /* (LATIN SMALL LETTER O WITH STROKE) */
-    {(lxb_char_t *) "\xc2\xb9", 2, 0x00B9}, /* (SUPERSCRIPT ONE) */
-    {(lxb_char_t *) "\xc5\x97", 2, 0x0157}, /* (LATIN SMALL LETTER R WITH CEDILLA) */
-    {(lxb_char_t *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\xbc", 2, 0x00BC}, /* (VULGAR FRACTION ONE QUARTER) */
-    {(lxb_char_t *) "\xc2\xbd", 2, 0x00BD}, /* (VULGAR FRACTION ONE HALF) */
-    {(lxb_char_t *) "\xc2\xbe", 2, 0x00BE}, /* (VULGAR FRACTION THREE QUARTERS) */
-    {(lxb_char_t *) "\xc3\xa6", 2, 0x00E6}, /* (LATIN SMALL LETTER AE) */
-    {(lxb_char_t *) "\xc4\x84", 2, 0x0104}, /* (LATIN CAPITAL LETTER A WITH OGONEK) */
-    {(lxb_char_t *) "\xc4\xae", 2, 0x012E}, /* (LATIN CAPITAL LETTER I WITH OGONEK) */
-    {(lxb_char_t *) "\xc4\x80", 2, 0x0100}, /* (LATIN CAPITAL LETTER A WITH MACRON) */
-    {(lxb_char_t *) "\xc4\x86", 2, 0x0106}, /* (LATIN CAPITAL LETTER C WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x84", 2, 0x00C4}, /* (LATIN CAPITAL LETTER A WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x85", 2, 0x00C5}, /* (LATIN CAPITAL LETTER A WITH RING ABOVE) */
-    {(lxb_char_t *) "\xc4\x98", 2, 0x0118}, /* (LATIN CAPITAL LETTER E WITH OGONEK) */
-    {(lxb_char_t *) "\xc4\x92", 2, 0x0112}, /* (LATIN CAPITAL LETTER E WITH MACRON) */
-    {(lxb_char_t *) "\xc4\x8c", 2, 0x010C}, /* (LATIN CAPITAL LETTER C WITH CARON) */
-    {(lxb_char_t *) "\xc3\x89", 2, 0x00C9}, /* (LATIN CAPITAL LETTER E WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\xb9", 2, 0x0179}, /* (LATIN CAPITAL LETTER Z WITH ACUTE) */
-    {(lxb_char_t *) "\xc4\x96", 2, 0x0116}, /* (LATIN CAPITAL LETTER E WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc4\xa2", 2, 0x0122}, /* (LATIN CAPITAL LETTER G WITH CEDILLA) */
-    {(lxb_char_t *) "\xc4\xb6", 2, 0x0136}, /* (LATIN CAPITAL LETTER K WITH CEDILLA) */
-    {(lxb_char_t *) "\xc4\xaa", 2, 0x012A}, /* (LATIN CAPITAL LETTER I WITH MACRON) */
-    {(lxb_char_t *) "\xc4\xbb", 2, 0x013B}, /* (LATIN CAPITAL LETTER L WITH CEDILLA) */
-    {(lxb_char_t *) "\xc5\xa0", 2, 0x0160}, /* (LATIN CAPITAL LETTER S WITH CARON) */
-    {(lxb_char_t *) "\xc5\x83", 2, 0x0143}, /* (LATIN CAPITAL LETTER N WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\x85", 2, 0x0145}, /* (LATIN CAPITAL LETTER N WITH CEDILLA) */
-    {(lxb_char_t *) "\xc3\x93", 2, 0x00D3}, /* (LATIN CAPITAL LETTER O WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\x8c", 2, 0x014C}, /* (LATIN CAPITAL LETTER O WITH MACRON) */
-    {(lxb_char_t *) "\xc3\x95", 2, 0x00D5}, /* (LATIN CAPITAL LETTER O WITH TILDE) */
-    {(lxb_char_t *) "\xc3\x96", 2, 0x00D6}, /* (LATIN CAPITAL LETTER O WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x97", 2, 0x00D7}, /* (MULTIPLICATION SIGN) */
-    {(lxb_char_t *) "\xc5\xb2", 2, 0x0172}, /* (LATIN CAPITAL LETTER U WITH OGONEK) */
-    {(lxb_char_t *) "\xc5\x81", 2, 0x0141}, /* (LATIN CAPITAL LETTER L WITH STROKE) */
-    {(lxb_char_t *) "\xc5\x9a", 2, 0x015A}, /* (LATIN CAPITAL LETTER S WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\xaa", 2, 0x016A}, /* (LATIN CAPITAL LETTER U WITH MACRON) */
-    {(lxb_char_t *) "\xc3\x9c", 2, 0x00DC}, /* (LATIN CAPITAL LETTER U WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc5\xbb", 2, 0x017B}, /* (LATIN CAPITAL LETTER Z WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc5\xbd", 2, 0x017D}, /* (LATIN CAPITAL LETTER Z WITH CARON) */
-    {(lxb_char_t *) "\xc3\x9f", 2, 0x00DF}, /* (LATIN SMALL LETTER SHARP S) */
-    {(lxb_char_t *) "\xc4\x85", 2, 0x0105}, /* (LATIN SMALL LETTER A WITH OGONEK) */
-    {(lxb_char_t *) "\xc4\xaf", 2, 0x012F}, /* (LATIN SMALL LETTER I WITH OGONEK) */
-    {(lxb_char_t *) "\xc4\x81", 2, 0x0101}, /* (LATIN SMALL LETTER A WITH MACRON) */
-    {(lxb_char_t *) "\xc4\x87", 2, 0x0107}, /* (LATIN SMALL LETTER C WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xa4", 2, 0x00E4}, /* (LATIN SMALL LETTER A WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xa5", 2, 0x00E5}, /* (LATIN SMALL LETTER A WITH RING ABOVE) */
-    {(lxb_char_t *) "\xc4\x99", 2, 0x0119}, /* (LATIN SMALL LETTER E WITH OGONEK) */
-    {(lxb_char_t *) "\xc4\x93", 2, 0x0113}, /* (LATIN SMALL LETTER E WITH MACRON) */
-    {(lxb_char_t *) "\xc4\x8d", 2, 0x010D}, /* (LATIN SMALL LETTER C WITH CARON) */
-    {(lxb_char_t *) "\xc3\xa9", 2, 0x00E9}, /* (LATIN SMALL LETTER E WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\xba", 2, 0x017A}, /* (LATIN SMALL LETTER Z WITH ACUTE) */
-    {(lxb_char_t *) "\xc4\x97", 2, 0x0117}, /* (LATIN SMALL LETTER E WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc4\xa3", 2, 0x0123}, /* (LATIN SMALL LETTER G WITH CEDILLA) */
-    {(lxb_char_t *) "\xc4\xb7", 2, 0x0137}, /* (LATIN SMALL LETTER K WITH CEDILLA) */
-    {(lxb_char_t *) "\xc4\xab", 2, 0x012B}, /* (LATIN SMALL LETTER I WITH MACRON) */
-    {(lxb_char_t *) "\xc4\xbc", 2, 0x013C}, /* (LATIN SMALL LETTER L WITH CEDILLA) */
-    {(lxb_char_t *) "\xc5\xa1", 2, 0x0161}, /* (LATIN SMALL LETTER S WITH CARON) */
-    {(lxb_char_t *) "\xc5\x84", 2, 0x0144}, /* (LATIN SMALL LETTER N WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\x86", 2, 0x0146}, /* (LATIN SMALL LETTER N WITH CEDILLA) */
-    {(lxb_char_t *) "\xc3\xb3", 2, 0x00F3}, /* (LATIN SMALL LETTER O WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\x8d", 2, 0x014D}, /* (LATIN SMALL LETTER O WITH MACRON) */
-    {(lxb_char_t *) "\xc3\xb5", 2, 0x00F5}, /* (LATIN SMALL LETTER O WITH TILDE) */
-    {(lxb_char_t *) "\xc3\xb6", 2, 0x00F6}, /* (LATIN SMALL LETTER O WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
-    {(lxb_char_t *) "\xc5\xb3", 2, 0x0173}, /* (LATIN SMALL LETTER U WITH OGONEK) */
-    {(lxb_char_t *) "\xc5\x82", 2, 0x0142}, /* (LATIN SMALL LETTER L WITH STROKE) */
-    {(lxb_char_t *) "\xc5\x9b", 2, 0x015B}, /* (LATIN SMALL LETTER S WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\xab", 2, 0x016B}, /* (LATIN SMALL LETTER U WITH MACRON) */
-    {(lxb_char_t *) "\xc3\xbc", 2, 0x00FC}, /* (LATIN SMALL LETTER U WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc5\xbc", 2, 0x017C}, /* (LATIN SMALL LETTER Z WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc5\xbe", 2, 0x017E}, /* (LATIN SMALL LETTER Z WITH CARON) */
-    {(lxb_char_t *) "\xe2\x80\x99", 3, 0x2019}, /* (RIGHT SINGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
+    {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
+    {(unsigned char *) "\xc2\x82", 2, 0x0082}, /* (<control>) */
+    {(unsigned char *) "\xc2\x83", 2, 0x0083}, /* (<control>) */
+    {(unsigned char *) "\xc2\x84", 2, 0x0084}, /* (<control>) */
+    {(unsigned char *) "\xc2\x85", 2, 0x0085}, /* (<control>) */
+    {(unsigned char *) "\xc2\x86", 2, 0x0086}, /* (<control>) */
+    {(unsigned char *) "\xc2\x87", 2, 0x0087}, /* (<control>) */
+    {(unsigned char *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
+    {(unsigned char *) "\xc2\x89", 2, 0x0089}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8b", 2, 0x008B}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
+    {(unsigned char *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
+    {(unsigned char *) "\xc2\x91", 2, 0x0091}, /* (<control>) */
+    {(unsigned char *) "\xc2\x92", 2, 0x0092}, /* (<control>) */
+    {(unsigned char *) "\xc2\x93", 2, 0x0093}, /* (<control>) */
+    {(unsigned char *) "\xc2\x94", 2, 0x0094}, /* (<control>) */
+    {(unsigned char *) "\xc2\x95", 2, 0x0095}, /* (<control>) */
+    {(unsigned char *) "\xc2\x96", 2, 0x0096}, /* (<control>) */
+    {(unsigned char *) "\xc2\x97", 2, 0x0097}, /* (<control>) */
+    {(unsigned char *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
+    {(unsigned char *) "\xc2\x99", 2, 0x0099}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9b", 2, 0x009B}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
+    {(unsigned char *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
+    {(unsigned char *) "\xe2\x80\x9d", 3, 0x201D}, /* (RIGHT DOUBLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\xa2", 2, 0x00A2}, /* (CENT SIGN) */
+    {(unsigned char *) "\xc2\xa3", 2, 0x00A3}, /* (POUND SIGN) */
+    {(unsigned char *) "\xc2\xa4", 2, 0x00A4}, /* (CURRENCY SIGN) */
+    {(unsigned char *) "\xe2\x80\x9e", 3, 0x201E}, /* (DOUBLE LOW-9 QUOTATION MARK) */
+    {(unsigned char *) "\xc2\xa6", 2, 0x00A6}, /* (BROKEN BAR) */
+    {(unsigned char *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
+    {(unsigned char *) "\xc3\x98", 2, 0x00D8}, /* (LATIN CAPITAL LETTER O WITH STROKE) */
+    {(unsigned char *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
+    {(unsigned char *) "\xc5\x96", 2, 0x0156}, /* (LATIN CAPITAL LETTER R WITH CEDILLA) */
+    {(unsigned char *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\xac", 2, 0x00AC}, /* (NOT SIGN) */
+    {(unsigned char *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
+    {(unsigned char *) "\xc2\xae", 2, 0x00AE}, /* (REGISTERED SIGN) */
+    {(unsigned char *) "\xc3\x86", 2, 0x00C6}, /* (LATIN CAPITAL LETTER AE) */
+    {(unsigned char *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
+    {(unsigned char *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
+    {(unsigned char *) "\xc2\xb2", 2, 0x00B2}, /* (SUPERSCRIPT TWO) */
+    {(unsigned char *) "\xc2\xb3", 2, 0x00B3}, /* (SUPERSCRIPT THREE) */
+    {(unsigned char *) "\xe2\x80\x9c", 3, 0x201C}, /* (LEFT DOUBLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\xb5", 2, 0x00B5}, /* (MICRO SIGN) */
+    {(unsigned char *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
+    {(unsigned char *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
+    {(unsigned char *) "\xc3\xb8", 2, 0x00F8}, /* (LATIN SMALL LETTER O WITH STROKE) */
+    {(unsigned char *) "\xc2\xb9", 2, 0x00B9}, /* (SUPERSCRIPT ONE) */
+    {(unsigned char *) "\xc5\x97", 2, 0x0157}, /* (LATIN SMALL LETTER R WITH CEDILLA) */
+    {(unsigned char *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\xbc", 2, 0x00BC}, /* (VULGAR FRACTION ONE QUARTER) */
+    {(unsigned char *) "\xc2\xbd", 2, 0x00BD}, /* (VULGAR FRACTION ONE HALF) */
+    {(unsigned char *) "\xc2\xbe", 2, 0x00BE}, /* (VULGAR FRACTION THREE QUARTERS) */
+    {(unsigned char *) "\xc3\xa6", 2, 0x00E6}, /* (LATIN SMALL LETTER AE) */
+    {(unsigned char *) "\xc4\x84", 2, 0x0104}, /* (LATIN CAPITAL LETTER A WITH OGONEK) */
+    {(unsigned char *) "\xc4\xae", 2, 0x012E}, /* (LATIN CAPITAL LETTER I WITH OGONEK) */
+    {(unsigned char *) "\xc4\x80", 2, 0x0100}, /* (LATIN CAPITAL LETTER A WITH MACRON) */
+    {(unsigned char *) "\xc4\x86", 2, 0x0106}, /* (LATIN CAPITAL LETTER C WITH ACUTE) */
+    {(unsigned char *) "\xc3\x84", 2, 0x00C4}, /* (LATIN CAPITAL LETTER A WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x85", 2, 0x00C5}, /* (LATIN CAPITAL LETTER A WITH RING ABOVE) */
+    {(unsigned char *) "\xc4\x98", 2, 0x0118}, /* (LATIN CAPITAL LETTER E WITH OGONEK) */
+    {(unsigned char *) "\xc4\x92", 2, 0x0112}, /* (LATIN CAPITAL LETTER E WITH MACRON) */
+    {(unsigned char *) "\xc4\x8c", 2, 0x010C}, /* (LATIN CAPITAL LETTER C WITH CARON) */
+    {(unsigned char *) "\xc3\x89", 2, 0x00C9}, /* (LATIN CAPITAL LETTER E WITH ACUTE) */
+    {(unsigned char *) "\xc5\xb9", 2, 0x0179}, /* (LATIN CAPITAL LETTER Z WITH ACUTE) */
+    {(unsigned char *) "\xc4\x96", 2, 0x0116}, /* (LATIN CAPITAL LETTER E WITH DOT ABOVE) */
+    {(unsigned char *) "\xc4\xa2", 2, 0x0122}, /* (LATIN CAPITAL LETTER G WITH CEDILLA) */
+    {(unsigned char *) "\xc4\xb6", 2, 0x0136}, /* (LATIN CAPITAL LETTER K WITH CEDILLA) */
+    {(unsigned char *) "\xc4\xaa", 2, 0x012A}, /* (LATIN CAPITAL LETTER I WITH MACRON) */
+    {(unsigned char *) "\xc4\xbb", 2, 0x013B}, /* (LATIN CAPITAL LETTER L WITH CEDILLA) */
+    {(unsigned char *) "\xc5\xa0", 2, 0x0160}, /* (LATIN CAPITAL LETTER S WITH CARON) */
+    {(unsigned char *) "\xc5\x83", 2, 0x0143}, /* (LATIN CAPITAL LETTER N WITH ACUTE) */
+    {(unsigned char *) "\xc5\x85", 2, 0x0145}, /* (LATIN CAPITAL LETTER N WITH CEDILLA) */
+    {(unsigned char *) "\xc3\x93", 2, 0x00D3}, /* (LATIN CAPITAL LETTER O WITH ACUTE) */
+    {(unsigned char *) "\xc5\x8c", 2, 0x014C}, /* (LATIN CAPITAL LETTER O WITH MACRON) */
+    {(unsigned char *) "\xc3\x95", 2, 0x00D5}, /* (LATIN CAPITAL LETTER O WITH TILDE) */
+    {(unsigned char *) "\xc3\x96", 2, 0x00D6}, /* (LATIN CAPITAL LETTER O WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x97", 2, 0x00D7}, /* (MULTIPLICATION SIGN) */
+    {(unsigned char *) "\xc5\xb2", 2, 0x0172}, /* (LATIN CAPITAL LETTER U WITH OGONEK) */
+    {(unsigned char *) "\xc5\x81", 2, 0x0141}, /* (LATIN CAPITAL LETTER L WITH STROKE) */
+    {(unsigned char *) "\xc5\x9a", 2, 0x015A}, /* (LATIN CAPITAL LETTER S WITH ACUTE) */
+    {(unsigned char *) "\xc5\xaa", 2, 0x016A}, /* (LATIN CAPITAL LETTER U WITH MACRON) */
+    {(unsigned char *) "\xc3\x9c", 2, 0x00DC}, /* (LATIN CAPITAL LETTER U WITH DIAERESIS) */
+    {(unsigned char *) "\xc5\xbb", 2, 0x017B}, /* (LATIN CAPITAL LETTER Z WITH DOT ABOVE) */
+    {(unsigned char *) "\xc5\xbd", 2, 0x017D}, /* (LATIN CAPITAL LETTER Z WITH CARON) */
+    {(unsigned char *) "\xc3\x9f", 2, 0x00DF}, /* (LATIN SMALL LETTER SHARP S) */
+    {(unsigned char *) "\xc4\x85", 2, 0x0105}, /* (LATIN SMALL LETTER A WITH OGONEK) */
+    {(unsigned char *) "\xc4\xaf", 2, 0x012F}, /* (LATIN SMALL LETTER I WITH OGONEK) */
+    {(unsigned char *) "\xc4\x81", 2, 0x0101}, /* (LATIN SMALL LETTER A WITH MACRON) */
+    {(unsigned char *) "\xc4\x87", 2, 0x0107}, /* (LATIN SMALL LETTER C WITH ACUTE) */
+    {(unsigned char *) "\xc3\xa4", 2, 0x00E4}, /* (LATIN SMALL LETTER A WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xa5", 2, 0x00E5}, /* (LATIN SMALL LETTER A WITH RING ABOVE) */
+    {(unsigned char *) "\xc4\x99", 2, 0x0119}, /* (LATIN SMALL LETTER E WITH OGONEK) */
+    {(unsigned char *) "\xc4\x93", 2, 0x0113}, /* (LATIN SMALL LETTER E WITH MACRON) */
+    {(unsigned char *) "\xc4\x8d", 2, 0x010D}, /* (LATIN SMALL LETTER C WITH CARON) */
+    {(unsigned char *) "\xc3\xa9", 2, 0x00E9}, /* (LATIN SMALL LETTER E WITH ACUTE) */
+    {(unsigned char *) "\xc5\xba", 2, 0x017A}, /* (LATIN SMALL LETTER Z WITH ACUTE) */
+    {(unsigned char *) "\xc4\x97", 2, 0x0117}, /* (LATIN SMALL LETTER E WITH DOT ABOVE) */
+    {(unsigned char *) "\xc4\xa3", 2, 0x0123}, /* (LATIN SMALL LETTER G WITH CEDILLA) */
+    {(unsigned char *) "\xc4\xb7", 2, 0x0137}, /* (LATIN SMALL LETTER K WITH CEDILLA) */
+    {(unsigned char *) "\xc4\xab", 2, 0x012B}, /* (LATIN SMALL LETTER I WITH MACRON) */
+    {(unsigned char *) "\xc4\xbc", 2, 0x013C}, /* (LATIN SMALL LETTER L WITH CEDILLA) */
+    {(unsigned char *) "\xc5\xa1", 2, 0x0161}, /* (LATIN SMALL LETTER S WITH CARON) */
+    {(unsigned char *) "\xc5\x84", 2, 0x0144}, /* (LATIN SMALL LETTER N WITH ACUTE) */
+    {(unsigned char *) "\xc5\x86", 2, 0x0146}, /* (LATIN SMALL LETTER N WITH CEDILLA) */
+    {(unsigned char *) "\xc3\xb3", 2, 0x00F3}, /* (LATIN SMALL LETTER O WITH ACUTE) */
+    {(unsigned char *) "\xc5\x8d", 2, 0x014D}, /* (LATIN SMALL LETTER O WITH MACRON) */
+    {(unsigned char *) "\xc3\xb5", 2, 0x00F5}, /* (LATIN SMALL LETTER O WITH TILDE) */
+    {(unsigned char *) "\xc3\xb6", 2, 0x00F6}, /* (LATIN SMALL LETTER O WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
+    {(unsigned char *) "\xc5\xb3", 2, 0x0173}, /* (LATIN SMALL LETTER U WITH OGONEK) */
+    {(unsigned char *) "\xc5\x82", 2, 0x0142}, /* (LATIN SMALL LETTER L WITH STROKE) */
+    {(unsigned char *) "\xc5\x9b", 2, 0x015B}, /* (LATIN SMALL LETTER S WITH ACUTE) */
+    {(unsigned char *) "\xc5\xab", 2, 0x016B}, /* (LATIN SMALL LETTER U WITH MACRON) */
+    {(unsigned char *) "\xc3\xbc", 2, 0x00FC}, /* (LATIN SMALL LETTER U WITH DIAERESIS) */
+    {(unsigned char *) "\xc5\xbc", 2, 0x017C}, /* (LATIN SMALL LETTER Z WITH DOT ABOVE) */
+    {(unsigned char *) "\xc5\xbe", 2, 0x017E}, /* (LATIN SMALL LETTER Z WITH CARON) */
+    {(unsigned char *) "\xe2\x80\x99", 3, 0x2019}, /* (RIGHT SINGLE QUOTATION MARK) */
 };
 
-LXB_API const lxb_encoding_single_index_t lxb_encoding_single_index_iso_8859_14[128] = 
+GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_14[128] = 
 {
-    {(lxb_char_t *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x82", 2, 0x0082}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x83", 2, 0x0083}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x84", 2, 0x0084}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x85", 2, 0x0085}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x86", 2, 0x0086}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x87", 2, 0x0087}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x89", 2, 0x0089}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8b", 2, 0x008B}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x91", 2, 0x0091}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x92", 2, 0x0092}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x93", 2, 0x0093}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x94", 2, 0x0094}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x95", 2, 0x0095}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x96", 2, 0x0096}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x97", 2, 0x0097}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x99", 2, 0x0099}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9b", 2, 0x009B}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
-    {(lxb_char_t *) "\xe1\xb8\x82", 3, 0x1E02}, /* (LATIN CAPITAL LETTER B WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xe1\xb8\x83", 3, 0x1E03}, /* (LATIN SMALL LETTER B WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc2\xa3", 2, 0x00A3}, /* (POUND SIGN) */
-    {(lxb_char_t *) "\xc4\x8a", 2, 0x010A}, /* (LATIN CAPITAL LETTER C WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc4\x8b", 2, 0x010B}, /* (LATIN SMALL LETTER C WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xe1\xb8\x8a", 3, 0x1E0A}, /* (LATIN CAPITAL LETTER D WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
-    {(lxb_char_t *) "\xe1\xba\x80", 3, 0x1E80}, /* (LATIN CAPITAL LETTER W WITH GRAVE) */
-    {(lxb_char_t *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
-    {(lxb_char_t *) "\xe1\xba\x82", 3, 0x1E82}, /* (LATIN CAPITAL LETTER W WITH ACUTE) */
-    {(lxb_char_t *) "\xe1\xb8\x8b", 3, 0x1E0B}, /* (LATIN SMALL LETTER D WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xe1\xbb\xb2", 3, 0x1EF2}, /* (LATIN CAPITAL LETTER Y WITH GRAVE) */
-    {(lxb_char_t *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
-    {(lxb_char_t *) "\xc2\xae", 2, 0x00AE}, /* (REGISTERED SIGN) */
-    {(lxb_char_t *) "\xc5\xb8", 2, 0x0178}, /* (LATIN CAPITAL LETTER Y WITH DIAERESIS) */
-    {(lxb_char_t *) "\xe1\xb8\x9e", 3, 0x1E1E}, /* (LATIN CAPITAL LETTER F WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xe1\xb8\x9f", 3, 0x1E1F}, /* (LATIN SMALL LETTER F WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc4\xa0", 2, 0x0120}, /* (LATIN CAPITAL LETTER G WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc4\xa1", 2, 0x0121}, /* (LATIN SMALL LETTER G WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xe1\xb9\x80", 3, 0x1E40}, /* (LATIN CAPITAL LETTER M WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xe1\xb9\x81", 3, 0x1E41}, /* (LATIN SMALL LETTER M WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
-    {(lxb_char_t *) "\xe1\xb9\x96", 3, 0x1E56}, /* (LATIN CAPITAL LETTER P WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xe1\xba\x81", 3, 0x1E81}, /* (LATIN SMALL LETTER W WITH GRAVE) */
-    {(lxb_char_t *) "\xe1\xb9\x97", 3, 0x1E57}, /* (LATIN SMALL LETTER P WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xe1\xba\x83", 3, 0x1E83}, /* (LATIN SMALL LETTER W WITH ACUTE) */
-    {(lxb_char_t *) "\xe1\xb9\xa0", 3, 0x1E60}, /* (LATIN CAPITAL LETTER S WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xe1\xbb\xb3", 3, 0x1EF3}, /* (LATIN SMALL LETTER Y WITH GRAVE) */
-    {(lxb_char_t *) "\xe1\xba\x84", 3, 0x1E84}, /* (LATIN CAPITAL LETTER W WITH DIAERESIS) */
-    {(lxb_char_t *) "\xe1\xba\x85", 3, 0x1E85}, /* (LATIN SMALL LETTER W WITH DIAERESIS) */
-    {(lxb_char_t *) "\xe1\xb9\xa1", 3, 0x1E61}, /* (LATIN SMALL LETTER S WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc3\x80", 2, 0x00C0}, /* (LATIN CAPITAL LETTER A WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x81", 2, 0x00C1}, /* (LATIN CAPITAL LETTER A WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x82", 2, 0x00C2}, /* (LATIN CAPITAL LETTER A WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x83", 2, 0x00C3}, /* (LATIN CAPITAL LETTER A WITH TILDE) */
-    {(lxb_char_t *) "\xc3\x84", 2, 0x00C4}, /* (LATIN CAPITAL LETTER A WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x85", 2, 0x00C5}, /* (LATIN CAPITAL LETTER A WITH RING ABOVE) */
-    {(lxb_char_t *) "\xc3\x86", 2, 0x00C6}, /* (LATIN CAPITAL LETTER AE) */
-    {(lxb_char_t *) "\xc3\x87", 2, 0x00C7}, /* (LATIN CAPITAL LETTER C WITH CEDILLA) */
-    {(lxb_char_t *) "\xc3\x88", 2, 0x00C8}, /* (LATIN CAPITAL LETTER E WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x89", 2, 0x00C9}, /* (LATIN CAPITAL LETTER E WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x8a", 2, 0x00CA}, /* (LATIN CAPITAL LETTER E WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x8b", 2, 0x00CB}, /* (LATIN CAPITAL LETTER E WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x8c", 2, 0x00CC}, /* (LATIN CAPITAL LETTER I WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x8d", 2, 0x00CD}, /* (LATIN CAPITAL LETTER I WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x8e", 2, 0x00CE}, /* (LATIN CAPITAL LETTER I WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x8f", 2, 0x00CF}, /* (LATIN CAPITAL LETTER I WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc5\xb4", 2, 0x0174}, /* (LATIN CAPITAL LETTER W WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x91", 2, 0x00D1}, /* (LATIN CAPITAL LETTER N WITH TILDE) */
-    {(lxb_char_t *) "\xc3\x92", 2, 0x00D2}, /* (LATIN CAPITAL LETTER O WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x93", 2, 0x00D3}, /* (LATIN CAPITAL LETTER O WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x94", 2, 0x00D4}, /* (LATIN CAPITAL LETTER O WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x95", 2, 0x00D5}, /* (LATIN CAPITAL LETTER O WITH TILDE) */
-    {(lxb_char_t *) "\xc3\x96", 2, 0x00D6}, /* (LATIN CAPITAL LETTER O WITH DIAERESIS) */
-    {(lxb_char_t *) "\xe1\xb9\xaa", 3, 0x1E6A}, /* (LATIN CAPITAL LETTER T WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc3\x98", 2, 0x00D8}, /* (LATIN CAPITAL LETTER O WITH STROKE) */
-    {(lxb_char_t *) "\xc3\x99", 2, 0x00D9}, /* (LATIN CAPITAL LETTER U WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x9a", 2, 0x00DA}, /* (LATIN CAPITAL LETTER U WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x9b", 2, 0x00DB}, /* (LATIN CAPITAL LETTER U WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x9c", 2, 0x00DC}, /* (LATIN CAPITAL LETTER U WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x9d", 2, 0x00DD}, /* (LATIN CAPITAL LETTER Y WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\xb6", 2, 0x0176}, /* (LATIN CAPITAL LETTER Y WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x9f", 2, 0x00DF}, /* (LATIN SMALL LETTER SHARP S) */
-    {(lxb_char_t *) "\xc3\xa0", 2, 0x00E0}, /* (LATIN SMALL LETTER A WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xa1", 2, 0x00E1}, /* (LATIN SMALL LETTER A WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xa2", 2, 0x00E2}, /* (LATIN SMALL LETTER A WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xa3", 2, 0x00E3}, /* (LATIN SMALL LETTER A WITH TILDE) */
-    {(lxb_char_t *) "\xc3\xa4", 2, 0x00E4}, /* (LATIN SMALL LETTER A WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xa5", 2, 0x00E5}, /* (LATIN SMALL LETTER A WITH RING ABOVE) */
-    {(lxb_char_t *) "\xc3\xa6", 2, 0x00E6}, /* (LATIN SMALL LETTER AE) */
-    {(lxb_char_t *) "\xc3\xa7", 2, 0x00E7}, /* (LATIN SMALL LETTER C WITH CEDILLA) */
-    {(lxb_char_t *) "\xc3\xa8", 2, 0x00E8}, /* (LATIN SMALL LETTER E WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xa9", 2, 0x00E9}, /* (LATIN SMALL LETTER E WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xaa", 2, 0x00EA}, /* (LATIN SMALL LETTER E WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xab", 2, 0x00EB}, /* (LATIN SMALL LETTER E WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xac", 2, 0x00EC}, /* (LATIN SMALL LETTER I WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xad", 2, 0x00ED}, /* (LATIN SMALL LETTER I WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xae", 2, 0x00EE}, /* (LATIN SMALL LETTER I WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xaf", 2, 0x00EF}, /* (LATIN SMALL LETTER I WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc5\xb5", 2, 0x0175}, /* (LATIN SMALL LETTER W WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xb1", 2, 0x00F1}, /* (LATIN SMALL LETTER N WITH TILDE) */
-    {(lxb_char_t *) "\xc3\xb2", 2, 0x00F2}, /* (LATIN SMALL LETTER O WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xb3", 2, 0x00F3}, /* (LATIN SMALL LETTER O WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xb4", 2, 0x00F4}, /* (LATIN SMALL LETTER O WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xb5", 2, 0x00F5}, /* (LATIN SMALL LETTER O WITH TILDE) */
-    {(lxb_char_t *) "\xc3\xb6", 2, 0x00F6}, /* (LATIN SMALL LETTER O WITH DIAERESIS) */
-    {(lxb_char_t *) "\xe1\xb9\xab", 3, 0x1E6B}, /* (LATIN SMALL LETTER T WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc3\xb8", 2, 0x00F8}, /* (LATIN SMALL LETTER O WITH STROKE) */
-    {(lxb_char_t *) "\xc3\xb9", 2, 0x00F9}, /* (LATIN SMALL LETTER U WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xba", 2, 0x00FA}, /* (LATIN SMALL LETTER U WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xbb", 2, 0x00FB}, /* (LATIN SMALL LETTER U WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xbc", 2, 0x00FC}, /* (LATIN SMALL LETTER U WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xbd", 2, 0x00FD}, /* (LATIN SMALL LETTER Y WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\xb7", 2, 0x0177}, /* (LATIN SMALL LETTER Y WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xbf", 2, 0x00FF}, /* (LATIN SMALL LETTER Y WITH DIAERESIS) */
+    {(unsigned char *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
+    {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
+    {(unsigned char *) "\xc2\x82", 2, 0x0082}, /* (<control>) */
+    {(unsigned char *) "\xc2\x83", 2, 0x0083}, /* (<control>) */
+    {(unsigned char *) "\xc2\x84", 2, 0x0084}, /* (<control>) */
+    {(unsigned char *) "\xc2\x85", 2, 0x0085}, /* (<control>) */
+    {(unsigned char *) "\xc2\x86", 2, 0x0086}, /* (<control>) */
+    {(unsigned char *) "\xc2\x87", 2, 0x0087}, /* (<control>) */
+    {(unsigned char *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
+    {(unsigned char *) "\xc2\x89", 2, 0x0089}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8b", 2, 0x008B}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
+    {(unsigned char *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
+    {(unsigned char *) "\xc2\x91", 2, 0x0091}, /* (<control>) */
+    {(unsigned char *) "\xc2\x92", 2, 0x0092}, /* (<control>) */
+    {(unsigned char *) "\xc2\x93", 2, 0x0093}, /* (<control>) */
+    {(unsigned char *) "\xc2\x94", 2, 0x0094}, /* (<control>) */
+    {(unsigned char *) "\xc2\x95", 2, 0x0095}, /* (<control>) */
+    {(unsigned char *) "\xc2\x96", 2, 0x0096}, /* (<control>) */
+    {(unsigned char *) "\xc2\x97", 2, 0x0097}, /* (<control>) */
+    {(unsigned char *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
+    {(unsigned char *) "\xc2\x99", 2, 0x0099}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9b", 2, 0x009B}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
+    {(unsigned char *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
+    {(unsigned char *) "\xe1\xb8\x82", 3, 0x1E02}, /* (LATIN CAPITAL LETTER B WITH DOT ABOVE) */
+    {(unsigned char *) "\xe1\xb8\x83", 3, 0x1E03}, /* (LATIN SMALL LETTER B WITH DOT ABOVE) */
+    {(unsigned char *) "\xc2\xa3", 2, 0x00A3}, /* (POUND SIGN) */
+    {(unsigned char *) "\xc4\x8a", 2, 0x010A}, /* (LATIN CAPITAL LETTER C WITH DOT ABOVE) */
+    {(unsigned char *) "\xc4\x8b", 2, 0x010B}, /* (LATIN SMALL LETTER C WITH DOT ABOVE) */
+    {(unsigned char *) "\xe1\xb8\x8a", 3, 0x1E0A}, /* (LATIN CAPITAL LETTER D WITH DOT ABOVE) */
+    {(unsigned char *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
+    {(unsigned char *) "\xe1\xba\x80", 3, 0x1E80}, /* (LATIN CAPITAL LETTER W WITH GRAVE) */
+    {(unsigned char *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
+    {(unsigned char *) "\xe1\xba\x82", 3, 0x1E82}, /* (LATIN CAPITAL LETTER W WITH ACUTE) */
+    {(unsigned char *) "\xe1\xb8\x8b", 3, 0x1E0B}, /* (LATIN SMALL LETTER D WITH DOT ABOVE) */
+    {(unsigned char *) "\xe1\xbb\xb2", 3, 0x1EF2}, /* (LATIN CAPITAL LETTER Y WITH GRAVE) */
+    {(unsigned char *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
+    {(unsigned char *) "\xc2\xae", 2, 0x00AE}, /* (REGISTERED SIGN) */
+    {(unsigned char *) "\xc5\xb8", 2, 0x0178}, /* (LATIN CAPITAL LETTER Y WITH DIAERESIS) */
+    {(unsigned char *) "\xe1\xb8\x9e", 3, 0x1E1E}, /* (LATIN CAPITAL LETTER F WITH DOT ABOVE) */
+    {(unsigned char *) "\xe1\xb8\x9f", 3, 0x1E1F}, /* (LATIN SMALL LETTER F WITH DOT ABOVE) */
+    {(unsigned char *) "\xc4\xa0", 2, 0x0120}, /* (LATIN CAPITAL LETTER G WITH DOT ABOVE) */
+    {(unsigned char *) "\xc4\xa1", 2, 0x0121}, /* (LATIN SMALL LETTER G WITH DOT ABOVE) */
+    {(unsigned char *) "\xe1\xb9\x80", 3, 0x1E40}, /* (LATIN CAPITAL LETTER M WITH DOT ABOVE) */
+    {(unsigned char *) "\xe1\xb9\x81", 3, 0x1E41}, /* (LATIN SMALL LETTER M WITH DOT ABOVE) */
+    {(unsigned char *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
+    {(unsigned char *) "\xe1\xb9\x96", 3, 0x1E56}, /* (LATIN CAPITAL LETTER P WITH DOT ABOVE) */
+    {(unsigned char *) "\xe1\xba\x81", 3, 0x1E81}, /* (LATIN SMALL LETTER W WITH GRAVE) */
+    {(unsigned char *) "\xe1\xb9\x97", 3, 0x1E57}, /* (LATIN SMALL LETTER P WITH DOT ABOVE) */
+    {(unsigned char *) "\xe1\xba\x83", 3, 0x1E83}, /* (LATIN SMALL LETTER W WITH ACUTE) */
+    {(unsigned char *) "\xe1\xb9\xa0", 3, 0x1E60}, /* (LATIN CAPITAL LETTER S WITH DOT ABOVE) */
+    {(unsigned char *) "\xe1\xbb\xb3", 3, 0x1EF3}, /* (LATIN SMALL LETTER Y WITH GRAVE) */
+    {(unsigned char *) "\xe1\xba\x84", 3, 0x1E84}, /* (LATIN CAPITAL LETTER W WITH DIAERESIS) */
+    {(unsigned char *) "\xe1\xba\x85", 3, 0x1E85}, /* (LATIN SMALL LETTER W WITH DIAERESIS) */
+    {(unsigned char *) "\xe1\xb9\xa1", 3, 0x1E61}, /* (LATIN SMALL LETTER S WITH DOT ABOVE) */
+    {(unsigned char *) "\xc3\x80", 2, 0x00C0}, /* (LATIN CAPITAL LETTER A WITH GRAVE) */
+    {(unsigned char *) "\xc3\x81", 2, 0x00C1}, /* (LATIN CAPITAL LETTER A WITH ACUTE) */
+    {(unsigned char *) "\xc3\x82", 2, 0x00C2}, /* (LATIN CAPITAL LETTER A WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x83", 2, 0x00C3}, /* (LATIN CAPITAL LETTER A WITH TILDE) */
+    {(unsigned char *) "\xc3\x84", 2, 0x00C4}, /* (LATIN CAPITAL LETTER A WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x85", 2, 0x00C5}, /* (LATIN CAPITAL LETTER A WITH RING ABOVE) */
+    {(unsigned char *) "\xc3\x86", 2, 0x00C6}, /* (LATIN CAPITAL LETTER AE) */
+    {(unsigned char *) "\xc3\x87", 2, 0x00C7}, /* (LATIN CAPITAL LETTER C WITH CEDILLA) */
+    {(unsigned char *) "\xc3\x88", 2, 0x00C8}, /* (LATIN CAPITAL LETTER E WITH GRAVE) */
+    {(unsigned char *) "\xc3\x89", 2, 0x00C9}, /* (LATIN CAPITAL LETTER E WITH ACUTE) */
+    {(unsigned char *) "\xc3\x8a", 2, 0x00CA}, /* (LATIN CAPITAL LETTER E WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x8b", 2, 0x00CB}, /* (LATIN CAPITAL LETTER E WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x8c", 2, 0x00CC}, /* (LATIN CAPITAL LETTER I WITH GRAVE) */
+    {(unsigned char *) "\xc3\x8d", 2, 0x00CD}, /* (LATIN CAPITAL LETTER I WITH ACUTE) */
+    {(unsigned char *) "\xc3\x8e", 2, 0x00CE}, /* (LATIN CAPITAL LETTER I WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x8f", 2, 0x00CF}, /* (LATIN CAPITAL LETTER I WITH DIAERESIS) */
+    {(unsigned char *) "\xc5\xb4", 2, 0x0174}, /* (LATIN CAPITAL LETTER W WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x91", 2, 0x00D1}, /* (LATIN CAPITAL LETTER N WITH TILDE) */
+    {(unsigned char *) "\xc3\x92", 2, 0x00D2}, /* (LATIN CAPITAL LETTER O WITH GRAVE) */
+    {(unsigned char *) "\xc3\x93", 2, 0x00D3}, /* (LATIN CAPITAL LETTER O WITH ACUTE) */
+    {(unsigned char *) "\xc3\x94", 2, 0x00D4}, /* (LATIN CAPITAL LETTER O WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x95", 2, 0x00D5}, /* (LATIN CAPITAL LETTER O WITH TILDE) */
+    {(unsigned char *) "\xc3\x96", 2, 0x00D6}, /* (LATIN CAPITAL LETTER O WITH DIAERESIS) */
+    {(unsigned char *) "\xe1\xb9\xaa", 3, 0x1E6A}, /* (LATIN CAPITAL LETTER T WITH DOT ABOVE) */
+    {(unsigned char *) "\xc3\x98", 2, 0x00D8}, /* (LATIN CAPITAL LETTER O WITH STROKE) */
+    {(unsigned char *) "\xc3\x99", 2, 0x00D9}, /* (LATIN CAPITAL LETTER U WITH GRAVE) */
+    {(unsigned char *) "\xc3\x9a", 2, 0x00DA}, /* (LATIN CAPITAL LETTER U WITH ACUTE) */
+    {(unsigned char *) "\xc3\x9b", 2, 0x00DB}, /* (LATIN CAPITAL LETTER U WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x9c", 2, 0x00DC}, /* (LATIN CAPITAL LETTER U WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x9d", 2, 0x00DD}, /* (LATIN CAPITAL LETTER Y WITH ACUTE) */
+    {(unsigned char *) "\xc5\xb6", 2, 0x0176}, /* (LATIN CAPITAL LETTER Y WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x9f", 2, 0x00DF}, /* (LATIN SMALL LETTER SHARP S) */
+    {(unsigned char *) "\xc3\xa0", 2, 0x00E0}, /* (LATIN SMALL LETTER A WITH GRAVE) */
+    {(unsigned char *) "\xc3\xa1", 2, 0x00E1}, /* (LATIN SMALL LETTER A WITH ACUTE) */
+    {(unsigned char *) "\xc3\xa2", 2, 0x00E2}, /* (LATIN SMALL LETTER A WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xa3", 2, 0x00E3}, /* (LATIN SMALL LETTER A WITH TILDE) */
+    {(unsigned char *) "\xc3\xa4", 2, 0x00E4}, /* (LATIN SMALL LETTER A WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xa5", 2, 0x00E5}, /* (LATIN SMALL LETTER A WITH RING ABOVE) */
+    {(unsigned char *) "\xc3\xa6", 2, 0x00E6}, /* (LATIN SMALL LETTER AE) */
+    {(unsigned char *) "\xc3\xa7", 2, 0x00E7}, /* (LATIN SMALL LETTER C WITH CEDILLA) */
+    {(unsigned char *) "\xc3\xa8", 2, 0x00E8}, /* (LATIN SMALL LETTER E WITH GRAVE) */
+    {(unsigned char *) "\xc3\xa9", 2, 0x00E9}, /* (LATIN SMALL LETTER E WITH ACUTE) */
+    {(unsigned char *) "\xc3\xaa", 2, 0x00EA}, /* (LATIN SMALL LETTER E WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xab", 2, 0x00EB}, /* (LATIN SMALL LETTER E WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xac", 2, 0x00EC}, /* (LATIN SMALL LETTER I WITH GRAVE) */
+    {(unsigned char *) "\xc3\xad", 2, 0x00ED}, /* (LATIN SMALL LETTER I WITH ACUTE) */
+    {(unsigned char *) "\xc3\xae", 2, 0x00EE}, /* (LATIN SMALL LETTER I WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xaf", 2, 0x00EF}, /* (LATIN SMALL LETTER I WITH DIAERESIS) */
+    {(unsigned char *) "\xc5\xb5", 2, 0x0175}, /* (LATIN SMALL LETTER W WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xb1", 2, 0x00F1}, /* (LATIN SMALL LETTER N WITH TILDE) */
+    {(unsigned char *) "\xc3\xb2", 2, 0x00F2}, /* (LATIN SMALL LETTER O WITH GRAVE) */
+    {(unsigned char *) "\xc3\xb3", 2, 0x00F3}, /* (LATIN SMALL LETTER O WITH ACUTE) */
+    {(unsigned char *) "\xc3\xb4", 2, 0x00F4}, /* (LATIN SMALL LETTER O WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xb5", 2, 0x00F5}, /* (LATIN SMALL LETTER O WITH TILDE) */
+    {(unsigned char *) "\xc3\xb6", 2, 0x00F6}, /* (LATIN SMALL LETTER O WITH DIAERESIS) */
+    {(unsigned char *) "\xe1\xb9\xab", 3, 0x1E6B}, /* (LATIN SMALL LETTER T WITH DOT ABOVE) */
+    {(unsigned char *) "\xc3\xb8", 2, 0x00F8}, /* (LATIN SMALL LETTER O WITH STROKE) */
+    {(unsigned char *) "\xc3\xb9", 2, 0x00F9}, /* (LATIN SMALL LETTER U WITH GRAVE) */
+    {(unsigned char *) "\xc3\xba", 2, 0x00FA}, /* (LATIN SMALL LETTER U WITH ACUTE) */
+    {(unsigned char *) "\xc3\xbb", 2, 0x00FB}, /* (LATIN SMALL LETTER U WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xbc", 2, 0x00FC}, /* (LATIN SMALL LETTER U WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xbd", 2, 0x00FD}, /* (LATIN SMALL LETTER Y WITH ACUTE) */
+    {(unsigned char *) "\xc5\xb7", 2, 0x0177}, /* (LATIN SMALL LETTER Y WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xbf", 2, 0x00FF}, /* (LATIN SMALL LETTER Y WITH DIAERESIS) */
 };
 
-LXB_API const lxb_encoding_single_index_t lxb_encoding_single_index_iso_8859_15[128] = 
+GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_15[128] = 
 {
-    {(lxb_char_t *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x82", 2, 0x0082}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x83", 2, 0x0083}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x84", 2, 0x0084}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x85", 2, 0x0085}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x86", 2, 0x0086}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x87", 2, 0x0087}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x89", 2, 0x0089}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8b", 2, 0x008B}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x91", 2, 0x0091}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x92", 2, 0x0092}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x93", 2, 0x0093}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x94", 2, 0x0094}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x95", 2, 0x0095}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x96", 2, 0x0096}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x97", 2, 0x0097}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x99", 2, 0x0099}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9b", 2, 0x009B}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
-    {(lxb_char_t *) "\xc2\xa1", 2, 0x00A1}, /* (INVERTED EXCLAMATION MARK) */
-    {(lxb_char_t *) "\xc2\xa2", 2, 0x00A2}, /* (CENT SIGN) */
-    {(lxb_char_t *) "\xc2\xa3", 2, 0x00A3}, /* (POUND SIGN) */
-    {(lxb_char_t *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
-    {(lxb_char_t *) "\xc2\xa5", 2, 0x00A5}, /* (YEN SIGN) */
-    {(lxb_char_t *) "\xc5\xa0", 2, 0x0160}, /* (LATIN CAPITAL LETTER S WITH CARON) */
-    {(lxb_char_t *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
-    {(lxb_char_t *) "\xc5\xa1", 2, 0x0161}, /* (LATIN SMALL LETTER S WITH CARON) */
-    {(lxb_char_t *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
-    {(lxb_char_t *) "\xc2\xaa", 2, 0x00AA}, /* (FEMININE ORDINAL INDICATOR) */
-    {(lxb_char_t *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\xac", 2, 0x00AC}, /* (NOT SIGN) */
-    {(lxb_char_t *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
-    {(lxb_char_t *) "\xc2\xae", 2, 0x00AE}, /* (REGISTERED SIGN) */
-    {(lxb_char_t *) "\xc2\xaf", 2, 0x00AF}, /* (MACRON) */
-    {(lxb_char_t *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
-    {(lxb_char_t *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
-    {(lxb_char_t *) "\xc2\xb2", 2, 0x00B2}, /* (SUPERSCRIPT TWO) */
-    {(lxb_char_t *) "\xc2\xb3", 2, 0x00B3}, /* (SUPERSCRIPT THREE) */
-    {(lxb_char_t *) "\xc5\xbd", 2, 0x017D}, /* (LATIN CAPITAL LETTER Z WITH CARON) */
-    {(lxb_char_t *) "\xc2\xb5", 2, 0x00B5}, /* (MICRO SIGN) */
-    {(lxb_char_t *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
-    {(lxb_char_t *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
-    {(lxb_char_t *) "\xc5\xbe", 2, 0x017E}, /* (LATIN SMALL LETTER Z WITH CARON) */
-    {(lxb_char_t *) "\xc2\xb9", 2, 0x00B9}, /* (SUPERSCRIPT ONE) */
-    {(lxb_char_t *) "\xc2\xba", 2, 0x00BA}, /* (MASCULINE ORDINAL INDICATOR) */
-    {(lxb_char_t *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc5\x92", 2, 0x0152}, /* (LATIN CAPITAL LIGATURE OE) */
-    {(lxb_char_t *) "\xc5\x93", 2, 0x0153}, /* (LATIN SMALL LIGATURE OE) */
-    {(lxb_char_t *) "\xc5\xb8", 2, 0x0178}, /* (LATIN CAPITAL LETTER Y WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc2\xbf", 2, 0x00BF}, /* (INVERTED QUESTION MARK) */
-    {(lxb_char_t *) "\xc3\x80", 2, 0x00C0}, /* (LATIN CAPITAL LETTER A WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x81", 2, 0x00C1}, /* (LATIN CAPITAL LETTER A WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x82", 2, 0x00C2}, /* (LATIN CAPITAL LETTER A WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x83", 2, 0x00C3}, /* (LATIN CAPITAL LETTER A WITH TILDE) */
-    {(lxb_char_t *) "\xc3\x84", 2, 0x00C4}, /* (LATIN CAPITAL LETTER A WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x85", 2, 0x00C5}, /* (LATIN CAPITAL LETTER A WITH RING ABOVE) */
-    {(lxb_char_t *) "\xc3\x86", 2, 0x00C6}, /* (LATIN CAPITAL LETTER AE) */
-    {(lxb_char_t *) "\xc3\x87", 2, 0x00C7}, /* (LATIN CAPITAL LETTER C WITH CEDILLA) */
-    {(lxb_char_t *) "\xc3\x88", 2, 0x00C8}, /* (LATIN CAPITAL LETTER E WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x89", 2, 0x00C9}, /* (LATIN CAPITAL LETTER E WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x8a", 2, 0x00CA}, /* (LATIN CAPITAL LETTER E WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x8b", 2, 0x00CB}, /* (LATIN CAPITAL LETTER E WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x8c", 2, 0x00CC}, /* (LATIN CAPITAL LETTER I WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x8d", 2, 0x00CD}, /* (LATIN CAPITAL LETTER I WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x8e", 2, 0x00CE}, /* (LATIN CAPITAL LETTER I WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x8f", 2, 0x00CF}, /* (LATIN CAPITAL LETTER I WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x90", 2, 0x00D0}, /* (LATIN CAPITAL LETTER ETH) */
-    {(lxb_char_t *) "\xc3\x91", 2, 0x00D1}, /* (LATIN CAPITAL LETTER N WITH TILDE) */
-    {(lxb_char_t *) "\xc3\x92", 2, 0x00D2}, /* (LATIN CAPITAL LETTER O WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x93", 2, 0x00D3}, /* (LATIN CAPITAL LETTER O WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x94", 2, 0x00D4}, /* (LATIN CAPITAL LETTER O WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x95", 2, 0x00D5}, /* (LATIN CAPITAL LETTER O WITH TILDE) */
-    {(lxb_char_t *) "\xc3\x96", 2, 0x00D6}, /* (LATIN CAPITAL LETTER O WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x97", 2, 0x00D7}, /* (MULTIPLICATION SIGN) */
-    {(lxb_char_t *) "\xc3\x98", 2, 0x00D8}, /* (LATIN CAPITAL LETTER O WITH STROKE) */
-    {(lxb_char_t *) "\xc3\x99", 2, 0x00D9}, /* (LATIN CAPITAL LETTER U WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x9a", 2, 0x00DA}, /* (LATIN CAPITAL LETTER U WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x9b", 2, 0x00DB}, /* (LATIN CAPITAL LETTER U WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x9c", 2, 0x00DC}, /* (LATIN CAPITAL LETTER U WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x9d", 2, 0x00DD}, /* (LATIN CAPITAL LETTER Y WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x9e", 2, 0x00DE}, /* (LATIN CAPITAL LETTER THORN) */
-    {(lxb_char_t *) "\xc3\x9f", 2, 0x00DF}, /* (LATIN SMALL LETTER SHARP S) */
-    {(lxb_char_t *) "\xc3\xa0", 2, 0x00E0}, /* (LATIN SMALL LETTER A WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xa1", 2, 0x00E1}, /* (LATIN SMALL LETTER A WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xa2", 2, 0x00E2}, /* (LATIN SMALL LETTER A WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xa3", 2, 0x00E3}, /* (LATIN SMALL LETTER A WITH TILDE) */
-    {(lxb_char_t *) "\xc3\xa4", 2, 0x00E4}, /* (LATIN SMALL LETTER A WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xa5", 2, 0x00E5}, /* (LATIN SMALL LETTER A WITH RING ABOVE) */
-    {(lxb_char_t *) "\xc3\xa6", 2, 0x00E6}, /* (LATIN SMALL LETTER AE) */
-    {(lxb_char_t *) "\xc3\xa7", 2, 0x00E7}, /* (LATIN SMALL LETTER C WITH CEDILLA) */
-    {(lxb_char_t *) "\xc3\xa8", 2, 0x00E8}, /* (LATIN SMALL LETTER E WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xa9", 2, 0x00E9}, /* (LATIN SMALL LETTER E WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xaa", 2, 0x00EA}, /* (LATIN SMALL LETTER E WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xab", 2, 0x00EB}, /* (LATIN SMALL LETTER E WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xac", 2, 0x00EC}, /* (LATIN SMALL LETTER I WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xad", 2, 0x00ED}, /* (LATIN SMALL LETTER I WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xae", 2, 0x00EE}, /* (LATIN SMALL LETTER I WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xaf", 2, 0x00EF}, /* (LATIN SMALL LETTER I WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xb0", 2, 0x00F0}, /* (LATIN SMALL LETTER ETH) */
-    {(lxb_char_t *) "\xc3\xb1", 2, 0x00F1}, /* (LATIN SMALL LETTER N WITH TILDE) */
-    {(lxb_char_t *) "\xc3\xb2", 2, 0x00F2}, /* (LATIN SMALL LETTER O WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xb3", 2, 0x00F3}, /* (LATIN SMALL LETTER O WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xb4", 2, 0x00F4}, /* (LATIN SMALL LETTER O WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xb5", 2, 0x00F5}, /* (LATIN SMALL LETTER O WITH TILDE) */
-    {(lxb_char_t *) "\xc3\xb6", 2, 0x00F6}, /* (LATIN SMALL LETTER O WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
-    {(lxb_char_t *) "\xc3\xb8", 2, 0x00F8}, /* (LATIN SMALL LETTER O WITH STROKE) */
-    {(lxb_char_t *) "\xc3\xb9", 2, 0x00F9}, /* (LATIN SMALL LETTER U WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xba", 2, 0x00FA}, /* (LATIN SMALL LETTER U WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xbb", 2, 0x00FB}, /* (LATIN SMALL LETTER U WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xbc", 2, 0x00FC}, /* (LATIN SMALL LETTER U WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xbd", 2, 0x00FD}, /* (LATIN SMALL LETTER Y WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xbe", 2, 0x00FE}, /* (LATIN SMALL LETTER THORN) */
-    {(lxb_char_t *) "\xc3\xbf", 2, 0x00FF}, /* (LATIN SMALL LETTER Y WITH DIAERESIS) */
+    {(unsigned char *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
+    {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
+    {(unsigned char *) "\xc2\x82", 2, 0x0082}, /* (<control>) */
+    {(unsigned char *) "\xc2\x83", 2, 0x0083}, /* (<control>) */
+    {(unsigned char *) "\xc2\x84", 2, 0x0084}, /* (<control>) */
+    {(unsigned char *) "\xc2\x85", 2, 0x0085}, /* (<control>) */
+    {(unsigned char *) "\xc2\x86", 2, 0x0086}, /* (<control>) */
+    {(unsigned char *) "\xc2\x87", 2, 0x0087}, /* (<control>) */
+    {(unsigned char *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
+    {(unsigned char *) "\xc2\x89", 2, 0x0089}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8b", 2, 0x008B}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
+    {(unsigned char *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
+    {(unsigned char *) "\xc2\x91", 2, 0x0091}, /* (<control>) */
+    {(unsigned char *) "\xc2\x92", 2, 0x0092}, /* (<control>) */
+    {(unsigned char *) "\xc2\x93", 2, 0x0093}, /* (<control>) */
+    {(unsigned char *) "\xc2\x94", 2, 0x0094}, /* (<control>) */
+    {(unsigned char *) "\xc2\x95", 2, 0x0095}, /* (<control>) */
+    {(unsigned char *) "\xc2\x96", 2, 0x0096}, /* (<control>) */
+    {(unsigned char *) "\xc2\x97", 2, 0x0097}, /* (<control>) */
+    {(unsigned char *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
+    {(unsigned char *) "\xc2\x99", 2, 0x0099}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9b", 2, 0x009B}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
+    {(unsigned char *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
+    {(unsigned char *) "\xc2\xa1", 2, 0x00A1}, /* (INVERTED EXCLAMATION MARK) */
+    {(unsigned char *) "\xc2\xa2", 2, 0x00A2}, /* (CENT SIGN) */
+    {(unsigned char *) "\xc2\xa3", 2, 0x00A3}, /* (POUND SIGN) */
+    {(unsigned char *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
+    {(unsigned char *) "\xc2\xa5", 2, 0x00A5}, /* (YEN SIGN) */
+    {(unsigned char *) "\xc5\xa0", 2, 0x0160}, /* (LATIN CAPITAL LETTER S WITH CARON) */
+    {(unsigned char *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
+    {(unsigned char *) "\xc5\xa1", 2, 0x0161}, /* (LATIN SMALL LETTER S WITH CARON) */
+    {(unsigned char *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
+    {(unsigned char *) "\xc2\xaa", 2, 0x00AA}, /* (FEMININE ORDINAL INDICATOR) */
+    {(unsigned char *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\xac", 2, 0x00AC}, /* (NOT SIGN) */
+    {(unsigned char *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
+    {(unsigned char *) "\xc2\xae", 2, 0x00AE}, /* (REGISTERED SIGN) */
+    {(unsigned char *) "\xc2\xaf", 2, 0x00AF}, /* (MACRON) */
+    {(unsigned char *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
+    {(unsigned char *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
+    {(unsigned char *) "\xc2\xb2", 2, 0x00B2}, /* (SUPERSCRIPT TWO) */
+    {(unsigned char *) "\xc2\xb3", 2, 0x00B3}, /* (SUPERSCRIPT THREE) */
+    {(unsigned char *) "\xc5\xbd", 2, 0x017D}, /* (LATIN CAPITAL LETTER Z WITH CARON) */
+    {(unsigned char *) "\xc2\xb5", 2, 0x00B5}, /* (MICRO SIGN) */
+    {(unsigned char *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
+    {(unsigned char *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
+    {(unsigned char *) "\xc5\xbe", 2, 0x017E}, /* (LATIN SMALL LETTER Z WITH CARON) */
+    {(unsigned char *) "\xc2\xb9", 2, 0x00B9}, /* (SUPERSCRIPT ONE) */
+    {(unsigned char *) "\xc2\xba", 2, 0x00BA}, /* (MASCULINE ORDINAL INDICATOR) */
+    {(unsigned char *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc5\x92", 2, 0x0152}, /* (LATIN CAPITAL LIGATURE OE) */
+    {(unsigned char *) "\xc5\x93", 2, 0x0153}, /* (LATIN SMALL LIGATURE OE) */
+    {(unsigned char *) "\xc5\xb8", 2, 0x0178}, /* (LATIN CAPITAL LETTER Y WITH DIAERESIS) */
+    {(unsigned char *) "\xc2\xbf", 2, 0x00BF}, /* (INVERTED QUESTION MARK) */
+    {(unsigned char *) "\xc3\x80", 2, 0x00C0}, /* (LATIN CAPITAL LETTER A WITH GRAVE) */
+    {(unsigned char *) "\xc3\x81", 2, 0x00C1}, /* (LATIN CAPITAL LETTER A WITH ACUTE) */
+    {(unsigned char *) "\xc3\x82", 2, 0x00C2}, /* (LATIN CAPITAL LETTER A WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x83", 2, 0x00C3}, /* (LATIN CAPITAL LETTER A WITH TILDE) */
+    {(unsigned char *) "\xc3\x84", 2, 0x00C4}, /* (LATIN CAPITAL LETTER A WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x85", 2, 0x00C5}, /* (LATIN CAPITAL LETTER A WITH RING ABOVE) */
+    {(unsigned char *) "\xc3\x86", 2, 0x00C6}, /* (LATIN CAPITAL LETTER AE) */
+    {(unsigned char *) "\xc3\x87", 2, 0x00C7}, /* (LATIN CAPITAL LETTER C WITH CEDILLA) */
+    {(unsigned char *) "\xc3\x88", 2, 0x00C8}, /* (LATIN CAPITAL LETTER E WITH GRAVE) */
+    {(unsigned char *) "\xc3\x89", 2, 0x00C9}, /* (LATIN CAPITAL LETTER E WITH ACUTE) */
+    {(unsigned char *) "\xc3\x8a", 2, 0x00CA}, /* (LATIN CAPITAL LETTER E WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x8b", 2, 0x00CB}, /* (LATIN CAPITAL LETTER E WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x8c", 2, 0x00CC}, /* (LATIN CAPITAL LETTER I WITH GRAVE) */
+    {(unsigned char *) "\xc3\x8d", 2, 0x00CD}, /* (LATIN CAPITAL LETTER I WITH ACUTE) */
+    {(unsigned char *) "\xc3\x8e", 2, 0x00CE}, /* (LATIN CAPITAL LETTER I WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x8f", 2, 0x00CF}, /* (LATIN CAPITAL LETTER I WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x90", 2, 0x00D0}, /* (LATIN CAPITAL LETTER ETH) */
+    {(unsigned char *) "\xc3\x91", 2, 0x00D1}, /* (LATIN CAPITAL LETTER N WITH TILDE) */
+    {(unsigned char *) "\xc3\x92", 2, 0x00D2}, /* (LATIN CAPITAL LETTER O WITH GRAVE) */
+    {(unsigned char *) "\xc3\x93", 2, 0x00D3}, /* (LATIN CAPITAL LETTER O WITH ACUTE) */
+    {(unsigned char *) "\xc3\x94", 2, 0x00D4}, /* (LATIN CAPITAL LETTER O WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x95", 2, 0x00D5}, /* (LATIN CAPITAL LETTER O WITH TILDE) */
+    {(unsigned char *) "\xc3\x96", 2, 0x00D6}, /* (LATIN CAPITAL LETTER O WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x97", 2, 0x00D7}, /* (MULTIPLICATION SIGN) */
+    {(unsigned char *) "\xc3\x98", 2, 0x00D8}, /* (LATIN CAPITAL LETTER O WITH STROKE) */
+    {(unsigned char *) "\xc3\x99", 2, 0x00D9}, /* (LATIN CAPITAL LETTER U WITH GRAVE) */
+    {(unsigned char *) "\xc3\x9a", 2, 0x00DA}, /* (LATIN CAPITAL LETTER U WITH ACUTE) */
+    {(unsigned char *) "\xc3\x9b", 2, 0x00DB}, /* (LATIN CAPITAL LETTER U WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x9c", 2, 0x00DC}, /* (LATIN CAPITAL LETTER U WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x9d", 2, 0x00DD}, /* (LATIN CAPITAL LETTER Y WITH ACUTE) */
+    {(unsigned char *) "\xc3\x9e", 2, 0x00DE}, /* (LATIN CAPITAL LETTER THORN) */
+    {(unsigned char *) "\xc3\x9f", 2, 0x00DF}, /* (LATIN SMALL LETTER SHARP S) */
+    {(unsigned char *) "\xc3\xa0", 2, 0x00E0}, /* (LATIN SMALL LETTER A WITH GRAVE) */
+    {(unsigned char *) "\xc3\xa1", 2, 0x00E1}, /* (LATIN SMALL LETTER A WITH ACUTE) */
+    {(unsigned char *) "\xc3\xa2", 2, 0x00E2}, /* (LATIN SMALL LETTER A WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xa3", 2, 0x00E3}, /* (LATIN SMALL LETTER A WITH TILDE) */
+    {(unsigned char *) "\xc3\xa4", 2, 0x00E4}, /* (LATIN SMALL LETTER A WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xa5", 2, 0x00E5}, /* (LATIN SMALL LETTER A WITH RING ABOVE) */
+    {(unsigned char *) "\xc3\xa6", 2, 0x00E6}, /* (LATIN SMALL LETTER AE) */
+    {(unsigned char *) "\xc3\xa7", 2, 0x00E7}, /* (LATIN SMALL LETTER C WITH CEDILLA) */
+    {(unsigned char *) "\xc3\xa8", 2, 0x00E8}, /* (LATIN SMALL LETTER E WITH GRAVE) */
+    {(unsigned char *) "\xc3\xa9", 2, 0x00E9}, /* (LATIN SMALL LETTER E WITH ACUTE) */
+    {(unsigned char *) "\xc3\xaa", 2, 0x00EA}, /* (LATIN SMALL LETTER E WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xab", 2, 0x00EB}, /* (LATIN SMALL LETTER E WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xac", 2, 0x00EC}, /* (LATIN SMALL LETTER I WITH GRAVE) */
+    {(unsigned char *) "\xc3\xad", 2, 0x00ED}, /* (LATIN SMALL LETTER I WITH ACUTE) */
+    {(unsigned char *) "\xc3\xae", 2, 0x00EE}, /* (LATIN SMALL LETTER I WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xaf", 2, 0x00EF}, /* (LATIN SMALL LETTER I WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xb0", 2, 0x00F0}, /* (LATIN SMALL LETTER ETH) */
+    {(unsigned char *) "\xc3\xb1", 2, 0x00F1}, /* (LATIN SMALL LETTER N WITH TILDE) */
+    {(unsigned char *) "\xc3\xb2", 2, 0x00F2}, /* (LATIN SMALL LETTER O WITH GRAVE) */
+    {(unsigned char *) "\xc3\xb3", 2, 0x00F3}, /* (LATIN SMALL LETTER O WITH ACUTE) */
+    {(unsigned char *) "\xc3\xb4", 2, 0x00F4}, /* (LATIN SMALL LETTER O WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xb5", 2, 0x00F5}, /* (LATIN SMALL LETTER O WITH TILDE) */
+    {(unsigned char *) "\xc3\xb6", 2, 0x00F6}, /* (LATIN SMALL LETTER O WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
+    {(unsigned char *) "\xc3\xb8", 2, 0x00F8}, /* (LATIN SMALL LETTER O WITH STROKE) */
+    {(unsigned char *) "\xc3\xb9", 2, 0x00F9}, /* (LATIN SMALL LETTER U WITH GRAVE) */
+    {(unsigned char *) "\xc3\xba", 2, 0x00FA}, /* (LATIN SMALL LETTER U WITH ACUTE) */
+    {(unsigned char *) "\xc3\xbb", 2, 0x00FB}, /* (LATIN SMALL LETTER U WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xbc", 2, 0x00FC}, /* (LATIN SMALL LETTER U WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xbd", 2, 0x00FD}, /* (LATIN SMALL LETTER Y WITH ACUTE) */
+    {(unsigned char *) "\xc3\xbe", 2, 0x00FE}, /* (LATIN SMALL LETTER THORN) */
+    {(unsigned char *) "\xc3\xbf", 2, 0x00FF}, /* (LATIN SMALL LETTER Y WITH DIAERESIS) */
 };
 
-LXB_API const lxb_encoding_single_index_t lxb_encoding_single_index_iso_8859_16[128] = 
+GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_16[128] = 
 {
-    {(lxb_char_t *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x82", 2, 0x0082}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x83", 2, 0x0083}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x84", 2, 0x0084}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x85", 2, 0x0085}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x86", 2, 0x0086}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x87", 2, 0x0087}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x89", 2, 0x0089}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8b", 2, 0x008B}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x91", 2, 0x0091}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x92", 2, 0x0092}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x93", 2, 0x0093}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x94", 2, 0x0094}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x95", 2, 0x0095}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x96", 2, 0x0096}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x97", 2, 0x0097}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x99", 2, 0x0099}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9b", 2, 0x009B}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
-    {(lxb_char_t *) "\xc4\x84", 2, 0x0104}, /* (LATIN CAPITAL LETTER A WITH OGONEK) */
-    {(lxb_char_t *) "\xc4\x85", 2, 0x0105}, /* (LATIN SMALL LETTER A WITH OGONEK) */
-    {(lxb_char_t *) "\xc5\x81", 2, 0x0141}, /* (LATIN CAPITAL LETTER L WITH STROKE) */
-    {(lxb_char_t *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
-    {(lxb_char_t *) "\xe2\x80\x9e", 3, 0x201E}, /* (DOUBLE LOW-9 QUOTATION MARK) */
-    {(lxb_char_t *) "\xc5\xa0", 2, 0x0160}, /* (LATIN CAPITAL LETTER S WITH CARON) */
-    {(lxb_char_t *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
-    {(lxb_char_t *) "\xc5\xa1", 2, 0x0161}, /* (LATIN SMALL LETTER S WITH CARON) */
-    {(lxb_char_t *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
-    {(lxb_char_t *) "\xc8\x98", 2, 0x0218}, /* (LATIN CAPITAL LETTER S WITH COMMA BELOW) */
-    {(lxb_char_t *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc5\xb9", 2, 0x0179}, /* (LATIN CAPITAL LETTER Z WITH ACUTE) */
-    {(lxb_char_t *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
-    {(lxb_char_t *) "\xc5\xba", 2, 0x017A}, /* (LATIN SMALL LETTER Z WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\xbb", 2, 0x017B}, /* (LATIN CAPITAL LETTER Z WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
-    {(lxb_char_t *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
-    {(lxb_char_t *) "\xc4\x8c", 2, 0x010C}, /* (LATIN CAPITAL LETTER C WITH CARON) */
-    {(lxb_char_t *) "\xc5\x82", 2, 0x0142}, /* (LATIN SMALL LETTER L WITH STROKE) */
-    {(lxb_char_t *) "\xc5\xbd", 2, 0x017D}, /* (LATIN CAPITAL LETTER Z WITH CARON) */
-    {(lxb_char_t *) "\xe2\x80\x9d", 3, 0x201D}, /* (RIGHT DOUBLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
-    {(lxb_char_t *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
-    {(lxb_char_t *) "\xc5\xbe", 2, 0x017E}, /* (LATIN SMALL LETTER Z WITH CARON) */
-    {(lxb_char_t *) "\xc4\x8d", 2, 0x010D}, /* (LATIN SMALL LETTER C WITH CARON) */
-    {(lxb_char_t *) "\xc8\x99", 2, 0x0219}, /* (LATIN SMALL LETTER S WITH COMMA BELOW) */
-    {(lxb_char_t *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc5\x92", 2, 0x0152}, /* (LATIN CAPITAL LIGATURE OE) */
-    {(lxb_char_t *) "\xc5\x93", 2, 0x0153}, /* (LATIN SMALL LIGATURE OE) */
-    {(lxb_char_t *) "\xc5\xb8", 2, 0x0178}, /* (LATIN CAPITAL LETTER Y WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc5\xbc", 2, 0x017C}, /* (LATIN SMALL LETTER Z WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc3\x80", 2, 0x00C0}, /* (LATIN CAPITAL LETTER A WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x81", 2, 0x00C1}, /* (LATIN CAPITAL LETTER A WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x82", 2, 0x00C2}, /* (LATIN CAPITAL LETTER A WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc4\x82", 2, 0x0102}, /* (LATIN CAPITAL LETTER A WITH BREVE) */
-    {(lxb_char_t *) "\xc3\x84", 2, 0x00C4}, /* (LATIN CAPITAL LETTER A WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc4\x86", 2, 0x0106}, /* (LATIN CAPITAL LETTER C WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x86", 2, 0x00C6}, /* (LATIN CAPITAL LETTER AE) */
-    {(lxb_char_t *) "\xc3\x87", 2, 0x00C7}, /* (LATIN CAPITAL LETTER C WITH CEDILLA) */
-    {(lxb_char_t *) "\xc3\x88", 2, 0x00C8}, /* (LATIN CAPITAL LETTER E WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x89", 2, 0x00C9}, /* (LATIN CAPITAL LETTER E WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x8a", 2, 0x00CA}, /* (LATIN CAPITAL LETTER E WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x8b", 2, 0x00CB}, /* (LATIN CAPITAL LETTER E WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x8c", 2, 0x00CC}, /* (LATIN CAPITAL LETTER I WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x8d", 2, 0x00CD}, /* (LATIN CAPITAL LETTER I WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x8e", 2, 0x00CE}, /* (LATIN CAPITAL LETTER I WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x8f", 2, 0x00CF}, /* (LATIN CAPITAL LETTER I WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc4\x90", 2, 0x0110}, /* (LATIN CAPITAL LETTER D WITH STROKE) */
-    {(lxb_char_t *) "\xc5\x83", 2, 0x0143}, /* (LATIN CAPITAL LETTER N WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x92", 2, 0x00D2}, /* (LATIN CAPITAL LETTER O WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x93", 2, 0x00D3}, /* (LATIN CAPITAL LETTER O WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x94", 2, 0x00D4}, /* (LATIN CAPITAL LETTER O WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc5\x90", 2, 0x0150}, /* (LATIN CAPITAL LETTER O WITH DOUBLE ACUTE) */
-    {(lxb_char_t *) "\xc3\x96", 2, 0x00D6}, /* (LATIN CAPITAL LETTER O WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc5\x9a", 2, 0x015A}, /* (LATIN CAPITAL LETTER S WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\xb0", 2, 0x0170}, /* (LATIN CAPITAL LETTER U WITH DOUBLE ACUTE) */
-    {(lxb_char_t *) "\xc3\x99", 2, 0x00D9}, /* (LATIN CAPITAL LETTER U WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x9a", 2, 0x00DA}, /* (LATIN CAPITAL LETTER U WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x9b", 2, 0x00DB}, /* (LATIN CAPITAL LETTER U WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x9c", 2, 0x00DC}, /* (LATIN CAPITAL LETTER U WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc4\x98", 2, 0x0118}, /* (LATIN CAPITAL LETTER E WITH OGONEK) */
-    {(lxb_char_t *) "\xc8\x9a", 2, 0x021A}, /* (LATIN CAPITAL LETTER T WITH COMMA BELOW) */
-    {(lxb_char_t *) "\xc3\x9f", 2, 0x00DF}, /* (LATIN SMALL LETTER SHARP S) */
-    {(lxb_char_t *) "\xc3\xa0", 2, 0x00E0}, /* (LATIN SMALL LETTER A WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xa1", 2, 0x00E1}, /* (LATIN SMALL LETTER A WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xa2", 2, 0x00E2}, /* (LATIN SMALL LETTER A WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc4\x83", 2, 0x0103}, /* (LATIN SMALL LETTER A WITH BREVE) */
-    {(lxb_char_t *) "\xc3\xa4", 2, 0x00E4}, /* (LATIN SMALL LETTER A WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc4\x87", 2, 0x0107}, /* (LATIN SMALL LETTER C WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xa6", 2, 0x00E6}, /* (LATIN SMALL LETTER AE) */
-    {(lxb_char_t *) "\xc3\xa7", 2, 0x00E7}, /* (LATIN SMALL LETTER C WITH CEDILLA) */
-    {(lxb_char_t *) "\xc3\xa8", 2, 0x00E8}, /* (LATIN SMALL LETTER E WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xa9", 2, 0x00E9}, /* (LATIN SMALL LETTER E WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xaa", 2, 0x00EA}, /* (LATIN SMALL LETTER E WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xab", 2, 0x00EB}, /* (LATIN SMALL LETTER E WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xac", 2, 0x00EC}, /* (LATIN SMALL LETTER I WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xad", 2, 0x00ED}, /* (LATIN SMALL LETTER I WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xae", 2, 0x00EE}, /* (LATIN SMALL LETTER I WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xaf", 2, 0x00EF}, /* (LATIN SMALL LETTER I WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc4\x91", 2, 0x0111}, /* (LATIN SMALL LETTER D WITH STROKE) */
-    {(lxb_char_t *) "\xc5\x84", 2, 0x0144}, /* (LATIN SMALL LETTER N WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xb2", 2, 0x00F2}, /* (LATIN SMALL LETTER O WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xb3", 2, 0x00F3}, /* (LATIN SMALL LETTER O WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xb4", 2, 0x00F4}, /* (LATIN SMALL LETTER O WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc5\x91", 2, 0x0151}, /* (LATIN SMALL LETTER O WITH DOUBLE ACUTE) */
-    {(lxb_char_t *) "\xc3\xb6", 2, 0x00F6}, /* (LATIN SMALL LETTER O WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc5\x9b", 2, 0x015B}, /* (LATIN SMALL LETTER S WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\xb1", 2, 0x0171}, /* (LATIN SMALL LETTER U WITH DOUBLE ACUTE) */
-    {(lxb_char_t *) "\xc3\xb9", 2, 0x00F9}, /* (LATIN SMALL LETTER U WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xba", 2, 0x00FA}, /* (LATIN SMALL LETTER U WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xbb", 2, 0x00FB}, /* (LATIN SMALL LETTER U WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xbc", 2, 0x00FC}, /* (LATIN SMALL LETTER U WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc4\x99", 2, 0x0119}, /* (LATIN SMALL LETTER E WITH OGONEK) */
-    {(lxb_char_t *) "\xc8\x9b", 2, 0x021B}, /* (LATIN SMALL LETTER T WITH COMMA BELOW) */
-    {(lxb_char_t *) "\xc3\xbf", 2, 0x00FF}, /* (LATIN SMALL LETTER Y WITH DIAERESIS) */
+    {(unsigned char *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
+    {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
+    {(unsigned char *) "\xc2\x82", 2, 0x0082}, /* (<control>) */
+    {(unsigned char *) "\xc2\x83", 2, 0x0083}, /* (<control>) */
+    {(unsigned char *) "\xc2\x84", 2, 0x0084}, /* (<control>) */
+    {(unsigned char *) "\xc2\x85", 2, 0x0085}, /* (<control>) */
+    {(unsigned char *) "\xc2\x86", 2, 0x0086}, /* (<control>) */
+    {(unsigned char *) "\xc2\x87", 2, 0x0087}, /* (<control>) */
+    {(unsigned char *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
+    {(unsigned char *) "\xc2\x89", 2, 0x0089}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8b", 2, 0x008B}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
+    {(unsigned char *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
+    {(unsigned char *) "\xc2\x91", 2, 0x0091}, /* (<control>) */
+    {(unsigned char *) "\xc2\x92", 2, 0x0092}, /* (<control>) */
+    {(unsigned char *) "\xc2\x93", 2, 0x0093}, /* (<control>) */
+    {(unsigned char *) "\xc2\x94", 2, 0x0094}, /* (<control>) */
+    {(unsigned char *) "\xc2\x95", 2, 0x0095}, /* (<control>) */
+    {(unsigned char *) "\xc2\x96", 2, 0x0096}, /* (<control>) */
+    {(unsigned char *) "\xc2\x97", 2, 0x0097}, /* (<control>) */
+    {(unsigned char *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
+    {(unsigned char *) "\xc2\x99", 2, 0x0099}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9b", 2, 0x009B}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
+    {(unsigned char *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
+    {(unsigned char *) "\xc4\x84", 2, 0x0104}, /* (LATIN CAPITAL LETTER A WITH OGONEK) */
+    {(unsigned char *) "\xc4\x85", 2, 0x0105}, /* (LATIN SMALL LETTER A WITH OGONEK) */
+    {(unsigned char *) "\xc5\x81", 2, 0x0141}, /* (LATIN CAPITAL LETTER L WITH STROKE) */
+    {(unsigned char *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
+    {(unsigned char *) "\xe2\x80\x9e", 3, 0x201E}, /* (DOUBLE LOW-9 QUOTATION MARK) */
+    {(unsigned char *) "\xc5\xa0", 2, 0x0160}, /* (LATIN CAPITAL LETTER S WITH CARON) */
+    {(unsigned char *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
+    {(unsigned char *) "\xc5\xa1", 2, 0x0161}, /* (LATIN SMALL LETTER S WITH CARON) */
+    {(unsigned char *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
+    {(unsigned char *) "\xc8\x98", 2, 0x0218}, /* (LATIN CAPITAL LETTER S WITH COMMA BELOW) */
+    {(unsigned char *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc5\xb9", 2, 0x0179}, /* (LATIN CAPITAL LETTER Z WITH ACUTE) */
+    {(unsigned char *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
+    {(unsigned char *) "\xc5\xba", 2, 0x017A}, /* (LATIN SMALL LETTER Z WITH ACUTE) */
+    {(unsigned char *) "\xc5\xbb", 2, 0x017B}, /* (LATIN CAPITAL LETTER Z WITH DOT ABOVE) */
+    {(unsigned char *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
+    {(unsigned char *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
+    {(unsigned char *) "\xc4\x8c", 2, 0x010C}, /* (LATIN CAPITAL LETTER C WITH CARON) */
+    {(unsigned char *) "\xc5\x82", 2, 0x0142}, /* (LATIN SMALL LETTER L WITH STROKE) */
+    {(unsigned char *) "\xc5\xbd", 2, 0x017D}, /* (LATIN CAPITAL LETTER Z WITH CARON) */
+    {(unsigned char *) "\xe2\x80\x9d", 3, 0x201D}, /* (RIGHT DOUBLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
+    {(unsigned char *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
+    {(unsigned char *) "\xc5\xbe", 2, 0x017E}, /* (LATIN SMALL LETTER Z WITH CARON) */
+    {(unsigned char *) "\xc4\x8d", 2, 0x010D}, /* (LATIN SMALL LETTER C WITH CARON) */
+    {(unsigned char *) "\xc8\x99", 2, 0x0219}, /* (LATIN SMALL LETTER S WITH COMMA BELOW) */
+    {(unsigned char *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc5\x92", 2, 0x0152}, /* (LATIN CAPITAL LIGATURE OE) */
+    {(unsigned char *) "\xc5\x93", 2, 0x0153}, /* (LATIN SMALL LIGATURE OE) */
+    {(unsigned char *) "\xc5\xb8", 2, 0x0178}, /* (LATIN CAPITAL LETTER Y WITH DIAERESIS) */
+    {(unsigned char *) "\xc5\xbc", 2, 0x017C}, /* (LATIN SMALL LETTER Z WITH DOT ABOVE) */
+    {(unsigned char *) "\xc3\x80", 2, 0x00C0}, /* (LATIN CAPITAL LETTER A WITH GRAVE) */
+    {(unsigned char *) "\xc3\x81", 2, 0x00C1}, /* (LATIN CAPITAL LETTER A WITH ACUTE) */
+    {(unsigned char *) "\xc3\x82", 2, 0x00C2}, /* (LATIN CAPITAL LETTER A WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc4\x82", 2, 0x0102}, /* (LATIN CAPITAL LETTER A WITH BREVE) */
+    {(unsigned char *) "\xc3\x84", 2, 0x00C4}, /* (LATIN CAPITAL LETTER A WITH DIAERESIS) */
+    {(unsigned char *) "\xc4\x86", 2, 0x0106}, /* (LATIN CAPITAL LETTER C WITH ACUTE) */
+    {(unsigned char *) "\xc3\x86", 2, 0x00C6}, /* (LATIN CAPITAL LETTER AE) */
+    {(unsigned char *) "\xc3\x87", 2, 0x00C7}, /* (LATIN CAPITAL LETTER C WITH CEDILLA) */
+    {(unsigned char *) "\xc3\x88", 2, 0x00C8}, /* (LATIN CAPITAL LETTER E WITH GRAVE) */
+    {(unsigned char *) "\xc3\x89", 2, 0x00C9}, /* (LATIN CAPITAL LETTER E WITH ACUTE) */
+    {(unsigned char *) "\xc3\x8a", 2, 0x00CA}, /* (LATIN CAPITAL LETTER E WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x8b", 2, 0x00CB}, /* (LATIN CAPITAL LETTER E WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x8c", 2, 0x00CC}, /* (LATIN CAPITAL LETTER I WITH GRAVE) */
+    {(unsigned char *) "\xc3\x8d", 2, 0x00CD}, /* (LATIN CAPITAL LETTER I WITH ACUTE) */
+    {(unsigned char *) "\xc3\x8e", 2, 0x00CE}, /* (LATIN CAPITAL LETTER I WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x8f", 2, 0x00CF}, /* (LATIN CAPITAL LETTER I WITH DIAERESIS) */
+    {(unsigned char *) "\xc4\x90", 2, 0x0110}, /* (LATIN CAPITAL LETTER D WITH STROKE) */
+    {(unsigned char *) "\xc5\x83", 2, 0x0143}, /* (LATIN CAPITAL LETTER N WITH ACUTE) */
+    {(unsigned char *) "\xc3\x92", 2, 0x00D2}, /* (LATIN CAPITAL LETTER O WITH GRAVE) */
+    {(unsigned char *) "\xc3\x93", 2, 0x00D3}, /* (LATIN CAPITAL LETTER O WITH ACUTE) */
+    {(unsigned char *) "\xc3\x94", 2, 0x00D4}, /* (LATIN CAPITAL LETTER O WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc5\x90", 2, 0x0150}, /* (LATIN CAPITAL LETTER O WITH DOUBLE ACUTE) */
+    {(unsigned char *) "\xc3\x96", 2, 0x00D6}, /* (LATIN CAPITAL LETTER O WITH DIAERESIS) */
+    {(unsigned char *) "\xc5\x9a", 2, 0x015A}, /* (LATIN CAPITAL LETTER S WITH ACUTE) */
+    {(unsigned char *) "\xc5\xb0", 2, 0x0170}, /* (LATIN CAPITAL LETTER U WITH DOUBLE ACUTE) */
+    {(unsigned char *) "\xc3\x99", 2, 0x00D9}, /* (LATIN CAPITAL LETTER U WITH GRAVE) */
+    {(unsigned char *) "\xc3\x9a", 2, 0x00DA}, /* (LATIN CAPITAL LETTER U WITH ACUTE) */
+    {(unsigned char *) "\xc3\x9b", 2, 0x00DB}, /* (LATIN CAPITAL LETTER U WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x9c", 2, 0x00DC}, /* (LATIN CAPITAL LETTER U WITH DIAERESIS) */
+    {(unsigned char *) "\xc4\x98", 2, 0x0118}, /* (LATIN CAPITAL LETTER E WITH OGONEK) */
+    {(unsigned char *) "\xc8\x9a", 2, 0x021A}, /* (LATIN CAPITAL LETTER T WITH COMMA BELOW) */
+    {(unsigned char *) "\xc3\x9f", 2, 0x00DF}, /* (LATIN SMALL LETTER SHARP S) */
+    {(unsigned char *) "\xc3\xa0", 2, 0x00E0}, /* (LATIN SMALL LETTER A WITH GRAVE) */
+    {(unsigned char *) "\xc3\xa1", 2, 0x00E1}, /* (LATIN SMALL LETTER A WITH ACUTE) */
+    {(unsigned char *) "\xc3\xa2", 2, 0x00E2}, /* (LATIN SMALL LETTER A WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc4\x83", 2, 0x0103}, /* (LATIN SMALL LETTER A WITH BREVE) */
+    {(unsigned char *) "\xc3\xa4", 2, 0x00E4}, /* (LATIN SMALL LETTER A WITH DIAERESIS) */
+    {(unsigned char *) "\xc4\x87", 2, 0x0107}, /* (LATIN SMALL LETTER C WITH ACUTE) */
+    {(unsigned char *) "\xc3\xa6", 2, 0x00E6}, /* (LATIN SMALL LETTER AE) */
+    {(unsigned char *) "\xc3\xa7", 2, 0x00E7}, /* (LATIN SMALL LETTER C WITH CEDILLA) */
+    {(unsigned char *) "\xc3\xa8", 2, 0x00E8}, /* (LATIN SMALL LETTER E WITH GRAVE) */
+    {(unsigned char *) "\xc3\xa9", 2, 0x00E9}, /* (LATIN SMALL LETTER E WITH ACUTE) */
+    {(unsigned char *) "\xc3\xaa", 2, 0x00EA}, /* (LATIN SMALL LETTER E WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xab", 2, 0x00EB}, /* (LATIN SMALL LETTER E WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xac", 2, 0x00EC}, /* (LATIN SMALL LETTER I WITH GRAVE) */
+    {(unsigned char *) "\xc3\xad", 2, 0x00ED}, /* (LATIN SMALL LETTER I WITH ACUTE) */
+    {(unsigned char *) "\xc3\xae", 2, 0x00EE}, /* (LATIN SMALL LETTER I WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xaf", 2, 0x00EF}, /* (LATIN SMALL LETTER I WITH DIAERESIS) */
+    {(unsigned char *) "\xc4\x91", 2, 0x0111}, /* (LATIN SMALL LETTER D WITH STROKE) */
+    {(unsigned char *) "\xc5\x84", 2, 0x0144}, /* (LATIN SMALL LETTER N WITH ACUTE) */
+    {(unsigned char *) "\xc3\xb2", 2, 0x00F2}, /* (LATIN SMALL LETTER O WITH GRAVE) */
+    {(unsigned char *) "\xc3\xb3", 2, 0x00F3}, /* (LATIN SMALL LETTER O WITH ACUTE) */
+    {(unsigned char *) "\xc3\xb4", 2, 0x00F4}, /* (LATIN SMALL LETTER O WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc5\x91", 2, 0x0151}, /* (LATIN SMALL LETTER O WITH DOUBLE ACUTE) */
+    {(unsigned char *) "\xc3\xb6", 2, 0x00F6}, /* (LATIN SMALL LETTER O WITH DIAERESIS) */
+    {(unsigned char *) "\xc5\x9b", 2, 0x015B}, /* (LATIN SMALL LETTER S WITH ACUTE) */
+    {(unsigned char *) "\xc5\xb1", 2, 0x0171}, /* (LATIN SMALL LETTER U WITH DOUBLE ACUTE) */
+    {(unsigned char *) "\xc3\xb9", 2, 0x00F9}, /* (LATIN SMALL LETTER U WITH GRAVE) */
+    {(unsigned char *) "\xc3\xba", 2, 0x00FA}, /* (LATIN SMALL LETTER U WITH ACUTE) */
+    {(unsigned char *) "\xc3\xbb", 2, 0x00FB}, /* (LATIN SMALL LETTER U WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xbc", 2, 0x00FC}, /* (LATIN SMALL LETTER U WITH DIAERESIS) */
+    {(unsigned char *) "\xc4\x99", 2, 0x0119}, /* (LATIN SMALL LETTER E WITH OGONEK) */
+    {(unsigned char *) "\xc8\x9b", 2, 0x021B}, /* (LATIN SMALL LETTER T WITH COMMA BELOW) */
+    {(unsigned char *) "\xc3\xbf", 2, 0x00FF}, /* (LATIN SMALL LETTER Y WITH DIAERESIS) */
 };
 
-LXB_API const lxb_encoding_single_index_t lxb_encoding_single_index_iso_8859_2[128] = 
+GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_2[128] = 
 {
-    {(lxb_char_t *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x82", 2, 0x0082}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x83", 2, 0x0083}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x84", 2, 0x0084}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x85", 2, 0x0085}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x86", 2, 0x0086}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x87", 2, 0x0087}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x89", 2, 0x0089}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8b", 2, 0x008B}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x91", 2, 0x0091}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x92", 2, 0x0092}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x93", 2, 0x0093}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x94", 2, 0x0094}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x95", 2, 0x0095}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x96", 2, 0x0096}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x97", 2, 0x0097}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x99", 2, 0x0099}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9b", 2, 0x009B}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
-    {(lxb_char_t *) "\xc4\x84", 2, 0x0104}, /* (LATIN CAPITAL LETTER A WITH OGONEK) */
-    {(lxb_char_t *) "\xcb\x98", 2, 0x02D8}, /* (BREVE) */
-    {(lxb_char_t *) "\xc5\x81", 2, 0x0141}, /* (LATIN CAPITAL LETTER L WITH STROKE) */
-    {(lxb_char_t *) "\xc2\xa4", 2, 0x00A4}, /* (CURRENCY SIGN) */
-    {(lxb_char_t *) "\xc4\xbd", 2, 0x013D}, /* (LATIN CAPITAL LETTER L WITH CARON) */
-    {(lxb_char_t *) "\xc5\x9a", 2, 0x015A}, /* (LATIN CAPITAL LETTER S WITH ACUTE) */
-    {(lxb_char_t *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
-    {(lxb_char_t *) "\xc2\xa8", 2, 0x00A8}, /* (DIAERESIS) */
-    {(lxb_char_t *) "\xc5\xa0", 2, 0x0160}, /* (LATIN CAPITAL LETTER S WITH CARON) */
-    {(lxb_char_t *) "\xc5\x9e", 2, 0x015E}, /* (LATIN CAPITAL LETTER S WITH CEDILLA) */
-    {(lxb_char_t *) "\xc5\xa4", 2, 0x0164}, /* (LATIN CAPITAL LETTER T WITH CARON) */
-    {(lxb_char_t *) "\xc5\xb9", 2, 0x0179}, /* (LATIN CAPITAL LETTER Z WITH ACUTE) */
-    {(lxb_char_t *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
-    {(lxb_char_t *) "\xc5\xbd", 2, 0x017D}, /* (LATIN CAPITAL LETTER Z WITH CARON) */
-    {(lxb_char_t *) "\xc5\xbb", 2, 0x017B}, /* (LATIN CAPITAL LETTER Z WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
-    {(lxb_char_t *) "\xc4\x85", 2, 0x0105}, /* (LATIN SMALL LETTER A WITH OGONEK) */
-    {(lxb_char_t *) "\xcb\x9b", 2, 0x02DB}, /* (OGONEK) */
-    {(lxb_char_t *) "\xc5\x82", 2, 0x0142}, /* (LATIN SMALL LETTER L WITH STROKE) */
-    {(lxb_char_t *) "\xc2\xb4", 2, 0x00B4}, /* (ACUTE ACCENT) */
-    {(lxb_char_t *) "\xc4\xbe", 2, 0x013E}, /* (LATIN SMALL LETTER L WITH CARON) */
-    {(lxb_char_t *) "\xc5\x9b", 2, 0x015B}, /* (LATIN SMALL LETTER S WITH ACUTE) */
-    {(lxb_char_t *) "\xcb\x87", 2, 0x02C7}, /* (CARON) */
-    {(lxb_char_t *) "\xc2\xb8", 2, 0x00B8}, /* (CEDILLA) */
-    {(lxb_char_t *) "\xc5\xa1", 2, 0x0161}, /* (LATIN SMALL LETTER S WITH CARON) */
-    {(lxb_char_t *) "\xc5\x9f", 2, 0x015F}, /* (LATIN SMALL LETTER S WITH CEDILLA) */
-    {(lxb_char_t *) "\xc5\xa5", 2, 0x0165}, /* (LATIN SMALL LETTER T WITH CARON) */
-    {(lxb_char_t *) "\xc5\xba", 2, 0x017A}, /* (LATIN SMALL LETTER Z WITH ACUTE) */
-    {(lxb_char_t *) "\xcb\x9d", 2, 0x02DD}, /* (DOUBLE ACUTE ACCENT) */
-    {(lxb_char_t *) "\xc5\xbe", 2, 0x017E}, /* (LATIN SMALL LETTER Z WITH CARON) */
-    {(lxb_char_t *) "\xc5\xbc", 2, 0x017C}, /* (LATIN SMALL LETTER Z WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc5\x94", 2, 0x0154}, /* (LATIN CAPITAL LETTER R WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x81", 2, 0x00C1}, /* (LATIN CAPITAL LETTER A WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x82", 2, 0x00C2}, /* (LATIN CAPITAL LETTER A WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc4\x82", 2, 0x0102}, /* (LATIN CAPITAL LETTER A WITH BREVE) */
-    {(lxb_char_t *) "\xc3\x84", 2, 0x00C4}, /* (LATIN CAPITAL LETTER A WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc4\xb9", 2, 0x0139}, /* (LATIN CAPITAL LETTER L WITH ACUTE) */
-    {(lxb_char_t *) "\xc4\x86", 2, 0x0106}, /* (LATIN CAPITAL LETTER C WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x87", 2, 0x00C7}, /* (LATIN CAPITAL LETTER C WITH CEDILLA) */
-    {(lxb_char_t *) "\xc4\x8c", 2, 0x010C}, /* (LATIN CAPITAL LETTER C WITH CARON) */
-    {(lxb_char_t *) "\xc3\x89", 2, 0x00C9}, /* (LATIN CAPITAL LETTER E WITH ACUTE) */
-    {(lxb_char_t *) "\xc4\x98", 2, 0x0118}, /* (LATIN CAPITAL LETTER E WITH OGONEK) */
-    {(lxb_char_t *) "\xc3\x8b", 2, 0x00CB}, /* (LATIN CAPITAL LETTER E WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc4\x9a", 2, 0x011A}, /* (LATIN CAPITAL LETTER E WITH CARON) */
-    {(lxb_char_t *) "\xc3\x8d", 2, 0x00CD}, /* (LATIN CAPITAL LETTER I WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x8e", 2, 0x00CE}, /* (LATIN CAPITAL LETTER I WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc4\x8e", 2, 0x010E}, /* (LATIN CAPITAL LETTER D WITH CARON) */
-    {(lxb_char_t *) "\xc4\x90", 2, 0x0110}, /* (LATIN CAPITAL LETTER D WITH STROKE) */
-    {(lxb_char_t *) "\xc5\x83", 2, 0x0143}, /* (LATIN CAPITAL LETTER N WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\x87", 2, 0x0147}, /* (LATIN CAPITAL LETTER N WITH CARON) */
-    {(lxb_char_t *) "\xc3\x93", 2, 0x00D3}, /* (LATIN CAPITAL LETTER O WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x94", 2, 0x00D4}, /* (LATIN CAPITAL LETTER O WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc5\x90", 2, 0x0150}, /* (LATIN CAPITAL LETTER O WITH DOUBLE ACUTE) */
-    {(lxb_char_t *) "\xc3\x96", 2, 0x00D6}, /* (LATIN CAPITAL LETTER O WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x97", 2, 0x00D7}, /* (MULTIPLICATION SIGN) */
-    {(lxb_char_t *) "\xc5\x98", 2, 0x0158}, /* (LATIN CAPITAL LETTER R WITH CARON) */
-    {(lxb_char_t *) "\xc5\xae", 2, 0x016E}, /* (LATIN CAPITAL LETTER U WITH RING ABOVE) */
-    {(lxb_char_t *) "\xc3\x9a", 2, 0x00DA}, /* (LATIN CAPITAL LETTER U WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\xb0", 2, 0x0170}, /* (LATIN CAPITAL LETTER U WITH DOUBLE ACUTE) */
-    {(lxb_char_t *) "\xc3\x9c", 2, 0x00DC}, /* (LATIN CAPITAL LETTER U WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x9d", 2, 0x00DD}, /* (LATIN CAPITAL LETTER Y WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\xa2", 2, 0x0162}, /* (LATIN CAPITAL LETTER T WITH CEDILLA) */
-    {(lxb_char_t *) "\xc3\x9f", 2, 0x00DF}, /* (LATIN SMALL LETTER SHARP S) */
-    {(lxb_char_t *) "\xc5\x95", 2, 0x0155}, /* (LATIN SMALL LETTER R WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xa1", 2, 0x00E1}, /* (LATIN SMALL LETTER A WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xa2", 2, 0x00E2}, /* (LATIN SMALL LETTER A WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc4\x83", 2, 0x0103}, /* (LATIN SMALL LETTER A WITH BREVE) */
-    {(lxb_char_t *) "\xc3\xa4", 2, 0x00E4}, /* (LATIN SMALL LETTER A WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc4\xba", 2, 0x013A}, /* (LATIN SMALL LETTER L WITH ACUTE) */
-    {(lxb_char_t *) "\xc4\x87", 2, 0x0107}, /* (LATIN SMALL LETTER C WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xa7", 2, 0x00E7}, /* (LATIN SMALL LETTER C WITH CEDILLA) */
-    {(lxb_char_t *) "\xc4\x8d", 2, 0x010D}, /* (LATIN SMALL LETTER C WITH CARON) */
-    {(lxb_char_t *) "\xc3\xa9", 2, 0x00E9}, /* (LATIN SMALL LETTER E WITH ACUTE) */
-    {(lxb_char_t *) "\xc4\x99", 2, 0x0119}, /* (LATIN SMALL LETTER E WITH OGONEK) */
-    {(lxb_char_t *) "\xc3\xab", 2, 0x00EB}, /* (LATIN SMALL LETTER E WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc4\x9b", 2, 0x011B}, /* (LATIN SMALL LETTER E WITH CARON) */
-    {(lxb_char_t *) "\xc3\xad", 2, 0x00ED}, /* (LATIN SMALL LETTER I WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xae", 2, 0x00EE}, /* (LATIN SMALL LETTER I WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc4\x8f", 2, 0x010F}, /* (LATIN SMALL LETTER D WITH CARON) */
-    {(lxb_char_t *) "\xc4\x91", 2, 0x0111}, /* (LATIN SMALL LETTER D WITH STROKE) */
-    {(lxb_char_t *) "\xc5\x84", 2, 0x0144}, /* (LATIN SMALL LETTER N WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\x88", 2, 0x0148}, /* (LATIN SMALL LETTER N WITH CARON) */
-    {(lxb_char_t *) "\xc3\xb3", 2, 0x00F3}, /* (LATIN SMALL LETTER O WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xb4", 2, 0x00F4}, /* (LATIN SMALL LETTER O WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc5\x91", 2, 0x0151}, /* (LATIN SMALL LETTER O WITH DOUBLE ACUTE) */
-    {(lxb_char_t *) "\xc3\xb6", 2, 0x00F6}, /* (LATIN SMALL LETTER O WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
-    {(lxb_char_t *) "\xc5\x99", 2, 0x0159}, /* (LATIN SMALL LETTER R WITH CARON) */
-    {(lxb_char_t *) "\xc5\xaf", 2, 0x016F}, /* (LATIN SMALL LETTER U WITH RING ABOVE) */
-    {(lxb_char_t *) "\xc3\xba", 2, 0x00FA}, /* (LATIN SMALL LETTER U WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\xb1", 2, 0x0171}, /* (LATIN SMALL LETTER U WITH DOUBLE ACUTE) */
-    {(lxb_char_t *) "\xc3\xbc", 2, 0x00FC}, /* (LATIN SMALL LETTER U WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xbd", 2, 0x00FD}, /* (LATIN SMALL LETTER Y WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\xa3", 2, 0x0163}, /* (LATIN SMALL LETTER T WITH CEDILLA) */
-    {(lxb_char_t *) "\xcb\x99", 2, 0x02D9}, /* (DOT ABOVE) */
+    {(unsigned char *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
+    {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
+    {(unsigned char *) "\xc2\x82", 2, 0x0082}, /* (<control>) */
+    {(unsigned char *) "\xc2\x83", 2, 0x0083}, /* (<control>) */
+    {(unsigned char *) "\xc2\x84", 2, 0x0084}, /* (<control>) */
+    {(unsigned char *) "\xc2\x85", 2, 0x0085}, /* (<control>) */
+    {(unsigned char *) "\xc2\x86", 2, 0x0086}, /* (<control>) */
+    {(unsigned char *) "\xc2\x87", 2, 0x0087}, /* (<control>) */
+    {(unsigned char *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
+    {(unsigned char *) "\xc2\x89", 2, 0x0089}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8b", 2, 0x008B}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
+    {(unsigned char *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
+    {(unsigned char *) "\xc2\x91", 2, 0x0091}, /* (<control>) */
+    {(unsigned char *) "\xc2\x92", 2, 0x0092}, /* (<control>) */
+    {(unsigned char *) "\xc2\x93", 2, 0x0093}, /* (<control>) */
+    {(unsigned char *) "\xc2\x94", 2, 0x0094}, /* (<control>) */
+    {(unsigned char *) "\xc2\x95", 2, 0x0095}, /* (<control>) */
+    {(unsigned char *) "\xc2\x96", 2, 0x0096}, /* (<control>) */
+    {(unsigned char *) "\xc2\x97", 2, 0x0097}, /* (<control>) */
+    {(unsigned char *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
+    {(unsigned char *) "\xc2\x99", 2, 0x0099}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9b", 2, 0x009B}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
+    {(unsigned char *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
+    {(unsigned char *) "\xc4\x84", 2, 0x0104}, /* (LATIN CAPITAL LETTER A WITH OGONEK) */
+    {(unsigned char *) "\xcb\x98", 2, 0x02D8}, /* (BREVE) */
+    {(unsigned char *) "\xc5\x81", 2, 0x0141}, /* (LATIN CAPITAL LETTER L WITH STROKE) */
+    {(unsigned char *) "\xc2\xa4", 2, 0x00A4}, /* (CURRENCY SIGN) */
+    {(unsigned char *) "\xc4\xbd", 2, 0x013D}, /* (LATIN CAPITAL LETTER L WITH CARON) */
+    {(unsigned char *) "\xc5\x9a", 2, 0x015A}, /* (LATIN CAPITAL LETTER S WITH ACUTE) */
+    {(unsigned char *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
+    {(unsigned char *) "\xc2\xa8", 2, 0x00A8}, /* (DIAERESIS) */
+    {(unsigned char *) "\xc5\xa0", 2, 0x0160}, /* (LATIN CAPITAL LETTER S WITH CARON) */
+    {(unsigned char *) "\xc5\x9e", 2, 0x015E}, /* (LATIN CAPITAL LETTER S WITH CEDILLA) */
+    {(unsigned char *) "\xc5\xa4", 2, 0x0164}, /* (LATIN CAPITAL LETTER T WITH CARON) */
+    {(unsigned char *) "\xc5\xb9", 2, 0x0179}, /* (LATIN CAPITAL LETTER Z WITH ACUTE) */
+    {(unsigned char *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
+    {(unsigned char *) "\xc5\xbd", 2, 0x017D}, /* (LATIN CAPITAL LETTER Z WITH CARON) */
+    {(unsigned char *) "\xc5\xbb", 2, 0x017B}, /* (LATIN CAPITAL LETTER Z WITH DOT ABOVE) */
+    {(unsigned char *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
+    {(unsigned char *) "\xc4\x85", 2, 0x0105}, /* (LATIN SMALL LETTER A WITH OGONEK) */
+    {(unsigned char *) "\xcb\x9b", 2, 0x02DB}, /* (OGONEK) */
+    {(unsigned char *) "\xc5\x82", 2, 0x0142}, /* (LATIN SMALL LETTER L WITH STROKE) */
+    {(unsigned char *) "\xc2\xb4", 2, 0x00B4}, /* (ACUTE ACCENT) */
+    {(unsigned char *) "\xc4\xbe", 2, 0x013E}, /* (LATIN SMALL LETTER L WITH CARON) */
+    {(unsigned char *) "\xc5\x9b", 2, 0x015B}, /* (LATIN SMALL LETTER S WITH ACUTE) */
+    {(unsigned char *) "\xcb\x87", 2, 0x02C7}, /* (CARON) */
+    {(unsigned char *) "\xc2\xb8", 2, 0x00B8}, /* (CEDILLA) */
+    {(unsigned char *) "\xc5\xa1", 2, 0x0161}, /* (LATIN SMALL LETTER S WITH CARON) */
+    {(unsigned char *) "\xc5\x9f", 2, 0x015F}, /* (LATIN SMALL LETTER S WITH CEDILLA) */
+    {(unsigned char *) "\xc5\xa5", 2, 0x0165}, /* (LATIN SMALL LETTER T WITH CARON) */
+    {(unsigned char *) "\xc5\xba", 2, 0x017A}, /* (LATIN SMALL LETTER Z WITH ACUTE) */
+    {(unsigned char *) "\xcb\x9d", 2, 0x02DD}, /* (DOUBLE ACUTE ACCENT) */
+    {(unsigned char *) "\xc5\xbe", 2, 0x017E}, /* (LATIN SMALL LETTER Z WITH CARON) */
+    {(unsigned char *) "\xc5\xbc", 2, 0x017C}, /* (LATIN SMALL LETTER Z WITH DOT ABOVE) */
+    {(unsigned char *) "\xc5\x94", 2, 0x0154}, /* (LATIN CAPITAL LETTER R WITH ACUTE) */
+    {(unsigned char *) "\xc3\x81", 2, 0x00C1}, /* (LATIN CAPITAL LETTER A WITH ACUTE) */
+    {(unsigned char *) "\xc3\x82", 2, 0x00C2}, /* (LATIN CAPITAL LETTER A WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc4\x82", 2, 0x0102}, /* (LATIN CAPITAL LETTER A WITH BREVE) */
+    {(unsigned char *) "\xc3\x84", 2, 0x00C4}, /* (LATIN CAPITAL LETTER A WITH DIAERESIS) */
+    {(unsigned char *) "\xc4\xb9", 2, 0x0139}, /* (LATIN CAPITAL LETTER L WITH ACUTE) */
+    {(unsigned char *) "\xc4\x86", 2, 0x0106}, /* (LATIN CAPITAL LETTER C WITH ACUTE) */
+    {(unsigned char *) "\xc3\x87", 2, 0x00C7}, /* (LATIN CAPITAL LETTER C WITH CEDILLA) */
+    {(unsigned char *) "\xc4\x8c", 2, 0x010C}, /* (LATIN CAPITAL LETTER C WITH CARON) */
+    {(unsigned char *) "\xc3\x89", 2, 0x00C9}, /* (LATIN CAPITAL LETTER E WITH ACUTE) */
+    {(unsigned char *) "\xc4\x98", 2, 0x0118}, /* (LATIN CAPITAL LETTER E WITH OGONEK) */
+    {(unsigned char *) "\xc3\x8b", 2, 0x00CB}, /* (LATIN CAPITAL LETTER E WITH DIAERESIS) */
+    {(unsigned char *) "\xc4\x9a", 2, 0x011A}, /* (LATIN CAPITAL LETTER E WITH CARON) */
+    {(unsigned char *) "\xc3\x8d", 2, 0x00CD}, /* (LATIN CAPITAL LETTER I WITH ACUTE) */
+    {(unsigned char *) "\xc3\x8e", 2, 0x00CE}, /* (LATIN CAPITAL LETTER I WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc4\x8e", 2, 0x010E}, /* (LATIN CAPITAL LETTER D WITH CARON) */
+    {(unsigned char *) "\xc4\x90", 2, 0x0110}, /* (LATIN CAPITAL LETTER D WITH STROKE) */
+    {(unsigned char *) "\xc5\x83", 2, 0x0143}, /* (LATIN CAPITAL LETTER N WITH ACUTE) */
+    {(unsigned char *) "\xc5\x87", 2, 0x0147}, /* (LATIN CAPITAL LETTER N WITH CARON) */
+    {(unsigned char *) "\xc3\x93", 2, 0x00D3}, /* (LATIN CAPITAL LETTER O WITH ACUTE) */
+    {(unsigned char *) "\xc3\x94", 2, 0x00D4}, /* (LATIN CAPITAL LETTER O WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc5\x90", 2, 0x0150}, /* (LATIN CAPITAL LETTER O WITH DOUBLE ACUTE) */
+    {(unsigned char *) "\xc3\x96", 2, 0x00D6}, /* (LATIN CAPITAL LETTER O WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x97", 2, 0x00D7}, /* (MULTIPLICATION SIGN) */
+    {(unsigned char *) "\xc5\x98", 2, 0x0158}, /* (LATIN CAPITAL LETTER R WITH CARON) */
+    {(unsigned char *) "\xc5\xae", 2, 0x016E}, /* (LATIN CAPITAL LETTER U WITH RING ABOVE) */
+    {(unsigned char *) "\xc3\x9a", 2, 0x00DA}, /* (LATIN CAPITAL LETTER U WITH ACUTE) */
+    {(unsigned char *) "\xc5\xb0", 2, 0x0170}, /* (LATIN CAPITAL LETTER U WITH DOUBLE ACUTE) */
+    {(unsigned char *) "\xc3\x9c", 2, 0x00DC}, /* (LATIN CAPITAL LETTER U WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x9d", 2, 0x00DD}, /* (LATIN CAPITAL LETTER Y WITH ACUTE) */
+    {(unsigned char *) "\xc5\xa2", 2, 0x0162}, /* (LATIN CAPITAL LETTER T WITH CEDILLA) */
+    {(unsigned char *) "\xc3\x9f", 2, 0x00DF}, /* (LATIN SMALL LETTER SHARP S) */
+    {(unsigned char *) "\xc5\x95", 2, 0x0155}, /* (LATIN SMALL LETTER R WITH ACUTE) */
+    {(unsigned char *) "\xc3\xa1", 2, 0x00E1}, /* (LATIN SMALL LETTER A WITH ACUTE) */
+    {(unsigned char *) "\xc3\xa2", 2, 0x00E2}, /* (LATIN SMALL LETTER A WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc4\x83", 2, 0x0103}, /* (LATIN SMALL LETTER A WITH BREVE) */
+    {(unsigned char *) "\xc3\xa4", 2, 0x00E4}, /* (LATIN SMALL LETTER A WITH DIAERESIS) */
+    {(unsigned char *) "\xc4\xba", 2, 0x013A}, /* (LATIN SMALL LETTER L WITH ACUTE) */
+    {(unsigned char *) "\xc4\x87", 2, 0x0107}, /* (LATIN SMALL LETTER C WITH ACUTE) */
+    {(unsigned char *) "\xc3\xa7", 2, 0x00E7}, /* (LATIN SMALL LETTER C WITH CEDILLA) */
+    {(unsigned char *) "\xc4\x8d", 2, 0x010D}, /* (LATIN SMALL LETTER C WITH CARON) */
+    {(unsigned char *) "\xc3\xa9", 2, 0x00E9}, /* (LATIN SMALL LETTER E WITH ACUTE) */
+    {(unsigned char *) "\xc4\x99", 2, 0x0119}, /* (LATIN SMALL LETTER E WITH OGONEK) */
+    {(unsigned char *) "\xc3\xab", 2, 0x00EB}, /* (LATIN SMALL LETTER E WITH DIAERESIS) */
+    {(unsigned char *) "\xc4\x9b", 2, 0x011B}, /* (LATIN SMALL LETTER E WITH CARON) */
+    {(unsigned char *) "\xc3\xad", 2, 0x00ED}, /* (LATIN SMALL LETTER I WITH ACUTE) */
+    {(unsigned char *) "\xc3\xae", 2, 0x00EE}, /* (LATIN SMALL LETTER I WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc4\x8f", 2, 0x010F}, /* (LATIN SMALL LETTER D WITH CARON) */
+    {(unsigned char *) "\xc4\x91", 2, 0x0111}, /* (LATIN SMALL LETTER D WITH STROKE) */
+    {(unsigned char *) "\xc5\x84", 2, 0x0144}, /* (LATIN SMALL LETTER N WITH ACUTE) */
+    {(unsigned char *) "\xc5\x88", 2, 0x0148}, /* (LATIN SMALL LETTER N WITH CARON) */
+    {(unsigned char *) "\xc3\xb3", 2, 0x00F3}, /* (LATIN SMALL LETTER O WITH ACUTE) */
+    {(unsigned char *) "\xc3\xb4", 2, 0x00F4}, /* (LATIN SMALL LETTER O WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc5\x91", 2, 0x0151}, /* (LATIN SMALL LETTER O WITH DOUBLE ACUTE) */
+    {(unsigned char *) "\xc3\xb6", 2, 0x00F6}, /* (LATIN SMALL LETTER O WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
+    {(unsigned char *) "\xc5\x99", 2, 0x0159}, /* (LATIN SMALL LETTER R WITH CARON) */
+    {(unsigned char *) "\xc5\xaf", 2, 0x016F}, /* (LATIN SMALL LETTER U WITH RING ABOVE) */
+    {(unsigned char *) "\xc3\xba", 2, 0x00FA}, /* (LATIN SMALL LETTER U WITH ACUTE) */
+    {(unsigned char *) "\xc5\xb1", 2, 0x0171}, /* (LATIN SMALL LETTER U WITH DOUBLE ACUTE) */
+    {(unsigned char *) "\xc3\xbc", 2, 0x00FC}, /* (LATIN SMALL LETTER U WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xbd", 2, 0x00FD}, /* (LATIN SMALL LETTER Y WITH ACUTE) */
+    {(unsigned char *) "\xc5\xa3", 2, 0x0163}, /* (LATIN SMALL LETTER T WITH CEDILLA) */
+    {(unsigned char *) "\xcb\x99", 2, 0x02D9}, /* (DOT ABOVE) */
 };
 
-LXB_API const lxb_encoding_single_index_t lxb_encoding_single_index_iso_8859_3[128] = 
+GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_3[128] = 
 {
-    {(lxb_char_t *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x82", 2, 0x0082}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x83", 2, 0x0083}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x84", 2, 0x0084}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x85", 2, 0x0085}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x86", 2, 0x0086}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x87", 2, 0x0087}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x89", 2, 0x0089}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8b", 2, 0x008B}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x91", 2, 0x0091}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x92", 2, 0x0092}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x93", 2, 0x0093}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x94", 2, 0x0094}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x95", 2, 0x0095}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x96", 2, 0x0096}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x97", 2, 0x0097}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x99", 2, 0x0099}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9b", 2, 0x009B}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
-    {(lxb_char_t *) "\xc4\xa6", 2, 0x0126}, /* (LATIN CAPITAL LETTER H WITH STROKE) */
-    {(lxb_char_t *) "\xcb\x98", 2, 0x02D8}, /* (BREVE) */
-    {(lxb_char_t *) "\xc2\xa3", 2, 0x00A3}, /* (POUND SIGN) */
-    {(lxb_char_t *) "\xc2\xa4", 2, 0x00A4}, /* (CURRENCY SIGN) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {(lxb_char_t *) "\xc4\xa4", 2, 0x0124}, /* (LATIN CAPITAL LETTER H WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
-    {(lxb_char_t *) "\xc2\xa8", 2, 0x00A8}, /* (DIAERESIS) */
-    {(lxb_char_t *) "\xc4\xb0", 2, 0x0130}, /* (LATIN CAPITAL LETTER I WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc5\x9e", 2, 0x015E}, /* (LATIN CAPITAL LETTER S WITH CEDILLA) */
-    {(lxb_char_t *) "\xc4\x9e", 2, 0x011E}, /* (LATIN CAPITAL LETTER G WITH BREVE) */
-    {(lxb_char_t *) "\xc4\xb4", 2, 0x0134}, /* (LATIN CAPITAL LETTER J WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {(lxb_char_t *) "\xc5\xbb", 2, 0x017B}, /* (LATIN CAPITAL LETTER Z WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
-    {(lxb_char_t *) "\xc4\xa7", 2, 0x0127}, /* (LATIN SMALL LETTER H WITH STROKE) */
-    {(lxb_char_t *) "\xc2\xb2", 2, 0x00B2}, /* (SUPERSCRIPT TWO) */
-    {(lxb_char_t *) "\xc2\xb3", 2, 0x00B3}, /* (SUPERSCRIPT THREE) */
-    {(lxb_char_t *) "\xc2\xb4", 2, 0x00B4}, /* (ACUTE ACCENT) */
-    {(lxb_char_t *) "\xc2\xb5", 2, 0x00B5}, /* (MICRO SIGN) */
-    {(lxb_char_t *) "\xc4\xa5", 2, 0x0125}, /* (LATIN SMALL LETTER H WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
-    {(lxb_char_t *) "\xc2\xb8", 2, 0x00B8}, /* (CEDILLA) */
-    {(lxb_char_t *) "\xc4\xb1", 2, 0x0131}, /* (LATIN SMALL LETTER DOTLESS I) */
-    {(lxb_char_t *) "\xc5\x9f", 2, 0x015F}, /* (LATIN SMALL LETTER S WITH CEDILLA) */
-    {(lxb_char_t *) "\xc4\x9f", 2, 0x011F}, /* (LATIN SMALL LETTER G WITH BREVE) */
-    {(lxb_char_t *) "\xc4\xb5", 2, 0x0135}, /* (LATIN SMALL LETTER J WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc2\xbd", 2, 0x00BD}, /* (VULGAR FRACTION ONE HALF) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {(lxb_char_t *) "\xc5\xbc", 2, 0x017C}, /* (LATIN SMALL LETTER Z WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc3\x80", 2, 0x00C0}, /* (LATIN CAPITAL LETTER A WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x81", 2, 0x00C1}, /* (LATIN CAPITAL LETTER A WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x82", 2, 0x00C2}, /* (LATIN CAPITAL LETTER A WITH CIRCUMFLEX) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {(lxb_char_t *) "\xc3\x84", 2, 0x00C4}, /* (LATIN CAPITAL LETTER A WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc4\x8a", 2, 0x010A}, /* (LATIN CAPITAL LETTER C WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc4\x88", 2, 0x0108}, /* (LATIN CAPITAL LETTER C WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x87", 2, 0x00C7}, /* (LATIN CAPITAL LETTER C WITH CEDILLA) */
-    {(lxb_char_t *) "\xc3\x88", 2, 0x00C8}, /* (LATIN CAPITAL LETTER E WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x89", 2, 0x00C9}, /* (LATIN CAPITAL LETTER E WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x8a", 2, 0x00CA}, /* (LATIN CAPITAL LETTER E WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x8b", 2, 0x00CB}, /* (LATIN CAPITAL LETTER E WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x8c", 2, 0x00CC}, /* (LATIN CAPITAL LETTER I WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x8d", 2, 0x00CD}, /* (LATIN CAPITAL LETTER I WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x8e", 2, 0x00CE}, /* (LATIN CAPITAL LETTER I WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x8f", 2, 0x00CF}, /* (LATIN CAPITAL LETTER I WITH DIAERESIS) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {(lxb_char_t *) "\xc3\x91", 2, 0x00D1}, /* (LATIN CAPITAL LETTER N WITH TILDE) */
-    {(lxb_char_t *) "\xc3\x92", 2, 0x00D2}, /* (LATIN CAPITAL LETTER O WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x93", 2, 0x00D3}, /* (LATIN CAPITAL LETTER O WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x94", 2, 0x00D4}, /* (LATIN CAPITAL LETTER O WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc4\xa0", 2, 0x0120}, /* (LATIN CAPITAL LETTER G WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc3\x96", 2, 0x00D6}, /* (LATIN CAPITAL LETTER O WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x97", 2, 0x00D7}, /* (MULTIPLICATION SIGN) */
-    {(lxb_char_t *) "\xc4\x9c", 2, 0x011C}, /* (LATIN CAPITAL LETTER G WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x99", 2, 0x00D9}, /* (LATIN CAPITAL LETTER U WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x9a", 2, 0x00DA}, /* (LATIN CAPITAL LETTER U WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x9b", 2, 0x00DB}, /* (LATIN CAPITAL LETTER U WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x9c", 2, 0x00DC}, /* (LATIN CAPITAL LETTER U WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc5\xac", 2, 0x016C}, /* (LATIN CAPITAL LETTER U WITH BREVE) */
-    {(lxb_char_t *) "\xc5\x9c", 2, 0x015C}, /* (LATIN CAPITAL LETTER S WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x9f", 2, 0x00DF}, /* (LATIN SMALL LETTER SHARP S) */
-    {(lxb_char_t *) "\xc3\xa0", 2, 0x00E0}, /* (LATIN SMALL LETTER A WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xa1", 2, 0x00E1}, /* (LATIN SMALL LETTER A WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xa2", 2, 0x00E2}, /* (LATIN SMALL LETTER A WITH CIRCUMFLEX) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {(lxb_char_t *) "\xc3\xa4", 2, 0x00E4}, /* (LATIN SMALL LETTER A WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc4\x8b", 2, 0x010B}, /* (LATIN SMALL LETTER C WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc4\x89", 2, 0x0109}, /* (LATIN SMALL LETTER C WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xa7", 2, 0x00E7}, /* (LATIN SMALL LETTER C WITH CEDILLA) */
-    {(lxb_char_t *) "\xc3\xa8", 2, 0x00E8}, /* (LATIN SMALL LETTER E WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xa9", 2, 0x00E9}, /* (LATIN SMALL LETTER E WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xaa", 2, 0x00EA}, /* (LATIN SMALL LETTER E WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xab", 2, 0x00EB}, /* (LATIN SMALL LETTER E WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xac", 2, 0x00EC}, /* (LATIN SMALL LETTER I WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xad", 2, 0x00ED}, /* (LATIN SMALL LETTER I WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xae", 2, 0x00EE}, /* (LATIN SMALL LETTER I WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xaf", 2, 0x00EF}, /* (LATIN SMALL LETTER I WITH DIAERESIS) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {(lxb_char_t *) "\xc3\xb1", 2, 0x00F1}, /* (LATIN SMALL LETTER N WITH TILDE) */
-    {(lxb_char_t *) "\xc3\xb2", 2, 0x00F2}, /* (LATIN SMALL LETTER O WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xb3", 2, 0x00F3}, /* (LATIN SMALL LETTER O WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xb4", 2, 0x00F4}, /* (LATIN SMALL LETTER O WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc4\xa1", 2, 0x0121}, /* (LATIN SMALL LETTER G WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc3\xb6", 2, 0x00F6}, /* (LATIN SMALL LETTER O WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
-    {(lxb_char_t *) "\xc4\x9d", 2, 0x011D}, /* (LATIN SMALL LETTER G WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xb9", 2, 0x00F9}, /* (LATIN SMALL LETTER U WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xba", 2, 0x00FA}, /* (LATIN SMALL LETTER U WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xbb", 2, 0x00FB}, /* (LATIN SMALL LETTER U WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xbc", 2, 0x00FC}, /* (LATIN SMALL LETTER U WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc5\xad", 2, 0x016D}, /* (LATIN SMALL LETTER U WITH BREVE) */
-    {(lxb_char_t *) "\xc5\x9d", 2, 0x015D}, /* (LATIN SMALL LETTER S WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xcb\x99", 2, 0x02D9}, /* (DOT ABOVE) */
+    {(unsigned char *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
+    {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
+    {(unsigned char *) "\xc2\x82", 2, 0x0082}, /* (<control>) */
+    {(unsigned char *) "\xc2\x83", 2, 0x0083}, /* (<control>) */
+    {(unsigned char *) "\xc2\x84", 2, 0x0084}, /* (<control>) */
+    {(unsigned char *) "\xc2\x85", 2, 0x0085}, /* (<control>) */
+    {(unsigned char *) "\xc2\x86", 2, 0x0086}, /* (<control>) */
+    {(unsigned char *) "\xc2\x87", 2, 0x0087}, /* (<control>) */
+    {(unsigned char *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
+    {(unsigned char *) "\xc2\x89", 2, 0x0089}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8b", 2, 0x008B}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
+    {(unsigned char *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
+    {(unsigned char *) "\xc2\x91", 2, 0x0091}, /* (<control>) */
+    {(unsigned char *) "\xc2\x92", 2, 0x0092}, /* (<control>) */
+    {(unsigned char *) "\xc2\x93", 2, 0x0093}, /* (<control>) */
+    {(unsigned char *) "\xc2\x94", 2, 0x0094}, /* (<control>) */
+    {(unsigned char *) "\xc2\x95", 2, 0x0095}, /* (<control>) */
+    {(unsigned char *) "\xc2\x96", 2, 0x0096}, /* (<control>) */
+    {(unsigned char *) "\xc2\x97", 2, 0x0097}, /* (<control>) */
+    {(unsigned char *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
+    {(unsigned char *) "\xc2\x99", 2, 0x0099}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9b", 2, 0x009B}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
+    {(unsigned char *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
+    {(unsigned char *) "\xc4\xa6", 2, 0x0126}, /* (LATIN CAPITAL LETTER H WITH STROKE) */
+    {(unsigned char *) "\xcb\x98", 2, 0x02D8}, /* (BREVE) */
+    {(unsigned char *) "\xc2\xa3", 2, 0x00A3}, /* (POUND SIGN) */
+    {(unsigned char *) "\xc2\xa4", 2, 0x00A4}, /* (CURRENCY SIGN) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xc4\xa4", 2, 0x0124}, /* (LATIN CAPITAL LETTER H WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
+    {(unsigned char *) "\xc2\xa8", 2, 0x00A8}, /* (DIAERESIS) */
+    {(unsigned char *) "\xc4\xb0", 2, 0x0130}, /* (LATIN CAPITAL LETTER I WITH DOT ABOVE) */
+    {(unsigned char *) "\xc5\x9e", 2, 0x015E}, /* (LATIN CAPITAL LETTER S WITH CEDILLA) */
+    {(unsigned char *) "\xc4\x9e", 2, 0x011E}, /* (LATIN CAPITAL LETTER G WITH BREVE) */
+    {(unsigned char *) "\xc4\xb4", 2, 0x0134}, /* (LATIN CAPITAL LETTER J WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xc5\xbb", 2, 0x017B}, /* (LATIN CAPITAL LETTER Z WITH DOT ABOVE) */
+    {(unsigned char *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
+    {(unsigned char *) "\xc4\xa7", 2, 0x0127}, /* (LATIN SMALL LETTER H WITH STROKE) */
+    {(unsigned char *) "\xc2\xb2", 2, 0x00B2}, /* (SUPERSCRIPT TWO) */
+    {(unsigned char *) "\xc2\xb3", 2, 0x00B3}, /* (SUPERSCRIPT THREE) */
+    {(unsigned char *) "\xc2\xb4", 2, 0x00B4}, /* (ACUTE ACCENT) */
+    {(unsigned char *) "\xc2\xb5", 2, 0x00B5}, /* (MICRO SIGN) */
+    {(unsigned char *) "\xc4\xa5", 2, 0x0125}, /* (LATIN SMALL LETTER H WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
+    {(unsigned char *) "\xc2\xb8", 2, 0x00B8}, /* (CEDILLA) */
+    {(unsigned char *) "\xc4\xb1", 2, 0x0131}, /* (LATIN SMALL LETTER DOTLESS I) */
+    {(unsigned char *) "\xc5\x9f", 2, 0x015F}, /* (LATIN SMALL LETTER S WITH CEDILLA) */
+    {(unsigned char *) "\xc4\x9f", 2, 0x011F}, /* (LATIN SMALL LETTER G WITH BREVE) */
+    {(unsigned char *) "\xc4\xb5", 2, 0x0135}, /* (LATIN SMALL LETTER J WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc2\xbd", 2, 0x00BD}, /* (VULGAR FRACTION ONE HALF) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xc5\xbc", 2, 0x017C}, /* (LATIN SMALL LETTER Z WITH DOT ABOVE) */
+    {(unsigned char *) "\xc3\x80", 2, 0x00C0}, /* (LATIN CAPITAL LETTER A WITH GRAVE) */
+    {(unsigned char *) "\xc3\x81", 2, 0x00C1}, /* (LATIN CAPITAL LETTER A WITH ACUTE) */
+    {(unsigned char *) "\xc3\x82", 2, 0x00C2}, /* (LATIN CAPITAL LETTER A WITH CIRCUMFLEX) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xc3\x84", 2, 0x00C4}, /* (LATIN CAPITAL LETTER A WITH DIAERESIS) */
+    {(unsigned char *) "\xc4\x8a", 2, 0x010A}, /* (LATIN CAPITAL LETTER C WITH DOT ABOVE) */
+    {(unsigned char *) "\xc4\x88", 2, 0x0108}, /* (LATIN CAPITAL LETTER C WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x87", 2, 0x00C7}, /* (LATIN CAPITAL LETTER C WITH CEDILLA) */
+    {(unsigned char *) "\xc3\x88", 2, 0x00C8}, /* (LATIN CAPITAL LETTER E WITH GRAVE) */
+    {(unsigned char *) "\xc3\x89", 2, 0x00C9}, /* (LATIN CAPITAL LETTER E WITH ACUTE) */
+    {(unsigned char *) "\xc3\x8a", 2, 0x00CA}, /* (LATIN CAPITAL LETTER E WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x8b", 2, 0x00CB}, /* (LATIN CAPITAL LETTER E WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x8c", 2, 0x00CC}, /* (LATIN CAPITAL LETTER I WITH GRAVE) */
+    {(unsigned char *) "\xc3\x8d", 2, 0x00CD}, /* (LATIN CAPITAL LETTER I WITH ACUTE) */
+    {(unsigned char *) "\xc3\x8e", 2, 0x00CE}, /* (LATIN CAPITAL LETTER I WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x8f", 2, 0x00CF}, /* (LATIN CAPITAL LETTER I WITH DIAERESIS) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xc3\x91", 2, 0x00D1}, /* (LATIN CAPITAL LETTER N WITH TILDE) */
+    {(unsigned char *) "\xc3\x92", 2, 0x00D2}, /* (LATIN CAPITAL LETTER O WITH GRAVE) */
+    {(unsigned char *) "\xc3\x93", 2, 0x00D3}, /* (LATIN CAPITAL LETTER O WITH ACUTE) */
+    {(unsigned char *) "\xc3\x94", 2, 0x00D4}, /* (LATIN CAPITAL LETTER O WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc4\xa0", 2, 0x0120}, /* (LATIN CAPITAL LETTER G WITH DOT ABOVE) */
+    {(unsigned char *) "\xc3\x96", 2, 0x00D6}, /* (LATIN CAPITAL LETTER O WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x97", 2, 0x00D7}, /* (MULTIPLICATION SIGN) */
+    {(unsigned char *) "\xc4\x9c", 2, 0x011C}, /* (LATIN CAPITAL LETTER G WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x99", 2, 0x00D9}, /* (LATIN CAPITAL LETTER U WITH GRAVE) */
+    {(unsigned char *) "\xc3\x9a", 2, 0x00DA}, /* (LATIN CAPITAL LETTER U WITH ACUTE) */
+    {(unsigned char *) "\xc3\x9b", 2, 0x00DB}, /* (LATIN CAPITAL LETTER U WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x9c", 2, 0x00DC}, /* (LATIN CAPITAL LETTER U WITH DIAERESIS) */
+    {(unsigned char *) "\xc5\xac", 2, 0x016C}, /* (LATIN CAPITAL LETTER U WITH BREVE) */
+    {(unsigned char *) "\xc5\x9c", 2, 0x015C}, /* (LATIN CAPITAL LETTER S WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x9f", 2, 0x00DF}, /* (LATIN SMALL LETTER SHARP S) */
+    {(unsigned char *) "\xc3\xa0", 2, 0x00E0}, /* (LATIN SMALL LETTER A WITH GRAVE) */
+    {(unsigned char *) "\xc3\xa1", 2, 0x00E1}, /* (LATIN SMALL LETTER A WITH ACUTE) */
+    {(unsigned char *) "\xc3\xa2", 2, 0x00E2}, /* (LATIN SMALL LETTER A WITH CIRCUMFLEX) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xc3\xa4", 2, 0x00E4}, /* (LATIN SMALL LETTER A WITH DIAERESIS) */
+    {(unsigned char *) "\xc4\x8b", 2, 0x010B}, /* (LATIN SMALL LETTER C WITH DOT ABOVE) */
+    {(unsigned char *) "\xc4\x89", 2, 0x0109}, /* (LATIN SMALL LETTER C WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xa7", 2, 0x00E7}, /* (LATIN SMALL LETTER C WITH CEDILLA) */
+    {(unsigned char *) "\xc3\xa8", 2, 0x00E8}, /* (LATIN SMALL LETTER E WITH GRAVE) */
+    {(unsigned char *) "\xc3\xa9", 2, 0x00E9}, /* (LATIN SMALL LETTER E WITH ACUTE) */
+    {(unsigned char *) "\xc3\xaa", 2, 0x00EA}, /* (LATIN SMALL LETTER E WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xab", 2, 0x00EB}, /* (LATIN SMALL LETTER E WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xac", 2, 0x00EC}, /* (LATIN SMALL LETTER I WITH GRAVE) */
+    {(unsigned char *) "\xc3\xad", 2, 0x00ED}, /* (LATIN SMALL LETTER I WITH ACUTE) */
+    {(unsigned char *) "\xc3\xae", 2, 0x00EE}, /* (LATIN SMALL LETTER I WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xaf", 2, 0x00EF}, /* (LATIN SMALL LETTER I WITH DIAERESIS) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xc3\xb1", 2, 0x00F1}, /* (LATIN SMALL LETTER N WITH TILDE) */
+    {(unsigned char *) "\xc3\xb2", 2, 0x00F2}, /* (LATIN SMALL LETTER O WITH GRAVE) */
+    {(unsigned char *) "\xc3\xb3", 2, 0x00F3}, /* (LATIN SMALL LETTER O WITH ACUTE) */
+    {(unsigned char *) "\xc3\xb4", 2, 0x00F4}, /* (LATIN SMALL LETTER O WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc4\xa1", 2, 0x0121}, /* (LATIN SMALL LETTER G WITH DOT ABOVE) */
+    {(unsigned char *) "\xc3\xb6", 2, 0x00F6}, /* (LATIN SMALL LETTER O WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
+    {(unsigned char *) "\xc4\x9d", 2, 0x011D}, /* (LATIN SMALL LETTER G WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xb9", 2, 0x00F9}, /* (LATIN SMALL LETTER U WITH GRAVE) */
+    {(unsigned char *) "\xc3\xba", 2, 0x00FA}, /* (LATIN SMALL LETTER U WITH ACUTE) */
+    {(unsigned char *) "\xc3\xbb", 2, 0x00FB}, /* (LATIN SMALL LETTER U WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xbc", 2, 0x00FC}, /* (LATIN SMALL LETTER U WITH DIAERESIS) */
+    {(unsigned char *) "\xc5\xad", 2, 0x016D}, /* (LATIN SMALL LETTER U WITH BREVE) */
+    {(unsigned char *) "\xc5\x9d", 2, 0x015D}, /* (LATIN SMALL LETTER S WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xcb\x99", 2, 0x02D9}, /* (DOT ABOVE) */
 };
 
-LXB_API const lxb_encoding_single_index_t lxb_encoding_single_index_iso_8859_4[128] = 
+GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_4[128] = 
 {
-    {(lxb_char_t *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x82", 2, 0x0082}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x83", 2, 0x0083}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x84", 2, 0x0084}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x85", 2, 0x0085}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x86", 2, 0x0086}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x87", 2, 0x0087}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x89", 2, 0x0089}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8b", 2, 0x008B}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x91", 2, 0x0091}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x92", 2, 0x0092}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x93", 2, 0x0093}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x94", 2, 0x0094}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x95", 2, 0x0095}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x96", 2, 0x0096}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x97", 2, 0x0097}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x99", 2, 0x0099}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9b", 2, 0x009B}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
-    {(lxb_char_t *) "\xc4\x84", 2, 0x0104}, /* (LATIN CAPITAL LETTER A WITH OGONEK) */
-    {(lxb_char_t *) "\xc4\xb8", 2, 0x0138}, /* (LATIN SMALL LETTER KRA) */
-    {(lxb_char_t *) "\xc5\x96", 2, 0x0156}, /* (LATIN CAPITAL LETTER R WITH CEDILLA) */
-    {(lxb_char_t *) "\xc2\xa4", 2, 0x00A4}, /* (CURRENCY SIGN) */
-    {(lxb_char_t *) "\xc4\xa8", 2, 0x0128}, /* (LATIN CAPITAL LETTER I WITH TILDE) */
-    {(lxb_char_t *) "\xc4\xbb", 2, 0x013B}, /* (LATIN CAPITAL LETTER L WITH CEDILLA) */
-    {(lxb_char_t *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
-    {(lxb_char_t *) "\xc2\xa8", 2, 0x00A8}, /* (DIAERESIS) */
-    {(lxb_char_t *) "\xc5\xa0", 2, 0x0160}, /* (LATIN CAPITAL LETTER S WITH CARON) */
-    {(lxb_char_t *) "\xc4\x92", 2, 0x0112}, /* (LATIN CAPITAL LETTER E WITH MACRON) */
-    {(lxb_char_t *) "\xc4\xa2", 2, 0x0122}, /* (LATIN CAPITAL LETTER G WITH CEDILLA) */
-    {(lxb_char_t *) "\xc5\xa6", 2, 0x0166}, /* (LATIN CAPITAL LETTER T WITH STROKE) */
-    {(lxb_char_t *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
-    {(lxb_char_t *) "\xc5\xbd", 2, 0x017D}, /* (LATIN CAPITAL LETTER Z WITH CARON) */
-    {(lxb_char_t *) "\xc2\xaf", 2, 0x00AF}, /* (MACRON) */
-    {(lxb_char_t *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
-    {(lxb_char_t *) "\xc4\x85", 2, 0x0105}, /* (LATIN SMALL LETTER A WITH OGONEK) */
-    {(lxb_char_t *) "\xcb\x9b", 2, 0x02DB}, /* (OGONEK) */
-    {(lxb_char_t *) "\xc5\x97", 2, 0x0157}, /* (LATIN SMALL LETTER R WITH CEDILLA) */
-    {(lxb_char_t *) "\xc2\xb4", 2, 0x00B4}, /* (ACUTE ACCENT) */
-    {(lxb_char_t *) "\xc4\xa9", 2, 0x0129}, /* (LATIN SMALL LETTER I WITH TILDE) */
-    {(lxb_char_t *) "\xc4\xbc", 2, 0x013C}, /* (LATIN SMALL LETTER L WITH CEDILLA) */
-    {(lxb_char_t *) "\xcb\x87", 2, 0x02C7}, /* (CARON) */
-    {(lxb_char_t *) "\xc2\xb8", 2, 0x00B8}, /* (CEDILLA) */
-    {(lxb_char_t *) "\xc5\xa1", 2, 0x0161}, /* (LATIN SMALL LETTER S WITH CARON) */
-    {(lxb_char_t *) "\xc4\x93", 2, 0x0113}, /* (LATIN SMALL LETTER E WITH MACRON) */
-    {(lxb_char_t *) "\xc4\xa3", 2, 0x0123}, /* (LATIN SMALL LETTER G WITH CEDILLA) */
-    {(lxb_char_t *) "\xc5\xa7", 2, 0x0167}, /* (LATIN SMALL LETTER T WITH STROKE) */
-    {(lxb_char_t *) "\xc5\x8a", 2, 0x014A}, /* (LATIN CAPITAL LETTER ENG) */
-    {(lxb_char_t *) "\xc5\xbe", 2, 0x017E}, /* (LATIN SMALL LETTER Z WITH CARON) */
-    {(lxb_char_t *) "\xc5\x8b", 2, 0x014B}, /* (LATIN SMALL LETTER ENG) */
-    {(lxb_char_t *) "\xc4\x80", 2, 0x0100}, /* (LATIN CAPITAL LETTER A WITH MACRON) */
-    {(lxb_char_t *) "\xc3\x81", 2, 0x00C1}, /* (LATIN CAPITAL LETTER A WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x82", 2, 0x00C2}, /* (LATIN CAPITAL LETTER A WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x83", 2, 0x00C3}, /* (LATIN CAPITAL LETTER A WITH TILDE) */
-    {(lxb_char_t *) "\xc3\x84", 2, 0x00C4}, /* (LATIN CAPITAL LETTER A WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x85", 2, 0x00C5}, /* (LATIN CAPITAL LETTER A WITH RING ABOVE) */
-    {(lxb_char_t *) "\xc3\x86", 2, 0x00C6}, /* (LATIN CAPITAL LETTER AE) */
-    {(lxb_char_t *) "\xc4\xae", 2, 0x012E}, /* (LATIN CAPITAL LETTER I WITH OGONEK) */
-    {(lxb_char_t *) "\xc4\x8c", 2, 0x010C}, /* (LATIN CAPITAL LETTER C WITH CARON) */
-    {(lxb_char_t *) "\xc3\x89", 2, 0x00C9}, /* (LATIN CAPITAL LETTER E WITH ACUTE) */
-    {(lxb_char_t *) "\xc4\x98", 2, 0x0118}, /* (LATIN CAPITAL LETTER E WITH OGONEK) */
-    {(lxb_char_t *) "\xc3\x8b", 2, 0x00CB}, /* (LATIN CAPITAL LETTER E WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc4\x96", 2, 0x0116}, /* (LATIN CAPITAL LETTER E WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc3\x8d", 2, 0x00CD}, /* (LATIN CAPITAL LETTER I WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x8e", 2, 0x00CE}, /* (LATIN CAPITAL LETTER I WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc4\xaa", 2, 0x012A}, /* (LATIN CAPITAL LETTER I WITH MACRON) */
-    {(lxb_char_t *) "\xc4\x90", 2, 0x0110}, /* (LATIN CAPITAL LETTER D WITH STROKE) */
-    {(lxb_char_t *) "\xc5\x85", 2, 0x0145}, /* (LATIN CAPITAL LETTER N WITH CEDILLA) */
-    {(lxb_char_t *) "\xc5\x8c", 2, 0x014C}, /* (LATIN CAPITAL LETTER O WITH MACRON) */
-    {(lxb_char_t *) "\xc4\xb6", 2, 0x0136}, /* (LATIN CAPITAL LETTER K WITH CEDILLA) */
-    {(lxb_char_t *) "\xc3\x94", 2, 0x00D4}, /* (LATIN CAPITAL LETTER O WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x95", 2, 0x00D5}, /* (LATIN CAPITAL LETTER O WITH TILDE) */
-    {(lxb_char_t *) "\xc3\x96", 2, 0x00D6}, /* (LATIN CAPITAL LETTER O WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x97", 2, 0x00D7}, /* (MULTIPLICATION SIGN) */
-    {(lxb_char_t *) "\xc3\x98", 2, 0x00D8}, /* (LATIN CAPITAL LETTER O WITH STROKE) */
-    {(lxb_char_t *) "\xc5\xb2", 2, 0x0172}, /* (LATIN CAPITAL LETTER U WITH OGONEK) */
-    {(lxb_char_t *) "\xc3\x9a", 2, 0x00DA}, /* (LATIN CAPITAL LETTER U WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x9b", 2, 0x00DB}, /* (LATIN CAPITAL LETTER U WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x9c", 2, 0x00DC}, /* (LATIN CAPITAL LETTER U WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc5\xa8", 2, 0x0168}, /* (LATIN CAPITAL LETTER U WITH TILDE) */
-    {(lxb_char_t *) "\xc5\xaa", 2, 0x016A}, /* (LATIN CAPITAL LETTER U WITH MACRON) */
-    {(lxb_char_t *) "\xc3\x9f", 2, 0x00DF}, /* (LATIN SMALL LETTER SHARP S) */
-    {(lxb_char_t *) "\xc4\x81", 2, 0x0101}, /* (LATIN SMALL LETTER A WITH MACRON) */
-    {(lxb_char_t *) "\xc3\xa1", 2, 0x00E1}, /* (LATIN SMALL LETTER A WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xa2", 2, 0x00E2}, /* (LATIN SMALL LETTER A WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xa3", 2, 0x00E3}, /* (LATIN SMALL LETTER A WITH TILDE) */
-    {(lxb_char_t *) "\xc3\xa4", 2, 0x00E4}, /* (LATIN SMALL LETTER A WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xa5", 2, 0x00E5}, /* (LATIN SMALL LETTER A WITH RING ABOVE) */
-    {(lxb_char_t *) "\xc3\xa6", 2, 0x00E6}, /* (LATIN SMALL LETTER AE) */
-    {(lxb_char_t *) "\xc4\xaf", 2, 0x012F}, /* (LATIN SMALL LETTER I WITH OGONEK) */
-    {(lxb_char_t *) "\xc4\x8d", 2, 0x010D}, /* (LATIN SMALL LETTER C WITH CARON) */
-    {(lxb_char_t *) "\xc3\xa9", 2, 0x00E9}, /* (LATIN SMALL LETTER E WITH ACUTE) */
-    {(lxb_char_t *) "\xc4\x99", 2, 0x0119}, /* (LATIN SMALL LETTER E WITH OGONEK) */
-    {(lxb_char_t *) "\xc3\xab", 2, 0x00EB}, /* (LATIN SMALL LETTER E WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc4\x97", 2, 0x0117}, /* (LATIN SMALL LETTER E WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc3\xad", 2, 0x00ED}, /* (LATIN SMALL LETTER I WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xae", 2, 0x00EE}, /* (LATIN SMALL LETTER I WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc4\xab", 2, 0x012B}, /* (LATIN SMALL LETTER I WITH MACRON) */
-    {(lxb_char_t *) "\xc4\x91", 2, 0x0111}, /* (LATIN SMALL LETTER D WITH STROKE) */
-    {(lxb_char_t *) "\xc5\x86", 2, 0x0146}, /* (LATIN SMALL LETTER N WITH CEDILLA) */
-    {(lxb_char_t *) "\xc5\x8d", 2, 0x014D}, /* (LATIN SMALL LETTER O WITH MACRON) */
-    {(lxb_char_t *) "\xc4\xb7", 2, 0x0137}, /* (LATIN SMALL LETTER K WITH CEDILLA) */
-    {(lxb_char_t *) "\xc3\xb4", 2, 0x00F4}, /* (LATIN SMALL LETTER O WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xb5", 2, 0x00F5}, /* (LATIN SMALL LETTER O WITH TILDE) */
-    {(lxb_char_t *) "\xc3\xb6", 2, 0x00F6}, /* (LATIN SMALL LETTER O WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
-    {(lxb_char_t *) "\xc3\xb8", 2, 0x00F8}, /* (LATIN SMALL LETTER O WITH STROKE) */
-    {(lxb_char_t *) "\xc5\xb3", 2, 0x0173}, /* (LATIN SMALL LETTER U WITH OGONEK) */
-    {(lxb_char_t *) "\xc3\xba", 2, 0x00FA}, /* (LATIN SMALL LETTER U WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xbb", 2, 0x00FB}, /* (LATIN SMALL LETTER U WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xbc", 2, 0x00FC}, /* (LATIN SMALL LETTER U WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc5\xa9", 2, 0x0169}, /* (LATIN SMALL LETTER U WITH TILDE) */
-    {(lxb_char_t *) "\xc5\xab", 2, 0x016B}, /* (LATIN SMALL LETTER U WITH MACRON) */
-    {(lxb_char_t *) "\xcb\x99", 2, 0x02D9}, /* (DOT ABOVE) */
+    {(unsigned char *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
+    {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
+    {(unsigned char *) "\xc2\x82", 2, 0x0082}, /* (<control>) */
+    {(unsigned char *) "\xc2\x83", 2, 0x0083}, /* (<control>) */
+    {(unsigned char *) "\xc2\x84", 2, 0x0084}, /* (<control>) */
+    {(unsigned char *) "\xc2\x85", 2, 0x0085}, /* (<control>) */
+    {(unsigned char *) "\xc2\x86", 2, 0x0086}, /* (<control>) */
+    {(unsigned char *) "\xc2\x87", 2, 0x0087}, /* (<control>) */
+    {(unsigned char *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
+    {(unsigned char *) "\xc2\x89", 2, 0x0089}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8b", 2, 0x008B}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
+    {(unsigned char *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
+    {(unsigned char *) "\xc2\x91", 2, 0x0091}, /* (<control>) */
+    {(unsigned char *) "\xc2\x92", 2, 0x0092}, /* (<control>) */
+    {(unsigned char *) "\xc2\x93", 2, 0x0093}, /* (<control>) */
+    {(unsigned char *) "\xc2\x94", 2, 0x0094}, /* (<control>) */
+    {(unsigned char *) "\xc2\x95", 2, 0x0095}, /* (<control>) */
+    {(unsigned char *) "\xc2\x96", 2, 0x0096}, /* (<control>) */
+    {(unsigned char *) "\xc2\x97", 2, 0x0097}, /* (<control>) */
+    {(unsigned char *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
+    {(unsigned char *) "\xc2\x99", 2, 0x0099}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9b", 2, 0x009B}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
+    {(unsigned char *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
+    {(unsigned char *) "\xc4\x84", 2, 0x0104}, /* (LATIN CAPITAL LETTER A WITH OGONEK) */
+    {(unsigned char *) "\xc4\xb8", 2, 0x0138}, /* (LATIN SMALL LETTER KRA) */
+    {(unsigned char *) "\xc5\x96", 2, 0x0156}, /* (LATIN CAPITAL LETTER R WITH CEDILLA) */
+    {(unsigned char *) "\xc2\xa4", 2, 0x00A4}, /* (CURRENCY SIGN) */
+    {(unsigned char *) "\xc4\xa8", 2, 0x0128}, /* (LATIN CAPITAL LETTER I WITH TILDE) */
+    {(unsigned char *) "\xc4\xbb", 2, 0x013B}, /* (LATIN CAPITAL LETTER L WITH CEDILLA) */
+    {(unsigned char *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
+    {(unsigned char *) "\xc2\xa8", 2, 0x00A8}, /* (DIAERESIS) */
+    {(unsigned char *) "\xc5\xa0", 2, 0x0160}, /* (LATIN CAPITAL LETTER S WITH CARON) */
+    {(unsigned char *) "\xc4\x92", 2, 0x0112}, /* (LATIN CAPITAL LETTER E WITH MACRON) */
+    {(unsigned char *) "\xc4\xa2", 2, 0x0122}, /* (LATIN CAPITAL LETTER G WITH CEDILLA) */
+    {(unsigned char *) "\xc5\xa6", 2, 0x0166}, /* (LATIN CAPITAL LETTER T WITH STROKE) */
+    {(unsigned char *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
+    {(unsigned char *) "\xc5\xbd", 2, 0x017D}, /* (LATIN CAPITAL LETTER Z WITH CARON) */
+    {(unsigned char *) "\xc2\xaf", 2, 0x00AF}, /* (MACRON) */
+    {(unsigned char *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
+    {(unsigned char *) "\xc4\x85", 2, 0x0105}, /* (LATIN SMALL LETTER A WITH OGONEK) */
+    {(unsigned char *) "\xcb\x9b", 2, 0x02DB}, /* (OGONEK) */
+    {(unsigned char *) "\xc5\x97", 2, 0x0157}, /* (LATIN SMALL LETTER R WITH CEDILLA) */
+    {(unsigned char *) "\xc2\xb4", 2, 0x00B4}, /* (ACUTE ACCENT) */
+    {(unsigned char *) "\xc4\xa9", 2, 0x0129}, /* (LATIN SMALL LETTER I WITH TILDE) */
+    {(unsigned char *) "\xc4\xbc", 2, 0x013C}, /* (LATIN SMALL LETTER L WITH CEDILLA) */
+    {(unsigned char *) "\xcb\x87", 2, 0x02C7}, /* (CARON) */
+    {(unsigned char *) "\xc2\xb8", 2, 0x00B8}, /* (CEDILLA) */
+    {(unsigned char *) "\xc5\xa1", 2, 0x0161}, /* (LATIN SMALL LETTER S WITH CARON) */
+    {(unsigned char *) "\xc4\x93", 2, 0x0113}, /* (LATIN SMALL LETTER E WITH MACRON) */
+    {(unsigned char *) "\xc4\xa3", 2, 0x0123}, /* (LATIN SMALL LETTER G WITH CEDILLA) */
+    {(unsigned char *) "\xc5\xa7", 2, 0x0167}, /* (LATIN SMALL LETTER T WITH STROKE) */
+    {(unsigned char *) "\xc5\x8a", 2, 0x014A}, /* (LATIN CAPITAL LETTER ENG) */
+    {(unsigned char *) "\xc5\xbe", 2, 0x017E}, /* (LATIN SMALL LETTER Z WITH CARON) */
+    {(unsigned char *) "\xc5\x8b", 2, 0x014B}, /* (LATIN SMALL LETTER ENG) */
+    {(unsigned char *) "\xc4\x80", 2, 0x0100}, /* (LATIN CAPITAL LETTER A WITH MACRON) */
+    {(unsigned char *) "\xc3\x81", 2, 0x00C1}, /* (LATIN CAPITAL LETTER A WITH ACUTE) */
+    {(unsigned char *) "\xc3\x82", 2, 0x00C2}, /* (LATIN CAPITAL LETTER A WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x83", 2, 0x00C3}, /* (LATIN CAPITAL LETTER A WITH TILDE) */
+    {(unsigned char *) "\xc3\x84", 2, 0x00C4}, /* (LATIN CAPITAL LETTER A WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x85", 2, 0x00C5}, /* (LATIN CAPITAL LETTER A WITH RING ABOVE) */
+    {(unsigned char *) "\xc3\x86", 2, 0x00C6}, /* (LATIN CAPITAL LETTER AE) */
+    {(unsigned char *) "\xc4\xae", 2, 0x012E}, /* (LATIN CAPITAL LETTER I WITH OGONEK) */
+    {(unsigned char *) "\xc4\x8c", 2, 0x010C}, /* (LATIN CAPITAL LETTER C WITH CARON) */
+    {(unsigned char *) "\xc3\x89", 2, 0x00C9}, /* (LATIN CAPITAL LETTER E WITH ACUTE) */
+    {(unsigned char *) "\xc4\x98", 2, 0x0118}, /* (LATIN CAPITAL LETTER E WITH OGONEK) */
+    {(unsigned char *) "\xc3\x8b", 2, 0x00CB}, /* (LATIN CAPITAL LETTER E WITH DIAERESIS) */
+    {(unsigned char *) "\xc4\x96", 2, 0x0116}, /* (LATIN CAPITAL LETTER E WITH DOT ABOVE) */
+    {(unsigned char *) "\xc3\x8d", 2, 0x00CD}, /* (LATIN CAPITAL LETTER I WITH ACUTE) */
+    {(unsigned char *) "\xc3\x8e", 2, 0x00CE}, /* (LATIN CAPITAL LETTER I WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc4\xaa", 2, 0x012A}, /* (LATIN CAPITAL LETTER I WITH MACRON) */
+    {(unsigned char *) "\xc4\x90", 2, 0x0110}, /* (LATIN CAPITAL LETTER D WITH STROKE) */
+    {(unsigned char *) "\xc5\x85", 2, 0x0145}, /* (LATIN CAPITAL LETTER N WITH CEDILLA) */
+    {(unsigned char *) "\xc5\x8c", 2, 0x014C}, /* (LATIN CAPITAL LETTER O WITH MACRON) */
+    {(unsigned char *) "\xc4\xb6", 2, 0x0136}, /* (LATIN CAPITAL LETTER K WITH CEDILLA) */
+    {(unsigned char *) "\xc3\x94", 2, 0x00D4}, /* (LATIN CAPITAL LETTER O WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x95", 2, 0x00D5}, /* (LATIN CAPITAL LETTER O WITH TILDE) */
+    {(unsigned char *) "\xc3\x96", 2, 0x00D6}, /* (LATIN CAPITAL LETTER O WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x97", 2, 0x00D7}, /* (MULTIPLICATION SIGN) */
+    {(unsigned char *) "\xc3\x98", 2, 0x00D8}, /* (LATIN CAPITAL LETTER O WITH STROKE) */
+    {(unsigned char *) "\xc5\xb2", 2, 0x0172}, /* (LATIN CAPITAL LETTER U WITH OGONEK) */
+    {(unsigned char *) "\xc3\x9a", 2, 0x00DA}, /* (LATIN CAPITAL LETTER U WITH ACUTE) */
+    {(unsigned char *) "\xc3\x9b", 2, 0x00DB}, /* (LATIN CAPITAL LETTER U WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x9c", 2, 0x00DC}, /* (LATIN CAPITAL LETTER U WITH DIAERESIS) */
+    {(unsigned char *) "\xc5\xa8", 2, 0x0168}, /* (LATIN CAPITAL LETTER U WITH TILDE) */
+    {(unsigned char *) "\xc5\xaa", 2, 0x016A}, /* (LATIN CAPITAL LETTER U WITH MACRON) */
+    {(unsigned char *) "\xc3\x9f", 2, 0x00DF}, /* (LATIN SMALL LETTER SHARP S) */
+    {(unsigned char *) "\xc4\x81", 2, 0x0101}, /* (LATIN SMALL LETTER A WITH MACRON) */
+    {(unsigned char *) "\xc3\xa1", 2, 0x00E1}, /* (LATIN SMALL LETTER A WITH ACUTE) */
+    {(unsigned char *) "\xc3\xa2", 2, 0x00E2}, /* (LATIN SMALL LETTER A WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xa3", 2, 0x00E3}, /* (LATIN SMALL LETTER A WITH TILDE) */
+    {(unsigned char *) "\xc3\xa4", 2, 0x00E4}, /* (LATIN SMALL LETTER A WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xa5", 2, 0x00E5}, /* (LATIN SMALL LETTER A WITH RING ABOVE) */
+    {(unsigned char *) "\xc3\xa6", 2, 0x00E6}, /* (LATIN SMALL LETTER AE) */
+    {(unsigned char *) "\xc4\xaf", 2, 0x012F}, /* (LATIN SMALL LETTER I WITH OGONEK) */
+    {(unsigned char *) "\xc4\x8d", 2, 0x010D}, /* (LATIN SMALL LETTER C WITH CARON) */
+    {(unsigned char *) "\xc3\xa9", 2, 0x00E9}, /* (LATIN SMALL LETTER E WITH ACUTE) */
+    {(unsigned char *) "\xc4\x99", 2, 0x0119}, /* (LATIN SMALL LETTER E WITH OGONEK) */
+    {(unsigned char *) "\xc3\xab", 2, 0x00EB}, /* (LATIN SMALL LETTER E WITH DIAERESIS) */
+    {(unsigned char *) "\xc4\x97", 2, 0x0117}, /* (LATIN SMALL LETTER E WITH DOT ABOVE) */
+    {(unsigned char *) "\xc3\xad", 2, 0x00ED}, /* (LATIN SMALL LETTER I WITH ACUTE) */
+    {(unsigned char *) "\xc3\xae", 2, 0x00EE}, /* (LATIN SMALL LETTER I WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc4\xab", 2, 0x012B}, /* (LATIN SMALL LETTER I WITH MACRON) */
+    {(unsigned char *) "\xc4\x91", 2, 0x0111}, /* (LATIN SMALL LETTER D WITH STROKE) */
+    {(unsigned char *) "\xc5\x86", 2, 0x0146}, /* (LATIN SMALL LETTER N WITH CEDILLA) */
+    {(unsigned char *) "\xc5\x8d", 2, 0x014D}, /* (LATIN SMALL LETTER O WITH MACRON) */
+    {(unsigned char *) "\xc4\xb7", 2, 0x0137}, /* (LATIN SMALL LETTER K WITH CEDILLA) */
+    {(unsigned char *) "\xc3\xb4", 2, 0x00F4}, /* (LATIN SMALL LETTER O WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xb5", 2, 0x00F5}, /* (LATIN SMALL LETTER O WITH TILDE) */
+    {(unsigned char *) "\xc3\xb6", 2, 0x00F6}, /* (LATIN SMALL LETTER O WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
+    {(unsigned char *) "\xc3\xb8", 2, 0x00F8}, /* (LATIN SMALL LETTER O WITH STROKE) */
+    {(unsigned char *) "\xc5\xb3", 2, 0x0173}, /* (LATIN SMALL LETTER U WITH OGONEK) */
+    {(unsigned char *) "\xc3\xba", 2, 0x00FA}, /* (LATIN SMALL LETTER U WITH ACUTE) */
+    {(unsigned char *) "\xc3\xbb", 2, 0x00FB}, /* (LATIN SMALL LETTER U WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xbc", 2, 0x00FC}, /* (LATIN SMALL LETTER U WITH DIAERESIS) */
+    {(unsigned char *) "\xc5\xa9", 2, 0x0169}, /* (LATIN SMALL LETTER U WITH TILDE) */
+    {(unsigned char *) "\xc5\xab", 2, 0x016B}, /* (LATIN SMALL LETTER U WITH MACRON) */
+    {(unsigned char *) "\xcb\x99", 2, 0x02D9}, /* (DOT ABOVE) */
 };
 
-LXB_API const lxb_encoding_single_index_t lxb_encoding_single_index_iso_8859_5[128] = 
+GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_5[128] = 
 {
-    {(lxb_char_t *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x82", 2, 0x0082}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x83", 2, 0x0083}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x84", 2, 0x0084}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x85", 2, 0x0085}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x86", 2, 0x0086}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x87", 2, 0x0087}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x89", 2, 0x0089}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8b", 2, 0x008B}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x91", 2, 0x0091}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x92", 2, 0x0092}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x93", 2, 0x0093}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x94", 2, 0x0094}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x95", 2, 0x0095}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x96", 2, 0x0096}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x97", 2, 0x0097}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x99", 2, 0x0099}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9b", 2, 0x009B}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
-    {(lxb_char_t *) "\xd0\x81", 2, 0x0401}, /* (CYRILLIC CAPITAL LETTER IO) */
-    {(lxb_char_t *) "\xd0\x82", 2, 0x0402}, /* (CYRILLIC CAPITAL LETTER DJE) */
-    {(lxb_char_t *) "\xd0\x83", 2, 0x0403}, /* (CYRILLIC CAPITAL LETTER GJE) */
-    {(lxb_char_t *) "\xd0\x84", 2, 0x0404}, /* (CYRILLIC CAPITAL LETTER UKRAINIAN IE) */
-    {(lxb_char_t *) "\xd0\x85", 2, 0x0405}, /* (CYRILLIC CAPITAL LETTER DZE) */
-    {(lxb_char_t *) "\xd0\x86", 2, 0x0406}, /* (CYRILLIC CAPITAL LETTER BYELORUSSIAN-UKRAINIAN I) */
-    {(lxb_char_t *) "\xd0\x87", 2, 0x0407}, /* (CYRILLIC CAPITAL LETTER YI) */
-    {(lxb_char_t *) "\xd0\x88", 2, 0x0408}, /* (CYRILLIC CAPITAL LETTER JE) */
-    {(lxb_char_t *) "\xd0\x89", 2, 0x0409}, /* (CYRILLIC CAPITAL LETTER LJE) */
-    {(lxb_char_t *) "\xd0\x8a", 2, 0x040A}, /* (CYRILLIC CAPITAL LETTER NJE) */
-    {(lxb_char_t *) "\xd0\x8b", 2, 0x040B}, /* (CYRILLIC CAPITAL LETTER TSHE) */
-    {(lxb_char_t *) "\xd0\x8c", 2, 0x040C}, /* (CYRILLIC CAPITAL LETTER KJE) */
-    {(lxb_char_t *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
-    {(lxb_char_t *) "\xd0\x8e", 2, 0x040E}, /* (CYRILLIC CAPITAL LETTER SHORT U) */
-    {(lxb_char_t *) "\xd0\x8f", 2, 0x040F}, /* (CYRILLIC CAPITAL LETTER DZHE) */
-    {(lxb_char_t *) "\xd0\x90", 2, 0x0410}, /* (CYRILLIC CAPITAL LETTER A) */
-    {(lxb_char_t *) "\xd0\x91", 2, 0x0411}, /* (CYRILLIC CAPITAL LETTER BE) */
-    {(lxb_char_t *) "\xd0\x92", 2, 0x0412}, /* (CYRILLIC CAPITAL LETTER VE) */
-    {(lxb_char_t *) "\xd0\x93", 2, 0x0413}, /* (CYRILLIC CAPITAL LETTER GHE) */
-    {(lxb_char_t *) "\xd0\x94", 2, 0x0414}, /* (CYRILLIC CAPITAL LETTER DE) */
-    {(lxb_char_t *) "\xd0\x95", 2, 0x0415}, /* (CYRILLIC CAPITAL LETTER IE) */
-    {(lxb_char_t *) "\xd0\x96", 2, 0x0416}, /* (CYRILLIC CAPITAL LETTER ZHE) */
-    {(lxb_char_t *) "\xd0\x97", 2, 0x0417}, /* (CYRILLIC CAPITAL LETTER ZE) */
-    {(lxb_char_t *) "\xd0\x98", 2, 0x0418}, /* (CYRILLIC CAPITAL LETTER I) */
-    {(lxb_char_t *) "\xd0\x99", 2, 0x0419}, /* (CYRILLIC CAPITAL LETTER SHORT I) */
-    {(lxb_char_t *) "\xd0\x9a", 2, 0x041A}, /* (CYRILLIC CAPITAL LETTER KA) */
-    {(lxb_char_t *) "\xd0\x9b", 2, 0x041B}, /* (CYRILLIC CAPITAL LETTER EL) */
-    {(lxb_char_t *) "\xd0\x9c", 2, 0x041C}, /* (CYRILLIC CAPITAL LETTER EM) */
-    {(lxb_char_t *) "\xd0\x9d", 2, 0x041D}, /* (CYRILLIC CAPITAL LETTER EN) */
-    {(lxb_char_t *) "\xd0\x9e", 2, 0x041E}, /* (CYRILLIC CAPITAL LETTER O) */
-    {(lxb_char_t *) "\xd0\x9f", 2, 0x041F}, /* (CYRILLIC CAPITAL LETTER PE) */
-    {(lxb_char_t *) "\xd0\xa0", 2, 0x0420}, /* (CYRILLIC CAPITAL LETTER ER) */
-    {(lxb_char_t *) "\xd0\xa1", 2, 0x0421}, /* (CYRILLIC CAPITAL LETTER ES) */
-    {(lxb_char_t *) "\xd0\xa2", 2, 0x0422}, /* (CYRILLIC CAPITAL LETTER TE) */
-    {(lxb_char_t *) "\xd0\xa3", 2, 0x0423}, /* (CYRILLIC CAPITAL LETTER U) */
-    {(lxb_char_t *) "\xd0\xa4", 2, 0x0424}, /* (CYRILLIC CAPITAL LETTER EF) */
-    {(lxb_char_t *) "\xd0\xa5", 2, 0x0425}, /* (CYRILLIC CAPITAL LETTER HA) */
-    {(lxb_char_t *) "\xd0\xa6", 2, 0x0426}, /* (CYRILLIC CAPITAL LETTER TSE) */
-    {(lxb_char_t *) "\xd0\xa7", 2, 0x0427}, /* (CYRILLIC CAPITAL LETTER CHE) */
-    {(lxb_char_t *) "\xd0\xa8", 2, 0x0428}, /* (CYRILLIC CAPITAL LETTER SHA) */
-    {(lxb_char_t *) "\xd0\xa9", 2, 0x0429}, /* (CYRILLIC CAPITAL LETTER SHCHA) */
-    {(lxb_char_t *) "\xd0\xaa", 2, 0x042A}, /* (CYRILLIC CAPITAL LETTER HARD SIGN) */
-    {(lxb_char_t *) "\xd0\xab", 2, 0x042B}, /* (CYRILLIC CAPITAL LETTER YERU) */
-    {(lxb_char_t *) "\xd0\xac", 2, 0x042C}, /* (CYRILLIC CAPITAL LETTER SOFT SIGN) */
-    {(lxb_char_t *) "\xd0\xad", 2, 0x042D}, /* (CYRILLIC CAPITAL LETTER E) */
-    {(lxb_char_t *) "\xd0\xae", 2, 0x042E}, /* (CYRILLIC CAPITAL LETTER YU) */
-    {(lxb_char_t *) "\xd0\xaf", 2, 0x042F}, /* (CYRILLIC CAPITAL LETTER YA) */
-    {(lxb_char_t *) "\xd0\xb0", 2, 0x0430}, /* (CYRILLIC SMALL LETTER A) */
-    {(lxb_char_t *) "\xd0\xb1", 2, 0x0431}, /* (CYRILLIC SMALL LETTER BE) */
-    {(lxb_char_t *) "\xd0\xb2", 2, 0x0432}, /* (CYRILLIC SMALL LETTER VE) */
-    {(lxb_char_t *) "\xd0\xb3", 2, 0x0433}, /* (CYRILLIC SMALL LETTER GHE) */
-    {(lxb_char_t *) "\xd0\xb4", 2, 0x0434}, /* (CYRILLIC SMALL LETTER DE) */
-    {(lxb_char_t *) "\xd0\xb5", 2, 0x0435}, /* (CYRILLIC SMALL LETTER IE) */
-    {(lxb_char_t *) "\xd0\xb6", 2, 0x0436}, /* (CYRILLIC SMALL LETTER ZHE) */
-    {(lxb_char_t *) "\xd0\xb7", 2, 0x0437}, /* (CYRILLIC SMALL LETTER ZE) */
-    {(lxb_char_t *) "\xd0\xb8", 2, 0x0438}, /* (CYRILLIC SMALL LETTER I) */
-    {(lxb_char_t *) "\xd0\xb9", 2, 0x0439}, /* (CYRILLIC SMALL LETTER SHORT I) */
-    {(lxb_char_t *) "\xd0\xba", 2, 0x043A}, /* (CYRILLIC SMALL LETTER KA) */
-    {(lxb_char_t *) "\xd0\xbb", 2, 0x043B}, /* (CYRILLIC SMALL LETTER EL) */
-    {(lxb_char_t *) "\xd0\xbc", 2, 0x043C}, /* (CYRILLIC SMALL LETTER EM) */
-    {(lxb_char_t *) "\xd0\xbd", 2, 0x043D}, /* (CYRILLIC SMALL LETTER EN) */
-    {(lxb_char_t *) "\xd0\xbe", 2, 0x043E}, /* (CYRILLIC SMALL LETTER O) */
-    {(lxb_char_t *) "\xd0\xbf", 2, 0x043F}, /* (CYRILLIC SMALL LETTER PE) */
-    {(lxb_char_t *) "\xd1\x80", 2, 0x0440}, /* (CYRILLIC SMALL LETTER ER) */
-    {(lxb_char_t *) "\xd1\x81", 2, 0x0441}, /* (CYRILLIC SMALL LETTER ES) */
-    {(lxb_char_t *) "\xd1\x82", 2, 0x0442}, /* (CYRILLIC SMALL LETTER TE) */
-    {(lxb_char_t *) "\xd1\x83", 2, 0x0443}, /* (CYRILLIC SMALL LETTER U) */
-    {(lxb_char_t *) "\xd1\x84", 2, 0x0444}, /* (CYRILLIC SMALL LETTER EF) */
-    {(lxb_char_t *) "\xd1\x85", 2, 0x0445}, /* (CYRILLIC SMALL LETTER HA) */
-    {(lxb_char_t *) "\xd1\x86", 2, 0x0446}, /* (CYRILLIC SMALL LETTER TSE) */
-    {(lxb_char_t *) "\xd1\x87", 2, 0x0447}, /* (CYRILLIC SMALL LETTER CHE) */
-    {(lxb_char_t *) "\xd1\x88", 2, 0x0448}, /* (CYRILLIC SMALL LETTER SHA) */
-    {(lxb_char_t *) "\xd1\x89", 2, 0x0449}, /* (CYRILLIC SMALL LETTER SHCHA) */
-    {(lxb_char_t *) "\xd1\x8a", 2, 0x044A}, /* (CYRILLIC SMALL LETTER HARD SIGN) */
-    {(lxb_char_t *) "\xd1\x8b", 2, 0x044B}, /* (CYRILLIC SMALL LETTER YERU) */
-    {(lxb_char_t *) "\xd1\x8c", 2, 0x044C}, /* (CYRILLIC SMALL LETTER SOFT SIGN) */
-    {(lxb_char_t *) "\xd1\x8d", 2, 0x044D}, /* (CYRILLIC SMALL LETTER E) */
-    {(lxb_char_t *) "\xd1\x8e", 2, 0x044E}, /* (CYRILLIC SMALL LETTER YU) */
-    {(lxb_char_t *) "\xd1\x8f", 2, 0x044F}, /* (CYRILLIC SMALL LETTER YA) */
-    {(lxb_char_t *) "\xe2\x84\x96", 3, 0x2116}, /* (NUMERO SIGN) */
-    {(lxb_char_t *) "\xd1\x91", 2, 0x0451}, /* (CYRILLIC SMALL LETTER IO) */
-    {(lxb_char_t *) "\xd1\x92", 2, 0x0452}, /* (CYRILLIC SMALL LETTER DJE) */
-    {(lxb_char_t *) "\xd1\x93", 2, 0x0453}, /* (CYRILLIC SMALL LETTER GJE) */
-    {(lxb_char_t *) "\xd1\x94", 2, 0x0454}, /* (CYRILLIC SMALL LETTER UKRAINIAN IE) */
-    {(lxb_char_t *) "\xd1\x95", 2, 0x0455}, /* (CYRILLIC SMALL LETTER DZE) */
-    {(lxb_char_t *) "\xd1\x96", 2, 0x0456}, /* (CYRILLIC SMALL LETTER BYELORUSSIAN-UKRAINIAN I) */
-    {(lxb_char_t *) "\xd1\x97", 2, 0x0457}, /* (CYRILLIC SMALL LETTER YI) */
-    {(lxb_char_t *) "\xd1\x98", 2, 0x0458}, /* (CYRILLIC SMALL LETTER JE) */
-    {(lxb_char_t *) "\xd1\x99", 2, 0x0459}, /* (CYRILLIC SMALL LETTER LJE) */
-    {(lxb_char_t *) "\xd1\x9a", 2, 0x045A}, /* (CYRILLIC SMALL LETTER NJE) */
-    {(lxb_char_t *) "\xd1\x9b", 2, 0x045B}, /* (CYRILLIC SMALL LETTER TSHE) */
-    {(lxb_char_t *) "\xd1\x9c", 2, 0x045C}, /* (CYRILLIC SMALL LETTER KJE) */
-    {(lxb_char_t *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
-    {(lxb_char_t *) "\xd1\x9e", 2, 0x045E}, /* (CYRILLIC SMALL LETTER SHORT U) */
-    {(lxb_char_t *) "\xd1\x9f", 2, 0x045F}, /* (CYRILLIC SMALL LETTER DZHE) */
+    {(unsigned char *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
+    {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
+    {(unsigned char *) "\xc2\x82", 2, 0x0082}, /* (<control>) */
+    {(unsigned char *) "\xc2\x83", 2, 0x0083}, /* (<control>) */
+    {(unsigned char *) "\xc2\x84", 2, 0x0084}, /* (<control>) */
+    {(unsigned char *) "\xc2\x85", 2, 0x0085}, /* (<control>) */
+    {(unsigned char *) "\xc2\x86", 2, 0x0086}, /* (<control>) */
+    {(unsigned char *) "\xc2\x87", 2, 0x0087}, /* (<control>) */
+    {(unsigned char *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
+    {(unsigned char *) "\xc2\x89", 2, 0x0089}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8b", 2, 0x008B}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
+    {(unsigned char *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
+    {(unsigned char *) "\xc2\x91", 2, 0x0091}, /* (<control>) */
+    {(unsigned char *) "\xc2\x92", 2, 0x0092}, /* (<control>) */
+    {(unsigned char *) "\xc2\x93", 2, 0x0093}, /* (<control>) */
+    {(unsigned char *) "\xc2\x94", 2, 0x0094}, /* (<control>) */
+    {(unsigned char *) "\xc2\x95", 2, 0x0095}, /* (<control>) */
+    {(unsigned char *) "\xc2\x96", 2, 0x0096}, /* (<control>) */
+    {(unsigned char *) "\xc2\x97", 2, 0x0097}, /* (<control>) */
+    {(unsigned char *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
+    {(unsigned char *) "\xc2\x99", 2, 0x0099}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9b", 2, 0x009B}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
+    {(unsigned char *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
+    {(unsigned char *) "\xd0\x81", 2, 0x0401}, /* (CYRILLIC CAPITAL LETTER IO) */
+    {(unsigned char *) "\xd0\x82", 2, 0x0402}, /* (CYRILLIC CAPITAL LETTER DJE) */
+    {(unsigned char *) "\xd0\x83", 2, 0x0403}, /* (CYRILLIC CAPITAL LETTER GJE) */
+    {(unsigned char *) "\xd0\x84", 2, 0x0404}, /* (CYRILLIC CAPITAL LETTER UKRAINIAN IE) */
+    {(unsigned char *) "\xd0\x85", 2, 0x0405}, /* (CYRILLIC CAPITAL LETTER DZE) */
+    {(unsigned char *) "\xd0\x86", 2, 0x0406}, /* (CYRILLIC CAPITAL LETTER BYELORUSSIAN-UKRAINIAN I) */
+    {(unsigned char *) "\xd0\x87", 2, 0x0407}, /* (CYRILLIC CAPITAL LETTER YI) */
+    {(unsigned char *) "\xd0\x88", 2, 0x0408}, /* (CYRILLIC CAPITAL LETTER JE) */
+    {(unsigned char *) "\xd0\x89", 2, 0x0409}, /* (CYRILLIC CAPITAL LETTER LJE) */
+    {(unsigned char *) "\xd0\x8a", 2, 0x040A}, /* (CYRILLIC CAPITAL LETTER NJE) */
+    {(unsigned char *) "\xd0\x8b", 2, 0x040B}, /* (CYRILLIC CAPITAL LETTER TSHE) */
+    {(unsigned char *) "\xd0\x8c", 2, 0x040C}, /* (CYRILLIC CAPITAL LETTER KJE) */
+    {(unsigned char *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
+    {(unsigned char *) "\xd0\x8e", 2, 0x040E}, /* (CYRILLIC CAPITAL LETTER SHORT U) */
+    {(unsigned char *) "\xd0\x8f", 2, 0x040F}, /* (CYRILLIC CAPITAL LETTER DZHE) */
+    {(unsigned char *) "\xd0\x90", 2, 0x0410}, /* (CYRILLIC CAPITAL LETTER A) */
+    {(unsigned char *) "\xd0\x91", 2, 0x0411}, /* (CYRILLIC CAPITAL LETTER BE) */
+    {(unsigned char *) "\xd0\x92", 2, 0x0412}, /* (CYRILLIC CAPITAL LETTER VE) */
+    {(unsigned char *) "\xd0\x93", 2, 0x0413}, /* (CYRILLIC CAPITAL LETTER GHE) */
+    {(unsigned char *) "\xd0\x94", 2, 0x0414}, /* (CYRILLIC CAPITAL LETTER DE) */
+    {(unsigned char *) "\xd0\x95", 2, 0x0415}, /* (CYRILLIC CAPITAL LETTER IE) */
+    {(unsigned char *) "\xd0\x96", 2, 0x0416}, /* (CYRILLIC CAPITAL LETTER ZHE) */
+    {(unsigned char *) "\xd0\x97", 2, 0x0417}, /* (CYRILLIC CAPITAL LETTER ZE) */
+    {(unsigned char *) "\xd0\x98", 2, 0x0418}, /* (CYRILLIC CAPITAL LETTER I) */
+    {(unsigned char *) "\xd0\x99", 2, 0x0419}, /* (CYRILLIC CAPITAL LETTER SHORT I) */
+    {(unsigned char *) "\xd0\x9a", 2, 0x041A}, /* (CYRILLIC CAPITAL LETTER KA) */
+    {(unsigned char *) "\xd0\x9b", 2, 0x041B}, /* (CYRILLIC CAPITAL LETTER EL) */
+    {(unsigned char *) "\xd0\x9c", 2, 0x041C}, /* (CYRILLIC CAPITAL LETTER EM) */
+    {(unsigned char *) "\xd0\x9d", 2, 0x041D}, /* (CYRILLIC CAPITAL LETTER EN) */
+    {(unsigned char *) "\xd0\x9e", 2, 0x041E}, /* (CYRILLIC CAPITAL LETTER O) */
+    {(unsigned char *) "\xd0\x9f", 2, 0x041F}, /* (CYRILLIC CAPITAL LETTER PE) */
+    {(unsigned char *) "\xd0\xa0", 2, 0x0420}, /* (CYRILLIC CAPITAL LETTER ER) */
+    {(unsigned char *) "\xd0\xa1", 2, 0x0421}, /* (CYRILLIC CAPITAL LETTER ES) */
+    {(unsigned char *) "\xd0\xa2", 2, 0x0422}, /* (CYRILLIC CAPITAL LETTER TE) */
+    {(unsigned char *) "\xd0\xa3", 2, 0x0423}, /* (CYRILLIC CAPITAL LETTER U) */
+    {(unsigned char *) "\xd0\xa4", 2, 0x0424}, /* (CYRILLIC CAPITAL LETTER EF) */
+    {(unsigned char *) "\xd0\xa5", 2, 0x0425}, /* (CYRILLIC CAPITAL LETTER HA) */
+    {(unsigned char *) "\xd0\xa6", 2, 0x0426}, /* (CYRILLIC CAPITAL LETTER TSE) */
+    {(unsigned char *) "\xd0\xa7", 2, 0x0427}, /* (CYRILLIC CAPITAL LETTER CHE) */
+    {(unsigned char *) "\xd0\xa8", 2, 0x0428}, /* (CYRILLIC CAPITAL LETTER SHA) */
+    {(unsigned char *) "\xd0\xa9", 2, 0x0429}, /* (CYRILLIC CAPITAL LETTER SHCHA) */
+    {(unsigned char *) "\xd0\xaa", 2, 0x042A}, /* (CYRILLIC CAPITAL LETTER HARD SIGN) */
+    {(unsigned char *) "\xd0\xab", 2, 0x042B}, /* (CYRILLIC CAPITAL LETTER YERU) */
+    {(unsigned char *) "\xd0\xac", 2, 0x042C}, /* (CYRILLIC CAPITAL LETTER SOFT SIGN) */
+    {(unsigned char *) "\xd0\xad", 2, 0x042D}, /* (CYRILLIC CAPITAL LETTER E) */
+    {(unsigned char *) "\xd0\xae", 2, 0x042E}, /* (CYRILLIC CAPITAL LETTER YU) */
+    {(unsigned char *) "\xd0\xaf", 2, 0x042F}, /* (CYRILLIC CAPITAL LETTER YA) */
+    {(unsigned char *) "\xd0\xb0", 2, 0x0430}, /* (CYRILLIC SMALL LETTER A) */
+    {(unsigned char *) "\xd0\xb1", 2, 0x0431}, /* (CYRILLIC SMALL LETTER BE) */
+    {(unsigned char *) "\xd0\xb2", 2, 0x0432}, /* (CYRILLIC SMALL LETTER VE) */
+    {(unsigned char *) "\xd0\xb3", 2, 0x0433}, /* (CYRILLIC SMALL LETTER GHE) */
+    {(unsigned char *) "\xd0\xb4", 2, 0x0434}, /* (CYRILLIC SMALL LETTER DE) */
+    {(unsigned char *) "\xd0\xb5", 2, 0x0435}, /* (CYRILLIC SMALL LETTER IE) */
+    {(unsigned char *) "\xd0\xb6", 2, 0x0436}, /* (CYRILLIC SMALL LETTER ZHE) */
+    {(unsigned char *) "\xd0\xb7", 2, 0x0437}, /* (CYRILLIC SMALL LETTER ZE) */
+    {(unsigned char *) "\xd0\xb8", 2, 0x0438}, /* (CYRILLIC SMALL LETTER I) */
+    {(unsigned char *) "\xd0\xb9", 2, 0x0439}, /* (CYRILLIC SMALL LETTER SHORT I) */
+    {(unsigned char *) "\xd0\xba", 2, 0x043A}, /* (CYRILLIC SMALL LETTER KA) */
+    {(unsigned char *) "\xd0\xbb", 2, 0x043B}, /* (CYRILLIC SMALL LETTER EL) */
+    {(unsigned char *) "\xd0\xbc", 2, 0x043C}, /* (CYRILLIC SMALL LETTER EM) */
+    {(unsigned char *) "\xd0\xbd", 2, 0x043D}, /* (CYRILLIC SMALL LETTER EN) */
+    {(unsigned char *) "\xd0\xbe", 2, 0x043E}, /* (CYRILLIC SMALL LETTER O) */
+    {(unsigned char *) "\xd0\xbf", 2, 0x043F}, /* (CYRILLIC SMALL LETTER PE) */
+    {(unsigned char *) "\xd1\x80", 2, 0x0440}, /* (CYRILLIC SMALL LETTER ER) */
+    {(unsigned char *) "\xd1\x81", 2, 0x0441}, /* (CYRILLIC SMALL LETTER ES) */
+    {(unsigned char *) "\xd1\x82", 2, 0x0442}, /* (CYRILLIC SMALL LETTER TE) */
+    {(unsigned char *) "\xd1\x83", 2, 0x0443}, /* (CYRILLIC SMALL LETTER U) */
+    {(unsigned char *) "\xd1\x84", 2, 0x0444}, /* (CYRILLIC SMALL LETTER EF) */
+    {(unsigned char *) "\xd1\x85", 2, 0x0445}, /* (CYRILLIC SMALL LETTER HA) */
+    {(unsigned char *) "\xd1\x86", 2, 0x0446}, /* (CYRILLIC SMALL LETTER TSE) */
+    {(unsigned char *) "\xd1\x87", 2, 0x0447}, /* (CYRILLIC SMALL LETTER CHE) */
+    {(unsigned char *) "\xd1\x88", 2, 0x0448}, /* (CYRILLIC SMALL LETTER SHA) */
+    {(unsigned char *) "\xd1\x89", 2, 0x0449}, /* (CYRILLIC SMALL LETTER SHCHA) */
+    {(unsigned char *) "\xd1\x8a", 2, 0x044A}, /* (CYRILLIC SMALL LETTER HARD SIGN) */
+    {(unsigned char *) "\xd1\x8b", 2, 0x044B}, /* (CYRILLIC SMALL LETTER YERU) */
+    {(unsigned char *) "\xd1\x8c", 2, 0x044C}, /* (CYRILLIC SMALL LETTER SOFT SIGN) */
+    {(unsigned char *) "\xd1\x8d", 2, 0x044D}, /* (CYRILLIC SMALL LETTER E) */
+    {(unsigned char *) "\xd1\x8e", 2, 0x044E}, /* (CYRILLIC SMALL LETTER YU) */
+    {(unsigned char *) "\xd1\x8f", 2, 0x044F}, /* (CYRILLIC SMALL LETTER YA) */
+    {(unsigned char *) "\xe2\x84\x96", 3, 0x2116}, /* (NUMERO SIGN) */
+    {(unsigned char *) "\xd1\x91", 2, 0x0451}, /* (CYRILLIC SMALL LETTER IO) */
+    {(unsigned char *) "\xd1\x92", 2, 0x0452}, /* (CYRILLIC SMALL LETTER DJE) */
+    {(unsigned char *) "\xd1\x93", 2, 0x0453}, /* (CYRILLIC SMALL LETTER GJE) */
+    {(unsigned char *) "\xd1\x94", 2, 0x0454}, /* (CYRILLIC SMALL LETTER UKRAINIAN IE) */
+    {(unsigned char *) "\xd1\x95", 2, 0x0455}, /* (CYRILLIC SMALL LETTER DZE) */
+    {(unsigned char *) "\xd1\x96", 2, 0x0456}, /* (CYRILLIC SMALL LETTER BYELORUSSIAN-UKRAINIAN I) */
+    {(unsigned char *) "\xd1\x97", 2, 0x0457}, /* (CYRILLIC SMALL LETTER YI) */
+    {(unsigned char *) "\xd1\x98", 2, 0x0458}, /* (CYRILLIC SMALL LETTER JE) */
+    {(unsigned char *) "\xd1\x99", 2, 0x0459}, /* (CYRILLIC SMALL LETTER LJE) */
+    {(unsigned char *) "\xd1\x9a", 2, 0x045A}, /* (CYRILLIC SMALL LETTER NJE) */
+    {(unsigned char *) "\xd1\x9b", 2, 0x045B}, /* (CYRILLIC SMALL LETTER TSHE) */
+    {(unsigned char *) "\xd1\x9c", 2, 0x045C}, /* (CYRILLIC SMALL LETTER KJE) */
+    {(unsigned char *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
+    {(unsigned char *) "\xd1\x9e", 2, 0x045E}, /* (CYRILLIC SMALL LETTER SHORT U) */
+    {(unsigned char *) "\xd1\x9f", 2, 0x045F}, /* (CYRILLIC SMALL LETTER DZHE) */
 };
 
-LXB_API const lxb_encoding_single_index_t lxb_encoding_single_index_iso_8859_6[128] = 
+GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_6[128] = 
 {
-    {(lxb_char_t *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x82", 2, 0x0082}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x83", 2, 0x0083}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x84", 2, 0x0084}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x85", 2, 0x0085}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x86", 2, 0x0086}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x87", 2, 0x0087}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x89", 2, 0x0089}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8b", 2, 0x008B}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x91", 2, 0x0091}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x92", 2, 0x0092}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x93", 2, 0x0093}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x94", 2, 0x0094}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x95", 2, 0x0095}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x96", 2, 0x0096}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x97", 2, 0x0097}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x99", 2, 0x0099}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9b", 2, 0x009B}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {(lxb_char_t *) "\xc2\xa4", 2, 0x00A4}, /* (CURRENCY SIGN) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {(lxb_char_t *) "\xd8\x8c", 2, 0x060C}, /* (ARABIC COMMA) */
-    {(lxb_char_t *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {(lxb_char_t *) "\xd8\x9b", 2, 0x061B}, /* (ARABIC SEMICOLON) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {(lxb_char_t *) "\xd8\x9f", 2, 0x061F}, /* (ARABIC QUESTION MARK) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {(lxb_char_t *) "\xd8\xa1", 2, 0x0621}, /* (ARABIC LETTER HAMZA) */
-    {(lxb_char_t *) "\xd8\xa2", 2, 0x0622}, /* (ARABIC LETTER ALEF WITH MADDA ABOVE) */
-    {(lxb_char_t *) "\xd8\xa3", 2, 0x0623}, /* (ARABIC LETTER ALEF WITH HAMZA ABOVE) */
-    {(lxb_char_t *) "\xd8\xa4", 2, 0x0624}, /* (ARABIC LETTER WAW WITH HAMZA ABOVE) */
-    {(lxb_char_t *) "\xd8\xa5", 2, 0x0625}, /* (ARABIC LETTER ALEF WITH HAMZA BELOW) */
-    {(lxb_char_t *) "\xd8\xa6", 2, 0x0626}, /* (ARABIC LETTER YEH WITH HAMZA ABOVE) */
-    {(lxb_char_t *) "\xd8\xa7", 2, 0x0627}, /* (ARABIC LETTER ALEF) */
-    {(lxb_char_t *) "\xd8\xa8", 2, 0x0628}, /* (ARABIC LETTER BEH) */
-    {(lxb_char_t *) "\xd8\xa9", 2, 0x0629}, /* (ARABIC LETTER TEH MARBUTA) */
-    {(lxb_char_t *) "\xd8\xaa", 2, 0x062A}, /* (ARABIC LETTER TEH) */
-    {(lxb_char_t *) "\xd8\xab", 2, 0x062B}, /* (ARABIC LETTER THEH) */
-    {(lxb_char_t *) "\xd8\xac", 2, 0x062C}, /* (ARABIC LETTER JEEM) */
-    {(lxb_char_t *) "\xd8\xad", 2, 0x062D}, /* (ARABIC LETTER HAH) */
-    {(lxb_char_t *) "\xd8\xae", 2, 0x062E}, /* (ARABIC LETTER KHAH) */
-    {(lxb_char_t *) "\xd8\xaf", 2, 0x062F}, /* (ARABIC LETTER DAL) */
-    {(lxb_char_t *) "\xd8\xb0", 2, 0x0630}, /* (ARABIC LETTER THAL) */
-    {(lxb_char_t *) "\xd8\xb1", 2, 0x0631}, /* (ARABIC LETTER REH) */
-    {(lxb_char_t *) "\xd8\xb2", 2, 0x0632}, /* (ARABIC LETTER ZAIN) */
-    {(lxb_char_t *) "\xd8\xb3", 2, 0x0633}, /* (ARABIC LETTER SEEN) */
-    {(lxb_char_t *) "\xd8\xb4", 2, 0x0634}, /* (ARABIC LETTER SHEEN) */
-    {(lxb_char_t *) "\xd8\xb5", 2, 0x0635}, /* (ARABIC LETTER SAD) */
-    {(lxb_char_t *) "\xd8\xb6", 2, 0x0636}, /* (ARABIC LETTER DAD) */
-    {(lxb_char_t *) "\xd8\xb7", 2, 0x0637}, /* (ARABIC LETTER TAH) */
-    {(lxb_char_t *) "\xd8\xb8", 2, 0x0638}, /* (ARABIC LETTER ZAH) */
-    {(lxb_char_t *) "\xd8\xb9", 2, 0x0639}, /* (ARABIC LETTER AIN) */
-    {(lxb_char_t *) "\xd8\xba", 2, 0x063A}, /* (ARABIC LETTER GHAIN) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {(lxb_char_t *) "\xd9\x80", 2, 0x0640}, /* (ARABIC TATWEEL) */
-    {(lxb_char_t *) "\xd9\x81", 2, 0x0641}, /* (ARABIC LETTER FEH) */
-    {(lxb_char_t *) "\xd9\x82", 2, 0x0642}, /* (ARABIC LETTER QAF) */
-    {(lxb_char_t *) "\xd9\x83", 2, 0x0643}, /* (ARABIC LETTER KAF) */
-    {(lxb_char_t *) "\xd9\x84", 2, 0x0644}, /* (ARABIC LETTER LAM) */
-    {(lxb_char_t *) "\xd9\x85", 2, 0x0645}, /* (ARABIC LETTER MEEM) */
-    {(lxb_char_t *) "\xd9\x86", 2, 0x0646}, /* (ARABIC LETTER NOON) */
-    {(lxb_char_t *) "\xd9\x87", 2, 0x0647}, /* (ARABIC LETTER HEH) */
-    {(lxb_char_t *) "\xd9\x88", 2, 0x0648}, /* (ARABIC LETTER WAW) */
-    {(lxb_char_t *) "\xd9\x89", 2, 0x0649}, /* (ARABIC LETTER ALEF MAKSURA) */
-    {(lxb_char_t *) "\xd9\x8a", 2, 0x064A}, /* (ARABIC LETTER YEH) */
-    {(lxb_char_t *) "\xd9\x8b", 2, 0x064B}, /* (ARABIC FATHATAN) */
-    {(lxb_char_t *) "\xd9\x8c", 2, 0x064C}, /* (ARABIC DAMMATAN) */
-    {(lxb_char_t *) "\xd9\x8d", 2, 0x064D}, /* (ARABIC KASRATAN) */
-    {(lxb_char_t *) "\xd9\x8e", 2, 0x064E}, /* (ARABIC FATHA) */
-    {(lxb_char_t *) "\xd9\x8f", 2, 0x064F}, /* (ARABIC DAMMA) */
-    {(lxb_char_t *) "\xd9\x90", 2, 0x0650}, /* (ARABIC KASRA) */
-    {(lxb_char_t *) "\xd9\x91", 2, 0x0651}, /* (ARABIC SHADDA) */
-    {(lxb_char_t *) "\xd9\x92", 2, 0x0652}, /* (ARABIC SUKUN) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
+    {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
+    {(unsigned char *) "\xc2\x82", 2, 0x0082}, /* (<control>) */
+    {(unsigned char *) "\xc2\x83", 2, 0x0083}, /* (<control>) */
+    {(unsigned char *) "\xc2\x84", 2, 0x0084}, /* (<control>) */
+    {(unsigned char *) "\xc2\x85", 2, 0x0085}, /* (<control>) */
+    {(unsigned char *) "\xc2\x86", 2, 0x0086}, /* (<control>) */
+    {(unsigned char *) "\xc2\x87", 2, 0x0087}, /* (<control>) */
+    {(unsigned char *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
+    {(unsigned char *) "\xc2\x89", 2, 0x0089}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8b", 2, 0x008B}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
+    {(unsigned char *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
+    {(unsigned char *) "\xc2\x91", 2, 0x0091}, /* (<control>) */
+    {(unsigned char *) "\xc2\x92", 2, 0x0092}, /* (<control>) */
+    {(unsigned char *) "\xc2\x93", 2, 0x0093}, /* (<control>) */
+    {(unsigned char *) "\xc2\x94", 2, 0x0094}, /* (<control>) */
+    {(unsigned char *) "\xc2\x95", 2, 0x0095}, /* (<control>) */
+    {(unsigned char *) "\xc2\x96", 2, 0x0096}, /* (<control>) */
+    {(unsigned char *) "\xc2\x97", 2, 0x0097}, /* (<control>) */
+    {(unsigned char *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
+    {(unsigned char *) "\xc2\x99", 2, 0x0099}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9b", 2, 0x009B}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
+    {(unsigned char *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xc2\xa4", 2, 0x00A4}, /* (CURRENCY SIGN) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xd8\x8c", 2, 0x060C}, /* (ARABIC COMMA) */
+    {(unsigned char *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xd8\x9b", 2, 0x061B}, /* (ARABIC SEMICOLON) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xd8\x9f", 2, 0x061F}, /* (ARABIC QUESTION MARK) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xd8\xa1", 2, 0x0621}, /* (ARABIC LETTER HAMZA) */
+    {(unsigned char *) "\xd8\xa2", 2, 0x0622}, /* (ARABIC LETTER ALEF WITH MADDA ABOVE) */
+    {(unsigned char *) "\xd8\xa3", 2, 0x0623}, /* (ARABIC LETTER ALEF WITH HAMZA ABOVE) */
+    {(unsigned char *) "\xd8\xa4", 2, 0x0624}, /* (ARABIC LETTER WAW WITH HAMZA ABOVE) */
+    {(unsigned char *) "\xd8\xa5", 2, 0x0625}, /* (ARABIC LETTER ALEF WITH HAMZA BELOW) */
+    {(unsigned char *) "\xd8\xa6", 2, 0x0626}, /* (ARABIC LETTER YEH WITH HAMZA ABOVE) */
+    {(unsigned char *) "\xd8\xa7", 2, 0x0627}, /* (ARABIC LETTER ALEF) */
+    {(unsigned char *) "\xd8\xa8", 2, 0x0628}, /* (ARABIC LETTER BEH) */
+    {(unsigned char *) "\xd8\xa9", 2, 0x0629}, /* (ARABIC LETTER TEH MARBUTA) */
+    {(unsigned char *) "\xd8\xaa", 2, 0x062A}, /* (ARABIC LETTER TEH) */
+    {(unsigned char *) "\xd8\xab", 2, 0x062B}, /* (ARABIC LETTER THEH) */
+    {(unsigned char *) "\xd8\xac", 2, 0x062C}, /* (ARABIC LETTER JEEM) */
+    {(unsigned char *) "\xd8\xad", 2, 0x062D}, /* (ARABIC LETTER HAH) */
+    {(unsigned char *) "\xd8\xae", 2, 0x062E}, /* (ARABIC LETTER KHAH) */
+    {(unsigned char *) "\xd8\xaf", 2, 0x062F}, /* (ARABIC LETTER DAL) */
+    {(unsigned char *) "\xd8\xb0", 2, 0x0630}, /* (ARABIC LETTER THAL) */
+    {(unsigned char *) "\xd8\xb1", 2, 0x0631}, /* (ARABIC LETTER REH) */
+    {(unsigned char *) "\xd8\xb2", 2, 0x0632}, /* (ARABIC LETTER ZAIN) */
+    {(unsigned char *) "\xd8\xb3", 2, 0x0633}, /* (ARABIC LETTER SEEN) */
+    {(unsigned char *) "\xd8\xb4", 2, 0x0634}, /* (ARABIC LETTER SHEEN) */
+    {(unsigned char *) "\xd8\xb5", 2, 0x0635}, /* (ARABIC LETTER SAD) */
+    {(unsigned char *) "\xd8\xb6", 2, 0x0636}, /* (ARABIC LETTER DAD) */
+    {(unsigned char *) "\xd8\xb7", 2, 0x0637}, /* (ARABIC LETTER TAH) */
+    {(unsigned char *) "\xd8\xb8", 2, 0x0638}, /* (ARABIC LETTER ZAH) */
+    {(unsigned char *) "\xd8\xb9", 2, 0x0639}, /* (ARABIC LETTER AIN) */
+    {(unsigned char *) "\xd8\xba", 2, 0x063A}, /* (ARABIC LETTER GHAIN) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xd9\x80", 2, 0x0640}, /* (ARABIC TATWEEL) */
+    {(unsigned char *) "\xd9\x81", 2, 0x0641}, /* (ARABIC LETTER FEH) */
+    {(unsigned char *) "\xd9\x82", 2, 0x0642}, /* (ARABIC LETTER QAF) */
+    {(unsigned char *) "\xd9\x83", 2, 0x0643}, /* (ARABIC LETTER KAF) */
+    {(unsigned char *) "\xd9\x84", 2, 0x0644}, /* (ARABIC LETTER LAM) */
+    {(unsigned char *) "\xd9\x85", 2, 0x0645}, /* (ARABIC LETTER MEEM) */
+    {(unsigned char *) "\xd9\x86", 2, 0x0646}, /* (ARABIC LETTER NOON) */
+    {(unsigned char *) "\xd9\x87", 2, 0x0647}, /* (ARABIC LETTER HEH) */
+    {(unsigned char *) "\xd9\x88", 2, 0x0648}, /* (ARABIC LETTER WAW) */
+    {(unsigned char *) "\xd9\x89", 2, 0x0649}, /* (ARABIC LETTER ALEF MAKSURA) */
+    {(unsigned char *) "\xd9\x8a", 2, 0x064A}, /* (ARABIC LETTER YEH) */
+    {(unsigned char *) "\xd9\x8b", 2, 0x064B}, /* (ARABIC FATHATAN) */
+    {(unsigned char *) "\xd9\x8c", 2, 0x064C}, /* (ARABIC DAMMATAN) */
+    {(unsigned char *) "\xd9\x8d", 2, 0x064D}, /* (ARABIC KASRATAN) */
+    {(unsigned char *) "\xd9\x8e", 2, 0x064E}, /* (ARABIC FATHA) */
+    {(unsigned char *) "\xd9\x8f", 2, 0x064F}, /* (ARABIC DAMMA) */
+    {(unsigned char *) "\xd9\x90", 2, 0x0650}, /* (ARABIC KASRA) */
+    {(unsigned char *) "\xd9\x91", 2, 0x0651}, /* (ARABIC SHADDA) */
+    {(unsigned char *) "\xd9\x92", 2, 0x0652}, /* (ARABIC SUKUN) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
 };
 
-LXB_API const lxb_encoding_single_index_t lxb_encoding_single_index_iso_8859_7[128] = 
+GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_7[128] = 
 {
-    {(lxb_char_t *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x82", 2, 0x0082}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x83", 2, 0x0083}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x84", 2, 0x0084}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x85", 2, 0x0085}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x86", 2, 0x0086}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x87", 2, 0x0087}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x89", 2, 0x0089}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8b", 2, 0x008B}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x91", 2, 0x0091}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x92", 2, 0x0092}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x93", 2, 0x0093}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x94", 2, 0x0094}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x95", 2, 0x0095}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x96", 2, 0x0096}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x97", 2, 0x0097}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x99", 2, 0x0099}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9b", 2, 0x009B}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
-    {(lxb_char_t *) "\xe2\x80\x98", 3, 0x2018}, /* (LEFT SINGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x99", 3, 0x2019}, /* (RIGHT SINGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\xa3", 2, 0x00A3}, /* (POUND SIGN) */
-    {(lxb_char_t *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
-    {(lxb_char_t *) "\xe2\x82\xaf", 3, 0x20AF}, /* (DRACHMA SIGN) */
-    {(lxb_char_t *) "\xc2\xa6", 2, 0x00A6}, /* (BROKEN BAR) */
-    {(lxb_char_t *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
-    {(lxb_char_t *) "\xc2\xa8", 2, 0x00A8}, /* (DIAERESIS) */
-    {(lxb_char_t *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
-    {(lxb_char_t *) "\xcd\xba", 2, 0x037A}, /* (GREEK YPOGEGRAMMENI) */
-    {(lxb_char_t *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\xac", 2, 0x00AC}, /* (NOT SIGN) */
-    {(lxb_char_t *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {(lxb_char_t *) "\xe2\x80\x95", 3, 0x2015}, /* (HORIZONTAL BAR) */
-    {(lxb_char_t *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
-    {(lxb_char_t *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
-    {(lxb_char_t *) "\xc2\xb2", 2, 0x00B2}, /* (SUPERSCRIPT TWO) */
-    {(lxb_char_t *) "\xc2\xb3", 2, 0x00B3}, /* (SUPERSCRIPT THREE) */
-    {(lxb_char_t *) "\xce\x84", 2, 0x0384}, /* (GREEK TONOS) */
-    {(lxb_char_t *) "\xce\x85", 2, 0x0385}, /* (GREEK DIALYTIKA TONOS) */
-    {(lxb_char_t *) "\xce\x86", 2, 0x0386}, /* (GREEK CAPITAL LETTER ALPHA WITH TONOS) */
-    {(lxb_char_t *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
-    {(lxb_char_t *) "\xce\x88", 2, 0x0388}, /* (GREEK CAPITAL LETTER EPSILON WITH TONOS) */
-    {(lxb_char_t *) "\xce\x89", 2, 0x0389}, /* (GREEK CAPITAL LETTER ETA WITH TONOS) */
-    {(lxb_char_t *) "\xce\x8a", 2, 0x038A}, /* (GREEK CAPITAL LETTER IOTA WITH TONOS) */
-    {(lxb_char_t *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xce\x8c", 2, 0x038C}, /* (GREEK CAPITAL LETTER OMICRON WITH TONOS) */
-    {(lxb_char_t *) "\xc2\xbd", 2, 0x00BD}, /* (VULGAR FRACTION ONE HALF) */
-    {(lxb_char_t *) "\xce\x8e", 2, 0x038E}, /* (GREEK CAPITAL LETTER UPSILON WITH TONOS) */
-    {(lxb_char_t *) "\xce\x8f", 2, 0x038F}, /* (GREEK CAPITAL LETTER OMEGA WITH TONOS) */
-    {(lxb_char_t *) "\xce\x90", 2, 0x0390}, /* (GREEK SMALL LETTER IOTA WITH DIALYTIKA AND TONOS) */
-    {(lxb_char_t *) "\xce\x91", 2, 0x0391}, /* (GREEK CAPITAL LETTER ALPHA) */
-    {(lxb_char_t *) "\xce\x92", 2, 0x0392}, /* (GREEK CAPITAL LETTER BETA) */
-    {(lxb_char_t *) "\xce\x93", 2, 0x0393}, /* (GREEK CAPITAL LETTER GAMMA) */
-    {(lxb_char_t *) "\xce\x94", 2, 0x0394}, /* (GREEK CAPITAL LETTER DELTA) */
-    {(lxb_char_t *) "\xce\x95", 2, 0x0395}, /* (GREEK CAPITAL LETTER EPSILON) */
-    {(lxb_char_t *) "\xce\x96", 2, 0x0396}, /* (GREEK CAPITAL LETTER ZETA) */
-    {(lxb_char_t *) "\xce\x97", 2, 0x0397}, /* (GREEK CAPITAL LETTER ETA) */
-    {(lxb_char_t *) "\xce\x98", 2, 0x0398}, /* (GREEK CAPITAL LETTER THETA) */
-    {(lxb_char_t *) "\xce\x99", 2, 0x0399}, /* (GREEK CAPITAL LETTER IOTA) */
-    {(lxb_char_t *) "\xce\x9a", 2, 0x039A}, /* (GREEK CAPITAL LETTER KAPPA) */
-    {(lxb_char_t *) "\xce\x9b", 2, 0x039B}, /* (GREEK CAPITAL LETTER LAMDA) */
-    {(lxb_char_t *) "\xce\x9c", 2, 0x039C}, /* (GREEK CAPITAL LETTER MU) */
-    {(lxb_char_t *) "\xce\x9d", 2, 0x039D}, /* (GREEK CAPITAL LETTER NU) */
-    {(lxb_char_t *) "\xce\x9e", 2, 0x039E}, /* (GREEK CAPITAL LETTER XI) */
-    {(lxb_char_t *) "\xce\x9f", 2, 0x039F}, /* (GREEK CAPITAL LETTER OMICRON) */
-    {(lxb_char_t *) "\xce\xa0", 2, 0x03A0}, /* (GREEK CAPITAL LETTER PI) */
-    {(lxb_char_t *) "\xce\xa1", 2, 0x03A1}, /* (GREEK CAPITAL LETTER RHO) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {(lxb_char_t *) "\xce\xa3", 2, 0x03A3}, /* (GREEK CAPITAL LETTER SIGMA) */
-    {(lxb_char_t *) "\xce\xa4", 2, 0x03A4}, /* (GREEK CAPITAL LETTER TAU) */
-    {(lxb_char_t *) "\xce\xa5", 2, 0x03A5}, /* (GREEK CAPITAL LETTER UPSILON) */
-    {(lxb_char_t *) "\xce\xa6", 2, 0x03A6}, /* (GREEK CAPITAL LETTER PHI) */
-    {(lxb_char_t *) "\xce\xa7", 2, 0x03A7}, /* (GREEK CAPITAL LETTER CHI) */
-    {(lxb_char_t *) "\xce\xa8", 2, 0x03A8}, /* (GREEK CAPITAL LETTER PSI) */
-    {(lxb_char_t *) "\xce\xa9", 2, 0x03A9}, /* (GREEK CAPITAL LETTER OMEGA) */
-    {(lxb_char_t *) "\xce\xaa", 2, 0x03AA}, /* (GREEK CAPITAL LETTER IOTA WITH DIALYTIKA) */
-    {(lxb_char_t *) "\xce\xab", 2, 0x03AB}, /* (GREEK CAPITAL LETTER UPSILON WITH DIALYTIKA) */
-    {(lxb_char_t *) "\xce\xac", 2, 0x03AC}, /* (GREEK SMALL LETTER ALPHA WITH TONOS) */
-    {(lxb_char_t *) "\xce\xad", 2, 0x03AD}, /* (GREEK SMALL LETTER EPSILON WITH TONOS) */
-    {(lxb_char_t *) "\xce\xae", 2, 0x03AE}, /* (GREEK SMALL LETTER ETA WITH TONOS) */
-    {(lxb_char_t *) "\xce\xaf", 2, 0x03AF}, /* (GREEK SMALL LETTER IOTA WITH TONOS) */
-    {(lxb_char_t *) "\xce\xb0", 2, 0x03B0}, /* (GREEK SMALL LETTER UPSILON WITH DIALYTIKA AND TONOS) */
-    {(lxb_char_t *) "\xce\xb1", 2, 0x03B1}, /* (GREEK SMALL LETTER ALPHA) */
-    {(lxb_char_t *) "\xce\xb2", 2, 0x03B2}, /* (GREEK SMALL LETTER BETA) */
-    {(lxb_char_t *) "\xce\xb3", 2, 0x03B3}, /* (GREEK SMALL LETTER GAMMA) */
-    {(lxb_char_t *) "\xce\xb4", 2, 0x03B4}, /* (GREEK SMALL LETTER DELTA) */
-    {(lxb_char_t *) "\xce\xb5", 2, 0x03B5}, /* (GREEK SMALL LETTER EPSILON) */
-    {(lxb_char_t *) "\xce\xb6", 2, 0x03B6}, /* (GREEK SMALL LETTER ZETA) */
-    {(lxb_char_t *) "\xce\xb7", 2, 0x03B7}, /* (GREEK SMALL LETTER ETA) */
-    {(lxb_char_t *) "\xce\xb8", 2, 0x03B8}, /* (GREEK SMALL LETTER THETA) */
-    {(lxb_char_t *) "\xce\xb9", 2, 0x03B9}, /* (GREEK SMALL LETTER IOTA) */
-    {(lxb_char_t *) "\xce\xba", 2, 0x03BA}, /* (GREEK SMALL LETTER KAPPA) */
-    {(lxb_char_t *) "\xce\xbb", 2, 0x03BB}, /* (GREEK SMALL LETTER LAMDA) */
-    {(lxb_char_t *) "\xce\xbc", 2, 0x03BC}, /* (GREEK SMALL LETTER MU) */
-    {(lxb_char_t *) "\xce\xbd", 2, 0x03BD}, /* (GREEK SMALL LETTER NU) */
-    {(lxb_char_t *) "\xce\xbe", 2, 0x03BE}, /* (GREEK SMALL LETTER XI) */
-    {(lxb_char_t *) "\xce\xbf", 2, 0x03BF}, /* (GREEK SMALL LETTER OMICRON) */
-    {(lxb_char_t *) "\xcf\x80", 2, 0x03C0}, /* (GREEK SMALL LETTER PI) */
-    {(lxb_char_t *) "\xcf\x81", 2, 0x03C1}, /* (GREEK SMALL LETTER RHO) */
-    {(lxb_char_t *) "\xcf\x82", 2, 0x03C2}, /* (GREEK SMALL LETTER FINAL SIGMA) */
-    {(lxb_char_t *) "\xcf\x83", 2, 0x03C3}, /* (GREEK SMALL LETTER SIGMA) */
-    {(lxb_char_t *) "\xcf\x84", 2, 0x03C4}, /* (GREEK SMALL LETTER TAU) */
-    {(lxb_char_t *) "\xcf\x85", 2, 0x03C5}, /* (GREEK SMALL LETTER UPSILON) */
-    {(lxb_char_t *) "\xcf\x86", 2, 0x03C6}, /* (GREEK SMALL LETTER PHI) */
-    {(lxb_char_t *) "\xcf\x87", 2, 0x03C7}, /* (GREEK SMALL LETTER CHI) */
-    {(lxb_char_t *) "\xcf\x88", 2, 0x03C8}, /* (GREEK SMALL LETTER PSI) */
-    {(lxb_char_t *) "\xcf\x89", 2, 0x03C9}, /* (GREEK SMALL LETTER OMEGA) */
-    {(lxb_char_t *) "\xcf\x8a", 2, 0x03CA}, /* (GREEK SMALL LETTER IOTA WITH DIALYTIKA) */
-    {(lxb_char_t *) "\xcf\x8b", 2, 0x03CB}, /* (GREEK SMALL LETTER UPSILON WITH DIALYTIKA) */
-    {(lxb_char_t *) "\xcf\x8c", 2, 0x03CC}, /* (GREEK SMALL LETTER OMICRON WITH TONOS) */
-    {(lxb_char_t *) "\xcf\x8d", 2, 0x03CD}, /* (GREEK SMALL LETTER UPSILON WITH TONOS) */
-    {(lxb_char_t *) "\xcf\x8e", 2, 0x03CE}, /* (GREEK SMALL LETTER OMEGA WITH TONOS) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
+    {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
+    {(unsigned char *) "\xc2\x82", 2, 0x0082}, /* (<control>) */
+    {(unsigned char *) "\xc2\x83", 2, 0x0083}, /* (<control>) */
+    {(unsigned char *) "\xc2\x84", 2, 0x0084}, /* (<control>) */
+    {(unsigned char *) "\xc2\x85", 2, 0x0085}, /* (<control>) */
+    {(unsigned char *) "\xc2\x86", 2, 0x0086}, /* (<control>) */
+    {(unsigned char *) "\xc2\x87", 2, 0x0087}, /* (<control>) */
+    {(unsigned char *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
+    {(unsigned char *) "\xc2\x89", 2, 0x0089}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8b", 2, 0x008B}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
+    {(unsigned char *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
+    {(unsigned char *) "\xc2\x91", 2, 0x0091}, /* (<control>) */
+    {(unsigned char *) "\xc2\x92", 2, 0x0092}, /* (<control>) */
+    {(unsigned char *) "\xc2\x93", 2, 0x0093}, /* (<control>) */
+    {(unsigned char *) "\xc2\x94", 2, 0x0094}, /* (<control>) */
+    {(unsigned char *) "\xc2\x95", 2, 0x0095}, /* (<control>) */
+    {(unsigned char *) "\xc2\x96", 2, 0x0096}, /* (<control>) */
+    {(unsigned char *) "\xc2\x97", 2, 0x0097}, /* (<control>) */
+    {(unsigned char *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
+    {(unsigned char *) "\xc2\x99", 2, 0x0099}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9b", 2, 0x009B}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
+    {(unsigned char *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
+    {(unsigned char *) "\xe2\x80\x98", 3, 0x2018}, /* (LEFT SINGLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x99", 3, 0x2019}, /* (RIGHT SINGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\xa3", 2, 0x00A3}, /* (POUND SIGN) */
+    {(unsigned char *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
+    {(unsigned char *) "\xe2\x82\xaf", 3, 0x20AF}, /* (DRACHMA SIGN) */
+    {(unsigned char *) "\xc2\xa6", 2, 0x00A6}, /* (BROKEN BAR) */
+    {(unsigned char *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
+    {(unsigned char *) "\xc2\xa8", 2, 0x00A8}, /* (DIAERESIS) */
+    {(unsigned char *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
+    {(unsigned char *) "\xcd\xba", 2, 0x037A}, /* (GREEK YPOGEGRAMMENI) */
+    {(unsigned char *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\xac", 2, 0x00AC}, /* (NOT SIGN) */
+    {(unsigned char *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xe2\x80\x95", 3, 0x2015}, /* (HORIZONTAL BAR) */
+    {(unsigned char *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
+    {(unsigned char *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
+    {(unsigned char *) "\xc2\xb2", 2, 0x00B2}, /* (SUPERSCRIPT TWO) */
+    {(unsigned char *) "\xc2\xb3", 2, 0x00B3}, /* (SUPERSCRIPT THREE) */
+    {(unsigned char *) "\xce\x84", 2, 0x0384}, /* (GREEK TONOS) */
+    {(unsigned char *) "\xce\x85", 2, 0x0385}, /* (GREEK DIALYTIKA TONOS) */
+    {(unsigned char *) "\xce\x86", 2, 0x0386}, /* (GREEK CAPITAL LETTER ALPHA WITH TONOS) */
+    {(unsigned char *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
+    {(unsigned char *) "\xce\x88", 2, 0x0388}, /* (GREEK CAPITAL LETTER EPSILON WITH TONOS) */
+    {(unsigned char *) "\xce\x89", 2, 0x0389}, /* (GREEK CAPITAL LETTER ETA WITH TONOS) */
+    {(unsigned char *) "\xce\x8a", 2, 0x038A}, /* (GREEK CAPITAL LETTER IOTA WITH TONOS) */
+    {(unsigned char *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xce\x8c", 2, 0x038C}, /* (GREEK CAPITAL LETTER OMICRON WITH TONOS) */
+    {(unsigned char *) "\xc2\xbd", 2, 0x00BD}, /* (VULGAR FRACTION ONE HALF) */
+    {(unsigned char *) "\xce\x8e", 2, 0x038E}, /* (GREEK CAPITAL LETTER UPSILON WITH TONOS) */
+    {(unsigned char *) "\xce\x8f", 2, 0x038F}, /* (GREEK CAPITAL LETTER OMEGA WITH TONOS) */
+    {(unsigned char *) "\xce\x90", 2, 0x0390}, /* (GREEK SMALL LETTER IOTA WITH DIALYTIKA AND TONOS) */
+    {(unsigned char *) "\xce\x91", 2, 0x0391}, /* (GREEK CAPITAL LETTER ALPHA) */
+    {(unsigned char *) "\xce\x92", 2, 0x0392}, /* (GREEK CAPITAL LETTER BETA) */
+    {(unsigned char *) "\xce\x93", 2, 0x0393}, /* (GREEK CAPITAL LETTER GAMMA) */
+    {(unsigned char *) "\xce\x94", 2, 0x0394}, /* (GREEK CAPITAL LETTER DELTA) */
+    {(unsigned char *) "\xce\x95", 2, 0x0395}, /* (GREEK CAPITAL LETTER EPSILON) */
+    {(unsigned char *) "\xce\x96", 2, 0x0396}, /* (GREEK CAPITAL LETTER ZETA) */
+    {(unsigned char *) "\xce\x97", 2, 0x0397}, /* (GREEK CAPITAL LETTER ETA) */
+    {(unsigned char *) "\xce\x98", 2, 0x0398}, /* (GREEK CAPITAL LETTER THETA) */
+    {(unsigned char *) "\xce\x99", 2, 0x0399}, /* (GREEK CAPITAL LETTER IOTA) */
+    {(unsigned char *) "\xce\x9a", 2, 0x039A}, /* (GREEK CAPITAL LETTER KAPPA) */
+    {(unsigned char *) "\xce\x9b", 2, 0x039B}, /* (GREEK CAPITAL LETTER LAMDA) */
+    {(unsigned char *) "\xce\x9c", 2, 0x039C}, /* (GREEK CAPITAL LETTER MU) */
+    {(unsigned char *) "\xce\x9d", 2, 0x039D}, /* (GREEK CAPITAL LETTER NU) */
+    {(unsigned char *) "\xce\x9e", 2, 0x039E}, /* (GREEK CAPITAL LETTER XI) */
+    {(unsigned char *) "\xce\x9f", 2, 0x039F}, /* (GREEK CAPITAL LETTER OMICRON) */
+    {(unsigned char *) "\xce\xa0", 2, 0x03A0}, /* (GREEK CAPITAL LETTER PI) */
+    {(unsigned char *) "\xce\xa1", 2, 0x03A1}, /* (GREEK CAPITAL LETTER RHO) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xce\xa3", 2, 0x03A3}, /* (GREEK CAPITAL LETTER SIGMA) */
+    {(unsigned char *) "\xce\xa4", 2, 0x03A4}, /* (GREEK CAPITAL LETTER TAU) */
+    {(unsigned char *) "\xce\xa5", 2, 0x03A5}, /* (GREEK CAPITAL LETTER UPSILON) */
+    {(unsigned char *) "\xce\xa6", 2, 0x03A6}, /* (GREEK CAPITAL LETTER PHI) */
+    {(unsigned char *) "\xce\xa7", 2, 0x03A7}, /* (GREEK CAPITAL LETTER CHI) */
+    {(unsigned char *) "\xce\xa8", 2, 0x03A8}, /* (GREEK CAPITAL LETTER PSI) */
+    {(unsigned char *) "\xce\xa9", 2, 0x03A9}, /* (GREEK CAPITAL LETTER OMEGA) */
+    {(unsigned char *) "\xce\xaa", 2, 0x03AA}, /* (GREEK CAPITAL LETTER IOTA WITH DIALYTIKA) */
+    {(unsigned char *) "\xce\xab", 2, 0x03AB}, /* (GREEK CAPITAL LETTER UPSILON WITH DIALYTIKA) */
+    {(unsigned char *) "\xce\xac", 2, 0x03AC}, /* (GREEK SMALL LETTER ALPHA WITH TONOS) */
+    {(unsigned char *) "\xce\xad", 2, 0x03AD}, /* (GREEK SMALL LETTER EPSILON WITH TONOS) */
+    {(unsigned char *) "\xce\xae", 2, 0x03AE}, /* (GREEK SMALL LETTER ETA WITH TONOS) */
+    {(unsigned char *) "\xce\xaf", 2, 0x03AF}, /* (GREEK SMALL LETTER IOTA WITH TONOS) */
+    {(unsigned char *) "\xce\xb0", 2, 0x03B0}, /* (GREEK SMALL LETTER UPSILON WITH DIALYTIKA AND TONOS) */
+    {(unsigned char *) "\xce\xb1", 2, 0x03B1}, /* (GREEK SMALL LETTER ALPHA) */
+    {(unsigned char *) "\xce\xb2", 2, 0x03B2}, /* (GREEK SMALL LETTER BETA) */
+    {(unsigned char *) "\xce\xb3", 2, 0x03B3}, /* (GREEK SMALL LETTER GAMMA) */
+    {(unsigned char *) "\xce\xb4", 2, 0x03B4}, /* (GREEK SMALL LETTER DELTA) */
+    {(unsigned char *) "\xce\xb5", 2, 0x03B5}, /* (GREEK SMALL LETTER EPSILON) */
+    {(unsigned char *) "\xce\xb6", 2, 0x03B6}, /* (GREEK SMALL LETTER ZETA) */
+    {(unsigned char *) "\xce\xb7", 2, 0x03B7}, /* (GREEK SMALL LETTER ETA) */
+    {(unsigned char *) "\xce\xb8", 2, 0x03B8}, /* (GREEK SMALL LETTER THETA) */
+    {(unsigned char *) "\xce\xb9", 2, 0x03B9}, /* (GREEK SMALL LETTER IOTA) */
+    {(unsigned char *) "\xce\xba", 2, 0x03BA}, /* (GREEK SMALL LETTER KAPPA) */
+    {(unsigned char *) "\xce\xbb", 2, 0x03BB}, /* (GREEK SMALL LETTER LAMDA) */
+    {(unsigned char *) "\xce\xbc", 2, 0x03BC}, /* (GREEK SMALL LETTER MU) */
+    {(unsigned char *) "\xce\xbd", 2, 0x03BD}, /* (GREEK SMALL LETTER NU) */
+    {(unsigned char *) "\xce\xbe", 2, 0x03BE}, /* (GREEK SMALL LETTER XI) */
+    {(unsigned char *) "\xce\xbf", 2, 0x03BF}, /* (GREEK SMALL LETTER OMICRON) */
+    {(unsigned char *) "\xcf\x80", 2, 0x03C0}, /* (GREEK SMALL LETTER PI) */
+    {(unsigned char *) "\xcf\x81", 2, 0x03C1}, /* (GREEK SMALL LETTER RHO) */
+    {(unsigned char *) "\xcf\x82", 2, 0x03C2}, /* (GREEK SMALL LETTER FINAL SIGMA) */
+    {(unsigned char *) "\xcf\x83", 2, 0x03C3}, /* (GREEK SMALL LETTER SIGMA) */
+    {(unsigned char *) "\xcf\x84", 2, 0x03C4}, /* (GREEK SMALL LETTER TAU) */
+    {(unsigned char *) "\xcf\x85", 2, 0x03C5}, /* (GREEK SMALL LETTER UPSILON) */
+    {(unsigned char *) "\xcf\x86", 2, 0x03C6}, /* (GREEK SMALL LETTER PHI) */
+    {(unsigned char *) "\xcf\x87", 2, 0x03C7}, /* (GREEK SMALL LETTER CHI) */
+    {(unsigned char *) "\xcf\x88", 2, 0x03C8}, /* (GREEK SMALL LETTER PSI) */
+    {(unsigned char *) "\xcf\x89", 2, 0x03C9}, /* (GREEK SMALL LETTER OMEGA) */
+    {(unsigned char *) "\xcf\x8a", 2, 0x03CA}, /* (GREEK SMALL LETTER IOTA WITH DIALYTIKA) */
+    {(unsigned char *) "\xcf\x8b", 2, 0x03CB}, /* (GREEK SMALL LETTER UPSILON WITH DIALYTIKA) */
+    {(unsigned char *) "\xcf\x8c", 2, 0x03CC}, /* (GREEK SMALL LETTER OMICRON WITH TONOS) */
+    {(unsigned char *) "\xcf\x8d", 2, 0x03CD}, /* (GREEK SMALL LETTER UPSILON WITH TONOS) */
+    {(unsigned char *) "\xcf\x8e", 2, 0x03CE}, /* (GREEK SMALL LETTER OMEGA WITH TONOS) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
 };
 
-LXB_API const lxb_encoding_single_index_t lxb_encoding_single_index_iso_8859_8[128] = 
+GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_8[128] = 
 {
-    {(lxb_char_t *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x82", 2, 0x0082}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x83", 2, 0x0083}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x84", 2, 0x0084}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x85", 2, 0x0085}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x86", 2, 0x0086}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x87", 2, 0x0087}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x89", 2, 0x0089}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8b", 2, 0x008B}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x91", 2, 0x0091}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x92", 2, 0x0092}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x93", 2, 0x0093}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x94", 2, 0x0094}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x95", 2, 0x0095}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x96", 2, 0x0096}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x97", 2, 0x0097}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x99", 2, 0x0099}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9b", 2, 0x009B}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {(lxb_char_t *) "\xc2\xa2", 2, 0x00A2}, /* (CENT SIGN) */
-    {(lxb_char_t *) "\xc2\xa3", 2, 0x00A3}, /* (POUND SIGN) */
-    {(lxb_char_t *) "\xc2\xa4", 2, 0x00A4}, /* (CURRENCY SIGN) */
-    {(lxb_char_t *) "\xc2\xa5", 2, 0x00A5}, /* (YEN SIGN) */
-    {(lxb_char_t *) "\xc2\xa6", 2, 0x00A6}, /* (BROKEN BAR) */
-    {(lxb_char_t *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
-    {(lxb_char_t *) "\xc2\xa8", 2, 0x00A8}, /* (DIAERESIS) */
-    {(lxb_char_t *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
-    {(lxb_char_t *) "\xc3\x97", 2, 0x00D7}, /* (MULTIPLICATION SIGN) */
-    {(lxb_char_t *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\xac", 2, 0x00AC}, /* (NOT SIGN) */
-    {(lxb_char_t *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
-    {(lxb_char_t *) "\xc2\xae", 2, 0x00AE}, /* (REGISTERED SIGN) */
-    {(lxb_char_t *) "\xc2\xaf", 2, 0x00AF}, /* (MACRON) */
-    {(lxb_char_t *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
-    {(lxb_char_t *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
-    {(lxb_char_t *) "\xc2\xb2", 2, 0x00B2}, /* (SUPERSCRIPT TWO) */
-    {(lxb_char_t *) "\xc2\xb3", 2, 0x00B3}, /* (SUPERSCRIPT THREE) */
-    {(lxb_char_t *) "\xc2\xb4", 2, 0x00B4}, /* (ACUTE ACCENT) */
-    {(lxb_char_t *) "\xc2\xb5", 2, 0x00B5}, /* (MICRO SIGN) */
-    {(lxb_char_t *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
-    {(lxb_char_t *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
-    {(lxb_char_t *) "\xc2\xb8", 2, 0x00B8}, /* (CEDILLA) */
-    {(lxb_char_t *) "\xc2\xb9", 2, 0x00B9}, /* (SUPERSCRIPT ONE) */
-    {(lxb_char_t *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
-    {(lxb_char_t *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\xbc", 2, 0x00BC}, /* (VULGAR FRACTION ONE QUARTER) */
-    {(lxb_char_t *) "\xc2\xbd", 2, 0x00BD}, /* (VULGAR FRACTION ONE HALF) */
-    {(lxb_char_t *) "\xc2\xbe", 2, 0x00BE}, /* (VULGAR FRACTION THREE QUARTERS) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {(lxb_char_t *) "\xe2\x80\x97", 3, 0x2017}, /* (DOUBLE LOW LINE) */
-    {(lxb_char_t *) "\xd7\x90", 2, 0x05D0}, /* (HEBREW LETTER ALEF) */
-    {(lxb_char_t *) "\xd7\x91", 2, 0x05D1}, /* (HEBREW LETTER BET) */
-    {(lxb_char_t *) "\xd7\x92", 2, 0x05D2}, /* (HEBREW LETTER GIMEL) */
-    {(lxb_char_t *) "\xd7\x93", 2, 0x05D3}, /* (HEBREW LETTER DALET) */
-    {(lxb_char_t *) "\xd7\x94", 2, 0x05D4}, /* (HEBREW LETTER HE) */
-    {(lxb_char_t *) "\xd7\x95", 2, 0x05D5}, /* (HEBREW LETTER VAV) */
-    {(lxb_char_t *) "\xd7\x96", 2, 0x05D6}, /* (HEBREW LETTER ZAYIN) */
-    {(lxb_char_t *) "\xd7\x97", 2, 0x05D7}, /* (HEBREW LETTER HET) */
-    {(lxb_char_t *) "\xd7\x98", 2, 0x05D8}, /* (HEBREW LETTER TET) */
-    {(lxb_char_t *) "\xd7\x99", 2, 0x05D9}, /* (HEBREW LETTER YOD) */
-    {(lxb_char_t *) "\xd7\x9a", 2, 0x05DA}, /* (HEBREW LETTER FINAL KAF) */
-    {(lxb_char_t *) "\xd7\x9b", 2, 0x05DB}, /* (HEBREW LETTER KAF) */
-    {(lxb_char_t *) "\xd7\x9c", 2, 0x05DC}, /* (HEBREW LETTER LAMED) */
-    {(lxb_char_t *) "\xd7\x9d", 2, 0x05DD}, /* (HEBREW LETTER FINAL MEM) */
-    {(lxb_char_t *) "\xd7\x9e", 2, 0x05DE}, /* (HEBREW LETTER MEM) */
-    {(lxb_char_t *) "\xd7\x9f", 2, 0x05DF}, /* (HEBREW LETTER FINAL NUN) */
-    {(lxb_char_t *) "\xd7\xa0", 2, 0x05E0}, /* (HEBREW LETTER NUN) */
-    {(lxb_char_t *) "\xd7\xa1", 2, 0x05E1}, /* (HEBREW LETTER SAMEKH) */
-    {(lxb_char_t *) "\xd7\xa2", 2, 0x05E2}, /* (HEBREW LETTER AYIN) */
-    {(lxb_char_t *) "\xd7\xa3", 2, 0x05E3}, /* (HEBREW LETTER FINAL PE) */
-    {(lxb_char_t *) "\xd7\xa4", 2, 0x05E4}, /* (HEBREW LETTER PE) */
-    {(lxb_char_t *) "\xd7\xa5", 2, 0x05E5}, /* (HEBREW LETTER FINAL TSADI) */
-    {(lxb_char_t *) "\xd7\xa6", 2, 0x05E6}, /* (HEBREW LETTER TSADI) */
-    {(lxb_char_t *) "\xd7\xa7", 2, 0x05E7}, /* (HEBREW LETTER QOF) */
-    {(lxb_char_t *) "\xd7\xa8", 2, 0x05E8}, /* (HEBREW LETTER RESH) */
-    {(lxb_char_t *) "\xd7\xa9", 2, 0x05E9}, /* (HEBREW LETTER SHIN) */
-    {(lxb_char_t *) "\xd7\xaa", 2, 0x05EA}, /* (HEBREW LETTER TAV) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {(lxb_char_t *) "\xe2\x80\x8e", 3, 0x200E}, /* (LEFT-TO-RIGHT MARK) */
-    {(lxb_char_t *) "\xe2\x80\x8f", 3, 0x200F}, /* (RIGHT-TO-LEFT MARK) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
+    {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
+    {(unsigned char *) "\xc2\x82", 2, 0x0082}, /* (<control>) */
+    {(unsigned char *) "\xc2\x83", 2, 0x0083}, /* (<control>) */
+    {(unsigned char *) "\xc2\x84", 2, 0x0084}, /* (<control>) */
+    {(unsigned char *) "\xc2\x85", 2, 0x0085}, /* (<control>) */
+    {(unsigned char *) "\xc2\x86", 2, 0x0086}, /* (<control>) */
+    {(unsigned char *) "\xc2\x87", 2, 0x0087}, /* (<control>) */
+    {(unsigned char *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
+    {(unsigned char *) "\xc2\x89", 2, 0x0089}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8b", 2, 0x008B}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
+    {(unsigned char *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
+    {(unsigned char *) "\xc2\x91", 2, 0x0091}, /* (<control>) */
+    {(unsigned char *) "\xc2\x92", 2, 0x0092}, /* (<control>) */
+    {(unsigned char *) "\xc2\x93", 2, 0x0093}, /* (<control>) */
+    {(unsigned char *) "\xc2\x94", 2, 0x0094}, /* (<control>) */
+    {(unsigned char *) "\xc2\x95", 2, 0x0095}, /* (<control>) */
+    {(unsigned char *) "\xc2\x96", 2, 0x0096}, /* (<control>) */
+    {(unsigned char *) "\xc2\x97", 2, 0x0097}, /* (<control>) */
+    {(unsigned char *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
+    {(unsigned char *) "\xc2\x99", 2, 0x0099}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9b", 2, 0x009B}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
+    {(unsigned char *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xc2\xa2", 2, 0x00A2}, /* (CENT SIGN) */
+    {(unsigned char *) "\xc2\xa3", 2, 0x00A3}, /* (POUND SIGN) */
+    {(unsigned char *) "\xc2\xa4", 2, 0x00A4}, /* (CURRENCY SIGN) */
+    {(unsigned char *) "\xc2\xa5", 2, 0x00A5}, /* (YEN SIGN) */
+    {(unsigned char *) "\xc2\xa6", 2, 0x00A6}, /* (BROKEN BAR) */
+    {(unsigned char *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
+    {(unsigned char *) "\xc2\xa8", 2, 0x00A8}, /* (DIAERESIS) */
+    {(unsigned char *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
+    {(unsigned char *) "\xc3\x97", 2, 0x00D7}, /* (MULTIPLICATION SIGN) */
+    {(unsigned char *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\xac", 2, 0x00AC}, /* (NOT SIGN) */
+    {(unsigned char *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
+    {(unsigned char *) "\xc2\xae", 2, 0x00AE}, /* (REGISTERED SIGN) */
+    {(unsigned char *) "\xc2\xaf", 2, 0x00AF}, /* (MACRON) */
+    {(unsigned char *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
+    {(unsigned char *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
+    {(unsigned char *) "\xc2\xb2", 2, 0x00B2}, /* (SUPERSCRIPT TWO) */
+    {(unsigned char *) "\xc2\xb3", 2, 0x00B3}, /* (SUPERSCRIPT THREE) */
+    {(unsigned char *) "\xc2\xb4", 2, 0x00B4}, /* (ACUTE ACCENT) */
+    {(unsigned char *) "\xc2\xb5", 2, 0x00B5}, /* (MICRO SIGN) */
+    {(unsigned char *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
+    {(unsigned char *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
+    {(unsigned char *) "\xc2\xb8", 2, 0x00B8}, /* (CEDILLA) */
+    {(unsigned char *) "\xc2\xb9", 2, 0x00B9}, /* (SUPERSCRIPT ONE) */
+    {(unsigned char *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
+    {(unsigned char *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\xbc", 2, 0x00BC}, /* (VULGAR FRACTION ONE QUARTER) */
+    {(unsigned char *) "\xc2\xbd", 2, 0x00BD}, /* (VULGAR FRACTION ONE HALF) */
+    {(unsigned char *) "\xc2\xbe", 2, 0x00BE}, /* (VULGAR FRACTION THREE QUARTERS) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xe2\x80\x97", 3, 0x2017}, /* (DOUBLE LOW LINE) */
+    {(unsigned char *) "\xd7\x90", 2, 0x05D0}, /* (HEBREW LETTER ALEF) */
+    {(unsigned char *) "\xd7\x91", 2, 0x05D1}, /* (HEBREW LETTER BET) */
+    {(unsigned char *) "\xd7\x92", 2, 0x05D2}, /* (HEBREW LETTER GIMEL) */
+    {(unsigned char *) "\xd7\x93", 2, 0x05D3}, /* (HEBREW LETTER DALET) */
+    {(unsigned char *) "\xd7\x94", 2, 0x05D4}, /* (HEBREW LETTER HE) */
+    {(unsigned char *) "\xd7\x95", 2, 0x05D5}, /* (HEBREW LETTER VAV) */
+    {(unsigned char *) "\xd7\x96", 2, 0x05D6}, /* (HEBREW LETTER ZAYIN) */
+    {(unsigned char *) "\xd7\x97", 2, 0x05D7}, /* (HEBREW LETTER HET) */
+    {(unsigned char *) "\xd7\x98", 2, 0x05D8}, /* (HEBREW LETTER TET) */
+    {(unsigned char *) "\xd7\x99", 2, 0x05D9}, /* (HEBREW LETTER YOD) */
+    {(unsigned char *) "\xd7\x9a", 2, 0x05DA}, /* (HEBREW LETTER FINAL KAF) */
+    {(unsigned char *) "\xd7\x9b", 2, 0x05DB}, /* (HEBREW LETTER KAF) */
+    {(unsigned char *) "\xd7\x9c", 2, 0x05DC}, /* (HEBREW LETTER LAMED) */
+    {(unsigned char *) "\xd7\x9d", 2, 0x05DD}, /* (HEBREW LETTER FINAL MEM) */
+    {(unsigned char *) "\xd7\x9e", 2, 0x05DE}, /* (HEBREW LETTER MEM) */
+    {(unsigned char *) "\xd7\x9f", 2, 0x05DF}, /* (HEBREW LETTER FINAL NUN) */
+    {(unsigned char *) "\xd7\xa0", 2, 0x05E0}, /* (HEBREW LETTER NUN) */
+    {(unsigned char *) "\xd7\xa1", 2, 0x05E1}, /* (HEBREW LETTER SAMEKH) */
+    {(unsigned char *) "\xd7\xa2", 2, 0x05E2}, /* (HEBREW LETTER AYIN) */
+    {(unsigned char *) "\xd7\xa3", 2, 0x05E3}, /* (HEBREW LETTER FINAL PE) */
+    {(unsigned char *) "\xd7\xa4", 2, 0x05E4}, /* (HEBREW LETTER PE) */
+    {(unsigned char *) "\xd7\xa5", 2, 0x05E5}, /* (HEBREW LETTER FINAL TSADI) */
+    {(unsigned char *) "\xd7\xa6", 2, 0x05E6}, /* (HEBREW LETTER TSADI) */
+    {(unsigned char *) "\xd7\xa7", 2, 0x05E7}, /* (HEBREW LETTER QOF) */
+    {(unsigned char *) "\xd7\xa8", 2, 0x05E8}, /* (HEBREW LETTER RESH) */
+    {(unsigned char *) "\xd7\xa9", 2, 0x05E9}, /* (HEBREW LETTER SHIN) */
+    {(unsigned char *) "\xd7\xaa", 2, 0x05EA}, /* (HEBREW LETTER TAV) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xe2\x80\x8e", 3, 0x200E}, /* (LEFT-TO-RIGHT MARK) */
+    {(unsigned char *) "\xe2\x80\x8f", 3, 0x200F}, /* (RIGHT-TO-LEFT MARK) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
 };
 
-LXB_API const lxb_encoding_single_index_t lxb_encoding_single_index_koi8_r[128] = 
+GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_koi8_r[128] = 
 {
-    {(lxb_char_t *) "\xe2\x94\x80", 3, 0x2500}, /* (BOX DRAWINGS LIGHT HORIZONTAL) */
-    {(lxb_char_t *) "\xe2\x94\x82", 3, 0x2502}, /* (BOX DRAWINGS LIGHT VERTICAL) */
-    {(lxb_char_t *) "\xe2\x94\x8c", 3, 0x250C}, /* (BOX DRAWINGS LIGHT DOWN AND RIGHT) */
-    {(lxb_char_t *) "\xe2\x94\x90", 3, 0x2510}, /* (BOX DRAWINGS LIGHT DOWN AND LEFT) */
-    {(lxb_char_t *) "\xe2\x94\x94", 3, 0x2514}, /* (BOX DRAWINGS LIGHT UP AND RIGHT) */
-    {(lxb_char_t *) "\xe2\x94\x98", 3, 0x2518}, /* (BOX DRAWINGS LIGHT UP AND LEFT) */
-    {(lxb_char_t *) "\xe2\x94\x9c", 3, 0x251C}, /* (BOX DRAWINGS LIGHT VERTICAL AND RIGHT) */
-    {(lxb_char_t *) "\xe2\x94\xa4", 3, 0x2524}, /* (BOX DRAWINGS LIGHT VERTICAL AND LEFT) */
-    {(lxb_char_t *) "\xe2\x94\xac", 3, 0x252C}, /* (BOX DRAWINGS LIGHT DOWN AND HORIZONTAL) */
-    {(lxb_char_t *) "\xe2\x94\xb4", 3, 0x2534}, /* (BOX DRAWINGS LIGHT UP AND HORIZONTAL) */
-    {(lxb_char_t *) "\xe2\x94\xbc", 3, 0x253C}, /* (BOX DRAWINGS LIGHT VERTICAL AND HORIZONTAL) */
-    {(lxb_char_t *) "\xe2\x96\x80", 3, 0x2580}, /* (UPPER HALF BLOCK) */
-    {(lxb_char_t *) "\xe2\x96\x84", 3, 0x2584}, /* (LOWER HALF BLOCK) */
-    {(lxb_char_t *) "\xe2\x96\x88", 3, 0x2588}, /* (FULL BLOCK) */
-    {(lxb_char_t *) "\xe2\x96\x8c", 3, 0x258C}, /* (LEFT HALF BLOCK) */
-    {(lxb_char_t *) "\xe2\x96\x90", 3, 0x2590}, /* (RIGHT HALF BLOCK) */
-    {(lxb_char_t *) "\xe2\x96\x91", 3, 0x2591}, /* (LIGHT SHADE) */
-    {(lxb_char_t *) "\xe2\x96\x92", 3, 0x2592}, /* (MEDIUM SHADE) */
-    {(lxb_char_t *) "\xe2\x96\x93", 3, 0x2593}, /* (DARK SHADE) */
-    {(lxb_char_t *) "\xe2\x8c\xa0", 3, 0x2320}, /* (TOP HALF INTEGRAL) */
-    {(lxb_char_t *) "\xe2\x96\xa0", 3, 0x25A0}, /* (BLACK SQUARE) */
-    {(lxb_char_t *) "\xe2\x88\x99", 3, 0x2219}, /* (BULLET OPERATOR) */
-    {(lxb_char_t *) "\xe2\x88\x9a", 3, 0x221A}, /* (SQUARE ROOT) */
-    {(lxb_char_t *) "\xe2\x89\x88", 3, 0x2248}, /* (ALMOST EQUAL TO) */
-    {(lxb_char_t *) "\xe2\x89\xa4", 3, 0x2264}, /* (LESS-THAN OR EQUAL TO) */
-    {(lxb_char_t *) "\xe2\x89\xa5", 3, 0x2265}, /* (GREATER-THAN OR EQUAL TO) */
-    {(lxb_char_t *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
-    {(lxb_char_t *) "\xe2\x8c\xa1", 3, 0x2321}, /* (BOTTOM HALF INTEGRAL) */
-    {(lxb_char_t *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
-    {(lxb_char_t *) "\xc2\xb2", 2, 0x00B2}, /* (SUPERSCRIPT TWO) */
-    {(lxb_char_t *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
-    {(lxb_char_t *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
-    {(lxb_char_t *) "\xe2\x95\x90", 3, 0x2550}, /* (BOX DRAWINGS DOUBLE HORIZONTAL) */
-    {(lxb_char_t *) "\xe2\x95\x91", 3, 0x2551}, /* (BOX DRAWINGS DOUBLE VERTICAL) */
-    {(lxb_char_t *) "\xe2\x95\x92", 3, 0x2552}, /* (BOX DRAWINGS DOWN SINGLE AND RIGHT DOUBLE) */
-    {(lxb_char_t *) "\xd1\x91", 2, 0x0451}, /* (CYRILLIC SMALL LETTER IO) */
-    {(lxb_char_t *) "\xe2\x95\x93", 3, 0x2553}, /* (BOX DRAWINGS DOWN DOUBLE AND RIGHT SINGLE) */
-    {(lxb_char_t *) "\xe2\x95\x94", 3, 0x2554}, /* (BOX DRAWINGS DOUBLE DOWN AND RIGHT) */
-    {(lxb_char_t *) "\xe2\x95\x95", 3, 0x2555}, /* (BOX DRAWINGS DOWN SINGLE AND LEFT DOUBLE) */
-    {(lxb_char_t *) "\xe2\x95\x96", 3, 0x2556}, /* (BOX DRAWINGS DOWN DOUBLE AND LEFT SINGLE) */
-    {(lxb_char_t *) "\xe2\x95\x97", 3, 0x2557}, /* (BOX DRAWINGS DOUBLE DOWN AND LEFT) */
-    {(lxb_char_t *) "\xe2\x95\x98", 3, 0x2558}, /* (BOX DRAWINGS UP SINGLE AND RIGHT DOUBLE) */
-    {(lxb_char_t *) "\xe2\x95\x99", 3, 0x2559}, /* (BOX DRAWINGS UP DOUBLE AND RIGHT SINGLE) */
-    {(lxb_char_t *) "\xe2\x95\x9a", 3, 0x255A}, /* (BOX DRAWINGS DOUBLE UP AND RIGHT) */
-    {(lxb_char_t *) "\xe2\x95\x9b", 3, 0x255B}, /* (BOX DRAWINGS UP SINGLE AND LEFT DOUBLE) */
-    {(lxb_char_t *) "\xe2\x95\x9c", 3, 0x255C}, /* (BOX DRAWINGS UP DOUBLE AND LEFT SINGLE) */
-    {(lxb_char_t *) "\xe2\x95\x9d", 3, 0x255D}, /* (BOX DRAWINGS DOUBLE UP AND LEFT) */
-    {(lxb_char_t *) "\xe2\x95\x9e", 3, 0x255E}, /* (BOX DRAWINGS VERTICAL SINGLE AND RIGHT DOUBLE) */
-    {(lxb_char_t *) "\xe2\x95\x9f", 3, 0x255F}, /* (BOX DRAWINGS VERTICAL DOUBLE AND RIGHT SINGLE) */
-    {(lxb_char_t *) "\xe2\x95\xa0", 3, 0x2560}, /* (BOX DRAWINGS DOUBLE VERTICAL AND RIGHT) */
-    {(lxb_char_t *) "\xe2\x95\xa1", 3, 0x2561}, /* (BOX DRAWINGS VERTICAL SINGLE AND LEFT DOUBLE) */
-    {(lxb_char_t *) "\xd0\x81", 2, 0x0401}, /* (CYRILLIC CAPITAL LETTER IO) */
-    {(lxb_char_t *) "\xe2\x95\xa2", 3, 0x2562}, /* (BOX DRAWINGS VERTICAL DOUBLE AND LEFT SINGLE) */
-    {(lxb_char_t *) "\xe2\x95\xa3", 3, 0x2563}, /* (BOX DRAWINGS DOUBLE VERTICAL AND LEFT) */
-    {(lxb_char_t *) "\xe2\x95\xa4", 3, 0x2564}, /* (BOX DRAWINGS DOWN SINGLE AND HORIZONTAL DOUBLE) */
-    {(lxb_char_t *) "\xe2\x95\xa5", 3, 0x2565}, /* (BOX DRAWINGS DOWN DOUBLE AND HORIZONTAL SINGLE) */
-    {(lxb_char_t *) "\xe2\x95\xa6", 3, 0x2566}, /* (BOX DRAWINGS DOUBLE DOWN AND HORIZONTAL) */
-    {(lxb_char_t *) "\xe2\x95\xa7", 3, 0x2567}, /* (BOX DRAWINGS UP SINGLE AND HORIZONTAL DOUBLE) */
-    {(lxb_char_t *) "\xe2\x95\xa8", 3, 0x2568}, /* (BOX DRAWINGS UP DOUBLE AND HORIZONTAL SINGLE) */
-    {(lxb_char_t *) "\xe2\x95\xa9", 3, 0x2569}, /* (BOX DRAWINGS DOUBLE UP AND HORIZONTAL) */
-    {(lxb_char_t *) "\xe2\x95\xaa", 3, 0x256A}, /* (BOX DRAWINGS VERTICAL SINGLE AND HORIZONTAL DOUBLE) */
-    {(lxb_char_t *) "\xe2\x95\xab", 3, 0x256B}, /* (BOX DRAWINGS VERTICAL DOUBLE AND HORIZONTAL SINGLE) */
-    {(lxb_char_t *) "\xe2\x95\xac", 3, 0x256C}, /* (BOX DRAWINGS DOUBLE VERTICAL AND HORIZONTAL) */
-    {(lxb_char_t *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
-    {(lxb_char_t *) "\xd1\x8e", 2, 0x044E}, /* (CYRILLIC SMALL LETTER YU) */
-    {(lxb_char_t *) "\xd0\xb0", 2, 0x0430}, /* (CYRILLIC SMALL LETTER A) */
-    {(lxb_char_t *) "\xd0\xb1", 2, 0x0431}, /* (CYRILLIC SMALL LETTER BE) */
-    {(lxb_char_t *) "\xd1\x86", 2, 0x0446}, /* (CYRILLIC SMALL LETTER TSE) */
-    {(lxb_char_t *) "\xd0\xb4", 2, 0x0434}, /* (CYRILLIC SMALL LETTER DE) */
-    {(lxb_char_t *) "\xd0\xb5", 2, 0x0435}, /* (CYRILLIC SMALL LETTER IE) */
-    {(lxb_char_t *) "\xd1\x84", 2, 0x0444}, /* (CYRILLIC SMALL LETTER EF) */
-    {(lxb_char_t *) "\xd0\xb3", 2, 0x0433}, /* (CYRILLIC SMALL LETTER GHE) */
-    {(lxb_char_t *) "\xd1\x85", 2, 0x0445}, /* (CYRILLIC SMALL LETTER HA) */
-    {(lxb_char_t *) "\xd0\xb8", 2, 0x0438}, /* (CYRILLIC SMALL LETTER I) */
-    {(lxb_char_t *) "\xd0\xb9", 2, 0x0439}, /* (CYRILLIC SMALL LETTER SHORT I) */
-    {(lxb_char_t *) "\xd0\xba", 2, 0x043A}, /* (CYRILLIC SMALL LETTER KA) */
-    {(lxb_char_t *) "\xd0\xbb", 2, 0x043B}, /* (CYRILLIC SMALL LETTER EL) */
-    {(lxb_char_t *) "\xd0\xbc", 2, 0x043C}, /* (CYRILLIC SMALL LETTER EM) */
-    {(lxb_char_t *) "\xd0\xbd", 2, 0x043D}, /* (CYRILLIC SMALL LETTER EN) */
-    {(lxb_char_t *) "\xd0\xbe", 2, 0x043E}, /* (CYRILLIC SMALL LETTER O) */
-    {(lxb_char_t *) "\xd0\xbf", 2, 0x043F}, /* (CYRILLIC SMALL LETTER PE) */
-    {(lxb_char_t *) "\xd1\x8f", 2, 0x044F}, /* (CYRILLIC SMALL LETTER YA) */
-    {(lxb_char_t *) "\xd1\x80", 2, 0x0440}, /* (CYRILLIC SMALL LETTER ER) */
-    {(lxb_char_t *) "\xd1\x81", 2, 0x0441}, /* (CYRILLIC SMALL LETTER ES) */
-    {(lxb_char_t *) "\xd1\x82", 2, 0x0442}, /* (CYRILLIC SMALL LETTER TE) */
-    {(lxb_char_t *) "\xd1\x83", 2, 0x0443}, /* (CYRILLIC SMALL LETTER U) */
-    {(lxb_char_t *) "\xd0\xb6", 2, 0x0436}, /* (CYRILLIC SMALL LETTER ZHE) */
-    {(lxb_char_t *) "\xd0\xb2", 2, 0x0432}, /* (CYRILLIC SMALL LETTER VE) */
-    {(lxb_char_t *) "\xd1\x8c", 2, 0x044C}, /* (CYRILLIC SMALL LETTER SOFT SIGN) */
-    {(lxb_char_t *) "\xd1\x8b", 2, 0x044B}, /* (CYRILLIC SMALL LETTER YERU) */
-    {(lxb_char_t *) "\xd0\xb7", 2, 0x0437}, /* (CYRILLIC SMALL LETTER ZE) */
-    {(lxb_char_t *) "\xd1\x88", 2, 0x0448}, /* (CYRILLIC SMALL LETTER SHA) */
-    {(lxb_char_t *) "\xd1\x8d", 2, 0x044D}, /* (CYRILLIC SMALL LETTER E) */
-    {(lxb_char_t *) "\xd1\x89", 2, 0x0449}, /* (CYRILLIC SMALL LETTER SHCHA) */
-    {(lxb_char_t *) "\xd1\x87", 2, 0x0447}, /* (CYRILLIC SMALL LETTER CHE) */
-    {(lxb_char_t *) "\xd1\x8a", 2, 0x044A}, /* (CYRILLIC SMALL LETTER HARD SIGN) */
-    {(lxb_char_t *) "\xd0\xae", 2, 0x042E}, /* (CYRILLIC CAPITAL LETTER YU) */
-    {(lxb_char_t *) "\xd0\x90", 2, 0x0410}, /* (CYRILLIC CAPITAL LETTER A) */
-    {(lxb_char_t *) "\xd0\x91", 2, 0x0411}, /* (CYRILLIC CAPITAL LETTER BE) */
-    {(lxb_char_t *) "\xd0\xa6", 2, 0x0426}, /* (CYRILLIC CAPITAL LETTER TSE) */
-    {(lxb_char_t *) "\xd0\x94", 2, 0x0414}, /* (CYRILLIC CAPITAL LETTER DE) */
-    {(lxb_char_t *) "\xd0\x95", 2, 0x0415}, /* (CYRILLIC CAPITAL LETTER IE) */
-    {(lxb_char_t *) "\xd0\xa4", 2, 0x0424}, /* (CYRILLIC CAPITAL LETTER EF) */
-    {(lxb_char_t *) "\xd0\x93", 2, 0x0413}, /* (CYRILLIC CAPITAL LETTER GHE) */
-    {(lxb_char_t *) "\xd0\xa5", 2, 0x0425}, /* (CYRILLIC CAPITAL LETTER HA) */
-    {(lxb_char_t *) "\xd0\x98", 2, 0x0418}, /* (CYRILLIC CAPITAL LETTER I) */
-    {(lxb_char_t *) "\xd0\x99", 2, 0x0419}, /* (CYRILLIC CAPITAL LETTER SHORT I) */
-    {(lxb_char_t *) "\xd0\x9a", 2, 0x041A}, /* (CYRILLIC CAPITAL LETTER KA) */
-    {(lxb_char_t *) "\xd0\x9b", 2, 0x041B}, /* (CYRILLIC CAPITAL LETTER EL) */
-    {(lxb_char_t *) "\xd0\x9c", 2, 0x041C}, /* (CYRILLIC CAPITAL LETTER EM) */
-    {(lxb_char_t *) "\xd0\x9d", 2, 0x041D}, /* (CYRILLIC CAPITAL LETTER EN) */
-    {(lxb_char_t *) "\xd0\x9e", 2, 0x041E}, /* (CYRILLIC CAPITAL LETTER O) */
-    {(lxb_char_t *) "\xd0\x9f", 2, 0x041F}, /* (CYRILLIC CAPITAL LETTER PE) */
-    {(lxb_char_t *) "\xd0\xaf", 2, 0x042F}, /* (CYRILLIC CAPITAL LETTER YA) */
-    {(lxb_char_t *) "\xd0\xa0", 2, 0x0420}, /* (CYRILLIC CAPITAL LETTER ER) */
-    {(lxb_char_t *) "\xd0\xa1", 2, 0x0421}, /* (CYRILLIC CAPITAL LETTER ES) */
-    {(lxb_char_t *) "\xd0\xa2", 2, 0x0422}, /* (CYRILLIC CAPITAL LETTER TE) */
-    {(lxb_char_t *) "\xd0\xa3", 2, 0x0423}, /* (CYRILLIC CAPITAL LETTER U) */
-    {(lxb_char_t *) "\xd0\x96", 2, 0x0416}, /* (CYRILLIC CAPITAL LETTER ZHE) */
-    {(lxb_char_t *) "\xd0\x92", 2, 0x0412}, /* (CYRILLIC CAPITAL LETTER VE) */
-    {(lxb_char_t *) "\xd0\xac", 2, 0x042C}, /* (CYRILLIC CAPITAL LETTER SOFT SIGN) */
-    {(lxb_char_t *) "\xd0\xab", 2, 0x042B}, /* (CYRILLIC CAPITAL LETTER YERU) */
-    {(lxb_char_t *) "\xd0\x97", 2, 0x0417}, /* (CYRILLIC CAPITAL LETTER ZE) */
-    {(lxb_char_t *) "\xd0\xa8", 2, 0x0428}, /* (CYRILLIC CAPITAL LETTER SHA) */
-    {(lxb_char_t *) "\xd0\xad", 2, 0x042D}, /* (CYRILLIC CAPITAL LETTER E) */
-    {(lxb_char_t *) "\xd0\xa9", 2, 0x0429}, /* (CYRILLIC CAPITAL LETTER SHCHA) */
-    {(lxb_char_t *) "\xd0\xa7", 2, 0x0427}, /* (CYRILLIC CAPITAL LETTER CHE) */
-    {(lxb_char_t *) "\xd0\xaa", 2, 0x042A}, /* (CYRILLIC CAPITAL LETTER HARD SIGN) */
+    {(unsigned char *) "\xe2\x94\x80", 3, 0x2500}, /* (BOX DRAWINGS LIGHT HORIZONTAL) */
+    {(unsigned char *) "\xe2\x94\x82", 3, 0x2502}, /* (BOX DRAWINGS LIGHT VERTICAL) */
+    {(unsigned char *) "\xe2\x94\x8c", 3, 0x250C}, /* (BOX DRAWINGS LIGHT DOWN AND RIGHT) */
+    {(unsigned char *) "\xe2\x94\x90", 3, 0x2510}, /* (BOX DRAWINGS LIGHT DOWN AND LEFT) */
+    {(unsigned char *) "\xe2\x94\x94", 3, 0x2514}, /* (BOX DRAWINGS LIGHT UP AND RIGHT) */
+    {(unsigned char *) "\xe2\x94\x98", 3, 0x2518}, /* (BOX DRAWINGS LIGHT UP AND LEFT) */
+    {(unsigned char *) "\xe2\x94\x9c", 3, 0x251C}, /* (BOX DRAWINGS LIGHT VERTICAL AND RIGHT) */
+    {(unsigned char *) "\xe2\x94\xa4", 3, 0x2524}, /* (BOX DRAWINGS LIGHT VERTICAL AND LEFT) */
+    {(unsigned char *) "\xe2\x94\xac", 3, 0x252C}, /* (BOX DRAWINGS LIGHT DOWN AND HORIZONTAL) */
+    {(unsigned char *) "\xe2\x94\xb4", 3, 0x2534}, /* (BOX DRAWINGS LIGHT UP AND HORIZONTAL) */
+    {(unsigned char *) "\xe2\x94\xbc", 3, 0x253C}, /* (BOX DRAWINGS LIGHT VERTICAL AND HORIZONTAL) */
+    {(unsigned char *) "\xe2\x96\x80", 3, 0x2580}, /* (UPPER HALF BLOCK) */
+    {(unsigned char *) "\xe2\x96\x84", 3, 0x2584}, /* (LOWER HALF BLOCK) */
+    {(unsigned char *) "\xe2\x96\x88", 3, 0x2588}, /* (FULL BLOCK) */
+    {(unsigned char *) "\xe2\x96\x8c", 3, 0x258C}, /* (LEFT HALF BLOCK) */
+    {(unsigned char *) "\xe2\x96\x90", 3, 0x2590}, /* (RIGHT HALF BLOCK) */
+    {(unsigned char *) "\xe2\x96\x91", 3, 0x2591}, /* (LIGHT SHADE) */
+    {(unsigned char *) "\xe2\x96\x92", 3, 0x2592}, /* (MEDIUM SHADE) */
+    {(unsigned char *) "\xe2\x96\x93", 3, 0x2593}, /* (DARK SHADE) */
+    {(unsigned char *) "\xe2\x8c\xa0", 3, 0x2320}, /* (TOP HALF INTEGRAL) */
+    {(unsigned char *) "\xe2\x96\xa0", 3, 0x25A0}, /* (BLACK SQUARE) */
+    {(unsigned char *) "\xe2\x88\x99", 3, 0x2219}, /* (BULLET OPERATOR) */
+    {(unsigned char *) "\xe2\x88\x9a", 3, 0x221A}, /* (SQUARE ROOT) */
+    {(unsigned char *) "\xe2\x89\x88", 3, 0x2248}, /* (ALMOST EQUAL TO) */
+    {(unsigned char *) "\xe2\x89\xa4", 3, 0x2264}, /* (LESS-THAN OR EQUAL TO) */
+    {(unsigned char *) "\xe2\x89\xa5", 3, 0x2265}, /* (GREATER-THAN OR EQUAL TO) */
+    {(unsigned char *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
+    {(unsigned char *) "\xe2\x8c\xa1", 3, 0x2321}, /* (BOTTOM HALF INTEGRAL) */
+    {(unsigned char *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
+    {(unsigned char *) "\xc2\xb2", 2, 0x00B2}, /* (SUPERSCRIPT TWO) */
+    {(unsigned char *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
+    {(unsigned char *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
+    {(unsigned char *) "\xe2\x95\x90", 3, 0x2550}, /* (BOX DRAWINGS DOUBLE HORIZONTAL) */
+    {(unsigned char *) "\xe2\x95\x91", 3, 0x2551}, /* (BOX DRAWINGS DOUBLE VERTICAL) */
+    {(unsigned char *) "\xe2\x95\x92", 3, 0x2552}, /* (BOX DRAWINGS DOWN SINGLE AND RIGHT DOUBLE) */
+    {(unsigned char *) "\xd1\x91", 2, 0x0451}, /* (CYRILLIC SMALL LETTER IO) */
+    {(unsigned char *) "\xe2\x95\x93", 3, 0x2553}, /* (BOX DRAWINGS DOWN DOUBLE AND RIGHT SINGLE) */
+    {(unsigned char *) "\xe2\x95\x94", 3, 0x2554}, /* (BOX DRAWINGS DOUBLE DOWN AND RIGHT) */
+    {(unsigned char *) "\xe2\x95\x95", 3, 0x2555}, /* (BOX DRAWINGS DOWN SINGLE AND LEFT DOUBLE) */
+    {(unsigned char *) "\xe2\x95\x96", 3, 0x2556}, /* (BOX DRAWINGS DOWN DOUBLE AND LEFT SINGLE) */
+    {(unsigned char *) "\xe2\x95\x97", 3, 0x2557}, /* (BOX DRAWINGS DOUBLE DOWN AND LEFT) */
+    {(unsigned char *) "\xe2\x95\x98", 3, 0x2558}, /* (BOX DRAWINGS UP SINGLE AND RIGHT DOUBLE) */
+    {(unsigned char *) "\xe2\x95\x99", 3, 0x2559}, /* (BOX DRAWINGS UP DOUBLE AND RIGHT SINGLE) */
+    {(unsigned char *) "\xe2\x95\x9a", 3, 0x255A}, /* (BOX DRAWINGS DOUBLE UP AND RIGHT) */
+    {(unsigned char *) "\xe2\x95\x9b", 3, 0x255B}, /* (BOX DRAWINGS UP SINGLE AND LEFT DOUBLE) */
+    {(unsigned char *) "\xe2\x95\x9c", 3, 0x255C}, /* (BOX DRAWINGS UP DOUBLE AND LEFT SINGLE) */
+    {(unsigned char *) "\xe2\x95\x9d", 3, 0x255D}, /* (BOX DRAWINGS DOUBLE UP AND LEFT) */
+    {(unsigned char *) "\xe2\x95\x9e", 3, 0x255E}, /* (BOX DRAWINGS VERTICAL SINGLE AND RIGHT DOUBLE) */
+    {(unsigned char *) "\xe2\x95\x9f", 3, 0x255F}, /* (BOX DRAWINGS VERTICAL DOUBLE AND RIGHT SINGLE) */
+    {(unsigned char *) "\xe2\x95\xa0", 3, 0x2560}, /* (BOX DRAWINGS DOUBLE VERTICAL AND RIGHT) */
+    {(unsigned char *) "\xe2\x95\xa1", 3, 0x2561}, /* (BOX DRAWINGS VERTICAL SINGLE AND LEFT DOUBLE) */
+    {(unsigned char *) "\xd0\x81", 2, 0x0401}, /* (CYRILLIC CAPITAL LETTER IO) */
+    {(unsigned char *) "\xe2\x95\xa2", 3, 0x2562}, /* (BOX DRAWINGS VERTICAL DOUBLE AND LEFT SINGLE) */
+    {(unsigned char *) "\xe2\x95\xa3", 3, 0x2563}, /* (BOX DRAWINGS DOUBLE VERTICAL AND LEFT) */
+    {(unsigned char *) "\xe2\x95\xa4", 3, 0x2564}, /* (BOX DRAWINGS DOWN SINGLE AND HORIZONTAL DOUBLE) */
+    {(unsigned char *) "\xe2\x95\xa5", 3, 0x2565}, /* (BOX DRAWINGS DOWN DOUBLE AND HORIZONTAL SINGLE) */
+    {(unsigned char *) "\xe2\x95\xa6", 3, 0x2566}, /* (BOX DRAWINGS DOUBLE DOWN AND HORIZONTAL) */
+    {(unsigned char *) "\xe2\x95\xa7", 3, 0x2567}, /* (BOX DRAWINGS UP SINGLE AND HORIZONTAL DOUBLE) */
+    {(unsigned char *) "\xe2\x95\xa8", 3, 0x2568}, /* (BOX DRAWINGS UP DOUBLE AND HORIZONTAL SINGLE) */
+    {(unsigned char *) "\xe2\x95\xa9", 3, 0x2569}, /* (BOX DRAWINGS DOUBLE UP AND HORIZONTAL) */
+    {(unsigned char *) "\xe2\x95\xaa", 3, 0x256A}, /* (BOX DRAWINGS VERTICAL SINGLE AND HORIZONTAL DOUBLE) */
+    {(unsigned char *) "\xe2\x95\xab", 3, 0x256B}, /* (BOX DRAWINGS VERTICAL DOUBLE AND HORIZONTAL SINGLE) */
+    {(unsigned char *) "\xe2\x95\xac", 3, 0x256C}, /* (BOX DRAWINGS DOUBLE VERTICAL AND HORIZONTAL) */
+    {(unsigned char *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
+    {(unsigned char *) "\xd1\x8e", 2, 0x044E}, /* (CYRILLIC SMALL LETTER YU) */
+    {(unsigned char *) "\xd0\xb0", 2, 0x0430}, /* (CYRILLIC SMALL LETTER A) */
+    {(unsigned char *) "\xd0\xb1", 2, 0x0431}, /* (CYRILLIC SMALL LETTER BE) */
+    {(unsigned char *) "\xd1\x86", 2, 0x0446}, /* (CYRILLIC SMALL LETTER TSE) */
+    {(unsigned char *) "\xd0\xb4", 2, 0x0434}, /* (CYRILLIC SMALL LETTER DE) */
+    {(unsigned char *) "\xd0\xb5", 2, 0x0435}, /* (CYRILLIC SMALL LETTER IE) */
+    {(unsigned char *) "\xd1\x84", 2, 0x0444}, /* (CYRILLIC SMALL LETTER EF) */
+    {(unsigned char *) "\xd0\xb3", 2, 0x0433}, /* (CYRILLIC SMALL LETTER GHE) */
+    {(unsigned char *) "\xd1\x85", 2, 0x0445}, /* (CYRILLIC SMALL LETTER HA) */
+    {(unsigned char *) "\xd0\xb8", 2, 0x0438}, /* (CYRILLIC SMALL LETTER I) */
+    {(unsigned char *) "\xd0\xb9", 2, 0x0439}, /* (CYRILLIC SMALL LETTER SHORT I) */
+    {(unsigned char *) "\xd0\xba", 2, 0x043A}, /* (CYRILLIC SMALL LETTER KA) */
+    {(unsigned char *) "\xd0\xbb", 2, 0x043B}, /* (CYRILLIC SMALL LETTER EL) */
+    {(unsigned char *) "\xd0\xbc", 2, 0x043C}, /* (CYRILLIC SMALL LETTER EM) */
+    {(unsigned char *) "\xd0\xbd", 2, 0x043D}, /* (CYRILLIC SMALL LETTER EN) */
+    {(unsigned char *) "\xd0\xbe", 2, 0x043E}, /* (CYRILLIC SMALL LETTER O) */
+    {(unsigned char *) "\xd0\xbf", 2, 0x043F}, /* (CYRILLIC SMALL LETTER PE) */
+    {(unsigned char *) "\xd1\x8f", 2, 0x044F}, /* (CYRILLIC SMALL LETTER YA) */
+    {(unsigned char *) "\xd1\x80", 2, 0x0440}, /* (CYRILLIC SMALL LETTER ER) */
+    {(unsigned char *) "\xd1\x81", 2, 0x0441}, /* (CYRILLIC SMALL LETTER ES) */
+    {(unsigned char *) "\xd1\x82", 2, 0x0442}, /* (CYRILLIC SMALL LETTER TE) */
+    {(unsigned char *) "\xd1\x83", 2, 0x0443}, /* (CYRILLIC SMALL LETTER U) */
+    {(unsigned char *) "\xd0\xb6", 2, 0x0436}, /* (CYRILLIC SMALL LETTER ZHE) */
+    {(unsigned char *) "\xd0\xb2", 2, 0x0432}, /* (CYRILLIC SMALL LETTER VE) */
+    {(unsigned char *) "\xd1\x8c", 2, 0x044C}, /* (CYRILLIC SMALL LETTER SOFT SIGN) */
+    {(unsigned char *) "\xd1\x8b", 2, 0x044B}, /* (CYRILLIC SMALL LETTER YERU) */
+    {(unsigned char *) "\xd0\xb7", 2, 0x0437}, /* (CYRILLIC SMALL LETTER ZE) */
+    {(unsigned char *) "\xd1\x88", 2, 0x0448}, /* (CYRILLIC SMALL LETTER SHA) */
+    {(unsigned char *) "\xd1\x8d", 2, 0x044D}, /* (CYRILLIC SMALL LETTER E) */
+    {(unsigned char *) "\xd1\x89", 2, 0x0449}, /* (CYRILLIC SMALL LETTER SHCHA) */
+    {(unsigned char *) "\xd1\x87", 2, 0x0447}, /* (CYRILLIC SMALL LETTER CHE) */
+    {(unsigned char *) "\xd1\x8a", 2, 0x044A}, /* (CYRILLIC SMALL LETTER HARD SIGN) */
+    {(unsigned char *) "\xd0\xae", 2, 0x042E}, /* (CYRILLIC CAPITAL LETTER YU) */
+    {(unsigned char *) "\xd0\x90", 2, 0x0410}, /* (CYRILLIC CAPITAL LETTER A) */
+    {(unsigned char *) "\xd0\x91", 2, 0x0411}, /* (CYRILLIC CAPITAL LETTER BE) */
+    {(unsigned char *) "\xd0\xa6", 2, 0x0426}, /* (CYRILLIC CAPITAL LETTER TSE) */
+    {(unsigned char *) "\xd0\x94", 2, 0x0414}, /* (CYRILLIC CAPITAL LETTER DE) */
+    {(unsigned char *) "\xd0\x95", 2, 0x0415}, /* (CYRILLIC CAPITAL LETTER IE) */
+    {(unsigned char *) "\xd0\xa4", 2, 0x0424}, /* (CYRILLIC CAPITAL LETTER EF) */
+    {(unsigned char *) "\xd0\x93", 2, 0x0413}, /* (CYRILLIC CAPITAL LETTER GHE) */
+    {(unsigned char *) "\xd0\xa5", 2, 0x0425}, /* (CYRILLIC CAPITAL LETTER HA) */
+    {(unsigned char *) "\xd0\x98", 2, 0x0418}, /* (CYRILLIC CAPITAL LETTER I) */
+    {(unsigned char *) "\xd0\x99", 2, 0x0419}, /* (CYRILLIC CAPITAL LETTER SHORT I) */
+    {(unsigned char *) "\xd0\x9a", 2, 0x041A}, /* (CYRILLIC CAPITAL LETTER KA) */
+    {(unsigned char *) "\xd0\x9b", 2, 0x041B}, /* (CYRILLIC CAPITAL LETTER EL) */
+    {(unsigned char *) "\xd0\x9c", 2, 0x041C}, /* (CYRILLIC CAPITAL LETTER EM) */
+    {(unsigned char *) "\xd0\x9d", 2, 0x041D}, /* (CYRILLIC CAPITAL LETTER EN) */
+    {(unsigned char *) "\xd0\x9e", 2, 0x041E}, /* (CYRILLIC CAPITAL LETTER O) */
+    {(unsigned char *) "\xd0\x9f", 2, 0x041F}, /* (CYRILLIC CAPITAL LETTER PE) */
+    {(unsigned char *) "\xd0\xaf", 2, 0x042F}, /* (CYRILLIC CAPITAL LETTER YA) */
+    {(unsigned char *) "\xd0\xa0", 2, 0x0420}, /* (CYRILLIC CAPITAL LETTER ER) */
+    {(unsigned char *) "\xd0\xa1", 2, 0x0421}, /* (CYRILLIC CAPITAL LETTER ES) */
+    {(unsigned char *) "\xd0\xa2", 2, 0x0422}, /* (CYRILLIC CAPITAL LETTER TE) */
+    {(unsigned char *) "\xd0\xa3", 2, 0x0423}, /* (CYRILLIC CAPITAL LETTER U) */
+    {(unsigned char *) "\xd0\x96", 2, 0x0416}, /* (CYRILLIC CAPITAL LETTER ZHE) */
+    {(unsigned char *) "\xd0\x92", 2, 0x0412}, /* (CYRILLIC CAPITAL LETTER VE) */
+    {(unsigned char *) "\xd0\xac", 2, 0x042C}, /* (CYRILLIC CAPITAL LETTER SOFT SIGN) */
+    {(unsigned char *) "\xd0\xab", 2, 0x042B}, /* (CYRILLIC CAPITAL LETTER YERU) */
+    {(unsigned char *) "\xd0\x97", 2, 0x0417}, /* (CYRILLIC CAPITAL LETTER ZE) */
+    {(unsigned char *) "\xd0\xa8", 2, 0x0428}, /* (CYRILLIC CAPITAL LETTER SHA) */
+    {(unsigned char *) "\xd0\xad", 2, 0x042D}, /* (CYRILLIC CAPITAL LETTER E) */
+    {(unsigned char *) "\xd0\xa9", 2, 0x0429}, /* (CYRILLIC CAPITAL LETTER SHCHA) */
+    {(unsigned char *) "\xd0\xa7", 2, 0x0427}, /* (CYRILLIC CAPITAL LETTER CHE) */
+    {(unsigned char *) "\xd0\xaa", 2, 0x042A}, /* (CYRILLIC CAPITAL LETTER HARD SIGN) */
 };
 
-LXB_API const lxb_encoding_single_index_t lxb_encoding_single_index_koi8_u[128] = 
+GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_koi8_u[128] = 
 {
-    {(lxb_char_t *) "\xe2\x94\x80", 3, 0x2500}, /* (BOX DRAWINGS LIGHT HORIZONTAL) */
-    {(lxb_char_t *) "\xe2\x94\x82", 3, 0x2502}, /* (BOX DRAWINGS LIGHT VERTICAL) */
-    {(lxb_char_t *) "\xe2\x94\x8c", 3, 0x250C}, /* (BOX DRAWINGS LIGHT DOWN AND RIGHT) */
-    {(lxb_char_t *) "\xe2\x94\x90", 3, 0x2510}, /* (BOX DRAWINGS LIGHT DOWN AND LEFT) */
-    {(lxb_char_t *) "\xe2\x94\x94", 3, 0x2514}, /* (BOX DRAWINGS LIGHT UP AND RIGHT) */
-    {(lxb_char_t *) "\xe2\x94\x98", 3, 0x2518}, /* (BOX DRAWINGS LIGHT UP AND LEFT) */
-    {(lxb_char_t *) "\xe2\x94\x9c", 3, 0x251C}, /* (BOX DRAWINGS LIGHT VERTICAL AND RIGHT) */
-    {(lxb_char_t *) "\xe2\x94\xa4", 3, 0x2524}, /* (BOX DRAWINGS LIGHT VERTICAL AND LEFT) */
-    {(lxb_char_t *) "\xe2\x94\xac", 3, 0x252C}, /* (BOX DRAWINGS LIGHT DOWN AND HORIZONTAL) */
-    {(lxb_char_t *) "\xe2\x94\xb4", 3, 0x2534}, /* (BOX DRAWINGS LIGHT UP AND HORIZONTAL) */
-    {(lxb_char_t *) "\xe2\x94\xbc", 3, 0x253C}, /* (BOX DRAWINGS LIGHT VERTICAL AND HORIZONTAL) */
-    {(lxb_char_t *) "\xe2\x96\x80", 3, 0x2580}, /* (UPPER HALF BLOCK) */
-    {(lxb_char_t *) "\xe2\x96\x84", 3, 0x2584}, /* (LOWER HALF BLOCK) */
-    {(lxb_char_t *) "\xe2\x96\x88", 3, 0x2588}, /* (FULL BLOCK) */
-    {(lxb_char_t *) "\xe2\x96\x8c", 3, 0x258C}, /* (LEFT HALF BLOCK) */
-    {(lxb_char_t *) "\xe2\x96\x90", 3, 0x2590}, /* (RIGHT HALF BLOCK) */
-    {(lxb_char_t *) "\xe2\x96\x91", 3, 0x2591}, /* (LIGHT SHADE) */
-    {(lxb_char_t *) "\xe2\x96\x92", 3, 0x2592}, /* (MEDIUM SHADE) */
-    {(lxb_char_t *) "\xe2\x96\x93", 3, 0x2593}, /* (DARK SHADE) */
-    {(lxb_char_t *) "\xe2\x8c\xa0", 3, 0x2320}, /* (TOP HALF INTEGRAL) */
-    {(lxb_char_t *) "\xe2\x96\xa0", 3, 0x25A0}, /* (BLACK SQUARE) */
-    {(lxb_char_t *) "\xe2\x88\x99", 3, 0x2219}, /* (BULLET OPERATOR) */
-    {(lxb_char_t *) "\xe2\x88\x9a", 3, 0x221A}, /* (SQUARE ROOT) */
-    {(lxb_char_t *) "\xe2\x89\x88", 3, 0x2248}, /* (ALMOST EQUAL TO) */
-    {(lxb_char_t *) "\xe2\x89\xa4", 3, 0x2264}, /* (LESS-THAN OR EQUAL TO) */
-    {(lxb_char_t *) "\xe2\x89\xa5", 3, 0x2265}, /* (GREATER-THAN OR EQUAL TO) */
-    {(lxb_char_t *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
-    {(lxb_char_t *) "\xe2\x8c\xa1", 3, 0x2321}, /* (BOTTOM HALF INTEGRAL) */
-    {(lxb_char_t *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
-    {(lxb_char_t *) "\xc2\xb2", 2, 0x00B2}, /* (SUPERSCRIPT TWO) */
-    {(lxb_char_t *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
-    {(lxb_char_t *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
-    {(lxb_char_t *) "\xe2\x95\x90", 3, 0x2550}, /* (BOX DRAWINGS DOUBLE HORIZONTAL) */
-    {(lxb_char_t *) "\xe2\x95\x91", 3, 0x2551}, /* (BOX DRAWINGS DOUBLE VERTICAL) */
-    {(lxb_char_t *) "\xe2\x95\x92", 3, 0x2552}, /* (BOX DRAWINGS DOWN SINGLE AND RIGHT DOUBLE) */
-    {(lxb_char_t *) "\xd1\x91", 2, 0x0451}, /* (CYRILLIC SMALL LETTER IO) */
-    {(lxb_char_t *) "\xd1\x94", 2, 0x0454}, /* (CYRILLIC SMALL LETTER UKRAINIAN IE) */
-    {(lxb_char_t *) "\xe2\x95\x94", 3, 0x2554}, /* (BOX DRAWINGS DOUBLE DOWN AND RIGHT) */
-    {(lxb_char_t *) "\xd1\x96", 2, 0x0456}, /* (CYRILLIC SMALL LETTER BYELORUSSIAN-UKRAINIAN I) */
-    {(lxb_char_t *) "\xd1\x97", 2, 0x0457}, /* (CYRILLIC SMALL LETTER YI) */
-    {(lxb_char_t *) "\xe2\x95\x97", 3, 0x2557}, /* (BOX DRAWINGS DOUBLE DOWN AND LEFT) */
-    {(lxb_char_t *) "\xe2\x95\x98", 3, 0x2558}, /* (BOX DRAWINGS UP SINGLE AND RIGHT DOUBLE) */
-    {(lxb_char_t *) "\xe2\x95\x99", 3, 0x2559}, /* (BOX DRAWINGS UP DOUBLE AND RIGHT SINGLE) */
-    {(lxb_char_t *) "\xe2\x95\x9a", 3, 0x255A}, /* (BOX DRAWINGS DOUBLE UP AND RIGHT) */
-    {(lxb_char_t *) "\xe2\x95\x9b", 3, 0x255B}, /* (BOX DRAWINGS UP SINGLE AND LEFT DOUBLE) */
-    {(lxb_char_t *) "\xd2\x91", 2, 0x0491}, /* (CYRILLIC SMALL LETTER GHE WITH UPTURN) */
-    {(lxb_char_t *) "\xd1\x9e", 2, 0x045E}, /* (CYRILLIC SMALL LETTER SHORT U) */
-    {(lxb_char_t *) "\xe2\x95\x9e", 3, 0x255E}, /* (BOX DRAWINGS VERTICAL SINGLE AND RIGHT DOUBLE) */
-    {(lxb_char_t *) "\xe2\x95\x9f", 3, 0x255F}, /* (BOX DRAWINGS VERTICAL DOUBLE AND RIGHT SINGLE) */
-    {(lxb_char_t *) "\xe2\x95\xa0", 3, 0x2560}, /* (BOX DRAWINGS DOUBLE VERTICAL AND RIGHT) */
-    {(lxb_char_t *) "\xe2\x95\xa1", 3, 0x2561}, /* (BOX DRAWINGS VERTICAL SINGLE AND LEFT DOUBLE) */
-    {(lxb_char_t *) "\xd0\x81", 2, 0x0401}, /* (CYRILLIC CAPITAL LETTER IO) */
-    {(lxb_char_t *) "\xd0\x84", 2, 0x0404}, /* (CYRILLIC CAPITAL LETTER UKRAINIAN IE) */
-    {(lxb_char_t *) "\xe2\x95\xa3", 3, 0x2563}, /* (BOX DRAWINGS DOUBLE VERTICAL AND LEFT) */
-    {(lxb_char_t *) "\xd0\x86", 2, 0x0406}, /* (CYRILLIC CAPITAL LETTER BYELORUSSIAN-UKRAINIAN I) */
-    {(lxb_char_t *) "\xd0\x87", 2, 0x0407}, /* (CYRILLIC CAPITAL LETTER YI) */
-    {(lxb_char_t *) "\xe2\x95\xa6", 3, 0x2566}, /* (BOX DRAWINGS DOUBLE DOWN AND HORIZONTAL) */
-    {(lxb_char_t *) "\xe2\x95\xa7", 3, 0x2567}, /* (BOX DRAWINGS UP SINGLE AND HORIZONTAL DOUBLE) */
-    {(lxb_char_t *) "\xe2\x95\xa8", 3, 0x2568}, /* (BOX DRAWINGS UP DOUBLE AND HORIZONTAL SINGLE) */
-    {(lxb_char_t *) "\xe2\x95\xa9", 3, 0x2569}, /* (BOX DRAWINGS DOUBLE UP AND HORIZONTAL) */
-    {(lxb_char_t *) "\xe2\x95\xaa", 3, 0x256A}, /* (BOX DRAWINGS VERTICAL SINGLE AND HORIZONTAL DOUBLE) */
-    {(lxb_char_t *) "\xd2\x90", 2, 0x0490}, /* (CYRILLIC CAPITAL LETTER GHE WITH UPTURN) */
-    {(lxb_char_t *) "\xd0\x8e", 2, 0x040E}, /* (CYRILLIC CAPITAL LETTER SHORT U) */
-    {(lxb_char_t *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
-    {(lxb_char_t *) "\xd1\x8e", 2, 0x044E}, /* (CYRILLIC SMALL LETTER YU) */
-    {(lxb_char_t *) "\xd0\xb0", 2, 0x0430}, /* (CYRILLIC SMALL LETTER A) */
-    {(lxb_char_t *) "\xd0\xb1", 2, 0x0431}, /* (CYRILLIC SMALL LETTER BE) */
-    {(lxb_char_t *) "\xd1\x86", 2, 0x0446}, /* (CYRILLIC SMALL LETTER TSE) */
-    {(lxb_char_t *) "\xd0\xb4", 2, 0x0434}, /* (CYRILLIC SMALL LETTER DE) */
-    {(lxb_char_t *) "\xd0\xb5", 2, 0x0435}, /* (CYRILLIC SMALL LETTER IE) */
-    {(lxb_char_t *) "\xd1\x84", 2, 0x0444}, /* (CYRILLIC SMALL LETTER EF) */
-    {(lxb_char_t *) "\xd0\xb3", 2, 0x0433}, /* (CYRILLIC SMALL LETTER GHE) */
-    {(lxb_char_t *) "\xd1\x85", 2, 0x0445}, /* (CYRILLIC SMALL LETTER HA) */
-    {(lxb_char_t *) "\xd0\xb8", 2, 0x0438}, /* (CYRILLIC SMALL LETTER I) */
-    {(lxb_char_t *) "\xd0\xb9", 2, 0x0439}, /* (CYRILLIC SMALL LETTER SHORT I) */
-    {(lxb_char_t *) "\xd0\xba", 2, 0x043A}, /* (CYRILLIC SMALL LETTER KA) */
-    {(lxb_char_t *) "\xd0\xbb", 2, 0x043B}, /* (CYRILLIC SMALL LETTER EL) */
-    {(lxb_char_t *) "\xd0\xbc", 2, 0x043C}, /* (CYRILLIC SMALL LETTER EM) */
-    {(lxb_char_t *) "\xd0\xbd", 2, 0x043D}, /* (CYRILLIC SMALL LETTER EN) */
-    {(lxb_char_t *) "\xd0\xbe", 2, 0x043E}, /* (CYRILLIC SMALL LETTER O) */
-    {(lxb_char_t *) "\xd0\xbf", 2, 0x043F}, /* (CYRILLIC SMALL LETTER PE) */
-    {(lxb_char_t *) "\xd1\x8f", 2, 0x044F}, /* (CYRILLIC SMALL LETTER YA) */
-    {(lxb_char_t *) "\xd1\x80", 2, 0x0440}, /* (CYRILLIC SMALL LETTER ER) */
-    {(lxb_char_t *) "\xd1\x81", 2, 0x0441}, /* (CYRILLIC SMALL LETTER ES) */
-    {(lxb_char_t *) "\xd1\x82", 2, 0x0442}, /* (CYRILLIC SMALL LETTER TE) */
-    {(lxb_char_t *) "\xd1\x83", 2, 0x0443}, /* (CYRILLIC SMALL LETTER U) */
-    {(lxb_char_t *) "\xd0\xb6", 2, 0x0436}, /* (CYRILLIC SMALL LETTER ZHE) */
-    {(lxb_char_t *) "\xd0\xb2", 2, 0x0432}, /* (CYRILLIC SMALL LETTER VE) */
-    {(lxb_char_t *) "\xd1\x8c", 2, 0x044C}, /* (CYRILLIC SMALL LETTER SOFT SIGN) */
-    {(lxb_char_t *) "\xd1\x8b", 2, 0x044B}, /* (CYRILLIC SMALL LETTER YERU) */
-    {(lxb_char_t *) "\xd0\xb7", 2, 0x0437}, /* (CYRILLIC SMALL LETTER ZE) */
-    {(lxb_char_t *) "\xd1\x88", 2, 0x0448}, /* (CYRILLIC SMALL LETTER SHA) */
-    {(lxb_char_t *) "\xd1\x8d", 2, 0x044D}, /* (CYRILLIC SMALL LETTER E) */
-    {(lxb_char_t *) "\xd1\x89", 2, 0x0449}, /* (CYRILLIC SMALL LETTER SHCHA) */
-    {(lxb_char_t *) "\xd1\x87", 2, 0x0447}, /* (CYRILLIC SMALL LETTER CHE) */
-    {(lxb_char_t *) "\xd1\x8a", 2, 0x044A}, /* (CYRILLIC SMALL LETTER HARD SIGN) */
-    {(lxb_char_t *) "\xd0\xae", 2, 0x042E}, /* (CYRILLIC CAPITAL LETTER YU) */
-    {(lxb_char_t *) "\xd0\x90", 2, 0x0410}, /* (CYRILLIC CAPITAL LETTER A) */
-    {(lxb_char_t *) "\xd0\x91", 2, 0x0411}, /* (CYRILLIC CAPITAL LETTER BE) */
-    {(lxb_char_t *) "\xd0\xa6", 2, 0x0426}, /* (CYRILLIC CAPITAL LETTER TSE) */
-    {(lxb_char_t *) "\xd0\x94", 2, 0x0414}, /* (CYRILLIC CAPITAL LETTER DE) */
-    {(lxb_char_t *) "\xd0\x95", 2, 0x0415}, /* (CYRILLIC CAPITAL LETTER IE) */
-    {(lxb_char_t *) "\xd0\xa4", 2, 0x0424}, /* (CYRILLIC CAPITAL LETTER EF) */
-    {(lxb_char_t *) "\xd0\x93", 2, 0x0413}, /* (CYRILLIC CAPITAL LETTER GHE) */
-    {(lxb_char_t *) "\xd0\xa5", 2, 0x0425}, /* (CYRILLIC CAPITAL LETTER HA) */
-    {(lxb_char_t *) "\xd0\x98", 2, 0x0418}, /* (CYRILLIC CAPITAL LETTER I) */
-    {(lxb_char_t *) "\xd0\x99", 2, 0x0419}, /* (CYRILLIC CAPITAL LETTER SHORT I) */
-    {(lxb_char_t *) "\xd0\x9a", 2, 0x041A}, /* (CYRILLIC CAPITAL LETTER KA) */
-    {(lxb_char_t *) "\xd0\x9b", 2, 0x041B}, /* (CYRILLIC CAPITAL LETTER EL) */
-    {(lxb_char_t *) "\xd0\x9c", 2, 0x041C}, /* (CYRILLIC CAPITAL LETTER EM) */
-    {(lxb_char_t *) "\xd0\x9d", 2, 0x041D}, /* (CYRILLIC CAPITAL LETTER EN) */
-    {(lxb_char_t *) "\xd0\x9e", 2, 0x041E}, /* (CYRILLIC CAPITAL LETTER O) */
-    {(lxb_char_t *) "\xd0\x9f", 2, 0x041F}, /* (CYRILLIC CAPITAL LETTER PE) */
-    {(lxb_char_t *) "\xd0\xaf", 2, 0x042F}, /* (CYRILLIC CAPITAL LETTER YA) */
-    {(lxb_char_t *) "\xd0\xa0", 2, 0x0420}, /* (CYRILLIC CAPITAL LETTER ER) */
-    {(lxb_char_t *) "\xd0\xa1", 2, 0x0421}, /* (CYRILLIC CAPITAL LETTER ES) */
-    {(lxb_char_t *) "\xd0\xa2", 2, 0x0422}, /* (CYRILLIC CAPITAL LETTER TE) */
-    {(lxb_char_t *) "\xd0\xa3", 2, 0x0423}, /* (CYRILLIC CAPITAL LETTER U) */
-    {(lxb_char_t *) "\xd0\x96", 2, 0x0416}, /* (CYRILLIC CAPITAL LETTER ZHE) */
-    {(lxb_char_t *) "\xd0\x92", 2, 0x0412}, /* (CYRILLIC CAPITAL LETTER VE) */
-    {(lxb_char_t *) "\xd0\xac", 2, 0x042C}, /* (CYRILLIC CAPITAL LETTER SOFT SIGN) */
-    {(lxb_char_t *) "\xd0\xab", 2, 0x042B}, /* (CYRILLIC CAPITAL LETTER YERU) */
-    {(lxb_char_t *) "\xd0\x97", 2, 0x0417}, /* (CYRILLIC CAPITAL LETTER ZE) */
-    {(lxb_char_t *) "\xd0\xa8", 2, 0x0428}, /* (CYRILLIC CAPITAL LETTER SHA) */
-    {(lxb_char_t *) "\xd0\xad", 2, 0x042D}, /* (CYRILLIC CAPITAL LETTER E) */
-    {(lxb_char_t *) "\xd0\xa9", 2, 0x0429}, /* (CYRILLIC CAPITAL LETTER SHCHA) */
-    {(lxb_char_t *) "\xd0\xa7", 2, 0x0427}, /* (CYRILLIC CAPITAL LETTER CHE) */
-    {(lxb_char_t *) "\xd0\xaa", 2, 0x042A}, /* (CYRILLIC CAPITAL LETTER HARD SIGN) */
+    {(unsigned char *) "\xe2\x94\x80", 3, 0x2500}, /* (BOX DRAWINGS LIGHT HORIZONTAL) */
+    {(unsigned char *) "\xe2\x94\x82", 3, 0x2502}, /* (BOX DRAWINGS LIGHT VERTICAL) */
+    {(unsigned char *) "\xe2\x94\x8c", 3, 0x250C}, /* (BOX DRAWINGS LIGHT DOWN AND RIGHT) */
+    {(unsigned char *) "\xe2\x94\x90", 3, 0x2510}, /* (BOX DRAWINGS LIGHT DOWN AND LEFT) */
+    {(unsigned char *) "\xe2\x94\x94", 3, 0x2514}, /* (BOX DRAWINGS LIGHT UP AND RIGHT) */
+    {(unsigned char *) "\xe2\x94\x98", 3, 0x2518}, /* (BOX DRAWINGS LIGHT UP AND LEFT) */
+    {(unsigned char *) "\xe2\x94\x9c", 3, 0x251C}, /* (BOX DRAWINGS LIGHT VERTICAL AND RIGHT) */
+    {(unsigned char *) "\xe2\x94\xa4", 3, 0x2524}, /* (BOX DRAWINGS LIGHT VERTICAL AND LEFT) */
+    {(unsigned char *) "\xe2\x94\xac", 3, 0x252C}, /* (BOX DRAWINGS LIGHT DOWN AND HORIZONTAL) */
+    {(unsigned char *) "\xe2\x94\xb4", 3, 0x2534}, /* (BOX DRAWINGS LIGHT UP AND HORIZONTAL) */
+    {(unsigned char *) "\xe2\x94\xbc", 3, 0x253C}, /* (BOX DRAWINGS LIGHT VERTICAL AND HORIZONTAL) */
+    {(unsigned char *) "\xe2\x96\x80", 3, 0x2580}, /* (UPPER HALF BLOCK) */
+    {(unsigned char *) "\xe2\x96\x84", 3, 0x2584}, /* (LOWER HALF BLOCK) */
+    {(unsigned char *) "\xe2\x96\x88", 3, 0x2588}, /* (FULL BLOCK) */
+    {(unsigned char *) "\xe2\x96\x8c", 3, 0x258C}, /* (LEFT HALF BLOCK) */
+    {(unsigned char *) "\xe2\x96\x90", 3, 0x2590}, /* (RIGHT HALF BLOCK) */
+    {(unsigned char *) "\xe2\x96\x91", 3, 0x2591}, /* (LIGHT SHADE) */
+    {(unsigned char *) "\xe2\x96\x92", 3, 0x2592}, /* (MEDIUM SHADE) */
+    {(unsigned char *) "\xe2\x96\x93", 3, 0x2593}, /* (DARK SHADE) */
+    {(unsigned char *) "\xe2\x8c\xa0", 3, 0x2320}, /* (TOP HALF INTEGRAL) */
+    {(unsigned char *) "\xe2\x96\xa0", 3, 0x25A0}, /* (BLACK SQUARE) */
+    {(unsigned char *) "\xe2\x88\x99", 3, 0x2219}, /* (BULLET OPERATOR) */
+    {(unsigned char *) "\xe2\x88\x9a", 3, 0x221A}, /* (SQUARE ROOT) */
+    {(unsigned char *) "\xe2\x89\x88", 3, 0x2248}, /* (ALMOST EQUAL TO) */
+    {(unsigned char *) "\xe2\x89\xa4", 3, 0x2264}, /* (LESS-THAN OR EQUAL TO) */
+    {(unsigned char *) "\xe2\x89\xa5", 3, 0x2265}, /* (GREATER-THAN OR EQUAL TO) */
+    {(unsigned char *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
+    {(unsigned char *) "\xe2\x8c\xa1", 3, 0x2321}, /* (BOTTOM HALF INTEGRAL) */
+    {(unsigned char *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
+    {(unsigned char *) "\xc2\xb2", 2, 0x00B2}, /* (SUPERSCRIPT TWO) */
+    {(unsigned char *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
+    {(unsigned char *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
+    {(unsigned char *) "\xe2\x95\x90", 3, 0x2550}, /* (BOX DRAWINGS DOUBLE HORIZONTAL) */
+    {(unsigned char *) "\xe2\x95\x91", 3, 0x2551}, /* (BOX DRAWINGS DOUBLE VERTICAL) */
+    {(unsigned char *) "\xe2\x95\x92", 3, 0x2552}, /* (BOX DRAWINGS DOWN SINGLE AND RIGHT DOUBLE) */
+    {(unsigned char *) "\xd1\x91", 2, 0x0451}, /* (CYRILLIC SMALL LETTER IO) */
+    {(unsigned char *) "\xd1\x94", 2, 0x0454}, /* (CYRILLIC SMALL LETTER UKRAINIAN IE) */
+    {(unsigned char *) "\xe2\x95\x94", 3, 0x2554}, /* (BOX DRAWINGS DOUBLE DOWN AND RIGHT) */
+    {(unsigned char *) "\xd1\x96", 2, 0x0456}, /* (CYRILLIC SMALL LETTER BYELORUSSIAN-UKRAINIAN I) */
+    {(unsigned char *) "\xd1\x97", 2, 0x0457}, /* (CYRILLIC SMALL LETTER YI) */
+    {(unsigned char *) "\xe2\x95\x97", 3, 0x2557}, /* (BOX DRAWINGS DOUBLE DOWN AND LEFT) */
+    {(unsigned char *) "\xe2\x95\x98", 3, 0x2558}, /* (BOX DRAWINGS UP SINGLE AND RIGHT DOUBLE) */
+    {(unsigned char *) "\xe2\x95\x99", 3, 0x2559}, /* (BOX DRAWINGS UP DOUBLE AND RIGHT SINGLE) */
+    {(unsigned char *) "\xe2\x95\x9a", 3, 0x255A}, /* (BOX DRAWINGS DOUBLE UP AND RIGHT) */
+    {(unsigned char *) "\xe2\x95\x9b", 3, 0x255B}, /* (BOX DRAWINGS UP SINGLE AND LEFT DOUBLE) */
+    {(unsigned char *) "\xd2\x91", 2, 0x0491}, /* (CYRILLIC SMALL LETTER GHE WITH UPTURN) */
+    {(unsigned char *) "\xd1\x9e", 2, 0x045E}, /* (CYRILLIC SMALL LETTER SHORT U) */
+    {(unsigned char *) "\xe2\x95\x9e", 3, 0x255E}, /* (BOX DRAWINGS VERTICAL SINGLE AND RIGHT DOUBLE) */
+    {(unsigned char *) "\xe2\x95\x9f", 3, 0x255F}, /* (BOX DRAWINGS VERTICAL DOUBLE AND RIGHT SINGLE) */
+    {(unsigned char *) "\xe2\x95\xa0", 3, 0x2560}, /* (BOX DRAWINGS DOUBLE VERTICAL AND RIGHT) */
+    {(unsigned char *) "\xe2\x95\xa1", 3, 0x2561}, /* (BOX DRAWINGS VERTICAL SINGLE AND LEFT DOUBLE) */
+    {(unsigned char *) "\xd0\x81", 2, 0x0401}, /* (CYRILLIC CAPITAL LETTER IO) */
+    {(unsigned char *) "\xd0\x84", 2, 0x0404}, /* (CYRILLIC CAPITAL LETTER UKRAINIAN IE) */
+    {(unsigned char *) "\xe2\x95\xa3", 3, 0x2563}, /* (BOX DRAWINGS DOUBLE VERTICAL AND LEFT) */
+    {(unsigned char *) "\xd0\x86", 2, 0x0406}, /* (CYRILLIC CAPITAL LETTER BYELORUSSIAN-UKRAINIAN I) */
+    {(unsigned char *) "\xd0\x87", 2, 0x0407}, /* (CYRILLIC CAPITAL LETTER YI) */
+    {(unsigned char *) "\xe2\x95\xa6", 3, 0x2566}, /* (BOX DRAWINGS DOUBLE DOWN AND HORIZONTAL) */
+    {(unsigned char *) "\xe2\x95\xa7", 3, 0x2567}, /* (BOX DRAWINGS UP SINGLE AND HORIZONTAL DOUBLE) */
+    {(unsigned char *) "\xe2\x95\xa8", 3, 0x2568}, /* (BOX DRAWINGS UP DOUBLE AND HORIZONTAL SINGLE) */
+    {(unsigned char *) "\xe2\x95\xa9", 3, 0x2569}, /* (BOX DRAWINGS DOUBLE UP AND HORIZONTAL) */
+    {(unsigned char *) "\xe2\x95\xaa", 3, 0x256A}, /* (BOX DRAWINGS VERTICAL SINGLE AND HORIZONTAL DOUBLE) */
+    {(unsigned char *) "\xd2\x90", 2, 0x0490}, /* (CYRILLIC CAPITAL LETTER GHE WITH UPTURN) */
+    {(unsigned char *) "\xd0\x8e", 2, 0x040E}, /* (CYRILLIC CAPITAL LETTER SHORT U) */
+    {(unsigned char *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
+    {(unsigned char *) "\xd1\x8e", 2, 0x044E}, /* (CYRILLIC SMALL LETTER YU) */
+    {(unsigned char *) "\xd0\xb0", 2, 0x0430}, /* (CYRILLIC SMALL LETTER A) */
+    {(unsigned char *) "\xd0\xb1", 2, 0x0431}, /* (CYRILLIC SMALL LETTER BE) */
+    {(unsigned char *) "\xd1\x86", 2, 0x0446}, /* (CYRILLIC SMALL LETTER TSE) */
+    {(unsigned char *) "\xd0\xb4", 2, 0x0434}, /* (CYRILLIC SMALL LETTER DE) */
+    {(unsigned char *) "\xd0\xb5", 2, 0x0435}, /* (CYRILLIC SMALL LETTER IE) */
+    {(unsigned char *) "\xd1\x84", 2, 0x0444}, /* (CYRILLIC SMALL LETTER EF) */
+    {(unsigned char *) "\xd0\xb3", 2, 0x0433}, /* (CYRILLIC SMALL LETTER GHE) */
+    {(unsigned char *) "\xd1\x85", 2, 0x0445}, /* (CYRILLIC SMALL LETTER HA) */
+    {(unsigned char *) "\xd0\xb8", 2, 0x0438}, /* (CYRILLIC SMALL LETTER I) */
+    {(unsigned char *) "\xd0\xb9", 2, 0x0439}, /* (CYRILLIC SMALL LETTER SHORT I) */
+    {(unsigned char *) "\xd0\xba", 2, 0x043A}, /* (CYRILLIC SMALL LETTER KA) */
+    {(unsigned char *) "\xd0\xbb", 2, 0x043B}, /* (CYRILLIC SMALL LETTER EL) */
+    {(unsigned char *) "\xd0\xbc", 2, 0x043C}, /* (CYRILLIC SMALL LETTER EM) */
+    {(unsigned char *) "\xd0\xbd", 2, 0x043D}, /* (CYRILLIC SMALL LETTER EN) */
+    {(unsigned char *) "\xd0\xbe", 2, 0x043E}, /* (CYRILLIC SMALL LETTER O) */
+    {(unsigned char *) "\xd0\xbf", 2, 0x043F}, /* (CYRILLIC SMALL LETTER PE) */
+    {(unsigned char *) "\xd1\x8f", 2, 0x044F}, /* (CYRILLIC SMALL LETTER YA) */
+    {(unsigned char *) "\xd1\x80", 2, 0x0440}, /* (CYRILLIC SMALL LETTER ER) */
+    {(unsigned char *) "\xd1\x81", 2, 0x0441}, /* (CYRILLIC SMALL LETTER ES) */
+    {(unsigned char *) "\xd1\x82", 2, 0x0442}, /* (CYRILLIC SMALL LETTER TE) */
+    {(unsigned char *) "\xd1\x83", 2, 0x0443}, /* (CYRILLIC SMALL LETTER U) */
+    {(unsigned char *) "\xd0\xb6", 2, 0x0436}, /* (CYRILLIC SMALL LETTER ZHE) */
+    {(unsigned char *) "\xd0\xb2", 2, 0x0432}, /* (CYRILLIC SMALL LETTER VE) */
+    {(unsigned char *) "\xd1\x8c", 2, 0x044C}, /* (CYRILLIC SMALL LETTER SOFT SIGN) */
+    {(unsigned char *) "\xd1\x8b", 2, 0x044B}, /* (CYRILLIC SMALL LETTER YERU) */
+    {(unsigned char *) "\xd0\xb7", 2, 0x0437}, /* (CYRILLIC SMALL LETTER ZE) */
+    {(unsigned char *) "\xd1\x88", 2, 0x0448}, /* (CYRILLIC SMALL LETTER SHA) */
+    {(unsigned char *) "\xd1\x8d", 2, 0x044D}, /* (CYRILLIC SMALL LETTER E) */
+    {(unsigned char *) "\xd1\x89", 2, 0x0449}, /* (CYRILLIC SMALL LETTER SHCHA) */
+    {(unsigned char *) "\xd1\x87", 2, 0x0447}, /* (CYRILLIC SMALL LETTER CHE) */
+    {(unsigned char *) "\xd1\x8a", 2, 0x044A}, /* (CYRILLIC SMALL LETTER HARD SIGN) */
+    {(unsigned char *) "\xd0\xae", 2, 0x042E}, /* (CYRILLIC CAPITAL LETTER YU) */
+    {(unsigned char *) "\xd0\x90", 2, 0x0410}, /* (CYRILLIC CAPITAL LETTER A) */
+    {(unsigned char *) "\xd0\x91", 2, 0x0411}, /* (CYRILLIC CAPITAL LETTER BE) */
+    {(unsigned char *) "\xd0\xa6", 2, 0x0426}, /* (CYRILLIC CAPITAL LETTER TSE) */
+    {(unsigned char *) "\xd0\x94", 2, 0x0414}, /* (CYRILLIC CAPITAL LETTER DE) */
+    {(unsigned char *) "\xd0\x95", 2, 0x0415}, /* (CYRILLIC CAPITAL LETTER IE) */
+    {(unsigned char *) "\xd0\xa4", 2, 0x0424}, /* (CYRILLIC CAPITAL LETTER EF) */
+    {(unsigned char *) "\xd0\x93", 2, 0x0413}, /* (CYRILLIC CAPITAL LETTER GHE) */
+    {(unsigned char *) "\xd0\xa5", 2, 0x0425}, /* (CYRILLIC CAPITAL LETTER HA) */
+    {(unsigned char *) "\xd0\x98", 2, 0x0418}, /* (CYRILLIC CAPITAL LETTER I) */
+    {(unsigned char *) "\xd0\x99", 2, 0x0419}, /* (CYRILLIC CAPITAL LETTER SHORT I) */
+    {(unsigned char *) "\xd0\x9a", 2, 0x041A}, /* (CYRILLIC CAPITAL LETTER KA) */
+    {(unsigned char *) "\xd0\x9b", 2, 0x041B}, /* (CYRILLIC CAPITAL LETTER EL) */
+    {(unsigned char *) "\xd0\x9c", 2, 0x041C}, /* (CYRILLIC CAPITAL LETTER EM) */
+    {(unsigned char *) "\xd0\x9d", 2, 0x041D}, /* (CYRILLIC CAPITAL LETTER EN) */
+    {(unsigned char *) "\xd0\x9e", 2, 0x041E}, /* (CYRILLIC CAPITAL LETTER O) */
+    {(unsigned char *) "\xd0\x9f", 2, 0x041F}, /* (CYRILLIC CAPITAL LETTER PE) */
+    {(unsigned char *) "\xd0\xaf", 2, 0x042F}, /* (CYRILLIC CAPITAL LETTER YA) */
+    {(unsigned char *) "\xd0\xa0", 2, 0x0420}, /* (CYRILLIC CAPITAL LETTER ER) */
+    {(unsigned char *) "\xd0\xa1", 2, 0x0421}, /* (CYRILLIC CAPITAL LETTER ES) */
+    {(unsigned char *) "\xd0\xa2", 2, 0x0422}, /* (CYRILLIC CAPITAL LETTER TE) */
+    {(unsigned char *) "\xd0\xa3", 2, 0x0423}, /* (CYRILLIC CAPITAL LETTER U) */
+    {(unsigned char *) "\xd0\x96", 2, 0x0416}, /* (CYRILLIC CAPITAL LETTER ZHE) */
+    {(unsigned char *) "\xd0\x92", 2, 0x0412}, /* (CYRILLIC CAPITAL LETTER VE) */
+    {(unsigned char *) "\xd0\xac", 2, 0x042C}, /* (CYRILLIC CAPITAL LETTER SOFT SIGN) */
+    {(unsigned char *) "\xd0\xab", 2, 0x042B}, /* (CYRILLIC CAPITAL LETTER YERU) */
+    {(unsigned char *) "\xd0\x97", 2, 0x0417}, /* (CYRILLIC CAPITAL LETTER ZE) */
+    {(unsigned char *) "\xd0\xa8", 2, 0x0428}, /* (CYRILLIC CAPITAL LETTER SHA) */
+    {(unsigned char *) "\xd0\xad", 2, 0x042D}, /* (CYRILLIC CAPITAL LETTER E) */
+    {(unsigned char *) "\xd0\xa9", 2, 0x0429}, /* (CYRILLIC CAPITAL LETTER SHCHA) */
+    {(unsigned char *) "\xd0\xa7", 2, 0x0427}, /* (CYRILLIC CAPITAL LETTER CHE) */
+    {(unsigned char *) "\xd0\xaa", 2, 0x042A}, /* (CYRILLIC CAPITAL LETTER HARD SIGN) */
 };
 
-LXB_API const lxb_encoding_single_index_t lxb_encoding_single_index_macintosh[128] = 
+GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_macintosh[128] = 
 {
-    {(lxb_char_t *) "\xc3\x84", 2, 0x00C4}, /* (LATIN CAPITAL LETTER A WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x85", 2, 0x00C5}, /* (LATIN CAPITAL LETTER A WITH RING ABOVE) */
-    {(lxb_char_t *) "\xc3\x87", 2, 0x00C7}, /* (LATIN CAPITAL LETTER C WITH CEDILLA) */
-    {(lxb_char_t *) "\xc3\x89", 2, 0x00C9}, /* (LATIN CAPITAL LETTER E WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x91", 2, 0x00D1}, /* (LATIN CAPITAL LETTER N WITH TILDE) */
-    {(lxb_char_t *) "\xc3\x96", 2, 0x00D6}, /* (LATIN CAPITAL LETTER O WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x9c", 2, 0x00DC}, /* (LATIN CAPITAL LETTER U WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xa1", 2, 0x00E1}, /* (LATIN SMALL LETTER A WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xa0", 2, 0x00E0}, /* (LATIN SMALL LETTER A WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xa2", 2, 0x00E2}, /* (LATIN SMALL LETTER A WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xa4", 2, 0x00E4}, /* (LATIN SMALL LETTER A WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xa3", 2, 0x00E3}, /* (LATIN SMALL LETTER A WITH TILDE) */
-    {(lxb_char_t *) "\xc3\xa5", 2, 0x00E5}, /* (LATIN SMALL LETTER A WITH RING ABOVE) */
-    {(lxb_char_t *) "\xc3\xa7", 2, 0x00E7}, /* (LATIN SMALL LETTER C WITH CEDILLA) */
-    {(lxb_char_t *) "\xc3\xa9", 2, 0x00E9}, /* (LATIN SMALL LETTER E WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xa8", 2, 0x00E8}, /* (LATIN SMALL LETTER E WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xaa", 2, 0x00EA}, /* (LATIN SMALL LETTER E WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xab", 2, 0x00EB}, /* (LATIN SMALL LETTER E WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xad", 2, 0x00ED}, /* (LATIN SMALL LETTER I WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xac", 2, 0x00EC}, /* (LATIN SMALL LETTER I WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xae", 2, 0x00EE}, /* (LATIN SMALL LETTER I WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xaf", 2, 0x00EF}, /* (LATIN SMALL LETTER I WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xb1", 2, 0x00F1}, /* (LATIN SMALL LETTER N WITH TILDE) */
-    {(lxb_char_t *) "\xc3\xb3", 2, 0x00F3}, /* (LATIN SMALL LETTER O WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xb2", 2, 0x00F2}, /* (LATIN SMALL LETTER O WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xb4", 2, 0x00F4}, /* (LATIN SMALL LETTER O WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xb6", 2, 0x00F6}, /* (LATIN SMALL LETTER O WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xb5", 2, 0x00F5}, /* (LATIN SMALL LETTER O WITH TILDE) */
-    {(lxb_char_t *) "\xc3\xba", 2, 0x00FA}, /* (LATIN SMALL LETTER U WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xb9", 2, 0x00F9}, /* (LATIN SMALL LETTER U WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xbb", 2, 0x00FB}, /* (LATIN SMALL LETTER U WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xbc", 2, 0x00FC}, /* (LATIN SMALL LETTER U WITH DIAERESIS) */
-    {(lxb_char_t *) "\xe2\x80\xa0", 3, 0x2020}, /* (DAGGER) */
-    {(lxb_char_t *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
-    {(lxb_char_t *) "\xc2\xa2", 2, 0x00A2}, /* (CENT SIGN) */
-    {(lxb_char_t *) "\xc2\xa3", 2, 0x00A3}, /* (POUND SIGN) */
-    {(lxb_char_t *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
-    {(lxb_char_t *) "\xe2\x80\xa2", 3, 0x2022}, /* (BULLET) */
-    {(lxb_char_t *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
-    {(lxb_char_t *) "\xc3\x9f", 2, 0x00DF}, /* (LATIN SMALL LETTER SHARP S) */
-    {(lxb_char_t *) "\xc2\xae", 2, 0x00AE}, /* (REGISTERED SIGN) */
-    {(lxb_char_t *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
-    {(lxb_char_t *) "\xe2\x84\xa2", 3, 0x2122}, /* (TRADE MARK SIGN) */
-    {(lxb_char_t *) "\xc2\xb4", 2, 0x00B4}, /* (ACUTE ACCENT) */
-    {(lxb_char_t *) "\xc2\xa8", 2, 0x00A8}, /* (DIAERESIS) */
-    {(lxb_char_t *) "\xe2\x89\xa0", 3, 0x2260}, /* (NOT EQUAL TO) */
-    {(lxb_char_t *) "\xc3\x86", 2, 0x00C6}, /* (LATIN CAPITAL LETTER AE) */
-    {(lxb_char_t *) "\xc3\x98", 2, 0x00D8}, /* (LATIN CAPITAL LETTER O WITH STROKE) */
-    {(lxb_char_t *) "\xe2\x88\x9e", 3, 0x221E}, /* (INFINITY) */
-    {(lxb_char_t *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
-    {(lxb_char_t *) "\xe2\x89\xa4", 3, 0x2264}, /* (LESS-THAN OR EQUAL TO) */
-    {(lxb_char_t *) "\xe2\x89\xa5", 3, 0x2265}, /* (GREATER-THAN OR EQUAL TO) */
-    {(lxb_char_t *) "\xc2\xa5", 2, 0x00A5}, /* (YEN SIGN) */
-    {(lxb_char_t *) "\xc2\xb5", 2, 0x00B5}, /* (MICRO SIGN) */
-    {(lxb_char_t *) "\xe2\x88\x82", 3, 0x2202}, /* (PARTIAL DIFFERENTIAL) */
-    {(lxb_char_t *) "\xe2\x88\x91", 3, 0x2211}, /* (N-ARY SUMMATION) */
-    {(lxb_char_t *) "\xe2\x88\x8f", 3, 0x220F}, /* (N-ARY PRODUCT) */
-    {(lxb_char_t *) "\xcf\x80", 2, 0x03C0}, /* (GREEK SMALL LETTER PI) */
-    {(lxb_char_t *) "\xe2\x88\xab", 3, 0x222B}, /* (INTEGRAL) */
-    {(lxb_char_t *) "\xc2\xaa", 2, 0x00AA}, /* (FEMININE ORDINAL INDICATOR) */
-    {(lxb_char_t *) "\xc2\xba", 2, 0x00BA}, /* (MASCULINE ORDINAL INDICATOR) */
-    {(lxb_char_t *) "\xce\xa9", 2, 0x03A9}, /* (GREEK CAPITAL LETTER OMEGA) */
-    {(lxb_char_t *) "\xc3\xa6", 2, 0x00E6}, /* (LATIN SMALL LETTER AE) */
-    {(lxb_char_t *) "\xc3\xb8", 2, 0x00F8}, /* (LATIN SMALL LETTER O WITH STROKE) */
-    {(lxb_char_t *) "\xc2\xbf", 2, 0x00BF}, /* (INVERTED QUESTION MARK) */
-    {(lxb_char_t *) "\xc2\xa1", 2, 0x00A1}, /* (INVERTED EXCLAMATION MARK) */
-    {(lxb_char_t *) "\xc2\xac", 2, 0x00AC}, /* (NOT SIGN) */
-    {(lxb_char_t *) "\xe2\x88\x9a", 3, 0x221A}, /* (SQUARE ROOT) */
-    {(lxb_char_t *) "\xc6\x92", 2, 0x0192}, /* (LATIN SMALL LETTER F WITH HOOK) */
-    {(lxb_char_t *) "\xe2\x89\x88", 3, 0x2248}, /* (ALMOST EQUAL TO) */
-    {(lxb_char_t *) "\xe2\x88\x86", 3, 0x2206}, /* (INCREMENT) */
-    {(lxb_char_t *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\xa6", 3, 0x2026}, /* (HORIZONTAL ELLIPSIS) */
-    {(lxb_char_t *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
-    {(lxb_char_t *) "\xc3\x80", 2, 0x00C0}, /* (LATIN CAPITAL LETTER A WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x83", 2, 0x00C3}, /* (LATIN CAPITAL LETTER A WITH TILDE) */
-    {(lxb_char_t *) "\xc3\x95", 2, 0x00D5}, /* (LATIN CAPITAL LETTER O WITH TILDE) */
-    {(lxb_char_t *) "\xc5\x92", 2, 0x0152}, /* (LATIN CAPITAL LIGATURE OE) */
-    {(lxb_char_t *) "\xc5\x93", 2, 0x0153}, /* (LATIN SMALL LIGATURE OE) */
-    {(lxb_char_t *) "\xe2\x80\x93", 3, 0x2013}, /* (EN DASH) */
-    {(lxb_char_t *) "\xe2\x80\x94", 3, 0x2014}, /* (EM DASH) */
-    {(lxb_char_t *) "\xe2\x80\x9c", 3, 0x201C}, /* (LEFT DOUBLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x9d", 3, 0x201D}, /* (RIGHT DOUBLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x98", 3, 0x2018}, /* (LEFT SINGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x99", 3, 0x2019}, /* (RIGHT SINGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
-    {(lxb_char_t *) "\xe2\x97\x8a", 3, 0x25CA}, /* (LOZENGE) */
-    {(lxb_char_t *) "\xc3\xbf", 2, 0x00FF}, /* (LATIN SMALL LETTER Y WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc5\xb8", 2, 0x0178}, /* (LATIN CAPITAL LETTER Y WITH DIAERESIS) */
-    {(lxb_char_t *) "\xe2\x81\x84", 3, 0x2044}, /* (FRACTION SLASH) */
-    {(lxb_char_t *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
-    {(lxb_char_t *) "\xe2\x80\xb9", 3, 0x2039}, /* (SINGLE LEFT-POINTING ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\xba", 3, 0x203A}, /* (SINGLE RIGHT-POINTING ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xef\xac\x81", 3, 0xFB01}, /* (LATIN SMALL LIGATURE FI) */
-    {(lxb_char_t *) "\xef\xac\x82", 3, 0xFB02}, /* (LATIN SMALL LIGATURE FL) */
-    {(lxb_char_t *) "\xe2\x80\xa1", 3, 0x2021}, /* (DOUBLE DAGGER) */
-    {(lxb_char_t *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
-    {(lxb_char_t *) "\xe2\x80\x9a", 3, 0x201A}, /* (SINGLE LOW-9 QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x9e", 3, 0x201E}, /* (DOUBLE LOW-9 QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\xb0", 3, 0x2030}, /* (PER MILLE SIGN) */
-    {(lxb_char_t *) "\xc3\x82", 2, 0x00C2}, /* (LATIN CAPITAL LETTER A WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x8a", 2, 0x00CA}, /* (LATIN CAPITAL LETTER E WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x81", 2, 0x00C1}, /* (LATIN CAPITAL LETTER A WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x8b", 2, 0x00CB}, /* (LATIN CAPITAL LETTER E WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x88", 2, 0x00C8}, /* (LATIN CAPITAL LETTER E WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x8d", 2, 0x00CD}, /* (LATIN CAPITAL LETTER I WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x8e", 2, 0x00CE}, /* (LATIN CAPITAL LETTER I WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x8f", 2, 0x00CF}, /* (LATIN CAPITAL LETTER I WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x8c", 2, 0x00CC}, /* (LATIN CAPITAL LETTER I WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x93", 2, 0x00D3}, /* (LATIN CAPITAL LETTER O WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x94", 2, 0x00D4}, /* (LATIN CAPITAL LETTER O WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xef\xa3\xbf", 3, 0xF8FF}, /* (<Private Use>) */
-    {(lxb_char_t *) "\xc3\x92", 2, 0x00D2}, /* (LATIN CAPITAL LETTER O WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x9a", 2, 0x00DA}, /* (LATIN CAPITAL LETTER U WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x9b", 2, 0x00DB}, /* (LATIN CAPITAL LETTER U WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x99", 2, 0x00D9}, /* (LATIN CAPITAL LETTER U WITH GRAVE) */
-    {(lxb_char_t *) "\xc4\xb1", 2, 0x0131}, /* (LATIN SMALL LETTER DOTLESS I) */
-    {(lxb_char_t *) "\xcb\x86", 2, 0x02C6}, /* (MODIFIER LETTER CIRCUMFLEX ACCENT) */
-    {(lxb_char_t *) "\xcb\x9c", 2, 0x02DC}, /* (SMALL TILDE) */
-    {(lxb_char_t *) "\xc2\xaf", 2, 0x00AF}, /* (MACRON) */
-    {(lxb_char_t *) "\xcb\x98", 2, 0x02D8}, /* (BREVE) */
-    {(lxb_char_t *) "\xcb\x99", 2, 0x02D9}, /* (DOT ABOVE) */
-    {(lxb_char_t *) "\xcb\x9a", 2, 0x02DA}, /* (RING ABOVE) */
-    {(lxb_char_t *) "\xc2\xb8", 2, 0x00B8}, /* (CEDILLA) */
-    {(lxb_char_t *) "\xcb\x9d", 2, 0x02DD}, /* (DOUBLE ACUTE ACCENT) */
-    {(lxb_char_t *) "\xcb\x9b", 2, 0x02DB}, /* (OGONEK) */
-    {(lxb_char_t *) "\xcb\x87", 2, 0x02C7}, /* (CARON) */
+    {(unsigned char *) "\xc3\x84", 2, 0x00C4}, /* (LATIN CAPITAL LETTER A WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x85", 2, 0x00C5}, /* (LATIN CAPITAL LETTER A WITH RING ABOVE) */
+    {(unsigned char *) "\xc3\x87", 2, 0x00C7}, /* (LATIN CAPITAL LETTER C WITH CEDILLA) */
+    {(unsigned char *) "\xc3\x89", 2, 0x00C9}, /* (LATIN CAPITAL LETTER E WITH ACUTE) */
+    {(unsigned char *) "\xc3\x91", 2, 0x00D1}, /* (LATIN CAPITAL LETTER N WITH TILDE) */
+    {(unsigned char *) "\xc3\x96", 2, 0x00D6}, /* (LATIN CAPITAL LETTER O WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x9c", 2, 0x00DC}, /* (LATIN CAPITAL LETTER U WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xa1", 2, 0x00E1}, /* (LATIN SMALL LETTER A WITH ACUTE) */
+    {(unsigned char *) "\xc3\xa0", 2, 0x00E0}, /* (LATIN SMALL LETTER A WITH GRAVE) */
+    {(unsigned char *) "\xc3\xa2", 2, 0x00E2}, /* (LATIN SMALL LETTER A WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xa4", 2, 0x00E4}, /* (LATIN SMALL LETTER A WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xa3", 2, 0x00E3}, /* (LATIN SMALL LETTER A WITH TILDE) */
+    {(unsigned char *) "\xc3\xa5", 2, 0x00E5}, /* (LATIN SMALL LETTER A WITH RING ABOVE) */
+    {(unsigned char *) "\xc3\xa7", 2, 0x00E7}, /* (LATIN SMALL LETTER C WITH CEDILLA) */
+    {(unsigned char *) "\xc3\xa9", 2, 0x00E9}, /* (LATIN SMALL LETTER E WITH ACUTE) */
+    {(unsigned char *) "\xc3\xa8", 2, 0x00E8}, /* (LATIN SMALL LETTER E WITH GRAVE) */
+    {(unsigned char *) "\xc3\xaa", 2, 0x00EA}, /* (LATIN SMALL LETTER E WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xab", 2, 0x00EB}, /* (LATIN SMALL LETTER E WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xad", 2, 0x00ED}, /* (LATIN SMALL LETTER I WITH ACUTE) */
+    {(unsigned char *) "\xc3\xac", 2, 0x00EC}, /* (LATIN SMALL LETTER I WITH GRAVE) */
+    {(unsigned char *) "\xc3\xae", 2, 0x00EE}, /* (LATIN SMALL LETTER I WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xaf", 2, 0x00EF}, /* (LATIN SMALL LETTER I WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xb1", 2, 0x00F1}, /* (LATIN SMALL LETTER N WITH TILDE) */
+    {(unsigned char *) "\xc3\xb3", 2, 0x00F3}, /* (LATIN SMALL LETTER O WITH ACUTE) */
+    {(unsigned char *) "\xc3\xb2", 2, 0x00F2}, /* (LATIN SMALL LETTER O WITH GRAVE) */
+    {(unsigned char *) "\xc3\xb4", 2, 0x00F4}, /* (LATIN SMALL LETTER O WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xb6", 2, 0x00F6}, /* (LATIN SMALL LETTER O WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xb5", 2, 0x00F5}, /* (LATIN SMALL LETTER O WITH TILDE) */
+    {(unsigned char *) "\xc3\xba", 2, 0x00FA}, /* (LATIN SMALL LETTER U WITH ACUTE) */
+    {(unsigned char *) "\xc3\xb9", 2, 0x00F9}, /* (LATIN SMALL LETTER U WITH GRAVE) */
+    {(unsigned char *) "\xc3\xbb", 2, 0x00FB}, /* (LATIN SMALL LETTER U WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xbc", 2, 0x00FC}, /* (LATIN SMALL LETTER U WITH DIAERESIS) */
+    {(unsigned char *) "\xe2\x80\xa0", 3, 0x2020}, /* (DAGGER) */
+    {(unsigned char *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
+    {(unsigned char *) "\xc2\xa2", 2, 0x00A2}, /* (CENT SIGN) */
+    {(unsigned char *) "\xc2\xa3", 2, 0x00A3}, /* (POUND SIGN) */
+    {(unsigned char *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
+    {(unsigned char *) "\xe2\x80\xa2", 3, 0x2022}, /* (BULLET) */
+    {(unsigned char *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
+    {(unsigned char *) "\xc3\x9f", 2, 0x00DF}, /* (LATIN SMALL LETTER SHARP S) */
+    {(unsigned char *) "\xc2\xae", 2, 0x00AE}, /* (REGISTERED SIGN) */
+    {(unsigned char *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
+    {(unsigned char *) "\xe2\x84\xa2", 3, 0x2122}, /* (TRADE MARK SIGN) */
+    {(unsigned char *) "\xc2\xb4", 2, 0x00B4}, /* (ACUTE ACCENT) */
+    {(unsigned char *) "\xc2\xa8", 2, 0x00A8}, /* (DIAERESIS) */
+    {(unsigned char *) "\xe2\x89\xa0", 3, 0x2260}, /* (NOT EQUAL TO) */
+    {(unsigned char *) "\xc3\x86", 2, 0x00C6}, /* (LATIN CAPITAL LETTER AE) */
+    {(unsigned char *) "\xc3\x98", 2, 0x00D8}, /* (LATIN CAPITAL LETTER O WITH STROKE) */
+    {(unsigned char *) "\xe2\x88\x9e", 3, 0x221E}, /* (INFINITY) */
+    {(unsigned char *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
+    {(unsigned char *) "\xe2\x89\xa4", 3, 0x2264}, /* (LESS-THAN OR EQUAL TO) */
+    {(unsigned char *) "\xe2\x89\xa5", 3, 0x2265}, /* (GREATER-THAN OR EQUAL TO) */
+    {(unsigned char *) "\xc2\xa5", 2, 0x00A5}, /* (YEN SIGN) */
+    {(unsigned char *) "\xc2\xb5", 2, 0x00B5}, /* (MICRO SIGN) */
+    {(unsigned char *) "\xe2\x88\x82", 3, 0x2202}, /* (PARTIAL DIFFERENTIAL) */
+    {(unsigned char *) "\xe2\x88\x91", 3, 0x2211}, /* (N-ARY SUMMATION) */
+    {(unsigned char *) "\xe2\x88\x8f", 3, 0x220F}, /* (N-ARY PRODUCT) */
+    {(unsigned char *) "\xcf\x80", 2, 0x03C0}, /* (GREEK SMALL LETTER PI) */
+    {(unsigned char *) "\xe2\x88\xab", 3, 0x222B}, /* (INTEGRAL) */
+    {(unsigned char *) "\xc2\xaa", 2, 0x00AA}, /* (FEMININE ORDINAL INDICATOR) */
+    {(unsigned char *) "\xc2\xba", 2, 0x00BA}, /* (MASCULINE ORDINAL INDICATOR) */
+    {(unsigned char *) "\xce\xa9", 2, 0x03A9}, /* (GREEK CAPITAL LETTER OMEGA) */
+    {(unsigned char *) "\xc3\xa6", 2, 0x00E6}, /* (LATIN SMALL LETTER AE) */
+    {(unsigned char *) "\xc3\xb8", 2, 0x00F8}, /* (LATIN SMALL LETTER O WITH STROKE) */
+    {(unsigned char *) "\xc2\xbf", 2, 0x00BF}, /* (INVERTED QUESTION MARK) */
+    {(unsigned char *) "\xc2\xa1", 2, 0x00A1}, /* (INVERTED EXCLAMATION MARK) */
+    {(unsigned char *) "\xc2\xac", 2, 0x00AC}, /* (NOT SIGN) */
+    {(unsigned char *) "\xe2\x88\x9a", 3, 0x221A}, /* (SQUARE ROOT) */
+    {(unsigned char *) "\xc6\x92", 2, 0x0192}, /* (LATIN SMALL LETTER F WITH HOOK) */
+    {(unsigned char *) "\xe2\x89\x88", 3, 0x2248}, /* (ALMOST EQUAL TO) */
+    {(unsigned char *) "\xe2\x88\x86", 3, 0x2206}, /* (INCREMENT) */
+    {(unsigned char *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\xa6", 3, 0x2026}, /* (HORIZONTAL ELLIPSIS) */
+    {(unsigned char *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
+    {(unsigned char *) "\xc3\x80", 2, 0x00C0}, /* (LATIN CAPITAL LETTER A WITH GRAVE) */
+    {(unsigned char *) "\xc3\x83", 2, 0x00C3}, /* (LATIN CAPITAL LETTER A WITH TILDE) */
+    {(unsigned char *) "\xc3\x95", 2, 0x00D5}, /* (LATIN CAPITAL LETTER O WITH TILDE) */
+    {(unsigned char *) "\xc5\x92", 2, 0x0152}, /* (LATIN CAPITAL LIGATURE OE) */
+    {(unsigned char *) "\xc5\x93", 2, 0x0153}, /* (LATIN SMALL LIGATURE OE) */
+    {(unsigned char *) "\xe2\x80\x93", 3, 0x2013}, /* (EN DASH) */
+    {(unsigned char *) "\xe2\x80\x94", 3, 0x2014}, /* (EM DASH) */
+    {(unsigned char *) "\xe2\x80\x9c", 3, 0x201C}, /* (LEFT DOUBLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x9d", 3, 0x201D}, /* (RIGHT DOUBLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x98", 3, 0x2018}, /* (LEFT SINGLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x99", 3, 0x2019}, /* (RIGHT SINGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
+    {(unsigned char *) "\xe2\x97\x8a", 3, 0x25CA}, /* (LOZENGE) */
+    {(unsigned char *) "\xc3\xbf", 2, 0x00FF}, /* (LATIN SMALL LETTER Y WITH DIAERESIS) */
+    {(unsigned char *) "\xc5\xb8", 2, 0x0178}, /* (LATIN CAPITAL LETTER Y WITH DIAERESIS) */
+    {(unsigned char *) "\xe2\x81\x84", 3, 0x2044}, /* (FRACTION SLASH) */
+    {(unsigned char *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
+    {(unsigned char *) "\xe2\x80\xb9", 3, 0x2039}, /* (SINGLE LEFT-POINTING ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\xba", 3, 0x203A}, /* (SINGLE RIGHT-POINTING ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xef\xac\x81", 3, 0xFB01}, /* (LATIN SMALL LIGATURE FI) */
+    {(unsigned char *) "\xef\xac\x82", 3, 0xFB02}, /* (LATIN SMALL LIGATURE FL) */
+    {(unsigned char *) "\xe2\x80\xa1", 3, 0x2021}, /* (DOUBLE DAGGER) */
+    {(unsigned char *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
+    {(unsigned char *) "\xe2\x80\x9a", 3, 0x201A}, /* (SINGLE LOW-9 QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x9e", 3, 0x201E}, /* (DOUBLE LOW-9 QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\xb0", 3, 0x2030}, /* (PER MILLE SIGN) */
+    {(unsigned char *) "\xc3\x82", 2, 0x00C2}, /* (LATIN CAPITAL LETTER A WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x8a", 2, 0x00CA}, /* (LATIN CAPITAL LETTER E WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x81", 2, 0x00C1}, /* (LATIN CAPITAL LETTER A WITH ACUTE) */
+    {(unsigned char *) "\xc3\x8b", 2, 0x00CB}, /* (LATIN CAPITAL LETTER E WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x88", 2, 0x00C8}, /* (LATIN CAPITAL LETTER E WITH GRAVE) */
+    {(unsigned char *) "\xc3\x8d", 2, 0x00CD}, /* (LATIN CAPITAL LETTER I WITH ACUTE) */
+    {(unsigned char *) "\xc3\x8e", 2, 0x00CE}, /* (LATIN CAPITAL LETTER I WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x8f", 2, 0x00CF}, /* (LATIN CAPITAL LETTER I WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x8c", 2, 0x00CC}, /* (LATIN CAPITAL LETTER I WITH GRAVE) */
+    {(unsigned char *) "\xc3\x93", 2, 0x00D3}, /* (LATIN CAPITAL LETTER O WITH ACUTE) */
+    {(unsigned char *) "\xc3\x94", 2, 0x00D4}, /* (LATIN CAPITAL LETTER O WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xef\xa3\xbf", 3, 0xF8FF}, /* (<Private Use>) */
+    {(unsigned char *) "\xc3\x92", 2, 0x00D2}, /* (LATIN CAPITAL LETTER O WITH GRAVE) */
+    {(unsigned char *) "\xc3\x9a", 2, 0x00DA}, /* (LATIN CAPITAL LETTER U WITH ACUTE) */
+    {(unsigned char *) "\xc3\x9b", 2, 0x00DB}, /* (LATIN CAPITAL LETTER U WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x99", 2, 0x00D9}, /* (LATIN CAPITAL LETTER U WITH GRAVE) */
+    {(unsigned char *) "\xc4\xb1", 2, 0x0131}, /* (LATIN SMALL LETTER DOTLESS I) */
+    {(unsigned char *) "\xcb\x86", 2, 0x02C6}, /* (MODIFIER LETTER CIRCUMFLEX ACCENT) */
+    {(unsigned char *) "\xcb\x9c", 2, 0x02DC}, /* (SMALL TILDE) */
+    {(unsigned char *) "\xc2\xaf", 2, 0x00AF}, /* (MACRON) */
+    {(unsigned char *) "\xcb\x98", 2, 0x02D8}, /* (BREVE) */
+    {(unsigned char *) "\xcb\x99", 2, 0x02D9}, /* (DOT ABOVE) */
+    {(unsigned char *) "\xcb\x9a", 2, 0x02DA}, /* (RING ABOVE) */
+    {(unsigned char *) "\xc2\xb8", 2, 0x00B8}, /* (CEDILLA) */
+    {(unsigned char *) "\xcb\x9d", 2, 0x02DD}, /* (DOUBLE ACUTE ACCENT) */
+    {(unsigned char *) "\xcb\x9b", 2, 0x02DB}, /* (OGONEK) */
+    {(unsigned char *) "\xcb\x87", 2, 0x02C7}, /* (CARON) */
 };
 
-LXB_API const lxb_encoding_single_index_t lxb_encoding_single_index_windows_1250[128] = 
+GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_windows_1250[128] = 
 {
-    {(lxb_char_t *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
-    {(lxb_char_t *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x80\x9a", 3, 0x201A}, /* (SINGLE LOW-9 QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\x83", 2, 0x0083}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x80\x9e", 3, 0x201E}, /* (DOUBLE LOW-9 QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\xa6", 3, 0x2026}, /* (HORIZONTAL ELLIPSIS) */
-    {(lxb_char_t *) "\xe2\x80\xa0", 3, 0x2020}, /* (DAGGER) */
-    {(lxb_char_t *) "\xe2\x80\xa1", 3, 0x2021}, /* (DOUBLE DAGGER) */
-    {(lxb_char_t *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x80\xb0", 3, 0x2030}, /* (PER MILLE SIGN) */
-    {(lxb_char_t *) "\xc5\xa0", 2, 0x0160}, /* (LATIN CAPITAL LETTER S WITH CARON) */
-    {(lxb_char_t *) "\xe2\x80\xb9", 3, 0x2039}, /* (SINGLE LEFT-POINTING ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc5\x9a", 2, 0x015A}, /* (LATIN CAPITAL LETTER S WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\xa4", 2, 0x0164}, /* (LATIN CAPITAL LETTER T WITH CARON) */
-    {(lxb_char_t *) "\xc5\xbd", 2, 0x017D}, /* (LATIN CAPITAL LETTER Z WITH CARON) */
-    {(lxb_char_t *) "\xc5\xb9", 2, 0x0179}, /* (LATIN CAPITAL LETTER Z WITH ACUTE) */
-    {(lxb_char_t *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x80\x98", 3, 0x2018}, /* (LEFT SINGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x99", 3, 0x2019}, /* (RIGHT SINGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x9c", 3, 0x201C}, /* (LEFT DOUBLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x9d", 3, 0x201D}, /* (RIGHT DOUBLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\xa2", 3, 0x2022}, /* (BULLET) */
-    {(lxb_char_t *) "\xe2\x80\x93", 3, 0x2013}, /* (EN DASH) */
-    {(lxb_char_t *) "\xe2\x80\x94", 3, 0x2014}, /* (EM DASH) */
-    {(lxb_char_t *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x84\xa2", 3, 0x2122}, /* (TRADE MARK SIGN) */
-    {(lxb_char_t *) "\xc5\xa1", 2, 0x0161}, /* (LATIN SMALL LETTER S WITH CARON) */
-    {(lxb_char_t *) "\xe2\x80\xba", 3, 0x203A}, /* (SINGLE RIGHT-POINTING ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc5\x9b", 2, 0x015B}, /* (LATIN SMALL LETTER S WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\xa5", 2, 0x0165}, /* (LATIN SMALL LETTER T WITH CARON) */
-    {(lxb_char_t *) "\xc5\xbe", 2, 0x017E}, /* (LATIN SMALL LETTER Z WITH CARON) */
-    {(lxb_char_t *) "\xc5\xba", 2, 0x017A}, /* (LATIN SMALL LETTER Z WITH ACUTE) */
-    {(lxb_char_t *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
-    {(lxb_char_t *) "\xcb\x87", 2, 0x02C7}, /* (CARON) */
-    {(lxb_char_t *) "\xcb\x98", 2, 0x02D8}, /* (BREVE) */
-    {(lxb_char_t *) "\xc5\x81", 2, 0x0141}, /* (LATIN CAPITAL LETTER L WITH STROKE) */
-    {(lxb_char_t *) "\xc2\xa4", 2, 0x00A4}, /* (CURRENCY SIGN) */
-    {(lxb_char_t *) "\xc4\x84", 2, 0x0104}, /* (LATIN CAPITAL LETTER A WITH OGONEK) */
-    {(lxb_char_t *) "\xc2\xa6", 2, 0x00A6}, /* (BROKEN BAR) */
-    {(lxb_char_t *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
-    {(lxb_char_t *) "\xc2\xa8", 2, 0x00A8}, /* (DIAERESIS) */
-    {(lxb_char_t *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
-    {(lxb_char_t *) "\xc5\x9e", 2, 0x015E}, /* (LATIN CAPITAL LETTER S WITH CEDILLA) */
-    {(lxb_char_t *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\xac", 2, 0x00AC}, /* (NOT SIGN) */
-    {(lxb_char_t *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
-    {(lxb_char_t *) "\xc2\xae", 2, 0x00AE}, /* (REGISTERED SIGN) */
-    {(lxb_char_t *) "\xc5\xbb", 2, 0x017B}, /* (LATIN CAPITAL LETTER Z WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
-    {(lxb_char_t *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
-    {(lxb_char_t *) "\xcb\x9b", 2, 0x02DB}, /* (OGONEK) */
-    {(lxb_char_t *) "\xc5\x82", 2, 0x0142}, /* (LATIN SMALL LETTER L WITH STROKE) */
-    {(lxb_char_t *) "\xc2\xb4", 2, 0x00B4}, /* (ACUTE ACCENT) */
-    {(lxb_char_t *) "\xc2\xb5", 2, 0x00B5}, /* (MICRO SIGN) */
-    {(lxb_char_t *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
-    {(lxb_char_t *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
-    {(lxb_char_t *) "\xc2\xb8", 2, 0x00B8}, /* (CEDILLA) */
-    {(lxb_char_t *) "\xc4\x85", 2, 0x0105}, /* (LATIN SMALL LETTER A WITH OGONEK) */
-    {(lxb_char_t *) "\xc5\x9f", 2, 0x015F}, /* (LATIN SMALL LETTER S WITH CEDILLA) */
-    {(lxb_char_t *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc4\xbd", 2, 0x013D}, /* (LATIN CAPITAL LETTER L WITH CARON) */
-    {(lxb_char_t *) "\xcb\x9d", 2, 0x02DD}, /* (DOUBLE ACUTE ACCENT) */
-    {(lxb_char_t *) "\xc4\xbe", 2, 0x013E}, /* (LATIN SMALL LETTER L WITH CARON) */
-    {(lxb_char_t *) "\xc5\xbc", 2, 0x017C}, /* (LATIN SMALL LETTER Z WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc5\x94", 2, 0x0154}, /* (LATIN CAPITAL LETTER R WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x81", 2, 0x00C1}, /* (LATIN CAPITAL LETTER A WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x82", 2, 0x00C2}, /* (LATIN CAPITAL LETTER A WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc4\x82", 2, 0x0102}, /* (LATIN CAPITAL LETTER A WITH BREVE) */
-    {(lxb_char_t *) "\xc3\x84", 2, 0x00C4}, /* (LATIN CAPITAL LETTER A WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc4\xb9", 2, 0x0139}, /* (LATIN CAPITAL LETTER L WITH ACUTE) */
-    {(lxb_char_t *) "\xc4\x86", 2, 0x0106}, /* (LATIN CAPITAL LETTER C WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x87", 2, 0x00C7}, /* (LATIN CAPITAL LETTER C WITH CEDILLA) */
-    {(lxb_char_t *) "\xc4\x8c", 2, 0x010C}, /* (LATIN CAPITAL LETTER C WITH CARON) */
-    {(lxb_char_t *) "\xc3\x89", 2, 0x00C9}, /* (LATIN CAPITAL LETTER E WITH ACUTE) */
-    {(lxb_char_t *) "\xc4\x98", 2, 0x0118}, /* (LATIN CAPITAL LETTER E WITH OGONEK) */
-    {(lxb_char_t *) "\xc3\x8b", 2, 0x00CB}, /* (LATIN CAPITAL LETTER E WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc4\x9a", 2, 0x011A}, /* (LATIN CAPITAL LETTER E WITH CARON) */
-    {(lxb_char_t *) "\xc3\x8d", 2, 0x00CD}, /* (LATIN CAPITAL LETTER I WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x8e", 2, 0x00CE}, /* (LATIN CAPITAL LETTER I WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc4\x8e", 2, 0x010E}, /* (LATIN CAPITAL LETTER D WITH CARON) */
-    {(lxb_char_t *) "\xc4\x90", 2, 0x0110}, /* (LATIN CAPITAL LETTER D WITH STROKE) */
-    {(lxb_char_t *) "\xc5\x83", 2, 0x0143}, /* (LATIN CAPITAL LETTER N WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\x87", 2, 0x0147}, /* (LATIN CAPITAL LETTER N WITH CARON) */
-    {(lxb_char_t *) "\xc3\x93", 2, 0x00D3}, /* (LATIN CAPITAL LETTER O WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x94", 2, 0x00D4}, /* (LATIN CAPITAL LETTER O WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc5\x90", 2, 0x0150}, /* (LATIN CAPITAL LETTER O WITH DOUBLE ACUTE) */
-    {(lxb_char_t *) "\xc3\x96", 2, 0x00D6}, /* (LATIN CAPITAL LETTER O WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x97", 2, 0x00D7}, /* (MULTIPLICATION SIGN) */
-    {(lxb_char_t *) "\xc5\x98", 2, 0x0158}, /* (LATIN CAPITAL LETTER R WITH CARON) */
-    {(lxb_char_t *) "\xc5\xae", 2, 0x016E}, /* (LATIN CAPITAL LETTER U WITH RING ABOVE) */
-    {(lxb_char_t *) "\xc3\x9a", 2, 0x00DA}, /* (LATIN CAPITAL LETTER U WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\xb0", 2, 0x0170}, /* (LATIN CAPITAL LETTER U WITH DOUBLE ACUTE) */
-    {(lxb_char_t *) "\xc3\x9c", 2, 0x00DC}, /* (LATIN CAPITAL LETTER U WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x9d", 2, 0x00DD}, /* (LATIN CAPITAL LETTER Y WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\xa2", 2, 0x0162}, /* (LATIN CAPITAL LETTER T WITH CEDILLA) */
-    {(lxb_char_t *) "\xc3\x9f", 2, 0x00DF}, /* (LATIN SMALL LETTER SHARP S) */
-    {(lxb_char_t *) "\xc5\x95", 2, 0x0155}, /* (LATIN SMALL LETTER R WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xa1", 2, 0x00E1}, /* (LATIN SMALL LETTER A WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xa2", 2, 0x00E2}, /* (LATIN SMALL LETTER A WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc4\x83", 2, 0x0103}, /* (LATIN SMALL LETTER A WITH BREVE) */
-    {(lxb_char_t *) "\xc3\xa4", 2, 0x00E4}, /* (LATIN SMALL LETTER A WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc4\xba", 2, 0x013A}, /* (LATIN SMALL LETTER L WITH ACUTE) */
-    {(lxb_char_t *) "\xc4\x87", 2, 0x0107}, /* (LATIN SMALL LETTER C WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xa7", 2, 0x00E7}, /* (LATIN SMALL LETTER C WITH CEDILLA) */
-    {(lxb_char_t *) "\xc4\x8d", 2, 0x010D}, /* (LATIN SMALL LETTER C WITH CARON) */
-    {(lxb_char_t *) "\xc3\xa9", 2, 0x00E9}, /* (LATIN SMALL LETTER E WITH ACUTE) */
-    {(lxb_char_t *) "\xc4\x99", 2, 0x0119}, /* (LATIN SMALL LETTER E WITH OGONEK) */
-    {(lxb_char_t *) "\xc3\xab", 2, 0x00EB}, /* (LATIN SMALL LETTER E WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc4\x9b", 2, 0x011B}, /* (LATIN SMALL LETTER E WITH CARON) */
-    {(lxb_char_t *) "\xc3\xad", 2, 0x00ED}, /* (LATIN SMALL LETTER I WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xae", 2, 0x00EE}, /* (LATIN SMALL LETTER I WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc4\x8f", 2, 0x010F}, /* (LATIN SMALL LETTER D WITH CARON) */
-    {(lxb_char_t *) "\xc4\x91", 2, 0x0111}, /* (LATIN SMALL LETTER D WITH STROKE) */
-    {(lxb_char_t *) "\xc5\x84", 2, 0x0144}, /* (LATIN SMALL LETTER N WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\x88", 2, 0x0148}, /* (LATIN SMALL LETTER N WITH CARON) */
-    {(lxb_char_t *) "\xc3\xb3", 2, 0x00F3}, /* (LATIN SMALL LETTER O WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xb4", 2, 0x00F4}, /* (LATIN SMALL LETTER O WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc5\x91", 2, 0x0151}, /* (LATIN SMALL LETTER O WITH DOUBLE ACUTE) */
-    {(lxb_char_t *) "\xc3\xb6", 2, 0x00F6}, /* (LATIN SMALL LETTER O WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
-    {(lxb_char_t *) "\xc5\x99", 2, 0x0159}, /* (LATIN SMALL LETTER R WITH CARON) */
-    {(lxb_char_t *) "\xc5\xaf", 2, 0x016F}, /* (LATIN SMALL LETTER U WITH RING ABOVE) */
-    {(lxb_char_t *) "\xc3\xba", 2, 0x00FA}, /* (LATIN SMALL LETTER U WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\xb1", 2, 0x0171}, /* (LATIN SMALL LETTER U WITH DOUBLE ACUTE) */
-    {(lxb_char_t *) "\xc3\xbc", 2, 0x00FC}, /* (LATIN SMALL LETTER U WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xbd", 2, 0x00FD}, /* (LATIN SMALL LETTER Y WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\xa3", 2, 0x0163}, /* (LATIN SMALL LETTER T WITH CEDILLA) */
-    {(lxb_char_t *) "\xcb\x99", 2, 0x02D9}, /* (DOT ABOVE) */
+    {(unsigned char *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
+    {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
+    {(unsigned char *) "\xe2\x80\x9a", 3, 0x201A}, /* (SINGLE LOW-9 QUOTATION MARK) */
+    {(unsigned char *) "\xc2\x83", 2, 0x0083}, /* (<control>) */
+    {(unsigned char *) "\xe2\x80\x9e", 3, 0x201E}, /* (DOUBLE LOW-9 QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\xa6", 3, 0x2026}, /* (HORIZONTAL ELLIPSIS) */
+    {(unsigned char *) "\xe2\x80\xa0", 3, 0x2020}, /* (DAGGER) */
+    {(unsigned char *) "\xe2\x80\xa1", 3, 0x2021}, /* (DOUBLE DAGGER) */
+    {(unsigned char *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
+    {(unsigned char *) "\xe2\x80\xb0", 3, 0x2030}, /* (PER MILLE SIGN) */
+    {(unsigned char *) "\xc5\xa0", 2, 0x0160}, /* (LATIN CAPITAL LETTER S WITH CARON) */
+    {(unsigned char *) "\xe2\x80\xb9", 3, 0x2039}, /* (SINGLE LEFT-POINTING ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc5\x9a", 2, 0x015A}, /* (LATIN CAPITAL LETTER S WITH ACUTE) */
+    {(unsigned char *) "\xc5\xa4", 2, 0x0164}, /* (LATIN CAPITAL LETTER T WITH CARON) */
+    {(unsigned char *) "\xc5\xbd", 2, 0x017D}, /* (LATIN CAPITAL LETTER Z WITH CARON) */
+    {(unsigned char *) "\xc5\xb9", 2, 0x0179}, /* (LATIN CAPITAL LETTER Z WITH ACUTE) */
+    {(unsigned char *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
+    {(unsigned char *) "\xe2\x80\x98", 3, 0x2018}, /* (LEFT SINGLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x99", 3, 0x2019}, /* (RIGHT SINGLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x9c", 3, 0x201C}, /* (LEFT DOUBLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x9d", 3, 0x201D}, /* (RIGHT DOUBLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\xa2", 3, 0x2022}, /* (BULLET) */
+    {(unsigned char *) "\xe2\x80\x93", 3, 0x2013}, /* (EN DASH) */
+    {(unsigned char *) "\xe2\x80\x94", 3, 0x2014}, /* (EM DASH) */
+    {(unsigned char *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
+    {(unsigned char *) "\xe2\x84\xa2", 3, 0x2122}, /* (TRADE MARK SIGN) */
+    {(unsigned char *) "\xc5\xa1", 2, 0x0161}, /* (LATIN SMALL LETTER S WITH CARON) */
+    {(unsigned char *) "\xe2\x80\xba", 3, 0x203A}, /* (SINGLE RIGHT-POINTING ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc5\x9b", 2, 0x015B}, /* (LATIN SMALL LETTER S WITH ACUTE) */
+    {(unsigned char *) "\xc5\xa5", 2, 0x0165}, /* (LATIN SMALL LETTER T WITH CARON) */
+    {(unsigned char *) "\xc5\xbe", 2, 0x017E}, /* (LATIN SMALL LETTER Z WITH CARON) */
+    {(unsigned char *) "\xc5\xba", 2, 0x017A}, /* (LATIN SMALL LETTER Z WITH ACUTE) */
+    {(unsigned char *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
+    {(unsigned char *) "\xcb\x87", 2, 0x02C7}, /* (CARON) */
+    {(unsigned char *) "\xcb\x98", 2, 0x02D8}, /* (BREVE) */
+    {(unsigned char *) "\xc5\x81", 2, 0x0141}, /* (LATIN CAPITAL LETTER L WITH STROKE) */
+    {(unsigned char *) "\xc2\xa4", 2, 0x00A4}, /* (CURRENCY SIGN) */
+    {(unsigned char *) "\xc4\x84", 2, 0x0104}, /* (LATIN CAPITAL LETTER A WITH OGONEK) */
+    {(unsigned char *) "\xc2\xa6", 2, 0x00A6}, /* (BROKEN BAR) */
+    {(unsigned char *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
+    {(unsigned char *) "\xc2\xa8", 2, 0x00A8}, /* (DIAERESIS) */
+    {(unsigned char *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
+    {(unsigned char *) "\xc5\x9e", 2, 0x015E}, /* (LATIN CAPITAL LETTER S WITH CEDILLA) */
+    {(unsigned char *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\xac", 2, 0x00AC}, /* (NOT SIGN) */
+    {(unsigned char *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
+    {(unsigned char *) "\xc2\xae", 2, 0x00AE}, /* (REGISTERED SIGN) */
+    {(unsigned char *) "\xc5\xbb", 2, 0x017B}, /* (LATIN CAPITAL LETTER Z WITH DOT ABOVE) */
+    {(unsigned char *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
+    {(unsigned char *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
+    {(unsigned char *) "\xcb\x9b", 2, 0x02DB}, /* (OGONEK) */
+    {(unsigned char *) "\xc5\x82", 2, 0x0142}, /* (LATIN SMALL LETTER L WITH STROKE) */
+    {(unsigned char *) "\xc2\xb4", 2, 0x00B4}, /* (ACUTE ACCENT) */
+    {(unsigned char *) "\xc2\xb5", 2, 0x00B5}, /* (MICRO SIGN) */
+    {(unsigned char *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
+    {(unsigned char *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
+    {(unsigned char *) "\xc2\xb8", 2, 0x00B8}, /* (CEDILLA) */
+    {(unsigned char *) "\xc4\x85", 2, 0x0105}, /* (LATIN SMALL LETTER A WITH OGONEK) */
+    {(unsigned char *) "\xc5\x9f", 2, 0x015F}, /* (LATIN SMALL LETTER S WITH CEDILLA) */
+    {(unsigned char *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc4\xbd", 2, 0x013D}, /* (LATIN CAPITAL LETTER L WITH CARON) */
+    {(unsigned char *) "\xcb\x9d", 2, 0x02DD}, /* (DOUBLE ACUTE ACCENT) */
+    {(unsigned char *) "\xc4\xbe", 2, 0x013E}, /* (LATIN SMALL LETTER L WITH CARON) */
+    {(unsigned char *) "\xc5\xbc", 2, 0x017C}, /* (LATIN SMALL LETTER Z WITH DOT ABOVE) */
+    {(unsigned char *) "\xc5\x94", 2, 0x0154}, /* (LATIN CAPITAL LETTER R WITH ACUTE) */
+    {(unsigned char *) "\xc3\x81", 2, 0x00C1}, /* (LATIN CAPITAL LETTER A WITH ACUTE) */
+    {(unsigned char *) "\xc3\x82", 2, 0x00C2}, /* (LATIN CAPITAL LETTER A WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc4\x82", 2, 0x0102}, /* (LATIN CAPITAL LETTER A WITH BREVE) */
+    {(unsigned char *) "\xc3\x84", 2, 0x00C4}, /* (LATIN CAPITAL LETTER A WITH DIAERESIS) */
+    {(unsigned char *) "\xc4\xb9", 2, 0x0139}, /* (LATIN CAPITAL LETTER L WITH ACUTE) */
+    {(unsigned char *) "\xc4\x86", 2, 0x0106}, /* (LATIN CAPITAL LETTER C WITH ACUTE) */
+    {(unsigned char *) "\xc3\x87", 2, 0x00C7}, /* (LATIN CAPITAL LETTER C WITH CEDILLA) */
+    {(unsigned char *) "\xc4\x8c", 2, 0x010C}, /* (LATIN CAPITAL LETTER C WITH CARON) */
+    {(unsigned char *) "\xc3\x89", 2, 0x00C9}, /* (LATIN CAPITAL LETTER E WITH ACUTE) */
+    {(unsigned char *) "\xc4\x98", 2, 0x0118}, /* (LATIN CAPITAL LETTER E WITH OGONEK) */
+    {(unsigned char *) "\xc3\x8b", 2, 0x00CB}, /* (LATIN CAPITAL LETTER E WITH DIAERESIS) */
+    {(unsigned char *) "\xc4\x9a", 2, 0x011A}, /* (LATIN CAPITAL LETTER E WITH CARON) */
+    {(unsigned char *) "\xc3\x8d", 2, 0x00CD}, /* (LATIN CAPITAL LETTER I WITH ACUTE) */
+    {(unsigned char *) "\xc3\x8e", 2, 0x00CE}, /* (LATIN CAPITAL LETTER I WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc4\x8e", 2, 0x010E}, /* (LATIN CAPITAL LETTER D WITH CARON) */
+    {(unsigned char *) "\xc4\x90", 2, 0x0110}, /* (LATIN CAPITAL LETTER D WITH STROKE) */
+    {(unsigned char *) "\xc5\x83", 2, 0x0143}, /* (LATIN CAPITAL LETTER N WITH ACUTE) */
+    {(unsigned char *) "\xc5\x87", 2, 0x0147}, /* (LATIN CAPITAL LETTER N WITH CARON) */
+    {(unsigned char *) "\xc3\x93", 2, 0x00D3}, /* (LATIN CAPITAL LETTER O WITH ACUTE) */
+    {(unsigned char *) "\xc3\x94", 2, 0x00D4}, /* (LATIN CAPITAL LETTER O WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc5\x90", 2, 0x0150}, /* (LATIN CAPITAL LETTER O WITH DOUBLE ACUTE) */
+    {(unsigned char *) "\xc3\x96", 2, 0x00D6}, /* (LATIN CAPITAL LETTER O WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x97", 2, 0x00D7}, /* (MULTIPLICATION SIGN) */
+    {(unsigned char *) "\xc5\x98", 2, 0x0158}, /* (LATIN CAPITAL LETTER R WITH CARON) */
+    {(unsigned char *) "\xc5\xae", 2, 0x016E}, /* (LATIN CAPITAL LETTER U WITH RING ABOVE) */
+    {(unsigned char *) "\xc3\x9a", 2, 0x00DA}, /* (LATIN CAPITAL LETTER U WITH ACUTE) */
+    {(unsigned char *) "\xc5\xb0", 2, 0x0170}, /* (LATIN CAPITAL LETTER U WITH DOUBLE ACUTE) */
+    {(unsigned char *) "\xc3\x9c", 2, 0x00DC}, /* (LATIN CAPITAL LETTER U WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x9d", 2, 0x00DD}, /* (LATIN CAPITAL LETTER Y WITH ACUTE) */
+    {(unsigned char *) "\xc5\xa2", 2, 0x0162}, /* (LATIN CAPITAL LETTER T WITH CEDILLA) */
+    {(unsigned char *) "\xc3\x9f", 2, 0x00DF}, /* (LATIN SMALL LETTER SHARP S) */
+    {(unsigned char *) "\xc5\x95", 2, 0x0155}, /* (LATIN SMALL LETTER R WITH ACUTE) */
+    {(unsigned char *) "\xc3\xa1", 2, 0x00E1}, /* (LATIN SMALL LETTER A WITH ACUTE) */
+    {(unsigned char *) "\xc3\xa2", 2, 0x00E2}, /* (LATIN SMALL LETTER A WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc4\x83", 2, 0x0103}, /* (LATIN SMALL LETTER A WITH BREVE) */
+    {(unsigned char *) "\xc3\xa4", 2, 0x00E4}, /* (LATIN SMALL LETTER A WITH DIAERESIS) */
+    {(unsigned char *) "\xc4\xba", 2, 0x013A}, /* (LATIN SMALL LETTER L WITH ACUTE) */
+    {(unsigned char *) "\xc4\x87", 2, 0x0107}, /* (LATIN SMALL LETTER C WITH ACUTE) */
+    {(unsigned char *) "\xc3\xa7", 2, 0x00E7}, /* (LATIN SMALL LETTER C WITH CEDILLA) */
+    {(unsigned char *) "\xc4\x8d", 2, 0x010D}, /* (LATIN SMALL LETTER C WITH CARON) */
+    {(unsigned char *) "\xc3\xa9", 2, 0x00E9}, /* (LATIN SMALL LETTER E WITH ACUTE) */
+    {(unsigned char *) "\xc4\x99", 2, 0x0119}, /* (LATIN SMALL LETTER E WITH OGONEK) */
+    {(unsigned char *) "\xc3\xab", 2, 0x00EB}, /* (LATIN SMALL LETTER E WITH DIAERESIS) */
+    {(unsigned char *) "\xc4\x9b", 2, 0x011B}, /* (LATIN SMALL LETTER E WITH CARON) */
+    {(unsigned char *) "\xc3\xad", 2, 0x00ED}, /* (LATIN SMALL LETTER I WITH ACUTE) */
+    {(unsigned char *) "\xc3\xae", 2, 0x00EE}, /* (LATIN SMALL LETTER I WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc4\x8f", 2, 0x010F}, /* (LATIN SMALL LETTER D WITH CARON) */
+    {(unsigned char *) "\xc4\x91", 2, 0x0111}, /* (LATIN SMALL LETTER D WITH STROKE) */
+    {(unsigned char *) "\xc5\x84", 2, 0x0144}, /* (LATIN SMALL LETTER N WITH ACUTE) */
+    {(unsigned char *) "\xc5\x88", 2, 0x0148}, /* (LATIN SMALL LETTER N WITH CARON) */
+    {(unsigned char *) "\xc3\xb3", 2, 0x00F3}, /* (LATIN SMALL LETTER O WITH ACUTE) */
+    {(unsigned char *) "\xc3\xb4", 2, 0x00F4}, /* (LATIN SMALL LETTER O WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc5\x91", 2, 0x0151}, /* (LATIN SMALL LETTER O WITH DOUBLE ACUTE) */
+    {(unsigned char *) "\xc3\xb6", 2, 0x00F6}, /* (LATIN SMALL LETTER O WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
+    {(unsigned char *) "\xc5\x99", 2, 0x0159}, /* (LATIN SMALL LETTER R WITH CARON) */
+    {(unsigned char *) "\xc5\xaf", 2, 0x016F}, /* (LATIN SMALL LETTER U WITH RING ABOVE) */
+    {(unsigned char *) "\xc3\xba", 2, 0x00FA}, /* (LATIN SMALL LETTER U WITH ACUTE) */
+    {(unsigned char *) "\xc5\xb1", 2, 0x0171}, /* (LATIN SMALL LETTER U WITH DOUBLE ACUTE) */
+    {(unsigned char *) "\xc3\xbc", 2, 0x00FC}, /* (LATIN SMALL LETTER U WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xbd", 2, 0x00FD}, /* (LATIN SMALL LETTER Y WITH ACUTE) */
+    {(unsigned char *) "\xc5\xa3", 2, 0x0163}, /* (LATIN SMALL LETTER T WITH CEDILLA) */
+    {(unsigned char *) "\xcb\x99", 2, 0x02D9}, /* (DOT ABOVE) */
 };
 
-LXB_API const lxb_encoding_single_index_t lxb_encoding_single_index_windows_1251[128] = 
+GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_windows_1251[128] = 
 {
-    {(lxb_char_t *) "\xd0\x82", 2, 0x0402}, /* (CYRILLIC CAPITAL LETTER DJE) */
-    {(lxb_char_t *) "\xd0\x83", 2, 0x0403}, /* (CYRILLIC CAPITAL LETTER GJE) */
-    {(lxb_char_t *) "\xe2\x80\x9a", 3, 0x201A}, /* (SINGLE LOW-9 QUOTATION MARK) */
-    {(lxb_char_t *) "\xd1\x93", 2, 0x0453}, /* (CYRILLIC SMALL LETTER GJE) */
-    {(lxb_char_t *) "\xe2\x80\x9e", 3, 0x201E}, /* (DOUBLE LOW-9 QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\xa6", 3, 0x2026}, /* (HORIZONTAL ELLIPSIS) */
-    {(lxb_char_t *) "\xe2\x80\xa0", 3, 0x2020}, /* (DAGGER) */
-    {(lxb_char_t *) "\xe2\x80\xa1", 3, 0x2021}, /* (DOUBLE DAGGER) */
-    {(lxb_char_t *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
-    {(lxb_char_t *) "\xe2\x80\xb0", 3, 0x2030}, /* (PER MILLE SIGN) */
-    {(lxb_char_t *) "\xd0\x89", 2, 0x0409}, /* (CYRILLIC CAPITAL LETTER LJE) */
-    {(lxb_char_t *) "\xe2\x80\xb9", 3, 0x2039}, /* (SINGLE LEFT-POINTING ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xd0\x8a", 2, 0x040A}, /* (CYRILLIC CAPITAL LETTER NJE) */
-    {(lxb_char_t *) "\xd0\x8c", 2, 0x040C}, /* (CYRILLIC CAPITAL LETTER KJE) */
-    {(lxb_char_t *) "\xd0\x8b", 2, 0x040B}, /* (CYRILLIC CAPITAL LETTER TSHE) */
-    {(lxb_char_t *) "\xd0\x8f", 2, 0x040F}, /* (CYRILLIC CAPITAL LETTER DZHE) */
-    {(lxb_char_t *) "\xd1\x92", 2, 0x0452}, /* (CYRILLIC SMALL LETTER DJE) */
-    {(lxb_char_t *) "\xe2\x80\x98", 3, 0x2018}, /* (LEFT SINGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x99", 3, 0x2019}, /* (RIGHT SINGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x9c", 3, 0x201C}, /* (LEFT DOUBLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x9d", 3, 0x201D}, /* (RIGHT DOUBLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\xa2", 3, 0x2022}, /* (BULLET) */
-    {(lxb_char_t *) "\xe2\x80\x93", 3, 0x2013}, /* (EN DASH) */
-    {(lxb_char_t *) "\xe2\x80\x94", 3, 0x2014}, /* (EM DASH) */
-    {(lxb_char_t *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x84\xa2", 3, 0x2122}, /* (TRADE MARK SIGN) */
-    {(lxb_char_t *) "\xd1\x99", 2, 0x0459}, /* (CYRILLIC SMALL LETTER LJE) */
-    {(lxb_char_t *) "\xe2\x80\xba", 3, 0x203A}, /* (SINGLE RIGHT-POINTING ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xd1\x9a", 2, 0x045A}, /* (CYRILLIC SMALL LETTER NJE) */
-    {(lxb_char_t *) "\xd1\x9c", 2, 0x045C}, /* (CYRILLIC SMALL LETTER KJE) */
-    {(lxb_char_t *) "\xd1\x9b", 2, 0x045B}, /* (CYRILLIC SMALL LETTER TSHE) */
-    {(lxb_char_t *) "\xd1\x9f", 2, 0x045F}, /* (CYRILLIC SMALL LETTER DZHE) */
-    {(lxb_char_t *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
-    {(lxb_char_t *) "\xd0\x8e", 2, 0x040E}, /* (CYRILLIC CAPITAL LETTER SHORT U) */
-    {(lxb_char_t *) "\xd1\x9e", 2, 0x045E}, /* (CYRILLIC SMALL LETTER SHORT U) */
-    {(lxb_char_t *) "\xd0\x88", 2, 0x0408}, /* (CYRILLIC CAPITAL LETTER JE) */
-    {(lxb_char_t *) "\xc2\xa4", 2, 0x00A4}, /* (CURRENCY SIGN) */
-    {(lxb_char_t *) "\xd2\x90", 2, 0x0490}, /* (CYRILLIC CAPITAL LETTER GHE WITH UPTURN) */
-    {(lxb_char_t *) "\xc2\xa6", 2, 0x00A6}, /* (BROKEN BAR) */
-    {(lxb_char_t *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
-    {(lxb_char_t *) "\xd0\x81", 2, 0x0401}, /* (CYRILLIC CAPITAL LETTER IO) */
-    {(lxb_char_t *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
-    {(lxb_char_t *) "\xd0\x84", 2, 0x0404}, /* (CYRILLIC CAPITAL LETTER UKRAINIAN IE) */
-    {(lxb_char_t *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\xac", 2, 0x00AC}, /* (NOT SIGN) */
-    {(lxb_char_t *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
-    {(lxb_char_t *) "\xc2\xae", 2, 0x00AE}, /* (REGISTERED SIGN) */
-    {(lxb_char_t *) "\xd0\x87", 2, 0x0407}, /* (CYRILLIC CAPITAL LETTER YI) */
-    {(lxb_char_t *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
-    {(lxb_char_t *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
-    {(lxb_char_t *) "\xd0\x86", 2, 0x0406}, /* (CYRILLIC CAPITAL LETTER BYELORUSSIAN-UKRAINIAN I) */
-    {(lxb_char_t *) "\xd1\x96", 2, 0x0456}, /* (CYRILLIC SMALL LETTER BYELORUSSIAN-UKRAINIAN I) */
-    {(lxb_char_t *) "\xd2\x91", 2, 0x0491}, /* (CYRILLIC SMALL LETTER GHE WITH UPTURN) */
-    {(lxb_char_t *) "\xc2\xb5", 2, 0x00B5}, /* (MICRO SIGN) */
-    {(lxb_char_t *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
-    {(lxb_char_t *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
-    {(lxb_char_t *) "\xd1\x91", 2, 0x0451}, /* (CYRILLIC SMALL LETTER IO) */
-    {(lxb_char_t *) "\xe2\x84\x96", 3, 0x2116}, /* (NUMERO SIGN) */
-    {(lxb_char_t *) "\xd1\x94", 2, 0x0454}, /* (CYRILLIC SMALL LETTER UKRAINIAN IE) */
-    {(lxb_char_t *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xd1\x98", 2, 0x0458}, /* (CYRILLIC SMALL LETTER JE) */
-    {(lxb_char_t *) "\xd0\x85", 2, 0x0405}, /* (CYRILLIC CAPITAL LETTER DZE) */
-    {(lxb_char_t *) "\xd1\x95", 2, 0x0455}, /* (CYRILLIC SMALL LETTER DZE) */
-    {(lxb_char_t *) "\xd1\x97", 2, 0x0457}, /* (CYRILLIC SMALL LETTER YI) */
-    {(lxb_char_t *) "\xd0\x90", 2, 0x0410}, /* (CYRILLIC CAPITAL LETTER A) */
-    {(lxb_char_t *) "\xd0\x91", 2, 0x0411}, /* (CYRILLIC CAPITAL LETTER BE) */
-    {(lxb_char_t *) "\xd0\x92", 2, 0x0412}, /* (CYRILLIC CAPITAL LETTER VE) */
-    {(lxb_char_t *) "\xd0\x93", 2, 0x0413}, /* (CYRILLIC CAPITAL LETTER GHE) */
-    {(lxb_char_t *) "\xd0\x94", 2, 0x0414}, /* (CYRILLIC CAPITAL LETTER DE) */
-    {(lxb_char_t *) "\xd0\x95", 2, 0x0415}, /* (CYRILLIC CAPITAL LETTER IE) */
-    {(lxb_char_t *) "\xd0\x96", 2, 0x0416}, /* (CYRILLIC CAPITAL LETTER ZHE) */
-    {(lxb_char_t *) "\xd0\x97", 2, 0x0417}, /* (CYRILLIC CAPITAL LETTER ZE) */
-    {(lxb_char_t *) "\xd0\x98", 2, 0x0418}, /* (CYRILLIC CAPITAL LETTER I) */
-    {(lxb_char_t *) "\xd0\x99", 2, 0x0419}, /* (CYRILLIC CAPITAL LETTER SHORT I) */
-    {(lxb_char_t *) "\xd0\x9a", 2, 0x041A}, /* (CYRILLIC CAPITAL LETTER KA) */
-    {(lxb_char_t *) "\xd0\x9b", 2, 0x041B}, /* (CYRILLIC CAPITAL LETTER EL) */
-    {(lxb_char_t *) "\xd0\x9c", 2, 0x041C}, /* (CYRILLIC CAPITAL LETTER EM) */
-    {(lxb_char_t *) "\xd0\x9d", 2, 0x041D}, /* (CYRILLIC CAPITAL LETTER EN) */
-    {(lxb_char_t *) "\xd0\x9e", 2, 0x041E}, /* (CYRILLIC CAPITAL LETTER O) */
-    {(lxb_char_t *) "\xd0\x9f", 2, 0x041F}, /* (CYRILLIC CAPITAL LETTER PE) */
-    {(lxb_char_t *) "\xd0\xa0", 2, 0x0420}, /* (CYRILLIC CAPITAL LETTER ER) */
-    {(lxb_char_t *) "\xd0\xa1", 2, 0x0421}, /* (CYRILLIC CAPITAL LETTER ES) */
-    {(lxb_char_t *) "\xd0\xa2", 2, 0x0422}, /* (CYRILLIC CAPITAL LETTER TE) */
-    {(lxb_char_t *) "\xd0\xa3", 2, 0x0423}, /* (CYRILLIC CAPITAL LETTER U) */
-    {(lxb_char_t *) "\xd0\xa4", 2, 0x0424}, /* (CYRILLIC CAPITAL LETTER EF) */
-    {(lxb_char_t *) "\xd0\xa5", 2, 0x0425}, /* (CYRILLIC CAPITAL LETTER HA) */
-    {(lxb_char_t *) "\xd0\xa6", 2, 0x0426}, /* (CYRILLIC CAPITAL LETTER TSE) */
-    {(lxb_char_t *) "\xd0\xa7", 2, 0x0427}, /* (CYRILLIC CAPITAL LETTER CHE) */
-    {(lxb_char_t *) "\xd0\xa8", 2, 0x0428}, /* (CYRILLIC CAPITAL LETTER SHA) */
-    {(lxb_char_t *) "\xd0\xa9", 2, 0x0429}, /* (CYRILLIC CAPITAL LETTER SHCHA) */
-    {(lxb_char_t *) "\xd0\xaa", 2, 0x042A}, /* (CYRILLIC CAPITAL LETTER HARD SIGN) */
-    {(lxb_char_t *) "\xd0\xab", 2, 0x042B}, /* (CYRILLIC CAPITAL LETTER YERU) */
-    {(lxb_char_t *) "\xd0\xac", 2, 0x042C}, /* (CYRILLIC CAPITAL LETTER SOFT SIGN) */
-    {(lxb_char_t *) "\xd0\xad", 2, 0x042D}, /* (CYRILLIC CAPITAL LETTER E) */
-    {(lxb_char_t *) "\xd0\xae", 2, 0x042E}, /* (CYRILLIC CAPITAL LETTER YU) */
-    {(lxb_char_t *) "\xd0\xaf", 2, 0x042F}, /* (CYRILLIC CAPITAL LETTER YA) */
-    {(lxb_char_t *) "\xd0\xb0", 2, 0x0430}, /* (CYRILLIC SMALL LETTER A) */
-    {(lxb_char_t *) "\xd0\xb1", 2, 0x0431}, /* (CYRILLIC SMALL LETTER BE) */
-    {(lxb_char_t *) "\xd0\xb2", 2, 0x0432}, /* (CYRILLIC SMALL LETTER VE) */
-    {(lxb_char_t *) "\xd0\xb3", 2, 0x0433}, /* (CYRILLIC SMALL LETTER GHE) */
-    {(lxb_char_t *) "\xd0\xb4", 2, 0x0434}, /* (CYRILLIC SMALL LETTER DE) */
-    {(lxb_char_t *) "\xd0\xb5", 2, 0x0435}, /* (CYRILLIC SMALL LETTER IE) */
-    {(lxb_char_t *) "\xd0\xb6", 2, 0x0436}, /* (CYRILLIC SMALL LETTER ZHE) */
-    {(lxb_char_t *) "\xd0\xb7", 2, 0x0437}, /* (CYRILLIC SMALL LETTER ZE) */
-    {(lxb_char_t *) "\xd0\xb8", 2, 0x0438}, /* (CYRILLIC SMALL LETTER I) */
-    {(lxb_char_t *) "\xd0\xb9", 2, 0x0439}, /* (CYRILLIC SMALL LETTER SHORT I) */
-    {(lxb_char_t *) "\xd0\xba", 2, 0x043A}, /* (CYRILLIC SMALL LETTER KA) */
-    {(lxb_char_t *) "\xd0\xbb", 2, 0x043B}, /* (CYRILLIC SMALL LETTER EL) */
-    {(lxb_char_t *) "\xd0\xbc", 2, 0x043C}, /* (CYRILLIC SMALL LETTER EM) */
-    {(lxb_char_t *) "\xd0\xbd", 2, 0x043D}, /* (CYRILLIC SMALL LETTER EN) */
-    {(lxb_char_t *) "\xd0\xbe", 2, 0x043E}, /* (CYRILLIC SMALL LETTER O) */
-    {(lxb_char_t *) "\xd0\xbf", 2, 0x043F}, /* (CYRILLIC SMALL LETTER PE) */
-    {(lxb_char_t *) "\xd1\x80", 2, 0x0440}, /* (CYRILLIC SMALL LETTER ER) */
-    {(lxb_char_t *) "\xd1\x81", 2, 0x0441}, /* (CYRILLIC SMALL LETTER ES) */
-    {(lxb_char_t *) "\xd1\x82", 2, 0x0442}, /* (CYRILLIC SMALL LETTER TE) */
-    {(lxb_char_t *) "\xd1\x83", 2, 0x0443}, /* (CYRILLIC SMALL LETTER U) */
-    {(lxb_char_t *) "\xd1\x84", 2, 0x0444}, /* (CYRILLIC SMALL LETTER EF) */
-    {(lxb_char_t *) "\xd1\x85", 2, 0x0445}, /* (CYRILLIC SMALL LETTER HA) */
-    {(lxb_char_t *) "\xd1\x86", 2, 0x0446}, /* (CYRILLIC SMALL LETTER TSE) */
-    {(lxb_char_t *) "\xd1\x87", 2, 0x0447}, /* (CYRILLIC SMALL LETTER CHE) */
-    {(lxb_char_t *) "\xd1\x88", 2, 0x0448}, /* (CYRILLIC SMALL LETTER SHA) */
-    {(lxb_char_t *) "\xd1\x89", 2, 0x0449}, /* (CYRILLIC SMALL LETTER SHCHA) */
-    {(lxb_char_t *) "\xd1\x8a", 2, 0x044A}, /* (CYRILLIC SMALL LETTER HARD SIGN) */
-    {(lxb_char_t *) "\xd1\x8b", 2, 0x044B}, /* (CYRILLIC SMALL LETTER YERU) */
-    {(lxb_char_t *) "\xd1\x8c", 2, 0x044C}, /* (CYRILLIC SMALL LETTER SOFT SIGN) */
-    {(lxb_char_t *) "\xd1\x8d", 2, 0x044D}, /* (CYRILLIC SMALL LETTER E) */
-    {(lxb_char_t *) "\xd1\x8e", 2, 0x044E}, /* (CYRILLIC SMALL LETTER YU) */
-    {(lxb_char_t *) "\xd1\x8f", 2, 0x044F}, /* (CYRILLIC SMALL LETTER YA) */
+    {(unsigned char *) "\xd0\x82", 2, 0x0402}, /* (CYRILLIC CAPITAL LETTER DJE) */
+    {(unsigned char *) "\xd0\x83", 2, 0x0403}, /* (CYRILLIC CAPITAL LETTER GJE) */
+    {(unsigned char *) "\xe2\x80\x9a", 3, 0x201A}, /* (SINGLE LOW-9 QUOTATION MARK) */
+    {(unsigned char *) "\xd1\x93", 2, 0x0453}, /* (CYRILLIC SMALL LETTER GJE) */
+    {(unsigned char *) "\xe2\x80\x9e", 3, 0x201E}, /* (DOUBLE LOW-9 QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\xa6", 3, 0x2026}, /* (HORIZONTAL ELLIPSIS) */
+    {(unsigned char *) "\xe2\x80\xa0", 3, 0x2020}, /* (DAGGER) */
+    {(unsigned char *) "\xe2\x80\xa1", 3, 0x2021}, /* (DOUBLE DAGGER) */
+    {(unsigned char *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
+    {(unsigned char *) "\xe2\x80\xb0", 3, 0x2030}, /* (PER MILLE SIGN) */
+    {(unsigned char *) "\xd0\x89", 2, 0x0409}, /* (CYRILLIC CAPITAL LETTER LJE) */
+    {(unsigned char *) "\xe2\x80\xb9", 3, 0x2039}, /* (SINGLE LEFT-POINTING ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xd0\x8a", 2, 0x040A}, /* (CYRILLIC CAPITAL LETTER NJE) */
+    {(unsigned char *) "\xd0\x8c", 2, 0x040C}, /* (CYRILLIC CAPITAL LETTER KJE) */
+    {(unsigned char *) "\xd0\x8b", 2, 0x040B}, /* (CYRILLIC CAPITAL LETTER TSHE) */
+    {(unsigned char *) "\xd0\x8f", 2, 0x040F}, /* (CYRILLIC CAPITAL LETTER DZHE) */
+    {(unsigned char *) "\xd1\x92", 2, 0x0452}, /* (CYRILLIC SMALL LETTER DJE) */
+    {(unsigned char *) "\xe2\x80\x98", 3, 0x2018}, /* (LEFT SINGLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x99", 3, 0x2019}, /* (RIGHT SINGLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x9c", 3, 0x201C}, /* (LEFT DOUBLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x9d", 3, 0x201D}, /* (RIGHT DOUBLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\xa2", 3, 0x2022}, /* (BULLET) */
+    {(unsigned char *) "\xe2\x80\x93", 3, 0x2013}, /* (EN DASH) */
+    {(unsigned char *) "\xe2\x80\x94", 3, 0x2014}, /* (EM DASH) */
+    {(unsigned char *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
+    {(unsigned char *) "\xe2\x84\xa2", 3, 0x2122}, /* (TRADE MARK SIGN) */
+    {(unsigned char *) "\xd1\x99", 2, 0x0459}, /* (CYRILLIC SMALL LETTER LJE) */
+    {(unsigned char *) "\xe2\x80\xba", 3, 0x203A}, /* (SINGLE RIGHT-POINTING ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xd1\x9a", 2, 0x045A}, /* (CYRILLIC SMALL LETTER NJE) */
+    {(unsigned char *) "\xd1\x9c", 2, 0x045C}, /* (CYRILLIC SMALL LETTER KJE) */
+    {(unsigned char *) "\xd1\x9b", 2, 0x045B}, /* (CYRILLIC SMALL LETTER TSHE) */
+    {(unsigned char *) "\xd1\x9f", 2, 0x045F}, /* (CYRILLIC SMALL LETTER DZHE) */
+    {(unsigned char *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
+    {(unsigned char *) "\xd0\x8e", 2, 0x040E}, /* (CYRILLIC CAPITAL LETTER SHORT U) */
+    {(unsigned char *) "\xd1\x9e", 2, 0x045E}, /* (CYRILLIC SMALL LETTER SHORT U) */
+    {(unsigned char *) "\xd0\x88", 2, 0x0408}, /* (CYRILLIC CAPITAL LETTER JE) */
+    {(unsigned char *) "\xc2\xa4", 2, 0x00A4}, /* (CURRENCY SIGN) */
+    {(unsigned char *) "\xd2\x90", 2, 0x0490}, /* (CYRILLIC CAPITAL LETTER GHE WITH UPTURN) */
+    {(unsigned char *) "\xc2\xa6", 2, 0x00A6}, /* (BROKEN BAR) */
+    {(unsigned char *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
+    {(unsigned char *) "\xd0\x81", 2, 0x0401}, /* (CYRILLIC CAPITAL LETTER IO) */
+    {(unsigned char *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
+    {(unsigned char *) "\xd0\x84", 2, 0x0404}, /* (CYRILLIC CAPITAL LETTER UKRAINIAN IE) */
+    {(unsigned char *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\xac", 2, 0x00AC}, /* (NOT SIGN) */
+    {(unsigned char *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
+    {(unsigned char *) "\xc2\xae", 2, 0x00AE}, /* (REGISTERED SIGN) */
+    {(unsigned char *) "\xd0\x87", 2, 0x0407}, /* (CYRILLIC CAPITAL LETTER YI) */
+    {(unsigned char *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
+    {(unsigned char *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
+    {(unsigned char *) "\xd0\x86", 2, 0x0406}, /* (CYRILLIC CAPITAL LETTER BYELORUSSIAN-UKRAINIAN I) */
+    {(unsigned char *) "\xd1\x96", 2, 0x0456}, /* (CYRILLIC SMALL LETTER BYELORUSSIAN-UKRAINIAN I) */
+    {(unsigned char *) "\xd2\x91", 2, 0x0491}, /* (CYRILLIC SMALL LETTER GHE WITH UPTURN) */
+    {(unsigned char *) "\xc2\xb5", 2, 0x00B5}, /* (MICRO SIGN) */
+    {(unsigned char *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
+    {(unsigned char *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
+    {(unsigned char *) "\xd1\x91", 2, 0x0451}, /* (CYRILLIC SMALL LETTER IO) */
+    {(unsigned char *) "\xe2\x84\x96", 3, 0x2116}, /* (NUMERO SIGN) */
+    {(unsigned char *) "\xd1\x94", 2, 0x0454}, /* (CYRILLIC SMALL LETTER UKRAINIAN IE) */
+    {(unsigned char *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xd1\x98", 2, 0x0458}, /* (CYRILLIC SMALL LETTER JE) */
+    {(unsigned char *) "\xd0\x85", 2, 0x0405}, /* (CYRILLIC CAPITAL LETTER DZE) */
+    {(unsigned char *) "\xd1\x95", 2, 0x0455}, /* (CYRILLIC SMALL LETTER DZE) */
+    {(unsigned char *) "\xd1\x97", 2, 0x0457}, /* (CYRILLIC SMALL LETTER YI) */
+    {(unsigned char *) "\xd0\x90", 2, 0x0410}, /* (CYRILLIC CAPITAL LETTER A) */
+    {(unsigned char *) "\xd0\x91", 2, 0x0411}, /* (CYRILLIC CAPITAL LETTER BE) */
+    {(unsigned char *) "\xd0\x92", 2, 0x0412}, /* (CYRILLIC CAPITAL LETTER VE) */
+    {(unsigned char *) "\xd0\x93", 2, 0x0413}, /* (CYRILLIC CAPITAL LETTER GHE) */
+    {(unsigned char *) "\xd0\x94", 2, 0x0414}, /* (CYRILLIC CAPITAL LETTER DE) */
+    {(unsigned char *) "\xd0\x95", 2, 0x0415}, /* (CYRILLIC CAPITAL LETTER IE) */
+    {(unsigned char *) "\xd0\x96", 2, 0x0416}, /* (CYRILLIC CAPITAL LETTER ZHE) */
+    {(unsigned char *) "\xd0\x97", 2, 0x0417}, /* (CYRILLIC CAPITAL LETTER ZE) */
+    {(unsigned char *) "\xd0\x98", 2, 0x0418}, /* (CYRILLIC CAPITAL LETTER I) */
+    {(unsigned char *) "\xd0\x99", 2, 0x0419}, /* (CYRILLIC CAPITAL LETTER SHORT I) */
+    {(unsigned char *) "\xd0\x9a", 2, 0x041A}, /* (CYRILLIC CAPITAL LETTER KA) */
+    {(unsigned char *) "\xd0\x9b", 2, 0x041B}, /* (CYRILLIC CAPITAL LETTER EL) */
+    {(unsigned char *) "\xd0\x9c", 2, 0x041C}, /* (CYRILLIC CAPITAL LETTER EM) */
+    {(unsigned char *) "\xd0\x9d", 2, 0x041D}, /* (CYRILLIC CAPITAL LETTER EN) */
+    {(unsigned char *) "\xd0\x9e", 2, 0x041E}, /* (CYRILLIC CAPITAL LETTER O) */
+    {(unsigned char *) "\xd0\x9f", 2, 0x041F}, /* (CYRILLIC CAPITAL LETTER PE) */
+    {(unsigned char *) "\xd0\xa0", 2, 0x0420}, /* (CYRILLIC CAPITAL LETTER ER) */
+    {(unsigned char *) "\xd0\xa1", 2, 0x0421}, /* (CYRILLIC CAPITAL LETTER ES) */
+    {(unsigned char *) "\xd0\xa2", 2, 0x0422}, /* (CYRILLIC CAPITAL LETTER TE) */
+    {(unsigned char *) "\xd0\xa3", 2, 0x0423}, /* (CYRILLIC CAPITAL LETTER U) */
+    {(unsigned char *) "\xd0\xa4", 2, 0x0424}, /* (CYRILLIC CAPITAL LETTER EF) */
+    {(unsigned char *) "\xd0\xa5", 2, 0x0425}, /* (CYRILLIC CAPITAL LETTER HA) */
+    {(unsigned char *) "\xd0\xa6", 2, 0x0426}, /* (CYRILLIC CAPITAL LETTER TSE) */
+    {(unsigned char *) "\xd0\xa7", 2, 0x0427}, /* (CYRILLIC CAPITAL LETTER CHE) */
+    {(unsigned char *) "\xd0\xa8", 2, 0x0428}, /* (CYRILLIC CAPITAL LETTER SHA) */
+    {(unsigned char *) "\xd0\xa9", 2, 0x0429}, /* (CYRILLIC CAPITAL LETTER SHCHA) */
+    {(unsigned char *) "\xd0\xaa", 2, 0x042A}, /* (CYRILLIC CAPITAL LETTER HARD SIGN) */
+    {(unsigned char *) "\xd0\xab", 2, 0x042B}, /* (CYRILLIC CAPITAL LETTER YERU) */
+    {(unsigned char *) "\xd0\xac", 2, 0x042C}, /* (CYRILLIC CAPITAL LETTER SOFT SIGN) */
+    {(unsigned char *) "\xd0\xad", 2, 0x042D}, /* (CYRILLIC CAPITAL LETTER E) */
+    {(unsigned char *) "\xd0\xae", 2, 0x042E}, /* (CYRILLIC CAPITAL LETTER YU) */
+    {(unsigned char *) "\xd0\xaf", 2, 0x042F}, /* (CYRILLIC CAPITAL LETTER YA) */
+    {(unsigned char *) "\xd0\xb0", 2, 0x0430}, /* (CYRILLIC SMALL LETTER A) */
+    {(unsigned char *) "\xd0\xb1", 2, 0x0431}, /* (CYRILLIC SMALL LETTER BE) */
+    {(unsigned char *) "\xd0\xb2", 2, 0x0432}, /* (CYRILLIC SMALL LETTER VE) */
+    {(unsigned char *) "\xd0\xb3", 2, 0x0433}, /* (CYRILLIC SMALL LETTER GHE) */
+    {(unsigned char *) "\xd0\xb4", 2, 0x0434}, /* (CYRILLIC SMALL LETTER DE) */
+    {(unsigned char *) "\xd0\xb5", 2, 0x0435}, /* (CYRILLIC SMALL LETTER IE) */
+    {(unsigned char *) "\xd0\xb6", 2, 0x0436}, /* (CYRILLIC SMALL LETTER ZHE) */
+    {(unsigned char *) "\xd0\xb7", 2, 0x0437}, /* (CYRILLIC SMALL LETTER ZE) */
+    {(unsigned char *) "\xd0\xb8", 2, 0x0438}, /* (CYRILLIC SMALL LETTER I) */
+    {(unsigned char *) "\xd0\xb9", 2, 0x0439}, /* (CYRILLIC SMALL LETTER SHORT I) */
+    {(unsigned char *) "\xd0\xba", 2, 0x043A}, /* (CYRILLIC SMALL LETTER KA) */
+    {(unsigned char *) "\xd0\xbb", 2, 0x043B}, /* (CYRILLIC SMALL LETTER EL) */
+    {(unsigned char *) "\xd0\xbc", 2, 0x043C}, /* (CYRILLIC SMALL LETTER EM) */
+    {(unsigned char *) "\xd0\xbd", 2, 0x043D}, /* (CYRILLIC SMALL LETTER EN) */
+    {(unsigned char *) "\xd0\xbe", 2, 0x043E}, /* (CYRILLIC SMALL LETTER O) */
+    {(unsigned char *) "\xd0\xbf", 2, 0x043F}, /* (CYRILLIC SMALL LETTER PE) */
+    {(unsigned char *) "\xd1\x80", 2, 0x0440}, /* (CYRILLIC SMALL LETTER ER) */
+    {(unsigned char *) "\xd1\x81", 2, 0x0441}, /* (CYRILLIC SMALL LETTER ES) */
+    {(unsigned char *) "\xd1\x82", 2, 0x0442}, /* (CYRILLIC SMALL LETTER TE) */
+    {(unsigned char *) "\xd1\x83", 2, 0x0443}, /* (CYRILLIC SMALL LETTER U) */
+    {(unsigned char *) "\xd1\x84", 2, 0x0444}, /* (CYRILLIC SMALL LETTER EF) */
+    {(unsigned char *) "\xd1\x85", 2, 0x0445}, /* (CYRILLIC SMALL LETTER HA) */
+    {(unsigned char *) "\xd1\x86", 2, 0x0446}, /* (CYRILLIC SMALL LETTER TSE) */
+    {(unsigned char *) "\xd1\x87", 2, 0x0447}, /* (CYRILLIC SMALL LETTER CHE) */
+    {(unsigned char *) "\xd1\x88", 2, 0x0448}, /* (CYRILLIC SMALL LETTER SHA) */
+    {(unsigned char *) "\xd1\x89", 2, 0x0449}, /* (CYRILLIC SMALL LETTER SHCHA) */
+    {(unsigned char *) "\xd1\x8a", 2, 0x044A}, /* (CYRILLIC SMALL LETTER HARD SIGN) */
+    {(unsigned char *) "\xd1\x8b", 2, 0x044B}, /* (CYRILLIC SMALL LETTER YERU) */
+    {(unsigned char *) "\xd1\x8c", 2, 0x044C}, /* (CYRILLIC SMALL LETTER SOFT SIGN) */
+    {(unsigned char *) "\xd1\x8d", 2, 0x044D}, /* (CYRILLIC SMALL LETTER E) */
+    {(unsigned char *) "\xd1\x8e", 2, 0x044E}, /* (CYRILLIC SMALL LETTER YU) */
+    {(unsigned char *) "\xd1\x8f", 2, 0x044F}, /* (CYRILLIC SMALL LETTER YA) */
 };
 
-LXB_API const lxb_encoding_single_index_t lxb_encoding_single_index_windows_1252[128] = 
+GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_windows_1252[128] = 
 {
-    {(lxb_char_t *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
-    {(lxb_char_t *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x80\x9a", 3, 0x201A}, /* (SINGLE LOW-9 QUOTATION MARK) */
-    {(lxb_char_t *) "\xc6\x92", 2, 0x0192}, /* (LATIN SMALL LETTER F WITH HOOK) */
-    {(lxb_char_t *) "\xe2\x80\x9e", 3, 0x201E}, /* (DOUBLE LOW-9 QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\xa6", 3, 0x2026}, /* (HORIZONTAL ELLIPSIS) */
-    {(lxb_char_t *) "\xe2\x80\xa0", 3, 0x2020}, /* (DAGGER) */
-    {(lxb_char_t *) "\xe2\x80\xa1", 3, 0x2021}, /* (DOUBLE DAGGER) */
-    {(lxb_char_t *) "\xcb\x86", 2, 0x02C6}, /* (MODIFIER LETTER CIRCUMFLEX ACCENT) */
-    {(lxb_char_t *) "\xe2\x80\xb0", 3, 0x2030}, /* (PER MILLE SIGN) */
-    {(lxb_char_t *) "\xc5\xa0", 2, 0x0160}, /* (LATIN CAPITAL LETTER S WITH CARON) */
-    {(lxb_char_t *) "\xe2\x80\xb9", 3, 0x2039}, /* (SINGLE LEFT-POINTING ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc5\x92", 2, 0x0152}, /* (LATIN CAPITAL LIGATURE OE) */
-    {(lxb_char_t *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
-    {(lxb_char_t *) "\xc5\xbd", 2, 0x017D}, /* (LATIN CAPITAL LETTER Z WITH CARON) */
-    {(lxb_char_t *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x80\x98", 3, 0x2018}, /* (LEFT SINGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x99", 3, 0x2019}, /* (RIGHT SINGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x9c", 3, 0x201C}, /* (LEFT DOUBLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x9d", 3, 0x201D}, /* (RIGHT DOUBLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\xa2", 3, 0x2022}, /* (BULLET) */
-    {(lxb_char_t *) "\xe2\x80\x93", 3, 0x2013}, /* (EN DASH) */
-    {(lxb_char_t *) "\xe2\x80\x94", 3, 0x2014}, /* (EM DASH) */
-    {(lxb_char_t *) "\xcb\x9c", 2, 0x02DC}, /* (SMALL TILDE) */
-    {(lxb_char_t *) "\xe2\x84\xa2", 3, 0x2122}, /* (TRADE MARK SIGN) */
-    {(lxb_char_t *) "\xc5\xa1", 2, 0x0161}, /* (LATIN SMALL LETTER S WITH CARON) */
-    {(lxb_char_t *) "\xe2\x80\xba", 3, 0x203A}, /* (SINGLE RIGHT-POINTING ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc5\x93", 2, 0x0153}, /* (LATIN SMALL LIGATURE OE) */
-    {(lxb_char_t *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
-    {(lxb_char_t *) "\xc5\xbe", 2, 0x017E}, /* (LATIN SMALL LETTER Z WITH CARON) */
-    {(lxb_char_t *) "\xc5\xb8", 2, 0x0178}, /* (LATIN CAPITAL LETTER Y WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
-    {(lxb_char_t *) "\xc2\xa1", 2, 0x00A1}, /* (INVERTED EXCLAMATION MARK) */
-    {(lxb_char_t *) "\xc2\xa2", 2, 0x00A2}, /* (CENT SIGN) */
-    {(lxb_char_t *) "\xc2\xa3", 2, 0x00A3}, /* (POUND SIGN) */
-    {(lxb_char_t *) "\xc2\xa4", 2, 0x00A4}, /* (CURRENCY SIGN) */
-    {(lxb_char_t *) "\xc2\xa5", 2, 0x00A5}, /* (YEN SIGN) */
-    {(lxb_char_t *) "\xc2\xa6", 2, 0x00A6}, /* (BROKEN BAR) */
-    {(lxb_char_t *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
-    {(lxb_char_t *) "\xc2\xa8", 2, 0x00A8}, /* (DIAERESIS) */
-    {(lxb_char_t *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
-    {(lxb_char_t *) "\xc2\xaa", 2, 0x00AA}, /* (FEMININE ORDINAL INDICATOR) */
-    {(lxb_char_t *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\xac", 2, 0x00AC}, /* (NOT SIGN) */
-    {(lxb_char_t *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
-    {(lxb_char_t *) "\xc2\xae", 2, 0x00AE}, /* (REGISTERED SIGN) */
-    {(lxb_char_t *) "\xc2\xaf", 2, 0x00AF}, /* (MACRON) */
-    {(lxb_char_t *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
-    {(lxb_char_t *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
-    {(lxb_char_t *) "\xc2\xb2", 2, 0x00B2}, /* (SUPERSCRIPT TWO) */
-    {(lxb_char_t *) "\xc2\xb3", 2, 0x00B3}, /* (SUPERSCRIPT THREE) */
-    {(lxb_char_t *) "\xc2\xb4", 2, 0x00B4}, /* (ACUTE ACCENT) */
-    {(lxb_char_t *) "\xc2\xb5", 2, 0x00B5}, /* (MICRO SIGN) */
-    {(lxb_char_t *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
-    {(lxb_char_t *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
-    {(lxb_char_t *) "\xc2\xb8", 2, 0x00B8}, /* (CEDILLA) */
-    {(lxb_char_t *) "\xc2\xb9", 2, 0x00B9}, /* (SUPERSCRIPT ONE) */
-    {(lxb_char_t *) "\xc2\xba", 2, 0x00BA}, /* (MASCULINE ORDINAL INDICATOR) */
-    {(lxb_char_t *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\xbc", 2, 0x00BC}, /* (VULGAR FRACTION ONE QUARTER) */
-    {(lxb_char_t *) "\xc2\xbd", 2, 0x00BD}, /* (VULGAR FRACTION ONE HALF) */
-    {(lxb_char_t *) "\xc2\xbe", 2, 0x00BE}, /* (VULGAR FRACTION THREE QUARTERS) */
-    {(lxb_char_t *) "\xc2\xbf", 2, 0x00BF}, /* (INVERTED QUESTION MARK) */
-    {(lxb_char_t *) "\xc3\x80", 2, 0x00C0}, /* (LATIN CAPITAL LETTER A WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x81", 2, 0x00C1}, /* (LATIN CAPITAL LETTER A WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x82", 2, 0x00C2}, /* (LATIN CAPITAL LETTER A WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x83", 2, 0x00C3}, /* (LATIN CAPITAL LETTER A WITH TILDE) */
-    {(lxb_char_t *) "\xc3\x84", 2, 0x00C4}, /* (LATIN CAPITAL LETTER A WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x85", 2, 0x00C5}, /* (LATIN CAPITAL LETTER A WITH RING ABOVE) */
-    {(lxb_char_t *) "\xc3\x86", 2, 0x00C6}, /* (LATIN CAPITAL LETTER AE) */
-    {(lxb_char_t *) "\xc3\x87", 2, 0x00C7}, /* (LATIN CAPITAL LETTER C WITH CEDILLA) */
-    {(lxb_char_t *) "\xc3\x88", 2, 0x00C8}, /* (LATIN CAPITAL LETTER E WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x89", 2, 0x00C9}, /* (LATIN CAPITAL LETTER E WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x8a", 2, 0x00CA}, /* (LATIN CAPITAL LETTER E WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x8b", 2, 0x00CB}, /* (LATIN CAPITAL LETTER E WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x8c", 2, 0x00CC}, /* (LATIN CAPITAL LETTER I WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x8d", 2, 0x00CD}, /* (LATIN CAPITAL LETTER I WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x8e", 2, 0x00CE}, /* (LATIN CAPITAL LETTER I WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x8f", 2, 0x00CF}, /* (LATIN CAPITAL LETTER I WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x90", 2, 0x00D0}, /* (LATIN CAPITAL LETTER ETH) */
-    {(lxb_char_t *) "\xc3\x91", 2, 0x00D1}, /* (LATIN CAPITAL LETTER N WITH TILDE) */
-    {(lxb_char_t *) "\xc3\x92", 2, 0x00D2}, /* (LATIN CAPITAL LETTER O WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x93", 2, 0x00D3}, /* (LATIN CAPITAL LETTER O WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x94", 2, 0x00D4}, /* (LATIN CAPITAL LETTER O WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x95", 2, 0x00D5}, /* (LATIN CAPITAL LETTER O WITH TILDE) */
-    {(lxb_char_t *) "\xc3\x96", 2, 0x00D6}, /* (LATIN CAPITAL LETTER O WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x97", 2, 0x00D7}, /* (MULTIPLICATION SIGN) */
-    {(lxb_char_t *) "\xc3\x98", 2, 0x00D8}, /* (LATIN CAPITAL LETTER O WITH STROKE) */
-    {(lxb_char_t *) "\xc3\x99", 2, 0x00D9}, /* (LATIN CAPITAL LETTER U WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x9a", 2, 0x00DA}, /* (LATIN CAPITAL LETTER U WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x9b", 2, 0x00DB}, /* (LATIN CAPITAL LETTER U WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x9c", 2, 0x00DC}, /* (LATIN CAPITAL LETTER U WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x9d", 2, 0x00DD}, /* (LATIN CAPITAL LETTER Y WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x9e", 2, 0x00DE}, /* (LATIN CAPITAL LETTER THORN) */
-    {(lxb_char_t *) "\xc3\x9f", 2, 0x00DF}, /* (LATIN SMALL LETTER SHARP S) */
-    {(lxb_char_t *) "\xc3\xa0", 2, 0x00E0}, /* (LATIN SMALL LETTER A WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xa1", 2, 0x00E1}, /* (LATIN SMALL LETTER A WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xa2", 2, 0x00E2}, /* (LATIN SMALL LETTER A WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xa3", 2, 0x00E3}, /* (LATIN SMALL LETTER A WITH TILDE) */
-    {(lxb_char_t *) "\xc3\xa4", 2, 0x00E4}, /* (LATIN SMALL LETTER A WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xa5", 2, 0x00E5}, /* (LATIN SMALL LETTER A WITH RING ABOVE) */
-    {(lxb_char_t *) "\xc3\xa6", 2, 0x00E6}, /* (LATIN SMALL LETTER AE) */
-    {(lxb_char_t *) "\xc3\xa7", 2, 0x00E7}, /* (LATIN SMALL LETTER C WITH CEDILLA) */
-    {(lxb_char_t *) "\xc3\xa8", 2, 0x00E8}, /* (LATIN SMALL LETTER E WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xa9", 2, 0x00E9}, /* (LATIN SMALL LETTER E WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xaa", 2, 0x00EA}, /* (LATIN SMALL LETTER E WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xab", 2, 0x00EB}, /* (LATIN SMALL LETTER E WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xac", 2, 0x00EC}, /* (LATIN SMALL LETTER I WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xad", 2, 0x00ED}, /* (LATIN SMALL LETTER I WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xae", 2, 0x00EE}, /* (LATIN SMALL LETTER I WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xaf", 2, 0x00EF}, /* (LATIN SMALL LETTER I WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xb0", 2, 0x00F0}, /* (LATIN SMALL LETTER ETH) */
-    {(lxb_char_t *) "\xc3\xb1", 2, 0x00F1}, /* (LATIN SMALL LETTER N WITH TILDE) */
-    {(lxb_char_t *) "\xc3\xb2", 2, 0x00F2}, /* (LATIN SMALL LETTER O WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xb3", 2, 0x00F3}, /* (LATIN SMALL LETTER O WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xb4", 2, 0x00F4}, /* (LATIN SMALL LETTER O WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xb5", 2, 0x00F5}, /* (LATIN SMALL LETTER O WITH TILDE) */
-    {(lxb_char_t *) "\xc3\xb6", 2, 0x00F6}, /* (LATIN SMALL LETTER O WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
-    {(lxb_char_t *) "\xc3\xb8", 2, 0x00F8}, /* (LATIN SMALL LETTER O WITH STROKE) */
-    {(lxb_char_t *) "\xc3\xb9", 2, 0x00F9}, /* (LATIN SMALL LETTER U WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xba", 2, 0x00FA}, /* (LATIN SMALL LETTER U WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xbb", 2, 0x00FB}, /* (LATIN SMALL LETTER U WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xbc", 2, 0x00FC}, /* (LATIN SMALL LETTER U WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xbd", 2, 0x00FD}, /* (LATIN SMALL LETTER Y WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xbe", 2, 0x00FE}, /* (LATIN SMALL LETTER THORN) */
-    {(lxb_char_t *) "\xc3\xbf", 2, 0x00FF}, /* (LATIN SMALL LETTER Y WITH DIAERESIS) */
+    {(unsigned char *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
+    {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
+    {(unsigned char *) "\xe2\x80\x9a", 3, 0x201A}, /* (SINGLE LOW-9 QUOTATION MARK) */
+    {(unsigned char *) "\xc6\x92", 2, 0x0192}, /* (LATIN SMALL LETTER F WITH HOOK) */
+    {(unsigned char *) "\xe2\x80\x9e", 3, 0x201E}, /* (DOUBLE LOW-9 QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\xa6", 3, 0x2026}, /* (HORIZONTAL ELLIPSIS) */
+    {(unsigned char *) "\xe2\x80\xa0", 3, 0x2020}, /* (DAGGER) */
+    {(unsigned char *) "\xe2\x80\xa1", 3, 0x2021}, /* (DOUBLE DAGGER) */
+    {(unsigned char *) "\xcb\x86", 2, 0x02C6}, /* (MODIFIER LETTER CIRCUMFLEX ACCENT) */
+    {(unsigned char *) "\xe2\x80\xb0", 3, 0x2030}, /* (PER MILLE SIGN) */
+    {(unsigned char *) "\xc5\xa0", 2, 0x0160}, /* (LATIN CAPITAL LETTER S WITH CARON) */
+    {(unsigned char *) "\xe2\x80\xb9", 3, 0x2039}, /* (SINGLE LEFT-POINTING ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc5\x92", 2, 0x0152}, /* (LATIN CAPITAL LIGATURE OE) */
+    {(unsigned char *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
+    {(unsigned char *) "\xc5\xbd", 2, 0x017D}, /* (LATIN CAPITAL LETTER Z WITH CARON) */
+    {(unsigned char *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
+    {(unsigned char *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
+    {(unsigned char *) "\xe2\x80\x98", 3, 0x2018}, /* (LEFT SINGLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x99", 3, 0x2019}, /* (RIGHT SINGLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x9c", 3, 0x201C}, /* (LEFT DOUBLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x9d", 3, 0x201D}, /* (RIGHT DOUBLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\xa2", 3, 0x2022}, /* (BULLET) */
+    {(unsigned char *) "\xe2\x80\x93", 3, 0x2013}, /* (EN DASH) */
+    {(unsigned char *) "\xe2\x80\x94", 3, 0x2014}, /* (EM DASH) */
+    {(unsigned char *) "\xcb\x9c", 2, 0x02DC}, /* (SMALL TILDE) */
+    {(unsigned char *) "\xe2\x84\xa2", 3, 0x2122}, /* (TRADE MARK SIGN) */
+    {(unsigned char *) "\xc5\xa1", 2, 0x0161}, /* (LATIN SMALL LETTER S WITH CARON) */
+    {(unsigned char *) "\xe2\x80\xba", 3, 0x203A}, /* (SINGLE RIGHT-POINTING ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc5\x93", 2, 0x0153}, /* (LATIN SMALL LIGATURE OE) */
+    {(unsigned char *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
+    {(unsigned char *) "\xc5\xbe", 2, 0x017E}, /* (LATIN SMALL LETTER Z WITH CARON) */
+    {(unsigned char *) "\xc5\xb8", 2, 0x0178}, /* (LATIN CAPITAL LETTER Y WITH DIAERESIS) */
+    {(unsigned char *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
+    {(unsigned char *) "\xc2\xa1", 2, 0x00A1}, /* (INVERTED EXCLAMATION MARK) */
+    {(unsigned char *) "\xc2\xa2", 2, 0x00A2}, /* (CENT SIGN) */
+    {(unsigned char *) "\xc2\xa3", 2, 0x00A3}, /* (POUND SIGN) */
+    {(unsigned char *) "\xc2\xa4", 2, 0x00A4}, /* (CURRENCY SIGN) */
+    {(unsigned char *) "\xc2\xa5", 2, 0x00A5}, /* (YEN SIGN) */
+    {(unsigned char *) "\xc2\xa6", 2, 0x00A6}, /* (BROKEN BAR) */
+    {(unsigned char *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
+    {(unsigned char *) "\xc2\xa8", 2, 0x00A8}, /* (DIAERESIS) */
+    {(unsigned char *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
+    {(unsigned char *) "\xc2\xaa", 2, 0x00AA}, /* (FEMININE ORDINAL INDICATOR) */
+    {(unsigned char *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\xac", 2, 0x00AC}, /* (NOT SIGN) */
+    {(unsigned char *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
+    {(unsigned char *) "\xc2\xae", 2, 0x00AE}, /* (REGISTERED SIGN) */
+    {(unsigned char *) "\xc2\xaf", 2, 0x00AF}, /* (MACRON) */
+    {(unsigned char *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
+    {(unsigned char *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
+    {(unsigned char *) "\xc2\xb2", 2, 0x00B2}, /* (SUPERSCRIPT TWO) */
+    {(unsigned char *) "\xc2\xb3", 2, 0x00B3}, /* (SUPERSCRIPT THREE) */
+    {(unsigned char *) "\xc2\xb4", 2, 0x00B4}, /* (ACUTE ACCENT) */
+    {(unsigned char *) "\xc2\xb5", 2, 0x00B5}, /* (MICRO SIGN) */
+    {(unsigned char *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
+    {(unsigned char *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
+    {(unsigned char *) "\xc2\xb8", 2, 0x00B8}, /* (CEDILLA) */
+    {(unsigned char *) "\xc2\xb9", 2, 0x00B9}, /* (SUPERSCRIPT ONE) */
+    {(unsigned char *) "\xc2\xba", 2, 0x00BA}, /* (MASCULINE ORDINAL INDICATOR) */
+    {(unsigned char *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\xbc", 2, 0x00BC}, /* (VULGAR FRACTION ONE QUARTER) */
+    {(unsigned char *) "\xc2\xbd", 2, 0x00BD}, /* (VULGAR FRACTION ONE HALF) */
+    {(unsigned char *) "\xc2\xbe", 2, 0x00BE}, /* (VULGAR FRACTION THREE QUARTERS) */
+    {(unsigned char *) "\xc2\xbf", 2, 0x00BF}, /* (INVERTED QUESTION MARK) */
+    {(unsigned char *) "\xc3\x80", 2, 0x00C0}, /* (LATIN CAPITAL LETTER A WITH GRAVE) */
+    {(unsigned char *) "\xc3\x81", 2, 0x00C1}, /* (LATIN CAPITAL LETTER A WITH ACUTE) */
+    {(unsigned char *) "\xc3\x82", 2, 0x00C2}, /* (LATIN CAPITAL LETTER A WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x83", 2, 0x00C3}, /* (LATIN CAPITAL LETTER A WITH TILDE) */
+    {(unsigned char *) "\xc3\x84", 2, 0x00C4}, /* (LATIN CAPITAL LETTER A WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x85", 2, 0x00C5}, /* (LATIN CAPITAL LETTER A WITH RING ABOVE) */
+    {(unsigned char *) "\xc3\x86", 2, 0x00C6}, /* (LATIN CAPITAL LETTER AE) */
+    {(unsigned char *) "\xc3\x87", 2, 0x00C7}, /* (LATIN CAPITAL LETTER C WITH CEDILLA) */
+    {(unsigned char *) "\xc3\x88", 2, 0x00C8}, /* (LATIN CAPITAL LETTER E WITH GRAVE) */
+    {(unsigned char *) "\xc3\x89", 2, 0x00C9}, /* (LATIN CAPITAL LETTER E WITH ACUTE) */
+    {(unsigned char *) "\xc3\x8a", 2, 0x00CA}, /* (LATIN CAPITAL LETTER E WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x8b", 2, 0x00CB}, /* (LATIN CAPITAL LETTER E WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x8c", 2, 0x00CC}, /* (LATIN CAPITAL LETTER I WITH GRAVE) */
+    {(unsigned char *) "\xc3\x8d", 2, 0x00CD}, /* (LATIN CAPITAL LETTER I WITH ACUTE) */
+    {(unsigned char *) "\xc3\x8e", 2, 0x00CE}, /* (LATIN CAPITAL LETTER I WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x8f", 2, 0x00CF}, /* (LATIN CAPITAL LETTER I WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x90", 2, 0x00D0}, /* (LATIN CAPITAL LETTER ETH) */
+    {(unsigned char *) "\xc3\x91", 2, 0x00D1}, /* (LATIN CAPITAL LETTER N WITH TILDE) */
+    {(unsigned char *) "\xc3\x92", 2, 0x00D2}, /* (LATIN CAPITAL LETTER O WITH GRAVE) */
+    {(unsigned char *) "\xc3\x93", 2, 0x00D3}, /* (LATIN CAPITAL LETTER O WITH ACUTE) */
+    {(unsigned char *) "\xc3\x94", 2, 0x00D4}, /* (LATIN CAPITAL LETTER O WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x95", 2, 0x00D5}, /* (LATIN CAPITAL LETTER O WITH TILDE) */
+    {(unsigned char *) "\xc3\x96", 2, 0x00D6}, /* (LATIN CAPITAL LETTER O WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x97", 2, 0x00D7}, /* (MULTIPLICATION SIGN) */
+    {(unsigned char *) "\xc3\x98", 2, 0x00D8}, /* (LATIN CAPITAL LETTER O WITH STROKE) */
+    {(unsigned char *) "\xc3\x99", 2, 0x00D9}, /* (LATIN CAPITAL LETTER U WITH GRAVE) */
+    {(unsigned char *) "\xc3\x9a", 2, 0x00DA}, /* (LATIN CAPITAL LETTER U WITH ACUTE) */
+    {(unsigned char *) "\xc3\x9b", 2, 0x00DB}, /* (LATIN CAPITAL LETTER U WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x9c", 2, 0x00DC}, /* (LATIN CAPITAL LETTER U WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x9d", 2, 0x00DD}, /* (LATIN CAPITAL LETTER Y WITH ACUTE) */
+    {(unsigned char *) "\xc3\x9e", 2, 0x00DE}, /* (LATIN CAPITAL LETTER THORN) */
+    {(unsigned char *) "\xc3\x9f", 2, 0x00DF}, /* (LATIN SMALL LETTER SHARP S) */
+    {(unsigned char *) "\xc3\xa0", 2, 0x00E0}, /* (LATIN SMALL LETTER A WITH GRAVE) */
+    {(unsigned char *) "\xc3\xa1", 2, 0x00E1}, /* (LATIN SMALL LETTER A WITH ACUTE) */
+    {(unsigned char *) "\xc3\xa2", 2, 0x00E2}, /* (LATIN SMALL LETTER A WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xa3", 2, 0x00E3}, /* (LATIN SMALL LETTER A WITH TILDE) */
+    {(unsigned char *) "\xc3\xa4", 2, 0x00E4}, /* (LATIN SMALL LETTER A WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xa5", 2, 0x00E5}, /* (LATIN SMALL LETTER A WITH RING ABOVE) */
+    {(unsigned char *) "\xc3\xa6", 2, 0x00E6}, /* (LATIN SMALL LETTER AE) */
+    {(unsigned char *) "\xc3\xa7", 2, 0x00E7}, /* (LATIN SMALL LETTER C WITH CEDILLA) */
+    {(unsigned char *) "\xc3\xa8", 2, 0x00E8}, /* (LATIN SMALL LETTER E WITH GRAVE) */
+    {(unsigned char *) "\xc3\xa9", 2, 0x00E9}, /* (LATIN SMALL LETTER E WITH ACUTE) */
+    {(unsigned char *) "\xc3\xaa", 2, 0x00EA}, /* (LATIN SMALL LETTER E WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xab", 2, 0x00EB}, /* (LATIN SMALL LETTER E WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xac", 2, 0x00EC}, /* (LATIN SMALL LETTER I WITH GRAVE) */
+    {(unsigned char *) "\xc3\xad", 2, 0x00ED}, /* (LATIN SMALL LETTER I WITH ACUTE) */
+    {(unsigned char *) "\xc3\xae", 2, 0x00EE}, /* (LATIN SMALL LETTER I WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xaf", 2, 0x00EF}, /* (LATIN SMALL LETTER I WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xb0", 2, 0x00F0}, /* (LATIN SMALL LETTER ETH) */
+    {(unsigned char *) "\xc3\xb1", 2, 0x00F1}, /* (LATIN SMALL LETTER N WITH TILDE) */
+    {(unsigned char *) "\xc3\xb2", 2, 0x00F2}, /* (LATIN SMALL LETTER O WITH GRAVE) */
+    {(unsigned char *) "\xc3\xb3", 2, 0x00F3}, /* (LATIN SMALL LETTER O WITH ACUTE) */
+    {(unsigned char *) "\xc3\xb4", 2, 0x00F4}, /* (LATIN SMALL LETTER O WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xb5", 2, 0x00F5}, /* (LATIN SMALL LETTER O WITH TILDE) */
+    {(unsigned char *) "\xc3\xb6", 2, 0x00F6}, /* (LATIN SMALL LETTER O WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
+    {(unsigned char *) "\xc3\xb8", 2, 0x00F8}, /* (LATIN SMALL LETTER O WITH STROKE) */
+    {(unsigned char *) "\xc3\xb9", 2, 0x00F9}, /* (LATIN SMALL LETTER U WITH GRAVE) */
+    {(unsigned char *) "\xc3\xba", 2, 0x00FA}, /* (LATIN SMALL LETTER U WITH ACUTE) */
+    {(unsigned char *) "\xc3\xbb", 2, 0x00FB}, /* (LATIN SMALL LETTER U WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xbc", 2, 0x00FC}, /* (LATIN SMALL LETTER U WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xbd", 2, 0x00FD}, /* (LATIN SMALL LETTER Y WITH ACUTE) */
+    {(unsigned char *) "\xc3\xbe", 2, 0x00FE}, /* (LATIN SMALL LETTER THORN) */
+    {(unsigned char *) "\xc3\xbf", 2, 0x00FF}, /* (LATIN SMALL LETTER Y WITH DIAERESIS) */
 };
 
-LXB_API const lxb_encoding_single_index_t lxb_encoding_single_index_windows_1253[128] = 
+GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_windows_1253[128] = 
 {
-    {(lxb_char_t *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
-    {(lxb_char_t *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x80\x9a", 3, 0x201A}, /* (SINGLE LOW-9 QUOTATION MARK) */
-    {(lxb_char_t *) "\xc6\x92", 2, 0x0192}, /* (LATIN SMALL LETTER F WITH HOOK) */
-    {(lxb_char_t *) "\xe2\x80\x9e", 3, 0x201E}, /* (DOUBLE LOW-9 QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\xa6", 3, 0x2026}, /* (HORIZONTAL ELLIPSIS) */
-    {(lxb_char_t *) "\xe2\x80\xa0", 3, 0x2020}, /* (DAGGER) */
-    {(lxb_char_t *) "\xe2\x80\xa1", 3, 0x2021}, /* (DOUBLE DAGGER) */
-    {(lxb_char_t *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x80\xb0", 3, 0x2030}, /* (PER MILLE SIGN) */
-    {(lxb_char_t *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x80\xb9", 3, 0x2039}, /* (SINGLE LEFT-POINTING ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x80\x98", 3, 0x2018}, /* (LEFT SINGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x99", 3, 0x2019}, /* (RIGHT SINGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x9c", 3, 0x201C}, /* (LEFT DOUBLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x9d", 3, 0x201D}, /* (RIGHT DOUBLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\xa2", 3, 0x2022}, /* (BULLET) */
-    {(lxb_char_t *) "\xe2\x80\x93", 3, 0x2013}, /* (EN DASH) */
-    {(lxb_char_t *) "\xe2\x80\x94", 3, 0x2014}, /* (EM DASH) */
-    {(lxb_char_t *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x84\xa2", 3, 0x2122}, /* (TRADE MARK SIGN) */
-    {(lxb_char_t *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x80\xba", 3, 0x203A}, /* (SINGLE RIGHT-POINTING ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
-    {(lxb_char_t *) "\xce\x85", 2, 0x0385}, /* (GREEK DIALYTIKA TONOS) */
-    {(lxb_char_t *) "\xce\x86", 2, 0x0386}, /* (GREEK CAPITAL LETTER ALPHA WITH TONOS) */
-    {(lxb_char_t *) "\xc2\xa3", 2, 0x00A3}, /* (POUND SIGN) */
-    {(lxb_char_t *) "\xc2\xa4", 2, 0x00A4}, /* (CURRENCY SIGN) */
-    {(lxb_char_t *) "\xc2\xa5", 2, 0x00A5}, /* (YEN SIGN) */
-    {(lxb_char_t *) "\xc2\xa6", 2, 0x00A6}, /* (BROKEN BAR) */
-    {(lxb_char_t *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
-    {(lxb_char_t *) "\xc2\xa8", 2, 0x00A8}, /* (DIAERESIS) */
-    {(lxb_char_t *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {(lxb_char_t *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\xac", 2, 0x00AC}, /* (NOT SIGN) */
-    {(lxb_char_t *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
-    {(lxb_char_t *) "\xc2\xae", 2, 0x00AE}, /* (REGISTERED SIGN) */
-    {(lxb_char_t *) "\xe2\x80\x95", 3, 0x2015}, /* (HORIZONTAL BAR) */
-    {(lxb_char_t *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
-    {(lxb_char_t *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
-    {(lxb_char_t *) "\xc2\xb2", 2, 0x00B2}, /* (SUPERSCRIPT TWO) */
-    {(lxb_char_t *) "\xc2\xb3", 2, 0x00B3}, /* (SUPERSCRIPT THREE) */
-    {(lxb_char_t *) "\xce\x84", 2, 0x0384}, /* (GREEK TONOS) */
-    {(lxb_char_t *) "\xc2\xb5", 2, 0x00B5}, /* (MICRO SIGN) */
-    {(lxb_char_t *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
-    {(lxb_char_t *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
-    {(lxb_char_t *) "\xce\x88", 2, 0x0388}, /* (GREEK CAPITAL LETTER EPSILON WITH TONOS) */
-    {(lxb_char_t *) "\xce\x89", 2, 0x0389}, /* (GREEK CAPITAL LETTER ETA WITH TONOS) */
-    {(lxb_char_t *) "\xce\x8a", 2, 0x038A}, /* (GREEK CAPITAL LETTER IOTA WITH TONOS) */
-    {(lxb_char_t *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xce\x8c", 2, 0x038C}, /* (GREEK CAPITAL LETTER OMICRON WITH TONOS) */
-    {(lxb_char_t *) "\xc2\xbd", 2, 0x00BD}, /* (VULGAR FRACTION ONE HALF) */
-    {(lxb_char_t *) "\xce\x8e", 2, 0x038E}, /* (GREEK CAPITAL LETTER UPSILON WITH TONOS) */
-    {(lxb_char_t *) "\xce\x8f", 2, 0x038F}, /* (GREEK CAPITAL LETTER OMEGA WITH TONOS) */
-    {(lxb_char_t *) "\xce\x90", 2, 0x0390}, /* (GREEK SMALL LETTER IOTA WITH DIALYTIKA AND TONOS) */
-    {(lxb_char_t *) "\xce\x91", 2, 0x0391}, /* (GREEK CAPITAL LETTER ALPHA) */
-    {(lxb_char_t *) "\xce\x92", 2, 0x0392}, /* (GREEK CAPITAL LETTER BETA) */
-    {(lxb_char_t *) "\xce\x93", 2, 0x0393}, /* (GREEK CAPITAL LETTER GAMMA) */
-    {(lxb_char_t *) "\xce\x94", 2, 0x0394}, /* (GREEK CAPITAL LETTER DELTA) */
-    {(lxb_char_t *) "\xce\x95", 2, 0x0395}, /* (GREEK CAPITAL LETTER EPSILON) */
-    {(lxb_char_t *) "\xce\x96", 2, 0x0396}, /* (GREEK CAPITAL LETTER ZETA) */
-    {(lxb_char_t *) "\xce\x97", 2, 0x0397}, /* (GREEK CAPITAL LETTER ETA) */
-    {(lxb_char_t *) "\xce\x98", 2, 0x0398}, /* (GREEK CAPITAL LETTER THETA) */
-    {(lxb_char_t *) "\xce\x99", 2, 0x0399}, /* (GREEK CAPITAL LETTER IOTA) */
-    {(lxb_char_t *) "\xce\x9a", 2, 0x039A}, /* (GREEK CAPITAL LETTER KAPPA) */
-    {(lxb_char_t *) "\xce\x9b", 2, 0x039B}, /* (GREEK CAPITAL LETTER LAMDA) */
-    {(lxb_char_t *) "\xce\x9c", 2, 0x039C}, /* (GREEK CAPITAL LETTER MU) */
-    {(lxb_char_t *) "\xce\x9d", 2, 0x039D}, /* (GREEK CAPITAL LETTER NU) */
-    {(lxb_char_t *) "\xce\x9e", 2, 0x039E}, /* (GREEK CAPITAL LETTER XI) */
-    {(lxb_char_t *) "\xce\x9f", 2, 0x039F}, /* (GREEK CAPITAL LETTER OMICRON) */
-    {(lxb_char_t *) "\xce\xa0", 2, 0x03A0}, /* (GREEK CAPITAL LETTER PI) */
-    {(lxb_char_t *) "\xce\xa1", 2, 0x03A1}, /* (GREEK CAPITAL LETTER RHO) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {(lxb_char_t *) "\xce\xa3", 2, 0x03A3}, /* (GREEK CAPITAL LETTER SIGMA) */
-    {(lxb_char_t *) "\xce\xa4", 2, 0x03A4}, /* (GREEK CAPITAL LETTER TAU) */
-    {(lxb_char_t *) "\xce\xa5", 2, 0x03A5}, /* (GREEK CAPITAL LETTER UPSILON) */
-    {(lxb_char_t *) "\xce\xa6", 2, 0x03A6}, /* (GREEK CAPITAL LETTER PHI) */
-    {(lxb_char_t *) "\xce\xa7", 2, 0x03A7}, /* (GREEK CAPITAL LETTER CHI) */
-    {(lxb_char_t *) "\xce\xa8", 2, 0x03A8}, /* (GREEK CAPITAL LETTER PSI) */
-    {(lxb_char_t *) "\xce\xa9", 2, 0x03A9}, /* (GREEK CAPITAL LETTER OMEGA) */
-    {(lxb_char_t *) "\xce\xaa", 2, 0x03AA}, /* (GREEK CAPITAL LETTER IOTA WITH DIALYTIKA) */
-    {(lxb_char_t *) "\xce\xab", 2, 0x03AB}, /* (GREEK CAPITAL LETTER UPSILON WITH DIALYTIKA) */
-    {(lxb_char_t *) "\xce\xac", 2, 0x03AC}, /* (GREEK SMALL LETTER ALPHA WITH TONOS) */
-    {(lxb_char_t *) "\xce\xad", 2, 0x03AD}, /* (GREEK SMALL LETTER EPSILON WITH TONOS) */
-    {(lxb_char_t *) "\xce\xae", 2, 0x03AE}, /* (GREEK SMALL LETTER ETA WITH TONOS) */
-    {(lxb_char_t *) "\xce\xaf", 2, 0x03AF}, /* (GREEK SMALL LETTER IOTA WITH TONOS) */
-    {(lxb_char_t *) "\xce\xb0", 2, 0x03B0}, /* (GREEK SMALL LETTER UPSILON WITH DIALYTIKA AND TONOS) */
-    {(lxb_char_t *) "\xce\xb1", 2, 0x03B1}, /* (GREEK SMALL LETTER ALPHA) */
-    {(lxb_char_t *) "\xce\xb2", 2, 0x03B2}, /* (GREEK SMALL LETTER BETA) */
-    {(lxb_char_t *) "\xce\xb3", 2, 0x03B3}, /* (GREEK SMALL LETTER GAMMA) */
-    {(lxb_char_t *) "\xce\xb4", 2, 0x03B4}, /* (GREEK SMALL LETTER DELTA) */
-    {(lxb_char_t *) "\xce\xb5", 2, 0x03B5}, /* (GREEK SMALL LETTER EPSILON) */
-    {(lxb_char_t *) "\xce\xb6", 2, 0x03B6}, /* (GREEK SMALL LETTER ZETA) */
-    {(lxb_char_t *) "\xce\xb7", 2, 0x03B7}, /* (GREEK SMALL LETTER ETA) */
-    {(lxb_char_t *) "\xce\xb8", 2, 0x03B8}, /* (GREEK SMALL LETTER THETA) */
-    {(lxb_char_t *) "\xce\xb9", 2, 0x03B9}, /* (GREEK SMALL LETTER IOTA) */
-    {(lxb_char_t *) "\xce\xba", 2, 0x03BA}, /* (GREEK SMALL LETTER KAPPA) */
-    {(lxb_char_t *) "\xce\xbb", 2, 0x03BB}, /* (GREEK SMALL LETTER LAMDA) */
-    {(lxb_char_t *) "\xce\xbc", 2, 0x03BC}, /* (GREEK SMALL LETTER MU) */
-    {(lxb_char_t *) "\xce\xbd", 2, 0x03BD}, /* (GREEK SMALL LETTER NU) */
-    {(lxb_char_t *) "\xce\xbe", 2, 0x03BE}, /* (GREEK SMALL LETTER XI) */
-    {(lxb_char_t *) "\xce\xbf", 2, 0x03BF}, /* (GREEK SMALL LETTER OMICRON) */
-    {(lxb_char_t *) "\xcf\x80", 2, 0x03C0}, /* (GREEK SMALL LETTER PI) */
-    {(lxb_char_t *) "\xcf\x81", 2, 0x03C1}, /* (GREEK SMALL LETTER RHO) */
-    {(lxb_char_t *) "\xcf\x82", 2, 0x03C2}, /* (GREEK SMALL LETTER FINAL SIGMA) */
-    {(lxb_char_t *) "\xcf\x83", 2, 0x03C3}, /* (GREEK SMALL LETTER SIGMA) */
-    {(lxb_char_t *) "\xcf\x84", 2, 0x03C4}, /* (GREEK SMALL LETTER TAU) */
-    {(lxb_char_t *) "\xcf\x85", 2, 0x03C5}, /* (GREEK SMALL LETTER UPSILON) */
-    {(lxb_char_t *) "\xcf\x86", 2, 0x03C6}, /* (GREEK SMALL LETTER PHI) */
-    {(lxb_char_t *) "\xcf\x87", 2, 0x03C7}, /* (GREEK SMALL LETTER CHI) */
-    {(lxb_char_t *) "\xcf\x88", 2, 0x03C8}, /* (GREEK SMALL LETTER PSI) */
-    {(lxb_char_t *) "\xcf\x89", 2, 0x03C9}, /* (GREEK SMALL LETTER OMEGA) */
-    {(lxb_char_t *) "\xcf\x8a", 2, 0x03CA}, /* (GREEK SMALL LETTER IOTA WITH DIALYTIKA) */
-    {(lxb_char_t *) "\xcf\x8b", 2, 0x03CB}, /* (GREEK SMALL LETTER UPSILON WITH DIALYTIKA) */
-    {(lxb_char_t *) "\xcf\x8c", 2, 0x03CC}, /* (GREEK SMALL LETTER OMICRON WITH TONOS) */
-    {(lxb_char_t *) "\xcf\x8d", 2, 0x03CD}, /* (GREEK SMALL LETTER UPSILON WITH TONOS) */
-    {(lxb_char_t *) "\xcf\x8e", 2, 0x03CE}, /* (GREEK SMALL LETTER OMEGA WITH TONOS) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
+    {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
+    {(unsigned char *) "\xe2\x80\x9a", 3, 0x201A}, /* (SINGLE LOW-9 QUOTATION MARK) */
+    {(unsigned char *) "\xc6\x92", 2, 0x0192}, /* (LATIN SMALL LETTER F WITH HOOK) */
+    {(unsigned char *) "\xe2\x80\x9e", 3, 0x201E}, /* (DOUBLE LOW-9 QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\xa6", 3, 0x2026}, /* (HORIZONTAL ELLIPSIS) */
+    {(unsigned char *) "\xe2\x80\xa0", 3, 0x2020}, /* (DAGGER) */
+    {(unsigned char *) "\xe2\x80\xa1", 3, 0x2021}, /* (DOUBLE DAGGER) */
+    {(unsigned char *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
+    {(unsigned char *) "\xe2\x80\xb0", 3, 0x2030}, /* (PER MILLE SIGN) */
+    {(unsigned char *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
+    {(unsigned char *) "\xe2\x80\xb9", 3, 0x2039}, /* (SINGLE LEFT-POINTING ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
+    {(unsigned char *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
+    {(unsigned char *) "\xe2\x80\x98", 3, 0x2018}, /* (LEFT SINGLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x99", 3, 0x2019}, /* (RIGHT SINGLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x9c", 3, 0x201C}, /* (LEFT DOUBLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x9d", 3, 0x201D}, /* (RIGHT DOUBLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\xa2", 3, 0x2022}, /* (BULLET) */
+    {(unsigned char *) "\xe2\x80\x93", 3, 0x2013}, /* (EN DASH) */
+    {(unsigned char *) "\xe2\x80\x94", 3, 0x2014}, /* (EM DASH) */
+    {(unsigned char *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
+    {(unsigned char *) "\xe2\x84\xa2", 3, 0x2122}, /* (TRADE MARK SIGN) */
+    {(unsigned char *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
+    {(unsigned char *) "\xe2\x80\xba", 3, 0x203A}, /* (SINGLE RIGHT-POINTING ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
+    {(unsigned char *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
+    {(unsigned char *) "\xce\x85", 2, 0x0385}, /* (GREEK DIALYTIKA TONOS) */
+    {(unsigned char *) "\xce\x86", 2, 0x0386}, /* (GREEK CAPITAL LETTER ALPHA WITH TONOS) */
+    {(unsigned char *) "\xc2\xa3", 2, 0x00A3}, /* (POUND SIGN) */
+    {(unsigned char *) "\xc2\xa4", 2, 0x00A4}, /* (CURRENCY SIGN) */
+    {(unsigned char *) "\xc2\xa5", 2, 0x00A5}, /* (YEN SIGN) */
+    {(unsigned char *) "\xc2\xa6", 2, 0x00A6}, /* (BROKEN BAR) */
+    {(unsigned char *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
+    {(unsigned char *) "\xc2\xa8", 2, 0x00A8}, /* (DIAERESIS) */
+    {(unsigned char *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\xac", 2, 0x00AC}, /* (NOT SIGN) */
+    {(unsigned char *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
+    {(unsigned char *) "\xc2\xae", 2, 0x00AE}, /* (REGISTERED SIGN) */
+    {(unsigned char *) "\xe2\x80\x95", 3, 0x2015}, /* (HORIZONTAL BAR) */
+    {(unsigned char *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
+    {(unsigned char *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
+    {(unsigned char *) "\xc2\xb2", 2, 0x00B2}, /* (SUPERSCRIPT TWO) */
+    {(unsigned char *) "\xc2\xb3", 2, 0x00B3}, /* (SUPERSCRIPT THREE) */
+    {(unsigned char *) "\xce\x84", 2, 0x0384}, /* (GREEK TONOS) */
+    {(unsigned char *) "\xc2\xb5", 2, 0x00B5}, /* (MICRO SIGN) */
+    {(unsigned char *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
+    {(unsigned char *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
+    {(unsigned char *) "\xce\x88", 2, 0x0388}, /* (GREEK CAPITAL LETTER EPSILON WITH TONOS) */
+    {(unsigned char *) "\xce\x89", 2, 0x0389}, /* (GREEK CAPITAL LETTER ETA WITH TONOS) */
+    {(unsigned char *) "\xce\x8a", 2, 0x038A}, /* (GREEK CAPITAL LETTER IOTA WITH TONOS) */
+    {(unsigned char *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xce\x8c", 2, 0x038C}, /* (GREEK CAPITAL LETTER OMICRON WITH TONOS) */
+    {(unsigned char *) "\xc2\xbd", 2, 0x00BD}, /* (VULGAR FRACTION ONE HALF) */
+    {(unsigned char *) "\xce\x8e", 2, 0x038E}, /* (GREEK CAPITAL LETTER UPSILON WITH TONOS) */
+    {(unsigned char *) "\xce\x8f", 2, 0x038F}, /* (GREEK CAPITAL LETTER OMEGA WITH TONOS) */
+    {(unsigned char *) "\xce\x90", 2, 0x0390}, /* (GREEK SMALL LETTER IOTA WITH DIALYTIKA AND TONOS) */
+    {(unsigned char *) "\xce\x91", 2, 0x0391}, /* (GREEK CAPITAL LETTER ALPHA) */
+    {(unsigned char *) "\xce\x92", 2, 0x0392}, /* (GREEK CAPITAL LETTER BETA) */
+    {(unsigned char *) "\xce\x93", 2, 0x0393}, /* (GREEK CAPITAL LETTER GAMMA) */
+    {(unsigned char *) "\xce\x94", 2, 0x0394}, /* (GREEK CAPITAL LETTER DELTA) */
+    {(unsigned char *) "\xce\x95", 2, 0x0395}, /* (GREEK CAPITAL LETTER EPSILON) */
+    {(unsigned char *) "\xce\x96", 2, 0x0396}, /* (GREEK CAPITAL LETTER ZETA) */
+    {(unsigned char *) "\xce\x97", 2, 0x0397}, /* (GREEK CAPITAL LETTER ETA) */
+    {(unsigned char *) "\xce\x98", 2, 0x0398}, /* (GREEK CAPITAL LETTER THETA) */
+    {(unsigned char *) "\xce\x99", 2, 0x0399}, /* (GREEK CAPITAL LETTER IOTA) */
+    {(unsigned char *) "\xce\x9a", 2, 0x039A}, /* (GREEK CAPITAL LETTER KAPPA) */
+    {(unsigned char *) "\xce\x9b", 2, 0x039B}, /* (GREEK CAPITAL LETTER LAMDA) */
+    {(unsigned char *) "\xce\x9c", 2, 0x039C}, /* (GREEK CAPITAL LETTER MU) */
+    {(unsigned char *) "\xce\x9d", 2, 0x039D}, /* (GREEK CAPITAL LETTER NU) */
+    {(unsigned char *) "\xce\x9e", 2, 0x039E}, /* (GREEK CAPITAL LETTER XI) */
+    {(unsigned char *) "\xce\x9f", 2, 0x039F}, /* (GREEK CAPITAL LETTER OMICRON) */
+    {(unsigned char *) "\xce\xa0", 2, 0x03A0}, /* (GREEK CAPITAL LETTER PI) */
+    {(unsigned char *) "\xce\xa1", 2, 0x03A1}, /* (GREEK CAPITAL LETTER RHO) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xce\xa3", 2, 0x03A3}, /* (GREEK CAPITAL LETTER SIGMA) */
+    {(unsigned char *) "\xce\xa4", 2, 0x03A4}, /* (GREEK CAPITAL LETTER TAU) */
+    {(unsigned char *) "\xce\xa5", 2, 0x03A5}, /* (GREEK CAPITAL LETTER UPSILON) */
+    {(unsigned char *) "\xce\xa6", 2, 0x03A6}, /* (GREEK CAPITAL LETTER PHI) */
+    {(unsigned char *) "\xce\xa7", 2, 0x03A7}, /* (GREEK CAPITAL LETTER CHI) */
+    {(unsigned char *) "\xce\xa8", 2, 0x03A8}, /* (GREEK CAPITAL LETTER PSI) */
+    {(unsigned char *) "\xce\xa9", 2, 0x03A9}, /* (GREEK CAPITAL LETTER OMEGA) */
+    {(unsigned char *) "\xce\xaa", 2, 0x03AA}, /* (GREEK CAPITAL LETTER IOTA WITH DIALYTIKA) */
+    {(unsigned char *) "\xce\xab", 2, 0x03AB}, /* (GREEK CAPITAL LETTER UPSILON WITH DIALYTIKA) */
+    {(unsigned char *) "\xce\xac", 2, 0x03AC}, /* (GREEK SMALL LETTER ALPHA WITH TONOS) */
+    {(unsigned char *) "\xce\xad", 2, 0x03AD}, /* (GREEK SMALL LETTER EPSILON WITH TONOS) */
+    {(unsigned char *) "\xce\xae", 2, 0x03AE}, /* (GREEK SMALL LETTER ETA WITH TONOS) */
+    {(unsigned char *) "\xce\xaf", 2, 0x03AF}, /* (GREEK SMALL LETTER IOTA WITH TONOS) */
+    {(unsigned char *) "\xce\xb0", 2, 0x03B0}, /* (GREEK SMALL LETTER UPSILON WITH DIALYTIKA AND TONOS) */
+    {(unsigned char *) "\xce\xb1", 2, 0x03B1}, /* (GREEK SMALL LETTER ALPHA) */
+    {(unsigned char *) "\xce\xb2", 2, 0x03B2}, /* (GREEK SMALL LETTER BETA) */
+    {(unsigned char *) "\xce\xb3", 2, 0x03B3}, /* (GREEK SMALL LETTER GAMMA) */
+    {(unsigned char *) "\xce\xb4", 2, 0x03B4}, /* (GREEK SMALL LETTER DELTA) */
+    {(unsigned char *) "\xce\xb5", 2, 0x03B5}, /* (GREEK SMALL LETTER EPSILON) */
+    {(unsigned char *) "\xce\xb6", 2, 0x03B6}, /* (GREEK SMALL LETTER ZETA) */
+    {(unsigned char *) "\xce\xb7", 2, 0x03B7}, /* (GREEK SMALL LETTER ETA) */
+    {(unsigned char *) "\xce\xb8", 2, 0x03B8}, /* (GREEK SMALL LETTER THETA) */
+    {(unsigned char *) "\xce\xb9", 2, 0x03B9}, /* (GREEK SMALL LETTER IOTA) */
+    {(unsigned char *) "\xce\xba", 2, 0x03BA}, /* (GREEK SMALL LETTER KAPPA) */
+    {(unsigned char *) "\xce\xbb", 2, 0x03BB}, /* (GREEK SMALL LETTER LAMDA) */
+    {(unsigned char *) "\xce\xbc", 2, 0x03BC}, /* (GREEK SMALL LETTER MU) */
+    {(unsigned char *) "\xce\xbd", 2, 0x03BD}, /* (GREEK SMALL LETTER NU) */
+    {(unsigned char *) "\xce\xbe", 2, 0x03BE}, /* (GREEK SMALL LETTER XI) */
+    {(unsigned char *) "\xce\xbf", 2, 0x03BF}, /* (GREEK SMALL LETTER OMICRON) */
+    {(unsigned char *) "\xcf\x80", 2, 0x03C0}, /* (GREEK SMALL LETTER PI) */
+    {(unsigned char *) "\xcf\x81", 2, 0x03C1}, /* (GREEK SMALL LETTER RHO) */
+    {(unsigned char *) "\xcf\x82", 2, 0x03C2}, /* (GREEK SMALL LETTER FINAL SIGMA) */
+    {(unsigned char *) "\xcf\x83", 2, 0x03C3}, /* (GREEK SMALL LETTER SIGMA) */
+    {(unsigned char *) "\xcf\x84", 2, 0x03C4}, /* (GREEK SMALL LETTER TAU) */
+    {(unsigned char *) "\xcf\x85", 2, 0x03C5}, /* (GREEK SMALL LETTER UPSILON) */
+    {(unsigned char *) "\xcf\x86", 2, 0x03C6}, /* (GREEK SMALL LETTER PHI) */
+    {(unsigned char *) "\xcf\x87", 2, 0x03C7}, /* (GREEK SMALL LETTER CHI) */
+    {(unsigned char *) "\xcf\x88", 2, 0x03C8}, /* (GREEK SMALL LETTER PSI) */
+    {(unsigned char *) "\xcf\x89", 2, 0x03C9}, /* (GREEK SMALL LETTER OMEGA) */
+    {(unsigned char *) "\xcf\x8a", 2, 0x03CA}, /* (GREEK SMALL LETTER IOTA WITH DIALYTIKA) */
+    {(unsigned char *) "\xcf\x8b", 2, 0x03CB}, /* (GREEK SMALL LETTER UPSILON WITH DIALYTIKA) */
+    {(unsigned char *) "\xcf\x8c", 2, 0x03CC}, /* (GREEK SMALL LETTER OMICRON WITH TONOS) */
+    {(unsigned char *) "\xcf\x8d", 2, 0x03CD}, /* (GREEK SMALL LETTER UPSILON WITH TONOS) */
+    {(unsigned char *) "\xcf\x8e", 2, 0x03CE}, /* (GREEK SMALL LETTER OMEGA WITH TONOS) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
 };
 
-LXB_API const lxb_encoding_single_index_t lxb_encoding_single_index_windows_1254[128] = 
+GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_windows_1254[128] = 
 {
-    {(lxb_char_t *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
-    {(lxb_char_t *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x80\x9a", 3, 0x201A}, /* (SINGLE LOW-9 QUOTATION MARK) */
-    {(lxb_char_t *) "\xc6\x92", 2, 0x0192}, /* (LATIN SMALL LETTER F WITH HOOK) */
-    {(lxb_char_t *) "\xe2\x80\x9e", 3, 0x201E}, /* (DOUBLE LOW-9 QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\xa6", 3, 0x2026}, /* (HORIZONTAL ELLIPSIS) */
-    {(lxb_char_t *) "\xe2\x80\xa0", 3, 0x2020}, /* (DAGGER) */
-    {(lxb_char_t *) "\xe2\x80\xa1", 3, 0x2021}, /* (DOUBLE DAGGER) */
-    {(lxb_char_t *) "\xcb\x86", 2, 0x02C6}, /* (MODIFIER LETTER CIRCUMFLEX ACCENT) */
-    {(lxb_char_t *) "\xe2\x80\xb0", 3, 0x2030}, /* (PER MILLE SIGN) */
-    {(lxb_char_t *) "\xc5\xa0", 2, 0x0160}, /* (LATIN CAPITAL LETTER S WITH CARON) */
-    {(lxb_char_t *) "\xe2\x80\xb9", 3, 0x2039}, /* (SINGLE LEFT-POINTING ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc5\x92", 2, 0x0152}, /* (LATIN CAPITAL LIGATURE OE) */
-    {(lxb_char_t *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x80\x98", 3, 0x2018}, /* (LEFT SINGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x99", 3, 0x2019}, /* (RIGHT SINGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x9c", 3, 0x201C}, /* (LEFT DOUBLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x9d", 3, 0x201D}, /* (RIGHT DOUBLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\xa2", 3, 0x2022}, /* (BULLET) */
-    {(lxb_char_t *) "\xe2\x80\x93", 3, 0x2013}, /* (EN DASH) */
-    {(lxb_char_t *) "\xe2\x80\x94", 3, 0x2014}, /* (EM DASH) */
-    {(lxb_char_t *) "\xcb\x9c", 2, 0x02DC}, /* (SMALL TILDE) */
-    {(lxb_char_t *) "\xe2\x84\xa2", 3, 0x2122}, /* (TRADE MARK SIGN) */
-    {(lxb_char_t *) "\xc5\xa1", 2, 0x0161}, /* (LATIN SMALL LETTER S WITH CARON) */
-    {(lxb_char_t *) "\xe2\x80\xba", 3, 0x203A}, /* (SINGLE RIGHT-POINTING ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc5\x93", 2, 0x0153}, /* (LATIN SMALL LIGATURE OE) */
-    {(lxb_char_t *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
-    {(lxb_char_t *) "\xc5\xb8", 2, 0x0178}, /* (LATIN CAPITAL LETTER Y WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
-    {(lxb_char_t *) "\xc2\xa1", 2, 0x00A1}, /* (INVERTED EXCLAMATION MARK) */
-    {(lxb_char_t *) "\xc2\xa2", 2, 0x00A2}, /* (CENT SIGN) */
-    {(lxb_char_t *) "\xc2\xa3", 2, 0x00A3}, /* (POUND SIGN) */
-    {(lxb_char_t *) "\xc2\xa4", 2, 0x00A4}, /* (CURRENCY SIGN) */
-    {(lxb_char_t *) "\xc2\xa5", 2, 0x00A5}, /* (YEN SIGN) */
-    {(lxb_char_t *) "\xc2\xa6", 2, 0x00A6}, /* (BROKEN BAR) */
-    {(lxb_char_t *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
-    {(lxb_char_t *) "\xc2\xa8", 2, 0x00A8}, /* (DIAERESIS) */
-    {(lxb_char_t *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
-    {(lxb_char_t *) "\xc2\xaa", 2, 0x00AA}, /* (FEMININE ORDINAL INDICATOR) */
-    {(lxb_char_t *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\xac", 2, 0x00AC}, /* (NOT SIGN) */
-    {(lxb_char_t *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
-    {(lxb_char_t *) "\xc2\xae", 2, 0x00AE}, /* (REGISTERED SIGN) */
-    {(lxb_char_t *) "\xc2\xaf", 2, 0x00AF}, /* (MACRON) */
-    {(lxb_char_t *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
-    {(lxb_char_t *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
-    {(lxb_char_t *) "\xc2\xb2", 2, 0x00B2}, /* (SUPERSCRIPT TWO) */
-    {(lxb_char_t *) "\xc2\xb3", 2, 0x00B3}, /* (SUPERSCRIPT THREE) */
-    {(lxb_char_t *) "\xc2\xb4", 2, 0x00B4}, /* (ACUTE ACCENT) */
-    {(lxb_char_t *) "\xc2\xb5", 2, 0x00B5}, /* (MICRO SIGN) */
-    {(lxb_char_t *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
-    {(lxb_char_t *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
-    {(lxb_char_t *) "\xc2\xb8", 2, 0x00B8}, /* (CEDILLA) */
-    {(lxb_char_t *) "\xc2\xb9", 2, 0x00B9}, /* (SUPERSCRIPT ONE) */
-    {(lxb_char_t *) "\xc2\xba", 2, 0x00BA}, /* (MASCULINE ORDINAL INDICATOR) */
-    {(lxb_char_t *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\xbc", 2, 0x00BC}, /* (VULGAR FRACTION ONE QUARTER) */
-    {(lxb_char_t *) "\xc2\xbd", 2, 0x00BD}, /* (VULGAR FRACTION ONE HALF) */
-    {(lxb_char_t *) "\xc2\xbe", 2, 0x00BE}, /* (VULGAR FRACTION THREE QUARTERS) */
-    {(lxb_char_t *) "\xc2\xbf", 2, 0x00BF}, /* (INVERTED QUESTION MARK) */
-    {(lxb_char_t *) "\xc3\x80", 2, 0x00C0}, /* (LATIN CAPITAL LETTER A WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x81", 2, 0x00C1}, /* (LATIN CAPITAL LETTER A WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x82", 2, 0x00C2}, /* (LATIN CAPITAL LETTER A WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x83", 2, 0x00C3}, /* (LATIN CAPITAL LETTER A WITH TILDE) */
-    {(lxb_char_t *) "\xc3\x84", 2, 0x00C4}, /* (LATIN CAPITAL LETTER A WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x85", 2, 0x00C5}, /* (LATIN CAPITAL LETTER A WITH RING ABOVE) */
-    {(lxb_char_t *) "\xc3\x86", 2, 0x00C6}, /* (LATIN CAPITAL LETTER AE) */
-    {(lxb_char_t *) "\xc3\x87", 2, 0x00C7}, /* (LATIN CAPITAL LETTER C WITH CEDILLA) */
-    {(lxb_char_t *) "\xc3\x88", 2, 0x00C8}, /* (LATIN CAPITAL LETTER E WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x89", 2, 0x00C9}, /* (LATIN CAPITAL LETTER E WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x8a", 2, 0x00CA}, /* (LATIN CAPITAL LETTER E WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x8b", 2, 0x00CB}, /* (LATIN CAPITAL LETTER E WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x8c", 2, 0x00CC}, /* (LATIN CAPITAL LETTER I WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x8d", 2, 0x00CD}, /* (LATIN CAPITAL LETTER I WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x8e", 2, 0x00CE}, /* (LATIN CAPITAL LETTER I WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x8f", 2, 0x00CF}, /* (LATIN CAPITAL LETTER I WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc4\x9e", 2, 0x011E}, /* (LATIN CAPITAL LETTER G WITH BREVE) */
-    {(lxb_char_t *) "\xc3\x91", 2, 0x00D1}, /* (LATIN CAPITAL LETTER N WITH TILDE) */
-    {(lxb_char_t *) "\xc3\x92", 2, 0x00D2}, /* (LATIN CAPITAL LETTER O WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x93", 2, 0x00D3}, /* (LATIN CAPITAL LETTER O WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x94", 2, 0x00D4}, /* (LATIN CAPITAL LETTER O WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x95", 2, 0x00D5}, /* (LATIN CAPITAL LETTER O WITH TILDE) */
-    {(lxb_char_t *) "\xc3\x96", 2, 0x00D6}, /* (LATIN CAPITAL LETTER O WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x97", 2, 0x00D7}, /* (MULTIPLICATION SIGN) */
-    {(lxb_char_t *) "\xc3\x98", 2, 0x00D8}, /* (LATIN CAPITAL LETTER O WITH STROKE) */
-    {(lxb_char_t *) "\xc3\x99", 2, 0x00D9}, /* (LATIN CAPITAL LETTER U WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x9a", 2, 0x00DA}, /* (LATIN CAPITAL LETTER U WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x9b", 2, 0x00DB}, /* (LATIN CAPITAL LETTER U WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x9c", 2, 0x00DC}, /* (LATIN CAPITAL LETTER U WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc4\xb0", 2, 0x0130}, /* (LATIN CAPITAL LETTER I WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc5\x9e", 2, 0x015E}, /* (LATIN CAPITAL LETTER S WITH CEDILLA) */
-    {(lxb_char_t *) "\xc3\x9f", 2, 0x00DF}, /* (LATIN SMALL LETTER SHARP S) */
-    {(lxb_char_t *) "\xc3\xa0", 2, 0x00E0}, /* (LATIN SMALL LETTER A WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xa1", 2, 0x00E1}, /* (LATIN SMALL LETTER A WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xa2", 2, 0x00E2}, /* (LATIN SMALL LETTER A WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xa3", 2, 0x00E3}, /* (LATIN SMALL LETTER A WITH TILDE) */
-    {(lxb_char_t *) "\xc3\xa4", 2, 0x00E4}, /* (LATIN SMALL LETTER A WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xa5", 2, 0x00E5}, /* (LATIN SMALL LETTER A WITH RING ABOVE) */
-    {(lxb_char_t *) "\xc3\xa6", 2, 0x00E6}, /* (LATIN SMALL LETTER AE) */
-    {(lxb_char_t *) "\xc3\xa7", 2, 0x00E7}, /* (LATIN SMALL LETTER C WITH CEDILLA) */
-    {(lxb_char_t *) "\xc3\xa8", 2, 0x00E8}, /* (LATIN SMALL LETTER E WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xa9", 2, 0x00E9}, /* (LATIN SMALL LETTER E WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xaa", 2, 0x00EA}, /* (LATIN SMALL LETTER E WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xab", 2, 0x00EB}, /* (LATIN SMALL LETTER E WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xac", 2, 0x00EC}, /* (LATIN SMALL LETTER I WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xad", 2, 0x00ED}, /* (LATIN SMALL LETTER I WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xae", 2, 0x00EE}, /* (LATIN SMALL LETTER I WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xaf", 2, 0x00EF}, /* (LATIN SMALL LETTER I WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc4\x9f", 2, 0x011F}, /* (LATIN SMALL LETTER G WITH BREVE) */
-    {(lxb_char_t *) "\xc3\xb1", 2, 0x00F1}, /* (LATIN SMALL LETTER N WITH TILDE) */
-    {(lxb_char_t *) "\xc3\xb2", 2, 0x00F2}, /* (LATIN SMALL LETTER O WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xb3", 2, 0x00F3}, /* (LATIN SMALL LETTER O WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xb4", 2, 0x00F4}, /* (LATIN SMALL LETTER O WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xb5", 2, 0x00F5}, /* (LATIN SMALL LETTER O WITH TILDE) */
-    {(lxb_char_t *) "\xc3\xb6", 2, 0x00F6}, /* (LATIN SMALL LETTER O WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
-    {(lxb_char_t *) "\xc3\xb8", 2, 0x00F8}, /* (LATIN SMALL LETTER O WITH STROKE) */
-    {(lxb_char_t *) "\xc3\xb9", 2, 0x00F9}, /* (LATIN SMALL LETTER U WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xba", 2, 0x00FA}, /* (LATIN SMALL LETTER U WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xbb", 2, 0x00FB}, /* (LATIN SMALL LETTER U WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xbc", 2, 0x00FC}, /* (LATIN SMALL LETTER U WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc4\xb1", 2, 0x0131}, /* (LATIN SMALL LETTER DOTLESS I) */
-    {(lxb_char_t *) "\xc5\x9f", 2, 0x015F}, /* (LATIN SMALL LETTER S WITH CEDILLA) */
-    {(lxb_char_t *) "\xc3\xbf", 2, 0x00FF}, /* (LATIN SMALL LETTER Y WITH DIAERESIS) */
+    {(unsigned char *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
+    {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
+    {(unsigned char *) "\xe2\x80\x9a", 3, 0x201A}, /* (SINGLE LOW-9 QUOTATION MARK) */
+    {(unsigned char *) "\xc6\x92", 2, 0x0192}, /* (LATIN SMALL LETTER F WITH HOOK) */
+    {(unsigned char *) "\xe2\x80\x9e", 3, 0x201E}, /* (DOUBLE LOW-9 QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\xa6", 3, 0x2026}, /* (HORIZONTAL ELLIPSIS) */
+    {(unsigned char *) "\xe2\x80\xa0", 3, 0x2020}, /* (DAGGER) */
+    {(unsigned char *) "\xe2\x80\xa1", 3, 0x2021}, /* (DOUBLE DAGGER) */
+    {(unsigned char *) "\xcb\x86", 2, 0x02C6}, /* (MODIFIER LETTER CIRCUMFLEX ACCENT) */
+    {(unsigned char *) "\xe2\x80\xb0", 3, 0x2030}, /* (PER MILLE SIGN) */
+    {(unsigned char *) "\xc5\xa0", 2, 0x0160}, /* (LATIN CAPITAL LETTER S WITH CARON) */
+    {(unsigned char *) "\xe2\x80\xb9", 3, 0x2039}, /* (SINGLE LEFT-POINTING ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc5\x92", 2, 0x0152}, /* (LATIN CAPITAL LIGATURE OE) */
+    {(unsigned char *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
+    {(unsigned char *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
+    {(unsigned char *) "\xe2\x80\x98", 3, 0x2018}, /* (LEFT SINGLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x99", 3, 0x2019}, /* (RIGHT SINGLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x9c", 3, 0x201C}, /* (LEFT DOUBLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x9d", 3, 0x201D}, /* (RIGHT DOUBLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\xa2", 3, 0x2022}, /* (BULLET) */
+    {(unsigned char *) "\xe2\x80\x93", 3, 0x2013}, /* (EN DASH) */
+    {(unsigned char *) "\xe2\x80\x94", 3, 0x2014}, /* (EM DASH) */
+    {(unsigned char *) "\xcb\x9c", 2, 0x02DC}, /* (SMALL TILDE) */
+    {(unsigned char *) "\xe2\x84\xa2", 3, 0x2122}, /* (TRADE MARK SIGN) */
+    {(unsigned char *) "\xc5\xa1", 2, 0x0161}, /* (LATIN SMALL LETTER S WITH CARON) */
+    {(unsigned char *) "\xe2\x80\xba", 3, 0x203A}, /* (SINGLE RIGHT-POINTING ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc5\x93", 2, 0x0153}, /* (LATIN SMALL LIGATURE OE) */
+    {(unsigned char *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
+    {(unsigned char *) "\xc5\xb8", 2, 0x0178}, /* (LATIN CAPITAL LETTER Y WITH DIAERESIS) */
+    {(unsigned char *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
+    {(unsigned char *) "\xc2\xa1", 2, 0x00A1}, /* (INVERTED EXCLAMATION MARK) */
+    {(unsigned char *) "\xc2\xa2", 2, 0x00A2}, /* (CENT SIGN) */
+    {(unsigned char *) "\xc2\xa3", 2, 0x00A3}, /* (POUND SIGN) */
+    {(unsigned char *) "\xc2\xa4", 2, 0x00A4}, /* (CURRENCY SIGN) */
+    {(unsigned char *) "\xc2\xa5", 2, 0x00A5}, /* (YEN SIGN) */
+    {(unsigned char *) "\xc2\xa6", 2, 0x00A6}, /* (BROKEN BAR) */
+    {(unsigned char *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
+    {(unsigned char *) "\xc2\xa8", 2, 0x00A8}, /* (DIAERESIS) */
+    {(unsigned char *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
+    {(unsigned char *) "\xc2\xaa", 2, 0x00AA}, /* (FEMININE ORDINAL INDICATOR) */
+    {(unsigned char *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\xac", 2, 0x00AC}, /* (NOT SIGN) */
+    {(unsigned char *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
+    {(unsigned char *) "\xc2\xae", 2, 0x00AE}, /* (REGISTERED SIGN) */
+    {(unsigned char *) "\xc2\xaf", 2, 0x00AF}, /* (MACRON) */
+    {(unsigned char *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
+    {(unsigned char *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
+    {(unsigned char *) "\xc2\xb2", 2, 0x00B2}, /* (SUPERSCRIPT TWO) */
+    {(unsigned char *) "\xc2\xb3", 2, 0x00B3}, /* (SUPERSCRIPT THREE) */
+    {(unsigned char *) "\xc2\xb4", 2, 0x00B4}, /* (ACUTE ACCENT) */
+    {(unsigned char *) "\xc2\xb5", 2, 0x00B5}, /* (MICRO SIGN) */
+    {(unsigned char *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
+    {(unsigned char *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
+    {(unsigned char *) "\xc2\xb8", 2, 0x00B8}, /* (CEDILLA) */
+    {(unsigned char *) "\xc2\xb9", 2, 0x00B9}, /* (SUPERSCRIPT ONE) */
+    {(unsigned char *) "\xc2\xba", 2, 0x00BA}, /* (MASCULINE ORDINAL INDICATOR) */
+    {(unsigned char *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\xbc", 2, 0x00BC}, /* (VULGAR FRACTION ONE QUARTER) */
+    {(unsigned char *) "\xc2\xbd", 2, 0x00BD}, /* (VULGAR FRACTION ONE HALF) */
+    {(unsigned char *) "\xc2\xbe", 2, 0x00BE}, /* (VULGAR FRACTION THREE QUARTERS) */
+    {(unsigned char *) "\xc2\xbf", 2, 0x00BF}, /* (INVERTED QUESTION MARK) */
+    {(unsigned char *) "\xc3\x80", 2, 0x00C0}, /* (LATIN CAPITAL LETTER A WITH GRAVE) */
+    {(unsigned char *) "\xc3\x81", 2, 0x00C1}, /* (LATIN CAPITAL LETTER A WITH ACUTE) */
+    {(unsigned char *) "\xc3\x82", 2, 0x00C2}, /* (LATIN CAPITAL LETTER A WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x83", 2, 0x00C3}, /* (LATIN CAPITAL LETTER A WITH TILDE) */
+    {(unsigned char *) "\xc3\x84", 2, 0x00C4}, /* (LATIN CAPITAL LETTER A WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x85", 2, 0x00C5}, /* (LATIN CAPITAL LETTER A WITH RING ABOVE) */
+    {(unsigned char *) "\xc3\x86", 2, 0x00C6}, /* (LATIN CAPITAL LETTER AE) */
+    {(unsigned char *) "\xc3\x87", 2, 0x00C7}, /* (LATIN CAPITAL LETTER C WITH CEDILLA) */
+    {(unsigned char *) "\xc3\x88", 2, 0x00C8}, /* (LATIN CAPITAL LETTER E WITH GRAVE) */
+    {(unsigned char *) "\xc3\x89", 2, 0x00C9}, /* (LATIN CAPITAL LETTER E WITH ACUTE) */
+    {(unsigned char *) "\xc3\x8a", 2, 0x00CA}, /* (LATIN CAPITAL LETTER E WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x8b", 2, 0x00CB}, /* (LATIN CAPITAL LETTER E WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x8c", 2, 0x00CC}, /* (LATIN CAPITAL LETTER I WITH GRAVE) */
+    {(unsigned char *) "\xc3\x8d", 2, 0x00CD}, /* (LATIN CAPITAL LETTER I WITH ACUTE) */
+    {(unsigned char *) "\xc3\x8e", 2, 0x00CE}, /* (LATIN CAPITAL LETTER I WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x8f", 2, 0x00CF}, /* (LATIN CAPITAL LETTER I WITH DIAERESIS) */
+    {(unsigned char *) "\xc4\x9e", 2, 0x011E}, /* (LATIN CAPITAL LETTER G WITH BREVE) */
+    {(unsigned char *) "\xc3\x91", 2, 0x00D1}, /* (LATIN CAPITAL LETTER N WITH TILDE) */
+    {(unsigned char *) "\xc3\x92", 2, 0x00D2}, /* (LATIN CAPITAL LETTER O WITH GRAVE) */
+    {(unsigned char *) "\xc3\x93", 2, 0x00D3}, /* (LATIN CAPITAL LETTER O WITH ACUTE) */
+    {(unsigned char *) "\xc3\x94", 2, 0x00D4}, /* (LATIN CAPITAL LETTER O WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x95", 2, 0x00D5}, /* (LATIN CAPITAL LETTER O WITH TILDE) */
+    {(unsigned char *) "\xc3\x96", 2, 0x00D6}, /* (LATIN CAPITAL LETTER O WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x97", 2, 0x00D7}, /* (MULTIPLICATION SIGN) */
+    {(unsigned char *) "\xc3\x98", 2, 0x00D8}, /* (LATIN CAPITAL LETTER O WITH STROKE) */
+    {(unsigned char *) "\xc3\x99", 2, 0x00D9}, /* (LATIN CAPITAL LETTER U WITH GRAVE) */
+    {(unsigned char *) "\xc3\x9a", 2, 0x00DA}, /* (LATIN CAPITAL LETTER U WITH ACUTE) */
+    {(unsigned char *) "\xc3\x9b", 2, 0x00DB}, /* (LATIN CAPITAL LETTER U WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x9c", 2, 0x00DC}, /* (LATIN CAPITAL LETTER U WITH DIAERESIS) */
+    {(unsigned char *) "\xc4\xb0", 2, 0x0130}, /* (LATIN CAPITAL LETTER I WITH DOT ABOVE) */
+    {(unsigned char *) "\xc5\x9e", 2, 0x015E}, /* (LATIN CAPITAL LETTER S WITH CEDILLA) */
+    {(unsigned char *) "\xc3\x9f", 2, 0x00DF}, /* (LATIN SMALL LETTER SHARP S) */
+    {(unsigned char *) "\xc3\xa0", 2, 0x00E0}, /* (LATIN SMALL LETTER A WITH GRAVE) */
+    {(unsigned char *) "\xc3\xa1", 2, 0x00E1}, /* (LATIN SMALL LETTER A WITH ACUTE) */
+    {(unsigned char *) "\xc3\xa2", 2, 0x00E2}, /* (LATIN SMALL LETTER A WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xa3", 2, 0x00E3}, /* (LATIN SMALL LETTER A WITH TILDE) */
+    {(unsigned char *) "\xc3\xa4", 2, 0x00E4}, /* (LATIN SMALL LETTER A WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xa5", 2, 0x00E5}, /* (LATIN SMALL LETTER A WITH RING ABOVE) */
+    {(unsigned char *) "\xc3\xa6", 2, 0x00E6}, /* (LATIN SMALL LETTER AE) */
+    {(unsigned char *) "\xc3\xa7", 2, 0x00E7}, /* (LATIN SMALL LETTER C WITH CEDILLA) */
+    {(unsigned char *) "\xc3\xa8", 2, 0x00E8}, /* (LATIN SMALL LETTER E WITH GRAVE) */
+    {(unsigned char *) "\xc3\xa9", 2, 0x00E9}, /* (LATIN SMALL LETTER E WITH ACUTE) */
+    {(unsigned char *) "\xc3\xaa", 2, 0x00EA}, /* (LATIN SMALL LETTER E WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xab", 2, 0x00EB}, /* (LATIN SMALL LETTER E WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xac", 2, 0x00EC}, /* (LATIN SMALL LETTER I WITH GRAVE) */
+    {(unsigned char *) "\xc3\xad", 2, 0x00ED}, /* (LATIN SMALL LETTER I WITH ACUTE) */
+    {(unsigned char *) "\xc3\xae", 2, 0x00EE}, /* (LATIN SMALL LETTER I WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xaf", 2, 0x00EF}, /* (LATIN SMALL LETTER I WITH DIAERESIS) */
+    {(unsigned char *) "\xc4\x9f", 2, 0x011F}, /* (LATIN SMALL LETTER G WITH BREVE) */
+    {(unsigned char *) "\xc3\xb1", 2, 0x00F1}, /* (LATIN SMALL LETTER N WITH TILDE) */
+    {(unsigned char *) "\xc3\xb2", 2, 0x00F2}, /* (LATIN SMALL LETTER O WITH GRAVE) */
+    {(unsigned char *) "\xc3\xb3", 2, 0x00F3}, /* (LATIN SMALL LETTER O WITH ACUTE) */
+    {(unsigned char *) "\xc3\xb4", 2, 0x00F4}, /* (LATIN SMALL LETTER O WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xb5", 2, 0x00F5}, /* (LATIN SMALL LETTER O WITH TILDE) */
+    {(unsigned char *) "\xc3\xb6", 2, 0x00F6}, /* (LATIN SMALL LETTER O WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
+    {(unsigned char *) "\xc3\xb8", 2, 0x00F8}, /* (LATIN SMALL LETTER O WITH STROKE) */
+    {(unsigned char *) "\xc3\xb9", 2, 0x00F9}, /* (LATIN SMALL LETTER U WITH GRAVE) */
+    {(unsigned char *) "\xc3\xba", 2, 0x00FA}, /* (LATIN SMALL LETTER U WITH ACUTE) */
+    {(unsigned char *) "\xc3\xbb", 2, 0x00FB}, /* (LATIN SMALL LETTER U WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xbc", 2, 0x00FC}, /* (LATIN SMALL LETTER U WITH DIAERESIS) */
+    {(unsigned char *) "\xc4\xb1", 2, 0x0131}, /* (LATIN SMALL LETTER DOTLESS I) */
+    {(unsigned char *) "\xc5\x9f", 2, 0x015F}, /* (LATIN SMALL LETTER S WITH CEDILLA) */
+    {(unsigned char *) "\xc3\xbf", 2, 0x00FF}, /* (LATIN SMALL LETTER Y WITH DIAERESIS) */
 };
 
-LXB_API const lxb_encoding_single_index_t lxb_encoding_single_index_windows_1255[128] = 
+GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_windows_1255[128] = 
 {
-    {(lxb_char_t *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
-    {(lxb_char_t *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x80\x9a", 3, 0x201A}, /* (SINGLE LOW-9 QUOTATION MARK) */
-    {(lxb_char_t *) "\xc6\x92", 2, 0x0192}, /* (LATIN SMALL LETTER F WITH HOOK) */
-    {(lxb_char_t *) "\xe2\x80\x9e", 3, 0x201E}, /* (DOUBLE LOW-9 QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\xa6", 3, 0x2026}, /* (HORIZONTAL ELLIPSIS) */
-    {(lxb_char_t *) "\xe2\x80\xa0", 3, 0x2020}, /* (DAGGER) */
-    {(lxb_char_t *) "\xe2\x80\xa1", 3, 0x2021}, /* (DOUBLE DAGGER) */
-    {(lxb_char_t *) "\xcb\x86", 2, 0x02C6}, /* (MODIFIER LETTER CIRCUMFLEX ACCENT) */
-    {(lxb_char_t *) "\xe2\x80\xb0", 3, 0x2030}, /* (PER MILLE SIGN) */
-    {(lxb_char_t *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x80\xb9", 3, 0x2039}, /* (SINGLE LEFT-POINTING ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x80\x98", 3, 0x2018}, /* (LEFT SINGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x99", 3, 0x2019}, /* (RIGHT SINGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x9c", 3, 0x201C}, /* (LEFT DOUBLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x9d", 3, 0x201D}, /* (RIGHT DOUBLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\xa2", 3, 0x2022}, /* (BULLET) */
-    {(lxb_char_t *) "\xe2\x80\x93", 3, 0x2013}, /* (EN DASH) */
-    {(lxb_char_t *) "\xe2\x80\x94", 3, 0x2014}, /* (EM DASH) */
-    {(lxb_char_t *) "\xcb\x9c", 2, 0x02DC}, /* (SMALL TILDE) */
-    {(lxb_char_t *) "\xe2\x84\xa2", 3, 0x2122}, /* (TRADE MARK SIGN) */
-    {(lxb_char_t *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x80\xba", 3, 0x203A}, /* (SINGLE RIGHT-POINTING ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
-    {(lxb_char_t *) "\xc2\xa1", 2, 0x00A1}, /* (INVERTED EXCLAMATION MARK) */
-    {(lxb_char_t *) "\xc2\xa2", 2, 0x00A2}, /* (CENT SIGN) */
-    {(lxb_char_t *) "\xc2\xa3", 2, 0x00A3}, /* (POUND SIGN) */
-    {(lxb_char_t *) "\xe2\x82\xaa", 3, 0x20AA}, /* (NEW SHEQEL SIGN) */
-    {(lxb_char_t *) "\xc2\xa5", 2, 0x00A5}, /* (YEN SIGN) */
-    {(lxb_char_t *) "\xc2\xa6", 2, 0x00A6}, /* (BROKEN BAR) */
-    {(lxb_char_t *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
-    {(lxb_char_t *) "\xc2\xa8", 2, 0x00A8}, /* (DIAERESIS) */
-    {(lxb_char_t *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
-    {(lxb_char_t *) "\xc3\x97", 2, 0x00D7}, /* (MULTIPLICATION SIGN) */
-    {(lxb_char_t *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\xac", 2, 0x00AC}, /* (NOT SIGN) */
-    {(lxb_char_t *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
-    {(lxb_char_t *) "\xc2\xae", 2, 0x00AE}, /* (REGISTERED SIGN) */
-    {(lxb_char_t *) "\xc2\xaf", 2, 0x00AF}, /* (MACRON) */
-    {(lxb_char_t *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
-    {(lxb_char_t *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
-    {(lxb_char_t *) "\xc2\xb2", 2, 0x00B2}, /* (SUPERSCRIPT TWO) */
-    {(lxb_char_t *) "\xc2\xb3", 2, 0x00B3}, /* (SUPERSCRIPT THREE) */
-    {(lxb_char_t *) "\xc2\xb4", 2, 0x00B4}, /* (ACUTE ACCENT) */
-    {(lxb_char_t *) "\xc2\xb5", 2, 0x00B5}, /* (MICRO SIGN) */
-    {(lxb_char_t *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
-    {(lxb_char_t *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
-    {(lxb_char_t *) "\xc2\xb8", 2, 0x00B8}, /* (CEDILLA) */
-    {(lxb_char_t *) "\xc2\xb9", 2, 0x00B9}, /* (SUPERSCRIPT ONE) */
-    {(lxb_char_t *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
-    {(lxb_char_t *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\xbc", 2, 0x00BC}, /* (VULGAR FRACTION ONE QUARTER) */
-    {(lxb_char_t *) "\xc2\xbd", 2, 0x00BD}, /* (VULGAR FRACTION ONE HALF) */
-    {(lxb_char_t *) "\xc2\xbe", 2, 0x00BE}, /* (VULGAR FRACTION THREE QUARTERS) */
-    {(lxb_char_t *) "\xc2\xbf", 2, 0x00BF}, /* (INVERTED QUESTION MARK) */
-    {(lxb_char_t *) "\xd6\xb0", 2, 0x05B0}, /* (HEBREW POINT SHEVA) */
-    {(lxb_char_t *) "\xd6\xb1", 2, 0x05B1}, /* (HEBREW POINT HATAF SEGOL) */
-    {(lxb_char_t *) "\xd6\xb2", 2, 0x05B2}, /* (HEBREW POINT HATAF PATAH) */
-    {(lxb_char_t *) "\xd6\xb3", 2, 0x05B3}, /* (HEBREW POINT HATAF QAMATS) */
-    {(lxb_char_t *) "\xd6\xb4", 2, 0x05B4}, /* (HEBREW POINT HIRIQ) */
-    {(lxb_char_t *) "\xd6\xb5", 2, 0x05B5}, /* (HEBREW POINT TSERE) */
-    {(lxb_char_t *) "\xd6\xb6", 2, 0x05B6}, /* (HEBREW POINT SEGOL) */
-    {(lxb_char_t *) "\xd6\xb7", 2, 0x05B7}, /* (HEBREW POINT PATAH) */
-    {(lxb_char_t *) "\xd6\xb8", 2, 0x05B8}, /* (HEBREW POINT QAMATS) */
-    {(lxb_char_t *) "\xd6\xb9", 2, 0x05B9}, /* (HEBREW POINT HOLAM) */
-    {(lxb_char_t *) "\xd6\xba", 2, 0x05BA}, /* (HEBREW POINT HOLAM HASER FOR VAV) */
-    {(lxb_char_t *) "\xd6\xbb", 2, 0x05BB}, /* (HEBREW POINT QUBUTS) */
-    {(lxb_char_t *) "\xd6\xbc", 2, 0x05BC}, /* (HEBREW POINT DAGESH OR MAPIQ) */
-    {(lxb_char_t *) "\xd6\xbd", 2, 0x05BD}, /* (HEBREW POINT METEG) */
-    {(lxb_char_t *) "\xd6\xbe", 2, 0x05BE}, /* (HEBREW PUNCTUATION MAQAF) */
-    {(lxb_char_t *) "\xd6\xbf", 2, 0x05BF}, /* (HEBREW POINT RAFE) */
-    {(lxb_char_t *) "\xd7\x80", 2, 0x05C0}, /* (HEBREW PUNCTUATION PASEQ) */
-    {(lxb_char_t *) "\xd7\x81", 2, 0x05C1}, /* (HEBREW POINT SHIN DOT) */
-    {(lxb_char_t *) "\xd7\x82", 2, 0x05C2}, /* (HEBREW POINT SIN DOT) */
-    {(lxb_char_t *) "\xd7\x83", 2, 0x05C3}, /* (HEBREW PUNCTUATION SOF PASUQ) */
-    {(lxb_char_t *) "\xd7\xb0", 2, 0x05F0}, /* (HEBREW LIGATURE YIDDISH DOUBLE VAV) */
-    {(lxb_char_t *) "\xd7\xb1", 2, 0x05F1}, /* (HEBREW LIGATURE YIDDISH VAV YOD) */
-    {(lxb_char_t *) "\xd7\xb2", 2, 0x05F2}, /* (HEBREW LIGATURE YIDDISH DOUBLE YOD) */
-    {(lxb_char_t *) "\xd7\xb3", 2, 0x05F3}, /* (HEBREW PUNCTUATION GERESH) */
-    {(lxb_char_t *) "\xd7\xb4", 2, 0x05F4}, /* (HEBREW PUNCTUATION GERSHAYIM) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {(lxb_char_t *) "\xd7\x90", 2, 0x05D0}, /* (HEBREW LETTER ALEF) */
-    {(lxb_char_t *) "\xd7\x91", 2, 0x05D1}, /* (HEBREW LETTER BET) */
-    {(lxb_char_t *) "\xd7\x92", 2, 0x05D2}, /* (HEBREW LETTER GIMEL) */
-    {(lxb_char_t *) "\xd7\x93", 2, 0x05D3}, /* (HEBREW LETTER DALET) */
-    {(lxb_char_t *) "\xd7\x94", 2, 0x05D4}, /* (HEBREW LETTER HE) */
-    {(lxb_char_t *) "\xd7\x95", 2, 0x05D5}, /* (HEBREW LETTER VAV) */
-    {(lxb_char_t *) "\xd7\x96", 2, 0x05D6}, /* (HEBREW LETTER ZAYIN) */
-    {(lxb_char_t *) "\xd7\x97", 2, 0x05D7}, /* (HEBREW LETTER HET) */
-    {(lxb_char_t *) "\xd7\x98", 2, 0x05D8}, /* (HEBREW LETTER TET) */
-    {(lxb_char_t *) "\xd7\x99", 2, 0x05D9}, /* (HEBREW LETTER YOD) */
-    {(lxb_char_t *) "\xd7\x9a", 2, 0x05DA}, /* (HEBREW LETTER FINAL KAF) */
-    {(lxb_char_t *) "\xd7\x9b", 2, 0x05DB}, /* (HEBREW LETTER KAF) */
-    {(lxb_char_t *) "\xd7\x9c", 2, 0x05DC}, /* (HEBREW LETTER LAMED) */
-    {(lxb_char_t *) "\xd7\x9d", 2, 0x05DD}, /* (HEBREW LETTER FINAL MEM) */
-    {(lxb_char_t *) "\xd7\x9e", 2, 0x05DE}, /* (HEBREW LETTER MEM) */
-    {(lxb_char_t *) "\xd7\x9f", 2, 0x05DF}, /* (HEBREW LETTER FINAL NUN) */
-    {(lxb_char_t *) "\xd7\xa0", 2, 0x05E0}, /* (HEBREW LETTER NUN) */
-    {(lxb_char_t *) "\xd7\xa1", 2, 0x05E1}, /* (HEBREW LETTER SAMEKH) */
-    {(lxb_char_t *) "\xd7\xa2", 2, 0x05E2}, /* (HEBREW LETTER AYIN) */
-    {(lxb_char_t *) "\xd7\xa3", 2, 0x05E3}, /* (HEBREW LETTER FINAL PE) */
-    {(lxb_char_t *) "\xd7\xa4", 2, 0x05E4}, /* (HEBREW LETTER PE) */
-    {(lxb_char_t *) "\xd7\xa5", 2, 0x05E5}, /* (HEBREW LETTER FINAL TSADI) */
-    {(lxb_char_t *) "\xd7\xa6", 2, 0x05E6}, /* (HEBREW LETTER TSADI) */
-    {(lxb_char_t *) "\xd7\xa7", 2, 0x05E7}, /* (HEBREW LETTER QOF) */
-    {(lxb_char_t *) "\xd7\xa8", 2, 0x05E8}, /* (HEBREW LETTER RESH) */
-    {(lxb_char_t *) "\xd7\xa9", 2, 0x05E9}, /* (HEBREW LETTER SHIN) */
-    {(lxb_char_t *) "\xd7\xaa", 2, 0x05EA}, /* (HEBREW LETTER TAV) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {(lxb_char_t *) "\xe2\x80\x8e", 3, 0x200E}, /* (LEFT-TO-RIGHT MARK) */
-    {(lxb_char_t *) "\xe2\x80\x8f", 3, 0x200F}, /* (RIGHT-TO-LEFT MARK) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
+    {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
+    {(unsigned char *) "\xe2\x80\x9a", 3, 0x201A}, /* (SINGLE LOW-9 QUOTATION MARK) */
+    {(unsigned char *) "\xc6\x92", 2, 0x0192}, /* (LATIN SMALL LETTER F WITH HOOK) */
+    {(unsigned char *) "\xe2\x80\x9e", 3, 0x201E}, /* (DOUBLE LOW-9 QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\xa6", 3, 0x2026}, /* (HORIZONTAL ELLIPSIS) */
+    {(unsigned char *) "\xe2\x80\xa0", 3, 0x2020}, /* (DAGGER) */
+    {(unsigned char *) "\xe2\x80\xa1", 3, 0x2021}, /* (DOUBLE DAGGER) */
+    {(unsigned char *) "\xcb\x86", 2, 0x02C6}, /* (MODIFIER LETTER CIRCUMFLEX ACCENT) */
+    {(unsigned char *) "\xe2\x80\xb0", 3, 0x2030}, /* (PER MILLE SIGN) */
+    {(unsigned char *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
+    {(unsigned char *) "\xe2\x80\xb9", 3, 0x2039}, /* (SINGLE LEFT-POINTING ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
+    {(unsigned char *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
+    {(unsigned char *) "\xe2\x80\x98", 3, 0x2018}, /* (LEFT SINGLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x99", 3, 0x2019}, /* (RIGHT SINGLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x9c", 3, 0x201C}, /* (LEFT DOUBLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x9d", 3, 0x201D}, /* (RIGHT DOUBLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\xa2", 3, 0x2022}, /* (BULLET) */
+    {(unsigned char *) "\xe2\x80\x93", 3, 0x2013}, /* (EN DASH) */
+    {(unsigned char *) "\xe2\x80\x94", 3, 0x2014}, /* (EM DASH) */
+    {(unsigned char *) "\xcb\x9c", 2, 0x02DC}, /* (SMALL TILDE) */
+    {(unsigned char *) "\xe2\x84\xa2", 3, 0x2122}, /* (TRADE MARK SIGN) */
+    {(unsigned char *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
+    {(unsigned char *) "\xe2\x80\xba", 3, 0x203A}, /* (SINGLE RIGHT-POINTING ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
+    {(unsigned char *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
+    {(unsigned char *) "\xc2\xa1", 2, 0x00A1}, /* (INVERTED EXCLAMATION MARK) */
+    {(unsigned char *) "\xc2\xa2", 2, 0x00A2}, /* (CENT SIGN) */
+    {(unsigned char *) "\xc2\xa3", 2, 0x00A3}, /* (POUND SIGN) */
+    {(unsigned char *) "\xe2\x82\xaa", 3, 0x20AA}, /* (NEW SHEQEL SIGN) */
+    {(unsigned char *) "\xc2\xa5", 2, 0x00A5}, /* (YEN SIGN) */
+    {(unsigned char *) "\xc2\xa6", 2, 0x00A6}, /* (BROKEN BAR) */
+    {(unsigned char *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
+    {(unsigned char *) "\xc2\xa8", 2, 0x00A8}, /* (DIAERESIS) */
+    {(unsigned char *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
+    {(unsigned char *) "\xc3\x97", 2, 0x00D7}, /* (MULTIPLICATION SIGN) */
+    {(unsigned char *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\xac", 2, 0x00AC}, /* (NOT SIGN) */
+    {(unsigned char *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
+    {(unsigned char *) "\xc2\xae", 2, 0x00AE}, /* (REGISTERED SIGN) */
+    {(unsigned char *) "\xc2\xaf", 2, 0x00AF}, /* (MACRON) */
+    {(unsigned char *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
+    {(unsigned char *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
+    {(unsigned char *) "\xc2\xb2", 2, 0x00B2}, /* (SUPERSCRIPT TWO) */
+    {(unsigned char *) "\xc2\xb3", 2, 0x00B3}, /* (SUPERSCRIPT THREE) */
+    {(unsigned char *) "\xc2\xb4", 2, 0x00B4}, /* (ACUTE ACCENT) */
+    {(unsigned char *) "\xc2\xb5", 2, 0x00B5}, /* (MICRO SIGN) */
+    {(unsigned char *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
+    {(unsigned char *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
+    {(unsigned char *) "\xc2\xb8", 2, 0x00B8}, /* (CEDILLA) */
+    {(unsigned char *) "\xc2\xb9", 2, 0x00B9}, /* (SUPERSCRIPT ONE) */
+    {(unsigned char *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
+    {(unsigned char *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\xbc", 2, 0x00BC}, /* (VULGAR FRACTION ONE QUARTER) */
+    {(unsigned char *) "\xc2\xbd", 2, 0x00BD}, /* (VULGAR FRACTION ONE HALF) */
+    {(unsigned char *) "\xc2\xbe", 2, 0x00BE}, /* (VULGAR FRACTION THREE QUARTERS) */
+    {(unsigned char *) "\xc2\xbf", 2, 0x00BF}, /* (INVERTED QUESTION MARK) */
+    {(unsigned char *) "\xd6\xb0", 2, 0x05B0}, /* (HEBREW POINT SHEVA) */
+    {(unsigned char *) "\xd6\xb1", 2, 0x05B1}, /* (HEBREW POINT HATAF SEGOL) */
+    {(unsigned char *) "\xd6\xb2", 2, 0x05B2}, /* (HEBREW POINT HATAF PATAH) */
+    {(unsigned char *) "\xd6\xb3", 2, 0x05B3}, /* (HEBREW POINT HATAF QAMATS) */
+    {(unsigned char *) "\xd6\xb4", 2, 0x05B4}, /* (HEBREW POINT HIRIQ) */
+    {(unsigned char *) "\xd6\xb5", 2, 0x05B5}, /* (HEBREW POINT TSERE) */
+    {(unsigned char *) "\xd6\xb6", 2, 0x05B6}, /* (HEBREW POINT SEGOL) */
+    {(unsigned char *) "\xd6\xb7", 2, 0x05B7}, /* (HEBREW POINT PATAH) */
+    {(unsigned char *) "\xd6\xb8", 2, 0x05B8}, /* (HEBREW POINT QAMATS) */
+    {(unsigned char *) "\xd6\xb9", 2, 0x05B9}, /* (HEBREW POINT HOLAM) */
+    {(unsigned char *) "\xd6\xba", 2, 0x05BA}, /* (HEBREW POINT HOLAM HASER FOR VAV) */
+    {(unsigned char *) "\xd6\xbb", 2, 0x05BB}, /* (HEBREW POINT QUBUTS) */
+    {(unsigned char *) "\xd6\xbc", 2, 0x05BC}, /* (HEBREW POINT DAGESH OR MAPIQ) */
+    {(unsigned char *) "\xd6\xbd", 2, 0x05BD}, /* (HEBREW POINT METEG) */
+    {(unsigned char *) "\xd6\xbe", 2, 0x05BE}, /* (HEBREW PUNCTUATION MAQAF) */
+    {(unsigned char *) "\xd6\xbf", 2, 0x05BF}, /* (HEBREW POINT RAFE) */
+    {(unsigned char *) "\xd7\x80", 2, 0x05C0}, /* (HEBREW PUNCTUATION PASEQ) */
+    {(unsigned char *) "\xd7\x81", 2, 0x05C1}, /* (HEBREW POINT SHIN DOT) */
+    {(unsigned char *) "\xd7\x82", 2, 0x05C2}, /* (HEBREW POINT SIN DOT) */
+    {(unsigned char *) "\xd7\x83", 2, 0x05C3}, /* (HEBREW PUNCTUATION SOF PASUQ) */
+    {(unsigned char *) "\xd7\xb0", 2, 0x05F0}, /* (HEBREW LIGATURE YIDDISH DOUBLE VAV) */
+    {(unsigned char *) "\xd7\xb1", 2, 0x05F1}, /* (HEBREW LIGATURE YIDDISH VAV YOD) */
+    {(unsigned char *) "\xd7\xb2", 2, 0x05F2}, /* (HEBREW LIGATURE YIDDISH DOUBLE YOD) */
+    {(unsigned char *) "\xd7\xb3", 2, 0x05F3}, /* (HEBREW PUNCTUATION GERESH) */
+    {(unsigned char *) "\xd7\xb4", 2, 0x05F4}, /* (HEBREW PUNCTUATION GERSHAYIM) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xd7\x90", 2, 0x05D0}, /* (HEBREW LETTER ALEF) */
+    {(unsigned char *) "\xd7\x91", 2, 0x05D1}, /* (HEBREW LETTER BET) */
+    {(unsigned char *) "\xd7\x92", 2, 0x05D2}, /* (HEBREW LETTER GIMEL) */
+    {(unsigned char *) "\xd7\x93", 2, 0x05D3}, /* (HEBREW LETTER DALET) */
+    {(unsigned char *) "\xd7\x94", 2, 0x05D4}, /* (HEBREW LETTER HE) */
+    {(unsigned char *) "\xd7\x95", 2, 0x05D5}, /* (HEBREW LETTER VAV) */
+    {(unsigned char *) "\xd7\x96", 2, 0x05D6}, /* (HEBREW LETTER ZAYIN) */
+    {(unsigned char *) "\xd7\x97", 2, 0x05D7}, /* (HEBREW LETTER HET) */
+    {(unsigned char *) "\xd7\x98", 2, 0x05D8}, /* (HEBREW LETTER TET) */
+    {(unsigned char *) "\xd7\x99", 2, 0x05D9}, /* (HEBREW LETTER YOD) */
+    {(unsigned char *) "\xd7\x9a", 2, 0x05DA}, /* (HEBREW LETTER FINAL KAF) */
+    {(unsigned char *) "\xd7\x9b", 2, 0x05DB}, /* (HEBREW LETTER KAF) */
+    {(unsigned char *) "\xd7\x9c", 2, 0x05DC}, /* (HEBREW LETTER LAMED) */
+    {(unsigned char *) "\xd7\x9d", 2, 0x05DD}, /* (HEBREW LETTER FINAL MEM) */
+    {(unsigned char *) "\xd7\x9e", 2, 0x05DE}, /* (HEBREW LETTER MEM) */
+    {(unsigned char *) "\xd7\x9f", 2, 0x05DF}, /* (HEBREW LETTER FINAL NUN) */
+    {(unsigned char *) "\xd7\xa0", 2, 0x05E0}, /* (HEBREW LETTER NUN) */
+    {(unsigned char *) "\xd7\xa1", 2, 0x05E1}, /* (HEBREW LETTER SAMEKH) */
+    {(unsigned char *) "\xd7\xa2", 2, 0x05E2}, /* (HEBREW LETTER AYIN) */
+    {(unsigned char *) "\xd7\xa3", 2, 0x05E3}, /* (HEBREW LETTER FINAL PE) */
+    {(unsigned char *) "\xd7\xa4", 2, 0x05E4}, /* (HEBREW LETTER PE) */
+    {(unsigned char *) "\xd7\xa5", 2, 0x05E5}, /* (HEBREW LETTER FINAL TSADI) */
+    {(unsigned char *) "\xd7\xa6", 2, 0x05E6}, /* (HEBREW LETTER TSADI) */
+    {(unsigned char *) "\xd7\xa7", 2, 0x05E7}, /* (HEBREW LETTER QOF) */
+    {(unsigned char *) "\xd7\xa8", 2, 0x05E8}, /* (HEBREW LETTER RESH) */
+    {(unsigned char *) "\xd7\xa9", 2, 0x05E9}, /* (HEBREW LETTER SHIN) */
+    {(unsigned char *) "\xd7\xaa", 2, 0x05EA}, /* (HEBREW LETTER TAV) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xe2\x80\x8e", 3, 0x200E}, /* (LEFT-TO-RIGHT MARK) */
+    {(unsigned char *) "\xe2\x80\x8f", 3, 0x200F}, /* (RIGHT-TO-LEFT MARK) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
 };
 
-LXB_API const lxb_encoding_single_index_t lxb_encoding_single_index_windows_1256[128] = 
+GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_windows_1256[128] = 
 {
-    {(lxb_char_t *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
-    {(lxb_char_t *) "\xd9\xbe", 2, 0x067E}, /* (ARABIC LETTER PEH) */
-    {(lxb_char_t *) "\xe2\x80\x9a", 3, 0x201A}, /* (SINGLE LOW-9 QUOTATION MARK) */
-    {(lxb_char_t *) "\xc6\x92", 2, 0x0192}, /* (LATIN SMALL LETTER F WITH HOOK) */
-    {(lxb_char_t *) "\xe2\x80\x9e", 3, 0x201E}, /* (DOUBLE LOW-9 QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\xa6", 3, 0x2026}, /* (HORIZONTAL ELLIPSIS) */
-    {(lxb_char_t *) "\xe2\x80\xa0", 3, 0x2020}, /* (DAGGER) */
-    {(lxb_char_t *) "\xe2\x80\xa1", 3, 0x2021}, /* (DOUBLE DAGGER) */
-    {(lxb_char_t *) "\xcb\x86", 2, 0x02C6}, /* (MODIFIER LETTER CIRCUMFLEX ACCENT) */
-    {(lxb_char_t *) "\xe2\x80\xb0", 3, 0x2030}, /* (PER MILLE SIGN) */
-    {(lxb_char_t *) "\xd9\xb9", 2, 0x0679}, /* (ARABIC LETTER TTEH) */
-    {(lxb_char_t *) "\xe2\x80\xb9", 3, 0x2039}, /* (SINGLE LEFT-POINTING ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc5\x92", 2, 0x0152}, /* (LATIN CAPITAL LIGATURE OE) */
-    {(lxb_char_t *) "\xda\x86", 2, 0x0686}, /* (ARABIC LETTER TCHEH) */
-    {(lxb_char_t *) "\xda\x98", 2, 0x0698}, /* (ARABIC LETTER JEH) */
-    {(lxb_char_t *) "\xda\x88", 2, 0x0688}, /* (ARABIC LETTER DDAL) */
-    {(lxb_char_t *) "\xda\xaf", 2, 0x06AF}, /* (ARABIC LETTER GAF) */
-    {(lxb_char_t *) "\xe2\x80\x98", 3, 0x2018}, /* (LEFT SINGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x99", 3, 0x2019}, /* (RIGHT SINGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x9c", 3, 0x201C}, /* (LEFT DOUBLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x9d", 3, 0x201D}, /* (RIGHT DOUBLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\xa2", 3, 0x2022}, /* (BULLET) */
-    {(lxb_char_t *) "\xe2\x80\x93", 3, 0x2013}, /* (EN DASH) */
-    {(lxb_char_t *) "\xe2\x80\x94", 3, 0x2014}, /* (EM DASH) */
-    {(lxb_char_t *) "\xda\xa9", 2, 0x06A9}, /* (ARABIC LETTER KEHEH) */
-    {(lxb_char_t *) "\xe2\x84\xa2", 3, 0x2122}, /* (TRADE MARK SIGN) */
-    {(lxb_char_t *) "\xda\x91", 2, 0x0691}, /* (ARABIC LETTER RREH) */
-    {(lxb_char_t *) "\xe2\x80\xba", 3, 0x203A}, /* (SINGLE RIGHT-POINTING ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc5\x93", 2, 0x0153}, /* (LATIN SMALL LIGATURE OE) */
-    {(lxb_char_t *) "\xe2\x80\x8c", 3, 0x200C}, /* (ZERO WIDTH NON-JOINER) */
-    {(lxb_char_t *) "\xe2\x80\x8d", 3, 0x200D}, /* (ZERO WIDTH JOINER) */
-    {(lxb_char_t *) "\xda\xba", 2, 0x06BA}, /* (ARABIC LETTER NOON GHUNNA) */
-    {(lxb_char_t *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
-    {(lxb_char_t *) "\xd8\x8c", 2, 0x060C}, /* (ARABIC COMMA) */
-    {(lxb_char_t *) "\xc2\xa2", 2, 0x00A2}, /* (CENT SIGN) */
-    {(lxb_char_t *) "\xc2\xa3", 2, 0x00A3}, /* (POUND SIGN) */
-    {(lxb_char_t *) "\xc2\xa4", 2, 0x00A4}, /* (CURRENCY SIGN) */
-    {(lxb_char_t *) "\xc2\xa5", 2, 0x00A5}, /* (YEN SIGN) */
-    {(lxb_char_t *) "\xc2\xa6", 2, 0x00A6}, /* (BROKEN BAR) */
-    {(lxb_char_t *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
-    {(lxb_char_t *) "\xc2\xa8", 2, 0x00A8}, /* (DIAERESIS) */
-    {(lxb_char_t *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
-    {(lxb_char_t *) "\xda\xbe", 2, 0x06BE}, /* (ARABIC LETTER HEH DOACHASHMEE) */
-    {(lxb_char_t *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\xac", 2, 0x00AC}, /* (NOT SIGN) */
-    {(lxb_char_t *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
-    {(lxb_char_t *) "\xc2\xae", 2, 0x00AE}, /* (REGISTERED SIGN) */
-    {(lxb_char_t *) "\xc2\xaf", 2, 0x00AF}, /* (MACRON) */
-    {(lxb_char_t *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
-    {(lxb_char_t *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
-    {(lxb_char_t *) "\xc2\xb2", 2, 0x00B2}, /* (SUPERSCRIPT TWO) */
-    {(lxb_char_t *) "\xc2\xb3", 2, 0x00B3}, /* (SUPERSCRIPT THREE) */
-    {(lxb_char_t *) "\xc2\xb4", 2, 0x00B4}, /* (ACUTE ACCENT) */
-    {(lxb_char_t *) "\xc2\xb5", 2, 0x00B5}, /* (MICRO SIGN) */
-    {(lxb_char_t *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
-    {(lxb_char_t *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
-    {(lxb_char_t *) "\xc2\xb8", 2, 0x00B8}, /* (CEDILLA) */
-    {(lxb_char_t *) "\xc2\xb9", 2, 0x00B9}, /* (SUPERSCRIPT ONE) */
-    {(lxb_char_t *) "\xd8\x9b", 2, 0x061B}, /* (ARABIC SEMICOLON) */
-    {(lxb_char_t *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\xbc", 2, 0x00BC}, /* (VULGAR FRACTION ONE QUARTER) */
-    {(lxb_char_t *) "\xc2\xbd", 2, 0x00BD}, /* (VULGAR FRACTION ONE HALF) */
-    {(lxb_char_t *) "\xc2\xbe", 2, 0x00BE}, /* (VULGAR FRACTION THREE QUARTERS) */
-    {(lxb_char_t *) "\xd8\x9f", 2, 0x061F}, /* (ARABIC QUESTION MARK) */
-    {(lxb_char_t *) "\xdb\x81", 2, 0x06C1}, /* (ARABIC LETTER HEH GOAL) */
-    {(lxb_char_t *) "\xd8\xa1", 2, 0x0621}, /* (ARABIC LETTER HAMZA) */
-    {(lxb_char_t *) "\xd8\xa2", 2, 0x0622}, /* (ARABIC LETTER ALEF WITH MADDA ABOVE) */
-    {(lxb_char_t *) "\xd8\xa3", 2, 0x0623}, /* (ARABIC LETTER ALEF WITH HAMZA ABOVE) */
-    {(lxb_char_t *) "\xd8\xa4", 2, 0x0624}, /* (ARABIC LETTER WAW WITH HAMZA ABOVE) */
-    {(lxb_char_t *) "\xd8\xa5", 2, 0x0625}, /* (ARABIC LETTER ALEF WITH HAMZA BELOW) */
-    {(lxb_char_t *) "\xd8\xa6", 2, 0x0626}, /* (ARABIC LETTER YEH WITH HAMZA ABOVE) */
-    {(lxb_char_t *) "\xd8\xa7", 2, 0x0627}, /* (ARABIC LETTER ALEF) */
-    {(lxb_char_t *) "\xd8\xa8", 2, 0x0628}, /* (ARABIC LETTER BEH) */
-    {(lxb_char_t *) "\xd8\xa9", 2, 0x0629}, /* (ARABIC LETTER TEH MARBUTA) */
-    {(lxb_char_t *) "\xd8\xaa", 2, 0x062A}, /* (ARABIC LETTER TEH) */
-    {(lxb_char_t *) "\xd8\xab", 2, 0x062B}, /* (ARABIC LETTER THEH) */
-    {(lxb_char_t *) "\xd8\xac", 2, 0x062C}, /* (ARABIC LETTER JEEM) */
-    {(lxb_char_t *) "\xd8\xad", 2, 0x062D}, /* (ARABIC LETTER HAH) */
-    {(lxb_char_t *) "\xd8\xae", 2, 0x062E}, /* (ARABIC LETTER KHAH) */
-    {(lxb_char_t *) "\xd8\xaf", 2, 0x062F}, /* (ARABIC LETTER DAL) */
-    {(lxb_char_t *) "\xd8\xb0", 2, 0x0630}, /* (ARABIC LETTER THAL) */
-    {(lxb_char_t *) "\xd8\xb1", 2, 0x0631}, /* (ARABIC LETTER REH) */
-    {(lxb_char_t *) "\xd8\xb2", 2, 0x0632}, /* (ARABIC LETTER ZAIN) */
-    {(lxb_char_t *) "\xd8\xb3", 2, 0x0633}, /* (ARABIC LETTER SEEN) */
-    {(lxb_char_t *) "\xd8\xb4", 2, 0x0634}, /* (ARABIC LETTER SHEEN) */
-    {(lxb_char_t *) "\xd8\xb5", 2, 0x0635}, /* (ARABIC LETTER SAD) */
-    {(lxb_char_t *) "\xd8\xb6", 2, 0x0636}, /* (ARABIC LETTER DAD) */
-    {(lxb_char_t *) "\xc3\x97", 2, 0x00D7}, /* (MULTIPLICATION SIGN) */
-    {(lxb_char_t *) "\xd8\xb7", 2, 0x0637}, /* (ARABIC LETTER TAH) */
-    {(lxb_char_t *) "\xd8\xb8", 2, 0x0638}, /* (ARABIC LETTER ZAH) */
-    {(lxb_char_t *) "\xd8\xb9", 2, 0x0639}, /* (ARABIC LETTER AIN) */
-    {(lxb_char_t *) "\xd8\xba", 2, 0x063A}, /* (ARABIC LETTER GHAIN) */
-    {(lxb_char_t *) "\xd9\x80", 2, 0x0640}, /* (ARABIC TATWEEL) */
-    {(lxb_char_t *) "\xd9\x81", 2, 0x0641}, /* (ARABIC LETTER FEH) */
-    {(lxb_char_t *) "\xd9\x82", 2, 0x0642}, /* (ARABIC LETTER QAF) */
-    {(lxb_char_t *) "\xd9\x83", 2, 0x0643}, /* (ARABIC LETTER KAF) */
-    {(lxb_char_t *) "\xc3\xa0", 2, 0x00E0}, /* (LATIN SMALL LETTER A WITH GRAVE) */
-    {(lxb_char_t *) "\xd9\x84", 2, 0x0644}, /* (ARABIC LETTER LAM) */
-    {(lxb_char_t *) "\xc3\xa2", 2, 0x00E2}, /* (LATIN SMALL LETTER A WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xd9\x85", 2, 0x0645}, /* (ARABIC LETTER MEEM) */
-    {(lxb_char_t *) "\xd9\x86", 2, 0x0646}, /* (ARABIC LETTER NOON) */
-    {(lxb_char_t *) "\xd9\x87", 2, 0x0647}, /* (ARABIC LETTER HEH) */
-    {(lxb_char_t *) "\xd9\x88", 2, 0x0648}, /* (ARABIC LETTER WAW) */
-    {(lxb_char_t *) "\xc3\xa7", 2, 0x00E7}, /* (LATIN SMALL LETTER C WITH CEDILLA) */
-    {(lxb_char_t *) "\xc3\xa8", 2, 0x00E8}, /* (LATIN SMALL LETTER E WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xa9", 2, 0x00E9}, /* (LATIN SMALL LETTER E WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xaa", 2, 0x00EA}, /* (LATIN SMALL LETTER E WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xab", 2, 0x00EB}, /* (LATIN SMALL LETTER E WITH DIAERESIS) */
-    {(lxb_char_t *) "\xd9\x89", 2, 0x0649}, /* (ARABIC LETTER ALEF MAKSURA) */
-    {(lxb_char_t *) "\xd9\x8a", 2, 0x064A}, /* (ARABIC LETTER YEH) */
-    {(lxb_char_t *) "\xc3\xae", 2, 0x00EE}, /* (LATIN SMALL LETTER I WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xaf", 2, 0x00EF}, /* (LATIN SMALL LETTER I WITH DIAERESIS) */
-    {(lxb_char_t *) "\xd9\x8b", 2, 0x064B}, /* (ARABIC FATHATAN) */
-    {(lxb_char_t *) "\xd9\x8c", 2, 0x064C}, /* (ARABIC DAMMATAN) */
-    {(lxb_char_t *) "\xd9\x8d", 2, 0x064D}, /* (ARABIC KASRATAN) */
-    {(lxb_char_t *) "\xd9\x8e", 2, 0x064E}, /* (ARABIC FATHA) */
-    {(lxb_char_t *) "\xc3\xb4", 2, 0x00F4}, /* (LATIN SMALL LETTER O WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xd9\x8f", 2, 0x064F}, /* (ARABIC DAMMA) */
-    {(lxb_char_t *) "\xd9\x90", 2, 0x0650}, /* (ARABIC KASRA) */
-    {(lxb_char_t *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
-    {(lxb_char_t *) "\xd9\x91", 2, 0x0651}, /* (ARABIC SHADDA) */
-    {(lxb_char_t *) "\xc3\xb9", 2, 0x00F9}, /* (LATIN SMALL LETTER U WITH GRAVE) */
-    {(lxb_char_t *) "\xd9\x92", 2, 0x0652}, /* (ARABIC SUKUN) */
-    {(lxb_char_t *) "\xc3\xbb", 2, 0x00FB}, /* (LATIN SMALL LETTER U WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xbc", 2, 0x00FC}, /* (LATIN SMALL LETTER U WITH DIAERESIS) */
-    {(lxb_char_t *) "\xe2\x80\x8e", 3, 0x200E}, /* (LEFT-TO-RIGHT MARK) */
-    {(lxb_char_t *) "\xe2\x80\x8f", 3, 0x200F}, /* (RIGHT-TO-LEFT MARK) */
-    {(lxb_char_t *) "\xdb\x92", 2, 0x06D2}, /* (ARABIC LETTER YEH BARREE) */
+    {(unsigned char *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
+    {(unsigned char *) "\xd9\xbe", 2, 0x067E}, /* (ARABIC LETTER PEH) */
+    {(unsigned char *) "\xe2\x80\x9a", 3, 0x201A}, /* (SINGLE LOW-9 QUOTATION MARK) */
+    {(unsigned char *) "\xc6\x92", 2, 0x0192}, /* (LATIN SMALL LETTER F WITH HOOK) */
+    {(unsigned char *) "\xe2\x80\x9e", 3, 0x201E}, /* (DOUBLE LOW-9 QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\xa6", 3, 0x2026}, /* (HORIZONTAL ELLIPSIS) */
+    {(unsigned char *) "\xe2\x80\xa0", 3, 0x2020}, /* (DAGGER) */
+    {(unsigned char *) "\xe2\x80\xa1", 3, 0x2021}, /* (DOUBLE DAGGER) */
+    {(unsigned char *) "\xcb\x86", 2, 0x02C6}, /* (MODIFIER LETTER CIRCUMFLEX ACCENT) */
+    {(unsigned char *) "\xe2\x80\xb0", 3, 0x2030}, /* (PER MILLE SIGN) */
+    {(unsigned char *) "\xd9\xb9", 2, 0x0679}, /* (ARABIC LETTER TTEH) */
+    {(unsigned char *) "\xe2\x80\xb9", 3, 0x2039}, /* (SINGLE LEFT-POINTING ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc5\x92", 2, 0x0152}, /* (LATIN CAPITAL LIGATURE OE) */
+    {(unsigned char *) "\xda\x86", 2, 0x0686}, /* (ARABIC LETTER TCHEH) */
+    {(unsigned char *) "\xda\x98", 2, 0x0698}, /* (ARABIC LETTER JEH) */
+    {(unsigned char *) "\xda\x88", 2, 0x0688}, /* (ARABIC LETTER DDAL) */
+    {(unsigned char *) "\xda\xaf", 2, 0x06AF}, /* (ARABIC LETTER GAF) */
+    {(unsigned char *) "\xe2\x80\x98", 3, 0x2018}, /* (LEFT SINGLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x99", 3, 0x2019}, /* (RIGHT SINGLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x9c", 3, 0x201C}, /* (LEFT DOUBLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x9d", 3, 0x201D}, /* (RIGHT DOUBLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\xa2", 3, 0x2022}, /* (BULLET) */
+    {(unsigned char *) "\xe2\x80\x93", 3, 0x2013}, /* (EN DASH) */
+    {(unsigned char *) "\xe2\x80\x94", 3, 0x2014}, /* (EM DASH) */
+    {(unsigned char *) "\xda\xa9", 2, 0x06A9}, /* (ARABIC LETTER KEHEH) */
+    {(unsigned char *) "\xe2\x84\xa2", 3, 0x2122}, /* (TRADE MARK SIGN) */
+    {(unsigned char *) "\xda\x91", 2, 0x0691}, /* (ARABIC LETTER RREH) */
+    {(unsigned char *) "\xe2\x80\xba", 3, 0x203A}, /* (SINGLE RIGHT-POINTING ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc5\x93", 2, 0x0153}, /* (LATIN SMALL LIGATURE OE) */
+    {(unsigned char *) "\xe2\x80\x8c", 3, 0x200C}, /* (ZERO WIDTH NON-JOINER) */
+    {(unsigned char *) "\xe2\x80\x8d", 3, 0x200D}, /* (ZERO WIDTH JOINER) */
+    {(unsigned char *) "\xda\xba", 2, 0x06BA}, /* (ARABIC LETTER NOON GHUNNA) */
+    {(unsigned char *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
+    {(unsigned char *) "\xd8\x8c", 2, 0x060C}, /* (ARABIC COMMA) */
+    {(unsigned char *) "\xc2\xa2", 2, 0x00A2}, /* (CENT SIGN) */
+    {(unsigned char *) "\xc2\xa3", 2, 0x00A3}, /* (POUND SIGN) */
+    {(unsigned char *) "\xc2\xa4", 2, 0x00A4}, /* (CURRENCY SIGN) */
+    {(unsigned char *) "\xc2\xa5", 2, 0x00A5}, /* (YEN SIGN) */
+    {(unsigned char *) "\xc2\xa6", 2, 0x00A6}, /* (BROKEN BAR) */
+    {(unsigned char *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
+    {(unsigned char *) "\xc2\xa8", 2, 0x00A8}, /* (DIAERESIS) */
+    {(unsigned char *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
+    {(unsigned char *) "\xda\xbe", 2, 0x06BE}, /* (ARABIC LETTER HEH DOACHASHMEE) */
+    {(unsigned char *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\xac", 2, 0x00AC}, /* (NOT SIGN) */
+    {(unsigned char *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
+    {(unsigned char *) "\xc2\xae", 2, 0x00AE}, /* (REGISTERED SIGN) */
+    {(unsigned char *) "\xc2\xaf", 2, 0x00AF}, /* (MACRON) */
+    {(unsigned char *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
+    {(unsigned char *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
+    {(unsigned char *) "\xc2\xb2", 2, 0x00B2}, /* (SUPERSCRIPT TWO) */
+    {(unsigned char *) "\xc2\xb3", 2, 0x00B3}, /* (SUPERSCRIPT THREE) */
+    {(unsigned char *) "\xc2\xb4", 2, 0x00B4}, /* (ACUTE ACCENT) */
+    {(unsigned char *) "\xc2\xb5", 2, 0x00B5}, /* (MICRO SIGN) */
+    {(unsigned char *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
+    {(unsigned char *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
+    {(unsigned char *) "\xc2\xb8", 2, 0x00B8}, /* (CEDILLA) */
+    {(unsigned char *) "\xc2\xb9", 2, 0x00B9}, /* (SUPERSCRIPT ONE) */
+    {(unsigned char *) "\xd8\x9b", 2, 0x061B}, /* (ARABIC SEMICOLON) */
+    {(unsigned char *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\xbc", 2, 0x00BC}, /* (VULGAR FRACTION ONE QUARTER) */
+    {(unsigned char *) "\xc2\xbd", 2, 0x00BD}, /* (VULGAR FRACTION ONE HALF) */
+    {(unsigned char *) "\xc2\xbe", 2, 0x00BE}, /* (VULGAR FRACTION THREE QUARTERS) */
+    {(unsigned char *) "\xd8\x9f", 2, 0x061F}, /* (ARABIC QUESTION MARK) */
+    {(unsigned char *) "\xdb\x81", 2, 0x06C1}, /* (ARABIC LETTER HEH GOAL) */
+    {(unsigned char *) "\xd8\xa1", 2, 0x0621}, /* (ARABIC LETTER HAMZA) */
+    {(unsigned char *) "\xd8\xa2", 2, 0x0622}, /* (ARABIC LETTER ALEF WITH MADDA ABOVE) */
+    {(unsigned char *) "\xd8\xa3", 2, 0x0623}, /* (ARABIC LETTER ALEF WITH HAMZA ABOVE) */
+    {(unsigned char *) "\xd8\xa4", 2, 0x0624}, /* (ARABIC LETTER WAW WITH HAMZA ABOVE) */
+    {(unsigned char *) "\xd8\xa5", 2, 0x0625}, /* (ARABIC LETTER ALEF WITH HAMZA BELOW) */
+    {(unsigned char *) "\xd8\xa6", 2, 0x0626}, /* (ARABIC LETTER YEH WITH HAMZA ABOVE) */
+    {(unsigned char *) "\xd8\xa7", 2, 0x0627}, /* (ARABIC LETTER ALEF) */
+    {(unsigned char *) "\xd8\xa8", 2, 0x0628}, /* (ARABIC LETTER BEH) */
+    {(unsigned char *) "\xd8\xa9", 2, 0x0629}, /* (ARABIC LETTER TEH MARBUTA) */
+    {(unsigned char *) "\xd8\xaa", 2, 0x062A}, /* (ARABIC LETTER TEH) */
+    {(unsigned char *) "\xd8\xab", 2, 0x062B}, /* (ARABIC LETTER THEH) */
+    {(unsigned char *) "\xd8\xac", 2, 0x062C}, /* (ARABIC LETTER JEEM) */
+    {(unsigned char *) "\xd8\xad", 2, 0x062D}, /* (ARABIC LETTER HAH) */
+    {(unsigned char *) "\xd8\xae", 2, 0x062E}, /* (ARABIC LETTER KHAH) */
+    {(unsigned char *) "\xd8\xaf", 2, 0x062F}, /* (ARABIC LETTER DAL) */
+    {(unsigned char *) "\xd8\xb0", 2, 0x0630}, /* (ARABIC LETTER THAL) */
+    {(unsigned char *) "\xd8\xb1", 2, 0x0631}, /* (ARABIC LETTER REH) */
+    {(unsigned char *) "\xd8\xb2", 2, 0x0632}, /* (ARABIC LETTER ZAIN) */
+    {(unsigned char *) "\xd8\xb3", 2, 0x0633}, /* (ARABIC LETTER SEEN) */
+    {(unsigned char *) "\xd8\xb4", 2, 0x0634}, /* (ARABIC LETTER SHEEN) */
+    {(unsigned char *) "\xd8\xb5", 2, 0x0635}, /* (ARABIC LETTER SAD) */
+    {(unsigned char *) "\xd8\xb6", 2, 0x0636}, /* (ARABIC LETTER DAD) */
+    {(unsigned char *) "\xc3\x97", 2, 0x00D7}, /* (MULTIPLICATION SIGN) */
+    {(unsigned char *) "\xd8\xb7", 2, 0x0637}, /* (ARABIC LETTER TAH) */
+    {(unsigned char *) "\xd8\xb8", 2, 0x0638}, /* (ARABIC LETTER ZAH) */
+    {(unsigned char *) "\xd8\xb9", 2, 0x0639}, /* (ARABIC LETTER AIN) */
+    {(unsigned char *) "\xd8\xba", 2, 0x063A}, /* (ARABIC LETTER GHAIN) */
+    {(unsigned char *) "\xd9\x80", 2, 0x0640}, /* (ARABIC TATWEEL) */
+    {(unsigned char *) "\xd9\x81", 2, 0x0641}, /* (ARABIC LETTER FEH) */
+    {(unsigned char *) "\xd9\x82", 2, 0x0642}, /* (ARABIC LETTER QAF) */
+    {(unsigned char *) "\xd9\x83", 2, 0x0643}, /* (ARABIC LETTER KAF) */
+    {(unsigned char *) "\xc3\xa0", 2, 0x00E0}, /* (LATIN SMALL LETTER A WITH GRAVE) */
+    {(unsigned char *) "\xd9\x84", 2, 0x0644}, /* (ARABIC LETTER LAM) */
+    {(unsigned char *) "\xc3\xa2", 2, 0x00E2}, /* (LATIN SMALL LETTER A WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xd9\x85", 2, 0x0645}, /* (ARABIC LETTER MEEM) */
+    {(unsigned char *) "\xd9\x86", 2, 0x0646}, /* (ARABIC LETTER NOON) */
+    {(unsigned char *) "\xd9\x87", 2, 0x0647}, /* (ARABIC LETTER HEH) */
+    {(unsigned char *) "\xd9\x88", 2, 0x0648}, /* (ARABIC LETTER WAW) */
+    {(unsigned char *) "\xc3\xa7", 2, 0x00E7}, /* (LATIN SMALL LETTER C WITH CEDILLA) */
+    {(unsigned char *) "\xc3\xa8", 2, 0x00E8}, /* (LATIN SMALL LETTER E WITH GRAVE) */
+    {(unsigned char *) "\xc3\xa9", 2, 0x00E9}, /* (LATIN SMALL LETTER E WITH ACUTE) */
+    {(unsigned char *) "\xc3\xaa", 2, 0x00EA}, /* (LATIN SMALL LETTER E WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xab", 2, 0x00EB}, /* (LATIN SMALL LETTER E WITH DIAERESIS) */
+    {(unsigned char *) "\xd9\x89", 2, 0x0649}, /* (ARABIC LETTER ALEF MAKSURA) */
+    {(unsigned char *) "\xd9\x8a", 2, 0x064A}, /* (ARABIC LETTER YEH) */
+    {(unsigned char *) "\xc3\xae", 2, 0x00EE}, /* (LATIN SMALL LETTER I WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xaf", 2, 0x00EF}, /* (LATIN SMALL LETTER I WITH DIAERESIS) */
+    {(unsigned char *) "\xd9\x8b", 2, 0x064B}, /* (ARABIC FATHATAN) */
+    {(unsigned char *) "\xd9\x8c", 2, 0x064C}, /* (ARABIC DAMMATAN) */
+    {(unsigned char *) "\xd9\x8d", 2, 0x064D}, /* (ARABIC KASRATAN) */
+    {(unsigned char *) "\xd9\x8e", 2, 0x064E}, /* (ARABIC FATHA) */
+    {(unsigned char *) "\xc3\xb4", 2, 0x00F4}, /* (LATIN SMALL LETTER O WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xd9\x8f", 2, 0x064F}, /* (ARABIC DAMMA) */
+    {(unsigned char *) "\xd9\x90", 2, 0x0650}, /* (ARABIC KASRA) */
+    {(unsigned char *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
+    {(unsigned char *) "\xd9\x91", 2, 0x0651}, /* (ARABIC SHADDA) */
+    {(unsigned char *) "\xc3\xb9", 2, 0x00F9}, /* (LATIN SMALL LETTER U WITH GRAVE) */
+    {(unsigned char *) "\xd9\x92", 2, 0x0652}, /* (ARABIC SUKUN) */
+    {(unsigned char *) "\xc3\xbb", 2, 0x00FB}, /* (LATIN SMALL LETTER U WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xbc", 2, 0x00FC}, /* (LATIN SMALL LETTER U WITH DIAERESIS) */
+    {(unsigned char *) "\xe2\x80\x8e", 3, 0x200E}, /* (LEFT-TO-RIGHT MARK) */
+    {(unsigned char *) "\xe2\x80\x8f", 3, 0x200F}, /* (RIGHT-TO-LEFT MARK) */
+    {(unsigned char *) "\xdb\x92", 2, 0x06D2}, /* (ARABIC LETTER YEH BARREE) */
 };
 
-LXB_API const lxb_encoding_single_index_t lxb_encoding_single_index_windows_1257[128] = 
+GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_windows_1257[128] = 
 {
-    {(lxb_char_t *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
-    {(lxb_char_t *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x80\x9a", 3, 0x201A}, /* (SINGLE LOW-9 QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\x83", 2, 0x0083}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x80\x9e", 3, 0x201E}, /* (DOUBLE LOW-9 QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\xa6", 3, 0x2026}, /* (HORIZONTAL ELLIPSIS) */
-    {(lxb_char_t *) "\xe2\x80\xa0", 3, 0x2020}, /* (DAGGER) */
-    {(lxb_char_t *) "\xe2\x80\xa1", 3, 0x2021}, /* (DOUBLE DAGGER) */
-    {(lxb_char_t *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x80\xb0", 3, 0x2030}, /* (PER MILLE SIGN) */
-    {(lxb_char_t *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x80\xb9", 3, 0x2039}, /* (SINGLE LEFT-POINTING ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\xa8", 2, 0x00A8}, /* (DIAERESIS) */
-    {(lxb_char_t *) "\xcb\x87", 2, 0x02C7}, /* (CARON) */
-    {(lxb_char_t *) "\xc2\xb8", 2, 0x00B8}, /* (CEDILLA) */
-    {(lxb_char_t *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x80\x98", 3, 0x2018}, /* (LEFT SINGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x99", 3, 0x2019}, /* (RIGHT SINGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x9c", 3, 0x201C}, /* (LEFT DOUBLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x9d", 3, 0x201D}, /* (RIGHT DOUBLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\xa2", 3, 0x2022}, /* (BULLET) */
-    {(lxb_char_t *) "\xe2\x80\x93", 3, 0x2013}, /* (EN DASH) */
-    {(lxb_char_t *) "\xe2\x80\x94", 3, 0x2014}, /* (EM DASH) */
-    {(lxb_char_t *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x84\xa2", 3, 0x2122}, /* (TRADE MARK SIGN) */
-    {(lxb_char_t *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x80\xba", 3, 0x203A}, /* (SINGLE RIGHT-POINTING ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\xaf", 2, 0x00AF}, /* (MACRON) */
-    {(lxb_char_t *) "\xcb\x9b", 2, 0x02DB}, /* (OGONEK) */
-    {(lxb_char_t *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {(lxb_char_t *) "\xc2\xa2", 2, 0x00A2}, /* (CENT SIGN) */
-    {(lxb_char_t *) "\xc2\xa3", 2, 0x00A3}, /* (POUND SIGN) */
-    {(lxb_char_t *) "\xc2\xa4", 2, 0x00A4}, /* (CURRENCY SIGN) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {(lxb_char_t *) "\xc2\xa6", 2, 0x00A6}, /* (BROKEN BAR) */
-    {(lxb_char_t *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
-    {(lxb_char_t *) "\xc3\x98", 2, 0x00D8}, /* (LATIN CAPITAL LETTER O WITH STROKE) */
-    {(lxb_char_t *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
-    {(lxb_char_t *) "\xc5\x96", 2, 0x0156}, /* (LATIN CAPITAL LETTER R WITH CEDILLA) */
-    {(lxb_char_t *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\xac", 2, 0x00AC}, /* (NOT SIGN) */
-    {(lxb_char_t *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
-    {(lxb_char_t *) "\xc2\xae", 2, 0x00AE}, /* (REGISTERED SIGN) */
-    {(lxb_char_t *) "\xc3\x86", 2, 0x00C6}, /* (LATIN CAPITAL LETTER AE) */
-    {(lxb_char_t *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
-    {(lxb_char_t *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
-    {(lxb_char_t *) "\xc2\xb2", 2, 0x00B2}, /* (SUPERSCRIPT TWO) */
-    {(lxb_char_t *) "\xc2\xb3", 2, 0x00B3}, /* (SUPERSCRIPT THREE) */
-    {(lxb_char_t *) "\xc2\xb4", 2, 0x00B4}, /* (ACUTE ACCENT) */
-    {(lxb_char_t *) "\xc2\xb5", 2, 0x00B5}, /* (MICRO SIGN) */
-    {(lxb_char_t *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
-    {(lxb_char_t *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
-    {(lxb_char_t *) "\xc3\xb8", 2, 0x00F8}, /* (LATIN SMALL LETTER O WITH STROKE) */
-    {(lxb_char_t *) "\xc2\xb9", 2, 0x00B9}, /* (SUPERSCRIPT ONE) */
-    {(lxb_char_t *) "\xc5\x97", 2, 0x0157}, /* (LATIN SMALL LETTER R WITH CEDILLA) */
-    {(lxb_char_t *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\xbc", 2, 0x00BC}, /* (VULGAR FRACTION ONE QUARTER) */
-    {(lxb_char_t *) "\xc2\xbd", 2, 0x00BD}, /* (VULGAR FRACTION ONE HALF) */
-    {(lxb_char_t *) "\xc2\xbe", 2, 0x00BE}, /* (VULGAR FRACTION THREE QUARTERS) */
-    {(lxb_char_t *) "\xc3\xa6", 2, 0x00E6}, /* (LATIN SMALL LETTER AE) */
-    {(lxb_char_t *) "\xc4\x84", 2, 0x0104}, /* (LATIN CAPITAL LETTER A WITH OGONEK) */
-    {(lxb_char_t *) "\xc4\xae", 2, 0x012E}, /* (LATIN CAPITAL LETTER I WITH OGONEK) */
-    {(lxb_char_t *) "\xc4\x80", 2, 0x0100}, /* (LATIN CAPITAL LETTER A WITH MACRON) */
-    {(lxb_char_t *) "\xc4\x86", 2, 0x0106}, /* (LATIN CAPITAL LETTER C WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x84", 2, 0x00C4}, /* (LATIN CAPITAL LETTER A WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x85", 2, 0x00C5}, /* (LATIN CAPITAL LETTER A WITH RING ABOVE) */
-    {(lxb_char_t *) "\xc4\x98", 2, 0x0118}, /* (LATIN CAPITAL LETTER E WITH OGONEK) */
-    {(lxb_char_t *) "\xc4\x92", 2, 0x0112}, /* (LATIN CAPITAL LETTER E WITH MACRON) */
-    {(lxb_char_t *) "\xc4\x8c", 2, 0x010C}, /* (LATIN CAPITAL LETTER C WITH CARON) */
-    {(lxb_char_t *) "\xc3\x89", 2, 0x00C9}, /* (LATIN CAPITAL LETTER E WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\xb9", 2, 0x0179}, /* (LATIN CAPITAL LETTER Z WITH ACUTE) */
-    {(lxb_char_t *) "\xc4\x96", 2, 0x0116}, /* (LATIN CAPITAL LETTER E WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc4\xa2", 2, 0x0122}, /* (LATIN CAPITAL LETTER G WITH CEDILLA) */
-    {(lxb_char_t *) "\xc4\xb6", 2, 0x0136}, /* (LATIN CAPITAL LETTER K WITH CEDILLA) */
-    {(lxb_char_t *) "\xc4\xaa", 2, 0x012A}, /* (LATIN CAPITAL LETTER I WITH MACRON) */
-    {(lxb_char_t *) "\xc4\xbb", 2, 0x013B}, /* (LATIN CAPITAL LETTER L WITH CEDILLA) */
-    {(lxb_char_t *) "\xc5\xa0", 2, 0x0160}, /* (LATIN CAPITAL LETTER S WITH CARON) */
-    {(lxb_char_t *) "\xc5\x83", 2, 0x0143}, /* (LATIN CAPITAL LETTER N WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\x85", 2, 0x0145}, /* (LATIN CAPITAL LETTER N WITH CEDILLA) */
-    {(lxb_char_t *) "\xc3\x93", 2, 0x00D3}, /* (LATIN CAPITAL LETTER O WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\x8c", 2, 0x014C}, /* (LATIN CAPITAL LETTER O WITH MACRON) */
-    {(lxb_char_t *) "\xc3\x95", 2, 0x00D5}, /* (LATIN CAPITAL LETTER O WITH TILDE) */
-    {(lxb_char_t *) "\xc3\x96", 2, 0x00D6}, /* (LATIN CAPITAL LETTER O WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x97", 2, 0x00D7}, /* (MULTIPLICATION SIGN) */
-    {(lxb_char_t *) "\xc5\xb2", 2, 0x0172}, /* (LATIN CAPITAL LETTER U WITH OGONEK) */
-    {(lxb_char_t *) "\xc5\x81", 2, 0x0141}, /* (LATIN CAPITAL LETTER L WITH STROKE) */
-    {(lxb_char_t *) "\xc5\x9a", 2, 0x015A}, /* (LATIN CAPITAL LETTER S WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\xaa", 2, 0x016A}, /* (LATIN CAPITAL LETTER U WITH MACRON) */
-    {(lxb_char_t *) "\xc3\x9c", 2, 0x00DC}, /* (LATIN CAPITAL LETTER U WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc5\xbb", 2, 0x017B}, /* (LATIN CAPITAL LETTER Z WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc5\xbd", 2, 0x017D}, /* (LATIN CAPITAL LETTER Z WITH CARON) */
-    {(lxb_char_t *) "\xc3\x9f", 2, 0x00DF}, /* (LATIN SMALL LETTER SHARP S) */
-    {(lxb_char_t *) "\xc4\x85", 2, 0x0105}, /* (LATIN SMALL LETTER A WITH OGONEK) */
-    {(lxb_char_t *) "\xc4\xaf", 2, 0x012F}, /* (LATIN SMALL LETTER I WITH OGONEK) */
-    {(lxb_char_t *) "\xc4\x81", 2, 0x0101}, /* (LATIN SMALL LETTER A WITH MACRON) */
-    {(lxb_char_t *) "\xc4\x87", 2, 0x0107}, /* (LATIN SMALL LETTER C WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xa4", 2, 0x00E4}, /* (LATIN SMALL LETTER A WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xa5", 2, 0x00E5}, /* (LATIN SMALL LETTER A WITH RING ABOVE) */
-    {(lxb_char_t *) "\xc4\x99", 2, 0x0119}, /* (LATIN SMALL LETTER E WITH OGONEK) */
-    {(lxb_char_t *) "\xc4\x93", 2, 0x0113}, /* (LATIN SMALL LETTER E WITH MACRON) */
-    {(lxb_char_t *) "\xc4\x8d", 2, 0x010D}, /* (LATIN SMALL LETTER C WITH CARON) */
-    {(lxb_char_t *) "\xc3\xa9", 2, 0x00E9}, /* (LATIN SMALL LETTER E WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\xba", 2, 0x017A}, /* (LATIN SMALL LETTER Z WITH ACUTE) */
-    {(lxb_char_t *) "\xc4\x97", 2, 0x0117}, /* (LATIN SMALL LETTER E WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc4\xa3", 2, 0x0123}, /* (LATIN SMALL LETTER G WITH CEDILLA) */
-    {(lxb_char_t *) "\xc4\xb7", 2, 0x0137}, /* (LATIN SMALL LETTER K WITH CEDILLA) */
-    {(lxb_char_t *) "\xc4\xab", 2, 0x012B}, /* (LATIN SMALL LETTER I WITH MACRON) */
-    {(lxb_char_t *) "\xc4\xbc", 2, 0x013C}, /* (LATIN SMALL LETTER L WITH CEDILLA) */
-    {(lxb_char_t *) "\xc5\xa1", 2, 0x0161}, /* (LATIN SMALL LETTER S WITH CARON) */
-    {(lxb_char_t *) "\xc5\x84", 2, 0x0144}, /* (LATIN SMALL LETTER N WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\x86", 2, 0x0146}, /* (LATIN SMALL LETTER N WITH CEDILLA) */
-    {(lxb_char_t *) "\xc3\xb3", 2, 0x00F3}, /* (LATIN SMALL LETTER O WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\x8d", 2, 0x014D}, /* (LATIN SMALL LETTER O WITH MACRON) */
-    {(lxb_char_t *) "\xc3\xb5", 2, 0x00F5}, /* (LATIN SMALL LETTER O WITH TILDE) */
-    {(lxb_char_t *) "\xc3\xb6", 2, 0x00F6}, /* (LATIN SMALL LETTER O WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
-    {(lxb_char_t *) "\xc5\xb3", 2, 0x0173}, /* (LATIN SMALL LETTER U WITH OGONEK) */
-    {(lxb_char_t *) "\xc5\x82", 2, 0x0142}, /* (LATIN SMALL LETTER L WITH STROKE) */
-    {(lxb_char_t *) "\xc5\x9b", 2, 0x015B}, /* (LATIN SMALL LETTER S WITH ACUTE) */
-    {(lxb_char_t *) "\xc5\xab", 2, 0x016B}, /* (LATIN SMALL LETTER U WITH MACRON) */
-    {(lxb_char_t *) "\xc3\xbc", 2, 0x00FC}, /* (LATIN SMALL LETTER U WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc5\xbc", 2, 0x017C}, /* (LATIN SMALL LETTER Z WITH DOT ABOVE) */
-    {(lxb_char_t *) "\xc5\xbe", 2, 0x017E}, /* (LATIN SMALL LETTER Z WITH CARON) */
-    {(lxb_char_t *) "\xcb\x99", 2, 0x02D9}, /* (DOT ABOVE) */
+    {(unsigned char *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
+    {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
+    {(unsigned char *) "\xe2\x80\x9a", 3, 0x201A}, /* (SINGLE LOW-9 QUOTATION MARK) */
+    {(unsigned char *) "\xc2\x83", 2, 0x0083}, /* (<control>) */
+    {(unsigned char *) "\xe2\x80\x9e", 3, 0x201E}, /* (DOUBLE LOW-9 QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\xa6", 3, 0x2026}, /* (HORIZONTAL ELLIPSIS) */
+    {(unsigned char *) "\xe2\x80\xa0", 3, 0x2020}, /* (DAGGER) */
+    {(unsigned char *) "\xe2\x80\xa1", 3, 0x2021}, /* (DOUBLE DAGGER) */
+    {(unsigned char *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
+    {(unsigned char *) "\xe2\x80\xb0", 3, 0x2030}, /* (PER MILLE SIGN) */
+    {(unsigned char *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
+    {(unsigned char *) "\xe2\x80\xb9", 3, 0x2039}, /* (SINGLE LEFT-POINTING ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
+    {(unsigned char *) "\xc2\xa8", 2, 0x00A8}, /* (DIAERESIS) */
+    {(unsigned char *) "\xcb\x87", 2, 0x02C7}, /* (CARON) */
+    {(unsigned char *) "\xc2\xb8", 2, 0x00B8}, /* (CEDILLA) */
+    {(unsigned char *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
+    {(unsigned char *) "\xe2\x80\x98", 3, 0x2018}, /* (LEFT SINGLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x99", 3, 0x2019}, /* (RIGHT SINGLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x9c", 3, 0x201C}, /* (LEFT DOUBLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x9d", 3, 0x201D}, /* (RIGHT DOUBLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\xa2", 3, 0x2022}, /* (BULLET) */
+    {(unsigned char *) "\xe2\x80\x93", 3, 0x2013}, /* (EN DASH) */
+    {(unsigned char *) "\xe2\x80\x94", 3, 0x2014}, /* (EM DASH) */
+    {(unsigned char *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
+    {(unsigned char *) "\xe2\x84\xa2", 3, 0x2122}, /* (TRADE MARK SIGN) */
+    {(unsigned char *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
+    {(unsigned char *) "\xe2\x80\xba", 3, 0x203A}, /* (SINGLE RIGHT-POINTING ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
+    {(unsigned char *) "\xc2\xaf", 2, 0x00AF}, /* (MACRON) */
+    {(unsigned char *) "\xcb\x9b", 2, 0x02DB}, /* (OGONEK) */
+    {(unsigned char *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
+    {(unsigned char *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xc2\xa2", 2, 0x00A2}, /* (CENT SIGN) */
+    {(unsigned char *) "\xc2\xa3", 2, 0x00A3}, /* (POUND SIGN) */
+    {(unsigned char *) "\xc2\xa4", 2, 0x00A4}, /* (CURRENCY SIGN) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xc2\xa6", 2, 0x00A6}, /* (BROKEN BAR) */
+    {(unsigned char *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
+    {(unsigned char *) "\xc3\x98", 2, 0x00D8}, /* (LATIN CAPITAL LETTER O WITH STROKE) */
+    {(unsigned char *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
+    {(unsigned char *) "\xc5\x96", 2, 0x0156}, /* (LATIN CAPITAL LETTER R WITH CEDILLA) */
+    {(unsigned char *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\xac", 2, 0x00AC}, /* (NOT SIGN) */
+    {(unsigned char *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
+    {(unsigned char *) "\xc2\xae", 2, 0x00AE}, /* (REGISTERED SIGN) */
+    {(unsigned char *) "\xc3\x86", 2, 0x00C6}, /* (LATIN CAPITAL LETTER AE) */
+    {(unsigned char *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
+    {(unsigned char *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
+    {(unsigned char *) "\xc2\xb2", 2, 0x00B2}, /* (SUPERSCRIPT TWO) */
+    {(unsigned char *) "\xc2\xb3", 2, 0x00B3}, /* (SUPERSCRIPT THREE) */
+    {(unsigned char *) "\xc2\xb4", 2, 0x00B4}, /* (ACUTE ACCENT) */
+    {(unsigned char *) "\xc2\xb5", 2, 0x00B5}, /* (MICRO SIGN) */
+    {(unsigned char *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
+    {(unsigned char *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
+    {(unsigned char *) "\xc3\xb8", 2, 0x00F8}, /* (LATIN SMALL LETTER O WITH STROKE) */
+    {(unsigned char *) "\xc2\xb9", 2, 0x00B9}, /* (SUPERSCRIPT ONE) */
+    {(unsigned char *) "\xc5\x97", 2, 0x0157}, /* (LATIN SMALL LETTER R WITH CEDILLA) */
+    {(unsigned char *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\xbc", 2, 0x00BC}, /* (VULGAR FRACTION ONE QUARTER) */
+    {(unsigned char *) "\xc2\xbd", 2, 0x00BD}, /* (VULGAR FRACTION ONE HALF) */
+    {(unsigned char *) "\xc2\xbe", 2, 0x00BE}, /* (VULGAR FRACTION THREE QUARTERS) */
+    {(unsigned char *) "\xc3\xa6", 2, 0x00E6}, /* (LATIN SMALL LETTER AE) */
+    {(unsigned char *) "\xc4\x84", 2, 0x0104}, /* (LATIN CAPITAL LETTER A WITH OGONEK) */
+    {(unsigned char *) "\xc4\xae", 2, 0x012E}, /* (LATIN CAPITAL LETTER I WITH OGONEK) */
+    {(unsigned char *) "\xc4\x80", 2, 0x0100}, /* (LATIN CAPITAL LETTER A WITH MACRON) */
+    {(unsigned char *) "\xc4\x86", 2, 0x0106}, /* (LATIN CAPITAL LETTER C WITH ACUTE) */
+    {(unsigned char *) "\xc3\x84", 2, 0x00C4}, /* (LATIN CAPITAL LETTER A WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x85", 2, 0x00C5}, /* (LATIN CAPITAL LETTER A WITH RING ABOVE) */
+    {(unsigned char *) "\xc4\x98", 2, 0x0118}, /* (LATIN CAPITAL LETTER E WITH OGONEK) */
+    {(unsigned char *) "\xc4\x92", 2, 0x0112}, /* (LATIN CAPITAL LETTER E WITH MACRON) */
+    {(unsigned char *) "\xc4\x8c", 2, 0x010C}, /* (LATIN CAPITAL LETTER C WITH CARON) */
+    {(unsigned char *) "\xc3\x89", 2, 0x00C9}, /* (LATIN CAPITAL LETTER E WITH ACUTE) */
+    {(unsigned char *) "\xc5\xb9", 2, 0x0179}, /* (LATIN CAPITAL LETTER Z WITH ACUTE) */
+    {(unsigned char *) "\xc4\x96", 2, 0x0116}, /* (LATIN CAPITAL LETTER E WITH DOT ABOVE) */
+    {(unsigned char *) "\xc4\xa2", 2, 0x0122}, /* (LATIN CAPITAL LETTER G WITH CEDILLA) */
+    {(unsigned char *) "\xc4\xb6", 2, 0x0136}, /* (LATIN CAPITAL LETTER K WITH CEDILLA) */
+    {(unsigned char *) "\xc4\xaa", 2, 0x012A}, /* (LATIN CAPITAL LETTER I WITH MACRON) */
+    {(unsigned char *) "\xc4\xbb", 2, 0x013B}, /* (LATIN CAPITAL LETTER L WITH CEDILLA) */
+    {(unsigned char *) "\xc5\xa0", 2, 0x0160}, /* (LATIN CAPITAL LETTER S WITH CARON) */
+    {(unsigned char *) "\xc5\x83", 2, 0x0143}, /* (LATIN CAPITAL LETTER N WITH ACUTE) */
+    {(unsigned char *) "\xc5\x85", 2, 0x0145}, /* (LATIN CAPITAL LETTER N WITH CEDILLA) */
+    {(unsigned char *) "\xc3\x93", 2, 0x00D3}, /* (LATIN CAPITAL LETTER O WITH ACUTE) */
+    {(unsigned char *) "\xc5\x8c", 2, 0x014C}, /* (LATIN CAPITAL LETTER O WITH MACRON) */
+    {(unsigned char *) "\xc3\x95", 2, 0x00D5}, /* (LATIN CAPITAL LETTER O WITH TILDE) */
+    {(unsigned char *) "\xc3\x96", 2, 0x00D6}, /* (LATIN CAPITAL LETTER O WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x97", 2, 0x00D7}, /* (MULTIPLICATION SIGN) */
+    {(unsigned char *) "\xc5\xb2", 2, 0x0172}, /* (LATIN CAPITAL LETTER U WITH OGONEK) */
+    {(unsigned char *) "\xc5\x81", 2, 0x0141}, /* (LATIN CAPITAL LETTER L WITH STROKE) */
+    {(unsigned char *) "\xc5\x9a", 2, 0x015A}, /* (LATIN CAPITAL LETTER S WITH ACUTE) */
+    {(unsigned char *) "\xc5\xaa", 2, 0x016A}, /* (LATIN CAPITAL LETTER U WITH MACRON) */
+    {(unsigned char *) "\xc3\x9c", 2, 0x00DC}, /* (LATIN CAPITAL LETTER U WITH DIAERESIS) */
+    {(unsigned char *) "\xc5\xbb", 2, 0x017B}, /* (LATIN CAPITAL LETTER Z WITH DOT ABOVE) */
+    {(unsigned char *) "\xc5\xbd", 2, 0x017D}, /* (LATIN CAPITAL LETTER Z WITH CARON) */
+    {(unsigned char *) "\xc3\x9f", 2, 0x00DF}, /* (LATIN SMALL LETTER SHARP S) */
+    {(unsigned char *) "\xc4\x85", 2, 0x0105}, /* (LATIN SMALL LETTER A WITH OGONEK) */
+    {(unsigned char *) "\xc4\xaf", 2, 0x012F}, /* (LATIN SMALL LETTER I WITH OGONEK) */
+    {(unsigned char *) "\xc4\x81", 2, 0x0101}, /* (LATIN SMALL LETTER A WITH MACRON) */
+    {(unsigned char *) "\xc4\x87", 2, 0x0107}, /* (LATIN SMALL LETTER C WITH ACUTE) */
+    {(unsigned char *) "\xc3\xa4", 2, 0x00E4}, /* (LATIN SMALL LETTER A WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xa5", 2, 0x00E5}, /* (LATIN SMALL LETTER A WITH RING ABOVE) */
+    {(unsigned char *) "\xc4\x99", 2, 0x0119}, /* (LATIN SMALL LETTER E WITH OGONEK) */
+    {(unsigned char *) "\xc4\x93", 2, 0x0113}, /* (LATIN SMALL LETTER E WITH MACRON) */
+    {(unsigned char *) "\xc4\x8d", 2, 0x010D}, /* (LATIN SMALL LETTER C WITH CARON) */
+    {(unsigned char *) "\xc3\xa9", 2, 0x00E9}, /* (LATIN SMALL LETTER E WITH ACUTE) */
+    {(unsigned char *) "\xc5\xba", 2, 0x017A}, /* (LATIN SMALL LETTER Z WITH ACUTE) */
+    {(unsigned char *) "\xc4\x97", 2, 0x0117}, /* (LATIN SMALL LETTER E WITH DOT ABOVE) */
+    {(unsigned char *) "\xc4\xa3", 2, 0x0123}, /* (LATIN SMALL LETTER G WITH CEDILLA) */
+    {(unsigned char *) "\xc4\xb7", 2, 0x0137}, /* (LATIN SMALL LETTER K WITH CEDILLA) */
+    {(unsigned char *) "\xc4\xab", 2, 0x012B}, /* (LATIN SMALL LETTER I WITH MACRON) */
+    {(unsigned char *) "\xc4\xbc", 2, 0x013C}, /* (LATIN SMALL LETTER L WITH CEDILLA) */
+    {(unsigned char *) "\xc5\xa1", 2, 0x0161}, /* (LATIN SMALL LETTER S WITH CARON) */
+    {(unsigned char *) "\xc5\x84", 2, 0x0144}, /* (LATIN SMALL LETTER N WITH ACUTE) */
+    {(unsigned char *) "\xc5\x86", 2, 0x0146}, /* (LATIN SMALL LETTER N WITH CEDILLA) */
+    {(unsigned char *) "\xc3\xb3", 2, 0x00F3}, /* (LATIN SMALL LETTER O WITH ACUTE) */
+    {(unsigned char *) "\xc5\x8d", 2, 0x014D}, /* (LATIN SMALL LETTER O WITH MACRON) */
+    {(unsigned char *) "\xc3\xb5", 2, 0x00F5}, /* (LATIN SMALL LETTER O WITH TILDE) */
+    {(unsigned char *) "\xc3\xb6", 2, 0x00F6}, /* (LATIN SMALL LETTER O WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
+    {(unsigned char *) "\xc5\xb3", 2, 0x0173}, /* (LATIN SMALL LETTER U WITH OGONEK) */
+    {(unsigned char *) "\xc5\x82", 2, 0x0142}, /* (LATIN SMALL LETTER L WITH STROKE) */
+    {(unsigned char *) "\xc5\x9b", 2, 0x015B}, /* (LATIN SMALL LETTER S WITH ACUTE) */
+    {(unsigned char *) "\xc5\xab", 2, 0x016B}, /* (LATIN SMALL LETTER U WITH MACRON) */
+    {(unsigned char *) "\xc3\xbc", 2, 0x00FC}, /* (LATIN SMALL LETTER U WITH DIAERESIS) */
+    {(unsigned char *) "\xc5\xbc", 2, 0x017C}, /* (LATIN SMALL LETTER Z WITH DOT ABOVE) */
+    {(unsigned char *) "\xc5\xbe", 2, 0x017E}, /* (LATIN SMALL LETTER Z WITH CARON) */
+    {(unsigned char *) "\xcb\x99", 2, 0x02D9}, /* (DOT ABOVE) */
 };
 
-LXB_API const lxb_encoding_single_index_t lxb_encoding_single_index_windows_1258[128] = 
+GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_windows_1258[128] = 
 {
-    {(lxb_char_t *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
-    {(lxb_char_t *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x80\x9a", 3, 0x201A}, /* (SINGLE LOW-9 QUOTATION MARK) */
-    {(lxb_char_t *) "\xc6\x92", 2, 0x0192}, /* (LATIN SMALL LETTER F WITH HOOK) */
-    {(lxb_char_t *) "\xe2\x80\x9e", 3, 0x201E}, /* (DOUBLE LOW-9 QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\xa6", 3, 0x2026}, /* (HORIZONTAL ELLIPSIS) */
-    {(lxb_char_t *) "\xe2\x80\xa0", 3, 0x2020}, /* (DAGGER) */
-    {(lxb_char_t *) "\xe2\x80\xa1", 3, 0x2021}, /* (DOUBLE DAGGER) */
-    {(lxb_char_t *) "\xcb\x86", 2, 0x02C6}, /* (MODIFIER LETTER CIRCUMFLEX ACCENT) */
-    {(lxb_char_t *) "\xe2\x80\xb0", 3, 0x2030}, /* (PER MILLE SIGN) */
-    {(lxb_char_t *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x80\xb9", 3, 0x2039}, /* (SINGLE LEFT-POINTING ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc5\x92", 2, 0x0152}, /* (LATIN CAPITAL LIGATURE OE) */
-    {(lxb_char_t *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x80\x98", 3, 0x2018}, /* (LEFT SINGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x99", 3, 0x2019}, /* (RIGHT SINGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x9c", 3, 0x201C}, /* (LEFT DOUBLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x9d", 3, 0x201D}, /* (RIGHT DOUBLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\xa2", 3, 0x2022}, /* (BULLET) */
-    {(lxb_char_t *) "\xe2\x80\x93", 3, 0x2013}, /* (EN DASH) */
-    {(lxb_char_t *) "\xe2\x80\x94", 3, 0x2014}, /* (EM DASH) */
-    {(lxb_char_t *) "\xcb\x9c", 2, 0x02DC}, /* (SMALL TILDE) */
-    {(lxb_char_t *) "\xe2\x84\xa2", 3, 0x2122}, /* (TRADE MARK SIGN) */
-    {(lxb_char_t *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x80\xba", 3, 0x203A}, /* (SINGLE RIGHT-POINTING ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc5\x93", 2, 0x0153}, /* (LATIN SMALL LIGATURE OE) */
-    {(lxb_char_t *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
-    {(lxb_char_t *) "\xc5\xb8", 2, 0x0178}, /* (LATIN CAPITAL LETTER Y WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
-    {(lxb_char_t *) "\xc2\xa1", 2, 0x00A1}, /* (INVERTED EXCLAMATION MARK) */
-    {(lxb_char_t *) "\xc2\xa2", 2, 0x00A2}, /* (CENT SIGN) */
-    {(lxb_char_t *) "\xc2\xa3", 2, 0x00A3}, /* (POUND SIGN) */
-    {(lxb_char_t *) "\xc2\xa4", 2, 0x00A4}, /* (CURRENCY SIGN) */
-    {(lxb_char_t *) "\xc2\xa5", 2, 0x00A5}, /* (YEN SIGN) */
-    {(lxb_char_t *) "\xc2\xa6", 2, 0x00A6}, /* (BROKEN BAR) */
-    {(lxb_char_t *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
-    {(lxb_char_t *) "\xc2\xa8", 2, 0x00A8}, /* (DIAERESIS) */
-    {(lxb_char_t *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
-    {(lxb_char_t *) "\xc2\xaa", 2, 0x00AA}, /* (FEMININE ORDINAL INDICATOR) */
-    {(lxb_char_t *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\xac", 2, 0x00AC}, /* (NOT SIGN) */
-    {(lxb_char_t *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
-    {(lxb_char_t *) "\xc2\xae", 2, 0x00AE}, /* (REGISTERED SIGN) */
-    {(lxb_char_t *) "\xc2\xaf", 2, 0x00AF}, /* (MACRON) */
-    {(lxb_char_t *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
-    {(lxb_char_t *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
-    {(lxb_char_t *) "\xc2\xb2", 2, 0x00B2}, /* (SUPERSCRIPT TWO) */
-    {(lxb_char_t *) "\xc2\xb3", 2, 0x00B3}, /* (SUPERSCRIPT THREE) */
-    {(lxb_char_t *) "\xc2\xb4", 2, 0x00B4}, /* (ACUTE ACCENT) */
-    {(lxb_char_t *) "\xc2\xb5", 2, 0x00B5}, /* (MICRO SIGN) */
-    {(lxb_char_t *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
-    {(lxb_char_t *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
-    {(lxb_char_t *) "\xc2\xb8", 2, 0x00B8}, /* (CEDILLA) */
-    {(lxb_char_t *) "\xc2\xb9", 2, 0x00B9}, /* (SUPERSCRIPT ONE) */
-    {(lxb_char_t *) "\xc2\xba", 2, 0x00BA}, /* (MASCULINE ORDINAL INDICATOR) */
-    {(lxb_char_t *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\xbc", 2, 0x00BC}, /* (VULGAR FRACTION ONE QUARTER) */
-    {(lxb_char_t *) "\xc2\xbd", 2, 0x00BD}, /* (VULGAR FRACTION ONE HALF) */
-    {(lxb_char_t *) "\xc2\xbe", 2, 0x00BE}, /* (VULGAR FRACTION THREE QUARTERS) */
-    {(lxb_char_t *) "\xc2\xbf", 2, 0x00BF}, /* (INVERTED QUESTION MARK) */
-    {(lxb_char_t *) "\xc3\x80", 2, 0x00C0}, /* (LATIN CAPITAL LETTER A WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x81", 2, 0x00C1}, /* (LATIN CAPITAL LETTER A WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x82", 2, 0x00C2}, /* (LATIN CAPITAL LETTER A WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc4\x82", 2, 0x0102}, /* (LATIN CAPITAL LETTER A WITH BREVE) */
-    {(lxb_char_t *) "\xc3\x84", 2, 0x00C4}, /* (LATIN CAPITAL LETTER A WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x85", 2, 0x00C5}, /* (LATIN CAPITAL LETTER A WITH RING ABOVE) */
-    {(lxb_char_t *) "\xc3\x86", 2, 0x00C6}, /* (LATIN CAPITAL LETTER AE) */
-    {(lxb_char_t *) "\xc3\x87", 2, 0x00C7}, /* (LATIN CAPITAL LETTER C WITH CEDILLA) */
-    {(lxb_char_t *) "\xc3\x88", 2, 0x00C8}, /* (LATIN CAPITAL LETTER E WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x89", 2, 0x00C9}, /* (LATIN CAPITAL LETTER E WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x8a", 2, 0x00CA}, /* (LATIN CAPITAL LETTER E WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x8b", 2, 0x00CB}, /* (LATIN CAPITAL LETTER E WITH DIAERESIS) */
-    {(lxb_char_t *) "\xcc\x80", 2, 0x0300}, /* (COMBINING GRAVE ACCENT) */
-    {(lxb_char_t *) "\xc3\x8d", 2, 0x00CD}, /* (LATIN CAPITAL LETTER I WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x8e", 2, 0x00CE}, /* (LATIN CAPITAL LETTER I WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x8f", 2, 0x00CF}, /* (LATIN CAPITAL LETTER I WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc4\x90", 2, 0x0110}, /* (LATIN CAPITAL LETTER D WITH STROKE) */
-    {(lxb_char_t *) "\xc3\x91", 2, 0x00D1}, /* (LATIN CAPITAL LETTER N WITH TILDE) */
-    {(lxb_char_t *) "\xcc\x89", 2, 0x0309}, /* (COMBINING HOOK ABOVE) */
-    {(lxb_char_t *) "\xc3\x93", 2, 0x00D3}, /* (LATIN CAPITAL LETTER O WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x94", 2, 0x00D4}, /* (LATIN CAPITAL LETTER O WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc6\xa0", 2, 0x01A0}, /* (LATIN CAPITAL LETTER O WITH HORN) */
-    {(lxb_char_t *) "\xc3\x96", 2, 0x00D6}, /* (LATIN CAPITAL LETTER O WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\x97", 2, 0x00D7}, /* (MULTIPLICATION SIGN) */
-    {(lxb_char_t *) "\xc3\x98", 2, 0x00D8}, /* (LATIN CAPITAL LETTER O WITH STROKE) */
-    {(lxb_char_t *) "\xc3\x99", 2, 0x00D9}, /* (LATIN CAPITAL LETTER U WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\x9a", 2, 0x00DA}, /* (LATIN CAPITAL LETTER U WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\x9b", 2, 0x00DB}, /* (LATIN CAPITAL LETTER U WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\x9c", 2, 0x00DC}, /* (LATIN CAPITAL LETTER U WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc6\xaf", 2, 0x01AF}, /* (LATIN CAPITAL LETTER U WITH HORN) */
-    {(lxb_char_t *) "\xcc\x83", 2, 0x0303}, /* (COMBINING TILDE) */
-    {(lxb_char_t *) "\xc3\x9f", 2, 0x00DF}, /* (LATIN SMALL LETTER SHARP S) */
-    {(lxb_char_t *) "\xc3\xa0", 2, 0x00E0}, /* (LATIN SMALL LETTER A WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xa1", 2, 0x00E1}, /* (LATIN SMALL LETTER A WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xa2", 2, 0x00E2}, /* (LATIN SMALL LETTER A WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc4\x83", 2, 0x0103}, /* (LATIN SMALL LETTER A WITH BREVE) */
-    {(lxb_char_t *) "\xc3\xa4", 2, 0x00E4}, /* (LATIN SMALL LETTER A WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xa5", 2, 0x00E5}, /* (LATIN SMALL LETTER A WITH RING ABOVE) */
-    {(lxb_char_t *) "\xc3\xa6", 2, 0x00E6}, /* (LATIN SMALL LETTER AE) */
-    {(lxb_char_t *) "\xc3\xa7", 2, 0x00E7}, /* (LATIN SMALL LETTER C WITH CEDILLA) */
-    {(lxb_char_t *) "\xc3\xa8", 2, 0x00E8}, /* (LATIN SMALL LETTER E WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xa9", 2, 0x00E9}, /* (LATIN SMALL LETTER E WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xaa", 2, 0x00EA}, /* (LATIN SMALL LETTER E WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xab", 2, 0x00EB}, /* (LATIN SMALL LETTER E WITH DIAERESIS) */
-    {(lxb_char_t *) "\xcc\x81", 2, 0x0301}, /* (COMBINING ACUTE ACCENT) */
-    {(lxb_char_t *) "\xc3\xad", 2, 0x00ED}, /* (LATIN SMALL LETTER I WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xae", 2, 0x00EE}, /* (LATIN SMALL LETTER I WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xaf", 2, 0x00EF}, /* (LATIN SMALL LETTER I WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc4\x91", 2, 0x0111}, /* (LATIN SMALL LETTER D WITH STROKE) */
-    {(lxb_char_t *) "\xc3\xb1", 2, 0x00F1}, /* (LATIN SMALL LETTER N WITH TILDE) */
-    {(lxb_char_t *) "\xcc\xa3", 2, 0x0323}, /* (COMBINING DOT BELOW) */
-    {(lxb_char_t *) "\xc3\xb3", 2, 0x00F3}, /* (LATIN SMALL LETTER O WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xb4", 2, 0x00F4}, /* (LATIN SMALL LETTER O WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc6\xa1", 2, 0x01A1}, /* (LATIN SMALL LETTER O WITH HORN) */
-    {(lxb_char_t *) "\xc3\xb6", 2, 0x00F6}, /* (LATIN SMALL LETTER O WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
-    {(lxb_char_t *) "\xc3\xb8", 2, 0x00F8}, /* (LATIN SMALL LETTER O WITH STROKE) */
-    {(lxb_char_t *) "\xc3\xb9", 2, 0x00F9}, /* (LATIN SMALL LETTER U WITH GRAVE) */
-    {(lxb_char_t *) "\xc3\xba", 2, 0x00FA}, /* (LATIN SMALL LETTER U WITH ACUTE) */
-    {(lxb_char_t *) "\xc3\xbb", 2, 0x00FB}, /* (LATIN SMALL LETTER U WITH CIRCUMFLEX) */
-    {(lxb_char_t *) "\xc3\xbc", 2, 0x00FC}, /* (LATIN SMALL LETTER U WITH DIAERESIS) */
-    {(lxb_char_t *) "\xc6\xb0", 2, 0x01B0}, /* (LATIN SMALL LETTER U WITH HORN) */
-    {(lxb_char_t *) "\xe2\x82\xab", 3, 0x20AB}, /* (DONG SIGN) */
-    {(lxb_char_t *) "\xc3\xbf", 2, 0x00FF}, /* (LATIN SMALL LETTER Y WITH DIAERESIS) */
+    {(unsigned char *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
+    {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
+    {(unsigned char *) "\xe2\x80\x9a", 3, 0x201A}, /* (SINGLE LOW-9 QUOTATION MARK) */
+    {(unsigned char *) "\xc6\x92", 2, 0x0192}, /* (LATIN SMALL LETTER F WITH HOOK) */
+    {(unsigned char *) "\xe2\x80\x9e", 3, 0x201E}, /* (DOUBLE LOW-9 QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\xa6", 3, 0x2026}, /* (HORIZONTAL ELLIPSIS) */
+    {(unsigned char *) "\xe2\x80\xa0", 3, 0x2020}, /* (DAGGER) */
+    {(unsigned char *) "\xe2\x80\xa1", 3, 0x2021}, /* (DOUBLE DAGGER) */
+    {(unsigned char *) "\xcb\x86", 2, 0x02C6}, /* (MODIFIER LETTER CIRCUMFLEX ACCENT) */
+    {(unsigned char *) "\xe2\x80\xb0", 3, 0x2030}, /* (PER MILLE SIGN) */
+    {(unsigned char *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
+    {(unsigned char *) "\xe2\x80\xb9", 3, 0x2039}, /* (SINGLE LEFT-POINTING ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc5\x92", 2, 0x0152}, /* (LATIN CAPITAL LIGATURE OE) */
+    {(unsigned char *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
+    {(unsigned char *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
+    {(unsigned char *) "\xe2\x80\x98", 3, 0x2018}, /* (LEFT SINGLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x99", 3, 0x2019}, /* (RIGHT SINGLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x9c", 3, 0x201C}, /* (LEFT DOUBLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x9d", 3, 0x201D}, /* (RIGHT DOUBLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\xa2", 3, 0x2022}, /* (BULLET) */
+    {(unsigned char *) "\xe2\x80\x93", 3, 0x2013}, /* (EN DASH) */
+    {(unsigned char *) "\xe2\x80\x94", 3, 0x2014}, /* (EM DASH) */
+    {(unsigned char *) "\xcb\x9c", 2, 0x02DC}, /* (SMALL TILDE) */
+    {(unsigned char *) "\xe2\x84\xa2", 3, 0x2122}, /* (TRADE MARK SIGN) */
+    {(unsigned char *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
+    {(unsigned char *) "\xe2\x80\xba", 3, 0x203A}, /* (SINGLE RIGHT-POINTING ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc5\x93", 2, 0x0153}, /* (LATIN SMALL LIGATURE OE) */
+    {(unsigned char *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
+    {(unsigned char *) "\xc5\xb8", 2, 0x0178}, /* (LATIN CAPITAL LETTER Y WITH DIAERESIS) */
+    {(unsigned char *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
+    {(unsigned char *) "\xc2\xa1", 2, 0x00A1}, /* (INVERTED EXCLAMATION MARK) */
+    {(unsigned char *) "\xc2\xa2", 2, 0x00A2}, /* (CENT SIGN) */
+    {(unsigned char *) "\xc2\xa3", 2, 0x00A3}, /* (POUND SIGN) */
+    {(unsigned char *) "\xc2\xa4", 2, 0x00A4}, /* (CURRENCY SIGN) */
+    {(unsigned char *) "\xc2\xa5", 2, 0x00A5}, /* (YEN SIGN) */
+    {(unsigned char *) "\xc2\xa6", 2, 0x00A6}, /* (BROKEN BAR) */
+    {(unsigned char *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
+    {(unsigned char *) "\xc2\xa8", 2, 0x00A8}, /* (DIAERESIS) */
+    {(unsigned char *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
+    {(unsigned char *) "\xc2\xaa", 2, 0x00AA}, /* (FEMININE ORDINAL INDICATOR) */
+    {(unsigned char *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\xac", 2, 0x00AC}, /* (NOT SIGN) */
+    {(unsigned char *) "\xc2\xad", 2, 0x00AD}, /* (SOFT HYPHEN) */
+    {(unsigned char *) "\xc2\xae", 2, 0x00AE}, /* (REGISTERED SIGN) */
+    {(unsigned char *) "\xc2\xaf", 2, 0x00AF}, /* (MACRON) */
+    {(unsigned char *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
+    {(unsigned char *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
+    {(unsigned char *) "\xc2\xb2", 2, 0x00B2}, /* (SUPERSCRIPT TWO) */
+    {(unsigned char *) "\xc2\xb3", 2, 0x00B3}, /* (SUPERSCRIPT THREE) */
+    {(unsigned char *) "\xc2\xb4", 2, 0x00B4}, /* (ACUTE ACCENT) */
+    {(unsigned char *) "\xc2\xb5", 2, 0x00B5}, /* (MICRO SIGN) */
+    {(unsigned char *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
+    {(unsigned char *) "\xc2\xb7", 2, 0x00B7}, /* (MIDDLE DOT) */
+    {(unsigned char *) "\xc2\xb8", 2, 0x00B8}, /* (CEDILLA) */
+    {(unsigned char *) "\xc2\xb9", 2, 0x00B9}, /* (SUPERSCRIPT ONE) */
+    {(unsigned char *) "\xc2\xba", 2, 0x00BA}, /* (MASCULINE ORDINAL INDICATOR) */
+    {(unsigned char *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\xbc", 2, 0x00BC}, /* (VULGAR FRACTION ONE QUARTER) */
+    {(unsigned char *) "\xc2\xbd", 2, 0x00BD}, /* (VULGAR FRACTION ONE HALF) */
+    {(unsigned char *) "\xc2\xbe", 2, 0x00BE}, /* (VULGAR FRACTION THREE QUARTERS) */
+    {(unsigned char *) "\xc2\xbf", 2, 0x00BF}, /* (INVERTED QUESTION MARK) */
+    {(unsigned char *) "\xc3\x80", 2, 0x00C0}, /* (LATIN CAPITAL LETTER A WITH GRAVE) */
+    {(unsigned char *) "\xc3\x81", 2, 0x00C1}, /* (LATIN CAPITAL LETTER A WITH ACUTE) */
+    {(unsigned char *) "\xc3\x82", 2, 0x00C2}, /* (LATIN CAPITAL LETTER A WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc4\x82", 2, 0x0102}, /* (LATIN CAPITAL LETTER A WITH BREVE) */
+    {(unsigned char *) "\xc3\x84", 2, 0x00C4}, /* (LATIN CAPITAL LETTER A WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x85", 2, 0x00C5}, /* (LATIN CAPITAL LETTER A WITH RING ABOVE) */
+    {(unsigned char *) "\xc3\x86", 2, 0x00C6}, /* (LATIN CAPITAL LETTER AE) */
+    {(unsigned char *) "\xc3\x87", 2, 0x00C7}, /* (LATIN CAPITAL LETTER C WITH CEDILLA) */
+    {(unsigned char *) "\xc3\x88", 2, 0x00C8}, /* (LATIN CAPITAL LETTER E WITH GRAVE) */
+    {(unsigned char *) "\xc3\x89", 2, 0x00C9}, /* (LATIN CAPITAL LETTER E WITH ACUTE) */
+    {(unsigned char *) "\xc3\x8a", 2, 0x00CA}, /* (LATIN CAPITAL LETTER E WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x8b", 2, 0x00CB}, /* (LATIN CAPITAL LETTER E WITH DIAERESIS) */
+    {(unsigned char *) "\xcc\x80", 2, 0x0300}, /* (COMBINING GRAVE ACCENT) */
+    {(unsigned char *) "\xc3\x8d", 2, 0x00CD}, /* (LATIN CAPITAL LETTER I WITH ACUTE) */
+    {(unsigned char *) "\xc3\x8e", 2, 0x00CE}, /* (LATIN CAPITAL LETTER I WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x8f", 2, 0x00CF}, /* (LATIN CAPITAL LETTER I WITH DIAERESIS) */
+    {(unsigned char *) "\xc4\x90", 2, 0x0110}, /* (LATIN CAPITAL LETTER D WITH STROKE) */
+    {(unsigned char *) "\xc3\x91", 2, 0x00D1}, /* (LATIN CAPITAL LETTER N WITH TILDE) */
+    {(unsigned char *) "\xcc\x89", 2, 0x0309}, /* (COMBINING HOOK ABOVE) */
+    {(unsigned char *) "\xc3\x93", 2, 0x00D3}, /* (LATIN CAPITAL LETTER O WITH ACUTE) */
+    {(unsigned char *) "\xc3\x94", 2, 0x00D4}, /* (LATIN CAPITAL LETTER O WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc6\xa0", 2, 0x01A0}, /* (LATIN CAPITAL LETTER O WITH HORN) */
+    {(unsigned char *) "\xc3\x96", 2, 0x00D6}, /* (LATIN CAPITAL LETTER O WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\x97", 2, 0x00D7}, /* (MULTIPLICATION SIGN) */
+    {(unsigned char *) "\xc3\x98", 2, 0x00D8}, /* (LATIN CAPITAL LETTER O WITH STROKE) */
+    {(unsigned char *) "\xc3\x99", 2, 0x00D9}, /* (LATIN CAPITAL LETTER U WITH GRAVE) */
+    {(unsigned char *) "\xc3\x9a", 2, 0x00DA}, /* (LATIN CAPITAL LETTER U WITH ACUTE) */
+    {(unsigned char *) "\xc3\x9b", 2, 0x00DB}, /* (LATIN CAPITAL LETTER U WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\x9c", 2, 0x00DC}, /* (LATIN CAPITAL LETTER U WITH DIAERESIS) */
+    {(unsigned char *) "\xc6\xaf", 2, 0x01AF}, /* (LATIN CAPITAL LETTER U WITH HORN) */
+    {(unsigned char *) "\xcc\x83", 2, 0x0303}, /* (COMBINING TILDE) */
+    {(unsigned char *) "\xc3\x9f", 2, 0x00DF}, /* (LATIN SMALL LETTER SHARP S) */
+    {(unsigned char *) "\xc3\xa0", 2, 0x00E0}, /* (LATIN SMALL LETTER A WITH GRAVE) */
+    {(unsigned char *) "\xc3\xa1", 2, 0x00E1}, /* (LATIN SMALL LETTER A WITH ACUTE) */
+    {(unsigned char *) "\xc3\xa2", 2, 0x00E2}, /* (LATIN SMALL LETTER A WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc4\x83", 2, 0x0103}, /* (LATIN SMALL LETTER A WITH BREVE) */
+    {(unsigned char *) "\xc3\xa4", 2, 0x00E4}, /* (LATIN SMALL LETTER A WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xa5", 2, 0x00E5}, /* (LATIN SMALL LETTER A WITH RING ABOVE) */
+    {(unsigned char *) "\xc3\xa6", 2, 0x00E6}, /* (LATIN SMALL LETTER AE) */
+    {(unsigned char *) "\xc3\xa7", 2, 0x00E7}, /* (LATIN SMALL LETTER C WITH CEDILLA) */
+    {(unsigned char *) "\xc3\xa8", 2, 0x00E8}, /* (LATIN SMALL LETTER E WITH GRAVE) */
+    {(unsigned char *) "\xc3\xa9", 2, 0x00E9}, /* (LATIN SMALL LETTER E WITH ACUTE) */
+    {(unsigned char *) "\xc3\xaa", 2, 0x00EA}, /* (LATIN SMALL LETTER E WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xab", 2, 0x00EB}, /* (LATIN SMALL LETTER E WITH DIAERESIS) */
+    {(unsigned char *) "\xcc\x81", 2, 0x0301}, /* (COMBINING ACUTE ACCENT) */
+    {(unsigned char *) "\xc3\xad", 2, 0x00ED}, /* (LATIN SMALL LETTER I WITH ACUTE) */
+    {(unsigned char *) "\xc3\xae", 2, 0x00EE}, /* (LATIN SMALL LETTER I WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xaf", 2, 0x00EF}, /* (LATIN SMALL LETTER I WITH DIAERESIS) */
+    {(unsigned char *) "\xc4\x91", 2, 0x0111}, /* (LATIN SMALL LETTER D WITH STROKE) */
+    {(unsigned char *) "\xc3\xb1", 2, 0x00F1}, /* (LATIN SMALL LETTER N WITH TILDE) */
+    {(unsigned char *) "\xcc\xa3", 2, 0x0323}, /* (COMBINING DOT BELOW) */
+    {(unsigned char *) "\xc3\xb3", 2, 0x00F3}, /* (LATIN SMALL LETTER O WITH ACUTE) */
+    {(unsigned char *) "\xc3\xb4", 2, 0x00F4}, /* (LATIN SMALL LETTER O WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc6\xa1", 2, 0x01A1}, /* (LATIN SMALL LETTER O WITH HORN) */
+    {(unsigned char *) "\xc3\xb6", 2, 0x00F6}, /* (LATIN SMALL LETTER O WITH DIAERESIS) */
+    {(unsigned char *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
+    {(unsigned char *) "\xc3\xb8", 2, 0x00F8}, /* (LATIN SMALL LETTER O WITH STROKE) */
+    {(unsigned char *) "\xc3\xb9", 2, 0x00F9}, /* (LATIN SMALL LETTER U WITH GRAVE) */
+    {(unsigned char *) "\xc3\xba", 2, 0x00FA}, /* (LATIN SMALL LETTER U WITH ACUTE) */
+    {(unsigned char *) "\xc3\xbb", 2, 0x00FB}, /* (LATIN SMALL LETTER U WITH CIRCUMFLEX) */
+    {(unsigned char *) "\xc3\xbc", 2, 0x00FC}, /* (LATIN SMALL LETTER U WITH DIAERESIS) */
+    {(unsigned char *) "\xc6\xb0", 2, 0x01B0}, /* (LATIN SMALL LETTER U WITH HORN) */
+    {(unsigned char *) "\xe2\x82\xab", 3, 0x20AB}, /* (DONG SIGN) */
+    {(unsigned char *) "\xc3\xbf", 2, 0x00FF}, /* (LATIN SMALL LETTER Y WITH DIAERESIS) */
 };
 
-LXB_API const lxb_encoding_single_index_t lxb_encoding_single_index_windows_874[128] = 
+GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_windows_874[128] = 
 {
-    {(lxb_char_t *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
-    {(lxb_char_t *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x82", 2, 0x0082}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x83", 2, 0x0083}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x84", 2, 0x0084}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x80\xa6", 3, 0x2026}, /* (HORIZONTAL ELLIPSIS) */
-    {(lxb_char_t *) "\xc2\x86", 2, 0x0086}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x87", 2, 0x0087}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x89", 2, 0x0089}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8b", 2, 0x008B}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
-    {(lxb_char_t *) "\xe2\x80\x98", 3, 0x2018}, /* (LEFT SINGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x99", 3, 0x2019}, /* (RIGHT SINGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x9c", 3, 0x201C}, /* (LEFT DOUBLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x9d", 3, 0x201D}, /* (RIGHT DOUBLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\xa2", 3, 0x2022}, /* (BULLET) */
-    {(lxb_char_t *) "\xe2\x80\x93", 3, 0x2013}, /* (EN DASH) */
-    {(lxb_char_t *) "\xe2\x80\x94", 3, 0x2014}, /* (EM DASH) */
-    {(lxb_char_t *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x99", 2, 0x0099}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9b", 2, 0x009B}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
-    {(lxb_char_t *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
-    {(lxb_char_t *) "\xe0\xb8\x81", 3, 0x0E01}, /* (THAI CHARACTER KO KAI) */
-    {(lxb_char_t *) "\xe0\xb8\x82", 3, 0x0E02}, /* (THAI CHARACTER KHO KHAI) */
-    {(lxb_char_t *) "\xe0\xb8\x83", 3, 0x0E03}, /* (THAI CHARACTER KHO KHUAT) */
-    {(lxb_char_t *) "\xe0\xb8\x84", 3, 0x0E04}, /* (THAI CHARACTER KHO KHWAI) */
-    {(lxb_char_t *) "\xe0\xb8\x85", 3, 0x0E05}, /* (THAI CHARACTER KHO KHON) */
-    {(lxb_char_t *) "\xe0\xb8\x86", 3, 0x0E06}, /* (THAI CHARACTER KHO RAKHANG) */
-    {(lxb_char_t *) "\xe0\xb8\x87", 3, 0x0E07}, /* (THAI CHARACTER NGO NGU) */
-    {(lxb_char_t *) "\xe0\xb8\x88", 3, 0x0E08}, /* (THAI CHARACTER CHO CHAN) */
-    {(lxb_char_t *) "\xe0\xb8\x89", 3, 0x0E09}, /* (THAI CHARACTER CHO CHING) */
-    {(lxb_char_t *) "\xe0\xb8\x8a", 3, 0x0E0A}, /* (THAI CHARACTER CHO CHANG) */
-    {(lxb_char_t *) "\xe0\xb8\x8b", 3, 0x0E0B}, /* (THAI CHARACTER SO SO) */
-    {(lxb_char_t *) "\xe0\xb8\x8c", 3, 0x0E0C}, /* (THAI CHARACTER CHO CHOE) */
-    {(lxb_char_t *) "\xe0\xb8\x8d", 3, 0x0E0D}, /* (THAI CHARACTER YO YING) */
-    {(lxb_char_t *) "\xe0\xb8\x8e", 3, 0x0E0E}, /* (THAI CHARACTER DO CHADA) */
-    {(lxb_char_t *) "\xe0\xb8\x8f", 3, 0x0E0F}, /* (THAI CHARACTER TO PATAK) */
-    {(lxb_char_t *) "\xe0\xb8\x90", 3, 0x0E10}, /* (THAI CHARACTER THO THAN) */
-    {(lxb_char_t *) "\xe0\xb8\x91", 3, 0x0E11}, /* (THAI CHARACTER THO NANGMONTHO) */
-    {(lxb_char_t *) "\xe0\xb8\x92", 3, 0x0E12}, /* (THAI CHARACTER THO PHUTHAO) */
-    {(lxb_char_t *) "\xe0\xb8\x93", 3, 0x0E13}, /* (THAI CHARACTER NO NEN) */
-    {(lxb_char_t *) "\xe0\xb8\x94", 3, 0x0E14}, /* (THAI CHARACTER DO DEK) */
-    {(lxb_char_t *) "\xe0\xb8\x95", 3, 0x0E15}, /* (THAI CHARACTER TO TAO) */
-    {(lxb_char_t *) "\xe0\xb8\x96", 3, 0x0E16}, /* (THAI CHARACTER THO THUNG) */
-    {(lxb_char_t *) "\xe0\xb8\x97", 3, 0x0E17}, /* (THAI CHARACTER THO THAHAN) */
-    {(lxb_char_t *) "\xe0\xb8\x98", 3, 0x0E18}, /* (THAI CHARACTER THO THONG) */
-    {(lxb_char_t *) "\xe0\xb8\x99", 3, 0x0E19}, /* (THAI CHARACTER NO NU) */
-    {(lxb_char_t *) "\xe0\xb8\x9a", 3, 0x0E1A}, /* (THAI CHARACTER BO BAIMAI) */
-    {(lxb_char_t *) "\xe0\xb8\x9b", 3, 0x0E1B}, /* (THAI CHARACTER PO PLA) */
-    {(lxb_char_t *) "\xe0\xb8\x9c", 3, 0x0E1C}, /* (THAI CHARACTER PHO PHUNG) */
-    {(lxb_char_t *) "\xe0\xb8\x9d", 3, 0x0E1D}, /* (THAI CHARACTER FO FA) */
-    {(lxb_char_t *) "\xe0\xb8\x9e", 3, 0x0E1E}, /* (THAI CHARACTER PHO PHAN) */
-    {(lxb_char_t *) "\xe0\xb8\x9f", 3, 0x0E1F}, /* (THAI CHARACTER FO FAN) */
-    {(lxb_char_t *) "\xe0\xb8\xa0", 3, 0x0E20}, /* (THAI CHARACTER PHO SAMPHAO) */
-    {(lxb_char_t *) "\xe0\xb8\xa1", 3, 0x0E21}, /* (THAI CHARACTER MO MA) */
-    {(lxb_char_t *) "\xe0\xb8\xa2", 3, 0x0E22}, /* (THAI CHARACTER YO YAK) */
-    {(lxb_char_t *) "\xe0\xb8\xa3", 3, 0x0E23}, /* (THAI CHARACTER RO RUA) */
-    {(lxb_char_t *) "\xe0\xb8\xa4", 3, 0x0E24}, /* (THAI CHARACTER RU) */
-    {(lxb_char_t *) "\xe0\xb8\xa5", 3, 0x0E25}, /* (THAI CHARACTER LO LING) */
-    {(lxb_char_t *) "\xe0\xb8\xa6", 3, 0x0E26}, /* (THAI CHARACTER LU) */
-    {(lxb_char_t *) "\xe0\xb8\xa7", 3, 0x0E27}, /* (THAI CHARACTER WO WAEN) */
-    {(lxb_char_t *) "\xe0\xb8\xa8", 3, 0x0E28}, /* (THAI CHARACTER SO SALA) */
-    {(lxb_char_t *) "\xe0\xb8\xa9", 3, 0x0E29}, /* (THAI CHARACTER SO RUSI) */
-    {(lxb_char_t *) "\xe0\xb8\xaa", 3, 0x0E2A}, /* (THAI CHARACTER SO SUA) */
-    {(lxb_char_t *) "\xe0\xb8\xab", 3, 0x0E2B}, /* (THAI CHARACTER HO HIP) */
-    {(lxb_char_t *) "\xe0\xb8\xac", 3, 0x0E2C}, /* (THAI CHARACTER LO CHULA) */
-    {(lxb_char_t *) "\xe0\xb8\xad", 3, 0x0E2D}, /* (THAI CHARACTER O ANG) */
-    {(lxb_char_t *) "\xe0\xb8\xae", 3, 0x0E2E}, /* (THAI CHARACTER HO NOKHUK) */
-    {(lxb_char_t *) "\xe0\xb8\xaf", 3, 0x0E2F}, /* (THAI CHARACTER PAIYANNOI) */
-    {(lxb_char_t *) "\xe0\xb8\xb0", 3, 0x0E30}, /* (THAI CHARACTER SARA A) */
-    {(lxb_char_t *) "\xe0\xb8\xb1", 3, 0x0E31}, /* (THAI CHARACTER MAI HAN-AKAT) */
-    {(lxb_char_t *) "\xe0\xb8\xb2", 3, 0x0E32}, /* (THAI CHARACTER SARA AA) */
-    {(lxb_char_t *) "\xe0\xb8\xb3", 3, 0x0E33}, /* (THAI CHARACTER SARA AM) */
-    {(lxb_char_t *) "\xe0\xb8\xb4", 3, 0x0E34}, /* (THAI CHARACTER SARA I) */
-    {(lxb_char_t *) "\xe0\xb8\xb5", 3, 0x0E35}, /* (THAI CHARACTER SARA II) */
-    {(lxb_char_t *) "\xe0\xb8\xb6", 3, 0x0E36}, /* (THAI CHARACTER SARA UE) */
-    {(lxb_char_t *) "\xe0\xb8\xb7", 3, 0x0E37}, /* (THAI CHARACTER SARA UEE) */
-    {(lxb_char_t *) "\xe0\xb8\xb8", 3, 0x0E38}, /* (THAI CHARACTER SARA U) */
-    {(lxb_char_t *) "\xe0\xb8\xb9", 3, 0x0E39}, /* (THAI CHARACTER SARA UU) */
-    {(lxb_char_t *) "\xe0\xb8\xba", 3, 0x0E3A}, /* (THAI CHARACTER PHINTHU) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {(lxb_char_t *) "\xe0\xb8\xbf", 3, 0x0E3F}, /* (THAI CURRENCY SYMBOL BAHT) */
-    {(lxb_char_t *) "\xe0\xb9\x80", 3, 0x0E40}, /* (THAI CHARACTER SARA E) */
-    {(lxb_char_t *) "\xe0\xb9\x81", 3, 0x0E41}, /* (THAI CHARACTER SARA AE) */
-    {(lxb_char_t *) "\xe0\xb9\x82", 3, 0x0E42}, /* (THAI CHARACTER SARA O) */
-    {(lxb_char_t *) "\xe0\xb9\x83", 3, 0x0E43}, /* (THAI CHARACTER SARA AI MAIMUAN) */
-    {(lxb_char_t *) "\xe0\xb9\x84", 3, 0x0E44}, /* (THAI CHARACTER SARA AI MAIMALAI) */
-    {(lxb_char_t *) "\xe0\xb9\x85", 3, 0x0E45}, /* (THAI CHARACTER LAKKHANGYAO) */
-    {(lxb_char_t *) "\xe0\xb9\x86", 3, 0x0E46}, /* (THAI CHARACTER MAIYAMOK) */
-    {(lxb_char_t *) "\xe0\xb9\x87", 3, 0x0E47}, /* (THAI CHARACTER MAITAIKHU) */
-    {(lxb_char_t *) "\xe0\xb9\x88", 3, 0x0E48}, /* (THAI CHARACTER MAI EK) */
-    {(lxb_char_t *) "\xe0\xb9\x89", 3, 0x0E49}, /* (THAI CHARACTER MAI THO) */
-    {(lxb_char_t *) "\xe0\xb9\x8a", 3, 0x0E4A}, /* (THAI CHARACTER MAI TRI) */
-    {(lxb_char_t *) "\xe0\xb9\x8b", 3, 0x0E4B}, /* (THAI CHARACTER MAI CHATTAWA) */
-    {(lxb_char_t *) "\xe0\xb9\x8c", 3, 0x0E4C}, /* (THAI CHARACTER THANTHAKHAT) */
-    {(lxb_char_t *) "\xe0\xb9\x8d", 3, 0x0E4D}, /* (THAI CHARACTER NIKHAHIT) */
-    {(lxb_char_t *) "\xe0\xb9\x8e", 3, 0x0E4E}, /* (THAI CHARACTER YAMAKKAN) */
-    {(lxb_char_t *) "\xe0\xb9\x8f", 3, 0x0E4F}, /* (THAI CHARACTER FONGMAN) */
-    {(lxb_char_t *) "\xe0\xb9\x90", 3, 0x0E50}, /* (THAI DIGIT ZERO) */
-    {(lxb_char_t *) "\xe0\xb9\x91", 3, 0x0E51}, /* (THAI DIGIT ONE) */
-    {(lxb_char_t *) "\xe0\xb9\x92", 3, 0x0E52}, /* (THAI DIGIT TWO) */
-    {(lxb_char_t *) "\xe0\xb9\x93", 3, 0x0E53}, /* (THAI DIGIT THREE) */
-    {(lxb_char_t *) "\xe0\xb9\x94", 3, 0x0E54}, /* (THAI DIGIT FOUR) */
-    {(lxb_char_t *) "\xe0\xb9\x95", 3, 0x0E55}, /* (THAI DIGIT FIVE) */
-    {(lxb_char_t *) "\xe0\xb9\x96", 3, 0x0E56}, /* (THAI DIGIT SIX) */
-    {(lxb_char_t *) "\xe0\xb9\x97", 3, 0x0E57}, /* (THAI DIGIT SEVEN) */
-    {(lxb_char_t *) "\xe0\xb9\x98", 3, 0x0E58}, /* (THAI DIGIT EIGHT) */
-    {(lxb_char_t *) "\xe0\xb9\x99", 3, 0x0E59}, /* (THAI DIGIT NINE) */
-    {(lxb_char_t *) "\xe0\xb9\x9a", 3, 0x0E5A}, /* (THAI CHARACTER ANGKHANKHU) */
-    {(lxb_char_t *) "\xe0\xb9\x9b", 3, 0x0E5B}, /* (THAI CHARACTER KHOMUT) */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
-    {NULL, 0, LXB_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
+    {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
+    {(unsigned char *) "\xc2\x82", 2, 0x0082}, /* (<control>) */
+    {(unsigned char *) "\xc2\x83", 2, 0x0083}, /* (<control>) */
+    {(unsigned char *) "\xc2\x84", 2, 0x0084}, /* (<control>) */
+    {(unsigned char *) "\xe2\x80\xa6", 3, 0x2026}, /* (HORIZONTAL ELLIPSIS) */
+    {(unsigned char *) "\xc2\x86", 2, 0x0086}, /* (<control>) */
+    {(unsigned char *) "\xc2\x87", 2, 0x0087}, /* (<control>) */
+    {(unsigned char *) "\xc2\x88", 2, 0x0088}, /* (<control>) */
+    {(unsigned char *) "\xc2\x89", 2, 0x0089}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8a", 2, 0x008A}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8b", 2, 0x008B}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8c", 2, 0x008C}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8d", 2, 0x008D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8e", 2, 0x008E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x8f", 2, 0x008F}, /* (<control>) */
+    {(unsigned char *) "\xc2\x90", 2, 0x0090}, /* (<control>) */
+    {(unsigned char *) "\xe2\x80\x98", 3, 0x2018}, /* (LEFT SINGLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x99", 3, 0x2019}, /* (RIGHT SINGLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x9c", 3, 0x201C}, /* (LEFT DOUBLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x9d", 3, 0x201D}, /* (RIGHT DOUBLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\xa2", 3, 0x2022}, /* (BULLET) */
+    {(unsigned char *) "\xe2\x80\x93", 3, 0x2013}, /* (EN DASH) */
+    {(unsigned char *) "\xe2\x80\x94", 3, 0x2014}, /* (EM DASH) */
+    {(unsigned char *) "\xc2\x98", 2, 0x0098}, /* (<control>) */
+    {(unsigned char *) "\xc2\x99", 2, 0x0099}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9a", 2, 0x009A}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9b", 2, 0x009B}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9c", 2, 0x009C}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9d", 2, 0x009D}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9e", 2, 0x009E}, /* (<control>) */
+    {(unsigned char *) "\xc2\x9f", 2, 0x009F}, /* (<control>) */
+    {(unsigned char *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
+    {(unsigned char *) "\xe0\xb8\x81", 3, 0x0E01}, /* (THAI CHARACTER KO KAI) */
+    {(unsigned char *) "\xe0\xb8\x82", 3, 0x0E02}, /* (THAI CHARACTER KHO KHAI) */
+    {(unsigned char *) "\xe0\xb8\x83", 3, 0x0E03}, /* (THAI CHARACTER KHO KHUAT) */
+    {(unsigned char *) "\xe0\xb8\x84", 3, 0x0E04}, /* (THAI CHARACTER KHO KHWAI) */
+    {(unsigned char *) "\xe0\xb8\x85", 3, 0x0E05}, /* (THAI CHARACTER KHO KHON) */
+    {(unsigned char *) "\xe0\xb8\x86", 3, 0x0E06}, /* (THAI CHARACTER KHO RAKHANG) */
+    {(unsigned char *) "\xe0\xb8\x87", 3, 0x0E07}, /* (THAI CHARACTER NGO NGU) */
+    {(unsigned char *) "\xe0\xb8\x88", 3, 0x0E08}, /* (THAI CHARACTER CHO CHAN) */
+    {(unsigned char *) "\xe0\xb8\x89", 3, 0x0E09}, /* (THAI CHARACTER CHO CHING) */
+    {(unsigned char *) "\xe0\xb8\x8a", 3, 0x0E0A}, /* (THAI CHARACTER CHO CHANG) */
+    {(unsigned char *) "\xe0\xb8\x8b", 3, 0x0E0B}, /* (THAI CHARACTER SO SO) */
+    {(unsigned char *) "\xe0\xb8\x8c", 3, 0x0E0C}, /* (THAI CHARACTER CHO CHOE) */
+    {(unsigned char *) "\xe0\xb8\x8d", 3, 0x0E0D}, /* (THAI CHARACTER YO YING) */
+    {(unsigned char *) "\xe0\xb8\x8e", 3, 0x0E0E}, /* (THAI CHARACTER DO CHADA) */
+    {(unsigned char *) "\xe0\xb8\x8f", 3, 0x0E0F}, /* (THAI CHARACTER TO PATAK) */
+    {(unsigned char *) "\xe0\xb8\x90", 3, 0x0E10}, /* (THAI CHARACTER THO THAN) */
+    {(unsigned char *) "\xe0\xb8\x91", 3, 0x0E11}, /* (THAI CHARACTER THO NANGMONTHO) */
+    {(unsigned char *) "\xe0\xb8\x92", 3, 0x0E12}, /* (THAI CHARACTER THO PHUTHAO) */
+    {(unsigned char *) "\xe0\xb8\x93", 3, 0x0E13}, /* (THAI CHARACTER NO NEN) */
+    {(unsigned char *) "\xe0\xb8\x94", 3, 0x0E14}, /* (THAI CHARACTER DO DEK) */
+    {(unsigned char *) "\xe0\xb8\x95", 3, 0x0E15}, /* (THAI CHARACTER TO TAO) */
+    {(unsigned char *) "\xe0\xb8\x96", 3, 0x0E16}, /* (THAI CHARACTER THO THUNG) */
+    {(unsigned char *) "\xe0\xb8\x97", 3, 0x0E17}, /* (THAI CHARACTER THO THAHAN) */
+    {(unsigned char *) "\xe0\xb8\x98", 3, 0x0E18}, /* (THAI CHARACTER THO THONG) */
+    {(unsigned char *) "\xe0\xb8\x99", 3, 0x0E19}, /* (THAI CHARACTER NO NU) */
+    {(unsigned char *) "\xe0\xb8\x9a", 3, 0x0E1A}, /* (THAI CHARACTER BO BAIMAI) */
+    {(unsigned char *) "\xe0\xb8\x9b", 3, 0x0E1B}, /* (THAI CHARACTER PO PLA) */
+    {(unsigned char *) "\xe0\xb8\x9c", 3, 0x0E1C}, /* (THAI CHARACTER PHO PHUNG) */
+    {(unsigned char *) "\xe0\xb8\x9d", 3, 0x0E1D}, /* (THAI CHARACTER FO FA) */
+    {(unsigned char *) "\xe0\xb8\x9e", 3, 0x0E1E}, /* (THAI CHARACTER PHO PHAN) */
+    {(unsigned char *) "\xe0\xb8\x9f", 3, 0x0E1F}, /* (THAI CHARACTER FO FAN) */
+    {(unsigned char *) "\xe0\xb8\xa0", 3, 0x0E20}, /* (THAI CHARACTER PHO SAMPHAO) */
+    {(unsigned char *) "\xe0\xb8\xa1", 3, 0x0E21}, /* (THAI CHARACTER MO MA) */
+    {(unsigned char *) "\xe0\xb8\xa2", 3, 0x0E22}, /* (THAI CHARACTER YO YAK) */
+    {(unsigned char *) "\xe0\xb8\xa3", 3, 0x0E23}, /* (THAI CHARACTER RO RUA) */
+    {(unsigned char *) "\xe0\xb8\xa4", 3, 0x0E24}, /* (THAI CHARACTER RU) */
+    {(unsigned char *) "\xe0\xb8\xa5", 3, 0x0E25}, /* (THAI CHARACTER LO LING) */
+    {(unsigned char *) "\xe0\xb8\xa6", 3, 0x0E26}, /* (THAI CHARACTER LU) */
+    {(unsigned char *) "\xe0\xb8\xa7", 3, 0x0E27}, /* (THAI CHARACTER WO WAEN) */
+    {(unsigned char *) "\xe0\xb8\xa8", 3, 0x0E28}, /* (THAI CHARACTER SO SALA) */
+    {(unsigned char *) "\xe0\xb8\xa9", 3, 0x0E29}, /* (THAI CHARACTER SO RUSI) */
+    {(unsigned char *) "\xe0\xb8\xaa", 3, 0x0E2A}, /* (THAI CHARACTER SO SUA) */
+    {(unsigned char *) "\xe0\xb8\xab", 3, 0x0E2B}, /* (THAI CHARACTER HO HIP) */
+    {(unsigned char *) "\xe0\xb8\xac", 3, 0x0E2C}, /* (THAI CHARACTER LO CHULA) */
+    {(unsigned char *) "\xe0\xb8\xad", 3, 0x0E2D}, /* (THAI CHARACTER O ANG) */
+    {(unsigned char *) "\xe0\xb8\xae", 3, 0x0E2E}, /* (THAI CHARACTER HO NOKHUK) */
+    {(unsigned char *) "\xe0\xb8\xaf", 3, 0x0E2F}, /* (THAI CHARACTER PAIYANNOI) */
+    {(unsigned char *) "\xe0\xb8\xb0", 3, 0x0E30}, /* (THAI CHARACTER SARA A) */
+    {(unsigned char *) "\xe0\xb8\xb1", 3, 0x0E31}, /* (THAI CHARACTER MAI HAN-AKAT) */
+    {(unsigned char *) "\xe0\xb8\xb2", 3, 0x0E32}, /* (THAI CHARACTER SARA AA) */
+    {(unsigned char *) "\xe0\xb8\xb3", 3, 0x0E33}, /* (THAI CHARACTER SARA AM) */
+    {(unsigned char *) "\xe0\xb8\xb4", 3, 0x0E34}, /* (THAI CHARACTER SARA I) */
+    {(unsigned char *) "\xe0\xb8\xb5", 3, 0x0E35}, /* (THAI CHARACTER SARA II) */
+    {(unsigned char *) "\xe0\xb8\xb6", 3, 0x0E36}, /* (THAI CHARACTER SARA UE) */
+    {(unsigned char *) "\xe0\xb8\xb7", 3, 0x0E37}, /* (THAI CHARACTER SARA UEE) */
+    {(unsigned char *) "\xe0\xb8\xb8", 3, 0x0E38}, /* (THAI CHARACTER SARA U) */
+    {(unsigned char *) "\xe0\xb8\xb9", 3, 0x0E39}, /* (THAI CHARACTER SARA UU) */
+    {(unsigned char *) "\xe0\xb8\xba", 3, 0x0E3A}, /* (THAI CHARACTER PHINTHU) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {(unsigned char *) "\xe0\xb8\xbf", 3, 0x0E3F}, /* (THAI CURRENCY SYMBOL BAHT) */
+    {(unsigned char *) "\xe0\xb9\x80", 3, 0x0E40}, /* (THAI CHARACTER SARA E) */
+    {(unsigned char *) "\xe0\xb9\x81", 3, 0x0E41}, /* (THAI CHARACTER SARA AE) */
+    {(unsigned char *) "\xe0\xb9\x82", 3, 0x0E42}, /* (THAI CHARACTER SARA O) */
+    {(unsigned char *) "\xe0\xb9\x83", 3, 0x0E43}, /* (THAI CHARACTER SARA AI MAIMUAN) */
+    {(unsigned char *) "\xe0\xb9\x84", 3, 0x0E44}, /* (THAI CHARACTER SARA AI MAIMALAI) */
+    {(unsigned char *) "\xe0\xb9\x85", 3, 0x0E45}, /* (THAI CHARACTER LAKKHANGYAO) */
+    {(unsigned char *) "\xe0\xb9\x86", 3, 0x0E46}, /* (THAI CHARACTER MAIYAMOK) */
+    {(unsigned char *) "\xe0\xb9\x87", 3, 0x0E47}, /* (THAI CHARACTER MAITAIKHU) */
+    {(unsigned char *) "\xe0\xb9\x88", 3, 0x0E48}, /* (THAI CHARACTER MAI EK) */
+    {(unsigned char *) "\xe0\xb9\x89", 3, 0x0E49}, /* (THAI CHARACTER MAI THO) */
+    {(unsigned char *) "\xe0\xb9\x8a", 3, 0x0E4A}, /* (THAI CHARACTER MAI TRI) */
+    {(unsigned char *) "\xe0\xb9\x8b", 3, 0x0E4B}, /* (THAI CHARACTER MAI CHATTAWA) */
+    {(unsigned char *) "\xe0\xb9\x8c", 3, 0x0E4C}, /* (THAI CHARACTER THANTHAKHAT) */
+    {(unsigned char *) "\xe0\xb9\x8d", 3, 0x0E4D}, /* (THAI CHARACTER NIKHAHIT) */
+    {(unsigned char *) "\xe0\xb9\x8e", 3, 0x0E4E}, /* (THAI CHARACTER YAMAKKAN) */
+    {(unsigned char *) "\xe0\xb9\x8f", 3, 0x0E4F}, /* (THAI CHARACTER FONGMAN) */
+    {(unsigned char *) "\xe0\xb9\x90", 3, 0x0E50}, /* (THAI DIGIT ZERO) */
+    {(unsigned char *) "\xe0\xb9\x91", 3, 0x0E51}, /* (THAI DIGIT ONE) */
+    {(unsigned char *) "\xe0\xb9\x92", 3, 0x0E52}, /* (THAI DIGIT TWO) */
+    {(unsigned char *) "\xe0\xb9\x93", 3, 0x0E53}, /* (THAI DIGIT THREE) */
+    {(unsigned char *) "\xe0\xb9\x94", 3, 0x0E54}, /* (THAI DIGIT FOUR) */
+    {(unsigned char *) "\xe0\xb9\x95", 3, 0x0E55}, /* (THAI DIGIT FIVE) */
+    {(unsigned char *) "\xe0\xb9\x96", 3, 0x0E56}, /* (THAI DIGIT SIX) */
+    {(unsigned char *) "\xe0\xb9\x97", 3, 0x0E57}, /* (THAI DIGIT SEVEN) */
+    {(unsigned char *) "\xe0\xb9\x98", 3, 0x0E58}, /* (THAI DIGIT EIGHT) */
+    {(unsigned char *) "\xe0\xb9\x99", 3, 0x0E59}, /* (THAI DIGIT NINE) */
+    {(unsigned char *) "\xe0\xb9\x9a", 3, 0x0E5A}, /* (THAI CHARACTER ANGKHANKHU) */
+    {(unsigned char *) "\xe0\xb9\x9b", 3, 0x0E5B}, /* (THAI CHARACTER KHOMUT) */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
+    {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
 };
 
-LXB_API const lxb_encoding_single_index_t lxb_encoding_single_index_x_mac_cyrillic[128] = 
+GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_x_mac_cyrillic[128] = 
 {
-    {(lxb_char_t *) "\xd0\x90", 2, 0x0410}, /* (CYRILLIC CAPITAL LETTER A) */
-    {(lxb_char_t *) "\xd0\x91", 2, 0x0411}, /* (CYRILLIC CAPITAL LETTER BE) */
-    {(lxb_char_t *) "\xd0\x92", 2, 0x0412}, /* (CYRILLIC CAPITAL LETTER VE) */
-    {(lxb_char_t *) "\xd0\x93", 2, 0x0413}, /* (CYRILLIC CAPITAL LETTER GHE) */
-    {(lxb_char_t *) "\xd0\x94", 2, 0x0414}, /* (CYRILLIC CAPITAL LETTER DE) */
-    {(lxb_char_t *) "\xd0\x95", 2, 0x0415}, /* (CYRILLIC CAPITAL LETTER IE) */
-    {(lxb_char_t *) "\xd0\x96", 2, 0x0416}, /* (CYRILLIC CAPITAL LETTER ZHE) */
-    {(lxb_char_t *) "\xd0\x97", 2, 0x0417}, /* (CYRILLIC CAPITAL LETTER ZE) */
-    {(lxb_char_t *) "\xd0\x98", 2, 0x0418}, /* (CYRILLIC CAPITAL LETTER I) */
-    {(lxb_char_t *) "\xd0\x99", 2, 0x0419}, /* (CYRILLIC CAPITAL LETTER SHORT I) */
-    {(lxb_char_t *) "\xd0\x9a", 2, 0x041A}, /* (CYRILLIC CAPITAL LETTER KA) */
-    {(lxb_char_t *) "\xd0\x9b", 2, 0x041B}, /* (CYRILLIC CAPITAL LETTER EL) */
-    {(lxb_char_t *) "\xd0\x9c", 2, 0x041C}, /* (CYRILLIC CAPITAL LETTER EM) */
-    {(lxb_char_t *) "\xd0\x9d", 2, 0x041D}, /* (CYRILLIC CAPITAL LETTER EN) */
-    {(lxb_char_t *) "\xd0\x9e", 2, 0x041E}, /* (CYRILLIC CAPITAL LETTER O) */
-    {(lxb_char_t *) "\xd0\x9f", 2, 0x041F}, /* (CYRILLIC CAPITAL LETTER PE) */
-    {(lxb_char_t *) "\xd0\xa0", 2, 0x0420}, /* (CYRILLIC CAPITAL LETTER ER) */
-    {(lxb_char_t *) "\xd0\xa1", 2, 0x0421}, /* (CYRILLIC CAPITAL LETTER ES) */
-    {(lxb_char_t *) "\xd0\xa2", 2, 0x0422}, /* (CYRILLIC CAPITAL LETTER TE) */
-    {(lxb_char_t *) "\xd0\xa3", 2, 0x0423}, /* (CYRILLIC CAPITAL LETTER U) */
-    {(lxb_char_t *) "\xd0\xa4", 2, 0x0424}, /* (CYRILLIC CAPITAL LETTER EF) */
-    {(lxb_char_t *) "\xd0\xa5", 2, 0x0425}, /* (CYRILLIC CAPITAL LETTER HA) */
-    {(lxb_char_t *) "\xd0\xa6", 2, 0x0426}, /* (CYRILLIC CAPITAL LETTER TSE) */
-    {(lxb_char_t *) "\xd0\xa7", 2, 0x0427}, /* (CYRILLIC CAPITAL LETTER CHE) */
-    {(lxb_char_t *) "\xd0\xa8", 2, 0x0428}, /* (CYRILLIC CAPITAL LETTER SHA) */
-    {(lxb_char_t *) "\xd0\xa9", 2, 0x0429}, /* (CYRILLIC CAPITAL LETTER SHCHA) */
-    {(lxb_char_t *) "\xd0\xaa", 2, 0x042A}, /* (CYRILLIC CAPITAL LETTER HARD SIGN) */
-    {(lxb_char_t *) "\xd0\xab", 2, 0x042B}, /* (CYRILLIC CAPITAL LETTER YERU) */
-    {(lxb_char_t *) "\xd0\xac", 2, 0x042C}, /* (CYRILLIC CAPITAL LETTER SOFT SIGN) */
-    {(lxb_char_t *) "\xd0\xad", 2, 0x042D}, /* (CYRILLIC CAPITAL LETTER E) */
-    {(lxb_char_t *) "\xd0\xae", 2, 0x042E}, /* (CYRILLIC CAPITAL LETTER YU) */
-    {(lxb_char_t *) "\xd0\xaf", 2, 0x042F}, /* (CYRILLIC CAPITAL LETTER YA) */
-    {(lxb_char_t *) "\xe2\x80\xa0", 3, 0x2020}, /* (DAGGER) */
-    {(lxb_char_t *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
-    {(lxb_char_t *) "\xd2\x90", 2, 0x0490}, /* (CYRILLIC CAPITAL LETTER GHE WITH UPTURN) */
-    {(lxb_char_t *) "\xc2\xa3", 2, 0x00A3}, /* (POUND SIGN) */
-    {(lxb_char_t *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
-    {(lxb_char_t *) "\xe2\x80\xa2", 3, 0x2022}, /* (BULLET) */
-    {(lxb_char_t *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
-    {(lxb_char_t *) "\xd0\x86", 2, 0x0406}, /* (CYRILLIC CAPITAL LETTER BYELORUSSIAN-UKRAINIAN I) */
-    {(lxb_char_t *) "\xc2\xae", 2, 0x00AE}, /* (REGISTERED SIGN) */
-    {(lxb_char_t *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
-    {(lxb_char_t *) "\xe2\x84\xa2", 3, 0x2122}, /* (TRADE MARK SIGN) */
-    {(lxb_char_t *) "\xd0\x82", 2, 0x0402}, /* (CYRILLIC CAPITAL LETTER DJE) */
-    {(lxb_char_t *) "\xd1\x92", 2, 0x0452}, /* (CYRILLIC SMALL LETTER DJE) */
-    {(lxb_char_t *) "\xe2\x89\xa0", 3, 0x2260}, /* (NOT EQUAL TO) */
-    {(lxb_char_t *) "\xd0\x83", 2, 0x0403}, /* (CYRILLIC CAPITAL LETTER GJE) */
-    {(lxb_char_t *) "\xd1\x93", 2, 0x0453}, /* (CYRILLIC SMALL LETTER GJE) */
-    {(lxb_char_t *) "\xe2\x88\x9e", 3, 0x221E}, /* (INFINITY) */
-    {(lxb_char_t *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
-    {(lxb_char_t *) "\xe2\x89\xa4", 3, 0x2264}, /* (LESS-THAN OR EQUAL TO) */
-    {(lxb_char_t *) "\xe2\x89\xa5", 3, 0x2265}, /* (GREATER-THAN OR EQUAL TO) */
-    {(lxb_char_t *) "\xd1\x96", 2, 0x0456}, /* (CYRILLIC SMALL LETTER BYELORUSSIAN-UKRAINIAN I) */
-    {(lxb_char_t *) "\xc2\xb5", 2, 0x00B5}, /* (MICRO SIGN) */
-    {(lxb_char_t *) "\xd2\x91", 2, 0x0491}, /* (CYRILLIC SMALL LETTER GHE WITH UPTURN) */
-    {(lxb_char_t *) "\xd0\x88", 2, 0x0408}, /* (CYRILLIC CAPITAL LETTER JE) */
-    {(lxb_char_t *) "\xd0\x84", 2, 0x0404}, /* (CYRILLIC CAPITAL LETTER UKRAINIAN IE) */
-    {(lxb_char_t *) "\xd1\x94", 2, 0x0454}, /* (CYRILLIC SMALL LETTER UKRAINIAN IE) */
-    {(lxb_char_t *) "\xd0\x87", 2, 0x0407}, /* (CYRILLIC CAPITAL LETTER YI) */
-    {(lxb_char_t *) "\xd1\x97", 2, 0x0457}, /* (CYRILLIC SMALL LETTER YI) */
-    {(lxb_char_t *) "\xd0\x89", 2, 0x0409}, /* (CYRILLIC CAPITAL LETTER LJE) */
-    {(lxb_char_t *) "\xd1\x99", 2, 0x0459}, /* (CYRILLIC SMALL LETTER LJE) */
-    {(lxb_char_t *) "\xd0\x8a", 2, 0x040A}, /* (CYRILLIC CAPITAL LETTER NJE) */
-    {(lxb_char_t *) "\xd1\x9a", 2, 0x045A}, /* (CYRILLIC SMALL LETTER NJE) */
-    {(lxb_char_t *) "\xd1\x98", 2, 0x0458}, /* (CYRILLIC SMALL LETTER JE) */
-    {(lxb_char_t *) "\xd0\x85", 2, 0x0405}, /* (CYRILLIC CAPITAL LETTER DZE) */
-    {(lxb_char_t *) "\xc2\xac", 2, 0x00AC}, /* (NOT SIGN) */
-    {(lxb_char_t *) "\xe2\x88\x9a", 3, 0x221A}, /* (SQUARE ROOT) */
-    {(lxb_char_t *) "\xc6\x92", 2, 0x0192}, /* (LATIN SMALL LETTER F WITH HOOK) */
-    {(lxb_char_t *) "\xe2\x89\x88", 3, 0x2248}, /* (ALMOST EQUAL TO) */
-    {(lxb_char_t *) "\xe2\x88\x86", 3, 0x2206}, /* (INCREMENT) */
-    {(lxb_char_t *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\xa6", 3, 0x2026}, /* (HORIZONTAL ELLIPSIS) */
-    {(lxb_char_t *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
-    {(lxb_char_t *) "\xd0\x8b", 2, 0x040B}, /* (CYRILLIC CAPITAL LETTER TSHE) */
-    {(lxb_char_t *) "\xd1\x9b", 2, 0x045B}, /* (CYRILLIC SMALL LETTER TSHE) */
-    {(lxb_char_t *) "\xd0\x8c", 2, 0x040C}, /* (CYRILLIC CAPITAL LETTER KJE) */
-    {(lxb_char_t *) "\xd1\x9c", 2, 0x045C}, /* (CYRILLIC SMALL LETTER KJE) */
-    {(lxb_char_t *) "\xd1\x95", 2, 0x0455}, /* (CYRILLIC SMALL LETTER DZE) */
-    {(lxb_char_t *) "\xe2\x80\x93", 3, 0x2013}, /* (EN DASH) */
-    {(lxb_char_t *) "\xe2\x80\x94", 3, 0x2014}, /* (EM DASH) */
-    {(lxb_char_t *) "\xe2\x80\x9c", 3, 0x201C}, /* (LEFT DOUBLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x9d", 3, 0x201D}, /* (RIGHT DOUBLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x98", 3, 0x2018}, /* (LEFT SINGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xe2\x80\x99", 3, 0x2019}, /* (RIGHT SINGLE QUOTATION MARK) */
-    {(lxb_char_t *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
-    {(lxb_char_t *) "\xe2\x80\x9e", 3, 0x201E}, /* (DOUBLE LOW-9 QUOTATION MARK) */
-    {(lxb_char_t *) "\xd0\x8e", 2, 0x040E}, /* (CYRILLIC CAPITAL LETTER SHORT U) */
-    {(lxb_char_t *) "\xd1\x9e", 2, 0x045E}, /* (CYRILLIC SMALL LETTER SHORT U) */
-    {(lxb_char_t *) "\xd0\x8f", 2, 0x040F}, /* (CYRILLIC CAPITAL LETTER DZHE) */
-    {(lxb_char_t *) "\xd1\x9f", 2, 0x045F}, /* (CYRILLIC SMALL LETTER DZHE) */
-    {(lxb_char_t *) "\xe2\x84\x96", 3, 0x2116}, /* (NUMERO SIGN) */
-    {(lxb_char_t *) "\xd0\x81", 2, 0x0401}, /* (CYRILLIC CAPITAL LETTER IO) */
-    {(lxb_char_t *) "\xd1\x91", 2, 0x0451}, /* (CYRILLIC SMALL LETTER IO) */
-    {(lxb_char_t *) "\xd1\x8f", 2, 0x044F}, /* (CYRILLIC SMALL LETTER YA) */
-    {(lxb_char_t *) "\xd0\xb0", 2, 0x0430}, /* (CYRILLIC SMALL LETTER A) */
-    {(lxb_char_t *) "\xd0\xb1", 2, 0x0431}, /* (CYRILLIC SMALL LETTER BE) */
-    {(lxb_char_t *) "\xd0\xb2", 2, 0x0432}, /* (CYRILLIC SMALL LETTER VE) */
-    {(lxb_char_t *) "\xd0\xb3", 2, 0x0433}, /* (CYRILLIC SMALL LETTER GHE) */
-    {(lxb_char_t *) "\xd0\xb4", 2, 0x0434}, /* (CYRILLIC SMALL LETTER DE) */
-    {(lxb_char_t *) "\xd0\xb5", 2, 0x0435}, /* (CYRILLIC SMALL LETTER IE) */
-    {(lxb_char_t *) "\xd0\xb6", 2, 0x0436}, /* (CYRILLIC SMALL LETTER ZHE) */
-    {(lxb_char_t *) "\xd0\xb7", 2, 0x0437}, /* (CYRILLIC SMALL LETTER ZE) */
-    {(lxb_char_t *) "\xd0\xb8", 2, 0x0438}, /* (CYRILLIC SMALL LETTER I) */
-    {(lxb_char_t *) "\xd0\xb9", 2, 0x0439}, /* (CYRILLIC SMALL LETTER SHORT I) */
-    {(lxb_char_t *) "\xd0\xba", 2, 0x043A}, /* (CYRILLIC SMALL LETTER KA) */
-    {(lxb_char_t *) "\xd0\xbb", 2, 0x043B}, /* (CYRILLIC SMALL LETTER EL) */
-    {(lxb_char_t *) "\xd0\xbc", 2, 0x043C}, /* (CYRILLIC SMALL LETTER EM) */
-    {(lxb_char_t *) "\xd0\xbd", 2, 0x043D}, /* (CYRILLIC SMALL LETTER EN) */
-    {(lxb_char_t *) "\xd0\xbe", 2, 0x043E}, /* (CYRILLIC SMALL LETTER O) */
-    {(lxb_char_t *) "\xd0\xbf", 2, 0x043F}, /* (CYRILLIC SMALL LETTER PE) */
-    {(lxb_char_t *) "\xd1\x80", 2, 0x0440}, /* (CYRILLIC SMALL LETTER ER) */
-    {(lxb_char_t *) "\xd1\x81", 2, 0x0441}, /* (CYRILLIC SMALL LETTER ES) */
-    {(lxb_char_t *) "\xd1\x82", 2, 0x0442}, /* (CYRILLIC SMALL LETTER TE) */
-    {(lxb_char_t *) "\xd1\x83", 2, 0x0443}, /* (CYRILLIC SMALL LETTER U) */
-    {(lxb_char_t *) "\xd1\x84", 2, 0x0444}, /* (CYRILLIC SMALL LETTER EF) */
-    {(lxb_char_t *) "\xd1\x85", 2, 0x0445}, /* (CYRILLIC SMALL LETTER HA) */
-    {(lxb_char_t *) "\xd1\x86", 2, 0x0446}, /* (CYRILLIC SMALL LETTER TSE) */
-    {(lxb_char_t *) "\xd1\x87", 2, 0x0447}, /* (CYRILLIC SMALL LETTER CHE) */
-    {(lxb_char_t *) "\xd1\x88", 2, 0x0448}, /* (CYRILLIC SMALL LETTER SHA) */
-    {(lxb_char_t *) "\xd1\x89", 2, 0x0449}, /* (CYRILLIC SMALL LETTER SHCHA) */
-    {(lxb_char_t *) "\xd1\x8a", 2, 0x044A}, /* (CYRILLIC SMALL LETTER HARD SIGN) */
-    {(lxb_char_t *) "\xd1\x8b", 2, 0x044B}, /* (CYRILLIC SMALL LETTER YERU) */
-    {(lxb_char_t *) "\xd1\x8c", 2, 0x044C}, /* (CYRILLIC SMALL LETTER SOFT SIGN) */
-    {(lxb_char_t *) "\xd1\x8d", 2, 0x044D}, /* (CYRILLIC SMALL LETTER E) */
-    {(lxb_char_t *) "\xd1\x8e", 2, 0x044E}, /* (CYRILLIC SMALL LETTER YU) */
-    {(lxb_char_t *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
+    {(unsigned char *) "\xd0\x90", 2, 0x0410}, /* (CYRILLIC CAPITAL LETTER A) */
+    {(unsigned char *) "\xd0\x91", 2, 0x0411}, /* (CYRILLIC CAPITAL LETTER BE) */
+    {(unsigned char *) "\xd0\x92", 2, 0x0412}, /* (CYRILLIC CAPITAL LETTER VE) */
+    {(unsigned char *) "\xd0\x93", 2, 0x0413}, /* (CYRILLIC CAPITAL LETTER GHE) */
+    {(unsigned char *) "\xd0\x94", 2, 0x0414}, /* (CYRILLIC CAPITAL LETTER DE) */
+    {(unsigned char *) "\xd0\x95", 2, 0x0415}, /* (CYRILLIC CAPITAL LETTER IE) */
+    {(unsigned char *) "\xd0\x96", 2, 0x0416}, /* (CYRILLIC CAPITAL LETTER ZHE) */
+    {(unsigned char *) "\xd0\x97", 2, 0x0417}, /* (CYRILLIC CAPITAL LETTER ZE) */
+    {(unsigned char *) "\xd0\x98", 2, 0x0418}, /* (CYRILLIC CAPITAL LETTER I) */
+    {(unsigned char *) "\xd0\x99", 2, 0x0419}, /* (CYRILLIC CAPITAL LETTER SHORT I) */
+    {(unsigned char *) "\xd0\x9a", 2, 0x041A}, /* (CYRILLIC CAPITAL LETTER KA) */
+    {(unsigned char *) "\xd0\x9b", 2, 0x041B}, /* (CYRILLIC CAPITAL LETTER EL) */
+    {(unsigned char *) "\xd0\x9c", 2, 0x041C}, /* (CYRILLIC CAPITAL LETTER EM) */
+    {(unsigned char *) "\xd0\x9d", 2, 0x041D}, /* (CYRILLIC CAPITAL LETTER EN) */
+    {(unsigned char *) "\xd0\x9e", 2, 0x041E}, /* (CYRILLIC CAPITAL LETTER O) */
+    {(unsigned char *) "\xd0\x9f", 2, 0x041F}, /* (CYRILLIC CAPITAL LETTER PE) */
+    {(unsigned char *) "\xd0\xa0", 2, 0x0420}, /* (CYRILLIC CAPITAL LETTER ER) */
+    {(unsigned char *) "\xd0\xa1", 2, 0x0421}, /* (CYRILLIC CAPITAL LETTER ES) */
+    {(unsigned char *) "\xd0\xa2", 2, 0x0422}, /* (CYRILLIC CAPITAL LETTER TE) */
+    {(unsigned char *) "\xd0\xa3", 2, 0x0423}, /* (CYRILLIC CAPITAL LETTER U) */
+    {(unsigned char *) "\xd0\xa4", 2, 0x0424}, /* (CYRILLIC CAPITAL LETTER EF) */
+    {(unsigned char *) "\xd0\xa5", 2, 0x0425}, /* (CYRILLIC CAPITAL LETTER HA) */
+    {(unsigned char *) "\xd0\xa6", 2, 0x0426}, /* (CYRILLIC CAPITAL LETTER TSE) */
+    {(unsigned char *) "\xd0\xa7", 2, 0x0427}, /* (CYRILLIC CAPITAL LETTER CHE) */
+    {(unsigned char *) "\xd0\xa8", 2, 0x0428}, /* (CYRILLIC CAPITAL LETTER SHA) */
+    {(unsigned char *) "\xd0\xa9", 2, 0x0429}, /* (CYRILLIC CAPITAL LETTER SHCHA) */
+    {(unsigned char *) "\xd0\xaa", 2, 0x042A}, /* (CYRILLIC CAPITAL LETTER HARD SIGN) */
+    {(unsigned char *) "\xd0\xab", 2, 0x042B}, /* (CYRILLIC CAPITAL LETTER YERU) */
+    {(unsigned char *) "\xd0\xac", 2, 0x042C}, /* (CYRILLIC CAPITAL LETTER SOFT SIGN) */
+    {(unsigned char *) "\xd0\xad", 2, 0x042D}, /* (CYRILLIC CAPITAL LETTER E) */
+    {(unsigned char *) "\xd0\xae", 2, 0x042E}, /* (CYRILLIC CAPITAL LETTER YU) */
+    {(unsigned char *) "\xd0\xaf", 2, 0x042F}, /* (CYRILLIC CAPITAL LETTER YA) */
+    {(unsigned char *) "\xe2\x80\xa0", 3, 0x2020}, /* (DAGGER) */
+    {(unsigned char *) "\xc2\xb0", 2, 0x00B0}, /* (DEGREE SIGN) */
+    {(unsigned char *) "\xd2\x90", 2, 0x0490}, /* (CYRILLIC CAPITAL LETTER GHE WITH UPTURN) */
+    {(unsigned char *) "\xc2\xa3", 2, 0x00A3}, /* (POUND SIGN) */
+    {(unsigned char *) "\xc2\xa7", 2, 0x00A7}, /* (SECTION SIGN) */
+    {(unsigned char *) "\xe2\x80\xa2", 3, 0x2022}, /* (BULLET) */
+    {(unsigned char *) "\xc2\xb6", 2, 0x00B6}, /* (PILCROW SIGN) */
+    {(unsigned char *) "\xd0\x86", 2, 0x0406}, /* (CYRILLIC CAPITAL LETTER BYELORUSSIAN-UKRAINIAN I) */
+    {(unsigned char *) "\xc2\xae", 2, 0x00AE}, /* (REGISTERED SIGN) */
+    {(unsigned char *) "\xc2\xa9", 2, 0x00A9}, /* (COPYRIGHT SIGN) */
+    {(unsigned char *) "\xe2\x84\xa2", 3, 0x2122}, /* (TRADE MARK SIGN) */
+    {(unsigned char *) "\xd0\x82", 2, 0x0402}, /* (CYRILLIC CAPITAL LETTER DJE) */
+    {(unsigned char *) "\xd1\x92", 2, 0x0452}, /* (CYRILLIC SMALL LETTER DJE) */
+    {(unsigned char *) "\xe2\x89\xa0", 3, 0x2260}, /* (NOT EQUAL TO) */
+    {(unsigned char *) "\xd0\x83", 2, 0x0403}, /* (CYRILLIC CAPITAL LETTER GJE) */
+    {(unsigned char *) "\xd1\x93", 2, 0x0453}, /* (CYRILLIC SMALL LETTER GJE) */
+    {(unsigned char *) "\xe2\x88\x9e", 3, 0x221E}, /* (INFINITY) */
+    {(unsigned char *) "\xc2\xb1", 2, 0x00B1}, /* (PLUS-MINUS SIGN) */
+    {(unsigned char *) "\xe2\x89\xa4", 3, 0x2264}, /* (LESS-THAN OR EQUAL TO) */
+    {(unsigned char *) "\xe2\x89\xa5", 3, 0x2265}, /* (GREATER-THAN OR EQUAL TO) */
+    {(unsigned char *) "\xd1\x96", 2, 0x0456}, /* (CYRILLIC SMALL LETTER BYELORUSSIAN-UKRAINIAN I) */
+    {(unsigned char *) "\xc2\xb5", 2, 0x00B5}, /* (MICRO SIGN) */
+    {(unsigned char *) "\xd2\x91", 2, 0x0491}, /* (CYRILLIC SMALL LETTER GHE WITH UPTURN) */
+    {(unsigned char *) "\xd0\x88", 2, 0x0408}, /* (CYRILLIC CAPITAL LETTER JE) */
+    {(unsigned char *) "\xd0\x84", 2, 0x0404}, /* (CYRILLIC CAPITAL LETTER UKRAINIAN IE) */
+    {(unsigned char *) "\xd1\x94", 2, 0x0454}, /* (CYRILLIC SMALL LETTER UKRAINIAN IE) */
+    {(unsigned char *) "\xd0\x87", 2, 0x0407}, /* (CYRILLIC CAPITAL LETTER YI) */
+    {(unsigned char *) "\xd1\x97", 2, 0x0457}, /* (CYRILLIC SMALL LETTER YI) */
+    {(unsigned char *) "\xd0\x89", 2, 0x0409}, /* (CYRILLIC CAPITAL LETTER LJE) */
+    {(unsigned char *) "\xd1\x99", 2, 0x0459}, /* (CYRILLIC SMALL LETTER LJE) */
+    {(unsigned char *) "\xd0\x8a", 2, 0x040A}, /* (CYRILLIC CAPITAL LETTER NJE) */
+    {(unsigned char *) "\xd1\x9a", 2, 0x045A}, /* (CYRILLIC SMALL LETTER NJE) */
+    {(unsigned char *) "\xd1\x98", 2, 0x0458}, /* (CYRILLIC SMALL LETTER JE) */
+    {(unsigned char *) "\xd0\x85", 2, 0x0405}, /* (CYRILLIC CAPITAL LETTER DZE) */
+    {(unsigned char *) "\xc2\xac", 2, 0x00AC}, /* (NOT SIGN) */
+    {(unsigned char *) "\xe2\x88\x9a", 3, 0x221A}, /* (SQUARE ROOT) */
+    {(unsigned char *) "\xc6\x92", 2, 0x0192}, /* (LATIN SMALL LETTER F WITH HOOK) */
+    {(unsigned char *) "\xe2\x89\x88", 3, 0x2248}, /* (ALMOST EQUAL TO) */
+    {(unsigned char *) "\xe2\x88\x86", 3, 0x2206}, /* (INCREMENT) */
+    {(unsigned char *) "\xc2\xab", 2, 0x00AB}, /* (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc2\xbb", 2, 0x00BB}, /* (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\xa6", 3, 0x2026}, /* (HORIZONTAL ELLIPSIS) */
+    {(unsigned char *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
+    {(unsigned char *) "\xd0\x8b", 2, 0x040B}, /* (CYRILLIC CAPITAL LETTER TSHE) */
+    {(unsigned char *) "\xd1\x9b", 2, 0x045B}, /* (CYRILLIC SMALL LETTER TSHE) */
+    {(unsigned char *) "\xd0\x8c", 2, 0x040C}, /* (CYRILLIC CAPITAL LETTER KJE) */
+    {(unsigned char *) "\xd1\x9c", 2, 0x045C}, /* (CYRILLIC SMALL LETTER KJE) */
+    {(unsigned char *) "\xd1\x95", 2, 0x0455}, /* (CYRILLIC SMALL LETTER DZE) */
+    {(unsigned char *) "\xe2\x80\x93", 3, 0x2013}, /* (EN DASH) */
+    {(unsigned char *) "\xe2\x80\x94", 3, 0x2014}, /* (EM DASH) */
+    {(unsigned char *) "\xe2\x80\x9c", 3, 0x201C}, /* (LEFT DOUBLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x9d", 3, 0x201D}, /* (RIGHT DOUBLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x98", 3, 0x2018}, /* (LEFT SINGLE QUOTATION MARK) */
+    {(unsigned char *) "\xe2\x80\x99", 3, 0x2019}, /* (RIGHT SINGLE QUOTATION MARK) */
+    {(unsigned char *) "\xc3\xb7", 2, 0x00F7}, /* (DIVISION SIGN) */
+    {(unsigned char *) "\xe2\x80\x9e", 3, 0x201E}, /* (DOUBLE LOW-9 QUOTATION MARK) */
+    {(unsigned char *) "\xd0\x8e", 2, 0x040E}, /* (CYRILLIC CAPITAL LETTER SHORT U) */
+    {(unsigned char *) "\xd1\x9e", 2, 0x045E}, /* (CYRILLIC SMALL LETTER SHORT U) */
+    {(unsigned char *) "\xd0\x8f", 2, 0x040F}, /* (CYRILLIC CAPITAL LETTER DZHE) */
+    {(unsigned char *) "\xd1\x9f", 2, 0x045F}, /* (CYRILLIC SMALL LETTER DZHE) */
+    {(unsigned char *) "\xe2\x84\x96", 3, 0x2116}, /* (NUMERO SIGN) */
+    {(unsigned char *) "\xd0\x81", 2, 0x0401}, /* (CYRILLIC CAPITAL LETTER IO) */
+    {(unsigned char *) "\xd1\x91", 2, 0x0451}, /* (CYRILLIC SMALL LETTER IO) */
+    {(unsigned char *) "\xd1\x8f", 2, 0x044F}, /* (CYRILLIC SMALL LETTER YA) */
+    {(unsigned char *) "\xd0\xb0", 2, 0x0430}, /* (CYRILLIC SMALL LETTER A) */
+    {(unsigned char *) "\xd0\xb1", 2, 0x0431}, /* (CYRILLIC SMALL LETTER BE) */
+    {(unsigned char *) "\xd0\xb2", 2, 0x0432}, /* (CYRILLIC SMALL LETTER VE) */
+    {(unsigned char *) "\xd0\xb3", 2, 0x0433}, /* (CYRILLIC SMALL LETTER GHE) */
+    {(unsigned char *) "\xd0\xb4", 2, 0x0434}, /* (CYRILLIC SMALL LETTER DE) */
+    {(unsigned char *) "\xd0\xb5", 2, 0x0435}, /* (CYRILLIC SMALL LETTER IE) */
+    {(unsigned char *) "\xd0\xb6", 2, 0x0436}, /* (CYRILLIC SMALL LETTER ZHE) */
+    {(unsigned char *) "\xd0\xb7", 2, 0x0437}, /* (CYRILLIC SMALL LETTER ZE) */
+    {(unsigned char *) "\xd0\xb8", 2, 0x0438}, /* (CYRILLIC SMALL LETTER I) */
+    {(unsigned char *) "\xd0\xb9", 2, 0x0439}, /* (CYRILLIC SMALL LETTER SHORT I) */
+    {(unsigned char *) "\xd0\xba", 2, 0x043A}, /* (CYRILLIC SMALL LETTER KA) */
+    {(unsigned char *) "\xd0\xbb", 2, 0x043B}, /* (CYRILLIC SMALL LETTER EL) */
+    {(unsigned char *) "\xd0\xbc", 2, 0x043C}, /* (CYRILLIC SMALL LETTER EM) */
+    {(unsigned char *) "\xd0\xbd", 2, 0x043D}, /* (CYRILLIC SMALL LETTER EN) */
+    {(unsigned char *) "\xd0\xbe", 2, 0x043E}, /* (CYRILLIC SMALL LETTER O) */
+    {(unsigned char *) "\xd0\xbf", 2, 0x043F}, /* (CYRILLIC SMALL LETTER PE) */
+    {(unsigned char *) "\xd1\x80", 2, 0x0440}, /* (CYRILLIC SMALL LETTER ER) */
+    {(unsigned char *) "\xd1\x81", 2, 0x0441}, /* (CYRILLIC SMALL LETTER ES) */
+    {(unsigned char *) "\xd1\x82", 2, 0x0442}, /* (CYRILLIC SMALL LETTER TE) */
+    {(unsigned char *) "\xd1\x83", 2, 0x0443}, /* (CYRILLIC SMALL LETTER U) */
+    {(unsigned char *) "\xd1\x84", 2, 0x0444}, /* (CYRILLIC SMALL LETTER EF) */
+    {(unsigned char *) "\xd1\x85", 2, 0x0445}, /* (CYRILLIC SMALL LETTER HA) */
+    {(unsigned char *) "\xd1\x86", 2, 0x0446}, /* (CYRILLIC SMALL LETTER TSE) */
+    {(unsigned char *) "\xd1\x87", 2, 0x0447}, /* (CYRILLIC SMALL LETTER CHE) */
+    {(unsigned char *) "\xd1\x88", 2, 0x0448}, /* (CYRILLIC SMALL LETTER SHA) */
+    {(unsigned char *) "\xd1\x89", 2, 0x0449}, /* (CYRILLIC SMALL LETTER SHCHA) */
+    {(unsigned char *) "\xd1\x8a", 2, 0x044A}, /* (CYRILLIC SMALL LETTER HARD SIGN) */
+    {(unsigned char *) "\xd1\x8b", 2, 0x044B}, /* (CYRILLIC SMALL LETTER YERU) */
+    {(unsigned char *) "\xd1\x8c", 2, 0x044C}, /* (CYRILLIC SMALL LETTER SOFT SIGN) */
+    {(unsigned char *) "\xd1\x8d", 2, 0x044D}, /* (CYRILLIC SMALL LETTER E) */
+    {(unsigned char *) "\xd1\x8e", 2, 0x044E}, /* (CYRILLIC SMALL LETTER YU) */
+    {(unsigned char *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
 };
 
 /* Table size: 344; Max deep: 1 */
-LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_ibm866[345] = 
+GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_ibm866[345] = 
 {
     {0, NULL, 0},{9632, (void *) 254, 0},
     {0, NULL, 0},
@@ -3929,7 +3947,7 @@ LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_ibm866[345] =
 };
 
 /* Table size: 343; Max deep: 1 */
-LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_iso_8859_10[344] = 
+GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_10[344] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -4277,7 +4295,7 @@ LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_iso_8859_10[344] =
 };
 
 /* Table size: 345; Max deep: 1 */
-LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_iso_8859_13[346] = 
+GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_13[346] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {346, (void *) 218, 0},
@@ -4627,7 +4645,7 @@ LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_iso_8859_13[346] =
 };
 
 /* Table size: 407; Max deep: 1 */
-LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_iso_8859_14[408] = 
+GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_14[408] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -5039,7 +5057,7 @@ LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_iso_8859_14[408] =
 };
 
 /* Table size: 344; Max deep: 1 */
-LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_iso_8859_15[345] = 
+GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_15[345] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -5388,7 +5406,7 @@ LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_iso_8859_15[345] =
 };
 
 /* Table size: 413; Max deep: 1 */
-LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_iso_8859_16[414] = 
+GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_16[414] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -5806,7 +5824,7 @@ LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_iso_8859_16[414] =
 };
 
 /* Table size: 368; Max deep: 1 */
-LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_iso_8859_2[369] = 
+GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_2[369] = 
 {
     {0, NULL, 0},{368, (void *) 219, 0},
     {369, (void *) 251, 0},
@@ -6179,7 +6197,7 @@ LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_iso_8859_2[369] =
 };
 
 /* Table size: 343; Max deep: 1 */
-LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_iso_8859_3[344] = 
+GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_3[344] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -6527,7 +6545,7 @@ LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_iso_8859_3[344] =
 };
 
 /* Table size: 343; Max deep: 1 */
-LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_iso_8859_4[344] = 
+GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_4[344] = 
 {
     {0, NULL, 0},{343, (void *) 179, 0},
     {0, NULL, 0},
@@ -6875,7 +6893,7 @@ LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_iso_8859_4[344] =
 };
 
 /* Table size: 343; Max deep: 1 */
-LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_iso_8859_5[344] = 
+GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_5[344] = 
 {
     {0, NULL, 0},{1029, (void *) 165, 0},
     {1030, (void *) 166, 0},
@@ -7223,7 +7241,7 @@ LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_iso_8859_5[344] =
 };
 
 /* Table size: 343; Max deep: 1 */
-LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_iso_8859_6[344] = 
+GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_6[344] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -7571,7 +7589,7 @@ LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_iso_8859_6[344] =
 };
 
 /* Table size: 344; Max deep: 1 */
-LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_iso_8859_7[345] = 
+GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_7[345] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -7920,7 +7938,7 @@ LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_iso_8859_7[345] =
 };
 
 /* Table size: 347; Max deep: 1 */
-LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_iso_8859_8[348] = 
+GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_8[348] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -8272,7 +8290,7 @@ LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_iso_8859_8[348] =
 };
 
 /* Table size: 486; Max deep: 1 */
-LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_koi8_r[487] = 
+GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_koi8_r[487] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -8763,7 +8781,7 @@ LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_koi8_r[487] =
 };
 
 /* Table size: 380; Max deep: 1 */
-LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_koi8_u[381] = 
+GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_koi8_u[381] = 
 {
     {0, NULL, 0},{9500, (void *) 134, 0},
     {0, NULL, 0},
@@ -9148,7 +9166,7 @@ LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_koi8_u[381] =
 };
 
 /* Table size: 343; Max deep: 2 */
-LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_macintosh[351] = 
+GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_macintosh[351] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -9503,7 +9521,7 @@ LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_macintosh[351] =
 };
 
 /* Table size: 432; Max deep: 1 */
-LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_windows_1250[433] = 
+GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1250[433] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -9940,7 +9958,7 @@ LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_windows_1250[433] =
 };
 
 /* Table size: 362; Max deep: 1 */
-LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_windows_1251[363] = 
+GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1251[363] = 
 {
     {0, NULL, 0},{1086, (void *) 238, 0},
     {1087, (void *) 239, 0},
@@ -10307,7 +10325,7 @@ LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_windows_1251[363] =
 };
 
 /* Table size: 373; Max deep: 1 */
-LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_windows_1252[374] = 
+GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1252[374] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -10685,7 +10703,7 @@ LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_windows_1252[374] =
 };
 
 /* Table size: 354; Max deep: 1 */
-LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_windows_1253[355] = 
+GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1253[355] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -11044,7 +11062,7 @@ LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_windows_1253[355] =
 };
 
 /* Table size: 354; Max deep: 1 */
-LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_windows_1254[355] = 
+GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1254[355] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -11403,7 +11421,7 @@ LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_windows_1254[355] =
 };
 
 /* Table size: 467; Max deep: 1 */
-LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_windows_1255[468] = 
+GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1255[468] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -11875,7 +11893,7 @@ LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_windows_1255[468] =
 };
 
 /* Table size: 343; Max deep: 2 */
-LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_windows_1256[357] = 
+GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1256[357] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -12236,7 +12254,7 @@ LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_windows_1256[357] =
 };
 
 /* Table size: 355; Max deep: 1 */
-LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_windows_1257[356] = 
+GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1257[356] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {711, (void *) 142, 0},
@@ -12596,7 +12614,7 @@ LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_windows_1257[356] =
 };
 
 /* Table size: 405; Max deep: 1 */
-LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_windows_1258[406] = 
+GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1258[406] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -13006,7 +13024,7 @@ LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_windows_1258[406] =
 };
 
 /* Table size: 359; Max deep: 1 */
-LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_windows_874[360] = 
+GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_874[360] = 
 {
     {0, NULL, 0},{3590, (void *) 166, 0},
     {3591, (void *) 167, 0},
@@ -13370,7 +13388,7 @@ LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_windows_874[360] =
 };
 
 /* Table size: 373; Max deep: 1 */
-LXB_API const lexbor_shs_hash_t lxb_encoding_single_hash_x_mac_cyrillic[374] = 
+GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_x_mac_cyrillic[374] = 
 {
     {0, NULL, 0},{1119, (void *) 219, 0},
     {0, NULL, 0},
