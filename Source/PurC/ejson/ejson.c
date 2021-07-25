@@ -971,6 +971,27 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
         END_STATE()
 
         BEGIN_STATE(ejson_value_number_integer_state)
+            if (is_delimiter(wc)) {
+                RECONSUME_IN(ejson_after_value_number_state);
+            }
+            else if (is_ascii_digit(wc)) {
+                pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
+                ADVANCE_TO(ejson_value_number_integer_state);
+            }
+            else if (wc == 'E' || wc == 'e') {
+                pcejson_temp_buffer_append(ejson, (uint8_t*)"e", 1);
+                ADVANCE_TO(ejson_value_number_exponent_state);
+            }
+            else if (wc == '.') {
+                pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
+                ADVANCE_TO(ejson_value_number_fraction_state);
+            }
+            else if (wc == 'U' || wc == 'L') {
+                RECONSUME_IN(ejson_value_number_suffix_integer_state);
+            }
+            pcinst_set_error(
+                    PCEJSON_UNEXPECTED_JSON_NUMBER_INTEGER_PARSE_ERROR);
+            return NULL;
         END_STATE()
 
         BEGIN_STATE(ejson_value_number_fraction_state)
