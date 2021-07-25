@@ -995,6 +995,43 @@ struct pcejson_token* pcejson_next_token(struct pcejson* ejson, purc_rwstream_t 
         END_STATE()
 
         BEGIN_STATE(ejson_value_number_fraction_state)
+            if (is_delimiter(wc)) {
+                RECONSUME_IN(ejson_after_value_number_state);
+            }
+            else if (is_ascii_digit(wc)) {
+                if (pcejson_temp_buffer_end_with(ejson, "F")) {
+                    pcinst_set_error(PCEJSON_BAD_JSON_NUMBER_PARSE_ERROR);
+                    return NULL;
+                }
+                else {
+                    pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
+                    ADVANCE_TO(ejson_value_number_fraction_state);
+                }
+            }
+            else if (wc == 'F') {
+                pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
+                ADVANCE_TO(ejson_value_number_fraction_state);
+            }
+            else if (wc == 'L') {
+                if (pcejson_temp_buffer_end_with(ejson, "F")) {
+                    pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
+                    ADVANCE_TO(ejson_after_value_number_fraction_state);
+                }
+            }
+            else if (wc == 'E' || wc == 'e') {
+                if (pcejson_temp_buffer_end_with(ejson, ".")) {
+                    pcinst_set_error(
+                        PCEJSON_UNEXPECTED_JSON_NUMBER_FRACTION_PARSE_ERROR);
+                    return NULL;
+                }
+                else {
+                    pcejson_temp_buffer_append(ejson, (uint8_t*)"e", 1);
+                    ADVANCE_TO(ejson_value_number_exponent_state);
+                }
+            }
+            pcinst_set_error(
+                    PCEJSON_UNEXPECTED_JSON_NUMBER_FRACTION_PARSE_ERROR);
+            return NULL;
         END_STATE()
 
         BEGIN_STATE(ejson_after_value_number_fraction_state)
