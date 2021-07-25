@@ -1,34 +1,54 @@
-/*
- * Copyright (C) 2018-2019 Alexander Borisov
+/**
+ * @file tag.c
+ * @author 
+ * @date 2021/07/02
+ * @brief The complementation of html tag.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+
 #include "private/errors.h"
 
 #include "html/tag/tag.h"
 #include "html/tag/res.h"
 
 
-LXB_API const lxb_tag_data_t *
-lxb_tag_append(lexbor_hash_t *hash, lxb_tag_id_t tag_id,
-               const lxb_char_t *name, size_t length)
+const pchtml_tag_data_t *
+pchtml_tag_append(pchtml_hash_t *hash, pchtml_tag_id_t tag_id,
+               const unsigned char *name, size_t length)
 {
-    lxb_tag_data_t *data;
-    const lexbor_shs_entry_t *entry;
+    pchtml_tag_data_t *data;
+    const pchtml_shs_entry_t *entry;
 
-    entry = lexbor_shs_entry_get_static(lxb_tag_res_shs_data_default,
+    entry = pchtml_shs_entry_get_static(pchtml_tag_res_shs_data_default,
                                         name, length);
     if (entry != NULL) {
         return entry->value;
     }
 
-    data = lexbor_hash_insert(hash, lexbor_hash_insert_raw, name, length);
+    data = pchtml_hash_insert(hash, pchtml_hash_insert_raw, name, length);
     if (data == NULL) {
         return NULL;
     }
 
-    if (tag_id == LXB_TAG__UNDEF) {
-        data->tag_id = (lxb_tag_id_t) data;
+    if (tag_id == PCHTML_TAG__UNDEF) {
+        data->tag_id = (pchtml_tag_id_t) data;
     }
     else {
         data->tag_id = tag_id;
@@ -37,110 +57,110 @@ lxb_tag_append(lexbor_hash_t *hash, lxb_tag_id_t tag_id,
     return data;
 }
 
-LXB_API const lxb_tag_data_t *
-lxb_tag_append_lower(lexbor_hash_t *hash, const lxb_char_t *name, size_t length)
+const pchtml_tag_data_t *
+pchtml_tag_append_lower(pchtml_hash_t *hash, const unsigned char *name, size_t length)
 {
-    lxb_tag_data_t *data;
-    const lexbor_shs_entry_t *entry;
+    pchtml_tag_data_t *data;
+    const pchtml_shs_entry_t *entry;
 
-    entry = lexbor_shs_entry_get_lower_static(lxb_tag_res_shs_data_default,
+    entry = pchtml_shs_entry_get_lower_static(pchtml_tag_res_shs_data_default,
                                               name, length);
     if (entry != NULL) {
         return entry->value;
     }
 
-    data = lexbor_hash_insert(hash, lexbor_hash_insert_lower, name, length);
+    data = pchtml_hash_insert(hash, pchtml_hash_insert_lower, name, length);
     if (data == NULL) {
         return NULL;
     }
 
-    data->tag_id = (lxb_tag_id_t) data;
+    data->tag_id = (pchtml_tag_id_t) data;
 
     return data;
 }
 
-const lxb_tag_data_t *
-lxb_tag_data_by_id(lexbor_hash_t *hash, lxb_tag_id_t tag_id)
+const pchtml_tag_data_t *
+pchtml_tag_data_by_id(pchtml_hash_t *hash, pchtml_tag_id_t tag_id)
 {
     UNUSED_PARAM(hash);
 
-    if (tag_id >= LXB_TAG__LAST_ENTRY) {
-        if (tag_id == LXB_TAG__LAST_ENTRY) {
+    if (tag_id >= PCHTML_TAG__LAST_ENTRY) {
+        if (tag_id == PCHTML_TAG__LAST_ENTRY) {
             return NULL;
         }
 
-        return (const lxb_tag_data_t *) tag_id;
+        return (const pchtml_tag_data_t *) tag_id;
     }
 
-    return &lxb_tag_res_data_default[tag_id];
+    return &pchtml_tag_res_data_default[tag_id];
 }
 
-const lxb_tag_data_t *
-lxb_tag_data_by_name(lexbor_hash_t *hash, const lxb_char_t *name, size_t len)
+const pchtml_tag_data_t *
+pchtml_tag_data_by_name(pchtml_hash_t *hash, const unsigned char *name, size_t len)
 {
-    const lexbor_shs_entry_t *entry;
+    const pchtml_shs_entry_t *entry;
 
     if (name == NULL || len == 0) {
         return NULL;
     }
 
-    entry = lexbor_shs_entry_get_lower_static(lxb_tag_res_shs_data_default,
+    entry = pchtml_shs_entry_get_lower_static(pchtml_tag_res_shs_data_default,
                                               name, len);
     if (entry != NULL) {
-        return (const lxb_tag_data_t *) entry->value;
+        return (const pchtml_tag_data_t *) entry->value;
     }
 
-    return (const lxb_tag_data_t *) lexbor_hash_search(hash,
-                                           lexbor_hash_search_lower, name, len);
+    return (const pchtml_tag_data_t *) pchtml_hash_search(hash,
+                                           pchtml_hash_search_lower, name, len);
 }
 
-const lxb_tag_data_t *
-lxb_tag_data_by_name_upper(lexbor_hash_t *hash,
-                           const lxb_char_t *name, size_t len)
+const pchtml_tag_data_t *
+pchtml_tag_data_by_name_upper(pchtml_hash_t *hash,
+                           const unsigned char *name, size_t len)
 {
     uintptr_t dif;
-    const lexbor_shs_entry_t *entry;
+    const pchtml_shs_entry_t *entry;
 
     if (name == NULL || len == 0) {
         return NULL;
     }
 
-    entry = lexbor_shs_entry_get_upper_static(lxb_tag_res_shs_data_default,
+    entry = pchtml_shs_entry_get_upper_static(pchtml_tag_res_shs_data_default,
                                               name, len);
     if (entry != NULL) {
-        dif = (const lxb_tag_data_t *) entry->value - lxb_tag_res_data_default;
+        dif = (const pchtml_tag_data_t *) entry->value - pchtml_tag_res_data_default;
 
-        return (const lxb_tag_data_t *) (lxb_tag_res_data_upper_default + dif);
+        return (const pchtml_tag_data_t *) (pchtml_tag_res_data_upper_default + dif);
     }
 
-    return (const lxb_tag_data_t *) lexbor_hash_search(hash,
-                                           lexbor_hash_search_upper, name, len);
+    return (const pchtml_tag_data_t *) pchtml_hash_search(hash,
+                                           pchtml_hash_search_upper, name, len);
 }
 
 /*
  * No inline functions for ABI.
  */
-const lxb_char_t *
-lxb_tag_name_by_id_noi(lexbor_hash_t *hash, lxb_tag_id_t tag_id, size_t *len)
+const unsigned char *
+pchtml_tag_name_by_id_noi(pchtml_hash_t *hash, pchtml_tag_id_t tag_id, size_t *len)
 {
-    return lxb_tag_name_by_id(hash, tag_id, len);
+    return pchtml_tag_name_by_id(hash, tag_id, len);
 }
 
-const lxb_char_t *
-lxb_tag_name_upper_by_id_noi(lexbor_hash_t *hash,
-                             lxb_tag_id_t tag_id, size_t *len)
+const unsigned char *
+pchtml_tag_name_upper_by_id_noi(pchtml_hash_t *hash,
+                             pchtml_tag_id_t tag_id, size_t *len)
 {
-    return lxb_tag_name_upper_by_id(hash, tag_id, len);
+    return pchtml_tag_name_upper_by_id(hash, tag_id, len);
 }
 
-lxb_tag_id_t
-lxb_tag_id_by_name_noi(lexbor_hash_t *hash, const lxb_char_t *name, size_t len)
+pchtml_tag_id_t
+pchtml_tag_id_by_name_noi(pchtml_hash_t *hash, const unsigned char *name, size_t len)
 {
-    return lxb_tag_id_by_name(hash, name, len);
+    return pchtml_tag_id_by_name(hash, name, len);
 }
 
-lexbor_mraw_t *
-lxb_tag_mraw_noi(lexbor_hash_t *hash)
+pchtml_mraw_t *
+pchtml_tag_mraw_noi(pchtml_hash_t *hash)
 {
-    return lxb_tag_mraw(hash);
+    return pchtml_tag_mraw(hash);
 }

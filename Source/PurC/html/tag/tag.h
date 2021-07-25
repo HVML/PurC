@@ -1,16 +1,36 @@
-/*
- * Copyright (C) 2018-2019 Alexander Borisov
+/**
+ * @file tag.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for html tag.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_TAG_H
-#define LEXBOR_TAG_H
+
+#ifndef PCHTML_TAG_H
+#define PCHTML_TAG_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "config.h"
 #include "html/core/hash.h"
 #include "html/core/shs.h"
 #include "html/core/dobject.h"
@@ -20,31 +40,32 @@ extern "C" {
 
 
 typedef struct {
-    lexbor_hash_entry_t entry;
-    lxb_tag_id_t        tag_id;
+    pchtml_hash_entry_t entry;
+    pchtml_tag_id_t        tag_id;
     size_t              ref_count;
     bool                read_only;
 }
-lxb_tag_data_t;
+pchtml_tag_data_t;
 
 
-LXB_API const lxb_tag_data_t *
-lxb_tag_data_by_id(lexbor_hash_t *hash, lxb_tag_id_t tag_id);
+const pchtml_tag_data_t *
+pchtml_tag_data_by_id(pchtml_hash_t *hash, pchtml_tag_id_t tag_id) WTF_INTERNAL;
 
-LXB_API const lxb_tag_data_t *
-lxb_tag_data_by_name(lexbor_hash_t *hash, const lxb_char_t *name, size_t len);
+const pchtml_tag_data_t *
+pchtml_tag_data_by_name(pchtml_hash_t *hash, const unsigned char *name, 
+                size_t len) WTF_INTERNAL;
 
-LXB_API const lxb_tag_data_t *
-lxb_tag_data_by_name_upper(lexbor_hash_t *hash,
-                           const lxb_char_t *name, size_t len);
+const pchtml_tag_data_t *
+pchtml_tag_data_by_name_upper(pchtml_hash_t *hash,
+                const unsigned char *name, size_t len) WTF_INTERNAL;
 
 /*
  * Inline functions
  */
-lxb_inline const lxb_char_t *
-lxb_tag_name_by_id(lexbor_hash_t *hash, lxb_tag_id_t tag_id, size_t *len)
+static inline const unsigned char *
+pchtml_tag_name_by_id(pchtml_hash_t *hash, pchtml_tag_id_t tag_id, size_t *len)
 {
-    const lxb_tag_data_t *data = lxb_tag_data_by_id(hash, tag_id);
+    const pchtml_tag_data_t *data = pchtml_tag_data_by_id(hash, tag_id);
     if (data == NULL) {
         if (len != NULL) {
             *len = 0;
@@ -57,13 +78,13 @@ lxb_tag_name_by_id(lexbor_hash_t *hash, lxb_tag_id_t tag_id, size_t *len)
         *len = data->entry.length;
     }
 
-    return lexbor_hash_entry_str(&data->entry);
+    return pchtml_hash_entry_str(&data->entry);
 }
 
-lxb_inline const lxb_char_t *
-lxb_tag_name_upper_by_id(lexbor_hash_t *hash, lxb_tag_id_t tag_id, size_t *len)
+static inline const unsigned char *
+pchtml_tag_name_upper_by_id(pchtml_hash_t *hash, pchtml_tag_id_t tag_id, size_t *len)
 {
-    const lxb_tag_data_t *data = lxb_tag_data_by_id(hash, tag_id);
+    const pchtml_tag_data_t *data = pchtml_tag_data_by_id(hash, tag_id);
     if (data == NULL) {
         if (len != NULL) {
             *len = 0;
@@ -76,48 +97,48 @@ lxb_tag_name_upper_by_id(lexbor_hash_t *hash, lxb_tag_id_t tag_id, size_t *len)
         *len = data->entry.length;
     }
 
-    return lexbor_hash_entry_str(&data->entry);
+    return pchtml_hash_entry_str(&data->entry);
 }
 
-lxb_inline lxb_tag_id_t
-lxb_tag_id_by_name(lexbor_hash_t *hash, const lxb_char_t *name, size_t len)
+static inline pchtml_tag_id_t
+pchtml_tag_id_by_name(pchtml_hash_t *hash, const unsigned char *name, size_t len)
 {
-    const lxb_tag_data_t *data = lxb_tag_data_by_name(hash, name, len);
+    const pchtml_tag_data_t *data = pchtml_tag_data_by_name(hash, name, len);
     if (data == NULL) {
-        return LXB_TAG__UNDEF;
+        return PCHTML_TAG__UNDEF;
     }
 
     return data->tag_id;
 }
 
-lxb_inline lexbor_mraw_t *
-lxb_tag_mraw(lexbor_hash_t *hash)
+static inline pchtml_mraw_t *
+pchtml_tag_mraw(pchtml_hash_t *hash)
 {
-    return lexbor_hash_mraw(hash);
+    return pchtml_hash_mraw(hash);
 }
 
 
 /*
  * No inline functions for ABI.
  */
-LXB_API const lxb_char_t *
-lxb_tag_name_by_id_noi(lexbor_hash_t *hash, lxb_tag_id_t tag_id,
-                       size_t *len);
+const unsigned char *
+pchtml_tag_name_by_id_noi(pchtml_hash_t *hash, pchtml_tag_id_t tag_id,
+                size_t *len) WTF_INTERNAL;
 
-LXB_API const lxb_char_t *
-lxb_tag_name_upper_by_id_noi(lexbor_hash_t *hash,
-                             lxb_tag_id_t tag_id, size_t *len);
+const unsigned char *
+pchtml_tag_name_upper_by_id_noi(pchtml_hash_t *hash,
+                pchtml_tag_id_t tag_id, size_t *len) WTF_INTERNAL;
 
-LXB_API lxb_tag_id_t
-lxb_tag_id_by_name_noi(lexbor_hash_t *hash,
-                       const lxb_char_t *name, size_t len);
+pchtml_tag_id_t
+pchtml_tag_id_by_name_noi(pchtml_hash_t *hash,
+                const unsigned char *name, size_t len) WTF_INTERNAL;
 
-LXB_API lexbor_mraw_t *
-lxb_tag_mraw_noi(lexbor_hash_t *hash);
+pchtml_mraw_t *
+pchtml_tag_mraw_noi(pchtml_hash_t *hash) WTF_INTERNAL;
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LEXBOR_TAG_H */
+#endif  /* PCHTML_TAG_H */
