@@ -1,11 +1,30 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file tree_res.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for resource of tree.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_HTML_TREE_RES_H
-#define LEXBOR_HTML_TREE_RES_H
+
+#ifndef PCHTML_HTML_TREE_RES_H
+#define PCHTML_HTML_TREE_RES_H
 
 
 typedef struct {
@@ -13,7 +32,7 @@ typedef struct {
     const char *to;
     size_t     len;
 }
-lxb_html_tree_res_attr_adjust_t;
+pchtml_html_tree_res_attr_adjust_t;
 
 typedef struct {
     const char       *name;
@@ -23,13 +42,13 @@ typedef struct {
     size_t           name_len;
     size_t           prefix_len;
 
-    lxb_ns_id_t      ns;
+    pchtml_ns_id_t      ns;
 }
-lxb_html_tree_res_attr_adjust_foreign_t;
+pchtml_html_tree_res_attr_adjust_foreign_t;
 
 
-static const lxb_html_tree_res_attr_adjust_t
-lxb_html_tree_res_attr_adjust_svg_map[] =
+static const pchtml_html_tree_res_attr_adjust_t
+pchtml_html_tree_res_attr_adjust_svg_map[] =
 {
     {"attributename", "attributeName", 13},
     {"attributetype", "attributeType", 13},
@@ -91,21 +110,21 @@ lxb_html_tree_res_attr_adjust_svg_map[] =
     {"zoomandpan", "zoomAndPan", 10},
 };
 
-static const lxb_html_tree_res_attr_adjust_foreign_t
-lxb_html_tree_res_attr_adjust_foreign_map[] =
+static const pchtml_html_tree_res_attr_adjust_foreign_t
+pchtml_html_tree_res_attr_adjust_foreign_map[] =
 {
-    {"xlink:actuate", "xlink", "actuate", 13, 5, LXB_NS_XLINK},
-    {"xlink:arcrole", "xlink", "arcrole", 13, 5, LXB_NS_XLINK},
-    {"xlink:href", "xlink", "href", 10, 5, LXB_NS_XLINK},
-    {"xlink:role", "xlink", "role", 10, 5, LXB_NS_XLINK},
-    {"xlink:show", "xlink", "show", 10, 5, LXB_NS_XLINK},
-    {"xlink:title", "xlink", "title", 11, 5, LXB_NS_XLINK},
-    {"xlink:type", "xlink", "type", 10, 5, LXB_NS_XLINK},
-    {"xml:lang", "xml", "lang", 8, 3, LXB_NS_XML},
-    {"xml:space", "xml", "space", 9, 3, LXB_NS_XML},
-    {"xmlns", "", "xmlns", 5, 0, LXB_NS_XMLNS},
-    {"xmlns:xlink", "xmlns", "xlink", 11, 5, LXB_NS_XMLNS}
+    {"xlink:actuate", "xlink", "actuate", 13, 5, PCHTML_NS_XLINK},
+    {"xlink:arcrole", "xlink", "arcrole", 13, 5, PCHTML_NS_XLINK},
+    {"xlink:href", "xlink", "href", 10, 5, PCHTML_NS_XLINK},
+    {"xlink:role", "xlink", "role", 10, 5, PCHTML_NS_XLINK},
+    {"xlink:show", "xlink", "show", 10, 5, PCHTML_NS_XLINK},
+    {"xlink:title", "xlink", "title", 11, 5, PCHTML_NS_XLINK},
+    {"xlink:type", "xlink", "type", 10, 5, PCHTML_NS_XLINK},
+    {"xml:lang", "xml", "lang", 8, 3, PCHTML_NS_XML},
+    {"xml:space", "xml", "space", 9, 3, PCHTML_NS_XML},
+    {"xmlns", "", "xmlns", 5, 0, PCHTML_NS_XMLNS},
+    {"xmlns:xlink", "xmlns", "xlink", 11, 5, PCHTML_NS_XMLNS}
 };
 
 
-#endif /* LEXBOR_HTML_TREE_RES_H */
+#endif  /* PCHTML_HTML_TREE_RES_H */

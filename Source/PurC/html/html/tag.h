@@ -1,91 +1,109 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file tag.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for html tag.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
-#ifndef LXB_HTML_TAG_H
-#define LXB_HTML_TAG_H
+#ifndef PCHTML_HTML_TAG_H
+#define PCHTML_HTML_TAG_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "config.h"
 #include "html/html/base.h"
 
 #include "html/tag/tag.h"
 #include "html/ns/ns.h"
 
 
-typedef int lxb_html_tag_category_t;
+typedef int pchtml_html_tag_category_t;
 
-enum lxb_html_tag_category {
-    LXB_HTML_TAG_CATEGORY__UNDEF          = 0x0000,
-    LXB_HTML_TAG_CATEGORY_ORDINARY        = 0x0001,
-    LXB_HTML_TAG_CATEGORY_SPECIAL         = 0x0002,
-    LXB_HTML_TAG_CATEGORY_FORMATTING      = 0x0004,
-    LXB_HTML_TAG_CATEGORY_SCOPE           = 0x0008,
-    LXB_HTML_TAG_CATEGORY_SCOPE_LIST_ITEM = 0x0010,
-    LXB_HTML_TAG_CATEGORY_SCOPE_BUTTON    = 0x0020,
-    LXB_HTML_TAG_CATEGORY_SCOPE_TABLE     = 0x0040,
-    LXB_HTML_TAG_CATEGORY_SCOPE_SELECT    = 0x0080,
+enum pchtml_html_tag_category {
+    PCHTML_HTML_TAG_CATEGORY__UNDEF          = 0x0000,
+    PCHTML_HTML_TAG_CATEGORY_ORDINARY        = 0x0001,
+    PCHTML_HTML_TAG_CATEGORY_SPECIAL         = 0x0002,
+    PCHTML_HTML_TAG_CATEGORY_FORMATTING      = 0x0004,
+    PCHTML_HTML_TAG_CATEGORY_SCOPE           = 0x0008,
+    PCHTML_HTML_TAG_CATEGORY_SCOPE_LIST_ITEM = 0x0010,
+    PCHTML_HTML_TAG_CATEGORY_SCOPE_BUTTON    = 0x0020,
+    PCHTML_HTML_TAG_CATEGORY_SCOPE_TABLE     = 0x0040,
+    PCHTML_HTML_TAG_CATEGORY_SCOPE_SELECT    = 0x0080,
 };
 
 typedef struct {
-    const lxb_char_t *name;
+    const unsigned char *name;
     unsigned int     len;
 }
-lxb_html_tag_fixname_t;
+pchtml_html_tag_fixname_t;
 
 
-#define LXB_HTML_TAG_RES_CATS
-#define LXB_HTML_TAG_RES_FIXNAME_SVG
+#define PCHTML_HTML_TAG_RES_CATS
+#define PCHTML_HTML_TAG_RES_FIXNAME_SVG
 #include "html/html/tag_res.h"
 
 
 /*
  * Inline functions
  */
-lxb_inline bool
-lxb_html_tag_is_category(lxb_tag_id_t tag_id, lxb_ns_id_t ns,
-                         lxb_html_tag_category_t cat)
+static inline bool
+pchtml_html_tag_is_category(pchtml_tag_id_t tag_id, pchtml_ns_id_t ns,
+                         pchtml_html_tag_category_t cat)
 {
-    if (tag_id < LXB_TAG__LAST_ENTRY && ns < LXB_NS__LAST_ENTRY) {
-        return lxb_html_tag_res_cats[tag_id][ns] & cat;
+    if (tag_id < PCHTML_TAG__LAST_ENTRY && ns < PCHTML_NS__LAST_ENTRY) {
+        return pchtml_html_tag_res_cats[tag_id][ns] & cat;
     }
 
-    return (LXB_HTML_TAG_CATEGORY_ORDINARY|LXB_HTML_TAG_CATEGORY_SCOPE_SELECT) & cat;
+    return (PCHTML_HTML_TAG_CATEGORY_ORDINARY|PCHTML_HTML_TAG_CATEGORY_SCOPE_SELECT) & cat;
 }
 
-lxb_inline const lxb_html_tag_fixname_t *
-lxb_html_tag_fixname_svg(lxb_tag_id_t tag_id)
+static inline const pchtml_html_tag_fixname_t *
+pchtml_html_tag_fixname_svg(pchtml_tag_id_t tag_id)
 {
-    if (tag_id >= LXB_TAG__LAST_ENTRY) {
+    if (tag_id >= PCHTML_TAG__LAST_ENTRY) {
         return NULL;
     }
 
-    return &lxb_html_tag_res_fixname_svg[tag_id];
+    return &pchtml_html_tag_res_fixname_svg[tag_id];
 }
 
-lxb_inline bool
-lxb_html_tag_is_void(lxb_tag_id_t tag_id)
+static inline bool
+pchtml_html_tag_is_void(pchtml_tag_id_t tag_id)
 {
     switch (tag_id) {
-        case LXB_TAG_AREA:
-        case LXB_TAG_BASE:
-        case LXB_TAG_BR:
-        case LXB_TAG_COL:
-        case LXB_TAG_EMBED:
-        case LXB_TAG_HR:
-        case LXB_TAG_IMG:
-        case LXB_TAG_INPUT:
-        case LXB_TAG_LINK:
-        case LXB_TAG_META:
-        case LXB_TAG_PARAM:
-        case LXB_TAG_SOURCE:
-        case LXB_TAG_TRACK:
-        case LXB_TAG_WBR:
+        case PCHTML_TAG_AREA:
+        case PCHTML_TAG_BASE:
+        case PCHTML_TAG_BR:
+        case PCHTML_TAG_COL:
+        case PCHTML_TAG_EMBED:
+        case PCHTML_TAG_HR:
+        case PCHTML_TAG_IMG:
+        case PCHTML_TAG_INPUT:
+        case PCHTML_TAG_LINK:
+        case PCHTML_TAG_META:
+        case PCHTML_TAG_PARAM:
+        case PCHTML_TAG_SOURCE:
+        case PCHTML_TAG_TRACK:
+        case PCHTML_TAG_WBR:
             return true;
 
         default:
@@ -97,7 +115,7 @@ lxb_html_tag_is_void(lxb_tag_id_t tag_id)
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LXB_HTML_TAG_H */
+#endif  /* PCHTML_HTML_TAG_H */

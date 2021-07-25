@@ -1,26 +1,46 @@
-/*
- * Copyright (C) 2019 Alexander Borisov
+/**
+ * @file encoding.c
+ * @author
+ * @date 2021/07/02
+ * @brief The complementation of encoding in parsing html.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+
 
 #include "html/html/encoding.h"
 
 #include "html/core/str.h"
 
 
-static const lxb_char_t *
-lxb_html_encoding_meta(lxb_html_encoding_t *em,
-                       const lxb_char_t *data, const lxb_char_t *end);
+static const unsigned char *
+pchtml_html_encoding_meta(pchtml_html_encoding_t *em,
+                       const unsigned char *data, const unsigned char *end);
 
-static const lxb_char_t *
-lxb_html_get_attribute(const lxb_char_t *data, const lxb_char_t *end,
-                       const lxb_char_t **name, const lxb_char_t **name_end,
-                       const lxb_char_t **value, const lxb_char_t **value_end);
+static const unsigned char *
+pchtml_html_get_attribute(const unsigned char *data, const unsigned char *end,
+                       const unsigned char **name, const unsigned char **name_end,
+                       const unsigned char **value, const unsigned char **value_end);
 
 
-lxb_inline const lxb_char_t *
-lxb_html_encoding_skip_spaces(const lxb_char_t *data, const lxb_char_t *end)
+static inline const unsigned char *
+pchtml_html_encoding_skip_spaces(const unsigned char *data, const unsigned char *end)
 {
     for (; data < end; data++) {
         switch (*data) {
@@ -37,8 +57,8 @@ lxb_html_encoding_skip_spaces(const lxb_char_t *data, const lxb_char_t *end)
     return end;
 }
 
-lxb_inline const lxb_char_t *
-lxb_html_encoding_skip_name(const lxb_char_t *data, const lxb_char_t *end)
+static inline const unsigned char *
+pchtml_html_encoding_skip_name(const unsigned char *data, const unsigned char *end)
 {
     for (; data < end; data++) {
         switch (*data) {
@@ -52,8 +72,8 @@ lxb_html_encoding_skip_name(const lxb_char_t *data, const lxb_char_t *end)
     return end;
 }
 
-lxb_inline const lxb_char_t *
-lxb_html_encoding_tag_end(const lxb_char_t *data, const lxb_char_t *end)
+static inline const unsigned char *
+pchtml_html_encoding_tag_end(const unsigned char *data, const unsigned char *end)
 {
     data = memchr(data, '>', (end - data));
     if (data == NULL) {
@@ -63,74 +83,74 @@ lxb_html_encoding_tag_end(const lxb_char_t *data, const lxb_char_t *end)
     return data + 1;
 }
 
-lxb_status_t
-lxb_html_encoding_init(lxb_html_encoding_t *em)
+unsigned int
+pchtml_html_encoding_init(pchtml_html_encoding_t *em)
 {
-    lxb_status_t status;
+    unsigned int status;
 
     if (em == NULL) {
-        return LXB_STATUS_ERROR_WRONG_ARGS;
+        return PCHTML_STATUS_ERROR_WRONG_ARGS;
     }
 
-    status = lexbor_array_obj_init(&em->cache, 12,
-                                   sizeof(lxb_html_encoding_entry_t));
-    if (status != LXB_STATUS_OK) {
+    status = pchtml_array_obj_init(&em->cache, 12,
+                                   sizeof(pchtml_html_encoding_entry_t));
+    if (status != PCHTML_STATUS_OK) {
         return status;
     }
 
-    return lexbor_array_obj_init(&em->result, 12,
-                                 sizeof(lxb_html_encoding_entry_t));
+    return pchtml_array_obj_init(&em->result, 12,
+                                 sizeof(pchtml_html_encoding_entry_t));
 }
 
-lxb_html_encoding_t *
-lxb_html_encoding_destroy(lxb_html_encoding_t *em, bool self_destroy)
+pchtml_html_encoding_t *
+pchtml_html_encoding_destroy(pchtml_html_encoding_t *em, bool self_destroy)
 {
     if (em == NULL) {
         return NULL;
     }
 
-    lexbor_array_obj_destroy(&em->cache, false);
-    lexbor_array_obj_destroy(&em->result, false);
+    pchtml_array_obj_destroy(&em->cache, false);
+    pchtml_array_obj_destroy(&em->result, false);
 
     if (self_destroy) {
-        return lexbor_free(em);
+        return pchtml_free(em);
     }
 
     return em;
 }
 
-lxb_status_t
-lxb_html_encoding_determine(lxb_html_encoding_t *em,
-                            const lxb_char_t *data, const lxb_char_t *end)
+unsigned int
+pchtml_html_encoding_determine(pchtml_html_encoding_t *em,
+                            const unsigned char *data, const unsigned char *end)
 {
-    const lxb_char_t *name, *name_end;
-    const lxb_char_t *value, *value_end;
+    const unsigned char *name, *name_end;
+    const unsigned char *value, *value_end;
 
     while (data < end) {
         /* Find tag beginning */
         data = memchr(data, '<', (end - data));
         if (data == NULL) {
-            return LXB_STATUS_OK;
+            return PCHTML_STATUS_OK;
         }
 
         if (++data == end) {
-            return LXB_STATUS_OK;
+            return PCHTML_STATUS_OK;
         }
 
         switch (*data) {
             /* Comment or broken tag */
             case '!':
                 if ((data + 5) > end) {
-                    return LXB_STATUS_OK;
+                    return PCHTML_STATUS_OK;
                 }
 
                 if (data[1] != '-' || data[2] != '-') {
-                    data = lxb_html_encoding_tag_end(data, end);
+                    data = pchtml_html_encoding_tag_end(data, end);
                     continue;
                 }
 
                 while (data < end) {
-                    data = lxb_html_encoding_tag_end(data, end);
+                    data = pchtml_html_encoding_tag_end(data, end);
 
                     if (data[-3] == '-' && data[-2] == '-') {
                         break;
@@ -140,14 +160,14 @@ lxb_html_encoding_determine(lxb_html_encoding_t *em,
                 break;
 
             case '?':
-                data = lxb_html_encoding_tag_end(data, end);
+                data = pchtml_html_encoding_tag_end(data, end);
                 break;
 
             case '/':
                 data++;
 
                 if ((data + 3) > end) {
-                    return LXB_STATUS_OK;
+                    return PCHTML_STATUS_OK;
                 }
 
                 if ((unsigned) (*data - 0x41) <= (0x5A - 0x41)
@@ -156,7 +176,7 @@ lxb_html_encoding_determine(lxb_html_encoding_t *em,
                     goto skip_attributes;
                 }
 
-                data = lxb_html_encoding_tag_end(data, end);
+                data = pchtml_html_encoding_tag_end(data, end);
                 break;
 
             default:
@@ -168,10 +188,10 @@ lxb_html_encoding_determine(lxb_html_encoding_t *em,
                 }
 
                 if ((data + 6) > end) {
-                    return LXB_STATUS_OK;
+                    return PCHTML_STATUS_OK;
                 }
 
-                if (!lexbor_str_data_ncasecmp(data, (lxb_char_t *) "meta", 4)) {
+                if (!pchtml_str_data_ncasecmp(data, (unsigned char *) "meta", 4)) {
                     goto skip_attributes;
                 }
 
@@ -186,18 +206,18 @@ lxb_html_encoding_determine(lxb_html_encoding_t *em,
                         goto skip_attributes;
                 }
 
-                data = lxb_html_encoding_meta(em, data, end);
+                data = pchtml_html_encoding_meta(em, data, end);
                 if (data == NULL) {
-                    return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+                    return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
                 }
 
                 break;
 
             skip_attributes:
 
-                data = lxb_html_encoding_skip_name(data, end);
+                data = pchtml_html_encoding_skip_name(data, end);
                 if (data >= end) {
-                    return LXB_STATUS_OK;
+                    return PCHTML_STATUS_OK;
                 }
 
                 if (*data == '>') {
@@ -207,7 +227,7 @@ lxb_html_encoding_determine(lxb_html_encoding_t *em,
 
                 /* Skip attributes */
                 while (data < end) {
-                    data = lxb_html_get_attribute(data, end, &name, &name_end,
+                    data = pchtml_html_get_attribute(data, end, &name, &name_end,
                                                   &value, &value_end);
                     if (name == NULL) {
                         break;
@@ -218,32 +238,32 @@ lxb_html_encoding_determine(lxb_html_encoding_t *em,
         }
     }
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-static const lxb_char_t *
-lxb_html_encoding_meta(lxb_html_encoding_t *em,
-                       const lxb_char_t *data, const lxb_char_t *end)
+static const unsigned char *
+pchtml_html_encoding_meta(pchtml_html_encoding_t *em,
+                       const unsigned char *data, const unsigned char *end)
 {
     size_t i, len, cur;
     bool got_pragma, have_content;
     uint8_t need_pragma;
-    const lxb_char_t *name, *name_end;
-    const lxb_char_t *value, *value_end;
-    lxb_html_encoding_entry_t *attr;
+    const unsigned char *name, *name_end;
+    const unsigned char *value, *value_end;
+    pchtml_html_encoding_entry_t *attr;
 
     got_pragma = false;
     have_content = false;
     need_pragma = 0x00;
-    cur = lexbor_array_obj_length(&em->result);
+    cur = pchtml_array_obj_length(&em->result);
 
-    lexbor_array_obj_clean(&em->cache);
+    pchtml_array_obj_clean(&em->cache);
 
     while (data < end) {
 
     find_attr:
 
-        data = lxb_html_get_attribute(data, end, &name, &name_end,
+        data = pchtml_html_get_attribute(data, end, &name, &name_end,
                                       &value, &value_end);
         if (name == NULL) {
             break;
@@ -256,18 +276,18 @@ lxb_html_encoding_meta(lxb_html_encoding_t *em,
         }
 
         /* Exists check */
-        for (i = 0; i < lexbor_array_obj_length(&em->cache); i++) {
-            attr = lexbor_array_obj_get(&em->cache, i);
+        for (i = 0; i < pchtml_array_obj_length(&em->cache); i++) {
+            attr = pchtml_array_obj_get(&em->cache, i);
 
             if ((attr->end - attr->name) == (int)len
-                && lexbor_str_data_ncasecmp(attr->name, name, len))
+                && pchtml_str_data_ncasecmp(attr->name, name, len))
             {
                 goto find_attr;
             }
         }
 
         /* Append attribute to cache */
-        attr = lexbor_array_obj_push(&em->cache);
+        attr = pchtml_array_obj_push(&em->cache);
         if (attr == NULL) {
             return NULL;
         }
@@ -281,12 +301,12 @@ lxb_html_encoding_meta(lxb_html_encoding_t *em,
 
         /* http-equiv check */
         if (len == (sizeof("http-equiv") - 1)) {
-            if (!lexbor_str_data_ncasecmp((lxb_char_t *) "http-equiv", name, len)) {
+            if (!pchtml_str_data_ncasecmp((unsigned char *) "http-equiv", name, len)) {
                 continue;
             }
 
             if ((value_end - value) == (sizeof("content-type") - 1)
-                && lexbor_str_data_ncasecmp((lxb_char_t *) "content-type",
+                && pchtml_str_data_ncasecmp((unsigned char *) "content-type",
                                             value, (sizeof("content-type") - 1)))
             {
                 got_pragma = true;
@@ -295,15 +315,15 @@ lxb_html_encoding_meta(lxb_html_encoding_t *em,
             continue;
         }
 
-        if (lexbor_str_data_ncasecmp((lxb_char_t *) "content", name, 7)) {
+        if (pchtml_str_data_ncasecmp((unsigned char *) "content", name, 7)) {
             if (have_content == false) {
 
-                name = lxb_html_encoding_content(value, value_end, &name_end);
+                name = pchtml_html_encoding_content(value, value_end, &name_end);
                 if (name == NULL) {
                     continue;
                 }
 
-                attr = lexbor_array_obj_push(&em->result);
+                attr = pchtml_array_obj_push(&em->result);
                 if (attr == NULL) {
                     return NULL;
                 }
@@ -318,8 +338,8 @@ lxb_html_encoding_meta(lxb_html_encoding_t *em,
             continue;
         }
 
-        if (lexbor_str_data_ncasecmp((lxb_char_t *) "charset", name, 7)) {
-            attr = lexbor_array_obj_push(&em->result);
+        if (pchtml_str_data_ncasecmp((unsigned char *) "charset", name, 7)) {
+            attr = pchtml_array_obj_push(&em->result);
             if (attr == NULL) {
                 return NULL;
             }
@@ -332,23 +352,23 @@ lxb_html_encoding_meta(lxb_html_encoding_t *em,
     }
 
     if (need_pragma == 0x00 || (need_pragma == 0x02 && got_pragma == false)) {
-        if (cur != lexbor_array_obj_length(&em->result)) {
-            lexbor_array_obj_pop(&em->result);
+        if (cur != pchtml_array_obj_length(&em->result)) {
+            pchtml_array_obj_pop(&em->result);
         }
     }
 
     return data;
 }
 
-const lxb_char_t *
-lxb_html_encoding_content(const lxb_char_t *data, const lxb_char_t *end,
-                          const lxb_char_t **name_end)
+const unsigned char *
+pchtml_html_encoding_content(const unsigned char *data, const unsigned char *end,
+                          const unsigned char **name_end)
 {
-    const lxb_char_t *name;
+    const unsigned char *name;
 
     do {
         for (; (data + 7) < end; data++) {
-            if (lexbor_str_data_ncasecmp((lxb_char_t *) "charset", data, 7)) {
+            if (pchtml_str_data_ncasecmp((unsigned char *) "charset", data, 7)) {
                 goto found;
             }
         }
@@ -357,7 +377,7 @@ lxb_html_encoding_content(const lxb_char_t *data, const lxb_char_t *end,
 
     found:
 
-        data = lxb_html_encoding_skip_spaces((data + 7), end);
+        data = pchtml_html_encoding_skip_spaces((data + 7), end);
         if (data >= end) {
             return NULL;
         }
@@ -366,7 +386,7 @@ lxb_html_encoding_content(const lxb_char_t *data, const lxb_char_t *end,
             continue;
         }
 
-        data = lxb_html_encoding_skip_spaces((data + 1), end);
+        data = pchtml_html_encoding_skip_spaces((data + 1), end);
         if (data >= end) {
             return NULL;
         }
@@ -419,12 +439,12 @@ done:
     return name;
 }
 
-static const lxb_char_t *
-lxb_html_get_attribute(const lxb_char_t *data, const lxb_char_t *end,
-                       const lxb_char_t **name, const lxb_char_t **name_end,
-                       const lxb_char_t **value, const lxb_char_t **value_end)
+static const unsigned char *
+pchtml_html_get_attribute(const unsigned char *data, const unsigned char *end,
+                       const unsigned char **name, const unsigned char **name_end,
+                       const unsigned char **value, const unsigned char **value_end)
 {
-    lxb_char_t ch;
+    unsigned char ch;
 
     *name = NULL;
     *value = NULL;
@@ -479,7 +499,7 @@ name_state:
 
 spaces_state:
 
-    data = lxb_html_encoding_skip_spaces(data, end);
+    data = pchtml_html_encoding_skip_spaces(data, end);
     if (data == end) {
         return data;
     }
@@ -490,7 +510,7 @@ spaces_state:
 
 value_state:
 
-    data = lxb_html_encoding_skip_spaces(data, end);
+    data = pchtml_html_encoding_skip_spaces(data, end);
     if (data == end) {
         return data;
     }
@@ -543,32 +563,32 @@ value_state:
 /*
  * No inline functions for ABI.
  */
-lxb_html_encoding_t *
-lxb_html_encoding_create_noi(void)
+pchtml_html_encoding_t *
+pchtml_html_encoding_create_noi(void)
 {
-    return lxb_html_encoding_create();
+    return pchtml_html_encoding_create();
 }
 
 void
-lxb_html_encoding_clean_noi(lxb_html_encoding_t *em)
+pchtml_html_encoding_clean_noi(pchtml_html_encoding_t *em)
 {
-    lxb_html_encoding_clean(em);
+    pchtml_html_encoding_clean(em);
 }
 
-lxb_html_encoding_entry_t *
-lxb_html_encoding_meta_entry_noi(lxb_html_encoding_t *em, size_t idx)
+pchtml_html_encoding_entry_t *
+pchtml_html_encoding_meta_entry_noi(pchtml_html_encoding_t *em, size_t idx)
 {
-    return lxb_html_encoding_meta_entry(em, idx);
+    return pchtml_html_encoding_meta_entry(em, idx);
 }
 
 size_t
-lxb_html_encoding_meta_length_noi(lxb_html_encoding_t *em)
+pchtml_html_encoding_meta_length_noi(pchtml_html_encoding_t *em)
 {
-    return lxb_html_encoding_meta_length(em);
+    return pchtml_html_encoding_meta_length(em);
 }
 
-lexbor_array_obj_t *
-lxb_html_encoding_meta_result_noi(lxb_html_encoding_t *em)
+pchtml_array_obj_t *
+pchtml_html_encoding_meta_result_noi(pchtml_html_encoding_t *em)
 {
-    return lxb_html_encoding_meta_result(em);
+    return pchtml_html_encoding_meta_result(em);
 }

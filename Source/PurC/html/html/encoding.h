@@ -1,81 +1,102 @@
-/*
- * Copyright (C) 2019 Alexander Borisov
+/**
+ * @file encoding.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for encoding text.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_HTML_ENCODING_H
-#define LEXBOR_HTML_ENCODING_H
+#ifndef PCHTML_HTML_ENCODING_H
+#define PCHTML_HTML_ENCODING_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "config.h"
 #include "html/html/base.h"
 
 #include "html/core/array_obj.h"
 
 
 typedef struct {
-    const lxb_char_t *name;
-    const lxb_char_t *end;
+    const unsigned char *name;
+    const unsigned char *end;
 }
-lxb_html_encoding_entry_t;
+pchtml_html_encoding_entry_t;
 
 typedef struct {
-    lexbor_array_obj_t cache;
-    lexbor_array_obj_t result;
+    pchtml_array_obj_t cache;
+    pchtml_array_obj_t result;
 }
-lxb_html_encoding_t;
+pchtml_html_encoding_t;
 
 
-LXB_API lxb_status_t
-lxb_html_encoding_init(lxb_html_encoding_t *em);
+unsigned int
+pchtml_html_encoding_init(pchtml_html_encoding_t *em) WTF_INTERNAL;
 
-LXB_API lxb_html_encoding_t *
-lxb_html_encoding_destroy(lxb_html_encoding_t *em, bool self_destroy);
+pchtml_html_encoding_t *
+pchtml_html_encoding_destroy(pchtml_html_encoding_t *em, 
+                                    bool self_destroy) WTF_INTERNAL;
 
 
-LXB_API lxb_status_t
-lxb_html_encoding_determine(lxb_html_encoding_t *em,
-                            const lxb_char_t *data, const lxb_char_t *end);
+unsigned int
+pchtml_html_encoding_determine(pchtml_html_encoding_t *em,
+                            const unsigned char *data, 
+                            const unsigned char *end) WTF_INTERNAL;
 
-LXB_API const lxb_char_t *
-lxb_html_encoding_content(const lxb_char_t *data, const lxb_char_t *end,
-                          const lxb_char_t **name_end);
+const unsigned char *
+pchtml_html_encoding_content(const unsigned char *data, const unsigned char *end,
+                          const unsigned char **name_end) WTF_INTERNAL;
 
 
 /*
  * Inline functions
  */
-lxb_inline lxb_html_encoding_t *
-lxb_html_encoding_create(void)
+static inline pchtml_html_encoding_t *
+pchtml_html_encoding_create(void)
 {
-    return (lxb_html_encoding_t *) lexbor_calloc(1,
-                                                 sizeof(lxb_html_encoding_t));
+    return (pchtml_html_encoding_t *) pchtml_calloc(1,
+                                                 sizeof(pchtml_html_encoding_t));
 }
 
-lxb_inline void
-lxb_html_encoding_clean(lxb_html_encoding_t *em)
+static inline void
+pchtml_html_encoding_clean(pchtml_html_encoding_t *em)
 {
-    lexbor_array_obj_clean(&em->cache);
-    lexbor_array_obj_clean(&em->result);
+    pchtml_array_obj_clean(&em->cache);
+    pchtml_array_obj_clean(&em->result);
 }
 
-lxb_inline lxb_html_encoding_entry_t *
-lxb_html_encoding_meta_entry(lxb_html_encoding_t *em, size_t idx)
+static inline pchtml_html_encoding_entry_t *
+pchtml_html_encoding_meta_entry(pchtml_html_encoding_t *em, size_t idx)
 {
-    return (lxb_html_encoding_entry_t *) lexbor_array_obj_get(&em->result, idx);
+    return (pchtml_html_encoding_entry_t *) pchtml_array_obj_get(&em->result, idx);
 }
 
-lxb_inline size_t
-lxb_html_encoding_meta_length(lxb_html_encoding_t *em)
+static inline size_t
+pchtml_html_encoding_meta_length(pchtml_html_encoding_t *em)
 {
-    return lexbor_array_obj_length(&em->result);
+    return pchtml_array_obj_length(&em->result);
 }
 
-lxb_inline lexbor_array_obj_t *
-lxb_html_encoding_meta_result(lxb_html_encoding_t *em)
+static inline pchtml_array_obj_t *
+pchtml_html_encoding_meta_result(pchtml_html_encoding_t *em)
 {
     return &em->result;
 }
@@ -83,24 +104,24 @@ lxb_html_encoding_meta_result(lxb_html_encoding_t *em)
 /*
  * No inline functions for ABI.
  */
-lxb_html_encoding_t *
-lxb_html_encoding_create_noi(void);
+pchtml_html_encoding_t *
+pchtml_html_encoding_create_noi(void);
 
 void
-lxb_html_encoding_clean_noi(lxb_html_encoding_t *em);
+pchtml_html_encoding_clean_noi(pchtml_html_encoding_t *em);
 
-lxb_html_encoding_entry_t *
-lxb_html_encoding_meta_entry_noi(lxb_html_encoding_t *em, size_t idx);
+pchtml_html_encoding_entry_t *
+pchtml_html_encoding_meta_entry_noi(pchtml_html_encoding_t *em, size_t idx);
 
 size_t
-lxb_html_encoding_meta_length_noi(lxb_html_encoding_t *em);
+pchtml_html_encoding_meta_length_noi(pchtml_html_encoding_t *em);
 
-lexbor_array_obj_t *
-lxb_html_encoding_meta_result_noi(lxb_html_encoding_t *em);
+pchtml_array_obj_t *
+pchtml_html_encoding_meta_result_noi(pchtml_html_encoding_t *em);
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LEXBOR_HTML_ENCODING_H */
+#endif  /* PCHTML_HTML_ENCODING_H */

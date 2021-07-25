@@ -1,16 +1,36 @@
-/*
- * Copyright (C) 2018-2020 Alexander Borisov
+/**
+ * @file tokenizer.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for html tokenizer.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_HTML_TOKENIZER_H
-#define LEXBOR_HTML_TOKENIZER_H
+
+#ifndef PCHTML_HTML_TOKENIZER_H
+#define PCHTML_HTML_TOKENIZER_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "config.h"
 #include "html/core/in.h"
 #include "html/core/sbst.h"
 #include "html/core/array_obj.h"
@@ -23,38 +43,38 @@ extern "C" {
 
 
 /* State */
-typedef const lxb_char_t *
-(*lxb_html_tokenizer_state_f)(lxb_html_tokenizer_t *tkz,
-                              const lxb_char_t *data, const lxb_char_t *end);
+typedef const unsigned char *
+(*pchtml_html_tokenizer_state_f)(pchtml_html_tokenizer_t *tkz,
+                              const unsigned char *data, const unsigned char *end);
 
-typedef lxb_html_token_t *
-(*lxb_html_tokenizer_token_f)(lxb_html_tokenizer_t *tkz,
-                              lxb_html_token_t *token, void *ctx);
+typedef pchtml_html_token_t *
+(*pchtml_html_tokenizer_token_f)(pchtml_html_tokenizer_t *tkz,
+                              pchtml_html_token_t *token, void *ctx);
 
 
-struct lxb_html_tokenizer {
-    lxb_html_tokenizer_state_f       state;
-    lxb_html_tokenizer_state_f       state_return;
+struct pchtml_html_tokenizer {
+    pchtml_html_tokenizer_state_f       state;
+    pchtml_html_tokenizer_state_f       state_return;
 
-    lxb_html_tokenizer_token_f       callback_token_done;
+    pchtml_html_tokenizer_token_f       callback_token_done;
     void                             *callback_token_ctx;
 
-    lexbor_hash_t                    *tags;
-    lexbor_hash_t                    *attrs;
-    lexbor_mraw_t                    *attrs_mraw;
+    pchtml_hash_t                    *tags;
+    pchtml_hash_t                    *attrs;
+    pchtml_mraw_t                    *attrs_mraw;
 
     /* For a temp strings and other templary data */
-    lexbor_mraw_t                    *mraw;
+    pchtml_mraw_t                    *mraw;
 
     /* Current process token */
-    lxb_html_token_t                 *token;
+    pchtml_html_token_t                 *token;
 
     /* Memory for token and attr */
-    lexbor_dobject_t                 *dobj_token;
-    lexbor_dobject_t                 *dobj_token_attr;
+    pchtml_dobject_t                 *dobj_token;
+    pchtml_dobject_t                 *dobj_token_attr;
 
     /* Parse error */
-    lexbor_array_obj_t               *parse_errors;
+    pchtml_array_obj_t               *parse_errors;
 
     /*
      * Leak abstractions.
@@ -62,22 +82,22 @@ struct lxb_html_tokenizer {
      * and Tokenizer. We kill all beauty.
      * Current Tree parser. This is not ref (not ref count).
      */
-    lxb_html_tree_t                  *tree;
+    pchtml_html_tree_t                  *tree;
 
     /* Temp */
-    const lxb_char_t                 *markup;
-    const lxb_char_t                 *temp;
-    lxb_tag_id_t                     tmp_tag_id;
+    const unsigned char                 *markup;
+    const unsigned char                 *temp;
+    pchtml_tag_id_t                     tmp_tag_id;
 
-    lxb_char_t                       *start;
-    lxb_char_t                       *pos;
-    const lxb_char_t                 *end;
-    const lxb_char_t                 *begin;
-    const lxb_char_t                 *last;
+    unsigned char                       *start;
+    unsigned char                       *pos;
+    const unsigned char                 *end;
+    const unsigned char                 *begin;
+    const unsigned char                 *last;
 
     /* Entities */
-    const lexbor_sbst_entry_static_t *entity;
-    const lexbor_sbst_entry_static_t *entity_match;
+    const pchtml_sbst_entry_static_t *entity;
+    const pchtml_sbst_entry_static_t *entity_match;
     uintptr_t                        entity_start;
     uintptr_t                        entity_end;
     uint32_t                         entity_length;
@@ -85,11 +105,11 @@ struct lxb_html_tokenizer {
     bool                             is_attribute;
 
     /* Process */
-    lxb_html_tokenizer_opt_t         opt;
-    lxb_status_t                     status;
+    pchtml_html_tokenizer_opt_t         opt;
+    unsigned int                     status;
     bool                             is_eof;
 
-    lxb_html_tokenizer_t             *base;
+    pchtml_html_tokenizer_t             *base;
     size_t                           ref_count;
 };
 
@@ -97,206 +117,208 @@ struct lxb_html_tokenizer {
 #include "html/html/tokenizer/error.h"
 
 
-extern const lxb_char_t *lxb_html_tokenizer_eof;
+extern const unsigned char *pchtml_html_tokenizer_eof;
 
-LXB_API lxb_html_tokenizer_t *
-lxb_html_tokenizer_create(void);
+pchtml_html_tokenizer_t *
+pchtml_html_tokenizer_create(void) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_tokenizer_init(lxb_html_tokenizer_t *tkz);
+unsigned int
+pchtml_html_tokenizer_init(pchtml_html_tokenizer_t *tkz) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_tokenizer_inherit(lxb_html_tokenizer_t *tkz_to,
-                           lxb_html_tokenizer_t *tkz_from);
+unsigned int
+pchtml_html_tokenizer_inherit(pchtml_html_tokenizer_t *tkz_to,
+                pchtml_html_tokenizer_t *tkz_from) WTF_INTERNAL;
 
-LXB_API lxb_html_tokenizer_t *
-lxb_html_tokenizer_ref(lxb_html_tokenizer_t *tkz);
+pchtml_html_tokenizer_t *
+pchtml_html_tokenizer_ref(pchtml_html_tokenizer_t *tkz) WTF_INTERNAL;
 
-LXB_API lxb_html_tokenizer_t *
-lxb_html_tokenizer_unref(lxb_html_tokenizer_t *tkz);
+pchtml_html_tokenizer_t *
+pchtml_html_tokenizer_unref(pchtml_html_tokenizer_t *tkz) WTF_INTERNAL;
 
-LXB_API void
-lxb_html_tokenizer_clean(lxb_html_tokenizer_t *tkz);
+void
+pchtml_html_tokenizer_clean(pchtml_html_tokenizer_t *tkz) WTF_INTERNAL;
 
-LXB_API lxb_html_tokenizer_t *
-lxb_html_tokenizer_destroy(lxb_html_tokenizer_t *tkz);
+pchtml_html_tokenizer_t *
+pchtml_html_tokenizer_destroy(pchtml_html_tokenizer_t *tkz) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_tokenizer_tags_make(lxb_html_tokenizer_t *tkz, size_t table_size);
+unsigned int
+pchtml_html_tokenizer_tags_make(pchtml_html_tokenizer_t *tkz, 
+                size_t table_size) WTF_INTERNAL;
 
-LXB_API void
-lxb_html_tokenizer_tags_destroy(lxb_html_tokenizer_t *tkz);
+void
+pchtml_html_tokenizer_tags_destroy(pchtml_html_tokenizer_t *tkz) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_tokenizer_attrs_make(lxb_html_tokenizer_t *tkz, size_t table_size);
+unsigned int
+pchtml_html_tokenizer_attrs_make(pchtml_html_tokenizer_t *tkz, 
+                size_t table_size) WTF_INTERNAL;
 
-LXB_API void
-lxb_html_tokenizer_attrs_destroy(lxb_html_tokenizer_t *tkz);
+void
+pchtml_html_tokenizer_attrs_destroy(pchtml_html_tokenizer_t *tkz) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_tokenizer_begin(lxb_html_tokenizer_t *tkz);
+unsigned int
+pchtml_html_tokenizer_begin(pchtml_html_tokenizer_t *tkz) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_tokenizer_chunk(lxb_html_tokenizer_t *tkz,
-                         const lxb_char_t *data, size_t size);
+unsigned int
+pchtml_html_tokenizer_chunk(pchtml_html_tokenizer_t *tkz,
+                const unsigned char *data, size_t size) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_tokenizer_end(lxb_html_tokenizer_t *tkz);
+unsigned int
+pchtml_html_tokenizer_end(pchtml_html_tokenizer_t *tkz) WTF_INTERNAL;
 
 
-LXB_API const lxb_char_t *
-lxb_html_tokenizer_change_incoming(lxb_html_tokenizer_t *tkz,
-                                   const lxb_char_t *pos);
+const unsigned char *
+pchtml_html_tokenizer_change_incoming(pchtml_html_tokenizer_t *tkz,
+                const unsigned char *pos) WTF_INTERNAL;
 
-LXB_API lxb_ns_id_t
-lxb_html_tokenizer_current_namespace(lxb_html_tokenizer_t *tkz);
+pchtml_ns_id_t
+pchtml_html_tokenizer_current_namespace(pchtml_html_tokenizer_t *tkz);
 
-LXB_API void
-lxb_html_tokenizer_set_state_by_tag(lxb_html_tokenizer_t *tkz, bool scripting,
-                                    lxb_tag_id_t tag_id, lxb_ns_id_t ns);
+void
+pchtml_html_tokenizer_set_state_by_tag(pchtml_html_tokenizer_t *tkz, bool scripting,
+                pchtml_tag_id_t tag_id, pchtml_ns_id_t ns) WTF_INTERNAL;
 
 
 /*
  * Inline functions
  */
-lxb_inline void
-lxb_html_tokenizer_status_set(lxb_html_tokenizer_t *tkz, lxb_status_t status)
+static inline void
+pchtml_html_tokenizer_status_set(pchtml_html_tokenizer_t *tkz, unsigned int status)
 {
     tkz->status = status;
 }
 
-lxb_inline void
-lxb_html_tokenizer_tags_set(lxb_html_tokenizer_t *tkz, lexbor_hash_t *tags)
+static inline void
+pchtml_html_tokenizer_tags_set(pchtml_html_tokenizer_t *tkz, pchtml_hash_t *tags)
 {
     tkz->tags = tags;
 }
 
-lxb_inline lexbor_hash_t *
-lxb_html_tokenizer_tags(lxb_html_tokenizer_t *tkz)
+static inline pchtml_hash_t *
+pchtml_html_tokenizer_tags(pchtml_html_tokenizer_t *tkz)
 {
     return tkz->tags;
 }
 
-lxb_inline void
-lxb_html_tokenizer_attrs_set(lxb_html_tokenizer_t *tkz, lexbor_hash_t *attrs)
+static inline void
+pchtml_html_tokenizer_attrs_set(pchtml_html_tokenizer_t *tkz, pchtml_hash_t *attrs)
 {
     tkz->attrs = attrs;
 }
 
-lxb_inline lexbor_hash_t *
-lxb_html_tokenizer_attrs(lxb_html_tokenizer_t *tkz)
+static inline pchtml_hash_t *
+pchtml_html_tokenizer_attrs(pchtml_html_tokenizer_t *tkz)
 {
     return tkz->attrs;
 }
 
-lxb_inline void
-lxb_html_tokenizer_attrs_mraw_set(lxb_html_tokenizer_t *tkz,
-                                  lexbor_mraw_t *mraw)
+static inline void
+pchtml_html_tokenizer_attrs_mraw_set(pchtml_html_tokenizer_t *tkz,
+                                  pchtml_mraw_t *mraw)
 {
     tkz->attrs_mraw = mraw;
 }
 
-lxb_inline lexbor_mraw_t *
-lxb_html_tokenizer_attrs_mraw(lxb_html_tokenizer_t *tkz)
+static inline pchtml_mraw_t *
+pchtml_html_tokenizer_attrs_mraw(pchtml_html_tokenizer_t *tkz)
 {
     return tkz->attrs_mraw;
 }
 
-lxb_inline void
-lxb_html_tokenizer_callback_token_done_set(lxb_html_tokenizer_t *tkz,
-                                           lxb_html_tokenizer_token_f call_func,
+static inline void
+pchtml_html_tokenizer_callback_token_done_set(pchtml_html_tokenizer_t *tkz,
+                                           pchtml_html_tokenizer_token_f call_func,
                                            void *ctx)
 {
     tkz->callback_token_done = call_func;
     tkz->callback_token_ctx = ctx;
 }
 
-lxb_inline void *
-lxb_html_tokenizer_callback_token_done_ctx(lxb_html_tokenizer_t *tkz)
+static inline void *
+pchtml_html_tokenizer_callback_token_done_ctx(pchtml_html_tokenizer_t *tkz)
 {
     return tkz->callback_token_ctx;
 }
 
-lxb_inline void
-lxb_html_tokenizer_state_set(lxb_html_tokenizer_t *tkz,
-                             lxb_html_tokenizer_state_f state)
+static inline void
+pchtml_html_tokenizer_state_set(pchtml_html_tokenizer_t *tkz,
+                             pchtml_html_tokenizer_state_f state)
 {
     tkz->state = state;
 }
 
-lxb_inline void
-lxb_html_tokenizer_tmp_tag_id_set(lxb_html_tokenizer_t *tkz,
-                                  lxb_tag_id_t tag_id)
+static inline void
+pchtml_html_tokenizer_tmp_tag_id_set(pchtml_html_tokenizer_t *tkz,
+                                  pchtml_tag_id_t tag_id)
 {
     tkz->tmp_tag_id = tag_id;
 }
 
-lxb_inline lxb_html_tree_t *
-lxb_html_tokenizer_tree(lxb_html_tokenizer_t *tkz)
+static inline pchtml_html_tree_t *
+pchtml_html_tokenizer_tree(pchtml_html_tokenizer_t *tkz)
 {
     return tkz->tree;
 }
 
-lxb_inline void
-lxb_html_tokenizer_tree_set(lxb_html_tokenizer_t *tkz, lxb_html_tree_t *tree)
+static inline void
+pchtml_html_tokenizer_tree_set(pchtml_html_tokenizer_t *tkz, pchtml_html_tree_t *tree)
 {
     tkz->tree = tree;
 }
 
-lxb_inline lexbor_mraw_t *
-lxb_html_tokenizer_mraw(lxb_html_tokenizer_t *tkz)
+static inline pchtml_mraw_t *
+pchtml_html_tokenizer_mraw(pchtml_html_tokenizer_t *tkz)
 {
     return tkz->mraw;
 }
 
-lxb_inline lxb_status_t
-lxb_html_tokenizer_temp_realloc(lxb_html_tokenizer_t *tkz, size_t size)
+static inline unsigned int
+pchtml_html_tokenizer_temp_realloc(pchtml_html_tokenizer_t *tkz, size_t size)
 {
     size_t length = tkz->pos - tkz->start;
     size_t new_size = (tkz->end - tkz->start) + size + 4096;
 
-    tkz->start = (lxb_char_t *)lexbor_realloc(tkz->start, new_size);
+    tkz->start = (unsigned char *)pchtml_realloc(tkz->start, new_size);
     if (tkz->start == NULL) {
-        tkz->status = LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+        tkz->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         return tkz->status;
     }
 
     tkz->pos = tkz->start + length;
     tkz->end = tkz->start + new_size;
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_inline lxb_status_t
-lxb_html_tokenizer_temp_append_data(lxb_html_tokenizer_t *tkz,
-                                    const lxb_char_t *data)
+static inline unsigned int
+pchtml_html_tokenizer_temp_append_data(pchtml_html_tokenizer_t *tkz,
+                                    const unsigned char *data)
 {
     size_t size = data - tkz->begin;
 
     if ((tkz->pos + size) > tkz->end) {
-        if(lxb_html_tokenizer_temp_realloc(tkz, size)) {
+        if(pchtml_html_tokenizer_temp_realloc(tkz, size)) {
             return tkz->status;
         }
     }
 
-    tkz->pos = (lxb_char_t *) memcpy(tkz->pos, tkz->begin, size) + size;
+    tkz->pos = (unsigned char *) memcpy(tkz->pos, tkz->begin, size) + size;
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-lxb_inline lxb_status_t
-lxb_html_tokenizer_temp_append(lxb_html_tokenizer_t *tkz,
-                               const lxb_char_t *data, size_t size)
+static inline unsigned int
+pchtml_html_tokenizer_temp_append(pchtml_html_tokenizer_t *tkz,
+                               const unsigned char *data, size_t size)
 {
     if ((tkz->pos + size) > tkz->end) {
-        if(lxb_html_tokenizer_temp_realloc(tkz, size)) {
+        if(pchtml_html_tokenizer_temp_realloc(tkz, size)) {
             return tkz->status;
         }
     }
 
-    tkz->pos = (lxb_char_t *) memcpy(tkz->pos, data, size) + size;
+    tkz->pos = (unsigned char *) memcpy(tkz->pos, data, size) + size;
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
 
@@ -304,41 +326,41 @@ lxb_html_tokenizer_temp_append(lxb_html_tokenizer_t *tkz,
  * No inline functions for ABI.
  */
 void
-lxb_html_tokenizer_status_set_noi(lxb_html_tokenizer_t *tkz,
-                                  lxb_status_t status);
+pchtml_html_tokenizer_status_set_noi(pchtml_html_tokenizer_t *tkz,
+                                  unsigned int status);
 
 void
-lxb_html_tokenizer_callback_token_done_set_noi(lxb_html_tokenizer_t *tkz,
-                                               lxb_html_tokenizer_token_f call_func,
+pchtml_html_tokenizer_callback_token_done_set_noi(pchtml_html_tokenizer_t *tkz,
+                                               pchtml_html_tokenizer_token_f call_func,
                                                void *ctx);
 
 void *
-lxb_html_tokenizer_callback_token_done_ctx_noi(lxb_html_tokenizer_t *tkz);
+pchtml_html_tokenizer_callback_token_done_ctx_noi(pchtml_html_tokenizer_t *tkz);
 
 void
-lxb_html_tokenizer_state_set_noi(lxb_html_tokenizer_t *tkz,
-                                 lxb_html_tokenizer_state_f state);
+pchtml_html_tokenizer_state_set_noi(pchtml_html_tokenizer_t *tkz,
+                                 pchtml_html_tokenizer_state_f state);
 
 void
-lxb_html_tokenizer_tmp_tag_id_set_noi(lxb_html_tokenizer_t *tkz,
-                                      lxb_tag_id_t tag_id);
+pchtml_html_tokenizer_tmp_tag_id_set_noi(pchtml_html_tokenizer_t *tkz,
+                                      pchtml_tag_id_t tag_id);
 
-lxb_html_tree_t *
-lxb_html_tokenizer_tree_noi(lxb_html_tokenizer_t *tkz);
+pchtml_html_tree_t *
+pchtml_html_tokenizer_tree_noi(pchtml_html_tokenizer_t *tkz);
 
 void
-lxb_html_tokenizer_tree_set_noi(lxb_html_tokenizer_t *tkz,
-                                lxb_html_tree_t *tree);
+pchtml_html_tokenizer_tree_set_noi(pchtml_html_tokenizer_t *tkz,
+                                pchtml_html_tree_t *tree);
 
-lexbor_mraw_t *
-lxb_html_tokenizer_mraw_noi(lxb_html_tokenizer_t *tkz);
+pchtml_mraw_t *
+pchtml_html_tokenizer_mraw_noi(pchtml_html_tokenizer_t *tkz);
 
-lexbor_hash_t *
-lxb_html_tokenizer_tags_noi(lxb_html_tokenizer_t *tkz);
+pchtml_hash_t *
+pchtml_html_tokenizer_tags_noi(pchtml_html_tokenizer_t *tkz);
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LEXBOR_HTML_TOKENIZER_H */
+#endif  /* PCHTML_HTML_TOKENIZER_H */

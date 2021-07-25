@@ -1,8 +1,28 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file interface.c
+ * @author
+ * @date 2021/07/02
+ * @brief The complementation of interface operation.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+
 
 #include "html/core/mraw.h"
 
@@ -11,40 +31,40 @@
 
 #include "html/dom/interface.h"
 
-#define LXB_HTML_INTERFACE_RES_CONSTRUCTORS
-#define LXB_HTML_INTERFACE_RES_DESTRUCTOR
+#define PCHTML_HTML_INTERFACE_RES_CONSTRUCTORS
+#define PCHTML_HTML_INTERFACE_RES_DESTRUCTOR
 #include "html/html/interface_res.h"
 
 
-lxb_dom_interface_t *
-lxb_html_interface_create(lxb_html_document_t *document, lxb_tag_id_t tag_id,
-                          lxb_ns_id_t ns)
+pchtml_dom_interface_t *
+pchtml_html_interface_create(pchtml_html_document_t *document, pchtml_tag_id_t tag_id,
+                          pchtml_ns_id_t ns)
 {
-    lxb_dom_node_t *node;
+    pchtml_dom_node_t *node;
 
-    if (tag_id >= LXB_TAG__LAST_ENTRY) {
-        if (ns == LXB_NS_HTML) {
-            lxb_html_unknown_element_t *unel;
+    if (tag_id >= PCHTML_TAG__LAST_ENTRY) {
+        if (ns == PCHTML_NS_HTML) {
+            pchtml_html_unknown_element_t *unel;
 
-            unel = lxb_html_unknown_element_interface_create(document);
-            node = lxb_dom_interface_node(unel);
+            unel = pchtml_html_unknown_element_interface_create(document);
+            node = pchtml_dom_interface_node(unel);
         }
-        else if (ns == LXB_NS_SVG) {
+        else if (ns == PCHTML_NS_SVG) {
             /* TODO: For this need implement SVGElement */
-            lxb_dom_element_t *domel;
+            pchtml_dom_element_t *domel;
 
-            domel = lxb_dom_element_interface_create(&document->dom_document);
-            node = lxb_dom_interface_node(domel);
+            domel = pchtml_dom_element_interface_create(&document->dom_document);
+            node = pchtml_dom_interface_node(domel);
         }
         else {
-            lxb_dom_element_t *domel;
+            pchtml_dom_element_t *domel;
 
-            domel = lxb_dom_element_interface_create(&document->dom_document);
-            node = lxb_dom_interface_node(domel);
+            domel = pchtml_dom_element_interface_create(&document->dom_document);
+            node = pchtml_dom_interface_node(domel);
         }
     }
     else {
-        node = lxb_html_interface_res_constructors[tag_id][ns](document);
+        node = pchtml_html_interface_res_constructors[tag_id][ns](document);
     }
 
     if (node == NULL) {
@@ -57,48 +77,48 @@ lxb_html_interface_create(lxb_html_document_t *document, lxb_tag_id_t tag_id,
     return node;
 }
 
-lxb_dom_interface_t *
-lxb_html_interface_destroy(lxb_dom_interface_t *intrfc)
+pchtml_dom_interface_t *
+pchtml_html_interface_destroy(pchtml_dom_interface_t *intrfc)
 {
     if (intrfc == NULL) {
         return NULL;
     }
 
-    lxb_dom_node_t *node = intrfc;
+    pchtml_dom_node_t *node = intrfc;
 
     switch (node->type) {
-        case LXB_DOM_NODE_TYPE_TEXT:
-        case LXB_DOM_NODE_TYPE_COMMENT:
-        case LXB_DOM_NODE_TYPE_ELEMENT:
-        case LXB_DOM_NODE_TYPE_DOCUMENT:
-        case LXB_DOM_NODE_TYPE_DOCUMENT_TYPE:
-            if (node->local_name >= LXB_TAG__LAST_ENTRY) {
-                if (node->ns == LXB_NS_HTML) {
-                    return lxb_html_unknown_element_interface_destroy(intrfc);
+        case PCHTML_DOM_NODE_TYPE_TEXT:
+        case PCHTML_DOM_NODE_TYPE_COMMENT:
+        case PCHTML_DOM_NODE_TYPE_ELEMENT:
+        case PCHTML_DOM_NODE_TYPE_DOCUMENT:
+        case PCHTML_DOM_NODE_TYPE_DOCUMENT_TYPE:
+            if (node->local_name >= PCHTML_TAG__LAST_ENTRY) {
+                if (node->ns == PCHTML_NS_HTML) {
+                    return pchtml_html_unknown_element_interface_destroy(intrfc);
                 }
-                else if (node->ns == LXB_NS_SVG) {
+                else if (node->ns == PCHTML_NS_SVG) {
                     /* TODO: For this need implement SVGElement */
-                    return lxb_dom_element_interface_destroy(intrfc);
+                    return pchtml_dom_element_interface_destroy(intrfc);
                 }
                 else {
-                    return lxb_dom_element_interface_destroy(intrfc);
+                    return pchtml_dom_element_interface_destroy(intrfc);
                 }
             }
             else {
-                return lxb_html_interface_res_destructor[node->local_name][node->ns](intrfc);
+                return pchtml_html_interface_res_destructor[node->local_name][node->ns](intrfc);
             }
 
-        case LXB_DOM_NODE_TYPE_ATTRIBUTE:
-            return lxb_dom_attr_interface_destroy(intrfc);
+        case PCHTML_DOM_NODE_TYPE_ATTRIBUTE:
+            return pchtml_dom_attr_interface_destroy(intrfc);
 
-        case LXB_DOM_NODE_TYPE_CDATA_SECTION:
-            return lxb_dom_cdata_section_interface_destroy(intrfc);
+        case PCHTML_DOM_NODE_TYPE_CDATA_SECTION:
+            return pchtml_dom_cdata_section_interface_destroy(intrfc);
 
-        case LXB_DOM_NODE_TYPE_DOCUMENT_FRAGMENT:
-            return lxb_dom_document_fragment_interface_destroy(intrfc);
+        case PCHTML_DOM_NODE_TYPE_DOCUMENT_FRAGMENT:
+            return pchtml_dom_document_fragment_interface_destroy(intrfc);
 
-        case LXB_DOM_NODE_TYPE_PROCESSING_INSTRUCTION:
-            return lxb_dom_processing_instruction_interface_destroy(intrfc);
+        case PCHTML_DOM_NODE_TYPE_PROCESSING_INSTRUCTION:
+            return pchtml_dom_processing_instruction_interface_destroy(intrfc);
 
         default:
             return NULL;

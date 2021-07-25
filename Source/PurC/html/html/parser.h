@@ -1,16 +1,36 @@
-/*
- * Copyright (C) 2018-2020 Alexander Borisov
+/**
+ * @file parser.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for html parser.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_HTML_PARSER_H
-#define LEXBOR_HTML_PARSER_H
+
+#ifndef PCHTML_HTML_PARSER_H
+#define PCHTML_HTML_PARSER_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "config.h"
 #include "html/html/base.h"
 #include "html/html/tree.h"
 #include "html/html/interfaces/document.h"
@@ -19,111 +39,112 @@ extern "C" {
 
 
 typedef enum {
-    LXB_HTML_PARSER_STATE_BEGIN            = 0x00,
-    LXB_HTML_PARSER_STATE_PROCESS          = 0x01,
-    LXB_HTML_PARSER_STATE_END              = 0x02,
-    LXB_HTML_PARSER_STATE_FRAGMENT_PROCESS = 0x03,
-    LXB_HTML_PARSER_STATE_ERROR            = 0x04
+    PCHTML_HTML_PARSER_STATE_BEGIN            = 0x00,
+    PCHTML_HTML_PARSER_STATE_PROCESS          = 0x01,
+    PCHTML_HTML_PARSER_STATE_END              = 0x02,
+    PCHTML_HTML_PARSER_STATE_FRAGMENT_PROCESS = 0x03,
+    PCHTML_HTML_PARSER_STATE_ERROR            = 0x04
 }
-lxb_html_parser_state_t;
+pchtml_html_parser_state_t;
 
 typedef struct {
-    lxb_html_tokenizer_t    *tkz;
-    lxb_html_tree_t         *tree;
-    lxb_html_tree_t         *original_tree;
+    pchtml_html_tokenizer_t    *tkz;
+    pchtml_html_tree_t         *tree;
+    pchtml_html_tree_t         *original_tree;
 
-    lxb_dom_node_t          *root;
-    lxb_dom_node_t          *form;
+    pchtml_dom_node_t          *root;
+    pchtml_dom_node_t          *form;
 
-    lxb_html_parser_state_t state;
-    lxb_status_t            status;
+    pchtml_html_parser_state_t state;
+    unsigned int            status;
 
     size_t                  ref_count;
 }
-lxb_html_parser_t;
+pchtml_html_parser_t;
 
 
-LXB_API lxb_html_parser_t *
-lxb_html_parser_create(void);
+pchtml_html_parser_t *
+pchtml_html_parser_create(void) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_parser_init(lxb_html_parser_t *parser);
+unsigned int
+pchtml_html_parser_init(pchtml_html_parser_t *parser) WTF_INTERNAL;
 
-LXB_API void
-lxb_html_parser_clean(lxb_html_parser_t *parser);
+void
+pchtml_html_parser_clean(pchtml_html_parser_t *parser) WTF_INTERNAL;
 
-LXB_API lxb_html_parser_t *
-lxb_html_parser_destroy(lxb_html_parser_t *parser);
+pchtml_html_parser_t *
+pchtml_html_parser_destroy(pchtml_html_parser_t *parser) WTF_INTERNAL;
 
-LXB_API lxb_html_parser_t *
-lxb_html_parser_ref(lxb_html_parser_t *parser);
+pchtml_html_parser_t *
+pchtml_html_parser_ref(pchtml_html_parser_t *parser) WTF_INTERNAL;
 
-LXB_API lxb_html_parser_t *
-lxb_html_parser_unref(lxb_html_parser_t *parser);
-
-
-LXB_API lxb_html_document_t *
-lxb_html_parse(lxb_html_parser_t *parser, const lxb_char_t *html, size_t size);
+pchtml_html_parser_t *
+pchtml_html_parser_unref(pchtml_html_parser_t *parser) WTF_INTERNAL;
 
 
-LXB_API lxb_dom_node_t *
-lxb_html_parse_fragment(lxb_html_parser_t *parser, lxb_html_element_t *element,
-                        const lxb_char_t *html, size_t size);
-
-LXB_API lxb_dom_node_t *
-lxb_html_parse_fragment_by_tag_id(lxb_html_parser_t *parser,
-                                  lxb_html_document_t *document,
-                                  lxb_tag_id_t tag_id, lxb_ns_id_t ns,
-                                  const lxb_char_t *html, size_t size);
+pchtml_html_document_t *
+pchtml_html_parse(pchtml_html_parser_t *parser, const unsigned char *html, 
+                size_t size) WTF_INTERNAL;
 
 
-LXB_API lxb_html_document_t *
-lxb_html_parse_chunk_begin(lxb_html_parser_t *parser);
+pchtml_dom_node_t *
+pchtml_html_parse_fragment(pchtml_html_parser_t *parser, pchtml_html_element_t *element,
+                        const unsigned char *html, size_t size) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_parse_chunk_process(lxb_html_parser_t *parser,
-                             const lxb_char_t *html, size_t size);
+pchtml_dom_node_t *
+pchtml_html_parse_fragment_by_tag_id(pchtml_html_parser_t *parser,
+                pchtml_html_document_t *document,
+                pchtml_tag_id_t tag_id, pchtml_ns_id_t ns,
+                const unsigned char *html, size_t size) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_parse_chunk_end(lxb_html_parser_t *parser);
+
+pchtml_html_document_t *
+pchtml_html_parse_chunk_begin(pchtml_html_parser_t *parser) WTF_INTERNAL;
+
+unsigned int
+pchtml_html_parse_chunk_process(pchtml_html_parser_t *parser,
+                const unsigned char *html, size_t size) WTF_INTERNAL;
+
+unsigned int
+pchtml_html_parse_chunk_end(pchtml_html_parser_t *parser) WTF_INTERNAL;
 
 
-LXB_API lxb_status_t
-lxb_html_parse_fragment_chunk_begin(lxb_html_parser_t *parser,
-                                    lxb_html_document_t *document,
-                                    lxb_tag_id_t tag_id, lxb_ns_id_t ns);
+unsigned int
+pchtml_html_parse_fragment_chunk_begin(pchtml_html_parser_t *parser,
+                pchtml_html_document_t *document,
+                pchtml_tag_id_t tag_id, pchtml_ns_id_t ns) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_parse_fragment_chunk_process(lxb_html_parser_t *parser,
-                                      const lxb_char_t *html, size_t size);
+unsigned int
+pchtml_html_parse_fragment_chunk_process(pchtml_html_parser_t *parser,
+                const unsigned char *html, size_t size) WTF_INTERNAL;
 
-LXB_API lxb_dom_node_t *
-lxb_html_parse_fragment_chunk_end(lxb_html_parser_t *parser);
+pchtml_dom_node_t *
+pchtml_html_parse_fragment_chunk_end(pchtml_html_parser_t *parser) WTF_INTERNAL;
 
 
 /*
  * Inline functions
  */
-lxb_inline lxb_html_tokenizer_t *
-lxb_html_parser_tokenizer(lxb_html_parser_t *parser)
+static inline pchtml_html_tokenizer_t *
+pchtml_html_parser_tokenizer(pchtml_html_parser_t *parser)
 {
     return parser->tkz;
 }
 
-lxb_inline lxb_html_tree_t *
-lxb_html_parser_tree(lxb_html_parser_t *parser)
+static inline pchtml_html_tree_t *
+pchtml_html_parser_tree(pchtml_html_parser_t *parser)
 {
     return parser->tree;
 }
 
-lxb_inline lxb_status_t
-lxb_html_parser_status(lxb_html_parser_t *parser)
+static inline unsigned int
+pchtml_html_parser_status(pchtml_html_parser_t *parser)
 {
     return parser->status;
 }
 
-lxb_inline lxb_status_t
-lxb_html_parser_state(lxb_html_parser_t *parser)
+static inline unsigned int
+pchtml_html_parser_state(pchtml_html_parser_t *parser)
 {
     return parser->state;
 }
@@ -131,21 +152,21 @@ lxb_html_parser_state(lxb_html_parser_t *parser)
 /*
  * No inline functions for ABI.
  */
-LXB_API lxb_html_tokenizer_t *
-lxb_html_parser_tokenizer_noi(lxb_html_parser_t *parser);
+pchtml_html_tokenizer_t *
+pchtml_html_parser_tokenizer_noi(pchtml_html_parser_t *parser) WTF_INTERNAL;
 
-LXB_API lxb_html_tree_t *
-lxb_html_parser_tree_noi(lxb_html_parser_t *parser);
+pchtml_html_tree_t *
+pchtml_html_parser_tree_noi(pchtml_html_parser_t *parser) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_parser_status_noi(lxb_html_parser_t *parser);
+unsigned int
+pchtml_html_parser_status_noi(pchtml_html_parser_t *parser) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_parser_state_noi(lxb_html_parser_t *parser);
+unsigned int
+pchtml_html_parser_state_noi(pchtml_html_parser_t *parser) WTF_INTERNAL;
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LEXBOR_HTML_PARSER_H */
+#endif  /* PCHTML_HTML_PARSER_H */

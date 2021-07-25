@@ -1,93 +1,116 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file serialize.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for serialization.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_HTML_SERIALIZE_H
-#define LEXBOR_HTML_SERIALIZE_H
+
+#ifndef PCHTML_HTML_SERIALIZE_H
+#define PCHTML_HTML_SERIALIZE_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "config.h"
 #include "html/core/str.h"
 #include "html/dom/interfaces/element.h"
 
 #include "html/html/base.h"
 
 
-typedef int lxb_html_serialize_opt_t;
+typedef int pchtml_html_serialize_opt_t;
 
-enum lxb_html_serialize_opt {
-    LXB_HTML_SERIALIZE_OPT_UNDEF               = 0x00,
-    LXB_HTML_SERIALIZE_OPT_SKIP_WS_NODES       = 0x01,
-    LXB_HTML_SERIALIZE_OPT_SKIP_COMMENT        = 0x02,
-    LXB_HTML_SERIALIZE_OPT_RAW                 = 0x04,
-    LXB_HTML_SERIALIZE_OPT_WITHOUT_CLOSING     = 0x08,
-    LXB_HTML_SERIALIZE_OPT_TAG_WITH_NS         = 0x10,
-    LXB_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT = 0x20,
-    LXB_HTML_SERIALIZE_OPT_FULL_DOCTYPE        = 0x40
+enum pchtml_html_serialize_opt {
+    PCHTML_HTML_SERIALIZE_OPT_UNDEF               = 0x00,
+    PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES       = 0x01,
+    PCHTML_HTML_SERIALIZE_OPT_SKIP_COMMENT        = 0x02,
+    PCHTML_HTML_SERIALIZE_OPT_RAW                 = 0x04,
+    PCHTML_HTML_SERIALIZE_OPT_WITHOUT_CLOSING     = 0x08,
+    PCHTML_HTML_SERIALIZE_OPT_TAG_WITH_NS         = 0x10,
+    PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT = 0x20,
+    PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE        = 0x40
 };
 
 
-typedef lxb_status_t
-(*lxb_html_serialize_cb_f)(const lxb_char_t *data, size_t len, void *ctx);
+typedef unsigned int
+(*pchtml_html_serialize_cb_f)(const unsigned char *data, size_t len, void *ctx);
 
 
-LXB_API lxb_status_t
-lxb_html_serialize_cb(lxb_dom_node_t *node,
-                      lxb_html_serialize_cb_f cb, void *ctx);
+unsigned int
+pchtml_html_serialize_cb(pchtml_dom_node_t *node,
+                pchtml_html_serialize_cb_f cb, void *ctx) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_serialize_str(lxb_dom_node_t *node, lexbor_str_t *str);
+unsigned int
+pchtml_html_serialize_str(pchtml_dom_node_t *node, 
+                pchtml_str_t *str) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_serialize_tree_cb(lxb_dom_node_t *node,
-                           lxb_html_serialize_cb_f cb, void *ctx);
+unsigned int
+pchtml_html_serialize_tree_cb(pchtml_dom_node_t *node,
+                pchtml_html_serialize_cb_f cb, void *ctx) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_serialize_tree_str(lxb_dom_node_t *node, lexbor_str_t *str);
+unsigned int
+pchtml_html_serialize_tree_str(pchtml_dom_node_t *node, 
+                pchtml_str_t *str) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_serialize_deep_cb(lxb_dom_node_t *node,
-                           lxb_html_serialize_cb_f cb, void *ctx);
+unsigned int
+pchtml_html_serialize_deep_cb(pchtml_dom_node_t *node,
+                pchtml_html_serialize_cb_f cb, void *ctx) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_serialize_deep_str(lxb_dom_node_t *node, lexbor_str_t *str);
+unsigned int
+pchtml_html_serialize_deep_str(pchtml_dom_node_t *node, 
+                pchtml_str_t *str) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_serialize_pretty_cb(lxb_dom_node_t *node,
-                             lxb_html_serialize_opt_t opt, size_t indent,
-                             lxb_html_serialize_cb_f cb, void *ctx);
+unsigned int
+pchtml_html_serialize_pretty_cb(pchtml_dom_node_t *node,
+                pchtml_html_serialize_opt_t opt, size_t indent,
+                pchtml_html_serialize_cb_f cb, void *ctx) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_serialize_pretty_str(lxb_dom_node_t *node,
-                              lxb_html_serialize_opt_t opt, size_t indent,
-                              lexbor_str_t *str);
+unsigned int
+pchtml_html_serialize_pretty_str(pchtml_dom_node_t *node,
+                pchtml_html_serialize_opt_t opt, size_t indent,
+                pchtml_str_t *str) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_serialize_pretty_tree_cb(lxb_dom_node_t *node,
-                                  lxb_html_serialize_opt_t opt, size_t indent,
-                                  lxb_html_serialize_cb_f cb, void *ctx);
+unsigned int
+pchtml_html_serialize_pretty_tree_cb(pchtml_dom_node_t *node,
+                pchtml_html_serialize_opt_t opt, size_t indent,
+                pchtml_html_serialize_cb_f cb, void *ctx) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_serialize_pretty_tree_str(lxb_dom_node_t *node,
-                                   lxb_html_serialize_opt_t opt, size_t indent,
-                                   lexbor_str_t *str);
+unsigned int
+pchtml_html_serialize_pretty_tree_str(pchtml_dom_node_t *node,
+                pchtml_html_serialize_opt_t opt, size_t indent,
+                pchtml_str_t *str) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_serialize_pretty_deep_cb(lxb_dom_node_t *node,
-                                  lxb_html_serialize_opt_t opt, size_t indent,
-                                  lxb_html_serialize_cb_f cb, void *ctx);
+unsigned int
+pchtml_html_serialize_pretty_deep_cb(pchtml_dom_node_t *node,
+                pchtml_html_serialize_opt_t opt, size_t indent,
+                pchtml_html_serialize_cb_f cb, void *ctx) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_serialize_pretty_deep_str(lxb_dom_node_t *node,
-                                   lxb_html_serialize_opt_t opt, size_t indent,
-                                   lexbor_str_t *str);
+unsigned int
+pchtml_html_serialize_pretty_deep_str(pchtml_dom_node_t *node,
+                pchtml_html_serialize_opt_t opt, size_t indent,
+                pchtml_str_t *str) WTF_INTERNAL;
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LEXBOR_HTML_SERIALIZE_H */
+#endif  /* PCHTML_HTML_SERIALIZE_H */

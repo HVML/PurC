@@ -1,8 +1,27 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file interface_res.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for resource of html parser interface.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 
 /*
  * Caution!
@@ -11,26 +30,28 @@
  */
 
 
-#ifndef LXB_HTML_INTERFACE_RES_H
-#define LXB_HTML_INTERFACE_RES_H
+#ifndef PCHTML_HTML_INTERFACE_RES_H
+#define PCHTML_HTML_INTERFACE_RES_H
 
-#endif /* LXB_HTML_INTERFACE_RES_H */
+#endif /* PCHTML_HTML_INTERFACE_RES_H */
 
-#ifdef LXB_TAG_CONST_VERSION
-#ifndef LXB_TAG_CONST_VERSION_A161EC911182C3254E7A972D5C51DF86
+#include "config.h"
+
+#ifdef PCHTML_TAG_CONST_VERSION
+#ifndef PCHTML_TAG_CONST_VERSION_A161EC911182C3254E7A972D5C51DF86
 #error Mismatched tags version! See "html/tag/const.h".
-#endif /* LXB_TAG_CONST_VERSION_A161EC911182C3254E7A972D5C51DF86 */
+#endif /* PCHTML_TAG_CONST_VERSION_A161EC911182C3254E7A972D5C51DF86 */
 #else
 #error You need to include "html/tag/const.h".
-#endif /* LXB_TAG_CONST_VERSION */
+#endif /* PCHTML_TAG_CONST_VERSION */
 
-#ifdef LXB_NS_CONST_VERSION
-#ifndef LXB_NS_CONST_VERSION_253D4AFDA959234B48A478B956C3C777
+#ifdef PCHTML_NS_CONST_VERSION
+#ifndef PCHTML_NS_CONST_VERSION_253D4AFDA959234B48A478B956C3C777
 #error Mismatched namespaces version! See "html/ns/const.h".
-#endif /* LXB_NS_CONST_VERSION_253D4AFDA959234B48A478B956C3C777 */
+#endif /* PCHTML_NS_CONST_VERSION_253D4AFDA959234B48A478B956C3C777 */
 #else
 #error You need to include "html/ns/const.h".
-#endif /* LXB_NS_CONST_VERSION */
+#endif /* PCHTML_NS_CONST_VERSION */
 
 #include "html/dom/interfaces/cdata_section.h"
 #include "html/dom/interfaces/character_data.h"
@@ -118,4332 +139,4332 @@
 #include "html/html/interfaces/video_element.h"
 #include "html/html/interfaces/window.h"
 
-#ifdef LXB_HTML_INTERFACE_RES_CONSTRUCTORS
-#ifndef LXB_HTML_INTERFACE_RES_CONSTRUCTORS_ENABLED
-#define LXB_HTML_INTERFACE_RES_CONSTRUCTORS_ENABLED
-static  lxb_dom_interface_constructor_f lxb_html_interface_res_constructors[LXB_TAG__LAST_ENTRY][LXB_NS__LAST_ENTRY] = 
+#ifdef PCHTML_HTML_INTERFACE_RES_CONSTRUCTORS
+#ifndef PCHTML_HTML_INTERFACE_RES_CONSTRUCTORS_ENABLED
+#define PCHTML_HTML_INTERFACE_RES_CONSTRUCTORS_ENABLED
+static  pchtml_dom_interface_constructor_f pchtml_html_interface_res_constructors[PCHTML_TAG__LAST_ENTRY][PCHTML_NS__LAST_ENTRY] = 
 {
-    /* LXB_TAG__UNDEF */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG__END_OF_FILE */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG__TEXT */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_text_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_text_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_text_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG__DOCUMENT */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_document_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG__EM_COMMENT */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_comment_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_comment_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_comment_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG__EM_DOCTYPE */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_document_type_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_A */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_anchor_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_ABBR */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_ACRONYM */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_ADDRESS */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_ALTGLYPH */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_ALTGLYPHDEF */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_ALTGLYPHITEM */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_ANIMATECOLOR */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_ANIMATEMOTION */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_ANIMATETRANSFORM */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_ANNOTATION_XML */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_APPLET */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_AREA */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_area_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_ARTICLE */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_ASIDE */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_AUDIO */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_audio_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_B */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_BASE */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_base_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_BASEFONT */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_BDI */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_BDO */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_BGSOUND */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_BIG */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_BLINK */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_BLOCKQUOTE */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_quote_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_BODY */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_body_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_BR */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_br_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_BUTTON */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_button_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_CANVAS */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_canvas_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_CAPTION */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_table_caption_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_CENTER */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_CITE */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_CLIPPATH */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_CODE */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_COL */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_table_col_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_COLGROUP */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_table_col_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_DATA */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_data_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_DATALIST */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_data_list_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_DD */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_DEL */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_mod_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_DESC */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_DETAILS */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_details_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_DFN */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_DIALOG */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_dialog_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_DIR */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_directory_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_DIV */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_div_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_DL */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_d_list_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_DT */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_EM */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_EMBED */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_embed_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FEBLEND */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FECOLORMATRIX */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FECOMPONENTTRANSFER */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FECOMPOSITE */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FECONVOLVEMATRIX */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FEDIFFUSELIGHTING */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FEDISPLACEMENTMAP */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FEDISTANTLIGHT */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FEDROPSHADOW */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FEFLOOD */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FEFUNCA */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FEFUNCB */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FEFUNCG */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FEFUNCR */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FEGAUSSIANBLUR */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FEIMAGE */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FEMERGE */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FEMERGENODE */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FEMORPHOLOGY */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FEOFFSET */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FEPOINTLIGHT */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FESPECULARLIGHTING */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FESPOTLIGHT */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FETILE */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FETURBULENCE */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FIELDSET */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_field_set_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FIGCAPTION */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FIGURE */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FONT */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_font_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FOOTER */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FOREIGNOBJECT */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FORM */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_form_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FRAME */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_frame_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_FRAMESET */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_frame_set_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_GLYPHREF */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_H1 */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_heading_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_H2 */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_heading_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_H3 */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_heading_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_H4 */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_heading_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_H5 */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_heading_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_H6 */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_heading_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_HEAD */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_head_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_HEADER */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_HGROUP */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_HR */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_hr_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_HTML */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_I */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_IFRAME */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_iframe_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_IMAGE */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_image_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_IMG */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_image_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_INPUT */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_input_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_INS */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_mod_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_ISINDEX */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_KBD */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_KEYGEN */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_LABEL */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_label_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_LEGEND */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_legend_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_LI */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_li_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_LINEARGRADIENT */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_LINK */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_link_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_LISTING */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_pre_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_MAIN */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_MALIGNMARK */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_MAP */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_map_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_MARK */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_MARQUEE */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_marquee_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_MATH */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_MENU */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_menu_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_META */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_meta_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_METER */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_meter_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_MFENCED */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_MGLYPH */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_MI */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_MN */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_MO */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_MS */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_MTEXT */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_MULTICOL */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_NAV */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_NEXTID */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_NOBR */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_NOEMBED */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_NOFRAMES */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_NOSCRIPT */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_OBJECT */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_object_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_OL */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_o_list_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_OPTGROUP */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_opt_group_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_OPTION */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_option_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_OUTPUT */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_output_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_P */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_paragraph_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_PARAM */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_param_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_PATH */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_PICTURE */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_picture_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_PLAINTEXT */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_PRE */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_pre_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_PROGRESS */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_progress_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_Q */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_quote_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_RADIALGRADIENT */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_RB */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_RP */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_RT */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_RTC */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_RUBY */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_S */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_SAMP */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_SCRIPT */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_script_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_SECTION */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_SELECT */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_select_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_SLOT */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_slot_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_SMALL */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_SOURCE */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_source_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_SPACER */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_SPAN */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_span_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_STRIKE */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_STRONG */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_STYLE */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_style_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_SUB */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_SUMMARY */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_SUP */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_SVG */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_TABLE */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_table_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_TBODY */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_table_section_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_TD */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_table_cell_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_TEMPLATE */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_template_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_TEXTAREA */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_text_area_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_TEXTPATH */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_TFOOT */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_table_section_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_TH */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_table_cell_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_THEAD */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_table_section_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_TIME */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_time_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_TITLE */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_title_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_TR */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_table_row_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_TRACK */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_track_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_TT */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_U */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_UL */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_u_list_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_VAR */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_VIDEO */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_video_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_WBR */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
-    },
-    /* LXB_TAG_XMP */
-    {
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_unknown_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_html_pre_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create,
-        (lxb_dom_interface_constructor_f) lxb_dom_element_interface_create
+    /* PCHTML_TAG__UNDEF */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG__END_OF_FILE */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG__TEXT */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_text_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_text_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_text_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG__DOCUMENT */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_document_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG__EM_COMMENT */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_comment_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_comment_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_comment_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG__EM_DOCTYPE */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_document_type_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_A */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_anchor_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_ABBR */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_ACRONYM */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_ADDRESS */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_ALTGLYPH */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_ALTGLYPHDEF */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_ALTGLYPHITEM */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_ANIMATECOLOR */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_ANIMATEMOTION */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_ANIMATETRANSFORM */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_ANNOTATION_XML */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_APPLET */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_AREA */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_area_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_ARTICLE */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_ASIDE */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_AUDIO */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_audio_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_B */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_BASE */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_base_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_BASEFONT */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_BDI */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_BDO */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_BGSOUND */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_BIG */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_BLINK */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_BLOCKQUOTE */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_quote_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_BODY */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_body_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_BR */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_br_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_BUTTON */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_button_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_CANVAS */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_canvas_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_CAPTION */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_table_caption_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_CENTER */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_CITE */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_CLIPPATH */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_CODE */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_COL */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_table_col_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_COLGROUP */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_table_col_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_DATA */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_data_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_DATALIST */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_data_list_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_DD */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_DEL */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_mod_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_DESC */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_DETAILS */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_details_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_DFN */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_DIALOG */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_dialog_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_DIR */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_directory_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_DIV */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_div_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_DL */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_d_list_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_DT */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_EM */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_EMBED */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_embed_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FEBLEND */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FECOLORMATRIX */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FECOMPONENTTRANSFER */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FECOMPOSITE */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FECONVOLVEMATRIX */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FEDIFFUSELIGHTING */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FEDISPLACEMENTMAP */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FEDISTANTLIGHT */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FEDROPSHADOW */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FEFLOOD */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FEFUNCA */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FEFUNCB */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FEFUNCG */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FEFUNCR */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FEGAUSSIANBLUR */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FEIMAGE */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FEMERGE */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FEMERGENODE */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FEMORPHOLOGY */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FEOFFSET */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FEPOINTLIGHT */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FESPECULARLIGHTING */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FESPOTLIGHT */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FETILE */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FETURBULENCE */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FIELDSET */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_field_set_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FIGCAPTION */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FIGURE */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FONT */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_font_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FOOTER */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FOREIGNOBJECT */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FORM */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_form_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FRAME */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_frame_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_FRAMESET */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_frame_set_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_GLYPHREF */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_H1 */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_heading_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_H2 */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_heading_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_H3 */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_heading_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_H4 */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_heading_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_H5 */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_heading_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_H6 */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_heading_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_HEAD */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_head_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_HEADER */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_HGROUP */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_HR */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_hr_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_HTML */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_I */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_IFRAME */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_iframe_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_IMAGE */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_image_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_IMG */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_image_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_INPUT */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_input_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_INS */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_mod_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_ISINDEX */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_KBD */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_KEYGEN */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_LABEL */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_label_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_LEGEND */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_legend_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_LI */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_li_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_LINEARGRADIENT */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_LINK */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_link_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_LISTING */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_pre_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_MAIN */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_MALIGNMARK */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_MAP */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_map_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_MARK */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_MARQUEE */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_marquee_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_MATH */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_MENU */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_menu_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_META */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_meta_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_METER */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_meter_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_MFENCED */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_MGLYPH */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_MI */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_MN */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_MO */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_MS */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_MTEXT */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_MULTICOL */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_NAV */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_NEXTID */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_NOBR */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_NOEMBED */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_NOFRAMES */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_NOSCRIPT */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_OBJECT */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_object_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_OL */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_o_list_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_OPTGROUP */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_opt_group_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_OPTION */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_option_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_OUTPUT */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_output_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_P */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_paragraph_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_PARAM */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_param_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_PATH */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_PICTURE */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_picture_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_PLAINTEXT */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_PRE */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_pre_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_PROGRESS */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_progress_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_Q */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_quote_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_RADIALGRADIENT */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_RB */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_RP */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_RT */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_RTC */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_RUBY */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_S */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_SAMP */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_SCRIPT */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_script_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_SECTION */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_SELECT */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_select_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_SLOT */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_slot_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_SMALL */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_SOURCE */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_source_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_SPACER */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_SPAN */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_span_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_STRIKE */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_STRONG */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_STYLE */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_style_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_SUB */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_SUMMARY */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_SUP */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_SVG */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_TABLE */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_table_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_TBODY */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_table_section_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_TD */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_table_cell_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_TEMPLATE */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_template_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_TEXTAREA */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_text_area_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_TEXTPATH */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_TFOOT */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_table_section_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_TH */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_table_cell_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_THEAD */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_table_section_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_TIME */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_time_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_TITLE */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_title_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_TR */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_table_row_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_TRACK */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_track_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_TT */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_U */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_UL */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_u_list_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_VAR */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_VIDEO */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_video_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_WBR */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
+    },
+    /* PCHTML_TAG_XMP */
+    {
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_unknown_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_html_pre_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create,
+        (pchtml_dom_interface_constructor_f) pchtml_dom_element_interface_create
     }
 };
-#endif /* LXB_HTML_INTERFACE_RES_CONSTRUCTORS_ENABLED */
-#endif /* LXB_HTML_INTERFACE_RES_CONSTRUCTORS */
+#endif /* PCHTML_HTML_INTERFACE_RES_CONSTRUCTORS_ENABLED */
+#endif /* PCHTML_HTML_INTERFACE_RES_CONSTRUCTORS */
 
-#ifdef LXB_HTML_INTERFACE_RES_DESTRUCTOR
-#ifndef LXB_HTML_INTERFACE_RES_DESTRUCTOR_ENABLED
-#define LXB_HTML_INTERFACE_RES_DESTRUCTOR_ENABLED
-static  lxb_dom_interface_destructor_f lxb_html_interface_res_destructor[LXB_TAG__LAST_ENTRY][LXB_NS__LAST_ENTRY] = 
+#ifdef PCHTML_HTML_INTERFACE_RES_DESTRUCTOR
+#ifndef PCHTML_HTML_INTERFACE_RES_DESTRUCTOR_ENABLED
+#define PCHTML_HTML_INTERFACE_RES_DESTRUCTOR_ENABLED
+static  pchtml_dom_interface_destructor_f pchtml_html_interface_res_destructor[PCHTML_TAG__LAST_ENTRY][PCHTML_NS__LAST_ENTRY] = 
 {
-    /* LXB_TAG__UNDEF */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG__END_OF_FILE */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG__TEXT */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_text_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_text_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_text_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG__DOCUMENT */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_document_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG__EM_COMMENT */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_comment_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_comment_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_comment_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG__EM_DOCTYPE */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_document_type_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_A */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_anchor_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_ABBR */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_ACRONYM */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_ADDRESS */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_ALTGLYPH */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_ALTGLYPHDEF */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_ALTGLYPHITEM */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_ANIMATECOLOR */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_ANIMATEMOTION */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_ANIMATETRANSFORM */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_ANNOTATION_XML */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_APPLET */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_AREA */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_area_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_ARTICLE */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_ASIDE */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_AUDIO */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_audio_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_B */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_BASE */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_base_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_BASEFONT */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_BDI */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_BDO */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_BGSOUND */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_BIG */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_BLINK */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_BLOCKQUOTE */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_quote_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_BODY */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_body_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_BR */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_br_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_BUTTON */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_button_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_CANVAS */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_canvas_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_CAPTION */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_table_caption_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_CENTER */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_CITE */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_CLIPPATH */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_CODE */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_COL */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_table_col_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_COLGROUP */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_table_col_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_DATA */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_data_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_DATALIST */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_data_list_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_DD */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_DEL */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_mod_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_DESC */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_DETAILS */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_details_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_DFN */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_DIALOG */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_dialog_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_DIR */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_directory_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_DIV */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_div_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_DL */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_d_list_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_DT */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_EM */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_EMBED */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_embed_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FEBLEND */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FECOLORMATRIX */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FECOMPONENTTRANSFER */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FECOMPOSITE */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FECONVOLVEMATRIX */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FEDIFFUSELIGHTING */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FEDISPLACEMENTMAP */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FEDISTANTLIGHT */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FEDROPSHADOW */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FEFLOOD */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FEFUNCA */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FEFUNCB */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FEFUNCG */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FEFUNCR */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FEGAUSSIANBLUR */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FEIMAGE */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FEMERGE */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FEMERGENODE */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FEMORPHOLOGY */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FEOFFSET */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FEPOINTLIGHT */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FESPECULARLIGHTING */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FESPOTLIGHT */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FETILE */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FETURBULENCE */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FIELDSET */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_field_set_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FIGCAPTION */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FIGURE */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FONT */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_font_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FOOTER */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FOREIGNOBJECT */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FORM */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_form_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FRAME */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_frame_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_FRAMESET */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_frame_set_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_GLYPHREF */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_H1 */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_heading_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_H2 */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_heading_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_H3 */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_heading_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_H4 */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_heading_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_H5 */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_heading_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_H6 */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_heading_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_HEAD */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_head_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_HEADER */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_HGROUP */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_HR */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_hr_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_HTML */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_I */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_IFRAME */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_iframe_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_IMAGE */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_image_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_IMG */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_image_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_INPUT */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_input_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_INS */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_mod_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_ISINDEX */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_KBD */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_KEYGEN */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_LABEL */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_label_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_LEGEND */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_legend_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_LI */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_li_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_LINEARGRADIENT */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_LINK */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_link_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_LISTING */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_pre_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_MAIN */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_MALIGNMARK */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_MAP */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_map_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_MARK */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_MARQUEE */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_marquee_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_MATH */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_MENU */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_menu_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_META */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_meta_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_METER */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_meter_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_MFENCED */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_MGLYPH */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_MI */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_MN */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_MO */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_MS */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_MTEXT */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_MULTICOL */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_NAV */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_NEXTID */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_NOBR */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_NOEMBED */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_NOFRAMES */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_NOSCRIPT */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_OBJECT */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_object_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_OL */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_o_list_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_OPTGROUP */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_opt_group_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_OPTION */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_option_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_OUTPUT */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_output_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_P */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_paragraph_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_PARAM */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_param_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_PATH */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_PICTURE */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_picture_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_PLAINTEXT */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_PRE */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_pre_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_PROGRESS */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_progress_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_Q */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_quote_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_RADIALGRADIENT */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_RB */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_RP */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_RT */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_RTC */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_RUBY */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_S */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_SAMP */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_SCRIPT */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_script_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_SECTION */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_SELECT */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_select_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_SLOT */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_slot_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_SMALL */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_SOURCE */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_source_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_SPACER */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_SPAN */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_span_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_STRIKE */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_STRONG */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_STYLE */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_style_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_SUB */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_SUMMARY */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_SUP */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_SVG */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_TABLE */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_table_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_TBODY */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_table_section_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_TD */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_table_cell_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_TEMPLATE */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_template_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_TEXTAREA */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_text_area_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_TEXTPATH */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_TFOOT */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_table_section_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_TH */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_table_cell_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_THEAD */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_table_section_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_TIME */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_time_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_TITLE */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_title_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_TR */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_table_row_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_TRACK */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_track_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_TT */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_U */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_UL */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_u_list_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_VAR */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_VIDEO */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_video_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_WBR */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
-    },
-    /* LXB_TAG_XMP */
-    {
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_unknown_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_html_pre_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy,
-        (lxb_dom_interface_destructor_f) lxb_dom_element_interface_destroy
+    /* PCHTML_TAG__UNDEF */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG__END_OF_FILE */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG__TEXT */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_text_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_text_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_text_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG__DOCUMENT */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_document_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG__EM_COMMENT */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_comment_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_comment_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_comment_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG__EM_DOCTYPE */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_document_type_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_A */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_anchor_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_ABBR */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_ACRONYM */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_ADDRESS */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_ALTGLYPH */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_ALTGLYPHDEF */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_ALTGLYPHITEM */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_ANIMATECOLOR */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_ANIMATEMOTION */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_ANIMATETRANSFORM */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_ANNOTATION_XML */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_APPLET */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_AREA */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_area_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_ARTICLE */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_ASIDE */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_AUDIO */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_audio_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_B */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_BASE */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_base_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_BASEFONT */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_BDI */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_BDO */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_BGSOUND */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_BIG */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_BLINK */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_BLOCKQUOTE */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_quote_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_BODY */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_body_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_BR */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_br_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_BUTTON */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_button_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_CANVAS */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_canvas_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_CAPTION */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_table_caption_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_CENTER */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_CITE */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_CLIPPATH */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_CODE */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_COL */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_table_col_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_COLGROUP */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_table_col_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_DATA */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_data_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_DATALIST */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_data_list_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_DD */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_DEL */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_mod_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_DESC */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_DETAILS */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_details_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_DFN */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_DIALOG */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_dialog_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_DIR */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_directory_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_DIV */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_div_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_DL */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_d_list_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_DT */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_EM */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_EMBED */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_embed_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FEBLEND */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FECOLORMATRIX */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FECOMPONENTTRANSFER */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FECOMPOSITE */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FECONVOLVEMATRIX */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FEDIFFUSELIGHTING */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FEDISPLACEMENTMAP */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FEDISTANTLIGHT */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FEDROPSHADOW */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FEFLOOD */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FEFUNCA */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FEFUNCB */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FEFUNCG */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FEFUNCR */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FEGAUSSIANBLUR */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FEIMAGE */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FEMERGE */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FEMERGENODE */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FEMORPHOLOGY */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FEOFFSET */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FEPOINTLIGHT */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FESPECULARLIGHTING */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FESPOTLIGHT */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FETILE */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FETURBULENCE */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FIELDSET */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_field_set_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FIGCAPTION */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FIGURE */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FONT */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_font_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FOOTER */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FOREIGNOBJECT */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FORM */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_form_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FRAME */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_frame_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_FRAMESET */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_frame_set_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_GLYPHREF */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_H1 */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_heading_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_H2 */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_heading_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_H3 */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_heading_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_H4 */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_heading_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_H5 */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_heading_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_H6 */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_heading_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_HEAD */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_head_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_HEADER */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_HGROUP */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_HR */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_hr_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_HTML */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_I */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_IFRAME */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_iframe_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_IMAGE */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_image_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_IMG */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_image_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_INPUT */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_input_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_INS */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_mod_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_ISINDEX */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_KBD */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_KEYGEN */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_LABEL */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_label_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_LEGEND */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_legend_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_LI */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_li_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_LINEARGRADIENT */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_LINK */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_link_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_LISTING */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_pre_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_MAIN */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_MALIGNMARK */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_MAP */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_map_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_MARK */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_MARQUEE */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_marquee_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_MATH */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_MENU */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_menu_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_META */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_meta_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_METER */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_meter_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_MFENCED */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_MGLYPH */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_MI */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_MN */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_MO */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_MS */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_MTEXT */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_MULTICOL */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_NAV */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_NEXTID */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_NOBR */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_NOEMBED */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_NOFRAMES */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_NOSCRIPT */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_OBJECT */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_object_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_OL */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_o_list_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_OPTGROUP */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_opt_group_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_OPTION */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_option_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_OUTPUT */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_output_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_P */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_paragraph_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_PARAM */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_param_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_PATH */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_PICTURE */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_picture_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_PLAINTEXT */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_PRE */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_pre_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_PROGRESS */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_progress_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_Q */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_quote_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_RADIALGRADIENT */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_RB */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_RP */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_RT */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_RTC */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_RUBY */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_S */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_SAMP */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_SCRIPT */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_script_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_SECTION */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_SELECT */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_select_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_SLOT */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_slot_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_SMALL */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_SOURCE */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_source_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_SPACER */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_SPAN */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_span_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_STRIKE */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_STRONG */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_STYLE */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_style_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_SUB */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_SUMMARY */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_SUP */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_SVG */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_TABLE */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_table_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_TBODY */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_table_section_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_TD */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_table_cell_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_TEMPLATE */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_template_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_TEXTAREA */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_text_area_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_TEXTPATH */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_TFOOT */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_table_section_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_TH */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_table_cell_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_THEAD */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_table_section_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_TIME */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_time_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_TITLE */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_title_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_TR */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_table_row_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_TRACK */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_track_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_TT */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_U */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_UL */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_u_list_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_VAR */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_VIDEO */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_video_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_WBR */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
+    },
+    /* PCHTML_TAG_XMP */
+    {
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_unknown_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_html_pre_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy,
+        (pchtml_dom_interface_destructor_f) pchtml_dom_element_interface_destroy
     }
 };
-#endif /* LXB_HTML_INTERFACE_RES_DESTRUCTOR_ENABLED */
-#endif /* LXB_HTML_INTERFACE_RES_DESTRUCTOR */
+#endif  /* PCHTML_HTML_INTERFACE_RES_DESTRUCTOR_ENABLED */
+#endif  /* PCHTML_HTML_INTERFACE_RES_DESTRUCTOR */

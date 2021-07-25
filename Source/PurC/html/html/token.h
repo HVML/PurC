@@ -1,16 +1,35 @@
-/*
- * Copyright (C) 2018-2020 Alexander Borisov
+/**
+ * @file token.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for html token.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_HTML_TOKEN_H
-#define LEXBOR_HTML_TOKEN_H
+#ifndef PCHTML_HTML_TOKEN_H
+#define PCHTML_HTML_TOKEN_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "config.h"
 #include "html/core/dobject.h"
 #include "html/core/in.h"
 #include "html/core/str.h"
@@ -20,114 +39,118 @@ extern "C" {
 #include "html/tag/tag.h"
 
 
-typedef int lxb_html_token_type_t;
+typedef int pchtml_html_token_type_t;
 
 
-enum lxb_html_token_type {
-    LXB_HTML_TOKEN_TYPE_OPEN         = 0x0000,
-    LXB_HTML_TOKEN_TYPE_CLOSE        = 0x0001,
-    LXB_HTML_TOKEN_TYPE_CLOSE_SELF   = 0x0002,
-    LXB_HTML_TOKEN_TYPE_FORCE_QUIRKS = 0x0004,
-    LXB_HTML_TOKEN_TYPE_DONE         = 0x0008
+enum pchtml_html_token_type {
+    PCHTML_HTML_TOKEN_TYPE_OPEN         = 0x0000,
+    PCHTML_HTML_TOKEN_TYPE_CLOSE        = 0x0001,
+    PCHTML_HTML_TOKEN_TYPE_CLOSE_SELF   = 0x0002,
+    PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS = 0x0004,
+    PCHTML_HTML_TOKEN_TYPE_DONE         = 0x0008
 };
 
 typedef struct {
-    const lxb_char_t      *begin;
-    const lxb_char_t      *end;
+    const unsigned char      *begin;
+    const unsigned char      *end;
 
-    const lxb_char_t      *text_start;
-    const lxb_char_t      *text_end;
+    const unsigned char      *text_start;
+    const unsigned char      *text_end;
 
-    lexbor_in_node_t      *in_begin;
+    pchtml_in_node_t      *in_begin;
 
-    lxb_html_token_attr_t *attr_first;
-    lxb_html_token_attr_t *attr_last;
+    pchtml_html_token_attr_t *attr_first;
+    pchtml_html_token_attr_t *attr_last;
 
     void                  *base_element;
 
     size_t                null_count;
-    lxb_tag_id_t          tag_id;
-    lxb_html_token_type_t type;
+    pchtml_tag_id_t          tag_id;
+    pchtml_html_token_type_t type;
 }
-lxb_html_token_t;
+pchtml_html_token_t;
 
 
-LXB_API lxb_html_token_t *
-lxb_html_token_create(lexbor_dobject_t *dobj);
+pchtml_html_token_t *
+pchtml_html_token_create(pchtml_dobject_t *dobj) WTF_INTERNAL;
 
-LXB_API lxb_html_token_t *
-lxb_html_token_destroy(lxb_html_token_t *token, lexbor_dobject_t *dobj);
+pchtml_html_token_t *
+pchtml_html_token_destroy(pchtml_html_token_t *token, 
+                pchtml_dobject_t *dobj) WTF_INTERNAL;
 
-LXB_API lxb_html_token_attr_t *
-lxb_html_token_attr_append(lxb_html_token_t *token, lexbor_dobject_t *dobj);
+pchtml_html_token_attr_t *
+pchtml_html_token_attr_append(pchtml_html_token_t *token, 
+                pchtml_dobject_t *dobj) WTF_INTERNAL;
 
-LXB_API void
-lxb_html_token_attr_remove(lxb_html_token_t *token,
-                           lxb_html_token_attr_t *attr);
+void
+pchtml_html_token_attr_remove(pchtml_html_token_t *token,
+                pchtml_html_token_attr_t *attr) WTF_INTERNAL;
 
-LXB_API void
-lxb_html_token_attr_delete(lxb_html_token_t *token,
-                           lxb_html_token_attr_t *attr, lexbor_dobject_t *dobj);
+void
+pchtml_html_token_attr_delete(pchtml_html_token_t *token,
+                pchtml_html_token_attr_t *attr, 
+                pchtml_dobject_t *dobj) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_token_make_text(lxb_html_token_t *token, lexbor_str_t *str,
-                         lexbor_mraw_t *mraw);
+unsigned int
+pchtml_html_token_make_text(pchtml_html_token_t *token, pchtml_str_t *str,
+                pchtml_mraw_t *mraw) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_token_make_text_drop_null(lxb_html_token_t *token, lexbor_str_t *str,
-                                   lexbor_mraw_t *mraw);
+unsigned int
+pchtml_html_token_make_text_drop_null(pchtml_html_token_t *token, 
+                pchtml_str_t *str, pchtml_mraw_t *mraw) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_token_make_text_replace_null(lxb_html_token_t *token,
-                                      lexbor_str_t *str, lexbor_mraw_t *mraw);
+unsigned int
+pchtml_html_token_make_text_replace_null(pchtml_html_token_t *token,
+                pchtml_str_t *str, pchtml_mraw_t *mraw) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_token_data_skip_ws_begin(lxb_html_token_t *token);
+unsigned int
+pchtml_html_token_data_skip_ws_begin(pchtml_html_token_t *token) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_token_data_skip_one_newline_begin(lxb_html_token_t *token);
+unsigned int
+pchtml_html_token_data_skip_one_newline_begin(
+                pchtml_html_token_t *token) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_token_data_split_ws_begin(lxb_html_token_t *token,
-                                   lxb_html_token_t *ws_token);
+unsigned int
+pchtml_html_token_data_split_ws_begin(pchtml_html_token_t *token,
+                pchtml_html_token_t *ws_token) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lxb_html_token_doctype_parse(lxb_html_token_t *token,
-                             lxb_dom_document_type_t *doc_type);
+unsigned int
+pchtml_html_token_doctype_parse(pchtml_html_token_t *token,
+                pchtml_dom_document_type_t *doc_type) WTF_INTERNAL;
 
-LXB_API lxb_html_token_attr_t *
-lxb_html_token_find_attr(lxb_html_tokenizer_t *tkz, lxb_html_token_t *token,
-                         const lxb_char_t *name, size_t name_len);
+pchtml_html_token_attr_t *
+pchtml_html_token_find_attr(pchtml_html_tokenizer_t *tkz, pchtml_html_token_t *token,
+                const unsigned char *name, size_t name_len) WTF_INTERNAL;
 
 
 /*
  * Inline functions
  */
-lxb_inline void
-lxb_html_token_clean(lxb_html_token_t *token)
+static inline void
+pchtml_html_token_clean(pchtml_html_token_t *token)
 {
-    memset(token, 0, sizeof(lxb_html_token_t));
+    memset(token, 0, sizeof(pchtml_html_token_t));
 }
 
-lxb_inline lxb_html_token_t *
-lxb_html_token_create_eof(lexbor_dobject_t *dobj)
+static inline pchtml_html_token_t *
+pchtml_html_token_create_eof(pchtml_dobject_t *dobj)
 {
-    return (lxb_html_token_t *) lexbor_dobject_calloc(dobj);
+    return (pchtml_html_token_t *) pchtml_dobject_calloc(dobj);
 }
 
 /*
  * No inline functions for ABI.
  */
 void
-lxb_html_token_clean_noi(lxb_html_token_t *token);
+pchtml_html_token_clean_noi(pchtml_html_token_t *token);
 
-lxb_html_token_t *
-lxb_html_token_create_eof_noi(lexbor_dobject_t *dobj);
+pchtml_html_token_t *
+pchtml_html_token_create_eof_noi(pchtml_dobject_t *dobj);
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LEXBOR_HTML_TOKEN_H */
+#endif  /* PCHTML_HTML_TOKEN_H */
 
