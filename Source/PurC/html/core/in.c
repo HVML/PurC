@@ -81,7 +81,7 @@ pchtml_in_node_make(pchtml_in_t *incoming, pchtml_in_node_t *last_node,
         return NULL;
     }
 
-    node->opt = LEXBOR_IN_OPT_UNDEF;
+    node->opt = PCHTML_IN_OPT_UNDEF;
     node->begin = buf;
     node->end = buf + buf_size;
     node->use = buf;
@@ -138,7 +138,7 @@ pchtml_in_node_split(pchtml_in_node_t *node, const unsigned char *pos)
     }
 
     new_node->offset   = node->offset + (pos - node->begin);
-    new_node->opt      = LEXBOR_IN_OPT_UNDEF;
+    new_node->opt      = PCHTML_IN_OPT_UNDEF;
     new_node->begin    = pos;
     new_node->end      = node->end;
     new_node->next     = NULL;

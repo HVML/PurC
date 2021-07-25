@@ -34,7 +34,7 @@ extern "C" {
 
 
 size_t
-pchtml_dtoa(double value, lxb_char_t *begin, size_t len) WTF_INTERNAL;
+pchtml_dtoa(double value, unsigned char *begin, size_t len) WTF_INTERNAL;
 
 
 #ifdef __cplusplus

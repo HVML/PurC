@@ -29,6 +29,7 @@
 extern "C" {
 #endif
 
+#include "config.h"
 #include "html/core/base.h"
 #include "html/core/dobject.h"
 
@@ -67,7 +68,7 @@ struct pchtml_in_node {
 pchtml_in_t *
 pchtml_in_create(void) WTF_INTERNAL;
 
-lxb_status_t
+unsigned int
 pchtml_in_init(pchtml_in_t *incoming, size_t chunk_size) WTF_INTERNAL;
 
 void

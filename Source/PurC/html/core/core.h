@@ -25,6 +25,7 @@
 #ifndef PCHTML_CORE_H
 #define PCHTML_CORE_H
 
+#include "config.h"
 #include "html/core/base.h"
 #include "html/core/def.h"
 #include "html/core/types.h"

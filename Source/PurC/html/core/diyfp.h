@@ -210,10 +210,10 @@ pchtml_diyfp_mul(pchtml_diyfp_t lhs, pchtml_diyfp_t rhs)
 //#if (PCHTML_HAVE_UNSIGNED_INT128)     // gengyue
 
 //    uint64_t l, h;
-//    lxb_uint128_t u128;
+//    pchtml_uint128_t u128;
 
-//    u128 = (lxb_uint128_t) (lhs.significand)
-//           * (lxb_uint128_t) (rhs.significand);
+//    u128 = (pchtml_uint128_t) (lhs.significand)
+//           * (pchtml_uint128_t) (rhs.significand);
 
 //    h = u128 >> 64;
 //    l = (uint64_t) u128;

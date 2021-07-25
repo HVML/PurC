@@ -64,7 +64,7 @@ pchtml_strtod_diyfp_strtod(const unsigned char *start, size_t length, int exp);
  * Since 2^64 = 18446744073709551616 it would still be possible read another
  * digit if it was less or equal than 6, but this would complicate the code.
  */
-lxb_inline uint64_t
+static inline uint64_t
 pchtml_strtod_read_uint64(const unsigned char *start, size_t length,
                           size_t *ndigits)
 {
@@ -118,7 +118,7 @@ pchtml_strtod_diyfp_read(const unsigned char *start, size_t length, int *remaini
  * Returns 10^exp as an exact nxt_diyfp_t.
  * The given exp must be in the range [1; NXT_DECIMAL_EXPONENT_DIST[.
  */
-lxb_inline pchtml_diyfp_t
+static inline pchtml_diyfp_t
 pchtml_strtod_adjust_pow10(int exp)
 {
     switch (exp) {
@@ -149,7 +149,7 @@ pchtml_strtod_adjust_pow10(int exp)
  * NXT_SIGNIFICAND_SIZE. The only exception are denormals. They start with
  * leading zeroes and their effective significand-size is hence smaller.
  */
-lxb_inline int
+static inline int
 pchtml_strtod_diyfp_sgnd_size(int order)
 {
     if (order >= (PCHTML_DBL_EXPONENT_DENORMAL + PCHTML_SIGNIFICAND_SIZE)) {

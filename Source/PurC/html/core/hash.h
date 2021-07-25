@@ -42,13 +42,13 @@ typedef struct pchtml_hash_search pchtml_hash_search_t;
 typedef struct pchtml_hash_insert pchtml_hash_insert_t;
 
 #ifndef PCHTML_HASH_EXTERN
-LXB_EXTERN const pchtml_hash_insert_t *pchtml_hash_insert_raw;
-LXB_EXTERN const pchtml_hash_insert_t *pchtml_hash_insert_lower;
-LXB_EXTERN const pchtml_hash_insert_t *pchtml_hash_insert_upper;
+PCHTML_EXTERN const pchtml_hash_insert_t *pchtml_hash_insert_raw;
+PCHTML_EXTERN const pchtml_hash_insert_t *pchtml_hash_insert_lower;
+PCHTML_EXTERN const pchtml_hash_insert_t *pchtml_hash_insert_upper;
 
-LXB_EXTERN const pchtml_hash_search_t *pchtml_hash_search_raw;
-LXB_EXTERN const pchtml_hash_search_t *pchtml_hash_search_lower;
-LXB_EXTERN const pchtml_hash_search_t *pchtml_hash_search_upper;
+PCHTML_EXTERN const pchtml_hash_search_t *pchtml_hash_search_raw;
+PCHTML_EXTERN const pchtml_hash_search_t *pchtml_hash_search_lower;
+PCHTML_EXTERN const pchtml_hash_search_t *pchtml_hash_search_upper;
 #endif
 
 /*

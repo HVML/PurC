@@ -1,11 +1,30 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file mem.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for memory operation.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_MEM_H
-#define LEXBOR_MEM_H
+
+#ifndef PCHTML_MEM_H
+#define PCHTML_MEM_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -13,105 +32,106 @@ extern "C" {
 
 #include <string.h>
 
+#include "config.h"
 #include "html/core/base.h"
 
 
-typedef struct lexbor_mem_chunk lexbor_mem_chunk_t;
-typedef struct lexbor_mem lexbor_mem_t;
+typedef struct pchtml_mem_chunk pchtml_mem_chunk_t;
+typedef struct pchtml_mem pchtml_mem_t;
 
-struct lexbor_mem_chunk {
+struct pchtml_mem_chunk {
     uint8_t            *data;
     size_t             length;
     size_t             size;
 
-    lexbor_mem_chunk_t *next;
-    lexbor_mem_chunk_t *prev;
+    pchtml_mem_chunk_t *next;
+    pchtml_mem_chunk_t *prev;
 };
 
-struct lexbor_mem {
-    lexbor_mem_chunk_t *chunk;
-    lexbor_mem_chunk_t *chunk_first;
+struct pchtml_mem {
+    pchtml_mem_chunk_t *chunk;
+    pchtml_mem_chunk_t *chunk_first;
 
     size_t             chunk_min_size;
     size_t             chunk_length;
 };
 
 
-LXB_API lexbor_mem_t *
-lexbor_mem_create(void);
+pchtml_mem_t *
+pchtml_mem_create(void) WTF_INTERNAL;
 
-LXB_API lxb_status_t
-lexbor_mem_init(lexbor_mem_t *mem, size_t min_chunk_size);
+unsigned int
+pchtml_mem_init(pchtml_mem_t *mem, size_t min_chunk_size) WTF_INTERNAL;
 
-LXB_API void
-lexbor_mem_clean(lexbor_mem_t *mem);
+void
+pchtml_mem_clean(pchtml_mem_t *mem) WTF_INTERNAL;
 
-LXB_API lexbor_mem_t *
-lexbor_mem_destroy(lexbor_mem_t *mem, bool destroy_self);
+pchtml_mem_t *
+pchtml_mem_destroy(pchtml_mem_t *mem, bool destroy_self) WTF_INTERNAL;
 
 
 /*
- * The memory allocated in lexbor_mem_chunk_* functions needs to be freed
- * by lexbor_mem_chunk_destroy function.
+ * The memory allocated in pchtml_mem_chunk_* functions needs to be freed
+ * by pchtml_mem_chunk_destroy function.
  *
- * This memory will not be automatically freed by a function lexbor_mem_destroy.
+ * This memory will not be automatically freed by a function pchtml_mem_destroy.
  */
-LXB_API uint8_t *
-lexbor_mem_chunk_init(lexbor_mem_t *mem,
-                      lexbor_mem_chunk_t *chunk, size_t length);
+uint8_t *
+pchtml_mem_chunk_init(pchtml_mem_t *mem,
+                pchtml_mem_chunk_t *chunk, size_t length) WTF_INTERNAL;
 
-LXB_API lexbor_mem_chunk_t *
-lexbor_mem_chunk_make(lexbor_mem_t *mem, size_t length);
+pchtml_mem_chunk_t *
+pchtml_mem_chunk_make(pchtml_mem_t *mem, size_t length) WTF_INTERNAL;
 
-LXB_API lexbor_mem_chunk_t *
-lexbor_mem_chunk_destroy(lexbor_mem_t *mem,
-                         lexbor_mem_chunk_t *chunk, bool self_destroy);
+pchtml_mem_chunk_t *
+pchtml_mem_chunk_destroy(pchtml_mem_t *mem,
+                pchtml_mem_chunk_t *chunk, bool self_destroy) WTF_INTERNAL;
 
 /*
- * The memory allocated in lexbor_mem_alloc and lexbor_mem_calloc function
- * will be freeds after calling lexbor_mem_destroy function.
+ * The memory allocated in pchtml_mem_alloc and pchtml_mem_calloc function
+ * will be freeds after calling pchtml_mem_destroy function.
  */
-LXB_API void *
-lexbor_mem_alloc(lexbor_mem_t *mem, size_t length);
+void *
+pchtml_mem_alloc(pchtml_mem_t *mem, size_t length) WTF_INTERNAL;
 
-LXB_API void *
-lexbor_mem_calloc(lexbor_mem_t *mem, size_t length);
+void *
+pchtml_mem_calloc(pchtml_mem_t *mem, size_t length) WTF_INTERNAL;
 
 
 /*
  * Inline functions
  */
-lxb_inline size_t
-lexbor_mem_current_length(lexbor_mem_t *mem)
+static inline size_t
+pchtml_mem_current_length(pchtml_mem_t *mem)
 {
     return mem->chunk->length;
 }
 
-lxb_inline size_t
-lexbor_mem_current_size(lexbor_mem_t *mem)
+static inline size_t
+pchtml_mem_current_size(pchtml_mem_t *mem)
 {
     return mem->chunk->size;
 }
 
-lxb_inline size_t
-lexbor_mem_chunk_length(lexbor_mem_t *mem)
+static inline size_t
+pchtml_mem_chunk_length(pchtml_mem_t *mem)
 {
     return mem->chunk_length;
 }
 
-lxb_inline size_t
-lexbor_mem_align(size_t size)
+static inline size_t
+pchtml_mem_align(size_t size)
 {
-    return ((size % LEXBOR_MEM_ALIGN_STEP) != 0)
-           ? size + (LEXBOR_MEM_ALIGN_STEP - (size % LEXBOR_MEM_ALIGN_STEP))
+    return ((size % PCHTML_MEM_ALIGN_STEP) != 0)
+           ? size + (PCHTML_MEM_ALIGN_STEP - (size % PCHTML_MEM_ALIGN_STEP))
            : size;
 }
 
-lxb_inline size_t
-lexbor_mem_align_floor(size_t size)
+static inline size_t
+pchtml_mem_align_floor(size_t size)
 {
-    return ((size % LEXBOR_MEM_ALIGN_STEP) != 0)
-           ? size - (size % LEXBOR_MEM_ALIGN_STEP)
+    return ((size % PCHTML_MEM_ALIGN_STEP) != 0)
+           ? size - (size % PCHTML_MEM_ALIGN_STEP)
            : size;
 }
 
@@ -119,22 +139,22 @@ lexbor_mem_align_floor(size_t size)
  * No inline functions for ABI.
  */
 size_t
-lexbor_mem_current_length_noi(lexbor_mem_t *mem);
+pchtml_mem_current_length_noi(pchtml_mem_t *mem);
 
 size_t
-lexbor_mem_current_size_noi(lexbor_mem_t *mem);
+pchtml_mem_current_size_noi(pchtml_mem_t *mem);
 
 size_t
-lexbor_mem_chunk_length_noi(lexbor_mem_t *mem);
+pchtml_mem_chunk_length_noi(pchtml_mem_t *mem);
 size_t
-lexbor_mem_align_noi(size_t size);
+pchtml_mem_align_noi(size_t size);
 
 size_t
-lexbor_mem_align_floor_noi(size_t size);
+pchtml_mem_align_floor_noi(size_t size);
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LEXBOR_MEM_H */
+#endif  /* PCHTML_MEM_H */

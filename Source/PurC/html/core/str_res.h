@@ -1,32 +1,50 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file str_res.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for resource of string.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_STR_RES_H
-#define LEXBOR_STR_RES_H
+#ifndef PCHTML_STR_RES_H
+#define PCHTML_STR_RES_H
 
-#define LEXBOR_STR_RES_MAP_CHAR_OTHER      '\00'
-#define LEXBOR_STR_RES_MAP_CHAR_A_Z_a_z    '\01'
-#define LEXBOR_STR_RES_MAP_CHAR_WHITESPACE '\02'
+#define PCHTML_STR_RES_MAP_CHAR_OTHER      '\00'
+#define PCHTML_STR_RES_MAP_CHAR_A_Z_a_z    '\01'
+#define PCHTML_STR_RES_MAP_CHAR_WHITESPACE '\02'
 
-#define LEXBOR_STR_RES_SLIP 0xFF
+#define PCHTML_STR_RES_SLIP 0xFF
 
-#endif /* LEXBOR_STR_RES_H */
+#endif /* PCHTML_STR_RES_H */
 
-#ifdef LEXBOR_STR_RES_ANSI_REPLACEMENT_CHARACTER
-#ifndef LEXBOR_STR_RES_ANSI_REPLACEMENT_CHARACTER_ENABLED
-#define LEXBOR_STR_RES_ANSI_REPLACEMENT_CHARACTER_ENABLED
-static const lxb_char_t
-lexbor_str_res_ansi_replacement_character[] = "\xEF\xBF\xBD";
-#endif /* LEXBOR_STR_RES_ANSI_REPLACEMENT_CHARACTER_ENABLED */
-#endif /* LEXBOR_STR_RES_ANSI_REPLACEMENT_CHARACTER */
+#ifdef PCHTML_STR_RES_ANSI_REPLACEMENT_CHARACTER
+#ifndef PCHTML_STR_RES_ANSI_REPLACEMENT_CHARACTER_ENABLED
+#define PCHTML_STR_RES_ANSI_REPLACEMENT_CHARACTER_ENABLED
+static const unsigned char
+pchtml_str_res_ansi_replacement_character[] = "\xEF\xBF\xBD";
+#endif /* PCHTML_STR_RES_ANSI_REPLACEMENT_CHARACTER_ENABLED */
+#endif /* PCHTML_STR_RES_ANSI_REPLACEMENT_CHARACTER */
 
-#ifdef LEXBOR_STR_RES_MAP_NUM
-#ifndef LEXBOR_STR_RES_MAP_NUM_ENABLED
-#define LEXBOR_STR_RES_MAP_NUM_ENABLED
-static const lxb_char_t lexbor_str_res_map_num[] = {
+#ifdef PCHTML_STR_RES_MAP_NUM
+#ifndef PCHTML_STR_RES_MAP_NUM_ENABLED
+#define PCHTML_STR_RES_MAP_NUM_ENABLED
+static const unsigned char pchtml_str_res_map_num[] = {
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -57,14 +75,14 @@ static const lxb_char_t lexbor_str_res_map_num[] = {
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
     0xff, 0xff, 0xff, 0xff
 };
-#endif /* LEXBOR_STR_RES_MAP_NUM_ENABLED */
-#endif /* LEXBOR_STR_RES_MAP_NUM */
+#endif /* PCHTML_STR_RES_MAP_NUM_ENABLED */
+#endif /* PCHTML_STR_RES_MAP_NUM */
 
 
-#ifdef LEXBOR_STR_RES_MAP_HEX
-#ifndef LEXBOR_STR_RES_MAP_HEX_ENABLED
-#define LEXBOR_STR_RES_MAP_HEX_ENABLED
-static const lxb_char_t lexbor_str_res_map_hex[] = {
+#ifdef PCHTML_STR_RES_MAP_HEX
+#ifndef PCHTML_STR_RES_MAP_HEX_ENABLED
+#define PCHTML_STR_RES_MAP_HEX_ENABLED
+static const unsigned char pchtml_str_res_map_hex[] = {
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -95,14 +113,14 @@ static const lxb_char_t lexbor_str_res_map_hex[] = {
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
     0xff, 0xff, 0xff, 0xff
 };
-#endif /* LEXBOR_STR_RES_MAP_HEX_ENABLED */
-#endif /* LEXBOR_STR_RES_MAP_HEX */
+#endif /* PCHTML_STR_RES_MAP_HEX_ENABLED */
+#endif /* PCHTML_STR_RES_MAP_HEX */
 
 
-#ifdef LEXBOR_STR_RES_MAP_LOWERCASE
-#ifndef LEXBOR_STR_RES_MAP_LOWERCASE_ENABLED
-#define LEXBOR_STR_RES_MAP_LOWERCASE_ENABLED
-static const lxb_char_t lexbor_str_res_map_lowercase[] = {
+#ifdef PCHTML_STR_RES_MAP_LOWERCASE
+#ifndef PCHTML_STR_RES_MAP_LOWERCASE_ENABLED
+#define PCHTML_STR_RES_MAP_LOWERCASE_ENABLED
+static const unsigned char pchtml_str_res_map_lowercase[] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
     0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11,
     0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a,
@@ -133,14 +151,14 @@ static const lxb_char_t lexbor_str_res_map_lowercase[] = {
     0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa, 0xfb,
     0xfc, 0xfd, 0xfe, 0xff
 };
-#endif /* LEXBOR_STR_RES_MAP_LOWERCASE_ENABLED */
-#endif /* LEXBOR_STR_RES_MAP_LOWERCASE */
+#endif /* PCHTML_STR_RES_MAP_LOWERCASE_ENABLED */
+#endif /* PCHTML_STR_RES_MAP_LOWERCASE */
 
 
-#ifdef LEXBOR_STR_RES_MAP_UPPERCASE
-#ifndef LEXBOR_STR_RES_MAP_UPPERCASE_ENABLED
-#define LEXBOR_STR_RES_MAP_UPPERCASE_ENABLED
-static const lxb_char_t lexbor_str_res_map_uppercase[] = {
+#ifdef PCHTML_STR_RES_MAP_UPPERCASE
+#ifndef PCHTML_STR_RES_MAP_UPPERCASE_ENABLED
+#define PCHTML_STR_RES_MAP_UPPERCASE_ENABLED
+static const unsigned char pchtml_str_res_map_uppercase[] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
     0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11,
     0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a,
@@ -171,14 +189,14 @@ static const lxb_char_t lexbor_str_res_map_uppercase[] = {
     0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa, 0xfb,
     0xfc, 0xfd, 0xfe, 0xff
 };
-#endif /* LEXBOR_STR_RES_MAP_UPPERCASE_ENABLED */
-#endif /* LEXBOR_STR_RES_MAP_UPPERCASE */
+#endif /* PCHTML_STR_RES_MAP_UPPERCASE_ENABLED */
+#endif /* PCHTML_STR_RES_MAP_UPPERCASE */
 
 
-#ifdef LEXBOR_STR_RES_REPLACEMENT_CHARACTER
-#ifndef LEXBOR_STR_RES_REPLACEMENT_CHARACTER_ENABLED
-#define LEXBOR_STR_RES_REPLACEMENT_CHARACTER_ENABLED
-static const size_t lexbor_str_res_replacement_character[] = {
+#ifdef PCHTML_STR_RES_REPLACEMENT_CHARACTER
+#ifndef PCHTML_STR_RES_REPLACEMENT_CHARACTER_ENABLED
+#define PCHTML_STR_RES_REPLACEMENT_CHARACTER_ENABLED
+static const size_t pchtml_str_res_replacement_character[] = {
     65533, 1, 2, 3, 4, 5, 6, 7, 8,
     9, 10, 11, 12, 13, 14, 15, 16, 17,
     18, 19, 20, 21, 22, 23, 24, 25, 26,
@@ -198,14 +216,14 @@ static const size_t lexbor_str_res_replacement_character[] = {
     144, 8216, 8217, 8220, 8221, 8226, 8211, 8212, 732,
     8482, 353, 8250, 339, 157, 382, 376
 };
-#endif /* LEXBOR_STR_RES_REPLACEMENT_CHARACTER_ENABLED */
-#endif /* LEXBOR_STR_RES_REPLACEMENT_CHARACTER */
+#endif /* PCHTML_STR_RES_REPLACEMENT_CHARACTER_ENABLED */
+#endif /* PCHTML_STR_RES_REPLACEMENT_CHARACTER */
 
 
-#ifdef LEXBOR_STR_RES_ALPHANUMERIC_CHARACTER
-#ifndef LEXBOR_STR_RES_ALPHANUMERIC_CHARACTER_ENABLED
-#define LEXBOR_STR_RES_ALPHANUMERIC_CHARACTER_ENABLED
-static const size_t lexbor_str_res_alphanumeric_character[] = {
+#ifdef PCHTML_STR_RES_ALPHANUMERIC_CHARACTER
+#ifndef PCHTML_STR_RES_ALPHANUMERIC_CHARACTER_ENABLED
+#define PCHTML_STR_RES_ALPHANUMERIC_CHARACTER_ENABLED
+static const size_t pchtml_str_res_alphanumeric_character[] = {
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -236,14 +254,14 @@ static const size_t lexbor_str_res_alphanumeric_character[] = {
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
     0xff, 0xff, 0xff, 0xff
 };
-#endif /* LEXBOR_STR_RES_ALPHANUMERIC_CHARACTER_ENABLED */
-#endif /* LEXBOR_STR_RES_ALPHANUMERIC_CHARACTER */
+#endif /* PCHTML_STR_RES_ALPHANUMERIC_CHARACTER_ENABLED */
+#endif /* PCHTML_STR_RES_ALPHANUMERIC_CHARACTER */
 
 
-#ifdef LEXBOR_STR_RES_ALPHA_CHARACTER
-#ifndef LEXBOR_STR_RES_ALPHA_CHARACTER_ENABLED
-#define LEXBOR_STR_RES_ALPHA_CHARACTER_ENABLED
-static const size_t lexbor_str_res_alpha_character[] = {
+#ifdef PCHTML_STR_RES_ALPHA_CHARACTER
+#ifndef PCHTML_STR_RES_ALPHA_CHARACTER_ENABLED
+#define PCHTML_STR_RES_ALPHA_CHARACTER_ENABLED
+static const size_t pchtml_str_res_alpha_character[] = {
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -274,14 +292,14 @@ static const size_t lexbor_str_res_alpha_character[] = {
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
     0xff, 0xff, 0xff, 0xff
 };
-#endif /* LEXBOR_STR_RES_ALPHA_CHARACTER_ENABLED */
-#endif /* LEXBOR_STR_RES_ALPHA_CHARACTER */
+#endif /* PCHTML_STR_RES_ALPHA_CHARACTER_ENABLED */
+#endif /* PCHTML_STR_RES_ALPHA_CHARACTER */
 
 
-#ifdef LEXBOR_TOKENIZER_CHARS_MAP
-#ifndef LEXBOR_TOKENIZER_CHARS_MAP_ENABLED
-#define LEXBOR_TOKENIZER_CHARS_MAP_ENABLED
-static const unsigned char lexbor_tokenizer_chars_map[] = {
+#ifdef PCHTML_TOKENIZER_CHARS_MAP
+#ifndef PCHTML_TOKENIZER_CHARS_MAP_ENABLED
+#define PCHTML_TOKENIZER_CHARS_MAP_ENABLED
+static const unsigned char pchtml_tokenizer_chars_map[] = {
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
     0x02, 0x02, 0xff, 0x02, 0x02, 0xff, 0xff, 0xff, 0xff,
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -312,25 +330,25 @@ static const unsigned char lexbor_tokenizer_chars_map[] = {
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
     0xff, 0xff, 0xff, 0xff
 };
-#endif /* LEXBOR_TOKENIZER_CHARS_MAP_ENABLED */
-#endif /* LEXBOR_TOKENIZER_CHARS_MAP */
+#endif /* PCHTML_TOKENIZER_CHARS_MAP_ENABLED */
+#endif /* PCHTML_TOKENIZER_CHARS_MAP */
 
 
-#ifdef LEXBOR_STR_RES_MAP_HEX_TO_CHAR
-#ifndef LEXBOR_STR_RES_MAP_HEX_TO_CHAR_ENABLED
-#define LEXBOR_STR_RES_MAP_HEX_TO_CHAR_ENABLED
-static const lxb_char_t lexbor_str_res_map_hex_to_char[] = {
+#ifdef PCHTML_STR_RES_MAP_HEX_TO_CHAR
+#ifndef PCHTML_STR_RES_MAP_HEX_TO_CHAR_ENABLED
+#define PCHTML_STR_RES_MAP_HEX_TO_CHAR_ENABLED
+static const unsigned char pchtml_str_res_map_hex_to_char[] = {
     0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38,
     0x39, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x00
 };
-#endif /* LEXBOR_STR_RES_MAP_HEX_TO_CHAR_ENABLED */
-#endif /* LEXBOR_STR_RES_MAP_HEX_TO_CHAR */
+#endif /* PCHTML_STR_RES_MAP_HEX_TO_CHAR_ENABLED */
+#endif /* PCHTML_STR_RES_MAP_HEX_TO_CHAR */
 
 
-#ifdef LEXBOR_STR_RES_CHAR_TO_TWO_HEX_VALUE
-#ifndef LEXBOR_STR_RES_CHAR_TO_TWO_HEX_VALUE_ENABLED
-#define LEXBOR_STR_RES_CHAR_TO_TWO_HEX_VALUE_ENABLED
-static const char * lexbor_str_res_char_to_two_hex_value[257] = {
+#ifdef PCHTML_STR_RES_CHAR_TO_TWO_HEX_VALUE
+#ifndef PCHTML_STR_RES_CHAR_TO_TWO_HEX_VALUE_ENABLED
+#define PCHTML_STR_RES_CHAR_TO_TWO_HEX_VALUE_ENABLED
+static const char * pchtml_str_res_char_to_two_hex_value[257] = {
     "00", "01", "02", "03", "04", "05", "06", "07",
     "08", "09", "0A", "0B", "0C", "0D", "0E", "0F",
     "10", "11", "12", "13", "14", "15", "16", "17",
@@ -365,5 +383,5 @@ static const char * lexbor_str_res_char_to_two_hex_value[257] = {
     "F8", "F9", "FA", "FB", "FC", "FD", "FE", "FF",
     NULL
 };
-#endif /* LEXBOR_STR_RES_CHAR_TO_TWO_HEX_VALUE_ENABLED */
-#endif /* LEXBOR_STR_RES_CHAR_TO_TWO_HEX_VALUE */
+#endif /* PCHTML_STR_RES_CHAR_TO_TWO_HEX_VALUE_ENABLED */
+#endif /* PCHTML_STR_RES_CHAR_TO_TWO_HEX_VALUE */

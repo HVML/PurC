@@ -1,65 +1,86 @@
-/*
- * Copyright (C) 2019 Alexander Borisov
+/**
+ * @file plog.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for log.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_PLOG_H
-#define LEXBOR_PLOG_H
+
+#ifndef PCHTML_PLOG_H
+#define PCHTML_PLOG_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "config.h"
 #include "html/core/array_obj.h"
 
 
 typedef struct {
-    const lxb_char_t *data;
+    const unsigned char *data;
     void             *context;
     unsigned         id;
 }
-lexbor_plog_entry_t;
+pchtml_plog_entry_t;
 
 typedef struct {
-    lexbor_array_obj_t list;
+    pchtml_array_obj_t list;
 }
-lexbor_plog_t;
+pchtml_plog_t;
 
 
-LXB_API lxb_status_t
-lexbor_plog_init(lexbor_plog_t *plog, size_t init_size, size_t struct_size);
+unsigned int
+pchtml_plog_init(pchtml_plog_t *plog, size_t init_size, 
+                size_t struct_size) WTF_INTERNAL;
 
-LXB_API lexbor_plog_t *
-lexbor_plog_destroy(lexbor_plog_t *plog, bool self_destroy);
+pchtml_plog_t *
+pchtml_plog_destroy(pchtml_plog_t *plog, bool self_destroy) WTF_INTERNAL;
 
 
 /*
  * Inline functions
  */
-lxb_inline lexbor_plog_t *
-lexbor_plog_create(void)
+static inline pchtml_plog_t *
+pchtml_plog_create(void)
 {
-    return (lexbor_plog_t *) lexbor_calloc(1, sizeof(lexbor_plog_t));
+    return (pchtml_plog_t *) pchtml_calloc(1, sizeof(pchtml_plog_t));
 }
 
-lxb_inline void
-lexbor_plog_clean(lexbor_plog_t *plog)
+static inline void
+pchtml_plog_clean(pchtml_plog_t *plog)
 {
-    lexbor_array_obj_clean(&plog->list);
+    pchtml_array_obj_clean(&plog->list);
 }
 
-lxb_inline void *
-lexbor_plog_push(lexbor_plog_t *plog, const lxb_char_t *data, void *ctx,
+static inline void *
+pchtml_plog_push(pchtml_plog_t *plog, const unsigned char *data, void *ctx,
                  unsigned id)
 {
-    lexbor_plog_entry_t *entry;
+    pchtml_plog_entry_t *entry;
 
     if (plog == NULL) {
         return NULL;
     }
 
-    entry = (lexbor_plog_entry_t *) lexbor_array_obj_push(&plog->list);
+    entry = (pchtml_plog_entry_t *) pchtml_array_obj_push(&plog->list);
     if (entry == NULL) {
         return NULL;
     }
@@ -71,32 +92,32 @@ lexbor_plog_push(lexbor_plog_t *plog, const lxb_char_t *data, void *ctx,
     return (void *) entry;
 }
 
-lxb_inline size_t
-lexbor_plog_length(lexbor_plog_t *plog)
+static inline size_t
+pchtml_plog_length(pchtml_plog_t *plog)
 {
-    return lexbor_array_obj_length(&plog->list);
+    return pchtml_array_obj_length(&plog->list);
 }
 
 /*
  * No inline functions for ABI.
  */
-lexbor_plog_t *
-lexbor_plog_create_noi(void);
+pchtml_plog_t *
+pchtml_plog_create_noi(void);
 
 void
-lexbor_plog_clean_noi(lexbor_plog_t *plog);
+pchtml_plog_clean_noi(pchtml_plog_t *plog);
 
 void *
-lexbor_plog_push_noi(lexbor_plog_t *plog, const lxb_char_t *data, void *ctx,
+pchtml_plog_push_noi(pchtml_plog_t *plog, const unsigned char *data, void *ctx,
                      unsigned id);
 
 size_t
-lexbor_plog_length_noi(lexbor_plog_t *plog);
+pchtml_plog_length_noi(pchtml_plog_t *plog);
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LEXBOR_PLOG_H */
+#endif  /* PCHTML_PLOG_H */
 

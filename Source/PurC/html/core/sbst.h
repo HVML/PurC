@@ -1,11 +1,29 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file sbst.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for sbst.
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_SBST_H
-#define LEXBOR_SBST_H
+#ifndef PCHTML_SBST_H
+#define PCHTML_SBST_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -13,11 +31,12 @@ extern "C" {
 
 #include <string.h>
 
+#include "config.h"
 #include "html/core/base.h"
 
 
 typedef struct {
-    lxb_char_t key;
+    unsigned char key;
 
     void       *value;
     size_t     value_len;
@@ -26,16 +45,16 @@ typedef struct {
     size_t     right;
     size_t     next;
 }
-lexbor_sbst_entry_static_t;
+pchtml_sbst_entry_static_t;
 
 
 /*
  * Inline functions
  */
-lxb_inline const lexbor_sbst_entry_static_t *
-lexbor_sbst_entry_static_find(const lexbor_sbst_entry_static_t *strt,
-                              const lexbor_sbst_entry_static_t *root,
-                              const lxb_char_t key)
+static inline const pchtml_sbst_entry_static_t *
+pchtml_sbst_entry_static_find(const pchtml_sbst_entry_static_t *strt,
+                              const pchtml_sbst_entry_static_t *root,
+                              const unsigned char key)
 {
     while (root != strt) {
         if (root->key == key) {
@@ -53,7 +72,7 @@ lexbor_sbst_entry_static_find(const lexbor_sbst_entry_static_t *strt,
 }
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LEXBOR_SBST_H */
+#endif  /* PCHTML_SBST_H */

@@ -1,11 +1,29 @@
-/*
- * Copyright (C) 2018 Alexander Borisov
+/**
+ * @file shs.h
+ * @author 
+ * @date 2021/07/02
+ * @brief The hearder file for shs algorithm..
  *
- * Author: Alexander Borisov <borisov@lexbor.com>
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEXBOR_SHS_H
-#define LEXBOR_SHS_H
+#ifndef PCHTML_SHS_H
+#define PCHTML_SHS_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -13,6 +31,7 @@ extern "C" {
 
 #include <string.h>
 
+#include "config.h"
 #include "html/core/base.h"
 
 
@@ -23,7 +42,7 @@ typedef struct {
     size_t key_len;
     size_t next;
 }
-lexbor_shs_entry_t;
+pchtml_shs_entry_t;
 
 typedef struct {
     uint32_t key;
@@ -31,29 +50,29 @@ typedef struct {
 
     size_t   next;
 }
-lexbor_shs_hash_t;
+pchtml_shs_hash_t;
 
 
-LXB_API const lexbor_shs_entry_t *
-lexbor_shs_entry_get_static(const lexbor_shs_entry_t *tree,
-                            const lxb_char_t *key, size_t size);
+const pchtml_shs_entry_t *
+pchtml_shs_entry_get_static(const pchtml_shs_entry_t *tree,
+                const unsigned char *key, size_t size) WTF_INTERNAL;
 
-LXB_API const lexbor_shs_entry_t *
-lexbor_shs_entry_get_lower_static(const lexbor_shs_entry_t *root,
-                                  const lxb_char_t *key, size_t key_len);
+const pchtml_shs_entry_t *
+pchtml_shs_entry_get_lower_static(const pchtml_shs_entry_t *root,
+                const unsigned char *key, size_t key_len) WTF_INTERNAL;
 
-LXB_API const lexbor_shs_entry_t *
-lexbor_shs_entry_get_upper_static(const lexbor_shs_entry_t *root,
-                                  const lxb_char_t *key, size_t key_len);
+const pchtml_shs_entry_t *
+pchtml_shs_entry_get_upper_static(const pchtml_shs_entry_t *root,
+                const unsigned char *key, size_t key_len) WTF_INTERNAL;
 
 /*
  * Inline functions
  */
-lxb_inline const lexbor_shs_hash_t *
-lexbor_shs_hash_get_static(const lexbor_shs_hash_t *table,
+static inline const pchtml_shs_hash_t *
+pchtml_shs_hash_get_static(const pchtml_shs_hash_t *table,
                            const size_t table_size, const uint32_t key)
 {
-    const lexbor_shs_hash_t *entry;
+    const pchtml_shs_hash_t *entry;
 
     entry = &table[ (key % table_size) + 1 ];
 
@@ -71,10 +90,10 @@ lexbor_shs_hash_get_static(const lexbor_shs_hash_t *table,
 
 
 #ifdef __cplusplus
-} /* extern "C" */
+}       /* __cplusplus */
 #endif
 
-#endif /* LEXBOR_SHS_H */
+#endif  /* PCHTML_SHS_H */
 
 
 

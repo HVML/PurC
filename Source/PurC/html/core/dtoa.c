@@ -167,12 +167,12 @@ pchtml_grisu2_gen(pchtml_diyfp_t W, pchtml_diyfp_t Mp, uint64_t delta,
 static inline pchtml_diyfp_t
 pchtml_diyfp_normalize_boundary(pchtml_diyfp_t v)
 {
-    while ((v.significand & (LEXBOR_DBL_HIDDEN_BIT << 1)) == 0) {
+    while ((v.significand & (PCHTML_DBL_HIDDEN_BIT << 1)) == 0) {
             v.significand <<= 1;
             v.exp--;
     }
 
-    return pchtml_diyfp_shift_left(v, LEXBOR_SIGNIFICAND_SHIFT - 2);
+    return pchtml_diyfp_shift_left(v, PCHTML_SIGNIFICAND_SHIFT - 2);
 }
 
 static inline void
@@ -184,7 +184,7 @@ pchtml_diyfp_normalize_boundaries(pchtml_diyfp_t v, pchtml_diyfp_t* minus,
     pl = pchtml_diyfp_normalize_boundary(pchtml_diyfp((v.significand << 1) + 1,
                                                       v.exp - 1));
 
-    if (v.significand == LEXBOR_DBL_HIDDEN_BIT) {
+    if (v.significand == PCHTML_DBL_HIDDEN_BIT) {
         mi = pchtml_diyfp((v.significand << 2) - 1, v.exp - 2);
 
     } else {

@@ -68,7 +68,7 @@ struct pchtml_bst {
 pchtml_bst_t *
 pchtml_bst_create(void) WTF_INTERNAL;
 
-lxb_status_t
+unsigned int
 pchtml_bst_init(pchtml_bst_t *bst, size_t size) WTF_INTERNAL;
 
 void

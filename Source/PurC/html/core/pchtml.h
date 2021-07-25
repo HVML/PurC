@@ -29,16 +29,17 @@
 extern "C" {
 #endif
 
+#include "config.h"
 #include "html/core/def.h"
 
 
-void * lexbor_malloc(size_t size) WTF_INTERNAL;
+void * pchtml_malloc(size_t size) WTF_INTERNAL;
 
-void * lexbor_realloc(void *dst, size_t size) WTF_INTERNAL;
+void * pchtml_realloc(void *dst, size_t size) WTF_INTERNAL;
 
-void * lexbor_calloc(size_t num, size_t size) WTF_INTERNAL;
+void * pchtml_calloc(size_t num, size_t size) WTF_INTERNAL;
 
-void * lexbor_free(void *dst) WTF_INTERNAL;
+void * pchtml_free(void *dst) WTF_INTERNAL;
 
 
 #ifdef __cplusplus
