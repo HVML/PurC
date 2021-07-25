@@ -8,29 +8,29 @@
 #include "html/html/interfaces/document.h"
 
 
-lxb_html_window_t *
-lxb_html_window_create(lxb_html_document_t *document)
+pchtml_html_window_t *
+pchtml_html_window_create(pchtml_html_document_t *document)
 {
-    lxb_html_window_t *element;
+    pchtml_html_window_t *element;
 
-    element = lexbor_mraw_calloc(document->dom_document.mraw,
-                                 sizeof(lxb_html_window_t));
+    element = pchtml_mraw_calloc(document->dom_document.mraw,
+                                 sizeof(pchtml_html_window_t));
     if (element == NULL) {
         return NULL;
     }
 
-    lxb_dom_node_t *node = lxb_dom_interface_node(element);
+    pchtml_dom_node_t *node = pchtml_dom_interface_node(element);
 
-    node->owner_document = lxb_html_document_original_ref(document);
-    node->type = LXB_DOM_NODE_TYPE_ELEMENT;
+    node->owner_document = pchtml_html_document_original_ref(document);
+    node->type = PCHTML_DOM_NODE_TYPE_ELEMENT;
 
     return element;
 }
 
-lxb_html_window_t *
-lxb_html_window_destroy(lxb_html_window_t *window)
+pchtml_html_window_t *
+pchtml_html_window_destroy(pchtml_html_window_t *window)
 {
-    return lexbor_mraw_free(
-        lxb_dom_interface_node(window)->owner_document->mraw,
+    return pchtml_mraw_free(
+        pchtml_dom_interface_node(window)->owner_document->mraw,
         window);
 }

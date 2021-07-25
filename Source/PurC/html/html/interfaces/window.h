@@ -4,8 +4,8 @@
  * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
-#ifndef LEXBOR_HTML_WINDOW_H
-#define LEXBOR_HTML_WINDOW_H
+#ifndef PCHTML_HTML_WINDOW_H
+#define PCHTML_HTML_WINDOW_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -15,20 +15,20 @@ extern "C" {
 #include "html/dom/interfaces/event_target.h"
 
 
-struct lxb_html_window {
-    lxb_dom_event_target_t event_target;
+struct pchtml_html_window {
+    pchtml_dom_event_target_t event_target;
 };
 
 
-LXB_API lxb_html_window_t *
-lxb_html_window_create(lxb_html_document_t *document);
+GENGYUE_API pchtml_html_window_t *
+pchtml_html_window_create(pchtml_html_document_t *document);
 
-LXB_API lxb_html_window_t *
-lxb_html_window_destroy(lxb_html_window_t *window);
+GENGYUE_API pchtml_html_window_t *
+pchtml_html_window_destroy(pchtml_html_window_t *window);
 
 
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
 
-#endif /* LEXBOR_HTML_WINDOW_H */
+#endif /* PCHTML_HTML_WINDOW_H */

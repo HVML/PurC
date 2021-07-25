@@ -16,132 +16,132 @@
 #include "html/dom/interfaces/text.h"
 #include "html/dom/interfaces/element.h"
 
-#define LXB_HTML_TAG_RES_DATA
-#define LXB_HTML_TAG_RES_SHS_DATA
+#define PCHTML_HTML_TAG_RES_DATA
+#define PCHTML_HTML_TAG_RES_SHS_DATA
 #include "html/html/tag_res.h"
 
 
-lxb_status_t
-lxb_html_parse_chunk_prepare(lxb_html_parser_t *parser,
-                             lxb_html_document_t *document);
+unsigned int
+pchtml_html_parse_chunk_prepare(pchtml_html_parser_t *parser,
+                             pchtml_html_document_t *document);
 
-lxb_inline lxb_status_t
-lxb_html_document_parser_prepare(lxb_html_document_t *document);
+static inline unsigned int
+pchtml_html_document_parser_prepare(pchtml_html_document_t *document);
 
-static lexbor_action_t
-lxb_html_document_title_walker(lxb_dom_node_t *node, void *ctx);
+static pchtml_action_t
+pchtml_html_document_title_walker(pchtml_dom_node_t *node, void *ctx);
 
 
-lxb_html_document_t *
-lxb_html_document_interface_create(lxb_html_document_t *document)
+pchtml_html_document_t *
+pchtml_html_document_interface_create(pchtml_html_document_t *document)
 {
-    lxb_status_t status;
-    lxb_dom_document_t *doc;
-    lxb_dom_interface_create_f icreator;
+    unsigned int status;
+    pchtml_dom_document_t *doc;
+    pchtml_dom_interface_create_f icreator;
 
     if (document != NULL) {
-        doc = lexbor_mraw_calloc(lxb_html_document_mraw(document),
-                                 sizeof(lxb_html_document_t));
+        doc = pchtml_mraw_calloc(pchtml_html_document_mraw(document),
+                                 sizeof(pchtml_html_document_t));
     }
     else {
-        doc = lexbor_calloc(1, sizeof(lxb_html_document_t));
+        doc = pchtml_calloc(1, sizeof(pchtml_html_document_t));
     }
 
     if (doc == NULL) {
         return NULL;
     }
 
-    icreator = (lxb_dom_interface_create_f) lxb_html_interface_create;
+    icreator = (pchtml_dom_interface_create_f) pchtml_html_interface_create;
 
-    status = lxb_dom_document_init(doc, lxb_dom_interface_document(document),
-                                   icreator, lxb_html_interface_destroy,
-                                   LXB_DOM_DOCUMENT_DTYPE_HTML, LXB_NS_HTML);
-    if (status != LXB_STATUS_OK) {
-        (void) lxb_dom_document_destroy(doc);
+    status = pchtml_dom_document_init(doc, pchtml_dom_interface_document(document),
+                                   icreator, pchtml_html_interface_destroy,
+                                   PCHTML_DOM_DOCUMENT_DTYPE_HTML, PCHTML_NS_HTML);
+    if (status != PCHTML_STATUS_OK) {
+        (void) pchtml_dom_document_destroy(doc);
         return NULL;
     }
 
-    return lxb_html_interface_document(doc);
+    return pchtml_html_interface_document(doc);
 }
 
-lxb_html_document_t *
-lxb_html_document_interface_destroy(lxb_html_document_t *document)
+pchtml_html_document_t *
+pchtml_html_document_interface_destroy(pchtml_html_document_t *document)
 {
-    lxb_dom_document_t *doc;
+    pchtml_dom_document_t *doc;
 
     if (document == NULL) {
         return NULL;
     }
 
-    doc = lxb_dom_interface_document(document);
+    doc = pchtml_dom_interface_document(document);
 
     if (doc->node.owner_document == doc) {
-        (void) lxb_html_parser_unref(doc->parser);
+        (void) pchtml_html_parser_unref(doc->parser);
     }
 
-    (void) lxb_dom_document_destroy(doc);
+    (void) pchtml_dom_document_destroy(doc);
 
     return NULL;
 }
 
-lxb_html_document_t *
-lxb_html_document_create(void)
+pchtml_html_document_t *
+pchtml_html_document_create(void)
 {
-    return lxb_html_document_interface_create(NULL);
+    return pchtml_html_document_interface_create(NULL);
 }
 
 void
-lxb_html_document_clean(lxb_html_document_t *document)
+pchtml_html_document_clean(pchtml_html_document_t *document)
 {
     document->body = NULL;
     document->head = NULL;
     document->iframe_srcdoc = NULL;
-    document->ready_state = LXB_HTML_DOCUMENT_READY_STATE_UNDEF;
+    document->ready_state = PCHTML_HTML_DOCUMENT_READY_STATE_UNDEF;
 
-    lxb_dom_document_clean(lxb_dom_interface_document(document));
+    pchtml_dom_document_clean(pchtml_dom_interface_document(document));
 }
 
-lxb_html_document_t *
-lxb_html_document_destroy(lxb_html_document_t *document)
+pchtml_html_document_t *
+pchtml_html_document_destroy(pchtml_html_document_t *document)
 {
-    return lxb_html_document_interface_destroy(document);
+    return pchtml_html_document_interface_destroy(document);
 }
 
-lxb_status_t
-lxb_html_document_parse(lxb_html_document_t *document,
-                        const lxb_char_t *html, size_t size)
+unsigned int
+pchtml_html_document_parse(pchtml_html_document_t *document,
+                        const unsigned char *html, size_t size)
 {
-    lxb_status_t status;
-    lxb_dom_document_t *doc;
-    lxb_html_document_opt_t opt;
+    unsigned int status;
+    pchtml_dom_document_t *doc;
+    pchtml_html_document_opt_t opt;
 
-    if (document->ready_state != LXB_HTML_DOCUMENT_READY_STATE_UNDEF
-        && document->ready_state != LXB_HTML_DOCUMENT_READY_STATE_LOADING)
+    if (document->ready_state != PCHTML_HTML_DOCUMENT_READY_STATE_UNDEF
+        && document->ready_state != PCHTML_HTML_DOCUMENT_READY_STATE_LOADING)
     {
-        lxb_html_document_clean(document);
+        pchtml_html_document_clean(document);
     }
 
     opt = document->opt;
-    doc = lxb_dom_interface_document(document);
+    doc = pchtml_dom_interface_document(document);
 
-    status = lxb_html_document_parser_prepare(document);
-    if (status != LXB_STATUS_OK) {
+    status = pchtml_html_document_parser_prepare(document);
+    if (status != PCHTML_STATUS_OK) {
         goto failed;
     }
 
-    status = lxb_html_parse_chunk_prepare(doc->parser, document);
-    if (status != LXB_STATUS_OK) {
+    status = pchtml_html_parse_chunk_prepare(doc->parser, document);
+    if (status != PCHTML_STATUS_OK) {
         goto failed;
     }
 
-    status = lxb_html_parse_chunk_process(doc->parser, html, size);
-    if (status != LXB_STATUS_OK) {
+    status = pchtml_html_parse_chunk_process(doc->parser, html, size);
+    if (status != PCHTML_STATUS_OK) {
         goto failed;
     }
 
     document->opt = opt;
 
-    return lxb_html_parse_chunk_end(doc->parser);
+    return pchtml_html_parse_chunk_end(doc->parser);
 
 failed:
 
@@ -150,69 +150,69 @@ failed:
     return status;
 }
 
-lxb_status_t
-lxb_html_document_parse_chunk_begin(lxb_html_document_t *document)
+unsigned int
+pchtml_html_document_parse_chunk_begin(pchtml_html_document_t *document)
 {
-    if (document->ready_state != LXB_HTML_DOCUMENT_READY_STATE_UNDEF
-        && document->ready_state != LXB_HTML_DOCUMENT_READY_STATE_LOADING)
+    if (document->ready_state != PCHTML_HTML_DOCUMENT_READY_STATE_UNDEF
+        && document->ready_state != PCHTML_HTML_DOCUMENT_READY_STATE_LOADING)
     {
-        lxb_html_document_clean(document);
+        pchtml_html_document_clean(document);
     }
 
-    lxb_status_t status = lxb_html_document_parser_prepare(document);
-    if (status != LXB_STATUS_OK) {
+    unsigned int status = pchtml_html_document_parser_prepare(document);
+    if (status != PCHTML_STATUS_OK) {
         return status;
     }
 
-    return lxb_html_parse_chunk_prepare(document->dom_document.parser,
+    return pchtml_html_parse_chunk_prepare(document->dom_document.parser,
                                         document);
 }
 
-lxb_status_t
-lxb_html_document_parse_chunk(lxb_html_document_t *document,
-                              const lxb_char_t *html, size_t size)
+unsigned int
+pchtml_html_document_parse_chunk(pchtml_html_document_t *document,
+                              const unsigned char *html, size_t size)
 {
-    return lxb_html_parse_chunk_process(document->dom_document.parser,
+    return pchtml_html_parse_chunk_process(document->dom_document.parser,
                                         html, size);
 }
 
-lxb_status_t
-lxb_html_document_parse_chunk_end(lxb_html_document_t *document)
+unsigned int
+pchtml_html_document_parse_chunk_end(pchtml_html_document_t *document)
 {
-    return lxb_html_parse_chunk_end(document->dom_document.parser);
+    return pchtml_html_parse_chunk_end(document->dom_document.parser);
 }
 
-lxb_dom_node_t *
-lxb_html_document_parse_fragment(lxb_html_document_t *document,
-                                 lxb_dom_element_t *element,
-                                 const lxb_char_t *html, size_t size)
+pchtml_dom_node_t *
+pchtml_html_document_parse_fragment(pchtml_html_document_t *document,
+                                 pchtml_dom_element_t *element,
+                                 const unsigned char *html, size_t size)
 {
-    lxb_status_t status;
-    lxb_html_parser_t *parser;
-    lxb_html_document_opt_t opt = document->opt;
+    unsigned int status;
+    pchtml_html_parser_t *parser;
+    pchtml_html_document_opt_t opt = document->opt;
 
-    status = lxb_html_document_parser_prepare(document);
-    if (status != LXB_STATUS_OK) {
+    status = pchtml_html_document_parser_prepare(document);
+    if (status != PCHTML_STATUS_OK) {
         goto failed;
     }
 
     parser = document->dom_document.parser;
 
-    status = lxb_html_parse_fragment_chunk_begin(parser, document,
+    status = pchtml_html_parse_fragment_chunk_begin(parser, document,
                                                  element->node.local_name,
                                                  element->node.ns);
-    if (status != LXB_STATUS_OK) {
+    if (status != PCHTML_STATUS_OK) {
         goto failed;
     }
 
-    status = lxb_html_parse_fragment_chunk_process(parser, html, size);
-    if (status != LXB_STATUS_OK) {
+    status = pchtml_html_parse_fragment_chunk_process(parser, html, size);
+    if (status != PCHTML_STATUS_OK) {
         goto failed;
     }
 
     document->opt = opt;
 
-    return lxb_html_parse_fragment_chunk_end(parser);
+    return pchtml_html_parse_fragment_chunk_end(parser);
 
 failed:
 
@@ -221,216 +221,216 @@ failed:
     return NULL;
 }
 
-lxb_status_t
-lxb_html_document_parse_fragment_chunk_begin(lxb_html_document_t *document,
-                                             lxb_dom_element_t *element)
+unsigned int
+pchtml_html_document_parse_fragment_chunk_begin(pchtml_html_document_t *document,
+                                             pchtml_dom_element_t *element)
 {
-    lxb_status_t status;
-    lxb_html_parser_t *parser = document->dom_document.parser;
+    unsigned int status;
+    pchtml_html_parser_t *parser = document->dom_document.parser;
 
-    status = lxb_html_document_parser_prepare(document);
-    if (status != LXB_STATUS_OK) {
+    status = pchtml_html_document_parser_prepare(document);
+    if (status != PCHTML_STATUS_OK) {
         return status;
     }
 
-    return lxb_html_parse_fragment_chunk_begin(parser, document,
+    return pchtml_html_parse_fragment_chunk_begin(parser, document,
                                                element->node.local_name,
                                                element->node.ns);
 }
 
-lxb_status_t
-lxb_html_document_parse_fragment_chunk(lxb_html_document_t *document,
-                                       const lxb_char_t *html, size_t size)
+unsigned int
+pchtml_html_document_parse_fragment_chunk(pchtml_html_document_t *document,
+                                       const unsigned char *html, size_t size)
 {
-    return lxb_html_parse_fragment_chunk_process(document->dom_document.parser,
+    return pchtml_html_parse_fragment_chunk_process(document->dom_document.parser,
                                                  html, size);
 }
 
-lxb_dom_node_t *
-lxb_html_document_parse_fragment_chunk_end(lxb_html_document_t *document)
+pchtml_dom_node_t *
+pchtml_html_document_parse_fragment_chunk_end(pchtml_html_document_t *document)
 {
-    return lxb_html_parse_fragment_chunk_end(document->dom_document.parser);
+    return pchtml_html_parse_fragment_chunk_end(document->dom_document.parser);
 }
 
-lxb_inline lxb_status_t
-lxb_html_document_parser_prepare(lxb_html_document_t *document)
+static inline unsigned int
+pchtml_html_document_parser_prepare(pchtml_html_document_t *document)
 {
-    lxb_status_t status;
-    lxb_dom_document_t *doc;
+    unsigned int status;
+    pchtml_dom_document_t *doc;
 
-    doc = lxb_dom_interface_document(document);
+    doc = pchtml_dom_interface_document(document);
 
     if (doc->parser == NULL) {
-        doc->parser = lxb_html_parser_create();
-        status = lxb_html_parser_init(doc->parser);
+        doc->parser = pchtml_html_parser_create();
+        status = pchtml_html_parser_init(doc->parser);
 
-        if (status != LXB_STATUS_OK) {
-            lxb_html_parser_destroy(doc->parser);
+        if (status != PCHTML_STATUS_OK) {
+            pchtml_html_parser_destroy(doc->parser);
             return status;
         }
     }
-    else if (lxb_html_parser_state(doc->parser) != LXB_HTML_PARSER_STATE_BEGIN) {
-        lxb_html_parser_clean(doc->parser);
+    else if (pchtml_html_parser_state(doc->parser) != PCHTML_HTML_PARSER_STATE_BEGIN) {
+        pchtml_html_parser_clean(doc->parser);
     }
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-const lxb_char_t *
-lxb_html_document_title(lxb_html_document_t *document, size_t *len)
+const unsigned char *
+pchtml_html_document_title(pchtml_html_document_t *document, size_t *len)
 {
-    lxb_html_title_element_t *title = NULL;
+    pchtml_html_title_element_t *title = NULL;
 
-    lxb_dom_node_simple_walk(lxb_dom_interface_node(document),
-                             lxb_html_document_title_walker, &title);
+    pchtml_dom_node_simple_walk(pchtml_dom_interface_node(document),
+                             pchtml_html_document_title_walker, &title);
     if (title == NULL) {
         return NULL;
     }
 
-    return lxb_html_title_element_strict_text(title, len);
+    return pchtml_html_title_element_strict_text(title, len);
 }
 
-lxb_status_t
-lxb_html_document_title_set(lxb_html_document_t *document,
-                            const lxb_char_t *title, size_t len)
+unsigned int
+pchtml_html_document_title_set(pchtml_html_document_t *document,
+                            const unsigned char *title, size_t len)
 {
-    lxb_status_t status;
+    unsigned int status;
 
     /* TODO: If the document element is an SVG svg element */
 
     /* If the document element is in the HTML namespace */
     if (document->head == NULL) {
-        return LXB_STATUS_OK;
+        return PCHTML_STATUS_OK;
     }
 
-    lxb_html_title_element_t *el_title = NULL;
+    pchtml_html_title_element_t *el_title = NULL;
 
-    lxb_dom_node_simple_walk(lxb_dom_interface_node(document),
-                             lxb_html_document_title_walker, &el_title);
+    pchtml_dom_node_simple_walk(pchtml_dom_interface_node(document),
+                             pchtml_html_document_title_walker, &el_title);
     if (el_title == NULL) {
-        el_title = (void *) lxb_html_document_create_element(document,
-                                         (const lxb_char_t *) "title", 5, NULL);
+        el_title = (void *) pchtml_html_document_create_element(document,
+                                         (const unsigned char *) "title", 5, NULL);
         if (el_title == NULL) {
-            return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+            return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
-        lxb_dom_node_insert_child(lxb_dom_interface_node(document->head),
-                                  lxb_dom_interface_node(el_title));
+        pchtml_dom_node_insert_child(pchtml_dom_interface_node(document->head),
+                                  pchtml_dom_interface_node(el_title));
     }
 
-    status = lxb_dom_node_text_content_set(lxb_dom_interface_node(el_title),
+    status = pchtml_dom_node_text_content_set(pchtml_dom_interface_node(el_title),
                                            title, len);
-    if (status != LXB_STATUS_OK) {
-        lxb_html_document_destroy_element(&el_title->element.element);
+    if (status != PCHTML_STATUS_OK) {
+        pchtml_html_document_destroy_element(&el_title->element.element);
 
         return status;
     }
 
-    return LXB_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
-const lxb_char_t *
-lxb_html_document_title_raw(lxb_html_document_t *document, size_t *len)
+const unsigned char *
+pchtml_html_document_title_raw(pchtml_html_document_t *document, size_t *len)
 {
-    lxb_html_title_element_t *title = NULL;
+    pchtml_html_title_element_t *title = NULL;
 
-    lxb_dom_node_simple_walk(lxb_dom_interface_node(document),
-                             lxb_html_document_title_walker, &title);
+    pchtml_dom_node_simple_walk(pchtml_dom_interface_node(document),
+                             pchtml_html_document_title_walker, &title);
     if (title == NULL) {
         return NULL;
     }
 
-    return lxb_html_title_element_text(title, len);
+    return pchtml_html_title_element_text(title, len);
 }
 
-static lexbor_action_t
-lxb_html_document_title_walker(lxb_dom_node_t *node, void *ctx)
+static pchtml_action_t
+pchtml_html_document_title_walker(pchtml_dom_node_t *node, void *ctx)
 {
-    if (node->local_name == LXB_TAG_TITLE) {
+    if (node->local_name == PCHTML_TAG_TITLE) {
         *((void **) ctx) = node;
 
-        return LEXBOR_ACTION_STOP;
+        return PCHTML_ACTION_STOP;
     }
 
-    return LEXBOR_ACTION_OK;
+    return PCHTML_ACTION_OK;
 }
 
 /*
  * No inline functions for ABI.
  */
-lxb_html_head_element_t *
-lxb_html_document_head_element_noi(lxb_html_document_t *document)
+pchtml_html_head_element_t *
+pchtml_html_document_head_element_noi(pchtml_html_document_t *document)
 {
-    return lxb_html_document_head_element(document);
+    return pchtml_html_document_head_element(document);
 }
 
-lxb_html_body_element_t *
-lxb_html_document_body_element_noi(lxb_html_document_t *document)
+pchtml_html_body_element_t *
+pchtml_html_document_body_element_noi(pchtml_html_document_t *document)
 {
-    return lxb_html_document_body_element(document);
+    return pchtml_html_document_body_element(document);
 }
 
-lxb_dom_document_t *
-lxb_html_document_original_ref_noi(lxb_html_document_t *document)
+pchtml_dom_document_t *
+pchtml_html_document_original_ref_noi(pchtml_html_document_t *document)
 {
-    return lxb_html_document_original_ref(document);
+    return pchtml_html_document_original_ref(document);
 }
 
 bool
-lxb_html_document_is_original_noi(lxb_html_document_t *document)
+pchtml_html_document_is_original_noi(pchtml_html_document_t *document)
 {
-    return lxb_html_document_is_original(document);
+    return pchtml_html_document_is_original(document);
 }
 
-lexbor_mraw_t *
-lxb_html_document_mraw_noi(lxb_html_document_t *document)
+pchtml_mraw_t *
+pchtml_html_document_mraw_noi(pchtml_html_document_t *document)
 {
-    return lxb_html_document_mraw(document);
+    return pchtml_html_document_mraw(document);
 }
 
-lexbor_mraw_t *
-lxb_html_document_mraw_text_noi(lxb_html_document_t *document)
+pchtml_mraw_t *
+pchtml_html_document_mraw_text_noi(pchtml_html_document_t *document)
 {
-    return lxb_html_document_mraw_text(document);
+    return pchtml_html_document_mraw_text(document);
 }
 
 void
-lxb_html_document_opt_set_noi(lxb_html_document_t *document,
-                              lxb_html_document_opt_t opt)
+pchtml_html_document_opt_set_noi(pchtml_html_document_t *document,
+                              pchtml_html_document_opt_t opt)
 {
-    lxb_html_document_opt_set(document, opt);
+    pchtml_html_document_opt_set(document, opt);
 }
 
-lxb_html_document_opt_t
-lxb_html_document_opt_noi(lxb_html_document_t *document)
+pchtml_html_document_opt_t
+pchtml_html_document_opt_noi(pchtml_html_document_t *document)
 {
-    return lxb_html_document_opt(document);
+    return pchtml_html_document_opt(document);
 }
 
 void *
-lxb_html_document_create_struct_noi(lxb_html_document_t *document,
+pchtml_html_document_create_struct_noi(pchtml_html_document_t *document,
                                     size_t struct_size)
 {
-    return lxb_html_document_create_struct(document, struct_size);
+    return pchtml_html_document_create_struct(document, struct_size);
 }
 
 void *
-lxb_html_document_destroy_struct_noi(lxb_html_document_t *document, void *data)
+pchtml_html_document_destroy_struct_noi(pchtml_html_document_t *document, void *data)
 {
-    return lxb_html_document_destroy_struct(document, data);
+    return pchtml_html_document_destroy_struct(document, data);
 }
 
-lxb_html_element_t *
-lxb_html_document_create_element_noi(lxb_html_document_t *document,
-                                     const lxb_char_t *local_name,
+pchtml_html_element_t *
+pchtml_html_document_create_element_noi(pchtml_html_document_t *document,
+                                     const unsigned char *local_name,
                                      size_t lname_len, void *reserved_for_opt)
 {
-    return lxb_html_document_create_element(document, local_name, lname_len,
+    return pchtml_html_document_create_element(document, local_name, lname_len,
                                             reserved_for_opt);
 }
 
-lxb_dom_element_t *
-lxb_html_document_destroy_element_noi(lxb_dom_element_t *element)
+pchtml_dom_element_t *
+pchtml_html_document_destroy_element_noi(pchtml_dom_element_t *element)
 {
-    return lxb_html_document_destroy_element(element);
+    return pchtml_html_document_destroy_element(element);
 }

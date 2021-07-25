@@ -8,57 +8,57 @@
 #include "html/html/interfaces/document.h"
 
 
-lxb_html_element_t *
-lxb_html_element_interface_create(lxb_html_document_t *document)
+pchtml_html_element_t *
+pchtml_html_element_interface_create(pchtml_html_document_t *document)
 {
-    lxb_html_element_t *element;
+    pchtml_html_element_t *element;
 
-    element = lexbor_mraw_calloc(document->dom_document.mraw,
-                                 sizeof(lxb_html_element_t));
+    element = pchtml_mraw_calloc(document->dom_document.mraw,
+                                 sizeof(pchtml_html_element_t));
     if (element == NULL) {
         return NULL;
     }
 
-    lxb_dom_node_t *node = lxb_dom_interface_node(element);
+    pchtml_dom_node_t *node = pchtml_dom_interface_node(element);
 
-    node->owner_document = lxb_html_document_original_ref(document);
-    node->type = LXB_DOM_NODE_TYPE_ELEMENT;
+    node->owner_document = pchtml_html_document_original_ref(document);
+    node->type = PCHTML_DOM_NODE_TYPE_ELEMENT;
 
     return element;
 }
 
-lxb_html_element_t *
-lxb_html_element_interface_destroy(lxb_html_element_t *element)
+pchtml_html_element_t *
+pchtml_html_element_interface_destroy(pchtml_html_element_t *element)
 {
-    return lexbor_mraw_free(
-                lxb_dom_interface_node(element)->owner_document->mraw, element);
+    return pchtml_mraw_free(
+                pchtml_dom_interface_node(element)->owner_document->mraw, element);
 }
 
-lxb_html_element_t *
-lxb_html_element_inner_html_set(lxb_html_element_t *element,
-                                const lxb_char_t *html, size_t size)
+pchtml_html_element_t *
+pchtml_html_element_inner_html_set(pchtml_html_element_t *element,
+                                const unsigned char *html, size_t size)
 {
-    lxb_dom_node_t *node, *child;
-    lxb_dom_node_t *root = lxb_dom_interface_node(element);
-    lxb_html_document_t *doc = lxb_html_interface_document(root->owner_document);
+    pchtml_dom_node_t *node, *child;
+    pchtml_dom_node_t *root = pchtml_dom_interface_node(element);
+    pchtml_html_document_t *doc = pchtml_html_interface_document(root->owner_document);
 
-    node = lxb_html_document_parse_fragment(doc, &element->element, html, size);
+    node = pchtml_html_document_parse_fragment(doc, &element->element, html, size);
     if (node == NULL) {
         return NULL;
     }
 
     while (root->first_child != NULL) {
-        lxb_dom_node_destroy_deep(root->first_child);
+        pchtml_dom_node_destroy_deep(root->first_child);
     }
 
     while (node->first_child != NULL) {
         child = node->first_child;
 
-        lxb_dom_node_remove(child);
-        lxb_dom_node_insert_child(root, child);
+        pchtml_dom_node_remove(child);
+        pchtml_dom_node_insert_child(root, child);
     }
 
-    lxb_dom_node_destroy(node);
+    pchtml_dom_node_destroy(node);
 
-    return lxb_html_interface_element(root);
+    return pchtml_html_interface_element(root);
 }

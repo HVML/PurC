@@ -4,8 +4,8 @@
  * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
-#ifndef LEXBOR_HTML_ELEMENT_H
-#define LEXBOR_HTML_ELEMENT_H
+#ifndef PCHTML_HTML_ELEMENT_H
+#define PCHTML_HTML_ELEMENT_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -15,35 +15,35 @@ extern "C" {
 #include "html/dom/interfaces/element.h"
 
 
-struct lxb_html_element {
-    lxb_dom_element_t element;
+struct pchtml_html_element {
+    pchtml_dom_element_t element;
 };
 
 
-LXB_API lxb_html_element_t *
-lxb_html_element_interface_create(lxb_html_document_t *document);
+GENGYUE_API pchtml_html_element_t *
+pchtml_html_element_interface_create(pchtml_html_document_t *document);
 
-LXB_API lxb_html_element_t *
-lxb_html_element_interface_destroy(lxb_html_element_t *element);
+GENGYUE_API pchtml_html_element_t *
+pchtml_html_element_interface_destroy(pchtml_html_element_t *element);
 
 
-LXB_API lxb_html_element_t *
-lxb_html_element_inner_html_set(lxb_html_element_t *element,
-                                const lxb_char_t *html, size_t size);
+GENGYUE_API pchtml_html_element_t *
+pchtml_html_element_inner_html_set(pchtml_html_element_t *element,
+                                const unsigned char *html, size_t size);
 
 /*
  * Inline functions
  */
-lxb_inline lxb_tag_id_t
-lxb_html_element_tag_id(lxb_html_element_t *element)
+static inline pchtml_tag_id_t
+pchtml_html_element_tag_id(pchtml_html_element_t *element)
 {
-    return lxb_dom_interface_node(element)->local_name;
+    return pchtml_dom_interface_node(element)->local_name;
 }
 
-lxb_inline lxb_ns_id_t
-lxb_html_element_ns_id(lxb_html_element_t *element)
+static inline pchtml_ns_id_t
+pchtml_html_element_ns_id(pchtml_html_element_t *element)
 {
-    return lxb_dom_interface_node(element)->ns;
+    return pchtml_dom_interface_node(element)->ns;
 }
 
 
@@ -51,4 +51,4 @@ lxb_html_element_ns_id(lxb_html_element_t *element)
 } /* extern "C" */
 #endif
 
-#endif /* LEXBOR_HTML_ELEMENT_H */
+#endif /* PCHTML_HTML_ELEMENT_H */

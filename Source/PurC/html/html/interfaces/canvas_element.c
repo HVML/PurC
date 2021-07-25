@@ -8,29 +8,29 @@
 #include "html/html/interfaces/document.h"
 
 
-lxb_html_canvas_element_t *
-lxb_html_canvas_element_interface_create(lxb_html_document_t *document)
+pchtml_html_canvas_element_t *
+pchtml_html_canvas_element_interface_create(pchtml_html_document_t *document)
 {
-    lxb_html_canvas_element_t *element;
+    pchtml_html_canvas_element_t *element;
 
-    element = lexbor_mraw_calloc(document->dom_document.mraw,
-                                 sizeof(lxb_html_canvas_element_t));
+    element = pchtml_mraw_calloc(document->dom_document.mraw,
+                                 sizeof(pchtml_html_canvas_element_t));
     if (element == NULL) {
         return NULL;
     }
 
-    lxb_dom_node_t *node = lxb_dom_interface_node(element);
+    pchtml_dom_node_t *node = pchtml_dom_interface_node(element);
 
-    node->owner_document = lxb_html_document_original_ref(document);
-    node->type = LXB_DOM_NODE_TYPE_ELEMENT;
+    node->owner_document = pchtml_html_document_original_ref(document);
+    node->type = PCHTML_DOM_NODE_TYPE_ELEMENT;
 
     return element;
 }
 
-lxb_html_canvas_element_t *
-lxb_html_canvas_element_interface_destroy(lxb_html_canvas_element_t *canvas_element)
+pchtml_html_canvas_element_t *
+pchtml_html_canvas_element_interface_destroy(pchtml_html_canvas_element_t *canvas_element)
 {
-    return lexbor_mraw_free(
-        lxb_dom_interface_node(canvas_element)->owner_document->mraw,
+    return pchtml_mraw_free(
+        pchtml_dom_interface_node(canvas_element)->owner_document->mraw,
         canvas_element);
 }
