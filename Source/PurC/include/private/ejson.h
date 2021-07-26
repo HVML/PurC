@@ -61,6 +61,12 @@
         goto new_state;                                         \
     } while (false)
 
+#define RECONSUME_IN_NEXT(new_state)                            \
+    do {                                                        \
+        ejson->state = new_state;                               \
+        purc_rwstream_seek (rws, -len, SEEK_CUR);               \
+    } while (false)
+
 
 #define ADVANCE_TO(new_state)                                    \
     do {                                                         \

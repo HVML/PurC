@@ -568,15 +568,15 @@ next_input:
                 ADVANCE_TO(ejson_after_value_state);
             }
             else if (wc == '"' || wc == '\'') {
-                // FIXME
-                pcejson_stack_pop(ejson->stack);
                 return pcejson_token_new(ejson_token_string,
                         pcejson_temp_buffer_dup(ejson));
             }
             else if (wc == '}') {
+                pcejson_stack_pop(ejson->stack);
                 RECONSUME_IN(ejson_after_object_state);
             }
             else if (wc == ']') {
+                pcejson_stack_pop(ejson->stack);
                 RECONSUME_IN(ejson_after_array_state);
             }
             else if (wc == ',') {
@@ -781,6 +781,7 @@ next_input:
                     if (pcejson_temp_buffer_is_empty(ejson)) {
                         pcejson_temp_buffer_append(ejson,
                                 (uint8_t*)buf_utf8, len);
+                        ADVANCE_TO(ejson_keyword_state);
                     }
                     else {
                         pcinst_set_error(
@@ -793,6 +794,7 @@ next_input:
                     if (pcejson_temp_buffer_equal(ejson, "t")) {
                         pcejson_temp_buffer_append(ejson,
                                 (uint8_t*)buf_utf8, len);
+                        ADVANCE_TO(ejson_keyword_state);
                     }
                     else {
                         pcinst_set_error(
@@ -806,6 +808,7 @@ next_input:
                         || pcejson_temp_buffer_equal(ejson, "n")) {
                         pcejson_temp_buffer_append(ejson,
                                 (uint8_t*)buf_utf8, len);
+                        ADVANCE_TO(ejson_keyword_state);
                     }
                     else {
                         pcinst_set_error(
@@ -819,6 +822,7 @@ next_input:
                         || pcejson_temp_buffer_equal(ejson, "fals")) {
                         pcejson_temp_buffer_append(ejson,
                                 (uint8_t*)buf_utf8, len);
+                        ADVANCE_TO(ejson_keyword_state);
                     }
                     else {
                         pcinst_set_error(
@@ -831,6 +835,7 @@ next_input:
                     if (pcejson_temp_buffer_equal(ejson, "f")) {
                         pcejson_temp_buffer_append(ejson,
                                 (uint8_t*)buf_utf8, len);
+                        ADVANCE_TO(ejson_keyword_state);
                     }
                     else {
                         pcinst_set_error(
@@ -845,6 +850,7 @@ next_input:
                         || pcejson_temp_buffer_equal(ejson, "fa")) {
                         pcejson_temp_buffer_append(ejson,
                                 (uint8_t*)buf_utf8, len);
+                        ADVANCE_TO(ejson_keyword_state);
                     }
                     else {
                         pcinst_set_error(
@@ -857,6 +863,7 @@ next_input:
                     if (pcejson_temp_buffer_equal(ejson, "fal")) {
                         pcejson_temp_buffer_append(ejson,
                                 (uint8_t*)buf_utf8, len);
+                        ADVANCE_TO(ejson_keyword_state);
                     }
                     else {
                         pcinst_set_error(
@@ -875,10 +882,12 @@ next_input:
             if (is_delimiter(wc)) {
                 if (pcejson_temp_buffer_equal(ejson, "true")
                         || pcejson_temp_buffer_equal(ejson, "false")) {
+                    RECONSUME_IN_NEXT(ejson_after_value_state);
                     return pcejson_token_new(ejson_token_boolean,
                                 pcejson_temp_buffer_dup(ejson));
                 }
                 else if (pcejson_temp_buffer_equal(ejson, "null")) {
+                    RECONSUME_IN_NEXT(ejson_after_value_state);
                     return pcejson_token_new(ejson_token_null, NULL);
                 }
             }
