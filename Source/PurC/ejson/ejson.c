@@ -1031,7 +1031,7 @@ next_input:
                 pcejson_temp_buffer_append(ejson, (uint8_t*)"e", 1);
                 ADVANCE_TO(ejson_value_number_exponent_state);
             }
-            else if (wc == '.') {
+            else if (wc == '.' || wc == 'F') {
                 pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
                 ADVANCE_TO(ejson_value_number_fraction_state);
             }
@@ -1064,7 +1064,7 @@ next_input:
             else if (wc == 'L') {
                 if (pcejson_temp_buffer_end_with(ejson, "F")) {
                     pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
-                    SWITCH_TO(ejson_after_value_number_state);
+                    SWITCH_TO(ejson_after_value_state);
                     return pcejson_token_new(ejson_token_long_double_number,
                                 pcejson_temp_buffer_dup(ejson));
                 }
@@ -1147,13 +1147,13 @@ next_input:
                 if (is_ascii_digit(last_c) || last_c == 'U') {
                     pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
                     if (pcejson_temp_buffer_end_with(ejson, "UL")) {
-                        SWITCH_TO(ejson_after_value_number_state);
+                        SWITCH_TO(ejson_after_value_state);
                         return pcejson_token_new(
                                 ejson_token_unsigned_long_integer_number,
                                 pcejson_temp_buffer_dup(ejson));
                     }
                     else if (pcejson_temp_buffer_end_with(ejson, "L")) {
-                        SWITCH_TO(ejson_after_value_number_state);
+                        SWITCH_TO(ejson_after_value_state);
                         return pcejson_token_new(ejson_token_long_integer_number,
                                     pcejson_temp_buffer_dup(ejson));
                     }
