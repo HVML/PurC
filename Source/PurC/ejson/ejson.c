@@ -929,7 +929,7 @@ next_input:
 
         BEGIN_STATE(ejson_after_byte_sequence_state)
             if (is_delimiter(wc)) {
-                SWITCH_TO(ejson_after_value_state);
+                RECONSUME_IN_NEXT(ejson_after_value_state);
                 return pcejson_token_new(ejson_token_byte_squence,
                                 pcejson_temp_buffer_dup(ejson));
             }
@@ -955,10 +955,10 @@ next_input:
             }
             else if (is_ascii_binary_digit(wc)) {
                 pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
-                ADVANCE_TO(ejson_hex_byte_sequence_state);
+                ADVANCE_TO(ejson_binary_byte_sequence_state);
             }
             else if (wc == '.') {
-                ADVANCE_TO(ejson_hex_byte_sequence_state);
+                ADVANCE_TO(ejson_binary_byte_sequence_state);
             }
             pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
             return NULL;
@@ -970,14 +970,14 @@ next_input:
             }
             else if (wc == '=') {
                 pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
-                ADVANCE_TO(ejson_hex_byte_sequence_state);
+                ADVANCE_TO(ejson_base64_byte_sequence_state);
             }
             else if (is_ascii_digit(wc) || is_ascii_alpha(wc)
                     || wc == '+' || wc == '-') {
                 if (!pcejson_temp_buffer_end_with(ejson, "=")) {
                     pcejson_temp_buffer_append(ejson,
                             (uint8_t*)buf_utf8, len);
-                    ADVANCE_TO(ejson_hex_byte_sequence_state);
+                    ADVANCE_TO(ejson_base64_byte_sequence_state);
                 }
                 else {
                     pcinst_set_error(PCEJSON_UNEXPECTED_BASE64_PARSE_ERROR);
