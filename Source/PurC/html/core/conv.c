@@ -32,19 +32,19 @@
 
 
 size_t
-pchtml_conv_float_to_data(double num, unsigned chr *buf, size_t len)
+pchtml_conv_float_to_data(double num, unsigned char *buf, size_t len)
 {
     return pchtml_dtoa(num, buf, len);
 }
 
 double
-pchtml_conv_data_to_double(const unsigned chr **start, size_t len)
+pchtml_conv_data_to_double(const unsigned char **start, size_t len)
 {
     int exponent, exp, insignf;
-    unsigned chr c, *pos;
+    unsigned char c, *pos;
     bool minus;
-    const unsigned chr  *e, *p, *last, *end;
-    unsigned chr data[128];
+    const unsigned char  *e, *p, *last, *end;
+    unsigned char data[128];
 
     end = *start + len;
 
@@ -135,10 +135,10 @@ pchtml_conv_data_to_double(const unsigned chr **start, size_t len)
 }
 
 unsigned long
-pchtml_conv_data_to_ulong(const unsigned chr **data, size_t length)
+pchtml_conv_data_to_ulong(const unsigned char **data, size_t length)
 {
-    const unsigned chr *p = *data;
-    const unsigned chr *end = p + length;
+    const unsigned char *p = *data;
+    const unsigned char *end = p + length;
     unsigned long last_number = 0, number = 0;
 
     for (; p < end; p++) {
@@ -164,10 +164,10 @@ done:
 }
 
 unsigned
-pchtml_conv_data_to_uint(const unsigned chr **data, size_t length)
+pchtml_conv_data_to_uint(const unsigned char **data, size_t length)
 {
-    const unsigned chr *p = *data;
-    const unsigned chr *end = p + length;
+    const unsigned char *p = *data;
+    const unsigned char *end = p + length;
     unsigned last_number = 0, number = 0;
 
     for (; p < end; p++) {

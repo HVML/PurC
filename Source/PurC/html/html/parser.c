@@ -368,7 +368,7 @@ pchtml_html_parse_fragment_chunk_destroy(pchtml_html_parser_t *parser)
     }
 }
 
-GENGYUE_API unsigned int
+unsigned int
 pchtml_html_parse_chunk_prepare(pchtml_html_parser_t *parser,
                              pchtml_html_document_t *document)
 {

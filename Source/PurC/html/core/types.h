@@ -43,13 +43,13 @@ extern "C" {
 
 #if 0
 /* Simple types */
-typedef uint32_t      uint32_t;
-typedef unsigned char unsigned char;
-typedef unsigned int  unsigned int;
+typedef uint32_t      pchtml_codepoint_t;
+typedef unsigned char pchtml_char_t;
+typedef unsigned int  pchtml_status_t;
 #endif
 
 /* Callbacks */
-typedef pchtml_status_t (*pchtml_callback_f)(const unsigned char *buffer,
+typedef unsigned int (*pchtml_callback_f)(const unsigned char *buffer,
                                           size_t size, void *ctx);
 
 

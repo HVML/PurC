@@ -152,7 +152,7 @@ pchtml_dom_element_interface_destroy(pchtml_dom_element_t *element)
         element);
 }
 
-GENGYUE_API unsigned int
+unsigned int
 pchtml_dom_element_qualified_name_set(pchtml_dom_element_t *element,
                                    const unsigned char *prefix, size_t prefix_len,
                                    const unsigned char *lname, size_t lname_len)

@@ -34,7 +34,7 @@
 #include "html/core/shs.h"
 
 
-GENGYUE_API const pchtml_encoding_multi_index_t pchtml_encoding_multi_index_jis0208[11104] = 
+const pchtml_encoding_multi_index_t pchtml_encoding_multi_index_jis0208[11104] = 
 {
     {(unsigned char *) "\xe3\x80\x80", 3, 0x3000}, /* (IDEOGRAPHIC SPACE) */
     {(unsigned char *) "\xe3\x80\x81", 3, 0x3001}, /* (IDEOGRAPHIC COMMA) */
@@ -11143,7 +11143,7 @@ GENGYUE_API const pchtml_encoding_multi_index_t pchtml_encoding_multi_index_jis0
 };
 
 /* Table size: 9253; Max deep: 4 */
-GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_multi_hash_jis0208[11349] = 
+const pchtml_shs_hash_t pchtml_encoding_multi_hash_jis0208[11349] = 
 {
     {0, NULL, 0},{27759, (void *) 8427, 11144},
     {27760, (void *) 3134, 0},

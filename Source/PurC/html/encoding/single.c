@@ -33,7 +33,7 @@
 #include "html/core/shs.h"
 
 
-GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_ibm866[128] = 
+const pchtml_encoding_single_index_t pchtml_encoding_single_index_ibm866[128] = 
 {
     {(unsigned char *) "\xd0\x90", 2, 0x0410}, /* (CYRILLIC CAPITAL LETTER A) */
     {(unsigned char *) "\xd0\x91", 2, 0x0411}, /* (CYRILLIC CAPITAL LETTER BE) */
@@ -165,7 +165,7 @@ GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_ib
     {(unsigned char *) "\xc2\xa0", 2, 0x00A0}, /* (NO-BREAK SPACE) */
 };
 
-GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_10[128] = 
+const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_10[128] = 
 {
     {(unsigned char *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
     {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
@@ -297,7 +297,7 @@ GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_is
     {(unsigned char *) "\xc4\xb8", 2, 0x0138}, /* (LATIN SMALL LETTER KRA) */
 };
 
-GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_13[128] = 
+const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_13[128] = 
 {
     {(unsigned char *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
     {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
@@ -429,7 +429,7 @@ GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_is
     {(unsigned char *) "\xe2\x80\x99", 3, 0x2019}, /* (RIGHT SINGLE QUOTATION MARK) */
 };
 
-GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_14[128] = 
+const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_14[128] = 
 {
     {(unsigned char *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
     {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
@@ -561,7 +561,7 @@ GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_is
     {(unsigned char *) "\xc3\xbf", 2, 0x00FF}, /* (LATIN SMALL LETTER Y WITH DIAERESIS) */
 };
 
-GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_15[128] = 
+const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_15[128] = 
 {
     {(unsigned char *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
     {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
@@ -693,7 +693,7 @@ GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_is
     {(unsigned char *) "\xc3\xbf", 2, 0x00FF}, /* (LATIN SMALL LETTER Y WITH DIAERESIS) */
 };
 
-GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_16[128] = 
+const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_16[128] = 
 {
     {(unsigned char *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
     {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
@@ -825,7 +825,7 @@ GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_is
     {(unsigned char *) "\xc3\xbf", 2, 0x00FF}, /* (LATIN SMALL LETTER Y WITH DIAERESIS) */
 };
 
-GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_2[128] = 
+const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_2[128] = 
 {
     {(unsigned char *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
     {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
@@ -957,7 +957,7 @@ GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_is
     {(unsigned char *) "\xcb\x99", 2, 0x02D9}, /* (DOT ABOVE) */
 };
 
-GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_3[128] = 
+const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_3[128] = 
 {
     {(unsigned char *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
     {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
@@ -1089,7 +1089,7 @@ GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_is
     {(unsigned char *) "\xcb\x99", 2, 0x02D9}, /* (DOT ABOVE) */
 };
 
-GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_4[128] = 
+const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_4[128] = 
 {
     {(unsigned char *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
     {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
@@ -1221,7 +1221,7 @@ GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_is
     {(unsigned char *) "\xcb\x99", 2, 0x02D9}, /* (DOT ABOVE) */
 };
 
-GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_5[128] = 
+const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_5[128] = 
 {
     {(unsigned char *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
     {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
@@ -1353,7 +1353,7 @@ GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_is
     {(unsigned char *) "\xd1\x9f", 2, 0x045F}, /* (CYRILLIC SMALL LETTER DZHE) */
 };
 
-GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_6[128] = 
+const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_6[128] = 
 {
     {(unsigned char *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
     {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
@@ -1485,7 +1485,7 @@ GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_is
     {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
 };
 
-GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_7[128] = 
+const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_7[128] = 
 {
     {(unsigned char *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
     {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
@@ -1617,7 +1617,7 @@ GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_is
     {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
 };
 
-GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_8[128] = 
+const pchtml_encoding_single_index_t pchtml_encoding_single_index_iso_8859_8[128] = 
 {
     {(unsigned char *) "\xc2\x80", 2, 0x0080}, /* (<control>) */
     {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
@@ -1749,7 +1749,7 @@ GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_is
     {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
 };
 
-GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_koi8_r[128] = 
+const pchtml_encoding_single_index_t pchtml_encoding_single_index_koi8_r[128] = 
 {
     {(unsigned char *) "\xe2\x94\x80", 3, 0x2500}, /* (BOX DRAWINGS LIGHT HORIZONTAL) */
     {(unsigned char *) "\xe2\x94\x82", 3, 0x2502}, /* (BOX DRAWINGS LIGHT VERTICAL) */
@@ -1881,7 +1881,7 @@ GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_ko
     {(unsigned char *) "\xd0\xaa", 2, 0x042A}, /* (CYRILLIC CAPITAL LETTER HARD SIGN) */
 };
 
-GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_koi8_u[128] = 
+const pchtml_encoding_single_index_t pchtml_encoding_single_index_koi8_u[128] = 
 {
     {(unsigned char *) "\xe2\x94\x80", 3, 0x2500}, /* (BOX DRAWINGS LIGHT HORIZONTAL) */
     {(unsigned char *) "\xe2\x94\x82", 3, 0x2502}, /* (BOX DRAWINGS LIGHT VERTICAL) */
@@ -2013,7 +2013,7 @@ GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_ko
     {(unsigned char *) "\xd0\xaa", 2, 0x042A}, /* (CYRILLIC CAPITAL LETTER HARD SIGN) */
 };
 
-GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_macintosh[128] = 
+const pchtml_encoding_single_index_t pchtml_encoding_single_index_macintosh[128] = 
 {
     {(unsigned char *) "\xc3\x84", 2, 0x00C4}, /* (LATIN CAPITAL LETTER A WITH DIAERESIS) */
     {(unsigned char *) "\xc3\x85", 2, 0x00C5}, /* (LATIN CAPITAL LETTER A WITH RING ABOVE) */
@@ -2145,7 +2145,7 @@ GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_ma
     {(unsigned char *) "\xcb\x87", 2, 0x02C7}, /* (CARON) */
 };
 
-GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_windows_1250[128] = 
+const pchtml_encoding_single_index_t pchtml_encoding_single_index_windows_1250[128] = 
 {
     {(unsigned char *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
     {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
@@ -2277,7 +2277,7 @@ GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_wi
     {(unsigned char *) "\xcb\x99", 2, 0x02D9}, /* (DOT ABOVE) */
 };
 
-GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_windows_1251[128] = 
+const pchtml_encoding_single_index_t pchtml_encoding_single_index_windows_1251[128] = 
 {
     {(unsigned char *) "\xd0\x82", 2, 0x0402}, /* (CYRILLIC CAPITAL LETTER DJE) */
     {(unsigned char *) "\xd0\x83", 2, 0x0403}, /* (CYRILLIC CAPITAL LETTER GJE) */
@@ -2409,7 +2409,7 @@ GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_wi
     {(unsigned char *) "\xd1\x8f", 2, 0x044F}, /* (CYRILLIC SMALL LETTER YA) */
 };
 
-GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_windows_1252[128] = 
+const pchtml_encoding_single_index_t pchtml_encoding_single_index_windows_1252[128] = 
 {
     {(unsigned char *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
     {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
@@ -2541,7 +2541,7 @@ GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_wi
     {(unsigned char *) "\xc3\xbf", 2, 0x00FF}, /* (LATIN SMALL LETTER Y WITH DIAERESIS) */
 };
 
-GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_windows_1253[128] = 
+const pchtml_encoding_single_index_t pchtml_encoding_single_index_windows_1253[128] = 
 {
     {(unsigned char *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
     {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
@@ -2673,7 +2673,7 @@ GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_wi
     {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
 };
 
-GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_windows_1254[128] = 
+const pchtml_encoding_single_index_t pchtml_encoding_single_index_windows_1254[128] = 
 {
     {(unsigned char *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
     {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
@@ -2805,7 +2805,7 @@ GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_wi
     {(unsigned char *) "\xc3\xbf", 2, 0x00FF}, /* (LATIN SMALL LETTER Y WITH DIAERESIS) */
 };
 
-GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_windows_1255[128] = 
+const pchtml_encoding_single_index_t pchtml_encoding_single_index_windows_1255[128] = 
 {
     {(unsigned char *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
     {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
@@ -2937,7 +2937,7 @@ GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_wi
     {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
 };
 
-GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_windows_1256[128] = 
+const pchtml_encoding_single_index_t pchtml_encoding_single_index_windows_1256[128] = 
 {
     {(unsigned char *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
     {(unsigned char *) "\xd9\xbe", 2, 0x067E}, /* (ARABIC LETTER PEH) */
@@ -3069,7 +3069,7 @@ GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_wi
     {(unsigned char *) "\xdb\x92", 2, 0x06D2}, /* (ARABIC LETTER YEH BARREE) */
 };
 
-GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_windows_1257[128] = 
+const pchtml_encoding_single_index_t pchtml_encoding_single_index_windows_1257[128] = 
 {
     {(unsigned char *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
     {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
@@ -3201,7 +3201,7 @@ GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_wi
     {(unsigned char *) "\xcb\x99", 2, 0x02D9}, /* (DOT ABOVE) */
 };
 
-GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_windows_1258[128] = 
+const pchtml_encoding_single_index_t pchtml_encoding_single_index_windows_1258[128] = 
 {
     {(unsigned char *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
     {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
@@ -3333,7 +3333,7 @@ GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_wi
     {(unsigned char *) "\xc3\xbf", 2, 0x00FF}, /* (LATIN SMALL LETTER Y WITH DIAERESIS) */
 };
 
-GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_windows_874[128] = 
+const pchtml_encoding_single_index_t pchtml_encoding_single_index_windows_874[128] = 
 {
     {(unsigned char *) "\xe2\x82\xac", 3, 0x20AC}, /* (EURO SIGN) */
     {(unsigned char *) "\xc2\x81", 2, 0x0081}, /* (<control>) */
@@ -3465,7 +3465,7 @@ GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_wi
     {NULL, 0, PCHTML_ENCODING_DECODE_ERROR}, /* Not defined */
 };
 
-GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_x_mac_cyrillic[128] = 
+const pchtml_encoding_single_index_t pchtml_encoding_single_index_x_mac_cyrillic[128] = 
 {
     {(unsigned char *) "\xd0\x90", 2, 0x0410}, /* (CYRILLIC CAPITAL LETTER A) */
     {(unsigned char *) "\xd0\x91", 2, 0x0411}, /* (CYRILLIC CAPITAL LETTER BE) */
@@ -3598,7 +3598,7 @@ GENGYUE_API const pchtml_encoding_single_index_t pchtml_encoding_single_index_x_
 };
 
 /* Table size: 344; Max deep: 1 */
-GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_ibm866[345] = 
+const pchtml_shs_hash_t pchtml_encoding_single_hash_ibm866[345] = 
 {
     {0, NULL, 0},{9632, (void *) 254, 0},
     {0, NULL, 0},
@@ -3947,7 +3947,7 @@ GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_ibm866[345] =
 };
 
 /* Table size: 343; Max deep: 1 */
-GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_10[344] = 
+const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_10[344] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -4295,7 +4295,7 @@ GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_10[344]
 };
 
 /* Table size: 345; Max deep: 1 */
-GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_13[346] = 
+const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_13[346] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {346, (void *) 218, 0},
@@ -4645,7 +4645,7 @@ GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_13[346]
 };
 
 /* Table size: 407; Max deep: 1 */
-GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_14[408] = 
+const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_14[408] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -5057,7 +5057,7 @@ GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_14[408]
 };
 
 /* Table size: 344; Max deep: 1 */
-GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_15[345] = 
+const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_15[345] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -5406,7 +5406,7 @@ GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_15[345]
 };
 
 /* Table size: 413; Max deep: 1 */
-GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_16[414] = 
+const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_16[414] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -5824,7 +5824,7 @@ GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_16[414]
 };
 
 /* Table size: 368; Max deep: 1 */
-GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_2[369] = 
+const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_2[369] = 
 {
     {0, NULL, 0},{368, (void *) 219, 0},
     {369, (void *) 251, 0},
@@ -6197,7 +6197,7 @@ GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_2[369] 
 };
 
 /* Table size: 343; Max deep: 1 */
-GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_3[344] = 
+const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_3[344] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -6545,7 +6545,7 @@ GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_3[344] 
 };
 
 /* Table size: 343; Max deep: 1 */
-GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_4[344] = 
+const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_4[344] = 
 {
     {0, NULL, 0},{343, (void *) 179, 0},
     {0, NULL, 0},
@@ -6893,7 +6893,7 @@ GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_4[344] 
 };
 
 /* Table size: 343; Max deep: 1 */
-GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_5[344] = 
+const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_5[344] = 
 {
     {0, NULL, 0},{1029, (void *) 165, 0},
     {1030, (void *) 166, 0},
@@ -7241,7 +7241,7 @@ GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_5[344] 
 };
 
 /* Table size: 343; Max deep: 1 */
-GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_6[344] = 
+const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_6[344] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -7589,7 +7589,7 @@ GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_6[344] 
 };
 
 /* Table size: 344; Max deep: 1 */
-GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_7[345] = 
+const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_7[345] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -7938,7 +7938,7 @@ GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_7[345] 
 };
 
 /* Table size: 347; Max deep: 1 */
-GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_8[348] = 
+const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_8[348] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -8290,7 +8290,7 @@ GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_iso_8859_8[348] 
 };
 
 /* Table size: 486; Max deep: 1 */
-GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_koi8_r[487] = 
+const pchtml_shs_hash_t pchtml_encoding_single_hash_koi8_r[487] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -8781,7 +8781,7 @@ GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_koi8_r[487] =
 };
 
 /* Table size: 380; Max deep: 1 */
-GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_koi8_u[381] = 
+const pchtml_shs_hash_t pchtml_encoding_single_hash_koi8_u[381] = 
 {
     {0, NULL, 0},{9500, (void *) 134, 0},
     {0, NULL, 0},
@@ -9166,7 +9166,7 @@ GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_koi8_u[381] =
 };
 
 /* Table size: 343; Max deep: 2 */
-GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_macintosh[351] = 
+const pchtml_shs_hash_t pchtml_encoding_single_hash_macintosh[351] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -9521,7 +9521,7 @@ GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_macintosh[351] =
 };
 
 /* Table size: 432; Max deep: 1 */
-GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1250[433] = 
+const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1250[433] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -9958,7 +9958,7 @@ GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1250[433
 };
 
 /* Table size: 362; Max deep: 1 */
-GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1251[363] = 
+const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1251[363] = 
 {
     {0, NULL, 0},{1086, (void *) 238, 0},
     {1087, (void *) 239, 0},
@@ -10325,7 +10325,7 @@ GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1251[363
 };
 
 /* Table size: 373; Max deep: 1 */
-GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1252[374] = 
+const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1252[374] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -10703,7 +10703,7 @@ GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1252[374
 };
 
 /* Table size: 354; Max deep: 1 */
-GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1253[355] = 
+const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1253[355] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -11062,7 +11062,7 @@ GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1253[355
 };
 
 /* Table size: 354; Max deep: 1 */
-GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1254[355] = 
+const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1254[355] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -11421,7 +11421,7 @@ GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1254[355
 };
 
 /* Table size: 467; Max deep: 1 */
-GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1255[468] = 
+const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1255[468] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -11893,7 +11893,7 @@ GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1255[468
 };
 
 /* Table size: 343; Max deep: 2 */
-GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1256[357] = 
+const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1256[357] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -12254,7 +12254,7 @@ GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1256[357
 };
 
 /* Table size: 355; Max deep: 1 */
-GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1257[356] = 
+const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1257[356] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {711, (void *) 142, 0},
@@ -12614,7 +12614,7 @@ GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1257[356
 };
 
 /* Table size: 405; Max deep: 1 */
-GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1258[406] = 
+const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1258[406] = 
 {
     {0, NULL, 0},{0, NULL, 0},
     {0, NULL, 0},
@@ -13024,7 +13024,7 @@ GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_1258[406
 };
 
 /* Table size: 359; Max deep: 1 */
-GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_874[360] = 
+const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_874[360] = 
 {
     {0, NULL, 0},{3590, (void *) 166, 0},
     {3591, (void *) 167, 0},
@@ -13388,7 +13388,7 @@ GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_windows_874[360]
 };
 
 /* Table size: 373; Max deep: 1 */
-GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_single_hash_x_mac_cyrillic[374] = 
+const pchtml_shs_hash_t pchtml_encoding_single_hash_x_mac_cyrillic[374] = 
 {
     {0, NULL, 0},{1119, (void *) 219, 0},
     {0, NULL, 0},

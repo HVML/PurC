@@ -34,7 +34,7 @@
 #include "html/core/shs.h"
 
 
-GENGYUE_API const pchtml_encoding_multi_index_t pchtml_encoding_multi_index_jis0212[7211] = 
+const pchtml_encoding_multi_index_t pchtml_encoding_multi_index_jis0212[7211] = 
 {
     {NULL, 0, PCHTML_ENCODING_ERROR_CODEPOINT}, /* Not defined */
     {NULL, 0, PCHTML_ENCODING_ERROR_CODEPOINT}, /* Not defined */
@@ -7250,7 +7250,7 @@ GENGYUE_API const pchtml_encoding_multi_index_t pchtml_encoding_multi_index_jis0
 };
 
 /* Table size: 6923; Max deep: 3 */
-GENGYUE_API const pchtml_shs_hash_t pchtml_encoding_multi_hash_jis0212[8552] = 
+const pchtml_shs_hash_t pchtml_encoding_multi_hash_jis0212[8552] = 
 {
     {0, NULL, 0},{27692, (void *) 3525, 0},
     {0, NULL, 0},

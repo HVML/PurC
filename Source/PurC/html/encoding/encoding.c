@@ -92,7 +92,7 @@ pchtml_encoding_encode_finish_noi(pchtml_encoding_encode_t *encode)
     return pchtml_encoding_encode_finish(encode);
 }
 
-GENGYUE_API unsigned char *
+unsigned char *
 pchtml_encoding_encode_buf_noi(pchtml_encoding_encode_t *encode)
 {
     return pchtml_encoding_encode_buf(encode);
