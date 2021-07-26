@@ -434,9 +434,10 @@ next_input:
                 case '\x0C':
                     ADVANCE_TO(ejson_before_value_state);
                     break;
-                case '{':
+                case '[':
                     pcejson_stack_push (ejson->stack, '[');
                     pcejson_temp_buffer_reset(ejson);
+                    SWITCH_TO(ejson_before_value_state);
                     return pcejson_token_new(ejson_token_start_array, NULL);
                 default:
                     pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
@@ -453,7 +454,7 @@ next_input:
                         SWITCH_TO(ejson_finished_state);
                     }
                     else {
-                        SWITCH_TO(ejson_init_state);
+                        SWITCH_TO(ejson_after_value_state);
                     }
                     return pcejson_token_new(ejson_token_end_array, NULL);
                 }
@@ -576,11 +577,9 @@ next_input:
                 RECONSUME_IN(ejson_after_object_state);
             }
             else if (wc == ']') {
-                pcejson_stack_pop(ejson->stack);
                 RECONSUME_IN(ejson_after_array_state);
             }
             else if (wc == ',') {
-                pcejson_stack_pop(ejson->stack);
                 uint8_t c = pcejson_stack_last(ejson->stack);
                 if (c == '{') {
                     SWITCH_TO(ejson_before_name_state);
@@ -588,6 +587,11 @@ next_input:
                 }
                 else if (c == '[') {
                     SWITCH_TO(ejson_before_value_state);
+                    return pcejson_token_new(ejson_token_comma, NULL);
+                }
+                else if (c == ':') {
+                    pcejson_stack_pop(ejson->stack);
+                    SWITCH_TO(ejson_before_name_state);
                     return pcejson_token_new(ejson_token_comma, NULL);
                 }
                 else {
