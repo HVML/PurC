@@ -34,40 +34,137 @@
 extern "C" {
 #endif  /* __cplusplus */
 
+//struct pcedom_tag_id;
+//typedef struct pcedom_tag_id  pcedom_tag_id;
+//typedef struct pcedom_tag_id* pcedom_tag_id_t;
+typedef uintptr_t pcedom_tag_id;
+typedef pcedom_tag_id* pcedom_tag_id_t;
+
+
 typedef enum purc_namespace
 {
     PURC_NAMESPACE_HTML,
     PURC_NAMESPACE_MAX,
 } purc_namespace;
 
-
 // edom type
-struct pcxgml
-{
-    int type;
-};
+typedef enum {
+    PCEDOM_NODE_TYPE_HTML_UNDEF                  = 0x00,
+    PCEDOM_NODE_TYPE_HTML_ELEMENT                = 0x01,
+    PCEDOM_NODE_TYPE_HTML_ATTRIBUTE              = 0x02,
+    PCEDOM_NODE_TYPE_HTML_TEXT                   = 0x03,
+    PCEDOM_NODE_TYPE_HTML_CDATA_SECTION          = 0x04,
+    PCEDOM_NODE_TYPE_HTML_ENTITY_REFERENCE       = 0x05, // historical
+    PCEDOM_NODE_TYPE_HTML_ENTITY                 = 0x06, // historical
+    PCEDOM_NODE_TYPE_HTML_PROCESSING_INSTRUCTION = 0x07,
+    PCEDOM_NODE_TYPE_HTML_COMMENT                = 0x08,
+    PCEDOM_NODE_TYPE_HTML_DOCUMENT               = 0x09,
+    PCEDOM_NODE_TYPE_HTML_DOCUMENT_TYPE          = 0x0A,
+    PCEDOM_NODE_TYPE_HTML_DOCUMENT_FRAGMENT      = 0x0B,
+    PCEDOM_NODE_TYPE_HTML_NOTATION               = 0x0C, // historical
+    PCEDOM_NODE_TYPE_HTML_LAST_ENTRY             = 0x0D
+}
+pcedom_node_type;
 
-struct pcxml
-{
-    int type;
+
+// define edom node
+struct pcedom_node {
+//    pchtml_dom_event_target_t event_target;
+
+    /* For example: <LalAla:DiV Fix:Me="value"> */
+
+    uintptr_t              local_name;          // lowercase, without prefix: div
+    uintptr_t              prefix;              // lowercase: lalala
+    uintptr_t              ns;                  // namespace
+
+    struct pcedom_document * owner_document;    // document
+
+    struct pcedom_node     * next;
+    struct pcedom_node     * prev;
+    struct pcedom_node     * parent;
+    struct pcedom_node     * first_child;
+    struct pcedom_node     * last_child;
+    void                   * user;
+
+    pcedom_node_type       type;
 };
+typedef struct pcedom_node     pcedom_node;
+typedef struct pcedom_node *   pcedom_node_t;
+
+typedef uintptr_t pcedom_attr_id_t;
+
+// define edom node with element type
+struct pcedom_element {
+    pcedom_node_t          node;
+
+    /* For example: <LalAla:DiV Fix:Me="value"> */
+
+    /* uppercase, with prefix: LALALA:DIV */
+    pcedom_attr_id_t       upper_name;
+
+    /* original, with prefix: LalAla:DiV */
+    pcedom_attr_id_t       qualified_name;
+
+    purc_variant_t         *is_value;
+
+    pcedom_attr_t          *first_attr;
+    pcedom_attr_t          *last_attr;
+
+    pcedom_attr_t          *attr_id;
+    pcedom_attr_t          *attr_class;
+
+//    pchtml_dom_element_custom_state_t custom_state;
+};
+typedef struct pcedom_element  pcedom_element;
+typedef struct pcedom_element *pcedom_element_t;
+
+// define edom node with attribution type
+struct pcedom_attr {
+    pcedom_node_t         node;
+
+    /* For example: <LalAla:DiV Fix:Me="value"> */
+
+    pcedom_attr_id_t      upper_name;           // uppercase, with prefix: FIX:ME
+    pcedom_attr_id_t      qualified_name;       // original, with prefix: Fix:Me
+
+    purc_variant_t        value;
+
+    pcedom_element_t      * owner;              // elemnet node
+
+    struct pcedom_attr    * next;
+    struct pcedom_attr    * prev;
+};
+typedef struct pcedom_attr  pcedom_attr;
+typedef struct pcedom_attr* pcedom_attr_t;
+
+
+// define
+struct pcedom_character_data {
+    pchtml_dom_node_t node;
+
+    purc_variant_t    data;
+};
+typedef struct pcedom_character_data  pcedom_character_data;
+typedef struct pcedom_character_data* pcedom_character_data_t;
+
+
+// define edom node with comment type
+struct pcedom_comment {
+    pchtml_dom_character_data_t char_data;
+};
+typedef struct pcedom_comment  pcedom_comment;
+typedef struct pcedom_comment* pcedom_comment_t;
+
+
+// define edom node with text type
+struct pcedom_text {
+    pcedom_character_data_t char_data;
+};
+typedef struct pcedom_text  pcedom_text;
+typedef struct pcedom_text* pcedom_text_t;
+
 
 struct pchtml
-{
-    int type;
-};
-
-struct pcedom_tag_id
-{
-    int type;
-};
-
-struct pcedom_element
-{
-    int type;
-};
-
-struct pcedom_attr
 {
     int type;
 };
@@ -77,30 +174,9 @@ struct pcedom_tree
     int type;
 };
 
-//struct pcxgml_t;
-typedef struct pcxgml  pcxgml;
-typedef struct pcxgml* pcxgml_t;
-
-//struct pcxml_t;
-typedef struct pcxml  pcxml;
-typedef struct pcxml* pcxml_t;
-
 //struct pchtml_t;
 typedef struct pchtml  pchtml;
 typedef struct pchtml* pchtml_t;
-
-//struct pcedom_tag_id;
-typedef struct pcedom_tag_id  pcedom_tag_id;
-typedef struct pcedom_tag_id* pcedom_tag_id_t;
-
-//struct pcedom_element;
-typedef struct pcedom_element  pcedom_element;
-typedef struct pcedom_element* pcedom_element_t;
-
-// attribute type
-//struct pcedom_attr;
-typedef struct pcedom_attr  pcedom_attr;
-typedef struct pcedom_attr* pcedom_attr_t;
 
 // edom tree type
 //struct pcedom_tree;
