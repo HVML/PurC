@@ -394,6 +394,7 @@ next_input:
                 case '{':
                     pcejson_stack_push (ejson->stack, '{');
                     pcejson_temp_buffer_reset(ejson);
+                    SWITCH_TO(ejson_before_name_state);
                     return pcejson_token_new(ejson_token_start_object, NULL);
                 default:
                     pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
