@@ -411,7 +411,7 @@ next_input:
                         SWITCH_TO(ejson_finished_state);
                     }
                     else {
-                        SWITCH_TO(ejson_init_state);
+                        SWITCH_TO(ejson_after_value_state);
                     }
                     return pcejson_token_new(ejson_token_end_object, NULL);
                 }
