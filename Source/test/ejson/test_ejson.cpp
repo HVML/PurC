@@ -565,7 +565,7 @@ TEST(ejson_token, parse_no_space_double_quoted_key_with_double_quoted_value)
 
 TEST(ejson_token, parse_true_false)
 {
-    char json[] = "{key:true}";
+    char json[] = "{key:true,key2:false}";
 
     purc_rwstream_t rws = purc_rwstream_new_from_mem(json, strlen(json));
     struct pcejson* parser = pcejson_create(10, 1);
@@ -584,6 +584,21 @@ TEST(ejson_token, parse_true_false)
     ASSERT_NE(token, nullptr);
     ASSERT_EQ(token->type, ejson_token_boolean);
     ASSERT_STREQ(token->buf, "true");
+
+    token = pcejson_next_token(parser, rws);
+    ASSERT_NE(token, nullptr);
+    ASSERT_EQ(token->type, ejson_token_comma);
+    ASSERT_STREQ(token->buf, nullptr);
+
+    token = pcejson_next_token(parser, rws);
+    ASSERT_NE(token, nullptr);
+    ASSERT_EQ(token->type, ejson_token_key);
+    ASSERT_STREQ(token->buf, "key2");
+
+    token = pcejson_next_token(parser, rws);
+    ASSERT_NE(token, nullptr);
+    ASSERT_EQ(token->type, ejson_token_boolean);
+    ASSERT_STREQ(token->buf, "false");
 
     token = pcejson_next_token(parser, rws);
     ASSERT_NE(token, nullptr);

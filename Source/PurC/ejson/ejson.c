@@ -580,6 +580,7 @@ next_input:
                 RECONSUME_IN(ejson_after_array_state);
             }
             else if (wc == ',') {
+                pcejson_stack_pop(ejson->stack);
                 uint8_t c = pcejson_stack_last(ejson->stack);
                 if (c == '{') {
                     SWITCH_TO(ejson_before_name_state);
