@@ -987,11 +987,11 @@ next_input:
                 RECONSUME_IN(ejson_after_value_number_state);
             }
             else if (is_ascii_digit(wc)) {
-                RECONSUME_IN(ejson_value_number_state);
+                RECONSUME_IN(ejson_value_number_integer_state);
             }
             else if (wc == '-') {
                 pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
-                RECONSUME_IN(ejson_value_number_state);
+                ADVANCE_TO(ejson_value_number_integer_state);
             }
             pcinst_set_error(PCEJSON_BAD_JSON_NUMBER_PARSE_ERROR);
             return NULL;
@@ -1006,7 +1006,7 @@ next_input:
                     return NULL;
                 }
                 else {
-                    SWITCH_TO(ejson_after_value_state);
+                    RECONSUME_IN_NEXT(ejson_after_value_state);
                     return pcejson_token_new(ejson_token_number,
                                 pcejson_temp_buffer_dup(ejson));
                 }
