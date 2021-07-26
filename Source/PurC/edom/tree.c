@@ -50,6 +50,7 @@ bool pcedom_tree_init(pcedom_tree_t tree, pchtml_t parser)
     return true;
 }
 
+#if 0
 // initialize edom tree with XGML parser
 bool pcedom_tree_init(pcedom_tree_t tree, pcxgml_t parser)
 {
@@ -67,6 +68,7 @@ bool pcedom_tree_init(pcedom_tree_t tree, pcxml_t parser)
 
     return true;
 }
+#endif
 
 // append an edom element as child
 bool pcedom_tree_element_add_child(pcedom_element_t parent, 
@@ -102,7 +104,7 @@ bool pcedom_tree_element_insert_after(pcedom_element_t current,
 bool pcedom_tree_remove_element(pcedom_tree_t tree,
                                 pcedom_element_t elem)
 {
-    UNUSED_PARAM(current);
+    UNUSED_PARAM(tree);
     UNUSED_PARAM(elem);
 
     return true;
@@ -121,7 +123,7 @@ void pcedom_tree_destroy(pcedom_tree_t tree)
 {
     UNUSED_PARAM(tree);
 
-    return true;
+    return;
 }
 
 // get the first element for an edom tree
@@ -135,7 +137,7 @@ pcedom_element_t pcedom_element_first(pcedom_tree_t tree)
 // get the last element for an edom tree
 pcedom_element_t pcedom_element_last(pcedom_tree_t tree)
 {
-    UNUSED_PARAM(elem);
+    UNUSED_PARAM(tree);
 
     return NULL;
 }

@@ -39,7 +39,7 @@ pcedom_collection_t pcedom_collection_create(size_t size)
 {
     UNUSED_PARAM(size);
 
-    return true;
+    return NULL;
 }
 
 
@@ -81,7 +81,7 @@ pcedom_collection_t pcedom_get_elements_by_name(pcedom_tree_t tree,
     UNUSED_PARAM(tree);
     UNUSED_PARAM(collection);
     UNUSED_PARAM(name);
-    UNUSED_PARAM(name_len);
+    UNUSED_PARAM(length);
 
     return NULL;
 }

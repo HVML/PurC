@@ -22,8 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef PURC_PRIVATE_VARIANT_H
-#define PURC_PRIVATE_VARIANT_H
+#ifndef PURC_PRIVATE_EDOM_H
+#define PURC_PRIVATE_EDOM_H
 
 #include "config.h"
 #include "purc-variant.h"
@@ -34,18 +34,76 @@
 extern "C" {
 #endif  /* __cplusplus */
 
+typedef enum purc_namespace
+{
+    PURC_NAMESPACE_HTML,
+    PURC_NAMESPACE_MAX,
+} purc_namespace;
+
+
 // edom type
-struct pcedom_element;
+struct pcxgml
+{
+    int type;
+};
+
+struct pcxml
+{
+    int type;
+};
+
+struct pchtml
+{
+    int type;
+};
+
+struct pcedom_tag_id
+{
+    int type;
+};
+
+struct pcedom_element
+{
+    int type;
+};
+
+struct pcedom_attr
+{
+    int type;
+};
+
+struct pcedom_tree
+{
+    int type;
+};
+
+//struct pcxgml_t;
+typedef struct pcxgml  pcxgml;
+typedef struct pcxgml* pcxgml_t;
+
+//struct pcxml_t;
+typedef struct pcxml  pcxml;
+typedef struct pcxml* pcxml_t;
+
+//struct pchtml_t;
+typedef struct pchtml  pchtml;
+typedef struct pchtml* pchtml_t;
+
+//struct pcedom_tag_id;
+typedef struct pcedom_tag_id  pcedom_tag_id;
+typedef struct pcedom_tag_id* pcedom_tag_id_t;
+
+//struct pcedom_element;
 typedef struct pcedom_element  pcedom_element;
 typedef struct pcedom_element* pcedom_element_t;
 
 // attribute type
-struct pcedom_attr;
+//struct pcedom_attr;
 typedef struct pcedom_attr  pcedom_attr;
 typedef struct pcedom_attr* pcedom_attr_t;
 
 // edom tree type
-struct pcedom_tree;
+//struct pcedom_tree;
 typedef struct pcedom_tree  pcedom_tree;
 typedef struct pcedom_tree* pcedom_tree_t;
 
@@ -91,10 +149,10 @@ pcedom_tree_t pcedom_tree_create(void) WTF_INTERNAL;
 bool pcedom_tree_init(pcedom_tree_t tree, pchtml_t parser) WTF_INTERNAL;
 
 // initialize edom tree with XGML parser
-bool pcedom_tree_init(pcedom_tree_t tree, pcxgml_t parser) WTF_INTERNAL;
+//bool pcedom_tree_init(pcedom_tree_t tree, pcxgml_t parser) WTF_INTERNAL;
 
 // initialize edom tree with XML parser
-bool pcedom_tree_init(pcedom_tree_t tree, pcxml_t parser) WTF_INTERNAL;
+//bool pcedom_tree_init(pcedom_tree_t tree, pcxml_t parser) WTF_INTERNAL;
 
 // append an edom element as child 
 bool pcedom_tree_element_add_child(pcedom_element_t parent, 
@@ -195,3 +253,5 @@ pcedom_collection_t pcedom_get_elements_by_attribute_value_whitespace_separated(
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
+
+#endif  /* PURC_PRIVATE_EDOM_H*/

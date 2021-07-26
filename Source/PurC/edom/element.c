@@ -69,7 +69,7 @@ pcedom_attr_t pcedom_element_get_attribute (pcedom_element_t element,
     UNUSED_PARAM(attr_name);
     UNUSED_PARAM(name_len);
 
-    return NULL
+    return NULL;
 }
 
 // remove indicated attribution
