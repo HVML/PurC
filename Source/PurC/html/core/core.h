@@ -37,7 +37,7 @@
 #include "html/core/dobject.h"
 #include "html/core/fs.h"
 #include "html/core/in.h"
-#include "html/core/lexbor.h"
+#include "html/core/pchtml.h"
 #include "html/core/mem.h"
 #include "html/core/mraw.h"
 #include "html/core/perf.h"
