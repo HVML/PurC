@@ -497,6 +497,9 @@ next_input:
                 }
                 RECONSUME_IN(ejson_name_unquoted_state);
             }
+            else if (wc == '}') {
+                RECONSUME_IN(ejson_after_object_state);
+            }
             else {
                 pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
                 return NULL;
@@ -557,6 +560,9 @@ next_input:
             }
             else if (wc == '[') {
                 RECONSUME_IN(ejson_array_state);
+            }
+            else if (wc == ']') {
+                RECONSUME_IN(ejson_after_array_state);
             }
             else {
                 pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
