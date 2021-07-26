@@ -739,6 +739,7 @@ next_input:
         BEGIN_STATE(ejson_value_two_double_quoted_state)
             if (wc == '"') {
                 if (pcejson_temp_buffer_equal(ejson, "\"")) {
+                    pcejson_temp_buffer_append(ejson, (uint8_t*)buf_utf8, len);
                     ADVANCE_TO(ejson_value_two_double_quoted_state);
                 }
                 else if (pcejson_temp_buffer_equal(ejson, "\"\"")) {
@@ -761,9 +762,10 @@ next_input:
                 size_t buf_len = pcejson_temp_buffer_length(ejson);
                 if (buf_len >= 6
                         && pcejson_temp_buffer_end_with(ejson, "\"\"\"")) {
-                    pcejson_temp_buffer_clear_head_tail_characters(ejson, 1, 1);
+                    pcejson_temp_buffer_clear_head_tail_characters(ejson, 3, 3);
                     SWITCH_TO(ejson_after_value_state);
-                    return pcejson_token_new(ejson_token_text, NULL);
+                    return pcejson_token_new(ejson_token_text,
+                                pcejson_temp_buffer_dup(ejson));
                 }
                 else {
                     ADVANCE_TO(ejson_value_three_double_quoted_state);

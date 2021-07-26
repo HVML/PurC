@@ -1464,7 +1464,7 @@ TEST(ejson_token, parse_sequence)
     ASSERT_NE(token, nullptr);
     ASSERT_EQ(token->type, ejson_token_byte_squence);
     ASSERT_STREQ(token->buf,
-        "{key:b64UHVyQyBpcyBhbiBIVk1MIHBhcnNlciBhbmQgaW50ZXJwcmV0ZXIuCiA=}");
+        "b64UHVyQyBpcyBhbiBIVk1MIHBhcnNlciBhbmQgaW50ZXJwcmV0ZXIuCiA=");
     pcejson_token_destroy(token);
 
     token = pcejson_next_token(parser, rws);
@@ -1480,3 +1480,48 @@ TEST(ejson_token, parse_sequence)
     purc_rwstream_destroy(rws);
     pcejson_destroy(parser);
 }
+
+TEST(ejson_token, parse_text)
+{
+    char text[] = " this is text\n  一个长字符串\n\n 第三行啊\n";
+    char json[1024];
+    sprintf(json, "{key:\"\"\"%s\"\"\"}", text);
+
+    purc_rwstream_t rws = purc_rwstream_new_from_mem(json, strlen(json));
+    struct pcejson* parser = pcejson_create(10, 1);
+
+    struct pcejson_token* token = pcejson_next_token(parser, rws);
+    ASSERT_NE(token, nullptr);
+    ASSERT_EQ(token->type, ejson_token_start_object);
+    ASSERT_STREQ(token->buf, nullptr);
+    pcejson_token_destroy(token);
+    pcejson_token_destroy(token);
+
+    token = pcejson_next_token(parser, rws);
+    ASSERT_NE(token, nullptr);
+    ASSERT_EQ(token->type, ejson_token_key);
+    ASSERT_STREQ(token->buf, "key");
+    pcejson_token_destroy(token);
+    pcejson_token_destroy(token);
+
+    token = pcejson_next_token(parser, rws);
+    ASSERT_NE(token, nullptr);
+    ASSERT_EQ(token->type, ejson_token_text);
+    ASSERT_STREQ(token->buf, text);
+    pcejson_token_destroy(token);
+
+    token = pcejson_next_token(parser, rws);
+    ASSERT_NE(token, nullptr);
+    ASSERT_EQ(token->type, ejson_token_end_object);
+    ASSERT_STREQ(token->buf, nullptr);
+    pcejson_token_destroy(token);
+
+    token = pcejson_next_token(parser, rws);
+    ASSERT_EQ(token, nullptr);
+    pcejson_token_destroy(token);
+
+    purc_rwstream_destroy(rws);
+
+    pcejson_destroy(parser);
+}
+
