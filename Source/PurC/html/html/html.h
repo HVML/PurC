@@ -42,7 +42,6 @@
 #include "html/html/tokenizer/state_doctype.h"
 #include "html/html/tokenizer/state.h"
 #include "html/html/tokenizer/state_rcdata.h"
-#include "html/html/encoding.h"
 #include "html/html/tree.h"
 #include "html/html/tokenizer.h"
 #include "html/html/interface.h"
