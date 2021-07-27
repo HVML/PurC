@@ -31,8 +31,8 @@
  * No inline functions for ABI.
  */
 void *
-pchtml_dom_exception_code_ref_set_noi(pchtml_dom_exception_code_t *var,
-                                   pchtml_dom_exception_code_t code)
+pcedom_exception_code_ref_set_noi(pcedom_exception_code_t *var,
+                                   pcedom_exception_code_t code)
 {
-    return pchtml_dom_exception_code_ref_set(var, code);
+    return pcedom_exception_code_ref_set(var, code);
 }

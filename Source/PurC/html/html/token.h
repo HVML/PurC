@@ -116,7 +116,7 @@ pchtml_html_token_data_split_ws_begin(pchtml_html_token_t *token,
 
 unsigned int
 pchtml_html_token_doctype_parse(pchtml_html_token_t *token,
-                pchtml_dom_document_type_t *doc_type) WTF_INTERNAL;
+                pcedom_document_type_t *doc_type) WTF_INTERNAL;
 
 pchtml_html_token_attr_t *
 pchtml_html_token_find_attr(pchtml_html_tokenizer_t *tkz, pchtml_html_token_t *token,

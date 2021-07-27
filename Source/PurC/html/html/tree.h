@@ -48,7 +48,7 @@ typedef bool
 
 typedef unsigned int
 (*pchtml_html_tree_append_attr_f)(pchtml_html_tree_t *tree,
-                               pchtml_dom_attr_t *attr, void *ctx);
+                               pcedom_attr_t *attr, void *ctx);
 
 typedef struct {
     pchtml_array_obj_t *text_list;
@@ -60,7 +60,7 @@ struct pchtml_html_tree {
     pchtml_html_tokenizer_t           *tkz_ref;
 
     pchtml_html_document_t            *document;
-    pchtml_dom_node_t                 *fragment;
+    pcedom_node_t                 *fragment;
 
     pchtml_html_form_element_t        *form;
 
@@ -126,9 +126,9 @@ bool
 pchtml_html_tree_construction_dispatcher(pchtml_html_tree_t *tree,
                 pchtml_html_token_t *token) WTF_INTERNAL;
 
-pchtml_dom_node_t *
+pcedom_node_t *
 pchtml_html_tree_appropriate_place_inserting_node(pchtml_html_tree_t *tree,
-                pchtml_dom_node_t *override_target,
+                pcedom_node_t *override_target,
                 pchtml_html_tree_insertion_position_t *ipos) WTF_INTERNAL;
 
 pchtml_html_element_t *
@@ -138,49 +138,49 @@ pchtml_html_tree_insert_foreign_element(pchtml_html_tree_t *tree,
 pchtml_html_element_t *
 pchtml_html_tree_create_element_for_token(pchtml_html_tree_t *tree,
                 pchtml_html_token_t *token, pchtml_ns_id_t ns,
-                pchtml_dom_node_t *parent) WTF_INTERNAL;
+                pcedom_node_t *parent) WTF_INTERNAL;
 
 unsigned int
 pchtml_html_tree_append_attributes(pchtml_html_tree_t *tree,
-                pchtml_dom_element_t *element,
+                pcedom_element_t *element,
                 pchtml_html_token_t *token, pchtml_ns_id_t ns) WTF_INTERNAL;
 
 unsigned int
 pchtml_html_tree_append_attributes_from_element(pchtml_html_tree_t *tree,
-                pchtml_dom_element_t *element, pchtml_dom_element_t *from,
+                pcedom_element_t *element, pcedom_element_t *from,
                 pchtml_ns_id_t ns) WTF_INTERNAL;
 
 unsigned int
 pchtml_html_tree_adjust_mathml_attributes(pchtml_html_tree_t *tree,
-                pchtml_dom_attr_t *attr, void *ctx) WTF_INTERNAL;
+                pcedom_attr_t *attr, void *ctx) WTF_INTERNAL;
 
 unsigned int
 pchtml_html_tree_adjust_svg_attributes(pchtml_html_tree_t *tree,
-                pchtml_dom_attr_t *attr, void *ctx) WTF_INTERNAL;
+                pcedom_attr_t *attr, void *ctx) WTF_INTERNAL;
 
 unsigned int
 pchtml_html_tree_adjust_foreign_attributes(pchtml_html_tree_t *tree,
-                pchtml_dom_attr_t *attr, void *ctx) WTF_INTERNAL;
+                pcedom_attr_t *attr, void *ctx) WTF_INTERNAL;
 
 unsigned int
 pchtml_html_tree_insert_character(pchtml_html_tree_t *tree, pchtml_html_token_t *token,
-                pchtml_dom_node_t **ret_node) WTF_INTERNAL;
+                pcedom_node_t **ret_node) WTF_INTERNAL;
 
 unsigned int
 pchtml_html_tree_insert_character_for_data(pchtml_html_tree_t *tree,
-                pchtml_str_t *str, pchtml_dom_node_t **ret_node) WTF_INTERNAL;
+                pchtml_str_t *str, pcedom_node_t **ret_node) WTF_INTERNAL;
 
-pchtml_dom_comment_t *
+pcedom_comment_t *
 pchtml_html_tree_insert_comment(pchtml_html_tree_t *tree,
-                pchtml_html_token_t *token, pchtml_dom_node_t *pos) WTF_INTERNAL;
+                pchtml_html_token_t *token, pcedom_node_t *pos) WTF_INTERNAL;
 
-pchtml_dom_document_type_t *
+pcedom_document_type_t *
 pchtml_html_tree_create_document_type_from_token(pchtml_html_tree_t *tree,
                 pchtml_html_token_t *token) WTF_INTERNAL;
 
 void
 pchtml_html_tree_node_delete_deep(pchtml_html_tree_t *tree, 
-                pchtml_dom_node_t *node) WTF_INTERNAL;
+                pcedom_node_t *node) WTF_INTERNAL;
 
 pchtml_html_element_t *
 pchtml_html_tree_generic_rawtext_parsing(pchtml_html_tree_t *tree,
@@ -201,23 +201,23 @@ pchtml_html_tree_generate_all_implied_end_tags_thoroughly(pchtml_html_tree_t *tr
 void
 pchtml_html_tree_reset_insertion_mode_appropriately(pchtml_html_tree_t *tree);
 
-pchtml_dom_node_t *
+pcedom_node_t *
 pchtml_html_tree_element_in_scope(pchtml_html_tree_t *tree, pchtml_tag_id_t tag_id,
                 pchtml_ns_id_t ns, pchtml_html_tag_category_t ct) WTF_INTERNAL;
 
-pchtml_dom_node_t *
+pcedom_node_t *
 pchtml_html_tree_element_in_scope_by_node(pchtml_html_tree_t *tree,
-                pchtml_dom_node_t *by_node,
+                pcedom_node_t *by_node,
                 pchtml_html_tag_category_t ct) WTF_INTERNAL;
 
-pchtml_dom_node_t *
+pcedom_node_t *
 pchtml_html_tree_element_in_scope_h123456(pchtml_html_tree_t *tree) WTF_INTERNAL;
 
-pchtml_dom_node_t *
+pcedom_node_t *
 pchtml_html_tree_element_in_scope_tbody_thead_tfoot(
                 pchtml_html_tree_t *tree) WTF_INTERNAL;
 
-pchtml_dom_node_t *
+pcedom_node_t *
 pchtml_html_tree_element_in_scope_td_th(pchtml_html_tree_t *tree) WTF_INTERNAL;
 
 bool
@@ -232,15 +232,15 @@ pchtml_html_tree_adoption_agency_algorithm(pchtml_html_tree_t *tree,
                 pchtml_html_token_t *token, unsigned int *status) WTF_INTERNAL;
 
 bool
-pchtml_html_tree_html_integration_point(pchtml_dom_node_t *node) WTF_INTERNAL;
+pchtml_html_tree_html_integration_point(pcedom_node_t *node) WTF_INTERNAL;
 
 unsigned int
 pchtml_html_tree_adjust_attributes_mathml(pchtml_html_tree_t *tree,
-                pchtml_dom_attr_t *attr, void *ctx) WTF_INTERNAL;
+                pcedom_attr_t *attr, void *ctx) WTF_INTERNAL;
 
 unsigned int
 pchtml_html_tree_adjust_attributes_svg(pchtml_html_tree_t *tree,
-                pchtml_dom_attr_t *attr, void *ctx) WTF_INTERNAL;
+                pcedom_attr_t *attr, void *ctx) WTF_INTERNAL;
 
 
 /*
@@ -283,36 +283,36 @@ pchtml_html_tree_build(pchtml_html_tree_t *tree, pchtml_html_document_t *documen
     return pchtml_html_tree_end(tree);
 }
 
-static inline pchtml_dom_node_t *
+static inline pcedom_node_t *
 pchtml_html_tree_create_node(pchtml_html_tree_t *tree,
                           pchtml_tag_id_t tag_id, pchtml_ns_id_t ns)
 {
-    return (pchtml_dom_node_t *) pchtml_html_interface_create(tree->document,
+    return (pcedom_node_t *) pchtml_html_interface_create(tree->document,
                                                         tag_id, ns);
 }
 
 static inline bool
-pchtml_html_tree_node_is(pchtml_dom_node_t *node, pchtml_tag_id_t tag_id)
+pchtml_html_tree_node_is(pcedom_node_t *node, pchtml_tag_id_t tag_id)
 {
     return node->local_name == tag_id && node->ns == PCHTML_NS_HTML;
 }
 
-static inline pchtml_dom_node_t *
+static inline pcedom_node_t *
 pchtml_html_tree_current_node(pchtml_html_tree_t *tree)
 {
     if (tree->open_elements->length == 0) {
         return NULL;
     }
 
-    return (pchtml_dom_node_t *)
+    return (pcedom_node_t *)
         tree->open_elements->list[ (tree->open_elements->length - 1) ];
 }
 
-static inline pchtml_dom_node_t *
+static inline pcedom_node_t *
 pchtml_html_tree_adjusted_current_node(pchtml_html_tree_t *tree)
 {
     if(tree->fragment != NULL && tree->open_elements->length == 1) {
-        return pchtml_dom_interface_node(tree->fragment);
+        return pcedom_interface_node(tree->fragment);
     }
 
     return pchtml_html_tree_current_node(tree);
@@ -326,15 +326,15 @@ pchtml_html_tree_insert_html_element(pchtml_html_tree_t *tree,
 }
 
 static inline void
-pchtml_html_tree_insert_node(pchtml_dom_node_t *to, pchtml_dom_node_t *node,
+pchtml_html_tree_insert_node(pcedom_node_t *to, pcedom_node_t *node,
                           pchtml_html_tree_insertion_position_t ipos)
 {
     if (ipos == PCHTML_HTML_TREE_INSERTION_POSITION_BEFORE) {
-        pchtml_dom_node_insert_before(to, node);
+        pcedom_node_insert_before(to, node);
         return;
     }
 
-    pchtml_dom_node_insert_child(to, node);
+    pcedom_node_insert_child(to, node);
 }
 
 /* TODO: if we not need to save parse errors?! */
@@ -355,7 +355,7 @@ pchtml_html_tree_acknowledge_token_self_closing(pchtml_html_tree_t *tree,
 }
 
 static inline bool
-pchtml_html_tree_mathml_text_integration_point(pchtml_dom_node_t *node)
+pchtml_html_tree_mathml_text_integration_point(pcedom_node_t *node)
 {
     if (node->ns == PCHTML_NS_MATH) {
         switch (node->local_name) {
@@ -406,17 +406,17 @@ unsigned int
 pchtml_html_tree_build_noi(pchtml_html_tree_t *tree, pchtml_html_document_t *document,
                         const unsigned char *html, size_t size);
 
-pchtml_dom_node_t *
+pcedom_node_t *
 pchtml_html_tree_create_node_noi(pchtml_html_tree_t *tree,
                               pchtml_tag_id_t tag_id, pchtml_ns_id_t ns);
 
 bool
-pchtml_html_tree_node_is_noi(pchtml_dom_node_t *node, pchtml_tag_id_t tag_id);
+pchtml_html_tree_node_is_noi(pcedom_node_t *node, pchtml_tag_id_t tag_id);
 
-pchtml_dom_node_t *
+pcedom_node_t *
 pchtml_html_tree_current_node_noi(pchtml_html_tree_t *tree);
 
-pchtml_dom_node_t *
+pcedom_node_t *
 pchtml_html_tree_adjusted_current_node_noi(pchtml_html_tree_t *tree);
 
 pchtml_html_element_t *
@@ -424,7 +424,7 @@ pchtml_html_tree_insert_html_element_noi(pchtml_html_tree_t *tree,
                                       pchtml_html_token_t *token);
 
 void
-pchtml_html_tree_insert_node_noi(pchtml_dom_node_t *to, pchtml_dom_node_t *node,
+pchtml_html_tree_insert_node_noi(pcedom_node_t *to, pcedom_node_t *node,
                               pchtml_html_tree_insertion_position_t ipos);
 
 void
@@ -432,7 +432,7 @@ pchtml_html_tree_acknowledge_token_self_closing_noi(pchtml_html_tree_t *tree,
                                              pchtml_html_token_t *token);
 
 bool
-pchtml_html_tree_mathml_text_integration_point_noi(pchtml_dom_node_t *node);
+pchtml_html_tree_mathml_text_integration_point_noi(pcedom_node_t *node);
 
 bool
 pchtml_html_tree_scripting_noi(pchtml_html_tree_t *tree);

@@ -31,7 +31,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_column_group_anything_else(pchtml_html_tree_t *tree,
                                                            pchtml_html_token_t *token)
 {
-    pchtml_dom_node_t *node = pchtml_html_tree_current_node(tree);
+    pcedom_node_t *node = pchtml_html_tree_current_node(tree);
 
     if (pchtml_html_tree_node_is(node, PCHTML_TAG_COLGROUP) == false) {
         pchtml_html_tree_parse_error(tree, token,
@@ -77,7 +77,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_column_group_comment(pchtml_html_tree_t *tree,
                                                      pchtml_html_token_t *token)
 {
-    pchtml_dom_comment_t *comment;
+    pcedom_comment_t *comment;
 
     comment = pchtml_html_tree_insert_comment(tree, token, NULL);
     if (comment == NULL) {
@@ -119,7 +119,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_column_group_colgroup_closed(pchtml_html_tree_t *tree,
                                                              pchtml_html_token_t *token)
 {
-    pchtml_dom_node_t *node = pchtml_html_tree_current_node(tree);
+    pcedom_node_t *node = pchtml_html_tree_current_node(tree);
 
     if (pchtml_html_tree_node_is(node, PCHTML_TAG_COLGROUP) == false) {
         pchtml_html_tree_parse_error(tree, token,

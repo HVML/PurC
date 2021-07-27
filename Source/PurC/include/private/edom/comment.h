@@ -23,8 +23,8 @@
  */
 
 
-#ifndef PCHTML_DOM_COMMENT_H
-#define PCHTML_DOM_COMMENT_H
+#ifndef PCEDOM_COMMENT_H
+#define PCEDOM_COMMENT_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,22 +35,22 @@ extern "C" {
 #include "private/edom/character_data.h"
 
 
-struct pchtml_dom_comment {
-    pchtml_dom_character_data_t char_data;
+struct pcedom_comment {
+    pcedom_character_data_t char_data;
 };
 
 
-pchtml_dom_comment_t *
-pchtml_dom_comment_interface_create(
-                pchtml_dom_document_t *document) WTF_INTERNAL;
+pcedom_comment_t *
+pcedom_comment_interface_create(
+                pcedom_document_t *document) WTF_INTERNAL;
 
-pchtml_dom_comment_t *
-pchtml_dom_comment_interface_destroy(
-                pchtml_dom_comment_t *comment) WTF_INTERNAL;
+pcedom_comment_t *
+pcedom_comment_interface_destroy(
+                pcedom_comment_t *comment) WTF_INTERNAL;
 
 
 #ifdef __cplusplus
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_DOM_COMMENT_H */
+#endif  /* PCEDOM_COMMENT_H */

@@ -23,8 +23,8 @@
  */
 
 
-#ifndef PCHTML_DOM_COLLECTION_H
-#define PCHTML_DOM_COLLECTION_H
+#ifndef PCEDOM_COLLECTION_H
+#define PCEDOM_COLLECTION_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -38,68 +38,68 @@ extern "C" {
 
 typedef struct {
     pchtml_array_t     array;
-    pchtml_dom_document_t *document;
+    pcedom_document_t *document;
 }
-pchtml_dom_collection_t;
+pcedom_collection_t;
 
 
-pchtml_dom_collection_t *
-pchtml_dom_collection_create(pchtml_dom_document_t *document) WTF_INTERNAL;
+pcedom_collection_t *
+pcedom_collection_create(pcedom_document_t *document) WTF_INTERNAL;
 
 unsigned int
-pchtml_dom_collection_init(pchtml_dom_collection_t *col, 
+pcedom_collection_init(pcedom_collection_t *col, 
                 size_t start_list_size) WTF_INTERNAL;
 
-pchtml_dom_collection_t *
-pchtml_dom_collection_destroy(pchtml_dom_collection_t *col, 
+pcedom_collection_t *
+pcedom_collection_destroy(pcedom_collection_t *col, 
                 bool self_destroy) WTF_INTERNAL;
 
 
 /*
  * Inline functions
  */
-static inline pchtml_dom_collection_t *
-pchtml_dom_collection_make(pchtml_dom_document_t *document, size_t start_list_size)
+static inline pcedom_collection_t *
+pcedom_collection_make(pcedom_document_t *document, size_t start_list_size)
 {
     unsigned int status;
-    pchtml_dom_collection_t *col;
+    pcedom_collection_t *col;
 
-    col = pchtml_dom_collection_create(document);
-    status = pchtml_dom_collection_init(col, start_list_size);
+    col = pcedom_collection_create(document);
+    status = pcedom_collection_init(col, start_list_size);
 
     if(status != PCHTML_STATUS_OK) {
-        return pchtml_dom_collection_destroy(col, true);
+        return pcedom_collection_destroy(col, true);
     }
 
     return col;
 }
 
 static inline void
-pchtml_dom_collection_clean(pchtml_dom_collection_t *col)
+pcedom_collection_clean(pcedom_collection_t *col)
 {
     pchtml_array_clean(&col->array);
 }
 
 static inline unsigned int
-pchtml_dom_collection_append(pchtml_dom_collection_t *col, void *value)
+pcedom_collection_append(pcedom_collection_t *col, void *value)
 {
     return pchtml_array_push(&col->array, value);
 }
 
-static inline pchtml_dom_element_t *
-pchtml_dom_collection_element(pchtml_dom_collection_t *col, size_t idx)
+static inline pcedom_element_t *
+pcedom_collection_element(pcedom_collection_t *col, size_t idx)
 {
-    return (pchtml_dom_element_t *) pchtml_array_get(&col->array, idx);
+    return (pcedom_element_t *) pchtml_array_get(&col->array, idx);
 }
 
-static inline pchtml_dom_node_t *
-pchtml_dom_collection_node(pchtml_dom_collection_t *col, size_t idx)
+static inline pcedom_node_t *
+pcedom_collection_node(pcedom_collection_t *col, size_t idx)
 {
-    return (pchtml_dom_node_t *) pchtml_array_get(&col->array, idx);
+    return (pcedom_node_t *) pchtml_array_get(&col->array, idx);
 }
 
 static inline size_t
-pchtml_dom_collection_length(pchtml_dom_collection_t *col)
+pcedom_collection_length(pcedom_collection_t *col)
 {
     return pchtml_array_length(&col->array);
 }
@@ -107,27 +107,27 @@ pchtml_dom_collection_length(pchtml_dom_collection_t *col)
 /*
  * No inline functions for ABI.
  */
-pchtml_dom_collection_t *
-pchtml_dom_collection_make_noi(pchtml_dom_document_t *document, size_t start_list_size);
+pcedom_collection_t *
+pcedom_collection_make_noi(pcedom_document_t *document, size_t start_list_size);
 
 void
-pchtml_dom_collection_clean_noi(pchtml_dom_collection_t *col);
+pcedom_collection_clean_noi(pcedom_collection_t *col);
 
 unsigned int
-pchtml_dom_collection_append_noi(pchtml_dom_collection_t *col, void *value);
+pcedom_collection_append_noi(pcedom_collection_t *col, void *value);
 
-pchtml_dom_element_t *
-pchtml_dom_collection_element_noi(pchtml_dom_collection_t *col, size_t idx);
+pcedom_element_t *
+pcedom_collection_element_noi(pcedom_collection_t *col, size_t idx);
 
-pchtml_dom_node_t *
-pchtml_dom_collection_node_noi(pchtml_dom_collection_t *col, size_t idx);
+pcedom_node_t *
+pcedom_collection_node_noi(pcedom_collection_t *col, size_t idx);
 
 size_t
-pchtml_dom_collection_length_noi(pchtml_dom_collection_t *col);
+pcedom_collection_length_noi(pcedom_collection_t *col);
 
 
 #ifdef __cplusplus
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_DOM_COLLECTION_H */
+#endif  /* PCEDOM_COLLECTION_H */

@@ -35,7 +35,7 @@ extern "C" {
 
 
 struct pchtml_html_element {
-    pchtml_dom_element_t element;
+    pcedom_element_t element;
 };
 
 
@@ -58,13 +58,13 @@ pchtml_html_element_inner_html_set(pchtml_html_element_t *element,
 static inline pchtml_tag_id_t
 pchtml_html_element_tag_id(pchtml_html_element_t *element)
 {
-    return pchtml_dom_interface_node(element)->local_name;
+    return pcedom_interface_node(element)->local_name;
 }
 
 static inline pchtml_ns_id_t
 pchtml_html_element_ns_id(pchtml_html_element_t *element)
 {
-    return pchtml_dom_interface_node(element)->ns;
+    return pcedom_interface_node(element)->ns;
 }
 
 

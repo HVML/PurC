@@ -117,7 +117,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_template_end_of_file(pchtml_html_tree_t *tree,
                                                      pchtml_html_token_t *token)
 {
-    pchtml_dom_node_t *node;
+    pcedom_node_t *node;
 
     node = pchtml_html_tree_open_elements_find(tree, PCHTML_TAG_TEMPLATE, PCHTML_NS_HTML,
                                             NULL);

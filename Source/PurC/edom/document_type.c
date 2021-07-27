@@ -27,30 +27,30 @@
 #include "private/edom/document.h"
 
 
-pchtml_dom_document_type_t *
-pchtml_dom_document_type_interface_create(pchtml_dom_document_t *document)
+pcedom_document_type_t *
+pcedom_document_type_interface_create(pcedom_document_t *document)
 {
-    pchtml_dom_document_type_t *element;
+    pcedom_document_type_t *element;
 
     element = pchtml_mraw_calloc(document->mraw,
-                                 sizeof(pchtml_dom_document_type_t));
+                                 sizeof(pcedom_document_type_t));
     if (element == NULL) {
         return NULL;
     }
 
-    pchtml_dom_node_t *node = pchtml_dom_interface_node(element);
+    pcedom_node_t *node = pcedom_interface_node(element);
 
     node->owner_document = document;
-    node->type = PCHTML_DOM_NODE_TYPE_DOCUMENT_TYPE;
+    node->type = PCEDOM_NODE_TYPE_DOCUMENT_TYPE;
 
     return element;
 }
 
-pchtml_dom_document_type_t *
-pchtml_dom_document_type_interface_destroy(pchtml_dom_document_type_t *document_type)
+pcedom_document_type_t *
+pcedom_document_type_interface_destroy(pcedom_document_type_t *document_type)
 {
     return pchtml_mraw_free(
-        pchtml_dom_interface_node(document_type)->owner_document->mraw,
+        pcedom_interface_node(document_type)->owner_document->mraw,
         document_type);
 }
 
@@ -58,21 +58,21 @@ pchtml_dom_document_type_interface_destroy(pchtml_dom_document_type_t *document_
  * No inline functions for ABI.
  */
 const unsigned char *
-pchtml_dom_document_type_name_noi(pchtml_dom_document_type_t *doc_type, size_t *len)
+pcedom_document_type_name_noi(pcedom_document_type_t *doc_type, size_t *len)
 {
-    return pchtml_dom_document_type_name(doc_type, len);
+    return pcedom_document_type_name(doc_type, len);
 }
 
 const unsigned char *
-pchtml_dom_document_type_public_id_noi(pchtml_dom_document_type_t *doc_type,
+pcedom_document_type_public_id_noi(pcedom_document_type_t *doc_type,
                                     size_t *len)
 {
-    return pchtml_dom_document_type_public_id(doc_type, len);
+    return pcedom_document_type_public_id(doc_type, len);
 }
 
 const unsigned char *
-pchtml_dom_document_type_system_id_noi(pchtml_dom_document_type_t *doc_type,
+pcedom_document_type_system_id_noi(pcedom_document_type_t *doc_type,
                                     size_t *len)
 {
-    return pchtml_dom_document_type_system_id(doc_type, len);
+    return pcedom_document_type_system_id(doc_type, len);
 }

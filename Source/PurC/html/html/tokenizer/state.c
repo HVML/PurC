@@ -45,8 +45,8 @@ const pchtml_tag_data_t *
 pchtml_tag_append_lower(pchtml_hash_t *hash,
                      const unsigned char *name, size_t length);
 
-pchtml_dom_attr_data_t *
-pchtml_dom_attr_local_name_append(pchtml_hash_t *hash,
+pcedom_attr_data_t *
+pcedom_attr_local_name_append(pchtml_hash_t *hash,
                                const unsigned char *name, size_t length);
 
 

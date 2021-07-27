@@ -29,40 +29,40 @@
 #include "private/edom/document.h"
 
 
-pchtml_dom_character_data_t *
-pchtml_dom_character_data_interface_create(pchtml_dom_document_t *document)
+pcedom_character_data_t *
+pcedom_character_data_interface_create(pcedom_document_t *document)
 {
-    pchtml_dom_character_data_t *element;
+    pcedom_character_data_t *element;
 
     element = pchtml_mraw_calloc(document->mraw,
-                                 sizeof(pchtml_dom_character_data_t));
+                                 sizeof(pcedom_character_data_t));
     if (element == NULL) {
         return NULL;
     }
 
-    pchtml_dom_node_t *node = pchtml_dom_interface_node(element);
+    pcedom_node_t *node = pcedom_interface_node(element);
 
     node->owner_document = document;
-    node->type = PCHTML_DOM_NODE_TYPE_UNDEF;
+    node->type = PCEDOM_NODE_TYPE_UNDEF;
 
     return element;
 }
 
-pchtml_dom_character_data_t *
-pchtml_dom_character_data_interface_destroy(pchtml_dom_character_data_t *character_data)
+pcedom_character_data_t *
+pcedom_character_data_interface_destroy(pcedom_character_data_t *character_data)
 {
     pchtml_str_destroy(&character_data->data,
-                       pchtml_dom_interface_node(character_data)->owner_document->text,
+                       pcedom_interface_node(character_data)->owner_document->text,
                        false);
 
     return pchtml_mraw_free(
-        pchtml_dom_interface_node(character_data)->owner_document->mraw,
+        pcedom_interface_node(character_data)->owner_document->mraw,
         character_data);
 }
 
 /* TODO: oh, need to... https://dom.spec.whatwg.org/#concept-cd-replace */
 unsigned int
-pchtml_dom_character_data_replace(pchtml_dom_character_data_t *ch_data,
+pcedom_character_data_replace(pcedom_character_data_t *ch_data,
                                const unsigned char *data, size_t len,
                                size_t offset, size_t count)
 {

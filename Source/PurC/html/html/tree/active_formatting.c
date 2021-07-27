@@ -32,8 +32,8 @@
 
 static pchtml_html_element_t pchtml_html_tree_active_formatting_marker_static;
 
-static pchtml_dom_node_t *pchtml_html_tree_active_formatting_marker_node_static =
-    (pchtml_dom_node_t *) &pchtml_html_tree_active_formatting_marker_static;
+static pcedom_node_t *pchtml_html_tree_active_formatting_marker_node_static =
+    (pcedom_node_t *) &pchtml_html_tree_active_formatting_marker_static;
 
 
 pchtml_html_element_t *
@@ -60,7 +60,7 @@ pchtml_html_tree_active_formatting_up_to_last_marker(pchtml_html_tree_t *tree)
 
 void
 pchtml_html_tree_active_formatting_remove_by_node(pchtml_html_tree_t *tree,
-                                               pchtml_dom_node_t *node)
+                                               pcedom_node_t *node)
 {
     size_t delta;
     void **list = tree->active_formatting->list;
@@ -83,7 +83,7 @@ pchtml_html_tree_active_formatting_remove_by_node(pchtml_html_tree_t *tree,
 
 bool
 pchtml_html_tree_active_formatting_find_by_node(pchtml_html_tree_t *tree,
-                                             pchtml_dom_node_t *node,
+                                             pcedom_node_t *node,
                                              size_t *return_pos)
 {
     void **list = tree->active_formatting->list;
@@ -107,7 +107,7 @@ pchtml_html_tree_active_formatting_find_by_node(pchtml_html_tree_t *tree,
 
 bool
 pchtml_html_tree_active_formatting_find_by_node_reverse(pchtml_html_tree_t *tree,
-                                                     pchtml_dom_node_t *node,
+                                                     pcedom_node_t *node,
                                                      size_t *return_pos)
 {
     void **list = tree->active_formatting->list;
@@ -175,7 +175,7 @@ pchtml_html_tree_active_formatting_reconstruct_elements(pchtml_html_tree_t *tree
      * Step 8-10
      * Create
      */
-    pchtml_dom_node_t *node;
+    pcedom_node_t *node;
     pchtml_html_element_t *element;
     pchtml_html_token_t fake_token = {0};
 
@@ -191,7 +191,7 @@ pchtml_html_tree_active_formatting_reconstruct_elements(pchtml_html_tree_t *tree
         }
 
         /* Step 9 */
-        list[af_idx] = pchtml_dom_interface_node(element);
+        list[af_idx] = pcedom_interface_node(element);
 
         /* Step 10 */
         af_idx++;
@@ -200,12 +200,12 @@ pchtml_html_tree_active_formatting_reconstruct_elements(pchtml_html_tree_t *tree
     return PCHTML_STATUS_OK;
 }
 
-pchtml_dom_node_t *
+pcedom_node_t *
 pchtml_html_tree_active_formatting_between_last_marker(pchtml_html_tree_t *tree,
                                                     pchtml_tag_id_t tag_idx,
                                                     size_t *return_idx)
 {
-    pchtml_dom_node_t **list = (pchtml_dom_node_t **) tree->active_formatting->list;
+    pcedom_node_t **list = (pcedom_node_t **) tree->active_formatting->list;
     size_t idx = tree->active_formatting->length;
 
     while (idx) {
@@ -229,9 +229,9 @@ pchtml_html_tree_active_formatting_between_last_marker(pchtml_html_tree_t *tree,
 
 void
 pchtml_html_tree_active_formatting_push_with_check_dupl(pchtml_html_tree_t *tree,
-                                                     pchtml_dom_node_t *node)
+                                                     pcedom_node_t *node)
 {
-    pchtml_dom_node_t **list = (pchtml_dom_node_t **) tree->active_formatting->list;
+    pcedom_node_t **list = (pcedom_node_t **) tree->active_formatting->list;
     size_t idx = tree->active_formatting->length;
     size_t earliest_idx = (idx ? (idx - 1) : 0);
     size_t count = 0;
@@ -244,8 +244,8 @@ pchtml_html_tree_active_formatting_push_with_check_dupl(pchtml_html_tree_t *tree
         }
 
         if(list[idx]->local_name == node->local_name && list[idx]->ns == node->ns
-            && pchtml_dom_element_compare(pchtml_dom_interface_element(list[idx]),
-                                       pchtml_dom_interface_element(node)))
+            && pcedom_element_compare(pcedom_interface_element(list[idx]),
+                                       pcedom_interface_element(node)))
         {
             count++;
             earliest_idx = idx;

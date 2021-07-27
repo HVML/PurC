@@ -30,40 +30,40 @@
 #include "private/edom/document.h"
 
 
-pchtml_dom_attr_data_t *
-pchtml_dom_attr_local_name_append(pchtml_hash_t *hash,
+pcedom_attr_data_t *
+pcedom_attr_local_name_append(pchtml_hash_t *hash,
                 const unsigned char *name, size_t length) WTF_INTERNAL;
 
-pchtml_dom_attr_data_t *
-pchtml_dom_attr_qualified_name_append(pchtml_hash_t *hash, const unsigned char *name,
+pcedom_attr_data_t *
+pcedom_attr_qualified_name_append(pchtml_hash_t *hash, const unsigned char *name,
                 size_t length) WTF_INTERNAL;
 
 const pchtml_ns_data_t *
 pchtml_ns_append(pchtml_hash_t *hash, const unsigned char *link, size_t length);
 
 
-pchtml_dom_attr_t *
-pchtml_dom_attr_interface_create(pchtml_dom_document_t *document)
+pcedom_attr_t *
+pcedom_attr_interface_create(pcedom_document_t *document)
 {
-    pchtml_dom_attr_t *attr;
+    pcedom_attr_t *attr;
 
-    attr = pchtml_mraw_calloc(document->mraw, sizeof(pchtml_dom_attr_t));
+    attr = pchtml_mraw_calloc(document->mraw, sizeof(pcedom_attr_t));
     if (attr == NULL) {
         return NULL;
     }
 
-    pchtml_dom_node_t *node = pchtml_dom_interface_node(attr);
+    pcedom_node_t *node = pcedom_interface_node(attr);
 
     node->owner_document = document;
-    node->type = PCHTML_DOM_NODE_TYPE_ATTRIBUTE;
+    node->type = PCEDOM_NODE_TYPE_ATTRIBUTE;
 
     return attr;
 }
 
-pchtml_dom_attr_t *
-pchtml_dom_attr_interface_destroy(pchtml_dom_attr_t *attr)
+pcedom_attr_t *
+pcedom_attr_interface_destroy(pcedom_attr_t *attr)
 {
-    pchtml_dom_document_t *doc = pchtml_dom_interface_node(attr)->owner_document;
+    pcedom_document_t *doc = pcedom_interface_node(attr)->owner_document;
 
     if (attr->value != NULL) {
         if (attr->value->data != NULL) {
@@ -77,41 +77,41 @@ pchtml_dom_attr_interface_destroy(pchtml_dom_attr_t *attr)
 }
 
 unsigned int
-pchtml_dom_attr_set_name(pchtml_dom_attr_t *attr, const unsigned char *name,
+pcedom_attr_set_name(pcedom_attr_t *attr, const unsigned char *name,
                       size_t length, bool to_lowercase)
 {
-    pchtml_dom_attr_data_t *data;
-    pchtml_dom_document_t *doc = pchtml_dom_interface_node(attr)->owner_document;
+    pcedom_attr_data_t *data;
+    pcedom_document_t *doc = pcedom_interface_node(attr)->owner_document;
 
-    data = pchtml_dom_attr_local_name_append(doc->attrs, name, length);
+    data = pcedom_attr_local_name_append(doc->attrs, name, length);
     if (data == NULL) {
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
-    attr->node.local_name = (pchtml_dom_attr_id_t) data;
+    attr->node.local_name = (pcedom_attr_id_t) data;
 
     if (to_lowercase == false) {
-        data = pchtml_dom_attr_qualified_name_append(doc->attrs, name, length);
+        data = pcedom_attr_qualified_name_append(doc->attrs, name, length);
         if (data == NULL) {
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
-        attr->qualified_name = (pchtml_dom_attr_id_t) data;
+        attr->qualified_name = (pcedom_attr_id_t) data;
     }
 
     return PCHTML_STATUS_OK;
 }
 
 unsigned int
-pchtml_dom_attr_set_name_ns(pchtml_dom_attr_t *attr, const unsigned char *link,
+pcedom_attr_set_name_ns(pcedom_attr_t *attr, const unsigned char *link,
                          size_t link_length, const unsigned char *name,
                          size_t name_length, bool to_lowercase)
 {
     size_t length;
     unsigned char *p;
     const pchtml_ns_data_t *ns_data;
-    pchtml_dom_attr_data_t *data;
-    pchtml_dom_document_t *doc = pchtml_dom_interface_node(attr)->owner_document;
+    pcedom_attr_data_t *data;
+    pcedom_document_t *doc = pcedom_interface_node(attr)->owner_document;
 
     ns_data = pchtml_ns_append(doc->ns, link, link_length);
     if (attr->node.ns == PCHTML_NS__UNDEF) {
@@ -124,27 +124,27 @@ pchtml_dom_attr_set_name_ns(pchtml_dom_attr_t *attr, const unsigned char *link,
 
     p = (unsigned char *) memchr(name, ':', name_length);
     if (p == NULL) {
-        return pchtml_dom_attr_set_name(attr, name, name_length, to_lowercase);
+        return pcedom_attr_set_name(attr, name, name_length, to_lowercase);
     }
 
     length = p - name;
 
     /* local name */
-    data = pchtml_dom_attr_local_name_append(doc->attrs, &name[(length + 1)],
+    data = pcedom_attr_local_name_append(doc->attrs, &name[(length + 1)],
                                           (name_length - (length + 1)));
     if (data == NULL) {
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
-    attr->node.local_name = (pchtml_dom_attr_id_t) data;
+    attr->node.local_name = (pcedom_attr_id_t) data;
 
     /* qualified name */
-    data = pchtml_dom_attr_qualified_name_append(doc->attrs, name, name_length);
+    data = pcedom_attr_qualified_name_append(doc->attrs, name, name_length);
     if (data == NULL) {
         return PCHTML_STATUS_ERROR;
     }
 
-    attr->qualified_name = (pchtml_dom_attr_id_t) data;
+    attr->qualified_name = (pcedom_attr_id_t) data;
 
     /* prefix */
     attr->node.prefix = (pchtml_ns_prefix_id_t) pchtml_ns_prefix_append(doc->ns, name,
@@ -157,10 +157,10 @@ pchtml_dom_attr_set_name_ns(pchtml_dom_attr_t *attr, const unsigned char *link,
 }
 
 unsigned int
-pchtml_dom_attr_set_value(pchtml_dom_attr_t *attr,
+pcedom_attr_set_value(pcedom_attr_t *attr,
                        const unsigned char *value, size_t value_len)
 {
-    pchtml_dom_document_t *doc = pchtml_dom_interface_node(attr)->owner_document;
+    pcedom_document_t *doc = pcedom_interface_node(attr)->owner_document;
 
     if (attr->value == NULL) {
         attr->value = pchtml_mraw_calloc(doc->mraw, sizeof(pchtml_str_t));
@@ -197,11 +197,11 @@ pchtml_dom_attr_set_value(pchtml_dom_attr_t *attr,
 }
 
 unsigned int
-pchtml_dom_attr_set_value_wo_copy(pchtml_dom_attr_t *attr,
+pcedom_attr_set_value_wo_copy(pcedom_attr_t *attr,
                                unsigned char *value, size_t value_len)
 {
     if (attr->value == NULL) {
-        pchtml_dom_document_t *doc = pchtml_dom_interface_node(attr)->owner_document;
+        pcedom_document_t *doc = pcedom_interface_node(attr)->owner_document;
 
         attr->value = pchtml_mraw_alloc(doc->mraw, sizeof(pchtml_str_t));
         if (attr->value == NULL) {
@@ -216,15 +216,15 @@ pchtml_dom_attr_set_value_wo_copy(pchtml_dom_attr_t *attr,
 }
 
 unsigned int
-pchtml_dom_attr_set_existing_value(pchtml_dom_attr_t *attr,
+pcedom_attr_set_existing_value(pcedom_attr_t *attr,
                                 const unsigned char *value, size_t value_len)
 {
-    return pchtml_dom_attr_set_value(attr, value, value_len);
+    return pcedom_attr_set_value(attr, value, value_len);
 }
 
 unsigned int
-pchtml_dom_attr_clone_name_value(pchtml_dom_attr_t *attr_from,
-                              pchtml_dom_attr_t *attr_to)
+pcedom_attr_clone_name_value(pcedom_attr_t *attr_from,
+                              pcedom_attr_t *attr_to)
 {
     attr_to->node.local_name = attr_from->node.local_name;
     attr_to->qualified_name = attr_from->qualified_name;
@@ -233,7 +233,7 @@ pchtml_dom_attr_clone_name_value(pchtml_dom_attr_t *attr_from,
 }
 
 bool
-pchtml_dom_attr_compare(pchtml_dom_attr_t *first, pchtml_dom_attr_t *second)
+pcedom_attr_compare(pcedom_attr_t *first, pcedom_attr_t *second)
 {
     if (first->node.local_name == second->node.local_name
         && first->node.ns == second->node.ns
@@ -259,25 +259,25 @@ pchtml_dom_attr_compare(pchtml_dom_attr_t *first, pchtml_dom_attr_t *second)
     return false;
 }
 
-pchtml_dom_attr_data_t *
-pchtml_dom_attr_local_name_append(pchtml_hash_t *hash,
+pcedom_attr_data_t *
+pcedom_attr_local_name_append(pchtml_hash_t *hash,
                                const unsigned char *name, size_t length)
 {
-    pchtml_dom_attr_data_t *data;
+    pcedom_attr_data_t *data;
     const pchtml_shs_entry_t *entry;
 
     if (name == NULL || length == 0) {
         return NULL;
     }
 
-    entry = pchtml_shs_entry_get_lower_static(pchtml_dom_attr_res_shs_data,
+    entry = pchtml_shs_entry_get_lower_static(pcedom_attr_res_shs_data,
                                               name, length);
     if (entry != NULL) {
         return entry->value;
     }
 
     data = pchtml_hash_insert(hash, pchtml_hash_insert_lower, name, length);
-    if ((pchtml_dom_attr_id_t) data <= PCHTML_DOM_ATTR__LAST_ENTRY) {
+    if ((pcedom_attr_id_t) data <= PCEDOM_ATTR__LAST_ENTRY) {
         return NULL;
     }
 
@@ -286,18 +286,18 @@ pchtml_dom_attr_local_name_append(pchtml_hash_t *hash,
     return data;
 }
 
-pchtml_dom_attr_data_t *
-pchtml_dom_attr_qualified_name_append(pchtml_hash_t *hash, const unsigned char *name,
+pcedom_attr_data_t *
+pcedom_attr_qualified_name_append(pchtml_hash_t *hash, const unsigned char *name,
                                    size_t length)
 {
-    pchtml_dom_attr_data_t *data;
+    pcedom_attr_data_t *data;
 
     if (name == NULL || length == 0) {
         return NULL;
     }
 
     data = pchtml_hash_insert(hash, pchtml_hash_insert_raw, name, length);
-    if ((pchtml_dom_attr_id_t) data <= PCHTML_DOM_ATTR__LAST_ENTRY) {
+    if ((pcedom_attr_id_t) data <= PCEDOM_ATTR__LAST_ENTRY) {
         return NULL;
     }
 
@@ -306,24 +306,24 @@ pchtml_dom_attr_qualified_name_append(pchtml_hash_t *hash, const unsigned char *
     return data;
 }
 
-const pchtml_dom_attr_data_t *
-pchtml_dom_attr_data_by_id(pchtml_hash_t *hash, pchtml_dom_attr_id_t attr_id)
+const pcedom_attr_data_t *
+pcedom_attr_data_by_id(pchtml_hash_t *hash, pcedom_attr_id_t attr_id)
 {
     UNUSED_PARAM(hash);
 
-    if (attr_id >= PCHTML_DOM_ATTR__LAST_ENTRY) {
-        if (attr_id == PCHTML_DOM_ATTR__LAST_ENTRY) {
+    if (attr_id >= PCEDOM_ATTR__LAST_ENTRY) {
+        if (attr_id == PCEDOM_ATTR__LAST_ENTRY) {
             return NULL;
         }
 
-        return (const pchtml_dom_attr_data_t *) attr_id;
+        return (const pcedom_attr_data_t *) attr_id;
     }
 
-    return &pchtml_dom_attr_res_data_default[attr_id];
+    return &pcedom_attr_res_data_default[attr_id];
 }
 
-const pchtml_dom_attr_data_t *
-pchtml_dom_attr_data_by_local_name(pchtml_hash_t *hash,
+const pcedom_attr_data_t *
+pcedom_attr_data_by_local_name(pchtml_hash_t *hash,
                                 const unsigned char *name, size_t length)
 {
     const pchtml_shs_entry_t *entry;
@@ -332,7 +332,7 @@ pchtml_dom_attr_data_by_local_name(pchtml_hash_t *hash,
         return NULL;
     }
 
-    entry = pchtml_shs_entry_get_lower_static(pchtml_dom_attr_res_shs_data,
+    entry = pchtml_shs_entry_get_lower_static(pcedom_attr_res_shs_data,
                                               name, length);
     if (entry != NULL) {
         return entry->value;
@@ -341,8 +341,8 @@ pchtml_dom_attr_data_by_local_name(pchtml_hash_t *hash,
     return pchtml_hash_search(hash, pchtml_hash_search_lower, name, length);
 }
 
-const pchtml_dom_attr_data_t *
-pchtml_dom_attr_data_by_qualified_name(pchtml_hash_t *hash,
+const pcedom_attr_data_t *
+pcedom_attr_data_by_qualified_name(pchtml_hash_t *hash,
                                     const unsigned char *name, size_t length)
 {
     const pchtml_shs_entry_t *entry;
@@ -351,7 +351,7 @@ pchtml_dom_attr_data_by_qualified_name(pchtml_hash_t *hash,
         return NULL;
     }
 
-    entry = pchtml_shs_entry_get_static(pchtml_dom_attr_res_shs_data,
+    entry = pchtml_shs_entry_get_static(pcedom_attr_res_shs_data,
                                         name, length);
     if (entry != NULL) {
         return entry->value;
@@ -361,16 +361,16 @@ pchtml_dom_attr_data_by_qualified_name(pchtml_hash_t *hash,
 }
 
 const unsigned char *
-pchtml_dom_attr_qualified_name(pchtml_dom_attr_t *attr, size_t *len)
+pcedom_attr_qualified_name(pcedom_attr_t *attr, size_t *len)
 {
-    const pchtml_dom_attr_data_t *data;
+    const pcedom_attr_data_t *data;
 
     if (attr->qualified_name != 0) {
-        data = pchtml_dom_attr_data_by_id(attr->node.owner_document->attrs,
+        data = pcedom_attr_data_by_id(attr->node.owner_document->attrs,
                                        attr->qualified_name);
     }
     else {
-        data = pchtml_dom_attr_data_by_id(attr->node.owner_document->attrs,
+        data = pcedom_attr_data_by_id(attr->node.owner_document->attrs,
                                        attr->node.local_name);
     }
 
@@ -385,13 +385,13 @@ pchtml_dom_attr_qualified_name(pchtml_dom_attr_t *attr, size_t *len)
  * No inline functions for ABI.
  */
 const unsigned char *
-pchtml_dom_attr_local_name_noi(pchtml_dom_attr_t *attr, size_t *len)
+pcedom_attr_local_name_noi(pcedom_attr_t *attr, size_t *len)
 {
-    return pchtml_dom_attr_local_name(attr, len);
+    return pcedom_attr_local_name(attr, len);
 }
 
 const unsigned char *
-pchtml_dom_attr_value_noi(pchtml_dom_attr_t *attr, size_t *len)
+pcedom_attr_value_noi(pcedom_attr_t *attr, size_t *len)
 {
-    return pchtml_dom_attr_value(attr, len);
+    return pcedom_attr_value(attr, len);
 }

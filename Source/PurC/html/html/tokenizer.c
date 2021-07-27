@@ -278,7 +278,7 @@ pchtml_html_tokenizer_attrs_make(pchtml_html_tokenizer_t *tkz, size_t table_size
 {
     tkz->attrs = pchtml_hash_create();
     return pchtml_hash_init(tkz->attrs, table_size,
-                            sizeof(pchtml_dom_attr_data_t));
+                            sizeof(pcedom_attr_data_t));
 }
 
 void
@@ -394,7 +394,7 @@ pchtml_html_tokenizer_current_namespace(pchtml_html_tokenizer_t *tkz)
         return PCHTML_NS__UNDEF;
     }
 
-    pchtml_dom_node_t *node = pchtml_html_tree_adjusted_current_node(tkz->tree);
+    pcedom_node_t *node = pchtml_html_tree_adjusted_current_node(tkz->tree);
 
     if (node == NULL) {
         return PCHTML_NS__UNDEF;

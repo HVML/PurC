@@ -73,7 +73,7 @@ pchtml_html_tree_insertion_mode_in_head_open(pchtml_html_tree_t *tree,
 {
     switch (token->tag_id) {
         case PCHTML_TAG__EM_COMMENT: {
-            pchtml_dom_comment_t *comment;
+            pcedom_comment_t *comment;
 
             comment = pchtml_html_tree_insert_comment(tree, token, NULL);
             if (comment == NULL) {
@@ -260,7 +260,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_head_script(pchtml_html_tree_t *tree,
                                             pchtml_html_token_t *token)
 {
-    pchtml_dom_node_t *ap_node;
+    pcedom_node_t *ap_node;
     pchtml_html_element_t *element;
     pchtml_html_tree_insertion_position_t ipos;
 
@@ -290,14 +290,14 @@ pchtml_html_tree_insertion_mode_in_head_script(pchtml_html_tree_t *tree,
     /* TODO: Need code for set flags for Script Element */
 
     tree->status = pchtml_html_tree_open_elements_push(tree,
-                                                    pchtml_dom_interface_node(element));
+                                                    pcedom_interface_node(element));
     if (tree->status != PCHTML_HTML_STATUS_OK) {
         pchtml_html_script_element_interface_destroy(pchtml_html_interface_script(element));
 
         return pchtml_html_tree_process_abort(tree);
     }
 
-    pchtml_html_tree_insert_node(ap_node, pchtml_dom_interface_node(element), ipos);
+    pchtml_html_tree_insert_node(ap_node, pcedom_interface_node(element), ipos);
 
     /*
      * Need for tokenizer state Script
@@ -352,7 +352,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_head_template_closed(pchtml_html_tree_t *tree,
                                                      pchtml_html_token_t *token)
 {
-    pchtml_dom_node_t *temp_node;
+    pcedom_node_t *temp_node;
 
     temp_node = pchtml_html_tree_open_elements_find_reverse(tree, PCHTML_TAG_TEMPLATE,
                                                          PCHTML_NS_HTML, NULL);

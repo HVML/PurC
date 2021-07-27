@@ -23,8 +23,8 @@
  */
 
 
-#ifndef PCHTML_DOM_BASE_H
-#define PCHTML_DOM_BASE_H
+#ifndef PCEDOM_BASE_H
+#define PCEDOM_BASE_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,18 +35,18 @@ extern "C" {
 #include "html/core/base.h"
 
 
-#define PCHTML_DOM_VERSION_MAJOR 1
-#define PCHTML_DOM_VERSION_MINOR 2
-#define PCHTML_DOM_VERSION_PATCH 2
+#define PCEDOM_VERSION_MAJOR 1
+#define PCEDOM_VERSION_MINOR 2
+#define PCEDOM_VERSION_PATCH 2
 
-#define PCHTML_DOM_VERSION_STRING                                                 \
-    PCHTML_STRINGIZE(PCHTML_DOM_VERSION_MAJOR) "."                                \
-    PCHTML_STRINGIZE(PCHTML_DOM_VERSION_MINOR) "."                                \
-    PCHTML_STRINGIZE(PCHTML_DOM_VERSION_PATCH)
+#define PCEDOM_VERSION_STRING                                                 \
+    PCHTML_STRINGIZE(PCEDOM_VERSION_MAJOR) "."                                \
+    PCHTML_STRINGIZE(PCEDOM_VERSION_MINOR) "."                                \
+    PCHTML_STRINGIZE(PCEDOM_VERSION_PATCH)
 
 
 #ifdef __cplusplus
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_DOM_BASE_H */
+#endif  /* PCEDOM_BASE_H */

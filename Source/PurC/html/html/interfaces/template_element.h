@@ -40,7 +40,7 @@ extern "C" {
 struct pchtml_html_template_element {
     pchtml_html_element_t          element;
 
-    pchtml_dom_document_fragment_t *content;
+    pcedom_document_fragment_t *content;
 };
 
 

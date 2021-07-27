@@ -27,30 +27,30 @@
 #include "private/edom/document.h"
 
 
-pchtml_dom_processing_instruction_t *
-pchtml_dom_processing_instruction_interface_create(pchtml_dom_document_t *document)
+pcedom_processing_instruction_t *
+pcedom_processing_instruction_interface_create(pcedom_document_t *document)
 {
-    pchtml_dom_processing_instruction_t *element;
+    pcedom_processing_instruction_t *element;
 
     element = pchtml_mraw_calloc(document->mraw,
-                                 sizeof(pchtml_dom_processing_instruction_t));
+                                 sizeof(pcedom_processing_instruction_t));
     if (element == NULL) {
         return NULL;
     }
 
-    pchtml_dom_node_t *node = pchtml_dom_interface_node(element);
+    pcedom_node_t *node = pcedom_interface_node(element);
 
     node->owner_document = document;
-    node->type = PCHTML_DOM_NODE_TYPE_PROCESSING_INSTRUCTION;
+    node->type = PCEDOM_NODE_TYPE_PROCESSING_INSTRUCTION;
 
     return element;
 }
 
-pchtml_dom_processing_instruction_t *
-pchtml_dom_processing_instruction_interface_destroy(pchtml_dom_processing_instruction_t *processing_instruction)
+pcedom_processing_instruction_t *
+pcedom_processing_instruction_interface_destroy(pcedom_processing_instruction_t *processing_instruction)
 {
     return pchtml_mraw_free(
-        pchtml_dom_interface_node(processing_instruction)->owner_document->mraw,
+        pcedom_interface_node(processing_instruction)->owner_document->mraw,
         processing_instruction);
 }
 
@@ -58,8 +58,8 @@ pchtml_dom_processing_instruction_interface_destroy(pchtml_dom_processing_instru
  * No inline functions for ABI.
  */
 const unsigned char *
-pchtml_dom_processing_instruction_target_noi(pchtml_dom_processing_instruction_t *pi,
+pcedom_processing_instruction_target_noi(pcedom_processing_instruction_t *pi,
                                           size_t *len)
 {
-    return pchtml_dom_processing_instruction_target(pi, len);
+    return pcedom_processing_instruction_target(pi, len);
 }

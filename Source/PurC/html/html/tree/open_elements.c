@@ -29,7 +29,7 @@
 
 void
 pchtml_html_tree_open_elements_remove_by_node(pchtml_html_tree_t *tree,
-                                           pchtml_dom_node_t *node)
+                                           pcedom_node_t *node)
 {
     size_t delta;
     void **list = tree->open_elements->list;
@@ -57,7 +57,7 @@ pchtml_html_tree_open_elements_pop_until_tag_id(pchtml_html_tree_t *tree,
                                              bool exclude)
 {
     void **list = tree->open_elements->list;
-    pchtml_dom_node_t *node;
+    pcedom_node_t *node;
 
     while (tree->open_elements->length != 0) {
         tree->open_elements->length--;
@@ -78,7 +78,7 @@ void
 pchtml_html_tree_open_elements_pop_until_h123456(pchtml_html_tree_t *tree)
 {
     void **list = tree->open_elements->list;
-    pchtml_dom_node_t *node;
+    pcedom_node_t *node;
 
     while (tree->open_elements->length != 0) {
         tree->open_elements->length--;
@@ -108,7 +108,7 @@ void
 pchtml_html_tree_open_elements_pop_until_td_th(pchtml_html_tree_t *tree)
 {
     void **list = tree->open_elements->list;
-    pchtml_dom_node_t *node;
+    pcedom_node_t *node;
 
     while (tree->open_elements->length != 0) {
         tree->open_elements->length--;
@@ -132,7 +132,7 @@ pchtml_html_tree_open_elements_pop_until_td_th(pchtml_html_tree_t *tree)
 
 void
 pchtml_html_tree_open_elements_pop_until_node(pchtml_html_tree_t *tree,
-                                           pchtml_dom_node_t *node,
+                                           pcedom_node_t *node,
                                            bool exclude)
 {
     void **list = tree->open_elements->list;
@@ -163,7 +163,7 @@ pchtml_html_tree_open_elements_pop_until(pchtml_html_tree_t *tree, size_t idx,
 
 bool
 pchtml_html_tree_open_elements_find_by_node(pchtml_html_tree_t *tree,
-                                         pchtml_dom_node_t *node,
+                                         pcedom_node_t *node,
                                          size_t *return_pos)
 {
     void **list = tree->open_elements->list;
@@ -187,7 +187,7 @@ pchtml_html_tree_open_elements_find_by_node(pchtml_html_tree_t *tree,
 
 bool
 pchtml_html_tree_open_elements_find_by_node_reverse(pchtml_html_tree_t *tree,
-                                                 pchtml_dom_node_t *node,
+                                                 pcedom_node_t *node,
                                                  size_t *return_pos)
 {
     void **list = tree->open_elements->list;
@@ -212,13 +212,13 @@ pchtml_html_tree_open_elements_find_by_node_reverse(pchtml_html_tree_t *tree,
     return false;
 }
 
-pchtml_dom_node_t *
+pcedom_node_t *
 pchtml_html_tree_open_elements_find(pchtml_html_tree_t *tree,
                                  pchtml_tag_id_t tag_id, pchtml_ns_id_t ns,
                                  size_t *return_index)
 {
     void **list = tree->open_elements->list;
-    pchtml_dom_node_t *node;
+    pcedom_node_t *node;
 
     for (size_t i = 0; i < tree->open_elements->length; i++) {
         node = list[i];
@@ -239,7 +239,7 @@ pchtml_html_tree_open_elements_find(pchtml_html_tree_t *tree,
     return NULL;
 }
 
-pchtml_dom_node_t *
+pcedom_node_t *
 pchtml_html_tree_open_elements_find_reverse(pchtml_html_tree_t *tree,
                                          pchtml_tag_id_t tag_id, pchtml_ns_id_t ns,
                                          size_t *return_index)
@@ -247,7 +247,7 @@ pchtml_html_tree_open_elements_find_reverse(pchtml_html_tree_t *tree,
     void **list = tree->open_elements->list;
     size_t len = tree->open_elements->length;
 
-    pchtml_dom_node_t *node;
+    pcedom_node_t *node;
 
     while (len != 0) {
         len--;

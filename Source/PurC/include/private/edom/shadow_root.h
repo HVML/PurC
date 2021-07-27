@@ -23,8 +23,8 @@
  */
 
 
-#ifndef PCHTML_DOM_SHADOW_ROOT_H
-#define PCHTML_DOM_SHADOW_ROOT_H
+#ifndef PCEDOM_SHADOW_ROOT_H
+#define PCEDOM_SHADOW_ROOT_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,30 +37,30 @@ extern "C" {
 
 
 typedef enum {
-    PCHTML_DOM_SHADOW_ROOT_MODE_OPEN   = 0x00,
-    PCHTML_DOM_SHADOW_ROOT_MODE_CLOSED = 0x01
+    PCEDOM_SHADOW_ROOT_MODE_OPEN   = 0x00,
+    PCEDOM_SHADOW_ROOT_MODE_CLOSED = 0x01
 }
-pchtml_dom_shadow_root_mode_t;
+pcedom_shadow_root_mode_t;
 
-struct pchtml_dom_shadow_root {
-    pchtml_dom_document_fragment_t document_fragment;
+struct pcedom_shadow_root {
+    pcedom_document_fragment_t document_fragment;
 
-    pchtml_dom_shadow_root_mode_t  mode;
-    pchtml_dom_element_t           *host;
+    pcedom_shadow_root_mode_t  mode;
+    pcedom_element_t           *host;
 };
 
 
-pchtml_dom_shadow_root_t *
-pchtml_dom_shadow_root_interface_create(
-                pchtml_dom_document_t *document) WTF_INTERNAL;
+pcedom_shadow_root_t *
+pcedom_shadow_root_interface_create(
+                pcedom_document_t *document) WTF_INTERNAL;
 
-pchtml_dom_shadow_root_t *
-pchtml_dom_shadow_root_interface_destroy(
-                pchtml_dom_shadow_root_t *shadow_root) WTF_INTERNAL;
+pcedom_shadow_root_t *
+pcedom_shadow_root_interface_destroy(
+                pcedom_shadow_root_t *shadow_root) WTF_INTERNAL;
 
 
 #ifdef __cplusplus
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_DOM_SHADOW_ROOT_H */
+#endif  /* PCEDOM_SHADOW_ROOT_H */

@@ -44,68 +44,68 @@ pchtml_html_tree_active_formatting_up_to_last_marker(pchtml_html_tree_t *tree);
 
 void
 pchtml_html_tree_active_formatting_remove_by_node(pchtml_html_tree_t *tree,
-                                               pchtml_dom_node_t *node);
+                                               pcedom_node_t *node);
 
 bool
 pchtml_html_tree_active_formatting_find_by_node(pchtml_html_tree_t *tree,
-                                             pchtml_dom_node_t *node,
+                                             pcedom_node_t *node,
                                              size_t *return_pos);
 
 bool
 pchtml_html_tree_active_formatting_find_by_node_reverse(pchtml_html_tree_t *tree,
-                                                     pchtml_dom_node_t *node,
+                                                     pcedom_node_t *node,
                                                      size_t *return_pos);
 
 unsigned int
 pchtml_html_tree_active_formatting_reconstruct_elements(pchtml_html_tree_t *tree);
 
-pchtml_dom_node_t *
+pcedom_node_t *
 pchtml_html_tree_active_formatting_between_last_marker(pchtml_html_tree_t *tree,
                                                     pchtml_tag_id_t tag_idx,
                                                     size_t *return_idx);
 
 void
 pchtml_html_tree_active_formatting_push_with_check_dupl(pchtml_html_tree_t *tree,
-                                                     pchtml_dom_node_t *node);
+                                                     pcedom_node_t *node);
 
 
 /*
  * Inline functions
  */
-static inline pchtml_dom_node_t *
+static inline pcedom_node_t *
 pchtml_html_tree_active_formatting_current_node(pchtml_html_tree_t *tree)
 {
     if (tree->active_formatting->length == 0) {
         return NULL;
     }
 
-    return (pchtml_dom_node_t *) tree->active_formatting->list
+    return (pcedom_node_t *) tree->active_formatting->list
         [ (tree->active_formatting->length - 1) ];
 }
 
-static inline pchtml_dom_node_t *
+static inline pcedom_node_t *
 pchtml_html_tree_active_formatting_first(pchtml_html_tree_t *tree)
 {
-    return (pchtml_dom_node_t *) pchtml_array_get(tree->active_formatting, 0);
+    return (pcedom_node_t *) pchtml_array_get(tree->active_formatting, 0);
 }
 
-static inline pchtml_dom_node_t *
+static inline pcedom_node_t *
 pchtml_html_tree_active_formatting_get(pchtml_html_tree_t *tree, size_t idx)
 {
-    return (pchtml_dom_node_t *) pchtml_array_get(tree->active_formatting, idx);
+    return (pcedom_node_t *) pchtml_array_get(tree->active_formatting, idx);
 }
 
 static inline unsigned int
 pchtml_html_tree_active_formatting_push(pchtml_html_tree_t *tree,
-                                     pchtml_dom_node_t *node)
+                                     pcedom_node_t *node)
 {
     return pchtml_array_push(tree->active_formatting, node);
 }
 
-static inline pchtml_dom_node_t *
+static inline pcedom_node_t *
 pchtml_html_tree_active_formatting_pop(pchtml_html_tree_t *tree)
 {
-    return (pchtml_dom_node_t *) pchtml_array_pop(tree->active_formatting);
+    return (pcedom_node_t *) pchtml_array_pop(tree->active_formatting);
 }
 
 static inline unsigned int
@@ -117,7 +117,7 @@ pchtml_html_tree_active_formatting_push_marker(pchtml_html_tree_t *tree)
 
 static inline unsigned int
 pchtml_html_tree_active_formatting_insert(pchtml_html_tree_t *tree,
-                                       pchtml_dom_node_t *node, size_t idx)
+                                       pcedom_node_t *node, size_t idx)
 {
     return pchtml_array_insert(tree->active_formatting, idx, node);
 }

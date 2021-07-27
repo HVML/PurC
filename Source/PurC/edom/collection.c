@@ -27,12 +27,12 @@
 #include "private/edom/document.h"
 
 
-pchtml_dom_collection_t *
-pchtml_dom_collection_create(pchtml_dom_document_t *document)
+pcedom_collection_t *
+pcedom_collection_create(pcedom_document_t *document)
 {
-    pchtml_dom_collection_t *col;
+    pcedom_collection_t *col;
 
-    col = pchtml_mraw_calloc(document->mraw, sizeof(pchtml_dom_collection_t));
+    col = pchtml_mraw_calloc(document->mraw, sizeof(pcedom_collection_t));
     if (col == NULL) {
         return NULL;
     }
@@ -43,7 +43,7 @@ pchtml_dom_collection_create(pchtml_dom_document_t *document)
 }
 
 unsigned int
-pchtml_dom_collection_init(pchtml_dom_collection_t *col, size_t start_list_size)
+pcedom_collection_init(pcedom_collection_t *col, size_t start_list_size)
 {
     if (col == NULL) {
         return PCHTML_STATUS_ERROR_WRONG_ARGS;
@@ -56,8 +56,8 @@ pchtml_dom_collection_init(pchtml_dom_collection_t *col, size_t start_list_size)
     return pchtml_array_init(&col->array, start_list_size);
 }
 
-pchtml_dom_collection_t *
-pchtml_dom_collection_destroy(pchtml_dom_collection_t *col, bool self_destroy)
+pcedom_collection_t *
+pcedom_collection_destroy(pcedom_collection_t *col, bool self_destroy)
 {
     if (col == NULL) {
         return NULL;
@@ -83,38 +83,38 @@ pchtml_dom_collection_destroy(pchtml_dom_collection_t *col, bool self_destroy)
 /*
  * No inline functions for ABI.
  */
-pchtml_dom_collection_t *
-pchtml_dom_collection_make_noi(pchtml_dom_document_t *document, size_t start_list_size)
+pcedom_collection_t *
+pcedom_collection_make_noi(pcedom_document_t *document, size_t start_list_size)
 {
-    return pchtml_dom_collection_make(document, start_list_size);
+    return pcedom_collection_make(document, start_list_size);
 }
 
 void
-pchtml_dom_collection_clean_noi(pchtml_dom_collection_t *col)
+pcedom_collection_clean_noi(pcedom_collection_t *col)
 {
-    pchtml_dom_collection_clean(col);
+    pcedom_collection_clean(col);
 }
 
 unsigned int
-pchtml_dom_collection_append_noi(pchtml_dom_collection_t *col, void *value)
+pcedom_collection_append_noi(pcedom_collection_t *col, void *value)
 {
-    return pchtml_dom_collection_append(col, value);
+    return pcedom_collection_append(col, value);
 }
 
-pchtml_dom_element_t *
-pchtml_dom_collection_element_noi(pchtml_dom_collection_t *col, size_t idx)
+pcedom_element_t *
+pcedom_collection_element_noi(pcedom_collection_t *col, size_t idx)
 {
-    return pchtml_dom_collection_element(col, idx);
+    return pcedom_collection_element(col, idx);
 }
 
-pchtml_dom_node_t *
-pchtml_dom_collection_node_noi(pchtml_dom_collection_t *col, size_t idx)
+pcedom_node_t *
+pcedom_collection_node_noi(pcedom_collection_t *col, size_t idx)
 {
-    return pchtml_dom_collection_node(col, idx);
+    return pcedom_collection_node(col, idx);
 }
 
 size_t
-pchtml_dom_collection_length_noi(pchtml_dom_collection_t *col)
+pcedom_collection_length_noi(pcedom_collection_t *col)
 {
-    return pchtml_dom_collection_length(col);
+    return pcedom_collection_length(col);
 }

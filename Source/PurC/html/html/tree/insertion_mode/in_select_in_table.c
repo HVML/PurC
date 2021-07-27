@@ -51,7 +51,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_select_in_table_ct_closed(pchtml_html_tree_t *tree,
                                                           pchtml_html_token_t *token)
 {
-    pchtml_dom_node_t *node;
+    pcedom_node_t *node;
 
     pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_UNCLTO);
 

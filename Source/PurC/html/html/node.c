@@ -27,7 +27,7 @@
 
 
 bool
-pchtml_html_node_is_void_noi(pchtml_dom_node_t *node)
+pchtml_html_node_is_void_noi(pcedom_node_t *node)
 {
     return pchtml_html_node_is_void(node);
 }

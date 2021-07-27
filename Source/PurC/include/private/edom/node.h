@@ -23,8 +23,8 @@
  */
 
 
-#ifndef PCHTML_DOM_NODE_H
-#define PCHTML_DOM_NODE_H
+#ifndef PCEDOM_NODE_H
+#define PCEDOM_NODE_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,29 +36,29 @@ extern "C" {
 
 
 typedef pchtml_action_t
-(*pchtml_dom_node_simple_walker_f)(pchtml_dom_node_t *node, void *ctx);
+(*pcedom_node_simple_walker_f)(pcedom_node_t *node, void *ctx);
 
 
 typedef enum {
-    PCHTML_DOM_NODE_TYPE_UNDEF                  = 0x00,
-    PCHTML_DOM_NODE_TYPE_ELEMENT                = 0x01,
-    PCHTML_DOM_NODE_TYPE_ATTRIBUTE              = 0x02,
-    PCHTML_DOM_NODE_TYPE_TEXT                   = 0x03,
-    PCHTML_DOM_NODE_TYPE_CDATA_SECTION          = 0x04,
-    PCHTML_DOM_NODE_TYPE_ENTITY_REFERENCE       = 0x05, // historical
-    PCHTML_DOM_NODE_TYPE_ENTITY                 = 0x06, // historical
-    PCHTML_DOM_NODE_TYPE_PROCESSING_INSTRUCTION = 0x07,
-    PCHTML_DOM_NODE_TYPE_COMMENT                = 0x08,
-    PCHTML_DOM_NODE_TYPE_DOCUMENT               = 0x09,
-    PCHTML_DOM_NODE_TYPE_DOCUMENT_TYPE          = 0x0A,
-    PCHTML_DOM_NODE_TYPE_DOCUMENT_FRAGMENT      = 0x0B,
-    PCHTML_DOM_NODE_TYPE_NOTATION               = 0x0C, // historical
-    PCHTML_DOM_NODE_TYPE_LAST_ENTRY             = 0x0D
+    PCEDOM_NODE_TYPE_UNDEF                  = 0x00,
+    PCEDOM_NODE_TYPE_ELEMENT                = 0x01,
+    PCEDOM_NODE_TYPE_ATTRIBUTE              = 0x02,
+    PCEDOM_NODE_TYPE_TEXT                   = 0x03,
+    PCEDOM_NODE_TYPE_CDATA_SECTION          = 0x04,
+    PCEDOM_NODE_TYPE_ENTITY_REFERENCE       = 0x05, // historical
+    PCEDOM_NODE_TYPE_ENTITY                 = 0x06, // historical
+    PCEDOM_NODE_TYPE_PROCESSING_INSTRUCTION = 0x07,
+    PCEDOM_NODE_TYPE_COMMENT                = 0x08,
+    PCEDOM_NODE_TYPE_DOCUMENT               = 0x09,
+    PCEDOM_NODE_TYPE_DOCUMENT_TYPE          = 0x0A,
+    PCEDOM_NODE_TYPE_DOCUMENT_FRAGMENT      = 0x0B,
+    PCEDOM_NODE_TYPE_NOTATION               = 0x0C, // historical
+    PCEDOM_NODE_TYPE_LAST_ENTRY             = 0x0D
 }
-pchtml_dom_node_type_t;
+pcedom_node_type_t;
 
-struct pchtml_dom_node {
-    pchtml_dom_event_target_t event_target;
+struct pcedom_node {
+    pcedom_event_target_t event_target;
 
     /* For example: <LalAla:DiV Fix:Me="value"> */
 
@@ -66,110 +66,110 @@ struct pchtml_dom_node {
     uintptr_t              prefix;     /* lowercase: lalala */
     uintptr_t              ns;         /* namespace */
 
-    pchtml_dom_document_t     *owner_document;
+    pcedom_document_t     *owner_document;
 
-    pchtml_dom_node_t         *next;
-    pchtml_dom_node_t         *prev;
-    pchtml_dom_node_t         *parent;
-    pchtml_dom_node_t         *first_child;
-    pchtml_dom_node_t         *last_child;
+    pcedom_node_t         *next;
+    pcedom_node_t         *prev;
+    pcedom_node_t         *parent;
+    pcedom_node_t         *first_child;
+    pcedom_node_t         *last_child;
     void                   *user;
 
-    pchtml_dom_node_type_t    type;
+    pcedom_node_type_t    type;
 
-#ifdef PCHTML_DOM_NODE_USER_VARIABLES
-    PCHTML_DOM_NODE_USER_VARIABLES
-#endif /* PCHTML_DOM_NODE_USER_VARIABLES */
+#ifdef PCEDOM_NODE_USER_VARIABLES
+    PCEDOM_NODE_USER_VARIABLES
+#endif /* PCEDOM_NODE_USER_VARIABLES */
 };
 
 
-pchtml_dom_node_t *
-pchtml_dom_node_interface_create(pchtml_dom_document_t *document) WTF_INTERNAL;
+pcedom_node_t *
+pcedom_node_interface_create(pcedom_document_t *document) WTF_INTERNAL;
 
-pchtml_dom_node_t *
-pchtml_dom_node_interface_destroy(pchtml_dom_node_t *node) WTF_INTERNAL;
+pcedom_node_t *
+pcedom_node_interface_destroy(pcedom_node_t *node) WTF_INTERNAL;
 
-pchtml_dom_node_t *
-pchtml_dom_node_destroy(pchtml_dom_node_t *node) WTF_INTERNAL;
+pcedom_node_t *
+pcedom_node_destroy(pcedom_node_t *node) WTF_INTERNAL;
 
-pchtml_dom_node_t *
-pchtml_dom_node_destroy_deep(pchtml_dom_node_t *root) WTF_INTERNAL;
+pcedom_node_t *
+pcedom_node_destroy_deep(pcedom_node_t *root) WTF_INTERNAL;
 
 const unsigned char *
-pchtml_dom_node_name(pchtml_dom_node_t *node, 
+pcedom_node_name(pcedom_node_t *node, 
                 size_t *len) WTF_INTERNAL;
 
 void
-pchtml_dom_node_insert_child(pchtml_dom_node_t *to, 
-                pchtml_dom_node_t *node) WTF_INTERNAL;
+pcedom_node_insert_child(pcedom_node_t *to, 
+                pcedom_node_t *node) WTF_INTERNAL;
 
 void
-pchtml_dom_node_insert_before(pchtml_dom_node_t *to, 
-                pchtml_dom_node_t *node) WTF_INTERNAL;
+pcedom_node_insert_before(pcedom_node_t *to, 
+                pcedom_node_t *node) WTF_INTERNAL;
 
 void
-pchtml_dom_node_insert_after(pchtml_dom_node_t *to, 
-                pchtml_dom_node_t *node) WTF_INTERNAL;
+pcedom_node_insert_after(pcedom_node_t *to, 
+                pcedom_node_t *node) WTF_INTERNAL;
 
 void
-pchtml_dom_node_remove(pchtml_dom_node_t *node) WTF_INTERNAL;
+pcedom_node_remove(pcedom_node_t *node) WTF_INTERNAL;
 
 unsigned int
-pchtml_dom_node_replace_all(pchtml_dom_node_t *parent, 
-                pchtml_dom_node_t *node) WTF_INTERNAL;
+pcedom_node_replace_all(pcedom_node_t *parent, 
+                pcedom_node_t *node) WTF_INTERNAL;
 
 void
-pchtml_dom_node_simple_walk(pchtml_dom_node_t *root,
-                pchtml_dom_node_simple_walker_f walker_cb, 
+pcedom_node_simple_walk(pcedom_node_t *root,
+                pcedom_node_simple_walker_f walker_cb, 
                 void *ctx) WTF_INTERNAL;
 
 /*
  * Memory of returns value will be freed in document destroy moment.
  * If you need to release returned resource after use, then call the
- * pchtml_dom_document_destroy_text(node->owner_document, text) function.
+ * pcedom_document_destroy_text(node->owner_document, text) function.
  */
 unsigned char *
-pchtml_dom_node_text_content(pchtml_dom_node_t *node, size_t *len) WTF_INTERNAL;
+pcedom_node_text_content(pcedom_node_t *node, size_t *len) WTF_INTERNAL;
 
 unsigned int
-pchtml_dom_node_text_content_set(pchtml_dom_node_t *node,
+pcedom_node_text_content_set(pcedom_node_t *node,
                 const unsigned char *content, size_t len) WTF_INTERNAL;
 
 /*
  * Inline functions
  */
 static inline pchtml_tag_id_t
-pchtml_dom_node_tag_id(pchtml_dom_node_t *node)
+pcedom_node_tag_id(pcedom_node_t *node)
 {
     return node->local_name;
 }
 
-static inline pchtml_dom_node_t *
-pchtml_dom_node_next(pchtml_dom_node_t *node)
+static inline pcedom_node_t *
+pcedom_node_next(pcedom_node_t *node)
 {
     return node->next;
 }
 
-static inline pchtml_dom_node_t *
-pchtml_dom_node_prev(pchtml_dom_node_t *node)
+static inline pcedom_node_t *
+pcedom_node_prev(pcedom_node_t *node)
 {
     return node->prev;
 }
 
-static inline pchtml_dom_node_t *
-pchtml_dom_node_parent(pchtml_dom_node_t *node)
+static inline pcedom_node_t *
+pcedom_node_parent(pcedom_node_t *node)
 {
     return node->parent;
 }
 
-static inline pchtml_dom_node_t *
-pchtml_dom_node_first_child(pchtml_dom_node_t *node)
+static inline pcedom_node_t *
+pcedom_node_first_child(pcedom_node_t *node)
 {
     return node->first_child;
 }
 
-static inline pchtml_dom_node_t *
-pchtml_dom_node_last_child(pchtml_dom_node_t *node)
+static inline pcedom_node_t *
+pcedom_node_last_child(pcedom_node_t *node)
 {
     return node->last_child;
 }
@@ -178,26 +178,26 @@ pchtml_dom_node_last_child(pchtml_dom_node_t *node)
  * No inline functions for ABI.
  */
 pchtml_tag_id_t
-pchtml_dom_node_tag_id_noi(pchtml_dom_node_t *node);
+pcedom_node_tag_id_noi(pcedom_node_t *node);
 
-pchtml_dom_node_t *
-pchtml_dom_node_next_noi(pchtml_dom_node_t *node);
+pcedom_node_t *
+pcedom_node_next_noi(pcedom_node_t *node);
 
-pchtml_dom_node_t *
-pchtml_dom_node_prev_noi(pchtml_dom_node_t *node);
+pcedom_node_t *
+pcedom_node_prev_noi(pcedom_node_t *node);
 
-pchtml_dom_node_t *
-pchtml_dom_node_parent_noi(pchtml_dom_node_t *node);
+pcedom_node_t *
+pcedom_node_parent_noi(pcedom_node_t *node);
 
-pchtml_dom_node_t *
-pchtml_dom_node_first_child_noi(pchtml_dom_node_t *node);
+pcedom_node_t *
+pcedom_node_first_child_noi(pcedom_node_t *node);
 
-pchtml_dom_node_t *
-pchtml_dom_node_last_child_noi(pchtml_dom_node_t *node);
+pcedom_node_t *
+pcedom_node_last_child_noi(pcedom_node_t *node);
 
 
 #ifdef __cplusplus
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_DOM_NODE_H */
+#endif  /* PCEDOM_NODE_H */

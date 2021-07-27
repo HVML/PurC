@@ -23,8 +23,8 @@
  */
 
 
-#ifndef PCHTML_DOM_INTERFACES_H
-#define PCHTML_DOM_INTERFACES_H
+#ifndef PCEDOM_INTERFACES_H
+#define PCEDOM_INTERFACES_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,62 +39,62 @@ extern "C" {
 #include "private/edom/exception.h"
 
 
-#define pchtml_dom_interface_cdata_section(obj) ((pchtml_dom_cdata_section_t *) (obj))
-#define pchtml_dom_interface_character_data(obj) ((pchtml_dom_character_data_t *) (obj))
-#define pchtml_dom_interface_comment(obj) ((pchtml_dom_comment_t *) (obj))
-#define pchtml_dom_interface_document(obj) ((pchtml_dom_document_t *) (obj))
-#define pchtml_dom_interface_document_fragment(obj) ((pchtml_dom_document_fragment_t *) (obj))
-#define pchtml_dom_interface_document_type(obj) ((pchtml_dom_document_type_t *) (obj))
-#define pchtml_dom_interface_element(obj) ((pchtml_dom_element_t *) (obj))
-#define pchtml_dom_interface_attr(obj) ((pchtml_dom_attr_t *) (obj))
-#define pchtml_dom_interface_event_target(obj) ((pchtml_dom_event_target_t *) (obj))
-#define pchtml_dom_interface_node(obj) ((pchtml_dom_node_t *) (obj))
-#define pchtml_dom_interface_processing_instruction(obj) ((pchtml_dom_processing_instruction_t *) (obj))
-#define pchtml_dom_interface_shadow_root(obj) ((pchtml_dom_shadow_root_t *) (obj))
-#define pchtml_dom_interface_text(obj) ((pchtml_dom_text_t *) (obj))
+#define pcedom_interface_cdata_section(obj) ((pcedom_cdata_section_t *) (obj))
+#define pcedom_interface_character_data(obj) ((pcedom_character_data_t *) (obj))
+#define pcedom_interface_comment(obj) ((pcedom_comment_t *) (obj))
+#define pcedom_interface_document(obj) ((pcedom_document_t *) (obj))
+#define pcedom_interface_document_fragment(obj) ((pcedom_document_fragment_t *) (obj))
+#define pcedom_interface_document_type(obj) ((pcedom_document_type_t *) (obj))
+#define pcedom_interface_element(obj) ((pcedom_element_t *) (obj))
+#define pcedom_interface_attr(obj) ((pcedom_attr_t *) (obj))
+#define pcedom_interface_event_target(obj) ((pcedom_event_target_t *) (obj))
+#define pcedom_interface_node(obj) ((pcedom_node_t *) (obj))
+#define pcedom_interface_processing_instruction(obj) ((pcedom_processing_instruction_t *) (obj))
+#define pcedom_interface_shadow_root(obj) ((pcedom_shadow_root_t *) (obj))
+#define pcedom_interface_text(obj) ((pcedom_text_t *) (obj))
 
 
-typedef struct pchtml_dom_event_target pchtml_dom_event_target_t;
-typedef struct pchtml_dom_node pchtml_dom_node_t;
-typedef struct pchtml_dom_element pchtml_dom_element_t;
-typedef struct pchtml_dom_attr pchtml_dom_attr_t;
-typedef struct pchtml_dom_document pchtml_dom_document_t;
-typedef struct pchtml_dom_document_type pchtml_dom_document_type_t;
-typedef struct pchtml_dom_document_fragment pchtml_dom_document_fragment_t;
-typedef struct pchtml_dom_shadow_root pchtml_dom_shadow_root_t;
-typedef struct pchtml_dom_character_data pchtml_dom_character_data_t;
-typedef struct pchtml_dom_text pchtml_dom_text_t;
-typedef struct pchtml_dom_cdata_section pchtml_dom_cdata_section_t;
-typedef struct pchtml_dom_processing_instruction pchtml_dom_processing_instruction_t;
-typedef struct pchtml_dom_comment pchtml_dom_comment_t;
+typedef struct pcedom_event_target pcedom_event_target_t;
+typedef struct pcedom_node pcedom_node_t;
+typedef struct pcedom_element pcedom_element_t;
+typedef struct pcedom_attr pcedom_attr_t;
+typedef struct pcedom_document pcedom_document_t;
+typedef struct pcedom_document_type pcedom_document_type_t;
+typedef struct pcedom_document_fragment pcedom_document_fragment_t;
+typedef struct pcedom_shadow_root pcedom_shadow_root_t;
+typedef struct pcedom_character_data pcedom_character_data_t;
+typedef struct pcedom_text pcedom_text_t;
+typedef struct pcedom_cdata_section pcedom_cdata_section_t;
+typedef struct pcedom_processing_instruction pcedom_processing_instruction_t;
+typedef struct pcedom_comment pcedom_comment_t;
 
-typedef void pchtml_dom_interface_t;
-
-typedef void *
-(*pchtml_dom_interface_constructor_f)(void *document);
+typedef void pcedom_interface_t;
 
 typedef void *
-(*pchtml_dom_interface_destructor_f)(void *intrfc);
+(*pcedom_interface_constructor_f)(void *document);
+
+typedef void *
+(*pcedom_interface_destructor_f)(void *intrfc);
 
 
-typedef pchtml_dom_interface_t *
-(*pchtml_dom_interface_create_f)(pchtml_dom_document_t *document, pchtml_tag_id_t tag_id,
+typedef pcedom_interface_t *
+(*pcedom_interface_create_f)(pcedom_document_t *document, pchtml_tag_id_t tag_id,
                               pchtml_ns_id_t ns);
 
-typedef pchtml_dom_interface_t *
-(*pchtml_dom_interface_destroy_f)(pchtml_dom_interface_t *intrfc);
+typedef pcedom_interface_t *
+(*pcedom_interface_destroy_f)(pcedom_interface_t *intrfc);
 
 
-pchtml_dom_interface_t *
-pchtml_dom_interface_create(pchtml_dom_document_t *document, pchtml_tag_id_t tag_id,
+pcedom_interface_t *
+pcedom_interface_create(pcedom_document_t *document, pchtml_tag_id_t tag_id,
                          pchtml_ns_id_t ns) WTF_INTERNAL;
 
-pchtml_dom_interface_t *
-pchtml_dom_interface_destroy(pchtml_dom_interface_t *intrfc) WTF_INTERNAL;
+pcedom_interface_t *
+pcedom_interface_destroy(pcedom_interface_t *intrfc) WTF_INTERNAL;
 
 
 #ifdef __cplusplus
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_DOM_INTERFACES_H */
+#endif  /* PCEDOM_INTERFACES_H */

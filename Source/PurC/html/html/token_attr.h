@@ -56,7 +56,7 @@ struct pchtml_html_token_attr {
     const unsigned char           *value_begin;
     const unsigned char           *value_end;
 
-    const pchtml_dom_attr_data_t  *name;
+    const pcedom_attr_data_t  *name;
     unsigned char                 *value;
     size_t                     value_size;
 

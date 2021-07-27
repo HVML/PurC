@@ -23,8 +23,8 @@
  */
 
 
-#ifndef PCHTML_DOM_EVENT_TARGET_H
-#define PCHTML_DOM_EVENT_TARGET_H
+#ifndef PCEDOM_EVENT_TARGET_H
+#define PCEDOM_EVENT_TARGET_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,21 +34,21 @@ extern "C" {
 #include "private/edom/interface.h"
 
 
-struct pchtml_dom_event_target {
+struct pcedom_event_target {
     void *events;
 };
 
 
-pchtml_dom_event_target_t *
-pchtml_dom_event_target_create(pchtml_dom_document_t *document) WTF_INTERNAL;
+pcedom_event_target_t *
+pcedom_event_target_create(pcedom_document_t *document) WTF_INTERNAL;
 
-pchtml_dom_event_target_t *
-pchtml_dom_event_target_destroy(pchtml_dom_event_target_t *event_target,
-                pchtml_dom_document_t *document) WTF_INTERNAL;
+pcedom_event_target_t *
+pcedom_event_target_destroy(pcedom_event_target_t *event_target,
+                pcedom_document_t *document) WTF_INTERNAL;
 
 
 #ifdef __cplusplus
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_DOM_EVENT_TARGET_H */
+#endif  /* PCEDOM_EVENT_TARGET_H */

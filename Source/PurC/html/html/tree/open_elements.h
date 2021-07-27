@@ -38,7 +38,7 @@ extern "C" {
 
 void
 pchtml_html_tree_open_elements_remove_by_node(pchtml_html_tree_t *tree,
-                    pchtml_dom_node_t *node) WTF_INTERNAL;
+                    pcedom_node_t *node) WTF_INTERNAL;
 
 void
 pchtml_html_tree_open_elements_pop_until_tag_id(pchtml_html_tree_t *tree,
@@ -54,7 +54,7 @@ pchtml_html_tree_open_elements_pop_until_td_th(pchtml_html_tree_t *tree);
 
 void
 pchtml_html_tree_open_elements_pop_until_node(pchtml_html_tree_t *tree,
-                                           pchtml_dom_node_t *node,
+                                           pcedom_node_t *node,
                                            bool exclude);
 
 void
@@ -63,20 +63,20 @@ pchtml_html_tree_open_elements_pop_until(pchtml_html_tree_t *tree, size_t idx,
 
 bool
 pchtml_html_tree_open_elements_find_by_node(pchtml_html_tree_t *tree,
-                                         pchtml_dom_node_t *node,
+                                         pcedom_node_t *node,
                                          size_t *return_pos);
 
 bool
 pchtml_html_tree_open_elements_find_by_node_reverse(pchtml_html_tree_t *tree,
-                                                 pchtml_dom_node_t *node,
+                                                 pcedom_node_t *node,
                                                  size_t *return_pos);
 
-pchtml_dom_node_t *
+pcedom_node_t *
 pchtml_html_tree_open_elements_find(pchtml_html_tree_t *tree,
                                  pchtml_tag_id_t tag_id, pchtml_ns_id_t ns,
                                  size_t *return_index);
 
-pchtml_dom_node_t *
+pcedom_node_t *
 pchtml_html_tree_open_elements_find_reverse(pchtml_html_tree_t *tree,
                                          pchtml_tag_id_t tag_id, pchtml_ns_id_t ns,
                                          size_t *return_index);
@@ -85,32 +85,32 @@ pchtml_html_tree_open_elements_find_reverse(pchtml_html_tree_t *tree,
 /*
  * Inline functions
  */
-static inline pchtml_dom_node_t *
+static inline pcedom_node_t *
 pchtml_html_tree_open_elements_first(pchtml_html_tree_t *tree)
 {
-    return (pchtml_dom_node_t *) pchtml_array_get(tree->open_elements, 0);
+    return (pcedom_node_t *) pchtml_array_get(tree->open_elements, 0);
 }
 
-static inline pchtml_dom_node_t *
+static inline pcedom_node_t *
 pchtml_html_tree_open_elements_get(pchtml_html_tree_t *tree, size_t idx)
 {
-    return (pchtml_dom_node_t *) pchtml_array_get(tree->open_elements, idx);
+    return (pcedom_node_t *) pchtml_array_get(tree->open_elements, idx);
 }
 
 static inline unsigned int
-pchtml_html_tree_open_elements_push(pchtml_html_tree_t *tree, pchtml_dom_node_t *node)
+pchtml_html_tree_open_elements_push(pchtml_html_tree_t *tree, pcedom_node_t *node)
 {
     return pchtml_array_push(tree->open_elements, node);
 }
 
-static inline pchtml_dom_node_t *
+static inline pcedom_node_t *
 pchtml_html_tree_open_elements_pop(pchtml_html_tree_t *tree)
 {
-    return (pchtml_dom_node_t *) pchtml_array_pop(tree->open_elements);
+    return (pcedom_node_t *) pchtml_array_pop(tree->open_elements);
 }
 
 static inline unsigned int
-pchtml_html_tree_open_elements_insert_after(pchtml_html_tree_t *tree, pchtml_dom_node_t *node,
+pchtml_html_tree_open_elements_insert_after(pchtml_html_tree_t *tree, pcedom_node_t *node,
                                     size_t idx)
 {
     return pchtml_array_insert(tree->open_elements, (idx + 1), node);

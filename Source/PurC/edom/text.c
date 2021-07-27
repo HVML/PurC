@@ -28,32 +28,32 @@
 #include "private/edom/document.h"
 
 
-pchtml_dom_text_t *
-pchtml_dom_text_interface_create(pchtml_dom_document_t *document)
+pcedom_text_t *
+pcedom_text_interface_create(pcedom_document_t *document)
 {
-    pchtml_dom_text_t *element;
+    pcedom_text_t *element;
 
     element = pchtml_mraw_calloc(document->mraw,
-                                 sizeof(pchtml_dom_text_t));
+                                 sizeof(pcedom_text_t));
     if (element == NULL) {
         return NULL;
     }
 
-    pchtml_dom_node_t *node = pchtml_dom_interface_node(element);
+    pcedom_node_t *node = pcedom_interface_node(element);
 
     node->owner_document = document;
-    node->type = PCHTML_DOM_NODE_TYPE_TEXT;
+    node->type = PCEDOM_NODE_TYPE_TEXT;
 
     return element;
 }
 
-pchtml_dom_text_t *
-pchtml_dom_text_interface_destroy(pchtml_dom_text_t *text)
+pcedom_text_t *
+pcedom_text_interface_destroy(pcedom_text_t *text)
 {
     pchtml_str_destroy(&text->char_data.data,
-                       pchtml_dom_interface_node(text)->owner_document->text, false);
+                       pcedom_interface_node(text)->owner_document->text, false);
 
     return pchtml_mraw_free(
-        pchtml_dom_interface_node(text)->owner_document->mraw,
+        pcedom_interface_node(text)->owner_document->mraw,
         text);
 }

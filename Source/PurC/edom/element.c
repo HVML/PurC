@@ -35,19 +35,19 @@
 #include "html/core/hash.h"
 
 
-typedef struct pchtml_dom_element_cb_ctx pchtml_dom_element_cb_ctx_t;
+typedef struct pcedom_element_cb_ctx pcedom_element_cb_ctx_t;
 
 typedef bool
-(*pchtml_dom_element_attr_cmp_f)(pchtml_dom_element_cb_ctx_t *ctx,
-                              pchtml_dom_attr_t *attr);
+(*pcedom_element_attr_cmp_f)(pcedom_element_cb_ctx_t *ctx,
+                              pcedom_attr_t *attr);
 
 
-struct pchtml_dom_element_cb_ctx {
-    pchtml_dom_collection_t       *col;
+struct pcedom_element_cb_ctx {
+    pcedom_collection_t       *col;
     unsigned int               status;
-    pchtml_dom_element_attr_cmp_f cmp_func;
+    pcedom_element_attr_cmp_f cmp_func;
 
-    pchtml_dom_attr_id_t          name_id;
+    pcedom_attr_id_t          name_id;
     pchtml_ns_prefix_id_t         prefix_id;
 
     const unsigned char           *value;
@@ -56,51 +56,51 @@ struct pchtml_dom_element_cb_ctx {
 
 
 static pchtml_action_t
-pchtml_dom_elements_by_tag_name_cb(pchtml_dom_node_t *node, void *ctx);
+pcedom_elements_by_tag_name_cb(pcedom_node_t *node, void *ctx);
 
 static pchtml_action_t
-pchtml_dom_elements_by_tag_name_cb_all(pchtml_dom_node_t *node, void *ctx);
+pcedom_elements_by_tag_name_cb_all(pcedom_node_t *node, void *ctx);
 
 static pchtml_action_t
-pchtml_dom_elements_by_class_name_cb(pchtml_dom_node_t *node, void *ctx);
+pcedom_elements_by_class_name_cb(pcedom_node_t *node, void *ctx);
 
 static pchtml_action_t
-pchtml_dom_elements_by_attr_cb(pchtml_dom_node_t *node, void *ctx);
+pcedom_elements_by_attr_cb(pcedom_node_t *node, void *ctx);
 
 static bool
-pchtml_dom_elements_by_attr_cmp_full(pchtml_dom_element_cb_ctx_t *ctx,
-                                  pchtml_dom_attr_t *attr);
+pcedom_elements_by_attr_cmp_full(pcedom_element_cb_ctx_t *ctx,
+                                  pcedom_attr_t *attr);
 
 static bool
-pchtml_dom_elements_by_attr_cmp_full_case(pchtml_dom_element_cb_ctx_t *ctx,
-                                       pchtml_dom_attr_t *attr);
+pcedom_elements_by_attr_cmp_full_case(pcedom_element_cb_ctx_t *ctx,
+                                       pcedom_attr_t *attr);
 
 static bool
-pchtml_dom_elements_by_attr_cmp_begin(pchtml_dom_element_cb_ctx_t *ctx,
-                                   pchtml_dom_attr_t *attr);
+pcedom_elements_by_attr_cmp_begin(pcedom_element_cb_ctx_t *ctx,
+                                   pcedom_attr_t *attr);
 
 static bool
-pchtml_dom_elements_by_attr_cmp_begin_case(pchtml_dom_element_cb_ctx_t *ctx,
-                                        pchtml_dom_attr_t *attr);
+pcedom_elements_by_attr_cmp_begin_case(pcedom_element_cb_ctx_t *ctx,
+                                        pcedom_attr_t *attr);
 
 static bool
-pchtml_dom_elements_by_attr_cmp_end(pchtml_dom_element_cb_ctx_t *ctx,
-                                 pchtml_dom_attr_t *attr);
+pcedom_elements_by_attr_cmp_end(pcedom_element_cb_ctx_t *ctx,
+                                 pcedom_attr_t *attr);
 
 static bool
-pchtml_dom_elements_by_attr_cmp_end_case(pchtml_dom_element_cb_ctx_t *ctx,
-                                      pchtml_dom_attr_t *attr);
+pcedom_elements_by_attr_cmp_end_case(pcedom_element_cb_ctx_t *ctx,
+                                      pcedom_attr_t *attr);
 
 static bool
-pchtml_dom_elements_by_attr_cmp_contain(pchtml_dom_element_cb_ctx_t *ctx,
-                                     pchtml_dom_attr_t *attr);
+pcedom_elements_by_attr_cmp_contain(pcedom_element_cb_ctx_t *ctx,
+                                     pcedom_attr_t *attr);
 
 static bool
-pchtml_dom_elements_by_attr_cmp_contain_case(pchtml_dom_element_cb_ctx_t *ctx,
-                                          pchtml_dom_attr_t *attr);
+pcedom_elements_by_attr_cmp_contain_case(pcedom_element_cb_ctx_t *ctx,
+                                          pcedom_attr_t *attr);
 
 static const unsigned char *
-pchtml_dom_element_upper_update(pchtml_dom_element_t *element, size_t *len);
+pcedom_element_upper_update(pcedom_element_t *element, size_t *len);
 
 const pchtml_tag_data_t *
 pchtml_tag_append(pchtml_hash_t *hash, pchtml_tag_id_t tag_id,
@@ -114,46 +114,46 @@ const pchtml_ns_data_t *
 pchtml_ns_append(pchtml_hash_t *hash, const unsigned char *link, size_t length);
 
 
-pchtml_dom_element_t *
-pchtml_dom_element_interface_create(pchtml_dom_document_t *document)
+pcedom_element_t *
+pcedom_element_interface_create(pcedom_document_t *document)
 {
-    pchtml_dom_element_t *element;
+    pcedom_element_t *element;
 
     element = pchtml_mraw_calloc(document->mraw,
-                                 sizeof(pchtml_dom_element_t));
+                                 sizeof(pcedom_element_t));
     if (element == NULL) {
         return NULL;
     }
 
-    pchtml_dom_node_t *node = pchtml_dom_interface_node(element);
+    pcedom_node_t *node = pcedom_interface_node(element);
 
     node->owner_document = document;
-    node->type = PCHTML_DOM_NODE_TYPE_ELEMENT;
+    node->type = PCEDOM_NODE_TYPE_ELEMENT;
 
     return element;
 }
 
-pchtml_dom_element_t *
-pchtml_dom_element_interface_destroy(pchtml_dom_element_t *element)
+pcedom_element_t *
+pcedom_element_interface_destroy(pcedom_element_t *element)
 {
-    pchtml_dom_attr_t *attr_next;
-    pchtml_dom_attr_t *attr = element->first_attr;
+    pcedom_attr_t *attr_next;
+    pcedom_attr_t *attr = element->first_attr;
 
     while (attr != NULL) {
         attr_next = attr->next;
 
-        pchtml_dom_attr_interface_destroy(attr);
+        pcedom_attr_interface_destroy(attr);
 
         attr = attr_next;
     }
 
     return pchtml_mraw_free(
-        pchtml_dom_interface_node(element)->owner_document->mraw,
+        pcedom_interface_node(element)->owner_document->mraw,
         element);
 }
 
 unsigned int
-pchtml_dom_element_qualified_name_set(pchtml_dom_element_t *element,
+pcedom_element_qualified_name_set(pcedom_element_t *element,
                                    const unsigned char *prefix, size_t prefix_len,
                                    const unsigned char *lname, size_t lname_len)
 {
@@ -186,8 +186,8 @@ pchtml_dom_element_qualified_name_set(pchtml_dom_element_t *element,
     return PCHTML_STATUS_OK;
 }
 
-pchtml_dom_element_t *
-pchtml_dom_element_create(pchtml_dom_document_t *document,
+pcedom_element_t *
+pcedom_element_create(pcedom_document_t *document,
                        const unsigned char *local_name, size_t lname_len,
                        const unsigned char *ns_link, size_t ns_len,
                        const unsigned char *prefix, size_t prefix_len,
@@ -200,7 +200,7 @@ pchtml_dom_element_create(pchtml_dom_document_t *document,
     const pchtml_ns_data_t *ns_data;
     const pchtml_tag_data_t *tag_data;
     const pchtml_ns_prefix_data_t *ns_prefix;
-    pchtml_dom_element_t *element;
+    pcedom_element_t *element;
 
     /* TODO: Must implement custom elements */
 
@@ -226,7 +226,7 @@ pchtml_dom_element_create(pchtml_dom_document_t *document,
         return NULL;
     }
 
-    element = pchtml_dom_document_create_interface(document, tag_data->tag_id,
+    element = pcedom_document_create_interface(document, tag_data->tag_id,
                                                 ns_data->ns_id);
     if (element == NULL) {
         return NULL;
@@ -235,22 +235,22 @@ pchtml_dom_element_create(pchtml_dom_document_t *document,
     if (prefix != NULL) {
         ns_prefix = pchtml_ns_prefix_append(document->prefix, prefix, prefix_len);
         if (ns_prefix == NULL) {
-            return pchtml_dom_document_destroy_interface(element);
+            return pcedom_document_destroy_interface(element);
         }
 
         element->node.prefix = ns_prefix->prefix_id;
 
-        status = pchtml_dom_element_qualified_name_set(element, prefix, prefix_len,
+        status = pcedom_element_qualified_name_set(element, prefix, prefix_len,
                                                     local_name, lname_len);
         if (status != PCHTML_STATUS_OK) {
-            return pchtml_dom_document_destroy_interface(element);
+            return pcedom_document_destroy_interface(element);
         }
     }
 
     if (is_len != 0) {
-        status = pchtml_dom_element_is_set(element, is, is_len);
+        status = pcedom_element_is_set(element, is, is_len);
         if (status != PCHTML_STATUS_OK) {
-            return pchtml_dom_document_destroy_interface(element);
+            return pcedom_document_destroy_interface(element);
         }
     }
 
@@ -258,79 +258,79 @@ pchtml_dom_element_create(pchtml_dom_document_t *document,
     element->node.ns = ns_data->ns_id;
 
     if (ns_data->ns_id == PCHTML_NS_HTML && is_len != 0) {
-        element->custom_state = PCHTML_DOM_ELEMENT_CUSTOM_STATE_UNDEFINED;
+        element->custom_state = PCEDOM_ELEMENT_CUSTOM_STATE_UNDEFINED;
     }
     else {
-        element->custom_state = PCHTML_DOM_ELEMENT_CUSTOM_STATE_UNCUSTOMIZED;
+        element->custom_state = PCEDOM_ELEMENT_CUSTOM_STATE_UNCUSTOMIZED;
     }
 
     return element;
 }
 
-pchtml_dom_element_t *
-pchtml_dom_element_destroy(pchtml_dom_element_t *element)
+pcedom_element_t *
+pcedom_element_destroy(pcedom_element_t *element)
 {
-    return pchtml_dom_document_destroy_interface(element);
+    return pcedom_document_destroy_interface(element);
 }
 
 bool
-pchtml_dom_element_has_attributes(pchtml_dom_element_t *element)
+pcedom_element_has_attributes(pcedom_element_t *element)
 {
     return element->first_attr != NULL;
 }
 
-pchtml_dom_attr_t *
-pchtml_dom_element_set_attribute(pchtml_dom_element_t *element,
+pcedom_attr_t *
+pcedom_element_set_attribute(pcedom_element_t *element,
                               const unsigned char *qualified_name, size_t qn_len,
                               const unsigned char *value, size_t value_len)
 {
     unsigned int status;
-    pchtml_dom_attr_t *attr;
+    pcedom_attr_t *attr;
 
-    attr = pchtml_dom_element_attr_is_exist(element, qualified_name, qn_len);
+    attr = pcedom_element_attr_is_exist(element, qualified_name, qn_len);
 
     if (attr != NULL) {
         goto update;
     }
 
-    attr = pchtml_dom_attr_interface_create(element->node.owner_document);
+    attr = pcedom_attr_interface_create(element->node.owner_document);
     if (attr == NULL) {
         return NULL;
     }
 
     if (element->node.ns == PCHTML_NS_HTML
-        && element->node.owner_document->type == PCHTML_DOM_DOCUMENT_DTYPE_HTML)
+        && element->node.owner_document->type == PCEDOM_DOCUMENT_DTYPE_HTML)
     {
-        status = pchtml_dom_attr_set_name(attr, qualified_name, qn_len, true);
+        status = pcedom_attr_set_name(attr, qualified_name, qn_len, true);
     }
     else {
-        status = pchtml_dom_attr_set_name(attr, qualified_name, qn_len, false);
+        status = pcedom_attr_set_name(attr, qualified_name, qn_len, false);
     }
 
     if (status != PCHTML_STATUS_OK) {
-        return pchtml_dom_attr_interface_destroy(attr);
+        return pcedom_attr_interface_destroy(attr);
     }
 
 update:
 
-    status = pchtml_dom_attr_set_value(attr, value, value_len);
+    status = pcedom_attr_set_value(attr, value, value_len);
     if (status != PCHTML_STATUS_OK) {
-        return pchtml_dom_attr_interface_destroy(attr);
+        return pcedom_attr_interface_destroy(attr);
     }
 
-    pchtml_dom_element_attr_append(element, attr);
+    pcedom_element_attr_append(element, attr);
 
     return attr;
 }
 
 const unsigned char *
-pchtml_dom_element_get_attribute(pchtml_dom_element_t *element,
+pcedom_element_get_attribute(pcedom_element_t *element,
                               const unsigned char *qualified_name, size_t qn_len,
                               size_t *value_len)
 {
-    pchtml_dom_attr_t *attr;
+    pcedom_attr_t *attr;
 
-    attr = pchtml_dom_element_attr_by_name(element, qualified_name, qn_len);
+    attr = pcedom_element_attr_by_name(element, qualified_name, qn_len);
     if (attr == NULL) {
         if (value_len != NULL) {
             *value_len = 0;
@@ -339,53 +339,53 @@ pchtml_dom_element_get_attribute(pchtml_dom_element_t *element,
         return NULL;
     }
 
-    return pchtml_dom_attr_value(attr, value_len);
+    return pcedom_attr_value(attr, value_len);
 }
 
 unsigned int
-pchtml_dom_element_remove_attribute(pchtml_dom_element_t *element,
+pcedom_element_remove_attribute(pcedom_element_t *element,
                                  const unsigned char *qualified_name, size_t qn_len)
 {
     unsigned int status;
-    pchtml_dom_attr_t *attr;
+    pcedom_attr_t *attr;
 
-    attr = pchtml_dom_element_attr_by_name(element, qualified_name, qn_len);
+    attr = pcedom_element_attr_by_name(element, qualified_name, qn_len);
     if (attr == NULL) {
         return PCHTML_STATUS_OK;
     }
 
-    status = pchtml_dom_element_attr_remove(element, attr);
+    status = pcedom_element_attr_remove(element, attr);
     if (status != PCHTML_STATUS_OK) {
         return status;
     }
 
-    pchtml_dom_attr_interface_destroy(attr);
+    pcedom_attr_interface_destroy(attr);
 
     return PCHTML_STATUS_OK;
 }
 
 bool
-pchtml_dom_element_has_attribute(pchtml_dom_element_t *element,
+pcedom_element_has_attribute(pcedom_element_t *element,
                               const unsigned char *qualified_name, size_t qn_len)
 {
-    return pchtml_dom_element_attr_by_name(element, qualified_name, qn_len) != NULL;
+    return pcedom_element_attr_by_name(element, qualified_name, qn_len) != NULL;
 }
 
 unsigned int
-pchtml_dom_element_attr_append(pchtml_dom_element_t *element, pchtml_dom_attr_t *attr)
+pcedom_element_attr_append(pcedom_element_t *element, pcedom_attr_t *attr)
 {
-    if (attr->node.local_name == PCHTML_DOM_ATTR_ID) {
+    if (attr->node.local_name == PCEDOM_ATTR_ID) {
         if (element->attr_id != NULL) {
-            pchtml_dom_element_attr_remove(element, element->attr_id);
-            pchtml_dom_attr_interface_destroy(element->attr_id);
+            pcedom_element_attr_remove(element, element->attr_id);
+            pcedom_attr_interface_destroy(element->attr_id);
         }
 
         element->attr_id = attr;
     }
-    else if (attr->node.local_name == PCHTML_DOM_ATTR_CLASS) {
+    else if (attr->node.local_name == PCEDOM_ATTR_CLASS) {
         if (element->attr_class != NULL) {
-            pchtml_dom_element_attr_remove(element, element->attr_class);
-            pchtml_dom_attr_interface_destroy(element->attr_class);
+            pcedom_element_attr_remove(element, element->attr_class);
+            pcedom_attr_interface_destroy(element->attr_class);
         }
 
         element->attr_class = attr;
@@ -407,7 +407,7 @@ pchtml_dom_element_attr_append(pchtml_dom_element_t *element, pchtml_dom_attr_t 
 }
 
 unsigned int
-pchtml_dom_element_attr_remove(pchtml_dom_element_t *element, pchtml_dom_attr_t *attr)
+pcedom_element_attr_remove(pcedom_element_t *element, pcedom_attr_t *attr)
 {
     if (element->attr_id == attr) {
         element->attr_id = NULL;
@@ -436,21 +436,21 @@ pchtml_dom_element_attr_remove(pchtml_dom_element_t *element, pchtml_dom_attr_t 
     return PCHTML_STATUS_OK;
 }
 
-pchtml_dom_attr_t *
-pchtml_dom_element_attr_by_name(pchtml_dom_element_t *element,
+pcedom_attr_t *
+pcedom_element_attr_by_name(pcedom_element_t *element,
                              const unsigned char *qualified_name, size_t length)
 {
-    const pchtml_dom_attr_data_t *data;
+    const pcedom_attr_data_t *data;
     pchtml_hash_t *attrs = element->node.owner_document->attrs;
-    pchtml_dom_attr_t *attr = element->first_attr;
+    pcedom_attr_t *attr = element->first_attr;
 
     if (element->node.ns == PCHTML_NS_HTML
-        && element->node.owner_document->type == PCHTML_DOM_DOCUMENT_DTYPE_HTML)
+        && element->node.owner_document->type == PCEDOM_DOCUMENT_DTYPE_HTML)
     {
-        data = pchtml_dom_attr_data_by_local_name(attrs, qualified_name, length);
+        data = pcedom_attr_data_by_local_name(attrs, qualified_name, length);
     }
     else {
-        data = pchtml_dom_attr_data_by_qualified_name(attrs, qualified_name,
+        data = pcedom_attr_data_by_qualified_name(attrs, qualified_name,
                                                    length);
     }
 
@@ -471,11 +471,11 @@ pchtml_dom_element_attr_by_name(pchtml_dom_element_t *element,
     return NULL;
 }
 
-pchtml_dom_attr_t *
-pchtml_dom_element_attr_by_local_name_data(pchtml_dom_element_t *element,
-                                        const pchtml_dom_attr_data_t *data)
+pcedom_attr_t *
+pcedom_element_attr_by_local_name_data(pcedom_element_t *element,
+                                        const pcedom_attr_data_t *data)
 {
-    pchtml_dom_attr_t *attr = element->first_attr;
+    pcedom_attr_t *attr = element->first_attr;
 
     while (attr != NULL) {
         if (attr->node.local_name == data->attr_id) {
@@ -488,11 +488,11 @@ pchtml_dom_element_attr_by_local_name_data(pchtml_dom_element_t *element,
     return NULL;
 }
 
-pchtml_dom_attr_t *
-pchtml_dom_element_attr_by_id(pchtml_dom_element_t *element,
-                           pchtml_dom_attr_id_t attr_id)
+pcedom_attr_t *
+pcedom_element_attr_by_id(pcedom_element_t *element,
+                           pcedom_attr_id_t attr_id)
 {
-    pchtml_dom_attr_t *attr = element->first_attr;
+    pcedom_attr_t *attr = element->first_attr;
 
     while (attr != NULL) {
         if (attr->node.local_name == attr_id) {
@@ -506,10 +506,10 @@ pchtml_dom_element_attr_by_id(pchtml_dom_element_t *element,
 }
 
 bool
-pchtml_dom_element_compare(pchtml_dom_element_t *first, pchtml_dom_element_t *second)
+pcedom_element_compare(pcedom_element_t *first, pcedom_element_t *second)
 {
-    pchtml_dom_attr_t *f_attr = first->first_attr;
-    pchtml_dom_attr_t *s_attr = second->first_attr;
+    pcedom_attr_t *f_attr = first->first_attr;
+    pcedom_attr_t *s_attr = second->first_attr;
 
     if (first->node.local_name != second->node.local_name
         || first->node.ns != second->node.ns
@@ -535,7 +535,7 @@ pchtml_dom_element_compare(pchtml_dom_element_t *first, pchtml_dom_element_t *se
         s_attr = second->first_attr;
 
         while (s_attr != NULL) {
-            if (pchtml_dom_attr_compare(f_attr, s_attr)) {
+            if (pcedom_attr_compare(f_attr, s_attr)) {
                 break;
             }
 
@@ -552,14 +552,14 @@ pchtml_dom_element_compare(pchtml_dom_element_t *first, pchtml_dom_element_t *se
     return true;
 }
 
-pchtml_dom_attr_t *
-pchtml_dom_element_attr_is_exist(pchtml_dom_element_t *element,
+pcedom_attr_t *
+pcedom_element_attr_is_exist(pcedom_element_t *element,
                               const unsigned char *qualified_name, size_t length)
 {
-    const pchtml_dom_attr_data_t *data;
-    pchtml_dom_attr_t *attr = element->first_attr;
+    const pcedom_attr_data_t *data;
+    pcedom_attr_t *attr = element->first_attr;
 
-    data = pchtml_dom_attr_data_by_local_name(element->node.owner_document->attrs,
+    data = pcedom_attr_data_by_local_name(element->node.owner_document->attrs,
                                            qualified_name, length);
     if (data == NULL) {
         return NULL;
@@ -579,7 +579,7 @@ pchtml_dom_element_attr_is_exist(pchtml_dom_element_t *element,
 }
 
 unsigned int
-pchtml_dom_element_is_set(pchtml_dom_element_t *element,
+pcedom_element_is_set(pcedom_element_t *element,
                        const unsigned char *is, size_t is_len)
 {
     if (element->is_value == NULL) {
@@ -614,13 +614,13 @@ pchtml_dom_element_is_set(pchtml_dom_element_t *element,
 }
 
 static inline unsigned int
-pchtml_dom_element_prepare_by_attr(pchtml_dom_document_t *document,
-                                pchtml_dom_element_cb_ctx_t *cb_ctx,
+pcedom_element_prepare_by_attr(pcedom_document_t *document,
+                                pcedom_element_cb_ctx_t *cb_ctx,
                                 const unsigned char *qname, size_t qlen)
 {
     size_t length;
     const unsigned char *prefix_end;
-    const pchtml_dom_attr_data_t *attr_data;
+    const pcedom_attr_data_t *attr_data;
     const pchtml_ns_prefix_data_t *prefix_data;
 
     cb_ctx->prefix_id = PCHTML_NS__UNDEF;
@@ -651,7 +651,7 @@ pchtml_dom_element_prepare_by_attr(pchtml_dom_document_t *document,
         qlen -= length;
     }
 
-    attr_data = pchtml_dom_attr_data_by_local_name(document->attrs, qname, qlen);
+    attr_data = pcedom_attr_data_by_local_name(document->attrs, qname, qlen);
     if (attr_data == NULL) {
         return PCHTML_STATUS_STOP;
     }
@@ -662,8 +662,8 @@ pchtml_dom_element_prepare_by_attr(pchtml_dom_document_t *document,
 }
 
 static inline unsigned int
-pchtml_dom_element_prepare_by(pchtml_dom_document_t *document,
-                           pchtml_dom_element_cb_ctx_t *cb_ctx,
+pcedom_element_prepare_by(pcedom_document_t *document,
+                           pcedom_element_cb_ctx_t *cb_ctx,
                            const unsigned char *qname, size_t qlen)
 {
     size_t length;
@@ -710,24 +710,24 @@ pchtml_dom_element_prepare_by(pchtml_dom_document_t *document,
 }
 
 unsigned int
-pchtml_dom_elements_by_tag_name(pchtml_dom_element_t *root,
-                             pchtml_dom_collection_t *collection,
+pcedom_elements_by_tag_name(pcedom_element_t *root,
+                             pcedom_collection_t *collection,
                              const unsigned char *qualified_name, size_t len)
 {
     unsigned int status;
-    pchtml_dom_element_cb_ctx_t cb_ctx = {0};
+    pcedom_element_cb_ctx_t cb_ctx = {0};
 
     cb_ctx.col = collection;
 
     /* "*" (U+002A) */
     if (len == 1 && *qualified_name == 0x2A) {
-        pchtml_dom_node_simple_walk(pchtml_dom_interface_node(root),
-                                 pchtml_dom_elements_by_tag_name_cb_all, &cb_ctx);
+        pcedom_node_simple_walk(pcedom_interface_node(root),
+                                 pcedom_elements_by_tag_name_cb_all, &cb_ctx);
 
         return cb_ctx.status;
     }
 
-    status = pchtml_dom_element_prepare_by(root->node.owner_document,
+    status = pcedom_element_prepare_by(root->node.owner_document,
                                         &cb_ctx, qualified_name, len);
     if (status != PCHTML_STATUS_OK) {
         if (status == PCHTML_STATUS_STOP) {
@@ -737,22 +737,22 @@ pchtml_dom_elements_by_tag_name(pchtml_dom_element_t *root,
         return status;
     }
 
-    pchtml_dom_node_simple_walk(pchtml_dom_interface_node(root),
-                             pchtml_dom_elements_by_tag_name_cb, &cb_ctx);
+    pcedom_node_simple_walk(pcedom_interface_node(root),
+                             pcedom_elements_by_tag_name_cb, &cb_ctx);
 
     return cb_ctx.status;
 }
 
 static pchtml_action_t
-pchtml_dom_elements_by_tag_name_cb_all(pchtml_dom_node_t *node, void *ctx)
+pcedom_elements_by_tag_name_cb_all(pcedom_node_t *node, void *ctx)
 {
-    if (node->type != PCHTML_DOM_NODE_TYPE_ELEMENT) {
+    if (node->type != PCEDOM_NODE_TYPE_ELEMENT) {
         return PCHTML_ACTION_OK;
     }
 
-    pchtml_dom_element_cb_ctx_t *cb_ctx = ctx;
+    pcedom_element_cb_ctx_t *cb_ctx = ctx;
 
-    cb_ctx->status = pchtml_dom_collection_append(cb_ctx->col, node);
+    cb_ctx->status = pcedom_collection_append(cb_ctx->col, node);
     if (cb_ctx->status != PCHTML_STATUS_OK) {
         return PCHTML_ACTION_STOP;
     }
@@ -761,18 +761,18 @@ pchtml_dom_elements_by_tag_name_cb_all(pchtml_dom_node_t *node, void *ctx)
 }
 
 static pchtml_action_t
-pchtml_dom_elements_by_tag_name_cb(pchtml_dom_node_t *node, void *ctx)
+pcedom_elements_by_tag_name_cb(pcedom_node_t *node, void *ctx)
 {
-    if (node->type != PCHTML_DOM_NODE_TYPE_ELEMENT) {
+    if (node->type != PCEDOM_NODE_TYPE_ELEMENT) {
         return PCHTML_ACTION_OK;
     }
 
-    pchtml_dom_element_cb_ctx_t *cb_ctx = ctx;
+    pcedom_element_cb_ctx_t *cb_ctx = ctx;
 
     if (node->local_name == cb_ctx->name_id
         && node->prefix == cb_ctx->prefix_id)
     {
-        cb_ctx->status = pchtml_dom_collection_append(cb_ctx->col, node);
+        cb_ctx->status = pcedom_collection_append(cb_ctx->col, node);
         if (cb_ctx->status != PCHTML_STATUS_OK) {
             return PCHTML_ACTION_STOP;
         }
@@ -782,35 +782,35 @@ pchtml_dom_elements_by_tag_name_cb(pchtml_dom_node_t *node, void *ctx)
 }
 
 unsigned int
-pchtml_dom_elements_by_class_name(pchtml_dom_element_t *root,
-                               pchtml_dom_collection_t *collection,
+pcedom_elements_by_class_name(pcedom_element_t *root,
+                               pcedom_collection_t *collection,
                                const unsigned char *class_name, size_t len)
 {
     if (class_name == NULL || len == 0) {
         return PCHTML_STATUS_OK;
     }
 
-    pchtml_dom_element_cb_ctx_t cb_ctx = {0};
+    pcedom_element_cb_ctx_t cb_ctx = {0};
 
     cb_ctx.col = collection;
     cb_ctx.value = class_name;
     cb_ctx.value_length = len;
 
-    pchtml_dom_node_simple_walk(pchtml_dom_interface_node(root),
-                             pchtml_dom_elements_by_class_name_cb, &cb_ctx);
+    pcedom_node_simple_walk(pcedom_interface_node(root),
+                             pcedom_elements_by_class_name_cb, &cb_ctx);
 
     return cb_ctx.status;
 }
 
 static pchtml_action_t
-pchtml_dom_elements_by_class_name_cb(pchtml_dom_node_t *node, void *ctx)
+pcedom_elements_by_class_name_cb(pcedom_node_t *node, void *ctx)
 {
-    if (node->type != PCHTML_DOM_NODE_TYPE_ELEMENT) {
+    if (node->type != PCEDOM_NODE_TYPE_ELEMENT) {
         return PCHTML_ACTION_OK;
     }
 
-    pchtml_dom_element_cb_ctx_t *cb_ctx = ctx;
-    pchtml_dom_element_t *el = pchtml_dom_interface_element(node);
+    pcedom_element_cb_ctx_t *cb_ctx = ctx;
+    pcedom_element_t *el = pcedom_interface_element(node);
 
     if (el->attr_class == NULL
         || el->attr_class->value->length < cb_ctx->value_length)
@@ -825,13 +825,13 @@ pchtml_dom_elements_by_class_name_cb(pchtml_dom_node_t *node, void *ctx)
     const unsigned char *pos = data;
     const unsigned char *end = data + length;
 
-    pchtml_dom_document_t *doc = el->node.owner_document;
+    pcedom_document_t *doc = el->node.owner_document;
 
     for (; data < end; data++) {
         if (pchtml_utils_whitespace(*data, ==, ||)) {
 
             if (pos != data && (data - pos) == (int)cb_ctx->value_length) {
-                if (doc->compat_mode == PCHTML_DOM_DOCUMENT_CMODE_QUIRKS) {
+                if (doc->compat_mode == PCEDOM_DOCUMENT_CMODE_QUIRKS) {
                     is_it = pchtml_str_data_ncasecmp(pos, cb_ctx->value,
                                                      cb_ctx->value_length);
                 }
@@ -841,7 +841,7 @@ pchtml_dom_elements_by_class_name_cb(pchtml_dom_node_t *node, void *ctx)
                 }
 
                 if (is_it) {
-                    cb_ctx->status = pchtml_dom_collection_append(cb_ctx->col,
+                    cb_ctx->status = pcedom_collection_append(cb_ctx->col,
                                                                node);
                     if (cb_ctx->status != PCHTML_STATUS_OK) {
                         return PCHTML_ACTION_STOP;
@@ -860,7 +860,7 @@ pchtml_dom_elements_by_class_name_cb(pchtml_dom_node_t *node, void *ctx)
     }
 
     if ((end - pos) == (int)cb_ctx->value_length) {
-        if (doc->compat_mode == PCHTML_DOM_DOCUMENT_CMODE_QUIRKS) {
+        if (doc->compat_mode == PCEDOM_DOCUMENT_CMODE_QUIRKS) {
             is_it = pchtml_str_data_ncasecmp(pos, cb_ctx->value,
                                              cb_ctx->value_length);
         }
@@ -870,7 +870,7 @@ pchtml_dom_elements_by_class_name_cb(pchtml_dom_node_t *node, void *ctx)
         }
 
         if (is_it) {
-            cb_ctx->status = pchtml_dom_collection_append(cb_ctx->col, node);
+            cb_ctx->status = pcedom_collection_append(cb_ctx->col, node);
             if (cb_ctx->status != PCHTML_STATUS_OK) {
                 return PCHTML_ACTION_STOP;
             }
@@ -881,20 +881,20 @@ pchtml_dom_elements_by_class_name_cb(pchtml_dom_node_t *node, void *ctx)
 }
 
 unsigned int
-pchtml_dom_elements_by_attr(pchtml_dom_element_t *root,
-                         pchtml_dom_collection_t *collection,
+pcedom_elements_by_attr(pcedom_element_t *root,
+                         pcedom_collection_t *collection,
                          const unsigned char *qualified_name, size_t qname_len,
                          const unsigned char *value, size_t value_len,
                          bool case_insensitive)
 {
     unsigned int status;
-    pchtml_dom_element_cb_ctx_t cb_ctx = {0};
+    pcedom_element_cb_ctx_t cb_ctx = {0};
 
     cb_ctx.col = collection;
     cb_ctx.value = value;
     cb_ctx.value_length = value_len;
 
-    status = pchtml_dom_element_prepare_by_attr(root->node.owner_document,
+    status = pcedom_element_prepare_by_attr(root->node.owner_document,
                                              &cb_ctx, qualified_name, qname_len);
     if (status != PCHTML_STATUS_OK) {
         if (status == PCHTML_STATUS_STOP) {
@@ -905,33 +905,33 @@ pchtml_dom_elements_by_attr(pchtml_dom_element_t *root,
     }
 
     if (case_insensitive) {
-        cb_ctx.cmp_func = pchtml_dom_elements_by_attr_cmp_full_case;
+        cb_ctx.cmp_func = pcedom_elements_by_attr_cmp_full_case;
     }
     else {
-        cb_ctx.cmp_func = pchtml_dom_elements_by_attr_cmp_full;
+        cb_ctx.cmp_func = pcedom_elements_by_attr_cmp_full;
     }
 
-    pchtml_dom_node_simple_walk(pchtml_dom_interface_node(root),
-                             pchtml_dom_elements_by_attr_cb, &cb_ctx);
+    pcedom_node_simple_walk(pcedom_interface_node(root),
+                             pcedom_elements_by_attr_cb, &cb_ctx);
 
     return cb_ctx.status;
 }
 
 unsigned int
-pchtml_dom_elements_by_attr_begin(pchtml_dom_element_t *root,
-                               pchtml_dom_collection_t *collection,
+pcedom_elements_by_attr_begin(pcedom_element_t *root,
+                               pcedom_collection_t *collection,
                                const unsigned char *qualified_name, size_t qname_len,
                                const unsigned char *value, size_t value_len,
                                bool case_insensitive)
 {
     unsigned int status;
-    pchtml_dom_element_cb_ctx_t cb_ctx = {0};
+    pcedom_element_cb_ctx_t cb_ctx = {0};
 
     cb_ctx.col = collection;
     cb_ctx.value = value;
     cb_ctx.value_length = value_len;
 
-    status = pchtml_dom_element_prepare_by_attr(root->node.owner_document,
+    status = pcedom_element_prepare_by_attr(root->node.owner_document,
                                              &cb_ctx, qualified_name, qname_len);
     if (status != PCHTML_STATUS_OK) {
         if (status == PCHTML_STATUS_STOP) {
@@ -942,33 +942,33 @@ pchtml_dom_elements_by_attr_begin(pchtml_dom_element_t *root,
     }
 
     if (case_insensitive) {
-        cb_ctx.cmp_func = pchtml_dom_elements_by_attr_cmp_begin_case;
+        cb_ctx.cmp_func = pcedom_elements_by_attr_cmp_begin_case;
     }
     else {
-        cb_ctx.cmp_func = pchtml_dom_elements_by_attr_cmp_begin;
+        cb_ctx.cmp_func = pcedom_elements_by_attr_cmp_begin;
     }
 
-    pchtml_dom_node_simple_walk(pchtml_dom_interface_node(root),
-                             pchtml_dom_elements_by_attr_cb, &cb_ctx);
+    pcedom_node_simple_walk(pcedom_interface_node(root),
+                             pcedom_elements_by_attr_cb, &cb_ctx);
 
     return cb_ctx.status;
 }
 
 unsigned int
-pchtml_dom_elements_by_attr_end(pchtml_dom_element_t *root,
-                             pchtml_dom_collection_t *collection,
+pcedom_elements_by_attr_end(pcedom_element_t *root,
+                             pcedom_collection_t *collection,
                              const unsigned char *qualified_name, size_t qname_len,
                              const unsigned char *value, size_t value_len,
                              bool case_insensitive)
 {
     unsigned int status;
-    pchtml_dom_element_cb_ctx_t cb_ctx = {0};
+    pcedom_element_cb_ctx_t cb_ctx = {0};
 
     cb_ctx.col = collection;
     cb_ctx.value = value;
     cb_ctx.value_length = value_len;
 
-    status = pchtml_dom_element_prepare_by_attr(root->node.owner_document,
+    status = pcedom_element_prepare_by_attr(root->node.owner_document,
                                              &cb_ctx, qualified_name, qname_len);
     if (status != PCHTML_STATUS_OK) {
         if (status == PCHTML_STATUS_STOP) {
@@ -979,33 +979,33 @@ pchtml_dom_elements_by_attr_end(pchtml_dom_element_t *root,
     }
 
     if (case_insensitive) {
-        cb_ctx.cmp_func = pchtml_dom_elements_by_attr_cmp_end_case;
+        cb_ctx.cmp_func = pcedom_elements_by_attr_cmp_end_case;
     }
     else {
-        cb_ctx.cmp_func = pchtml_dom_elements_by_attr_cmp_end;
+        cb_ctx.cmp_func = pcedom_elements_by_attr_cmp_end;
     }
 
-    pchtml_dom_node_simple_walk(pchtml_dom_interface_node(root),
-                             pchtml_dom_elements_by_attr_cb, &cb_ctx);
+    pcedom_node_simple_walk(pcedom_interface_node(root),
+                             pcedom_elements_by_attr_cb, &cb_ctx);
 
     return cb_ctx.status;
 }
 
 unsigned int
-pchtml_dom_elements_by_attr_contain(pchtml_dom_element_t *root,
-                                 pchtml_dom_collection_t *collection,
+pcedom_elements_by_attr_contain(pcedom_element_t *root,
+                                 pcedom_collection_t *collection,
                                  const unsigned char *qualified_name, size_t qname_len,
                                  const unsigned char *value, size_t value_len,
                                  bool case_insensitive)
 {
     unsigned int status;
-    pchtml_dom_element_cb_ctx_t cb_ctx = {0};
+    pcedom_element_cb_ctx_t cb_ctx = {0};
 
     cb_ctx.col = collection;
     cb_ctx.value = value;
     cb_ctx.value_length = value_len;
 
-    status = pchtml_dom_element_prepare_by_attr(root->node.owner_document,
+    status = pcedom_element_prepare_by_attr(root->node.owner_document,
                                              &cb_ctx, qualified_name, qname_len);
     if (status != PCHTML_STATUS_OK) {
         if (status == PCHTML_STATUS_STOP) {
@@ -1016,30 +1016,30 @@ pchtml_dom_elements_by_attr_contain(pchtml_dom_element_t *root,
     }
 
     if (case_insensitive) {
-        cb_ctx.cmp_func = pchtml_dom_elements_by_attr_cmp_contain_case;
+        cb_ctx.cmp_func = pcedom_elements_by_attr_cmp_contain_case;
     }
     else {
-        cb_ctx.cmp_func = pchtml_dom_elements_by_attr_cmp_contain;
+        cb_ctx.cmp_func = pcedom_elements_by_attr_cmp_contain;
     }
 
-    pchtml_dom_node_simple_walk(pchtml_dom_interface_node(root),
-                             pchtml_dom_elements_by_attr_cb, &cb_ctx);
+    pcedom_node_simple_walk(pcedom_interface_node(root),
+                             pcedom_elements_by_attr_cb, &cb_ctx);
 
     return cb_ctx.status;
 }
 
 static pchtml_action_t
-pchtml_dom_elements_by_attr_cb(pchtml_dom_node_t *node, void *ctx)
+pcedom_elements_by_attr_cb(pcedom_node_t *node, void *ctx)
 {
-    if (node->type != PCHTML_DOM_NODE_TYPE_ELEMENT) {
+    if (node->type != PCEDOM_NODE_TYPE_ELEMENT) {
         return PCHTML_ACTION_OK;
     }
 
-    pchtml_dom_attr_t *attr;
-    pchtml_dom_element_cb_ctx_t *cb_ctx = ctx;
-    pchtml_dom_element_t *el = pchtml_dom_interface_element(node);
+    pcedom_attr_t *attr;
+    pcedom_element_cb_ctx_t *cb_ctx = ctx;
+    pcedom_element_t *el = pcedom_interface_element(node);
 
-    attr = pchtml_dom_element_attr_by_id(el, cb_ctx->name_id);
+    attr = pcedom_element_attr_by_id(el, cb_ctx->name_id);
     if (attr == NULL) {
         return PCHTML_ACTION_OK;
     }
@@ -1047,7 +1047,7 @@ pchtml_dom_elements_by_attr_cb(pchtml_dom_node_t *node, void *ctx)
     if ((cb_ctx->value_length == 0 && attr->value->length == 0)
         || cb_ctx->cmp_func(cb_ctx, attr))
     {
-        cb_ctx->status = pchtml_dom_collection_append(cb_ctx->col, node);
+        cb_ctx->status = pcedom_collection_append(cb_ctx->col, node);
 
         if (cb_ctx->status != PCHTML_STATUS_OK) {
             return PCHTML_ACTION_STOP;
@@ -1058,8 +1058,8 @@ pchtml_dom_elements_by_attr_cb(pchtml_dom_node_t *node, void *ctx)
 }
 
 static bool
-pchtml_dom_elements_by_attr_cmp_full(pchtml_dom_element_cb_ctx_t *ctx,
-                                  pchtml_dom_attr_t *attr)
+pcedom_elements_by_attr_cmp_full(pcedom_element_cb_ctx_t *ctx,
+                                  pcedom_attr_t *attr)
 {
     if (ctx->value_length == attr->value->length
         && pchtml_str_data_ncmp(attr->value->data, ctx->value,
@@ -1072,8 +1072,8 @@ pchtml_dom_elements_by_attr_cmp_full(pchtml_dom_element_cb_ctx_t *ctx,
 }
 
 static bool
-pchtml_dom_elements_by_attr_cmp_full_case(pchtml_dom_element_cb_ctx_t *ctx,
-                                       pchtml_dom_attr_t *attr)
+pcedom_elements_by_attr_cmp_full_case(pcedom_element_cb_ctx_t *ctx,
+                                       pcedom_attr_t *attr)
 {
     if (ctx->value_length == attr->value->length
         && pchtml_str_data_ncasecmp(attr->value->data, ctx->value,
@@ -1086,8 +1086,8 @@ pchtml_dom_elements_by_attr_cmp_full_case(pchtml_dom_element_cb_ctx_t *ctx,
 }
 
 static bool
-pchtml_dom_elements_by_attr_cmp_begin(pchtml_dom_element_cb_ctx_t *ctx,
-                                   pchtml_dom_attr_t *attr)
+pcedom_elements_by_attr_cmp_begin(pcedom_element_cb_ctx_t *ctx,
+                                   pcedom_attr_t *attr)
 {
     if (ctx->value_length <= attr->value->length
         && pchtml_str_data_ncmp(attr->value->data, ctx->value,
@@ -1100,8 +1100,8 @@ pchtml_dom_elements_by_attr_cmp_begin(pchtml_dom_element_cb_ctx_t *ctx,
 }
 
 static bool
-pchtml_dom_elements_by_attr_cmp_begin_case(pchtml_dom_element_cb_ctx_t *ctx,
-                                        pchtml_dom_attr_t *attr)
+pcedom_elements_by_attr_cmp_begin_case(pcedom_element_cb_ctx_t *ctx,
+                                        pcedom_attr_t *attr)
 {
     if (ctx->value_length <= attr->value->length
         && pchtml_str_data_ncasecmp(attr->value->data,
@@ -1114,8 +1114,8 @@ pchtml_dom_elements_by_attr_cmp_begin_case(pchtml_dom_element_cb_ctx_t *ctx,
 }
 
 static bool
-pchtml_dom_elements_by_attr_cmp_end(pchtml_dom_element_cb_ctx_t *ctx,
-                                 pchtml_dom_attr_t *attr)
+pcedom_elements_by_attr_cmp_end(pcedom_element_cb_ctx_t *ctx,
+                                 pcedom_attr_t *attr)
 {
     if (ctx->value_length <= attr->value->length) {
         size_t dif = attr->value->length - ctx->value_length;
@@ -1131,8 +1131,8 @@ pchtml_dom_elements_by_attr_cmp_end(pchtml_dom_element_cb_ctx_t *ctx,
 }
 
 static bool
-pchtml_dom_elements_by_attr_cmp_end_case(pchtml_dom_element_cb_ctx_t *ctx,
-                                      pchtml_dom_attr_t *attr)
+pcedom_elements_by_attr_cmp_end_case(pcedom_element_cb_ctx_t *ctx,
+                                      pcedom_attr_t *attr)
 {
     if (ctx->value_length <= attr->value->length) {
         size_t dif = attr->value->length - ctx->value_length;
@@ -1148,8 +1148,8 @@ pchtml_dom_elements_by_attr_cmp_end_case(pchtml_dom_element_cb_ctx_t *ctx,
 }
 
 static bool
-pchtml_dom_elements_by_attr_cmp_contain(pchtml_dom_element_cb_ctx_t *ctx,
-                                     pchtml_dom_attr_t *attr)
+pcedom_elements_by_attr_cmp_contain(pcedom_element_cb_ctx_t *ctx,
+                                     pcedom_attr_t *attr)
 {
     if (ctx->value_length <= attr->value->length
         && pchtml_str_data_ncmp_contain(attr->value->data, attr->value->length,
@@ -1162,8 +1162,8 @@ pchtml_dom_elements_by_attr_cmp_contain(pchtml_dom_element_cb_ctx_t *ctx,
 }
 
 static bool
-pchtml_dom_elements_by_attr_cmp_contain_case(pchtml_dom_element_cb_ctx_t *ctx,
-                                          pchtml_dom_attr_t *attr)
+pcedom_elements_by_attr_cmp_contain_case(pcedom_element_cb_ctx_t *ctx,
+                                          pcedom_attr_t *attr)
 {
     if (ctx->value_length <= attr->value->length
         && pchtml_str_data_ncasecmp_contain(attr->value->data, attr->value->length,
@@ -1176,7 +1176,7 @@ pchtml_dom_elements_by_attr_cmp_contain_case(pchtml_dom_element_cb_ctx_t *ctx,
 }
 
 const unsigned char *
-pchtml_dom_element_qualified_name(pchtml_dom_element_t *element, size_t *len)
+pcedom_element_qualified_name(pcedom_element_t *element, size_t *len)
 {
     const pchtml_tag_data_t *data;
 
@@ -1197,12 +1197,12 @@ pchtml_dom_element_qualified_name(pchtml_dom_element_t *element, size_t *len)
 }
 
 const unsigned char *
-pchtml_dom_element_qualified_name_upper(pchtml_dom_element_t *element, size_t *len)
+pcedom_element_qualified_name_upper(pcedom_element_t *element, size_t *len)
 {
     pchtml_tag_data_t *data;
 
     if (element->upper_name == PCHTML_TAG__UNDEF) {
-        return pchtml_dom_element_upper_update(element, len);
+        return pcedom_element_upper_update(element, len);
     }
 
     data = (pchtml_tag_data_t *) element->upper_name;
@@ -1215,7 +1215,7 @@ pchtml_dom_element_qualified_name_upper(pchtml_dom_element_t *element, size_t *l
 }
 
 static const unsigned char *
-pchtml_dom_element_upper_update(pchtml_dom_element_t *element, size_t *len)
+pcedom_element_upper_update(pcedom_element_t *element, size_t *len)
 {
     size_t length;
     pchtml_tag_data_t *data;
@@ -1226,7 +1226,7 @@ pchtml_dom_element_upper_update(pchtml_dom_element_t *element, size_t *len)
         /* data = (pchtml_tag_data_t *) element->upper_name; */
     }
 
-    name = pchtml_dom_element_qualified_name(element, &length);
+    name = pcedom_element_qualified_name(element, &length);
     if (name == NULL) {
         return NULL;
     }
@@ -1249,7 +1249,7 @@ pchtml_dom_element_upper_update(pchtml_dom_element_t *element, size_t *len)
 }
 
 const unsigned char *
-pchtml_dom_element_local_name(pchtml_dom_element_t *element, size_t *len)
+pcedom_element_local_name(pcedom_element_t *element, size_t *len)
 {
     const pchtml_tag_data_t *data;
 
@@ -1271,7 +1271,7 @@ pchtml_dom_element_local_name(pchtml_dom_element_t *element, size_t *len)
 }
 
 const unsigned char *
-pchtml_dom_element_prefix(pchtml_dom_element_t *element, size_t *len)
+pcedom_element_prefix(pcedom_element_t *element, size_t *len)
 {
     const pchtml_ns_prefix_data_t *data;
 
@@ -1297,17 +1297,17 @@ empty:
 }
 
 const unsigned char *
-pchtml_dom_element_tag_name(pchtml_dom_element_t *element, size_t *len)
+pcedom_element_tag_name(pcedom_element_t *element, size_t *len)
 {
-    pchtml_dom_document_t *doc = pchtml_dom_interface_node(element)->owner_document;
+    pcedom_document_t *doc = pcedom_interface_node(element)->owner_document;
 
     if (element->node.ns != PCHTML_NS_HTML
-        || doc->type != PCHTML_DOM_DOCUMENT_DTYPE_HTML)
+        || doc->type != PCEDOM_DOCUMENT_DTYPE_HTML)
     {
-        return pchtml_dom_element_qualified_name(element, len);
+        return pcedom_element_qualified_name(element, len);
     }
 
-    return pchtml_dom_element_qualified_name_upper(element, len);
+    return pcedom_element_qualified_name_upper(element, len);
 }
 
 
@@ -1316,61 +1316,61 @@ pchtml_dom_element_tag_name(pchtml_dom_element_t *element, size_t *len)
  * No inline functions for ABI.
  */
 const unsigned char *
-pchtml_dom_element_id_noi(pchtml_dom_element_t *element, size_t *len)
+pcedom_element_id_noi(pcedom_element_t *element, size_t *len)
 {
-    return pchtml_dom_element_id(element, len);
+    return pcedom_element_id(element, len);
 }
 
 const unsigned char *
-pchtml_dom_element_class_noi(pchtml_dom_element_t *element, size_t *len)
+pcedom_element_class_noi(pcedom_element_t *element, size_t *len)
 {
-    return pchtml_dom_element_class(element, len);
+    return pcedom_element_class(element, len);
 }
 
 bool
-pchtml_dom_element_is_custom_noi(pchtml_dom_element_t *element)
+pcedom_element_is_custom_noi(pcedom_element_t *element)
 {
-    return pchtml_dom_element_is_custom(element);
+    return pcedom_element_is_custom(element);
 }
 
 bool
-pchtml_dom_element_custom_is_defined_noi(pchtml_dom_element_t *element)
+pcedom_element_custom_is_defined_noi(pcedom_element_t *element)
 {
-    return pchtml_dom_element_custom_is_defined(element);
+    return pcedom_element_custom_is_defined(element);
 }
 
-pchtml_dom_attr_t *
-pchtml_dom_element_first_attribute_noi(pchtml_dom_element_t *element)
+pcedom_attr_t *
+pcedom_element_first_attribute_noi(pcedom_element_t *element)
 {
-    return pchtml_dom_element_first_attribute(element);
+    return pcedom_element_first_attribute(element);
 }
 
-pchtml_dom_attr_t *
-pchtml_dom_element_next_attribute_noi(pchtml_dom_attr_t *attr)
+pcedom_attr_t *
+pcedom_element_next_attribute_noi(pcedom_attr_t *attr)
 {
-    return pchtml_dom_element_next_attribute(attr);
+    return pcedom_element_next_attribute(attr);
 }
 
-pchtml_dom_attr_t *
-pchtml_dom_element_prev_attribute_noi(pchtml_dom_attr_t *attr)
+pcedom_attr_t *
+pcedom_element_prev_attribute_noi(pcedom_attr_t *attr)
 {
-    return pchtml_dom_element_prev_attribute(attr);
+    return pcedom_element_prev_attribute(attr);
 }
 
-pchtml_dom_attr_t *
-pchtml_dom_element_last_attribute_noi(pchtml_dom_element_t *element)
+pcedom_attr_t *
+pcedom_element_last_attribute_noi(pcedom_element_t *element)
 {
-    return pchtml_dom_element_last_attribute(element);
+    return pcedom_element_last_attribute(element);
 }
 
-pchtml_dom_attr_t *
-pchtml_dom_element_id_attribute_noi(pchtml_dom_element_t *element)
+pcedom_attr_t *
+pcedom_element_id_attribute_noi(pcedom_element_t *element)
 {
-    return pchtml_dom_element_id_attribute(element);
+    return pcedom_element_id_attribute(element);
 }
 
-pchtml_dom_attr_t *
-pchtml_dom_element_class_attribute_noi(pchtml_dom_element_t *element)
+pcedom_attr_t *
+pcedom_element_class_attribute_noi(pcedom_element_t *element)
 {
-    return pchtml_dom_element_class_attribute(element);
+    return pcedom_element_class_attribute(element);
 }

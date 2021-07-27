@@ -29,45 +29,45 @@
  */
 
 
-#ifndef PCHTML_DOM_ATTR_CONST_H
-#define PCHTML_DOM_ATTR_CONST_H
+#ifndef PCEDOM_ATTR_CONST_H
+#define PCEDOM_ATTR_CONST_H
 
 
-typedef uintptr_t pchtml_dom_attr_id_t;
+typedef uintptr_t pcedom_attr_id_t;
 
 typedef enum {
-    PCHTML_DOM_ATTR__UNDEF      = 0x0000,
-    PCHTML_DOM_ATTR_ALT         = 0x0001,
-    PCHTML_DOM_ATTR_CHARSER     = 0x0002,
-    PCHTML_DOM_ATTR_CHECKED     = 0x0003,
-    PCHTML_DOM_ATTR_CLASS       = 0x0004,
-    PCHTML_DOM_ATTR_COLOR       = 0x0005,
-    PCHTML_DOM_ATTR_CONTENT     = 0x0006,
-    PCHTML_DOM_ATTR_DIR         = 0x0007,
-    PCHTML_DOM_ATTR_DISABLED    = 0x0008,
-    PCHTML_DOM_ATTR_FACE        = 0x0009,
-    PCHTML_DOM_ATTR_FOR         = 0x000a,
-    PCHTML_DOM_ATTR_HEIGHT      = 0x000b,
-    PCHTML_DOM_ATTR_HREF        = 0x000c,
-    PCHTML_DOM_ATTR_HTML        = 0x000d,
-    PCHTML_DOM_ATTR_HTTP_EQUIV  = 0x000e,
-    PCHTML_DOM_ATTR_ID          = 0x000f,
-    PCHTML_DOM_ATTR_IS          = 0x0010,
-    PCHTML_DOM_ATTR_MAXLENGTH   = 0x0011,
-    PCHTML_DOM_ATTR_POOL        = 0x0012,
-    PCHTML_DOM_ATTR_PUBLIC      = 0x0013,
-    PCHTML_DOM_ATTR_SCHEME      = 0x0014,
-    PCHTML_DOM_ATTR_SIZE        = 0x0015,
-    PCHTML_DOM_ATTR_SLOT        = 0x0016,
-    PCHTML_DOM_ATTR_SRC         = 0x0017,
-    PCHTML_DOM_ATTR_STYLE       = 0x0018,
-    PCHTML_DOM_ATTR_SYSTEM      = 0x0019,
-    PCHTML_DOM_ATTR_TITLE       = 0x001a,
-    PCHTML_DOM_ATTR_TYPE        = 0x001b,
-    PCHTML_DOM_ATTR_WIDTH       = 0x001c,
-    PCHTML_DOM_ATTR__LAST_ENTRY = 0x001d
+    PCEDOM_ATTR__UNDEF      = 0x0000,
+    PCEDOM_ATTR_ALT         = 0x0001,
+    PCEDOM_ATTR_CHARSER     = 0x0002,
+    PCEDOM_ATTR_CHECKED     = 0x0003,
+    PCEDOM_ATTR_CLASS       = 0x0004,
+    PCEDOM_ATTR_COLOR       = 0x0005,
+    PCEDOM_ATTR_CONTENT     = 0x0006,
+    PCEDOM_ATTR_DIR         = 0x0007,
+    PCEDOM_ATTR_DISABLED    = 0x0008,
+    PCEDOM_ATTR_FACE        = 0x0009,
+    PCEDOM_ATTR_FOR         = 0x000a,
+    PCEDOM_ATTR_HEIGHT      = 0x000b,
+    PCEDOM_ATTR_HREF        = 0x000c,
+    PCEDOM_ATTR_HTML        = 0x000d,
+    PCEDOM_ATTR_HTTP_EQUIV  = 0x000e,
+    PCEDOM_ATTR_ID          = 0x000f,
+    PCEDOM_ATTR_IS          = 0x0010,
+    PCEDOM_ATTR_MAXLENGTH   = 0x0011,
+    PCEDOM_ATTR_POOL        = 0x0012,
+    PCEDOM_ATTR_PUBLIC      = 0x0013,
+    PCEDOM_ATTR_SCHEME      = 0x0014,
+    PCEDOM_ATTR_SIZE        = 0x0015,
+    PCEDOM_ATTR_SLOT        = 0x0016,
+    PCEDOM_ATTR_SRC         = 0x0017,
+    PCEDOM_ATTR_STYLE       = 0x0018,
+    PCEDOM_ATTR_SYSTEM      = 0x0019,
+    PCEDOM_ATTR_TITLE       = 0x001a,
+    PCEDOM_ATTR_TYPE        = 0x001b,
+    PCEDOM_ATTR_WIDTH       = 0x001c,
+    PCEDOM_ATTR__LAST_ENTRY = 0x001d
 }
-pchtml_dom_attr_id_enum_t;
+pcedom_attr_id_enum_t;
 
 
-#endif  /* PCHTML_DOM_ATTR_CONST_H */
+#endif  /* PCEDOM_ATTR_CONST_H */

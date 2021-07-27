@@ -23,8 +23,8 @@
  */
 
 
-#ifndef PCHTML_DOM_CDATA_SECTION_H
-#define PCHTML_DOM_CDATA_SECTION_H
+#ifndef PCEDOM_CDATA_SECTION_H
+#define PCEDOM_CDATA_SECTION_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,22 +35,22 @@ extern "C" {
 #include "private/edom/text.h"
 
 
-struct pchtml_dom_cdata_section {
-    pchtml_dom_text_t text;
+struct pcedom_cdata_section {
+    pcedom_text_t text;
 };
 
 
-pchtml_dom_cdata_section_t *
-pchtml_dom_cdata_section_interface_create(
-                pchtml_dom_document_t *document) WTF_INTERNAL;
+pcedom_cdata_section_t *
+pcedom_cdata_section_interface_create(
+                pcedom_document_t *document) WTF_INTERNAL;
 
-pchtml_dom_cdata_section_t *
-pchtml_dom_cdata_section_interface_destroy(
-                pchtml_dom_cdata_section_t *cdata_section) WTF_INTERNAL;
+pcedom_cdata_section_t *
+pcedom_cdata_section_interface_destroy(
+                pcedom_cdata_section_t *cdata_section) WTF_INTERNAL;
 
 
 #ifdef __cplusplus
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_DOM_CDATA_SECTION_H */
+#endif  /* PCEDOM_CDATA_SECTION_H */

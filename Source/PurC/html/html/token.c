@@ -276,7 +276,7 @@ pchtml_html_token_data_split_ws_begin(pchtml_html_token_t *token,
 
 unsigned int
 pchtml_html_token_doctype_parse(pchtml_html_token_t *token,
-                             pchtml_dom_document_type_t *doc_type)
+                             pcedom_document_type_t *doc_type)
 {
     pchtml_html_token_attr_t *attr;
     pchtml_mraw_t *mraw = doc_type->node.owner_document->mraw;
@@ -297,7 +297,7 @@ pchtml_html_token_doctype_parse(pchtml_html_token_t *token,
         goto set_pub_sys_empty;
     }
 
-    if (attr->name->attr_id == PCHTML_DOM_ATTR_PUBLIC) {
+    if (attr->name->attr_id == PCEDOM_ATTR_PUBLIC) {
         (void) pchtml_str_init(&doc_type->public_id, mraw, attr->value_size);
         if (doc_type->public_id.data == NULL) {
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
@@ -310,7 +310,7 @@ pchtml_html_token_doctype_parse(pchtml_html_token_t *token,
         (void) pchtml_str_append(&doc_type->public_id, mraw, attr->value,
                                  attr->value_size);
     }
-    else if (attr->name->attr_id == PCHTML_DOM_ATTR_SYSTEM) {
+    else if (attr->name->attr_id == PCEDOM_ATTR_SYSTEM) {
         (void) pchtml_str_init(&doc_type->system_id, mraw, attr->value_size);
         if (doc_type->system_id.data == NULL) {
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
@@ -347,7 +347,7 @@ pchtml_html_token_doctype_parse(pchtml_html_token_t *token,
 
 set_name_pub_sys_empty:
 
-    doc_type->name = PCHTML_DOM_ATTR__UNDEF;
+    doc_type->name = PCEDOM_ATTR__UNDEF;
 
 set_pub_sys_empty:
 
@@ -370,10 +370,10 @@ pchtml_html_token_attr_t *
 pchtml_html_token_find_attr(pchtml_html_tokenizer_t *tkz, pchtml_html_token_t *token,
                          const unsigned char *name, size_t name_len)
 {
-    const pchtml_dom_attr_data_t *data;
+    const pcedom_attr_data_t *data;
     pchtml_html_token_attr_t *attr = token->attr_first;
 
-    data = pchtml_dom_attr_data_by_local_name(tkz->attrs, name, name_len);
+    data = pcedom_attr_data_by_local_name(tkz->attrs, name, name_len);
     if (data == NULL) {
         return NULL;
     }

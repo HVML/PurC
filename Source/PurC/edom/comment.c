@@ -27,29 +27,29 @@
 #include "private/edom/document.h"
 
 
-pchtml_dom_comment_t *
-pchtml_dom_comment_interface_create(pchtml_dom_document_t *document)
+pcedom_comment_t *
+pcedom_comment_interface_create(pcedom_document_t *document)
 {
-    pchtml_dom_comment_t *element;
+    pcedom_comment_t *element;
 
     element = pchtml_mraw_calloc(document->mraw,
-                                 sizeof(pchtml_dom_comment_t));
+                                 sizeof(pcedom_comment_t));
     if (element == NULL) {
         return NULL;
     }
 
-    pchtml_dom_node_t *node = pchtml_dom_interface_node(element);
+    pcedom_node_t *node = pcedom_interface_node(element);
 
     node->owner_document = document;
-    node->type = PCHTML_DOM_NODE_TYPE_COMMENT;
+    node->type = PCEDOM_NODE_TYPE_COMMENT;
 
     return element;
 }
 
-pchtml_dom_comment_t *
-pchtml_dom_comment_interface_destroy(pchtml_dom_comment_t *comment)
+pcedom_comment_t *
+pcedom_comment_interface_destroy(pcedom_comment_t *comment)
 {
     return pchtml_mraw_free(
-        pchtml_dom_interface_node(comment)->owner_document->mraw,
+        pcedom_interface_node(comment)->owner_document->mraw,
         comment);
 }

@@ -23,8 +23,8 @@
  */
 
 
-#ifndef PCHTML_DOM_DOCUMENT_TYPE_H
-#define PCHTML_DOM_DOCUMENT_TYPE_H
+#ifndef PCEDOM_DOCUMENT_TYPE_H
+#define PCEDOM_DOCUMENT_TYPE_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,37 +39,37 @@ extern "C" {
 #include "private/edom/document_type.h"
 
 
-struct pchtml_dom_document_type {
-    pchtml_dom_node_t    node;
+struct pcedom_document_type {
+    pcedom_node_t    node;
 
-    pchtml_dom_attr_id_t name;
+    pcedom_attr_id_t name;
     pchtml_str_t      public_id;
     pchtml_str_t      system_id;
 };
 
 
-pchtml_dom_document_type_t *
-pchtml_dom_document_type_interface_create(
-                pchtml_dom_document_t *document) WTF_INTERNAL;
+pcedom_document_type_t *
+pcedom_document_type_interface_create(
+                pcedom_document_t *document) WTF_INTERNAL;
 
-pchtml_dom_document_type_t *
-pchtml_dom_document_type_interface_destroy(
-                pchtml_dom_document_type_t *document_type) WTF_INTERNAL;
+pcedom_document_type_t *
+pcedom_document_type_interface_destroy(
+                pcedom_document_type_t *document_type) WTF_INTERNAL;
 
 
 /*
  * Inline functions
  */
 static inline const unsigned char *
-pchtml_dom_document_type_name(pchtml_dom_document_type_t *doc_type, size_t *len)
+pcedom_document_type_name(pcedom_document_type_t *doc_type, size_t *len)
 {
-    const pchtml_dom_attr_data_t *data;
+    const pcedom_attr_data_t *data;
 
     static const unsigned char pchtml_empty[] = "";
 
-    data = pchtml_dom_attr_data_by_id(doc_type->node.owner_document->attrs,
+    data = pcedom_attr_data_by_id(doc_type->node.owner_document->attrs,
                                    doc_type->name);
-    if (data == NULL || doc_type->name == PCHTML_DOM_ATTR__UNDEF) {
+    if (data == NULL || doc_type->name == PCEDOM_ATTR__UNDEF) {
         if (len != NULL) {
             *len = 0;
         }
@@ -85,7 +85,7 @@ pchtml_dom_document_type_name(pchtml_dom_document_type_t *doc_type, size_t *len)
 }
 
 static inline const unsigned char *
-pchtml_dom_document_type_public_id(pchtml_dom_document_type_t *doc_type, size_t *len)
+pcedom_document_type_public_id(pcedom_document_type_t *doc_type, size_t *len)
 {
     if (len != NULL) {
         *len = doc_type->public_id.length;
@@ -95,7 +95,7 @@ pchtml_dom_document_type_public_id(pchtml_dom_document_type_t *doc_type, size_t 
 }
 
 static inline const unsigned char *
-pchtml_dom_document_type_system_id(pchtml_dom_document_type_t *doc_type, size_t *len)
+pcedom_document_type_system_id(pcedom_document_type_t *doc_type, size_t *len)
 {
     if (len != NULL) {
         *len = doc_type->system_id.length;
@@ -108,14 +108,14 @@ pchtml_dom_document_type_system_id(pchtml_dom_document_type_t *doc_type, size_t 
  * No inline functions for ABI.
  */
 const unsigned char *
-pchtml_dom_document_type_name_noi(pchtml_dom_document_type_t *doc_type, size_t *len);
+pcedom_document_type_name_noi(pcedom_document_type_t *doc_type, size_t *len);
 
 const unsigned char *
-pchtml_dom_document_type_public_id_noi(pchtml_dom_document_type_t *doc_type,
+pcedom_document_type_public_id_noi(pcedom_document_type_t *doc_type,
                                     size_t *len);
 
 const unsigned char *
-pchtml_dom_document_type_system_id_noi(pchtml_dom_document_type_t *doc_type,
+pcedom_document_type_system_id_noi(pcedom_document_type_t *doc_type,
                                     size_t *len);
 
 
@@ -123,4 +123,4 @@ pchtml_dom_document_type_system_id_noi(pchtml_dom_document_type_t *doc_type,
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_DOM_DOCUMENT_TYPE_H */
+#endif  /* PCEDOM_DOCUMENT_TYPE_H */

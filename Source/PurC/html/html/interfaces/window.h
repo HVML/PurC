@@ -36,7 +36,7 @@ extern "C" {
 
 
 struct pchtml_html_window {
-    pchtml_dom_event_target_t event_target;
+    pcedom_event_target_t event_target;
 };
 
 

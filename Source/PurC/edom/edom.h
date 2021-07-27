@@ -23,8 +23,8 @@
  */
 
 
-#ifndef PCHTML_DOM_H
-#define PCHTML_DOM_H
+#ifndef PCEDOM_H
+#define PCEDOM_H
 
 #include "config.h"
 #include "edom/base.h"
@@ -46,4 +46,4 @@
 #include "private/edom/character_data.h"
 #include "private/edom/processing_instruction.h"
 
-#endif  /* PCHTML_DOM_H */
+#endif  /* PCEDOM_H */

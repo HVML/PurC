@@ -186,12 +186,12 @@ typedef struct pchtml_html_video_element pchtml_html_video_element_t;
 typedef struct pchtml_html_window pchtml_html_window_t;
 
 
-pchtml_dom_interface_t *
+pcedom_interface_t *
 pchtml_html_interface_create(pchtml_html_document_t *document, pchtml_tag_id_t tag_id,
                           pchtml_ns_id_t ns) WTF_INTERNAL;
 
-pchtml_dom_interface_t *
-pchtml_html_interface_destroy(pchtml_dom_interface_t *intrfc) WTF_INTERNAL;
+pcedom_interface_t *
+pchtml_html_interface_destroy(pcedom_interface_t *intrfc) WTF_INTERNAL;
 
 
 #ifdef __cplusplus

@@ -38,13 +38,13 @@
 #include "private/edom/text.h"
 
 
-pchtml_dom_interface_t *
-pchtml_dom_interface_create(pchtml_dom_document_t *document, pchtml_tag_id_t tag_id,
+pcedom_interface_t *
+pcedom_interface_create(pcedom_document_t *document, pchtml_tag_id_t tag_id,
                          pchtml_ns_id_t ns)
 {
-    pchtml_dom_element_t *domel;
+    pcedom_element_t *domel;
 
-    domel = pchtml_dom_element_interface_create(document);
+    domel = pcedom_element_interface_create(document);
     if (domel == NULL) {
         return NULL;
     }
@@ -55,39 +55,39 @@ pchtml_dom_interface_create(pchtml_dom_document_t *document, pchtml_tag_id_t tag
     return domel;
 }
 
-pchtml_dom_interface_t *
-pchtml_dom_interface_destroy(pchtml_dom_interface_t *intrfc)
+pcedom_interface_t *
+pcedom_interface_destroy(pcedom_interface_t *intrfc)
 {
     if (intrfc == NULL) {
         return NULL;
     }
 
-    pchtml_dom_node_t *node = intrfc;
+    pcedom_node_t *node = intrfc;
 
     switch (node->type) {
-        case PCHTML_DOM_NODE_TYPE_ELEMENT:
-            return pchtml_dom_element_interface_destroy(intrfc);
+        case PCEDOM_NODE_TYPE_ELEMENT:
+            return pcedom_element_interface_destroy(intrfc);
 
-        case PCHTML_DOM_NODE_TYPE_TEXT:
-            return pchtml_dom_text_interface_destroy(intrfc);
+        case PCEDOM_NODE_TYPE_TEXT:
+            return pcedom_text_interface_destroy(intrfc);
 
-        case PCHTML_DOM_NODE_TYPE_CDATA_SECTION:
-            return pchtml_dom_cdata_section_interface_destroy(intrfc);
+        case PCEDOM_NODE_TYPE_CDATA_SECTION:
+            return pcedom_cdata_section_interface_destroy(intrfc);
 
-        case PCHTML_DOM_NODE_TYPE_PROCESSING_INSTRUCTION:
-            return pchtml_dom_processing_instruction_interface_destroy(intrfc);
+        case PCEDOM_NODE_TYPE_PROCESSING_INSTRUCTION:
+            return pcedom_processing_instruction_interface_destroy(intrfc);
 
-        case PCHTML_DOM_NODE_TYPE_COMMENT:
-            return pchtml_dom_comment_interface_destroy(intrfc);
+        case PCEDOM_NODE_TYPE_COMMENT:
+            return pcedom_comment_interface_destroy(intrfc);
 
-        case PCHTML_DOM_NODE_TYPE_DOCUMENT:
-            return pchtml_dom_document_interface_destroy(intrfc);
+        case PCEDOM_NODE_TYPE_DOCUMENT:
+            return pcedom_document_interface_destroy(intrfc);
 
-        case PCHTML_DOM_NODE_TYPE_DOCUMENT_TYPE:
-            return pchtml_dom_document_type_interface_destroy(intrfc);
+        case PCEDOM_NODE_TYPE_DOCUMENT_TYPE:
+            return pcedom_document_type_interface_destroy(intrfc);
 
-        case PCHTML_DOM_NODE_TYPE_DOCUMENT_FRAGMENT:
-            return pchtml_dom_document_fragment_interface_destroy(intrfc);
+        case PCEDOM_NODE_TYPE_DOCUMENT_FRAGMENT:
+            return pcedom_document_fragment_interface_destroy(intrfc);
 
         default:
             return pchtml_mraw_free(node->owner_document->mraw, intrfc);

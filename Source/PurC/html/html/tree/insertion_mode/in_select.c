@@ -68,7 +68,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_select_comment(pchtml_html_tree_t *tree,
                                                pchtml_html_token_t *token)
 {
-    pchtml_dom_comment_t *comment;
+    pcedom_comment_t *comment;
 
     comment = pchtml_html_tree_insert_comment(tree, token, NULL);
     if (comment == NULL) {
@@ -101,7 +101,7 @@ pchtml_html_tree_insertion_mode_in_select_option(pchtml_html_tree_t *tree,
                                               pchtml_html_token_t *token)
 {
     pchtml_html_element_t *element;
-    pchtml_dom_node_t *node = pchtml_html_tree_current_node(tree);
+    pcedom_node_t *node = pchtml_html_tree_current_node(tree);
 
     if (pchtml_html_tree_node_is(node, PCHTML_TAG_OPTION)) {
         pchtml_html_tree_open_elements_pop(tree);
@@ -122,7 +122,7 @@ pchtml_html_tree_insertion_mode_in_select_optgroup(pchtml_html_tree_t *tree,
                                                 pchtml_html_token_t *token)
 {
     pchtml_html_element_t *element;
-    pchtml_dom_node_t *node = pchtml_html_tree_current_node(tree);
+    pcedom_node_t *node = pchtml_html_tree_current_node(tree);
 
     if (pchtml_html_tree_node_is(node, PCHTML_TAG_OPTION)) {
         pchtml_html_tree_open_elements_pop(tree);
@@ -148,7 +148,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_select_optgroup_closed(pchtml_html_tree_t *tree,
                                                        pchtml_html_token_t *token)
 {
-    pchtml_dom_node_t *node = pchtml_html_tree_current_node(tree);
+    pcedom_node_t *node = pchtml_html_tree_current_node(tree);
 
     if (pchtml_html_tree_node_is(node, PCHTML_TAG_OPTION)
         && tree->open_elements->length > 1)
@@ -177,7 +177,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_select_option_closed(pchtml_html_tree_t *tree,
                                                      pchtml_html_token_t *token)
 {
-    pchtml_dom_node_t *node = pchtml_html_tree_current_node(tree);
+    pcedom_node_t *node = pchtml_html_tree_current_node(tree);
 
     if (pchtml_html_tree_node_is(node, PCHTML_TAG_OPTION) == false) {
         pchtml_html_tree_parse_error(tree, token,
@@ -194,7 +194,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_select_select_closed(pchtml_html_tree_t *tree,
                                                      pchtml_html_token_t *token)
 {
-    pchtml_dom_node_t *node;
+    pcedom_node_t *node;
 
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_SELECT, PCHTML_NS_HTML,
                                           PCHTML_HTML_TAG_CATEGORY_SCOPE_SELECT);
@@ -216,7 +216,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_select_select(pchtml_html_tree_t *tree,
                                               pchtml_html_token_t *token)
 {
-    pchtml_dom_node_t *node;
+    pcedom_node_t *node;
 
     pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_UNTO);
 
@@ -241,7 +241,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_select_ikt(pchtml_html_tree_t *tree,
                                            pchtml_html_token_t *token)
 {
-    pchtml_dom_node_t *node;
+    pcedom_node_t *node;
 
     pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_UNTO);
 

@@ -23,8 +23,8 @@
  */
 
 
-#ifndef PCHTML_DOM_EXCEPTION_H
-#define PCHTML_DOM_EXCEPTION_H
+#ifndef PCEDOM_EXCEPTION_H
+#define PCEDOM_EXCEPTION_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,41 +35,41 @@ extern "C" {
 
 
 typedef enum {
-    PCHTML_DOM_INDEX_SIZE_ERR = 0x00,
-    PCHTML_DOM_DOMSTRING_SIZE_ERR,
-    PCHTML_DOM_HIERARCHY_REQUEST_ERR,
-    PCHTML_DOM_WRONG_DOCUMENT_ERR,
-    PCHTML_DOM_INVALID_CHARACTER_ERR,
-    PCHTML_DOM_NO_DATA_ALLOWED_ERR,
-    PCHTML_DOM_NO_MODIFICATION_ALLOWED_ERR,
-    PCHTML_DOM_NOT_FOUND_ERR,
-    PCHTML_DOM_NOT_SUPPORTED_ERR,
-    PCHTML_DOM_INUSE_ATTRIBUTE_ERR,
-    PCHTML_DOM_INVALID_STATE_ERR,
-    PCHTML_DOM_SYNTAX_ERR,
-    PCHTML_DOM_INVALID_MODIFICATION_ERR,
-    PCHTML_DOM_NAMESPACE_ERR,
-    PCHTML_DOM_INVALID_ACCESS_ERR,
-    PCHTML_DOM_VALIDATION_ERR,
-    PCHTML_DOM_TYPE_MISMATCH_ERR,
-    PCHTML_DOM_SECURITY_ERR,
-    PCHTML_DOM_NETWORK_ERR,
-    PCHTML_DOM_ABORT_ERR,
-    PCHTML_DOM_URL_MISMATCH_ERR,
-    PCHTML_DOM_QUOTA_EXCEEDED_ERR,
-    PCHTML_DOM_TIMEOUT_ERR,
-    PCHTML_DOM_INVALID_NODE_TYPE_ERR,
-    PCHTML_DOM_DATA_CLONE_ERR
+    PCEDOM_INDEX_SIZE_ERR = 0x00,
+    PCEDOM_DOMSTRING_SIZE_ERR,
+    PCEDOM_HIERARCHY_REQUEST_ERR,
+    PCEDOM_WRONG_DOCUMENT_ERR,
+    PCEDOM_INVALID_CHARACTER_ERR,
+    PCEDOM_NO_DATA_ALLOWED_ERR,
+    PCEDOM_NO_MODIFICATION_ALLOWED_ERR,
+    PCEDOM_NOT_FOUND_ERR,
+    PCEDOM_NOT_SUPPORTED_ERR,
+    PCEDOM_INUSE_ATTRIBUTE_ERR,
+    PCEDOM_INVALID_STATE_ERR,
+    PCEDOM_SYNTAX_ERR,
+    PCEDOM_INVALID_MODIFICATION_ERR,
+    PCEDOM_NAMESPACE_ERR,
+    PCEDOM_INVALID_ACCESS_ERR,
+    PCEDOM_VALIDATION_ERR,
+    PCEDOM_TYPE_MISMATCH_ERR,
+    PCEDOM_SECURITY_ERR,
+    PCEDOM_NETWORK_ERR,
+    PCEDOM_ABORT_ERR,
+    PCEDOM_URL_MISMATCH_ERR,
+    PCEDOM_QUOTA_EXCEEDED_ERR,
+    PCEDOM_TIMEOUT_ERR,
+    PCEDOM_INVALID_NODE_TYPE_ERR,
+    PCEDOM_DATA_CLONE_ERR
 }
-pchtml_dom_exception_code_t;
+pcedom_exception_code_t;
 
 
 /*
  * Inline functions
  */
 static inline void *
-pchtml_dom_exception_code_ref_set(pchtml_dom_exception_code_t *var,
-                               pchtml_dom_exception_code_t code)
+pcedom_exception_code_ref_set(pcedom_exception_code_t *var,
+                               pcedom_exception_code_t code)
 {
     if (var != NULL) {
         *var = code;
@@ -82,12 +82,12 @@ pchtml_dom_exception_code_ref_set(pchtml_dom_exception_code_t *var,
  * No inline functions for ABI.
  */
 void *
-pchtml_dom_exception_code_ref_set_noi(pchtml_dom_exception_code_t *var,
-                                   pchtml_dom_exception_code_t code);
+pcedom_exception_code_ref_set_noi(pcedom_exception_code_t *var,
+                                   pcedom_exception_code_t code);
 
 
 #ifdef __cplusplus
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_DOM_EXCEPTION_H */
+#endif  /* PCEDOM_EXCEPTION_H */

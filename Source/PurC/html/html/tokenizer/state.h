@@ -79,8 +79,8 @@ extern "C" {
 
 #define pchtml_html_tokenizer_state_set_name_m(tkz)                               \
     do {                                                                       \
-        pchtml_dom_attr_data_t *data;                                             \
-        data = pchtml_dom_attr_local_name_append(tkz->attrs, tkz->start,          \
+        pcedom_attr_data_t *data;                                             \
+        data = pcedom_attr_local_name_append(tkz->attrs, tkz->start,          \
                                               tkz->pos - tkz->start);          \
         if (data == NULL) {                                                    \
             tkz->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;                  \

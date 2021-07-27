@@ -34,48 +34,48 @@
 #include "private/edom/processing_instruction.h"
 
 
-pchtml_dom_document_t *
-pchtml_dom_document_interface_create(pchtml_dom_document_t *document)
+pcedom_document_t *
+pcedom_document_interface_create(pcedom_document_t *document)
 {
-    pchtml_dom_document_t *doc;
+    pcedom_document_t *doc;
 
-    doc = pchtml_mraw_calloc(document->mraw, sizeof(pchtml_dom_document_t));
+    doc = pchtml_mraw_calloc(document->mraw, sizeof(pcedom_document_t));
     if (doc == NULL) {
         return NULL;
     }
 
-    (void) pchtml_dom_document_init(doc, document, pchtml_dom_interface_create,
-                    pchtml_dom_interface_destroy, PCHTML_DOM_DOCUMENT_DTYPE_UNDEF, 0);
+    (void) pcedom_document_init(doc, document, pcedom_interface_create,
+                    pcedom_interface_destroy, PCEDOM_DOCUMENT_DTYPE_UNDEF, 0);
 
     return doc;
 }
 
-pchtml_dom_document_t *
-pchtml_dom_document_interface_destroy(pchtml_dom_document_t *document)
+pcedom_document_t *
+pcedom_document_interface_destroy(pcedom_document_t *document)
 {
     return pchtml_mraw_free(
-        pchtml_dom_interface_node(document)->owner_document->mraw,
+        pcedom_interface_node(document)->owner_document->mraw,
         document);
 }
 
-pchtml_dom_document_t *
-pchtml_dom_document_create(pchtml_dom_document_t *owner)
+pcedom_document_t *
+pcedom_document_create(pcedom_document_t *owner)
 {
     if (owner != NULL) {
-        return pchtml_mraw_calloc(owner->mraw, sizeof(pchtml_dom_document_t));
+        return pchtml_mraw_calloc(owner->mraw, sizeof(pcedom_document_t));
     }
 
-    return pchtml_calloc(1, sizeof(pchtml_dom_document_t));
+    return pchtml_calloc(1, sizeof(pcedom_document_t));
 }
 
 unsigned int
-pchtml_dom_document_init(pchtml_dom_document_t *document, pchtml_dom_document_t *owner,
-                      pchtml_dom_interface_create_f create_interface,
-                      pchtml_dom_interface_destroy_f destroy_interface,
-                      pchtml_dom_document_dtype_t type, unsigned int ns)
+pcedom_document_init(pcedom_document_t *document, pcedom_document_t *owner,
+                      pcedom_interface_create_f create_interface,
+                      pcedom_interface_destroy_f destroy_interface,
+                      pcedom_document_dtype_t type, unsigned int ns)
 {
     unsigned int status;
-    pchtml_dom_node_t *node;
+    pcedom_node_t *node;
 
     if (document == NULL) {
         return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
@@ -85,9 +85,9 @@ pchtml_dom_document_init(pchtml_dom_document_t *document, pchtml_dom_document_t 
     document->create_interface = create_interface;
     document->destroy_interface = destroy_interface;
 
-    node = pchtml_dom_interface_node(document);
+    node = pcedom_interface_node(document);
 
-    node->type = PCHTML_DOM_NODE_TYPE_DOCUMENT;
+    node->type = PCEDOM_NODE_TYPE_DOCUMENT;
     node->local_name = PCHTML_TAG__DOCUMENT;
     node->ns = ns;
 
@@ -141,14 +141,14 @@ pchtml_dom_document_init(pchtml_dom_document_t *document, pchtml_dom_document_t 
 
     document->prefix = pchtml_hash_create();
     status = pchtml_hash_init(document->prefix, 128,
-                              sizeof(pchtml_dom_attr_data_t));
+                              sizeof(pcedom_attr_data_t));
     if (status != PCHTML_STATUS_OK) {
         goto failed;
     }
 
     document->attrs = pchtml_hash_create();
     status = pchtml_hash_init(document->attrs, 128,
-                              sizeof(pchtml_dom_attr_data_t));
+                              sizeof(pcedom_attr_data_t));
     if (status != PCHTML_STATUS_OK) {
         goto failed;
     }
@@ -170,9 +170,9 @@ failed:
 }
 
 unsigned int
-pchtml_dom_document_clean(pchtml_dom_document_t *document)
+pcedom_document_clean(pcedom_document_t *document)
 {
-    if (pchtml_dom_interface_node(document)->owner_document == document) {
+    if (pcedom_interface_node(document)->owner_document == document) {
         pchtml_mraw_clean(document->mraw);
         pchtml_mraw_clean(document->text);
         pchtml_hash_clean(document->tags);
@@ -189,17 +189,17 @@ pchtml_dom_document_clean(pchtml_dom_document_t *document)
     return PCHTML_STATUS_OK;
 }
 
-pchtml_dom_document_t *
-pchtml_dom_document_destroy(pchtml_dom_document_t *document)
+pcedom_document_t *
+pcedom_document_destroy(pcedom_document_t *document)
 {
     if (document == NULL) {
         return NULL;
     }
 
-    if (pchtml_dom_interface_node(document)->owner_document != document) {
-        pchtml_dom_document_t *owner;
+    if (pcedom_interface_node(document)->owner_document != document) {
+        pcedom_document_t *owner;
 
-        owner = pchtml_dom_interface_node(document)->owner_document;
+        owner = pcedom_interface_node(document)->owner_document;
 
         return pchtml_mraw_free(owner->mraw, document);
     }
@@ -215,21 +215,21 @@ pchtml_dom_document_destroy(pchtml_dom_document_t *document)
 }
 
 void
-pchtml_dom_document_attach_doctype(pchtml_dom_document_t *document,
-                                pchtml_dom_document_type_t *doctype)
+pcedom_document_attach_doctype(pcedom_document_t *document,
+                                pcedom_document_type_t *doctype)
 {
     document->doctype = doctype;
 }
 
 void
-pchtml_dom_document_attach_element(pchtml_dom_document_t *document,
-                                pchtml_dom_element_t *element)
+pcedom_document_attach_element(pcedom_document_t *document,
+                                pcedom_element_t *element)
 {
     document->element = element;
 }
 
-pchtml_dom_element_t *
-pchtml_dom_document_create_element(pchtml_dom_document_t *document,
+pcedom_element_t *
+pcedom_document_create_element(pcedom_document_t *document,
                                 const unsigned char *local_name, size_t lname_len,
                                 void *reserved_for_opt)
 {
@@ -239,7 +239,7 @@ pchtml_dom_document_create_element(pchtml_dom_document_t *document,
     const unsigned char *ns_link;
     size_t ns_len;
 
-    if (document->type == PCHTML_DOM_DOCUMENT_DTYPE_HTML) {
+    if (document->type == PCEDOM_DOCUMENT_DTYPE_HTML) {
         ns_link = (const unsigned char *) "http://www.w3.org/1999/xhtml";
 
         /* FIXME: he will get len at the compilation stage?!? */
@@ -250,29 +250,29 @@ pchtml_dom_document_create_element(pchtml_dom_document_t *document,
         ns_len = 0;
     }
 
-    return pchtml_dom_element_create(document, local_name, lname_len,
+    return pcedom_element_create(document, local_name, lname_len,
                                   ns_link, ns_len, NULL, 0, NULL, 0, true);
 }
 
-pchtml_dom_element_t *
-pchtml_dom_document_destroy_element(pchtml_dom_element_t *element)
+pcedom_element_t *
+pcedom_document_destroy_element(pcedom_element_t *element)
 {
-    return pchtml_dom_element_destroy(element);
+    return pcedom_element_destroy(element);
 }
 
-pchtml_dom_document_fragment_t *
-pchtml_dom_document_create_document_fragment(pchtml_dom_document_t *document)
+pcedom_document_fragment_t *
+pcedom_document_create_document_fragment(pcedom_document_t *document)
 {
-    return pchtml_dom_document_fragment_interface_create(document);
+    return pcedom_document_fragment_interface_create(document);
 }
 
-pchtml_dom_text_t *
-pchtml_dom_document_create_text_node(pchtml_dom_document_t *document,
+pcedom_text_t *
+pcedom_document_create_text_node(pcedom_document_t *document,
                                   const unsigned char *data, size_t len)
 {
-    pchtml_dom_text_t *text;
+    pcedom_text_t *text;
 
-    text = pchtml_dom_document_create_interface(document,
+    text = pcedom_document_create_interface(document,
                                              PCHTML_TAG__TEXT, PCHTML_NS_HTML);
     if (text == NULL) {
         return NULL;
@@ -280,7 +280,7 @@ pchtml_dom_document_create_text_node(pchtml_dom_document_t *document,
 
     pchtml_str_init(&text->char_data.data, document->text, len);
     if (text->char_data.data.data == NULL) {
-        return pchtml_dom_document_destroy_interface(text);
+        return pcedom_document_destroy_interface(text);
     }
 
     pchtml_str_append(&text->char_data.data, document->text, data, len);
@@ -288,11 +288,11 @@ pchtml_dom_document_create_text_node(pchtml_dom_document_t *document,
     return text;
 }
 
-pchtml_dom_cdata_section_t *
-pchtml_dom_document_create_cdata_section(pchtml_dom_document_t *document,
+pcedom_cdata_section_t *
+pcedom_document_create_cdata_section(pcedom_document_t *document,
                                       const unsigned char *data, size_t len)
 {
-    if (document->type != PCHTML_DOM_DOCUMENT_DTYPE_HTML) {
+    if (document->type != PCEDOM_DOCUMENT_DTYPE_HTML) {
         return NULL;
     }
 
@@ -312,16 +312,16 @@ pchtml_dom_document_create_cdata_section(pchtml_dom_document_t *document,
         ch = memchr(ch, ']', sizeof(unsigned char) * (end - ch));
     }
 
-    pchtml_dom_cdata_section_t *cdata;
+    pcedom_cdata_section_t *cdata;
 
-    cdata = pchtml_dom_cdata_section_interface_create(document);
+    cdata = pcedom_cdata_section_interface_create(document);
     if (cdata == NULL) {
         return NULL;
     }
 
     pchtml_str_init(&cdata->text.char_data.data, document->text, len);
     if (cdata->text.char_data.data.data == NULL) {
-        return pchtml_dom_cdata_section_interface_destroy(cdata);
+        return pcedom_cdata_section_interface_destroy(cdata);
     }
 
     pchtml_str_append(&cdata->text.char_data.data, document->text, data, len);
@@ -329,8 +329,8 @@ pchtml_dom_document_create_cdata_section(pchtml_dom_document_t *document,
     return cdata;
 }
 
-pchtml_dom_processing_instruction_t *
-pchtml_dom_document_create_processing_instruction(pchtml_dom_document_t *document,
+pcedom_processing_instruction_t *
+pcedom_document_create_processing_instruction(pcedom_document_t *document,
                                                const unsigned char *target, size_t target_len,
                                                const unsigned char *data, size_t data_len)
 {
@@ -355,23 +355,23 @@ pchtml_dom_document_create_processing_instruction(pchtml_dom_document_t *documen
         ch = memchr(ch, '?', sizeof(unsigned char) * (end - ch));
     }
 
-    pchtml_dom_processing_instruction_t *pi;
+    pcedom_processing_instruction_t *pi;
 
-    pi = pchtml_dom_processing_instruction_interface_create(document);
+    pi = pcedom_processing_instruction_interface_create(document);
     if (pi == NULL) {
         return NULL;
     }
 
     pchtml_str_init(&pi->char_data.data, document->text, data_len);
     if (pi->char_data.data.data == NULL) {
-        return pchtml_dom_processing_instruction_interface_destroy(pi);
+        return pcedom_processing_instruction_interface_destroy(pi);
     }
 
     pchtml_str_init(&pi->target, document->text, target_len);
     if (pi->target.data == NULL) {
         pchtml_str_destroy(&pi->char_data.data, document->text, false);
 
-        return pchtml_dom_processing_instruction_interface_destroy(pi);
+        return pcedom_processing_instruction_interface_destroy(pi);
     }
 
     pchtml_str_append(&pi->char_data.data, document->text, data, data_len);
@@ -381,13 +381,13 @@ pchtml_dom_document_create_processing_instruction(pchtml_dom_document_t *documen
 }
 
 
-pchtml_dom_comment_t *
-pchtml_dom_document_create_comment(pchtml_dom_document_t *document,
+pcedom_comment_t *
+pcedom_document_create_comment(pcedom_document_t *document,
                                 const unsigned char *data, size_t len)
 {
-    pchtml_dom_comment_t *comment;
+    pcedom_comment_t *comment;
 
-    comment = pchtml_dom_document_create_interface(document, PCHTML_TAG__EM_COMMENT,
+    comment = pcedom_document_create_interface(document, PCHTML_TAG__EM_COMMENT,
                                                 PCHTML_NS_HTML);
     if (comment == NULL) {
         return NULL;
@@ -395,7 +395,7 @@ pchtml_dom_document_create_comment(pchtml_dom_document_t *document,
 
     pchtml_str_init(&comment->char_data.data, document->text, len);
     if (comment->char_data.data.data == NULL) {
-        return pchtml_dom_document_destroy_interface(comment);
+        return pcedom_document_destroy_interface(comment);
     }
 
     pchtml_str_append(&comment->char_data.data, document->text, data, len);
@@ -406,48 +406,48 @@ pchtml_dom_document_create_comment(pchtml_dom_document_t *document,
 /*
  * No inline functions for ABI.
  */
-pchtml_dom_interface_t *
-pchtml_dom_document_create_interface_noi(pchtml_dom_document_t *document,
+pcedom_interface_t *
+pcedom_document_create_interface_noi(pcedom_document_t *document,
                                       pchtml_tag_id_t tag_id, pchtml_ns_id_t ns)
 {
-    return pchtml_dom_document_create_interface(document, tag_id, ns);
+    return pcedom_document_create_interface(document, tag_id, ns);
 }
 
-pchtml_dom_interface_t *
-pchtml_dom_document_destroy_interface_noi(pchtml_dom_interface_t *intrfc)
+pcedom_interface_t *
+pcedom_document_destroy_interface_noi(pcedom_interface_t *intrfc)
 {
-    return pchtml_dom_document_destroy_interface(intrfc);
+    return pcedom_document_destroy_interface(intrfc);
 }
 
 void *
-pchtml_dom_document_create_struct_noi(pchtml_dom_document_t *document,
+pcedom_document_create_struct_noi(pcedom_document_t *document,
                                    size_t struct_size)
 {
-    return pchtml_dom_document_create_struct(document, struct_size);
+    return pcedom_document_create_struct(document, struct_size);
 }
 
 void *
-pchtml_dom_document_destroy_struct_noi(pchtml_dom_document_t *document,
+pcedom_document_destroy_struct_noi(pcedom_document_t *document,
                                     void *structure)
 {
-    return pchtml_dom_document_destroy_struct(document, structure);
+    return pcedom_document_destroy_struct(document, structure);
 }
 
 unsigned char *
-pchtml_dom_document_create_text_noi(pchtml_dom_document_t *document, size_t len)
+pcedom_document_create_text_noi(pcedom_document_t *document, size_t len)
 {
-    return pchtml_dom_document_create_text(document, len);
+    return pcedom_document_create_text(document, len);
 }
 
 void *
-pchtml_dom_document_destroy_text_noi(pchtml_dom_document_t *document,
+pcedom_document_destroy_text_noi(pcedom_document_t *document,
                                   unsigned char *text)
 {
-    return pchtml_dom_document_destroy_text(document, text);
+    return pcedom_document_destroy_text(document, text);
 }
 
-pchtml_dom_element_t *
-pchtml_dom_document_element_noi(pchtml_dom_document_t *document)
+pcedom_element_t *
+pcedom_document_element_noi(pcedom_document_t *document)
 {
-    return pchtml_dom_document_element(document);
+    return pcedom_document_element(document);
 }

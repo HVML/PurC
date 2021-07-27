@@ -23,8 +23,8 @@
  */
 
 
-#ifndef PCHTML_DOM_DOCUMENT_FRAGMENT_H
-#define PCHTML_DOM_DOCUMENT_FRAGMENT_H
+#ifndef PCEDOM_DOCUMENT_FRAGMENT_H
+#define PCEDOM_DOCUMENT_FRAGMENT_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,24 +35,24 @@ extern "C" {
 #include "private/edom/node.h"
 
 
-struct pchtml_dom_document_fragment {
-    pchtml_dom_node_t    node;
+struct pcedom_document_fragment {
+    pcedom_node_t    node;
 
-    pchtml_dom_element_t *host;
+    pcedom_element_t *host;
 };
 
 
-pchtml_dom_document_fragment_t *
-pchtml_dom_document_fragment_interface_create(
-            pchtml_dom_document_t *document) WTF_INTERNAL;
+pcedom_document_fragment_t *
+pcedom_document_fragment_interface_create(
+            pcedom_document_t *document) WTF_INTERNAL;
 
-pchtml_dom_document_fragment_t *
-pchtml_dom_document_fragment_interface_destroy(
-            pchtml_dom_document_fragment_t *document_fragment) WTF_INTERNAL;
+pcedom_document_fragment_t *
+pcedom_document_fragment_interface_destroy(
+            pcedom_document_fragment_t *document_fragment) WTF_INTERNAL;
 
 
 #ifdef __cplusplus
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_DOM_DOCUMENT_FRAGMENT_H */
+#endif  /* PCEDOM_DOCUMENT_FRAGMENT_H */

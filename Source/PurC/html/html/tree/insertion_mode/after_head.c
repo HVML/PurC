@@ -59,7 +59,7 @@ pchtml_html_tree_insertion_mode_after_head_open(pchtml_html_tree_t *tree,
 {
     switch (token->tag_id) {
         case PCHTML_TAG__EM_COMMENT: {
-            pchtml_dom_comment_t *comment;
+            pcedom_comment_t *comment;
 
             comment = pchtml_html_tree_insert_comment(tree, token, NULL);
             if (comment == NULL) {
@@ -121,9 +121,9 @@ pchtml_html_tree_insertion_mode_after_head_open(pchtml_html_tree_t *tree,
         case PCHTML_TAG_STYLE:
         case PCHTML_TAG_TEMPLATE:
         case PCHTML_TAG_TITLE: {
-            pchtml_dom_node_t *head_node;
+            pcedom_node_t *head_node;
 
-            head_node = pchtml_dom_interface_node(tree->document->head);
+            head_node = pcedom_interface_node(tree->document->head);
             if (head_node == NULL) {
                 tree->status = PCHTML_STATUS_ERROR;
 

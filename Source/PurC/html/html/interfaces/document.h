@@ -56,7 +56,7 @@ enum pchtml_html_document_opt {
 };
 
 struct pchtml_html_document {
-    pchtml_dom_document_t              dom_document;
+    pcedom_document_t              dom_document;
 
     void                            *iframe_srcdoc;
 
@@ -103,21 +103,21 @@ unsigned int
 pchtml_html_document_parse_chunk_end(
                 pchtml_html_document_t *document) WTF_INTERNAL;
 
-pchtml_dom_node_t *
+pcedom_node_t *
 pchtml_html_document_parse_fragment(pchtml_html_document_t *document,
-                pchtml_dom_element_t *element,
+                pcedom_element_t *element,
                 const unsigned char *html, size_t size) WTF_INTERNAL;
 
 unsigned int
 pchtml_html_document_parse_fragment_chunk_begin(
                 pchtml_html_document_t *document,
-                pchtml_dom_element_t *element) WTF_INTERNAL;
+                pcedom_element_t *element) WTF_INTERNAL;
 
 unsigned int
 pchtml_html_document_parse_fragment_chunk(pchtml_html_document_t *document,
                 const unsigned char *html, size_t size) WTF_INTERNAL;
 
-pchtml_dom_node_t *
+pcedom_node_t *
 pchtml_html_document_parse_fragment_chunk_end(
                 pchtml_html_document_t *document) WTF_INTERNAL;
 
@@ -149,35 +149,35 @@ pchtml_html_document_body_element(pchtml_html_document_t *document)
     return document->body;
 }
 
-static inline pchtml_dom_document_t *
+static inline pcedom_document_t *
 pchtml_html_document_original_ref(pchtml_html_document_t *document)
 {
-    if (pchtml_dom_interface_node(document)->owner_document
+    if (pcedom_interface_node(document)->owner_document
         != &document->dom_document)
     {
-        return pchtml_dom_interface_node(document)->owner_document;
+        return pcedom_interface_node(document)->owner_document;
     }
 
-    return pchtml_dom_interface_document(document);
+    return pcedom_interface_document(document);
 }
 
 static inline bool
 pchtml_html_document_is_original(pchtml_html_document_t *document)
 {
-    return pchtml_dom_interface_node(document)->owner_document
+    return pcedom_interface_node(document)->owner_document
         == &document->dom_document;
 }
 
 static inline pchtml_mraw_t *
 pchtml_html_document_mraw(pchtml_html_document_t *document)
 {
-    return (pchtml_mraw_t *) pchtml_dom_interface_document(document)->mraw;
+    return (pchtml_mraw_t *) pcedom_interface_document(document)->mraw;
 }
 
 static inline pchtml_mraw_t *
 pchtml_html_document_mraw_text(pchtml_html_document_t *document)
 {
-    return (pchtml_mraw_t *) pchtml_dom_interface_document(document)->text;
+    return (pchtml_mraw_t *) pcedom_interface_document(document)->text;
 }
 
 static inline void
@@ -203,14 +203,14 @@ static inline void *
 pchtml_html_document_create_struct(pchtml_html_document_t *document,
                                 size_t struct_size)
 {
-    return pchtml_mraw_calloc(pchtml_dom_interface_document(document)->mraw,
+    return pchtml_mraw_calloc(pcedom_interface_document(document)->mraw,
                               struct_size);
 }
 
 static inline void *
 pchtml_html_document_destroy_struct(pchtml_html_document_t *document, void *data)
 {
-    return pchtml_mraw_free(pchtml_dom_interface_document(document)->mraw, data);
+    return pchtml_mraw_free(pcedom_interface_document(document)->mraw, data);
 }
 
 static inline pchtml_html_element_t *
@@ -218,15 +218,15 @@ pchtml_html_document_create_element(pchtml_html_document_t *document,
                                  const unsigned char *local_name, size_t lname_len,
                                  void *reserved_for_opt)
 {
-    return (pchtml_html_element_t *) pchtml_dom_document_create_element(&document->dom_document,
+    return (pchtml_html_element_t *) pcedom_document_create_element(&document->dom_document,
                                                                   local_name, lname_len,
                                                                   reserved_for_opt);
 }
 
-static inline pchtml_dom_element_t *
-pchtml_html_document_destroy_element(pchtml_dom_element_t *element)
+static inline pcedom_element_t *
+pchtml_html_document_destroy_element(pcedom_element_t *element)
 {
-    return pchtml_dom_document_destroy_element(element);
+    return pcedom_document_destroy_element(element);
 }
 
 /*
@@ -238,7 +238,7 @@ pchtml_html_document_head_element_noi(pchtml_html_document_t *document);
 pchtml_html_body_element_t *
 pchtml_html_document_body_element_noi(pchtml_html_document_t *document);
 
-pchtml_dom_document_t *
+pcedom_document_t *
 pchtml_html_document_original_ref_noi(pchtml_html_document_t *document);
 
 bool
@@ -269,8 +269,8 @@ pchtml_html_document_create_element_noi(pchtml_html_document_t *document,
                                      const unsigned char *local_name,
                                      size_t lname_len, void *reserved_for_opt);
 
-pchtml_dom_element_t *
-pchtml_html_document_destroy_element_noi(pchtml_dom_element_t *element);
+pcedom_element_t *
+pchtml_html_document_destroy_element_noi(pcedom_element_t *element);
 
 
 #ifdef __cplusplus

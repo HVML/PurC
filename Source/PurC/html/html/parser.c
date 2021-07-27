@@ -163,7 +163,7 @@ failed:
     return NULL;
 }
 
-pchtml_dom_node_t *
+pcedom_node_t *
 pchtml_html_parse_fragment(pchtml_html_parser_t *parser, pchtml_html_element_t *element,
                         const unsigned char *html, size_t size)
 {
@@ -174,7 +174,7 @@ pchtml_html_parse_fragment(pchtml_html_parser_t *parser, pchtml_html_element_t *
                                              html, size);
 }
 
-pchtml_dom_node_t *
+pcedom_node_t *
 pchtml_html_parse_fragment_by_tag_id(pchtml_html_parser_t *parser,
                                   pchtml_html_document_t *document,
                                   pchtml_tag_id_t tag_id, pchtml_ns_id_t ns,
@@ -198,7 +198,7 @@ pchtml_html_parse_fragment_chunk_begin(pchtml_html_parser_t *parser,
                                     pchtml_html_document_t *document,
                                     pchtml_tag_id_t tag_id, pchtml_ns_id_t ns)
 {
-    pchtml_dom_document_t *doc;
+    pcedom_document_t *doc;
     pchtml_html_document_t *new_doc;
 
     if (parser->state != PCHTML_HTML_PARSER_STATE_BEGIN) {
@@ -213,11 +213,11 @@ pchtml_html_parse_fragment_chunk_begin(pchtml_html_parser_t *parser,
         return parser->status;
     }
 
-    doc = pchtml_dom_interface_document(new_doc);
+    doc = pcedom_interface_document(new_doc);
 
     if (document == NULL) {
         doc->scripting = parser->tree->scripting;
-        doc->compat_mode = PCHTML_DOM_DOCUMENT_CMODE_NO_QUIRKS;
+        doc->compat_mode = PCEDOM_DOCUMENT_CMODE_NO_QUIRKS;
     }
 
     pchtml_html_tokenizer_set_state_by_tag(parser->tkz, doc->scripting, tag_id, ns);
@@ -229,8 +229,8 @@ pchtml_html_parse_fragment_chunk_begin(pchtml_html_parser_t *parser,
         goto done;
     }
 
-    pchtml_dom_node_insert_child(pchtml_dom_interface_node(new_doc), parser->root);
-    pchtml_dom_document_attach_element(doc, pchtml_dom_interface_element(parser->root));
+    pcedom_node_insert_child(pcedom_interface_node(new_doc), parser->root);
+    pcedom_document_attach_element(doc, pcedom_interface_element(parser->root));
 
     parser->tree->fragment = pchtml_html_interface_create(new_doc, tag_id, ns);
     if (parser->tree->fragment == NULL) {
@@ -314,7 +314,7 @@ pchtml_html_parse_fragment_chunk_process(pchtml_html_parser_t *parser,
     return parser->status;
 }
 
-pchtml_dom_node_t *
+pcedom_node_t *
 pchtml_html_parse_fragment_chunk_end(pchtml_html_parser_t *parser)
 {
     if (parser->state != PCHTML_HTML_PARSER_STATE_FRAGMENT_PROCESS) {
@@ -342,7 +342,7 @@ pchtml_html_parse_fragment_chunk_end(pchtml_html_parser_t *parser)
 static void
 pchtml_html_parse_fragment_chunk_destroy(pchtml_html_parser_t *parser)
 {
-    pchtml_dom_document_t *doc;
+    pcedom_document_t *doc;
 
     if (parser->form != NULL) {
         pchtml_html_form_element_interface_destroy(pchtml_html_interface_form(parser->form));
@@ -358,7 +358,7 @@ pchtml_html_parse_fragment_chunk_destroy(pchtml_html_parser_t *parser)
 
     if (pchtml_html_document_is_original(parser->tree->document) == false) {
         if (parser->root != NULL) {
-            doc = pchtml_dom_interface_node(parser->tree->document)->owner_document;
+            doc = pcedom_interface_node(parser->tree->document)->owner_document;
             parser->root->parent = &doc->node;
         }
 

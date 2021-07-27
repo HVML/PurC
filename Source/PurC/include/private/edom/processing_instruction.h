@@ -23,8 +23,8 @@
  */
 
 
-#ifndef PCHTML_DOM_PROCESSING_INSTRUCTION_H
-#define PCHTML_DOM_PROCESSING_INSTRUCTION_H
+#ifndef PCEDOM_PROCESSING_INSTRUCTION_H
+#define PCEDOM_PROCESSING_INSTRUCTION_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,27 +35,27 @@ extern "C" {
 #include "private/edom/text.h"
 
 
-struct pchtml_dom_processing_instruction {
-    pchtml_dom_character_data_t char_data;
+struct pcedom_processing_instruction {
+    pcedom_character_data_t char_data;
 
     pchtml_str_t             target;
 };
 
 
-pchtml_dom_processing_instruction_t *
-pchtml_dom_processing_instruction_interface_create(
-        pchtml_dom_document_t *document) WTF_INTERNAL;
+pcedom_processing_instruction_t *
+pcedom_processing_instruction_interface_create(
+        pcedom_document_t *document) WTF_INTERNAL;
 
-pchtml_dom_processing_instruction_t *
-pchtml_dom_processing_instruction_interface_destroy(
-        pchtml_dom_processing_instruction_t *processing_instruction) WTF_INTERNAL;
+pcedom_processing_instruction_t *
+pcedom_processing_instruction_interface_destroy(
+        pcedom_processing_instruction_t *processing_instruction) WTF_INTERNAL;
 
 
 /*
  * Inline functions
  */
 static inline const unsigned char *
-pchtml_dom_processing_instruction_target(pchtml_dom_processing_instruction_t *pi,
+pcedom_processing_instruction_target(pcedom_processing_instruction_t *pi,
                                       size_t *len)
 {
     if (len != NULL) {
@@ -69,7 +69,7 @@ pchtml_dom_processing_instruction_target(pchtml_dom_processing_instruction_t *pi
  * No inline functions for ABI.
  */
 const unsigned char *
-pchtml_dom_processing_instruction_target_noi(pchtml_dom_processing_instruction_t *pi,
+pcedom_processing_instruction_target_noi(pcedom_processing_instruction_t *pi,
                                           size_t *len);
 
 
@@ -77,4 +77,4 @@ pchtml_dom_processing_instruction_target_noi(pchtml_dom_processing_instruction_t
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_DOM_PROCESSING_INSTRUCTION_H */
+#endif  /* PCEDOM_PROCESSING_INSTRUCTION_H */

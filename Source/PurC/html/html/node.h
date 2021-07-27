@@ -39,7 +39,7 @@ extern "C" {
  * Inline functions
  */
 static inline bool
-pchtml_html_node_is_void(pchtml_dom_node_t *node)
+pchtml_html_node_is_void(pcedom_node_t *node)
 {
     if (node->ns != PCHTML_NS_HTML) {
         return false;
@@ -77,7 +77,7 @@ pchtml_html_node_is_void(pchtml_dom_node_t *node)
  * No inline functions for ABI.
  */
 bool
-pchtml_html_node_is_void_noi(pchtml_dom_node_t *node) WTF_INTERNAL;
+pchtml_html_node_is_void_noi(pcedom_node_t *node) WTF_INTERNAL;
 
 
 #ifdef __cplusplus

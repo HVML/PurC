@@ -52,8 +52,8 @@ typedef struct {
     pchtml_html_tree_t         *tree;
     pchtml_html_tree_t         *original_tree;
 
-    pchtml_dom_node_t          *root;
-    pchtml_dom_node_t          *form;
+    pcedom_node_t          *root;
+    pcedom_node_t          *form;
 
     pchtml_html_parser_state_t state;
     unsigned int            status;
@@ -87,11 +87,11 @@ pchtml_html_parse(pchtml_html_parser_t *parser, const unsigned char *html,
                 size_t size) WTF_INTERNAL;
 
 
-pchtml_dom_node_t *
+pcedom_node_t *
 pchtml_html_parse_fragment(pchtml_html_parser_t *parser, pchtml_html_element_t *element,
                         const unsigned char *html, size_t size) WTF_INTERNAL;
 
-pchtml_dom_node_t *
+pcedom_node_t *
 pchtml_html_parse_fragment_by_tag_id(pchtml_html_parser_t *parser,
                 pchtml_html_document_t *document,
                 pchtml_tag_id_t tag_id, pchtml_ns_id_t ns,
@@ -118,7 +118,7 @@ unsigned int
 pchtml_html_parse_fragment_chunk_process(pchtml_html_parser_t *parser,
                 const unsigned char *html, size_t size) WTF_INTERNAL;
 
-pchtml_dom_node_t *
+pcedom_node_t *
 pchtml_html_parse_fragment_chunk_end(pchtml_html_parser_t *parser) WTF_INTERNAL;
 
 
