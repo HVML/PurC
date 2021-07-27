@@ -1199,6 +1199,7 @@ next_input:
                 size_t buf2_len = pcejson_temp_buffer_length2(ejson);
                 if (buf2_len == 4) {
                     pcejson_temp_buffer_append(ejson, (uint8_t*)"\\u", 2);
+                    purc_rwstream_seek(ejson->rws2, 0, SEEK_SET);
                     purc_rwstream_dump_to_another(ejson->rws2, ejson->rws, 4);
                     RETURN_TO(ejson->return_state);
                 }
