@@ -159,8 +159,8 @@ struct pcejson {
     int32_t depth;
     uint32_t flags;
     struct pcejson_stack* stack;
-    purc_rwstream_t rws;
-    purc_rwstream_t rws2;
+    purc_rwstream_t tmp_buff;
+    purc_rwstream_t tmp_buff2;
 };
 
 struct pcejson_token {
