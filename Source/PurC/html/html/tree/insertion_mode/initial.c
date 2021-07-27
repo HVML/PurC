@@ -24,7 +24,7 @@
 
 
 #include "html/html/tree/insertion_mode.h"
-#include "html/dom/interfaces/document_type.h"
+#include "private/edom/document_type.h"
 
 
 typedef struct {

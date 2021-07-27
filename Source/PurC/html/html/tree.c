@@ -25,10 +25,10 @@
 
 #include "private/errors.h"
 
-#include "html/dom/interfaces/document_fragment.h"
-#include "html/dom/interfaces/document_type.h"
-#include "html/dom/interfaces/comment.h"
-#include "html/dom/interfaces/text.h"
+#include "private/edom/document_fragment.h"
+#include "private/edom/document_type.h"
+#include "private/edom/comment.h"
+#include "private/edom/text.h"
 
 #include "html/html/tree.h"
 #include "html/html/tree_res.h"

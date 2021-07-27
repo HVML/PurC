@@ -31,8 +31,8 @@
 
 #include "html/tag/tag.h"
 
-#include "html/dom/interfaces/text.h"
-#include "html/dom/interfaces/element.h"
+#include "private/edom/text.h"
+#include "private/edom/element.h"
 
 #define PCHTML_HTML_TAG_RES_DATA
 #define PCHTML_HTML_TAG_RES_SHS_DATA

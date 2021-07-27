@@ -1,8 +1,8 @@
 /**
- * @file template_element.h
+ * @file comment.h
  * @author 
  * @date 2021/07/02
- * @brief The hearder file for html template element.
+ * @brief The hearder file for comment.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -23,38 +23,34 @@
  */
 
 
-#ifndef PCHTML_HTML_TEMPLATE_ELEMENT_H
-#define PCHTML_HTML_TEMPLATE_ELEMENT_H
+#ifndef PCHTML_DOM_COMMENT_H
+#define PCHTML_DOM_COMMENT_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include "config.h"
-#include "private/edom/document_fragment.h"
-
-#include "html/html/interface.h"
-#include "html/html/interfaces/element.h"
+#include "private/edom/document.h"
+#include "private/edom/character_data.h"
 
 
-struct pchtml_html_template_element {
-    pchtml_html_element_t          element;
-
-    pchtml_dom_document_fragment_t *content;
+struct pchtml_dom_comment {
+    pchtml_dom_character_data_t char_data;
 };
 
 
-pchtml_html_template_element_t *
-pchtml_html_template_element_interface_create(
-            pchtml_html_document_t *document) WTF_INTERNAL;
+pchtml_dom_comment_t *
+pchtml_dom_comment_interface_create(
+                pchtml_dom_document_t *document) WTF_INTERNAL;
 
-pchtml_html_template_element_t *
-pchtml_html_template_element_interface_destroy(
-            pchtml_html_template_element_t *template_element) WTF_INTERNAL;
+pchtml_dom_comment_t *
+pchtml_dom_comment_interface_destroy(
+                pchtml_dom_comment_t *comment) WTF_INTERNAL;
 
 
 #ifdef __cplusplus
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_HTML_TEMPLATE_ELEMENT_H */
+#endif  /* PCHTML_DOM_COMMENT_H */

@@ -23,7 +23,7 @@
  */
 
 
-#include "html/dom/interfaces/node.h"
+#include "private/edom/node.h"
 
 #include "html/html/tree/active_formatting.h"
 #include "html/html/tree/open_elements.h"

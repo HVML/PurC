@@ -1,13 +1,13 @@
 /**
- * @file window_element.h
- * @author 
+ * @file comment.c
+ * @author
  * @date 2021/07/02
- * @brief The hearder file for html window element.
+ * @brief The complementation of comment.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -23,32 +23,33 @@
  */
 
 
-#ifndef PCHTML_HTML_WINDOW_H
-#define PCHTML_HTML_WINDOW_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include "config.h"
-#include "html/html/interface.h"
-#include "private/edom/event_target.h"
+#include "private/edom/comment.h"
+#include "private/edom/document.h"
 
 
-struct pchtml_html_window {
-    pchtml_dom_event_target_t event_target;
-};
+pchtml_dom_comment_t *
+pchtml_dom_comment_interface_create(pchtml_dom_document_t *document)
+{
+    pchtml_dom_comment_t *element;
 
+    element = pchtml_mraw_calloc(document->mraw,
+                                 sizeof(pchtml_dom_comment_t));
+    if (element == NULL) {
+        return NULL;
+    }
 
-pchtml_html_window_t *
-pchtml_html_window_create(pchtml_html_document_t *document) WTF_INTERNAL;
+    pchtml_dom_node_t *node = pchtml_dom_interface_node(element);
 
-pchtml_html_window_t *
-pchtml_html_window_destroy(pchtml_html_window_t *window) WTF_INTERNAL;
+    node->owner_document = document;
+    node->type = PCHTML_DOM_NODE_TYPE_COMMENT;
 
+    return element;
+}
 
-#ifdef __cplusplus
-}       /* __cplusplus */
-#endif
-
-#endif  /* PCHTML_HTML_WINDOW_H */
+pchtml_dom_comment_t *
+pchtml_dom_comment_interface_destroy(pchtml_dom_comment_t *comment)
+{
+    return pchtml_mraw_free(
+        pchtml_dom_interface_node(comment)->owner_document->mraw,
+        comment);
+}

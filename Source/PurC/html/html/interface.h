@@ -33,7 +33,7 @@ extern "C" {
 #include "html/html/base.h"
 #include "html/tag/const.h"
 #include "html/ns/const.h"
-#include "html/dom/interface.h"
+#include "private/edom/interface.h"
 
 
 #define pchtml_html_interface_document(obj) ((pchtml_html_document_t *) (obj))

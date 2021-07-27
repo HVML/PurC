@@ -29,7 +29,7 @@
 #include "html/html/interface.h"
 #include "html/html/interfaces/document.h"
 
-#include "html/dom/interface.h"
+#include "private/edom/interface.h"
 
 #define PCHTML_HTML_INTERFACE_RES_CONSTRUCTORS
 #define PCHTML_HTML_INTERFACE_RES_DESTRUCTOR

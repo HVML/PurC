@@ -1,13 +1,13 @@
 /**
- * @file window_element.h
- * @author 
+ * @file exception.c
+ * @author
  * @date 2021/07/02
- * @brief The hearder file for html window element.
+ * @brief The complementation of exception.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -23,32 +23,16 @@
  */
 
 
-#ifndef PCHTML_HTML_WINDOW_H
-#define PCHTML_HTML_WINDOW_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include "config.h"
-#include "html/html/interface.h"
-#include "private/edom/event_target.h"
+#include "private/edom/exception.h"
 
 
-struct pchtml_html_window {
-    pchtml_dom_event_target_t event_target;
-};
-
-
-pchtml_html_window_t *
-pchtml_html_window_create(pchtml_html_document_t *document) WTF_INTERNAL;
-
-pchtml_html_window_t *
-pchtml_html_window_destroy(pchtml_html_window_t *window) WTF_INTERNAL;
-
-
-#ifdef __cplusplus
-}       /* __cplusplus */
-#endif
-
-#endif  /* PCHTML_HTML_WINDOW_H */
+/*
+ * No inline functions for ABI.
+ */
+void *
+pchtml_dom_exception_code_ref_set_noi(pchtml_dom_exception_code_t *var,
+                                   pchtml_dom_exception_code_t code)
+{
+    return pchtml_dom_exception_code_ref_set(var, code);
+}

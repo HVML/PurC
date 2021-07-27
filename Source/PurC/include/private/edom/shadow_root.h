@@ -1,8 +1,8 @@
 /**
- * @file element.h
+ * @file shadow_root.h
  * @author 
  * @date 2021/07/02
- * @brief The hearder file for html element element.
+ * @brief The hearder file for shadow root.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -22,54 +22,45 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef PCHTML_HTML_ELEMENT_H
-#define PCHTML_HTML_ELEMENT_H
+
+#ifndef PCHTML_DOM_SHADOW_ROOT_H
+#define PCHTML_DOM_SHADOW_ROOT_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include "config.h"
-#include "html/html/interface.h"
+#include "private/edom/document.h"
 #include "private/edom/element.h"
+#include "private/edom/document_fragment.h"
 
 
-struct pchtml_html_element {
-    pchtml_dom_element_t element;
+typedef enum {
+    PCHTML_DOM_SHADOW_ROOT_MODE_OPEN   = 0x00,
+    PCHTML_DOM_SHADOW_ROOT_MODE_CLOSED = 0x01
+}
+pchtml_dom_shadow_root_mode_t;
+
+struct pchtml_dom_shadow_root {
+    pchtml_dom_document_fragment_t document_fragment;
+
+    pchtml_dom_shadow_root_mode_t  mode;
+    pchtml_dom_element_t           *host;
 };
 
 
-pchtml_html_element_t *
-pchtml_html_element_interface_create(
-                pchtml_html_document_t *document) WTF_INTERNAL;
+pchtml_dom_shadow_root_t *
+pchtml_dom_shadow_root_interface_create(
+                pchtml_dom_document_t *document) WTF_INTERNAL;
 
-pchtml_html_element_t *
-pchtml_html_element_interface_destroy(
-                pchtml_html_element_t *element) WTF_INTERNAL;
-
-
-pchtml_html_element_t *
-pchtml_html_element_inner_html_set(pchtml_html_element_t *element,
-                const unsigned char *html, size_t size) WTF_INTERNAL;
-
-/*
- * Inline functions
- */
-static inline pchtml_tag_id_t
-pchtml_html_element_tag_id(pchtml_html_element_t *element)
-{
-    return pchtml_dom_interface_node(element)->local_name;
-}
-
-static inline pchtml_ns_id_t
-pchtml_html_element_ns_id(pchtml_html_element_t *element)
-{
-    return pchtml_dom_interface_node(element)->ns;
-}
+pchtml_dom_shadow_root_t *
+pchtml_dom_shadow_root_interface_destroy(
+                pchtml_dom_shadow_root_t *shadow_root) WTF_INTERNAL;
 
 
 #ifdef __cplusplus
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_HTML_ELEMENT_H */
+#endif  /* PCHTML_DOM_SHADOW_ROOT_H */

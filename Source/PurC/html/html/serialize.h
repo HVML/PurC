@@ -32,7 +32,7 @@ extern "C" {
 
 #include "config.h"
 #include "html/core/str.h"
-#include "html/dom/interfaces/element.h"
+#include "private/edom/element.h"
 
 #include "html/html/base.h"
 

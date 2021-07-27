@@ -25,10 +25,10 @@
 
 #include "private/errors.h"
 
-#include "html/dom/interfaces/text.h"
-#include "html/dom/interfaces/comment.h"
-#include "html/dom/interfaces/processing_instruction.h"
-#include "html/dom/interfaces/document_type.h"
+#include "private/edom/text.h"
+#include "private/edom/comment.h"
+#include "private/edom/processing_instruction.h"
+#include "private/edom/document_type.h"
 
 #include "html/html/serialize.h"
 #include "html/html/tree.h"

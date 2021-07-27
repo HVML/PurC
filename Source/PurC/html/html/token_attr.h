@@ -35,7 +35,7 @@ extern "C" {
 #include "html/core/str.h"
 #include "html/core/dobject.h"
 
-#include "html/dom/interfaces/attr.h"
+#include "private/edom/attr.h"
 
 #include "html/html/base.h"
 

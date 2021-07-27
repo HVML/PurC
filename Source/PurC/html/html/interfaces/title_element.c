@@ -25,7 +25,7 @@
 
 #include "html/html/interfaces/title_element.h"
 #include "html/html/interfaces/document.h"
-#include "html/dom/interfaces/text.h"
+#include "private/edom/text.h"
 
 
 pchtml_html_title_element_t *

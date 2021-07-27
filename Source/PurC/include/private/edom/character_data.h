@@ -1,8 +1,8 @@
 /**
- * @file template_element.h
+ * @file character_data.h 
  * @author 
  * @date 2021/07/02
- * @brief The hearder file for html template element.
+ * @brief The hearder file for character data.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -23,38 +23,43 @@
  */
 
 
-#ifndef PCHTML_HTML_TEMPLATE_ELEMENT_H
-#define PCHTML_HTML_TEMPLATE_ELEMENT_H
+#ifndef PCHTML_DOM_CHARACTER_DATA_H
+#define PCHTML_DOM_CHARACTER_DATA_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include "config.h"
-#include "private/edom/document_fragment.h"
+#include "html/core/str.h"
 
-#include "html/html/interface.h"
-#include "html/html/interfaces/element.h"
+#include "private/edom/document.h"
+#include "private/edom/node.h"
 
 
-struct pchtml_html_template_element {
-    pchtml_html_element_t          element;
+struct pchtml_dom_character_data {
+    pchtml_dom_node_t node;
 
-    pchtml_dom_document_fragment_t *content;
+    pchtml_str_t   data;
 };
 
 
-pchtml_html_template_element_t *
-pchtml_html_template_element_interface_create(
-            pchtml_html_document_t *document) WTF_INTERNAL;
+pchtml_dom_character_data_t *
+pchtml_dom_character_data_interface_create(
+                pchtml_dom_document_t *document) WTF_INTERNAL;
 
-pchtml_html_template_element_t *
-pchtml_html_template_element_interface_destroy(
-            pchtml_html_template_element_t *template_element) WTF_INTERNAL;
+pchtml_dom_character_data_t *
+pchtml_dom_character_data_interface_destroy(
+                pchtml_dom_character_data_t *character_data) WTF_INTERNAL;
+
+unsigned int
+pchtml_dom_character_data_replace(pchtml_dom_character_data_t *ch_data,
+                const unsigned char *data, size_t len,
+                size_t offset, size_t count) WTF_INTERNAL;
 
 
 #ifdef __cplusplus
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_HTML_TEMPLATE_ELEMENT_H */
+#endif  /* PCHTML_DOM_CHARACTER_DATA_H */

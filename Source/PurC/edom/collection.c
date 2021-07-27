@@ -1,8 +1,8 @@
-/*
- * @file tree.c
- * @author 
+/**
+ * @file collection.c
+ * @author
  * @date 2021/07/02
- * @brief The implementation of edom tree.
+ * @brief The complementation of collection container.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -22,125 +22,99 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "private/variant.h"
-#include "private/instance.h"
-#include "private/errors.h"
-#include "private/debug.h"
-#include "private/utils.h"
-#include "private/edom.h"
 
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <float.h>
+#include "private/edom/collection.h"
+#include "private/edom/document.h"
 
-// create an empty edom element collection
-pcedom_collection_t pcedom_collection_create(size_t size)
+
+pchtml_dom_collection_t *
+pchtml_dom_collection_create(pchtml_dom_document_t *document)
 {
-    UNUSED_PARAM(size);
+    pchtml_dom_collection_t *col;
 
-    return NULL;
+    col = pchtml_mraw_calloc(document->mraw, sizeof(pchtml_dom_collection_t));
+    if (col == NULL) {
+        return NULL;
+    }
+
+    col->document = document;
+
+    return col;
 }
 
-
-// clear an empty edom element collection
-bool pcedom_collection_clean(pcedom_collection_t collection)
+unsigned int
+pchtml_dom_collection_init(pchtml_dom_collection_t *col, size_t start_list_size)
 {
-    UNUSED_PARAM(collection);
+    if (col == NULL) {
+        return PCHTML_STATUS_ERROR_WRONG_ARGS;
+    }
 
-    return true;
+    if (col->document == NULL) {
+        return PCHTML_STATUS_ERROR_INCOMPLETE_OBJECT;
+    }
+
+    return pchtml_array_init(&col->array, start_list_size);
 }
 
-
-// destroy an empty edom element collection
-bool pcedom_collection_destroy(pcedom_collection_t collection)
+pchtml_dom_collection_t *
+pchtml_dom_collection_destroy(pchtml_dom_collection_t *col, bool self_destroy)
 {
-    UNUSED_PARAM(collection);
+    if (col == NULL) {
+        return NULL;
+    }
 
-    return true;
+    if (col->array.list != NULL) {
+        pchtml_array_destroy(&col->array, false);
+
+        col->array.list = NULL;
+    }
+
+    if (self_destroy) {
+        if (col->document != NULL) {
+            return pchtml_mraw_free(col->document->mraw, col);
+        }
+
+        return NULL;
+    }
+
+    return col;
 }
 
-
-// create collection by tag
-pcedom_collection_t pcedom_get_elements_by_tag_id(pcedom_tree_t tree,
-                                pcedom_collection_t collection,
-                                pcedom_tag_id_t tag_id)
+/*
+ * No inline functions for ABI.
+ */
+pchtml_dom_collection_t *
+pchtml_dom_collection_make_noi(pchtml_dom_document_t *document, size_t start_list_size)
 {
-    UNUSED_PARAM(tree);
-    UNUSED_PARAM(collection);
-    UNUSED_PARAM(tag_id);
-
-    return NULL;
+    return pchtml_dom_collection_make(document, start_list_size);
 }
 
-// create collection by name 
-pcedom_collection_t pcedom_get_elements_by_name(pcedom_tree_t tree,
-                                pcedom_collection_t collection,
-                                const char* name, size_t length)
+void
+pchtml_dom_collection_clean_noi(pchtml_dom_collection_t *col)
 {
-    UNUSED_PARAM(tree);
-    UNUSED_PARAM(collection);
-    UNUSED_PARAM(name);
-    UNUSED_PARAM(length);
-
-    return NULL;
+    pchtml_dom_collection_clean(col);
 }
 
-
-// create collection by attribution name 
-pcedom_collection_t pcedom_get_elements_by_attribute_name(pcedom_tree_t tree,
-                                pcedom_collection_t collection,
-                                pcedom_element_t scope_node,
-                                const char* key, size_t key_len)
+unsigned int
+pchtml_dom_collection_append_noi(pchtml_dom_collection_t *col, void *value)
 {
-    UNUSED_PARAM(tree);
-    UNUSED_PARAM(collection);
-    UNUSED_PARAM(scope_node);
-    UNUSED_PARAM(key);
-    UNUSED_PARAM(key_len);
-
-    return NULL;
+    return pchtml_dom_collection_append(col, value);
 }
 
-// create collection by attribution value 
-pcedom_collection_t pcedom_get_elements_by_attribute_value(pcedom_tree_t tree,
-                                pcedom_collection_t collection,
-                                pcedom_element_t node,
-                                bool case_insensitive,
-                                const char* key, size_t key_len,
-                                const char* value,
-                                size_t value_len)
+pchtml_dom_element_t *
+pchtml_dom_collection_element_noi(pchtml_dom_collection_t *col, size_t idx)
 {
-    UNUSED_PARAM(tree);
-    UNUSED_PARAM(collection);
-    UNUSED_PARAM(node);
-    UNUSED_PARAM(case_insensitive);
-    UNUSED_PARAM(key);
-    UNUSED_PARAM(key_len);
-    UNUSED_PARAM(value);
-    UNUSED_PARAM(value_len);
-
-    return NULL;
+    return pchtml_dom_collection_element(col, idx);
 }
 
-// create collection by attribution value 
-pcedom_collection_t pcedom_get_elements_by_attribute_value_whitespace_separated(
-                                pcedom_tree_t tree,
-                                pcedom_collection_t collection,
-                                pcedom_element_t node,
-                                bool case_insensitive,
-                                const char* key, size_t key_len,
-                                const char* value,
-                                size_t value_len)
+pchtml_dom_node_t *
+pchtml_dom_collection_node_noi(pchtml_dom_collection_t *col, size_t idx)
 {
-    UNUSED_PARAM(tree);
-    UNUSED_PARAM(collection);
-    UNUSED_PARAM(node);
-    UNUSED_PARAM(case_insensitive);
-    UNUSED_PARAM(key);
-    UNUSED_PARAM(key_len);
-    UNUSED_PARAM(value);
-    UNUSED_PARAM(value_len);
+    return pchtml_dom_collection_node(col, idx);
+}
 
-    return NULL;
+size_t
+pchtml_dom_collection_length_noi(pchtml_dom_collection_t *col)
+{
+    return pchtml_dom_collection_length(col);
 }

@@ -32,7 +32,7 @@ extern "C" {
 
 #include "config.h"
 #include "html/tag/tag.h"
-#include "html/dom/interfaces/node.h"
+#include "private/edom/node.h"
 
 
 /*

@@ -31,8 +31,8 @@ extern "C" {
 #endif
 
 #include "config.h"
-#include "html/dom/interfaces/node.h"
-#include "html/dom/interfaces/attr.h"
+#include "private/edom/node.h"
+#include "private/edom/attr.h"
 
 #include "html/html/base.h"
 #include "html/html/node.h"

@@ -35,8 +35,8 @@ extern "C" {
 #include "html/tag/tag.h"
 #include "html/ns/ns.h"
 #include "html/html/interface.h"
-#include "html/dom/interfaces/attr.h"
-#include "html/dom/interfaces/document.h"
+#include "private/edom/attr.h"
+#include "private/edom/document.h"
 
 
 typedef unsigned int pchtml_html_document_opt_t;

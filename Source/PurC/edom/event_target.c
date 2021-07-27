@@ -1,13 +1,13 @@
 /**
- * @file window_element.h
- * @author 
+ * @file event_target.c
+ * @author
  * @date 2021/07/02
- * @brief The hearder file for html window element.
+ * @brief The complementation of event target.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -23,32 +23,29 @@
  */
 
 
-#ifndef PCHTML_HTML_WINDOW_H
-#define PCHTML_HTML_WINDOW_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include "config.h"
-#include "html/html/interface.h"
 #include "private/edom/event_target.h"
+#include "private/edom/document.h"
 
 
-struct pchtml_html_window {
-    pchtml_dom_event_target_t event_target;
-};
+pchtml_dom_event_target_t *
+pchtml_dom_event_target_create(pchtml_dom_document_t *document)
+{
+    pchtml_dom_event_target_t *element;
 
+    element = pchtml_mraw_calloc(document->mraw,
+                                 sizeof(pchtml_dom_event_target_t));
+    if (element == NULL) {
+        return NULL;
+    }
 
-pchtml_html_window_t *
-pchtml_html_window_create(pchtml_html_document_t *document) WTF_INTERNAL;
+    pchtml_dom_interface_node(element)->type = PCHTML_DOM_NODE_TYPE_UNDEF;
 
-pchtml_html_window_t *
-pchtml_html_window_destroy(pchtml_html_window_t *window) WTF_INTERNAL;
+    return element;
+}
 
-
-#ifdef __cplusplus
-}       /* __cplusplus */
-#endif
-
-#endif  /* PCHTML_HTML_WINDOW_H */
+pchtml_dom_event_target_t *
+pchtml_dom_event_target_destroy(pchtml_dom_event_target_t *event_target,
+                             pchtml_dom_document_t *document)
+{
+    return pchtml_mraw_free(document->mraw, event_target);
+}
