@@ -31,6 +31,7 @@
 #include "private/tls.h"
 #include "private/utils.h"
 #include "private/rwstream.h"
+#include "private/ejson.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -78,6 +79,7 @@ static void init_modules(void)
     pcutils_atom_init_once();
     pcrwstream_init_once();
     pcvariant_init_once();
+    pcejson_init_once();
 }
 
 #if USE(PTHREADS)
