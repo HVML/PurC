@@ -67,6 +67,34 @@ enum pcvariant_error
     PCVARIANT_ERROR_NOT_FOUND,
 };
 
+// TODO: error codes for edom go here
+enum pcedom_error
+{
+    PCEDOM_SUCCESS = PURC_ERROR_OK,
+    PCEDOM_ERROR = PURC_ERROR_FIRST_EDOM,
+    PCEDOM_OBJECT_IS_NULL,
+    PCEDOM_INCOMPLETE_OBJECT,
+};
+
+// TODO: error codes for html go here
+enum pchtml_error
+{
+    PCHTML_SUCCESS = PURC_ERROR_OK,
+    PCHTML_ERROR = PURC_ERROR_FIRST_HTML,
+    PCHTML_MEMORY_ALLOCATION,
+    PCHTML_OBJECT_IS_NULL,
+    PCHTML_SMALL_BUFFER,
+    PCHTML_INCOMPLETE_OBJECT,
+    PCHTML_NO_FREE_SLOT,
+    PCHTML_TOO_SMALL_SIZE,
+    PCHTML_NOT_EXISTS,
+    PCHTML_WRONG_ARGS,
+    PCHTML_WRONG_STAGE,
+    PCHTML_UNEXPECTED_RESULT,
+    PCHTML_UNEXPECTED_DATA,
+    PCHTML_OVERFLOW,
+};
+
 // TODO: error codes for rwstream go here
 enum pcrwstream_error
 {

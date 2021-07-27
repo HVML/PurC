@@ -22,7 +22,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
 #include "private/errors.h"
 
 #include "private/edom/character_data.h"
@@ -72,6 +74,7 @@ pcedom_character_data_replace(pcedom_character_data_t *ch_data,
     if (ch_data->data.data == NULL) {
         pchtml_str_init(&ch_data->data, ch_data->node.owner_document->text, len);
         if (ch_data->data.data == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
     }
@@ -81,6 +84,7 @@ pcedom_character_data_replace(pcedom_character_data_t *ch_data,
         data = pchtml_str_realloc(&ch_data->data,
                                   ch_data->node.owner_document->text, (len + 1));
         if (data == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
     }

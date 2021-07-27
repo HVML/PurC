@@ -22,6 +22,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
+#include "private/errors.h"
 
 #include "private/edom/node.h"
 #include "private/edom/attr.h"
@@ -420,6 +424,7 @@ pcedom_node_text_content_set(pcedom_node_t *node,
             text = pcedom_document_create_text_node(node->owner_document,
                                                      content, len);
             if (text == NULL) {
+                pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
                 return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
             }
 

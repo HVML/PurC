@@ -31,6 +31,7 @@
 #include "private/tls.h"
 #include "private/utils.h"
 #include "private/rwstream.h"
+#include "private/edom/edom.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -78,6 +79,7 @@ static void init_modules(void)
     pcutils_atom_init_once();
     pcrwstream_init_once();
     pcvariant_init_once();
+    pcedom_init_once();
 }
 
 #if USE(PTHREADS)
@@ -181,6 +183,7 @@ int purc_init(const char* app_name, const char* runner_name,
 
     // TODO: init other fields
     pcvariant_init_instance(curr_inst);
+    pcedom_init_instance(curr_inst);
     return PURC_ERROR_OK;
 
 failed:
@@ -199,6 +202,7 @@ bool purc_cleanup(void)
 
     // TODO: clean up other fields
     pcvariant_cleanup_instance(curr_inst);
+    pcedom_cleanup_instance(curr_inst);
 
     cleanup_instance(curr_inst);
     return true;

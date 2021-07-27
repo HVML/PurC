@@ -22,7 +22,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
 #include "private/errors.h"
 
 #include "private/edom/attr.h"
@@ -85,6 +87,7 @@ pcedom_attr_set_name(pcedom_attr_t *attr, const unsigned char *name,
 
     data = pcedom_attr_local_name_append(doc->attrs, name, length);
     if (data == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -93,6 +96,7 @@ pcedom_attr_set_name(pcedom_attr_t *attr, const unsigned char *name,
     if (to_lowercase == false) {
         data = pcedom_attr_qualified_name_append(doc->attrs, name, length);
         if (data == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
@@ -115,6 +119,7 @@ pcedom_attr_set_name_ns(pcedom_attr_t *attr, const unsigned char *link,
 
     ns_data = pchtml_ns_append(doc->ns, link, link_length);
     if (attr->node.ns == PCHTML_NS__UNDEF) {
+        pcinst_set_error (PCEDOM_ERROR);
         return PCHTML_STATUS_ERROR;
     }
 
@@ -133,6 +138,7 @@ pcedom_attr_set_name_ns(pcedom_attr_t *attr, const unsigned char *link,
     data = pcedom_attr_local_name_append(doc->attrs, &name[(length + 1)],
                                           (name_length - (length + 1)));
     if (data == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -141,6 +147,7 @@ pcedom_attr_set_name_ns(pcedom_attr_t *attr, const unsigned char *link,
     /* qualified name */
     data = pcedom_attr_qualified_name_append(doc->attrs, name, name_length);
     if (data == NULL) {
+        pcinst_set_error (PCEDOM_ERROR);
         return PCHTML_STATUS_ERROR;
     }
 
@@ -150,6 +157,7 @@ pcedom_attr_set_name_ns(pcedom_attr_t *attr, const unsigned char *link,
     attr->node.prefix = (pchtml_ns_prefix_id_t) pchtml_ns_prefix_append(doc->ns, name,
                                                                   length);
     if (attr->node.prefix == 0) {
+        pcinst_set_error (PCEDOM_ERROR);
         return PCHTML_STATUS_ERROR;
     }
 
@@ -165,6 +173,7 @@ pcedom_attr_set_value(pcedom_attr_t *attr,
     if (attr->value == NULL) {
         attr->value = pchtml_mraw_calloc(doc->mraw, sizeof(pchtml_str_t));
         if (attr->value == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
     }
@@ -172,6 +181,7 @@ pcedom_attr_set_value(pcedom_attr_t *attr,
     if (attr->value->data == NULL) {
         pchtml_str_init(attr->value, doc->text, value_len);
         if (attr->value->data == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
     }
@@ -183,6 +193,7 @@ pcedom_attr_set_value(pcedom_attr_t *attr,
 
             tmp = pchtml_str_realloc(attr->value, doc->text, (value_len + 1));
             if (tmp == NULL) {
+                pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
                 return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
             }
         }
@@ -205,6 +216,7 @@ pcedom_attr_set_value_wo_copy(pcedom_attr_t *attr,
 
         attr->value = pchtml_mraw_alloc(doc->mraw, sizeof(pchtml_str_t));
         if (attr->value == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
     }

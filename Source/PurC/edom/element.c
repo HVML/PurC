@@ -23,6 +23,9 @@
  */
 
 
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
 #include "private/errors.h"
 
 #include "private/edom/element.h"
@@ -163,6 +166,7 @@ pcedom_element_qualified_name_set(pcedom_element_t *element,
     if (prefix != NULL && prefix_len != 0) {
         key = pchtml_malloc(prefix_len + lname_len + 2);
         if (key == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
@@ -178,6 +182,7 @@ pcedom_element_qualified_name_set(pcedom_element_t *element,
     tag_data = pchtml_tag_append(element->node.owner_document->tags,
                               element->node.local_name, key, lname_len);
     if (tag_data == NULL) {
+        pcinst_set_error (PCEDOM_ERROR);
         return PCHTML_STATUS_ERROR;
     }
 
@@ -586,6 +591,7 @@ pcedom_element_is_set(pcedom_element_t *element,
         element->is_value = pchtml_mraw_calloc(element->node.owner_document->mraw,
                                                sizeof(pchtml_str_t));
         if (element->is_value == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
     }
@@ -595,6 +601,7 @@ pcedom_element_is_set(pcedom_element_t *element,
                         element->node.owner_document->text, is_len);
 
         if (element->is_value->data == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
     }
@@ -607,6 +614,7 @@ pcedom_element_is_set(pcedom_element_t *element,
                                          element->node.owner_document->text,
                                          is, is_len);
     if (data == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -631,6 +639,7 @@ pcedom_element_prepare_by_attr(pcedom_document_t *document,
         length = prefix_end - qname;
 
         if (length == 0) {
+            pcinst_set_error (PURC_ERROR_INVALID_VALUE);
             return PCHTML_STATUS_ERROR_WRONG_ARGS;
         }
 
@@ -644,6 +653,7 @@ pcedom_element_prepare_by_attr(pcedom_document_t *document,
         length += 1;
 
         if (length >= qlen) {
+            pcinst_set_error (PURC_ERROR_INVALID_VALUE);
             return PCHTML_STATUS_ERROR_WRONG_ARGS;
         }
 
@@ -679,6 +689,7 @@ pcedom_element_prepare_by(pcedom_document_t *document,
         length = prefix_end - qname;
 
         if (length == 0) {
+            pcinst_set_error (PURC_ERROR_INVALID_VALUE);
             return PCHTML_STATUS_ERROR_WRONG_ARGS;
         }
 
@@ -692,6 +703,7 @@ pcedom_element_prepare_by(pcedom_document_t *document,
         length += 1;
 
         if (length >= qlen) {
+            pcinst_set_error (PURC_ERROR_INVALID_VALUE);
             return PCHTML_STATUS_ERROR_WRONG_ARGS;
         }
 

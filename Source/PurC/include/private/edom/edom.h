@@ -1,8 +1,8 @@
 /**
- * @file dom.h
+ * @file edom.h
  * @author 
  * @date 2021/07/02
- * @brief The hearder file for html dom.
+ * @brief The internal interfaces for edom.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -22,28 +22,31 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
-#ifndef PCEDOM_H
-#define PCEDOM_H
+#ifndef PURC_PRIVATE_EDOM_H
+#define PURC_PRIVATE_EDOM_H
 
 #include "config.h"
-#include "edom/base.h"
-#include "private/edom/interface.h"
-#include "private/edom/collection.h"
-#include "private/edom/exception.h"
-#include "private/edom/shadow_root.h"
-#include "private/edom/attr.h"
-#include "private/edom/cdata_section.h"
-#include "private/edom/text.h"
-#include "private/edom/event_target.h"
-#include "private/edom/comment.h"
-#include "private/edom/attr_const.h"
-#include "private/edom/node.h"
-#include "private/edom/document_type.h"
-#include "private/edom/element.h"
-#include "private/edom/document_fragment.h"
-#include "private/edom/document.h"
-#include "private/edom/character_data.h"
-#include "private/edom/processing_instruction.h"
 
-#endif  /* PCEDOM_H */
+#include <assert.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif  /* __cplusplus */
+
+// initialize edom module (once)
+void pcedom_init_once(void) WTF_INTERNAL;
+
+struct pcinst;
+
+// initialize the edom module for a PurC instance.
+void pcedom_init_instance(struct pcinst* inst) WTF_INTERNAL;
+// clean up the edom module for a PurC instance.
+void pcedom_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
+
+
+#ifdef __cplusplus
+}
+#endif  /* __cplusplus */
+
+#endif  /* PURC_PRIVATE_EDOM_H */
+

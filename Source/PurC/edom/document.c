@@ -22,6 +22,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
 #include "private/errors.h"
 
 #include "private/edom/document.h"
@@ -78,6 +81,7 @@ pcedom_document_init(pcedom_document_t *document, pcedom_document_t *owner,
     pcedom_node_t *node;
 
     if (document == NULL) {
+        pcinst_set_error (PCEDOM_OBJECT_IS_NULL);
         return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
     }
 
@@ -166,6 +170,7 @@ failed:
     pchtml_hash_destroy(document->attrs, true);
     pchtml_hash_destroy(document->prefix, true);
 
+    pcinst_set_error (PCEDOM_ERROR);
     return PCHTML_STATUS_ERROR;
 }
 
