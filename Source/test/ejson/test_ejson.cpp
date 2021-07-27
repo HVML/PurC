@@ -1712,7 +1712,6 @@ TEST(ejson_token, parse_escape)
     ASSERT_NE(token, nullptr);
     ASSERT_EQ(token->type, ejson_token_string);
     ASSERT_STREQ(token->buf, "c\\b\\/\\f\\n\\r\\t\\uabcd");
-    fprintf(stderr, "%s\n", token->buf);
     pcejson_token_destroy(token);
 
     token = pcejson_next_token(parser, rws);

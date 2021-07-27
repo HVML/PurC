@@ -176,6 +176,11 @@ extern "C" {
 #endif  /* __cplusplus */
 
 /**
+ * Init pcejson
+ */
+void pcejson_init_once(void);
+
+/**
  * Create a new pcejson stack.
  */
 struct pcejson_stack* pcejson_stack_new(size_t sz_init);

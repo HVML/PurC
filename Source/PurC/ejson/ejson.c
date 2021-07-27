@@ -43,6 +43,53 @@
 #define    ejson_free(p)     free(p)
 #endif
 
+static const char* ejson_err_msgs[] = {
+    /* PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR */
+    "pcejson unexpected character parse error",
+    /* PCEJSON_UNEXPECTED_NULL_CHARACTER_PARSE_ERROR */
+    "pcejson unexpected null character parse error",
+    /* PCEJSON_UNEXPECTED_JSON_NUMBER_EXPONENT_PARSE_ERROR */
+    "pcejson unexpected json number exponent parse error",
+    /* PCEJSON_UNEXPECTED_JSON_NUMBER_FRACTION_PARSE_ERROR */
+    "pcejson unexpected json number fraction parse error",
+    /* PCEJSON_UNEXPECTED_JSON_NUMBER_INTEGER_PARSE_ERROR */
+    "pcejson unexpected json number integer parse error",
+    /* PCEJSON_UNEXPECTED_JSON_NUMBER_PARSE_ERROR */
+    "pcejson unexpected json number parse error",
+    /* PCEJSON_UNEXPECTED_RIGHT_BRACE_PARSE_ERROR */
+    "pcejson unexpected right brace parse error",
+    /* PCEJSON_UNEXPECTED_RIGHT_BRACKET_PARSE_ERROR */
+    "pcejson unexpected right bracket parse error",
+    /* PCEJSON_UNEXPECTED_JSON_KEY_NAME_PARSE_ERROR */
+    "pcejson unexpected json key name parse error",
+    /* PCEJSON_UNEXPECTED_COMMA_PARSE_ERROR */
+    "pcejson unexpected comma parse error",
+    /* PCEJSON_UNEXPECTED_JSON_KEYWORD_PARSE_ERROR */
+    "pcejson unexpected json keyword parse error",
+    /* PCEJSON_UNEXPECTED_BASE64_PARSE_ERROR */
+    "pcejson unexpected base64 parse error",
+    /* PCEJSON_BAD_JSON_NUMBER_PARSE_ERROR */
+    "pcejson bad json number parse error",
+    /* PCEJSON_BAD_JSON_PARSE_ERROR */
+    "pcejson bad json parse error",
+    /* PCEJSON_BAD_JSON_STRING_ESCAPE_ENTITY_PARSE_ERROR */
+    "pcejson bad json string escape entity parse error",
+    /* PCEJSON_EOF_IN_STRING_PARSE_ERROR */
+    "pcejson eof in string parse error",
+};
+
+static struct err_msg_seg _ejson_err_msgs_seg = {
+    { NULL, NULL },
+    PURC_ERROR_FIRST_EJSON,
+    PURC_ERROR_FIRST_EJSON + PCA_TABLESIZE(ejson_err_msgs) - 1,
+    ejson_err_msgs
+};
+
+void pcejson_init_once(void)
+{
+    pcinst_register_error_message_segment(&_ejson_err_msgs_seg);
+}
+
 static size_t get_stack_size(size_t sz_stack) {
     size_t stack = pcutils_get_next_fibonacci_number(sz_stack);
     return stack < MIN_STACK_CAPACITY ? MIN_STACK_CAPACITY : stack;
