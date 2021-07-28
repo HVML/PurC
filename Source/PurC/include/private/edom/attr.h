@@ -38,7 +38,7 @@ extern "C" {
 
 #include "private/edom/interface.h"
 #include "private/edom/node.h"
-#include "private/edom/attr_const.h"
+#include "res/dom/attr_const.h"
 #include "private/edom/document.h"
 
 

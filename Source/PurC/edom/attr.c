@@ -28,7 +28,7 @@
 #include "private/errors.h"
 
 #include "private/edom/attr.h"
-#include "private/edom/attr_res.h"
+#include "res/dom/attr_res.h"
 #include "private/edom/document.h"
 
 

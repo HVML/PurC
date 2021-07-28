@@ -12,6 +12,7 @@ set(PurC_PRIVATE_INCLUDE_DIRECTORIES
     "${PURC_DIR}/include"
     "${PurC_DERIVED_SOURCES_DIR}"
     "${FORWARDING_HEADERS_DIR}"
+    "${CMAKE_BINARY_DIR}/Source/PurC"
 )
 
 # TODO: List the headers should be installed to system here.
@@ -121,6 +122,9 @@ if (MSVC)
         COMPILE_PDB_NAME ${PurC_OUTPUT_NAME}
     )
 endif ()
+
+#
+add_subdirectory(res)
 
 install(TARGETS PurC
         DESTINATION "${LIB_INSTALL_DIR}/"
