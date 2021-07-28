@@ -29,6 +29,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "purc-variant.h"
 #include "private/tree.h"
 
 
@@ -96,6 +97,10 @@ struct pcvcm_node* pcvcm_node_from_pctree_node (struct pctree_node* tree_node)
 {
     return (struct pcvcm_node*)tree_node->user_data;
 }
+
+//purc_variant_t pcvcm_eval (pcvcm_tree_t vcm, pcvdom_element_t elem);
+
+purc_variant_t pcvcm_eval (struct pcvcm_node* tree);
 
 #ifdef __cplusplus
 }
