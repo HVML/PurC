@@ -25,6 +25,7 @@
 #ifndef PURC_PRIVATE_VCM_H
 #define PURC_PRIVATE_VCM_H
 
+#include <stdlib.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -59,7 +60,7 @@ static inline
 struct pcvcm_node* pcvcm_node_new (enum pcvcm_node_type type, uint8_t* buf)
 {
     struct pcvcm_node* node = (struct pcvcm_node*) calloc (
-            sizeof(struct pcvcm_node) , 1);
+            sizeof(struct pcvcm_node), 1);
     if (node) {
         struct pctree_node* tree_node = pctree_node_new (node);
         node->tree_node = tree_node;
@@ -93,7 +94,7 @@ struct pctree_node* pcvcm_node_to_pctree_node (struct pcvcm_node* node)
 static inline
 struct pcvcm_node* pcvcm_node_from_pctree_node (struct pctree_node* tree_node)
 {
-    return (struct pcvcm_node*)tree->node->user_data;
+    return (struct pcvcm_node*)tree_node->user_data;
 }
 
 #ifdef __cplusplus

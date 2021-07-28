@@ -27,6 +27,7 @@
 
 #include "purc-rwstream.h"
 #include "private/stack.h"
+#include "private/vcm.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -169,9 +170,6 @@ struct pcejson_token {
     char* buf;
 };
 
-struct pcvcm_tree;
-typedef struct pcvcm_tree* pcvcm_tree_t;
-
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
@@ -234,7 +232,7 @@ void pcejson_reset (struct pcejson* parser, int32_t depth, uint32_t flags);
 /**
  * Parse ejson.
  */
-int pcejson_parse (pcvcm_tree_t vcm_tree, purc_rwstream_t rwstream);
+int pcejson_parse (struct pcvcm_node** vcm_tree, purc_rwstream_t rwstream);
 
 /**
  * Create a new pcejson token.

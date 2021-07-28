@@ -257,8 +257,7 @@ void pcejson_reset (struct pcejson* parser, int32_t depth, uint32_t flags)
     pcejson_tmp_buff_reset (parser->tmp_buff2);
 }
 
-// TODO
-int pcejson_parse (pcvcm_tree_t vcm_tree, purc_rwstream_t rwstream)
+int pcejson_parse (struct pcvcm_node** vcm_tree, purc_rwstream_t rwstream)
 {
     UNUSED_PARAM(vcm_tree);
     UNUSED_PARAM(rwstream);
