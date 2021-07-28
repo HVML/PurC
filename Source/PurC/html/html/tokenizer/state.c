@@ -22,7 +22,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
 #include "private/errors.h"
 
 #include "html/html/tokenizer/state.h"
@@ -316,6 +318,7 @@ pchtml_html_tokenizer_state_data(pchtml_html_tokenizer_t *tkz,
 
                 if (SIZE_MAX - tkz->token->null_count < 1) {
                     tkz->status = PCHTML_STATUS_ERROR_OVERFLOW;
+                    pcinst_set_error (PCHTML_OVERFLOW);
                     return end;
                 }
 
@@ -1693,6 +1696,7 @@ pchtml_html_tokenizer_state_cdata_section(pchtml_html_tokenizer_t *tkz,
                 }
 
                 if (SIZE_MAX - tkz->token->null_count < 1) {
+                    pcinst_set_error (PCHTML_OVERFLOW);
                     tkz->status = PCHTML_STATUS_ERROR_OVERFLOW;
                     return end;
                 }

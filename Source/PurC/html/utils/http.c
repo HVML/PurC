@@ -22,6 +22,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
 #include "private/errors.h"
 #include "html/utils/http.h"
 #include "html/core/conv.h"
@@ -50,6 +53,7 @@ pchtml_utils_http_split_field(pchtml_utils_http_t *http, const pchtml_str_t *str
 
     field = pchtml_array_obj_push(http->fields);
     if (field == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -110,6 +114,7 @@ pchtml_utils_http_init(pchtml_utils_http_t *http, pchtml_mraw_t *mraw)
     unsigned int status;
 
     if (http == NULL) {
+        pcinst_set_error (PCHTML_OBJECT_IS_NULL);
         return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
     }
 
@@ -132,11 +137,13 @@ pchtml_utils_http_init(pchtml_utils_http_t *http, pchtml_mraw_t *mraw)
 
     pchtml_str_init(&http->tmp, http->mraw, 64);
     if (http->tmp.data == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
     pchtml_str_init(&http->version.name, http->mraw, 8);
     if (http->version.name.data == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -157,6 +164,7 @@ pchtml_utils_http_clear(pchtml_utils_http_t *http)
 
     pchtml_str_init(&http->tmp, http->mraw, 64);
     if (http->tmp.data == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -165,6 +173,7 @@ pchtml_utils_http_clear(pchtml_utils_http_t *http)
 
     pchtml_str_init(&http->version.name, http->mraw, 8);
     if (http->version.name.data == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -217,6 +226,7 @@ pchtml_utils_http_parse_version(pchtml_utils_http_t *http, const unsigned char *
     if (p == NULL) {
         p = pchtml_str_append(str, http->mraw, *data, (end - *data));
         if (p == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
@@ -232,6 +242,7 @@ pchtml_utils_http_parse_version(pchtml_utils_http_t *http, const unsigned char *
     *data = pchtml_str_append(str, http->mraw, *data, (p - *data));
     if (*data == NULL) {
         *data = p;
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -314,6 +325,7 @@ pchtml_utils_http_parse_field(pchtml_utils_http_t *http, const unsigned char **d
     if (p == NULL) {
         p = pchtml_str_append(str, http->mraw, *data, (end - *data));
         if (p == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
@@ -329,6 +341,7 @@ pchtml_utils_http_parse_field(pchtml_utils_http_t *http, const unsigned char **d
     *data = pchtml_str_append(str, http->mraw, *data, (p - *data));
     if (*data == NULL) {
         *data = p;
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -385,6 +398,7 @@ pchtml_utils_http_parse_field_ws(pchtml_utils_http_t *http, const unsigned char 
 
         pchtml_str_init(&http->tmp, http->mraw, 64);
         if (http->tmp.data == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
@@ -508,6 +522,7 @@ pchtml_utils_http_header_serialize(pchtml_utils_http_t *http, pchtml_str_t *str)
     if (str->data == NULL) {
         pchtml_str_init(str, http->mraw, 256);
         if (str->data == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
     }
@@ -533,22 +548,26 @@ pchtml_utils_http_field_serialize(pchtml_utils_http_t *http, pchtml_str_t *str,
     data = pchtml_str_append(str, http->mraw, field->name.data,
                              field->name.length);
     if (data == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
     data = pchtml_str_append(str, http->mraw, (unsigned char *) ": ", 2);
     if (data == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
     data = pchtml_str_append(str, http->mraw, field->value.data,
                              field->value.length);
     if (data == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
     data = pchtml_str_append_one(str, http->mraw, '\n');
     if (data == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 

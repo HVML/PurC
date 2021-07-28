@@ -22,8 +22,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
 #include "private/errors.h"
+#include "purc-rwstream.h"
 
 #include "html/html/tokenizer.h"
 #include "html/html/tokenizer/state.h"
@@ -68,6 +71,7 @@ pchtml_html_tokenizer_init(pchtml_html_tokenizer_t *tkz)
     unsigned int status;
 
     if (tkz == NULL) {
+        pcinst_set_error (PCHTML_OBJECT_IS_NULL);
         return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
     }
 
@@ -107,6 +111,7 @@ pchtml_html_tokenizer_init(pchtml_html_tokenizer_t *tkz)
     /* Temporary memory for tag name and attributes. */
     tkz->start = pchtml_malloc(PCHTML_HTML_TKZ_TEMP_SIZE * sizeof(unsigned char));
     if (tkz->start == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -316,6 +321,7 @@ pchtml_html_tokenizer_begin(pchtml_html_tokenizer_t *tkz)
 
     tkz->token = pchtml_html_token_create(tkz->dobj_token);
     if (tkz->token == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -323,9 +329,14 @@ pchtml_html_tokenizer_begin(pchtml_html_tokenizer_t *tkz)
 }
 
 unsigned int
-pchtml_html_tokenizer_chunk(pchtml_html_tokenizer_t *tkz, const unsigned char *data,
+pchtml_html_tokenizer_chunk(pchtml_html_tokenizer_t *tkz, const purc_rwstream_t html,
                          size_t size)
 {
+    unsigned char * buffer = malloc (size);
+    size_t rwsize = purc_rwstream_read (html, buffer, size);
+    if (rwsize == 0)
+        return 0;
+    const unsigned char * data = buffer;
     const unsigned char *end = data + size;
 
     tkz->is_eof = false;
@@ -336,6 +347,7 @@ pchtml_html_tokenizer_chunk(pchtml_html_tokenizer_t *tkz, const unsigned char *d
         data = tkz->state(tkz, data, end);
     }
 
+    free (buffer);
     return tkz->status;
 }
 
@@ -371,6 +383,7 @@ pchtml_html_tokenizer_end(pchtml_html_tokenizer_t *tkz)
                                           tkz->callback_token_ctx);
 
     if (tkz->token == NULL && tkz->status == PCHTML_STATUS_OK) {
+        pcinst_set_error (PCHTML_ERROR);
         tkz->status = PCHTML_STATUS_ERROR;
     }
 

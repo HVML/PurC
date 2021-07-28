@@ -33,6 +33,7 @@ extern "C" {
 #include "html/html/base.h"
 #include "html/tag/const.h"
 #include "html/ns/const.h"
+#include "private/html.h"
 #include "private/edom/interface.h"
 
 
@@ -111,7 +112,7 @@ extern "C" {
 #define pchtml_html_interface_window(obj) ((pchtml_html_window_t *) (obj))
 
 
-typedef struct pchtml_html_document pchtml_html_document_t;
+//typedef struct pchtml_html_document pchtml_html_document_t;                   // gengyue
 typedef struct pchtml_html_anchor_element pchtml_html_anchor_element_t;
 typedef struct pchtml_html_area_element pchtml_html_area_element_t;
 typedef struct pchtml_html_audio_element pchtml_html_audio_element_t;

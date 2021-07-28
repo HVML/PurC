@@ -22,7 +22,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
 #include "private/errors.h"
 
 #include "private/edom/text.h"
@@ -185,7 +187,7 @@ pchtml_html_serialize_cb(pcedom_node_t *node,
         default:
             break;
     }
-
+    pcinst_set_error (PCHTML_ERROR);
     return PCHTML_STATUS_ERROR;
 }
 
@@ -198,6 +200,7 @@ pchtml_html_serialize_str(pcedom_node_t *node, pchtml_str_t *str)
         pchtml_str_init(str, node->owner_document->text, 1024);
 
         if (str->data == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
     }
@@ -216,6 +219,7 @@ pchtml_html_serialize_str_callback(const unsigned char *data, size_t len, void *
 
     ret = pchtml_str_append(s_ctx->str, s_ctx->mraw, data, len);
     if (ret == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -251,6 +255,7 @@ pchtml_html_serialize_deep_str(pcedom_node_t *node, pchtml_str_t *str)
         pchtml_str_init(str, node->owner_document->text, 1024);
 
         if (str->data == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
     }
@@ -347,6 +352,7 @@ pchtml_html_serialize_element_cb(pcedom_element_t *element,
 
     tag_name = pcedom_element_qualified_name(element, &len);
     if (tag_name == NULL) {
+        pcinst_set_error (PCHTML_ERROR);
         return PCHTML_STATUS_ERROR;
     }
 
@@ -398,6 +404,7 @@ pchtml_html_serialize_element_closed_cb(pcedom_element_t *element,
 
     tag_name = pcedom_element_qualified_name(element, &len);
     if (tag_name == NULL) {
+        pcinst_set_error (PCHTML_ERROR);
         return PCHTML_STATUS_ERROR;
     }
 
@@ -733,6 +740,7 @@ pchtml_html_serialize_attribute_cb(pcedom_attr_t *attr, bool has_raw,
     data = pcedom_attr_data_by_id(attr->node.owner_document->attrs,
                                    attr->node.local_name);
     if (data == NULL) {
+        pcinst_set_error (PCHTML_ERROR);
         return PCHTML_STATUS_ERROR;
     }
 
@@ -777,6 +785,7 @@ pchtml_html_serialize_attribute_cb(pcedom_attr_t *attr, bool has_raw,
 
     str = pcedom_attr_qualified_name(attr, &length);
     if (str == NULL) {
+        pcinst_set_error (PCHTML_ERROR);
         return PCHTML_STATUS_ERROR;
     }
 
@@ -873,6 +882,7 @@ pchtml_html_serialize_pretty_cb(pcedom_node_t *node,
             break;
 
         default:
+            pcinst_set_error (PCHTML_ERROR);
             return PCHTML_STATUS_ERROR;
     }
 
@@ -896,6 +906,7 @@ pchtml_html_serialize_pretty_str(pcedom_node_t *node,
         pchtml_str_init(str, node->owner_document->text, 1024);
 
         if (str->data == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
     }
@@ -939,6 +950,7 @@ pchtml_html_serialize_pretty_deep_str(pcedom_node_t *node,
         pchtml_str_init(str, node->owner_document->text, 1024);
 
         if (str->data == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
     }
@@ -1062,6 +1074,7 @@ pchtml_html_serialize_pretty_element_cb(pcedom_element_t *element,
 
     tag_name = pcedom_element_qualified_name(element, &len);
     if (tag_name == NULL) {
+        pcinst_set_error (PCHTML_ERROR);
         return PCHTML_STATUS_ERROR;
     }
 
@@ -1311,6 +1324,7 @@ pchtml_html_serialize_tree_str(pcedom_node_t *node, pchtml_str_t *str)
         pchtml_str_init(str, node->owner_document->text, 1024);
 
         if (str->data == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
     }
@@ -1357,6 +1371,7 @@ pchtml_html_serialize_pretty_tree_str(pcedom_node_t *node,
         pchtml_str_init(str, node->owner_document->text, 1024);
 
         if (str->data == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
     }

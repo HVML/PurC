@@ -23,8 +23,8 @@
  */
 
 
-#ifndef PCEDOM_PROCESSING_INSTRUCTION_H
-#define PCEDOM_PROCESSING_INSTRUCTION_H
+#ifndef PCEDOM_PRIVATE_PROCESSING_INSTRUCTION_H
+#define PCEDOM_PRIVATE_PROCESSING_INSTRUCTION_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -77,4 +77,4 @@ pcedom_processing_instruction_target_noi(pcedom_processing_instruction_t *pi,
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCEDOM_PROCESSING_INSTRUCTION_H */
+#endif  /* PCEDOM_PRIVATE_PROCESSING_INSTRUCTION_H */

@@ -23,8 +23,8 @@
  */
 
 
-#ifndef PCEDOM_SHADOW_ROOT_H
-#define PCEDOM_SHADOW_ROOT_H
+#ifndef PCEDOM_PRIVATE_SHADOW_ROOT_H
+#define PCEDOM_PRIVATE_SHADOW_ROOT_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -63,4 +63,4 @@ pcedom_shadow_root_interface_destroy(
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCEDOM_SHADOW_ROOT_H */
+#endif  /* PCEDOM_PRIVATE_SHADOW_ROOT_H */

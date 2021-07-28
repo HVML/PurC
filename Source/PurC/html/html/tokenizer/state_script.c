@@ -22,6 +22,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
 #include "private/errors.h" 
 
 #include "html/html/tokenizer/state_script.h"

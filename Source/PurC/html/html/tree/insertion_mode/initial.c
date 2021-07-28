@@ -22,7 +22,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
+#include "private/errors.h"
 #include "html/html/tree/insertion_mode.h"
 #include "private/edom/document_type.h"
 
@@ -210,6 +213,7 @@ pchtml_html_tree_insertion_mode_initial_doctype(pchtml_html_tree_t *tree,
     /* Create */
     doc_type = pchtml_html_tree_create_document_type_from_token(tree, token);
     if (doc_type == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);

@@ -22,6 +22,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
+#include "private/errors.h"
 #include "html/core/dobject.h"
 
 
@@ -43,10 +47,12 @@ pchtml_dobject_init(pchtml_dobject_t *dobject,
     unsigned int status;
 
     if (dobject == NULL) {
+        pcinst_set_error (PCHTML_OBJECT_IS_NULL);
         return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
     }
 
     if (chunk_size == 0 || struct_size == 0) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PCHTML_STATUS_ERROR_WRONG_ARGS;
     }
 

@@ -22,6 +22,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
 #include "private/errors.h"
 
 #include "html/utils/warc.h"
@@ -123,6 +126,7 @@ pchtml_utils_warc_init(pchtml_utils_warc_t *warc, pchtml_utils_warc_header_cb_f 
     unsigned int status;
 
     if (warc == NULL) {
+        pcinst_set_error (PCHTML_OBJECT_IS_NULL);
         return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
     }
 
@@ -141,11 +145,13 @@ pchtml_utils_warc_init(pchtml_utils_warc_t *warc, pchtml_utils_warc_header_cb_f 
 
     pchtml_str_init(&warc->tmp, warc->mraw, 64);
     if (warc->tmp.data == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
     pchtml_str_init(&warc->version.type, warc->mraw, 8);
     if (warc->version.type.data == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -173,6 +179,7 @@ pchtml_utils_warc_clear(pchtml_utils_warc_t *warc)
 
     pchtml_str_init(&warc->tmp, warc->mraw, 64);
     if (warc->tmp.data == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -181,6 +188,7 @@ pchtml_utils_warc_clear(pchtml_utils_warc_t *warc)
 
     pchtml_str_init(&warc->version.type, warc->mraw, 8);
     if (warc->version.type.data == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -218,6 +226,7 @@ pchtml_utils_warc_parse_file(pchtml_utils_warc_t *warc, FILE *fh)
     unsigned char buffer[4096 * 2];
 
     if (fh == NULL) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PCHTML_STATUS_ERROR_WRONG_ARGS;
     }
 
@@ -230,6 +239,7 @@ pchtml_utils_warc_parse_file(pchtml_utils_warc_t *warc, FILE *fh)
                 return pchtml_utils_warc_parse(warc, &buf_ref, (buffer + size));
             }
 
+            pcinst_set_error (PCHTML_ERROR);
             return PCHTML_STATUS_ERROR;
         }
 
@@ -269,6 +279,7 @@ pchtml_utils_warc_parse_version(pchtml_utils_warc_t *warc, const unsigned char *
     if (p == NULL) {
         p = pchtml_str_append(str, warc->mraw, *data, (end - *data));
         if (p == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
@@ -284,6 +295,7 @@ pchtml_utils_warc_parse_version(pchtml_utils_warc_t *warc, const unsigned char *
     *data = pchtml_str_append(str, warc->mraw, *data, (p - *data));
     if (*data == NULL) {
         *data = p;
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -354,6 +366,7 @@ pchtml_utils_warc_parse_field_name(pchtml_utils_warc_t *warc, const unsigned cha
                                       (p - *data));
             if (*data == NULL) {
                 *data = p;
+                pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
                 return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
             }
 
@@ -362,11 +375,13 @@ pchtml_utils_warc_parse_field_name(pchtml_utils_warc_t *warc, const unsigned cha
             field = pchtml_utils_warc_field_append(warc, warc->tmp.data,
                                           warc->tmp.length);
             if (field == NULL) {
+                pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
                 return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
             }
 
             pchtml_str_init(&field->value, warc->mraw, 0);
             if (field->value.data == NULL) {
+                pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
                 return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
             }
 
@@ -374,6 +389,7 @@ pchtml_utils_warc_parse_field_name(pchtml_utils_warc_t *warc, const unsigned cha
 
             pchtml_str_init(&warc->tmp, warc->mraw, 64);
             if (warc->tmp.data == NULL) {
+                pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
                 return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
             }
 
@@ -393,6 +409,7 @@ pchtml_utils_warc_parse_field_name(pchtml_utils_warc_t *warc, const unsigned cha
 
     p = pchtml_str_append(&warc->tmp, warc->mraw, *data, (p - *data));
     if (p == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -422,6 +439,7 @@ pchtml_utils_warc_parse_field_value(pchtml_utils_warc_t *warc,
                                       *data, (p - *data));
             if (*data == NULL) {
                 *data = p - 1;
+                pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
                 return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
             }
 
@@ -439,6 +457,7 @@ pchtml_utils_warc_parse_field_value(pchtml_utils_warc_t *warc,
                                       *data, (p - *data));
             if (*data == NULL) {
                 *data = p - 1;
+                pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
                 return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
             }
 
@@ -472,6 +491,7 @@ pchtml_utils_warc_parse_field_value(pchtml_utils_warc_t *warc,
     p = pchtml_str_append(&field->value, warc->mraw, *data, (end - *data));
     if (p == NULL) {
         *data = end;
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -507,6 +527,7 @@ pchtml_utils_warc_parse_field_value_quoted(pchtml_utils_warc_t *warc,
                                       *data, (p - *data));
             if (*data == NULL) {
                 *data = p;
+                pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
                 return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
             }
 
@@ -519,6 +540,7 @@ done:
     p = pchtml_str_append(&field->value, warc->mraw, *data, (end - *data));
     if (p == NULL) {
         *data = end;
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -690,6 +712,7 @@ pchtml_utils_warc_parse_block_after(pchtml_utils_warc_t *warc,
         if (**data != pchtml_utils_warc_ends[warc->ends]) {
             warc->error = "Wrong end of block.";
 
+            pcinst_set_error (PCHTML_ERROR);
             return PCHTML_STATUS_ERROR;
         }
 
@@ -800,6 +823,7 @@ pchtml_utils_warc_header_serialize(pchtml_utils_warc_t *warc, pchtml_str_t *str)
     if (str->data == NULL) {
         pchtml_str_init(str, warc->mraw, 256);
         if (str->data == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
     }
@@ -810,22 +834,26 @@ pchtml_utils_warc_header_serialize(pchtml_utils_warc_t *warc, pchtml_str_t *str)
         data = pchtml_str_append(str, warc->mraw, field->name.data,
                                  field->name.length);
         if (data == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
         data = pchtml_str_append(str, warc->mraw, (unsigned char *) ": ", 2);
         if (data == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
         data = pchtml_str_append(str, warc->mraw, field->value.data,
                                  field->value.length);
         if (data == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
         data = pchtml_str_append_one(str, warc->mraw, '\n');
         if (data == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
     }

@@ -22,6 +22,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
+#include "private/errors.h"
 #include "html/core/mem.h"
 
 
@@ -35,10 +39,12 @@ unsigned int
 pchtml_mem_init(pchtml_mem_t *mem, size_t min_chunk_size)
 {
     if (mem == NULL) {
+        pcinst_set_error (PCHTML_OBJECT_IS_NULL);
         return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
     }
 
     if (min_chunk_size == 0) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PCHTML_STATUS_ERROR_WRONG_ARGS;
     }
 
@@ -47,6 +53,7 @@ pchtml_mem_init(pchtml_mem_t *mem, size_t min_chunk_size)
     /* Create first chunk */
     mem->chunk = pchtml_mem_chunk_make(mem, mem->chunk_min_size);
     if (mem->chunk == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 

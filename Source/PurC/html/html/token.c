@@ -22,6 +22,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
+#include "private/errors.h"
 
 #include "html/html/token.h"
 #include "html/html/tokenizer.h"
@@ -114,6 +118,7 @@ pchtml_html_token_make_text(pchtml_html_token_t *token, pchtml_str_t *str,
 
     (void) pchtml_str_init(str, mraw, len);
     if (str->data == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -137,6 +142,7 @@ pchtml_html_token_make_text_drop_null(pchtml_html_token_t *token, pchtml_str_t *
 
     (void) pchtml_str_init(str, mraw, len);
     if (str->data == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -170,6 +176,7 @@ pchtml_html_token_make_text_replace_null(pchtml_html_token_t *token,
 
     (void) pchtml_str_init(str, mraw, len);
     if (str->data == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -300,6 +307,7 @@ pchtml_html_token_doctype_parse(pchtml_html_token_t *token,
     if (attr->name->attr_id == PCEDOM_ATTR_PUBLIC) {
         (void) pchtml_str_init(&doc_type->public_id, mraw, attr->value_size);
         if (doc_type->public_id.data == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
@@ -313,6 +321,7 @@ pchtml_html_token_doctype_parse(pchtml_html_token_t *token,
     else if (attr->name->attr_id == PCEDOM_ATTR_SYSTEM) {
         (void) pchtml_str_init(&doc_type->system_id, mraw, attr->value_size);
         if (doc_type->system_id.data == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
@@ -337,6 +346,7 @@ pchtml_html_token_doctype_parse(pchtml_html_token_t *token,
 
     (void) pchtml_str_init(&doc_type->system_id, mraw, attr->value_size);
     if (doc_type->system_id.data == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -353,6 +363,7 @@ set_pub_sys_empty:
 
     (void) pchtml_str_init(&doc_type->public_id, mraw, 0);
     if (doc_type->public_id.data == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -360,6 +371,7 @@ set_sys_empty:
 
     (void) pchtml_str_init(&doc_type->system_id, mraw, 0);
     if (doc_type->system_id.data == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 

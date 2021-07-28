@@ -22,6 +22,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
+#include "private/errors.h"
 #include "html/core/mraw.h"
 
 
@@ -58,10 +62,12 @@ pchtml_mraw_init(pchtml_mraw_t *mraw, size_t chunk_size)
     unsigned int status;
 
     if (mraw == NULL) {
+        pcinst_set_error (PCHTML_OBJECT_IS_NULL);
         return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
     }
 
     if (chunk_size == 0) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PCHTML_STATUS_ERROR_WRONG_ARGS;
     }
 

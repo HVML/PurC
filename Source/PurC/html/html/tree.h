@@ -255,7 +255,8 @@ pchtml_html_tree_begin(pchtml_html_tree_t *tree, pchtml_html_document_t *documen
 }
 
 static inline unsigned int
-pchtml_html_tree_chunk(pchtml_html_tree_t *tree, const unsigned char *html, size_t size)
+//pchtml_html_tree_chunk(pchtml_html_tree_t *tree, const unsigned char *html, size_t size)
+pchtml_html_tree_chunk(pchtml_html_tree_t *tree, const purc_rwstream_t html, size_t size)
 {
     return pchtml_html_tokenizer_chunk(tree->tkz_ref, html, size);
 }
@@ -268,7 +269,7 @@ pchtml_html_tree_end(pchtml_html_tree_t *tree)
 
 static inline unsigned int
 pchtml_html_tree_build(pchtml_html_tree_t *tree, pchtml_html_document_t *document,
-                    const unsigned char *html, size_t size)
+                    const purc_rwstream_t html, size_t size)
 {
     tree->status = pchtml_html_tree_begin(tree, document);
     if (tree->status != PCHTML_STATUS_OK) {

@@ -22,7 +22,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
 #include "private/errors.h"
 
 #include "private/edom/document_fragment.h"
@@ -74,10 +76,12 @@ unsigned int
 pchtml_html_tree_init(pchtml_html_tree_t *tree, pchtml_html_tokenizer_t *tkz)
 {
     if (tree == NULL) {
+        pcinst_set_error (PCHTML_OBJECT_IS_NULL);
         return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
     }
 
     if (tkz == NULL) {
+        pcinst_set_error (PCHTML_TOO_SMALL_SIZE);
         return PCHTML_STATUS_ERROR_WRONG_ARGS;
     }
 
@@ -498,6 +502,7 @@ pchtml_html_tree_append_attributes(pchtml_html_tree_t *tree,
 
         attr = pcedom_attr_interface_create(element->node.owner_document);
         if (attr == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
@@ -547,6 +552,7 @@ pchtml_html_tree_append_attributes_from_element(pchtml_html_tree_t *tree,
     while (attr != NULL) {
         new_attr = pcedom_attr_interface_create(element->node.owner_document);
         if (new_attr == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
@@ -593,6 +599,7 @@ pchtml_html_tree_adjust_mathml_attributes(pchtml_html_tree_t *tree,
         data = pcedom_attr_qualified_name_append(attrs,
                                       (const unsigned char *) "definitionURL", 13);
         if (data == NULL) {
+            pcinst_set_error (PCHTML_ERROR);
             return PCHTML_STATUS_ERROR;
         }
 
@@ -630,6 +637,7 @@ pchtml_html_tree_adjust_svg_attributes(pchtml_html_tree_t *tree,
             data = pcedom_attr_qualified_name_append(attrs,
                                 (const unsigned char *) adjust->to, adjust->len);
             if (data == NULL) {
+                pcinst_set_error (PCHTML_ERROR);
                 return PCHTML_STATUS_ERROR;
             }
 
@@ -676,6 +684,7 @@ pchtml_html_tree_adjust_foreign_attributes(pchtml_html_tree_t *tree,
                 data = pcedom_attr_qualified_name_append(attrs,
                            (const unsigned char *) adjust->name, adjust->name_len);
                 if (data == NULL) {
+                    pcinst_set_error (PCHTML_ERROR);
                     return PCHTML_STATUS_ERROR;
                 }
 
@@ -686,6 +695,7 @@ pchtml_html_tree_adjust_foreign_attributes(pchtml_html_tree_t *tree,
                 tag_data = pchtml_tag_append_lower(tags,
                          (const unsigned char *) adjust->local_name, lname_length);
                 if (tag_data == NULL) {
+                    pcinst_set_error (PCHTML_ERROR);
                     return PCHTML_STATUS_ERROR;
                 }
 
@@ -694,6 +704,7 @@ pchtml_html_tree_adjust_foreign_attributes(pchtml_html_tree_t *tree,
                 prefix_data = pchtml_ns_prefix_append(prefix,
                        (const unsigned char *) adjust->prefix, adjust->prefix_len);
                 if (prefix_data == NULL) {
+                    pcinst_set_error (PCHTML_ERROR);
                     return PCHTML_STATUS_ERROR;
                 }
 
@@ -721,6 +732,7 @@ pchtml_html_tree_insert_character(pchtml_html_tree_t *tree, pchtml_html_token_t 
 
     pchtml_str_init(&str, tree->document->dom_document.text, size + 1);
     if (str.data == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -753,6 +765,7 @@ pchtml_html_tree_insert_character_for_data(pchtml_html_tree_t *tree,
 
     pos = pchtml_html_tree_appropriate_place_inserting_node(tree, NULL, &ipos);
     if (pos == NULL) {
+        pcinst_set_error (PCHTML_ERROR);
         return PCHTML_STATUS_ERROR;
     }
 
@@ -789,6 +802,7 @@ pchtml_html_tree_insert_character_for_data(pchtml_html_tree_t *tree,
             data = pchtml_str_init(&chrs->data, tree->document->dom_document.text,
                                    str->length);
             if (data == NULL) {
+                pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
                 return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
             }
         }
@@ -796,6 +810,7 @@ pchtml_html_tree_insert_character_for_data(pchtml_html_tree_t *tree,
         data = pchtml_str_append(&chrs->data, tree->document->dom_document.text,
                                  str->data, str->length);
         if (data == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
@@ -805,6 +820,7 @@ pchtml_html_tree_insert_character_for_data(pchtml_html_tree_t *tree,
     pcedom_node_t *text = pchtml_html_tree_create_node(tree, PCHTML_TAG__TEXT,
                                                      PCHTML_NS_HTML);
     if (text == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -1594,6 +1610,7 @@ pchtml_html_tree_adoption_agency_algorithm(pchtml_html_tree_t *tree,
                                                              PCHTML_NS_HTML,
                                                              common_ancestor);
             if (element == NULL) {
+                pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
                 *status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
                 return false;
@@ -1649,6 +1666,7 @@ pchtml_html_tree_adoption_agency_algorithm(pchtml_html_tree_t *tree,
                                                          PCHTML_NS_HTML,
                                                          furthest_block);
         if (element == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             *status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
             return false;

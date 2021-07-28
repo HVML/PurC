@@ -23,8 +23,8 @@
  */
 
 
-#ifndef PCEDOM_TEXT_H
-#define PCEDOM_TEXT_H
+#ifndef PCEDOM_PRIVATE_TEXT_H
+#define PCEDOM_PRIVATE_TEXT_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -51,4 +51,4 @@ pcedom_text_interface_destroy(pcedom_text_t *text) WTF_INTERNAL;
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCEDOM_TEXT_H */
+#endif  /* PCEDOM_PRIVATE_TEXT_H */

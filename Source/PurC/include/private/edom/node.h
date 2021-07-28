@@ -23,8 +23,8 @@
  */
 
 
-#ifndef PCEDOM_NODE_H
-#define PCEDOM_NODE_H
+#ifndef PCEDOM_PRIVATE_NODE_H
+#define PCEDOM_PRIVATE_NODE_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -200,4 +200,4 @@ pcedom_node_last_child_noi(pcedom_node_t *node);
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCEDOM_NODE_H */
+#endif  /* PCEDOM_PRIVATE_NODE_H */
