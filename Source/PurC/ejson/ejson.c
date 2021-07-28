@@ -257,12 +257,105 @@ void pcejson_reset (struct pcejson* parser, int32_t depth, uint32_t flags)
     pcejson_tmp_buff_reset (parser->tmp_buff2);
 }
 
-int pcejson_parse (struct pcvcm_node** vcm_tree, purc_rwstream_t rwstream)
+struct pcvcm_node* pcejson_token_to_pcvcm_node (
+        struct pcutils_stack* node_stack,struct pcejson_token* token)
 {
-    UNUSED_PARAM(vcm_tree);
-    UNUSED_PARAM(rwstream);
-    pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
-    return -1;
+    uint8_t* buf = (uint8_t*) token->buf;
+    struct pcvcm_node* node = NULL;
+    switch (token->type)
+    {
+        case ejson_token_start_object:
+            node = pcvcm_node_new (PCVCM_NODE_TYPE_OBJECT, NULL);
+            break;
+
+        case ejson_token_end_object:
+            pcutils_stack_pop (node_stack);
+            break;
+
+        case ejson_token_start_array:
+            node = pcvcm_node_new (PCVCM_NODE_TYPE_ARRAY, NULL);
+            break;
+
+        case ejson_token_end_array:
+            pcutils_stack_pop (node_stack);
+            break;
+
+        case ejson_token_key:
+            node = pcvcm_node_new (PCVCM_NODE_TYPE_KEY, buf);
+            break;
+
+        case ejson_token_string:
+            node = pcvcm_node_new (PCVCM_NODE_TYPE_STRING, buf);
+            break;
+
+        case ejson_token_null:
+            node = pcvcm_node_new (PCVCM_NODE_TYPE_NULL, buf);
+            break;
+
+        case ejson_token_boolean:
+            node = pcvcm_node_new (PCVCM_NODE_TYPE_BOOLEAN, buf);
+            break;
+
+        case ejson_token_number:
+            node = pcvcm_node_new (PCVCM_NODE_TYPE_NUMBER, buf);
+            break;
+
+        case ejson_token_long_integer_number:
+            node = pcvcm_node_new (PCVCM_NODE_TYPE_LONG_INTEGER_NUMBER,
+                    buf);
+            break;
+
+        case ejson_token_unsigned_long_integer_number:
+            node = pcvcm_node_new (PCVCM_NODE_TYPE_UNSIGNED_LONG_INTEGER_NUMBER,
+                    buf);
+            break;
+
+        case ejson_token_long_double_number:
+            node = pcvcm_node_new (PCVCM_NODE_TYPE_LONG_DOUBLE_NUMBER,
+                    buf);
+            break;
+
+        case ejson_token_text:
+            node = pcvcm_node_new (PCVCM_NODE_TYPE_STRING, buf);
+            break;
+
+        case ejson_token_byte_squence:
+            node = pcvcm_node_new (PCVCM_NODE_TYPE_BYTE_SEQUENCE, buf);
+            break;
+
+        default:
+            break;
+    }
+    token->buf = NULL;
+    return node;
+}
+
+int pcejson_parse (struct pcvcm_node** vcm_tree, purc_rwstream_t rws)
+{
+    struct pcejson* parser = pcejson_create(10, 1);
+
+    struct pcutils_stack* node_stack = pcutils_stack_new (0);
+
+    struct pcejson_token* token = pcejson_next_token(parser, rws);
+    while (token) {
+        struct pcvcm_node* node = pcejson_token_to_pcvcm_node (node_stack,
+                token);
+        if (node) {
+            if (pcutils_stack_is_empty(node_stack)) {
+                *vcm_tree = node;
+                pcutils_stack_push (node_stack, (uintptr_t)node);
+            }
+            else {
+                struct pcvcm_node* parent =
+                    (struct pcvcm_node*) pcutils_stack_top(node_stack);
+                pctree_node_prepend_child (pcvcm_node_to_pctree_node(parent),
+                        pcvcm_node_to_pctree_node(node));
+            }
+        }
+        token = pcejson_next_token(parser, rws);
+    }
+
+    return 0;
 }
 
 // eJSON tokenizer

@@ -926,13 +926,11 @@ TEST(ejson_token, parse_number)
     ASSERT_EQ(token->type, ejson_token_start_object);
     ASSERT_STREQ(token->buf, nullptr);
     pcejson_token_destroy(token);
-    pcejson_token_destroy(token);
 
     token = pcejson_next_token(parser, rws);
     ASSERT_NE(token, nullptr);
     ASSERT_EQ(token->type, ejson_token_key);
     ASSERT_STREQ(token->buf, "key");
-    pcejson_token_destroy(token);
     pcejson_token_destroy(token);
 
     token = pcejson_next_token(parser, rws);
@@ -940,13 +938,11 @@ TEST(ejson_token, parse_number)
     ASSERT_EQ(token->type, ejson_token_number);
     ASSERT_STREQ(token->buf, "123");
     pcejson_token_destroy(token);
-    pcejson_token_destroy(token);
 
     token = pcejson_next_token(parser, rws);
     ASSERT_NE(token, nullptr);
     ASSERT_EQ(token->type, ejson_token_end_object);
     ASSERT_STREQ(token->buf, nullptr);
-    pcejson_token_destroy(token);
     pcejson_token_destroy(token);
 
     token = pcejson_next_token(parser, rws);
@@ -1005,13 +1001,11 @@ TEST(ejson_token, parse_float_number)
     ASSERT_EQ(token->type, ejson_token_start_object);
     ASSERT_STREQ(token->buf, nullptr);
     pcejson_token_destroy(token);
-    pcejson_token_destroy(token);
 
     token = pcejson_next_token(parser, rws);
     ASSERT_NE(token, nullptr);
     ASSERT_EQ(token->type, ejson_token_key);
     ASSERT_STREQ(token->buf, "key");
-    pcejson_token_destroy(token);
     pcejson_token_destroy(token);
 
     token = pcejson_next_token(parser, rws);
@@ -1019,13 +1013,11 @@ TEST(ejson_token, parse_float_number)
     ASSERT_EQ(token->type, ejson_token_number);
     ASSERT_STREQ(token->buf, "1.23");
     pcejson_token_destroy(token);
-    pcejson_token_destroy(token);
 
     token = pcejson_next_token(parser, rws);
     ASSERT_NE(token, nullptr);
     ASSERT_EQ(token->type, ejson_token_end_object);
     ASSERT_STREQ(token->buf, nullptr);
-    pcejson_token_destroy(token);
     pcejson_token_destroy(token);
 
     token = pcejson_next_token(parser, rws);
@@ -1117,13 +1109,11 @@ TEST(ejson_token, parse_comma)
     ASSERT_EQ(token->type, ejson_token_start_object);
     ASSERT_STREQ(token->buf, nullptr);
     pcejson_token_destroy(token);
-    pcejson_token_destroy(token);
 
     token = pcejson_next_token(parser, rws);
     ASSERT_NE(token, nullptr);
     ASSERT_EQ(token->type, ejson_token_key);
     ASSERT_STREQ(token->buf, "key");
-    pcejson_token_destroy(token);
     pcejson_token_destroy(token);
 
     token = pcejson_next_token(parser, rws);
@@ -1230,13 +1220,11 @@ TEST(ejson_token, parse_number_with_suffix)
     ASSERT_EQ(token->type, ejson_token_start_object);
     ASSERT_STREQ(token->buf, nullptr);
     pcejson_token_destroy(token);
-    pcejson_token_destroy(token);
 
     token = pcejson_next_token(parser, rws);
     ASSERT_NE(token, nullptr);
     ASSERT_EQ(token->type, ejson_token_key);
     ASSERT_STREQ(token->buf, "key");
-    pcejson_token_destroy(token);
     pcejson_token_destroy(token);
 
     token = pcejson_next_token(parser, rws);
@@ -1383,13 +1371,11 @@ TEST(ejson_token, parse_sequence)
     ASSERT_EQ(token->type, ejson_token_start_object);
     ASSERT_STREQ(token->buf, nullptr);
     pcejson_token_destroy(token);
-    pcejson_token_destroy(token);
 
     token = pcejson_next_token(parser, rws);
     ASSERT_NE(token, nullptr);
     ASSERT_EQ(token->type, ejson_token_key);
     ASSERT_STREQ(token->buf, "key");
-    pcejson_token_destroy(token);
     pcejson_token_destroy(token);
 
     token = pcejson_next_token(parser, rws);
@@ -1504,13 +1490,11 @@ TEST(ejson_token, parse_text)
     ASSERT_EQ(token->type, ejson_token_start_object);
     ASSERT_STREQ(token->buf, nullptr);
     pcejson_token_destroy(token);
-    pcejson_token_destroy(token);
 
     token = pcejson_next_token(parser, rws);
     ASSERT_NE(token, nullptr);
     ASSERT_EQ(token->type, ejson_token_key);
     ASSERT_STREQ(token->buf, "key");
-    pcejson_token_destroy(token);
     pcejson_token_destroy(token);
 
     token = pcejson_next_token(parser, rws);
@@ -1546,13 +1530,11 @@ TEST(ejson_token, parse_unquoted_key)
     ASSERT_EQ(token->type, ejson_token_start_object);
     ASSERT_STREQ(token->buf, nullptr);
     pcejson_token_destroy(token);
-    pcejson_token_destroy(token);
 
     token = pcejson_next_token(parser, rws);
     ASSERT_NE(token, nullptr);
     ASSERT_EQ(token->type, ejson_token_key);
     ASSERT_STREQ(token->buf, "k_e-y9");
-    pcejson_token_destroy(token);
     pcejson_token_destroy(token);
 
     token = pcejson_next_token(parser, rws);
@@ -1605,7 +1587,6 @@ TEST(ejson_token, parse_escape)
     ASSERT_NE(token, nullptr);
     ASSERT_EQ(token->type, ejson_token_start_object);
     ASSERT_STREQ(token->buf, nullptr);
-    pcejson_token_destroy(token);
     pcejson_token_destroy(token);
 
     token = pcejson_next_token(parser, rws);
@@ -1738,5 +1719,21 @@ TEST(ejson_token, parse_escape)
     purc_rwstream_destroy(rws);
 
     pcejson_destroy(parser);
+    purc_cleanup ();
+}
+
+TEST(ejson_token, pcejson_parse)
+{
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "ejson", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    char json[1024] = "{key:'abc\"',}";
+    purc_rwstream_t rws = purc_rwstream_new_from_mem(json, strlen(json));
+
+    struct pcvcm_node* root = NULL;
+    pcejson_parse (&root, rws);
+    ASSERT_NE (root, nullptr);
+
+    purc_rwstream_destroy(rws);
     purc_cleanup ();
 }
