@@ -35,13 +35,13 @@
 
 #define MIN_STACK_CAPACITY 32
 
-static size_t get_stack_size(size_t sz_stack)
+static size_t get_stack_size (size_t sz_stack)
 {
     size_t stack = pcutils_get_next_fibonacci_number(sz_stack);
     return stack < MIN_STACK_CAPACITY ? MIN_STACK_CAPACITY : stack;
 }
 
-struct pcutils_stack* pcutils_stack_new(size_t sz_init)
+struct pcutils_stack* pcutils_stack_new (size_t sz_init)
 {
     struct pcutils_stack* stack = (struct pcutils_stack*) calloc(
             sizeof(struct pcutils_stack), 1);
@@ -52,7 +52,7 @@ struct pcutils_stack* pcutils_stack_new(size_t sz_init)
     return stack;
 }
 
-bool pcutils_stack_is_empty(struct pcutils_stack* stack)
+bool pcutils_stack_is_empty (struct pcutils_stack* stack)
 {
     return stack->last == -1;
 }
@@ -62,7 +62,7 @@ size_t pcutils_stack_size (struct pcutils_stack* stack)
     return stack->last + 1;
 }
 
-void pcutils_stack_push(struct pcutils_stack* stack, uintptr_t p)
+void pcutils_stack_push (struct pcutils_stack* stack, uintptr_t p)
 {
     if (stack->last == (int32_t)(stack->capacity - 1))
     {
@@ -79,7 +79,7 @@ void pcutils_stack_push(struct pcutils_stack* stack, uintptr_t p)
     stack->buf[++stack->last] = p;
 }
 
-uintptr_t pcutils_stack_pop(struct pcutils_stack* stack)
+uintptr_t pcutils_stack_pop (struct pcutils_stack* stack)
 {
     if (pcutils_stack_is_empty(stack))
     {
@@ -88,7 +88,7 @@ uintptr_t pcutils_stack_pop(struct pcutils_stack* stack)
     return stack->buf[stack->last--];
 }
 
-uintptr_t pcutils_stack_bottom(struct pcutils_stack* stack)
+uintptr_t pcutils_stack_bottom (struct pcutils_stack* stack)
 {
     if (pcutils_stack_is_empty(stack))
     {
@@ -97,7 +97,7 @@ uintptr_t pcutils_stack_bottom(struct pcutils_stack* stack)
     return stack->buf[0];
 }
 
-uintptr_t pcutils_stack_top(struct pcutils_stack* stack)
+uintptr_t pcutils_stack_top (struct pcutils_stack* stack)
 {
     if (pcutils_stack_is_empty(stack)) {
         return -1;
@@ -105,7 +105,7 @@ uintptr_t pcutils_stack_top(struct pcutils_stack* stack)
     return stack->buf[stack->last];
 }
 
-void pcutils_stack_destroy(struct pcutils_stack* stack)
+void pcutils_stack_destroy (struct pcutils_stack* stack)
 {
     if (stack) {
         free(stack->buf);
