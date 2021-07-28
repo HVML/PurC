@@ -26,6 +26,8 @@
 #define PURC_PRIVATE_HTML_H
 
 #include "config.h"
+#include "private/edom/node.h"
+#include "purc-rwstream.h"
 
 #include <assert.h>
 
@@ -42,6 +44,60 @@ struct pcinst;
 void pchtml_init_instance(struct pcinst* inst) WTF_INTERNAL;
 // clean up the html module for a PurC instance.
 void pchtml_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
+
+struct pchtml_html_document;
+typedef struct pchtml_html_document pchtml_html_document_t;
+
+// operations about  html document
+pchtml_html_document_t *
+pchtml_html_document_create(void) WTF_INTERNAL;
+
+void
+pchtml_html_document_clean(pchtml_html_document_t *document) WTF_INTERNAL;
+
+pchtml_html_document_t *
+pchtml_html_document_destroy(pchtml_html_document_t *document) WTF_INTERNAL;
+
+
+// operations about parsing html
+unsigned int
+pchtml_html_document_parse(pchtml_html_document_t *document,
+                //const unsigned char *html, size_t size) WTF_INTERNAL;
+                purc_rwstream_t html, size_t size) WTF_INTERNAL;
+
+unsigned int
+pchtml_html_document_parse_chunk_begin(
+                pchtml_html_document_t *document) WTF_INTERNAL;
+
+unsigned int
+pchtml_html_document_parse_chunk(pchtml_html_document_t *document,
+                //const unsigned char *html, size_t size) WTF_INTERNAL;
+                purc_rwstream_t html, size_t size) WTF_INTERNAL;
+
+unsigned int
+pchtml_html_document_parse_chunk_end(
+                pchtml_html_document_t *document) WTF_INTERNAL;
+
+pcedom_node_t *
+pchtml_html_document_parse_fragment(pchtml_html_document_t *document,
+                pcedom_element_t *element,
+                //const unsigned char *html, size_t size) WTF_INTERNAL;
+                purc_rwstream_t html, size_t size) WTF_INTERNAL;
+
+unsigned int
+pchtml_html_document_parse_fragment_chunk_begin(
+                pchtml_html_document_t *document,
+                pcedom_element_t *element) WTF_INTERNAL;
+
+unsigned int
+pchtml_html_document_parse_fragment_chunk(pchtml_html_document_t *document,
+                //const unsigned char *html, size_t size) WTF_INTERNAL;
+                purc_rwstream_t html, size_t size) WTF_INTERNAL;
+
+pcedom_node_t *
+pchtml_html_document_parse_fragment_chunk_end(
+                pchtml_html_document_t *document) WTF_INTERNAL;
+
 
 
 #ifdef __cplusplus

@@ -26,6 +26,7 @@
 #include "config.h"
 #include "private/instance.h"
 #include "private/errors.h"
+#include "purc-rwstream.h"
 
 #include "html/html/tokenizer.h"
 #include "html/html/tokenizer/state.h"
@@ -328,9 +329,14 @@ pchtml_html_tokenizer_begin(pchtml_html_tokenizer_t *tkz)
 }
 
 unsigned int
-pchtml_html_tokenizer_chunk(pchtml_html_tokenizer_t *tkz, const unsigned char *data,
+pchtml_html_tokenizer_chunk(pchtml_html_tokenizer_t *tkz, const purc_rwstream_t html,
                          size_t size)
 {
+    unsigned char * buffer = malloc (size);
+    size_t rwsize = purc_rwstream_read (html, buffer, size);
+    if (rwsize == 0)
+        return 0;
+    const unsigned char * data = buffer;
     const unsigned char *end = data + size;
 
     tkz->is_eof = false;
@@ -341,6 +347,7 @@ pchtml_html_tokenizer_chunk(pchtml_html_tokenizer_t *tkz, const unsigned char *d
         data = tkz->state(tkz, data, end);
     }
 
+    free (buffer);
     return tkz->status;
 }
 

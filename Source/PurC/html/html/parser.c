@@ -141,8 +141,10 @@ pchtml_html_parser_unref(pchtml_html_parser_t *parser)
 }
 
 
+//pchtml_html_document_t *
+//pchtml_html_parse(pchtml_html_parser_t *parser, const unsigned char *html, size_t size)
 pchtml_html_document_t *
-pchtml_html_parse(pchtml_html_parser_t *parser, const unsigned char *html, size_t size)
+pchtml_html_parse(pchtml_html_parser_t *parser, const purc_rwstream_t html, size_t size)
 {
     pchtml_html_document_t *document = pchtml_html_parse_chunk_begin(parser);
     if (document == NULL) {
@@ -168,9 +170,12 @@ failed:
     return NULL;
 }
 
+//pcedom_node_t *
+//pchtml_html_parse_fragment(pchtml_html_parser_t *parser, pchtml_html_element_t *element,
+//                        const unsigned char *html, size_t size)
 pcedom_node_t *
 pchtml_html_parse_fragment(pchtml_html_parser_t *parser, pchtml_html_element_t *element,
-                        const unsigned char *html, size_t size)
+                        const purc_rwstream_t html, size_t size)
 {
     return pchtml_html_parse_fragment_by_tag_id(parser,
                                              parser->tree->document,
@@ -179,11 +184,16 @@ pchtml_html_parse_fragment(pchtml_html_parser_t *parser, pchtml_html_element_t *
                                              html, size);
 }
 
+//pcedom_node_t *
+//pchtml_html_parse_fragment_by_tag_id(pchtml_html_parser_t *parser,
+//                                  pchtml_html_document_t *document,
+//                                  pchtml_tag_id_t tag_id, pchtml_ns_id_t ns,
+//                                  const unsigned char *html, size_t size)
 pcedom_node_t *
 pchtml_html_parse_fragment_by_tag_id(pchtml_html_parser_t *parser,
                                   pchtml_html_document_t *document,
                                   pchtml_tag_id_t tag_id, pchtml_ns_id_t ns,
-                                  const unsigned char *html, size_t size)
+                                  const purc_rwstream_t html, size_t size)
 {
     pchtml_html_parse_fragment_chunk_begin(parser, document, tag_id, ns);
     if (parser->status != PCHTML_STATUS_OK) {
@@ -301,9 +311,12 @@ done:
     return parser->status;
 }
 
+//unsigned int
+//pchtml_html_parse_fragment_chunk_process(pchtml_html_parser_t *parser,
+//                                      const unsigned char *html, size_t size)
 unsigned int
 pchtml_html_parse_fragment_chunk_process(pchtml_html_parser_t *parser,
-                                      const unsigned char *html, size_t size)
+                                      const purc_rwstream_t html, size_t size)
 {
     if (parser->state != PCHTML_HTML_PARSER_STATE_FRAGMENT_PROCESS) {
         pcinst_set_error (PCHTML_WRONG_STAGE);
@@ -427,9 +440,12 @@ pchtml_html_parse_chunk_begin(pchtml_html_parser_t *parser)
     return document;
 }
 
+//unsigned int
+//pchtml_html_parse_chunk_process(pchtml_html_parser_t *parser,
+//                             const unsigned char *html, size_t size)
 unsigned int
 pchtml_html_parse_chunk_process(pchtml_html_parser_t *parser,
-                             const unsigned char *html, size_t size)
+                             purc_rwstream_t html, size_t size)
 {
     if (parser->state != PCHTML_HTML_PARSER_STATE_PROCESS) {
         pcinst_set_error (PCHTML_WRONG_STAGE);

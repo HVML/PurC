@@ -35,6 +35,7 @@ extern "C" {
 #include "html/tag/tag.h"
 #include "html/ns/ns.h"
 #include "html/html/interface.h"
+#include "private/html.h"
 #include "private/edom/attr.h"
 #include "private/edom/document.h"
 
@@ -77,6 +78,8 @@ pchtml_html_document_interface_destroy(
                 pchtml_html_document_t *document) WTF_INTERNAL;
 
 
+// gengyue
+#if 0
 pchtml_html_document_t *
 pchtml_html_document_create(void) WTF_INTERNAL;
 
@@ -120,6 +123,8 @@ pchtml_html_document_parse_fragment_chunk(pchtml_html_document_t *document,
 pcedom_node_t *
 pchtml_html_document_parse_fragment_chunk_end(
                 pchtml_html_document_t *document) WTF_INTERNAL;
+#endif // gengyue
+
 
 const unsigned char *
 pchtml_html_document_title(
