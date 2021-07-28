@@ -39,7 +39,7 @@ purc_variant_t pcvcm_node_object_to_variant (struct pcvcm_node* node)
 {
     struct pctree_node* tree_node = pcvcm_node_to_pctree_node (node);
     purc_variant_t object = purc_variant_make_object (0,
-            purc_variant_make_null(), purc_variant_make_null());
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
 
     struct pctree_node* k_node = tree_node->first_child;
     struct pctree_node* v_node = k_node->next;
@@ -52,7 +52,7 @@ purc_variant_t pcvcm_node_object_to_variant (struct pcvcm_node* node)
         purc_variant_object_set (object, key, value);
 
         k_node = v_node->next;
-        v_node = k_node->next;
+        v_node = k_node ? k_node->next : NULL;
     }
 
     return object;
@@ -61,8 +61,7 @@ purc_variant_t pcvcm_node_object_to_variant (struct pcvcm_node* node)
 purc_variant_t pcvcm_node_array_to_variant (struct pcvcm_node* node)
 {
     struct pctree_node* tree_node = pcvcm_node_to_pctree_node (node);
-    purc_variant_t array = purc_variant_make_array (0,
-            purc_variant_make_null());
+    purc_variant_t array = purc_variant_make_array (0, PURC_VARIANT_INVALID);
 
     struct pctree_node* array_node = tree_node->first_child;
     while (array_node) {

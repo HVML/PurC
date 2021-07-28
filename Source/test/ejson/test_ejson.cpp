@@ -1722,13 +1722,6 @@ TEST(ejson_token, parse_escape)
     purc_cleanup ();
 }
 
-void  print_vcm_node(struct pctree_node* tree_node,  void* data)
-{
-    (void)data;
-    struct pcvcm_node* node = pcvcm_node_from_pctree_node (tree_node);
-    fprintf(stderr, "vcm|type=%d|buf=%s\n", node->type, node->buf);
-}
-
 TEST(ejson_token, pcejson_parse)
 {
     int ret = purc_init ("cn.fmsoft.hybridos.test", "ejson", NULL);
@@ -1741,9 +1734,22 @@ TEST(ejson_token, pcejson_parse)
     pcejson_parse (&root, rws);
     ASSERT_NE (root, nullptr);
 
-    pctree_node_pre_order_traversal(
-            pcvcm_node_to_pctree_node(root), print_vcm_node, NULL);
+    purc_variant_t vt = pcvcm_eval (root);
+    ASSERT_NE(vt, PURC_VARIANT_INVALID);
 
+    char buf[1024];
+    purc_rwstream_t my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    ASSERT_NE(my_rws, nullptr);
+
+    size_t len_expected = 0;
+    ssize_t n = purc_variant_serialize(vt, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+    ASSERT_GT(n, 0);
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "{\"key\":[{\"a\":\"b\"},{\"key2\":\"v2\"}]}");
+
+    purc_variant_unref(vt);
+    purc_rwstream_destroy(my_rws);
     purc_rwstream_destroy(rws);
     purc_cleanup ();
 }
