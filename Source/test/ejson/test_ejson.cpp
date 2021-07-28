@@ -80,12 +80,14 @@ TEST(ejson_stack, push_pop)
 
     pcutils_stack_push(stack, 1);
     ASSERT_EQ(stack->last, 0);
+    ASSERT_EQ(1, pcutils_stack_size(stack));
 
     uint8_t v = pcutils_stack_last(stack);
     ASSERT_EQ(v, 1);
 
     pcutils_stack_pop(stack);
     ASSERT_EQ(stack->last, -1);
+    ASSERT_EQ(0, pcutils_stack_size(stack));
 
     pcutils_stack_push(stack, 1);
     pcutils_stack_push(stack, 2);
@@ -122,13 +124,16 @@ TEST(ejson_stack, push_pop)
     pcutils_stack_push(stack, 33);
     ASSERT_EQ(stack->last, 32);
     ASSERT_GT(stack->capacity, 32);
+    ASSERT_EQ(33, pcutils_stack_size(stack));
 
     pcutils_stack_push(stack, 34);
     ASSERT_EQ(stack->last, 33);
     ASSERT_GT(stack->capacity, 32);
+    ASSERT_EQ(34, pcutils_stack_size(stack));
 
     pcutils_stack_pop(stack);
     ASSERT_EQ(stack->last, 32);
+    ASSERT_EQ(33, pcutils_stack_size(stack));
 
     v = pcutils_stack_last(stack);
     ASSERT_EQ(v, 33);
@@ -139,6 +144,8 @@ TEST(ejson_stack, push_pop)
     pcutils_stack_pop(stack);
     pcutils_stack_pop(stack);
     ASSERT_EQ(stack->last, 27);
+    ASSERT_EQ(28, pcutils_stack_size(stack));
+
     v = pcutils_stack_last(stack);
     ASSERT_EQ(v, 28);
 
