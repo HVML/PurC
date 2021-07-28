@@ -26,6 +26,7 @@
 #define PURC_PRIVATE_EJSON_H
 
 #include "purc-rwstream.h"
+#include "private/stack.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -158,7 +159,7 @@ struct pcejson {
     enum ejson_state return_state;
     int32_t depth;
     uint32_t flags;
-    struct pcejson_stack* stack;
+    struct pcutils_stack* stack;
     purc_rwstream_t tmp_buff;
     purc_rwstream_t tmp_buff2;
 };

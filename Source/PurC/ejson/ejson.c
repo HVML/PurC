@@ -31,7 +31,6 @@
 #include <gmodule.h>
 #endif
 
-#define MIN_STACK_CAPACITY 32
 #define MIN_EJSON_BUFFER_SIZE 128
 #define MAX_EJSON_BUFFER_SIZE 1024 * 1024 * 1024
 
@@ -88,11 +87,6 @@ static struct err_msg_seg _ejson_err_msgs_seg = {
 void pcejson_init_once(void)
 {
     pcinst_register_error_message_segment(&_ejson_err_msgs_seg);
-}
-
-static size_t get_stack_size(size_t sz_stack) {
-    size_t stack = pcutils_get_next_fibonacci_number(sz_stack);
-    return stack < MIN_STACK_CAPACITY ? MIN_STACK_CAPACITY : stack;
 }
 
 static inline bool is_whitespace(wchar_t character)
@@ -164,83 +158,13 @@ static inline bool is_delimiter(wchar_t c)
     return is_whitespace(c) || c == '}' || c == ']' || c == ',';
 }
 
-struct pcejson_stack* pcejson_stack_new(size_t sz_init)
-{
-    struct pcejson_stack* stack = (struct pcejson_stack*) ejson_alloc(
-            sizeof(struct pcejson_stack));
-    sz_init = get_stack_size(sz_init);
-    stack->buf = (uintptr_t*) calloc (sizeof(uintptr_t), sz_init);
-    stack->last = -1;
-    stack->capacity = sz_init;
-    return stack;
-}
-
-bool pcejson_stack_is_empty(struct pcejson_stack* stack)
-{
-    return stack->last == -1;
-}
-
-void pcejson_stack_push(struct pcejson_stack* stack, uintptr_t c)
-{
-    if (stack->last == (int32_t)(stack->capacity - 1))
-    {
-        size_t sz = get_stack_size(stack->capacity);
-        uintptr_t* newbuf = (uintptr_t*) realloc(stack->buf,
-                sz * sizeof(uintptr_t));
-        if (newbuf == NULL)
-        {
-            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            return;
-        }
-        stack->capacity = sz;
-    }
-    stack->buf[++stack->last] = c;
-}
-
-uintptr_t pcejson_stack_pop(struct pcejson_stack* stack)
-{
-    if (pcejson_stack_is_empty(stack))
-    {
-        return -1;
-    }
-    return stack->buf[stack->last--];
-}
-
-uintptr_t pcejson_stack_first(struct pcejson_stack* stack)
-{
-    if (pcejson_stack_is_empty(stack))
-    {
-        return -1;
-    }
-    return stack->buf[0];
-}
-
-uintptr_t pcejson_stack_last(struct pcejson_stack* stack)
-{
-    if (pcejson_stack_is_empty(stack)) {
-        return -1;
-    }
-    return stack->buf[stack->last];
-}
-
-void pcejson_stack_destroy(struct pcejson_stack* stack)
-{
-    if (stack) {
-        free(stack->buf);
-        stack->buf = NULL;
-        stack->last = -1;
-        stack->capacity = 0;
-        ejson_free(stack);
-    }
-}
-
 struct pcejson* pcejson_create(int32_t depth, uint32_t flags)
 {
     struct pcejson* parser = (struct pcejson*)ejson_alloc(sizeof(struct pcejson));
     parser->state = ejson_init_state;
     parser->depth = depth;
     parser->flags = flags;
-    parser->stack = pcejson_stack_new(2 * depth);
+    parser->stack = pcutils_stack_new(2 * depth);
     parser->tmp_buff = purc_rwstream_new_buffer(MIN_EJSON_BUFFER_SIZE,
             MAX_EJSON_BUFFER_SIZE);
     parser->tmp_buff2 = purc_rwstream_new_buffer(MIN_EJSON_BUFFER_SIZE,
@@ -251,7 +175,7 @@ struct pcejson* pcejson_create(int32_t depth, uint32_t flags)
 void pcejson_destroy(struct pcejson* parser)
 {
     if (parser) {
-        pcejson_stack_destroy(parser->stack);
+        pcutils_stack_destroy(parser->stack);
         purc_rwstream_destroy(parser->tmp_buff);
         purc_rwstream_destroy(parser->tmp_buff2);
         ejson_free(parser);
@@ -422,7 +346,7 @@ next_input:
                     ADVANCE_TO(ejson_before_name_state);
                     break;
                 case '{':
-                    pcejson_stack_push (ejson->stack, '{');
+                    pcutils_stack_push (ejson->stack, '{');
                     pcejson_tmp_buff_reset(ejson->tmp_buff);
                     SWITCH_TO(ejson_before_name_state);
                     return pcejson_token_new(ejson_token_start_object, NULL);
@@ -434,10 +358,10 @@ next_input:
 
         BEGIN_STATE(ejson_after_object_state)
             if (wc == '}') {
-                uint8_t c = pcejson_stack_last(ejson->stack);
+                uint8_t c = pcutils_stack_last(ejson->stack);
                 if (c == '{') {
-                    pcejson_stack_pop(ejson->stack);
-                    if (pcejson_stack_is_empty(ejson->stack)) {
+                    pcutils_stack_pop(ejson->stack);
+                    if (pcutils_stack_is_empty(ejson->stack)) {
                         SWITCH_TO(ejson_finished_state);
                     }
                     else {
@@ -465,7 +389,7 @@ next_input:
                     ADVANCE_TO(ejson_before_value_state);
                     break;
                 case '[':
-                    pcejson_stack_push (ejson->stack, '[');
+                    pcutils_stack_push (ejson->stack, '[');
                     pcejson_tmp_buff_reset(ejson->tmp_buff);
                     SWITCH_TO(ejson_before_value_state);
                     return pcejson_token_new(ejson_token_start_array, NULL);
@@ -477,10 +401,10 @@ next_input:
 
         BEGIN_STATE(ejson_after_array_state)
             if (wc == ']') {
-                uint8_t c = pcejson_stack_last(ejson->stack);
+                uint8_t c = pcutils_stack_last(ejson->stack);
                 if (c == '[') {
-                    pcejson_stack_pop(ejson->stack);
-                    if (pcejson_stack_is_empty(ejson->stack)) {
+                    pcutils_stack_pop(ejson->stack);
+                    if (pcutils_stack_is_empty(ejson->stack)) {
                         SWITCH_TO(ejson_finished_state);
                     }
                     else {
@@ -505,25 +429,25 @@ next_input:
             }
             else if (wc == '"') {
                 pcejson_tmp_buff_reset(ejson->tmp_buff);
-                uint8_t c = pcejson_stack_last(ejson->stack);
+                uint8_t c = pcutils_stack_last(ejson->stack);
                 if (c == '{') {
-                    pcejson_stack_push (ejson->stack, ':');
+                    pcutils_stack_push (ejson->stack, ':');
                 }
                 RECONSUME_IN(ejson_name_double_quoted_state);
             }
             else if (wc == '\'') {
                 pcejson_tmp_buff_reset(ejson->tmp_buff);
-                uint8_t c = pcejson_stack_last(ejson->stack);
+                uint8_t c = pcutils_stack_last(ejson->stack);
                 if (c == '{') {
-                    pcejson_stack_push (ejson->stack, ':');
+                    pcutils_stack_push (ejson->stack, ':');
                 }
                 RECONSUME_IN(ejson_name_single_quoted_state);
             }
             else if (is_ascii_alpha(wc)) {
                 pcejson_tmp_buff_reset(ejson->tmp_buff);
-                uint8_t c = pcejson_stack_last(ejson->stack);
+                uint8_t c = pcutils_stack_last(ejson->stack);
                 if (c == '{') {
-                    pcejson_stack_push (ejson->stack, ':');
+                    pcutils_stack_push (ejson->stack, ':');
                 }
                 RECONSUME_IN(ejson_name_unquoted_state);
             }
@@ -609,14 +533,14 @@ next_input:
                         pcejson_tmp_buff_dup(ejson->tmp_buff));
             }
             else if (wc == '}') {
-                pcejson_stack_pop(ejson->stack);
+                pcutils_stack_pop(ejson->stack);
                 RECONSUME_IN(ejson_after_object_state);
             }
             else if (wc == ']') {
                 RECONSUME_IN(ejson_after_array_state);
             }
             else if (wc == ',') {
-                uint8_t c = pcejson_stack_last(ejson->stack);
+                uint8_t c = pcutils_stack_last(ejson->stack);
                 if (c == '{') {
                     SWITCH_TO(ejson_before_name_state);
                     return pcejson_token_new(ejson_token_comma, NULL);
@@ -626,7 +550,7 @@ next_input:
                     return pcejson_token_new(ejson_token_comma, NULL);
                 }
                 else if (c == ':') {
-                    pcejson_stack_pop(ejson->stack);
+                    pcutils_stack_pop(ejson->stack);
                     SWITCH_TO(ejson_before_name_state);
                     return pcejson_token_new(ejson_token_comma, NULL);
                 }
