@@ -169,7 +169,7 @@ struct pcejson_stack* pcejson_stack_new(size_t sz_init)
     struct pcejson_stack* stack = (struct pcejson_stack*) ejson_alloc(
             sizeof(struct pcejson_stack));
     sz_init = get_stack_size(sz_init);
-    stack->buf = (uint8_t*) calloc (1, sz_init);
+    stack->buf = (uintptr_t*) calloc (sizeof(uintptr_t), sz_init);
     stack->last = -1;
     stack->capacity = sz_init;
     return stack;
@@ -180,12 +180,13 @@ bool pcejson_stack_is_empty(struct pcejson_stack* stack)
     return stack->last == -1;
 }
 
-void pcejson_stack_push(struct pcejson_stack* stack, uint8_t c)
+void pcejson_stack_push(struct pcejson_stack* stack, uintptr_t c)
 {
     if (stack->last == (int32_t)(stack->capacity - 1))
     {
         size_t sz = get_stack_size(stack->capacity);
-        uint8_t* newbuf = (uint8_t*) realloc(stack->buf, sz);
+        uintptr_t* newbuf = (uintptr_t*) realloc(stack->buf,
+                sz * sizeof(uintptr_t));
         if (newbuf == NULL)
         {
             pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -196,7 +197,7 @@ void pcejson_stack_push(struct pcejson_stack* stack, uint8_t c)
     stack->buf[++stack->last] = c;
 }
 
-uint8_t pcejson_stack_pop(struct pcejson_stack* stack)
+uintptr_t pcejson_stack_pop(struct pcejson_stack* stack)
 {
     if (pcejson_stack_is_empty(stack))
     {
@@ -205,7 +206,7 @@ uint8_t pcejson_stack_pop(struct pcejson_stack* stack)
     return stack->buf[stack->last--];
 }
 
-uint8_t pcejson_stack_first(struct pcejson_stack* stack)
+uintptr_t pcejson_stack_first(struct pcejson_stack* stack)
 {
     if (pcejson_stack_is_empty(stack))
     {
@@ -214,7 +215,7 @@ uint8_t pcejson_stack_first(struct pcejson_stack* stack)
     return stack->buf[0];
 }
 
-uint8_t pcejson_stack_last(struct pcejson_stack* stack)
+uintptr_t pcejson_stack_last(struct pcejson_stack* stack)
 {
     if (pcejson_stack_is_empty(stack)) {
         return -1;

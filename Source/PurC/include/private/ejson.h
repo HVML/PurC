@@ -148,7 +148,7 @@ enum ejson_token_type {
 
 
 struct pcejson_stack {
-    uint8_t* buf;
+    uintptr_t* buf;
     uint32_t capacity;
     int32_t last;
 };
@@ -193,22 +193,22 @@ bool pcejson_stack_is_empty(struct pcejson_stack* stack);
 /**
  * Push a character to the pcejson stack.
  */
-void pcejson_stack_push(struct pcejson_stack* stack, uint8_t c);
+void pcejson_stack_push(struct pcejson_stack* stack, uintptr_t c);
 
 /**
  * Pop a character from the pcejson stack.
  */
-uint8_t pcejson_stack_pop(struct pcejson_stack* stack);
+uintptr_t pcejson_stack_pop(struct pcejson_stack* stack);
 
 /**
  * Get the first character of the pcejson stack.
  */
-uint8_t pcejson_stack_first(struct pcejson_stack* stack);
+uintptr_t pcejson_stack_first(struct pcejson_stack* stack);
 
 /**
  * Get the last character of the pcejson stack.
  */
-uint8_t pcejson_stack_last(struct pcejson_stack* stack);
+uintptr_t pcejson_stack_last(struct pcejson_stack* stack);
 
 /**
  * Destory pcejson stack.
