@@ -1722,17 +1722,27 @@ TEST(ejson_token, parse_escape)
     purc_cleanup ();
 }
 
+void  print_vcm_node(struct pctree_node* tree_node,  void* data)
+{
+    (void)data;
+    struct pcvcm_node* node = pcvcm_node_from_pctree_node (tree_node);
+    fprintf(stderr, "vcm|type=%d|buf=%s\n", node->type, node->buf);
+}
+
 TEST(ejson_token, pcejson_parse)
 {
     int ret = purc_init ("cn.fmsoft.hybridos.test", "ejson", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    char json[1024] = "{key:'abc\"',}";
+    char json[] = "{key:[{\"a\":\"b\"},{key2:'v2'}]}";
     purc_rwstream_t rws = purc_rwstream_new_from_mem(json, strlen(json));
 
     struct pcvcm_node* root = NULL;
     pcejson_parse (&root, rws);
     ASSERT_NE (root, nullptr);
+
+    pctree_node_pre_order_traversal(
+            pcvcm_node_to_pctree_node(root), print_vcm_node, NULL);
 
     purc_rwstream_destroy(rws);
     purc_cleanup ();

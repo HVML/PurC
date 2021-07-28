@@ -341,15 +341,18 @@ int pcejson_parse (struct pcvcm_node** vcm_tree, purc_rwstream_t rws)
         struct pcvcm_node* node = pcejson_token_to_pcvcm_node (node_stack,
                 token);
         if (node) {
-            if (pcutils_stack_is_empty(node_stack)) {
+            if (*vcm_tree == NULL) {
                 *vcm_tree = node;
-                pcutils_stack_push (node_stack, (uintptr_t)node);
             }
-            else {
-                struct pcvcm_node* parent =
-                    (struct pcvcm_node*) pcutils_stack_top(node_stack);
-                pctree_node_prepend_child (pcvcm_node_to_pctree_node(parent),
+            struct pcvcm_node* parent =
+                (struct pcvcm_node*) pcutils_stack_top(node_stack);
+            if (parent && parent != node) {
+                pctree_node_append_child (pcvcm_node_to_pctree_node(parent),
                         pcvcm_node_to_pctree_node(node));
+            }
+            if (node->type == PCVCM_NODE_TYPE_OBJECT
+                    || node->type == PCVCM_NODE_TYPE_ARRAY) {
+                pcutils_stack_push (node_stack, (uintptr_t) node);
             }
         }
         token = pcejson_next_token(parser, rws);
