@@ -36,6 +36,10 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
+#include "private/errors.h"
 #include "html/core/fs.h"
 
 
@@ -54,11 +58,13 @@ pchtml_fs_dir_read(const unsigned char *dirpath, pchtml_fs_dir_opt_t opt,
 
     path_len = strlen((const char *) dirpath);
     if (path_len == 0 || path_len >= (sizeof(full_path) - 1)) {
+        pcinst_set_error (PCHTML_ERROR);
         return PCHTML_STATUS_ERROR;
     }
 
     dir = opendir((const char *) dirpath);
     if (dir == NULL) {
+        pcinst_set_error (PCHTML_ERROR);
         return PCHTML_STATUS_ERROR;
     }
 
@@ -151,6 +157,7 @@ error:
 
     closedir(dir);
 
+    pcinst_set_error (PCHTML_ERROR);
     return PCHTML_STATUS_ERROR;
 }
 

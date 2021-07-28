@@ -23,8 +23,8 @@
  */
 
 
-#ifndef PCEDOM_ATTR_H
-#define PCEDOM_ATTR_H
+#ifndef PCEDOM_PRIVATE_ATTR_H
+#define PCEDOM_PRIVATE_ATTR_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -164,4 +164,4 @@ pcedom_attr_value_noi(pcedom_attr_t *attr, size_t *len);
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCEDOM_ATTR_H */
+#endif  /* PCEDOM_PRIVATE_ATTR_H */

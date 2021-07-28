@@ -22,6 +22,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
+#include "private/errors.h"
 #include "html/core/array_obj.h"
 
 
@@ -36,10 +40,12 @@ pchtml_array_obj_init(pchtml_array_obj_t *array,
                       size_t size, size_t struct_size)
 {
     if (array == NULL) {
+        pcinst_set_error (PCHTML_OBJECT_IS_NULL);
         return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
     }
 
     if (size == 0 || struct_size == 0) {
+        pcinst_set_error (PCHTML_TOO_SMALL_SIZE);
         return PCHTML_STATUS_ERROR_TOO_SMALL_SIZE;
     }
 
@@ -50,6 +56,7 @@ pchtml_array_obj_init(pchtml_array_obj_t *array,
     array->list = pchtml_malloc(sizeof(uint8_t *)
                                 * (array->size * struct_size));
     if (array->list == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 

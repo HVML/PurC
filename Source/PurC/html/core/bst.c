@@ -22,7 +22,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
 #include "private/errors.h"
 
 #include "html/core/bst.h"
@@ -40,10 +42,12 @@ pchtml_bst_init(pchtml_bst_t *bst, size_t size)
     unsigned int status;
 
     if (bst == NULL) {
+        pcinst_set_error (PCHTML_OBJECT_IS_NULL);
         return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
     }
 
     if (size == 0) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PCHTML_STATUS_ERROR_WRONG_ARGS;
     }
 

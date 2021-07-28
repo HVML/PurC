@@ -22,6 +22,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
+#include "private/errors.h"
 
 #include "html/html/tokenizer/state_doctype.h"
 #include "html/html/tokenizer/state.h"
@@ -475,6 +479,7 @@ pchtml_html_tokenizer_state_doctype_after_name(pchtml_html_tokenizer_t *tkz,
                     attr_data = pcedom_attr_data_by_id(tkz->attrs,
                                                         PCEDOM_ATTR_PUBLIC);
                     if (attr_data == NULL) {
+                        pcinst_set_error (PCHTML_ERROR);
                         tkz->status = PCHTML_STATUS_ERROR;
                         return end;
                     }
@@ -495,6 +500,7 @@ pchtml_html_tokenizer_state_doctype_after_name(pchtml_html_tokenizer_t *tkz,
                     attr_data = pcedom_attr_data_by_id(tkz->attrs,
                                                         PCEDOM_ATTR_SYSTEM);
                     if (attr_data == NULL) {
+                        pcinst_set_error (PCHTML_ERROR);
                         tkz->status = PCHTML_STATUS_ERROR;
                         return end;
                     }
@@ -559,6 +565,7 @@ pchtml_html_tokenizer_state_doctype_after_name_public(pchtml_html_tokenizer_t *t
         attr_data = pcedom_attr_data_by_id(tkz->attrs,
                                             PCEDOM_ATTR_PUBLIC);
         if (attr_data == NULL) {
+            pcinst_set_error (PCHTML_ERROR);
             tkz->status = PCHTML_STATUS_ERROR;
             return end;
         }
@@ -609,6 +616,7 @@ pchtml_html_tokenizer_state_doctype_after_name_system(pchtml_html_tokenizer_t *t
         attr_data = pcedom_attr_data_by_id(tkz->attrs,
                                             PCEDOM_ATTR_SYSTEM);
         if (attr_data == NULL) {
+            pcinst_set_error (PCHTML_ERROR);
             tkz->status = PCHTML_STATUS_ERROR;
             return end;
         }

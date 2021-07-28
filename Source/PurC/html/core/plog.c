@@ -22,6 +22,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
+#include "private/errors.h"
 #include "html/core/plog.h"
 
 
@@ -31,6 +35,7 @@ pchtml_plog_init(pchtml_plog_t *plog, size_t init_size, size_t struct_size)
     unsigned int status;
 
     if (plog == NULL) {
+        pcinst_set_error (PCHTML_OBJECT_IS_NULL);
         return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
     }
 

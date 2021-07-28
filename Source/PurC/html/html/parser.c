@@ -22,6 +22,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
+#include "private/errors.h"
 
 #include "html/html/parser.h"
 #include "html/html/node.h"
@@ -51,6 +55,7 @@ unsigned int
 pchtml_html_parser_init(pchtml_html_parser_t *parser)
 {
     if (parser == NULL) {
+        pcinst_set_error (PCHTML_OBJECT_IS_NULL);
         return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
     }
 
@@ -224,6 +229,7 @@ pchtml_html_parse_fragment_chunk_begin(pchtml_html_parser_t *parser,
 
     parser->root = pchtml_html_interface_create(new_doc, PCHTML_TAG_HTML, PCHTML_NS_HTML);
     if (parser->root == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         parser->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         goto done;
@@ -234,6 +240,7 @@ pchtml_html_parse_fragment_chunk_begin(pchtml_html_parser_t *parser,
 
     parser->tree->fragment = pchtml_html_interface_create(new_doc, tag_id, ns);
     if (parser->tree->fragment == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         parser->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         goto done;
@@ -260,6 +267,7 @@ pchtml_html_parse_fragment_chunk_begin(pchtml_html_parser_t *parser,
         parser->form = pchtml_html_interface_create(new_doc,
                                                  PCHTML_TAG_FORM, PCHTML_NS_HTML);
         if (parser->form == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             parser->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
             goto done;
@@ -298,6 +306,7 @@ pchtml_html_parse_fragment_chunk_process(pchtml_html_parser_t *parser,
                                       const unsigned char *html, size_t size)
 {
     if (parser->state != PCHTML_HTML_PARSER_STATE_FRAGMENT_PROCESS) {
+        pcinst_set_error (PCHTML_WRONG_STAGE);
         return PCHTML_STATUS_ERROR_WRONG_STAGE;
     }
 
@@ -318,6 +327,7 @@ pcedom_node_t *
 pchtml_html_parse_fragment_chunk_end(pchtml_html_parser_t *parser)
 {
     if (parser->state != PCHTML_HTML_PARSER_STATE_FRAGMENT_PROCESS) {
+        pcinst_set_error (PCHTML_WRONG_STAGE);
         parser->status = PCHTML_STATUS_ERROR_WRONG_STAGE;
 
         return NULL;
@@ -402,6 +412,7 @@ pchtml_html_parse_chunk_begin(pchtml_html_parser_t *parser)
     if (document == NULL) {
         parser->state = PCHTML_HTML_PARSER_STATE_ERROR;
         parser->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
 
         return pchtml_html_document_destroy(document);
     }
@@ -421,6 +432,7 @@ pchtml_html_parse_chunk_process(pchtml_html_parser_t *parser,
                              const unsigned char *html, size_t size)
 {
     if (parser->state != PCHTML_HTML_PARSER_STATE_PROCESS) {
+        pcinst_set_error (PCHTML_WRONG_STAGE);
         return PCHTML_STATUS_ERROR_WRONG_STAGE;
     }
 
@@ -436,6 +448,7 @@ unsigned int
 pchtml_html_parse_chunk_end(pchtml_html_parser_t *parser)
 {
     if (parser->state != PCHTML_HTML_PARSER_STATE_PROCESS) {
+        pcinst_set_error (PCHTML_WRONG_STAGE);
         return PCHTML_STATUS_ERROR_WRONG_STAGE;
     }
 

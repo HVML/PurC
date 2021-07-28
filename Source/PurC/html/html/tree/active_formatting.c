@@ -23,6 +23,10 @@
  */
 
 
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
+#include "private/errors.h"
 #include "private/edom/node.h"
 
 #include "html/html/tree/active_formatting.h"
@@ -187,6 +191,7 @@ pchtml_html_tree_active_formatting_reconstruct_elements(pchtml_html_tree_t *tree
 
         element = pchtml_html_tree_insert_html_element(tree, &fake_token);
         if (element == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 

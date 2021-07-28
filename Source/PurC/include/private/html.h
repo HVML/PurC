@@ -1,8 +1,8 @@
 /**
- * @file text.h
+ * @file html.h
  * @author 
  * @date 2021/07/02
- * @brief The hearder file for html text content.
+ * @brief The internal interfaces for html parser.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -22,33 +22,31 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#ifndef PURC_PRIVATE_HTML_H
+#define PURC_PRIVATE_HTML_H
 
-#ifndef PCEDOM_PRIVATE_TEXT_H
-#define PCEDOM_PRIVATE_TEXT_H
+#include "config.h"
+
+#include <assert.h>
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif  /* __cplusplus */
 
-#include "config.h"
-#include "private/edom/document.h"
-#include "private/edom/character_data.h"
+// initialize html module (once)
+void pchtml_init_once(void) WTF_INTERNAL;
 
+struct pcinst;
 
-struct pcedom_text {
-    pcedom_character_data_t char_data;
-};
-
-
-pcedom_text_t *
-pcedom_text_interface_create(pcedom_document_t *document) WTF_INTERNAL;
-
-pcedom_text_t *
-pcedom_text_interface_destroy(pcedom_text_t *text) WTF_INTERNAL;
+// initialize the html module for a PurC instance.
+void pchtml_init_instance(struct pcinst* inst) WTF_INTERNAL;
+// clean up the html module for a PurC instance.
+void pchtml_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 
 
 #ifdef __cplusplus
-}       /* __cplusplus */
-#endif
+}
+#endif  /* __cplusplus */
 
-#endif  /* PCEDOM_PRIVATE_TEXT_H */
+#endif  /* PURC_PRIVATE_HTML_H */
+

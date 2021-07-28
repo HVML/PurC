@@ -22,7 +22,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
+#include "private/errors.h"
 #include "html/html/tree/insertion_mode.h"
 #include "html/html/tree/open_elements.h"
 
@@ -63,6 +66,7 @@ pchtml_html_tree_insertion_mode_after_head_open(pchtml_html_tree_t *tree,
 
             comment = pchtml_html_tree_insert_comment(tree, token, NULL);
             if (comment == NULL) {
+                pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
                 tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
                 return pchtml_html_tree_process_abort(tree);
@@ -85,6 +89,7 @@ pchtml_html_tree_insertion_mode_after_head_open(pchtml_html_tree_t *tree,
             element = pchtml_html_tree_insertion_mode_after_head_create_body(tree,
                                                                           token);
             if (element == NULL) {
+                pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
                 tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
                 return pchtml_html_tree_process_abort(tree);
@@ -101,6 +106,7 @@ pchtml_html_tree_insertion_mode_after_head_open(pchtml_html_tree_t *tree,
 
             element = pchtml_html_tree_insert_html_element(tree, token);
             if (element == NULL) {
+                pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
                 tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
                 return pchtml_html_tree_process_abort(tree);
@@ -125,6 +131,7 @@ pchtml_html_tree_insertion_mode_after_head_open(pchtml_html_tree_t *tree,
 
             head_node = pcedom_interface_node(tree->document->head);
             if (head_node == NULL) {
+                pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
                 tree->status = PCHTML_STATUS_ERROR;
 
                 return pchtml_html_tree_process_abort(tree);
@@ -214,6 +221,7 @@ pchtml_html_tree_insertion_mode_after_head_anything_else(pchtml_html_tree_t *tre
     element = pchtml_html_tree_insertion_mode_after_head_create_body(tree,
                                                                   &fake_token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);

@@ -23,8 +23,8 @@
  */
 
 
-#ifndef PCEDOM_INTERFACES_H
-#define PCEDOM_INTERFACES_H
+#ifndef PCEDOM_PRIVATE_INTERFACES_H
+#define PCEDOM_PRIVATE_INTERFACES_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -97,4 +97,4 @@ pcedom_interface_destroy(pcedom_interface_t *intrfc) WTF_INTERNAL;
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCEDOM_INTERFACES_H */
+#endif  /* PCEDOM_PRIVATE_INTERFACES_H */

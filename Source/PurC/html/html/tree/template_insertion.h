@@ -29,8 +29,11 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+#include "purc.h"
 #include "config.h"
+#include "private/instance.h"
+#include "private/errors.h"
+
 #include "html/core/array.h"
 
 #include "html/html/tree.h"
@@ -89,6 +92,7 @@ pchtml_html_tree_template_insertion_push(pchtml_html_tree_t *tree,
     tmp_ins = (pchtml_html_tree_template_insertion_t *)
               pchtml_array_obj_push(tree->template_insertion_modes);
     if (tmp_ins == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 

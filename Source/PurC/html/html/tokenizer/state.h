@@ -71,6 +71,7 @@ extern "C" {
         tag = pchtml_tag_append_lower(tkz->tags, (_start), (_end) - (_start));    \
         if (tag == NULL) {                                                     \
             tkz->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;                  \
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);                        \
             return end;                                                        \
         }                                                                      \
         tkz->token->tag_id = tag->tag_id;                                      \
@@ -84,6 +85,7 @@ extern "C" {
                                               tkz->pos - tkz->start);          \
         if (data == NULL) {                                                    \
             tkz->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;                  \
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);                        \
             return end;                                                        \
         }                                                                      \
         tkz->token->attr_last->name = data;                                    \
@@ -99,6 +101,7 @@ extern "C" {
         attr->value = pchtml_mraw_alloc(tkz->attrs_mraw, attr->value_size + 1);\
         if (attr->value == NULL) {                                             \
             tkz->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;                  \
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);                        \
             return end;                                                        \
         }                                                                      \
         memcpy(attr->value, tkz->start, attr->value_size);                     \
@@ -131,6 +134,7 @@ extern "C" {
         attr = pchtml_html_token_attr_append(tkz->token, tkz->dobj_token_attr);   \
         if (attr == NULL) {                                                    \
             tkz->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;                  \
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);                        \
             return v_return;                                                   \
         }                                                                      \
     }                                                                          \
@@ -168,6 +172,7 @@ extern "C" {
     if (tkz->token == NULL) {                                                  \
         if (tkz->status == PCHTML_STATUS_OK) {                                    \
             tkz->status = PCHTML_STATUS_ERROR;                                    \
+            pcinst_set_error (PCHTML_ERROR);                                   \
         }                                                                      \
         return v_end;                                                          \
     }

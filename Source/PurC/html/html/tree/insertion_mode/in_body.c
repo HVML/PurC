@@ -25,6 +25,11 @@
 
 
 #define PCHTML_TOKENIZER_CHARS_MAP
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
+#include "private/errors.h"
+
 #include "html/core/str_res.h"
 
 #include "html/html/tree/insertion_mode.h"
@@ -170,6 +175,7 @@ pchtml_html_tree_insertion_mode_in_body_comment(pchtml_html_tree_t *tree,
 
     comment = pchtml_html_tree_insert_comment(tree, token, NULL);
     if (comment == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -285,6 +291,7 @@ pchtml_html_tree_insertion_mode_in_body_frameset(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -385,6 +392,7 @@ pchtml_html_tree_insertion_mode_in_body_abcdfhmnopsu(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -430,6 +438,7 @@ pchtml_html_tree_insertion_mode_in_body_h123456(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -456,6 +465,7 @@ pchtml_html_tree_insertion_mode_in_body_pre_listing(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -492,6 +502,7 @@ pchtml_html_tree_insertion_mode_in_body_form(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -557,6 +568,7 @@ pchtml_html_tree_insertion_mode_in_body_li(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -637,6 +649,7 @@ pchtml_html_tree_insertion_mode_in_body_dd_dt(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -660,6 +673,7 @@ pchtml_html_tree_insertion_mode_in_body_plaintext(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -697,6 +711,7 @@ pchtml_html_tree_insertion_mode_in_body_button(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -828,6 +843,7 @@ pchtml_html_tree_insertion_mode_in_body_p_closed(pchtml_html_tree_t *tree,
 
         element = pchtml_html_tree_insert_html_element(tree, &fake_token);
         if (element == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
             return pchtml_html_tree_process_abort(tree);
@@ -971,6 +987,7 @@ pchtml_html_tree_insertion_mode_in_body_a(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -1001,6 +1018,7 @@ pchtml_html_tree_insertion_mode_in_body_bcefistu(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -1051,6 +1069,7 @@ pchtml_html_tree_insertion_mode_in_body_nobr(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -1104,6 +1123,7 @@ pchtml_html_tree_insertion_mode_in_body_amo(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -1173,6 +1193,7 @@ pchtml_html_tree_insertion_mode_in_body_table(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -1200,6 +1221,7 @@ pchtml_html_tree_insertion_mode_in_body_abeikw(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -1238,6 +1260,7 @@ pchtml_html_tree_insertion_mode_in_body_input(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -1273,6 +1296,7 @@ pchtml_html_tree_insertion_mode_in_body_pst(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -1299,6 +1323,7 @@ pchtml_html_tree_insertion_mode_in_body_hr(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -1331,6 +1356,7 @@ pchtml_html_tree_insertion_mode_in_body_textarea(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -1372,6 +1398,7 @@ pchtml_html_tree_insertion_mode_in_body_xmp(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_generic_rawtext_parsing(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -1390,6 +1417,7 @@ pchtml_html_tree_insertion_mode_in_body_iframe(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_generic_rawtext_parsing(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -1406,6 +1434,7 @@ pchtml_html_tree_insertion_mode_in_body_noembed(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_generic_rawtext_parsing(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -1427,6 +1456,7 @@ pchtml_html_tree_insertion_mode_in_body_select(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -1471,6 +1501,7 @@ pchtml_html_tree_insertion_mode_in_body_optopt(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -1504,6 +1535,7 @@ pchtml_html_tree_insertion_mode_in_body_rbrtc(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -1540,6 +1572,7 @@ pchtml_html_tree_insertion_mode_in_body_rprt(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -1564,6 +1597,7 @@ pchtml_html_tree_insertion_mode_in_body_math(pchtml_html_tree_t *tree,
     element = pchtml_html_tree_insert_foreign_element(tree, token, PCHTML_NS_MATH);
     if (element == NULL) {
         tree->before_append_attr = NULL;
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -1595,6 +1629,7 @@ pchtml_html_tree_insertion_mode_in_body_svg(pchtml_html_tree_t *tree,
     element = pchtml_html_tree_insert_foreign_element(tree, token, PCHTML_NS_SVG);
     if (element == NULL) {
         tree->before_append_attr = NULL;
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -1637,6 +1672,7 @@ pchtml_html_tree_insertion_mode_in_body_anything_else(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -1657,6 +1693,7 @@ pchtml_html_tree_insertion_mode_in_body_noscript(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_generic_rawtext_parsing(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);

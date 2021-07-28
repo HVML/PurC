@@ -23,6 +23,10 @@
  */
 
 
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
+#include "private/errors.h"
 
 #include "html/html/tree/insertion_mode.h"
 #include "html/html/tree/open_elements.h"
@@ -86,6 +90,7 @@ pchtml_html_tree_insertion_mode_before_html_open(pchtml_html_tree_t *tree,
                                             PCHTML_NS_HTML,
                                             &tree->document->dom_document.node);
             if (element == NULL) {
+                pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
                 tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
                 return pchtml_html_tree_process_abort(tree);
@@ -149,6 +154,7 @@ pchtml_html_tree_insertion_mode_before_html_anything_else(pchtml_html_tree_t *tr
 
     node_html = pchtml_html_tree_create_node(tree, PCHTML_TAG_HTML, PCHTML_NS_HTML);
     if (node_html == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         return pchtml_html_tree_process_abort(tree);
     }

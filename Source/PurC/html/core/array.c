@@ -22,8 +22,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
+#include "private/errors.h"
 #include "html/core/array.h"
-
 
 pchtml_array_t * pchtml_array_create(void)
 {
@@ -33,10 +36,12 @@ pchtml_array_t * pchtml_array_create(void)
 unsigned int pchtml_array_init(pchtml_array_t *array, size_t size)
 {
     if (array == NULL) {
+        pcinst_set_error (PCHTML_OBJECT_IS_NULL);
         return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
     }
 
     if (size == 0) {
+        pcinst_set_error (PCHTML_TOO_SMALL_SIZE);
         return PCHTML_STATUS_ERROR_TOO_SMALL_SIZE;
     }
 
@@ -45,6 +50,7 @@ unsigned int pchtml_array_init(pchtml_array_t *array, size_t size)
 
     array->list = pchtml_malloc(sizeof(void *) * size);
     if (array->list == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -98,6 +104,7 @@ unsigned int pchtml_array_push(pchtml_array_t *array, void *value)
 {
     if (array->length >= array->size) {
         if ((pchtml_array_expand(array, 128) == NULL)) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
     }
@@ -125,6 +132,7 @@ unsigned int pchtml_array_insert(pchtml_array_t *array, size_t idx, void *value)
 
         if (idx >= array->size) {
             if ((pchtml_array_expand(array, up_to) == NULL)) {
+                pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
                 return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
             }
         }
@@ -139,6 +147,7 @@ unsigned int pchtml_array_insert(pchtml_array_t *array, size_t idx, void *value)
 
     if (array->length >= array->size) {
         if ((pchtml_array_expand(array, 32) == NULL)) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
     }
@@ -160,6 +169,7 @@ pchtml_array_set(pchtml_array_t *array, size_t idx, void *value)
 
         if (idx >= array->size) {
             if ((pchtml_array_expand(array, up_to) == NULL)) {
+                pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
                 return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
             }
         }

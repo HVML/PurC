@@ -21,6 +21,10 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
+#include "private/errors.h"
 
 #include "html/core/str.h"
 
@@ -329,6 +333,7 @@ pchtml_html_document_title_set(pchtml_html_document_t *document,
         el_title = (void *) pchtml_html_document_create_element(document,
                                          (const unsigned char *) "title", 5, NULL);
         if (el_title == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 

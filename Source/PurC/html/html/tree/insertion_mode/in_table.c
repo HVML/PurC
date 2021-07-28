@@ -22,7 +22,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
 #include "private/errors.h"
 
 #include "html/html/tree/insertion_mode.h"
@@ -78,6 +80,7 @@ pchtml_html_tree_insertion_mode_in_table_comment(pchtml_html_tree_t *tree,
 
     comment = pchtml_html_tree_insert_comment(tree, token, NULL);
     if (comment == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -110,6 +113,7 @@ pchtml_html_tree_insertion_mode_in_table_caption(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -130,6 +134,7 @@ pchtml_html_tree_insertion_mode_in_table_colgroup(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -157,6 +162,7 @@ pchtml_html_tree_insertion_mode_in_table_col(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, &fake_token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -180,6 +186,7 @@ pchtml_html_tree_insertion_mode_in_table_tbtfth(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -210,6 +217,7 @@ pchtml_html_tree_insertion_mode_in_table_tdthtr(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, &fake_token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -314,6 +322,7 @@ have_hidden:
 
     element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
@@ -349,6 +358,7 @@ pchtml_html_tree_insertion_mode_in_table_form(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);

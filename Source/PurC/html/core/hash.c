@@ -22,6 +22,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
+#include "private/errors.h"
+
 #define PCHTML_HASH_EXTERN
 #include "html/core/hash.h"
 #undef PCHTML_HASH_EXTERN
@@ -141,6 +146,7 @@ pchtml_hash_init(pchtml_hash_t *hash, size_t table_size, size_t struct_size)
     size_t chunk_size;
 
     if (hash == NULL) {
+        pcinst_set_error (PCHTML_OBJECT_IS_NULL);
         return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
     }
 
@@ -166,6 +172,7 @@ pchtml_hash_init(pchtml_hash_t *hash, size_t table_size, size_t struct_size)
 
     hash->table = pchtml_hash_table_create(hash);
     if (hash->table == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -426,6 +433,7 @@ pchtml_hash_copy(pchtml_hash_t *hash, pchtml_hash_entry_t *entry,
     else {
         entry->u.long_str = pchtml_mraw_alloc(hash->mraw, length + 1);
         if (entry->u.long_str == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
@@ -451,6 +459,7 @@ pchtml_hash_copy_lower(pchtml_hash_t *hash, pchtml_hash_entry_t *entry,
     else {
         entry->u.long_str = pchtml_mraw_alloc(hash->mraw, length + 1);
         if (entry->u.long_str == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
@@ -478,6 +487,7 @@ pchtml_hash_copy_upper(pchtml_hash_t *hash, pchtml_hash_entry_t *entry,
     else {
         entry->u.long_str = pchtml_mraw_alloc(hash->mraw, length + 1);
         if (entry->u.long_str == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 

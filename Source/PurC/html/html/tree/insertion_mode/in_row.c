@@ -22,7 +22,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
+#include "purc.h"
+#include "config.h"
+#include "private/instance.h"
+#include "private/errors.h"
 #include "html/html/tree/insertion_mode.h"
 #include "html/html/tree/open_elements.h"
 #include "html/html/tree/active_formatting.h"
@@ -56,6 +59,7 @@ pchtml_html_tree_insertion_mode_in_row_thtd(pchtml_html_tree_t *tree,
 
     element = pchtml_html_tree_insert_html_element(tree, token);
     if (element == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
 
         return pchtml_html_tree_process_abort(tree);
