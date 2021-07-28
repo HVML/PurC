@@ -1,3 +1,5 @@
+#include "purc.h"
+
 #include "private/ejson.h"
 #include "purc-rwstream.h"
 
@@ -1584,6 +1586,9 @@ TEST(ejson_token, parse_unquoted_key)
 
 TEST(ejson_token, parse_escape)
 {
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "ejson", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
     char json[1024] = "{key:'abc\"'}";
 
     purc_rwstream_t rws = purc_rwstream_new_from_mem(json, strlen(json));
@@ -1726,4 +1731,5 @@ TEST(ejson_token, parse_escape)
     purc_rwstream_destroy(rws);
 
     pcejson_destroy(parser);
+    purc_cleanup ();
 }
