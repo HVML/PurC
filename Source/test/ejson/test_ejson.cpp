@@ -82,7 +82,7 @@ TEST(ejson_stack, push_pop)
     ASSERT_EQ(stack->last, 0);
     ASSERT_EQ(1, pcutils_stack_size(stack));
 
-    uint8_t v = pcutils_stack_last(stack);
+    uint8_t v = pcutils_stack_top(stack);
     ASSERT_EQ(v, 1);
 
     pcutils_stack_pop(stack);
@@ -135,7 +135,7 @@ TEST(ejson_stack, push_pop)
     ASSERT_EQ(stack->last, 32);
     ASSERT_EQ(33, pcutils_stack_size(stack));
 
-    v = pcutils_stack_last(stack);
+    v = pcutils_stack_top(stack);
     ASSERT_EQ(v, 33);
 
     pcutils_stack_pop(stack);
@@ -146,7 +146,7 @@ TEST(ejson_stack, push_pop)
     ASSERT_EQ(stack->last, 27);
     ASSERT_EQ(28, pcutils_stack_size(stack));
 
-    v = pcutils_stack_last(stack);
+    v = pcutils_stack_top(stack);
     ASSERT_EQ(v, 28);
 
     pcutils_stack_destroy(stack);

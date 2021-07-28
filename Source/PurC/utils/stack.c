@@ -88,7 +88,7 @@ uintptr_t pcutils_stack_pop(struct pcutils_stack* stack)
     return stack->buf[stack->last--];
 }
 
-uintptr_t pcutils_stack_first(struct pcutils_stack* stack)
+uintptr_t pcutils_stack_bottom(struct pcutils_stack* stack)
 {
     if (pcutils_stack_is_empty(stack))
     {
@@ -97,7 +97,7 @@ uintptr_t pcutils_stack_first(struct pcutils_stack* stack)
     return stack->buf[0];
 }
 
-uintptr_t pcutils_stack_last(struct pcutils_stack* stack)
+uintptr_t pcutils_stack_top(struct pcutils_stack* stack)
 {
     if (pcutils_stack_is_empty(stack)) {
         return -1;

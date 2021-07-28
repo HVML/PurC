@@ -64,14 +64,14 @@ void pcutils_stack_push (struct pcutils_stack* stack, uintptr_t e);
 uintptr_t pcutils_stack_pop (struct pcutils_stack* stack);
 
 /**
- * Get the first character of the stack.
+ * Get the bottom element of the stack.
  */
-uintptr_t pcutils_stack_first (struct pcutils_stack* stack);
+uintptr_t pcutils_stack_bottom (struct pcutils_stack* stack);
 
 /**
- * Get the last character of the stack.
+ * Get the top element of the stack.
  */
-uintptr_t pcutils_stack_last (struct pcutils_stack* stack);
+uintptr_t pcutils_stack_top (struct pcutils_stack* stack);
 
 /**
  * Destory stack.

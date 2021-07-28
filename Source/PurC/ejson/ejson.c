@@ -358,7 +358,7 @@ next_input:
 
         BEGIN_STATE(ejson_after_object_state)
             if (wc == '}') {
-                uint8_t c = pcutils_stack_last(ejson->stack);
+                uint8_t c = pcutils_stack_top(ejson->stack);
                 if (c == '{') {
                     pcutils_stack_pop(ejson->stack);
                     if (pcutils_stack_is_empty(ejson->stack)) {
@@ -401,7 +401,7 @@ next_input:
 
         BEGIN_STATE(ejson_after_array_state)
             if (wc == ']') {
-                uint8_t c = pcutils_stack_last(ejson->stack);
+                uint8_t c = pcutils_stack_top(ejson->stack);
                 if (c == '[') {
                     pcutils_stack_pop(ejson->stack);
                     if (pcutils_stack_is_empty(ejson->stack)) {
@@ -429,7 +429,7 @@ next_input:
             }
             else if (wc == '"') {
                 pcejson_tmp_buff_reset(ejson->tmp_buff);
-                uint8_t c = pcutils_stack_last(ejson->stack);
+                uint8_t c = pcutils_stack_top(ejson->stack);
                 if (c == '{') {
                     pcutils_stack_push (ejson->stack, ':');
                 }
@@ -437,7 +437,7 @@ next_input:
             }
             else if (wc == '\'') {
                 pcejson_tmp_buff_reset(ejson->tmp_buff);
-                uint8_t c = pcutils_stack_last(ejson->stack);
+                uint8_t c = pcutils_stack_top(ejson->stack);
                 if (c == '{') {
                     pcutils_stack_push (ejson->stack, ':');
                 }
@@ -445,7 +445,7 @@ next_input:
             }
             else if (is_ascii_alpha(wc)) {
                 pcejson_tmp_buff_reset(ejson->tmp_buff);
-                uint8_t c = pcutils_stack_last(ejson->stack);
+                uint8_t c = pcutils_stack_top(ejson->stack);
                 if (c == '{') {
                     pcutils_stack_push (ejson->stack, ':');
                 }
@@ -540,7 +540,7 @@ next_input:
                 RECONSUME_IN(ejson_after_array_state);
             }
             else if (wc == ',') {
-                uint8_t c = pcutils_stack_last(ejson->stack);
+                uint8_t c = pcutils_stack_top(ejson->stack);
                 if (c == '{') {
                     SWITCH_TO(ejson_before_name_state);
                     return pcejson_token_new(ejson_token_comma, NULL);
