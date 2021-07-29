@@ -43,7 +43,7 @@ pchtml_plog_init(pchtml_plog_t *plog, size_t init_size, size_t struct_size)
         struct_size = sizeof(pchtml_plog_entry_t);
     }
 
-    status = pchtml_array_obj_init(&plog->list, init_size, struct_size);
+    status = pcutils_array_obj_init(&plog->list, init_size, struct_size);
     if (status != PCHTML_STATUS_OK) {
         return status;
     }
@@ -58,7 +58,7 @@ pchtml_plog_destroy(pchtml_plog_t *plog, bool self_destroy)
         return NULL;
     }
 
-    pchtml_array_obj_destroy(&plog->list, false);
+    pcutils_array_obj_destroy(&plog->list, false);
 
     if (self_destroy) {
         return pchtml_free(plog);

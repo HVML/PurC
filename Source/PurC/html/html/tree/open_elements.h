@@ -31,8 +31,8 @@ extern "C" {
 #endif
 
 #include "config.h"
-#include "html/core/array.h"
 
+#include "private/array.h"
 #include "html/html/tree.h"
 
 
@@ -88,32 +88,32 @@ pchtml_html_tree_open_elements_find_reverse(pchtml_html_tree_t *tree,
 static inline pcedom_node_t *
 pchtml_html_tree_open_elements_first(pchtml_html_tree_t *tree)
 {
-    return (pcedom_node_t *) pchtml_array_get(tree->open_elements, 0);
+    return (pcedom_node_t *) pcutils_array_get(tree->open_elements, 0);
 }
 
 static inline pcedom_node_t *
 pchtml_html_tree_open_elements_get(pchtml_html_tree_t *tree, size_t idx)
 {
-    return (pcedom_node_t *) pchtml_array_get(tree->open_elements, idx);
+    return (pcedom_node_t *) pcutils_array_get(tree->open_elements, idx);
 }
 
 static inline unsigned int
 pchtml_html_tree_open_elements_push(pchtml_html_tree_t *tree, pcedom_node_t *node)
 {
-    return pchtml_array_push(tree->open_elements, node);
+    return pcutils_array_push(tree->open_elements, node);
 }
 
 static inline pcedom_node_t *
 pchtml_html_tree_open_elements_pop(pchtml_html_tree_t *tree)
 {
-    return (pcedom_node_t *) pchtml_array_pop(tree->open_elements);
+    return (pcedom_node_t *) pcutils_array_pop(tree->open_elements);
 }
 
 static inline unsigned int
 pchtml_html_tree_open_elements_insert_after(pchtml_html_tree_t *tree, pcedom_node_t *node,
                                     size_t idx)
 {
-    return pchtml_array_insert(tree->open_elements, (idx + 1), node);
+    return pcutils_array_insert(tree->open_elements, (idx + 1), node);
 }
 
 

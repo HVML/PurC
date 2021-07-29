@@ -306,7 +306,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_eof(pchtml_html_tree_t *tree,
                                          pchtml_html_token_t *token)
 {
-    if (pchtml_array_obj_length(tree->template_insertion_modes) != 0) {
+    if (pcutils_array_obj_length(tree->template_insertion_modes) != 0) {
         return pchtml_html_tree_insertion_mode_in_template(tree, token);
     }
 

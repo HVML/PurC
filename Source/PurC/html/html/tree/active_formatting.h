@@ -31,7 +31,7 @@ extern "C" {
 #endif
 
 #include "config.h"
-#include "html/core/array.h"
+#include "private/array.h"
 
 #include "html/html/tree.h"
 
@@ -86,32 +86,32 @@ pchtml_html_tree_active_formatting_current_node(pchtml_html_tree_t *tree)
 static inline pcedom_node_t *
 pchtml_html_tree_active_formatting_first(pchtml_html_tree_t *tree)
 {
-    return (pcedom_node_t *) pchtml_array_get(tree->active_formatting, 0);
+    return (pcedom_node_t *) pcutils_array_get(tree->active_formatting, 0);
 }
 
 static inline pcedom_node_t *
 pchtml_html_tree_active_formatting_get(pchtml_html_tree_t *tree, size_t idx)
 {
-    return (pcedom_node_t *) pchtml_array_get(tree->active_formatting, idx);
+    return (pcedom_node_t *) pcutils_array_get(tree->active_formatting, idx);
 }
 
 static inline unsigned int
 pchtml_html_tree_active_formatting_push(pchtml_html_tree_t *tree,
                                      pcedom_node_t *node)
 {
-    return pchtml_array_push(tree->active_formatting, node);
+    return pcutils_array_push(tree->active_formatting, node);
 }
 
 static inline pcedom_node_t *
 pchtml_html_tree_active_formatting_pop(pchtml_html_tree_t *tree)
 {
-    return (pcedom_node_t *) pchtml_array_pop(tree->active_formatting);
+    return (pcedom_node_t *) pcutils_array_pop(tree->active_formatting);
 }
 
 static inline unsigned int
 pchtml_html_tree_active_formatting_push_marker(pchtml_html_tree_t *tree)
 {
-    return pchtml_array_push(tree->active_formatting,
+    return pcutils_array_push(tree->active_formatting,
                              pchtml_html_tree_active_formatting_marker());
 }
 
@@ -119,13 +119,13 @@ static inline unsigned int
 pchtml_html_tree_active_formatting_insert(pchtml_html_tree_t *tree,
                                        pcedom_node_t *node, size_t idx)
 {
-    return pchtml_array_insert(tree->active_formatting, idx, node);
+    return pcutils_array_insert(tree->active_formatting, idx, node);
 }
 
 static inline void
 pchtml_html_tree_active_formatting_remove(pchtml_html_tree_t *tree, size_t idx)
 {
-    pchtml_array_delete(tree->active_formatting, idx, 1);
+    pcutils_array_delete(tree->active_formatting, idx, 1);
 }
 
 

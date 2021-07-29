@@ -122,7 +122,7 @@ pchtml_html_tree_error_t;
 
 
 pchtml_html_tree_error_t *
-pchtml_html_tree_error_add(pchtml_array_obj_t *parse_errors,
+pchtml_html_tree_error_add(pcutils_array_obj_t *parse_errors,
         pchtml_html_token_t *token, pchtml_html_tree_error_id_t id) WTF_INTERNAL;
 
 

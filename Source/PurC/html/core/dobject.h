@@ -32,12 +32,12 @@ extern "C" {
 #include "config.h"
 #include "html/core/base.h"
 #include "html/core/mem.h"
-#include "html/core/array.h"
+#include "private/array.h"
 
 
 typedef struct {
     pchtml_mem_t   *mem;
-    pchtml_array_t *cache;
+    pcutils_array_t *cache;
 
     size_t         allocated;
     size_t         struct_size;
@@ -86,7 +86,7 @@ pchtml_dobject_allocated(pchtml_dobject_t *dobject)
 static inline size_t
 pchtml_dobject_cache_length(pchtml_dobject_t *dobject)
 {
-    return pchtml_array_length(dobject->cache);
+    return pcutils_array_length(dobject->cache);
 }
 
 /*

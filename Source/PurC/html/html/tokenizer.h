@@ -75,7 +75,7 @@ struct pchtml_html_tokenizer {
     pchtml_dobject_t                 *dobj_token_attr;
 
     /* Parse error */
-    pchtml_array_obj_t               *parse_errors;
+    pcutils_array_obj_t               *parse_errors;
 
     /*
      * Leak abstractions.

@@ -101,8 +101,8 @@ pchtml_html_tokenizer_init(pchtml_html_tokenizer_t *tkz)
     }
 
     /* Parse errors */
-    tkz->parse_errors = pchtml_array_obj_create();
-    status = pchtml_array_obj_init(tkz->parse_errors, 16,
+    tkz->parse_errors = pcutils_array_obj_create();
+    status = pcutils_array_obj_init(tkz->parse_errors, 16,
                                    sizeof(pchtml_html_tokenizer_error_t));
     if (status != PCHTML_STATUS_OK) {
         return status;
@@ -156,8 +156,8 @@ pchtml_html_tokenizer_inherit(pchtml_html_tokenizer_t *tkz_to,
     tkz_to->dobj_token_attr = tkz_from->dobj_token_attr;
 
     /* Parse errors */
-    tkz_to->parse_errors = pchtml_array_obj_create();
-    status = pchtml_array_obj_init(tkz_to->parse_errors, 16,
+    tkz_to->parse_errors = pcutils_array_obj_create();
+    status = pcutils_array_obj_init(tkz_to->parse_errors, 16,
                                    sizeof(pchtml_html_tokenizer_error_t));
     if (status != PCHTML_STATUS_OK) {
         return status;
@@ -235,7 +235,7 @@ pchtml_html_tokenizer_clean(pchtml_html_tokenizer_t *tkz)
     pchtml_dobject_clean(tkz->dobj_token);
     pchtml_dobject_clean(tkz->dobj_token_attr);
 
-    pchtml_array_obj_clean(tkz->parse_errors);
+    pcutils_array_obj_clean(tkz->parse_errors);
 }
 
 pchtml_html_tokenizer_t *
@@ -260,7 +260,7 @@ pchtml_html_tokenizer_destroy(pchtml_html_tokenizer_t *tkz)
         pchtml_free(tkz->start);
     }
 
-    tkz->parse_errors = pchtml_array_obj_destroy(tkz->parse_errors, true);
+    tkz->parse_errors = pcutils_array_obj_destroy(tkz->parse_errors, true);
 
     return pchtml_free(tkz);
 }

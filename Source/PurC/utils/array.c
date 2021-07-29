@@ -26,14 +26,14 @@
 #include "config.h"
 #include "private/instance.h"
 #include "private/errors.h"
-#include "html/core/array.h"
+#include "private/array.h"
 
-pchtml_array_t * pchtml_array_create(void)
+pcutils_array_t * pcutils_array_create(void)
 {
-    return pchtml_calloc(1, sizeof(pchtml_array_t));
+    return pchtml_calloc(1, sizeof(pcutils_array_t));
 }
 
-unsigned int pchtml_array_init(pchtml_array_t *array, size_t size)
+unsigned int pcutils_array_init(pcutils_array_t *array, size_t size)
 {
     if (array == NULL) {
         pcinst_set_error (PCHTML_OBJECT_IS_NULL);
@@ -57,12 +57,12 @@ unsigned int pchtml_array_init(pchtml_array_t *array, size_t size)
     return PCHTML_STATUS_OK;
 }
 
-void pchtml_array_clean(pchtml_array_t *array)
+void pcutils_array_clean(pcutils_array_t *array)
 {
     array->length = 0;
 }
 
-pchtml_array_t * pchtml_array_destroy(pchtml_array_t *array, bool self_destroy)
+pcutils_array_t * pcutils_array_destroy(pcutils_array_t *array, bool self_destroy)
 {
     if (array == NULL)
         return NULL;
@@ -80,7 +80,7 @@ pchtml_array_t * pchtml_array_destroy(pchtml_array_t *array, bool self_destroy)
     return array;
 }
 
-void ** pchtml_array_expand(pchtml_array_t *array, size_t up_to)
+void ** pcutils_array_expand(pcutils_array_t *array, size_t up_to)
 {
     void **list;
     size_t new_size;
@@ -100,10 +100,10 @@ void ** pchtml_array_expand(pchtml_array_t *array, size_t up_to)
     return list;
 }
 
-unsigned int pchtml_array_push(pchtml_array_t *array, void *value)
+unsigned int pcutils_array_push(pcutils_array_t *array, void *value)
 {
     if (array->length >= array->size) {
-        if ((pchtml_array_expand(array, 128) == NULL)) {
+        if ((pcutils_array_expand(array, 128) == NULL)) {
             pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
@@ -115,7 +115,7 @@ unsigned int pchtml_array_push(pchtml_array_t *array, void *value)
     return PCHTML_STATUS_OK;
 }
 
-void * pchtml_array_pop(pchtml_array_t *array)
+void * pcutils_array_pop(pcutils_array_t *array)
 {
     if (array->length == 0) {
         return NULL;
@@ -125,13 +125,13 @@ void * pchtml_array_pop(pchtml_array_t *array)
     return array->list[ array->length ];
 }
 
-unsigned int pchtml_array_insert(pchtml_array_t *array, size_t idx, void *value)
+unsigned int pcutils_array_insert(pcutils_array_t *array, size_t idx, void *value)
 {
     if (idx >= array->length) {
         size_t up_to = (idx - array->length) + 1;
 
         if (idx >= array->size) {
-            if ((pchtml_array_expand(array, up_to) == NULL)) {
+            if ((pcutils_array_expand(array, up_to) == NULL)) {
                 pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
                 return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
             }
@@ -146,7 +146,7 @@ unsigned int pchtml_array_insert(pchtml_array_t *array, size_t idx, void *value)
     }
 
     if (array->length >= array->size) {
-        if ((pchtml_array_expand(array, 32) == NULL)) {
+        if ((pcutils_array_expand(array, 32) == NULL)) {
             pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
@@ -162,13 +162,13 @@ unsigned int pchtml_array_insert(pchtml_array_t *array, size_t idx, void *value)
 }
 
 unsigned int 
-pchtml_array_set(pchtml_array_t *array, size_t idx, void *value)
+pcutils_array_set(pcutils_array_t *array, size_t idx, void *value)
 {
     if (idx >= array->length) {
         size_t up_to = (idx - array->length) + 1;
 
         if (idx >= array->size) {
-            if ((pchtml_array_expand(array, up_to) == NULL)) {
+            if ((pcutils_array_expand(array, up_to) == NULL)) {
                 pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
                 return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
             }
@@ -184,7 +184,7 @@ pchtml_array_set(pchtml_array_t *array, size_t idx, void *value)
     return PCHTML_STATUS_OK;
 }
 
-void pchtml_array_delete(pchtml_array_t *array, size_t begin, size_t length)
+void pcutils_array_delete(pcutils_array_t *array, size_t begin, size_t length)
 {
     if (begin >= array->length || length == 0) {
         return;
@@ -206,17 +206,17 @@ void pchtml_array_delete(pchtml_array_t *array, size_t begin, size_t length)
 /*
  * No inline functions.
  */
-void * pchtml_array_get_noi(pchtml_array_t *array, size_t idx)
+void * pcutils_array_get_noi(pcutils_array_t *array, size_t idx)
 {
-    return pchtml_array_get(array, idx);
+    return pcutils_array_get(array, idx);
 }
 
-size_t pchtml_array_length_noi(pchtml_array_t *array)
+size_t pcutils_array_length_noi(pcutils_array_t *array)
 {
-    return pchtml_array_length(array);
+    return pcutils_array_length(array);
 }
 
-size_t pchtml_array_size_noi(pchtml_array_t *array)
+size_t pcutils_array_size_noi(pcutils_array_t *array)
 {
-    return pchtml_array_size(array);
+    return pcutils_array_size(array);
 }

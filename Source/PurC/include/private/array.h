@@ -22,8 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef PCHTML_ARRAY_H
-#define PCHTML_ARRAY_H
+#ifndef PCUTILS_ARRAY_H
+#define PCUTILS_ARRAY_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -38,43 +38,43 @@ typedef struct {
     size_t size;
     size_t length;
 }
-pchtml_array_t;
+pcutils_array_t;
 
 
-pchtml_array_t * pchtml_array_create(void) WTF_INTERNAL;
+pcutils_array_t * pcutils_array_create(void) WTF_INTERNAL;
 
 unsigned int
-pchtml_array_init(pchtml_array_t *array, size_t size) WTF_INTERNAL;
+pcutils_array_init(pcutils_array_t *array, size_t size) WTF_INTERNAL;
 
-void pchtml_array_clean(pchtml_array_t *array) WTF_INTERNAL;
+void pcutils_array_clean(pcutils_array_t *array) WTF_INTERNAL;
 
-pchtml_array_t *
-pchtml_array_destroy(pchtml_array_t *array, bool self_destroy) WTF_INTERNAL;
+pcutils_array_t *
+pcutils_array_destroy(pcutils_array_t *array, bool self_destroy) WTF_INTERNAL;
 
 
 void **
-pchtml_array_expand(pchtml_array_t *array, size_t up_to) WTF_INTERNAL;
+pcutils_array_expand(pcutils_array_t *array, size_t up_to) WTF_INTERNAL;
 
 
 unsigned int
-pchtml_array_push(pchtml_array_t *array, void *value) WTF_INTERNAL;
+pcutils_array_push(pcutils_array_t *array, void *value) WTF_INTERNAL;
 
-void * pchtml_array_pop(pchtml_array_t *array) WTF_INTERNAL;
-
-unsigned int
-pchtml_array_insert(pchtml_array_t *array, size_t idx, void *value) WTF_INTERNAL;
+void * pcutils_array_pop(pcutils_array_t *array) WTF_INTERNAL;
 
 unsigned int
-pchtml_array_set(pchtml_array_t *array, size_t idx, void *value) WTF_INTERNAL;
+pcutils_array_insert(pcutils_array_t *array, size_t idx, void *value) WTF_INTERNAL;
+
+unsigned int
+pcutils_array_set(pcutils_array_t *array, size_t idx, void *value) WTF_INTERNAL;
 
 void
-pchtml_array_delete(pchtml_array_t *array, size_t begin, size_t length) WTF_INTERNAL;
+pcutils_array_delete(pcutils_array_t *array, size_t begin, size_t length) WTF_INTERNAL;
 
 
 /*
  * Inline functions
  */
-static inline void * pchtml_array_get(pchtml_array_t *array, size_t idx)
+static inline void * pcutils_array_get(pcutils_array_t *array, size_t idx)
 {
     if (idx >= array->length) {
         return NULL;
@@ -83,12 +83,12 @@ static inline void * pchtml_array_get(pchtml_array_t *array, size_t idx)
     return array->list[idx];
 }
 
-static inline size_t pchtml_array_length(pchtml_array_t *array)
+static inline size_t pcutils_array_length(pcutils_array_t *array)
 {
     return array->length;
 }
 
-static inline size_t pchtml_array_size(pchtml_array_t *array)
+static inline size_t pcutils_array_size(pcutils_array_t *array)
 {
     return array->size;
 }
@@ -97,15 +97,15 @@ static inline size_t pchtml_array_size(pchtml_array_t *array)
 /*
  * No inline functions for ABI.
  */
-void * pchtml_array_get_noi(pchtml_array_t *array, size_t idx) WTF_INTERNAL;
+void * pcutils_array_get_noi(pcutils_array_t *array, size_t idx) WTF_INTERNAL;
 
-size_t pchtml_array_length_noi(pchtml_array_t *array) WTF_INTERNAL;
+size_t pcutils_array_length_noi(pcutils_array_t *array) WTF_INTERNAL;
 
-size_t pchtml_array_size_noi(pchtml_array_t *array) WTF_INTERNAL;
+size_t pcutils_array_size_noi(pcutils_array_t *array) WTF_INTERNAL;
 
 
 #ifdef __cplusplus
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_ARRAY_H */
+#endif  /* PCUTILS_ARRAY_H */
