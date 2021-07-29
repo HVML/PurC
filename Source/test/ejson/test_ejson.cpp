@@ -1229,7 +1229,7 @@ TEST(ejson_token, parse_number_with_suffix)
 
     token = pcejson_next_token(parser, rws);
     ASSERT_NE(token, nullptr);
-    ASSERT_EQ(token->type, ejson_token_long_integer_number);
+    ASSERT_EQ(token->type, ejson_token_long_int);
     ASSERT_STREQ(token->buf, "123456789L");
     pcejson_token_destroy(token);
 
@@ -1270,7 +1270,7 @@ TEST(ejson_token, parse_number_with_suffix)
 
     token = pcejson_next_token(parser, rws);
     ASSERT_NE(token, nullptr);
-    ASSERT_EQ(token->type, ejson_token_unsigned_long_integer_number);
+    ASSERT_EQ(token->type, ejson_token_ulong_int);
     ASSERT_STREQ(token->buf, "123456789UL");
     pcejson_token_destroy(token);
 
@@ -1305,7 +1305,7 @@ TEST(ejson_token, parse_number_with_suffix)
 
     token = pcejson_next_token(parser, rws);
     ASSERT_NE(token, nullptr);
-    ASSERT_EQ(token->type, ejson_token_long_double_number);
+    ASSERT_EQ(token->type, ejson_token_long_double);
     ASSERT_STREQ(token->buf, "1.23456789FL");
     pcejson_token_destroy(token);
 
@@ -1340,7 +1340,7 @@ TEST(ejson_token, parse_number_with_suffix)
 
     token = pcejson_next_token(parser, rws);
     ASSERT_NE(token, nullptr);
-    ASSERT_EQ(token->type, ejson_token_long_double_number);
+    ASSERT_EQ(token->type, ejson_token_long_double);
     ASSERT_STREQ(token->buf, "123456789FL");
     pcejson_token_destroy(token);
 

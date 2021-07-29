@@ -98,13 +98,13 @@ purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node)
         case PCVCM_NODE_TYPE_NUMBER:
             return purc_variant_make_number (atof(buf));
 
-        case PCVCM_NODE_TYPE_LONG_INTEGER_NUMBER:
+        case PCVCM_NODE_TYPE_LONG_INT:
             return purc_variant_make_longint (atoll(buf));
 
-        case PCVCM_NODE_TYPE_UNSIGNED_LONG_INTEGER_NUMBER:
+        case PCVCM_NODE_TYPE_ULONG_INT:
             return purc_variant_make_ulongint (atoll(buf));
 
-        case PCVCM_NODE_TYPE_LONG_DOUBLE_NUMBER:
+        case PCVCM_NODE_TYPE_LONG_DOUBLE:
             return purc_variant_make_longdouble (atof(buf));
 
         case PCVCM_NODE_TYPE_BYTE_SEQUENCE:

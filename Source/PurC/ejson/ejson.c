@@ -300,19 +300,16 @@ struct pcvcm_node* pcejson_token_to_pcvcm_node (
             node = pcvcm_node_new (PCVCM_NODE_TYPE_NUMBER, buf);
             break;
 
-        case ejson_token_long_integer_number:
-            node = pcvcm_node_new (PCVCM_NODE_TYPE_LONG_INTEGER_NUMBER,
-                    buf);
+        case ejson_token_long_int:
+            node = pcvcm_node_new (PCVCM_NODE_TYPE_LONG_INT, buf);
             break;
 
-        case ejson_token_unsigned_long_integer_number:
-            node = pcvcm_node_new (PCVCM_NODE_TYPE_UNSIGNED_LONG_INTEGER_NUMBER,
-                    buf);
+        case ejson_token_ulong_int:
+            node = pcvcm_node_new (PCVCM_NODE_TYPE_ULONG_INT, buf);
             break;
 
-        case ejson_token_long_double_number:
-            node = pcvcm_node_new (PCVCM_NODE_TYPE_LONG_DOUBLE_NUMBER,
-                    buf);
+        case ejson_token_long_double:
+            node = pcvcm_node_new (PCVCM_NODE_TYPE_LONG_DOUBLE, buf);
             break;
 
         case ejson_token_text:
@@ -1133,7 +1130,7 @@ next_input:
                 if (pcejson_tmp_buff_end_with(ejson->tmp_buff, "F")) {
                     pcejson_tmp_buff_append(ejson->tmp_buff,  (uint8_t*)buf_utf8, len);
                     SWITCH_TO(ejson_after_value_state);
-                    return pcejson_token_new (ejson_token_long_double_number,
+                    return pcejson_token_new (ejson_token_long_double,
                                 pcejson_tmp_buff_dup (ejson->tmp_buff));
                 }
             }
@@ -1191,7 +1188,7 @@ next_input:
                 if (pcejson_tmp_buff_end_with(ejson->tmp_buff, "F")) {
                     pcejson_tmp_buff_append(ejson->tmp_buff,  (uint8_t*)buf_utf8, len);
                     SWITCH_TO(ejson_after_value_number_state);
-                    return pcejson_token_new (ejson_token_long_double_number,
+                    return pcejson_token_new (ejson_token_long_double,
                                 pcejson_tmp_buff_dup (ejson->tmp_buff));
                 }
             }
@@ -1217,12 +1214,12 @@ next_input:
                     if (pcejson_tmp_buff_end_with(ejson->tmp_buff, "UL")) {
                         SWITCH_TO(ejson_after_value_state);
                         return pcejson_token_new (
-                                ejson_token_unsigned_long_integer_number,
+                                ejson_token_ulong_int,
                                 pcejson_tmp_buff_dup (ejson->tmp_buff));
                     }
                     else if (pcejson_tmp_buff_end_with(ejson->tmp_buff, "L")) {
                         SWITCH_TO(ejson_after_value_state);
-                        return pcejson_token_new (ejson_token_long_integer_number,
+                        return pcejson_token_new (ejson_token_long_int,
                                     pcejson_tmp_buff_dup (ejson->tmp_buff));
                     }
                 }
