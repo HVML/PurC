@@ -53,18 +53,15 @@ pchtml_html_element_interface_destroy(pchtml_html_element_t *element)
                 pcedom_interface_node(element)->owner_document->mraw, element);
 }
 
-//pchtml_html_element_t *
-//pchtml_html_element_inner_html_set(pchtml_html_element_t *element,
-//                                const unsigned char *html, size_t size)
 pchtml_html_element_t *
 pchtml_html_element_inner_html_set(pchtml_html_element_t *element,
-                                const purc_rwstream_t html, size_t size)
+                                const purc_rwstream_t html)
 {
     pcedom_node_t *node, *child;
     pcedom_node_t *root = pcedom_interface_node(element);
     pchtml_html_document_t *doc = pchtml_html_interface_document(root->owner_document);
 
-    node = pchtml_html_document_parse_fragment(doc, &element->element, html, size);
+    node = pchtml_html_document_parse_fragment(doc, &element->element, html);
     if (node == NULL) {
         return NULL;
     }

@@ -51,38 +51,39 @@ TEST(html, html_parser_chunk)
     /* Initialization */
     document = pchtml_html_document_create();
     if (document == NULL) {
-        printf("Failed to create HTML Document");
+        printf("Failed to create HTML Document\n");
     }
 
     /* Parse HTML */
     status = pchtml_html_document_parse_chunk_begin(document);
     if (status != PCHTML_STATUS_OK) {
-        printf("Failed to parse HTML");
+        printf("Failed to parse HTML\n");
     }
 
-    printf("Incoming HTML chunks:");
+    printf("Incoming HTML chunks:\n");
 
     for (size_t i = 0; html[i][0] != '\0'; i++) {
-        printf("%s", (const char *) html[i]);
+        printf("%s\n", (const char *) html[i]);
 
         rwstream = purc_rwstream_new_from_mem((void *)html[i], (size_t)strlen((const char *) html[i]));
 
-        status = pchtml_html_document_parse_chunk(document, rwstream,
-                                               strlen((const char *) html[i]));
+        status = pchtml_html_document_parse_chunk(document, rwstream);
+
         if (status != PCHTML_STATUS_OK) {
-            printf("Failed to parse HTML chunk");
+            printf("Failed to parse HTML chunk\n");
         }
 
+        purc_rwstream_close(rwstream);
         purc_rwstream_destroy (rwstream);
     }
 
     status = pchtml_html_document_parse_chunk_end(document);
     if (status != PCHTML_STATUS_OK) {
-        printf("Failed to parse HTML");
+        printf("Failed to parse HTML\n");
     }
 
     /* Print Result */
-    printf("\nHTML Tree:");
+    printf("\nHTML Tree:\n");
     pchtml_html_serialize_pretty_tree_cb((pcedom_node_t *)document,
                                           0x00, 0, serializer_callback, NULL);
 

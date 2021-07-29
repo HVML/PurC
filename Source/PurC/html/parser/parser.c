@@ -141,17 +141,15 @@ pchtml_html_parser_unref(pchtml_html_parser_t *parser)
 }
 
 
-//pchtml_html_document_t *
-//pchtml_html_parse(pchtml_html_parser_t *parser, const unsigned char *html, size_t size)
 pchtml_html_document_t *
-pchtml_html_parse(pchtml_html_parser_t *parser, const purc_rwstream_t html, size_t size)
+pchtml_html_parse(pchtml_html_parser_t *parser, const purc_rwstream_t html)
 {
     pchtml_html_document_t *document = pchtml_html_parse_chunk_begin(parser);
     if (document == NULL) {
         return NULL;
     }
 
-    pchtml_html_parse_chunk_process(parser, html, size);
+    pchtml_html_parse_chunk_process(parser, html);
     if (parser->status != PCHTML_STATUS_OK) {
         goto failed;
     }
@@ -170,37 +168,29 @@ failed:
     return NULL;
 }
 
-//pcedom_node_t *
-//pchtml_html_parse_fragment(pchtml_html_parser_t *parser, pchtml_html_element_t *element,
-//                        const unsigned char *html, size_t size)
 pcedom_node_t *
 pchtml_html_parse_fragment(pchtml_html_parser_t *parser, pchtml_html_element_t *element,
-                        const purc_rwstream_t html, size_t size)
+                        const purc_rwstream_t html)
 {
     return pchtml_html_parse_fragment_by_tag_id(parser,
                                              parser->tree->document,
                                              element->element.node.local_name,
                                              element->element.node.ns,
-                                             html, size);
+                                             html);
 }
 
-//pcedom_node_t *
-//pchtml_html_parse_fragment_by_tag_id(pchtml_html_parser_t *parser,
-//                                  pchtml_html_document_t *document,
-//                                  pchtml_tag_id_t tag_id, pchtml_ns_id_t ns,
-//                                  const unsigned char *html, size_t size)
 pcedom_node_t *
 pchtml_html_parse_fragment_by_tag_id(pchtml_html_parser_t *parser,
                                   pchtml_html_document_t *document,
                                   pchtml_tag_id_t tag_id, pchtml_ns_id_t ns,
-                                  const purc_rwstream_t html, size_t size)
+                                  const purc_rwstream_t html)
 {
     pchtml_html_parse_fragment_chunk_begin(parser, document, tag_id, ns);
     if (parser->status != PCHTML_STATUS_OK) {
         return NULL;
     }
 
-    pchtml_html_parse_fragment_chunk_process(parser, html, size);
+    pchtml_html_parse_fragment_chunk_process(parser, html);
     if (parser->status != PCHTML_STATUS_OK) {
         return NULL;
     }
@@ -311,19 +301,16 @@ done:
     return parser->status;
 }
 
-//unsigned int
-//pchtml_html_parse_fragment_chunk_process(pchtml_html_parser_t *parser,
-//                                      const unsigned char *html, size_t size)
 unsigned int
 pchtml_html_parse_fragment_chunk_process(pchtml_html_parser_t *parser,
-                                      const purc_rwstream_t html, size_t size)
+                                      const purc_rwstream_t html)
 {
     if (parser->state != PCHTML_PARSER_PARSER_STATE_FRAGMENT_PROCESS) {
         pcinst_set_error (PCHTML_WRONG_STAGE);
         return PCHTML_STATUS_ERROR_WRONG_STAGE;
     }
 
-    parser->status = pchtml_html_tree_chunk(parser->tree, html, size);
+    parser->status = pchtml_html_tree_chunk(parser->tree, html);
     if (parser->status != PCHTML_STATUS_OK) {
         pchtml_html_html_element_interface_destroy(pchtml_html_interface_html(parser->root));
 
@@ -440,19 +427,16 @@ pchtml_html_parse_chunk_begin(pchtml_html_parser_t *parser)
     return document;
 }
 
-//unsigned int
-//pchtml_html_parse_chunk_process(pchtml_html_parser_t *parser,
-//                             const unsigned char *html, size_t size)
 unsigned int
 pchtml_html_parse_chunk_process(pchtml_html_parser_t *parser,
-                             const purc_rwstream_t html, size_t size)
+                             const purc_rwstream_t html)
 {
     if (parser->state != PCHTML_PARSER_PARSER_STATE_PROCESS) {
         pcinst_set_error (PCHTML_WRONG_STAGE);
         return PCHTML_STATUS_ERROR_WRONG_STAGE;
     }
 
-    parser->status = pchtml_html_tree_chunk(parser->tree, html, size);
+    parser->status = pchtml_html_tree_chunk(parser->tree, html);
     if (parser->status != PCHTML_STATUS_OK) {
         parser->state = PCHTML_PARSER_PARSER_STATE_ERROR;
     }

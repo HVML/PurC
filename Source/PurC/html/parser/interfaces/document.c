@@ -131,10 +131,8 @@ pchtml_html_document_destroy(pchtml_html_document_t *document)
 }
 
 unsigned int
-//pchtml_html_document_parse(pchtml_html_document_t *document,
-//                        const unsigned char *html, size_t size)
 pchtml_html_document_parse(pchtml_html_document_t *document,
-                        const purc_rwstream_t html, size_t size)
+                        const purc_rwstream_t html)
 {
     unsigned int status;
     pcedom_document_t *doc;
@@ -159,7 +157,7 @@ pchtml_html_document_parse(pchtml_html_document_t *document,
         goto failed;
     }
 
-    status = pchtml_html_parse_chunk_process(doc->parser, html, size);
+    status = pchtml_html_parse_chunk_process(doc->parser, html);
     if (status != PCHTML_STATUS_OK) {
         goto failed;
     }
@@ -194,13 +192,11 @@ pchtml_html_document_parse_chunk_begin(pchtml_html_document_t *document)
 }
 
 unsigned int
-//pchtml_html_document_parse_chunk(pchtml_html_document_t *document,
-//                            const unsigned char *html, size_t size)
 pchtml_html_document_parse_chunk(pchtml_html_document_t *document,
-                              const purc_rwstream_t html, size_t size)
+                              const purc_rwstream_t html)
 {
     return pchtml_html_parse_chunk_process(document->dom_document.parser,
-                                        html, size);
+                                        html);
 }
 
 unsigned int
@@ -210,12 +206,9 @@ pchtml_html_document_parse_chunk_end(pchtml_html_document_t *document)
 }
 
 pcedom_node_t *
-//pchtml_html_document_parse_fragment(pchtml_html_document_t *document,
-//                                 pcedom_element_t *element,
-//                                 const unsigned char *html, size_t size)
 pchtml_html_document_parse_fragment(pchtml_html_document_t *document,
                                  pcedom_element_t *element,
-                                 const purc_rwstream_t html, size_t size)
+                                 const purc_rwstream_t html)
 {
     unsigned int status;
     pchtml_html_parser_t *parser;
@@ -235,7 +228,7 @@ pchtml_html_document_parse_fragment(pchtml_html_document_t *document,
         goto failed;
     }
 
-    status = pchtml_html_parse_fragment_chunk_process(parser, html, size);
+    status = pchtml_html_parse_fragment_chunk_process(parser, html);
     if (status != PCHTML_STATUS_OK) {
         goto failed;
     }
@@ -269,13 +262,11 @@ pchtml_html_document_parse_fragment_chunk_begin(pchtml_html_document_t *document
 }
 
 unsigned int
-//pchtml_html_document_parse_fragment_chunk(pchtml_html_document_t *document,
-//                                       const unsigned char *html, size_t size)
 pchtml_html_document_parse_fragment_chunk(pchtml_html_document_t *document,
-                                       const purc_rwstream_t html, size_t size)
+                                       const purc_rwstream_t html)
 {
     return pchtml_html_parse_fragment_chunk_process(document->dom_document.parser,
-                                                 html, size);
+                                                 html);
 }
 
 pcedom_node_t *
