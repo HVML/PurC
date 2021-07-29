@@ -160,7 +160,28 @@ struct pcejson {
 
 struct pcejson_token {
     enum ejson_token_type type;
-    char* buf;
+    union {
+        /* for boolean */
+        bool        b;
+
+        /* for number */
+        double      d;
+
+        /* for long integer */
+        int64_t     i64;
+
+        /* for unsigned long integer */
+        uint64_t    u64;
+
+        /* for long double */
+        long double ld;
+
+        /* for long string, long byte sequence, array, object,
+         * and set (sz_ptr[0] for size, sz_ptr[1] for pointer).
+         */
+        uintptr_t   sz_ptr[2];
+    };
+
 };
 
 #ifdef __cplusplus
@@ -195,7 +216,8 @@ int pcejson_parse (struct pcvcm_node** vcm_tree, purc_rwstream_t rwstream);
 /**
  * Create a new pcejson token.
  */
-struct pcejson_token* pcejson_token_new (enum ejson_token_type type, char* buf);
+struct pcejson_token* pcejson_token_new (enum ejson_token_type type,
+        const uint8_t* bytes, size_t nr_bytes);
 
 /**
  * Destory pcejson token.
