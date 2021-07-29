@@ -30,16 +30,19 @@ extern "C" {
 #endif
 
 #include "config.h"
-#include "html/core/def.h"
 
+#include <stdlib.h>
 
-void * pchtml_malloc(size_t size) WTF_INTERNAL;
+#define pchtml_malloc(sz)       malloc(sz)
+#define pchtml_realloc(ptr, sz) realloc(ptr, sz)
+#define pchtml_calloc(n, sz)    calloc(n, sz)
 
-void * pchtml_realloc(void *dst, size_t size) WTF_INTERNAL;
-
-void * pchtml_calloc(size_t num, size_t size) WTF_INTERNAL;
-
-void * pchtml_free(void *dst) WTF_INTERNAL;
+static inline void*
+pchtml_free(void *ptr)
+{
+    free(ptr);
+    return NULL;
+}
 
 
 #ifdef __cplusplus
