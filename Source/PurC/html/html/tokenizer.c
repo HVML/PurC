@@ -332,11 +332,15 @@ unsigned int
 pchtml_html_tokenizer_chunk(pchtml_html_tokenizer_t *tkz, const purc_rwstream_t html,
                          size_t size)
 {
-    unsigned char * buffer = malloc (size);
-    size_t rwsize = purc_rwstream_read (html, buffer, size);
-    if (rwsize == 0)
-        return 0;
-    const unsigned char * data = buffer;
+    if ((html == NULL) || (size == 0))
+        return PCHTML_ERROR;
+
+    size_t rwsize = 0;
+    const unsigned char * data = (unsigned char *)purc_rwstream_get_mem_buffer (html, &rwsize);
+
+    if ((rwsize != size) || (data == NULL))
+        return PCHTML_ERROR;
+
     const unsigned char *end = data + size;
 
     tkz->is_eof = false;
@@ -347,7 +351,6 @@ pchtml_html_tokenizer_chunk(pchtml_html_tokenizer_t *tkz, const purc_rwstream_t 
         data = tkz->state(tkz, data, end);
     }
 
-    free (buffer);
     return tkz->status;
 }
 
