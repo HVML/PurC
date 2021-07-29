@@ -76,7 +76,6 @@ purc_variant_t pcvcm_node_array_to_variant (struct pcvcm_node* node)
 
 purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node)
 {
-    const char* buf = (const char*) node->buf;
     switch (node->type)
     {
         case PCVCM_NODE_TYPE_OBJECT:
@@ -87,28 +86,29 @@ purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node)
 
         case PCVCM_NODE_TYPE_KEY:
         case PCVCM_NODE_TYPE_STRING:
-            return purc_variant_make_string (buf, false);
+            return purc_variant_make_string ((char*)node->data.sz_ptr[1], false);
 
         case PCVCM_NODE_TYPE_NULL:
             return purc_variant_make_null ();
 
         case PCVCM_NODE_TYPE_BOOLEAN:
-            return purc_variant_make_boolean (strcmp ("true", buf) == 0);
+            return purc_variant_make_boolean (node->data.b);
 
         case PCVCM_NODE_TYPE_NUMBER:
-            return purc_variant_make_number (atof(buf));
+            return purc_variant_make_number (node->data.d);
 
         case PCVCM_NODE_TYPE_LONG_INT:
-            return purc_variant_make_longint (atoll(buf));
+            return purc_variant_make_longint (node->data.i64);
 
         case PCVCM_NODE_TYPE_ULONG_INT:
-            return purc_variant_make_ulongint (atoll(buf));
+            return purc_variant_make_ulongint (node->data.u64);
 
         case PCVCM_NODE_TYPE_LONG_DOUBLE:
-            return purc_variant_make_longdouble (atof(buf));
+            return purc_variant_make_longdouble (node->data.ld);
 
         case PCVCM_NODE_TYPE_BYTE_SEQUENCE:
-            return purc_variant_make_byte_sequence(buf, strlen(buf));
+            return purc_variant_make_byte_sequence(
+                    (void*)node->data.sz_ptr[1], node->data.sz_ptr[0]);
     }
     return purc_variant_make_null();
 }

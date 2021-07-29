@@ -47,10 +47,19 @@ enum pcvcm_node_type {
     PCVCM_NODE_TYPE_BYTE_SEQUENCE,
 };
 
+union pcvcm_node_data {
+    bool        b;
+    double      d;
+    int64_t     i64;
+    uint64_t    u64;
+    long double ld;
+    uintptr_t   sz_ptr[2];
+};
+
 struct pcvcm_node {
     struct pctree_node* tree_node;
     enum pcvcm_node_type type;
-    uint8_t* buf;
+    union pcvcm_node_data data;
 };
 
 #ifdef __cplusplus
@@ -58,7 +67,8 @@ extern "C" {
 #endif  /* __cplusplus */
 
 static inline
-struct pcvcm_node* pcvcm_node_new (enum pcvcm_node_type type, uint8_t* buf)
+struct pcvcm_node* pcvcm_node_new (enum pcvcm_node_type type,
+        union pcvcm_node_data data)
 {
     struct pcvcm_node* node = (struct pcvcm_node*) calloc (
             sizeof(struct pcvcm_node), 1);
@@ -66,7 +76,7 @@ struct pcvcm_node* pcvcm_node_new (enum pcvcm_node_type type, uint8_t* buf)
         struct pctree_node* tree_node = pctree_node_new (node);
         node->tree_node = tree_node;
         node->type = type;
-        node->buf = buf;
+        node->data = data;
     }
     return node;
 }
@@ -75,7 +85,12 @@ static inline
 void pcvcm_node_destroy (struct pcvcm_node* node)
 {
     if (node) {
-        free(node->buf);
+        if ((node->type == PCVCM_NODE_TYPE_KEY
+                || node->type == PCVCM_NODE_TYPE_STRING
+                || node->type == PCVCM_NODE_TYPE_BYTE_SEQUENCE
+                ) && node->data.sz_ptr[1]) {
+            free((void*)node->data.sz_ptr[1]);
+        }
         free(node);
     }
 }

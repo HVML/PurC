@@ -260,13 +260,14 @@ void pcejson_reset (struct pcejson* parser, int32_t depth, uint32_t flags)
 struct pcvcm_node* pcejson_token_to_pcvcm_node (
         struct pcutils_stack* node_stack,struct pcejson_token* token)
 {
-#if 0
-    uint8_t* buf = (uint8_t*) token->buf;
     struct pcvcm_node* node = NULL;
+    union pcvcm_node_data data;
+    data.sz_ptr[0] = token->sz_ptr[0];
+    data.sz_ptr[1] = token->sz_ptr[1];
     switch (token->type)
     {
         case EJSON_TOKEN_START_OBJECT:
-            node = pcvcm_node_new (PCVCM_NODE_TYPE_OBJECT, NULL);
+            node = pcvcm_node_new (PCVCM_NODE_TYPE_OBJECT, data);
             break;
 
         case EJSON_TOKEN_END_OBJECT:
@@ -274,7 +275,7 @@ struct pcvcm_node* pcejson_token_to_pcvcm_node (
             break;
 
         case EJSON_TOKEN_START_ARRAY:
-            node = pcvcm_node_new (PCVCM_NODE_TYPE_ARRAY, NULL);
+            node = pcvcm_node_new (PCVCM_NODE_TYPE_ARRAY, data);
             break;
 
         case EJSON_TOKEN_END_ARRAY:
@@ -282,54 +283,49 @@ struct pcvcm_node* pcejson_token_to_pcvcm_node (
             break;
 
         case EJSON_TOKEN_KEY:
-            node = pcvcm_node_new (PCVCM_NODE_TYPE_KEY, buf);
+            node = pcvcm_node_new (PCVCM_NODE_TYPE_KEY, data);
             break;
 
         case EJSON_TOKEN_STRING:
-            node = pcvcm_node_new (PCVCM_NODE_TYPE_STRING, buf);
+            node = pcvcm_node_new (PCVCM_NODE_TYPE_STRING, data);
             break;
 
         case EJSON_TOKEN_NULL:
-            node = pcvcm_node_new (PCVCM_NODE_TYPE_NULL, buf);
+            node = pcvcm_node_new (PCVCM_NODE_TYPE_NULL, data);
             break;
 
         case EJSON_TOKEN_BOOLEAN:
-            node = pcvcm_node_new (PCVCM_NODE_TYPE_BOOLEAN, buf);
+            node = pcvcm_node_new (PCVCM_NODE_TYPE_BOOLEAN, data);
             break;
 
         case EJSON_TOKEN_NUMBER:
-            node = pcvcm_node_new (PCVCM_NODE_TYPE_NUMBER, buf);
+            node = pcvcm_node_new (PCVCM_NODE_TYPE_NUMBER, data);
             break;
 
         case EJSON_TOKEN_LONG_INT:
-            node = pcvcm_node_new (PCVCM_NODE_TYPE_LONG_INT, buf);
+            node = pcvcm_node_new (PCVCM_NODE_TYPE_LONG_INT, data);
             break;
 
         case EJSON_TOKEN_ULONG_INT:
-            node = pcvcm_node_new (PCVCM_NODE_TYPE_ULONG_INT, buf);
+            node = pcvcm_node_new (PCVCM_NODE_TYPE_ULONG_INT, data);
             break;
 
         case EJSON_TOKEN_LONG_DOUBLE:
-            node = pcvcm_node_new (PCVCM_NODE_TYPE_LONG_DOUBLE, buf);
+            node = pcvcm_node_new (PCVCM_NODE_TYPE_LONG_DOUBLE, data);
             break;
 
         case EJSON_TOKEN_TEXT:
-            node = pcvcm_node_new (PCVCM_NODE_TYPE_STRING, buf);
+            node = pcvcm_node_new (PCVCM_NODE_TYPE_STRING, data);
             break;
 
         case EJSON_TOKEN_BYTE_SQUENCE:
-            node = pcvcm_node_new (PCVCM_NODE_TYPE_BYTE_SEQUENCE, buf);
+            node = pcvcm_node_new (PCVCM_NODE_TYPE_BYTE_SEQUENCE, data);
             break;
 
         default:
             break;
     }
     return node;
-#else
-    UNUSED_PARAM(node_stack);
-    UNUSED_PARAM(token);
-    return NULL;
-#endif
 }
 
 int pcejson_parse (struct pcvcm_node** vcm_tree, purc_rwstream_t rws)

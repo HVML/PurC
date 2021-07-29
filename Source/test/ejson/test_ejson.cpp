@@ -1724,7 +1724,6 @@ TEST(ejson_token, parse_escape)
     purc_cleanup ();
 }
 
-#if 0
 TEST(ejson_token, pcejson_parse)
 {
     int ret = purc_init ("cn.fmsoft.hybridos.test", "ejson", NULL);
@@ -1756,4 +1755,4 @@ TEST(ejson_token, pcejson_parse)
     purc_rwstream_destroy(rws);
     purc_cleanup ();
 }
-#endif
+
