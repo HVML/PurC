@@ -58,7 +58,7 @@ pchtml_html_element_interface_destroy(pchtml_html_element_t *element)
 //                                const unsigned char *html, size_t size)
 pchtml_html_element_t *
 pchtml_html_element_inner_html_set(pchtml_html_element_t *element,
-                                purc_rwstream_t html, size_t size)
+                                const purc_rwstream_t html, size_t size)
 {
     pcedom_node_t *node, *child;
     pcedom_node_t *root = pcedom_interface_node(element);

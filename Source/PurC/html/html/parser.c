@@ -445,7 +445,7 @@ pchtml_html_parse_chunk_begin(pchtml_html_parser_t *parser)
 //                             const unsigned char *html, size_t size)
 unsigned int
 pchtml_html_parse_chunk_process(pchtml_html_parser_t *parser,
-                             purc_rwstream_t html, size_t size)
+                             const purc_rwstream_t html, size_t size)
 {
     if (parser->state != PCHTML_HTML_PARSER_STATE_PROCESS) {
         pcinst_set_error (PCHTML_WRONG_STAGE);

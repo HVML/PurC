@@ -108,7 +108,7 @@ pchtml_html_parse_chunk_begin(pchtml_html_parser_t *parser) WTF_INTERNAL;
 unsigned int
 pchtml_html_parse_chunk_process(pchtml_html_parser_t *parser,
                 //const unsigned char *html, size_t size) WTF_INTERNAL;
-                purc_rwstream_t html, size_t size) WTF_INTERNAL;
+                const purc_rwstream_t html, size_t size) WTF_INTERNAL;
 
 unsigned int
 pchtml_html_parse_chunk_end(pchtml_html_parser_t *parser) WTF_INTERNAL;

@@ -134,7 +134,7 @@ unsigned int
 //pchtml_html_document_parse(pchtml_html_document_t *document,
 //                        const unsigned char *html, size_t size)
 pchtml_html_document_parse(pchtml_html_document_t *document,
-                        purc_rwstream_t html, size_t size)
+                        const purc_rwstream_t html, size_t size)
 {
     unsigned int status;
     pcedom_document_t *doc;
@@ -197,7 +197,7 @@ unsigned int
 //pchtml_html_document_parse_chunk(pchtml_html_document_t *document,
 //                            const unsigned char *html, size_t size)
 pchtml_html_document_parse_chunk(pchtml_html_document_t *document,
-                              purc_rwstream_t html, size_t size)
+                              const purc_rwstream_t html, size_t size)
 {
     return pchtml_html_parse_chunk_process(document->dom_document.parser,
                                         html, size);
@@ -215,7 +215,7 @@ pcedom_node_t *
 //                                 const unsigned char *html, size_t size)
 pchtml_html_document_parse_fragment(pchtml_html_document_t *document,
                                  pcedom_element_t *element,
-                                 purc_rwstream_t html, size_t size)
+                                 const purc_rwstream_t html, size_t size)
 {
     unsigned int status;
     pchtml_html_parser_t *parser;
@@ -272,7 +272,7 @@ unsigned int
 //pchtml_html_document_parse_fragment_chunk(pchtml_html_document_t *document,
 //                                       const unsigned char *html, size_t size)
 pchtml_html_document_parse_fragment_chunk(pchtml_html_document_t *document,
-                                       purc_rwstream_t html, size_t size)
+                                       const purc_rwstream_t html, size_t size)
 {
     return pchtml_html_parse_fragment_chunk_process(document->dom_document.parser,
                                                  html, size);
