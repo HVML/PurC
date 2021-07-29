@@ -32,6 +32,7 @@ extern "C" {
 
 #include "config.h"
 #include "html/core/str.h"
+#include "private/html.h"
 #include "private/edom/element.h"
 
 #include "html/html/base.h"
@@ -51,9 +52,10 @@ enum pchtml_html_serialize_opt {
 };
 
 
+#if 0  // gengyue
 typedef unsigned int
 (*pchtml_html_serialize_cb_f)(const unsigned char *data, size_t len, void *ctx);
-
+#endif
 
 unsigned int
 pchtml_html_serialize_cb(pcedom_node_t *node,
@@ -89,10 +91,12 @@ pchtml_html_serialize_pretty_str(pcedom_node_t *node,
                 pchtml_html_serialize_opt_t opt, size_t indent,
                 pchtml_str_t *str) WTF_INTERNAL;
 
+#if 0   //gengyue
 unsigned int
 pchtml_html_serialize_pretty_tree_cb(pcedom_node_t *node,
                 pchtml_html_serialize_opt_t opt, size_t indent,
                 pchtml_html_serialize_cb_f cb, void *ctx) WTF_INTERNAL;
+#endif
 
 unsigned int
 pchtml_html_serialize_pretty_tree_str(pcedom_node_t *node,

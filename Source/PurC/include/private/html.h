@@ -50,54 +50,57 @@ typedef struct pchtml_html_document pchtml_html_document_t;
 
 // operations about  html document
 pchtml_html_document_t *
-pchtml_html_document_create(void) WTF_INTERNAL;
+pchtml_html_document_create(void);
 
 void
-pchtml_html_document_clean(pchtml_html_document_t *document) WTF_INTERNAL;
+pchtml_html_document_clean(pchtml_html_document_t *document);
 
 pchtml_html_document_t *
-pchtml_html_document_destroy(pchtml_html_document_t *document) WTF_INTERNAL;
+pchtml_html_document_destroy(pchtml_html_document_t *document);
 
 
 // operations about parsing html
 unsigned int
 pchtml_html_document_parse(pchtml_html_document_t *document,
-                //const unsigned char *html, size_t size) WTF_INTERNAL;
-                const purc_rwstream_t html, size_t size) WTF_INTERNAL;
+                const purc_rwstream_t html, size_t size) ;
 
 unsigned int
 pchtml_html_document_parse_chunk_begin(
-                pchtml_html_document_t *document) WTF_INTERNAL;
+                pchtml_html_document_t *document) ;
 
 unsigned int
 pchtml_html_document_parse_chunk(pchtml_html_document_t *document,
-                //const unsigned char *html, size_t size) WTF_INTERNAL;
-                const purc_rwstream_t html, size_t size) WTF_INTERNAL;
+                const purc_rwstream_t html, size_t size) ;
 
 unsigned int
 pchtml_html_document_parse_chunk_end(
-                pchtml_html_document_t *document) WTF_INTERNAL;
+                pchtml_html_document_t *document) ;
 
 pcedom_node_t *
 pchtml_html_document_parse_fragment(pchtml_html_document_t *document,
                 pcedom_element_t *element,
-                //const unsigned char *html, size_t size) WTF_INTERNAL;
-                const purc_rwstream_t html, size_t size) WTF_INTERNAL;
+                const purc_rwstream_t html, size_t size) ;
 
 unsigned int
 pchtml_html_document_parse_fragment_chunk_begin(
                 pchtml_html_document_t *document,
-                pcedom_element_t *element) WTF_INTERNAL;
+                pcedom_element_t *element) ;
 
 unsigned int
 pchtml_html_document_parse_fragment_chunk(pchtml_html_document_t *document,
-                //const unsigned char *html, size_t size) WTF_INTERNAL;
-                const purc_rwstream_t html, size_t size) WTF_INTERNAL;
+                const purc_rwstream_t html, size_t size) ;
 
 pcedom_node_t *
 pchtml_html_document_parse_fragment_chunk_end(
-                pchtml_html_document_t *document) WTF_INTERNAL;
+                pchtml_html_document_t *document) ;
 
+typedef unsigned int
+(*pchtml_html_serialize_cb_f)(const unsigned char *data, size_t len, void *ctx);
+
+unsigned int
+pchtml_html_serialize_pretty_tree_cb(pcedom_node_t *node,
+                int opt, size_t indent,
+                pchtml_html_serialize_cb_f cb, void *ctx) ;
 
 
 #ifdef __cplusplus
