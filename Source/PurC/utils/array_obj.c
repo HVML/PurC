@@ -26,7 +26,7 @@
 #include "config.h"
 #include "private/instance.h"
 #include "private/errors.h"
-#include "html/core/array_obj.h"
+#include "private/array_obj.h"
 
 
 pcutils_array_obj_t *

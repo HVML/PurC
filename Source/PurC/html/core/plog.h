@@ -31,7 +31,7 @@ extern "C" {
 #endif
 
 #include "config.h"
-#include "html/core/array_obj.h"
+#include "private/array_obj.h"
 
 
 typedef struct {

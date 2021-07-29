@@ -34,7 +34,7 @@ extern "C" {
 #include "purc-rwstream.h"
 #include "html/core/in.h"
 #include "html/core/sbst.h"
-#include "html/core/array_obj.h"
+#include "private/array_obj.h"
 
 #include "html/html/base.h"
 #include "html/html/token.h"

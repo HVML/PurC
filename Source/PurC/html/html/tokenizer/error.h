@@ -31,7 +31,7 @@ extern "C" {
 
 #include "config.h"
 #include "html/core/base.h"
-#include "html/core/array_obj.h"
+#include "private/array_obj.h"
 
 #include "html/html/tokenizer.h"
 
