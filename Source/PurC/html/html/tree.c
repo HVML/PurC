@@ -88,38 +88,38 @@ pchtml_html_tree_init(pchtml_html_tree_t *tree, pchtml_html_tokenizer_t *tkz)
     unsigned int status;
 
     /* Stack of open elements */
-    tree->open_elements = pchtml_array_create();
-    status = pchtml_array_init(tree->open_elements, 128);
+    tree->open_elements = pcutils_array_create();
+    status = pcutils_array_init(tree->open_elements, 128);
     if (status != PCHTML_STATUS_OK) {
         return status;
     }
 
     /* Stack of active formatting */
-    tree->active_formatting = pchtml_array_create();
-    status = pchtml_array_init(tree->active_formatting, 128);
+    tree->active_formatting = pcutils_array_create();
+    status = pcutils_array_init(tree->active_formatting, 128);
     if (status != PCHTML_STATUS_OK) {
         return status;
     }
 
     /* Stack of template insertion modes */
-    tree->template_insertion_modes = pchtml_array_obj_create();
-    status = pchtml_array_obj_init(tree->template_insertion_modes, 64,
+    tree->template_insertion_modes = pcutils_array_obj_create();
+    status = pcutils_array_obj_init(tree->template_insertion_modes, 64,
                                    sizeof(pchtml_html_tree_template_insertion_t));
     if (status != PCHTML_STATUS_OK) {
         return status;
     }
 
     /* Stack of pending table character tokens */
-    tree->pending_table.text_list = pchtml_array_obj_create();
-    status = pchtml_array_obj_init(tree->pending_table.text_list, 16,
+    tree->pending_table.text_list = pcutils_array_obj_create();
+    status = pcutils_array_obj_init(tree->pending_table.text_list, 16,
                                    sizeof(pchtml_str_t));
     if (status != PCHTML_STATUS_OK) {
         return status;
     }
 
     /* Parse errors */
-    tree->parse_errors = pchtml_array_obj_create();
-    status = pchtml_array_obj_init(tree->parse_errors, 16,
+    tree->parse_errors = pcutils_array_obj_create();
+    status = pcutils_array_obj_init(tree->parse_errors, 16,
                                                 sizeof(pchtml_html_tree_error_t));
     if (status != PCHTML_STATUS_OK) {
         return status;
@@ -180,11 +180,11 @@ pchtml_html_tree_unref(pchtml_html_tree_t *tree)
 void
 pchtml_html_tree_clean(pchtml_html_tree_t *tree)
 {
-    pchtml_array_clean(tree->open_elements);
-    pchtml_array_clean(tree->active_formatting);
-    pchtml_array_obj_clean(tree->template_insertion_modes);
-    pchtml_array_obj_clean(tree->pending_table.text_list);
-    pchtml_array_obj_clean(tree->parse_errors);
+    pcutils_array_clean(tree->open_elements);
+    pcutils_array_clean(tree->active_formatting);
+    pcutils_array_obj_clean(tree->template_insertion_modes);
+    pcutils_array_obj_clean(tree->pending_table.text_list);
+    pcutils_array_obj_clean(tree->parse_errors);
 
     tree->document = NULL;
     tree->fragment = NULL;
@@ -207,15 +207,15 @@ pchtml_html_tree_destroy(pchtml_html_tree_t *tree)
         return NULL;
     }
 
-    tree->open_elements = pchtml_array_destroy(tree->open_elements, true);
-    tree->active_formatting = pchtml_array_destroy(tree->active_formatting,
+    tree->open_elements = pcutils_array_destroy(tree->open_elements, true);
+    tree->active_formatting = pcutils_array_destroy(tree->active_formatting,
                                                    true);
-    tree->template_insertion_modes = pchtml_array_obj_destroy(tree->template_insertion_modes,
+    tree->template_insertion_modes = pcutils_array_obj_destroy(tree->template_insertion_modes,
                                                               true);
-    tree->pending_table.text_list = pchtml_array_obj_destroy(tree->pending_table.text_list,
+    tree->pending_table.text_list = pcutils_array_obj_destroy(tree->pending_table.text_list,
                                                              true);
 
-    tree->parse_errors = pchtml_array_obj_destroy(tree->parse_errors, true);
+    tree->parse_errors = pcutils_array_obj_destroy(tree->parse_errors, true);
     tree->tkz_ref = pchtml_html_tokenizer_unref(tree->tkz_ref);
 
     return pchtml_free(tree);
@@ -972,7 +972,7 @@ pchtml_html_tree_generate_implied_end_tags(pchtml_html_tree_t *tree,
 
     pchtml_assert(tree->open_elements != 0);
 
-    while (pchtml_array_length(tree->open_elements) != 0) {
+    while (pcutils_array_length(tree->open_elements) != 0) {
         node = pchtml_html_tree_current_node(tree);
 
         pchtml_assert(node != NULL);
@@ -1011,7 +1011,7 @@ pchtml_html_tree_generate_all_implied_end_tags_thoroughly(pchtml_html_tree_t *tr
 
     pchtml_assert(tree->open_elements != 0);
 
-    while (pchtml_array_length(tree->open_elements) != 0) {
+    while (pcutils_array_length(tree->open_elements) != 0) {
         node = pchtml_html_tree_current_node(tree);
 
         pchtml_assert(node != NULL);

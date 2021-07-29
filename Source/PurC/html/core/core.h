@@ -26,11 +26,12 @@
 #define PCHTML_CORE_H
 
 #include "config.h"
+#include "private/array_obj.h"
+
 #include "html/core/base.h"
 #include "html/core/def.h"
 #include "html/core/types.h"
 #include "html/core/array.h"
-#include "html/core/array_obj.h"
 #include "html/core/avl.h"
 #include "html/core/bst.h"
 #include "html/core/bst_map.h"

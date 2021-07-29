@@ -34,7 +34,7 @@ extern "C" {
 #include "purc-rwstream.h"
 #include "html/core/in.h"
 #include "html/core/sbst.h"
-#include "html/core/array_obj.h"
+#include "private/array_obj.h"
 
 #include "html/html/base.h"
 #include "html/html/token.h"
@@ -75,7 +75,7 @@ struct pchtml_html_tokenizer {
     pchtml_dobject_t                 *dobj_token_attr;
 
     /* Parse error */
-    pchtml_array_obj_t               *parse_errors;
+    pcutils_array_obj_t               *parse_errors;
 
     /*
      * Leak abstractions.

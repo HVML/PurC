@@ -144,7 +144,7 @@ pchtml_html_tree_active_formatting_reconstruct_elements(pchtml_html_tree_t *tree
         return PCHTML_STATUS_OK;
     }
 
-    pchtml_array_t *af = tree->active_formatting;
+    pcutils_array_t *af = tree->active_formatting;
     void **list = af->list;
 
     /* Step 2-3 */

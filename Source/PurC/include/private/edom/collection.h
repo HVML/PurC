@@ -31,13 +31,13 @@ extern "C" {
 #endif
 
 #include "html/core/base.h"
-#include "html/core/array.h"
 
+#include "private/array.h"
 #include "private/edom/interface.h"
 
 
 typedef struct {
-    pchtml_array_t     array;
+    pcutils_array_t     array;
     pcedom_document_t *document;
 }
 pcedom_collection_t;
@@ -77,31 +77,31 @@ pcedom_collection_make(pcedom_document_t *document, size_t start_list_size)
 static inline void
 pcedom_collection_clean(pcedom_collection_t *col)
 {
-    pchtml_array_clean(&col->array);
+    pcutils_array_clean(&col->array);
 }
 
 static inline unsigned int
 pcedom_collection_append(pcedom_collection_t *col, void *value)
 {
-    return pchtml_array_push(&col->array, value);
+    return pcutils_array_push(&col->array, value);
 }
 
 static inline pcedom_element_t *
 pcedom_collection_element(pcedom_collection_t *col, size_t idx)
 {
-    return (pcedom_element_t *) pchtml_array_get(&col->array, idx);
+    return (pcedom_element_t *) pcutils_array_get(&col->array, idx);
 }
 
 static inline pcedom_node_t *
 pcedom_collection_node(pcedom_collection_t *col, size_t idx)
 {
-    return (pcedom_node_t *) pchtml_array_get(&col->array, idx);
+    return (pcedom_node_t *) pcutils_array_get(&col->array, idx);
 }
 
 static inline size_t
 pcedom_collection_length(pcedom_collection_t *col)
 {
-    return pchtml_array_length(&col->array);
+    return pcutils_array_length(&col->array);
 }
 
 /*

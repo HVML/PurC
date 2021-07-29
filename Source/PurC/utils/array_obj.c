@@ -26,17 +26,17 @@
 #include "config.h"
 #include "private/instance.h"
 #include "private/errors.h"
-#include "html/core/array_obj.h"
+#include "private/array_obj.h"
 
 
-pchtml_array_obj_t *
-pchtml_array_obj_create(void)
+pcutils_array_obj_t *
+pcutils_array_obj_create(void)
 {
-    return pchtml_calloc(1, sizeof(pchtml_array_obj_t));
+    return pchtml_calloc(1, sizeof(pcutils_array_obj_t));
 }
 
 unsigned int
-pchtml_array_obj_init(pchtml_array_obj_t *array,
+pcutils_array_obj_init(pcutils_array_obj_t *array,
                       size_t size, size_t struct_size)
 {
     if (array == NULL) {
@@ -64,13 +64,13 @@ pchtml_array_obj_init(pchtml_array_obj_t *array,
 }
 
 void
-pchtml_array_obj_clean(pchtml_array_obj_t *array)
+pcutils_array_obj_clean(pcutils_array_obj_t *array)
 {
     array->length = 0;
 }
 
-pchtml_array_obj_t *
-pchtml_array_obj_destroy(pchtml_array_obj_t *array, bool self_destroy)
+pcutils_array_obj_t *
+pcutils_array_obj_destroy(pcutils_array_obj_t *array, bool self_destroy)
 {
     if (array == NULL)
         return NULL;
@@ -89,7 +89,7 @@ pchtml_array_obj_destroy(pchtml_array_obj_t *array, bool self_destroy)
 }
 
 uint8_t *
-pchtml_array_obj_expand(pchtml_array_obj_t *array, size_t up_to)
+pcutils_array_obj_expand(pcutils_array_obj_t *array, size_t up_to)
 {
     uint8_t *list;
     size_t new_size;
@@ -113,13 +113,13 @@ pchtml_array_obj_expand(pchtml_array_obj_t *array, size_t up_to)
 }
 
 void *
-pchtml_array_obj_push(pchtml_array_obj_t *array)
+pcutils_array_obj_push(pcutils_array_obj_t *array)
 {
     void *entry;
 
     if (array->length >= array->size)
     {
-        if ((pchtml_array_obj_expand(array, 128) == NULL)) {
+        if ((pcutils_array_obj_expand(array, 128) == NULL)) {
             return NULL;
         }
     }
@@ -133,7 +133,7 @@ pchtml_array_obj_push(pchtml_array_obj_t *array)
 }
 
 void *
-pchtml_array_obj_pop(pchtml_array_obj_t *array)
+pcutils_array_obj_pop(pcutils_array_obj_t *array)
 {
     if (array->length == 0) {
         return NULL;
@@ -144,7 +144,7 @@ pchtml_array_obj_pop(pchtml_array_obj_t *array)
 }
 
 void
-pchtml_array_obj_delete(pchtml_array_obj_t *array, size_t begin, size_t length)
+pcutils_array_obj_delete(pcutils_array_obj_t *array, size_t begin, size_t length)
 {
     if (begin >= array->length || length == 0) {
         return;
@@ -169,37 +169,37 @@ pchtml_array_obj_delete(pchtml_array_obj_t *array, size_t begin, size_t length)
  * No inline functions.
  */
 void
-pchtml_array_obj_erase_noi(pchtml_array_obj_t *array)
+pcutils_array_obj_erase_noi(pcutils_array_obj_t *array)
 {
-    pchtml_array_obj_erase(array);
+    pcutils_array_obj_erase(array);
 }
 
 void *
-pchtml_array_obj_get_noi(pchtml_array_obj_t *array, size_t idx)
+pcutils_array_obj_get_noi(pcutils_array_obj_t *array, size_t idx)
 {
-    return pchtml_array_obj_get(array, idx);
+    return pcutils_array_obj_get(array, idx);
 }
 
 size_t
-pchtml_array_obj_length_noi(pchtml_array_obj_t *array)
+pcutils_array_obj_length_noi(pcutils_array_obj_t *array)
 {
-    return pchtml_array_obj_length(array);
+    return pcutils_array_obj_length(array);
 }
 
 size_t
-pchtml_array_obj_size_noi(pchtml_array_obj_t *array)
+pcutils_array_obj_size_noi(pcutils_array_obj_t *array)
 {
-    return pchtml_array_obj_size(array);
+    return pcutils_array_obj_size(array);
 }
 
 size_t
-pchtml_array_obj_struct_size_noi(pchtml_array_obj_t *array)
+pcutils_array_obj_struct_size_noi(pcutils_array_obj_t *array)
 {
-    return pchtml_array_obj_struct_size(array);
+    return pcutils_array_obj_struct_size(array);
 }
 
 void *
-pchtml_array_obj_last_noi(pchtml_array_obj_t *array)
+pcutils_array_obj_last_noi(pcutils_array_obj_t *array)
 {
-    return pchtml_array_obj_last(array);
+    return pcutils_array_obj_last(array);
 }

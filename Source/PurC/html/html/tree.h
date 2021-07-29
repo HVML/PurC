@@ -51,7 +51,7 @@ typedef unsigned int
                                pcedom_attr_t *attr, void *ctx);
 
 typedef struct {
-    pchtml_array_obj_t *text_list;
+    pcutils_array_obj_t *text_list;
     bool               have_non_ws;
 }
 pchtml_html_tree_pending_table_t;
@@ -64,13 +64,13 @@ struct pchtml_html_tree {
 
     pchtml_html_form_element_t        *form;
 
-    pchtml_array_t                 *open_elements;
-    pchtml_array_t                 *active_formatting;
-    pchtml_array_obj_t             *template_insertion_modes;
+    pcutils_array_t                 *open_elements;
+    pcutils_array_t                 *active_formatting;
+    pcutils_array_obj_t             *template_insertion_modes;
 
     pchtml_html_tree_pending_table_t  pending_table;
 
-    pchtml_array_obj_t             *parse_errors;
+    pcutils_array_obj_t             *parse_errors;
 
     bool                           foster_parenting;
     bool                           frameset_ok;

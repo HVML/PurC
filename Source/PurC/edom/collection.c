@@ -60,7 +60,7 @@ pcedom_collection_init(pcedom_collection_t *col, size_t start_list_size)
         return PCHTML_STATUS_ERROR_INCOMPLETE_OBJECT;
     }
 
-    return pchtml_array_init(&col->array, start_list_size);
+    return pcutils_array_init(&col->array, start_list_size);
 }
 
 pcedom_collection_t *
@@ -71,7 +71,7 @@ pcedom_collection_destroy(pcedom_collection_t *col, bool self_destroy)
     }
 
     if (col->array.list != NULL) {
-        pchtml_array_destroy(&col->array, false);
+        pcutils_array_destroy(&col->array, false);
 
         col->array.list = NULL;
     }

@@ -33,8 +33,7 @@ extern "C" {
 #include "config.h"
 #include "private/instance.h"
 #include "private/errors.h"
-
-#include "html/core/array.h"
+#include "private/array.h"
 
 #include "html/html/tree.h"
 
@@ -51,14 +50,14 @@ pchtml_html_tree_template_insertion_t;
 static inline pchtml_html_tree_insertion_mode_f
 pchtml_html_tree_template_insertion_current(pchtml_html_tree_t *tree)
 {
-    if (pchtml_array_obj_length(tree->template_insertion_modes) == 0) {
+    if (pcutils_array_obj_length(tree->template_insertion_modes) == 0) {
         return NULL;
     }
 
     pchtml_html_tree_template_insertion_t *tmp_ins;
 
     tmp_ins = (pchtml_html_tree_template_insertion_t *)
-              pchtml_array_obj_last(tree->template_insertion_modes);
+              pcutils_array_obj_last(tree->template_insertion_modes);
 
     return tmp_ins->mode;
 }
@@ -69,7 +68,7 @@ pchtml_html_tree_template_insertion_get(pchtml_html_tree_t *tree, size_t idx)
     pchtml_html_tree_template_insertion_t *tmp_ins;
 
     tmp_ins = (pchtml_html_tree_template_insertion_t *)
-              pchtml_array_obj_get(tree->template_insertion_modes, idx);
+              pcutils_array_obj_get(tree->template_insertion_modes, idx);
     if (tmp_ins == NULL) {
         return NULL;
     }
@@ -90,7 +89,7 @@ pchtml_html_tree_template_insertion_push(pchtml_html_tree_t *tree,
     pchtml_html_tree_template_insertion_t *tmp_ins;
 
     tmp_ins = (pchtml_html_tree_template_insertion_t *)
-              pchtml_array_obj_push(tree->template_insertion_modes);
+              pcutils_array_obj_push(tree->template_insertion_modes);
     if (tmp_ins == NULL) {
         pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
@@ -107,7 +106,7 @@ pchtml_html_tree_template_insertion_pop(pchtml_html_tree_t *tree)
     pchtml_html_tree_template_insertion_t *tmp_ins;
 
     tmp_ins = (pchtml_html_tree_template_insertion_t *)
-              pchtml_array_obj_pop(tree->template_insertion_modes);
+              pcutils_array_obj_pop(tree->template_insertion_modes);
     if (tmp_ins == NULL) {
         return NULL;
     }

@@ -75,9 +75,9 @@ pchtml_dobject_init(pchtml_dobject_t *dobject,
 #endif
 
     /* Array */
-    dobject->cache = pchtml_array_create();
+    dobject->cache = pcutils_array_create();
 
-    status = pchtml_array_init(dobject->cache, chunk_size);
+    status = pcutils_array_init(dobject->cache, chunk_size);
     if (status)
         return status;
 
@@ -90,7 +90,7 @@ pchtml_dobject_clean(pchtml_dobject_t *dobject)
     dobject->allocated = 0UL;
 
     pchtml_mem_clean(dobject->mem);
-    pchtml_array_clean(dobject->cache);
+    pcutils_array_clean(dobject->cache);
 }
 
 pchtml_dobject_t *
@@ -100,7 +100,7 @@ pchtml_dobject_destroy(pchtml_dobject_t *dobject, bool destroy_self)
         return NULL;
 
     dobject->mem = pchtml_mem_destroy(dobject->mem, true);
-    dobject->cache = pchtml_array_destroy(dobject->cache, true);
+    dobject->cache = pcutils_array_destroy(dobject->cache, true);
 
     if (destroy_self == true) {
         return pchtml_free(dobject);
@@ -114,16 +114,16 @@ pchtml_dobject_alloc(pchtml_dobject_t *dobject)
 {
     void *data;
 
-    if (pchtml_array_length(dobject->cache) != 0) {
+    if (pcutils_array_length(dobject->cache) != 0) {
         dobject->allocated++;
 
 #if defined(PCHTML_HAVE_ADDRESS_SANITIZER)
-        data = pchtml_array_pop(dobject->cache);
+        data = pcutils_array_pop(dobject->cache);
         ASAN_UNPOISON_MEMORY_REGION(data, dobject->struct_size);
 
         return data;
 #else
-        return pchtml_array_pop(dobject->cache);
+        return pcutils_array_pop(dobject->cache);
 #endif
     }
 
@@ -164,7 +164,7 @@ pchtml_dobject_free(pchtml_dobject_t *dobject, void *data)
     ASAN_POISON_MEMORY_REGION(data, dobject->struct_size);
 #endif
 
-    if (pchtml_array_push(dobject->cache, data) == PCHTML_STATUS_OK) {
+    if (pcutils_array_push(dobject->cache, data) == PCHTML_STATUS_OK) {
         dobject->allocated--;
         return NULL;
     }

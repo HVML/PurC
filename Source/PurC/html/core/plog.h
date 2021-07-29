@@ -31,7 +31,7 @@ extern "C" {
 #endif
 
 #include "config.h"
-#include "html/core/array_obj.h"
+#include "private/array_obj.h"
 
 
 typedef struct {
@@ -42,7 +42,7 @@ typedef struct {
 pchtml_plog_entry_t;
 
 typedef struct {
-    pchtml_array_obj_t list;
+    pcutils_array_obj_t list;
 }
 pchtml_plog_t;
 
@@ -67,7 +67,7 @@ pchtml_plog_create(void)
 static inline void
 pchtml_plog_clean(pchtml_plog_t *plog)
 {
-    pchtml_array_obj_clean(&plog->list);
+    pcutils_array_obj_clean(&plog->list);
 }
 
 static inline void *
@@ -80,7 +80,7 @@ pchtml_plog_push(pchtml_plog_t *plog, const unsigned char *data, void *ctx,
         return NULL;
     }
 
-    entry = (pchtml_plog_entry_t *) pchtml_array_obj_push(&plog->list);
+    entry = (pchtml_plog_entry_t *) pcutils_array_obj_push(&plog->list);
     if (entry == NULL) {
         return NULL;
     }
@@ -95,7 +95,7 @@ pchtml_plog_push(pchtml_plog_t *plog, const unsigned char *data, void *ctx,
 static inline size_t
 pchtml_plog_length(pchtml_plog_t *plog)
 {
-    return pchtml_array_obj_length(&plog->list);
+    return pcutils_array_obj_length(&plog->list);
 }
 
 /*

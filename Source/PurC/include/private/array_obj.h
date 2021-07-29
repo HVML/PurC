@@ -22,8 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef PCHTML_ARRAY_OBJ_H
-#define PCHTML_ARRAY_OBJ_H
+#ifndef PCUTILS_ARRAY_OBJ_H
+#define PCUTILS_ARRAY_OBJ_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,45 +39,45 @@ typedef struct {
     size_t  length;
     size_t  struct_size;
 }
-pchtml_array_obj_t;
+pcutils_array_obj_t;
 
 
-pchtml_array_obj_t * pchtml_array_obj_create(void) WTF_INTERNAL;
+pcutils_array_obj_t * pcutils_array_obj_create(void) WTF_INTERNAL;
 
 unsigned int 
-pchtml_array_obj_init(pchtml_array_obj_t *array,
+pcutils_array_obj_init(pcutils_array_obj_t *array,
                       size_t size, size_t struct_size) WTF_INTERNAL;
 
 void 
-pchtml_array_obj_clean(pchtml_array_obj_t *array) WTF_INTERNAL;
+pcutils_array_obj_clean(pcutils_array_obj_t *array) WTF_INTERNAL;
 
-pchtml_array_obj_t * 
-pchtml_array_obj_destroy(pchtml_array_obj_t *array, bool self_destroy) WTF_INTERNAL;
+pcutils_array_obj_t * 
+pcutils_array_obj_destroy(pcutils_array_obj_t *array, bool self_destroy) WTF_INTERNAL;
 
 uint8_t *
-pchtml_array_obj_expand(pchtml_array_obj_t *array, size_t up_to) WTF_INTERNAL;
+pcutils_array_obj_expand(pcutils_array_obj_t *array, size_t up_to) WTF_INTERNAL;
 
 void * 
-pchtml_array_obj_push(pchtml_array_obj_t *array) WTF_INTERNAL;
+pcutils_array_obj_push(pcutils_array_obj_t *array) WTF_INTERNAL;
 
 void * 
-pchtml_array_obj_pop(pchtml_array_obj_t *array) WTF_INTERNAL;
+pcutils_array_obj_pop(pcutils_array_obj_t *array) WTF_INTERNAL;
 
 void
-pchtml_array_obj_delete(pchtml_array_obj_t *array, size_t begin, size_t length) WTF_INTERNAL;
+pcutils_array_obj_delete(pcutils_array_obj_t *array, size_t begin, size_t length) WTF_INTERNAL;
 
 
 /*
  * Inline functions
  */
 static inline void
-pchtml_array_obj_erase(pchtml_array_obj_t *array)
+pcutils_array_obj_erase(pcutils_array_obj_t *array)
 {
-    memset(array, 0, sizeof(pchtml_array_obj_t));
+    memset(array, 0, sizeof(pcutils_array_obj_t));
 }
 
 static inline void *
-pchtml_array_obj_get(pchtml_array_obj_t *array, size_t idx)
+pcutils_array_obj_get(pcutils_array_obj_t *array, size_t idx)
 {
     if (idx >= array->length) {
         return NULL;
@@ -87,25 +87,25 @@ pchtml_array_obj_get(pchtml_array_obj_t *array, size_t idx)
 }
 
 static inline size_t
-pchtml_array_obj_length(pchtml_array_obj_t *array)
+pcutils_array_obj_length(pcutils_array_obj_t *array)
 {
     return array->length;
 }
 
 static inline size_t
-pchtml_array_obj_size(pchtml_array_obj_t *array)
+pcutils_array_obj_size(pcutils_array_obj_t *array)
 {
     return array->size;
 }
 
 static inline size_t
-pchtml_array_obj_struct_size(pchtml_array_obj_t *array)
+pcutils_array_obj_struct_size(pcutils_array_obj_t *array)
 {
     return array->struct_size;
 }
 
 static inline void *
-pchtml_array_obj_last(pchtml_array_obj_t *array)
+pcutils_array_obj_last(pcutils_array_obj_t *array)
 {
     if (array->length == 0) {
         return NULL;
@@ -119,26 +119,26 @@ pchtml_array_obj_last(pchtml_array_obj_t *array)
  * No inline functions for ABI.
  */
 void
-pchtml_array_obj_erase_noi(pchtml_array_obj_t *array) WTF_INTERNAL;
+pcutils_array_obj_erase_noi(pcutils_array_obj_t *array) WTF_INTERNAL;
 
 void *
-pchtml_array_obj_get_noi(pchtml_array_obj_t *array, size_t idx) WTF_INTERNAL;
+pcutils_array_obj_get_noi(pcutils_array_obj_t *array, size_t idx) WTF_INTERNAL;
 
 size_t
-pchtml_array_obj_length_noi(pchtml_array_obj_t *array) WTF_INTERNAL;
+pcutils_array_obj_length_noi(pcutils_array_obj_t *array) WTF_INTERNAL;
 
 size_t
-pchtml_array_obj_size_noi(pchtml_array_obj_t *array) WTF_INTERNAL;
+pcutils_array_obj_size_noi(pcutils_array_obj_t *array) WTF_INTERNAL;
 
 size_t
-pchtml_array_obj_struct_size_noi(pchtml_array_obj_t *array) WTF_INTERNAL;
+pcutils_array_obj_struct_size_noi(pcutils_array_obj_t *array) WTF_INTERNAL;
 
 void *
-pchtml_array_obj_last_noi(pchtml_array_obj_t *array) WTF_INTERNAL;
+pcutils_array_obj_last_noi(pcutils_array_obj_t *array) WTF_INTERNAL;
 
 
 #ifdef __cplusplus
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_ARRAY_OBJ_H */
+#endif  /* PCUTILS_ARRAY_OBJ_H */

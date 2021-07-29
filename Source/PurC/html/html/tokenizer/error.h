@@ -31,7 +31,7 @@ extern "C" {
 
 #include "config.h"
 #include "html/core/base.h"
-#include "html/core/array_obj.h"
+#include "private/array_obj.h"
 
 #include "html/html/tokenizer.h"
 
@@ -147,7 +147,7 @@ pchtml_html_tokenizer_error_t;
 
 
 pchtml_html_tokenizer_error_t *
-pchtml_html_tokenizer_error_add(pchtml_array_obj_t *parse_errors,
+pchtml_html_tokenizer_error_add(pcutils_array_obj_t *parse_errors,
                              const unsigned char *pos,
                              pchtml_html_tokenizer_error_id_t id) WTF_INTERNAL;
 

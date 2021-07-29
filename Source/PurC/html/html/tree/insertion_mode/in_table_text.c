@@ -40,7 +40,7 @@ pchtml_html_tree_insertion_mode_in_table_text(pchtml_html_tree_t *tree,
 {
     unsigned int status;
     pchtml_str_t *text;
-    pchtml_array_obj_t *pt_list = tree->pending_table.text_list;
+    pcutils_array_obj_t *pt_list = tree->pending_table.text_list;
 
     if (token->tag_id == PCHTML_TAG__TEXT) {
         if (token->null_count != 0) {
@@ -48,7 +48,7 @@ pchtml_html_tree_insertion_mode_in_table_text(pchtml_html_tree_t *tree,
                                       PCHTML_HTML_RULES_ERROR_NUCH);
         }
 
-        text = pchtml_array_obj_push(pt_list);
+        text = pcutils_array_obj_push(pt_list);
         if (text == NULL) {
             pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             tree->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
@@ -77,7 +77,7 @@ pchtml_html_tree_insertion_mode_in_table_text(pchtml_html_tree_t *tree,
         }
 
         if (text->length == 0) {
-            pchtml_array_obj_pop(pt_list);
+            pcutils_array_obj_pop(pt_list);
             pchtml_str_destroy(text, tree->document->dom_document.text, false);
 
             return true;
@@ -103,8 +103,8 @@ pchtml_html_tree_insertion_mode_in_table_text(pchtml_html_tree_t *tree,
 
         tree->foster_parenting = true;
 
-        for (size_t i = 0; i < pchtml_array_obj_length(pt_list); i++) {
-            text = pchtml_array_obj_get(pt_list, i);
+        for (size_t i = 0; i < pcutils_array_obj_length(pt_list); i++) {
+            text = pcutils_array_obj_get(pt_list, i);
 
             status = pchtml_html_tree_insertion_mode_in_body_text_append(tree,
                                                                       text);
@@ -118,8 +118,8 @@ pchtml_html_tree_insertion_mode_in_table_text(pchtml_html_tree_t *tree,
         tree->foster_parenting = false;
     }
     else {
-        for (size_t i = 0; i < pchtml_array_obj_length(pt_list); i++) {
-            text = pchtml_array_obj_get(pt_list, i);
+        for (size_t i = 0; i < pcutils_array_obj_length(pt_list); i++) {
+            text = pcutils_array_obj_get(pt_list, i);
 
             tree->status = pchtml_html_tree_insert_character_for_data(tree, text,
                                                                    NULL);
@@ -140,10 +140,10 @@ static void
 pchtml_html_tree_insertion_mode_in_table_text_erase(pchtml_html_tree_t *tree)
 {
     pchtml_str_t *text;
-    pchtml_array_obj_t *pt_list = tree->pending_table.text_list;
+    pcutils_array_obj_t *pt_list = tree->pending_table.text_list;
 
-    for (size_t i = 0; i < pchtml_array_obj_length(pt_list); i++) {
-        text = pchtml_array_obj_get(pt_list, i);
+    for (size_t i = 0; i < pcutils_array_obj_length(pt_list); i++) {
+        text = pcutils_array_obj_get(pt_list, i);
 
         pchtml_str_destroy(text, tree->document->dom_document.text, false);
     }
