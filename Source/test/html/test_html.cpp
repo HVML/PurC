@@ -131,9 +131,9 @@ TEST(html, html_parser_chunk_purc)
         total += len;
     }
     sbuf[total] = '\0';
-    purc_rwstream_destroy(io);
-    io = purc_rwstream_new_from_mem(sbuf, total);
-    ASSERT_NE(io, nullptr);
+    off_t off;
+    off = purc_rwstream_seek(io, 0, SEEK_SET);
+    ASSERT_NE(off, -1);
 
     purc_html_document_t doc = purc_html_load_from_stream(io);
     ASSERT_NE(doc, nullptr);
