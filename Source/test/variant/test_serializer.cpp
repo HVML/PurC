@@ -1,5 +1,7 @@
 #include "purc.h"
 
+#include "private/variant.h"
+
 #include <stdio.h>
 #include <errno.h>
 #include <gtest/gtest.h>
@@ -564,10 +566,15 @@ TEST(variant, serialize_object)
 
     purc_variant_t v1 = purc_variant_make_number(123.0);
     purc_variant_t v2 = purc_variant_make_number(123.456);
+    ASSERT_EQ(v1->refc, 1);
+    ASSERT_EQ(v2->refc, 1);
 
     purc_variant_t my_variant =
         purc_variant_make_object_c(2, "v1", v1, "v2", v2);
     ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
+    ASSERT_EQ(v1->refc, 2);
+    ASSERT_EQ(v2->refc, 2);
+    ASSERT_EQ(my_variant->refc, 1);
 
     char buf[32];
     purc_rwstream_t my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
@@ -577,6 +584,9 @@ TEST(variant, serialize_object)
     ssize_t n = purc_variant_serialize(my_variant, my_rws,
             0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
     ASSERT_GT(n, 0);
+    ASSERT_EQ(v1->refc, 2);
+    ASSERT_EQ(v2->refc, 2);
+    ASSERT_EQ(my_variant->refc, 1);
 
     buf[n] = 0;
     ASSERT_STREQ(buf, "{\"v1\":123,\"v2\":123.456}");
@@ -587,13 +597,19 @@ TEST(variant, serialize_object)
     n = purc_variant_serialize(my_variant, my_rws,
             0, PCVARIANT_SERIALIZE_OPT_NOZERO, &len_expected);
     ASSERT_GT(n, 0);
+    ASSERT_EQ(v1->refc, 2);
+    ASSERT_EQ(v2->refc, 2);
+    ASSERT_EQ(my_variant->refc, 1);
 
     buf[n] = 0;
     ASSERT_STREQ(buf, "{\"v1\":123,\"v2\":123.456}");
 
-    purc_variant_unref(my_variant);
     purc_variant_unref(v1);
     purc_variant_unref(v2);
+    ASSERT_EQ(v1->refc, 1);
+    ASSERT_EQ(v2->refc, 1);
+    ASSERT_EQ(my_variant->refc, 1);
+    purc_variant_unref(my_variant);
 
     purc_cleanup ();
 }

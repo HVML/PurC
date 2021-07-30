@@ -87,10 +87,17 @@ _variant_object_set(purc_variant_t obj, const char *k, purc_variant_t val)
         purc_variant_ref(val);
         return 0;
     } else {
+        char *key = strdup(k);
+        if (!key) {
+            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            return -1;
+        }
+
         if (pchash_table_resize(ht, ht->count + 1) ||
-            pchash_table_insert(ht, k, val))
+            pchash_table_insert(ht, key, val))
         {
             pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            free(key);
             return -1;
         }
         purc_variant_ref(val);
@@ -141,6 +148,8 @@ static int _variant_object_remove(purc_variant_t obj, const char *key)
         return false;
     }
 
+    char *k = (char*)pchash_entry_k(e);
+    PC_ASSERT(k);
     purc_variant_t v = (purc_variant_t)pchash_entry_v(e);
     PC_ASSERT(v);
 
@@ -149,6 +158,7 @@ static int _variant_object_remove(purc_variant_t obj, const char *key)
         return false;
     }
 
+    free(k);
     purc_variant_unref(v);
 
     return true;
@@ -256,6 +266,17 @@ purc_variant_make_object (size_t nr_kv_pairs,
 void pcvariant_object_release (purc_variant_t value)
 {
     struct pchash_table *ht = _variant_object_get_ht(value);
+
+    struct pchash_entry *e, *tmp;
+    pchash_foreach_safe(ht, e, tmp) {
+        char *key = (char*)pchash_entry_k(e);
+        // purc_variant_t v = (purc_variant_t)pchash_entry_v(e);
+        int r = pchash_table_delete_entry(ht, e);
+        PC_ASSERT(r==0);
+        free(key);
+        // shall we unref here?!!!
+        // purc_variant_unref(v);
+    }
     pchash_table_free(ht);
     value->sz_ptr[1] = (uintptr_t)NULL; // say no to double free
 
