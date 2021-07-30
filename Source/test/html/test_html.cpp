@@ -116,10 +116,8 @@ TEST(html, html_parser_chunk_purc)
     };
 
     purc_rwstream_t io;
-    char sbuf[1024*8];
-    io = purc_rwstream_new_from_mem(sbuf, sizeof(sbuf));
+    io = purc_rwstream_new_buffer(1024, 1024*8);
     ASSERT_NE(io, nullptr);
-    size_t total = 0;
     for (size_t i = 0; html[i][0] != '\0'; i++) {
         const char *buf = html[i];
         size_t      len = strlen(buf);
@@ -128,9 +126,8 @@ TEST(html, html_parser_chunk_purc)
         sz = purc_rwstream_write(io, buf, len);
         ASSERT_GT(sz, 0);
         ASSERT_EQ((size_t)sz, len);
-        total += len;
     }
-    sbuf[total] = '\0';
+
     off_t off;
     off = purc_rwstream_seek(io, 0, SEEK_SET);
     ASSERT_NE(off, -1);
