@@ -7,9 +7,13 @@ link_directories(${CMAKE_BINARY_DIR}/Source/PurC/)
 add_executable(test_variant test_variant.cpp)
 target_link_libraries(test_variant purc gtest_main gtest pthread)
 
+add_executable(test_variant_object test_variant_object.cpp)
+target_link_libraries(test_variant_object purc gtest_main gtest pthread)
+
 add_executable(test_serializer test_serializer.cpp)
 target_link_libraries(test_serializer purc gtest_main gtest pthread)
 
 include(GoogleTest)
 gtest_discover_tests(test_variant)
+gtest_discover_tests(test_variant_object)
 gtest_discover_tests(test_serializer)
