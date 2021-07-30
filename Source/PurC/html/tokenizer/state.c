@@ -304,7 +304,7 @@ pchtml_html_tokenizer_state_data(pchtml_html_tokenizer_t *tkz,
                         pchtml_html_tokenizer_state_token_set_end_oef(tkz);
                     }
 
-                    if (tkz->token->begin != tkz->token->end) {
+                    if (tkz->token->begin+1 != tkz->token->end) {
                         tkz->token->tag_id = PCHTML_TAG__TEXT;
 
                         pchtml_html_tokenizer_state_append_data_m(tkz, data);

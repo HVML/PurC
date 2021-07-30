@@ -34,7 +34,6 @@
 
 struct purc_html_document {
     pchtml_html_document_t *doc;
-    int                     dummy_idx; // i know this is ugly
 };
 
 static inline void
@@ -50,12 +49,10 @@ static inline unsigned int
 _html_parse_chunk(purc_html_document_t doc, purc_rwstream_t in)
 {
     while (1) {
-        char      utf8[2][16]; // i know this is ugly
+        char      utf8[16];
         wchar_t   wc;
         int       n;
-        doc->dummy_idx = !doc->dummy_idx; // i know this is ugly
-        char *p = utf8[doc->dummy_idx];
-        n = purc_rwstream_read_utf8_char(in, p, &wc);
+        n = purc_rwstream_read_utf8_char(in, utf8, &wc);
         if (n<0) {
             // which specific PCHTML_STATUS_xxx to return?
             return PCHTML_STATUS_ERROR;
@@ -63,11 +60,11 @@ _html_parse_chunk(purc_html_document_t doc, purc_rwstream_t in)
         if (n==0) {
             return PCHTML_STATUS_OK;
         }
-        PC_ASSERT((size_t)n<sizeof(utf8[0]));
+        PC_ASSERT((size_t)n<sizeof(utf8));
 
         unsigned int status;
         status = pchtml_html_document_parse_chunk(doc->doc,
-                    (const unsigned char*)p, n);
+                    (const unsigned char*)utf8, n);
         if (status != PCHTML_STATUS_OK) {
         PC_ASSERT(0);
             return status;
