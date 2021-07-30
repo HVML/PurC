@@ -165,6 +165,7 @@ struct pcejson* pcejson_create (int32_t depth, uint32_t flags)
     parser->depth = depth;
     parser->flags = flags;
     parser->stack = pcutils_stack_new(2 * depth);
+    parser->vcm_stack = pcutils_stack_new(0);
     parser->tmp_buff = purc_rwstream_new_buffer(MIN_EJSON_BUFFER_SIZE,
             MAX_EJSON_BUFFER_SIZE);
     parser->tmp_buff2 = purc_rwstream_new_buffer(MIN_EJSON_BUFFER_SIZE,
@@ -176,6 +177,7 @@ void pcejson_destroy (struct pcejson* parser)
 {
     if (parser) {
         pcutils_stack_destroy(parser->stack);
+        pcutils_stack_destroy(parser->vcm_stack);
         purc_rwstream_destroy(parser->tmp_buff);
         purc_rwstream_destroy(parser->tmp_buff2);
         ejson_free(parser);
@@ -328,13 +330,16 @@ struct pcvcm_node* pcejson_token_to_pcvcm_node (
     return node;
 }
 
-int pcejson_parse (struct pcvcm_node** vcm_tree, purc_rwstream_t rws)
+int pcejson_parse (struct pcvcm_node** vcm_tree, struct pcejson** parser,
+        purc_rwstream_t rws)
 {
-    struct pcejson* parser = pcejson_create(10, 1);
+    if (*parser == NULL) {
+        *parser = pcejson_create (10, 1);
+    }
 
-    struct pcutils_stack* node_stack = pcutils_stack_new (0);
+    struct pcutils_stack* node_stack = (*parser)->vcm_stack;
 
-    struct pcejson_token* token = pcejson_next_token(parser, rws);
+    struct pcejson_token* token = pcejson_next_token(*parser, rws);
     while (token) {
         struct pcvcm_node* node = pcejson_token_to_pcvcm_node (node_stack,
                 token);
@@ -353,7 +358,7 @@ int pcejson_parse (struct pcvcm_node** vcm_tree, purc_rwstream_t rws)
                 pcutils_stack_push (node_stack, (uintptr_t) node);
             }
         }
-        token = pcejson_next_token(parser, rws);
+        token = pcejson_next_token(*parser, rws);
     }
 
     return 0;

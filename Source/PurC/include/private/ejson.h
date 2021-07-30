@@ -154,6 +154,7 @@ struct pcejson {
     int32_t depth;
     uint32_t flags;
     struct pcutils_stack* stack;
+    struct pcutils_stack* vcm_stack;
     purc_rwstream_t tmp_buff;
     purc_rwstream_t tmp_buff2;
 };
@@ -211,7 +212,8 @@ void pcejson_reset (struct pcejson* parser, int32_t depth, uint32_t flags);
 /**
  * Parse ejson.
  */
-int pcejson_parse (struct pcvcm_node** vcm_tree, purc_rwstream_t rwstream);
+int pcejson_parse (struct pcvcm_node** vcm_tree, struct pcejson** parser,
+        purc_rwstream_t rwstream);
 
 /**
  * Create a new pcejson token.
