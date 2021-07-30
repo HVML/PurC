@@ -241,24 +241,40 @@ unsigned int purc_variant_unref(purc_variant_t value)
     switch ((int)value->type) {
         case PURC_VARIANT_TYPE_OBJECT:
         {
-            foreach_value_in_variant_object(value, variant) {
-                purc_variant_unref(variant);
+            struct pchash_entry *curr;
+            foreach_in_variant_object_safe(value, curr) {
+                const char *k = pchash_entry_k(curr);
+                variant = pchash_entry_v(curr);
+                if (purc_variant_unref(variant)==0) {
+                    int r;
+                    r = pchash_table_delete_entry(_ht, curr);
+                    PC_ASSERT(r==0);
+                    free((void*)k);
+                }
             } end_foreach;
             break;
         }
 
         case PURC_VARIANT_TYPE_ARRAY:
         {
-            foreach_value_in_variant_array(value, variant) {
-                purc_variant_unref(variant);
+            size_t curr;
+            foreach_value_in_variant_array_safe(value, variant, curr) {
+                if (purc_variant_unref(variant)==0) {
+                    int r = pcutils_arrlist_del_idx(_al, curr, 1);
+                    PC_ASSERT(r==0);
+                    --curr;
+                }
             } end_foreach;
             break;
         }
 
         case PURC_VARIANT_TYPE_SET:
         {
-            foreach_value_in_variant_set(value, variant) {
-                purc_variant_unref(variant);
+            struct obj_node *curr;
+            foreach_value_in_variant_set_safe(value, variant, curr) {
+                if (purc_variant_unref(variant)==0) {
+                    pcutils_avl_delete(_tree, &curr->avl);
+                }
             } end_foreach;
             break;
         }
