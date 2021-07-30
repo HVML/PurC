@@ -35,7 +35,7 @@ extern "C" {
 #include "html/parser/tree.h"
 #include "html/parser/interfaces/document.h"
 
-#include "html/ns/ns.h"
+#include "html/parser/ns.h"
 
 
 typedef enum {

@@ -29,8 +29,8 @@
 #define PCHTML_STR_RES_MAP_LOWERCASE
 #include "html/core/str_res.h"
 
-#include "html/ns/ns.h"
-#include "html/ns/res.h"
+#include "html/parser/ns.h"
+#include "html/parser/ns_res.h"
 
 
 const pchtml_ns_data_t *

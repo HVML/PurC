@@ -31,7 +31,7 @@
 #include "private/edom/element.h"
 #include "private/edom/attr.h"
 #include "html/tag/tag.h"
-#include "html/ns/ns.h"
+#include "html/parser/ns.h"
 
 #include "html/core/str.h"
 #include "html/core/utils.h"

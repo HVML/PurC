@@ -33,7 +33,7 @@ extern "C" {
 #include "html/parser/base.h"
 
 #include "html/tag/tag.h"
-#include "html/ns/ns.h"
+#include "html/parser/ns.h"
 
 
 typedef int pchtml_html_tag_category_t;

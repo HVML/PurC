@@ -34,7 +34,7 @@ extern "C" {
 #include "html/core/hash.h"
 #include "html/core/shs.h"
 
-#include "html/ns/const.h"
+#include "html/parser/ns_const.h"
 
 
 typedef struct {

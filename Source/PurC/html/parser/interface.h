@@ -32,7 +32,7 @@ extern "C" {
 #include "config.h"
 #include "html/parser/base.h"
 #include "html/tag/const.h"
-#include "html/ns/const.h"
+#include "html/parser/ns_const.h"
 #include "private/html.h"
 #include "private/edom/interface.h"
 

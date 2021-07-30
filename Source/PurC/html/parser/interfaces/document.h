@@ -33,7 +33,7 @@ extern "C" {
 #include "html/core/mraw.h"
 
 #include "html/tag/tag.h"
-#include "html/ns/ns.h"
+#include "html/parser/ns.h"
 #include "html/parser/interface.h"
 #include "private/html.h"
 #include "private/edom/attr.h"

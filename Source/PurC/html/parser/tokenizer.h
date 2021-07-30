@@ -39,7 +39,7 @@ extern "C" {
 #include "html/parser/token.h"
 
 #include "html/tag/tag.h"
-#include "html/ns/ns.h"
+#include "html/parser/ns.h"
 
 
 /* State */

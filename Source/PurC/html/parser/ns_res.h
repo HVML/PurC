@@ -39,10 +39,10 @@
 
 #ifdef PCHTML_NS_CONST_VERSION
 #ifndef PCHTML_NS_CONST_VERSION_253D4AFDA959234B48A478B956C3C777
-#error Mismatched namespaces version! See "html/ns/const.h".
+#error Mismatched namespaces version! See "html/parser/ns_const.h".
 #endif /* PCHTML_NS_CONST_VERSION_253D4AFDA959234B48A478B956C3C777 */
 #else
-#error You need to include "html/ns/const.h".
+#error You need to include "html/parser/ns_const.h".
 #endif /* PCHTML_NS_CONST_VERSION */
 
 
