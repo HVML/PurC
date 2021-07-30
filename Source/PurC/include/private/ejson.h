@@ -2,7 +2,7 @@
  * @file ejson.h
  * @author XueShuming
  * @date 2021/07/19
- * @brief The interfaces for N-ary trees.
+ * @brief The interfaces eJSON parser.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
