@@ -118,8 +118,9 @@ purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node)
     return purc_variant_make_null();
 }
 
-purc_variant_t pcvcm_eval (struct pcvcm_node* tree)
+purc_variant_t pcvcm_eval (struct pcvcm_node* tree, struct pcvdom_element* elem)
 {
+    UNUSED_PARAM(elem);
     if (!tree) {
         return purc_variant_make_null();
     }

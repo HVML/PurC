@@ -1736,7 +1736,7 @@ TEST(ejson_token, pcejson_parse)
     pcejson_parse (&root, rws);
     ASSERT_NE (root, nullptr);
 
-    purc_variant_t vt = pcvcm_eval (root);
+    purc_variant_t vt = pcvcm_eval (root, NULL);
     ASSERT_NE(vt, PURC_VARIANT_INVALID);
 
     char buf[1024];

@@ -365,7 +365,6 @@ struct pcejson_token* pcejson_token_new (enum ejson_token_type type,
 {
     struct pcejson_token* token = ejson_alloc(sizeof (struct pcejson_token));
     token->type = type;
-    fprintf(stderr, "new token|type=%d|buf=%s\n", type, bytes);
     switch (type)
     {
         case EJSON_TOKEN_BOOLEAN:
