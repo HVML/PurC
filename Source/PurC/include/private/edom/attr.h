@@ -34,7 +34,7 @@ extern "C" {
 #include "html/core/hash.h"
 #include "html/core/str.h"
 
-#include "html/parser/ns.h"
+#include "html/ns.h"
 
 #include "private/edom/interface.h"
 #include "private/edom/node.h"

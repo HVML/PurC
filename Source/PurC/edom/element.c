@@ -30,8 +30,8 @@
 
 #include "private/edom/element.h"
 #include "private/edom/attr.h"
-#include "html/parser/tag_tag.h"
-#include "html/parser/ns.h"
+#include "html/tag_tag.h"
+#include "html/ns.h"
 
 #include "html/core/str.h"
 #include "html/core/utils.h"

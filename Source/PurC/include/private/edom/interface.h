@@ -33,8 +33,8 @@ extern "C" {
 #include "config.h"
 #include "html/core/base.h"
 
-#include "html/parser/tag_tag_const.h"
-#include "html/parser/ns_const.h"
+#include "html/tag_tag_const.h"
+#include "html/ns_const.h"
 
 #include "private/edom/exception.h"
 
