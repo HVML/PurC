@@ -90,7 +90,6 @@ purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node)
 
         case PCVCM_NODE_TYPE_KEY:
         case PCVCM_NODE_TYPE_STRING:
-            fprintf(stderr, "mk string=%s\n", (char*)node->data.sz_ptr[1]);
             return purc_variant_make_string ((char*)node->data.sz_ptr[1],
                     false);
 
