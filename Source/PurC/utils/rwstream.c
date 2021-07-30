@@ -114,6 +114,7 @@ struct buffer_rwstream
     uint8_t* base;
     uint8_t* here;
     uint8_t* stop;
+    uint8_t* end;
     size_t sz;
     size_t sz_max;
 };
@@ -284,7 +285,8 @@ purc_rwstream_t purc_rwstream_new_buffer (size_t sz_init, size_t sz_max)
     rws->rwstream.funcs = &buffer_funcs;
     rws->base = (uint8_t*) calloc(sz + 1, 1);
     rws->here = rws->base;
-    rws->stop = rws->base + sz;
+    rws->stop = rws->here;
+    rws->end = rws->base + sz;
     rws->sz = sz;
     rws->sz_max = sz_max;
 
@@ -767,6 +769,7 @@ static int buffer_extend (struct buffer_rwstream* buffer, size_t size)
 
     size_t new_size = get_min_size(size, buffer->sz_max);
     off_t here_offset = buffer->here - buffer->base;
+    off_t stop_offset = buffer->stop - buffer->base;
 
     uint8_t* newbuf = (uint8_t*) realloc(buffer->base, new_size + 1);
     if (newbuf == NULL)
@@ -777,7 +780,8 @@ static int buffer_extend (struct buffer_rwstream* buffer, size_t size)
 
     buffer->base = newbuf;
     buffer->here = buffer->base + here_offset;
-    buffer->stop = buffer->base + new_size;
+    buffer->stop = buffer->base + stop_offset;
+    buffer->end = buffer->base + new_size;
     buffer->sz = new_size;
     *buffer->here = 0;
 
@@ -807,20 +811,8 @@ static off_t buffer_seek (purc_rwstream_t rws, off_t offset, int whence)
     }
 
     if ( newpos > buffer->stop ) {
-        if (buffer->sz == buffer->sz_max) {
-            newpos = buffer->stop;
-        }
-        else {
-            size_t new_offset = newpos - buffer->base;
-            int ret = buffer_extend (buffer, newpos - buffer->base);
-            if (ret == -1) {
-                return -1;
-            }
-            newpos = new_offset > buffer->sz ? buffer->stop :
-                buffer->base + new_offset;
-        }
+        newpos = buffer->stop;
     }
-
     buffer->here = newpos;
     return(buffer->here - buffer->base);
 }
@@ -848,19 +840,27 @@ static ssize_t buffer_write (purc_rwstream_t rws, const void* buf, size_t count)
     struct buffer_rwstream* buffer = (struct buffer_rwstream *)rws;
     uint8_t* newpos = buffer->here + count;
     if ( newpos > buffer->stop ) {
-        if (buffer->sz == buffer->sz_max) {
-            count = buffer->stop - buffer->here;
+        if (newpos <= buffer->end) {
+            buffer->stop = newpos;
         }
-        else {
+        else if (buffer->sz < buffer->sz_max) {
             int ret = buffer_extend (buffer, newpos - buffer->base);
             if (ret == -1) {
                 pcinst_set_error(PCRWSTREAM_ERROR_NOSPC);
                 return -1;
             }
             newpos = buffer->here + count;
-            if(newpos > buffer->stop) {
-                count = buffer->stop - buffer->here;
+            if(newpos > buffer->end) {
+                buffer->stop = buffer->end;
+                count = buffer->end - buffer->here;
             }
+            else {
+                buffer->stop = newpos;
+            }
+        }
+        else {
+            buffer->stop = buffer->end;
+            count = buffer->end - buffer->here;
         }
     }
     if (count > 0)
@@ -886,6 +886,7 @@ static int buffer_close (purc_rwstream_t rws)
     buffer->base = NULL;
     buffer->here = NULL;
     buffer->stop = NULL;
+    buffer->end = NULL;
     buffer->sz = 0;
     buffer->sz_max = 0;
     return 0;
