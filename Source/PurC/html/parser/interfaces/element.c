@@ -22,7 +22,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "purc-rwstream.h"
 #include "html/parser/interfaces/element.h"
 #include "html/parser/interfaces/document.h"
 
@@ -55,13 +54,13 @@ pchtml_html_element_interface_destroy(pchtml_html_element_t *element)
 
 pchtml_html_element_t *
 pchtml_html_element_inner_html_set(pchtml_html_element_t *element,
-                                const purc_rwstream_t html)
+                                const unsigned char *html, size_t size)
 {
     pcedom_node_t *node, *child;
     pcedom_node_t *root = pcedom_interface_node(element);
     pchtml_html_document_t *doc = pchtml_html_interface_document(root->owner_document);
 
-    node = pchtml_html_document_parse_fragment(doc, &element->element, html);
+    node = pchtml_html_document_parse_fragment(doc, &element->element, html, size);
     if (node == NULL) {
         return NULL;
     }

@@ -30,7 +30,6 @@ extern "C" {
 #endif
 
 #include "config.h"
-#include "purc-rwstream.h"
 #include "html/parser/interface.h"
 #include "private/edom/element.h"
 
@@ -51,7 +50,7 @@ pchtml_html_element_interface_destroy(
 
 pchtml_html_element_t *
 pchtml_html_element_inner_html_set(pchtml_html_element_t *element,
-                const purc_rwstream_t html) WTF_INTERNAL;
+                const unsigned char *html, size_t size) WTF_INTERNAL;
 
 /*
  * Inline functions

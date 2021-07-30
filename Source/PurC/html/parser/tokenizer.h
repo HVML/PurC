@@ -31,7 +31,6 @@ extern "C" {
 #endif
 
 #include "config.h"
-#include "purc-rwstream.h"
 #include "html/core/in.h"
 #include "html/core/sbst.h"
 #include "private/array_obj.h"
@@ -161,7 +160,7 @@ pchtml_html_tokenizer_begin(pchtml_html_tokenizer_t *tkz) WTF_INTERNAL;
 
 unsigned int
 pchtml_html_tokenizer_chunk(pchtml_html_tokenizer_t *tkz,
-                const purc_rwstream_t data) WTF_INTERNAL;
+                const unsigned char *data, size_t size) WTF_INTERNAL;
 
 unsigned int
 pchtml_html_tokenizer_end(pchtml_html_tokenizer_t *tkz) WTF_INTERNAL;

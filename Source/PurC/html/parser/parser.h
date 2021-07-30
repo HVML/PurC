@@ -31,7 +31,6 @@ extern "C" {
 #endif
 
 #include "config.h"
-#include "purc-rwstream.h"
 #include "html/parser/base.h"
 #include "html/parser/tree.h"
 #include "html/parser/interfaces/document.h"
@@ -84,18 +83,18 @@ pchtml_html_parser_unref(pchtml_html_parser_t *parser) WTF_INTERNAL;
 
 
 pchtml_html_document_t *
-pchtml_html_parse(pchtml_html_parser_t *parser, const purc_rwstream_t html 
-                ) WTF_INTERNAL;
+pchtml_html_parse(pchtml_html_parser_t *parser,
+                const unsigned char *html, size_t size) WTF_INTERNAL;
 
 pcedom_node_t *
 pchtml_html_parse_fragment(pchtml_html_parser_t *parser, pchtml_html_element_t *element,
-                        const purc_rwstream_t html) WTF_INTERNAL;
+                        const unsigned char *html, size_t size) WTF_INTERNAL;
 
 pcedom_node_t *
 pchtml_html_parse_fragment_by_tag_id(pchtml_html_parser_t *parser,
                 pchtml_html_document_t *document,
                 pchtml_tag_id_t tag_id, pchtml_ns_id_t ns,
-                const purc_rwstream_t html) WTF_INTERNAL;
+                const unsigned char *html, size_t size) WTF_INTERNAL;
 
 
 pchtml_html_document_t *
@@ -103,7 +102,7 @@ pchtml_html_parse_chunk_begin(pchtml_html_parser_t *parser) WTF_INTERNAL;
 
 unsigned int
 pchtml_html_parse_chunk_process(pchtml_html_parser_t *parser,
-                const purc_rwstream_t html) WTF_INTERNAL;
+                const unsigned char *html, size_t size) WTF_INTERNAL;
 
 unsigned int
 pchtml_html_parse_chunk_end(pchtml_html_parser_t *parser) WTF_INTERNAL;
@@ -116,7 +115,7 @@ pchtml_html_parse_fragment_chunk_begin(pchtml_html_parser_t *parser,
 
 unsigned int
 pchtml_html_parse_fragment_chunk_process(pchtml_html_parser_t *parser,
-                const purc_rwstream_t html) WTF_INTERNAL;
+                const unsigned char *html, size_t size) WTF_INTERNAL;
 
 pcedom_node_t *
 pchtml_html_parse_fragment_chunk_end(pchtml_html_parser_t *parser) WTF_INTERNAL;
