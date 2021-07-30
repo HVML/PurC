@@ -110,7 +110,7 @@ TEST(html, html_parser_chunk_purc)
         "\"bestof",
         "class",
         "\">",
-        "good for me",
+        "good for 我 me",
         "</div>",
         "\0"
     };
