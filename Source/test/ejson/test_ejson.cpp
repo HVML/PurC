@@ -1753,6 +1753,100 @@ TEST(ejson_token, pcejson_parse)
     purc_variant_unref(vt);
     purc_rwstream_destroy(my_rws);
     purc_rwstream_destroy(rws);
+
+    pctree_node_destroy (pcvcm_node_to_pctree_node(root),
+            pcvcm_node_pctree_node_destory_callback);
+
     purc_cleanup ();
 }
 
+TEST(ejson_token, string_variang)
+{
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "ejson", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    char key[] = "name";
+
+    purc_variant_t key_vt = purc_variant_make_string (key, false);
+    purc_variant_t value_vt = purc_variant_make_string ("tom", false);
+
+    purc_variant_t object = purc_variant_make_object (0,
+                         PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+
+    purc_variant_object_set (object, key_vt, value_vt);
+
+    purc_variant_unref(key_vt);
+    purc_variant_unref(value_vt);
+
+    char buf[1024];
+    purc_rwstream_t my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    ASSERT_NE(my_rws, nullptr);
+
+    size_t len_expected = 0;
+    ssize_t n = purc_variant_serialize(object, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+    ASSERT_GT(n, 0);
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "{\"name\":\"tom\"}");
+
+    purc_variant_unref(object);
+    purc_rwstream_destroy(my_rws);
+
+    purc_cleanup ();
+}
+
+purc_variant_t make_object(const char* key, const char* value)
+{
+    purc_variant_t key_vt = purc_variant_make_string (key, false);
+    purc_variant_t value_vt = purc_variant_make_string (value, false);
+
+    purc_variant_t object = purc_variant_make_object (0,
+                         PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+
+    purc_variant_object_set (object, key_vt, value_vt);
+
+    purc_variant_unref(key_vt);
+    purc_variant_unref(value_vt);
+    return object;
+}
+
+TEST(ejson_token, string_func_variant)
+{
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "ejson", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    purc_variant_t object = purc_variant_make_object (0,
+                         PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+
+    purc_variant_t array = purc_variant_make_array (0, PURC_VARIANT_INVALID);
+
+    purc_variant_t element = make_object("elementKey1", "elementV1");
+    purc_variant_t element2 = make_object("elementKey2", "elementV2");
+
+    purc_variant_array_append (array, element);
+    purc_variant_array_append (array, element2);
+
+
+    purc_variant_t key = purc_variant_make_string ("keyX", false);
+    purc_variant_object_set (object, key, array);
+
+    char buf[1024];
+    purc_rwstream_t my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    ASSERT_NE(my_rws, nullptr);
+
+    size_t len_expected = 0;
+    ssize_t n = purc_variant_serialize(object, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+    ASSERT_GT(n, 0);
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "{\"keyX\":[{\"elementKey1\":\"elementV1\"},{\"elementKey2\":\"elementV2\"}]}");
+
+    purc_variant_unref (key);
+    purc_variant_unref (element);
+    purc_variant_unref (element2);
+    purc_variant_unref (array);
+    purc_variant_unref(object);
+    purc_rwstream_destroy(my_rws);
+
+    purc_cleanup ();
+}
