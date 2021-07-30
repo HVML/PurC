@@ -33,6 +33,7 @@
 #include "purc-version.h"
 #include "purc-features.h"
 #include "purc-errors.h"
+#include "purc-html-parser.h"
 #include "purc-rwstream.h"
 #include "purc-variant.h"
 #include "purc-ports.h"

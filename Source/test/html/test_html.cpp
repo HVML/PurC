@@ -1,6 +1,5 @@
 #include "purc.h"
 #include "private/html.h"
-#include "purc-html-parser.h"
 
 #include <stdio.h>
 #include <errno.h>
