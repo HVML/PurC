@@ -2,7 +2,7 @@
  * @file vcm.h
  * @author XueShuming
  * @date 2021/07/28
- * @brief The interfaces for N-ary trees.
+ * @brief The interfaces for vcm.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
