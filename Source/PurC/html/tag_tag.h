@@ -23,8 +23,8 @@
  */
 
 
-#ifndef PCHTML_TAG_H
-#define PCHTML_TAG_H
+#ifndef PCHTML_TAG_TAG_H
+#define PCHTML_TAG_TAG_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -141,4 +141,4 @@ pchtml_tag_mraw_noi(pchtml_hash_t *hash) WTF_INTERNAL;
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_TAG_H */
+#endif  /* PCHTML_TAG_TAG_H */

@@ -30,10 +30,10 @@
  */
 
 
-#ifndef PCHTML_TAG_RES_H
-#define PCHTML_TAG_RES_H
+#ifndef PCHTML_TAG_TAG_RES_H
+#define PCHTML_TAG_TAG_RES_H
 
-#endif /* PCHTML_TAG_RES_H */
+#endif /* PCHTML_TAG_TAG_RES_H */
 
 #include "config.h"
 
