@@ -48,6 +48,7 @@ list(APPEND PurC_SOURCES
     "${PURC_DIR}/variant/variant-set.c"
     "${PURC_DIR}/variant/serializer.c"
     "${PURC_DIR}/ejson/ejson.c"
+    "${PURC_DIR}/vcm/vcm.c"
 )
 
 # Put the CXX source files which can be unified in `Sources.txt`
