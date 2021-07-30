@@ -32,7 +32,7 @@ extern "C" {
 #include "config.h"
 #include "html/parser/base.h"
 
-#include "html/tag/tag.h"
+#include "html/parser/tag_tag.h"
 #include "html/parser/ns.h"
 
 

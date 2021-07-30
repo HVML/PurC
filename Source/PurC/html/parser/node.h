@@ -31,7 +31,7 @@ extern "C" {
 #endif
 
 #include "config.h"
-#include "html/tag/tag.h"
+#include "html/parser/tag_tag.h"
 #include "private/edom/node.h"
 
 

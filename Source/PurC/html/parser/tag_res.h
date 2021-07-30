@@ -39,10 +39,10 @@
 
 #ifdef PCHTML_TAG_CONST_VERSION
 #ifndef PCHTML_TAG_CONST_VERSION_A161EC911182C3254E7A972D5C51DF86
-#error Mismatched tags version! See "html/tag/const.h".
+#error Mismatched tags version! See "html/parser/tag_tag_const.h".
 #endif /* PCHTML_TAG_CONST_VERSION_A161EC911182C3254E7A972D5C51DF86 */
 #else
-#error You need to include "html/tag/const.h".
+#error You need to include "html/parser/tag_tag_const.h".
 #endif /* PCHTML_TAG_CONST_VERSION */
 
 #ifdef PCHTML_NS_CONST_VERSION

@@ -36,7 +36,7 @@ extern "C" {
 
 #include "html/parser/base.h"
 #include "html/parser/token_attr.h"
-#include "html/tag/tag.h"
+#include "html/parser/tag_tag.h"
 
 
 typedef int pchtml_html_token_type_t;

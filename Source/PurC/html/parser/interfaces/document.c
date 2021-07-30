@@ -33,7 +33,7 @@
 #include "html/parser/node.h"
 #include "html/parser/parser.h"
 
-#include "html/tag/tag.h"
+#include "html/parser/tag_tag.h"
 
 #include "private/edom/text.h"
 #include "private/edom/element.h"

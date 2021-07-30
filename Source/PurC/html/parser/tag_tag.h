@@ -36,7 +36,7 @@ extern "C" {
 #include "html/core/dobject.h"
 #include "html/core/str.h"
 
-#include "html/tag/const.h"
+#include "html/parser/tag_tag_const.h"
 
 
 typedef struct {

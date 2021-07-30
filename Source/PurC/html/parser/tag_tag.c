@@ -25,8 +25,8 @@
 
 #include "private/errors.h"
 
-#include "html/tag/tag.h"
-#include "html/tag/res.h"
+#include "html/parser/tag_tag.h"
+#include "html/parser/tag_tag_res.h"
 
 
 const pchtml_tag_data_t *

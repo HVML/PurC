@@ -38,7 +38,7 @@ extern "C" {
 #include "private/edom/collection.h"
 #include "private/edom/attr.h"
 
-#include "html/tag/tag.h"
+#include "html/parser/tag_tag.h"
 
 
 typedef enum {

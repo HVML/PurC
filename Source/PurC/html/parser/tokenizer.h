@@ -38,7 +38,7 @@ extern "C" {
 #include "html/parser/base.h"
 #include "html/parser/token.h"
 
-#include "html/tag/tag.h"
+#include "html/parser/tag_tag.h"
 #include "html/parser/ns.h"
 
 
