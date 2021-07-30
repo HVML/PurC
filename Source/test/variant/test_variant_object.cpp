@@ -228,3 +228,59 @@ TEST(object, make_object)
     ASSERT_EQ (cleanup, true);
 }
 
+TEST(object, unref)
+{
+    purc_instance_extra_info info = {0, 0};
+    int ret = 0;
+    bool cleanup = false;
+    struct purc_variant_stat *stat;
+
+    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ(ret, PURC_ERROR_OK);
+
+    stat = purc_variant_usage_stat();
+    ASSERT_NE(stat, nullptr);
+
+    bool ok;
+    size_t nr;
+    const char     *k1 = "hello";
+    purc_variant_t  v1 = purc_variant_make_string("world", false);
+    const char     *k2 = "foo";
+    purc_variant_t  v2 = purc_variant_make_string("bar", true);
+
+    purc_variant_t obj;
+    obj = purc_variant_make_object_c(1, k1, v1);
+    ASSERT_NE(obj, PURC_VARIANT_INVALID);
+    ASSERT_EQ(obj->refc, 1);
+    purc_variant_unref(v1);
+    ASSERT_EQ(v1->refc, 1);
+
+    purc_variant_ref(obj);
+    ASSERT_EQ(obj->refc, 2);
+    ASSERT_EQ(v1->refc, 2);
+
+    ok = purc_variant_object_set_c(obj, k2, v2);
+    ASSERT_EQ(ok, true);
+    ASSERT_EQ(obj->refc, 2);
+    purc_variant_unref(v2);
+    ASSERT_EQ(v1->refc, 2);
+    ASSERT_EQ(v2->refc, 1);
+
+    nr = purc_variant_object_get_size(obj);
+    ASSERT_EQ(nr, 2);
+
+    purc_variant_unref(obj);
+    ASSERT_EQ(obj->refc, 1);
+    ASSERT_EQ(v1->refc, 1);
+
+    nr = purc_variant_object_get_size(obj);
+    ASSERT_EQ(nr, 1);
+
+    purc_variant_unref(obj);
+
+    ASSERT_EQ(stat->nr_values[PVT(_STRING)], 0);
+    ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], 0);
+
+    cleanup = purc_cleanup ();
+    ASSERT_EQ (cleanup, true);
+}
