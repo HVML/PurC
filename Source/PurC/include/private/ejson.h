@@ -42,7 +42,7 @@
 
 #define BEGIN_STATE(state_name)                                  \
     case state_name:                                             \
-    state_name: {                                                \
+    {                                                \
         enum ejson_state current_state = state_name;             \
         UNUSED_PARAM(current_state);                             \
         PRINT_STATE(current_state);
@@ -51,33 +51,22 @@
         break;                                                  \
     }
 
-#define RETURN_IN_CURRENT_STATE(expression)                     \
-    do {                                                        \
-        ejson->state = current_state;                           \
-        return expression;                                      \
-    } while (false)
-
 #define RECONSUME_IN(new_state)                                 \
     do {                                                        \
         ejson->state = new_state;                               \
-        goto new_state;                                         \
+        goto next_state;                                         \
     } while (false)
 
 #define RECONSUME_IN_NEXT(new_state)                            \
     do {                                                        \
         ejson->state = new_state;                               \
-        purc_rwstream_seek (rws, -len, SEEK_CUR);               \
+        ejson->need_reconsume = true;                           \
     } while (false)
 
-
 #define ADVANCE_TO(new_state)                                    \
-    do {                                                         \
-        len = purc_rwstream_read_utf8_char (rws, buf_utf8, &wc); \
-        if (len <= 0) {                                          \
-            return NULL;                                         \
-        }                                                        \
-        ejson->state = new_state;                                \
-        goto new_state;                                          \
+    do {                                                        \
+        ejson->state = new_state;                               \
+        goto next_input;                                       \
     } while (false)
 
 #define SWITCH_TO(new_state)                                    \
@@ -85,11 +74,6 @@
         ejson->state = new_state;                               \
     } while (false)
 
-#define RETURN_TO(new_state)                                    \
-    do {                                                        \
-        ejson->state = new_state;                               \
-        goto next_input;                                       \
-    } while (false)
 
 enum ejson_state {
     EJSON_INIT_STATE,
@@ -157,6 +141,10 @@ struct pcejson {
     struct pcutils_stack* vcm_stack;
     purc_rwstream_t tmp_buff;
     purc_rwstream_t tmp_buff2;
+    char c[8];
+    int c_len;
+    wchar_t wc;
+    bool need_reconsume;
 };
 
 struct pcejson_token {
@@ -230,7 +218,8 @@ void pcejson_token_destroy (struct pcejson_token* token);
 /**
  * Get one pcejson token from rwstream.
  */
-struct pcejson_token* pcejson_next_token (struct pcejson* ejson, purc_rwstream_t rws);
+struct pcejson_token* pcejson_next_token (struct pcejson* ejson,
+        purc_rwstream_t rws);
 
 /**
  * Get ejson desc message
