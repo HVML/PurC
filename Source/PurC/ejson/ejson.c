@@ -1535,7 +1535,7 @@ next_state:
                         || pcejson_tmp_buff_equal(ejson->tmp_buff, "Na")) {
                         pcejson_tmp_buff_append (ejson->tmp_buff,
                                 (uint8_t*)ejson->c, ejson->c_len);
-                        ADVANCE_TO(EJSON_VALUE_NUMBER_INFINITY_STATE);
+                        ADVANCE_TO(EJSON_VALUE_NAN_STATE);
                     }
                     else {
                         pcinst_set_error(
@@ -1548,7 +1548,7 @@ next_state:
                     if (pcejson_tmp_buff_equal(ejson->tmp_buff, "N")) {
                         pcejson_tmp_buff_append (ejson->tmp_buff,
                                 (uint8_t*)ejson->c, ejson->c_len);
-                        ADVANCE_TO(EJSON_VALUE_NUMBER_INFINITY_STATE);
+                        ADVANCE_TO(EJSON_VALUE_NAN_STATE);
                     }
                     else {
                         pcinst_set_error(

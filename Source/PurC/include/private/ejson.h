@@ -33,11 +33,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#if 0
+#if 1
 #define PRINT_STATE(state_name)
 #else
 #define PRINT_STATE(state_name)                                           \
-    fprintf(stderr, "in %s|wc=%c\n", pcejson_ejson_state_desc(state_name), ejson->wc);
+    fprintf(stderr, "in %s|wc=%c\n", pcejson_ejson_state_desc(state_name), \
+            ejson->wc);
 #endif
 
 #define BEGIN_STATE(state_name)                                  \

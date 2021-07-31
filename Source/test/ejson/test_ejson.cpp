@@ -1966,3 +1966,62 @@ TEST(ejson_token, pcejson_infinity)
     pcejson_destroy(parser);
     purc_cleanup ();
 }
+
+TEST(ejson_token, pcejson_nan)
+{
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "ejson", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    char json[1024] = "{key:NaN}";
+    purc_rwstream_t rws = purc_rwstream_new_from_mem(json, strlen(json));
+
+    struct pcejson* parser = pcejson_create(10, 1);
+
+    struct pcejson_token* token = pcejson_next_token(parser, rws);
+    ASSERT_NE(token, nullptr);
+    ASSERT_EQ(token->type, EJSON_TOKEN_START_OBJECT);
+    pcejson_token_destroy(token);
+
+    token = pcejson_next_token(parser, rws);
+    ASSERT_NE(token, nullptr);
+    ASSERT_EQ(token->type, EJSON_TOKEN_KEY);
+    ASSERT_STREQ((char*)token->sz_ptr[1], "key");
+    pcejson_token_destroy(token);
+
+    token = pcejson_next_token(parser, rws);
+    ASSERT_NE(token, nullptr);
+    ASSERT_EQ(token->type, EJSON_TOKEN_NAN);
+    ASSERT_EQ(isnan(token->d), true);
+    pcejson_token_destroy(token);
+
+    token = pcejson_next_token(parser, rws);
+    ASSERT_NE(token, nullptr);
+    ASSERT_EQ(token->type, EJSON_TOKEN_END_OBJECT);
+    pcejson_token_destroy(token);
+
+    purc_rwstream_destroy(rws);
+
+    // reset
+    pcejson_reset(parser, 10, 1);
+    strcpy(json, "{key:-NaN}");
+    rws = purc_rwstream_new_from_mem(json, strlen(json));
+
+    token = pcejson_next_token(parser, rws);
+    ASSERT_NE(token, nullptr);
+    ASSERT_EQ(token->type, EJSON_TOKEN_START_OBJECT);
+    pcejson_token_destroy(token);
+
+    token = pcejson_next_token(parser, rws);
+    ASSERT_NE(token, nullptr);
+    ASSERT_EQ(token->type, EJSON_TOKEN_KEY);
+    ASSERT_STREQ((char*)token->sz_ptr[1], "key");
+    pcejson_token_destroy(token);
+
+    token = pcejson_next_token(parser, rws);
+    ASSERT_EQ(token, nullptr);
+
+    purc_rwstream_destroy(rws);
+
+    pcejson_destroy(parser);
+    purc_cleanup ();
+}
