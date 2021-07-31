@@ -1399,7 +1399,7 @@ next_state:
             if (is_delimiter(ejson->wc)) {
                 if (pcejson_tmp_buff_equal(ejson->tmp_buff, "-Infinity")
                     || pcejson_tmp_buff_equal(ejson->tmp_buff, "Infinity")) {
-                    RECONSUME_IN_NEXT(EJSON_AFTER_KEYWORD_STATE);
+                    RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
                     return pcejson_token_new_from_tmp_buf (
                             EJSON_TOKEN_INFINITY, ejson->tmp_buff);
                 }
@@ -1498,14 +1498,46 @@ next_state:
 
         BEGIN_STATE(EJSON_VALUE_NAN_STATE)
             if (is_delimiter(ejson->wc)) {
-                RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
+                if (pcejson_tmp_buff_equal(ejson->tmp_buff, "NaN")) {
+                    RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
+                    return pcejson_token_new_from_tmp_buf (
+                            EJSON_TOKEN_NAN, ejson->tmp_buff);
+                }
+                pcinst_set_error(PCEJSON_UNEXPECTED_JSON_NUMBER_PARSE_ERROR);
+                return NULL;
             }
             switch (ejson->wc)
             {
                 case 'N':
+                    if (pcejson_tmp_buff_is_empty(ejson->tmp_buff)
+                        || pcejson_tmp_buff_equal(ejson->tmp_buff, "Na")) {
+                        pcejson_tmp_buff_append (ejson->tmp_buff,
+                                (uint8_t*)ejson->c, ejson->c_len);
+                        ADVANCE_TO(EJSON_VALUE_NUMBER_INFINITY_STATE);
+                    }
+                    else {
+                        pcinst_set_error(
+                                PCEJSON_UNEXPECTED_JSON_NUMBER_PARSE_ERROR);
+                        return NULL;
+                    }
+                    break;
+
                 case 'a':
+                    if (pcejson_tmp_buff_equal(ejson->tmp_buff, "N")) {
+                        pcejson_tmp_buff_append (ejson->tmp_buff,
+                                (uint8_t*)ejson->c, ejson->c_len);
+                        ADVANCE_TO(EJSON_VALUE_NUMBER_INFINITY_STATE);
+                    }
+                    else {
+                        pcinst_set_error(
+                                PCEJSON_UNEXPECTED_JSON_NUMBER_PARSE_ERROR);
+                        return NULL;
+                    }
+                    break;
+
                 default:
-                    pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
+                    pcinst_set_error(
+                            PCEJSON_UNEXPECTED_JSON_NUMBER_PARSE_ERROR);
                     return NULL;
             }
         END_STATE()
