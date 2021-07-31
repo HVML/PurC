@@ -44,9 +44,9 @@ static size_t get_stack_size (size_t sz_stack)
 struct pcutils_stack* pcutils_stack_new (size_t sz_init)
 {
     struct pcutils_stack* stack = (struct pcutils_stack*) calloc(
-            sizeof(struct pcutils_stack), 1);
+            1, sizeof(struct pcutils_stack));
     sz_init = get_stack_size(sz_init);
-    stack->buf = (uintptr_t*) calloc (sizeof(uintptr_t), sz_init);
+    stack->buf = (uintptr_t*) calloc (sz_init, sizeof(uintptr_t));
     stack->last = -1;
     stack->capacity = sz_init;
     return stack;
@@ -67,9 +67,8 @@ void pcutils_stack_push (struct pcutils_stack* stack, uintptr_t p)
     if (stack->last == (int32_t)(stack->capacity - 1))
     {
         size_t sz = get_stack_size(stack->capacity);
-        uintptr_t* newbuf = (uintptr_t*) realloc(stack->buf,
-                sz * sizeof(uintptr_t));
-        if (newbuf == NULL)
+        stack->buf = (uintptr_t*) realloc(stack->buf, sz * sizeof(uintptr_t));
+        if (stack->buf == NULL)
         {
             pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
             return;

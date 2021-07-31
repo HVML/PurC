@@ -303,6 +303,8 @@ struct pcvcm_node* pcejson_token_to_pcvcm_node (
             node = pcvcm_node_new (PCVCM_NODE_TYPE_BOOLEAN, data);
             break;
 
+        case EJSON_TOKEN_NAN:
+        case EJSON_TOKEN_INFINITY:
         case EJSON_TOKEN_NUMBER:
             node = pcvcm_node_new (PCVCM_NODE_TYPE_NUMBER, data);
             break;
@@ -396,7 +398,6 @@ struct pcejson_token* pcejson_token_new (enum ejson_token_type type,
             break;
 
         case EJSON_TOKEN_INFINITY:
-//            token->d = (bytes[0] == '-') ? -DBL_MAX : DBL_MAX;
             token->d = (bytes[0] == '-') ? -INFINITY : INFINITY;
             break;
 
