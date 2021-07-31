@@ -505,7 +505,7 @@ next_state:
                     RECONSUME_IN(EJSON_OBJECT_STATE);
                     break;
                 case '[':
-                    RECONSUME_IN(EJSON_OBJECT_STATE);
+                    RECONSUME_IN(EJSON_ARRAY_STATE);
                     break;
                 case END_OF_FILE_MARKER:
                     return pcejson_token_new (EJSON_TOKEN_EOF, NULL, 0);
