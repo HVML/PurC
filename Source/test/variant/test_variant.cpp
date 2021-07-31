@@ -742,4 +742,3 @@ TEST(variant, four_constants)
     purc_cleanup ();
 }
 
-

@@ -130,7 +130,7 @@ static inline unsigned int
 serializer_callback(const unsigned char  *data, size_t len, void *ctx)
 {
     purc_rwstream_t out = (purc_rwstream_t)ctx;
-    char buf[8192]; // big enough?
+    static __thread char buf[1024*1024]; // big enough?
     int n = snprintf(buf, sizeof(buf), "%.*s", (int)len, (const char *)data);
     if (n<0) {
         // which err-code to set?

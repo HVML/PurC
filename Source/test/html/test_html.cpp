@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <gtest/gtest.h>
+#include <libgen.h>
 
 unsigned int
 serializer_callback(const unsigned char  *data, size_t len, void *ctx)
@@ -145,6 +146,63 @@ TEST(html, html_parser_chunk_purc)
     purc_rwstream_destroy(io);
 
     purc_html_destroy_doc(doc);
+
+    purc_cleanup ();
+}
+
+TEST(html, load_from_html)
+{
+    purc_instance_extra_info info = {0, 0};
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    char this_file[] = __FILE__;
+    char urls_txt[PATH_MAX];
+    char cmd[1024*8];
+    int n;
+    FILE *furls;
+    purc_rwstream_t out;
+
+    out = purc_rwstream_new_from_fp(stdout);
+    ASSERT_NE(out, nullptr);
+
+    n = snprintf(urls_txt, sizeof(urls_txt),
+            "%s/urls.txt", dirname(this_file));
+    ASSERT_LT(n, sizeof(urls_txt));
+
+    furls = fopen(urls_txt, "r");
+    ASSERT_NE(furls, nullptr);
+    ssize_t ssz;
+    char *line = NULL;
+    size_t sz = 0;
+
+    while ((ssz = getline(&line, &sz, furls)) != -1) {
+        FILE *fin;
+        purc_rwstream_t in;
+        purc_html_document_t doc;
+        int n, r;
+
+        n = snprintf(cmd, sizeof(cmd), "curl %s", line);
+        ASSERT_LT(n, sizeof(cmd));
+
+        fin = popen(cmd, "r");
+        ASSERT_NE(fin, nullptr);
+
+        in = purc_rwstream_new_from_fp(fin);
+        ASSERT_NE(in, nullptr);
+        doc = purc_html_load_from_stream(in);
+        ASSERT_NE(doc, nullptr);
+
+        r = purc_html_write_to_stream(doc, out);
+        ASSERT_EQ(r, 0);
+
+        r = purc_html_destroy_doc(doc);
+        ASSERT_EQ(r, 0);
+        purc_rwstream_destroy(in);
+        // pclose(fin);
+    }
+
+    purc_rwstream_destroy(out);
 
     purc_cleanup ();
 }
