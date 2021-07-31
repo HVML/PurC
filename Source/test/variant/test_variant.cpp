@@ -173,7 +173,7 @@ TEST(variant, pcvariant_init_once)
 {
     purc_instance_extra_info info = {0, 0};
     int i = 0;
-    // size_t size = sizeof(purc_variant);
+    size_t size = sizeof(purc_variant);
     int ret = 0;
     bool cleanup = false;
 
@@ -187,24 +187,24 @@ TEST(variant, pcvariant_init_once)
 
     ASSERT_NE(stat, nullptr);
 
-    // EXPECT_EQ (stat->nr_values[PURC_VARIANT_TYPE_NULL], 1);
-    // EXPECT_EQ (stat->sz_mem[PURC_VARIANT_TYPE_NULL], size);
+    EXPECT_EQ (stat->nr_values[PURC_VARIANT_TYPE_NULL], 1);
+    EXPECT_EQ (stat->sz_mem[PURC_VARIANT_TYPE_NULL], size);
 
-    // EXPECT_EQ (stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED], 1);
-    // EXPECT_EQ (stat->sz_mem[PURC_VARIANT_TYPE_UNDEFINED], size);
+    EXPECT_EQ (stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED], 1);
+    EXPECT_EQ (stat->sz_mem[PURC_VARIANT_TYPE_UNDEFINED], size);
 
-    // EXPECT_EQ (stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN], 2);
-    // EXPECT_EQ (stat->sz_mem[PURC_VARIANT_TYPE_BOOLEAN], size * 2);
+    EXPECT_EQ (stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN], 2);
+    EXPECT_EQ (stat->sz_mem[PURC_VARIANT_TYPE_BOOLEAN], size * 2);
 
     for (i = PURC_VARIANT_TYPE_NUMBER; i < PURC_VARIANT_TYPE_MAX; i++) {
         EXPECT_EQ (stat->nr_values[i], 0);
         EXPECT_EQ (stat->sz_mem[i], 0);
-    } 
+    }
 
-    // EXPECT_EQ (stat->nr_total_values, 4);
-    // EXPECT_EQ (stat->sz_total_mem, 4 * size);
-    // EXPECT_EQ (stat->nr_reserved, 0);
-    // EXPECT_EQ (stat->nr_max_reserved, MAX_RESERVED_VARIANTS);
+    EXPECT_EQ (stat->nr_total_values, 4);
+    EXPECT_EQ (stat->sz_total_mem, 4 * size);
+    EXPECT_EQ (stat->nr_reserved, 0);
+    EXPECT_EQ (stat->nr_max_reserved, MAX_RESERVED_VARIANTS);
 
 
     cleanup = purc_cleanup ();
@@ -214,8 +214,8 @@ TEST(variant, pcvariant_init_once)
 TEST(variant, pcvariant_init_10_times)
 {
     purc_instance_extra_info info = {0, 0};
-    // int i = 0;
-    // size_t size = sizeof(purc_variant);
+    int i = 0;
+    size_t size = sizeof(purc_variant);
     int ret = 0;
     bool cleanup = false;
     int times = 0;
@@ -231,24 +231,24 @@ TEST(variant, pcvariant_init_10_times)
 
         ASSERT_NE(stat, nullptr);
 
-        // EXPECT_EQ (stat->nr_values[PURC_VARIANT_TYPE_NULL], 1);
-        // EXPECT_EQ (stat->sz_mem[PURC_VARIANT_TYPE_NULL], size);
+        EXPECT_EQ (stat->nr_values[PURC_VARIANT_TYPE_NULL], 1);
+        EXPECT_EQ (stat->sz_mem[PURC_VARIANT_TYPE_NULL], size);
 
-        // EXPECT_EQ (stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED], 1);
-        // EXPECT_EQ (stat->sz_mem[PURC_VARIANT_TYPE_UNDEFINED], size);
+        EXPECT_EQ (stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED], 1);
+        EXPECT_EQ (stat->sz_mem[PURC_VARIANT_TYPE_UNDEFINED], size);
 
-        // EXPECT_EQ (stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN], 2);
-        // EXPECT_EQ (stat->sz_mem[PURC_VARIANT_TYPE_BOOLEAN], size * 2);
+        EXPECT_EQ (stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN], 2);
+        EXPECT_EQ (stat->sz_mem[PURC_VARIANT_TYPE_BOOLEAN], size * 2);
 
-        // for (i = PURC_VARIANT_TYPE_NUMBER; i < PURC_VARIANT_TYPE_MAX; i++) {
-        //     EXPECT_EQ (stat->nr_values[i], 0);
-        //     EXPECT_EQ (stat->sz_mem[i], 0);
-        // } 
+        for (i = PURC_VARIANT_TYPE_NUMBER; i < PURC_VARIANT_TYPE_MAX; i++) {
+            EXPECT_EQ (stat->nr_values[i], 0);
+            EXPECT_EQ (stat->sz_mem[i], 0);
+        }
 
-        // EXPECT_EQ (stat->nr_total_values, 4);
-        // EXPECT_EQ (stat->sz_total_mem, 4 * size);
-        // EXPECT_EQ (stat->nr_reserved, 0);
-        // EXPECT_EQ (stat->nr_max_reserved, MAX_RESERVED_VARIANTS);
+        EXPECT_EQ (stat->nr_total_values, 4);
+        EXPECT_EQ (stat->sz_total_mem, 4 * size);
+        EXPECT_EQ (stat->nr_reserved, 0);
+        EXPECT_EQ (stat->nr_max_reserved, MAX_RESERVED_VARIANTS);
 
         cleanup = purc_cleanup ();
         ASSERT_EQ (cleanup, true);
@@ -358,13 +358,13 @@ TEST(variant, pcvariant_string)
     // expected: get PURC_VARIANT_INVALID
 
     // create short string variant with null pointer
-    // expected: return an empty string variant, with size is 0, and pointer is NULL. 
+    // expected: return an empty string variant, with size is 0, and pointer is NULL.
 
     // create long string variant with null pointer
-    // expected: return an empty string variant, with size is 0, and pointer is NULL. 
+    // expected: return an empty string variant, with size is 0, and pointer is NULL.
 
-    // create string variant with extraordinary long string 
-    // expected: it is depend on the free memory. 
+    // create string variant with extraordinary long string
+    // expected: it is depend on the free memory.
 
     purc_cleanup ();
 }
@@ -412,18 +412,18 @@ TEST(variant, pcvariant_atom_string)
     // expected: get PURC_VARIANT_INVALID
 
     // create atom string variant with null pointer
-    // expected: depend on code. 
+    // expected: depend on code.
 
     // create static atom string variant with null pointer
-    // expected: depend on code. 
+    // expected: depend on code.
 
-    // create two atom string variants with same input string, check the atom 
-    //        and string pointer whether are equal 
-    // expected: atom and string pointer is same. 
+    // create two atom string variants with same input string, check the atom
+    //        and string pointer whether are equal
+    // expected: atom and string pointer is same.
 
-    // create two static atom string variants with same input string, check the atom 
+    // create two static atom string variants with same input string, check the atom
     //        and string pointer
-    // expected: atom and string pointer is same. 
+    // expected: atom and string pointer is same.
 
     purc_cleanup ();
 }
@@ -446,13 +446,13 @@ TEST(variant, pcvariant_sequence)
     // expected: get the variant with original string
 
     // create short sequence variant with null pointer
-    // expected: return an empty string variant, with size is 0, and pointer is NULL. 
+    // expected: return an empty string variant, with size is 0, and pointer is NULL.
 
     // create long sequence variant with null pointer
-    // expected: return an empty string variant, with size is 0, and pointer is NULL. 
+    // expected: return an empty string variant, with size is 0, and pointer is NULL.
 
-    // create string variant with extraordinary long string 
-    // expected: it is depend on the free memory. 
+    // create string variant with extraordinary long string
+    // expected: it is depend on the free memory.
 
     purc_cleanup ();
 }
@@ -489,7 +489,7 @@ TEST(variant, pcvariant_native)
     // expected: get the native variant with valid pointer
 
     // create native variant with native_entity = NULL
-    // expected: return PURC_VARIANT_INVALID 
+    // expected: return PURC_VARIANT_INVALID
 
     // create native variant with valid native_entity and releaser = NULL
     // expected: get native variant with releaser = NULL ???
@@ -498,7 +498,7 @@ TEST(variant, pcvariant_native)
 }
 
 // to test:
-// purc_variant_ref 
+// purc_variant_ref
 TEST(variant, pcvariant_ref)
 {
     purc_instance_extra_info info = {0, 0};
@@ -511,7 +511,7 @@ TEST(variant, pcvariant_ref)
 
 
 // to test:
-// purc_variant_unref and memory 
+// purc_variant_unref and memory
 TEST(variant, pcvariant_unref)
 {
     purc_instance_extra_info info = {0, 0};
@@ -540,7 +540,7 @@ TEST(variant, pcvariant_serialize)
 
 
 // to test:
-// loop buffer in heap 
+// loop buffer in heap
 TEST(variant, pcvariant_loopbuffer)
 {
     purc_instance_extra_info info = {0, 0};
