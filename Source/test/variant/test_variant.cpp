@@ -562,3 +562,52 @@ TEST(variant, pcvariant_loopbuffer)
 }
 
 
+TEST(variant, four_constants)
+{
+    purc_instance_extra_info info = {0, 0};
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    struct purc_variant_stat * stat = purc_variant_usage_stat ();
+    ASSERT_NE(stat, nullptr);
+    ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED], 1);
+    ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_NULL], 1);
+    ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN], 2);
+
+    purc_variant_t v;
+
+    v = purc_variant_make_undefined();
+    ASSERT_NE(v, PURC_VARIANT_INVALID);
+    ASSERT_EQ(v->refc, 1);
+    ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED], 1);
+    purc_variant_unref(v);
+
+    v = purc_variant_make_null();
+    ASSERT_NE(v, PURC_VARIANT_INVALID);
+    ASSERT_EQ(v->refc, 1);
+    ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_NULL], 1);
+    purc_variant_unref(v);
+
+    v = purc_variant_make_boolean(true);
+    ASSERT_NE(v, PURC_VARIANT_INVALID);
+    ASSERT_EQ(v->refc, 1);
+    ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN], 2);
+    purc_variant_unref(v);
+
+    v = purc_variant_make_boolean(false);
+    ASSERT_NE(v, PURC_VARIANT_INVALID);
+    ASSERT_EQ(v->refc, 1);
+    purc_variant_ref(v);
+    ASSERT_EQ(v->refc, 2);
+    ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN], 2);
+    purc_variant_unref(v);
+    purc_variant_unref(v);
+
+    ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED], 1);
+    ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_NULL], 1);
+    ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN], 2);
+
+    purc_cleanup ();
+}
+
+

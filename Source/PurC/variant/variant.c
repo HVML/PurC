@@ -125,20 +125,20 @@ void pcvariant_init_instance(struct pcinst* inst)
 {
     // initialize const values in instance
     inst->variant_heap.v_null.type = PURC_VARIANT_TYPE_NULL;
-    inst->variant_heap.v_null.refc = 1;
+    inst->variant_heap.v_null.refc = 0;
     inst->variant_heap.v_null.flags = PCVARIANT_FLAG_NOFREE;
 
     inst->variant_heap.v_undefined.type = PURC_VARIANT_TYPE_UNDEFINED;
-    inst->variant_heap.v_undefined.refc = 1;
+    inst->variant_heap.v_undefined.refc = 0;
     inst->variant_heap.v_undefined.flags = PCVARIANT_FLAG_NOFREE;
 
     inst->variant_heap.v_false.type = PURC_VARIANT_TYPE_UNDEFINED;
-    inst->variant_heap.v_false.refc = 1;
+    inst->variant_heap.v_false.refc = 0;
     inst->variant_heap.v_false.flags = PCVARIANT_FLAG_NOFREE;
     inst->variant_heap.v_false.b = false;
 
     inst->variant_heap.v_true.type = PURC_VARIANT_TYPE_UNDEFINED;
-    inst->variant_heap.v_true.refc = 1;
+    inst->variant_heap.v_true.refc = 0;
     inst->variant_heap.v_true.flags = PCVARIANT_FLAG_NOFREE;
     inst->variant_heap.v_true.b = true;
 
@@ -157,10 +157,10 @@ void pcvariant_init_instance(struct pcinst* inst)
     stat->nr_max_reserved = MAX_RESERVED_VARIANTS;
 
     // VWNOTE: this is redundant
-    memset(inst->variant_heap.v_reserved, 0,
-            sizeof(inst->variant_heap.v_reserved));
-    inst->variant_heap.headpos = 0;
-    inst->variant_heap.tailpos = 0;
+    // memset(inst->variant_heap.v_reserved, 0,
+    //         sizeof(inst->variant_heap.v_reserved));
+    // inst->variant_heap.headpos = 0;
+    // inst->variant_heap.tailpos = 0;
 
     // initialize others
 }
