@@ -27,6 +27,8 @@
 #include "purc-utils.h"
 #include "config.h"
 
+#include <math.h>
+
 #if HAVE(GLIB)
 #include <gmodule.h>
 #endif
@@ -393,6 +395,15 @@ struct pcejson_token* pcejson_token_new (enum ejson_token_type type,
             token->ld = strtold ((const char*)bytes, NULL);
             break;
 
+        case EJSON_TOKEN_INFINITY:
+//            token->d = (bytes[0] == '-') ? -DBL_MAX : DBL_MAX;
+            token->d = (bytes[0] == '-') ? -INFINITY : INFINITY;
+            break;
+
+        case EJSON_TOKEN_NAN:
+            token->d = NAN;
+            break;
+
         case EJSON_TOKEN_KEY:
         case EJSON_TOKEN_STRING:
         case EJSON_TOKEN_TEXT:
@@ -429,6 +440,7 @@ struct pcejson_token* pcejson_token_new_from_tmp_buf (
         case EJSON_TOKEN_STRING:
         case EJSON_TOKEN_TEXT:
         case EJSON_TOKEN_BYTE_SQUENCE:
+        case EJSON_TOKEN_INFINITY:
             bytes = (const uint8_t*) pcejson_tmp_buf_get_buf(rws, &nr_bytes);
             break;
 
@@ -1167,11 +1179,6 @@ next_state:
                         ejson->c_len);
                 ADVANCE_TO(EJSON_VALUE_NUMBER_INTEGER_STATE);
             }
-            else if (ejson->wc == 'I' && (
-                        pcejson_tmp_buff_is_empty(ejson->tmp_buff) ||
-                        pcejson_tmp_buff_equal(ejson->tmp_buff, "-"))) {
-                RECONSUME_IN(EJSON_VALUE_NUMBER_INFINITY_STATE);
-            }
             pcinst_set_error(PCEJSON_BAD_JSON_NUMBER_PARSE_ERROR);
             return NULL;
         END_STATE()
@@ -1212,6 +1219,11 @@ next_state:
             }
             else if (ejson->wc == 'U' || ejson->wc == 'L') {
                 RECONSUME_IN(EJSON_VALUE_NUMBER_SUFFIX_INTEGER_STATE);
+            }
+            else if (ejson->wc == 'I' && (
+                        pcejson_tmp_buff_is_empty(ejson->tmp_buff) ||
+                        pcejson_tmp_buff_equal(ejson->tmp_buff, "-"))) {
+                RECONSUME_IN(EJSON_VALUE_NUMBER_INFINITY_STATE);
             }
             pcinst_set_error(
                     PCEJSON_UNEXPECTED_JSON_NUMBER_INTEGER_PARSE_ERROR);
@@ -1399,7 +1411,7 @@ next_state:
             if (is_delimiter(ejson->wc)) {
                 if (pcejson_tmp_buff_equal(ejson->tmp_buff, "-Infinity")
                     || pcejson_tmp_buff_equal(ejson->tmp_buff, "Infinity")) {
-                    RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
+                    RECONSUME_IN_NEXT(EJSON_AFTER_VALUE_STATE);
                     return pcejson_token_new_from_tmp_buf (
                             EJSON_TOKEN_INFINITY, ejson->tmp_buff);
                 }
@@ -1424,7 +1436,10 @@ next_state:
 
                 case 'n':
                     if (pcejson_tmp_buff_equal(ejson->tmp_buff, "I")
-                        || pcejson_tmp_buff_equal (ejson->tmp_buff, "Infi")) {
+                        || pcejson_tmp_buff_equal (ejson->tmp_buff, "-I")
+                        || pcejson_tmp_buff_equal (ejson->tmp_buff, "Infi")
+                        || pcejson_tmp_buff_equal (ejson->tmp_buff, "-Infi")
+                        ) {
                         pcejson_tmp_buff_append (ejson->tmp_buff,
                                 (uint8_t*)ejson->c, ejson->c_len);
                         ADVANCE_TO(EJSON_VALUE_NUMBER_INFINITY_STATE);
@@ -1437,7 +1452,9 @@ next_state:
                     break;
 
                 case 'f':
-                    if (pcejson_tmp_buff_equal(ejson->tmp_buff, "In")) {
+                    if (pcejson_tmp_buff_equal(ejson->tmp_buff, "In")
+                        || pcejson_tmp_buff_equal (ejson->tmp_buff, "-In")
+                            ) {
                         pcejson_tmp_buff_append (ejson->tmp_buff,
                                 (uint8_t*)ejson->c, ejson->c_len);
                         ADVANCE_TO(EJSON_VALUE_NUMBER_INFINITY_STATE);
@@ -1451,7 +1468,9 @@ next_state:
 
                 case 'i':
                     if (pcejson_tmp_buff_equal(ejson->tmp_buff, "Inf")
-                        || pcejson_tmp_buff_equal (ejson->tmp_buff, "Infin")) {
+                        || pcejson_tmp_buff_equal (ejson->tmp_buff, "-Inf")
+                        || pcejson_tmp_buff_equal (ejson->tmp_buff, "Infin")
+                        || pcejson_tmp_buff_equal (ejson->tmp_buff, "-Infin")) {
                         pcejson_tmp_buff_append (ejson->tmp_buff,
                                 (uint8_t*)ejson->c, ejson->c_len);
                         ADVANCE_TO(EJSON_VALUE_NUMBER_INFINITY_STATE);
@@ -1464,7 +1483,9 @@ next_state:
                     break;
 
                 case 't':
-                    if (pcejson_tmp_buff_equal(ejson->tmp_buff, "Infini")) {
+                    if (pcejson_tmp_buff_equal(ejson->tmp_buff, "Infini")
+                        || pcejson_tmp_buff_equal (ejson->tmp_buff, "-Infini")
+                            ) {
                         pcejson_tmp_buff_append (ejson->tmp_buff,
                                 (uint8_t*)ejson->c, ejson->c_len);
                         ADVANCE_TO(EJSON_VALUE_NUMBER_INFINITY_STATE);
@@ -1477,7 +1498,9 @@ next_state:
                     break;
 
                 case 'y':
-                    if (pcejson_tmp_buff_equal(ejson->tmp_buff, "Infinit")) {
+                    if (pcejson_tmp_buff_equal(ejson->tmp_buff, "Infinit")
+                        || pcejson_tmp_buff_equal (ejson->tmp_buff, "-Infinit")
+                            ) {
                         pcejson_tmp_buff_append (ejson->tmp_buff,
                                 (uint8_t*)ejson->c, ejson->c_len);
                         ADVANCE_TO(EJSON_VALUE_NUMBER_INFINITY_STATE);
@@ -1499,9 +1522,8 @@ next_state:
         BEGIN_STATE(EJSON_VALUE_NAN_STATE)
             if (is_delimiter(ejson->wc)) {
                 if (pcejson_tmp_buff_equal(ejson->tmp_buff, "NaN")) {
-                    RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
-                    return pcejson_token_new_from_tmp_buf (
-                            EJSON_TOKEN_NAN, ejson->tmp_buff);
+                    RECONSUME_IN_NEXT(EJSON_AFTER_VALUE_STATE);
+                    return pcejson_token_new (EJSON_TOKEN_NAN, NULL, 0);
                 }
                 pcinst_set_error(PCEJSON_UNEXPECTED_JSON_NUMBER_PARSE_ERROR);
                 return NULL;
