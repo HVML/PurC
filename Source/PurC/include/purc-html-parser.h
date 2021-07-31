@@ -28,8 +28,12 @@
 #include "purc-rwstream.h"
 
 struct purc_html_document;
-typedef struct purc_html_document purc_html_document;
-typedef struct purc_html_document* purc_html_document_t;
+typedef struct purc_html_document  purc_html_document;
+typedef struct purc_html_document *purc_html_document_t;
+
+struct purc_html_dom_node;
+typedef struct purc_html_dom_node  purc_html_dom_node;
+typedef struct purc_html_dom_node *purc_html_dom_node_t;
 
 
 PCA_EXTERN_C_BEGIN
@@ -37,17 +41,17 @@ PCA_EXTERN_C_BEGIN
 /**
  */
 PCA_EXPORT purc_html_document_t
-purc_html_load_from_stream(purc_rwstream_t in);
+purc_html_doc_load_from_stream(purc_rwstream_t in);
 
 /**
  */
 PCA_EXPORT int
-purc_html_write_to_stream(purc_html_document_t doc, purc_rwstream_t out);
+purc_html_doc_write_to_stream(purc_html_document_t doc, purc_rwstream_t out);
 
 /**
  */
 PCA_EXPORT int
-purc_html_destroy_doc(purc_html_document_t doc);
+purc_html_doc_destroy(purc_html_document_t doc);
 
 
 

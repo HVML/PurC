@@ -73,7 +73,7 @@ _html_parse_chunk(purc_html_document_t doc, purc_rwstream_t in)
 }
 
 purc_html_document_t
-purc_html_load_from_stream(purc_rwstream_t in)
+purc_html_doc_load_from_stream(purc_rwstream_t in)
 {
     if (!in) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
@@ -154,7 +154,7 @@ serializer_callback(const unsigned char  *data, size_t len, void *ctx)
 }
 
 int
-purc_html_write_to_stream(purc_html_document_t doc, purc_rwstream_t out)
+purc_html_doc_write_to_stream(purc_html_document_t doc, purc_rwstream_t out)
 {
     if (!doc || !doc->doc || !out) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
@@ -170,7 +170,7 @@ purc_html_write_to_stream(purc_html_document_t doc, purc_rwstream_t out)
 }
 
 int
-purc_html_destroy_doc(purc_html_document_t doc)
+purc_html_doc_destroy(purc_html_document_t doc)
 {
     if (!doc || !doc->doc)
         return -1;
