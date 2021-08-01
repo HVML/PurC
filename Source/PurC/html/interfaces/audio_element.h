@@ -20,6 +20,12 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * This implementation of HTML parser is derived from Lexbor <http://lexbor.com/>.
+ *
+ * Copyright (C) 2018-2020 Alexander Borisov
+ *
+ * Author: Alexander Borisov <borisov@lexbor.com>
  */
 #ifndef PCHTML_PARSER_AUDIO_ELEMENT_H
 #define PCHTML_PARSER_AUDIO_ELEMENT_H
