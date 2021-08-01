@@ -187,13 +187,13 @@ TEST(variant, pcvariant_init_once)
 
     ASSERT_NE(stat, nullptr);
 
-    EXPECT_EQ (stat->nr_values[PURC_VARIANT_TYPE_NULL], 1);
+    EXPECT_EQ (stat->nr_values[PURC_VARIANT_TYPE_NULL], 0);
     EXPECT_EQ (stat->sz_mem[PURC_VARIANT_TYPE_NULL], size);
 
-    EXPECT_EQ (stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED], 1);
+    EXPECT_EQ (stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED], 0);
     EXPECT_EQ (stat->sz_mem[PURC_VARIANT_TYPE_UNDEFINED], size);
 
-    EXPECT_EQ (stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN], 2);
+    EXPECT_EQ (stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN], 0);
     EXPECT_EQ (stat->sz_mem[PURC_VARIANT_TYPE_BOOLEAN], size * 2);
 
     for (i = PURC_VARIANT_TYPE_NUMBER; i < PURC_VARIANT_TYPE_MAX; i++) {
@@ -231,13 +231,13 @@ TEST(variant, pcvariant_init_10_times)
 
         ASSERT_NE(stat, nullptr);
 
-        EXPECT_EQ (stat->nr_values[PURC_VARIANT_TYPE_NULL], 1);
+        EXPECT_EQ (stat->nr_values[PURC_VARIANT_TYPE_NULL], 0);
         EXPECT_EQ (stat->sz_mem[PURC_VARIANT_TYPE_NULL], size);
 
-        EXPECT_EQ (stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED], 1);
+        EXPECT_EQ (stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED], 0);
         EXPECT_EQ (stat->sz_mem[PURC_VARIANT_TYPE_UNDEFINED], size);
 
-        EXPECT_EQ (stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN], 2);
+        EXPECT_EQ (stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN], 0);
         EXPECT_EQ (stat->sz_mem[PURC_VARIANT_TYPE_BOOLEAN], size * 2);
 
         for (i = PURC_VARIANT_TYPE_NUMBER; i < PURC_VARIANT_TYPE_MAX; i++) {
@@ -702,41 +702,111 @@ TEST(variant, four_constants)
 
     struct purc_variant_stat * stat = purc_variant_usage_stat ();
     ASSERT_NE(stat, nullptr);
-    ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED], 1);
-    ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_NULL], 1);
-    ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN], 2);
+    ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED], 0);
+    ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_NULL], 0);
+    ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN], 0);
 
     purc_variant_t v;
 
+    // create first undefined variant
     v = purc_variant_make_undefined();
     ASSERT_NE(v, PURC_VARIANT_INVALID);
-    ASSERT_EQ(v->refc, 1);
-    ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED], 1);
-    purc_variant_unref(v);
 
+    // create second undefined variant
+    v = purc_variant_make_undefined();
+    ASSERT_NE(v, PURC_VARIANT_INVALID);
+
+    // create third undefined variant
+    v = purc_variant_make_undefined();
+    ASSERT_NE(v, PURC_VARIANT_INVALID);
+
+    ASSERT_EQ(v->refc, 3);
+
+    // get the reference times
+    stat = purc_variant_usage_stat ();
+    ASSERT_NE(stat, nullptr);
+    ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED], 3);
+
+    // it is const, unref 2 times
+    purc_variant_unref(v);
+    purc_variant_unref(v);
+    stat = purc_variant_usage_stat ();
+    ASSERT_NE(stat, nullptr);
+    ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED], 1);
+
+
+
+    // create first null variant
     v = purc_variant_make_null();
     ASSERT_NE(v, PURC_VARIANT_INVALID);
-    ASSERT_EQ(v->refc, 1);
-    ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_NULL], 1);
-    purc_variant_unref(v);
 
+    // create second null variant
+    v = purc_variant_make_null();
+    ASSERT_NE(v, PURC_VARIANT_INVALID);
+
+    // create third null variant
+    v = purc_variant_make_null();
+    ASSERT_NE(v, PURC_VARIANT_INVALID);
+
+    ASSERT_EQ(v->refc, 3);
+
+    // get the reference times
+    stat = purc_variant_usage_stat ();
+    ASSERT_NE(stat, nullptr);
+    ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_NULL], 3);
+
+    // it is const, unref 3 times
+    purc_variant_unref(v);
+    purc_variant_unref(v);
+    purc_variant_unref(v);
+    stat = purc_variant_usage_stat ();
+    ASSERT_NE(stat, nullptr);
+    ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_NULL], 0);
+
+
+
+    // create first true variant
     v = purc_variant_make_boolean(true);
     ASSERT_NE(v, PURC_VARIANT_INVALID);
-    ASSERT_EQ(v->refc, 1);
-    ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN], 2);
-    purc_variant_unref(v);
 
+    // create second true variant
+    v = purc_variant_make_boolean(true);
+    ASSERT_NE(v, PURC_VARIANT_INVALID);
+
+    ASSERT_EQ(v->refc, 2);
+
+    // get the reference times
+    stat = purc_variant_usage_stat ();
+    ASSERT_NE(stat, nullptr);
+    ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN], 2);
+
+
+    // create first false variant
     v = purc_variant_make_boolean(false);
     ASSERT_NE(v, PURC_VARIANT_INVALID);
-    ASSERT_EQ(v->refc, 1);
-    purc_variant_ref(v);
-    ASSERT_EQ(v->refc, 2);
-    ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN], 2);
-    purc_variant_unref(v);
-    purc_variant_unref(v);
 
-    ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED], 1);
-    ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_NULL], 1);
+    // create second false variant
+    v = purc_variant_make_boolean(false);
+    ASSERT_NE(v, PURC_VARIANT_INVALID);
+
+    // it must be 2. ture and false variants are two different constant
+    ASSERT_EQ(v->refc, 2);
+
+    // get the reference times
+    stat = purc_variant_usage_stat ();
+    ASSERT_NE(stat, nullptr);
+    // it must be 4, because true and flase variants are same type
+    ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN], 4);
+
+    // unref false variant 2 times
+    purc_variant_unref(v);
+    purc_variant_unref(v);
+    ASSERT_EQ(v->refc, 0);
+
+    // get the reference times
+    stat = purc_variant_usage_stat ();
+    ASSERT_NE(stat, nullptr);
+    // it must be 2, because true and flase variants are same type
     ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN], 2);
 
     purc_cleanup ();

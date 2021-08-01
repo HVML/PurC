@@ -144,11 +144,11 @@ void pcvariant_init_instance(struct pcinst* inst)
 
     /* VWNOTE: there are two values of boolean.  */
     struct purc_variant_stat *stat = &(inst->variant_heap.stat);
-    stat->nr_values[PURC_VARIANT_TYPE_NULL] = 1;
+    stat->nr_values[PURC_VARIANT_TYPE_NULL] = 0;
     stat->sz_mem[PURC_VARIANT_TYPE_NULL] = sizeof(purc_variant);
-    stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED] = 1;
+    stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED] = 0;
     stat->sz_mem[PURC_VARIANT_TYPE_UNDEFINED] = sizeof(purc_variant);
-    stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN] = 2;
+    stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN] = 0;
     stat->sz_mem[PURC_VARIANT_TYPE_BOOLEAN] = sizeof(purc_variant) * 2;
     stat->nr_total_values = 4;
     stat->sz_total_mem = 4 * sizeof(purc_variant);
@@ -307,6 +307,18 @@ struct purc_variant_stat * purc_variant_usage_stat(void)
         inst->errcode = PURC_ERROR_NO_INSTANCE;
         return NULL;
     }
+
+    purc_variant_t value = &(inst->variant_heap.v_undefined);
+    inst->variant_heap.stat.nr_values[PURC_VARIANT_TYPE_UNDEFINED] = value->refc;
+
+    value = &(inst->variant_heap.v_null);
+    inst->variant_heap.stat.nr_values[PURC_VARIANT_TYPE_NULL] = value->refc;
+
+
+    value = &(inst->variant_heap.v_true);
+    inst->variant_heap.stat.nr_values[PURC_VARIANT_TYPE_BOOLEAN] = value->refc;
+    value = &(inst->variant_heap.v_false);
+    inst->variant_heap.stat.nr_values[PURC_VARIANT_TYPE_BOOLEAN] += value->refc;
 
     return &inst->variant_heap.stat;
 }
