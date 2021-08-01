@@ -31,6 +31,7 @@
 #include "private/debug.h"
 #include "private/html.h"
 #include "private/errors.h"
+#include "interfaces/document.h"
 
 struct purc_html_document {
     pchtml_html_document_t *doc;

@@ -58,41 +58,6 @@ pchtml_html_document_t *
 pchtml_html_document_destroy(pchtml_html_document_t *document);
 
 
-// operations about parsing html
-unsigned int
-pchtml_html_document_parse(pchtml_html_document_t *document,
-                const unsigned char *html, size_t size) ;
-
-unsigned int
-pchtml_html_document_parse_chunk_begin(
-                pchtml_html_document_t *document) ;
-
-unsigned int
-pchtml_html_document_parse_chunk(pchtml_html_document_t *document,
-                const unsigned char *html, size_t size) ;
-
-unsigned int
-pchtml_html_document_parse_chunk_end(
-                pchtml_html_document_t *document) ;
-
-pcedom_node_t *
-pchtml_html_document_parse_fragment(pchtml_html_document_t *document,
-                pcedom_element_t *element,
-                const unsigned char *html, size_t size) ;
-
-unsigned int
-pchtml_html_document_parse_fragment_chunk_begin(
-                pchtml_html_document_t *document,
-                pcedom_element_t *element) ;
-
-unsigned int
-pchtml_html_document_parse_fragment_chunk(pchtml_html_document_t *document,
-                const unsigned char *html, size_t size) ;
-
-pcedom_node_t *
-pchtml_html_document_parse_fragment_chunk_end(
-                pchtml_html_document_t *document) ;
-
 typedef unsigned int
 (*pchtml_html_serialize_cb_f)(const unsigned char *data, size_t len, void *ctx);
 
