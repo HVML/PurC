@@ -48,14 +48,6 @@ extern "C" {
 #include "html/core/types.h"
 #include "html/core/pchtml.h"
 
-#define PCHTML_VERSION_MAJOR 1
-#define PCHTML_VERSION_MINOR 3
-#define PCHTML_VERSION_PATCH 2
-
-#define PCHTML_VERSION_STRING PCHTML_STRINGIZE(PCHTML_VERSION_MAJOR) "."       \
-                              PCHTML_STRINGIZE(PCHTML_VERSION_MINOR) "."       \
-                              PCHTML_STRINGIZE(PCHTML_VERSION_PATCH)
-
 #define pchtml_assert(val)
 
 

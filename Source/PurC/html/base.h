@@ -40,15 +40,6 @@ extern "C" {
 #include "html/core/base.h"
 
 
-#define PCHTML_PARSER_VERSION_MAJOR 2
-#define PCHTML_PARSER_VERSION_MINOR 0
-#define PCHTML_PARSER_VERSION_PATCH 0
-
-#define PCHTML_PARSER_VERSION_STRING PCHTML_STRINGIZE(PCHTML_PARSER_VERSION_MAJOR) "."   \
-                                PCHTML_STRINGIZE(PCHTML_PARSER_VERSION_MINOR) "."   \
-                                PCHTML_STRINGIZE(PCHTML_PARSER_VERSION_PATCH)
-
-
 typedef struct pchtml_html_tokenizer pchtml_html_tokenizer_t;
 typedef unsigned int pchtml_html_tokenizer_opt_t;
 typedef struct pchtml_html_tree pchtml_html_tree_t;
