@@ -4,6 +4,16 @@
 #include <errno.h>
 #include <gtest/gtest.h>
 
+static inline int my_puts(const char* str)
+{
+#if 0
+    return fputs(str, stderr);
+#else
+    (void)str;
+    return 0;
+#endif
+}
+
 // to test: serialize a null
 TEST(variant, serialize_null)
 {
@@ -75,6 +85,7 @@ TEST(variant, serialize_number)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
+    /* case 1: no decimal */
     purc_variant_t my_variant = purc_variant_make_number(123.0);
     ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
 
@@ -89,14 +100,13 @@ TEST(variant, serialize_number)
 
     buf[n] = 0;
     ASSERT_STREQ(buf, "123");
+    purc_variant_unref(my_variant);
 
+    /* case 2: nozero */
     my_variant = purc_variant_make_number(123.456000000);
     ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
 
-    purc_variant_unref(my_variant);
-
     purc_rwstream_seek(my_rws, 0, SEEK_SET);
-
     len_expected = 0;
     n = purc_variant_serialize(my_variant, my_rws,
             0, PCVARIANT_SERIALIZE_OPT_NOZERO, &len_expected);
@@ -104,7 +114,37 @@ TEST(variant, serialize_number)
 
     buf[n] = 0;
     ASSERT_STREQ(buf, "123.456");
+    purc_variant_unref(my_variant);
 
+    /* case 3: customized double format */
+    my_variant = purc_variant_make_number(1.1234567890);
+    ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
+
+    len_expected = 0;
+    purc_rwstream_seek(my_rws, 0, SEEK_SET);
+    purc_set_local_data("format-double", (uintptr_t)"%.6f", NULL);
+    n = purc_variant_serialize(my_variant, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+    ASSERT_GT(n, 0);
+
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "1.123457");
+    purc_variant_unref(my_variant);
+
+    /* case 4: customized double format with nozero */
+    my_variant = purc_variant_make_number(1.12345600123);
+    ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
+
+    len_expected = 0;
+    purc_rwstream_seek(my_rws, 0, SEEK_SET);
+    purc_set_local_data("format-double", (uintptr_t)"%.7f", NULL);
+    n = purc_variant_serialize(my_variant, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_NOZERO, &len_expected);
+    ASSERT_GT(n, 0);
+
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "1.123456");
+    purc_variant_unref(my_variant);
     purc_cleanup ();
 }
 
@@ -187,6 +227,35 @@ TEST(variant, serialize_longdouble)
 
     purc_variant_unref(my_variant);
 
+    /* case 2: customized double format */
+    my_variant = purc_variant_make_longdouble(1.1234567890);
+    ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
+
+    len_expected = 0;
+    purc_rwstream_seek(my_rws, 0, SEEK_SET);
+    purc_set_local_data("format-long-double", (uintptr_t)"%.6Lf", NULL);
+    n = purc_variant_serialize(my_variant, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+    ASSERT_GT(n, 0);
+
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "1.123457FL");
+    purc_variant_unref(my_variant);
+
+    /* case 4: customized double format with nozero */
+    my_variant = purc_variant_make_longdouble(1.12345600123);
+    ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
+
+    len_expected = 0;
+    purc_rwstream_seek(my_rws, 0, SEEK_SET);
+    purc_set_local_data("format-long-double", (uintptr_t)"%.7Lf", NULL);
+    n = purc_variant_serialize(my_variant, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_NOZERO, &len_expected);
+    ASSERT_GT(n, 0);
+
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "1.123456FL");
+    purc_variant_unref(my_variant);
     purc_rwstream_destroy(my_rws);
     purc_cleanup ();
 }
@@ -247,7 +316,7 @@ TEST(variant, serialize_dynamic)
 
 static bool my_releaser (void* native_entity)
 {
-    printf ("my_releaser is called\n");
+    my_puts("my_releaser is called\n");
     free (native_entity);
     return true;
 }
@@ -352,8 +421,8 @@ TEST(variant, serialize_string)
     ssize_t n = purc_variant_serialize(my_variant, my_rws,
             0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
     ASSERT_GT(n, 0);
-    puts("Serialized string with PCVARIANT_SERIALIZE_OPT_PLAIN flag:");
-    puts(buf);
+    my_puts("Serialized string with PCVARIANT_SERIALIZE_OPT_PLAIN flag:");
+    my_puts(buf);
 
     buf[n] = 0;
     ASSERT_STREQ(buf, "\"\\r\\n\\b\\f\\t\\\"\\u001c'\"");
@@ -370,8 +439,8 @@ TEST(variant, serialize_string)
 
     n = purc_variant_serialize(my_variant, my_rws,
             0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
-    puts("Serialized string with PCVARIANT_SERIALIZE_OPT_PLAIN flag:");
-    puts(buf);
+    my_puts("Serialized string with PCVARIANT_SERIALIZE_OPT_PLAIN flag:");
+    my_puts(buf);
     ASSERT_GT(n, 0);
 
     buf[n] = 0;
@@ -404,8 +473,8 @@ TEST(variant, serialize_bsequence)
     n = purc_variant_serialize(my_variant, my_rws,
             0, PCVARIANT_SERIALIZE_OPT_BSEQUECE_HEX, &len_expected);
     ASSERT_GT(n, 0);
-    puts("Serialized byte sequence with PCVARIANT_SERIALIZE_OPT_BSEQUECE_HEX flag:");
-    puts(buf);
+    my_puts("Serialized byte sequence with PCVARIANT_SERIALIZE_OPT_BSEQUECE_HEX flag:");
+    my_puts(buf);
     buf[n] = 0;
     ASSERT_STREQ(buf, "bx591c88af");
 
@@ -417,8 +486,8 @@ TEST(variant, serialize_bsequence)
     n = purc_variant_serialize(my_variant, my_rws,
             0, PCVARIANT_SERIALIZE_OPT_BSEQUECE_BIN, &len_expected);
     ASSERT_GT(n, 0);
-    puts("Serialized byte sequence with PCVARIANT_SERIALIZE_OPT_BSEQUECE_BIN flag:");
-    puts(buf);
+    my_puts("Serialized byte sequence with PCVARIANT_SERIALIZE_OPT_BSEQUECE_BIN flag:");
+    my_puts(buf);
     buf[n] = 0;
     ASSERT_STREQ(buf, "bb01011001000111001000100010101111");
 
@@ -431,8 +500,8 @@ TEST(variant, serialize_bsequence)
             0, PCVARIANT_SERIALIZE_OPT_BSEQUECE_BIN |
             PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BIN_DOT, &len_expected);
     ASSERT_GT(n, 0);
-    puts("Serialized byte sequence with PCVARIANT_SERIALIZE_OPT_BSEQUECE_BIN | PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BIN_DOT flag:");
-    puts(buf);
+    my_puts("Serialized byte sequence with PCVARIANT_SERIALIZE_OPT_BSEQUECE_BIN | PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BIN_DOT flag:");
+    my_puts(buf);
     buf[n] = 0;
     ASSERT_STREQ(buf, "bb0101.1001.0001.1100.1000.1000.1010.1111");
 
@@ -444,8 +513,8 @@ TEST(variant, serialize_bsequence)
     n = purc_variant_serialize(my_variant, my_rws,
             0, PCVARIANT_SERIALIZE_OPT_BSEQUECE_BASE64, &len_expected);
     ASSERT_GT(n, 0);
-    puts("Serialized byte sequence with PCVARIANT_SERIALIZE_OPT_BSEQUECE_BASE64 flag:");
-    puts(buf);
+    my_puts("Serialized byte sequence with PCVARIANT_SERIALIZE_OPT_BSEQUECE_BASE64 flag:");
+    my_puts(buf);
     buf[n] = 0;
     ASSERT_STREQ(buf, "b64WRyIrw==");
 
@@ -463,8 +532,8 @@ TEST(variant, serialize_bsequence)
     n = purc_variant_serialize(my_variant, my_rws,
             0, PCVARIANT_SERIALIZE_OPT_BSEQUECE_HEX, &len_expected);
     ASSERT_GT(n, 0);
-    puts("Serialized byte sequence with PCVARIANT_SERIALIZE_OPT_BSEQUECE_HEX flag:");
-    puts(buf);
+    my_puts("Serialized byte sequence with PCVARIANT_SERIALIZE_OPT_BSEQUECE_HEX flag:");
+    my_puts(buf);
     buf[n] = 0;
     ASSERT_STREQ(buf, "bx591c88afefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefef00");
 
@@ -492,8 +561,8 @@ TEST(variant, serialize_array)
     size_t len_expected = 0;
     ssize_t n = purc_variant_serialize(my_variant, my_rws,
             0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
-    puts("Serialized array with PCVARIANT_SERIALIZE_OPT_PLAIN flag:");
-    puts(buf);
+    my_puts("Serialized array with PCVARIANT_SERIALIZE_OPT_PLAIN flag:");
+    my_puts(buf);
     ASSERT_GT(n, 0);
     ASSERT_GT(len_expected, 0);
 
@@ -505,8 +574,8 @@ TEST(variant, serialize_array)
     memset(buf, 0, sizeof(buf));
     n = purc_variant_serialize(my_variant, my_rws,
             0, PCVARIANT_SERIALIZE_OPT_SPACED, &len_expected);
-    puts("Serialized array with PCVARIANT_SERIALIZE_OPT_SPACED flag:");
-    puts(buf);
+    my_puts("Serialized array with PCVARIANT_SERIALIZE_OPT_SPACED flag:");
+    my_puts(buf);
     ASSERT_GT(n, 0);
 
     buf[n] = 0;
@@ -517,8 +586,8 @@ TEST(variant, serialize_array)
     memset(buf, 0, sizeof(buf));
     n = purc_variant_serialize(my_variant, my_rws,
             0, PCVARIANT_SERIALIZE_OPT_NOZERO, &len_expected);
-    puts("Serialized array with PCVARIANT_SERIALIZE_OPT_NOZERO flag:");
-    puts(buf);
+    my_puts("Serialized array with PCVARIANT_SERIALIZE_OPT_NOZERO flag:");
+    my_puts(buf);
     ASSERT_GT(n, 0);
 
     buf[n] = 0;
@@ -529,8 +598,8 @@ TEST(variant, serialize_array)
     memset(buf, 0, sizeof(buf));
     n = purc_variant_serialize(my_variant, my_rws,
             0, PCVARIANT_SERIALIZE_OPT_PRETTY, &len_expected);
-    puts("Serialized array with PCVARIANT_SERIALIZE_OPT_PRETTY flag:");
-    puts(buf);
+    my_puts("Serialized array with PCVARIANT_SERIALIZE_OPT_PRETTY flag:");
+    my_puts(buf);
     ASSERT_GT(n, 0);
 
     buf[n] = 0;
@@ -542,8 +611,8 @@ TEST(variant, serialize_array)
     n = purc_variant_serialize(my_variant, my_rws,
             0, PCVARIANT_SERIALIZE_OPT_PRETTY |
             PCVARIANT_SERIALIZE_OPT_PRETTY_TAB, &len_expected);
-    puts("Serialized array with PCVARIANT_SERIALIZE_OPT_PRETTY and PCVARIANT_SERIALIZE_OPT_PRETTY_TAB flag:");
-    puts(buf);
+    my_puts("Serialized array with PCVARIANT_SERIALIZE_OPT_PRETTY and PCVARIANT_SERIALIZE_OPT_PRETTY_TAB flag:");
+    my_puts(buf);
     ASSERT_GT(n, 0);
 
     buf[n] = 0;
@@ -584,12 +653,40 @@ TEST(variant, serialize_object)
     purc_rwstream_seek(my_rws, 0, SEEK_SET);
 
     len_expected = 0;
+    purc_rwstream_seek(my_rws, 0, SEEK_SET);
     n = purc_variant_serialize(my_variant, my_rws,
-            0, PCVARIANT_SERIALIZE_OPT_NOZERO, &len_expected);
+            0, PCVARIANT_SERIALIZE_OPT_PRETTY, &len_expected);
+    my_puts("Serialized object with PCVARIANT_SERIALIZE_OPT_PRETTY flag:");
+    my_puts(buf);
     ASSERT_GT(n, 0);
 
     buf[n] = 0;
-    ASSERT_STREQ(buf, "{\"v1\":123,\"v2\":123.456}");
+    ASSERT_STREQ(buf, "{\n  \"v1\":123,\n  \"v2\":123.456\n}");
+
+    len_expected = 0;
+    purc_rwstream_seek(my_rws, 0, SEEK_SET);
+    memset(buf, 0, sizeof(buf));
+    n = purc_variant_serialize(my_variant, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_PRETTY |
+            PCVARIANT_SERIALIZE_OPT_PRETTY_TAB, &len_expected);
+    my_puts("Serialized object with PCVARIANT_SERIALIZE_OPT_PRETTY and PCVARIANT_SERIALIZE_OPT_PRETTY_TAB flag:");
+    my_puts(buf);
+    ASSERT_GT(n, 0);
+
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "{\n\t\"v1\":123,\n\t\"v2\":123.456\n}");
+
+    len_expected = 0;
+    purc_rwstream_seek(my_rws, 0, SEEK_SET);
+    memset(buf, 0, sizeof(buf));
+    n = purc_variant_serialize(my_variant, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_SPACED, &len_expected);
+    my_puts("Serialized array with PCVARIANT_SERIALIZE_OPT_SPACED flag:");
+    my_puts(buf);
+    ASSERT_GT(n, 0);
+
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "{ \"v1\": 123, \"v2\": 123.456 }");
 
     purc_variant_unref(my_variant);
     purc_variant_unref(v1);
