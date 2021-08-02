@@ -43,7 +43,7 @@ private:
     string comp;
 };
 
-TEST_P(ejson_parser_vcm_eval, test0)
+TEST_P(ejson_parser_vcm_eval, parse_and_serialize)
 {
     const char* json = get_json();
     const char* comp = get_comp();
@@ -77,17 +77,6 @@ TEST_P(ejson_parser_vcm_eval, test0)
 
     pcejson_destroy(parser);
 }
-
-#if 0
-    T {
-        "[-123123123123123123123123123123]",
-        "[-123123123123123123123123123123]"
-    },
-    T {
-        "[-23746237467327689427983274983242347982324632784]",
-        "[-23746237467327689645882849906976246361885769728]"
-    }
-#endif
 
 char* read_file (const char* file)
 {
@@ -162,64 +151,14 @@ std::vector<ejson_test_data> read_ejson_test_data()
         }
     }
 
-    vec.push_back(make_pair("{key:'value'}", "123"));
-    vec.push_back(make_pair("[123]", "[123]"));
-    vec.push_back(make_pair("{key:1}", "{\"key\":1}"));
-    vec.push_back(make_pair("{key:\"value\"}", "{\"key\":\"value\"}"));
-    vec.push_back(make_pair("{key:'value'}", "{\"key\":\"value\"}"));
+    if (vec.empty()) {
+        vec.push_back(make_pair("[123]", "[123]"));
+        vec.push_back(make_pair("{key:1}", "{\"key\":1}"));
+        vec.push_back(make_pair("{'key':'2'}", "{\"key\":\"2\"}"));
+    }
     return vec;
 }
-
 
 INSTANTIATE_TEST_CASE_P(ejson, ejson_parser_vcm_eval,
         testing::ValuesIn(read_ejson_test_data()));
 
-#if 0
-INSTANTIATE_TEST_CASE_P(ejson, ejson_parser_vcm_eval, testing::Values(
-    T {
-        "[123.456e-789]",
-        "[0]"
-    },
-    T {
-        "[0.4e006699999999999999999999999999999999999999999999999999999999999\
-        99999999999999999999999999999999999999999999999999999999969999999006]",
-        "[Infinity]"
-    },
-    T {
-        "[-1e+9999]",
-        "[-Infinity]"
-    },
-    T {
-        "[1.5e+9999]",
-        "[Infinity]"
-    },
-    T {
-        "[-123123e100000]",
-        "[-Infinity]"
-    },
-    T {
-        "[123123e100000]",
-        "[Infinity]"
-    },
-    T {
-        "[123e-10000000]",
-        "[0]"
-    },
-    T {
-        "[100000000000000000000]",
-        "[100000000000000000000]"
-    },
-    T {
-        "{\"\\uDFAA\":0}",
-        "{\"\\\\uDFAA\":0}",
-    },
-    T {
-        "[\"\\uDADA\n\"]",
-        "[\"\\\\uDADA\\n\"]",
-    },
-    T {
-        "[\"\\uD888\\u1234\"]",
-        "[\"\\\\uD888\\\\u1234\"]",
-    }
-));
-#endif
