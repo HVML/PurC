@@ -582,7 +582,7 @@ ssize_t purc_rwstream_dump_to_another (purc_rwstream_t in,
 
 const char* purc_rwstream_get_mem_buffer (purc_rwstream_t rws, size_t *sz)
 {
-    if (rws == NULL || sz == NULL)
+    if (rws == NULL)
     {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return NULL;

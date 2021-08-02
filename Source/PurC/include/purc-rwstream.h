@@ -333,7 +333,7 @@ PCA_EXPORT ssize_t purc_rwstream_dump_to_another (purc_rwstream_t in,
  * purc_rwstream_new_buffer or purc_rwstream_new_from_mem).
  *
  * @param rw_mem: pointer to purc_rwstream_t
- * @param sz: pointer to receive size of the rwstream
+ * @param sz: (nullable): pointer to receive size of the rwstream
  *
  * @return success returns the pointer of the memory, @NULL not support and
  *         the error code is set to indicate the error. The error code:
