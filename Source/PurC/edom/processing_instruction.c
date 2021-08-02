@@ -30,7 +30,7 @@
  */
 
 
-#include "private/edom/processing_instruction.h"
+#include "edom/processing_instruction.h"
 #include "private/edom/document.h"
 
 

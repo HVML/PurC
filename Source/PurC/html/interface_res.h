@@ -69,7 +69,7 @@
 #include "private/edom/element.h"
 #include "private/edom/event_target.h"
 #include "private/edom/node.h"
-#include "private/edom/processing_instruction.h"
+#include "edom/processing_instruction.h"
 #include "private/edom/shadow_root.h"
 #include "private/edom/text.h"
 #include "html/interfaces/document.h"

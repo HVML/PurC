@@ -41,7 +41,7 @@
 #include "private/edom/comment.h"
 #include "private/edom/cdata_section.h"
 #include "private/edom/cdata_section.h"
-#include "private/edom/processing_instruction.h"
+#include "edom/processing_instruction.h"
 
 
 pcedom_document_t *

@@ -43,7 +43,7 @@ extern "C" {
 #include "html/tag_tag_const.h"
 #include "html/ns_const.h"
 
-#include "private/edom/exception.h"
+#include "edom/exception.h"
 
 
 #define pcedom_interface_cdata_section(obj) ((pcedom_cdata_section_t *) (obj))

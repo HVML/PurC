@@ -32,7 +32,7 @@
 #include "private/utils.h"
 #include "private/rwstream.h"
 #include "private/html.h"
-#include "private/edom/edom.h"
+#include "private/edom.h"
 
 #include <stdlib.h>
 #include <string.h>

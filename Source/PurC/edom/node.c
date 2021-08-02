@@ -39,7 +39,7 @@
 #include "private/edom/document.h"
 #include "private/edom/document_type.h"
 #include "private/edom/element.h"
-#include "private/edom/processing_instruction.h"
+#include "edom/processing_instruction.h"
 
 
 static pchtml_action_t

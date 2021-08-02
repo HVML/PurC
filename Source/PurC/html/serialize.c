@@ -36,7 +36,7 @@
 
 #include "private/edom/text.h"
 #include "private/edom/comment.h"
-#include "private/edom/processing_instruction.h"
+#include "edom/processing_instruction.h"
 #include "private/edom/document_type.h"
 
 #include "html/serialize.h"

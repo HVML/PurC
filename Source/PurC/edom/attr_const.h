@@ -36,8 +36,8 @@
  */
 
 
-#ifndef PCEDOM_PRIVATE_ATTR_CONST_H
-#define PCEDOM_PRIVATE_ATTR_CONST_H
+#ifndef PCEDOM_ATTR_CONST_H
+#define PCEDOM_ATTR_CONST_H
 
 
 typedef uintptr_t pcedom_attr_id_t;
@@ -77,4 +77,4 @@ typedef enum {
 pcedom_attr_id_enum_t;
 
 
-#endif  /* PCEDOM_PRIVATE_ATTR_CONST_H */
+#endif  /* PCEDOM_ATTR_CONST_H */

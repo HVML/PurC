@@ -33,7 +33,7 @@
 #include "private/errors.h"
 #include "private/debug.h"
 #include "private/utils.h"
-#include "private/edom/edom.h"
+#include "private/edom.h"
 
 static const char* edom_err_msgs[] = {
     /* PCEDOM_ERROR */
