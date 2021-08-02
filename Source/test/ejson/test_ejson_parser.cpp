@@ -4,17 +4,7 @@
 #include "purc-rwstream.h"
 
 #include <stdio.h>
-#include <unistd.h>
-#include <errno.h>
 #include <gtest/gtest.h>
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <math.h>
-
-#include <utility>
-#include <vector>
 
 using namespace std;
 
