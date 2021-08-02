@@ -38,7 +38,7 @@ extern "C" {
 #include <string.h>
 
 #include "config.h"
-#include "html/core/base.h"
+#include "html/core_base.h"
 #include "html/core/mem.h"
 #include "html/core/bst.h"
 

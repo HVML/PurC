@@ -36,7 +36,7 @@ extern "C" {
 #endif
 
 #include "config.h"
-#include "html/core/base.h"
+#include "html/core_base.h"
 #include "html/core/mraw.h"
 #include "html/core/utils.h"
 

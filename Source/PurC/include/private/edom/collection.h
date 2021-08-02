@@ -36,7 +36,7 @@
 extern "C" {
 #endif
 
-#include "html/core/base.h"
+#include "html/core_base.h"
 
 #include "private/array.h"
 #include "private/edom/interface.h"
