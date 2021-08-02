@@ -59,8 +59,8 @@ TEST_P(ejson_parser_vcm_eval, parse_and_serialize)
     ASSERT_GT(n, 0);
     buf[n] = 0;
     ASSERT_STREQ(buf, comp);
-    fprintf(stderr, "buf=%s\n", buf);
-    fprintf(stderr, "com=%s\n", comp);
+    //fprintf(stderr, "buf=%s\n", buf);
+    //fprintf(stderr, "com=%s\n", comp);
 
     purc_variant_unref(vt);
     purc_rwstream_destroy(my_rws);
@@ -133,7 +133,7 @@ std::vector<ejson_test_data> read_ejson_test_data()
             size_t sz = 0;
             ssize_t read = 0;
             while ((read = getline(&line, &sz, fp)) != -1) {
-                if (line) {
+                if (line && line[0] != '#') {
                     char* name = trim (line);
                     sprintf(file, "%s/%s.json", data_path, name);
                     char* json_buf = read_file (file);

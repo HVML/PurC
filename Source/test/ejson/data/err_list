@@ -6,3 +6,24 @@ i_string_overlong_sequence_6_bytes_null
 i_string_truncated-utf-8
 i_string_UTF-8_invalid_sequence
 y_array_false
+y_number
+y_number_real_capital_e
+y_number_real_capital_e_neg_exp
+y_number_real_exponent
+y_number_real_fraction_exponent
+y_object_duplicated_key_and_value # {a:b,a:b} => {a:b}
+y_object_duplicated_key # {a:b,a:c} => {a:c}
+y_object_empty_key # {"":b} => {}
+y_object_extreme_numbers
+y_string_allowed_escapes # \\\\
+y_string_backslash_and_u_escaped_zero
+y_string_backslash_doublequotes
+y_structure_true_in_array # true
+y_structure_string_empty # ""
+y_structure_lonely_true # true
+y_structure_lonely_string
+y_structure_lonely_false
+y_structure_lonely_int
+y_structure_lonely_negative_real
+y_structure_lonely_null
+y_string_space
