@@ -332,6 +332,9 @@ struct pcvcm_node* pcejson_token_to_pcvcm_node (
         default:
             break;
     }
+    token->sz_ptr[0] = 0;
+    token->sz_ptr[1] = 0;
+    pcejson_token_destroy (token);
     return node;
 }
 
