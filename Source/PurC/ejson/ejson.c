@@ -513,6 +513,10 @@ next_state:
                 case END_OF_FILE_MARKER:
                     return pcejson_token_new (EJSON_TOKEN_EOF, NULL, 0);
                 default:
+                    // utf-8 bom EF BB BF -> FEFF
+                    if (ejson->wc == 0xFEFF) {
+                        ADVANCE_TO(EJSON_INIT_STATE);
+                    }
                     pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
                     return NULL;
             }

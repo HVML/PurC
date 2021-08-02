@@ -42,7 +42,7 @@ purc_variant_t pcvcm_node_object_to_variant (struct pcvcm_node* node)
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
 
     struct pctree_node* k_node = tree_node->first_child;
-    struct pctree_node* v_node = k_node->next;
+    struct pctree_node* v_node = k_node ? k_node->next : NULL;
     while (k_node && v_node) {
         purc_variant_t key = pcvcm_node_to_variant (
                 pcvcm_node_from_pctree_node(k_node));

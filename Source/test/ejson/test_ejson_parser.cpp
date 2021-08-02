@@ -37,6 +37,8 @@ TEST_P(ejson_parser_vcm_eval, parse_and_serialize)
 {
     const char* json = get_json();
     const char* comp = get_comp();
+    //fprintf(stderr, "json=%s|len=%ld\n", json, strlen(json));
+    //fprintf(stderr, "comp=%s\n", comp);
     purc_rwstream_t rws = purc_rwstream_new_from_mem((void*)json, strlen(json));
 
     struct pcvcm_node* root = NULL;
@@ -57,6 +59,8 @@ TEST_P(ejson_parser_vcm_eval, parse_and_serialize)
     ASSERT_GT(n, 0);
     buf[n] = 0;
     ASSERT_STREQ(buf, comp);
+//    fprintf(stderr, "buf=%s\n", buf);
+//    fprintf(stderr, "com=%s\n", comp);
 
     purc_variant_unref(vt);
     purc_rwstream_destroy(my_rws);
@@ -155,6 +159,7 @@ std::vector<ejson_test_data> read_ejson_test_data()
         }
     }
 #endif
+
     if (vec.empty()) {
         vec.push_back(make_pair("[123]", "[123]"));
         vec.push_back(make_pair("{key:1}", "{\"key\":1}"));
