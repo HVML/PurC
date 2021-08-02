@@ -37,10 +37,10 @@ extern "C" {
 #endif
 
 #include "config.h"
-#include "html/core/hash.h"
-#include "html/core/shs.h"
-#include "html/core/dobject.h"
-#include "html/core/str.h"
+#include "html/hash.h"
+#include "html/shs.h"
+#include "html/dobject.h"
+#include "html/str.h"
 
 #include "html/tag_tag_const.h"
 

@@ -36,7 +36,7 @@ extern "C" {
 #endif
 
 #include "config.h"
-#include "html/core/base.h"
+#include "html/core_base.h"
 
 
 #define pchtml_utils_whitespace(onechar, action, logic)                        \

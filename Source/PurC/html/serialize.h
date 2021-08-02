@@ -37,7 +37,7 @@ extern "C" {
 #endif
 
 #include "config.h"
-#include "html/core/str.h"
+#include "html/str.h"
 #include "private/html.h"
 #include "private/edom/element.h"
 

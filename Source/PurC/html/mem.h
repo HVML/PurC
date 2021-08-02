@@ -39,7 +39,7 @@ extern "C" {
 #include <string.h>
 
 #include "config.h"
-#include "html/core/base.h"
+#include "html/core_base.h"
 
 
 typedef struct pchtml_mem_chunk pchtml_mem_chunk_t;

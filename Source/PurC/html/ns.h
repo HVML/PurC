@@ -37,8 +37,8 @@ extern "C" {
 #endif
 
 #include "config.h"
-#include "html/core/hash.h"
-#include "html/core/shs.h"
+#include "html/hash.h"
+#include "html/shs.h"
 
 #include "html/ns_const.h"
 

@@ -33,7 +33,7 @@
 #define PCHTML_ATTR_RES_H
 
 #include "config.h"
-#include "html/core/shs.h"
+#include "html/shs.h"
 
 #include "html_attr_const.h"
 

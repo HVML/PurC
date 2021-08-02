@@ -37,8 +37,8 @@ extern "C" {
 #endif
 
 #include "config.h"
-#include "html/core/mraw.h"
-#include "html/core/hash.h"
+#include "html/mraw.h"
+#include "html/hash.h"
 
 #include "private/edom/interface.h"
 #include "private/edom/node.h"

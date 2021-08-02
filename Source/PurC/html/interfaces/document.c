@@ -32,7 +32,7 @@
 #include "private/instance.h"
 #include "private/errors.h"
 
-#include "html/core/str.h"
+#include "html/str.h"
 
 #include "html/interfaces/document.h"
 #include "html/interfaces/title_element.h"

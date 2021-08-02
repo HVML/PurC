@@ -44,7 +44,7 @@
 #include "html/interfaces/template_element.h"
 
 #define PCHTML_TOKENIZER_CHARS_MAP
-#include "html/core/str_res.h"
+#include "html/str_res.h"
 
 
 #define pchtml_html_serialize_send(data, len, ctx)                                \

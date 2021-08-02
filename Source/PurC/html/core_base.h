@@ -44,9 +44,9 @@ extern "C" {
 #include <string.h>
 
 #include "config.h"
-#include "html/core/def.h"
-#include "html/core/types.h"
-#include "html/core/pchtml.h"
+#include "html/def.h"
+#include "html/types.h"
+#include "html/pchtml.h"
 
 #define pchtml_assert(val)
 

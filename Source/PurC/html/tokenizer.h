@@ -37,8 +37,8 @@ extern "C" {
 #endif
 
 #include "config.h"
-#include "html/core/in.h"
-#include "html/core/sbst.h"
+#include "html/in.h"
+#include "html/sbst.h"
 #include "private/array_obj.h"
 
 #include "html/base.h"

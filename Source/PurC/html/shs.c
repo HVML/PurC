@@ -28,12 +28,12 @@
  * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
-#include "html/core/shs.h"
-#include "html/core/str.h"
+#include "html/shs.h"
+#include "html/str.h"
 
 #define PCHTML_STR_RES_MAP_LOWERCASE
 #define PCHTML_STR_RES_MAP_UPPERCASE
-#include "html/core/str_res.h"
+#include "html/str_res.h"
 
 
 #define pchtml_shs_make_id_m(key, size, table_size)                            \

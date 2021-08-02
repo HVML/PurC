@@ -37,7 +37,7 @@ extern "C" {
 #endif
 
 #include "config.h"
-#include "html/core/base.h"
+#include "html/core_base.h"
 
 #include "html/tag_tag_const.h"
 #include "html/ns_const.h"

@@ -37,7 +37,7 @@
 #include "html/tokenizer/state.h"
 
 #define PCHTML_STR_RES_ANSI_REPLACEMENT_CHARACTER
-#include "html/core/str_res.h"
+#include "html/str_res.h"
 
 
 static const unsigned char *

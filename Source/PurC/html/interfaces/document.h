@@ -36,7 +36,7 @@ extern "C" {
 #endif
 
 #include "config.h"
-#include "html/core/mraw.h"
+#include "html/mraw.h"
 
 #include "html/tag_tag.h"
 #include "html/ns.h"
