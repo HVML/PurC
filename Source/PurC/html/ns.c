@@ -30,10 +30,10 @@
 
 
 #include "private/errors.h"
-#include "html/core/shs.h"
+#include "html/shs.h"
 
 #define PCHTML_STR_RES_MAP_LOWERCASE
-#include "html/core/str_res.h"
+#include "html/str_res.h"
 
 #include "html/ns.h"
 #include "html/ns_res.h"

@@ -36,8 +36,8 @@ extern "C" {
 #endif
 
 #include "config.h"
-#include "html/core/dobject.h"
-#include "html/core/mraw.h"
+#include "html/dobject.h"
+#include "html/mraw.h"
 
 
 #define PCHTML_HASH_SHORT_SIZE     16

@@ -34,7 +34,7 @@
 #define PCEDOM_ATTR_RES_H
 
 #include "config.h"
-#include "html/core/shs.h"
+#include "html/shs.h"
 
 #include "attr_const.h"
 

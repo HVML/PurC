@@ -28,12 +28,12 @@
  * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
-#include "html/core/str.h"
+#include "html/str.h"
 
 #define PCHTML_STR_RES_ANSI_REPLACEMENT_CHARACTER
 #define PCHTML_STR_RES_MAP_LOWERCASE
 #define PCHTML_STR_RES_MAP_UPPERCASE
-#include "html/core/str_res.h"
+#include "html/str_res.h"
 
 
 pchtml_str_t *

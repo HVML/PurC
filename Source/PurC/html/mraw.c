@@ -32,7 +32,7 @@
 #include "config.h"
 #include "private/instance.h"
 #include "private/errors.h"
-#include "html/core/mraw.h"
+#include "html/mraw.h"
 
 
 #if defined(PCHTML_HAVE_ADDRESS_SANITIZER)

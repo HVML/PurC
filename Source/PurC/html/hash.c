@@ -34,14 +34,14 @@
 #include "private/errors.h"
 
 #define PCHTML_HASH_EXTERN
-#include "html/core/hash.h"
+#include "html/hash.h"
 #undef PCHTML_HASH_EXTERN
 
-#include "html/core/str.h"
+#include "html/str.h"
 
 #define PCHTML_STR_RES_MAP_LOWERCASE
 #define PCHTML_STR_RES_MAP_UPPERCASE
-#include "html/core/str_res.h"
+#include "html/str_res.h"
 
 
 /* Insert variable. */

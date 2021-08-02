@@ -33,7 +33,7 @@
 #include "private/instance.h"
 #include "private/errors.h"
 
-#include "html/core/bst.h"
+#include "html/bst.h"
 
 
 pchtml_bst_t *

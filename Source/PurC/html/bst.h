@@ -39,7 +39,7 @@ extern "C" {
 
 #include "config.h"
 #include "html/core_base.h"
-#include "html/core/dobject.h"
+#include "html/dobject.h"
 
 
 #define pchtml_bst_root(bst) (bst)->root

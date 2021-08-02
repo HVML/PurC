@@ -39,9 +39,9 @@
 #include "html/tag_tag.h"
 #include "html/ns.h"
 
-#include "html/core/str.h"
-#include "html/core/utils.h"
-#include "html/core/hash.h"
+#include "html/str.h"
+#include "html/utils.h"
+#include "html/hash.h"
 
 
 typedef struct pcedom_element_cb_ctx pcedom_element_cb_ctx_t;

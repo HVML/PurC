@@ -39,8 +39,8 @@ extern "C" {
 
 #include "config.h"
 #include "html/core_base.h"
-#include "html/core/mem.h"
-#include "html/core/bst.h"
+#include "html/mem.h"
+#include "html/bst.h"
 
 
 #define pchtml_mraw_meta_size()                                                \

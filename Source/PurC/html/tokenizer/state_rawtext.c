@@ -38,7 +38,7 @@
 
 #define PCHTML_STR_RES_ANSI_REPLACEMENT_CHARACTER
 #define PCHTML_STR_RES_ALPHA_CHARACTER
-#include "html/core/str_res.h"
+#include "html/str_res.h"
 
 
 const pchtml_tag_data_t *

@@ -37,7 +37,7 @@ extern "C" {
 
 #include "config.h"
 #include "html/core_base.h"
-#include "html/core/dobject.h"
+#include "html/dobject.h"
 
 
 typedef struct pchtml_in_node pchtml_in_node_t;

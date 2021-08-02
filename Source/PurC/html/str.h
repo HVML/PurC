@@ -37,8 +37,8 @@ extern "C" {
 
 #include "config.h"
 #include "html/core_base.h"
-#include "html/core/mraw.h"
-#include "html/core/utils.h"
+#include "html/mraw.h"
+#include "html/utils.h"
 
 
 #define pchtml_str_get(str, attr) str->attr

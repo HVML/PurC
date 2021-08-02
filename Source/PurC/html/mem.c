@@ -32,7 +32,7 @@
 #include "config.h"
 #include "private/instance.h"
 #include "private/errors.h"
-#include "html/core/mem.h"
+#include "html/mem.h"
 
 
 pchtml_mem_t *

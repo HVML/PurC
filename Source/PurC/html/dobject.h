@@ -37,7 +37,7 @@ extern "C" {
 
 #include "config.h"
 #include "html/core_base.h"
-#include "html/core/mem.h"
+#include "html/mem.h"
 #include "private/array.h"
 
 

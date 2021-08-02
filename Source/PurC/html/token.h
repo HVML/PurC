@@ -36,9 +36,9 @@ extern "C" {
 #endif
 
 #include "config.h"
-#include "html/core/dobject.h"
-#include "html/core/in.h"
-#include "html/core/str.h"
+#include "html/dobject.h"
+#include "html/in.h"
+#include "html/str.h"
 
 #include "html/base.h"
 #include "html/token_attr.h"
