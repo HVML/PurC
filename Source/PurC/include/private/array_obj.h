@@ -7,7 +7,7 @@
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -25,13 +25,8 @@
 #ifndef PCUTILS_ARRAY_OBJ_H
 #define PCUTILS_ARRAY_OBJ_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
- 
-#include "config.h"
-#include "html/core_base.h"
-
+#include <stddef.h>
+#include <string.h>
 
 typedef struct {
     uint8_t *list;
@@ -41,30 +36,35 @@ typedef struct {
 }
 pcutils_array_obj_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 pcutils_array_obj_t * pcutils_array_obj_create(void) WTF_INTERNAL;
 
-unsigned int 
+unsigned int
 pcutils_array_obj_init(pcutils_array_obj_t *array,
-                      size_t size, size_t struct_size) WTF_INTERNAL;
+        size_t size, size_t struct_size) WTF_INTERNAL;
 
-void 
+void
 pcutils_array_obj_clean(pcutils_array_obj_t *array) WTF_INTERNAL;
 
-pcutils_array_obj_t * 
-pcutils_array_obj_destroy(pcutils_array_obj_t *array, bool self_destroy) WTF_INTERNAL;
+pcutils_array_obj_t *
+pcutils_array_obj_destroy(pcutils_array_obj_t *array,
+        bool self_destroy) WTF_INTERNAL;
 
 uint8_t *
 pcutils_array_obj_expand(pcutils_array_obj_t *array, size_t up_to) WTF_INTERNAL;
 
-void * 
+void *
 pcutils_array_obj_push(pcutils_array_obj_t *array) WTF_INTERNAL;
 
-void * 
+void *
 pcutils_array_obj_pop(pcutils_array_obj_t *array) WTF_INTERNAL;
 
 void
-pcutils_array_obj_delete(pcutils_array_obj_t *array, size_t begin, size_t length) WTF_INTERNAL;
+pcutils_array_obj_delete(pcutils_array_obj_t *array,
+        size_t begin, size_t length) WTF_INTERNAL;
 
 
 /*
@@ -138,7 +138,7 @@ pcutils_array_obj_last_noi(pcutils_array_obj_t *array) WTF_INTERNAL;
 
 
 #ifdef __cplusplus
-}       /* __cplusplus */
+}
 #endif
 
 #endif  /* PCUTILS_ARRAY_OBJ_H */

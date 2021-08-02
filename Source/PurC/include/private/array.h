@@ -20,18 +20,20 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * The code is derived from Lexbor (<https://github.com/lexbor/lexbor>),
+ * which is licensed under the Apache License, Version 2.0.
+ *
+ * Copyright (C) 2018-2020 Alexander Borisov
+ *
+ * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
 #ifndef PCUTILS_ARRAY_H
 #define PCUTILS_ARRAY_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include "config.h"
-#include "html/core_base.h"
-
+#include <stddef.h>
+#include <stdbool.h>
 
 typedef struct {
     void   **list;
@@ -40,6 +42,9 @@ typedef struct {
 }
 pcutils_array_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 pcutils_array_t * pcutils_array_create(void) WTF_INTERNAL;
 
@@ -51,10 +56,8 @@ void pcutils_array_clean(pcutils_array_t *array) WTF_INTERNAL;
 pcutils_array_t *
 pcutils_array_destroy(pcutils_array_t *array, bool self_destroy) WTF_INTERNAL;
 
-
 void **
 pcutils_array_expand(pcutils_array_t *array, size_t up_to) WTF_INTERNAL;
-
 
 unsigned int
 pcutils_array_push(pcutils_array_t *array, void *value) WTF_INTERNAL;
@@ -62,13 +65,16 @@ pcutils_array_push(pcutils_array_t *array, void *value) WTF_INTERNAL;
 void * pcutils_array_pop(pcutils_array_t *array) WTF_INTERNAL;
 
 unsigned int
-pcutils_array_insert(pcutils_array_t *array, size_t idx, void *value) WTF_INTERNAL;
+pcutils_array_insert(pcutils_array_t *array,
+        size_t idx, void *value) WTF_INTERNAL;
 
 unsigned int
-pcutils_array_set(pcutils_array_t *array, size_t idx, void *value) WTF_INTERNAL;
+pcutils_array_set(pcutils_array_t *array,
+        size_t idx, void *value) WTF_INTERNAL;
 
 void
-pcutils_array_delete(pcutils_array_t *array, size_t begin, size_t length) WTF_INTERNAL;
+pcutils_array_delete(pcutils_array_t *array,
+        size_t begin, size_t length) WTF_INTERNAL;
 
 
 /*

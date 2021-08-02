@@ -1,13 +1,12 @@
-/**
+/*
  * @file array_obj.c
- * @author 
  * @date 2021/07/02
  * @brief The complementation of array object.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,19 +19,26 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * The code is derived from Lexbor (<https://github.com/lexbor/lexbor>),
+ * which is licensed under the Apache License, Version 2.0.
+ *
+ * Copyright (C) 2018-2020 Alexander Borisov
+ *
+ * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
-#include "purc.h"
 #include "config.h"
-#include "private/instance.h"
-#include "private/errors.h"
+#include "purc-errors.h"
+#include "private/utils.h"
 #include "private/array_obj.h"
 
+#include <string.h>
 
 pcutils_array_obj_t *
 pcutils_array_obj_create(void)
 {
-    return pchtml_calloc(1, sizeof(pcutils_array_obj_t));
+    return pcutils_calloc(1, sizeof(pcutils_array_obj_t));
 }
 
 unsigned int
@@ -40,27 +46,24 @@ pcutils_array_obj_init(pcutils_array_obj_t *array,
                       size_t size, size_t struct_size)
 {
     if (array == NULL) {
-        pcinst_set_error (PCHTML_OBJECT_IS_NULL);
-        return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
+        return PURC_ERROR_NULL_OBJECT;
     }
 
     if (size == 0 || struct_size == 0) {
-        pcinst_set_error (PCHTML_TOO_SMALL_SIZE);
-        return PCHTML_STATUS_ERROR_TOO_SMALL_SIZE;
+        return PURC_ERROR_TOO_SMALL_SIZE;
     }
 
     array->length = 0;
     array->size = size;
     array->struct_size = struct_size;
 
-    array->list = pchtml_malloc(sizeof(uint8_t *)
+    array->list = pcutils_malloc(sizeof(uint8_t *)
                                 * (array->size * struct_size));
     if (array->list == NULL) {
-        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
-        return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
+        return PURC_ERROR_OUT_OF_MEMORY;
     }
 
-    return PCHTML_STATUS_OK;
+    return PURC_ERROR_OK;
 }
 
 void
@@ -78,11 +81,11 @@ pcutils_array_obj_destroy(pcutils_array_obj_t *array, bool self_destroy)
     if (array->list) {
         array->length = 0;
         array->size = 0;
-        array->list = pchtml_free(array->list);
+        array->list = pcutils_free(array->list);
     }
 
     if (self_destroy) {
-        return pchtml_free(array);
+        return pcutils_free(array);
     }
 
     return array;
@@ -100,7 +103,7 @@ pcutils_array_obj_expand(pcutils_array_obj_t *array, size_t up_to)
 
     new_size = array->length + up_to;
 
-    list = pchtml_realloc(array->list, sizeof(uint8_t *)
+    list = pcutils_realloc(array->list, sizeof(uint8_t *)
                           * (new_size * array->struct_size));
     if (list == NULL) {
         return NULL;

@@ -30,6 +30,16 @@
 #include <stddef.h>
 #include <stdarg.h>
 #include <stdint.h>
+#include <stdlib.h>
+
+#define pcutils_malloc(sz)       malloc(sz)
+#define pcutils_realloc(ptr, sz) realloc(ptr, sz)
+#define pcutils_calloc(n, sz)    calloc(n, sz)
+
+static inline void* pcutils_free(void *ptr) {
+    free(ptr);
+    return NULL;
+}
 
 /*
  * calloc_a(size_t len, [void **addr, size_t len,...], NULL)
