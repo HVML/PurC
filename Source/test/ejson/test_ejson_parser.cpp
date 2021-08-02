@@ -71,7 +71,7 @@ TEST_P(ejson_parser_vcm_eval, parse_and_serialize)
 char* read_file (const char* file)
 {
     FILE* fp = fopen (file, "r");
-    if (!fp) {
+    if (fp == NULL) {
         return NULL;
     }
     fseek (fp, 0, SEEK_END);
@@ -112,6 +112,8 @@ char* trim(char *str)
 std::vector<ejson_test_data> read_ejson_test_data()
 {
     std::vector<ejson_test_data> vec;
+
+#if 1
     char* data_path = getenv("EJSON_DATA_PATH");
 
     if (data_path) {
@@ -132,7 +134,6 @@ std::vector<ejson_test_data> read_ejson_test_data()
                     sprintf(file, "%s/%s.json", data_path, name);
                     char* json_buf = read_file (file);
                     if (!json_buf) {
-                        free (line);
                         continue;
                     }
 
@@ -140,7 +141,6 @@ std::vector<ejson_test_data> read_ejson_test_data()
                     char* comp_buf = read_file (file);
                     if (!comp_buf) {
                         free (json_buf);
-                        free (line);
                         continue;
                     }
 
@@ -148,13 +148,13 @@ std::vector<ejson_test_data> read_ejson_test_data()
 
                     free (json_buf);
                     free (comp_buf);
-                    free (line);
                 }
             }
+            free (line);
             fclose(fp);
         }
     }
-
+#endif
     if (vec.empty()) {
         vec.push_back(make_pair("[123]", "[123]"));
         vec.push_back(make_pair("{key:1}", "{\"key\":1}"));
