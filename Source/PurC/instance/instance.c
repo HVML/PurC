@@ -64,6 +64,28 @@ static const char* generic_err_msgs[] = {
     "An output error is encountered",
     /* PURC_ERROR_TOO_SMALL_BUFF (12) */
     "Too small buffer",
+    /* PURC_ERROR_NULL_OBJECT (13) */
+    "Null object",
+    /* PURC_ERROR_TOO_SMALL_SIZE (14) */
+    "Too small size",
+    /* PURC_ERROR_INCOMPLETE_OBJECT (15) */
+    "Incomplete object",
+    /* PURC_ERROR_NO_FREE_SLOT (16) */
+    "No free slot",
+    /* PURC_ERROR_NOT_EXISTS (17) */
+    "Does not exist",
+    /* PURC_ERROR_WRONG_ARGS (18) */
+    "Wrong arguments",
+    /* PURC_ERROR_WRONG_STAGE (19) */
+    "Wrong stage",
+    /* PURC_ERROR_UNEXPECTED_RESULT (20) */
+    "Unexpected result",
+    /* PURC_ERROR_UNEXPECTED_DATA (21) */
+    "Unexpected data",
+    /* PURC_ERROR_OVERFLOW (22) */
+    "Overflow",
+    /* PURC_ERROR_UNKNOWN (23) */
+    "Unknown",
 };
 
 static struct err_msg_seg _generic_err_msgs_seg = {

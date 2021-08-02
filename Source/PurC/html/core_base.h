@@ -31,9 +31,13 @@
 #ifndef PCHTML_BASE_H
 #define PCHTML_BASE_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "config.h"
+
+#include "purc-errors.h"
+
+#include "html/def.h"
+#include "html/types.h"
+#include "html/pchtml.h"
 
 #include <stdlib.h>
 #include <stddef.h>
@@ -43,13 +47,7 @@ extern "C" {
 #include <limits.h>
 #include <string.h>
 
-#include "config.h"
-#include "html/def.h"
-#include "html/types.h"
-#include "html/pchtml.h"
-
 #define pchtml_assert(val)
-
 
 /*
  * Very important!!!
@@ -57,21 +55,21 @@ extern "C" {
  * for 0..00AFFF; PCHTML_STATUS_OK == 0x000000
  */
 typedef enum {
-    PCHTML_STATUS_OK                       = 0x0000,
-    PCHTML_STATUS_ERROR                    = 0x0001,
-    PCHTML_STATUS_ERROR_MEMORY_ALLOCATION,
-    PCHTML_STATUS_ERROR_OBJECT_IS_NULL,
-    PCHTML_STATUS_ERROR_SMALL_BUFFER,
-    PCHTML_STATUS_ERROR_INCOMPLETE_OBJECT,
-    PCHTML_STATUS_ERROR_NO_FREE_SLOT,
-    PCHTML_STATUS_ERROR_TOO_SMALL_SIZE,
-    PCHTML_STATUS_ERROR_NOT_EXISTS,
-    PCHTML_STATUS_ERROR_WRONG_ARGS,
-    PCHTML_STATUS_ERROR_WRONG_STAGE,
-    PCHTML_STATUS_ERROR_UNEXPECTED_RESULT,
-    PCHTML_STATUS_ERROR_UNEXPECTED_DATA,
-    PCHTML_STATUS_ERROR_OVERFLOW,
-    PCHTML_STATUS_CONTINUE,
+    PCHTML_STATUS_OK                       = PURC_ERROR_OK,
+    PCHTML_STATUS_ERROR                    = PURC_ERROR_UNKNOWN,
+    PCHTML_STATUS_ERROR_MEMORY_ALLOCATION  = PURC_ERROR_OUT_OF_MEMORY,
+    PCHTML_STATUS_ERROR_OBJECT_IS_NULL     = PURC_ERROR_NULL_OBJECT,
+    PCHTML_STATUS_ERROR_SMALL_BUFFER       = PURC_ERROR_TOO_SMALL_BUFF,
+    PCHTML_STATUS_ERROR_TOO_SMALL_SIZE     = PURC_ERROR_TOO_SMALL_SIZE,
+    PCHTML_STATUS_ERROR_INCOMPLETE_OBJECT  = PURC_ERROR_INCOMPLETE_OBJECT,
+    PCHTML_STATUS_ERROR_NO_FREE_SLOT       = PURC_ERROR_NO_FREE_SLOT,
+    PCHTML_STATUS_ERROR_NOT_EXISTS         = PURC_ERROR_NOT_EXISTS,
+    PCHTML_STATUS_ERROR_WRONG_ARGS         = PURC_ERROR_WRONG_ARGS,
+    PCHTML_STATUS_ERROR_WRONG_STAGE        = PURC_ERROR_WRONG_STAGE,
+    PCHTML_STATUS_ERROR_UNEXPECTED_RESULT  = PURC_ERROR_UNEXPECTED_RESULT,
+    PCHTML_STATUS_ERROR_UNEXPECTED_DATA    = PURC_ERROR_UNEXPECTED_DATA,
+    PCHTML_STATUS_ERROR_OVERFLOW           = PURC_ERROR_OVERFLOW,
+    PCHTML_STATUS_CONTINUE                 = PURC_ERROR_FIRST_HTML,
     PCHTML_STATUS_SMALL_BUFFER,
     PCHTML_STATUS_ABORTED,
     PCHTML_STATUS_STOPPED,
@@ -86,6 +84,10 @@ typedef enum {
     PCHTML_ACTION_NEXT  = 0x02
 }
 pchtml_action_t;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 #ifdef __cplusplus
