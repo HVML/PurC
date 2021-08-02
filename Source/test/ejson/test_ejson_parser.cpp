@@ -24,21 +24,30 @@ class ejson_parser_vcm_eval : public testing::TestWithParam<ejson_test_data>
 {
 protected:
     void SetUp() {
+        purc_init ("cn.fmsoft.hybridos.test", "ejson", NULL);
         json = GetParam().first;
         comp = GetParam().second;
     }
-    void TearDown() {}
+    void TearDown() {
+        purc_cleanup ();
+    }
+    const char* get_json() {
+        return json.c_str();
+    }
+    const char* get_comp() {
+        return comp.c_str();
+    }
+
+private:
     string json;
     string comp;
 };
 
 TEST_P(ejson_parser_vcm_eval, test0)
 {
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "ejson", NULL);
-    ASSERT_EQ (ret, PURC_ERROR_OK);
-
-    purc_rwstream_t rws = purc_rwstream_new_from_mem((void*)json.c_str(),
-            json.size());
+    const char* json = get_json();
+    const char* comp = get_comp();
+    purc_rwstream_t rws = purc_rwstream_new_from_mem((void*)json, strlen(json));
 
     struct pcvcm_node* root = NULL;
     struct pcejson* parser = NULL;
@@ -57,7 +66,7 @@ TEST_P(ejson_parser_vcm_eval, test0)
             0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
     ASSERT_GT(n, 0);
     buf[n] = 0;
-    ASSERT_STREQ(buf, comp.c_str());
+    ASSERT_STREQ(buf, comp);
 
     purc_variant_unref(vt);
     purc_rwstream_destroy(my_rws);
@@ -67,7 +76,6 @@ TEST_P(ejson_parser_vcm_eval, test0)
             pcvcm_node_pctree_node_destory_callback);
 
     pcejson_destroy(parser);
-    purc_cleanup ();
 }
 
 #if 0
@@ -133,28 +141,32 @@ std::vector<ejson_test_data> read_ejson_test_data()
 
             char* line = NULL;
             size_t sz = 0;
-            getline(&line, &sz, fp);
+            ssize_t read = 0;
+            while ((read = getline(&line, &sz, fp)) != -1) {
+                if (line) {
+                    char* name = trim (line);
+                    sprintf(file, "%s/%s.json", data_path, name);
+                    char* json_buf = read_file (file);
 
-            if (line) {
-                char* name = trim (line);
-                sprintf(file, "%s/%s.json", data_path, name);
-                char* json_buf = read_file (file);
-                sprintf(file, "%s/%s.serial", data_path, name);
-                char* comp_buf = read_file (file);
+                    sprintf(file, "%s/%s.serial", data_path, name);
+                    char* comp_buf = read_file (file);
 
-                vec.push_back(make_pair(trim(json_buf), trim(comp_buf)));
-                free (json_buf);
-                free (comp_buf);
-                free (line);
+                    vec.push_back(make_pair(trim(json_buf), trim(comp_buf)));
+
+                    free (json_buf);
+                    free (comp_buf);
+                    free (line);
+                }
             }
             fclose(fp);
         }
     }
 
-    if (vec.empty())
-    {
-        vec.push_back(make_pair("[123.456e-789]", "[0]"));
-    }
+    vec.push_back(make_pair("{key:'value'}", "123"));
+    vec.push_back(make_pair("[123]", "[123]"));
+    vec.push_back(make_pair("{key:1}", "{\"key\":1}"));
+    vec.push_back(make_pair("{key:\"value\"}", "{\"key\":\"value\"}"));
+    vec.push_back(make_pair("{key:'value'}", "{\"key\":\"value\"}"));
     return vec;
 }
 
