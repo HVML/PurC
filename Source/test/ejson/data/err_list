@@ -5,3 +5,4 @@ i_string_iso_latin_1
 i_string_overlong_sequence_6_bytes_null
 i_string_truncated-utf-8
 i_string_UTF-8_invalid_sequence
+y_array_false

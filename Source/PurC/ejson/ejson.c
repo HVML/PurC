@@ -926,7 +926,9 @@ next_state:
             }
             else {
                 pcejson_tmp_buff_remove_first_last (ejson->tmp_buff, 1, 1);
-                RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
+                RECONSUME_IN_NEXT(EJSON_AFTER_VALUE_STATE);
+                return pcejson_token_new_from_tmp_buf (EJSON_TOKEN_STRING,
+                        ejson->tmp_buff);
             }
         END_STATE()
 

@@ -25,3 +25,14 @@ i_string_overlong_sequence_6_bytes
 i_string_UTF8_surrogate_U+D800
 i_structure_500_nested_arrays
 i_structure_UTF-8_BOM_empty_object
+y_array_arraysWithSpaces.json
+y_array_arraysWithSpaces
+y_array_empty
+y_array_empty-string
+y_array_ending_with_newline
+y_array_heterogeneous
+y_array_null
+y_array_with_1_and_newline
+y_array_with_leading_space
+y_array_with_several_null
+y_array_with_trailing_space
