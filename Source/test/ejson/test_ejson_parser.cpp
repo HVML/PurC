@@ -80,11 +80,16 @@ char* read_file (const char* file)
     fseek (fp, 0, SEEK_SET);
     sz = fread (buf, 1, sz, fp);
     fclose (fp);
+    buf[sz] = 0;
     return buf;
 }
 
 char* trim(char *str)
 {
+    if (!str)
+    {
+        return NULL;
+    }
     char *end;
 
     while (isspace((unsigned char)*str)) {
@@ -126,9 +131,18 @@ std::vector<ejson_test_data> read_ejson_test_data()
                     char* name = trim (line);
                     sprintf(file, "%s/%s.json", data_path, name);
                     char* json_buf = read_file (file);
+                    if (!json_buf) {
+                        free (line);
+                        continue;
+                    }
 
                     sprintf(file, "%s/%s.serial", data_path, name);
                     char* comp_buf = read_file (file);
+                    if (!comp_buf) {
+                        free (json_buf);
+                        free (line);
+                        continue;
+                    }
 
                     vec.push_back(make_pair(trim(json_buf), trim(comp_buf)));
 
