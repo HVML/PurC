@@ -32,10 +32,6 @@
 #ifndef PCHTML_MRAW_H
 #define PCHTML_MRAW_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <string.h>
 
 #include "config.h"
@@ -43,6 +39,10 @@ extern "C" {
 #include "html/mem.h"
 #include "html/bst.h"
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define pchtml_mraw_meta_size()                                                \
     (((sizeof(size_t) % PCHTML_MEM_ALIGN_STEP) != 0)                           \
@@ -112,20 +112,6 @@ pchtml_mraw_dup(pchtml_mraw_t *mraw, const void *src, size_t size)
 
     return data;
 }
-
-
-/*
- * No inline functions for ABI.
- */
-size_t
-pchtml_mraw_data_size_noi(void *data);
-
-void
-pchtml_mraw_data_size_set_noi(void *data, size_t size);
-
-void *
-pchtml_mraw_dup_noi(pchtml_mraw_t *mraw, const void *src, size_t size);
-
 
 #ifdef __cplusplus
 }       /* __cplusplus */

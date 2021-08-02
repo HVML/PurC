@@ -32,20 +32,18 @@
 #ifndef PCHTML_BST_H
 #define PCHTML_BST_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <string.h>
 
 #include "config.h"
 #include "html/core_base.h"
 #include "html/dobject.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define pchtml_bst_root(bst) (bst)->root
 #define pchtml_bst_root_ref(bst) &((bst)->root)
-
 
 typedef struct pchtml_bst_entry pchtml_bst_entry_t;
 typedef struct pchtml_bst pchtml_bst_t;

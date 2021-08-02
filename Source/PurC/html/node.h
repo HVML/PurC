@@ -33,14 +33,14 @@
 #ifndef PCHTML_PARSER_NODE_H
 #define PCHTML_PARSER_NODE_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 #include "html/tag_tag.h"
 #include "private/edom/node.h"
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*
  * Inline functions
@@ -79,13 +79,6 @@ pchtml_html_node_is_void(pcedom_node_t *node)
 
     return false;
 }
-
-/*
- * No inline functions for ABI.
- */
-bool
-pchtml_html_node_is_void_noi(pcedom_node_t *node) WTF_INTERNAL;
-
 
 #ifdef __cplusplus
 }       /* __cplusplus */

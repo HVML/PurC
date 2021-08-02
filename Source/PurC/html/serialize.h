@@ -33,10 +33,6 @@
 #ifndef PCHTML_PARSER_SERIALIZE_H
 #define PCHTML_PARSER_SERIALIZE_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 #include "html/str.h"
 #include "private/html.h"
@@ -59,9 +55,8 @@ enum pchtml_html_serialize_opt {
 };
 
 
-#if 0  // gengyue
-typedef unsigned int
-(*pchtml_html_serialize_cb_f)(const unsigned char *data, size_t len, void *ctx);
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 unsigned int

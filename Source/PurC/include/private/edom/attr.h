@@ -157,15 +157,6 @@ pcedom_attr_value(pcedom_attr_t *attr, size_t *len)
     return attr->value->data;
 }
 
-/*
- * No inline functions for ABI.
- */
-const unsigned char *
-pcedom_attr_local_name_noi(pcedom_attr_t *attr, size_t *len);
-
-const unsigned char *
-pcedom_attr_value_noi(pcedom_attr_t *attr, size_t *len);
-
 
 #ifdef __cplusplus
 }       /* __cplusplus */

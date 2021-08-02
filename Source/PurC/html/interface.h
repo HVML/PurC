@@ -32,10 +32,6 @@
 #ifndef PCHTML_PARSER_INTERFACES_H
 #define PCHTML_PARSER_INTERFACES_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 #include "html/base.h"
 #include "html/tag_tag_const.h"
@@ -43,6 +39,10 @@ extern "C" {
 #include "private/html.h"
 #include "private/edom/interface.h"
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define pchtml_html_interface_document(obj) ((pchtml_html_document_t *) (obj))
 #define pchtml_html_interface_anchor(obj) ((pchtml_html_anchor_element_t *) (obj))

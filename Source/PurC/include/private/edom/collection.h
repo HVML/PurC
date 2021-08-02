@@ -111,28 +111,6 @@ pcedom_collection_length(pcedom_collection_t *col)
     return pcutils_array_length(&col->array);
 }
 
-/*
- * No inline functions for ABI.
- */
-pcedom_collection_t *
-pcedom_collection_make_noi(pcedom_document_t *document, size_t start_list_size);
-
-void
-pcedom_collection_clean_noi(pcedom_collection_t *col);
-
-unsigned int
-pcedom_collection_append_noi(pcedom_collection_t *col, void *value);
-
-pcedom_element_t *
-pcedom_collection_element_noi(pcedom_collection_t *col, size_t idx);
-
-pcedom_node_t *
-pcedom_collection_node_noi(pcedom_collection_t *col, size_t idx);
-
-size_t
-pcedom_collection_length_noi(pcedom_collection_t *col);
-
-
 #ifdef __cplusplus
 }       /* __cplusplus */
 #endif

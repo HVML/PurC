@@ -408,17 +408,3 @@ pchtml_html_token_find_attr(pchtml_html_tokenizer_t *tkz, pchtml_html_token_t *t
     return NULL;
 }
 
-/*
- * No inline functions for ABI.
- */
-void
-pchtml_html_token_clean_noi(pchtml_html_token_t *token)
-{
-    pchtml_html_token_clean(token);
-}
-
-pchtml_html_token_t *
-pchtml_html_token_create_eof_noi(pchtml_dobject_t *dobj)
-{
-    return pchtml_html_token_create_eof(dobj);
-}

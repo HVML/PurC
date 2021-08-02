@@ -32,13 +32,13 @@
 #ifndef PCHTML_UTILS_H
 #define PCHTML_UTILS_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 #include "html/core_base.h"
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define pchtml_utils_whitespace(onechar, action, logic)                        \
     (onechar action ' '  logic                                                 \

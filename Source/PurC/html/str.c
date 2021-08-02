@@ -608,35 +608,3 @@ pchtml_str_data_find_uppercase(const unsigned char *data, size_t len)
     return NULL;
 }
 
-/*
- * No inline functions for ABI.
- */
-unsigned char *
-pchtml_str_data_noi(pchtml_str_t *str)
-{
-    return pchtml_str_data(str);
-}
-
-size_t
-pchtml_str_length_noi(pchtml_str_t *str)
-{
-    return pchtml_str_length(str);
-}
-
-size_t
-pchtml_str_size_noi(pchtml_str_t *str)
-{
-    return pchtml_str_size(str);
-}
-
-void
-pchtml_str_data_set_noi(pchtml_str_t *str, unsigned char *data)
-{
-    pchtml_str_data_set(str, data);
-}
-
-unsigned char *
-pchtml_str_length_set_noi(pchtml_str_t *str, pchtml_mraw_t *mraw, size_t length)
-{
-    return pchtml_str_length_set(str, mraw, length);
-}

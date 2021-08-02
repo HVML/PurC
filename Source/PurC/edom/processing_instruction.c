@@ -60,13 +60,3 @@ pcedom_processing_instruction_interface_destroy(pcedom_processing_instruction_t 
         pcedom_interface_node(processing_instruction)->owner_document->mraw,
         processing_instruction);
 }
-
-/*
- * No inline functions for ABI.
- */
-const unsigned char *
-pcedom_processing_instruction_target_noi(pcedom_processing_instruction_t *pi,
-                                          size_t *len)
-{
-    return pcedom_processing_instruction_target(pi, len);
-}

@@ -33,10 +33,6 @@
 #ifndef PCHTML_PARSER_TOKENIZER_H
 #define PCHTML_PARSER_TOKENIZER_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 #include "html/in.h"
 #include "html/sbst.h"
@@ -125,6 +121,10 @@ struct pchtml_html_tokenizer {
 
 
 extern const unsigned char *pchtml_html_tokenizer_eof;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 pchtml_html_tokenizer_t *
 pchtml_html_tokenizer_create(void) WTF_INTERNAL;
@@ -327,43 +327,6 @@ pchtml_html_tokenizer_temp_append(pchtml_html_tokenizer_t *tkz,
 
     return PCHTML_STATUS_OK;
 }
-
-
-/*
- * No inline functions for ABI.
- */
-void
-pchtml_html_tokenizer_status_set_noi(pchtml_html_tokenizer_t *tkz,
-                                  unsigned int status);
-
-void
-pchtml_html_tokenizer_callback_token_done_set_noi(pchtml_html_tokenizer_t *tkz,
-                                               pchtml_html_tokenizer_token_f call_func,
-                                               void *ctx);
-
-void *
-pchtml_html_tokenizer_callback_token_done_ctx_noi(pchtml_html_tokenizer_t *tkz);
-
-void
-pchtml_html_tokenizer_state_set_noi(pchtml_html_tokenizer_t *tkz,
-                                 pchtml_html_tokenizer_state_f state);
-
-void
-pchtml_html_tokenizer_tmp_tag_id_set_noi(pchtml_html_tokenizer_t *tkz,
-                                      pchtml_tag_id_t tag_id);
-
-pchtml_html_tree_t *
-pchtml_html_tokenizer_tree_noi(pchtml_html_tokenizer_t *tkz);
-
-void
-pchtml_html_tokenizer_tree_set_noi(pchtml_html_tokenizer_t *tkz,
-                                pchtml_html_tree_t *tree);
-
-pchtml_mraw_t *
-pchtml_html_tokenizer_mraw_noi(pchtml_html_tokenizer_t *tkz);
-
-pchtml_hash_t *
-pchtml_html_tokenizer_tags_noi(pchtml_html_tokenizer_t *tkz);
 
 
 #ifdef __cplusplus

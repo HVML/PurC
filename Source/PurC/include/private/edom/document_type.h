@@ -111,20 +111,6 @@ pcedom_document_type_system_id(pcedom_document_type_t *doc_type, size_t *len)
     return doc_type->system_id.data;
 }
 
-/*
- * No inline functions for ABI.
- */
-const unsigned char *
-pcedom_document_type_name_noi(pcedom_document_type_t *doc_type, size_t *len);
-
-const unsigned char *
-pcedom_document_type_public_id_noi(pcedom_document_type_t *doc_type,
-                                    size_t *len);
-
-const unsigned char *
-pcedom_document_type_system_id_noi(pcedom_document_type_t *doc_type,
-                                    size_t *len);
-
 
 #ifdef __cplusplus
 }       /* __cplusplus */

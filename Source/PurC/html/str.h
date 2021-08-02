@@ -32,20 +32,18 @@
 #ifndef PCHTML_STR_H
 #define PCHTML_STR_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 #include "html/core_base.h"
 #include "html/mraw.h"
 #include "html/utils.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define pchtml_str_get(str, attr) str->attr
 #define pchtml_str_set(str, attr) pchtml_str_get(str, attr)
 #define pchtml_str_len(str) pchtml_str_get(str, length)
-
 
 #define pchtml_str_check_size_arg_m(str, size, mraw, plus_len, return_fail)    \
     do {                                                                       \
@@ -256,26 +254,6 @@ pchtml_str_length_set(pchtml_str_t *str, pchtml_mraw_t *mraw, size_t length)
 
     return str->data;
 }
-
-/*
- * No inline functions for ABI.
- */
-unsigned char *
-pchtml_str_data_noi(pchtml_str_t *str);
-
-size_t
-pchtml_str_length_noi(pchtml_str_t *str);
-
-size_t
-pchtml_str_size_noi(pchtml_str_t *str);
-
-void
-pchtml_str_data_set_noi(pchtml_str_t *str, unsigned char *data);
-
-unsigned char *
-pchtml_str_length_set_noi(pchtml_str_t *str, pchtml_mraw_t *mraw,
-                          size_t length);
-
 
 #ifdef __cplusplus
 }       /* __cplusplus */

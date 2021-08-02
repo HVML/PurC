@@ -461,39 +461,3 @@ pcedom_node_text_content_set(pcedom_node_t *node,
 
     return PCHTML_STATUS_OK;
 }
-
-pchtml_tag_id_t
-pcedom_node_tag_id_noi(pcedom_node_t *node)
-{
-    return pcedom_node_tag_id(node);
-}
-
-pcedom_node_t *
-pcedom_node_next_noi(pcedom_node_t *node)
-{
-    return pcedom_node_next(node);
-}
-
-pcedom_node_t *
-pcedom_node_prev_noi(pcedom_node_t *node)
-{
-    return pcedom_node_prev(node);
-}
-
-pcedom_node_t *
-pcedom_node_parent_noi(pcedom_node_t *node)
-{
-    return pcedom_node_parent(node);
-}
-
-pcedom_node_t *
-pcedom_node_first_child_noi(pcedom_node_t *node)
-{
-    return pcedom_node_first_child(node);
-}
-
-pcedom_node_t *
-pcedom_node_last_child_noi(pcedom_node_t *node)
-{
-    return pcedom_node_last_child(node);
-}

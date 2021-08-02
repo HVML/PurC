@@ -33,10 +33,6 @@
 #ifndef PCHTML_PARSER_TREE_H
 #define PCHTML_PARSER_TREE_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 #include "private/edom/node.h"
 #include "private/edom/attr.h"
@@ -98,6 +94,9 @@ typedef enum {
 }
 pchtml_html_tree_insertion_position_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 pchtml_html_tree_t *
 pchtml_html_tree_create(void) WTF_INTERNAL;
@@ -396,62 +395,6 @@ pchtml_html_tree_attach_document(pchtml_html_tree_t *tree, pchtml_html_document_
 {
     tree->document = doc;
 }
-
-/*
- * No inline functions for ABI.
- */
-unsigned int
-pchtml_html_tree_begin_noi(pchtml_html_tree_t *tree, pchtml_html_document_t *document);
-
-unsigned int
-pchtml_html_tree_chunk_noi(pchtml_html_tree_t *tree, const unsigned char *html,
-                        size_t size);
-
-unsigned int
-pchtml_html_tree_end_noi(pchtml_html_tree_t *tree);
-
-unsigned int
-pchtml_html_tree_build_noi(pchtml_html_tree_t *tree, pchtml_html_document_t *document,
-                        const unsigned char *html, size_t size);
-
-pcedom_node_t *
-pchtml_html_tree_create_node_noi(pchtml_html_tree_t *tree,
-                              pchtml_tag_id_t tag_id, pchtml_ns_id_t ns);
-
-bool
-pchtml_html_tree_node_is_noi(pcedom_node_t *node, pchtml_tag_id_t tag_id);
-
-pcedom_node_t *
-pchtml_html_tree_current_node_noi(pchtml_html_tree_t *tree);
-
-pcedom_node_t *
-pchtml_html_tree_adjusted_current_node_noi(pchtml_html_tree_t *tree);
-
-pchtml_html_element_t *
-pchtml_html_tree_insert_html_element_noi(pchtml_html_tree_t *tree,
-                                      pchtml_html_token_t *token);
-
-void
-pchtml_html_tree_insert_node_noi(pcedom_node_t *to, pcedom_node_t *node,
-                              pchtml_html_tree_insertion_position_t ipos);
-
-void
-pchtml_html_tree_acknowledge_token_self_closing_noi(pchtml_html_tree_t *tree,
-                                             pchtml_html_token_t *token);
-
-bool
-pchtml_html_tree_mathml_text_integration_point_noi(pcedom_node_t *node);
-
-bool
-pchtml_html_tree_scripting_noi(pchtml_html_tree_t *tree);
-
-void
-pchtml_html_tree_scripting_set_noi(pchtml_html_tree_t *tree, bool scripting);
-
-void
-pchtml_html_tree_attach_document_noi(pchtml_html_tree_t *tree,
-                                  pchtml_html_document_t *doc);
-
 
 #ifdef __cplusplus
 }       /* __cplusplus */

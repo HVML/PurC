@@ -36,12 +36,12 @@
 #include "html/dobject.h"
 #include "html/mraw.h"
 
+#define PCHTML_HASH_SHORT_SIZE     16
+#define PCHTML_HASH_TABLE_MIN_SIZE 32
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define PCHTML_HASH_SHORT_SIZE     16
-#define PCHTML_HASH_TABLE_MIN_SIZE 32
 
 typedef struct pchtml_hash_search pchtml_hash_search_t;
 typedef struct pchtml_hash_insert pchtml_hash_insert_t;

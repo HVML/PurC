@@ -307,40 +307,6 @@ pcedom_element_ns_id(pcedom_element_t *element)
 }
 
 
-/*
- * No inline functions for ABI.
- */
-const unsigned char *
-pcedom_element_id_noi(pcedom_element_t *element, size_t *len);
-
-const unsigned char *
-pcedom_element_class_noi(pcedom_element_t *element, size_t *len);
-
-bool
-pcedom_element_is_custom_noi(pcedom_element_t *element);
-
-bool
-pcedom_element_custom_is_defined_noi(pcedom_element_t *element);
-
-pcedom_attr_t *
-pcedom_element_first_attribute_noi(pcedom_element_t *element);
-
-pcedom_attr_t *
-pcedom_element_next_attribute_noi(pcedom_attr_t *attr);
-
-pcedom_attr_t *
-pcedom_element_prev_attribute_noi(pcedom_attr_t *attr);
-
-pcedom_attr_t *
-pcedom_element_last_attribute_noi(pcedom_element_t *element);
-
-pcedom_attr_t *
-pcedom_element_id_attribute_noi(pcedom_element_t *element);
-
-pcedom_attr_t *
-pcedom_element_class_attribute_noi(pcedom_element_t *element);
-
-
 #ifdef __cplusplus
 }       /* __cplusplus */
 #endif

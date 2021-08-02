@@ -100,15 +100,6 @@ static inline size_t pcutils_array_size(pcutils_array_t *array)
 }
 
 
-/*
- * No inline functions for ABI.
- */
-void * pcutils_array_get_noi(pcutils_array_t *array, size_t idx) WTF_INTERNAL;
-
-size_t pcutils_array_length_noi(pcutils_array_t *array) WTF_INTERNAL;
-
-size_t pcutils_array_size_noi(pcutils_array_t *array) WTF_INTERNAL;
-
 
 #ifdef __cplusplus
 }       /* __cplusplus */

@@ -398,18 +398,3 @@ pcedom_attr_qualified_name(pcedom_attr_t *attr, size_t *len)
 
     return pchtml_hash_entry_str(&data->entry);
 }
-
-/*
- * No inline functions for ABI.
- */
-const unsigned char *
-pcedom_attr_local_name_noi(pcedom_attr_t *attr, size_t *len)
-{
-    return pcedom_attr_local_name(attr, len);
-}
-
-const unsigned char *
-pcedom_attr_value_noi(pcedom_attr_t *attr, size_t *len)
-{
-    return pcedom_attr_value(attr, len);
-}

@@ -205,21 +205,3 @@ void pcutils_array_delete(pcutils_array_t *array, size_t begin, size_t length)
 
     array->length -= length;
 }
-
-/*
- * No inline functions.
- */
-void *pcutils_array_get_noi(pcutils_array_t *array, size_t idx)
-{
-    return pcutils_array_get(array, idx);
-}
-
-size_t pcutils_array_length_noi(pcutils_array_t *array)
-{
-    return pcutils_array_length(array);
-}
-
-size_t pcutils_array_size_noi(pcutils_array_t *array)
-{
-    return pcutils_array_size(array);
-}

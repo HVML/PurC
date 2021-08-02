@@ -33,10 +33,6 @@
 #ifndef PCHTML_PARSER_PARSER_H
 #define PCHTML_PARSER_PARSER_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 #include "html/base.h"
 #include "html/tree.h"
@@ -44,6 +40,10 @@ extern "C" {
 
 #include "html/ns.h"
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef enum {
     PCHTML_PARSER_PARSER_STATE_BEGIN            = 0x00,
@@ -154,21 +154,6 @@ pchtml_html_parser_state(pchtml_html_parser_t *parser)
 {
     return parser->state;
 }
-
-/*
- * No inline functions for ABI.
- */
-pchtml_html_tokenizer_t *
-pchtml_html_parser_tokenizer_noi(pchtml_html_parser_t *parser) WTF_INTERNAL;
-
-pchtml_html_tree_t *
-pchtml_html_parser_tree_noi(pchtml_html_parser_t *parser) WTF_INTERNAL;
-
-unsigned int
-pchtml_html_parser_status_noi(pchtml_html_parser_t *parser) WTF_INTERNAL;
-
-unsigned int
-pchtml_html_parser_state_noi(pchtml_html_parser_t *parser) WTF_INTERNAL;
 
 
 #ifdef __cplusplus

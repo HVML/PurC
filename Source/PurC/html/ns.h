@@ -33,16 +33,15 @@
 #ifndef PCHTML_NS_H
 #define PCHTML_NS_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 #include "html/hash.h"
 #include "html/shs.h"
 
 #include "html/ns_const.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct {
     pchtml_hash_entry_t  entry;

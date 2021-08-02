@@ -196,34 +196,6 @@ pcedom_document_element(pcedom_document_t *document)
     return document->element;
 }
 
-/*
- * No inline functions for ABI.
- */
-pcedom_interface_t *
-pcedom_document_create_interface_noi(pcedom_document_t *document,
-                                      pchtml_tag_id_t tag_id, pchtml_ns_id_t ns);
-
-pcedom_interface_t *
-pcedom_document_destroy_interface_noi(pcedom_interface_t *intrfc);
-
-void *
-pcedom_document_create_struct_noi(pcedom_document_t *document,
-                                   size_t struct_size);
-
-void *
-pcedom_document_destroy_struct_noi(pcedom_document_t *document,
-                                    void *structure);
-
-unsigned char *
-pcedom_document_create_text_noi(pcedom_document_t *document, size_t len);
-
-void *
-pcedom_document_destroy_text_noi(pcedom_document_t *document,
-                                  unsigned char *text);
-
-pcedom_element_t *
-pcedom_document_element_noi(pcedom_document_t *document);
-
 
 #ifdef __cplusplus
 }       /* __cplusplus */

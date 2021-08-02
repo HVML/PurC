@@ -469,29 +469,3 @@ pchtml_html_parse_chunk_end(pchtml_html_parser_t *parser)
     return parser->status;
 }
 
-/*
- * No inline functions for ABI.
- */
-pchtml_html_tokenizer_t *
-pchtml_html_parser_tokenizer_noi(pchtml_html_parser_t *parser)
-{
-    return pchtml_html_parser_tokenizer(parser);
-}
-
-pchtml_html_tree_t *
-pchtml_html_parser_tree_noi(pchtml_html_parser_t *parser)
-{
-    return pchtml_html_parser_tree(parser);
-}
-
-unsigned int
-pchtml_html_parser_status_noi(pchtml_html_parser_t *parser)
-{
-    return pchtml_html_parser_status(parser);
-}
-
-unsigned int
-pchtml_html_parser_state_noi(pchtml_html_parser_t *parser)
-{
-    return pchtml_html_parser_state(parser);
-}

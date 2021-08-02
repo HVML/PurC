@@ -32,10 +32,6 @@
 #ifndef PCHTML_PARSER_TOKEN_H
 #define PCHTML_PARSER_TOKEN_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 #include "html/dobject.h"
 #include "html/in.h"
@@ -77,6 +73,10 @@ typedef struct {
 }
 pchtml_html_token_t;
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 pchtml_html_token_t *
 pchtml_html_token_create(pchtml_dobject_t *dobj) WTF_INTERNAL;
@@ -144,15 +144,6 @@ pchtml_html_token_create_eof(pchtml_dobject_t *dobj)
 {
     return (pchtml_html_token_t *) pchtml_dobject_calloc(dobj);
 }
-
-/*
- * No inline functions for ABI.
- */
-void
-pchtml_html_token_clean_noi(pchtml_html_token_t *token);
-
-pchtml_html_token_t *
-pchtml_html_token_create_eof_noi(pchtml_dobject_t *dobj);
 
 
 #ifdef __cplusplus

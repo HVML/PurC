@@ -33,13 +33,8 @@
 #ifndef PCHTML_PARSER_BASE_H
 #define PCHTML_PARSER_BASE_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 #include "html/core_base.h"
-
 
 typedef struct pchtml_html_tokenizer pchtml_html_tokenizer_t;
 typedef unsigned int pchtml_html_tokenizer_opt_t;
@@ -53,6 +48,9 @@ typedef enum {
 }
 pchtml_html_status_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 #ifdef __cplusplus

@@ -72,13 +72,6 @@ pcedom_processing_instruction_target(pcedom_processing_instruction_t *pi,
     return pi->target.data;
 }
 
-/*
- * No inline functions for ABI.
- */
-const unsigned char *
-pcedom_processing_instruction_target_noi(pcedom_processing_instruction_t *pi,
-                                          size_t *len);
-
 
 #ifdef __cplusplus
 }       /* __cplusplus */

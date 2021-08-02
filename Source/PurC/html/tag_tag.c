@@ -144,30 +144,3 @@ pchtml_tag_data_by_name_upper(pchtml_hash_t *hash,
                                            pchtml_hash_search_upper, name, len);
 }
 
-/*
- * No inline functions for ABI.
- */
-const unsigned char *
-pchtml_tag_name_by_id_noi(pchtml_hash_t *hash, pchtml_tag_id_t tag_id, size_t *len)
-{
-    return pchtml_tag_name_by_id(hash, tag_id, len);
-}
-
-const unsigned char *
-pchtml_tag_name_upper_by_id_noi(pchtml_hash_t *hash,
-                             pchtml_tag_id_t tag_id, size_t *len)
-{
-    return pchtml_tag_name_upper_by_id(hash, tag_id, len);
-}
-
-pchtml_tag_id_t
-pchtml_tag_id_by_name_noi(pchtml_hash_t *hash, const unsigned char *name, size_t len)
-{
-    return pchtml_tag_id_by_name(hash, name, len);
-}
-
-pchtml_mraw_t *
-pchtml_tag_mraw_noi(pchtml_hash_t *hash)
-{
-    return pchtml_tag_mraw(hash);
-}

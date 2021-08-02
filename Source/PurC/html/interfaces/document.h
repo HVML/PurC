@@ -241,50 +241,6 @@ pchtml_html_document_destroy_element(pcedom_element_t *element)
     return pcedom_document_destroy_element(element);
 }
 
-/*
- * No inline functions for ABI.
- */
-pchtml_html_head_element_t *
-pchtml_html_document_head_element_noi(pchtml_html_document_t *document);
-
-pchtml_html_body_element_t *
-pchtml_html_document_body_element_noi(pchtml_html_document_t *document);
-
-pcedom_document_t *
-pchtml_html_document_original_ref_noi(pchtml_html_document_t *document);
-
-bool
-pchtml_html_document_is_original_noi(pchtml_html_document_t *document);
-
-pchtml_mraw_t *
-pchtml_html_document_mraw_noi(pchtml_html_document_t *document);
-
-pchtml_mraw_t *
-pchtml_html_document_mraw_text_noi(pchtml_html_document_t *document);
-
-void
-pchtml_html_document_opt_set_noi(pchtml_html_document_t *document,
-                              pchtml_html_document_opt_t opt);
-
-pchtml_html_document_opt_t
-pchtml_html_document_opt_noi(pchtml_html_document_t *document);
-
-void *
-pchtml_html_document_create_struct_noi(pchtml_html_document_t *document,
-                                    size_t struct_size);
-
-void *
-pchtml_html_document_destroy_struct_noi(pchtml_html_document_t *document, void *data);
-
-pchtml_html_element_t *
-pchtml_html_document_create_element_noi(pchtml_html_document_t *document,
-                                     const unsigned char *local_name,
-                                     size_t lname_len, void *reserved_for_opt);
-
-pcedom_element_t *
-pchtml_html_document_destroy_element_noi(pcedom_element_t *element);
-
-
 #ifdef __cplusplus
 }       /* __cplusplus */
 #endif

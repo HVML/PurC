@@ -60,26 +60,3 @@ pcedom_document_type_interface_destroy(pcedom_document_type_t *document_type)
         pcedom_interface_node(document_type)->owner_document->mraw,
         document_type);
 }
-
-/*
- * No inline functions for ABI.
- */
-const unsigned char *
-pcedom_document_type_name_noi(pcedom_document_type_t *doc_type, size_t *len)
-{
-    return pcedom_document_type_name(doc_type, len);
-}
-
-const unsigned char *
-pcedom_document_type_public_id_noi(pcedom_document_type_t *doc_type,
-                                    size_t *len)
-{
-    return pcedom_document_type_public_id(doc_type, len);
-}
-
-const unsigned char *
-pcedom_document_type_system_id_noi(pcedom_document_type_t *doc_type,
-                                    size_t *len)
-{
-    return pcedom_document_type_system_id(doc_type, len);
-}

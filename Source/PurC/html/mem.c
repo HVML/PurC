@@ -221,35 +221,3 @@ pchtml_mem_calloc(pchtml_mem_t *mem, size_t length)
 
     return data;
 }
-
-/*
- * No inline functions for ABI.
- */
-size_t
-pchtml_mem_current_length_noi(pchtml_mem_t *mem)
-{
-    return pchtml_mem_current_length(mem);
-}
-
-size_t
-pchtml_mem_current_size_noi(pchtml_mem_t *mem)
-{
-    return pchtml_mem_current_size(mem);
-}
-
-size_t
-pchtml_mem_chunk_length_noi(pchtml_mem_t *mem)
-{
-    return pchtml_mem_chunk_length(mem);
-}
-size_t
-pchtml_mem_align_noi(size_t size)
-{
-    return pchtml_mem_align(size);
-}
-
-size_t
-pchtml_mem_align_floor_noi(size_t size)
-{
-    return pchtml_mem_align_floor(size);
-}

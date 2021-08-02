@@ -181,28 +181,6 @@ pcedom_node_last_child(pcedom_node_t *node)
     return node->last_child;
 }
 
-/*
- * No inline functions for ABI.
- */
-pchtml_tag_id_t
-pcedom_node_tag_id_noi(pcedom_node_t *node);
-
-pcedom_node_t *
-pcedom_node_next_noi(pcedom_node_t *node);
-
-pcedom_node_t *
-pcedom_node_prev_noi(pcedom_node_t *node);
-
-pcedom_node_t *
-pcedom_node_parent_noi(pcedom_node_t *node);
-
-pcedom_node_t *
-pcedom_node_first_child_noi(pcedom_node_t *node);
-
-pcedom_node_t *
-pcedom_node_last_child_noi(pcedom_node_t *node);
-
-
 #ifdef __cplusplus
 }       /* __cplusplus */
 #endif

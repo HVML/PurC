@@ -422,24 +422,3 @@ pchtml_mraw_free(pchtml_mraw_t *mraw, void *data)
 
     return NULL;
 }
-
-/*
- * No inline functions for ABI.
- */
-size_t
-pchtml_mraw_data_size_noi(void *data)
-{
-    return pchtml_mraw_data_size(data);
-}
-
-void
-pchtml_mraw_data_size_set_noi(void *data, size_t size)
-{
-    pchtml_mraw_data_size_set(data, size);
-}
-
-void *
-pchtml_mraw_dup_noi(pchtml_mraw_t *mraw, const void *src, size_t size)
-{
-    return pchtml_mraw_dup(mraw, src, size);
-}

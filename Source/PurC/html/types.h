@@ -33,10 +33,6 @@
 #ifndef PCHTML_TYPES_H
 #define PCHTML_TYPES_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -47,12 +43,8 @@ extern "C" {
 //    #define static inline static inline
 #endif
 
-
-#if 0
-/* Simple types */
-typedef uint32_t      pchtml_codepoint_t;
-typedef unsigned char pchtml_char_t;
-typedef unsigned int  pchtml_status_t;
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 /* Callbacks */

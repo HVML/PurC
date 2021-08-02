@@ -199,18 +199,3 @@ pchtml_dobject_by_absolute_position(pchtml_dobject_t *dobject, size_t pos)
 
     return &chunk->data[chunk_pos % chunk->size];
 }
-
-/*
- * No inline functions for ABI.
- */
-size_t
-pchtml_dobject_allocated_noi(pchtml_dobject_t *dobject)
-{
-    return pchtml_dobject_allocated(dobject);
-}
-
-size_t
-pchtml_dobject_cache_length_noi(pchtml_dobject_t *dobject)
-{
-    return pchtml_dobject_cache_length(dobject);
-}

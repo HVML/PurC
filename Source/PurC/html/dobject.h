@@ -32,15 +32,10 @@
 #ifndef PCHTML_DOBJECT_H
 #define PCHTML_DOBJECT_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 #include "html/core_base.h"
 #include "html/mem.h"
 #include "private/array.h"
-
 
 typedef struct {
     pchtml_mem_t   *mem;
@@ -51,6 +46,10 @@ typedef struct {
 }
 pchtml_dobject_t;
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 pchtml_dobject_t *
 pchtml_dobject_create(void) WTF_INTERNAL;
@@ -95,15 +94,6 @@ pchtml_dobject_cache_length(pchtml_dobject_t *dobject)
 {
     return pcutils_array_length(dobject->cache);
 }
-
-/*
- * No inline functions for ABI.
- */
-size_t
-pchtml_dobject_allocated_noi(pchtml_dobject_t *dobject);
-
-size_t
-pchtml_dobject_cache_length_noi(pchtml_dobject_t *dobject);
 
 
 #ifdef __cplusplus

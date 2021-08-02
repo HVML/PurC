@@ -32,13 +32,13 @@
 #ifndef PCHTML_H
 #define PCHTML_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 
 #include <stdlib.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define pchtml_malloc(sz)       malloc(sz)
 #define pchtml_realloc(ptr, sz) realloc(ptr, sz)

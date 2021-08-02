@@ -33,15 +33,14 @@
 #ifndef PCHTML_MEM_H
 #define PCHTML_MEM_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <string.h>
 
 #include "config.h"
 #include "html/core_base.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct pchtml_mem_chunk pchtml_mem_chunk_t;
 typedef struct pchtml_mem pchtml_mem_t;
@@ -141,24 +140,6 @@ pchtml_mem_align_floor(size_t size)
            ? size - (size % PCHTML_MEM_ALIGN_STEP)
            : size;
 }
-
-/*
- * No inline functions for ABI.
- */
-size_t
-pchtml_mem_current_length_noi(pchtml_mem_t *mem);
-
-size_t
-pchtml_mem_current_size_noi(pchtml_mem_t *mem);
-
-size_t
-pchtml_mem_chunk_length_noi(pchtml_mem_t *mem);
-size_t
-pchtml_mem_align_noi(size_t size);
-
-size_t
-pchtml_mem_align_floor_noi(size_t size);
-
 
 #ifdef __cplusplus
 }       /* __cplusplus */

@@ -114,29 +114,6 @@ pcutils_array_obj_last(pcutils_array_obj_t *array)
     return array->list + ((array->length - 1) * array->struct_size);
 }
 
-
-/*
- * No inline functions for ABI.
- */
-void
-pcutils_array_obj_erase_noi(pcutils_array_obj_t *array) WTF_INTERNAL;
-
-void *
-pcutils_array_obj_get_noi(pcutils_array_obj_t *array, size_t idx) WTF_INTERNAL;
-
-size_t
-pcutils_array_obj_length_noi(pcutils_array_obj_t *array) WTF_INTERNAL;
-
-size_t
-pcutils_array_obj_size_noi(pcutils_array_obj_t *array) WTF_INTERNAL;
-
-size_t
-pcutils_array_obj_struct_size_noi(pcutils_array_obj_t *array) WTF_INTERNAL;
-
-void *
-pcutils_array_obj_last_noi(pcutils_array_obj_t *array) WTF_INTERNAL;
-
-
 #ifdef __cplusplus
 }
 #endif

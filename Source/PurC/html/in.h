@@ -32,14 +32,14 @@
 #ifndef PCHTML_IN_H
 #define PCHTML_IN_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 #include "html/core_base.h"
 #include "html/dobject.h"
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct pchtml_in_node pchtml_in_node_t;
 typedef int pchtml_in_opt_t;
@@ -165,31 +165,6 @@ pchtml_in_segment(const pchtml_in_node_t *node, const unsigned char *data)
 {
     return node->begin <= data && node->end >= data;
 }
-
-/*
- * No inline functions for ABI.
- */
-const unsigned char *
-pchtml_in_node_begin_noi(const pchtml_in_node_t *node);
-
-const unsigned char *
-pchtml_in_node_end_noi(const pchtml_in_node_t *node);
-
-size_t
-pchtml_in_node_offset_noi(const pchtml_in_node_t *node);
-
-pchtml_in_node_t *
-pchtml_in_node_next_noi(const pchtml_in_node_t *node);
-
-pchtml_in_node_t *
-pchtml_in_node_prev_noi(const pchtml_in_node_t *node);
-
-pchtml_in_t *
-pchtml_in_node_in_noi(const pchtml_in_node_t *node);
-
-bool
-pchtml_in_segment_noi(const pchtml_in_node_t *node, const unsigned char *data);
-
 
 #ifdef __cplusplus
 }       /* __cplusplus */

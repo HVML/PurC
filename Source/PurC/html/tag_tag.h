@@ -33,10 +33,6 @@
 #ifndef PCHTML_TAG_TAG_H
 #define PCHTML_TAG_TAG_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 #include "html/hash.h"
 #include "html/shs.h"
@@ -45,6 +41,10 @@ extern "C" {
 
 #include "html/tag_tag_const.h"
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct {
     pchtml_hash_entry_t entry;
@@ -123,25 +123,6 @@ pchtml_tag_mraw(pchtml_hash_t *hash)
 {
     return pchtml_hash_mraw(hash);
 }
-
-
-/*
- * No inline functions for ABI.
- */
-const unsigned char *
-pchtml_tag_name_by_id_noi(pchtml_hash_t *hash, pchtml_tag_id_t tag_id,
-                size_t *len) WTF_INTERNAL;
-
-const unsigned char *
-pchtml_tag_name_upper_by_id_noi(pchtml_hash_t *hash,
-                pchtml_tag_id_t tag_id, size_t *len) WTF_INTERNAL;
-
-pchtml_tag_id_t
-pchtml_tag_id_by_name_noi(pchtml_hash_t *hash,
-                const unsigned char *name, size_t len) WTF_INTERNAL;
-
-pchtml_mraw_t *
-pchtml_tag_mraw_noi(pchtml_hash_t *hash) WTF_INTERNAL;
 
 
 #ifdef __cplusplus

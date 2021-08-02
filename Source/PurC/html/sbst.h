@@ -32,15 +32,14 @@
 #ifndef PCHTML_SBST_H
 #define PCHTML_SBST_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <string.h>
 
 #include "config.h"
 #include "html/core_base.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct {
     unsigned char key;

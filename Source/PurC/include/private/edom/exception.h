@@ -85,13 +85,6 @@ pcedom_exception_code_ref_set(pcedom_exception_code_t *var,
     return NULL;
 }
 
-/*
- * No inline functions for ABI.
- */
-void *
-pcedom_exception_code_ref_set_noi(pcedom_exception_code_t *var,
-                                   pcedom_exception_code_t code);
-
 
 #ifdef __cplusplus
 }       /* __cplusplus */

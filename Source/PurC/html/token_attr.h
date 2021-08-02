@@ -33,10 +33,6 @@
 #ifndef PCHTML_PARSER_TOKEN_ATTR_H
 #define PCHTML_PARSER_TOKEN_ATTR_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 #include "html/in.h"
 #include "html/str.h"
@@ -76,6 +72,10 @@ struct pchtml_html_token_attr {
     pchtml_html_token_attr_type_t type;
 };
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 pchtml_html_token_attr_t *
 pchtml_html_token_attr_create(pchtml_dobject_t *dobj) WTF_INTERNAL;
