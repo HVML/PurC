@@ -822,10 +822,18 @@ next_state:
         BEGIN_STATE(EJSON_NAME_DOUBLE_QUOTED_STATE)
             if (ejson->wc == '"') {
                 size_t tmp_buf_len = pcejson_tmp_buff_length (ejson->tmp_buff);
-                if (tmp_buf_len >= 1) {
+                if (tmp_buf_len > 1) {
+                    pcejson_tmp_buff_remove_first_last (ejson->tmp_buff, 1, 0);
                     ADVANCE_TO(EJSON_AFTER_NAME_STATE);
                 }
+                else if (tmp_buf_len == 1) {
+                    pcejson_tmp_buff_reset (ejson->tmp_buff);
+                    SWITCH_TO(EJSON_AFTER_KEYWORD_STATE);
+                    return pcejson_token_new (EJSON_TOKEN_KEY, NULL, 0);
+                }
                 else {
+                    pcejson_tmp_buff_append (ejson->tmp_buff,
+                            (uint8_t*)ejson->c, ejson->c_len);
                     ADVANCE_TO(EJSON_NAME_DOUBLE_QUOTED_STATE);
                 }
             }
