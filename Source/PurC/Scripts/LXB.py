@@ -271,14 +271,14 @@ class SHS:
 
         self.data = {}
         self.idx = 0
-    
+
         self.table = []
         self.table_size = 0
         self.real_table_size = 0
-    
+
         self.unused = []
         self.unused_pos = 0
-        
+
         self.max = 0
         self.used = 0
 
@@ -374,16 +374,16 @@ class SHS:
 
             for entry in self.data:
                 idx = self.make_id(entry['key'], i)
-    
+
                 if idx not in result:
                     used += 1
                     result[idx] = 0
-    
+
                 result[idx] += 1
-    
+
                 if result[idx] > max:
                     max = result[idx]
-            
+
             stat.append([max, used, i])
 
         stat.sort(key = lambda entr: entr[0])
@@ -470,7 +470,7 @@ class FormatEnum:
         last_entry = self.buffer.pop()
 
         buffer.append("typedef enum {")
-        
+
         for entry in self.buffer:
             if entry[0] == None:
                 buffer.append(entry[1])

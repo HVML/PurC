@@ -1,4 +1,3 @@
-
 #
 # My eyes bleed when I see this code.
 # It works correctly, but it needs refactoring!
@@ -10,7 +9,7 @@ import hashlib
 
 # Find and append run script run dir to module search path
 ABS_PATH = os.path.dirname(os.path.abspath(__file__))
-sys.path.append("{}/../".format(ABS_PATH))
+sys.path.append("{}/../Scripts/".format(ABS_PATH))
 
 import LXB
 
@@ -24,6 +23,8 @@ attributes_name = [
 
 attributes_name.sort()
 attributes_name.insert(0, "_undef")
+
+WITHOUT_PRINT = 0
 
 class Attr:
     prefix = "PCEDOM_ATTR_"
@@ -73,7 +74,8 @@ class Attr:
 
         res = shs.create(self.shs_name, rate = 1)
 
-        print(self.shs_stat(shs))
+        if not WITHOUT_PRINT:
+            print(self.shs_stat(shs))
 
         return res
 
@@ -102,10 +104,11 @@ class Attr:
         lxb_temp.build()
         lxb_temp.save()
 
-        print("".join(data))
-        print("".join(res))
-        print("Save to {}".format(save_to))
-        print("Done")
+        if not WITHOUT_PRINT:
+            print("".join(data))
+            print("".join(res))
+            print("Save to {}".format(save_to))
+            print("Done")
 
     def const_save(self, temp_file, save_to):
         res = self.const_create()
@@ -117,16 +120,20 @@ class Attr:
         lxb_temp.build()
         lxb_temp.save()
 
-        print("\n".join(res))
-        print("Save to {}".format(save_to))
-        print("Done")
+        if not WITHOUT_PRINT:
+            print("\n".join(res))
+            print("Save to {}".format(save_to))
+            print("Done")
 
 if __name__ == "__main__":
-    if len(sys.argv)!=2:
+    if len(sys.argv) > 2 and sys.argv[2] == '--without-print':
+        WITHOUT_PRINT = 1
+
+    if len(sys.argv) < 2:
         raise Exception('expecting target path')
 
     attr = Attr()
 
-    attr.const_save("tmp/const.h", "{}/attr_const.h".format(sys.argv[1]))
-    attr.shs_save("tmp/res.h", "{}/attr_res.h".format(sys.argv[1]))
+    attr.const_save("attr_const.h.in", "{}/html_attr_const.h".format(sys.argv[1]))
+    attr.shs_save("attr_res.h.in", "{}/html_attr_res.h".format(sys.argv[1]))
 

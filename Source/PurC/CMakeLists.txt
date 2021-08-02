@@ -79,6 +79,18 @@ set(PurC_INTERFACE_INCLUDE_DIRECTORIES ${PurC_PRIVATE_FRAMEWORK_HEADERS_DIR})
 PURC_FRAMEWORK_DECLARE(PurC)
 PURC_INCLUDE_CONFIG_FILES_IF_EXISTS()
 
+# Generate constants for HTML attributes
+add_custom_command(
+    OUTPUT "${PurC_DERIVED_SOURCES_DIR}/html_attr_foo.c" "${PurC_DERIVED_SOURCES_DIR}/html_attr_res.h" "${PurC_DERIVED_SOURCES_DIR}/html_attr_const.h"
+    MAIN_DEPENDENCY ${PURC_DIR}/html/attr.py
+    DEPENDS ${PURC_DIR}/html/attr_res.h.in ${PURC_DIR}/html/attr_const.h.in
+    COMMAND ${_Python3_EXECUTABLE} ${PURC_DIR}/html/attr.py "${PurC_DERIVED_SOURCES_DIR}" --without-print
+    COMMAND touch "${PurC_DERIVED_SOURCES_DIR}/html_attr_foo.c"
+    COMMENT "Generating html_attr_res.h and html_attr_const.h by using ${_Python3_EXECUTABLE}"
+    WORKING_DIRECTORY "${PURC_DIR}/html/"
+    VERBATIM)
+list(APPEND PurC_SOURCES ${PurC_DERIVED_SOURCES_DIR}/html_attr_foo.c)
+
 PURC_WRAP_SOURCELIST(${PurC_SOURCES})
 
 PURC_COPY_FILES(PurC_CopyPrivateHeaders
@@ -118,8 +130,7 @@ if (MSVC)
     )
 endif ()
 
-#
-add_subdirectory(res)
+# add_subdirectory(res)
 
 install(TARGETS PurC
         DESTINATION "${LIB_INSTALL_DIR}/"

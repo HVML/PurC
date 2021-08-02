@@ -44,9 +44,9 @@ extern "C" {
 
 #include "private/edom/interface.h"
 #include "private/edom/node.h"
-#include "res/dom/attr_const.h"
 #include "private/edom/document.h"
 
+#include "html_attr_const.h"
 
 typedef struct {
     pchtml_hash_entry_t  entry;
