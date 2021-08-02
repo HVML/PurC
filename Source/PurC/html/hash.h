@@ -31,18 +31,16 @@
 #ifndef PCHTML_HASH_H
 #define PCHTML_HASH_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 #include "html/dobject.h"
 #include "html/mraw.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define PCHTML_HASH_SHORT_SIZE     16
 #define PCHTML_HASH_TABLE_MIN_SIZE 32
-
 
 typedef struct pchtml_hash_search pchtml_hash_search_t;
 typedef struct pchtml_hash_insert pchtml_hash_insert_t;
@@ -114,7 +112,8 @@ pchtml_hash_t *
 pchtml_hash_create(void) WTF_INTERNAL;
 
 unsigned int
-pchtml_hash_init(pchtml_hash_t *hash, size_t table_size, size_t struct_size) WTF_INTERNAL;
+pchtml_hash_init(pchtml_hash_t *hash,
+        size_t table_size, size_t struct_size) WTF_INTERNAL;
 
 void
 pchtml_hash_clean(pchtml_hash_t *hash) WTF_INTERNAL;
@@ -125,31 +124,30 @@ pchtml_hash_destroy(pchtml_hash_t *hash, bool destroy_obj) WTF_INTERNAL;
 
 void *
 pchtml_hash_insert(pchtml_hash_t *hash, const pchtml_hash_insert_t *insert,
-                   const unsigned char *key, size_t length) WTF_INTERNAL;
+        const unsigned char *key, size_t length) WTF_INTERNAL;
 
 void *
 pchtml_hash_insert_by_entry(pchtml_hash_t *hash, pchtml_hash_entry_t *entry,
-                            const pchtml_hash_search_t *search,
-                            const unsigned char *key, size_t length) WTF_INTERNAL;
+        const pchtml_hash_search_t *search,
+        const unsigned char *key, size_t length) WTF_INTERNAL;
 
 void
 pchtml_hash_remove(pchtml_hash_t *hash, const pchtml_hash_search_t *search,
-                   const unsigned char *key, size_t length) WTF_INTERNAL;
+        const unsigned char *key, size_t length) WTF_INTERNAL;
 
 void *
 pchtml_hash_search(pchtml_hash_t *hash, const pchtml_hash_search_t *search,
-                   const unsigned char *key, size_t length);
+        const unsigned char *key, size_t length);
 
 void
 pchtml_hash_remove_by_hash_id(pchtml_hash_t *hash, uint32_t hash_id,
-                              const unsigned char *key, size_t length,
-                              const pchtml_hash_cmp_f cmp_func) WTF_INTERNAL;
+        const unsigned char *key, size_t length,
+        const pchtml_hash_cmp_f cmp_func) WTF_INTERNAL;
 
 void *
 pchtml_hash_search_by_hash_id(pchtml_hash_t *hash, uint32_t hash_id,
-                              const unsigned char *key, size_t length,
-                              const pchtml_hash_cmp_f cmp_func) WTF_INTERNAL;
-
+        const unsigned char *key, size_t length,
+        const pchtml_hash_cmp_f cmp_func) WTF_INTERNAL;
 
 uint32_t
 pchtml_hash_make_id(const unsigned char *key, size_t length) WTF_INTERNAL;
@@ -162,16 +160,15 @@ pchtml_hash_make_id_upper(const unsigned char *key, size_t length) WTF_INTERNAL;
 
 unsigned int
 pchtml_hash_copy(pchtml_hash_t *hash, pchtml_hash_entry_t *entry,
-                 const unsigned char *key, size_t length) WTF_INTERNAL;
+        const unsigned char *key, size_t length) WTF_INTERNAL;
 
 unsigned int
 pchtml_hash_copy_lower(pchtml_hash_t *hash, pchtml_hash_entry_t *entry,
-                       const unsigned char *key, size_t length) WTF_INTERNAL;
+        const unsigned char *key, size_t length) WTF_INTERNAL;
 
 unsigned int
 pchtml_hash_copy_upper(pchtml_hash_t *hash, pchtml_hash_entry_t *entry,
-                       const unsigned char *key, size_t length) WTF_INTERNAL;
-
+        const unsigned char *key, size_t length) WTF_INTERNAL;
 
 /*
  * Inline functions
