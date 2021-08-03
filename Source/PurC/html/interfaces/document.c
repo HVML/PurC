@@ -44,7 +44,7 @@
 
 #define PCHTML_PARSER_TAG_RES_DATA
 #define PCHTML_PARSER_TAG_RES_SHS_DATA
-#include "html/tag_res.h"
+#include "html/html_tag_res.h"
 
 #include "private/edom.h"
 

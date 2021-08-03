@@ -36,7 +36,7 @@ extern "C" {
 #endif
 
 #include "config.h"
-#include "html/interface.h"
+#include "html/html_interface.h"
 #include "html/interfaces/media_element.h"
 
 

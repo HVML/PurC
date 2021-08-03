@@ -40,7 +40,7 @@
 #define PCHTML_PARSER_TAG_RES_H
 
 #include "config.h"
-#include "html/tag.h"
+#include "html/html_tag.h"
 
 #endif /* PCHTML_PARSER_TAG_RES_H */
 

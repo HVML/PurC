@@ -40,7 +40,7 @@
 #include "html/node.h"
 #include "html/tokenizer.h"
 #include "html/interfaces/document.h"
-#include "html/tag.h"
+#include "html/html_tag.h"
 #include "html/tree/error.h"
 
 

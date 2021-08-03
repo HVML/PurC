@@ -41,7 +41,7 @@ extern "C" {
 
 #include "html/tag_tag.h"
 #include "html/ns.h"
-#include "html/interface.h"
+#include "html/html_interface.h"
 #include "private/html.h"
 #include "private/edom.h"
 

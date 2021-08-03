@@ -40,7 +40,7 @@ extern "C" {
 #include "config.h"
 #include "private/edom.h"
 
-#include "html/interface.h"
+#include "html/html_interface.h"
 #include "html/interfaces/element.h"
 
 

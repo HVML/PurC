@@ -1,5 +1,5 @@
 /**
- * @file interface.c
+ * @file html_interface.c
  * @author
  * @date 2021/07/02
  * @brief The complementation of interface operation.
@@ -33,13 +33,13 @@
 #include "private/edom.h"
 
 #include "html/mraw.h"
-#include "html/interface.h"
+#include "html/html_interface.h"
 #include "html/interfaces/document.h"
 
 
 #define PCHTML_PARSER_INTERFACE_RES_CONSTRUCTORS
 #define PCHTML_PARSER_INTERFACE_RES_DESTRUCTOR
-#include "html/interface_res.h"
+#include "html/html_interface_res.h"
 
 
 pcedom_interface_t *
