@@ -182,51 +182,51 @@ struct pcejson_token {
 extern "C" {
 #endif  /* __cplusplus */
 
-/**
+/*
  * Init pcejson
  */
 void pcejson_init_once (void);
 
-/**
+/*
  * Create ejson parser.
  */
 struct pcejson* pcejson_create (int32_t depth, uint32_t flags);
 
-/**
+/*
  * Destroy ejson parser.
  */
 void pcejson_destroy (struct pcejson* parser);
 
-/**
+/*
  * Reset ejson parser.
  */
 void pcejson_reset (struct pcejson* parser, int32_t depth, uint32_t flags);
 
-/**
+/*
  * Parse ejson.
  */
 int pcejson_parse (struct pcvcm_node** vcm_tree, struct pcejson** parser,
         purc_rwstream_t rwstream);
 
-/**
+/*
  * Create a new pcejson token.
  */
 struct pcejson_token* pcejson_token_new (enum ejson_token_type type,
         const uint8_t* bytes, size_t nr_bytes);
 
-/**
+/*
  * Destory pcejson token.
  */
 void pcejson_token_destroy (struct pcejson_token* token);
 
 
-/**
+/*
  * Get one pcejson token from rwstream.
  */
 struct pcejson_token* pcejson_next_token (struct pcejson* ejson,
         purc_rwstream_t rws);
 
-/**
+/*
  * Get ejson desc message
  */
 const char* pcejson_ejson_state_desc (enum ejson_state state);

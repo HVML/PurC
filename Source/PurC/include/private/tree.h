@@ -50,7 +50,7 @@ struct pctree_node {
 extern "C" {
 #endif  /* __cplusplus */
 
-/**
+/*
  *
  * callback function for traverse node children
  *
@@ -59,7 +59,7 @@ typedef void(pctree_node_for_each_fn)(struct pctree_node* node,  void* data);
 typedef void (pctree_node_destroy_callback)(void* data);
 
 
-/**
+/*
  * Creates a new node containing the given data
  *
  * @param user_data: the user data of the new node
@@ -73,7 +73,7 @@ typedef void (pctree_node_destroy_callback)(void* data);
  */
 struct pctree_node* pctree_node_new (void* user_data);
 
-/**
+/*
  * Removes root and its children from the tree, freeing any memory allocated.
  *
  * @param node: the root of the tree/subtree to destroy
@@ -86,7 +86,7 @@ struct pctree_node* pctree_node_new (void* user_data);
 void pctree_node_destroy (struct pctree_node* node,
         pctree_node_destroy_callback callback);
 
-/**
+/*
  * Inserts a node as the last child of the given parent.
  *
  * @param parent: the node to place the new node under
@@ -101,7 +101,7 @@ void pctree_node_destroy (struct pctree_node* node,
 bool pctree_node_append_child (struct pctree_node* parent,
         struct pctree_node* node);
 
-/**
+/*
  * Inserts a node as the first child of the given parent.
  *
  * @param parent: the node to place the new node under
@@ -116,7 +116,7 @@ bool pctree_node_append_child (struct pctree_node* parent,
 bool pctree_node_prepend_child (struct pctree_node* parent,
         struct pctree_node* node);
 
-/**
+/*
  * Inserts a node before the given sibling.
  *
  * @param current: the sibling node to place node before.
@@ -131,7 +131,7 @@ bool pctree_node_prepend_child (struct pctree_node* parent,
 bool pctree_node_insert_before (struct pctree_node* current,
         struct pctree_node* node);
 
-/**
+/*
  * Inserts a node after the given sibling.
  *
  * @param current: the sibling node to place node after.
@@ -146,7 +146,7 @@ bool pctree_node_insert_before (struct pctree_node* current,
 bool pctree_node_insert_after (struct pctree_node* current,
         struct pctree_node* node);
 
-/**
+/*
  * Get the parent node of the given node.
  *
  * @param node: the given node
@@ -163,7 +163,7 @@ struct pctree_node* pctree_node_parent (struct pctree_node* node)
     return node->parent;
 }
 
-/**
+/*
  * Get first child node of the given node.
  *
  * @param node: the given node
@@ -180,7 +180,7 @@ struct pctree_node* pctree_node_child (struct pctree_node* node)
     return node->first_child;
 }
 
-/**
+/*
  * Get last child node of the given node.
  *
  * @param node: the given node
@@ -197,7 +197,7 @@ struct pctree_node* pctree_node_last_child (struct pctree_node* node)
     return node->last_child;
 }
 
-/**
+/*
  * Gets the next sibling of a node.
  *
  * @param node: the given node
@@ -214,7 +214,7 @@ struct pctree_node* pctree_node_next (struct pctree_node* node)
     return node->next;
 }
 
-/**
+/*
  * Gets the previous sibling of a node.
  *
  * @param node: the given node
@@ -231,7 +231,7 @@ struct pctree_node* pctree_node_prev (struct pctree_node* node)
     return node->prev;
 }
 
-/**
+/*
  * Gets the number of children of a node.
  *
  * @param node: the given node
@@ -248,7 +248,7 @@ size_t pctree_node_children_number (struct pctree_node* node)
     return node->nr_children;
 }
 
-/**
+/*
  * Gets the user_data of a node.
  *
  * @param node: the given node
@@ -264,7 +264,7 @@ void* pctree_node_user_data (struct pctree_node* node)
 }
 
 
-/**
+/*
  * Calls a function for each of the children of a node. Note that it doesn't
  * descend beneath the child nodes. func must not do anything that would
  * modify the structure of the tree.
@@ -278,7 +278,7 @@ void* pctree_node_user_data (struct pctree_node* node)
 void pctree_node_children_for_each (struct pctree_node* node,
         pctree_node_for_each_fn* func, void* data);
 
-/**
+/*
  * Pre order traversal a tree starting at the given root node. It calls
  * the given function for each node visited. func must not do anything
  * that would modify the structure of the tree
@@ -292,7 +292,7 @@ void pctree_node_children_for_each (struct pctree_node* node,
 void pctree_node_pre_order_traversal (struct pctree_node* node,
         pctree_node_for_each_fn* func, void* data);
 
-/**
+/*
  * In order traversal a tree starting at the given root node. It calls
  * the given function for each node visited. func must not do anything
  * that would modify the structure of the tree
@@ -306,7 +306,7 @@ void pctree_node_pre_order_traversal (struct pctree_node* node,
 void pctree_node_in_order_traversal (struct pctree_node* node,
         pctree_node_for_each_fn* func, void* data);
 
-/**
+/*
  * Post order traversal a tree starting at the given root node. It calls
  * the given function for each node visited. func must not do anything
  * that would modify the structure of the tree
@@ -320,7 +320,7 @@ void pctree_node_in_order_traversal (struct pctree_node* node,
 void pctree_node_post_order_traversal (struct pctree_node* node,
         pctree_node_for_each_fn* func, void* data);
 
-/**
+/*
  * Level order traversal a tree starting at the given root node. It calls
  * the given function for each node visited. func must not do anything
  * that would modify the structure of the tree

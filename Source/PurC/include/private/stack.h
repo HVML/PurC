@@ -38,42 +38,42 @@ struct pcutils_stack {
 extern "C" {
 #endif  /* __cplusplus */
 
-/**
+/*
  * Create a new stack.
  */
 struct pcutils_stack* pcutils_stack_new (size_t sz_init);
 
-/**
+/*
  * Check if the stack is empty.
  */
 bool pcutils_stack_is_empty (struct pcutils_stack* stack);
 
-/**
+/*
  * Get the size of the stack.
  */
 size_t pcutils_stack_size (struct pcutils_stack* stack);
 
-/**
+/*
  * Push a element to the stack.
  */
 void pcutils_stack_push (struct pcutils_stack* stack, uintptr_t e);
 
-/**
+/*
  * Pop a element from the stack.
  */
 uintptr_t pcutils_stack_pop (struct pcutils_stack* stack);
 
-/**
+/*
  * Get the bottom element of the stack.
  */
 uintptr_t pcutils_stack_bottom (struct pcutils_stack* stack);
 
-/**
+/*
  * Get the top element of the stack.
  */
 uintptr_t pcutils_stack_top (struct pcutils_stack* stack);
 
-/**
+/*
  * Destory stack.
  */
 void pcutils_stack_destroy (struct pcutils_stack* stack);
