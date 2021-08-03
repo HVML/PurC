@@ -98,3 +98,9 @@ y_string_utf8
 y_string_with_del_character
 y_structure_trailing_newline
 y_structure_whitespace_array
+y_structure_lonely_string
+y_structure_lonely_null
+y_structure_lonely_int
+y_structure_lonely_negative_real
+y_string_space
+y_structure_string_empty

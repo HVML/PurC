@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <gtest/gtest.h>
 
+#if 1
 using namespace std;
 
 typedef std::pair<std::string, std::string> ejson_test_data;
@@ -37,9 +38,11 @@ TEST_P(ejson_parser_vcm_eval, parse_and_serialize)
 {
     const char* json = get_json();
     const char* comp = get_comp();
-    //fprintf(stderr, "json=%s|len=%ld\n", json, strlen(json));
-    //fprintf(stderr, "comp=%s\n", comp);
-    purc_rwstream_t rws = purc_rwstream_new_from_mem((void*)json, strlen(json));
+    fprintf(stderr, "json=%s|len=%ld\n", json, strlen(json));
+    fprintf(stderr, "comp=%s\n", comp);
+    // read end of string as eof
+    size_t sz = strlen (json) + 1;
+    purc_rwstream_t rws = purc_rwstream_new_from_mem((void*)json, sz);
 
     struct pcvcm_node* root = NULL;
     struct pcejson* parser = NULL;
@@ -59,8 +62,8 @@ TEST_P(ejson_parser_vcm_eval, parse_and_serialize)
     ASSERT_GT(n, 0);
     buf[n] = 0;
     ASSERT_STREQ(buf, comp);
-    //fprintf(stderr, "buf=%s\n", buf);
-    //fprintf(stderr, "com=%s\n", comp);
+    fprintf(stderr, "buf=%s\n", buf);
+    fprintf(stderr, "com=%s\n", comp);
 
     purc_variant_unref(vt);
     purc_rwstream_destroy(my_rws);
@@ -148,7 +151,7 @@ std::vector<ejson_test_data> read_ejson_test_data()
                         continue;
                     }
 
-                    vec.push_back(make_pair(trim(json_buf), trim(comp_buf)));
+                    vec.push_back(make_pair(json_buf, trim(comp_buf)));
 
                     free (json_buf);
                     free (comp_buf);
@@ -171,3 +174,4 @@ std::vector<ejson_test_data> read_ejson_test_data()
 INSTANTIATE_TEST_CASE_P(ejson, ejson_parser_vcm_eval,
         testing::ValuesIn(read_ejson_test_data()));
 
+#endif
