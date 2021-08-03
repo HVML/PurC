@@ -164,8 +164,6 @@ static int _variant_object_remove(purc_variant_t obj, const char *key)
     purc_variant_t v = (purc_variant_t)pchash_entry_v(e);
     PC_ASSERT(v);
 
-    char *k = (char*)pchash_entry_k(e);
-
     if (pchash_table_delete_entry(ht, e)) {
         PC_ASSERT(0);
         return false;
