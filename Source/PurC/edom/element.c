@@ -35,13 +35,13 @@
 #include "private/instance.h"
 #include "private/errors.h"
 #include "private/edom.h"
+#include "private/utils.h"
 #include "html_attr_const.h"
 
 #include "html/tag.h"
 #include "html/ns.h"
 
 #include "html/str.h"
-#include "html/utils.h"
 #include "html/hash.h"
 
 
@@ -847,7 +847,7 @@ pcedom_elements_by_class_name_cb(pcedom_node_t *node, void *ctx)
     pcedom_document_t *doc = el->node.owner_document;
 
     for (; data < end; data++) {
-        if (pchtml_utils_whitespace(*data, ==, ||)) {
+        if (pcutils_html_whitespace(*data, ==, ||)) {
 
             if (pos != data && (data - pos) == (int)cb_ctx->value_length) {
                 if (doc->compat_mode == PCEDOM_DOCUMENT_CMODE_QUIRKS) {

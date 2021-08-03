@@ -29,6 +29,9 @@
  * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
+#include "config.h"
+#include "private/utils.h"
+
 #include "html/str.h"
 
 #define PCHTML_STR_RES_ANSI_REPLACEMENT_CHARACTER
@@ -269,7 +272,7 @@ pchtml_str_stay_only_whitespace(pchtml_str_t *target)
     unsigned char *data = target->data;
 
     for (i = 0; i < target->length; i++) {
-        if (pchtml_utils_whitespace(data[i], ==, ||)) {
+        if (pcutils_html_whitespace(data[i], ==, ||)) {
             data[pos] = data[i];
             pos++;
         }
@@ -288,13 +291,13 @@ pchtml_str_strip_collapse_whitespace(pchtml_str_t *target)
         return;
     }
 
-    if (pchtml_utils_whitespace(*data, ==, ||)) {
+    if (pcutils_html_whitespace(*data, ==, ||)) {
         *data = 0x20;
     }
 
     for (i = 0, offset = 0, ws_i = 0; i < target->length; i++)
     {
-        if (pchtml_utils_whitespace(data[i], ==, ||)) {
+        if (pcutils_html_whitespace(data[i], ==, ||)) {
             if (data[ws_i] != 0x20) {
                 data[offset] = 0x20;
 
@@ -331,7 +334,7 @@ pchtml_str_crop_whitespace_from_begin(pchtml_str_t *target)
     unsigned char *data = target->data;
 
     for (i = 0; i < target->length; i++) {
-        if (pchtml_utils_whitespace(data[i], !=, &&)) {
+        if (pcutils_html_whitespace(data[i], !=, &&)) {
             break;
         }
     }
@@ -351,7 +354,7 @@ pchtml_str_whitespace_from_begin(pchtml_str_t *target)
     unsigned char *data = target->data;
 
     for (i = 0; i < target->length; i++) {
-        if (pchtml_utils_whitespace(data[i], !=, &&)) {
+        if (pcutils_html_whitespace(data[i], !=, &&)) {
             break;
         }
     }
@@ -368,7 +371,7 @@ pchtml_str_whitespace_from_end(pchtml_str_t *target)
     while (i) {
         i--;
 
-        if (pchtml_utils_whitespace(data[i], !=, &&)) {
+        if (pcutils_html_whitespace(data[i], !=, &&)) {
             return target->length - (i + 1);
         }
     }
@@ -551,7 +554,7 @@ pchtml_str_data_cmp_ws(const unsigned char *first, const unsigned char *sec)
             return false;
         }
 
-        if (pchtml_utils_whitespace(*first, ==, ||) || *first == '\0') {
+        if (pcutils_html_whitespace(*first, ==, ||) || *first == '\0') {
             return true;
         }
 

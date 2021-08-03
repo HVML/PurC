@@ -35,7 +35,6 @@
 #include "config.h"
 #include "html/core_base.h"
 #include "html/mraw.h"
-#include "html/utils.h"
 
 #ifdef __cplusplus
 extern "C" {
