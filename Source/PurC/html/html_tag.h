@@ -39,7 +39,7 @@ extern "C" {
 #include "config.h"
 #include "html/base.h"
 
-#include "html/tag_tag.h"
+#include "html/tag.h"
 #include "html/ns.h"
 
 

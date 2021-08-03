@@ -34,7 +34,7 @@
 #define PCHTML_PARSER_NODE_H
 
 #include "config.h"
-#include "html/tag_tag.h"
+#include "html/tag.h"
 #include "private/edom.h"
 
 

@@ -40,7 +40,7 @@
 #include "html/node.h"
 #include "html/parser.h"
 
-#include "html/tag_tag.h"
+#include "html/tag.h"
 
 #define PCHTML_PARSER_TAG_RES_DATA
 #define PCHTML_PARSER_TAG_RES_SHS_DATA

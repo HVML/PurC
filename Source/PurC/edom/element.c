@@ -37,7 +37,7 @@
 #include "private/edom.h"
 #include "html_attr_const.h"
 
-#include "html/tag_tag.h"
+#include "html/tag.h"
 #include "html/ns.h"
 
 #include "html/str.h"

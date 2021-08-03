@@ -36,7 +36,7 @@
 
 #include "private/edom.h"
 #include "html/ns.h"
-#include "html/tag_tag.h"
+#include "html/tag.h"
 
 
 pcedom_document_t *

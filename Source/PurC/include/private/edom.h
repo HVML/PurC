@@ -36,7 +36,7 @@
 #include "html/str.h"
 #include "html/mraw.h"
 #include "html/hash.h"
-#include "html/tag_tag_const.h"
+#include "html/tag_const.h"
 #include "html/ns_const.h"
 
 #include "html_attr_const.h"

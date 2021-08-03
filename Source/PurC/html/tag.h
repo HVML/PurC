@@ -39,7 +39,7 @@
 #include "html/dobject.h"
 #include "html/str.h"
 
-#include "html/tag_tag_const.h"
+#include "html/tag_const.h"
 
 
 #ifdef __cplusplus

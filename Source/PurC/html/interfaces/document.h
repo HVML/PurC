@@ -39,7 +39,7 @@ extern "C" {
 #include "config.h"
 #include "html/mraw.h"
 
-#include "html/tag_tag.h"
+#include "html/tag.h"
 #include "html/ns.h"
 #include "html/html_interface.h"
 #include "private/html.h"

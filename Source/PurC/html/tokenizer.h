@@ -41,7 +41,7 @@
 #include "html/base.h"
 #include "html/token.h"
 
-#include "html/tag_tag.h"
+#include "html/tag.h"
 #include "html/ns.h"
 
 

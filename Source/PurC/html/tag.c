@@ -32,8 +32,8 @@
 
 #include "private/errors.h"
 
-#include "html/tag_tag.h"
-#include "html/tag_tag_res.h"
+#include "html/tag.h"
+#include "html/tag_res.h"
 
 
 const pchtml_tag_data_t *

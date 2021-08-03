@@ -39,7 +39,7 @@
 
 #include "html/base.h"
 #include "html/token_attr.h"
-#include "html/tag_tag.h"
+#include "html/tag.h"
 
 
 typedef int pchtml_html_token_type_t;
