@@ -825,7 +825,7 @@ next_state:
                 }
                 else if (tmp_buf_len == 1) {
                     pcejson_tmp_buff_reset (ejson->tmp_buff);
-                    SWITCH_TO(EJSON_AFTER_KEYWORD_STATE);
+                    SWITCH_TO(EJSON_AFTER_NAME_STATE);
                     return pcejson_token_new (EJSON_TOKEN_KEY, NULL, 0);
                 }
                 else {
