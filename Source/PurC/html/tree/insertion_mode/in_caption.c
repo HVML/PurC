@@ -45,7 +45,7 @@ pchtml_html_tree_insertion_mode_in_caption_caption_closed(pchtml_html_tree_t *tr
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_CAPTION, PCHTML_NS_HTML,
                                           PCHTML_HTML_TAG_CATEGORY_SCOPE_TABLE);
     if (node == NULL) {
-        pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_MIELINSC);
+        pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_MIELINSC);
 
         return true;
     }
@@ -57,7 +57,7 @@ pchtml_html_tree_insertion_mode_in_caption_caption_closed(pchtml_html_tree_t *tr
 
     if (pchtml_html_tree_node_is(node, PCHTML_TAG_CAPTION) == false) {
         pchtml_html_tree_parse_error(tree, token,
-                                  PCHTML_PARSER_RULES_ERROR_UNELINOPELST);
+                                  PCHTML_HTML_RULES_ERROR_UNELINOPELST);
     }
 
     pchtml_html_tree_open_elements_pop_until_tag_id(tree, PCHTML_TAG_CAPTION,
@@ -84,7 +84,7 @@ pchtml_html_tree_insertion_mode_in_caption_ct_open_closed(pchtml_html_tree_t *tr
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_CAPTION, PCHTML_NS_HTML,
                                           PCHTML_HTML_TAG_CATEGORY_SCOPE_TABLE);
     if (node == NULL) {
-        pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_MIELINSC);
+        pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_MIELINSC);
 
         return true;
     }
@@ -96,7 +96,7 @@ pchtml_html_tree_insertion_mode_in_caption_ct_open_closed(pchtml_html_tree_t *tr
 
     if (pchtml_html_tree_node_is(node, PCHTML_TAG_CAPTION) == false) {
         pchtml_html_tree_parse_error(tree, token,
-                                  PCHTML_PARSER_RULES_ERROR_UNELINOPELST);
+                                  PCHTML_HTML_RULES_ERROR_UNELINOPELST);
     }
 
     pchtml_html_tree_open_elements_pop_until_tag_id(tree, PCHTML_TAG_CAPTION,
@@ -117,7 +117,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_caption_bcht_closed(pchtml_html_tree_t *tree,
                                                     pchtml_html_token_t *token)
 {
-    pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_UNCLTO);
+    pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_UNCLTO);
 
     return true;
 }
@@ -140,7 +140,7 @@ bool
 pchtml_html_tree_insertion_mode_in_caption(pchtml_html_tree_t *tree,
                                         pchtml_html_token_t *token)
 {
-    if (token->type & PCHTML_PARSER_TOKEN_TYPE_CLOSE) {
+    if (token->type & PCHTML_HTML_TOKEN_TYPE_CLOSE) {
         switch (token->tag_id) {
             case PCHTML_TAG_CAPTION:
                 return pchtml_html_tree_insertion_mode_in_caption_caption_closed(tree,

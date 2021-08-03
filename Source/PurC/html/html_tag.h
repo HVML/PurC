@@ -29,8 +29,8 @@
  * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
-#ifndef PCHTML_PARSER_TAG_H
-#define PCHTML_PARSER_TAG_H
+#ifndef PCHTML_HTML_TAG_H
+#define PCHTML_HTML_TAG_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -125,4 +125,4 @@ pchtml_html_tag_is_void(pchtml_tag_id_t tag_id)
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_PARSER_TAG_H */
+#endif  /* PCHTML_HTML_TAG_H */

@@ -45,7 +45,7 @@ pchtml_html_tree_insertion_mode_in_select_text(pchtml_html_tree_t *tree,
 
     if (token->null_count != 0) {
         pchtml_html_tree_parse_error(tree, token,
-                                  PCHTML_PARSER_RULES_ERROR_NUCH);
+                                  PCHTML_HTML_RULES_ERROR_NUCH);
 
         tree->status = pchtml_html_token_make_text_drop_null(token, &str,
                                                           tree->document->dom_document.text);
@@ -95,7 +95,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_select_doctype(pchtml_html_tree_t *tree,
                                                pchtml_html_token_t *token)
 {
-    pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_DOTOINSEMO);
+    pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_DOTOINSEMO);
 
     return true;
 }
@@ -177,7 +177,7 @@ pchtml_html_tree_insertion_mode_in_select_optgroup_closed(pchtml_html_tree_t *tr
 
     if (pchtml_html_tree_node_is(node, PCHTML_TAG_OPTGROUP) == false) {
         pchtml_html_tree_parse_error(tree, token,
-                                  PCHTML_PARSER_RULES_ERROR_UNELINOPELST);
+                                  PCHTML_HTML_RULES_ERROR_UNELINOPELST);
         return true;
     }
 
@@ -194,7 +194,7 @@ pchtml_html_tree_insertion_mode_in_select_option_closed(pchtml_html_tree_t *tree
 
     if (pchtml_html_tree_node_is(node, PCHTML_TAG_OPTION) == false) {
         pchtml_html_tree_parse_error(tree, token,
-                                  PCHTML_PARSER_RULES_ERROR_UNELINOPELST);
+                                  PCHTML_HTML_RULES_ERROR_UNELINOPELST);
         return true;
     }
 
@@ -212,7 +212,7 @@ pchtml_html_tree_insertion_mode_in_select_select_closed(pchtml_html_tree_t *tree
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_SELECT, PCHTML_NS_HTML,
                                           PCHTML_HTML_TAG_CATEGORY_SCOPE_SELECT);
     if (node == NULL) {
-        pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_UNCLTO);
+        pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_UNCLTO);
 
         return true;
     }
@@ -231,7 +231,7 @@ pchtml_html_tree_insertion_mode_in_select_select(pchtml_html_tree_t *tree,
 {
     pcedom_node_t *node;
 
-    pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_UNTO);
+    pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_UNTO);
 
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_SELECT, PCHTML_NS_HTML,
                                           PCHTML_HTML_TAG_CATEGORY_SCOPE_SELECT);
@@ -256,7 +256,7 @@ pchtml_html_tree_insertion_mode_in_select_ikt(pchtml_html_tree_t *tree,
 {
     pcedom_node_t *node;
 
-    pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_UNTO);
+    pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_UNTO);
 
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_SELECT, PCHTML_NS_HTML,
                                           PCHTML_HTML_TAG_CATEGORY_SCOPE_SELECT);
@@ -294,7 +294,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_select_anything_else(pchtml_html_tree_t *tree,
                                                      pchtml_html_token_t *token)
 {
-    pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_UNTO);
+    pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_UNTO);
 
     return true;
 }
@@ -303,7 +303,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_select_anything_else_closed(pchtml_html_tree_t *tree,
                                                             pchtml_html_token_t *token)
 {
-    pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_UNCLTO);
+    pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_UNCLTO);
 
     return true;
 }
@@ -312,7 +312,7 @@ bool
 pchtml_html_tree_insertion_mode_in_select(pchtml_html_tree_t *tree,
                                        pchtml_html_token_t *token)
 {
-    if (token->type & PCHTML_PARSER_TOKEN_TYPE_CLOSE) {
+    if (token->type & PCHTML_HTML_TOKEN_TYPE_CLOSE) {
         switch (token->tag_id) {
             case PCHTML_TAG_OPTGROUP:
                 return pchtml_html_tree_insertion_mode_in_select_optgroup_closed(tree,

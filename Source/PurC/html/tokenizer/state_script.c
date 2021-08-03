@@ -244,7 +244,7 @@ pchtml_html_tokenizer_state_script_data(pchtml_html_tokenizer_t *tkz,
                 pchtml_html_tokenizer_state_append_replace_m(tkz);
 
                 pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                             PCHTML_PARSER_TOKENIZER_ERROR_UNNUCH);
+                                             PCHTML_HTML_TOKENIZER_ERROR_UNNUCH);
                 break;
 
             default:
@@ -387,7 +387,7 @@ pchtml_html_tokenizer_state_script_data_end_tag_name(pchtml_html_tokenizer_t *tk
                 tkz->token->tag_id = tkz->tmp_tag_id;
                 tkz->token->begin = tkz->temp;
                 tkz->token->end = data;
-                tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_CLOSE;
+                tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_CLOSE;
 
                 /* Emit close token */
                 pchtml_html_tokenizer_state_token_done_m(tkz, end);
@@ -430,7 +430,7 @@ done:
     tkz->token->tag_id = tkz->tmp_tag_id;
     tkz->token->begin = tkz->temp;
     tkz->token->end = data;
-    tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_CLOSE;
+    tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_CLOSE;
 
     return (data + 1);
 }
@@ -544,7 +544,7 @@ pchtml_html_tokenizer_state_script_data_escaped(pchtml_html_tokenizer_t *tkz,
 
                 if (tkz->is_eof) {
                     pchtml_html_tokenizer_error_add(tkz->parse_errors, tkz->last,
-                                       PCHTML_PARSER_TOKENIZER_ERROR_EOINSCHTCOLITE);
+                                       PCHTML_HTML_TOKENIZER_ERROR_EOINSCHTCOLITE);
 
                     tkz->token->tag_id = PCHTML_TAG__TEXT;
 
@@ -559,7 +559,7 @@ pchtml_html_tokenizer_state_script_data_escaped(pchtml_html_tokenizer_t *tkz,
                 pchtml_html_tokenizer_state_append_replace_m(tkz);
 
                 pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                             PCHTML_PARSER_TOKENIZER_ERROR_UNNUCH);
+                                             PCHTML_HTML_TOKENIZER_ERROR_UNNUCH);
                 break;
 
             default:
@@ -608,7 +608,7 @@ pchtml_html_tokenizer_state_script_data_escaped_dash(pchtml_html_tokenizer_t *tk
         case 0x00:
             if (tkz->is_eof) {
                 pchtml_html_tokenizer_error_add(tkz->parse_errors, tkz->last,
-                                       PCHTML_PARSER_TOKENIZER_ERROR_EOINSCHTCOLITE);
+                                       PCHTML_HTML_TOKENIZER_ERROR_EOINSCHTCOLITE);
 
                 tkz->token->tag_id = PCHTML_TAG__TEXT;
 
@@ -622,7 +622,7 @@ pchtml_html_tokenizer_state_script_data_escaped_dash(pchtml_html_tokenizer_t *tk
             pchtml_html_tokenizer_state_append_replace_m(tkz);
 
             pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                         PCHTML_PARSER_TOKENIZER_ERROR_UNNUCH);
+                                         PCHTML_HTML_TOKENIZER_ERROR_UNNUCH);
 
             tkz->state = pchtml_html_tokenizer_state_script_data_escaped;
 
@@ -799,7 +799,7 @@ pchtml_html_tokenizer_state_script_data_escaped_end_tag_name(
                 tkz->token->tag_id = tkz->tmp_tag_id;
                 tkz->token->begin = tkz->temp;
                 tkz->token->end = data;
-                tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_CLOSE;
+                tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_CLOSE;
 
                 /* Emit close token */
                 pchtml_html_tokenizer_state_token_done_m(tkz, end);
@@ -843,7 +843,7 @@ done:
     tkz->token->tag_id = tkz->tmp_tag_id;
     tkz->token->begin = tkz->temp;
     tkz->token->end = data;
-    tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_CLOSE;
+    tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_CLOSE;
 
     return (data + 1);
 }
@@ -976,7 +976,7 @@ pchtml_html_tokenizer_state_script_data_double_escaped(pchtml_html_tokenizer_t *
 
                 if (tkz->is_eof) {
                     pchtml_html_tokenizer_error_add(tkz->parse_errors, tkz->last,
-                                       PCHTML_PARSER_TOKENIZER_ERROR_EOINSCHTCOLITE);
+                                       PCHTML_HTML_TOKENIZER_ERROR_EOINSCHTCOLITE);
 
                     tkz->token->tag_id = PCHTML_TAG__TEXT;
 
@@ -991,7 +991,7 @@ pchtml_html_tokenizer_state_script_data_double_escaped(pchtml_html_tokenizer_t *
                 pchtml_html_tokenizer_state_append_replace_m(tkz);
 
                 pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                             PCHTML_PARSER_TOKENIZER_ERROR_UNNUCH);
+                                             PCHTML_HTML_TOKENIZER_ERROR_UNNUCH);
                 break;
 
             default:
@@ -1040,7 +1040,7 @@ pchtml_html_tokenizer_state_script_data_double_escaped_dash(pchtml_html_tokenize
         case 0x00:
             if (tkz->is_eof) {
                 pchtml_html_tokenizer_error_add(tkz->parse_errors, tkz->last,
-                                       PCHTML_PARSER_TOKENIZER_ERROR_EOINSCHTCOLITE);
+                                       PCHTML_HTML_TOKENIZER_ERROR_EOINSCHTCOLITE);
 
                 tkz->token->tag_id = PCHTML_TAG__TEXT;
 
@@ -1054,7 +1054,7 @@ pchtml_html_tokenizer_state_script_data_double_escaped_dash(pchtml_html_tokenize
             pchtml_html_tokenizer_state_append_replace_m(tkz);
 
             pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                         PCHTML_PARSER_TOKENIZER_ERROR_UNNUCH);
+                                         PCHTML_HTML_TOKENIZER_ERROR_UNNUCH);
 
             tkz->state = pchtml_html_tokenizer_state_script_data_double_escaped;
 
@@ -1106,7 +1106,7 @@ pchtml_html_tokenizer_state_script_data_double_escaped_dash_dash(
         case 0x00:
             if (tkz->is_eof) {
                 pchtml_html_tokenizer_error_add(tkz->parse_errors, tkz->last,
-                                       PCHTML_PARSER_TOKENIZER_ERROR_EOINSCHTCOLITE);
+                                       PCHTML_HTML_TOKENIZER_ERROR_EOINSCHTCOLITE);
 
                 tkz->token->tag_id = PCHTML_TAG__TEXT;
 
@@ -1120,7 +1120,7 @@ pchtml_html_tokenizer_state_script_data_double_escaped_dash_dash(
             pchtml_html_tokenizer_state_append_replace_m(tkz);
 
             pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                         PCHTML_PARSER_TOKENIZER_ERROR_UNNUCH);
+                                         PCHTML_HTML_TOKENIZER_ERROR_UNNUCH);
 
             tkz->state = pchtml_html_tokenizer_state_script_data_double_escaped;
 

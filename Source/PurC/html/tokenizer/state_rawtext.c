@@ -155,7 +155,7 @@ pchtml_html_tokenizer_state_rawtext(pchtml_html_tokenizer_t *tkz,
                 pchtml_html_tokenizer_state_append_replace_m(tkz);
 
                 pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                             PCHTML_PARSER_TOKENIZER_ERROR_UNNUCH);
+                                             PCHTML_HTML_TOKENIZER_ERROR_UNNUCH);
                 break;
 
             default:
@@ -286,7 +286,7 @@ pchtml_html_tokenizer_state_rawtext_end_tag_name(pchtml_html_tokenizer_t *tkz,
                 tkz->token->tag_id = tkz->tmp_tag_id;
                 tkz->token->begin = tkz->temp;
                 tkz->token->end = data;
-                tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_CLOSE;
+                tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_CLOSE;
 
                 /* Emit close token */
                 pchtml_html_tokenizer_state_token_done_m(tkz, end);
@@ -331,7 +331,7 @@ done:
     tkz->token->tag_id = tkz->tmp_tag_id;
     tkz->token->begin = tkz->temp;
     tkz->token->end = data;
-    tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_CLOSE;
+    tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_CLOSE;
 
     return (data + 1);
 }

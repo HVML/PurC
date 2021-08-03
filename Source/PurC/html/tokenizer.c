@@ -41,19 +41,19 @@
 #include "html/tokenizer/state_script.h"
 #include "html/tree.h"
 
-#define PCHTML_PARSER_TAG_RES_DATA
-#define PCHTML_PARSER_TAG_RES_SHS_DATA
+#define PCHTML_HTML_TAG_RES_DATA
+#define PCHTML_HTML_TAG_RES_SHS_DATA
 #include "html_tag_res.h"
 
 
-#define PCHTML_PARSER_TKZ_TEMP_SIZE (4096 * 4)
+#define PCHTML_HTML_TKZ_TEMP_SIZE (4096 * 4)
 
 
 enum {
-    PCHTML_PARSER_TOKENIZER_OPT_UNDEF           = 0x00,
-    PCHTML_PARSER_TOKENIZER_OPT_TAGS_SELF       = 0x01,
-    PCHTML_PARSER_TOKENIZER_OPT_ATTRS_SELF      = 0x02,
-    PCHTML_PARSER_TOKENIZER_OPT_ATTRS_MRAW_SELF = 0x04
+    PCHTML_HTML_TOKENIZER_OPT_UNDEF           = 0x00,
+    PCHTML_HTML_TOKENIZER_OPT_TAGS_SELF       = 0x01,
+    PCHTML_HTML_TOKENIZER_OPT_ATTRS_SELF      = 0x02,
+    PCHTML_HTML_TOKENIZER_OPT_ATTRS_MRAW_SELF = 0x04
 };
 
 
@@ -115,14 +115,14 @@ pchtml_html_tokenizer_init(pchtml_html_tokenizer_t *tkz)
     }
 
     /* Temporary memory for tag name and attributes. */
-    tkz->start = pchtml_malloc(PCHTML_PARSER_TKZ_TEMP_SIZE * sizeof(unsigned char));
+    tkz->start = pchtml_malloc(PCHTML_HTML_TKZ_TEMP_SIZE * sizeof(unsigned char));
     if (tkz->start == NULL) {
         pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
     tkz->pos = tkz->start;
-    tkz->end = tkz->start + PCHTML_PARSER_TKZ_TEMP_SIZE;
+    tkz->end = tkz->start + PCHTML_HTML_TKZ_TEMP_SIZE;
 
     tkz->tree = NULL;
     tkz->tags = NULL;
@@ -252,11 +252,11 @@ pchtml_html_tokenizer_destroy(pchtml_html_tokenizer_t *tkz)
     }
 
     if (tkz->base == NULL) {
-        if (tkz->opt & PCHTML_PARSER_TOKENIZER_OPT_TAGS_SELF) {
+        if (tkz->opt & PCHTML_HTML_TOKENIZER_OPT_TAGS_SELF) {
             pchtml_html_tokenizer_tags_destroy(tkz);
         }
 
-        if (tkz->opt & PCHTML_PARSER_TOKENIZER_OPT_ATTRS_SELF) {
+        if (tkz->opt & PCHTML_HTML_TOKENIZER_OPT_ATTRS_SELF) {
             pchtml_html_tokenizer_attrs_destroy(tkz);
         }
 
@@ -307,7 +307,7 @@ pchtml_html_tokenizer_begin(pchtml_html_tokenizer_t *tkz)
             return tkz->status;
         }
 
-        tkz->opt |= PCHTML_PARSER_TOKENIZER_OPT_TAGS_SELF;
+        tkz->opt |= PCHTML_HTML_TOKENIZER_OPT_TAGS_SELF;
     }
 
     if (tkz->attrs == NULL) {
@@ -316,13 +316,13 @@ pchtml_html_tokenizer_begin(pchtml_html_tokenizer_t *tkz)
             return tkz->status;
         }
 
-        tkz->opt |= PCHTML_PARSER_TOKENIZER_OPT_ATTRS_SELF;
+        tkz->opt |= PCHTML_HTML_TOKENIZER_OPT_ATTRS_SELF;
     }
 
     if (tkz->attrs_mraw == NULL) {
         tkz->attrs_mraw = tkz->mraw;
 
-        tkz->opt |= PCHTML_PARSER_TOKENIZER_OPT_ATTRS_MRAW_SELF;
+        tkz->opt |= PCHTML_HTML_TOKENIZER_OPT_ATTRS_MRAW_SELF;
     }
 
     tkz->token = pchtml_html_token_create(tkz->dobj_token);

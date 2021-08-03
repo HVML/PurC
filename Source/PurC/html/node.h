@@ -30,8 +30,8 @@
  */
 
 
-#ifndef PCHTML_PARSER_NODE_H
-#define PCHTML_PARSER_NODE_H
+#ifndef PCHTML_HTML_NODE_H
+#define PCHTML_HTML_NODE_H
 
 #include "config.h"
 #include "html/tag.h"
@@ -84,4 +84,4 @@ pchtml_html_node_is_void(pcedom_node_t *node)
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_PARSER_NODE_H */
+#endif  /* PCHTML_HTML_NODE_H */

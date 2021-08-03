@@ -52,7 +52,7 @@ pchtml_html_tree_insertion_mode_text(pchtml_html_tree_t *tree,
             pcedom_node_t *node;
 
             pchtml_html_tree_parse_error(tree, token,
-                                      PCHTML_PARSER_RULES_ERROR_UNENOFFI);
+                                      PCHTML_HTML_RULES_ERROR_UNENOFFI);
 
             node = pchtml_html_tree_current_node(tree);
 

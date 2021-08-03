@@ -30,8 +30,8 @@
  */
 
 
-#ifndef PCHTML_PARSER_TITLE_ELEMENT_H
-#define PCHTML_PARSER_TITLE_ELEMENT_H
+#ifndef PCHTML_HTML_TITLE_ELEMENT_H
+#define PCHTML_HTML_TITLE_ELEMENT_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -70,4 +70,4 @@ pchtml_html_title_element_strict_text(
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_PARSER_TITLE_ELEMENT_H */
+#endif  /* PCHTML_HTML_TITLE_ELEMENT_H */

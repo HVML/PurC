@@ -76,7 +76,7 @@ pchtml_html_tree_insertion_mode_after_after_body(pchtml_html_tree_t *tree,
         /* fall through */
 
         default:
-            pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_UNTO);
+            pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_UNTO);
 
             tree->mode = pchtml_html_tree_insertion_mode_in_body;
 

@@ -52,7 +52,7 @@ pchtml_html_tree_insertion_mode_in_table_text(pchtml_html_tree_t *tree,
     if (token->tag_id == PCHTML_TAG__TEXT) {
         if (token->null_count != 0) {
             pchtml_html_tree_parse_error(tree, token,
-                                      PCHTML_PARSER_RULES_ERROR_NUCH);
+                                      PCHTML_HTML_RULES_ERROR_NUCH);
         }
 
         text = pcutils_array_obj_push(pt_list);
@@ -67,7 +67,7 @@ pchtml_html_tree_insertion_mode_in_table_text(pchtml_html_tree_t *tree,
 
         if (token->null_count != 0) {
             pchtml_html_tree_parse_error(tree, token,
-                                      PCHTML_PARSER_RULES_ERROR_NUCH);
+                                      PCHTML_HTML_RULES_ERROR_NUCH);
 
             tree->status = pchtml_html_token_make_text_drop_null(token, text,
                                                               tree->document->dom_document.text);
@@ -106,7 +106,7 @@ pchtml_html_tree_insertion_mode_in_table_text(pchtml_html_tree_t *tree,
     }
 
     if (tree->pending_table.have_non_ws) {
-        pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_CHINTATE);
+        pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_CHINTATE);
 
         tree->foster_parenting = true;
 

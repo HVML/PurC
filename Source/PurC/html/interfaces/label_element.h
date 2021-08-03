@@ -29,8 +29,8 @@
  * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
-#ifndef PCHTML_PARSER_LABEL_ELEMENT_H
-#define PCHTML_PARSER_LABEL_ELEMENT_H
+#ifndef PCHTML_HTML_LABEL_ELEMENT_H
+#define PCHTML_HTML_LABEL_ELEMENT_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -59,4 +59,4 @@ pchtml_html_label_element_interface_destroy(
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_PARSER_LABEL_ELEMENT_H */
+#endif  /* PCHTML_HTML_LABEL_ELEMENT_H */

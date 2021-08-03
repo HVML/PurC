@@ -30,8 +30,8 @@
  */
 
 
-#ifndef PCHTML_PARSER_BASE_H
-#define PCHTML_PARSER_BASE_H
+#ifndef PCHTML_HTML_BASE_H
+#define PCHTML_HTML_BASE_H
 
 #include "config.h"
 #include "html/core_base.h"
@@ -44,7 +44,7 @@ typedef struct pchtml_html_tree pchtml_html_tree_t;
  * Please, see html/base.h pchtml_status_t
  */
 typedef enum {
-    PCHTML_PARSER_STATUS_OK = 0x0000,
+    PCHTML_HTML_STATUS_OK = 0x0000,
 }
 pchtml_html_status_t;
 
@@ -57,4 +57,4 @@ extern "C" {
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_PARSER_BASE_H */
+#endif  /* PCHTML_HTML_BASE_H */

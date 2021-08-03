@@ -243,7 +243,7 @@ pchtml_html_tree_token_callback(pchtml_html_tokenizer_t *tkz,
 unsigned int
 pchtml_html_tree_stop_parsing(pchtml_html_tree_t *tree)
 {
-    tree->document->ready_state = PCHTML_PARSER_DOCUMENT_READY_STATE_COMPLETE;
+    tree->document->ready_state = PCHTML_HTML_DOCUMENT_READY_STATE_COMPLETE;
 
     return PCHTML_STATUS_OK;
 }
@@ -256,7 +256,7 @@ pchtml_html_tree_process_abort(pchtml_html_tree_t *tree)
     }
 
     tree->open_elements->length = 0;
-    tree->document->ready_state = PCHTML_PARSER_DOCUMENT_READY_STATE_COMPLETE;
+    tree->document->ready_state = PCHTML_HTML_DOCUMENT_READY_STATE_COMPLETE;
 
     return true;
 }
@@ -282,7 +282,7 @@ pchtml_html_tree_construction_dispatcher(pchtml_html_tree_t *tree,
 
     if (pchtml_html_tree_mathml_text_integration_point(adjusted))
     {
-        if ((token->type & PCHTML_PARSER_TOKEN_TYPE_CLOSE) == 0
+        if ((token->type & PCHTML_HTML_TOKEN_TYPE_CLOSE) == 0
             && token->tag_id != PCHTML_TAG_MGLYPH
             && token->tag_id != PCHTML_TAG_MALIGNMARK)
         {
@@ -296,14 +296,14 @@ pchtml_html_tree_construction_dispatcher(pchtml_html_tree_t *tree,
 
     if (adjusted->local_name == PCHTML_TAG_ANNOTATION_XML
         && adjusted->ns == PCHTML_NS_MATH
-        && (token->type & PCHTML_PARSER_TOKEN_TYPE_CLOSE) == 0
+        && (token->type & PCHTML_HTML_TOKEN_TYPE_CLOSE) == 0
         && token->tag_id == PCHTML_TAG_SVG)
     {
         return tree->mode(tree, token);
     }
 
     if (pchtml_html_tree_html_integration_point(adjusted)) {
-        if ((token->type & PCHTML_PARSER_TOKEN_TYPE_CLOSE) == 0
+        if ((token->type & PCHTML_HTML_TOKEN_TYPE_CLOSE) == 0
             || token->tag_id == PCHTML_TAG__TEXT)
         {
             return tree->mode(tree, token);
@@ -335,7 +335,7 @@ pchtml_html_tree_appropriate_place_inserting_node(pchtml_html_tree_t *tree,
 {
     pcedom_node_t *target, *adjusted_location = NULL;
 
-    *ipos = PCHTML_PARSER_TREE_INSERTION_POSITION_CHILD;
+    *ipos = PCHTML_HTML_TREE_INSERTION_POSITION_CHILD;
 
     if (override_target != NULL) {
         target = override_target;
@@ -382,7 +382,7 @@ pchtml_html_tree_appropriate_place_inserting_node(pchtml_html_tree_t *tree,
         else if (last_table->parent != NULL) {
             adjusted_location = last_table;
 
-            *ipos = PCHTML_PARSER_TREE_INSERTION_POSITION_BEFORE;
+            *ipos = PCHTML_HTML_TREE_INSERTION_POSITION_BEFORE;
         }
         else {
             pchtml_assert(last_table_idx != 0);
@@ -427,7 +427,7 @@ pchtml_html_tree_insert_foreign_element(pchtml_html_tree_t *tree,
 
     pos = pchtml_html_tree_appropriate_place_inserting_node(tree, NULL, &ipos);
 
-    if (ipos == PCHTML_PARSER_TREE_INSERTION_POSITION_CHILD) {
+    if (ipos == PCHTML_HTML_TREE_INSERTION_POSITION_CHILD) {
         element = pchtml_html_tree_create_element_for_token(tree, token, ns, pos);
     }
     else {
@@ -445,7 +445,7 @@ pchtml_html_tree_insert_foreign_element(pchtml_html_tree_t *tree,
 
     status = pchtml_html_tree_open_elements_push(tree,
                                               pcedom_interface_node(element));
-    if (status != PCHTML_PARSER_STATUS_OK) {
+    if (status != PCHTML_HTML_STATUS_OK) {
         return pchtml_html_interface_destroy(element);
     }
 
@@ -475,7 +475,7 @@ pchtml_html_tree_create_element_for_token(pchtml_html_tree_t *tree,
                                                        token->base_element, ns);
     }
 
-    if (status != PCHTML_PARSER_STATUS_OK) {
+    if (status != PCHTML_HTML_STATUS_OK) {
         return pchtml_html_interface_destroy(element);
     }
 
@@ -512,7 +512,7 @@ pchtml_html_tree_append_attributes(pchtml_html_tree_t *tree,
         if (token_attr->value_begin != NULL) {
             status = pcedom_attr_set_value_wo_copy(attr, token_attr->value,
                                                     token_attr->value_size);
-            if (status != PCHTML_PARSER_STATUS_OK) {
+            if (status != PCHTML_HTML_STATUS_OK) {
                 return status;
             }
         }
@@ -537,7 +537,7 @@ pchtml_html_tree_append_attributes(pchtml_html_tree_t *tree,
         pchtml_mraw_free(mraw, local_name.data);
     }
 
-    return PCHTML_PARSER_STATUS_OK;
+    return PCHTML_HTML_STATUS_OK;
 }
 
 unsigned int
@@ -560,7 +560,7 @@ pchtml_html_tree_append_attributes_from_element(pchtml_html_tree_t *tree,
         }
 
         status = pcedom_attr_clone_name_value(attr, new_attr);
-        if (status != PCHTML_PARSER_STATUS_OK) {
+        if (status != PCHTML_HTML_STATUS_OK) {
             return status;
         }
 
@@ -579,7 +579,7 @@ pchtml_html_tree_append_attributes_from_element(pchtml_html_tree_t *tree,
         attr = attr->next;
     }
 
-    return PCHTML_PARSER_STATUS_OK;
+    return PCHTML_HTML_STATUS_OK;
 }
 
 unsigned int
@@ -776,7 +776,7 @@ pchtml_html_tree_insert_character_for_data(pchtml_html_tree_t *tree,
         goto destroy_str;
     }
 
-    if (ipos == PCHTML_PARSER_TREE_INSERTION_POSITION_BEFORE) {
+    if (ipos == PCHTML_HTML_TREE_INSERTION_POSITION_BEFORE) {
         /* No need check namespace */
         if (pos->prev != NULL && pos->prev->local_name == PCHTML_TAG__TEXT) {
             chrs = pcedom_interface_character_data(pos->prev);
@@ -856,7 +856,7 @@ pchtml_html_tree_insert_comment(pchtml_html_tree_t *tree,
         pos = pchtml_html_tree_appropriate_place_inserting_node(tree, NULL, &ipos);
     }
     else {
-        ipos = PCHTML_PARSER_TREE_INSERTION_POSITION_CHILD;
+        ipos = PCHTML_HTML_TREE_INSERTION_POSITION_CHILD;
     }
 
     pchtml_assert(pos != NULL);
@@ -1412,7 +1412,7 @@ pchtml_html_tree_close_p_element(pchtml_html_tree_t *tree, pchtml_html_token_t *
 
     if (pchtml_html_tree_node_is(node, PCHTML_TAG_P) == false) {
         pchtml_html_tree_parse_error(tree, token,
-                                  PCHTML_PARSER_RULES_ERROR_UNELINOPELST);
+                                  PCHTML_HTML_RULES_ERROR_UNELINOPELST);
     }
 
     pchtml_html_tree_open_elements_pop_until_tag_id(tree, PCHTML_TAG_P, PCHTML_NS_HTML,
@@ -1494,7 +1494,7 @@ pchtml_html_tree_adoption_agency_algorithm(pchtml_html_tree_t *tree,
                                                               &oel_formatting_idx);
         if (is == false) {
             pchtml_html_tree_parse_error(tree, token,
-                                      PCHTML_PARSER_RULES_ERROR_MIELINOPELST);
+                                      PCHTML_HTML_RULES_ERROR_MIELINOPELST);
 
             pchtml_html_tree_active_formatting_remove_by_node(tree,
                                                            formatting_element);
@@ -1507,7 +1507,7 @@ pchtml_html_tree_adoption_agency_algorithm(pchtml_html_tree_t *tree,
                                                       PCHTML_HTML_TAG_CATEGORY_SCOPE);
         if (node == NULL) {
             pchtml_html_tree_parse_error(tree, token,
-                                      PCHTML_PARSER_RULES_ERROR_MIELINSC);
+                                      PCHTML_HTML_RULES_ERROR_MIELINSC);
             return false;
         }
 
@@ -1516,7 +1516,7 @@ pchtml_html_tree_adoption_agency_algorithm(pchtml_html_tree_t *tree,
 
         if (formatting_element != node) {
             pchtml_html_tree_parse_error(tree, token,
-                                      PCHTML_PARSER_RULES_ERROR_UNELINOPELST);
+                                      PCHTML_HTML_RULES_ERROR_UNELINOPELST);
         }
 
         /* State 10 */

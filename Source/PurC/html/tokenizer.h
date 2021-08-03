@@ -30,8 +30,8 @@
  */
 
 
-#ifndef PCHTML_PARSER_TOKENIZER_H
-#define PCHTML_PARSER_TOKENIZER_H
+#ifndef PCHTML_HTML_TOKENIZER_H
+#define PCHTML_HTML_TOKENIZER_H
 
 #include "config.h"
 #include "html/in.h"
@@ -333,4 +333,4 @@ pchtml_html_tokenizer_temp_append(pchtml_html_tokenizer_t *tkz,
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_PARSER_TOKENIZER_H */
+#endif  /* PCHTML_HTML_TOKENIZER_H */

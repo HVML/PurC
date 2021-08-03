@@ -30,8 +30,8 @@
  */
 
 
-#ifndef PCHTML_PARSER_TOKEN_ATTR_H
-#define PCHTML_PARSER_TOKEN_ATTR_H
+#ifndef PCHTML_HTML_TOKEN_ATTR_H
+#define PCHTML_HTML_TOKEN_ATTR_H
 
 #include "config.h"
 #include "html/in.h"
@@ -47,9 +47,9 @@ typedef struct pchtml_html_token_attr pchtml_html_token_attr_t;
 typedef int pchtml_html_token_attr_type_t;
 
 enum pchtml_html_token_attr_type {
-    PCHTML_PARSER_TOKEN_ATTR_TYPE_UNDEF      = 0x0000,
-    PCHTML_PARSER_TOKEN_ATTR_TYPE_NAME_NULL  = 0x0001,
-    PCHTML_PARSER_TOKEN_ATTR_TYPE_VALUE_NULL = 0x0002
+    PCHTML_HTML_TOKEN_ATTR_TYPE_UNDEF      = 0x0000,
+    PCHTML_HTML_TOKEN_ATTR_TYPE_NAME_NULL  = 0x0001,
+    PCHTML_HTML_TOKEN_ATTR_TYPE_VALUE_NULL = 0x0002
 };
 
 struct pchtml_html_token_attr {
@@ -96,4 +96,4 @@ pchtml_html_token_attr_name(pchtml_html_token_attr_t *attr,
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_PARSER_TOKEN_ATTR_H */
+#endif  /* PCHTML_HTML_TOKEN_ATTR_H */

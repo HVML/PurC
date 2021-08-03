@@ -29,8 +29,8 @@
  * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
-#ifndef PCHTML_PARSER_H
-#define PCHTML_PARSER_H
+#ifndef PCHTML_HTML_H
+#define PCHTML_HTML_H
 
 #include "config.h"
 #include "html/base.h"
@@ -129,4 +129,4 @@
 #include "html/interfaces/table_row_element.h"
 #include "html/interfaces/area_element.h"
 
-#endif  /* PCHTML_PARSER_H */
+#endif  /* PCHTML_HTML_H */

@@ -70,7 +70,7 @@ bool
 pchtml_html_tree_insertion_mode_in_head(pchtml_html_tree_t *tree,
                                      pchtml_html_token_t *token)
 {
-    if (token->type & PCHTML_PARSER_TOKEN_TYPE_CLOSE) {
+    if (token->type & PCHTML_HTML_TOKEN_TYPE_CLOSE) {
         return pchtml_html_tree_insertion_mode_in_head_closed(tree, token);;
     }
 
@@ -98,7 +98,7 @@ pchtml_html_tree_insertion_mode_in_head_open(pchtml_html_tree_t *tree,
 
         case PCHTML_TAG__EM_DOCTYPE:
             pchtml_html_tree_parse_error(tree, token,
-                                      PCHTML_PARSER_RULES_ERROR_DOTOINHEMO);
+                                      PCHTML_HTML_RULES_ERROR_DOTOINHEMO);
             break;
 
         case PCHTML_TAG_HTML:
@@ -203,7 +203,7 @@ pchtml_html_tree_insertion_mode_in_head_open(pchtml_html_tree_t *tree,
 
         case PCHTML_TAG_HEAD:
             pchtml_html_tree_parse_error(tree, token,
-                                      PCHTML_PARSER_RULES_ERROR_HETOINHEMO);
+                                      PCHTML_HTML_RULES_ERROR_HETOINHEMO);
             break;
 
         /*
@@ -264,7 +264,7 @@ pchtml_html_tree_insertion_mode_in_head_closed(pchtml_html_tree_t *tree,
 
         default:
             pchtml_html_tree_parse_error(tree, token,
-                                      PCHTML_PARSER_RULES_ERROR_UNCLTOINHEMO);
+                                      PCHTML_HTML_RULES_ERROR_UNCLTOINHEMO);
             break;
 
     }
@@ -288,7 +288,7 @@ pchtml_html_tree_insertion_mode_in_head_script(pchtml_html_tree_t *tree,
         return pchtml_html_tree_process_abort(tree);
     }
 
-    if (ipos == PCHTML_PARSER_TREE_INSERTION_POSITION_CHILD) {
+    if (ipos == PCHTML_HTML_TREE_INSERTION_POSITION_CHILD) {
         element = pchtml_html_tree_create_element_for_token(tree, token,
                                                          PCHTML_NS_HTML, ap_node);
     }
@@ -309,7 +309,7 @@ pchtml_html_tree_insertion_mode_in_head_script(pchtml_html_tree_t *tree,
 
     tree->status = pchtml_html_tree_open_elements_push(tree,
                                                     pcedom_interface_node(element));
-    if (tree->status != PCHTML_PARSER_STATUS_OK) {
+    if (tree->status != PCHTML_HTML_STATUS_OK) {
         pchtml_html_script_element_interface_destroy(pchtml_html_interface_script(element));
 
         return pchtml_html_tree_process_abort(tree);
@@ -377,7 +377,7 @@ pchtml_html_tree_insertion_mode_in_head_template_closed(pchtml_html_tree_t *tree
                                                          PCHTML_NS_HTML, NULL);
     if (temp_node == NULL) {
         pchtml_html_tree_parse_error(tree, token,
-                                  PCHTML_PARSER_RULES_ERROR_TECLTOWIOPINHEMO);
+                                  PCHTML_HTML_RULES_ERROR_TECLTOWIOPINHEMO);
         return true;
     }
 
@@ -388,7 +388,7 @@ pchtml_html_tree_insertion_mode_in_head_template_closed(pchtml_html_tree_t *tree
 
     if (pchtml_html_tree_node_is(temp_node, PCHTML_TAG_TEMPLATE) == false) {
         pchtml_html_tree_parse_error(tree, token,
-                                  PCHTML_PARSER_RULES_ERROR_TEELISNOCUINHEMO);
+                                  PCHTML_HTML_RULES_ERROR_TEELISNOCUINHEMO);
     }
 
     pchtml_html_tree_open_elements_pop_until_tag_id(tree, PCHTML_TAG_TEMPLATE,

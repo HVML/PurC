@@ -55,15 +55,15 @@ pchtml_html_tree_insertion_mode_after_body(pchtml_html_tree_t *tree,
 
         case PCHTML_TAG__EM_DOCTYPE:
             pchtml_html_tree_parse_error(tree, token,
-                                      PCHTML_PARSER_RULES_ERROR_DOTOAFBOMO);
+                                      PCHTML_HTML_RULES_ERROR_DOTOAFBOMO);
             break;
 
         case PCHTML_TAG_HTML:
-            if (token->type & PCHTML_PARSER_TOKEN_TYPE_CLOSE)
+            if (token->type & PCHTML_HTML_TOKEN_TYPE_CLOSE)
             {
                 if (tree->fragment != NULL) {
                     pchtml_html_tree_parse_error(tree, token,
-                                              PCHTML_PARSER_RULES_ERROR_UNCLTO);
+                                              PCHTML_HTML_RULES_ERROR_UNCLTO);
                     return true;
                 }
 
@@ -97,7 +97,7 @@ pchtml_html_tree_insertion_mode_after_body(pchtml_html_tree_t *tree,
         /* fall through */
 
         default:
-            pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_UNTO);
+            pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_UNTO);
 
             tree->mode = pchtml_html_tree_insertion_mode_in_body;
 

@@ -30,8 +30,8 @@
  */
 
 
-#ifndef PCHTML_PARSER_SERIALIZE_H
-#define PCHTML_PARSER_SERIALIZE_H
+#ifndef PCHTML_HTML_SERIALIZE_H
+#define PCHTML_HTML_SERIALIZE_H
 
 #include "config.h"
 #include "html/str.h"
@@ -44,14 +44,14 @@
 typedef int pchtml_html_serialize_opt_t;
 
 enum pchtml_html_serialize_opt {
-    PCHTML_PARSER_SERIALIZE_OPT_UNDEF               = 0x00,
-    PCHTML_PARSER_SERIALIZE_OPT_SKIP_WS_NODES       = 0x01,
-    PCHTML_PARSER_SERIALIZE_OPT_SKIP_COMMENT        = 0x02,
-    PCHTML_PARSER_SERIALIZE_OPT_RAW                 = 0x04,
-    PCHTML_PARSER_SERIALIZE_OPT_WITHOUT_CLOSING     = 0x08,
-    PCHTML_PARSER_SERIALIZE_OPT_TAG_WITH_NS         = 0x10,
-    PCHTML_PARSER_SERIALIZE_OPT_WITHOUT_TEXT_INDENT = 0x20,
-    PCHTML_PARSER_SERIALIZE_OPT_FULL_DOCTYPE        = 0x40
+    PCHTML_HTML_SERIALIZE_OPT_UNDEF               = 0x00,
+    PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES       = 0x01,
+    PCHTML_HTML_SERIALIZE_OPT_SKIP_COMMENT        = 0x02,
+    PCHTML_HTML_SERIALIZE_OPT_RAW                 = 0x04,
+    PCHTML_HTML_SERIALIZE_OPT_WITHOUT_CLOSING     = 0x08,
+    PCHTML_HTML_SERIALIZE_OPT_TAG_WITH_NS         = 0x10,
+    PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT = 0x20,
+    PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE        = 0x40
 };
 
 
@@ -119,4 +119,4 @@ pchtml_html_serialize_pretty_deep_str(pcedom_node_t *node,
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_PARSER_SERIALIZE_H */
+#endif  /* PCHTML_HTML_SERIALIZE_H */

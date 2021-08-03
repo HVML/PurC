@@ -41,7 +41,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_select_in_table_ct(pchtml_html_tree_t *tree,
                                                    pchtml_html_token_t *token)
 {
-    pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_UNTO);
+    pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_UNTO);
 
     pchtml_html_tree_open_elements_pop_until_tag_id(tree, PCHTML_TAG_SELECT,
                                                  PCHTML_NS_HTML, true);
@@ -60,7 +60,7 @@ pchtml_html_tree_insertion_mode_in_select_in_table_ct_closed(pchtml_html_tree_t 
 {
     pcedom_node_t *node;
 
-    pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_UNCLTO);
+    pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_UNCLTO);
 
     node = pchtml_html_tree_element_in_scope(tree, token->tag_id, PCHTML_NS_HTML,
                                           PCHTML_HTML_TAG_CATEGORY_SCOPE_TABLE);
@@ -96,7 +96,7 @@ pchtml_html_tree_insertion_mode_in_select_in_table(pchtml_html_tree_t *tree,
                                                 pchtml_html_token_t *token)
 {
     if (token->tag_id >= PCHTML_TAG__LAST_ENTRY) {
-        if (token->type & PCHTML_PARSER_TOKEN_TYPE_CLOSE) {
+        if (token->type & PCHTML_HTML_TOKEN_TYPE_CLOSE) {
             return pchtml_html_tree_insertion_mode_in_select_in_table_anything_else_closed(tree,
                                                                                         token);
         }
@@ -105,7 +105,7 @@ pchtml_html_tree_insertion_mode_in_select_in_table(pchtml_html_tree_t *tree,
                                                                              token);
     }
 
-    if (token->type & PCHTML_PARSER_TOKEN_TYPE_CLOSE) {
+    if (token->type & PCHTML_HTML_TOKEN_TYPE_CLOSE) {
         switch (token->tag_id) {
             case PCHTML_TAG_CAPTION:
             case PCHTML_TAG_TABLE:

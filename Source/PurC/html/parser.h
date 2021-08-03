@@ -30,8 +30,8 @@
  */
 
 
-#ifndef PCHTML_PARSER_PARSER_H
-#define PCHTML_PARSER_PARSER_H
+#ifndef PCHTML_HTML_PARSER_H
+#define PCHTML_HTML_PARSER_H
 
 #include "config.h"
 #include "html/base.h"
@@ -46,11 +46,11 @@ extern "C" {
 #endif
 
 typedef enum {
-    PCHTML_PARSER_PARSER_STATE_BEGIN            = 0x00,
-    PCHTML_PARSER_PARSER_STATE_PROCESS          = 0x01,
-    PCHTML_PARSER_PARSER_STATE_END              = 0x02,
-    PCHTML_PARSER_PARSER_STATE_FRAGMENT_PROCESS = 0x03,
-    PCHTML_PARSER_PARSER_STATE_ERROR            = 0x04
+    PCHTML_HTML_PARSER_STATE_BEGIN            = 0x00,
+    PCHTML_HTML_PARSER_STATE_PROCESS          = 0x01,
+    PCHTML_HTML_PARSER_STATE_END              = 0x02,
+    PCHTML_HTML_PARSER_STATE_FRAGMENT_PROCESS = 0x03,
+    PCHTML_HTML_PARSER_STATE_ERROR            = 0x04
 }
 pchtml_html_parser_state_t;
 
@@ -160,4 +160,4 @@ pchtml_html_parser_state(pchtml_html_parser_t *parser)
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_PARSER_PARSER_H */
+#endif  /* PCHTML_HTML_PARSER_H */

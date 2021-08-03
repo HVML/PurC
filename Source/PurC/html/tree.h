@@ -30,8 +30,8 @@
  */
 
 
-#ifndef PCHTML_PARSER_TREE_H
-#define PCHTML_PARSER_TREE_H
+#ifndef PCHTML_HTML_TREE_H
+#define PCHTML_HTML_TREE_H
 
 #include "config.h"
 #include "private/edom.h"
@@ -88,8 +88,8 @@ struct pchtml_html_tree {
 };
 
 typedef enum {
-    PCHTML_PARSER_TREE_INSERTION_POSITION_CHILD  = 0x00,
-    PCHTML_PARSER_TREE_INSERTION_POSITION_BEFORE = 0x01
+    PCHTML_HTML_TREE_INSERTION_POSITION_CHILD  = 0x00,
+    PCHTML_HTML_TREE_INSERTION_POSITION_BEFORE = 0x01
 }
 pchtml_html_tree_insertion_position_t;
 
@@ -335,7 +335,7 @@ static inline void
 pchtml_html_tree_insert_node(pcedom_node_t *to, pcedom_node_t *node,
                           pchtml_html_tree_insertion_position_t ipos)
 {
-    if (ipos == PCHTML_PARSER_TREE_INSERTION_POSITION_BEFORE) {
+    if (ipos == PCHTML_HTML_TREE_INSERTION_POSITION_BEFORE) {
         pcedom_node_insert_before(to, node);
         return;
     }
@@ -348,7 +348,7 @@ static inline void
 pchtml_html_tree_acknowledge_token_self_closing(pchtml_html_tree_t *tree,
                                              pchtml_html_token_t *token)
 {
-    if ((token->type & PCHTML_PARSER_TOKEN_TYPE_CLOSE_SELF) == 0) {
+    if ((token->type & PCHTML_HTML_TOKEN_TYPE_CLOSE_SELF) == 0) {
         return;
     }
 
@@ -356,7 +356,7 @@ pchtml_html_tree_acknowledge_token_self_closing(pchtml_html_tree_t *tree,
 
     if (is_void) {
         pchtml_html_tree_parse_error(tree, token,
-                                  PCHTML_PARSER_RULES_ERROR_NOVOHTELSTTAWITRSO);
+                                  PCHTML_HTML_RULES_ERROR_NOVOHTELSTTAWITRSO);
     }
 }
 
@@ -399,4 +399,4 @@ pchtml_html_tree_attach_document(pchtml_html_tree_t *tree, pchtml_html_document_
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_PARSER_TREE_H */
+#endif  /* PCHTML_HTML_TREE_H */

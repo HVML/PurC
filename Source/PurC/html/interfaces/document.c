@@ -42,8 +42,8 @@
 
 #include "html/tag.h"
 
-#define PCHTML_PARSER_TAG_RES_DATA
-#define PCHTML_PARSER_TAG_RES_SHS_DATA
+#define PCHTML_HTML_TAG_RES_DATA
+#define PCHTML_HTML_TAG_RES_SHS_DATA
 #include "html_tag_res.h"
 
 #include "private/edom.h"
@@ -123,7 +123,7 @@ pchtml_html_document_clean(pchtml_html_document_t *document)
     document->body = NULL;
     document->head = NULL;
     document->iframe_srcdoc = NULL;
-    document->ready_state = PCHTML_PARSER_DOCUMENT_READY_STATE_UNDEF;
+    document->ready_state = PCHTML_HTML_DOCUMENT_READY_STATE_UNDEF;
 
     pcedom_document_clean(pcedom_interface_document(document));
 }
@@ -142,8 +142,8 @@ pchtml_html_document_parse(pchtml_html_document_t *document,
     pcedom_document_t *doc;
     pchtml_html_document_opt_t opt;
 
-    if (document->ready_state != PCHTML_PARSER_DOCUMENT_READY_STATE_UNDEF
-        && document->ready_state != PCHTML_PARSER_DOCUMENT_READY_STATE_LOADING)
+    if (document->ready_state != PCHTML_HTML_DOCUMENT_READY_STATE_UNDEF
+        && document->ready_state != PCHTML_HTML_DOCUMENT_READY_STATE_LOADING)
     {
         pchtml_html_document_clean(document);
     }
@@ -180,8 +180,8 @@ failed:
 unsigned int
 pchtml_html_document_parse_chunk_begin(pchtml_html_document_t *document)
 {
-    if (document->ready_state != PCHTML_PARSER_DOCUMENT_READY_STATE_UNDEF
-        && document->ready_state != PCHTML_PARSER_DOCUMENT_READY_STATE_LOADING)
+    if (document->ready_state != PCHTML_HTML_DOCUMENT_READY_STATE_UNDEF
+        && document->ready_state != PCHTML_HTML_DOCUMENT_READY_STATE_LOADING)
     {
         pchtml_html_document_clean(document);
     }
@@ -296,7 +296,7 @@ pchtml_html_document_parser_prepare(pchtml_html_document_t *document)
             return status;
         }
     }
-    else if (pchtml_html_parser_state(doc->parser) != PCHTML_PARSER_PARSER_STATE_BEGIN) {
+    else if (pchtml_html_parser_state(doc->parser) != PCHTML_HTML_PARSER_STATE_BEGIN) {
         pchtml_html_parser_clean(doc->parser);
     }
 

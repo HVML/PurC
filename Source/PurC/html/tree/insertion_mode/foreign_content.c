@@ -63,7 +63,7 @@ pchtml_html_tree_insertion_mode_foreign_content_anything_else_closed(pchtml_html
 
     if (idx > 0 && list[idx]->local_name != token->tag_id) {
         pchtml_html_tree_parse_error(tree, token,
-                                  PCHTML_PARSER_RULES_ERROR_UNELINOPELST);
+                                  PCHTML_HTML_RULES_ERROR_UNELINOPELST);
     }
 
     while (idx != 0) {
@@ -137,7 +137,7 @@ pchtml_html_tree_insertion_mode_foreign_content_anything_else(pchtml_html_tree_t
 
     tree->before_append_attr = NULL;
 
-    if ((token->type & PCHTML_PARSER_TOKEN_TYPE_CLOSE_SELF) == 0) {
+    if ((token->type & PCHTML_HTML_TOKEN_TYPE_CLOSE_SELF) == 0) {
         return true;
     }
 
@@ -162,7 +162,7 @@ pchtml_html_tree_insertion_mode_foreign_content_text(pchtml_html_tree_t *tree,
     pchtml_str_t str;
 
     if (token->null_count != 0) {
-        pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_NUCH);
+        pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_NUCH);
 
         tree->status = pchtml_html_token_make_text_replace_null(token, &str,
                                                              tree->document->dom_document.text);
@@ -251,7 +251,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_foreign_content_doctype(pchtml_html_tree_t *tree,
                                                      pchtml_html_token_t *token)
 {
-    pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_DOTOFOCOMO);
+    pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_DOTOFOCOMO);
 
     return true;
 }
@@ -291,7 +291,7 @@ pchtml_html_tree_insertion_mode_foreign_content_all(pchtml_html_tree_t *tree,
 
 go_next:
 
-    pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_UNTO);
+    pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_UNTO);
 
     if (tree->fragment != NULL) {
         return pchtml_html_tree_insertion_mode_foreign_content_anything_else(tree,
@@ -315,7 +315,7 @@ bool
 pchtml_html_tree_insertion_mode_foreign_content(pchtml_html_tree_t *tree,
                                              pchtml_html_token_t *token)
 {
-    if (token->type & PCHTML_PARSER_TOKEN_TYPE_CLOSE) {
+    if (token->type & PCHTML_HTML_TOKEN_TYPE_CLOSE) {
         switch (token->tag_id) {
             case PCHTML_TAG_SCRIPT:
                 return pchtml_html_tree_insertion_mode_foreign_content_script_closed(tree,

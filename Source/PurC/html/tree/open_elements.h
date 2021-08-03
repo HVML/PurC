@@ -30,8 +30,8 @@
  */
 
 
-#ifndef PCHTML_PARSER_OPEN_ELEMENTS_H
-#define PCHTML_PARSER_OPEN_ELEMENTS_H
+#ifndef PCHTML_HTML_OPEN_ELEMENTS_H
+#define PCHTML_HTML_OPEN_ELEMENTS_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -128,5 +128,5 @@ pchtml_html_tree_open_elements_insert_after(pchtml_html_tree_t *tree, pcedom_nod
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_PARSER_OPEN_ELEMENTS_H */
+#endif  /* PCHTML_HTML_OPEN_ELEMENTS_H */
 

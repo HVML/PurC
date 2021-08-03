@@ -29,8 +29,8 @@
  * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
-#ifndef PCHTML_PARSER_TOKEN_H
-#define PCHTML_PARSER_TOKEN_H
+#ifndef PCHTML_HTML_TOKEN_H
+#define PCHTML_HTML_TOKEN_H
 
 #include "config.h"
 #include "html/dobject.h"
@@ -46,11 +46,11 @@ typedef int pchtml_html_token_type_t;
 
 
 enum pchtml_html_token_type {
-    PCHTML_PARSER_TOKEN_TYPE_OPEN         = 0x0000,
-    PCHTML_PARSER_TOKEN_TYPE_CLOSE        = 0x0001,
-    PCHTML_PARSER_TOKEN_TYPE_CLOSE_SELF   = 0x0002,
-    PCHTML_PARSER_TOKEN_TYPE_FORCE_QUIRKS = 0x0004,
-    PCHTML_PARSER_TOKEN_TYPE_DONE         = 0x0008
+    PCHTML_HTML_TOKEN_TYPE_OPEN         = 0x0000,
+    PCHTML_HTML_TOKEN_TYPE_CLOSE        = 0x0001,
+    PCHTML_HTML_TOKEN_TYPE_CLOSE_SELF   = 0x0002,
+    PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS = 0x0004,
+    PCHTML_HTML_TOKEN_TYPE_DONE         = 0x0008
 };
 
 typedef struct {
@@ -150,5 +150,5 @@ pchtml_html_token_create_eof(pchtml_dobject_t *dobj)
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_PARSER_TOKEN_H */
+#endif  /* PCHTML_HTML_TOKEN_H */
 

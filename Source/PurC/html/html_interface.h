@@ -29,8 +29,8 @@
  * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
-#ifndef PCHTML_PARSER_INTERFACES_H
-#define PCHTML_PARSER_INTERFACES_H
+#ifndef PCHTML_HTML_INTERFACES_H
+#define PCHTML_HTML_INTERFACES_H
 
 #include "config.h"
 #include "html/base.h"
@@ -206,4 +206,4 @@ pchtml_html_interface_destroy(pcedom_interface_t *intrfc) WTF_INTERNAL;
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_PARSER_INTERFACES_H */
+#endif  /* PCHTML_HTML_INTERFACES_H */

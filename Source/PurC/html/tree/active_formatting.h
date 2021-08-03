@@ -30,8 +30,8 @@
  */
 
 
-#ifndef PCHTML_PARSER_ACTIVE_FORMATTING_H
-#define PCHTML_PARSER_ACTIVE_FORMATTING_H
+#ifndef PCHTML_HTML_ACTIVE_FORMATTING_H
+#define PCHTML_HTML_ACTIVE_FORMATTING_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -140,5 +140,5 @@ pchtml_html_tree_active_formatting_remove(pchtml_html_tree_t *tree, size_t idx)
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_PARSER_ACTIVE_FORMATTING_H */
+#endif  /* PCHTML_HTML_ACTIVE_FORMATTING_H */
 

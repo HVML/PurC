@@ -57,7 +57,7 @@ bool
 pchtml_html_tree_insertion_mode_before_head(pchtml_html_tree_t *tree,
                                          pchtml_html_token_t *token)
 {
-    if (token->type & PCHTML_PARSER_TOKEN_TYPE_CLOSE) {
+    if (token->type & PCHTML_HTML_TOKEN_TYPE_CLOSE) {
         return pchtml_html_tree_insertion_mode_before_head_closed(tree, token);
     }
 
@@ -85,7 +85,7 @@ pchtml_html_tree_insertion_mode_before_head_open(pchtml_html_tree_t *tree,
 
         case PCHTML_TAG__EM_DOCTYPE:
             pchtml_html_tree_parse_error(tree, token,
-                                      PCHTML_PARSER_RULES_ERROR_DOTOINBEHEMO);
+                                      PCHTML_HTML_RULES_ERROR_DOTOINBEHEMO);
             break;
 
         case PCHTML_TAG_HTML:
@@ -133,7 +133,7 @@ pchtml_html_tree_insertion_mode_before_head_closed(pchtml_html_tree_t *tree,
 
         default:
             pchtml_html_tree_parse_error(tree, token,
-                                      PCHTML_PARSER_RULES_ERROR_UNCLTOINBEHEMO);
+                                      PCHTML_HTML_RULES_ERROR_UNCLTOINBEHEMO);
             break;
     }
 

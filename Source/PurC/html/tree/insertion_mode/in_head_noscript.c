@@ -47,7 +47,7 @@ bool
 pchtml_html_tree_insertion_mode_in_head_noscript(pchtml_html_tree_t *tree,
                                               pchtml_html_token_t *token)
 {
-    if (token->type & PCHTML_PARSER_TOKEN_TYPE_CLOSE) {
+    if (token->type & PCHTML_HTML_TOKEN_TYPE_CLOSE) {
        return pchtml_html_tree_insertion_mode_in_head_noscript_closed(tree, token);
     }
 
@@ -66,7 +66,7 @@ pchtml_html_tree_insertion_mode_in_head_noscript_open(pchtml_html_tree_t *tree,
     switch (token->tag_id) {
         case PCHTML_TAG__EM_DOCTYPE:
             pchtml_html_tree_parse_error(tree, token,
-                                      PCHTML_PARSER_RULES_ERROR_DOTOINHENOMO);
+                                      PCHTML_HTML_RULES_ERROR_DOTOINHENOMO);
             break;
 
         case PCHTML_TAG_HTML:
@@ -84,7 +84,7 @@ pchtml_html_tree_insertion_mode_in_head_noscript_open(pchtml_html_tree_t *tree,
         case PCHTML_TAG_HEAD:
         case PCHTML_TAG_NOSCRIPT:
             pchtml_html_tree_parse_error(tree, token,
-                                      PCHTML_PARSER_RULES_ERROR_UNTO);
+                                      PCHTML_HTML_RULES_ERROR_UNTO);
             break;
 
         /* CopyPast from "in head" insertion mode */
@@ -127,7 +127,7 @@ pchtml_html_tree_insertion_mode_in_head_noscript_closed(pchtml_html_tree_t *tree
                                                                             token);
     }
 
-    pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_UNTO);
+    pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_UNTO);
 
     return true;
 }
@@ -137,7 +137,7 @@ pchtml_html_tree_insertion_mode_in_head_noscript_anything_else(pchtml_html_tree_
                                                             pchtml_html_token_t *token)
 {
     pchtml_html_tree_parse_error(tree, token,
-                              PCHTML_PARSER_RULES_ERROR_UNTO);
+                              PCHTML_HTML_RULES_ERROR_UNTO);
 
     pchtml_html_tree_open_elements_pop(tree);
 

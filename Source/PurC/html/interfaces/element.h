@@ -29,8 +29,8 @@
  * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
-#ifndef PCHTML_PARSER_ELEMENT_H
-#define PCHTML_PARSER_ELEMENT_H
+#ifndef PCHTML_HTML_ELEMENT_H
+#define PCHTML_HTML_ELEMENT_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -79,4 +79,4 @@ pchtml_html_element_ns_id(pchtml_html_element_t *element)
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_PARSER_ELEMENT_H */
+#endif  /* PCHTML_HTML_ELEMENT_H */

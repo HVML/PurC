@@ -382,7 +382,7 @@ set_sys_empty:
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
-    return PCHTML_PARSER_STATUS_OK;
+    return PCHTML_HTML_STATUS_OK;
 }
 
 pchtml_html_token_attr_t *

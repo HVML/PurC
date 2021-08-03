@@ -30,8 +30,8 @@
  */
 
 
-#ifndef PCHTML_PARSER_TREE_RES_H
-#define PCHTML_PARSER_TREE_RES_H
+#ifndef PCHTML_HTML_TREE_RES_H
+#define PCHTML_HTML_TREE_RES_H
 
 
 typedef struct {
@@ -134,4 +134,4 @@ pchtml_html_tree_res_attr_adjust_foreign_map[] =
 };
 
 
-#endif  /* PCHTML_PARSER_TREE_RES_H */
+#endif  /* PCHTML_HTML_TREE_RES_H */

@@ -43,8 +43,8 @@
 #include "html/tree/template_insertion.h"
 #include "html/tree/insertion_mode.h"
 
-#define PCHTML_PARSER_TAG_RES_DATA
-#define PCHTML_PARSER_TAG_RES_SHS_DATA
+#define PCHTML_HTML_TAG_RES_DATA
+#define PCHTML_HTML_TAG_RES_SHS_DATA
 #include "html_tag_res.h"
 
 
@@ -86,7 +86,7 @@ pchtml_html_parser_init(pchtml_html_parser_t *parser)
     parser->form = NULL;
     parser->root = NULL;
 
-    parser->state = PCHTML_PARSER_PARSER_STATE_BEGIN;
+    parser->state = PCHTML_HTML_PARSER_STATE_BEGIN;
 
     parser->ref_count = 1;
 
@@ -100,7 +100,7 @@ pchtml_html_parser_clean(pchtml_html_parser_t *parser)
     parser->form = NULL;
     parser->root = NULL;
 
-    parser->state = PCHTML_PARSER_PARSER_STATE_BEGIN;
+    parser->state = PCHTML_HTML_PARSER_STATE_BEGIN;
 
     pchtml_html_tokenizer_clean(parser->tkz);
     pchtml_html_tree_clean(parser->tree);
@@ -214,15 +214,15 @@ pchtml_html_parse_fragment_chunk_begin(pchtml_html_parser_t *parser,
     pcedom_document_t *doc;
     pchtml_html_document_t *new_doc;
 
-    if (parser->state != PCHTML_PARSER_PARSER_STATE_BEGIN) {
+    if (parser->state != PCHTML_HTML_PARSER_STATE_BEGIN) {
         pchtml_html_parser_clean(parser);
     }
 
-    parser->state = PCHTML_PARSER_PARSER_STATE_FRAGMENT_PROCESS;
+    parser->state = PCHTML_HTML_PARSER_STATE_FRAGMENT_PROCESS;
 
     new_doc = pchtml_html_document_interface_create(document);
     if (new_doc == NULL) {
-        parser->state = PCHTML_PARSER_PARSER_STATE_ERROR;
+        parser->state = PCHTML_HTML_PARSER_STATE_ERROR;
         return parser->status;
     }
 
@@ -300,7 +300,7 @@ done:
             pchtml_html_html_element_interface_destroy(pchtml_html_interface_html(parser->root));
         }
 
-        parser->state = PCHTML_PARSER_PARSER_STATE_ERROR;
+        parser->state = PCHTML_HTML_PARSER_STATE_ERROR;
         parser->root = NULL;
 
         pchtml_html_parse_fragment_chunk_destroy(parser);
@@ -313,7 +313,7 @@ unsigned int
 pchtml_html_parse_fragment_chunk_process(pchtml_html_parser_t *parser,
                                       const unsigned char *html, size_t size)
 {
-    if (parser->state != PCHTML_PARSER_PARSER_STATE_FRAGMENT_PROCESS) {
+    if (parser->state != PCHTML_HTML_PARSER_STATE_FRAGMENT_PROCESS) {
         pcinst_set_error (PCHTML_WRONG_STAGE);
         return PCHTML_STATUS_ERROR_WRONG_STAGE;
     }
@@ -322,7 +322,7 @@ pchtml_html_parse_fragment_chunk_process(pchtml_html_parser_t *parser,
     if (parser->status != PCHTML_STATUS_OK) {
         pchtml_html_html_element_interface_destroy(pchtml_html_interface_html(parser->root));
 
-        parser->state = PCHTML_PARSER_PARSER_STATE_ERROR;
+        parser->state = PCHTML_HTML_PARSER_STATE_ERROR;
         parser->root = NULL;
 
         pchtml_html_parse_fragment_chunk_destroy(parser);
@@ -334,7 +334,7 @@ pchtml_html_parse_fragment_chunk_process(pchtml_html_parser_t *parser,
 pcedom_node_t *
 pchtml_html_parse_fragment_chunk_end(pchtml_html_parser_t *parser)
 {
-    if (parser->state != PCHTML_PARSER_PARSER_STATE_FRAGMENT_PROCESS) {
+    if (parser->state != PCHTML_HTML_PARSER_STATE_FRAGMENT_PROCESS) {
         pcinst_set_error (PCHTML_WRONG_STAGE);
         parser->status = PCHTML_STATUS_ERROR_WRONG_STAGE;
 
@@ -352,7 +352,7 @@ pchtml_html_parse_fragment_chunk_end(pchtml_html_parser_t *parser)
 
     pchtml_html_tokenizer_tree_set(parser->tkz, parser->original_tree);
 
-    parser->state = PCHTML_PARSER_PARSER_STATE_END;
+    parser->state = PCHTML_HTML_PARSER_STATE_END;
 
     return parser->root;
 }
@@ -390,7 +390,7 @@ unsigned int
 pchtml_html_parse_chunk_prepare(pchtml_html_parser_t *parser,
                              pchtml_html_document_t *document)
 {
-    parser->state = PCHTML_PARSER_PARSER_STATE_PROCESS;
+    parser->state = PCHTML_HTML_PARSER_STATE_PROCESS;
 
     parser->original_tree = pchtml_html_tokenizer_tree(parser->tkz);
     pchtml_html_tokenizer_tree_set(parser->tkz, parser->tree);
@@ -401,7 +401,7 @@ pchtml_html_parse_chunk_prepare(pchtml_html_parser_t *parser,
 
     parser->status = pchtml_html_tree_begin(parser->tree, document);
     if (parser->status != PCHTML_STATUS_OK) {
-        parser->state = PCHTML_PARSER_PARSER_STATE_ERROR;
+        parser->state = PCHTML_HTML_PARSER_STATE_ERROR;
     }
 
     return parser->status;
@@ -412,13 +412,13 @@ pchtml_html_parse_chunk_begin(pchtml_html_parser_t *parser)
 {
     pchtml_html_document_t *document;
 
-    if (parser->state != PCHTML_PARSER_PARSER_STATE_BEGIN) {
+    if (parser->state != PCHTML_HTML_PARSER_STATE_BEGIN) {
         pchtml_html_parser_clean(parser);
     }
 
     document = pchtml_html_document_interface_create(NULL);
     if (document == NULL) {
-        parser->state = PCHTML_PARSER_PARSER_STATE_ERROR;
+        parser->state = PCHTML_HTML_PARSER_STATE_ERROR;
         parser->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
 
@@ -439,14 +439,14 @@ unsigned int
 pchtml_html_parse_chunk_process(pchtml_html_parser_t *parser,
                              const unsigned char *html, size_t size)
 {
-    if (parser->state != PCHTML_PARSER_PARSER_STATE_PROCESS) {
+    if (parser->state != PCHTML_HTML_PARSER_STATE_PROCESS) {
         pcinst_set_error (PCHTML_WRONG_STAGE);
         return PCHTML_STATUS_ERROR_WRONG_STAGE;
     }
 
     parser->status = pchtml_html_tree_chunk(parser->tree, html, size);
     if (parser->status != PCHTML_STATUS_OK) {
-        parser->state = PCHTML_PARSER_PARSER_STATE_ERROR;
+        parser->state = PCHTML_HTML_PARSER_STATE_ERROR;
     }
 
     return parser->status;
@@ -455,7 +455,7 @@ pchtml_html_parse_chunk_process(pchtml_html_parser_t *parser,
 unsigned int
 pchtml_html_parse_chunk_end(pchtml_html_parser_t *parser)
 {
-    if (parser->state != PCHTML_PARSER_PARSER_STATE_PROCESS) {
+    if (parser->state != PCHTML_HTML_PARSER_STATE_PROCESS) {
         pcinst_set_error (PCHTML_WRONG_STAGE);
         return PCHTML_STATUS_ERROR_WRONG_STAGE;
     }
@@ -464,7 +464,7 @@ pchtml_html_parse_chunk_end(pchtml_html_parser_t *parser)
 
     pchtml_html_tokenizer_tree_set(parser->tkz, parser->original_tree);
 
-    parser->state = PCHTML_PARSER_PARSER_STATE_END;
+    parser->state = PCHTML_HTML_PARSER_STATE_END;
 
     return parser->status;
 }

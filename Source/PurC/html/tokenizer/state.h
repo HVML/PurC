@@ -30,8 +30,8 @@
  */
 
 
-#ifndef PCHTML_PARSER_TOKENIZER_STATE_H
-#define PCHTML_PARSER_TOKENIZER_STATE_H
+#ifndef PCHTML_HTML_TOKENIZER_STATE_H
+#define PCHTML_HTML_TOKENIZER_STATE_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -250,4 +250,4 @@ pchtml_html_tokenizer_state_char_ref(pchtml_html_tokenizer_t *tkz,
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_PARSER_TOKENIZER_STATE_H */
+#endif  /* PCHTML_HTML_TOKENIZER_STATE_H */

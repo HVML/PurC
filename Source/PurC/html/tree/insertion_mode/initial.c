@@ -197,7 +197,7 @@ pchtml_html_tree_insertion_mode_initial(pchtml_html_tree_t *tree,
 
             if (tree->document->iframe_srcdoc == NULL) {
                 pchtml_html_tree_parse_error(tree, token,
-                                          PCHTML_PARSER_RULES_ERROR_UNTOININMO);
+                                          PCHTML_HTML_RULES_ERROR_UNTOININMO);
 
                 document->compat_mode = PCEDOM_DOCUMENT_CMODE_QUIRKS;
             }
@@ -237,7 +237,7 @@ pchtml_html_tree_insertion_mode_initial_doctype(pchtml_html_tree_t *tree,
         )
     {
         pchtml_html_tree_parse_error(tree, token,
-                                  PCHTML_PARSER_RULES_ERROR_BADOTOININMO);
+                                  PCHTML_HTML_RULES_ERROR_BADOTOININMO);
     }
 
     pchtml_html_tree_insertion_mode_initial_doctype_ckeck(tree, doc_type,
@@ -263,7 +263,7 @@ pchtml_html_tree_insertion_mode_initial_doctype_ckeck(pchtml_html_tree_t *tree,
     bool quirks;
     pcedom_document_t *document = &tree->document->dom_document;
 
-    if (token->type & PCHTML_PARSER_TOKEN_TYPE_FORCE_QUIRKS) {
+    if (token->type & PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS) {
         goto set_quirks;
     }
 

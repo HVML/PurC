@@ -30,8 +30,8 @@
  */
 
 
-#ifndef PCHTML_PARSER_TEMPLATE_INSERTION_H
-#define PCHTML_PARSER_TEMPLATE_INSERTION_H
+#ifndef PCHTML_HTML_TEMPLATE_INSERTION_H
+#define PCHTML_HTML_TEMPLATE_INSERTION_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -126,5 +126,5 @@ pchtml_html_tree_template_insertion_pop(pchtml_html_tree_t *tree)
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_PARSER_TEMPLATE_INSERTION_H */
+#endif  /* PCHTML_HTML_TEMPLATE_INSERTION_H */
 

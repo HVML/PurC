@@ -199,9 +199,9 @@ pchtml_html_tokenizer_state_doctype(pchtml_html_tokenizer_t *tkz,
         case 0x00:
             if (tkz->is_eof) {
                 pchtml_html_tokenizer_error_add(tkz->parse_errors, tkz->last,
-                                             PCHTML_PARSER_TOKENIZER_ERROR_EOINDO);
+                                             PCHTML_HTML_TOKENIZER_ERROR_EOINDO);
 
-                tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_FORCE_QUIRKS;
+                tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS;
 
                 pchtml_html_tokenizer_state_token_done_m(tkz, end);
 
@@ -211,7 +211,7 @@ pchtml_html_tokenizer_state_doctype(pchtml_html_tokenizer_t *tkz,
 
         default:
             pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                         PCHTML_PARSER_TOKENIZER_ERROR_MIWHBEDONA);
+                                         PCHTML_HTML_TOKENIZER_ERROR_MIWHBEDONA);
             break;
     }
 
@@ -253,9 +253,9 @@ pchtml_html_tokenizer_state_doctype_before_name(pchtml_html_tokenizer_t *tkz,
             case 0x00:
                 if (tkz->is_eof) {
                     pchtml_html_tokenizer_error_add(tkz->parse_errors, tkz->last,
-                                               PCHTML_PARSER_TOKENIZER_ERROR_EOINDO);
+                                               PCHTML_HTML_TOKENIZER_ERROR_EOINDO);
 
-                    tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_FORCE_QUIRKS;
+                    tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS;
 
                     pchtml_html_tokenizer_state_token_done_m(tkz, end);
 
@@ -267,10 +267,10 @@ pchtml_html_tokenizer_state_doctype_before_name(pchtml_html_tokenizer_t *tkz,
                 pchtml_html_tokenizer_state_append_replace_m(tkz);
 
                 pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                             PCHTML_PARSER_TOKENIZER_ERROR_UNNUCH);
+                                             PCHTML_HTML_TOKENIZER_ERROR_UNNUCH);
 
                 tkz->token->attr_last->type
-                    |= PCHTML_PARSER_TOKEN_ATTR_TYPE_NAME_NULL;
+                    |= PCHTML_HTML_TOKEN_ATTR_TYPE_NAME_NULL;
 
                 tkz->state = pchtml_html_tokenizer_state_doctype_name;
 
@@ -278,11 +278,11 @@ pchtml_html_tokenizer_state_doctype_before_name(pchtml_html_tokenizer_t *tkz,
 
             /* U+003E GREATER-THAN SIGN (>) */
             case 0x3E:
-                tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_FORCE_QUIRKS;
+                tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS;
                 tkz->state = pchtml_html_tokenizer_state_data_before;
 
                 pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                             PCHTML_PARSER_TOKENIZER_ERROR_MIDONA);
+                                             PCHTML_HTML_TOKENIZER_ERROR_MIDONA);
 
                 pchtml_html_tokenizer_state_token_done_m(tkz, end);
 
@@ -362,9 +362,9 @@ pchtml_html_tokenizer_state_doctype_name(pchtml_html_tokenizer_t *tkz,
 
                     pchtml_html_tokenizer_error_add(tkz->parse_errors,
                                                tkz->token->attr_last->name_end,
-                                               PCHTML_PARSER_TOKENIZER_ERROR_EOINDO);
+                                               PCHTML_HTML_TOKENIZER_ERROR_EOINDO);
 
-                    tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_FORCE_QUIRKS;
+                    tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS;
 
                     pchtml_html_tokenizer_state_set_name_m(tkz);
                     pchtml_html_tokenizer_state_token_done_m(tkz, end);
@@ -376,10 +376,10 @@ pchtml_html_tokenizer_state_doctype_name(pchtml_html_tokenizer_t *tkz,
                 pchtml_html_tokenizer_state_append_replace_m(tkz);
 
                 pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                             PCHTML_PARSER_TOKENIZER_ERROR_UNNUCH);
+                                             PCHTML_HTML_TOKENIZER_ERROR_UNNUCH);
 
                 tkz->token->attr_last->type
-                    |= PCHTML_PARSER_TOKEN_ATTR_TYPE_NAME_NULL;
+                    |= PCHTML_HTML_TOKEN_ATTR_TYPE_NAME_NULL;
 
                 break;
 
@@ -435,9 +435,9 @@ pchtml_html_tokenizer_state_doctype_after_name(pchtml_html_tokenizer_t *tkz,
             case 0x00:
                 if (tkz->is_eof) {
                     pchtml_html_tokenizer_error_add(tkz->parse_errors, tkz->last,
-                                               PCHTML_PARSER_TOKENIZER_ERROR_EOINDO);
+                                               PCHTML_HTML_TOKENIZER_ERROR_EOINDO);
 
-                    tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_FORCE_QUIRKS;
+                    tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS;
 
                     pchtml_html_tokenizer_state_token_done_m(tkz, end);
 
@@ -524,9 +524,9 @@ pchtml_html_tokenizer_state_doctype_after_name(pchtml_html_tokenizer_t *tkz,
                                            tkz->dobj_token_attr);
 
                 pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                         PCHTML_PARSER_TOKENIZER_ERROR_INCHSEAFDONA);
+                                         PCHTML_HTML_TOKENIZER_ERROR_INCHSEAFDONA);
 
-                tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_FORCE_QUIRKS;
+                tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS;
                 tkz->state = pchtml_html_tokenizer_state_doctype_bogus;
 
                 return data;
@@ -557,7 +557,7 @@ pchtml_html_tokenizer_state_doctype_after_name_public(pchtml_html_tokenizer_t *t
                                    tkz->dobj_token_attr);
 
         pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                     PCHTML_PARSER_TOKENIZER_ERROR_INCHSEAFDONA);
+                                     PCHTML_HTML_TOKENIZER_ERROR_INCHSEAFDONA);
 
         tkz->state = pchtml_html_tokenizer_state_doctype_bogus;
 
@@ -608,7 +608,7 @@ pchtml_html_tokenizer_state_doctype_after_name_system(pchtml_html_tokenizer_t *t
                                    tkz->dobj_token_attr);
 
         pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                     PCHTML_PARSER_TOKENIZER_ERROR_INCHSEAFDONA);
+                                     PCHTML_HTML_TOKENIZER_ERROR_INCHSEAFDONA);
 
         tkz->state = pchtml_html_tokenizer_state_doctype_bogus;
 
@@ -669,7 +669,7 @@ pchtml_html_tokenizer_state_doctype_after_public_keyword(pchtml_html_tokenizer_t
         /* U+0022 QUOTATION MARK (") */
         case 0x22:
             pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                         PCHTML_PARSER_TOKENIZER_ERROR_MIWHAFDOPUKE);
+                                         PCHTML_HTML_TOKENIZER_ERROR_MIWHAFDOPUKE);
 
             tkz->state =
                pchtml_html_tokenizer_state_doctype_public_identifier_double_quoted;
@@ -679,7 +679,7 @@ pchtml_html_tokenizer_state_doctype_after_public_keyword(pchtml_html_tokenizer_t
         /* U+0027 APOSTROPHE (') */
         case 0x27:
             pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                         PCHTML_PARSER_TOKENIZER_ERROR_MIWHAFDOPUKE);
+                                         PCHTML_HTML_TOKENIZER_ERROR_MIWHAFDOPUKE);
 
             tkz->state =
                pchtml_html_tokenizer_state_doctype_public_identifier_single_quoted;
@@ -688,11 +688,11 @@ pchtml_html_tokenizer_state_doctype_after_public_keyword(pchtml_html_tokenizer_t
 
         /* U+003E GREATER-THAN SIGN (>) */
         case 0x3E:
-            tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_FORCE_QUIRKS;
+            tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS;
             tkz->state = pchtml_html_tokenizer_state_data_before;
 
             pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                         PCHTML_PARSER_TOKENIZER_ERROR_MIDOPUID);
+                                         PCHTML_HTML_TOKENIZER_ERROR_MIDOPUID);
 
             pchtml_html_tokenizer_state_token_done_m(tkz, end);
 
@@ -701,10 +701,10 @@ pchtml_html_tokenizer_state_doctype_after_public_keyword(pchtml_html_tokenizer_t
         /* EOF */
         case 0x00:
             if (tkz->is_eof) {
-                tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_FORCE_QUIRKS;
+                tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS;
 
                 pchtml_html_tokenizer_error_add(tkz->parse_errors, tkz->last,
-                                             PCHTML_PARSER_TOKENIZER_ERROR_EOINDO);
+                                             PCHTML_HTML_TOKENIZER_ERROR_EOINDO);
 
                 pchtml_html_tokenizer_state_token_done_m(tkz, end);
 
@@ -713,11 +713,11 @@ pchtml_html_tokenizer_state_doctype_after_public_keyword(pchtml_html_tokenizer_t
             /* fall through */
 
         default:
-            tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_FORCE_QUIRKS;
+            tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS;
             tkz->state = pchtml_html_tokenizer_state_doctype_bogus;
 
             pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                         PCHTML_PARSER_TOKENIZER_ERROR_MIQUBEDOPUID);
+                                         PCHTML_HTML_TOKENIZER_ERROR_MIQUBEDOPUID);
 
             return data;
     }
@@ -764,11 +764,11 @@ pchtml_html_tokenizer_state_doctype_before_public_identifier(pchtml_html_tokeniz
 
         /* U+003E GREATER-THAN SIGN (>) */
         case 0x3E:
-            tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_FORCE_QUIRKS;
+            tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS;
             tkz->state = pchtml_html_tokenizer_state_data_before;
 
             pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                         PCHTML_PARSER_TOKENIZER_ERROR_MIDOPUID);
+                                         PCHTML_HTML_TOKENIZER_ERROR_MIDOPUID);
 
             pchtml_html_tokenizer_state_token_done_m(tkz, end);
 
@@ -778,9 +778,9 @@ pchtml_html_tokenizer_state_doctype_before_public_identifier(pchtml_html_tokeniz
         case 0x00:
             if (tkz->is_eof) {
                 pchtml_html_tokenizer_error_add(tkz->parse_errors, tkz->last,
-                                             PCHTML_PARSER_TOKENIZER_ERROR_EOINDO);
+                                             PCHTML_HTML_TOKENIZER_ERROR_EOINDO);
 
-                tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_FORCE_QUIRKS;
+                tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS;
 
                 pchtml_html_tokenizer_state_token_done_m(tkz, end);
 
@@ -790,9 +790,9 @@ pchtml_html_tokenizer_state_doctype_before_public_identifier(pchtml_html_tokeniz
 
         default:
             pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                         PCHTML_PARSER_TOKENIZER_ERROR_MIQUBEDOPUID);
+                                         PCHTML_HTML_TOKENIZER_ERROR_MIQUBEDOPUID);
 
-            tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_FORCE_QUIRKS;
+            tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS;
             tkz->state = pchtml_html_tokenizer_state_doctype_bogus;
 
             return data;
@@ -833,7 +833,7 @@ pchtml_html_tokenizer_state_doctype_public_identifier_double_quoted(pchtml_html_
                 tkz->state = pchtml_html_tokenizer_state_data_before;
 
                 pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                             PCHTML_PARSER_TOKENIZER_ERROR_ABDOPUID);
+                                             PCHTML_HTML_TOKENIZER_ERROR_ABDOPUID);
 
                 pchtml_html_tokenizer_state_append_data_m(tkz, data);
                 pchtml_html_tokenizer_state_set_value_m(tkz);
@@ -882,9 +882,9 @@ pchtml_html_tokenizer_state_doctype_public_identifier_double_quoted(pchtml_html_
 
                     pchtml_html_tokenizer_error_add(tkz->parse_errors,
                                                tkz->token->attr_last->value_end,
-                                               PCHTML_PARSER_TOKENIZER_ERROR_EOINDO);
+                                               PCHTML_HTML_TOKENIZER_ERROR_EOINDO);
 
-                    tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_FORCE_QUIRKS;
+                    tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS;
 
                     pchtml_html_tokenizer_state_set_value_m(tkz);
                     pchtml_html_tokenizer_state_token_done_m(tkz, end);
@@ -896,10 +896,10 @@ pchtml_html_tokenizer_state_doctype_public_identifier_double_quoted(pchtml_html_
                 pchtml_html_tokenizer_state_append_replace_m(tkz);
 
                 pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                             PCHTML_PARSER_TOKENIZER_ERROR_UNNUCH);
+                                             PCHTML_HTML_TOKENIZER_ERROR_UNNUCH);
 
                 tkz->token->attr_last->type
-                    |= PCHTML_PARSER_TOKEN_ATTR_TYPE_VALUE_NULL;
+                    |= PCHTML_HTML_TOKEN_ATTR_TYPE_VALUE_NULL;
 
                 break;
 
@@ -948,7 +948,7 @@ pchtml_html_tokenizer_state_doctype_public_identifier_single_quoted(pchtml_html_
                 tkz->state = pchtml_html_tokenizer_state_data_before;
 
                 pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                             PCHTML_PARSER_TOKENIZER_ERROR_ABDOPUID);
+                                             PCHTML_HTML_TOKENIZER_ERROR_ABDOPUID);
 
                 pchtml_html_tokenizer_state_append_data_m(tkz, data);
                 pchtml_html_tokenizer_state_set_value_m(tkz);
@@ -997,9 +997,9 @@ pchtml_html_tokenizer_state_doctype_public_identifier_single_quoted(pchtml_html_
 
                     pchtml_html_tokenizer_error_add(tkz->parse_errors,
                                                tkz->token->attr_last->value_end,
-                                               PCHTML_PARSER_TOKENIZER_ERROR_EOINDO);
+                                               PCHTML_HTML_TOKENIZER_ERROR_EOINDO);
 
-                    tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_FORCE_QUIRKS;
+                    tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS;
 
                     pchtml_html_tokenizer_state_set_value_m(tkz);
                     pchtml_html_tokenizer_state_token_done_m(tkz, end);
@@ -1011,10 +1011,10 @@ pchtml_html_tokenizer_state_doctype_public_identifier_single_quoted(pchtml_html_
                 pchtml_html_tokenizer_state_append_replace_m(tkz);
 
                 pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                             PCHTML_PARSER_TOKENIZER_ERROR_UNNUCH);
+                                             PCHTML_HTML_TOKENIZER_ERROR_UNNUCH);
 
                 tkz->token->attr_last->type
-                    |= PCHTML_PARSER_TOKEN_ATTR_TYPE_VALUE_NULL;
+                    |= PCHTML_HTML_TOKEN_ATTR_TYPE_VALUE_NULL;
 
                 break;
 
@@ -1070,7 +1070,7 @@ pchtml_html_tokenizer_state_doctype_after_public_identifier(pchtml_html_tokenize
         /* U+0022 QUOTATION MARK (") */
         case 0x22:
             pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                     PCHTML_PARSER_TOKENIZER_ERROR_MIWHBEDOPUANSYID);
+                                     PCHTML_HTML_TOKENIZER_ERROR_MIWHBEDOPUANSYID);
 
             pchtml_html_tokenizer_state_token_attr_add_m(tkz, attr, end);
 
@@ -1082,7 +1082,7 @@ pchtml_html_tokenizer_state_doctype_after_public_identifier(pchtml_html_tokenize
         /* U+0027 APOSTROPHE (') */
         case 0x27:
             pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                     PCHTML_PARSER_TOKENIZER_ERROR_MIWHBEDOPUANSYID);
+                                     PCHTML_HTML_TOKENIZER_ERROR_MIWHBEDOPUANSYID);
 
             pchtml_html_tokenizer_state_token_attr_add_m(tkz, attr, end);
 
@@ -1095,9 +1095,9 @@ pchtml_html_tokenizer_state_doctype_after_public_identifier(pchtml_html_tokenize
         case 0x00:
             if (tkz->is_eof) {
                 pchtml_html_tokenizer_error_add(tkz->parse_errors, tkz->last,
-                                             PCHTML_PARSER_TOKENIZER_ERROR_EOINDO);
+                                             PCHTML_HTML_TOKENIZER_ERROR_EOINDO);
 
-                tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_FORCE_QUIRKS;
+                tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS;
                 pchtml_html_tokenizer_state_token_done_m(tkz, end);
 
                 return end;
@@ -1106,9 +1106,9 @@ pchtml_html_tokenizer_state_doctype_after_public_identifier(pchtml_html_tokenize
 
         default:
             pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                         PCHTML_PARSER_TOKENIZER_ERROR_MIQUBEDOSYID);
+                                         PCHTML_HTML_TOKENIZER_ERROR_MIQUBEDOSYID);
 
-            tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_FORCE_QUIRKS;
+            tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS;
             tkz->state = pchtml_html_tokenizer_state_doctype_bogus;
 
             return data;
@@ -1172,9 +1172,9 @@ pchtml_html_tokenizer_state_doctype_between_public_and_system_identifiers(pchtml
         case 0x00:
             if (tkz->is_eof) {
                 pchtml_html_tokenizer_error_add(tkz->parse_errors, tkz->last,
-                                             PCHTML_PARSER_TOKENIZER_ERROR_EOINDO);
+                                             PCHTML_HTML_TOKENIZER_ERROR_EOINDO);
 
-                tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_FORCE_QUIRKS;
+                tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS;
                 pchtml_html_tokenizer_state_token_done_m(tkz, end);
 
                 return end;
@@ -1183,9 +1183,9 @@ pchtml_html_tokenizer_state_doctype_between_public_and_system_identifiers(pchtml
 
         default:
             pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                         PCHTML_PARSER_TOKENIZER_ERROR_MIQUBEDOSYID);
+                                         PCHTML_HTML_TOKENIZER_ERROR_MIQUBEDOSYID);
 
-            tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_FORCE_QUIRKS;
+            tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS;
             tkz->state = pchtml_html_tokenizer_state_doctype_bogus;
 
             return data;
@@ -1223,7 +1223,7 @@ pchtml_html_tokenizer_state_doctype_after_system_keyword(pchtml_html_tokenizer_t
         /* U+0022 QUOTATION MARK (") */
         case 0x22:
             pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                         PCHTML_PARSER_TOKENIZER_ERROR_MIWHAFDOSYKE);
+                                         PCHTML_HTML_TOKENIZER_ERROR_MIWHAFDOSYKE);
 
             tkz->state =
                pchtml_html_tokenizer_state_doctype_system_identifier_double_quoted;
@@ -1233,7 +1233,7 @@ pchtml_html_tokenizer_state_doctype_after_system_keyword(pchtml_html_tokenizer_t
         /* U+0027 APOSTROPHE (') */
         case 0x27:
             pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                         PCHTML_PARSER_TOKENIZER_ERROR_MIWHAFDOSYKE);
+                                         PCHTML_HTML_TOKENIZER_ERROR_MIWHAFDOSYKE);
 
             tkz->state =
                pchtml_html_tokenizer_state_doctype_system_identifier_single_quoted;
@@ -1242,11 +1242,11 @@ pchtml_html_tokenizer_state_doctype_after_system_keyword(pchtml_html_tokenizer_t
 
         /* U+003E GREATER-THAN SIGN (>) */
         case 0x3E:
-            tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_FORCE_QUIRKS;
+            tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS;
             tkz->state = pchtml_html_tokenizer_state_data_before;
 
             pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                         PCHTML_PARSER_TOKENIZER_ERROR_MIDOSYID);
+                                         PCHTML_HTML_TOKENIZER_ERROR_MIDOSYID);
 
             pchtml_html_tokenizer_state_token_done_m(tkz, end);
 
@@ -1256,9 +1256,9 @@ pchtml_html_tokenizer_state_doctype_after_system_keyword(pchtml_html_tokenizer_t
         case 0x00:
             if (tkz->is_eof) {
                 pchtml_html_tokenizer_error_add(tkz->parse_errors, tkz->last,
-                                             PCHTML_PARSER_TOKENIZER_ERROR_EOINDO);
+                                             PCHTML_HTML_TOKENIZER_ERROR_EOINDO);
 
-                tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_FORCE_QUIRKS;
+                tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS;
                 pchtml_html_tokenizer_state_token_done_m(tkz, end);
 
                 return end;
@@ -1266,11 +1266,11 @@ pchtml_html_tokenizer_state_doctype_after_system_keyword(pchtml_html_tokenizer_t
             /* fall through */
 
         default:
-            tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_FORCE_QUIRKS;
+            tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS;
             tkz->state = pchtml_html_tokenizer_state_doctype_bogus;
 
             pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                         PCHTML_PARSER_TOKENIZER_ERROR_MIQUBEDOSYID);
+                                         PCHTML_HTML_TOKENIZER_ERROR_MIQUBEDOSYID);
 
             return data;
     }
@@ -1317,11 +1317,11 @@ pchtml_html_tokenizer_state_doctype_before_system_identifier(pchtml_html_tokeniz
 
         /* U+003E GREATER-THAN SIGN (>) */
         case 0x3E:
-            tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_FORCE_QUIRKS;
+            tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS;
             tkz->state = pchtml_html_tokenizer_state_data_before;
 
             pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                         PCHTML_PARSER_TOKENIZER_ERROR_MIDOSYID);
+                                         PCHTML_HTML_TOKENIZER_ERROR_MIDOSYID);
 
             pchtml_html_tokenizer_state_token_done_m(tkz, end);
 
@@ -1331,9 +1331,9 @@ pchtml_html_tokenizer_state_doctype_before_system_identifier(pchtml_html_tokeniz
         case 0x00:
             if (tkz->is_eof) {
                 pchtml_html_tokenizer_error_add(tkz->parse_errors, tkz->last,
-                                             PCHTML_PARSER_TOKENIZER_ERROR_EOINDO);
+                                             PCHTML_HTML_TOKENIZER_ERROR_EOINDO);
 
-                tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_FORCE_QUIRKS;
+                tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS;
 
                 pchtml_html_tokenizer_state_token_done_m(tkz, end);
 
@@ -1342,11 +1342,11 @@ pchtml_html_tokenizer_state_doctype_before_system_identifier(pchtml_html_tokeniz
             /* fall through */
 
         default:
-            tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_FORCE_QUIRKS;
+            tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS;
             tkz->state = pchtml_html_tokenizer_state_doctype_bogus;
 
             pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                         PCHTML_PARSER_TOKENIZER_ERROR_MIQUBEDOSYID);
+                                         PCHTML_HTML_TOKENIZER_ERROR_MIQUBEDOSYID);
 
             return data;
     }
@@ -1386,7 +1386,7 @@ pchtml_html_tokenizer_state_doctype_system_identifier_double_quoted(pchtml_html_
                 tkz->state = pchtml_html_tokenizer_state_data_before;
 
                 pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                             PCHTML_PARSER_TOKENIZER_ERROR_ABDOSYID);
+                                             PCHTML_HTML_TOKENIZER_ERROR_ABDOSYID);
 
                 pchtml_html_tokenizer_state_append_data_m(tkz, data);
                 pchtml_html_tokenizer_state_set_value_m(tkz);
@@ -1435,9 +1435,9 @@ pchtml_html_tokenizer_state_doctype_system_identifier_double_quoted(pchtml_html_
 
                     pchtml_html_tokenizer_error_add(tkz->parse_errors,
                                                tkz->token->attr_last->value_end,
-                                               PCHTML_PARSER_TOKENIZER_ERROR_EOINDO);
+                                               PCHTML_HTML_TOKENIZER_ERROR_EOINDO);
 
-                    tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_FORCE_QUIRKS;
+                    tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS;
 
                     pchtml_html_tokenizer_state_set_value_m(tkz);
                     pchtml_html_tokenizer_state_token_done_m(tkz, end);
@@ -1449,10 +1449,10 @@ pchtml_html_tokenizer_state_doctype_system_identifier_double_quoted(pchtml_html_
                 pchtml_html_tokenizer_state_append_replace_m(tkz);
 
                 pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                             PCHTML_PARSER_TOKENIZER_ERROR_UNNUCH);
+                                             PCHTML_HTML_TOKENIZER_ERROR_UNNUCH);
 
                 tkz->token->attr_last->type
-                    |= PCHTML_PARSER_TOKEN_ATTR_TYPE_VALUE_NULL;
+                    |= PCHTML_HTML_TOKEN_ATTR_TYPE_VALUE_NULL;
 
                 break;
 
@@ -1501,7 +1501,7 @@ pchtml_html_tokenizer_state_doctype_system_identifier_single_quoted(pchtml_html_
                 tkz->state = pchtml_html_tokenizer_state_data_before;
 
                 pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                             PCHTML_PARSER_TOKENIZER_ERROR_ABDOSYID);
+                                             PCHTML_HTML_TOKENIZER_ERROR_ABDOSYID);
 
                 pchtml_html_tokenizer_state_append_data_m(tkz, data);
                 pchtml_html_tokenizer_state_set_value_m(tkz);
@@ -1550,9 +1550,9 @@ pchtml_html_tokenizer_state_doctype_system_identifier_single_quoted(pchtml_html_
 
                     pchtml_html_tokenizer_error_add(tkz->parse_errors,
                                                tkz->token->attr_last->value_end,
-                                               PCHTML_PARSER_TOKENIZER_ERROR_EOINDO);
+                                               PCHTML_HTML_TOKENIZER_ERROR_EOINDO);
 
-                    tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_FORCE_QUIRKS;
+                    tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS;
 
                     pchtml_html_tokenizer_state_set_value_m(tkz);
                     pchtml_html_tokenizer_state_token_done_m(tkz, end);
@@ -1564,10 +1564,10 @@ pchtml_html_tokenizer_state_doctype_system_identifier_single_quoted(pchtml_html_
                 pchtml_html_tokenizer_state_append_replace_m(tkz);
 
                 pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                             PCHTML_PARSER_TOKENIZER_ERROR_UNNUCH);
+                                             PCHTML_HTML_TOKENIZER_ERROR_UNNUCH);
 
                 tkz->token->attr_last->type
-                    |= PCHTML_PARSER_TOKEN_ATTR_TYPE_VALUE_NULL;
+                    |= PCHTML_HTML_TOKEN_ATTR_TYPE_VALUE_NULL;
 
                 break;
 
@@ -1620,9 +1620,9 @@ pchtml_html_tokenizer_state_doctype_after_system_identifier(
         case 0x00:
             if (tkz->is_eof) {
                 pchtml_html_tokenizer_error_add(tkz->parse_errors, tkz->last,
-                                             PCHTML_PARSER_TOKENIZER_ERROR_EOINDO);
+                                             PCHTML_HTML_TOKENIZER_ERROR_EOINDO);
 
-                tkz->token->type |= PCHTML_PARSER_TOKEN_TYPE_FORCE_QUIRKS;
+                tkz->token->type |= PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS;
 
                 pchtml_html_tokenizer_state_token_done_m(tkz, end);
 
@@ -1632,7 +1632,7 @@ pchtml_html_tokenizer_state_doctype_after_system_identifier(
 
         default:
             pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                         PCHTML_PARSER_TOKENIZER_ERROR_UNCHAFDOSYID);
+                                         PCHTML_HTML_TOKENIZER_ERROR_UNCHAFDOSYID);
 
             tkz->state = pchtml_html_tokenizer_state_doctype_bogus;
 
@@ -1672,7 +1672,7 @@ pchtml_html_tokenizer_state_doctype_bogus(pchtml_html_tokenizer_t *tkz,
                 }
 
                 pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
-                                             PCHTML_PARSER_TOKENIZER_ERROR_UNNUCH);
+                                             PCHTML_HTML_TOKENIZER_ERROR_UNNUCH);
 
                 break;
 

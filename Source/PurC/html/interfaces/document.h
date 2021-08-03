@@ -29,8 +29,8 @@
  * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
-#ifndef PCHTML_PARSER_DOCUMENT_H
-#define PCHTML_PARSER_DOCUMENT_H
+#ifndef PCHTML_HTML_DOCUMENT_H
+#define PCHTML_HTML_DOCUMENT_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -49,16 +49,16 @@ typedef unsigned int pchtml_html_document_opt_t;
 
 
 typedef enum {
-    PCHTML_PARSER_DOCUMENT_READY_STATE_UNDEF       = 0x00,
-    PCHTML_PARSER_DOCUMENT_READY_STATE_LOADING     = 0x01,
-    PCHTML_PARSER_DOCUMENT_READY_STATE_INTERACTIVE = 0x02,
-    PCHTML_PARSER_DOCUMENT_READY_STATE_COMPLETE    = 0x03,
+    PCHTML_HTML_DOCUMENT_READY_STATE_UNDEF       = 0x00,
+    PCHTML_HTML_DOCUMENT_READY_STATE_LOADING     = 0x01,
+    PCHTML_HTML_DOCUMENT_READY_STATE_INTERACTIVE = 0x02,
+    PCHTML_HTML_DOCUMENT_READY_STATE_COMPLETE    = 0x03,
 }
 pchtml_html_document_ready_state_t;
 
 enum pchtml_html_document_opt {
-    PCHTML_PARSER_DOCUMENT_OPT_UNDEF     = 0x00,
-    PCHTML_PARSER_DOCUMENT_PARSE_WO_COPY = 0x01
+    PCHTML_HTML_DOCUMENT_OPT_UNDEF     = 0x00,
+    PCHTML_HTML_DOCUMENT_PARSE_WO_COPY = 0x01
 };
 
 struct pchtml_html_document {
@@ -243,4 +243,4 @@ pchtml_html_document_destroy_element(pcedom_element_t *element)
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_PARSER_DOCUMENT_H */
+#endif  /* PCHTML_HTML_DOCUMENT_H */

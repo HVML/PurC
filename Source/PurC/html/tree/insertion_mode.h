@@ -30,8 +30,8 @@
  */
 
 
-#ifndef PCHTML_PARSER_TREE_INSERTION_MODE_H
-#define PCHTML_PARSER_TREE_INSERTION_MODE_H
+#ifndef PCHTML_HTML_TREE_INSERTION_MODE_H
+#define PCHTML_HTML_TREE_INSERTION_MODE_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -159,4 +159,4 @@ pchtml_html_tree_insertion_mode_foreign_content(pchtml_html_tree_t *tree,
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_PARSER_TREE_INSERTION_MODE_H */
+#endif  /* PCHTML_HTML_TREE_INSERTION_MODE_H */

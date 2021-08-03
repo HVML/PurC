@@ -56,7 +56,7 @@ bool
 pchtml_html_tree_insertion_mode_after_head(pchtml_html_tree_t *tree,
                                         pchtml_html_token_t *token)
 {
-    if (token->type & PCHTML_PARSER_TOKEN_TYPE_CLOSE) {
+    if (token->type & PCHTML_HTML_TOKEN_TYPE_CLOSE) {
         return pchtml_html_tree_insertion_mode_after_head_closed(tree, token);
     }
 
@@ -84,7 +84,7 @@ pchtml_html_tree_insertion_mode_after_head_open(pchtml_html_tree_t *tree,
 
         case PCHTML_TAG__EM_DOCTYPE:
             pchtml_html_tree_parse_error(tree, token,
-                                      PCHTML_PARSER_RULES_ERROR_DOTOAFHEMO);
+                                      PCHTML_HTML_RULES_ERROR_DOTOAFHEMO);
             break;
 
         case PCHTML_TAG_HTML:
@@ -144,7 +144,7 @@ pchtml_html_tree_insertion_mode_after_head_open(pchtml_html_tree_t *tree,
                 return pchtml_html_tree_process_abort(tree);
             }
 
-            pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_UNTO);
+            pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_UNTO);
 
             tree->status = pchtml_html_tree_open_elements_push(tree, head_node);
             if (tree->status != PCHTML_STATUS_OK) {
@@ -163,7 +163,7 @@ pchtml_html_tree_insertion_mode_after_head_open(pchtml_html_tree_t *tree,
 
         case PCHTML_TAG_HEAD:
             pchtml_html_tree_parse_error(tree, token,
-                                      PCHTML_PARSER_RULES_ERROR_HETOAFHEMO);
+                                      PCHTML_HTML_RULES_ERROR_HETOAFHEMO);
             break;
 
         case PCHTML_TAG__TEXT: {
@@ -209,7 +209,7 @@ pchtml_html_tree_insertion_mode_after_head_closed(pchtml_html_tree_t *tree,
             return pchtml_html_tree_insertion_mode_after_head_anything_else(tree);
 
         default:
-            pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_UNCLTO);
+            pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_UNCLTO);
 
             break;
     }

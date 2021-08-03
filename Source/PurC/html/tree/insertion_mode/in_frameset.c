@@ -41,7 +41,7 @@ bool
 pchtml_html_tree_insertion_mode_in_frameset(pchtml_html_tree_t *tree,
                                          pchtml_html_token_t *token)
 {
-    if (token->type & PCHTML_PARSER_TOKEN_TYPE_CLOSE) {
+    if (token->type & PCHTML_HTML_TOKEN_TYPE_CLOSE) {
         if (token->tag_id == PCHTML_TAG_FRAMESET)
         {
             pcedom_node_t *node;
@@ -49,7 +49,7 @@ pchtml_html_tree_insertion_mode_in_frameset(pchtml_html_tree_t *tree,
 
             if (node == pchtml_html_tree_open_elements_first(tree)) {
                 pchtml_html_tree_parse_error(tree, token,
-                                          PCHTML_PARSER_RULES_ERROR_UNELINOPELST);
+                                          PCHTML_HTML_RULES_ERROR_UNELINOPELST);
                 return true;
             }
 
@@ -66,7 +66,7 @@ pchtml_html_tree_insertion_mode_in_frameset(pchtml_html_tree_t *tree,
             return true;
         }
 
-        pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_UNTO);
+        pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_UNTO);
 
         return true;
     }
@@ -85,7 +85,7 @@ pchtml_html_tree_insertion_mode_in_frameset(pchtml_html_tree_t *tree,
 
         case PCHTML_TAG__EM_DOCTYPE:
             pchtml_html_tree_parse_error(tree, token,
-                                      PCHTML_PARSER_RULES_ERROR_DOTOINFRMO);
+                                      PCHTML_HTML_RULES_ERROR_DOTOINFRMO);
             break;
 
         case PCHTML_TAG_HTML:
@@ -130,7 +130,7 @@ pchtml_html_tree_insertion_mode_in_frameset(pchtml_html_tree_t *tree,
 
             if (node != pchtml_html_tree_open_elements_first(tree)) {
                 pchtml_html_tree_parse_error(tree, token,
-                                          PCHTML_PARSER_RULES_ERROR_UNELINOPELST);
+                                          PCHTML_HTML_RULES_ERROR_UNELINOPELST);
             }
 
             tree->status = pchtml_html_tree_stop_parsing(tree);
@@ -171,7 +171,7 @@ pchtml_html_tree_insertion_mode_in_frameset(pchtml_html_tree_t *tree,
         /* fall through */
 
         default:
-            pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_UNTO);
+            pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_UNTO);
 
             break;
     }
