@@ -33,11 +33,7 @@
 #include "config.h"
 #include "private/instance.h"
 #include "private/errors.h"
-
-#include "private/edom/text.h"
-#include "private/edom/comment.h"
-#include "edom/processing_instruction.h"
-#include "private/edom/document_type.h"
+#include "private/edom.h"
 
 #include "html/serialize.h"
 #include "html/tree.h"

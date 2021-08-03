@@ -43,9 +43,7 @@ extern "C" {
 #include "html/ns.h"
 #include "html/interface.h"
 #include "private/html.h"
-#include "private/edom/attr.h"
-#include "private/edom/document.h"
-
+#include "private/edom.h"
 
 typedef unsigned int pchtml_html_document_opt_t;
 

@@ -29,9 +29,9 @@
  * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
-
-#include "private/edom/event_target.h"
-#include "private/edom/document.h"
+#include "private/edom.h"
+//#include "edom/event_target.h"
+//#include "private/edom/document.h"
 
 
 pcedom_event_target_t *

@@ -36,7 +36,7 @@
 #include "config.h"
 #include "html/str.h"
 #include "private/html.h"
-#include "private/edom/element.h"
+#include "private/edom.h"
 
 #include "html/base.h"
 

@@ -30,8 +30,7 @@
  */
 
 
-#include "edom/processing_instruction.h"
-#include "private/edom/document.h"
+#include "private/edom.h"
 
 
 pcedom_processing_instruction_t *

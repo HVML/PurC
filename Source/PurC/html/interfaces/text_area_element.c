@@ -30,6 +30,7 @@
  */
 
 
+#include "private/edom.h"
 #include "html/interfaces/text_area_element.h"
 #include "html/interfaces/document.h"
 

@@ -30,6 +30,7 @@
  */
 
 
+#include "private/edom.h"
 #include "html/interfaces/quote_element.h"
 #include "html/interfaces/document.h"
 

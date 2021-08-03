@@ -30,13 +30,12 @@
  */
 
 
+#include "private/edom.h"
 
 #include "html/mraw.h"
-
 #include "html/interface.h"
 #include "html/interfaces/document.h"
 
-#include "private/edom/interface.h"
 
 #define PCHTML_PARSER_INTERFACE_RES_CONSTRUCTORS
 #define PCHTML_PARSER_INTERFACE_RES_DESTRUCTOR

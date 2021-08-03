@@ -42,13 +42,11 @@
 
 #include "html/tag_tag.h"
 
-#include "private/edom/text.h"
-#include "private/edom/element.h"
-
 #define PCHTML_PARSER_TAG_RES_DATA
 #define PCHTML_PARSER_TAG_RES_SHS_DATA
 #include "html/tag_res.h"
 
+#include "private/edom.h"
 
 unsigned int
 pchtml_html_parse_chunk_prepare(pchtml_html_parser_t *parser,

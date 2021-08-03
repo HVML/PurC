@@ -34,8 +34,7 @@
 #define PCHTML_PARSER_TREE_H
 
 #include "config.h"
-#include "private/edom/node.h"
-#include "private/edom/attr.h"
+#include "private/edom.h"
 
 #include "html/base.h"
 #include "html/node.h"

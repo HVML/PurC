@@ -33,7 +33,7 @@
 #define PURC_PRIVATE_HTML_H
 
 #include "config.h"
-#include "private/edom/node.h"
+#include "private/edom.h"
 
 #include <assert.h>
 

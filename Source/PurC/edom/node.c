@@ -34,13 +34,7 @@
 #include "private/instance.h"
 #include "private/errors.h"
 
-#include "private/edom/node.h"
-#include "private/edom/attr.h"
-#include "private/edom/document.h"
-#include "private/edom/document_type.h"
-#include "private/edom/element.h"
-#include "edom/processing_instruction.h"
-
+#include "private/edom.h"
 
 static pchtml_action_t
 pcedom_node_text_content_size(pcedom_node_t *node, void *ctx);

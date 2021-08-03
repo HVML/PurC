@@ -39,7 +39,7 @@ extern "C" {
 
 #include "config.h"
 #include "html/interface.h"
-#include "private/edom/event_target.h"
+#include "private/edom.h"
 
 
 struct pchtml_html_window {

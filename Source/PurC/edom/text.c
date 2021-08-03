@@ -31,8 +31,7 @@
 
 
 
-#include "private/edom/text.h"
-#include "private/edom/document.h"
+#include "private/edom.h"
 
 
 pcedom_text_t *

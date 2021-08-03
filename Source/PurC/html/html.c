@@ -33,6 +33,7 @@
 #include "private/errors.h"
 #include "private/debug.h"
 #include "private/utils.h"
+#include "private/edom.h"
 #include "private/html.h"
 
 static const char* html_err_msgs[] = {

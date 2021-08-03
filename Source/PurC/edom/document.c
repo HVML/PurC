@@ -34,14 +34,9 @@
 #include "private/instance.h"
 #include "private/errors.h"
 
-#include "private/edom/document.h"
-#include "private/edom/element.h"
-#include "private/edom/text.h"
-#include "private/edom/document_fragment.h"
-#include "private/edom/comment.h"
-#include "private/edom/cdata_section.h"
-#include "private/edom/cdata_section.h"
-#include "edom/processing_instruction.h"
+#include "private/edom.h"
+#include "html/ns.h"
+#include "html/tag_tag.h"
 
 
 pcedom_document_t *

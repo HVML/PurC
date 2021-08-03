@@ -30,8 +30,7 @@
  */
 
 
-#include "private/edom/document_fragment.h"
-#include "private/edom/document.h"
+#include "private/edom.h"
 
 
 pcedom_document_fragment_t *

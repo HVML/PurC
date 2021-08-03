@@ -33,9 +33,7 @@
 #include "config.h"
 #include "private/instance.h"
 #include "private/errors.h"
-
-#include "private/edom/character_data.h"
-#include "private/edom/document.h"
+#include "private/edom.h"
 
 
 pcedom_character_data_t *

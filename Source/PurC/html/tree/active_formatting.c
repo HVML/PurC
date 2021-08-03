@@ -34,7 +34,7 @@
 #include "config.h"
 #include "private/instance.h"
 #include "private/errors.h"
-#include "private/edom/node.h"
+#include "private/edom.h"
 
 #include "html/tree/active_formatting.h"
 #include "html/tree/open_elements.h"

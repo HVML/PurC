@@ -29,20 +29,8 @@
  * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
-
-#include "private/edom/interface.h"
-#include "private/edom/cdata_section.h"
-#include "private/edom/character_data.h"
-#include "private/edom/comment.h"
-#include "private/edom/document.h"
-#include "private/edom/document_fragment.h"
-#include "private/edom/document_type.h"
-#include "private/edom/element.h"
-#include "private/edom/event_target.h"
-#include "private/edom/node.h"
-#include "private/edom/shadow_root.h"
-#include "private/edom/text.h"
-#include "edom/processing_instruction.h"
+#include "private/edom.h"
+#include "edom/shadow_root.h"
 
 
 pcedom_interface_t *

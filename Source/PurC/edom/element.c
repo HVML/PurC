@@ -34,9 +34,9 @@
 #include "config.h"
 #include "private/instance.h"
 #include "private/errors.h"
+#include "private/edom.h"
+#include "html_attr_const.h"
 
-#include "private/edom/element.h"
-#include "private/edom/attr.h"
 #include "html/tag_tag.h"
 #include "html/ns.h"
 

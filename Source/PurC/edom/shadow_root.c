@@ -30,8 +30,8 @@
  */
 
 
-#include "private/edom/shadow_root.h"
-#include "private/edom/document.h"
+#include "private/edom.h"
+#include "edom/shadow_root.h"
 
 
 pcedom_shadow_root_t *

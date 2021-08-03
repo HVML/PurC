@@ -38,7 +38,7 @@
 #include "html/str.h"
 #include "html/dobject.h"
 
-#include "private/edom/attr.h"
+#include "private/edom.h"
 
 #include "html/base.h"
 

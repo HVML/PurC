@@ -60,18 +60,7 @@
 #error You need to include "html/ns_const.h".
 #endif /* PCHTML_NS_CONST_VERSION */
 
-#include "private/edom/cdata_section.h"
-#include "private/edom/character_data.h"
-#include "private/edom/comment.h"
-#include "private/edom/document.h"
-#include "private/edom/document_fragment.h"
-#include "private/edom/document_type.h"
-#include "private/edom/element.h"
-#include "private/edom/event_target.h"
-#include "private/edom/node.h"
-#include "edom/processing_instruction.h"
-#include "private/edom/shadow_root.h"
-#include "private/edom/text.h"
+#include "private/edom.h"
 #include "html/interfaces/document.h"
 #include "html/interfaces/anchor_element.h"
 #include "html/interfaces/area_element.h"

@@ -43,7 +43,7 @@
 #define PCHTML_STR_RES_MAP_NUM
 #include "html/str_res.h"
 
-#include "private/edom/document_type.h"
+#include "private/edom.h"
 
 
 const pchtml_tag_data_t *

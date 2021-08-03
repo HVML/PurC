@@ -1,8 +1,8 @@
 /**
- * @file character_data.h 
+ * @file shadow_root.h
  * @author 
  * @date 2021/07/02
- * @brief The hearder file for character data.
+ * @brief The hearder file for shadow root.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -30,43 +30,41 @@
  */
 
 
-#ifndef PCEDOM_CHARACTER_DATA_H
-#define PCEDOM_CHARACTER_DATA_H
+#ifndef PCEDOM_PRIVATE_SHADOW_ROOT_H
+#define PCEDOM_PRIVATE_SHADOW_ROOT_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include "config.h"
-#include "html/str.h"
+#include "private/edom.h"
 
-#include "private/edom/document.h"
-#include "private/edom/node.h"
+typedef enum {
+    PCEDOM_SHADOW_ROOT_MODE_OPEN   = 0x00,
+    PCEDOM_SHADOW_ROOT_MODE_CLOSED = 0x01
+}
+pcedom_shadow_root_mode_t;
 
+struct pcedom_shadow_root {
+    pcedom_document_fragment_t document_fragment;
 
-struct pcedom_character_data {
-    pcedom_node_t node;
-
-    pchtml_str_t   data;
+    pcedom_shadow_root_mode_t  mode;
+    pcedom_element_t           *host;
 };
 
 
-pcedom_character_data_t *
-pcedom_character_data_interface_create(
+pcedom_shadow_root_t *
+pcedom_shadow_root_interface_create(
                 pcedom_document_t *document) WTF_INTERNAL;
 
-pcedom_character_data_t *
-pcedom_character_data_interface_destroy(
-                pcedom_character_data_t *character_data) WTF_INTERNAL;
-
-unsigned int
-pcedom_character_data_replace(pcedom_character_data_t *ch_data,
-                const unsigned char *data, size_t len,
-                size_t offset, size_t count) WTF_INTERNAL;
+pcedom_shadow_root_t *
+pcedom_shadow_root_interface_destroy(
+                pcedom_shadow_root_t *shadow_root) WTF_INTERNAL;
 
 
 #ifdef __cplusplus
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCEDOM_CHARACTER_DATA_H */
+#endif  /* PCEDOM_PRIVATE_SHADOW_ROOT_H */

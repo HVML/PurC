@@ -33,8 +33,8 @@
 #include "config.h"
 #include "private/instance.h"
 #include "private/errors.h"
+#include "private/edom.h"
 #include "html/tree/insertion_mode.h"
-#include "private/edom/document_type.h"
 
 
 typedef struct {

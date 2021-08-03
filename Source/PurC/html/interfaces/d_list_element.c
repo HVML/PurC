@@ -29,6 +29,7 @@
  * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
+#include "private/edom.h"
 #include "html/interfaces/d_list_element.h"
 #include "html/interfaces/document.h"
 

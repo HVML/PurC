@@ -30,8 +30,8 @@
  */
 
 
-#include "private/edom/comment.h"
-#include "private/edom/document.h"
+#include "private/edom.h"
+//#include "private/edom/document.h"
 
 
 pcedom_comment_t *

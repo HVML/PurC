@@ -33,10 +33,12 @@
 #include "config.h"
 #include "private/instance.h"
 #include "private/errors.h"
-
-#include "private/edom/attr.h"
+#include "private/edom.h"
 #include "html_attr_res.h"
-#include "private/edom/document.h"
+#include "html/hash.h"
+#include "html/str.h"
+
+#include "html/ns.h"
 
 pcedom_attr_data_t *
 pcedom_attr_local_name_append(pchtml_hash_t *hash,

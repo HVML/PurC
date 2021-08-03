@@ -38,7 +38,7 @@ extern "C" {
 
 #include "config.h"
 #include "html/interface.h"
-#include "private/edom/element.h"
+#include "private/edom.h"
 
 
 struct pchtml_html_element {

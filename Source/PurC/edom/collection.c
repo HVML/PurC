@@ -35,9 +35,7 @@
 #include "private/instance.h"
 #include "private/errors.h"
 
-#include "private/edom/collection.h"
-#include "private/edom/document.h"
-
+#include "private/edom.h"
 
 pcedom_collection_t *
 pcedom_collection_create(pcedom_document_t *document)

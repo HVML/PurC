@@ -30,9 +30,10 @@
  */
 
 
+#include "private/edom.h"
 #include "html/interfaces/title_element.h"
 #include "html/interfaces/document.h"
-#include "private/edom/text.h"
+#include "private/edom.h"
 
 
 pchtml_html_title_element_t *

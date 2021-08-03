@@ -33,11 +33,7 @@
 #include "config.h"
 #include "private/instance.h"
 #include "private/errors.h"
-
-#include "private/edom/document_fragment.h"
-#include "private/edom/document_type.h"
-#include "private/edom/comment.h"
-#include "private/edom/text.h"
+#include "private/edom.h"
 
 #include "html/tree.h"
 #include "html/tree_res.h"

@@ -35,7 +35,7 @@
 
 #include "config.h"
 #include "html/tag_tag.h"
-#include "private/edom/node.h"
+#include "private/edom.h"
 
 
 #ifdef __cplusplus

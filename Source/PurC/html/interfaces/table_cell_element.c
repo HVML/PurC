@@ -30,6 +30,7 @@
  */
 
 
+#include "private/edom.h"
 #include "html/interfaces/table_cell_element.h"
 #include "html/interfaces/document.h"
 

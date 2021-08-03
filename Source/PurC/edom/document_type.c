@@ -30,9 +30,7 @@
  */
 
 
-#include "private/edom/document_type.h"
-#include "private/edom/document.h"
-
+#include "private/edom.h"
 
 pcedom_document_type_t *
 pcedom_document_type_interface_create(pcedom_document_t *document)
