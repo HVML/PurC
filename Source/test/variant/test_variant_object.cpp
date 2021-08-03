@@ -284,3 +284,4 @@ TEST(object, unref)
     cleanup = purc_cleanup ();
     ASSERT_EQ (cleanup, true);
 }
+
