@@ -123,4 +123,13 @@ n_object_repeated_null_null
 n_object_single_quote
 n_object_trailing_comma
 n_object_unquoted_key
-
+p_object_end_with_comma
+p_array_end_with_comma
+p_string_array_end_with_comma
+p_number_array_end_with_comma
+#p_keyword_array_end_with_comma
+p_long_integer
+p_unsigned_long_integer
+p_multi_line
+p_single_quote_key
+#p_byte_sequence

@@ -61,9 +61,9 @@ TEST_P(ejson_parser_vcm_eval, parse_and_serialize)
             0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
     ASSERT_GT(n, 0);
     buf[n] = 0;
-    ASSERT_STREQ(buf, comp);
     //fprintf(stderr, "buf=%s\n", buf);
     //fprintf(stderr, "com=%s\n", comp);
+    ASSERT_STREQ(buf, comp);
 
     purc_variant_unref(vt);
     purc_rwstream_destroy(my_rws);
