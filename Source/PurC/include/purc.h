@@ -125,7 +125,7 @@ typedef void (*cb_free_local_data) (void *local_data);
  * Since 0.0.1
  */
 PCA_EXPORT bool
-purc_set_local_data(const char* data_name, void *locale_data,
+purc_set_local_data(const char* data_name, uintptr_t locale_data,
         cb_free_local_data cb_free);
 
 /**
@@ -167,7 +167,7 @@ purc_remove_local_data(const char* data_name);
  * Since 0.0.1
  */
 PCA_EXPORT int
-purc_get_local_data(const char* data_name, void **local_data,
+purc_get_local_data(const char* data_name, uintptr_t *local_data,
         cb_free_local_data* cb_free);
 
 /**
