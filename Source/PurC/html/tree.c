@@ -1286,7 +1286,7 @@ pchtml_html_tree_element_in_scope_h123456(pchtml_html_tree_t *tree)
         }
 
         if (pchtml_html_tag_is_category(node->local_name, PCHTML_NS_HTML,
-                                     PCHTML_PARSER_TAG_CATEGORY_SCOPE))
+                                     PCHTML_HTML_TAG_CATEGORY_SCOPE))
         {
             return NULL;
         }
@@ -1322,7 +1322,7 @@ pchtml_html_tree_element_in_scope_tbody_thead_tfoot(pchtml_html_tree_t *tree)
         }
 
         if (pchtml_html_tag_is_category(node->local_name, PCHTML_NS_HTML,
-                                     PCHTML_PARSER_TAG_CATEGORY_SCOPE_TABLE))
+                                     PCHTML_HTML_TAG_CATEGORY_SCOPE_TABLE))
         {
             return NULL;
         }
@@ -1357,7 +1357,7 @@ pchtml_html_tree_element_in_scope_td_th(pchtml_html_tree_t *tree)
         }
 
         if (pchtml_html_tag_is_category(node->local_name, PCHTML_NS_HTML,
-                                     PCHTML_PARSER_TAG_CATEGORY_SCOPE_TABLE))
+                                     PCHTML_HTML_TAG_CATEGORY_SCOPE_TABLE))
         {
             return NULL;
         }
@@ -1504,7 +1504,7 @@ pchtml_html_tree_adoption_agency_algorithm(pchtml_html_tree_t *tree,
 
         /* State 8 */
         node = pchtml_html_tree_element_in_scope_by_node(tree, formatting_element,
-                                                      PCHTML_PARSER_TAG_CATEGORY_SCOPE);
+                                                      PCHTML_HTML_TAG_CATEGORY_SCOPE);
         if (node == NULL) {
             pchtml_html_tree_parse_error(tree, token,
                                       PCHTML_PARSER_RULES_ERROR_MIELINSC);
@@ -1530,7 +1530,7 @@ pchtml_html_tree_adoption_agency_algorithm(pchtml_html_tree_t *tree,
         {
             is = pchtml_html_tag_is_category(oel_list[furthest_block_idx]->local_name,
                                           oel_list[furthest_block_idx]->ns,
-                                          PCHTML_PARSER_TAG_CATEGORY_SPECIAL);
+                                          PCHTML_HTML_TAG_CATEGORY_SPECIAL);
             if (is) {
                 furthest_block = oel_list[furthest_block_idx];
 

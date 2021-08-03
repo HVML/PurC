@@ -37,9 +37,9 @@
 #include "html/interfaces/document.h"
 
 
-#define PCHTML_PARSER_INTERFACE_RES_CONSTRUCTORS
-#define PCHTML_PARSER_INTERFACE_RES_DESTRUCTOR
-#include "html/html_interface_res.h"
+#define PCHTML_HTML_INTERFACE_RES_CONSTRUCTORS
+#define PCHTML_HTML_INTERFACE_RES_DESTRUCTOR
+#include "html_interface_res.h"
 
 
 pcedom_interface_t *

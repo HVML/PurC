@@ -79,6 +79,30 @@ set(PurC_INTERFACE_INCLUDE_DIRECTORIES ${PurC_PRIVATE_FRAMEWORK_HEADERS_DIR})
 PURC_FRAMEWORK_DECLARE(PurC)
 PURC_INCLUDE_CONFIG_FILES_IF_EXISTS()
 
+# Generate constants for HTML ns/tags/interfaces
+add_custom_command(
+    OUTPUT "${PurC_DERIVED_SOURCES_DIR}/html_foo.c"
+        ${PurC_DERIVED_SOURCES_DIR}/html_interface_res.h
+        ${PurC_DERIVED_SOURCES_DIR}/html_tag_res.h
+        ${PurC_DERIVED_SOURCES_DIR}/ns_const.h
+        ${PurC_DERIVED_SOURCES_DIR}/ns_res.h
+        ${PurC_DERIVED_SOURCES_DIR}/tag_const.h
+        ${PurC_DERIVED_SOURCES_DIR}/tag_res.h
+    MAIN_DEPENDENCY ${PURC_DIR}/html/tags.py
+    DEPENDS ${PURC_DIR}/html/interfaces.py
+            ${PURC_DIR}/html/html_interface_res.h.in
+            ${PURC_DIR}/html/html_tag_res.h.in
+            ${PURC_DIR}/html/ns_const.h.in
+            ${PURC_DIR}/html/ns_res.h.in
+            ${PURC_DIR}/html/tag_const.h.in
+            ${PURC_DIR}/html/tag_res.h.in
+    COMMAND ${Python3_EXECUTABLE} ${PURC_DIR}/html/tags.py "${PurC_DERIVED_SOURCES_DIR}" --without-print
+    COMMAND touch "${PurC_DERIVED_SOURCES_DIR}/html_foo.c"
+    COMMENT "Generating xxx_res.h and xxx_const.h by using ${Python3_EXECUTABLE}"
+    WORKING_DIRECTORY "${PURC_DIR}/html/"
+    VERBATIM)
+list(APPEND PurC_SOURCES ${PurC_DERIVED_SOURCES_DIR}/html_foo.c)
+
 # Generate constants for HTML attributes
 add_custom_command(
     OUTPUT "${PurC_DERIVED_SOURCES_DIR}/html_attr_foo.c" "${PurC_DERIVED_SOURCES_DIR}/html_attr_res.h" "${PurC_DERIVED_SOURCES_DIR}/html_attr_const.h"

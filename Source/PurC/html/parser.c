@@ -45,7 +45,7 @@
 
 #define PCHTML_PARSER_TAG_RES_DATA
 #define PCHTML_PARSER_TAG_RES_SHS_DATA
-#include "html/html_tag_res.h"
+#include "html_tag_res.h"
 
 
 static void

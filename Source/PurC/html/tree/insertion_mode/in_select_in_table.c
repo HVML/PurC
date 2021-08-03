@@ -63,7 +63,7 @@ pchtml_html_tree_insertion_mode_in_select_in_table_ct_closed(pchtml_html_tree_t 
     pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_UNCLTO);
 
     node = pchtml_html_tree_element_in_scope(tree, token->tag_id, PCHTML_NS_HTML,
-                                          PCHTML_PARSER_TAG_CATEGORY_SCOPE_TABLE);
+                                          PCHTML_HTML_TAG_CATEGORY_SCOPE_TABLE);
     if (node == NULL) {
         return true;
     }

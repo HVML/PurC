@@ -37,7 +37,7 @@
 #include "html/str_res.h"
 
 #include "html/ns.h"
-#include "html/ns_res.h"
+#include "ns_res.h"
 
 
 const pchtml_ns_data_t *

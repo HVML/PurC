@@ -34,8 +34,8 @@
 
 #include "config.h"
 #include "html/base.h"
-#include "html/tag_const.h"
-#include "html/ns_const.h"
+#include "tag_const.h"
+#include "ns_const.h"
 #include "private/html.h"
 #include "private/edom.h"
 

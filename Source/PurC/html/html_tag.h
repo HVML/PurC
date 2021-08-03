@@ -46,15 +46,15 @@ extern "C" {
 typedef int pchtml_html_tag_category_t;
 
 enum pchtml_html_tag_category {
-    PCHTML_PARSER_TAG_CATEGORY__UNDEF          = 0x0000,
-    PCHTML_PARSER_TAG_CATEGORY_ORDINARY        = 0x0001,
-    PCHTML_PARSER_TAG_CATEGORY_SPECIAL         = 0x0002,
-    PCHTML_PARSER_TAG_CATEGORY_FORMATTING      = 0x0004,
-    PCHTML_PARSER_TAG_CATEGORY_SCOPE           = 0x0008,
-    PCHTML_PARSER_TAG_CATEGORY_SCOPE_LIST_ITEM = 0x0010,
-    PCHTML_PARSER_TAG_CATEGORY_SCOPE_BUTTON    = 0x0020,
-    PCHTML_PARSER_TAG_CATEGORY_SCOPE_TABLE     = 0x0040,
-    PCHTML_PARSER_TAG_CATEGORY_SCOPE_SELECT    = 0x0080,
+    PCHTML_HTML_TAG_CATEGORY__UNDEF          = 0x0000,
+    PCHTML_HTML_TAG_CATEGORY_ORDINARY        = 0x0001,
+    PCHTML_HTML_TAG_CATEGORY_SPECIAL         = 0x0002,
+    PCHTML_HTML_TAG_CATEGORY_FORMATTING      = 0x0004,
+    PCHTML_HTML_TAG_CATEGORY_SCOPE           = 0x0008,
+    PCHTML_HTML_TAG_CATEGORY_SCOPE_LIST_ITEM = 0x0010,
+    PCHTML_HTML_TAG_CATEGORY_SCOPE_BUTTON    = 0x0020,
+    PCHTML_HTML_TAG_CATEGORY_SCOPE_TABLE     = 0x0040,
+    PCHTML_HTML_TAG_CATEGORY_SCOPE_SELECT    = 0x0080,
 };
 
 typedef struct {
@@ -64,9 +64,9 @@ typedef struct {
 pchtml_html_tag_fixname_t;
 
 
-#define PCHTML_PARSER_TAG_RES_CATS
-#define PCHTML_PARSER_TAG_RES_FIXNAME_SVG
-#include "html/html_tag_res.h"
+#define PCHTML_HTML_TAG_RES_CATS
+#define PCHTML_HTML_TAG_RES_FIXNAME_SVG
+#include "html_tag_res.h"
 
 
 /*
@@ -80,7 +80,7 @@ pchtml_html_tag_is_category(pchtml_tag_id_t tag_id, pchtml_ns_id_t ns,
         return pchtml_html_tag_res_cats[tag_id][ns] & cat;
     }
 
-    return (PCHTML_PARSER_TAG_CATEGORY_ORDINARY|PCHTML_PARSER_TAG_CATEGORY_SCOPE_SELECT) & cat;
+    return (PCHTML_HTML_TAG_CATEGORY_ORDINARY|PCHTML_HTML_TAG_CATEGORY_SCOPE_SELECT) & cat;
 }
 
 static inline const pchtml_html_tag_fixname_t *

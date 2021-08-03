@@ -36,8 +36,8 @@
 #include "html/str.h"
 #include "html/mraw.h"
 #include "html/hash.h"
-#include "html/tag_const.h"
-#include "html/ns_const.h"
+#include "tag_const.h"
+#include "ns_const.h"
 
 #include "html_attr_const.h"
 

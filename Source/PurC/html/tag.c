@@ -33,7 +33,7 @@
 #include "private/errors.h"
 
 #include "html/tag.h"
-#include "html/tag_res.h"
+#include "tag_res.h"
 
 
 const pchtml_tag_data_t *

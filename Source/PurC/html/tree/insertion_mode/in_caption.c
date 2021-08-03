@@ -43,7 +43,7 @@ pchtml_html_tree_insertion_mode_in_caption_caption_closed(pchtml_html_tree_t *tr
     pcedom_node_t *node;
 
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_CAPTION, PCHTML_NS_HTML,
-                                          PCHTML_PARSER_TAG_CATEGORY_SCOPE_TABLE);
+                                          PCHTML_HTML_TAG_CATEGORY_SCOPE_TABLE);
     if (node == NULL) {
         pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_MIELINSC);
 
@@ -82,7 +82,7 @@ pchtml_html_tree_insertion_mode_in_caption_ct_open_closed(pchtml_html_tree_t *tr
     pcedom_node_t *node;
 
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_CAPTION, PCHTML_NS_HTML,
-                                          PCHTML_PARSER_TAG_CATEGORY_SCOPE_TABLE);
+                                          PCHTML_HTML_TAG_CATEGORY_SCOPE_TABLE);
     if (node == NULL) {
         pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_MIELINSC);
 

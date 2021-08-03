@@ -338,7 +338,7 @@ pchtml_html_tree_insertion_mode_in_body_body_closed(pchtml_html_tree_t *tree,
     pcedom_node_t *body_node;
 
     body_node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_BODY, PCHTML_NS_HTML,
-                                               PCHTML_PARSER_TAG_CATEGORY_SCOPE);
+                                               PCHTML_HTML_TAG_CATEGORY_SCOPE);
     if (body_node == NULL) {
         pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_NOBOELINSC);
 
@@ -362,7 +362,7 @@ pchtml_html_tree_insertion_mode_in_body_html_closed(pchtml_html_tree_t *tree,
     pcedom_node_t *body_node;
 
     body_node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_BODY, PCHTML_NS_HTML,
-                                               PCHTML_PARSER_TAG_CATEGORY_SCOPE);
+                                               PCHTML_HTML_TAG_CATEGORY_SCOPE);
     if (body_node == NULL) {
         pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_NOBOELINSC);
 
@@ -392,7 +392,7 @@ pchtml_html_tree_insertion_mode_in_body_abcdfhmnopsu(pchtml_html_tree_t *tree,
     pchtml_html_element_t *element;
 
     body_node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_P, PCHTML_NS_HTML,
-                                               PCHTML_PARSER_TAG_CATEGORY_SCOPE_BUTTON);
+                                               PCHTML_HTML_TAG_CATEGORY_SCOPE_BUTTON);
     if (body_node != NULL) {
         pchtml_html_tree_close_p_element(tree, token);
     }
@@ -419,7 +419,7 @@ pchtml_html_tree_insertion_mode_in_body_h123456(pchtml_html_tree_t *tree,
     pchtml_html_element_t *element;
 
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_P, PCHTML_NS_HTML,
-                                          PCHTML_PARSER_TAG_CATEGORY_SCOPE_BUTTON);
+                                          PCHTML_HTML_TAG_CATEGORY_SCOPE_BUTTON);
     if (node != NULL) {
         pchtml_html_tree_close_p_element(tree, token);
     }
@@ -465,7 +465,7 @@ pchtml_html_tree_insertion_mode_in_body_pre_listing(pchtml_html_tree_t *tree,
     pchtml_html_element_t *element;
 
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_P, PCHTML_NS_HTML,
-                                          PCHTML_PARSER_TAG_CATEGORY_SCOPE_BUTTON);
+                                          PCHTML_HTML_TAG_CATEGORY_SCOPE_BUTTON);
     if (node != NULL) {
         pchtml_html_tree_close_p_element(tree, token);
     }
@@ -502,7 +502,7 @@ pchtml_html_tree_insertion_mode_in_body_form(pchtml_html_tree_t *tree,
     }
 
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_P, PCHTML_NS_HTML,
-                                          PCHTML_PARSER_TAG_CATEGORY_SCOPE_BUTTON);
+                                          PCHTML_HTML_TAG_CATEGORY_SCOPE_BUTTON);
     if (node != NULL) {
         pchtml_html_tree_close_p_element(tree, token);
     }
@@ -557,7 +557,7 @@ pchtml_html_tree_insertion_mode_in_body_li(pchtml_html_tree_t *tree,
         }
 
         is_special = pchtml_html_tag_is_category(node->local_name, node->ns,
-                                              PCHTML_PARSER_TAG_CATEGORY_SPECIAL);
+                                              PCHTML_HTML_TAG_CATEGORY_SPECIAL);
         if (is_special
             && pchtml_html_tree_node_is(node, PCHTML_TAG_ADDRESS) == false
             && pchtml_html_tree_node_is(node, PCHTML_TAG_DIV) == false
@@ -568,7 +568,7 @@ pchtml_html_tree_insertion_mode_in_body_li(pchtml_html_tree_t *tree,
     }
 
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_P, PCHTML_NS_HTML,
-                                          PCHTML_PARSER_TAG_CATEGORY_SCOPE_BUTTON);
+                                          PCHTML_HTML_TAG_CATEGORY_SCOPE_BUTTON);
     if (node != NULL) {
         pchtml_html_tree_close_p_element(tree, token);
     }
@@ -638,7 +638,7 @@ pchtml_html_tree_insertion_mode_in_body_dd_dt(pchtml_html_tree_t *tree,
         }
 
         is_special = pchtml_html_tag_is_category(node->local_name, node->ns,
-                                              PCHTML_PARSER_TAG_CATEGORY_SPECIAL);
+                                              PCHTML_HTML_TAG_CATEGORY_SPECIAL);
         if (is_special
             && pchtml_html_tree_node_is(node, PCHTML_TAG_ADDRESS) == false
             && pchtml_html_tree_node_is(node, PCHTML_TAG_DIV) == false
@@ -649,7 +649,7 @@ pchtml_html_tree_insertion_mode_in_body_dd_dt(pchtml_html_tree_t *tree,
     }
 
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_P, PCHTML_NS_HTML,
-                                          PCHTML_PARSER_TAG_CATEGORY_SCOPE_BUTTON);
+                                          PCHTML_HTML_TAG_CATEGORY_SCOPE_BUTTON);
     if (node != NULL) {
         pchtml_html_tree_close_p_element(tree, token);
     }
@@ -673,7 +673,7 @@ pchtml_html_tree_insertion_mode_in_body_plaintext(pchtml_html_tree_t *tree,
     pchtml_html_element_t *element;
 
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_P, PCHTML_NS_HTML,
-                                          PCHTML_PARSER_TAG_CATEGORY_SCOPE_BUTTON);
+                                          PCHTML_HTML_TAG_CATEGORY_SCOPE_BUTTON);
     if (node != NULL) {
         pchtml_html_tree_close_p_element(tree, token);
     }
@@ -700,7 +700,7 @@ pchtml_html_tree_insertion_mode_in_body_button(pchtml_html_tree_t *tree,
     pchtml_html_element_t *element;
 
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_BUTTON, PCHTML_NS_HTML,
-                                          PCHTML_PARSER_TAG_CATEGORY_SCOPE);
+                                          PCHTML_HTML_TAG_CATEGORY_SCOPE);
     if (node != NULL) {
         pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_UNTO);
 
@@ -742,7 +742,7 @@ pchtml_html_tree_insertion_mode_in_body_abcdfhlmnopsu_closed(pchtml_html_tree_t 
     pcedom_node_t *node;
 
     node = pchtml_html_tree_element_in_scope(tree, token->tag_id,
-                                          PCHTML_NS_HTML, PCHTML_PARSER_TAG_CATEGORY_SCOPE);
+                                          PCHTML_NS_HTML, PCHTML_HTML_TAG_CATEGORY_SCOPE);
     if (node == NULL) {
         pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_UNCLTO);
 
@@ -785,7 +785,7 @@ pchtml_html_tree_insertion_mode_in_body_form_closed(pchtml_html_tree_t *tree,
         }
 
         node = pchtml_html_tree_element_in_scope_by_node(tree, node,
-                                                      PCHTML_PARSER_TAG_CATEGORY_SCOPE);
+                                                      PCHTML_HTML_TAG_CATEGORY_SCOPE);
         if (node == NULL) {
             pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_UNCLTO);
 
@@ -808,7 +808,7 @@ pchtml_html_tree_insertion_mode_in_body_form_closed(pchtml_html_tree_t *tree,
     }
 
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_FORM, PCHTML_NS_HTML,
-                                          PCHTML_PARSER_TAG_CATEGORY_SCOPE);
+                                          PCHTML_HTML_TAG_CATEGORY_SCOPE);
     if (node == NULL) {
         pchtml_html_tree_parse_error(tree, token, PCHTML_PARSER_RULES_ERROR_UNCLTO);
 
@@ -838,7 +838,7 @@ pchtml_html_tree_insertion_mode_in_body_p_closed(pchtml_html_tree_t *tree,
     pcedom_node_t *node;
 
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_P, PCHTML_NS_HTML,
-                                          PCHTML_PARSER_TAG_CATEGORY_SCOPE_BUTTON);
+                                          PCHTML_HTML_TAG_CATEGORY_SCOPE_BUTTON);
     if (node == NULL) {
         pchtml_html_token_t fake_token = {0};
         pchtml_html_element_t *element;
@@ -869,7 +869,7 @@ pchtml_html_tree_insertion_mode_in_body_li_closed(pchtml_html_tree_t *tree,
     pcedom_node_t *node;
 
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_LI, PCHTML_NS_HTML,
-                                          PCHTML_PARSER_TAG_CATEGORY_SCOPE_LIST_ITEM);
+                                          PCHTML_HTML_TAG_CATEGORY_SCOPE_LIST_ITEM);
     if (node == NULL) {
         pchtml_html_tree_parse_error(tree, token,
                                   PCHTML_PARSER_RULES_ERROR_UNCLTO);
@@ -901,7 +901,7 @@ pchtml_html_tree_insertion_mode_in_body_dd_dt_closed(pchtml_html_tree_t *tree,
     pcedom_node_t *node;
 
     node = pchtml_html_tree_element_in_scope(tree, token->tag_id, PCHTML_NS_HTML,
-                                          PCHTML_PARSER_TAG_CATEGORY_SCOPE);
+                                          PCHTML_HTML_TAG_CATEGORY_SCOPE);
     if (node == NULL) {
         pchtml_html_tree_parse_error(tree, token,
                                   PCHTML_PARSER_RULES_ERROR_UNCLTO);
@@ -1051,7 +1051,7 @@ pchtml_html_tree_insertion_mode_in_body_nobr(pchtml_html_tree_t *tree,
     }
 
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_NOBR, PCHTML_NS_HTML,
-                                          PCHTML_PARSER_TAG_CATEGORY_SCOPE);
+                                          PCHTML_HTML_TAG_CATEGORY_SCOPE);
     if (node != NULL) {
         /* bool is; */
 
@@ -1156,7 +1156,7 @@ pchtml_html_tree_insertion_mode_in_body_amo_closed(pchtml_html_tree_t *tree,
     pcedom_node_t *node;
 
     node = pchtml_html_tree_element_in_scope(tree, token->tag_id, PCHTML_NS_HTML,
-                                          PCHTML_PARSER_TAG_CATEGORY_SCOPE);
+                                          PCHTML_HTML_TAG_CATEGORY_SCOPE);
     if (node == NULL) {
         pchtml_html_tree_parse_error(tree, token,
                                   PCHTML_PARSER_RULES_ERROR_UNCLTO);
@@ -1192,7 +1192,7 @@ pchtml_html_tree_insertion_mode_in_body_table(pchtml_html_tree_t *tree,
         != PCEDOM_DOCUMENT_CMODE_QUIRKS)
     {
         node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_P, PCHTML_NS_HTML,
-                                              PCHTML_PARSER_TAG_CATEGORY_SCOPE_BUTTON);
+                                              PCHTML_HTML_TAG_CATEGORY_SCOPE_BUTTON);
         if (node != NULL) {
             pchtml_html_tree_close_p_element(tree, token);
         }
@@ -1323,7 +1323,7 @@ pchtml_html_tree_insertion_mode_in_body_hr(pchtml_html_tree_t *tree,
     pchtml_html_element_t *element;
 
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_P, PCHTML_NS_HTML,
-                                          PCHTML_PARSER_TAG_CATEGORY_SCOPE_BUTTON);
+                                          PCHTML_HTML_TAG_CATEGORY_SCOPE_BUTTON);
     if (node != NULL) {
         pchtml_html_tree_close_p_element(tree, token);
     }
@@ -1391,7 +1391,7 @@ pchtml_html_tree_insertion_mode_in_body_xmp(pchtml_html_tree_t *tree,
     pchtml_html_element_t *element;
 
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_P, PCHTML_NS_HTML,
-                                          PCHTML_PARSER_TAG_CATEGORY_SCOPE_BUTTON);
+                                          PCHTML_HTML_TAG_CATEGORY_SCOPE_BUTTON);
     if (node != NULL) {
         pchtml_html_tree_close_p_element(tree, token);
     }
@@ -1528,7 +1528,7 @@ pchtml_html_tree_insertion_mode_in_body_rbrtc(pchtml_html_tree_t *tree,
     pchtml_html_element_t *element;
 
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_RUBY, PCHTML_NS_HTML,
-                                          PCHTML_PARSER_TAG_CATEGORY_SCOPE);
+                                          PCHTML_HTML_TAG_CATEGORY_SCOPE);
     if (node != NULL) {
         pchtml_html_tree_generate_implied_end_tags(tree, PCHTML_TAG__UNDEF,
                                                 PCHTML_NS__UNDEF);
@@ -1562,7 +1562,7 @@ pchtml_html_tree_insertion_mode_in_body_rprt(pchtml_html_tree_t *tree,
     pchtml_html_element_t *element;
 
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_RUBY, PCHTML_NS_HTML,
-                                          PCHTML_PARSER_TAG_CATEGORY_SCOPE);
+                                          PCHTML_HTML_TAG_CATEGORY_SCOPE);
     if (node != NULL) {
         pchtml_html_tree_generate_implied_end_tags(tree, PCHTML_TAG_RTC,
                                                 PCHTML_NS_HTML);
@@ -1735,7 +1735,7 @@ pchtml_html_tree_insertion_mode_in_body_anything_else_closed(pchtml_html_tree_t 
         }
 
         is = pchtml_html_tag_is_category(list[len]->local_name, list[len]->ns,
-                                      PCHTML_PARSER_TAG_CATEGORY_SPECIAL);
+                                      PCHTML_HTML_TAG_CATEGORY_SPECIAL);
         if (is) {
             pchtml_html_tree_parse_error(tree, token,
                                       PCHTML_PARSER_RULES_ERROR_UNCLTO);

@@ -37,7 +37,7 @@
 #include "html/hash.h"
 #include "html/shs.h"
 
-#include "html/ns_const.h"
+#include "ns_const.h"
 
 #ifdef __cplusplus
 extern "C" {
