@@ -155,9 +155,12 @@ static inline bool is_ascii_alpha_numeric (wchar_t character)
     return is_ascii_digit(character) || is_ascii_alpha(character);
 }
 
+#define    END_OF_FILE_MARKER     0
+
 static inline bool is_delimiter (wchar_t c)
 {
-    return is_whitespace(c) || c == '}' || c == ']' || c == ',';
+    return is_whitespace(c) || c == '}' || c == ']' || c == ','
+        || c == END_OF_FILE_MARKER;
 }
 
 struct pcejson* pcejson_create (int32_t depth, uint32_t flags)
@@ -348,7 +351,7 @@ int pcejson_parse (struct pcvcm_node** vcm_tree, struct pcejson** parser,
     struct pcutils_stack* node_stack = (*parser)->vcm_stack;
 
     struct pcejson_token* token = pcejson_next_token(*parser, rws);
-    while (token) {
+    while (token && token->type != EJSON_TOKEN_EOF) {
         struct pcvcm_node* node = pcejson_token_to_pcvcm_node (node_stack,
                 token);
         if (node) {
@@ -475,8 +478,6 @@ void pcejson_token_destroy (struct pcejson_token* token)
     }
 }
 
-#define    END_OF_FILE_MARKER     0
-
 
 struct pcejson_token* pcejson_next_token (struct pcejson* ejson,
         purc_rwstream_t rws)
@@ -497,28 +498,24 @@ next_state:
     switch (ejson->state) {
 
         BEGIN_STATE(EJSON_INIT_STATE)
-            switch (ejson->wc) {
-                case ' ':
-                case '\x0A':
-                case '\x09':
-                case '\x0C':
-                    ADVANCE_TO(EJSON_INIT_STATE);
-                    break;
-                case '{':
-                    RECONSUME_IN(EJSON_OBJECT_STATE);
-                    break;
-                case '[':
-                    RECONSUME_IN(EJSON_ARRAY_STATE);
-                    break;
-                case END_OF_FILE_MARKER:
-                    return pcejson_token_new (EJSON_TOKEN_EOF, NULL, 0);
-                default:
-                    // utf-8 bom EF BB BF -> FEFF
-                    if (ejson->wc == 0xFEFF) {
-                        ADVANCE_TO(EJSON_INIT_STATE);
-                    }
-                    pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
-                    return NULL;
+            if (is_whitespace (ejson->wc)) {
+                ADVANCE_TO(EJSON_INIT_STATE);
+            }
+            else if (ejson->wc == '{') {
+                RECONSUME_IN(EJSON_OBJECT_STATE);
+            }
+            else if (ejson->wc == '[') {
+                RECONSUME_IN(EJSON_ARRAY_STATE);
+            }
+            else if (ejson->wc == END_OF_FILE_MARKER) {
+                return pcejson_token_new (EJSON_TOKEN_EOF, NULL, 0);
+            }
+            else if (ejson->wc == 0xFEFF) {
+                // UTF-8 bom EF BB BF -> FEFF
+                ADVANCE_TO(EJSON_INIT_STATE);
+            }
+            else {
+                RECONSUME_IN(EJSON_BEFORE_VALUE_STATE);
             }
         END_STATE()
 
@@ -927,10 +924,6 @@ next_state:
                 else if (pcejson_tmp_buff_equal(ejson->tmp_buff, "\"\"")) {
                     RECONSUME_IN(EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE);
                 }
-            }
-            else if (ejson->wc == END_OF_FILE_MARKER) {
-                pcinst_set_error(PCEJSON_EOF_IN_STRING_PARSE_ERROR);
-                return pcejson_token_new (EJSON_TOKEN_EOF, NULL, 0);
             }
             else {
                 pcejson_tmp_buff_remove_first_last (ejson->tmp_buff, 1, 1);
