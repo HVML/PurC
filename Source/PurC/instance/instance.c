@@ -213,7 +213,7 @@ bool purc_cleanup(void)
 }
 
 bool
-purc_set_local_data(const char* data_name, void *local_data,
+purc_set_local_data(const char* data_name, uintptr_t local_data,
         cb_free_local_data cb_free)
 {
     struct pcinst* inst = pcinst_current();
@@ -221,7 +221,7 @@ purc_set_local_data(const char* data_name, void *local_data,
         return false;
 
     if (pcutils_map_find_replace_or_insert(inst->local_data_map,
-                data_name, local_data, (free_val_fn)cb_free)) {
+                data_name, (void *)local_data, (free_val_fn)cb_free)) {
         inst->errcode = PURC_ERROR_OUT_OF_MEMORY;
         return false;
     }
@@ -250,7 +250,7 @@ purc_remove_local_data(const char* data_name)
 }
 
 int
-purc_get_local_data(const char* data_name, void **local_data,
+purc_get_local_data(const char* data_name, uintptr_t *local_data,
         cb_free_local_data* cb_free)
 {
     struct pcinst* inst;
@@ -266,7 +266,7 @@ purc_get_local_data(const char* data_name, void **local_data,
 
     if ((entry = pcutils_map_find(inst->local_data_map, data_name))) {
         if (local_data)
-            *local_data = entry->val;
+            *local_data = (uintptr_t)entry->val;
 
         if (cb_free)
             *cb_free = (cb_free_local_data)entry->free_val_alt;

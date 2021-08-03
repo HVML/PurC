@@ -184,6 +184,8 @@ static bool purc_variant_string_check_utf8 (const char* str_utf8)
 purc_variant_t
 purc_variant_make_string (const char* str_utf8, bool check_encoding)
 {
+    PCVARIANT_CHECK_FAIL_RET((str_utf8 != NULL), PURC_VARIANT_INVALID);
+
     size_t str_size = strlen (str_utf8);
     size_t real_size = MAX (sizeof(long double), sizeof(void*) * 2);
     purc_variant_t value = NULL;
@@ -288,7 +290,7 @@ void pcvariant_string_release (purc_variant_t string)
 purc_variant_t
 purc_variant_make_atom_string (const char* str_utf8, bool check_encoding)
 {
-    PC_ASSERT(str_utf8);
+    PCVARIANT_CHECK_FAIL_RET((str_utf8 != NULL), PURC_VARIANT_INVALID);
 
     purc_variant_t value = NULL;
 
@@ -326,7 +328,7 @@ purc_variant_t
 purc_variant_make_atom_string_static (const char* str_utf8,
         bool check_encoding)
 {
-    PC_ASSERT(str_utf8);
+    PCVARIANT_CHECK_FAIL_RET((str_utf8 != NULL), PURC_VARIANT_INVALID);
 
     purc_variant_t value = NULL;
 

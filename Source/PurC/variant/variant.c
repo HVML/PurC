@@ -125,20 +125,20 @@ void pcvariant_init_instance(struct pcinst* inst)
 {
     // initialize const values in instance
     inst->variant_heap.v_null.type = PURC_VARIANT_TYPE_NULL;
-    inst->variant_heap.v_null.refc = 1;
+    inst->variant_heap.v_null.refc = 0;
     inst->variant_heap.v_null.flags = PCVARIANT_FLAG_NOFREE;
 
     inst->variant_heap.v_undefined.type = PURC_VARIANT_TYPE_UNDEFINED;
-    inst->variant_heap.v_undefined.refc = 1;
+    inst->variant_heap.v_undefined.refc = 0;
     inst->variant_heap.v_undefined.flags = PCVARIANT_FLAG_NOFREE;
 
     inst->variant_heap.v_false.type = PURC_VARIANT_TYPE_UNDEFINED;
-    inst->variant_heap.v_false.refc = 1;
+    inst->variant_heap.v_false.refc = 0;
     inst->variant_heap.v_false.flags = PCVARIANT_FLAG_NOFREE;
     inst->variant_heap.v_false.b = false;
 
     inst->variant_heap.v_true.type = PURC_VARIANT_TYPE_UNDEFINED;
-    inst->variant_heap.v_true.refc = 1;
+    inst->variant_heap.v_true.refc = 0;
     inst->variant_heap.v_true.flags = PCVARIANT_FLAG_NOFREE;
     inst->variant_heap.v_true.b = true;
 
@@ -214,7 +214,6 @@ unsigned int purc_variant_ref (purc_variant_t value)
             break;
 
         case PURC_VARIANT_TYPE_SET:
-            PC_ASSERT(0);
             foreach_value_in_variant_set(value, variant)
                 purc_variant_ref(variant);
             end_foreach;
@@ -241,24 +240,55 @@ unsigned int purc_variant_unref(purc_variant_t value)
     switch ((int)value->type) {
         case PURC_VARIANT_TYPE_OBJECT:
         {
-            foreach_value_in_variant_object(value, variant) {
-                purc_variant_unref(variant);
+            // consideration: better implementation?
+            const char *key;
+            struct pchash_entry *curr, *tmp;
+            foreach_key_value_in_variant_object_safe(value, key, variant,
+                    curr, tmp)
+            {
+                int refc = purc_variant_unref(variant);
+                if (value->refc>1 && refc)
+                    continue;
+                // shall switch to faster iteration later
+                int t = pchash_table_delete_entry(_ht, curr);
+                PC_ASSERT(t==0);
+                free((void*)key);
             } end_foreach;
             break;
         }
 
         case PURC_VARIANT_TYPE_ARRAY:
         {
-            foreach_value_in_variant_array(value, variant) {
-                purc_variant_unref(variant);
+            // consideration: better implementation?
+            size_t curr, tmp;
+            foreach_value_in_variant_array_safe(value, variant, curr, tmp)
+            {
+                int refc = purc_variant_unref(variant);
+                if (value->refc>1 && refc)
+                    continue;
+                // shall switch to faster iteration later
+                int t = pcutils_arrlist_del_idx(_al, curr, 1);
+                PC_ASSERT(t==0);
+                tmp = curr;
             } end_foreach;
             break;
         }
 
         case PURC_VARIANT_TYPE_SET:
         {
-            foreach_value_in_variant_set(value, variant) {
-                purc_variant_unref(variant);
+            // consideration: better implementation?
+            struct obj_node *curr, *tmp;
+            foreach_value_in_variant_set_safe(value, variant, curr, tmp)
+            {
+                int refc = variant->refc;
+                if (value->refc>1 && refc>1) {
+                    purc_variant_unref(variant);
+                    continue;
+                }
+                // shall switch to faster iteration later
+                pcutils_avl_delete(_tree, &curr->avl);
+                pcvariant_set_release_obj(curr);
+                free(curr);
             } end_foreach;
             break;
         }
