@@ -21,3 +21,7 @@ y_string_backslash_doublequotes
 y_structure_true_in_array # true
 y_structure_lonely_true # true
 y_structure_lonely_false
+n_array_comma_after_close # 1100
+n_array_double_extra_comma # 1100
+n_array_extra_close
+n_array_number_and_several_commas

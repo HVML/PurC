@@ -104,12 +104,8 @@ y_structure_lonely_int
 y_structure_lonely_negative_real
 y_string_space
 y_structure_string_empty
-n_array_comma_after_close
-n_array_double_extra_comma
-n_array_extra_close
 n_array_extra_comma
 n_array_number_and_comma
-n_array_number_and_several_commas
 n_multidigit_number_then_00
 n_number_-01
 n_number_infinity
