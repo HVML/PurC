@@ -98,7 +98,7 @@ add_custom_command(
             ${PURC_DIR}/html/tag_res.h.in
     COMMAND ${Python3_EXECUTABLE} ${PURC_DIR}/html/tags.py "${PurC_DERIVED_SOURCES_DIR}" --without-print
     COMMAND touch "${PurC_DERIVED_SOURCES_DIR}/html_foo.c"
-    COMMENT "Generating xxx_res.h and xxx_const.h by using ${Python3_EXECUTABLE}"
+    COMMENT "Generating files for HTML tags and interfaces by using ${Python3_EXECUTABLE}"
     WORKING_DIRECTORY "${PURC_DIR}/html/"
     VERBATIM)
 list(APPEND PurC_SOURCES ${PurC_DERIVED_SOURCES_DIR}/html_foo.c)
