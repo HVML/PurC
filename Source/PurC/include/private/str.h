@@ -30,8 +30,8 @@
  * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
-#ifndef PCHTML_STR_H
-#define PCHTML_STR_H
+#ifndef PURC_PRIVATE_STR_H
+#define PURC_PRIVATE_STR_H
 
 #include "config.h"
 
@@ -259,4 +259,4 @@ pcutils_str_length_set(pcutils_str_t *str, pcutils_mraw_t *mraw, size_t length)
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_STR_H */
+#endif  /* PURC_PRIVATE_STR_H */

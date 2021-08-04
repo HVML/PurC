@@ -22,8 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef PCUTILS_ARRAY_OBJ_H
-#define PCUTILS_ARRAY_OBJ_H
+#ifndef PURC_PRIVATE_ARRAY_OBJ_H
+#define PURC_PRIVATE_ARRAY_OBJ_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -120,4 +120,4 @@ pcutils_array_obj_last(pcutils_array_obj_t *array)
 }
 #endif
 
-#endif  /* PCUTILS_ARRAY_OBJ_H */
+#endif  /* PURC_PRIVATE_ARRAY_OBJ_H */

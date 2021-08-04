@@ -30,8 +30,8 @@
  * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
-#ifndef PCHTML_SHS_H
-#define PCHTML_SHS_H
+#ifndef PURC_PRIVATE_SHS_H
+#define PURC_PRIVATE_SHS_H
 
 #include "config.h"
 
@@ -100,7 +100,7 @@ pcutils_shs_hash_get_static(const pcutils_shs_hash_t *table,
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_SHS_H */
+#endif  /* PURC_PRIVATE_SHS_H */
 
 
 

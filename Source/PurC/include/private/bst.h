@@ -30,8 +30,8 @@
  * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
-#ifndef PCHTML_BST_H
-#define PCHTML_BST_H
+#ifndef PURC_PRIVATE_BST_H
+#define PURC_PRIVATE_BST_H
 
 #include <string.h>
 
@@ -131,7 +131,7 @@ pcutils_bst_serialize_entry(pcutils_bst_entry_t *entry,
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_BST_H */
+#endif  /* PURC_PRIVATE_BST_H */
 
 
 

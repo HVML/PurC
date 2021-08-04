@@ -30,8 +30,8 @@
  * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
-#ifndef PCHTML_MRAW_H
-#define PCHTML_MRAW_H
+#ifndef PURC_PRIVATE_MRAW_H
+#define PURC_PRIVATE_MRAW_H
 
 
 #include "config.h"
@@ -45,10 +45,11 @@
 extern "C" {
 #endif
 
-#define pcutils_mraw_meta_size()                                                \
-    (((sizeof(size_t) % PCHTML_MEM_ALIGN_STEP) != 0)                           \
-    ? sizeof(size_t)                                                           \
-        + (PCHTML_MEM_ALIGN_STEP - (sizeof(size_t) % PCHTML_MEM_ALIGN_STEP))   \
+#define pcutils_mraw_meta_size()                           \
+    (((sizeof(size_t) % PURC_PRIVATE_MEM_ALIGN_STEP) != 0) \
+    ? sizeof(size_t)                                       \
+        + (PURC_PRIVATE_MEM_ALIGN_STEP                     \
+        - (sizeof(size_t) % PURC_PRIVATE_MEM_ALIGN_STEP))  \
     : sizeof(size_t))
 
 
@@ -118,4 +119,4 @@ pcutils_mraw_dup(pcutils_mraw_t *mraw, const void *src, size_t size)
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_MRAW_H */
+#endif  /* PURC_PRIVATE_MRAW_H */

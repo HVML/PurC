@@ -31,8 +31,8 @@
  */
 
 
-#ifndef PCHTML_MEM_H
-#define PCHTML_MEM_H
+#ifndef PURC_PRIVATE_MEM_H
+#define PURC_PRIVATE_MEM_H
 
 #include "config.h"
 
@@ -41,7 +41,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define PCHTML_MEM_ALIGN_STEP sizeof(void *)
+#define PURC_PRIVATE_MEM_ALIGN_STEP sizeof(void *)
 
 #define pcutils_malloc(sz)       malloc(sz)
 #define pcutils_realloc(ptr, sz) realloc(ptr, sz)
@@ -144,16 +144,16 @@ pcutils_mem_chunk_length(pcutils_mem_t *mem)
 static inline size_t
 pcutils_mem_align(size_t size)
 {
-    return ((size % PCHTML_MEM_ALIGN_STEP) != 0)
-           ? size + (PCHTML_MEM_ALIGN_STEP - (size % PCHTML_MEM_ALIGN_STEP))
+    return ((size % PURC_PRIVATE_MEM_ALIGN_STEP) != 0)
+           ? size + (PURC_PRIVATE_MEM_ALIGN_STEP - (size % PURC_PRIVATE_MEM_ALIGN_STEP))
            : size;
 }
 
 static inline size_t
 pcutils_mem_align_floor(size_t size)
 {
-    return ((size % PCHTML_MEM_ALIGN_STEP) != 0)
-           ? size - (size % PCHTML_MEM_ALIGN_STEP)
+    return ((size % PURC_PRIVATE_MEM_ALIGN_STEP) != 0)
+           ? size - (size % PURC_PRIVATE_MEM_ALIGN_STEP)
            : size;
 }
 
@@ -161,4 +161,4 @@ pcutils_mem_align_floor(size_t size)
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_MEM_H */
+#endif  /* PURC_PRIVATE_MEM_H */

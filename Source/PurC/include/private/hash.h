@@ -30,15 +30,15 @@
  * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
-#ifndef PCHTML_HASH_H
-#define PCHTML_HASH_H
+#ifndef PURC_PRIVATE_HASH_H
+#define PURC_PRIVATE_HASH_H
 
 #include "config.h"
 #include "private/dobject.h"
 #include "private/mraw.h"
 
-#define PCHTML_HASH_SHORT_SIZE     16
-#define PCHTML_HASH_TABLE_MIN_SIZE 32
+#define PURC_PRIVATE_HASH_SHORT_SIZE     16
+#define PURC_PRIVATE_HASH_TABLE_MIN_SIZE 32
 
 #ifdef __cplusplus
 extern "C" {
@@ -47,7 +47,7 @@ extern "C" {
 typedef struct pcutils_hash_search pcutils_hash_search_t;
 typedef struct pcutils_hash_insert pcutils_hash_insert_t;
 
-#ifndef PCHTML_HASH_EXTERN
+#ifndef PURC_PRIVATE_HASH_EXTERN
 extern const pcutils_hash_insert_t *pcutils_hash_insert_raw;
 extern const pcutils_hash_insert_t *pcutils_hash_insert_lower;
 extern const pcutils_hash_insert_t *pcutils_hash_insert_upper;
@@ -80,7 +80,7 @@ typedef bool
 struct pcutils_hash_entry {
     union {
         unsigned char *long_str;
-        unsigned char short_str[PCHTML_HASH_SHORT_SIZE + 1];
+        unsigned char short_str[PURC_PRIVATE_HASH_SHORT_SIZE + 1];
     } u;
 
     size_t              length;
@@ -184,7 +184,7 @@ pcutils_hash_mraw(const pcutils_hash_t *hash)
 static inline unsigned char *
 pcutils_hash_entry_str(const pcutils_hash_entry_t *entry)
 {
-    if (entry->length <= PCHTML_HASH_SHORT_SIZE) {
+    if (entry->length <= PURC_PRIVATE_HASH_SHORT_SIZE) {
         return (unsigned char *) entry->u.short_str;
     }
 
@@ -197,7 +197,7 @@ pcutils_hash_entry_str_set(pcutils_hash_entry_t *entry,
 {
     entry->length = length;
 
-    if (length <= PCHTML_HASH_SHORT_SIZE) {
+    if (length <= PURC_PRIVATE_HASH_SHORT_SIZE) {
         memcpy(entry->u.short_str, data, length);
         return (unsigned char *) entry->u.short_str;
     }
@@ -209,7 +209,7 @@ pcutils_hash_entry_str_set(pcutils_hash_entry_t *entry,
 static inline void
 pcutils_hash_entry_str_free(pcutils_hash_t *hash, pcutils_hash_entry_t *entry)
 {
-    if (entry->length > PCHTML_HASH_SHORT_SIZE) {
+    if (entry->length > PURC_PRIVATE_HASH_SHORT_SIZE) {
         pcutils_mraw_free(hash->mraw, entry->u.long_str);
     }
 
@@ -239,4 +239,4 @@ pcutils_hash_entries_count(pcutils_hash_t *hash)
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_HASH_H */
+#endif  /* PURC_PRIVATE_HASH_H */

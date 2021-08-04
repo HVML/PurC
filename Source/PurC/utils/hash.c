@@ -33,9 +33,9 @@
 #include "purc.h"
 #include "config.h"
 
-#define PCHTML_HASH_EXTERN
+#define PURC_PRIVATE_HASH_EXTERN
 #include "private/hash.h"
-#undef PCHTML_HASH_EXTERN
+#undef PURC_PRIVATE_HASH_EXTERN
 
 #include "private/str.h"
 
@@ -155,8 +155,8 @@ pcutils_hash_init(pcutils_hash_t *hash, size_t table_size, size_t struct_size)
         return PURC_ERROR_NULL_OBJECT;
     }
 
-    if (table_size < PCHTML_HASH_TABLE_MIN_SIZE) {
-        table_size = PCHTML_HASH_TABLE_MIN_SIZE;
+    if (table_size < PURC_PRIVATE_HASH_TABLE_MIN_SIZE) {
+        table_size = PURC_PRIVATE_HASH_TABLE_MIN_SIZE;
     }
 
     chunk_size = table_size / 2;
@@ -331,7 +331,7 @@ pcutils_hash_remove_by_hash_id(pcutils_hash_t *hash, uint32_t hash_id,
                 prev->next = entry->next;
             }
 
-            if (length > PCHTML_HASH_SHORT_SIZE) {
+            if (length > PURC_PRIVATE_HASH_SHORT_SIZE) {
                 pcutils_mraw_free(hash->mraw, entry->u.long_str);
             }
 
@@ -431,7 +431,7 @@ pcutils_hash_copy(pcutils_hash_t *hash, pcutils_hash_entry_t *entry,
 {
     unsigned char *to;
 
-    if (length <= PCHTML_HASH_SHORT_SIZE) {
+    if (length <= PURC_PRIVATE_HASH_SHORT_SIZE) {
         to = entry->u.short_str;
     }
     else {
@@ -456,7 +456,7 @@ pcutils_hash_copy_lower(pcutils_hash_t *hash, pcutils_hash_entry_t *entry,
 {
     unsigned char *to;
 
-    if (length <= PCHTML_HASH_SHORT_SIZE) {
+    if (length <= PURC_PRIVATE_HASH_SHORT_SIZE) {
         to = entry->u.short_str;
     }
     else {
@@ -483,7 +483,7 @@ pcutils_hash_copy_upper(pcutils_hash_t *hash, pcutils_hash_entry_t *entry,
 {
     unsigned char *to;
 
-    if (length <= PCHTML_HASH_SHORT_SIZE) {
+    if (length <= PURC_PRIVATE_HASH_SHORT_SIZE) {
         to = entry->u.short_str;
     }
     else {

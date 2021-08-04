@@ -29,8 +29,8 @@
  * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
-#ifndef PCUTILS_ARRAY_H
-#define PCUTILS_ARRAY_H
+#ifndef PURC_PRIVATE_ARRAY_H
+#define PURC_PRIVATE_ARRAY_H
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -105,4 +105,4 @@ static inline size_t pcutils_array_size(pcutils_array_t *array)
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCUTILS_ARRAY_H */
+#endif  /* PURC_PRIVATE_ARRAY_H */

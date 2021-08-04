@@ -30,8 +30,8 @@
  * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
-#ifndef PCHTML_DOBJECT_H
-#define PCHTML_DOBJECT_H
+#ifndef PURC_PRIVATE_DOBJECT_H
+#define PURC_PRIVATE_DOBJECT_H
 
 #include "config.h"
 
@@ -102,6 +102,6 @@ pcutils_dobject_cache_length(pcutils_dobject_t *dobject)
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_DOBJECT_H */
+#endif  /* PURC_PRIVATE_DOBJECT_H */
 
 
