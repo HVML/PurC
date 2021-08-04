@@ -39,7 +39,7 @@
 #include "private/hash.h"
 #undef PCHTML_HASH_EXTERN
 
-#include "html/str.h"
+#include "private/str.h"
 
 #define PCHTML_STR_RES_MAP_LOWERCASE
 #define PCHTML_STR_RES_MAP_UPPERCASE

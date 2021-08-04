@@ -38,7 +38,7 @@
 #include "private/hash.h"
 #include "html/shs.h"
 #include "private/dobject.h"
-#include "html/str.h"
+#include "private/str.h"
 
 #include "html_tag_const.h"
 

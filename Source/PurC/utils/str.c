@@ -33,7 +33,7 @@
 #include "config.h"
 #include "private/utils.h"
 
-#include "html/str.h"
+#include "private/str.h"
 
 #define PCHTML_STR_RES_ANSI_REPLACEMENT_CHARACTER
 #define PCHTML_STR_RES_MAP_LOWERCASE

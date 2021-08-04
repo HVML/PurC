@@ -35,7 +35,7 @@
 
 #include "config.h"
 
-#include "html/str.h"
+#include "private/str.h"
 #include "private/hash.h"
 #include "html/tag.h"
 #include "html/ns.h"

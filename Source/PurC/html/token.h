@@ -37,7 +37,7 @@
 
 #include "private/dobject.h"
 #include "html/in.h"
-#include "html/str.h"
+#include "private/str.h"
 #include "html/base.h"
 #include "html/token_attr.h"
 #include "html/tag.h"
