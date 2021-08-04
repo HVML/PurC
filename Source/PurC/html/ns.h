@@ -45,7 +45,7 @@ extern "C" {
 #endif
 
 typedef struct {
-    pchtml_hash_entry_t  entry;
+    pcutils_hash_entry_t  entry;
 
     pchtml_ns_id_t          ns_id;
     size_t               ref_count;
@@ -54,7 +54,7 @@ typedef struct {
 pchtml_ns_data_t;
 
 typedef struct {
-    pchtml_hash_entry_t  entry;
+    pcutils_hash_entry_t  entry;
 
     pchtml_ns_prefix_id_t   prefix_id;
     size_t               ref_count;
@@ -65,27 +65,27 @@ pchtml_ns_prefix_data_t;
 
 /* Link */
 const unsigned char *
-pchtml_ns_by_id(pchtml_hash_t *hash, pchtml_ns_id_t ns_id, 
+pchtml_ns_by_id(pcutils_hash_t *hash, pchtml_ns_id_t ns_id, 
                 size_t *length) WTF_INTERNAL;
 
 const pchtml_ns_data_t *
-pchtml_ns_data_by_id(pchtml_hash_t *hash, pchtml_ns_id_t ns_id) WTF_INTERNAL;
+pchtml_ns_data_by_id(pcutils_hash_t *hash, pchtml_ns_id_t ns_id) WTF_INTERNAL;
 
 const pchtml_ns_data_t *
-pchtml_ns_data_by_link(pchtml_hash_t *hash, const unsigned char *name, 
+pchtml_ns_data_by_link(pcutils_hash_t *hash, const unsigned char *name, 
                 size_t length) WTF_INTERNAL;
 
 /* Prefix */
 const pchtml_ns_prefix_data_t *
-pchtml_ns_prefix_append(pchtml_hash_t *hash,
+pchtml_ns_prefix_append(pcutils_hash_t *hash,
                 const unsigned char *prefix, size_t length) WTF_INTERNAL;
 
 const pchtml_ns_prefix_data_t *
-pchtml_ns_prefix_data_by_id(pchtml_hash_t *hash, 
+pchtml_ns_prefix_data_by_id(pcutils_hash_t *hash, 
                 pchtml_ns_prefix_id_t prefix_id) WTF_INTERNAL;
 
 const pchtml_ns_prefix_data_t *
-pchtml_ns_prefix_data_by_name(pchtml_hash_t *hash,
+pchtml_ns_prefix_data_by_name(pcutils_hash_t *hash,
                 const unsigned char *name, size_t length) WTF_INTERNAL;
 
 

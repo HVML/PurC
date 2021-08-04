@@ -63,8 +63,8 @@ struct pchtml_html_tokenizer {
     pchtml_html_tokenizer_token_f       callback_token_done;
     void                             *callback_token_ctx;
 
-    pchtml_hash_t                    *tags;
-    pchtml_hash_t                    *attrs;
+    pcutils_hash_t                    *tags;
+    pcutils_hash_t                    *attrs;
     pchtml_mraw_t                    *attrs_mraw;
 
     /* For a temp strings and other templary data */
@@ -196,24 +196,24 @@ pchtml_html_tokenizer_status_set(pchtml_html_tokenizer_t *tkz, unsigned int stat
 }
 
 static inline void
-pchtml_html_tokenizer_tags_set(pchtml_html_tokenizer_t *tkz, pchtml_hash_t *tags)
+pchtml_html_tokenizer_tags_set(pchtml_html_tokenizer_t *tkz, pcutils_hash_t *tags)
 {
     tkz->tags = tags;
 }
 
-static inline pchtml_hash_t *
+static inline pcutils_hash_t *
 pchtml_html_tokenizer_tags(pchtml_html_tokenizer_t *tkz)
 {
     return tkz->tags;
 }
 
 static inline void
-pchtml_html_tokenizer_attrs_set(pchtml_html_tokenizer_t *tkz, pchtml_hash_t *attrs)
+pchtml_html_tokenizer_attrs_set(pchtml_html_tokenizer_t *tkz, pcutils_hash_t *attrs)
 {
     tkz->attrs = attrs;
 }
 
-static inline pchtml_hash_t *
+static inline pcutils_hash_t *
 pchtml_html_tokenizer_attrs(pchtml_html_tokenizer_t *tkz)
 {
     return tkz->attrs;

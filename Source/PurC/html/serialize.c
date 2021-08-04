@@ -749,14 +749,14 @@ pchtml_html_serialize_attribute_cb(pcedom_attr_t *attr, bool has_raw,
     }
 
     if (attr->node.ns == PCHTML_NS__UNDEF) {
-        pchtml_html_serialize_send(pchtml_hash_entry_str(&data->entry),
+        pchtml_html_serialize_send(pcutils_hash_entry_str(&data->entry),
                                 data->entry.length, ctx);
         goto value;
     }
 
     if (attr->node.ns == PCHTML_NS_XML) {
         pchtml_html_serialize_send((const unsigned char *) "xml:", 4, ctx);
-        pchtml_html_serialize_send(pchtml_hash_entry_str(&data->entry),
+        pchtml_html_serialize_send(pcutils_hash_entry_str(&data->entry),
                                 data->entry.length, ctx);
 
         goto value;
@@ -765,14 +765,14 @@ pchtml_html_serialize_attribute_cb(pcedom_attr_t *attr, bool has_raw,
     if (attr->node.ns == PCHTML_NS_XMLNS)
     {
         if (data->entry.length == 5
-            && pchtml_str_data_cmp(pchtml_hash_entry_str(&data->entry),
+            && pchtml_str_data_cmp(pcutils_hash_entry_str(&data->entry),
                                    (const unsigned char *) "xmlns"))
         {
             pchtml_html_serialize_send((const unsigned char *) "xmlns", 5, ctx);
         }
         else {
             pchtml_html_serialize_send((const unsigned char *) "xmlns:", 5, ctx);
-            pchtml_html_serialize_send(pchtml_hash_entry_str(&data->entry),
+            pchtml_html_serialize_send(pcutils_hash_entry_str(&data->entry),
                                     data->entry.length, ctx);
         }
 
@@ -781,7 +781,7 @@ pchtml_html_serialize_attribute_cb(pcedom_attr_t *attr, bool has_raw,
 
     if (attr->node.ns == PCHTML_NS_XLINK) {
         pchtml_html_serialize_send((const unsigned char *) "xlink:", 6, ctx);
-        pchtml_html_serialize_send(pchtml_hash_entry_str(&data->entry),
+        pchtml_html_serialize_send(pcutils_hash_entry_str(&data->entry),
                                 data->entry.length, ctx);
 
         goto value;
@@ -1099,7 +1099,7 @@ pchtml_html_serialize_pretty_element_cb(pcedom_element_t *element,
         }
 
         if (data != NULL) {
-            pchtml_html_serialize_send(pchtml_hash_entry_str(&data->entry),
+            pchtml_html_serialize_send(pcutils_hash_entry_str(&data->entry),
                                     data->entry.length, ctx);
             pchtml_html_serialize_send(":", 1, ctx);
         }

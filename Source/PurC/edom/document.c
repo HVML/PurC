@@ -130,27 +130,27 @@ pcedom_document_init(pcedom_document_t *document, pcedom_document_t *owner,
         goto failed;
     }
 
-    document->tags = pchtml_hash_create();
-    status = pchtml_hash_init(document->tags, 128, sizeof(pchtml_tag_data_t));
+    document->tags = pcutils_hash_create();
+    status = pcutils_hash_init(document->tags, 128, sizeof(pchtml_tag_data_t));
     if (status != PCHTML_STATUS_OK) {
         goto failed;
     }
 
-    document->ns = pchtml_hash_create();
-    status = pchtml_hash_init(document->ns, 128, sizeof(pchtml_ns_data_t));
+    document->ns = pcutils_hash_create();
+    status = pcutils_hash_init(document->ns, 128, sizeof(pchtml_ns_data_t));
     if (status != PCHTML_STATUS_OK) {
         goto failed;
     }
 
-    document->prefix = pchtml_hash_create();
-    status = pchtml_hash_init(document->prefix, 128,
+    document->prefix = pcutils_hash_create();
+    status = pcutils_hash_init(document->prefix, 128,
                               sizeof(pcedom_attr_data_t));
     if (status != PCHTML_STATUS_OK) {
         goto failed;
     }
 
-    document->attrs = pchtml_hash_create();
-    status = pchtml_hash_init(document->attrs, 128,
+    document->attrs = pcutils_hash_create();
+    status = pcutils_hash_init(document->attrs, 128,
                               sizeof(pcedom_attr_data_t));
     if (status != PCHTML_STATUS_OK) {
         goto failed;
@@ -164,10 +164,10 @@ failed:
 
     pchtml_mraw_destroy(document->mraw, true);
     pchtml_mraw_destroy(document->text, true);
-    pchtml_hash_destroy(document->tags, true);
-    pchtml_hash_destroy(document->ns, true);
-    pchtml_hash_destroy(document->attrs, true);
-    pchtml_hash_destroy(document->prefix, true);
+    pcutils_hash_destroy(document->tags, true);
+    pcutils_hash_destroy(document->ns, true);
+    pcutils_hash_destroy(document->attrs, true);
+    pcutils_hash_destroy(document->prefix, true);
 
     pcinst_set_error (PCEDOM_ERROR);
     return PCHTML_STATUS_ERROR;
@@ -179,10 +179,10 @@ pcedom_document_clean(pcedom_document_t *document)
     if (pcedom_interface_node(document)->owner_document == document) {
         pchtml_mraw_clean(document->mraw);
         pchtml_mraw_clean(document->text);
-        pchtml_hash_clean(document->tags);
-        pchtml_hash_clean(document->ns);
-        pchtml_hash_clean(document->attrs);
-        pchtml_hash_clean(document->prefix);
+        pcutils_hash_clean(document->tags);
+        pcutils_hash_clean(document->ns);
+        pcutils_hash_clean(document->attrs);
+        pcutils_hash_clean(document->prefix);
     }
 
     document->node.first_child = NULL;
@@ -210,10 +210,10 @@ pcedom_document_destroy(pcedom_document_t *document)
 
     pchtml_mraw_destroy(document->text, true);
     pchtml_mraw_destroy(document->mraw, true);
-    pchtml_hash_destroy(document->tags, true);
-    pchtml_hash_destroy(document->ns, true);
-    pchtml_hash_destroy(document->attrs, true);
-    pchtml_hash_destroy(document->prefix, true);
+    pcutils_hash_destroy(document->tags, true);
+    pcutils_hash_destroy(document->ns, true);
+    pcutils_hash_destroy(document->attrs, true);
+    pcutils_hash_destroy(document->prefix, true);
 
     return pchtml_free(document);
 }

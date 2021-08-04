@@ -51,15 +51,15 @@
 
 
 pcedom_attr_data_t *
-pcedom_attr_local_name_append(pchtml_hash_t *hash,
+pcedom_attr_local_name_append(pcutils_hash_t *hash,
                                const unsigned char *name, size_t length);
 
 pcedom_attr_data_t *
-pcedom_attr_qualified_name_append(pchtml_hash_t *hash, const unsigned char *name,
+pcedom_attr_qualified_name_append(pcutils_hash_t *hash, const unsigned char *name,
                                    size_t length);
 
 const pchtml_tag_data_t *
-pchtml_tag_append_lower(pchtml_hash_t *hash,
+pchtml_tag_append_lower(pcutils_hash_t *hash,
                      const unsigned char *name, size_t length);
 
 static pchtml_html_token_t *
@@ -590,14 +590,14 @@ pchtml_html_tree_adjust_mathml_attributes(pchtml_html_tree_t *tree,
     UNUSED_PARAM(tree);
     UNUSED_PARAM(ctx);
 
-    pchtml_hash_t *attrs;
+    pcutils_hash_t *attrs;
     const pcedom_attr_data_t *data;
 
     attrs = attr->node.owner_document->attrs;
     data = pcedom_attr_data_by_id(attrs, attr->node.local_name);
 
     if (data->entry.length == 13
-        && pchtml_str_data_cmp(pchtml_hash_entry_str(&data->entry),
+        && pchtml_str_data_cmp(pcutils_hash_entry_str(&data->entry),
                                (const unsigned char *) "definitionurl"))
     {
         data = pcedom_attr_qualified_name_append(attrs,
@@ -620,7 +620,7 @@ pchtml_html_tree_adjust_svg_attributes(pchtml_html_tree_t *tree,
     UNUSED_PARAM(tree);
     UNUSED_PARAM(ctx);
 
-    pchtml_hash_t *attrs;
+    pcutils_hash_t *attrs;
     const pcedom_attr_data_t *data;
     const pchtml_html_tree_res_attr_adjust_t *adjust;
 
@@ -635,7 +635,7 @@ pchtml_html_tree_adjust_svg_attributes(pchtml_html_tree_t *tree,
         adjust = &pchtml_html_tree_res_attr_adjust_svg_map[i];
 
         if (data->entry.length == adjust->len
-            && pchtml_str_data_cmp(pchtml_hash_entry_str(&data->entry),
+            && pchtml_str_data_cmp(pcutils_hash_entry_str(&data->entry),
                                    (const unsigned char *) adjust->from))
         {
             data = pcedom_attr_qualified_name_append(attrs,
@@ -662,7 +662,7 @@ pchtml_html_tree_adjust_foreign_attributes(pchtml_html_tree_t *tree,
     UNUSED_PARAM(ctx);
 
     size_t lname_length;
-    pchtml_hash_t *tags, *attrs, *prefix;
+    pcutils_hash_t *tags, *attrs, *prefix;
     const pchtml_tag_data_t *tag_data;
     const pchtml_ns_prefix_data_t *prefix_data;
     const pcedom_attr_data_t *data;
@@ -681,7 +681,7 @@ pchtml_html_tree_adjust_foreign_attributes(pchtml_html_tree_t *tree,
         adjust = &pchtml_html_tree_res_attr_adjust_foreign_map[i];
 
         if (data->entry.length == adjust->name_len
-            && pchtml_str_data_cmp(pchtml_hash_entry_str(&data->entry),
+            && pchtml_str_data_cmp(pcutils_hash_entry_str(&data->entry),
                                    (const unsigned char *) adjust->name))
         {
             if (adjust->prefix_len != 0) {

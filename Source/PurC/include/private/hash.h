@@ -44,17 +44,17 @@
 extern "C" {
 #endif
 
-typedef struct pchtml_hash_search pchtml_hash_search_t;
-typedef struct pchtml_hash_insert pchtml_hash_insert_t;
+typedef struct pcutils_hash_search pcutils_hash_search_t;
+typedef struct pcutils_hash_insert pcutils_hash_insert_t;
 
 #ifndef PCHTML_HASH_EXTERN
-extern const pchtml_hash_insert_t *pchtml_hash_insert_raw;
-extern const pchtml_hash_insert_t *pchtml_hash_insert_lower;
-extern const pchtml_hash_insert_t *pchtml_hash_insert_upper;
+extern const pcutils_hash_insert_t *pcutils_hash_insert_raw;
+extern const pcutils_hash_insert_t *pcutils_hash_insert_lower;
+extern const pcutils_hash_insert_t *pcutils_hash_insert_upper;
 
-extern const pchtml_hash_search_t *pchtml_hash_search_raw;
-extern const pchtml_hash_search_t *pchtml_hash_search_lower;
-extern const pchtml_hash_search_t *pchtml_hash_search_upper;
+extern const pcutils_hash_search_t *pcutils_hash_search_raw;
+extern const pcutils_hash_search_t *pcutils_hash_search_lower;
+extern const pcutils_hash_search_t *pcutils_hash_search_upper;
 #endif
 
 /*
@@ -63,21 +63,21 @@ extern const pchtml_hash_search_t *pchtml_hash_search_upper;
  * and optimize collisions.
  */
 
-typedef struct pchtml_hash pchtml_hash_t;
-typedef struct pchtml_hash_entry pchtml_hash_entry_t;
+typedef struct pcutils_hash pcutils_hash_t;
+typedef struct pcutils_hash_entry pcutils_hash_entry_t;
 
 typedef uint32_t
-(*pchtml_hash_id_f)(const unsigned char *key, size_t size);
+(*pcutils_hash_id_f)(const unsigned char *key, size_t size);
 
 typedef unsigned int
-(*pchtml_hash_copy_f)(pchtml_hash_t *hash, pchtml_hash_entry_t *entry,
+(*pcutils_hash_copy_f)(pcutils_hash_t *hash, pcutils_hash_entry_t *entry,
                       const unsigned char *key, size_t size);
 
 typedef bool
-(*pchtml_hash_cmp_f)(const unsigned char *first,
+(*pcutils_hash_cmp_f)(const unsigned char *first,
                      const unsigned char *second, size_t size);
 
-struct pchtml_hash_entry {
+struct pcutils_hash_entry {
     union {
         unsigned char *long_str;
         unsigned char short_str[PCHTML_HASH_SHORT_SIZE + 1];
@@ -85,104 +85,104 @@ struct pchtml_hash_entry {
 
     size_t              length;
 
-    pchtml_hash_entry_t *next;
+    pcutils_hash_entry_t *next;
 };
 
-struct pchtml_hash {
+struct pcutils_hash {
     pcutils_dobject_t    *entries;
     pchtml_mraw_t       *mraw;
 
-    pchtml_hash_entry_t **table;
+    pcutils_hash_entry_t **table;
     size_t              table_size;
 
     size_t              struct_size;
 };
 
-struct pchtml_hash_insert {
-    pchtml_hash_id_f   hash; /* For generate a hash id. */
-    pchtml_hash_cmp_f  cmp;  /* For compare key. */
-    pchtml_hash_copy_f copy; /* For copy key. */
+struct pcutils_hash_insert {
+    pcutils_hash_id_f   hash; /* For generate a hash id. */
+    pcutils_hash_cmp_f  cmp;  /* For compare key. */
+    pcutils_hash_copy_f copy; /* For copy key. */
 };
 
-struct pchtml_hash_search {
-    pchtml_hash_id_f   hash; /* For generate a hash id. */
-    pchtml_hash_cmp_f  cmp;  /* For compare key. */
+struct pcutils_hash_search {
+    pcutils_hash_id_f   hash; /* For generate a hash id. */
+    pcutils_hash_cmp_f  cmp;  /* For compare key. */
 };
 
 
-pchtml_hash_t *
-pchtml_hash_create(void) WTF_INTERNAL;
+pcutils_hash_t *
+pcutils_hash_create(void) WTF_INTERNAL;
 
 unsigned int
-pchtml_hash_init(pchtml_hash_t *hash,
+pcutils_hash_init(pcutils_hash_t *hash,
         size_t table_size, size_t struct_size) WTF_INTERNAL;
 
 void
-pchtml_hash_clean(pchtml_hash_t *hash) WTF_INTERNAL;
+pcutils_hash_clean(pcutils_hash_t *hash) WTF_INTERNAL;
 
-pchtml_hash_t *
-pchtml_hash_destroy(pchtml_hash_t *hash, bool destroy_obj) WTF_INTERNAL;
+pcutils_hash_t *
+pcutils_hash_destroy(pcutils_hash_t *hash, bool destroy_obj) WTF_INTERNAL;
 
 
 void *
-pchtml_hash_insert(pchtml_hash_t *hash, const pchtml_hash_insert_t *insert,
+pcutils_hash_insert(pcutils_hash_t *hash, const pcutils_hash_insert_t *insert,
         const unsigned char *key, size_t length) WTF_INTERNAL;
 
 void *
-pchtml_hash_insert_by_entry(pchtml_hash_t *hash, pchtml_hash_entry_t *entry,
-        const pchtml_hash_search_t *search,
+pcutils_hash_insert_by_entry(pcutils_hash_t *hash, pcutils_hash_entry_t *entry,
+        const pcutils_hash_search_t *search,
         const unsigned char *key, size_t length) WTF_INTERNAL;
 
 void
-pchtml_hash_remove(pchtml_hash_t *hash, const pchtml_hash_search_t *search,
+pcutils_hash_remove(pcutils_hash_t *hash, const pcutils_hash_search_t *search,
         const unsigned char *key, size_t length) WTF_INTERNAL;
 
 void *
-pchtml_hash_search(pchtml_hash_t *hash, const pchtml_hash_search_t *search,
+pcutils_hash_search(pcutils_hash_t *hash, const pcutils_hash_search_t *search,
         const unsigned char *key, size_t length);
 
 void
-pchtml_hash_remove_by_hash_id(pchtml_hash_t *hash, uint32_t hash_id,
+pcutils_hash_remove_by_hash_id(pcutils_hash_t *hash, uint32_t hash_id,
         const unsigned char *key, size_t length,
-        const pchtml_hash_cmp_f cmp_func) WTF_INTERNAL;
+        const pcutils_hash_cmp_f cmp_func) WTF_INTERNAL;
 
 void *
-pchtml_hash_search_by_hash_id(pchtml_hash_t *hash, uint32_t hash_id,
+pcutils_hash_search_by_hash_id(pcutils_hash_t *hash, uint32_t hash_id,
         const unsigned char *key, size_t length,
-        const pchtml_hash_cmp_f cmp_func) WTF_INTERNAL;
+        const pcutils_hash_cmp_f cmp_func) WTF_INTERNAL;
 
 uint32_t
-pchtml_hash_make_id(const unsigned char *key, size_t length) WTF_INTERNAL;
+pcutils_hash_make_id(const unsigned char *key, size_t length) WTF_INTERNAL;
 
 uint32_t
-pchtml_hash_make_id_lower(const unsigned char *key, size_t length) WTF_INTERNAL;
+pcutils_hash_make_id_lower(const unsigned char *key, size_t length) WTF_INTERNAL;
 
 uint32_t
-pchtml_hash_make_id_upper(const unsigned char *key, size_t length) WTF_INTERNAL;
+pcutils_hash_make_id_upper(const unsigned char *key, size_t length) WTF_INTERNAL;
 
 unsigned int
-pchtml_hash_copy(pchtml_hash_t *hash, pchtml_hash_entry_t *entry,
+pcutils_hash_copy(pcutils_hash_t *hash, pcutils_hash_entry_t *entry,
         const unsigned char *key, size_t length) WTF_INTERNAL;
 
 unsigned int
-pchtml_hash_copy_lower(pchtml_hash_t *hash, pchtml_hash_entry_t *entry,
+pcutils_hash_copy_lower(pcutils_hash_t *hash, pcutils_hash_entry_t *entry,
         const unsigned char *key, size_t length) WTF_INTERNAL;
 
 unsigned int
-pchtml_hash_copy_upper(pchtml_hash_t *hash, pchtml_hash_entry_t *entry,
+pcutils_hash_copy_upper(pcutils_hash_t *hash, pcutils_hash_entry_t *entry,
         const unsigned char *key, size_t length) WTF_INTERNAL;
 
 /*
  * Inline functions
  */
 static inline pchtml_mraw_t *
-pchtml_hash_mraw(const pchtml_hash_t *hash)
+pcutils_hash_mraw(const pcutils_hash_t *hash)
 {
     return hash->mraw;
 }
 
 static inline unsigned char *
-pchtml_hash_entry_str(const pchtml_hash_entry_t *entry)
+pcutils_hash_entry_str(const pcutils_hash_entry_t *entry)
 {
     if (entry->length <= PCHTML_HASH_SHORT_SIZE) {
         return (unsigned char *) entry->u.short_str;
@@ -192,7 +192,7 @@ pchtml_hash_entry_str(const pchtml_hash_entry_t *entry)
 }
 
 static inline unsigned char *
-pchtml_hash_entry_str_set(pchtml_hash_entry_t *entry,
+pcutils_hash_entry_str_set(pcutils_hash_entry_t *entry,
                           unsigned char *data, size_t length)
 {
     entry->length = length;
@@ -207,7 +207,7 @@ pchtml_hash_entry_str_set(pchtml_hash_entry_t *entry,
 }
 
 static inline void
-pchtml_hash_entry_str_free(pchtml_hash_t *hash, pchtml_hash_entry_t *entry)
+pcutils_hash_entry_str_free(pcutils_hash_t *hash, pcutils_hash_entry_t *entry)
 {
     if (entry->length > PCHTML_HASH_SHORT_SIZE) {
         pchtml_mraw_free(hash->mraw, entry->u.long_str);
@@ -216,20 +216,20 @@ pchtml_hash_entry_str_free(pchtml_hash_t *hash, pchtml_hash_entry_t *entry)
     entry->length = 0;
 }
 
-static inline pchtml_hash_entry_t *
-pchtml_hash_entry_create(pchtml_hash_t *hash)
+static inline pcutils_hash_entry_t *
+pcutils_hash_entry_create(pcutils_hash_t *hash)
 {
-    return (pchtml_hash_entry_t *) pcutils_dobject_calloc(hash->entries);
+    return (pcutils_hash_entry_t *) pcutils_dobject_calloc(hash->entries);
 }
 
-static inline pchtml_hash_entry_t *
-pchtml_hash_entry_destroy(pchtml_hash_t *hash, pchtml_hash_entry_t *entry)
+static inline pcutils_hash_entry_t *
+pcutils_hash_entry_destroy(pcutils_hash_t *hash, pcutils_hash_entry_t *entry)
 {
-    return (pchtml_hash_entry_t *) pcutils_dobject_free(hash->entries, entry);
+    return (pcutils_hash_entry_t *) pcutils_dobject_free(hash->entries, entry);
 }
 
 static inline size_t
-pchtml_hash_entries_count(pchtml_hash_t *hash)
+pcutils_hash_entries_count(pcutils_hash_t *hash)
 {
     return pcutils_dobject_allocated(hash->entries);
 }

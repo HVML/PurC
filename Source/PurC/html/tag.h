@@ -48,7 +48,7 @@ extern "C" {
 #endif
 
 typedef struct {
-    pchtml_hash_entry_t entry;
+    pcutils_hash_entry_t entry;
     pchtml_tag_id_t        tag_id;
     size_t              ref_count;
     bool                read_only;
@@ -57,21 +57,21 @@ pchtml_tag_data_t;
 
 
 const pchtml_tag_data_t *
-pchtml_tag_data_by_id(pchtml_hash_t *hash, pchtml_tag_id_t tag_id) WTF_INTERNAL;
+pchtml_tag_data_by_id(pcutils_hash_t *hash, pchtml_tag_id_t tag_id) WTF_INTERNAL;
 
 const pchtml_tag_data_t *
-pchtml_tag_data_by_name(pchtml_hash_t *hash, const unsigned char *name, 
+pchtml_tag_data_by_name(pcutils_hash_t *hash, const unsigned char *name, 
                 size_t len) WTF_INTERNAL;
 
 const pchtml_tag_data_t *
-pchtml_tag_data_by_name_upper(pchtml_hash_t *hash,
+pchtml_tag_data_by_name_upper(pcutils_hash_t *hash,
                 const unsigned char *name, size_t len) WTF_INTERNAL;
 
 /*
  * Inline functions
  */
 static inline const unsigned char *
-pchtml_tag_name_by_id(pchtml_hash_t *hash, pchtml_tag_id_t tag_id, size_t *len)
+pchtml_tag_name_by_id(pcutils_hash_t *hash, pchtml_tag_id_t tag_id, size_t *len)
 {
     const pchtml_tag_data_t *data = pchtml_tag_data_by_id(hash, tag_id);
     if (data == NULL) {
@@ -86,11 +86,11 @@ pchtml_tag_name_by_id(pchtml_hash_t *hash, pchtml_tag_id_t tag_id, size_t *len)
         *len = data->entry.length;
     }
 
-    return pchtml_hash_entry_str(&data->entry);
+    return pcutils_hash_entry_str(&data->entry);
 }
 
 static inline const unsigned char *
-pchtml_tag_name_upper_by_id(pchtml_hash_t *hash, pchtml_tag_id_t tag_id, size_t *len)
+pchtml_tag_name_upper_by_id(pcutils_hash_t *hash, pchtml_tag_id_t tag_id, size_t *len)
 {
     const pchtml_tag_data_t *data = pchtml_tag_data_by_id(hash, tag_id);
     if (data == NULL) {
@@ -105,11 +105,11 @@ pchtml_tag_name_upper_by_id(pchtml_hash_t *hash, pchtml_tag_id_t tag_id, size_t 
         *len = data->entry.length;
     }
 
-    return pchtml_hash_entry_str(&data->entry);
+    return pcutils_hash_entry_str(&data->entry);
 }
 
 static inline pchtml_tag_id_t
-pchtml_tag_id_by_name(pchtml_hash_t *hash, const unsigned char *name, size_t len)
+pchtml_tag_id_by_name(pcutils_hash_t *hash, const unsigned char *name, size_t len)
 {
     const pchtml_tag_data_t *data = pchtml_tag_data_by_name(hash, name, len);
     if (data == NULL) {
@@ -120,9 +120,9 @@ pchtml_tag_id_by_name(pchtml_hash_t *hash, const unsigned char *name, size_t len
 }
 
 static inline pchtml_mraw_t *
-pchtml_tag_mraw(pchtml_hash_t *hash)
+pchtml_tag_mraw(pcutils_hash_t *hash)
 {
-    return pchtml_hash_mraw(hash);
+    return pcutils_hash_mraw(hash);
 }
 
 

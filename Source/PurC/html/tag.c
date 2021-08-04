@@ -38,7 +38,7 @@
 
 
 const pchtml_tag_data_t *
-pchtml_tag_append(pchtml_hash_t *hash, pchtml_tag_id_t tag_id,
+pchtml_tag_append(pcutils_hash_t *hash, pchtml_tag_id_t tag_id,
                const unsigned char *name, size_t length)
 {
     pchtml_tag_data_t *data;
@@ -50,7 +50,7 @@ pchtml_tag_append(pchtml_hash_t *hash, pchtml_tag_id_t tag_id,
         return entry->value;
     }
 
-    data = pchtml_hash_insert(hash, pchtml_hash_insert_raw, name, length);
+    data = pcutils_hash_insert(hash, pcutils_hash_insert_raw, name, length);
     if (data == NULL) {
         return NULL;
     }
@@ -66,7 +66,7 @@ pchtml_tag_append(pchtml_hash_t *hash, pchtml_tag_id_t tag_id,
 }
 
 const pchtml_tag_data_t *
-pchtml_tag_append_lower(pchtml_hash_t *hash, const unsigned char *name, size_t length)
+pchtml_tag_append_lower(pcutils_hash_t *hash, const unsigned char *name, size_t length)
 {
     pchtml_tag_data_t *data;
     const pchtml_shs_entry_t *entry;
@@ -77,7 +77,7 @@ pchtml_tag_append_lower(pchtml_hash_t *hash, const unsigned char *name, size_t l
         return entry->value;
     }
 
-    data = pchtml_hash_insert(hash, pchtml_hash_insert_lower, name, length);
+    data = pcutils_hash_insert(hash, pcutils_hash_insert_lower, name, length);
     if (data == NULL) {
         return NULL;
     }
@@ -88,7 +88,7 @@ pchtml_tag_append_lower(pchtml_hash_t *hash, const unsigned char *name, size_t l
 }
 
 const pchtml_tag_data_t *
-pchtml_tag_data_by_id(pchtml_hash_t *hash, pchtml_tag_id_t tag_id)
+pchtml_tag_data_by_id(pcutils_hash_t *hash, pchtml_tag_id_t tag_id)
 {
     UNUSED_PARAM(hash);
 
@@ -104,7 +104,7 @@ pchtml_tag_data_by_id(pchtml_hash_t *hash, pchtml_tag_id_t tag_id)
 }
 
 const pchtml_tag_data_t *
-pchtml_tag_data_by_name(pchtml_hash_t *hash, const unsigned char *name, size_t len)
+pchtml_tag_data_by_name(pcutils_hash_t *hash, const unsigned char *name, size_t len)
 {
     const pchtml_shs_entry_t *entry;
 
@@ -118,12 +118,12 @@ pchtml_tag_data_by_name(pchtml_hash_t *hash, const unsigned char *name, size_t l
         return (const pchtml_tag_data_t *) entry->value;
     }
 
-    return (const pchtml_tag_data_t *) pchtml_hash_search(hash,
-                                           pchtml_hash_search_lower, name, len);
+    return (const pchtml_tag_data_t *) pcutils_hash_search(hash,
+                                           pcutils_hash_search_lower, name, len);
 }
 
 const pchtml_tag_data_t *
-pchtml_tag_data_by_name_upper(pchtml_hash_t *hash,
+pchtml_tag_data_by_name_upper(pcutils_hash_t *hash,
                            const unsigned char *name, size_t len)
 {
     uintptr_t dif;
@@ -141,7 +141,7 @@ pchtml_tag_data_by_name_upper(pchtml_hash_t *hash,
         return (const pchtml_tag_data_t *) (pchtml_tag_res_data_upper_default + dif);
     }
 
-    return (const pchtml_tag_data_t *) pchtml_hash_search(hash,
-                                           pchtml_hash_search_upper, name, len);
+    return (const pchtml_tag_data_t *) pcutils_hash_search(hash,
+                                           pcutils_hash_search_upper, name, len);
 }
 

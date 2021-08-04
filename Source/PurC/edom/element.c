@@ -106,15 +106,15 @@ static const unsigned char *
 pcedom_element_upper_update(pcedom_element_t *element, size_t *len);
 
 const pchtml_tag_data_t *
-pchtml_tag_append(pchtml_hash_t *hash, pchtml_tag_id_t tag_id,
+pchtml_tag_append(pcutils_hash_t *hash, pchtml_tag_id_t tag_id,
                const unsigned char *name, size_t length);
 
 const pchtml_tag_data_t *
-pchtml_tag_append_lower(pchtml_hash_t *hash,
+pchtml_tag_append_lower(pcutils_hash_t *hash,
                      const unsigned char *name, size_t length);
 
 const pchtml_ns_data_t *
-pchtml_ns_append(pchtml_hash_t *hash, const unsigned char *link, size_t length);
+pchtml_ns_append(pcutils_hash_t *hash, const unsigned char *link, size_t length);
 
 
 pcedom_element_t *
@@ -446,7 +446,7 @@ pcedom_element_attr_by_name(pcedom_element_t *element,
                              const unsigned char *qualified_name, size_t length)
 {
     const pcedom_attr_data_t *data;
-    pchtml_hash_t *attrs = element->node.owner_document->attrs;
+    pcutils_hash_t *attrs = element->node.owner_document->attrs;
     pcedom_attr_t *attr = element->first_attr;
 
     if (element->node.ns == PCHTML_NS_HTML
@@ -1205,7 +1205,7 @@ pcedom_element_qualified_name(pcedom_element_t *element, size_t *len)
         *len = data->entry.length;
     }
 
-    return pchtml_hash_entry_str(&data->entry);
+    return pcutils_hash_entry_str(&data->entry);
 }
 
 const unsigned char *
@@ -1223,7 +1223,7 @@ pcedom_element_qualified_name_upper(pcedom_element_t *element, size_t *len)
         *len = data->entry.length;
     }
 
-    return pchtml_hash_entry_str(&data->entry);
+    return pcutils_hash_entry_str(&data->entry);
 }
 
 static const unsigned char *
@@ -1243,8 +1243,8 @@ pcedom_element_upper_update(pcedom_element_t *element, size_t *len)
         return NULL;
     }
 
-    data = pchtml_hash_insert(element->node.owner_document->tags,
-                              pchtml_hash_insert_upper, name, length);
+    data = pcutils_hash_insert(element->node.owner_document->tags,
+                              pcutils_hash_insert_upper, name, length);
     if (data == NULL) {
         return NULL;
     }
@@ -1257,7 +1257,7 @@ pcedom_element_upper_update(pcedom_element_t *element, size_t *len)
 
     element->upper_name = (pchtml_tag_id_t) data;
 
-    return pchtml_hash_entry_str(&data->entry);
+    return pcutils_hash_entry_str(&data->entry);
 }
 
 const unsigned char *
@@ -1279,7 +1279,7 @@ pcedom_element_local_name(pcedom_element_t *element, size_t *len)
         *len = data->entry.length;
     }
 
-    return pchtml_hash_entry_str(&data->entry);
+    return pcutils_hash_entry_str(&data->entry);
 }
 
 const unsigned char *
@@ -1297,7 +1297,7 @@ pcedom_element_prefix(pcedom_element_t *element, size_t *len)
         goto empty;
     }
 
-    return pchtml_hash_entry_str(&data->entry);
+    return pcutils_hash_entry_str(&data->entry);
 
 empty:
 

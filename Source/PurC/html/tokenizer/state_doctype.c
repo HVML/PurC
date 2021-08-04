@@ -44,7 +44,7 @@
 
 
 pcedom_attr_data_t *
-pcedom_attr_local_name_append(pchtml_hash_t *hash,
+pcedom_attr_local_name_append(pcutils_hash_t *hash,
                                const unsigned char *name, size_t length);
 
 

@@ -42,7 +42,7 @@
 
 
 const pchtml_ns_data_t *
-pchtml_ns_append(pchtml_hash_t *hash, const unsigned char *link, size_t length)
+pchtml_ns_append(pcutils_hash_t *hash, const unsigned char *link, size_t length)
 {
     pchtml_ns_data_t *data;
     const pchtml_shs_entry_t *entry;
@@ -57,7 +57,7 @@ pchtml_ns_append(pchtml_hash_t *hash, const unsigned char *link, size_t length)
         return entry->value;
     }
 
-    data = pchtml_hash_insert(hash, pchtml_hash_insert_lower, link, length);
+    data = pcutils_hash_insert(hash, pcutils_hash_insert_lower, link, length);
     if ((pchtml_ns_id_t) data <= PCHTML_NS__LAST_ENTRY) {
         return NULL;
     }
@@ -68,7 +68,7 @@ pchtml_ns_append(pchtml_hash_t *hash, const unsigned char *link, size_t length)
 }
 
 const unsigned char *
-pchtml_ns_by_id(pchtml_hash_t *hash, pchtml_ns_id_t ns_id, size_t *length)
+pchtml_ns_by_id(pcutils_hash_t *hash, pchtml_ns_id_t ns_id, size_t *length)
 {
     const pchtml_ns_data_t *data;
 
@@ -85,11 +85,11 @@ pchtml_ns_by_id(pchtml_hash_t *hash, pchtml_ns_id_t ns_id, size_t *length)
         *length = data->entry.length;
     }
 
-    return pchtml_hash_entry_str(&data->entry);
+    return pcutils_hash_entry_str(&data->entry);
 }
 
 const pchtml_ns_data_t *
-pchtml_ns_data_by_id(pchtml_hash_t *hash, pchtml_ns_id_t ns_id)
+pchtml_ns_data_by_id(pcutils_hash_t *hash, pchtml_ns_id_t ns_id)
 {
     UNUSED_PARAM(hash);
 
@@ -105,7 +105,7 @@ pchtml_ns_data_by_id(pchtml_hash_t *hash, pchtml_ns_id_t ns_id)
 }
 
 const pchtml_ns_data_t *
-pchtml_ns_data_by_link(pchtml_hash_t *hash, const unsigned char *link, size_t length)
+pchtml_ns_data_by_link(pcutils_hash_t *hash, const unsigned char *link, size_t length)
 {
     const pchtml_shs_entry_t *entry;
 
@@ -119,12 +119,12 @@ pchtml_ns_data_by_link(pchtml_hash_t *hash, const unsigned char *link, size_t le
         return entry->value;
     }
 
-    return pchtml_hash_search(hash, pchtml_hash_search_lower, link, length);
+    return pcutils_hash_search(hash, pcutils_hash_search_lower, link, length);
 }
 
 /* Prefix */
 const pchtml_ns_prefix_data_t *
-pchtml_ns_prefix_append(pchtml_hash_t *hash,
+pchtml_ns_prefix_append(pcutils_hash_t *hash,
                      const unsigned char *prefix, size_t length)
 {
     pchtml_ns_prefix_data_t *data;
@@ -140,7 +140,7 @@ pchtml_ns_prefix_append(pchtml_hash_t *hash,
         return entry->value;
     }
 
-    data = pchtml_hash_insert(hash, pchtml_hash_insert_lower, prefix, length);
+    data = pcutils_hash_insert(hash, pcutils_hash_insert_lower, prefix, length);
     if ((pchtml_ns_prefix_id_t) data <= PCHTML_NS__LAST_ENTRY) {
         return NULL;
     }
@@ -151,7 +151,7 @@ pchtml_ns_prefix_append(pchtml_hash_t *hash,
 }
 
 const pchtml_ns_prefix_data_t *
-pchtml_ns_prefix_data_by_id(pchtml_hash_t *hash, pchtml_ns_prefix_id_t prefix_id)
+pchtml_ns_prefix_data_by_id(pcutils_hash_t *hash, pchtml_ns_prefix_id_t prefix_id)
 {
     UNUSED_PARAM(hash);
 
@@ -167,7 +167,7 @@ pchtml_ns_prefix_data_by_id(pchtml_hash_t *hash, pchtml_ns_prefix_id_t prefix_id
 }
 
 const pchtml_ns_prefix_data_t *
-pchtml_ns_prefix_data_by_name(pchtml_hash_t *hash,
+pchtml_ns_prefix_data_by_name(pcutils_hash_t *hash,
                            const unsigned char *prefix, size_t length)
 {
     const pchtml_shs_entry_t *entry;
@@ -182,5 +182,5 @@ pchtml_ns_prefix_data_by_name(pchtml_hash_t *hash,
         return entry->value;
     }
 
-    return pchtml_hash_search(hash, pchtml_hash_search_lower, prefix, length);
+    return pcutils_hash_search(hash, pcutils_hash_search_lower, prefix, length);
 }

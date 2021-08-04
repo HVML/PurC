@@ -275,28 +275,28 @@ pchtml_html_tokenizer_destroy(pchtml_html_tokenizer_t *tkz)
 unsigned int
 pchtml_html_tokenizer_tags_make(pchtml_html_tokenizer_t *tkz, size_t table_size)
 {
-    tkz->tags = pchtml_hash_create();
-    return pchtml_hash_init(tkz->tags, table_size, sizeof(pchtml_tag_data_t));
+    tkz->tags = pcutils_hash_create();
+    return pcutils_hash_init(tkz->tags, table_size, sizeof(pchtml_tag_data_t));
 }
 
 void
 pchtml_html_tokenizer_tags_destroy(pchtml_html_tokenizer_t *tkz)
 {
-    tkz->tags = pchtml_hash_destroy(tkz->tags, true);
+    tkz->tags = pcutils_hash_destroy(tkz->tags, true);
 }
 
 unsigned int
 pchtml_html_tokenizer_attrs_make(pchtml_html_tokenizer_t *tkz, size_t table_size)
 {
-    tkz->attrs = pchtml_hash_create();
-    return pchtml_hash_init(tkz->attrs, table_size,
+    tkz->attrs = pcutils_hash_create();
+    return pcutils_hash_init(tkz->attrs, table_size,
                             sizeof(pcedom_attr_data_t));
 }
 
 void
 pchtml_html_tokenizer_attrs_destroy(pchtml_html_tokenizer_t *tkz)
 {
-    tkz->attrs = pchtml_hash_destroy(tkz->attrs, true);
+    tkz->attrs = pcutils_hash_destroy(tkz->attrs, true);
 }
 
 unsigned int

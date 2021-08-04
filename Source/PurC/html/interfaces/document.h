@@ -204,7 +204,7 @@ pchtml_html_document_opt(pchtml_html_document_t *document)
     return document->opt;
 }
 
-static inline pchtml_hash_t *
+static inline pcutils_hash_t *
 pchtml_html_document_tags(pchtml_html_document_t *document)
 {
     return document->dom_document.tags;

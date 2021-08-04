@@ -44,7 +44,7 @@
 
 
 const pchtml_tag_data_t *
-pchtml_tag_append_lower(pchtml_hash_t *hash,
+pchtml_tag_append_lower(pcutils_hash_t *hash,
                      const unsigned char *name, size_t length);
 
 

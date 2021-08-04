@@ -67,5 +67,5 @@ pchtml_html_token_attr_name(pchtml_html_token_attr_t *attr, size_t *length)
         *length = attr->name->entry.length;
     }
 
-    return pchtml_hash_entry_str(&attr->name->entry);
+    return pcutils_hash_entry_str(&attr->name->entry);
 }

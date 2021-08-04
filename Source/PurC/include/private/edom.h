@@ -374,10 +374,10 @@ struct pcedom_document {
 
     pchtml_mraw_t               *mraw;
     pchtml_mraw_t               *text;
-    pchtml_hash_t               *tags;
-    pchtml_hash_t               *attrs;
-    pchtml_hash_t               *prefix;
-    pchtml_hash_t               *ns;
+    pcutils_hash_t               *tags;
+    pcutils_hash_t               *attrs;
+    pcutils_hash_t               *prefix;
+    pcutils_hash_t               *ns;
     void                        *parser;
     void                        *user;
 
@@ -517,7 +517,7 @@ pcedom_document_fragment_interface_destroy(
 typedef uintptr_t pcedom_attr_id_t;
 
 typedef struct {
-    pchtml_hash_entry_t  entry;
+    pcutils_hash_entry_t  entry;
     pcedom_attr_id_t    attr_id;
     size_t               ref_count;
     bool                 read_only;
@@ -572,15 +572,15 @@ pcedom_attr_compare(pcedom_attr_t *first,
                 pcedom_attr_t *second) WTF_INTERNAL;
 
 const pcedom_attr_data_t *
-pcedom_attr_data_by_id(pchtml_hash_t *hash,
+pcedom_attr_data_by_id(pcutils_hash_t *hash,
                 pcedom_attr_id_t attr_id) WTF_INTERNAL;
 
 const pcedom_attr_data_t *
-pcedom_attr_data_by_local_name(pchtml_hash_t *hash,
+pcedom_attr_data_by_local_name(pcutils_hash_t *hash,
                 const unsigned char *name, size_t length) WTF_INTERNAL;
 
 const pcedom_attr_data_t *
-pcedom_attr_data_by_qualified_name(pchtml_hash_t *hash,
+pcedom_attr_data_by_qualified_name(pcutils_hash_t *hash,
                                     const unsigned char *name, size_t length);
 
 const unsigned char *
@@ -601,7 +601,7 @@ pcedom_attr_local_name(pcedom_attr_t *attr, size_t *len)
         *len = data->entry.length;
     }
 
-    return pchtml_hash_entry_str(&data->entry);
+    return pcutils_hash_entry_str(&data->entry);
 }
 
 static inline const unsigned char *
@@ -666,7 +666,7 @@ pcedom_document_type_name(pcedom_document_type_t *doc_type, size_t *len)
         *len = data->entry.length;
     }
 
-    return pchtml_hash_entry_str(&data->entry);
+    return pcutils_hash_entry_str(&data->entry);
 }
 
 static inline const unsigned char *
