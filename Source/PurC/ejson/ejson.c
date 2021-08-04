@@ -819,9 +819,7 @@ next_state:
                     break;
                 case ':':
                     if (pcejson_tmp_buff_is_empty(ejson->tmp_buff)) {
-                        EJSON_SET_ERROR(
-                                PCEJSON_UNEXPECTED_JSON_KEY_NAME_PARSE_ERROR);
-                        return NULL;
+                        ADVANCE_TO(EJSON_BEFORE_VALUE_STATE);
                     }
                     else {
                         SWITCH_TO(EJSON_BEFORE_VALUE_STATE);

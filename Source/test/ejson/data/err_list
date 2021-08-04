@@ -1,27 +1,14 @@
-i_number_too_big_neg_int
-i_number_very_big_negative_int
-i_string_invalid_utf-8
-i_string_iso_latin_1
-i_string_overlong_sequence_6_bytes_null
-i_string_truncated-utf-8
-i_string_UTF-8_invalid_sequence
-y_array_false
-y_number
-y_number_real_capital_e
-y_number_real_capital_e_neg_exp
-y_number_real_exponent
-y_number_real_fraction_exponent
-y_object_duplicated_key_and_value # {a:b,a:b} => {a:b}
-y_object_duplicated_key # {a:b,a:c} => {a:c}
-y_object_empty_key # {"":b} => {}
-y_object_extreme_numbers
+i_number_too_big_neg_int # double
+i_number_very_big_negative_int # double
+y_array_false # true, false
+y_number # double
+y_number_real_exponent #double
+y_number_real_fraction_exponent #double
+y_object_empty_key # {"":b} => {}   
+y_object_extreme_numbers # double
 y_string_allowed_escapes # \\\\
 y_string_backslash_and_u_escaped_zero
 y_string_backslash_doublequotes
 y_structure_true_in_array # true
 y_structure_lonely_true # true
 y_structure_lonely_false
-n_array_comma_after_close # 1100
-n_array_double_extra_comma # 1100
-n_array_extra_close
-n_array_number_and_several_commas

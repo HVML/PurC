@@ -33,7 +33,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#if 1
+#if 0
 #define PRINT_STATE(state_name)
 #else
 #define PRINT_STATE(state_name)                                           \
