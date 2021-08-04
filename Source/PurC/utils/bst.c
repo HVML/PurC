@@ -45,7 +45,7 @@
 pcutils_bst_t *
 pcutils_bst_create(void)
 {
-    return pchtml_calloc(1, sizeof(pcutils_bst_t));
+    return pcutils_calloc(1, sizeof(pcutils_bst_t));
 }
 
 unsigned int
@@ -93,7 +93,7 @@ pcutils_bst_destroy(pcutils_bst_t *bst, bool self_destroy)
     bst->dobject = pcutils_dobject_destroy(bst->dobject, true);
 
     if (self_destroy) {
-        return pchtml_free(bst);
+        return pcutils_free(bst);
     }
 
     return bst;

@@ -30,7 +30,7 @@
 
 #include "config.h"
 #include "purc-errors.h"
-#include "private/utils.h"
+#include "private/mem.h"
 #include "private/array_obj.h"
 
 #include <string.h>

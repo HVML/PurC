@@ -40,7 +40,7 @@
 pcutils_mem_t *
 pcutils_mem_create(void)
 {
-    return pchtml_calloc(1, sizeof(pcutils_mem_t));
+    return pcutils_calloc(1, sizeof(pcutils_mem_t));
 }
 
 unsigned int
@@ -77,8 +77,8 @@ pcutils_mem_clean(pcutils_mem_t *mem)
     while (chunk->prev) {
         prev = chunk->prev;
 
-        chunk->data = pchtml_free(chunk->data);
-        pchtml_free(chunk);
+        chunk->data = pcutils_free(chunk->data);
+        pcutils_free(chunk);
 
         chunk = prev;
     }
@@ -113,7 +113,7 @@ pcutils_mem_destroy(pcutils_mem_t *mem, bool destroy_self)
     }
 
     if (destroy_self) {
-        return pchtml_free(mem);
+        return pcutils_free(mem);
     }
 
     return mem;
@@ -138,7 +138,7 @@ pcutils_mem_chunk_init(pcutils_mem_t *mem,
     }
 
     chunk->length = 0;
-    chunk->data = pchtml_malloc(chunk->size * sizeof(uint8_t));
+    chunk->data = pcutils_malloc(chunk->size * sizeof(uint8_t));
 
     return chunk->data;
 }
@@ -146,14 +146,14 @@ pcutils_mem_chunk_init(pcutils_mem_t *mem,
 pcutils_mem_chunk_t *
 pcutils_mem_chunk_make(pcutils_mem_t *mem, size_t length)
 {
-    pcutils_mem_chunk_t *chunk = pchtml_calloc(1, sizeof(pcutils_mem_chunk_t));
+    pcutils_mem_chunk_t *chunk = pcutils_calloc(1, sizeof(pcutils_mem_chunk_t));
 
     if (chunk == NULL) {
         return NULL;
     }
 
     if (pcutils_mem_chunk_init(mem, chunk, length) == NULL) {
-        return pchtml_free(chunk);
+        return pcutils_free(chunk);
     }
 
     return chunk;
@@ -168,11 +168,11 @@ pcutils_mem_chunk_destroy(pcutils_mem_t *mem,
     }
 
     if (chunk->data) {
-        chunk->data = pchtml_free(chunk->data);
+        chunk->data = pcutils_free(chunk->data);
     }
 
     if (self_destroy) {
-        return pchtml_free(chunk);
+        return pcutils_free(chunk);
     }
 
     return chunk;

@@ -101,7 +101,7 @@ const pcutils_hash_search_t
 static inline pcutils_hash_entry_t **
 pcutils_hash_table_create(pcutils_hash_t *hash)
 {
-    return pchtml_calloc(hash->table_size, sizeof(pcutils_hash_entry_t *));
+    return pcutils_calloc(hash->table_size, sizeof(pcutils_hash_entry_t *));
 }
 
 static inline void
@@ -114,7 +114,7 @@ static inline pcutils_hash_entry_t **
 pcutils_hash_table_destroy(pcutils_hash_t *hash)
 {
     if (hash->table != NULL) {
-        return pchtml_free(hash->table);
+        return pcutils_free(hash->table);
     }
 
     return NULL;
@@ -142,7 +142,7 @@ _pcutils_hash_entry_create(pcutils_hash_t *hash, const pcutils_hash_copy_f copy_
 pcutils_hash_t *
 pcutils_hash_create(void)
 {
-    return pchtml_calloc(1, sizeof(pcutils_hash_t));
+    return pcutils_calloc(1, sizeof(pcutils_hash_t));
 }
 
 unsigned int
@@ -205,7 +205,7 @@ pcutils_hash_destroy(pcutils_hash_t *hash, bool destroy_obj)
     hash->table = pcutils_hash_table_destroy(hash);
 
     if (destroy_obj) {
-        return pchtml_free(hash);
+        return pcutils_free(hash);
     }
 
     return hash;

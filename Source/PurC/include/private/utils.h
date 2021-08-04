@@ -32,10 +32,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define pcutils_malloc(sz)       malloc(sz)
-#define pcutils_realloc(ptr, sz) realloc(ptr, sz)
-#define pcutils_calloc(n, sz)    calloc(n, sz)
-
 #define pcutils_html_whitespace(onechar, action, logic)   \
     (onechar action ' '  logic                            \
      onechar action '\t' logic                            \
@@ -76,11 +72,6 @@ pcutils_hash_hash(const unsigned char *key, size_t key_size)
     hash += (hash << 15);
 
     return hash;
-}
-
-static inline void* pcutils_free(void *ptr) {
-    free(ptr);
-    return NULL;
 }
 
 /*

@@ -72,7 +72,7 @@ pchtml_html_document_interface_create(pchtml_html_document_t *document)
                                  sizeof(pchtml_html_document_t));
     }
     else {
-        doc = pchtml_calloc(1, sizeof(pchtml_html_document_t));
+        doc = pcutils_calloc(1, sizeof(pchtml_html_document_t));
     }
 
     if (doc == NULL) {

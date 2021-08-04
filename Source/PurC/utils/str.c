@@ -44,7 +44,7 @@
 pcutils_str_t *
 pcutils_str_create(void)
 {
-    return pchtml_calloc(1, sizeof(pcutils_str_t));
+    return pcutils_calloc(1, sizeof(pcutils_str_t));
 }
 
 unsigned char *
@@ -88,7 +88,7 @@ pcutils_str_destroy(pcutils_str_t *str, pcutils_mraw_t *mraw, bool destroy_obj)
     }
 
     if (destroy_obj) {
-        return pchtml_free(str);
+        return pcutils_free(str);
     }
 
     return str;

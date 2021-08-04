@@ -56,7 +56,7 @@ pchtml_html_parse_fragment_chunk_destroy(pchtml_html_parser_t *parser);
 pchtml_html_parser_t *
 pchtml_html_parser_create(void)
 {
-    return pchtml_calloc(1, sizeof(pchtml_html_parser_t));
+    return pcutils_calloc(1, sizeof(pchtml_html_parser_t));
 }
 
 unsigned int
@@ -117,7 +117,7 @@ pchtml_html_parser_destroy(pchtml_html_parser_t *parser)
     parser->tkz = pchtml_html_tokenizer_unref(parser->tkz);
     parser->tree = pchtml_html_tree_unref(parser->tree);
 
-    return pchtml_free(parser);
+    return pcutils_free(parser);
 }
 
 pchtml_html_parser_t *

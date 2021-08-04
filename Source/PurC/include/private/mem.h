@@ -43,12 +43,12 @@
 
 #define PCHTML_MEM_ALIGN_STEP sizeof(void *)
 
-#define pchtml_malloc(sz)       malloc(sz)
-#define pchtml_realloc(ptr, sz) realloc(ptr, sz)
-#define pchtml_calloc(n, sz)    calloc(n, sz)
+#define pcutils_malloc(sz)       malloc(sz)
+#define pcutils_realloc(ptr, sz) realloc(ptr, sz)
+#define pcutils_calloc(n, sz)    calloc(n, sz)
 
 static inline void*
-pchtml_free(void *ptr)
+pcutils_free(void *ptr)
 {
     free(ptr);
     return NULL;

@@ -73,7 +73,7 @@ pchtml_html_tree_insertion_mode(pchtml_html_tree_t *tree, pchtml_html_token_t *t
 pchtml_html_tree_t *
 pchtml_html_tree_create(void)
 {
-    return pchtml_calloc(1, sizeof(pchtml_html_tree_t));
+    return pcutils_calloc(1, sizeof(pchtml_html_tree_t));
 }
 
 unsigned int
@@ -222,7 +222,7 @@ pchtml_html_tree_destroy(pchtml_html_tree_t *tree)
     tree->parse_errors = pcutils_array_obj_destroy(tree->parse_errors, true);
     tree->tkz_ref = pchtml_html_tokenizer_unref(tree->tkz_ref);
 
-    return pchtml_free(tree);
+    return pcutils_free(tree);
 }
 
 static pchtml_html_token_t *

@@ -59,7 +59,7 @@ pcutils_mraw_realloc_tail(pcutils_mraw_t *mraw, void *data, void *begin,
 pcutils_mraw_t *
 pcutils_mraw_create(void)
 {
-    return pchtml_calloc(1, sizeof(pcutils_mraw_t));
+    return pcutils_calloc(1, sizeof(pcutils_mraw_t));
 }
 
 unsigned int
@@ -116,7 +116,7 @@ pcutils_mraw_destroy(pcutils_mraw_t *mraw, bool destroy_self)
     mraw->cache = pcutils_bst_destroy(mraw->cache, true);
 
     if (destroy_self) {
-        return pchtml_free(mraw);
+        return pcutils_free(mraw);
     }
 
     return mraw;

@@ -65,7 +65,7 @@ pcedom_document_create(pcedom_document_t *owner)
         return pcutils_mraw_calloc(owner->mraw, sizeof(pcedom_document_t));
     }
 
-    return pchtml_calloc(1, sizeof(pcedom_document_t));
+    return pcutils_calloc(1, sizeof(pcedom_document_t));
 }
 
 unsigned int
@@ -211,7 +211,7 @@ pcedom_document_destroy(pcedom_document_t *document)
     pcutils_hash_destroy(document->attrs, true);
     pcutils_hash_destroy(document->prefix, true);
 
-    return pchtml_free(document);
+    return pcutils_free(document);
 }
 
 void

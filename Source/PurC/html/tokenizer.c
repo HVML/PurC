@@ -34,6 +34,7 @@
 #include "config.h"
 #include "private/instance.h"
 #include "private/errors.h"
+#include "private/mem.h"
 
 #include "html/tokenizer.h"
 #include "html/tokenizer/state.h"
@@ -69,7 +70,7 @@ pchtml_html_tokenizer_token_done(pchtml_html_tokenizer_t *tkz,
 pchtml_html_tokenizer_t *
 pchtml_html_tokenizer_create(void)
 {
-    return pchtml_calloc(1, sizeof(pchtml_html_tokenizer_t));
+    return pcutils_calloc(1, sizeof(pchtml_html_tokenizer_t));
 }
 
 unsigned int
@@ -116,7 +117,7 @@ pchtml_html_tokenizer_init(pchtml_html_tokenizer_t *tkz)
     }
 
     /* Temporary memory for tag name and attributes. */
-    tkz->start = pchtml_malloc(PCHTML_HTML_TKZ_TEMP_SIZE * sizeof(unsigned char));
+    tkz->start = pcutils_malloc(PCHTML_HTML_TKZ_TEMP_SIZE * sizeof(unsigned char));
     if (tkz->start == NULL) {
         pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
@@ -264,12 +265,12 @@ pchtml_html_tokenizer_destroy(pchtml_html_tokenizer_t *tkz)
         pcutils_mraw_destroy(tkz->mraw, true);
         pcutils_dobject_destroy(tkz->dobj_token, true);
         pcutils_dobject_destroy(tkz->dobj_token_attr, true);
-        pchtml_free(tkz->start);
+        pcutils_free(tkz->start);
     }
 
     tkz->parse_errors = pcutils_array_obj_destroy(tkz->parse_errors, true);
 
-    return pchtml_free(tkz);
+    return pcutils_free(tkz);
 }
 
 unsigned int

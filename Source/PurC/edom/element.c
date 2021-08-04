@@ -34,6 +34,7 @@
 #include "purc.h"
 #include "config.h"
 #include "private/edom.h"
+#include "private/mem.h"
 #include "private/utils.h"
 
 typedef struct pcedom_element_cb_ctx pcedom_element_cb_ctx_t;
@@ -162,7 +163,7 @@ pcedom_element_qualified_name_set(pcedom_element_t *element,
     const pchtml_tag_data_t *tag_data;
 
     if (prefix != NULL && prefix_len != 0) {
-        key = pchtml_malloc(prefix_len + lname_len + 2);
+        key = pcutils_malloc(prefix_len + lname_len + 2);
         if (key == NULL) {
             return PURC_ERROR_OUT_OF_MEMORY;
         }

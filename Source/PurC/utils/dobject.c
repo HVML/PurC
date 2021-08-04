@@ -43,7 +43,7 @@
 pcutils_dobject_t *
 pcutils_dobject_create(void)
 {
-    return pchtml_calloc(1, sizeof(pcutils_dobject_t));
+    return pcutils_calloc(1, sizeof(pcutils_dobject_t));
 }
 
 unsigned int
@@ -107,7 +107,7 @@ pcutils_dobject_destroy(pcutils_dobject_t *dobject, bool destroy_self)
     dobject->cache = pcutils_array_destroy(dobject->cache, true);
 
     if (destroy_self == true) {
-        return pchtml_free(dobject);
+        return pcutils_free(dobject);
     }
 
     return dobject;

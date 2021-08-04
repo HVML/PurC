@@ -284,7 +284,7 @@ pchtml_html_tokenizer_temp_realloc(pchtml_html_tokenizer_t *tkz, size_t size)
     size_t length = tkz->pos - tkz->start;
     size_t new_size = (tkz->end - tkz->start) + size + 4096;
 
-    tkz->start = (unsigned char *)pchtml_realloc(tkz->start, new_size);
+    tkz->start = (unsigned char *)pcutils_realloc(tkz->start, new_size);
     if (tkz->start == NULL) {
         tkz->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         return tkz->status;
