@@ -33,13 +33,13 @@
 #ifndef PCHTML_HTML_WINDOW_H
 #define PCHTML_HTML_WINDOW_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 #include "html/html_interface.h"
 #include "private/edom.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 struct pchtml_html_window {

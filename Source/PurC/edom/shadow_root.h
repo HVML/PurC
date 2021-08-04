@@ -33,12 +33,12 @@
 #ifndef PCEDOM_PRIVATE_SHADOW_ROOT_H
 #define PCEDOM_PRIVATE_SHADOW_ROOT_H
 
+#include "config.h"
+#include "private/edom.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "config.h"
-#include "private/edom.h"
 
 typedef enum {
     PCEDOM_SHADOW_ROOT_MODE_OPEN   = 0x00,

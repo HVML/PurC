@@ -33,13 +33,13 @@
 #ifndef PCHTML_HTML_TREE_INSERTION_MODE_H
 #define PCHTML_HTML_TREE_INSERTION_MODE_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 #include "html/token.h"
 #include "html/tree.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 bool

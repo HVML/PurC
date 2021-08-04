@@ -33,12 +33,12 @@
 #ifndef PCHTML_HTML_TOKENIZER_STATE_COMMENT_H
 #define PCHTML_HTML_TOKENIZER_STATE_COMMENT_H
 
+#include "config.h"
+#include "html/tokenizer.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "config.h"
-#include "html/tokenizer.h"
 
 
 const unsigned char *

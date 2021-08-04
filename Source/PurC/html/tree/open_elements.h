@@ -33,15 +33,14 @@
 #ifndef PCHTML_HTML_OPEN_ELEMENTS_H
 #define PCHTML_HTML_OPEN_ELEMENTS_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 
 #include "private/array.h"
 #include "html/tree.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void
 pchtml_html_tree_open_elements_remove_by_node(pchtml_html_tree_t *tree,

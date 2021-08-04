@@ -32,14 +32,14 @@
 #ifndef PCHTML_HTML_DATA_LIST_ELEMENT_H
 #define PCHTML_HTML_DATA_LIST_ELEMENT_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 #include "html/html_interface.h"
 #include "html/interfaces/element.h"
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct pchtml_html_data_list_element {
     pchtml_html_element_t element;
