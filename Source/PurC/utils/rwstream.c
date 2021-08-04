@@ -44,6 +44,15 @@
 #define BUFFER_SIZE 4096
 #define MIN_BUFFER_SIZE 32
 
+#if 1
+#define RWSTREAM_SET_ERROR(err) pcinst_set_error(err)
+#else
+#define RWSTREAM_SET_ERROR(err) do { \
+    fprintf(stderr, "error %s:%d\n", __FILE__, __LINE__); \
+    pcinst_set_error (err); \
+} while (0)
+#endif
+
 static const char* rwstream_err_msgs[] = {
     /* PCRWSTREAM_ERROR_FAILED (200) */
     "Rwstream failed with some other error",
@@ -271,7 +280,7 @@ purc_rwstream_t purc_rwstream_new_buffer (size_t sz_init, size_t sz_max)
 {
     if (sz_init == 0 || sz_max <= sz_init || sz_init >= SIZE_MAX)
     {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        RWSTREAM_SET_ERROR(PURC_ERROR_INVALID_VALUE);
         return NULL;
     }
 
@@ -311,7 +320,7 @@ purc_rwstream_t purc_rwstream_new_from_file (const char* file, const char* mode)
     FILE* fp = fopen(file, mode);
     if (fp == NULL)
     {
-        pcinst_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
+        RWSTREAM_SET_ERROR(PURC_ERROR_BAD_SYSTEM_CALL);
         return NULL;
     }
     return purc_rwstream_new_from_fp(fp);
@@ -333,7 +342,7 @@ purc_rwstream_t purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf)
     GIOChannel* gio_channel = g_io_channel_unix_new(fd);
     if (gio_channel == NULL)
     {
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        RWSTREAM_SET_ERROR(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
 
@@ -359,7 +368,7 @@ purc_rwstream_t purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf)
 {
     UNUSED_PARAM(fd);
     UNUSED_PARAM(sz_buf);
-    pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+    RWSTREAM_SET_ERROR(PURC_ERROR_NOT_IMPLEMENTED);
     return NULL;
 }
 #endif // ENABLE(SOCKET_STREAM) && HAVE(GLIB)
@@ -370,7 +379,7 @@ purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf)
     GIOChannel* gio_channel = g_io_channel_win32_new_socket(socket);
     if (gio_channel == NULL)
     {
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        RWSTREAM_SET_ERROR(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
 
@@ -395,7 +404,7 @@ purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf)
 {
     UNUSED_PARAM(socket);
     UNUSED_PARAM(sz_buf);
-    pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+    RWSTREAM_SET_ERROR(PURC_ERROR_NOT_IMPLEMENTED);
     return NULL;
 }
 #endif // ENABLE(SOCKET_STREAM) && HAVE(GLIB) && OS(WINDOWS) && defined(G_OS_WIN32)
@@ -404,7 +413,7 @@ int purc_rwstream_destroy (purc_rwstream_t rws)
 {
     if (rws == NULL)
     {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        RWSTREAM_SET_ERROR(PURC_ERROR_INVALID_VALUE);
         return -1;
     }
     return rws->funcs->destroy(rws);
@@ -414,7 +423,7 @@ off_t purc_rwstream_seek (purc_rwstream_t rws, off_t offset, int whence)
 {
     if (rws == NULL)
     {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        RWSTREAM_SET_ERROR(PURC_ERROR_INVALID_VALUE);
         return -1;
     }
     return rws->funcs->seek(rws, offset, whence);
@@ -424,7 +433,7 @@ off_t purc_rwstream_tell (purc_rwstream_t rws)
 {
     if (rws == NULL)
     {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        RWSTREAM_SET_ERROR(PURC_ERROR_INVALID_VALUE);
         return -1;
     }
     return rws->funcs->tell(rws);
@@ -434,7 +443,7 @@ ssize_t purc_rwstream_read (purc_rwstream_t rws, void* buf, size_t count)
 {
     if (rws == NULL)
     {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        RWSTREAM_SET_ERROR(PURC_ERROR_INVALID_VALUE);
         return -1;
     }
     return rws->funcs->read(rws, buf, count);
@@ -463,14 +472,13 @@ int purc_rwstream_read_utf8_char (purc_rwstream_t rws, char* buf_utf8,
 {
     if (rws == NULL)
     {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        RWSTREAM_SET_ERROR(PURC_ERROR_INVALID_VALUE);
         return -1;
     }
 
     ssize_t ret =  purc_rwstream_read (rws, buf_utf8, 1);
     if (ret != 1)
     {
-        pcinst_set_error(PCRWSTREAM_ERROR_IO);
         return -1;
     }
 
@@ -495,7 +503,7 @@ int purc_rwstream_read_utf8_char (purc_rwstream_t rws, char* buf_utf8,
         ret =  purc_rwstream_read (rws, buf_utf8+1, read_len);
         if (ret != read_len)
         {
-            pcinst_set_error(PCRWSTREAM_ERROR_IO);
+            RWSTREAM_SET_ERROR(PCRWSTREAM_ERROR_IO);
             return -1;
         }
     }
@@ -508,7 +516,7 @@ ssize_t purc_rwstream_write (purc_rwstream_t rws, const void* buf, size_t count)
 {
     if (rws == NULL)
     {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        RWSTREAM_SET_ERROR(PURC_ERROR_INVALID_VALUE);
         return -1;
     }
     return rws->funcs->write(rws, buf, count);
@@ -518,7 +526,7 @@ ssize_t purc_rwstream_flush (purc_rwstream_t rws)
 {
     if (rws == NULL)
     {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        RWSTREAM_SET_ERROR(PURC_ERROR_INVALID_VALUE);
         return -1;
     }
     return rws->funcs->flush(rws);
@@ -528,7 +536,7 @@ int purc_rwstream_close (purc_rwstream_t rws)
 {
     if (rws == NULL)
     {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        RWSTREAM_SET_ERROR(PURC_ERROR_INVALID_VALUE);
         return -1;
     }
     return rws->funcs->close(rws);
@@ -584,7 +592,7 @@ const char* purc_rwstream_get_mem_buffer (purc_rwstream_t rws, size_t *sz)
 {
     if (rws == NULL)
     {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        RWSTREAM_SET_ERROR(PURC_ERROR_INVALID_VALUE);
         return NULL;
     }
     return rws->funcs->get_mem_buffer(rws, sz);
@@ -598,7 +606,7 @@ static off_t stdio_seek (purc_rwstream_t rws, off_t offset, int whence)
     {
         return ftell(stdio->fp);
     }
-    pcinst_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
+    RWSTREAM_SET_ERROR(PURC_ERROR_BAD_SYSTEM_CALL);
     return -1;
 }
 
@@ -612,7 +620,7 @@ static ssize_t stdio_read (purc_rwstream_t rws, void* buf, size_t count)
     struct stdio_rwstream* stdio = (struct stdio_rwstream *)rws;
     ssize_t nread = fread(buf, 1, count, stdio->fp);
     if ( nread == 0 && ferror(stdio->fp) ) {
-        pcinst_set_error(PCRWSTREAM_ERROR_IO);
+        RWSTREAM_SET_ERROR(PCRWSTREAM_ERROR_IO);
     }
     return(nread);
 
@@ -623,7 +631,7 @@ static ssize_t stdio_write (purc_rwstream_t rws, const void* buf, size_t count)
     struct stdio_rwstream* stdio = (struct stdio_rwstream *)rws;
     ssize_t nwrote = fwrite(buf, 1, count, stdio->fp);
     if ( nwrote == 0 && ferror(stdio->fp) ) {
-        pcinst_set_error(PCRWSTREAM_ERROR_IO);
+        RWSTREAM_SET_ERROR(PCRWSTREAM_ERROR_IO);
     }
     return(nwrote);
 
@@ -643,7 +651,7 @@ static int stdio_close (purc_rwstream_t rws)
     }
     else
     {
-        pcinst_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
+        RWSTREAM_SET_ERROR(PURC_ERROR_BAD_SYSTEM_CALL);
     }
     return ret;
 }
@@ -662,7 +670,7 @@ static const char* stdio_get_mem_buffer (purc_rwstream_t rws, size_t *sz)
 {
     UNUSED_PARAM(rws);
     UNUSED_PARAM(sz);
-    pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+    RWSTREAM_SET_ERROR(PURC_ERROR_NOT_IMPLEMENTED);
     return NULL;
 }
 
@@ -725,7 +733,7 @@ static ssize_t mem_write (purc_rwstream_t rws, const void* buf, size_t count)
         mem->here += count;
         return count;
     }
-    pcinst_set_error(PCRWSTREAM_ERROR_NOSPC);
+    RWSTREAM_SET_ERROR(PCRWSTREAM_ERROR_NOSPC);
     return -1;
 }
 
@@ -774,7 +782,7 @@ static int buffer_extend (struct buffer_rwstream* buffer, size_t size)
     uint8_t* newbuf = (uint8_t*) realloc(buffer->base, new_size + 1);
     if (newbuf == NULL)
     {
-        pcinst_set_error(PCRWSTREAM_ERROR_IO);
+        RWSTREAM_SET_ERROR(PCRWSTREAM_ERROR_IO);
         return -1;
     }
 
@@ -846,7 +854,7 @@ static ssize_t buffer_write (purc_rwstream_t rws, const void* buf, size_t count)
         else if (buffer->sz < buffer->sz_max) {
             int ret = buffer_extend (buffer, newpos - buffer->base);
             if (ret == -1) {
-                pcinst_set_error(PCRWSTREAM_ERROR_NOSPC);
+                RWSTREAM_SET_ERROR(PCRWSTREAM_ERROR_NOSPC);
                 return -1;
             }
             newpos = buffer->here + count;
@@ -869,8 +877,7 @@ static ssize_t buffer_write (purc_rwstream_t rws, const void* buf, size_t count)
         buffer->here += count;
         return count;
     }
-    pcinst_set_error(PCRWSTREAM_ERROR_NOSPC);
-    return -1;
+    return 0;
 }
 
 static ssize_t buffer_flush (purc_rwstream_t rws)
@@ -919,7 +926,7 @@ static off_t win_socket_seek (purc_rwstream_t rws, off_t offset, int whence)
     UNUSED_PARAM(rws);
     UNUSED_PARAM(offset);
     UNUSED_PARAM(whence);
-    pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+    RWSTREAM_SET_ERROR(PURC_ERROR_NOT_IMPLEMENTED);
     return -1;
 }
 
@@ -939,7 +946,7 @@ static off_t gio_seek (purc_rwstream_t rws, off_t offset, int whence)
             type = G_SEEK_END;
             break;
         default:
-            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            RWSTREAM_SET_ERROR(PURC_ERROR_INVALID_VALUE);
             return(-1);
     }
 
@@ -950,7 +957,7 @@ static off_t gio_seek (purc_rwstream_t rws, off_t offset, int whence)
     {
         return lseek(gio->fd, 0, SEEK_CUR);
     }
-    pcinst_set_error(rwstream_error_code_from_gerror(err));
+    RWSTREAM_SET_ERROR(rwstream_error_code_from_gerror(err));
 
     if (err)
         g_error_free(err);
@@ -959,7 +966,7 @@ static off_t gio_seek (purc_rwstream_t rws, off_t offset, int whence)
     UNUSED_PARAM(rws);
     UNUSED_PARAM(offset);
     UNUSED_PARAM(whence);
-    pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+    RWSTREAM_SET_ERROR(PURC_ERROR_NOT_IMPLEMENTED);
     return -1;
 #endif // OS(UNIX)
 }
@@ -967,7 +974,7 @@ static off_t gio_seek (purc_rwstream_t rws, off_t offset, int whence)
 static off_t gio_tell (purc_rwstream_t rws)
 {
     UNUSED_PARAM(rws);
-    pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+    RWSTREAM_SET_ERROR(PURC_ERROR_NOT_IMPLEMENTED);
     return -1;
 }
 
@@ -977,7 +984,7 @@ static ssize_t gio_read (purc_rwstream_t rws, void* buf, size_t count)
     gsize read = 0;
     GError* err = NULL;
     g_io_channel_read_chars (gio->gio_channel, buf, count, &read, &err);
-    pcinst_set_error(rwstream_error_code_from_gerror(err));
+    RWSTREAM_SET_ERROR(rwstream_error_code_from_gerror(err));
     if (err)
         g_error_free(err);
     return read;
@@ -989,7 +996,7 @@ static ssize_t gio_write (purc_rwstream_t rws, const void* buf, size_t count)
     gsize write = 0;
     GError* err = NULL;
     g_io_channel_write_chars (gio->gio_channel, buf, count, &write, &err);
-    pcinst_set_error(rwstream_error_code_from_gerror(err));
+    RWSTREAM_SET_ERROR(rwstream_error_code_from_gerror(err));
     if (err)
         g_error_free(err);
     return write;
@@ -1034,7 +1041,7 @@ static const char* gio_get_mem_buffer (purc_rwstream_t rws, size_t *sz)
 {
     UNUSED_PARAM(rws);
     UNUSED_PARAM(sz);
-    pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+    RWSTREAM_SET_ERROR(PURC_ERROR_NOT_IMPLEMENTED);
     return NULL;
 }
 #endif // ENABLE(SOCKET_STREAM)

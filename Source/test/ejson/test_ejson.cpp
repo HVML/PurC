@@ -1384,7 +1384,7 @@ TEST(ejson_token, parse_sequence)
     token = pcejson_next_token(parser, rws);
     ASSERT_NE(token, nullptr);
     ASSERT_EQ(token->type, EJSON_TOKEN_BYTE_SQUENCE);
-    ASSERT_STREQ((char*)token->sz_ptr[1], "bx12345abcdf");
+    ASSERT_EQ((int)token->sz_ptr[0], 5);
     pcejson_token_destroy(token);
 
     token = pcejson_next_token(parser, rws);
@@ -1407,7 +1407,7 @@ TEST(ejson_token, parse_sequence)
 
     // reset
     pcejson_reset(parser, 10, 1);
-    strcpy(json, "{key:bb11.00.11.00}");
+    strcpy(json, "{key:bb1100.1100}");
     rws = purc_rwstream_new_from_mem(json, strlen(json));
 
     token = pcejson_next_token(parser, rws);
@@ -1425,7 +1425,7 @@ TEST(ejson_token, parse_sequence)
     token = pcejson_next_token(parser, rws);
     ASSERT_NE(token, nullptr);
     ASSERT_EQ(token->type, EJSON_TOKEN_BYTE_SQUENCE);
-    ASSERT_STREQ((char*)token->sz_ptr[1], "bb11001100");
+    ASSERT_EQ((int)token->sz_ptr[0], 1);
     pcejson_token_destroy(token);
 
     token = pcejson_next_token(parser, rws);
@@ -1462,7 +1462,7 @@ TEST(ejson_token, parse_sequence)
     ASSERT_NE(token, nullptr);
     ASSERT_EQ(token->type, EJSON_TOKEN_BYTE_SQUENCE);
     ASSERT_STREQ((char*)token->sz_ptr[1],
-        "b64UHVyQyBpcyBhbiBIVk1MIHBhcnNlciBhbmQgaW50ZXJwcmV0ZXIuCiA=");
+        "PurC is an HVML parser and interpreter.\n ");
     pcejson_token_destroy(token);
 
     token = pcejson_next_token(parser, rws);

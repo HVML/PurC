@@ -49,6 +49,9 @@ TEST_P(ejson_parser_vcm_eval, parse_and_serialize)
     pcejson_parse (&root, &parser, rws);
     ASSERT_NE (root, nullptr);
 
+    int error = purc_get_last_error();
+    ASSERT_EQ (error, 0) << json;
+
     purc_variant_t vt = pcvcm_eval (root, NULL);
     ASSERT_NE(vt, PURC_VARIANT_INVALID);
 
