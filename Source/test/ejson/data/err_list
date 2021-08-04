@@ -2,7 +2,10 @@ i_number_too_big_neg_int # double
 i_number_very_big_negative_int # double
 y_array_false # true, false
 y_number # double
+n_number_0.3e+ #double
 y_number_real_exponent #double
+n_number_0_capital_E+ #double
+n_number_0e+ #double
 y_number_real_fraction_exponent #double
 y_object_empty_key # {"":b} => {}   
 y_object_extreme_numbers # double
@@ -12,3 +15,17 @@ y_string_backslash_doublequotes
 y_structure_true_in_array # true
 y_structure_lonely_true # true
 y_structure_lonely_false
+n_array_incomplete  # rule unclosed
+n_array_unclosed # rule unclosed
+n_array_unclosed_with_new_lines # rule unclosed
+n_array_unclosed_with_object_inside # rule
+n_number_1.0e+
+n_string_single_quote
+n_structure_whitespace_formfeed
+n_single_space  # empty
+n_string_unescaped_tab # \\
+n_structure_no_data # empty
+n_structure_open_array_string # rule 
+n_structure_unclosed_array
+n_structure_unclosed_object
+n_structure_UTF8_BOM_no_data

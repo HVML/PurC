@@ -396,7 +396,7 @@ int pcejson_parse (struct pcvcm_node** vcm_tree, struct pcejson** parser,
         return 0;
     }
 
-    if (!has_param_vcm) {
+    if (!has_param_vcm && *vcm_tree) {
         pctree_node_destroy (pcvcm_node_to_pctree_node(*vcm_tree),
                 pcvcm_node_pctree_node_destory_callback);
         *vcm_tree = NULL;
