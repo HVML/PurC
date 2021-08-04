@@ -46,10 +46,10 @@ extern "C" {
 #endif
 
 #define pcutils_mraw_meta_size()                           \
-    (((sizeof(size_t) % PURC_PRIVATE_MEM_ALIGN_STEP) != 0) \
+    (((sizeof(size_t) % PCUTILS_MEM_ALIGN_STEP) != 0) \
     ? sizeof(size_t)                                       \
-        + (PURC_PRIVATE_MEM_ALIGN_STEP                     \
-        - (sizeof(size_t) % PURC_PRIVATE_MEM_ALIGN_STEP))  \
+        + (PCUTILS_MEM_ALIGN_STEP                     \
+        - (sizeof(size_t) % PCUTILS_MEM_ALIGN_STEP))  \
     : sizeof(size_t))
 
 
