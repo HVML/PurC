@@ -28,6 +28,8 @@
 
 #if HAVE(GLIB)
 #include <gmodule.h>
+#else
+#include <stdlib.h>
 #endif
 
 #if HAVE(GLIB)
