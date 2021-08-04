@@ -22,7 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * This implementation of HTML parser is derived from Lexbor
- * <https://github.com/lexbor/lexbor>, which is licensed under Apahce 2.0:
+ * <https://github.com/lexbor/lexbor>, which is licensed under the Apache 
+ * License Version 2.0:
  *
  * Copyright (C) 2018-2020 Alexander Borisov
  *
@@ -33,11 +34,11 @@
 #ifndef PCEDOM_EXCEPTION_H
 #define PCEDOM_EXCEPTION_H
 
+#include "config.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "config.h"
 
 typedef enum {
     PCEDOM_INDEX_SIZE_ERR = 0x00,

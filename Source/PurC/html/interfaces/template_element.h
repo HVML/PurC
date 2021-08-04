@@ -22,7 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * This implementation of HTML parser is derived from Lexbor
- * <https://github.com/lexbor/lexbor>, which is licensed under Apahce 2.0:
+ * <https://github.com/lexbor/lexbor>, which is licensed under the Apache 
+ * License Version 2.0:
  *
  * Copyright (C) 2018-2020 Alexander Borisov
  *
@@ -33,15 +34,15 @@
 #ifndef PCHTML_HTML_TEMPLATE_ELEMENT_H
 #define PCHTML_HTML_TEMPLATE_ELEMENT_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 #include "private/edom.h"
 
 #include "html/html_interface.h"
 #include "html/interfaces/element.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 struct pchtml_html_template_element {

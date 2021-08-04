@@ -22,7 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * This implementation of HTML parser is derived from Lexbor
- * <https://github.com/lexbor/lexbor>, which is licensed under Apahce 2.0:
+ * <https://github.com/lexbor/lexbor>, which is licensed under the Apache 
+ * License Version 2.0:
  *
  * Copyright (C) 2018-2020 Alexander Borisov
  *
@@ -32,15 +33,15 @@
 #ifndef PCHTML_HTML_TOKENIZER_ERROR_H
 #define PCHTML_HTML_TOKENIZER_ERROR_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 #include "html/core_base.h"
 #include "private/array_obj.h"
 
 #include "html/tokenizer.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 typedef enum {

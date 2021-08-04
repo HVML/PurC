@@ -22,7 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * This implementation of HTML parser is derived from Lexbor
- * <https://github.com/lexbor/lexbor>, which is licensed under Apahce 2.0:
+ * <https://github.com/lexbor/lexbor>, which is licensed under the Apache 
+ * License Version 2.0:
  *
  * Copyright (C) 2018-2020 Alexander Borisov
  *
@@ -33,9 +34,6 @@
 #ifndef PCHTML_HTML_TEMPLATE_INSERTION_H
 #define PCHTML_HTML_TEMPLATE_INSERTION_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 #include "purc.h"
 #include "config.h"
 #include "private/instance.h"
@@ -44,6 +42,9 @@ extern "C" {
 
 #include "html/tree.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct {
     pchtml_html_tree_insertion_mode_f mode;
