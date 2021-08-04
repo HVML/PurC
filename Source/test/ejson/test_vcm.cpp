@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <gtest/gtest.h>
 
-#if 1
 using namespace std;
 
 struct ejson_test_data {
@@ -48,10 +47,38 @@ private:
     int error;
 };
 
+#define TO_ERROR(err_name)                                 \
+    if (strcmp (err, #err_name) == 0) {                  \
+        return err_name;                                 \
+    }
+
+int to_error(const char* err)
+{
+    TO_ERROR(PCEJSON_SUCCESS);
+    TO_ERROR(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
+    TO_ERROR(PCEJSON_UNEXPECTED_NULL_CHARACTER_PARSE_ERROR);
+    TO_ERROR(PCEJSON_UNEXPECTED_JSON_NUMBER_EXPONENT_PARSE_ERROR);
+    TO_ERROR(PCEJSON_UNEXPECTED_JSON_NUMBER_FRACTION_PARSE_ERROR);
+    TO_ERROR(PCEJSON_UNEXPECTED_JSON_NUMBER_INTEGER_PARSE_ERROR);
+    TO_ERROR(PCEJSON_UNEXPECTED_JSON_NUMBER_PARSE_ERROR);
+    TO_ERROR(PCEJSON_UNEXPECTED_RIGHT_BRACE_PARSE_ERROR);
+    TO_ERROR(PCEJSON_UNEXPECTED_RIGHT_BRACKET_PARSE_ERROR);
+    TO_ERROR(PCEJSON_UNEXPECTED_JSON_KEY_NAME_PARSE_ERROR);
+    TO_ERROR(PCEJSON_UNEXPECTED_COMMA_PARSE_ERROR);
+    TO_ERROR(PCEJSON_UNEXPECTED_JSON_KEYWORD_PARSE_ERROR);
+    TO_ERROR(PCEJSON_UNEXPECTED_BASE64_PARSE_ERROR);
+    TO_ERROR(PCEJSON_BAD_JSON_NUMBER_PARSE_ERROR);
+    TO_ERROR(PCEJSON_BAD_JSON_PARSE_ERROR);
+    TO_ERROR(PCEJSON_BAD_JSON_STRING_ESCAPE_ENTITY_PARSE_ERROR);
+    TO_ERROR(PCEJSON_EOF_IN_STRING_PARSE_ERROR);
+    return -1;
+}
+
 TEST_P(ejson_parser_vcm_eval, parse_and_serialize)
 {
     const char* json = get_json();
     const char* comp = get_comp();
+    int error_code = get_error();
     //fprintf(stderr, "json=%s|len=%ld\n", json, strlen(json));
     //fprintf(stderr, "comp=%s\n", comp);
     // read end of string as eof
@@ -61,10 +88,19 @@ TEST_P(ejson_parser_vcm_eval, parse_and_serialize)
     struct pcvcm_node* root = NULL;
     struct pcejson* parser = NULL;
     pcejson_parse (&root, &parser, rws);
-    ASSERT_NE (root, nullptr) << "Test Case : "<< get_name();
-
     int error = purc_get_last_error();
-    ASSERT_EQ (error, 0) << "Test Case : "<< get_name();
+    ASSERT_EQ (error, error_code) << "Test Case : "<< get_name();
+
+    if (error_code != PCEJSON_SUCCESS)
+    {
+        ASSERT_EQ (root, nullptr) << "Test Case : "<< get_name();
+        purc_rwstream_destroy(rws);
+        return;
+    }
+    else {
+        ASSERT_NE (root, nullptr) << "Test Case : "<< get_name();
+    }
+
 
     purc_variant_t vt = pcvcm_eval (root, NULL);
     ASSERT_NE(vt, PURC_VARIANT_INVALID) << "Test Case : "<< get_name();
@@ -139,7 +175,6 @@ std::vector<ejson_test_data> read_ejson_test_data()
 {
     std::vector<ejson_test_data> vec;
 
-#if 1
     char* data_path = getenv("EJSON_DATA_PATH");
 
     if (data_path) {
@@ -156,7 +191,17 @@ std::vector<ejson_test_data> read_ejson_test_data()
             ssize_t read = 0;
             while ((read = getline(&line, &sz, fp)) != -1) {
                 if (line && line[0] != '#') {
-                    char* name = trim (line);
+                    char* name = strtok (trim(line), " ");
+                    if (!name) {
+                        continue;
+                    }
+
+                    char* err = strtok (NULL, " ");
+                    int error = PCEJSON_SUCCESS;
+                    if (err != NULL) {
+                        error = to_error (err);
+                    }
+
                     sprintf(file, "%s/%s.json", data_path, name);
                     char* json_buf = read_file (file);
                     if (!json_buf) {
@@ -172,7 +217,7 @@ std::vector<ejson_test_data> read_ejson_test_data()
 
                     vec.push_back(
                             ejson_test_data {
-                                name, json_buf, trim(comp_buf), 0
+                                name, json_buf, trim(comp_buf), error
                                 });
 
                     free (json_buf);
@@ -183,7 +228,6 @@ std::vector<ejson_test_data> read_ejson_test_data()
             fclose(fp);
         }
     }
-#endif
 
     if (vec.empty()) {
         vec.push_back(ejson_test_data {"array", "[123]", "[123]", 0});
@@ -198,4 +242,3 @@ std::vector<ejson_test_data> read_ejson_test_data()
 INSTANTIATE_TEST_CASE_P(ejson, ejson_parser_vcm_eval,
         testing::ValuesIn(read_ejson_test_data()));
 
-#endif
