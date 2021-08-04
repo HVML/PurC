@@ -32,8 +32,6 @@
 
 #include "purc.h"
 #include "config.h"
-#include "private/instance.h"
-#include "private/errors.h"
 #include "private/mraw.h"
 
 
@@ -70,13 +68,11 @@ pchtml_mraw_init(pchtml_mraw_t *mraw, size_t chunk_size)
     unsigned int status;
 
     if (mraw == NULL) {
-        pcinst_set_error (PCHTML_OBJECT_IS_NULL);
-        return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
+        return PURC_ERROR_NULL_OBJECT;
     }
 
     if (chunk_size == 0) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-        return PCHTML_STATUS_ERROR_WRONG_ARGS;
+        return PURC_ERROR_INVALID_VALUE;
     }
 
     /* Init memory */
@@ -99,7 +95,7 @@ pchtml_mraw_init(pchtml_mraw_t *mraw, size_t chunk_size)
         return status;
     }
 
-    return PCHTML_STATUS_OK;
+    return PURC_ERROR_OK;
 }
 
 void

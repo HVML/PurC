@@ -34,10 +34,25 @@
 #ifndef PCHTML_MEM_H
 #define PCHTML_MEM_H
 
+#include "config.h"
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
-#include "config.h"
-#include "html/base.h"
+#define PCHTML_MEM_ALIGN_STEP sizeof(void *)
+
+#define pchtml_malloc(sz)       malloc(sz)
+#define pchtml_realloc(ptr, sz) realloc(ptr, sz)
+#define pchtml_calloc(n, sz)    calloc(n, sz)
+
+static inline void*
+pchtml_free(void *ptr)
+{
+    free(ptr);
+    return NULL;
+}
 
 #ifdef __cplusplus
 extern "C" {

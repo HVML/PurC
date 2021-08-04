@@ -32,11 +32,15 @@
 
 #include "purc.h"
 #include "config.h"
-#include "private/instance.h"
-#include "private/errors.h"
 
 #include "private/bst.h"
 
+/* Format */
+#ifdef _WIN32
+    #define PCHTML_FORMAT_Z "%Iu"
+#else
+    #define PCHTML_FORMAT_Z "%zu"
+#endif
 
 pchtml_bst_t *
 pchtml_bst_create(void)
@@ -50,26 +54,24 @@ pchtml_bst_init(pchtml_bst_t *bst, size_t size)
     unsigned int status;
 
     if (bst == NULL) {
-        pcinst_set_error (PCHTML_OBJECT_IS_NULL);
-        return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
+        return PURC_ERROR_NULL_OBJECT;
     }
 
     if (size == 0) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-        return PCHTML_STATUS_ERROR_WRONG_ARGS;
+        return PURC_ERROR_INVALID_VALUE;
     }
 
     bst->dobject = pchtml_dobject_create();
     status = pchtml_dobject_init(bst->dobject, size,
                                  sizeof(pchtml_bst_entry_t));
-    if (status != PCHTML_STATUS_OK) {
+    if (status != PURC_ERROR_OK) {
         return status;
     }
 
     bst->root = 0;
     bst->tree_length = 0;
 
-    return PCHTML_STATUS_OK;
+    return PURC_ERROR_OK;
 }
 
 void

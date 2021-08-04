@@ -33,14 +33,13 @@
 #ifndef PCHTML_MRAW_H
 #define PCHTML_MRAW_H
 
-#include <string.h>
 
 #include "config.h"
 
-#include "html/base.h"
 #include "private/mem.h"
 #include "private/bst.h"
 
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {

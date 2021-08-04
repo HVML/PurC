@@ -37,7 +37,6 @@
 
 #include "config.h"
 
-#include "html/base.h"
 #include "private/dobject.h"
 
 #ifdef __cplusplus
@@ -115,6 +114,10 @@ void *
 pchtml_bst_remove_by_pointer(pchtml_bst_t *bst, pchtml_bst_entry_t *entry,
                              pchtml_bst_entry_t **root) WTF_INTERNAL;
 
+
+/* Callbacks */
+typedef unsigned int (*pchtml_callback_f)(const unsigned char *buffer,
+                                          size_t size, void *ctx);
 
 void
 pchtml_bst_serialize(pchtml_bst_t *bst, pchtml_callback_f callback, void *ctx) WTF_INTERNAL;

@@ -37,7 +37,6 @@
 
 #include "private/array.h"
 
-#include "html/base.h"
 #include "private/mem.h"
 
 typedef struct {

@@ -32,8 +32,6 @@
 
 #include "purc.h"
 #include "config.h"
-#include "private/instance.h"
-#include "private/errors.h"
 #include "private/dobject.h"
 
 
@@ -55,13 +53,11 @@ pchtml_dobject_init(pchtml_dobject_t *dobject,
     unsigned int status;
 
     if (dobject == NULL) {
-        pcinst_set_error (PCHTML_OBJECT_IS_NULL);
-        return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
+        return PURC_ERROR_NULL_OBJECT;
     }
 
     if (chunk_size == 0 || struct_size == 0) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-        return PCHTML_STATUS_ERROR_WRONG_ARGS;
+        return PURC_ERROR_INVALID_VALUE;
     }
 
     /* Set params */
@@ -89,7 +85,7 @@ pchtml_dobject_init(pchtml_dobject_t *dobject,
     if (status)
         return status;
 
-    return PCHTML_STATUS_OK;
+    return PURC_ERROR_OK;
 }
 
 void
@@ -172,7 +168,7 @@ pchtml_dobject_free(pchtml_dobject_t *dobject, void *data)
     ASAN_POISON_MEMORY_REGION(data, dobject->struct_size);
 #endif
 
-    if (pcutils_array_push(dobject->cache, data) == PCHTML_STATUS_OK) {
+    if (pcutils_array_push(dobject->cache, data) == PURC_ERROR_OK) {
         dobject->allocated--;
         return NULL;
     }

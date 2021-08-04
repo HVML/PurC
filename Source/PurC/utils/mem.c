@@ -47,13 +47,11 @@ unsigned int
 pchtml_mem_init(pchtml_mem_t *mem, size_t min_chunk_size)
 {
     if (mem == NULL) {
-        pcinst_set_error (PCHTML_OBJECT_IS_NULL);
-        return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
+        return PURC_ERROR_NULL_OBJECT;
     }
 
     if (min_chunk_size == 0) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-        return PCHTML_STATUS_ERROR_WRONG_ARGS;
+        return PURC_ERROR_INVALID_VALUE;
     }
 
     mem->chunk_min_size = pchtml_mem_align(min_chunk_size);
@@ -61,14 +59,13 @@ pchtml_mem_init(pchtml_mem_t *mem, size_t min_chunk_size)
     /* Create first chunk */
     mem->chunk = pchtml_mem_chunk_make(mem, mem->chunk_min_size);
     if (mem->chunk == NULL) {
-        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
-        return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
+        return PURC_ERROR_OUT_OF_MEMORY;
     }
 
     mem->chunk_length = 1;
     mem->chunk_first = mem->chunk;
 
-    return PCHTML_STATUS_OK;
+    return PURC_ERROR_OK;
 }
 
 void

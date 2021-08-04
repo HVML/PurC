@@ -48,13 +48,13 @@ typedef struct pchtml_hash_search pchtml_hash_search_t;
 typedef struct pchtml_hash_insert pchtml_hash_insert_t;
 
 #ifndef PCHTML_HASH_EXTERN
-PCHTML_EXTERN const pchtml_hash_insert_t *pchtml_hash_insert_raw;
-PCHTML_EXTERN const pchtml_hash_insert_t *pchtml_hash_insert_lower;
-PCHTML_EXTERN const pchtml_hash_insert_t *pchtml_hash_insert_upper;
+extern const pchtml_hash_insert_t *pchtml_hash_insert_raw;
+extern const pchtml_hash_insert_t *pchtml_hash_insert_lower;
+extern const pchtml_hash_insert_t *pchtml_hash_insert_upper;
 
-PCHTML_EXTERN const pchtml_hash_search_t *pchtml_hash_search_raw;
-PCHTML_EXTERN const pchtml_hash_search_t *pchtml_hash_search_lower;
-PCHTML_EXTERN const pchtml_hash_search_t *pchtml_hash_search_upper;
+extern const pchtml_hash_search_t *pchtml_hash_search_raw;
+extern const pchtml_hash_search_t *pchtml_hash_search_lower;
+extern const pchtml_hash_search_t *pchtml_hash_search_upper;
 #endif
 
 /*

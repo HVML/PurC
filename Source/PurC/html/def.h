@@ -36,13 +36,6 @@
 #define PCHTML_STRINGIZE_HELPER(x) #x
 #define PCHTML_STRINGIZE(x) PCHTML_STRINGIZE_HELPER(x)
 
-/* Format */
-#ifdef _WIN32
-    #define PCHTML_FORMAT_Z "%Iu"
-#else
-    #define PCHTML_FORMAT_Z "%zu"
-#endif
-
 /* Deprecated */
 #ifdef _MSC_VER
     #define PCHTML_DEPRECATED(func) __declspec(deprecated) func
@@ -55,8 +48,6 @@
 /* Debug */
 //#define PCHTML_DEBUG(...) do {} while (0)
 //#define PCHTML_DEBUG_ERROR(...) do {} while (0)
-
-#define PCHTML_MEM_ALIGN_STEP sizeof(void *)
 
 #ifndef PCHTML_STATIC
     #ifdef _WIN32

@@ -35,7 +35,6 @@
 
 #include "config.h"
 
-#include "html/base.h"
 #include "private/mraw.h"
 
 #ifdef __cplusplus

@@ -32,8 +32,6 @@
 
 #include "purc.h"
 #include "config.h"
-#include "private/instance.h"
-#include "private/errors.h"
 
 #define PCHTML_HASH_EXTERN
 #include "private/hash.h"
@@ -133,7 +131,7 @@ _pchtml_hash_entry_create(pchtml_hash_t *hash, const pchtml_hash_copy_f copy_fun
 
     entry->length = length;
 
-    if (copy_func(hash, entry, key, length) != PCHTML_STATUS_OK) {
+    if (copy_func(hash, entry, key, length) != PURC_ERROR_OK) {
         pchtml_dobject_free(hash->entries, entry);
         return NULL;
     }
@@ -154,8 +152,7 @@ pchtml_hash_init(pchtml_hash_t *hash, size_t table_size, size_t struct_size)
     size_t chunk_size;
 
     if (hash == NULL) {
-        pcinst_set_error (PCHTML_OBJECT_IS_NULL);
-        return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
+        return PURC_ERROR_NULL_OBJECT;
     }
 
     if (table_size < PCHTML_HASH_TABLE_MIN_SIZE) {
@@ -168,25 +165,24 @@ pchtml_hash_init(pchtml_hash_t *hash, size_t table_size, size_t struct_size)
 
     hash->entries = pchtml_dobject_create();
     status = pchtml_dobject_init(hash->entries, chunk_size, struct_size);
-    if (status != PCHTML_STATUS_OK) {
+    if (status != PURC_ERROR_OK) {
         return status;
     }
 
     hash->mraw = pchtml_mraw_create();
     status = pchtml_mraw_init(hash->mraw, chunk_size * 12);
-    if (status != PCHTML_STATUS_OK) {
+    if (status != PURC_ERROR_OK) {
         return status;
     }
 
     hash->table = pchtml_hash_table_create(hash);
     if (hash->table == NULL) {
-        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
-        return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
+        return PURC_ERROR_OUT_OF_MEMORY;
     }
 
     hash->struct_size = struct_size;
 
-    return PCHTML_STATUS_OK;
+    return PURC_ERROR_OK;
 }
 
 void
@@ -441,8 +437,7 @@ pchtml_hash_copy(pchtml_hash_t *hash, pchtml_hash_entry_t *entry,
     else {
         entry->u.long_str = pchtml_mraw_alloc(hash->mraw, length + 1);
         if (entry->u.long_str == NULL) {
-            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
-            return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
+            return PURC_ERROR_OUT_OF_MEMORY;
         }
 
         to = entry->u.long_str;
@@ -452,7 +447,7 @@ pchtml_hash_copy(pchtml_hash_t *hash, pchtml_hash_entry_t *entry,
 
     to[length] = '\0';
 
-    return PCHTML_STATUS_OK;
+    return PURC_ERROR_OK;
 }
 
 unsigned int
@@ -467,8 +462,7 @@ pchtml_hash_copy_lower(pchtml_hash_t *hash, pchtml_hash_entry_t *entry,
     else {
         entry->u.long_str = pchtml_mraw_alloc(hash->mraw, length + 1);
         if (entry->u.long_str == NULL) {
-            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
-            return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
+            return PURC_ERROR_OUT_OF_MEMORY;
         }
 
         to = entry->u.long_str;
@@ -480,7 +474,7 @@ pchtml_hash_copy_lower(pchtml_hash_t *hash, pchtml_hash_entry_t *entry,
 
     to[length] = '\0';
 
-    return PCHTML_STATUS_OK;
+    return PURC_ERROR_OK;
 }
 
 unsigned int
@@ -495,8 +489,7 @@ pchtml_hash_copy_upper(pchtml_hash_t *hash, pchtml_hash_entry_t *entry,
     else {
         entry->u.long_str = pchtml_mraw_alloc(hash->mraw, length + 1);
         if (entry->u.long_str == NULL) {
-            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
-            return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
+            return PURC_ERROR_OUT_OF_MEMORY;
         }
 
         to = entry->u.long_str;
@@ -508,5 +501,5 @@ pchtml_hash_copy_upper(pchtml_hash_t *hash, pchtml_hash_entry_t *entry,
 
     to[length] = '\0';
 
-    return PCHTML_STATUS_OK;
+    return PURC_ERROR_OK;
 }

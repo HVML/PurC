@@ -48,10 +48,6 @@
 extern "C" {
 #endif
 
-/* Callbacks */
-typedef unsigned int (*pchtml_callback_f)(const unsigned char *buffer,
-                                          size_t size, void *ctx);
-
 
 #ifdef __cplusplus
 }       /* __cplusplus */
