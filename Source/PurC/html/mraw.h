@@ -39,7 +39,7 @@
 
 #include "html/base.h"
 #include "private/mem.h"
-#include "html/bst.h"
+#include "private/bst.h"
 
 
 #ifdef __cplusplus
