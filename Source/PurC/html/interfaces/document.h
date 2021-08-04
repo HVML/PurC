@@ -37,7 +37,6 @@
 #include "private/mraw.h"
 
 #include "html/tag.h"
-#include "html/ns.h"
 #include "html/html_interface.h"
 #include "private/html.h"
 #include "private/edom.h"

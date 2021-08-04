@@ -40,8 +40,6 @@
 #include "html/tree.h"
 #include "html/interfaces/document.h"
 
-#include "html/ns.h"
-
 
 #ifdef __cplusplus
 extern "C" {

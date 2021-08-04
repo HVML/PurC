@@ -38,7 +38,6 @@
 
 #include "html/serialize.h"
 #include "html/tree.h"
-#include "html/ns.h"
 #include "html/interfaces/template_element.h"
 
 #define PCHTML_TOKENIZER_CHARS_MAP

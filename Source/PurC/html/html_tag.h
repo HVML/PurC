@@ -37,7 +37,6 @@
 #include "html/base.h"
 
 #include "html/tag.h"
-#include "html/ns.h"
 
 #ifdef __cplusplus
 extern "C" {
