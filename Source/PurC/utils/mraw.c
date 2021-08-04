@@ -88,9 +88,9 @@ pchtml_mraw_init(pchtml_mraw_t *mraw, size_t chunk_size)
 #endif
 
     /* Cache */
-    mraw->cache = pchtml_bst_create();
+    mraw->cache = pcutils_bst_create();
 
-    status = pchtml_bst_init(mraw->cache, 512);
+    status = pcutils_bst_init(mraw->cache, 512);
     if (status) {
         return status;
     }
@@ -102,7 +102,7 @@ void
 pchtml_mraw_clean(pchtml_mraw_t *mraw)
 {
     pchtml_mem_clean(mraw->mem);
-    pchtml_bst_clean(mraw->cache);
+    pcutils_bst_clean(mraw->cache);
 }
 
 pchtml_mraw_t *
@@ -113,7 +113,7 @@ pchtml_mraw_destroy(pchtml_mraw_t *mraw, bool destroy_self)
     }
 
     mraw->mem = pchtml_mem_destroy(mraw->mem, true);
-    mraw->cache = pchtml_bst_destroy(mraw->cache, true);
+    mraw->cache = pcutils_bst_destroy(mraw->cache, true);
 
     if (destroy_self) {
         return pchtml_free(mraw);
@@ -170,8 +170,8 @@ pchtml_mraw_mem_alloc(pchtml_mraw_t *mraw, size_t length)
                                       diff + pchtml_mraw_meta_size());
 #endif
 
-            pchtml_bst_insert(mraw->cache,
-                              pchtml_bst_root_ref(mraw->cache), diff,
+            pcutils_bst_insert(mraw->cache,
+                              pcutils_bst_root_ref(mraw->cache), diff,
                               pchtml_mraw_data_begin(&chunk->data[chunk->length]));
 
             chunk->length = chunk->size;
@@ -206,8 +206,8 @@ pchtml_mraw_alloc(pchtml_mraw_t *mraw, size_t size)
     size = pchtml_mem_align(size);
 
     if (mraw->cache->tree_length != 0) {
-        data = pchtml_bst_remove_close(mraw->cache,
-                                       pchtml_bst_root_ref(mraw->cache),
+        data = pcutils_bst_remove_close(mraw->cache,
+                                       pcutils_bst_root_ref(mraw->cache),
                                        size, NULL);
         if (data != NULL) {
 
@@ -365,7 +365,7 @@ pchtml_mraw_realloc(pchtml_mraw_t *mraw, void *data, size_t new_size)
 #if defined(PCHTML_HAVE_ADDRESS_SANITIZER)
             ASAN_POISON_MEMORY_REGION(begin, size + pchtml_mraw_meta_size());
 #endif
-            pchtml_bst_insert(mraw->cache, pchtml_bst_root_ref(mraw->cache),
+            pcutils_bst_insert(mraw->cache, pcutils_bst_root_ref(mraw->cache),
                               size, data);
             return NULL;
         }
@@ -383,7 +383,7 @@ pchtml_mraw_realloc(pchtml_mraw_t *mraw, void *data, size_t new_size)
 #if defined(PCHTML_HAVE_ADDRESS_SANITIZER)
             ASAN_POISON_MEMORY_REGION(begin, new_size + pchtml_mraw_meta_size());
 #endif
-            pchtml_bst_insert(mraw->cache, pchtml_bst_root_ref(mraw->cache),
+            pcutils_bst_insert(mraw->cache, pcutils_bst_root_ref(mraw->cache),
                               new_size, pchtml_mraw_data_begin(begin));
         }
 
@@ -414,7 +414,7 @@ pchtml_mraw_free(pchtml_mraw_t *mraw, void *data)
     ASAN_POISON_MEMORY_REGION(real_data, size + pchtml_mraw_meta_size());
 #endif
 
-    pchtml_bst_insert(mraw->cache, pchtml_bst_root_ref(mraw->cache),
+    pcutils_bst_insert(mraw->cache, pcutils_bst_root_ref(mraw->cache),
                       size, data);
 
     return NULL;

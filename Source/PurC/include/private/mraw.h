@@ -54,7 +54,7 @@ extern "C" {
 
 typedef struct {
     pchtml_mem_t *mem;
-    pchtml_bst_t *cache;
+    pcutils_bst_t *cache;
 }
 pchtml_mraw_t;
 

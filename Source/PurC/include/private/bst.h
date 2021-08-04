@@ -43,76 +43,76 @@
 extern "C" {
 #endif
 
-#define pchtml_bst_root(bst) (bst)->root
-#define pchtml_bst_root_ref(bst) &((bst)->root)
+#define pcutils_bst_root(bst) (bst)->root
+#define pcutils_bst_root_ref(bst) &((bst)->root)
 
-typedef struct pchtml_bst_entry pchtml_bst_entry_t;
-typedef struct pchtml_bst pchtml_bst_t;
+typedef struct pcutils_bst_entry pcutils_bst_entry_t;
+typedef struct pcutils_bst pcutils_bst_t;
 
-typedef bool (*pchtml_bst_entry_f)(pchtml_bst_t *bst,
-                                   pchtml_bst_entry_t *entry, void *ctx);
+typedef bool (*pcutils_bst_entry_f)(pcutils_bst_t *bst,
+                                   pcutils_bst_entry_t *entry, void *ctx);
 
-struct pchtml_bst_entry {
+struct pcutils_bst_entry {
     void               *value;
 
-    pchtml_bst_entry_t *right;
-    pchtml_bst_entry_t *left;
-    pchtml_bst_entry_t *next;
-    pchtml_bst_entry_t *parent;
+    pcutils_bst_entry_t *right;
+    pcutils_bst_entry_t *left;
+    pcutils_bst_entry_t *next;
+    pcutils_bst_entry_t *parent;
 
     size_t             size;
 };
 
-struct pchtml_bst {
+struct pcutils_bst {
     pchtml_dobject_t   *dobject;
-    pchtml_bst_entry_t *root;
+    pcutils_bst_entry_t *root;
 
     size_t             tree_length;
 };
 
 
-pchtml_bst_t *
-pchtml_bst_create(void) WTF_INTERNAL;
+pcutils_bst_t *
+pcutils_bst_create(void) WTF_INTERNAL;
 
 unsigned int
-pchtml_bst_init(pchtml_bst_t *bst, size_t size) WTF_INTERNAL;
+pcutils_bst_init(pcutils_bst_t *bst, size_t size) WTF_INTERNAL;
 
 void
-pchtml_bst_clean(pchtml_bst_t *bst) WTF_INTERNAL;
+pcutils_bst_clean(pcutils_bst_t *bst) WTF_INTERNAL;
 
-pchtml_bst_t *
-pchtml_bst_destroy(pchtml_bst_t *bst, bool self_destroy) WTF_INTERNAL;
+pcutils_bst_t *
+pcutils_bst_destroy(pcutils_bst_t *bst, bool self_destroy) WTF_INTERNAL;
 
-pchtml_bst_entry_t *
-pchtml_bst_entry_make(pchtml_bst_t *bst, size_t size) WTF_INTERNAL;
+pcutils_bst_entry_t *
+pcutils_bst_entry_make(pcutils_bst_t *bst, size_t size) WTF_INTERNAL;
 
-pchtml_bst_entry_t *
-pchtml_bst_insert(pchtml_bst_t *bst, pchtml_bst_entry_t **scope,
+pcutils_bst_entry_t *
+pcutils_bst_insert(pcutils_bst_t *bst, pcutils_bst_entry_t **scope,
                   size_t size, void *value) WTF_INTERNAL;
 
-pchtml_bst_entry_t *
-pchtml_bst_insert_not_exists(pchtml_bst_t *bst, pchtml_bst_entry_t **scope,
+pcutils_bst_entry_t *
+pcutils_bst_insert_not_exists(pcutils_bst_t *bst, pcutils_bst_entry_t **scope,
                              size_t size) WTF_INTERNAL;
 
 
-pchtml_bst_entry_t *
-pchtml_bst_search(pchtml_bst_t *bst, pchtml_bst_entry_t *scope, size_t size) WTF_INTERNAL;
+pcutils_bst_entry_t *
+pcutils_bst_search(pcutils_bst_t *bst, pcutils_bst_entry_t *scope, size_t size) WTF_INTERNAL;
 
-pchtml_bst_entry_t *
-pchtml_bst_search_close(pchtml_bst_t *bst, pchtml_bst_entry_t *scope,
+pcutils_bst_entry_t *
+pcutils_bst_search_close(pcutils_bst_t *bst, pcutils_bst_entry_t *scope,
                         size_t size) WTF_INTERNAL;
 
 
 void *
-pchtml_bst_remove(pchtml_bst_t *bst, pchtml_bst_entry_t **root, size_t size) WTF_INTERNAL;
+pcutils_bst_remove(pcutils_bst_t *bst, pcutils_bst_entry_t **root, size_t size) WTF_INTERNAL;
 
 void *
-pchtml_bst_remove_close(pchtml_bst_t *bst, pchtml_bst_entry_t **root,
+pcutils_bst_remove_close(pcutils_bst_t *bst, pcutils_bst_entry_t **root,
                         size_t size, size_t *found_size) WTF_INTERNAL;
 
 void *
-pchtml_bst_remove_by_pointer(pchtml_bst_t *bst, pchtml_bst_entry_t *entry,
-                             pchtml_bst_entry_t **root) WTF_INTERNAL;
+pcutils_bst_remove_by_pointer(pcutils_bst_t *bst, pcutils_bst_entry_t *entry,
+                             pcutils_bst_entry_t **root) WTF_INTERNAL;
 
 
 /* Callbacks */
@@ -120,10 +120,10 @@ typedef unsigned int (*pchtml_callback_f)(const unsigned char *buffer,
                                           size_t size, void *ctx);
 
 void
-pchtml_bst_serialize(pchtml_bst_t *bst, pchtml_callback_f callback, void *ctx) WTF_INTERNAL;
+pcutils_bst_serialize(pcutils_bst_t *bst, pchtml_callback_f callback, void *ctx) WTF_INTERNAL;
 
 void
-pchtml_bst_serialize_entry(pchtml_bst_entry_t *entry,
+pcutils_bst_serialize_entry(pcutils_bst_entry_t *entry,
                            pchtml_callback_f callback, void *ctx, size_t tabs) WTF_INTERNAL;
 
 

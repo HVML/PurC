@@ -42,14 +42,14 @@
     #define PCHTML_FORMAT_Z "%zu"
 #endif
 
-pchtml_bst_t *
-pchtml_bst_create(void)
+pcutils_bst_t *
+pcutils_bst_create(void)
 {
-    return pchtml_calloc(1, sizeof(pchtml_bst_t));
+    return pchtml_calloc(1, sizeof(pcutils_bst_t));
 }
 
 unsigned int
-pchtml_bst_init(pchtml_bst_t *bst, size_t size)
+pcutils_bst_init(pcutils_bst_t *bst, size_t size)
 {
     unsigned int status;
 
@@ -63,7 +63,7 @@ pchtml_bst_init(pchtml_bst_t *bst, size_t size)
 
     bst->dobject = pchtml_dobject_create();
     status = pchtml_dobject_init(bst->dobject, size,
-                                 sizeof(pchtml_bst_entry_t));
+                                 sizeof(pcutils_bst_entry_t));
     if (status != PURC_ERROR_OK) {
         return status;
     }
@@ -75,7 +75,7 @@ pchtml_bst_init(pchtml_bst_t *bst, size_t size)
 }
 
 void
-pchtml_bst_clean(pchtml_bst_t *bst)
+pcutils_bst_clean(pcutils_bst_t *bst)
 {
     pchtml_dobject_clean(bst->dobject);
 
@@ -83,8 +83,8 @@ pchtml_bst_clean(pchtml_bst_t *bst)
     bst->tree_length = 0;
 }
 
-pchtml_bst_t *
-pchtml_bst_destroy(pchtml_bst_t *bst, bool self_destroy)
+pcutils_bst_t *
+pcutils_bst_destroy(pcutils_bst_t *bst, bool self_destroy)
 {
     if (bst == NULL) {
         return NULL;
@@ -99,10 +99,10 @@ pchtml_bst_destroy(pchtml_bst_t *bst, bool self_destroy)
     return bst;
 }
 
-pchtml_bst_entry_t *
-pchtml_bst_entry_make(pchtml_bst_t *bst, size_t size)
+pcutils_bst_entry_t *
+pcutils_bst_entry_make(pcutils_bst_t *bst, size_t size)
 {
-    pchtml_bst_entry_t *new_entry = pchtml_dobject_calloc(bst->dobject);
+    pcutils_bst_entry_t *new_entry = pchtml_dobject_calloc(bst->dobject);
     if (new_entry == NULL) {
         return NULL;
     }
@@ -114,11 +114,11 @@ pchtml_bst_entry_make(pchtml_bst_t *bst, size_t size)
     return new_entry;
 }
 
-pchtml_bst_entry_t *
-pchtml_bst_insert(pchtml_bst_t *bst, pchtml_bst_entry_t **scope,
+pcutils_bst_entry_t *
+pcutils_bst_insert(pcutils_bst_t *bst, pcutils_bst_entry_t **scope,
                   size_t size, void *value)
 {
-    pchtml_bst_entry_t *new_entry, *entry;
+    pcutils_bst_entry_t *new_entry, *entry;
 
     new_entry = pchtml_dobject_calloc(bst->dobject);
     if (new_entry == NULL) {
@@ -173,14 +173,14 @@ pchtml_bst_insert(pchtml_bst_t *bst, pchtml_bst_entry_t **scope,
     return NULL;
 }
 
-pchtml_bst_entry_t *
-pchtml_bst_insert_not_exists(pchtml_bst_t *bst, pchtml_bst_entry_t **scope,
+pcutils_bst_entry_t *
+pcutils_bst_insert_not_exists(pcutils_bst_t *bst, pcutils_bst_entry_t **scope,
                              size_t size)
 {
-    pchtml_bst_entry_t *entry;
+    pcutils_bst_entry_t *entry;
 
     if (*scope == NULL) {
-        *scope = pchtml_bst_entry_make(bst, size);
+        *scope = pcutils_bst_entry_make(bst, size);
 
         return *scope;
     }
@@ -193,7 +193,7 @@ pchtml_bst_insert_not_exists(pchtml_bst_t *bst, pchtml_bst_entry_t **scope,
         }
         else if (size > entry->size) {
             if (entry->right == NULL) {
-                entry->right = pchtml_bst_entry_make(bst, size);
+                entry->right = pcutils_bst_entry_make(bst, size);
                 entry->right->parent = entry;
 
                 return entry->right;
@@ -203,7 +203,7 @@ pchtml_bst_insert_not_exists(pchtml_bst_t *bst, pchtml_bst_entry_t **scope,
         }
         else {
             if (entry->left == NULL) {
-                entry->left = pchtml_bst_entry_make(bst, size);
+                entry->left = pcutils_bst_entry_make(bst, size);
                 entry->left->parent = entry;
 
                 return entry->left;
@@ -216,8 +216,8 @@ pchtml_bst_insert_not_exists(pchtml_bst_t *bst, pchtml_bst_entry_t **scope,
     return NULL;
 }
 
-pchtml_bst_entry_t *
-pchtml_bst_search(pchtml_bst_t *bst, pchtml_bst_entry_t *scope, size_t size)
+pcutils_bst_entry_t *
+pcutils_bst_search(pcutils_bst_t *bst, pcutils_bst_entry_t *scope, size_t size)
 {
     UNUSED_PARAM(bst);
 
@@ -236,13 +236,13 @@ pchtml_bst_search(pchtml_bst_t *bst, pchtml_bst_entry_t *scope, size_t size)
     return NULL;
 }
 
-pchtml_bst_entry_t *
-pchtml_bst_search_close(pchtml_bst_t *bst, pchtml_bst_entry_t *scope,
+pcutils_bst_entry_t *
+pcutils_bst_search_close(pcutils_bst_t *bst, pcutils_bst_entry_t *scope,
                         size_t size)
 {
     UNUSED_PARAM(bst);
 
-    pchtml_bst_entry_t *max = NULL;
+    pcutils_bst_entry_t *max = NULL;
 
     while (scope != NULL) {
         if (scope->size == size) {
@@ -261,13 +261,13 @@ pchtml_bst_search_close(pchtml_bst_t *bst, pchtml_bst_entry_t *scope,
 }
 
 void *
-pchtml_bst_remove(pchtml_bst_t *bst, pchtml_bst_entry_t **scope, size_t size)
+pcutils_bst_remove(pcutils_bst_t *bst, pcutils_bst_entry_t **scope, size_t size)
 {
-    pchtml_bst_entry_t *entry = *scope;
+    pcutils_bst_entry_t *entry = *scope;
 
     while (entry != NULL) {
         if (entry->size == size) {
-            return pchtml_bst_remove_by_pointer(bst, entry, scope);
+            return pcutils_bst_remove_by_pointer(bst, entry, scope);
         }
         else if (size > entry->size) {
             entry = entry->right;
@@ -281,11 +281,11 @@ pchtml_bst_remove(pchtml_bst_t *bst, pchtml_bst_entry_t **scope, size_t size)
 }
 
 void *
-pchtml_bst_remove_close(pchtml_bst_t *bst, pchtml_bst_entry_t **scope,
+pcutils_bst_remove_close(pcutils_bst_t *bst, pcutils_bst_entry_t **scope,
                         size_t size, size_t *found_size)
 {
-    pchtml_bst_entry_t *entry = *scope;
-    pchtml_bst_entry_t *max = NULL;
+    pcutils_bst_entry_t *entry = *scope;
+    pcutils_bst_entry_t *max = NULL;
 
     while (entry != NULL) {
         if (entry->size == size) {
@@ -293,7 +293,7 @@ pchtml_bst_remove_close(pchtml_bst_t *bst, pchtml_bst_entry_t **scope,
                 *found_size = entry->size;
             }
 
-            return pchtml_bst_remove_by_pointer(bst, entry, scope);
+            return pcutils_bst_remove_by_pointer(bst, entry, scope);
         }
         else if (size > entry->size) {
             entry = entry->right;
@@ -309,7 +309,7 @@ pchtml_bst_remove_close(pchtml_bst_t *bst, pchtml_bst_entry_t **scope,
             *found_size = max->size;
         }
 
-        return pchtml_bst_remove_by_pointer(bst, max, scope);
+        return pcutils_bst_remove_by_pointer(bst, max, scope);
     }
 
     if (found_size != NULL) {
@@ -320,11 +320,11 @@ pchtml_bst_remove_close(pchtml_bst_t *bst, pchtml_bst_entry_t **scope,
 }
 
 void *
-pchtml_bst_remove_by_pointer(pchtml_bst_t *bst, pchtml_bst_entry_t *entry,
-                             pchtml_bst_entry_t **root)
+pcutils_bst_remove_by_pointer(pcutils_bst_t *bst, pcutils_bst_entry_t *entry,
+                             pcutils_bst_entry_t **root)
 {
     void *value;
-    pchtml_bst_entry_t *next, *right, *left;
+    pcutils_bst_entry_t *next, *right, *left;
 
     bst->tree_length--;
 
@@ -366,7 +366,7 @@ pchtml_bst_remove_by_pointer(pchtml_bst_t *bst, pchtml_bst_entry_t *entry,
             right = entry->right;
             right->parent = entry->parent;
 
-            memcpy(entry, right, sizeof(pchtml_bst_entry_t));
+            memcpy(entry, right, sizeof(pcutils_bst_entry_t));
 
             pchtml_dobject_free(bst->dobject, right);
         }
@@ -393,7 +393,7 @@ pchtml_bst_remove_by_pointer(pchtml_bst_t *bst, pchtml_bst_entry_t *entry,
             left = entry->left;
             left->parent = entry->parent;
 
-            memcpy(entry, left, sizeof(pchtml_bst_entry_t));
+            memcpy(entry, left, sizeof(pcutils_bst_entry_t));
 
             pchtml_dobject_free(bst->dobject, left);
         }
@@ -441,13 +441,13 @@ pchtml_bst_remove_by_pointer(pchtml_bst_t *bst, pchtml_bst_entry_t *entry,
 }
 
 void
-pchtml_bst_serialize(pchtml_bst_t *bst, pchtml_callback_f callback, void *ctx)
+pcutils_bst_serialize(pcutils_bst_t *bst, pchtml_callback_f callback, void *ctx)
 {
-    pchtml_bst_serialize_entry(bst->root, callback, ctx, 0);
+    pcutils_bst_serialize_entry(bst->root, callback, ctx, 0);
 }
 
 void
-pchtml_bst_serialize_entry(pchtml_bst_entry_t *entry,
+pcutils_bst_serialize_entry(pcutils_bst_entry_t *entry,
                            pchtml_callback_f callback, void *ctx, size_t tabs)
 {
     size_t buff_len;
@@ -468,7 +468,7 @@ pchtml_bst_serialize_entry(pchtml_bst_entry_t *entry,
         callback((unsigned char *) buff, buff_len, ctx);
 
         callback((unsigned char *) ">\n", 2, ctx);
-        pchtml_bst_serialize_entry(entry->left, callback, ctx, (tabs + 1));
+        pcutils_bst_serialize_entry(entry->left, callback, ctx, (tabs + 1));
 
         for (size_t i = 0; i < tabs; i++) {
             callback((unsigned char *) "\t", 1, ctx);
@@ -491,7 +491,7 @@ pchtml_bst_serialize_entry(pchtml_bst_entry_t *entry,
         callback((unsigned char *) buff, buff_len, ctx);
 
         callback((unsigned char *) ">\n", 2, ctx);
-        pchtml_bst_serialize_entry(entry->right, callback, ctx, (tabs + 1));
+        pcutils_bst_serialize_entry(entry->right, callback, ctx, (tabs + 1));
 
         for (size_t i = 0; i < tabs; i++) {
             callback((unsigned char *) "\t", 1, ctx);
