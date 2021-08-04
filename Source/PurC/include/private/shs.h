@@ -34,8 +34,8 @@
 #define PCHTML_SHS_H
 
 #include "config.h"
-#include "html/base.h"
 
+#include <stdint.h>
 #include <string.h>
 
 #ifdef __cplusplus
