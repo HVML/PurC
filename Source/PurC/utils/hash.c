@@ -36,7 +36,7 @@
 #include "private/errors.h"
 
 #define PCHTML_HASH_EXTERN
-#include "html/hash.h"
+#include "private/hash.h"
 #undef PCHTML_HASH_EXTERN
 
 #include "html/str.h"

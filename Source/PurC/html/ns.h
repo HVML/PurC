@@ -35,7 +35,7 @@
 #define PCHTML_NS_H
 
 #include "config.h"
-#include "html/hash.h"
+#include "private/hash.h"
 #include "html/shs.h"
 
 #include "ns_const.h"
