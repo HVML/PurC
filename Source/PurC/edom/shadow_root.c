@@ -33,7 +33,6 @@
 #include "private/edom.h"
 #include "edom/shadow_root.h"
 
-
 pcedom_shadow_root_t *
 pcedom_shadow_root_interface_create(pcedom_document_t *document)
 {

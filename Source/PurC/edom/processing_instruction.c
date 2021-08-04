@@ -32,7 +32,6 @@
 
 #include "private/edom.h"
 
-
 pcedom_processing_instruction_t *
 pcedom_processing_instruction_interface_create(pcedom_document_t *document)
 {

@@ -38,8 +38,6 @@ extern "C" {
 #endif
 
 #include "config.h"
-#include "html/core_base.h"
-
 
 typedef enum {
     PCEDOM_INDEX_SIZE_ERR = 0x00,

@@ -33,7 +33,6 @@
 #include "config.h"
 #include "private/instance.h"
 #include "private/errors.h"
-
 #include "private/edom.h"
 
 static pchtml_action_t

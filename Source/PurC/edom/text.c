@@ -33,7 +33,6 @@
 
 #include "private/edom.h"
 
-
 pcedom_text_t *
 pcedom_text_interface_create(pcedom_document_t *document)
 {

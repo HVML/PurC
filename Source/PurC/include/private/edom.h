@@ -33,12 +33,14 @@
 #define PURC_PRIVATE_EDOM_H
 
 #include "config.h"
+
 #include "html/str.h"
-#include "html/mraw.h"
 #include "html/hash.h"
+#include "html/tag.h"
+#include "html/ns.h"
+
 #include "tag_const.h"
 #include "ns_const.h"
-
 #include "html_attr_const.h"
 
 #include <assert.h>

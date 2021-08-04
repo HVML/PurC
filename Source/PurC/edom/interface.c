@@ -32,7 +32,6 @@
 #include "private/edom.h"
 #include "edom/shadow_root.h"
 
-
 pcedom_interface_t *
 pcedom_interface_create(pcedom_document_t *document, pchtml_tag_id_t tag_id,
                          pchtml_ns_id_t ns)

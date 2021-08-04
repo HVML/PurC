@@ -31,9 +31,6 @@
 
 
 #include "private/edom.h"
-//#include "private/edom/cdata_section.h"
-//#include "private/edom/document.h"
-
 
 pcedom_cdata_section_t *
 pcedom_cdata_section_interface_create(pcedom_document_t *document)

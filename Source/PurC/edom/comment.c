@@ -31,8 +31,6 @@
 
 
 #include "private/edom.h"
-//#include "private/edom/document.h"
-
 
 pcedom_comment_t *
 pcedom_comment_interface_create(pcedom_document_t *document)

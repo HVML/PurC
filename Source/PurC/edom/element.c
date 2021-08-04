@@ -36,14 +36,6 @@
 #include "private/errors.h"
 #include "private/edom.h"
 #include "private/utils.h"
-#include "html_attr_const.h"
-
-#include "html/tag.h"
-#include "html/ns.h"
-
-#include "html/str.h"
-#include "html/hash.h"
-
 
 typedef struct pcedom_element_cb_ctx pcedom_element_cb_ctx_t;
 

@@ -33,11 +33,7 @@
 #include "config.h"
 #include "private/instance.h"
 #include "private/errors.h"
-
 #include "private/edom.h"
-#include "html/ns.h"
-#include "html/tag.h"
-
 
 pcedom_document_t *
 pcedom_document_interface_create(pcedom_document_t *document)

@@ -30,9 +30,6 @@
  */
 
 #include "private/edom.h"
-//#include "edom/event_target.h"
-//#include "private/edom/document.h"
-
 
 pcedom_event_target_t *
 pcedom_event_target_create(pcedom_document_t *document)
