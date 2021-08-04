@@ -40,6 +40,10 @@
 #include "private/errors.h"
 #include "interfaces/document.h"
 
+struct pchtml_parser {
+    pchtml_document_t       doc;
+};
+
 struct pchtml_document {
     pchtml_html_document_t *doc;
 };
@@ -53,7 +57,26 @@ _html_document_release(pchtml_document_t doc)
     doc->doc = NULL;
 }
 
-static inline unsigned int
+static inline int
+_html_prepare_chunk(pchtml_document_t doc)
+{
+    doc->doc = pchtml_html_document_create();
+    if (doc->doc == NULL) {
+        // pchtml_html_document_create shall have already
+        // set error code
+        return -1;
+    }
+
+    unsigned int  status = 0;
+    status = pchtml_html_document_parse_chunk_begin(doc->doc);
+    if (status != PCHTML_STATUS_OK) {
+        return -1;
+    }
+
+    return 0;
+}
+
+static inline int
 _html_parse_chunk(pchtml_document_t doc, purc_rwstream_t in)
 {
     while (1) {
@@ -62,22 +85,33 @@ _html_parse_chunk(pchtml_document_t doc, purc_rwstream_t in)
         int       n;
         n = purc_rwstream_read_utf8_char(in, utf8, &wc);
         if (n<0) {
-            // which specific PCHTML_STATUS_xxx to return?
-            return PCHTML_STATUS_ERROR;
+            return -1;
         }
         if (n==0) {
-            return PCHTML_STATUS_OK;
+            return 0;
         }
         PC_ASSERT((size_t)n<sizeof(utf8));
 
         unsigned int status;
         status = pchtml_html_document_parse_chunk(doc->doc,
                     (const unsigned char*)utf8, n);
-        if (status != PCHTML_STATUS_OK) {
-        PC_ASSERT(0);
-            return status;
+        if (status != PURC_ERROR_OK) {
+            pcinst_set_error(status);
+            return -1;
         }
     }
+}
+
+static inline int
+_html_parse_end(pchtml_document_t doc)
+{
+    unsigned int status;
+    status = pchtml_html_document_parse_chunk_end(doc->doc);
+    if (status != PURC_ERROR_OK) {
+        pcinst_set_error(status);
+        return -1;
+    }
+    return 0;
 }
 
 pchtml_document_t
@@ -85,7 +119,6 @@ pchtml_doc_load_from_stream(purc_rwstream_t in)
 {
     if (!in) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        PC_ASSERT(0);
         return NULL;
     }
 
@@ -93,45 +126,149 @@ pchtml_doc_load_from_stream(purc_rwstream_t in)
     doc = (pchtml_document_t)calloc(1, sizeof(*doc));
     if (!doc) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        PC_ASSERT(0);
         return NULL;
     }
 
     do {
-        doc->doc = pchtml_html_document_create();
-        if (doc->doc == NULL) {
-            // pchtml_html_document_create shall have already
-            // set error code
-        PC_ASSERT(0);
-            break;
-        }
-        unsigned int  status = 0;
-        status = pchtml_html_document_parse_chunk_begin(doc->doc);
-        if (status != PCHTML_STATUS_OK) {
-        PC_ASSERT(0);
+        int r;
+        r = _html_prepare_chunk(doc);
+        if (r) {
             break;
         }
 
-        status = _html_parse_chunk(doc, in);
-        if (status != PCHTML_STATUS_OK) {
-            // not necessary to call chunk_end
-            PC_ASSERT(status==PCHTML_STATUS_ERROR);
+        r = _html_parse_chunk(doc, in);
+        if (r) {
             int err = purc_get_last_error();
-            PC_ASSERT(err==PCRWSTREAM_ERROR_IO);
+            if (err!=PCRWSTREAM_ERROR_IO) {
+                // not necessary to call chunk_end
+                break;
+            }
         }
 
-        status = pchtml_html_document_parse_chunk_end(doc->doc);
-        if (status != PCHTML_STATUS_OK) {
-        PC_ASSERT(0);
+        r = _html_parse_end(doc);
+        if (r) {
             break;
         }
 
         return doc;
     } while (0);
 
-    _html_document_release(doc);
-    free(doc);
+    pchtml_doc_destroy(doc);
+    doc = NULL;
     return NULL;
+}
+
+static inline void
+_html_parser_release(pchtml_parser_t parser)
+{
+    if (!parser->doc)
+        return;
+
+    int r = pchtml_doc_destroy(parser->doc);
+    PC_ASSERT(r==0);
+    parser->doc = NULL;
+}
+
+pchtml_parser_t pchtml_parser_create(void)
+{
+    pchtml_parser_t parser;
+    parser = (pchtml_parser_t)calloc(1, sizeof(*parser));
+    if (!parser) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    do {
+        parser->doc = (pchtml_document_t)calloc(1, sizeof(*parser->doc));
+        if (!parser->doc) {
+            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            break;
+        }
+        if (_html_prepare_chunk(parser->doc)) {
+            break;
+        }
+
+        return parser;
+    } while (0);
+
+    pchtml_parser_destroy(parser);
+    parser = NULL;
+    return NULL;
+}
+
+int pchtml_parser_parse_chunk(pchtml_parser_t parser, purc_rwstream_t in)
+{
+    if (!parser || !parser->doc || !in) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+    int r;
+    r = _html_parse_chunk(parser->doc, in);
+    if (r) {
+        int err = purc_get_last_error();
+        if (err!=PCRWSTREAM_ERROR_IO) {
+            // not necessary to call chunk_end
+            return -1;
+        }
+    }
+    return 0;
+}
+
+int pchtml_parser_parse_end(pchtml_parser_t parser, pchtml_document_t *doc)
+{
+    if (!parser || !parser->doc) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+
+    int r;
+    r = _html_parse_end(parser->doc);
+    if (r) {
+        return -1;
+    }
+
+    if (doc) {
+        *doc = parser->doc;
+        parser->doc = NULL;
+    }
+
+    return 0;
+}
+
+int pchtml_parser_reset(pchtml_parser_t parser)
+{
+    PC_ASSERT(parser);
+
+    // fix me: reuse doc?
+    pchtml_document_t doc;
+    doc = (pchtml_document_t)calloc(1, sizeof(*doc));
+    if (!doc) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+    if (_html_prepare_chunk(doc)) {
+        int r = pchtml_doc_destroy(doc);
+        PC_ASSERT(r==0);
+        doc = NULL;
+        return -1;
+    }
+
+    if (parser->doc) {
+        int r = pchtml_doc_destroy(doc);
+        PC_ASSERT(r==0);
+    }
+    parser->doc = doc;
+
+    return 0;
+}
+
+void pchtml_parser_destroy(pchtml_parser_t parser)
+{
+    if (!parser) {
+        return;
+    }
+    _html_parser_release(parser);
+    free(parser);
 }
 
 static inline unsigned int

@@ -77,9 +77,41 @@ pchtml_html_serialize_pretty_tree_cb(pcedom_node_t *node,
                 pchtml_html_serialize_cb_f cb, void *ctx) ;
 
 
+struct pchtml_parser;
+typedef struct pchtml_parser  pchtml_parser;
+typedef struct pchtml_parser *pchtml_parser_t;
+
 struct pchtml_document;
 typedef struct pchtml_document  pchtml_document;
 typedef struct pchtml_document *pchtml_document_t;
+
+/*
+ * Create html parser
+ */
+pchtml_parser_t pchtml_parser_create(void);
+
+/*
+ * Parse html doc with stream via parser, continuable
+ * -1: failure
+ * 0:  success
+ */
+int pchtml_parser_parse_chunk(pchtml_parser_t parser, purc_rwstream_t in);
+
+/*
+ * Signal html doc parser end
+ */
+int pchtml_parser_parse_end(pchtml_parser_t parser, pchtml_document_t *doc);
+
+
+/*
+ * Reset html parser
+ */
+int pchtml_parser_reset(pchtml_parser_t parser);
+
+/*
+ * Destroy html parser
+ */
+void pchtml_parser_destroy(pchtml_parser_t parser);
 
 /*
  * Load html doc from stream
