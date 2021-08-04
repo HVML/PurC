@@ -39,12 +39,12 @@
 #include "private/errors.h"
 #include "interfaces/document.h"
 
-struct purc_html_document {
+struct pchtml_document {
     pchtml_html_document_t *doc;
 };
 
 static inline void
-_html_document_release(purc_html_document_t doc)
+_html_document_release(pchtml_document_t doc)
 {
     if (!doc->doc)
         return;
@@ -53,7 +53,7 @@ _html_document_release(purc_html_document_t doc)
 }
 
 static inline unsigned int
-_html_parse_chunk(purc_html_document_t doc, purc_rwstream_t in)
+_html_parse_chunk(pchtml_document_t doc, purc_rwstream_t in)
 {
     while (1) {
         char      utf8[16];
@@ -79,8 +79,8 @@ _html_parse_chunk(purc_html_document_t doc, purc_rwstream_t in)
     }
 }
 
-purc_html_document_t
-purc_html_doc_load_from_stream(purc_rwstream_t in)
+pchtml_document_t
+pchtml_doc_load_from_stream(purc_rwstream_t in)
 {
     if (!in) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
@@ -88,8 +88,8 @@ purc_html_doc_load_from_stream(purc_rwstream_t in)
         return NULL;
     }
 
-    purc_html_document_t doc;
-    doc = (purc_html_document_t)calloc(1, sizeof(*doc));
+    pchtml_document_t doc;
+    doc = (pchtml_document_t)calloc(1, sizeof(*doc));
     if (!doc) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         PC_ASSERT(0);
@@ -161,7 +161,7 @@ serializer_callback(const unsigned char  *data, size_t len, void *ctx)
 }
 
 int
-purc_html_doc_write_to_stream(purc_html_document_t doc, purc_rwstream_t out)
+pchtml_doc_write_to_stream(pchtml_document_t doc, purc_rwstream_t out)
 {
     if (!doc || !doc->doc || !out) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
@@ -177,7 +177,7 @@ purc_html_doc_write_to_stream(purc_html_document_t doc, purc_rwstream_t out)
 }
 
 int
-purc_html_doc_destroy(purc_html_document_t doc)
+pchtml_doc_destroy(pchtml_document_t doc)
 {
     if (!doc || !doc->doc)
         return -1;

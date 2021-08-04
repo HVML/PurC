@@ -76,23 +76,18 @@ pchtml_html_serialize_pretty_tree_cb(pcedom_node_t *node,
                 pchtml_html_serialize_cb_f cb, void *ctx) ;
 
 
-struct purc_html_document;
-typedef struct purc_html_document  purc_html_document;
-typedef struct purc_html_document *purc_html_document_t;
+struct pchtml_document;
+typedef struct pchtml_document  pchtml_document;
+typedef struct pchtml_document *pchtml_document_t;
 
-struct purc_html_dom_node;
-typedef struct purc_html_dom_node  purc_html_dom_node;
-typedef struct purc_html_dom_node *purc_html_dom_node_t;
-
-
-purc_html_document_t
-purc_html_doc_load_from_stream(purc_rwstream_t in);
+pchtml_document_t
+pchtml_doc_load_from_stream(purc_rwstream_t in);
 
 int
-purc_html_doc_write_to_stream(purc_html_document_t doc, purc_rwstream_t out);
+pchtml_doc_write_to_stream(pchtml_document_t doc, purc_rwstream_t out);
 
 int
-purc_html_doc_destroy(purc_html_document_t doc);
+pchtml_doc_destroy(pchtml_document_t doc);
 
 
 #ifdef __cplusplus
