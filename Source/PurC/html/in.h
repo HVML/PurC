@@ -55,7 +55,7 @@ enum pchtml_in_opt {
 };
 
 typedef struct {
-    pchtml_dobject_t *nodes;
+    pcutils_dobject_t *nodes;
 }
 pchtml_in_t;
 

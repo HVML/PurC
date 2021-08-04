@@ -124,7 +124,7 @@ static inline pchtml_hash_entry_t *
 _pchtml_hash_entry_create(pchtml_hash_t *hash, const pchtml_hash_copy_f copy_func,
                           const unsigned char *key, size_t length)
 {
-    pchtml_hash_entry_t *entry = pchtml_dobject_calloc(hash->entries);
+    pchtml_hash_entry_t *entry = pcutils_dobject_calloc(hash->entries);
     if (entry == NULL) {
         return NULL;
     }
@@ -132,7 +132,7 @@ _pchtml_hash_entry_create(pchtml_hash_t *hash, const pchtml_hash_copy_f copy_fun
     entry->length = length;
 
     if (copy_func(hash, entry, key, length) != PURC_ERROR_OK) {
-        pchtml_dobject_free(hash->entries, entry);
+        pcutils_dobject_free(hash->entries, entry);
         return NULL;
     }
 
@@ -163,8 +163,8 @@ pchtml_hash_init(pchtml_hash_t *hash, size_t table_size, size_t struct_size)
 
     hash->table_size = table_size;
 
-    hash->entries = pchtml_dobject_create();
-    status = pchtml_dobject_init(hash->entries, chunk_size, struct_size);
+    hash->entries = pcutils_dobject_create();
+    status = pcutils_dobject_init(hash->entries, chunk_size, struct_size);
     if (status != PURC_ERROR_OK) {
         return status;
     }
@@ -188,7 +188,7 @@ pchtml_hash_init(pchtml_hash_t *hash, size_t table_size, size_t struct_size)
 void
 pchtml_hash_clean(pchtml_hash_t *hash)
 {
-    pchtml_dobject_clean(hash->entries);
+    pcutils_dobject_clean(hash->entries);
     pchtml_mraw_clean(hash->mraw);
     pchtml_hash_table_clean(hash);
 }
@@ -200,7 +200,7 @@ pchtml_hash_destroy(pchtml_hash_t *hash, bool destroy_obj)
         return NULL;
     }
 
-    hash->entries = pchtml_dobject_destroy(hash->entries, true);
+    hash->entries = pcutils_dobject_destroy(hash->entries, true);
     hash->mraw = pchtml_mraw_destroy(hash->mraw, true);
     hash->table = pchtml_hash_table_destroy(hash);
 
@@ -335,7 +335,7 @@ pchtml_hash_remove_by_hash_id(pchtml_hash_t *hash, uint32_t hash_id,
                 pchtml_mraw_free(hash->mraw, entry->u.long_str);
             }
 
-            pchtml_dobject_free(hash->entries, entry);
+            pcutils_dobject_free(hash->entries, entry);
 
             return;
         }

@@ -46,53 +46,53 @@ typedef struct {
     size_t         allocated;
     size_t         struct_size;
 }
-pchtml_dobject_t;
+pcutils_dobject_t;
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-pchtml_dobject_t *
-pchtml_dobject_create(void) WTF_INTERNAL;
+pcutils_dobject_t *
+pcutils_dobject_create(void) WTF_INTERNAL;
 
 unsigned int
-pchtml_dobject_init(pchtml_dobject_t *dobject,
+pcutils_dobject_init(pcutils_dobject_t *dobject,
                     size_t chunk_size, size_t struct_size) WTF_INTERNAL;
 
 void
-pchtml_dobject_clean(pchtml_dobject_t *dobject) WTF_INTERNAL;
+pcutils_dobject_clean(pcutils_dobject_t *dobject) WTF_INTERNAL;
 
-pchtml_dobject_t *
-pchtml_dobject_destroy(pchtml_dobject_t *dobject, bool destroy_self) WTF_INTERNAL;
+pcutils_dobject_t *
+pcutils_dobject_destroy(pcutils_dobject_t *dobject, bool destroy_self) WTF_INTERNAL;
 
 uint8_t *
-pchtml_dobject_init_list_entries(pchtml_dobject_t *dobject, size_t pos) WTF_INTERNAL;
+pcutils_dobject_init_list_entries(pcutils_dobject_t *dobject, size_t pos) WTF_INTERNAL;
 
 void *
-pchtml_dobject_alloc(pchtml_dobject_t *dobject) WTF_INTERNAL;
+pcutils_dobject_alloc(pcutils_dobject_t *dobject) WTF_INTERNAL;
 
 void *
-pchtml_dobject_calloc(pchtml_dobject_t *dobject) WTF_INTERNAL;
+pcutils_dobject_calloc(pcutils_dobject_t *dobject) WTF_INTERNAL;
 
 void *
-pchtml_dobject_free(pchtml_dobject_t *dobject, void *data) WTF_INTERNAL;
+pcutils_dobject_free(pcutils_dobject_t *dobject, void *data) WTF_INTERNAL;
 
 void *
-pchtml_dobject_by_absolute_position(pchtml_dobject_t *dobject, size_t pos) WTF_INTERNAL;
+pcutils_dobject_by_absolute_position(pcutils_dobject_t *dobject, size_t pos) WTF_INTERNAL;
 
 
 /*
  * Inline functions
  */
 static inline size_t
-pchtml_dobject_allocated(pchtml_dobject_t *dobject)
+pcutils_dobject_allocated(pcutils_dobject_t *dobject)
 {
     return dobject->allocated;
 }
 
 static inline size_t
-pchtml_dobject_cache_length(pchtml_dobject_t *dobject)
+pcutils_dobject_cache_length(pcutils_dobject_t *dobject)
 {
     return pcutils_array_length(dobject->cache);
 }

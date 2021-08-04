@@ -89,7 +89,7 @@ struct pchtml_hash_entry {
 };
 
 struct pchtml_hash {
-    pchtml_dobject_t    *entries;
+    pcutils_dobject_t    *entries;
     pchtml_mraw_t       *mraw;
 
     pchtml_hash_entry_t **table;
@@ -219,19 +219,19 @@ pchtml_hash_entry_str_free(pchtml_hash_t *hash, pchtml_hash_entry_t *entry)
 static inline pchtml_hash_entry_t *
 pchtml_hash_entry_create(pchtml_hash_t *hash)
 {
-    return (pchtml_hash_entry_t *) pchtml_dobject_calloc(hash->entries);
+    return (pchtml_hash_entry_t *) pcutils_dobject_calloc(hash->entries);
 }
 
 static inline pchtml_hash_entry_t *
 pchtml_hash_entry_destroy(pchtml_hash_t *hash, pchtml_hash_entry_t *entry)
 {
-    return (pchtml_hash_entry_t *) pchtml_dobject_free(hash->entries, entry);
+    return (pchtml_hash_entry_t *) pcutils_dobject_free(hash->entries, entry);
 }
 
 static inline size_t
 pchtml_hash_entries_count(pchtml_hash_t *hash)
 {
-    return pchtml_dobject_allocated(hash->entries);
+    return pcutils_dobject_allocated(hash->entries);
 }
 
 

@@ -40,14 +40,14 @@
 #endif
 
 
-pchtml_dobject_t *
-pchtml_dobject_create(void)
+pcutils_dobject_t *
+pcutils_dobject_create(void)
 {
-    return pchtml_calloc(1, sizeof(pchtml_dobject_t));
+    return pchtml_calloc(1, sizeof(pcutils_dobject_t));
 }
 
 unsigned int
-pchtml_dobject_init(pchtml_dobject_t *dobject,
+pcutils_dobject_init(pcutils_dobject_t *dobject,
                     size_t chunk_size, size_t struct_size)
 {
     unsigned int status;
@@ -89,7 +89,7 @@ pchtml_dobject_init(pchtml_dobject_t *dobject,
 }
 
 void
-pchtml_dobject_clean(pchtml_dobject_t *dobject)
+pcutils_dobject_clean(pcutils_dobject_t *dobject)
 {
     dobject->allocated = 0UL;
 
@@ -97,8 +97,8 @@ pchtml_dobject_clean(pchtml_dobject_t *dobject)
     pcutils_array_clean(dobject->cache);
 }
 
-pchtml_dobject_t *
-pchtml_dobject_destroy(pchtml_dobject_t *dobject, bool destroy_self)
+pcutils_dobject_t *
+pcutils_dobject_destroy(pcutils_dobject_t *dobject, bool destroy_self)
 {
     if (dobject == NULL)
         return NULL;
@@ -114,7 +114,7 @@ pchtml_dobject_destroy(pchtml_dobject_t *dobject, bool destroy_self)
 }
 
 void *
-pchtml_dobject_alloc(pchtml_dobject_t *dobject)
+pcutils_dobject_alloc(pcutils_dobject_t *dobject)
 {
     void *data;
 
@@ -146,9 +146,9 @@ pchtml_dobject_alloc(pchtml_dobject_t *dobject)
 }
 
 void *
-pchtml_dobject_calloc(pchtml_dobject_t *dobject)
+pcutils_dobject_calloc(pcutils_dobject_t *dobject)
 {
-    void *data = pchtml_dobject_alloc(dobject);
+    void *data = pcutils_dobject_alloc(dobject);
 
     if (data != NULL) {
         memset(data, 0, dobject->struct_size);
@@ -158,7 +158,7 @@ pchtml_dobject_calloc(pchtml_dobject_t *dobject)
 }
 
 void *
-pchtml_dobject_free(pchtml_dobject_t *dobject, void *data)
+pcutils_dobject_free(pcutils_dobject_t *dobject, void *data)
 {
     if (data == NULL) {
         return NULL;
@@ -177,7 +177,7 @@ pchtml_dobject_free(pchtml_dobject_t *dobject, void *data)
 }
 
 void *
-pchtml_dobject_by_absolute_position(pchtml_dobject_t *dobject, size_t pos)
+pcutils_dobject_by_absolute_position(pcutils_dobject_t *dobject, size_t pos)
 {
     size_t chunk_idx, chunk_pos, i;
     pchtml_mem_chunk_t *chunk;

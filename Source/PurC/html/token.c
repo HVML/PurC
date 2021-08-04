@@ -53,19 +53,19 @@ pchtml_tag_append_lower(pchtml_hash_t *hash,
 
 
 pchtml_html_token_t *
-pchtml_html_token_create(pchtml_dobject_t *dobj)
+pchtml_html_token_create(pcutils_dobject_t *dobj)
 {
-    return pchtml_dobject_calloc(dobj);
+    return pcutils_dobject_calloc(dobj);
 }
 
 pchtml_html_token_t *
-pchtml_html_token_destroy(pchtml_html_token_t *token, pchtml_dobject_t *dobj)
+pchtml_html_token_destroy(pchtml_html_token_t *token, pcutils_dobject_t *dobj)
 {
-    return pchtml_dobject_free(dobj, token);
+    return pcutils_dobject_free(dobj, token);
 }
 
 pchtml_html_token_attr_t *
-pchtml_html_token_attr_append(pchtml_html_token_t *token, pchtml_dobject_t *dobj)
+pchtml_html_token_attr_append(pchtml_html_token_t *token, pcutils_dobject_t *dobj)
 {
     pchtml_html_token_attr_t *attr = pchtml_html_token_attr_create(dobj);
     if (attr == NULL) {
@@ -112,7 +112,7 @@ pchtml_html_token_attr_remove(pchtml_html_token_t *token, pchtml_html_token_attr
 
 void
 pchtml_html_token_attr_delete(pchtml_html_token_t *token,
-                           pchtml_html_token_attr_t *attr, pchtml_dobject_t *dobj)
+                           pchtml_html_token_attr_t *attr, pcutils_dobject_t *dobj)
 {
     pchtml_html_token_attr_remove(token, attr);
     pchtml_html_token_attr_destroy(attr, dobj);

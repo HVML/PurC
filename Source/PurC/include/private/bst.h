@@ -64,7 +64,7 @@ struct pcutils_bst_entry {
 };
 
 struct pcutils_bst {
-    pchtml_dobject_t   *dobject;
+    pcutils_dobject_t   *dobject;
     pcutils_bst_entry_t *root;
 
     size_t             tree_length;

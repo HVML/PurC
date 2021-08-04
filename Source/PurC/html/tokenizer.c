@@ -92,16 +92,16 @@ pchtml_html_tokenizer_init(pchtml_html_tokenizer_t *tkz)
     /* Init Token */
     tkz->token = NULL;
 
-    tkz->dobj_token = pchtml_dobject_create();
-    status = pchtml_dobject_init(tkz->dobj_token,
+    tkz->dobj_token = pcutils_dobject_create();
+    status = pcutils_dobject_init(tkz->dobj_token,
                                  4096, sizeof(pchtml_html_token_t));
     if (status != PCHTML_STATUS_OK) {
         return status;
     }
 
     /* Init Token Attributes */
-    tkz->dobj_token_attr = pchtml_dobject_create();
-    status = pchtml_dobject_init(tkz->dobj_token_attr, 4096,
+    tkz->dobj_token_attr = pcutils_dobject_create();
+    status = pcutils_dobject_init(tkz->dobj_token_attr, 4096,
                                  sizeof(pchtml_html_token_attr_t));
     if (status != PCHTML_STATUS_OK) {
         return status;
@@ -239,8 +239,8 @@ pchtml_html_tokenizer_clean(pchtml_html_tokenizer_t *tkz)
     tkz->pos = tkz->start;
 
     pchtml_mraw_clean(tkz->mraw);
-    pchtml_dobject_clean(tkz->dobj_token);
-    pchtml_dobject_clean(tkz->dobj_token_attr);
+    pcutils_dobject_clean(tkz->dobj_token);
+    pcutils_dobject_clean(tkz->dobj_token_attr);
 
     pcutils_array_obj_clean(tkz->parse_errors);
 }
@@ -262,8 +262,8 @@ pchtml_html_tokenizer_destroy(pchtml_html_tokenizer_t *tkz)
         }
 
         pchtml_mraw_destroy(tkz->mraw, true);
-        pchtml_dobject_destroy(tkz->dobj_token, true);
-        pchtml_dobject_destroy(tkz->dobj_token_attr, true);
+        pcutils_dobject_destroy(tkz->dobj_token, true);
+        pcutils_dobject_destroy(tkz->dobj_token_attr, true);
         pchtml_free(tkz->start);
     }
 

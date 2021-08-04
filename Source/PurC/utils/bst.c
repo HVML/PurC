@@ -61,8 +61,8 @@ pcutils_bst_init(pcutils_bst_t *bst, size_t size)
         return PURC_ERROR_INVALID_VALUE;
     }
 
-    bst->dobject = pchtml_dobject_create();
-    status = pchtml_dobject_init(bst->dobject, size,
+    bst->dobject = pcutils_dobject_create();
+    status = pcutils_dobject_init(bst->dobject, size,
                                  sizeof(pcutils_bst_entry_t));
     if (status != PURC_ERROR_OK) {
         return status;
@@ -77,7 +77,7 @@ pcutils_bst_init(pcutils_bst_t *bst, size_t size)
 void
 pcutils_bst_clean(pcutils_bst_t *bst)
 {
-    pchtml_dobject_clean(bst->dobject);
+    pcutils_dobject_clean(bst->dobject);
 
     bst->root = 0;
     bst->tree_length = 0;
@@ -90,7 +90,7 @@ pcutils_bst_destroy(pcutils_bst_t *bst, bool self_destroy)
         return NULL;
     }
 
-    bst->dobject = pchtml_dobject_destroy(bst->dobject, true);
+    bst->dobject = pcutils_dobject_destroy(bst->dobject, true);
 
     if (self_destroy) {
         return pchtml_free(bst);
@@ -102,7 +102,7 @@ pcutils_bst_destroy(pcutils_bst_t *bst, bool self_destroy)
 pcutils_bst_entry_t *
 pcutils_bst_entry_make(pcutils_bst_t *bst, size_t size)
 {
-    pcutils_bst_entry_t *new_entry = pchtml_dobject_calloc(bst->dobject);
+    pcutils_bst_entry_t *new_entry = pcutils_dobject_calloc(bst->dobject);
     if (new_entry == NULL) {
         return NULL;
     }
@@ -120,7 +120,7 @@ pcutils_bst_insert(pcutils_bst_t *bst, pcutils_bst_entry_t **scope,
 {
     pcutils_bst_entry_t *new_entry, *entry;
 
-    new_entry = pchtml_dobject_calloc(bst->dobject);
+    new_entry = pcutils_dobject_calloc(bst->dobject);
     if (new_entry == NULL) {
         return NULL;
     }
@@ -334,7 +334,7 @@ pcutils_bst_remove_by_pointer(pcutils_bst_t *bst, pcutils_bst_entry_t *entry,
 
         value = next->value;
 
-        pchtml_dobject_free(bst->dobject, next);
+        pcutils_dobject_free(bst->dobject, next);
 
         return value;
     }
@@ -350,7 +350,7 @@ pcutils_bst_remove_by_pointer(pcutils_bst_t *bst, pcutils_bst_entry_t *entry,
             *root = NULL;
         }
 
-        pchtml_dobject_free(bst->dobject, entry);
+        pcutils_dobject_free(bst->dobject, entry);
     }
     else if (entry->left == NULL) {
         if (entry->parent == NULL) {
@@ -358,7 +358,7 @@ pcutils_bst_remove_by_pointer(pcutils_bst_t *bst, pcutils_bst_entry_t *entry,
 
             *root = entry->right;
 
-            pchtml_dobject_free(bst->dobject, entry);
+            pcutils_dobject_free(bst->dobject, entry);
 
             entry = *root;
         }
@@ -368,7 +368,7 @@ pcutils_bst_remove_by_pointer(pcutils_bst_t *bst, pcutils_bst_entry_t *entry,
 
             memcpy(entry, right, sizeof(pcutils_bst_entry_t));
 
-            pchtml_dobject_free(bst->dobject, right);
+            pcutils_dobject_free(bst->dobject, right);
         }
 
         if (entry->right != NULL) {
@@ -385,7 +385,7 @@ pcutils_bst_remove_by_pointer(pcutils_bst_t *bst, pcutils_bst_entry_t *entry,
 
             *root = entry->left;
 
-            pchtml_dobject_free(bst->dobject, entry);
+            pcutils_dobject_free(bst->dobject, entry);
 
             entry = *root;
         }
@@ -395,7 +395,7 @@ pcutils_bst_remove_by_pointer(pcutils_bst_t *bst, pcutils_bst_entry_t *entry,
 
             memcpy(entry, left, sizeof(pcutils_bst_entry_t));
 
-            pchtml_dobject_free(bst->dobject, left);
+            pcutils_dobject_free(bst->dobject, left);
         }
 
         if (entry->right != NULL) {
@@ -434,7 +434,7 @@ pcutils_bst_remove_by_pointer(pcutils_bst_t *bst, pcutils_bst_entry_t *entry,
             }
         }
 
-        pchtml_dobject_free(bst->dobject, left);
+        pcutils_dobject_free(bst->dobject, left);
     }
 
     return value;

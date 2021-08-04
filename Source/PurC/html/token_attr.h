@@ -79,14 +79,14 @@ extern "C" {
 #endif
 
 pchtml_html_token_attr_t *
-pchtml_html_token_attr_create(pchtml_dobject_t *dobj) WTF_INTERNAL;
+pchtml_html_token_attr_create(pcutils_dobject_t *dobj) WTF_INTERNAL;
 
 void
 pchtml_html_token_attr_clean(pchtml_html_token_attr_t *attr) WTF_INTERNAL;
 
 pchtml_html_token_attr_t *
 pchtml_html_token_attr_destroy(pchtml_html_token_attr_t *attr,
-                pchtml_dobject_t *dobj) WTF_INTERNAL;
+                pcutils_dobject_t *dobj) WTF_INTERNAL;
 
 const unsigned char *
 pchtml_html_token_attr_name(pchtml_html_token_attr_t *attr, 

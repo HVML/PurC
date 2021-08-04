@@ -35,9 +35,9 @@
 
 
 pchtml_html_token_attr_t *
-pchtml_html_token_attr_create(pchtml_dobject_t *dobj)
+pchtml_html_token_attr_create(pcutils_dobject_t *dobj)
 {
-    return pchtml_dobject_calloc(dobj);
+    return pcutils_dobject_calloc(dobj);
 }
 
 void
@@ -47,9 +47,9 @@ pchtml_html_token_attr_clean(pchtml_html_token_attr_t *attr)
 }
 
 pchtml_html_token_attr_t *
-pchtml_html_token_attr_destroy(pchtml_html_token_attr_t *attr, pchtml_dobject_t *dobj)
+pchtml_html_token_attr_destroy(pchtml_html_token_attr_t *attr, pcutils_dobject_t *dobj)
 {
-    return pchtml_dobject_free(dobj, attr);
+    return pcutils_dobject_free(dobj, attr);
 }
 
 const unsigned char *

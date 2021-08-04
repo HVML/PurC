@@ -74,8 +74,8 @@ struct pchtml_html_tokenizer {
     pchtml_html_token_t                 *token;
 
     /* Memory for token and attr */
-    pchtml_dobject_t                 *dobj_token;
-    pchtml_dobject_t                 *dobj_token_attr;
+    pcutils_dobject_t                 *dobj_token;
+    pcutils_dobject_t                 *dobj_token_attr;
 
     /* Parse error */
     pcutils_array_obj_t               *parse_errors;
