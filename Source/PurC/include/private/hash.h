@@ -47,7 +47,7 @@ extern "C" {
 typedef struct pcutils_hash_search pcutils_hash_search_t;
 typedef struct pcutils_hash_insert pcutils_hash_insert_t;
 
-#ifndef PURC_PRIVATE_HASH_EXTERN
+#ifndef PCUTILS_HASH_EXTERN
 extern const pcutils_hash_insert_t *pcutils_hash_insert_raw;
 extern const pcutils_hash_insert_t *pcutils_hash_insert_lower;
 extern const pcutils_hash_insert_t *pcutils_hash_insert_upper;

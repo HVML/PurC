@@ -33,9 +33,9 @@
 #include "purc.h"
 #include "config.h"
 
-#define PURC_PRIVATE_HASH_EXTERN
+#define PCUTILS_HASH_EXTERN
 #include "private/hash.h"
-#undef PURC_PRIVATE_HASH_EXTERN
+#undef PCUTILS_HASH_EXTERN
 
 #include "private/str.h"
 
