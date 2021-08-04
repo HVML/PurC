@@ -54,7 +54,7 @@ pcedom_attr_interface_create(pcedom_document_t *document)
 {
     pcedom_attr_t *attr;
 
-    attr = pchtml_mraw_calloc(document->mraw, sizeof(pcedom_attr_t));
+    attr = pcutils_mraw_calloc(document->mraw, sizeof(pcedom_attr_t));
     if (attr == NULL) {
         return NULL;
     }
@@ -74,13 +74,13 @@ pcedom_attr_interface_destroy(pcedom_attr_t *attr)
 
     if (attr->value != NULL) {
         if (attr->value->data != NULL) {
-            pchtml_mraw_free(doc->text, attr->value->data);
+            pcutils_mraw_free(doc->text, attr->value->data);
         }
 
-        pchtml_mraw_free(doc->mraw, attr->value);
+        pcutils_mraw_free(doc->mraw, attr->value);
     }
 
-    return pchtml_mraw_free(doc->mraw, attr);
+    return pcutils_mraw_free(doc->mraw, attr);
 }
 
 unsigned int
@@ -176,7 +176,7 @@ pcedom_attr_set_value(pcedom_attr_t *attr,
     pcedom_document_t *doc = pcedom_interface_node(attr)->owner_document;
 
     if (attr->value == NULL) {
-        attr->value = pchtml_mraw_calloc(doc->mraw, sizeof(pchtml_str_t));
+        attr->value = pcutils_mraw_calloc(doc->mraw, sizeof(pchtml_str_t));
         if (attr->value == NULL) {
             pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
@@ -219,7 +219,7 @@ pcedom_attr_set_value_wo_copy(pcedom_attr_t *attr,
     if (attr->value == NULL) {
         pcedom_document_t *doc = pcedom_interface_node(attr)->owner_document;
 
-        attr->value = pchtml_mraw_alloc(doc->mraw, sizeof(pchtml_str_t));
+        attr->value = pcutils_mraw_alloc(doc->mraw, sizeof(pchtml_str_t));
         if (attr->value == NULL) {
             pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;

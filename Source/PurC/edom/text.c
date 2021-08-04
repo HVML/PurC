@@ -39,7 +39,7 @@ pcedom_text_interface_create(pcedom_document_t *document)
 {
     pcedom_text_t *element;
 
-    element = pchtml_mraw_calloc(document->mraw,
+    element = pcutils_mraw_calloc(document->mraw,
                                  sizeof(pcedom_text_t));
     if (element == NULL) {
         return NULL;
@@ -59,7 +59,7 @@ pcedom_text_interface_destroy(pcedom_text_t *text)
     pchtml_str_destroy(&text->char_data.data,
                        pcedom_interface_node(text)->owner_document->text, false);
 
-    return pchtml_mraw_free(
+    return pcutils_mraw_free(
         pcedom_interface_node(text)->owner_document->mraw,
         text);
 }

@@ -85,6 +85,6 @@ pcedom_interface_destroy(pcedom_interface_t *intrfc)
             return pcedom_document_fragment_interface_destroy(intrfc);
 
         default:
-            return pchtml_mraw_free(node->owner_document->mraw, intrfc);
+            return pcutils_mraw_free(node->owner_document->mraw, intrfc);
     }
 }

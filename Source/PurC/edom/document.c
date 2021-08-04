@@ -41,7 +41,7 @@ pcedom_document_interface_create(pcedom_document_t *document)
 {
     pcedom_document_t *doc;
 
-    doc = pchtml_mraw_calloc(document->mraw, sizeof(pcedom_document_t));
+    doc = pcutils_mraw_calloc(document->mraw, sizeof(pcedom_document_t));
     if (doc == NULL) {
         return NULL;
     }
@@ -55,7 +55,7 @@ pcedom_document_interface_create(pcedom_document_t *document)
 pcedom_document_t *
 pcedom_document_interface_destroy(pcedom_document_t *document)
 {
-    return pchtml_mraw_free(
+    return pcutils_mraw_free(
         pcedom_interface_node(document)->owner_document->mraw,
         document);
 }
@@ -64,7 +64,7 @@ pcedom_document_t *
 pcedom_document_create(pcedom_document_t *owner)
 {
     if (owner != NULL) {
-        return pchtml_mraw_calloc(owner->mraw, sizeof(pcedom_document_t));
+        return pcutils_mraw_calloc(owner->mraw, sizeof(pcedom_document_t));
     }
 
     return pchtml_calloc(1, sizeof(pcedom_document_t));
@@ -115,16 +115,16 @@ pcedom_document_init(pcedom_document_t *document, pcedom_document_t *owner,
     }
 
     /* For nodes */
-    document->mraw = pchtml_mraw_create();
-    status = pchtml_mraw_init(document->mraw, (4096 * 8));
+    document->mraw = pcutils_mraw_create();
+    status = pcutils_mraw_init(document->mraw, (4096 * 8));
 
     if (status != PCHTML_STATUS_OK) {
         goto failed;
     }
 
     /* For text */
-    document->text = pchtml_mraw_create();
-    status = pchtml_mraw_init(document->text, (4096 * 12));
+    document->text = pcutils_mraw_create();
+    status = pcutils_mraw_init(document->text, (4096 * 12));
 
     if (status != PCHTML_STATUS_OK) {
         goto failed;
@@ -162,8 +162,8 @@ pcedom_document_init(pcedom_document_t *document, pcedom_document_t *owner,
 
 failed:
 
-    pchtml_mraw_destroy(document->mraw, true);
-    pchtml_mraw_destroy(document->text, true);
+    pcutils_mraw_destroy(document->mraw, true);
+    pcutils_mraw_destroy(document->text, true);
     pcutils_hash_destroy(document->tags, true);
     pcutils_hash_destroy(document->ns, true);
     pcutils_hash_destroy(document->attrs, true);
@@ -177,8 +177,8 @@ unsigned int
 pcedom_document_clean(pcedom_document_t *document)
 {
     if (pcedom_interface_node(document)->owner_document == document) {
-        pchtml_mraw_clean(document->mraw);
-        pchtml_mraw_clean(document->text);
+        pcutils_mraw_clean(document->mraw);
+        pcutils_mraw_clean(document->text);
         pcutils_hash_clean(document->tags);
         pcutils_hash_clean(document->ns);
         pcutils_hash_clean(document->attrs);
@@ -205,11 +205,11 @@ pcedom_document_destroy(pcedom_document_t *document)
 
         owner = pcedom_interface_node(document)->owner_document;
 
-        return pchtml_mraw_free(owner->mraw, document);
+        return pcutils_mraw_free(owner->mraw, document);
     }
 
-    pchtml_mraw_destroy(document->text, true);
-    pchtml_mraw_destroy(document->mraw, true);
+    pcutils_mraw_destroy(document->text, true);
+    pcutils_mraw_destroy(document->mraw, true);
     pcutils_hash_destroy(document->tags, true);
     pcutils_hash_destroy(document->ns, true);
     pcutils_hash_destroy(document->attrs, true);

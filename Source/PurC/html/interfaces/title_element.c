@@ -42,7 +42,7 @@ pchtml_html_title_element_interface_create(pchtml_html_document_t *document)
 {
     pchtml_html_title_element_t *element;
 
-    element = pchtml_mraw_calloc(document->dom_document.mraw,
+    element = pcutils_mraw_calloc(document->dom_document.mraw,
                                  sizeof(pchtml_html_title_element_t));
     if (element == NULL) {
         return NULL;
@@ -66,7 +66,7 @@ pchtml_html_title_element_interface_destroy(pchtml_html_title_element_t *title)
         pcedom_document_destroy_struct(doc, title->strict_text);
     }
 
-    return pchtml_mraw_free(doc->mraw, title);
+    return pcutils_mraw_free(doc->mraw, title);
 }
 
 const unsigned char *

@@ -45,7 +45,7 @@
 extern "C" {
 #endif
 
-#define pchtml_mraw_meta_size()                                                \
+#define pcutils_mraw_meta_size()                                                \
     (((sizeof(size_t) % PCHTML_MEM_ALIGN_STEP) != 0)                           \
     ? sizeof(size_t)                                                           \
         + (PCHTML_MEM_ALIGN_STEP - (sizeof(size_t) % PCHTML_MEM_ALIGN_STEP))   \
@@ -56,56 +56,56 @@ typedef struct {
     pcutils_mem_t *mem;
     pcutils_bst_t *cache;
 }
-pchtml_mraw_t;
+pcutils_mraw_t;
 
 
-pchtml_mraw_t *
-pchtml_mraw_create(void) WTF_INTERNAL;
+pcutils_mraw_t *
+pcutils_mraw_create(void) WTF_INTERNAL;
 
 unsigned int
-pchtml_mraw_init(pchtml_mraw_t *mraw, size_t chunk_size) WTF_INTERNAL;
+pcutils_mraw_init(pcutils_mraw_t *mraw, size_t chunk_size) WTF_INTERNAL;
 
 void
-pchtml_mraw_clean(pchtml_mraw_t *mraw) WTF_INTERNAL;
+pcutils_mraw_clean(pcutils_mraw_t *mraw) WTF_INTERNAL;
 
-pchtml_mraw_t *
-pchtml_mraw_destroy(pchtml_mraw_t *mraw, bool destroy_self) WTF_INTERNAL;
+pcutils_mraw_t *
+pcutils_mraw_destroy(pcutils_mraw_t *mraw, bool destroy_self) WTF_INTERNAL;
 
-
-void *
-pchtml_mraw_alloc(pchtml_mraw_t *mraw, size_t size) WTF_INTERNAL;
 
 void *
-pchtml_mraw_calloc(pchtml_mraw_t *mraw, size_t size) WTF_INTERNAL;
+pcutils_mraw_alloc(pcutils_mraw_t *mraw, size_t size) WTF_INTERNAL;
 
 void *
-pchtml_mraw_realloc(pchtml_mraw_t *mraw, void *data, 
+pcutils_mraw_calloc(pcutils_mraw_t *mraw, size_t size) WTF_INTERNAL;
+
+void *
+pcutils_mraw_realloc(pcutils_mraw_t *mraw, void *data, 
                 size_t new_size) WTF_INTERNAL;
 
 void *
-pchtml_mraw_free(pchtml_mraw_t *mraw, void *data) WTF_INTERNAL;
+pcutils_mraw_free(pcutils_mraw_t *mraw, void *data) WTF_INTERNAL;
 
 
 /*
  * Inline functions
  */
 static inline size_t
-pchtml_mraw_data_size(void *data)
+pcutils_mraw_data_size(void *data)
 {
-    return *((size_t *) (((uint8_t *) data) - pchtml_mraw_meta_size()));
+    return *((size_t *) (((uint8_t *) data) - pcutils_mraw_meta_size()));
 }
 
 static inline void
-pchtml_mraw_data_size_set(void *data, size_t size)
+pcutils_mraw_data_size_set(void *data, size_t size)
 {
-    data = (((uint8_t *) data) - pchtml_mraw_meta_size());
+    data = (((uint8_t *) data) - pcutils_mraw_meta_size());
     memcpy(data, &size, sizeof(size_t));
 }
 
 static inline void *
-pchtml_mraw_dup(pchtml_mraw_t *mraw, const void *src, size_t size)
+pcutils_mraw_dup(pcutils_mraw_t *mraw, const void *src, size_t size)
 {
-    void *data = pchtml_mraw_alloc(mraw, size);
+    void *data = pcutils_mraw_alloc(mraw, size);
 
     if (data != NULL) {
         memcpy(data, src, size);

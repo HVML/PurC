@@ -169,8 +169,8 @@ pcutils_hash_init(pcutils_hash_t *hash, size_t table_size, size_t struct_size)
         return status;
     }
 
-    hash->mraw = pchtml_mraw_create();
-    status = pchtml_mraw_init(hash->mraw, chunk_size * 12);
+    hash->mraw = pcutils_mraw_create();
+    status = pcutils_mraw_init(hash->mraw, chunk_size * 12);
     if (status != PURC_ERROR_OK) {
         return status;
     }
@@ -189,7 +189,7 @@ void
 pcutils_hash_clean(pcutils_hash_t *hash)
 {
     pcutils_dobject_clean(hash->entries);
-    pchtml_mraw_clean(hash->mraw);
+    pcutils_mraw_clean(hash->mraw);
     pcutils_hash_table_clean(hash);
 }
 
@@ -201,7 +201,7 @@ pcutils_hash_destroy(pcutils_hash_t *hash, bool destroy_obj)
     }
 
     hash->entries = pcutils_dobject_destroy(hash->entries, true);
-    hash->mraw = pchtml_mraw_destroy(hash->mraw, true);
+    hash->mraw = pcutils_mraw_destroy(hash->mraw, true);
     hash->table = pcutils_hash_table_destroy(hash);
 
     if (destroy_obj) {
@@ -332,7 +332,7 @@ pcutils_hash_remove_by_hash_id(pcutils_hash_t *hash, uint32_t hash_id,
             }
 
             if (length > PCHTML_HASH_SHORT_SIZE) {
-                pchtml_mraw_free(hash->mraw, entry->u.long_str);
+                pcutils_mraw_free(hash->mraw, entry->u.long_str);
             }
 
             pcutils_dobject_free(hash->entries, entry);
@@ -435,7 +435,7 @@ pcutils_hash_copy(pcutils_hash_t *hash, pcutils_hash_entry_t *entry,
         to = entry->u.short_str;
     }
     else {
-        entry->u.long_str = pchtml_mraw_alloc(hash->mraw, length + 1);
+        entry->u.long_str = pcutils_mraw_alloc(hash->mraw, length + 1);
         if (entry->u.long_str == NULL) {
             return PURC_ERROR_OUT_OF_MEMORY;
         }
@@ -460,7 +460,7 @@ pcutils_hash_copy_lower(pcutils_hash_t *hash, pcutils_hash_entry_t *entry,
         to = entry->u.short_str;
     }
     else {
-        entry->u.long_str = pchtml_mraw_alloc(hash->mraw, length + 1);
+        entry->u.long_str = pcutils_mraw_alloc(hash->mraw, length + 1);
         if (entry->u.long_str == NULL) {
             return PURC_ERROR_OUT_OF_MEMORY;
         }
@@ -487,7 +487,7 @@ pcutils_hash_copy_upper(pcutils_hash_t *hash, pcutils_hash_entry_t *entry,
         to = entry->u.short_str;
     }
     else {
-        entry->u.long_str = pchtml_mraw_alloc(hash->mraw, length + 1);
+        entry->u.long_str = pcutils_mraw_alloc(hash->mraw, length + 1);
         if (entry->u.long_str == NULL) {
             return PURC_ERROR_OUT_OF_MEMORY;
         }

@@ -53,7 +53,7 @@ extern "C" {
             return (return_fail);                                              \
                                                                                \
         if ((str->length + (plus_len)) > (size)) {                             \
-            tmp = pchtml_mraw_realloc(mraw, str->data,                         \
+            tmp = pcutils_mraw_realloc(mraw, str->data,                         \
                                       (str->length + plus_len));               \
                                                                                \
             if (tmp == NULL) {                                                 \
@@ -77,7 +77,7 @@ pchtml_str_t *
 pchtml_str_create(void) WTF_INTERNAL;
 
 unsigned char *
-pchtml_str_init(pchtml_str_t *str, pchtml_mraw_t *mraw, 
+pchtml_str_init(pchtml_str_t *str, pcutils_mraw_t *mraw, 
                 size_t size) WTF_INTERNAL;
 
 void
@@ -87,43 +87,43 @@ void
 pchtml_str_clean_all(pchtml_str_t *str) WTF_INTERNAL;
 
 pchtml_str_t *
-pchtml_str_destroy(pchtml_str_t *str, pchtml_mraw_t *mraw, 
+pchtml_str_destroy(pchtml_str_t *str, pcutils_mraw_t *mraw, 
                 bool destroy_obj) WTF_INTERNAL;
 
 
 unsigned char *
-pchtml_str_realloc(pchtml_str_t *str, pchtml_mraw_t *mraw, 
+pchtml_str_realloc(pchtml_str_t *str, pcutils_mraw_t *mraw, 
                 size_t new_size) WTF_INTERNAL;
 
 unsigned char *
-pchtml_str_check_size(pchtml_str_t *str, pchtml_mraw_t *mraw, 
+pchtml_str_check_size(pchtml_str_t *str, pcutils_mraw_t *mraw, 
                 size_t plus_len) WTF_INTERNAL;
 
 /* Append */
 unsigned char *
-pchtml_str_append(pchtml_str_t *str, pchtml_mraw_t *mraw,
+pchtml_str_append(pchtml_str_t *str, pcutils_mraw_t *mraw,
                 const unsigned char *data, size_t length) WTF_INTERNAL;
 
 unsigned char *
-pchtml_str_append_before(pchtml_str_t *str, pchtml_mraw_t *mraw,
+pchtml_str_append_before(pchtml_str_t *str, pcutils_mraw_t *mraw,
                 const unsigned char *buff, size_t length) WTF_INTERNAL;
 
 unsigned char *
-pchtml_str_append_one(pchtml_str_t *str, pchtml_mraw_t *mraw,
+pchtml_str_append_one(pchtml_str_t *str, pcutils_mraw_t *mraw,
                 const unsigned char data) WTF_INTERNAL;
 
 unsigned char *
-pchtml_str_append_lowercase(pchtml_str_t *str, pchtml_mraw_t *mraw,
+pchtml_str_append_lowercase(pchtml_str_t *str, pcutils_mraw_t *mraw,
                 const unsigned char *data, size_t length) WTF_INTERNAL;
 
 unsigned char *
-pchtml_str_append_with_rep_null_chars(pchtml_str_t *str, pchtml_mraw_t *mraw,
+pchtml_str_append_with_rep_null_chars(pchtml_str_t *str, pcutils_mraw_t *mraw,
                 const unsigned char *buff, size_t length) WTF_INTERNAL;
 
 /* Other functions */
 unsigned char *
 pchtml_str_copy(pchtml_str_t *dest, const pchtml_str_t *target,
-                pchtml_mraw_t *mraw) WTF_INTERNAL;
+                pcutils_mraw_t *mraw) WTF_INTERNAL;
 
 void
 pchtml_str_stay_only_whitespace(pchtml_str_t *target) WTF_INTERNAL;
@@ -228,7 +228,7 @@ pchtml_str_length(pchtml_str_t *str)
 static inline size_t
 pchtml_str_size(pchtml_str_t *str)
 {
-    return pchtml_mraw_data_size(str->data);
+    return pcutils_mraw_data_size(str->data);
 }
 
 static inline void
@@ -238,7 +238,7 @@ pchtml_str_data_set(pchtml_str_t *str, unsigned char *data)
 }
 
 static inline unsigned char *
-pchtml_str_length_set(pchtml_str_t *str, pchtml_mraw_t *mraw, size_t length)
+pchtml_str_length_set(pchtml_str_t *str, pcutils_mraw_t *mraw, size_t length)
 {
     if (length >= pchtml_str_size(str)) {
         unsigned char *tmp;

@@ -65,10 +65,10 @@ struct pchtml_html_tokenizer {
 
     pcutils_hash_t                    *tags;
     pcutils_hash_t                    *attrs;
-    pchtml_mraw_t                    *attrs_mraw;
+    pcutils_mraw_t                    *attrs_mraw;
 
     /* For a temp strings and other templary data */
-    pchtml_mraw_t                    *mraw;
+    pcutils_mraw_t                    *mraw;
 
     /* Current process token */
     pchtml_html_token_t                 *token;
@@ -221,12 +221,12 @@ pchtml_html_tokenizer_attrs(pchtml_html_tokenizer_t *tkz)
 
 static inline void
 pchtml_html_tokenizer_attrs_mraw_set(pchtml_html_tokenizer_t *tkz,
-                                  pchtml_mraw_t *mraw)
+                                  pcutils_mraw_t *mraw)
 {
     tkz->attrs_mraw = mraw;
 }
 
-static inline pchtml_mraw_t *
+static inline pcutils_mraw_t *
 pchtml_html_tokenizer_attrs_mraw(pchtml_html_tokenizer_t *tkz)
 {
     return tkz->attrs_mraw;
@@ -273,7 +273,7 @@ pchtml_html_tokenizer_tree_set(pchtml_html_tokenizer_t *tkz, pchtml_html_tree_t 
     tkz->tree = tree;
 }
 
-static inline pchtml_mraw_t *
+static inline pcutils_mraw_t *
 pchtml_html_tokenizer_mraw(pchtml_html_tokenizer_t *tkz)
 {
     return tkz->mraw;

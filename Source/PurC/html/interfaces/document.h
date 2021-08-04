@@ -179,16 +179,16 @@ pchtml_html_document_is_original(pchtml_html_document_t *document)
         == &document->dom_document;
 }
 
-static inline pchtml_mraw_t *
+static inline pcutils_mraw_t *
 pchtml_html_document_mraw(pchtml_html_document_t *document)
 {
-    return (pchtml_mraw_t *) pcedom_interface_document(document)->mraw;
+    return (pcutils_mraw_t *) pcedom_interface_document(document)->mraw;
 }
 
-static inline pchtml_mraw_t *
+static inline pcutils_mraw_t *
 pchtml_html_document_mraw_text(pchtml_html_document_t *document)
 {
-    return (pchtml_mraw_t *) pcedom_interface_document(document)->text;
+    return (pcutils_mraw_t *) pcedom_interface_document(document)->text;
 }
 
 static inline void
@@ -214,14 +214,14 @@ static inline void *
 pchtml_html_document_create_struct(pchtml_html_document_t *document,
                                 size_t struct_size)
 {
-    return pchtml_mraw_calloc(pcedom_interface_document(document)->mraw,
+    return pcutils_mraw_calloc(pcedom_interface_document(document)->mraw,
                               struct_size);
 }
 
 static inline void *
 pchtml_html_document_destroy_struct(pchtml_html_document_t *document, void *data)
 {
-    return pchtml_mraw_free(pcedom_interface_document(document)->mraw, data);
+    return pcutils_mraw_free(pcedom_interface_document(document)->mraw, data);
 }
 
 static inline pchtml_html_element_t *

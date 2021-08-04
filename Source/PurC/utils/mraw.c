@@ -40,30 +40,30 @@
 #endif
 
 
-#define pchtml_mraw_meta_set(data, size)                                       \
+#define pcutils_mraw_meta_set(data, size)                                       \
     do {                                                                       \
         memcpy(data, size, sizeof(size_t));                                    \
     }                                                                          \
     while (0)
 
-#define pchtml_mraw_data_begin(data)                                           \
-    &((uint8_t *) (data))[ pchtml_mraw_meta_size() ]
+#define pcutils_mraw_data_begin(data)                                           \
+    &((uint8_t *) (data))[ pcutils_mraw_meta_size() ]
 
 
 static inline void *
-pchtml_mraw_realloc_tail(pchtml_mraw_t *mraw, void *data, void *begin,
+pcutils_mraw_realloc_tail(pcutils_mraw_t *mraw, void *data, void *begin,
                          size_t size, size_t begin_len, size_t new_size,
                          bool *is_valid);
 
 
-pchtml_mraw_t *
-pchtml_mraw_create(void)
+pcutils_mraw_t *
+pcutils_mraw_create(void)
 {
-    return pchtml_calloc(1, sizeof(pchtml_mraw_t));
+    return pchtml_calloc(1, sizeof(pcutils_mraw_t));
 }
 
 unsigned int
-pchtml_mraw_init(pchtml_mraw_t *mraw, size_t chunk_size)
+pcutils_mraw_init(pcutils_mraw_t *mraw, size_t chunk_size)
 {
     unsigned int status;
 
@@ -78,7 +78,7 @@ pchtml_mraw_init(pchtml_mraw_t *mraw, size_t chunk_size)
     /* Init memory */
     mraw->mem = pcutils_mem_create();
 
-    status = pcutils_mem_init(mraw->mem, chunk_size + pchtml_mraw_meta_size());
+    status = pcutils_mem_init(mraw->mem, chunk_size + pcutils_mraw_meta_size());
     if (status) {
         return status;
     }
@@ -99,14 +99,14 @@ pchtml_mraw_init(pchtml_mraw_t *mraw, size_t chunk_size)
 }
 
 void
-pchtml_mraw_clean(pchtml_mraw_t *mraw)
+pcutils_mraw_clean(pcutils_mraw_t *mraw)
 {
     pcutils_mem_clean(mraw->mem);
     pcutils_bst_clean(mraw->cache);
 }
 
-pchtml_mraw_t *
-pchtml_mraw_destroy(pchtml_mraw_t *mraw, bool destroy_self)
+pcutils_mraw_t *
+pcutils_mraw_destroy(pcutils_mraw_t *mraw, bool destroy_self)
 {
     if (mraw == NULL) {
         return NULL;
@@ -123,7 +123,7 @@ pchtml_mraw_destroy(pchtml_mraw_t *mraw, bool destroy_self)
 }
 
 static inline void *
-pchtml_mraw_mem_alloc(pchtml_mraw_t *mraw, size_t length)
+pcutils_mraw_mem_alloc(pcutils_mraw_t *mraw, size_t length)
 {
     uint8_t *data;
     pcutils_mem_t *mem = mraw->mem;
@@ -155,24 +155,24 @@ pchtml_mraw_mem_alloc(pchtml_mraw_t *mraw, size_t length)
         size_t diff = pcutils_mem_align_floor(chunk->size - chunk->length);
 
         /* Save tail to cache */
-        if (diff > pchtml_mraw_meta_size()) {
-            diff -= pchtml_mraw_meta_size();
+        if (diff > pcutils_mraw_meta_size()) {
+            diff -= pcutils_mraw_meta_size();
 
 #if defined(PCHTML_HAVE_ADDRESS_SANITIZER)
             ASAN_UNPOISON_MEMORY_REGION(&chunk->data[chunk->length],
-                                        pchtml_mraw_meta_size());
+                                        pcutils_mraw_meta_size());
 #endif
 
-            pchtml_mraw_meta_set(&chunk->data[chunk->length], &diff);
+            pcutils_mraw_meta_set(&chunk->data[chunk->length], &diff);
 
 #if defined(PCHTML_HAVE_ADDRESS_SANITIZER)
             ASAN_POISON_MEMORY_REGION(&chunk->data[chunk->length],
-                                      diff + pchtml_mraw_meta_size());
+                                      diff + pcutils_mraw_meta_size());
 #endif
 
             pcutils_bst_insert(mraw->cache,
                               pcutils_bst_root_ref(mraw->cache), diff,
-                              pchtml_mraw_data_begin(&chunk->data[chunk->length]));
+                              pcutils_mraw_data_begin(&chunk->data[chunk->length]));
 
             chunk->length = chunk->size;
         }
@@ -199,7 +199,7 @@ pchtml_mraw_mem_alloc(pchtml_mraw_t *mraw, size_t length)
 }
 
 void *
-pchtml_mraw_alloc(pchtml_mraw_t *mraw, size_t size)
+pcutils_mraw_alloc(pcutils_mraw_t *mraw, size_t size)
 {
     void *data;
 
@@ -212,42 +212,42 @@ pchtml_mraw_alloc(pchtml_mraw_t *mraw, size_t size)
         if (data != NULL) {
 
 #if defined(PCHTML_HAVE_ADDRESS_SANITIZER)
-            uint8_t *real_data = ((uint8_t *) data) - pchtml_mraw_meta_size();
+            uint8_t *real_data = ((uint8_t *) data) - pcutils_mraw_meta_size();
 
             /* Set unpoison for current data size */
             ASAN_UNPOISON_MEMORY_REGION(real_data, size);
 
-            size_t cur_size = pchtml_mraw_data_size(data);
+            size_t cur_size = pcutils_mraw_data_size(data);
 
             ASAN_UNPOISON_MEMORY_REGION(real_data,
-                                        (cur_size + pchtml_mraw_meta_size()));
+                                        (cur_size + pcutils_mraw_meta_size()));
 #endif
 
             return data;
         }
     }
 
-    data = pchtml_mraw_mem_alloc(mraw, (size + pchtml_mraw_meta_size()));
+    data = pcutils_mraw_mem_alloc(mraw, (size + pcutils_mraw_meta_size()));
 
     if (data == NULL) {
         return NULL;
     }
 
 #if defined(PCHTML_HAVE_ADDRESS_SANITIZER)
-    ASAN_UNPOISON_MEMORY_REGION(data, (size + pchtml_mraw_meta_size()));
+    ASAN_UNPOISON_MEMORY_REGION(data, (size + pcutils_mraw_meta_size()));
 #endif
 
-    pchtml_mraw_meta_set(data, &size);
-    return pchtml_mraw_data_begin(data);
+    pcutils_mraw_meta_set(data, &size);
+    return pcutils_mraw_data_begin(data);
 }
 
 void *
-pchtml_mraw_calloc(pchtml_mraw_t *mraw, size_t size)
+pcutils_mraw_calloc(pcutils_mraw_t *mraw, size_t size)
 {
-    void *data = pchtml_mraw_alloc(mraw, size);
+    void *data = pcutils_mraw_alloc(mraw, size);
 
     if (data != NULL) {
-        memset(data, 0, pchtml_mraw_data_size(data));
+        memset(data, 0, pcutils_mraw_data_size(data));
     }
 
     return data;
@@ -257,7 +257,7 @@ pchtml_mraw_calloc(pchtml_mraw_t *mraw, size_t size)
  * TODO: I don't really like this interface. Perhaps need to simplify.
  */
 static inline void *
-pchtml_mraw_realloc_tail(pchtml_mraw_t *mraw, void *data, void *begin,
+pcutils_mraw_realloc_tail(pcutils_mraw_t *mraw, void *data, void *begin,
                          size_t size, size_t begin_len, size_t new_size,
                          bool *is_valid)
 {
@@ -267,12 +267,12 @@ pchtml_mraw_realloc_tail(pchtml_mraw_t *mraw, void *data, void *begin,
         *is_valid = true;
 
         if (new_size == 0) {
-            chunk->length = begin_len - pchtml_mraw_meta_size();
+            chunk->length = begin_len - pcutils_mraw_meta_size();
             return NULL;
         }
 
 #if defined(PCHTML_HAVE_ADDRESS_SANITIZER)
-        ASAN_UNPOISON_MEMORY_REGION(begin, new_size + pchtml_mraw_meta_size());
+        ASAN_UNPOISON_MEMORY_REGION(begin, new_size + pcutils_mraw_meta_size());
 #endif
 
         chunk->length = begin_len + new_size;
@@ -284,20 +284,20 @@ pchtml_mraw_realloc_tail(pchtml_mraw_t *mraw, void *data, void *begin,
     /*
      * If the tail is short then we increase the current data.
      */
-    if (begin_len == pchtml_mraw_meta_size()) {
+    if (begin_len == pcutils_mraw_meta_size()) {
         void *new_data;
         pcutils_mem_chunk_t new_chunk;
 
         *is_valid = true;
 
         pcutils_mem_chunk_init(mraw->mem, &new_chunk,
-                              new_size + pchtml_mraw_meta_size());
+                              new_size + pcutils_mraw_meta_size());
         if(new_chunk.data == NULL) {
             return NULL;
         }
 
-        pchtml_mraw_meta_set(new_chunk.data, &new_size);
-        new_data = pchtml_mraw_data_begin(new_chunk.data);
+        pcutils_mraw_meta_set(new_chunk.data, &new_size);
+        new_data = pcutils_mraw_data_begin(new_chunk.data);
 
         if (size != 0) {
             memcpy(new_data, data, sizeof(uint8_t) * size);
@@ -311,7 +311,7 @@ pchtml_mraw_realloc_tail(pchtml_mraw_t *mraw, void *data, void *begin,
 
         chunk->data = new_chunk.data;
         chunk->size = new_chunk.size;
-        chunk->length = new_size + pchtml_mraw_meta_size();
+        chunk->length = new_size + pcutils_mraw_meta_size();
 
         return new_data;
     }
@@ -330,13 +330,13 @@ pchtml_mraw_realloc_tail(pchtml_mraw_t *mraw, void *data, void *begin,
 }
 
 void *
-pchtml_mraw_realloc(pchtml_mraw_t *mraw, void *data, size_t new_size)
+pcutils_mraw_realloc(pcutils_mraw_t *mraw, void *data, size_t new_size)
 {
     void *begin;
     size_t size, begin_len;
     pcutils_mem_chunk_t *chunk = mraw->mem->chunk;
 
-    begin = ((uint8_t *) data) - pchtml_mraw_meta_size();
+    begin = ((uint8_t *) data) - pcutils_mraw_meta_size();
     memcpy(&size, begin, sizeof(size_t));
 
     new_size = pcutils_mem_align(new_size);
@@ -350,7 +350,7 @@ pchtml_mraw_realloc(pchtml_mraw_t *mraw, void *data, size_t new_size)
 
         if (&chunk->data[begin_len] == data) {
             bool is_valid;
-            void *ptr = pchtml_mraw_realloc_tail(mraw, data, begin,
+            void *ptr = pcutils_mraw_realloc_tail(mraw, data, begin,
                                                  size, begin_len, new_size,
                                                  &is_valid);
             if (is_valid == true) {
@@ -363,7 +363,7 @@ pchtml_mraw_realloc(pchtml_mraw_t *mraw, void *data, size_t new_size)
         if (new_size == 0) {
 
 #if defined(PCHTML_HAVE_ADDRESS_SANITIZER)
-            ASAN_POISON_MEMORY_REGION(begin, size + pchtml_mraw_meta_size());
+            ASAN_POISON_MEMORY_REGION(begin, size + pcutils_mraw_meta_size());
 #endif
             pcutils_bst_insert(mraw->cache, pcutils_bst_root_ref(mraw->cache),
                               size, data);
@@ -372,25 +372,25 @@ pchtml_mraw_realloc(pchtml_mraw_t *mraw, void *data, size_t new_size)
 
         size_t diff = pcutils_mem_align_floor(size - new_size);
 
-        if (diff > pchtml_mraw_meta_size()) {
+        if (diff > pcutils_mraw_meta_size()) {
             memcpy(begin, &new_size, sizeof(size_t));
 
-            new_size = diff - pchtml_mraw_meta_size();
+            new_size = diff - pcutils_mraw_meta_size();
             begin = &((uint8_t *) data)[diff];
 
-            pchtml_mraw_meta_set(begin, &new_size);
+            pcutils_mraw_meta_set(begin, &new_size);
 
 #if defined(PCHTML_HAVE_ADDRESS_SANITIZER)
-            ASAN_POISON_MEMORY_REGION(begin, new_size + pchtml_mraw_meta_size());
+            ASAN_POISON_MEMORY_REGION(begin, new_size + pcutils_mraw_meta_size());
 #endif
             pcutils_bst_insert(mraw->cache, pcutils_bst_root_ref(mraw->cache),
-                              new_size, pchtml_mraw_data_begin(begin));
+                              new_size, pcutils_mraw_data_begin(begin));
         }
 
         return data;
     }
 
-    begin = pchtml_mraw_alloc(mraw, new_size);
+    begin = pcutils_mraw_alloc(mraw, new_size);
     if (begin == NULL) {
         return NULL;
     }
@@ -399,19 +399,19 @@ pchtml_mraw_realloc(pchtml_mraw_t *mraw, void *data, size_t new_size)
         memcpy(begin, data, sizeof(uint8_t) * size);
     }
 
-    pchtml_mraw_free(mraw, data);
+    pcutils_mraw_free(mraw, data);
 
     return begin;
 }
 
 void *
-pchtml_mraw_free(pchtml_mraw_t *mraw, void *data)
+pcutils_mraw_free(pcutils_mraw_t *mraw, void *data)
 {
-    size_t size = pchtml_mraw_data_size(data);
+    size_t size = pcutils_mraw_data_size(data);
 
 #if defined(PCHTML_HAVE_ADDRESS_SANITIZER)
-    uint8_t *real_data = ((uint8_t *) data) - pchtml_mraw_meta_size();
-    ASAN_POISON_MEMORY_REGION(real_data, size + pchtml_mraw_meta_size());
+    uint8_t *real_data = ((uint8_t *) data) - pcutils_mraw_meta_size();
+    ASAN_POISON_MEMORY_REGION(real_data, size + pcutils_mraw_meta_size());
 #endif
 
     pcutils_bst_insert(mraw->cache, pcutils_bst_root_ref(mraw->cache),

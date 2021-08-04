@@ -37,7 +37,7 @@ pcedom_event_target_create(pcedom_document_t *document)
 {
     pcedom_event_target_t *element;
 
-    element = pchtml_mraw_calloc(document->mraw,
+    element = pcutils_mraw_calloc(document->mraw,
                                  sizeof(pcedom_event_target_t));
     if (element == NULL) {
         return NULL;
@@ -52,5 +52,5 @@ pcedom_event_target_t *
 pcedom_event_target_destroy(pcedom_event_target_t *event_target,
                              pcedom_document_t *document)
 {
-    return pchtml_mraw_free(document->mraw, event_target);
+    return pcutils_mraw_free(document->mraw, event_target);
 }

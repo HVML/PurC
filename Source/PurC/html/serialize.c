@@ -65,7 +65,7 @@
 
 typedef struct {
     pchtml_str_t  *str;
-    pchtml_mraw_t *mraw;
+    pcutils_mraw_t *mraw;
 }
 pchtml_html_serialize_ctx_t;
 

@@ -48,13 +48,13 @@ pchtml_str_create(void)
 }
 
 unsigned char *
-pchtml_str_init(pchtml_str_t *str, pchtml_mraw_t *mraw, size_t size)
+pchtml_str_init(pchtml_str_t *str, pcutils_mraw_t *mraw, size_t size)
 {
     if (str == NULL) {
         return NULL;
     }
 
-    str->data = pchtml_mraw_alloc(mraw, (size + 1));
+    str->data = pcutils_mraw_alloc(mraw, (size + 1));
     str->length = 0;
 
     if (str->data != NULL) {
@@ -77,14 +77,14 @@ pchtml_str_clean_all(pchtml_str_t *str)
 }
 
 pchtml_str_t *
-pchtml_str_destroy(pchtml_str_t *str, pchtml_mraw_t *mraw, bool destroy_obj)
+pchtml_str_destroy(pchtml_str_t *str, pcutils_mraw_t *mraw, bool destroy_obj)
 {
     if (str == NULL) {
         return NULL;
     }
 
     if (str->data != NULL) {
-        str->data = pchtml_mraw_free(mraw, str->data);
+        str->data = pcutils_mraw_free(mraw, str->data);
     }
 
     if (destroy_obj) {
@@ -95,9 +95,9 @@ pchtml_str_destroy(pchtml_str_t *str, pchtml_mraw_t *mraw, bool destroy_obj)
 }
 
 unsigned char *
-pchtml_str_realloc(pchtml_str_t *str, pchtml_mraw_t *mraw, size_t new_size)
+pchtml_str_realloc(pchtml_str_t *str, pcutils_mraw_t *mraw, size_t new_size)
 {
-    unsigned char *tmp = pchtml_mraw_realloc(mraw, str->data, new_size);
+    unsigned char *tmp = pcutils_mraw_realloc(mraw, str->data, new_size);
     if (tmp == NULL) {
         return NULL;
     }
@@ -108,7 +108,7 @@ pchtml_str_realloc(pchtml_str_t *str, pchtml_mraw_t *mraw, size_t new_size)
 }
 
 unsigned char *
-pchtml_str_check_size(pchtml_str_t *str, pchtml_mraw_t *mraw, size_t plus_len)
+pchtml_str_check_size(pchtml_str_t *str, pcutils_mraw_t *mraw, size_t plus_len)
 {
     unsigned char *tmp;
 
@@ -120,7 +120,7 @@ pchtml_str_check_size(pchtml_str_t *str, pchtml_mraw_t *mraw, size_t plus_len)
         return str->data;
     }
 
-    tmp = pchtml_mraw_realloc(mraw, str->data, (str->length + plus_len));
+    tmp = pcutils_mraw_realloc(mraw, str->data, (str->length + plus_len));
     if (tmp == NULL) {
         return NULL;
     }
@@ -132,7 +132,7 @@ pchtml_str_check_size(pchtml_str_t *str, pchtml_mraw_t *mraw, size_t plus_len)
 
 /* Append API */
 unsigned char *
-pchtml_str_append(pchtml_str_t *str, pchtml_mraw_t *mraw,
+pchtml_str_append(pchtml_str_t *str, pcutils_mraw_t *mraw,
                   const unsigned char *buff, size_t length)
 {
     unsigned char *data_begin;
@@ -150,7 +150,7 @@ pchtml_str_append(pchtml_str_t *str, pchtml_mraw_t *mraw,
 }
 
 unsigned char *
-pchtml_str_append_before(pchtml_str_t *str, pchtml_mraw_t *mraw,
+pchtml_str_append_before(pchtml_str_t *str, pcutils_mraw_t *mraw,
                          const unsigned char *buff, size_t length)
 {
     unsigned char *data_begin;
@@ -170,7 +170,7 @@ pchtml_str_append_before(pchtml_str_t *str, pchtml_mraw_t *mraw,
 }
 
 unsigned char *
-pchtml_str_append_one(pchtml_str_t *str, pchtml_mraw_t *mraw,
+pchtml_str_append_one(pchtml_str_t *str, pcutils_mraw_t *mraw,
                       const unsigned char data)
 {
     pchtml_str_check_size_arg_m(str, pchtml_str_size(str), mraw, 2, NULL);
@@ -184,7 +184,7 @@ pchtml_str_append_one(pchtml_str_t *str, pchtml_mraw_t *mraw,
 }
 
 unsigned char *
-pchtml_str_append_lowercase(pchtml_str_t *str, pchtml_mraw_t *mraw,
+pchtml_str_append_lowercase(pchtml_str_t *str, pcutils_mraw_t *mraw,
                             const unsigned char *data, size_t length)
 {
     size_t i;
@@ -206,7 +206,7 @@ pchtml_str_append_lowercase(pchtml_str_t *str, pchtml_mraw_t *mraw,
 }
 
 unsigned char *
-pchtml_str_append_with_rep_null_chars(pchtml_str_t *str, pchtml_mraw_t *mraw,
+pchtml_str_append_with_rep_null_chars(pchtml_str_t *str, pcutils_mraw_t *mraw,
                                       const unsigned char *buff, size_t length)
 {
     const unsigned char *pos, *res, *end;
@@ -249,7 +249,7 @@ pchtml_str_append_with_rep_null_chars(pchtml_str_t *str, pchtml_mraw_t *mraw,
 
 unsigned char *
 pchtml_str_copy(pchtml_str_t *dest, const pchtml_str_t *target,
-                pchtml_mraw_t *mraw)
+                pcutils_mraw_t *mraw)
 {
     if (target->data == NULL) {
         return NULL;

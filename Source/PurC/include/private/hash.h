@@ -90,7 +90,7 @@ struct pcutils_hash_entry {
 
 struct pcutils_hash {
     pcutils_dobject_t    *entries;
-    pchtml_mraw_t       *mraw;
+    pcutils_mraw_t       *mraw;
 
     pcutils_hash_entry_t **table;
     size_t              table_size;
@@ -175,7 +175,7 @@ pcutils_hash_copy_upper(pcutils_hash_t *hash, pcutils_hash_entry_t *entry,
 /*
  * Inline functions
  */
-static inline pchtml_mraw_t *
+static inline pcutils_mraw_t *
 pcutils_hash_mraw(const pcutils_hash_t *hash)
 {
     return hash->mraw;
@@ -210,7 +210,7 @@ static inline void
 pcutils_hash_entry_str_free(pcutils_hash_t *hash, pcutils_hash_entry_t *entry)
 {
     if (entry->length > PCHTML_HASH_SHORT_SIZE) {
-        pchtml_mraw_free(hash->mraw, entry->u.long_str);
+        pcutils_mraw_free(hash->mraw, entry->u.long_str);
     }
 
     entry->length = 0;

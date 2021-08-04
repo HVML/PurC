@@ -106,7 +106,7 @@ extern "C" {
                                                                                \
         attr->value_size = (size_t) (tkz->pos - tkz->start);                   \
                                                                                \
-        attr->value = pchtml_mraw_alloc(tkz->attrs_mraw, attr->value_size + 1);\
+        attr->value = pcutils_mraw_alloc(tkz->attrs_mraw, attr->value_size + 1);\
         if (attr->value == NULL) {                                             \
             tkz->status = PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;                  \
             pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);                        \

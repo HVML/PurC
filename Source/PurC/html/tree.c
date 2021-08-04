@@ -492,7 +492,7 @@ pchtml_html_tree_append_attributes(pchtml_html_tree_t *tree,
     pcedom_attr_t *attr;
     pchtml_str_t local_name;
     pchtml_html_token_attr_t *token_attr = token->attr_first;
-    pchtml_mraw_t *mraw = element->node.owner_document->text;
+    pcutils_mraw_t *mraw = element->node.owner_document->text;
 
     local_name.data = NULL;
 
@@ -535,7 +535,7 @@ pchtml_html_tree_append_attributes(pchtml_html_tree_t *tree,
     }
 
     if (local_name.data != NULL) {
-        pchtml_mraw_free(mraw, local_name.data);
+        pcutils_mraw_free(mraw, local_name.data);
     }
 
     return PCHTML_STATUS_OK;

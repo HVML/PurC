@@ -120,7 +120,7 @@ pchtml_html_token_attr_delete(pchtml_html_token_t *token,
 
 unsigned int
 pchtml_html_token_make_text(pchtml_html_token_t *token, pchtml_str_t *str,
-                         pchtml_mraw_t *mraw)
+                         pcutils_mraw_t *mraw)
 {
     size_t len = token->text_end - token->text_start;
 
@@ -140,7 +140,7 @@ pchtml_html_token_make_text(pchtml_html_token_t *token, pchtml_str_t *str,
 
 unsigned int
 pchtml_html_token_make_text_drop_null(pchtml_html_token_t *token, pchtml_str_t *str,
-                                   pchtml_mraw_t *mraw)
+                                   pcutils_mraw_t *mraw)
 {
     unsigned char *p, c;
     const unsigned char *data = token->text_start;
@@ -172,7 +172,7 @@ pchtml_html_token_make_text_drop_null(pchtml_html_token_t *token, pchtml_str_t *
 
 unsigned int
 pchtml_html_token_make_text_replace_null(pchtml_html_token_t *token,
-                                      pchtml_str_t *str, pchtml_mraw_t *mraw)
+                                      pchtml_str_t *str, pcutils_mraw_t *mraw)
 {
     unsigned char *p, c;
     const unsigned char *data = token->text_start;
@@ -294,7 +294,7 @@ pchtml_html_token_doctype_parse(pchtml_html_token_t *token,
                              pcedom_document_type_t *doc_type)
 {
     pchtml_html_token_attr_t *attr;
-    pchtml_mraw_t *mraw = doc_type->node.owner_document->mraw;
+    pcutils_mraw_t *mraw = doc_type->node.owner_document->mraw;
 
     /* Set all to empty string if attr not exist */
     if (token->attr_first == NULL) {

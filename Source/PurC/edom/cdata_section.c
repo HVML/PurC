@@ -38,7 +38,7 @@ pcedom_cdata_section_interface_create(pcedom_document_t *document)
 {
     pcedom_cdata_section_t *element;
 
-    element = pchtml_mraw_calloc(document->mraw,
+    element = pcutils_mraw_calloc(document->mraw,
                                  sizeof(pcedom_cdata_section_t));
     if (element == NULL) {
         return NULL;
@@ -55,7 +55,7 @@ pcedom_cdata_section_interface_create(pcedom_document_t *document)
 pcedom_cdata_section_t *
 pcedom_cdata_section_interface_destroy(pcedom_cdata_section_t *cdata_section)
 {
-    return pchtml_mraw_free(
+    return pcutils_mraw_free(
         pcedom_interface_node(cdata_section)->owner_document->mraw,
         cdata_section);
 }

@@ -39,7 +39,7 @@ pcedom_document_fragment_interface_create(pcedom_document_t *document)
 {
     pcedom_document_fragment_t *element;
 
-    element = pchtml_mraw_calloc(document->mraw,
+    element = pcutils_mraw_calloc(document->mraw,
                                  sizeof(pcedom_document_fragment_t));
     if (element == NULL) {
         return NULL;
@@ -56,7 +56,7 @@ pcedom_document_fragment_interface_create(pcedom_document_t *document)
 pcedom_document_fragment_t *
 pcedom_document_fragment_interface_destroy(pcedom_document_fragment_t *document_fragment)
 {
-    return pchtml_mraw_free(
+    return pcutils_mraw_free(
         pcedom_interface_node(document_fragment)->owner_document->mraw,
         document_fragment);
 }

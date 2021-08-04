@@ -122,7 +122,7 @@ pcedom_element_interface_create(pcedom_document_t *document)
 {
     pcedom_element_t *element;
 
-    element = pchtml_mraw_calloc(document->mraw,
+    element = pcutils_mraw_calloc(document->mraw,
                                  sizeof(pcedom_element_t));
     if (element == NULL) {
         return NULL;
@@ -150,7 +150,7 @@ pcedom_element_interface_destroy(pcedom_element_t *element)
         attr = attr_next;
     }
 
-    return pchtml_mraw_free(
+    return pcutils_mraw_free(
         pcedom_interface_node(element)->owner_document->mraw,
         element);
 }
@@ -588,7 +588,7 @@ pcedom_element_is_set(pcedom_element_t *element,
                        const unsigned char *is, size_t is_len)
 {
     if (element->is_value == NULL) {
-        element->is_value = pchtml_mraw_calloc(element->node.owner_document->mraw,
+        element->is_value = pcutils_mraw_calloc(element->node.owner_document->mraw,
                                                sizeof(pchtml_str_t));
         if (element->is_value == NULL) {
             pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);

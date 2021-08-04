@@ -68,7 +68,7 @@ pchtml_html_document_interface_create(pchtml_html_document_t *document)
     pcedom_interface_create_f icreator;
 
     if (document != NULL) {
-        doc = pchtml_mraw_calloc(pchtml_html_document_mraw(document),
+        doc = pcutils_mraw_calloc(pchtml_html_document_mraw(document),
                                  sizeof(pchtml_html_document_t));
     }
     else {

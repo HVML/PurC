@@ -41,7 +41,7 @@ pchtml_html_text_area_element_interface_create(pchtml_html_document_t *document)
 {
     pchtml_html_text_area_element_t *element;
 
-    element = pchtml_mraw_calloc(document->dom_document.mraw,
+    element = pcutils_mraw_calloc(document->dom_document.mraw,
                                  sizeof(pchtml_html_text_area_element_t));
     if (element == NULL) {
         return NULL;
@@ -58,7 +58,7 @@ pchtml_html_text_area_element_interface_create(pchtml_html_document_t *document)
 pchtml_html_text_area_element_t *
 pchtml_html_text_area_element_interface_destroy(pchtml_html_text_area_element_t *text_area_element)
 {
-    return pchtml_mraw_free(
+    return pcutils_mraw_free(
         pcedom_interface_node(text_area_element)->owner_document->mraw,
         text_area_element);
 }

@@ -39,7 +39,7 @@ pcedom_shadow_root_interface_create(pcedom_document_t *document)
 {
     pcedom_shadow_root_t *element;
 
-    element = pchtml_mraw_calloc(document->mraw,
+    element = pcutils_mraw_calloc(document->mraw,
                                  sizeof(pcedom_shadow_root_t));
     if (element == NULL) {
         return NULL;
@@ -56,7 +56,7 @@ pcedom_shadow_root_interface_create(pcedom_document_t *document)
 pcedom_shadow_root_t *
 pcedom_shadow_root_interface_destroy(pcedom_shadow_root_t *shadow_root)
 {
-    return pchtml_mraw_free(
+    return pcutils_mraw_free(
         pcedom_interface_node(shadow_root)->owner_document->mraw,
         shadow_root);
 }

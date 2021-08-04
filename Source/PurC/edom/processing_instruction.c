@@ -38,7 +38,7 @@ pcedom_processing_instruction_interface_create(pcedom_document_t *document)
 {
     pcedom_processing_instruction_t *element;
 
-    element = pchtml_mraw_calloc(document->mraw,
+    element = pcutils_mraw_calloc(document->mraw,
                                  sizeof(pcedom_processing_instruction_t));
     if (element == NULL) {
         return NULL;
@@ -55,7 +55,7 @@ pcedom_processing_instruction_interface_create(pcedom_document_t *document)
 pcedom_processing_instruction_t *
 pcedom_processing_instruction_interface_destroy(pcedom_processing_instruction_t *processing_instruction)
 {
-    return pchtml_mraw_free(
+    return pcutils_mraw_free(
         pcedom_interface_node(processing_instruction)->owner_document->mraw,
         processing_instruction);
 }

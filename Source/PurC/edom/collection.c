@@ -42,7 +42,7 @@ pcedom_collection_create(pcedom_document_t *document)
 {
     pcedom_collection_t *col;
 
-    col = pchtml_mraw_calloc(document->mraw, sizeof(pcedom_collection_t));
+    col = pcutils_mraw_calloc(document->mraw, sizeof(pcedom_collection_t));
     if (col == NULL) {
         return NULL;
     }
@@ -83,7 +83,7 @@ pcedom_collection_destroy(pcedom_collection_t *col, bool self_destroy)
 
     if (self_destroy) {
         if (col->document != NULL) {
-            return pchtml_mraw_free(col->document->mraw, col);
+            return pcutils_mraw_free(col->document->mraw, col);
         }
 
         return NULL;

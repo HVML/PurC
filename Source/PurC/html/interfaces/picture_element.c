@@ -41,7 +41,7 @@ pchtml_html_picture_element_interface_create(pchtml_html_document_t *document)
 {
     pchtml_html_picture_element_t *element;
 
-    element = pchtml_mraw_calloc(document->dom_document.mraw,
+    element = pcutils_mraw_calloc(document->dom_document.mraw,
                                  sizeof(pchtml_html_picture_element_t));
     if (element == NULL) {
         return NULL;
@@ -58,7 +58,7 @@ pchtml_html_picture_element_interface_create(pchtml_html_document_t *document)
 pchtml_html_picture_element_t *
 pchtml_html_picture_element_interface_destroy(pchtml_html_picture_element_t *picture_element)
 {
-    return pchtml_mraw_free(
+    return pcutils_mraw_free(
         pcedom_interface_node(picture_element)->owner_document->mraw,
         picture_element);
 }

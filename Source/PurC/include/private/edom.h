@@ -372,8 +372,8 @@ struct pcedom_document {
     pcedom_interface_create_f  create_interface;
     pcedom_interface_destroy_f destroy_interface;
 
-    pchtml_mraw_t               *mraw;
-    pchtml_mraw_t               *text;
+    pcutils_mraw_t               *mraw;
+    pcutils_mraw_t               *text;
     pcutils_hash_t               *tags;
     pcutils_hash_t               *attrs;
     pcutils_hash_t               *prefix;
@@ -468,26 +468,26 @@ pcedom_document_destroy_interface(pcedom_interface_t *intrfc)
 static inline void *
 pcedom_document_create_struct(pcedom_document_t *document, size_t struct_size)
 {
-    return pchtml_mraw_calloc(document->mraw, struct_size);
+    return pcutils_mraw_calloc(document->mraw, struct_size);
 }
 
 static inline void *
 pcedom_document_destroy_struct(pcedom_document_t *document, void *structure)
 {
-    return pchtml_mraw_free(document->mraw, structure);
+    return pcutils_mraw_free(document->mraw, structure);
 }
 
 static inline unsigned char *
 pcedom_document_create_text(pcedom_document_t *document, size_t len)
 {
-    return (unsigned char *) pchtml_mraw_alloc(document->text,
+    return (unsigned char *) pcutils_mraw_alloc(document->text,
                                             sizeof(unsigned char) * len);
 }
 
 static inline void *
 pcedom_document_destroy_text(pcedom_document_t *document, unsigned char *text)
 {
-    return pchtml_mraw_free(document->text, text);
+    return pcutils_mraw_free(document->text, text);
 }
 
 static inline pcedom_element_t *

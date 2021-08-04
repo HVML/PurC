@@ -119,7 +119,7 @@ pchtml_tag_id_by_name(pcutils_hash_t *hash, const unsigned char *name, size_t le
     return data->tag_id;
 }
 
-static inline pchtml_mraw_t *
+static inline pcutils_mraw_t *
 pchtml_tag_mraw(pcutils_hash_t *hash)
 {
     return pcutils_hash_mraw(hash);

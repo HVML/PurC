@@ -41,7 +41,7 @@ pchtml_html_template_element_interface_create(pchtml_html_document_t *document)
 {
     pchtml_html_template_element_t *element;
 
-    element = pchtml_mraw_calloc(document->dom_document.mraw,
+    element = pcutils_mraw_calloc(document->dom_document.mraw,
                                  sizeof(pchtml_html_template_element_t));
     if (element == NULL) {
         return NULL;
@@ -68,7 +68,7 @@ pchtml_html_template_element_interface_destroy(pchtml_html_template_element_t *t
 {
     pcedom_document_fragment_interface_destroy(template_element->content);
 
-    return pchtml_mraw_free(
+    return pcutils_mraw_free(
         pcedom_interface_node(template_element)->owner_document->mraw,
         template_element);
 }

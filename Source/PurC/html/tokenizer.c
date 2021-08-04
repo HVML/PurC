@@ -83,8 +83,8 @@ pchtml_html_tokenizer_init(pchtml_html_tokenizer_t *tkz)
     }
 
     /* mraw for templary strings or structures */
-    tkz->mraw = pchtml_mraw_create();
-    status = pchtml_mraw_init(tkz->mraw, 1024);
+    tkz->mraw = pcutils_mraw_create();
+    status = pcutils_mraw_init(tkz->mraw, 1024);
     if (status != PCHTML_STATUS_OK) {
         return status;
     }
@@ -238,7 +238,7 @@ pchtml_html_tokenizer_clean(pchtml_html_tokenizer_t *tkz)
 
     tkz->pos = tkz->start;
 
-    pchtml_mraw_clean(tkz->mraw);
+    pcutils_mraw_clean(tkz->mraw);
     pcutils_dobject_clean(tkz->dobj_token);
     pcutils_dobject_clean(tkz->dobj_token_attr);
 
@@ -261,7 +261,7 @@ pchtml_html_tokenizer_destroy(pchtml_html_tokenizer_t *tkz)
             pchtml_html_tokenizer_attrs_destroy(tkz);
         }
 
-        pchtml_mraw_destroy(tkz->mraw, true);
+        pcutils_mraw_destroy(tkz->mraw, true);
         pcutils_dobject_destroy(tkz->dobj_token, true);
         pcutils_dobject_destroy(tkz->dobj_token_attr, true);
         pchtml_free(tkz->start);

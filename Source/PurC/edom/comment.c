@@ -38,7 +38,7 @@ pcedom_comment_interface_create(pcedom_document_t *document)
 {
     pcedom_comment_t *element;
 
-    element = pchtml_mraw_calloc(document->mraw,
+    element = pcutils_mraw_calloc(document->mraw,
                                  sizeof(pcedom_comment_t));
     if (element == NULL) {
         return NULL;
@@ -55,7 +55,7 @@ pcedom_comment_interface_create(pcedom_document_t *document)
 pcedom_comment_t *
 pcedom_comment_interface_destroy(pcedom_comment_t *comment)
 {
-    return pchtml_mraw_free(
+    return pcutils_mraw_free(
         pcedom_interface_node(comment)->owner_document->mraw,
         comment);
 }
