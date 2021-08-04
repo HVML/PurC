@@ -65,10 +65,10 @@ pcutils_dobject_init(pcutils_dobject_t *dobject,
     dobject->struct_size = struct_size;
 
     /* Init memory */
-    dobject->mem = pchtml_mem_create();
+    dobject->mem = pcutils_mem_create();
 
-    status = pchtml_mem_init(dobject->mem,
-                           pchtml_mem_align(chunk_size * dobject->struct_size));
+    status = pcutils_mem_init(dobject->mem,
+                           pcutils_mem_align(chunk_size * dobject->struct_size));
     if (status) {
         return status;
     }
@@ -93,7 +93,7 @@ pcutils_dobject_clean(pcutils_dobject_t *dobject)
 {
     dobject->allocated = 0UL;
 
-    pchtml_mem_clean(dobject->mem);
+    pcutils_mem_clean(dobject->mem);
     pcutils_array_clean(dobject->cache);
 }
 
@@ -103,7 +103,7 @@ pcutils_dobject_destroy(pcutils_dobject_t *dobject, bool destroy_self)
     if (dobject == NULL)
         return NULL;
 
-    dobject->mem = pchtml_mem_destroy(dobject->mem, true);
+    dobject->mem = pcutils_mem_destroy(dobject->mem, true);
     dobject->cache = pcutils_array_destroy(dobject->cache, true);
 
     if (destroy_self == true) {
@@ -131,7 +131,7 @@ pcutils_dobject_alloc(pcutils_dobject_t *dobject)
 #endif
     }
 
-    data = pchtml_mem_alloc(dobject->mem, dobject->struct_size);
+    data = pcutils_mem_alloc(dobject->mem, dobject->struct_size);
     if (data == NULL) {
         return NULL;
     }
@@ -180,7 +180,7 @@ void *
 pcutils_dobject_by_absolute_position(pcutils_dobject_t *dobject, size_t pos)
 {
     size_t chunk_idx, chunk_pos, i;
-    pchtml_mem_chunk_t *chunk;
+    pcutils_mem_chunk_t *chunk;
 
     if (pos >= dobject->allocated) {
         return NULL;

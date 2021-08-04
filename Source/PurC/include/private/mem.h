@@ -58,91 +58,91 @@ pchtml_free(void *ptr)
 extern "C" {
 #endif
 
-typedef struct pchtml_mem_chunk pchtml_mem_chunk_t;
-typedef struct pchtml_mem pchtml_mem_t;
+typedef struct pcutils_mem_chunk pcutils_mem_chunk_t;
+typedef struct pcutils_mem pcutils_mem_t;
 
-struct pchtml_mem_chunk {
+struct pcutils_mem_chunk {
     uint8_t            *data;
     size_t             length;
     size_t             size;
 
-    pchtml_mem_chunk_t *next;
-    pchtml_mem_chunk_t *prev;
+    pcutils_mem_chunk_t *next;
+    pcutils_mem_chunk_t *prev;
 };
 
-struct pchtml_mem {
-    pchtml_mem_chunk_t *chunk;
-    pchtml_mem_chunk_t *chunk_first;
+struct pcutils_mem {
+    pcutils_mem_chunk_t *chunk;
+    pcutils_mem_chunk_t *chunk_first;
 
     size_t             chunk_min_size;
     size_t             chunk_length;
 };
 
 
-pchtml_mem_t *
-pchtml_mem_create(void) WTF_INTERNAL;
+pcutils_mem_t *
+pcutils_mem_create(void) WTF_INTERNAL;
 
 unsigned int
-pchtml_mem_init(pchtml_mem_t *mem, size_t min_chunk_size) WTF_INTERNAL;
+pcutils_mem_init(pcutils_mem_t *mem, size_t min_chunk_size) WTF_INTERNAL;
 
 void
-pchtml_mem_clean(pchtml_mem_t *mem) WTF_INTERNAL;
+pcutils_mem_clean(pcutils_mem_t *mem) WTF_INTERNAL;
 
-pchtml_mem_t *
-pchtml_mem_destroy(pchtml_mem_t *mem, bool destroy_self) WTF_INTERNAL;
+pcutils_mem_t *
+pcutils_mem_destroy(pcutils_mem_t *mem, bool destroy_self) WTF_INTERNAL;
 
 
 /*
- * The memory allocated in pchtml_mem_chunk_* functions needs to be freed
- * by pchtml_mem_chunk_destroy function.
+ * The memory allocated in pcutils_mem_chunk_* functions needs to be freed
+ * by pcutils_mem_chunk_destroy function.
  *
- * This memory will not be automatically freed by a function pchtml_mem_destroy.
+ * This memory will not be automatically freed by a function pcutils_mem_destroy.
  */
 uint8_t *
-pchtml_mem_chunk_init(pchtml_mem_t *mem,
-                pchtml_mem_chunk_t *chunk, size_t length) WTF_INTERNAL;
+pcutils_mem_chunk_init(pcutils_mem_t *mem,
+                pcutils_mem_chunk_t *chunk, size_t length) WTF_INTERNAL;
 
-pchtml_mem_chunk_t *
-pchtml_mem_chunk_make(pchtml_mem_t *mem, size_t length) WTF_INTERNAL;
+pcutils_mem_chunk_t *
+pcutils_mem_chunk_make(pcutils_mem_t *mem, size_t length) WTF_INTERNAL;
 
-pchtml_mem_chunk_t *
-pchtml_mem_chunk_destroy(pchtml_mem_t *mem,
-                pchtml_mem_chunk_t *chunk, bool self_destroy) WTF_INTERNAL;
+pcutils_mem_chunk_t *
+pcutils_mem_chunk_destroy(pcutils_mem_t *mem,
+                pcutils_mem_chunk_t *chunk, bool self_destroy) WTF_INTERNAL;
 
 /*
- * The memory allocated in pchtml_mem_alloc and pchtml_mem_calloc function
- * will be freeds after calling pchtml_mem_destroy function.
+ * The memory allocated in pcutils_mem_alloc and pcutils_mem_calloc function
+ * will be freeds after calling pcutils_mem_destroy function.
  */
 void *
-pchtml_mem_alloc(pchtml_mem_t *mem, size_t length) WTF_INTERNAL;
+pcutils_mem_alloc(pcutils_mem_t *mem, size_t length) WTF_INTERNAL;
 
 void *
-pchtml_mem_calloc(pchtml_mem_t *mem, size_t length) WTF_INTERNAL;
+pcutils_mem_calloc(pcutils_mem_t *mem, size_t length) WTF_INTERNAL;
 
 
 /*
  * Inline functions
  */
 static inline size_t
-pchtml_mem_current_length(pchtml_mem_t *mem)
+pcutils_mem_current_length(pcutils_mem_t *mem)
 {
     return mem->chunk->length;
 }
 
 static inline size_t
-pchtml_mem_current_size(pchtml_mem_t *mem)
+pcutils_mem_current_size(pcutils_mem_t *mem)
 {
     return mem->chunk->size;
 }
 
 static inline size_t
-pchtml_mem_chunk_length(pchtml_mem_t *mem)
+pcutils_mem_chunk_length(pcutils_mem_t *mem)
 {
     return mem->chunk_length;
 }
 
 static inline size_t
-pchtml_mem_align(size_t size)
+pcutils_mem_align(size_t size)
 {
     return ((size % PCHTML_MEM_ALIGN_STEP) != 0)
            ? size + (PCHTML_MEM_ALIGN_STEP - (size % PCHTML_MEM_ALIGN_STEP))
@@ -150,7 +150,7 @@ pchtml_mem_align(size_t size)
 }
 
 static inline size_t
-pchtml_mem_align_floor(size_t size)
+pcutils_mem_align_floor(size_t size)
 {
     return ((size % PCHTML_MEM_ALIGN_STEP) != 0)
            ? size - (size % PCHTML_MEM_ALIGN_STEP)

@@ -76,9 +76,9 @@ pchtml_mraw_init(pchtml_mraw_t *mraw, size_t chunk_size)
     }
 
     /* Init memory */
-    mraw->mem = pchtml_mem_create();
+    mraw->mem = pcutils_mem_create();
 
-    status = pchtml_mem_init(mraw->mem, chunk_size + pchtml_mraw_meta_size());
+    status = pcutils_mem_init(mraw->mem, chunk_size + pchtml_mraw_meta_size());
     if (status) {
         return status;
     }
@@ -101,7 +101,7 @@ pchtml_mraw_init(pchtml_mraw_t *mraw, size_t chunk_size)
 void
 pchtml_mraw_clean(pchtml_mraw_t *mraw)
 {
-    pchtml_mem_clean(mraw->mem);
+    pcutils_mem_clean(mraw->mem);
     pcutils_bst_clean(mraw->cache);
 }
 
@@ -112,7 +112,7 @@ pchtml_mraw_destroy(pchtml_mraw_t *mraw, bool destroy_self)
         return NULL;
     }
 
-    mraw->mem = pchtml_mem_destroy(mraw->mem, true);
+    mraw->mem = pcutils_mem_destroy(mraw->mem, true);
     mraw->cache = pcutils_bst_destroy(mraw->cache, true);
 
     if (destroy_self) {
@@ -126,22 +126,22 @@ static inline void *
 pchtml_mraw_mem_alloc(pchtml_mraw_t *mraw, size_t length)
 {
     uint8_t *data;
-    pchtml_mem_t *mem = mraw->mem;
+    pcutils_mem_t *mem = mraw->mem;
 
     if (length == 0) {
         return NULL;
     }
 
     if ((mem->chunk->length + length) > mem->chunk->size) {
-        pchtml_mem_chunk_t *chunk = mem->chunk;
+        pcutils_mem_chunk_t *chunk = mem->chunk;
 
         if ((SIZE_MAX - mem->chunk_length) == 0) {
             return NULL;
         }
 
         if (chunk->length == 0) {
-            pchtml_mem_chunk_destroy(mem, chunk, false);
-            pchtml_mem_chunk_init(mem, chunk, length);
+            pcutils_mem_chunk_destroy(mem, chunk, false);
+            pcutils_mem_chunk_init(mem, chunk, length);
 
             chunk->length = length;
 
@@ -152,7 +152,7 @@ pchtml_mraw_mem_alloc(pchtml_mraw_t *mraw, size_t length)
             return chunk->data;
         }
 
-        size_t diff = pchtml_mem_align_floor(chunk->size - chunk->length);
+        size_t diff = pcutils_mem_align_floor(chunk->size - chunk->length);
 
         /* Save tail to cache */
         if (diff > pchtml_mraw_meta_size()) {
@@ -177,7 +177,7 @@ pchtml_mraw_mem_alloc(pchtml_mraw_t *mraw, size_t length)
             chunk->length = chunk->size;
         }
 
-        chunk->next = pchtml_mem_chunk_make(mem, length);
+        chunk->next = pcutils_mem_chunk_make(mem, length);
         if (chunk->next == NULL) {
             return NULL;
         }
@@ -203,7 +203,7 @@ pchtml_mraw_alloc(pchtml_mraw_t *mraw, size_t size)
 {
     void *data;
 
-    size = pchtml_mem_align(size);
+    size = pcutils_mem_align(size);
 
     if (mraw->cache->tree_length != 0) {
         data = pcutils_bst_remove_close(mraw->cache,
@@ -261,7 +261,7 @@ pchtml_mraw_realloc_tail(pchtml_mraw_t *mraw, void *data, void *begin,
                          size_t size, size_t begin_len, size_t new_size,
                          bool *is_valid)
 {
-    pchtml_mem_chunk_t *chunk = mraw->mem->chunk;
+    pcutils_mem_chunk_t *chunk = mraw->mem->chunk;
 
     if (chunk->size > (begin_len + new_size)) {
         *is_valid = true;
@@ -286,11 +286,11 @@ pchtml_mraw_realloc_tail(pchtml_mraw_t *mraw, void *data, void *begin,
      */
     if (begin_len == pchtml_mraw_meta_size()) {
         void *new_data;
-        pchtml_mem_chunk_t new_chunk;
+        pcutils_mem_chunk_t new_chunk;
 
         *is_valid = true;
 
-        pchtml_mem_chunk_init(mraw->mem, &new_chunk,
+        pcutils_mem_chunk_init(mraw->mem, &new_chunk,
                               new_size + pchtml_mraw_meta_size());
         if(new_chunk.data == NULL) {
             return NULL;
@@ -307,7 +307,7 @@ pchtml_mraw_realloc_tail(pchtml_mraw_t *mraw, void *data, void *begin,
         ASAN_UNPOISON_MEMORY_REGION(chunk->data, chunk->size);
 #endif
 
-        pchtml_mem_chunk_destroy(mraw->mem, chunk, false);
+        pcutils_mem_chunk_destroy(mraw->mem, chunk, false);
 
         chunk->data = new_chunk.data;
         chunk->size = new_chunk.size;
@@ -321,7 +321,7 @@ pchtml_mraw_realloc_tail(pchtml_mraw_t *mraw, void *data, void *begin,
     /*
      * Next, this piece will go into the cache.
      */
-    size = pchtml_mem_align_floor(size + (chunk->size - chunk->length));
+    size = pcutils_mem_align_floor(size + (chunk->size - chunk->length));
     memcpy(begin, &size, sizeof(size_t));
 
     chunk->length = chunk->size;
@@ -334,12 +334,12 @@ pchtml_mraw_realloc(pchtml_mraw_t *mraw, void *data, size_t new_size)
 {
     void *begin;
     size_t size, begin_len;
-    pchtml_mem_chunk_t *chunk = mraw->mem->chunk;
+    pcutils_mem_chunk_t *chunk = mraw->mem->chunk;
 
     begin = ((uint8_t *) data) - pchtml_mraw_meta_size();
     memcpy(&size, begin, sizeof(size_t));
 
-    new_size = pchtml_mem_align(new_size);
+    new_size = pcutils_mem_align(new_size);
 
     /*
      * Look, whether there is an opportunity
@@ -370,7 +370,7 @@ pchtml_mraw_realloc(pchtml_mraw_t *mraw, void *data, size_t new_size)
             return NULL;
         }
 
-        size_t diff = pchtml_mem_align_floor(size - new_size);
+        size_t diff = pcutils_mem_align_floor(size - new_size);
 
         if (diff > pchtml_mraw_meta_size()) {
             memcpy(begin, &new_size, sizeof(size_t));

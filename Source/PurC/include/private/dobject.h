@@ -40,7 +40,7 @@
 #include "private/mem.h"
 
 typedef struct {
-    pchtml_mem_t   *mem;
+    pcutils_mem_t   *mem;
     pcutils_array_t *cache;
 
     size_t         allocated;

@@ -37,14 +37,14 @@
 #include "private/mem.h"
 
 
-pchtml_mem_t *
-pchtml_mem_create(void)
+pcutils_mem_t *
+pcutils_mem_create(void)
 {
-    return pchtml_calloc(1, sizeof(pchtml_mem_t));
+    return pchtml_calloc(1, sizeof(pcutils_mem_t));
 }
 
 unsigned int
-pchtml_mem_init(pchtml_mem_t *mem, size_t min_chunk_size)
+pcutils_mem_init(pcutils_mem_t *mem, size_t min_chunk_size)
 {
     if (mem == NULL) {
         return PURC_ERROR_NULL_OBJECT;
@@ -54,10 +54,10 @@ pchtml_mem_init(pchtml_mem_t *mem, size_t min_chunk_size)
         return PURC_ERROR_INVALID_VALUE;
     }
 
-    mem->chunk_min_size = pchtml_mem_align(min_chunk_size);
+    mem->chunk_min_size = pcutils_mem_align(min_chunk_size);
 
     /* Create first chunk */
-    mem->chunk = pchtml_mem_chunk_make(mem, mem->chunk_min_size);
+    mem->chunk = pcutils_mem_chunk_make(mem, mem->chunk_min_size);
     if (mem->chunk == NULL) {
         return PURC_ERROR_OUT_OF_MEMORY;
     }
@@ -69,10 +69,10 @@ pchtml_mem_init(pchtml_mem_t *mem, size_t min_chunk_size)
 }
 
 void
-pchtml_mem_clean(pchtml_mem_t *mem)
+pcutils_mem_clean(pcutils_mem_t *mem)
 {
-    pchtml_mem_chunk_t *prev;
-    pchtml_mem_chunk_t *chunk = mem->chunk;
+    pcutils_mem_chunk_t *prev;
+    pcutils_mem_chunk_t *chunk = mem->chunk;
 
     while (chunk->prev) {
         prev = chunk->prev;
@@ -90,10 +90,10 @@ pchtml_mem_clean(pchtml_mem_t *mem)
     mem->chunk_length = 1;
 }
 
-pchtml_mem_t *
-pchtml_mem_destroy(pchtml_mem_t *mem, bool destroy_self)
+pcutils_mem_t *
+pcutils_mem_destroy(pcutils_mem_t *mem, bool destroy_self)
 {
-    pchtml_mem_chunk_t *chunk, *prev;
+    pcutils_mem_chunk_t *chunk, *prev;
 
     if (mem == NULL) {
         return NULL;
@@ -105,7 +105,7 @@ pchtml_mem_destroy(pchtml_mem_t *mem, bool destroy_self)
 
         while (chunk) {
             prev = chunk->prev;
-            pchtml_mem_chunk_destroy(mem, chunk, true);
+            pcutils_mem_chunk_destroy(mem, chunk, true);
             chunk = prev;
         }
 
@@ -120,10 +120,10 @@ pchtml_mem_destroy(pchtml_mem_t *mem, bool destroy_self)
 }
 
 uint8_t *
-pchtml_mem_chunk_init(pchtml_mem_t *mem,
-                      pchtml_mem_chunk_t *chunk, size_t length)
+pcutils_mem_chunk_init(pcutils_mem_t *mem,
+                      pcutils_mem_chunk_t *chunk, size_t length)
 {
-    length = pchtml_mem_align(length);
+    length = pcutils_mem_align(length);
 
     if (length > mem->chunk_min_size) {
         if (mem->chunk_min_size > (SIZE_MAX - length)) {
@@ -143,25 +143,25 @@ pchtml_mem_chunk_init(pchtml_mem_t *mem,
     return chunk->data;
 }
 
-pchtml_mem_chunk_t *
-pchtml_mem_chunk_make(pchtml_mem_t *mem, size_t length)
+pcutils_mem_chunk_t *
+pcutils_mem_chunk_make(pcutils_mem_t *mem, size_t length)
 {
-    pchtml_mem_chunk_t *chunk = pchtml_calloc(1, sizeof(pchtml_mem_chunk_t));
+    pcutils_mem_chunk_t *chunk = pchtml_calloc(1, sizeof(pcutils_mem_chunk_t));
 
     if (chunk == NULL) {
         return NULL;
     }
 
-    if (pchtml_mem_chunk_init(mem, chunk, length) == NULL) {
+    if (pcutils_mem_chunk_init(mem, chunk, length) == NULL) {
         return pchtml_free(chunk);
     }
 
     return chunk;
 }
 
-pchtml_mem_chunk_t *
-pchtml_mem_chunk_destroy(pchtml_mem_t *mem,
-                         pchtml_mem_chunk_t *chunk, bool self_destroy)
+pcutils_mem_chunk_t *
+pcutils_mem_chunk_destroy(pcutils_mem_t *mem,
+                         pcutils_mem_chunk_t *chunk, bool self_destroy)
 {
     if (chunk == NULL || mem == NULL) {
         return NULL;
@@ -179,20 +179,20 @@ pchtml_mem_chunk_destroy(pchtml_mem_t *mem,
 }
 
 void *
-pchtml_mem_alloc(pchtml_mem_t *mem, size_t length)
+pcutils_mem_alloc(pcutils_mem_t *mem, size_t length)
 {
     if (length == 0) {
         return NULL;
     }
 
-    length = pchtml_mem_align(length);
+    length = pcutils_mem_align(length);
 
     if ((mem->chunk->length + length) > mem->chunk->size) {
         if ((SIZE_MAX - mem->chunk_length) == 0) {
             return NULL;
         }
 
-        mem->chunk->next = pchtml_mem_chunk_make(mem, length);
+        mem->chunk->next = pcutils_mem_chunk_make(mem, length);
         if (mem->chunk->next == NULL) {
             return NULL;
         }
@@ -209,9 +209,9 @@ pchtml_mem_alloc(pchtml_mem_t *mem, size_t length)
 }
 
 void *
-pchtml_mem_calloc(pchtml_mem_t *mem, size_t length)
+pcutils_mem_calloc(pcutils_mem_t *mem, size_t length)
 {
-    void *data = pchtml_mem_alloc(mem, length);
+    void *data = pcutils_mem_alloc(mem, length);
 
     if (data != NULL) {
         memset(data, 0, length);
