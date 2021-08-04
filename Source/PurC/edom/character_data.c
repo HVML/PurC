@@ -32,8 +32,6 @@
 
 #include "purc.h"
 #include "config.h"
-#include "private/instance.h"
-#include "private/errors.h"
 #include "private/edom.h"
 
 
@@ -80,8 +78,7 @@ pcedom_character_data_replace(pcedom_character_data_t *ch_data,
     if (ch_data->data.data == NULL) {
         pcutils_str_init(&ch_data->data, ch_data->node.owner_document->text, len);
         if (ch_data->data.data == NULL) {
-            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
-            return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
+            return PURC_ERROR_OUT_OF_MEMORY;
         }
     }
     else if (pcutils_str_size(&ch_data->data) < len) {
@@ -90,8 +87,7 @@ pcedom_character_data_replace(pcedom_character_data_t *ch_data,
         data = pcutils_str_realloc(&ch_data->data,
                                   ch_data->node.owner_document->text, (len + 1));
         if (data == NULL) {
-            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
-            return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
+            return PURC_ERROR_OUT_OF_MEMORY;
         }
     }
 
@@ -100,5 +96,5 @@ pcedom_character_data_replace(pcedom_character_data_t *ch_data,
     ch_data->data.data[len] = 0x00;
     ch_data->data.length = len;
 
-    return PCHTML_STATUS_OK;
+    return PURC_ERROR_OK;
 }

@@ -37,6 +37,8 @@
 #ifndef PCHTML_TAG_RES_H
 #define PCHTML_TAG_RES_H
 
+#include "private/edom.h"
+
 %%CHECK_TAG_VERSION%%
 
 %%TAG_DATA%%

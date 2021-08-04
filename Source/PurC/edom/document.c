@@ -32,8 +32,6 @@
 
 #include "purc.h"
 #include "config.h"
-#include "private/instance.h"
-#include "private/errors.h"
 #include "private/edom.h"
 
 pcedom_document_t *
@@ -80,8 +78,7 @@ pcedom_document_init(pcedom_document_t *document, pcedom_document_t *owner,
     pcedom_node_t *node;
 
     if (document == NULL) {
-        pcinst_set_error (PCEDOM_OBJECT_IS_NULL);
-        return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
+        return PURC_ERROR_NULL_OBJECT;
     }
 
     document->type = type;
@@ -111,14 +108,14 @@ pcedom_document_init(pcedom_document_t *document, pcedom_document_t *owner,
 
         node->owner_document = owner;
 
-        return PCHTML_STATUS_OK;
+        return PURC_ERROR_OK;
     }
 
     /* For nodes */
     document->mraw = pcutils_mraw_create();
     status = pcutils_mraw_init(document->mraw, (4096 * 8));
 
-    if (status != PCHTML_STATUS_OK) {
+    if (status != PURC_ERROR_OK) {
         goto failed;
     }
 
@@ -126,39 +123,39 @@ pcedom_document_init(pcedom_document_t *document, pcedom_document_t *owner,
     document->text = pcutils_mraw_create();
     status = pcutils_mraw_init(document->text, (4096 * 12));
 
-    if (status != PCHTML_STATUS_OK) {
+    if (status != PURC_ERROR_OK) {
         goto failed;
     }
 
     document->tags = pcutils_hash_create();
     status = pcutils_hash_init(document->tags, 128, sizeof(pchtml_tag_data_t));
-    if (status != PCHTML_STATUS_OK) {
+    if (status != PURC_ERROR_OK) {
         goto failed;
     }
 
     document->ns = pcutils_hash_create();
     status = pcutils_hash_init(document->ns, 128, sizeof(pchtml_ns_data_t));
-    if (status != PCHTML_STATUS_OK) {
+    if (status != PURC_ERROR_OK) {
         goto failed;
     }
 
     document->prefix = pcutils_hash_create();
     status = pcutils_hash_init(document->prefix, 128,
                               sizeof(pcedom_attr_data_t));
-    if (status != PCHTML_STATUS_OK) {
+    if (status != PURC_ERROR_OK) {
         goto failed;
     }
 
     document->attrs = pcutils_hash_create();
     status = pcutils_hash_init(document->attrs, 128,
                               sizeof(pcedom_attr_data_t));
-    if (status != PCHTML_STATUS_OK) {
+    if (status != PURC_ERROR_OK) {
         goto failed;
     }
 
     node->owner_document = document;
 
-    return PCHTML_STATUS_OK;
+    return PURC_ERROR_OK;
 
 failed:
 
@@ -169,8 +166,7 @@ failed:
     pcutils_hash_destroy(document->attrs, true);
     pcutils_hash_destroy(document->prefix, true);
 
-    pcinst_set_error (PCEDOM_ERROR);
-    return PCHTML_STATUS_ERROR;
+    return status;
 }
 
 unsigned int
@@ -190,7 +186,7 @@ pcedom_document_clean(pcedom_document_t *document)
     document->element = NULL;
     document->doctype = NULL;
 
-    return PCHTML_STATUS_OK;
+    return PURC_ERROR_OK;
 }
 
 pcedom_document_t *

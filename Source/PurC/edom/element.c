@@ -33,8 +33,6 @@
 
 #include "purc.h"
 #include "config.h"
-#include "private/instance.h"
-#include "private/errors.h"
 #include "private/edom.h"
 #include "private/utils.h"
 
@@ -166,8 +164,7 @@ pcedom_element_qualified_name_set(pcedom_element_t *element,
     if (prefix != NULL && prefix_len != 0) {
         key = pchtml_malloc(prefix_len + lname_len + 2);
         if (key == NULL) {
-            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
-            return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
+            return PURC_ERROR_OUT_OF_MEMORY;
         }
 
         memcpy(key, prefix, prefix_len);
@@ -182,13 +179,12 @@ pcedom_element_qualified_name_set(pcedom_element_t *element,
     tag_data = pchtml_tag_append(element->node.owner_document->tags,
                               element->node.local_name, key, lname_len);
     if (tag_data == NULL) {
-        pcinst_set_error (PCEDOM_ERROR);
-        return PCHTML_STATUS_ERROR;
+        return PURC_ERROR_UNKNOWN;
     }
 
     element->qualified_name = (pchtml_tag_id_t) tag_data;
 
-    return PCHTML_STATUS_OK;
+    return PURC_ERROR_OK;
 }
 
 pcedom_element_t *
@@ -247,14 +243,14 @@ pcedom_element_create(pcedom_document_t *document,
 
         status = pcedom_element_qualified_name_set(element, prefix, prefix_len,
                                                     local_name, lname_len);
-        if (status != PCHTML_STATUS_OK) {
+        if (status != PURC_ERROR_OK) {
             return pcedom_document_destroy_interface(element);
         }
     }
 
     if (is_len != 0) {
         status = pcedom_element_is_set(element, is, is_len);
-        if (status != PCHTML_STATUS_OK) {
+        if (status != PURC_ERROR_OK) {
             return pcedom_document_destroy_interface(element);
         }
     }
@@ -312,14 +308,14 @@ pcedom_element_set_attribute(pcedom_element_t *element,
         status = pcedom_attr_set_name(attr, qualified_name, qn_len, false);
     }
 
-    if (status != PCHTML_STATUS_OK) {
+    if (status != PURC_ERROR_OK) {
         return pcedom_attr_interface_destroy(attr);
     }
 
 update:
 
     status = pcedom_attr_set_value(attr, value, value_len);
-    if (status != PCHTML_STATUS_OK) {
+    if (status != PURC_ERROR_OK) {
         return pcedom_attr_interface_destroy(attr);
     }
 
@@ -356,17 +352,17 @@ pcedom_element_remove_attribute(pcedom_element_t *element,
 
     attr = pcedom_element_attr_by_name(element, qualified_name, qn_len);
     if (attr == NULL) {
-        return PCHTML_STATUS_OK;
+        return PURC_ERROR_OK;
     }
 
     status = pcedom_element_attr_remove(element, attr);
-    if (status != PCHTML_STATUS_OK) {
+    if (status != PURC_ERROR_OK) {
         return status;
     }
 
     pcedom_attr_interface_destroy(attr);
 
-    return PCHTML_STATUS_OK;
+    return PURC_ERROR_OK;
 }
 
 bool
@@ -400,7 +396,7 @@ pcedom_element_attr_append(pcedom_element_t *element, pcedom_attr_t *attr)
         element->first_attr = attr;
         element->last_attr = attr;
 
-        return PCHTML_STATUS_OK;
+        return PURC_ERROR_OK;
     }
 
     attr->prev = element->last_attr;
@@ -408,7 +404,7 @@ pcedom_element_attr_append(pcedom_element_t *element, pcedom_attr_t *attr)
 
     element->last_attr = attr;
 
-    return PCHTML_STATUS_OK;
+    return PURC_ERROR_OK;
 }
 
 unsigned int
@@ -438,7 +434,7 @@ pcedom_element_attr_remove(pcedom_element_t *element, pcedom_attr_t *attr)
     attr->next = NULL;
     attr->prev = NULL;
 
-    return PCHTML_STATUS_OK;
+    return PURC_ERROR_OK;
 }
 
 pcedom_attr_t *
@@ -591,8 +587,7 @@ pcedom_element_is_set(pcedom_element_t *element,
         element->is_value = pcutils_mraw_calloc(element->node.owner_document->mraw,
                                                sizeof(pcutils_str_t));
         if (element->is_value == NULL) {
-            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
-            return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
+            return PURC_ERROR_OUT_OF_MEMORY;
         }
     }
 
@@ -601,8 +596,7 @@ pcedom_element_is_set(pcedom_element_t *element,
                         element->node.owner_document->text, is_len);
 
         if (element->is_value->data == NULL) {
-            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
-            return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
+            return PURC_ERROR_OUT_OF_MEMORY;
         }
     }
 
@@ -614,11 +608,10 @@ pcedom_element_is_set(pcedom_element_t *element,
                                          element->node.owner_document->text,
                                          is, is_len);
     if (data == NULL) {
-        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
-        return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
+        return PURC_ERROR_OUT_OF_MEMORY;
     }
 
-    return PCHTML_STATUS_OK;
+    return PURC_ERROR_OK;
 }
 
 static inline unsigned int
@@ -639,8 +632,7 @@ pcedom_element_prepare_by_attr(pcedom_document_t *document,
         length = prefix_end - qname;
 
         if (length == 0) {
-            pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-            return PCHTML_STATUS_ERROR_WRONG_ARGS;
+            return PURC_ERROR_INVALID_VALUE;
         }
 
         prefix_data = pchtml_ns_prefix_data_by_name(document->prefix, qname, qlen);
@@ -653,8 +645,7 @@ pcedom_element_prepare_by_attr(pcedom_document_t *document,
         length += 1;
 
         if (length >= qlen) {
-            pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-            return PCHTML_STATUS_ERROR_WRONG_ARGS;
+            return PURC_ERROR_INVALID_VALUE;
         }
 
         qname += length;
@@ -668,7 +659,7 @@ pcedom_element_prepare_by_attr(pcedom_document_t *document,
 
     cb_ctx->name_id = attr_data->attr_id;
 
-    return PCHTML_STATUS_OK;
+    return PURC_ERROR_OK;
 }
 
 static inline unsigned int
@@ -689,8 +680,7 @@ pcedom_element_prepare_by(pcedom_document_t *document,
         length = prefix_end - qname;
 
         if (length == 0) {
-            pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-            return PCHTML_STATUS_ERROR_WRONG_ARGS;
+            return PURC_ERROR_INVALID_VALUE;
         }
 
         prefix_data = pchtml_ns_prefix_data_by_name(document->prefix, qname, qlen);
@@ -703,8 +693,7 @@ pcedom_element_prepare_by(pcedom_document_t *document,
         length += 1;
 
         if (length >= qlen) {
-            pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-            return PCHTML_STATUS_ERROR_WRONG_ARGS;
+            return PURC_ERROR_INVALID_VALUE;
         }
 
         qname += length;
@@ -718,7 +707,7 @@ pcedom_element_prepare_by(pcedom_document_t *document,
 
     cb_ctx->name_id = tag_data->tag_id;
 
-    return PCHTML_STATUS_OK;
+    return PURC_ERROR_OK;
 }
 
 unsigned int
@@ -741,9 +730,9 @@ pcedom_elements_by_tag_name(pcedom_element_t *root,
 
     status = pcedom_element_prepare_by(root->node.owner_document,
                                         &cb_ctx, qualified_name, len);
-    if (status != PCHTML_STATUS_OK) {
+    if (status != PURC_ERROR_OK) {
         if (status == PCHTML_STATUS_STOP) {
-            return PCHTML_STATUS_OK;
+            return PURC_ERROR_OK;
         }
 
         return status;
@@ -765,7 +754,7 @@ pcedom_elements_by_tag_name_cb_all(pcedom_node_t *node, void *ctx)
     pcedom_element_cb_ctx_t *cb_ctx = ctx;
 
     cb_ctx->status = pcedom_collection_append(cb_ctx->col, node);
-    if (cb_ctx->status != PCHTML_STATUS_OK) {
+    if (cb_ctx->status != PURC_ERROR_OK) {
         return PCHTML_ACTION_STOP;
     }
 
@@ -785,7 +774,7 @@ pcedom_elements_by_tag_name_cb(pcedom_node_t *node, void *ctx)
         && node->prefix == cb_ctx->prefix_id)
     {
         cb_ctx->status = pcedom_collection_append(cb_ctx->col, node);
-        if (cb_ctx->status != PCHTML_STATUS_OK) {
+        if (cb_ctx->status != PURC_ERROR_OK) {
             return PCHTML_ACTION_STOP;
         }
     }
@@ -799,7 +788,7 @@ pcedom_elements_by_class_name(pcedom_element_t *root,
                                const unsigned char *class_name, size_t len)
 {
     if (class_name == NULL || len == 0) {
-        return PCHTML_STATUS_OK;
+        return PURC_ERROR_OK;
     }
 
     pcedom_element_cb_ctx_t cb_ctx = {0};
@@ -855,7 +844,7 @@ pcedom_elements_by_class_name_cb(pcedom_node_t *node, void *ctx)
                 if (is_it) {
                     cb_ctx->status = pcedom_collection_append(cb_ctx->col,
                                                                node);
-                    if (cb_ctx->status != PCHTML_STATUS_OK) {
+                    if (cb_ctx->status != PURC_ERROR_OK) {
                         return PCHTML_ACTION_STOP;
                     }
 
@@ -883,7 +872,7 @@ pcedom_elements_by_class_name_cb(pcedom_node_t *node, void *ctx)
 
         if (is_it) {
             cb_ctx->status = pcedom_collection_append(cb_ctx->col, node);
-            if (cb_ctx->status != PCHTML_STATUS_OK) {
+            if (cb_ctx->status != PURC_ERROR_OK) {
                 return PCHTML_ACTION_STOP;
             }
         }
@@ -908,9 +897,9 @@ pcedom_elements_by_attr(pcedom_element_t *root,
 
     status = pcedom_element_prepare_by_attr(root->node.owner_document,
                                              &cb_ctx, qualified_name, qname_len);
-    if (status != PCHTML_STATUS_OK) {
+    if (status != PURC_ERROR_OK) {
         if (status == PCHTML_STATUS_STOP) {
-            return PCHTML_STATUS_OK;
+            return PURC_ERROR_OK;
         }
 
         return status;
@@ -945,9 +934,9 @@ pcedom_elements_by_attr_begin(pcedom_element_t *root,
 
     status = pcedom_element_prepare_by_attr(root->node.owner_document,
                                              &cb_ctx, qualified_name, qname_len);
-    if (status != PCHTML_STATUS_OK) {
+    if (status != PURC_ERROR_OK) {
         if (status == PCHTML_STATUS_STOP) {
-            return PCHTML_STATUS_OK;
+            return PURC_ERROR_OK;
         }
 
         return status;
@@ -982,9 +971,9 @@ pcedom_elements_by_attr_end(pcedom_element_t *root,
 
     status = pcedom_element_prepare_by_attr(root->node.owner_document,
                                              &cb_ctx, qualified_name, qname_len);
-    if (status != PCHTML_STATUS_OK) {
+    if (status != PURC_ERROR_OK) {
         if (status == PCHTML_STATUS_STOP) {
-            return PCHTML_STATUS_OK;
+            return PURC_ERROR_OK;
         }
 
         return status;
@@ -1019,9 +1008,9 @@ pcedom_elements_by_attr_contain(pcedom_element_t *root,
 
     status = pcedom_element_prepare_by_attr(root->node.owner_document,
                                              &cb_ctx, qualified_name, qname_len);
-    if (status != PCHTML_STATUS_OK) {
+    if (status != PURC_ERROR_OK) {
         if (status == PCHTML_STATUS_STOP) {
-            return PCHTML_STATUS_OK;
+            return PURC_ERROR_OK;
         }
 
         return status;
@@ -1061,7 +1050,7 @@ pcedom_elements_by_attr_cb(pcedom_node_t *node, void *ctx)
     {
         cb_ctx->status = pcedom_collection_append(cb_ctx->col, node);
 
-        if (cb_ctx->status != PCHTML_STATUS_OK) {
+        if (cb_ctx->status != PURC_ERROR_OK) {
             return PCHTML_ACTION_STOP;
         }
     }

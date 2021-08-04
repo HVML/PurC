@@ -37,8 +37,8 @@
 
 #include "private/str.h"
 #include "private/hash.h"
-#include "html/tag.h"
-#include "html/ns.h"
+
+#include "purc-errors.h"
 
 #include "ns_const.h"
 #include "html_tag_const.h"
@@ -49,6 +49,155 @@
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
+
+typedef enum {
+    PCHTML_STATUS_OK                       = PURC_ERROR_OK,
+    PCHTML_STATUS_ERROR                    = PURC_ERROR_UNKNOWN,
+    PCHTML_STATUS_ERROR_MEMORY_ALLOCATION  = PURC_ERROR_OUT_OF_MEMORY,
+    PCHTML_STATUS_ERROR_OBJECT_IS_NULL     = PURC_ERROR_NULL_OBJECT,
+    PCHTML_STATUS_ERROR_SMALL_BUFFER       = PURC_ERROR_TOO_SMALL_BUFF,
+    PCHTML_STATUS_ERROR_TOO_SMALL_SIZE     = PURC_ERROR_TOO_SMALL_SIZE,
+    PCHTML_STATUS_ERROR_INCOMPLETE_OBJECT  = PURC_ERROR_INCOMPLETE_OBJECT,
+    PCHTML_STATUS_ERROR_NO_FREE_SLOT       = PURC_ERROR_NO_FREE_SLOT,
+    PCHTML_STATUS_ERROR_NOT_EXISTS         = PURC_ERROR_NOT_EXISTS,
+    PCHTML_STATUS_ERROR_WRONG_ARGS         = PURC_ERROR_WRONG_ARGS,
+    PCHTML_STATUS_ERROR_WRONG_STAGE        = PURC_ERROR_WRONG_STAGE,
+    PCHTML_STATUS_ERROR_UNEXPECTED_RESULT  = PURC_ERROR_UNEXPECTED_RESULT,
+    PCHTML_STATUS_ERROR_UNEXPECTED_DATA    = PURC_ERROR_UNEXPECTED_DATA,
+    PCHTML_STATUS_ERROR_OVERFLOW           = PURC_ERROR_OVERFLOW,
+    PCHTML_STATUS_CONTINUE                 = PURC_ERROR_FIRST_HTML,
+    PCHTML_STATUS_SMALL_BUFFER,
+    PCHTML_STATUS_ABORTED,
+    PCHTML_STATUS_STOPPED,
+    PCHTML_STATUS_NEXT,
+    PCHTML_STATUS_STOP,
+} pchtml_status_t;
+
+// ============================= for ns ================================
+typedef struct {
+    pcutils_hash_entry_t  entry;
+
+    pchtml_ns_id_t          ns_id;
+    size_t               ref_count;
+    bool                 read_only;
+}
+pchtml_ns_data_t;
+
+typedef struct {
+    pcutils_hash_entry_t  entry;
+
+    pchtml_ns_prefix_id_t   prefix_id;
+    size_t               ref_count;
+    bool                 read_only;
+}
+pchtml_ns_prefix_data_t;
+
+
+/* Link */
+const unsigned char *
+pchtml_ns_by_id(pcutils_hash_t *hash, pchtml_ns_id_t ns_id, 
+                size_t *length) WTF_INTERNAL;
+
+const pchtml_ns_data_t *
+pchtml_ns_data_by_id(pcutils_hash_t *hash, pchtml_ns_id_t ns_id) WTF_INTERNAL;
+
+const pchtml_ns_data_t *
+pchtml_ns_data_by_link(pcutils_hash_t *hash, const unsigned char *name, 
+                size_t length) WTF_INTERNAL;
+
+/* Prefix */
+const pchtml_ns_prefix_data_t *
+pchtml_ns_prefix_append(pcutils_hash_t *hash,
+                const unsigned char *prefix, size_t length) WTF_INTERNAL;
+
+const pchtml_ns_prefix_data_t *
+pchtml_ns_prefix_data_by_id(pcutils_hash_t *hash, 
+                pchtml_ns_prefix_id_t prefix_id) WTF_INTERNAL;
+
+const pchtml_ns_prefix_data_t *
+pchtml_ns_prefix_data_by_name(pcutils_hash_t *hash,
+                const unsigned char *name, size_t length) WTF_INTERNAL;
+
+
+// ============================= for tag ================================
+typedef struct {
+    pcutils_hash_entry_t entry;
+    pchtml_tag_id_t        tag_id;
+    size_t              ref_count;
+    bool                read_only;
+}
+pchtml_tag_data_t;
+
+
+const pchtml_tag_data_t *
+pchtml_tag_data_by_id(pcutils_hash_t *hash, pchtml_tag_id_t tag_id) WTF_INTERNAL;
+
+const pchtml_tag_data_t *
+pchtml_tag_data_by_name(pcutils_hash_t *hash, const unsigned char *name, 
+                size_t len) WTF_INTERNAL;
+
+const pchtml_tag_data_t *
+pchtml_tag_data_by_name_upper(pcutils_hash_t *hash,
+                const unsigned char *name, size_t len) WTF_INTERNAL;
+
+/*
+ * Inline functions
+ */
+static inline const unsigned char *
+pchtml_tag_name_by_id(pcutils_hash_t *hash, pchtml_tag_id_t tag_id, size_t *len)
+{
+    const pchtml_tag_data_t *data = pchtml_tag_data_by_id(hash, tag_id);
+    if (data == NULL) {
+        if (len != NULL) {
+            *len = 0;
+        }
+
+        return NULL;
+    }
+
+    if (len != NULL) {
+        *len = data->entry.length;
+    }
+
+    return pcutils_hash_entry_str(&data->entry);
+}
+
+static inline const unsigned char *
+pchtml_tag_name_upper_by_id(pcutils_hash_t *hash, pchtml_tag_id_t tag_id, size_t *len)
+{
+    const pchtml_tag_data_t *data = pchtml_tag_data_by_id(hash, tag_id);
+    if (data == NULL) {
+        if (len != NULL) {
+            *len = 0;
+        }
+
+        return NULL;
+    }
+
+    if (len != NULL) {
+        *len = data->entry.length;
+    }
+
+    return pcutils_hash_entry_str(&data->entry);
+}
+
+static inline pchtml_tag_id_t
+pchtml_tag_id_by_name(pcutils_hash_t *hash, const unsigned char *name, size_t len)
+{
+    const pchtml_tag_data_t *data = pchtml_tag_data_by_name(hash, name, len);
+    if (data == NULL) {
+        return PCHTML_TAG__UNDEF;
+    }
+
+    return data->tag_id;
+}
+
+static inline pcutils_mraw_t *
+pchtml_tag_mraw(pcutils_hash_t *hash)
+{
+    return pcutils_hash_mraw(hash);
+}
+
 
 // initialize edom module (once)
 void pcedom_init_once(void) WTF_INTERNAL;
@@ -185,6 +334,12 @@ struct pcedom_node {
     PCEDOM_NODE_USER_VARIABLES
 #endif /* PCEDOM_NODE_USER_VARIABLES */
 };
+
+typedef enum {
+    PCHTML_ACTION_OK    = 0x00,
+    PCHTML_ACTION_STOP  = 0x01,
+    PCHTML_ACTION_NEXT  = 0x02
+} pchtml_action_t;
 
 typedef pchtml_action_t
 (*pcedom_node_simple_walker_f)(pcedom_node_t *node, void *ctx);
@@ -722,7 +877,7 @@ pcedom_collection_make(pcedom_document_t *document, size_t start_list_size)
     col = pcedom_collection_create(document);
     status = pcedom_collection_init(col, start_list_size);
 
-    if(status != PCHTML_STATUS_OK) {
+    if(status != PURC_ERROR_OK) {
         return pcedom_collection_destroy(col, true);
     }
 

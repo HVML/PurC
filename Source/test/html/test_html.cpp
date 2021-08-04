@@ -1,6 +1,7 @@
 #include "purc.h"
 #include "private/html.h"
 
+#include <limits.h>
 #include <stdio.h>
 #include <errno.h>
 #include <gtest/gtest.h>

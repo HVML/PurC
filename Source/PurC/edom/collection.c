@@ -33,8 +33,6 @@
 
 #include "purc.h"
 #include "config.h"
-#include "private/instance.h"
-#include "private/errors.h"
 #include "private/edom.h"
 
 pcedom_collection_t *
@@ -56,13 +54,11 @@ unsigned int
 pcedom_collection_init(pcedom_collection_t *col, size_t start_list_size)
 {
     if (col == NULL) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-        return PCHTML_STATUS_ERROR_WRONG_ARGS;
+        return PURC_ERROR_INVALID_VALUE;
     }
 
     if (col->document == NULL) {
-        pcinst_set_error (PCEDOM_INCOMPLETE_OBJECT);
-        return PCHTML_STATUS_ERROR_INCOMPLETE_OBJECT;
+        return PURC_ERROR_INCOMPLETE_OBJECT;
     }
 
     return pcutils_array_init(&col->array, start_list_size);
