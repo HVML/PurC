@@ -34,13 +34,13 @@
 #define PCHTML_HTML_TOKENIZER_H
 
 #include "config.h"
-#include "html/in.h"
-#include "html/sbst.h"
+
 #include "private/array_obj.h"
 
+#include "html/in.h"
+#include "html/sbst.h"
 #include "html/base.h"
 #include "html/token.h"
-
 #include "html/tag.h"
 #include "html/ns.h"
 

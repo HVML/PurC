@@ -33,10 +33,10 @@
 #define PCHTML_HTML_TOKEN_H
 
 #include "config.h"
+
 #include "html/dobject.h"
 #include "html/in.h"
 #include "html/str.h"
-
 #include "html/base.h"
 #include "html/token_attr.h"
 #include "html/tag.h"

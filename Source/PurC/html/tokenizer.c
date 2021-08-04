@@ -43,7 +43,7 @@
 
 #define PCHTML_HTML_TAG_RES_DATA
 #define PCHTML_HTML_TAG_RES_SHS_DATA
-#include "html_tag_res.h"
+#include "html_tag_res_ext.h"
 
 
 #define PCHTML_HTML_TKZ_TEMP_SIZE (4096 * 4)

@@ -34,7 +34,7 @@
 #define PCHTML_HTML_TREE_ERROR_H
 
 #include "config.h"
-#include "html/core_base.h"
+#include "html/base.h"
 #include "private/array_obj.h"
 
 #include "html/token.h"

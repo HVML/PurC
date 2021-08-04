@@ -445,7 +445,7 @@ pchtml_html_tree_insert_foreign_element(pchtml_html_tree_t *tree,
 
     status = pchtml_html_tree_open_elements_push(tree,
                                               pcedom_interface_node(element));
-    if (status != PCHTML_HTML_STATUS_OK) {
+    if (status != PCHTML_STATUS_OK) {
         return pchtml_html_interface_destroy(element);
     }
 
@@ -475,7 +475,7 @@ pchtml_html_tree_create_element_for_token(pchtml_html_tree_t *tree,
                                                        token->base_element, ns);
     }
 
-    if (status != PCHTML_HTML_STATUS_OK) {
+    if (status != PCHTML_STATUS_OK) {
         return pchtml_html_interface_destroy(element);
     }
 
@@ -512,7 +512,7 @@ pchtml_html_tree_append_attributes(pchtml_html_tree_t *tree,
         if (token_attr->value_begin != NULL) {
             status = pcedom_attr_set_value_wo_copy(attr, token_attr->value,
                                                     token_attr->value_size);
-            if (status != PCHTML_HTML_STATUS_OK) {
+            if (status != PCHTML_STATUS_OK) {
                 return status;
             }
         }
@@ -537,7 +537,7 @@ pchtml_html_tree_append_attributes(pchtml_html_tree_t *tree,
         pchtml_mraw_free(mraw, local_name.data);
     }
 
-    return PCHTML_HTML_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
 unsigned int
@@ -560,7 +560,7 @@ pchtml_html_tree_append_attributes_from_element(pchtml_html_tree_t *tree,
         }
 
         status = pcedom_attr_clone_name_value(attr, new_attr);
-        if (status != PCHTML_HTML_STATUS_OK) {
+        if (status != PCHTML_STATUS_OK) {
             return status;
         }
 
@@ -579,7 +579,7 @@ pchtml_html_tree_append_attributes_from_element(pchtml_html_tree_t *tree,
         attr = attr->next;
     }
 
-    return PCHTML_HTML_STATUS_OK;
+    return PCHTML_STATUS_OK;
 }
 
 unsigned int

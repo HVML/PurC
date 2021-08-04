@@ -33,7 +33,8 @@
 #define PCHTML_STR_H
 
 #include "config.h"
-#include "html/core_base.h"
+
+#include "html/base.h"
 #include "html/mraw.h"
 
 #ifdef __cplusplus

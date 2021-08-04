@@ -35,7 +35,8 @@
 #include <string.h>
 
 #include "config.h"
-#include "html/core_base.h"
+
+#include "html/base.h"
 #include "html/dobject.h"
 
 #ifdef __cplusplus

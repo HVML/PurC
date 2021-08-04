@@ -34,12 +34,12 @@
 #define PCHTML_HTML_TOKEN_ATTR_H
 
 #include "config.h"
-#include "html/in.h"
-#include "html/str.h"
-#include "html/dobject.h"
 
 #include "private/edom.h"
 
+#include "html/in.h"
+#include "html/str.h"
+#include "html/dobject.h"
 #include "html/base.h"
 
 

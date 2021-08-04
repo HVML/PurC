@@ -565,12 +565,12 @@ if __name__ == "__main__":
         "pchtml_ns_res_shs_data", "pchtml_ns_res_shs_link_data",
         "ns_res.h.in", "{}/ns_res.h".format(sys.argv[1]))
     tags.enum_create_and_save(
-        "tag_const.h.in", "{}/tag_const.h".format(sys.argv[1]))
+        "html_tag_const.h.in", "{}/html_tag_const.h".format(sys.argv[1]))
     tags.shs_create_and_save_default(
         "pchtml_tag_res_shs_data_default",
-        "tag_res.h.in", "{}/tag_res.h".format(sys.argv[1]))
+        "html_tag_res.h.in", "{}/html_tag_res.h".format(sys.argv[1]))
     tags.shs_create_and_save_html(
-        "html_tag_res.h.in", "{}/html_tag_res.h".format(sys.argv[1]),
+        "html_tag_res_ext.h.in", "{}/html_tag_res_ext.h".format(sys.argv[1]),
         "html_interface_res.h.in", "{}/html_interface_res.h".format(sys.argv[1]))
     # tags.ns_test_create_and_save("tmp/test/ns_res.c", "../../../test/lexbor/ns/res.c")
     # tags.tag_test_create_and_save("tmp/test/tag_res.c", "../../../test/lexbor/tag/res.c")

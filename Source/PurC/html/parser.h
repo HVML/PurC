@@ -34,6 +34,7 @@
 #define PCHTML_HTML_PARSER_H
 
 #include "config.h"
+
 #include "html/base.h"
 #include "html/tree.h"
 #include "html/interfaces/document.h"

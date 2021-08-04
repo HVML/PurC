@@ -1,6 +1,5 @@
 /**
- * @file ns_res.h.in
- * @author 
+ * @file ns_res.h
  * @date 2021/07/02
  * @brief The hearder file for resource of ns.
  *
@@ -35,15 +34,10 @@
  * Do not change this file!
  */
 
-
 #ifndef PCHTML_NS_RES_H
 #define PCHTML_NS_RES_H
 
-#endif /* PCHTML_NS_RES_H */
-
-
 %%CHECK_NS_VERSION%%
-
 
 %%NS_DATA%%
 
@@ -52,3 +46,6 @@
 %%SHS_DATA%%
 
 %%SHS_DATA_LINK%%
+
+#endif /* PCHTML_NS_RES_H */
+

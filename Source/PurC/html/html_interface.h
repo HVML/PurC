@@ -33,9 +33,11 @@
 #define PCHTML_HTML_INTERFACES_H
 
 #include "config.h"
+
 #include "html/base.h"
-#include "tag_const.h"
+
 #include "ns_const.h"
+#include "html_tag_const.h"
 #include "private/html.h"
 #include "private/edom.h"
 

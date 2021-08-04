@@ -219,7 +219,7 @@ pchtml_html_tree_insertion_mode_in_body_html(pchtml_html_tree_t *tree,
 
     tree->status = pchtml_html_tree_append_attributes(tree, html, token,
                                                    html->node.ns);
-    if (tree->status != PCHTML_HTML_STATUS_OK) {
+    if (tree->status != PCHTML_STATUS_OK) {
         return pchtml_html_tree_process_abort(tree);
     }
 
@@ -265,7 +265,7 @@ pchtml_html_tree_insertion_mode_in_body_body(pchtml_html_tree_t *tree,
     body = pcedom_interface_element(node);
 
     tree->status = pchtml_html_tree_append_attributes(tree, body, token, node->ns);
-    if (tree->status != PCHTML_HTML_STATUS_OK) {
+    if (tree->status != PCHTML_STATUS_OK) {
         return pchtml_html_tree_process_abort(tree);
     }
 
@@ -324,7 +324,7 @@ pchtml_html_tree_insertion_mode_in_body_eof(pchtml_html_tree_t *tree,
     }
 
     tree->status = pchtml_html_tree_stop_parsing(tree);
-    if (tree->status != PCHTML_HTML_STATUS_OK) {
+    if (tree->status != PCHTML_STATUS_OK) {
         return pchtml_html_tree_process_abort(tree);
     }
 

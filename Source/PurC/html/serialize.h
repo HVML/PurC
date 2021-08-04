@@ -34,10 +34,10 @@
 #define PCHTML_HTML_SERIALIZE_H
 
 #include "config.h"
-#include "html/str.h"
 #include "private/html.h"
 #include "private/edom.h"
 
+#include "html/str.h"
 #include "html/base.h"
 
 

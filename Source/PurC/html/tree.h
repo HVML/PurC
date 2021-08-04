@@ -34,6 +34,7 @@
 #define PCHTML_HTML_TREE_H
 
 #include "config.h"
+
 #include "private/edom.h"
 
 #include "html/base.h"

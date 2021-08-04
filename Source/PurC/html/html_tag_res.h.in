@@ -1,13 +1,12 @@
 /**
- * @file html_tag_res.h.in
- * @author 
+ * @file html_tag_res.h
  * @date 2021/07/02
- * @brief The hearder file for resource of html tag.
+ * @brief The hearder file for resource of tag.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -35,18 +34,16 @@
  * Do not change this file!
  */
 
-
-#ifndef PCHTML_HTML_TAG_RES_H
-#define PCHTML_HTML_TAG_RES_H
-
-#include "html/tag.h"
-
-#endif /* PCHTML_HTML_TAG_RES_H */
+#ifndef PCHTML_TAG_RES_H
+#define PCHTML_TAG_RES_H
 
 %%CHECK_TAG_VERSION%%
 
-%%CHECK_NS_VERSION%%
-
 %%TAG_DATA%%
 
-%%FIXNAME_SVG_DATA%%
+%%TAG_DATA_UPPER%%
+
+%%SHS_DATA%%
+
+#endif /* PCHTML_TAG_RES_H */
+

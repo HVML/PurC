@@ -82,20 +82,20 @@ PURC_INCLUDE_CONFIG_FILES_IF_EXISTS()
 # Generate constants for HTML ns/tags/interfaces
 add_custom_command(
     OUTPUT "${PurC_DERIVED_SOURCES_DIR}/html_foo.c"
-        ${PurC_DERIVED_SOURCES_DIR}/html_interface_res.h
-        ${PurC_DERIVED_SOURCES_DIR}/html_tag_res.h
         ${PurC_DERIVED_SOURCES_DIR}/ns_const.h
         ${PurC_DERIVED_SOURCES_DIR}/ns_res.h
-        ${PurC_DERIVED_SOURCES_DIR}/tag_const.h
-        ${PurC_DERIVED_SOURCES_DIR}/tag_res.h
+        ${PurC_DERIVED_SOURCES_DIR}/html_tag_const.h
+        ${PurC_DERIVED_SOURCES_DIR}/html_tag_res.h
+        ${PurC_DERIVED_SOURCES_DIR}/html_interface_res.h
+        ${PurC_DERIVED_SOURCES_DIR}/html_tag_res_ext.h
     MAIN_DEPENDENCY ${PURC_DIR}/html/tags.py
     DEPENDS ${PURC_DIR}/html/interfaces.py
-            ${PURC_DIR}/html/html_interface_res.h.in
-            ${PURC_DIR}/html/html_tag_res.h.in
             ${PURC_DIR}/html/ns_const.h.in
             ${PURC_DIR}/html/ns_res.h.in
-            ${PURC_DIR}/html/tag_const.h.in
-            ${PURC_DIR}/html/tag_res.h.in
+            ${PURC_DIR}/html/html_interface_res.h.in
+            ${PURC_DIR}/html/html_tag_res_ext.h.in
+            ${PURC_DIR}/html/html_tag_const.h.in
+            ${PURC_DIR}/html/html_tag_res.h.in
     COMMAND ${Python3_EXECUTABLE} ${PURC_DIR}/html/tags.py "${PurC_DERIVED_SOURCES_DIR}" --without-print
     COMMAND touch "${PurC_DERIVED_SOURCES_DIR}/html_foo.c"
     COMMENT "Generating files for HTML tags and interfaces by using ${Python3_EXECUTABLE}"

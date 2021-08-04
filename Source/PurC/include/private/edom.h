@@ -39,8 +39,8 @@
 #include "html/tag.h"
 #include "html/ns.h"
 
-#include "tag_const.h"
 #include "ns_const.h"
+#include "html_tag_const.h"
 #include "html_attr_const.h"
 
 #include <assert.h>

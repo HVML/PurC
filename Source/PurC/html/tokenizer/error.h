@@ -33,9 +33,9 @@
 #define PCHTML_HTML_TOKENIZER_ERROR_H
 
 #include "config.h"
-#include "html/core_base.h"
 #include "private/array_obj.h"
 
+#include "html/base.h"
 #include "html/tokenizer.h"
 
 #ifdef __cplusplus

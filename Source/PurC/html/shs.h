@@ -32,10 +32,10 @@
 #ifndef PCHTML_SHS_H
 #define PCHTML_SHS_H
 
-#include <string.h>
-
 #include "config.h"
-#include "html/core_base.h"
+#include "html/base.h"
+
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {

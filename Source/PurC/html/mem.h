@@ -36,7 +36,7 @@
 #include <string.h>
 
 #include "config.h"
-#include "html/core_base.h"
+#include "html/base.h"
 
 #ifdef __cplusplus
 extern "C" {

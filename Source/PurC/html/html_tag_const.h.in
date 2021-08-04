@@ -1,13 +1,12 @@
 /**
- * @file tag_res.h.in
- * @author 
+ * @file html_tag_const.h
  * @date 2021/07/02
- * @brief The hearder file for resource of tag.
+ * @brief The hearder file for tag constant.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -35,16 +34,16 @@
  * Do not change this file!
  */
 
-#ifndef PCHTML_TAG_RES_H
-#define PCHTML_TAG_RES_H
 
-#endif /* PCHTML_TAG_RES_H */
+#ifndef PCHTML_TAG_CONST_H
+#define PCHTML_TAG_CONST_H
 
-%%CHECK_TAG_VERSION%%
+#define PCHTML_TAG_CONST_VERSION "%%HASH%%"
+#define PCHTML_TAG_CONST_VERSION_%%HASH%%
 
-%%TAG_DATA%%
+typedef uintptr_t pchtml_tag_id_t;
 
-%%TAG_DATA_UPPER%%
+%%BODY%%
 
-%%SHS_DATA%%
+#endif /* PCHTML_TAG_CONST_H */
 

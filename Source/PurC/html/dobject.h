@@ -33,9 +33,11 @@
 #define PCHTML_DOBJECT_H
 
 #include "config.h"
-#include "html/core_base.h"
-#include "html/mem.h"
+
 #include "private/array.h"
+
+#include "html/base.h"
+#include "html/mem.h"
 
 typedef struct {
     pchtml_mem_t   *mem;

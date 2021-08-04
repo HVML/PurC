@@ -309,7 +309,7 @@ pchtml_html_tree_insertion_mode_in_head_script(pchtml_html_tree_t *tree,
 
     tree->status = pchtml_html_tree_open_elements_push(tree,
                                                     pcedom_interface_node(element));
-    if (tree->status != PCHTML_HTML_STATUS_OK) {
+    if (tree->status != PCHTML_STATUS_OK) {
         pchtml_html_script_element_interface_destroy(pchtml_html_interface_script(element));
 
         return pchtml_html_tree_process_abort(tree);

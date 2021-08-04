@@ -33,7 +33,8 @@
 #define PCHTML_IN_H
 
 #include "config.h"
-#include "html/core_base.h"
+
+#include "html/base.h"
 #include "html/dobject.h"
 
 

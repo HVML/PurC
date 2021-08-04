@@ -33,6 +33,7 @@
 #define PCHTML_HTML_H
 
 #include "config.h"
+
 #include "html/base.h"
 #include "html/tree/error.h"
 #include "html/tree/insertion_mode.h"
