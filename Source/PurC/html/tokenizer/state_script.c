@@ -40,9 +40,9 @@
 
 #define PCHTML_STR_RES_ALPHA_CHARACTER
 #define PCHTML_STR_RES_ANSI_REPLACEMENT_CHARACTER
-#include "html/str_res.h"
+#include "str_res.h"
 
-#include "html/str_res.h"
+#include "str_res.h"
 
 
 const pchtml_tag_data_t *

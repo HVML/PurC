@@ -115,6 +115,19 @@ add_custom_command(
     VERBATIM)
 list(APPEND PurC_SOURCES ${PurC_DERIVED_SOURCES_DIR}/html_attr_foo.c)
 
+# Copy str_res.h.in to DerivedSources
+add_custom_command(
+    OUTPUT "${PurC_DERIVED_SOURCES_DIR}/html_bar.c" "${PurC_DERIVED_SOURCES_DIR}/str_res.h"
+    COMMAND ${CMAKE_COMMAND} -E copy "${PURC_DIR}/html/str_res.h.in"
+        "${PurC_DERIVED_SOURCES_DIR}/str_res.h"
+    COMMAND touch "${PurC_DERIVED_SOURCES_DIR}/html_bar.c"
+    DEPENDS "${PURC_DIR}/html/str_res.h.in"
+    COMMENT "Copying str_res.h.in to DerivedSources"
+    VERBATIM)
+list(APPEND PurC_SOURCES ${PurC_DERIVED_SOURCES_DIR}/html_bar.c)
+
+
+
 PURC_WRAP_SOURCELIST(${PurC_SOURCES})
 
 PURC_COPY_FILES(PurC_CopyPrivateHeaders

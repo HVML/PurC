@@ -38,7 +38,7 @@
 #include "private/instance.h"
 #include "private/errors.h"
 
-#include "html/str_res.h"
+#include "str_res.h"
 
 #include "html/tree/insertion_mode.h"
 #include "html/tree/open_elements.h"

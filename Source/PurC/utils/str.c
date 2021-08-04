@@ -38,7 +38,7 @@
 #define PCHTML_STR_RES_ANSI_REPLACEMENT_CHARACTER
 #define PCHTML_STR_RES_MAP_LOWERCASE
 #define PCHTML_STR_RES_MAP_UPPERCASE
-#include "html/str_res.h"
+#include "str_res.h"
 
 
 pchtml_str_t *

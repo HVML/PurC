@@ -35,7 +35,7 @@
 
 #define PCHTML_STR_RES_MAP_LOWERCASE
 #define PCHTML_STR_RES_MAP_UPPERCASE
-#include "html/str_res.h"
+#include "str_res.h"
 
 
 #define pchtml_shs_make_id_m(key, size, table_size)                            \

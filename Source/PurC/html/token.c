@@ -42,7 +42,7 @@
 #define PCHTML_STR_RES_ANSI_REPLACEMENT_CHARACTER
 #define PCHTML_STR_RES_MAP_HEX
 #define PCHTML_STR_RES_MAP_NUM
-#include "html/str_res.h"
+#include "str_res.h"
 
 #include "private/edom.h"
 

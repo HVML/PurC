@@ -42,7 +42,7 @@
 #include "html/interfaces/template_element.h"
 
 #define PCHTML_TOKENIZER_CHARS_MAP
-#include "html/str_res.h"
+#include "str_res.h"
 
 
 #define pchtml_html_serialize_send(data, len, ctx)                                \

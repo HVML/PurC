@@ -45,7 +45,7 @@
 #define PCHTML_STR_RES_ALPHA_CHARACTER
 #define PCHTML_STR_RES_MAP_HEX
 #define PCHTML_STR_RES_MAP_NUM
-#include "html/str_res.h"
+#include "str_res.h"
 
 #define PCHTML_HTML_TOKENIZER_RES_ENTITIES_SBST
 #include "html/tokenizer/res.h"

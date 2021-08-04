@@ -35,7 +35,7 @@
 #include "html/shs.h"
 
 #define PCHTML_STR_RES_MAP_LOWERCASE
-#include "html/str_res.h"
+#include "str_res.h"
 
 #include "html/ns.h"
 #include "ns_res.h"
