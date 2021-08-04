@@ -58,7 +58,7 @@ TEST(html, html_parser_chunk_purc)
     off = purc_rwstream_seek(io, 0, SEEK_SET);
     ASSERT_NE(off, -1);
 
-    purc_html_document_t doc = purc_html_doc_load_from_stream(io);
+    pchtml_document_t doc = pchtml_doc_load_from_stream(io);
     ASSERT_NE(doc, nullptr);
 
     purc_rwstream_destroy(io);
@@ -66,11 +66,11 @@ TEST(html, html_parser_chunk_purc)
     io = purc_rwstream_new_from_fp(stdout);
 
     int n;
-    n = purc_html_doc_write_to_stream(doc, io);
+    n = pchtml_doc_write_to_stream(doc, io);
     ASSERT_EQ(n, 0);
     purc_rwstream_destroy(io);
 
-    purc_html_doc_destroy(doc);
+    pchtml_doc_destroy(doc);
 
     purc_cleanup ();
 }
@@ -104,7 +104,7 @@ TEST(html, load_from_html)
     while ((ssz = getline(&line, &sz, furls)) != -1) {
         FILE *fin;
         purc_rwstream_t in;
-        purc_html_document_t doc;
+        pchtml_document_t doc;
         int n, r;
 
         n = snprintf(cmd, sizeof(cmd), "curl %s", line);
@@ -115,13 +115,13 @@ TEST(html, load_from_html)
 
         in = purc_rwstream_new_from_fp(fin);
         ASSERT_NE(in, nullptr);
-        doc = purc_html_doc_load_from_stream(in);
+        doc = pchtml_doc_load_from_stream(in);
         ASSERT_NE(doc, nullptr);
 
-        r = purc_html_doc_write_to_stream(doc, out);
+        r = pchtml_doc_write_to_stream(doc, out);
         ASSERT_EQ(r, 0);
 
-        r = purc_html_doc_destroy(doc);
+        r = pchtml_doc_destroy(doc);
         ASSERT_EQ(r, 0);
         purc_rwstream_destroy(in);
         // pclose(fin);

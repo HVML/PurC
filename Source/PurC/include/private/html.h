@@ -22,7 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * This implementation of HTML parser is derived from Lexbor
- * <https://github.com/lexbor/lexbor>, which is licensed under Apahce 2.0:
+ * <https://github.com/lexbor/lexbor>, which is licensed under the Apache 
+ * License Version 2.0:
  *
  * Copyright (C) 2018-2020 Alexander Borisov
  *
@@ -34,6 +35,7 @@
 
 #include "config.h"
 #include "private/edom.h"
+#include "purc-rwstream.h"
 
 #include <assert.h>
 
@@ -73,6 +75,20 @@ unsigned int
 pchtml_html_serialize_pretty_tree_cb(pcedom_node_t *node,
                 int opt, size_t indent,
                 pchtml_html_serialize_cb_f cb, void *ctx) ;
+
+
+struct pchtml_document;
+typedef struct pchtml_document  pchtml_document;
+typedef struct pchtml_document *pchtml_document_t;
+
+pchtml_document_t
+pchtml_doc_load_from_stream(purc_rwstream_t in);
+
+int
+pchtml_doc_write_to_stream(pchtml_document_t doc, purc_rwstream_t out);
+
+int
+pchtml_doc_destroy(pchtml_document_t doc);
 
 
 #ifdef __cplusplus
