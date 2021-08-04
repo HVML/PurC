@@ -38,7 +38,7 @@
 #include "config.h"
 
 #include "html/base.h"
-#include "html/mem.h"
+#include "private/mem.h"
 #include "html/bst.h"
 
 

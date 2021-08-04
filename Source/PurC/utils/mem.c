@@ -34,7 +34,7 @@
 #include "config.h"
 #include "private/instance.h"
 #include "private/errors.h"
-#include "html/mem.h"
+#include "private/mem.h"
 
 
 pchtml_mem_t *
