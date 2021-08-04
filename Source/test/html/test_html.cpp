@@ -108,7 +108,14 @@ TEST(html, load_from_html)
         pchtml_document_t doc;
         int n, r;
 
-        n = snprintf(cmd, sizeof(cmd), "curl %s", line);
+        char *p;
+        p = strchr(line, '\n');
+        if (p) *p = '\0';
+        p = strchr(line, '\r');
+        if (p) *p = '\0';
+        if (strlen(line)==0) continue;
+
+        n = snprintf(cmd, sizeof(cmd), "curl --no-progress-meter %s", line);
         ASSERT_LT(n, sizeof(cmd));
 
         fin = popen(cmd, "r");
@@ -128,7 +135,11 @@ TEST(html, load_from_html)
         // pclose(fin);
     }
 
-    purc_rwstream_destroy(out);
+    // purc_rwstream_destroy(out);
+
+    if (line) {
+        free(line);
+    }
 
     purc_cleanup ();
 }
