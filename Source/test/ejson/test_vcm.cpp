@@ -9,18 +9,28 @@
 #if 1
 using namespace std;
 
-typedef std::pair<std::string, std::string> ejson_test_data;
+struct ejson_test_data {
+    string name;
+    string json;
+    string comp;
+    int error;
+};
 
 class ejson_parser_vcm_eval : public testing::TestWithParam<ejson_test_data>
 {
 protected:
     void SetUp() {
         purc_init ("cn.fmsoft.hybridos.test", "ejson", NULL);
-        json = GetParam().first;
-        comp = GetParam().second;
+        name = GetParam().name;
+        json = GetParam().json;
+        comp = GetParam().comp;
+        error = GetParam().error;
     }
     void TearDown() {
         purc_cleanup ();
+    }
+    const char* get_name() {
+        return name.c_str();
     }
     const char* get_json() {
         return json.c_str();
@@ -28,10 +38,14 @@ protected:
     const char* get_comp() {
         return comp.c_str();
     }
-
+    int get_error() {
+        return error;
+    }
 private:
+    string name;
     string json;
     string comp;
+    int error;
 };
 
 TEST_P(ejson_parser_vcm_eval, parse_and_serialize)
@@ -47,26 +61,28 @@ TEST_P(ejson_parser_vcm_eval, parse_and_serialize)
     struct pcvcm_node* root = NULL;
     struct pcejson* parser = NULL;
     pcejson_parse (&root, &parser, rws);
-    ASSERT_NE (root, nullptr);
+    ASSERT_NE (root, nullptr) << "Test Case : "<< get_name();
 
     int error = purc_get_last_error();
-    ASSERT_EQ (error, 0) << json;
+    ASSERT_EQ (error, 0) << "Test Case : "<< get_name();
 
     purc_variant_t vt = pcvcm_eval (root, NULL);
-    ASSERT_NE(vt, PURC_VARIANT_INVALID);
+    ASSERT_NE(vt, PURC_VARIANT_INVALID) << "Test Case : "<< get_name();
 
     char buf[1024] = {0};
     purc_rwstream_t my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
-    ASSERT_NE(my_rws, nullptr);
+    ASSERT_NE(my_rws, nullptr) << "Test Case : "<< get_name();
+
 
     size_t len_expected = 0;
     ssize_t n = purc_variant_serialize(vt, my_rws,
             0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
-    ASSERT_GT(n, 0);
+    ASSERT_GT(n, 0) << "Test Case : "<< get_name();
+
     buf[n] = 0;
     //fprintf(stderr, "buf=%s\n", buf);
     //fprintf(stderr, "com=%s\n", comp);
-    ASSERT_STREQ(buf, comp);
+    ASSERT_STREQ(buf, comp) << "Test Case : "<< get_name();
 
     purc_variant_unref(vt);
     purc_rwstream_destroy(my_rws);
@@ -154,7 +170,10 @@ std::vector<ejson_test_data> read_ejson_test_data()
                         continue;
                     }
 
-                    vec.push_back(make_pair(json_buf, trim(comp_buf)));
+                    vec.push_back(
+                            ejson_test_data {
+                                name, json_buf, trim(comp_buf), 0
+                                });
 
                     free (json_buf);
                     free (comp_buf);
@@ -167,9 +186,11 @@ std::vector<ejson_test_data> read_ejson_test_data()
 #endif
 
     if (vec.empty()) {
-        vec.push_back(make_pair("[123]", "[123]"));
-        vec.push_back(make_pair("{key:1}", "{\"key\":1}"));
-        vec.push_back(make_pair("{'key':'2'}", "{\"key\":\"2\"}"));
+        vec.push_back(ejson_test_data {"array", "[123]", "[123]", 0});
+        vec.push_back(ejson_test_data {
+                "unquoted_key", "{key:1}", "{\"key\":1}", 0});
+        vec.push_back(ejson_test_data {
+                "single_quoted_key", "{'key':'2'}", "{\"key\":\"2\"}", 0});
     }
     return vec;
 }
