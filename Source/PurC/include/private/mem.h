@@ -31,8 +31,8 @@
  */
 
 
-#ifndef PCUTILS_MEM_H
-#define PCUTILS_MEM_H
+#ifndef PURC_PRIVATE_MEM_H
+#define PURC_PRIVATE_MEM_H
 
 #include "config.h"
 
@@ -161,4 +161,4 @@ pcutils_mem_align_floor(size_t size)
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCUTILS_MEM_H */
+#endif  /* PURC_PRIVATE_MEM_H */
