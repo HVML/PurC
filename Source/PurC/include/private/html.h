@@ -81,12 +81,21 @@ struct pchtml_document;
 typedef struct pchtml_document  pchtml_document;
 typedef struct pchtml_document *pchtml_document_t;
 
+/*
+ * Load html doc from stream
+ */
 pchtml_document_t
 pchtml_doc_load_from_stream(purc_rwstream_t in);
 
+/*
+ * Serialize html doc to stream
+ */
 int
 pchtml_doc_write_to_stream(pchtml_document_t doc, purc_rwstream_t out);
 
+/*
+ * Destroy html doc
+ */
 int
 pchtml_doc_destroy(pchtml_document_t doc);
 
