@@ -37,8 +37,8 @@
 #include "private/dobject.h"
 #include "private/mraw.h"
 
-#define PURC_PRIVATE_HASH_SHORT_SIZE     16
-#define PURC_PRIVATE_HASH_TABLE_MIN_SIZE 32
+#define PCUTILS_HASH_SHORT_SIZE     16
+#define PCUTILS_HASH_TABLE_MIN_SIZE 32
 
 #ifdef __cplusplus
 extern "C" {
@@ -80,7 +80,7 @@ typedef bool
 struct pcutils_hash_entry {
     union {
         unsigned char *long_str;
-        unsigned char short_str[PURC_PRIVATE_HASH_SHORT_SIZE + 1];
+        unsigned char short_str[PCUTILS_HASH_SHORT_SIZE + 1];
     } u;
 
     size_t              length;
@@ -184,7 +184,7 @@ pcutils_hash_mraw(const pcutils_hash_t *hash)
 static inline unsigned char *
 pcutils_hash_entry_str(const pcutils_hash_entry_t *entry)
 {
-    if (entry->length <= PURC_PRIVATE_HASH_SHORT_SIZE) {
+    if (entry->length <= PCUTILS_HASH_SHORT_SIZE) {
         return (unsigned char *) entry->u.short_str;
     }
 
@@ -197,7 +197,7 @@ pcutils_hash_entry_str_set(pcutils_hash_entry_t *entry,
 {
     entry->length = length;
 
-    if (length <= PURC_PRIVATE_HASH_SHORT_SIZE) {
+    if (length <= PCUTILS_HASH_SHORT_SIZE) {
         memcpy(entry->u.short_str, data, length);
         return (unsigned char *) entry->u.short_str;
     }
@@ -209,7 +209,7 @@ pcutils_hash_entry_str_set(pcutils_hash_entry_t *entry,
 static inline void
 pcutils_hash_entry_str_free(pcutils_hash_t *hash, pcutils_hash_entry_t *entry)
 {
-    if (entry->length > PURC_PRIVATE_HASH_SHORT_SIZE) {
+    if (entry->length > PCUTILS_HASH_SHORT_SIZE) {
         pcutils_mraw_free(hash->mraw, entry->u.long_str);
     }
 
