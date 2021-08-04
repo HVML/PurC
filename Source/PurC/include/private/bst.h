@@ -116,15 +116,15 @@ pcutils_bst_remove_by_pointer(pcutils_bst_t *bst, pcutils_bst_entry_t *entry,
 
 
 /* Callbacks */
-typedef unsigned int (*pchtml_callback_f)(const unsigned char *buffer,
+typedef unsigned int (*pcutils_bst_callback_f)(const unsigned char *buffer,
                                           size_t size, void *ctx);
 
 void
-pcutils_bst_serialize(pcutils_bst_t *bst, pchtml_callback_f callback, void *ctx) WTF_INTERNAL;
+pcutils_bst_serialize(pcutils_bst_t *bst, pcutils_bst_callback_f callback, void *ctx) WTF_INTERNAL;
 
 void
 pcutils_bst_serialize_entry(pcutils_bst_entry_t *entry,
-                           pchtml_callback_f callback, void *ctx, size_t tabs) WTF_INTERNAL;
+                           pcutils_bst_callback_f callback, void *ctx, size_t tabs) WTF_INTERNAL;
 
 
 #ifdef __cplusplus

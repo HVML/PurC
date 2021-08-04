@@ -441,14 +441,14 @@ pcutils_bst_remove_by_pointer(pcutils_bst_t *bst, pcutils_bst_entry_t *entry,
 }
 
 void
-pcutils_bst_serialize(pcutils_bst_t *bst, pchtml_callback_f callback, void *ctx)
+pcutils_bst_serialize(pcutils_bst_t *bst, pcutils_bst_callback_f callback, void *ctx)
 {
     pcutils_bst_serialize_entry(bst->root, callback, ctx, 0);
 }
 
 void
 pcutils_bst_serialize_entry(pcutils_bst_entry_t *entry,
-                           pchtml_callback_f callback, void *ctx, size_t tabs)
+                           pcutils_bst_callback_f callback, void *ctx, size_t tabs)
 {
     size_t buff_len;
     char buff[1024];
