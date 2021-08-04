@@ -34,7 +34,7 @@
 #include "config.h"
 #include "private/instance.h"
 #include "private/errors.h"
-#include "html/dobject.h"
+#include "private/dobject.h"
 
 
 #if defined(PCHTML_HAVE_ADDRESS_SANITIZER)

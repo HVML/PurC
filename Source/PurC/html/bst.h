@@ -38,7 +38,7 @@
 #include "config.h"
 
 #include "html/base.h"
-#include "html/dobject.h"
+#include "private/dobject.h"
 
 #ifdef __cplusplus
 extern "C" {

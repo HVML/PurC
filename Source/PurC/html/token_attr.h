@@ -40,7 +40,7 @@
 
 #include "html/in.h"
 #include "html/str.h"
-#include "html/dobject.h"
+#include "private/dobject.h"
 #include "html/base.h"
 
 

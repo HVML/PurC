@@ -34,7 +34,7 @@
 #define PCHTML_HASH_H
 
 #include "config.h"
-#include "html/dobject.h"
+#include "private/dobject.h"
 #include "html/mraw.h"
 
 #define PCHTML_HASH_SHORT_SIZE     16
