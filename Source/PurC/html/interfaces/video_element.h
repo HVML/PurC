@@ -33,13 +33,13 @@
 #ifndef PCHTML_HTML_VIDEO_ELEMENT_H
 #define PCHTML_HTML_VIDEO_ELEMENT_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 #include "html/html_interface.h"
 #include "html/interfaces/media_element.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 struct pchtml_html_video_element {

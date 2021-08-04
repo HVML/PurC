@@ -33,11 +33,11 @@
 #ifndef PCEDOM_EXCEPTION_H
 #define PCEDOM_EXCEPTION_H
 
+#include "config.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "config.h"
 
 typedef enum {
     PCEDOM_INDEX_SIZE_ERR = 0x00,

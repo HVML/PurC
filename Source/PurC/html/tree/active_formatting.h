@@ -33,15 +33,14 @@
 #ifndef PCHTML_HTML_ACTIVE_FORMATTING_H
 #define PCHTML_HTML_ACTIVE_FORMATTING_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 #include "private/array.h"
 
 #include "html/tree.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 pchtml_html_element_t *
 pchtml_html_tree_active_formatting_marker(void);

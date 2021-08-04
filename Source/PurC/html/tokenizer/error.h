@@ -32,15 +32,15 @@
 #ifndef PCHTML_HTML_TOKENIZER_ERROR_H
 #define PCHTML_HTML_TOKENIZER_ERROR_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 #include "html/core_base.h"
 #include "private/array_obj.h"
 
 #include "html/tokenizer.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 typedef enum {

@@ -32,15 +32,15 @@
 #ifndef PCHTML_HTML_TAG_H
 #define PCHTML_HTML_TAG_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 #include "html/base.h"
 
 #include "html/tag.h"
 #include "html/ns.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 typedef int pchtml_html_tag_category_t;

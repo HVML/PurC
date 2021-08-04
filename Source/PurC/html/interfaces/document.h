@@ -32,10 +32,6 @@
 #ifndef PCHTML_HTML_DOCUMENT_H
 #define PCHTML_HTML_DOCUMENT_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 #include "html/mraw.h"
 
@@ -44,6 +40,10 @@ extern "C" {
 #include "html/html_interface.h"
 #include "private/html.h"
 #include "private/edom.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef unsigned int pchtml_html_document_opt_t;
 

@@ -32,13 +32,13 @@
 #ifndef PCHTML_HTML_TABLE_COL_ELEMENT_H
 #define PCHTML_HTML_TABLE_COL_ELEMENT_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 #include "html/html_interface.h"
 #include "html/interfaces/element.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 struct pchtml_html_table_col_element {

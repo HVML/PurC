@@ -33,9 +33,6 @@
 #ifndef PCHTML_HTML_TEMPLATE_INSERTION_H
 #define PCHTML_HTML_TEMPLATE_INSERTION_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 #include "purc.h"
 #include "config.h"
 #include "private/instance.h"
@@ -44,6 +41,9 @@ extern "C" {
 
 #include "html/tree.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct {
     pchtml_html_tree_insertion_mode_f mode;

@@ -33,12 +33,12 @@
 #ifndef PCHTML_HTML_TOKENIZER_STATE_H
 #define PCHTML_HTML_TOKENIZER_STATE_H
 
+#include "config.h"
+#include "html/tokenizer.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "config.h"
-#include "html/tokenizer.h"
 
 #define pchtml_html_tokenizer_state_begin_set(tkz, v_data)                        \
     (tkz->begin = v_data)
