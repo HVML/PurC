@@ -44,7 +44,7 @@
 #define BUFFER_SIZE 4096
 #define MIN_BUFFER_SIZE 32
 
-#if 0
+#if 1
 #define RWSTREAM_SET_ERROR(err) pcinst_set_error(err)
 #else
 #define RWSTREAM_SET_ERROR(err) do { \
