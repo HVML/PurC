@@ -414,7 +414,6 @@ struct pcejson_token* pcejson_token_new (enum ejson_token_type type,
         case EJSON_TOKEN_KEY:
         case EJSON_TOKEN_STRING:
         case EJSON_TOKEN_TEXT:
-        case EJSON_TOKEN_BYTE_SQUENCE:
             {
                 uint8_t* buf = (uint8_t*) malloc (nr_bytes + 1);
                 memcpy(buf, bytes, nr_bytes);
@@ -427,6 +426,108 @@ struct pcejson_token* pcejson_token_new (enum ejson_token_type type,
         default:
             break;
     }
+    return token;
+}
+
+void hex_to_bytes (const uint8_t* hex, size_t sz_hex, uint8_t* result)
+{
+    uint8_t h = 0;
+    uint8_t l = 0;
+    for(size_t i = 0; i < sz_hex/2; i++) {
+        if (*hex < 58) {
+            h = *hex - 48;
+        }
+        else if (*hex < 71) {
+            h = *hex - 55;
+        }
+        else {
+            h = *hex - 87;
+        }
+
+        hex++;
+        if (*hex < 58) {
+            l = *hex - 48;
+        }
+        else if (*hex < 71) {
+            l = *hex - 55;
+        }
+        else {
+            l = *hex - 87;
+        }
+        hex++;
+        *result++ = h<<4|l;
+    }
+}
+
+struct pcejson_token* pcejson_token_new_bx_byte_sequence (
+        const uint8_t* bytes, size_t nr_bytes)
+{
+    const uint8_t* p = bytes + 2;
+    size_t sz = nr_bytes  - 2;
+    if (sz % 2 != 0) {
+        pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
+        return NULL;
+    }
+    size_t sz_buf = sz / 2;
+    uint8_t* buf = (uint8_t*) calloc (sz_buf + 1, 1);
+    hex_to_bytes (p, sz, buf);
+
+    struct pcejson_token* token = ejson_alloc(sizeof (struct pcejson_token));
+    token->type = EJSON_TOKEN_BYTE_SQUENCE;
+    token->sz_ptr[0] = sz_buf;
+    token->sz_ptr[1] = (uintptr_t) buf;
+    return token;
+}
+
+struct pcejson_token* pcejson_token_new_bb_byte_sequence (
+        const uint8_t* bytes, size_t nr_bytes)
+{
+    const uint8_t* p = bytes + 2;
+    size_t sz = nr_bytes  - 2;
+    if (sz % 8 != 0) {
+        pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
+        return NULL;
+    }
+
+    size_t sz_buf = sz / 8;
+    uint8_t* buf = (uint8_t*) calloc (sz_buf + 1, 1);
+    for(size_t i = 0; i < sz_buf; i++) {
+        uint8_t b = 0;
+        uint8_t c = 0;
+        for (int j = 7; j >= 0; j--) {
+            c = *p == '0' ? 0 : 1;
+            b = b | c << j;
+            p++;
+        }
+        buf[i] = b;
+    }
+
+    struct pcejson_token* token = ejson_alloc(sizeof (struct pcejson_token));
+    token->type = EJSON_TOKEN_BYTE_SQUENCE;
+    token->sz_ptr[0] = sz_buf;
+    token->sz_ptr[1] = (uintptr_t) buf;
+    return token;
+}
+
+int b64_decode(const void *src, void *dest, size_t dest_len);
+struct pcejson_token* pcejson_token_new_b64_byte_sequence (
+        const uint8_t* bytes, size_t nr_bytes)
+{
+    const uint8_t* p = bytes + 3;
+    size_t sz_buf = nr_bytes  - 3;
+    uint8_t* buf = (uint8_t*) calloc (sz_buf, 1);
+
+    int ret = b64_decode (p, buf, sz_buf);
+    if (ret == -1) {
+        free (buf);
+        pcinst_set_error(PCEJSON_UNEXPECTED_CHARACTER_PARSE_ERROR);
+        return NULL;
+    }
+
+    struct pcejson_token* token = ejson_alloc(sizeof (struct pcejson_token));
+    token->type = EJSON_TOKEN_BYTE_SQUENCE;
+    token->sz_ptr[0] = ret;
+    token->sz_ptr[1] = (uintptr_t) buf;
     return token;
 }
 
@@ -446,9 +547,21 @@ struct pcejson_token* pcejson_token_new_from_tmp_buf (
         case EJSON_TOKEN_KEY:
         case EJSON_TOKEN_STRING:
         case EJSON_TOKEN_TEXT:
-        case EJSON_TOKEN_BYTE_SQUENCE:
         case EJSON_TOKEN_INFINITY:
             bytes = (const uint8_t*) pcejson_tmp_buf_get_buf(rws, &nr_bytes);
+            break;
+
+        case EJSON_TOKEN_BYTE_SQUENCE:
+            bytes = (const uint8_t*) pcejson_tmp_buf_get_buf(rws, &nr_bytes);
+            if (bytes[1] == 'x') {
+                return pcejson_token_new_bx_byte_sequence (bytes, nr_bytes);
+            }
+            else if (bytes[1] == 'b') {
+                return pcejson_token_new_bb_byte_sequence (bytes, nr_bytes);
+            }
+            else if (bytes[1] == '6') {
+                return pcejson_token_new_b64_byte_sequence (bytes, nr_bytes);
+            }
             break;
 
         default:
