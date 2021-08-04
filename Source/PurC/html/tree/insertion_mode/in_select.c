@@ -42,7 +42,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_select_text(pchtml_html_tree_t *tree,
                                             pchtml_html_token_t *token)
 {
-    pchtml_str_t str;
+    pcutils_str_t str;
 
     if (token->null_count != 0) {
         pchtml_html_tree_parse_error(tree, token,
@@ -62,7 +62,7 @@ pchtml_html_tree_insertion_mode_in_select_text(pchtml_html_tree_t *tree,
 
     /* Can be zero only if all NULL are gone */
     if (str.length == 0) {
-        pchtml_str_destroy(&str, tree->document->dom_document.text, false);
+        pcutils_str_destroy(&str, tree->document->dom_document.text, false);
 
         return true;
     }

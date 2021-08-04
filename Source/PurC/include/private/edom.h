@@ -286,7 +286,7 @@ pcedom_node_last_child(pcedom_node_t *node)
 struct pcedom_character_data {
     pcedom_node_t  node;
 
-    pchtml_str_t   data;
+    pcutils_str_t   data;
 };
 
 
@@ -533,7 +533,7 @@ struct pcedom_attr {
     pcedom_attr_id_t  upper_name;     /* uppercase, with prefix: FIX:ME */
     pcedom_attr_id_t  qualified_name; /* original, with prefix: Fix:Me */
 
-    pchtml_str_t       *value;
+    pcutils_str_t       *value;
 
     pcedom_element_t  *owner;
 
@@ -628,8 +628,8 @@ struct pcedom_document_type {
     pcedom_node_t    node;
 
     pcedom_attr_id_t name;
-    pchtml_str_t      public_id;
-    pchtml_str_t      system_id;
+    pcutils_str_t      public_id;
+    pcutils_str_t      system_id;
 };
 
 
@@ -781,7 +781,7 @@ struct pcedom_element {
     /* original, with prefix: LalAla:DiV */
     pcedom_attr_id_t              qualified_name;
 
-    pchtml_str_t                   *is_value;
+    pcutils_str_t                   *is_value;
 
     pcedom_attr_t                 *first_attr;
     pcedom_attr_t                 *last_attr;
@@ -1023,7 +1023,7 @@ pcedom_element_ns_id(pcedom_element_t *element)
 struct pcedom_processing_instruction {
     pcedom_character_data_t char_data;
 
-    pchtml_str_t             target;
+    pcutils_str_t             target;
 };
 
 

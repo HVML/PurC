@@ -81,7 +81,7 @@ pchtml_html_tree_insertion_mode_in_body_skip_new_line_textarea(pchtml_html_tree_
 
 unsigned int
 pchtml_html_tree_insertion_mode_in_body_text_append(pchtml_html_tree_t *tree,
-                pchtml_str_t *str) WTF_INTERNAL;
+                pcutils_str_t *str) WTF_INTERNAL;
 
 bool
 pchtml_html_tree_insertion_mode_text(pchtml_html_tree_t *tree,

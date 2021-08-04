@@ -116,7 +116,7 @@ pchtml_html_tree_init(pchtml_html_tree_t *tree, pchtml_html_tokenizer_t *tkz)
     /* Stack of pending table character tokens */
     tree->pending_table.text_list = pcutils_array_obj_create();
     status = pcutils_array_obj_init(tree->pending_table.text_list, 16,
-                                   sizeof(pchtml_str_t));
+                                   sizeof(pcutils_str_t));
     if (status != PCHTML_STATUS_OK) {
         return status;
     }
@@ -490,7 +490,7 @@ pchtml_html_tree_append_attributes(pchtml_html_tree_t *tree,
 {
     unsigned int status;
     pcedom_attr_t *attr;
-    pchtml_str_t local_name;
+    pcutils_str_t local_name;
     pchtml_html_token_attr_t *token_attr = token->attr_first;
     pcutils_mraw_t *mraw = element->node.owner_document->text;
 
@@ -597,7 +597,7 @@ pchtml_html_tree_adjust_mathml_attributes(pchtml_html_tree_t *tree,
     data = pcedom_attr_data_by_id(attrs, attr->node.local_name);
 
     if (data->entry.length == 13
-        && pchtml_str_data_cmp(pcutils_hash_entry_str(&data->entry),
+        && pcutils_str_data_cmp(pcutils_hash_entry_str(&data->entry),
                                (const unsigned char *) "definitionurl"))
     {
         data = pcedom_attr_qualified_name_append(attrs,
@@ -635,7 +635,7 @@ pchtml_html_tree_adjust_svg_attributes(pchtml_html_tree_t *tree,
         adjust = &pchtml_html_tree_res_attr_adjust_svg_map[i];
 
         if (data->entry.length == adjust->len
-            && pchtml_str_data_cmp(pcutils_hash_entry_str(&data->entry),
+            && pcutils_str_data_cmp(pcutils_hash_entry_str(&data->entry),
                                    (const unsigned char *) adjust->from))
         {
             data = pcedom_attr_qualified_name_append(attrs,
@@ -681,7 +681,7 @@ pchtml_html_tree_adjust_foreign_attributes(pchtml_html_tree_t *tree,
         adjust = &pchtml_html_tree_res_attr_adjust_foreign_map[i];
 
         if (data->entry.length == adjust->name_len
-            && pchtml_str_data_cmp(pcutils_hash_entry_str(&data->entry),
+            && pcutils_str_data_cmp(pcutils_hash_entry_str(&data->entry),
                                    (const unsigned char *) adjust->name))
         {
             if (adjust->prefix_len != 0) {
@@ -730,11 +730,11 @@ pchtml_html_tree_insert_character(pchtml_html_tree_t *tree, pchtml_html_token_t 
 {
     size_t size;
     unsigned int status;
-    pchtml_str_t str = {0};
+    pcutils_str_t str = {0};
 
     size = token->text_end - token->text_start;
 
-    pchtml_str_init(&str, tree->document->dom_document.text, size + 1);
+    pcutils_str_init(&str, tree->document->dom_document.text, size + 1);
     if (str.data == NULL) {
         pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
@@ -755,7 +755,7 @@ pchtml_html_tree_insert_character(pchtml_html_tree_t *tree, pchtml_html_token_t 
 
 unsigned int
 pchtml_html_tree_insert_character_for_data(pchtml_html_tree_t *tree,
-                                        pchtml_str_t *str,
+                                        pcutils_str_t *str,
                                         pcedom_node_t **ret_node)
 {
     const unsigned char *data;
@@ -803,7 +803,7 @@ pchtml_html_tree_insert_character_for_data(pchtml_html_tree_t *tree,
     if (chrs != NULL) {
         /* This is error. This can not happen, but... */
         if (chrs->data.data == NULL) {
-            data = pchtml_str_init(&chrs->data, tree->document->dom_document.text,
+            data = pcutils_str_init(&chrs->data, tree->document->dom_document.text,
                                    str->length);
             if (data == NULL) {
                 pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
@@ -811,7 +811,7 @@ pchtml_html_tree_insert_character_for_data(pchtml_html_tree_t *tree,
             }
         }
 
-        data = pchtml_str_append(&chrs->data, tree->document->dom_document.text,
+        data = pcutils_str_append(&chrs->data, tree->document->dom_document.text,
                                  str->data, str->length);
         if (data == NULL) {
             pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
@@ -840,7 +840,7 @@ pchtml_html_tree_insert_character_for_data(pchtml_html_tree_t *tree,
 
 destroy_str:
 
-    pchtml_str_destroy(str, tree->document->dom_document.text, false);
+    pcutils_str_destroy(str, tree->document->dom_document.text, false);
 
     return PCHTML_STATUS_OK;
 }
@@ -1737,14 +1737,14 @@ pchtml_html_tree_html_integration_point(pcedom_node_t *node)
         }
 
         if (attr->value->length == 9
-            && pchtml_str_data_casecmp(attr->value->data,
+            && pcutils_str_data_casecmp(attr->value->data,
                                        (const unsigned char *) "text/html"))
         {
             return true;
         }
 
         if (attr->value->length == 21
-            && pchtml_str_data_casecmp(attr->value->data,
+            && pcutils_str_data_casecmp(attr->value->data,
                                        (const unsigned char *) "application/xhtml+xml"))
         {
             return true;

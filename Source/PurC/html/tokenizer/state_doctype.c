@@ -478,7 +478,7 @@ pchtml_html_tokenizer_state_doctype_after_name(pchtml_html_tokenizer_t *tkz,
                         return data;
                     }
                 }
-                else if (pchtml_str_data_ncasecmp((unsigned char *) "PUBLIC",
+                else if (pcutils_str_data_ncasecmp((unsigned char *) "PUBLIC",
                                                   data, 6))
                 {
                     pchtml_html_tokenizer_state_token_attr_set_name_end(tkz,
@@ -499,7 +499,7 @@ pchtml_html_tokenizer_state_doctype_after_name(pchtml_html_tokenizer_t *tkz,
 
                     return (data + 6);
                 }
-                else if (pchtml_str_data_ncasecmp((unsigned char *) "SYSTEM",
+                else if (pcutils_str_data_ncasecmp((unsigned char *) "SYSTEM",
                                                   data, 6))
                 {
                     pchtml_html_tokenizer_state_token_attr_set_name_end(tkz,
@@ -551,7 +551,7 @@ pchtml_html_tokenizer_state_doctype_after_name_public(pchtml_html_tokenizer_t *t
     const unsigned char *pos;
     const pcedom_attr_data_t *attr_data;
 
-    pos = pchtml_str_data_ncasecmp_first(tkz->markup, data, (end - data));
+    pos = pcutils_str_data_ncasecmp_first(tkz->markup, data, (end - data));
 
     if (pos == NULL) {
         pchtml_html_token_attr_delete(tkz->token, tkz->token->attr_last,
@@ -602,7 +602,7 @@ pchtml_html_tokenizer_state_doctype_after_name_system(pchtml_html_tokenizer_t *t
     const unsigned char *pos;
     const pcedom_attr_data_t *attr_data;
 
-    pos = pchtml_str_data_ncasecmp_first(tkz->markup, data, (end - data));
+    pos = pcutils_str_data_ncasecmp_first(tkz->markup, data, (end - data));
 
     if (pos == NULL) {
         pchtml_html_token_attr_delete(tkz->token, tkz->token->attr_last,

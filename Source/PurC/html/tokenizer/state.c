@@ -443,7 +443,7 @@ pchtml_html_tokenizer_state_tag_open(pchtml_html_tokenizer_t *tkz,
                                   const unsigned char *data, const unsigned char *end)
 {
     /* ASCII alpha */
-    if (pchtml_str_res_alpha_character[ *data ] != PCHTML_STR_RES_SLIP) {
+    if (pcutils_str_res_alpha_character[ *data ] != PCHTML_STR_RES_SLIP) {
         tkz->state = pchtml_html_tokenizer_state_tag_name;
 
         pchtml_html_tokenizer_state_token_emit_text_not_empty_m(tkz, end);
@@ -515,7 +515,7 @@ pchtml_html_tokenizer_state_end_tag_open(pchtml_html_tokenizer_t *tkz,
                                       const unsigned char *end)
 {
     /* ASCII alpha */
-    if (pchtml_str_res_alpha_character[ *data ] != PCHTML_STR_RES_SLIP) {
+    if (pcutils_str_res_alpha_character[ *data ] != PCHTML_STR_RES_SLIP) {
         tkz->state = pchtml_html_tokenizer_state_tag_name;
 
         pchtml_html_tokenizer_state_token_emit_text_not_empty_m(tkz, end);
@@ -1472,7 +1472,7 @@ pchtml_html_tokenizer_state_markup_declaration_open(pchtml_html_tokenizer_t *tkz
             return data;
         }
 
-        if (pchtml_str_data_ncasecmp((unsigned char *) "doctype", data, 7)) {
+        if (pcutils_str_data_ncasecmp((unsigned char *) "doctype", data, 7)) {
             tkz->state = pchtml_html_tokenizer_state_doctype_before;
             return (data + 7);
         }
@@ -1489,7 +1489,7 @@ pchtml_html_tokenizer_state_markup_declaration_open(pchtml_html_tokenizer_t *tkz
             return data;
         }
 
-        if (pchtml_str_data_ncmp((unsigned char *) "[CDATA[", data, 7)) {
+        if (pcutils_str_data_ncmp((unsigned char *) "[CDATA[", data, 7)) {
             pchtml_ns_id_t ns = pchtml_html_tokenizer_current_namespace(tkz);
 
             if (ns != PCHTML_NS_HTML && ns != PCHTML_NS__UNDEF) {
@@ -1556,7 +1556,7 @@ pchtml_html_tokenizer_state_markup_declaration_doctype(pchtml_html_tokenizer_t *
                                                     const unsigned char *end)
 {
     const unsigned char *pos;
-    pos = pchtml_str_data_ncasecmp_first(tkz->markup, data, (end - data));
+    pos = pcutils_str_data_ncasecmp_first(tkz->markup, data, (end - data));
 
     if (pos == NULL) {
         pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
@@ -1588,7 +1588,7 @@ pchtml_html_tokenizer_state_markup_declaration_cdata(pchtml_html_tokenizer_t *tk
                                                   const unsigned char *end)
 {
     const unsigned char *pos;
-    pos = pchtml_str_data_ncasecmp_first(tkz->markup, data, (end - data));
+    pos = pcutils_str_data_ncasecmp_first(tkz->markup, data, (end - data));
 
     if (pos == NULL) {
         pchtml_html_tokenizer_error_add(tkz->parse_errors, data,
@@ -1804,7 +1804,7 @@ _pchtml_html_tokenizer_state_char_ref(pchtml_html_tokenizer_t *tkz,
                                    const unsigned char *end)
 {
     /* ASCII alphanumeric */
-    if (pchtml_str_res_alphanumeric_character[ *data ] != PCHTML_STR_RES_SLIP) {
+    if (pcutils_str_res_alphanumeric_character[ *data ] != PCHTML_STR_RES_SLIP) {
         tkz->entity = &pchtml_html_tokenizer_res_entities_sbst[1];
         tkz->entity_match = NULL;
         tkz->entity_start = (tkz->pos - 1) - tkz->start;
@@ -1897,7 +1897,7 @@ done:
     if (tkz->is_attribute && tkz->entity_match->key != 0x3B) {
         /* U+003D EQUALS SIGN character (=) or ASCII alphanumeric */
         if (*data == 0x3D
-            || pchtml_str_res_alphanumeric_character[*data] != PCHTML_STR_RES_SLIP)
+            || pcutils_str_res_alphanumeric_character[*data] != PCHTML_STR_RES_SLIP)
         {
             return data;
         }
@@ -1993,7 +1993,7 @@ pchtml_html_tokenizer_state_char_ref_hexademical_start(pchtml_html_tokenizer_t *
     UNUSED_PARAM(end);
 
     /* ASCII hex digit */
-    if (pchtml_str_res_map_hex[ *data ] != PCHTML_STR_RES_SLIP) {
+    if (pcutils_str_res_map_hex[ *data ] != PCHTML_STR_RES_SLIP) {
         tkz->state = pchtml_html_tokenizer_state_char_ref_hexademical;
     }
     else {
@@ -2017,7 +2017,7 @@ pchtml_html_tokenizer_state_char_ref_decimal_start(pchtml_html_tokenizer_t *tkz,
     UNUSED_PARAM(end);
 
     /* ASCII digit */
-    if (pchtml_str_res_map_num[ *data ] != PCHTML_STR_RES_SLIP) {
+    if (pcutils_str_res_map_num[ *data ] != PCHTML_STR_RES_SLIP) {
         tkz->state = pchtml_html_tokenizer_state_char_ref_decimal;
     }
     else {
@@ -2039,7 +2039,7 @@ pchtml_html_tokenizer_state_char_ref_hexademical(pchtml_html_tokenizer_t *tkz,
                                               const unsigned char *end)
 {
     while (data != end) {
-        if (pchtml_str_res_map_hex[ *data ] == PCHTML_STR_RES_SLIP) {
+        if (pcutils_str_res_map_hex[ *data ] == PCHTML_STR_RES_SLIP) {
             tkz->state = tkz->state_return;
 
             if (*data == ';') {
@@ -2051,7 +2051,7 @@ pchtml_html_tokenizer_state_char_ref_hexademical(pchtml_html_tokenizer_t *tkz,
 
         if (tkz->entity_number <= 0x10FFFF) {
             tkz->entity_number <<= 4;
-            tkz->entity_number |= pchtml_str_res_map_hex[ *data ];
+            tkz->entity_number |= pcutils_str_res_map_hex[ *data ];
         }
 
         data++;
@@ -2069,7 +2069,7 @@ pchtml_html_tokenizer_state_char_ref_decimal(pchtml_html_tokenizer_t *tkz,
                                           const unsigned char *end)
 {
     while (data != end) {
-        if (pchtml_str_res_map_num[ *data ] == PCHTML_STR_RES_SLIP) {
+        if (pcutils_str_res_map_num[ *data ] == PCHTML_STR_RES_SLIP) {
             tkz->state = tkz->state_return;
 
             if (*data == ';') {
@@ -2080,7 +2080,7 @@ pchtml_html_tokenizer_state_char_ref_decimal(pchtml_html_tokenizer_t *tkz,
         }
 
         if (tkz->entity_number <= 0x10FFFF) {
-            tkz->entity_number = pchtml_str_res_map_num[ *data ]
+            tkz->entity_number = pcutils_str_res_map_num[ *data ]
                                  + tkz->entity_number * 10;
         }
 
@@ -2157,7 +2157,7 @@ pchtml_html_tokenizer_state_char_ref_numeric_end(pchtml_html_tokenizer_t *tkz,
     }
 
     if (tkz->entity_number <= 0x9F) {
-        tkz->entity_number = (uint32_t) pchtml_str_res_replacement_character[tkz->entity_number];
+        tkz->entity_number = (uint32_t) pcutils_str_res_replacement_character[tkz->entity_number];
     }
 
     start += pchtml_html_tokenizer_state_to_ascii_utf_8(tkz->entity_number, start);
@@ -2168,10 +2168,10 @@ pchtml_html_tokenizer_state_char_ref_numeric_end(pchtml_html_tokenizer_t *tkz,
 
 xFFFD:
 
-    memcpy(start, pchtml_str_res_ansi_replacement_character,
-           sizeof(pchtml_str_res_ansi_replacement_character) - 1);
+    memcpy(start, pcutils_str_res_ansi_replacement_character,
+           sizeof(pcutils_str_res_ansi_replacement_character) - 1);
 
-    tkz->pos = start + sizeof(pchtml_str_res_ansi_replacement_character) - 1;
+    tkz->pos = start + sizeof(pcutils_str_res_ansi_replacement_character) - 1;
 
     return data;
 }

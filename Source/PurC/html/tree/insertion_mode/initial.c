@@ -331,7 +331,7 @@ pchtml_html_tree_insertion_mode_initial_doctype_ckeck_public(
         str = &pchtml_html_tree_insertion_mode_initial_doctype_public_is[i];
 
         if (str->len == doc_type->public_id.length
-            && pchtml_str_data_casecmp((const unsigned char *) str->data,
+            && pcutils_str_data_casecmp((const unsigned char *) str->data,
                                        doc_type->public_id.data))
         {
             return true;
@@ -346,7 +346,7 @@ pchtml_html_tree_insertion_mode_initial_doctype_ckeck_public(
         str = &pchtml_html_tree_insertion_mode_initial_doctype_public_start[i];
 
         if (str->len <= doc_type->public_id.length
-            && pchtml_str_data_ncasecmp((const unsigned char *) str->data,
+            && pcutils_str_data_ncasecmp((const unsigned char *) str->data,
                                         doc_type->public_id.data, str->len))
         {
             return true;
@@ -371,7 +371,7 @@ pchtml_html_tree_insertion_mode_initial_doctype_ckeck_system(
         str = &pchtml_html_tree_insertion_mode_initial_doctype_system_is[i];
 
         if (str->len == doc_type->system_id.length
-            && pchtml_str_data_casecmp((const unsigned char *) str->data,
+            && pcutils_str_data_casecmp((const unsigned char *) str->data,
                                        doc_type->system_id.data))
         {
             return true;
@@ -396,7 +396,7 @@ pchtml_html_tree_insertion_mode_initial_doctype_ckeck_pubsys(
         str = &pchtml_html_tree_insertion_mode_initial_doctype_sys_pub_start[i];
 
         if (str->len <= doc_type->public_id.length
-            && pchtml_str_data_ncasecmp((const unsigned char *) str->data,
+            && pcutils_str_data_ncasecmp((const unsigned char *) str->data,
                                         doc_type->public_id.data, str->len))
         {
             return true;
@@ -431,7 +431,7 @@ pchtml_html_tree_insertion_mode_initial_doctype_check_limq(
         str = &pchtml_html_tree_insertion_mode_initial_doctype_lim_pub_start[i];
 
         if (str->len <= doc_type->public_id.length
-            && pchtml_str_data_ncasecmp((const unsigned char *) str->data,
+            && pcutils_str_data_ncasecmp((const unsigned char *) str->data,
                                         doc_type->public_id.data, str->len))
         {
             return true;

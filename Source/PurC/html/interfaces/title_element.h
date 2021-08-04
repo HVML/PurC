@@ -46,7 +46,7 @@ extern "C" {
 struct pchtml_html_title_element {
     pchtml_html_element_t element;
 
-    pchtml_str_t       *strict_text;
+    pcutils_str_t       *strict_text;
 };
 
 

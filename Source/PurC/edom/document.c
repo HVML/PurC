@@ -282,12 +282,12 @@ pcedom_document_create_text_node(pcedom_document_t *document,
         return NULL;
     }
 
-    pchtml_str_init(&text->char_data.data, document->text, len);
+    pcutils_str_init(&text->char_data.data, document->text, len);
     if (text->char_data.data.data == NULL) {
         return pcedom_document_destroy_interface(text);
     }
 
-    pchtml_str_append(&text->char_data.data, document->text, data, len);
+    pcutils_str_append(&text->char_data.data, document->text, data, len);
 
     return text;
 }
@@ -323,12 +323,12 @@ pcedom_document_create_cdata_section(pcedom_document_t *document,
         return NULL;
     }
 
-    pchtml_str_init(&cdata->text.char_data.data, document->text, len);
+    pcutils_str_init(&cdata->text.char_data.data, document->text, len);
     if (cdata->text.char_data.data.data == NULL) {
         return pcedom_cdata_section_interface_destroy(cdata);
     }
 
-    pchtml_str_append(&cdata->text.char_data.data, document->text, data, len);
+    pcutils_str_append(&cdata->text.char_data.data, document->text, data, len);
 
     return cdata;
 }
@@ -366,20 +366,20 @@ pcedom_document_create_processing_instruction(pcedom_document_t *document,
         return NULL;
     }
 
-    pchtml_str_init(&pi->char_data.data, document->text, data_len);
+    pcutils_str_init(&pi->char_data.data, document->text, data_len);
     if (pi->char_data.data.data == NULL) {
         return pcedom_processing_instruction_interface_destroy(pi);
     }
 
-    pchtml_str_init(&pi->target, document->text, target_len);
+    pcutils_str_init(&pi->target, document->text, target_len);
     if (pi->target.data == NULL) {
-        pchtml_str_destroy(&pi->char_data.data, document->text, false);
+        pcutils_str_destroy(&pi->char_data.data, document->text, false);
 
         return pcedom_processing_instruction_interface_destroy(pi);
     }
 
-    pchtml_str_append(&pi->char_data.data, document->text, data, data_len);
-    pchtml_str_append(&pi->target, document->text, target, target_len);
+    pcutils_str_append(&pi->char_data.data, document->text, data, data_len);
+    pcutils_str_append(&pi->target, document->text, target, target_len);
 
     return pi;
 }
@@ -397,12 +397,12 @@ pcedom_document_create_comment(pcedom_document_t *document,
         return NULL;
     }
 
-    pchtml_str_init(&comment->char_data.data, document->text, len);
+    pcutils_str_init(&comment->char_data.data, document->text, len);
     if (comment->char_data.data.data == NULL) {
         return pcedom_document_destroy_interface(comment);
     }
 
-    pchtml_str_append(&comment->char_data.data, document->text, data, len);
+    pcutils_str_append(&comment->char_data.data, document->text, data, len);
 
     return comment;
 }

@@ -119,12 +119,12 @@ pchtml_html_token_attr_delete(pchtml_html_token_t *token,
 }
 
 unsigned int
-pchtml_html_token_make_text(pchtml_html_token_t *token, pchtml_str_t *str,
+pchtml_html_token_make_text(pchtml_html_token_t *token, pcutils_str_t *str,
                          pcutils_mraw_t *mraw)
 {
     size_t len = token->text_end - token->text_start;
 
-    (void) pchtml_str_init(str, mraw, len);
+    (void) pcutils_str_init(str, mraw, len);
     if (str->data == NULL) {
         pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
@@ -139,7 +139,7 @@ pchtml_html_token_make_text(pchtml_html_token_t *token, pchtml_str_t *str,
 }
 
 unsigned int
-pchtml_html_token_make_text_drop_null(pchtml_html_token_t *token, pchtml_str_t *str,
+pchtml_html_token_make_text_drop_null(pchtml_html_token_t *token, pcutils_str_t *str,
                                    pcutils_mraw_t *mraw)
 {
     unsigned char *p, c;
@@ -148,7 +148,7 @@ pchtml_html_token_make_text_drop_null(pchtml_html_token_t *token, pchtml_str_t *
 
     size_t len = (end - data) - token->null_count;
 
-    (void) pchtml_str_init(str, mraw, len);
+    (void) pcutils_str_init(str, mraw, len);
     if (str->data == NULL) {
         pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
@@ -172,17 +172,17 @@ pchtml_html_token_make_text_drop_null(pchtml_html_token_t *token, pchtml_str_t *
 
 unsigned int
 pchtml_html_token_make_text_replace_null(pchtml_html_token_t *token,
-                                      pchtml_str_t *str, pcutils_mraw_t *mraw)
+                                      pcutils_str_t *str, pcutils_mraw_t *mraw)
 {
     unsigned char *p, c;
     const unsigned char *data = token->text_start;
     const unsigned char *end = token->text_end;
 
-    static const unsigned rep_len = sizeof(pchtml_str_res_ansi_replacement_character) - 1;
+    static const unsigned rep_len = sizeof(pcutils_str_res_ansi_replacement_character) - 1;
 
     size_t len = (end - data) + (token->null_count * rep_len) - token->null_count;
 
-    (void) pchtml_str_init(str, mraw, len);
+    (void) pcutils_str_init(str, mraw, len);
     if (str->data == NULL) {
         pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
@@ -194,7 +194,7 @@ pchtml_html_token_make_text_replace_null(pchtml_html_token_t *token,
         c = *data++;
 
         if (c == 0x00) {
-            memcpy(p, pchtml_str_res_ansi_replacement_character, rep_len);
+            memcpy(p, pcutils_str_res_ansi_replacement_character, rep_len);
             p += rep_len;
 
             continue;
@@ -313,7 +313,7 @@ pchtml_html_token_doctype_parse(pchtml_html_token_t *token,
     }
 
     if (attr->name->attr_id == PCEDOM_ATTR_PUBLIC) {
-        (void) pchtml_str_init(&doc_type->public_id, mraw, attr->value_size);
+        (void) pcutils_str_init(&doc_type->public_id, mraw, attr->value_size);
         if (doc_type->public_id.data == NULL) {
             pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
@@ -323,11 +323,11 @@ pchtml_html_token_doctype_parse(pchtml_html_token_t *token,
             return PCHTML_STATUS_OK;
         }
 
-        (void) pchtml_str_append(&doc_type->public_id, mraw, attr->value,
+        (void) pcutils_str_append(&doc_type->public_id, mraw, attr->value,
                                  attr->value_size);
     }
     else if (attr->name->attr_id == PCEDOM_ATTR_SYSTEM) {
-        (void) pchtml_str_init(&doc_type->system_id, mraw, attr->value_size);
+        (void) pcutils_str_init(&doc_type->system_id, mraw, attr->value_size);
         if (doc_type->system_id.data == NULL) {
             pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
@@ -337,7 +337,7 @@ pchtml_html_token_doctype_parse(pchtml_html_token_t *token,
             return PCHTML_STATUS_OK;
         }
 
-        (void) pchtml_str_append(&doc_type->system_id, mraw, attr->value,
+        (void) pcutils_str_append(&doc_type->system_id, mraw, attr->value,
                                  attr->value_size);
 
         return PCHTML_STATUS_OK;
@@ -352,13 +352,13 @@ pchtml_html_token_doctype_parse(pchtml_html_token_t *token,
         goto set_sys_empty;
     }
 
-    (void) pchtml_str_init(&doc_type->system_id, mraw, attr->value_size);
+    (void) pcutils_str_init(&doc_type->system_id, mraw, attr->value_size);
     if (doc_type->system_id.data == NULL) {
         pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
-    (void) pchtml_str_append(&doc_type->system_id, mraw, attr->value,
+    (void) pcutils_str_append(&doc_type->system_id, mraw, attr->value,
                              attr->value_size);
 
     return PCHTML_STATUS_OK;
@@ -369,7 +369,7 @@ set_name_pub_sys_empty:
 
 set_pub_sys_empty:
 
-    (void) pchtml_str_init(&doc_type->public_id, mraw, 0);
+    (void) pcutils_str_init(&doc_type->public_id, mraw, 0);
     if (doc_type->public_id.data == NULL) {
         pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
@@ -377,7 +377,7 @@ set_pub_sys_empty:
 
 set_sys_empty:
 
-    (void) pchtml_str_init(&doc_type->system_id, mraw, 0);
+    (void) pcutils_str_init(&doc_type->system_id, mraw, 0);
     if (doc_type->system_id.data == NULL) {
         pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;

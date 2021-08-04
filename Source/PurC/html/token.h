@@ -100,16 +100,16 @@ pchtml_html_token_attr_delete(pchtml_html_token_t *token,
                 pcutils_dobject_t *dobj) WTF_INTERNAL;
 
 unsigned int
-pchtml_html_token_make_text(pchtml_html_token_t *token, pchtml_str_t *str,
+pchtml_html_token_make_text(pchtml_html_token_t *token, pcutils_str_t *str,
                 pcutils_mraw_t *mraw) WTF_INTERNAL;
 
 unsigned int
 pchtml_html_token_make_text_drop_null(pchtml_html_token_t *token, 
-                pchtml_str_t *str, pcutils_mraw_t *mraw) WTF_INTERNAL;
+                pcutils_str_t *str, pcutils_mraw_t *mraw) WTF_INTERNAL;
 
 unsigned int
 pchtml_html_token_make_text_replace_null(pchtml_html_token_t *token,
-                pchtml_str_t *str, pcutils_mraw_t *mraw) WTF_INTERNAL;
+                pcutils_str_t *str, pcutils_mraw_t *mraw) WTF_INTERNAL;
 
 unsigned int
 pchtml_html_token_data_skip_ws_begin(pchtml_html_token_t *token) WTF_INTERNAL;

@@ -62,7 +62,7 @@ pchtml_html_title_element_interface_destroy(pchtml_html_title_element_t *title)
     pcedom_document_t *doc = pcedom_interface_node(title)->owner_document;
 
     if (title->strict_text != NULL) {
-        pchtml_str_destroy(title->strict_text, doc->text, false);
+        pcutils_str_destroy(title->strict_text, doc->text, false);
         pcedom_document_destroy_struct(doc, title->strict_text);
     }
 
@@ -116,7 +116,7 @@ pchtml_html_title_element_strict_text(pchtml_html_title_element_t *title, size_t
         if (title->strict_text->length < text_len) {
             const unsigned char *data;
 
-            data = pchtml_str_realloc(title->strict_text,
+            data = pcutils_str_realloc(title->strict_text,
                                       doc->text, (text_len + 1));
             if (data == NULL) {
                 goto failed;
@@ -125,12 +125,12 @@ pchtml_html_title_element_strict_text(pchtml_html_title_element_t *title, size_t
     }
     else {
         title->strict_text = pcedom_document_create_struct(doc,
-                                                            sizeof(pchtml_str_t));
+                                                            sizeof(pcutils_str_t));
         if (title->strict_text == NULL) {
             goto failed;
         }
 
-        pchtml_str_init(title->strict_text, doc->text, text_len);
+        pcutils_str_init(title->strict_text, doc->text, text_len);
         if (title->strict_text->data == NULL) {
             title->strict_text = pcedom_document_destroy_struct(doc,
                                                                  title->strict_text);
@@ -143,7 +143,7 @@ pchtml_html_title_element_strict_text(pchtml_html_title_element_t *title, size_t
     title->strict_text->data[text_len] = 0x00;
     title->strict_text->length = text_len;
 
-    pchtml_str_strip_collapse_whitespace(title->strict_text);
+    pcutils_str_strip_collapse_whitespace(title->strict_text);
 
     if (len != NULL) {
         *len = title->strict_text->length;

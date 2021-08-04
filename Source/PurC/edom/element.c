@@ -589,7 +589,7 @@ pcedom_element_is_set(pcedom_element_t *element,
 {
     if (element->is_value == NULL) {
         element->is_value = pcutils_mraw_calloc(element->node.owner_document->mraw,
-                                               sizeof(pchtml_str_t));
+                                               sizeof(pcutils_str_t));
         if (element->is_value == NULL) {
             pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
@@ -597,7 +597,7 @@ pcedom_element_is_set(pcedom_element_t *element,
     }
 
     if (element->is_value->data == NULL) {
-        pchtml_str_init(element->is_value,
+        pcutils_str_init(element->is_value,
                         element->node.owner_document->text, is_len);
 
         if (element->is_value->data == NULL) {
@@ -610,7 +610,7 @@ pcedom_element_is_set(pcedom_element_t *element,
         element->is_value->length = 0;
     }
 
-    unsigned char *data = pchtml_str_append(element->is_value,
+    unsigned char *data = pcutils_str_append(element->is_value,
                                          element->node.owner_document->text,
                                          is, is_len);
     if (data == NULL) {
@@ -844,11 +844,11 @@ pcedom_elements_by_class_name_cb(pcedom_node_t *node, void *ctx)
 
             if (pos != data && (data - pos) == (int)cb_ctx->value_length) {
                 if (doc->compat_mode == PCEDOM_DOCUMENT_CMODE_QUIRKS) {
-                    is_it = pchtml_str_data_ncasecmp(pos, cb_ctx->value,
+                    is_it = pcutils_str_data_ncasecmp(pos, cb_ctx->value,
                                                      cb_ctx->value_length);
                 }
                 else {
-                    is_it = pchtml_str_data_ncmp(pos, cb_ctx->value,
+                    is_it = pcutils_str_data_ncmp(pos, cb_ctx->value,
                                                  cb_ctx->value_length);
                 }
 
@@ -873,11 +873,11 @@ pcedom_elements_by_class_name_cb(pcedom_node_t *node, void *ctx)
 
     if ((end - pos) == (int)cb_ctx->value_length) {
         if (doc->compat_mode == PCEDOM_DOCUMENT_CMODE_QUIRKS) {
-            is_it = pchtml_str_data_ncasecmp(pos, cb_ctx->value,
+            is_it = pcutils_str_data_ncasecmp(pos, cb_ctx->value,
                                              cb_ctx->value_length);
         }
         else {
-            is_it = pchtml_str_data_ncmp(pos, cb_ctx->value,
+            is_it = pcutils_str_data_ncmp(pos, cb_ctx->value,
                                          cb_ctx->value_length);
         }
 
@@ -1074,7 +1074,7 @@ pcedom_elements_by_attr_cmp_full(pcedom_element_cb_ctx_t *ctx,
                                   pcedom_attr_t *attr)
 {
     if (ctx->value_length == attr->value->length
-        && pchtml_str_data_ncmp(attr->value->data, ctx->value,
+        && pcutils_str_data_ncmp(attr->value->data, ctx->value,
                                 ctx->value_length))
     {
         return true;
@@ -1088,7 +1088,7 @@ pcedom_elements_by_attr_cmp_full_case(pcedom_element_cb_ctx_t *ctx,
                                        pcedom_attr_t *attr)
 {
     if (ctx->value_length == attr->value->length
-        && pchtml_str_data_ncasecmp(attr->value->data, ctx->value,
+        && pcutils_str_data_ncasecmp(attr->value->data, ctx->value,
                                     ctx->value_length))
     {
         return true;
@@ -1102,7 +1102,7 @@ pcedom_elements_by_attr_cmp_begin(pcedom_element_cb_ctx_t *ctx,
                                    pcedom_attr_t *attr)
 {
     if (ctx->value_length <= attr->value->length
-        && pchtml_str_data_ncmp(attr->value->data, ctx->value,
+        && pcutils_str_data_ncmp(attr->value->data, ctx->value,
                                 ctx->value_length))
     {
         return true;
@@ -1116,7 +1116,7 @@ pcedom_elements_by_attr_cmp_begin_case(pcedom_element_cb_ctx_t *ctx,
                                         pcedom_attr_t *attr)
 {
     if (ctx->value_length <= attr->value->length
-        && pchtml_str_data_ncasecmp(attr->value->data,
+        && pcutils_str_data_ncasecmp(attr->value->data,
                                     ctx->value, ctx->value_length))
     {
         return true;
@@ -1132,7 +1132,7 @@ pcedom_elements_by_attr_cmp_end(pcedom_element_cb_ctx_t *ctx,
     if (ctx->value_length <= attr->value->length) {
         size_t dif = attr->value->length - ctx->value_length;
 
-        if (pchtml_str_data_ncmp_end(&attr->value->data[dif],
+        if (pcutils_str_data_ncmp_end(&attr->value->data[dif],
                                      ctx->value, ctx->value_length))
         {
             return true;
@@ -1149,7 +1149,7 @@ pcedom_elements_by_attr_cmp_end_case(pcedom_element_cb_ctx_t *ctx,
     if (ctx->value_length <= attr->value->length) {
         size_t dif = attr->value->length - ctx->value_length;
 
-        if (pchtml_str_data_ncasecmp_end(&attr->value->data[dif],
+        if (pcutils_str_data_ncasecmp_end(&attr->value->data[dif],
                                          ctx->value, ctx->value_length))
         {
             return true;
@@ -1164,7 +1164,7 @@ pcedom_elements_by_attr_cmp_contain(pcedom_element_cb_ctx_t *ctx,
                                      pcedom_attr_t *attr)
 {
     if (ctx->value_length <= attr->value->length
-        && pchtml_str_data_ncmp_contain(attr->value->data, attr->value->length,
+        && pcutils_str_data_ncmp_contain(attr->value->data, attr->value->length,
                                         ctx->value, ctx->value_length))
     {
         return true;
@@ -1178,7 +1178,7 @@ pcedom_elements_by_attr_cmp_contain_case(pcedom_element_cb_ctx_t *ctx,
                                           pcedom_attr_t *attr)
 {
     if (ctx->value_length <= attr->value->length
-        && pchtml_str_data_ncasecmp_contain(attr->value->data, attr->value->length,
+        && pcutils_str_data_ncasecmp_contain(attr->value->data, attr->value->length,
                                             ctx->value, ctx->value_length))
     {
         return true;

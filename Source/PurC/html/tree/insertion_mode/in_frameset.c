@@ -144,7 +144,7 @@ pchtml_html_tree_insertion_mode_in_frameset(pchtml_html_tree_t *tree,
 
         case PCHTML_TAG__TEXT: {
             size_t cur_len;
-            pchtml_str_t str;
+            pcutils_str_t str;
 
             tree->status = pchtml_html_token_make_text(token, &str,
                                                     tree->document->dom_document.text);
@@ -154,7 +154,7 @@ pchtml_html_tree_insertion_mode_in_frameset(pchtml_html_tree_t *tree,
 
             cur_len = str.length;
 
-            pchtml_str_stay_only_whitespace(&str);
+            pcutils_str_stay_only_whitespace(&str);
 
             if (str.length != 0) {
                 tree->status = pchtml_html_tree_insert_character_for_data(tree,

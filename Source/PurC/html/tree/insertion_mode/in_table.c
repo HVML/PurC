@@ -312,7 +312,7 @@ pchtml_html_tree_insertion_mode_in_table_input(pchtml_html_tree_t *tree,
         /* Name == "type" and value == "hidden" */
         if (attr->name != NULL && attr->name->attr_id == PCEDOM_ATTR_TYPE) {
             if (attr->value_size == 6
-                && pchtml_str_data_ncasecmp(attr->value,
+                && pcutils_str_data_ncasecmp(attr->value,
                                             (const unsigned char *) "hidden", 6))
             {
                 goto have_hidden;

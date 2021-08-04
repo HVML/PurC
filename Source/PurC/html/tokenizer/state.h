@@ -65,8 +65,8 @@ extern "C" {
 #define pchtml_html_tokenizer_state_append_replace_m(tkz)                         \
     do {                                                                       \
         if (pchtml_html_tokenizer_temp_append(tkz,                                \
-                        pchtml_str_res_ansi_replacement_character,             \
-                        sizeof(pchtml_str_res_ansi_replacement_character) - 1))\
+                        pcutils_str_res_ansi_replacement_character,             \
+                        sizeof(pcutils_str_res_ansi_replacement_character) - 1))\
         {                                                                      \
             return end;                                                        \
         }                                                                      \

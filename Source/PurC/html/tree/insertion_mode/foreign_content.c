@@ -160,7 +160,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_foreign_content_text(pchtml_html_tree_t *tree,
                                                   pchtml_html_token_t *token)
 {
-    pchtml_str_t str;
+    pcutils_str_t str;
 
     if (token->null_count != 0) {
         pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_NUCH);
@@ -179,7 +179,7 @@ pchtml_html_tree_insertion_mode_foreign_content_text(pchtml_html_tree_t *tree,
 
     /* Can be zero only if all NULL are gone */
     if (str.length == 0) {
-        pchtml_str_destroy(&str, tree->document->dom_document.text, false);
+        pcutils_str_destroy(&str, tree->document->dom_document.text, false);
 
         return true;
     }
@@ -188,8 +188,8 @@ pchtml_html_tree_insertion_mode_foreign_content_text(pchtml_html_tree_t *tree,
         const unsigned char *pos = str.data;
         const unsigned char *end = str.data + str.length;
 
-        static const unsigned char *rep = pchtml_str_res_ansi_replacement_character;
-        static const unsigned rep_len = sizeof(pchtml_str_res_ansi_replacement_character) - 1;
+        static const unsigned char *rep = pcutils_str_res_ansi_replacement_character;
+        static const unsigned rep_len = sizeof(pcutils_str_res_ansi_replacement_character) - 1;
 
         while (pos != end) {
             /* Need skip U+FFFD REPLACEMENT CHARACTER */

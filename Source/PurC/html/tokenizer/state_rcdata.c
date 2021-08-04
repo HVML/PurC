@@ -210,7 +210,7 @@ pchtml_html_tokenizer_state_rcdata_end_tag_open(pchtml_html_tokenizer_t *tkz,
                                              const unsigned char *data,
                                              const unsigned char *end)
 {
-    if (pchtml_str_res_alpha_character[*data] != PCHTML_STR_RES_SLIP) {
+    if (pcutils_str_res_alpha_character[*data] != PCHTML_STR_RES_SLIP) {
         tkz->temp = data;
         tkz->entity_start = (tkz->pos - 1) - tkz->start;
 
@@ -304,7 +304,7 @@ pchtml_html_tokenizer_state_rcdata_end_tag_name(pchtml_html_tokenizer_t *tkz,
                 return (data + 1);
 
             default:
-                if (pchtml_str_res_alpha_character[*data]
+                if (pcutils_str_res_alpha_character[*data]
                     == PCHTML_STR_RES_SLIP)
                 {
                     pchtml_html_tokenizer_state_append_data_m(tkz, data);

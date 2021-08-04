@@ -175,7 +175,7 @@ pchtml_html_tree_insert_character(pchtml_html_tree_t *tree, pchtml_html_token_t 
 
 unsigned int
 pchtml_html_tree_insert_character_for_data(pchtml_html_tree_t *tree,
-                pchtml_str_t *str, pcedom_node_t **ret_node) WTF_INTERNAL;
+                pcutils_str_t *str, pcedom_node_t **ret_node) WTF_INTERNAL;
 
 pcedom_comment_t *
 pchtml_html_tree_insert_comment(pchtml_html_tree_t *tree,

@@ -48,19 +48,19 @@
 const pcutils_hash_insert_t pcutils_hash_insert_var = {
     .hash = pcutils_hash_make_id,
     .copy = pcutils_hash_copy,
-    .cmp = pchtml_str_data_ncmp
+    .cmp = pcutils_str_data_ncmp
 };
 
 const pcutils_hash_insert_t pcutils_hash_insert_lower_var = {
     .hash = pcutils_hash_make_id_lower,
     .copy = pcutils_hash_copy_lower,
-    .cmp = pchtml_str_data_nlocmp_right
+    .cmp = pcutils_str_data_nlocmp_right
 };
 
 const pcutils_hash_insert_t pcutils_hash_insert_upper_var = {
     .hash = pcutils_hash_make_id_upper,
     .copy = pcutils_hash_copy_upper,
-    .cmp = pchtml_str_data_nupcmp_right
+    .cmp = pcutils_str_data_nupcmp_right
 };
 
 const pcutils_hash_insert_t
@@ -75,17 +75,17 @@ const pcutils_hash_insert_t
 /* Search variable. */
 const pcutils_hash_search_t pcutils_hash_search_var = {
     .hash = pcutils_hash_make_id,
-    .cmp = pchtml_str_data_ncmp
+    .cmp = pcutils_str_data_ncmp
 };
 
 const pcutils_hash_search_t pcutils_hash_search_lower_var = {
     .hash = pcutils_hash_make_id_lower,
-    .cmp = pchtml_str_data_nlocmp_right
+    .cmp = pcutils_str_data_nlocmp_right
 };
 
 const pcutils_hash_search_t pcutils_hash_search_upper_var = {
     .hash = pcutils_hash_make_id_upper,
-    .cmp = pchtml_str_data_nupcmp_right
+    .cmp = pcutils_str_data_nupcmp_right
 };
 
 const pcutils_hash_search_t
@@ -394,7 +394,7 @@ pcutils_hash_make_id_lower(const unsigned char *key, size_t length)
     uint32_t hash_id;
 
     for (i = hash_id = 0; i < length; i++) {
-        hash_id += pchtml_str_res_map_lowercase[ key[i] ];
+        hash_id += pcutils_str_res_map_lowercase[ key[i] ];
         hash_id += (hash_id << 10);
         hash_id ^= (hash_id >> 6);
     }
@@ -413,7 +413,7 @@ pcutils_hash_make_id_upper(const unsigned char *key, size_t length)
     uint32_t hash_id;
 
     for (i = hash_id = 0; i < length; i++) {
-        hash_id += pchtml_str_res_map_uppercase[ key[i] ];
+        hash_id += pcutils_str_res_map_uppercase[ key[i] ];
         hash_id += (hash_id << 10);
         hash_id ^= (hash_id >> 6);
     }
@@ -469,7 +469,7 @@ pcutils_hash_copy_lower(pcutils_hash_t *hash, pcutils_hash_entry_t *entry,
     }
 
     for (size_t i = 0; i < length; i++) {
-        to[i] = pchtml_str_res_map_lowercase[ key[i] ];
+        to[i] = pcutils_str_res_map_lowercase[ key[i] ];
     }
 
     to[length] = '\0';
@@ -496,7 +496,7 @@ pcutils_hash_copy_upper(pcutils_hash_t *hash, pcutils_hash_entry_t *entry,
     }
 
     for (size_t i = 0; i < length; i++) {
-        to[i] = pchtml_str_res_map_uppercase[ key[i] ];
+        to[i] = pcutils_str_res_map_uppercase[ key[i] ];
     }
 
     to[length] = '\0';

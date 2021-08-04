@@ -66,7 +66,7 @@ pchtml_html_serialize_cb(pcedom_node_t *node,
 
 unsigned int
 pchtml_html_serialize_str(pcedom_node_t *node, 
-                pchtml_str_t *str) WTF_INTERNAL;
+                pcutils_str_t *str) WTF_INTERNAL;
 
 unsigned int
 pchtml_html_serialize_tree_cb(pcedom_node_t *node,
@@ -74,7 +74,7 @@ pchtml_html_serialize_tree_cb(pcedom_node_t *node,
 
 unsigned int
 pchtml_html_serialize_tree_str(pcedom_node_t *node, 
-                pchtml_str_t *str) WTF_INTERNAL;
+                pcutils_str_t *str) WTF_INTERNAL;
 
 unsigned int
 pchtml_html_serialize_deep_cb(pcedom_node_t *node,
@@ -82,7 +82,7 @@ pchtml_html_serialize_deep_cb(pcedom_node_t *node,
 
 unsigned int
 pchtml_html_serialize_deep_str(pcedom_node_t *node, 
-                pchtml_str_t *str) WTF_INTERNAL;
+                pcutils_str_t *str) WTF_INTERNAL;
 
 unsigned int
 pchtml_html_serialize_pretty_cb(pcedom_node_t *node,
@@ -92,7 +92,7 @@ pchtml_html_serialize_pretty_cb(pcedom_node_t *node,
 unsigned int
 pchtml_html_serialize_pretty_str(pcedom_node_t *node,
                 pchtml_html_serialize_opt_t opt, size_t indent,
-                pchtml_str_t *str) WTF_INTERNAL;
+                pcutils_str_t *str) WTF_INTERNAL;
 
 #if 0   //gengyue
 unsigned int
@@ -104,7 +104,7 @@ pchtml_html_serialize_pretty_tree_cb(pcedom_node_t *node,
 unsigned int
 pchtml_html_serialize_pretty_tree_str(pcedom_node_t *node,
                 pchtml_html_serialize_opt_t opt, size_t indent,
-                pchtml_str_t *str) WTF_INTERNAL;
+                pcutils_str_t *str) WTF_INTERNAL;
 
 unsigned int
 pchtml_html_serialize_pretty_deep_cb(pcedom_node_t *node,
@@ -114,7 +114,7 @@ pchtml_html_serialize_pretty_deep_cb(pcedom_node_t *node,
 unsigned int
 pchtml_html_serialize_pretty_deep_str(pcedom_node_t *node,
                 pchtml_html_serialize_opt_t opt, size_t indent,
-                pchtml_str_t *str) WTF_INTERNAL;
+                pcutils_str_t *str) WTF_INTERNAL;
 
 #ifdef __cplusplus
 }       /* __cplusplus */

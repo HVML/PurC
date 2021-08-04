@@ -47,7 +47,7 @@ pchtml_html_tree_insertion_mode_in_table_text(pchtml_html_tree_t *tree,
                                            pchtml_html_token_t *token)
 {
     unsigned int status;
-    pchtml_str_t *text;
+    pcutils_str_t *text;
     pcutils_array_obj_t *pt_list = tree->pending_table.text_list;
 
     if (token->tag_id == PCHTML_TAG__TEXT) {
@@ -86,7 +86,7 @@ pchtml_html_tree_insertion_mode_in_table_text(pchtml_html_tree_t *tree,
 
         if (text->length == 0) {
             pcutils_array_obj_pop(pt_list);
-            pchtml_str_destroy(text, tree->document->dom_document.text, false);
+            pcutils_str_destroy(text, tree->document->dom_document.text, false);
 
             return true;
         }
@@ -95,7 +95,7 @@ pchtml_html_tree_insertion_mode_in_table_text(pchtml_html_tree_t *tree,
          * The pchtml_html_token_data_skip_ws_begin function
          * can change token->text_start value.
          */
-        size_t i_pos = pchtml_str_whitespace_from_begin(text);
+        size_t i_pos = pcutils_str_whitespace_from_begin(text);
 
         if (i_pos != text->length) {
             if (!tree->pending_table.have_non_ws) {
@@ -147,12 +147,12 @@ pchtml_html_tree_insertion_mode_in_table_text(pchtml_html_tree_t *tree,
 static void
 pchtml_html_tree_insertion_mode_in_table_text_erase(pchtml_html_tree_t *tree)
 {
-    pchtml_str_t *text;
+    pcutils_str_t *text;
     pcutils_array_obj_t *pt_list = tree->pending_table.text_list;
 
     for (size_t i = 0; i < pcutils_array_obj_length(pt_list); i++) {
         text = pcutils_array_obj_get(pt_list, i);
 
-        pchtml_str_destroy(text, tree->document->dom_document.text, false);
+        pcutils_str_destroy(text, tree->document->dom_document.text, false);
     }
 }

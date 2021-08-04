@@ -41,11 +41,11 @@
 extern "C" {
 #endif
 
-#define pchtml_str_get(str, attr) str->attr
-#define pchtml_str_set(str, attr) pchtml_str_get(str, attr)
-#define pchtml_str_len(str) pchtml_str_get(str, length)
+#define pcutils_str_get(str, attr) str->attr
+#define pcutils_str_set(str, attr) pcutils_str_get(str, attr)
+#define pcutils_str_len(str) pcutils_str_get(str, length)
 
-#define pchtml_str_check_size_arg_m(str, size, mraw, plus_len, return_fail)    \
+#define pcutils_str_check_size_arg_m(str, size, mraw, plus_len, return_fail)    \
     do {                                                                       \
         void *tmp;                                                             \
                                                                                \
@@ -70,75 +70,75 @@ typedef struct {
     unsigned char *data;
     size_t     length;
 }
-pchtml_str_t;
+pcutils_str_t;
 
 
-pchtml_str_t *
-pchtml_str_create(void) WTF_INTERNAL;
+pcutils_str_t *
+pcutils_str_create(void) WTF_INTERNAL;
 
 unsigned char *
-pchtml_str_init(pchtml_str_t *str, pcutils_mraw_t *mraw, 
+pcutils_str_init(pcutils_str_t *str, pcutils_mraw_t *mraw, 
                 size_t size) WTF_INTERNAL;
 
 void
-pchtml_str_clean(pchtml_str_t *str) WTF_INTERNAL;
+pcutils_str_clean(pcutils_str_t *str) WTF_INTERNAL;
 
 void
-pchtml_str_clean_all(pchtml_str_t *str) WTF_INTERNAL;
+pcutils_str_clean_all(pcutils_str_t *str) WTF_INTERNAL;
 
-pchtml_str_t *
-pchtml_str_destroy(pchtml_str_t *str, pcutils_mraw_t *mraw, 
+pcutils_str_t *
+pcutils_str_destroy(pcutils_str_t *str, pcutils_mraw_t *mraw, 
                 bool destroy_obj) WTF_INTERNAL;
 
 
 unsigned char *
-pchtml_str_realloc(pchtml_str_t *str, pcutils_mraw_t *mraw, 
+pcutils_str_realloc(pcutils_str_t *str, pcutils_mraw_t *mraw, 
                 size_t new_size) WTF_INTERNAL;
 
 unsigned char *
-pchtml_str_check_size(pchtml_str_t *str, pcutils_mraw_t *mraw, 
+pcutils_str_check_size(pcutils_str_t *str, pcutils_mraw_t *mraw, 
                 size_t plus_len) WTF_INTERNAL;
 
 /* Append */
 unsigned char *
-pchtml_str_append(pchtml_str_t *str, pcutils_mraw_t *mraw,
+pcutils_str_append(pcutils_str_t *str, pcutils_mraw_t *mraw,
                 const unsigned char *data, size_t length) WTF_INTERNAL;
 
 unsigned char *
-pchtml_str_append_before(pchtml_str_t *str, pcutils_mraw_t *mraw,
+pcutils_str_append_before(pcutils_str_t *str, pcutils_mraw_t *mraw,
                 const unsigned char *buff, size_t length) WTF_INTERNAL;
 
 unsigned char *
-pchtml_str_append_one(pchtml_str_t *str, pcutils_mraw_t *mraw,
+pcutils_str_append_one(pcutils_str_t *str, pcutils_mraw_t *mraw,
                 const unsigned char data) WTF_INTERNAL;
 
 unsigned char *
-pchtml_str_append_lowercase(pchtml_str_t *str, pcutils_mraw_t *mraw,
+pcutils_str_append_lowercase(pcutils_str_t *str, pcutils_mraw_t *mraw,
                 const unsigned char *data, size_t length) WTF_INTERNAL;
 
 unsigned char *
-pchtml_str_append_with_rep_null_chars(pchtml_str_t *str, pcutils_mraw_t *mraw,
+pcutils_str_append_with_rep_null_chars(pcutils_str_t *str, pcutils_mraw_t *mraw,
                 const unsigned char *buff, size_t length) WTF_INTERNAL;
 
 /* Other functions */
 unsigned char *
-pchtml_str_copy(pchtml_str_t *dest, const pchtml_str_t *target,
+pcutils_str_copy(pcutils_str_t *dest, const pcutils_str_t *target,
                 pcutils_mraw_t *mraw) WTF_INTERNAL;
 
 void
-pchtml_str_stay_only_whitespace(pchtml_str_t *target) WTF_INTERNAL;
+pcutils_str_stay_only_whitespace(pcutils_str_t *target) WTF_INTERNAL;
 
 void
-pchtml_str_strip_collapse_whitespace(pchtml_str_t *target) WTF_INTERNAL;
+pcutils_str_strip_collapse_whitespace(pcutils_str_t *target) WTF_INTERNAL;
 
 size_t
-pchtml_str_crop_whitespace_from_begin(pchtml_str_t *target) WTF_INTERNAL;
+pcutils_str_crop_whitespace_from_begin(pcutils_str_t *target) WTF_INTERNAL;
 
 size_t
-pchtml_str_whitespace_from_begin(pchtml_str_t *target) WTF_INTERNAL;
+pcutils_str_whitespace_from_begin(pcutils_str_t *target) WTF_INTERNAL;
 
 size_t
-pchtml_str_whitespace_from_end(pchtml_str_t *target) WTF_INTERNAL;
+pcutils_str_whitespace_from_end(pcutils_str_t *target) WTF_INTERNAL;
 
 
 /* Data utils */
@@ -154,59 +154,59 @@ pchtml_str_whitespace_from_end(pchtml_str_t *target) WTF_INTERNAL;
  * If function returns NULL, the data are not equal.
  */
 const unsigned char *
-pchtml_str_data_ncasecmp_first(const unsigned char *first, const unsigned char *sec,
+pcutils_str_data_ncasecmp_first(const unsigned char *first, const unsigned char *sec,
                 size_t sec_size) WTF_INTERNAL;
 bool
-pchtml_str_data_ncasecmp_end(const unsigned char *first, const unsigned char *sec,
+pcutils_str_data_ncasecmp_end(const unsigned char *first, const unsigned char *sec,
                 size_t size) WTF_INTERNAL;
 bool
-pchtml_str_data_ncasecmp_contain(const unsigned char *where, size_t where_size,
+pcutils_str_data_ncasecmp_contain(const unsigned char *where, size_t where_size,
                 const unsigned char *what, size_t what_size) WTF_INTERNAL;
 bool
-pchtml_str_data_ncasecmp(const unsigned char *first, const unsigned char *sec,
+pcutils_str_data_ncasecmp(const unsigned char *first, const unsigned char *sec,
                 size_t size) WTF_INTERNAL;
 bool
-pchtml_str_data_nlocmp_right(const unsigned char *first, const unsigned char *sec,
+pcutils_str_data_nlocmp_right(const unsigned char *first, const unsigned char *sec,
                 size_t size) WTF_INTERNAL;
 bool
-pchtml_str_data_nupcmp_right(const unsigned char *first, const unsigned char *sec,
+pcutils_str_data_nupcmp_right(const unsigned char *first, const unsigned char *sec,
                 size_t size) WTF_INTERNAL;
 bool
-pchtml_str_data_casecmp(const unsigned char *first, 
+pcutils_str_data_casecmp(const unsigned char *first, 
                 const unsigned char *sec) WTF_INTERNAL;
 
 bool
-pchtml_str_data_ncmp_end(const unsigned char *first, const unsigned char *sec,
+pcutils_str_data_ncmp_end(const unsigned char *first, const unsigned char *sec,
                 size_t size) WTF_INTERNAL;
 bool
-pchtml_str_data_ncmp_contain(const unsigned char *where, size_t where_size,
+pcutils_str_data_ncmp_contain(const unsigned char *where, size_t where_size,
                 const unsigned char *what, size_t what_size) WTF_INTERNAL;
 bool
-pchtml_str_data_ncmp(const unsigned char *first, const unsigned char *sec,
+pcutils_str_data_ncmp(const unsigned char *first, const unsigned char *sec,
                 size_t size) WTF_INTERNAL;
 
 bool
-pchtml_str_data_cmp(const unsigned char *first, 
+pcutils_str_data_cmp(const unsigned char *first, 
                 const unsigned char *sec) WTF_INTERNAL;
 
 bool
-pchtml_str_data_cmp_ws(const unsigned char *first, 
+pcutils_str_data_cmp_ws(const unsigned char *first, 
                 const unsigned char *sec) WTF_INTERNAL;
 
 void
-pchtml_str_data_to_lowercase(unsigned char *to, const unsigned char *from, 
+pcutils_str_data_to_lowercase(unsigned char *to, const unsigned char *from, 
                 size_t len) WTF_INTERNAL;
 
 void
-pchtml_str_data_to_uppercase(unsigned char *to, const unsigned char *from, 
+pcutils_str_data_to_uppercase(unsigned char *to, const unsigned char *from, 
                 size_t len) WTF_INTERNAL;
 
 const unsigned char *
-pchtml_str_data_find_lowercase(const unsigned char *data, 
+pcutils_str_data_find_lowercase(const unsigned char *data, 
                 size_t len) WTF_INTERNAL;
 
 const unsigned char *
-pchtml_str_data_find_uppercase(const unsigned char *data, 
+pcutils_str_data_find_uppercase(const unsigned char *data, 
                 size_t len) WTF_INTERNAL;
 
 
@@ -214,36 +214,36 @@ pchtml_str_data_find_uppercase(const unsigned char *data,
  * Inline functions
  */
 static inline unsigned char *
-pchtml_str_data(pchtml_str_t *str)
+pcutils_str_data(pcutils_str_t *str)
 {
     return str->data;
 }
 
 static inline size_t
-pchtml_str_length(pchtml_str_t *str)
+pcutils_str_length(pcutils_str_t *str)
 {
     return str->length;
 }
 
 static inline size_t
-pchtml_str_size(pchtml_str_t *str)
+pcutils_str_size(pcutils_str_t *str)
 {
     return pcutils_mraw_data_size(str->data);
 }
 
 static inline void
-pchtml_str_data_set(pchtml_str_t *str, unsigned char *data)
+pcutils_str_data_set(pcutils_str_t *str, unsigned char *data)
 {
     str->data = data;
 }
 
 static inline unsigned char *
-pchtml_str_length_set(pchtml_str_t *str, pcutils_mraw_t *mraw, size_t length)
+pcutils_str_length_set(pcutils_str_t *str, pcutils_mraw_t *mraw, size_t length)
 {
-    if (length >= pchtml_str_size(str)) {
+    if (length >= pcutils_str_size(str)) {
         unsigned char *tmp;
 
-        tmp = pchtml_str_realloc(str, mraw, length + 1);
+        tmp = pcutils_str_realloc(str, mraw, length + 1);
         if (tmp == NULL) {
             return NULL;
         }

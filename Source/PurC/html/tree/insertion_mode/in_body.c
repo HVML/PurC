@@ -109,7 +109,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_text(pchtml_html_tree_t *tree,
                                           pchtml_html_token_t *token)
 {
-    pchtml_str_t str;
+    pcutils_str_t str;
 
     if (token->null_count != 0) {
         pchtml_html_tree_parse_error(tree, token,
@@ -129,7 +129,7 @@ pchtml_html_tree_insertion_mode_in_body_text(pchtml_html_tree_t *tree,
 
     /* Can be zero only if all NULL are gone */
     if (str.length == 0) {
-        pchtml_str_destroy(&str, tree->document->dom_document.text, false);
+        pcutils_str_destroy(&str, tree->document->dom_document.text, false);
 
         return true;
     }
@@ -144,7 +144,7 @@ pchtml_html_tree_insertion_mode_in_body_text(pchtml_html_tree_t *tree,
 
 unsigned int
 pchtml_html_tree_insertion_mode_in_body_text_append(pchtml_html_tree_t *tree,
-                                                 pchtml_str_t *str)
+                                                 pcutils_str_t *str)
 {
     tree->status = pchtml_html_tree_active_formatting_reconstruct_elements(tree);
     if (tree->status != PCHTML_STATUS_OK) {
@@ -1281,7 +1281,7 @@ pchtml_html_tree_insertion_mode_in_body_input(pchtml_html_tree_t *tree,
                                          (unsigned char *) "type", 4);
     if (attr != NULL) {
         if (attr->value == NULL || attr->value->length != 6
-            || pchtml_str_data_cmp(attr->value->data, (unsigned char *) "hidden") == false)
+            || pcutils_str_data_cmp(attr->value->data, (unsigned char *) "hidden") == false)
         {
             tree->frameset_ok = false;
         }

@@ -56,7 +56,7 @@ pcedom_text_interface_create(pcedom_document_t *document)
 pcedom_text_t *
 pcedom_text_interface_destroy(pcedom_text_t *text)
 {
-    pchtml_str_destroy(&text->char_data.data,
+    pcutils_str_destroy(&text->char_data.data,
                        pcedom_interface_node(text)->owner_document->text, false);
 
     return pcutils_mraw_free(

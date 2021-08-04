@@ -64,7 +64,7 @@
 
 
 typedef struct {
-    pchtml_str_t  *str;
+    pcutils_str_t  *str;
     pcutils_mraw_t *mraw;
 }
 pchtml_html_serialize_ctx_t;
@@ -196,12 +196,12 @@ pchtml_html_serialize_cb(pcedom_node_t *node,
 }
 
 unsigned int
-pchtml_html_serialize_str(pcedom_node_t *node, pchtml_str_t *str)
+pchtml_html_serialize_str(pcedom_node_t *node, pcutils_str_t *str)
 {
     pchtml_html_serialize_ctx_t ctx;
 
     if (str->data == NULL) {
-        pchtml_str_init(str, node->owner_document->text, 1024);
+        pcutils_str_init(str, node->owner_document->text, 1024);
 
         if (str->data == NULL) {
             pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
@@ -221,7 +221,7 @@ pchtml_html_serialize_str_callback(const unsigned char *data, size_t len, void *
     unsigned char *ret;
     pchtml_html_serialize_ctx_t *s_ctx = ctx;
 
-    ret = pchtml_str_append(s_ctx->str, s_ctx->mraw, data, len);
+    ret = pcutils_str_append(s_ctx->str, s_ctx->mraw, data, len);
     if (ret == NULL) {
         pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
@@ -251,12 +251,12 @@ pchtml_html_serialize_deep_cb(pcedom_node_t *node,
 }
 
 unsigned int
-pchtml_html_serialize_deep_str(pcedom_node_t *node, pchtml_str_t *str)
+pchtml_html_serialize_deep_str(pcedom_node_t *node, pcutils_str_t *str)
 {
     pchtml_html_serialize_ctx_t ctx;
 
     if (str->data == NULL) {
-        pchtml_str_init(str, node->owner_document->text, 1024);
+        pcutils_str_init(str, node->owner_document->text, 1024);
 
         if (str->data == NULL) {
             pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
@@ -427,7 +427,7 @@ pchtml_html_serialize_text_cb(pcedom_text_t *text,
 
     pcedom_node_t *node = pcedom_interface_node(text);
     pcedom_document_t *doc = node->owner_document;
-    pchtml_str_t *data = &text->char_data.data;
+    pcutils_str_t *data = &text->char_data.data;
 
     switch (node->parent->local_name) {
         case PCHTML_TAG_STYLE:
@@ -463,7 +463,7 @@ pchtml_html_serialize_comment_cb(pcedom_comment_t *comment,
                               pchtml_html_serialize_cb_f cb, void *ctx)
 {
     unsigned int status;
-    pchtml_str_t *data = &comment->char_data.data;
+    pcutils_str_t *data = &comment->char_data.data;
 
     pchtml_html_serialize_send("<!--", 4, ctx);
     pchtml_html_serialize_send(data->data, data->length, ctx);
@@ -478,7 +478,7 @@ pchtml_html_serialize_processing_instruction_cb(pcedom_processing_instruction_t 
                                              void *ctx)
 {
     unsigned int status;
-    pchtml_str_t *data = &pi->char_data.data;
+    pcutils_str_t *data = &pi->char_data.data;
 
     pchtml_html_serialize_send("<?", 2, ctx);
     pchtml_html_serialize_send(pi->target.data, pi->target.length, ctx);
@@ -765,7 +765,7 @@ pchtml_html_serialize_attribute_cb(pcedom_attr_t *attr, bool has_raw,
     if (attr->node.ns == PCHTML_NS_XMLNS)
     {
         if (data->entry.length == 5
-            && pchtml_str_data_cmp(pcutils_hash_entry_str(&data->entry),
+            && pcutils_str_data_cmp(pcutils_hash_entry_str(&data->entry),
                                    (const unsigned char *) "xmlns"))
         {
             pchtml_html_serialize_send((const unsigned char *) "xmlns", 5, ctx);
@@ -902,12 +902,12 @@ pchtml_html_serialize_pretty_cb(pcedom_node_t *node,
 unsigned int
 pchtml_html_serialize_pretty_str(pcedom_node_t *node,
                               pchtml_html_serialize_opt_t opt, size_t indent,
-                              pchtml_str_t *str)
+                              pcutils_str_t *str)
 {
     pchtml_html_serialize_ctx_t ctx;
 
     if (str->data == NULL) {
-        pchtml_str_init(str, node->owner_document->text, 1024);
+        pcutils_str_init(str, node->owner_document->text, 1024);
 
         if (str->data == NULL) {
             pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
@@ -946,12 +946,12 @@ pchtml_html_serialize_pretty_deep_cb(pcedom_node_t *node,
 unsigned int
 pchtml_html_serialize_pretty_deep_str(pcedom_node_t *node,
                                    pchtml_html_serialize_opt_t opt, size_t indent,
-                                   pchtml_str_t *str)
+                                   pcutils_str_t *str)
 {
     pchtml_html_serialize_ctx_t ctx;
 
     if (str->data == NULL) {
-        pchtml_str_init(str, node->owner_document->text, 1024);
+        pcutils_str_init(str, node->owner_document->text, 1024);
 
         if (str->data == NULL) {
             pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
@@ -1158,7 +1158,7 @@ pchtml_html_serialize_pretty_text_cb(pcedom_text_t *text,
     unsigned int status;
     pcedom_node_t *node = pcedom_interface_node(text);
     pcedom_document_t *doc = node->owner_document;
-    pchtml_str_t *data = &text->char_data.data;
+    pcutils_str_t *data = &text->char_data.data;
 
     bool with_indent = (opt & PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT) == 0;
 
@@ -1320,12 +1320,12 @@ pchtml_html_serialize_tree_cb(pcedom_node_t *node,
 }
 
 unsigned int
-pchtml_html_serialize_tree_str(pcedom_node_t *node, pchtml_str_t *str)
+pchtml_html_serialize_tree_str(pcedom_node_t *node, pcutils_str_t *str)
 {
     pchtml_html_serialize_ctx_t ctx;
 
     if (str->data == NULL) {
-        pchtml_str_init(str, node->owner_document->text, 1024);
+        pcutils_str_init(str, node->owner_document->text, 1024);
 
         if (str->data == NULL) {
             pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
@@ -1367,12 +1367,12 @@ pchtml_html_serialize_pretty_tree_cb(pcedom_node_t *node,
 unsigned int
 pchtml_html_serialize_pretty_tree_str(pcedom_node_t *node,
                                    pchtml_html_serialize_opt_t opt, size_t indent,
-                                   pchtml_str_t *str)
+                                   pcutils_str_t *str)
 {
     pchtml_html_serialize_ctx_t ctx;
 
     if (str->data == NULL) {
-        pchtml_str_init(str, node->owner_document->text, 1024);
+        pcutils_str_init(str, node->owner_document->text, 1024);
 
         if (str->data == NULL) {
             pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);

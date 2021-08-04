@@ -45,14 +45,14 @@
 #ifndef PCHTML_STR_RES_ANSI_REPLACEMENT_CHARACTER_ENABLED
 #define PCHTML_STR_RES_ANSI_REPLACEMENT_CHARACTER_ENABLED
 static const unsigned char
-pchtml_str_res_ansi_replacement_character[] = "\xEF\xBF\xBD";
+pcutils_str_res_ansi_replacement_character[] = "\xEF\xBF\xBD";
 #endif /* PCHTML_STR_RES_ANSI_REPLACEMENT_CHARACTER_ENABLED */
 #endif /* PCHTML_STR_RES_ANSI_REPLACEMENT_CHARACTER */
 
 #ifdef PCHTML_STR_RES_MAP_NUM
 #ifndef PCHTML_STR_RES_MAP_NUM_ENABLED
 #define PCHTML_STR_RES_MAP_NUM_ENABLED
-static const unsigned char pchtml_str_res_map_num[] = {
+static const unsigned char pcutils_str_res_map_num[] = {
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -90,7 +90,7 @@ static const unsigned char pchtml_str_res_map_num[] = {
 #ifdef PCHTML_STR_RES_MAP_HEX
 #ifndef PCHTML_STR_RES_MAP_HEX_ENABLED
 #define PCHTML_STR_RES_MAP_HEX_ENABLED
-static const unsigned char pchtml_str_res_map_hex[] = {
+static const unsigned char pcutils_str_res_map_hex[] = {
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -128,7 +128,7 @@ static const unsigned char pchtml_str_res_map_hex[] = {
 #ifdef PCHTML_STR_RES_MAP_LOWERCASE
 #ifndef PCHTML_STR_RES_MAP_LOWERCASE_ENABLED
 #define PCHTML_STR_RES_MAP_LOWERCASE_ENABLED
-static const unsigned char pchtml_str_res_map_lowercase[] = {
+static const unsigned char pcutils_str_res_map_lowercase[] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
     0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11,
     0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a,
@@ -166,7 +166,7 @@ static const unsigned char pchtml_str_res_map_lowercase[] = {
 #ifdef PCHTML_STR_RES_MAP_UPPERCASE
 #ifndef PCHTML_STR_RES_MAP_UPPERCASE_ENABLED
 #define PCHTML_STR_RES_MAP_UPPERCASE_ENABLED
-static const unsigned char pchtml_str_res_map_uppercase[] = {
+static const unsigned char pcutils_str_res_map_uppercase[] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
     0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11,
     0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a,
@@ -204,7 +204,7 @@ static const unsigned char pchtml_str_res_map_uppercase[] = {
 #ifdef PCHTML_STR_RES_REPLACEMENT_CHARACTER
 #ifndef PCHTML_STR_RES_REPLACEMENT_CHARACTER_ENABLED
 #define PCHTML_STR_RES_REPLACEMENT_CHARACTER_ENABLED
-static const size_t pchtml_str_res_replacement_character[] = {
+static const size_t pcutils_str_res_replacement_character[] = {
     65533, 1, 2, 3, 4, 5, 6, 7, 8,
     9, 10, 11, 12, 13, 14, 15, 16, 17,
     18, 19, 20, 21, 22, 23, 24, 25, 26,
@@ -231,7 +231,7 @@ static const size_t pchtml_str_res_replacement_character[] = {
 #ifdef PCHTML_STR_RES_ALPHANUMERIC_CHARACTER
 #ifndef PCHTML_STR_RES_ALPHANUMERIC_CHARACTER_ENABLED
 #define PCHTML_STR_RES_ALPHANUMERIC_CHARACTER_ENABLED
-static const size_t pchtml_str_res_alphanumeric_character[] = {
+static const size_t pcutils_str_res_alphanumeric_character[] = {
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -269,7 +269,7 @@ static const size_t pchtml_str_res_alphanumeric_character[] = {
 #ifdef PCHTML_STR_RES_ALPHA_CHARACTER
 #ifndef PCHTML_STR_RES_ALPHA_CHARACTER_ENABLED
 #define PCHTML_STR_RES_ALPHA_CHARACTER_ENABLED
-static const size_t pchtml_str_res_alpha_character[] = {
+static const size_t pcutils_str_res_alpha_character[] = {
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -345,7 +345,7 @@ static const unsigned char pchtml_tokenizer_chars_map[] = {
 #ifdef PCHTML_STR_RES_MAP_HEX_TO_CHAR
 #ifndef PCHTML_STR_RES_MAP_HEX_TO_CHAR_ENABLED
 #define PCHTML_STR_RES_MAP_HEX_TO_CHAR_ENABLED
-static const unsigned char pchtml_str_res_map_hex_to_char[] = {
+static const unsigned char pcutils_str_res_map_hex_to_char[] = {
     0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38,
     0x39, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x00
 };
@@ -356,7 +356,7 @@ static const unsigned char pchtml_str_res_map_hex_to_char[] = {
 #ifdef PCHTML_STR_RES_CHAR_TO_TWO_HEX_VALUE
 #ifndef PCHTML_STR_RES_CHAR_TO_TWO_HEX_VALUE_ENABLED
 #define PCHTML_STR_RES_CHAR_TO_TWO_HEX_VALUE_ENABLED
-static const char * pchtml_str_res_char_to_two_hex_value[257] = {
+static const char * pcutils_str_res_char_to_two_hex_value[257] = {
     "00", "01", "02", "03", "04", "05", "06", "07",
     "08", "09", "0A", "0B", "0C", "0D", "0E", "0F",
     "10", "11", "12", "13", "14", "15", "16", "17",

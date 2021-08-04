@@ -59,7 +59,7 @@ pcedom_character_data_interface_create(pcedom_document_t *document)
 pcedom_character_data_t *
 pcedom_character_data_interface_destroy(pcedom_character_data_t *character_data)
 {
-    pchtml_str_destroy(&character_data->data,
+    pcutils_str_destroy(&character_data->data,
                        pcedom_interface_node(character_data)->owner_document->text,
                        false);
 
@@ -78,16 +78,16 @@ pcedom_character_data_replace(pcedom_character_data_t *ch_data,
     UNUSED_PARAM(count);
 
     if (ch_data->data.data == NULL) {
-        pchtml_str_init(&ch_data->data, ch_data->node.owner_document->text, len);
+        pcutils_str_init(&ch_data->data, ch_data->node.owner_document->text, len);
         if (ch_data->data.data == NULL) {
             pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
     }
-    else if (pchtml_str_size(&ch_data->data) < len) {
+    else if (pcutils_str_size(&ch_data->data) < len) {
         const unsigned char *data;
 
-        data = pchtml_str_realloc(&ch_data->data,
+        data = pcutils_str_realloc(&ch_data->data,
                                   ch_data->node.owner_document->text, (len + 1));
         if (data == NULL) {
             pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);

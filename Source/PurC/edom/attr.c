@@ -176,7 +176,7 @@ pcedom_attr_set_value(pcedom_attr_t *attr,
     pcedom_document_t *doc = pcedom_interface_node(attr)->owner_document;
 
     if (attr->value == NULL) {
-        attr->value = pcutils_mraw_calloc(doc->mraw, sizeof(pchtml_str_t));
+        attr->value = pcutils_mraw_calloc(doc->mraw, sizeof(pcutils_str_t));
         if (attr->value == NULL) {
             pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
@@ -184,7 +184,7 @@ pcedom_attr_set_value(pcedom_attr_t *attr,
     }
 
     if (attr->value->data == NULL) {
-        pchtml_str_init(attr->value, doc->text, value_len);
+        pcutils_str_init(attr->value, doc->text, value_len);
         if (attr->value->data == NULL) {
             pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
@@ -193,10 +193,10 @@ pcedom_attr_set_value(pcedom_attr_t *attr,
     else {
         attr->value->length = 0;
 
-        if (pchtml_str_size(attr->value) <= value_len) {
+        if (pcutils_str_size(attr->value) <= value_len) {
             const unsigned char *tmp;
 
-            tmp = pchtml_str_realloc(attr->value, doc->text, (value_len + 1));
+            tmp = pcutils_str_realloc(attr->value, doc->text, (value_len + 1));
             if (tmp == NULL) {
                 pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
                 return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
@@ -219,7 +219,7 @@ pcedom_attr_set_value_wo_copy(pcedom_attr_t *attr,
     if (attr->value == NULL) {
         pcedom_document_t *doc = pcedom_interface_node(attr)->owner_document;
 
-        attr->value = pcutils_mraw_alloc(doc->mraw, sizeof(pchtml_str_t));
+        attr->value = pcutils_mraw_alloc(doc->mraw, sizeof(pcutils_str_t));
         if (attr->value == NULL) {
             pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
@@ -266,7 +266,7 @@ pcedom_attr_compare(pcedom_attr_t *first, pcedom_attr_t *second)
 
         if (second->value != NULL
             && first->value->length == second->value->length
-            && pchtml_str_data_ncmp(first->value->data, second->value->data,
+            && pcutils_str_data_ncmp(first->value->data, second->value->data,
                                     first->value->length))
         {
             return true;
