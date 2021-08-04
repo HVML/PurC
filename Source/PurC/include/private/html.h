@@ -34,6 +34,7 @@
 
 #include "config.h"
 #include "private/edom.h"
+#include "purc-rwstream.h"
 
 #include <assert.h>
 
@@ -73,6 +74,25 @@ unsigned int
 pchtml_html_serialize_pretty_tree_cb(pcedom_node_t *node,
                 int opt, size_t indent,
                 pchtml_html_serialize_cb_f cb, void *ctx) ;
+
+
+struct purc_html_document;
+typedef struct purc_html_document  purc_html_document;
+typedef struct purc_html_document *purc_html_document_t;
+
+struct purc_html_dom_node;
+typedef struct purc_html_dom_node  purc_html_dom_node;
+typedef struct purc_html_dom_node *purc_html_dom_node_t;
+
+
+purc_html_document_t
+purc_html_doc_load_from_stream(purc_rwstream_t in);
+
+int
+purc_html_doc_write_to_stream(purc_html_document_t doc, purc_rwstream_t out);
+
+int
+purc_html_doc_destroy(purc_html_document_t doc);
 
 
 #ifdef __cplusplus

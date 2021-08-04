@@ -31,7 +31,6 @@
 
 #include "config.h"
 
-#include "purc-html-parser.h"
 #include "purc-errors.h"
 #include "purc-macros.h"
 
