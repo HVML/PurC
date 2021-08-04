@@ -33,7 +33,7 @@
 
 #include "private/edom.h"
 
-#include "html/mraw.h"
+#include "private/mraw.h"
 #include "html/html_interface.h"
 #include "html/interfaces/document.h"
 

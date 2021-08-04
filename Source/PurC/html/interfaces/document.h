@@ -34,7 +34,7 @@
 #define PCHTML_HTML_DOCUMENT_H
 
 #include "config.h"
-#include "html/mraw.h"
+#include "private/mraw.h"
 
 #include "html/tag.h"
 #include "html/ns.h"

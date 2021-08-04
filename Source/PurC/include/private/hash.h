@@ -35,7 +35,7 @@
 
 #include "config.h"
 #include "private/dobject.h"
-#include "html/mraw.h"
+#include "private/mraw.h"
 
 #define PCHTML_HASH_SHORT_SIZE     16
 #define PCHTML_HASH_TABLE_MIN_SIZE 32

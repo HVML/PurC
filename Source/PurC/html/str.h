@@ -36,7 +36,7 @@
 #include "config.h"
 
 #include "html/base.h"
-#include "html/mraw.h"
+#include "private/mraw.h"
 
 #ifdef __cplusplus
 extern "C" {
