@@ -1,10 +1,29 @@
+include(PurCCommon)
+include(target/PurC)
+include(GoogleTest)
 
 enable_testing()
 
-include_directories(${PURC_DIR}/include)
-link_directories(${CMAKE_BINARY_DIR}/Source/PurC/)
-add_executable(test_tree test_tree.cpp)
-target_link_libraries(test_tree purc gtest_main gtest pthread)
+# test_tree
+PURC_EXECUTABLE_DECLARE(test_tree)
 
-include(GoogleTest)
-gtest_discover_tests(test_tree)
+list(APPEND test_tree_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+)
+
+PURC_EXECUTABLE(test_tree)
+
+set(test_tree_SOURCES
+    test_tree.cpp
+)
+
+set(test_tree_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_tree)
+PURC_FRAMEWORK(test_tree)
+GTEST_DISCOVER_TESTS(test_tree)

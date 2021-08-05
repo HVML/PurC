@@ -33,12 +33,14 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define PCEJSON_MAX_DEPTH 32
+
 #if 1
 #define PRINT_STATE(state_name)
 #else
 #define PRINT_STATE(state_name)                                           \
-    fprintf(stderr, "in %s|wc=%c\n", pcejson_ejson_state_desc(state_name), \
-            ejson->wc);
+    fprintf(stderr, "in %s|wc=%c|hex=%x\n",                               \
+            pcejson_ejson_state_desc(state_name),  ejson->wc, ejson->wc);
 #endif
 
 #define BEGIN_STATE(state_name)                                  \
@@ -141,6 +143,7 @@ struct pcejson {
     enum ejson_state state;
     enum ejson_state return_state;
     int32_t depth;
+    int32_t max_depth;
     uint32_t flags;
     struct pcutils_stack* stack;
     struct pcutils_stack* vcm_stack;

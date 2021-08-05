@@ -81,6 +81,7 @@ int to_error(const char* err)
     TO_ERROR(PCEJSON_ERROR_BAD_JSON);
     TO_ERROR(PCEJSON_ERROR_BAD_JSON_STRING_ESCAPE_ENTITY);
     TO_ERROR(PCEJSON_ERROR_UNEXPECTED_EOF);
+    TO_ERROR(PCEJSON_ERROR_MAX_DEPTH_EXCEEDED);
     return -1;
 }
 
@@ -249,6 +250,6 @@ std::vector<ejson_test_data> read_ejson_test_data()
     return vec;
 }
 
-INSTANTIATE_TEST_CASE_P(ejson, ejson_parser_vcm_eval,
+INSTANTIATE_TEST_SUITE_P(ejson, ejson_parser_vcm_eval,
         testing::ValuesIn(read_ejson_test_data()));
 

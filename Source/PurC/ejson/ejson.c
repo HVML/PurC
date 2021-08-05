@@ -81,14 +81,16 @@ static const char* ejson_err_msgs[] = {
     "pcejson unexpected json keyword parse error",
     /* PCEJSON_ERROR_UNEXPECTED_BASE64 */
     "pcejson unexpected base64 parse error",
+    /* PCEJSON_ERROR_UNEXPECTED_EOF */
+    "pcejson unexpected eof parse error",
     /* PCEJSON_ERROR_BAD_JSON_NUMBER */
     "pcejson bad json number parse error",
-    /* PCEJSON_ERROR_BAD_JSON */
-    "pcejson bad json parse error",
     /* PCEJSON_ERROR_BAD_JSON_STRING_ESCAPE_ENTITY */
     "pcejson bad json string escape entity parse error",
-    /* PCEJSON_ERROR_UNEXPECTED_EOF */
-    "pcejson eof in string parse error",
+    /* PCEJSON_ERROR_BAD_JSON */
+    "pcejson bad json parse error",
+    /* PCEJSON_ERROR_MAX_DEPTH_EXCEEDED */
+    "pcejson max depth exceeded",
 };
 
 static struct err_msg_seg _ejson_err_msgs_seg = {
@@ -180,7 +182,8 @@ struct pcejson* pcejson_create (int32_t depth, uint32_t flags)
     struct pcejson* parser = (struct pcejson*) ejson_alloc (
             sizeof(struct pcejson));
     parser->state = EJSON_INIT_STATE;
-    parser->depth = depth;
+    parser->max_depth = depth;
+    parser->depth = 0;
     parser->flags = flags;
     parser->stack = pcutils_stack_new(2 * depth);
     parser->vcm_stack = pcutils_stack_new(0);
@@ -201,6 +204,18 @@ void pcejson_destroy (struct pcejson* parser)
         ejson_free(parser);
     }
 }
+
+bool pcejson_inc_depth (struct pcejson* parser)
+{
+    parser->depth++;
+    return parser->depth <= parser->max_depth;
+}
+
+void pcejson_dec_depth (struct pcejson* parser)
+{
+    parser->depth--;
+}
+
 
 void pcejson_tmp_buff_reset (purc_rwstream_t rws)
 {
@@ -275,7 +290,8 @@ char pcejson_tmp_buff_last_char (purc_rwstream_t rws) {
 void pcejson_reset (struct pcejson* parser, int32_t depth, uint32_t flags)
 {
     parser->state = EJSON_INIT_STATE;
-    parser->depth = depth;
+    parser->max_depth = depth;
+    parser->depth = 0;
     parser->flags = flags;
     pcejson_tmp_buff_reset (parser->tmp_buff);
     pcejson_tmp_buff_reset (parser->tmp_buff2);
@@ -364,7 +380,7 @@ int pcejson_parse (struct pcvcm_node** vcm_tree, struct pcejson** parser,
     bool has_param_parser = true;
     if (*parser == NULL) {
         has_param_parser = false;
-        *parser = pcejson_create (10, 1);
+        *parser = pcejson_create (PCEJSON_MAX_DEPTH, 1);
     }
 
     struct pcutils_stack* node_stack = (*parser)->vcm_stack;
@@ -393,6 +409,10 @@ int pcejson_parse (struct pcvcm_node** vcm_tree, struct pcejson** parser,
         }
         token = pcejson_next_token(*parser, rws);
         error = purc_get_last_error();
+    }
+
+    if (token != NULL && token->type == EJSON_TOKEN_EOF) {
+        pcejson_token_destroy (token);
     }
 
     if (error == PCEJSON_SUCCESS) {
@@ -658,7 +678,8 @@ next_state:
                 RECONSUME_IN(EJSON_ARRAY_STATE);
             }
             else if (ejson->wc == END_OF_FILE_MARKER) {
-                return pcejson_token_new (EJSON_TOKEN_EOF, NULL, 0);
+                EJSON_SET_ERROR(PCEJSON_ERROR_BAD_JSON);
+                return NULL;
             }
             else if (ejson->wc == 0xFEFF) {
                 // UTF-8 bom EF BB BF -> FEFF
@@ -694,6 +715,10 @@ next_state:
                     ADVANCE_TO(EJSON_BEFORE_NAME_STATE);
                     break;
                 case '{':
+                    if (!pcejson_inc_depth (ejson)) {
+                        EJSON_SET_ERROR(PCEJSON_ERROR_MAX_DEPTH_EXCEEDED);
+                        return NULL;
+                    }
                     pcutils_stack_push (ejson->stack, '{');
                     pcejson_tmp_buff_reset (ejson->tmp_buff);
                     SWITCH_TO(EJSON_BEFORE_NAME_STATE);
@@ -709,6 +734,7 @@ next_state:
             if (ejson->wc == '}') {
                 uint8_t c = pcutils_stack_top(ejson->stack);
                 if (c == '{') {
+                    pcejson_dec_depth (ejson);
                     pcutils_stack_pop(ejson->stack);
                     if (pcutils_stack_is_empty(ejson->stack)) {
                         SWITCH_TO(EJSON_FINISHED_STATE);
@@ -740,6 +766,10 @@ next_state:
                     ADVANCE_TO(EJSON_BEFORE_VALUE_STATE);
                     break;
                 case '[':
+                    if (!pcejson_inc_depth (ejson)) {
+                        EJSON_SET_ERROR(PCEJSON_ERROR_MAX_DEPTH_EXCEEDED);
+                        return NULL;
+                    }
                     pcutils_stack_push (ejson->stack, '[');
                     pcejson_tmp_buff_reset (ejson->tmp_buff);
                     SWITCH_TO(EJSON_BEFORE_VALUE_STATE);
@@ -754,6 +784,7 @@ next_state:
             if (ejson->wc == ']') {
                 uint8_t c = pcutils_stack_top(ejson->stack);
                 if (c == '[') {
+                    pcejson_dec_depth (ejson);
                     pcutils_stack_pop(ejson->stack);
                     if (pcutils_stack_is_empty(ejson->stack)) {
                         SWITCH_TO(EJSON_FINISHED_STATE);
@@ -1525,15 +1556,19 @@ next_state:
         BEGIN_STATE(EJSON_STRING_ESCAPE_STATE)
             switch (ejson->wc)
             {
-                case '\\':
-                case '/':
-                case '"':
                 case 'b':
                 case 'f':
                 case 'n':
                 case 'r':
                 case 't':
                     pcejson_tmp_buff_append(ejson->tmp_buff, (uint8_t*)"\\", 1);
+                    pcejson_tmp_buff_append(ejson->tmp_buff, (uint8_t*)ejson->c,
+                            ejson->c_len);
+                    ADVANCE_TO(ejson->return_state);
+                    break;
+                case '/':
+                case '\\':
+                case '"':
                     pcejson_tmp_buff_append(ejson->tmp_buff, (uint8_t*)ejson->c,
                             ejson->c_len);
                     ADVANCE_TO(ejson->return_state);

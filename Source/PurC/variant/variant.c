@@ -197,6 +197,12 @@ unsigned int purc_variant_ref (purc_variant_t value)
 {
     PC_ASSERT(value);
 
+    /* this should not occur */
+    if (value->refc == 0) {
+        PC_ASSERT(0);
+        return 0;
+    }
+
     purc_variant_t variant = NULL;
 
     value->refc++;
@@ -271,8 +277,10 @@ unsigned int purc_variant_unref(purc_variant_t value)
         {
             struct obj_node *curr;
             foreach_value_in_variant_set_safe(value, variant, curr) {
-                if (purc_variant_unref(variant)==0) {
+                if (variant->refc==1) {
                     pcutils_avl_delete(_tree, &curr->avl);
+                    pcvariant_set_release_obj(curr);
+                    free(curr);
                 }
             } end_foreach;
             break;

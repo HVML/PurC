@@ -17,7 +17,7 @@ TEST(ejson, create_reset_destroy)
     struct pcejson* parser = pcejson_create(10, 1);
     ASSERT_NE(parser, nullptr);
     ASSERT_EQ(parser->state, EJSON_INIT_STATE);
-    ASSERT_EQ(parser->depth, 10);
+    ASSERT_EQ(parser->max_depth, 10);
     ASSERT_EQ(parser->flags, 1);
 
     parser->state = EJSON_FINISHED_STATE;
@@ -26,7 +26,7 @@ TEST(ejson, create_reset_destroy)
 
     pcejson_reset(parser, 20, 2);
     ASSERT_EQ(parser->state, EJSON_INIT_STATE);
-    ASSERT_EQ(parser->depth, 20);
+    ASSERT_EQ(parser->max_depth, 20);
     ASSERT_EQ(parser->flags, 2);
 
     pcejson_destroy(parser);
@@ -1672,7 +1672,7 @@ TEST(ejson_token, parse_escape)
     token = pcejson_next_token(parser, rws);
     ASSERT_NE(token, nullptr);
     ASSERT_EQ(token->type, EJSON_TOKEN_STRING);
-    ASSERT_STREQ((char*)token->sz_ptr[1], "b\\\"");
+    ASSERT_STREQ((char*)token->sz_ptr[1], "b\"");
     pcejson_token_destroy(token);
 
     token = pcejson_next_token(parser, rws);
@@ -1707,7 +1707,7 @@ TEST(ejson_token, parse_escape)
     token = pcejson_next_token(parser, rws);
     ASSERT_NE(token, nullptr);
     ASSERT_EQ(token->type, EJSON_TOKEN_STRING);
-    ASSERT_STREQ((char*)token->sz_ptr[1], "c\\b\\/\\f\\n\\r\\t\\uabcd");
+    ASSERT_STREQ((char*)token->sz_ptr[1], "c\\b/\\f\\n\\r\\t\\uabcd");
     pcejson_token_destroy(token);
 
     token = pcejson_next_token(parser, rws);
