@@ -10,6 +10,9 @@ PURC_EXECUTABLE_DECLARE(test_rwstream)
 list(APPEND test_rwstream_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR}/include
     ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
 )
 
 PURC_EXECUTABLE(test_rwstream)
