@@ -1,6 +1,5 @@
 i_number_too_big_neg_int # double
 i_number_very_big_negative_int # double
-y_array_false # true, false
 y_number # double
 n_number_0.3e+ #double
 y_number_real_exponent #double
@@ -12,9 +11,6 @@ y_object_extreme_numbers # double
 y_string_allowed_escapes # \\\\
 y_string_backslash_and_u_escaped_zero
 y_string_backslash_doublequotes
-y_structure_true_in_array # true
-y_structure_lonely_true # true
-y_structure_lonely_false
 n_array_incomplete  # rule unclosed
 n_array_unclosed # rule unclosed
 n_array_unclosed_with_new_lines # rule unclosed
