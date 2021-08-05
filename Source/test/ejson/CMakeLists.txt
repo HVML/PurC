@@ -8,11 +8,12 @@ enable_testing()
 PURC_EXECUTABLE_DECLARE(test_stack)
 
 list(APPEND test_stack_PRIVATE_INCLUDE_DIRECTORIES
-        ${PURC_DIR}/include
-        ${PurC_DERIVED_SOURCES_DIR}
-        ${PURC_DIR}
-        ${CMAKE_BINARY_DIR}
-        ${WTF_DIR})
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
 
 PURC_EXECUTABLE(test_stack)
 

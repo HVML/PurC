@@ -609,7 +609,7 @@ TEST(variant, pcvariant_ulongint)
     buf[n] = 0;
 
     char buffer [256];
-    snprintf (buffer, sizeof(buffer), "%luUL", number);
+    snprintf (buffer, sizeof(buffer), "%lluUL", (unsigned long long)number);
 
     ASSERT_STREQ(buffer, buf);
 
@@ -661,7 +661,7 @@ TEST(variant, pcvariant_longint)
     buf[n] = 0;
 
     char buffer [256];
-    snprintf (buffer, sizeof(buffer), "%ldL", number);
+    snprintf (buffer, sizeof(buffer), "%lldL", (long long)number);
 
     ASSERT_STREQ(buffer, buf);
 
@@ -678,7 +678,7 @@ TEST(variant, pcvariant_longint)
     ASSERT_GT(n, 0);
 
     buf[n] = 0;
-    snprintf (buffer, sizeof(buffer), "%ldL", positive);
+    snprintf (buffer, sizeof(buffer), "%lluL", (unsigned long long)positive);
     ASSERT_STREQ(buffer, buf);
 
     purc_cleanup ();

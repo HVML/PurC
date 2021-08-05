@@ -249,6 +249,6 @@ std::vector<ejson_test_data> read_ejson_test_data()
     return vec;
 }
 
-INSTANTIATE_TEST_CASE_P(ejson, ejson_parser_vcm_eval,
+INSTANTIATE_TEST_SUITE_P(ejson, ejson_parser_vcm_eval,
         testing::ValuesIn(read_ejson_test_data()));
 
