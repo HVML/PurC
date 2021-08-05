@@ -176,7 +176,6 @@ TEST(html, html_parser_chunk)
 
     purc_rwstream_t io;
 
-    ASSERT_NE(io, nullptr);
     for (size_t i = 0; html[i][0] != '\0'; i++) {
         const char *buf = html[i];
         size_t      len = strlen(buf);
