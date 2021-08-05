@@ -462,7 +462,7 @@ void pcvariant_sequence_release(purc_variant_t sequence)
 {
     PC_ASSERT(sequence);
 
-    if (purc_variant_is_type(sequence, PURC_VARIANT_TYPE_STRING)) {
+    if (purc_variant_is_type(sequence, PURC_VARIANT_TYPE_BSEQUENCE)) {
         if (sequence->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
             // VWNOTE: sz_ptr[0] will be set in pcvariant_stat_set_extra_size
             pcvariant_stat_set_extra_size (sequence, 0);
