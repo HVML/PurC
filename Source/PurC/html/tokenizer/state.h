@@ -41,6 +41,8 @@
 extern "C" {
 #endif
 
+#define PURC_ERROR_HTML PURC_ERROR_FIRST_HTML
+
 #define pchtml_html_tokenizer_state_begin_set(tkz, v_data)                        \
     (tkz->begin = v_data)
 
@@ -180,7 +182,7 @@ extern "C" {
     if (tkz->token == NULL) {                                                  \
         if (tkz->status == PCHTML_STATUS_OK) {                                    \
             tkz->status = PCHTML_STATUS_ERROR;                                    \
-            pcinst_set_error (PCHTML_ERROR);                                   \
+            pcinst_set_error (PURC_ERROR_HTML);                                   \
         }                                                                      \
         return v_end;                                                          \
     }

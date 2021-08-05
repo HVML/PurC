@@ -41,6 +41,7 @@
 #include "private/str.h"
 #include "html/base.h"
 
+#define PURC_ERROR_HTML PURC_ERROR_FIRST_HTML
 
 typedef int pchtml_html_serialize_opt_t;
 

@@ -36,27 +36,8 @@
 #include "private/utils.h"
 #include "private/edom.h"
 
-static const char* edom_err_msgs[] = {
-    /* PCEDOM_ERROR */
-    "Error in edom operation.",
-    /* PCEDOM_OBJECT_IS_NULL */
-    "Edom object is null.",
-    /* PCEDOM_INCOMPLETE_OBJECT */
-    "With incomplete object",
-};
-
-static struct err_msg_seg _edom_err_msgs_seg = {
-    { NULL, NULL },
-    PURC_ERROR_FIRST_VARIANT,
-    PURC_ERROR_FIRST_VARIANT + PCA_TABLESIZE(edom_err_msgs) - 1,
-    edom_err_msgs
-};
-
 void pcedom_init_once(void)
 {
-    // register error message
-    pcinst_register_error_message_segment(&_edom_err_msgs_seg);
-
     // initialize others
 }
 

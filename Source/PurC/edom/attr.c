@@ -37,6 +37,8 @@
 #include "private/edom.h"
 #include "html_attr_res.h"
 
+#define PURC_ERROR_EDOM PURC_ERROR_FIRST_EDOM
+
 pcedom_attr_data_t *
 pcedom_attr_local_name_append(pcutils_hash_t *hash,
                 const unsigned char *name, size_t length) WTF_INTERNAL;
@@ -124,7 +126,7 @@ pcedom_attr_set_name_ns(pcedom_attr_t *attr, const unsigned char *link,
 
     ns_data = pchtml_ns_append(doc->ns, link, link_length);
     if (attr->node.ns == PCHTML_NS__UNDEF) {
-        pcinst_set_error (PCEDOM_ERROR);
+        pcinst_set_error (PURC_ERROR_EDOM);
         return PCHTML_STATUS_ERROR;
     }
 
@@ -152,7 +154,7 @@ pcedom_attr_set_name_ns(pcedom_attr_t *attr, const unsigned char *link,
     /* qualified name */
     data = pcedom_attr_qualified_name_append(doc->attrs, name, name_length);
     if (data == NULL) {
-        pcinst_set_error (PCEDOM_ERROR);
+        pcinst_set_error (PURC_ERROR_EDOM);
         return PCHTML_STATUS_ERROR;
     }
 
@@ -162,7 +164,7 @@ pcedom_attr_set_name_ns(pcedom_attr_t *attr, const unsigned char *link,
     attr->node.prefix = (pchtml_ns_prefix_id_t) pchtml_ns_prefix_append(doc->ns, name,
                                                                   length);
     if (attr->node.prefix == 0) {
-        pcinst_set_error (PCEDOM_ERROR);
+        pcinst_set_error (PURC_ERROR_EDOM);
         return PCHTML_STATUS_ERROR;
     }
 

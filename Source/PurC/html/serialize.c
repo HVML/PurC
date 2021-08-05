@@ -190,7 +190,7 @@ pchtml_html_serialize_cb(pcedom_node_t *node,
         default:
             break;
     }
-    pcinst_set_error (PCHTML_ERROR);
+    pcinst_set_error (PURC_ERROR_HTML);
     return PCHTML_STATUS_ERROR;
 }
 
@@ -355,7 +355,7 @@ pchtml_html_serialize_element_cb(pcedom_element_t *element,
 
     tag_name = pcedom_element_qualified_name(element, &len);
     if (tag_name == NULL) {
-        pcinst_set_error (PCHTML_ERROR);
+        pcinst_set_error (PURC_ERROR_HTML);
         return PCHTML_STATUS_ERROR;
     }
 
@@ -407,7 +407,7 @@ pchtml_html_serialize_element_closed_cb(pcedom_element_t *element,
 
     tag_name = pcedom_element_qualified_name(element, &len);
     if (tag_name == NULL) {
-        pcinst_set_error (PCHTML_ERROR);
+        pcinst_set_error (PURC_ERROR_HTML);
         return PCHTML_STATUS_ERROR;
     }
 
@@ -743,7 +743,7 @@ pchtml_html_serialize_attribute_cb(pcedom_attr_t *attr, bool has_raw,
     data = pcedom_attr_data_by_id(attr->node.owner_document->attrs,
                                    attr->node.local_name);
     if (data == NULL) {
-        pcinst_set_error (PCHTML_ERROR);
+        pcinst_set_error (PURC_ERROR_HTML);
         return PCHTML_STATUS_ERROR;
     }
 
@@ -788,7 +788,7 @@ pchtml_html_serialize_attribute_cb(pcedom_attr_t *attr, bool has_raw,
 
     str = pcedom_attr_qualified_name(attr, &length);
     if (str == NULL) {
-        pcinst_set_error (PCHTML_ERROR);
+        pcinst_set_error (PURC_ERROR_HTML);
         return PCHTML_STATUS_ERROR;
     }
 
@@ -885,7 +885,7 @@ pchtml_html_serialize_pretty_cb(pcedom_node_t *node,
             break;
 
         default:
-            pcinst_set_error (PCHTML_ERROR);
+            pcinst_set_error (PURC_ERROR_HTML);
             return PCHTML_STATUS_ERROR;
     }
 
@@ -1077,7 +1077,7 @@ pchtml_html_serialize_pretty_element_cb(pcedom_element_t *element,
 
     tag_name = pcedom_element_qualified_name(element, &len);
     if (tag_name == NULL) {
-        pcinst_set_error (PCHTML_ERROR);
+        pcinst_set_error (PURC_ERROR_HTML);
         return PCHTML_STATUS_ERROR;
     }
 

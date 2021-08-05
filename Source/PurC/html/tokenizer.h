@@ -44,6 +44,7 @@
 #include "html/token.h"
 #include "html/tag.h"
 
+#define PURC_ERROR_HTML PURC_ERROR_FIRST_HTML
 
 /* State */
 typedef const unsigned char *

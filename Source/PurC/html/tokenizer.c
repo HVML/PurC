@@ -79,7 +79,7 @@ pchtml_html_tokenizer_init(pchtml_html_tokenizer_t *tkz)
     unsigned int status;
 
     if (tkz == NULL) {
-        pcinst_set_error (PCHTML_OBJECT_IS_NULL);
+        pcinst_set_error (PURC_ERROR_NULL_OBJECT);
         return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
     }
 
@@ -385,7 +385,7 @@ pchtml_html_tokenizer_end(pchtml_html_tokenizer_t *tkz)
                                           tkz->callback_token_ctx);
 
     if (tkz->token == NULL && tkz->status == PCHTML_STATUS_OK) {
-        pcinst_set_error (PCHTML_ERROR);
+        pcinst_set_error (PURC_ERROR_HTML);
         tkz->status = PCHTML_STATUS_ERROR;
     }
 

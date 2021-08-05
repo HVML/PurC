@@ -63,7 +63,7 @@ unsigned int
 pchtml_html_parser_init(pchtml_html_parser_t *parser)
 {
     if (parser == NULL) {
-        pcinst_set_error (PCHTML_OBJECT_IS_NULL);
+        pcinst_set_error (PURC_ERROR_NULL_OBJECT);
         return PCHTML_STATUS_ERROR_OBJECT_IS_NULL;
     }
 
@@ -315,7 +315,7 @@ pchtml_html_parse_fragment_chunk_process(pchtml_html_parser_t *parser,
                                       const unsigned char *html, size_t size)
 {
     if (parser->state != PCHTML_HTML_PARSER_STATE_FRAGMENT_PROCESS) {
-        pcinst_set_error (PCHTML_WRONG_STAGE);
+        pcinst_set_error (PURC_ERROR_WRONG_STAGE);
         return PCHTML_STATUS_ERROR_WRONG_STAGE;
     }
 
@@ -336,7 +336,7 @@ pcedom_node_t *
 pchtml_html_parse_fragment_chunk_end(pchtml_html_parser_t *parser)
 {
     if (parser->state != PCHTML_HTML_PARSER_STATE_FRAGMENT_PROCESS) {
-        pcinst_set_error (PCHTML_WRONG_STAGE);
+        pcinst_set_error (PURC_ERROR_WRONG_STAGE);
         parser->status = PCHTML_STATUS_ERROR_WRONG_STAGE;
 
         return NULL;
@@ -441,7 +441,7 @@ pchtml_html_parse_chunk_process(pchtml_html_parser_t *parser,
                              const unsigned char *html, size_t size)
 {
     if (parser->state != PCHTML_HTML_PARSER_STATE_PROCESS) {
-        pcinst_set_error (PCHTML_WRONG_STAGE);
+        pcinst_set_error (PURC_ERROR_WRONG_STAGE);
         return PCHTML_STATUS_ERROR_WRONG_STAGE;
     }
 
@@ -457,7 +457,7 @@ unsigned int
 pchtml_html_parse_chunk_end(pchtml_html_parser_t *parser)
 {
     if (parser->state != PCHTML_HTML_PARSER_STATE_PROCESS) {
-        pcinst_set_error (PCHTML_WRONG_STAGE);
+        pcinst_set_error (PURC_ERROR_WRONG_STAGE);
         return PCHTML_STATUS_ERROR_WRONG_STAGE;
     }
 

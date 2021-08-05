@@ -487,7 +487,7 @@ pchtml_html_tokenizer_state_doctype_after_name(pchtml_html_tokenizer_t *tkz,
                     attr_data = pcedom_attr_data_by_id(tkz->attrs,
                                                         PCEDOM_ATTR_PUBLIC);
                     if (attr_data == NULL) {
-                        pcinst_set_error (PCHTML_ERROR);
+                        pcinst_set_error (PURC_ERROR_HTML);
                         tkz->status = PCHTML_STATUS_ERROR;
                         return end;
                     }
@@ -508,7 +508,7 @@ pchtml_html_tokenizer_state_doctype_after_name(pchtml_html_tokenizer_t *tkz,
                     attr_data = pcedom_attr_data_by_id(tkz->attrs,
                                                         PCEDOM_ATTR_SYSTEM);
                     if (attr_data == NULL) {
-                        pcinst_set_error (PCHTML_ERROR);
+                        pcinst_set_error (PURC_ERROR_HTML);
                         tkz->status = PCHTML_STATUS_ERROR;
                         return end;
                     }
@@ -573,7 +573,7 @@ pchtml_html_tokenizer_state_doctype_after_name_public(pchtml_html_tokenizer_t *t
         attr_data = pcedom_attr_data_by_id(tkz->attrs,
                                             PCEDOM_ATTR_PUBLIC);
         if (attr_data == NULL) {
-            pcinst_set_error (PCHTML_ERROR);
+            pcinst_set_error (PURC_ERROR_HTML);
             tkz->status = PCHTML_STATUS_ERROR;
             return end;
         }
@@ -624,7 +624,7 @@ pchtml_html_tokenizer_state_doctype_after_name_system(pchtml_html_tokenizer_t *t
         attr_data = pcedom_attr_data_by_id(tkz->attrs,
                                             PCEDOM_ATTR_SYSTEM);
         if (attr_data == NULL) {
-            pcinst_set_error (PCHTML_ERROR);
+            pcinst_set_error (PURC_ERROR_HTML);
             tkz->status = PCHTML_STATUS_ERROR;
             return end;
         }
