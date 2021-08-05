@@ -271,8 +271,10 @@ unsigned int purc_variant_unref(purc_variant_t value)
         {
             struct obj_node *curr;
             foreach_value_in_variant_set_safe(value, variant, curr) {
-                if (purc_variant_unref(variant)==0) {
+                if (variant->refc==1) {
                     pcutils_avl_delete(_tree, &curr->avl);
+                    pcvariant_set_release_obj(curr);
+                    free(curr);
                 }
             } end_foreach;
             break;
@@ -284,11 +286,13 @@ unsigned int purc_variant_unref(purc_variant_t value)
 
     value->refc--;
     // VWNOTE: only non-constant values has a releaser
-    if (value->refc == 0 && !(value->flags & PCVARIANT_FLAG_NOFREE)) {
-        // release the extra memory used by the variant
-        pcvariant_release_fn release_fn = variant_releasers[value->type];
-        if (release_fn)
-            release_fn(value);
+    if (value->refc == 0) {
+        if (!(value->flags & PCVARIANT_FLAG_NOFREE)) {
+            // release the extra memory used by the variant
+            pcvariant_release_fn release_fn = variant_releasers[value->type];
+            if (release_fn)
+                release_fn(value);
+        }
 
         // release the variant itself
         pcvariant_put(value);
