@@ -39,8 +39,8 @@
 #define PRINT_STATE(state_name)
 #else
 #define PRINT_STATE(state_name)                                           \
-    fprintf(stderr, "in %s|wc=%c\n", pcejson_ejson_state_desc(state_name), \
-            ejson->wc);
+    fprintf(stderr, "in %s|wc=%c|hex=%x\n",                               \
+            pcejson_ejson_state_desc(state_name),  ejson->wc, ejson->wc);
 #endif
 
 #define BEGIN_STATE(state_name)                                  \

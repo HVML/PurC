@@ -678,7 +678,8 @@ next_state:
                 RECONSUME_IN(EJSON_ARRAY_STATE);
             }
             else if (ejson->wc == END_OF_FILE_MARKER) {
-                return pcejson_token_new (EJSON_TOKEN_EOF, NULL, 0);
+                EJSON_SET_ERROR(PCEJSON_ERROR_BAD_JSON);
+                return NULL;
             }
             else if (ejson->wc == 0xFEFF) {
                 // UTF-8 bom EF BB BF -> FEFF
@@ -1555,15 +1556,19 @@ next_state:
         BEGIN_STATE(EJSON_STRING_ESCAPE_STATE)
             switch (ejson->wc)
             {
-                case '\\':
-                case '/':
-                case '"':
                 case 'b':
                 case 'f':
                 case 'n':
                 case 'r':
                 case 't':
                     pcejson_tmp_buff_append(ejson->tmp_buff, (uint8_t*)"\\", 1);
+                    pcejson_tmp_buff_append(ejson->tmp_buff, (uint8_t*)ejson->c,
+                            ejson->c_len);
+                    ADVANCE_TO(ejson->return_state);
+                    break;
+                case '/':
+                case '\\':
+                case '"':
                     pcejson_tmp_buff_append(ejson->tmp_buff, (uint8_t*)ejson->c,
                             ejson->c_len);
                     ADVANCE_TO(ejson->return_state);
