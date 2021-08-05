@@ -56,21 +56,21 @@
 static const char* rwstream_err_msgs[] = {
     /* PCRWSTREAM_ERROR_FAILED (200) */
     "Rwstream failed with some other error",
-    /* PCRWSTREAM_ERROR_FBIG */
+    /* PCRWSTREAM_ERROR_FILE_TOO_BIG */
     "File too large",
     /* PCRWSTREAM_ERROR_IO */
     "IO error",
-    /* PCRWSTREAM_ERROR_ISDIR */
+    /* PCRWSTREAM_ERROR_IS_DIR */
     "File is a directory.",
-    /* PCRWSTREAM_ERROR_NOSPC */
+    /* PCRWSTREAM_ERROR_NO_SPACE */
     "No space left on device.",
-    /* PCRWSTREAM_ERROR_NXIO */
+    /* PCRWSTREAM_ERROR_NO_DEVICE_OR_ADDRESS */
     "No such device or address",
     /* PCRWSTREAM_ERROR_OVERFLOW */
     "Value too large for defined datatype",
     /* PCRWSTREAM_ERROR_PIPE */
     "Broken pipe",
-    /* PCRWSTREAM_BAD_ENCODING */
+    /* PURC_ERROR_BAD_ENCODING */
     "Bad encoding",
 };
 
@@ -241,17 +241,17 @@ int rwstream_error_code_from_gerror (GError* err)
     switch (err->code)
     {
         case G_IO_CHANNEL_ERROR_FBIG:
-            return PCRWSTREAM_ERROR_FBIG;
+            return PCRWSTREAM_ERROR_FILE_TOO_BIG;
         case G_IO_CHANNEL_ERROR_INVAL:
             return PURC_ERROR_INVALID_VALUE;
         case G_IO_CHANNEL_ERROR_IO:
             return PCRWSTREAM_ERROR_IO;
         case G_IO_CHANNEL_ERROR_ISDIR:
-            return PCRWSTREAM_ERROR_ISDIR;
+            return PCRWSTREAM_ERROR_IS_DIR;
         case G_IO_CHANNEL_ERROR_NOSPC:
-            return PCRWSTREAM_ERROR_NOSPC;
+            return PCRWSTREAM_ERROR_NO_SPACE;
         case G_IO_CHANNEL_ERROR_NXIO:
-            return PCRWSTREAM_ERROR_NXIO;
+            return PCRWSTREAM_ERROR_NO_DEVICE_OR_ADDRESS;
         case G_IO_CHANNEL_ERROR_OVERFLOW:
             return PCRWSTREAM_ERROR_OVERFLOW;
         case G_IO_CHANNEL_ERROR_PIPE:
@@ -733,7 +733,7 @@ static ssize_t mem_write (purc_rwstream_t rws, const void* buf, size_t count)
         mem->here += count;
         return count;
     }
-    RWSTREAM_SET_ERROR(PCRWSTREAM_ERROR_NOSPC);
+    RWSTREAM_SET_ERROR(PCRWSTREAM_ERROR_NO_SPACE);
     return -1;
 }
 
@@ -854,7 +854,7 @@ static ssize_t buffer_write (purc_rwstream_t rws, const void* buf, size_t count)
         else if (buffer->sz < buffer->sz_max) {
             int ret = buffer_extend (buffer, newpos - buffer->base);
             if (ret == -1) {
-                RWSTREAM_SET_ERROR(PCRWSTREAM_ERROR_NOSPC);
+                RWSTREAM_SET_ERROR(PCRWSTREAM_ERROR_NO_SPACE);
                 return -1;
             }
             newpos = buffer->here + count;

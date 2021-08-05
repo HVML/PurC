@@ -176,11 +176,11 @@ PCA_EXPORT int purc_rwstream_destroy (purc_rwstream_t rws);
  *  - @PURC_ERROR_INVALID_VALUE: Invalid value
  *  - @PURC_ERROR_BAD_SYSTEM_CALL: Bad system call
  *  - @PURC_ERROR_NOT_IMPLEMENTED: Not implemented
- *  - @PCRWSTREAM_ERROR_FBIG: File too large"
+ *  - @PCRWSTREAM_ERROR_FILE_TOO_BIG: File too large"
  *  - @PCRWSTREAM_ERROR_IO: IO error
- *  - @PCRWSTREAM_ERROR_ISDIR: File is a directory
- *  - @PCRWSTREAM_ERROR_NOSPC: No space left on device
- *  - @PCRWSTREAM_ERROR_NXIO: No such device or address
+ *  - @PCRWSTREAM_ERROR_IS_DIR: File is a directory
+ *  - @PCRWSTREAM_ERROR_NO_SPACE: No space left on device
+ *  - @PCRWSTREAM_ERROR_NO_DEVICE_OR_ADDRESS: No such device or address
  *  - @PCRWSTREAM_ERROR_OVERFLOW: Value too large for defined datatype
  *  - @PCRWSTREAM_ERROR_FAILED: Rwstream failed with some other error
  *
@@ -214,11 +214,11 @@ PCA_EXPORT off_t purc_rwstream_tell (purc_rwstream_t rws);
  * @return the number of bytes actually read and the error code is set to
  *         indicate the error. The error code:
  *  - @PURC_ERROR_INVALID_VALUE: Invalid value
- *  - @PCRWSTREAM_ERROR_FBIG: File too large"
+ *  - @PCRWSTREAM_ERROR_FILE_TOO_BIG: File too large"
  *  - @PCRWSTREAM_ERROR_IO: IO error
- *  - @PCRWSTREAM_ERROR_ISDIR: File is a directory
- *  - @PCRWSTREAM_ERROR_NOSPC: No space left on device
- *  - @PCRWSTREAM_ERROR_NXIO: No such device or address
+ *  - @PCRWSTREAM_ERROR_IS_DIR: File is a directory
+ *  - @PCRWSTREAM_ERROR_NO_SPACE: No space left on device
+ *  - @PCRWSTREAM_ERROR_NO_DEVICE_OR_ADDRESS: No such device or address
  *  - @PCRWSTREAM_ERROR_OVERFLOW: Value too large for defined datatype
  *  - @PCRWSTREAM_ERROR_FAILED: Rwstream failed with some other error
  * Since: 0.0.1
@@ -236,11 +236,11 @@ purc_rwstream_read (purc_rwstream_t rws, void* buf, size_t count);
  * @return the length of character and the error code is set to indicate the
  *         error. The error code:
  *  - @PURC_ERROR_INVALID_VALUE: Invalid value
- *  - @PCRWSTREAM_ERROR_FBIG: File too large"
+ *  - @PCRWSTREAM_ERROR_FILE_TOO_BIG: File too large"
  *  - @PCRWSTREAM_ERROR_IO: IO error
- *  - @PCRWSTREAM_ERROR_ISDIR: File is a directory
- *  - @PCRWSTREAM_ERROR_NOSPC: No space left on device
- *  - @PCRWSTREAM_ERROR_NXIO: No such device or address
+ *  - @PCRWSTREAM_ERROR_IS_DIR: File is a directory
+ *  - @PCRWSTREAM_ERROR_NO_SPACE: No space left on device
+ *  - @PCRWSTREAM_ERROR_NO_DEVICE_OR_ADDRESS: No such device or address
  *  - @PCRWSTREAM_ERROR_OVERFLOW: Value too large for defined datatype
  *  - @PCRWSTREAM_ERROR_FAILED: Rwstream failed with some other error
  *
@@ -261,11 +261,11 @@ purc_rwstream_read_utf8_char (purc_rwstream_t rws,
  * @return the number of bytes actually written and the error code is set to
  *         indicate the error. The error code:
  *  - @PURC_ERROR_INVALID_VALUE: Invalid value
- *  - @PCRWSTREAM_ERROR_FBIG: File too large"
+ *  - @PCRWSTREAM_ERROR_FILE_TOO_BIG: File too large"
  *  - @PCRWSTREAM_ERROR_IO: IO error
- *  - @PCRWSTREAM_ERROR_ISDIR: File is a directory
- *  - @PCRWSTREAM_ERROR_NOSPC: No space left on device
- *  - @PCRWSTREAM_ERROR_NXIO: No such device or address
+ *  - @PCRWSTREAM_ERROR_IS_DIR: File is a directory
+ *  - @PCRWSTREAM_ERROR_NO_SPACE: No space left on device
+ *  - @PCRWSTREAM_ERROR_NO_DEVICE_OR_ADDRESS: No such device or address
  *  - @PCRWSTREAM_ERROR_OVERFLOW: Value too large for defined datatype
  *  - @PCRWSTREAM_ERROR_FAILED: Rwstream failed with some other error
  *
@@ -315,11 +315,11 @@ PCA_EXPORT int purc_rwstream_close (purc_rwstream_t rws);
  * @return success, the number of bytes written. -1 otherwise and the error code
  *         is set to indicate the error. The error code:
  *  - @PURC_ERROR_INVALID_VALUE: Invalid value
- *  - @PCRWSTREAM_ERROR_FBIG: File too large"
+ *  - @PCRWSTREAM_ERROR_FILE_TOO_BIG: File too large"
  *  - @PCRWSTREAM_ERROR_IO: IO error
- *  - @PCRWSTREAM_ERROR_ISDIR: File is a directory
- *  - @PCRWSTREAM_ERROR_NOSPC: No space left on device
- *  - @PCRWSTREAM_ERROR_NXIO: No such device or address
+ *  - @PCRWSTREAM_ERROR_IS_DIR: File is a directory
+ *  - @PCRWSTREAM_ERROR_NO_SPACE: No space left on device
+ *  - @PCRWSTREAM_ERROR_NO_DEVICE_OR_ADDRESS: No such device or address
  *  - @PCRWSTREAM_ERROR_OVERFLOW: Value too large for defined datatype
  *  - @PCRWSTREAM_ERROR_FAILED: Rwstream failed with some other error
  *
