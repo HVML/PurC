@@ -17,7 +17,7 @@ TEST(ejson, create_reset_destroy)
     struct pcejson* parser = pcejson_create(10, 1);
     ASSERT_NE(parser, nullptr);
     ASSERT_EQ(parser->state, EJSON_INIT_STATE);
-    ASSERT_EQ(parser->depth, 10);
+    ASSERT_EQ(parser->max_depth, 10);
     ASSERT_EQ(parser->flags, 1);
 
     parser->state = EJSON_FINISHED_STATE;
@@ -26,7 +26,7 @@ TEST(ejson, create_reset_destroy)
 
     pcejson_reset(parser, 20, 2);
     ASSERT_EQ(parser->state, EJSON_INIT_STATE);
-    ASSERT_EQ(parser->depth, 20);
+    ASSERT_EQ(parser->max_depth, 20);
     ASSERT_EQ(parser->flags, 2);
 
     pcejson_destroy(parser);
