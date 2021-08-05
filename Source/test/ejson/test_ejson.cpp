@@ -1672,7 +1672,7 @@ TEST(ejson_token, parse_escape)
     token = pcejson_next_token(parser, rws);
     ASSERT_NE(token, nullptr);
     ASSERT_EQ(token->type, EJSON_TOKEN_STRING);
-    ASSERT_STREQ((char*)token->sz_ptr[1], "b\\\"");
+    ASSERT_STREQ((char*)token->sz_ptr[1], "b\"");
     pcejson_token_destroy(token);
 
     token = pcejson_next_token(parser, rws);
@@ -1707,7 +1707,7 @@ TEST(ejson_token, parse_escape)
     token = pcejson_next_token(parser, rws);
     ASSERT_NE(token, nullptr);
     ASSERT_EQ(token->type, EJSON_TOKEN_STRING);
-    ASSERT_STREQ((char*)token->sz_ptr[1], "c\\b\\/\\f\\n\\r\\t\\uabcd");
+    ASSERT_STREQ((char*)token->sz_ptr[1], "c\\b/\\f\\n\\r\\t\\uabcd");
     pcejson_token_destroy(token);
 
     token = pcejson_next_token(parser, rws);
