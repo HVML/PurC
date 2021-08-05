@@ -132,12 +132,12 @@ void pcvariant_init_instance(struct pcinst* inst)
     inst->variant_heap.v_undefined.refc = 0;
     inst->variant_heap.v_undefined.flags = PCVARIANT_FLAG_NOFREE;
 
-    inst->variant_heap.v_false.type = PURC_VARIANT_TYPE_UNDEFINED;
+    inst->variant_heap.v_false.type = PURC_VARIANT_TYPE_BOOLEAN;
     inst->variant_heap.v_false.refc = 0;
     inst->variant_heap.v_false.flags = PCVARIANT_FLAG_NOFREE;
     inst->variant_heap.v_false.b = false;
 
-    inst->variant_heap.v_true.type = PURC_VARIANT_TYPE_UNDEFINED;
+    inst->variant_heap.v_true.type = PURC_VARIANT_TYPE_BOOLEAN;
     inst->variant_heap.v_true.refc = 0;
     inst->variant_heap.v_true.flags = PCVARIANT_FLAG_NOFREE;
     inst->variant_heap.v_true.b = true;

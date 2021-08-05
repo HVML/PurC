@@ -16,6 +16,41 @@ static inline int my_puts(const char* str)
 #endif
 }
 
+// to test: serialize a boolean
+TEST(variant, serialize_boolean)
+{
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    purc_variant_t my_boolean = purc_variant_make_boolean(true);
+    ASSERT_NE(my_boolean, PURC_VARIANT_INVALID);
+    ASSERT_EQ(my_boolean->type, PURC_VARIANT_TYPE_BOOLEAN);
+
+    char buf[8];
+    purc_rwstream_t my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    ASSERT_NE(my_rws, nullptr);
+
+    size_t len_expected = 0;
+    ssize_t n = purc_variant_serialize(my_boolean, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+    ASSERT_EQ(len_expected, 4);
+    ASSERT_EQ(n, 4);
+
+    buf[4] = 0;
+    ASSERT_STREQ(buf, "true");
+
+    len_expected = 0;
+    n = purc_variant_serialize(my_boolean, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_IGNORE_ERRORS, &len_expected);
+    ASSERT_EQ(n, 3);
+    ASSERT_EQ(len_expected, 4);
+
+    buf[7] = 0;
+    ASSERT_STREQ(buf, "truetru");
+
+    purc_cleanup ();
+}
+
 // to test: serialize a null
 TEST(variant, serialize_null)
 {
