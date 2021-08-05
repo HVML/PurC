@@ -197,6 +197,12 @@ unsigned int purc_variant_ref (purc_variant_t value)
 {
     PC_ASSERT(value);
 
+    /* this should not occur */
+    if (value->refc == 0) {
+        PC_ASSERT(0);
+        return 0;
+    }
+
     purc_variant_t variant = NULL;
 
     value->refc++;
@@ -286,13 +292,11 @@ unsigned int purc_variant_unref(purc_variant_t value)
 
     value->refc--;
     // VWNOTE: only non-constant values has a releaser
-    if (value->refc == 0) {
-        if (!(value->flags & PCVARIANT_FLAG_NOFREE)) {
-            // release the extra memory used by the variant
-            pcvariant_release_fn release_fn = variant_releasers[value->type];
-            if (release_fn)
-                release_fn(value);
-        }
+    if (value->refc == 0 && !(value->flags & PCVARIANT_FLAG_NOFREE)) {
+        // release the extra memory used by the variant
+        pcvariant_release_fn release_fn = variant_releasers[value->type];
+        if (release_fn)
+            release_fn(value);
 
         // release the variant itself
         pcvariant_put(value);

@@ -142,6 +142,7 @@ TEST(variant_set, add_n_str)
         ASSERT_EQ(t, true);
         purc_variant_unref(obj);
         purc_variant_unref(s);
+        ASSERT_EQ(obj->refc, 1);
     }
     ASSERT_EQ(stat->nr_values[PVT(_STRING)], count);
     ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], count);
@@ -168,8 +169,11 @@ TEST(variant_set, add_n_str)
         purc_variant_t v = purc_variant_set_iterator_get_value(it);
         ASSERT_NE(v, nullptr);
         ASSERT_EQ(v->type, PVT(_OBJECT));
-        bool ok = purc_variant_set_remove(var, v);
-        ASSERT_EQ(ok, true);
+        ASSERT_EQ(v->refc, 1);
+        if (1) {
+            bool ok = purc_variant_set_remove(var, v);
+            ASSERT_EQ(ok, true);
+        }
         break;
     }
     if (it)
