@@ -45,8 +45,6 @@
 #include "html/html_tag.h"
 #include "html/tree/error.h"
 
-#define PURC_ERROR_HTML PURC_ERROR_FIRST_HTML
-
 typedef bool
 (*pchtml_html_tree_insertion_mode_f)(pchtml_html_tree_t *tree,
                                   pchtml_html_token_t *token);

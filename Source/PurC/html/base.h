@@ -51,6 +51,8 @@
 
 #define pchtml_assert(val)
 
+#define PURC_ERROR_HTML PURC_ERROR_FIRST_HTML
+
 typedef struct pchtml_html_tokenizer pchtml_html_tokenizer_t;
 typedef unsigned int pchtml_html_tokenizer_opt_t;
 typedef struct pchtml_html_tree pchtml_html_tree_t;

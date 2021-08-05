@@ -37,8 +37,6 @@
 #include "private/edom.h"
 #include "html_attr_res.h"
 
-#define PURC_ERROR_EDOM PURC_ERROR_FIRST_EDOM
-
 pcedom_attr_data_t *
 pcedom_attr_local_name_append(pcutils_hash_t *hash,
                 const unsigned char *name, size_t length) WTF_INTERNAL;

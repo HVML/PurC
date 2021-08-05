@@ -36,8 +36,6 @@
 #include "private/errors.h"
 #include "private/edom.h"
 
-#define PURC_ERROR_EDOM PURC_ERROR_FIRST_EDOM
-
 static pchtml_action_t
 pcedom_node_text_content_size(pcedom_node_t *node, void *ctx);
 

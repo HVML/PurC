@@ -38,9 +38,10 @@
 #include "html/tokenizer/state_doctype.h"
 #include "html/tokenizer/state.h"
 
-
 #define PCHTML_STR_RES_ANSI_REPLACEMENT_CHARACTER
+
 #include "str_res.h"
+
 
 
 pcedom_attr_data_t *
