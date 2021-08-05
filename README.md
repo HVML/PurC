@@ -146,23 +146,23 @@ The source tree of PurC contains the following modules:
 - `Source/PurC/variant/`: The operations of variant.
 - `Source/PurC/vcm/`: The operations of variant creation model tree.
 - `Source/PurC/dvobjs/`: The dynamic variant objects.
-- `Source/PurC/ejson/`: The eJSON parser. The eJSON parser reads a eJSON and constructs a variant creation model tree.
+- `Source/PurC/ejson/`: The eJSON parser. The eJSON parser reads an eJSON and constructs a variant creation model tree.
 - `Source/PurC/edom/`: The operations of the effective DOM tree.
 - `Source/PurC/vdom/`: The operations of the virtual DOM tree.
-- `Source/PurC/html/`: The HTML parser. The HTML parser reads a HTML document and constructs a eDOM tree.
-- `Source/PurC/hvml/`: The HVML parser. The HTML parser reads a HVML document and constructs a vDOM tree.
-- `Source/PurC/xgml/`: The XGML parser. The XGML parser reads a XGML document and constructs a eDOM tree.
-- `Source/PurC/xml/`: The XML parser. The XML parser reads a XML document and constructs a eDOM tree.
+- `Source/PurC/html/`: The HTML parser. The HTML parser reads an HTML document or document fragements and constructs an eDOM tree.
+- `Source/PurC/hvml/`: The HVML parser. The HTML parser reads an HVML document and constructs a vDOM tree.
+- `Source/PurC/xgml/`: The XGML parser. The XGML parser reads an XGML document or document fragements and constructs an eDOM tree.
+- `Source/PurC/xml/`: The XML parser. The XML parser parses an XML document or document fragements and constructs an eDOM tree.
 - `Source/PurC/fetchers/`: The data fetchers to fetch data from various data sources (HTTP, FTP, and so on).
 - `Source/PurC/listeners/`: The data listeners to listen events and/or send requests on various long-time connnection (hiDataBus, MQTT, WebSocket, and so on).
 - `Source/PurC/executors/`: The internal/external executors.
 - `Source/PurC/interpreter/`: The vDOM interpreter.
 - `Source/PurC/ports/`: The ports for different operating systems, such as a POSIX-compliant system or Windows.
 - `Source/PurC/bindings/`: The bindings for Python, Lua, and other programming languages.
-- `Source/ThirdParty/`: The third-party libraries.
 - `Source/WTF/`: The simplified WTF (Web Template Framework) from WebKit.
 - `Source/bmalloc/`: The `bmalloc` from WebKit.
 - `Source/cmake/`: The cmake modules.
+- `Source/ThirdParty/`: The third-party libraries, such as `gtest`.
 - `Source/test/`: The unit test programs.
 - `Tools/`: The tools (executables), e.g., the command line program.
 - `Documents/`: Some notes for developers.
@@ -170,8 +170,8 @@ The source tree of PurC contains the following modules:
 
 Note that the HTML parser and DOM operations of PurC are derived from:
 
- - [Lexbor](https://github.com/lexbor/lexbor), which is licensed under Apache 2.0.
- - [MyHTML](https://github.com/lexborisov/myhtml), which is licensed under LGPL 2.1.
+ - [Lexbor](https://github.com/lexbor/lexbor), which is licensed under
+   the Apache License, Version 2.0.
 
 ## Current Status
 

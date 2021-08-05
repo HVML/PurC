@@ -43,6 +43,17 @@
 #define PURC_ERROR_NOT_SUPPORTED        10
 #define PURC_ERROR_OUTPUT               11
 #define PURC_ERROR_TOO_SMALL_BUFF       12
+#define PURC_ERROR_NULL_OBJECT          13
+#define PURC_ERROR_TOO_SMALL_SIZE       14
+#define PURC_ERROR_INCOMPLETE_OBJECT    15
+#define PURC_ERROR_NO_FREE_SLOT         16
+#define PURC_ERROR_NOT_EXISTS           17
+#define PURC_ERROR_WRONG_ARGS           18
+#define PURC_ERROR_WRONG_STAGE          19
+#define PURC_ERROR_UNEXPECTED_RESULT    20
+#define PURC_ERROR_UNEXPECTED_DATA      21
+#define PURC_ERROR_OVERFLOW             22
+#define PURC_ERROR_UNKNOWN              23
 
 // the first error codes for various modules:
 #define PURC_ERROR_FIRST_VARIANT        100
@@ -65,6 +76,26 @@ enum pcvariant_error
     PCVARIANT_INVALID_TYPE = PURC_ERROR_FIRST_VARIANT,
     PCVARIANT_STRING_NOT_UTF8,
     PCVARIANT_ERROR_NOT_FOUND,
+};
+
+// TODO: error codes for edom go here
+enum pcedom_error
+{
+    PCEDOM_SUCCESS = PURC_ERROR_OK,
+    PCEDOM_ERROR = PURC_ERROR_FIRST_EDOM,
+    PCEDOM_OBJECT_IS_NULL,
+    PCEDOM_INCOMPLETE_OBJECT,
+};
+
+// TODO: error codes for html go here
+enum pchtml_error
+{
+    PCHTML_SUCCESS = PURC_ERROR_OK,
+    PCHTML_ERROR = PURC_ERROR_FIRST_HTML,
+    PCHTML_OBJECT_IS_NULL,
+    PCHTML_TOO_SMALL_SIZE,
+    PCHTML_WRONG_STAGE,
+    PCHTML_OVERFLOW,
 };
 
 // TODO: error codes for rwstream go here

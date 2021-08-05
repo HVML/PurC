@@ -184,7 +184,7 @@ static bool purc_variant_string_check_utf8 (const char* str_utf8)
 purc_variant_t
 purc_variant_make_string (const char* str_utf8, bool check_encoding)
 {
-    PCVARIANT_CHECK_FAIL_RET((str_utf8 != NULL), PURC_VARIANT_INVALID);
+    PCVARIANT_CHECK_FAIL_RET(str_utf8, PURC_VARIANT_INVALID);
 
     size_t str_size = strlen (str_utf8);
     size_t real_size = MAX (sizeof(long double), sizeof(void*) * 2);
@@ -238,9 +238,9 @@ purc_variant_make_string (const char* str_utf8, bool check_encoding)
 
 const char* purc_variant_get_string_const (purc_variant_t string)
 {
-    const char * str_str = NULL;
+    PCVARIANT_CHECK_FAIL_RET(string, NULL);
 
-    PC_ASSERT(string);
+    const char * str_str = NULL;
 
     if (purc_variant_is_type (string, PURC_VARIANT_TYPE_STRING)) {
         if (string->flags & PCVARIANT_FLAG_EXTRA_SIZE)
@@ -290,7 +290,7 @@ void pcvariant_string_release (purc_variant_t string)
 purc_variant_t
 purc_variant_make_atom_string (const char* str_utf8, bool check_encoding)
 {
-    PCVARIANT_CHECK_FAIL_RET((str_utf8 != NULL), PURC_VARIANT_INVALID);
+    PCVARIANT_CHECK_FAIL_RET(str_utf8, PURC_VARIANT_INVALID);
 
     purc_variant_t value = NULL;
 
@@ -328,7 +328,7 @@ purc_variant_t
 purc_variant_make_atom_string_static (const char* str_utf8,
         bool check_encoding)
 {
-    PCVARIANT_CHECK_FAIL_RET((str_utf8 != NULL), PURC_VARIANT_INVALID);
+    PCVARIANT_CHECK_FAIL_RET(str_utf8, PURC_VARIANT_INVALID);
 
     purc_variant_t value = NULL;
 
@@ -364,9 +364,9 @@ purc_variant_make_atom_string_static (const char* str_utf8,
 
 const char* purc_variant_get_atom_string_const (purc_variant_t atom_string)
 {
-    const char * str_str = NULL;
+    PCVARIANT_CHECK_FAIL_RET(atom_string, NULL);
 
-    PC_ASSERT(atom_string);
+    const char * str_str = NULL;
 
     if (purc_variant_is_type (atom_string, PURC_VARIANT_TYPE_ATOMSTRING))
         str_str = purc_atom_to_string(atom_string->sz_ptr[1]);
@@ -420,9 +420,9 @@ purc_variant_t purc_variant_make_byte_sequence (const void* bytes,
 const unsigned char *
 purc_variant_get_bytes_const (purc_variant_t sequence, size_t* nr_bytes)
 {
-    const unsigned char * bytes = NULL;
+    PCVARIANT_CHECK_FAIL_RET(sequence && nr_bytes, NULL);
 
-    PC_ASSERT(sequence);
+    const unsigned char * bytes = NULL;
 
     if (purc_variant_is_type(sequence, PURC_VARIANT_TYPE_BSEQUENCE)) {
         if (sequence->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
