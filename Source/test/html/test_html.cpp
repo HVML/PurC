@@ -150,6 +150,10 @@ TEST(html, html_parser_chunk)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
+    pchtml_parser_t parser;
+    parser = pchtml_parser_create();
+    ASSERT_NE(parser, nullptr);
+
     static const char html[][64] = {
         "<!DOCT",
         "YPE htm",
@@ -169,10 +173,6 @@ TEST(html, html_parser_chunk)
         "</div>",
         "\0"
     };
-
-    pchtml_parser_t parser;
-    parser = pchtml_parser_create();
-    ASSERT_NE(parser, nullptr);
 
     purc_rwstream_t io;
 
@@ -199,6 +199,8 @@ TEST(html, html_parser_chunk)
     purc_rwstream_destroy(io);
 
     pchtml_doc_destroy(doc);
+
+    pchtml_parser_destroy(parser);
 
     purc_cleanup ();
 }
