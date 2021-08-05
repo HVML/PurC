@@ -674,9 +674,9 @@ TEST(variant, pcvariant_longint)
     purc_variant_unref(value);
 
 
-    // create longint variant with negatives, and serialize
-    int64_t negative = 0xFFFFFFFFFFFFFFFF;
-    value = purc_variant_make_longint (negative);
+    // create longuint variant with negatives, and serialize
+    uint64_t positive = 0xFFFFFFFFFFFFFFFF;
+    value = purc_variant_make_ulongint (positive);
     ASSERT_NE(value, PURC_VARIANT_INVALID);
 
     purc_rwstream_seek(my_rws, 0, SEEK_SET);
@@ -686,7 +686,7 @@ TEST(variant, pcvariant_longint)
     ASSERT_GT(n, 0);
 
     buf[n] = 0;
-    snprintf (buffer, sizeof(buffer), "%lldL", (long long)negative);
+    snprintf (buffer, sizeof(buffer), "%lluUL", (unsigned long long)positive);
     ASSERT_STREQ(buffer, buf);
 
     purc_variant_unref(value);
