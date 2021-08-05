@@ -671,11 +671,9 @@ pcedom_document_fragment_interface_destroy(
 
 
 // ============================= for attribute ================================
-typedef uintptr_t pcedom_attr_id_t;
-
 typedef struct {
-    pcutils_hash_entry_t  entry;
-    pcedom_attr_id_t    attr_id;
+    pcutils_hash_entry_t entry;
+    pcedom_attr_id_t     attr_id;
     size_t               ref_count;
     bool                 read_only;
 }

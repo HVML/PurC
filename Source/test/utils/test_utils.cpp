@@ -4,11 +4,6 @@
 #include <errno.h>
 #include <gtest/gtest.h>
 
-static inline int my_puts(const char* str)
-{
-    return fputs(str, stderr);
-}
-
 // to test basic functions of atom
 TEST(utils, atom_basic)
 {

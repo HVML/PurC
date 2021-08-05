@@ -93,7 +93,7 @@ pcutils_mraw_free(pcutils_mraw_t *mraw, void *data) WTF_INTERNAL;
 static inline size_t
 pcutils_mraw_data_size(void *data)
 {
-    return *((size_t *) (((uint8_t *) data) - pcutils_mraw_meta_size()));
+    return *((size_t *)(void*)(((uint8_t *) data) - pcutils_mraw_meta_size()));
 }
 
 static inline void
