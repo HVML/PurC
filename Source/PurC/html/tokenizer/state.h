@@ -180,7 +180,7 @@ extern "C" {
     if (tkz->token == NULL) {                                                  \
         if (tkz->status == PCHTML_STATUS_OK) {                                    \
             tkz->status = PCHTML_STATUS_ERROR;                                    \
-            pcinst_set_error (PCHTML_ERROR);                                   \
+            pcinst_set_error (PURC_ERROR_HTML);                                   \
         }                                                                      \
         return v_end;                                                          \
     }

@@ -50,6 +50,8 @@
 extern "C" {
 #endif  /* __cplusplus */
 
+#define PURC_ERROR_EDOM PURC_ERROR_FIRST_EDOM
+
 typedef enum {
     PCHTML_STATUS_OK                       = PURC_ERROR_OK,
     PCHTML_STATUS_ERROR                    = PURC_ERROR_UNKNOWN,

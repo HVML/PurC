@@ -37,31 +37,8 @@
 #include "private/edom.h"
 #include "private/html.h"
 
-static const char* html_err_msgs[] = {
-    /* PCHTML_ERROR */
-    "Error in parsing html document.",
-    /* PCHTML_OBJECT_IS_NULL */
-    "Html object is null.",
-    /* PCHTML_TOO_SMALL_SIZE */
-    "The size of array is too small.",
-    /* PCHTML_WRONG_STAGE */
-    "In wrong parsing stage.",
-    /* PCHTML_OVERFLOW */
-    "The tag stack is overflow.",
-};
-
-static struct err_msg_seg _html_err_msgs_seg = {
-    { NULL, NULL },
-    PURC_ERROR_FIRST_VARIANT,
-    PURC_ERROR_FIRST_VARIANT + PCA_TABLESIZE(html_err_msgs) - 1,
-    html_err_msgs
-};
-
 void pchtml_init_once(void)
 {
-    // register error message
-    pcinst_register_error_message_segment(&_html_err_msgs_seg);
-
     // initialize others
 }
 

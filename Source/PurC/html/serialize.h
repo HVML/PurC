@@ -41,7 +41,6 @@
 #include "private/str.h"
 #include "html/base.h"
 
-
 typedef int pchtml_html_serialize_opt_t;
 
 enum pchtml_html_serialize_opt {
