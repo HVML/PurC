@@ -1,4 +1,8 @@
+#include "purc.h"
+
 #include "purc-rwstream.h"
+#include "purc-utils.h"
+#include "config.h"
 
 #include <stdio.h>
 #include <errno.h>
@@ -914,6 +918,7 @@ TEST(buffer_rwstream, seek_read)
     ASSERT_EQ(ret, 0);
 }
 
+#if HAVE(GLIB)
 /* test gio fd rwstream */
 TEST(gio_rwstream, new_destroy)
 {
@@ -1222,6 +1227,7 @@ TEST(gio_rwstream, seek_read)
 
     remove_temp_file(tmp_file);
 }
+#endif
 
 
 off_t filesize(const char* filename)
