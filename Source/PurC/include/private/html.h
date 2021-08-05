@@ -100,7 +100,7 @@ int pchtml_parser_parse_chunk(pchtml_parser_t parser, purc_rwstream_t in);
 /*
  * Signal html doc parser end
  */
-int pchtml_parser_parse_end(pchtml_parser_t parser, pchtml_document_t *doc);
+int pchtml_parser_parse_end(pchtml_parser_t parser); //, pchtml_document_t *doc);
 
 
 /*
@@ -131,6 +131,7 @@ pchtml_doc_write_to_stream(pchtml_document_t doc, purc_rwstream_t out);
 int
 pchtml_doc_destroy(pchtml_document_t doc);
 
+pchtml_document_t * pchtml_parser_get_doc (pchtml_parser_t parser);
 
 #ifdef __cplusplus
 }
