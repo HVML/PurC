@@ -43,6 +43,17 @@
 #define PURC_ERROR_NOT_SUPPORTED        10
 #define PURC_ERROR_OUTPUT               11
 #define PURC_ERROR_TOO_SMALL_BUFF       12
+#define PURC_ERROR_NULL_OBJECT          13
+#define PURC_ERROR_TOO_SMALL_SIZE       14
+#define PURC_ERROR_INCOMPLETE_OBJECT    15
+#define PURC_ERROR_NO_FREE_SLOT         16
+#define PURC_ERROR_NOT_EXISTS           17
+#define PURC_ERROR_WRONG_ARGS           18
+#define PURC_ERROR_WRONG_STAGE          19
+#define PURC_ERROR_UNEXPECTED_RESULT    20
+#define PURC_ERROR_UNEXPECTED_DATA      21
+#define PURC_ERROR_OVERFLOW             22
+#define PURC_ERROR_UNKNOWN              23
 
 // the first error codes for various modules:
 #define PURC_ERROR_FIRST_VARIANT        100

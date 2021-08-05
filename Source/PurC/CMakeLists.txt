@@ -12,6 +12,7 @@ set(PurC_PRIVATE_INCLUDE_DIRECTORIES
     "${PURC_DIR}/include"
     "${PurC_DERIVED_SOURCES_DIR}"
     "${FORWARDING_HEADERS_DIR}"
+    "${CMAKE_BINARY_DIR}/Source/PurC"
 )
 
 # TODO: List the headers should be installed to system here.
@@ -31,6 +32,9 @@ set(PurC_INSTALLED_HEADERS
 set(PurC_PLATFORM_INDEPENDENT_DIRS
     "instance"
     "utils"
+    "variant"
+    "html"
+    "edom"
 )
 
 # This macro will append all C/CXX source files in ${PurC_PLATFORM_INDEPENDENT_DIRS}
@@ -41,12 +45,6 @@ APPEND_ALL_SOURCE_FILES_IN_DIRLIST(PurC_SOURCES "${PurC_PLATFORM_INDEPENDENT_DIR
 list(APPEND PurC_SOURCES
     "${PURC_DIR}/ports/vasprintf.c"
     "${PURC_DIR}/ports/misc.c"
-    "${PURC_DIR}/variant/variant.c"
-    "${PURC_DIR}/variant/basic-types.c"
-    "${PURC_DIR}/variant/variant-array.c"
-    "${PURC_DIR}/variant/variant-object.c"
-    "${PURC_DIR}/variant/variant-set.c"
-    "${PURC_DIR}/variant/serializer.c"
     "${PURC_DIR}/ejson/ejson.c"
     "${PURC_DIR}/vcm/vcm.c"
 )
@@ -82,6 +80,55 @@ set(PurC_INTERFACE_INCLUDE_DIRECTORIES ${PurC_PRIVATE_FRAMEWORK_HEADERS_DIR})
 
 PURC_FRAMEWORK_DECLARE(PurC)
 PURC_INCLUDE_CONFIG_FILES_IF_EXISTS()
+
+# Generate constants for HTML ns/tags/interfaces
+add_custom_command(
+    OUTPUT "${PurC_DERIVED_SOURCES_DIR}/html_foo.c"
+        ${PurC_DERIVED_SOURCES_DIR}/ns_const.h
+        ${PurC_DERIVED_SOURCES_DIR}/ns_res.h
+        ${PurC_DERIVED_SOURCES_DIR}/html_tag_const.h
+        ${PurC_DERIVED_SOURCES_DIR}/html_tag_res.h
+        ${PurC_DERIVED_SOURCES_DIR}/html_interface_res.h
+        ${PurC_DERIVED_SOURCES_DIR}/html_tag_res_ext.h
+    MAIN_DEPENDENCY ${PURC_DIR}/html/tags.py
+    DEPENDS ${PURC_DIR}/html/interfaces.py
+            ${PURC_DIR}/html/ns_const.h.in
+            ${PURC_DIR}/html/ns_res.h.in
+            ${PURC_DIR}/html/html_interface_res.h.in
+            ${PURC_DIR}/html/html_tag_res_ext.h.in
+            ${PURC_DIR}/html/html_tag_const.h.in
+            ${PURC_DIR}/html/html_tag_res.h.in
+    COMMAND ${Python3_EXECUTABLE} ${PURC_DIR}/html/tags.py "${PurC_DERIVED_SOURCES_DIR}" --without-print
+    COMMAND touch "${PurC_DERIVED_SOURCES_DIR}/html_foo.c"
+    COMMENT "Generating files for HTML tags and interfaces by using ${Python3_EXECUTABLE}"
+    WORKING_DIRECTORY "${PURC_DIR}/html/"
+    VERBATIM)
+list(APPEND PurC_SOURCES ${PurC_DERIVED_SOURCES_DIR}/html_foo.c)
+
+# Generate constants for HTML attributes
+add_custom_command(
+    OUTPUT "${PurC_DERIVED_SOURCES_DIR}/html_attr_foo.c" "${PurC_DERIVED_SOURCES_DIR}/html_attr_res.h" "${PurC_DERIVED_SOURCES_DIR}/html_attr_const.h"
+    MAIN_DEPENDENCY ${PURC_DIR}/html/attr.py
+    DEPENDS ${PURC_DIR}/html/attr_res.h.in ${PURC_DIR}/html/attr_const.h.in
+    COMMAND ${Python3_EXECUTABLE} ${PURC_DIR}/html/attr.py "${PurC_DERIVED_SOURCES_DIR}" --without-print
+    COMMAND touch "${PurC_DERIVED_SOURCES_DIR}/html_attr_foo.c"
+    COMMENT "Generating html_attr_res.h and html_attr_const.h by using ${Python3_EXECUTABLE}"
+    WORKING_DIRECTORY "${PURC_DIR}/html/"
+    VERBATIM)
+list(APPEND PurC_SOURCES ${PurC_DERIVED_SOURCES_DIR}/html_attr_foo.c)
+
+# Copy str_res.h.in to DerivedSources
+add_custom_command(
+    OUTPUT "${PurC_DERIVED_SOURCES_DIR}/html_bar.c" "${PurC_DERIVED_SOURCES_DIR}/str_res.h"
+    COMMAND ${CMAKE_COMMAND} -E copy "${PURC_DIR}/html/str_res.h.in"
+        "${PurC_DERIVED_SOURCES_DIR}/str_res.h"
+    COMMAND touch "${PurC_DERIVED_SOURCES_DIR}/html_bar.c"
+    DEPENDS "${PURC_DIR}/html/str_res.h.in"
+    COMMENT "Copying str_res.h.in to DerivedSources"
+    VERBATIM)
+list(APPEND PurC_SOURCES ${PurC_DERIVED_SOURCES_DIR}/html_bar.c)
+
+
 
 PURC_WRAP_SOURCELIST(${PurC_SOURCES})
 
@@ -121,6 +168,8 @@ if (MSVC)
         COMPILE_PDB_NAME ${PurC_OUTPUT_NAME}
     )
 endif ()
+
+# add_subdirectory(res)
 
 install(TARGETS PurC
         DESTINATION "${LIB_INSTALL_DIR}/"

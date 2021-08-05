@@ -30,6 +30,49 @@
 #include <stddef.h>
 #include <stdarg.h>
 #include <stdint.h>
+#include <stdlib.h>
+
+#define pcutils_html_whitespace(onechar, action, logic)   \
+    (onechar action ' '  logic                            \
+     onechar action '\t' logic                            \
+     onechar action '\n' logic                            \
+     onechar action '\f' logic                            \
+     onechar action '\r')
+
+static inline size_t
+pcutils_power(size_t t, size_t k)
+{
+    size_t res = 1;
+
+    while (k) {
+        if (k & 1) {
+            res *= t;
+        }
+
+        t *= t;
+        k >>= 1;
+    }
+
+    return res;
+}
+
+static inline size_t
+pcutils_hash_hash(const unsigned char *key, size_t key_size)
+{
+    size_t hash, i;
+
+    for (hash = i = 0; i < key_size; i++) {
+        hash += key[i];
+        hash += (hash << 10);
+        hash ^= (hash >> 6);
+    }
+
+    hash += (hash << 3);
+    hash ^= (hash >> 11);
+    hash += (hash << 15);
+
+    return hash;
+}
 
 /*
  * calloc_a(size_t len, [void **addr, size_t len,...], NULL)

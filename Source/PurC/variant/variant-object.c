@@ -78,24 +78,16 @@ _variant_object_set(purc_variant_t obj, const char *k, purc_variant_t val)
 {
     // question: what allocator shall we use here?
     //           extra-size count?
-    char *key  = strdup(k);
-    if (!key) {
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return -1;
-    }
-
     struct pchash_table *ht = _variant_object_get_ht(obj);
-    struct pchash_entry *e  = pchash_table_lookup_entry(ht, key);
+    struct pchash_entry *e  = pchash_table_lookup_entry(ht, k);
     if (e) {
         purc_variant_t old = (purc_variant_t)pchash_entry_v(e);
         if (old==val) {
-            free(key);
             return 0;
         }
         e->v = val;
         purc_variant_unref(old);
         purc_variant_ref(val);
-        free(key);
         return 0;
     } else {
         char *key = strdup(k);

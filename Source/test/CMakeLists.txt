@@ -3,4 +3,5 @@ add_subdirectory(rwstream)
 add_subdirectory(variant)
 add_subdirectory(tree)
 add_subdirectory(ejson)
+add_subdirectory(html)
 

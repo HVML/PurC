@@ -132,23 +132,23 @@ void pcvariant_init_instance(struct pcinst* inst)
     inst->variant_heap.v_undefined.refc = 0;
     inst->variant_heap.v_undefined.flags = PCVARIANT_FLAG_NOFREE;
 
-    inst->variant_heap.v_false.type = PURC_VARIANT_TYPE_UNDEFINED;
+    inst->variant_heap.v_false.type = PURC_VARIANT_TYPE_BOOLEAN;
     inst->variant_heap.v_false.refc = 0;
     inst->variant_heap.v_false.flags = PCVARIANT_FLAG_NOFREE;
     inst->variant_heap.v_false.b = false;
 
-    inst->variant_heap.v_true.type = PURC_VARIANT_TYPE_UNDEFINED;
+    inst->variant_heap.v_true.type = PURC_VARIANT_TYPE_BOOLEAN;
     inst->variant_heap.v_true.refc = 0;
     inst->variant_heap.v_true.flags = PCVARIANT_FLAG_NOFREE;
     inst->variant_heap.v_true.b = true;
 
     /* VWNOTE: there are two values of boolean.  */
     struct purc_variant_stat *stat = &(inst->variant_heap.stat);
-    stat->nr_values[PURC_VARIANT_TYPE_NULL] = 1;
+    stat->nr_values[PURC_VARIANT_TYPE_NULL] = 0;
     stat->sz_mem[PURC_VARIANT_TYPE_NULL] = sizeof(purc_variant);
-    stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED] = 1;
+    stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED] = 0;
     stat->sz_mem[PURC_VARIANT_TYPE_UNDEFINED] = sizeof(purc_variant);
-    stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN] = 2;
+    stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN] = 0;
     stat->sz_mem[PURC_VARIANT_TYPE_BOOLEAN] = sizeof(purc_variant) * 2;
     stat->nr_total_values = 4;
     stat->sz_total_mem = 4 * sizeof(purc_variant);
@@ -157,10 +157,10 @@ void pcvariant_init_instance(struct pcinst* inst)
     stat->nr_max_reserved = MAX_RESERVED_VARIANTS;
 
     // VWNOTE: this is redundant
-    memset(inst->variant_heap.v_reserved, 0,
-            sizeof(inst->variant_heap.v_reserved));
-    inst->variant_heap.headpos = 0;
-    inst->variant_heap.tailpos = 0;
+    // memset(inst->variant_heap.v_reserved, 0,
+    //         sizeof(inst->variant_heap.v_reserved));
+    // inst->variant_heap.headpos = 0;
+    // inst->variant_heap.tailpos = 0;
 
     // initialize others
 }
@@ -240,55 +240,40 @@ unsigned int purc_variant_unref(purc_variant_t value)
     switch ((int)value->type) {
         case PURC_VARIANT_TYPE_OBJECT:
         {
-            // consideration: better implementation?
-            const char *key;
-            struct pchash_entry *curr, *tmp;
-            foreach_key_value_in_variant_object_safe(value, key, variant,
-                    curr, tmp)
-            {
-                int refc = purc_variant_unref(variant);
-                if (value->refc>1 && refc)
-                    continue;
-                // shall switch to faster iteration later
-                int t = pchash_table_delete_entry(_ht, curr);
-                PC_ASSERT(t==0);
-                free((void*)key);
+            struct pchash_entry *curr;
+            foreach_in_variant_object_safe(value, curr) {
+                const char *k = pchash_entry_k(curr);
+                variant = pchash_entry_v(curr);
+                if (purc_variant_unref(variant)==0) {
+                    int r;
+                    r = pchash_table_delete_entry(_ht, curr);
+                    PC_ASSERT(r==0);
+                    free((void*)k);
+                }
             } end_foreach;
             break;
         }
 
         case PURC_VARIANT_TYPE_ARRAY:
         {
-            // consideration: better implementation?
-            size_t curr, tmp;
-            foreach_value_in_variant_array_safe(value, variant, curr, tmp)
-            {
-                int refc = purc_variant_unref(variant);
-                if (value->refc>1 && refc)
-                    continue;
-                // shall switch to faster iteration later
-                int t = pcutils_arrlist_del_idx(_al, curr, 1);
-                PC_ASSERT(t==0);
-                tmp = curr;
+            size_t curr;
+            foreach_value_in_variant_array_safe(value, variant, curr) {
+                if (purc_variant_unref(variant)==0) {
+                    int r = pcutils_arrlist_del_idx(_al, curr, 1);
+                    PC_ASSERT(r==0);
+                    --curr;
+                }
             } end_foreach;
             break;
         }
 
         case PURC_VARIANT_TYPE_SET:
         {
-            // consideration: better implementation?
-            struct obj_node *curr, *tmp;
-            foreach_value_in_variant_set_safe(value, variant, curr, tmp)
-            {
-                int refc = variant->refc;
-                if (value->refc>1 && refc>1) {
-                    purc_variant_unref(variant);
-                    continue;
+            struct obj_node *curr;
+            foreach_value_in_variant_set_safe(value, variant, curr) {
+                if (purc_variant_unref(variant)==0) {
+                    pcutils_avl_delete(_tree, &curr->avl);
                 }
-                // shall switch to faster iteration later
-                pcutils_avl_delete(_tree, &curr->avl);
-                pcvariant_set_release_obj(curr);
-                free(curr);
             } end_foreach;
             break;
         }
@@ -321,6 +306,18 @@ struct purc_variant_stat * purc_variant_usage_stat(void)
         inst->errcode = PURC_ERROR_NO_INSTANCE;
         return NULL;
     }
+
+    purc_variant_t value = &(inst->variant_heap.v_undefined);
+    inst->variant_heap.stat.nr_values[PURC_VARIANT_TYPE_UNDEFINED] = value->refc;
+
+    value = &(inst->variant_heap.v_null);
+    inst->variant_heap.stat.nr_values[PURC_VARIANT_TYPE_NULL] = value->refc;
+
+
+    value = &(inst->variant_heap.v_true);
+    inst->variant_heap.stat.nr_values[PURC_VARIANT_TYPE_BOOLEAN] = value->refc;
+    value = &(inst->variant_heap.v_false);
+    inst->variant_heap.stat.nr_values[PURC_VARIANT_TYPE_BOOLEAN] += value->refc;
 
     return &inst->variant_heap.stat;
 }

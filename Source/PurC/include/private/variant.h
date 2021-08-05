@@ -162,13 +162,13 @@ void pcvariant_set_release_obj(struct obj_node *p);
      /* } */                                                \
  /* } while (0) */
 
-#define foreach_value_in_variant_array_safe(_arr, _val, _curr, _tmp)   \
+#define foreach_value_in_variant_array_safe(_arr, _val, _curr)         \
     do {                                                               \
         struct pcutils_arrlist *_al;                                   \
         _al = (struct pcutils_arrlist*)_arr->sz_ptr[1];                \
-        for (_curr = 0, _tmp = 1;                                      \
+        for (_curr = 0;                                                \
              _curr < _al->length;                                      \
-             _curr = _tmp, ++_tmp)                                     \
+             ++_curr)                                                  \
         {                                                              \
             _val = (purc_variant_t)_al->array[_curr];                  \
      /* } */                                                           \
@@ -185,16 +185,6 @@ void pcvariant_set_release_obj(struct obj_node *p);
      /* } */                                                        \
  /* } while (0) */
 
-#define foreach_value_in_variant_object_safe(_obj, _val, _curr, _tmp)   \
-    do {                                                                \
-        struct pchash_table *_ht;                                       \
-        _ht = (struct pchash_table*)_obj->sz_ptr[1];                    \
-        pchash_foreach_safe(_ht, _curr, _tmp)                           \
-        {                                                               \
-            _val = (purc_variant_t)_curr->v;                            \
-     /* } */                                                            \
- /* } while (0) */
-
 #define foreach_key_value_in_variant_object(_obj, _key, _val)       \
     do {                                                            \
         struct pchash_table *_ht;                                   \
@@ -207,15 +197,13 @@ void pcvariant_set_release_obj(struct obj_node *p);
      /* } */                                                        \
  /* } while (0) */
 
-#define foreach_key_value_in_variant_object_safe(_obj, _key, _val,      \
-        _curr, _tmp)                                                    \
+#define foreach_in_variant_object_safe(_obj, _curr)                     \
     do {                                                                \
         struct pchash_table *_ht;                                       \
         _ht = (struct pchash_table*)_obj->sz_ptr[1];                    \
+        struct pchash_entry *_tmp;                                      \
         pchash_foreach_safe(_ht, _curr, _tmp)                           \
         {                                                               \
-            _key   = (const char*)_curr->k;                             \
-            _val = (purc_variant_t)_curr->v;                            \
      /* } */                                                            \
  /* } while (0) */
 
@@ -231,10 +219,11 @@ void pcvariant_set_release_obj(struct obj_node *p);
      /* } */                                                            \
   /* } while (0) */
 
-#define foreach_value_in_variant_set_safe(_set, _val, _curr, _tmp)      \
+#define foreach_value_in_variant_set_safe(_set, _val, _curr)            \
     do {                                                                \
         variant_set_t _data;                                            \
         struct avl_tree *_tree;                                         \
+        struct obj_node *_tmp;                                          \
         _data = (variant_set_t)_set->sz_ptr[1];                         \
         _tree = &_data->objs;                                           \
         avl_for_each_element_safe(_tree, _curr, avl, _tmp) {            \
