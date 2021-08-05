@@ -230,9 +230,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ![呼噜猫](https://www.fmsoft.cn/application/files/8416/1931/8781/256132.jpg)
 
-3) `Purring Cat` is a registered tradmark of Beijing FMSoft Technologies. Co., Ltd. in China and other contries or regions.
+3) `Purring Cat` is a tradmark of Beijing FMSoft Technologies. Co., Ltd. in China and other contries or regions.
 
 ![Purring Cat](https://www.fmsoft.cn/application/files/2816/1931/9258/PurringCat256132.jpg)
+
+4) `PurC` is a tradmark of Beijing FMSoft Technologies. Co., Ltd. in China and other contries or regions.
+
+![PurC](https://www.fmsoft.cn/application/files/5716/2813/0470/PurC256132.jpg)
 
 [Beijing FMSoft Technologies Co., Ltd.]: https://www.fmsoft.cn
 [FMSoft Technologies]: https://www.fmsoft.cn
