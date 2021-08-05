@@ -1366,7 +1366,7 @@ TEST(dump_rwstream, stdio_gio)
     purc_rwstream_t rws = purc_rwstream_new_from_file(in_file, "r");
     ASSERT_NE(rws, nullptr);
 
-    int fd = open(out_file, O_RDWR);
+    int fd = open(out_file, O_WRONLY | O_APPEND | O_CREAT, 0644);
     purc_rwstream_t rws_out = purc_rwstream_new_from_unix_fd (fd, 1024);
     ASSERT_NE(rws_out, nullptr);
 
@@ -1393,6 +1393,7 @@ TEST(dump_rwstream, stdio_gio)
     ASSERT_EQ(ret, 0);
 
     remove_temp_file(in_file);
+    remove_temp_file(out_file);
 }
 
 TEST(dump_rwstream, mem_buffer)
