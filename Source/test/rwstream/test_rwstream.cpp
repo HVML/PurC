@@ -1361,6 +1361,7 @@ TEST(dump_rwstream, stdio_buffer)
     remove_temp_file(in_file);
 }
 
+#if HAVE(GLIB)
 TEST(dump_rwstream, stdio_gio)
 {
     char in_file[] = "/tmp/rwstream.txt";
@@ -1401,6 +1402,7 @@ TEST(dump_rwstream, stdio_gio)
     remove_temp_file(in_file);
     remove_temp_file(out_file);
 }
+#endif
 
 TEST(dump_rwstream, mem_buffer)
 {
