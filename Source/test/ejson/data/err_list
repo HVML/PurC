@@ -6,7 +6,6 @@ y_number_real_exponent #double
 n_number_0_capital_E+ #double
 n_number_0e+ #double
 y_number_real_fraction_exponent #double
-y_object_empty_key # {"":b} => {}   
 y_object_extreme_numbers # double
 y_string_allowed_escapes # \\\\
 y_string_backslash_and_u_escaped_zero

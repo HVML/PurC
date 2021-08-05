@@ -299,3 +299,5 @@ y_array_false
 y_structure_true_in_array
 y_structure_lonely_true
 y_structure_lonely_false
+y_object_empty_key
+
