@@ -678,7 +678,7 @@ TEST(variant, pcvariant_longint)
     ASSERT_GT(n, 0);
 
     buf[n] = 0;
-    snprintf (buffer, sizeof(buffer), "%lluL", (unsigned long long)positive);
+    snprintf (buffer, sizeof(buffer), "%lldL", (long long)positive);
     ASSERT_STREQ(buffer, buf);
 
     purc_cleanup ();
