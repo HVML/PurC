@@ -395,6 +395,10 @@ int pcejson_parse (struct pcvcm_node** vcm_tree, struct pcejson** parser,
         error = purc_get_last_error();
     }
 
+    if (token != NULL && token->type == EJSON_TOKEN_EOF) {
+        pcejson_token_destroy (token);
+    }
+
     if (error == PCEJSON_SUCCESS) {
         return 0;
     }
