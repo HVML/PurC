@@ -78,6 +78,10 @@ _variant_object_set(purc_variant_t obj, const char *k, purc_variant_t val)
 {
     // question: what allocator shall we use here?
     //           extra-size count?
+    if (!k || !val) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
     struct pchash_table *ht = _variant_object_get_ht(obj);
     struct pchash_entry *e  = pchash_table_lookup_entry(ht, k);
     if (e) {
@@ -130,10 +134,6 @@ _variant_object_set_kvs_n(purc_variant_t obj, size_t nr_kv_pairs,
             PC_ASSERT(k_c);
         }
         v = va_arg(ap, purc_variant_t);
-        if (!k_c || !*k_c || !v) {
-            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-            break;
-        }
 
         if (_variant_object_set(obj, k_c, v))
             break;
@@ -172,7 +172,7 @@ purc_variant_make_object_c (size_t nr_kv_pairs,
     const char* key0, purc_variant_t value0, ...)
 {
     PCVARIANT_CHECK_FAIL_RET((nr_kv_pairs==0 && key0==NULL && value0==NULL) ||
-                         (nr_kv_pairs>0 && key0 && *key0 && value0),
+                         (nr_kv_pairs>0 && key0 && value0),
         PURC_VARIANT_INVALID);
 
     purc_variant_t obj = _variant_object_new_with_capacity(nr_kv_pairs);
@@ -228,10 +228,6 @@ purc_variant_make_object (size_t nr_kv_pairs,
         if (nr_kv_pairs>0) {
             const char *k = purc_variant_get_string_const(key0);
             purc_variant_t v = value0;
-            if (!k) {
-                pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-                break;
-            }
             if (_variant_object_set(obj, k, v))
                 break;
 
@@ -320,7 +316,7 @@ bool purc_variant_object_set_c (purc_variant_t obj,
     const char* key, purc_variant_t value)
 {
     PCVARIANT_CHECK_FAIL_RET(obj && obj->type==PVT(_OBJECT) &&
-        obj->sz_ptr[1] && key && *key && value,
+        obj->sz_ptr[1] && key && value,
         false);
 
     if (_variant_object_set(obj, key, value))

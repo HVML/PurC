@@ -48,6 +48,8 @@ TEST(variant, serialize_boolean)
     buf[7] = 0;
     ASSERT_STREQ(buf, "truetru");
 
+    purc_rwstream_destroy(my_rws);
+
     purc_cleanup ();
 }
 
@@ -82,6 +84,8 @@ TEST(variant, serialize_null)
     buf[7] = 0;
     ASSERT_STREQ(buf, "nullnul");
 
+    purc_rwstream_destroy(my_rws);
+
     purc_cleanup ();
 }
 
@@ -112,6 +116,8 @@ TEST(variant, serialize_undefined)
             0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
     ASSERT_GE(len_expected, 9);
     ASSERT_EQ(n, -1);
+
+    purc_rwstream_destroy(my_rws);
 
     purc_cleanup ();
 }
@@ -182,6 +188,9 @@ TEST(variant, serialize_number)
     buf[n] = 0;
     ASSERT_STREQ(buf, "1.123456");
     purc_variant_unref(my_variant);
+
+    purc_rwstream_destroy(my_rws);
+
     purc_cleanup ();
 }
 
@@ -482,6 +491,11 @@ TEST(variant, serialize_string)
 
     buf[n] = 0;
     ASSERT_STREQ(buf, "\"这是一个很长的中文字符串\"");
+
+    purc_variant_unref(my_variant);
+
+    purc_rwstream_destroy(my_rws);
+
     purc_cleanup ();
 }
 
@@ -576,6 +590,8 @@ TEST(variant, serialize_bsequence)
 
     purc_variant_unref(my_variant);
 
+    purc_rwstream_destroy(my_rws);
+
     purc_cleanup ();
 }
 
@@ -658,6 +674,8 @@ TEST(variant, serialize_array)
     purc_variant_unref(my_variant);
     purc_variant_unref(v1);
     purc_variant_unref(v2);
+
+    purc_rwstream_destroy(my_rws);
 
     purc_cleanup ();
 }
@@ -743,6 +761,87 @@ TEST(variant, serialize_object)
     ASSERT_EQ(my_variant->refc, 1);
     purc_variant_unref(my_variant);
 
+    purc_rwstream_destroy(my_rws);
+
     purc_cleanup ();
 }
 
+// to test: serialize an object with empty key str
+TEST(variant, serialize_object_with_empty_key)
+{
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    purc_variant_t v1 = purc_variant_make_number(123);
+    ASSERT_EQ(v1->refc, 1);
+
+    purc_variant_t my_variant =
+        purc_variant_make_object_c(1, "", v1);
+    ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
+    ASSERT_EQ(v1->refc, 2);
+    ASSERT_EQ(my_variant->refc, 1);
+
+    char buf[32];
+    purc_rwstream_t my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    ASSERT_NE(my_rws, nullptr);
+
+    size_t len_expected = 0;
+    ssize_t n = purc_variant_serialize(my_variant, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+    ASSERT_GT(n, 0);
+    ASSERT_EQ(v1->refc, 2);
+    ASSERT_EQ(my_variant->refc, 1);
+
+    buf[n] = 0;
+    fprintf(stderr, "%ld[%s]\n", n, buf);
+    ASSERT_STREQ(buf, "{\"\":123}");
+
+    purc_variant_unref(v1);
+    ASSERT_EQ(v1->refc, 1);
+    ASSERT_EQ(my_variant->refc, 1);
+    purc_variant_unref(my_variant);
+
+    purc_rwstream_destroy(my_rws);
+
+    purc_cleanup ();
+}
+
+// to test: serialize an object with empty key str
+TEST(variant, serialize_object_with_empty_key2)
+{
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    purc_variant_t v1 = purc_variant_make_number(123);
+    ASSERT_EQ(v1->refc, 1);
+
+    purc_variant_t my_variant =
+        purc_variant_make_object_c(2, "x", v1, "", v1);
+    ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
+    ASSERT_EQ(v1->refc, 3);
+    ASSERT_EQ(my_variant->refc, 1);
+
+    char buf[32];
+    purc_rwstream_t my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    ASSERT_NE(my_rws, nullptr);
+
+    size_t len_expected = 0;
+    ssize_t n = purc_variant_serialize(my_variant, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+    ASSERT_GT(n, 0);
+    ASSERT_EQ(v1->refc, 3);
+    ASSERT_EQ(my_variant->refc, 1);
+
+    buf[n] = 0;
+    fprintf(stderr, "%ld[%s]\n", n, buf);
+    ASSERT_STREQ(buf, "{\"x\":123,\"\":123}");
+
+    ASSERT_EQ(my_variant->refc, 1);
+    purc_variant_unref(my_variant);
+    ASSERT_EQ(v1->refc, 1);
+    purc_variant_unref(v1);
+
+    purc_rwstream_destroy(my_rws);
+
+    purc_cleanup ();
+}
