@@ -22,6 +22,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#ifndef PURC_PURC_MACROS_H
+#define PURC_PURC_MACROS_H
+
 #ifndef __has_declspec_attribute
 #define __has_declspec_attribute(x) 0
 #endif
@@ -81,3 +84,4 @@
 
 #define PCA_TABLESIZE(table)    (sizeof(table)/sizeof(table[0]))
 
+#endif /*  PURC_PURC_MACROS_H */
