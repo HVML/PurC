@@ -188,8 +188,11 @@ TEST(html, html_parser_chunk)
     }
 
     pchtml_document_t doc = NULL;
-    int r = pchtml_parser_parse_end(parser);//, &doc);
+    int r = pchtml_parser_parse_end(parser);
     ASSERT_EQ(r, 0);
+    pchtml_document_t *pdoc = pchtml_parser_get_doc(parser);
+    ASSERT_NE(pdoc, nullptr);
+    doc = *pdoc;
     ASSERT_NE(doc, nullptr);
 
     io = purc_rwstream_new_from_fp(stdout);
@@ -199,9 +202,9 @@ TEST(html, html_parser_chunk)
     ASSERT_EQ(n, 0);
     purc_rwstream_destroy(io);
 
-    pchtml_doc_destroy(doc);
-
     pchtml_parser_destroy(parser);
+    doc = NULL;
+    pdoc = NULL;
 
     purc_cleanup ();
 }
