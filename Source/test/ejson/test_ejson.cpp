@@ -2163,5 +2163,6 @@ TEST(ejson_token, pcejson_parse_serial_empty_object)
 
     pcejson_destroy(parser);
     purc_cleanup ();
+
 }
 
