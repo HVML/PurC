@@ -98,7 +98,7 @@ TEST_P(ejson_parser_vcm_eval, parse_and_serialize)
 
     struct pcvcm_node* root = NULL;
     struct pcejson* parser = NULL;
-    pcejson_parse (&root, &parser, rws);
+    pcejson_parse (&root, &parser, rws, 32);
     int error = purc_get_last_error();
     ASSERT_EQ (error, error_code) << "Test Case : "<< get_name();
 

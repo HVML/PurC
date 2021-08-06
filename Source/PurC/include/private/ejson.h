@@ -142,8 +142,8 @@ enum ejson_token_type {
 struct pcejson {
     enum ejson_state state;
     enum ejson_state return_state;
-    int32_t depth;
-    int32_t max_depth;
+    uint32_t depth;
+    uint32_t max_depth;
     uint32_t flags;
     struct pcutils_stack* stack;
     struct pcutils_stack* vcm_stack;
@@ -193,7 +193,7 @@ void pcejson_init_once (void);
 /*
  * Create ejson parser.
  */
-struct pcejson* pcejson_create (int32_t depth, uint32_t flags);
+struct pcejson* pcejson_create (uint32_t depth, uint32_t flags);
 
 /*
  * Destroy ejson parser.
@@ -203,13 +203,13 @@ void pcejson_destroy (struct pcejson* parser);
 /*
  * Reset ejson parser.
  */
-void pcejson_reset (struct pcejson* parser, int32_t depth, uint32_t flags);
+void pcejson_reset (struct pcejson* parser, uint32_t depth, uint32_t flags);
 
 /*
  * Parse ejson.
  */
 int pcejson_parse (struct pcvcm_node** vcm_tree, struct pcejson** parser,
-        purc_rwstream_t rwstream);
+        purc_rwstream_t rwstream, uint32_t depth);
 
 /*
  * Create a new pcejson token.

@@ -177,7 +177,7 @@ static inline bool is_delimiter (wchar_t c)
         || c == END_OF_FILE_MARKER;
 }
 
-struct pcejson* pcejson_create (int32_t depth, uint32_t flags)
+struct pcejson* pcejson_create (uint32_t depth, uint32_t flags)
 {
     struct pcejson* parser = (struct pcejson*) ejson_alloc (
             sizeof(struct pcejson));
@@ -287,7 +287,7 @@ char pcejson_tmp_buff_last_char (purc_rwstream_t rws) {
     return p[len - 1];
 }
 
-void pcejson_reset (struct pcejson* parser, int32_t depth, uint32_t flags)
+void pcejson_reset (struct pcejson* parser, uint32_t depth, uint32_t flags)
 {
     parser->state = EJSON_INIT_STATE;
     parser->max_depth = depth;
@@ -374,13 +374,13 @@ struct pcvcm_node* pcejson_token_to_pcvcm_node (
 }
 
 int pcejson_parse (struct pcvcm_node** vcm_tree, struct pcejson** parser,
-        purc_rwstream_t rws)
+        purc_rwstream_t rws, uint32_t depth)
 {
     bool has_param_vcm = *vcm_tree ? true : false;
     bool has_param_parser = true;
     if (*parser == NULL) {
         has_param_parser = false;
-        *parser = pcejson_create (PCEJSON_MAX_DEPTH, 1);
+        *parser = pcejson_create (depth > 0 ? depth : PCEJSON_MAX_DEPTH, 1);
     }
 
     struct pcutils_stack* node_stack = (*parser)->vcm_stack;
