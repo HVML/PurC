@@ -10,12 +10,12 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#if 0
 void test_html_file(char * data_path, char * file_name)
 {
     int ret = 0;
     size_t size = 0;
     purc_rwstream_t rwstream = NULL;
+    pchtml_html_document_t *document = NULL;
     const char * serialization = NULL;
     struct stat file_stat;
     size_t read_length = 0;
@@ -61,9 +61,11 @@ void test_html_file(char * data_path, char * file_name)
     off = purc_rwstream_seek(rwstream, 0, SEEK_SET);
     ASSERT_NE(off, -1);
 
-    pchtml_document_t doc = NULL;
-    doc = pchtml_doc_load_from_stream (rwstream);
-    ASSERT_NE(doc, nullptr);
+    document = pchtml_html_document_create();
+    ASSERT_NE(document, nullptr);
+
+    ret = pchtml_html_document_parse(document, rwstream);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_rwstream_close (rwstream);
     purc_rwstream_destroy (rwstream);
@@ -72,7 +74,7 @@ void test_html_file(char * data_path, char * file_name)
     rwstream = purc_rwstream_new_from_mem(test_file, 8192);
 
     // serialize documnet
-    ret = pchtml_doc_write_to_stream(doc, rwstream);
+    ret = pchtml_doc_write_to_stream(document, rwstream);
     ASSERT_EQ(ret, 0);
 
     // get the buffer of serialization
@@ -91,7 +93,7 @@ printf("%s\n", serialization);
 
     // clean rwstream and document
     purc_rwstream_destroy(rwstream);
-    pchtml_doc_destroy(doc);
+    pchtml_html_document_destroy (document);
 
     // clean instance
     purc_cleanup ();
@@ -99,7 +101,6 @@ printf("%s\n", serialization);
     printf(" OK\n");
 
 }
-#endif
 
 void test_html_chunk(char * data_path, char * file_name)
 {
@@ -239,6 +240,8 @@ TEST(html, html_parser_fragment)
     char buffer[8192] = {0};
     const char * serialization = NULL;
     size_t size = 0;
+    char before[] = "<html>\n  <head>\n  </head>\n  <body>\n    <div>\n      <span>\n        \"blah-blah-blah\"\n      </span>\n    </div>\n  </body>\n</html>\n\n";
+    char after[] =  "<html>\n  <head>\n  </head>\n  <body>\n    <ul>\n      <li>\n        \"1\"\n      </li>\n      <li>\n        \"2\"\n      </li>\n      <li>\n        \"3\"\n      </li>\n    </ul>\n  </body>\n</html>\n";
 
     purc_instance_extra_info info = {0, 0};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
@@ -278,7 +281,9 @@ TEST(html, html_parser_fragment)
     ret = pchtml_doc_write_to_stream(document, rwstream);
     ASSERT_EQ(ret, 0);
     serialization = purc_rwstream_get_mem_buffer (rwstream, &size);
-printf("%s\n", serialization);
+    ret = strncmp(serialization, before, strlen(before)- 1);
+    ASSERT_EQ(ret, 0);
+
     purc_rwstream_close(rwstream);
     purc_rwstream_destroy (rwstream);
 
@@ -298,7 +303,9 @@ printf("%s\n", serialization);
     ret = pchtml_doc_write_to_stream(document, rwstream);
     ASSERT_EQ(ret, 0);
     serialization = purc_rwstream_get_mem_buffer (rwstream, &size);
-printf("%s\n", serialization);
+    ret = strncmp(serialization, after, strlen(after) - 1);
+    ASSERT_EQ(ret, 0);
+
     purc_rwstream_close(rwstream);
     purc_rwstream_destroy (rwstream);
 
