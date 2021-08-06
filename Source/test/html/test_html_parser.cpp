@@ -10,9 +10,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#if 0
 // test html parser for whole html file
-TEST(html, html_parser_html_file_1)
+TEST(html, html_parser_html_file_x)
 {
     purc_instance_extra_info info = {0, 0};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
@@ -55,8 +54,13 @@ TEST(html, html_parser_html_file_1)
     off = purc_rwstream_seek(io, 0, SEEK_SET);
     ASSERT_NE(off, -1);
 
-    pchtml_document_t doc = pchtml_doc_load_from_stream(io);
+    pchtml_html_document_t *doc;
+    doc = pchtml_html_document_create();
     ASSERT_NE(doc, nullptr);
+
+    unsigned int r;
+    r = pchtml_html_document_parse(doc, io);
+    ASSERT_EQ(r, PCHTML_STATUS_OK);
 
     purc_rwstream_destroy(io);
 
@@ -72,8 +76,8 @@ TEST(html, html_parser_html_file_1)
     memcpy(buf, buffer, size);
     printf("%s\n", buf);
 
-
-    pchtml_doc_destroy(doc);
+    pchtml_html_document_destroy(doc);
+    purc_rwstream_destroy(io);
 
     purc_cleanup ();
 }
@@ -107,7 +111,9 @@ TEST(html, load_from_html)
     while ((ssz = getline(&line, &sz, furls)) != -1) {
         FILE *fin;
         purc_rwstream_t in;
-        pchtml_document_t doc;
+        pchtml_html_document_t *doc;
+        unsigned int ur;
+
         int n, r;
 
         char *p;
@@ -125,14 +131,16 @@ TEST(html, load_from_html)
 
         in = purc_rwstream_new_from_fp(fin);
         ASSERT_NE(in, nullptr);
-        doc = pchtml_doc_load_from_stream(in);
+
+        doc = pchtml_html_document_create();
         ASSERT_NE(doc, nullptr);
+        ur = pchtml_html_document_parse(doc, in);
+        ASSERT_EQ(ur, PCHTML_STATUS_OK);
 
         r = pchtml_doc_write_to_stream(doc, out);
         ASSERT_EQ(r, 0);
 
-        r = pchtml_doc_destroy(doc);
-        ASSERT_EQ(r, 0);
+        pchtml_html_document_destroy(doc);
         purc_rwstream_destroy(in);
         // pclose(fin);
     }
@@ -151,10 +159,6 @@ TEST(html, html_parser_chunk)
     purc_instance_extra_info info = {0, 0};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
-
-    pchtml_parser_t parser;
-    parser = pchtml_parser_create();
-    ASSERT_NE(parser, nullptr);
 
     static const char html[][64] = {
         "<!DOCT",
@@ -178,23 +182,25 @@ TEST(html, html_parser_chunk)
 
     purc_rwstream_t io;
 
+    pchtml_html_document_t *doc;
+    doc = pchtml_html_document_create();
+    ASSERT_NE(doc, nullptr);
+    unsigned int ur;
+    ur = pchtml_html_document_parse_chunk_begin(doc);
+    ASSERT_EQ(ur, PCHTML_STATUS_OK);
+
     for (size_t i = 0; html[i][0] != '\0'; i++) {
         const char *buf = html[i];
         size_t      len = strlen(buf);
         io = purc_rwstream_new_from_mem((void*)buf, len);
         ASSERT_NE(io, nullptr);
-        int r = pchtml_parser_parse_chunk(parser, io);
-        ASSERT_EQ(r, 0);
+        ur = pchtml_html_document_parse_chunk(doc, io);
+        ASSERT_EQ(ur, PCHTML_STATUS_OK);
         purc_rwstream_destroy(io);
     }
 
-    pchtml_document_t doc = NULL;
-    int r = pchtml_parser_parse_end(parser);
-    ASSERT_EQ(r, 0);
-    pchtml_document_t *pdoc = pchtml_parser_get_doc(parser);
-    ASSERT_NE(pdoc, nullptr);
-    doc = *pdoc;
-    ASSERT_NE(doc, nullptr);
+    ur = pchtml_html_document_parse_chunk_end(doc);
+    ASSERT_EQ(ur, PCHTML_STATUS_OK);
 
     io = purc_rwstream_new_from_fp(stdout);
 
@@ -203,10 +209,8 @@ TEST(html, html_parser_chunk)
     ASSERT_EQ(n, 0);
     purc_rwstream_destroy(io);
 
-    pchtml_parser_destroy(parser);
-    doc = NULL;
-    pdoc = NULL;
+    pchtml_html_document_destroy(doc);
 
     purc_cleanup ();
 }
-#endif
+
