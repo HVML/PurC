@@ -10,6 +10,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#if 0
 // test html parser for whole html file
 TEST(html, html_parser_html_file_1)
 {
@@ -208,4 +209,4 @@ TEST(html, html_parser_chunk)
 
     purc_cleanup ();
 }
-
+#endif

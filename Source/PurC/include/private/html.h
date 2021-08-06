@@ -20,14 +20,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- *
- * This implementation of HTML parser is derived from Lexbor
- * <https://github.com/lexbor/lexbor>, which is licensed under the Apache
- * License, Version 2.0:
- *
- * Copyright (C) 2018-2020 Alexander Borisov
- *
- * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
 #ifndef PURC_PRIVATE_HTML_H
@@ -38,7 +30,6 @@
 #include "purc-rwstream.h"
 
 #include <assert.h>
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,7 +48,35 @@ void pchtml_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 struct pchtml_html_document;
 typedef struct pchtml_html_document pchtml_html_document_t;
 
-// operations about  html document
+struct pchtml_html_element;
+typedef struct pchtml_html_element pchtml_html_element_t;
+
+struct pchtml_html_body_element;
+typedef struct pchtml_html_body_element pchtml_html_body_element_t;
+
+struct pchtml_html_parser;
+typedef struct pchtml_html_parser pchtml_html_parser_t;
+
+// API for parser
+pchtml_html_parser_t *
+pchtml_html_parser_create(void);
+
+unsigned int
+pchtml_html_parser_init(pchtml_html_parser_t *parser);
+
+void
+pchtml_html_parser_clean(pchtml_html_parser_t *parser);
+
+pchtml_html_parser_t *
+pchtml_html_parser_destroy(pchtml_html_parser_t *parser);
+
+pchtml_html_document_t *
+pchtml_html_parse(pchtml_html_parser_t *parser, const purc_rwstream_t html);
+
+
+
+
+// API for document
 pchtml_html_document_t *
 pchtml_html_document_create(void);
 
@@ -68,6 +87,47 @@ pchtml_html_document_t *
 pchtml_html_document_destroy(pchtml_html_document_t *document);
 
 
+// API for parse document
+unsigned int
+pchtml_html_document_parse(pchtml_html_document_t *document,
+                const purc_rwstream_t html) ;
+
+unsigned int
+pchtml_html_document_parse_chunk_begin(
+                pchtml_html_document_t *document) ;
+
+unsigned int
+pchtml_html_document_parse_chunk(pchtml_html_document_t *document,
+                const purc_rwstream_t html) ;
+
+unsigned int
+pchtml_html_document_parse_chunk_end(
+                pchtml_html_document_t *document) ;
+
+// API for parse fragment 
+pcedom_node_t *
+pchtml_html_document_parse_fragment(pchtml_html_document_t *document,
+                pcedom_element_t *element,
+                const purc_rwstream_t html) ;
+
+unsigned int
+pchtml_html_document_parse_fragment_chunk_begin(
+                pchtml_html_document_t *document,
+                pcedom_element_t *element) ;
+
+unsigned int
+pchtml_html_document_parse_fragment_chunk(pchtml_html_document_t *document,
+                const purc_rwstream_t html) ;
+
+pcedom_node_t *
+pchtml_html_document_parse_fragment_chunk_end(
+                pchtml_html_document_t *document) ;
+
+pchtml_html_element_t *
+pchtml_html_element_inner_html_set(pchtml_html_element_t *element,
+                const purc_rwstream_t html);
+
+// for serialize
 typedef unsigned int
 (*pchtml_html_serialize_cb_f)(const unsigned char *data, size_t len, void *ctx);
 
@@ -76,62 +136,8 @@ pchtml_html_serialize_pretty_tree_cb(pcedom_node_t *node,
                 int opt, size_t indent,
                 pchtml_html_serialize_cb_f cb, void *ctx) ;
 
-
-struct pchtml_parser;
-typedef struct pchtml_parser  pchtml_parser;
-typedef struct pchtml_parser *pchtml_parser_t;
-
-struct pchtml_document;
-typedef struct pchtml_document  pchtml_document;
-typedef struct pchtml_document *pchtml_document_t;
-
-/*
- * Create html parser
- */
-pchtml_parser_t pchtml_parser_create(void);
-
-/*
- * Parse html doc with stream via parser, continuable
- * -1: failure
- * 0:  success
- */
-int pchtml_parser_parse_chunk(pchtml_parser_t parser, purc_rwstream_t in);
-
-/*
- * Signal html doc parser end
- */
-int pchtml_parser_parse_end(pchtml_parser_t parser); //, pchtml_document_t *doc);
-
-
-/*
- * Reset html parser
- */
-int pchtml_parser_reset(pchtml_parser_t parser);
-
-/*
- * Destroy html parser
- */
-void pchtml_parser_destroy(pchtml_parser_t parser);
-
-/*
- * Load html doc from stream
- */
-pchtml_document_t
-pchtml_doc_load_from_stream(purc_rwstream_t in);
-
-/*
- * Serialize html doc to stream
- */
 int
-pchtml_doc_write_to_stream(pchtml_document_t doc, purc_rwstream_t out);
-
-/*
- * Destroy html doc
- */
-int
-pchtml_doc_destroy(pchtml_document_t doc);
-
-pchtml_document_t * pchtml_parser_get_doc (pchtml_parser_t parser);
+pchtml_doc_write_to_stream(pchtml_html_document_t *doc, purc_rwstream_t out);
 
 #ifdef __cplusplus
 }

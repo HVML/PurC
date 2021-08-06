@@ -187,7 +187,7 @@ extern "C" {
 
 #define pchtml_html_tokenizer_state_token_done_m(tkz, v_end)                      \
     do {                                                                       \
-        if (tkz->token->begin+1 != tkz->token->end) {                            \
+        if (1) /*tkz->token->begin+1 != tkz->token->end) */ {                            \
             _pchtml_html_tokenizer_state_token_done_m(tkz, v_end)                 \
         }                                                                      \
         pchtml_html_token_clean(tkz->token);                                      \
@@ -211,7 +211,7 @@ extern "C" {
 
 #define pchtml_html_tokenizer_state_token_emit_text_not_empty_m(tkz, v_end)       \
     do {                                                                       \
-        if (tkz->token->begin+1 != tkz->token->end) {                            \
+        if (1) /* tkz->token->begin+1 != tkz->token->end) */ {                            \
             tkz->token->tag_id = PCHTML_TAG__TEXT;                                \
                                                                                \
             pchtml_html_tokenizer_state_set_text(tkz);                            \

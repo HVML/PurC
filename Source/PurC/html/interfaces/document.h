@@ -94,7 +94,6 @@ pchtml_html_document_clean(pchtml_html_document_t *document) WTF_INTERNAL;
 pchtml_html_document_t *
 pchtml_html_document_destroy(pchtml_html_document_t *document) WTF_INTERNAL;
 
-#endif // gengyue
 
 unsigned int
 pchtml_html_document_parse(pchtml_html_document_t *document,
@@ -129,6 +128,7 @@ pchtml_html_document_parse_fragment_chunk(pchtml_html_document_t *document,
 pcedom_node_t *
 pchtml_html_document_parse_fragment_chunk_end(
                 pchtml_html_document_t *document) WTF_INTERNAL;
+#endif // gengyue
 
 
 const unsigned char *

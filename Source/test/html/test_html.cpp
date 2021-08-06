@@ -10,6 +10,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#if 0
 void test_html_file(char * data_path, char * file_name)
 {
     int ret = 0;
@@ -98,12 +99,14 @@ printf("%s\n", serialization);
     printf(" OK\n");
 
 }
+#endif
 
 void test_html_chunk(char * data_path, char * file_name)
 {
     int ret = 0;
     size_t size = 0;
     purc_rwstream_t rwstream = NULL;
+    pchtml_html_document_t *document = NULL;
     const char * serialization = NULL;
     struct stat file_stat;
     size_t read_length = 0;
@@ -141,9 +144,11 @@ void test_html_chunk(char * data_path, char * file_name)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     // parse the file, chunk by chunk
-    pchtml_parser_t parser;
-    parser = pchtml_parser_create();
-    ASSERT_NE(parser, nullptr);
+    document = pchtml_html_document_create();
+    ASSERT_NE(document, nullptr);
+
+    ret = pchtml_html_document_parse_chunk_begin(document);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
 
     FILE* fp = fopen(test_file, "r");       // open test_file
     if (fp) {
@@ -159,7 +164,7 @@ void test_html_chunk(char * data_path, char * file_name)
             rwstream = purc_rwstream_new_from_mem((void*)line, read - 1);
             ASSERT_NE(rwstream, nullptr);
 
-            ret = pchtml_parser_parse_chunk(parser, rwstream);
+            ret = pchtml_html_document_parse_chunk(document, rwstream);
             ASSERT_EQ(ret, 0);
 
             purc_rwstream_close (rwstream);
@@ -167,18 +172,14 @@ void test_html_chunk(char * data_path, char * file_name)
         }
     }
 
-    pchtml_document_t * doc = pchtml_parser_get_doc(parser);
-    ASSERT_NE(doc, nullptr);
-
-    ret = pchtml_parser_parse_end(parser);
+    ret = pchtml_html_document_parse_chunk_end(document);
     ASSERT_EQ(ret, 0);
-
 
     // create rwstream object with buffer for serilization
     rwstream = purc_rwstream_new_from_mem(test_file, 8192);
 
     // serialize documnet
-    ret = pchtml_doc_write_to_stream(*doc, rwstream);
+    ret = pchtml_doc_write_to_stream(document, rwstream);
     ASSERT_EQ(ret, 0);
 
     // get the buffer of serialization
@@ -196,7 +197,7 @@ void test_html_chunk(char * data_path, char * file_name)
 
     // clean rwstream and document
     purc_rwstream_destroy(rwstream);
-    pchtml_doc_destroy(*doc);
+    pchtml_html_document_destroy(document);
 
     // clean instance
     purc_cleanup ();
@@ -222,11 +223,87 @@ TEST(html, html_parser_html_file)
 
             while ((read = getline(&line, &sz, fp)) != -1) {
                 *(line + read - 1) = 0;
-                test_html_file(data_path, line);     // get test file name
-//                test_html_chunk(data_path, line);
+//                test_html_file(data_path, line);     // get test file name
+                test_html_chunk(data_path, line);
             }
             fclose(fp);
         }
     }
 }
 
+
+#include "html/interfaces/document.h"
+
+TEST(html, html_parser_fragment)
+{
+    char buffer[8192] = {0};
+    const char * serialization = NULL;
+    size_t size = 0;
+
+    purc_instance_extra_info info = {0, 0};
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    unsigned int  status = 0;
+    pchtml_html_document_t *document = NULL;
+    pchtml_html_element_t *element = NULL;
+    pchtml_html_body_element_t * body = NULL;
+    pchtml_html_parser_t * parser = NULL;
+    purc_rwstream_t rwstream = NULL;
+
+    static const unsigned char html[] = "<div><span>blah-blah-blah</div>";
+    static const unsigned char inner[] = "<ul><li>1<li>2<li>3</ul>";
+
+    parser = pchtml_html_parser_create();
+    status = pchtml_html_parser_init(parser);
+
+    if (status != PCHTML_STATUS_OK) {
+        printf("Failed to create HTML parser\n");
+    }
+
+    /* Parse */
+    rwstream = purc_rwstream_new_from_mem((void *)html, (size_t)strlen((const char *) html));
+    document = pchtml_html_parse(parser, rwstream);
+    if (document == NULL) {
+        printf("Failed to create Document object\n");
+    }
+
+    purc_rwstream_close(rwstream);
+    purc_rwstream_destroy (rwstream);
+    pchtml_html_parser_destroy(parser);
+
+    printf("HTML Tree Before:\n");
+    // create rwstream object with buffer for serilization
+    rwstream = purc_rwstream_new_from_mem(buffer, 8192);
+    ret = pchtml_doc_write_to_stream(document, rwstream);
+    ASSERT_EQ(ret, 0);
+    serialization = purc_rwstream_get_mem_buffer (rwstream, &size);
+printf("%s\n", serialization);
+    purc_rwstream_close(rwstream);
+    purc_rwstream_destroy (rwstream);
+
+
+    /* Get BODY elemenet */
+    body = pchtml_html_document_body_element(document);
+    rwstream = purc_rwstream_new_from_mem((void *)inner, (size_t)strlen((const char *) inner));
+    element = pchtml_html_element_inner_html_set(((pchtml_html_element_t *) (body)),
+                                              rwstream);
+    ASSERT_NE(element, nullptr);
+
+    /* Print Result */
+    printf("Tree after innerHTML set:\n");
+    // create rwstream object with buffer for serilization
+    memset(buffer, 0, 8192);
+    rwstream = purc_rwstream_new_from_mem(buffer, 8192);
+    ret = pchtml_doc_write_to_stream(document, rwstream);
+    ASSERT_EQ(ret, 0);
+    serialization = purc_rwstream_get_mem_buffer (rwstream, &size);
+printf("%s\n", serialization);
+    purc_rwstream_close(rwstream);
+    purc_rwstream_destroy (rwstream);
+
+    /* Destroy all */
+    pchtml_html_document_destroy(document);
+
+    purc_cleanup ();
+}
