@@ -218,7 +218,7 @@ int pchtml_parser_parse_chunk(pchtml_parser_t parser, purc_rwstream_t in)
     return 0;
 }
 
-int pchtml_parser_parse_end(pchtml_parser_t parser, pchtml_document_t *doc)
+int pchtml_parser_parse_end(pchtml_parser_t parser)//, pchtml_document_t *doc)
 {
     if (!parser || !parser->doc) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
@@ -231,10 +231,12 @@ int pchtml_parser_parse_end(pchtml_parser_t parser, pchtml_document_t *doc)
         return -1;
     }
 
+#if 0
     if (doc) {
         *doc = parser->doc;
         parser->doc = NULL;
     }
+#endif
 
     return 0;
 }
@@ -327,5 +329,13 @@ pchtml_doc_destroy(pchtml_document_t doc)
     _html_document_release(doc);
     free(doc);
     return 0;
+}
+
+pchtml_document_t * pchtml_parser_get_doc (pchtml_parser_t parser)
+{
+    pchtml_document_t * doc = NULL;
+    if (parser)
+        doc = &(parser->doc);
+    return doc;
 }
 
