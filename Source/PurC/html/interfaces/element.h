@@ -56,9 +56,12 @@ pchtml_html_element_interface_destroy(
                 pchtml_html_element_t *element) WTF_INTERNAL;
 
 
+// gengyue
+#if 0
 pchtml_html_element_t *
 pchtml_html_element_inner_html_set(pchtml_html_element_t *element,
                 const unsigned char *html, size_t size) WTF_INTERNAL;
+#endif
 
 /*
  * Inline functions

@@ -151,14 +151,14 @@ pchtml_html_parser_unref(pchtml_html_parser_t *parser)
 
 pchtml_html_document_t *
 pchtml_html_parse(pchtml_html_parser_t *parser,
-    const unsigned char *html, size_t size)
+    const purc_rwstream_t html)
 {
     pchtml_html_document_t *document = pchtml_html_parse_chunk_begin(parser);
     if (document == NULL) {
         return NULL;
     }
 
-    pchtml_html_parse_chunk_process(parser, html, size);
+    pchtml_html_parse_chunk_process(parser, html);
     if (parser->status != PCHTML_STATUS_OK) {
         goto failed;
     }
@@ -179,27 +179,27 @@ failed:
 
 pcedom_node_t *
 pchtml_html_parse_fragment(pchtml_html_parser_t *parser, pchtml_html_element_t *element,
-                        const unsigned char *html, size_t size)
+                        const purc_rwstream_t html)
 {
     return pchtml_html_parse_fragment_by_tag_id(parser,
                                              parser->tree->document,
                                              element->element.node.local_name,
                                              element->element.node.ns,
-                                             html, size);
+                                             html);
 }
 
 pcedom_node_t *
 pchtml_html_parse_fragment_by_tag_id(pchtml_html_parser_t *parser,
                                   pchtml_html_document_t *document,
                                   pchtml_tag_id_t tag_id, pchtml_ns_id_t ns,
-                                  const unsigned char *html, size_t size)
+                                  const purc_rwstream_t html)
 {
     pchtml_html_parse_fragment_chunk_begin(parser, document, tag_id, ns);
     if (parser->status != PCHTML_STATUS_OK) {
         return NULL;
     }
 
-    pchtml_html_parse_fragment_chunk_process(parser, html, size);
+    pchtml_html_parse_fragment_chunk_process(parser, html);
     if (parser->status != PCHTML_STATUS_OK) {
         return NULL;
     }
@@ -312,14 +312,14 @@ done:
 
 unsigned int
 pchtml_html_parse_fragment_chunk_process(pchtml_html_parser_t *parser,
-                                      const unsigned char *html, size_t size)
+                                      const purc_rwstream_t html)
 {
     if (parser->state != PCHTML_HTML_PARSER_STATE_FRAGMENT_PROCESS) {
         pcinst_set_error (PURC_ERROR_WRONG_STAGE);
         return PCHTML_STATUS_ERROR_WRONG_STAGE;
     }
 
-    parser->status = pchtml_html_tree_chunk(parser->tree, html, size);
+    parser->status = pchtml_html_tree_chunk(parser->tree, html);
     if (parser->status != PCHTML_STATUS_OK) {
         pchtml_html_html_element_interface_destroy(pchtml_html_interface_html(parser->root));
 
@@ -438,14 +438,14 @@ pchtml_html_parse_chunk_begin(pchtml_html_parser_t *parser)
 
 unsigned int
 pchtml_html_parse_chunk_process(pchtml_html_parser_t *parser,
-                             const unsigned char *html, size_t size)
+                             const purc_rwstream_t html)
 {
     if (parser->state != PCHTML_HTML_PARSER_STATE_PROCESS) {
         pcinst_set_error (PURC_ERROR_WRONG_STAGE);
         return PCHTML_STATUS_ERROR_WRONG_STAGE;
     }
 
-    parser->status = pchtml_html_tree_chunk(parser->tree, html, size);
+    parser->status = pchtml_html_tree_chunk(parser->tree, html);
     if (parser->status != PCHTML_STATUS_OK) {
         parser->state = PCHTML_HTML_PARSER_STATE_ERROR;
     }
@@ -470,3 +470,45 @@ pchtml_html_parse_chunk_end(pchtml_html_parser_t *parser)
     return parser->status;
 }
 
+static inline unsigned int
+serializer_callback(const unsigned char  *data, size_t len, void *ctx)
+{
+    purc_rwstream_t out = (purc_rwstream_t)ctx;
+    static __thread char buf[1024*1024]; // big enough?
+    int n = snprintf(buf, sizeof(buf), "%.*s", (int)len, (const char *)data);
+    if (n<0) {
+        // which err-code to set?
+        pcinst_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
+        // which specific status-code to return?
+        return PCHTML_STATUS_ERROR;
+    }
+    if ((size_t)n>=sizeof(buf)) {
+        pcinst_set_error(PURC_ERROR_TOO_SMALL_BUFF);
+        return PCHTML_STATUS_ERROR_TOO_SMALL_SIZE;
+    }
+
+    ssize_t sz;
+    sz = purc_rwstream_write(out, (const void*)buf, n);
+    if (sz!=n) {
+        // which specific status-code to return?
+        return PCHTML_STATUS_ERROR;
+    }
+
+    return PCHTML_STATUS_OK;
+}
+
+int
+pchtml_doc_write_to_stream(pchtml_html_document_t *doc, purc_rwstream_t out)
+{
+    if (!doc || !out) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+    unsigned int status;
+    status = pchtml_html_serialize_pretty_tree_cb((pcedom_node_t *)doc,
+                                          0x00, 0, serializer_callback, out);
+    if (status!=PCHTML_STATUS_OK) {
+        return -1;
+    }
+    return 0;
+}
