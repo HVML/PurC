@@ -144,3 +144,31 @@ PURC_COMPUTE_SOURCES(test_variant_set)
 PURC_FRAMEWORK(test_variant_set)
 GTEST_DISCOVER_TESTS(test_variant_set)
 
+# test_random
+PURC_EXECUTABLE_DECLARE(test_random)
+
+list(APPEND test_random_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_random)
+
+set(test_random_SOURCES
+    test_random.cpp
+)
+
+set(test_random_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_random)
+PURC_FRAMEWORK(test_random)
+GTEST_DISCOVER_TESTS(test_random)
+
