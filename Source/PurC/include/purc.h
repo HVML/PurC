@@ -185,9 +185,9 @@ purc_get_local_data(const char* data_name, uintptr_t *local_data,
 PCA_EXPORT bool
 purc_bind_session_variable(const char* name, purc_variant_t variant);
 
-struct pcvdom_tree;
-typedef struct pcvdom_tree  pcvdom_tree;
-typedef struct pcvdom_tree* pcvdom_tree_t;
+struct purc_vdom;
+typedef struct purc_vdom  purc_vdom;
+typedef struct purc_vdom* purc_vdom_t;
 
 /**
  * purc_load_hvml_from_string:
@@ -200,7 +200,7 @@ typedef struct pcvdom_tree* pcvdom_tree_t;
  *
  * Since 0.0.1
  */
-PCA_EXPORT pcvdom_tree_t
+PCA_EXPORT purc_vdom_t
 purc_load_hvml_from_string(const char* string);
 
 /**
@@ -214,7 +214,7 @@ purc_load_hvml_from_string(const char* string);
  *
  * Since 0.0.1
  */
-PCA_EXPORT pcvdom_tree_t
+PCA_EXPORT purc_vdom_t
 purc_load_hvml_from_file(const char* file);
 
 /**
@@ -228,7 +228,7 @@ purc_load_hvml_from_file(const char* file);
  *
  * Since 0.0.1
  */
-PCA_EXPORT pcvdom_tree_t
+PCA_EXPORT purc_vdom_t
 purc_load_hvml_from_url(const char* url);
 
 /**
@@ -242,7 +242,7 @@ purc_load_hvml_from_url(const char* url);
  *
  * Since 0.0.1
  */
-PCA_EXPORT pcvdom_tree_t
+PCA_EXPORT purc_vdom_t
 purc_load_hvml_from_rwstream(purc_rwstream_t stream);
 
 /**
@@ -258,7 +258,7 @@ purc_load_hvml_from_rwstream(purc_rwstream_t stream);
  * Since 0.0.1
  */
 PCA_EXPORT bool
-purc_bind_document_variable(pcvdom_tree_t vdom, const char* name,
+purc_bind_document_variable(purc_vdom_t vdom, const char* name,
         purc_variant_t variant);
 
 /**
@@ -279,11 +279,11 @@ purc_bind_document_variable(pcvdom_tree_t vdom, const char* name,
  * Since 0.0.1
  */
 PCA_EXPORT bool
-purc_connnect_vdom_to_renderer(pcvdom_tree_t vdom,
+purc_connnect_vdom_to_renderer(purc_vdom_t vdom,
         const char* type, const char* name,
         const purc_rdr_extra_info* extra_info);
 
-typedef int (*purc_event_handler)(pcvdom_tree_t vdom, purc_variant_t event);
+typedef int (*purc_event_handler)(purc_vdom_t vdom, purc_variant_t event);
 
 /**
  * purc_run:

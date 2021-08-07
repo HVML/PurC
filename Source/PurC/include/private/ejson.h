@@ -33,51 +33,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define PCEJSON_MAX_DEPTH 32
-
-#if 1
-#define PRINT_STATE(state_name)
-#else
-#define PRINT_STATE(state_name)                                           \
-    fprintf(stderr, "in %s|wc=%c|hex=%x\n",                               \
-            pcejson_ejson_state_desc(state_name),  ejson->wc, ejson->wc);
-#endif
-
-#define BEGIN_STATE(state_name)                                  \
-    case state_name:                                             \
-    {                                                \
-        enum ejson_state current_state = state_name;             \
-        UNUSED_PARAM(current_state);                             \
-        PRINT_STATE(current_state);
-
-#define END_STATE()                                             \
-        break;                                                  \
-    }
-
-#define RECONSUME_IN(new_state)                                 \
-    do {                                                        \
-        ejson->state = new_state;                               \
-        goto next_state;                                         \
-    } while (false)
-
-#define RECONSUME_IN_NEXT(new_state)                            \
-    do {                                                        \
-        ejson->state = new_state;                               \
-        ejson->need_reconsume = true;                           \
-    } while (false)
-
-#define ADVANCE_TO(new_state)                                    \
-    do {                                                        \
-        ejson->state = new_state;                               \
-        goto next_input;                                       \
-    } while (false)
-
-#define SWITCH_TO(new_state)                                    \
-    do {                                                        \
-        ejson->state = new_state;                               \
-    } while (false)
-
-
 enum ejson_state {
     EJSON_INIT_STATE,
     EJSON_FINISHED_STATE,
@@ -142,8 +97,8 @@ enum ejson_token_type {
 struct pcejson {
     enum ejson_state state;
     enum ejson_state return_state;
-    int32_t depth;
-    int32_t max_depth;
+    uint32_t depth;
+    uint32_t max_depth;
     uint32_t flags;
     struct pcutils_stack* stack;
     struct pcutils_stack* vcm_stack;
@@ -193,7 +148,7 @@ void pcejson_init_once (void);
 /*
  * Create ejson parser.
  */
-struct pcejson* pcejson_create (int32_t depth, uint32_t flags);
+struct pcejson* pcejson_create (uint32_t depth, uint32_t flags);
 
 /*
  * Destroy ejson parser.
@@ -203,36 +158,30 @@ void pcejson_destroy (struct pcejson* parser);
 /*
  * Reset ejson parser.
  */
-void pcejson_reset (struct pcejson* parser, int32_t depth, uint32_t flags);
+void pcejson_reset (struct pcejson* parser, uint32_t depth, uint32_t flags);
 
 /*
  * Parse ejson.
  */
 int pcejson_parse (struct pcvcm_node** vcm_tree, struct pcejson** parser,
-        purc_rwstream_t rwstream);
+                   purc_rwstream_t rwstream, uint32_t depth);
 
 /*
  * Create a new pcejson token.
  */
 struct pcejson_token* pcejson_token_new (enum ejson_token_type type,
-        const uint8_t* bytes, size_t nr_bytes);
+                                         const uint8_t* bytes, size_t nr_bytes);
 
 /*
  * Destory pcejson token.
  */
 void pcejson_token_destroy (struct pcejson_token* token);
 
-
 /*
  * Get one pcejson token from rwstream.
  */
 struct pcejson_token* pcejson_next_token (struct pcejson* ejson,
-        purc_rwstream_t rws);
-
-/*
- * Get ejson desc message
- */
-const char* pcejson_ejson_state_desc (enum ejson_state state);
+                                          purc_rwstream_t rws);
 
 #ifdef __cplusplus
 }

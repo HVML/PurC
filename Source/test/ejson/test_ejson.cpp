@@ -1735,7 +1735,7 @@ TEST(ejson_token, pcejson_parse)
 
     struct pcvcm_node* root = NULL;
     struct pcejson* parser = NULL;
-    pcejson_parse (&root, &parser, rws);
+    pcejson_parse (&root, &parser, rws, 0);
     ASSERT_NE (root, nullptr);
 
     purc_variant_t vt = pcvcm_eval (root, NULL);
@@ -1866,10 +1866,10 @@ TEST(ejson_token, pcejson_parse_segment)
 
     struct pcvcm_node* root = NULL;
     struct pcejson* parser = NULL;
-    pcejson_parse (&root, &parser, rws);
+    pcejson_parse (&root, &parser, rws, 0);
     ASSERT_NE (root, nullptr);
 
-    pcejson_parse (&root, &parser, rws2);
+    pcejson_parse (&root, &parser, rws2, 32);
     ASSERT_NE (root, nullptr);
 
     purc_variant_t vt = pcvcm_eval (root, NULL);
@@ -2034,7 +2034,7 @@ TEST(ejson_token, pcejson_parse_infinity_nan)
 
     struct pcvcm_node* root = NULL;
     struct pcejson* parser = NULL;
-    pcejson_parse (&root, &parser, rws);
+    pcejson_parse (&root, &parser, rws, 0);
     ASSERT_NE (root, nullptr);
 
     purc_variant_t vt = pcvcm_eval (root, NULL);
@@ -2073,7 +2073,7 @@ TEST(ejson_token, pcejson_parse_array)
 
     struct pcvcm_node* root = NULL;
     struct pcejson* parser = NULL;
-    pcejson_parse (&root, &parser, rws);
+    pcejson_parse (&root, &parser, rws, 0);
     ASSERT_NE (root, nullptr);
 
     purc_variant_t vt = pcvcm_eval (root, NULL);
@@ -2137,7 +2137,7 @@ TEST(ejson_token, pcejson_parse_serial_empty_object)
 
     struct pcvcm_node* root = NULL;
     struct pcejson* parser = NULL;
-    pcejson_parse (&root, &parser, rws);
+    pcejson_parse (&root, &parser, rws, 0);
     ASSERT_NE (root, nullptr);
 
     purc_variant_t vt = pcvcm_eval (root, NULL);
@@ -2163,5 +2163,6 @@ TEST(ejson_token, pcejson_parse_serial_empty_object)
 
     pcejson_destroy(parser);
     purc_cleanup ();
+
 }
 
