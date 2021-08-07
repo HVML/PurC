@@ -36,25 +36,74 @@
 #include <stdlib.h>
 #endif
 
+#define EJSON_MAX_DEPTH         32
+#define EJSON_MIN_BUFFER_SIZE   128
+#define EJSON_MAX_BUFFER_SIZE   1024 * 1024 * 1024
+#define EJSON_END_OF_FILE       0
+
 #if 1
-#define EJSON_SET_ERROR(err) pcinst_set_error(err)
+#define EJSON_SET_ERROR(err)    pcinst_set_error(err)
 #else
-#define EJSON_SET_ERROR(err) do { \
-    fprintf(stderr, "error %s:%d\n", __FILE__, __LINE__); \
-    pcinst_set_error (err); \
+#define EJSON_SET_ERROR(err)    do {                                        \
+    fprintf(stderr, "error %s:%d\n", __FILE__, __LINE__);                   \
+    pcinst_set_error (err);                                                 \
 } while (0)
 #endif
 
-#define MIN_EJSON_BUFFER_SIZE 128
-#define MAX_EJSON_BUFFER_SIZE 1024 * 1024 * 1024
+#if 1
+#define PRINT_STATE(state_name)
+#else
+#define PRINT_STATE(state_name)                                             \
+    fprintf(stderr, "in %s|wc=%c|hex=%x\n",                                 \
+            pcejson_ejson_state_desc(state_name), ejson->wc, ejson->wc);
+#endif
 
 #if HAVE(GLIB)
-#define    ejson_alloc(sz)   g_slice_alloc0(sz)
-#define    ejson_free(p)     g_slice_free1(sizeof(*p), (gpointer)p)
+#define    EJSON_ALLOC(sz)   g_slice_alloc0(sz)
+#define    EJSON_FREE(p)     g_slice_free1(sizeof(*p), (gpointer)p)
 #else
-#define    ejson_alloc(sz)   calloc(1, sz)
-#define    ejson_free(p)     free(p)
+#define    EJSON_ALLOC(sz)   calloc(sz, 1)
+#define    EJSON_FREE(p)     free(p)
 #endif
+
+#define BEGIN_STATE(state_name)                                             \
+    case state_name:                                                        \
+    {                                                                       \
+        enum ejson_state current_state = state_name;                        \
+        UNUSED_PARAM(current_state);                                        \
+        PRINT_STATE(current_state);
+
+#define END_STATE()                                                         \
+        break;                                                              \
+    }
+
+#define RECONSUME_IN(new_state)                                             \
+    do {                                                                    \
+        ejson->state = new_state;                                           \
+        goto next_state;                                                    \
+    } while (false)
+
+#define RECONSUME_IN_NEXT(new_state)                                        \
+    do {                                                                    \
+        ejson->state = new_state;                                           \
+        ejson->need_reconsume = true;                                       \
+    } while (false)
+
+#define ADVANCE_TO(new_state)                                               \
+    do {                                                                    \
+        ejson->state = new_state;                                           \
+        goto next_input;                                                    \
+    } while (false)
+
+#define SWITCH_TO(new_state)                                                \
+    do {                                                                    \
+        ejson->state = new_state;                                           \
+    } while (false)
+
+#define STATE_DESC(state_name)                                              \
+    case state_name:                                                        \
+        return ""#state_name;                                               \
+
 
 static const char* ejson_err_msgs[] = {
     /* PCEJSON_ERROR_UNEXPECTED_CHARACTER */
@@ -107,8 +156,8 @@ void pcejson_init_once (void)
 
 static inline bool is_whitespace (wchar_t character)
 {
-    return character == ' ' || character == '\x0A'
-        || character == '\x09' || character == '\x0C';
+    return character == ' ' || character == '\x0A' ||
+        character == '\x09' || character == '\x0C';
 }
 
 static inline wchar_t to_ascii_lower_unchecked (wchar_t character)
@@ -150,8 +199,8 @@ static inline UNUSED_FUNCTION bool is_ascii_binary_digit (wchar_t character)
 static inline UNUSED_FUNCTION bool is_ascii_hex_digit (wchar_t character)
 {
      return is_ascii_digit(character) ||
-         (to_ascii_lower_unchecked(character) >= 'a'
-          && to_ascii_lower_unchecked(character) <= 'f');
+         (to_ascii_lower_unchecked(character) >= 'a' &&
+          to_ascii_lower_unchecked(character) <= 'f');
 }
 
 static inline UNUSED_FUNCTION bool is_ascii_octal_digit (wchar_t character)
@@ -169,17 +218,15 @@ static inline UNUSED_FUNCTION bool is_ascii_alpha_numeric (wchar_t character)
     return is_ascii_digit(character) || is_ascii_alpha(character);
 }
 
-#define    END_OF_FILE_MARKER     0
-
 static inline bool is_delimiter (wchar_t c)
 {
-    return is_whitespace(c) || c == '}' || c == ']' || c == ','
-        || c == END_OF_FILE_MARKER;
+    return is_whitespace(c) || c == '}' || c == ']' || c == ',' ||
+        c == EJSON_END_OF_FILE;
 }
 
-struct pcejson* pcejson_create (int32_t depth, uint32_t flags)
+struct pcejson* pcejson_create (uint32_t depth, uint32_t flags)
 {
-    struct pcejson* parser = (struct pcejson*) ejson_alloc (
+    struct pcejson* parser = (struct pcejson*) EJSON_ALLOC(
             sizeof(struct pcejson));
     parser->state = EJSON_INIT_STATE;
     parser->max_depth = depth;
@@ -187,10 +234,10 @@ struct pcejson* pcejson_create (int32_t depth, uint32_t flags)
     parser->flags = flags;
     parser->stack = pcutils_stack_new(2 * depth);
     parser->vcm_stack = pcutils_stack_new(0);
-    parser->tmp_buff = purc_rwstream_new_buffer(MIN_EJSON_BUFFER_SIZE,
-            MAX_EJSON_BUFFER_SIZE);
-    parser->tmp_buff2 = purc_rwstream_new_buffer(MIN_EJSON_BUFFER_SIZE,
-            MAX_EJSON_BUFFER_SIZE);
+    parser->tmp_buff = purc_rwstream_new_buffer(EJSON_MIN_BUFFER_SIZE,
+            EJSON_MAX_BUFFER_SIZE);
+    parser->tmp_buff2 = purc_rwstream_new_buffer(EJSON_MIN_BUFFER_SIZE,
+            EJSON_MAX_BUFFER_SIZE);
     return parser;
 }
 
@@ -201,7 +248,7 @@ void pcejson_destroy (struct pcejson* parser)
         pcutils_stack_destroy(parser->vcm_stack);
         purc_rwstream_destroy(parser->tmp_buff);
         purc_rwstream_destroy(parser->tmp_buff2);
-        ejson_free(parser);
+        EJSON_FREE(parser);
     }
 }
 
@@ -216,11 +263,10 @@ void pcejson_dec_depth (struct pcejson* parser)
     parser->depth--;
 }
 
-
 void pcejson_tmp_buff_reset (purc_rwstream_t rws)
 {
     size_t sz = 0;
-    const char* p = purc_rwstream_get_mem_buffer (rws, &sz);
+    const char* p = purc_rwstream_get_mem_buffer(rws, &sz);
     memset((void*)p, 0, sz);
     purc_rwstream_seek(rws, 0, SEEK_SET);
 }
@@ -231,7 +277,7 @@ bool pcejson_tmp_buff_is_empty (purc_rwstream_t rws)
 }
 
 ssize_t pcejson_tmp_buff_append (purc_rwstream_t rws, uint8_t* buf,
-        size_t sz)
+                                 size_t sz)
 {
     return purc_rwstream_write (rws, buf, sz);
 }
@@ -256,6 +302,7 @@ void pcejson_tmp_buff_remove_first_last (purc_rwstream_t rws,
     char* dup = (char*) malloc (length + 1);
     memcpy(dup, p, length);
     dup[length] = 0;
+
     pcejson_tmp_buff_reset (rws);
     size_t sz = length - first - last;
     if (sz) {
@@ -280,14 +327,15 @@ bool pcejson_tmp_buff_end_with (purc_rwstream_t rws, const char* s)
     return memcmp(p + len - cmp_len, s, cmp_len) == 0;
 }
 
-char pcejson_tmp_buff_last_char (purc_rwstream_t rws) {
+char pcejson_tmp_buff_last_char (purc_rwstream_t rws)
+{
     size_t sz = 0;
     const char* p = purc_rwstream_get_mem_buffer (rws, &sz);
     size_t len = pcejson_tmp_buff_length  (rws);
     return p[len - 1];
 }
 
-void pcejson_reset (struct pcejson* parser, int32_t depth, uint32_t flags)
+void pcejson_reset (struct pcejson* parser, uint32_t depth, uint32_t flags)
 {
     parser->state = EJSON_INIT_STATE;
     parser->max_depth = depth;
@@ -298,7 +346,7 @@ void pcejson_reset (struct pcejson* parser, int32_t depth, uint32_t flags)
 }
 
 struct pcvcm_node* pcejson_token_to_pcvcm_node (
-        struct pcutils_stack* node_stack,struct pcejson_token* token)
+        struct pcutils_stack* node_stack, struct pcejson_token* token)
 {
     struct pcvcm_node* node = NULL;
     union pcvcm_node_data data;
@@ -374,24 +422,23 @@ struct pcvcm_node* pcejson_token_to_pcvcm_node (
 }
 
 int pcejson_parse (struct pcvcm_node** vcm_tree, struct pcejson** parser,
-        purc_rwstream_t rws)
+                   purc_rwstream_t rws, uint32_t depth)
 {
     bool has_param_vcm = *vcm_tree ? true : false;
     bool has_param_parser = true;
     if (*parser == NULL) {
         has_param_parser = false;
-        *parser = pcejson_create (PCEJSON_MAX_DEPTH, 1);
+        *parser = pcejson_create (depth > 0 ? depth : EJSON_MAX_DEPTH, 1);
     }
 
     struct pcutils_stack* node_stack = (*parser)->vcm_stack;
 
     struct pcejson_token* token = pcejson_next_token(*parser, rws);
     int error = purc_get_last_error();
-    while (error == PCEJSON_SUCCESS
-            && token
-            && token->type != EJSON_TOKEN_EOF) {
+    while (error == PCEJSON_SUCCESS &&
+           token && token->type != EJSON_TOKEN_EOF) {
         struct pcvcm_node* node = pcejson_token_to_pcvcm_node (node_stack,
-                token);
+                                                               token);
         if (node) {
             if (*vcm_tree == NULL) {
                 *vcm_tree = node;
@@ -402,8 +449,8 @@ int pcejson_parse (struct pcvcm_node** vcm_tree, struct pcejson** parser,
                 pctree_node_append_child (pcvcm_node_to_pctree_node(parent),
                         pcvcm_node_to_pctree_node(node));
             }
-            if (node->type == PCVCM_NODE_TYPE_OBJECT
-                    || node->type == PCVCM_NODE_TYPE_ARRAY) {
+            if (node->type == PCVCM_NODE_TYPE_OBJECT ||
+                    node->type == PCVCM_NODE_TYPE_ARRAY) {
                 pcutils_stack_push (node_stack, (uintptr_t) node);
             }
         }
@@ -434,9 +481,10 @@ int pcejson_parse (struct pcvcm_node** vcm_tree, struct pcejson** parser,
 
 // eJSON tokenizer
 struct pcejson_token* pcejson_token_new (enum ejson_token_type type,
-        const uint8_t* bytes, size_t nr_bytes)
+                                         const uint8_t* bytes,
+                                         size_t nr_bytes)
 {
-    struct pcejson_token* token = ejson_alloc(sizeof (struct pcejson_token));
+    struct pcejson_token* token = EJSON_ALLOC(sizeof (struct pcejson_token));
     token->type = type;
     switch (type)
     {
@@ -516,8 +564,8 @@ void hex_to_bytes (const uint8_t* hex, size_t sz_hex, uint8_t* result)
     }
 }
 
-struct pcejson_token* pcejson_token_new_bx_byte_sequence (
-        const uint8_t* bytes, size_t nr_bytes)
+struct pcejson_token* pcejson_token_new_bx_byte_sequence (const uint8_t* bytes,
+                                                          size_t nr_bytes)
 {
     const uint8_t* p = bytes + 2;
     size_t sz = nr_bytes  - 2;
@@ -529,15 +577,15 @@ struct pcejson_token* pcejson_token_new_bx_byte_sequence (
     uint8_t* buf = (uint8_t*) calloc (sz_buf + 1, 1);
     hex_to_bytes (p, sz, buf);
 
-    struct pcejson_token* token = ejson_alloc(sizeof (struct pcejson_token));
+    struct pcejson_token* token = EJSON_ALLOC(sizeof(struct pcejson_token));
     token->type = EJSON_TOKEN_BYTE_SQUENCE;
     token->sz_ptr[0] = sz_buf;
     token->sz_ptr[1] = (uintptr_t) buf;
     return token;
 }
 
-struct pcejson_token* pcejson_token_new_bb_byte_sequence (
-        const uint8_t* bytes, size_t nr_bytes)
+struct pcejson_token* pcejson_token_new_bb_byte_sequence (const uint8_t* bytes,
+                                                          size_t nr_bytes)
 {
     const uint8_t* p = bytes + 2;
     size_t sz = nr_bytes  - 2;
@@ -559,7 +607,7 @@ struct pcejson_token* pcejson_token_new_bb_byte_sequence (
         buf[i] = b;
     }
 
-    struct pcejson_token* token = ejson_alloc(sizeof (struct pcejson_token));
+    struct pcejson_token* token = EJSON_ALLOC(sizeof(struct pcejson_token));
     token->type = EJSON_TOKEN_BYTE_SQUENCE;
     token->sz_ptr[0] = sz_buf;
     token->sz_ptr[1] = (uintptr_t) buf;
@@ -581,7 +629,7 @@ struct pcejson_token* pcejson_token_new_b64_byte_sequence (
         return NULL;
     }
 
-    struct pcejson_token* token = ejson_alloc(sizeof (struct pcejson_token));
+    struct pcejson_token* token = EJSON_ALLOC(sizeof(struct pcejson_token));
     token->type = EJSON_TOKEN_BYTE_SQUENCE;
     token->sz_ptr[0] = ret;
     token->sz_ptr[1] = (uintptr_t) buf;
@@ -644,15 +692,13 @@ void pcejson_token_destroy (struct pcejson_token* token)
             default:
                 break;
         }
-        ejson_free(token);
+        EJSON_FREE(token);
     }
 }
 
-
 struct pcejson_token* pcejson_next_token (struct pcejson* ejson,
-        purc_rwstream_t rws)
+                                          purc_rwstream_t rws)
 {
-
 next_input:
     if (!ejson->need_reconsume) {
         ejson->c_len = purc_rwstream_read_utf8_char (rws,
@@ -661,7 +707,6 @@ next_input:
             return NULL;
         }
     }
-
     ejson->need_reconsume = false;
 
 next_state:
@@ -677,7 +722,7 @@ next_state:
             else if (ejson->wc == '[') {
                 RECONSUME_IN(EJSON_ARRAY_STATE);
             }
-            else if (ejson->wc == END_OF_FILE_MARKER) {
+            else if (ejson->wc == EJSON_END_OF_FILE) {
                 EJSON_SET_ERROR(PCEJSON_ERROR_BAD_JSON);
                 return NULL;
             }
@@ -698,7 +743,7 @@ next_state:
                 case '\x0C':
                     ADVANCE_TO(EJSON_FINISHED_STATE);
                     break;
-                case END_OF_FILE_MARKER:
+                case EJSON_END_OF_FILE:
                     return pcejson_token_new (EJSON_TOKEN_EOF, NULL, 0);
                 default:
                     EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
@@ -948,7 +993,7 @@ next_state:
                     return NULL;
                 }
             }
-            else if (ejson->wc == END_OF_FILE_MARKER) {
+            else if (ejson->wc == EJSON_END_OF_FILE) {
                 return pcejson_token_new (EJSON_TOKEN_EOF, NULL, 0);
             }
             else {
@@ -987,7 +1032,7 @@ next_state:
                 ejson->return_state = ejson->state;
                 ADVANCE_TO(EJSON_STRING_ESCAPE_STATE);
             }
-            else if (ejson->wc == END_OF_FILE_MARKER) {
+            else if (ejson->wc == EJSON_END_OF_FILE) {
                 EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_EOF);
                 return pcejson_token_new (EJSON_TOKEN_EOF, NULL, 0);
             }
@@ -1020,7 +1065,7 @@ next_state:
                 ejson->return_state = ejson->state;
                 ADVANCE_TO(EJSON_STRING_ESCAPE_STATE);
             }
-            else if (ejson->wc == END_OF_FILE_MARKER) {
+            else if (ejson->wc == EJSON_END_OF_FILE) {
                 EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_EOF);
                 return pcejson_token_new (EJSON_TOKEN_EOF, NULL, 0);
             }
@@ -1045,7 +1090,7 @@ next_state:
                 ejson->return_state = ejson->state;
                 ADVANCE_TO(EJSON_STRING_ESCAPE_STATE);
             }
-            else if (ejson->wc == END_OF_FILE_MARKER) {
+            else if (ejson->wc == EJSON_END_OF_FILE) {
                 EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_EOF);
                 return pcejson_token_new (EJSON_TOKEN_EOF, NULL, 0);
             }
@@ -1074,7 +1119,7 @@ next_state:
                 ejson->return_state = ejson->state;
                 ADVANCE_TO(EJSON_STRING_ESCAPE_STATE);
             }
-            else if (ejson->wc == END_OF_FILE_MARKER) {
+            else if (ejson->wc == EJSON_END_OF_FILE) {
                 EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_EOF);
                 return pcejson_token_new (EJSON_TOKEN_EOF, NULL, 0);
             }
@@ -1132,7 +1177,7 @@ next_state:
                     ADVANCE_TO(EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE);
                 }
             }
-            else if (ejson->wc == END_OF_FILE_MARKER) {
+            else if (ejson->wc == EJSON_END_OF_FILE) {
                 EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_EOF);
                 return pcejson_token_new_from_tmp_buf (EJSON_TOKEN_EOF,
                                 ejson->tmp_buff);
@@ -1766,12 +1811,6 @@ next_state:
     }
     return NULL;
 }
-
-
-
-#define STATE_DESC(state_name)                                 \
-    case state_name:                                           \
-        return ""#state_name;                                  \
 
 const char* pcejson_ejson_state_desc (enum ejson_state state)
 {

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    "
+    "
+    <title>
+      "HTML chunks parsing
+      "
+    </title>
+    "
+    "
+  </head>
+  "
+  "
+  <body>
+    "
+    "
+    <div class="bestofclass">
+      "
+      good for me
+      "
+    </div>
+  </body>
+</html>
