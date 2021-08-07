@@ -171,7 +171,7 @@ static bool purc_variant_string_check_utf8 (const char* str_utf8)
             }
         }
         else {
-            if ((ch & 0xc0) != 0x80) 
+            if ((ch & 0xc0) != 0x80)
                 return false;
             nBytes --;
         }

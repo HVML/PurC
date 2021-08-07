@@ -281,6 +281,8 @@ unsigned int purc_variant_unref(purc_variant_t value)
                     pcutils_avl_delete(_tree, &curr->avl);
                     pcvariant_set_release_obj(curr);
                     free(curr);
+                } else {
+                    purc_variant_unref(variant);
                 }
             } end_foreach;
             break;
@@ -910,7 +912,7 @@ int purc_variant_compare(purc_variant_t v1, purc_variant_t v2)
             }
 
             if (v2->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
-                str2 = (const char*)v2->sz_ptr[2];
+                str2 = (const char*)v2->sz_ptr[1];
                 len2 = v2->sz_ptr[0];
             }
             else {

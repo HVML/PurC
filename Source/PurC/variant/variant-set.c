@@ -69,26 +69,26 @@ static int _variant_set_keyvals_cmp (const void *k1, const void *k2, void *ptr)
     variant_set_t   set  = (variant_set_t)ptr;
 
     int diff = 0;
-    purc_variant_t ud = purc_variant_make_undefined();
     for (size_t i=0; i<set->nr_keynames; ++i) {
         purc_variant_t kv1 = kvs1[i];
         purc_variant_t kv2 = kvs2[i];
-        if (kv1==NULL) kv1 = ud;
-        if (kv2==NULL) kv2 = ud;
+        // purc_variant_compare will take care NULL
         diff = purc_variant_compare(kv1, kv2);
         if (diff)
             break;
     }
-    purc_variant_unref(ud);
 
     return diff;
 }
 
 static int _variant_set_init(variant_set_t set, const char *unique_key)
 {
+    PC_ASSERT(unique_key);
+
     pcutils_avl_init(&set->objs, _variant_set_keyvals_cmp, false, set);
 
-    if (!unique_key || !*unique_key) {
+    if (!*unique_key) {
+        // empty key
         set->nr_keynames = 1;
         return 0;
     }
@@ -98,21 +98,8 @@ static int _variant_set_init(variant_set_t set, const char *unique_key)
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return -1;
     }
-    char *ctx = set->unique_key;
-    char *tok = strtok_r(ctx, " ", &ctx);
-    size_t n = 0;
-    while (tok) {
-        ++n;
-        tok = strtok_r(ctx, " ", &ctx);
-    }
 
-    if (n==0) {
-        free(set->unique_key);
-        set->unique_key = NULL;
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return -1;
-    }
-
+    size_t n = strlen(set->unique_key);
     set->keynames = (char**)calloc(n, sizeof(*set->keynames));
     if (!set->keynames) {
         free(set->unique_key);
@@ -120,16 +107,26 @@ static int _variant_set_init(variant_set_t set, const char *unique_key)
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return -1;
     }
-    set->nr_keynames = n;
 
     strcpy(set->unique_key, unique_key);
-    ctx = set->unique_key;
-    tok = strtok_r(ctx, " ", &ctx);
-    int idx = 0;
+    char *ctx = set->unique_key;
+    char *tok = strtok_r(ctx, " ", &ctx);
+    size_t idx = 0;
     while (tok) {
         set->keynames[idx++] = tok;
         tok = strtok_r(ctx, " ", &ctx);
     }
+
+    if (idx==0) {
+        // no content in key
+        free(set->unique_key);
+        set->unique_key = NULL;
+        set->nr_keynames = 1;
+        return 0;
+    }
+
+    PC_ASSERT(idx>0);
+    set->nr_keynames = idx;
 
     return 0;
 }
@@ -138,6 +135,7 @@ static int
 _variant_set_cache_obj_keyval(variant_set_t set,
     purc_variant_t value, purc_variant_t *kvs)
 {
+    PC_ASSERT(set->nr_keynames);
     if (set->unique_key) {
         for (size_t i=0; i<set->nr_keynames; ++i) {
             purc_variant_t v;
@@ -145,6 +143,7 @@ _variant_set_cache_obj_keyval(variant_set_t set,
             kvs[i] = v; // NULL if no property was found
         }
     } else {
+        PC_ASSERT(set->nr_keynames==1);
         kvs[0] = value;
     }
     return 0;
@@ -299,6 +298,7 @@ _variant_set_add_val(variant_set_t set, purc_variant_t val, bool override)
     }
 
     struct obj_node *p;
+    PC_ASSERT(_new->avl.key);
     p = avl_find_element(&set->objs, _new->avl.key, p, avl);
 
     int err = PURC_ERROR_OK;
@@ -313,13 +313,17 @@ _variant_set_add_val(variant_set_t set, purc_variant_t val, bool override)
                 // already in
                 break;
             }
+
             // replace-in-site
-            for (size_t i=0; i<set->nr_keynames; ++i) {
-                p->kvs[i] = _new->kvs[i];
-            }
+            // kvs;
+            free(p->kvs);
+            p->kvs     = _new->kvs;
+            p->avl.key = p->kvs;
+            _new->kvs  = NULL;
+            // obj
             purc_variant_unref(p->obj);
-            p->obj = val;
-            purc_variant_ref(val);
+            p->obj     = _new->obj;
+            _new->obj  = NULL;
 
             break;
         }
@@ -366,14 +370,10 @@ _variant_set_add_valsn(variant_set_t set, bool override,
     return i<sz ? -1 : 0;
 }
 
-purc_variant_t
-purc_variant_make_set_c (size_t sz, const char* unique_key,
-    purc_variant_t value0, ...)
+static inline purc_variant_t
+_make_set_c(size_t sz, const char *unique_key,
+    purc_variant_t value0, va_list ap)
 {
-    PCVARIANT_CHECK_FAIL_RET((sz==0 && unique_key && *unique_key &&
-        value0==NULL) || (sz>0 && unique_key && *unique_key && value0),
-        PURC_VARIANT_INVALID);
-
     purc_variant_t set = _pcv_set_new();
     if (set==PURC_VARIANT_INVALID) {
         return PURC_VARIANT_INVALID;
@@ -389,10 +389,7 @@ purc_variant_make_set_c (size_t sz, const char* unique_key,
             if (_variant_set_add_val(data, v, true))
                 break;
 
-            va_list ap;
-            va_start(ap, value0);
             int r = _variant_set_add_valsn(data, true, sz-1, ap);
-            va_end(ap);
             if (r)
                 break;
         }
@@ -409,51 +406,55 @@ purc_variant_make_set_c (size_t sz, const char* unique_key,
 }
 
 purc_variant_t
+purc_variant_make_set_c (size_t sz, const char* unique_key,
+    purc_variant_t value0, ...)
+{
+    PCVARIANT_CHECK_FAIL_RET((sz==0 && value0==NULL) || (sz>0 && value0),
+        PURC_VARIANT_INVALID);
+
+    if (!unique_key)
+        unique_key = "";
+
+    va_list ap;
+    va_start(ap, value0);
+    purc_variant_t v = _make_set_c(sz, unique_key, value0, ap);
+    va_end(ap);
+
+    return v;
+}
+
+purc_variant_t
 purc_variant_make_set (size_t sz, purc_variant_t unique_key,
     purc_variant_t value0, ...)
 {
-    PCVARIANT_CHECK_FAIL_RET((sz==0 &&
-        unique_key && unique_key->type==PVT(_STRING) && value0==NULL) ||
-        (sz>0 && unique_key && unique_key->type==PVT(_OBJECT) && value0),
+    PCVARIANT_CHECK_FAIL_RET((sz==0 && value0==NULL) ||
+        (sz>0 && value0),
         PURC_VARIANT_INVALID);
 
-    purc_variant_t set = _pcv_set_new();
-    if (set==PURC_VARIANT_INVALID) {
-        return PURC_VARIANT_INVALID;
+    PCVARIANT_CHECK_FAIL_RET(!unique_key || unique_key->type==PVT(_STRING),
+        PURC_VARIANT_INVALID);
+
+    if (!unique_key) {
+        unique_key = purc_variant_make_string("", false);
+        if (!unique_key) {
+            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            return PURC_VARIANT_INVALID;
+        }
+    } else {
+        purc_variant_ref(unique_key);
     }
 
-    do {
-        const char *key = purc_variant_get_string_const(unique_key);
-        if (!key) {
-            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-            break;
-        }
-        variant_set_t data = _pcv_set_get_data(set);
-        if (_variant_set_init(data, key))
-            break;
+    const char *uk = purc_variant_get_string_const(unique_key);
+    PC_ASSERT(uk);
 
-        if (sz>0) {
-            purc_variant_t  v = value0;
-            if (_variant_set_add_val(data, v, true))
-                break;
+    va_list ap;
+    va_start(ap, value0);
+    purc_variant_t v = _make_set_c(sz, uk, value0, ap);
+    va_end(ap);
 
-            va_list ap;
-            va_start(ap, value0);
-            int r = _variant_set_add_valsn(data, true, sz-1, ap);
-            va_end(ap);
-            if (r)
-                break;
-        }
+    purc_variant_unref(unique_key);
 
-        size_t extra = _variant_set_get_extra_size(data);
-        pcvariant_stat_set_extra_size(set, extra);
-        return set;
-    } while (0);
-
-    // cleanup
-    purc_variant_unref(set);
-
-    return PURC_VARIANT_INVALID;
+    return v;
 }
 
 bool
