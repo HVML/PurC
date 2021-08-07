@@ -708,7 +708,7 @@ pcedom_attr_set_name(pcedom_attr_t *attr, const unsigned char *local_name,
 
 unsigned int
 pcedom_attr_set_value(pcedom_attr_t *attr,
-                const unsigned char *value, size_t value_len) WTF_INTERNAL;
+                const unsigned char *value, size_t value_len);
 
 unsigned int
 pcedom_attr_set_value_wo_copy(pcedom_attr_t *attr,
@@ -854,15 +854,15 @@ pcedom_collection_t;
 
 
 pcedom_collection_t *
-pcedom_collection_create(pcedom_document_t *document) WTF_INTERNAL;
+pcedom_collection_create(pcedom_document_t *document);
 
 unsigned int
 pcedom_collection_init(pcedom_collection_t *col,
-                size_t start_list_size) WTF_INTERNAL;
+                size_t start_list_size);
 
 pcedom_collection_t *
 pcedom_collection_destroy(pcedom_collection_t *col,
-                bool self_destroy) WTF_INTERNAL;
+                bool self_destroy);
 
 
 /*
@@ -972,20 +972,20 @@ pcedom_element_has_attributes(pcedom_element_t *element) WTF_INTERNAL;
 pcedom_attr_t *
 pcedom_element_set_attribute(pcedom_element_t *element,
                 const unsigned char *qualified_name, size_t qn_len,
-                const unsigned char *value, size_t value_len) WTF_INTERNAL;
+                const unsigned char *value, size_t value_len);
 
 const unsigned char *
 pcedom_element_get_attribute(pcedom_element_t *element,
                 const unsigned char *qualified_name, size_t qn_len,
-                size_t *value_len) WTF_INTERNAL;
+                size_t *value_len);
 
 unsigned int
 pcedom_element_remove_attribute(pcedom_element_t *element,
-                const unsigned char *qualified_name, size_t qn_len) WTF_INTERNAL;
+                const unsigned char *qualified_name, size_t qn_len);
 
 bool
 pcedom_element_has_attribute(pcedom_element_t *element,
-                const unsigned char *qualified_name, size_t qn_len) WTF_INTERNAL;
+                const unsigned char *qualified_name, size_t qn_len);
 
 unsigned int
 pcedom_element_attr_append(pcedom_element_t *element,
@@ -997,7 +997,7 @@ pcedom_element_attr_remove(pcedom_element_t *element,
 
 pcedom_attr_t *
 pcedom_element_attr_by_name(pcedom_element_t *element,
-                const unsigned char *qualified_name, size_t length) WTF_INTERNAL;
+                const unsigned char *qualified_name, size_t length);
 
 pcedom_attr_t *
 pcedom_element_attr_by_local_name_data(pcedom_element_t *element,
@@ -1026,7 +1026,7 @@ pcedom_element_is_set(pcedom_element_t *element,
 unsigned int
 pcedom_elements_by_tag_name(pcedom_element_t *root,
                 pcedom_collection_t *collection,
-                const unsigned char *qualified_name, size_t len) WTF_INTERNAL;
+                const unsigned char *qualified_name, size_t len);
 
 unsigned int
 pcedom_elements_by_class_name(pcedom_element_t *root,

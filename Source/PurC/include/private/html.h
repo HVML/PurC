@@ -107,11 +107,6 @@ pchtml_html_parse_fragment_chunk_process(pchtml_html_parser_t *parser,
 pcedom_node_t *
 pchtml_html_parse_fragment_chunk_end(pchtml_html_parser_t *parser);
 
-
-
-
-
-
 // API for document
 pchtml_html_document_t *
 pchtml_html_document_create(void);
