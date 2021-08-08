@@ -203,7 +203,6 @@ static purc_variant_t _make_native(int lvl)
 static size_t _nr_level       = 4;
 static size_t _nr_children    = 16;
 static size_t _nr_iteration   = 128;
-static _make_variant_f _make_func = NULL;
 
 static purc_variant_t _make_object(int lvl)
 {
@@ -376,27 +375,6 @@ static purc_variant_t _make_set(int lvl)
     return v;
 }
 
-static _make_variant_f _ar_make_vars[] = {
-    _make_null,
-    _make_undefined,
-    _make_boolean,
-    _make_number,
-    _make_longint,
-    _make_ulongint,
-    _make_longdouble,
-    _make_atom_string,
-    _make_string,
-    _make_bsequence,
-    _make_dynamic,
-    _make_native,
-    _make_object,
-    _make_array,
-    _make_set,
-};
-
-static _make_variant_f *_make_vars = _ar_make_vars;
-static size_t _nr_make_vars = sizeof(_ar_make_vars)/sizeof(_ar_make_vars[0]);
-
 struct _map_s {
     const char       *name;
     _make_variant_f   func;
@@ -421,16 +399,16 @@ static struct _map_s     _maps[] = {
     _MAP_REC(array),
     _MAP_REC(set),
 };
+#define _nr_maps (sizeof(_maps)/sizeof(_maps[0]))
+static struct _map_s *_make_vars = _maps;
+static size_t _nr_make_vars = _nr_maps;
 
 static inline _make_variant_f
 _get_make_variant_f(void)
 {
-    if (_make_func) {
-        return _make_func;
-    }
     size_t nr = _nr_make_vars;
     int idx = _get_random(nr);
-    return _make_vars[idx];
+    return _make_vars[idx].func;
 }
 
 static purc_variant_t
@@ -474,7 +452,8 @@ TEST(random, make)
 
     s = getenv("PURC_TEST_VARIANT_RANDOM_TYPE");
     if (s) {
-        _make_vars = (_make_variant_f*)calloc(strlen(s),
+        // duplicates as weights
+        _make_vars = (struct _map_s*)calloc(strlen(s)*_nr_maps,
             sizeof(*_make_vars));
         ASSERT_NE(_make_vars, nullptr);
         _nr_make_vars = 0;
@@ -485,20 +464,29 @@ TEST(random, make)
         const char *delim = ";";
         char *tok = strtok_r(ctx, delim, &ctx);
         while (tok) {
-            for (size_t i=0; i<sizeof(_maps)/sizeof(_maps[0]); ++i) {
+            for (size_t i=0; i<_nr_maps; ++i) {
+                if (strcmp(tok, "all")==0) {
+                    for (size_t j=0; j<_nr_maps; ++j) {
+                        // duplicates as weights
+                        _make_vars[_nr_make_vars++] = _maps[j];
+                    }
+                    break;
+                }
                 if (strcmp(_maps[i].name, tok))
                     continue;
 
-                _make_vars[_nr_make_vars++] = _maps[i].func;
-                if (_nr_make_vars==1) {
-                    fprintf(stderr, "PURC_TEST_VARIANT_RANDOM_TYPE:      [");
-                } else {
-                    fprintf(stderr, ";");
-                }
-                fprintf(stderr, "%s", tok);
+                // duplicates as weights
+                _make_vars[_nr_make_vars++] = _maps[i];
                 break;
             }
             tok = strtok_r(ctx, delim, &ctx);
+        }
+        fprintf(stderr, "PURC_TEST_VARIANT_RANDOM_TYPE:      [");
+        for (size_t i=0; i<_nr_make_vars; ++i) {
+            if (i) {
+                fprintf(stderr, ";");
+            }
+            fprintf(stderr, "%s", _make_vars[i].name);
         }
         if (_nr_make_vars) {
             fprintf(stderr, "]\n");
