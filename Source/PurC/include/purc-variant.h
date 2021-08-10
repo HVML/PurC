@@ -249,7 +249,7 @@ purc_variant_get_bytes_const(purc_variant_t value, size_t* nr_bytes);
 PCA_EXPORT size_t purc_variant_sequence_length(const purc_variant_t sequence);
 
 typedef purc_variant_t (*purc_dvariant_method) (purc_variant_t root,
-        int nr_args, purc_variant_t arg0, ...);
+        int nr_args, purc_variant_t * argv);
 
 /**
  * Creates dynamic value by setter and getter functions

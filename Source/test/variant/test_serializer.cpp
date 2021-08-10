@@ -307,22 +307,22 @@ TEST(variant, serialize_longdouble)
 }
 
 static purc_variant_t my_getter(purc_variant_t root,
-        int nr_args, purc_variant_t arg0, ...)
+        int nr_args, purc_variant_t * argv)
 {
     (void)root;
 
     if (nr_args > 0)
-        return arg0;
+        return * argv;
 
     return purc_variant_make_undefined();
 }
 
 static purc_variant_t my_setter(purc_variant_t root,
-        int nr_args, purc_variant_t arg0, ...)
+        int nr_args, purc_variant_t * argv)
 {
     (void)(root);
     (void)(nr_args);
-    (void)(arg0);
+    (void)(argv);
 
     return purc_variant_make_boolean(false);
 }
