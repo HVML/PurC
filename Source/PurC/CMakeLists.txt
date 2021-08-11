@@ -35,6 +35,7 @@ set(PurC_PLATFORM_INDEPENDENT_DIRS
     "variant"
     "html"
     "edom"
+    "dvobjs"
 )
 
 # This macro will append all C/CXX source files in ${PurC_PLATFORM_INDEPENDENT_DIRS}
