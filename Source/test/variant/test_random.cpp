@@ -168,11 +168,11 @@ static purc_variant_t _make_bsequence(int lvl)
 }
 
 static purc_variant_t _dummy(purc_variant_t root,
-            int nr_args, purc_variant_t arg0, ...)
+            int nr_args, purc_variant_t * argv)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(arg0);
+    UNUSED_PARAM(argv);
     return PURC_VARIANT_INVALID;
 }
 

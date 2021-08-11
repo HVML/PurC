@@ -189,7 +189,7 @@ TEST(html, load_from_html)
         fin = popen(cmd, "r");
         ASSERT_NE(fin, nullptr);
 
-        in = purc_rwstream_new_from_fp(fin);
+        in = purc_rwstream_new_from_fp(fdopen(dup(fileno(fin)), "r"));
         ASSERT_NE(in, nullptr);
 
         doc = pchtml_html_document_create();
@@ -202,7 +202,8 @@ TEST(html, load_from_html)
 
         pchtml_html_document_destroy(doc);
         purc_rwstream_destroy(in);
-        // pclose(fin);
+
+        pclose(fin);
     }
 
     purc_rwstream_destroy(out);

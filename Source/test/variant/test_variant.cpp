@@ -996,20 +996,20 @@ TEST(variant, pcvariant_sequence)
 // to test:
 // purc_variant_make_dynamic_value ();
 // purc_variant_serialize ()
-purc_variant_t getter(purc_variant_t root, int nr_args, purc_variant_t arg0, ...)
+purc_variant_t getter(purc_variant_t root, int nr_args, purc_variant_t * argv)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(arg0);
+    UNUSED_PARAM(argv);
     purc_variant_t value = purc_variant_make_number (3.1415926);
     return value;
 }
 
-purc_variant_t setter(purc_variant_t root, int nr_args, purc_variant_t arg0, ...)
+purc_variant_t setter(purc_variant_t root, int nr_args, purc_variant_t * argv)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(arg0);
+    UNUSED_PARAM(argv);
     purc_variant_t value = purc_variant_make_number (2.71828828);
     return value;
 }
@@ -1223,11 +1223,11 @@ TEST(variant, pcvariant_loopbuffer_all)
 }
 
 static inline purc_variant_t
-_getter(purc_variant_t root, int nr_args, purc_variant_t arg0, ...)
+_getter(purc_variant_t root, int nr_args, purc_variant_t * argv)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(arg0);
+    UNUSED_PARAM(argv);
     abort();
     return PURC_VARIANT_INVALID;
 }
