@@ -31,9 +31,11 @@ import os, sys
 import time
 import re
 
+WITHOUT_PRINT = 0
+
 TOOL_NAME="make_hvml_tags_table.py"
 SRC_FILE="data/hvmltags.txt"
-HVMLTAGSTABLE_FILE="tag_static_list.inc"
+HVMLTAGSTABLE_FILE="hvml_tag_static_list.inc"
 
 RE_START_WITH_VALUES = re.compile(r"^\s+values:")
 def start_with_values(line):
@@ -553,11 +555,19 @@ def write_tag_ids (fout, tag_info):
     fout.write ("\n")
 
 if __name__ == "__main__":
+    if len(sys.argv) > 2 and sys.argv[2] == '--without-print':
+        WITHOUT_PRINT = 1
+
+    if len(sys.argv) < 2:
+        raise Exception('expecting target path')
+
     this_path = "{}".format(os.path.dirname(sys.argv[0]))
+    target_path = sys.argv[1];
+    fn = "{}/{}".format(this_path, SRC_FILE)
     try:
-        fsrc = open("{}/{}".format(this_path, SRC_FILE), "r")
+        fsrc = open(fn, "r")
     except:
-        print("%s: failed to open input file %s" % (TOOL_NAME, SRC_FILE, ))
+        print("%s: failed to open input file %s" % (TOOL_NAME, fn, ))
         sys.exit(1)
 
     print("Scanning input file %s..." % SRC_FILE)
@@ -576,10 +586,11 @@ if __name__ == "__main__":
 
     print("DONE")
 
+    fn = "{}/{}".format(target_path, HVMLTAGSTABLE_FILE)
     try:
-        fdst = open("{}/{}".format(this_path, HVMLTAGSTABLE_FILE), "w")
+        fdst = open(fn, "w")
     except:
-        print("%s: failed to open output file %s" % (TOOL_NAME, HVMLTAGSTABLE_FILE, ))
+        print("%s: failed to open output file %s" % (TOOL_NAME, fn, ))
         sys.exit(12)
 
     print("Writting HVML static tag table to dst file %s..." % HVMLTAGSTABLE_FILE)
