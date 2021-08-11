@@ -384,17 +384,17 @@ def make_attr_id(attr_token):
     attr_id = attr_id.replace('-', '_')
     attr_id = attr_id.replace('!', '_')
 
-    return "MyHVML_ATTR_TYPE_" + attr_id;
+    return "PCHVML_ATTR_TYPE_" + attr_id;
 
 def make_state_id(state_token):
     state_id = state_token.upper()
 
-    return "MyHVML_TOKENIZER_STATE_" + state_id;
+    return "PCHVML_TOKENIZER_STATE_" + state_id;
 
 def make_category_id(category_token):
     category_id = category_token.upper()
 
-    return "MyHVML_TAG_CATEGORIES_" + category_id;
+    return "PCHVML_TAG_CATEGORIES_" + category_id;
 
 def make_categories_value (categories_list):
 
@@ -528,7 +528,7 @@ def write_static_attr_tables (tmpl_file, save_to, attr_ids, attr_info, best_slot
             buf.append("   { \"%s\", %s, %d}," % (attr_slot['attr'], make_attr_id (attr_info[attr_slot['attr']]['id']), attr_slot['next'], ))
         else:
             buf.append("   { NULL, 0, 0},")
-    lxb_temp.pattern_append("%%MYHVML_ATTR_STATIC_LIST_INDEX_RECORDS%%", '\n'.join(buf))
+    lxb_temp.pattern_append("%%PCHVML_ATTR_STATIC_LIST_INDEX_RECORDS%%", '\n'.join(buf))
 
     lxb_temp.build()
     lxb_temp.save()
@@ -536,8 +536,8 @@ def write_static_attr_tables (tmpl_file, save_to, attr_ids, attr_info, best_slot
 
 def write_attr_ids (fout, attr_ids, attr_info):
 
-    fout.write ("enum myhvml_attr_types {\n")
-    fout.write ("    MyHVML_ATTR_TYPE_ORDINARY = 0,\n")
+    fout.write ("enum pchvml_attr_types {\n")
+    fout.write ("    PCHVML_ATTR_TYPE_ORDINARY = 0,\n")
 
     idx = 0
     for attr in attr_ids:
@@ -548,8 +548,8 @@ def write_attr_ids (fout, attr_ids, attr_info):
         last_tag = attr
         idx += 1
 
-    fout.write ("    MyHVML_ATTR_TYPE_FIRST_ENTRY = %s,\n" % (make_attr_id (first_tag), ))
-    fout.write ("    MyHVML_ATTR_TYPE_LAST_ENTRY  = %s + 1,\n" % (make_attr_id (last_tag), ))
+    fout.write ("    PCHVML_ATTR_TYPE_FIRST_ENTRY = %s,\n" % (make_attr_id (first_tag), ))
+    fout.write ("    PCHVML_ATTR_TYPE_LAST_ENTRY  = %s + 1,\n" % (make_attr_id (last_tag), ))
     fout.write ("};\n")
     fout.write ("\n")
 

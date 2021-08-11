@@ -364,17 +364,17 @@ def make_tag_id(tag_token):
     tag_id = tag_id.replace('-', '_')
     tag_id = tag_id.replace('!', '_')
 
-    return "MyHVML_TAG_" + tag_id;
+    return "PCHVML_TAG_" + tag_id;
 
 def make_state_id(state_token):
     state_id = state_token.upper()
 
-    return "MyHVML_TOKENIZER_STATE_" + state_id;
+    return "PCHVML_TOKENIZER_STATE_" + state_id;
 
 def make_category_id(category_token):
     category_id = category_token.upper()
 
-    return "MyHVML_TAG_CATEGORIES_" + category_id;
+    return "PCHVML_TAG_CATEGORIES_" + category_id;
 
 def make_categories_value (categories_list):
 
@@ -484,7 +484,7 @@ def write_static_tag_tables (tmpl_file, save_to, tag_info, best_slots_64b, tag_t
     for tag in tag_tokens:
         buf.append("    { %s, \"%s\", %d, %s," % (make_tag_id (tag), tag, len (tag), make_state_id (tag_info[tag]['state']), ))
         buf.append("        %s }," % (make_categories_value (tag_info[tag]['categories']), ))
-    lxb_temp.pattern_append("%%MYHVML_TAG_BASE_LIST%%", '\n'.join(buf))
+    lxb_temp.pattern_append("%%PCHVML_TAG_BASE_LIST%%", '\n'.join(buf))
 
     lxb_temp.pattern_append("%%BEST_SLOTS_64B%%", '{}'.format(best_slots_64b, ))
 
@@ -493,10 +493,10 @@ def write_static_tag_tables (tmpl_file, save_to, tag_info, best_slots_64b, tag_t
         if tag_slot:
             key = str2key_64b (tag_slot['tag'])
             buf.append("   // hash value of this tag: 0x%016x, slot index: %d" % (key, key % best_slots_64b, ))
-            buf.append("   { &myhvml_tag_base_list[%s], %d}," % (make_tag_id (tag_slot['tag']), tag_slot['next'], ))
+            buf.append("   { &pchvml_tag_base_list[%s], %d}," % (make_tag_id (tag_slot['tag']), tag_slot['next'], ))
         else:
             buf.append("   { NULL, 0},")
-    lxb_temp.pattern_append("%%MYHVML_TAG_STATIC_LIST_INDEX_64B%%", '\n'.join(buf))
+    lxb_temp.pattern_append("%%PCHVML_TAG_STATIC_LIST_INDEX_64B%%", '\n'.join(buf))
 
     lxb_temp.pattern_append("%%BEST_SLOTS_32B%%", '{}'.format(best_slots_32b, ))
 
@@ -505,10 +505,10 @@ def write_static_tag_tables (tmpl_file, save_to, tag_info, best_slots_64b, tag_t
         if tag_slot:
             key = str2key_32b (tag_slot['tag'])
             buf.append("   // hash value of this tag: 0x%016x, slot index: %d" % (key, key % best_slots_32b, ))
-            buf.append("   { &myhvml_tag_base_list[%s], %d}," % (make_tag_id (tag_slot['tag']), tag_slot['next'], ))
+            buf.append("   { &pchvml_tag_base_list[%s], %d}," % (make_tag_id (tag_slot['tag']), tag_slot['next'], ))
         else:
             buf.append("   { NULL, 0},")
-    lxb_temp.pattern_append("%%MYHVML_TAG_STATIC_LIST_INDEX_32B%%", '\n'.join(buf))
+    lxb_temp.pattern_append("%%PCHVML_TAG_STATIC_LIST_INDEX_32B%%", '\n'.join(buf))
 
     lxb_temp.build()
     lxb_temp.save()
@@ -517,7 +517,7 @@ def write_tag_ids (fout, tag_info):
 
     tag_tokens = list(tag_info.keys())
 
-    fout.write ("enum myhvml_tags {\n")
+    fout.write ("enum pchvml_tags {\n")
     idx = 0
     for tag in tag_tokens:
         if idx == 0:
@@ -531,8 +531,8 @@ def write_tag_ids (fout, tag_info):
 
         idx += 1
 
-    fout.write ("    MyHVML_TAG_FIRST_ENTRY = %s,\n" % (make_tag_id (first_tag), ))
-    fout.write ("    MyHVML_TAG_LAST_ENTRY  = %s + 1,\n" % (make_tag_id (last_tag), ))
+    fout.write ("    PCHVML_TAG_FIRST_ENTRY = %s,\n" % (make_tag_id (first_tag), ))
+    fout.write ("    PCHVML_TAG_LAST_ENTRY  = %s + 1,\n" % (make_tag_id (last_tag), ))
     fout.write ("};\n")
     fout.write ("\n")
 
