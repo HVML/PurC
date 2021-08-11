@@ -1,0 +1,139 @@
+# -undef should always be the first one.
+-undef
+    state: data
+    categories: noun ordinary
+
+# -text should always be the second one.
+-text
+    state: data
+    categories: noun ordinary
+
+_comment
+    state: data
+    categories: noun ordinary
+
+_foreign
+    state: rawtext
+    categories: foreign ordinary
+
+!DOCTYPE
+    state: data
+    categories: noun special
+
+archedata
+    state: rawtext
+    categories: noun special scope
+
+archetype
+    state: rawtext
+    categories: noun special scope
+
+back
+    state: data
+    categories: verb ordinary
+
+body
+    state: data
+    categories: noun ordinary
+
+call
+    state: data
+    categories: verb ordinary
+
+catch
+    state: data
+    categories: verb ordinary
+
+close
+    state: data
+    categories: verb ordinary
+
+define
+    state: data
+    categories: verb ordinary
+
+empty
+    state: data
+    categories: verb ordinary
+
+error
+    state: rawtext
+    categories: noun ordinary
+
+except
+    state: rawtext
+    categories: noun ordinary
+
+head
+    state: data
+    categories: noun ordinary
+
+hvml
+    state: data
+    categories: noun ordinary
+
+init
+    state: data
+    categories: verb ordinary
+
+include
+    state: data
+    categories: verb ordinary
+
+iterate
+    state: data
+    categories: verb ordinary
+
+listen
+    state: data
+    categories: verb ordinary
+
+load
+    state: data
+    categories: verb ordinary
+
+match
+    state: data
+    categories: verb ordinary
+
+observe
+    state: data
+    categories: verb ordinary
+
+rawpart
+    state: rawtext
+    categories: noun special
+
+remove
+    state: data
+    categories: verb ordinary
+
+request
+    state: data
+    categories: verb ordinary
+
+reduce
+    state: data
+    categories: verb ordinary
+
+return
+    state: data
+    categories: verb ordinary
+
+set
+    state: data
+    categories: verb ordinary
+
+test
+    state: data
+    categories: verb ordinary
+
+update
+    state: data
+    categories: verb ordinary
+
+# -end-of-file should always be the last one.
+-end-of-file
+    state: data
+    categories: noun ordinary
+
