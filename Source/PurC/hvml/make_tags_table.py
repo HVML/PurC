@@ -22,9 +22,9 @@
 
 """
 Make HVML tags table:
-    1. Read 'data/hvmltags.txt' file.
-    5. Generate the myhvml_tag_static_list_t tables (two tables; one for 64bit, the other for 32bit).
-    5. Write code to 'tag_static_list.inc'.
+    1. Read 'data/tags.txt' file.
+    5. Generate the hvml_tag_static_list_t tables (two tables; one for 64bit, the other for 32bit).
+    5. Write code to 'hvml_tag_static_list.inc'.
 """
 
 import os, sys
@@ -40,8 +40,8 @@ import LXB
 WITHOUT_PRINT = 0
 
 TOOL_NAME="make_hvml_tags_table.py"
-SRC_FILE="data/hvmltags.txt"
-TMPL_FILE="data/hvml_tag_static_list.inc.in"
+SRC_FILE="data/tags.txt"
+TMPL_FILE="data/tag_static_list.inc.in"
 HVMLTAGSTABLE_FILE="hvml_tag_static_list.inc"
 
 RE_START_WITH_VALUES = re.compile(r"^\s+values:")
