@@ -22,9 +22,9 @@
 
 """
 Make HVML attrs table:
-    1. Read 'data/hvmlattrs.txt' file.
-    5. Generate the myhvml_attr_static_list_t table.
-    5. Write code to 'attr_static_list.inc'.
+    1. Read 'data/attrs.txt' file.
+    5. Generate the hvml_attr_static_list_t table.
+    5. Write code to 'hvml_attr_static_list.inc'.
 """
 
 import os, sys
@@ -40,8 +40,8 @@ import LXB
 WITHOUT_PRINT = 0
 
 TOOL_NAME="make_hvml_attrs_table.py"
-SRC_FILE="data/hvmlattrs.txt"
-TMPL_FILE="data/hvml_attr_static_list.inc.in"
+SRC_FILE="data/attrs.txt"
+TMPL_FILE="data/attr_static_list.inc.in"
 HVMLATTRSTABLE_FILE="hvml_attr_static_list.inc"
 
 RE_START_WITH_VALUES = re.compile(r"^\s+values:")
