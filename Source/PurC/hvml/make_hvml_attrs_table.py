@@ -31,9 +31,11 @@ import os, sys
 import time
 import re
 
+WITHOUT_PRINT = 0
+
 TOOL_NAME="make_hvml_attrs_table.py"
 SRC_FILE="data/hvmlattrs.txt"
-HVMLATTRSTABLE_FILE="attr_static_list.inc"
+HVMLATTRSTABLE_FILE="hvml_attr_static_list.inc"
 
 RE_START_WITH_VALUES = re.compile(r"^\s+values:")
 def start_with_values(line):
@@ -571,11 +573,19 @@ def write_attr_ids (fout, attr_ids, attr_info):
     fout.write ("\n")
 
 if __name__ == "__main__":
+    if len(sys.argv) > 2 and sys.argv[2] == '--without-print':
+        WITHOUT_PRINT = 1
+
+    if len(sys.argv) < 2:
+        raise Exception('expecting target path')
+
     this_path = "{}".format(os.path.dirname(sys.argv[0]))
+    target_path = sys.argv[1];
+    fn = "{}/{}".format(this_path, SRC_FILE)
     try:
-        fsrc = open("{}/{}".format(this_path, SRC_FILE), "r")
+        fsrc = open(fn, "r")
     except:
-        print("%s: failed to open input file %s" % (TOOL_NAME, SRC_FILE, ))
+        print("%s: failed to open input file %s" % (TOOL_NAME, fn, ))
         sys.exit(1)
 
     print("Scanning input file %s..." % SRC_FILE)
@@ -590,10 +600,11 @@ if __name__ == "__main__":
     attr_ids, best_slots, attr_table = generate_static_attr_table (attr_info, str2key_simple)
     print("DONE")
 
+    fn = "{}/{}".format(target_path, HVMLATTRSTABLE_FILE)
     try:
-        fdst = open("{}/{}".format(this_path, HVMLATTRSTABLE_FILE), "w")
+        fdst = open(fn, "w")
     except:
-        print("%s: failed to open output file %s" % (TOOL_NAME, HVMLATTRSTABLE_FILE, ))
+        print("%s: failed to open output file %s" % (TOOL_NAME, fn, ))
         sys.exit(12)
 
     print("Writting HVML static attr table to dst file %s..." % HVMLATTRSTABLE_FILE)
