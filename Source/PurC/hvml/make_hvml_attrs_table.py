@@ -199,7 +199,8 @@ def scan_src_file(fsrc):
             if start_with_values (org_line):
                 values = get_value(stripped_line)
                 if values is None:
-                    print("scan_src_file (Line %d): value list expected (%s)" % (line_no, stripped_line, ))
+                    if not WITHOUT_PRINT:
+                        print("scan_src_file (Line %d): value list expected (%s)" % (line_no, stripped_line, ))
                     return None
                 else:
                     set_value_list(attr_info, attr_token, def_info, values)
@@ -207,7 +208,8 @@ def scan_src_file(fsrc):
             elif start_with_initial (org_line):
                 initial_value = get_value(stripped_line)
                 if initial_value is None:
-                    print("scan_src_file (Line %d): initial value expected (%s)" % (line_no, stripped_line, ))
+                    if not WITHOUT_PRINT:
+                        print("scan_src_file (Line %d): initial value expected (%s)" % (line_no, stripped_line, ))
                     return None
                 else:
                     attr_info[attr_token]['initial'] = initial_value
@@ -215,7 +217,8 @@ def scan_src_file(fsrc):
             elif start_with_inherited (org_line):
                 inherited_value = get_value(stripped_line)
                 if inherited_value is None or (inherited_value != "no" and inherited_value != "yes"):
-                    print("scan_src_file (Line %d): inherited value (yes/no) expected (%s)" % (line_no, stripped_line, ))
+                    if not WITHOUT_PRINT:
+                        print("scan_src_file (Line %d): inherited value (yes/no) expected (%s)" % (line_no, stripped_line, ))
                     return None
                 else:
                     attr_info[attr_token]['inherited'] = inherited_value
@@ -223,7 +226,8 @@ def scan_src_file(fsrc):
             elif start_with_appliesto (org_line):
                 appliesto_value = get_value(stripped_line)
                 if appliesto_value is None:
-                    print("scan_src_file (Line %d): appliesto value expected (%s)" % (line_no, stripped_line, ))
+                    if not WITHOUT_PRINT:
+                        print("scan_src_file (Line %d): appliesto value expected (%s)" % (line_no, stripped_line, ))
                     return None
                 else:
                     attr_info[attr_token]['appliesto'] = appliesto_value
@@ -231,7 +235,8 @@ def scan_src_file(fsrc):
             elif start_with_arraysize (org_line):
                 arraysize_value = get_value(stripped_line)
                 if arraysize_value is None:
-                    print("scan_src_file (Line %d): arraysize value expected (%s)" % (line_no, stripped_line, ))
+                    if not WITHOUT_PRINT:
+                        print("scan_src_file (Line %d): arraysize value expected (%s)" % (line_no, stripped_line, ))
                     return None
                 else:
                     attr_info[attr_token]['arraysize'] = arraysize_value
@@ -239,7 +244,8 @@ def scan_src_file(fsrc):
             elif start_with_state (org_line):
                 state_value = get_value(stripped_line)
                 if state_value is None:
-                    print("scan_src_file (Line %d): state value expected (%s)" % (line_no, stripped_line, ))
+                    if not WITHOUT_PRINT:
+                        print("scan_src_file (Line %d): state value expected (%s)" % (line_no, stripped_line, ))
                     return None
                 else:
                     attr_info[attr_token]['state'] = state_value
@@ -247,7 +253,8 @@ def scan_src_file(fsrc):
             elif start_with_categories (org_line):
                 categories = get_value(stripped_line)
                 if categories is None:
-                    print("scan_src_file (Line %d): value list expected (%s)" % (line_no, stripped_line, ))
+                    if not WITHOUT_PRINT:
+                        print("scan_src_file (Line %d): value list expected (%s)" % (line_no, stripped_line, ))
                     return None
                 else:
                     set_category_list(attr_info, attr_token, def_info, categories)
@@ -255,7 +262,8 @@ def scan_src_file(fsrc):
             elif start_with_type (org_line):
                 type_value = get_value(stripped_line)
                 if type_value is None:
-                    print("scan_src_file (Line %d): type value expected (%s)" % (line_no, stripped_line, ))
+                    if not WITHOUT_PRINT:
+                        print("scan_src_file (Line %d): type value expected (%s)" % (line_no, stripped_line, ))
                     return None
                 else:
                     attr_info[attr_token]['type'] = type_value
@@ -263,7 +271,8 @@ def scan_src_file(fsrc):
             elif start_with_alias (org_line):
                 alias_value = get_value(stripped_line)
                 if alias_value is None:
-                    print("scan_src_file (Line %d): alias value expected (%s)" % (line_no, stripped_line, ))
+                    if not WITHOUT_PRINT:
+                        print("scan_src_file (Line %d): alias value expected (%s)" % (line_no, stripped_line, ))
                     return None
                 else:
                     attr_info[attr_token]['alias'] = alias_value
@@ -271,11 +280,13 @@ def scan_src_file(fsrc):
             elif not start_with_space (org_line):
                 attr_token = stripped_line
                 if attr_token in attr_info:
-                    print("scan_src_file (Line %d): duplicated property name (%s)" % (line_no, stripped_line, ))
+                    if not WITHOUT_PRINT:
+                        print("scan_src_file (Line %d): duplicated property name (%s)" % (line_no, stripped_line, ))
                     return None
                 attr_info[attr_token] = {}
             else:
-                print("scan_src_file (Line %d): syntax error %s (%s)" % (line_no, attr_token, stripped_line, ))
+                if not WITHOUT_PRINT:
+                    print("scan_src_file (Line %d): syntax error %s (%s)" % (line_no, attr_token, stripped_line, ))
                 return None
 
         line_no = line_no + 1
@@ -357,7 +368,8 @@ def calc_hash_degree (attr_info, nr_slots):
         if d == 0:
             nr_zeros += 1
 
-    print("%s: min/max hash degree: (%d, %d) / %d; zero slots: %d; %d" % (TOOL_NAME, min_degree, max_degree, nr_slots, nr_zeros, nr_zeros * max_degree))
+    if not WITHOUT_PRINT:
+        print("%s: min/max hash degree: (%d, %d) / %d; zero slots: %d; %d" % (TOOL_NAME, min_degree, max_degree, nr_slots, nr_zeros, nr_zeros * max_degree))
     return nr_zeros * max_degree
 
 def make_attr_id(attr_token):
@@ -401,15 +413,18 @@ def generate_static_attr_table (attr_info, str2key):
     attr_ids = []
     for attr in attr_info:
         attr_info[attr]['key'] = str2key (attr)
-        print("%s: key of attribute name %s: 0x%x" % (TOOL_NAME, attr, attr_info[attr]['key'], ))
+        if not WITHOUT_PRINT:
+            print("%s: key of attribute name %s: 0x%x" % (TOOL_NAME, attr, attr_info[attr]['key'], ))
 
         if 'duplicated' in attr_info[attr].keys():
             attr_info[attr]['id'] = attr_info[attr]['type'] + '_' + attr_info[attr]['duplicated']
-            print("%s: duplicated attr: %s" % (TOOL_NAME, attr_info[attr]['duplicated'], ))
+            if not WITHOUT_PRINT:
+                print("%s: duplicated attr: %s" % (TOOL_NAME, attr_info[attr]['duplicated'], ))
         else:
             attr_info[attr]['id'] = attr_info[attr]['type'] + '_' + attr
             attr_ids.append (attr_info[attr]['id'])
-            print("%s: new attr id: %s" % (TOOL_NAME, attr_info[attr]['id'], ))
+            if not WITHOUT_PRINT:
+                print("%s: new attr id: %s" % (TOOL_NAME, attr_info[attr]['id'], ))
     attr_ids.sort()
 
     nr_attrs = len (attr_info)
@@ -421,7 +436,8 @@ def generate_static_attr_table (attr_info, str2key):
             min_degree = d
             best_slots = nr_slots
 
-    print("%s: find the best number of slots: %d" % (TOOL_NAME, best_slots))
+    if not WITHOUT_PRINT:
+        print("%s: find the best number of slots: %d" % (TOOL_NAME, best_slots))
 
     attr_table = []
     for i in range (0, best_slots):
@@ -443,9 +459,11 @@ def generate_static_attr_table (attr_info, str2key):
     idx = 0
     for attr_slot in attr_table:
         if attr_slot:
-            print("%s: slot #%d: %s; next: %d" % (TOOL_NAME, idx, attr_slot['attr'], attr_slot['next']))
+            if not WITHOUT_PRINT:
+                print("%s: slot #%d: %s; next: %d" % (TOOL_NAME, idx, attr_slot['attr'], attr_slot['next']))
         else:
-            print("%s: slot #%d: no attr" % (TOOL_NAME, idx))
+            if not WITHOUT_PRINT:
+                print("%s: slot #%d: no attr" % (TOOL_NAME, idx))
 
         idx += 1
 
@@ -585,46 +603,60 @@ if __name__ == "__main__":
     try:
         fsrc = open(fn, "r")
     except:
-        print("%s: failed to open input file %s" % (TOOL_NAME, fn, ))
+        if not WITHOUT_PRINT:
+            print("%s: failed to open input file %s" % (TOOL_NAME, fn, ))
         sys.exit(1)
 
-    print("Scanning input file %s..." % SRC_FILE)
+    if not WITHOUT_PRINT:
+        print("Scanning input file %s..." % SRC_FILE)
     attr_info = scan_src_file(fsrc)
     if attr_info is None:
-        print("FAILED")
+        if not WITHOUT_PRINT:
+            print("FAILED")
         sys.exit(3)
     fsrc.close()
-    print("DONE")
+    if not WITHOUT_PRINT:
+        print("DONE")
 
-    print("Generating static attr table...")
+    if not WITHOUT_PRINT:
+        print("Generating static attr table...")
     attr_ids, best_slots, attr_table = generate_static_attr_table (attr_info, str2key_simple)
-    print("DONE")
+    if not WITHOUT_PRINT:
+        print("DONE")
 
     fn = "{}/{}".format(target_path, HVMLATTRSTABLE_FILE)
     try:
         fdst = open(fn, "w")
     except:
-        print("%s: failed to open output file %s" % (TOOL_NAME, fn, ))
+        if not WITHOUT_PRINT:
+            print("%s: failed to open output file %s" % (TOOL_NAME, fn, ))
         sys.exit(12)
 
-    print("Writting HVML static attr table to dst file %s..." % HVMLATTRSTABLE_FILE)
+    if not WITHOUT_PRINT:
+        print("Writting HVML static attr table to dst file %s..." % HVMLATTRSTABLE_FILE)
     try:
         write_static_attr_tables (fdst, attr_ids, attr_info, best_slots, attr_table)
     except:
-        print("FAILED")
+        if not WITHOUT_PRINT:
+            print("FAILED")
         traceback.print_exc()
         sys.exit(13)
     fdst.close()
-    print("DONE")
+    if not WITHOUT_PRINT:
+        print("DONE")
 
-    print("Writting HVML attr identifiers to standard output...")
+    if not WITHOUT_PRINT:
+        print("Writting HVML attr identifiers to standard output...")
     try:
-        write_attr_ids (sys.stdout, attr_ids, attr_info)
+        if not WITHOUT_PRINT:
+            write_attr_ids (sys.stdout, attr_ids, attr_info)
     except:
-        print("FAILED")
+        if not WITHOUT_PRINT:
+            print("FAILED")
         traceback.print_exc()
         sys.exit(13)
-    print("DONE")
+    if not WITHOUT_PRINT:
+        print("DONE")
 
     sys.exit(0)
 

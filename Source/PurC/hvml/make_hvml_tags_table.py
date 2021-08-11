@@ -193,7 +193,8 @@ def scan_src_file(fsrc):
             if start_with_values (org_line):
                 values = get_value(stripped_line)
                 if values is None:
-                    print("scan_src_file (Line %d): value list expected (%s)" % (line_no, stripped_line, ))
+                    if not WITHOUT_PRINT:
+                        print("scan_src_file (Line %d): value list expected (%s)" % (line_no, stripped_line, ))
                     return None
                 else:
                     set_value_list(tag_info, tag_token, def_info, values)
@@ -201,7 +202,8 @@ def scan_src_file(fsrc):
             elif start_with_initial (org_line):
                 initial_value = get_value(stripped_line)
                 if initial_value is None:
-                    print("scan_src_file (Line %d): initial value expected (%s)" % (line_no, stripped_line, ))
+                    if not WITHOUT_PRINT:
+                        print("scan_src_file (Line %d): initial value expected (%s)" % (line_no, stripped_line, ))
                     return None
                 else:
                     tag_info[tag_token]['initial'] = initial_value
@@ -209,7 +211,8 @@ def scan_src_file(fsrc):
             elif start_with_inherited (org_line):
                 inherited_value = get_value(stripped_line)
                 if inherited_value is None or (inherited_value != "no" and inherited_value != "yes"):
-                    print("scan_src_file (Line %d): inherited value (yes/no) expected (%s)" % (line_no, stripped_line, ))
+                    if not WITHOUT_PRINT:
+                        print("scan_src_file (Line %d): inherited value (yes/no) expected (%s)" % (line_no, stripped_line, ))
                     return None
                 else:
                     tag_info[tag_token]['inherited'] = inherited_value
@@ -217,7 +220,8 @@ def scan_src_file(fsrc):
             elif start_with_appliesto (org_line):
                 appliesto_value = get_value(stripped_line)
                 if appliesto_value is None:
-                    print("scan_src_file (Line %d): appliesto value expected (%s)" % (line_no, stripped_line, ))
+                    if not WITHOUT_PRINT:
+                        print("scan_src_file (Line %d): appliesto value expected (%s)" % (line_no, stripped_line, ))
                     return None
                 else:
                     tag_info[tag_token]['appliesto'] = appliesto_value
@@ -225,7 +229,8 @@ def scan_src_file(fsrc):
             elif start_with_arraysize (org_line):
                 arraysize_value = get_value(stripped_line)
                 if arraysize_value is None:
-                    print("scan_src_file (Line %d): arraysize value expected (%s)" % (line_no, stripped_line, ))
+                    if not WITHOUT_PRINT:
+                        print("scan_src_file (Line %d): arraysize value expected (%s)" % (line_no, stripped_line, ))
                     return None
                 else:
                     tag_info[tag_token]['arraysize'] = arraysize_value
@@ -233,7 +238,8 @@ def scan_src_file(fsrc):
             elif start_with_kind (org_line):
                 kind_value = get_value(stripped_line)
                 if kind_value is None:
-                    print("scan_src_file (Line %d): kind value expected (%s)" % (line_no, stripped_line, ))
+                    if not WITHOUT_PRINT:
+                        print("scan_src_file (Line %d): kind value expected (%s)" % (line_no, stripped_line, ))
                     return None
                 else:
                     tag_info[tag_token]['kind'] = kind_value
@@ -241,7 +247,8 @@ def scan_src_file(fsrc):
             elif start_with_state (org_line):
                 state_value = get_value(stripped_line)
                 if state_value is None:
-                    print("scan_src_file (Line %d): state value expected (%s)" % (line_no, stripped_line, ))
+                    if not WITHOUT_PRINT:
+                        print("scan_src_file (Line %d): state value expected (%s)" % (line_no, stripped_line, ))
                     return None
                 else:
                     tag_info[tag_token]['state'] = state_value
@@ -249,7 +256,8 @@ def scan_src_file(fsrc):
             elif start_with_categories (org_line):
                 categories = get_value(stripped_line)
                 if categories is None:
-                    print("scan_src_file (Line %d): value list expected (%s)" % (line_no, stripped_line, ))
+                    if not WITHOUT_PRINT:
+                        print("scan_src_file (Line %d): value list expected (%s)" % (line_no, stripped_line, ))
                     return None
                 else:
                     set_category_list(tag_info, tag_token, def_info, categories)
@@ -257,11 +265,13 @@ def scan_src_file(fsrc):
             elif not start_with_space (org_line):
                 tag_token = stripped_line
                 if tag_token in tag_info:
-                    print("scan_src_file (Line %d): duplicated property name (%s)" % (line_no, stripped_line, ))
+                    if not WITHOUT_PRINT:
+                        print("scan_src_file (Line %d): duplicated property name (%s)" % (line_no, stripped_line, ))
                     return None
                 tag_info[tag_token] = {}
             else:
-                print("scan_src_file (Line %d): syntax error %s (%s)" % (line_no, tag_token, stripped_line, ))
+                if not WITHOUT_PRINT:
+                    print("scan_src_file (Line %d): syntax error %s (%s)" % (line_no, tag_token, stripped_line, ))
                 return None
 
         line_no = line_no + 1
@@ -338,7 +348,8 @@ def calc_hash_degree (tag_info, nr_slots):
         if d == 0:
             nr_zeros += 1
 
-    print("%s: min/max hash degree: (%d, %d) / %d; zero slots: %d; %d" % (TOOL_NAME, min_degree, max_degree, nr_slots, nr_zeros, nr_zeros * max_degree))
+    if not WITHOUT_PRINT:
+        print("%s: min/max hash degree: (%d, %d) / %d; zero slots: %d; %d" % (TOOL_NAME, min_degree, max_degree, nr_slots, nr_zeros, nr_zeros * max_degree))
     return nr_zeros * max_degree
 
 def make_tag_id(tag_token):
@@ -374,7 +385,8 @@ def generate_static_tag_table (tag_info, str2key):
     nr_tags = len (tag_info)
     for tag in tag_info:
         tag_info[tag]['key'] = str2key (tag)
-        print("%s: key of string %s: 0x%x" % (TOOL_NAME, tag, tag_info[tag]['key'], ))
+        if not WITHOUT_PRINT:
+            print("%s: key of string %s: 0x%x" % (TOOL_NAME, tag, tag_info[tag]['key'], ))
 
     min_degree = nr_tags * nr_tags
     best_slots = 0
@@ -384,7 +396,8 @@ def generate_static_tag_table (tag_info, str2key):
             min_degree = d
             best_slots = nr_slots
 
-    print("%s: find the best number of slots: %d" % (TOOL_NAME, best_slots))
+    if not WITHOUT_PRINT:
+        print("%s: find the best number of slots: %d" % (TOOL_NAME, best_slots))
 
     tag_table = []
     for i in range (0, best_slots):
@@ -406,9 +419,11 @@ def generate_static_tag_table (tag_info, str2key):
     idx = 0
     for tag_slot in tag_table:
         if tag_slot:
-            print("%s: slot #%d: %s; next: %d" % (TOOL_NAME, idx, tag_slot['tag'], tag_slot['next']))
+            if not WITHOUT_PRINT:
+                print("%s: slot #%d: %s; next: %d" % (TOOL_NAME, idx, tag_slot['tag'], tag_slot['next']))
         else:
-            print("%s: slot #%d: no tag" % (TOOL_NAME, idx))
+            if not WITHOUT_PRINT:
+                print("%s: slot #%d: no tag" % (TOOL_NAME, idx))
 
         idx += 1
 
@@ -567,50 +582,65 @@ if __name__ == "__main__":
     try:
         fsrc = open(fn, "r")
     except:
-        print("%s: failed to open input file %s" % (TOOL_NAME, fn, ))
+        if not WITHOUT_PRINT:
+            print("%s: failed to open input file %s" % (TOOL_NAME, fn, ))
         sys.exit(1)
 
-    print("Scanning input file %s..." % SRC_FILE)
+    if not WITHOUT_PRINT:
+        print("Scanning input file %s..." % SRC_FILE)
     tag_info = scan_src_file(fsrc)
     if tag_info is None:
-        print("FAILED")
+        if not WITHOUT_PRINT:
+            print("FAILED")
         sys.exit(3)
     fsrc.close()
-    print("DONE")
+    if not WITHOUT_PRINT:
+        print("DONE")
 
-    print("Generating static tag table for 64bit...")
+    if not WITHOUT_PRINT:
+        print("Generating static tag table for 64bit...")
     best_slots_64b, tag_table_64b = generate_static_tag_table (tag_info, str2key_64b)
 
-    print("Generating static tag table for 32bit...")
+    if not WITHOUT_PRINT:
+        print("Generating static tag table for 32bit...")
     best_slots_32b, tag_table_32b = generate_static_tag_table (tag_info, str2key_32b)
 
-    print("DONE")
+    if not WITHOUT_PRINT:
+        print("DONE")
 
     fn = "{}/{}".format(target_path, HVMLTAGSTABLE_FILE)
     try:
         fdst = open(fn, "w")
     except:
-        print("%s: failed to open output file %s" % (TOOL_NAME, fn, ))
+        if not WITHOUT_PRINT:
+            print("%s: failed to open output file %s" % (TOOL_NAME, fn, ))
         sys.exit(12)
 
-    print("Writting HVML static tag table to dst file %s..." % HVMLTAGSTABLE_FILE)
+    if not WITHOUT_PRINT:
+        print("Writting HVML static tag table to dst file %s..." % HVMLTAGSTABLE_FILE)
     try:
         write_static_tag_tables (fdst, tag_info, best_slots_64b, tag_table_64b, best_slots_32b, tag_table_32b)
     except:
-        print("FAILED")
+        if not WITHOUT_PRINT:
+            print("FAILED")
         traceback.print_exc()
         sys.exit(13)
     fdst.close()
-    print("DONE")
+    if not WITHOUT_PRINT:
+        print("DONE")
 
-    print("Writting HVML tag identifiers to standard output...")
+    if not WITHOUT_PRINT:
+        print("Writting HVML tag identifiers to standard output...")
     try:
-        write_tag_ids (sys.stdout, tag_info)
+        if not WITHOUT_PRINT:
+            write_tag_ids (sys.stdout, tag_info)
     except:
-        print("FAILED")
+        if not WITHOUT_PRINT:
+            print("FAILED")
         traceback.print_exc()
         sys.exit(13)
-    print("DONE")
+    if not WITHOUT_PRINT:
+        print("DONE")
 
     sys.exit(0)
 
