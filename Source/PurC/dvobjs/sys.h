@@ -30,44 +30,28 @@
  * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
-#include "private/instance.h"
-#include "private/errors.h"
-#include "private/debug.h"
-#include "private/utils.h"
-#include "private/edom.h"
-#include "private/html.h"
-
 #include "purc-variant.h"
-#include "sys.h"
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
+#ifndef _DVOJBS_SYSTEM_H_
+#define _DVOJBS_SYSTEM_H_ 
 
-void pcdvobjs_init_once(void)
-{
-    // initialize others
-}
+purc_variant_t
+get_uname (purc_variant_t root, int nr_args, purc_variant_t* argv);
 
-void pcdvobjs_init_instance(struct pcinst* inst)
-{
-    UNUSED_PARAM(inst);
+purc_variant_t
+get_locale (purc_variant_t root, int nr_args, purc_variant_t* argv);
 
-}
+purc_variant_t
+set_locale (purc_variant_t root, int nr_args, purc_variant_t* argv);
 
-void pcdvobjs_cleanup_instance(struct pcinst* inst)
-{
-    UNUSED_PARAM(inst);
-}
+purc_variant_t
+get_random (purc_variant_t root, int nr_args, purc_variant_t* argv);
 
-// only for test now.
-purc_variant_t pcdvojbs_get_system (void)
-{
-    purc_variant_t sys = purc_variant_make_object_c (4,
-            "uname", purc_variant_make_dynamic (get_uname, NULL),
-            "locale", purc_variant_make_dynamic (get_locale, set_locale),
-            "random", purc_variant_make_dynamic (get_random, NULL),
-            "time", purc_variant_make_dynamic (get_time, set_time)
-       );
-    return sys;
-}
+purc_variant_t
+get_time (purc_variant_t root, int nr_args, purc_variant_t* argv);
+
+purc_variant_t
+set_time (purc_variant_t root, int nr_args, purc_variant_t* argv);
+
+#endif  // _DVOJBS_SYSTEM_H_ 
+

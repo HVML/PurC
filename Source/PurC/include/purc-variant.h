@@ -37,6 +37,11 @@ typedef struct purc_variant purc_variant;
 typedef struct purc_variant* purc_variant_t;
 
 #define PURC_VARIANT_INVALID            ((purc_variant_t)(0))
+#define PURC_VARIANT_UNDEFINED          ((purc_variant_t)(-1))
+#define PURC_VARIANT_NULL               ((purc_variant_t)(-2))
+#define PURC_VARIANT_TRUE               ((purc_variant_t)(1))
+#define PURC_VARIANT_FALSE              ((purc_variant_t)(2))
+
 
 PCA_EXTERN_C_BEGIN
 
@@ -83,6 +88,18 @@ PCA_EXPORT purc_variant_t purc_variant_make_boolean(bool b);
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t purc_variant_make_number(double d);
+
+
+/**
+ * get the value from number type.
+ *
+ * @param number: the variant value of number type
+ *
+ * Returns: the number of variant 
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT double purc_variant_get_number (const purc_variant_t number);
 
 
 /**
@@ -265,6 +282,32 @@ typedef purc_variant_t (*purc_dvariant_method) (purc_variant_t root,
 PCA_EXPORT purc_variant_t
 purc_variant_make_dynamic(purc_dvariant_method getter,
         purc_dvariant_method setter);
+
+
+/**
+ * Get the getter function from a dynamic value
+ *
+ * @param dynamic: the variant value of dynamic type
+ *
+ * Returns: A purc_dvariant_method funciton pointer 
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT purc_dvariant_method
+purc_variant_dynamic_get_getter(const purc_variant_t dynamic);
+
+
+/**
+ * Get the setter function from a dynamic value
+ *
+ * @param dynamic: the variant value of dynamic type
+ *
+ * Returns: A purc_dvariant_method funciton pointer 
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT purc_dvariant_method
+purc_variant_dynamic_get_setter(const purc_variant_t dynamic);
 
 
 typedef bool (*purc_navtive_releaser) (void* entity);

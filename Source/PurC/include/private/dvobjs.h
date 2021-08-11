@@ -46,6 +46,7 @@ void pcdvobjs_init_instance(struct pcinst* inst) WTF_INTERNAL;
 // clean up the dvobjs module for a PurC instance.
 void pcdvobjs_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 
+purc_variant_t pcdvojbs_get_system(void);
 
 #ifdef __cplusplus
 }

@@ -42,7 +42,7 @@
 #include <stdint.h>
 #include <sys/utsname.h>
 
-
+#ifdef gengyue
 enum parse_state {
     PARSE_STATE_START,
     PARSE_STATE_SQUOTE,             // '\''
@@ -407,3 +407,5 @@ bool destroy_tree (pcdvobjs_node_t root)
     UNUSED_PARAM (root);
     return true;
 }
+
+#endif
