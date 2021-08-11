@@ -73,6 +73,24 @@ TEST(object, make_object_c)
     ASSERT_NE(obj, PURC_VARIANT_INVALID);
     ASSERT_EQ(obj->refc, 1);
     _check_get_by_key_c(obj, k1, PURC_VARIANT_INVALID, false);
+    purc_variant_object_iterator* it;
+    it = purc_variant_object_make_iterator_begin(obj);
+    int j = 0;
+    while (it) {
+        ++j;
+        const char     *key = purc_variant_object_iterator_get_key(it);
+        purc_variant_t  val = purc_variant_object_iterator_get_value(it);
+        fprintf(stderr, "key%d:%s\n", j, key);
+        fprintf(stderr, "val%d:%s\n", j, purc_variant_get_string_const(val));
+        bool having = purc_variant_object_iterator_next(it);
+        // behavior of accessing `val`/`key` is un-defined
+        if (!having) {
+            // behavior of accessing `it` is un-defined
+            break;
+        }
+    }
+    purc_variant_object_release_iterator(it);
+    ASSERT_EQ(j, 0);
     purc_variant_unref(obj);
 
     obj = purc_variant_make_object_c(1, k1, v1);
@@ -81,6 +99,23 @@ TEST(object, make_object_c)
     ASSERT_EQ(v1->refc, 2);
     _check_get_by_key_c(obj, k1, v1, true);
     _check_get_by_key_c(obj, k2, PURC_VARIANT_INVALID, false);
+    it = purc_variant_object_make_iterator_begin(obj);
+    j = 0;
+    while (it) {
+        ++j;
+        const char     *key = purc_variant_object_iterator_get_key(it);
+        purc_variant_t  val = purc_variant_object_iterator_get_value(it);
+        fprintf(stderr, "key%d:%s\n", j, key);
+        fprintf(stderr, "val%d:%s\n", j, purc_variant_get_string_const(val));
+        bool having = purc_variant_object_iterator_next(it);
+        // behavior of accessing `val`/`key` is un-defined
+        if (!having) {
+            // behavior of accessing `it` is un-defined
+            break;
+        }
+    }
+    purc_variant_object_release_iterator(it);
+    ASSERT_EQ(j, 1);
     purc_variant_unref(obj);
     ASSERT_EQ(v1->refc, 1);
 
@@ -92,26 +127,111 @@ TEST(object, make_object_c)
     _check_get_by_key_c(obj, k1, v1, true);
     _check_get_by_key_c(obj, k2, v2, true);
     _check_get_by_key_c(obj, "hello_foo", PURC_VARIANT_INVALID, false);
+    it = purc_variant_object_make_iterator_begin(obj);
+    j = 0;
+    while (it) {
+        ++j;
+        const char     *key = purc_variant_object_iterator_get_key(it);
+        purc_variant_t  val = purc_variant_object_iterator_get_value(it);
+        fprintf(stderr, "key%d:%s\n", j, key);
+        fprintf(stderr, "val%d:%s\n", j, purc_variant_get_string_const(val));
+        bool having = purc_variant_object_iterator_next(it);
+        // behavior of accessing `val`/`key` is un-defined
+        if (!having) {
+            // behavior of accessing `it` is un-defined
+            break;
+        }
+    }
+    purc_variant_object_release_iterator(it);
+    ASSERT_EQ(j, 2);
 
     ok = purc_variant_object_set_c(obj, k1, v1);
     ASSERT_EQ(ok, true);
     ASSERT_EQ(v1->refc, 2);
+    it = purc_variant_object_make_iterator_begin(obj);
+    j = 0;
+    while (it) {
+        ++j;
+        const char     *key = purc_variant_object_iterator_get_key(it);
+        purc_variant_t  val = purc_variant_object_iterator_get_value(it);
+        fprintf(stderr, "key%d:%s\n", j, key);
+        fprintf(stderr, "val%d:%s\n", j, purc_variant_get_string_const(val));
+        bool having = purc_variant_object_iterator_next(it);
+        // behavior of accessing `val`/`key` is un-defined
+        if (!having) {
+            // behavior of accessing `it` is un-defined
+            break;
+        }
+    }
+    purc_variant_object_release_iterator(it);
+    ASSERT_EQ(j, 2);
 
     ok = purc_variant_object_set_c(obj, k1, v2);
     ASSERT_EQ(ok, true);
     ASSERT_EQ(v1->refc, 1);
     ASSERT_EQ(v2->refc, 3);
+    it = purc_variant_object_make_iterator_begin(obj);
+    j = 0;
+    while (it) {
+        ++j;
+        const char     *key = purc_variant_object_iterator_get_key(it);
+        purc_variant_t  val = purc_variant_object_iterator_get_value(it);
+        fprintf(stderr, "key%d:%s\n", j, key);
+        fprintf(stderr, "val%d:%s\n", j, purc_variant_get_string_const(val));
+        bool having = purc_variant_object_iterator_next(it);
+        // behavior of accessing `val`/`key` is un-defined
+        if (!having) {
+            // behavior of accessing `it` is un-defined
+            break;
+        }
+    }
+    purc_variant_object_release_iterator(it);
+    ASSERT_EQ(j, 2);
 
     ok = purc_variant_object_set_c(obj, k1, v1);
     ASSERT_EQ(ok, true);
     ASSERT_EQ(v1->refc, 2);
     ASSERT_EQ(v2->refc, 2);
+    it = purc_variant_object_make_iterator_begin(obj);
+    j = 0;
+    while (it) {
+        ++j;
+        const char     *key = purc_variant_object_iterator_get_key(it);
+        purc_variant_t  val = purc_variant_object_iterator_get_value(it);
+        fprintf(stderr, "key%d:%s\n", j, key);
+        fprintf(stderr, "val%d:%s\n", j, purc_variant_get_string_const(val));
+        bool having = purc_variant_object_iterator_next(it);
+        // behavior of accessing `val`/`key` is un-defined
+        if (!having) {
+            // behavior of accessing `it` is un-defined
+            break;
+        }
+    }
+    purc_variant_object_release_iterator(it);
+    ASSERT_EQ(j, 2);
 
     ok = purc_variant_object_set_c(obj, k3, v3);
     ASSERT_EQ(ok, true);
     ASSERT_EQ(v1->refc, 2);
     ASSERT_EQ(v2->refc, 2);
     ASSERT_EQ(v3->refc, 2);
+    it = purc_variant_object_make_iterator_begin(obj);
+    j = 0;
+    while (it) {
+        ++j;
+        const char     *key = purc_variant_object_iterator_get_key(it);
+        purc_variant_t  val = purc_variant_object_iterator_get_value(it);
+        fprintf(stderr, "key%d:%s\n", j, key);
+        fprintf(stderr, "val%d:%s\n", j, purc_variant_get_string_const(val));
+        bool having = purc_variant_object_iterator_next(it);
+        // behavior of accessing `val`/`key` is un-defined
+        if (!having) {
+            // behavior of accessing `it` is un-defined
+            break;
+        }
+    }
+    purc_variant_object_release_iterator(it);
+    ASSERT_EQ(j, 3);
 
     purc_variant_unref(obj);
     ASSERT_EQ(v1->refc, 1);
