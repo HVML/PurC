@@ -304,6 +304,111 @@ void pcvariant_string_release (purc_variant_t string)
 }
 
 purc_variant_t
+purc_variant_string_append (const purc_variant_t string, 
+                            const char* str_utf8, bool check_encoding)
+{
+    PC_ASSERT(string);
+
+    if (purc_variant_is_type(string, PURC_VARIANT_TYPE_STRING)) {
+        if (str_utf8 == NULL) 
+            return string;
+        
+        if (check_encoding) {
+            if (!purc_variant_string_check_utf8 (str_utf8)) { 
+                pcinst_set_error (PCVARIANT_STRING_NOT_UTF8);
+                return string;
+            }
+        }
+
+        size_t str_size = strlen (str_utf8);
+        size_t var_size = purc_variant_string_length (string);
+        size_t real_size = MAX (sizeof(long double), sizeof(void*) * 2);
+
+        if (string->flags & PCVARIANT_FLAG_EXTRA_SIZE)  {
+            char* new_buf;
+            new_buf = malloc (str_size + var_size + 1);
+            if(new_buf == NULL) {
+                pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
+                return string;
+            }
+
+            strcpy (new_buf, (char *)string->sz_ptr[1]);
+            strcpy (new_buf + var_size - 1, str_utf8);
+
+            free ((void *)(string->sz_ptr[1]));
+            string->sz_ptr[1] = (uintptr_t)new_buf;
+            pcvariant_stat_set_extra_size (string, str_size + var_size);
+        }
+        else {
+            if ((str_size + var_size) < real_size) {
+                strcpy ((char *)string->bytes + string->size - 1, str_utf8);
+                string->size = str_size + var_size;
+            }
+            else {
+                char* new_buf;
+                new_buf = malloc (str_size + var_size);
+                if(new_buf == NULL) {
+                    pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
+                    return string;
+                }
+
+                strcpy (new_buf, (char *)string->bytes);
+                strcpy (new_buf + var_size - 1, str_utf8);
+
+                string->flags |= PCVARIANT_FLAG_EXTRA_SIZE;
+                string->sz_ptr[1] = (uintptr_t)new_buf;
+                pcvariant_stat_set_extra_size (string, str_size + var_size);
+            }
+            
+        }
+    }
+    else
+        pcinst_set_error (PCVARIANT_INVALID_TYPE);
+
+    return string;
+}
+
+purc_variant_t
+purc_variant_string_clear (const purc_variant_t string)
+{
+    PC_ASSERT(string);
+
+    if (purc_variant_is_type(string, PURC_VARIANT_TYPE_STRING)) {
+
+        if (string->flags & PCVARIANT_FLAG_EXTRA_SIZE)  {
+            free ((void *)(string->sz_ptr[1]));
+            pcvariant_stat_set_extra_size (string, 0);
+            string->flags ^= PCVARIANT_FLAG_EXTRA_SIZE;
+        }
+        string->bytes[0] = 0;
+        string->size = 1;
+    }
+    else
+        pcinst_set_error (PCVARIANT_INVALID_TYPE);
+
+    return string;
+}
+
+bool purc_variant_string_is_empty (const purc_variant_t string)
+{
+    PC_ASSERT(string);
+    
+    bool ret = false;
+
+    if (purc_variant_is_type(string, PURC_VARIANT_TYPE_STRING)) {
+
+        if (!(string->flags & PCVARIANT_FLAG_EXTRA_SIZE) && 
+                (string->bytes[0] == 0) && (string->size == 1))  
+            ret = true;
+    }
+    else
+        pcinst_set_error (PCVARIANT_INVALID_TYPE);
+
+    return ret;
+
+}
+
+purc_variant_t
 purc_variant_make_atom_string (const char* str_utf8, bool check_encoding)
 {
     PCVARIANT_CHECK_FAIL_RET(str_utf8, PURC_VARIANT_INVALID);

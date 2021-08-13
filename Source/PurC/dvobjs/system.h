@@ -36,6 +36,9 @@
 #define _DVOJBS_SYSTEM_H_ 
 
 purc_variant_t
+get_uname_all (purc_variant_t root, int nr_args, purc_variant_t* argv);
+
+purc_variant_t
 get_uname (purc_variant_t root, int nr_args, purc_variant_t* argv);
 
 purc_variant_t

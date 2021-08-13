@@ -2,7 +2,7 @@
  * @file dvobjs.c
  * @author Geng Yue
  * @date 2021/07/02
- * @brief The implementation of public part for html parser.
+ * @brief The interface of dynamic variant objects.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -20,14 +20,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- *
- * This implementation of HTML parser is derived from Lexbor
- * <https://github.com/lexbor/lexbor>, which is licensed under the Apache
- * License, Version 2.0:
- *
- * Copyright (C) 2018-2020 Alexander Borisov
- *
- * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
 #include "private/instance.h"
@@ -38,7 +30,7 @@
 #include "private/html.h"
 
 #include "purc-variant.h"
-#include "sys.h"
+#include "system.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -64,10 +56,11 @@ void pcdvobjs_cleanup_instance(struct pcinst* inst)
 purc_variant_t pcdvojbs_get_system (void)
 {
     purc_variant_t sys = purc_variant_make_object_c (4,
-            "uname", purc_variant_make_dynamic (get_uname, NULL),
-            "locale", purc_variant_make_dynamic (get_locale, set_locale),
-            "random", purc_variant_make_dynamic (get_random, NULL),
-            "time", purc_variant_make_dynamic (get_time, set_time)
+            "uname_all", purc_variant_make_dynamic (get_uname_all, NULL),
+            "uname",     purc_variant_make_dynamic (get_uname, NULL),
+            "locale",    purc_variant_make_dynamic (get_locale, set_locale),
+            "random",    purc_variant_make_dynamic (get_random, NULL),
+            "time",      purc_variant_make_dynamic (get_time, set_time)
        );
     return sys;
 }

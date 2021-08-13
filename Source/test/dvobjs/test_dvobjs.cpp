@@ -13,12 +13,58 @@
 #include <errno.h>
 #include <gtest/gtest.h>
 
-TEST(dvobjs, dvobjs_sys_uname)
+TEST(dvobjs, dvobjs_sys_uname_all)
 {
     purc_variant_t param[10];
     purc_variant_t ret_var = NULL;
     const char * result = NULL;
     size_t i = 0;
+
+    purc_instance_extra_info info = {0, 0};
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    purc_variant_t sys = pcdvojbs_get_system();
+    ASSERT_NE(sys, nullptr);
+    ASSERT_EQ(purc_variant_is_object (sys), true);
+
+    purc_variant_t dynamic = purc_variant_object_get_c (sys, "uname_all");
+    ASSERT_NE(dynamic, nullptr);
+    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+
+    purc_dvariant_method func = NULL;
+    func = purc_variant_dynamic_get_getter (dynamic);
+    ASSERT_NE(func, nullptr);
+
+    printf ("TEST get_uname_all: nr_args = 0, param = \"  beijing  shanghai\" :\n");
+    param[0] = purc_variant_make_string ("  beijing shanghai", true);
+    param[1] = NULL;
+    ret_var = func (NULL, 0, param);
+    ASSERT_NE(ret_var, nullptr);
+
+    purc_variant_object_iterator* it = purc_variant_object_make_iterator_begin(ret_var);
+    for (i = 0; i < purc_variant_object_get_size (ret_var); i++) {
+        const char     *key = purc_variant_object_iterator_get_key(it);
+        purc_variant_t  val = purc_variant_object_iterator_get_value(it);
+
+        result = purc_variant_get_string_const (val);
+
+        printf("\t\t%s: %s\n", key, result);
+
+        bool having = purc_variant_object_iterator_next(it);
+        if (!having) {
+            purc_variant_object_release_iterator(it);
+            break;
+        }
+    }
+
+    purc_cleanup ();
+}
+TEST(dvobjs, dvobjs_sys_uname)
+{
+    purc_variant_t param[10];
+    purc_variant_t ret_var = NULL;
+    const char * result = NULL;
 
     purc_instance_extra_info info = {0, 0};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
@@ -40,142 +86,72 @@ TEST(dvobjs, dvobjs_sys_uname)
     param[0] = purc_variant_make_string ("  hello   world  ", true);
     param[1] = NULL;
     ret_var = func (NULL, 1, NULL);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(ret_var, PURC_VARIANT_FALSE);
-    printf("\t\tReturn PURC_VARIANT_FALSE\n");
+    ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
+    printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
     printf ("TEST get_uname: nr_args = 1, param[0] type is number:\n");
     param[0] = purc_variant_make_number (3.1415926);
     param[1] = NULL;
     ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(ret_var, PURC_VARIANT_FALSE);
-    printf("\t\tReturn PURC_VARIANT_FALSE\n");
+    ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
+    printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
     printf ("TEST get_uname: nr_args = 1, param = \"  hello   world  \" :\n");
     param[0] = purc_variant_make_string ("  hello   world  ", true);
     param[1] = NULL;
     ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(ret_var, PURC_VARIANT_FALSE);
-    printf("\t\tReturn PURC_VARIANT_FALSE\n");
+    ASSERT_EQ(purc_variant_string_is_empty(ret_var), true);
+    printf("\t\tReturn An Empty String Varaint\n");
 
-    ret_var = func (NULL, 0, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_object (ret_var), true);
 
     printf ("TEST get_uname: nr_args = 0, param = \"hello world\" :\n");
-    purc_variant_object_iterator* it = purc_variant_object_make_iterator_begin(ret_var);
+    ret_var = func (NULL, 0, param);
+    ASSERT_NE(ret_var, nullptr);
+    ASSERT_EQ(purc_variant_is_string (ret_var), true);
+    result = purc_variant_get_string_const (ret_var);
+    printf("\t\tReturn : %s\n", result);
 
-    for (i = 0; i < purc_variant_object_get_size (ret_var); i++) {
-        const char     *key = purc_variant_object_iterator_get_key(it);
-        purc_variant_t  val = purc_variant_object_iterator_get_value(it);
-
-        result = purc_variant_get_string_const (val);
-
-        printf("\t\t%s: %s\n", key, result);
-
-        bool having = purc_variant_object_iterator_next(it);
-        if (!having) {
-            purc_variant_object_release_iterator(it);
-            break;
-        }
-    }
-
+    printf ("TEST get_uname: nr_args = 1, param = \"all default\" :\n");
     param[0] = purc_variant_make_string ("all default", true);
     param[1] = NULL;
     ret_var = func (NULL, 1, param);
     ASSERT_NE(ret_var, nullptr);
-
-    printf ("TEST get_uname: nr_args = 1, param = \"all default\" :\n");
-    it = purc_variant_object_make_iterator_begin(ret_var);
-    for (i = 0; i < purc_variant_object_get_size (ret_var); i++) {
-        const char     *key = purc_variant_object_iterator_get_key(it);
-        purc_variant_t  val = purc_variant_object_iterator_get_value(it);
-
-        result = purc_variant_get_string_const (val);
-
-        printf("\t\t%s: %s\n", key, result);
-
-        bool having = purc_variant_object_iterator_next(it);
-        if (!having) {
-            purc_variant_object_release_iterator(it);
-            break;
-        }
-    }
+    ASSERT_EQ(purc_variant_is_string (ret_var), true);
+    result = purc_variant_get_string_const (ret_var);
+    printf("\t\tReturn : %s\n", result);
 
 
+    printf ("TEST get_uname: nr_args = 1, param = \"default all\" :\n");
     param[0] = purc_variant_make_string ("default all", true);
     param[1] = NULL;
     ret_var = func (NULL, 1, param);
     ASSERT_NE(ret_var, nullptr);
-
-    printf ("TEST get_uname: nr_args = 1, param = \"default all\" :\n");
-    it = purc_variant_object_make_iterator_begin(ret_var);
-    for (i = 0; i < purc_variant_object_get_size (ret_var); i++) {
-        const char     *key = purc_variant_object_iterator_get_key(it);
-        purc_variant_t  val = purc_variant_object_iterator_get_value(it);
-
-        result = purc_variant_get_string_const (val);
-
-        printf("\t\t%s: %s\n", key, result);
-
-        bool having = purc_variant_object_iterator_next(it);
-        if (!having) {
-            purc_variant_object_release_iterator(it);
-            break;
-        }
-    }
+    ASSERT_EQ(purc_variant_is_string (ret_var), true);
+    result = purc_variant_get_string_const (ret_var);
+    printf("\t\tReturn : %s\n", result);
 
 
+    printf ("TEST get_uname: nr_args = 1, param = \"hardware-platform kernel-version\" :\n");
     param[0] = purc_variant_make_string ("hardware-platform kernel-version", true);
     param[1] = NULL;
     ret_var = func (NULL, 1, param);
     ASSERT_NE(ret_var, nullptr);
+    ASSERT_EQ(purc_variant_is_string (ret_var), true);
+    result = purc_variant_get_string_const (ret_var);
+    printf("\t\tReturn : %s\n", result);
 
-    printf ("TEST get_uname: nr_args = 1, param = \"hardware-platform kernel-version\" :\n");
-    it = purc_variant_object_make_iterator_begin(ret_var);
-    for (i = 0; i < purc_variant_object_get_size (ret_var); i++) {
-        const char     *key = purc_variant_object_iterator_get_key(it);
-        purc_variant_t  val = purc_variant_object_iterator_get_value(it);
 
-        result = purc_variant_get_string_const (val);
-
-        printf("\t\t%s: %s\n", key, result);
-
-        bool having = purc_variant_object_iterator_next(it);
-        if (!having) {
-            purc_variant_object_release_iterator(it);
-            break;
-        }
-    }
-
+    printf ("TEST get_uname: nr_args = 1, param = \"   nodename   wrong-word   kernel-release   \" :\n");
     param[0] = purc_variant_make_string ("   nodename   wrong-word   kernel-release   ", true);
     param[1] = NULL;
     ret_var = func (NULL, 1, param);
     ASSERT_NE(ret_var, nullptr);
-
-    printf ("TEST get_uname: nr_args = 1, param = \"   nodename   wrong-word   kernel-release   \" :\n");
-    it = purc_variant_object_make_iterator_begin(ret_var);
-    for (i = 0; i < purc_variant_object_get_size (ret_var); i++) {
-        const char     *key = purc_variant_object_iterator_get_key(it);
-        purc_variant_t  val = purc_variant_object_iterator_get_value(it);
-
-        result = purc_variant_get_string_const (val);
-
-        printf("\t\t%s: %s\n", key, result);
-
-        bool having = purc_variant_object_iterator_next(it);
-        if (!having) {
-            purc_variant_object_release_iterator(it);
-            break;
-        }
-    }
-
+    ASSERT_EQ(purc_variant_is_string (ret_var), true);
+    result = purc_variant_get_string_const (ret_var);
+    printf("\t\tReturn : %s\n", result);
 
     purc_cleanup ();
 }
-
 
 TEST(dvobjs, dvobjs_sys_get_local)
 {
@@ -208,25 +184,22 @@ TEST(dvobjs, dvobjs_sys_get_local)
     param[0] = purc_variant_make_string ("  hello   world  ", true);
     param[1] = NULL;
     ret_var = func (NULL, 1, NULL);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(ret_var, PURC_VARIANT_FALSE);
-    printf("\t\tReturn PURC_VARIANT_FALSE\n");
+    ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
+    printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
     printf ("TEST get_locale: nr_args = 1, param = \"hello world\":\n");
     param[0] = purc_variant_make_string ("hello world", true);
     param[1] = NULL;
     ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(ret_var, PURC_VARIANT_FALSE);
-    printf("\t\tReturn PURC_VARIANT_FALSE\n");
+    ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
+    printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
     printf ("TEST get_locale: nr_args = 1, param[0] type is number:\n");
     param[0] = purc_variant_make_number (3.1415926);
     param[1] = NULL;
     ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(ret_var, PURC_VARIANT_FALSE);
-    printf("\t\tReturn PURC_VARIANT_FALSE\n");
+    ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
+    printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
     printf ("TEST get_locale: nr_args = 1, param = ctype:\n");
     param[0] = purc_variant_make_string ("ctype", true);
@@ -354,45 +327,40 @@ TEST(dvobjs, dvobjs_sys_set_local)
     param[1] = purc_variant_make_string ("en_US.UTF-8", true);
     param[2] = NULL;
     ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(ret_var, PURC_VARIANT_FALSE);
-    printf("\t\tReturn PURC_VARIANT_FALSE\n");
+    ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
+    printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
     printf ("TEST set_locale: nr_args = 2, param1 = \"all\", param2 type is number:\n");
     param[0] = purc_variant_make_string ("all", true);
     param[1] = purc_variant_make_number (3.1415926);
     param[2] = NULL;
     ret_var = func (NULL, 2, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(ret_var, PURC_VARIANT_FALSE);
-    printf("\t\tReturn PURC_VARIANT_FALSE\n");
+    ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
+    printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
     printf ("TEST set_locale: nr_args = 2, param1 type is number, param2 = \"en_US.UTF-8\":\n");
     param[0] = purc_variant_make_number (3.1415926);
     param[1] = purc_variant_make_string ("en_US.UTF-8", true);
     param[2] = NULL;
     ret_var = func (NULL, 22, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(ret_var, PURC_VARIANT_FALSE);
-    printf("\t\tReturn PURC_VARIANT_FALSE\n");
+    ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
+    printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
     printf ("TEST set_locale: nr_args = 2, param1 = \"china\", param2 = \"en_US.UTF-8\":\n");
     param[0] = purc_variant_make_string ("china", true);
     param[1] = purc_variant_make_string ("en_US.UTF-8", true);
     param[2] = NULL;
     ret_var = func (NULL, 2, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(ret_var, PURC_VARIANT_FALSE);
-    printf("\t\tReturn PURC_VARIANT_FALSE\n");
+    ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
+    printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
     printf ("TEST set_locale: nr_args = 2, param1 = \"all\", param2 = \"china\":\n");
     param[0] = purc_variant_make_string ("china", true);
     param[1] = purc_variant_make_string ("en_US.UTF-8", true);
     param[2] = NULL;
     ret_var = func (NULL, 2, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(ret_var, PURC_VARIANT_FALSE);
-    printf("\t\tReturn PURC_VARIANT_FALSE\n");
+    ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
+    printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
     printf ("TEST set_locale: nr_args = 2, param1 = \"all\", param2 = \"\":\n");
     param[0] = purc_variant_make_string ("all", true);
@@ -540,17 +508,15 @@ TEST(dvobjs, dvobjs_sys_get_random)
     param[0] = purc_variant_make_number (125.0d);
     param[1] = NULL;
     ret_var = func (NULL, 0, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(ret_var, PURC_VARIANT_FALSE);
-    printf("\t\tReturn PURC_VARIANT_FALSE\n");
+    ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
+    printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
     printf ("TEST get_random: nr_args = 1, param = 1E-11:\n");
     param[0] = purc_variant_make_number (1E-11);
     param[1] = NULL;
     ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(ret_var, PURC_VARIANT_FALSE);
-    printf("\t\tReturn PURC_VARIANT_FALSE\n");
+    ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
+    printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
     printf ("TEST get_random: nr_args = 1, param = 125.0d:\n");
     param[0] = purc_variant_make_number (125.0d);
