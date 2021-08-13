@@ -91,18 +91,6 @@ PCA_EXPORT purc_variant_t purc_variant_make_number(double d);
 
 
 /**
- * get the value from number type.
- *
- * @param number: the variant value of number type
- *
- * Returns: the number of variant 
- *
- * Since: 0.0.1
- */
-PCA_EXPORT double purc_variant_get_number (const purc_variant_t number);
-
-
-/**
  * Creates a variant value of long int type.
  *
  * @param u64: the initial value of unsigned long int type
@@ -178,47 +166,6 @@ PCA_EXPORT const char* purc_variant_get_string_const(purc_variant_t value);
  * Since: 0.0.1
  */
 PCA_EXPORT size_t purc_variant_string_length(const purc_variant_t value);
-
-
-/**
- * append a string to the tail of a string variant.
- *
- * @param string: the variant value of string type
- * @param str_utf8: the pointer of a string which is in UTF-8 encoding
- * @param check_encoding: whether check str_utf8 in UTF-8 encoding
- *
- * Returns: string variant value.
- *
- * Since: 0.0.1
- */
-PCA_EXPORT purc_variant_t
-purc_variant_string_append (const purc_variant_t string, 
-                                const char* str_utf8, bool check_encoding);
-
-
-
-/**
- * clear a string variant.
- *
- * @param string: the variant value of string type
- *
- * Returns: string variant value.
- *
- * Since: 0.0.1
- */
-purc_variant_t purc_variant_string_clear (const purc_variant_t string);
-
-
-/**
- * Whether the string variant is empty.
- *
- * @param string: the variant value of string type
- *
- * Returns: true for empty, otherwise false.
- *
- * Since: 0.0.1
- */
-bool purc_variant_string_is_empty (const purc_variant_t string);
 
 
 /**

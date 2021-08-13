@@ -100,8 +100,8 @@ TEST(dvobjs, dvobjs_sys_uname)
     param[0] = purc_variant_make_string ("  hello   world  ", true);
     param[1] = NULL;
     ret_var = func (NULL, 1, param);
-    ASSERT_EQ(purc_variant_string_is_empty(ret_var), true);
-    printf("\t\tReturn An Empty String Varaint\n");
+    ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
+    printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
 
     printf ("TEST get_uname: nr_args = 0, param = \"hello world\" :\n");
@@ -524,7 +524,9 @@ TEST(dvobjs, dvobjs_sys_get_random)
     ret_var = func (NULL, 1, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_number (ret_var), true);
-    printf("\t\tReturn random: %lf\n", purc_variant_get_number (ret_var));
+    double number = 0.0d;
+    purc_variant_cast_to_number (ret_var, &number, false);
+    printf("\t\tReturn random: %lf\n", number);
 
     purc_cleanup ();
 }
