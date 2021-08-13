@@ -346,7 +346,7 @@ PCA_EXPORT ssize_t purc_rwstream_dump_to_another (purc_rwstream_t in,
  *
  * Since: 0.0.2
  */
-PCA_EXPORT const char* purc_rwstream_get_mem_buffer_ex (purc_rwstream_t rw_mem,
+PCA_EXPORT void* purc_rwstream_get_mem_buffer_ex (purc_rwstream_t rw_mem,
         size_t *sz_content, size_t *sz_buffer, bool res_buff);
 
 /**
@@ -365,10 +365,11 @@ PCA_EXPORT const char* purc_rwstream_get_mem_buffer_ex (purc_rwstream_t rw_mem,
  *
  * Since: 0.0.1
  */
-static inline const char* purc_rwstream_get_mem_buffer (purc_rwstream_t rw_mem,
+static inline char* purc_rwstream_get_mem_buffer (purc_rwstream_t rw_mem,
         size_t *sz_content)
 {
-    return purc_rwstream_get_mem_buffer_ex (rw_mem, sz_content, NULL, false);
+    return (char *)purc_rwstream_get_mem_buffer_ex (rw_mem, sz_content,
+            NULL, false);
 }
 
 

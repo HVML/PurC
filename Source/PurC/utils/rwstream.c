@@ -95,7 +95,7 @@ typedef struct rwstream_funcs
     ssize_t (*flush) (purc_rwstream_t rws);
     int     (*close) (purc_rwstream_t rws);
     int     (*destroy) (purc_rwstream_t rws);
-    const char* (*get_mem_buffer) (purc_rwstream_t rws, size_t *sz_content,
+    void*   (*get_mem_buffer) (purc_rwstream_t rws, size_t *sz_content,
             size_t *sz_buffer, bool res_buff);
 } rwstream_funcs;
 
@@ -166,7 +166,7 @@ static ssize_t mem_write (purc_rwstream_t rws, const void* buf, size_t count);
 static ssize_t mem_flush (purc_rwstream_t rws);
 static int mem_close (purc_rwstream_t rws);
 static int mem_destroy (purc_rwstream_t rws);
-static const char* mem_get_mem_buffer (purc_rwstream_t rws,
+static void* mem_get_mem_buffer (purc_rwstream_t rws,
         size_t *sz_content, size_t *sz_buffer, bool res_buff);
 
 rwstream_funcs mem_funcs = {
@@ -187,7 +187,7 @@ static ssize_t buffer_write (purc_rwstream_t rws, const void* buf, size_t count)
 static ssize_t buffer_flush (purc_rwstream_t rws);
 static int buffer_close (purc_rwstream_t rws);
 static int buffer_destroy (purc_rwstream_t rws);
-static const char* buffer_get_mem_buffer (purc_rwstream_t rws,
+static void* buffer_get_mem_buffer (purc_rwstream_t rws,
         size_t *sz_content, size_t *sz_buffer, bool res_buff);
 
 rwstream_funcs buffer_funcs = {
@@ -593,9 +593,8 @@ ssize_t purc_rwstream_dump_to_another (purc_rwstream_t in,
     return ret_count;
 }
 
-const char*
-purc_rwstream_get_mem_buffer_ex (purc_rwstream_t rws, size_t *sz_content,
-        size_t *sz_buffer, bool res_buff)
+void* purc_rwstream_get_mem_buffer_ex (purc_rwstream_t rws,
+        size_t *sz_content, size_t *sz_buffer, bool res_buff)
 {
     if (rws == NULL) {
         RWSTREAM_SET_ERROR(PURC_ERROR_INVALID_VALUE);
@@ -772,7 +771,7 @@ static int mem_destroy (purc_rwstream_t rws)
     return 0;
 }
 
-static const char* mem_get_mem_buffer (purc_rwstream_t rws,
+static void* mem_get_mem_buffer (purc_rwstream_t rws,
         size_t *sz_content, size_t *sz_buffer, bool res_buff)
 {
     struct mem_rwstream* mem = (struct mem_rwstream *)rws;
@@ -786,7 +785,7 @@ static const char* mem_get_mem_buffer (purc_rwstream_t rws,
     }
 
     UNUSED_PARAM(res_buff);
-    return (const char*)mem->base;
+    return mem->base;
 }
 
 /* buffer rwstream functions */
@@ -934,7 +933,7 @@ static int buffer_destroy (purc_rwstream_t rws)
     return 0;
 }
 
-static const char* buffer_get_mem_buffer (purc_rwstream_t rws,
+static void* buffer_get_mem_buffer (purc_rwstream_t rws,
         size_t *sz_content, size_t *sz_buffer, bool res_buff)
 {
     struct buffer_rwstream* buffer = (struct buffer_rwstream *)rws;
@@ -949,7 +948,7 @@ static const char* buffer_get_mem_buffer (purc_rwstream_t rws,
 
     buffer->buff_reserved = res_buff;
 
-    return (const char*)buffer->base;
+    return buffer->base;
 }
 
 #if ENABLE(SOCKET_STREAM) && HAVE(GLIB)
