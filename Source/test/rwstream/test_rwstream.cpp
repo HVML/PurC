@@ -321,7 +321,7 @@ TEST(mem_rwstream, new_destroy)
     ASSERT_NE(rws, nullptr);
 
     size_t sz = 0;
-    const char* mem_buffer = purc_rwstream_get_mem_buffer (rws, &sz);
+    char* mem_buffer = (char*)purc_rwstream_get_mem_buffer (rws, &sz);
     ASSERT_EQ(mem_buffer, buf);
     ASSERT_EQ(sz, buf_len);
 
@@ -586,7 +586,7 @@ TEST(buffer_rwstream, new_destroy)
     ASSERT_NE(rws, nullptr);
 
     size_t sz = 0;
-    const char* mem_buffer = purc_rwstream_get_mem_buffer (rws, &sz);
+    char* mem_buffer = (char*)purc_rwstream_get_mem_buffer (rws, &sz);
     ASSERT_NE(mem_buffer, nullptr);
 
     ASSERT_EQ(sz, 0);
@@ -610,7 +610,7 @@ TEST(buffer_rwstream, read_char)
     ASSERT_EQ(write_len, buf_len);
 
     size_t sz = 0;
-    const char* mem_buffer = purc_rwstream_get_mem_buffer (rws, &sz);
+    char* mem_buffer = (char*)purc_rwstream_get_mem_buffer (rws, &sz);
     ASSERT_NE(mem_buffer, nullptr);
 
     purc_rwstream_seek (rws, 0, SEEK_SET);
@@ -637,7 +637,7 @@ TEST(buffer_rwstream, write_char)
     ASSERT_NE(rws, nullptr);
 
     size_t sz = 0;
-    const char* mem_buffer = purc_rwstream_get_mem_buffer (rws, &sz);
+    char* mem_buffer = (char*)purc_rwstream_get_mem_buffer (rws, &sz);
     ASSERT_NE(mem_buffer, nullptr);
 
     int write_len = purc_rwstream_write (rws, buf, buf_len);
@@ -661,7 +661,7 @@ TEST(buffer_rwstream, extend_memory)
     ASSERT_NE(rws, nullptr);
 
     size_t sz = 0;
-    const char* mem_buffer = purc_rwstream_get_mem_buffer (rws, &sz);
+    char* mem_buffer = (char*)purc_rwstream_get_mem_buffer (rws, &sz);
     ASSERT_NE(mem_buffer, nullptr);
     ASSERT_EQ(sz, 0);
 
@@ -669,14 +669,14 @@ TEST(buffer_rwstream, extend_memory)
     ASSERT_EQ(write_len, buf_len);
     ASSERT_STREQ(mem_buffer, buf);
 
-    mem_buffer = purc_rwstream_get_mem_buffer (rws, &sz);
+    mem_buffer = (char*)purc_rwstream_get_mem_buffer (rws, &sz);
     ASSERT_EQ(sz, write_len);
 
     write_len = purc_rwstream_write (rws, buf, buf_len);
     ASSERT_EQ(write_len, buf_len);
 
     size_t sz2 = 0;
-    const char* mem_buffer2 = purc_rwstream_get_mem_buffer (rws, &sz2);
+    char* mem_buffer2 = (char*)purc_rwstream_get_mem_buffer (rws, &sz2);
     ASSERT_NE(mem_buffer2, nullptr);
     ASSERT_GE(sz2, sz);
     ASSERT_EQ(sz2, sz + write_len);
@@ -684,7 +684,7 @@ TEST(buffer_rwstream, extend_memory)
     write_len = purc_rwstream_write (rws, buf, buf_len);
     ASSERT_EQ(write_len, 5);
 
-    mem_buffer = purc_rwstream_get_mem_buffer (rws, &sz);
+    mem_buffer = (char*)purc_rwstream_get_mem_buffer (rws, &sz);
     ASSERT_EQ(sz, buf_len * 2 + 5);
 
     int ret = purc_rwstream_close(rws);
@@ -704,7 +704,7 @@ TEST(buffer_rwstream, read_utf8_char)
     ASSERT_NE(rws, nullptr);
 
     size_t sz = 0;
-    const char* mem_buffer = purc_rwstream_get_mem_buffer (rws, &sz);
+    char* mem_buffer = (char*)purc_rwstream_get_mem_buffer (rws, &sz);
     ASSERT_NE(mem_buffer, nullptr);
 
     int write_len = purc_rwstream_write (rws, buf, buf_len);
@@ -802,7 +802,7 @@ TEST(buffer_rwstream, seek_tell)
     ASSERT_NE(rws, nullptr);
 
     size_t sz = 0;
-    const char* mem_buffer = purc_rwstream_get_mem_buffer (rws, &sz);
+    char* mem_buffer = (char*)purc_rwstream_get_mem_buffer (rws, &sz);
     ASSERT_NE(mem_buffer, nullptr);
 
     int write_len = purc_rwstream_write (rws, buf, buf_len);
@@ -846,7 +846,7 @@ TEST(buffer_rwstream, seek_read)
     ASSERT_NE(rws, nullptr);
 
     size_t sz = 0;
-    const char* mem_buffer = purc_rwstream_get_mem_buffer (rws, &sz);
+    char* mem_buffer = (char*)purc_rwstream_get_mem_buffer (rws, &sz);
     ASSERT_NE(mem_buffer, nullptr);
 
     int write_len = purc_rwstream_write (rws, buf, buf_len);
@@ -1293,7 +1293,7 @@ TEST(dump_rwstream, stdio_mem)
     sz = purc_rwstream_dump_to_another (rws, rws_out, 5);
     ASSERT_EQ(sz, 5);
 
-    const char* mem_buffer = purc_rwstream_get_mem_buffer (rws_out, &sz);
+    char* mem_buffer = (char*)purc_rwstream_get_mem_buffer (rws_out, &sz);
     ASSERT_EQ(0, strncmp(buf, mem_buffer, 5));
 
     purc_rwstream_seek (rws, 0, SEEK_SET);
@@ -1335,7 +1335,7 @@ TEST(dump_rwstream, stdio_buffer)
     sz = purc_rwstream_dump_to_another (rws, rws_out, 5);
     ASSERT_EQ(sz, 5);
 
-    const char* mem_buffer = purc_rwstream_get_mem_buffer (rws_out, &sz);
+    char* mem_buffer = (char*)purc_rwstream_get_mem_buffer (rws_out, &sz);
     ASSERT_EQ(0, strncmp(buf, mem_buffer, 5));
 
     purc_rwstream_seek (rws, 0, SEEK_SET);
@@ -1419,7 +1419,7 @@ TEST(dump_rwstream, mem_buffer)
     sz = purc_rwstream_dump_to_another (rws, rws_out, 5);
     ASSERT_EQ(sz, 5);
 
-    const char* mem_buffer = purc_rwstream_get_mem_buffer (rws_out, &sz);
+    char* mem_buffer = (char*)purc_rwstream_get_mem_buffer (rws_out, &sz);
     ASSERT_EQ(0, strncmp(buf, mem_buffer, 5));
 
     purc_rwstream_seek (rws, 0, SEEK_SET);

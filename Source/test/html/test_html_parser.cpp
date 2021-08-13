@@ -71,7 +71,7 @@ TEST(html, html_parser_html_file_x)
     ASSERT_EQ(n, 0);
 
     size_t size = 0;
-    const char * buffer = purc_rwstream_get_mem_buffer (io, &size);
+    char* buffer = (char*)purc_rwstream_get_mem_buffer (io, &size);
     char buf[1000] = {0,};
     memcpy(buf, buffer, size);
     printf("%s\n", buf);

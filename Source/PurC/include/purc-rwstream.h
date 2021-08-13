@@ -365,10 +365,10 @@ PCA_EXPORT void* purc_rwstream_get_mem_buffer_ex (purc_rwstream_t rw_mem,
  *
  * Since: 0.0.1
  */
-static inline char* purc_rwstream_get_mem_buffer (purc_rwstream_t rw_mem,
+static inline void* purc_rwstream_get_mem_buffer (purc_rwstream_t rw_mem,
         size_t *sz_content)
 {
-    return (char *)purc_rwstream_get_mem_buffer_ex (rw_mem, sz_content,
+    return purc_rwstream_get_mem_buffer_ex (rw_mem, sz_content,
             NULL, false);
 }
 

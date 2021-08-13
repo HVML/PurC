@@ -154,7 +154,7 @@ void test_html_file(char * data_path, char * file_name)
     ASSERT_EQ(ret, 0);
 
     // get the buffer of serialization
-    serialization = purc_rwstream_get_mem_buffer (rwstream, &size);
+    serialization = (const char*)purc_rwstream_get_mem_buffer (rwstream, &size);
 
     // read result file
     read_length = 8192 > file_stat.st_size? file_stat.st_size: 8192;
@@ -259,7 +259,7 @@ void test_html_chunk(char * data_path, char * file_name)
     ASSERT_EQ(ret, 0);
 
     // get the buffer of serialization
-    serialization = purc_rwstream_get_mem_buffer (rwstream, &size);
+    serialization = (const char*)purc_rwstream_get_mem_buffer (rwstream, &size);
 
     // read result file
     read_length = 8192 > file_stat.st_size? file_stat.st_size: 8192;
@@ -379,7 +379,7 @@ void test_parser_fragment(char * data_path, char * file_name)
     rwstream = purc_rwstream_new_from_mem(test_file, 8192);
     ret = pchtml_doc_write_to_stream(document, rwstream);
     ASSERT_EQ(ret, 0);
-    serialization = purc_rwstream_get_mem_buffer (rwstream, &size);
+    serialization = (const char*)purc_rwstream_get_mem_buffer (rwstream, &size);
 
     read_length = 8192 > file_stat.st_size? file_stat.st_size: 8192;
     fp = fopen(result_file, "r");
@@ -512,7 +512,7 @@ void test_parser_attribution(char * data_path, char * file_name)
     rwstream = purc_rwstream_new_from_mem(test_file, 8192);
     ret = pchtml_doc_write_to_stream(document, rwstream);
     ASSERT_EQ(ret, 0);
-    serialization = purc_rwstream_get_mem_buffer (rwstream, &size);
+    serialization = (const char*)purc_rwstream_get_mem_buffer (rwstream, &size);
 
     // get the result
     read_length = 8192 > file_stat.st_size? file_stat.st_size: 8192;
@@ -557,7 +557,7 @@ void test_parser_attribution(char * data_path, char * file_name)
     rwstream = purc_rwstream_new_from_mem(test_file, 8192);
     ret = pchtml_doc_write_to_stream(document, rwstream);
     ASSERT_EQ(ret, 0);
-    serialization = purc_rwstream_get_mem_buffer (rwstream, &size);
+    serialization = (const char*)purc_rwstream_get_mem_buffer (rwstream, &size);
 
     if ((stat(remove_file, &file_stat) < 0) || (file_stat.st_size == 0))
     {
