@@ -290,10 +290,7 @@ TEST(tree, traversal)
 //    fprintf(stderr, "level order = %s\n", buf);
     ASSERT_STREQ(buf, "1 2 3 4 5 6 7 8 9 10 11 ");
 
-    int ret = purc_rwstream_close(rws);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws);
+    int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 
     pctree_node_destroy(node_1, destroy_tree_node);

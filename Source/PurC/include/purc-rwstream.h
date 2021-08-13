@@ -290,21 +290,6 @@ purc_rwstream_write (purc_rwstream_t rws, const void* buf, size_t count);
 PCA_EXPORT ssize_t purc_rwstream_flush (purc_rwstream_t rws);
 
 /**
- * Close an purc_rwstream_t. Any pending data to be written will be flushed.
- * The stream will not be freed until using purc_rwstream_destroy.
- *
- * @param rws: pointer to purc_rwstream_t
- *
- * @return 0 success, non-zero otherwise. and the error code is set to indicate
- *         the error. The error code:
- *  - @PURC_ERROR_INVALID_VALUE: Invalid value
- *  - @PURC_ERROR_BAD_SYSTEM_CALL: Bad system call
- *
- * Since: 0.0.1
- */
-PCA_EXPORT int purc_rwstream_close (purc_rwstream_t rws);
-
-/**
  * Read the count bytes from the in rwstream, write to out rwstream,
  * and return the number of bytes written
  *

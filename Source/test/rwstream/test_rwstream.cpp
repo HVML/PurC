@@ -37,10 +37,7 @@ TEST(stdio_rwstream, new_destroy)
     purc_rwstream_t rws = purc_rwstream_new_from_file(tmp_file, "r");
     ASSERT_NE(rws, nullptr);
 
-    int ret = purc_rwstream_close(rws);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws);
+    int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 
     remove_temp_file(tmp_file);
@@ -62,10 +59,7 @@ TEST(stdio_rwstream, read_char)
 
     ASSERT_STREQ(read_buf, buf);
 
-    int ret = purc_rwstream_close(rws);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws);
+    int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 
     remove_temp_file(tmp_file);
@@ -83,10 +77,7 @@ TEST(stdio_rwstream, write_char)
     int write_len = purc_rwstream_write (rws, buf, buf_len);
     ASSERT_EQ(write_len, buf_len);
 
-    int ret = purc_rwstream_close(rws);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws);
+    int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 
 
@@ -183,10 +174,7 @@ TEST(stdio_rwstream, read_utf8_char)
     ASSERT_EQ(wc, 'T');
     ASSERT_STREQ(read_buf, "T");
 
-    int ret = purc_rwstream_close(rws);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws);
+    int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 
     remove_temp_file(tmp_file);
@@ -228,10 +216,7 @@ TEST(stdio_rwstream, seek_tell)
     tpos = purc_rwstream_tell (rws);
     ASSERT_EQ(pos, tpos);
 
-    int ret = purc_rwstream_close(rws);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws);
+    int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 
     remove_temp_file(tmp_file);
@@ -302,10 +287,7 @@ TEST(stdio_rwstream, seek_read)
     ASSERT_EQ(read_len, 1);
     ASSERT_EQ(read_buf[0], buf[5]);
 
-    int ret = purc_rwstream_close(rws);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws);
+    int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 
     remove_temp_file(tmp_file);
@@ -325,10 +307,7 @@ TEST(mem_rwstream, new_destroy)
     ASSERT_EQ(mem_buffer, buf);
     ASSERT_EQ(sz, buf_len);
 
-    int ret = purc_rwstream_close(rws);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws);
+    int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 }
 
@@ -346,10 +325,7 @@ TEST(mem_rwstream, read_char)
 
     ASSERT_STREQ(read_buf, buf);
 
-    int ret = purc_rwstream_close(rws);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws);
+    int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 }
 
@@ -374,10 +350,7 @@ TEST(mem_rwstream, write_char)
     write_len = purc_rwstream_write (rws, buf, buf_len);
     ASSERT_EQ(write_len, -1);
 
-    int ret = purc_rwstream_close(rws);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws);
+    int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 }
 
@@ -461,10 +434,7 @@ TEST(mem_rwstream, read_utf8_char)
     ASSERT_EQ(wc, 'T');
     ASSERT_STREQ(read_buf, "T");
 
-    int ret = purc_rwstream_close(rws);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws);
+    int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 }
 
@@ -498,10 +468,7 @@ TEST(mem_rwstream, seek_tell)
     tpos = purc_rwstream_tell (rws);
     ASSERT_EQ(pos, tpos);
 
-    int ret = purc_rwstream_close(rws);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws);
+    int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 
 }
@@ -569,10 +536,7 @@ TEST(mem_rwstream, seek_read)
     ASSERT_EQ(read_len, 1);
     ASSERT_EQ(read_buf[0], buf[5]);
 
-    int ret = purc_rwstream_close(rws);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws);
+    int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 }
 
@@ -591,10 +555,7 @@ TEST(buffer_rwstream, new_destroy)
 
     ASSERT_EQ(sz, 0);
 
-    int ret = purc_rwstream_close(rws);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws);
+    int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 }
 
@@ -621,10 +582,7 @@ TEST(buffer_rwstream, read_char)
 
     ASSERT_STREQ(read_buf, buf);
 
-    int ret = purc_rwstream_close(rws);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws);
+    int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 }
 
@@ -645,10 +603,7 @@ TEST(buffer_rwstream, write_char)
 
     ASSERT_STREQ(mem_buffer, buf);
 
-    int ret = purc_rwstream_close(rws);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws);
+    int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 }
 
@@ -687,10 +642,7 @@ TEST(buffer_rwstream, extend_memory)
     mem_buffer = (char*)purc_rwstream_get_mem_buffer (rws, &sz);
     ASSERT_EQ(sz, buf_len * 2 + 5);
 
-    int ret = purc_rwstream_close(rws);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws);
+    int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 }
 
@@ -785,10 +737,7 @@ TEST(buffer_rwstream, read_utf8_char)
     ASSERT_EQ(wc, 'T');
     ASSERT_STREQ(read_buf, "T");
 
-    int ret = purc_rwstream_close(rws);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws);
+    int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 }
 
@@ -830,10 +779,7 @@ TEST(buffer_rwstream, seek_tell)
     tpos = purc_rwstream_tell (rws);
     ASSERT_EQ(pos, tpos);
 
-    int ret = purc_rwstream_close(rws);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws);
+    int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 }
 
@@ -911,10 +857,7 @@ TEST(buffer_rwstream, seek_read)
     ASSERT_EQ(read_len, 1);
     ASSERT_EQ(read_buf[0], buf[5]);
 
-    int ret = purc_rwstream_close(rws);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws);
+    int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 }
 
@@ -931,10 +874,7 @@ TEST(gio_rwstream, new_destroy)
     purc_rwstream_t rws = purc_rwstream_new_from_unix_fd (fd, 1024);
     ASSERT_NE(rws, nullptr);
 
-    int ret = purc_rwstream_close(rws);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws);
+    int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 
     fd = open(tmp_file, O_RDWR | O_NONBLOCK);
@@ -947,9 +887,6 @@ TEST(gio_rwstream, new_destroy)
 #else
     ASSERT_EQ(flags & O_NDELAY, 0);
 #endif
-
-    ret = purc_rwstream_close(rws);
-    ASSERT_EQ(ret, 0);
 
     ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
@@ -975,10 +912,7 @@ TEST(gio_rwstream, read_char)
 
     ASSERT_STREQ(read_buf, buf);
 
-    int ret = purc_rwstream_close(rws);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws);
+    int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 
     remove_temp_file(tmp_file);
@@ -1000,10 +934,7 @@ TEST(gio_rwstream, write_char)
     int write_len = purc_rwstream_write (rws, buf, buf_len);
     ASSERT_EQ(write_len, buf_len);
 
-    int ret = purc_rwstream_close(rws);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws);
+    int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 
 
@@ -1103,10 +1034,7 @@ TEST(gio_rwstream, read_utf8_char)
     ASSERT_EQ(wc, 'T');
     ASSERT_STREQ(read_buf, "T");
 
-    int ret = purc_rwstream_close(rws);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws);
+    int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 
     remove_temp_file(tmp_file);
@@ -1143,10 +1071,7 @@ TEST(gio_rwstream, seek_tell)
     ASSERT_NE(pos, tpos);
     ASSERT_EQ(tpos, -1);
 
-    int ret = purc_rwstream_close(rws);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws);
+    int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 
     remove_temp_file(tmp_file);
@@ -1219,10 +1144,7 @@ TEST(gio_rwstream, seek_read)
     ASSERT_EQ(read_len, 1);
     ASSERT_EQ(read_buf[0], buf[5]);
 
-    int ret = purc_rwstream_close(rws);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws);
+    int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 
     remove_temp_file(tmp_file);
@@ -1259,13 +1181,7 @@ TEST(dump_rwstream, stdio)
     sz = purc_rwstream_dump_to_another (rws, rws_out, -1);
     ASSERT_EQ(sz, in_size);
 
-    int ret = purc_rwstream_close(rws);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_close(rws_out);
+    int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 
     ret = purc_rwstream_destroy (rws_out);
@@ -1303,13 +1219,7 @@ TEST(dump_rwstream, stdio_mem)
     ASSERT_EQ(sz, buf_len);
     ASSERT_STREQ(mem_buffer, buf);
 
-    int ret = purc_rwstream_close(rws_out);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws_out);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_close(rws);
+    int ret = purc_rwstream_destroy (rws_out);
     ASSERT_EQ(ret, 0);
 
     ret = purc_rwstream_destroy (rws);
@@ -1346,13 +1256,7 @@ TEST(dump_rwstream, stdio_buffer)
     ASSERT_STREQ(mem_buffer, buf);
     ASSERT_EQ(sz, purc_rwstream_tell(rws_out));
 
-    int ret = purc_rwstream_close(rws_out);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws_out);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_close(rws);
+    int ret = purc_rwstream_destroy (rws_out);
     ASSERT_EQ(ret, 0);
 
     ret = purc_rwstream_destroy (rws);
@@ -1387,13 +1291,7 @@ TEST(dump_rwstream, stdio_gio)
     sz = purc_rwstream_dump_to_another (rws, rws_out, -1);
     ASSERT_EQ(sz, buf_len);
 
-    int ret = purc_rwstream_close(rws_out);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws_out);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_close(rws);
+    int ret = purc_rwstream_destroy (rws_out);
     ASSERT_EQ(ret, 0);
 
     ret = purc_rwstream_destroy (rws);
@@ -1429,13 +1327,7 @@ TEST(dump_rwstream, mem_buffer)
     ASSERT_STREQ(mem_buffer, buf);
     ASSERT_EQ(sz, purc_rwstream_tell(rws_out));
 
-    int ret = purc_rwstream_close(rws_out);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_destroy (rws_out);
-    ASSERT_EQ(ret, 0);
-
-    ret = purc_rwstream_close(rws);
+    int ret = purc_rwstream_destroy (rws_out);
     ASSERT_EQ(ret, 0);
 
     ret = purc_rwstream_destroy (rws);
