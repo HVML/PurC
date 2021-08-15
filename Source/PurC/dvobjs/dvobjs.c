@@ -32,6 +32,7 @@
 #include "purc-variant.h"
 #include "system.h"
 #include "string.h"
+#include "math.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -70,7 +71,7 @@ purc_variant_t pcdvojbs_get_system (void)
 // only for test now.
 purc_variant_t pcdvojbs_get_string (void)
 {
-    purc_variant_t sys = purc_variant_make_object_c (7,
+    purc_variant_t string = purc_variant_make_object_c (7,
             "conatins",     purc_variant_make_dynamic (string_contains, NULL),
             "ends_with",    purc_variant_make_dynamic (string_ends_with, NULL),
             "explode",      purc_variant_make_dynamic (string_explode, NULL),
@@ -79,5 +80,18 @@ purc_variant_t pcdvojbs_get_string (void)
             "format_c",     purc_variant_make_dynamic (string_format_c, NULL),
             "format_p",     purc_variant_make_dynamic (string_format_p, NULL)
        );
-    return sys;
+    return string;
+}
+
+// only for test now.
+purc_variant_t pcdvojbs_get_math (void)
+{
+    purc_variant_t math = purc_variant_make_object_c (7,
+            "get_pi",     purc_variant_make_dynamic (get_pi, NULL),
+            "math_eval",  purc_variant_make_dynamic (math_eval, NULL),
+            "math_sin",   purc_variant_make_dynamic (math_sin, NULL),
+            "math_cos",   purc_variant_make_dynamic (math_cos, NULL),
+            "math_sqrt",  purc_variant_make_dynamic (math_sqrt, NULL)
+       );
+    return math;
 }

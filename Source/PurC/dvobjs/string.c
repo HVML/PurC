@@ -224,24 +224,54 @@ string_replace (purc_variant_t root, int nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
-    double random = 0.0d;
-    double number = 0.0d;
+    purc_variant_t ret_var = NULL;
 
-    if ((argv == NULL) || (nr_args != 1))
+    if ((argv == NULL) || (nr_args != 2))
         return PURC_VARIANT_INVALID;
 
-    if ((argv[0] != NULL) && (!purc_variant_is_number (argv[0])))
+    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0])))
+        return PURC_VARIANT_INVALID;
+    if ((argv[1] != NULL) && (!purc_variant_is_string (argv[1])))
+        return PURC_VARIANT_INVALID;
+    if ((argv[2] != NULL) && (!purc_variant_is_string (argv[2])))
         return PURC_VARIANT_INVALID;
 
-    purc_variant_cast_to_number (argv[0], &number, false);
+    const char* source = purc_variant_get_string_const (argv[0]);
+    const char* delim = purc_variant_get_string_const (argv[1]);
+    const char* replace = purc_variant_get_string_const (argv[2]);
+    purc_rwstream_t rwstream = purc_rwstream_new_buffer (32, 1024);
 
-    if (fabs (number) < 1.0E-10)
-        return PURC_VARIANT_INVALID;
+    size_t len_delim = purc_variant_string_length (argv[1]) - 1;
+    size_t length = 0;
+    const char* head = get_next_segment (source, delim, &length);
 
-    srand(time(NULL));
-    random = number * rand() / (double)(RAND_MAX);
+    while (head) {
+        purc_rwstream_write (rwstream, head, length);
 
-    return purc_variant_make_number (random); 
+        if (*(head + length) != 0x00) {
+            purc_rwstream_write (rwstream, replace, len_delim);
+            head = get_next_segment (head + length + len_delim, 
+                                                    delim, &length);
+        }
+        else
+            break;
+    }
+
+    size_t rw_size = 0;
+    const char * rw_string = purc_rwstream_get_mem_buffer (rwstream, &rw_size);
+
+    if ((rw_size == 0) || (rw_string == NULL))
+        ret_var = PURC_VARIANT_INVALID;
+    else {
+        ret_var = purc_variant_make_string (rw_string, false); 
+        if(ret_var == PURC_VARIANT_INVALID)
+            ret_var = PURC_VARIANT_INVALID;
+    }
+
+    purc_rwstream_close (rwstream);
+    purc_rwstream_destroy (rwstream);
+
+    return ret_var;
 }
 
 purc_variant_t
@@ -251,25 +281,7 @@ string_format_c (purc_variant_t root, int nr_args, purc_variant_t* argv)
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
-    char local_time[32] = {0};
-    purc_variant_t ret_var = NULL;
-    time_t t_time;
-    struct tm *t_tm = NULL;
-
-    t_time = time (NULL);
-    t_tm = localtime(&t_time);
-    if (t_tm == NULL)
-        return PURC_VARIANT_INVALID;
-
-    if(strftime(local_time, 32, "%FT%T%z", t_tm) == 0)
-        return PURC_VARIANT_INVALID;
-
-    // create a string variant
-    ret_var = purc_variant_make_string (local_time, false); 
-    if(ret_var == PURC_VARIANT_INVALID)
-        return PURC_VARIANT_INVALID;
-
-    return ret_var;
+    return NULL;
 }
 
 purc_variant_t
@@ -279,35 +291,5 @@ string_format_p (purc_variant_t root, int nr_args, purc_variant_t* argv)
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
-#if 0
-    purc_variant_t ret_var = NULL;
-    double epoch = 0.0d;
-    const char* name = NULL;
-    const char* locale = NULL;
-
-    if ((argv == NULL) || (nr_args == 0))
-        return PURC_VARIANT_INVALID;
-
-    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0])))
-        return PURC_VARIANT_INVALID;
-    else
-        name = purc_variant_get_string_const (argv[0]);
-
-    if ((argv[1] != NULL) && (!((purc_variant_is_ulongint (argv[1]))   || 
-                              (purc_variant_is_longdouble (argv[1])) || 
-                              (purc_variant_is_number (argv[1]))))) 
-        return PURC_VARIANT_INVALID;
-    else
-        purc_variant_cast_to_number (argv[1], &epoch, false);
-        
-        
-    if ((argv[2] != NULL) && (!purc_variant_is_string (argv[2])))
-        return PURC_VARIANT_INVALID;
-    else
-        locale = purc_variant_get_string_const (argv[2]);
-
-
-    return ret_var;
-#endif
     return NULL;
 }
