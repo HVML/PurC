@@ -47,6 +47,7 @@ void pcdvobjs_init_instance(struct pcinst* inst) WTF_INTERNAL;
 void pcdvobjs_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 
 purc_variant_t pcdvojbs_get_system(void);
+purc_variant_t pcdvojbs_get_string(void);
 
 #ifdef __cplusplus
 }

@@ -31,6 +31,7 @@
 
 #include "purc-variant.h"
 #include "system.h"
+#include "string.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -55,12 +56,28 @@ void pcdvobjs_cleanup_instance(struct pcinst* inst)
 // only for test now.
 purc_variant_t pcdvojbs_get_system (void)
 {
-    purc_variant_t sys = purc_variant_make_object_c (4,
-            "uname_all", purc_variant_make_dynamic (get_uname_all, NULL),
-            "uname",     purc_variant_make_dynamic (get_uname, NULL),
-            "locale",    purc_variant_make_dynamic (get_locale, set_locale),
-            "random",    purc_variant_make_dynamic (get_random, NULL),
-            "time",      purc_variant_make_dynamic (get_time, set_time)
+    purc_variant_t sys = purc_variant_make_object_c (6,
+            "uname",        purc_variant_make_dynamic (get_uname, NULL),
+            "uname_prt",    purc_variant_make_dynamic (get_uname_prt, NULL),
+            "locale",       purc_variant_make_dynamic (get_locale, set_locale),
+            "random",       purc_variant_make_dynamic (get_random, NULL),
+            "time",         purc_variant_make_dynamic (get_time, set_time),
+            "time_iso8601", purc_variant_make_dynamic (get_time_iso8601, NULL)
+       );
+    return sys;
+}
+
+// only for test now.
+purc_variant_t pcdvojbs_get_string (void)
+{
+    purc_variant_t sys = purc_variant_make_object_c (7,
+            "conatins",     purc_variant_make_dynamic (string_contains, NULL),
+            "ends_with",    purc_variant_make_dynamic (string_ends_with, NULL),
+            "explode",      purc_variant_make_dynamic (string_explode, NULL),
+            "shuffle",      purc_variant_make_dynamic (string_shuffle, NULL),
+            "replace",      purc_variant_make_dynamic (string_replace, NULL),
+            "format_c",     purc_variant_make_dynamic (string_format_c, NULL),
+            "format_p",     purc_variant_make_dynamic (string_format_p, NULL)
        );
     return sys;
 }

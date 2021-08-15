@@ -13,7 +13,7 @@
 #include <errno.h>
 #include <gtest/gtest.h>
 
-TEST(dvobjs, dvobjs_sys_uname_all)
+TEST(dvobjs, dvobjs_sys_uname)
 {
     purc_variant_t param[10];
     purc_variant_t ret_var = NULL;
@@ -28,7 +28,7 @@ TEST(dvobjs, dvobjs_sys_uname_all)
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_c (sys, "uname_all");
+    purc_variant_t dynamic = purc_variant_object_get_c (sys, "uname");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -36,7 +36,7 @@ TEST(dvobjs, dvobjs_sys_uname_all)
     func = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(func, nullptr);
 
-    printf ("TEST get_uname_all: nr_args = 0, param = \"  beijing  shanghai\" :\n");
+    printf ("TEST get_uname: nr_args = 0, param = \"  beijing  shanghai\" :\n");
     param[0] = purc_variant_make_string ("  beijing shanghai", true);
     param[1] = NULL;
     ret_var = func (NULL, 0, param);
@@ -60,7 +60,7 @@ TEST(dvobjs, dvobjs_sys_uname_all)
 
     purc_cleanup ();
 }
-TEST(dvobjs, dvobjs_sys_uname)
+TEST(dvobjs, dvobjs_sys_uname_prt)
 {
     purc_variant_t param[10];
     purc_variant_t ret_var = NULL;
@@ -74,7 +74,7 @@ TEST(dvobjs, dvobjs_sys_uname)
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_c (sys, "uname");
+    purc_variant_t dynamic = purc_variant_object_get_c (sys, "uname_prt");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -82,21 +82,21 @@ TEST(dvobjs, dvobjs_sys_uname)
     func = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(func, nullptr);
 
-    printf ("TEST get_uname: nr_args = 1, param = NULL:\n");
+    printf ("TEST get_uname_prt: nr_args = 1, param = NULL:\n");
     param[0] = purc_variant_make_string ("  hello   world  ", true);
     param[1] = NULL;
     ret_var = func (NULL, 1, NULL);
     ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
-    printf ("TEST get_uname: nr_args = 1, param[0] type is number:\n");
+    printf ("TEST get_uname_prt: nr_args = 1, param[0] type is number:\n");
     param[0] = purc_variant_make_number (3.1415926);
     param[1] = NULL;
     ret_var = func (NULL, 1, param);
     ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
-    printf ("TEST get_uname: nr_args = 1, param = \"  hello   world  \" :\n");
+    printf ("TEST get_uname_prt: nr_args = 1, param = \"  hello   world  \" :\n");
     param[0] = purc_variant_make_string ("  hello   world  ", true);
     param[1] = NULL;
     ret_var = func (NULL, 1, param);
@@ -104,14 +104,14 @@ TEST(dvobjs, dvobjs_sys_uname)
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
 
-    printf ("TEST get_uname: nr_args = 0, param = \"hello world\" :\n");
+    printf ("TEST get_uname_prt: nr_args = 0, param = \"hello world\" :\n");
     ret_var = func (NULL, 0, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_string (ret_var), true);
     result = purc_variant_get_string_const (ret_var);
     printf("\t\tReturn : %s\n", result);
 
-    printf ("TEST get_uname: nr_args = 1, param = \"all default\" :\n");
+    printf ("TEST get_uname_prt: nr_args = 1, param = \"all default\" :\n");
     param[0] = purc_variant_make_string ("all default", true);
     param[1] = NULL;
     ret_var = func (NULL, 1, param);
@@ -121,7 +121,7 @@ TEST(dvobjs, dvobjs_sys_uname)
     printf("\t\tReturn : %s\n", result);
 
 
-    printf ("TEST get_uname: nr_args = 1, param = \"default all\" :\n");
+    printf ("TEST get_uname_prt: nr_args = 1, param = \"default all\" :\n");
     param[0] = purc_variant_make_string ("default all", true);
     param[1] = NULL;
     ret_var = func (NULL, 1, param);
@@ -131,7 +131,7 @@ TEST(dvobjs, dvobjs_sys_uname)
     printf("\t\tReturn : %s\n", result);
 
 
-    printf ("TEST get_uname: nr_args = 1, param = \"hardware-platform kernel-version\" :\n");
+    printf ("TEST get_uname_prt: nr_args = 1, param = \"hardware-platform kernel-version\" :\n");
     param[0] = purc_variant_make_string ("hardware-platform kernel-version", true);
     param[1] = NULL;
     ret_var = func (NULL, 1, param);
@@ -141,7 +141,7 @@ TEST(dvobjs, dvobjs_sys_uname)
     printf("\t\tReturn : %s\n", result);
 
 
-    printf ("TEST get_uname: nr_args = 1, param = \"   nodename   wrong-word   kernel-release   \" :\n");
+    printf ("TEST get_uname_prt: nr_args = 1, param = \"   nodename   wrong-word   kernel-release   \" :\n");
     param[0] = purc_variant_make_string ("   nodename   wrong-word   kernel-release   ", true);
     param[1] = NULL;
     ret_var = func (NULL, 1, param);

@@ -1,8 +1,8 @@
 /*
- * @file dvobjs.c
+ * @file system.h 
  * @author Geng Yue
  * @date 2021/07/02
- * @brief The implementation of public part for html parser.
+ * @brief The header file of system dynamic variant object.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -20,14 +20,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- *
- * This implementation of HTML parser is derived from Lexbor
- * <https://github.com/lexbor/lexbor>, which is licensed under the Apache
- * License, Version 2.0:
- *
- * Copyright (C) 2018-2020 Alexander Borisov
- *
- * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
 #include "purc-variant.h"
@@ -36,10 +28,10 @@
 #define _DVOJBS_SYSTEM_H_ 
 
 purc_variant_t
-get_uname_all (purc_variant_t root, int nr_args, purc_variant_t* argv);
+get_uname (purc_variant_t root, int nr_args, purc_variant_t* argv);
 
 purc_variant_t
-get_uname (purc_variant_t root, int nr_args, purc_variant_t* argv);
+get_uname_prt (purc_variant_t root, int nr_args, purc_variant_t* argv);
 
 purc_variant_t
 get_locale (purc_variant_t root, int nr_args, purc_variant_t* argv);
@@ -56,5 +48,7 @@ get_time (purc_variant_t root, int nr_args, purc_variant_t* argv);
 purc_variant_t
 set_time (purc_variant_t root, int nr_args, purc_variant_t* argv);
 
-#endif  // _DVOJBS_SYSTEM_H_ 
+purc_variant_t
+get_time_iso8601 (purc_variant_t root, int nr_args, purc_variant_t* argv);
 
+#endif  // _DVOJBS_SYSTEM_H_ 

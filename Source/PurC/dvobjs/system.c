@@ -37,61 +37,49 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/utsname.h>
+#include <sys/time.h>
 #include <locale.h>
 #include <time.h>
+#include <math.h>
 
 
 // https://gitlab.fmsoft.cn/hvml/docs-undisclosed/blob/master/design/purc-architecture-zh.md#351-%E6%9E%84%E9%80%A0%E5%8A%A8%E6%80%81%E5%8F%98%E4%BD%93%E5%AF%B9%E8%B1%A1
 
 // https://gitlab.fmsoft.cn/hvml/docs-undisclosed/blob/master/design/purc-architecture-zh.md#410-%E5%B8%B8%E7%94%A8%E5%8A%A8%E6%80%81%E5%8F%98%E4%BD%93%E5%AF%B9%E8%B1%A1
 
-static const char* get_next_option (const char* data, const char* end,
-                                          const char* delim, size_t* length)
+static const char* get_next_option (const char* data, const char* delims, 
+                                                            size_t* length)
 {
-    const char* head = NULL;
-    int i = 1;
+    const char* head = data;
+    char* temp = NULL;
 
-    UNUSED_PARAM(end);
+    if ((delims == NULL) || (data == NULL) || (*delims == 0x00))
+        return NULL;
 
     *length = 0;
 
-    // get the first char which is not space
-    while ((*data != ' ') && (*data != 0x00)) {
+    while (*data != 0x00) {
+        temp = strchr (delims, *data);
+        if (temp) {
+            if (head == data) {
+                head = data + 1;
+            }
+            else 
+                break;
+        }
         data++;
     }
 
-    if (*data == 0x00)
+    *length = data - head;
+    if (*length == 0)
         head = NULL;
-    else {
-        char* temp = NULL;
-
-        head = data;
-
-        // find next space
-        temp = strchr (head, delim[0]);
-
-        if (temp) {
-            i =  temp - head;
-            while ((*(head + i - 1) != ' ') && (*(head + i - 1) != 0x00)) {
-                i--;
-            }
-            *length = i; 
-        }
-        else {
-            i = 1;
-            while ((*(head + i) != ' ') && (*(head + i) != 0x00)) {
-                i++;
-            }
-            
-            *length = i;
-        }
-    }
 
     return head;
 }
 
+
 purc_variant_t
-get_uname_all (purc_variant_t root, int nr_args, purc_variant_t* argv)
+get_uname (purc_variant_t root, int nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
@@ -132,7 +120,7 @@ get_uname_all (purc_variant_t root, int nr_args, purc_variant_t* argv)
 
 
 purc_variant_t
-get_uname (purc_variant_t root, int nr_args, purc_variant_t* argv)
+get_uname_prt (purc_variant_t root, int nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
@@ -156,8 +144,7 @@ get_uname (purc_variant_t root, int nr_args, purc_variant_t* argv)
 
     if (nr_args) {
         const char * option = purc_variant_get_string_const (argv[0]);
-        const char * end = option + strlen (option);
-        const char * head = get_next_option (option, end, " ", &length);
+        const char * head = get_next_option (option, " ", &length);
 
         while (head) {
             switch (* head)
@@ -285,7 +272,7 @@ get_uname (purc_variant_t root, int nr_args, purc_variant_t* argv)
                     break;
             }
 
-            head = get_next_option (head + length, end, " ", &length);
+            head = get_next_option (head + length, " ", &length);
         }
     }
     else
@@ -325,8 +312,7 @@ get_locale (purc_variant_t root, int nr_args, purc_variant_t* argv)
         
     if (nr_args) {
         const char* option = purc_variant_get_string_const (argv[0]);
-        const char * end = option + strlen (option);
-        const char * head = get_next_option (option, end, " ", &length);
+        const char * head = get_next_option (option, " ", &length);
 
         while (head) {
             switch (* head)
@@ -408,7 +394,7 @@ get_locale (purc_variant_t root, int nr_args, purc_variant_t* argv)
                     break;
             }
 
-            head = get_next_option (head + length, end, " ", &length);
+            head = get_next_option (head + length, " ", &length);
         }
     }
     else
@@ -440,8 +426,7 @@ set_locale (purc_variant_t root, int nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
         
     const char* option = purc_variant_get_string_const (argv[0]);
-    const char * end = option + strlen (option);
-    const char * head = get_next_option (option, end, " ", &length);
+    const char * head = get_next_option (option, " ", &length);
 
     while (head) {
         switch (* head)
@@ -569,7 +554,7 @@ set_locale (purc_variant_t root, int nr_args, purc_variant_t* argv)
                 }
         }
 
-        head = get_next_option (head + length, end, " ", &length);
+        head = get_next_option (head + length, " ", &length);
     }
 
     return ret_var;
@@ -592,7 +577,7 @@ get_random (purc_variant_t root, int nr_args, purc_variant_t* argv)
 
     purc_variant_cast_to_number (argv[0], &number, false);
 
-    if (abs (number) < 1.0E-10)
+    if (fabs (number) < 1.0E-10)
         return PURC_VARIANT_INVALID;
 
     srand(time(NULL));
@@ -602,29 +587,27 @@ get_random (purc_variant_t root, int nr_args, purc_variant_t* argv)
 }
 
 purc_variant_t
-get_time (purc_variant_t root, int nr_args, purc_variant_t* argv)
+get_time_iso8601 (purc_variant_t root, int nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
 
+    char local_time[32] = {0};
     purc_variant_t ret_var = NULL;
+    time_t t_time;
+    struct tm *t_tm = NULL;
 
-    if ((argv == NULL) || (nr_args == 0))
+    t_time = time (NULL);
+    t_tm = localtime(&t_time);
+    if (t_tm == NULL)
         return PURC_VARIANT_INVALID;
 
-    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0])))
+    if(strftime(local_time, 32, "%FT%T%z", t_tm) == 0)
         return PURC_VARIANT_INVALID;
 
-    if ((argv[1] != NULL) && (!((purc_variant_is_ulongint (argv[1]))   || 
-                              (purc_variant_is_longdouble (argv[1])) || 
-                              (purc_variant_is_number (argv[1]))))) 
-        return PURC_VARIANT_INVALID;
-
-        
-    if ((argv[2] != NULL) && (!purc_variant_is_string (argv[2])))
-        return PURC_VARIANT_INVALID;
-
-    // create an empty object
-    ret_var = purc_variant_make_string ("", false); 
+    // create a string variant
+    ret_var = purc_variant_make_string (local_time, false); 
     if(ret_var == PURC_VARIANT_INVALID)
         return PURC_VARIANT_INVALID;
 
@@ -632,10 +615,51 @@ get_time (purc_variant_t root, int nr_args, purc_variant_t* argv)
 }
 
 purc_variant_t
+get_time (purc_variant_t root, int nr_args, purc_variant_t* argv)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+#if 0
+    purc_variant_t ret_var = NULL;
+    double epoch = 0.0d;
+    const char* name = NULL;
+    const char* locale = NULL;
+
+    if ((argv == NULL) || (nr_args == 0))
+        return PURC_VARIANT_INVALID;
+
+    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0])))
+        return PURC_VARIANT_INVALID;
+    else
+        name = purc_variant_get_string_const (argv[0]);
+
+    if ((argv[1] != NULL) && (!((purc_variant_is_ulongint (argv[1]))   || 
+                              (purc_variant_is_longdouble (argv[1])) || 
+                              (purc_variant_is_number (argv[1]))))) 
+        return PURC_VARIANT_INVALID;
+    else
+        purc_variant_cast_to_number (argv[1], &epoch, false);
+        
+        
+    if ((argv[2] != NULL) && (!purc_variant_is_string (argv[2])))
+        return PURC_VARIANT_INVALID;
+    else
+        locale = purc_variant_get_string_const (argv[2]);
+
+
+    return ret_var;
+#endif
+    return NULL;
+}
+
+purc_variant_t
 set_time (purc_variant_t root, int nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
+    struct timeval stime;
     purc_variant_t ret_var = NULL;
 
     if ((argv == NULL) || (nr_args != 1))
@@ -643,6 +667,16 @@ set_time (purc_variant_t root, int nr_args, purc_variant_t* argv)
 
     if ((argv[0] != NULL) && (!purc_variant_is_number (argv[0])))
         return PURC_VARIANT_INVALID;
+
+    double epoch = 0.0d;
+    purc_variant_cast_to_number (argv[0], &epoch, false);
+
+    gettimeofday (&stime, NULL);
+    stime.tv_sec = epoch;
+    if (settimeofday (&stime, NULL))
+        ret_var = purc_variant_make_boolean (false);
+    else
+        ret_var = purc_variant_make_boolean (true);
 
     return ret_var;
 }
