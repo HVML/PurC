@@ -33,6 +33,7 @@
 #include "system.h"
 #include "string.h"
 #include "math.h"
+#include "logical.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -87,11 +88,36 @@ purc_variant_t pcdvojbs_get_string (void)
 purc_variant_t pcdvojbs_get_math (void)
 {
     purc_variant_t math = purc_variant_make_object_c (7,
-            "get_pi",     purc_variant_make_dynamic (get_pi, NULL),
-            "math_eval",  purc_variant_make_dynamic (math_eval, NULL),
-            "math_sin",   purc_variant_make_dynamic (math_sin, NULL),
-            "math_cos",   purc_variant_make_dynamic (math_cos, NULL),
-            "math_sqrt",  purc_variant_make_dynamic (math_sqrt, NULL)
+            "pi",     purc_variant_make_dynamic (get_pi, NULL),
+            "eval",  purc_variant_make_dynamic (math_eval, NULL),
+            "sin",   purc_variant_make_dynamic (math_sin, NULL),
+            "cos",   purc_variant_make_dynamic (math_cos, NULL),
+            "sqrt",  purc_variant_make_dynamic (math_sqrt, NULL)
        );
     return math;
+}
+
+// only for test now.
+purc_variant_t pcdvojbs_get_logical (void)
+{
+    purc_variant_t logical = purc_variant_make_object_c (7,
+            "not",    purc_variant_make_dynamic (logical_not, NULL),
+            "and",    purc_variant_make_dynamic (logical_and, NULL),
+            "or",     purc_variant_make_dynamic (logical_or, NULL),
+            "xor",    purc_variant_make_dynamic (logical_xor, NULL),
+            "eq",     purc_variant_make_dynamic (logical_eq, NULL),
+            "ne",     purc_variant_make_dynamic (logical_ne, NULL),
+            "gt",     purc_variant_make_dynamic (logical_gt, NULL),
+            "ge",     purc_variant_make_dynamic (logical_ge, NULL),
+            "lt",     purc_variant_make_dynamic (logical_lt, NULL),
+            "le",     purc_variant_make_dynamic (logical_le, NULL),
+            "streq",  purc_variant_make_dynamic (logical_streq, NULL),
+            "strne",  purc_variant_make_dynamic (logical_strne, NULL),
+            "strgt",  purc_variant_make_dynamic (logical_strgt, NULL),
+            "strge",  purc_variant_make_dynamic (logical_strge, NULL),
+            "strlt",  purc_variant_make_dynamic (logical_strlt, NULL),
+            "strle",  purc_variant_make_dynamic (logical_strle, NULL),
+            "eval",   purc_variant_make_dynamic (logical_eval, NULL)
+       );
+    return logical;
 }
