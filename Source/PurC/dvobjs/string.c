@@ -75,13 +75,20 @@ string_contains (purc_variant_t root, int nr_args, purc_variant_t* argv)
 
     purc_variant_t ret_var = NULL;
 
-    if ((argv == NULL) || (nr_args != 2))
+    if ((argv == NULL) || (nr_args != 2)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
 
-    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0])))
+    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
-    if ((argv[1] != NULL) && (!purc_variant_is_string (argv[1])))
+    }
+
+    if ((argv[1] != NULL) && (!purc_variant_is_string (argv[1]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
 
     const char* source = purc_variant_get_string_const (argv[0]);
     const char* sub = purc_variant_get_string_const (argv[1]);
@@ -102,13 +109,20 @@ string_ends_with (purc_variant_t root, int nr_args, purc_variant_t* argv)
 
     purc_variant_t ret_var = NULL;
 
-    if ((argv == NULL) || (nr_args != 2))
+    if ((argv == NULL) || (nr_args != 2)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
 
-    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0])))
+    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
-    if ((argv[1] != NULL) && (!purc_variant_is_string (argv[1])))
+    }
+
+    if ((argv[1] != NULL) && (!purc_variant_is_string (argv[1]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
 
     const char* source = purc_variant_get_string_const (argv[0]);
     size_t len_source = purc_variant_string_length (argv[0]) - 1;
@@ -147,13 +161,20 @@ string_explode (purc_variant_t root, int nr_args, purc_variant_t* argv)
 
     purc_variant_t ret_var = NULL;
 
-    if ((argv == NULL) || (nr_args != 2))
+    if ((argv == NULL) || (nr_args != 2)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
 
-    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0])))
+    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
-    if ((argv[1] != NULL) && (!purc_variant_is_string (argv[1])))
+    }
+
+    if ((argv[1] != NULL) && (!purc_variant_is_string (argv[1]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
 
     const char* source = purc_variant_get_string_const (argv[0]);
     const char* delim = purc_variant_get_string_const (argv[1]);
@@ -185,15 +206,21 @@ string_shuffle (purc_variant_t root, int nr_args, purc_variant_t* argv)
 
     purc_variant_t ret_var = NULL;
 
-    if ((argv == NULL) || (nr_args != 1))
+    if ((argv == NULL) || (nr_args != 1)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
 
-    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0])))
+    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
 
     size_t size = purc_variant_string_length (argv[0]);
-    if (size < 2)       // it is an empty string
+    if (size < 2) {      // it is an empty string
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
 
     char * src = malloc (size);
     strcpy (src, purc_variant_get_string_const (argv[0]));
@@ -226,15 +253,25 @@ string_replace (purc_variant_t root, int nr_args, purc_variant_t* argv)
 
     purc_variant_t ret_var = NULL;
 
-    if ((argv == NULL) || (nr_args != 2))
+    if ((argv == NULL) || (nr_args != 2)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
 
-    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0])))
+    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
-    if ((argv[1] != NULL) && (!purc_variant_is_string (argv[1])))
+    }
+
+    if ((argv[1] != NULL) && (!purc_variant_is_string (argv[1]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
-    if ((argv[2] != NULL) && (!purc_variant_is_string (argv[2])))
+    }
+
+    if ((argv[2] != NULL) && (!purc_variant_is_string (argv[2]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
 
     const char* source = purc_variant_get_string_const (argv[0]);
     const char* delim = purc_variant_get_string_const (argv[1]);

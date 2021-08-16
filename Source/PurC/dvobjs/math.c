@@ -44,11 +44,15 @@ get_pi (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
-    if ((argv == NULL) && (nr_args != 0))
+    if ((argv == NULL) && (nr_args != 0)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
 
-    if ((argv != NULL) && (!purc_variant_is_number (argv[0])))
+    if ((argv != NULL) && (!purc_variant_is_number (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
         
     double number = 0.0d;
 
@@ -56,8 +60,10 @@ get_pi (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         number = 6;    
     else {
         purc_variant_cast_to_number (argv[0], &number, false);
-        if (number < 0)
+        if (number < 0) {
+            pcinst_set_error (PURC_ERROR_INVALID_VALUE);
             return PURC_VARIANT_INVALID;
+        }
     }
 
     double pi = M_PI;
@@ -86,7 +92,10 @@ math_sin (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     UNUSED_PARAM(root);
 
     if ((argv == NULL) || (nr_args != 1))
+    {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
 
     purc_variant_t ret_var = NULL;
 
@@ -111,11 +120,15 @@ math_sin (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
             purc_variant_cast_to_long_double (argv[0], &number, false);
             ret_var = purc_variant_make_longdouble (sinl (number));
         }
-        else
+        else {
+            pcinst_set_error (PURC_ERROR_INVALID_VALUE);
             ret_var = PURC_VARIANT_INVALID;
+        }
     }
-    else
+    else {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         ret_var = PURC_VARIANT_INVALID;
+    }
 
     return ret_var;
 }
@@ -125,8 +138,10 @@ math_cos (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
-    if ((argv == NULL) || (nr_args != 1))
+    if ((argv == NULL) || (nr_args != 1)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
 
     purc_variant_t ret_var = NULL;
 
@@ -151,11 +166,15 @@ math_cos (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
             purc_variant_cast_to_long_double (argv[0], &number, false);
             ret_var = purc_variant_make_longdouble (cosl (number));
         }
-        else
+        else {
+            pcinst_set_error (PURC_ERROR_INVALID_VALUE);
             ret_var = PURC_VARIANT_INVALID;
+        }
     }
-    else
+    else {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         ret_var = PURC_VARIANT_INVALID;
+    }
 
     return ret_var;
 }
@@ -165,8 +184,10 @@ math_sqrt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
-    if ((argv == NULL) || (nr_args != 1))
+    if ((argv == NULL) || (nr_args != 1)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
 
     purc_variant_t ret_var = NULL;
 
@@ -191,11 +212,15 @@ math_sqrt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
             purc_variant_cast_to_long_double (argv[0], &number, false);
             ret_var = purc_variant_make_longdouble (sqrtl (number));
         }
-        else
+        else {
+            pcinst_set_error (PURC_ERROR_INVALID_VALUE);
             ret_var = PURC_VARIANT_INVALID;
+        }
     }
-    else
+    else {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         ret_var = PURC_VARIANT_INVALID;
+    }
 
     return ret_var;
 }

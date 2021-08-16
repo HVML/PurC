@@ -43,10 +43,6 @@
 #include <math.h>
 
 
-// https://gitlab.fmsoft.cn/hvml/docs-undisclosed/blob/master/design/purc-architecture-zh.md#351-%E6%9E%84%E9%80%A0%E5%8A%A8%E6%80%81%E5%8F%98%E4%BD%93%E5%AF%B9%E8%B1%A1
-
-// https://gitlab.fmsoft.cn/hvml/docs-undisclosed/blob/master/design/purc-architecture-zh.md#410-%E5%B8%B8%E7%94%A8%E5%8A%A8%E6%80%81%E5%8F%98%E4%BD%93%E5%AF%B9%E8%B1%A1
-
 static const char* get_next_option (const char* data, const char* delims, 
                                                             size_t* length)
 {
@@ -89,14 +85,17 @@ get_uname (purc_variant_t root, int nr_args, purc_variant_t* argv)
     purc_variant_t ret_var = NULL;
 
     if (uname (&name) < 0) {
+        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         return PURC_VARIANT_INVALID;
     }
 
     // create an empty object
     ret_var = purc_variant_make_object (0, PURC_VARIANT_INVALID, 
             PURC_VARIANT_INVALID);
-    if(ret_var == PURC_VARIANT_INVALID)
+    if(ret_var == PURC_VARIANT_INVALID) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
 
     purc_variant_object_set_c (ret_var, "kernel-name",
             purc_variant_make_string (name.sysname, true));
@@ -132,13 +131,18 @@ get_uname_prt (purc_variant_t root, int nr_args, purc_variant_t* argv)
 
     purc_rwstream_t rwstream = purc_rwstream_new_buffer (32, 1024);
 
-    if ((argv == NULL) && (nr_args != 0))
+    if ((argv == NULL) && (nr_args != 0)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
 
-    if ((argv != NULL) && (!purc_variant_is_string (argv[0])))
+    if ((argv != NULL) && (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
         
     if (uname (&name) < 0) {
+        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         return PURC_VARIANT_INVALID;
     }
 
@@ -285,8 +289,10 @@ get_uname_prt (purc_variant_t root, int nr_args, purc_variant_t* argv)
         ret_var = PURC_VARIANT_INVALID;
     else {
         ret_var = purc_variant_make_string (rw_string, false); 
-        if(ret_var == PURC_VARIANT_INVALID)
+        if(ret_var == PURC_VARIANT_INVALID) {
+            pcinst_set_error (PURC_ERROR_INVALID_VALUE);
             ret_var = PURC_VARIANT_INVALID;
+        }
     }
 
     purc_rwstream_close (rwstream);
@@ -304,11 +310,15 @@ get_locale (purc_variant_t root, int nr_args, purc_variant_t* argv)
     size_t length = 0;
     purc_variant_t ret_var = NULL;
 
-    if ((argv == NULL) && (nr_args != 0))
+    if ((argv == NULL) && (nr_args != 0)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
 
-    if ((argv != NULL) && (!purc_variant_is_string (argv[0])))
+    if ((argv != NULL) && (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
         
     if (nr_args) {
         const char* option = purc_variant_get_string_const (argv[0]);
@@ -402,6 +412,7 @@ get_locale (purc_variant_t root, int nr_args, purc_variant_t* argv)
 
     if (ret_var == NULL)
     {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
 
@@ -417,13 +428,20 @@ set_locale (purc_variant_t root, int nr_args, purc_variant_t* argv)
     size_t length = 0;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if ((argv == NULL) || (nr_args != 2))
+    if ((argv == NULL) || (nr_args != 2)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
 
-    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0])))
+    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
-    if ((argv[1] != NULL) && (!purc_variant_is_string (argv[1])))
+    }
+
+    if ((argv[1] != NULL) && (!purc_variant_is_string (argv[1]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
         
     const char* option = purc_variant_get_string_const (argv[0]);
     const char * head = get_next_option (option, " ", &length);
@@ -569,16 +587,22 @@ get_random (purc_variant_t root, int nr_args, purc_variant_t* argv)
     double random = 0.0d;
     double number = 0.0d;
 
-    if ((argv == NULL) || (nr_args != 1))
+    if ((argv == NULL) || (nr_args != 1)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
 
-    if ((argv[0] != NULL) && (!purc_variant_is_number (argv[0])))
+    if ((argv[0] != NULL) && (!purc_variant_is_number (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
 
     purc_variant_cast_to_number (argv[0], &number, false);
 
-    if (fabs (number) < 1.0E-10)
+    if (fabs (number) < 1.0E-10) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
 
     srand(time(NULL));
     random = number * rand() / (double)(RAND_MAX);
@@ -600,16 +624,22 @@ get_time_iso8601 (purc_variant_t root, int nr_args, purc_variant_t* argv)
 
     t_time = time (NULL);
     t_tm = localtime(&t_time);
-    if (t_tm == NULL)
+    if (t_tm == NULL) {
+        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         return PURC_VARIANT_INVALID;
+    }
 
-    if(strftime(local_time, 32, "%FT%T%z", t_tm) == 0)
+    if(strftime(local_time, 32, "%FT%T%z", t_tm) == 0) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
 
     // create a string variant
     ret_var = purc_variant_make_string (local_time, false); 
-    if(ret_var == PURC_VARIANT_INVALID)
+    if(ret_var == PURC_VARIANT_INVALID) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
 
     return ret_var;
 }
@@ -662,11 +692,15 @@ set_time (purc_variant_t root, int nr_args, purc_variant_t* argv)
     struct timeval stime;
     purc_variant_t ret_var = NULL;
 
-    if ((argv == NULL) || (nr_args != 1))
+    if ((argv == NULL) || (nr_args != 1)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
 
-    if ((argv[0] != NULL) && (!purc_variant_is_number (argv[0])))
+    if ((argv[0] != NULL) && (!purc_variant_is_number (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
+    }
 
     double epoch = 0.0d;
     purc_variant_cast_to_number (argv[0], &epoch, false);
