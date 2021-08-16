@@ -254,7 +254,7 @@ purc_variant_get_bytes_const(purc_variant_t value, size_t* nr_bytes);
 PCA_EXPORT size_t purc_variant_sequence_length(const purc_variant_t sequence);
 
 typedef purc_variant_t (*purc_dvariant_method) (purc_variant_t root,
-        int nr_args, purc_variant_t * argv);
+        size_t nr_args, purc_variant_t * argv);
 
 /**
  * Creates dynamic value by setter and getter functions
@@ -313,6 +313,19 @@ typedef bool (*purc_navtive_releaser) (void* entity);
  */
 PCA_EXPORT purc_variant_t
 purc_variant_make_native(void *entity, purc_navtive_releaser releaser);
+
+
+/**
+ * Get the native pointer of native variant value 
+ *
+ * @param native: the variant value of native type
+ *
+ * Returns: the native pointer 
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT void *
+purc_variant_native_get_entity(const purc_variant_t native);
 
 
 /**

@@ -168,7 +168,7 @@ static purc_variant_t _make_bsequence(int lvl)
 }
 
 static purc_variant_t _dummy(purc_variant_t root,
-            int nr_args, purc_variant_t * argv)
+            size_t nr_args, purc_variant_t * argv)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);

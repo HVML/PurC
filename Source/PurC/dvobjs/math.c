@@ -30,7 +30,6 @@
 #include "private/html.h"
 
 #include "purc-variant.h"
-#include "dvobjs/parser.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -39,7 +38,7 @@
 #include <math.h>
 
 
-purc_variant_t
+static purc_variant_t
 get_pi (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
@@ -75,7 +74,7 @@ get_pi (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 
-purc_variant_t
+static purc_variant_t
 math_eval (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
@@ -86,7 +85,7 @@ math_eval (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     return NULL;
 }
 
-purc_variant_t
+static purc_variant_t
 math_sin (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
@@ -100,29 +99,15 @@ math_sin (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     purc_variant_t ret_var = NULL;
 
     if (argv[0] != NULL) {
-        if (purc_variant_is_number (argv[0])) {
-            double number = 0.0d;
-            purc_variant_cast_to_number (argv[0], &number, false);
-            ret_var = purc_variant_make_number (sin (number));
-        }
-        else if (purc_variant_is_longint (argv[0])) {
-            int64_t number = 0;
-            purc_variant_cast_to_longint (argv[0], &number, false);
-            ret_var = purc_variant_make_number (sin ((double)number));
-        }
-        else if (purc_variant_is_ulongint (argv[0])) {
-            uint64_t number = 0;
-            purc_variant_cast_to_ulongint (argv[0], &number, false);
-            ret_var = purc_variant_make_number (sin ((double)number));
-        }
-        else if (purc_variant_is_longdouble (argv[0])) {
+        if (purc_variant_is_longdouble (argv[0])) {
             long double number = 0;
             purc_variant_cast_to_long_double (argv[0], &number, false);
             ret_var = purc_variant_make_longdouble (sinl (number));
         }
         else {
-            pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-            ret_var = PURC_VARIANT_INVALID;
+            double number = 0.0d;
+            purc_variant_cast_to_number (argv[0], &number, false);
+            ret_var = purc_variant_make_number (sin (number));
         }
     }
     else {
@@ -133,7 +118,7 @@ math_sin (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     return ret_var;
 }
 
-purc_variant_t
+static purc_variant_t
 math_cos (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
@@ -146,29 +131,15 @@ math_cos (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     purc_variant_t ret_var = NULL;
 
     if (argv[0] != NULL) {
-        if (purc_variant_is_number (argv[0])) {
-            double number = 0.0d;
-            purc_variant_cast_to_number (argv[0], &number, false);
-            ret_var = purc_variant_make_number (cos (number));
-        }
-        else if (purc_variant_is_longint (argv[0])) {
-            int64_t number = 0;
-            purc_variant_cast_to_longint (argv[0], &number, false);
-            ret_var = purc_variant_make_number (cos ((double)number));
-        }
-        else if (purc_variant_is_ulongint (argv[0])) {
-            uint64_t number = 0;
-            purc_variant_cast_to_ulongint (argv[0], &number, false);
-            ret_var = purc_variant_make_number (cos ((double)number));
-        }
-        else if (purc_variant_is_longdouble (argv[0])) {
+        if (purc_variant_is_longdouble (argv[0])) {
             long double number = 0;
             purc_variant_cast_to_long_double (argv[0], &number, false);
             ret_var = purc_variant_make_longdouble (cosl (number));
         }
         else {
-            pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-            ret_var = PURC_VARIANT_INVALID;
+            double number = 0.0d;
+            purc_variant_cast_to_number (argv[0], &number, false);
+            ret_var = purc_variant_make_number (cos (number));
         }
     }
     else {
@@ -179,7 +150,7 @@ math_cos (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     return ret_var;
 }
 
-purc_variant_t
+static purc_variant_t
 math_sqrt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
@@ -192,29 +163,15 @@ math_sqrt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     purc_variant_t ret_var = NULL;
 
     if (argv[0] != NULL) {
-        if (purc_variant_is_number (argv[0])) {
-            double number = 0.0d;
-            purc_variant_cast_to_number (argv[0], &number, false);
-            ret_var = purc_variant_make_number (sqrt (number));
-        }
-        else if (purc_variant_is_longint (argv[0])) {
-            int64_t number = 0;
-            purc_variant_cast_to_longint (argv[0], &number, false);
-            ret_var = purc_variant_make_number (sqrt ((double)number));
-        }
-        else if (purc_variant_is_ulongint (argv[0])) {
-            uint64_t number = 0;
-            purc_variant_cast_to_ulongint (argv[0], &number, false);
-            ret_var = purc_variant_make_number (sqrt ((double)number));
-        }
-        else if (purc_variant_is_longdouble (argv[0])) {
+        if (purc_variant_is_longdouble (argv[0])) {
             long double number = 0;
             purc_variant_cast_to_long_double (argv[0], &number, false);
             ret_var = purc_variant_make_longdouble (sqrtl (number));
         }
         else {
-            pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-            ret_var = PURC_VARIANT_INVALID;
+            double number = 0.0d;
+            purc_variant_cast_to_number (argv[0], &number, false);
+            ret_var = purc_variant_make_number (sqrt (number));
         }
     }
     else {
@@ -224,3 +181,17 @@ math_sqrt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     return ret_var;
 }
+
+// only for test now.
+purc_variant_t pcdvojbs_get_math (void)
+{
+    purc_variant_t math = purc_variant_make_object_c (7,
+            "pi",     purc_variant_make_dynamic (get_pi, NULL),
+            "eval",  purc_variant_make_dynamic (math_eval, NULL),
+            "sin",   purc_variant_make_dynamic (math_sin, NULL),
+            "cos",   purc_variant_make_dynamic (math_cos, NULL),
+            "sqrt",  purc_variant_make_dynamic (math_sqrt, NULL)
+       );
+    return math;
+}
+

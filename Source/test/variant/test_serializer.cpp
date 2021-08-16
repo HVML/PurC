@@ -307,7 +307,7 @@ TEST(variant, serialize_longdouble)
 }
 
 static purc_variant_t my_getter(purc_variant_t root,
-        int nr_args, purc_variant_t * argv)
+        size_t nr_args, purc_variant_t * argv)
 {
     (void)root;
 
@@ -318,7 +318,7 @@ static purc_variant_t my_getter(purc_variant_t root,
 }
 
 static purc_variant_t my_setter(purc_variant_t root,
-        int nr_args, purc_variant_t * argv)
+        size_t nr_args, purc_variant_t * argv)
 {
     (void)(root);
     (void)(nr_args);

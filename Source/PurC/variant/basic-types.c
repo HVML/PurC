@@ -503,6 +503,8 @@ purc_variant_t purc_variant_make_dynamic (purc_dvariant_method getter,
 purc_dvariant_method
 purc_variant_dynamic_get_getter(const purc_variant_t dynamic)
 {
+    PC_ASSERT(dynamic);
+
     purc_dvariant_method fn = NULL;
     if (purc_variant_is_type(dynamic, PURC_VARIANT_TYPE_DYNAMIC)) {
         fn = dynamic->ptr_ptr[0];
@@ -516,6 +518,8 @@ purc_variant_dynamic_get_getter(const purc_variant_t dynamic)
 purc_dvariant_method
 purc_variant_dynamic_get_setter(const purc_variant_t dynamic)
 {
+    PC_ASSERT(dynamic);
+
     purc_dvariant_method fn = NULL;
     if (purc_variant_is_type(dynamic, PURC_VARIANT_TYPE_DYNAMIC)) {
         fn = dynamic->ptr_ptr[1];
@@ -559,3 +563,17 @@ void pcvariant_native_release(purc_variant_t value)
     }
 }
 
+void * purc_variant_native_get_entity(const purc_variant_t native)
+{
+    PC_ASSERT(native);
+    
+    void * ret = NULL;
+
+    if (purc_variant_is_type(native, PURC_VARIANT_TYPE_NATIVE)) {
+        ret = native->ptr_ptr[0];
+    }
+    else
+        pcinst_set_error (PCVARIANT_INVALID_TYPE);
+
+    return ret;
+}

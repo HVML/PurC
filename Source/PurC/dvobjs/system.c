@@ -30,8 +30,6 @@
 #include "private/html.h"
 
 #include "purc-variant.h"
-#include "dvobjs/parser.h"
-#include "dvobjs/system.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -74,8 +72,8 @@ static const char* get_next_option (const char* data, const char* delims,
 }
 
 
-purc_variant_t
-get_uname (purc_variant_t root, int nr_args, purc_variant_t* argv)
+static purc_variant_t
+get_uname (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
@@ -118,8 +116,8 @@ get_uname (purc_variant_t root, int nr_args, purc_variant_t* argv)
 }
 
 
-purc_variant_t
-get_uname_prt (purc_variant_t root, int nr_args, purc_variant_t* argv)
+static purc_variant_t
+get_uname_prt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
@@ -153,6 +151,46 @@ get_uname_prt (purc_variant_t root, int nr_args, purc_variant_t* argv)
         while (head) {
             switch (* head)
             {
+                case 'a':
+                case 'A':
+                    if (strncasecmp (head, "all", length) == 0) {
+                        purc_rwstream_seek (rwstream, 0, SEEK_SET); 
+
+                        purc_rwstream_write (rwstream, name.sysname, 
+                                                        strlen (name.sysname));
+                        purc_rwstream_write (rwstream, delim, strlen (delim));
+
+                        purc_rwstream_write (rwstream, name.nodename, 
+                                                    strlen (name.nodename));
+                        purc_rwstream_write (rwstream, delim, strlen (delim));
+
+                        purc_rwstream_write (rwstream, name.release, 
+                                                    strlen (name.release));
+                        purc_rwstream_write (rwstream, delim, strlen (delim));
+
+                        purc_rwstream_write (rwstream, name.version, 
+                                                    strlen (name.version));
+                        purc_rwstream_write (rwstream, delim, strlen (delim));
+
+                        purc_rwstream_write (rwstream, name.machine,
+                                                    strlen (name.machine));
+                        purc_rwstream_write (rwstream, delim, strlen (delim));
+
+                        // process
+                        purc_rwstream_write (rwstream, name.machine,
+                                                    strlen (name.machine));
+                        purc_rwstream_write (rwstream, delim, strlen (delim));
+
+                        // hardware
+                        purc_rwstream_write (rwstream, name.machine,
+                                                    strlen (name.machine));
+                        purc_rwstream_write (rwstream, delim, strlen (delim));
+
+                        // os
+                        purc_rwstream_write (rwstream, name.sysname, 
+                                                        strlen (name.sysname));
+                    }
+                    break;
                 case 'd':
                 case 'D':
                     if (strncasecmp (head, "default", length) == 0) {
@@ -302,8 +340,8 @@ get_uname_prt (purc_variant_t root, int nr_args, purc_variant_t* argv)
 }
 
 
-purc_variant_t
-get_locale (purc_variant_t root, int nr_args, purc_variant_t* argv)
+static purc_variant_t
+get_locale (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
@@ -419,9 +457,9 @@ get_locale (purc_variant_t root, int nr_args, purc_variant_t* argv)
     return ret_var;
 }
 
-
-purc_variant_t
-set_locale (purc_variant_t root, int nr_args, purc_variant_t* argv)
+// 时区
+static purc_variant_t
+set_locale (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
@@ -579,8 +617,8 @@ set_locale (purc_variant_t root, int nr_args, purc_variant_t* argv)
 }
 
 
-purc_variant_t
-get_random (purc_variant_t root, int nr_args, purc_variant_t* argv)
+static purc_variant_t
+get_random (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
@@ -610,8 +648,8 @@ get_random (purc_variant_t root, int nr_args, purc_variant_t* argv)
     return purc_variant_make_number (random); 
 }
 
-purc_variant_t
-get_time_iso8601 (purc_variant_t root, int nr_args, purc_variant_t* argv)
+static purc_variant_t
+get_time_iso8601 (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
@@ -644,8 +682,8 @@ get_time_iso8601 (purc_variant_t root, int nr_args, purc_variant_t* argv)
     return ret_var;
 }
 
-purc_variant_t
-get_time (purc_variant_t root, int nr_args, purc_variant_t* argv)
+static purc_variant_t
+get_time (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
@@ -684,8 +722,8 @@ get_time (purc_variant_t root, int nr_args, purc_variant_t* argv)
     return NULL;
 }
 
-purc_variant_t
-set_time (purc_variant_t root, int nr_args, purc_variant_t* argv)
+static purc_variant_t
+set_time (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
@@ -714,3 +752,18 @@ set_time (purc_variant_t root, int nr_args, purc_variant_t* argv)
 
     return ret_var;
 }
+
+// only for test now.
+purc_variant_t pcdvojbs_get_system (void)
+{
+    purc_variant_t sys = purc_variant_make_object_c (6,
+            "uname",        purc_variant_make_dynamic (get_uname, NULL),
+            "uname_prt",    purc_variant_make_dynamic (get_uname_prt, NULL),
+            "locale",       purc_variant_make_dynamic (get_locale, set_locale),
+            "random",       purc_variant_make_dynamic (get_random, NULL),
+            "time",         purc_variant_make_dynamic (get_time, set_time),
+            "time_iso8601", purc_variant_make_dynamic (get_time_iso8601, NULL)
+       );
+    return sys;
+}
+

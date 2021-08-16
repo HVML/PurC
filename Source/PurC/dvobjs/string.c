@@ -30,8 +30,6 @@
 #include "private/html.h"
 
 #include "purc-variant.h"
-#include "dvobjs/parser.h"
-#include "dvobjs/string.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -68,8 +66,8 @@ static const char* get_next_segment (const char* data, const char* delim,
     return head;
 }
 
-purc_variant_t
-string_contains (purc_variant_t root, int nr_args, purc_variant_t* argv)
+static purc_variant_t
+string_contains (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
@@ -102,8 +100,8 @@ string_contains (purc_variant_t root, int nr_args, purc_variant_t* argv)
 }
 
 
-purc_variant_t
-string_ends_with (purc_variant_t root, int nr_args, purc_variant_t* argv)
+static purc_variant_t
+string_ends_with (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
@@ -154,8 +152,8 @@ string_ends_with (purc_variant_t root, int nr_args, purc_variant_t* argv)
 }
 
 
-purc_variant_t
-string_explode (purc_variant_t root, int nr_args, purc_variant_t* argv)
+static purc_variant_t
+string_explode (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
@@ -199,8 +197,8 @@ string_explode (purc_variant_t root, int nr_args, purc_variant_t* argv)
 }
 
 
-purc_variant_t
-string_shuffle (purc_variant_t root, int nr_args, purc_variant_t* argv)
+static purc_variant_t
+string_shuffle (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
@@ -246,8 +244,8 @@ string_shuffle (purc_variant_t root, int nr_args, purc_variant_t* argv)
 }
 
 
-purc_variant_t
-string_replace (purc_variant_t root, int nr_args, purc_variant_t* argv)
+static purc_variant_t
+string_replace (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
@@ -311,8 +309,8 @@ string_replace (purc_variant_t root, int nr_args, purc_variant_t* argv)
     return ret_var;
 }
 
-purc_variant_t
-string_format_c (purc_variant_t root, int nr_args, purc_variant_t* argv)
+static purc_variant_t
+string_format_c (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
@@ -321,8 +319,8 @@ string_format_c (purc_variant_t root, int nr_args, purc_variant_t* argv)
     return NULL;
 }
 
-purc_variant_t
-string_format_p (purc_variant_t root, int nr_args, purc_variant_t* argv)
+static purc_variant_t
+string_format_p (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
@@ -330,3 +328,19 @@ string_format_p (purc_variant_t root, int nr_args, purc_variant_t* argv)
 
     return NULL;
 }
+
+// only for test now.
+purc_variant_t pcdvojbs_get_string (void)
+{
+    purc_variant_t string = purc_variant_make_object_c (7,
+            "conatins",     purc_variant_make_dynamic (string_contains, NULL),
+            "ends_with",    purc_variant_make_dynamic (string_ends_with, NULL),
+            "explode",      purc_variant_make_dynamic (string_explode, NULL),
+            "shuffle",      purc_variant_make_dynamic (string_shuffle, NULL),
+            "replace",      purc_variant_make_dynamic (string_replace, NULL),
+            "format_c",     purc_variant_make_dynamic (string_format_c, NULL),
+            "format_p",     purc_variant_make_dynamic (string_format_p, NULL)
+       );
+    return string;
+}
+
