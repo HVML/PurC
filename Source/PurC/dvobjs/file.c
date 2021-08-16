@@ -38,12 +38,10 @@
 #include "private/html.h"
 
 #include "purc-variant.h"
-#include "dvobjs/parser.h"
 
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <sys/utsname.h>
 
 static UNUSED_FUNCTION purc_variant_t
 file_text_head (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
@@ -93,3 +91,16 @@ file_bin_tail (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     return purc_variant_make_string (name.sysname, true);
 }
+
+// only for test now.
+purc_variant_t pcdvojbs_get_file (void)
+{
+    purc_variant_t file = purc_variant_make_object_c (4,
+            "file_text_head",  purc_variant_make_dynamic (file_text_head, NULL),
+            "file_text_tail",  purc_variant_make_dynamic (file_text_tail, NULL),
+            "file_bin_head",   purc_variant_make_dynamic (file_bin_head, NULL),
+            "file_bin_tail",   purc_variant_make_dynamic (file_bin_tail, NULL)
+       );
+    return file;
+}
+

@@ -50,6 +50,8 @@ purc_variant_t pcdvojbs_get_system(void);
 purc_variant_t pcdvojbs_get_string(void);
 purc_variant_t pcdvojbs_get_math(void);
 purc_variant_t pcdvojbs_get_logical(void);
+purc_variant_t pcdvojbs_get_fs(void);
+purc_variant_t pcdvojbs_get_file(void);
 
 #ifdef __cplusplus
 }

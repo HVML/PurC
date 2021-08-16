@@ -36,18 +36,15 @@
 #include "private/utils.h"
 #include "private/edom.h"
 #include "private/html.h"
-
 #include "purc-variant.h"
-#include "dvobjs/parser.h"
 
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <sys/utsname.h>
 
 
-static UNUSED_FUNCTION purc_variant_t
-get_list (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+static purc_variant_t
+fs_list (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
@@ -58,33 +55,8 @@ get_list (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     return purc_variant_make_string (name.sysname, true);
 }
 
-static UNUSED_FUNCTION purc_variant_t
-mkdir (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
-{
-    UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
-
-    struct utsname name;
-
-    return purc_variant_make_string (name.sysname, true);
-}
-
-
-static UNUSED_FUNCTION purc_variant_t
-rmdir (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
-{
-    UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
-
-    struct utsname name;
-
-    return purc_variant_make_string (name.sysname, true);
-}
-
-static UNUSED_FUNCTION purc_variant_t
-touch (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+static purc_variant_t
+fs_mkdir (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
@@ -96,8 +68,8 @@ touch (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 
-static UNUSED_FUNCTION purc_variant_t
-unlink (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+static purc_variant_t
+fs_rmdir (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
@@ -107,3 +79,42 @@ unlink (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     return purc_variant_make_string (name.sysname, true);
 }
+
+static purc_variant_t
+fs_touch (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    struct utsname name;
+
+    return purc_variant_make_string (name.sysname, true);
+}
+
+
+static purc_variant_t
+fs_unlink (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    struct utsname name;
+
+    return purc_variant_make_string (name.sysname, true);
+}
+
+// only for test now.
+purc_variant_t pcdvojbs_get_fs (void)
+{
+    purc_variant_t fs = purc_variant_make_object_c (5,
+            "fs_list",  purc_variant_make_dynamic (fs_list, NULL),
+            "fs_mkdir", purc_variant_make_dynamic (fs_mkdir, NULL),
+            "fs_rmdir", purc_variant_make_dynamic (fs_rmdir, NULL),
+            "fs_touch", purc_variant_make_dynamic (fs_touch, NULL),
+            "fs_unlink",purc_variant_make_dynamic (fs_unlink, NULL)
+       );
+    return fs;
+}
+
