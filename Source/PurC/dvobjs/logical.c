@@ -42,7 +42,6 @@ static bool judge_variant (purc_variant_t var)
     if (var == NULL)
         return false;
 
-    uint64_t u64 = 0;
     double number = 0.0d;
     bool ret = false;
     enum purc_variant_type type = purc_variant_get_type (var);
@@ -52,8 +51,8 @@ static bool judge_variant (purc_variant_t var)
         case PURC_VARIANT_TYPE_UNDEFINED:
             break;
         case PURC_VARIANT_TYPE_BOOLEAN:
-            purc_variant_cast_to_ulongint (var, &u64, false);
-            if (u64)
+            purc_variant_cast_to_number (var, &number, false);
+            if (number)
                 ret = true;
             break;
         case PURC_VARIANT_TYPE_NUMBER:
@@ -102,6 +101,71 @@ static bool judge_variant (purc_variant_t var)
     }
 
     return ret;
+}
+
+
+static double get_variant_value (purc_variant_t var) 
+{
+    if (var == NULL)
+        return false;
+
+    double number = 0.0d;
+    size_t length = 0;
+    long int templongint = 0;
+    uintptr_t temppointer = 0;
+    enum purc_variant_type type = purc_variant_get_type (var);
+
+    switch ((int)type) {
+        case PURC_VARIANT_TYPE_NULL:
+        case PURC_VARIANT_TYPE_UNDEFINED:
+            break;
+        case PURC_VARIANT_TYPE_BOOLEAN:
+            purc_variant_cast_to_number (var, &number, false);
+            if (number)
+                number = 1.0d;
+            break;
+        case PURC_VARIANT_TYPE_NUMBER:
+        case PURC_VARIANT_TYPE_LONGINT:
+        case PURC_VARIANT_TYPE_ULONGINT:
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+            purc_variant_cast_to_number (var, &number, false);
+            break;
+        case PURC_VARIANT_TYPE_ATOMSTRING:
+            number = strtold (purc_variant_get_atom_string_const (var), NULL);
+            break;
+        case PURC_VARIANT_TYPE_STRING:
+            number = strtold (purc_variant_get_string_const (var), NULL);
+            break;
+        case PURC_VARIANT_TYPE_BSEQUENCE:
+            length = purc_variant_sequence_length (var);
+            if (length > 8) 
+                memcpy (&templongint, purc_variant_get_bytes_const (var,
+                                            &length) + length - 8, 8);
+            else 
+                templongint = *((long int *)purc_variant_get_bytes_const 
+                                                        (var, &length));
+            number = (double) templongint;
+            break;
+        case PURC_VARIANT_TYPE_DYNAMIC:
+            temppointer = (uintptr_t)purc_variant_dynamic_get_getter (var);
+            temppointer += (uintptr_t)purc_variant_dynamic_get_setter (var);
+            number = (double) temppointer;
+            break;
+        case PURC_VARIANT_TYPE_NATIVE:
+            temppointer = (uintptr_t)purc_variant_native_get_entity (var);
+            number = (double) temppointer;
+            break;
+        case PURC_VARIANT_TYPE_OBJECT:
+            break;
+        case PURC_VARIANT_TYPE_ARRAY:
+            break;
+        case PURC_VARIANT_TYPE_SET:
+            break;
+        default:
+            break;
+    }
+
+    return number;
 }
 
 static purc_variant_t
