@@ -143,6 +143,38 @@ PCA_EXPORT purc_variant_t purc_variant_make_longdouble(long double lf);
 PCA_EXPORT purc_variant_t
 purc_variant_make_string(const char* str_utf8, bool check_encoding);
 
+/**
+ * VWNOTE: new API.
+ * Creates a variant value of string type from a static C string.
+ *
+ * @param str_utf8: the pointer of a string which is in UTF-8 encoding
+ * @param check_encoding: whether check str_utf8 in UTF-8 encoding
+ *
+ * Returns: A purc_variant_t with string type,
+ *      or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.0.2
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_make_string_static(const char* str_utf8, bool check_encoding);
+
+/**
+ * VWNOTE: new API.
+ * Creates a variant value of string type by reusing the string buffer.
+ * The buffer will be released by calling free() when the variant is destroyed.
+ *
+ * @param str_utf8: the pointer of a string which is in UTF-8 encoding.
+ * @param sz_buff: the size of the buffer.
+ * @param check_encoding: whether check str_utf8 in UTF-8 encoding.
+ *
+ * Returns: A purc_variant_t with string type,
+ *      or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.0.2
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_make_string_reuse_buff(char* str_utf8, size_t sz_buff,
+        bool check_encoding);
 
 /**
  * Gets the pointer of string which is encapsulated in string type.
@@ -212,12 +244,11 @@ purc_variant_make_atom_string_static(const char* str_utf8,
 PCA_EXPORT const char*
 purc_variant_get_atom_string_const(purc_variant_t value);
 
-
 /**
- * Creates a variant value of byte sequence type.
+ * Creates a variant value of byte sequence type by coping the content.
  *
- * @param bytes: the pointer of a byte sequence
- * @param nr_bytes: the number of bytes in sequence
+ * @param bytes: the pointer of a byte sequence.
+ * @param nr_bytes: the number of bytes in sequence.
  *
  * Returns: A purc_variant_t with byte sequence type,
  *      or PURC_VARIANT_INVALID on failure.
@@ -227,6 +258,38 @@ purc_variant_get_atom_string_const(purc_variant_t value);
 PCA_EXPORT purc_variant_t
 purc_variant_make_byte_sequence(const void* bytes, size_t nr_bytes);
 
+/**
+ * VWNOTE: new API.
+ * Creates a variant value of byte sequence type from a static C byte array.
+ *
+ * @param bytes: the pointer of a byte sequence.
+ * @param nr_bytes: the number of bytes in sequence.
+ *
+ * Returns: A purc_variant_t with string type,
+ *      or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.0.2
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_make_byte_sequence_static(const char* bytes, size_t nr_bytes);
+
+/**
+ * VWNOTE: new API.
+ * Creates a variant value of byte sequence type by reusing the bytes buffer.
+ * The buffer will be released by calling free() when the variant is destroyed.
+ *
+ * @param bytes: the pointer of a byte sequence.
+ * @param nr_bytes: the number of bytes in sequence.
+ * @param sz_buff: the size of the bytes buffer.
+ *
+ * Returns: A purc_variant_t with string type,
+ *      or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.0.2
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_make_byte_sequence_reuse_buff(char* bytes, size_t nr_bytes,
+        size_t sz_buff);
 
 /**
  * Gets the pointer of byte array which is encapsulated in byte sequence type.
@@ -628,11 +691,12 @@ purc_variant_object_get_size(const purc_variant_t obj);
  *     bool having = purc_variant_object_iterator_next(it);
  *     // behavior of accessing `val`/`key` is un-defined
  *     if (!having) {
- *         purc_variant_object_release_iterator(it);
  *         // behavior of accessing `it` is un-defined
  *         break;
  *     }
  * }
+ * if (it)
+ *     purc_variant_object_release_iterator(it);
  */
 
 struct purc_variant_object_iterator;
@@ -891,11 +955,12 @@ PCA_EXPORT size_t purc_variant_set_get_size(const purc_variant_t set);
  *     bool having = purc_variant_set_iterator_next(it);
  *     // behavior of accessing `val`/`key` is un-defined
  *     if (!having) {
- *         purc_variant_set_release_iterator(it);
  *         // behavior of accessing `it` is un-defined
  *         break;
  *     }
  * }
+ * if (it)
+ *     purc_variant_set_release_iterator(it);
  */
 
 struct purc_variant_set_iterator;

@@ -143,7 +143,6 @@ void test_html_file(char * data_path, char * file_name)
     ret = pchtml_html_document_parse(document, rwstream);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_rwstream_close (rwstream);
     purc_rwstream_destroy (rwstream);
 
     // create rwstream object with buffer for serilization
@@ -154,7 +153,7 @@ void test_html_file(char * data_path, char * file_name)
     ASSERT_EQ(ret, 0);
 
     // get the buffer of serialization
-    serialization = purc_rwstream_get_mem_buffer (rwstream, &size);
+    serialization = (const char*)purc_rwstream_get_mem_buffer (rwstream, &size);
 
     // read result file
     read_length = 8192 > file_stat.st_size? file_stat.st_size: 8192;
@@ -243,7 +242,6 @@ void test_html_chunk(char * data_path, char * file_name)
             ret = pchtml_html_document_parse_chunk(document, rwstream);
             ASSERT_EQ(ret, 0);
 
-            purc_rwstream_close (rwstream);
             purc_rwstream_destroy (rwstream);
         }
     }
@@ -259,7 +257,7 @@ void test_html_chunk(char * data_path, char * file_name)
     ASSERT_EQ(ret, 0);
 
     // get the buffer of serialization
-    serialization = purc_rwstream_get_mem_buffer (rwstream, &size);
+    serialization = (const char*)purc_rwstream_get_mem_buffer (rwstream, &size);
 
     // read result file
     read_length = 8192 > file_stat.st_size? file_stat.st_size: 8192;
@@ -357,7 +355,6 @@ void test_parser_fragment(char * data_path, char * file_name)
         printf("Failed to create Document object\n");
     }
 
-    purc_rwstream_close(rwstream);
     purc_rwstream_destroy (rwstream);
     pchtml_html_parser_destroy(parser);
 
@@ -379,7 +376,7 @@ void test_parser_fragment(char * data_path, char * file_name)
     rwstream = purc_rwstream_new_from_mem(test_file, 8192);
     ret = pchtml_doc_write_to_stream(document, rwstream);
     ASSERT_EQ(ret, 0);
-    serialization = purc_rwstream_get_mem_buffer (rwstream, &size);
+    serialization = (const char*)purc_rwstream_get_mem_buffer (rwstream, &size);
 
     read_length = 8192 > file_stat.st_size? file_stat.st_size: 8192;
     fp = fopen(result_file, "r");
@@ -390,7 +387,6 @@ void test_parser_fragment(char * data_path, char * file_name)
     ASSERT_EQ(ret, 0);
 
     // destroy rwstream
-    purc_rwstream_close(rwstream);
     purc_rwstream_destroy (rwstream);
 
     /* Destroy all */
@@ -482,7 +478,6 @@ void test_parser_attribution(char * data_path, char * file_name)
     ASSERT_NE(document, nullptr);
 
     // clean the environment
-    purc_rwstream_close(rwstream);
     purc_rwstream_destroy (rwstream);
     pchtml_html_parser_destroy(parser);
 
@@ -512,7 +507,7 @@ void test_parser_attribution(char * data_path, char * file_name)
     rwstream = purc_rwstream_new_from_mem(test_file, 8192);
     ret = pchtml_doc_write_to_stream(document, rwstream);
     ASSERT_EQ(ret, 0);
-    serialization = purc_rwstream_get_mem_buffer (rwstream, &size);
+    serialization = (const char*)purc_rwstream_get_mem_buffer (rwstream, &size);
 
     // get the result
     read_length = 8192 > file_stat.st_size? file_stat.st_size: 8192;
@@ -530,7 +525,6 @@ void test_parser_attribution(char * data_path, char * file_name)
     ASSERT_EQ(ret, 0);
 
     // destroy rwstream
-    purc_rwstream_close(rwstream);
     purc_rwstream_destroy (rwstream);
 
     // Check whether new attribution exist
@@ -557,7 +551,7 @@ void test_parser_attribution(char * data_path, char * file_name)
     rwstream = purc_rwstream_new_from_mem(test_file, 8192);
     ret = pchtml_doc_write_to_stream(document, rwstream);
     ASSERT_EQ(ret, 0);
-    serialization = purc_rwstream_get_mem_buffer (rwstream, &size);
+    serialization = (const char*)purc_rwstream_get_mem_buffer (rwstream, &size);
 
     if ((stat(remove_file, &file_stat) < 0) || (file_stat.st_size == 0))
     {
@@ -573,7 +567,6 @@ void test_parser_attribution(char * data_path, char * file_name)
     ret = strncmp(serialization, remove_file, read_length - 1);
     ASSERT_EQ(ret, 0);
 
-    purc_rwstream_close(rwstream);
     purc_rwstream_destroy (rwstream);
 
     /* Destroy all */

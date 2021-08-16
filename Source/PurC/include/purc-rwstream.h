@@ -46,7 +46,7 @@ PCA_EXTERN_C_BEGIN
  * Creates a new purc_rwstream_t for the automatic memory buffer.
  *
  * @param sz_init: the init size of the memory buffer
- * @param sz_max: thie max size of the memory buffer
+ * @param sz_max: the max size of the memory buffer
  *
  * @return A purc_rwstream_t on success, @NULL on failure and the error code
  *         is set to indicate the error. The error code:
@@ -290,21 +290,6 @@ purc_rwstream_write (purc_rwstream_t rws, const void* buf, size_t count);
 PCA_EXPORT ssize_t purc_rwstream_flush (purc_rwstream_t rws);
 
 /**
- * Close an purc_rwstream_t. Any pending data to be written will be flushed.
- * The stream will not be freed until using purc_rwstream_destroy.
- *
- * @param rws: pointer to purc_rwstream_t
- *
- * @return 0 success, non-zero otherwise. and the error code is set to indicate
- *         the error. The error code:
- *  - @PURC_ERROR_INVALID_VALUE: Invalid value
- *  - @PURC_ERROR_BAD_SYSTEM_CALL: Bad system call
- *
- * Since: 0.0.1
- */
-PCA_EXPORT int purc_rwstream_close (purc_rwstream_t rws);
-
-/**
  * Read the count bytes from the in rwstream, write to out rwstream,
  * and return the number of bytes written
  *
@@ -331,19 +316,47 @@ PCA_EXPORT ssize_t purc_rwstream_dump_to_another (purc_rwstream_t in,
 /**
  * Get the pointer and size of the rwstream whose type is memory (Created by
  * purc_rwstream_new_buffer or purc_rwstream_new_from_mem).
+ * This is the extended version of @purc_rwstream_get_mem_buffer.
  *
- * @param rw_mem: pointer to purc_rwstream_t
- * @param sz: (nullable): pointer to receive size of the rwstream
+ * @param rw_mem: the purc_rwstream_t object.
+ * @param sz_content: (nullable): pointer to receive the size of content.
+ * @param sz_buffer: (nullable): pointer to receive the size of buffer.
+ * @param res_buff: whether to reserve the buffer for reuse (do not call
+ *      free() when destroying the rwstream object).
  *
  * @return success returns the pointer of the memory, @NULL not support and
  *         the error code is set to indicate the error. The error code:
  *  - @PURC_ERROR_INVALID_VALUE: Invalid value
  *  - @PURC_ERROR_NOT_IMPLEMENTED: Not implemented
  *
+ * Since: 0.0.2
+ */
+PCA_EXPORT void* purc_rwstream_get_mem_buffer_ex (purc_rwstream_t rw_mem,
+        size_t *sz_content, size_t *sz_buffer, bool res_buff);
+
+/**
+ * Get the pointer and size of the rwstream whose type is memory (Created by
+ * purc_rwstream_new_buffer or purc_rwstream_new_from_mem).
+ *
+ * @param rw_mem: the purc_rwstream_t object.
+ * @param sz_content: (nullable): pointer to receive the size of content.
+ *
+ * @return success returns the pointer of the memory, @NULL not support and
+ *         the error code is set to indicate the error. The error code:
+ *  - @PURC_ERROR_INVALID_VALUE: Invalid value
+ *  - @PURC_ERROR_NOT_IMPLEMENTED: Not implemented
+ *
+ * @note: API changed since 0.0.2 (return the size of the buffer).
+ *
  * Since: 0.0.1
  */
-PCA_EXPORT const char* purc_rwstream_get_mem_buffer (purc_rwstream_t rw_mem,
-        size_t *sz);
+static inline void* purc_rwstream_get_mem_buffer (purc_rwstream_t rw_mem,
+        size_t *sz_content)
+{
+    return purc_rwstream_get_mem_buffer_ex (rw_mem, sz_content,
+            NULL, false);
+}
+
 
 PCA_EXTERN_C_END
 

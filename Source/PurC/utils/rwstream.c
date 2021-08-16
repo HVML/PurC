@@ -93,9 +93,9 @@ typedef struct rwstream_funcs
     ssize_t (*read) (purc_rwstream_t rws, void* buf, size_t count);
     ssize_t (*write) (purc_rwstream_t rws, const void* buf, size_t count);
     ssize_t (*flush) (purc_rwstream_t rws);
-    int     (*close) (purc_rwstream_t rws);
     int     (*destroy) (purc_rwstream_t rws);
-    const char* (*get_mem_buffer) (purc_rwstream_t rws, size_t *sz);
+    void*   (*get_mem_buffer) (purc_rwstream_t rws, size_t *sz_content,
+            size_t *sz_buffer, bool res_buff);
 } rwstream_funcs;
 
 struct purc_rwstream
@@ -126,6 +126,8 @@ struct buffer_rwstream
     uint8_t* end;
     size_t sz;
     size_t sz_max;
+
+    bool buff_reserved;
 };
 
 #if ENABLE(SOCKET_STREAM) && HAVE(GLIB)
@@ -142,9 +144,7 @@ static off_t stdio_tell (purc_rwstream_t rws);
 static ssize_t stdio_read (purc_rwstream_t rws, void* buf, size_t count);
 static ssize_t stdio_write (purc_rwstream_t rws, const void* buf, size_t count);
 static ssize_t stdio_flush (purc_rwstream_t rws);
-static int stdio_close (purc_rwstream_t rws);
 static int stdio_destroy (purc_rwstream_t rws);
-static const char* stdio_get_mem_buffer (purc_rwstream_t rws, size_t *sz);
 
 rwstream_funcs stdio_funcs = {
     stdio_seek,
@@ -152,9 +152,8 @@ rwstream_funcs stdio_funcs = {
     stdio_read,
     stdio_write,
     stdio_flush,
-    stdio_close,
     stdio_destroy,
-    stdio_get_mem_buffer
+    NULL
 };
 
 static off_t mem_seek (purc_rwstream_t rws, off_t offset, int whence);
@@ -162,9 +161,9 @@ static off_t mem_tell (purc_rwstream_t rws);
 static ssize_t mem_read (purc_rwstream_t rws, void* buf, size_t count);
 static ssize_t mem_write (purc_rwstream_t rws, const void* buf, size_t count);
 static ssize_t mem_flush (purc_rwstream_t rws);
-static int mem_close (purc_rwstream_t rws);
 static int mem_destroy (purc_rwstream_t rws);
-static const char* mem_get_mem_buffer (purc_rwstream_t rws, size_t *sz);
+static void* mem_get_mem_buffer (purc_rwstream_t rws,
+        size_t *sz_content, size_t *sz_buffer, bool res_buff);
 
 rwstream_funcs mem_funcs = {
     mem_seek,
@@ -172,7 +171,6 @@ rwstream_funcs mem_funcs = {
     mem_read,
     mem_write,
     mem_flush,
-    mem_close,
     mem_destroy,
     mem_get_mem_buffer
 };
@@ -182,9 +180,9 @@ static off_t buffer_tell (purc_rwstream_t rws);
 static ssize_t buffer_read (purc_rwstream_t rws, void* buf, size_t count);
 static ssize_t buffer_write (purc_rwstream_t rws, const void* buf, size_t count);
 static ssize_t buffer_flush (purc_rwstream_t rws);
-static int buffer_close (purc_rwstream_t rws);
 static int buffer_destroy (purc_rwstream_t rws);
-static const char* buffer_get_mem_buffer (purc_rwstream_t rws, size_t *sz);
+static void* buffer_get_mem_buffer (purc_rwstream_t rws,
+        size_t *sz_content, size_t *sz_buffer, bool res_buff);
 
 rwstream_funcs buffer_funcs = {
     buffer_seek,
@@ -192,7 +190,6 @@ rwstream_funcs buffer_funcs = {
     buffer_read,
     buffer_write,
     buffer_flush,
-    buffer_close,
     buffer_destroy,
     buffer_get_mem_buffer
 };
@@ -205,9 +202,7 @@ static off_t gio_tell (purc_rwstream_t rws);
 static ssize_t gio_read (purc_rwstream_t rws, void* buf, size_t count);
 static ssize_t gio_write (purc_rwstream_t rws, const void* buf, size_t count);
 static ssize_t gio_flush (purc_rwstream_t rws);
-static int gio_close (purc_rwstream_t rws);
 static int gio_destroy (purc_rwstream_t rws);
-static const char* gio_get_mem_buffer (purc_rwstream_t rws, size_t *sz);
 
 rwstream_funcs gio_funcs = {
     gio_seek,
@@ -215,9 +210,8 @@ rwstream_funcs gio_funcs = {
     gio_read,
     gio_write,
     gio_flush,
-    gio_close,
     gio_destroy,
-    gio_get_mem_buffer,
+    NULL,
 };
 
 rwstream_funcs win_socket_funcs = {
@@ -226,9 +220,8 @@ rwstream_funcs win_socket_funcs = {
     gio_read,
     gio_write,
     gio_flush,
-    gio_close,
     gio_destroy,
-    gio_get_mem_buffer
+    NULL,
 };
 
 int rwstream_error_code_from_gerror (GError* err)
@@ -298,6 +291,8 @@ purc_rwstream_t purc_rwstream_new_buffer (size_t sz_init, size_t sz_max)
     rws->end = rws->base + sz;
     rws->sz = sz;
     rws->sz_max = sz_max;
+
+    rws->buff_reserved = false;
 
     return (purc_rwstream_t)rws;
 }
@@ -532,16 +527,6 @@ ssize_t purc_rwstream_flush (purc_rwstream_t rws)
     return rws->funcs->flush(rws);
 }
 
-int purc_rwstream_close (purc_rwstream_t rws)
-{
-    if (rws == NULL)
-    {
-        RWSTREAM_SET_ERROR(PURC_ERROR_INVALID_VALUE);
-        return -1;
-    }
-    return rws->funcs->close(rws);
-}
-
 ssize_t purc_rwstream_dump_to_another (purc_rwstream_t in,
         purc_rwstream_t out, ssize_t count)
 {
@@ -588,14 +573,20 @@ ssize_t purc_rwstream_dump_to_another (purc_rwstream_t in,
     return ret_count;
 }
 
-const char* purc_rwstream_get_mem_buffer (purc_rwstream_t rws, size_t *sz)
+void* purc_rwstream_get_mem_buffer_ex (purc_rwstream_t rws,
+        size_t *sz_content, size_t *sz_buffer, bool res_buff)
 {
-    if (rws == NULL)
-    {
+    if (rws == NULL) {
         RWSTREAM_SET_ERROR(PURC_ERROR_INVALID_VALUE);
         return NULL;
     }
-    return rws->funcs->get_mem_buffer(rws, sz);
+
+    if (rws->funcs->get_mem_buffer == NULL) {
+        RWSTREAM_SET_ERROR(PURC_ERROR_NOT_SUPPORTED);
+        return NULL;
+    }
+
+    return rws->funcs->get_mem_buffer(rws, sz_content, sz_buffer, res_buff);
 }
 
 /* stdio rwstream functions */
@@ -642,36 +633,14 @@ static ssize_t stdio_flush (purc_rwstream_t rws)
     return fflush(((struct stdio_rwstream *)rws)->fp);
 }
 
-static int stdio_close (purc_rwstream_t rws)
-{
-    int ret = fclose(((struct stdio_rwstream *)rws)->fp);
-    if (ret == 0)
-    {
-        ((struct stdio_rwstream *)rws)->fp = NULL;
-    }
-    else
-    {
-        RWSTREAM_SET_ERROR(PURC_ERROR_BAD_SYSTEM_CALL);
-    }
-    return ret;
-}
-
 static int stdio_destroy (purc_rwstream_t rws)
 {
     if (((struct stdio_rwstream *)rws)->fp)
     {
-        stdio_close(rws);
+        fclose(((struct stdio_rwstream *)rws)->fp);
     }
     free(rws);
     return 0;
-}
-
-static const char* stdio_get_mem_buffer (purc_rwstream_t rws, size_t *sz)
-{
-    UNUSED_PARAM(rws);
-    UNUSED_PARAM(sz);
-    RWSTREAM_SET_ERROR(PURC_ERROR_NOT_IMPLEMENTED);
-    return NULL;
 }
 
 /* memory rwstream functions */
@@ -743,29 +712,31 @@ static ssize_t mem_flush (purc_rwstream_t rws)
     return 0;
 }
 
-static int mem_close (purc_rwstream_t rws)
+static int mem_destroy (purc_rwstream_t rws)
 {
     struct mem_rwstream* mem = (struct mem_rwstream *)rws;
     mem->base = NULL;
     mem->here = NULL;
     mem->stop = NULL;
-    return 0;
-}
-
-static int mem_destroy (purc_rwstream_t rws)
-{
     free(rws);
     return 0;
 }
 
-static const char* mem_get_mem_buffer (purc_rwstream_t rws, size_t *sz)
+static void* mem_get_mem_buffer (purc_rwstream_t rws,
+        size_t *sz_content, size_t *sz_buffer, bool res_buff)
 {
     struct mem_rwstream* mem = (struct mem_rwstream *)rws;
-    if (sz)
-    {
-        *sz = mem->stop - mem->base;
+
+    if (sz_content) {
+        *sz_content = mem->stop - mem->base;
     }
-    return (const char*)mem->base;
+
+    if (sz_buffer) {
+        *sz_content = mem->stop - mem->base;
+    }
+
+    UNUSED_PARAM(res_buff);
+    return mem->base;
 }
 
 /* buffer rwstream functions */
@@ -886,37 +857,32 @@ static ssize_t buffer_flush (purc_rwstream_t rws)
     return 0;
 }
 
-static int buffer_close (purc_rwstream_t rws)
-{
-    struct buffer_rwstream* buffer = (struct buffer_rwstream *)rws;
-    free(buffer->base);
-    buffer->base = NULL;
-    buffer->here = NULL;
-    buffer->stop = NULL;
-    buffer->end = NULL;
-    buffer->sz = 0;
-    buffer->sz_max = 0;
-    return 0;
-}
-
 static int buffer_destroy (purc_rwstream_t rws)
 {
     struct buffer_rwstream* buffer = (struct buffer_rwstream *)rws;
-    if (buffer->base) {
-        buffer_close(rws);
+    if (buffer->base && !buffer->buff_reserved) {
+        free(buffer->base);
     }
     free(rws);
     return 0;
 }
 
-static const char* buffer_get_mem_buffer (purc_rwstream_t rws, size_t *sz)
+static void* buffer_get_mem_buffer (purc_rwstream_t rws,
+        size_t *sz_content, size_t *sz_buffer, bool res_buff)
 {
     struct buffer_rwstream* buffer = (struct buffer_rwstream *)rws;
-    if (sz)
-    {
-        *sz = buffer->stop - buffer->base;
+
+    if (sz_content) {
+        *sz_content = buffer->stop - buffer->base;
     }
-    return (const char*)buffer->base;
+
+    if (sz_buffer) {
+        *sz_buffer = buffer->end - buffer->base;
+    }
+
+    buffer->buff_reserved = res_buff;
+
+    return buffer->base;
 }
 
 #if ENABLE(SOCKET_STREAM) && HAVE(GLIB)
@@ -1016,32 +982,16 @@ static ssize_t gio_flush (purc_rwstream_t rws)
     return -1;
 }
 
-static int gio_close (purc_rwstream_t rws)
-{
-    struct gio_rwstream* gio = (struct gio_rwstream *)rws;
-    g_io_channel_shutdown(gio->gio_channel, TRUE, NULL);
-    g_io_channel_unref(gio->gio_channel);
-    gio->gio_channel = NULL;
-    gio->fd = 0;
-    return 0;
-}
-
 static int gio_destroy (purc_rwstream_t rws)
 {
     struct gio_rwstream* gio = (struct gio_rwstream *)rws;
     if (gio->gio_channel)
     {
-        gio_close(rws);
+        g_io_channel_shutdown(gio->gio_channel, TRUE, NULL);
+        g_io_channel_unref(gio->gio_channel);
     }
     free(rws);
     return 0;
 }
 
-static const char* gio_get_mem_buffer (purc_rwstream_t rws, size_t *sz)
-{
-    UNUSED_PARAM(rws);
-    UNUSED_PARAM(sz);
-    RWSTREAM_SET_ERROR(PURC_ERROR_NOT_IMPLEMENTED);
-    return NULL;
-}
 #endif // ENABLE(SOCKET_STREAM)

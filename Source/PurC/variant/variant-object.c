@@ -354,7 +354,15 @@ struct purc_variant_object_iterator {
     purc_variant_t           obj;
 
     struct pchash_entry     *curr;
+    struct pchash_entry     *next, *prev;
 };
+
+#define _refresh_iterator(it) do {           \
+    if (it->curr) {                          \
+        it->next = it->curr->next;           \
+        it->prev = it->curr->prev;           \
+    }                                        \
+} while (0)
 
 struct purc_variant_object_iterator*
 purc_variant_object_make_iterator_begin (purc_variant_t object) {
@@ -377,6 +385,7 @@ purc_variant_object_make_iterator_begin (purc_variant_t object) {
 
     it->obj = object;
     it->curr = ht->head;
+    _refresh_iterator(it);
 
     return it;
 }
@@ -402,6 +411,7 @@ purc_variant_object_make_iterator_end (purc_variant_t object) {
 
     it->obj = object;
     it->curr = ht->tail;
+    _refresh_iterator(it);
 
     return it;
 }
@@ -415,6 +425,8 @@ purc_variant_object_release_iterator (struct purc_variant_object_iterator* it)
 
     it->obj = NULL;
     it->curr = NULL;
+    it->next = NULL;
+    it->prev = NULL;
 
     free(it);
 }
@@ -428,11 +440,13 @@ purc_variant_object_iterator_next (struct purc_variant_object_iterator* it)
 
     if (it->curr) {
         it->curr = it->curr->next;
-        return true;
-    } else {
-        pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
-        return false;
     }
+    _refresh_iterator(it);
+
+    if (it->curr)
+        return true;
+    pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
+    return false;
 }
 
 bool
@@ -444,11 +458,13 @@ purc_variant_object_iterator_prev (struct purc_variant_object_iterator* it)
 
     if (it->curr) {
         it->curr = it->curr->prev;
-        return true;
-    } else {
-        pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
-        return false;
     }
+    _refresh_iterator(it);
+
+    if (it->curr)
+        return true;
+    pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
+    return false;
 }
 
 const char*

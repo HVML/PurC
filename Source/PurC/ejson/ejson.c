@@ -266,7 +266,7 @@ void pcejson_dec_depth (struct pcejson* parser)
 void pcejson_tmp_buff_reset (purc_rwstream_t rws)
 {
     size_t sz = 0;
-    const char* p = purc_rwstream_get_mem_buffer(rws, &sz);
+    void* p = purc_rwstream_get_mem_buffer(rws, &sz);
     memset((void*)p, 0, sz);
     purc_rwstream_seek(rws, 0, SEEK_SET);
 }
@@ -291,7 +291,7 @@ const char* pcejson_tmp_buf_get_buf (purc_rwstream_t rws, size_t* sz)
 {
     *sz = purc_rwstream_tell (rws);
     size_t sz_mem = 0;
-    return purc_rwstream_get_mem_buffer (rws, &sz_mem);
+    return (const char*) purc_rwstream_get_mem_buffer (rws, &sz_mem);
 }
 
 void pcejson_tmp_buff_remove_first_last (purc_rwstream_t rws,
@@ -321,7 +321,7 @@ bool pcejson_tmp_buff_equal (purc_rwstream_t rws, const char* s)
 bool pcejson_tmp_buff_end_with (purc_rwstream_t rws, const char* s)
 {
     size_t sz = 0;
-    const char* p = purc_rwstream_get_mem_buffer (rws, &sz);
+    const char* p = (const char*)purc_rwstream_get_mem_buffer (rws, &sz);
     size_t len = pcejson_tmp_buff_length  (rws);
     size_t cmp_len = strlen(s);
     return memcmp(p + len - cmp_len, s, cmp_len) == 0;
@@ -330,7 +330,7 @@ bool pcejson_tmp_buff_end_with (purc_rwstream_t rws, const char* s)
 char pcejson_tmp_buff_last_char (purc_rwstream_t rws)
 {
     size_t sz = 0;
-    const char* p = purc_rwstream_get_mem_buffer (rws, &sz);
+    const char* p = (const char*)purc_rwstream_get_mem_buffer (rws, &sz);
     size_t len = pcejson_tmp_buff_length  (rws);
     return p[len - 1];
 }
