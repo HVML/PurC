@@ -113,6 +113,12 @@ static double get_variant_value (purc_variant_t var)
     size_t length = 0;
     long int templongint = 0;
     uintptr_t temppointer = 0;
+    struct purc_variant_object_iterator* it_obj = NULL;
+    struct purc_variant_set_iterator* it_set = NULL;
+    const char* key = NULL;
+    purc_variant_t val = NULL;
+    size_t i = 0;
+    bool having = false;
     enum purc_variant_type type = purc_variant_get_type (var);
 
     switch ((int)type) {
@@ -131,10 +137,10 @@ static double get_variant_value (purc_variant_t var)
             purc_variant_cast_to_number (var, &number, false);
             break;
         case PURC_VARIANT_TYPE_ATOMSTRING:
-            number = strtold (purc_variant_get_atom_string_const (var), NULL);
+            number = strtod (purc_variant_get_atom_string_const (var), NULL);
             break;
         case PURC_VARIANT_TYPE_STRING:
-            number = strtold (purc_variant_get_string_const (var), NULL);
+            number = strtod (purc_variant_get_string_const (var), NULL);
             break;
         case PURC_VARIANT_TYPE_BSEQUENCE:
             length = purc_variant_sequence_length (var);
@@ -156,11 +162,48 @@ static double get_variant_value (purc_variant_t var)
             number = (double) temppointer;
             break;
         case PURC_VARIANT_TYPE_OBJECT:
+            it_obj = purc_variant_object_make_iterator_begin(var);
+            while (it_obj) {
+                key = purc_variant_object_iterator_get_key(it_obj);
+                val = purc_variant_object_iterator_get_value(it_obj);
+
+                number += strtod (key, NULL);
+                number += get_variant_value (val);
+
+                having = purc_variant_object_iterator_next(it_obj);
+                if (!having)
+                    break;
+            }
+            if (it_obj)
+                purc_variant_object_release_iterator(it_obj);
+
             break;
+
         case PURC_VARIANT_TYPE_ARRAY:
+            for (i = 0; i < purc_variant_array_get_size (var); ++i) {
+                val = purc_variant_array_get(var, i);
+
+                number += get_variant_value (val);
+            }
+
             break;
+
         case PURC_VARIANT_TYPE_SET:
+            it_set = purc_variant_set_make_iterator_begin(var);
+            while (it_set) {
+                val = purc_variant_set_iterator_get_value(it_set);
+                
+                number += get_variant_value (val);
+
+                having = purc_variant_set_iterator_next(it_set);
+                if (!having) 
+                    break;
+            }
+            if (it_set)
+                purc_variant_set_release_iterator(it_set);
+
             break;
+
         default:
             break;
     }
@@ -292,60 +335,180 @@ static purc_variant_t
 logical_eq (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
 
-    return NULL;
+    purc_variant_t ret_var = NULL;
+    double value1 = 0.0d;
+    double value2 = 0.0d;
+
+    if ((argv == NULL) || (nr_args != 2)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[0] == NULL) || (argv[1] == NULL)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    value1 = get_variant_value (argv[0]);
+    value2 = get_variant_value (argv[1]);
+
+    if (fabs (value1 - value2) < 1.0E-10) 
+        ret_var = purc_variant_make_boolean (true);
+    else
+        ret_var = purc_variant_make_boolean (false);
+    
+    return ret_var;
 }
 
 static purc_variant_t
 logical_ne (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
 
-    return NULL;
+    purc_variant_t ret_var = NULL;
+    double value1 = 0.0d;
+    double value2 = 0.0d;
+
+    if ((argv == NULL) || (nr_args != 2)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[0] == NULL) || (argv[1] == NULL)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    value1 = get_variant_value (argv[0]);
+    value2 = get_variant_value (argv[1]);
+
+    if (fabs (value1 - value2) >= 1.0E-10) 
+        ret_var = purc_variant_make_boolean (true);
+    else
+        ret_var = purc_variant_make_boolean (false);
+    
+    return ret_var;
 }
 
 static purc_variant_t
 logical_gt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
 
-    return NULL;
+    purc_variant_t ret_var = NULL;
+    double value1 = 0.0d;
+    double value2 = 0.0d;
+
+    if ((argv == NULL) || (nr_args != 2)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[0] == NULL) || (argv[1] == NULL)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    value1 = get_variant_value (argv[0]);
+    value2 = get_variant_value (argv[1]);
+
+    if (value1 > value2) 
+        ret_var = purc_variant_make_boolean (true);
+    else
+        ret_var = purc_variant_make_boolean (false);
+    
+    return ret_var;
 }
 
 static purc_variant_t
 logical_ge (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
 
-    return NULL;
+    purc_variant_t ret_var = NULL;
+    double value1 = 0.0d;
+    double value2 = 0.0d;
+
+    if ((argv == NULL) || (nr_args != 2)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[0] == NULL) || (argv[1] == NULL)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    value1 = get_variant_value (argv[0]);
+    value2 = get_variant_value (argv[1]);
+
+    if (value1 >= value2) 
+        ret_var = purc_variant_make_boolean (true);
+    else
+        ret_var = purc_variant_make_boolean (false);
+    
+    return ret_var;
 }
 
 static purc_variant_t
 logical_lt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
 
-    return NULL;
+    purc_variant_t ret_var = NULL;
+    double value1 = 0.0d;
+    double value2 = 0.0d;
+
+    if ((argv == NULL) || (nr_args != 2)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[0] == NULL) || (argv[1] == NULL)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    value1 = get_variant_value (argv[0]);
+    value2 = get_variant_value (argv[1]);
+
+    if (value1 < value2) 
+        ret_var = purc_variant_make_boolean (true);
+    else
+        ret_var = purc_variant_make_boolean (false);
+    
+    return ret_var;
 }
 
 static purc_variant_t
 logical_le (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
 
-    return NULL;
+    purc_variant_t ret_var = NULL;
+    double value1 = 0.0d;
+    double value2 = 0.0d;
+
+    if ((argv == NULL) || (nr_args != 2)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[0] == NULL) || (argv[1] == NULL)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    value1 = get_variant_value (argv[0]);
+    value2 = get_variant_value (argv[1]);
+
+    if (value1 <= value2) 
+        ret_var = purc_variant_make_boolean (true);
+    else
+        ret_var = purc_variant_make_boolean (false);
+    
+    return ret_var;
 }
 
 static purc_variant_t

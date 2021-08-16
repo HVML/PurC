@@ -303,7 +303,6 @@ string_replace (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
             ret_var = PURC_VARIANT_INVALID;
     }
 
-    purc_rwstream_close (rwstream);
     purc_rwstream_destroy (rwstream);
 
     return ret_var;

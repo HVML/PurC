@@ -333,7 +333,6 @@ get_uname_prt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         }
     }
 
-    purc_rwstream_close (rwstream);
     purc_rwstream_destroy (rwstream);
 
     return ret_var;
