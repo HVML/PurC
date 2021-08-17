@@ -50,9 +50,7 @@ fs_list (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
-    struct utsname name;
-
-    return purc_variant_make_string (name.sysname, true);
+    return NULL;
 }
 
 static purc_variant_t
@@ -62,9 +60,7 @@ fs_mkdir (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
-    struct utsname name;
-
-    return purc_variant_make_string (name.sysname, true);
+    return NULL;
 }
 
 
@@ -75,9 +71,7 @@ fs_rmdir (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
-    struct utsname name;
-
-    return purc_variant_make_string (name.sysname, true);
+    return NULL;
 }
 
 static purc_variant_t
@@ -87,9 +81,7 @@ fs_touch (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
-    struct utsname name;
-
-    return purc_variant_make_string (name.sysname, true);
+    return NULL;
 }
 
 
@@ -100,9 +92,7 @@ fs_unlink (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
-    struct utsname name;
-
-    return purc_variant_make_string (name.sysname, true);
+    return NULL;
 }
 
 // only for test now.

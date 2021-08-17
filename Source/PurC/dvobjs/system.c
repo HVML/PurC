@@ -30,6 +30,7 @@
 #include "private/html.h"
 
 #include "purc-variant.h"
+#include "tools.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -39,37 +40,6 @@
 #include <locale.h>
 #include <time.h>
 #include <math.h>
-
-
-static const char* get_next_option (const char* data, const char* delims, 
-                                                            size_t* length)
-{
-    const char* head = data;
-    char* temp = NULL;
-
-    if ((delims == NULL) || (data == NULL) || (*delims == 0x00))
-        return NULL;
-
-    *length = 0;
-
-    while (*data != 0x00) {
-        temp = strchr (delims, *data);
-        if (temp) {
-            if (head == data) {
-                head = data + 1;
-            }
-            else 
-                break;
-        }
-        data++;
-    }
-
-    *length = data - head;
-    if (*length == 0)
-        head = NULL;
-
-    return head;
-}
 
 
 static purc_variant_t
