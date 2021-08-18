@@ -37,7 +37,6 @@
 #include <sys/utsname.h>
 #include <sys/time.h>
 
-// https://gitlab.fmsoft.cn/hvml/docs-undisclosed/blob/master/design/purc-architecture-zh.md#4102-_l
 const char* get_next_option (const char* data, const char* delims, 
                                                             size_t* length)
 {
@@ -84,7 +83,7 @@ const char* get_prev_option (const char* data, size_t str_len,
     while (str_len) {
         temp = strchr (delims, *(data + str_len - 1));
         if (temp) {
-            if (temp == (data + str_len - 1)) {
+            if (tail == str_len) {
                 str_len--;
                 tail = str_len;
             }

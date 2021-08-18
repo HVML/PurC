@@ -43,13 +43,14 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <linux/limits.h>
 
 static const char* get_work_dirctory (void)
 {
     return "/home/gengyue";
 }
 
-static ssize_t find_line (purc_rwstream_t rw, int line_num, ssize_t length)
+static ssize_t find_line (purc_rwstream_t rw, int line_num, ssize_t file_length)
 {
     size_t pos = 0;
     int i = 0;
@@ -66,7 +67,7 @@ static ssize_t find_line (purc_rwstream_t rw, int line_num, ssize_t length)
             if (read_size < 0) 
                 break;
 
-            head = get_next_option (buffer, "\n", &length);
+            head = get_next_option ((char *)buffer, "\n", &length);
             while (head) {
                 pos += length + 1;          // to be checked
                 line_num --;
@@ -86,17 +87,17 @@ static ssize_t find_line (purc_rwstream_t rw, int line_num, ssize_t length)
     else {
         line_num = -1 * line_num;
 
-        if (length <= 1024)
-            purc_rwstream_seek (rw, 0, SEEK_SET);
-        else
-            purc_rwstream_seek (rw, length - i * 1024, SEEK_SET);
-
         while (line_num) {
+            if (file_length <= 1024)
+                purc_rwstream_seek (rw, 0, SEEK_SET);
+            else
+                purc_rwstream_seek (rw, file_length - (i + 1) * 1024, SEEK_SET);
+
             read_size = purc_rwstream_read (rw, buffer, 1024);
             if (read_size < 0) 
                 break;
 
-            head = get_prev_option (buffer, read_size, "\n", &length);
+            head = get_prev_option ((char *)buffer, read_size, "\n", &length);
             while (head) {
                 pos += length + 1;          // to be checked
                 line_num --;
@@ -104,13 +105,17 @@ static ssize_t find_line (purc_rwstream_t rw, int line_num, ssize_t length)
                 if (line_num == 0)
                     break;
 
-                head = get_next_option (head + length, "\n", &length);
+                read_size -= length;
+                head = get_prev_option (head, read_size, "\n", &length);
             }
             if (read_size < 1024)           // to the end
                 break;
 
             if (line_num == 0)
                 break;
+
+            i ++;
+            file_length -= 1024;
         }
     }
 
@@ -123,12 +128,11 @@ file_text_head (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     UNUSED_PARAM(root);
     
     int64_t line_num = 0;
-    char filename[MAX_PATH] = {0,};
+    char filename[PATH_MAX] = {0,};
     const char* string_filename = NULL;
     off_t pos = 0;
 
     purc_rwstream_t rw_file = NULL;
-    purc_rwstream_t rw_buffer = NULL;
     purc_variant_t ret_var = NULL;
 
     if ((argv == NULL) || (nr_args == 0)) {
@@ -148,7 +152,7 @@ file_text_head (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
     else {
         strcpy (filename, get_work_dirctory ());
-        strcat (filename, '/');
+        strcat (filename, "/");
         strcat (filename, string_filename);
     }
 
