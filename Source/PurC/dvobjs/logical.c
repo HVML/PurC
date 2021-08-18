@@ -37,7 +37,7 @@
 #include <sys/utsname.h>
 #include <math.h>
 
-static bool judge_variant (purc_variant_t var) 
+static bool test_variant (purc_variant_t var) 
 {
     if (var == NULL)
         return false;
@@ -228,7 +228,7 @@ logical_not (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if (judge_variant (argv[0]))
+    if (test_variant (argv[0]))
         ret_var = purc_variant_make_boolean (false);
     else
         ret_var = purc_variant_make_boolean (true);
@@ -251,7 +251,7 @@ logical_and (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     while (argv[i]) {
-        if (!judge_variant (argv[i])) {
+        if (!test_variant (argv[i])) {
             judge = false;
             break;
         }
@@ -281,7 +281,7 @@ logical_or (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     while (argv[i]) {
-        if (judge_variant (argv[i])) {
+        if (test_variant (argv[i])) {
             judge = true;
             break;
         }
@@ -315,10 +315,10 @@ logical_xor (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if (judge_variant (argv[0]))
+    if (test_variant (argv[0]))
         judge1 = 0x01;
 
-    if (judge_variant (argv[1]))
+    if (test_variant (argv[1]))
         judge2 = 0x01;
 
     judge1 ^= judge2;

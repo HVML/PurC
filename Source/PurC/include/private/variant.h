@@ -40,6 +40,7 @@ extern "C" {
 #define PCVARIANT_FLAG_CONSTANT     (0x01 << 0)     // for null, true, ...
 #define PCVARIANT_FLAG_NOFREE       PCVARIANT_FLAG_CONSTANT
 #define PCVARIANT_FLAG_EXTRA_SIZE   (0x01 << 1)     // when use extra space
+#define PCVARIANT_FLAG_STATIC       (0x01 << 2)     // for the variant with static type
 
 #define PVT(t) (PURC_VARIANT_TYPE##t)
 
