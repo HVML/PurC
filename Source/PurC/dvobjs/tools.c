@@ -130,7 +130,7 @@ const char* pcdvobjs_file_get_prev_option (const char* data, size_t str_len,
                             const char* delims, size_t* length)
 {
     const char* head = NULL;
-    size_t tail = *length;
+    size_t tail = str_len;
     char* temp = NULL;
 
     if ((delims == NULL) || (data == NULL) || (*delims == 0x00) ||
@@ -141,22 +141,13 @@ const char* pcdvobjs_file_get_prev_option (const char* data, size_t str_len,
 
     while (str_len) {
         temp = strchr (delims, *(data + str_len - 1));
-        if (temp) {
-            if (tail == str_len) {
-                str_len--;
-                tail = str_len;
-            }
-            else 
-                break;
-        }
+        if (temp) 
+            break;
         str_len--;
     }
 
     *length = tail - str_len;
-    if (*length == 0)
-        head = NULL;
-    else
-        head = data + str_len;
+    head = data + str_len;
 
     return head;
 }

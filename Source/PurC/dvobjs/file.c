@@ -32,17 +32,21 @@
 #include "purc-variant.h"
 #include "tools.h"
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <linux/limits.h>
+#include <stdio.h>
 
 static const char* get_work_dirctory (void)
 {
     return "/home/gengyue";
 }
 
-static ssize_t find_line (purc_rwstream_t rw, int line_num, ssize_t file_length)
+static ssize_t find_line (FILE *fp, int line_num, ssize_t file_length)
 {
     size_t pos = 0;
     int i = 0;
@@ -52,10 +56,10 @@ static ssize_t find_line (purc_rwstream_t rw, int line_num, ssize_t file_length)
     const char* head = NULL;
 
     if (line_num > 0) {
-        purc_rwstream_seek (rw, 0, SEEK_SET);
+        fseek (fp, 0L, SEEK_SET);
 
         while (line_num) {
-            read_size = purc_rwstream_read (rw, buffer, 1024);
+            read_size = fread (buffer, 1, 1024, fp);
             if (read_size < 0) 
                 break;
 
@@ -78,28 +82,32 @@ static ssize_t find_line (purc_rwstream_t rw, int line_num, ssize_t file_length)
     }
     else {
         line_num = -1 * line_num;
+        file_length --;                     // the last is 0x0A
+        pos = file_length;
 
         while (line_num) {
             if (file_length <= 1024)
-                purc_rwstream_seek (rw, 0, SEEK_SET);
+                fseek (fp, 0L, SEEK_SET);
             else
-                purc_rwstream_seek (rw, file_length - (i + 1) * 1024, SEEK_SET);
+                fseek (fp, file_length - (i + 1) * 1024, SEEK_SET);
 
-            read_size = purc_rwstream_read (rw, buffer, 1024);
+            read_size = fread (buffer, 1, 1024, fp);
             if (read_size < 0) 
                 break;
 
             head = pcdvobjs_file_get_prev_option ((char *)buffer, read_size, 
                                                                 "\n", &length);
             while (head) {
-                pos += length + 1;          // to be checked
+                pos -= length;
+                pos--;
                 line_num --;
 
                 if (line_num == 0)
                     break;
 
                 read_size -= length;
-                head = pcdvobjs_file_get_prev_option (head, read_size, "\n",
+                read_size--;
+                head = pcdvobjs_file_get_prev_option ((char *)buffer, read_size, "\n",
                                                                     &length);
             }
             if (read_size < 1024)           // to the end
@@ -124,9 +132,9 @@ text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     int64_t line_num = 0;
     char filename[PATH_MAX] = {0,};
     const char* string_filename = NULL;
-    off_t pos = 0;
-
-    purc_rwstream_t rw_file = NULL;
+    FILE *fp = NULL;
+    size_t pos = 0;
+    struct stat filestat;
     purc_variant_t ret_var = NULL;
 
     if ((argv == NULL) || (nr_args == 0)) {
@@ -150,7 +158,6 @@ text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         strcat (filename, string_filename);
     }
 
-#if 0
     // check whether the file exists
     if((access(filename, F_OK | R_OK)) != 0) {
         pcinst_set_error (PURC_ERROR_NOT_EXISTS);
@@ -165,20 +172,32 @@ text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     if (filestat.st_size == 0) {
         return purc_variant_make_string ("", false); 
     }
-#endif
 
     if (argv[1] != NULL) 
         purc_variant_cast_to_longint (argv[1], &line_num, false);
 
-    rw_file = purc_rwstream_new_from_file (filename, "r");
-    if (rw_file == NULL) {
-        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        return PURC_VARIANT_INVALID;
+    fp = fopen (filename, "r");
+    if (fp == NULL)
+        return 0;
+
+    if (line_num == 0)
+        pos = filestat.st_size;
+    else
+        pos = find_line (fp, line_num, filestat.st_size);
+
+    char * content = malloc (pos + 1);
+    if (content == NULL) {
+        fclose (fp);
+        return purc_variant_make_string ("", false);
     }
 
-    pos = purc_rwstream_seek (rw_file, 0, SEEK_END);
+    fseek (fp, 0L, SEEK_SET);
+    *(content + pos) = 0x00;
+    pos = fread (content, 1, pos, fp);
 
-    pos = find_line (rw_file, line_num, pos);
+    ret_var = purc_variant_make_string_reuse_buff (content, pos, false); 
+
+    fclose (fp);
 
     return ret_var;
 }
@@ -187,20 +206,171 @@ static purc_variant_t
 text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
 
-    return NULL;
+    int64_t line_num = 0;
+    char filename[PATH_MAX] = {0,};
+    const char* string_filename = NULL;
+    FILE *fp = NULL;
+    size_t pos = 0;
+    struct stat filestat;
+    purc_variant_t ret_var = NULL;
+
+    if ((argv == NULL) || (nr_args == 0)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    // get the file name
+    string_filename = purc_variant_get_string_const (argv[0]);
+    if (*string_filename == '/') {
+        strcpy (filename, string_filename);
+    }
+    else {
+        strcpy (filename, get_work_dirctory ());
+        strcat (filename, "/");
+        strcat (filename, string_filename);
+    }
+
+    // check whether the file exists
+    if((access(filename, F_OK | R_OK)) != 0) {
+        pcinst_set_error (PURC_ERROR_NOT_EXISTS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    // get the file length
+    if(stat(filename, &filestat) < 0) {
+        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+        return PURC_VARIANT_INVALID;
+    }
+    if (filestat.st_size == 0) {
+        return purc_variant_make_string ("", false); 
+    }
+
+    if (argv[1] != NULL) 
+        purc_variant_cast_to_longint (argv[1], &line_num, false);
+
+    line_num = -1 * line_num;
+
+    fp = fopen (filename, "r");
+    if (fp == NULL)
+        return 0;
+
+    if (line_num == 0)
+        pos = filestat.st_size;
+    else
+        pos = find_line (fp, line_num, filestat.st_size);
+
+    // pos is \n
+    if (line_num < 0)
+        pos++;                          
+
+    fseek (fp, pos, SEEK_SET);
+
+    pos = filestat.st_size - pos;
+
+    char * content = malloc (pos + 1);
+    if (content == NULL) {
+        fclose (fp);
+        return purc_variant_make_string ("", false);
+    }
+
+    *(content + pos) = 0x00;
+    pos = fread (content, 1, pos - 1, fp);
+
+    ret_var = purc_variant_make_string_reuse_buff (content, pos, false); 
+
+    fclose (fp);
+
+    return ret_var;
 }
 
 static purc_variant_t
 bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
 
-    return NULL;
+    int64_t byte_num = 0;
+    char filename[PATH_MAX] = {0,};
+    const char* string_filename = NULL;
+    FILE *fp = NULL;
+    size_t pos = 0;
+    struct stat filestat;
+    purc_variant_t ret_var = NULL;
+
+    if ((argv == NULL) || (nr_args == 0)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    // get the file name
+    string_filename = purc_variant_get_string_const (argv[0]);
+    if (*string_filename == '/') {
+        strcpy (filename, string_filename);
+    }
+    else {
+        strcpy (filename, get_work_dirctory ());
+        strcat (filename, "/");
+        strcat (filename, string_filename);
+    }
+
+    // check whether the file exists
+    if((access(filename, F_OK | R_OK)) != 0) {
+        pcinst_set_error (PURC_ERROR_NOT_EXISTS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    // get the file length
+    if(stat(filename, &filestat) < 0) {
+        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+        return PURC_VARIANT_INVALID;
+    }
+    if (filestat.st_size == 0) {
+        return purc_variant_make_byte_sequence (NULL, 0);
+    }
+
+    if (argv[1] != NULL) 
+        purc_variant_cast_to_longint (argv[1], &byte_num, false);
+
+    fp = fopen (filename, "r");
+    if (fp == NULL) 
+        return 0;
+
+    if (byte_num == 0)
+        pos = filestat.st_size;
+    else if (byte_num > 0)
+        pos = byte_num;
+    else {
+        if ((-1 * byte_num) > filestat.st_size) {
+            return purc_variant_make_byte_sequence (NULL, 0);
+        }
+        else
+            pos = filestat.st_size + byte_num;
+    }
+
+    char * content = malloc (pos);
+    if (content == NULL) {
+        fclose (fp);
+        return purc_variant_make_byte_sequence (NULL, 0);
+    }
+
+    fseek (fp, 0L, SEEK_SET);
+    pos = fread (content, 1, pos, fp);
+
+    ret_var = purc_variant_make_byte_sequence_reuse_buff (content, pos, pos); 
+
+    fclose (fp);
+
+    return ret_var;
 }
 
 
@@ -208,20 +378,152 @@ static purc_variant_t
 bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
 
-    return NULL;
+    int64_t byte_num = 0;
+    char filename[PATH_MAX] = {0,};
+    const char* string_filename = NULL;
+    FILE *fp = NULL;
+    size_t pos = 0;
+    struct stat filestat;
+    purc_variant_t ret_var = NULL;
+
+    if ((argv == NULL) || (nr_args == 0)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    // get the file name
+    string_filename = purc_variant_get_string_const (argv[0]);
+    if (*string_filename == '/') {
+        strcpy (filename, string_filename);
+    }
+    else {
+        strcpy (filename, get_work_dirctory ());
+        strcat (filename, "/");
+        strcat (filename, string_filename);
+    }
+
+    // check whether the file exists
+    if((access(filename, F_OK | R_OK)) != 0) {
+        pcinst_set_error (PURC_ERROR_NOT_EXISTS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    // get the file length
+    if(stat(filename, &filestat) < 0) {
+        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+        return PURC_VARIANT_INVALID;
+    }
+    if (filestat.st_size == 0) {
+        return purc_variant_make_byte_sequence (NULL, 0);
+    }
+
+    if (argv[1] != NULL) 
+        purc_variant_cast_to_longint (argv[1], &byte_num, false);
+
+    fp = fopen (filename, "r");
+    if (fp == NULL)
+        return 0;
+
+    if (byte_num == 0)
+        pos = filestat.st_size;
+    else if (byte_num > 0)
+        pos = byte_num;
+    else {
+        if ((-1 * byte_num) > filestat.st_size) {
+            return purc_variant_make_byte_sequence (NULL, 0);
+        }
+        else
+            pos = filestat.st_size + byte_num;
+    }
+
+    fseek (fp, filestat.st_size - pos, SEEK_SET);
+
+    char * content = malloc (pos);
+    if (content == NULL) {
+        fclose (fp);
+        return purc_variant_make_byte_sequence (NULL, 0);
+    }
+
+    pos = fread (content, 1, pos, fp);
+
+    ret_var = purc_variant_make_byte_sequence_reuse_buff (content, pos, pos); 
+
+    fclose (fp);
+
+    return ret_var;
 }
 
+static bool release_rwstream (void *rwstream)
+{
+    if (rwstream == NULL)
+        return false;
+
+    purc_rwstream_destroy ((purc_rwstream_t)rwstream);
+
+    return true;
+}
 static purc_variant_t
 stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
 
-    return NULL;
+    char filename[PATH_MAX] = {0,};
+    const char *string_filename = NULL;
+    struct stat filestat;
+    purc_variant_t ret_var = NULL;
+    purc_rwstream_t rwstream = NULL;
+
+    if ((argv == NULL) || (nr_args != 1)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    // get the file name
+    string_filename = purc_variant_get_string_const (argv[0]);
+    if (*string_filename == '/') {
+        strcpy (filename, string_filename);
+    }
+    else {
+        strcpy (filename, get_work_dirctory ());
+        strcat (filename, "/");
+        strcat (filename, string_filename);
+    }
+
+    // check whether the file exists
+    if((access(filename, F_OK | R_OK)) != 0) {
+        pcinst_set_error (PURC_ERROR_NOT_EXISTS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    // get the file length
+    if(stat(filename, &filestat) < 0) {
+        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+        return PURC_VARIANT_INVALID;
+    }
+    if (filestat.st_size == 0) {
+        return purc_variant_make_byte_sequence (NULL, 0);
+    }
+
+    rwstream = purc_rwstream_new_from_file (filename, "r");
+
+    ret_var = purc_variant_make_native (rwstream, release_rwstream);
+    if(ret_var == PURC_VARIANT_INVALID) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    return ret_var;
 }
 
 static purc_variant_t
