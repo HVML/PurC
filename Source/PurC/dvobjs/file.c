@@ -67,7 +67,7 @@ static ssize_t find_line (purc_rwstream_t rw, int line_num, ssize_t file_length)
             if (read_size < 0) 
                 break;
 
-            head = pcdvobjs_get_next_option ((char *)buffer, "\n", &length);
+            head = pcdvobjs_file_get_next_option ((char *)buffer, "\n", &length);
             while (head) {
                 pos += length + 1;          // to be checked
                 line_num --;
@@ -75,7 +75,7 @@ static ssize_t find_line (purc_rwstream_t rw, int line_num, ssize_t file_length)
                 if (line_num == 0)
                     break;
 
-                head = pcdvobjs_get_next_option (head + length, "\n", &length);
+                head = pcdvobjs_file_get_next_option (head + length + 1, "\n", &length);
             }
             if (read_size < 1024)           // to the end
                 break;
@@ -97,7 +97,8 @@ static ssize_t find_line (purc_rwstream_t rw, int line_num, ssize_t file_length)
             if (read_size < 0) 
                 break;
 
-            head = pcdvobjs_get_prev_option ((char *)buffer, read_size, "\n", &length);
+            head = pcdvobjs_file_get_prev_option ((char *)buffer, read_size, 
+                                                                "\n", &length);
             while (head) {
                 pos += length + 1;          // to be checked
                 line_num --;
@@ -106,7 +107,8 @@ static ssize_t find_line (purc_rwstream_t rw, int line_num, ssize_t file_length)
                     break;
 
                 read_size -= length;
-                head = pcdvobjs_get_prev_option (head, read_size, "\n", &length);
+                head = pcdvobjs_file_get_prev_option (head, read_size, "\n",
+                                                                    &length);
             }
             if (read_size < 1024)           // to the end
                 break;

@@ -101,3 +101,63 @@ const char* pcdvobjs_get_prev_option (const char* data, size_t str_len,
 
     return head;
 }
+
+// for file to get '\n'
+const char* pcdvobjs_file_get_next_option (const char* data, 
+                                  const char* delims, size_t* length)
+{
+    const char* head = data;
+    char* temp = NULL;
+
+    if ((delims == NULL) || (data == NULL) || (*delims == 0x00))
+        return NULL;
+
+    *length = 0;
+
+    while (*data != 0x00) {
+        temp = strchr (delims, *data);
+        if (temp) 
+            break;
+        data++;
+    }
+
+    *length = data - head;
+
+    return head;
+}
+
+const char* pcdvobjs_file_get_prev_option (const char* data, size_t str_len, 
+                            const char* delims, size_t* length)
+{
+    const char* head = NULL;
+    size_t tail = *length;
+    char* temp = NULL;
+
+    if ((delims == NULL) || (data == NULL) || (*delims == 0x00) ||
+                                                        (str_len == 0))
+        return NULL;
+
+    *length = 0;
+
+    while (str_len) {
+        temp = strchr (delims, *(data + str_len - 1));
+        if (temp) {
+            if (tail == str_len) {
+                str_len--;
+                tail = str_len;
+            }
+            else 
+                break;
+        }
+        str_len--;
+    }
+
+    *length = tail - str_len;
+    if (*length == 0)
+        head = NULL;
+    else
+        head = data + str_len;
+
+    return head;
+}
+

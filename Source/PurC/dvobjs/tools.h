@@ -36,6 +36,10 @@ const char* pcdvobjs_get_next_option (const char* data, const char* delims,
                                             size_t* length) WTF_INTERNAL;
 const char* pcdvobjs_get_prev_option (const char* data, size_t str_len, 
                             const char* delims, size_t* length) WTF_INTERNAL;
+const char* pcdvobjs_file_get_next_option (const char* data, const char* delims,
+                                            size_t* length) WTF_INTERNAL;
+const char* pcdvobjs_file_get_prev_option (const char* data, size_t str_len, 
+                            const char* delims, size_t* length) WTF_INTERNAL;
 
 #ifdef __cplusplus
 }
