@@ -67,7 +67,7 @@ static ssize_t find_line (purc_rwstream_t rw, int line_num, ssize_t file_length)
             if (read_size < 0) 
                 break;
 
-            head = get_next_option ((char *)buffer, "\n", &length);
+            head = pcdvobjs_get_next_option ((char *)buffer, "\n", &length);
             while (head) {
                 pos += length + 1;          // to be checked
                 line_num --;
@@ -75,7 +75,7 @@ static ssize_t find_line (purc_rwstream_t rw, int line_num, ssize_t file_length)
                 if (line_num == 0)
                     break;
 
-                head = get_next_option (head + length, "\n", &length);
+                head = pcdvobjs_get_next_option (head + length, "\n", &length);
             }
             if (read_size < 1024)           // to the end
                 break;
@@ -97,7 +97,7 @@ static ssize_t find_line (purc_rwstream_t rw, int line_num, ssize_t file_length)
             if (read_size < 0) 
                 break;
 
-            head = get_prev_option ((char *)buffer, read_size, "\n", &length);
+            head = pcdvobjs_get_prev_option ((char *)buffer, read_size, "\n", &length);
             while (head) {
                 pos += length + 1;          // to be checked
                 line_num --;
@@ -106,7 +106,7 @@ static ssize_t find_line (purc_rwstream_t rw, int line_num, ssize_t file_length)
                     break;
 
                 read_size -= length;
-                head = get_prev_option (head, read_size, "\n", &length);
+                head = pcdvobjs_get_prev_option (head, read_size, "\n", &length);
             }
             if (read_size < 1024)           // to the end
                 break;
@@ -123,7 +123,7 @@ static ssize_t find_line (purc_rwstream_t rw, int line_num, ssize_t file_length)
 }
 
 static purc_variant_t
-file_text_head (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
     
@@ -190,7 +190,7 @@ file_text_head (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 static purc_variant_t
-file_text_tail (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
@@ -200,7 +200,7 @@ file_text_tail (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 static purc_variant_t
-file_bin_head (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
@@ -211,7 +211,61 @@ file_bin_head (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
 
 static purc_variant_t
-file_bin_tail (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    return NULL;
+}
+
+static purc_variant_t
+stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    return NULL;
+}
+
+static purc_variant_t
+stream_readstruct_getter (purc_variant_t root, size_t nr_args, 
+                                                        purc_variant_t* argv)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    return NULL;
+}
+
+static purc_variant_t
+stream_readlines_getter (purc_variant_t root, size_t nr_args, 
+                                                        purc_variant_t* argv)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    return NULL;
+}
+
+static purc_variant_t
+stream_readbytes_getter (purc_variant_t root, size_t nr_args, 
+                                                        purc_variant_t* argv)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    return NULL;
+}
+
+static purc_variant_t
+stream_seek_getter (purc_variant_t root, size_t nr_args, 
+                                                        purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
@@ -223,11 +277,30 @@ file_bin_tail (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 // only for test now.
 purc_variant_t pcdvojbs_get_file (void)
 {
-    purc_variant_t file = purc_variant_make_object_c (4,
-            "file_text_head",  purc_variant_make_dynamic (file_text_head, NULL),
-            "file_text_tail",  purc_variant_make_dynamic (file_text_tail, NULL),
-            "file_bin_head",   purc_variant_make_dynamic (file_bin_head, NULL),
-            "file_bin_tail",   purc_variant_make_dynamic (file_bin_tail, NULL)
-       );
+    purc_variant_t file_text = purc_variant_make_object_c (2,
+            "text_head_getter",  purc_variant_make_dynamic (text_head_getter, NULL),
+            "text_tail_getter",  purc_variant_make_dynamic (text_tail_getter, NULL));
+            
+    purc_variant_t file_bin = purc_variant_make_object_c (2,
+            "bin_head_getter",   purc_variant_make_dynamic (bin_head_getter, NULL),
+            "bin_tail_getter",   purc_variant_make_dynamic (bin_tail_getter, NULL));
+
+    purc_variant_t file_stream = purc_variant_make_object_c (5,
+            "stream_open_getter",        purc_variant_make_dynamic 
+                                                        (stream_open_getter, NULL),
+            "stream_readstruct_getter",  purc_variant_make_dynamic 
+                                                        (stream_readstruct_getter, NULL),
+            "stream_readlines_getter",   purc_variant_make_dynamic 
+                                                        (stream_readlines_getter, NULL),
+            "stream_readbytes_getter",   purc_variant_make_dynamic 
+                                                        (stream_readbytes_getter, NULL),
+            "stream_seek_getter",        purc_variant_make_dynamic 
+                                                        (stream_seek_getter, NULL));
+
+    purc_variant_t file = purc_variant_make_object_c (2,
+            "text",   file_text,
+            "bin",    file_bin,
+            "stream", file_stream);
+
     return file;
 }

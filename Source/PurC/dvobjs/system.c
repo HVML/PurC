@@ -117,7 +117,7 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     if (nr_args) {
         const char * option = purc_variant_get_string_const (argv[0]);
-        const char * head = get_next_option (option, " ", &length);
+        const char * head = pcdvobjs_get_next_option (option, " ", &length);
 
         while (head) {
             switch (* head)
@@ -285,7 +285,7 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
                     break;
             }
 
-            head = get_next_option (head + length, " ", &length);
+            head = pcdvobjs_get_next_option (head + length, " ", &length);
         }
     }
     else
@@ -330,7 +330,7 @@ locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         
     if (nr_args) {
         const char* option = purc_variant_get_string_const (argv[0]);
-        const char * head = get_next_option (option, " ", &length);
+        const char * head = pcdvobjs_get_next_option (option, " ", &length);
 
         while (head) {
             switch (* head)
@@ -412,7 +412,7 @@ locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
                     break;
             }
 
-            head = get_next_option (head + length, " ", &length);
+            head = pcdvobjs_get_next_option (head + length, " ", &length);
         }
     }
     else
@@ -452,7 +452,7 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
         
     const char* option = purc_variant_get_string_const (argv[0]);
-    const char * head = get_next_option (option, " ", &length);
+    const char * head = pcdvobjs_get_next_option (option, " ", &length);
 
     while (head) {
         switch (* head)
@@ -580,7 +580,7 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
                 }
         }
 
-        head = get_next_option (head + length, " ", &length);
+        head = pcdvobjs_get_next_option (head + length, " ", &length);
     }
 
     return ret_var;

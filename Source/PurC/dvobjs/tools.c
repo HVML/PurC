@@ -37,7 +37,7 @@
 #include <sys/utsname.h>
 #include <sys/time.h>
 
-const char* get_next_option (const char* data, const char* delims, 
+const char* pcdvobjs_get_next_option (const char* data, const char* delims, 
                                                             size_t* length)
 {
     const char* head = data;
@@ -67,7 +67,7 @@ const char* get_next_option (const char* data, const char* delims,
     return head;
 }
 
-const char* get_prev_option (const char* data, size_t str_len, 
+const char* pcdvobjs_get_prev_option (const char* data, size_t str_len, 
                             const char* delims, size_t* length)
 {
     const char* head = NULL;
