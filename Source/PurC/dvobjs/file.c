@@ -1,8 +1,8 @@
 /*
- * @file dvobjs.c
+ * @file file.c
  * @author Geng Yue
  * @date 2021/07/02
- * @brief The implementation of public part for html parser.
+ * @brief The implementation of file dynamic variant object.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -20,14 +20,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- *
- * This implementation of HTML parser is derived from Lexbor
- * <https://github.com/lexbor/lexbor>, which is licensed under the Apache
- * License, Version 2.0:
- *
- * Copyright (C) 2018-2020 Alexander Borisov
- *
- * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
 #include "private/instance.h"
