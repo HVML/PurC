@@ -613,7 +613,7 @@ random_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    srand(time(NULL));
+    srand(time(NULL));      // todo initial
     random = number * rand() / (double)(RAND_MAX);
 
     return purc_variant_make_number (random); 

@@ -43,6 +43,7 @@
 
 static const char* get_work_dirctory (void)
 {
+    // todo: getcwd
     return "/home/gengyue";
 }
 
@@ -574,24 +575,24 @@ stream_seek_getter (purc_variant_t root, size_t nr_args,
 purc_variant_t pcdvojbs_get_file (void)
 {
     purc_variant_t file_text = purc_variant_make_object_c (2,
-            "text_head_getter",  purc_variant_make_dynamic (text_head_getter, NULL),
-            "text_tail_getter",  purc_variant_make_dynamic (text_tail_getter, NULL));
+            "head",       purc_variant_make_dynamic (text_head_getter, NULL),
+            "tail",       purc_variant_make_dynamic (text_tail_getter, NULL));
             
     purc_variant_t file_bin = purc_variant_make_object_c (2,
-            "bin_head_getter",   purc_variant_make_dynamic (bin_head_getter, NULL),
-            "bin_tail_getter",   purc_variant_make_dynamic (bin_tail_getter, NULL));
+            "head",       purc_variant_make_dynamic (bin_head_getter, NULL),
+            "tail",       purc_variant_make_dynamic (bin_tail_getter, NULL));
 
     purc_variant_t file_stream = purc_variant_make_object_c (5,
-            "stream_open_getter",        purc_variant_make_dynamic 
-                                                        (stream_open_getter, NULL),
-            "stream_readstruct_getter",  purc_variant_make_dynamic 
-                                                        (stream_readstruct_getter, NULL),
-            "stream_readlines_getter",   purc_variant_make_dynamic 
-                                                        (stream_readlines_getter, NULL),
-            "stream_readbytes_getter",   purc_variant_make_dynamic 
-                                                        (stream_readbytes_getter, NULL),
-            "stream_seek_getter",        purc_variant_make_dynamic 
-                                                        (stream_seek_getter, NULL));
+            "open",       purc_variant_make_dynamic 
+                                            (stream_open_getter, NULL),
+            "readstruct", purc_variant_make_dynamic 
+                                            (stream_readstruct_getter, NULL),
+            "readlines",  purc_variant_make_dynamic 
+                                            (stream_readlines_getter, NULL),
+            "readbytes",  purc_variant_make_dynamic 
+                                            (stream_readbytes_getter, NULL),
+            "seek",       purc_variant_make_dynamic 
+                                            (stream_seek_getter, NULL));
 
     purc_variant_t file = purc_variant_make_object_c (2,
             "text",   file_text,

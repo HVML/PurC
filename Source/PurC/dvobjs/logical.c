@@ -36,6 +36,129 @@
 #include <stdint.h>
 #include <sys/utsname.h>
 #include <math.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <regex.h>
+#include <memory.h>
+#include <stdlib.h>
+
+
+#if 0
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+char *my_strstr(const char * str1,const char * str2, int len)
+{
+    char *tmp2,*tmp1 = (char *)malloc(len);
+    memcpy(tmp1,str2,len);
+    tmp2 = strstr(str1,tmp1);
+    free(tmp1);
+    return tmp2;
+}
+
+int _m(char * str1,char * str2)
+{
+    char *pos=str1,*pos1=str2,*pos2=str2;
+    char *tmp;
+    while(1)
+        switch(*pos1)
+        {
+        case '*':
+            pos1++;
+            pos2++;
+            while(*pos2 != '*' && *pos2 != '?' && *pos2 != '\0')
+                pos2++;
+            if (pos2 != pos1)
+            {
+                tmp = my_strstr(pos,pos1,pos2-pos1);
+                if(tmp != NULL)
+                {
+                    pos = tmp+ (pos2-pos1);
+                    pos1 = pos2;
+                }
+                else
+                    return 0;
+            }
+            break;
+        case '?':
+            pos1++;
+            pos2++;
+            if(*pos!='\0')
+                pos++;
+            else
+                return 0;
+            break;
+        case '\0':
+            return 1;
+            break;
+        default:
+            while(*pos2 != '*' && *pos2 != '?' && *pos2 != '\0')
+                pos2++;
+            //tmp = my_strstr(pos,pos1,pos2-pos1);
+            //if(tmp != NULL && tmp == pos)
+            if(!memcmp(pos,pos1,pos2-pos1))
+            {
+                pos += pos2-pos1;
+                pos1 = pos2;
+            }
+            else
+                return 0;
+            break;
+        }
+    return 0;
+}
+
+int main(void)
+{
+    printf("%d \n",_m("hello world","h?*wo*l?*"));
+    return 0;
+}
+#endif
+
+
+
+static bool wildcard_cmp (const char *buf1, const char *buf2)
+{
+    regex_t reg;
+    int err = 0;
+    int number = 10;
+    regmatch_t pmatch[number];
+
+    if (regcomp (&reg, buf1, REG_EXTENDED) < 0) {
+        return false;
+    }
+
+    err = regexec(&reg, buf2, number, pmatch, 0);
+
+    if (err == REG_NOMATCH) 
+        return false;
+    else if (err) 
+        return false;
+
+    return true;
+}
+
+static bool reg_cmp (const char *buf1, const char *buf2)
+{
+    regex_t reg;
+    int err = 0;
+    int number = 10;
+    regmatch_t pmatch[number];
+
+    if (regcomp (&reg, buf1, REG_EXTENDED) < 0) {
+        return false;
+    }
+
+    err = regexec(&reg, buf2, number, pmatch, 0);
+
+    if (err == REG_NOMATCH) 
+        return false;
+    else if (err) 
+        return false;
+
+    return true;
+}
 
 static bool test_variant (purc_variant_t var) 
 {
@@ -515,20 +638,132 @@ static purc_variant_t
 logical_streq (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
 
-    return NULL;
+    purc_variant_t ret_var = NULL;
+
+    if ((argv == NULL) || (nr_args != 2)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[1] == NULL) || (argv[2] == NULL)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    const char * option = purc_variant_get_string_const (argv[0]);
+    purc_rwstream_t stream1 = purc_rwstream_new_buffer (32, 1024);
+    purc_rwstream_t stream2 = purc_rwstream_new_buffer (32, 1024);
+    size_t sz_stream1 = 0;
+    size_t sz_stream2 = 0;
+
+
+    purc_variant_serialize (argv[1], stream1, 3, 0, &sz_stream1);
+    purc_variant_serialize (argv[1], stream2, 3, 0, &sz_stream2);
+
+    char *buf1 = purc_rwstream_get_mem_buffer (stream1, &sz_stream1);
+    char *buf2 = purc_rwstream_get_mem_buffer (stream2, &sz_stream2);
+
+    if (strcasecmp (option, "caseless") == 0) {
+        if (strcasecmp (buf1, buf2))
+            ret_var = purc_variant_make_boolean (true);
+        else
+            ret_var = purc_variant_make_boolean (false);
+    }
+    else if (strcasecmp (option, "case") == 0) {
+        if (strcmp (buf1, buf2))
+            ret_var = purc_variant_make_boolean (true);
+        else
+            ret_var = purc_variant_make_boolean (false);
+    }
+    else if (strcasecmp (option, "wildcard") == 0) {
+        if (wildcard_cmp (buf1, buf2))
+            ret_var = purc_variant_make_boolean (true);
+        else
+            ret_var = purc_variant_make_boolean (false);
+    }
+    else if (strcasecmp (option, "reg") == 0) {
+        if (reg_cmp (buf1, buf2))
+            ret_var = purc_variant_make_boolean (true);
+        else
+            ret_var = purc_variant_make_boolean (false);
+    }
+
+    purc_rwstream_destroy (stream1);
+    purc_rwstream_destroy (stream2);
+
+    return ret_var;
 }
 
 static purc_variant_t
 logical_strne (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
 
-    return NULL;
+    purc_variant_t ret_var = NULL;
+
+    if ((argv == NULL) || (nr_args != 2)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[1] == NULL) || (argv[2] == NULL)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    const char * option = purc_variant_get_string_const (argv[0]);
+    purc_rwstream_t stream1 = purc_rwstream_new_buffer (32, 1024);
+    purc_rwstream_t stream2 = purc_rwstream_new_buffer (32, 1024);
+    size_t sz_stream1 = 0;
+    size_t sz_stream2 = 0;
+
+
+    purc_variant_serialize (argv[1], stream1, 3, 0, &sz_stream1);
+    purc_variant_serialize (argv[1], stream2, 3, 0, &sz_stream2);
+
+    char *buf1 = purc_rwstream_get_mem_buffer (stream1, &sz_stream1);
+    char *buf2 = purc_rwstream_get_mem_buffer (stream2, &sz_stream2);
+
+    if (strcasecmp (option, "caseless") == 0) {
+        if (strcasecmp (buf1, buf2))
+            ret_var = purc_variant_make_boolean (false);
+        else
+            ret_var = purc_variant_make_boolean (true);
+    }
+    else if (strcasecmp (option, "case") == 0) {
+        if (strcmp (buf1, buf2))
+            ret_var = purc_variant_make_boolean (false);
+        else
+            ret_var = purc_variant_make_boolean (true);
+    }
+    else if (strcasecmp (option, "wildcard") == 0) {
+        if (wildcard_cmp (buf1, buf2))
+            ret_var = purc_variant_make_boolean (false);
+        else
+            ret_var = purc_variant_make_boolean (true);
+    }
+    else if (strcasecmp (option, "reg") == 0) {
+        if (reg_cmp (buf1, buf2))
+            ret_var = purc_variant_make_boolean (false);
+        else
+            ret_var = purc_variant_make_boolean (true);
+    }
+
+    purc_rwstream_destroy (stream1);
+    purc_rwstream_destroy (stream2);
+
+    return ret_var;
 }
 
 static purc_variant_t
