@@ -292,12 +292,13 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         purc_rwstream_write (rwstream, name.sysname, strlen (name.sysname));
 
     size_t rw_size = 0;
-    const char * rw_string = purc_rwstream_get_mem_buffer (rwstream, &rw_size);
-
+    size_t content_size = 0;
+    char * rw_string = purc_rwstream_get_mem_buffer_ex (rwstream, 
+                                            &content_size, &rw_size, true);
     if ((rw_size == 0) || (rw_string == NULL))
         ret_var = PURC_VARIANT_INVALID;
     else {
-        ret_var = purc_variant_make_string (rw_string, false); 
+        ret_var = purc_variant_make_string_reuse_buff (rw_string, rw_size, false); 
         if(ret_var == PURC_VARIANT_INVALID) {
             pcinst_set_error (PURC_ERROR_INVALID_VALUE);
             ret_var = PURC_VARIANT_INVALID;
@@ -960,12 +961,15 @@ time_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
             purc_rwstream_write (rwstream, name + start, strlen (name + start));
 
         size_t rw_size = 0;
-        const char * rw_string = purc_rwstream_get_mem_buffer (rwstream, &rw_size);
+        size_t content_size = 0;
+        char * rw_string = purc_rwstream_get_mem_buffer_ex (rwstream, 
+                                            &content_size, &rw_size, true);
 
         if ((rw_size == 0) || (rw_string == NULL))
             ret_var = PURC_VARIANT_INVALID;
         else {
-            ret_var = purc_variant_make_string (rw_string, false);
+            ret_var = purc_variant_make_string_reuse_buff (rw_string, 
+                                                        rw_size, false);
             if(ret_var == PURC_VARIANT_INVALID) {
                 pcinst_set_error (PURC_ERROR_INVALID_VALUE);
                 ret_var = PURC_VARIANT_INVALID;
