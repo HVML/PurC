@@ -543,10 +543,29 @@ stream_readlines_getter (purc_variant_t root, size_t nr_args,
                                                         purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
 
-    return NULL;
+    purc_variant_t ret_var = NULL;
+//    unsigned char *sequence = NULL;
+    size_t line_num = 0;
+
+    if ((argv == NULL) || (nr_args != 2)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[0] != NULL) && (!purc_variant_is_native (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if (argv[1] == NULL) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_cast_to_ulongint (argv[1], &line_num, false);
+
+    return ret_var;
 }
 
 static purc_variant_t
@@ -554,10 +573,29 @@ stream_readbytes_getter (purc_variant_t root, size_t nr_args,
                                                         purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
 
-    return NULL;
+    purc_variant_t ret_var = NULL;
+//    unsigned char *sequence = NULL;
+    size_t byte_num = 0;
+
+    if ((argv == NULL) || (nr_args != 2)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[0] != NULL) && (!purc_variant_is_native (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if (argv[1] == NULL) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_cast_to_ulongint (argv[1], &byte_num, false);
+
+    return ret_var;
 }
 
 static purc_variant_t
@@ -565,10 +603,28 @@ stream_seek_getter (purc_variant_t root, size_t nr_args,
                                                         purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
 
-    return NULL;
+    purc_variant_t ret_var = NULL;
+    size_t pos = 0;
+
+    if ((argv == NULL) || (nr_args != 2)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[0] != NULL) && (!purc_variant_is_native (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if (argv[1] == NULL) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_cast_to_ulongint (argv[1], &pos, false);
+
+    return ret_var;
 }
 
 // only for test now.

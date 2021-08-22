@@ -42,6 +42,8 @@
 #include <math.h>
 #include <stdlib.h>
 
+#define FORMAT_ISO8601  1
+#define FORMAT_RFC822   2
 
 static purc_variant_t
 uname_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
@@ -619,6 +621,126 @@ random_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     return purc_variant_make_number (random); 
 }
 
+
+static purc_variant_t
+get_time_format (int type, double epoch, const char *timezone)
+{
+    time_t t_time;
+    struct tm *t_tm = NULL;
+    char local_time[32] = {0};
+    char *tz_now = getenv ("TZ");
+    purc_variant_t ret_var = NULL;
+    char str_format[32] = {0};
+
+    if (type == FORMAT_ISO8601)
+        sprintf (str_format, "%%FT%%T%%z");
+    else if (type == FORMAT_RFC822)
+        sprintf (str_format, "%%a, %%d %%b %%y %%T %%z");
+    else
+        sprintf (str_format, "%%FT%%T%%z");
+
+    if (epoch == 0.0d) {
+        if (timezone == NULL) {
+            t_time = time (NULL);
+            t_tm = localtime(&t_time);
+            if (t_tm == NULL) {
+                pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+                return PURC_VARIANT_INVALID;
+            }
+
+            if(strftime(local_time, 32, str_format, t_tm) == 0) {
+                pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+                return PURC_VARIANT_INVALID;
+            }
+
+            // create a string variant
+            ret_var = purc_variant_make_string (local_time, false); 
+            if(ret_var == PURC_VARIANT_INVALID) {
+                pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+                return PURC_VARIANT_INVALID;
+            }
+        }
+        else {
+            setenv ("TZ", timezone, 0);
+            t_time = time (NULL);
+            t_tm = localtime(&t_time);
+            if (t_tm == NULL) {
+                pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+                return PURC_VARIANT_INVALID;
+            }
+
+            if(strftime(local_time, 32, str_format, t_tm) == 0) {
+                pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+                return PURC_VARIANT_INVALID;
+            }
+
+            if (tz_now)
+                setenv ("TZ", tz_now, 1);
+            else
+                unsetenv ("TZ");
+
+            // create a string variant
+            ret_var = purc_variant_make_string (local_time, false); 
+            if(ret_var == PURC_VARIANT_INVALID) {
+                pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+                return PURC_VARIANT_INVALID;
+            }
+        }
+    }
+    else {
+        if (timezone == NULL) {
+            t_time = epoch;
+            t_tm = localtime(&t_time);
+            if (t_tm == NULL) {
+                pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+                return PURC_VARIANT_INVALID;
+            }
+
+            if(strftime(local_time, 32, str_format, t_tm) == 0) {
+                pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+                return PURC_VARIANT_INVALID;
+            }
+
+            // create a string variant
+            ret_var = purc_variant_make_string (local_time, false); 
+            if(ret_var == PURC_VARIANT_INVALID) {
+                pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+                return PURC_VARIANT_INVALID;
+            }
+        }
+        else {
+            setenv ("TZ", timezone, 0);
+
+            t_time = epoch;
+            t_tm = localtime(&t_time);
+
+            if (t_tm == NULL) {
+                pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+                return PURC_VARIANT_INVALID;
+            }
+
+            if(strftime(local_time, 32, str_format, t_tm) == 0) {
+                pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+                return PURC_VARIANT_INVALID;
+            }
+
+            if (tz_now)
+                setenv ("TZ", tz_now, 1);
+            else
+                unsetenv ("TZ");
+
+            // create a string variant
+            ret_var = purc_variant_make_string (local_time, false); 
+            if(ret_var == PURC_VARIANT_INVALID) {
+                pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+                return PURC_VARIANT_INVALID;
+            }
+        }
+    }
+
+    return ret_var;
+}
+
 static purc_variant_t
 time_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
@@ -626,12 +748,10 @@ time_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     purc_variant_t ret_var = NULL;
     double epoch = 0.0d;
-    const char* name = NULL;
-    const char* timezone = NULL;
+    const char *name = NULL;
+    const char *timezone = NULL;
     time_t t_time;
     struct tm *t_tm = NULL;
-    char local_time[32] = {0};
-    char * tz_now = getenv ("TZ");
 
     if ((argv == NULL) || (nr_args == 0))
         return PURC_VARIANT_INVALID;
@@ -686,204 +806,10 @@ time_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
                 purc_variant_make_number (t_tm->tm_isdst));
     }
     else if (strcasecmp (name, "iso8601") == 0) {
-        if (epoch == 0.0d) {
-            if (timezone == NULL) {
-                t_time = time (NULL);
-                t_tm = localtime(&t_time);
-                if (t_tm == NULL) {
-                    pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-                    return PURC_VARIANT_INVALID;
-                }
-
-                if(strftime(local_time, 32, "%FT%T%z", t_tm) == 0) {
-                    pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-                    return PURC_VARIANT_INVALID;
-                }
-
-                // create a string variant
-                ret_var = purc_variant_make_string (local_time, false); 
-                if(ret_var == PURC_VARIANT_INVALID) {
-                    pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-                    return PURC_VARIANT_INVALID;
-                }
-            }
-            else {
-                setenv ("TZ", timezone, 0);
-                t_time = time (NULL);
-                t_tm = localtime(&t_time);
-                if (t_tm == NULL) {
-                    pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-                    return PURC_VARIANT_INVALID;
-                }
-
-                if(strftime(local_time, 32, "%FT%T%z", t_tm) == 0) {
-                    pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-                    return PURC_VARIANT_INVALID;
-                }
-
-                if (tz_now)
-                    setenv ("TZ", tz_now, 1);
-                else
-                    unsetenv ("TZ");
-
-                // create a string variant
-                ret_var = purc_variant_make_string (local_time, false); 
-                if(ret_var == PURC_VARIANT_INVALID) {
-                    pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-                    return PURC_VARIANT_INVALID;
-                }
-            }
-        }
-        else {
-            if (timezone == NULL) {
-                t_time = epoch;
-                t_tm = localtime(&t_time);
-                if (t_tm == NULL) {
-                    pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-                    return PURC_VARIANT_INVALID;
-                }
-
-                if(strftime(local_time, 32, "%FT%T%z", t_tm) == 0) {
-                    pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-                    return PURC_VARIANT_INVALID;
-                }
-
-                // create a string variant
-                ret_var = purc_variant_make_string (local_time, false); 
-                if(ret_var == PURC_VARIANT_INVALID) {
-                    pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-                    return PURC_VARIANT_INVALID;
-                }
-            }
-            else {
-                setenv ("TZ", timezone, 0);
-
-                t_time = epoch;
-                t_tm = localtime(&t_time);
-
-                if (t_tm == NULL) {
-                    pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-                    return PURC_VARIANT_INVALID;
-                }
-
-                if(strftime(local_time, 32, "%FT%T%z", t_tm) == 0) {
-                    pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-                    return PURC_VARIANT_INVALID;
-                }
-
-                if (tz_now)
-                    setenv ("TZ", tz_now, 1);
-                else
-                    unsetenv ("TZ");
-
-                // create a string variant
-                ret_var = purc_variant_make_string (local_time, false); 
-                if(ret_var == PURC_VARIANT_INVALID) {
-                    pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-                    return PURC_VARIANT_INVALID;
-                }
-            }
-        }
+        get_time_format (FORMAT_ISO8601, epoch, timezone);
     }
     else if (strcasecmp (name, "rfc822") == 0) {
-        if (epoch == 0.0d) {
-            if (timezone == NULL) {
-                t_time = time (NULL);
-                t_tm = localtime(&t_time);
-                if (t_tm == NULL) {
-                    pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-                    return PURC_VARIANT_INVALID;
-                }
-
-                if(strftime(local_time, 32, "%a, %d %b %y %T %z", t_tm) == 0) {
-                    pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-                    return PURC_VARIANT_INVALID;
-                }
-
-                // create a string variant
-                ret_var = purc_variant_make_string (local_time, false); 
-                if(ret_var == PURC_VARIANT_INVALID) {
-                    pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-                    return PURC_VARIANT_INVALID;
-                }
-            }
-            else {
-                setenv ("TZ", timezone, 0);
-                t_time = time (NULL);
-                t_tm = localtime(&t_time);
-                if (t_tm == NULL) {
-                    pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-                    return PURC_VARIANT_INVALID;
-                }
-
-                if(strftime(local_time, 32, "%a, %d %b %y %T %z", t_tm) == 0) {
-                    pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-                    return PURC_VARIANT_INVALID;
-                }
-
-                if (tz_now)
-                    setenv ("TZ", tz_now, 1);
-                else
-                    unsetenv ("TZ");
-
-                // create a string variant
-                ret_var = purc_variant_make_string (local_time, false); 
-                if(ret_var == PURC_VARIANT_INVALID) {
-                    pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-                    return PURC_VARIANT_INVALID;
-                }
-            }
-        }
-        else {
-            if (timezone == NULL) {
-                t_time = epoch;
-                t_tm = localtime(&t_time);
-                if (t_tm == NULL) {
-                    pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-                    return PURC_VARIANT_INVALID;
-                }
-
-                if(strftime(local_time, 32, "%a, %d %b %y %T %z", t_tm) == 0) {
-                    pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-                    return PURC_VARIANT_INVALID;
-                }
-
-                // create a string variant
-                ret_var = purc_variant_make_string (local_time, false); 
-                if(ret_var == PURC_VARIANT_INVALID) {
-                    pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-                    return PURC_VARIANT_INVALID;
-                }
-            }
-            else {
-                setenv ("TZ", timezone, 0);
-
-                t_time = epoch;
-                t_tm = localtime(&t_time);
-
-                if (t_tm == NULL) {
-                    pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-                    return PURC_VARIANT_INVALID;
-                }
-
-                if(strftime(local_time, 32, "%a, %d %b %y %T %z", t_tm) == 0) {
-                    pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-                    return PURC_VARIANT_INVALID;
-                }
-
-                if (tz_now)
-                    setenv ("TZ", tz_now, 1);
-                else
-                    unsetenv ("TZ");
-
-                // create a string variant
-                ret_var = purc_variant_make_string (local_time, false); 
-                if(ret_var == PURC_VARIANT_INVALID) {
-                    pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-                    return PURC_VARIANT_INVALID;
-                }
-            }
-        }
+        get_time_format (FORMAT_RFC822, epoch, timezone);
     }
     else {
         /* replace 
