@@ -141,6 +141,7 @@ struct pchvml_dom_element_attr {
     pchvml_vdom_eval_t         *val;
 };
 
+// creating and destroying api
 pchvml_document_t*
 pchvml_document_create(void);
 
@@ -188,6 +189,18 @@ pchvml_dom_element_attr_destroy(pchvml_dom_element_attr_t *attr);
 
 void
 pchvml_vdom_eval_destroy(pchvml_vdom_eval_t *vdom);
+
+
+// doc/dom construction api
+int pchvml_document_set_doctype(pchvml_document_t *doc,
+        pchvml_document_doctype_t *doctype);
+
+int pchvml_document_set_root(pchvml_document_t *doc,
+        pchvml_dom_element_t *root);
+
+
+
+
 
 #ifdef __cplusplus
 }

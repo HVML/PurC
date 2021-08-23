@@ -84,6 +84,7 @@ pchvml_document_destroy(pchvml_document_t *doc)
         return;
 
     pchvml_document_reset(doc);
+    pctree_node_destroy(doc->node.node, NULL);
     free(doc);
 }
 
@@ -129,6 +130,7 @@ pchvml_document_doctype_destroy(pchvml_document_doctype_t *doctype)
     free(doctype->builtins);
     doctype->builtins = NULL;
     doctype->sz_builtins = 0;
+    pctree_node_destroy(doctype->node.node, NULL);
     free(doctype);
 }
 
@@ -202,6 +204,7 @@ pchvml_dom_element_destroy(pchvml_dom_element_t *elem)
         return;
 
     pchvml_dom_element_reset(elem);
+    pctree_node_destroy(elem->node.node, NULL);
     free(elem);
 }
 
@@ -245,6 +248,7 @@ pchvml_dom_element_tag_destroy(pchvml_dom_element_tag_t *tag)
         return;
 
     pchvml_dom_element_tag_reset(tag);
+    pctree_node_destroy(tag->node.node, NULL);
     free(tag);
 }
 
@@ -288,6 +292,7 @@ pchvml_dom_element_attr_destroy(pchvml_dom_element_attr_t *attr)
         return;
 
     pchvml_dom_element_attr_reset(attr);
+    pctree_node_destroy(attr->node.node, NULL);
     free(attr);
 }
 
@@ -295,5 +300,27 @@ void
 pchvml_vdom_eval_destroy(pchvml_vdom_eval_t *vdom)
 {
     UNUSED_PARAM(vdom);
+}
+
+int pchvml_document_set_doctype(pchvml_document_t *doc,
+        pchvml_document_doctype_t *doctype)
+{
+    PC_ASSERT(doc->doctype == NULL);
+    PC_ASSERT(doctype->node.node->parent == NULL);
+
+    pctree_node_prepend_child(doc->node.node, doctype->node.node);
+    doc->doctype = doctype;
+    return 0;
+}
+
+int pchvml_document_set_root(pchvml_document_t *doc,
+        pchvml_dom_element_t *root)
+{
+    PC_ASSERT(doc->root == NULL);
+    PC_ASSERT(root->node.node->parent == NULL);
+
+    pctree_node_append_child(doc->node.node, root->node.node);
+    doc->root = root;
+    return 0;
 }
 
