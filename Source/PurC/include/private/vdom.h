@@ -184,12 +184,8 @@ struct pchvml_vdom_eval {
 };
 
 // creating and destroying api
-
 pchvml_document_t*
 pchvml_document_create(void);
-
-void
-pchvml_document_reset(pchvml_document_t *doc);
 
 void
 pchvml_document_destroy(pchvml_document_t *doc);
@@ -197,50 +193,17 @@ pchvml_document_destroy(pchvml_document_t *doc);
 pchvml_document_doctype_t*
 pchvml_document_doctype_create(void);
 
-void
-pchvml_document_doctype_reset(pchvml_document_doctype_t *doctype);
-
-void
-pchvml_document_doctype_destroy(pchvml_document_doctype_t *doctype);
-
 pchvml_dom_element_t*
 pchvml_dom_element_create(void);
-
-void
-pchvml_dom_element_reset(pchvml_dom_element_t *elem);
-
-void
-pchvml_dom_element_destroy(pchvml_dom_element_t *elem);
 
 pchvml_dom_element_tag_t*
 pchvml_dom_element_tag_create(void);
 
-void
-pchvml_dom_element_tag_reset(pchvml_dom_element_tag_t *tag);
-
-void
-pchvml_dom_element_tag_destroy(pchvml_dom_element_tag_t *tag);
-
 pchvml_dom_element_attr_t*
 pchvml_dom_element_attr_create(void);
 
-void
-pchvml_dom_element_attr_reset(pchvml_dom_element_attr_t *attr);
-
-void
-pchvml_dom_element_attr_destroy(pchvml_dom_element_attr_t *attr);
-
 pchvml_vdom_eval_t*
 pchvml_vdom_eval_create(void);
-
-void
-pchvml_vdom_eval_reset(pchvml_vdom_eval_t *eval);
-
-void
-pchvml_vdom_eval_destroy(pchvml_vdom_eval_t *eval);
-
-void
-pchvml_vdom_eval_destroy(pchvml_vdom_eval_t *eval);
 
 
 // doc/dom construction api
@@ -264,6 +227,9 @@ int pchvml_dom_element_append_attr(pchvml_dom_element_t *elem,
 
 int pchvml_dom_element_append_child(pchvml_dom_element_t *elem,
         pchvml_dom_element_t *child);
+
+int pchvml_dom_element_tag_append_attr(pchvml_dom_element_tag_t *tag,
+        pchvml_dom_element_attr_t *attr);
 
 #ifdef __cplusplus
 }

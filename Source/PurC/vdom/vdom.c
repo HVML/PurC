@@ -46,56 +46,41 @@ void pcvdom_cleanup_instance(struct pcinst* inst)
     UNUSED_PARAM(inst);
 }
 
-static void
-_pchvml_dom_node_destroy(pchvml_dom_node_t *node)
-{
-    if (!node)
-        return;
+void
+pchvml_document_reset(pchvml_document_t *doc);
 
-    switch (node->type)
-    {
-        case PCHVML_DOM_NODE_DOCUMENT:
-            {
-                pchvml_document_t *doc;
-                doc = PCHVML_DOCUMENT_FROM_NODE(node);
-                pchvml_document_destroy(doc);
-            } break;
-        case PCHVML_DOM_NODE_DOCTYPE:
-            {
-                pchvml_document_doctype_t *doctype;
-                doctype = PCHVML_DOCTYPE_FROM_NODE(node);
-                pchvml_document_doctype_destroy(doctype);
-            } break;
-        case PCHVML_DOM_NODE_ELEMENT:
-            {
-                pchvml_dom_element_t *elem;
-                elem = PCHVML_ELEMENT_FROM_NODE(node);
-                pchvml_dom_element_destroy(elem);
-            } break;
-        case PCHVML_DOM_NODE_TAG:
-            {
-                pchvml_dom_element_tag_t *tag;
-                tag = PCHVML_ELEMENT_TAG_FROM_NODE(node);
-                pchvml_dom_element_tag_destroy(tag);
-            } break;
-        case PCHVML_DOM_NODE_ATTR:
-            {
-                pchvml_dom_element_attr_t *attr;
-                attr = PCHVML_ELEMENT_ATTR_FROM_NODE(node);
-                pchvml_dom_element_attr_destroy(attr);
-            } break;
-        case PCHVML_DOM_VDOM_EVAL:
-            {
-                pchvml_vdom_eval_t *eval;
-                eval = PCHVML_VDOM_EVAL_FROM_NODE(node);
-                pchvml_vdom_eval_destroy(eval);
-            } break;
-        default:
-            {
-                PC_ASSERT(0);
-            } break;
-    }
-}
+void
+pchvml_document_doctype_reset(pchvml_document_doctype_t *doctype);
+
+void
+pchvml_document_doctype_destroy(pchvml_document_doctype_t *doctype);
+
+void
+pchvml_dom_element_reset(pchvml_dom_element_t *elem);
+
+void
+pchvml_dom_element_destroy(pchvml_dom_element_t *elem);
+
+void
+pchvml_dom_element_tag_reset(pchvml_dom_element_tag_t *tag);
+
+void
+pchvml_dom_element_tag_destroy(pchvml_dom_element_tag_t *tag);
+
+void
+pchvml_dom_element_attr_reset(pchvml_dom_element_attr_t *attr);
+
+void
+pchvml_dom_element_attr_destroy(pchvml_dom_element_attr_t *attr);
+
+void
+pchvml_vdom_eval_reset(pchvml_vdom_eval_t *eval);
+
+void
+pchvml_vdom_eval_destroy(pchvml_vdom_eval_t *eval);
+
+static void
+_pchvml_dom_node_destroy(pchvml_dom_node_t *node);
 
 pchvml_document_t*
 pchvml_document_create(void)
@@ -474,12 +459,8 @@ int pchvml_dom_element_append_attr(pchvml_dom_element_t *elem,
 {
     PC_ASSERT(attr->node.node->parent == NULL);
     PC_ASSERT(elem->tag);
-    PC_ASSERT(0);
 
-    // return _pchvml_dom_element_tag_append_attr(elem->tag, attr);
-    // pctree_node_append_child(elem->node.node, attr->node.node);
-
-    return 0;
+    return pchvml_dom_element_tag_append_attr(elem->tag, attr);
 }
 
 int pchvml_dom_element_append_child(pchvml_dom_element_t *elem,
@@ -497,4 +478,69 @@ int pchvml_dom_element_append_child(pchvml_dom_element_t *elem,
     return 0;
 }
 
+int pchvml_dom_element_tag_append_attr(pchvml_dom_element_tag_t *tag,
+        pchvml_dom_element_attr_t *attr)
+{
+    PC_ASSERT(attr->node.node->parent == NULL);
+
+    pctree_node_append_child(tag->node.node, attr->node.node);
+
+    if (!tag->first_attr)
+        tag->first_attr = attr;
+    tag->last_attr = attr;
+
+    return 0;
+}
+
+
+static void
+_pchvml_dom_node_destroy(pchvml_dom_node_t *node)
+{
+    if (!node)
+        return;
+
+    switch (node->type)
+    {
+        case PCHVML_DOM_NODE_DOCUMENT:
+            {
+                pchvml_document_t *doc;
+                doc = PCHVML_DOCUMENT_FROM_NODE(node);
+                pchvml_document_destroy(doc);
+            } break;
+        case PCHVML_DOM_NODE_DOCTYPE:
+            {
+                pchvml_document_doctype_t *doctype;
+                doctype = PCHVML_DOCTYPE_FROM_NODE(node);
+                pchvml_document_doctype_destroy(doctype);
+            } break;
+        case PCHVML_DOM_NODE_ELEMENT:
+            {
+                pchvml_dom_element_t *elem;
+                elem = PCHVML_ELEMENT_FROM_NODE(node);
+                pchvml_dom_element_destroy(elem);
+            } break;
+        case PCHVML_DOM_NODE_TAG:
+            {
+                pchvml_dom_element_tag_t *tag;
+                tag = PCHVML_ELEMENT_TAG_FROM_NODE(node);
+                pchvml_dom_element_tag_destroy(tag);
+            } break;
+        case PCHVML_DOM_NODE_ATTR:
+            {
+                pchvml_dom_element_attr_t *attr;
+                attr = PCHVML_ELEMENT_ATTR_FROM_NODE(node);
+                pchvml_dom_element_attr_destroy(attr);
+            } break;
+        case PCHVML_DOM_VDOM_EVAL:
+            {
+                pchvml_vdom_eval_t *eval;
+                eval = PCHVML_VDOM_EVAL_FROM_NODE(node);
+                pchvml_vdom_eval_destroy(eval);
+            } break;
+        default:
+            {
+                PC_ASSERT(0);
+            } break;
+    }
+}
 
