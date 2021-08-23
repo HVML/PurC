@@ -295,3 +295,51 @@ TEST(tree, traversal)
 
     pctree_node_destroy(node_1, destroy_tree_node);
 }
+
+/*               1
+ *             /   \
+ *           2       3
+ *         / | \       \
+ *       4   5   6       7
+ *                     / /\ \
+ *                   8  9  10  11
+ *
+ */
+TEST(tree, remove)
+{
+    struct pctree_node* node_1 = create_tree_node(1);
+    struct pctree_node* node_2 = create_tree_node(2);
+    struct pctree_node* node_3 = create_tree_node(3);
+    struct pctree_node* node_4 = create_tree_node(4);
+    struct pctree_node* node_5 = create_tree_node(5);
+    struct pctree_node* node_6 = create_tree_node(6);
+    struct pctree_node* node_7 = create_tree_node(7);
+    struct pctree_node* node_8 = create_tree_node(8);
+    struct pctree_node* node_9 = create_tree_node(9);
+    struct pctree_node* node_10 = create_tree_node(10);
+    struct pctree_node* node_11 = create_tree_node(11);
+
+    pctree_node_append_child(node_1, node_2);
+    ASSERT_EQ(pctree_node_children_number(node_1), 1);
+    pctree_node_append_child(node_1, node_3);
+    ASSERT_EQ(pctree_node_children_number(node_1), 2);
+
+    pctree_node_append_child(node_2, node_4);
+    pctree_node_append_child(node_2, node_5);
+    pctree_node_append_child(node_2, node_6);
+    ASSERT_EQ(pctree_node_children_number(node_2), 3);
+
+    pctree_node_append_child(node_3, node_7);
+    ASSERT_EQ(pctree_node_children_number(node_3), 1);
+
+    pctree_node_append_child(node_7, node_8);
+    pctree_node_append_child(node_7, node_9);
+    pctree_node_append_child(node_7, node_10);
+    pctree_node_append_child(node_7, node_11);
+    ASSERT_EQ(pctree_node_children_number(node_7), 4);
+
+    pctree_node_remove(node_7);
+
+    pctree_node_destroy(node_1, destroy_tree_node);
+    pctree_node_destroy(node_7, destroy_tree_node);
+}
