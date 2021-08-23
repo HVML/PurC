@@ -70,43 +70,6 @@ enum pchvml_dom_node_type {
     PCHVML_DOM_VDOM_EVAL,
 };
 
-#define PCHVML_DOM_NODE_IS_DOCUMENT(_n) \
-    (((_n) && (_n)->type==PCHVML_DOM_NODE_DOCUMENT))
-#define PCHVML_DOM_NODE_IS_DOCTYPE(_n) \
-    (((_n) && (_n)->type==PCHVML_DOM_NODE_DOCTYPE))
-#define PCHVML_DOM_NODE_IS_ELEMENT(_n) \
-    (((_n) && (_n)->type==PCHVML_DOM_NODE_ELEMENT))
-#define PCHVML_DOM_NODE_IS_TAG(_n) \
-    (((_n) && (_n)->type==PCHVML_DOM_NODE_TAG))
-#define PCHVML_DOM_NODE_IS_ATTR(_n) \
-    (((_n) && (_n)->type==PCHVML_DOM_NODE_ATTR))
-#define PCHVML_DOM_NODE_IS_EVAL(_n) \
-    (((_n) && (_n)->type==PCHVML_DOM_VDOM_EVAL))
-
-#define PCHVML_DOCUMENT_FROM_NODE(_node) \
-    (PCHVML_DOM_NODE_IS_DOCUMENT(_node) ? \
-        container_of(_node, pchvml_document_t, node) : NULL)
-
-#define PCHVML_DOCTYPE_FROM_NODE(_node) \
-    (PCHVML_DOM_NODE_IS_DOCTYPE(_node) ? \
-        container_of(_node, pchvml_document_doctype_t, node) : NULL)
-
-#define PCHVML_ELEMENT_FROM_NODE(_node) \
-    (PCHVML_DOM_NODE_IS_ELEMENT(_node) ? \
-        container_of(_node, pchvml_dom_element_t, node) : NULL)
-
-#define PCHVML_ELEMENT_TAG_FROM_NODE(_node) \
-    (PCHVML_DOM_NODE_IS_TAG(_node) ? \
-        container_of(_node, pchvml_dom_element_tag_t, node) : NULL)
-
-#define PCHVML_ELEMENT_ATTR_FROM_NODE(_node) \
-    (PCHVML_DOM_NODE_IS_ATTR(_node) ? \
-        container_of(_node, pchvml_dom_element_attr_t, node) : NULL)
-
-#define PCHVML_VDOM_EVAL_FROM_NODE(_node) \
-    (PCHVML_DOM_NODE_IS_EVAL(_node) ? \
-        container_of(_node, pchvml_vdom_eval_t, node) : NULL)
-
 struct pchvml_dom_node;
 typedef struct pchvml_dom_node pchvml_dom_node_t;
 
@@ -127,61 +90,6 @@ typedef struct pchvml_dom_element_attr pchvml_dom_element_attr_t;
 
 struct pchvml_vdom_eval;
 typedef struct pchvml_vdom_eval pchvml_vdom_eval_t;
-
-struct pchvml_dom_node {
-    struct pctree_node         *node;
-    enum pchvml_dom_node_type   type;
-};
-
-struct pchvml_document {
-    pchvml_dom_node_t           node;
-
-    pchvml_document_doctype_t  *doctype;
-    pchvml_dom_element_t       *root; // <hvml>
-};
-
-struct pchvml_document_doctype {
-    pchvml_dom_node_t           node;
-
-    // optimize later
-    char                       *prefix;
-    char                      **builtins;
-    size_t                      nr_builtins;
-    size_t                      sz_builtins;
-};
-
-struct pchvml_dom_element {
-    pchvml_dom_node_t           node;
-
-    pchvml_dom_element_tag_t   *tag;
-
-    pchvml_dom_node_t          *first_child;
-    pchvml_dom_node_t          *last_child;
-};
-
-struct pchvml_dom_element_tag {
-    pchvml_dom_node_t           node;
-
-    // optimize later with tag_id
-    char                       *ns;    // namespace prefix
-    char                       *name;  // local name, lower space
-
-    pchvml_dom_element_attr_t  *first_attr;
-    pchvml_dom_element_attr_t  *last_attr;
-};
-
-struct pchvml_dom_element_attr {
-    pchvml_dom_node_t           node;
-
-    pchvml_vdom_eval_t         *key;
-    pchvml_vdom_eval_t         *val;
-};
-
-struct pchvml_vdom_eval {
-    pchvml_dom_node_t           node;
-
-    // vdom
-};
 
 // creating and destroying api
 pchvml_document_t*
