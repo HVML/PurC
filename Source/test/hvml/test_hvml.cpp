@@ -13,6 +13,9 @@ TEST(hvml, basic)
     ASSERT_NE(doctype, nullptr);
     pchvml_dom_element_t *root = pchvml_dom_element_create();
     ASSERT_NE(root, nullptr);
+    pchvml_dom_element_t *head = pchvml_dom_element_create();
+    ASSERT_NE(head, nullptr);
+    pchvml_dom_element_append_child(root, head);
     pchvml_document_set_doctype(doc, doctype);
     pchvml_document_set_root(doc, root);
     int r = pchvml_document_doctype_set_prefix(doctype, "hvml");
