@@ -117,6 +117,10 @@ pchvml_document_doctype_reset(pchvml_document_doctype_t *doctype)
     pctree_node_remove(doctype->node.node);
     free(doctype->prefix);
     doctype->prefix = NULL;
+    for (size_t i=0; i<doctype->nr_builtins; ++i) {
+        char *p = doctype->builtins[i];
+        free(p);
+    }
     doctype->nr_builtins = 0;
 }
 
@@ -321,6 +325,55 @@ int pchvml_document_set_root(pchvml_document_t *doc,
 
     pctree_node_append_child(doc->node.node, root->node.node);
     doc->root = root;
+    return 0;
+}
+
+int pchvml_document_doctype_set_prefix(pchvml_document_doctype_t *doc,
+        const char *prefix)
+{
+    if (doc->prefix &&
+        (doc->prefix == prefix || strcasecmp(doc->prefix, prefix)==0))
+    {
+            return 0;
+    }
+    char *p = strdup(prefix);
+    if (!p) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+    free(doc->prefix);
+    doc->prefix = p;
+    return 0;
+}
+
+int pchvml_document_doctype_append_builtin(pchvml_document_doctype_t *doc,
+        const char *builtin)
+{
+    for (size_t i=0; i<doc->nr_builtins; ++i) {
+        const char *p = doc->builtins[i];
+        if (p==builtin || strcmp(p, builtin)==0)
+            return 0;
+    }
+
+    char *p = strdup(builtin);
+    if (!p) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+
+    if (doc->nr_builtins>=doc->sz_builtins) {
+        size_t sz = doc->sz_builtins+30;
+        char **ar = (char**)realloc(doc->builtins, sz*sizeof(*ar));
+        if (!ar) {
+            free(p);
+            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            return -1;
+        }
+        doc->builtins = ar;
+        doc->sz_builtins = sz;
+    }
+
+    doc->builtins[doc->nr_builtins++] = p;
     return 0;
 }
 

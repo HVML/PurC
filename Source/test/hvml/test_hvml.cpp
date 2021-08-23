@@ -15,6 +15,14 @@ TEST(hvml, basic)
     ASSERT_NE(root, nullptr);
     pchvml_document_set_doctype(doc, doctype);
     pchvml_document_set_root(doc, root);
+    int r = pchvml_document_doctype_set_prefix(doctype, "hvml");
+    ASSERT_EQ(r, 0);
+    r = pchvml_document_doctype_append_builtin(doctype, "MATH");
+    ASSERT_EQ(r, 0);
+    r = pchvml_document_doctype_append_builtin(doctype, "FS");
+    ASSERT_EQ(r, 0);
+    r = pchvml_document_doctype_append_builtin(doctype, "FILE");
+    ASSERT_EQ(r, 0);
     pchvml_document_destroy(doc);
 }
 

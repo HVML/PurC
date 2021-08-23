@@ -198,6 +198,13 @@ int pchvml_document_set_doctype(pchvml_document_t *doc,
 int pchvml_document_set_root(pchvml_document_t *doc,
         pchvml_dom_element_t *root);
 
+int pchvml_document_doctype_set_prefix(pchvml_document_doctype_t *doc,
+        const char *prefix);
+
+int pchvml_document_doctype_append_builtin(pchvml_document_doctype_t *doc,
+        const char *builtin);
+
+
 
 
 
