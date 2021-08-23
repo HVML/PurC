@@ -145,6 +145,12 @@ int pchvml_dom_element_tag_set_name(pchvml_dom_element_tag_t *tag,
 int pchvml_dom_element_tag_append_attr(pchvml_dom_element_tag_t *tag,
         pchvml_dom_element_attr_t *attr);
 
+int pchvml_dom_element_attr_set_key(pchvml_dom_element_attr_t *attr,
+        pchvml_vdom_eval_t *key);
+
+int pchvml_dom_element_attr_set_val(pchvml_dom_element_attr_t *attr,
+        pchvml_vdom_eval_t *val);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

@@ -172,7 +172,56 @@ void
 pchvml_vdom_eval_destroy(pchvml_vdom_eval_t *eval);
 
 static void
-_pchvml_dom_node_destroy(pchvml_dom_node_t *node);
+_pchvml_dom_node_destroy(pchvml_dom_node_t *node)
+{
+    if (!node)
+        return;
+
+    switch (node->type)
+    {
+        case PCHVML_DOM_NODE_DOCUMENT:
+            {
+                pchvml_document_t *doc;
+                doc = PCHVML_DOCUMENT_FROM_NODE(node);
+                pchvml_document_destroy(doc);
+            } break;
+        case PCHVML_DOM_NODE_DOCTYPE:
+            {
+                pchvml_document_doctype_t *doctype;
+                doctype = PCHVML_DOCTYPE_FROM_NODE(node);
+                pchvml_document_doctype_destroy(doctype);
+            } break;
+        case PCHVML_DOM_NODE_ELEMENT:
+            {
+                pchvml_dom_element_t *elem;
+                elem = PCHVML_ELEMENT_FROM_NODE(node);
+                pchvml_dom_element_destroy(elem);
+            } break;
+        case PCHVML_DOM_NODE_TAG:
+            {
+                pchvml_dom_element_tag_t *tag;
+                tag = PCHVML_ELEMENT_TAG_FROM_NODE(node);
+                pchvml_dom_element_tag_destroy(tag);
+            } break;
+        case PCHVML_DOM_NODE_ATTR:
+            {
+                pchvml_dom_element_attr_t *attr;
+                attr = PCHVML_ELEMENT_ATTR_FROM_NODE(node);
+                pchvml_dom_element_attr_destroy(attr);
+            } break;
+        case PCHVML_DOM_VDOM_EVAL:
+            {
+                pchvml_vdom_eval_t *eval;
+                eval = PCHVML_VDOM_EVAL_FROM_NODE(node);
+                pchvml_vdom_eval_destroy(eval);
+            } break;
+        default:
+            {
+                PC_ASSERT(0);
+            } break;
+    }
+}
+
 
 pchvml_document_t*
 pchvml_document_create(void)
@@ -620,55 +669,28 @@ int pchvml_dom_element_tag_append_attr(pchvml_dom_element_tag_t *tag,
     return 0;
 }
 
-
-static void
-_pchvml_dom_node_destroy(pchvml_dom_node_t *node)
+int pchvml_dom_element_attr_set_key(pchvml_dom_element_attr_t *attr,
+        pchvml_vdom_eval_t *key)
 {
-    if (!node)
-        return;
+    PC_ASSERT(attr->key == NULL);
+    PC_ASSERT(key->node.node->parent == NULL);
 
-    switch (node->type)
-    {
-        case PCHVML_DOM_NODE_DOCUMENT:
-            {
-                pchvml_document_t *doc;
-                doc = PCHVML_DOCUMENT_FROM_NODE(node);
-                pchvml_document_destroy(doc);
-            } break;
-        case PCHVML_DOM_NODE_DOCTYPE:
-            {
-                pchvml_document_doctype_t *doctype;
-                doctype = PCHVML_DOCTYPE_FROM_NODE(node);
-                pchvml_document_doctype_destroy(doctype);
-            } break;
-        case PCHVML_DOM_NODE_ELEMENT:
-            {
-                pchvml_dom_element_t *elem;
-                elem = PCHVML_ELEMENT_FROM_NODE(node);
-                pchvml_dom_element_destroy(elem);
-            } break;
-        case PCHVML_DOM_NODE_TAG:
-            {
-                pchvml_dom_element_tag_t *tag;
-                tag = PCHVML_ELEMENT_TAG_FROM_NODE(node);
-                pchvml_dom_element_tag_destroy(tag);
-            } break;
-        case PCHVML_DOM_NODE_ATTR:
-            {
-                pchvml_dom_element_attr_t *attr;
-                attr = PCHVML_ELEMENT_ATTR_FROM_NODE(node);
-                pchvml_dom_element_attr_destroy(attr);
-            } break;
-        case PCHVML_DOM_VDOM_EVAL:
-            {
-                pchvml_vdom_eval_t *eval;
-                eval = PCHVML_VDOM_EVAL_FROM_NODE(node);
-                pchvml_vdom_eval_destroy(eval);
-            } break;
-        default:
-            {
-                PC_ASSERT(0);
-            } break;
-    }
+    pctree_node_prepend_child(attr->node.node, key->node.node);
+    attr->key = key;
+    return 0;
 }
+
+int pchvml_dom_element_attr_set_val(pchvml_dom_element_attr_t *attr,
+        pchvml_vdom_eval_t *val)
+{
+    PC_ASSERT(attr->val == NULL);
+    PC_ASSERT(val->node.node->parent == NULL);
+
+    pctree_node_prepend_child(attr->node.node, val->node.node);
+    attr->val = val;
+    return 0;
+}
+
+
+
 
