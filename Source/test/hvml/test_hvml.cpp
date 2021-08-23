@@ -31,6 +31,11 @@ TEST(hvml, basic)
     ASSERT_NE(tag, nullptr);
     pchvml_dom_element_set_tag(root, tag);
 
+    r = pchvml_dom_element_tag_set_ns(tag, "hvml");
+    ASSERT_EQ(r, 0);
+    r = pchvml_dom_element_tag_set_name(tag, "init");
+    ASSERT_EQ(r, 0);
+
     pchvml_dom_element_attr_t *attr = pchvml_dom_element_attr_create();
     ASSERT_NE(attr, nullptr);
     pchvml_dom_element_tag_append_attr(tag, attr);

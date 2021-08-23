@@ -570,6 +570,42 @@ int pchvml_dom_element_append_child(pchvml_dom_element_t *elem,
     return 0;
 }
 
+int pchvml_dom_element_tag_set_ns(pchvml_dom_element_tag_t *tag,
+        const char *ns)
+{
+    if (tag->ns &&
+        (tag->ns == ns || strcasecmp(tag->ns, ns)==0))
+    {
+            return 0;
+    }
+    char *p = strdup(ns);
+    if (!p) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+    free(tag->ns);
+    tag->ns = p;
+    return 0;
+}
+
+int pchvml_dom_element_tag_set_name(pchvml_dom_element_tag_t *tag,
+        const char *name)
+{
+    if (tag->name &&
+        (tag->name == name || strcasecmp(tag->name, name)==0))
+    {
+            return 0;
+    }
+    char *p = strdup(name);
+    if (!p) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+    free(tag->name);
+    tag->name = p;
+    return 0;
+}
+
 int pchvml_dom_element_tag_append_attr(pchvml_dom_element_tag_t *tag,
         pchvml_dom_element_attr_t *attr)
 {
