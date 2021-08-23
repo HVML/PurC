@@ -29,6 +29,7 @@
 #include "private/edom.h"
 #include "private/html.h"
 #include "purc-variant.h"
+#include "tools.h"
 
 #include <unistd.h>
 #include <stdbool.h>
@@ -78,25 +79,183 @@ static bool remove_dir (char * dir)
     return ret;
 }
 
-
 static purc_variant_t
 list_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
 
-    return NULL;
+    char filename[PATH_MAX] = {0,};
+    const char *string_filename = NULL;
+    purc_variant_t ret_var = NULL;
+    const char *filter = NULL;
+    char wildcard[10][16];
+    int wildcard_num = 0;
+
+    if ((argv == NULL) || (nr_args < 1)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    // get the file name
+    string_filename = purc_variant_get_string_const (argv[0]);
+    if (*string_filename == '/') {
+        strcpy (filename, string_filename);
+    }
+    else {
+        strcpy (filename, get_work_dirctory ());
+        strcat (filename, "/");
+        strcat (filename, string_filename);
+    }
+
+    if (access(filename, F_OK | R_OK) == 0) 
+        return purc_variant_make_boolean (false);
+
+    // get the filter
+    if ((argv[1] != NULL) && (!purc_variant_is_string (argv[1]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+    if (argv[1] != NULL)
+        filter = purc_variant_get_string_const (argv[1]);
+
+    // get filter array
+    if (filter) {
+        size_t length = 0;
+        const char *head = pcdvobjs_get_next_option (filter, ";", &length);
+        while (head && (wildcard_num < 10)) {
+            strncpy(wildcard[wildcard_num], head, length);
+            wildcard[wildcard_num][length] = 0x00;
+            pcdvobjs_remove_space (wildcard[wildcard_num]);
+            wildcard_num ++;
+            head = pcdvobjs_get_next_option (head + length + 1, ";", &length);
+        }
+    }
+
+
+    // get the dirctory content
+    DIR *dir = NULL;
+    struct dirent *ptr = NULL;
+
+    if ((dir = opendir (filename)) == NULL) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    while ((ptr = readdir(dir)) != NULL)
+    {
+        if (strcmp (ptr->d_name,".") == 0 || strcmp(ptr->d_name, "..") == 0)
+            continue;
+        else if (ptr->d_type == DT_BLK) {
+        }
+        else if(ptr->d_type == DT_CHR) {
+        }
+        else if(ptr->d_type == DT_DIR) {
+        }
+        else if(ptr->d_type == DT_FIFO) {
+        }
+        else if(ptr->d_type == DT_LNK) {
+        }
+        else if(ptr->d_type == DT_REG) {
+        }
+        else if(ptr->d_type == DT_SOCK) {
+        }
+        else if(ptr->d_type == DT_UNKNOWN) {
+        }
+    }
+
+    closedir(dir);
+
+    return ret_var;
 }
 
 static purc_variant_t
 list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
 
-    return NULL;
+    char filename[PATH_MAX] = {0,};
+    const char *string_filename = NULL;
+    purc_variant_t ret_var = NULL;
+    const char *filter = NULL;
+    char wildcard[10][16];
+    int wildcard_num = 0;
+
+    if ((argv == NULL) || (nr_args < 1)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    // get the file name
+    string_filename = purc_variant_get_string_const (argv[0]);
+    if (*string_filename == '/') {
+        strcpy (filename, string_filename);
+    }
+    else {
+        strcpy (filename, get_work_dirctory ());
+        strcat (filename, "/");
+        strcat (filename, string_filename);
+    }
+
+    if (access(filename, F_OK | R_OK) == 0) 
+        return purc_variant_make_boolean (false);
+
+    // get the filter
+    if ((argv[1] != NULL) && (!purc_variant_is_string (argv[1]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+    if (argv[1] != NULL)
+        filter = purc_variant_get_string_const (argv[1]);
+
+    // get filter array
+    if (filter) {
+        size_t length = 0;
+        const char *head = pcdvobjs_get_next_option (filter, ";", &length);
+        while (head && (wildcard_num < 10)) {
+            strncpy(wildcard[wildcard_num], head, length);
+            wildcard[wildcard_num][length] = 0x00;
+            pcdvobjs_remove_space (wildcard[wildcard_num]);
+            wildcard_num ++;
+            head = pcdvobjs_get_next_option (head + length + 1, ";", &length);
+        }
+    }
+
+
+    // get the dirctory content
+    DIR *dir = NULL;
+    struct dirent *ptr = NULL;
+
+    if ((dir = opendir (filename)) == NULL) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    while ((ptr = readdir(dir)) != NULL)
+    {
+        if (strcmp (ptr->d_name,".") == 0 || strcmp(ptr->d_name, "..") == 0)
+            continue;
+        else if (ptr->d_type == 8) {   ///file
+        }
+        else if(ptr->d_type == 10) {   ///link file
+        }
+        else if(ptr->d_type == 4)    ///dir
+        {
+        }
+    }
+
+    closedir(dir);
+
+    return ret_var;
 }
 
 static purc_variant_t

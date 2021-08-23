@@ -152,3 +152,73 @@ const char* pcdvobjs_file_get_prev_option (const char* data, size_t str_len,
     return head;
 }
 
+const char * pcdvobjs_remove_space (char * buffer)
+{
+    int i = 0;
+    int j = 0;
+    while (*(buffer + i) != 0x00) {
+        if (*(buffer + i) != ' ') {
+            *(buffer + j) = *(buffer + i);
+            j++;
+        }
+        i++;
+    }
+    *(buffer + j) = 0x00;
+
+    return buffer;
+}
+
+bool wildcard_cmp (const char *str1, const char *pattern)
+{
+    if (str1 == NULL) 
+        return false;
+    if (pattern == NULL) 
+        return false;
+
+    int len1 = strlen (str1);
+    int len2 = strlen (pattern);
+    int mark = 0;
+    int p1 = 0;
+    int p2 = 0;
+
+    while ((p1 < len1) && (p2<len2))
+    {
+        if (pattern[p2] == '?')
+        {
+            p1++;
+            p2++;
+            continue;
+        }
+        if (pattern[p2] == '*')
+        {
+            p2++;
+            mark = p2;
+            continue;
+        }
+        if (str1[p1] != pattern[p2])
+        {
+            if (p1 == 0 && p2 == 0)
+                return false;
+            p1 -= p2 - mark - 1;
+            p2 = mark;
+            continue;
+        }
+        p1++;
+        p2++;
+    }
+    if (p2 == len2)
+    {
+        if (p1 == len1)
+            return true;
+        if (pattern[p2 - 1] == '*')
+            return true;
+    }
+    while (p2 < len2)
+    {
+        if (pattern[p2] != '*')
+            return false;
+        p2++;
+    }
+    return true;
+}
+

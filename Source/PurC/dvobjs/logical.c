@@ -30,6 +30,7 @@
 #include "private/html.h"
 
 #include "purc-variant.h"
+#include "tools.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -41,60 +42,6 @@
 #include <regex.h>
 #include <memory.h>
 #include <stdlib.h>
-
-static bool wildcard_cmp (const char *str1, const char *pattern)
-{
-    if (str1 == NULL) 
-        return false;
-    if (pattern == NULL) 
-        return false;
-
-    int len1 = strlen (str1);
-    int len2 = strlen (pattern);
-    int mark = 0;
-    int p1 = 0;
-    int p2 = 0;
-
-    while ((p1 < len1) && (p2<len2))
-    {
-        if (pattern[p2] == '?')
-        {
-            p1++;
-            p2++;
-            continue;
-        }
-        if (pattern[p2] == '*')
-        {
-            p2++;
-            mark = p2;
-            continue;
-        }
-        if (str1[p1] != pattern[p2])
-        {
-            if (p1 == 0 && p2 == 0)
-                return false;
-            p1 -= p2 - mark - 1;
-            p2 = mark;
-            continue;
-        }
-        p1++;
-        p2++;
-    }
-    if (p2 == len2)
-    {
-        if (p1 == len1)
-            return true;
-        if (pattern[p2 - 1] == '*')
-            return true;
-    }
-    while (p2 < len2)
-    {
-        if (pattern[p2] != '*')
-            return false;
-        p2++;
-    }
-    return true;
-}
 
 static bool reg_cmp (const char *buf1, const char *buf2)
 {
@@ -112,6 +59,9 @@ static bool reg_cmp (const char *buf1, const char *buf2)
     if (err == REG_NOMATCH) 
         return false;
     else if (err) 
+        return false;
+
+    if (pmatch[0].rm_so == -1)
         return false;
 
     return true;
