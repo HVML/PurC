@@ -155,9 +155,6 @@ struct pchvml_dom_element {
 
     pchvml_dom_element_tag_t   *tag;
 
-    pchvml_dom_element_attr_t  *first_attr;
-    pchvml_dom_element_attr_t  *last_attr;
-
     pchvml_dom_node_t          *first_child;
     pchvml_dom_node_t          *last_child;
 };
@@ -168,6 +165,9 @@ struct pchvml_dom_element_tag {
     // optimize later with tag_id
     char                       *ns;    // namespace prefix
     char                       *name;  // local name, lower space
+
+    pchvml_dom_element_attr_t  *first_attr;
+    pchvml_dom_element_attr_t  *last_attr;
 };
 
 struct pchvml_dom_element_attr {
@@ -184,8 +184,6 @@ struct pchvml_vdom_eval {
 };
 
 // creating and destroying api
-void
-pchvml_dom_node_destroy(pchvml_dom_node_t *node);
 
 pchvml_document_t*
 pchvml_document_create(void);
