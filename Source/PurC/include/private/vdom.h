@@ -63,6 +63,7 @@ typedef enum {
 
 enum pchvml_dom_node_type {
     PCHVML_DOM_NODE_DOCUMENT,
+    PCHVML_DOM_NODE_DOCTYPE,
     PCHVML_DOM_NODE_ELEMENT,
     PCHVML_DOM_NODE_TAG,
     PCHVML_DOM_NODE_ATTR,
@@ -92,34 +93,41 @@ struct pchvml_vdom_eval;
 typedef struct pchvml_vdom_eval pchvml_vdom_eval_t;
 
 struct pchvml_dom_node {
-    struct pctree_node          node;
+    struct pctree_node         *node;
     enum pchvml_dom_node_type   type;
 };
 
 struct pchvml_document {
-    struct pchvml_dom_node      node;
+    pchvml_dom_node_t           node;
 
     pchvml_document_doctype_t  *doctype;
     pchvml_dom_element_t       *root; // <hvml>
 };
 
 struct pchvml_document_doctype {
-    struct pchvml_dom_node      node;
+    pchvml_dom_node_t           node;
 
+    // optimize later
     char                       *prefix;
-    struct list_head            built_in_vars; // char*
+    char                      **builtins;
+    size_t                      nr_builtins;
+    size_t                      sz_builtins;
 };
 
 struct pchvml_dom_element {
-    struct pchvml_dom_node      node;
+    pchvml_dom_node_t           node;
 
     pchvml_dom_element_tag_t   *tag;
-    struct list_head            attrs;
-    struct list_head            children;
+
+    pchvml_dom_node_t          *first_attr;
+    pchvml_dom_node_t          *last_attr;
+
+    pchvml_dom_node_t          *first_child;
+    pchvml_dom_node_t          *last_child;
 };
 
 struct pchvml_dom_element_tag {
-    struct pchvml_dom_node      node;
+    pchvml_dom_node_t           node;
 
     // optimize later with tag_id
     char                       *ns;    // namespace prefix
@@ -127,7 +135,7 @@ struct pchvml_dom_element_tag {
 };
 
 struct pchvml_dom_element_attr {
-    struct pchvml_dom_node      node;
+    pchvml_dom_node_t           node;
 
     pchvml_vdom_eval_t         *key;
     pchvml_vdom_eval_t         *val;
@@ -142,6 +150,44 @@ pchvml_document_reset(pchvml_document_t *doc);
 void
 pchvml_document_destroy(pchvml_document_t *doc);
 
+pchvml_document_doctype_t*
+pchvml_document_doctype_create(void);
+
+void
+pchvml_document_doctype_reset(pchvml_document_doctype_t *doctype);
+
+void
+pchvml_document_doctype_destroy(pchvml_document_doctype_t *doctype);
+
+pchvml_dom_element_t*
+pchvml_dom_element_create(void);
+
+void
+pchvml_dom_element_reset(pchvml_dom_element_t *elem);
+
+void
+pchvml_dom_element_destroy(pchvml_dom_element_t *elem);
+
+pchvml_dom_element_tag_t*
+pchvml_dom_element_tag_create(void);
+
+void
+pchvml_dom_element_tag_reset(pchvml_dom_element_tag_t *tag);
+
+void
+pchvml_dom_element_tag_destroy(pchvml_dom_element_tag_t *tag);
+
+pchvml_dom_element_attr_t*
+pchvml_dom_element_attr_create(void);
+
+void
+pchvml_dom_element_attr_reset(pchvml_dom_element_attr_t *attr);
+
+void
+pchvml_dom_element_attr_destroy(pchvml_dom_element_attr_t *attr);
+
+void
+pchvml_vdom_eval_destroy(pchvml_vdom_eval_t *vdom);
 
 #ifdef __cplusplus
 }
