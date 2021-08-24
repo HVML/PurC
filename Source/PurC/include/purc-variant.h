@@ -1312,8 +1312,9 @@ purc_variant_dynamic_value_load_from_so(const char* so_name,
 
 typedef enum purc_variant_type
 {
-    PURC_VARIANT_TYPE_NULL,
+    /* critical: keep order as is */
     PURC_VARIANT_TYPE_UNDEFINED,
+    PURC_VARIANT_TYPE_NULL,
     PURC_VARIANT_TYPE_BOOLEAN,
     PURC_VARIANT_TYPE_NUMBER,
     PURC_VARIANT_TYPE_LONGINT,
