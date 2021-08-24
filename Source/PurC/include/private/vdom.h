@@ -91,12 +91,108 @@ typedef struct pchvml_dom_element_attr pchvml_dom_element_attr_t;
 struct pchvml_vdom_eval;
 typedef struct pchvml_vdom_eval pchvml_vdom_eval_t;
 
-// creating and destroying api
-pchvml_document_t*
-pchvml_document_create(void);
+struct pchvml_dom_node {
+    struct pctree_node         *node;
+    enum pchvml_dom_node_type   type;
+    void (*remove_child)(pchvml_dom_node_t *me, pchvml_dom_node_t *child);
+};
 
+struct pchvml_document {
+    pchvml_dom_node_t           node;
+
+    pchvml_document_doctype_t  *doctype;
+    pchvml_dom_element_t       *root; // <hvml>
+};
+
+struct pchvml_document_doctype {
+    pchvml_dom_node_t           node;
+
+    // optimize later
+    char                       *prefix;
+    char                      **builtins;
+    size_t                      nr_builtins;
+    size_t                      sz_builtins;
+};
+
+struct pchvml_dom_element {
+    pchvml_dom_node_t           node;
+
+    pchvml_dom_element_tag_t   *tag;
+
+    // element/text content/ejson
+    pchvml_dom_node_t          *first_child;
+    pchvml_dom_node_t          *last_child;
+};
+
+struct pchvml_dom_element_tag {
+    pchvml_dom_node_t           node;
+
+    // optimize later with tag_id
+    char                       *ns;    // namespace prefix
+    char                       *name;  // local name, lower space
+
+    pchvml_dom_element_attr_t  *first_attr;
+    pchvml_dom_element_attr_t  *last_attr;
+};
+
+struct pchvml_dom_element_attr {
+    pchvml_dom_node_t           node;
+
+    // raw text/ejson
+    pchvml_vdom_eval_t         *key;
+    pchvml_vdom_eval_t         *val;
+};
+
+struct pchvml_vdom_eval {
+    pchvml_dom_node_t           node;
+
+    // vdom
+};
+
+#define PCHVML_DOM_NODE_IS_DOCUMENT(_n) \
+    (((_n) && (_n)->type==PCHVML_DOM_NODE_DOCUMENT))
+#define PCHVML_DOM_NODE_IS_DOCTYPE(_n) \
+    (((_n) && (_n)->type==PCHVML_DOM_NODE_DOCTYPE))
+#define PCHVML_DOM_NODE_IS_ELEMENT(_n) \
+    (((_n) && (_n)->type==PCHVML_DOM_NODE_ELEMENT))
+#define PCHVML_DOM_NODE_IS_TAG(_n) \
+    (((_n) && (_n)->type==PCHVML_DOM_NODE_TAG))
+#define PCHVML_DOM_NODE_IS_ATTR(_n) \
+    (((_n) && (_n)->type==PCHVML_DOM_NODE_ATTR))
+#define PCHVML_DOM_NODE_IS_EVAL(_n) \
+    (((_n) && (_n)->type==PCHVML_DOM_VDOM_EVAL))
+
+#define PCHVML_DOCUMENT_FROM_NODE(_node) \
+    (PCHVML_DOM_NODE_IS_DOCUMENT(_node) ? \
+        container_of(_node, pchvml_document_t, node) : NULL)
+
+#define PCHVML_DOCTYPE_FROM_NODE(_node) \
+    (PCHVML_DOM_NODE_IS_DOCTYPE(_node) ? \
+        container_of(_node, pchvml_document_doctype_t, node) : NULL)
+
+#define PCHVML_ELEMENT_FROM_NODE(_node) \
+    (PCHVML_DOM_NODE_IS_ELEMENT(_node) ? \
+        container_of(_node, pchvml_dom_element_t, node) : NULL)
+
+#define PCHVML_ELEMENT_TAG_FROM_NODE(_node) \
+    (PCHVML_DOM_NODE_IS_TAG(_node) ? \
+        container_of(_node, pchvml_dom_element_tag_t, node) : NULL)
+
+#define PCHVML_ELEMENT_ATTR_FROM_NODE(_node) \
+    (PCHVML_DOM_NODE_IS_ATTR(_node) ? \
+        container_of(_node, pchvml_dom_element_attr_t, node) : NULL)
+
+#define PCHVML_VDOM_EVAL_FROM_NODE(_node) \
+    (PCHVML_DOM_NODE_IS_EVAL(_node) ? \
+        container_of(_node, pchvml_vdom_eval_t, node) : NULL)
+
+
+// creating and destroying api
 void
 pchvml_document_destroy(pchvml_document_t *doc);
+
+pchvml_document_t*
+pchvml_document_create(void);
 
 pchvml_document_doctype_t*
 pchvml_document_doctype_create(void);
@@ -113,43 +209,55 @@ pchvml_dom_element_attr_create(void);
 pchvml_vdom_eval_t*
 pchvml_vdom_eval_create(void);
 
-
 // doc/dom construction api
-int pchvml_document_set_doctype(pchvml_document_t *doc,
+int
+pchvml_document_set_doctype(pchvml_document_t *doc,
         pchvml_document_doctype_t *doctype);
-
-int pchvml_document_set_root(pchvml_document_t *doc,
+int
+pchvml_document_set_root(pchvml_document_t *doc,
         pchvml_dom_element_t *root);
 
-int pchvml_document_doctype_set_prefix(pchvml_document_doctype_t *doc,
+int
+pchvml_document_doctype_set_prefix(pchvml_document_doctype_t *doc,
         const char *prefix);
-
-int pchvml_document_doctype_append_builtin(pchvml_document_doctype_t *doc,
+int
+pchvml_document_doctype_append_builtin(pchvml_document_doctype_t *doc,
         const char *builtin);
 
-int pchvml_dom_element_set_tag(pchvml_dom_element_t *elem,
+int
+pchvml_dom_element_set_tag(pchvml_dom_element_t *elem,
         pchvml_dom_element_tag_t *tag);
-
-int pchvml_dom_element_append_attr(pchvml_dom_element_t *elem,
+int
+pchvml_dom_element_append_attr(pchvml_dom_element_t *elem,
         pchvml_dom_element_attr_t *attr);
-
-int pchvml_dom_element_append_child(pchvml_dom_element_t *elem,
+int
+pchvml_dom_element_append_child(pchvml_dom_element_t *elem,
         pchvml_dom_element_t *child);
 
-int pchvml_dom_element_tag_set_ns(pchvml_dom_element_tag_t *tag,
+int
+pchvml_dom_element_tag_set_ns(pchvml_dom_element_tag_t *tag,
         const char *ns);
-
-int pchvml_dom_element_tag_set_name(pchvml_dom_element_tag_t *tag,
+int
+pchvml_dom_element_tag_set_name(pchvml_dom_element_tag_t *tag,
         const char *name);
-
-int pchvml_dom_element_tag_append_attr(pchvml_dom_element_tag_t *tag,
+int
+pchvml_dom_element_tag_append_attr(pchvml_dom_element_tag_t *tag,
         pchvml_dom_element_attr_t *attr);
 
-int pchvml_dom_element_attr_set_key(pchvml_dom_element_attr_t *attr,
+int
+pchvml_dom_element_attr_set_key(pchvml_dom_element_attr_t *attr,
         pchvml_vdom_eval_t *key);
-
-int pchvml_dom_element_attr_set_val(pchvml_dom_element_attr_t *attr,
+int
+pchvml_dom_element_attr_set_val(pchvml_dom_element_attr_t *attr,
         pchvml_vdom_eval_t *val);
+
+// accessor api
+pchvml_dom_node_t*
+pchvml_dom_node_parent(pchvml_dom_node_t *node);
+
+// operation api
+void pchvml_dom_node_remove(pchvml_dom_node_t *node);
+void pchvml_dom_node_destroy(pchvml_dom_node_t *node);
 
 #ifdef __cplusplus
 }
