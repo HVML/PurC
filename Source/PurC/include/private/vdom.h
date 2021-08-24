@@ -29,6 +29,7 @@
 #include "config.h"
 
 #include "purc-errors.h"
+#include "purc-variant.h"
 #include "private/list.h"
 #include "private/tree.h"
 
@@ -147,6 +148,8 @@ struct pchvml_vdom_eval {
     pchvml_dom_node_t           node;
 
     // vdom
+
+    purc_variant_t              result; // eval'd result
 };
 
 #define PCHVML_DOM_NODE_IS_DOCUMENT(_n) \

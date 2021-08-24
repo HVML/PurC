@@ -392,6 +392,10 @@ _eval_reset(pchvml_vdom_eval_t *eval)
         return;
 
     pctree_node_remove(eval->node.node);
+    if (eval->result!=PURC_VARIANT_INVALID) {
+        purc_variant_unref(eval->result);
+        eval->result = PURC_VARIANT_INVALID;
+    }
 }
 
 void
@@ -534,6 +538,7 @@ pchvml_vdom_eval_create(void)
         return NULL;
     }
     eval->node.remove_child = _eval_remove_child;
+    eval->result            = PURC_VARIANT_INVALID;
     return eval;
 }
 
