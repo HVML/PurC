@@ -48,39 +48,39 @@ void pcvdom_cleanup_instance(struct pcinst* inst)
 
 
 void
-_document_reset(pchvml_document_t *doc);
+_document_reset(pcvdom_document_t *doc);
 void
-_document_destroy(pchvml_document_t *doc);
+_document_destroy(pcvdom_document_t *doc);
 
 void
-_doctype_reset(pchvml_document_doctype_t *doctype);
+_doctype_reset(pcvdom_doctype_t *doctype);
 void
-_doctype_destroy(pchvml_document_doctype_t *doctype);
+_doctype_destroy(pcvdom_doctype_t *doctype);
 
 void
-_element_reset(pchvml_dom_element_t *elem);
+_element_reset(pcvdom_element_t *elem);
 void
-_element_destroy(pchvml_dom_element_t *elem);
+_element_destroy(pcvdom_element_t *elem);
 
 void
-_tag_reset(pchvml_dom_element_tag_t *tag);
+_tag_reset(pcvdom_tag_t *tag);
 void
-_tag_destroy(pchvml_dom_element_tag_t *tag);
+_tag_destroy(pcvdom_tag_t *tag);
 
 void
-_attr_reset(pchvml_dom_element_attr_t *attr);
+_attr_reset(pcvdom_attr_t *attr);
 void
-_attr_destroy(pchvml_dom_element_attr_t *attr);
+_attr_destroy(pcvdom_attr_t *attr);
 
 void
-_eval_reset(pchvml_vdom_eval_t *eval);
+_exp_reset(pcvdom_exp_t *exp);
 void
-_eval_destroy(pchvml_vdom_eval_t *eval);
+_exp_destroy(pcvdom_exp_t *exp);
 
 static void
-_dom_node_remove(pchvml_dom_node_t *node)
+_dom_node_remove(pcvdom_node_t *node)
 {
-    pchvml_dom_node_t *parent = pchvml_dom_node_parent(node);
+    pcvdom_node_t *parent = pcvdom_node_parent(node);
     if (!parent)
         return;
 
@@ -88,48 +88,48 @@ _dom_node_remove(pchvml_dom_node_t *node)
 }
 
 static void
-_pchvml_dom_node_destroy(pchvml_dom_node_t *node)
+_pcvdom_node_destroy(pcvdom_node_t *node)
 {
     if (!node)
         return;
 
     switch (node->type)
     {
-        case PCHVML_DOM_NODE_DOCUMENT:
+        case PCVDOM_NODE_DOCUMENT:
             {
-                pchvml_document_t *doc;
-                doc = PCHVML_DOCUMENT_FROM_NODE(node);
+                pcvdom_document_t *doc;
+                doc = PCVDOM_DOCUMENT_FROM_NODE(node);
                 _document_destroy(doc);
             } break;
-        case PCHVML_DOM_NODE_DOCTYPE:
+        case PCVDOM_NODE_DOCTYPE:
             {
-                pchvml_document_doctype_t *doctype;
-                doctype = PCHVML_DOCTYPE_FROM_NODE(node);
+                pcvdom_doctype_t *doctype;
+                doctype = PCVDOM_DOCTYPE_FROM_NODE(node);
                 _doctype_destroy(doctype);
             } break;
-        case PCHVML_DOM_NODE_ELEMENT:
+        case PCVDOM_NODE_ELEMENT:
             {
-                pchvml_dom_element_t *elem;
-                elem = PCHVML_ELEMENT_FROM_NODE(node);
+                pcvdom_element_t *elem;
+                elem = PCVDOM_ELEMENT_FROM_NODE(node);
                 _element_destroy(elem);
             } break;
-        case PCHVML_DOM_NODE_TAG:
+        case PCVDOM_NODE_TAG:
             {
-                pchvml_dom_element_tag_t *tag;
-                tag = PCHVML_ELEMENT_TAG_FROM_NODE(node);
+                pcvdom_tag_t *tag;
+                tag = PCVDOM_TAG_FROM_NODE(node);
                 _tag_destroy(tag);
             } break;
-        case PCHVML_DOM_NODE_ATTR:
+        case PCVDOM_NODE_ATTR:
             {
-                pchvml_dom_element_attr_t *attr;
-                attr = PCHVML_ELEMENT_ATTR_FROM_NODE(node);
+                pcvdom_attr_t *attr;
+                attr = PCVDOM_ATTR_FROM_NODE(node);
                 _attr_destroy(attr);
             } break;
-        case PCHVML_DOM_VDOM_EVAL:
+        case PCVDOM_VDOM_EXP:
             {
-                pchvml_vdom_eval_t *eval;
-                eval = PCHVML_VDOM_EVAL_FROM_NODE(node);
-                _eval_destroy(eval);
+                pcvdom_exp_t *exp;
+                exp = PCVDOM_EXP_FROM_NODE(node);
+                _exp_destroy(exp);
             } break;
         default:
             {
@@ -140,10 +140,10 @@ _pchvml_dom_node_destroy(pchvml_dom_node_t *node)
 
 
 static void
-_document_remove_child(pchvml_dom_node_t *me, pchvml_dom_node_t *child)
+_document_remove_child(pcvdom_node_t *me, pcvdom_node_t *child)
 {
-    pchvml_document_t *doc;
-    doc = container_of(me, pchvml_document_t, node);
+    pcvdom_document_t *doc;
+    doc = container_of(me, pcvdom_document_t, node);
     PC_ASSERT(&doc->node == me);
     PC_ASSERT(&doc->node == me->node->user_data);
 
@@ -158,7 +158,7 @@ _document_remove_child(pchvml_dom_node_t *me, pchvml_dom_node_t *child)
 }
 
 void
-_document_reset(pchvml_document_t *doc)
+_document_reset(pcvdom_document_t *doc)
 {
     if (!doc)
         return;
@@ -169,7 +169,7 @@ _document_reset(pchvml_document_t *doc)
 }
 
 void
-_document_destroy(pchvml_document_t *doc)
+_document_destroy(pcvdom_document_t *doc)
 {
     _document_reset(doc);
     pctree_node_destroy(doc->node.node, NULL);
@@ -177,14 +177,14 @@ _document_destroy(pchvml_document_t *doc)
 }
 
 static void
-_doctype_remove_child(pchvml_dom_node_t *me, pchvml_dom_node_t *child)
+_doctype_remove_child(pcvdom_node_t *me, pcvdom_node_t *child)
 {
     UNUSED_PARAM(me);
     UNUSED_PARAM(child);
 }
 
 void
-_doctype_reset(pchvml_document_doctype_t *doctype)
+_doctype_reset(pcvdom_doctype_t *doctype)
 {
     if (!doctype)
         return;
@@ -199,12 +199,12 @@ _doctype_reset(pchvml_document_doctype_t *doctype)
 }
 
 void
-_doctype_destroy(pchvml_document_doctype_t *doctype)
+_doctype_destroy(pcvdom_doctype_t *doctype)
 {
     if (!doctype)
         return;
 
-    pchvml_dom_node_remove(&doctype->node);
+    pcvdom_node_remove(&doctype->node);
 
     _doctype_reset(doctype);
     free(doctype->builtins);
@@ -215,53 +215,53 @@ _doctype_destroy(pchvml_document_doctype_t *doctype)
 }
 
 static void
-_element_remove_child(pchvml_dom_node_t *me, pchvml_dom_node_t *child)
+_element_remove_child(pcvdom_node_t *me, pcvdom_node_t *child)
 {
-    pchvml_dom_element_t *elem;
-    elem = container_of(me, pchvml_dom_element_t, node);
+    pcvdom_element_t *elem;
+    elem = container_of(me, pcvdom_element_t, node);
 
     if (child == elem->first_child) {
         struct pctree_node *next = child->node->next;
-        elem->first_child = next ? (pchvml_dom_node_t*)next->user_data : NULL;
+        elem->first_child = next ? (pcvdom_node_t*)next->user_data : NULL;
     }
     if (child == elem->last_child) {
         struct pctree_node *prev = child->node->prev;
-        elem->last_child = prev ? (pchvml_dom_node_t*)prev->user_data : NULL;
+        elem->last_child = prev ? (pcvdom_node_t*)prev->user_data : NULL;
     }
 
     pctree_node_remove(child->node);
 }
 
 void
-_element_reset(pchvml_dom_element_t *elem)
+_element_reset(pcvdom_element_t *elem)
 {
     if (!elem)
         return;
 
     _tag_destroy(elem->tag);
 
-    pchvml_dom_node_t *child;
+    pcvdom_node_t *child;
     child = elem->first_child;
     while (child) {
         struct pctree_node *next;
         next = child->node->next;
 
-        _pchvml_dom_node_destroy(child);
+        _pcvdom_node_destroy(child);
 
         if (!next)
             break;
 
-        child = (pchvml_dom_node_t*)next->user_data;
+        child = (pcvdom_node_t*)next->user_data;
     }
 }
 
 void
-_element_destroy(pchvml_dom_element_t *elem)
+_element_destroy(pcvdom_element_t *elem)
 {
     if (!elem)
         return;
 
-    pchvml_dom_node_remove(&elem->node);
+    pcvdom_node_remove(&elem->node);
 
     _element_reset(elem);
     pctree_node_destroy(elem->node.node, NULL);
@@ -269,26 +269,26 @@ _element_destroy(pchvml_dom_element_t *elem)
 }
 
 static void
-_tag_remove_child(pchvml_dom_node_t *me, pchvml_dom_node_t *child)
+_tag_remove_child(pcvdom_node_t *me, pcvdom_node_t *child)
 {
-    pchvml_dom_element_tag_t *tag;
-    tag = container_of(me, pchvml_dom_element_tag_t, node);
+    pcvdom_tag_t *tag;
+    tag = container_of(me, pcvdom_tag_t, node);
 
     if (child == &tag->first_attr->node) {
         struct pctree_node *next = child->node->next;
-        pchvml_dom_node_t *next_node;
-        next_node = next ? (pchvml_dom_node_t*)next->user_data : NULL;
+        pcvdom_node_t *next_node;
+        next_node = next ? (pcvdom_node_t*)next->user_data : NULL;
         tag->first_attr = next_node ?
-            container_of(next_node, pchvml_dom_element_attr_t, node) :
+            container_of(next_node, pcvdom_attr_t, node) :
             NULL;
     }
 
     if (child == &tag->last_attr->node) {
         struct pctree_node *prev = child->node->prev;
-        pchvml_dom_node_t *prev_node;
-        prev_node = prev ? (pchvml_dom_node_t*)prev->user_data : NULL;
+        pcvdom_node_t *prev_node;
+        prev_node = prev ? (pcvdom_node_t*)prev->user_data : NULL;
         tag->last_attr = prev_node ?
-            container_of(prev_node, pchvml_dom_element_attr_t, node) :
+            container_of(prev_node, pcvdom_attr_t, node) :
             NULL;
     }
 
@@ -296,7 +296,7 @@ _tag_remove_child(pchvml_dom_node_t *me, pchvml_dom_node_t *child)
 }
 
 void
-_tag_reset(pchvml_dom_element_tag_t *tag)
+_tag_reset(pcvdom_tag_t *tag)
 {
     if (!tag)
         return;
@@ -306,7 +306,7 @@ _tag_reset(pchvml_dom_element_tag_t *tag)
     free(tag->name);
     tag->name = NULL;
 
-    pchvml_dom_element_attr_t *attr;
+    pcvdom_attr_t *attr;
     attr = tag->first_attr;
     tag->first_attr = NULL;
     tag->last_attr  = NULL;
@@ -319,17 +319,17 @@ _tag_reset(pchvml_dom_element_tag_t *tag)
         if (!next)
             break;
 
-        attr = (pchvml_dom_element_attr_t*)next->user_data;
+        attr = (pcvdom_attr_t*)next->user_data;
     }
 }
 
 void
-_tag_destroy(pchvml_dom_element_tag_t *tag)
+_tag_destroy(pcvdom_tag_t *tag)
 {
     if (!tag)
         return;
 
-    pchvml_dom_node_remove(&tag->node);
+    pcvdom_node_remove(&tag->node);
 
     _tag_reset(tag);
     pctree_node_destroy(tag->node.node, NULL);
@@ -337,10 +337,10 @@ _tag_destroy(pchvml_dom_element_tag_t *tag)
 }
 
 static void
-_attr_remove_child(pchvml_dom_node_t *me, pchvml_dom_node_t *child)
+_attr_remove_child(pcvdom_node_t *me, pcvdom_node_t *child)
 {
-    pchvml_dom_element_attr_t *attr;
-    attr = container_of(me, pchvml_dom_element_attr_t, node);
+    pcvdom_attr_t *attr;
+    attr = container_of(me, pcvdom_attr_t, node);
 
     if (attr->key && child == &attr->key->node) {
         attr->key = NULL;
@@ -353,24 +353,24 @@ _attr_remove_child(pchvml_dom_node_t *me, pchvml_dom_node_t *child)
 }
 
 void
-_attr_reset(pchvml_dom_element_attr_t *attr)
+_attr_reset(pcvdom_attr_t *attr)
 {
     if (!attr)
         return;
 
-    _eval_destroy(attr->key);
+    _exp_destroy(attr->key);
     attr->key = NULL;
-    _eval_destroy(attr->val);
+    _exp_destroy(attr->val);
     attr->val = NULL;
 }
 
 void
-_attr_destroy(pchvml_dom_element_attr_t *attr)
+_attr_destroy(pcvdom_attr_t *attr)
 {
     if (!attr)
         return;
 
-    pchvml_dom_node_remove(&attr->node);
+    pcvdom_node_remove(&attr->node);
 
     _attr_reset(attr);
     pctree_node_destroy(attr->node.node, NULL);
@@ -378,7 +378,7 @@ _attr_destroy(pchvml_dom_element_attr_t *attr)
 }
 
 static void
-_eval_remove_child(pchvml_dom_node_t *me, pchvml_dom_node_t *child)
+_exp_remove_child(pcvdom_node_t *me, pcvdom_node_t *child)
 {
     UNUSED_PARAM(me);
 
@@ -386,39 +386,39 @@ _eval_remove_child(pchvml_dom_node_t *me, pchvml_dom_node_t *child)
 }
 
 void
-_eval_reset(pchvml_vdom_eval_t *eval)
+_exp_reset(pcvdom_exp_t *exp)
 {
-    if (!eval)
+    if (!exp)
         return;
 
-    pctree_node_remove(eval->node.node);
-    if (eval->result!=PURC_VARIANT_INVALID) {
-        purc_variant_unref(eval->result);
-        eval->result = PURC_VARIANT_INVALID;
+    pctree_node_remove(exp->node.node);
+    if (exp->result!=PURC_VARIANT_INVALID) {
+        purc_variant_unref(exp->result);
+        exp->result = PURC_VARIANT_INVALID;
     }
 }
 
 void
-_eval_destroy(pchvml_vdom_eval_t *eval)
+_exp_destroy(pcvdom_exp_t *exp)
 {
-    if (!eval)
+    if (!exp)
         return;
 
-    pchvml_dom_node_remove(&eval->node);
+    pcvdom_node_remove(&exp->node);
 
-    _eval_reset(eval);
-    free(eval);
+    _exp_reset(exp);
+    free(exp);
 }
 
-pchvml_document_t*
-pchvml_document_create(void)
+pcvdom_document_t*
+pcvdom_document_create(void)
 {
-    pchvml_document_t *doc = (pchvml_document_t*)calloc(1, sizeof(*doc));
+    pcvdom_document_t *doc = (pcvdom_document_t*)calloc(1, sizeof(*doc));
     if (!doc) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
-    doc->node.type = PCHVML_DOM_NODE_DOCUMENT;
+    doc->node.type = PCVDOM_NODE_DOCUMENT;
     doc->node.node = pctree_node_new(&doc->node);
     if (!doc->node.node) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -430,7 +430,7 @@ pchvml_document_create(void)
 }
 
 void
-pchvml_document_destroy(pchvml_document_t *doc)
+pcvdom_document_destroy(pcvdom_document_t *doc)
 {
     if (!doc)
         return;
@@ -438,16 +438,16 @@ pchvml_document_destroy(pchvml_document_t *doc)
     _document_destroy(doc);
 }
 
-pchvml_document_doctype_t*
-pchvml_document_doctype_create(void)
+pcvdom_doctype_t*
+pcvdom_doctype_create(void)
 {
-    pchvml_document_doctype_t *doctype;
-    doctype = (pchvml_document_doctype_t*)calloc(1, sizeof(*doctype));
+    pcvdom_doctype_t *doctype;
+    doctype = (pcvdom_doctype_t*)calloc(1, sizeof(*doctype));
     if (!doctype) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
-    doctype->node.type = PCHVML_DOM_NODE_DOCTYPE;
+    doctype->node.type = PCVDOM_NODE_DOCTYPE;
     doctype->node.node = pctree_node_new(&doctype->node);
     if (!doctype->node.node) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -459,16 +459,16 @@ pchvml_document_doctype_create(void)
     return doctype;
 }
 
-pchvml_dom_element_t*
-pchvml_dom_element_create(void)
+pcvdom_element_t*
+pcvdom_element_create(void)
 {
-    pchvml_dom_element_t *elem;
-    elem = (pchvml_dom_element_t*)calloc(1, sizeof(*elem));
+    pcvdom_element_t *elem;
+    elem = (pcvdom_element_t*)calloc(1, sizeof(*elem));
     if (!elem) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
-    elem->node.type = PCHVML_DOM_NODE_ELEMENT;
+    elem->node.type = PCVDOM_NODE_ELEMENT;
     elem->node.node = pctree_node_new(&elem->node);
     if (!elem->node.node) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -480,16 +480,16 @@ pchvml_dom_element_create(void)
     return elem;
 }
 
-pchvml_dom_element_tag_t*
-pchvml_dom_element_tag_create(void)
+pcvdom_tag_t*
+pcvdom_tag_create(void)
 {
-    pchvml_dom_element_tag_t *tag;
-    tag = (pchvml_dom_element_tag_t*)calloc(1, sizeof(*tag));
+    pcvdom_tag_t *tag;
+    tag = (pcvdom_tag_t*)calloc(1, sizeof(*tag));
     if (!tag) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
-    tag->node.type = PCHVML_DOM_NODE_TAG;
+    tag->node.type = PCVDOM_NODE_TAG;
     tag->node.node = pctree_node_new(&tag->node);
     if (!tag->node.node) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -501,16 +501,16 @@ pchvml_dom_element_tag_create(void)
     return tag;
 }
 
-pchvml_dom_element_attr_t*
-pchvml_dom_element_attr_create(void)
+pcvdom_attr_t*
+pcvdom_attr_create(void)
 {
-    pchvml_dom_element_attr_t *attr;
-    attr = (pchvml_dom_element_attr_t*)calloc(1, sizeof(*attr));
+    pcvdom_attr_t *attr;
+    attr = (pcvdom_attr_t*)calloc(1, sizeof(*attr));
     if (!attr) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
-    attr->node.type = PCHVML_DOM_NODE_ATTR;
+    attr->node.type = PCVDOM_NODE_ATTR;
     attr->node.node = pctree_node_new(&attr->node);
     if (!attr->node.node) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -522,29 +522,29 @@ pchvml_dom_element_attr_create(void)
     return attr;
 }
 
-pchvml_vdom_eval_t*
-pchvml_vdom_eval_create(void)
+pcvdom_exp_t*
+pcvdom_exp_create(void)
 {
-    pchvml_vdom_eval_t *eval = (pchvml_vdom_eval_t*)calloc(1, sizeof(*eval));
-    if (!eval) {
+    pcvdom_exp_t *exp = (pcvdom_exp_t*)calloc(1, sizeof(*exp));
+    if (!exp) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
-    eval->node.type = PCHVML_DOM_VDOM_EVAL;
-    eval->node.node = pctree_node_new(&eval->node);
-    if (!eval->node.node) {
+    exp->node.type = PCVDOM_VDOM_EXP;
+    exp->node.node = pctree_node_new(&exp->node);
+    if (!exp->node.node) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        free(eval);
+        free(exp);
         return NULL;
     }
-    eval->node.remove_child = _eval_remove_child;
-    eval->result            = PURC_VARIANT_INVALID;
-    return eval;
+    exp->node.remove_child = _exp_remove_child;
+    exp->result            = PURC_VARIANT_INVALID;
+    return exp;
 }
 
 int
-pchvml_document_set_doctype(pchvml_document_t *doc,
-        pchvml_document_doctype_t *doctype)
+pcvdom_document_set_doctype(pcvdom_document_t *doc,
+        pcvdom_doctype_t *doctype)
 {
     PC_ASSERT(doc->doctype == NULL);
     PC_ASSERT(doctype->node.node->parent == NULL);
@@ -555,8 +555,8 @@ pchvml_document_set_doctype(pchvml_document_t *doc,
 }
 
 int
-pchvml_document_set_root(pchvml_document_t *doc,
-        pchvml_dom_element_t *root)
+pcvdom_document_set_root(pcvdom_document_t *doc,
+        pcvdom_element_t *root)
 {
     PC_ASSERT(doc->root == NULL);
     PC_ASSERT(root->node.node->parent == NULL);
@@ -567,7 +567,7 @@ pchvml_document_set_root(pchvml_document_t *doc,
 }
 
 int
-pchvml_document_doctype_set_prefix(pchvml_document_doctype_t *doc,
+pcvdom_doctype_set_prefix(pcvdom_doctype_t *doc,
         const char *prefix)
 {
     if (doc->prefix &&
@@ -586,7 +586,7 @@ pchvml_document_doctype_set_prefix(pchvml_document_doctype_t *doc,
 }
 
 int
-pchvml_document_doctype_append_builtin(pchvml_document_doctype_t *doc,
+pcvdom_doctype_append_builtin(pcvdom_doctype_t *doc,
         const char *builtin)
 {
     for (size_t i=0; i<doc->nr_builtins; ++i) {
@@ -618,8 +618,8 @@ pchvml_document_doctype_append_builtin(pchvml_document_doctype_t *doc,
 }
 
 int
-pchvml_dom_element_set_tag(pchvml_dom_element_t *elem,
-        pchvml_dom_element_tag_t *tag)
+pcvdom_element_set_tag(pcvdom_element_t *elem,
+        pcvdom_tag_t *tag)
 {
     PC_ASSERT(elem->tag == NULL);
     PC_ASSERT(tag->node.node->parent == NULL);
@@ -631,18 +631,18 @@ pchvml_dom_element_set_tag(pchvml_dom_element_t *elem,
 }
 
 int
-pchvml_dom_element_append_attr(pchvml_dom_element_t *elem,
-        pchvml_dom_element_attr_t *attr)
+pcvdom_element_append_attr(pcvdom_element_t *elem,
+        pcvdom_attr_t *attr)
 {
     PC_ASSERT(attr->node.node->parent == NULL);
     PC_ASSERT(elem->tag);
 
-    return pchvml_dom_element_tag_append_attr(elem->tag, attr);
+    return pcvdom_tag_append_attr(elem->tag, attr);
 }
 
 int
-pchvml_dom_element_append_child(pchvml_dom_element_t *elem,
-        pchvml_dom_element_t *child)
+pcvdom_element_append_child(pcvdom_element_t *elem,
+        pcvdom_element_t *child)
 {
     PC_ASSERT(child->node.node->parent == NULL);
     PC_ASSERT(elem->tag);
@@ -657,7 +657,7 @@ pchvml_dom_element_append_child(pchvml_dom_element_t *elem,
 }
 
 int
-pchvml_dom_element_tag_set_ns(pchvml_dom_element_tag_t *tag,
+pcvdom_tag_set_ns(pcvdom_tag_t *tag,
         const char *ns)
 {
     if (tag->ns &&
@@ -676,7 +676,7 @@ pchvml_dom_element_tag_set_ns(pchvml_dom_element_tag_t *tag,
 }
 
 int
-pchvml_dom_element_tag_set_name(pchvml_dom_element_tag_t *tag,
+pcvdom_tag_set_name(pcvdom_tag_t *tag,
         const char *name)
 {
     if (tag->name &&
@@ -695,8 +695,8 @@ pchvml_dom_element_tag_set_name(pchvml_dom_element_tag_t *tag,
 }
 
 int
-pchvml_dom_element_tag_append_attr(pchvml_dom_element_tag_t *tag,
-        pchvml_dom_element_attr_t *attr)
+pcvdom_tag_append_attr(pcvdom_tag_t *tag,
+        pcvdom_attr_t *attr)
 {
     PC_ASSERT(attr->node.node->parent == NULL);
 
@@ -710,8 +710,8 @@ pchvml_dom_element_tag_append_attr(pchvml_dom_element_tag_t *tag,
 }
 
 int
-pchvml_dom_element_attr_set_key(pchvml_dom_element_attr_t *attr,
-        pchvml_vdom_eval_t *key)
+pcvdom_attr_set_key(pcvdom_attr_t *attr,
+        pcvdom_exp_t *key)
 {
     PC_ASSERT(attr->key == NULL);
     PC_ASSERT(key->node.node->parent == NULL);
@@ -722,8 +722,8 @@ pchvml_dom_element_attr_set_key(pchvml_dom_element_attr_t *attr,
 }
 
 int
-pchvml_dom_element_attr_set_val(pchvml_dom_element_attr_t *attr,
-        pchvml_vdom_eval_t *val)
+pcvdom_attr_set_val(pcvdom_attr_t *attr,
+        pcvdom_exp_t *val)
 {
     PC_ASSERT(attr->val == NULL);
     PC_ASSERT(val->node.node->parent == NULL);
@@ -733,16 +733,16 @@ pchvml_dom_element_attr_set_val(pchvml_dom_element_attr_t *attr,
     return 0;
 }
 
-pchvml_dom_node_t* pchvml_dom_node_parent(pchvml_dom_node_t *node)
+pcvdom_node_t* pcvdom_node_parent(pcvdom_node_t *node)
 {
     if (!node || !node->node || !node->node->parent)
         return NULL;
 
-    return (pchvml_dom_node_t*)(node->node->parent->user_data);
+    return (pcvdom_node_t*)(node->node->parent->user_data);
 }
 
 void
-pchvml_dom_node_remove(pchvml_dom_node_t *node)
+pcvdom_node_remove(pcvdom_node_t *node)
 {
     if (!node)
         return;
@@ -751,11 +751,93 @@ pchvml_dom_node_remove(pchvml_dom_node_t *node)
 }
 
 void
-pchvml_dom_node_destroy(pchvml_dom_node_t *node)
+pcvdom_node_destroy(pcvdom_node_t *node)
 {
     if (!node)
         return;
 
-    _pchvml_dom_node_destroy(node);
+    _pcvdom_node_destroy(node);
+}
+
+struct pcvdom_node_traverse_s {
+    pcvdom_node_t        *top;
+    vdom_node_traverse_f  cb;
+    void                 *ctx;
+    int                   abortion;
+};
+
+static void
+_pctree_node_cb(struct pctree_node* node,  void* ctx)
+{
+    struct pcvdom_node_traverse_s *data;
+    data = (struct pcvdom_node_traverse_s*)ctx;
+
+    if (data->abortion)
+        return;
+
+    pcvdom_node_t *p = (pcvdom_node_t*)(node->user_data);
+    data->abortion = data->cb(data->top, p, data->ctx);
+}
+
+int
+pcvdom_node_traverse(pcvdom_node_t *node, void *ctx,
+        vdom_node_traverse_f cb)
+{
+    if (!node)
+        return 0;
+
+    struct pcvdom_node_traverse_s data = {
+        .top       = node,
+        .cb        = cb,
+        .ctx       = ctx,
+        .abortion  = 0
+    };
+
+    pctree_node_pre_order_traversal(node->node, _pctree_node_cb, &data);
+
+    return data.abortion ? -1 : 0;
+}
+
+struct pcvdom_element_traverse_s {
+    pcvdom_element_t        *top;
+    vdom_element_traverse_f  cb;
+    void                 *ctx;
+    int                   abortion;
+};
+
+static void
+_pctree_element_cb(struct pctree_node* node,  void* ctx)
+{
+    struct pcvdom_element_traverse_s *data;
+    data = (struct pcvdom_element_traverse_s*)ctx;
+
+    if (data->abortion)
+        return;
+
+    pcvdom_node_t *p = (pcvdom_node_t*)(node->user_data);
+    if (p->type == PCVDOM_NODE_ELEMENT) {
+        pcvdom_element_t *elem;
+        elem = container_of(p, pcvdom_element_t, node);
+        data->abortion = data->cb(data->top, elem, data->ctx);
+    }
+}
+
+int
+pcvdom_element_traverse(pcvdom_element_t *elem, void *ctx,
+        vdom_element_traverse_f cb)
+{
+    if (!elem)
+        return 0;
+
+    struct pcvdom_element_traverse_s data = {
+        .top       = elem,
+        .cb        = cb,
+        .ctx       = ctx,
+        .abortion  = 0
+    };
+
+    pctree_node_pre_order_traversal(elem->node.node, _pctree_element_cb, &data);
+
+    return data.abortion ? -1 : 0;
 }
 

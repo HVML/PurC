@@ -7,43 +7,43 @@
 
 TEST(hvml, basic)
 {
-    pchvml_document_t *doc = pchvml_document_create();
+    pcvdom_document_t *doc = pcvdom_document_create();
     ASSERT_NE(doc, nullptr);
 
-    pchvml_document_doctype_t *doctype = pchvml_document_doctype_create();
+    pcvdom_doctype_t *doctype = pcvdom_doctype_create();
     ASSERT_NE(doctype, nullptr);
-    pchvml_document_set_doctype(doc, doctype);
+    pcvdom_document_set_doctype(doc, doctype);
 
-    int r = pchvml_document_doctype_set_prefix(doctype, "hvml");
+    int r = pcvdom_doctype_set_prefix(doctype, "hvml");
     ASSERT_EQ(r, 0);
-    r = pchvml_document_doctype_append_builtin(doctype, "MATH");
+    r = pcvdom_doctype_append_builtin(doctype, "MATH");
     ASSERT_EQ(r, 0);
-    r = pchvml_document_doctype_append_builtin(doctype, "FS");
+    r = pcvdom_doctype_append_builtin(doctype, "FS");
     ASSERT_EQ(r, 0);
-    r = pchvml_document_doctype_append_builtin(doctype, "FILE");
+    r = pcvdom_doctype_append_builtin(doctype, "FILE");
     ASSERT_EQ(r, 0);
 
-    pchvml_dom_element_t *root = pchvml_dom_element_create();
+    pcvdom_element_t *root = pcvdom_element_create();
     ASSERT_NE(root, nullptr);
-    pchvml_document_set_root(doc, root);
+    pcvdom_document_set_root(doc, root);
 
-    pchvml_dom_element_tag_t *tag = pchvml_dom_element_tag_create();
+    pcvdom_tag_t *tag = pcvdom_tag_create();
     ASSERT_NE(tag, nullptr);
-    pchvml_dom_element_set_tag(root, tag);
+    pcvdom_element_set_tag(root, tag);
 
-    r = pchvml_dom_element_tag_set_ns(tag, "hvml");
+    r = pcvdom_tag_set_ns(tag, "hvml");
     ASSERT_EQ(r, 0);
-    r = pchvml_dom_element_tag_set_name(tag, "init");
+    r = pcvdom_tag_set_name(tag, "init");
     ASSERT_EQ(r, 0);
 
-    pchvml_dom_element_attr_t *attr = pchvml_dom_element_attr_create();
+    pcvdom_attr_t *attr = pcvdom_attr_create();
     ASSERT_NE(attr, nullptr);
-    pchvml_dom_element_tag_append_attr(tag, attr);
+    pcvdom_tag_append_attr(tag, attr);
 
-    pchvml_dom_element_t *head = pchvml_dom_element_create();
+    pcvdom_element_t *head = pcvdom_element_create();
     ASSERT_NE(head, nullptr);
-    pchvml_dom_element_append_child(root, head);
+    pcvdom_element_append_child(root, head);
 
-    pchvml_document_destroy(doc);
+    pcvdom_document_destroy(doc);
 }
 

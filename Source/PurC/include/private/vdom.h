@@ -62,51 +62,51 @@ typedef enum {
     PCHVML_STATUS_STOP,
 } pchvml_status_t;
 
-enum pchvml_dom_node_type {
-    PCHVML_DOM_NODE_DOCUMENT,
-    PCHVML_DOM_NODE_DOCTYPE,
-    PCHVML_DOM_NODE_ELEMENT,
-    PCHVML_DOM_NODE_TAG,
-    PCHVML_DOM_NODE_ATTR,
-    PCHVML_DOM_VDOM_EVAL,
+enum pcvdom_node_type {
+    PCVDOM_NODE_DOCUMENT,
+    PCVDOM_NODE_DOCTYPE,
+    PCVDOM_NODE_ELEMENT,
+    PCVDOM_NODE_TAG,
+    PCVDOM_NODE_ATTR,
+    PCVDOM_VDOM_EXP,
 };
 
-struct pchvml_dom_node;
-typedef struct pchvml_dom_node pchvml_dom_node_t;
+struct pcvdom_node;
+typedef struct pcvdom_node pcvdom_node_t;
 
-struct pchvml_document;
-typedef struct pchvml_document pchvml_document_t;
+struct pcvdom_document;
+typedef struct pcvdom_document pcvdom_document_t;
 
-struct pchvml_document_doctype;
-typedef struct pchvml_document_doctype pchvml_document_doctype_t;
+struct pcvdom_doctype;
+typedef struct pcvdom_doctype pcvdom_doctype_t;
 
-struct pchvml_dom_element;
-typedef struct pchvml_dom_element pchvml_dom_element_t;
+struct pcvdom_element;
+typedef struct pcvdom_element pcvdom_element_t;
 
-struct pchvml_dom_element_tag;
-typedef struct pchvml_dom_element_tag pchvml_dom_element_tag_t;
+struct pcvdom_tag;
+typedef struct pcvdom_tag pcvdom_tag_t;
 
-struct pchvml_dom_element_attr;
-typedef struct pchvml_dom_element_attr pchvml_dom_element_attr_t;
+struct pcvdom_attr;
+typedef struct pcvdom_attr pcvdom_attr_t;
 
-struct pchvml_vdom_eval;
-typedef struct pchvml_vdom_eval pchvml_vdom_eval_t;
+struct pcvdom_exp;
+typedef struct pcvdom_exp pcvdom_exp_t;
 
-struct pchvml_dom_node {
+struct pcvdom_node {
     struct pctree_node         *node;
-    enum pchvml_dom_node_type   type;
-    void (*remove_child)(pchvml_dom_node_t *me, pchvml_dom_node_t *child);
+    enum pcvdom_node_type   type;
+    void (*remove_child)(pcvdom_node_t *me, pcvdom_node_t *child);
 };
 
-struct pchvml_document {
-    pchvml_dom_node_t           node;
+struct pcvdom_document {
+    pcvdom_node_t           node;
 
-    pchvml_document_doctype_t  *doctype;
-    pchvml_dom_element_t       *root; // <hvml>
+    pcvdom_doctype_t  *doctype;
+    pcvdom_element_t       *root; // <hvml>
 };
 
-struct pchvml_document_doctype {
-    pchvml_dom_node_t           node;
+struct pcvdom_doctype {
+    pcvdom_node_t           node;
 
     // optimize later
     char                       *prefix;
@@ -115,152 +115,164 @@ struct pchvml_document_doctype {
     size_t                      sz_builtins;
 };
 
-struct pchvml_dom_element {
-    pchvml_dom_node_t           node;
+struct pcvdom_element {
+    pcvdom_node_t           node;
 
-    pchvml_dom_element_tag_t   *tag;
+    pcvdom_tag_t   *tag;
 
     // element/text content/ejson
-    pchvml_dom_node_t          *first_child;
-    pchvml_dom_node_t          *last_child;
+    pcvdom_node_t          *first_child;
+    pcvdom_node_t          *last_child;
 };
 
-struct pchvml_dom_element_tag {
-    pchvml_dom_node_t           node;
+struct pcvdom_tag {
+    pcvdom_node_t           node;
 
     // optimize later with tag_id
     char                       *ns;    // namespace prefix
     char                       *name;  // local name, lower space
 
-    pchvml_dom_element_attr_t  *first_attr;
-    pchvml_dom_element_attr_t  *last_attr;
+    pcvdom_attr_t  *first_attr;
+    pcvdom_attr_t  *last_attr;
 };
 
-struct pchvml_dom_element_attr {
-    pchvml_dom_node_t           node;
+struct pcvdom_attr {
+    pcvdom_node_t           node;
 
     // raw text/ejson
-    pchvml_vdom_eval_t         *key;
-    pchvml_vdom_eval_t         *val;
+    pcvdom_exp_t         *key;
+    pcvdom_exp_t         *val;
 };
 
-struct pchvml_vdom_eval {
-    pchvml_dom_node_t           node;
+struct pcvdom_exp {
+    pcvdom_node_t           node;
 
     // vdom
 
     purc_variant_t              result; // eval'd result
 };
 
-#define PCHVML_DOM_NODE_IS_DOCUMENT(_n) \
-    (((_n) && (_n)->type==PCHVML_DOM_NODE_DOCUMENT))
-#define PCHVML_DOM_NODE_IS_DOCTYPE(_n) \
-    (((_n) && (_n)->type==PCHVML_DOM_NODE_DOCTYPE))
-#define PCHVML_DOM_NODE_IS_ELEMENT(_n) \
-    (((_n) && (_n)->type==PCHVML_DOM_NODE_ELEMENT))
-#define PCHVML_DOM_NODE_IS_TAG(_n) \
-    (((_n) && (_n)->type==PCHVML_DOM_NODE_TAG))
-#define PCHVML_DOM_NODE_IS_ATTR(_n) \
-    (((_n) && (_n)->type==PCHVML_DOM_NODE_ATTR))
-#define PCHVML_DOM_NODE_IS_EVAL(_n) \
-    (((_n) && (_n)->type==PCHVML_DOM_VDOM_EVAL))
+#define PCVDOM_NODE_IS_DOCUMENT(_n) \
+    (((_n) && (_n)->type==PCVDOM_NODE_DOCUMENT))
+#define PCVDOM_NODE_IS_DOCTYPE(_n) \
+    (((_n) && (_n)->type==PCVDOM_NODE_DOCTYPE))
+#define PCVDOM_NODE_IS_ELEMENT(_n) \
+    (((_n) && (_n)->type==PCVDOM_NODE_ELEMENT))
+#define PCVDOM_NODE_IS_TAG(_n) \
+    (((_n) && (_n)->type==PCVDOM_NODE_TAG))
+#define PCVDOM_NODE_IS_ATTR(_n) \
+    (((_n) && (_n)->type==PCVDOM_NODE_ATTR))
+#define PCVDOM_NODE_IS_EXP(_n) \
+    (((_n) && (_n)->type==PCVDOM_VDOM_EXP))
 
-#define PCHVML_DOCUMENT_FROM_NODE(_node) \
-    (PCHVML_DOM_NODE_IS_DOCUMENT(_node) ? \
-        container_of(_node, pchvml_document_t, node) : NULL)
+#define PCVDOM_DOCUMENT_FROM_NODE(_node) \
+    (PCVDOM_NODE_IS_DOCUMENT(_node) ? \
+        container_of(_node, pcvdom_document_t, node) : NULL)
 
-#define PCHVML_DOCTYPE_FROM_NODE(_node) \
-    (PCHVML_DOM_NODE_IS_DOCTYPE(_node) ? \
-        container_of(_node, pchvml_document_doctype_t, node) : NULL)
+#define PCVDOM_DOCTYPE_FROM_NODE(_node) \
+    (PCVDOM_NODE_IS_DOCTYPE(_node) ? \
+        container_of(_node, pcvdom_doctype_t, node) : NULL)
 
-#define PCHVML_ELEMENT_FROM_NODE(_node) \
-    (PCHVML_DOM_NODE_IS_ELEMENT(_node) ? \
-        container_of(_node, pchvml_dom_element_t, node) : NULL)
+#define PCVDOM_ELEMENT_FROM_NODE(_node) \
+    (PCVDOM_NODE_IS_ELEMENT(_node) ? \
+        container_of(_node, pcvdom_element_t, node) : NULL)
 
-#define PCHVML_ELEMENT_TAG_FROM_NODE(_node) \
-    (PCHVML_DOM_NODE_IS_TAG(_node) ? \
-        container_of(_node, pchvml_dom_element_tag_t, node) : NULL)
+#define PCVDOM_TAG_FROM_NODE(_node) \
+    (PCVDOM_NODE_IS_TAG(_node) ? \
+        container_of(_node, pcvdom_tag_t, node) : NULL)
 
-#define PCHVML_ELEMENT_ATTR_FROM_NODE(_node) \
-    (PCHVML_DOM_NODE_IS_ATTR(_node) ? \
-        container_of(_node, pchvml_dom_element_attr_t, node) : NULL)
+#define PCVDOM_ATTR_FROM_NODE(_node) \
+    (PCVDOM_NODE_IS_ATTR(_node) ? \
+        container_of(_node, pcvdom_attr_t, node) : NULL)
 
-#define PCHVML_VDOM_EVAL_FROM_NODE(_node) \
-    (PCHVML_DOM_NODE_IS_EVAL(_node) ? \
-        container_of(_node, pchvml_vdom_eval_t, node) : NULL)
+#define PCVDOM_EXP_FROM_NODE(_node) \
+    (PCVDOM_NODE_IS_EXP(_node) ? \
+        container_of(_node, pcvdom_exp_t, node) : NULL)
 
 
 // creating and destroying api
 void
-pchvml_document_destroy(pchvml_document_t *doc);
+pcvdom_document_destroy(pcvdom_document_t *doc);
 
-pchvml_document_t*
-pchvml_document_create(void);
+pcvdom_document_t*
+pcvdom_document_create(void);
 
-pchvml_document_doctype_t*
-pchvml_document_doctype_create(void);
+pcvdom_doctype_t*
+pcvdom_doctype_create(void);
 
-pchvml_dom_element_t*
-pchvml_dom_element_create(void);
+pcvdom_element_t*
+pcvdom_element_create(void);
 
-pchvml_dom_element_tag_t*
-pchvml_dom_element_tag_create(void);
+pcvdom_tag_t*
+pcvdom_tag_create(void);
 
-pchvml_dom_element_attr_t*
-pchvml_dom_element_attr_create(void);
+pcvdom_attr_t*
+pcvdom_attr_create(void);
 
-pchvml_vdom_eval_t*
-pchvml_vdom_eval_create(void);
+pcvdom_exp_t*
+pcvdom_exp_create(void);
 
 // doc/dom construction api
 int
-pchvml_document_set_doctype(pchvml_document_t *doc,
-        pchvml_document_doctype_t *doctype);
+pcvdom_document_set_doctype(pcvdom_document_t *doc,
+        pcvdom_doctype_t *doctype);
 int
-pchvml_document_set_root(pchvml_document_t *doc,
-        pchvml_dom_element_t *root);
+pcvdom_document_set_root(pcvdom_document_t *doc,
+        pcvdom_element_t *root);
 
 int
-pchvml_document_doctype_set_prefix(pchvml_document_doctype_t *doc,
+pcvdom_doctype_set_prefix(pcvdom_doctype_t *doc,
         const char *prefix);
 int
-pchvml_document_doctype_append_builtin(pchvml_document_doctype_t *doc,
+pcvdom_doctype_append_builtin(pcvdom_doctype_t *doc,
         const char *builtin);
 
 int
-pchvml_dom_element_set_tag(pchvml_dom_element_t *elem,
-        pchvml_dom_element_tag_t *tag);
+pcvdom_element_set_tag(pcvdom_element_t *elem,
+        pcvdom_tag_t *tag);
 int
-pchvml_dom_element_append_attr(pchvml_dom_element_t *elem,
-        pchvml_dom_element_attr_t *attr);
+pcvdom_element_append_attr(pcvdom_element_t *elem,
+        pcvdom_attr_t *attr);
 int
-pchvml_dom_element_append_child(pchvml_dom_element_t *elem,
-        pchvml_dom_element_t *child);
+pcvdom_element_append_child(pcvdom_element_t *elem,
+        pcvdom_element_t *child);
 
 int
-pchvml_dom_element_tag_set_ns(pchvml_dom_element_tag_t *tag,
+pcvdom_tag_set_ns(pcvdom_tag_t *tag,
         const char *ns);
 int
-pchvml_dom_element_tag_set_name(pchvml_dom_element_tag_t *tag,
+pcvdom_tag_set_name(pcvdom_tag_t *tag,
         const char *name);
 int
-pchvml_dom_element_tag_append_attr(pchvml_dom_element_tag_t *tag,
-        pchvml_dom_element_attr_t *attr);
+pcvdom_tag_append_attr(pcvdom_tag_t *tag,
+        pcvdom_attr_t *attr);
 
 int
-pchvml_dom_element_attr_set_key(pchvml_dom_element_attr_t *attr,
-        pchvml_vdom_eval_t *key);
+pcvdom_attr_set_key(pcvdom_attr_t *attr,
+        pcvdom_exp_t *key);
 int
-pchvml_dom_element_attr_set_val(pchvml_dom_element_attr_t *attr,
-        pchvml_vdom_eval_t *val);
+pcvdom_attr_set_val(pcvdom_attr_t *attr,
+        pcvdom_exp_t *val);
 
 // accessor api
-pchvml_dom_node_t*
-pchvml_dom_node_parent(pchvml_dom_node_t *node);
+pcvdom_node_t*
+pcvdom_node_parent(pcvdom_node_t *node);
 
 // operation api
-void pchvml_dom_node_remove(pchvml_dom_node_t *node);
-void pchvml_dom_node_destroy(pchvml_dom_node_t *node);
+void pcvdom_node_remove(pcvdom_node_t *node);
+void pcvdom_node_destroy(pcvdom_node_t *node);
+
+// traverse all vdom_node
+typedef int (*vdom_node_traverse_f)(pcvdom_node_t *top,
+    pcvdom_node_t *node, void *ctx);
+int pcvdom_node_traverse(pcvdom_node_t *node, void *ctx,
+        vdom_node_traverse_f cb);
+
+// traverse all element
+typedef int (*vdom_element_traverse_f)(pcvdom_element_t *top,
+    pcvdom_element_t *elem, void *ctx);
+int pcvdom_element_traverse(pcvdom_element_t *elem, void *ctx,
+        vdom_element_traverse_f cb);
 
 #ifdef __cplusplus
 }
