@@ -609,7 +609,7 @@ pcvdom_doctype_append_builtin(pcvdom_doctype_t *doc,
             pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
             return -1;
         }
-        doc->builtins = ar;
+        doc->builtins    = ar;
         doc->sz_builtins = sz;
     }
 

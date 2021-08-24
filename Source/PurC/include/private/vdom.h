@@ -94,14 +94,14 @@ typedef struct pcvdom_exp pcvdom_exp_t;
 
 struct pcvdom_node {
     struct pctree_node         *node;
-    enum pcvdom_node_type   type;
+    enum pcvdom_node_type       type;
     void (*remove_child)(pcvdom_node_t *me, pcvdom_node_t *child);
 };
 
 struct pcvdom_document {
     pcvdom_node_t           node;
 
-    pcvdom_doctype_t  *doctype;
+    pcvdom_doctype_t       *doctype;
     pcvdom_element_t       *root; // <hvml>
 };
 
@@ -109,16 +109,16 @@ struct pcvdom_doctype {
     pcvdom_node_t           node;
 
     // optimize later
-    char                       *prefix;
-    char                      **builtins;
-    size_t                      nr_builtins;
-    size_t                      sz_builtins;
+    char                   *prefix;
+    char                  **builtins;
+    size_t                  nr_builtins;
+    size_t                  sz_builtins;
 };
 
 struct pcvdom_element {
     pcvdom_node_t           node;
 
-    pcvdom_tag_t   *tag;
+    pcvdom_tag_t           *tag;
 
     // element/text content/ejson
     pcvdom_node_t          *first_child;
@@ -129,8 +129,8 @@ struct pcvdom_tag {
     pcvdom_node_t           node;
 
     // optimize later with tag_id
-    char                       *ns;    // namespace prefix
-    char                       *name;  // local name, lower space
+    char                   *ns;    // namespace prefix
+    char                   *name;  // local name, lower space
 
     pcvdom_attr_t  *first_attr;
     pcvdom_attr_t  *last_attr;
@@ -140,8 +140,8 @@ struct pcvdom_attr {
     pcvdom_node_t           node;
 
     // raw text/ejson
-    pcvdom_exp_t         *key;
-    pcvdom_exp_t         *val;
+    pcvdom_exp_t           *key;
+    pcvdom_exp_t           *val;
 };
 
 struct pcvdom_exp {
@@ -149,7 +149,7 @@ struct pcvdom_exp {
 
     // vdom
 
-    purc_variant_t              result; // eval'd result
+    purc_variant_t          result; // eval'd result
 };
 
 #define PCVDOM_NODE_IS_DOCUMENT(_n) \
