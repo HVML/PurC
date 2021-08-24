@@ -120,6 +120,9 @@ struct pcvcm_node* pcvcm_node_from_pctree_node (struct pctree_node* tree_node)
     return (struct pcvcm_node*)tree_node->user_data;
 }
 
+struct pcvdom_element;
+purc_variant_t pcvcm_eval (struct pcvcm_node* tree, struct pcvdom_element* elem);
+
 struct pcvcm_node* pcvcm_node_new_object (size_t nr_nodes,
         struct pcvcm_node* nodes);
 struct pcvcm_node* pcvcm_node_new_array (size_t nr_nodes,
@@ -143,8 +146,15 @@ struct pcvcm_node* pcvcm_node_new_call_getter (struct pcvcm_node* variable,
 struct pcvcm_node* pcvcm_node_new_call_setter (struct pcvcm_node* variable,
         size_t nr_params, struct pcvcm_node* params);
 
-struct pcvdom_element;
-purc_variant_t pcvcm_eval (struct pcvcm_node* tree, struct pcvdom_element* elem);
+struct pcvcm_stack;
+
+struct pcvcm_stack* pcvcm_stack_new ();
+bool pcvcm_stack_is_empty (struct pcvcm_stack* stack);
+void pcvcm_stack_push (struct pcvcm_stack* stack, struct pcvcm_node* e);
+struct pcvcm_node* pcvcm_stack_pop (struct pcvcm_stack* stack);
+struct pcvcm_node* pcvcm_stack_bottommost (struct pcvcm_stack* stack);
+void pcvcm_stack_destroy (struct pcvcm_stack* stack);
+
 
 #ifdef __cplusplus
 }
