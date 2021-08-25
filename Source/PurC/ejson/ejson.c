@@ -371,9 +371,6 @@ struct pcvcm_node* pcejson_token_to_pcvcm_node (
             break;
 
         case EJSON_TOKEN_KEY:
-            node = pcvcm_node_new (PCVCM_NODE_TYPE_KEY, data);
-            break;
-
         case EJSON_TOKEN_STRING:
             node = pcvcm_node_new (PCVCM_NODE_TYPE_STRING, data);
             break;

@@ -88,7 +88,6 @@ purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node)
         case PCVCM_NODE_TYPE_ARRAY:
             return pcvcm_node_array_to_variant (node);
 
-        case PCVCM_NODE_TYPE_KEY:
         case PCVCM_NODE_TYPE_STRING:
             return purc_variant_make_string ((char*)node->data.sz_ptr[1],
                     false);
@@ -114,6 +113,8 @@ purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node)
         case PCVCM_NODE_TYPE_BYTE_SEQUENCE:
             return purc_variant_make_byte_sequence(
                     (void*)node->data.sz_ptr[1], node->data.sz_ptr[0]);
+        default:  //TODO
+            return purc_variant_make_null();
     }
     return purc_variant_make_null();
 }

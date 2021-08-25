@@ -36,7 +36,6 @@
 enum pcvcm_node_type {
     PCVCM_NODE_TYPE_OBJECT,
     PCVCM_NODE_TYPE_ARRAY,
-    PCVCM_NODE_TYPE_KEY, // TODO: remove
     PCVCM_NODE_TYPE_STRING,
     PCVCM_NODE_TYPE_NULL,
     PCVCM_NODE_TYPE_BOOLEAN,
@@ -121,7 +120,8 @@ struct pcvcm_node* pcvcm_node_from_pctree_node (struct pctree_node* tree_node)
 }
 
 struct pcvdom_element;
-purc_variant_t pcvcm_eval (struct pcvcm_node* tree, struct pcvdom_element* elem);
+purc_variant_t pcvcm_eval (struct pcvcm_node* tree,
+        struct pcvdom_element* elem);
 
 struct pcvcm_node* pcvcm_node_new_object (size_t nr_nodes,
         struct pcvcm_node* nodes);
