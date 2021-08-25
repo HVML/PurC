@@ -61,11 +61,13 @@ typedef enum {
     PCHVML_STATUS_STOPPED,
     PCHVML_STATUS_NEXT,
     PCHVML_STATUS_STOP,
-} pchvml_status_t;
+} pchvml_status;
 
-enum pcvdom_node_type {
+enum pcvdom_nodeype {
     PCVDOM_NODE_DOCUMENT,
     PCVDOM_NODE_ELEMENT,
+    PCVDOM_NODE_CONTENT,
+    PCVDOM_NODE_COMMENT,
     PCVDOM_VDOM_EXP,
 };
 
@@ -73,212 +75,209 @@ enum pcvdom_node_type {
     (((_n) && (_n)->type==PCVDOM_NODE_DOCUMENT))
 #define PCVDOM_NODE_IS_ELEMENT(_n) \
     (((_n) && (_n)->type==PCVDOM_NODE_ELEMENT))
+#define PCVDOM_NODE_IS_CONTENT(_n) \
+    (((_n) && (_n)->type==PCVDOM_VDOM_CONTENT))
+#define PCVDOM_NODE_IS_COMMENT(_n) \
+    (((_n) && (_n)->type==PCVDOM_VDOM_COMMENT))
 #define PCVDOM_NODE_IS_EXP(_n) \
     (((_n) && (_n)->type==PCVDOM_VDOM_EXP))
 
 #define PCVDOM_DOCUMENT_FROM_NODE(_node) \
     (PCVDOM_NODE_IS_DOCUMENT(_node) ? \
-        container_of(_node, pcvdom_document_t, node) : NULL)
+        container_of(_node, struct pcvdom_document, node) : NULL)
 #define PCVDOM_ELEMENT_FROM_NODE(_node) \
     (PCVDOM_NODE_IS_ELEMENT(_node) ? \
-        container_of(_node, pcvdom_element_t, node) : NULL)
+        container_of(_node, struct pcvdom_element, node) : NULL)
+#define PCVDOM_CONTENT_FROM_NODE(_node) \
+    (PCVDOM_NODE_IS_CONTENT(_node) ? \
+        container_of(_node, struct pcvdom_exp, node) : NULL)
+#define PCVDOM_COMMENT_FROM_NODE(_node) \
+    (PCVDOM_NODE_IS_COMMENT(_node) ? \
+        container_of(_node, struct pcvdom_exp, node) : NULL)
 #define PCVDOM_EXP_FROM_NODE(_node) \
     (PCVDOM_NODE_IS_EXP(_node) ? \
-        container_of(_node, pcvdom_exp_t, node) : NULL)
-
-enum pcvdom_attr_key_type {
-    PCVDOM_ATTR_KEY_TEXT,
-    PCVDOM_ATTR_KEY_JSONEE,
-};
-
-enum pcvdom_attr_val_type {
-    PCVDOM_ATTR_VAL_JSONEE,
-    PCVDOM_ATTR_VAL_EJSON,
-};
-
-enum pcvdom_exp_anchor_type {
-    PCVDOM_EXP_ANCHOR_ATTR_KEY   = 0x01,
-    PCVDOM_EXP_ANCHOR_ATTR_VAL   = 0x02,
-    PCVDOM_EXP_ANCHOR_ELEM       = 0x10,
-};
-
-#define PCVDOM_EXP_PARENT_IS_ATTR(t) ((t) & 0x03)
+        container_of(_node, struct pcvdom_exp, node) : NULL)
 
 struct pcvdom_node;
-typedef struct pcvdom_node pcvdom_node_t;
-
 struct pcvdom_document;
-typedef struct pcvdom_document pcvdom_document_t;
-
-struct pcvdom_doctype;
-typedef struct pcvdom_doctype pcvdom_doctype_t;
-
 struct pcvdom_element;
-typedef struct pcvdom_element pcvdom_element_t;
-
-struct pcvdom_tag;
-typedef struct pcvdom_tag pcvdom_tag_t;
-
+struct pcvdom_content;
+struct pcvdom_comment;
+typedef uintptr_t   pcvdom_tag_id_t;
 struct pcvdom_attr;
-typedef struct pcvdom_attr pcvdom_attr_t;
 
-struct pcvdom_exp;
-typedef struct pcvdom_exp pcvdom_exp_t;
+// TODO: replace with vcm.h
+struct pcvcm_tree;
+typedef struct pcvcm_tree* pcvcm_tree_t;
 
 struct pcvdom_node {
-    struct pctree_node         *node;
-    enum pcvdom_node_type       type;
-    void (*remove_child)(pcvdom_node_t *me, pcvdom_node_t *child);
+    struct pctree_node    *node;
+    enum pcvdom_nodeype    type;
+    void (*remove_child)(struct pcvdom_node *me, struct pcvdom_node *child);
 };
 
-struct pcvdom_doctype {
-    pcvdom_document_t      *parent;
+struct pcvdom_document {
+    struct pcvdom_node      node;
 
-    // optimize later
+    // doctype fields
     char                   *prefix;
     char                  **builtins;
     size_t                  nr_builtins;
     size_t                  sz_builtins;
-};
 
-struct pcvdom_document {
-    pcvdom_node_t           node;
+    // comment/root element
+    // keep order in consistency as in source hvml
+    struct pcvdom_node     *first_child;
+    struct pcvdom_node     *last_child;
 
-    pcvdom_doctype_t        doctype;
-    pcvdom_element_t       *root; // <hvml>
+    // redundant, for fast access
+    struct pcvdom_element  *root;
 
     // document-variables
     // such as `$_REQUEST`、`$TIMERS`、`$T` and etc.
     pcutils_map            *variables;
 };
 
-struct pcvdom_tag {
-    pcvdom_element_t       *parent;
-
-    // optimize later with tag_id
-    char                   *ns;    // namespace prefix
-    char                   *name;  // local name, lower space
-};
-
-struct pcvdom_exp {
-    enum pcvdom_exp_anchor_type  at;
-    union {
-        pcvdom_attr_t        *attr;
-        pcvdom_element_t     *elem;
-    } parent;
-    // to do
-};
-
 struct pcvdom_attr {
-    struct list_head        lh;
+    struct list_head          lh;
 
-    pcvdom_element_t       *parent;
+    struct pcvdom_element    *parent;
 
     // text/jsonee
-    enum pcvdom_attr_key_type    kt;
-    union {
-        char               *str;
-        pcvdom_exp_t       *exp;
-    } key;
+    struct pcvcm_tree        *key;
 
-    // jsonee/ejson
-    enum pcvdom_attr_val_type    vt;
-    union {
-        pcvdom_exp_t       *exp;
-        // for ejson type of value, which means it's `constant`
-        // as compared to above `exp`
-    } val;
+    // text/jsonnee/no-value
+    struct pcvcm_tree        *val;
+
 };
 
 struct pcvdom_element {
-    pcvdom_node_t           node;
+    struct pcvdom_node      node;
 
-    pcvdom_tag_t            tag;
+    pcvdom_tag_id_t         tag;
 
-    // pcvdom_attr_t*
-    struct list_head        attrs;
+    // struct pcvdom_attr*
+    struct list_head        preps;
+    struct list_head        adverbs;
+    struct list_head        ordinals;
 
-    // element/text content/ejson
-    pcvdom_node_t          *first_child;
-    pcvdom_node_t          *last_child;
+    // element/content
+    // keep order in consistency as in source hvml
+    struct pcvdom_node     *first_child;
+    struct pcvdom_node     *last_child;
 
     // FIXME: scoped-variables
     //        for those `defined` in `init`, `set`
     pcutils_map            *variables;
 };
 
+struct pcvdom_content {
+    struct pcvdom_node      node;
+
+    struct pcvcm_tree      *content;
+};
+
+struct pcvdom_comment {
+    struct pcvdom_node      node;
+
+    char                   *text;
+};
+
 
 // creating and destroying api
 void
-pcvdom_document_destroy(pcvdom_document_t *doc);
+pcvdom_document_destroy(struct pcvdom_document *doc);
 
-pcvdom_document_t*
+struct pcvdom_document*
 pcvdom_document_create(void);
 
-pcvdom_element_t*
+struct pcvdom_element*
 pcvdom_element_create(void);
 
-pcvdom_attr_t*
-pcvdom_attr_create(void);
+struct pcvdom_content*
+pcvdom_content_create(void);
 
-pcvdom_exp_t*
-pcvdom_exp_create(void);
+struct pcvdom_comment*
+pcvdom_comment_create(void);
+
+struct pcvdom_attr*
+pcvdom_attr_create(void);
 
 // doc/dom construction api
 int
-pcvdom_document_set_root(pcvdom_document_t *doc,
-        pcvdom_element_t *root);
+pcvdom_document_append_content(struct pcvdom_document *doc,
+        struct pcvdom_content *content);
 
 int
-pcvdom_doctype_set_prefix(pcvdom_doctype_t *doc,
+pcvdom_document_set_root(struct pcvdom_document *doc,
+        struct pcvdom_element *root);
+
+int
+pcvdom_document_set_prefix(struct pcvdom_document *doc,
         const char *prefix);
 int
-pcvdom_doctype_append_builtin(pcvdom_doctype_t *doc,
+pcvdom_document_append_builtin(struct pcvdom_document *doc,
         const char *builtin);
 
 int
-pcvdom_element_append_attr(pcvdom_element_t *elem,
-        pcvdom_attr_t *attr);
-int
-pcvdom_element_append_child(pcvdom_element_t *elem,
-        pcvdom_element_t *child);
-
-int
-pcvdom_tag_set_ns(pcvdom_tag_t *tag,
-        const char *ns);
-int
-pcvdom_tag_set_name(pcvdom_tag_t *tag,
+pcvdom_element_set_tag(struct pcvdom_element *elem,
         const char *name);
+int
+pcvdom_element_append_attr(struct pcvdom_element *elem,
+        struct pcvdom_attr *attr);
+int
+pcvdom_element_append_element(struct pcvdom_element *elem,
+        struct pcvdom_element *child);
+int
+pcvdom_element_append_content(struct pcvdom_element *elem,
+        struct pcvdom_content *child);
 
 int
-pcvdom_attr_set_key_c(pcvdom_attr_t *attr,
+pcvdom_attr_set_key_c(struct pcvdom_attr *attr,
         const char *key);
 int
-pcvdom_attr_set_key(pcvdom_attr_t *attr,
-        pcvdom_exp_t *key);
+pcvdom_attr_set_key(struct pcvdom_attr *attr,
+        struct pcvcm_tree *vcm);
 
 int
-pcvdom_attr_set_val(pcvdom_attr_t *attr,
-        pcvdom_exp_t *val);
+pcvdom_attr_set_val(struct pcvdom_attr *attr,
+        struct pcvcm_tree *vcm);
+
+int
+pcvdom_content_set_vcm(struct pcvdom_content *content,
+        struct pcvcm_tree *vcm);
+
+int
+pcvdom_comment_set_text(struct pcvdom_content *content,
+        const char *text);
 
 // accessor api
-pcvdom_node_t*
-pcvdom_node_parent(pcvdom_node_t *node);
+struct pcvdom_node*
+pcvdom_node_parent(struct pcvdom_node *node);
+
+struct pcvdom_element*
+pcvdom_element_parent(struct pcvdom_element *elem);
+
+struct pcvdom_element*
+pcvdom_content_parent(struct pcvdom_content *content);
+
+struct pcvdom_element*
+pcvdom_comment_parent(struct pcvdom_comment *comment);
 
 // operation api
-void pcvdom_node_remove(pcvdom_node_t *node);
-void pcvdom_node_destroy(pcvdom_node_t *node);
+void pcvdom_node_remove(struct pcvdom_node *node);
+void pcvdom_node_destroy(struct pcvdom_node *node);
 
 // traverse all vdom_node
-typedef int (*vdom_node_traverse_f)(pcvdom_node_t *top,
-    pcvdom_node_t *node, void *ctx);
-int pcvdom_node_traverse(pcvdom_node_t *node, void *ctx,
+typedef int (*vdom_node_traverse_f)(struct pcvdom_node *top,
+    struct pcvdom_node *node, void *ctx);
+int pcvdom_node_traverse(struct pcvdom_node *node, void *ctx,
         vdom_node_traverse_f cb);
 
 // traverse all element
-typedef int (*vdom_element_traverse_f)(pcvdom_element_t *top,
-    pcvdom_element_t *elem, void *ctx);
-int pcvdom_element_traverse(pcvdom_element_t *elem, void *ctx,
+typedef int (*vdom_element_traverse_f)(struct pcvdom_element *top,
+    struct pcvdom_element *elem, void *ctx);
+int pcvdom_element_traverse(struct pcvdom_element *elem, void *ctx,
         vdom_element_traverse_f cb);
 
 #ifdef __cplusplus
