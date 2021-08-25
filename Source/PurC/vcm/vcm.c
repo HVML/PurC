@@ -269,6 +269,25 @@ struct pcvcm_node* pcvcm_node_new_call_setter (struct pcvcm_node* variable,
     return n;
 }
 
+static void pcvcm_node_destroy_callback (struct pctree_node* n,  void* data)
+{
+    UNUSED_PARAM(data);
+    struct pcvcm_node* node = (struct pcvcm_node*) n;
+    if ((node->type == PCVCM_NODE_TYPE_STRING
+                || node->type == PCVCM_NODE_TYPE_BYTE_SEQUENCE
+        ) && node->data.sz_ptr[1]) {
+        free((void*)node->data.sz_ptr[1]);
+    }
+    free(node);
+}
+
+void pcvcm_node_destroy (struct pcvcm_node* root)
+{
+    if (root) {
+        pctree_node_post_order_traversal ((struct pctree_node*) root,
+                pcvcm_node_destroy_callback, NULL);
+    }
+}
 
 struct pcvcm_stack {
     struct pcutils_stack* stack;

@@ -112,25 +112,10 @@ struct pcvcm_node* pcvcm_node_new_call_getter (struct pcvcm_node* variable,
 struct pcvcm_node* pcvcm_node_new_call_setter (struct pcvcm_node* variable,
         size_t nr_params, struct pcvcm_node* params);
 
-static inline
-void pcvcm_node_destroy (struct pcvcm_node* node)
-{
-    if (node) {
-        if ((node->type == PCVCM_NODE_TYPE_STRING
-             || node->type == PCVCM_NODE_TYPE_BYTE_SEQUENCE
-            ) && node->data.sz_ptr[1]) {
-            free((void*)node->data.sz_ptr[1]);
-        }
-        free(node);
-    }
-
-}
-
-static inline
-void pcvcm_node_pctree_node_destory_callback (void* data)
-{
-    pcvcm_node_destroy ((struct pcvcm_node*) data);
-}
+/*
+ * Removes root and its children from the tree, freeing any memory allocated.
+ */
+void pcvcm_node_destroy (struct pcvcm_node* root);
 
 struct pcvcm_stack;
 struct pcvcm_stack* pcvcm_stack_new ();

@@ -86,12 +86,6 @@ int to_error(const char* err)
     return -1;
 }
 
-static void pcvcm_node_for_each_destroy(struct pctree_node* node,  void* data)
-{
-    UNUSED_PARAM(data);
-    pcvcm_node_destroy ((struct pcvcm_node*) node);
-}
-
 TEST_P(ejson_parser_vcm_eval, parse_and_serialize)
 {
     const char* json = get_json();
@@ -113,8 +107,7 @@ TEST_P(ejson_parser_vcm_eval, parse_and_serialize)
     {
         ASSERT_EQ (root, nullptr) << "Test Case : "<< get_name();
         purc_rwstream_destroy(rws);
-        pctree_node_post_order_traversal ((struct pctree_node*)root,
-            pcvcm_node_for_each_destroy, NULL);
+        pcvcm_node_destroy (root);
         pcejson_destroy(parser);
         return;
     }
@@ -145,8 +138,7 @@ TEST_P(ejson_parser_vcm_eval, parse_and_serialize)
     purc_rwstream_destroy(my_rws);
     purc_rwstream_destroy(rws);
 
-    pctree_node_post_order_traversal ((struct pctree_node*)root,
-            pcvcm_node_for_each_destroy, NULL);
+    pcvcm_node_destroy (root);
 
     pcejson_destroy(parser);
 }
