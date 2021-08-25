@@ -1,5 +1,7 @@
 #include "purc.h"
 
+#include "private/utils.h"
+
 #include "private/ejson.h"
 #include "purc-rwstream.h"
 
@@ -11,6 +13,13 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <math.h>
+
+
+static void pcvcm_node_for_each_destroy(struct pctree_node* node,  void* data)
+{
+    UNUSED_PARAM(data);
+    pcvcm_node_destroy ((struct pcvcm_node*) node);
+}
 
 TEST(ejson, create_reset_destroy)
 {
@@ -1756,8 +1765,8 @@ TEST(ejson_token, pcejson_parse)
     purc_rwstream_destroy(my_rws);
     purc_rwstream_destroy(rws);
 
-    pctree_node_destroy (pcvcm_node_to_pctree_node(root),
-            pcvcm_node_pctree_node_destory_callback);
+    pctree_node_post_order_traversal ((struct pctree_node*)root,
+            pcvcm_node_for_each_destroy, NULL);
 
     pcejson_destroy(parser);
     purc_cleanup ();
@@ -1891,8 +1900,8 @@ TEST(ejson_token, pcejson_parse_segment)
     purc_rwstream_destroy(rws);
     purc_rwstream_destroy(rws2);
 
-    pctree_node_destroy (pcvcm_node_to_pctree_node(root),
-            pcvcm_node_pctree_node_destory_callback);
+    pctree_node_post_order_traversal ((struct pctree_node*)root,
+            pcvcm_node_for_each_destroy, NULL);
 
     pcejson_destroy(parser);
     purc_cleanup ();
@@ -2056,8 +2065,8 @@ TEST(ejson_token, pcejson_parse_infinity_nan)
     purc_rwstream_destroy(my_rws);
     purc_rwstream_destroy(rws);
 
-    pctree_node_destroy (pcvcm_node_to_pctree_node(root),
-            pcvcm_node_pctree_node_destory_callback);
+    pctree_node_post_order_traversal ((struct pctree_node*)root,
+            pcvcm_node_for_each_destroy, NULL);
 
     pcejson_destroy(parser);
     purc_cleanup ();
@@ -2094,8 +2103,8 @@ TEST(ejson_token, pcejson_parse_array)
     purc_rwstream_destroy(my_rws);
     purc_rwstream_destroy(rws);
 
-    pctree_node_destroy (pcvcm_node_to_pctree_node(root),
-            pcvcm_node_pctree_node_destory_callback);
+    pctree_node_post_order_traversal ((struct pctree_node*)root,
+            pcvcm_node_for_each_destroy, NULL);
 
     pcejson_destroy(parser);
     purc_cleanup ();
@@ -2158,8 +2167,8 @@ TEST(ejson_token, pcejson_parse_serial_empty_object)
     purc_rwstream_destroy(my_rws);
     purc_rwstream_destroy(rws);
 
-    pctree_node_destroy (pcvcm_node_to_pctree_node(root),
-            pcvcm_node_pctree_node_destory_callback);
+    pctree_node_post_order_traversal ((struct pctree_node*)root,
+            pcvcm_node_for_each_destroy, NULL);
 
     pcejson_destroy(parser);
     purc_cleanup ();

@@ -42,8 +42,6 @@ static struct pcvcm_node* pcvcm_node_new (enum pcvcm_node_type type)
         pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
-    struct pctree_node* tree_node = pctree_node_new (node);
-    node->tree_node = tree_node;
     node->type = type;
     return node;
 }
@@ -58,8 +56,8 @@ struct pcvcm_node* pcvcm_node_new_object (size_t nr_nodes,
     }
 
     for (size_t i = 0; i < nr_nodes; i++) {
-        pctree_node_append_child (pcvcm_node_to_pctree_node(n),
-                pcvcm_node_to_pctree_node(nodes + i));
+        pctree_node_append_child ((struct pctree_node*)n,
+                (struct pctree_node*)(nodes + i));
     }
 
     return n;
@@ -74,8 +72,8 @@ struct pcvcm_node* pcvcm_node_new_array (size_t nr_nodes,
     }
 
     for (size_t i = 0; i < nr_nodes; i++) {
-        pctree_node_append_child (pcvcm_node_to_pctree_node(n),
-                pcvcm_node_to_pctree_node(nodes + i));
+        pctree_node_append_child ((struct pctree_node*)n,
+                (struct pctree_node*)(nodes + i));
     }
 
     return n;
@@ -186,8 +184,8 @@ struct pcvcm_node* pcvcm_node_new_concat_string (size_t nr_nodes,
     }
 
     for (size_t i = 0; i < nr_nodes; i++) {
-        pctree_node_append_child (pcvcm_node_to_pctree_node(n),
-                pcvcm_node_to_pctree_node(nodes  + i));
+        pctree_node_append_child ((struct pctree_node*)n,
+                (struct pctree_node*)(nodes  + i));
     }
 
     return n;
@@ -201,8 +199,8 @@ struct pcvcm_node* pcvcm_node_new_get_variable (struct pcvcm_node* node)
     }
 
     if (node) {
-        pctree_node_append_child (pcvcm_node_to_pctree_node(n),
-                pcvcm_node_to_pctree_node(node));
+        pctree_node_append_child ((struct pctree_node*)n,
+                (struct pctree_node*)(node));
     }
 
     return n;
@@ -217,13 +215,13 @@ struct pcvcm_node* pcvcm_node_new_get_element (struct pcvcm_node* variable,
     }
 
     if (variable) {
-        pctree_node_append_child (pcvcm_node_to_pctree_node(n),
-                pcvcm_node_to_pctree_node(variable));
+        pctree_node_append_child ((struct pctree_node*)n,
+                (struct pctree_node*)(variable));
     }
 
     if (identifier) {
-        pctree_node_append_child (pcvcm_node_to_pctree_node(n),
-                pcvcm_node_to_pctree_node(identifier));
+        pctree_node_append_child ((struct pctree_node*)n,
+                (struct pctree_node*)(identifier));
     }
 
     return n;
@@ -238,13 +236,13 @@ struct pcvcm_node* pcvcm_node_new_call_getter (struct pcvcm_node* variable,
     }
 
     if (variable) {
-        pctree_node_append_child (pcvcm_node_to_pctree_node(n),
-                pcvcm_node_to_pctree_node(variable));
+        pctree_node_append_child ((struct pctree_node*)n,
+                (struct pctree_node*)(variable));
     }
 
     for (size_t i = 0; i < nr_params; i++) {
-        pctree_node_append_child (pcvcm_node_to_pctree_node(n),
-                pcvcm_node_to_pctree_node(params + i));
+        pctree_node_append_child ((struct pctree_node*)n,
+                (struct pctree_node*)(params + i));
     }
 
     return n;
@@ -259,13 +257,13 @@ struct pcvcm_node* pcvcm_node_new_call_setter (struct pcvcm_node* variable,
     }
 
     if (variable) {
-        pctree_node_append_child (pcvcm_node_to_pctree_node(n),
-                pcvcm_node_to_pctree_node(variable));
+        pctree_node_append_child ((struct pctree_node*)n,
+                (struct pctree_node*)variable);
     }
 
     for (size_t i = 0; i < nr_params; i++) {
-        pctree_node_append_child (pcvcm_node_to_pctree_node(n),
-                pcvcm_node_to_pctree_node(params + i));
+        pctree_node_append_child ((struct pctree_node*)n,
+                (struct pctree_node*)(params + i));
     }
 
     return n;
@@ -321,17 +319,16 @@ purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node);
 
 purc_variant_t pcvcm_node_object_to_variant (struct pcvcm_node* node)
 {
-    struct pctree_node* tree_node = pcvcm_node_to_pctree_node (node);
+    struct pctree_node* tree_node = (struct pctree_node*) (node);
     purc_variant_t object = purc_variant_make_object (0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
 
     struct pctree_node* k_node = tree_node->first_child;
     struct pctree_node* v_node = k_node ? k_node->next : NULL;
     while (k_node && v_node) {
-        purc_variant_t key = pcvcm_node_to_variant (
-                pcvcm_node_from_pctree_node(k_node));
+        purc_variant_t key = pcvcm_node_to_variant ((struct pcvcm_node*)k_node);
         purc_variant_t value = pcvcm_node_to_variant (
-                pcvcm_node_from_pctree_node(v_node));
+                (struct pcvcm_node*)v_node);
 
         purc_variant_object_set (object, key, value);
 
@@ -347,13 +344,13 @@ purc_variant_t pcvcm_node_object_to_variant (struct pcvcm_node* node)
 
 purc_variant_t pcvcm_node_array_to_variant (struct pcvcm_node* node)
 {
-    struct pctree_node* tree_node = pcvcm_node_to_pctree_node (node);
+    struct pctree_node* tree_node = (struct pctree_node*) (node);
     purc_variant_t array = purc_variant_make_array (0, PURC_VARIANT_INVALID);
 
     struct pctree_node* array_node = tree_node->first_child;
     while (array_node) {
         purc_variant_t vt = pcvcm_node_to_variant (
-                pcvcm_node_from_pctree_node(array_node));
+                (struct pcvcm_node*)array_node);
         purc_variant_array_append (array, vt);
         purc_variant_unref (vt);
 

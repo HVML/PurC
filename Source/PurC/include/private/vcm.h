@@ -65,7 +65,7 @@ union pcvcm_node_data {
 };
 
 struct pcvcm_node {
-    struct pctree_node* tree_node;
+    struct pctree_node tree_node;
     enum pcvcm_node_type type;
     uint32_t extra;
     union pcvcm_node_data data;
@@ -116,29 +116,20 @@ static inline
 void pcvcm_node_destroy (struct pcvcm_node* node)
 {
     if (node) {
-        if (node->data.sz_ptr[0] && node->data.sz_ptr[1]) {
+        if ((node->type == PCVCM_NODE_TYPE_STRING
+             || node->type == PCVCM_NODE_TYPE_BYTE_SEQUENCE
+            ) && node->data.sz_ptr[1]) {
             free((void*)node->data.sz_ptr[1]);
         }
         free(node);
     }
+
 }
 
 static inline
 void pcvcm_node_pctree_node_destory_callback (void* data)
 {
     pcvcm_node_destroy ((struct pcvcm_node*) data);
-}
-
-static inline
-struct pctree_node* pcvcm_node_to_pctree_node (struct pcvcm_node* node)
-{
-    return node->tree_node;
-}
-
-static inline
-struct pcvcm_node* pcvcm_node_from_pctree_node (struct pctree_node* tree_node)
-{
-    return (struct pcvcm_node*)tree_node->user_data;
 }
 
 struct pcvcm_stack;
