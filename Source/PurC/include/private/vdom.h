@@ -90,13 +90,10 @@ enum pcvdom_nodeype {
         container_of(_node, struct pcvdom_element, node) : NULL)
 #define PCVDOM_CONTENT_FROM_NODE(_node) \
     (PCVDOM_NODE_IS_CONTENT(_node) ? \
-        container_of(_node, struct pcvdom_exp, node) : NULL)
+        container_of(_node, struct pcvdom_content, node) : NULL)
 #define PCVDOM_COMMENT_FROM_NODE(_node) \
     (PCVDOM_NODE_IS_COMMENT(_node) ? \
-        container_of(_node, struct pcvdom_exp, node) : NULL)
-#define PCVDOM_EXP_FROM_NODE(_node) \
-    (PCVDOM_NODE_IS_EXP(_node) ? \
-        container_of(_node, struct pcvdom_exp, node) : NULL)
+        container_of(_node, struct pcvdom_comment, node) : NULL)
 
 struct pcvdom_node;
 struct pcvdom_document;
