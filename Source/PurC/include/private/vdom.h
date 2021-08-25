@@ -32,6 +32,7 @@
 #include "purc-variant.h"
 #include "private/list.h"
 #include "private/tree.h"
+#include "private/map.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -64,12 +65,44 @@ typedef enum {
 
 enum pcvdom_node_type {
     PCVDOM_NODE_DOCUMENT,
-    PCVDOM_NODE_DOCTYPE,
     PCVDOM_NODE_ELEMENT,
-    PCVDOM_NODE_TAG,
-    PCVDOM_NODE_ATTR,
     PCVDOM_VDOM_EXP,
 };
+
+#define PCVDOM_NODE_IS_DOCUMENT(_n) \
+    (((_n) && (_n)->type==PCVDOM_NODE_DOCUMENT))
+#define PCVDOM_NODE_IS_ELEMENT(_n) \
+    (((_n) && (_n)->type==PCVDOM_NODE_ELEMENT))
+#define PCVDOM_NODE_IS_EXP(_n) \
+    (((_n) && (_n)->type==PCVDOM_VDOM_EXP))
+
+#define PCVDOM_DOCUMENT_FROM_NODE(_node) \
+    (PCVDOM_NODE_IS_DOCUMENT(_node) ? \
+        container_of(_node, pcvdom_document_t, node) : NULL)
+#define PCVDOM_ELEMENT_FROM_NODE(_node) \
+    (PCVDOM_NODE_IS_ELEMENT(_node) ? \
+        container_of(_node, pcvdom_element_t, node) : NULL)
+#define PCVDOM_EXP_FROM_NODE(_node) \
+    (PCVDOM_NODE_IS_EXP(_node) ? \
+        container_of(_node, pcvdom_exp_t, node) : NULL)
+
+enum pcvdom_attr_key_type {
+    PCVDOM_ATTR_KEY_TEXT,
+    PCVDOM_ATTR_KEY_JSONEE,
+};
+
+enum pcvdom_attr_val_type {
+    PCVDOM_ATTR_VAL_JSONEE,
+    PCVDOM_ATTR_VAL_EJSON,
+};
+
+enum pcvdom_exp_anchor_type {
+    PCVDOM_EXP_ANCHOR_ATTR_KEY   = 0x01,
+    PCVDOM_EXP_ANCHOR_ATTR_VAL   = 0x02,
+    PCVDOM_EXP_ANCHOR_ELEM       = 0x10,
+};
+
+#define PCVDOM_EXP_PARENT_IS_ATTR(t) ((t) & 0x03)
 
 struct pcvdom_node;
 typedef struct pcvdom_node pcvdom_node_t;
@@ -98,15 +131,8 @@ struct pcvdom_node {
     void (*remove_child)(pcvdom_node_t *me, pcvdom_node_t *child);
 };
 
-struct pcvdom_document {
-    pcvdom_node_t           node;
-
-    pcvdom_doctype_t       *doctype;
-    pcvdom_element_t       *root; // <hvml>
-};
-
 struct pcvdom_doctype {
-    pcvdom_node_t           node;
+    pcvdom_document_t      *parent;
 
     // optimize later
     char                   *prefix;
@@ -115,79 +141,71 @@ struct pcvdom_doctype {
     size_t                  sz_builtins;
 };
 
-struct pcvdom_element {
+struct pcvdom_document {
     pcvdom_node_t           node;
 
-    pcvdom_tag_t           *tag;
+    pcvdom_doctype_t        doctype;
+    pcvdom_element_t       *root; // <hvml>
 
-    // element/text content/ejson
-    pcvdom_node_t          *first_child;
-    pcvdom_node_t          *last_child;
+    // document-variables
+    // such as `$_REQUEST`、`$TIMERS`、`$T` and etc.
+    pcutils_map            *variables;
 };
 
 struct pcvdom_tag {
-    pcvdom_node_t           node;
+    pcvdom_element_t       *parent;
 
     // optimize later with tag_id
     char                   *ns;    // namespace prefix
     char                   *name;  // local name, lower space
-
-    pcvdom_attr_t  *first_attr;
-    pcvdom_attr_t  *last_attr;
-};
-
-struct pcvdom_attr {
-    pcvdom_node_t           node;
-
-    // raw text/ejson
-    pcvdom_exp_t           *key;
-    pcvdom_exp_t           *val;
 };
 
 struct pcvdom_exp {
-    pcvdom_node_t           node;
-
-    // vdom
-
-    purc_variant_t          result; // eval'd result
+    enum pcvdom_exp_anchor_type  at;
+    union {
+        pcvdom_attr_t        *attr;
+        pcvdom_element_t     *elem;
+    } parent;
+    // to do
 };
 
-#define PCVDOM_NODE_IS_DOCUMENT(_n) \
-    (((_n) && (_n)->type==PCVDOM_NODE_DOCUMENT))
-#define PCVDOM_NODE_IS_DOCTYPE(_n) \
-    (((_n) && (_n)->type==PCVDOM_NODE_DOCTYPE))
-#define PCVDOM_NODE_IS_ELEMENT(_n) \
-    (((_n) && (_n)->type==PCVDOM_NODE_ELEMENT))
-#define PCVDOM_NODE_IS_TAG(_n) \
-    (((_n) && (_n)->type==PCVDOM_NODE_TAG))
-#define PCVDOM_NODE_IS_ATTR(_n) \
-    (((_n) && (_n)->type==PCVDOM_NODE_ATTR))
-#define PCVDOM_NODE_IS_EXP(_n) \
-    (((_n) && (_n)->type==PCVDOM_VDOM_EXP))
+struct pcvdom_attr {
+    struct list_head        lh;
 
-#define PCVDOM_DOCUMENT_FROM_NODE(_node) \
-    (PCVDOM_NODE_IS_DOCUMENT(_node) ? \
-        container_of(_node, pcvdom_document_t, node) : NULL)
+    pcvdom_element_t       *parent;
 
-#define PCVDOM_DOCTYPE_FROM_NODE(_node) \
-    (PCVDOM_NODE_IS_DOCTYPE(_node) ? \
-        container_of(_node, pcvdom_doctype_t, node) : NULL)
+    // text/jsonee
+    enum pcvdom_attr_key_type    kt;
+    union {
+        char               *str;
+        pcvdom_exp_t       *exp;
+    } key;
 
-#define PCVDOM_ELEMENT_FROM_NODE(_node) \
-    (PCVDOM_NODE_IS_ELEMENT(_node) ? \
-        container_of(_node, pcvdom_element_t, node) : NULL)
+    // jsonee/ejson
+    enum pcvdom_attr_val_type    vt;
+    union {
+        pcvdom_exp_t       *exp;
+        // for ejson type of value, which means it's `constant`
+        // as compared to above `exp`
+    } val;
+};
 
-#define PCVDOM_TAG_FROM_NODE(_node) \
-    (PCVDOM_NODE_IS_TAG(_node) ? \
-        container_of(_node, pcvdom_tag_t, node) : NULL)
+struct pcvdom_element {
+    pcvdom_node_t           node;
 
-#define PCVDOM_ATTR_FROM_NODE(_node) \
-    (PCVDOM_NODE_IS_ATTR(_node) ? \
-        container_of(_node, pcvdom_attr_t, node) : NULL)
+    pcvdom_tag_t            tag;
 
-#define PCVDOM_EXP_FROM_NODE(_node) \
-    (PCVDOM_NODE_IS_EXP(_node) ? \
-        container_of(_node, pcvdom_exp_t, node) : NULL)
+    // pcvdom_attr_t*
+    struct list_head        attrs;
+
+    // element/text content/ejson
+    pcvdom_node_t          *first_child;
+    pcvdom_node_t          *last_child;
+
+    // FIXME: scoped-variables
+    //        for those `defined` in `init`, `set`
+    pcutils_map            *variables;
+};
 
 
 // creating and destroying api
@@ -197,14 +215,8 @@ pcvdom_document_destroy(pcvdom_document_t *doc);
 pcvdom_document_t*
 pcvdom_document_create(void);
 
-pcvdom_doctype_t*
-pcvdom_doctype_create(void);
-
 pcvdom_element_t*
 pcvdom_element_create(void);
-
-pcvdom_tag_t*
-pcvdom_tag_create(void);
 
 pcvdom_attr_t*
 pcvdom_attr_create(void);
@@ -213,9 +225,6 @@ pcvdom_exp_t*
 pcvdom_exp_create(void);
 
 // doc/dom construction api
-int
-pcvdom_document_set_doctype(pcvdom_document_t *doc,
-        pcvdom_doctype_t *doctype);
 int
 pcvdom_document_set_root(pcvdom_document_t *doc,
         pcvdom_element_t *root);
@@ -227,9 +236,6 @@ int
 pcvdom_doctype_append_builtin(pcvdom_doctype_t *doc,
         const char *builtin);
 
-int
-pcvdom_element_set_tag(pcvdom_element_t *elem,
-        pcvdom_tag_t *tag);
 int
 pcvdom_element_append_attr(pcvdom_element_t *elem,
         pcvdom_attr_t *attr);
@@ -243,13 +249,14 @@ pcvdom_tag_set_ns(pcvdom_tag_t *tag,
 int
 pcvdom_tag_set_name(pcvdom_tag_t *tag,
         const char *name);
-int
-pcvdom_tag_append_attr(pcvdom_tag_t *tag,
-        pcvdom_attr_t *attr);
 
+int
+pcvdom_attr_set_key_c(pcvdom_attr_t *attr,
+        const char *key);
 int
 pcvdom_attr_set_key(pcvdom_attr_t *attr,
         pcvdom_exp_t *key);
+
 int
 pcvdom_attr_set_val(pcvdom_attr_t *attr,
         pcvdom_exp_t *val);

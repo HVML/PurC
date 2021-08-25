@@ -45,7 +45,7 @@ typedef void  (*free_val_fn) (void *val);
 /* common functions for string key */
 static inline void* copy_key_string (const void *key)
 {
-    return strdup (key);
+    return strdup ((const char*)key);
 }
 
 static inline void free_key_string (void *key)
@@ -55,7 +55,7 @@ static inline void free_key_string (void *key)
 
 static inline int comp_key_string (const void *key1, const void *key2)
 {
-    return strcmp (key1, key2);
+    return strcmp ((const char*)key1, (const char*)key2);
 }
 
 typedef struct pcutils_map pcutils_map;

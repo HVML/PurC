@@ -47,6 +47,7 @@ void pcvdom_cleanup_instance(struct pcinst* inst)
 }
 
 
+#if 0
 void
 _document_reset(pcvdom_document_t *doc);
 void
@@ -840,4 +841,7 @@ pcvdom_element_traverse(pcvdom_element_t *elem, void *ctx,
 
     return data.abortion ? -1 : 0;
 }
+
+#endif // 0
+
 
