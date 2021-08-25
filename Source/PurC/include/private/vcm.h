@@ -75,20 +75,42 @@ struct pcvcm_node {
 extern "C" {
 #endif  /* __cplusplus */
 
-static inline
-struct pcvcm_node* pcvcm_node_new (enum pcvcm_node_type type,
-        union pcvcm_node_data data)
-{
-    struct pcvcm_node* node = (struct pcvcm_node*) calloc (
-            sizeof(struct pcvcm_node), 1);
-    if (node) {
-        struct pctree_node* tree_node = pctree_node_new (node);
-        node->tree_node = tree_node;
-        node->type = type;
-        node->data = data;
-    }
-    return node;
-}
+struct pcvcm_node* pcvcm_node_new_object (size_t nr_nodes,
+        struct pcvcm_node* nodes);
+
+struct pcvcm_node* pcvcm_node_new_array (size_t nr_nodes,
+        struct pcvcm_node* nodes);
+
+struct pcvcm_node* pcvcm_node_new_string (const char* str_utf8);
+
+struct pcvcm_node* pcvcm_node_new_null ();
+
+struct pcvcm_node* pcvcm_node_new_boolean (bool b);
+
+struct pcvcm_node* pcvcm_node_new_number (double d);
+
+struct pcvcm_node* pcvcm_node_new_longint (int64_t i64);
+
+struct pcvcm_node* pcvcm_node_new_ulongint (uint64_t u64);
+
+struct pcvcm_node* pcvcm_node_new_longdouble (long double ld);
+
+struct pcvcm_node* pcvcm_node_new_byte_sequence (const void* bytes,
+        size_t nr_bytes);
+
+struct pcvcm_node* pcvcm_node_new_concat_string (size_t nr_nodes,
+        struct pcvcm_node* nodes);
+
+struct pcvcm_node* pcvcm_node_new_get_variable (struct pcvcm_node* node);
+
+struct pcvcm_node* pcvcm_node_new_get_element (struct pcvcm_node* variable,
+        struct pcvcm_node* identifier);
+
+struct pcvcm_node* pcvcm_node_new_call_getter (struct pcvcm_node* variable,
+        size_t nr_params, struct pcvcm_node* params);
+
+struct pcvcm_node* pcvcm_node_new_call_setter (struct pcvcm_node* variable,
+        size_t nr_params, struct pcvcm_node* params);
 
 static inline
 void pcvcm_node_destroy (struct pcvcm_node* node)
@@ -122,29 +144,6 @@ struct pcvcm_node* pcvcm_node_from_pctree_node (struct pctree_node* tree_node)
 struct pcvdom_element;
 purc_variant_t pcvcm_eval (struct pcvcm_node* tree,
         struct pcvdom_element* elem);
-
-struct pcvcm_node* pcvcm_node_new_object (size_t nr_nodes,
-        struct pcvcm_node* nodes);
-struct pcvcm_node* pcvcm_node_new_array (size_t nr_nodes,
-        struct pcvcm_node* nodes);
-struct pcvcm_node* pcvcm_node_new_string (const char* str_utf8);
-struct pcvcm_node* pcvcm_node_new_null ();
-struct pcvcm_node* pcvcm_node_new_boolean (bool b);
-struct pcvcm_node* pcvcm_node_new_number (double d);
-struct pcvcm_node* pcvcm_node_new_longint (int64_t i64);
-struct pcvcm_node* pcvcm_node_new_ulongint (uint64_t u64);
-struct pcvcm_node* pcvcm_node_new_longdouble (long double lf);
-struct pcvcm_node* pcvcm_node_new_byte_sequence (const void* bytes,
-        size_t nr_bytes);
-struct pcvcm_node* pcvcm_node_new_concat_string (size_t nr_nodes,
-        struct pcvcm_node* nodes);
-struct pcvcm_node* pcvcm_node_new_get_variable (struct pcvcm_node* node);
-struct pcvcm_node* pcvcm_node_new_get_element (struct pcvcm_node* variable,
-        struct pcvcm_node* identifier);
-struct pcvcm_node* pcvcm_node_new_call_getter (struct pcvcm_node* variable,
-        size_t nr_params, struct pcvcm_node* params);
-struct pcvcm_node* pcvcm_node_new_call_setter (struct pcvcm_node* variable,
-        size_t nr_params, struct pcvcm_node* params);
 
 struct pcvcm_stack;
 
