@@ -54,7 +54,7 @@ enum pcvcm_node_type {
 
 #define EXTRA_NULL              0x0000
 #define EXTRA_PROTECT_FLAG      0x0001
-#define EXTRA_SUGAR_FLAG        0x0001
+#define EXTRA_SUGAR_FLAG        0x0002
 
 union pcvcm_node_data {
     bool        b;
