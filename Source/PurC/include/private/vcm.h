@@ -141,19 +141,22 @@ struct pcvcm_node* pcvcm_node_from_pctree_node (struct pctree_node* tree_node)
     return (struct pcvcm_node*)tree_node->user_data;
 }
 
+struct pcvcm_stack;
+struct pcvcm_stack* pcvcm_stack_new ();
+
+bool pcvcm_stack_is_empty (struct pcvcm_stack* stack);
+
+void pcvcm_stack_push (struct pcvcm_stack* stack, struct pcvcm_node* e);
+
+struct pcvcm_node* pcvcm_stack_pop (struct pcvcm_stack* stack);
+
+struct pcvcm_node* pcvcm_stack_bottommost (struct pcvcm_stack* stack);
+
+void pcvcm_stack_destroy (struct pcvcm_stack* stack);
+
 struct pcvdom_element;
 purc_variant_t pcvcm_eval (struct pcvcm_node* tree,
         struct pcvdom_element* elem);
-
-struct pcvcm_stack;
-
-struct pcvcm_stack* pcvcm_stack_new ();
-bool pcvcm_stack_is_empty (struct pcvcm_stack* stack);
-void pcvcm_stack_push (struct pcvcm_stack* stack, struct pcvcm_node* e);
-struct pcvcm_node* pcvcm_stack_pop (struct pcvcm_stack* stack);
-struct pcvcm_node* pcvcm_stack_bottommost (struct pcvcm_stack* stack);
-void pcvcm_stack_destroy (struct pcvcm_stack* stack);
-
 
 #ifdef __cplusplus
 }

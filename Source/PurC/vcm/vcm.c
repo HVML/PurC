@@ -32,11 +32,12 @@
 #include "purc-errors.h"
 #include "private/errors.h"
 #include "private/vcm.h"
+#include "private/stack.h"
 
 static struct pcvcm_node* pcvcm_node_new (enum pcvcm_node_type type)
 {
-    struct pcvcm_node* node = (struct pcvcm_node*) calloc (
-            sizeof(struct pcvcm_node), 1);
+    struct pcvcm_node* node = (struct pcvcm_node*) calloc (1,
+            sizeof(struct pcvcm_node));
     if (!node) {
         pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
@@ -268,6 +269,52 @@ struct pcvcm_node* pcvcm_node_new_call_setter (struct pcvcm_node* variable,
     }
 
     return n;
+}
+
+
+struct pcvcm_stack {
+    struct pcutils_stack* stack;
+};
+
+struct pcvcm_stack* pcvcm_stack_new ()
+{
+    struct pcvcm_stack* stack = (struct pcvcm_stack*) calloc(
+            1, sizeof(struct pcvcm_stack));
+    if (stack) {
+        stack->stack = pcutils_stack_new (0);
+        if (!stack->stack) {
+            free (stack);
+            stack = NULL;
+        }
+    }
+
+    return stack;
+}
+
+bool pcvcm_stack_is_empty (struct pcvcm_stack* stack)
+{
+    return pcutils_stack_is_empty (stack->stack);
+}
+
+void pcvcm_stack_push (struct pcvcm_stack* stack, struct pcvcm_node* e)
+{
+    pcutils_stack_push (stack->stack, (uintptr_t)e);
+}
+
+struct pcvcm_node* pcvcm_stack_pop (struct pcvcm_stack* stack)
+{
+    return (struct pcvcm_node*) pcutils_stack_pop (stack->stack);
+}
+
+struct pcvcm_node* pcvcm_stack_bottommost (struct pcvcm_stack* stack)
+{
+    return (struct pcvcm_node*) pcutils_stack_top (stack->stack);
+}
+
+void pcvcm_stack_destroy (struct pcvcm_stack* stack)
+{
+    pcutils_stack_destroy (stack->stack);
+    free (stack);
 }
 
 purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node);
