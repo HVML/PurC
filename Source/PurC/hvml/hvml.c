@@ -37,6 +37,8 @@
 #include <stdlib.h>
 #endif
 
+#define HVML_END_OF_FILE       0
+
 #if HAVE(GLIB)
 #define    HVML_ALLOC(sz)   g_slice_alloc0(sz)
 #define    HVML_FREE(p)     g_slice_free1(sizeof(*p), (gpointer)p)
@@ -90,17 +92,6 @@
 #define STATE_DESC(state_name)                                              \
     case state_name:                                                        \
         return ""#state_name;                                               \
-
-struct pchvml {
-    enum hvml_state state;
-    enum hvml_state return_state;
-    uint32_t flags;
-    size_t queue_size;
-    char c[8];
-    int c_len;
-    wchar_t wc;
-    bool need_reconsume;
-};
 
 static const char* hvml_err_msgs[] = {
 };
@@ -180,6 +171,18 @@ static inline UNUSED_FUNCTION bool is_ascii_alpha_numeric (wchar_t character)
 void pchvml_init_once(void)
 {
     pcinst_register_error_message_segment(&_hvml_err_msgs_seg);
+}
+
+struct pchvml_token* pchvml_token_new (enum hvml_token_type type)
+{
+    UNUSED_PARAM(type);
+    return NULL;
+}
+
+void pchvml_token_destroy (struct pchvml_token* token)
+{
+    UNUSED_PARAM(token);
+    return;
 }
 
 struct pchvml* pchvml_create(uint32_t flags, size_t queue_size)
@@ -327,7 +330,7 @@ const char* pchvml_hvml_state_desc (enum hvml_state state)
 struct pchvml_token* pchvml_next_token (struct pchvml* hvml,
                                           purc_rwstream_t rws)
 {
-//next_input:
+next_input:
     if (!hvml->need_reconsume) {
         hvml->c_len = purc_rwstream_read_utf8_char (rws,
                 hvml->c, &hvml->wc);
@@ -337,12 +340,32 @@ struct pchvml_token* pchvml_next_token (struct pchvml* hvml,
     }
     hvml->need_reconsume = false;
 
-//next_state:
+next_state:
     switch (hvml->state) {
         BEGIN_STATE(HVML_DATA_STATE)
+            if (hvml->wc == '&') {
+                SWITCH_TO(HVML_CHARACTER_REFERENCE_STATE);
+            }
+            if (hvml->wc == '<') {
+                SWITCH_TO(HVML_TAG_OPEN_STATE);
+            }
+            if (hvml->wc == HVML_END_OF_FILE)
+                return pchvml_token_new(HVML_TOKEN_EOF);
+            ADVANCE_TO(HVML_DATA_STATE);
+            return pchvml_token_new(HVML_TOKEN_CHARACTER);
         END_STATE()
 
         BEGIN_STATE(HVML_RCDATA_STATE)
+            if (hvml->wc == '&') {
+                hvml->return_state = HVML_RCDATA_STATE;
+                SWITCH_TO(HVML_CHARACTER_REFERENCE_STATE);
+            }
+            if (hvml->wc == '<') {
+                SWITCH_TO(HVML_RCDATA_LESS_THAN_SIGN_STATE);
+            }
+            if (hvml->wc == HVML_END_OF_FILE)
+                RECONSUME_IN(HVML_DATA_STATE);
+            return pchvml_token_new(HVML_TOKEN_CHARACTER);
         END_STATE()
 
         BEGIN_STATE(HVML_RAWTEXT_STATE)

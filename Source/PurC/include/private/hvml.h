@@ -142,7 +142,31 @@ enum hvml_state {
     HVML_EJSON_AFTER_JSONEE_STRING_STATE
 };
 
-struct pchvml;
+enum hvml_token_type {
+    HVML_TOKEN_DOCTYPE,
+    HVML_TOKEN_START_TAG,
+    HVML_TOKEN_END_TAG,
+    HVML_TOKEN_COMMENT,
+    HVML_TOKEN_CHARACTER,
+    HVML_TOKEN_VCM_TREE,
+    HVML_TOKEN_EOF
+};
+
+struct pchvml {
+    enum hvml_state state;
+    enum hvml_state return_state;
+    uint32_t flags;
+    size_t queue_size;
+    char c[8];
+    int c_len;
+    wchar_t wc;
+    bool need_reconsume;
+};
+
+struct pchvml_token {
+    enum hvml_token_type type;
+};
+
 
 #ifdef __cplusplus
 extern "C" {
