@@ -130,9 +130,9 @@ struct pcvcm_node* pcvcm_stack_bottommost (struct pcvcm_stack* stack);
 
 void pcvcm_stack_destroy (struct pcvcm_stack* stack);
 
-struct pcvdom_element;
+struct pcintr_stack;
 purc_variant_t pcvcm_eval (struct pcvcm_node* tree,
-        struct pcvdom_element* elem);
+        struct pcintr_stack* stack);
 
 #ifdef __cplusplus
 }

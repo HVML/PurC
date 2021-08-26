@@ -420,9 +420,9 @@ purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node)
 }
 
 // TODO : need pcintr_stack_t
-purc_variant_t pcvcm_eval (struct pcvcm_node* tree, struct pcvdom_element* elem)
+purc_variant_t pcvcm_eval (struct pcvcm_node* tree, struct pcintr_stack* stack)
 {
-    UNUSED_PARAM(elem);
+    UNUSED_PARAM(stack);
     if (!tree) {
         return purc_variant_make_null();
     }
