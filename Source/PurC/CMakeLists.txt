@@ -130,7 +130,7 @@ add_custom_command(
     VERBATIM)
 list(APPEND PurC_SOURCES ${PurC_DERIVED_SOURCES_DIR}/html_bar.c)
 
-# Generate attrs table for html parser
+# Generate attrs table for hvml parser
 add_custom_command(
     OUTPUT "${PurC_DERIVED_SOURCES_DIR}/hvml_attr_foo.c"
            "${PurC_DERIVED_SOURCES_DIR}/hvml_attr_static_list.inc"
@@ -144,16 +144,18 @@ add_custom_command(
     VERBATIM)
 list(APPEND PurC_SOURCES ${PurC_DERIVED_SOURCES_DIR}/hvml_attr_foo.c)
 
-# Generate tags table for html parser
+# Generate tags table for hvml parser
 add_custom_command(
     OUTPUT "${PurC_DERIVED_SOURCES_DIR}/hvml_tag_foo.c"
            "${PurC_DERIVED_SOURCES_DIR}/hvml_tag_static_list.inc"
+           "${PurC_DERIVED_SOURCES_DIR}/hvml_tag.h"
     MAIN_DEPENDENCY ${PURC_DIR}/hvml/make_tags_table.py
     DEPENDS "${PURC_DIR}/hvml/data/tags.txt"
             "${PURC_DIR}/hvml/data/tag_static_list.inc.in"
+            "${PURC_DIR}/hvml/data/tag.h.in"
     COMMAND ${Python3_EXECUTABLE} ${PURC_DIR}/hvml/make_tags_table.py "${PurC_DERIVED_SOURCES_DIR}" --without-print
     COMMAND touch "${PurC_DERIVED_SOURCES_DIR}/hvml_tag_foo.c"
-    COMMENT "Generating hvml_tag_static_list.inc by using ${Python3_EXECUTABLE}"
+    COMMENT "Generating hvml_tag_static_list.inc/hvml_tag.h by using ${Python3_EXECUTABLE}"
     WORKING_DIRECTORY "${PURC_DIR}/hvml/"
     VERBATIM)
 list(APPEND PurC_SOURCES ${PurC_DERIVED_SOURCES_DIR}/hvml_tag_foo.c)
