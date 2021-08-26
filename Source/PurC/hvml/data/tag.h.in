@@ -29,7 +29,7 @@
 #include "config.h"
 #include "purc-macros.h"
 
-PURC_EXTERN_C_BEGIN
+PCA_EXTERN_C_BEGIN
 
 enum pchvml_tag_id {
 %%PCHVML_TAG_ENUMS%%
@@ -43,28 +43,28 @@ enum pchvml_tag_category {
 %%PCHVML_TAG_CATEGORY_ENUMS%%
 };
 
-struct pchvml_tag_context {
+struct pchvml_tag_entry {
     enum pchvml_tag_id id;
-    
+
     const char* name;
     size_t name_length;
-    
+
     enum pchvml_tokenizer_state data_parser;
     enum pchvml_tag_category    cats; // bit-or
-}
+};
 
 struct pchvml_tag_static_list {
-    const pchvml_tag_context_t* ctx;
+    const struct pchvml_tag_entry* ctx;
     size_t next;
     size_t cur;
-}
+};
 
-const struct pchvml_tag_context*
-pchvml_tag_static_get_by_id(size_t idx);
-const struct pchvml_tag_context*
+const struct pchvml_tag_entry*
+pchvml_tag_static_get_by_id(enum pchvml_tag_id id);
+const struct pchvml_tag_entry*
 pchvml_tag_static_search(const char* name, size_t length);
 
-PURC_EXTERN_C_END
+PCA_EXTERN_C_END
 
 #endif // _HVML_TAG_H
 

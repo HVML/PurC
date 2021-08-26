@@ -28,40 +28,16 @@
 
 #include "config.h"
 
+#include "purc-macros.h"
 #include "purc-errors.h"
 #include "purc-variant.h"
 #include "private/list.h"
 #include "private/tree.h"
 #include "private/map.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif  /* __cplusplus */
+#include "hvml_tag.h"
 
-#define PURC_ERROR_VDOM PURC_ERROR_FIRST_VDOM
-
-typedef enum {
-    PCHVML_STATUS_OK                       = PURC_ERROR_OK,
-    PCHVML_STATUS_ERROR                    = PURC_ERROR_UNKNOWN,
-    PCHVML_STATUS_ERROR_MEMORY_ALLOCATION  = PURC_ERROR_OUT_OF_MEMORY,
-    PCHVML_STATUS_ERROR_OBJECT_IS_NULL     = PURC_ERROR_NULL_OBJECT,
-    PCHVML_STATUS_ERROR_SMALL_BUFFER       = PURC_ERROR_TOO_SMALL_BUFF,
-    PCHVML_STATUS_ERROR_TOO_SMALL_SIZE     = PURC_ERROR_TOO_SMALL_SIZE,
-    PCHVML_STATUS_ERROR_INCOMPLETE_OBJECT  = PURC_ERROR_INCOMPLETE_OBJECT,
-    PCHVML_STATUS_ERROR_NO_FREE_SLOT       = PURC_ERROR_NO_FREE_SLOT,
-    PCHVML_STATUS_ERROR_NOT_EXISTS         = PURC_ERROR_NOT_EXISTS,
-    PCHVML_STATUS_ERROR_WRONG_ARGS         = PURC_ERROR_WRONG_ARGS,
-    PCHVML_STATUS_ERROR_WRONG_STAGE        = PURC_ERROR_WRONG_STAGE,
-    PCHVML_STATUS_ERROR_UNEXPECTED_RESULT  = PURC_ERROR_UNEXPECTED_RESULT,
-    PCHVML_STATUS_ERROR_UNEXPECTED_DATA    = PURC_ERROR_UNEXPECTED_DATA,
-    PCHVML_STATUS_ERROR_OVERFLOW           = PURC_ERROR_OVERFLOW,
-    PCHVML_STATUS_CONTINUE                 = PURC_ERROR_FIRST_HVML,
-    PCHVML_STATUS_SMALL_BUFFER,
-    PCHVML_STATUS_ABORTED,
-    PCHVML_STATUS_STOPPED,
-    PCHVML_STATUS_NEXT,
-    PCHVML_STATUS_STOP,
-} pchvml_status;
+PCA_EXTERN_C_BEGIN
 
 enum pcvdom_nodeype {
     PCVDOM_NODE_DOCUMENT,
@@ -100,7 +76,7 @@ struct pcvdom_document;
 struct pcvdom_element;
 struct pcvdom_content;
 struct pcvdom_comment;
-typedef uintptr_t   pcvdom_tag_id_t;
+typedef enum pchvml_tag_id   pcvdom_tag_id;
 struct pcvdom_attr;
 
 // TODO: replace with vcm.h
@@ -116,11 +92,8 @@ struct pcvdom_node {
 struct pcvdom_document {
     struct pcvdom_node      node;
 
-    // doctype fields
-    char                   *prefix;
-    char                  **builtins;
-    size_t                  nr_builtins;
-    size_t                  sz_builtins;
+    // doctype field
+    char                   *doctype;
 
     // comment/root element
     // keep order in consistency as in source hvml
@@ -136,12 +109,12 @@ struct pcvdom_document {
 };
 
 struct pcvdom_attr {
-    struct list_head          lh;
-
     struct pcvdom_element    *parent;
 
-    // text/jsonee
-    struct pcvcm_tree        *key;
+    // NOTE for key:
+    //   for those pre-defined attrs, static char * in static-list
+    //   for others, managed by atom-ed string
+    char                     *key;
 
     // text/jsonnee/no-value
     struct pcvcm_tree        *val;
@@ -151,12 +124,14 @@ struct pcvdom_attr {
 struct pcvdom_element {
     struct pcvdom_node      node;
 
-    pcvdom_tag_id_t         tag;
+    // for those non-pre-defined tags(UNDEF)
+    // tag_name is managed by atom-ed string
+    pcvdom_tag_id           tag_id;
+    char                   *tag_name;
 
-    // struct pcvdom_attr*
-    struct list_head        preps;
-    struct list_head        adverbs;
-    struct list_head        ordinals;
+    // key: char *, the same as struct pcvdom_attr:key
+    // val: struct pcvdom_attr*
+    struct pcutils_map     *attrs;
 
     // element/content
     // keep order in consistency as in source hvml
@@ -220,25 +195,14 @@ int
 pcvdom_element_set_tag(struct pcvdom_element *elem,
         const char *name);
 int
-pcvdom_element_append_attr(struct pcvdom_element *elem,
-        struct pcvdom_attr *attr);
+pcvdom_element_append_attr_vcm(struct pcvdom_element *elem,
+        const char *key, struct pcvcm_tree *val);
 int
 pcvdom_element_append_element(struct pcvdom_element *elem,
         struct pcvdom_element *child);
 int
 pcvdom_element_append_content(struct pcvdom_element *elem,
         struct pcvdom_content *child);
-
-int
-pcvdom_attr_set_key_c(struct pcvdom_attr *attr,
-        const char *key);
-int
-pcvdom_attr_set_key(struct pcvdom_attr *attr,
-        struct pcvcm_tree *vcm);
-
-int
-pcvdom_attr_set_val(struct pcvdom_attr *attr,
-        struct pcvcm_tree *vcm);
 
 int
 pcvdom_content_set_vcm(struct pcvdom_content *content,
@@ -277,9 +241,7 @@ typedef int (*vdom_element_traverse_f)(struct pcvdom_element *top,
 int pcvdom_element_traverse(struct pcvdom_element *elem, void *ctx,
         vdom_element_traverse_f cb);
 
-#ifdef __cplusplus
-}
-#endif  /* __cplusplus */
+PCA_EXTERN_C_END
 
 #endif  /* PURC_PRIVATE_VDOM_H */
 

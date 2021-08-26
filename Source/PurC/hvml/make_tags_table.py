@@ -353,7 +353,7 @@ def write_tag_cats (cats_info):
 
     idx = 0
     for cat in cats:
-        buf.append ("    {} = {}".format(make_category_id(cat), hex(1<<idx)))
+        buf.append ("    {} = {},".format(make_category_id(cat), hex(1<<idx)))
 
         idx += 1
 
@@ -366,7 +366,7 @@ def write_tag_states (states_info):
 
     idx = 0
     for state in states:
-        buf.append ("    {} = {}".format(make_state_id(state), idx))
+        buf.append ("    {} = {},".format(make_state_id(state), idx))
 
         idx += 1
 
