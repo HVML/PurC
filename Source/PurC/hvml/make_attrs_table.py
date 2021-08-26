@@ -235,13 +235,15 @@ def write_static_attr_tables (tmpl_file, save_to, attr_info, best_slots, attr_ta
     lxb_temp.pattern_append("%%BEST_SLOTS%%", '{}'.format(best_slots))
 
     buf = []
+    idx = 0
     for attr_slot in attr_table:
         if attr_slot:
             key = str2key_simple (attr_slot['attr'])
             buf.append("   // hash value of this attr: 0x%08x, slot index: %d" % (key, key % best_slots, ))
-            buf.append("   { \"%s\", %s, %d}," % (attr_slot['attr'], make_attr_type (attr_info[attr_slot['attr']]['type']), attr_slot['next'], ))
+            buf.append("   { \"%s\", %s, %d}, // %d" % (attr_slot['attr'], make_attr_type (attr_info[attr_slot['attr']]['type']), attr_slot['next'], idx))
         else:
-            buf.append("   { NULL, 0, 0},")
+            buf.append("   { NULL, 0, 0}, // %d" % (idx))
+        idx += 1
     lxb_temp.pattern_append("%%PCHVML_ATTR_STATIC_LIST_INDEX_RECORDS%%", '\n'.join(buf))
 
     lxb_temp.build()
