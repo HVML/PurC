@@ -152,6 +152,16 @@ enum hvml_token_type {
     HVML_TOKEN_EOF
 };
 
+enum hvml_attribute_assignment {
+    HVML_ATTRIBUTE_ASSIGNMENT,           // =
+    HVML_ATTRIBUTE_ADDITION_ASSIGNMENT,  // +=
+    HVML_ATTRIBUTE_SUBTRACTION_ASSIGNMENT, // -=
+    HVML_ATTRIBUTE_REMAINDER_ASSIGNMENT,  // %=
+    HVML_ATTRIBUTE_REPLACE_ASSIGNMENT,   // ~=
+    HVML_ATTRIBUTE_HEAD_ASSIGNMENT,   // ^=
+    HVML_ATTRIBUTE_TAIL_ASSIGNMENT,   // $=
+};
+
 struct pchvml {
     enum hvml_state state;
     enum hvml_state return_state;
@@ -163,8 +173,15 @@ struct pchvml {
     bool need_reconsume;
 };
 
+struct pchvml_token_attribute {
+    char* name;
+    struct pcvcm_node* value;
+    enum hvml_attribute_assignment assignment;
+};
+
 struct pchvml_token {
     enum hvml_token_type type;
+    struct pchvml_token_attribute* attribute;
 };
 
 
