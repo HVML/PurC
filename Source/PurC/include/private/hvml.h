@@ -183,9 +183,9 @@ struct pchvml_token_attribute {
 
 struct pchvml_token {
     enum hvml_token_type type;
-    union {
-        struct pchvml_token_attribute* attributes;
-    };
+    struct pchvml_token_attribute* attributes;
+
+    struct pchvml_token_attribute* curr_attr;
 };
 
 
@@ -205,6 +205,11 @@ void pchvml_destroy(struct pchvml_parser* parser);
 
 struct pchvml_token* pchvml_token_new (enum hvml_token_type type);
 void pchvml_token_destroy (struct pchvml_token* token);
+
+void pchvml_token_begin_attribute ();
+void pchvml_token_append_to_attribute_name (const char* bytes, size_t sz);
+void pchvml_token_append_to_attribute_value (const char* bytes, size_t sz);
+void pchvml_token_end_attribute ();
 
 struct pchvml_token* pchvml_next_token (struct pchvml_parser* hvml,
                                           purc_rwstream_t rws);
