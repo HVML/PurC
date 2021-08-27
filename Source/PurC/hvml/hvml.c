@@ -29,6 +29,7 @@
 #include "private/utils.h"
 #include "private/edom.h"
 #include "private/hvml.h"
+#include "tempbuffer.h"
 #include "config.h"
 
 #if HAVE(GLIB)
@@ -192,6 +193,7 @@ struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
     parser->state = HVML_DATA_STATE;
     parser->flags = flags;
     parser->queue_size = queue_size;
+    parser->temp_buffer = temp_buffer_new (0);
     return parser;
 }
 
@@ -201,11 +203,13 @@ void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
     parser->state = HVML_DATA_STATE;
     parser->flags = flags;
     parser->queue_size = queue_size;
+    temp_buffer_reset (parser->temp_buffer);
 }
 
 void pchvml_destroy(struct pchvml_parser* parser)
 {
     if (parser) {
+        temp_buffer_destroy (parser->temp_buffer);
         HVML_FREE(parser);
     }
 }
