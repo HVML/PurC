@@ -162,14 +162,14 @@ enum hvml_attribute_assignment {
     HVML_ATTRIBUTE_TAIL_ASSIGNMENT,   // $=
 };
 
-struct pchvml {
+struct pchvml_parser {
     enum hvml_state state;
     enum hvml_state return_state;
     uint32_t flags;
-    size_t queue_size;
-    char c[8];
-    int c_len;
+    uint32_t c_len;
     wchar_t wc;
+    char c[8];
+    size_t queue_size;
     bool need_reconsume;
 };
 
@@ -191,12 +191,12 @@ extern "C" {
 
 void pchvml_init_once (void);
 
-struct pchvml* pchvml_create(uint32_t flags, size_t queue_size);
+struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size);
 
-void pchvml_reset(struct pchvml* parser, uint32_t flags,
+void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
         size_t queue_size);
 
-void pchvml_destroy(struct pchvml* parser);
+void pchvml_destroy(struct pchvml_parser* parser);
 
 
 #ifdef __cplusplus

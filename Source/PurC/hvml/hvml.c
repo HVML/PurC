@@ -185,17 +185,17 @@ void pchvml_token_destroy (struct pchvml_token* token)
     return;
 }
 
-struct pchvml* pchvml_create(uint32_t flags, size_t queue_size)
+struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
 {
-    struct pchvml* parser = (struct pchvml*) HVML_ALLOC(
-            sizeof(struct pchvml));
+    struct pchvml_parser* parser = (struct pchvml_parser*) HVML_ALLOC(
+            sizeof(struct pchvml_parser));
     parser->state = HVML_DATA_STATE;
     parser->flags = flags;
     parser->queue_size = queue_size;
     return parser;
 }
 
-void pchvml_reset(struct pchvml* parser, uint32_t flags,
+void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
         size_t queue_size)
 {
     parser->state = HVML_DATA_STATE;
@@ -203,7 +203,7 @@ void pchvml_reset(struct pchvml* parser, uint32_t flags,
     parser->queue_size = queue_size;
 }
 
-void pchvml_destroy(struct pchvml* parser)
+void pchvml_destroy(struct pchvml_parser* parser)
 {
     if (parser) {
         HVML_FREE(parser);
@@ -327,7 +327,7 @@ const char* pchvml_hvml_state_desc (enum hvml_state state)
     return NULL;
 }
 
-struct pchvml_token* pchvml_next_token (struct pchvml* hvml,
+struct pchvml_token* pchvml_next_token (struct pchvml_parser* hvml,
                                           purc_rwstream_t rws)
 {
 next_input:
