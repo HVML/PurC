@@ -52,7 +52,7 @@ size_t temp_buffer_get_memory_size (struct temp_buffer* buffer);
 /*
  * Get the character size of the character buffer
  */
-size_t temp_buffer_get_character_size (struct temp_buffer* buffer);
+size_t temp_buffer_get_char_size (struct temp_buffer* buffer);
 
 /*
  * Append character to the character buffer
@@ -61,10 +61,10 @@ size_t temp_buffer_get_character_size (struct temp_buffer* buffer);
 void temp_buffer_append (struct temp_buffer* buffer,
         const char* bytes, size_t nr_bytes, wchar_t wc);
 
-const char* temp_buffer_get_buff (
+const char* temp_buffer_get_buffer (
         struct temp_buffer* buffer);
 
-bool temp_buffer_is_end_with (struct temp_buffer* buffer,
+bool temp_buffer_end_with (struct temp_buffer* buffer,
         const char* bytes, size_t nr_bytes);
 
 bool temp_buffer_is_equal (struct temp_buffer* buffer,
