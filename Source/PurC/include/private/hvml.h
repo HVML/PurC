@@ -181,7 +181,9 @@ struct pchvml_token_attribute {
 
 struct pchvml_token {
     enum hvml_token_type type;
-    struct pchvml_token_attribute* attribute;
+    union {
+        struct pchvml_token_attribute* attributes;
+    };
 };
 
 
