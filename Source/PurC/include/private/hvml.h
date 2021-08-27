@@ -202,6 +202,10 @@ void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
 
 void pchvml_destroy(struct pchvml_parser* parser);
 
+
+struct pchvml_token* pchvml_token_new (enum hvml_token_type type);
+void pchvml_token_destroy (struct pchvml_token* token);
+
 struct pchvml_token* pchvml_next_token (struct pchvml_parser* hvml,
                                           purc_rwstream_t rws);
 
