@@ -68,6 +68,12 @@ void pchvml_token_attribute_destroy (struct pchvml_token_attribute* attr)
     HVML_FREE(attr);
 }
 
+
+void pchvml_token_attribute_list_free_fn(void *data)
+{
+    pchvml_token_attribute_destroy ((struct pchvml_token_attribute*)data);
+}
+
 struct pchvml_token* pchvml_token_new (enum hvml_token_type type)
 {
     struct pchvml_token* token = (struct pchvml_token*) HVML_ALLOC(
@@ -82,10 +88,9 @@ void pchvml_token_destroy (struct pchvml_token* token)
         return;
     }
 
-    for (size_t i = 0; i < token->sz_attrs; i++) {
-        pchvml_token_attribute_destroy(token->attrs + i);
+    if (token->attr_list) {
+        pcutils_arrlist_free (token->attr_list);
     }
-
     pchvml_token_attribute_destroy(token->curr_attr);
 }
 
@@ -112,5 +117,10 @@ void pchvml_token_end_attribute (struct pchvml_token* token)
         return;
     }
 
-    // append the current attr to attr list;
+    if (!token->attr_list) {
+        token->attr_list = pcutils_arrlist_new(
+                pchvml_token_attribute_list_free_fn);
+    }
+    pcutils_arrlist_add(token->attr_list, token->curr_attr);
+    token->curr_attr = NULL;
 }

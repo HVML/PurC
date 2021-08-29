@@ -27,6 +27,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <private/arraylist.h>
 
 enum hvml_attribute_assignment {
     HVML_ATTRIBUTE_ASSIGNMENT,           // =
@@ -56,10 +57,7 @@ struct pchvml_token_attribute {
 
 struct pchvml_token {
     enum hvml_token_type type;
-
-    struct pchvml_token_attribute* attrs;
-    size_t sz_attrs;
-
+    struct pcutils_arrlist* attr_list;
     struct pchvml_token_attribute* curr_attr;
 };
 
