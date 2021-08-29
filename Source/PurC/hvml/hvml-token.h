@@ -56,7 +56,9 @@ struct pchvml_token_attribute {
 
 struct pchvml_token {
     enum hvml_token_type type;
-    struct pchvml_token_attribute* attributes;
+
+    struct pchvml_token_attribute* attrs;
+    size_t sz_attrs;
 
     struct pchvml_token_attribute* curr_attr;
 };
@@ -69,10 +71,12 @@ extern "C" {
 struct pchvml_token* pchvml_token_new (enum hvml_token_type type);
 void pchvml_token_destroy (struct pchvml_token* token);
 
-void pchvml_token_begin_attribute ();
-void pchvml_token_append_to_attribute_name (const char* bytes, size_t sz);
-void pchvml_token_append_to_attribute_value (const char* bytes, size_t sz);
-void pchvml_token_end_attribute ();
+void pchvml_token_begin_attribute (struct pchvml_token* token);
+void pchvml_token_append_to_attribute_name (struct pchvml_token* token,
+        char* bytes);
+void pchvml_token_append_to_attribute_value (struct pchvml_token* token,
+        struct pcvcm_node* node);
+void pchvml_token_end_attribute (struct pchvml_token* token);
 
 
 #ifdef __cplusplus

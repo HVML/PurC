@@ -31,17 +31,86 @@
 #include "purc-utils.h"
 #include "purc-errors.h"
 #include "private/errors.h"
+#include "private/vcm.h"
 #include "hvml-token.h"
+
+#if HAVE(GLIB)
+#include <gmodule.h>
+#else
+#include <stdlib.h>
+#endif
+
+#define HVML_END_OF_FILE       0
+
+#if HAVE(GLIB)
+#define    HVML_ALLOC(sz)   g_slice_alloc0(sz)
+#define    HVML_FREE(p)     g_slice_free1(sizeof(*p), (gpointer)p)
+#else
+#define    HVML_ALLOC(sz)   calloc(1, sz)
+#define    HVML_FREE(p)     free(p)
+#endif
+
+
+struct pchvml_token_attribute* pchvml_token_attribute_new ()
+{
+    struct pchvml_token_attribute* attr = (struct pchvml_token_attribute*)
+        HVML_ALLOC(sizeof(struct pchvml_token_attribute));
+    return attr;
+}
+
+void pchvml_token_attribute_destroy (struct pchvml_token_attribute* attr)
+{
+    if (!attr) {
+        return;
+    }
+    free (attr->name);
+    pcvcm_node_destroy (attr->value);
+    HVML_FREE(attr);
+}
 
 struct pchvml_token* pchvml_token_new (enum hvml_token_type type)
 {
-    UNUSED_PARAM(type);
-    return NULL;
+    struct pchvml_token* token = (struct pchvml_token*) HVML_ALLOC(
+            sizeof(struct pchvml_token));
+    token->type = type;
+    return token;
 }
 
 void pchvml_token_destroy (struct pchvml_token* token)
 {
-    UNUSED_PARAM(token);
-    return;
+    if (!token) {
+        return;
+    }
+
+    for (size_t i = 0; i < token->sz_attrs; i++) {
+        pchvml_token_attribute_destroy(token->attrs + i);
+    }
+
+    pchvml_token_attribute_destroy(token->curr_attr);
 }
 
+void pchvml_token_begin_attribute (struct pchvml_token* token)
+{
+    token->curr_attr = pchvml_token_attribute_new();
+}
+
+void pchvml_token_append_to_attribute_name (struct pchvml_token* token,
+        char* bytes)
+{
+    token->curr_attr->name = bytes;
+}
+
+void pchvml_token_append_to_attribute_value (struct pchvml_token* token,
+        struct pcvcm_node* node)
+{
+    token->curr_attr->value = node;
+}
+
+void pchvml_token_end_attribute (struct pchvml_token* token)
+{
+    if (!token->curr_attr) {
+        return;
+    }
+
+    // append the current attr to attr list;
+}
