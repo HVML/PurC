@@ -138,3 +138,8 @@ struct pchvml_token* pchvml_token_new_character (const char* buf)
     pchvml_token_end_attribute(token);
     return token;
 }
+
+struct pchvml_token* pchvml_token_new_start_tag ()
+{
+    return pchvml_token_new (HVML_TOKEN_START_TAG);
+}

@@ -77,6 +77,7 @@ void pchvml_token_append_to_attribute_value (struct pchvml_token* token,
 void pchvml_token_end_attribute (struct pchvml_token* token);
 
 struct pchvml_token* pchvml_token_new_character (const char* buf);
+struct pchvml_token* pchvml_token_new_start_tag ();
 
 #ifdef __cplusplus
 }
