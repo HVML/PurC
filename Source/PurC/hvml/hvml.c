@@ -95,6 +95,14 @@
     case state_name:                                                        \
         return ""#state_name;                                               \
 
+#define BUFFER_CHARACTER(c, c_len, wc)                                      \
+    do {                                                                    \
+        temp_buffer_append (hvml->temp_buffer, c, c_len, wc);               \
+    } while (false)
+
+#define BUFFER_CURRENT_CHARACTER()                                          \
+    BUFFER_CHARACTER(hvml->c, hvml->c_len, hvml->wc)
+
 static const char* hvml_err_msgs[] = {
 };
 
@@ -356,8 +364,7 @@ next_state:
             if (character == HVML_END_OF_FILE)
                 return pchvml_token_new(HVML_TOKEN_EOF);
 
-            temp_buffer_append (hvml->temp_buffer, hvml->c, hvml->c_len,
-                    character);
+            BUFFER_CURRENT_CHARACTER();
             ADVANCE_TO(HVML_DATA_STATE);
         END_STATE()
 
@@ -371,8 +378,7 @@ next_state:
             }
             if (character == HVML_END_OF_FILE)
                 RECONSUME_IN(HVML_DATA_STATE);
-            temp_buffer_append (hvml->temp_buffer, hvml->c, hvml->c_len,
-                    character);
+            BUFFER_CURRENT_CHARACTER();
             ADVANCE_TO(HVML_TOKEN_CHARACTER);
         END_STATE()
 
@@ -383,8 +389,7 @@ next_state:
             if (character == HVML_END_OF_FILE)
                 return pchvml_token_new(HVML_TOKEN_EOF);
 
-            temp_buffer_append (hvml->temp_buffer, hvml->c, hvml->c_len,
-                    character);
+            BUFFER_CURRENT_CHARACTER();
             ADVANCE_TO(HVML_RAWTEXT_STATE);
         END_STATE()
 
@@ -392,8 +397,7 @@ next_state:
             if (character == HVML_END_OF_FILE)
                 return pchvml_token_new(HVML_TOKEN_EOF);
 
-            temp_buffer_append (hvml->temp_buffer, hvml->c, hvml->c_len,
-                    character);
+            BUFFER_CURRENT_CHARACTER();
             ADVANCE_TO(HVML_PLAINTEXT_STATE);
         END_STATE()
 
@@ -411,7 +415,7 @@ next_state:
             if (character == '?') {
                 RECONSUME_IN(HVML_BOGUS_COMMENT_STATE);
             }
-            temp_buffer_append (hvml->temp_buffer, "<", 1, '<');
+            BUFFER_CHARACTER("<", 1, '<');
             RECONSUME_IN(HVML_DATA_STATE);
         END_STATE()
 
