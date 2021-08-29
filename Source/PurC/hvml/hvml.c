@@ -628,6 +628,7 @@ next_state:
                 return hvml->current_token;
             }
             if (character == '$') {
+                // TODO concat-string and so on
                 RECONSUME_IN(HVML_EJSON_DATA_STATE);
             }
             if (character == HVML_END_OF_FILE) {
@@ -654,51 +655,215 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(HVML_ATTRIBUTE_VALUE_SINGLE_QUOTED_STATE)
+            if (character == '\'') {
+                pchvml_token_end_attribute(hvml->current_token);
+                ADVANCE_TO(HVML_AFTER_ATTRIBUTE_VALUE_QUOTED_STATE);
+            }
+            if (character == '&') {
+                hvml->return_state = HVML_ATTRIBUTE_VALUE_SINGLE_QUOTED_STATE;
+                ADVANCE_TO(HVML_CHARACTER_REFERENCE_STATE);
+            }
+            if (character == HVML_END_OF_FILE) {
+                pchvml_token_end_attribute(hvml->current_token);
+                RECONSUME_IN(HVML_DATA_STATE);
+            }
+            BUFFER_CURRENT_CHARACTER();
+            ADVANCE_TO(HVML_ATTRIBUTE_VALUE_SINGLE_QUOTED_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_ATTRIBUTE_VALUE_UNQUOTED_STATE)
+            if (is_whitespace(character)) {
+                pchvml_token_end_attribute(hvml->current_token);
+                ADVANCE_TO(HVML_BEFORE_ATTRIBUTE_NAME_STATE);
+            }
+            if (character == '&') {
+                hvml->return_state = HVML_ATTRIBUTE_VALUE_UNQUOTED_STATE;
+                ADVANCE_TO(HVML_CHARACTER_REFERENCE_STATE);
+            }
+            if (character == '>') {
+                pchvml_token_end_attribute(hvml->current_token);
+                SWITCH_TO(HVML_DATA_STATE);
+                return hvml->current_token;
+            }
+            if (character == '$') {
+                // TODO concat-string and so on
+                RECONSUME_IN(HVML_EJSON_DATA_STATE);
+            }
+            if (character == HVML_END_OF_FILE) {
+                pchvml_token_end_attribute(hvml->current_token);
+                RECONSUME_IN(HVML_DATA_STATE);
+            }
+            BUFFER_CURRENT_CHARACTER();
+            ADVANCE_TO(HVML_ATTRIBUTE_VALUE_UNQUOTED_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_AFTER_ATTRIBUTE_VALUE_QUOTED_STATE)
+            if (is_whitespace(character)) {
+                ADVANCE_TO(HVML_BEFORE_ATTRIBUTE_NAME_STATE);
+            }
+            if (character == '/') {
+                ADVANCE_TO(HVML_SELF_CLOSING_START_TAG_STATE);
+            }
+            if (character == '>') {
+                SWITCH_TO(HVML_DATA_STATE);
+                return hvml->current_token;
+            }
+            if (character == '<') {
+                SWITCH_TO(HVML_DATA_STATE);
+                return hvml->current_token;
+            }
+            if (character == HVML_END_OF_FILE) {
+                RECONSUME_IN(HVML_DATA_STATE);
+            }
+            RECONSUME_IN(HVML_BEFORE_ATTRIBUTE_NAME_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_SELF_CLOSING_START_TAG_STATE)
+            if (character == '>') {
+                // TODO : mark current token self close
+                SWITCH_TO(HVML_DATA_STATE);
+                return hvml->current_token;
+            }
+            if (character == HVML_END_OF_FILE) {
+                RECONSUME_IN(HVML_DATA_STATE);
+            }
+            RECONSUME_IN(HVML_BEFORE_ATTRIBUTE_NAME_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_BOGUS_COMMENT_STATE)
+            if (hvml->current_token->type != HVML_TOKEN_COMMENT) {
+                hvml->current_token = pchvml_token_new(HVML_TOKEN_COMMENT);
+            }
+            if (character == '>') {
+                SWITCH_TO(HVML_DATA_STATE);
+                return hvml->current_token;
+            }
+            if (character == HVML_END_OF_FILE) {
+                RECONSUME_IN_NEXT(HVML_DATA_STATE);
+                return hvml->current_token;
+            }
+            BUFFER_CURRENT_CHARACTER();
+            ADVANCE_TO(HVML_BOGUS_COMMENT_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_MARKUP_DECLARATION_OPEN_STATE)
+            //TODO
         END_STATE()
 
         BEGIN_STATE(HVML_COMMENT_START_STATE)
+            if (character == '-') {
+                ADVANCE_TO(HVML_COMMENT_START_DASH_STATE);
+            }
+            if (character == '>') {
+                RECONSUME_IN_NEXT(HVML_DATA_STATE);
+                return hvml->current_token;
+            }
+            if (character == HVML_END_OF_FILE) {
+                RECONSUME_IN_NEXT(HVML_DATA_STATE);
+                return hvml->current_token;
+            }
+            BUFFER_CURRENT_CHARACTER();
+            ADVANCE_TO(HVML_COMMENT_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_COMMENT_START_DASH_STATE)
+            if (character == '-') {
+                ADVANCE_TO(HVML_COMMENT_END_STATE);
+            }
+            if (character == '>') {
+                RECONSUME_IN_NEXT(HVML_DATA_STATE);
+                return hvml->current_token;
+            }
+            if (character == HVML_END_OF_FILE) {
+                RECONSUME_IN_NEXT(HVML_DATA_STATE);
+                return hvml->current_token;
+            }
+            BUFFER_CHARACTER("-", 1, '-');
+            BUFFER_CURRENT_CHARACTER();
+            ADVANCE_TO(HVML_COMMENT_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_COMMENT_STATE)
+            // TODO : compare to doc
+            if (character == '-') {
+                ADVANCE_TO(HVML_COMMENT_END_DASH_STATE);
+            }
+            if (character == HVML_END_OF_FILE) {
+                RECONSUME_IN_NEXT(HVML_DATA_STATE);
+                return hvml->current_token;
+            }
+            BUFFER_CURRENT_CHARACTER();
+            ADVANCE_TO(HVML_COMMENT_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_COMMENT_LESS_THAN_SIGN_STATE)
+            // TODO remove
         END_STATE()
 
         BEGIN_STATE(HVML_COMMENT_LESS_THAN_SIGN_BANG_STATE)
+            // TODO remove
         END_STATE()
 
         BEGIN_STATE(HVML_COMMENT_LESS_THAN_SIGN_BANG_DASH_STATE)
+            // TODO remove
         END_STATE()
 
         BEGIN_STATE(HVML_COMMENT_LESS_THAN_SIGN_BANG_DASH_DASH_STATE)
+            // TODO remove
         END_STATE()
 
         BEGIN_STATE(HVML_COMMENT_END_DASH_STATE)
+            if (character == '-') {
+                ADVANCE_TO(HVML_COMMENT_END_STATE);
+            }
+            if (character == HVML_END_OF_FILE) {
+                RECONSUME_IN_NEXT(HVML_DATA_STATE);
+                return hvml->current_token;
+            }
+            BUFFER_CHARACTER("-", 1, '-');
+            ADVANCE_TO(HVML_COMMENT_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_COMMENT_END_STATE)
+            if (character == '>') {
+                RECONSUME_IN_NEXT(HVML_DATA_STATE);
+                return hvml->current_token;
+            }
+            if (character == '!') {
+                ADVANCE_TO(HVML_COMMENT_END_BANG_STATE);
+            }
+            if (character == '-') {
+                BUFFER_CHARACTER("-", 1, '-');
+                ADVANCE_TO(HVML_COMMENT_END_STATE);
+            }
+            if (character == HVML_END_OF_FILE) {
+                RECONSUME_IN_NEXT(HVML_DATA_STATE);
+                return hvml->current_token;
+            }
+            BUFFER_CHARACTER("-", 1, '-');
+            BUFFER_CHARACTER("-", 1, '-');
+            ADVANCE_TO(HVML_COMMENT_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_COMMENT_END_BANG_STATE)
+            if (character == '-') {
+                BUFFER_CHARACTER("-", 1, '-');
+                BUFFER_CHARACTER("-", 1, '-');
+                BUFFER_CHARACTER("!", 1, '!');
+                ADVANCE_TO(HVML_COMMENT_END_DASH_STATE);
+            }
+            if (character == '>') {
+                RECONSUME_IN_NEXT(HVML_DATA_STATE);
+                return hvml->current_token;
+            }
+            if (character == HVML_END_OF_FILE) {
+                RECONSUME_IN_NEXT(HVML_DATA_STATE);
+                return hvml->current_token;
+            }
+            BUFFER_CHARACTER("-", 1, '-');
+            BUFFER_CHARACTER("-", 1, '-');
+            BUFFER_CHARACTER("!", 1, '!');
+            ADVANCE_TO(HVML_COMMENT_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_DOCTYPE_STATE)
