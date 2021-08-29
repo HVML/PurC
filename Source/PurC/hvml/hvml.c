@@ -867,12 +867,49 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(HVML_DOCTYPE_STATE)
+            if (is_whitespace(character)) {
+                ADVANCE_TO(HVML_BEFORE_DOCTYPE_NAME_STATE);
+            }
+            if (character == HVML_END_OF_FILE) {
+                hvml->current_token = pchvml_token_new(HVML_TOKEN_DOCTYPE);
+                RECONSUME_IN_NEXT(HVML_DATA_STATE);
+                return hvml->current_token;
+            }
+            RECONSUME_IN(HVML_BEFORE_DOCTYPE_NAME_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_BEFORE_DOCTYPE_NAME_STATE)
+            if (is_whitespace(character)) {
+                ADVANCE_TO(HVML_BEFORE_DOCTYPE_NAME_STATE);
+            }
+            if (character == '>') {
+                hvml->current_token = pchvml_token_new(HVML_TOKEN_DOCTYPE);
+                RECONSUME_IN_NEXT(HVML_DATA_STATE);
+                return hvml->current_token;
+            }
+            if (character == HVML_END_OF_FILE) {
+                hvml->current_token = pchvml_token_new(HVML_TOKEN_DOCTYPE);
+                RECONSUME_IN_NEXT(HVML_DATA_STATE);
+                return hvml->current_token;
+            }
+            hvml->current_token = pchvml_token_new(HVML_TOKEN_DOCTYPE);
+            ADVANCE_TO(HVML_DOCTYPE_NAME_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_DOCTYPE_NAME_STATE)
+            if (is_whitespace(character)) {
+                ADVANCE_TO(HVML_AFTER_DOCTYPE_NAME_STATE);
+            }
+            if (character == '>') {
+                RECONSUME_IN_NEXT(HVML_DATA_STATE);
+                return hvml->current_token;
+            }
+            if (character == HVML_END_OF_FILE) {
+                RECONSUME_IN_NEXT(HVML_DATA_STATE);
+                return hvml->current_token;
+            }
+            BUFFER_CURRENT_CHARACTER();
+            ADVANCE_TO(HVML_DOCTYPE_NAME_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_AFTER_DOCTYPE_NAME_STATE)
