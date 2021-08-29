@@ -143,3 +143,8 @@ struct pchvml_token* pchvml_token_new_start_tag ()
 {
     return pchvml_token_new (HVML_TOKEN_START_TAG);
 }
+
+struct pchvml_token* pchvml_token_new_end_tag ()
+{
+    return pchvml_token_new (HVML_TOKEN_END_TAG);
+}

@@ -103,6 +103,11 @@
 #define BUFFER_CURRENT_CHARACTER()                                          \
     BUFFER_CHARACTER(hvml->c, hvml->c_len, hvml->wc)
 
+#define RESET_BUFFER()                                                      \
+    do {                                                                    \
+        temp_buffer_reset (hvml->temp_buffer);                              \
+    } while (false)
+
 static const char* hvml_err_msgs[] = {
 };
 
@@ -347,22 +352,23 @@ next_state:
     switch (hvml->state) {
         BEGIN_STATE(HVML_DATA_STATE)
             if (character == '&') {
-                SWITCH_TO(HVML_CHARACTER_REFERENCE_STATE);
+                ADVANCE_TO(HVML_CHARACTER_REFERENCE_STATE);
             }
             if (character == '<') {
                 if (temp_buffer_is_empty(hvml->temp_buffer)) {
-                    SWITCH_TO(HVML_TAG_OPEN_STATE);
+                    ADVANCE_TO(HVML_TAG_OPEN_STATE);
                 }
                 else {
                     RECONSUME_IN_NEXT(HVML_TAG_OPEN_STATE);
                     struct pchvml_token* token = pchvml_token_new_character (
                             temp_buffer_get_buffer(hvml->temp_buffer));
-                    temp_buffer_reset(hvml->temp_buffer);
+                    RESET_BUFFER();
                     return token;
                 }
             }
-            if (character == HVML_END_OF_FILE)
+            if (character == HVML_END_OF_FILE) {
                 return pchvml_token_new(HVML_TOKEN_EOF);
+            }
 
             BUFFER_CURRENT_CHARACTER();
             ADVANCE_TO(HVML_DATA_STATE);
@@ -371,31 +377,34 @@ next_state:
         BEGIN_STATE(HVML_RCDATA_STATE)
             if (character == '&') {
                 hvml->return_state = HVML_RCDATA_STATE;
-                SWITCH_TO(HVML_CHARACTER_REFERENCE_STATE);
+                ADVANCE_TO(HVML_CHARACTER_REFERENCE_STATE);
             }
             if (character == '<') {
-                SWITCH_TO(HVML_RCDATA_LESS_THAN_SIGN_STATE);
+                ADVANCE_TO(HVML_RCDATA_LESS_THAN_SIGN_STATE);
             }
-            if (character == HVML_END_OF_FILE)
+            if (character == HVML_END_OF_FILE) {
                 RECONSUME_IN(HVML_DATA_STATE);
+            }
             BUFFER_CURRENT_CHARACTER();
             ADVANCE_TO(HVML_TOKEN_CHARACTER);
         END_STATE()
 
         BEGIN_STATE(HVML_RAWTEXT_STATE)
             if (character == '<') {
-                SWITCH_TO(HVML_RAWTEXT_LESS_THAN_SIGN_STATE);
+                ADVANCE_TO(HVML_RAWTEXT_LESS_THAN_SIGN_STATE);
             }
-            if (character == HVML_END_OF_FILE)
+            if (character == HVML_END_OF_FILE) {
                 return pchvml_token_new(HVML_TOKEN_EOF);
+            }
 
             BUFFER_CURRENT_CHARACTER();
             ADVANCE_TO(HVML_RAWTEXT_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_PLAINTEXT_STATE)
-            if (character == HVML_END_OF_FILE)
+            if (character == HVML_END_OF_FILE) {
                 return pchvml_token_new(HVML_TOKEN_EOF);
+            }
 
             BUFFER_CURRENT_CHARACTER();
             ADVANCE_TO(HVML_PLAINTEXT_STATE);
@@ -403,14 +412,14 @@ next_state:
 
         BEGIN_STATE(HVML_TAG_OPEN_STATE)
             if (character == '!') {
-                SWITCH_TO(HVML_MARKUP_DECLARATION_OPEN_STATE);
+                ADVANCE_TO(HVML_MARKUP_DECLARATION_OPEN_STATE);
             }
             if (character == '/') {
-                SWITCH_TO(HVML_END_TAG_OPEN_STATE);
+                ADVANCE_TO(HVML_END_TAG_OPEN_STATE);
             }
             if (is_ascii_alpha(character)) {
                 hvml->current_token = pchvml_token_new_start_tag ();
-                SWITCH_TO(HVML_TAG_NAME_STATE);
+                ADVANCE_TO(HVML_TAG_NAME_STATE);
             }
             if (character == '?') {
                 RECONSUME_IN(HVML_BOGUS_COMMENT_STATE);
@@ -420,9 +429,41 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(HVML_END_TAG_OPEN_STATE)
+            if (is_ascii_alpha(character)) {
+                hvml->current_token = pchvml_token_new_end_tag();
+                RESET_BUFFER();
+                ADVANCE_TO(HVML_TAG_NAME_STATE);
+            }
+            if (character == '>') {
+                ADVANCE_TO(HVML_DATA_STATE);
+            }
+            if (character == HVML_END_OF_FILE) {
+                BUFFER_CHARACTER("<", 1, '<');
+                BUFFER_CHARACTER("/", 1, '/');
+                RECONSUME_IN(HVML_DATA_STATE);
+            }
+            RECONSUME_IN(HVML_BOGUS_COMMENT_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_TAG_NAME_STATE)
+            if (is_whitespace(character))
+                ADVANCE_TO(HVML_BEFORE_ATTRIBUTE_NAME_STATE);
+            if (character == '/') {
+                ADVANCE_TO(HVML_SELF_CLOSING_START_TAG_STATE);
+            }
+            if (character == '>') {
+                SWITCH_TO(HVML_DATA_STATE);
+                return hvml->current_token;
+            }
+            if (character == '<') {
+                SWITCH_TO(HVML_DATA_STATE);
+                return hvml->current_token;
+            }
+            if (character == HVML_END_OF_FILE) {
+                RECONSUME_IN(HVML_DATA_STATE);
+            }
+            BUFFER_CURRENT_CHARACTER();
+            ADVANCE_TO(HVML_TAG_NAME_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_RCDATA_LESS_THAN_SIGN_STATE)
