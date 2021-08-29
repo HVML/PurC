@@ -124,3 +124,17 @@ void pchvml_token_end_attribute (struct pchvml_token* token)
     pcutils_arrlist_add(token->attr_list, token->curr_attr);
     token->curr_attr = NULL;
 }
+
+struct pchvml_token* pchvml_token_new_character (const char* buf)
+{
+    struct pchvml_token* token = pchvml_token_new (HVML_TOKEN_CHARACTER);
+    if (!token) {
+        return NULL;
+    }
+
+    struct pcvcm_node* vcm = pcvcm_node_new_string (buf);
+    pchvml_token_begin_attribute(token);
+    pchvml_token_append_to_attribute_value (token, vcm);
+    pchvml_token_end_attribute(token);
+    return token;
+}

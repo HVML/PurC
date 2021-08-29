@@ -340,12 +340,23 @@ next_state:
                 SWITCH_TO(HVML_CHARACTER_REFERENCE_STATE);
             }
             if (hvml->wc == '<') {
-                SWITCH_TO(HVML_TAG_OPEN_STATE);
+                if (temp_buffer_is_empty(hvml->temp_buffer)) {
+                    SWITCH_TO(HVML_TAG_OPEN_STATE);
+                }
+                else {
+                    RECONSUME_IN_NEXT(HVML_TAG_OPEN_STATE);
+                    struct pchvml_token* token = pchvml_token_new_character (
+                            temp_buffer_get_buffer(hvml->temp_buffer));
+                    temp_buffer_reset(hvml->temp_buffer);
+                    return token;
+                }
             }
             if (hvml->wc == HVML_END_OF_FILE)
                 return pchvml_token_new(HVML_TOKEN_EOF);
+
+            temp_buffer_append (hvml->temp_buffer, hvml->c, hvml->c_len,
+                    hvml->wc);
             ADVANCE_TO(HVML_DATA_STATE);
-            return pchvml_token_new(HVML_TOKEN_CHARACTER);
         END_STATE()
 
         BEGIN_STATE(HVML_RCDATA_STATE)
@@ -358,7 +369,9 @@ next_state:
             }
             if (hvml->wc == HVML_END_OF_FILE)
                 RECONSUME_IN(HVML_DATA_STATE);
-            return pchvml_token_new(HVML_TOKEN_CHARACTER);
+            temp_buffer_append (hvml->temp_buffer, hvml->c, hvml->c_len,
+                    hvml->wc);
+            ADVANCE_TO(HVML_TOKEN_CHARACTER);
         END_STATE()
 
         BEGIN_STATE(HVML_RAWTEXT_STATE)
