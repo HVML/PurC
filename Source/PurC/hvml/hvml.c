@@ -467,36 +467,190 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(HVML_RCDATA_LESS_THAN_SIGN_STATE)
+            if (character == '/') {
+                RESET_BUFFER();
+                ADVANCE_TO(HVML_RCDATA_END_TAG_OPEN_STATE);
+            }
+            BUFFER_CHARACTER("<", 1, '<');
+            RECONSUME_IN(HVML_RCDATA_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_RCDATA_END_TAG_OPEN_STATE)
+            if (is_ascii_alpha(character)) {
+                BUFFER_CURRENT_CHARACTER();
+                ADVANCE_TO(HVML_RCDATA_END_TAG_NAME_STATE);
+            }
+            BUFFER_CHARACTER("<", 1, '<');
+            BUFFER_CHARACTER("/", 1, '/');
+            RECONSUME_IN(HVML_RCDATA_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_RCDATA_END_TAG_NAME_STATE)
+        // TODO
         END_STATE()
 
         BEGIN_STATE(HVML_RAWTEXT_LESS_THAN_SIGN_STATE)
+            if (character == '/') {
+                RESET_BUFFER();
+                ADVANCE_TO(HVML_RAWTEXT_END_TAG_OPEN_STATE);
+            }
+            BUFFER_CHARACTER("<", 1, '<');
+            RECONSUME_IN(HVML_RAWTEXT_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_RAWTEXT_END_TAG_OPEN_STATE)
+            if (is_ascii_alpha(character)) {
+                BUFFER_CURRENT_CHARACTER();
+                ADVANCE_TO(HVML_RAWTEXT_END_TAG_NAME_STATE);
+            }
+            BUFFER_CHARACTER("<", 1, '<');
+            BUFFER_CHARACTER("/", 1, '/');
+            RECONSUME_IN(HVML_RAWTEXT_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_RAWTEXT_END_TAG_NAME_STATE)
+            // TODO
         END_STATE()
 
         BEGIN_STATE(HVML_BEFORE_ATTRIBUTE_NAME_STATE)
+            if (is_whitespace(character)) {
+                ADVANCE_TO(HVML_BEFORE_ATTRIBUTE_NAME_STATE);
+            }
+            if (character == '/') {
+                ADVANCE_TO(HVML_SELF_CLOSING_START_TAG_STATE);
+            }
+            if (character == '>') {
+                SWITCH_TO(HVML_DATA_STATE);
+                return hvml->current_token;
+            }
+            if (character == '<') {
+                SWITCH_TO(HVML_DATA_STATE);
+                return hvml->current_token;
+            }
+            if (character == HVML_END_OF_FILE) {
+                RECONSUME_IN(HVML_DATA_STATE);
+            }
+            pchvml_token_begin_attribute (hvml->current_token);
+            BUFFER_CURRENT_CHARACTER();
+            ADVANCE_TO(HVML_ATTRIBUTE_NAME_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_ATTRIBUTE_NAME_STATE)
+            if (is_whitespace(character)) {
+                ADVANCE_TO(HVML_AFTER_ATTRIBUTE_NAME_STATE);
+            }
+            if (character == '/') {
+                ADVANCE_TO(HVML_SELF_CLOSING_START_TAG_STATE);
+            }
+            if (character == '$' || character == '%' || character == '+'
+                    || character == '-' || character == '^'
+                    || character == '~') {
+                if (hvml->current_token->type == HVML_TOKEN_START_TAG) {
+                    // TODO : check attribute is an ordinary attribute name
+                    RESET_BUFFER();
+                    BUFFER_CURRENT_CHARACTER();
+                    SWITCH_TO(
+                            HVML_SPECIAL_ATTRIBUTE_OPERATOR_IN_ATTRIBUTE_NAME_STATE);
+                }
+            }
+            if (character == '=') {
+                ADVANCE_TO(HVML_BEFORE_ATTRIBUTE_VALUE_STATE);
+            }
+            if (character == '>') {
+                SWITCH_TO(HVML_DATA_STATE);
+                return hvml->current_token;
+            }
+            if (character == '<') {
+                SWITCH_TO(HVML_DATA_STATE);
+                return hvml->current_token;
+            }
+            if (character == HVML_END_OF_FILE) {
+                RECONSUME_IN(HVML_DATA_STATE);
+            }
+            BUFFER_CURRENT_CHARACTER();
+            ADVANCE_TO(HVML_ATTRIBUTE_NAME_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_AFTER_ATTRIBUTE_NAME_STATE)
+            if (is_whitespace(character)) {
+                ADVANCE_TO(HVML_AFTER_ATTRIBUTE_NAME_STATE);
+            }
+            if (character == '/') {
+                ADVANCE_TO(HVML_SELF_CLOSING_START_TAG_STATE);
+            }
+            if (character == '$' || character == '%' || character == '+'
+                    || character == '-' || character == '^'
+                    || character == '~') {
+#if 0
+                if () {
+                    // TODO : check token is an operation tag 
+                    // TODO : check attribute is an ordinary attribute name
+                    RESET_BUFFER();
+                    BUFFER_CURRENT_CHARACTER();
+                    SWITCH_TO(
+                    HVML_SPECIAL_ATTRIBUTE_OPERATOR_AFTER_ATTRIBUTE_NAME_STATE);
+                }
+#endif
+            }
+            if (character == '=') {
+                ADVANCE_TO(HVML_BEFORE_ATTRIBUTE_VALUE_STATE);
+            }
+            if (character == '>') {
+                SWITCH_TO(HVML_DATA_STATE);
+                return hvml->current_token;
+            }
+            if (character == '<') {
+                SWITCH_TO(HVML_DATA_STATE);
+                return hvml->current_token;
+            }
+            if (character == HVML_END_OF_FILE) {
+                RECONSUME_IN(HVML_DATA_STATE);
+            }
+            BUFFER_CURRENT_CHARACTER();
+            ADVANCE_TO(HVML_ATTRIBUTE_NAME_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_BEFORE_ATTRIBUTE_VALUE_STATE)
+            if (is_whitespace(character)) {
+                ADVANCE_TO(HVML_BEFORE_ATTRIBUTE_VALUE_STATE);
+            }
+            if (character == '"') {
+                ADVANCE_TO(HVML_ATTRIBUTE_VALUE_DOUBLE_QUOTED_STATE);
+            }
+            if (character == '&') {
+                RECONSUME_IN(HVML_ATTRIBUTE_VALUE_UNQUOTED_STATE);
+            }
+            if (character == '\'') {
+                ADVANCE_TO(HVML_ATTRIBUTE_VALUE_SINGLE_QUOTED_STATE);
+            }
+            if (character == '>') {
+                SWITCH_TO(HVML_DATA_STATE);
+                return hvml->current_token;
+            }
+            if (character == '$') {
+                RECONSUME_IN(HVML_EJSON_DATA_STATE);
+            }
+            if (character == HVML_END_OF_FILE) {
+                RECONSUME_IN(HVML_DATA_STATE);
+            }
+            BUFFER_CURRENT_CHARACTER();
+            ADVANCE_TO(HVML_ATTRIBUTE_VALUE_UNQUOTED_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_ATTRIBUTE_VALUE_DOUBLE_QUOTED_STATE)
+            if (character == '"') {
+                pchvml_token_end_attribute(hvml->current_token);
+                ADVANCE_TO(HVML_AFTER_ATTRIBUTE_VALUE_QUOTED_STATE);
+            }
+            if (character == '&') {
+                ADVANCE_TO(HVML_CHARACTER_REFERENCE_STATE);
+            }
+            if (character == HVML_END_OF_FILE) {
+                pchvml_token_end_attribute(hvml->current_token);
+                RECONSUME_IN(HVML_DATA_STATE);
+            }
+            BUFFER_CURRENT_CHARACTER();
+            ADVANCE_TO(HVML_ATTRIBUTE_VALUE_UNQUOTED_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_ATTRIBUTE_VALUE_SINGLE_QUOTED_STATE)
