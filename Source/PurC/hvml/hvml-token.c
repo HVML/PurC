@@ -33,3 +33,15 @@
 #include "private/errors.h"
 #include "hvml-token.h"
 
+struct pchvml_token* pchvml_token_new (enum hvml_token_type type)
+{
+    UNUSED_PARAM(type);
+    return NULL;
+}
+
+void pchvml_token_destroy (struct pchvml_token* token)
+{
+    UNUSED_PARAM(token);
+    return;
+}
+

@@ -142,27 +142,9 @@ enum hvml_state {
     HVML_EJSON_AFTER_JSONEE_STRING_STATE
 };
 
-enum hvml_token_type {
-    HVML_TOKEN_DOCTYPE,
-    HVML_TOKEN_START_TAG,
-    HVML_TOKEN_END_TAG,
-    HVML_TOKEN_COMMENT,
-    HVML_TOKEN_CHARACTER,
-    HVML_TOKEN_VCM_TREE,
-    HVML_TOKEN_EOF
-};
-
-enum hvml_attribute_assignment {
-    HVML_ATTRIBUTE_ASSIGNMENT,           // =
-    HVML_ATTRIBUTE_ADDITION_ASSIGNMENT,  // +=
-    HVML_ATTRIBUTE_SUBTRACTION_ASSIGNMENT, // -=
-    HVML_ATTRIBUTE_REMAINDER_ASSIGNMENT,  // %=
-    HVML_ATTRIBUTE_REPLACE_ASSIGNMENT,   // ~=
-    HVML_ATTRIBUTE_HEAD_ASSIGNMENT,   // ^=
-    HVML_ATTRIBUTE_TAIL_ASSIGNMENT,   // $=
-};
-
 struct temp_buffer;
+struct pchvml_token;
+
 struct pchvml_parser {
     enum hvml_state state;
     enum hvml_state return_state;
@@ -172,22 +154,9 @@ struct pchvml_parser {
     char c[8];
     size_t queue_size;
     struct temp_buffer* temp_buffer;
+    struct pchvml_token* current_token;
     bool need_reconsume;
 };
-
-struct pchvml_token_attribute {
-    char* name;
-    struct pcvcm_node* value;
-    enum hvml_attribute_assignment assignment;
-};
-
-struct pchvml_token {
-    enum hvml_token_type type;
-    struct pchvml_token_attribute* attributes;
-
-    struct pchvml_token_attribute* curr_attr;
-};
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -201,15 +170,6 @@ void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
         size_t queue_size);
 
 void pchvml_destroy(struct pchvml_parser* parser);
-
-
-struct pchvml_token* pchvml_token_new (enum hvml_token_type type);
-void pchvml_token_destroy (struct pchvml_token* token);
-
-void pchvml_token_begin_attribute ();
-void pchvml_token_append_to_attribute_name (const char* bytes, size_t sz);
-void pchvml_token_append_to_attribute_value (const char* bytes, size_t sz);
-void pchvml_token_end_attribute ();
 
 struct pchvml_token* pchvml_next_token (struct pchvml_parser* hvml,
                                           purc_rwstream_t rws);

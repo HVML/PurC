@@ -30,6 +30,7 @@
 #include "private/edom.h"
 #include "private/hvml.h"
 #include "tempbuffer.h"
+#include "hvml-token.h"
 #include "config.h"
 
 #if HAVE(GLIB)
@@ -172,18 +173,6 @@ static inline UNUSED_FUNCTION bool is_ascii_alpha_numeric (wchar_t character)
 void pchvml_init_once(void)
 {
     pcinst_register_error_message_segment(&_hvml_err_msgs_seg);
-}
-
-struct pchvml_token* pchvml_token_new (enum hvml_token_type type)
-{
-    UNUSED_PARAM(type);
-    return NULL;
-}
-
-void pchvml_token_destroy (struct pchvml_token* token)
-{
-    UNUSED_PARAM(token);
-    return;
 }
 
 struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
