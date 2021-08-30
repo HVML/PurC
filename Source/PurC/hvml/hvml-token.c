@@ -157,3 +157,23 @@ void pchvml_token_append_character (struct pchvml_token* token,
     }
     pchvml_temp_buffer_append_char(token->temp_buffer, bytes, sz_bytes);
 }
+
+void pchvml_token_append_temp_buffer (struct pchvml_token* token,
+        struct pchvml_temp_buffer* temp_buffer)
+{
+    if (!token->temp_buffer) {
+        token->temp_buffer = pchvml_temp_buffer_new (32);
+    }
+    pchvml_temp_buffer_append_temp_buffer(token->temp_buffer, temp_buffer);
+}
+
+void pchvml_token_done (struct pchvml_token* token)
+{
+    if (!token->temp_buffer) {
+        return;
+    }
+
+    token->data = strdup (pchvml_temp_buffer_get_buffer(token->temp_buffer));
+    pchvml_temp_buffer_destroy (token->temp_buffer);
+    token->temp_buffer = NULL;
+}

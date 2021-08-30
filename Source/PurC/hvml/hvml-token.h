@@ -88,6 +88,11 @@ struct pchvml_token* pchvml_token_new_end_tag ();
 void pchvml_token_append_character (struct pchvml_token* token,
         const char* bytes, size_t sz_bytes);
 
+void pchvml_token_append_temp_buffer (struct pchvml_token* token,
+        struct pchvml_temp_buffer* temp_buffer);
+
+void pchvml_token_done (struct pchvml_token* token);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

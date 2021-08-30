@@ -84,7 +84,11 @@
     do {                                                                   \
         hvml->state = current_state;                                       \
         hvml->need_reconsume = true;                                       \
-        return expression? hvml->current_token : NULL;                     \
+        if (expression) {                                                  \
+            pchvml_token_done(hvml->current_token);                        \
+            return hvml->current_token;                                    \
+        }                                                                  \
+        return NULL;                                                       \
     } while (false)
 
 #define ADVANCE_TO(new_state)                                               \
