@@ -1181,6 +1181,14 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(HVML_CHARACTER_REFERENCE_STATE)
+            if (is_ascii_alpha_numeric(character)) {
+                RECONSUME_IN(HVML_NAMED_CHARACTER_REFERENCE_STATE);
+            }
+            if (character == '#') {
+                APPEND_TEMP_BUFFER(hvml->c, hvml->sz_c);
+                SWITCH_TO(HVML_NUMERIC_CHARACTER_REFERENCE_STATE);
+            }
+            RECONSUME_IN(hvml->return_state);
         END_STATE()
 
         BEGIN_STATE(HVML_NAMED_CHARACTER_REFERENCE_STATE)
