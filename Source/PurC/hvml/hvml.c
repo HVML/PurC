@@ -599,8 +599,6 @@ next_state:
             if (character == HVML_END_OF_FILE) {
                 RECONSUME_IN(HVML_DATA_STATE);
             }
-            BUFFER_CHARACTER(hvml->c, hvml->sz_c);
-            pchvml_token_begin_attribute (hvml->current_token);
             pchvml_token_append_character_to_attribute_name (
                     hvml->current_token, hvml->c, hvml->sz_c);
             ADVANCE_TO(HVML_ATTRIBUTE_NAME_STATE);
@@ -639,6 +637,7 @@ next_state:
             if (character == HVML_END_OF_FILE) {
                 RECONSUME_IN(HVML_DATA_STATE);
             }
+            pchvml_token_begin_attribute (hvml->current_token);
             pchvml_token_append_character_to_attribute_name (
                     hvml->current_token, hvml->c, hvml->sz_c);
             ADVANCE_TO(HVML_ATTRIBUTE_NAME_STATE);
