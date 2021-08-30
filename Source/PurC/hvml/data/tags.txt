@@ -52,7 +52,7 @@ define
     state: data
     categories: verb ordinary
 
-empty
+clear
     state: data
     categories: verb ordinary
 
@@ -104,7 +104,7 @@ rawpart
     state: rawtext
     categories: noun special
 
-remove
+erase
     state: data
     categories: verb ordinary
 
