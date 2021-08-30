@@ -30,14 +30,14 @@ TEST(temp_buffer, append)
 
     char c[8] = {0};
     wchar_t wc = 0;
-    pchvml_temp_buffer_append (buffer, c, 1, wc);
+    pchvml_temp_buffer_append (buffer, c, 1);
     ASSERT_EQ(1, pchvml_temp_buffer_get_size_in_bytes(buffer));
     ASSERT_EQ(1, pchvml_temp_buffer_get_size_in_chars(buffer));
     ASSERT_EQ(wc, pchvml_temp_buffer_get_last_char(buffer));
 
     c[0] = 1;
     wc = 1;
-    pchvml_temp_buffer_append (buffer, c, 1, wc);
+    pchvml_temp_buffer_append (buffer, c, 1);
     ASSERT_EQ(2, pchvml_temp_buffer_get_size_in_bytes(buffer));
     ASSERT_EQ(2, pchvml_temp_buffer_get_size_in_chars(buffer));
     ASSERT_EQ(wc, pchvml_temp_buffer_get_last_char(buffer));
@@ -46,7 +46,7 @@ TEST(temp_buffer, append)
     c[0] = 'a';
     wc = 'a';
     char cmp[8] = {1, 'a', 0};
-    pchvml_temp_buffer_append (buffer, c, 1, wc);
+    pchvml_temp_buffer_append (buffer, c, 1);
     ASSERT_EQ(3, pchvml_temp_buffer_get_size_in_bytes(buffer));
     ASSERT_EQ(3, pchvml_temp_buffer_get_size_in_chars(buffer));
     ASSERT_EQ(wc, pchvml_temp_buffer_get_last_char(buffer));
@@ -64,14 +64,14 @@ TEST(temp_buffer, end_with_and_is_equal)
 
     char c[8] = {0};
     wchar_t wc = 0;
-    pchvml_temp_buffer_append (buffer, c, 1, wc);
+    pchvml_temp_buffer_append (buffer, c, 1);
     ASSERT_EQ(1, pchvml_temp_buffer_get_size_in_bytes(buffer));
     ASSERT_EQ(1, pchvml_temp_buffer_get_size_in_chars(buffer));
     ASSERT_EQ(wc, pchvml_temp_buffer_get_last_char(buffer));
 
     c[0] = 1;
     wc = 1;
-    pchvml_temp_buffer_append (buffer, c, 1, wc);
+    pchvml_temp_buffer_append (buffer, c, 1);
     ASSERT_EQ(2, pchvml_temp_buffer_get_size_in_bytes(buffer));
     ASSERT_EQ(2, pchvml_temp_buffer_get_size_in_chars(buffer));
     ASSERT_EQ(wc, pchvml_temp_buffer_get_last_char(buffer));
@@ -80,7 +80,7 @@ TEST(temp_buffer, end_with_and_is_equal)
     c[0] = 'a';
     wc = 'a';
     char cmp[8] = {1, 'a', 0};
-    pchvml_temp_buffer_append (buffer, c, 1, wc);
+    pchvml_temp_buffer_append (buffer, c, 1);
     ASSERT_EQ(3, pchvml_temp_buffer_get_size_in_bytes(buffer));
     ASSERT_EQ(3, pchvml_temp_buffer_get_size_in_chars(buffer));
     ASSERT_EQ(wc, pchvml_temp_buffer_get_last_char(buffer));
@@ -89,7 +89,7 @@ TEST(temp_buffer, end_with_and_is_equal)
     c[0] = 'b';
     wc = 'b';
     char p[8] = {0, 1, 'a', 'b', 0};
-    pchvml_temp_buffer_append (buffer, c, 1, wc);
+    pchvml_temp_buffer_append (buffer, c, 1);
     ASSERT_EQ(4, pchvml_temp_buffer_get_size_in_bytes(buffer));
     ASSERT_EQ(4, pchvml_temp_buffer_get_size_in_chars(buffer));
     ASSERT_EQ(wc, pchvml_temp_buffer_get_last_char(buffer));

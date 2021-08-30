@@ -97,7 +97,7 @@
 
 #define BUFFER_CHARACTER(c, c_len, wc)                                      \
     do {                                                                    \
-        pchvml_temp_buffer_append (hvml->temp_buffer, c, c_len, wc);        \
+        pchvml_temp_buffer_append (hvml->temp_buffer, c, c_len);            \
     } while (false)
 
 #define BUFFER_CURRENT_CHARACTER()                                          \

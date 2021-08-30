@@ -59,7 +59,7 @@ size_t pchvml_temp_buffer_get_size_in_chars (struct pchvml_temp_buffer* buffer);
  * bytes : utf8
  */
 void pchvml_temp_buffer_append (struct pchvml_temp_buffer* buffer,
-        const char* bytes, size_t nr_bytes, wchar_t wc);
+        const char* bytes, size_t nr_bytes);
 
 const char* pchvml_temp_buffer_get_buffer (
         struct pchvml_temp_buffer* buffer);
