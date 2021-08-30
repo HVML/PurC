@@ -941,42 +941,212 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(HVML_AFTER_DOCTYPE_NAME_STATE)
+        // TODO
         END_STATE()
 
         BEGIN_STATE(HVML_AFTER_DOCTYPE_PUBLIC_KEYWORD_STATE)
+            if (is_whitespace(character)) {
+                ADVANCE_TO(HVML_BEFORE_DOCTYPE_PUBLIC_IDENTIFIER_STATE);
+            }
+            if (character == '"') {
+                // setPublicIdentifierToEmptyString();
+                ADVANCE_TO(HVML_DOCTYPE_PUBLIC_IDENTIFIER_DOUBLE_QUOTED_STATE);
+            }
+            if (character == '\'') {
+                // setPublicIdentifierToEmptyString();
+                ADVANCE_TO(HVML_DOCTYPE_PUBLIC_IDENTIFIER_SINGLE_QUOTED_STATE);
+            }
+            if (character == '>') {
+                RETURN_AND_SWITCH_TO(HVML_DATA_STATE);
+            }
+            if (character == HVML_END_OF_FILE) {
+                RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+            }
+            ADVANCE_TO(HVML_BOGUS_DOCTYPE_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_BEFORE_DOCTYPE_PUBLIC_IDENTIFIER_STATE)
+            if (is_whitespace(character)) {
+                ADVANCE_TO(HVML_BEFORE_DOCTYPE_PUBLIC_IDENTIFIER_STATE);
+            }
+            if (character == '"') {
+                // setPublicIdentifierToEmptyString();
+                ADVANCE_TO(HVML_DOCTYPE_PUBLIC_IDENTIFIER_DOUBLE_QUOTED_STATE);
+            }
+            if (character == '\'') {
+                // setPublicIdentifierToEmptyString();
+                ADVANCE_TO(HVML_DOCTYPE_PUBLIC_IDENTIFIER_SINGLE_QUOTED_STATE);
+            }
+            if (character == '>') {
+                RETURN_AND_SWITCH_TO(HVML_DATA_STATE);
+            }
+            if (character == HVML_END_OF_FILE) {
+                RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+            }
+            ADVANCE_TO(HVML_BOGUS_DOCTYPE_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_DOCTYPE_PUBLIC_IDENTIFIER_DOUBLE_QUOTED_STATE)
+            if (character == '"') {
+                ADVANCE_TO(HVML_AFTER_DOCTYPE_PUBLIC_IDENTIFIER_STATE);
+            }
+            if (character == '>') {
+                RETURN_AND_SWITCH_TO(HVML_DATA_STATE);
+            }
+            if (character == HVML_END_OF_FILE) {
+                RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+            }
+            // appendToPublicIdentifier(character);
+            ADVANCE_TO(HVML_DOCTYPE_PUBLIC_IDENTIFIER_DOUBLE_QUOTED_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_DOCTYPE_PUBLIC_IDENTIFIER_SINGLE_QUOTED_STATE)
+            if (character == '\'') {
+                ADVANCE_TO(HVML_AFTER_DOCTYPE_PUBLIC_IDENTIFIER_STATE);
+            }
+            if (character == '>') {
+                RETURN_AND_SWITCH_TO(HVML_DATA_STATE);
+            }
+            if (character == HVML_END_OF_FILE) {
+                RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+            }
+            // appendToPublicIdentifier(character);
+            ADVANCE_TO(HVML_DOCTYPE_PUBLIC_IDENTIFIER_SINGLE_QUOTED_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_AFTER_DOCTYPE_PUBLIC_IDENTIFIER_STATE)
+            if (is_whitespace(character)) {
+                ADVANCE_TO(HVML_BETWEEN_DOCTYPE_PUBLIC_IDENTIFIER_AND_SYSTEM_INFORMATION_STATE);
+            }
+            if (character == '>') {
+                RETURN_AND_SWITCH_TO(HVML_DATA_STATE);
+            }
+            if (character == '"') {
+                //TODO setSystemIdentifierToEmptyString();
+                ADVANCE_TO(HVML_DOCTYPE_SYSTEM_INFORMATION_DOUBLE_QUOTED_STATE);
+            }
+            if (character == '\'') {
+                //TODO setSystemIdentifierToEmptyString();
+                ADVANCE_TO(HVML_DOCTYPE_SYSTEM_INFORMATION_SINGLE_QUOTED_STATE);
+            }
+            if (character == HVML_END_OF_FILE) {
+                RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+            }
+            ADVANCE_TO(HVML_BOGUS_DOCTYPE_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_BETWEEN_DOCTYPE_PUBLIC_IDENTIFIER_AND_SYSTEM_INFORMATION_STATE)
+            if (is_whitespace(character)) {
+                ADVANCE_TO(HVML_BETWEEN_DOCTYPE_PUBLIC_IDENTIFIER_AND_SYSTEM_INFORMATION_STATE);
+            }
+            if (character == '>') {
+                RETURN_AND_SWITCH_TO(HVML_DATA_STATE);
+            }
+            if (character == '"') {
+                //TODO setSystemIdentifierToEmptyString();
+                ADVANCE_TO(HVML_DOCTYPE_SYSTEM_INFORMATION_DOUBLE_QUOTED_STATE);
+            }
+            if (character == '\'') {
+                //TODO setSystemIdentifierToEmptyString();
+                ADVANCE_TO(HVML_DOCTYPE_SYSTEM_INFORMATION_SINGLE_QUOTED_STATE);
+            }
+            if (character == HVML_END_OF_FILE) {
+                RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+            }
+            ADVANCE_TO(HVML_BOGUS_DOCTYPE_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_AFTER_DOCTYPE_SYSTEM_KEYWORD_STATE)
+            if (is_whitespace(character)) {
+                ADVANCE_TO(HVML_BEFORE_DOCTYPE_SYSTEM_INFORMATION_STATE);
+            }
+            if (character == '"') {
+                // TODO setSystemIdentifierToEmptyString();
+                ADVANCE_TO(HVML_DOCTYPE_SYSTEM_INFORMATION_DOUBLE_QUOTED_STATE);
+            }
+            if (character == '\'') {
+                // TODO setSystemIdentifierToEmptyString();
+                ADVANCE_TO(HVML_DOCTYPE_SYSTEM_INFORMATION_SINGLE_QUOTED_STATE);
+            }
+            if (character == '>') {
+                RETURN_AND_SWITCH_TO(HVML_DATA_STATE);
+            }
+            if (character == HVML_END_OF_FILE) {
+                RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+            }
+            ADVANCE_TO(HVML_BOGUS_DOCTYPE_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_BEFORE_DOCTYPE_SYSTEM_INFORMATION_STATE)
+            if (is_whitespace(character)) {
+                ADVANCE_TO(HVML_BEFORE_DOCTYPE_SYSTEM_INFORMATION_STATE);
+            }
+            if (character == '"') {
+                // TODO setSystemIdentifierToEmptyString();
+                ADVANCE_TO(HVML_DOCTYPE_SYSTEM_INFORMATION_DOUBLE_QUOTED_STATE);
+            }
+            if (character == '\'') {
+                // TODO setSystemIdentifierToEmptyString();
+                ADVANCE_TO(HVML_DOCTYPE_SYSTEM_INFORMATION_SINGLE_QUOTED_STATE);
+            }
+            if (character == '>') {
+                RETURN_AND_SWITCH_TO(HVML_DATA_STATE);
+            }
+            if (character == HVML_END_OF_FILE) {
+                RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+            }
+            ADVANCE_TO(HVML_BOGUS_DOCTYPE_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_DOCTYPE_SYSTEM_INFORMATION_DOUBLE_QUOTED_STATE)
+            if (character == '"') {
+                ADVANCE_TO(HVML_AFTER_DOCTYPE_SYSTEM_INFORMATION_STATE);
+            }
+            if (character == '>') {
+                RETURN_AND_SWITCH_TO(HVML_DATA_STATE);
+            }
+            if (character == HVML_END_OF_FILE) {
+                RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+            }
+            // TODO appendToSystemIdentifier
+            ADVANCE_TO(HVML_DOCTYPE_SYSTEM_INFORMATION_DOUBLE_QUOTED_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_DOCTYPE_SYSTEM_INFORMATION_SINGLE_QUOTED_STATE)
+            if (character == '\'') {
+                ADVANCE_TO(HVML_AFTER_DOCTYPE_SYSTEM_INFORMATION_STATE);
+            }
+            if (character == '>') {
+                RETURN_AND_SWITCH_TO(HVML_DATA_STATE);
+            }
+            if (character == HVML_END_OF_FILE) {
+                RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+            }
+            // TODO appendToSystemIdentifier(character);
+            ADVANCE_TO(HVML_DOCTYPE_SYSTEM_INFORMATION_SINGLE_QUOTED_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_AFTER_DOCTYPE_SYSTEM_INFORMATION_STATE)
+            if (is_whitespace(character)) {
+                ADVANCE_TO(HVML_AFTER_DOCTYPE_SYSTEM_INFORMATION_STATE);
+            }
+            if (character == '>') {
+                RETURN_AND_SWITCH_TO(HVML_DATA_STATE);
+            }
+            if (character == HVML_END_OF_FILE) {
+                RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+            }
+            ADVANCE_TO(HVML_BOGUS_DOCTYPE_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_BOGUS_DOCTYPE_STATE)
+            if (character == '>') {
+                RETURN_AND_SWITCH_TO(HVML_DATA_STATE);
+            }
+            if (character == HVML_END_OF_FILE) {
+                RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+            }
+            ADVANCE_TO(HVML_BOGUS_DOCTYPE_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_CDATA_SECTION_STATE)
