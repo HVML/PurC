@@ -1,4 +1,5 @@
 #include "private/tree.h"
+#include "private/list.h" /* for container_of */
 #include "purc-rwstream.h"
 
 #include <stdio.h>
@@ -343,3 +344,80 @@ TEST(tree, remove)
     pctree_node_destroy(node_1, destroy_tree_node);
     pctree_node_destroy(node_7, destroy_tree_node);
 }
+
+/*               1
+ *             /   \
+ *           2       3
+ *         / | \       \
+ *       4   5   6       7
+ *                     / /\ \
+ *                   8  9  10  11
+ *
+ */
+struct number_node {
+    struct pctree_node      node;
+    int                     val;
+};
+
+static void
+build_output_buf2(struct pctree_node* node,  void* data)
+{
+    char buf[1000] = {0};
+    purc_rwstream_t rws = (purc_rwstream_t) data;
+    struct number_node *p = container_of(node, struct number_node, node);
+    snprintf(buf, 1000, "%d ", p->val);
+    purc_rwstream_write (rws, buf, strlen(buf));
+}
+
+TEST(tree, pod)
+{
+    struct number_node nodes[11];
+    memset(&nodes[0], 0, sizeof(nodes));
+
+    for (size_t i=0; i<sizeof(nodes)/sizeof(nodes[0]); ++i) {
+        nodes[i].val = i+1;
+    }
+
+    ASSERT_TRUE(pctree_node_append_child(&nodes[0].node, &nodes[1].node));
+    ASSERT_EQ(pctree_node_children_number(&nodes[0].node), 1);
+    ASSERT_TRUE(pctree_node_append_child(&nodes[0].node, &nodes[2].node));
+    ASSERT_EQ(pctree_node_children_number(&nodes[0].node), 2);
+
+    ASSERT_TRUE(pctree_node_append_child(&nodes[1].node, &nodes[3].node));
+    ASSERT_TRUE(pctree_node_append_child(&nodes[1].node, &nodes[4].node));
+    ASSERT_TRUE(pctree_node_append_child(&nodes[1].node, &nodes[5].node));
+    ASSERT_EQ(pctree_node_children_number(&nodes[1].node), 3);
+
+    ASSERT_TRUE(pctree_node_append_child(&nodes[2].node, &nodes[6].node));
+    ASSERT_EQ(pctree_node_children_number(&nodes[2].node), 1);
+
+    ASSERT_TRUE(pctree_node_append_child(&nodes[6].node, &nodes[7].node));
+    ASSERT_TRUE(pctree_node_append_child(&nodes[6].node, &nodes[8].node));
+    ASSERT_TRUE(pctree_node_append_child(&nodes[6].node, &nodes[9].node));
+    ASSERT_TRUE(pctree_node_append_child(&nodes[6].node, &nodes[10].node));
+    ASSERT_EQ(pctree_node_children_number(&nodes[6].node), 4);
+
+    char buf[1024] = {0};
+    size_t buf_len = 1023;
+    purc_rwstream_t rws = purc_rwstream_new_from_mem (buf, buf_len);
+    ASSERT_NE(rws, nullptr);
+
+    pctree_node_pre_order_traversal(&nodes[0].node, build_output_buf2, rws);
+    ASSERT_STREQ(buf, "1 2 4 5 6 3 7 8 9 10 11 ");
+
+    purc_rwstream_seek (rws, 0, SEEK_SET);
+    pctree_node_in_order_traversal(&nodes[0].node, build_output_buf2, rws);
+    ASSERT_STREQ(buf, "4 2 5 6 1 8 7 9 10 11 3 ");
+
+    purc_rwstream_seek (rws, 0, SEEK_SET);
+    pctree_node_post_order_traversal(&nodes[0].node, build_output_buf2, rws);
+    ASSERT_STREQ(buf, "4 5 6 2 8 9 10 11 7 3 1 ");
+
+    purc_rwstream_seek (rws, 0, SEEK_SET);
+    pctree_node_level_order_traversal(&nodes[0].node, build_output_buf2, rws);
+    ASSERT_STREQ(buf, "1 2 3 4 5 6 7 8 9 10 11 ");
+
+    int ret = purc_rwstream_destroy (rws);
+    ASSERT_EQ(ret, 0);
+}
+

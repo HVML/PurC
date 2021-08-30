@@ -94,7 +94,7 @@ struct pcvcm_tree;
 typedef struct pcvcm_tree* pcvcm_tree_t;
 
 struct pcvdom_node {
-    struct pctree_node    *node;
+    struct pctree_node     node;
     enum pcvdom_nodetype   type;
     void (*remove_child)(struct pcvdom_node *me, struct pcvdom_node *child);
 };
