@@ -44,19 +44,12 @@ struct pchvml_temp_buffer* pchvml_temp_buffer_new (size_t sz_init);
 
 bool pchvml_temp_buffer_is_empty (struct pchvml_temp_buffer* buffer);
 
-/*
- * Get the memory size of the character buffer
- */
 size_t pchvml_temp_buffer_get_size_in_bytes (struct pchvml_temp_buffer* buffer);
 
-/*
- * Get the character size of the character buffer
- */
 size_t pchvml_temp_buffer_get_size_in_chars (struct pchvml_temp_buffer* buffer);
 
 /*
- * Append character to the character buffer
- * bytes : utf8
+ * Append a UTF-8 character to the temporary buffer
  */
 void pchvml_temp_buffer_append_char (struct pchvml_temp_buffer* buffer,
         const char* bytes, size_t nr_bytes);
@@ -64,8 +57,7 @@ void pchvml_temp_buffer_append_char (struct pchvml_temp_buffer* buffer,
 void pchvml_temp_buffer_append_temp_buffer (struct pchvml_temp_buffer* buffer,
         struct pchvml_temp_buffer* append);
 
-const char* pchvml_temp_buffer_get_buffer (
-        struct pchvml_temp_buffer* buffer);
+const char* pchvml_temp_buffer_get_buffer (struct pchvml_temp_buffer* buffer);
 
 bool pchvml_temp_buffer_end_with (struct pchvml_temp_buffer* buffer,
         const char* bytes, size_t nr_bytes);
