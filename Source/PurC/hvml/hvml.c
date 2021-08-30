@@ -905,8 +905,7 @@ next_state:
             }
             if (character == HVML_END_OF_FILE) {
                 hvml->current_token = pchvml_token_new(HVML_TOKEN_DOCTYPE);
-                RECONSUME_IN_NEXT(HVML_DATA_STATE);
-                return hvml->current_token;
+                RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
             }
             RECONSUME_IN(HVML_BEFORE_DOCTYPE_NAME_STATE);
         END_STATE()
@@ -917,13 +916,11 @@ next_state:
             }
             if (character == '>') {
                 hvml->current_token = pchvml_token_new(HVML_TOKEN_DOCTYPE);
-                RECONSUME_IN_NEXT(HVML_DATA_STATE);
-                return hvml->current_token;
+                RETURN_AND_SWITCH_TO(HVML_DATA_STATE);
             }
             if (character == HVML_END_OF_FILE) {
                 hvml->current_token = pchvml_token_new(HVML_TOKEN_DOCTYPE);
-                RECONSUME_IN_NEXT(HVML_DATA_STATE);
-                return hvml->current_token;
+                RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
             }
             hvml->current_token = pchvml_token_new(HVML_TOKEN_DOCTYPE);
             ADVANCE_TO(HVML_DOCTYPE_NAME_STATE);
@@ -934,12 +931,10 @@ next_state:
                 ADVANCE_TO(HVML_AFTER_DOCTYPE_NAME_STATE);
             }
             if (character == '>') {
-                RECONSUME_IN_NEXT(HVML_DATA_STATE);
-                return hvml->current_token;
+                RETURN_AND_SWITCH_TO(HVML_DATA_STATE);
             }
             if (character == HVML_END_OF_FILE) {
-                RECONSUME_IN_NEXT(HVML_DATA_STATE);
-                return hvml->current_token;
+                RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
             }
             BUFFER_CHARACTER(hvml->c, hvml->sz_c);
             ADVANCE_TO(HVML_DOCTYPE_NAME_STATE);
