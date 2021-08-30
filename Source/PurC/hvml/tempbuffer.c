@@ -86,7 +86,7 @@ static wchar_t utf8_to_wchar_t (const unsigned char* utf8_char,
     return wc;
 }
 
-void pchvml_temp_buffer_append (struct pchvml_temp_buffer* buffer,
+static void pchvml_temp_buffer_append (struct pchvml_temp_buffer* buffer,
         const char* bytes, size_t nr_bytes)
 {
     uint8_t* newpos = buffer->here + nr_bytes;
@@ -107,8 +107,27 @@ void pchvml_temp_buffer_append (struct pchvml_temp_buffer* buffer,
 
     memcpy(buffer->here, bytes, nr_bytes);
     buffer->here += nr_bytes;
+    *buffer->here = 0;
+}
+
+void pchvml_temp_buffer_append_char (struct pchvml_temp_buffer* buffer,
+        const char* bytes, size_t nr_bytes)
+{
+    pchvml_temp_buffer_append (buffer, bytes, nr_bytes);
     buffer->last_wc = utf8_to_wchar_t((const unsigned char*)bytes, nr_bytes);
     buffer->sz_char++;
+}
+
+void pchvml_temp_buffer_append_temp_buffer (struct pchvml_temp_buffer* buffer,
+        struct pchvml_temp_buffer* append)
+{
+    const char* bytes = pchvml_temp_buffer_get_buffer(append);
+    size_t nr_bytes = pchvml_temp_buffer_get_size_in_bytes(append);
+    if (bytes && nr_bytes) {
+        pchvml_temp_buffer_append (buffer, bytes, nr_bytes);
+        buffer->last_wc =  append->last_wc;
+        buffer->sz_char += append->sz_char;
+    }
 }
 
 const char* pchvml_temp_buffer_get_buffer (
