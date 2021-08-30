@@ -39,12 +39,21 @@
 
 PCA_EXTERN_C_BEGIN
 
-enum pcvdom_nodeype {
+enum pcvdom_nodetype {
     PCVDOM_NODE_DOCUMENT,
     PCVDOM_NODE_ELEMENT,
     PCVDOM_NODE_CONTENT,
     PCVDOM_NODE_COMMENT,
     PCVDOM_VDOM_EXP,
+};
+
+enum pcvdom_attr_op {
+    PCVDOM_ATTR_OP_ADD,                       /* += */
+    PCVDOM_ATTR_OP_DEL,                       /* -= */
+    PCVDOM_ATTR_OP_PATTERN_MATCH_REPLACE,     /* %= */
+    PCVDOM_ATTR_OP_REGEX_MATCH_REPLACE,       /* ~= */
+    PCVDOM_ATTR_OP_PREPEND,                   /* ^= */
+    PCVDOM_ATTR_OP_APPEND,                    /* $= */
 };
 
 #define PCVDOM_NODE_IS_DOCUMENT(_n) \
@@ -85,7 +94,7 @@ typedef struct pcvcm_tree* pcvcm_tree_t;
 
 struct pcvdom_node {
     struct pctree_node    *node;
-    enum pcvdom_nodeype    type;
+    enum pcvdom_nodetype   type;
     void (*remove_child)(struct pcvdom_node *me, struct pcvdom_node *child);
 };
 
@@ -104,7 +113,7 @@ struct pcvdom_document {
     struct pcvdom_element  *root;
 
     // document-variables
-    // such as `$_REQUEST`、`$TIMERS`、`$T` and etc.
+    // such as `$REQUEST`、`$TIMERS`、`$T` and etc.
     pcutils_map            *variables;
 };
 
@@ -116,6 +125,9 @@ struct pcvdom_attr {
     //   for others, managed by atom-ed string
     char                     *key;
 
+    // operator
+    enum pcvdom_attr_op       op;
+
     // text/jsonnee/no-value
     struct pcvcm_tree        *val;
 
@@ -125,7 +137,8 @@ struct pcvdom_element {
     struct pcvdom_node      node;
 
     // for those non-pre-defined tags(UNDEF)
-    // tag_name is managed by atom-ed string
+    // tag_name is valid only in above-mentioned case,
+    // and shall be free'd afterwards
     pcvdom_tag_id           tag_id;
     char                   *tag_name;
 
@@ -139,7 +152,7 @@ struct pcvdom_element {
     struct pcvdom_node     *last_child;
 
     // FIXME: scoped-variables
-    //        for those `defined` in `init`, `set`
+    //        for those `defined` in `init`
     pcutils_map            *variables;
 };
 
