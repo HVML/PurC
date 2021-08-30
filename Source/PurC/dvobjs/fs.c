@@ -556,48 +556,48 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
                         else
                             au[i * 3 + 2] = '-';
                     }
-                    sprintf (info + strlen (info), "%s ", au);
+                    sprintf (info + strlen (info), "%s\t", au);
                     break;
 
                 case DISPLAY_NLINK:
-                    sprintf (info + strlen (info), "%ld ", (long)file_stat.st_nlink);
+                    sprintf (info + strlen (info), "%ld\t", (long)file_stat.st_nlink);
                     break;
                 
                 case DISPLAY_UID:
-                    sprintf (info + strlen (info), "%ld ", (long)file_stat.st_uid);
+                    sprintf (info + strlen (info), "%ld\t", (long)file_stat.st_uid);
                     break;
 
                 case DISPLAY_GID:
-                    sprintf (info + strlen (info), "%ld ", (long)file_stat.st_gid);
+                    sprintf (info + strlen (info), "%ld\t", (long)file_stat.st_gid);
                     break;
 
                 case DISPLAY_SIZE:
-                    sprintf (info + strlen (info), "%lld ", (long long)file_stat.st_size);
+                    sprintf (info + strlen (info), "%lld\t", (long long)file_stat.st_size);
                     break;
 
                 case DISPLAY_BLKSIZE:
-                    sprintf (info + strlen (info), "%ld ", file_stat.st_blksize);
+                    sprintf (info + strlen (info), "%ld\t", file_stat.st_blksize);
                     break;
 
                 case DISPLAY_ATIME:
-                    sprintf (info + strlen (info), "%s ", ctime(&file_stat.st_atime));
+                    sprintf (info + strlen (info), "%s\t", ctime(&file_stat.st_atime));
                     break;
 
                 case DISPLAY_CTIME:
-                    sprintf (info + strlen (info), "%s ", ctime(&file_stat.st_ctime));
+                    sprintf (info + strlen (info), "%s\t", ctime(&file_stat.st_ctime));
                     break;
 
                 case DISPLAY_MTIME:
-                    sprintf (info + strlen (info), "%s ", ctime(&file_stat.st_mtime));
+                    sprintf (info + strlen (info), "%s\t", ctime(&file_stat.st_mtime));
                     break;
 
                 case DISPLAY_NAME:
                     strcat (info, ptr->d_name);
-                    strcat (info, " ");
+                    strcat (info, "\t");
                     break;
             }
         }
-        info[strlen (info) - 2] = 0x00;
+        info[strlen (info) - 1] = 0x00;
 
         purc_variant_array_append (ret_var, 
                     purc_variant_make_string (info, false));

@@ -30,6 +30,8 @@
 #include "private/html.h"
 
 #include "purc-variant.h"
+#include "logicallex.tab.h"
+#include "logicallex.lex.h"
 #include "tools.h"
 
 #include <stdbool.h>
@@ -56,13 +58,21 @@ static bool reg_cmp (const char *buf1, const char *buf2)
 
     err = regexec(&reg, buf2, number, pmatch, 0);
 
-    if (err == REG_NOMATCH) 
+    if (err == REG_NOMATCH) { 
+        regfree (&reg);
         return false;
-    else if (err) 
+    }
+    else if (err) {
+        regfree (&reg);
         return false;
+    }
 
-    if (pmatch[0].rm_so == -1)
+    if (pmatch[0].rm_so == -1) {
+        regfree (&reg);
         return false;
+    }
+
+    regfree (&reg);
 
     return true;
 }
@@ -892,10 +902,50 @@ static purc_variant_t
 logical_eval (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
 
-    return NULL;
+    purc_variant_t ret_var = NULL;
+
+    if ((argv == NULL) || (nr_args != 2)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[1] != NULL) && (!purc_variant_is_object (argv[1]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    size_t length = purc_variant_string_length (argv[0]);
+    char * parse_string = malloc (length + 1);
+    sprintf (parse_string, "%s\n", purc_variant_get_string_const (argv[0]));
+
+    struct pcdvobjs_logical_param myparam = {0, argv[1]}; /* my instance data */
+    yyscan_t lexer;                 /* flex instance data */
+
+    if(logicallex_init_extra(&myparam, &lexer)) {
+        free (parse_string);
+        return PURC_VARIANT_INVALID;
+    }
+
+    YY_BUFFER_STATE buffer = logical_scan_string (parse_string, lexer);
+    logical_switch_to_buffer (buffer, lexer);
+    logicalparse(&myparam, lexer);
+    logical_delete_buffer(buffer, lexer);
+    logicallex_destroy (lexer);
+
+    free (parse_string);
+
+    if (myparam.result)
+        ret_var = purc_variant_make_boolean (true);
+    else
+        ret_var = purc_variant_make_boolean (false);
+    
+    return ret_var;
 }
 
 // only for test now.

@@ -27,10 +27,21 @@
 
 #include "config.h"
 #include "private/debug.h"
+#include "purc-variant.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
+
+struct pcdvobjs_math_param {
+    double result;
+    purc_variant_t v;
+};
+
+struct pcdvobjs_logical_param {
+    int result;
+    purc_variant_t v;
+};
 
 bool wildcard_cmp (const char *str1, const char *pattern);
 

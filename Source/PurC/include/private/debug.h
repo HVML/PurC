@@ -30,6 +30,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {

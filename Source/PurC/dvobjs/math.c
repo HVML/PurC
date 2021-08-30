@@ -30,6 +30,8 @@
 #include "private/html.h"
 
 #include "purc-variant.h"
+#include "mathlex.tab.h"
+#include "mathlex.lex.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -78,11 +80,43 @@ static purc_variant_t
 math_eval (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
 
+    if ((argv == NULL) || (nr_args < 1)) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
 
-    return NULL;
+    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[1] != NULL) && (!purc_variant_is_object (argv[1]))) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    size_t length = purc_variant_string_length (argv[0]);
+    char * parse_string = malloc (length + 1);
+    sprintf (parse_string, "%s\n", purc_variant_get_string_const (argv[0]));
+
+    struct pcdvobjs_math_param myparam = {0, argv[1]}; /* my instance data */
+    yyscan_t lexer;                 /* flex instance data */
+
+    if (mathlex_init_extra (&myparam, &lexer)) {
+        free (parse_string);
+        return PURC_VARIANT_INVALID;
+    }
+
+    YY_BUFFER_STATE buffer = math_scan_string (parse_string, lexer);
+    math_switch_to_buffer (buffer, lexer);
+    mathparse(&myparam, lexer);
+    math_delete_buffer(buffer, lexer);
+    mathlex_destroy (lexer);
+
+    free (parse_string);
+
+    return purc_variant_make_number (myparam.result);
 }
 
 static purc_variant_t
