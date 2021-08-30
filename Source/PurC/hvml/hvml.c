@@ -980,12 +980,34 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(HVML_CDATA_SECTION_STATE)
+            if (character == ']') {
+                ADVANCE_TO(HVML_CDATA_SECTION_BRACKET_STATE);
+            }
+            if (character == HVML_END_OF_FILE) {
+                RECONSUME_IN(HVML_DATA_STATE);
+            }
+            BUFFER_CHARACTER(hvml->c, hvml->sz_c);
+            ADVANCE_TO(HVML_CDATA_SECTION_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_CDATA_SECTION_BRACKET_STATE)
+            if (character == ']') {
+                ADVANCE_TO(HVML_CDATA_SECTION_END_STATE);
+            }
+            BUFFER_CHARACTER("]", 1);
+            RECONSUME_IN(HVML_CDATA_SECTION_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_CDATA_SECTION_END_STATE)
+            if (character == ']') {
+                BUFFER_CHARACTER("]", 1);
+                ADVANCE_TO(HVML_CDATA_SECTION_END_STATE);
+            }
+            if (character == '>') {
+                ADVANCE_TO(HVML_DATA_STATE);
+            }
+            BUFFER_CHARACTER("]", 1);
+            RECONSUME_IN(HVML_CDATA_SECTION_STATE);
         END_STATE()
 
         BEGIN_STATE(HVML_CHARACTER_REFERENCE_STATE)
