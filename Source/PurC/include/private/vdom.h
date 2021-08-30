@@ -48,6 +48,7 @@ enum pcvdom_nodetype {
 };
 
 enum pcvdom_attr_op {
+    PCVDOM_ATTR_OP_EQ,                        /*  = */
     PCVDOM_ATTR_OP_ADD,                       /* += */
     PCVDOM_ATTR_OP_DEL,                       /* -= */
     PCVDOM_ATTR_OP_PATTERN_MATCH_REPLACE,     /* %= */
@@ -130,7 +131,6 @@ struct pcvdom_attr {
 
     // text/jsonnee/no-value
     struct pcvcm_tree        *val;
-
 };
 
 struct pcvdom_element {
@@ -174,19 +174,29 @@ void
 pcvdom_document_destroy(struct pcvdom_document *doc);
 
 struct pcvdom_document*
-pcvdom_document_create(void);
+pcvdom_document_create(const char *doctype);
 
 struct pcvdom_element*
-pcvdom_element_create(void);
+pcvdom_element_create(pcvdom_tag_id tag);
+
+struct pcvdom_element*
+pcvdom_element_create_c(const char *tag_name);
 
 struct pcvdom_content*
-pcvdom_content_create(void);
+pcvdom_content_create(struct pcvcm_tree *content);
 
 struct pcvdom_comment*
-pcvdom_comment_create(void);
+pcvdom_comment_create_c(const char *text);
 
+// key = vcm
+// or
+// key,    in case when vcm == NULL
 struct pcvdom_attr*
-pcvdom_attr_create(void);
+pcvdom_attr_create_simple(const char *key, struct pcvcm_tree *vcm);
+
+// for modification operators, such as +=|-=|%=|~=|^=|$=
+struct pcvdom_attr*
+pcvdom_attr_create(const char *key, enum pcvdom_attr_op, const char *statement);
 
 // doc/dom construction api
 int
@@ -198,32 +208,36 @@ pcvdom_document_set_root(struct pcvdom_document *doc,
         struct pcvdom_element *root);
 
 int
-pcvdom_document_set_prefix(struct pcvdom_document *doc,
-        const char *prefix);
-int
-pcvdom_document_append_builtin(struct pcvdom_document *doc,
-        const char *builtin);
+pcvdom_document_append_comment(struct pcvdom_element *elem,
+        struct pcvdom_comment *child);
 
 int
-pcvdom_element_set_tag(struct pcvdom_element *elem,
-        const char *name);
-int
-pcvdom_element_append_attr_vcm(struct pcvdom_element *elem,
-        const char *key, struct pcvcm_tree *val);
+pcvdom_element_append_attr(struct pcvdom_element *elem,
+        struct pcvdom_attr *attr);
+
 int
 pcvdom_element_append_element(struct pcvdom_element *elem,
         struct pcvdom_element *child);
+
 int
 pcvdom_element_append_content(struct pcvdom_element *elem,
         struct pcvdom_content *child);
 
 int
-pcvdom_content_set_vcm(struct pcvdom_content *content,
-        struct pcvcm_tree *vcm);
+pcvdom_element_append_comment(struct pcvdom_element *elem,
+        struct pcvdom_comment *child);
+
+// key = vcm
+// or
+// key,    in case when vcm == NULL
+int
+pcvdom_element_set_attr_simple(struct pcvdom_element *elem,
+        const char *key, struct pcvcm_tree *vcm);
 
 int
-pcvdom_comment_set_text(struct pcvdom_content *content,
-        const char *text);
+// for modification operators, such as +=|-=|%=|~=|^=|$=
+pcvdom_element_set_attr(struct pcvdom_element *elem,
+        const char *key, enum pcvdom_attr_op, const char *statement);
 
 // accessor api
 struct pcvdom_node*
@@ -238,8 +252,16 @@ pcvdom_content_parent(struct pcvdom_content *content);
 struct pcvdom_element*
 pcvdom_comment_parent(struct pcvdom_comment *comment);
 
+const char*
+pcvdom_element_get_tagname(struct pcvdom_element *elem);
+
+struct pcvdom_attr*
+pcvdom_element_get_attr_c(struct pcvdom_element *elem,
+        const char *key);
+
 // operation api
 void pcvdom_node_remove(struct pcvdom_node *node);
+
 void pcvdom_node_destroy(struct pcvdom_node *node);
 
 // traverse all vdom_node
