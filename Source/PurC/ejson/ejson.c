@@ -349,13 +349,10 @@ struct pcvcm_node* pcejson_token_to_pcvcm_node (
         struct pcutils_stack* node_stack, struct pcejson_token* token)
 {
     struct pcvcm_node* node = NULL;
-    union pcvcm_node_data data;
-    data.sz_ptr[0] = token->sz_ptr[0];
-    data.sz_ptr[1] = token->sz_ptr[1];
     switch (token->type)
     {
         case EJSON_TOKEN_START_OBJECT:
-            node = pcvcm_node_new (PCVCM_NODE_TYPE_OBJECT, data);
+            node = pcvcm_node_new_object (0, NULL);
             break;
 
         case EJSON_TOKEN_END_OBJECT:
@@ -363,7 +360,7 @@ struct pcvcm_node* pcejson_token_to_pcvcm_node (
             break;
 
         case EJSON_TOKEN_START_ARRAY:
-            node = pcvcm_node_new (PCVCM_NODE_TYPE_ARRAY, data);
+            node = pcvcm_node_new_array (0, NULL);
             break;
 
         case EJSON_TOKEN_END_ARRAY:
@@ -371,52 +368,48 @@ struct pcvcm_node* pcejson_token_to_pcvcm_node (
             break;
 
         case EJSON_TOKEN_KEY:
-            node = pcvcm_node_new (PCVCM_NODE_TYPE_KEY, data);
-            break;
-
         case EJSON_TOKEN_STRING:
-            node = pcvcm_node_new (PCVCM_NODE_TYPE_STRING, data);
+            node = pcvcm_node_new_string ((const char*) token->sz_ptr[1]);
             break;
 
         case EJSON_TOKEN_NULL:
-            node = pcvcm_node_new (PCVCM_NODE_TYPE_NULL, data);
+            node = pcvcm_node_new_null ();
             break;
 
         case EJSON_TOKEN_BOOLEAN:
-            node = pcvcm_node_new (PCVCM_NODE_TYPE_BOOLEAN, data);
+            node = pcvcm_node_new_boolean (token->b);
             break;
 
         case EJSON_TOKEN_NAN:
         case EJSON_TOKEN_INFINITY:
         case EJSON_TOKEN_NUMBER:
-            node = pcvcm_node_new (PCVCM_NODE_TYPE_NUMBER, data);
+            node = pcvcm_node_new_number (token->d);
             break;
 
         case EJSON_TOKEN_LONG_INT:
-            node = pcvcm_node_new (PCVCM_NODE_TYPE_LONG_INT, data);
+            node = pcvcm_node_new_longint (token->i64);
             break;
 
         case EJSON_TOKEN_ULONG_INT:
-            node = pcvcm_node_new (PCVCM_NODE_TYPE_ULONG_INT, data);
+            node = pcvcm_node_new_ulongint (token->u64);
             break;
 
         case EJSON_TOKEN_LONG_DOUBLE:
-            node = pcvcm_node_new (PCVCM_NODE_TYPE_LONG_DOUBLE, data);
+            node = pcvcm_node_new_longdouble (token->ld);
             break;
 
         case EJSON_TOKEN_TEXT:
-            node = pcvcm_node_new (PCVCM_NODE_TYPE_STRING, data);
+            node = pcvcm_node_new_string ((const char*) token->sz_ptr[1]);
             break;
 
         case EJSON_TOKEN_BYTE_SQUENCE:
-            node = pcvcm_node_new (PCVCM_NODE_TYPE_BYTE_SEQUENCE, data);
+            node = pcvcm_node_new_byte_sequence ((const void*)token->sz_ptr[1],
+                    token->sz_ptr[0]);
             break;
 
         default:
             break;
     }
-    token->sz_ptr[0] = 0;
-    token->sz_ptr[1] = 0;
     pcejson_token_destroy (token);
     return node;
 }
@@ -446,8 +439,8 @@ int pcejson_parse (struct pcvcm_node** vcm_tree, struct pcejson** parser,
             struct pcvcm_node* parent =
                 (struct pcvcm_node*) pcutils_stack_top(node_stack);
             if (parent && parent != node) {
-                pctree_node_append_child (pcvcm_node_to_pctree_node(parent),
-                        pcvcm_node_to_pctree_node(node));
+                pctree_node_append_child ((struct pctree_node*)parent,
+                        (struct pctree_node*)node);
             }
             if (node->type == PCVCM_NODE_TYPE_OBJECT ||
                     node->type == PCVCM_NODE_TYPE_ARRAY) {
@@ -467,8 +460,7 @@ int pcejson_parse (struct pcvcm_node** vcm_tree, struct pcejson** parser,
     }
 
     if (!has_param_vcm && *vcm_tree) {
-        pctree_node_destroy (pcvcm_node_to_pctree_node(*vcm_tree),
-                pcvcm_node_pctree_node_destory_callback);
+        pcvcm_node_destroy (*vcm_tree);
         *vcm_tree = NULL;
     }
 

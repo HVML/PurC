@@ -1,6 +1,7 @@
 #include "purc.h"
 
 #include "private/ejson.h"
+#include "private/utils.h"
 #include "purc-rwstream.h"
 
 #include <stdio.h>
@@ -106,6 +107,8 @@ TEST_P(ejson_parser_vcm_eval, parse_and_serialize)
     {
         ASSERT_EQ (root, nullptr) << "Test Case : "<< get_name();
         purc_rwstream_destroy(rws);
+        pcvcm_node_destroy (root);
+        pcejson_destroy(parser);
         return;
     }
     else {
@@ -135,8 +138,7 @@ TEST_P(ejson_parser_vcm_eval, parse_and_serialize)
     purc_rwstream_destroy(my_rws);
     purc_rwstream_destroy(rws);
 
-    pctree_node_destroy (pcvcm_node_to_pctree_node(root),
-            pcvcm_node_pctree_node_destory_callback);
+    pcvcm_node_destroy (root);
 
     pcejson_destroy(parser);
 }
