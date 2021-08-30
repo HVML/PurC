@@ -97,7 +97,7 @@
 
 #define BUFFER_CHARACTER(c, c_len, wc)                                      \
     do {                                                                    \
-        temp_buffer_append (hvml->temp_buffer, c, c_len, wc);               \
+        pchvml_temp_buffer_append (hvml->temp_buffer, c, c_len, wc);        \
     } while (false)
 
 #define BUFFER_CURRENT_CHARACTER()                                          \
@@ -105,7 +105,7 @@
 
 #define RESET_BUFFER()                                                      \
     do {                                                                    \
-        temp_buffer_reset (hvml->temp_buffer);                              \
+        pchvml_temp_buffer_reset (hvml->temp_buffer);                              \
     } while (false)
 
 static const char* hvml_err_msgs[] = {
@@ -195,7 +195,7 @@ struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
     parser->state = HVML_DATA_STATE;
     parser->flags = flags;
     parser->queue_size = queue_size;
-    parser->temp_buffer = temp_buffer_new (0);
+    parser->temp_buffer = pchvml_temp_buffer_new (0);
     return parser;
 }
 
@@ -205,13 +205,13 @@ void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
     parser->state = HVML_DATA_STATE;
     parser->flags = flags;
     parser->queue_size = queue_size;
-    temp_buffer_reset (parser->temp_buffer);
+    pchvml_temp_buffer_reset (parser->temp_buffer);
 }
 
 void pchvml_destroy(struct pchvml_parser* parser)
 {
     if (parser) {
-        temp_buffer_destroy (parser->temp_buffer);
+        pchvml_temp_buffer_destroy (parser->temp_buffer);
         HVML_FREE(parser);
     }
 }
@@ -355,13 +355,13 @@ next_state:
                 ADVANCE_TO(HVML_CHARACTER_REFERENCE_STATE);
             }
             if (character == '<') {
-                if (temp_buffer_is_empty(hvml->temp_buffer)) {
+                if (pchvml_temp_buffer_is_empty(hvml->temp_buffer)) {
                     ADVANCE_TO(HVML_TAG_OPEN_STATE);
                 }
                 else {
                     RECONSUME_IN_NEXT(HVML_TAG_OPEN_STATE);
                     struct pchvml_token* token = pchvml_token_new_character (
-                            temp_buffer_get_buffer(hvml->temp_buffer));
+                            pchvml_temp_buffer_get_buffer(hvml->temp_buffer));
                     RESET_BUFFER();
                     return token;
                 }

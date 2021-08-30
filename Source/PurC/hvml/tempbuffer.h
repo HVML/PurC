@@ -28,7 +28,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-struct temp_buffer {
+struct pchvml_temp_buffer {
     uint8_t* base;
     uint8_t* here;
     uint8_t* stop;
@@ -40,41 +40,41 @@ struct temp_buffer {
 extern "C" {
 #endif  /* __cplusplus */
 
-struct temp_buffer* temp_buffer_new (size_t sz_init);
+struct pchvml_temp_buffer* pchvml_temp_buffer_new (size_t sz_init);
 
-bool temp_buffer_is_empty (struct temp_buffer* buffer);
+bool pchvml_temp_buffer_is_empty (struct pchvml_temp_buffer* buffer);
 
 /*
  * Get the memory size of the character buffer
  */
-size_t temp_buffer_get_memory_size (struct temp_buffer* buffer);
+size_t pchvml_temp_buffer_get_size_in_bytes (struct pchvml_temp_buffer* buffer);
 
 /*
  * Get the character size of the character buffer
  */
-size_t temp_buffer_get_char_size (struct temp_buffer* buffer);
+size_t pchvml_temp_buffer_get_size_in_chars (struct pchvml_temp_buffer* buffer);
 
 /*
  * Append character to the character buffer
  * bytes : utf8
  */
-void temp_buffer_append (struct temp_buffer* buffer,
+void pchvml_temp_buffer_append (struct pchvml_temp_buffer* buffer,
         const char* bytes, size_t nr_bytes, wchar_t wc);
 
-const char* temp_buffer_get_buffer (
-        struct temp_buffer* buffer);
+const char* pchvml_temp_buffer_get_buffer (
+        struct pchvml_temp_buffer* buffer);
 
-bool temp_buffer_end_with (struct temp_buffer* buffer,
+bool pchvml_temp_buffer_end_with (struct pchvml_temp_buffer* buffer,
         const char* bytes, size_t nr_bytes);
 
-bool temp_buffer_is_equal (struct temp_buffer* buffer,
+bool pchvml_temp_buffer_is_equal (struct pchvml_temp_buffer* buffer,
         const char* bytes, size_t nr_bytes);
 
-wchar_t temp_buffer_get_last_wchar_t (struct temp_buffer* buffer);
+wchar_t pchvml_temp_buffer_get_last_char (struct pchvml_temp_buffer* buffer);
 
-void temp_buffer_reset (struct temp_buffer* buffer);
+void pchvml_temp_buffer_reset (struct pchvml_temp_buffer* buffer);
 
-void temp_buffer_destroy (struct temp_buffer* buffer);
+void pchvml_temp_buffer_destroy (struct pchvml_temp_buffer* buffer);
 
 #ifdef __cplusplus
 }

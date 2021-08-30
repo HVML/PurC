@@ -41,10 +41,10 @@ static size_t get_buffer_size (size_t sz)
     return sz_buf < MIN_BUFFER_CAPACITY ? MIN_BUFFER_CAPACITY : sz_buf;
 }
 
-struct temp_buffer* temp_buffer_new (size_t sz_init)
+struct pchvml_temp_buffer* pchvml_temp_buffer_new (size_t sz_init)
 {
-    struct temp_buffer* buffer = (struct temp_buffer*) calloc(
-            1, sizeof(struct temp_buffer));
+    struct pchvml_temp_buffer* buffer = (struct pchvml_temp_buffer*) calloc(
+            1, sizeof(struct pchvml_temp_buffer));
     sz_init = get_buffer_size(sz_init);
     buffer->base = (uint8_t*) calloc (1, sz_init + 1);
     buffer->here = buffer->base;
@@ -53,22 +53,22 @@ struct temp_buffer* temp_buffer_new (size_t sz_init)
     return buffer;
 }
 
-bool temp_buffer_is_empty (struct temp_buffer* buffer)
+bool pchvml_temp_buffer_is_empty (struct pchvml_temp_buffer* buffer)
 {
     return buffer->here == buffer->base;
 }
 
-size_t temp_buffer_get_memory_size (struct temp_buffer* buffer)
+size_t pchvml_temp_buffer_get_size_in_bytes (struct pchvml_temp_buffer* buffer)
 {
     return buffer->here - buffer->base;
 }
 
-size_t temp_buffer_get_char_size (struct temp_buffer* buffer)
+size_t pchvml_temp_buffer_get_size_in_chars (struct pchvml_temp_buffer* buffer)
 {
     return buffer->sz_char;
 }
 
-void temp_buffer_append (struct temp_buffer* buffer,
+void pchvml_temp_buffer_append (struct pchvml_temp_buffer* buffer,
         const char* bytes, size_t nr_bytes, wchar_t wc)
 {
     uint8_t* newpos = buffer->here + nr_bytes;
@@ -93,40 +93,40 @@ void temp_buffer_append (struct temp_buffer* buffer,
     buffer->sz_char++;
 }
 
-const char* temp_buffer_get_buffer (
-        struct temp_buffer* buffer)
+const char* pchvml_temp_buffer_get_buffer (
+        struct pchvml_temp_buffer* buffer)
 {
     return (const char*)buffer->base;
 }
 
-bool temp_buffer_end_with (struct temp_buffer* buffer,
+bool pchvml_temp_buffer_end_with (struct pchvml_temp_buffer* buffer,
         const char* bytes, size_t nr_bytes)
 {
-    size_t sz = temp_buffer_get_memory_size(buffer);
+    size_t sz = pchvml_temp_buffer_get_size_in_bytes(buffer);
     return (sz >= nr_bytes 
             && memcmp(buffer->here - nr_bytes, bytes, nr_bytes) == 0);
 }
 
-bool temp_buffer_is_equal (struct temp_buffer* buffer,
+bool pchvml_temp_buffer_is_equal (struct pchvml_temp_buffer* buffer,
         const char* bytes, size_t nr_bytes)
 {
-    size_t sz = temp_buffer_get_memory_size(buffer);
+    size_t sz = pchvml_temp_buffer_get_size_in_bytes(buffer);
     return (sz == nr_bytes && memcmp(buffer->base, bytes, sz) == 0);
 }
 
-wchar_t temp_buffer_get_last_wchar_t (struct temp_buffer* buffer)
+wchar_t pchvml_temp_buffer_get_last_char (struct pchvml_temp_buffer* buffer)
 {
     return buffer->last_wc;
 }
 
-void temp_buffer_reset (struct temp_buffer* buffer)
+void pchvml_temp_buffer_reset (struct pchvml_temp_buffer* buffer)
 {
     buffer->here = buffer->base;
     buffer->last_wc = 0;
     buffer->sz_char = 0;
 }
 
-void temp_buffer_destroy (struct temp_buffer* buffer)
+void pchvml_temp_buffer_destroy (struct pchvml_temp_buffer* buffer)
 {
     if (buffer) {
         free(buffer->base);

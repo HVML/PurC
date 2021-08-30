@@ -142,7 +142,7 @@ enum hvml_state {
     HVML_EJSON_AFTER_JSONEE_STRING_STATE
 };
 
-struct temp_buffer;
+struct pchvml_temp_buffer;
 struct pchvml_token;
 
 struct pchvml_parser {
@@ -153,7 +153,7 @@ struct pchvml_parser {
     wchar_t wc;
     char c[8];
     size_t queue_size;
-    struct temp_buffer* temp_buffer;
+    struct pchvml_temp_buffer* temp_buffer;
     struct pchvml_token* current_token;
     bool need_reconsume;
 };
