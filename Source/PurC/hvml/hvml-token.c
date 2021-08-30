@@ -111,6 +111,16 @@ void pchvml_token_append_to_attribute_value (struct pchvml_token* token,
     token->curr_attr->value = node;
 }
 
+void pchvml_token_append_character_to_attribute_name (struct pchvml_token* token,
+        const char* bytes, size_t sz_bytes)
+{
+    if (!token->curr_attr->temp_buffer) {
+        token->curr_attr->temp_buffer = pchvml_temp_buffer_new (32);
+    }
+    pchvml_temp_buffer_append_char(token->curr_attr->temp_buffer, bytes,
+            sz_bytes);
+}
+
 void pchvml_token_end_attribute (struct pchvml_token* token)
 {
     if (!token->curr_attr) {

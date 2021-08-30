@@ -79,6 +79,8 @@ void pchvml_token_append_to_attribute_name (struct pchvml_token* token,
         char* bytes);
 void pchvml_token_append_to_attribute_value (struct pchvml_token* token,
         struct pcvcm_node* node);
+void pchvml_token_append_character_to_attribute_name (struct pchvml_token* token,
+        const char* bytes, size_t sz_bytes);
 void pchvml_token_end_attribute (struct pchvml_token* token);
 
 struct pchvml_token* pchvml_token_new_character (const char* buf);

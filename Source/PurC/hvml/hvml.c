@@ -80,17 +80,6 @@
         hvml->need_reconsume = true;                                       \
     } while (false)
 
-#define RETURN_IN_CURRENT_STATE(expression)                                \
-    do {                                                                   \
-        hvml->state = current_state;                                       \
-        hvml->need_reconsume = true;                                       \
-        if (expression) {                                                  \
-            pchvml_token_done(hvml->current_token);                        \
-            return hvml->current_token;                                    \
-        }                                                                  \
-        return NULL;                                                       \
-    } while (false)
-
 #define ADVANCE_TO(new_state)                                               \
     do {                                                                    \
         hvml->state = new_state;                                           \
@@ -102,6 +91,31 @@
         hvml->state = new_state;                                           \
     } while (false)
 
+#define RETURN_IN_CURRENT_STATE(expression)                                \
+    do {                                                                   \
+        hvml->state = current_state;                                       \
+        hvml->need_reconsume = true;                                       \
+        if (expression) {                                                  \
+            pchvml_token_done(hvml->current_token);                        \
+            return hvml->current_token;                                    \
+        }                                                                  \
+        return NULL;                                                       \
+    } while (false)
+
+#define RETURN_AND_SWITCH_TO(next_state)                                   \
+    do {                                                                   \
+        hvml->state = next_state;                                          \
+        pchvml_token_done(hvml->current_token);                            \
+        return hvml->current_token;                                        \
+    } while (false)
+
+#define RETURN_AND_RECONSUME_IN(next_state)                                \
+    do {                                                                   \
+        hvml->state = next_state;                                          \
+        pchvml_token_done(hvml->current_token);                            \
+        return hvml->current_token;                                        \
+    } while (false)
+
 #define STATE_DESC(state_name)                                              \
     case state_name:                                                        \
         return ""#state_name;                                               \
@@ -111,9 +125,14 @@
         pchvml_buffer_character (hvml, c, sz_c);                            \
     } while (false)
 
-#define RESET_BUFFER()                                                      \
+#define RESET_TEMP_BUFFER()                                                 \
     do {                                                                    \
-        pchvml_temp_buffer_reset (hvml->temp_buffer);                              \
+        pchvml_temp_buffer_reset (hvml->temp_buffer);                       \
+    } while (false)
+
+#define APPEND_TEMP_BUFFER(c, sz_c)                                         \
+    do {                                                                    \
+        pchvml_temp_buffer_append_char (hvml->temp_buffer, c, sz_c);        \
     } while (false)
 
 static const char* hvml_err_msgs[] = {
@@ -409,7 +428,7 @@ next_state:
                 ADVANCE_TO(HVML_RAWTEXT_LESS_THAN_SIGN_STATE);
             }
             if (character == HVML_END_OF_FILE) {
-                return pchvml_token_new(HVML_TOKEN_EOF);
+                RECONSUME_IN (HVML_DATA_STATE);
             }
 
             BUFFER_CHARACTER(hvml->c, hvml->sz_c);
@@ -446,7 +465,6 @@ next_state:
         BEGIN_STATE(HVML_END_TAG_OPEN_STATE)
             if (is_ascii_alpha(character)) {
                 hvml->current_token = pchvml_token_new_end_tag();
-                RESET_BUFFER();
                 ADVANCE_TO(HVML_TAG_NAME_STATE);
             }
             if (character == '>') {
@@ -467,12 +485,10 @@ next_state:
                 ADVANCE_TO(HVML_SELF_CLOSING_START_TAG_STATE);
             }
             if (character == '>') {
-                SWITCH_TO(HVML_DATA_STATE);
-                return hvml->current_token;
+                RETURN_AND_SWITCH_TO(HVML_DATA_STATE);
             }
             if (character == '<') {
-                SWITCH_TO(HVML_DATA_STATE);
-                return hvml->current_token;
+                RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
             }
             if (character == HVML_END_OF_FILE) {
                 RECONSUME_IN(HVML_DATA_STATE);
@@ -483,7 +499,7 @@ next_state:
 
         BEGIN_STATE(HVML_RCDATA_LESS_THAN_SIGN_STATE)
             if (character == '/') {
-                RESET_BUFFER();
+                RESET_TEMP_BUFFER();
                 ADVANCE_TO(HVML_RCDATA_END_TAG_OPEN_STATE);
             }
             BUFFER_CHARACTER("<", 1);
@@ -492,7 +508,8 @@ next_state:
 
         BEGIN_STATE(HVML_RCDATA_END_TAG_OPEN_STATE)
             if (is_ascii_alpha(character)) {
-                BUFFER_CHARACTER(hvml->c, hvml->sz_c);
+                APPEND_TEMP_BUFFER(hvml->c, hvml->sz_c);
+                // TODO : append to possible end tag
                 ADVANCE_TO(HVML_RCDATA_END_TAG_NAME_STATE);
             }
             BUFFER_CHARACTER("<", 1);
@@ -506,7 +523,7 @@ next_state:
 
         BEGIN_STATE(HVML_RAWTEXT_LESS_THAN_SIGN_STATE)
             if (character == '/') {
-                RESET_BUFFER();
+                RESET_TEMP_BUFFER();
                 ADVANCE_TO(HVML_RAWTEXT_END_TAG_OPEN_STATE);
             }
             BUFFER_CHARACTER("<", 1);
@@ -515,7 +532,8 @@ next_state:
 
         BEGIN_STATE(HVML_RAWTEXT_END_TAG_OPEN_STATE)
             if (is_ascii_alpha(character)) {
-                BUFFER_CHARACTER(hvml->c, hvml->sz_c);
+                APPEND_TEMP_BUFFER(hvml->c, hvml->sz_c);
+                // TODO : append to possible end tag
                 ADVANCE_TO(HVML_RAWTEXT_END_TAG_NAME_STATE);
             }
             BUFFER_CHARACTER("<", 1);
@@ -546,7 +564,8 @@ next_state:
                 RECONSUME_IN(HVML_DATA_STATE);
             }
             pchvml_token_begin_attribute (hvml->current_token);
-            BUFFER_CHARACTER(hvml->c, hvml->sz_c);
+            pchvml_token_append_character_to_attribute_name (
+                    hvml->current_token, hvml->c, hvml->sz_c);
             ADVANCE_TO(HVML_ATTRIBUTE_NAME_STATE);
         END_STATE()
 
@@ -562,7 +581,7 @@ next_state:
                     || character == '~') {
                 if (hvml->current_token->type == HVML_TOKEN_START_TAG) {
                     // TODO : check attribute is an ordinary attribute name
-                    RESET_BUFFER();
+                    RESET_TEMP_BUFFER();
                     BUFFER_CHARACTER(hvml->c, hvml->sz_c);
                     SWITCH_TO(
                             HVML_SPECIAL_ATTRIBUTE_OPERATOR_IN_ATTRIBUTE_NAME_STATE);
@@ -572,17 +591,18 @@ next_state:
                 ADVANCE_TO(HVML_BEFORE_ATTRIBUTE_VALUE_STATE);
             }
             if (character == '>') {
-                SWITCH_TO(HVML_DATA_STATE);
-                return hvml->current_token;
+                RETURN_AND_SWITCH_TO(HVML_DATA_STATE);
             }
             if (character == '<') {
-                SWITCH_TO(HVML_DATA_STATE);
-                return hvml->current_token;
+                RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
             }
             if (character == HVML_END_OF_FILE) {
                 RECONSUME_IN(HVML_DATA_STATE);
             }
             BUFFER_CHARACTER(hvml->c, hvml->sz_c);
+            pchvml_token_begin_attribute (hvml->current_token);
+            pchvml_token_append_character_to_attribute_name (
+                    hvml->current_token, hvml->c, hvml->sz_c);
             ADVANCE_TO(HVML_ATTRIBUTE_NAME_STATE);
         END_STATE()
 
@@ -600,7 +620,7 @@ next_state:
                 if () {
                     // TODO : check token is an operation tag 
                     // TODO : check attribute is an ordinary attribute name
-                    RESET_BUFFER();
+                    RESET_TEMP_BUFFER();
                     BUFFER_CHARACTER(hvml->c, hvml->sz_c);
                     SWITCH_TO(
                     HVML_SPECIAL_ATTRIBUTE_OPERATOR_AFTER_ATTRIBUTE_NAME_STATE);
@@ -611,17 +631,16 @@ next_state:
                 ADVANCE_TO(HVML_BEFORE_ATTRIBUTE_VALUE_STATE);
             }
             if (character == '>') {
-                SWITCH_TO(HVML_DATA_STATE);
-                return hvml->current_token;
+                RETURN_AND_SWITCH_TO(HVML_DATA_STATE);
             }
             if (character == '<') {
-                SWITCH_TO(HVML_DATA_STATE);
-                return hvml->current_token;
+                RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
             }
             if (character == HVML_END_OF_FILE) {
                 RECONSUME_IN(HVML_DATA_STATE);
             }
-            BUFFER_CHARACTER(hvml->c, hvml->sz_c);
+            pchvml_token_append_character_to_attribute_name (
+                    hvml->current_token, hvml->c, hvml->sz_c);
             ADVANCE_TO(HVML_ATTRIBUTE_NAME_STATE);
         END_STATE()
 
