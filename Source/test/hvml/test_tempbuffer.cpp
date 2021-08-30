@@ -13,7 +13,7 @@
 
 TEST(temp_buffer, new_destory)
 {
-    struct pchvml_temp_buffer* buffer = pchvml_temp_buffer_new (32);
+    struct pchvml_temp_buffer* buffer = pchvml_temp_buffer_new ();
     ASSERT_NE(buffer, nullptr);
     ASSERT_EQ(0, pchvml_temp_buffer_get_size_in_bytes(buffer));
     ASSERT_EQ(0, pchvml_temp_buffer_get_size_in_chars(buffer));
@@ -23,7 +23,7 @@ TEST(temp_buffer, new_destory)
 
 TEST(temp_buffer, append)
 {
-    struct pchvml_temp_buffer* buffer = pchvml_temp_buffer_new (32);
+    struct pchvml_temp_buffer* buffer = pchvml_temp_buffer_new ();
     ASSERT_NE(buffer, nullptr);
     ASSERT_EQ(0, pchvml_temp_buffer_get_size_in_bytes(buffer));
     ASSERT_EQ(0, pchvml_temp_buffer_get_size_in_chars(buffer));
@@ -57,7 +57,7 @@ TEST(temp_buffer, append)
 
 TEST(temp_buffer, end_with_and_is_equal)
 {
-    struct pchvml_temp_buffer* buffer = pchvml_temp_buffer_new (32);
+    struct pchvml_temp_buffer* buffer = pchvml_temp_buffer_new ();
     ASSERT_NE(buffer, nullptr);
     ASSERT_EQ(0, pchvml_temp_buffer_get_size_in_bytes(buffer));
     ASSERT_EQ(0, pchvml_temp_buffer_get_size_in_chars(buffer));
@@ -107,7 +107,7 @@ TEST(temp_buffer, end_with_and_is_equal)
 
 TEST(temp_buffer, append_temp_buffer)
 {
-    struct pchvml_temp_buffer* buffer = pchvml_temp_buffer_new (32);
+    struct pchvml_temp_buffer* buffer = pchvml_temp_buffer_new ();
     ASSERT_NE(buffer, nullptr);
     ASSERT_EQ(0, pchvml_temp_buffer_get_size_in_bytes(buffer));
     ASSERT_EQ(0, pchvml_temp_buffer_get_size_in_chars(buffer));
@@ -120,7 +120,7 @@ TEST(temp_buffer, append_temp_buffer)
     ASSERT_STREQ("abcde", pchvml_temp_buffer_get_buffer(buffer));
 
 
-    struct pchvml_temp_buffer* buf2 = pchvml_temp_buffer_new (32);
+    struct pchvml_temp_buffer* buf2 = pchvml_temp_buffer_new ();
     ASSERT_NE(buf2, nullptr);
     pchvml_temp_buffer_append_char (buf2, "1", 1);
     pchvml_temp_buffer_append_char (buf2, "2", 1);

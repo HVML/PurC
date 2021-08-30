@@ -563,8 +563,8 @@ next_state:
             if (character == HVML_END_OF_FILE) {
                 RECONSUME_IN(HVML_DATA_STATE);
             }
-            pchvml_token_begin_attribute (hvml->current_token);
-            pchvml_token_append_character_to_attribute_name (
+            pchvml_token_attribute_begin (hvml->current_token);
+            pchvml_token_attribute_append_to_name (
                     hvml->current_token, hvml->c, hvml->sz_c);
             ADVANCE_TO(HVML_ATTRIBUTE_NAME_STATE);
         END_STATE()
@@ -599,7 +599,7 @@ next_state:
             if (character == HVML_END_OF_FILE) {
                 RECONSUME_IN(HVML_DATA_STATE);
             }
-            pchvml_token_append_character_to_attribute_name (
+            pchvml_token_attribute_append_to_name (
                     hvml->current_token, hvml->c, hvml->sz_c);
             ADVANCE_TO(HVML_ATTRIBUTE_NAME_STATE);
         END_STATE()
@@ -637,8 +637,8 @@ next_state:
             if (character == HVML_END_OF_FILE) {
                 RECONSUME_IN(HVML_DATA_STATE);
             }
-            pchvml_token_begin_attribute (hvml->current_token);
-            pchvml_token_append_character_to_attribute_name (
+            pchvml_token_attribute_begin (hvml->current_token);
+            pchvml_token_attribute_append_to_name (
                     hvml->current_token, hvml->c, hvml->sz_c);
             ADVANCE_TO(HVML_ATTRIBUTE_NAME_STATE);
         END_STATE()
@@ -673,14 +673,14 @@ next_state:
 
         BEGIN_STATE(HVML_ATTRIBUTE_VALUE_DOUBLE_QUOTED_STATE)
             if (character == '"') {
-                pchvml_token_end_attribute(hvml->current_token);
+                pchvml_token_attribute_end(hvml->current_token);
                 ADVANCE_TO(HVML_AFTER_ATTRIBUTE_VALUE_QUOTED_STATE);
             }
             if (character == '&') {
                 ADVANCE_TO(HVML_CHARACTER_REFERENCE_STATE);
             }
             if (character == HVML_END_OF_FILE) {
-                pchvml_token_end_attribute(hvml->current_token);
+                pchvml_token_attribute_end(hvml->current_token);
                 RECONSUME_IN(HVML_DATA_STATE);
             }
             BUFFER_CHARACTER(hvml->c, hvml->sz_c);
@@ -689,7 +689,7 @@ next_state:
 
         BEGIN_STATE(HVML_ATTRIBUTE_VALUE_SINGLE_QUOTED_STATE)
             if (character == '\'') {
-                pchvml_token_end_attribute(hvml->current_token);
+                pchvml_token_attribute_end(hvml->current_token);
                 ADVANCE_TO(HVML_AFTER_ATTRIBUTE_VALUE_QUOTED_STATE);
             }
             if (character == '&') {
@@ -697,7 +697,7 @@ next_state:
                 ADVANCE_TO(HVML_CHARACTER_REFERENCE_STATE);
             }
             if (character == HVML_END_OF_FILE) {
-                pchvml_token_end_attribute(hvml->current_token);
+                pchvml_token_attribute_end(hvml->current_token);
                 RECONSUME_IN(HVML_DATA_STATE);
             }
             BUFFER_CHARACTER(hvml->c, hvml->sz_c);
@@ -706,7 +706,7 @@ next_state:
 
         BEGIN_STATE(HVML_ATTRIBUTE_VALUE_UNQUOTED_STATE)
             if (is_whitespace(character)) {
-                pchvml_token_end_attribute(hvml->current_token);
+                pchvml_token_attribute_end(hvml->current_token);
                 ADVANCE_TO(HVML_BEFORE_ATTRIBUTE_NAME_STATE);
             }
             if (character == '&') {
@@ -714,7 +714,7 @@ next_state:
                 ADVANCE_TO(HVML_CHARACTER_REFERENCE_STATE);
             }
             if (character == '>') {
-                pchvml_token_end_attribute(hvml->current_token);
+                pchvml_token_attribute_end(hvml->current_token);
                 SWITCH_TO(HVML_DATA_STATE);
                 return hvml->current_token;
             }
@@ -723,7 +723,7 @@ next_state:
                 RECONSUME_IN(HVML_EJSON_DATA_STATE);
             }
             if (character == HVML_END_OF_FILE) {
-                pchvml_token_end_attribute(hvml->current_token);
+                pchvml_token_attribute_end(hvml->current_token);
                 RECONSUME_IN(HVML_DATA_STATE);
             }
             BUFFER_CHARACTER(hvml->c, hvml->sz_c);

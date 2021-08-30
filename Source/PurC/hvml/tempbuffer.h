@@ -40,7 +40,7 @@ struct pchvml_temp_buffer {
 extern "C" {
 #endif  /* __cplusplus */
 
-struct pchvml_temp_buffer* pchvml_temp_buffer_new (size_t sz_init);
+struct pchvml_temp_buffer* pchvml_temp_buffer_new ();
 
 bool pchvml_temp_buffer_is_empty (struct pchvml_temp_buffer* buffer);
 

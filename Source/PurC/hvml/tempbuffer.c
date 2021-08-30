@@ -41,11 +41,11 @@ static size_t get_buffer_size (size_t sz)
     return sz_buf < MIN_BUFFER_CAPACITY ? MIN_BUFFER_CAPACITY : sz_buf;
 }
 
-struct pchvml_temp_buffer* pchvml_temp_buffer_new (size_t sz_init)
+struct pchvml_temp_buffer* pchvml_temp_buffer_new ()
 {
     struct pchvml_temp_buffer* buffer = (struct pchvml_temp_buffer*) calloc(
             1, sizeof(struct pchvml_temp_buffer));
-    sz_init = get_buffer_size(sz_init);
+    size_t sz_init = get_buffer_size(MIN_BUFFER_CAPACITY);
     buffer->base = (uint8_t*) calloc (1, sz_init + 1);
     buffer->here = buffer->base;
     buffer->stop = buffer->base + sz_init;
