@@ -149,7 +149,7 @@ struct pchvml_parser {
     enum hvml_state state;
     enum hvml_state return_state;
     uint32_t flags;
-    uint32_t c_len;
+    uint32_t sz_c;
     wchar_t wc;
     char c[8];
     size_t queue_size;

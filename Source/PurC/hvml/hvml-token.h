@@ -28,6 +28,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <private/arraylist.h>
+#include "tempbuffer.h"
 
 enum hvml_attribute_assignment {
     HVML_ATTRIBUTE_ASSIGNMENT,           // =
@@ -53,12 +54,16 @@ struct pchvml_token_attribute {
     char* name;
     struct pcvcm_node* value;
     enum hvml_attribute_assignment assignment;
+    struct pchvml_temp_buffer* temp_buffer;
 };
 
 struct pchvml_token {
     enum hvml_token_type type;
+    char* data;
     struct pcutils_arrlist* attr_list;
     struct pchvml_token_attribute* curr_attr;
+    struct pchvml_temp_buffer* temp_buffer;
+    bool self_closing;
 };
 
 
@@ -79,6 +84,9 @@ void pchvml_token_end_attribute (struct pchvml_token* token);
 struct pchvml_token* pchvml_token_new_character (const char* buf);
 struct pchvml_token* pchvml_token_new_start_tag ();
 struct pchvml_token* pchvml_token_new_end_tag ();
+
+void pchvml_token_append_character (struct pchvml_token* token,
+        const char* bytes, size_t sz_bytes);
 
 #ifdef __cplusplus
 }

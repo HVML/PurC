@@ -148,3 +148,12 @@ struct pchvml_token* pchvml_token_new_end_tag ()
 {
     return pchvml_token_new (HVML_TOKEN_END_TAG);
 }
+
+void pchvml_token_append_character (struct pchvml_token* token,
+        const char* bytes, size_t sz_bytes)
+{
+    if (!token->temp_buffer) {
+        token->temp_buffer = pchvml_temp_buffer_new (32);
+    }
+    pchvml_temp_buffer_append_char(token->temp_buffer, bytes, sz_bytes);
+}
