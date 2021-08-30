@@ -70,7 +70,7 @@ const char* pchvml_temp_buffer_get_buffer (
 bool pchvml_temp_buffer_end_with (struct pchvml_temp_buffer* buffer,
         const char* bytes, size_t nr_bytes);
 
-bool pchvml_temp_buffer_is_equal (struct pchvml_temp_buffer* buffer,
+bool pchvml_temp_buffer_equal_to (struct pchvml_temp_buffer* buffer,
         const char* bytes, size_t nr_bytes);
 
 wchar_t pchvml_temp_buffer_get_last_char (struct pchvml_temp_buffer* buffer);

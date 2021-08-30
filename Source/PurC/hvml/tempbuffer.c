@@ -144,7 +144,7 @@ bool pchvml_temp_buffer_end_with (struct pchvml_temp_buffer* buffer,
             && memcmp(buffer->here - nr_bytes, bytes, nr_bytes) == 0);
 }
 
-bool pchvml_temp_buffer_is_equal (struct pchvml_temp_buffer* buffer,
+bool pchvml_temp_buffer_equal_to (struct pchvml_temp_buffer* buffer,
         const char* bytes, size_t nr_bytes)
 {
     size_t sz = pchvml_temp_buffer_get_size_in_bytes(buffer);

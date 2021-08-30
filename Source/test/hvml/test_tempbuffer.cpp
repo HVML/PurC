@@ -94,7 +94,7 @@ TEST(temp_buffer, end_with_and_is_equal)
     ASSERT_EQ(4, pchvml_temp_buffer_get_size_in_chars(buffer));
     ASSERT_EQ(wc, pchvml_temp_buffer_get_last_char(buffer));
     ASSERT_EQ(1, pchvml_temp_buffer_end_with(buffer, p, 4));
-    ASSERT_EQ(1, pchvml_temp_buffer_is_equal(buffer, p, 4));
+    ASSERT_EQ(1, pchvml_temp_buffer_equal_to(buffer, p, 4));
 
     pchvml_temp_buffer_reset(buffer);
     ASSERT_NE(buffer, nullptr);
