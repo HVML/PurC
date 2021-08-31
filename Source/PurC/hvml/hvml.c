@@ -97,7 +97,8 @@
         hvml->need_reconsume = true;                                       \
         if (expression) {                                                  \
             pchvml_token_done(hvml->current_token);                        \
-            return hvml->current_token;                                    \
+            struct pchvml_token* token = hvml->current_token;              \
+            return token;                                                  \
         }                                                                  \
         return NULL;                                                       \
     } while (false)
@@ -106,14 +107,16 @@
     do {                                                                   \
         hvml->state = next_state;                                          \
         pchvml_token_done(hvml->current_token);                            \
-        return hvml->current_token;                                        \
+        struct pchvml_token* token = hvml->current_token;                  \
+        return token;                                                      \
     } while (false)
 
 #define RETURN_AND_RECONSUME_IN(next_state)                                \
     do {                                                                   \
         hvml->state = next_state;                                          \
         pchvml_token_done(hvml->current_token);                            \
-        return hvml->current_token;                                        \
+        struct pchvml_token* token = hvml->current_token;                  \
+        return token;                                                      \
     } while (false)
 
 #define STATE_DESC(state_name)                                              \
