@@ -125,7 +125,33 @@ pcvdom_document_create(const char *doctype)
 }
 
 struct pcvdom_element*
-pcvdom_element_create(pcvdom_tag_id tag);
+pcvdom_element_create(pcvdom_tag_id tag)
+{
+    if (tag < PCHVML_TAG_FIRST_ENTRY ||
+        tag >= PCHVML_TAG_LAST_ENTRY)
+    {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return NULL;
+    }
+
+    struct pcvdom_element *elem = _element_create();
+    if (!elem) {
+        return NULL;
+    }
+
+    const struct pchvml_tag_entry *entry;
+    entry = pchvml_tag_static_get_by_id(tag);
+    if (entry) {
+        elem->tag_id   = entry->id;
+        elem->tag_name = (char*)entry->name;
+    } else {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        _element_destroy(elem);
+        return NULL;
+    }
+
+    return elem;
+}
 
 struct pcvdom_element*
 pcvdom_element_create_c(const char *tag_name)

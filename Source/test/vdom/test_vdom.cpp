@@ -33,6 +33,10 @@ TEST(vdom, basic)
     ASSERT_NE(elem3, nullptr);
     EXPECT_EQ(0, pcvdom_element_append_element(root, elem3));
 
+    struct pcvdom_element *elem4 = pcvdom_element_create(PCHVML_TAG_INIT);
+    ASSERT_NE(elem4, nullptr);
+    EXPECT_EQ(0, pcvdom_element_append_element(root, elem4));
+
     struct pcvdom_element *elem21 = pcvdom_element_create_c("hvml");
     ASSERT_NE(elem21, nullptr);
     EXPECT_EQ(0, pcvdom_element_append_element(elem2, elem21));
@@ -50,6 +54,7 @@ TEST(vdom, basic)
     attr32 = pcvdom_attr_create("on", PCVDOM_ATTR_OP_EQ, NULL);
     ASSERT_NE(attr32, nullptr);
     ASSERT_EQ(0, pcvdom_element_append_attr(elem3, attr32));
+
 
     pcvdom_document_destroy(doc);
 

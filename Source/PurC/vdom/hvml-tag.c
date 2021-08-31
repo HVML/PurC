@@ -34,33 +34,20 @@
 
 #include <ctype.h>
 
-/*
-FNV_PRIME_64B = 0x100000001b3
-FNV_INIT_64B  = 0xcbf29ce484222325
-
-FNV_PRIME_32B = 0x01000193
-FNV_INIT_32B  = 0x811c9dc5
-
-def str2key_64b (_str):
-    _bytes = _str.encode()
-    hval = FNV_INIT_64B;
-
-    for c in _bytes:
-        hval ^= c
-        hval *= FNV_PRIME_64B
-
-    return hval & 0xFFFFFFFFFFFFFFFF
-
-def str2key_32b (_str):
-    _bytes = _str.encode()
-
-    hval = FNV_INIT_32B;
-    for c in _bytes:
-        hval ^= c
-        hval *= FNV_PRIME_32B
-
-    return hval & 0xFFFFFFFF
-*/
+const struct pchvml_tag_entry*
+pchvml_tag_static_get_by_id(enum pchvml_tag_id id)
+{
+    if (id < PCHVML_TAG_FIRST_ENTRY ||
+        id >= PCHVML_TAG_LAST_ENTRY)
+    {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return NULL;
+    }
+    const struct pchvml_tag_entry *entry;
+    entry = &pchvml_tag_base_list[id];
+    PC_ASSERT(entry->id == id);
+    return entry;
+}
 
 #if SIZEOF_PTR == 8
 
