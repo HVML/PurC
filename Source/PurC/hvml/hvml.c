@@ -374,7 +374,7 @@ void pchvml_buffer_character(struct pchvml_parser* hvml, const char* bytes,
     if (hvml->current_token == NULL) {
         hvml->current_token = pchvml_token_new (HVML_TOKEN_CHARACTER);
     }
-    pchvml_token_append_character(hvml->current_token, bytes, nr_bytes);
+    pchvml_token_append(hvml->current_token, bytes, nr_bytes);
 }
 
 struct pchvml_token* pchvml_next_token (struct pchvml_parser* hvml,
