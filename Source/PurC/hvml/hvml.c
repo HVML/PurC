@@ -135,7 +135,7 @@
 
 #define APPEND_TEMP_BUFFER(c, sz_c)                                         \
     do {                                                                    \
-        pchvml_temp_buffer_append_char (hvml->temp_buffer, c, sz_c);        \
+        pchvml_temp_buffer_append (hvml->temp_buffer, c, sz_c);             \
     } while (false)
 
 static const char* hvml_err_msgs[] = {

@@ -47,10 +47,7 @@ size_t pchvml_temp_buffer_get_size_in_bytes (struct pchvml_temp_buffer* buffer);
 
 size_t pchvml_temp_buffer_get_size_in_chars (struct pchvml_temp_buffer* buffer);
 
-/*
- * Append a UTF-8 character to the temporary buffer
- */
-void pchvml_temp_buffer_append_char (struct pchvml_temp_buffer* buffer,
+void pchvml_temp_buffer_append (struct pchvml_temp_buffer* buffer,
         const char* bytes, size_t nr_bytes);
 
 void pchvml_temp_buffer_append_temp_buffer (struct pchvml_temp_buffer* buffer,
