@@ -205,7 +205,11 @@ pcvdom_comment_create(const char *text)
 // or
 // key,    in case when vcm == NULL
 struct pcvdom_attr*
-pcvdom_attr_create_simple(const char *key, struct pcvcm_tree *vcm);
+pcvdom_attr_create_simple(const char *key, struct pcvcm_tree *vcm)
+{
+    return pcvdom_attr_create(key, PAO(EQ), vcm);
+}
+
 
 // for modification operators, such as +=|-=|%=|~=|^=|$=
 struct pcvdom_attr*
