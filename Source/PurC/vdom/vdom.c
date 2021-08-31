@@ -140,11 +140,18 @@ pcvdom_element_create_c(const char *tag_name)
         return NULL;
     }
 
-    elem->tag_name = strdup(tag_name);
-    if (!elem->tag_name) {
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        _element_destroy(elem);
-        return NULL;
+    const struct pchvml_tag_entry *entry;
+    entry = pchvml_tag_static_search(tag_name, strlen(tag_name));
+    if (entry) {
+        elem->tag_id   = entry->id;
+        elem->tag_name = (char*)entry->name;
+    } else {
+        elem->tag_name = strdup(tag_name);
+        if (!elem->tag_name) {
+            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            _element_destroy(elem);
+            return NULL;
+        }
     }
 
     return elem;

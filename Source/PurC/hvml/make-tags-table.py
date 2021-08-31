@@ -243,6 +243,8 @@ def generate_static_tag_table (tag_info, str2key):
     for tag in tag_info:
         idx = tag_info[tag]['key'] % best_slots
         if tag_table[idx]:
+            while tag_table[idx]['next'] and tag_table[idx]['next'] > 0:
+                idx = tag_table[idx]['next']
             tag_table[idx]['next'] = last_slot
             tag_table.append ({})
             tag_table[last_slot]['tag'] = tag
@@ -270,9 +272,11 @@ def write_static_tag_tables (tmpl_file, save_to, tag_info, best_slots_64b, tag_t
 
     buf = []
     tag_tokens = list(tag_info.keys())
+    idx = 0;
     for tag in tag_tokens:
         buf.append("    { %s, \"%s\", %d, %s," % (make_tag_id (tag), tag, len (tag), make_state_id (tag_info[tag]['state']), ))
-        buf.append("        %s }," % (make_categories_value (tag_info[tag]['categories']), ))
+        buf.append("        %s },     // slot %d" % (make_categories_value (tag_info[tag]['categories']), idx))
+        idx += 1
     lxb_temp.pattern_append("%%PCHVML_TAG_BASE_LIST%%", '\n'.join(buf))
 
     lxb_temp.pattern_append("%%BEST_SLOTS_64B%%", '{}'.format(best_slots_64b, ))

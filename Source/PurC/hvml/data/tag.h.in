@@ -56,7 +56,6 @@ struct pchvml_tag_entry {
 struct pchvml_tag_static_list {
     const struct pchvml_tag_entry* ctx;
     size_t next;
-    size_t cur;
 };
 
 const struct pchvml_tag_entry*
