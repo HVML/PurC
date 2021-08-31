@@ -201,6 +201,8 @@ def generate_static_attr_table (attr_info, str2key):
     for attr in attr_info:
         idx = attr_info[attr]['key'] % best_slots
         if attr_table[idx]:
+            while attr_table[idx]['next'] and attr_table[idx]['next'] > 0:
+                idx = attr_table[idx]['next']
             attr_table[idx]['next'] = last_slot
             attr_table.append ({})
             attr_table[last_slot]['attr'] = attr

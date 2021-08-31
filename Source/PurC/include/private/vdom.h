@@ -44,7 +44,6 @@ enum pcvdom_nodetype {
     PCVDOM_NODE_ELEMENT,
     PCVDOM_NODE_CONTENT,
     PCVDOM_NODE_COMMENT,
-    PCVDOM_VDOM_EXP,
 };
 
 enum pcvdom_attr_op {
@@ -55,6 +54,7 @@ enum pcvdom_attr_op {
     PCVDOM_ATTR_OP_REGEX_MATCH_REPLACE,       /* ~= */
     PCVDOM_ATTR_OP_PREPEND,                   /* ^= */
     PCVDOM_ATTR_OP_APPEND,                    /* $= */
+    PCVDOM_ATTR_OP_MAX
 };
 
 #define PCVDOM_NODE_IS_DOCUMENT(_n) \
@@ -105,11 +105,6 @@ struct pcvdom_document {
     // doctype field
     char                   *doctype;
 
-    // comment/root element
-    // keep order in consistency as in source hvml
-    struct pcvdom_node     *first_child;
-    struct pcvdom_node     *last_child;
-
     // redundant, for fast access
     struct pcvdom_element  *root;
 
@@ -122,8 +117,9 @@ struct pcvdom_attr {
     struct pcvdom_element    *parent;
 
     // NOTE for key:
-    //   for those pre-defined attrs, static char * in static-list
-    //   for others, managed by atom-ed string
+    //   for those pre-defined attrs, static char * in pre_defined
+    //   for others, need to be free'd afterwards
+    const struct pchvml_attr_entry  *pre_defined;
     char                     *key;
 
     // operator
@@ -137,19 +133,13 @@ struct pcvdom_element {
     struct pcvdom_node      node;
 
     // for those non-pre-defined tags(UNDEF)
-    // tag_name is valid only in above-mentioned case,
-    // and shall be free'd afterwards
+    // tag_name shall be free'd afterwards in case when tag_id is tag(UNDEF)
     pcvdom_tag_id           tag_id;
     char                   *tag_name;
 
     // key: char *, the same as struct pcvdom_attr:key
     // val: struct pcvdom_attr*
     struct pcutils_map     *attrs;
-
-    // element/content
-    // keep order in consistency as in source hvml
-    struct pcvdom_node     *first_child;
-    struct pcvdom_node     *last_child;
 
     // FIXME: scoped-variables
     //        for those `defined` in `init`
@@ -159,7 +149,7 @@ struct pcvdom_element {
 struct pcvdom_content {
     struct pcvdom_node      node;
 
-    struct pcvcm_tree      *content;
+    struct pcvcm_tree      *vcm;
 };
 
 struct pcvdom_comment {
@@ -183,10 +173,10 @@ struct pcvdom_element*
 pcvdom_element_create_c(const char *tag_name);
 
 struct pcvdom_content*
-pcvdom_content_create(struct pcvcm_tree *content);
+pcvdom_content_create(struct pcvcm_tree *vcm);
 
 struct pcvdom_comment*
-pcvdom_comment_create_c(const char *text);
+pcvdom_comment_create(const char *text);
 
 // key = vcm
 // or
@@ -196,7 +186,11 @@ pcvdom_attr_create_simple(const char *key, struct pcvcm_tree *vcm);
 
 // for modification operators, such as +=|-=|%=|~=|^=|$=
 struct pcvdom_attr*
-pcvdom_attr_create(const char *key, enum pcvdom_attr_op, const char *statement);
+pcvdom_attr_create(const char *key, enum pcvdom_attr_op op,
+    struct pcvcm_tree *vcm);
+
+void
+pcvdom_attr_destroy(struct pcvdom_attr *attr);
 
 // doc/dom construction api
 int
@@ -208,8 +202,8 @@ pcvdom_document_set_root(struct pcvdom_document *doc,
         struct pcvdom_element *root);
 
 int
-pcvdom_document_append_comment(struct pcvdom_element *elem,
-        struct pcvdom_comment *child);
+pcvdom_document_append_comment(struct pcvdom_document *doc,
+        struct pcvdom_comment *comment);
 
 int
 pcvdom_element_append_attr(struct pcvdom_element *elem,

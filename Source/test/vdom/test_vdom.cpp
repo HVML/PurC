@@ -6,6 +6,53 @@
 
 TEST(vdom, basic)
 {
+    struct pcvdom_document *doc = pcvdom_document_create("v: MATH FS");
+    ASSERT_NE(doc, nullptr);
+
+    struct pcvdom_comment *comment = pcvdom_comment_create("hello world");
+    ASSERT_NE(comment, nullptr);
+    EXPECT_EQ(0, pcvdom_document_append_comment(doc, comment));
+
+    struct pcvdom_content *content = pcvdom_content_create(NULL);
+    ASSERT_NE(content, nullptr);
+    EXPECT_EQ(0, pcvdom_document_append_content(doc, content));
+
+    struct pcvdom_element *root = pcvdom_element_create_c("hvml");
+    ASSERT_NE(root, nullptr);
+    EXPECT_EQ(0, pcvdom_document_set_root(doc, root));
+
+    struct pcvdom_element *elem1 = pcvdom_element_create_c("hvml");
+    ASSERT_NE(elem1, nullptr);
+    EXPECT_EQ(0, pcvdom_element_append_element(root, elem1));
+
+    struct pcvdom_element *elem2 = pcvdom_element_create_c("hvml");
+    ASSERT_NE(elem2, nullptr);
+    EXPECT_EQ(0, pcvdom_element_append_element(root, elem2));
+
+    struct pcvdom_element *elem3 = pcvdom_element_create_c("hvml");
+    ASSERT_NE(elem3, nullptr);
+    EXPECT_EQ(0, pcvdom_element_append_element(root, elem3));
+
+    struct pcvdom_element *elem21 = pcvdom_element_create_c("hvml");
+    ASSERT_NE(elem21, nullptr);
+    EXPECT_EQ(0, pcvdom_element_append_element(elem2, elem21));
+
+    struct pcvdom_element *elem22 = pcvdom_element_create_c("hvml");
+    ASSERT_NE(elem22, nullptr);
+    EXPECT_EQ(0, pcvdom_element_append_element(elem2, elem22));
+
+    struct pcvdom_attr *attr31;
+    attr31 = pcvdom_attr_create("for", PCVDOM_ATTR_OP_EQ, NULL);
+    ASSERT_NE(attr31, nullptr);
+    ASSERT_EQ(0, pcvdom_element_append_attr(elem3, attr31));
+
+    struct pcvdom_attr *attr32;
+    attr32 = pcvdom_attr_create("on", PCVDOM_ATTR_OP_EQ, NULL);
+    ASSERT_NE(attr32, nullptr);
+    ASSERT_EQ(0, pcvdom_element_append_attr(elem3, attr32));
+
+    pcvdom_document_destroy(doc);
+
 #if 0
     pcvdom_document_t *doc = pcvdom_document_create();
     ASSERT_NE(doc, nullptr);

@@ -25,7 +25,7 @@
 
 #define PCHVML_ATTR_STATIC_SIZE %%BEST_SLOTS%%
 
-static const pchvml_attr_static_list_t pchvml_attr_static_list_index[] =
+static const struct pchvml_attr_entry pchvml_attr_static_list_index[] =
 {
 %%PCHVML_ATTR_STATIC_LIST_INDEX_RECORDS%%
 };
