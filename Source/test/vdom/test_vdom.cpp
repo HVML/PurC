@@ -44,6 +44,7 @@ TEST(vdom, basic)
     struct pcvdom_element *elem22 = pcvdom_element_create_c("hvml");
     ASSERT_NE(elem22, nullptr);
     EXPECT_EQ(0, pcvdom_element_append_element(elem2, elem22));
+    EXPECT_EQ(pcvdom_element_parent(elem22), elem2);
 
     struct pcvdom_attr *attr31;
     attr31 = pcvdom_attr_create("for", PCVDOM_ATTR_OP_EQ, NULL);
@@ -58,10 +59,12 @@ TEST(vdom, basic)
     struct pcvdom_comment *comment41 = pcvdom_comment_create("hello world");
     ASSERT_NE(comment41, nullptr);
     EXPECT_EQ(0, pcvdom_element_append_comment(elem4, comment41));
+    EXPECT_EQ(pcvdom_comment_parent(comment41), elem4);
 
     struct pcvdom_content *content41 = pcvdom_content_create(NULL);
     ASSERT_NE(content41, nullptr);
     EXPECT_EQ(0, pcvdom_element_append_content(elem4, content41));
+    EXPECT_EQ(pcvdom_content_parent(content41), elem4);
 
 
     pcvdom_document_destroy(doc);

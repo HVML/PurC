@@ -402,13 +402,40 @@ pcvdom_node_parent(struct pcvdom_node *node)
 }
 
 struct pcvdom_element*
-pcvdom_element_parent(struct pcvdom_element *elem);
+pcvdom_element_parent(struct pcvdom_element *elem)
+{
+    if (!elem || !elem->node.node.parent)
+        return NULL;
+
+    struct pcvdom_node *node;
+    node = container_of(elem->node.node.parent, struct pcvdom_node, node);
+
+    return container_of(node, struct pcvdom_element, node);
+}
 
 struct pcvdom_element*
-pcvdom_content_parent(struct pcvdom_content *content);
+pcvdom_content_parent(struct pcvdom_content *content)
+{
+    if (!content || !content->node.node.parent)
+        return NULL;
+
+    struct pcvdom_node *node;
+    node = container_of(content->node.node.parent, struct pcvdom_node, node);
+
+    return container_of(node, struct pcvdom_element, node);
+}
 
 struct pcvdom_element*
-pcvdom_comment_parent(struct pcvdom_comment *comment);
+pcvdom_comment_parent(struct pcvdom_comment *comment)
+{
+    if (!comment || !comment->node.node.parent)
+        return NULL;
+
+    struct pcvdom_node *node;
+    node = container_of(comment->node.node.parent, struct pcvdom_node, node);
+
+    return container_of(node, struct pcvdom_element, node);
+}
 
 const char*
 pcvdom_element_get_tagname(struct pcvdom_element *elem);
