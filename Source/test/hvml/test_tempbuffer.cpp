@@ -52,6 +52,13 @@ TEST(temp_buffer, append)
     ASSERT_EQ(wc, pchvml_temp_buffer_get_last_char(buffer));
     ASSERT_EQ(1, pchvml_temp_buffer_end_with(buffer, cmp, 2));
 
+    char b[] = "你";
+    wc = 0x4F60;
+    pchvml_temp_buffer_append_char (buffer, b, strlen(b));
+    ASSERT_EQ(6, pchvml_temp_buffer_get_size_in_bytes(buffer));
+    ASSERT_EQ(4, pchvml_temp_buffer_get_size_in_chars(buffer));
+    ASSERT_EQ(wc, pchvml_temp_buffer_get_last_char(buffer));
+
     pchvml_temp_buffer_destroy(buffer);
 }
 

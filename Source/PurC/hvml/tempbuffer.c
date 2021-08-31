@@ -119,7 +119,6 @@ void pchvml_temp_buffer_append_char (struct pchvml_temp_buffer* buffer,
         const char* bytes, size_t nr_bytes)
 {
     pchvml_temp_buffer_append (buffer, bytes, nr_bytes);
-    buffer->last_wc = utf8_to_wchar_t((const unsigned char*)bytes, nr_bytes);
     buffer->sz_char++;
 }
 
@@ -130,7 +129,6 @@ void pchvml_temp_buffer_append_temp_buffer (struct pchvml_temp_buffer* buffer,
     size_t nr_bytes = pchvml_temp_buffer_get_size_in_bytes(append);
     if (bytes && nr_bytes) {
         pchvml_temp_buffer_append (buffer, bytes, nr_bytes);
-        buffer->last_wc =  append->last_wc;
         buffer->sz_char += append->sz_char;
     }
 }
@@ -162,7 +160,7 @@ wchar_t pchvml_temp_buffer_get_last_char (struct pchvml_temp_buffer* buffer)
         return 0;
     }
 
-    uint8_t* p = buffer->here;
+    uint8_t* p = buffer->here - 1;
     while (p >= buffer->base) {
         if (is_utf8_leading_byte(*p)) {
             break;
@@ -175,7 +173,6 @@ wchar_t pchvml_temp_buffer_get_last_char (struct pchvml_temp_buffer* buffer)
 void pchvml_temp_buffer_reset (struct pchvml_temp_buffer* buffer)
 {
     buffer->here = buffer->base;
-    buffer->last_wc = 0;
     buffer->sz_char = 0;
 }
 

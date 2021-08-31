@@ -32,7 +32,6 @@ struct pchvml_temp_buffer {
     uint8_t* base;
     uint8_t* here;
     uint8_t* stop;
-    wchar_t last_wc;
     size_t sz_char;
 };
 
