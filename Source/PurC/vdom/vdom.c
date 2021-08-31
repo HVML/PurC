@@ -351,11 +351,33 @@ pcvdom_element_append_element(struct pcvdom_element *elem,
 
 int
 pcvdom_element_append_content(struct pcvdom_element *elem,
-        struct pcvdom_content *child);
+        struct pcvdom_content *child)
+{
+    if (!elem || !child || child->node.node.parent) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+
+    bool b = pctree_node_append_child(&elem->node.node, &child->node.node);
+    PC_ASSERT(b);
+
+    return 0;
+}
 
 int
 pcvdom_element_append_comment(struct pcvdom_element *elem,
-        struct pcvdom_comment *child);
+        struct pcvdom_comment *child)
+{
+    if (!elem || !child || child->node.node.parent) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+
+    bool b = pctree_node_append_child(&elem->node.node, &child->node.node);
+    PC_ASSERT(b);
+
+    return 0;
+}
 
 // key = vcm
 // or

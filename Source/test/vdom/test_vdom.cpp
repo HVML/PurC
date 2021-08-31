@@ -55,6 +55,14 @@ TEST(vdom, basic)
     ASSERT_NE(attr32, nullptr);
     ASSERT_EQ(0, pcvdom_element_append_attr(elem3, attr32));
 
+    struct pcvdom_comment *comment41 = pcvdom_comment_create("hello world");
+    ASSERT_NE(comment41, nullptr);
+    EXPECT_EQ(0, pcvdom_element_append_comment(elem4, comment41));
+
+    struct pcvdom_content *content41 = pcvdom_content_create(NULL);
+    ASSERT_NE(content41, nullptr);
+    EXPECT_EQ(0, pcvdom_element_append_content(elem4, content41));
+
 
     pcvdom_document_destroy(doc);
 
