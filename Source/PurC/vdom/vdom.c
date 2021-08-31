@@ -503,16 +503,96 @@ pcvdom_node_destroy(struct pcvdom_node *node)
 
 
 // traverse all vdom_node
-typedef int (*vdom_node_traverse_f)(struct pcvdom_node *top,
-    struct pcvdom_node *node, void *ctx);
-int pcvdom_node_traverse(struct pcvdom_node *node, void *ctx,
-        vdom_node_traverse_f cb);
+struct _tree_node_arg {
+    struct pcvdom_node       *top;
+    void                     *ctx;
+    vdom_node_traverse_f      cb;
+
+    int                       abortion;
+};
+
+static void
+_tree_node_cb(struct pctree_node* node,  void* data)
+{
+    struct _tree_node_arg *arg = (struct _tree_node_arg*)data;
+    if (arg->abortion)
+        return;
+
+    struct pcvdom_node *p;
+    p = container_of(node, struct pcvdom_node, node);
+
+    int r = arg->cb(arg->top, p, arg->ctx);
+
+    arg->abortion = r;
+}
+
+int
+pcvdom_node_traverse(struct pcvdom_node *node, void *ctx,
+        vdom_node_traverse_f cb)
+{
+    if (!node || !cb)
+        return 0;
+
+    struct _tree_node_arg arg = {
+        .top        = node,
+        .ctx        = ctx,
+        .cb         = cb,
+        .abortion   = 0,
+    };
+
+    pctree_node_pre_order_traversal(&node->node,
+        _tree_node_cb, &arg);
+
+    return arg.abortion;
+}
 
 // traverse all element
-typedef int (*vdom_element_traverse_f)(struct pcvdom_element *top,
-    struct pcvdom_element *elem, void *ctx);
-int pcvdom_element_traverse(struct pcvdom_element *elem, void *ctx,
-        vdom_element_traverse_f cb);
+struct _element_arg {
+    struct pcvdom_element    *top;
+    void                     *ctx;
+    vdom_element_traverse_f   cb;
+
+    int                       abortion;
+};
+
+static void
+_element_cb(struct pctree_node* node,  void* data)
+{
+    struct _element_arg *arg = (struct _element_arg*)data;
+    if (arg->abortion)
+        return;
+
+    struct pcvdom_node *p;
+    p = container_of(node, struct pcvdom_node, node);
+
+    if (p->type == VDT(ELEMENT)) {
+        struct pcvdom_element *elem;
+        elem = container_of(p, struct pcvdom_element, node);
+        int r = arg->cb(arg->top, elem, arg->ctx);
+
+        arg->abortion = r;
+    }
+}
+
+int
+pcvdom_element_traverse(struct pcvdom_element *elem, void *ctx,
+        vdom_element_traverse_f cb)
+{
+    if (!elem || !cb)
+        return 0;
+
+    struct _element_arg arg = {
+        .top        = elem,
+        .ctx        = ctx,
+        .cb         = cb,
+        .abortion   = 0,
+    };
+
+    pctree_node_pre_order_traversal(&elem->node.node,
+        _element_cb, &arg);
+
+    return arg.abortion;
+}
 
 static void
 _document_reset(struct pcvdom_document *doc)
