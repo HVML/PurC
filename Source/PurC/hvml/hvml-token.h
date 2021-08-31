@@ -30,6 +30,10 @@
 #include <private/arraylist.h>
 #include "tempbuffer.h"
 
+#define pchvml_token_append_to_name pchvml_token_append
+#define pchvml_token_append_to_comment pchvml_token_append
+#define pchvml_token_append_to_character pchvml_token_append
+
 enum hvml_attribute_assignment {
     HVML_ATTRIBUTE_ASSIGNMENT,           // =
     HVML_ATTRIBUTE_ADDITION_ASSIGNMENT,  // +=
@@ -89,9 +93,6 @@ struct pchvml_token* pchvml_token_new_end_tag ();
 
 void pchvml_token_append (struct pchvml_token* token,
         const char* bytes, size_t sz_bytes);
-
-void pchvml_token_append_temp_buffer (struct pchvml_token* token,
-        struct pchvml_temp_buffer* temp_buffer);
 
 void pchvml_token_done (struct pchvml_token* token);
 

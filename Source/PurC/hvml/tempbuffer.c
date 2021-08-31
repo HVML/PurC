@@ -129,17 +129,6 @@ void pchvml_temp_buffer_append (struct pchvml_temp_buffer* buffer,
     }
 }
 
-void pchvml_temp_buffer_append_temp_buffer (struct pchvml_temp_buffer* buffer,
-        struct pchvml_temp_buffer* append)
-{
-    const char* bytes = pchvml_temp_buffer_get_buffer(append);
-    size_t nr_bytes = pchvml_temp_buffer_get_size_in_bytes(append);
-    if (bytes && nr_bytes) {
-        pchvml_temp_buffer_append_inner (buffer, bytes, nr_bytes);
-        buffer->sz_char += append->sz_char;
-    }
-}
-
 const char* pchvml_temp_buffer_get_buffer (
         struct pchvml_temp_buffer* buffer)
 {
