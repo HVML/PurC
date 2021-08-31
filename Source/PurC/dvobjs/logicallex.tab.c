@@ -488,7 +488,7 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  2
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   49
+#define YYLAST   39
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  21
@@ -546,8 +546,8 @@ static const yytype_int8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    49,    49,    50,    51,    54,    55,    56,    57,    58,
-      59,    60,    63,    64,    65,    66,    69,    70,    73,    74
+       0,    49,    49,    50,    51,    54,    55,    56,    57,    60,
+      61,    62,    63,    64,    65,    66,    69,    70,    73,    74
 };
 #endif
 
@@ -573,7 +573,7 @@ static const yytype_int16 yytoknum[] =
 };
 # endif
 
-#define YYPACT_NINF (-3)
+#define YYPACT_NINF (-13)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -587,10 +587,10 @@ static const yytype_int16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-      -3,     0,    -3,    -3,    12,    -2,    -3,     1,    34,    -3,
-      -3,    -3,    14,    -2,    -2,    -2,    -2,    -2,    -2,    -3,
-      -2,    -2,    -2,    -3,    29,    34,    34,    34,    34,    34,
-      -3,    -3,    -3
+     -13,     0,   -13,   -13,     1,    -2,   -13,     7,    20,   -13,
+     -13,   -13,    21,    -2,    -2,    -2,   -13,    -2,    -2,    -2,
+      -2,    -2,    -2,   -13,    20,    20,    20,   -13,   -13,   -13,
+     -13,   -13,   -13
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -598,16 +598,16 @@ static const yytype_int8 yypact[] =
      means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       2,     0,     1,    18,     0,     0,     4,     0,     5,    12,
-      16,    17,     0,     0,     0,     0,     0,     0,     0,     3,
-       0,     0,     0,    19,     6,     7,     8,     9,    10,    11,
+       2,     0,     1,    18,     0,     0,     4,     0,     5,     9,
+      16,    17,     0,     0,     0,     0,     3,     0,     0,     0,
+       0,     0,     0,    19,     6,     7,     8,    10,    11,    12,
       13,    14,    15
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-      -3,    -3,    19,    25,    27,    21
+     -13,   -13,    -3,    24,   -12,    16
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
@@ -621,20 +621,18 @@ static const yytype_int8 yydefgoto[] =
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-       2,     3,     0,     3,     0,    13,    14,    15,    16,    17,
-      18,     4,     5,     4,     5,     3,     6,    19,    13,    14,
-      15,    16,    17,    18,    12,    11,     5,     0,     0,    23,
-       0,     0,    24,    13,    14,    15,    16,    17,    18,    25,
-      26,    27,    28,    29,    20,    21,    22,    30,    31,    32
+       2,     3,    12,     3,     3,    27,    28,    29,    30,    31,
+      32,     4,     5,     4,     5,     5,     6,    13,    14,    15,
+      11,     0,     0,    16,    17,    18,    19,    20,    21,    22,
+       0,    13,    14,    15,     0,     0,    23,    24,    25,    26
 };
 
 static const yytype_int8 yycheck[] =
 {
-       0,     3,    -1,     3,    -1,     4,     5,     6,     7,     8,
-       9,    13,    14,    13,    14,     3,    16,    16,     4,     5,
-       6,     7,     8,     9,     5,     4,    14,    -1,    -1,    15,
-      -1,    -1,    13,     4,     5,     6,     7,     8,     9,    14,
-      15,    16,    17,    18,    10,    11,    12,    20,    21,    22
+       0,     3,     5,     3,     3,    17,    18,    19,    20,    21,
+      22,    13,    14,    13,    14,    14,    16,    10,    11,    12,
+       4,    -1,    -1,    16,     4,     5,     6,     7,     8,     9,
+      -1,    10,    11,    12,    -1,    -1,    15,    13,    14,    15
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
@@ -642,23 +640,23 @@ static const yytype_int8 yycheck[] =
 static const yytype_int8 yystos[] =
 {
        0,    22,     0,     3,    13,    14,    16,    23,    24,    25,
-      26,    26,    23,     4,     5,     6,     7,     8,     9,    16,
-      10,    11,    12,    15,    23,    24,    24,    24,    24,    24,
+      26,    26,    23,    10,    11,    12,    16,     4,     5,     6,
+       7,     8,     9,    15,    24,    24,    24,    25,    25,    25,
       25,    25,    25
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    21,    22,    22,    22,    23,    23,    23,    23,    23,
-      23,    23,    24,    24,    24,    24,    25,    25,    26,    26
+       0,    21,    22,    22,    22,    23,    23,    23,    23,    24,
+      24,    24,    24,    24,    24,    24,    25,    25,    26,    26
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     0,     3,     2,     1,     3,     3,     3,     3,
-       3,     3,     1,     3,     3,     3,     1,     2,     1,     3
+       0,     2,     0,     3,     2,     1,     3,     3,     3,     1,
+       3,     3,     3,     3,     3,     3,     1,     2,     1,     3
 };
 
 
@@ -1364,89 +1362,89 @@ yyreduce:
   case 2:
 #line 49 "logicallex.y"
                    { }
-#line 1368 "logicallex.tab.c"
+#line 1366 "logicallex.tab.c"
     break;
 
   case 3:
 #line 50 "logicallex.y"
                    { myparam->result = (yyvsp[-1].d)? 1: 0; }
-#line 1374 "logicallex.tab.c"
+#line 1372 "logicallex.tab.c"
     break;
 
   case 4:
 #line 51 "logicallex.y"
                { printf("> "); }
-#line 1380 "logicallex.tab.c"
+#line 1378 "logicallex.tab.c"
     break;
 
   case 6:
 #line 55 "logicallex.y"
-             { (yyval.d) = ((yyvsp[-2].d) > (yyvsp[0].d))? 1 : 0; }
-#line 1386 "logicallex.tab.c"
+                 { (yyval.d) = (yyvsp[-2].d) && (yyvsp[0].d); }
+#line 1384 "logicallex.tab.c"
     break;
 
   case 7:
 #line 56 "logicallex.y"
-                { (yyval.d) = ((yyvsp[-2].d) >= (yyvsp[0].d))? 1 : 0; }
-#line 1392 "logicallex.tab.c"
+                { (yyval.d) = (yyvsp[-2].d) || (yyvsp[0].d); }
+#line 1390 "logicallex.tab.c"
     break;
 
   case 8:
 #line 57 "logicallex.y"
-                { (yyval.d) = ((yyvsp[-2].d) < (yyvsp[0].d))? 1 : 0; }
-#line 1398 "logicallex.tab.c"
-    break;
-
-  case 9:
-#line 58 "logicallex.y"
-                { (yyval.d) = ((yyvsp[-2].d) <= (yyvsp[0].d))? 1 : 0; }
-#line 1404 "logicallex.tab.c"
+                 { (yyval.d) = (int)(yyvsp[-2].d) ^ (int)(yyvsp[0].d); }
+#line 1396 "logicallex.tab.c"
     break;
 
   case 10:
-#line 59 "logicallex.y"
-                 { (yyval.d) = ((yyvsp[-2].d) == (yyvsp[0].d))? 1 : 0; }
-#line 1410 "logicallex.tab.c"
+#line 61 "logicallex.y"
+                 { (yyval.d) = ((yyvsp[-2].d) > (yyvsp[0].d))? 1 : 0; }
+#line 1402 "logicallex.tab.c"
     break;
 
   case 11:
-#line 60 "logicallex.y"
-                   { (yyval.d) = ((yyvsp[-2].d) != (yyvsp[0].d))? 1 : 0; }
-#line 1416 "logicallex.tab.c"
+#line 62 "logicallex.y"
+                 { (yyval.d) = ((yyvsp[-2].d) >= (yyvsp[0].d))? 1 : 0; }
+#line 1408 "logicallex.tab.c"
+    break;
+
+  case 12:
+#line 63 "logicallex.y"
+                 { (yyval.d) = ((yyvsp[-2].d) < (yyvsp[0].d))? 1 : 0; }
+#line 1414 "logicallex.tab.c"
     break;
 
   case 13:
 #line 64 "logicallex.y"
-                  { (yyval.d) = (yyvsp[-2].d) && (yyvsp[0].d); }
-#line 1422 "logicallex.tab.c"
+                 { (yyval.d) = ((yyvsp[-2].d) <= (yyvsp[0].d))? 1 : 0; }
+#line 1420 "logicallex.tab.c"
     break;
 
   case 14:
 #line 65 "logicallex.y"
-                 { (yyval.d) = (yyvsp[-2].d) || (yyvsp[0].d); }
-#line 1428 "logicallex.tab.c"
+                  { (yyval.d) = ((yyvsp[-2].d) == (yyvsp[0].d))? 1 : 0; }
+#line 1426 "logicallex.tab.c"
     break;
 
   case 15:
 #line 66 "logicallex.y"
-                  { (yyval.d) = (int)(yyvsp[-2].d) ^ (int)(yyvsp[0].d); }
-#line 1434 "logicallex.tab.c"
+                    { (yyval.d) = ((yyvsp[-2].d) != (yyvsp[0].d))? 1 : 0; }
+#line 1432 "logicallex.tab.c"
     break;
 
   case 17:
 #line 70 "logicallex.y"
             { (yyval.d) = (yyvsp[0].d)? 0: 1; }
-#line 1440 "logicallex.tab.c"
+#line 1438 "logicallex.tab.c"
     break;
 
   case 19:
 #line 74 "logicallex.y"
             { (yyval.d) = (yyvsp[-1].d); }
-#line 1446 "logicallex.tab.c"
+#line 1444 "logicallex.tab.c"
     break;
 
 
-#line 1450 "logicallex.tab.c"
+#line 1448 "logicallex.tab.c"
 
       default: break;
     }

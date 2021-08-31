@@ -97,24 +97,19 @@ math_eval (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     size_t length = purc_variant_string_length (argv[0]);
-    char * parse_string = malloc (length + 1);
-    sprintf (parse_string, "%s\n", purc_variant_get_string_const (argv[0]));
-
     struct pcdvobjs_math_param myparam = {0, argv[1]}; /* my instance data */
     yyscan_t lexer;                 /* flex instance data */
 
     if (mathlex_init_extra (&myparam, &lexer)) {
-        free (parse_string);
         return PURC_VARIANT_INVALID;
     }
 
-    YY_BUFFER_STATE buffer = math_scan_string (parse_string, lexer);
+    YY_BUFFER_STATE buffer = math_scan_bytes (
+                    purc_variant_get_string_const (argv[0]), length, lexer);
     math_switch_to_buffer (buffer, lexer);
     mathparse(&myparam, lexer);
     math_delete_buffer(buffer, lexer);
     mathlex_destroy (lexer);
-
-    free (parse_string);
 
     return purc_variant_make_number (myparam.result);
 }
