@@ -29,7 +29,7 @@
 #include "private/utils.h"
 #include "private/vdom.h"
 
-#include "hvml_attr.h"
+#include "hvml-attr.h"
 
 void pcvdom_init_once(void)
 {

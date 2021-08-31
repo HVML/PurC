@@ -23,8 +23,8 @@
 """
 Make HVML attrs table:
     1. Read 'data/attrs.txt' file.
-    5. Generate the hvml_attr_static_list_t table.
-    5. Write code to 'hvml_attr_static_list.inc'.
+    5. Generate the hvml-attr-static-list table.
+    5. Write code to 'hvml-attr-static-list.inc'.
 """
 
 import os, sys
@@ -39,9 +39,9 @@ import LXB
 
 WITHOUT_PRINT = 0
 
-TOOL_NAME="make_hvml_attrs_table.py"
+TOOL_NAME="make-hvml-attrs-table.py"
 SRC_FILE="data/attrs.txt"
-INC_FILE="attr_static_list.inc"
+INC_FILE="attr-static-list.inc"
 H_FILE="attr.h"
 
 RE_START_WITH_TYPE = re.compile(r"^\s+type:")
@@ -267,7 +267,6 @@ def write_attr_types (attr_types):
 if __name__ == "__main__":
     if len(sys.argv) > 2 and sys.argv[2] == '--without-print':
         WITHOUT_PRINT = 1
-    WITHOUT_PRINT = 0
 
     if len(sys.argv) < 2:
         raise Exception('expecting target path')
@@ -300,7 +299,7 @@ if __name__ == "__main__":
         print("DONE")
 
     tmpl = "{}/data/{}.in".format(this_path, INC_FILE)
-    dst  = "{}/hvml_{}".format(target_path, INC_FILE)
+    dst  = "{}/hvml-{}".format(target_path, INC_FILE)
 
     if not WITHOUT_PRINT:
         print("Writting HVML static attr table to dst file %s..." % dst)
@@ -316,7 +315,7 @@ if __name__ == "__main__":
         print("DONE")
 
     tmpl = "{}/data/{}.in".format(this_path, H_FILE)
-    dst  = "{}/hvml_{}".format(target_path, H_FILE)
+    dst  = "{}/hvml-{}".format(target_path, H_FILE)
 
     if not WITHOUT_PRINT:
         print("Writting HVML attr types to dst file %s..." %dst)

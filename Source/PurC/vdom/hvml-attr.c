@@ -29,8 +29,8 @@
 #include "private/utils.h"
 #include "private/vdom.h"
 
-#include "hvml_attr.h"
-#include "hvml_attr_static_list.inc"
+#include "hvml-attr.h"
+#include "hvml-attr-static-list.inc"
 
 #include <ctype.h>
 

@@ -35,7 +35,7 @@
 #include "private/tree.h"
 #include "private/map.h"
 
-#include "hvml_tag.h"
+#include "hvml-tag.h"
 
 PCA_EXTERN_C_BEGIN
 

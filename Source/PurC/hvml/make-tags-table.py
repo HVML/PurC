@@ -23,8 +23,8 @@
 """
 Make HVML tags table:
     1. Read 'data/tags.txt' file.
-    5. Generate the hvml_tag_static_list_t tables (two tables; one for 64bit, the other for 32bit).
-    5. Write code to 'hvml_tag_static_list.inc'.
+    5. Generate the hvml-tag-static-list tables (two tables; one for 64bit, the other for 32bit).
+    5. Write code to 'hvml-tag-static-list.inc'.
 """
 
 import os, sys
@@ -38,12 +38,12 @@ import LXB
 
 WITHOUT_PRINT = 0
 
-TOOL_NAME="make_hvml_tags_table.py"
+TOOL_NAME="make-hvml-tags-table.py"
 SRC_FILE="data/tags.txt"
-TMPL_FILE="data/tag_static_list.inc.in"
-HVMLTAGSTABLE_FILE="hvml_tag_static_list.inc"
+TMPL_FILE="data/tag-static-list.inc.in"
+HVMLTAGSTABLE_FILE="hvml-tag-static-list.inc"
 TAG_H_IN="data/tag.h.in"
-TAG_H="hvml_tag.h"
+TAG_H="hvml-tag.h"
 
 RE_START_WITH_STATE = re.compile(r"^\s+state:")
 def start_with_state(line):
