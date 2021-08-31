@@ -395,8 +395,10 @@ pcvdom_element_set_attr(struct pcvdom_element *elem,
 struct pcvdom_node*
 pcvdom_node_parent(struct pcvdom_node *node)
 {
-    if (!node || !node->node.parent)
+    if (!node || !node->node.parent) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return NULL;
+    }
 
     return container_of(node->node.parent, struct pcvdom_node, node);
 }
@@ -404,8 +406,10 @@ pcvdom_node_parent(struct pcvdom_node *node)
 struct pcvdom_element*
 pcvdom_element_parent(struct pcvdom_element *elem)
 {
-    if (!elem || !elem->node.node.parent)
+    if (!elem || !elem->node.node.parent) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return NULL;
+    }
 
     struct pcvdom_node *node;
     node = container_of(elem->node.node.parent, struct pcvdom_node, node);
@@ -416,8 +420,10 @@ pcvdom_element_parent(struct pcvdom_element *elem)
 struct pcvdom_element*
 pcvdom_content_parent(struct pcvdom_content *content)
 {
-    if (!content || !content->node.node.parent)
+    if (!content || !content->node.node.parent) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return NULL;
+    }
 
     struct pcvdom_node *node;
     node = container_of(content->node.node.parent, struct pcvdom_node, node);
@@ -428,8 +434,10 @@ pcvdom_content_parent(struct pcvdom_content *content)
 struct pcvdom_element*
 pcvdom_comment_parent(struct pcvdom_comment *comment)
 {
-    if (!comment || !comment->node.node.parent)
+    if (!comment || !comment->node.node.parent) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return NULL;
+    }
 
     struct pcvdom_node *node;
     node = container_of(comment->node.node.parent, struct pcvdom_node, node);
@@ -438,11 +446,40 @@ pcvdom_comment_parent(struct pcvdom_comment *comment)
 }
 
 const char*
-pcvdom_element_get_tagname(struct pcvdom_element *elem);
+pcvdom_element_get_tagname(struct pcvdom_element *elem)
+{
+    if (!elem) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return NULL;
+    }
+
+    return elem->tag_name;
+}
 
 struct pcvdom_attr*
 pcvdom_element_get_attr_c(struct pcvdom_element *elem,
-        const char *key);
+        const char *key)
+{
+    if (!elem || !key) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return NULL;
+    }
+
+    if (!elem->attrs) {
+        pcinst_set_error(PURC_ERROR_NO_INSTANCE);
+        return NULL;
+    }
+
+    pcutils_map_entry *entry;
+    entry = pcutils_map_find(elem->attrs, key);
+
+    if (!entry || !entry->val) {
+        pcinst_set_error(PURC_ERROR_NOT_EXISTS);
+        return NULL;
+    }
+
+    return entry->val;
+}
 
 // operation api
 void
