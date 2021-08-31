@@ -79,6 +79,8 @@ void pchvml_token_attribute_append_to_name (struct pchvml_token* token,
         const char* bytes, size_t sz_bytes);
 void pchvml_token_attribute_append_to_value (struct pchvml_token* token,
         const char* bytes, size_t sz_bytes);
+void pchvml_token_attribute_set_assignment (struct pchvml_token* token,
+        enum hvml_attribute_assignment assignment);
 void pchvml_token_attribute_end (struct pchvml_token* token);
 
 struct pchvml_token* pchvml_token_new_character ();
