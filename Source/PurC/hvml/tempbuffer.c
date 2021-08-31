@@ -68,6 +68,11 @@ size_t pchvml_temp_buffer_get_size_in_chars (struct pchvml_temp_buffer* buffer)
     return buffer->sz_char;
 }
 
+static bool is_utf8_leading_byte (char c)
+{
+    return (c & 0xC0) != 0x80;
+}
+
 static wchar_t utf8_to_wchar_t (const unsigned char* utf8_char,
         int utf8_char_len)
 {
@@ -153,7 +158,18 @@ bool pchvml_temp_buffer_equal_to (struct pchvml_temp_buffer* buffer,
 
 wchar_t pchvml_temp_buffer_get_last_char (struct pchvml_temp_buffer* buffer)
 {
-    return buffer->last_wc;
+    if (pchvml_temp_buffer_is_empty(buffer)) {
+        return 0;
+    }
+
+    uint8_t* p = buffer->here;
+    while (p >= buffer->base) {
+        if (is_utf8_leading_byte(*p)) {
+            break;
+        }
+        p = p - 1;
+    }
+    return utf8_to_wchar_t(p, buffer->here - p);
 }
 
 void pchvml_temp_buffer_reset (struct pchvml_temp_buffer* buffer)
