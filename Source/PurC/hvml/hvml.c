@@ -1065,13 +1065,16 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_COMMENT_STATE)
-            // TODO : compare to doc
+            if (character == '<') {
+                APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
+                SWITCH_TO(PCHVML_COMMENT_LESS_THAN_SIGN_STATE);
+            }
             if (character == '-') {
                 ADVANCE_TO(PCHVML_COMMENT_END_DASH_STATE);
             }
             if (is_eof(character)) {
-                RECONSUME_IN_NEXT(PCHVML_DATA_STATE);
-                return hvml->current_token;
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_COMMENT);
+                RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
             APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
             ADVANCE_TO(PCHVML_COMMENT_STATE);
