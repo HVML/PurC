@@ -600,13 +600,17 @@ next_state:
                 ADVANCE_TO(PCHVML_TAG_NAME_STATE);
             }
             if (character == '>') {
+                PCHVML_SET_ERROR(PCHVML_ERROR_MISSING_END_TAG_NAME);
                 ADVANCE_TO(PCHVML_DATA_STATE);
             }
             if (character == PCHVML_END_OF_FILE) {
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_BEFORE_TAG_NAME);
                 APPEND_TO_CHARACTER("<", 1);
                 APPEND_TO_CHARACTER("/", 1);
-                RECONSUME_IN(PCHVML_DATA_STATE);
+                RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
+            PCHVML_SET_ERROR(PCHVML_ERROR_INVALID_FIRST_CHARACTER_OF_TAG_NAME);
+            hvml->current_token = pchvml_token_new_comment();
             RECONSUME_IN(PCHVML_BOGUS_COMMENT_STATE);
         END_STATE()
 
