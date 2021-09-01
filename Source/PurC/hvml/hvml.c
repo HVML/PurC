@@ -783,24 +783,20 @@ next_state:
             if (is_whitespace(character)) {
                 ADVANCE_TO(PCHVML_BEFORE_ATTRIBUTE_NAME_STATE);
             }
-            if (character == '/') {
-                ADVANCE_TO(PCHVML_SELF_CLOSING_START_TAG_STATE);
+            if (character == '/' || character == '>'
+                    || is_eof(character)) {
+                RECONSUME_IN(PCHVML_AFTER_ATTRIBUTE_NAME_STATE);
             }
-            if (character == '>') {
-                SWITCH_TO(PCHVML_DATA_STATE);
-                return hvml->current_token;
-            }
-            if (character == '<') {
-                SWITCH_TO(PCHVML_DATA_STATE);
-                return hvml->current_token;
-            }
-            if (is_eof(character)) {
-                RECONSUME_IN(PCHVML_DATA_STATE);
+            if (character == '=') {
+                PCHVML_SET_ERROR(
+                    PCHVML_ERROR_UNEXPECTED_EQUALS_SIGN_BEFORE_ATTRIBUTE_NAME);
+                pchvml_token_attribute_begin (hvml->current_token);
+                pchvml_token_attribute_append_to_name (
+                        hvml->current_token, hvml->c, hvml->sz_c);
+                ADVANCE_TO(PCHVML_ATTRIBUTE_NAME_STATE);
             }
             pchvml_token_attribute_begin (hvml->current_token);
-            pchvml_token_attribute_append_to_name (
-                    hvml->current_token, hvml->c, hvml->sz_c);
-            ADVANCE_TO(PCHVML_ATTRIBUTE_NAME_STATE);
+            RECONSUME_IN(PCHVML_ATTRIBUTE_NAME_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_ATTRIBUTE_NAME_STATE)
