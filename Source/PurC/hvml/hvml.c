@@ -534,6 +534,13 @@ void pchvml_parser_reset_appropriate_tag_name (struct pchvml_parser* hvml)
     pchvml_temp_buffer_reset(hvml->appropriate_tag_name);
 }
 
+bool pchvml_parser_is_appropriate_end_tag (struct pchvml_parser* hvml)
+{
+    const char* name = pchvml_token_get_name(hvml->current_token);
+    return pchvml_temp_buffer_equal_to (hvml->appropriate_tag_name, name,
+            strlen(name));
+}
+
 struct pchvml_token* pchvml_next_token (struct pchvml_parser* hvml,
                                           purc_rwstream_t rws)
 {
