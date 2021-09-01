@@ -945,14 +945,16 @@ next_state:
                 ADVANCE_TO(PCHVML_AFTER_ATTRIBUTE_VALUE_QUOTED_STATE);
             }
             if (character == '&') {
-                hvml->return_state = PCHVML_ATTRIBUTE_VALUE_SINGLE_QUOTED_STATE;
+                SET_RETURN_STATE(PCHVML_ATTRIBUTE_VALUE_SINGLE_QUOTED_STATE);
                 ADVANCE_TO(PCHVML_CHARACTER_REFERENCE_STATE);
             }
             if (is_eof(character)) {
                 pchvml_token_attribute_end(hvml->current_token);
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
-            APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
+            pchvml_token_attribute_append_to_value(hvml->current_token,
+                    hvml->c, hvml->sz_c);
             ADVANCE_TO(PCHVML_ATTRIBUTE_VALUE_SINGLE_QUOTED_STATE);
         END_STATE()
 
