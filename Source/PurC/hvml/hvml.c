@@ -281,7 +281,9 @@ static const char* hvml_err_msgs[] = {
     /* PCHVML_ERROR_MISSING_MISSING_ATTRIBUTE_VALUE */
     "pchvml error missing missing attribute value",
     /* PCHVML_ERROR_NESTED_COMMENT */
-    "pchvml error nested comment"
+    "pchvml error nested comment",
+    /* PCHVML_ERROR_INCORRECTLY_CLOSED_COMMENT */
+    "pchvml error incorrectly closed comment"
 };
 
 static struct err_msg_seg _hvml_err_msgs_seg = {
@@ -1144,6 +1146,7 @@ next_state:
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
             APPEND_TO_CHARACTER("-", 1);
+            APPEND_TO_CHARACTER("-", 1);
             RECONSUME_IN(PCHVML_COMMENT_STATE);
         END_STATE()
 
@@ -1155,17 +1158,17 @@ next_state:
                 ADVANCE_TO(PCHVML_COMMENT_END_DASH_STATE);
             }
             if (character == '>') {
-                RECONSUME_IN_NEXT(PCHVML_DATA_STATE);
-                return hvml->current_token;
+                PCHVML_SET_ERROR(PCHVML_ERROR_INCORRECTLY_CLOSED_COMMENT);
+                RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
             if (is_eof(character)) {
-                RECONSUME_IN_NEXT(PCHVML_DATA_STATE);
-                return hvml->current_token;
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_COMMENT);
+                RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
             APPEND_TO_CHARACTER("-", 1);
             APPEND_TO_CHARACTER("-", 1);
             APPEND_TO_CHARACTER("!", 1);
-            ADVANCE_TO(PCHVML_COMMENT_STATE);
+            RECONSUME_IN(PCHVML_COMMENT_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_DOCTYPE_STATE)
