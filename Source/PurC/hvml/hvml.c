@@ -111,6 +111,7 @@
         hvml->state = current_state;                                       \
         hvml->need_reconsume = true;                                       \
         if (expression) {                                                  \
+            pchvml_parser_save_appropriate_tag_name(hvml);                 \
             pchvml_token_done(hvml->current_token);                        \
             struct pchvml_token* token = hvml->current_token;              \
             return token;                                                  \
@@ -121,6 +122,7 @@
 #define RETURN_AND_SWITCH_TO(next_state)                                   \
     do {                                                                   \
         hvml->state = next_state;                                          \
+        pchvml_parser_save_appropriate_tag_name(hvml);                     \
         pchvml_token_done(hvml->current_token);                            \
         struct pchvml_token* token = hvml->current_token;                  \
         return token;                                                      \
@@ -129,6 +131,7 @@
 #define RETURN_AND_RECONSUME_IN(next_state)                                \
     do {                                                                   \
         hvml->state = next_state;                                          \
+        pchvml_parser_save_appropriate_tag_name(hvml);                     \
         pchvml_token_done(hvml->current_token);                            \
         struct pchvml_token* token = hvml->current_token;                  \
         return token;                                                      \
@@ -517,7 +520,7 @@ void pchvml_parser_append_to_character (struct pchvml_parser* hvml,
     pchvml_token_append_to_character(hvml->current_token, bytes, nr_bytes);
 }
 
-void pchvml_parser_save_tag_name (struct pchvml_parser* hvml)
+void pchvml_parser_save_appropriate_tag_name (struct pchvml_parser* hvml)
 {
     if (pchvml_token_is_type (hvml->current_token, PCHVML_TOKEN_START_TAG)) {
         const char* name = pchvml_token_get_name(hvml->current_token);
@@ -526,7 +529,7 @@ void pchvml_parser_save_tag_name (struct pchvml_parser* hvml)
     }
 }
 
-void pchvml_parse_reset_appropriate_tag_name (struct pchvml_parser* hvml)
+void pchvml_parser_reset_appropriate_tag_name (struct pchvml_parser* hvml)
 {
     pchvml_temp_buffer_reset(hvml->appropriate_tag_name);
 }
@@ -633,6 +636,7 @@ next_state:
         BEGIN_STATE(PCHVML_END_TAG_OPEN_STATE)
             if (is_ascii_alpha(character)) {
                 hvml->current_token = pchvml_token_new_end_tag();
+                pchvml_parser_reset_appropriate_tag_name(hvml);
                 ADVANCE_TO(PCHVML_TAG_NAME_STATE);
             }
             if (character == '>') {
