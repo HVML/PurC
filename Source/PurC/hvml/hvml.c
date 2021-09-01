@@ -1121,11 +1121,11 @@ next_state:
                 ADVANCE_TO(PCHVML_COMMENT_END_STATE);
             }
             if (is_eof(character)) {
-                RECONSUME_IN_NEXT(PCHVML_DATA_STATE);
-                return hvml->current_token;
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_COMMENT);
+                RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
             APPEND_TO_CHARACTER("-", 1);
-            ADVANCE_TO(PCHVML_COMMENT_STATE);
+            RECONSUME_IN(PCHVML_COMMENT_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_COMMENT_END_STATE)
