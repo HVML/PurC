@@ -279,7 +279,9 @@ static const char* hvml_err_msgs[] = {
     /* PCHVML_ERROR_BAD_JSONEE_UNEXPECTED_LEFT_ANGLE_BRACKET */
     "pchvml error bad jsonee unexpected left angle bracket",
     /* PCHVML_ERROR_MISSING_MISSING_ATTRIBUTE_VALUE */
-    "pchvml error missing missing attribute value"
+    "pchvml error missing missing attribute value",
+    /* PCHVML_ERROR_NESTED_COMMENT */
+    "pchvml error nested comment"
 };
 
 static struct err_msg_seg _hvml_err_msgs_seg = {
@@ -1107,7 +1109,11 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_COMMENT_LESS_THAN_SIGN_BANG_DASH_DASH_STATE)
-            // TODO remove
+            if (character == '>' || is_eof(character)) {
+                RECONSUME_IN(PCHVML_COMMENT_END_STATE);
+            }
+            PCHVML_SET_ERROR(PCHVML_ERROR_NESTED_COMMENT);
+            RECONSUME_IN(PCHVML_COMMENT_END_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_COMMENT_END_DASH_STATE)
