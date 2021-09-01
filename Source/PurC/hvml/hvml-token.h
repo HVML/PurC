@@ -96,6 +96,11 @@ struct pchvml_token* pchvml_token_new_eof () {
     return pchvml_token_new(PCHVML_TOKEN_EOF);
 }
 
+PCA_INLINE
+struct pchvml_token* pchvml_token_new_comment () {
+    return pchvml_token_new(PCHVML_TOKEN_COMMENT);
+}
+
 void pchvml_token_append (struct pchvml_token* token,
         const char* bytes, size_t sz_bytes);
 
