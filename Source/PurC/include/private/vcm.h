@@ -76,10 +76,10 @@ extern "C" {
 #endif  /* __cplusplus */
 
 struct pcvcm_node* pcvcm_node_new_object (size_t nr_nodes,
-        struct pcvcm_node* nodes);
+        struct pcvcm_node** nodes);
 
 struct pcvcm_node* pcvcm_node_new_array (size_t nr_nodes,
-        struct pcvcm_node* nodes);
+        struct pcvcm_node** nodes);
 
 struct pcvcm_node* pcvcm_node_new_string (const char* str_utf8);
 
