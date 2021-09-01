@@ -1023,16 +1023,11 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_BOGUS_COMMENT_STATE)
-            if (hvml->current_token->type != PCHVML_TOKEN_COMMENT) {
-                hvml->current_token = pchvml_token_new(PCHVML_TOKEN_COMMENT);
-            }
             if (character == '>') {
-                SWITCH_TO(PCHVML_DATA_STATE);
-                return hvml->current_token;
+                RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
             if (is_eof(character)) {
-                RECONSUME_IN_NEXT(PCHVML_DATA_STATE);
-                return hvml->current_token;
+                RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
             APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
             ADVANCE_TO(PCHVML_BOGUS_COMMENT_STATE);
