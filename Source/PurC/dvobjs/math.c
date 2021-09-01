@@ -58,13 +58,13 @@
  *              purc_dvariant_method func = 
  *                                  purc_variant_dynamic_get_getter (dynamic);
  *
- *              purc_variant_t *param = NULL;
+ *              purc_variant_t *param = PURC_VARIANT_INVALID;
  *              purc_variant_t PI = func (root, 0, param);
  * @endcode
  *
  * @note        The function does not check the validity of parameters,
  *              you can simplify the code as:
- *              purc_variant_t PI = func (root, 0, NULL);
+ *              purc_variant_t PI = func (root, 0, PURC_VARIANT_INVALID);
 */
 static purc_variant_t
 pi_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
@@ -93,13 +93,13 @@ pi_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
  *              purc_dvariant_method func = 
  *                                  purc_variant_dynamic_get_getter (dynamic);
  *
- *              purc_variant_t *param = NULL;
+ *              purc_variant_t *param = PURC_VARIANT_INVALID;
  *              purc_variant_t PI = func (root, 0, param);
  * @endcode
  *
  * @note        The function does not check the validity of parameters,
  *              you can simplify the code as:
- *              purc_variant_t PI = func (root, 0, NULL);
+ *              purc_variant_t PI = func (root, 0, PURC_VARIANT_INVALID);
 */
 static purc_variant_t
 pi_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
@@ -128,13 +128,13 @@ pi_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
  *              purc_dvariant_method func = 
  *                                  purc_variant_dynamic_get_getter (dynamic);
  *
- *              purc_variant_t *param = NULL;
+ *              purc_variant_t *param = PURC_VARIANT_INVALID;
  *              purc_variant_t E = func (root, 0, param);
  * @endcode
  *
  * @note        The function does not check the validity of parameters,
  *              you can simplify the code as:
- *              purc_variant_t E = func (root, 0, NULL);
+ *              purc_variant_t E = func (root, 0, PURC_VARIANT_INVALID);
 */
 static purc_variant_t
 e_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
@@ -163,13 +163,13 @@ e_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
  *              purc_dvariant_method func = 
  *                                  purc_variant_dynamic_get_getter (dynamic);
  *
- *              purc_variant_t *param = NULL;
+ *              purc_variant_t *param = PURC_VARIANT_INVALID;
  *              purc_variant_t e = func (root, 0, param);
  * @endcode
  *
  * @note        The function does not check the validity of parameters,
  *              you can simplify the code as:
- *              purc_variant_t E = func (root, 0, NULL);
+ *              purc_variant_t E = func (root, 0, PURC_VARIANT_INVALID);
 */
 static purc_variant_t
 e_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
@@ -461,7 +461,7 @@ sin_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
 
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
     double number = 0.0d;
 
     purc_variant_cast_to_number (argv[0], &number, false);
@@ -506,7 +506,7 @@ cos_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
 
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
     double number = 0.0d;
 
     purc_variant_cast_to_number (argv[0], &number, false);
@@ -550,7 +550,7 @@ sqrt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
 
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
     double number = 0.0d;
 
     purc_variant_cast_to_number (argv[0], &number, false);
@@ -595,7 +595,7 @@ sin_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
 
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
     long double number = 0.0d;
 
     purc_variant_cast_to_long_double (argv[0], &number, false);
@@ -640,7 +640,7 @@ cos_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
 
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
     long double number = 0.0d;
 
     purc_variant_cast_to_long_double (argv[0], &number, false);
@@ -682,7 +682,7 @@ sqrt_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
 
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
     long double number = 0.0d;
 
     purc_variant_cast_to_long_double (argv[0], &number, false);
