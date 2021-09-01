@@ -54,13 +54,13 @@
 #else
 #define PRINT_STATE(state_name)                                             \
     fprintf(stderr, "in %s|wc=%c|hex=%x\n",                                 \
-            pchvml_hvml_state_desc(state_name), hvml->wc, hvml->wc);
+            pchvml_pchvml_state_desc(state_name), hvml->wc, hvml->wc);
 #endif
 
 #define BEGIN_STATE(state_name)                                             \
     case state_name:                                                        \
     {                                                                       \
-        enum hvml_state current_state = state_name;                        \
+        enum pchvml_state current_state = state_name;                        \
         UNUSED_PARAM(current_state);                                        \
         PRINT_STATE(current_state);
 
@@ -246,7 +246,7 @@ void pchvml_destroy(struct pchvml_parser* parser)
     }
 }
 
-const char* pchvml_hvml_state_desc (enum hvml_state state)
+const char* pchvml_pchvml_state_desc (enum pchvml_state state)
 {
     switch (state) {
         STATE_DESC(HVML_DATA_STATE)

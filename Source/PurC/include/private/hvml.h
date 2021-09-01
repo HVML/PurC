@@ -29,7 +29,7 @@
 #include "private/stack.h"
 #include "private/vcm.h"
 
-enum hvml_state {
+enum pchvml_state {
     HVML_DATA_STATE,
     HVML_RCDATA_STATE,
     HVML_RAWTEXT_STATE,
@@ -146,8 +146,8 @@ struct pchvml_temp_buffer;
 struct pchvml_token;
 
 struct pchvml_parser {
-    enum hvml_state state;
-    enum hvml_state return_state;
+    enum pchvml_state state;
+    enum pchvml_state return_state;
     uint32_t flags;
     uint32_t sz_c;
     wchar_t wc;

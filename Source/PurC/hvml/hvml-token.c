@@ -75,7 +75,7 @@ void pchvml_token_attribute_list_free_fn(void *data)
     pchvml_token_attribute_destroy ((struct pchvml_token_attribute*)data);
 }
 
-struct pchvml_token* pchvml_token_new (enum hvml_token_type type)
+struct pchvml_token* pchvml_token_new (enum pchvml_token_type type)
 {
     struct pchvml_token* token = (struct pchvml_token*) HVML_ALLOC(
             sizeof(struct pchvml_token));
@@ -119,7 +119,7 @@ void pchvml_token_attribute_append_to_value (struct pchvml_token* token,
 }
 
 void pchvml_token_attribute_set_assignment (struct pchvml_token* token,
-        enum hvml_attribute_assignment assignment)
+        enum pchvml_attribute_assignment assignment)
 {
     if (token->curr_attr) {
         token->curr_attr->assignment = assignment;
