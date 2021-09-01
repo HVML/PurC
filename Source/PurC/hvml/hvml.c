@@ -563,6 +563,13 @@ bool pchvml_parser_is_ordinary_attribute (struct pchvml_token_attribute* attr)
     return true;
 }
 
+bool pchvml_parser_is_preposition_attribute (struct pchvml_token_attribute* attr)
+{
+    UNUSED_PARAM(attr);
+    // TODO
+    return true;
+}
+
 struct pchvml_token* pchvml_next_token (struct pchvml_parser* hvml,
                                           purc_rwstream_t rws)
 {
@@ -851,36 +858,36 @@ next_state:
             if (character == '/') {
                 ADVANCE_TO(PCHVML_SELF_CLOSING_START_TAG_STATE);
             }
-            if (character == '$' || character == '%' || character == '+'
-                    || character == '-' || character == '^'
-                    || character == '~') {
-#if 0
-                if () {
-                    // TODO : check token is an operation tag 
-                    // TODO : check attribute is an ordinary attribute name
-                    RESET_TEMP_BUFFER();
-                    APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
-                    SWITCH_TO(
-                    PCHVML_SPECIAL_ATTRIBUTE_OPERATOR_AFTER_ATTRIBUTE_NAME_STATE);
-                }
-#endif
-            }
             if (character == '=') {
                 ADVANCE_TO(PCHVML_BEFORE_ATTRIBUTE_VALUE_STATE);
             }
             if (character == '>') {
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
-            if (character == '<') {
-                RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
-            }
             if (is_eof(character)) {
-                RECONSUME_IN(PCHVML_DATA_STATE);
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
+                return pchvml_token_new_eof();
             }
-            pchvml_token_attribute_begin (hvml->current_token);
-            pchvml_token_attribute_append_to_name (
-                    hvml->current_token, hvml->c, hvml->sz_c);
-            ADVANCE_TO(PCHVML_ATTRIBUTE_NAME_STATE);
+            if (character == '$' || character == '%' || character == '+'
+                    || character == '-' || character == '^'
+                    || character == '~') {
+                if (pchvml_parser_is_operation_tag_token(hvml->current_token)
+                        && pchvml_parser_is_ordinary_attribute(
+                            hvml->current_token->curr_attr)) {
+                    RESET_TEMP_BUFFER();
+                    APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
+                    SWITCH_TO(
+                    PCHVML_SPECIAL_ATTRIBUTE_OPERATOR_AFTER_ATTRIBUTE_NAME_STATE
+                    );
+                }
+            }
+            if (pchvml_parser_is_operation_tag_token(hvml->current_token)
+                && pchvml_parser_is_preposition_attribute(
+                        hvml->current_token->curr_attr)) {
+                ADVANCE_TO(PCHVML_BEFORE_ATTRIBUTE_VALUE_STATE);
+            }
+            pchvml_token_attribute_begin(hvml->current_token);
+            RECONSUME_IN(PCHVML_ATTRIBUTE_NAME_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_BEFORE_ATTRIBUTE_VALUE_STATE)
