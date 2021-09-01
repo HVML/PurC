@@ -277,7 +277,9 @@ static const char* hvml_err_msgs[] = {
     /* PCHVML_ERROR_BAD_JSONEE_UNEXPECTED_PARENTHESIS */
     "pchvml error bad jsonee unexpected parenthesis",
     /* PCHVML_ERROR_BAD_JSONEE_UNEXPECTED_LEFT_ANGLE_BRACKET */
-    "pchvml error bad jsonee unexpected left angle bracket"
+    "pchvml error bad jsonee unexpected left angle bracket",
+    /* PCHVML_ERROR_MISSING_MISSING_ATTRIBUTE_VALUE */
+    "pchvml error missing missing attribute value"
 };
 
 static struct err_msg_seg _hvml_err_msgs_seg = {
@@ -904,18 +906,16 @@ next_state:
                 ADVANCE_TO(PCHVML_ATTRIBUTE_VALUE_SINGLE_QUOTED_STATE);
             }
             if (character == '>') {
-                SWITCH_TO(PCHVML_DATA_STATE);
-                return hvml->current_token;
+                PCHVML_SET_ERROR(PCHVML_ERROR_MISSING_MISSING_ATTRIBUTE_VALUE);
+                RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
-            if (character == '$') {
-                // TODO concat-string and so on
+            if (character == '{' || character == '[' || character == '$') {
                 RECONSUME_IN(PCHVML_EJSON_DATA_STATE);
             }
             if (is_eof(character)) {
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
-            APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
-            ADVANCE_TO(PCHVML_ATTRIBUTE_VALUE_UNQUOTED_STATE);
+            RECONSUME_IN(PCHVML_ATTRIBUTE_VALUE_UNQUOTED_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_ATTRIBUTE_VALUE_DOUBLE_QUOTED_STATE)
