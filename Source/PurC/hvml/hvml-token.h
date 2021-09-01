@@ -34,35 +34,35 @@
 #define pchvml_token_append_to_comment pchvml_token_append
 #define pchvml_token_append_to_character pchvml_token_append
 
-enum hvml_attribute_assignment {
-    HVML_ATTRIBUTE_ASSIGNMENT,           // =
-    HVML_ATTRIBUTE_ADDITION_ASSIGNMENT,  // +=
-    HVML_ATTRIBUTE_SUBTRACTION_ASSIGNMENT, // -=
-    HVML_ATTRIBUTE_REMAINDER_ASSIGNMENT,  // %=
-    HVML_ATTRIBUTE_REPLACE_ASSIGNMENT,   // ~=
-    HVML_ATTRIBUTE_HEAD_ASSIGNMENT,   // ^=
-    HVML_ATTRIBUTE_TAIL_ASSIGNMENT,   // $=
+enum pchvml_attribute_assignment {
+    PCHVML_ATTRIBUTE_ASSIGNMENT,           // =
+    PCHVML_ATTRIBUTE_ADDITION_ASSIGNMENT,  // +=
+    PCHVML_ATTRIBUTE_SUBTRACTION_ASSIGNMENT, // -=
+    PCHVML_ATTRIBUTE_REMAINDER_ASSIGNMENT,  // %=
+    PCHVML_ATTRIBUTE_REPLACE_ASSIGNMENT,   // ~=
+    PCHVML_ATTRIBUTE_HEAD_ASSIGNMENT,   // ^=
+    PCHVML_ATTRIBUTE_TAIL_ASSIGNMENT,   // $=
 };
 
-enum hvml_token_type {
-    HVML_TOKEN_DOCTYPE,
-    HVML_TOKEN_START_TAG,
-    HVML_TOKEN_END_TAG,
-    HVML_TOKEN_COMMENT,
-    HVML_TOKEN_CHARACTER,
-    HVML_TOKEN_VCM_TREE,
-    HVML_TOKEN_EOF
+enum pchvml_token_type {
+    PCHVML_TOKEN_DOCTYPE,
+    PCHVML_TOKEN_START_TAG,
+    PCHVML_TOKEN_END_TAG,
+    PCHVML_TOKEN_COMMENT,
+    PCHVML_TOKEN_CHARACTER,
+    PCHVML_TOKEN_VCM_TREE,
+    PCHVML_TOKEN_EOF
 };
 
 struct pchvml_token_attribute {
-    enum hvml_attribute_assignment assignment;
+    enum pchvml_attribute_assignment assignment;
     struct pchvml_temp_buffer* name;
     struct pchvml_temp_buffer* value;
     struct pcvcm_node* vcm;
 };
 
 struct pchvml_token {
-    enum hvml_token_type type;
+    enum pchvml_token_type type;
     char* data;
     struct pcutils_arrlist* attr_list;
     struct pchvml_token_attribute* curr_attr;
@@ -75,7 +75,7 @@ struct pchvml_token {
 extern "C" {
 #endif  /* __cplusplus */
 
-struct pchvml_token* pchvml_token_new (enum hvml_token_type type);
+struct pchvml_token* pchvml_token_new (enum pchvml_token_type type);
 void pchvml_token_destroy (struct pchvml_token* token);
 
 void pchvml_token_attribute_begin (struct pchvml_token* token);
@@ -84,7 +84,7 @@ void pchvml_token_attribute_append_to_name (struct pchvml_token* token,
 void pchvml_token_attribute_append_to_value (struct pchvml_token* token,
         const char* bytes, size_t sz_bytes);
 void pchvml_token_attribute_set_assignment (struct pchvml_token* token,
-        enum hvml_attribute_assignment assignment);
+        enum pchvml_attribute_assignment assignment);
 void pchvml_token_attribute_end (struct pchvml_token* token);
 
 struct pchvml_token* pchvml_token_new_character ();
