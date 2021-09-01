@@ -549,6 +549,20 @@ bool pchvml_parser_is_appropriate_end_tag (struct pchvml_parser* hvml)
             strlen(name));
 }
 
+bool pchvml_parser_is_operation_tag_token (struct pchvml_token* token)
+{
+    UNUSED_PARAM(token);
+    // TODO
+    return true;
+}
+
+bool pchvml_parser_is_ordinary_attribute (struct pchvml_token_attribute* attr)
+{
+    UNUSED_PARAM(attr);
+    // TODO
+    return true;
+}
+
 struct pchvml_token* pchvml_next_token (struct pchvml_parser* hvml,
                                           purc_rwstream_t rws)
 {
@@ -800,34 +814,30 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_ATTRIBUTE_NAME_STATE)
-            if (is_whitespace(character)) {
-                ADVANCE_TO(PCHVML_AFTER_ATTRIBUTE_NAME_STATE);
-            }
-            if (character == '/') {
-                ADVANCE_TO(PCHVML_SELF_CLOSING_START_TAG_STATE);
-            }
-            if (character == '$' || character == '%' || character == '+'
-                    || character == '-' || character == '^'
-                    || character == '~') {
-                if (hvml->current_token->type == PCHVML_TOKEN_START_TAG) {
-                    // TODO : check attribute is an ordinary attribute name
-                    RESET_TEMP_BUFFER();
-                    APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
-                    SWITCH_TO(
-                            PCHVML_SPECIAL_ATTRIBUTE_OPERATOR_IN_ATTRIBUTE_NAME_STATE);
-                }
+            if (is_whitespace(character) || character == '/'
+                    || character == '>' || is_eof(character)) {
+                RECONSUME_IN(PCHVML_AFTER_ATTRIBUTE_NAME_STATE);
             }
             if (character == '=') {
                 ADVANCE_TO(PCHVML_BEFORE_ATTRIBUTE_VALUE_STATE);
             }
-            if (character == '>') {
-                RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
+            if (character == '"' || character == '\'' || character == '<') {
+                PCHVML_SET_ERROR(
+                        PCHVML_ERROR_UNEXPECTED_CHARACTER_IN_ATTRIBUTE_NAME);
+                pchvml_token_attribute_append_to_name (
+                        hvml->current_token, hvml->c, hvml->sz_c);
             }
-            if (character == '<') {
-                RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
-            }
-            if (is_eof(character)) {
-                RECONSUME_IN(PCHVML_DATA_STATE);
+            if (character == '$' || character == '%' || character == '+'
+                    || character == '-' || character == '^'
+                    || character == '~') {
+                if (pchvml_parser_is_operation_tag_token(hvml->current_token)
+                        && pchvml_parser_is_ordinary_attribute(
+                            hvml->current_token->curr_attr)) {
+                    RESET_TEMP_BUFFER();
+                    APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
+                    SWITCH_TO(
+                    PCHVML_SPECIAL_ATTRIBUTE_OPERATOR_IN_ATTRIBUTE_NAME_STATE);
+                }
             }
             pchvml_token_attribute_append_to_name (
                     hvml->current_token, hvml->c, hvml->sz_c);
