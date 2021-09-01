@@ -100,25 +100,128 @@ _on_doctype(struct pchvml_vdom_parser *parser, struct pchvml_token *token)
 static int
 _on_start_tag(struct pchvml_vdom_parser *parser, struct pchvml_token *token)
 {
-    UNUSED_PARAM(parser);
-    UNUSED_PARAM(token);
-    return -1;
+    PC_ASSERT(parser && parser->doc && parser->curr);
+    PC_ASSERT(token->data);
+
+    int is_doc = 0;
+    if (parser->curr == &parser->doc->node) {
+        if (parser->doc->root) {
+            // root has already been set
+            return 0;
+        }
+        is_doc = 1;
+    }
+
+    struct pcvdom_element *elem;
+    elem = pcvdom_element_create_c(token->data);
+    if (!elem) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+
+    int r = 0;
+
+    if (token->attr_list) {
+        for (size_t i=0; i<token->attr_list->length; ++i) {
+            struct pchvml_token_attribute *src;
+            src = (struct pchvml_token_attribute*)token->attr_list->array[i];
+            PC_ASSERT(src);
+            PC_ASSERT(src->name);
+
+            const char* key = pchvml_temp_buffer_get_buffer(src->name);
+            PC_ASSERT(key);
+
+            struct pcvdom_attr *attr;
+            attr = pcvdom_attr_create(key, src->assignment, src->vcm);
+
+            if (!attr) {
+                r = -1;
+                break;
+            }
+
+            r = pcvdom_element_append_attr(elem, attr);
+            if (r)
+                break;
+        }
+    }
+
+    if (r==0) {
+        if (is_doc) {
+            r = pcvdom_document_set_root(parser->doc, elem);
+        } else {
+            r = pcvdom_element_append_element(
+                    container_of(parser->curr, struct pcvdom_element, node),
+                    elem);
+        }
+        if (r==0) {
+            if (!token->self_closing) {
+                parser->curr = &elem->node;
+            }
+        }
+    }
+
+    if (r) {
+        pcvdom_node_destroy(&elem->node);
+    }
+
+    return r ? -1 : 0;
 }
 
 static int
 _on_end_tag(struct pchvml_vdom_parser *parser, struct pchvml_token *token)
 {
-    UNUSED_PARAM(parser);
-    UNUSED_PARAM(token);
-    return -1;
+    PC_ASSERT(parser && parser->doc && parser->curr);
+    PC_ASSERT(token->data);
+    PC_ASSERT(parser->curr != &parser->doc->node);
+
+    struct pcvdom_element *elem;
+    elem = container_of(parser->curr, struct pcvdom_element, node);
+
+    const char *tag_name;
+    tag_name = pcvdom_element_get_tagname(elem);
+
+    PC_ASSERT(tag_name);
+    PC_ASSERT(strcasecmp(tag_name, token->data)==0);
+
+    parser->curr = container_of(parser->curr->node.parent,
+                        struct pcvdom_node, node);
+
+    return 0;
 }
 
 static int
 _on_comment(struct pchvml_vdom_parser *parser, struct pchvml_token *token)
 {
-    UNUSED_PARAM(parser);
-    UNUSED_PARAM(token);
-    return -1;
+    PC_ASSERT(parser && parser->doc && parser->curr);
+    PC_ASSERT(token->data);
+
+    int is_doc = 0;
+    if (parser->curr == &parser->doc->node) {
+        is_doc = 1;
+    }
+
+    struct pcvdom_comment *comment;
+    comment = pcvdom_comment_create(token->data);
+    if (!comment) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+
+    int r = 0;
+
+    if (is_doc) {
+        r = pcvdom_document_append_comment(parser->doc, comment);
+    } else {
+        r = pcvdom_element_append_comment(
+                container_of(parser->curr, struct pcvdom_element, node),
+                comment);
+    }
+
+    if (r) {
+        pcvdom_node_destroy(&comment->node);
+    }
+
+    return r ? -1 : 0;
 }
 
 static int
@@ -153,6 +256,8 @@ pchvml_vdom_parser_parse(struct pchvml_vdom_parser *parser,
 
     PC_ASSERT(parser->eof == 0);
 
+    int r = 0;
+
     while (1) {
         struct pchvml_token *token = pchvml_vdom_next_token(parser->tokenizer,
             in);
@@ -164,40 +269,42 @@ pchvml_vdom_parser_parse(struct pchvml_vdom_parser *parser,
         switch (token->type) {
             case VTT(DOCTYPE):
             {
-                return _on_doctype(parser, token);
+                r = _on_doctype(parser, token);
             } break;
             case VTT(START_TAG):
             {
-                return _on_start_tag(parser, token);
+                r = _on_start_tag(parser, token);
             } break;
             case VTT(END_TAG):
             {
-                return _on_end_tag(parser, token);
+                r = _on_end_tag(parser, token);
             } break;
             case VTT(COMMENT):
             {
-                return _on_comment(parser, token);
+                r = _on_comment(parser, token);
             } break;
             case VTT(CHARACTER):
             {
-                return _on_character(parser, token);
+                r = _on_character(parser, token);
             } break;
             case VTT(VCM_TREE):
             {
-                return _on_vcm(parser, token);
+                r = _on_vcm(parser, token);
             } break;
             case VTT(EOF):
             {
-                parser->eof = 1; 
+                parser->eof = 1;
             } break;
             default:
             {
                 PC_ASSERT(0);
             } break;
         }
+
+        pchvml_token_destroy(token);
     }
 
-    return 0;
+    return r ? -1 : 0;
 }
 
 int
