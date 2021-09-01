@@ -998,16 +998,14 @@ next_state:
                 ADVANCE_TO(PCHVML_SELF_CLOSING_START_TAG_STATE);
             }
             if (character == '>') {
-                SWITCH_TO(PCHVML_DATA_STATE);
-                return hvml->current_token;
-            }
-            if (character == '<') {
-                SWITCH_TO(PCHVML_DATA_STATE);
-                return hvml->current_token;
+                RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
             if (is_eof(character)) {
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
+            PCHVML_SET_ERROR(
+                    PCHVML_ERROR_MISSING_WHITESPACE_BETWEEN_ATTRIBUTES);
             RECONSUME_IN(PCHVML_BEFORE_ATTRIBUTE_NAME_STATE);
         END_STATE()
 
