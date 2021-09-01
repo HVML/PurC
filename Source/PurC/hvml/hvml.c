@@ -143,6 +143,11 @@
         pchvml_parser_append_to_character (hvml, c, sz_c);                  \
     } while (false)
 
+#define APPEND_TO_TAG_NAME(c, sz_c)                                         \
+    do {                                                                    \
+        pchvml_parser_append_to_tag_name (hvml, c, sz_c);                   \
+    } while (false)
+
 #define RESET_TEMP_BUFFER()                                                 \
     do {                                                                    \
         pchvml_temp_buffer_reset (hvml->temp_buffer);                       \
@@ -486,6 +491,16 @@ const char* pchvml_pchvml_state_desc (enum pchvml_state state)
     return NULL;
 }
 
+void pchvml_parser_append_to_tag_name (struct pchvml_parser* hvml,
+        const char* bytes, size_t nr_bytes)
+{
+    if (hvml->current_token == NULL) {
+        hvml->current_token = pchvml_token_new (PCHVML_TOKEN_CHARACTER);
+    }
+    pchvml_token_append_to_name(hvml->current_token, bytes, nr_bytes);
+}
+
+
 void pchvml_parser_append_to_character (struct pchvml_parser* hvml,
         const char* bytes, size_t nr_bytes)
 {
@@ -615,21 +630,20 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_TAG_NAME_STATE)
-            if (is_whitespace(character))
+            if (is_whitespace(character)) {
                 ADVANCE_TO(PCHVML_BEFORE_ATTRIBUTE_NAME_STATE);
+            }
             if (character == '/') {
                 ADVANCE_TO(PCHVML_SELF_CLOSING_START_TAG_STATE);
             }
             if (character == '>') {
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
-            if (character == '<') {
-                RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
-            }
             if (character == PCHVML_END_OF_FILE) {
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
-            APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
+            APPEND_TO_TAG_NAME(hvml->c, hvml->sz_c);
             ADVANCE_TO(PCHVML_TAG_NAME_STATE);
         END_STATE()
 
