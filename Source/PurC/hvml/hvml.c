@@ -425,7 +425,7 @@ next_state:
 
         BEGIN_STATE(PCHVML_RCDATA_STATE)
             if (character == '&') {
-                hvml->return_state = PCHVML_RCDATA_STATE;
+                SET_RETURN_STATE(PCHVML_RCDATA_STATE);
                 ADVANCE_TO(PCHVML_CHARACTER_REFERENCE_STATE);
             }
             if (character == '<') {
