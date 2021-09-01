@@ -520,7 +520,6 @@ void pchvml_parser_append_to_tag_name (struct pchvml_parser* hvml,
     pchvml_token_append_to_name(hvml->current_token, bytes, nr_bytes);
 }
 
-
 void pchvml_parser_append_to_character (struct pchvml_parser* hvml,
         const char* bytes, size_t nr_bytes)
 {
@@ -924,14 +923,20 @@ next_state:
                 ADVANCE_TO(PCHVML_AFTER_ATTRIBUTE_VALUE_QUOTED_STATE);
             }
             if (character == '&') {
+                SET_RETURN_STATE(PCHVML_ATTRIBUTE_VALUE_DOUBLE_QUOTED_STATE);
                 ADVANCE_TO(PCHVML_CHARACTER_REFERENCE_STATE);
+            }
+            if (character == '$') {
+                // TODO : concat-string
             }
             if (is_eof(character)) {
                 pchvml_token_attribute_end(hvml->current_token);
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
-            APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
-            ADVANCE_TO(PCHVML_ATTRIBUTE_VALUE_UNQUOTED_STATE);
+            pchvml_token_attribute_append_to_value(hvml->current_token,
+                    hvml->c, hvml->sz_c);
+            ADVANCE_TO(PCHVML_ATTRIBUTE_VALUE_DOUBLE_QUOTED_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_ATTRIBUTE_VALUE_SINGLE_QUOTED_STATE)
