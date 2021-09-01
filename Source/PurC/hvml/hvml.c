@@ -340,6 +340,11 @@ static inline UNUSED_FUNCTION bool is_ascii_alpha_numeric (wchar_t character)
     return is_ascii_digit(character) || is_ascii_alpha(character);
 }
 
+static inline UNUSED_FUNCTION bool is_eof (wchar_t character)
+{
+    return character == PCHVML_END_OF_FILE;
+}
+
 
 void pchvml_init_once(void)
 {
@@ -539,7 +544,7 @@ next_state:
                 }
                 ADVANCE_TO(PCHVML_TAG_OPEN_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 return pchvml_token_new_eof();
             }
             APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
@@ -554,7 +559,7 @@ next_state:
             if (character == '<') {
                 ADVANCE_TO(PCHVML_RCDATA_LESS_THAN_SIGN_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
             APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
@@ -565,7 +570,7 @@ next_state:
             if (character == '<') {
                 ADVANCE_TO(PCHVML_RAWTEXT_LESS_THAN_SIGN_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 return pchvml_token_new_eof();
             }
 
@@ -574,7 +579,7 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_PLAINTEXT_STATE)
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 return pchvml_token_new_eof();
             }
 
@@ -599,7 +604,7 @@ next_state:
                 hvml->current_token = pchvml_token_new_comment();
                 RECONSUME_IN(PCHVML_BOGUS_COMMENT_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_BEFORE_TAG_NAME);
                 APPEND_TO_CHARACTER("<", 1);
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
@@ -618,7 +623,7 @@ next_state:
                 PCHVML_SET_ERROR(PCHVML_ERROR_MISSING_END_TAG_NAME);
                 ADVANCE_TO(PCHVML_DATA_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_BEFORE_TAG_NAME);
                 APPEND_TO_CHARACTER("<", 1);
                 APPEND_TO_CHARACTER("/", 1);
@@ -639,7 +644,7 @@ next_state:
             if (character == '>') {
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
@@ -710,7 +715,7 @@ next_state:
                 SWITCH_TO(PCHVML_DATA_STATE);
                 return hvml->current_token;
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
             pchvml_token_attribute_begin (hvml->current_token);
@@ -746,7 +751,7 @@ next_state:
             if (character == '<') {
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
             pchvml_token_attribute_append_to_name (
@@ -784,7 +789,7 @@ next_state:
             if (character == '<') {
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
             pchvml_token_attribute_begin (hvml->current_token);
@@ -814,7 +819,7 @@ next_state:
                 // TODO concat-string and so on
                 RECONSUME_IN(PCHVML_EJSON_DATA_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
             APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
@@ -829,7 +834,7 @@ next_state:
             if (character == '&') {
                 ADVANCE_TO(PCHVML_CHARACTER_REFERENCE_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 pchvml_token_attribute_end(hvml->current_token);
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
@@ -846,7 +851,7 @@ next_state:
                 hvml->return_state = PCHVML_ATTRIBUTE_VALUE_SINGLE_QUOTED_STATE;
                 ADVANCE_TO(PCHVML_CHARACTER_REFERENCE_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 pchvml_token_attribute_end(hvml->current_token);
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
@@ -872,7 +877,7 @@ next_state:
                 // TODO concat-string and so on
                 RECONSUME_IN(PCHVML_EJSON_DATA_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 pchvml_token_attribute_end(hvml->current_token);
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
@@ -895,7 +900,7 @@ next_state:
                 SWITCH_TO(PCHVML_DATA_STATE);
                 return hvml->current_token;
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
             RECONSUME_IN(PCHVML_BEFORE_ATTRIBUTE_NAME_STATE);
@@ -907,7 +912,7 @@ next_state:
                 SWITCH_TO(PCHVML_DATA_STATE);
                 return hvml->current_token;
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
             RECONSUME_IN(PCHVML_BEFORE_ATTRIBUTE_NAME_STATE);
@@ -921,7 +926,7 @@ next_state:
                 SWITCH_TO(PCHVML_DATA_STATE);
                 return hvml->current_token;
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 RECONSUME_IN_NEXT(PCHVML_DATA_STATE);
                 return hvml->current_token;
             }
@@ -941,7 +946,7 @@ next_state:
                 RECONSUME_IN_NEXT(PCHVML_DATA_STATE);
                 return hvml->current_token;
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 RECONSUME_IN_NEXT(PCHVML_DATA_STATE);
                 return hvml->current_token;
             }
@@ -957,7 +962,7 @@ next_state:
                 RECONSUME_IN_NEXT(PCHVML_DATA_STATE);
                 return hvml->current_token;
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 RECONSUME_IN_NEXT(PCHVML_DATA_STATE);
                 return hvml->current_token;
             }
@@ -971,7 +976,7 @@ next_state:
             if (character == '-') {
                 ADVANCE_TO(PCHVML_COMMENT_END_DASH_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 RECONSUME_IN_NEXT(PCHVML_DATA_STATE);
                 return hvml->current_token;
             }
@@ -999,7 +1004,7 @@ next_state:
             if (character == '-') {
                 ADVANCE_TO(PCHVML_COMMENT_END_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 RECONSUME_IN_NEXT(PCHVML_DATA_STATE);
                 return hvml->current_token;
             }
@@ -1019,7 +1024,7 @@ next_state:
                 APPEND_TO_CHARACTER("-", 1);
                 ADVANCE_TO(PCHVML_COMMENT_END_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 RECONSUME_IN_NEXT(PCHVML_DATA_STATE);
                 return hvml->current_token;
             }
@@ -1039,7 +1044,7 @@ next_state:
                 RECONSUME_IN_NEXT(PCHVML_DATA_STATE);
                 return hvml->current_token;
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 RECONSUME_IN_NEXT(PCHVML_DATA_STATE);
                 return hvml->current_token;
             }
@@ -1053,7 +1058,7 @@ next_state:
             if (is_whitespace(character)) {
                 ADVANCE_TO(PCHVML_BEFORE_DOCTYPE_NAME_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 hvml->current_token = pchvml_token_new(PCHVML_TOKEN_DOCTYPE);
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
@@ -1068,7 +1073,7 @@ next_state:
                 hvml->current_token = pchvml_token_new(PCHVML_TOKEN_DOCTYPE);
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 hvml->current_token = pchvml_token_new(PCHVML_TOKEN_DOCTYPE);
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
@@ -1083,7 +1088,7 @@ next_state:
             if (character == '>') {
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
             APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
@@ -1109,7 +1114,7 @@ next_state:
             if (character == '>') {
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
             ADVANCE_TO(PCHVML_BOGUS_DOCTYPE_STATE);
@@ -1130,7 +1135,7 @@ next_state:
             if (character == '>') {
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
             ADVANCE_TO(PCHVML_BOGUS_DOCTYPE_STATE);
@@ -1143,7 +1148,7 @@ next_state:
             if (character == '>') {
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
             // appendToPublicIdentifier(character);
@@ -1157,7 +1162,7 @@ next_state:
             if (character == '>') {
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
             // appendToPublicIdentifier(character);
@@ -1179,7 +1184,7 @@ next_state:
                 //TODO setSystemIdentifierToEmptyString();
                 ADVANCE_TO(PCHVML_DOCTYPE_SYSTEM_INFORMATION_SINGLE_QUOTED_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
             ADVANCE_TO(PCHVML_BOGUS_DOCTYPE_STATE);
@@ -1200,7 +1205,7 @@ next_state:
                 //TODO setSystemIdentifierToEmptyString();
                 ADVANCE_TO(PCHVML_DOCTYPE_SYSTEM_INFORMATION_SINGLE_QUOTED_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
             ADVANCE_TO(PCHVML_BOGUS_DOCTYPE_STATE);
@@ -1221,7 +1226,7 @@ next_state:
             if (character == '>') {
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
             ADVANCE_TO(PCHVML_BOGUS_DOCTYPE_STATE);
@@ -1242,7 +1247,7 @@ next_state:
             if (character == '>') {
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
             ADVANCE_TO(PCHVML_BOGUS_DOCTYPE_STATE);
@@ -1255,7 +1260,7 @@ next_state:
             if (character == '>') {
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
             // TODO appendToSystemIdentifier
@@ -1269,7 +1274,7 @@ next_state:
             if (character == '>') {
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
             // TODO appendToSystemIdentifier(character);
@@ -1283,7 +1288,7 @@ next_state:
             if (character == '>') {
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
             ADVANCE_TO(PCHVML_BOGUS_DOCTYPE_STATE);
@@ -1293,7 +1298,7 @@ next_state:
             if (character == '>') {
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
             ADVANCE_TO(PCHVML_BOGUS_DOCTYPE_STATE);
@@ -1303,7 +1308,7 @@ next_state:
             if (character == ']') {
                 ADVANCE_TO(PCHVML_CDATA_SECTION_BRACKET_STATE);
             }
-            if (character == PCHVML_END_OF_FILE) {
+            if (is_eof(character)) {
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
             APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
