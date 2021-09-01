@@ -154,6 +154,114 @@
     } while (false)
 
 static const char* hvml_err_msgs[] = {
+    /* PCHVML_ERROR_UNEXPECTED_NULL_CHARACTER */
+    "pchvml error unexpected null character",
+    /* PCHVML_ERROR_UNEXPECTED_QUESTION_MARK_INSTEAD_OF_TAG_NAME */
+    "pchvml error unexpected question mark instead of tag name",
+    /* PCHVML_ERROR_EOF_BEFORE_TAG_NAME */
+    "pchvml error eof before tag name",
+    /* PCHVML_ERROR_MISSING_END_TAG_NAME */
+    "pchvml error missing end tag name",
+    /* PCHVML_ERROR_INVALID_FIRST_CHARACTER_OF_TAG_NAME */
+    "pchvml error invalid first character of tag name",
+    /* PCHVML_ERROR_EOF_IN_TAG */
+    "pchvml error eof in tag",
+    /* PCHVML_ERROR_UNEXPECTED_EQUALS_SIGN_BEFORE_ATTRIBUTE_NAME */
+    "pchvml error unexpected equals sign before attribute name",
+    /* PCHVML_ERROR_UNEXPECTED_CHARACTER_IN_ATTRIBUTE_NAME */
+    "pchvml error unexpected character in attribute name",
+    /* PCHVML_ERROR_UNEXPECTED_CHARACTER_IN_UNQUOTED_ATTRIBUTE_VALUE */
+    "pchvml error unexpected character in unquoted attribute value",
+    /* PCHVML_ERROR_MISSING_WHITESPACE_BETWEEN_ATTRIBUTES */
+    "pchvml error missing whitespace between attributes",
+    /* PCHVML_ERROR_UNEXPECTED_SOLIDUS_IN_TAG */
+    "pchvml error unexpected solidus in tag",
+    /* PCHVML_ERROR_CDATA_IN_HTML_CONTENT */
+    "pchvml error cdata in html content",
+    /* PCHVML_ERROR_INCORRECTLY_OPENED_COMMENT */
+    "pchvml error incorrectly opened comment",
+    /* PCHVML_ERROR_ABRUPT_CLOSING_OF_EMPTY_COMMENT */
+    "pchvml error abrupt closing of empty comment",
+    /* PCHVML_ERROR_EOF_IN_COMMENT */
+    "pchvml error eof in comment",
+    /* PCHVML_ERROR_EOF_IN_DOCTYPE */
+    "pchvml error eof in doctype",
+    /* PCHVML_ERROR_MISSING_WHITESPACE_BEFORE_DOCTYPE_NAME */
+    "pchvml error missing whitespace before doctype name",
+    /* PCHVML_ERROR_MISSING_DOCTYPE_NAME */
+    "pchvml error missing doctype name",
+    /* PCHVML_ERROR_INVALID_CHARACTER_SEQUENCE_AFTER_DOCTYPE_NAME */
+    "pchvml error invalid character sequence after doctype name",
+    /* PCHVML_ERROR_MISSING_WHITESPACE_AFTER_DOCTYPE_PUBLIC_KEYWORD */
+    "pchvml error missing whitespace after doctype public keyword",
+    /* PCHVML_ERROR_MISSING_DOCTYPE_PUBLIC_IDENTIFIER */
+    "pchvml error missing doctype public identifier",
+    /* PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_PUBLIC_IDENTIFIER */
+    "pchvml error missing quote before doctype public identifier",
+    /* PCHVML_ERROR_ABRUPT_DOCTYPE_PUBLIC_IDENTIFIER */
+    "pchvml error abrupt doctype public identifier",
+    /* PCHVML_ERROR_MISSING_WHITESPACE_BETWEEN_DOCTYPE_PUBLIC_AND_SYSTEM_IDENTIFIERS */
+    "pchvml error missing whitespace between doctype public and system identifiers",
+    /* PCHVML_ERROR_MISSING_WHITESPACE_AFTER_DOCTYPE_SYSTEM_KEYWORD */
+    "pchvml error missing whitespace after doctype system keyword",
+    /* PCHVML_ERROR_MISSING_DOCTYPE_SYSTEM_IDENTIFIER */
+    "pchvml error missing doctype system identifier",
+    /* PCHVML_ERROR_ABRUPT_DOCTYPE_SYSTEM_IDENTIFIER */
+    "pchvml error abrupt doctype system identifier",
+    /* PCHVML_ERROR_UNEXPECTED_CHARACTER_AFTER_DOCTYPE_SYSTEM_IDENTIFIER */
+    "pchvml error unexpected character after doctype system identifier",
+    /* PCHVML_ERROR_EOF_IN_CDATA */
+    "pchvml error eof in cdata",
+    /* PCHVML_ERROR_UNKNOWN_NAMED_CHARACTER_REFERENCE */
+    "pchvml error unknown named character reference",
+    /* PCHVML_ERROR_ABSENCE_OF_DIGITS_IN_NUMERIC_CHARACTER_REFERENCE */
+    "pchvml error absence of digits in numeric character reference",
+    /* PCHVML_ERROR_UNEXPECTED_CHARACTER */
+    "pchvml error unexpected character",
+    /* PCHVML_ERROR_UNEXPECTED_JSON_NUMBER_EXPONENT */
+    "pchvml error unexpected json number exponent",
+    /* PCHVML_ERROR_UNEXPECTED_JSON_NUMBER_FRACTION */
+    "pchvml error unexpected json number fraction",
+    /* PCHVML_ERROR_UNEXPECTED_JSON_NUMBER_INTEGER */
+    "pchvml error unexpected json number integer",
+    /* PCHVML_ERROR_UNEXPECTED_JSON_NUMBER */
+    "pchvml error unexpected json number",
+    /* PCHVML_ERROR_UNEXPECTED_RIGHT_BRACE */
+    "pchvml error unexpected right brace",
+    /* PCHVML_ERROR_UNEXPECTED_RIGHT_BRACKET */
+    "pchvml error unexpected right bracket",
+    /* PCHVML_ERROR_UNEXPECTED_JSON_KEY_NAME */
+    "pchvml error unexpected json key name",
+    /* PCHVML_ERROR_UNEXPECTED_COMMA */
+    "pchvml error unexpected comma",
+    /* PCHVML_ERROR_UNEXPECTED_JSON_KEYWORD */
+    "pchvml error unexpected json keyword",
+    /* PCHVML_ERROR_UNEXPECTED_BASE64 */
+    "pchvml error unexpected base64",
+    /* PCHVML_ERROR_BAD_JSON_NUMBER */
+    "pchvml error bad json number",
+    /* PCHVML_ERROR_BAD_JSON_STRING_ESCAPE_ENTITY */
+    "pchvml error bad json string escape entity",
+    /* PCHVML_ERROR_BAD_JSONEE */
+    "pchvml error bad jsonee",
+    /* PCHVML_ERROR_BAD_JSONEE_ESCAPE_ENTITY */
+    "pchvml error bad jsonee escape entity",
+    /* PCHVML_ERROR_BAD_JSONEE_VARIABLE_NAME */
+    "pchvml error bad jsonee variable name",
+    /* PCHVML_ERROR_EMPTY_JSONEE_NAME */
+    "pchvml error empty jsonee name",
+    /* PCHVML_ERROR_BAD_JSONEE_NAME */
+    "pchvml error bad jsonee name",
+    /* PCHVML_ERROR_BAD_JSONEE_KEYWORD */
+    "pchvml error bad jsonee keyword",
+    /* PCHVML_ERROR_EMPTY_JSONEE_KEYWORD */
+    "pchvml error empty jsonee keyword",
+    /* PCHVML_ERROR_BAD_JSONEE_UNEXPECTED_COMMA */
+    "pchvml error bad jsonee unexpected comma",
+    /* PCHVML_ERROR_BAD_JSONEE_UNEXPECTED_PARENTHESIS */
+    "pchvml error bad jsonee unexpected parenthesis",
+    /* PCHVML_ERROR_BAD_JSONEE_UNEXPECTED_LEFT_ANGLE_BRACKET */
+    "pchvml error bad jsonee unexpected left angle bracket"
 };
 
 static struct err_msg_seg _hvml_err_msgs_seg = {
