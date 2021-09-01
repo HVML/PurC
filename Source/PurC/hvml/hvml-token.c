@@ -40,21 +40,21 @@
 #include <stdlib.h>
 #endif
 
-#define HVML_END_OF_FILE       0
+#define PCHVML_END_OF_FILE       0
 
 #if HAVE(GLIB)
-#define    HVML_ALLOC(sz)   g_slice_alloc0(sz)
-#define    HVML_FREE(p)     g_slice_free1(sizeof(*p), (gpointer)p)
+#define    PCHVML_ALLOC(sz)   g_slice_alloc0(sz)
+#define    PCHVML_FREE(p)     g_slice_free1(sizeof(*p), (gpointer)p)
 #else
-#define    HVML_ALLOC(sz)   calloc(1, sz)
-#define    HVML_FREE(p)     free(p)
+#define    PCHVML_ALLOC(sz)   calloc(1, sz)
+#define    PCHVML_FREE(p)     free(p)
 #endif
 
 
 struct pchvml_token_attribute* pchvml_token_attribute_new ()
 {
     struct pchvml_token_attribute* attr = (struct pchvml_token_attribute*)
-        HVML_ALLOC(sizeof(struct pchvml_token_attribute));
+        PCHVML_ALLOC(sizeof(struct pchvml_token_attribute));
     return attr;
 }
 
@@ -66,7 +66,7 @@ void pchvml_token_attribute_destroy (struct pchvml_token_attribute* attr)
     pchvml_temp_buffer_destroy(attr->name);
     pchvml_temp_buffer_destroy(attr->value);
     pcvcm_node_destroy (attr->vcm);
-    HVML_FREE(attr);
+    PCHVML_FREE(attr);
 }
 
 
@@ -77,7 +77,7 @@ void pchvml_token_attribute_list_free_fn(void *data)
 
 struct pchvml_token* pchvml_token_new (enum pchvml_token_type type)
 {
-    struct pchvml_token* token = (struct pchvml_token*) HVML_ALLOC(
+    struct pchvml_token* token = (struct pchvml_token*) PCHVML_ALLOC(
             sizeof(struct pchvml_token));
     token->type = type;
     return token;
@@ -142,17 +142,17 @@ void pchvml_token_attribute_end (struct pchvml_token* token)
 
 struct pchvml_token* pchvml_token_new_character ()
 {
-    return pchvml_token_new (HVML_TOKEN_CHARACTER);
+    return pchvml_token_new (PCHVML_TOKEN_CHARACTER);
 }
 
 struct pchvml_token* pchvml_token_new_start_tag ()
 {
-    return pchvml_token_new (HVML_TOKEN_START_TAG);
+    return pchvml_token_new (PCHVML_TOKEN_START_TAG);
 }
 
 struct pchvml_token* pchvml_token_new_end_tag ()
 {
-    return pchvml_token_new (HVML_TOKEN_END_TAG);
+    return pchvml_token_new (PCHVML_TOKEN_END_TAG);
 }
 
 void pchvml_token_append (struct pchvml_token* token,
