@@ -1011,13 +1011,14 @@ next_state:
 
         BEGIN_STATE(PCHVML_SELF_CLOSING_START_TAG_STATE)
             if (character == '>') {
-                // TODO : mark current token self close
-                SWITCH_TO(PCHVML_DATA_STATE);
-                return hvml->current_token;
+                pchvml_token_set_self_closing(hvml->current_token, true);
+                RETURN_IN_CURRENT_STATE(PCHVML_DATA_STATE);
             }
             if (is_eof(character)) {
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
+            PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_SOLIDUS_IN_TAG);
             RECONSUME_IN(PCHVML_BEFORE_ATTRIBUTE_NAME_STATE);
         END_STATE()
 

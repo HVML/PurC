@@ -134,6 +134,19 @@ bool pchvml_token_is_type (struct pchvml_token* token,
     return token && token->type == type;
 }
 
+PCA_INLINE
+void pchvml_token_set_self_closing (struct pchvml_token* token, bool b)
+{
+    token->self_closing = b;
+}
+
+PCA_INLINE
+bool pchvml_token_is_self_closing (struct pchvml_token* token)
+{
+    return token->self_closing;
+}
+
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
