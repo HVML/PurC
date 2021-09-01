@@ -964,23 +964,29 @@ next_state:
                 ADVANCE_TO(PCHVML_BEFORE_ATTRIBUTE_NAME_STATE);
             }
             if (character == '&') {
-                hvml->return_state = PCHVML_ATTRIBUTE_VALUE_UNQUOTED_STATE;
+                SET_RETURN_STATE(PCHVML_ATTRIBUTE_VALUE_UNQUOTED_STATE);
                 ADVANCE_TO(PCHVML_CHARACTER_REFERENCE_STATE);
             }
             if (character == '>') {
                 pchvml_token_attribute_end(hvml->current_token);
-                SWITCH_TO(PCHVML_DATA_STATE);
-                return hvml->current_token;
+                RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
+            }
+            if (is_eof(character)) {
+                pchvml_token_attribute_end(hvml->current_token);
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
+                RECONSUME_IN(PCHVML_DATA_STATE);
             }
             if (character == '$') {
                 // TODO concat-string and so on
                 RECONSUME_IN(PCHVML_EJSON_DATA_STATE);
             }
-            if (is_eof(character)) {
-                pchvml_token_attribute_end(hvml->current_token);
-                RECONSUME_IN(PCHVML_DATA_STATE);
+            if (character == '"' || character == '\'' || character == '<'
+                    || character == '=' || character == '`') {
+                PCHVML_SET_ERROR(
+                PCHVML_ERROR_UNEXPECTED_CHARACTER_IN_UNQUOTED_ATTRIBUTE_VALUE);
             }
-            APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
+            pchvml_token_attribute_append_to_value(hvml->current_token,
+                    hvml->c, hvml->sz_c);
             ADVANCE_TO(PCHVML_ATTRIBUTE_VALUE_UNQUOTED_STATE);
         END_STATE()
 
