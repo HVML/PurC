@@ -443,7 +443,7 @@ next_state:
                 ADVANCE_TO(PCHVML_RAWTEXT_LESS_THAN_SIGN_STATE);
             }
             if (character == PCHVML_END_OF_FILE) {
-                RECONSUME_IN (PCHVML_DATA_STATE);
+                return pchvml_token_new_eof();
             }
 
             APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
@@ -452,7 +452,7 @@ next_state:
 
         BEGIN_STATE(PCHVML_PLAINTEXT_STATE)
             if (character == PCHVML_END_OF_FILE) {
-                return pchvml_token_new(PCHVML_TOKEN_EOF);
+                return pchvml_token_new_eof();
             }
 
             APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
