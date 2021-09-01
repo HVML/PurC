@@ -730,6 +730,7 @@ next_state:
             APPEND_TO_CHARACTER("<", 1);
             APPEND_TO_CHARACTER("/", 1);
             APPEND_TEMP_BUFFER_TO_CHARACTER();
+            RECONSUME_IN(PCHVML_RCDATA_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_RAWTEXT_LESS_THAN_SIGN_STATE)
@@ -752,7 +753,30 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_RAWTEXT_END_TAG_NAME_STATE)
-            // TODO
+            if (is_ascii_alpha(character)) {
+                APPEND_TO_TAG_NAME(hvml->c, hvml->sz_c);
+                APPEND_TEMP_BUFFER(hvml->c, hvml->sz_c);
+                ADVANCE_TO(PCHVML_RAWTEXT_END_TAG_NAME_STATE);
+            }
+            if (is_whitespace(character)) {
+                if (pchvml_parser_is_appropriate_end_tag(hvml)) {
+                    SWITCH_TO(PCHVML_BEFORE_ATTRIBUTE_NAME_STATE);
+                }
+            }
+            else if (character == '/') {
+                if (pchvml_parser_is_appropriate_end_tag(hvml)) {
+                    SWITCH_TO(PCHVML_SELF_CLOSING_START_TAG_STATE);
+                }
+            }
+            else if (character == '>') {
+                if (pchvml_parser_is_appropriate_end_tag(hvml)) {
+                    RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
+                }
+            }
+            APPEND_TO_CHARACTER("<", 1);
+            APPEND_TO_CHARACTER("/", 1);
+            APPEND_TEMP_BUFFER_TO_CHARACTER();
+            RECONSUME_IN(PCHVML_RAWTEXT_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_BEFORE_ATTRIBUTE_NAME_STATE)
