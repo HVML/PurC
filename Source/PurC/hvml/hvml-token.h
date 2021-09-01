@@ -91,10 +91,22 @@ struct pchvml_token* pchvml_token_new_character ();
 struct pchvml_token* pchvml_token_new_start_tag ();
 struct pchvml_token* pchvml_token_new_end_tag ();
 
+PCA_INLINE
+struct pchvml_token* pchvml_token_new_eof () {
+    return pchvml_token_new(PCHVML_TOKEN_EOF);
+}
+
 void pchvml_token_append (struct pchvml_token* token,
         const char* bytes, size_t sz_bytes);
 
 void pchvml_token_done (struct pchvml_token* token);
+
+PCA_INLINE
+bool pchvml_token_is_type (struct pchvml_token* token,
+        enum pchvml_token_type type)
+{
+    return token && token->type == type;
+}
 
 #ifdef __cplusplus
 }

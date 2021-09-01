@@ -57,6 +57,15 @@
             pchvml_pchvml_state_desc(state_name), hvml->wc, hvml->wc);
 #endif
 
+#if 1
+#define PCHVML_SET_ERROR(err)    pcinst_set_error(err)
+#else
+#define PCHVML_SET_ERROR(err)    do {                                       \
+    fprintf(stderr, "error %s:%d\n", __FILE__, __LINE__);                   \
+    pcinst_set_error (err);                                                 \
+} while (0)
+#endif
+
 #define BEGIN_STATE(state_name)                                             \
     case state_name:                                                        \
     {                                                                       \
@@ -67,6 +76,12 @@
 #define END_STATE()                                                         \
         break;                                                              \
     }
+
+#define SET_RETURN_STATE(new_state)                                         \
+    do {                                                                    \
+        hvml->return_state = new_state;                                     \
+        goto next_state;                                                    \
+    } while (false)
 
 #define RECONSUME_IN(new_state)                                             \
     do {                                                                    \
@@ -123,9 +138,9 @@
     case state_name:                                                        \
         return ""#state_name;                                               \
 
-#define BUFFER_CHARACTER(c, sz_c)                                           \
+#define APPEND_TO_CHARACTER(c, sz_c)                                           \
     do {                                                                    \
-        pchvml_buffer_character (hvml, c, sz_c);                            \
+        pchvml_parser_append_to_character (hvml, c, sz_c);                  \
     } while (false)
 
 #define RESET_TEMP_BUFFER()                                                 \
@@ -363,18 +378,13 @@ const char* pchvml_pchvml_state_desc (enum pchvml_state state)
     return NULL;
 }
 
-bool pchvml_have_buffered_character_token(struct pchvml_parser* hvml)
-{
-    return hvml->current_token && hvml->current_token->type == PCHVML_TOKEN_CHARACTER;
-}
-
-void pchvml_buffer_character(struct pchvml_parser* hvml, const char* bytes,
-        size_t nr_bytes)
+void pchvml_parser_append_to_character (struct pchvml_parser* hvml,
+        const char* bytes, size_t nr_bytes)
 {
     if (hvml->current_token == NULL) {
         hvml->current_token = pchvml_token_new (PCHVML_TOKEN_CHARACTER);
     }
-    pchvml_token_append(hvml->current_token, bytes, nr_bytes);
+    pchvml_token_append_to_character(hvml->current_token, bytes, nr_bytes);
 }
 
 struct pchvml_token* pchvml_next_token (struct pchvml_parser* hvml,
@@ -396,18 +406,20 @@ next_state:
     switch (hvml->state) {
         BEGIN_STATE(PCHVML_DATA_STATE)
             if (character == '&') {
+                SET_RETURN_STATE(PCHVML_DATA_STATE);
                 ADVANCE_TO(PCHVML_CHARACTER_REFERENCE_STATE);
             }
             if (character == '<') {
-                if (pchvml_have_buffered_character_token(hvml)) {
+                if (pchvml_token_is_type(hvml->current_token,
+                            PCHVML_TOKEN_CHARACTER)) {
                     RETURN_IN_CURRENT_STATE(true);
                 }
                 ADVANCE_TO(PCHVML_TAG_OPEN_STATE);
             }
             if (character == PCHVML_END_OF_FILE) {
-                return pchvml_token_new(PCHVML_TOKEN_EOF);
+                return pchvml_token_new_eof();
             }
-            BUFFER_CHARACTER(hvml->c, hvml->sz_c);
+            APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
             ADVANCE_TO(PCHVML_DATA_STATE);
         END_STATE()
 
@@ -422,7 +434,7 @@ next_state:
             if (character == PCHVML_END_OF_FILE) {
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
-            BUFFER_CHARACTER(hvml->c, hvml->sz_c);
+            APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
             ADVANCE_TO(PCHVML_TOKEN_CHARACTER);
         END_STATE()
 
@@ -434,7 +446,7 @@ next_state:
                 RECONSUME_IN (PCHVML_DATA_STATE);
             }
 
-            BUFFER_CHARACTER(hvml->c, hvml->sz_c);
+            APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
             ADVANCE_TO(PCHVML_RAWTEXT_STATE);
         END_STATE()
 
@@ -443,7 +455,7 @@ next_state:
                 return pchvml_token_new(PCHVML_TOKEN_EOF);
             }
 
-            BUFFER_CHARACTER(hvml->c, hvml->sz_c);
+            APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
             ADVANCE_TO(PCHVML_PLAINTEXT_STATE);
         END_STATE()
 
@@ -461,7 +473,7 @@ next_state:
             if (character == '?') {
                 RECONSUME_IN(PCHVML_BOGUS_COMMENT_STATE);
             }
-            BUFFER_CHARACTER("<", 1);
+            APPEND_TO_CHARACTER("<", 1);
             RECONSUME_IN(PCHVML_DATA_STATE);
         END_STATE()
 
@@ -474,8 +486,8 @@ next_state:
                 ADVANCE_TO(PCHVML_DATA_STATE);
             }
             if (character == PCHVML_END_OF_FILE) {
-                BUFFER_CHARACTER("<", 1);
-                BUFFER_CHARACTER("/", 1);
+                APPEND_TO_CHARACTER("<", 1);
+                APPEND_TO_CHARACTER("/", 1);
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
             RECONSUME_IN(PCHVML_BOGUS_COMMENT_STATE);
@@ -496,7 +508,7 @@ next_state:
             if (character == PCHVML_END_OF_FILE) {
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
-            BUFFER_CHARACTER(hvml->c, hvml->sz_c);
+            APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
             ADVANCE_TO(PCHVML_TAG_NAME_STATE);
         END_STATE()
 
@@ -505,7 +517,7 @@ next_state:
                 RESET_TEMP_BUFFER();
                 ADVANCE_TO(PCHVML_RCDATA_END_TAG_OPEN_STATE);
             }
-            BUFFER_CHARACTER("<", 1);
+            APPEND_TO_CHARACTER("<", 1);
             RECONSUME_IN(PCHVML_RCDATA_STATE);
         END_STATE()
 
@@ -515,8 +527,8 @@ next_state:
                 // TODO : append to possible end tag
                 ADVANCE_TO(PCHVML_RCDATA_END_TAG_NAME_STATE);
             }
-            BUFFER_CHARACTER("<", 1);
-            BUFFER_CHARACTER("/", 1);
+            APPEND_TO_CHARACTER("<", 1);
+            APPEND_TO_CHARACTER("/", 1);
             RECONSUME_IN(PCHVML_RCDATA_STATE);
         END_STATE()
 
@@ -529,7 +541,7 @@ next_state:
                 RESET_TEMP_BUFFER();
                 ADVANCE_TO(PCHVML_RAWTEXT_END_TAG_OPEN_STATE);
             }
-            BUFFER_CHARACTER("<", 1);
+            APPEND_TO_CHARACTER("<", 1);
             RECONSUME_IN(PCHVML_RAWTEXT_STATE);
         END_STATE()
 
@@ -539,8 +551,8 @@ next_state:
                 // TODO : append to possible end tag
                 ADVANCE_TO(PCHVML_RAWTEXT_END_TAG_NAME_STATE);
             }
-            BUFFER_CHARACTER("<", 1);
-            BUFFER_CHARACTER("/", 1);
+            APPEND_TO_CHARACTER("<", 1);
+            APPEND_TO_CHARACTER("/", 1);
             RECONSUME_IN(PCHVML_RAWTEXT_STATE);
         END_STATE()
 
@@ -585,7 +597,7 @@ next_state:
                 if (hvml->current_token->type == PCHVML_TOKEN_START_TAG) {
                     // TODO : check attribute is an ordinary attribute name
                     RESET_TEMP_BUFFER();
-                    BUFFER_CHARACTER(hvml->c, hvml->sz_c);
+                    APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
                     SWITCH_TO(
                             PCHVML_SPECIAL_ATTRIBUTE_OPERATOR_IN_ATTRIBUTE_NAME_STATE);
                 }
@@ -622,7 +634,7 @@ next_state:
                     // TODO : check token is an operation tag 
                     // TODO : check attribute is an ordinary attribute name
                     RESET_TEMP_BUFFER();
-                    BUFFER_CHARACTER(hvml->c, hvml->sz_c);
+                    APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
                     SWITCH_TO(
                     PCHVML_SPECIAL_ATTRIBUTE_OPERATOR_AFTER_ATTRIBUTE_NAME_STATE);
                 }
@@ -670,7 +682,7 @@ next_state:
             if (character == PCHVML_END_OF_FILE) {
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
-            BUFFER_CHARACTER(hvml->c, hvml->sz_c);
+            APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
             ADVANCE_TO(PCHVML_ATTRIBUTE_VALUE_UNQUOTED_STATE);
         END_STATE()
 
@@ -686,7 +698,7 @@ next_state:
                 pchvml_token_attribute_end(hvml->current_token);
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
-            BUFFER_CHARACTER(hvml->c, hvml->sz_c);
+            APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
             ADVANCE_TO(PCHVML_ATTRIBUTE_VALUE_UNQUOTED_STATE);
         END_STATE()
 
@@ -703,7 +715,7 @@ next_state:
                 pchvml_token_attribute_end(hvml->current_token);
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
-            BUFFER_CHARACTER(hvml->c, hvml->sz_c);
+            APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
             ADVANCE_TO(PCHVML_ATTRIBUTE_VALUE_SINGLE_QUOTED_STATE);
         END_STATE()
 
@@ -729,7 +741,7 @@ next_state:
                 pchvml_token_attribute_end(hvml->current_token);
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
-            BUFFER_CHARACTER(hvml->c, hvml->sz_c);
+            APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
             ADVANCE_TO(PCHVML_ATTRIBUTE_VALUE_UNQUOTED_STATE);
         END_STATE()
 
@@ -778,7 +790,7 @@ next_state:
                 RECONSUME_IN_NEXT(PCHVML_DATA_STATE);
                 return hvml->current_token;
             }
-            BUFFER_CHARACTER(hvml->c, hvml->sz_c);
+            APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
             ADVANCE_TO(PCHVML_BOGUS_COMMENT_STATE);
         END_STATE()
 
@@ -798,7 +810,7 @@ next_state:
                 RECONSUME_IN_NEXT(PCHVML_DATA_STATE);
                 return hvml->current_token;
             }
-            BUFFER_CHARACTER(hvml->c, hvml->sz_c);
+            APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
             ADVANCE_TO(PCHVML_COMMENT_STATE);
         END_STATE()
 
@@ -814,8 +826,8 @@ next_state:
                 RECONSUME_IN_NEXT(PCHVML_DATA_STATE);
                 return hvml->current_token;
             }
-            BUFFER_CHARACTER("-", 1);
-            BUFFER_CHARACTER(hvml->c, hvml->sz_c);
+            APPEND_TO_CHARACTER("-", 1);
+            APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
             ADVANCE_TO(PCHVML_COMMENT_STATE);
         END_STATE()
 
@@ -828,7 +840,7 @@ next_state:
                 RECONSUME_IN_NEXT(PCHVML_DATA_STATE);
                 return hvml->current_token;
             }
-            BUFFER_CHARACTER(hvml->c, hvml->sz_c);
+            APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
             ADVANCE_TO(PCHVML_COMMENT_STATE);
         END_STATE()
 
@@ -856,7 +868,7 @@ next_state:
                 RECONSUME_IN_NEXT(PCHVML_DATA_STATE);
                 return hvml->current_token;
             }
-            BUFFER_CHARACTER("-", 1);
+            APPEND_TO_CHARACTER("-", 1);
             ADVANCE_TO(PCHVML_COMMENT_STATE);
         END_STATE()
 
@@ -869,23 +881,23 @@ next_state:
                 ADVANCE_TO(PCHVML_COMMENT_END_BANG_STATE);
             }
             if (character == '-') {
-                BUFFER_CHARACTER("-", 1);
+                APPEND_TO_CHARACTER("-", 1);
                 ADVANCE_TO(PCHVML_COMMENT_END_STATE);
             }
             if (character == PCHVML_END_OF_FILE) {
                 RECONSUME_IN_NEXT(PCHVML_DATA_STATE);
                 return hvml->current_token;
             }
-            BUFFER_CHARACTER("-", 1);
-            BUFFER_CHARACTER("-", 1);
+            APPEND_TO_CHARACTER("-", 1);
+            APPEND_TO_CHARACTER("-", 1);
             ADVANCE_TO(PCHVML_COMMENT_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_COMMENT_END_BANG_STATE)
             if (character == '-') {
-                BUFFER_CHARACTER("-", 1);
-                BUFFER_CHARACTER("-", 1);
-                BUFFER_CHARACTER("!", 1);
+                APPEND_TO_CHARACTER("-", 1);
+                APPEND_TO_CHARACTER("-", 1);
+                APPEND_TO_CHARACTER("!", 1);
                 ADVANCE_TO(PCHVML_COMMENT_END_DASH_STATE);
             }
             if (character == '>') {
@@ -896,9 +908,9 @@ next_state:
                 RECONSUME_IN_NEXT(PCHVML_DATA_STATE);
                 return hvml->current_token;
             }
-            BUFFER_CHARACTER("-", 1);
-            BUFFER_CHARACTER("-", 1);
-            BUFFER_CHARACTER("!", 1);
+            APPEND_TO_CHARACTER("-", 1);
+            APPEND_TO_CHARACTER("-", 1);
+            APPEND_TO_CHARACTER("!", 1);
             ADVANCE_TO(PCHVML_COMMENT_STATE);
         END_STATE()
 
@@ -939,7 +951,7 @@ next_state:
             if (character == PCHVML_END_OF_FILE) {
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
-            BUFFER_CHARACTER(hvml->c, hvml->sz_c);
+            APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
             ADVANCE_TO(PCHVML_DOCTYPE_NAME_STATE);
         END_STATE()
 
@@ -1159,7 +1171,7 @@ next_state:
             if (character == PCHVML_END_OF_FILE) {
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
-            BUFFER_CHARACTER(hvml->c, hvml->sz_c);
+            APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
             ADVANCE_TO(PCHVML_CDATA_SECTION_STATE);
         END_STATE()
 
@@ -1167,19 +1179,19 @@ next_state:
             if (character == ']') {
                 ADVANCE_TO(PCHVML_CDATA_SECTION_END_STATE);
             }
-            BUFFER_CHARACTER("]", 1);
+            APPEND_TO_CHARACTER("]", 1);
             RECONSUME_IN(PCHVML_CDATA_SECTION_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_CDATA_SECTION_END_STATE)
             if (character == ']') {
-                BUFFER_CHARACTER("]", 1);
+                APPEND_TO_CHARACTER("]", 1);
                 ADVANCE_TO(PCHVML_CDATA_SECTION_END_STATE);
             }
             if (character == '>') {
                 ADVANCE_TO(PCHVML_DATA_STATE);
             }
-            BUFFER_CHARACTER("]", 1);
+            APPEND_TO_CHARACTER("]", 1);
             RECONSUME_IN(PCHVML_CDATA_SECTION_STATE);
         END_STATE()
 
