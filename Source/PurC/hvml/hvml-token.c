@@ -159,7 +159,7 @@ void pchvml_token_append (struct pchvml_token* token,
         const char* bytes, size_t sz_bytes)
 {
     if (!token->temp_buffer) {
-        token->temp_buffer = pchvml_temp_buffer_new (32);
+        token->temp_buffer = pchvml_temp_buffer_new ();
     }
     pchvml_temp_buffer_append(token->temp_buffer, bytes, sz_bytes);
 }

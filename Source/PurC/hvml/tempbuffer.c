@@ -41,7 +41,7 @@ static size_t get_buffer_size (size_t sz)
     return sz_buf < MIN_BUFFER_CAPACITY ? MIN_BUFFER_CAPACITY : sz_buf;
 }
 
-struct pchvml_temp_buffer* pchvml_temp_buffer_new ()
+struct pchvml_temp_buffer* pchvml_temp_buffer_new (void)
 {
     struct pchvml_temp_buffer* buffer = (struct pchvml_temp_buffer*) calloc(
             1, sizeof(struct pchvml_temp_buffer));
@@ -49,23 +49,8 @@ struct pchvml_temp_buffer* pchvml_temp_buffer_new ()
     buffer->base = (uint8_t*) calloc (1, sz_init + 1);
     buffer->here = buffer->base;
     buffer->stop = buffer->base + sz_init;
-    buffer->sz_char = 0;
+    buffer->nr_chars = 0;
     return buffer;
-}
-
-bool pchvml_temp_buffer_is_empty (struct pchvml_temp_buffer* buffer)
-{
-    return buffer->here == buffer->base;
-}
-
-size_t pchvml_temp_buffer_get_size_in_bytes (struct pchvml_temp_buffer* buffer)
-{
-    return buffer->here - buffer->base;
-}
-
-size_t pchvml_temp_buffer_get_size_in_chars (struct pchvml_temp_buffer* buffer)
-{
-    return buffer->sz_char;
 }
 
 static bool is_utf8_leading_byte (char c)
@@ -123,16 +108,10 @@ void pchvml_temp_buffer_append (struct pchvml_temp_buffer* buffer,
     const uint8_t* end = p + nr_bytes;
     while (p != end) {
         if (is_utf8_leading_byte (*p)) {
-            buffer->sz_char++;
+            buffer->nr_chars++;
         }
         p++;
     }
-}
-
-const char* pchvml_temp_buffer_get_buffer (
-        struct pchvml_temp_buffer* buffer)
-{
-    return (const char*)buffer->base;
 }
 
 bool pchvml_temp_buffer_end_with (struct pchvml_temp_buffer* buffer,
@@ -168,8 +147,9 @@ wchar_t pchvml_temp_buffer_get_last_char (struct pchvml_temp_buffer* buffer)
 
 void pchvml_temp_buffer_reset (struct pchvml_temp_buffer* buffer)
 {
+    memset(buffer->base, 0, buffer->stop - buffer->base);
     buffer->here = buffer->base;
-    buffer->sz_char = 0;
+    buffer->nr_chars = 0;
 }
 
 void pchvml_temp_buffer_destroy (struct pchvml_temp_buffer* buffer)

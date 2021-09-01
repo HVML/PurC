@@ -225,7 +225,7 @@ struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
     parser->state = HVML_DATA_STATE;
     parser->flags = flags;
     parser->queue_size = queue_size;
-    parser->temp_buffer = pchvml_temp_buffer_new (0);
+    parser->temp_buffer = pchvml_temp_buffer_new ();
     return parser;
 }
 

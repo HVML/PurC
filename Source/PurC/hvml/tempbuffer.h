@@ -37,25 +37,42 @@ struct pchvml_temp_buffer {
     uint8_t* base;
     uint8_t* here;
     uint8_t* stop;
-    size_t sz_char;
+    size_t nr_chars;
 };
 
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
 
-struct pchvml_temp_buffer* pchvml_temp_buffer_new ();
+struct pchvml_temp_buffer* pchvml_temp_buffer_new (void);
 
-bool pchvml_temp_buffer_is_empty (struct pchvml_temp_buffer* buffer);
+PCA_INLINE
+bool pchvml_temp_buffer_is_empty (struct pchvml_temp_buffer* buffer)
+{
+    return buffer->here == buffer->base;
+}
 
-size_t pchvml_temp_buffer_get_size_in_bytes (struct pchvml_temp_buffer* buffer);
+PCA_INLINE
+size_t pchvml_temp_buffer_get_size_in_bytes (struct pchvml_temp_buffer* buffer)
+{
+    return buffer->here - buffer->base;
+}
 
-size_t pchvml_temp_buffer_get_size_in_chars (struct pchvml_temp_buffer* buffer);
+PCA_INLINE
+size_t pchvml_temp_buffer_get_size_in_chars (struct pchvml_temp_buffer* buffer)
+{
+    return buffer->nr_chars;
+}
+
+PCA_INLINE
+const char* pchvml_temp_buffer_get_buffer (
+        struct pchvml_temp_buffer* buffer)
+{
+    return (const char*)buffer->base;
+}
 
 void pchvml_temp_buffer_append (struct pchvml_temp_buffer* buffer,
         const char* bytes, size_t nr_bytes);
-
-const char* pchvml_temp_buffer_get_buffer (struct pchvml_temp_buffer* buffer);
 
 bool pchvml_temp_buffer_end_with (struct pchvml_temp_buffer* buffer,
         const char* bytes, size_t nr_bytes);
