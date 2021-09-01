@@ -87,9 +87,23 @@ void pchvml_token_attribute_set_assignment (struct pchvml_token* token,
         enum pchvml_attribute_assignment assignment);
 void pchvml_token_attribute_end (struct pchvml_token* token);
 
-struct pchvml_token* pchvml_token_new_character ();
-struct pchvml_token* pchvml_token_new_start_tag ();
-struct pchvml_token* pchvml_token_new_end_tag ();
+PCA_INLINE
+struct pchvml_token* pchvml_token_new_character ()
+{
+    return pchvml_token_new (PCHVML_TOKEN_CHARACTER);
+}
+
+PCA_INLINE
+struct pchvml_token* pchvml_token_new_start_tag ()
+{
+    return pchvml_token_new (PCHVML_TOKEN_START_TAG);
+}
+
+PCA_INLINE
+struct pchvml_token* pchvml_token_new_end_tag ()
+{
+    return pchvml_token_new (PCHVML_TOKEN_END_TAG);
+}
 
 PCA_INLINE
 struct pchvml_token* pchvml_token_new_eof () {

@@ -140,21 +140,6 @@ void pchvml_token_attribute_end (struct pchvml_token* token)
     token->curr_attr = NULL;
 }
 
-struct pchvml_token* pchvml_token_new_character ()
-{
-    return pchvml_token_new (PCHVML_TOKEN_CHARACTER);
-}
-
-struct pchvml_token* pchvml_token_new_start_tag ()
-{
-    return pchvml_token_new (PCHVML_TOKEN_START_TAG);
-}
-
-struct pchvml_token* pchvml_token_new_end_tag ()
-{
-    return pchvml_token_new (PCHVML_TOKEN_END_TAG);
-}
-
 void pchvml_token_append (struct pchvml_token* token,
         const char* bytes, size_t sz_bytes)
 {

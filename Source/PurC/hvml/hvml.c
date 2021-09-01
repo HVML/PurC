@@ -663,9 +663,8 @@ next_state:
 
         BEGIN_STATE(PCHVML_RCDATA_END_TAG_OPEN_STATE)
             if (is_ascii_alpha(character)) {
-                APPEND_TEMP_BUFFER(hvml->c, hvml->sz_c);
-                // TODO : append to possible end tag
-                ADVANCE_TO(PCHVML_RCDATA_END_TAG_NAME_STATE);
+                hvml->current_token = pchvml_token_new_end_tag();
+                RECONSUME_IN(PCHVML_RCDATA_END_TAG_NAME_STATE);
             }
             APPEND_TO_CHARACTER("<", 1);
             APPEND_TO_CHARACTER("/", 1);
