@@ -178,16 +178,19 @@ pcvdom_content_create(struct pcvcm_tree *vcm);
 struct pcvdom_comment*
 pcvdom_comment_create(const char *text);
 
-// key = vcm
-// or
-// key,    in case when vcm == NULL
-struct pcvdom_attr*
-pcvdom_attr_create_simple(const char *key, struct pcvcm_tree *vcm);
-
 // for modification operators, such as +=|-=|%=|~=|^=|$=
 struct pcvdom_attr*
 pcvdom_attr_create(const char *key, enum pcvdom_attr_op op,
     struct pcvcm_tree *vcm);
+
+// key = vcm
+// or
+// key,    in case when vcm == NULL
+static inline struct pcvdom_attr*
+pcvdom_attr_create_simple(const char *key, struct pcvcm_tree *vcm)
+{
+    return pcvdom_attr_create(key, PCVDOM_ATTR_OP_EQ, vcm);
+}
 
 void
 pcvdom_attr_destroy(struct pcvdom_attr *attr);
@@ -220,18 +223,6 @@ pcvdom_element_append_content(struct pcvdom_element *elem,
 int
 pcvdom_element_append_comment(struct pcvdom_element *elem,
         struct pcvdom_comment *child);
-
-// key = vcm
-// or
-// key,    in case when vcm == NULL
-int
-pcvdom_element_set_attr_simple(struct pcvdom_element *elem,
-        const char *key, struct pcvcm_tree *vcm);
-
-int
-// for modification operators, such as +=|-=|%=|~=|^=|$=
-pcvdom_element_set_attr(struct pcvdom_element *elem,
-        const char *key, enum pcvdom_attr_op, const char *statement);
 
 // accessor api
 struct pcvdom_node*

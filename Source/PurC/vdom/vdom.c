@@ -201,16 +201,6 @@ pcvdom_comment_create(const char *text)
 
 }
 
-// key = vcm
-// or
-// key,    in case when vcm == NULL
-struct pcvdom_attr*
-pcvdom_attr_create_simple(const char *key, struct pcvcm_tree *vcm)
-{
-    return pcvdom_attr_create(key, PAO(EQ), vcm);
-}
-
-
 // for modification operators, such as +=|-=|%=|~=|^=|$=
 struct pcvdom_attr*
 pcvdom_attr_create(const char *key, enum pcvdom_attr_op op,
@@ -378,18 +368,6 @@ pcvdom_element_append_comment(struct pcvdom_element *elem,
 
     return 0;
 }
-
-// key = vcm
-// or
-// key,    in case when vcm == NULL
-int
-pcvdom_element_set_attr_simple(struct pcvdom_element *elem,
-        const char *key, struct pcvcm_tree *vcm);
-
-int
-// for modification operators, such as +=|-=|%=|~=|^=|$=
-pcvdom_element_set_attr(struct pcvdom_element *elem,
-        const char *key, enum pcvdom_attr_op, const char *statement);
 
 // accessor api
 struct pcvdom_node*
@@ -603,7 +581,6 @@ _document_reset(struct pcvdom_document *doc)
     doc->doctype = NULL;
 
     while (doc->node.node.first_child) {
-        fprintf(stderr, "=============\n");
         struct pcvdom_node *node;
         node = container_of(doc->node.node.first_child, struct pcvdom_node, node);
         pctree_node_remove(doc->node.node.first_child);
