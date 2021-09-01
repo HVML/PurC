@@ -1042,15 +1042,10 @@ next_state:
                 ADVANCE_TO(PCHVML_COMMENT_START_DASH_STATE);
             }
             if (character == '>') {
-                RECONSUME_IN_NEXT(PCHVML_DATA_STATE);
-                return hvml->current_token;
+                PCHVML_SET_ERROR(PCHVML_ERROR_ABRUPT_CLOSING_OF_EMPTY_COMMENT);
+                RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
-            if (is_eof(character)) {
-                RECONSUME_IN_NEXT(PCHVML_DATA_STATE);
-                return hvml->current_token;
-            }
-            APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
-            ADVANCE_TO(PCHVML_COMMENT_STATE);
+            RECONSUME_IN(PCHVML_COMMENT_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_COMMENT_START_DASH_STATE)
