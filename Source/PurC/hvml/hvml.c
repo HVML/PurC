@@ -1081,7 +1081,15 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_COMMENT_LESS_THAN_SIGN_STATE)
-            // TODO remove
+            if (character == '!') {
+                APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
+                ADVANCE_TO(PCHVML_COMMENT_LESS_THAN_SIGN_BANG_STATE);
+            }
+            if (character == '<') {
+                APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
+                ADVANCE_TO(PCHVML_COMMENT_LESS_THAN_SIGN_STATE);
+            }
+            RECONSUME_IN(PCHVML_COMMENT_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_COMMENT_LESS_THAN_SIGN_BANG_STATE)
