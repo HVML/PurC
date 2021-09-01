@@ -34,6 +34,8 @@
 #define pchvml_token_append_to_comment pchvml_token_append
 #define pchvml_token_append_to_character pchvml_token_append
 
+#define pchvml_token_get_name pchvml_token_get_data
+
 enum pchvml_attribute_assignment {
     PCHVML_ATTRIBUTE_ASSIGNMENT,           // =
     PCHVML_ATTRIBUTE_ADDITION_ASSIGNMENT,  // +=
@@ -117,6 +119,11 @@ struct pchvml_token* pchvml_token_new_comment () {
 
 void pchvml_token_append (struct pchvml_token* token,
         const char* bytes, size_t sz_bytes);
+
+PCA_INLINE
+const char* pchvml_token_get_data (struct pchvml_token* token) {
+    return pchvml_temp_buffer_get_buffer(token->temp_buffer);
+}
 
 void pchvml_token_done (struct pchvml_token* token);
 

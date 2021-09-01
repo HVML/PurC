@@ -359,6 +359,7 @@ struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
     parser->flags = flags;
     parser->queue_size = queue_size;
     parser->temp_buffer = pchvml_temp_buffer_new ();
+    parser->appropriate_tag_name = pchvml_temp_buffer_new ();
     return parser;
 }
 
@@ -369,6 +370,7 @@ void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
     parser->flags = flags;
     parser->queue_size = queue_size;
     pchvml_temp_buffer_reset (parser->temp_buffer);
+    pchvml_temp_buffer_reset (parser->appropriate_tag_name);
 }
 
 void pchvml_destroy(struct pchvml_parser* parser)
@@ -513,6 +515,20 @@ void pchvml_parser_append_to_character (struct pchvml_parser* hvml,
         hvml->current_token = pchvml_token_new (PCHVML_TOKEN_CHARACTER);
     }
     pchvml_token_append_to_character(hvml->current_token, bytes, nr_bytes);
+}
+
+void pchvml_parser_save_tag_name (struct pchvml_parser* hvml)
+{
+    if (pchvml_token_is_type (hvml->current_token, PCHVML_TOKEN_START_TAG)) {
+        const char* name = pchvml_token_get_name(hvml->current_token);
+        pchvml_temp_buffer_append(hvml->appropriate_tag_name,
+                name, strlen(name));
+    }
+}
+
+void pchvml_parse_reset_appropriate_tag_name (struct pchvml_parser* hvml)
+{
+    pchvml_temp_buffer_reset(hvml->appropriate_tag_name);
 }
 
 struct pchvml_token* pchvml_next_token (struct pchvml_parser* hvml,
