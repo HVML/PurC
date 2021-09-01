@@ -45,6 +45,8 @@
 #define FORMAT_ISO8601  1
 #define FORMAT_RFC822   2
 
+https://gitlab.fmsoft.cn/hvml/docs-undisclosed/blob/master/design/purc-architecture-zh.md
+
 static purc_variant_t
 uname_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
