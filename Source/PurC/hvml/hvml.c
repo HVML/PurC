@@ -577,6 +577,11 @@ bool pchvml_parser_is_preposition_attribute (struct pchvml_token_attribute* attr
     return true;
 }
 
+bool pchvml_parser_is_in_attribute (struct pchvml_parser* parser)
+{
+    return parser->current_token && parser->current_token->curr_attr;
+}
+
 struct pchvml_token* pchvml_next_token (struct pchvml_parser* hvml,
                                           purc_rwstream_t rws)
 {
@@ -1584,9 +1589,25 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_NAMED_CHARACTER_REFERENCE_STATE)
+        // TODO
         END_STATE()
 
         BEGIN_STATE(PCHVML_AMBIGUOUS_AMPERSAND_STATE)
+            if (is_ascii_alpha_numeric(character)) {
+                if (pchvml_parser_is_in_attribute(hvml)) {
+                    pchvml_token_attribute_append_to_value(hvml->current_token,
+                            hvml->c, hvml->sz_c);
+                    ADVANCE_TO(PCHVML_AMBIGUOUS_AMPERSAND_STATE);
+                }
+                else {
+                    RECONSUME_IN(hvml->return_state);
+                }
+            }
+            if (character == ';') {
+                PCHVML_SET_ERROR(PCHVML_ERROR_UNKNOWN_NAMED_CHARACTER_REFERENCE);
+                RECONSUME_IN(hvml->return_state);
+            }
+            RECONSUME_IN(hvml->return_state);
         END_STATE()
 
         BEGIN_STATE(PCHVML_NUMERIC_CHARACTER_REFERENCE_STATE)
