@@ -1611,6 +1611,11 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_NUMERIC_CHARACTER_REFERENCE_STATE)
+            if (character == 'x' || character == 'X') {
+                APPEND_TEMP_BUFFER(hvml->c, hvml->sz_c);
+                ADVANCE_TO(PCHVML_HEXADECIMAL_CHARACTER_REFERENCE_START_STATE);
+            }
+            RECONSUME_IN(PCHVML_DECIMAL_CHARACTER_REFERENCE_START_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_HEXADECIMAL_CHARACTER_REFERENCE_START_STATE)
