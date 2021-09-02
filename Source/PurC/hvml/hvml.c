@@ -1226,7 +1226,18 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_AFTER_DOCTYPE_NAME_STATE)
-        // TODO
+            if (is_whitespace(character)) {
+                ADVANCE_TO(PCHVML_AFTER_DOCTYPE_NAME_STATE);
+            }
+            if (character == '>') {
+                RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
+            }
+            if (is_eof(character)) {
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_DOCTYPE);
+                pchvml_token_set_force_quirks(hvml->current_token, true);
+                RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
+            }
+            // TODO : six characters starting from the current input character
         END_STATE()
 
         BEGIN_STATE(PCHVML_AFTER_DOCTYPE_PUBLIC_KEYWORD_STATE)
