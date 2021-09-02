@@ -1569,6 +1569,8 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_CHARACTER_REFERENCE_STATE)
+            RESET_TEMP_BUFFER();
+            APPEND_TEMP_BUFFER("&", 1);
             if (is_ascii_alpha_numeric(character)) {
                 RECONSUME_IN(PCHVML_NAMED_CHARACTER_REFERENCE_STATE);
             }
@@ -1576,6 +1578,8 @@ next_state:
                 APPEND_TEMP_BUFFER(hvml->c, hvml->sz_c);
                 SWITCH_TO(PCHVML_NUMERIC_CHARACTER_REFERENCE_STATE);
             }
+            APPEND_TEMP_BUFFER_TO_CHARACTER();
+            RESET_TEMP_BUFFER();
             RECONSUME_IN(hvml->return_state);
         END_STATE()
 
