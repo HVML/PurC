@@ -1218,9 +1218,10 @@ next_state:
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
             if (is_eof(character)) {
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_DOCTYPE);
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
-            APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
+            APPEND_TO_TAG_NAME(hvml->c, hvml->sz_c);
             ADVANCE_TO(PCHVML_DOCTYPE_NAME_STATE);
         END_STATE()
 
