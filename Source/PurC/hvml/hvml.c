@@ -1194,14 +1194,19 @@ next_state:
                 ADVANCE_TO(PCHVML_BEFORE_DOCTYPE_NAME_STATE);
             }
             if (character == '>') {
-                hvml->current_token = pchvml_token_new(PCHVML_TOKEN_DOCTYPE);
-                RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
-            }
-            if (is_eof(character)) {
-                hvml->current_token = pchvml_token_new(PCHVML_TOKEN_DOCTYPE);
+                PCHVML_SET_ERROR(PCHVML_ERROR_MISSING_DOCTYPE_NAME);
+                hvml->current_token = pchvml_token_new_doctype();
+                pchvml_token_set_force_quirks(hvml->current_token, true);
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
-            hvml->current_token = pchvml_token_new(PCHVML_TOKEN_DOCTYPE);
+            if (is_eof(character)) {
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_DOCTYPE);
+                hvml->current_token = pchvml_token_new_doctype();
+                pchvml_token_set_force_quirks(hvml->current_token, true);
+                RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
+            }
+            hvml->current_token = pchvml_token_new_doctype();
+            APPEND_TO_TAG_NAME(hvml->c, hvml->sz_c);
             ADVANCE_TO(PCHVML_DOCTYPE_NAME_STATE);
         END_STATE()
 
