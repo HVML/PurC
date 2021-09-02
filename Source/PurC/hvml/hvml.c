@@ -283,7 +283,9 @@ static const char* hvml_err_msgs[] = {
     /* PCHVML_ERROR_NESTED_COMMENT */
     "pchvml error nested comment",
     /* PCHVML_ERROR_INCORRECTLY_CLOSED_COMMENT */
-    "pchvml error incorrectly closed comment"
+    "pchvml error incorrectly closed comment",
+    /* PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM_IDENTIFIER */
+    "pchvml error missing quote before doctype system identifier"
 };
 
 static struct err_msg_seg _hvml_err_msgs_seg = {
@@ -1254,7 +1256,7 @@ next_state:
                 PCHVML_SET_ERROR(
                   PCHVML_ERROR_MISSING_WHITESPACE_AFTER_DOCTYPE_PUBLIC_KEYWORD);
                 pchvml_temp_buffer_reset(
-                        hvml->current_token->system_identifier);
+                        hvml->current_token->public_identifier);
                 ADVANCE_TO(PCHVML_DOCTYPE_PUBLIC_IDENTIFIER_SINGLE_QUOTED_STATE);
             }
             if (character == '>') {
@@ -1283,7 +1285,7 @@ next_state:
                 ADVANCE_TO(PCHVML_DOCTYPE_PUBLIC_IDENTIFIER_DOUBLE_QUOTED_STATE);
             }
             if (character == '\'') {
-                pchvml_temp_buffer_reset(hvml->current_token->system_identifier);
+                pchvml_temp_buffer_reset(hvml->current_token->public_identifier);
                 ADVANCE_TO(PCHVML_DOCTYPE_PUBLIC_IDENTIFIER_SINGLE_QUOTED_STATE);
             }
             if (character == '>') {
@@ -1343,22 +1345,36 @@ next_state:
 
         BEGIN_STATE(PCHVML_AFTER_DOCTYPE_PUBLIC_IDENTIFIER_STATE)
             if (is_whitespace(character)) {
-                ADVANCE_TO(PCHVML_BETWEEN_DOCTYPE_PUBLIC_IDENTIFIER_AND_SYSTEM_INFORMATION_STATE);
+                ADVANCE_TO(
+                PCHVML_BETWEEN_DOCTYPE_PUBLIC_IDENTIFIER_AND_SYSTEM_INFORMATION_STATE);
             }
             if (character == '>') {
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
             if (character == '"') {
-                //TODO setSystemIdentifierToEmptyString();
+                PCHVML_SET_ERROR(
+                  PCHVML_ERROR_MISSING_WHITESPACE_BETWEEN_DOCTYPE_PUBLIC_AND_SYSTEM_IDENTIFIERS
+                  );
+                pchvml_temp_buffer_reset(
+                        hvml->current_token->system_identifier);
                 ADVANCE_TO(PCHVML_DOCTYPE_SYSTEM_INFORMATION_DOUBLE_QUOTED_STATE);
             }
             if (character == '\'') {
-                //TODO setSystemIdentifierToEmptyString();
+                PCHVML_SET_ERROR(
+                  PCHVML_ERROR_MISSING_WHITESPACE_BETWEEN_DOCTYPE_PUBLIC_AND_SYSTEM_IDENTIFIERS
+                  );
+                pchvml_temp_buffer_reset(
+                        hvml->current_token->system_identifier);
                 ADVANCE_TO(PCHVML_DOCTYPE_SYSTEM_INFORMATION_SINGLE_QUOTED_STATE);
             }
             if (is_eof(character)) {
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_DOCTYPE);
+                pchvml_token_set_force_quirks(hvml->current_token, true);
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
+            PCHVML_SET_ERROR(
+                PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM_IDENTIFIER);
+            pchvml_token_set_force_quirks(hvml->current_token, true);
             ADVANCE_TO(PCHVML_BOGUS_DOCTYPE_STATE);
         END_STATE()
 
