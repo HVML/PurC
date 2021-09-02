@@ -40,6 +40,7 @@ enum pchvml_tokenizer_state {
 };
 
 enum pchvml_tag_category {
+    PCHVML_TAGCAT_UNDEF = 0x00,
 %%PCHVML_TAG_CATEGORY_ENUMS%%
 };
 
