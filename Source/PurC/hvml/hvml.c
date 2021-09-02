@@ -1175,10 +1175,17 @@ next_state:
             if (is_whitespace(character)) {
                 ADVANCE_TO(PCHVML_BEFORE_DOCTYPE_NAME_STATE);
             }
+            if (character == '>') {
+                RECONSUME_IN(PCHVML_BEFORE_DOCTYPE_NAME_STATE);
+            }
             if (is_eof(character)) {
-                hvml->current_token = pchvml_token_new(PCHVML_TOKEN_DOCTYPE);
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_DOCTYPE);
+                hvml->current_token = pchvml_token_new_doctype();
+                pchvml_token_set_force_quirks(hvml->current_token, true);
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
+            PCHVML_SET_ERROR(
+                    PCHVML_ERROR_MISSING_WHITESPACE_BEFORE_DOCTYPE_NAME);
             RECONSUME_IN(PCHVML_BEFORE_DOCTYPE_NAME_STATE);
         END_STATE()
 

@@ -70,6 +70,8 @@ struct pchvml_token {
     struct pchvml_token_attribute* curr_attr;
     struct pchvml_temp_buffer* temp_buffer;
     bool self_closing;
+    // DOCTYPE
+    bool force_quirks;
 };
 
 
@@ -117,6 +119,11 @@ struct pchvml_token* pchvml_token_new_comment () {
     return pchvml_token_new(PCHVML_TOKEN_COMMENT);
 }
 
+PCA_INLINE
+struct pchvml_token* pchvml_token_new_doctype () {
+    return pchvml_token_new(PCHVML_TOKEN_DOCTYPE);
+}
+
 void pchvml_token_append (struct pchvml_token* token,
         const char* bytes, size_t sz_bytes);
 
@@ -146,6 +153,17 @@ bool pchvml_token_is_self_closing (struct pchvml_token* token)
     return token->self_closing;
 }
 
+PCA_INLINE
+void pchvml_token_set_force_quirks (struct pchvml_token* token, bool b)
+{
+    token->force_quirks = b;
+}
+
+PCA_INLINE
+bool pchvml_token_is_force_quirks (struct pchvml_token* token)
+{
+    return token->force_quirks;
+}
 
 #ifdef __cplusplus
 }
