@@ -1688,6 +1688,7 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_NUMERIC_CHARACTER_REFERENCE_END_STATE)
+        // TODO
         END_STATE()
 
         BEGIN_STATE(PCHVML_SPECIAL_ATTRIBUTE_OPERATOR_IN_ATTRIBUTE_NAME_STATE)
@@ -1740,7 +1741,11 @@ next_state:
                 }
                 SWITCH_TO(PCHVML_BEFORE_ATTRIBUTE_VALUE_STATE);
             }
-            // TODO
+            pchvml_token_attribute_append_to_name(hvml->current_token,
+                pchvml_temp_buffer_get_buffer(hvml->temp_buffer),
+                pchvml_temp_buffer_get_size_in_bytes(hvml->temp_buffer));
+            pchvml_temp_buffer_reset (hvml->temp_buffer);
+            RECONSUME_IN(PCHVML_ATTRIBUTE_NAME_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_SPECIAL_ATTRIBUTE_OPERATOR_AFTER_ATTRIBUTE_NAME_STATE)
@@ -1793,7 +1798,12 @@ next_state:
                 }
                 SWITCH_TO(PCHVML_BEFORE_ATTRIBUTE_VALUE_STATE);
             }
-            // TODO
+            pchvml_token_attribute_begin (hvml->current_token);
+            pchvml_token_attribute_append_to_name(hvml->current_token,
+                pchvml_temp_buffer_get_buffer(hvml->temp_buffer),
+                pchvml_temp_buffer_get_size_in_bytes(hvml->temp_buffer));
+            pchvml_temp_buffer_reset (hvml->temp_buffer);
+            RECONSUME_IN(PCHVML_ATTRIBUTE_NAME_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_DATA_STATE)
