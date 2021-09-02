@@ -1540,6 +1540,7 @@ next_state:
                 ADVANCE_TO(PCHVML_CDATA_SECTION_BRACKET_STATE);
             }
             if (is_eof(character)) {
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_CDATA);
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
             APPEND_TO_CHARACTER(hvml->c, hvml->sz_c);
@@ -1562,6 +1563,7 @@ next_state:
             if (character == '>') {
                 ADVANCE_TO(PCHVML_DATA_STATE);
             }
+            APPEND_TO_CHARACTER("]", 1);
             APPEND_TO_CHARACTER("]", 1);
             RECONSUME_IN(PCHVML_CDATA_SECTION_STATE);
         END_STATE()
