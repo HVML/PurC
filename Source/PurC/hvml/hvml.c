@@ -1444,19 +1444,29 @@ next_state:
                 ADVANCE_TO(PCHVML_BEFORE_DOCTYPE_SYSTEM_INFORMATION_STATE);
             }
             if (character == '"') {
-                // TODO setSystemIdentifierToEmptyString();
+                pchvml_temp_buffer_reset(
+                        hvml->current_token->system_identifier);
                 ADVANCE_TO(PCHVML_DOCTYPE_SYSTEM_INFORMATION_DOUBLE_QUOTED_STATE);
             }
             if (character == '\'') {
-                // TODO setSystemIdentifierToEmptyString();
+                pchvml_temp_buffer_reset(
+                        hvml->current_token->system_identifier);
                 ADVANCE_TO(PCHVML_DOCTYPE_SYSTEM_INFORMATION_SINGLE_QUOTED_STATE);
             }
             if (character == '>') {
+                PCHVML_SET_ERROR(
+                        PCHVML_ERROR_MISSING_DOCTYPE_SYSTEM_IDENTIFIER);
+                pchvml_token_set_force_quirks(hvml->current_token, true);
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
             if (is_eof(character)) {
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_DOCTYPE);
+                pchvml_token_set_force_quirks(hvml->current_token, true);
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
+            PCHVML_SET_ERROR(
+                PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM_IDENTIFIER);
+            pchvml_token_set_force_quirks(hvml->current_token, true);
             ADVANCE_TO(PCHVML_BOGUS_DOCTYPE_STATE);
         END_STATE()
 
