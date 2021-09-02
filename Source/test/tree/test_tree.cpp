@@ -417,6 +417,82 @@ TEST(tree, pod)
     pctree_node_level_order_traversal(&nodes[0].node, build_output_buf2, rws);
     ASSERT_STREQ(buf, "1 2 3 4 5 6 7 8 9 10 11 ");
 
+    struct pctree_node *node, *next;
+
+    purc_rwstream_seek (rws, 0, SEEK_SET);
+    memset(buf, 0, sizeof(buf));
+    ASSERT_EQ(nodes[1].node.next, &nodes[2].node);
+    pctree_for_each_post_order(&nodes[0].node, node, next) {
+        char tmp[1000] = {0};
+        struct number_node *p = container_of(node, struct number_node, node);
+        snprintf(tmp, 1000, "%d ", p->val);
+        purc_rwstream_write (rws, tmp, strlen(tmp));
+    }
+    ASSERT_STREQ(buf, "4 5 6 2 8 9 10 11 7 3 1 ");
+
+/*               1
+ *             /   \
+ *           2       3
+ *         / | \       \
+ *       4   5   6       7
+ *                     / /\ \
+ *                   8  9  10  11
+ *
+ */
+    const char *post_orders[] = {
+        "4 5 6 2 8 9 10 11 7 3 1 ",
+        "4 5 6 2 ",
+        "8 9 10 11 7 3 ",
+        "4 ",
+        "5 ",
+        "6 ",
+        "8 9 10 11 7 ",
+        "8 ",
+        "9 ",
+        "10 ",
+        "11 ",
+    };
+    for (size_t i=0; i<sizeof(nodes)/sizeof(nodes[0]); ++i) {
+        for (size_t j=0; j<2; ++j) {
+            purc_rwstream_seek (rws, 0, SEEK_SET);
+            memset(buf, 0, sizeof(buf));
+            pctree_for_each_post_order(&nodes[i].node, node, next) {
+                char tmp[1000] = {0};
+                struct number_node *p = container_of(node, struct number_node, node);
+                snprintf(tmp, 1000, "%d ", p->val);
+                purc_rwstream_write (rws, tmp, strlen(tmp));
+            }
+            EXPECT_STREQ(buf, post_orders[i]);
+        }
+    }
+
+    const char *pre_orders[] = {
+        "1 2 4 5 6 3 7 8 9 10 11 ",
+        "2 4 5 6 ",
+        "3 7 8 9 10 11 ",
+        "4 ",
+        "5 ",
+        "6 ",
+        "7 8 9 10 11 ",
+        "8 ",
+        "9 ",
+        "10 ",
+        "11 ",
+    };
+    for (size_t i=0; i<sizeof(nodes)/sizeof(nodes[0]); ++i) {
+        for (size_t j=0; j<2; ++j) {
+            purc_rwstream_seek (rws, 0, SEEK_SET);
+            memset(buf, 0, sizeof(buf));
+            pctree_for_each_pre_order(&nodes[i].node, node, next) {
+                char tmp[1000] = {0};
+                struct number_node *p = container_of(node, struct number_node, node);
+                snprintf(tmp, 1000, "%d ", p->val);
+                purc_rwstream_write (rws, tmp, strlen(tmp));
+            }
+            EXPECT_STREQ(buf, pre_orders[i]);
+        }
+    }
+
     int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 }

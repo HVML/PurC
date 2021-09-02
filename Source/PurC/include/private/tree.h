@@ -341,7 +341,96 @@ void pctree_node_level_order_traversal (struct pctree_node* node,
  *
  * Since: 0.0.1
  */
- void pctree_node_remove(struct pctree_node* node);
+void pctree_node_remove(struct pctree_node* node);
+
+
+/*
+ * Get first node under the specified tree in post_order
+ * @param _node: root node of the specified tree, could be subtree
+ */
+#define pctree_first_post_order(_node)     \
+    ({                                     \
+        struct pctree_node *_p = _node;    \
+        while (_p && _p->first_child) {    \
+            _p = _p->first_child;          \
+        };                                 \
+        _p; })
+
+/*
+ * Get next node in post_order
+ * @param _node: current node
+ * @param _next: next node to return
+ */
+#define pctree_next_post_order(_node, _next)               \
+    ({                                                     \
+        if (_node->next) {                                 \
+            _next = pctree_first_post_order(_node->next);  \
+        } else {                                           \
+            _next = _node->parent;                         \
+        }                                                  \
+        1; })
+
+/*
+ * Loop over a block of nodes of the tree/subtree in post_order,
+ * used similar to a for() command.
+ * @param _top: top node of tree/subtree
+ * @param _node: current node that is looped in this iterate
+ * @param _next: next node that is to be looped,
+ *               can be uninitialized before looping
+ */
+#define pctree_for_each_post_order(_top, _node, _next)              \
+    for (_node=_top,                                                \
+         _next=NULL,                                                \
+         _node = pctree_first_post_order(_node);                    \
+         _node && ({pctree_next_post_order(_node, _next), 1;});     \
+         _node = (_node==_top) ? NULL : _next)
+
+
+/*
+ * Get next node in pre_order
+ * @param _node: current node
+ * @param _next: next node to return
+ * @param _top:  top node of tree/subtree that is currently looped for
+ */
+#define pctree_next_pre_order(_node, _next, _top)     \
+    ({                                                \
+        if (_node->first_child) {                     \
+            _next = _node->first_child;               \
+        } else if (_node->next) {                     \
+            if (_node==_top) {                        \
+                _next = NULL;                         \
+            } else {                                  \
+                _next = _node->next;                  \
+            }                                         \
+        } else if (_node==_top) {                     \
+            _next = NULL;                             \
+        } else {                                      \
+            _next = NULL;                             \
+            struct pctree_node *_t = _node;           \
+            while (_t->parent) {                      \
+                if (_t->parent==_top)                 \
+                    break;                            \
+                _next = _t->parent->next;             \
+                if (_next)                            \
+                    break;                            \
+                _t = _t->parent;                      \
+            }                                         \
+        }                                             \
+        1; })
+
+/*
+ * Loop over a block of nodes of the tree/subtree in pre_order,
+ * used similar to a for() command.
+ * @param _top: top node of tree/subtree
+ * @param _node: current node that is looped in this iterate
+ * @param _next: next node that is to be looped,
+ *               can be uninitialized before looping
+ */
+#define pctree_for_each_pre_order(_top, _node, _next)                  \
+    for (_node=_top,                                                   \
+         _next=NULL;                                                   \
+         _node && ({pctree_next_pre_order(_node, _next, _top), 1;});   \
+         _node = _next)
 
 #ifdef __cplusplus
 }
