@@ -149,6 +149,24 @@ void pchvml_token_append (struct pchvml_token* token,
     pchvml_temp_buffer_append(token->temp_buffer, bytes, sz_bytes);
 }
 
+void pchvml_token_append_to_public_identifier (struct pchvml_token* token,
+        const char* bytes, size_t sz_bytes)
+{
+    if (!token->public_identifier) {
+        token->public_identifier = pchvml_temp_buffer_new ();
+    }
+    pchvml_temp_buffer_append(token->public_identifier, bytes, sz_bytes);
+}
+
+void pchvml_token_append_to_system_identifier (struct pchvml_token* token,
+        const char* bytes, size_t sz_bytes)
+{
+    if (!token->system_identifier) {
+        token->system_identifier = pchvml_temp_buffer_new ();
+    }
+    pchvml_temp_buffer_append(token->system_identifier, bytes, sz_bytes);
+}
+
 void pchvml_token_done (struct pchvml_token* token)
 {
     if (!token->temp_buffer) {

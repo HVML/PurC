@@ -72,6 +72,10 @@ struct pchvml_token {
     bool self_closing;
     // DOCTYPE
     bool force_quirks;
+    bool has_public_identifier;
+    bool has_system_identifier;
+    struct pchvml_temp_buffer* public_identifier;
+    struct pchvml_temp_buffer* system_identifier;
 };
 
 
@@ -127,6 +131,12 @@ struct pchvml_token* pchvml_token_new_doctype () {
 void pchvml_token_append (struct pchvml_token* token,
         const char* bytes, size_t sz_bytes);
 
+void pchvml_token_append_to_public_identifier (struct pchvml_token* token,
+        const char* bytes, size_t sz_bytes);
+
+void pchvml_token_append_to_system_identifier (struct pchvml_token* token,
+        const char* bytes, size_t sz_bytes);
+
 PCA_INLINE
 const char* pchvml_token_get_data (struct pchvml_token* token) {
     return pchvml_temp_buffer_get_buffer(token->temp_buffer);
@@ -163,6 +173,30 @@ PCA_INLINE
 bool pchvml_token_is_force_quirks (struct pchvml_token* token)
 {
     return token->force_quirks;
+}
+
+PCA_INLINE
+void pchvml_token_set_has_public_identifier (struct pchvml_token* token, bool b)
+{
+    token->has_public_identifier = b;
+}
+
+PCA_INLINE
+bool pchvml_token_has_public_identifier (struct pchvml_token* token)
+{
+    return token->has_public_identifier;
+}
+
+PCA_INLINE
+void pchvml_token_set_has_system_identifier (struct pchvml_token* token, bool b)
+{
+    token->has_system_identifier = b;
+}
+
+PCA_INLINE
+bool pchvml_token_has_system_identifier (struct pchvml_token* token)
+{
+    return token->has_system_identifier;
 }
 
 #ifdef __cplusplus
