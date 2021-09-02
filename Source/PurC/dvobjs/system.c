@@ -45,6 +45,7 @@
 #define FORMAT_ISO8601  1
 #define FORMAT_RFC822   2
 
+https://www.doxygen.nl/manual/output.html
 
 /**
  * @brief       Get system information 
