@@ -1475,12 +1475,16 @@ next_state:
                 ADVANCE_TO(PCHVML_AFTER_DOCTYPE_SYSTEM_INFORMATION_STATE);
             }
             if (character == '>') {
+                PCHVML_SET_ERROR(PCHVML_ERROR_ABRUPT_DOCTYPE_SYSTEM_IDENTIFIER);
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
             if (is_eof(character)) {
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_DOCTYPE);
+                pchvml_token_set_force_quirks(hvml->current_token, true);
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
-            // TODO appendToSystemIdentifier
+            pchvml_token_append_to_system_identifier(hvml->current_token,
+                    hvml->c, hvml->sz_c);
             ADVANCE_TO(PCHVML_DOCTYPE_SYSTEM_INFORMATION_DOUBLE_QUOTED_STATE);
         END_STATE()
 
