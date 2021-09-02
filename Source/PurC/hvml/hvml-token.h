@@ -34,6 +34,8 @@
 #define pchvml_token_append_to_comment pchvml_token_append
 #define pchvml_token_append_to_character pchvml_token_append
 
+#define pchvml_token_get_name pchvml_token_get_data
+
 enum pchvml_attribute_assignment {
     PCHVML_ATTRIBUTE_ASSIGNMENT,           // =
     PCHVML_ATTRIBUTE_ADDITION_ASSIGNMENT,  // +=
@@ -87,14 +89,63 @@ void pchvml_token_attribute_set_assignment (struct pchvml_token* token,
         enum pchvml_attribute_assignment assignment);
 void pchvml_token_attribute_end (struct pchvml_token* token);
 
-struct pchvml_token* pchvml_token_new_character ();
-struct pchvml_token* pchvml_token_new_start_tag ();
-struct pchvml_token* pchvml_token_new_end_tag ();
+PCA_INLINE
+struct pchvml_token* pchvml_token_new_character ()
+{
+    return pchvml_token_new (PCHVML_TOKEN_CHARACTER);
+}
+
+PCA_INLINE
+struct pchvml_token* pchvml_token_new_start_tag ()
+{
+    return pchvml_token_new (PCHVML_TOKEN_START_TAG);
+}
+
+PCA_INLINE
+struct pchvml_token* pchvml_token_new_end_tag ()
+{
+    return pchvml_token_new (PCHVML_TOKEN_END_TAG);
+}
+
+PCA_INLINE
+struct pchvml_token* pchvml_token_new_eof () {
+    return pchvml_token_new(PCHVML_TOKEN_EOF);
+}
+
+PCA_INLINE
+struct pchvml_token* pchvml_token_new_comment () {
+    return pchvml_token_new(PCHVML_TOKEN_COMMENT);
+}
 
 void pchvml_token_append (struct pchvml_token* token,
         const char* bytes, size_t sz_bytes);
 
+PCA_INLINE
+const char* pchvml_token_get_data (struct pchvml_token* token) {
+    return pchvml_temp_buffer_get_buffer(token->temp_buffer);
+}
+
 void pchvml_token_done (struct pchvml_token* token);
+
+PCA_INLINE
+bool pchvml_token_is_type (struct pchvml_token* token,
+        enum pchvml_token_type type)
+{
+    return token && token->type == type;
+}
+
+PCA_INLINE
+void pchvml_token_set_self_closing (struct pchvml_token* token, bool b)
+{
+    token->self_closing = b;
+}
+
+PCA_INLINE
+bool pchvml_token_is_self_closing (struct pchvml_token* token)
+{
+    return token->self_closing;
+}
+
 
 #ifdef __cplusplus
 }

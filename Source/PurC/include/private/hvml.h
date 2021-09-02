@@ -154,6 +154,7 @@ struct pchvml_parser {
     char c[8];
     size_t queue_size;
     struct pchvml_temp_buffer* temp_buffer;
+    struct pchvml_temp_buffer* appropriate_tag_name;
     struct pchvml_token* current_token;
     bool need_reconsume;
 };
