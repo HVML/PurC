@@ -156,6 +156,7 @@ struct pchvml_parser {
     struct pchvml_temp_buffer* temp_buffer;
     struct pchvml_temp_buffer* appropriate_tag_name;
     struct pchvml_token* current_token;
+    uint64_t character_reference_code;
     bool need_reconsume;
 };
 

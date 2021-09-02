@@ -285,7 +285,9 @@ static const char* hvml_err_msgs[] = {
     /* PCHVML_ERROR_INCORRECTLY_CLOSED_COMMENT */
     "pchvml error incorrectly closed comment",
     /* PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM_IDENTIFIER */
-    "pchvml error missing quote before doctype system identifier"
+    "pchvml error missing quote before doctype system identifier",
+    /* PCHVML_ERROR_MISSING_SEMICOLON_AFTER_CHARACTER_REFERENCE */
+    "pchvml error missing semicolon after character reference"
 };
 
 static struct err_msg_seg _hvml_err_msgs_seg = {
@@ -342,6 +344,18 @@ static inline UNUSED_FUNCTION bool is_ascii_hex_digit (wchar_t character)
      return is_ascii_digit(character) ||
          (to_ascii_lower_unchecked(character) >= 'a' &&
           to_ascii_lower_unchecked(character) <= 'f');
+}
+
+static inline UNUSED_FUNCTION bool is_ascii_upper_hex_digit (wchar_t character)
+{
+     return is_ascii_digit(character) ||
+         (character >= 'A' && character <= 'F');
+}
+
+static inline UNUSED_FUNCTION bool is_ascii_lower_hex_digit (wchar_t character)
+{
+     return is_ascii_digit(character) ||
+         (character >= 'a' && character <= 'f');
 }
 
 static inline UNUSED_FUNCTION bool is_ascii_octal_digit (wchar_t character)
@@ -1611,6 +1625,7 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_NUMERIC_CHARACTER_REFERENCE_STATE)
+            hvml->character_reference_code = 0;
             if (character == 'x' || character == 'X') {
                 APPEND_TEMP_BUFFER(hvml->c, hvml->sz_c);
                 ADVANCE_TO(PCHVML_HEXADECIMAL_CHARACTER_REFERENCE_START_STATE);
@@ -1639,6 +1654,24 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_HEXADECIMAL_CHARACTER_REFERENCE_STATE)
+            if (is_ascii_digit(character)) {
+                hvml->character_reference_code *= 16;
+                hvml->character_reference_code += character - 0x30;
+            }
+            if (is_ascii_upper_hex_digit(character)) {
+                hvml->character_reference_code *= 16;
+                hvml->character_reference_code += character - 0x37;
+            }
+            if (is_ascii_lower_hex_digit(character)) {
+                hvml->character_reference_code *= 16;
+                hvml->character_reference_code += character - 0x57;
+            }
+            if (character == ';') {
+                ADVANCE_TO(PCHVML_NUMERIC_CHARACTER_REFERENCE_END_STATE);
+            }
+            PCHVML_SET_ERROR(
+                    PCHVML_ERROR_MISSING_SEMICOLON_AFTER_CHARACTER_REFERENCE);
+            RECONSUME_IN(PCHVML_NUMERIC_CHARACTER_REFERENCE_END_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_DECIMAL_CHARACTER_REFERENCE_STATE)
