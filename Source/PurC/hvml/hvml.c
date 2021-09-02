@@ -1675,6 +1675,16 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_DECIMAL_CHARACTER_REFERENCE_STATE)
+            if (is_ascii_digit(character)) {
+                hvml->character_reference_code *= 10;
+                hvml->character_reference_code += character - 0x30;
+            }
+            if (character == ';') {
+                ADVANCE_TO(PCHVML_NUMERIC_CHARACTER_REFERENCE_END_STATE);
+            }
+            PCHVML_SET_ERROR(
+                    PCHVML_ERROR_MISSING_SEMICOLON_AFTER_CHARACTER_REFERENCE);
+            RECONSUME_IN(PCHVML_NUMERIC_CHARACTER_REFERENCE_END_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_NUMERIC_CHARACTER_REFERENCE_END_STATE)
