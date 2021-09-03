@@ -24,17 +24,41 @@
 
 #include "hvml-entity.h"
 
-
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 #include <errno.h>
 
+#if HAVE(GLIB)
+#include <gmodule.h>
+#else
+#include <stdlib.h>
+#endif
+
+#define PCHVML_END_OF_FILE       0
+
+#if HAVE(GLIB)
+#define    PCHVML_ALLOC(sz)   g_slice_alloc0(sz)
+#define    PCHVML_FREE(p)     g_slice_free1(sizeof(*p), (gpointer)p)
+#else
+#define    PCHVML_ALLOC(sz)   calloc(1, sz)
+#define    PCHVML_FREE(p)     free(p)
+#endif
+
 struct pchvml_entity {
     const char* entity;
-    size_t nr_entity;
+    size_t length;
     wchar_t first_value;
     wchar_t second_value;
+};
+
+struct pchvml_entity_search {
+    struct pchvml_entity* first;
+    struct pchvml_entity* last;
+    struct pchvml_entity* most_recent_match;
+    first_entry_starting_with_fn* first_starting_with;
+    last_entry_starting_with_fn* last_starting_with;
+    size_t current_length;
 };
 
 const char* pchvml_entity_get_entity(struct pchvml_entity* entity)
@@ -42,9 +66,9 @@ const char* pchvml_entity_get_entity(struct pchvml_entity* entity)
     return entity->entity;
 }
 
-size_t pchvml_entity_get_entity_size(struct pchvml_entity* entity)
+size_t pchvml_entity_get_entity_length(struct pchvml_entity* entity)
 {
-    return entity->nr_entity;
+    return entity->length;
 }
 
 wchar_t pchvml_entity_get_first_value(struct pchvml_entity* entity)
@@ -56,4 +80,163 @@ wchar_t pchvml_entity_get_last_value(struct pchvml_entity* entity)
 {
     return entity->second_value;
 }
+
+struct pchvml_entity_search* pchvml_entity_search_new_ex(
+        struct pchvml_entity* first, struct pchvml_entity* last,
+        first_entry_starting_with_fn* first_starting_with,
+        last_entry_starting_with_fn* last_starting_with)
+{
+    struct pchvml_entity_search* search = (struct pchvml_entity_search*)
+        PCHVML_ALLOC(sizeof(struct pchvml_entity_search));
+
+    if (!search) {
+        return NULL;
+    }
+
+    search->first = first;
+    search->last = last;
+    search->most_recent_match = NULL;
+    search->first_starting_with = first_starting_with;
+    search->last_starting_with = last_starting_with;
+
+    return search;
+}
+
+void pchvml_entity_search_destroy(struct pchvml_entity_search* search)
+{
+    if (search) {
+        PCHVML_FREE(search);
+    }
+}
+
+struct pchvml_entity* pchvml_entity_search_most_recent_match(
+        struct pchvml_entity_search* search)
+{
+    return search->most_recent_match;
+}
+
+size_t pchvml_entity_search_current_length(struct pchvml_entity_search* search)
+{
+    return search->current_length;
+}
+
+enum pchvml_entity_search_compare_result {
+    PCHVML_ENTITY_SEARCH_COMPARE_RESULT_BEFORE,
+    PCHVML_ENTITY_SEARCH_COMPARE_RESULT_PREFIX,
+    PCHVML_ENTITY_SEARCH_COMPARE_RESULT_AFTER,
+};
+
+struct pchvml_entity* pchvml_entity_search_halfway(
+        struct pchvml_entity* left, const struct pchvml_entity* right)
+{
+    return &left[(right - left) / 2];
+}
+
+enum pchvml_entity_search_compare_result pchvml_entity_search_compare(
+        struct pchvml_entity_search* search, struct pchvml_entity* entry,
+        wchar_t next_character)
+{
+    if (entry->length < search->current_length + 1) {
+        return PCHVML_ENTITY_SEARCH_COMPARE_RESULT_BEFORE;
+    }
+    wchar_t entry_next_character = entry->entity[search->current_length];
+    if (entry_next_character == next_character) {
+        return PCHVML_ENTITY_SEARCH_COMPARE_RESULT_PREFIX;
+    }
+    return entry_next_character < next_character ?
+        PCHVML_ENTITY_SEARCH_COMPARE_RESULT_BEFORE :
+        PCHVML_ENTITY_SEARCH_COMPARE_RESULT_AFTER;
+}
+
+struct pchvml_entity* pchvml_entity_search_find_first(
+        struct pchvml_entity_search* search, wchar_t next_character)
+{
+    struct pchvml_entity* left = search->first;
+    struct pchvml_entity* right = search->last;
+    if (left == right) {
+        return left;
+    }
+    enum pchvml_entity_search_compare_result result =
+        pchvml_entity_search_compare(search, left, next_character);
+    if (result == PCHVML_ENTITY_SEARCH_COMPARE_RESULT_PREFIX) {
+        return left;
+    }
+    if (result == PCHVML_ENTITY_SEARCH_COMPARE_RESULT_AFTER) {
+        return right;
+    }
+    while (left + 1 < right) {
+        struct pchvml_entity* probe = pchvml_entity_search_halfway(left,
+                right);
+        result = pchvml_entity_search_compare(search, probe, next_character);
+        if (result == PCHVML_ENTITY_SEARCH_COMPARE_RESULT_BEFORE) {
+            left = probe;
+        }
+        else {
+            right = probe;
+        }
+    }
+    return right;
+}
+
+struct pchvml_entity* pchvml_entity_search_find_last(
+        struct pchvml_entity_search* search, wchar_t next_character)
+{
+    struct pchvml_entity* left = search->first;
+    struct pchvml_entity* right = search->last;
+    if (left == right) {
+        return right;
+    }
+    enum pchvml_entity_search_compare_result result =
+        pchvml_entity_search_compare(search, right, next_character);
+    if (result == PCHVML_ENTITY_SEARCH_COMPARE_RESULT_PREFIX) {
+        return right;
+    }
+    if (result == PCHVML_ENTITY_SEARCH_COMPARE_RESULT_BEFORE) {
+        return left;
+    }
+    while (left + 1 < right) {
+        struct pchvml_entity* probe = pchvml_entity_search_halfway(left,
+                right);
+        result = pchvml_entity_search_compare(search, probe, next_character);
+        if (result == PCHVML_ENTITY_SEARCH_COMPARE_RESULT_AFTER) {
+            right = probe;
+        }
+        else {
+            left = probe;
+        }
+    }
+    return left;
+}
+
+bool pchvml_entity_advance(struct pchvml_entity_search* search,
+        wchar_t next_character)
+{
+    if (!search->current_length && search->first_starting_with
+            && search->last_starting_with) {
+        search->first = search->first_starting_with(next_character);
+        search->last = search->last_starting_with(next_character);
+        if (!search->first || !search->last) {
+            search->first = NULL;
+            search->last = NULL;
+            return false;
+        }
+    } else {
+        search->first = pchvml_entity_search_find_first(search, next_character);
+        search->last = pchvml_entity_search_find_last(search, next_character);
+        if (search->first == search->last &&
+            pchvml_entity_search_compare(search, search->first,
+               next_character) != PCHVML_ENTITY_SEARCH_COMPARE_RESULT_BEFORE) {
+            search->first = NULL;
+            search->last = NULL;
+            return false;
+        }
+    }
+    ++search->current_length;
+    if (search->first->length != search->current_length) {
+        return true;
+    }
+    search->most_recent_match = search->first;
+    return true;
+}
+
 

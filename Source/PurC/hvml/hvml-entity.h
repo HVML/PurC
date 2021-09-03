@@ -28,19 +28,48 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <private/arraylist.h>
-#include "tempbuffer.h"
 
+#include "config.h"
+#include "purc-utils.h"
 
 struct pchvml_entity;
+struct pchvml_entity_search;
+
+typedef struct pchvml_entity* (first_entry_starting_with_fn)(char c);
+typedef struct pchvml_entity* (last_entry_starting_with_fn)(char c);
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
 
 const char* pchvml_entity_get_entity(struct pchvml_entity* entity);
-size_t pchvml_entity_get_entity_size(struct pchvml_entity* entity);
+size_t pchvml_entity_get_entity_length(struct pchvml_entity* entity);
 wchar_t pchvml_entity_get_first_value(struct pchvml_entity* entity);
 wchar_t pchvml_entity_get_last_value(struct pchvml_entity* entity);
+
+
+struct pchvml_entity_search* pchvml_entity_search_new_ex(
+        struct pchvml_entity* first, struct pchvml_entity* last,
+        first_entry_starting_with_fn* first_starting_with,
+        last_entry_starting_with_fn* last_starting_with);
+
+PCA_INLINE
+struct pchvml_entity_search* pchvml_entity_search_new(
+        struct pchvml_entity* first, struct pchvml_entity* last)
+{
+    return pchvml_entity_search_new_ex(first, last, NULL, NULL);
+}
+
+void pchvml_entity_search_destroy(struct pchvml_entity_search* search);
+
+struct pchvml_entity* pchvml_entity_search_most_recent_match(
+        struct pchvml_entity_search* search);
+
+size_t pchvml_entity_search_current_length(struct pchvml_entity_search* search);
+
+bool pchvml_entity_advance(struct pchvml_entity_search* search, wchar_t uc);
+
 
 
 #ifdef __cplusplus
