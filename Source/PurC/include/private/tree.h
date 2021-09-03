@@ -361,14 +361,15 @@ void pctree_node_remove(struct pctree_node* node);
  * @param _node: current node
  * @param _next: next node to return
  */
-#define pctree_next_post_order(_node, _next)               \
+#define pctree_next_post_order(_node)                      \
     ({                                                     \
+        struct pctree_node *_p;                            \
         if (_node->next) {                                 \
-            _next = pctree_first_post_order(_node->next);  \
+            _p = pctree_first_post_order(_node->next);     \
         } else {                                           \
-            _next = _node->parent;                         \
+            _p = _node->parent;                            \
         }                                                  \
-        1; })
+        _p; })
 
 /*
  * Loop over a block of nodes of the tree/subtree in post_order,
@@ -379,10 +380,8 @@ void pctree_node_remove(struct pctree_node* node);
  *               can be uninitialized before looping
  */
 #define pctree_for_each_post_order(_top, _node, _next)              \
-    for (_node=_top,                                                \
-         _next=NULL,                                                \
-         _node = pctree_first_post_order(_node);                    \
-         _node && ({pctree_next_post_order(_node, _next), 1;});     \
+    for (_node = pctree_first_post_order(_top);                     \
+         _node && ({_next = pctree_next_post_order(_node), 1;});    \
          _node = (_node==_top) ? NULL : _next)
 
 
@@ -392,31 +391,32 @@ void pctree_node_remove(struct pctree_node* node);
  * @param _next: next node to return
  * @param _top:  top node of tree/subtree that is currently looped for
  */
-#define pctree_next_pre_order(_node, _next, _top)     \
+#define pctree_next_pre_order(_node, _top)            \
     ({                                                \
+        struct pctree_node *_p = NULL;                \
         if (_node->first_child) {                     \
-            _next = _node->first_child;               \
+            _p = _node->first_child;                  \
         } else if (_node->next) {                     \
             if (_node==_top) {                        \
-                _next = NULL;                         \
+                _p = NULL;                            \
             } else {                                  \
-                _next = _node->next;                  \
+                _p = _node->next;                     \
             }                                         \
         } else if (_node==_top) {                     \
-            _next = NULL;                             \
+            _p = NULL;                                \
         } else {                                      \
-            _next = NULL;                             \
+            _p = NULL;                                \
             struct pctree_node *_t = _node;           \
             while (_t->parent) {                      \
                 if (_t->parent==_top)                 \
                     break;                            \
-                _next = _t->parent->next;             \
-                if (_next)                            \
+                _p = _t->parent->next;                \
+                if (_p)                               \
                     break;                            \
                 _t = _t->parent;                      \
             }                                         \
         }                                             \
-        1; })
+        _p; })
 
 /*
  * Loop over a block of nodes of the tree/subtree in pre_order,
@@ -429,8 +429,9 @@ void pctree_node_remove(struct pctree_node* node);
 #define pctree_for_each_pre_order(_top, _node, _next)                  \
     for (_node=_top,                                                   \
          _next=NULL;                                                   \
-         _node && ({pctree_next_pre_order(_node, _next, _top), 1;});   \
+         _node && ({_next = pctree_next_pre_order(_node, _top), 1;});  \
          _node = _next)
+
 
 #ifdef __cplusplus
 }
