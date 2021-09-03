@@ -348,28 +348,30 @@ void pctree_node_remove(struct pctree_node* node);
  * Get first node under the specified tree in post_order
  * @param _node: root node of the specified tree, could be subtree
  */
-#define pctree_first_post_order(_node)     \
-    ({                                     \
-        struct pctree_node *_p = _node;    \
-        while (_p && _p->first_child) {    \
-            _p = _p->first_child;          \
-        };                                 \
-        _p; })
+static inline struct pctree_node*
+pctree_first_post_order(struct pctree_node *node)
+{
+    while (node && node->first_child) {
+        node = node->first_child;
+    };
+    return node;
+}
 
 /*
  * Get next node in post_order
  * @param _node: current node
  * @param _next: next node to return
  */
-#define pctree_next_post_order(_node)                      \
-    ({                                                     \
-        struct pctree_node *_p;                            \
-        if (_node->next) {                                 \
-            _p = pctree_first_post_order(_node->next);     \
-        } else {                                           \
-            _p = _node->parent;                            \
-        }                                                  \
-        _p; })
+static inline struct pctree_node*
+pctree_next_post_order(struct pctree_node *node)
+{
+    if (node->next) {
+        node = pctree_first_post_order(node->next);
+    } else {
+        node = node->parent;
+    }
+    return node;
+}
 
 /*
  * Loop over a block of nodes of the tree/subtree in post_order,
@@ -381,8 +383,10 @@ void pctree_node_remove(struct pctree_node* node);
  */
 #define pctree_for_each_post_order(_top, _node, _next)              \
     for (_node = pctree_first_post_order(_top);                     \
-         _node && ({_next = pctree_next_post_order(_node), 1;});    \
-         _node = (_node==_top) ? NULL : _next)
+         _node && ({_next = (_node==_top) ?                         \
+                       NULL :                                       \
+                       pctree_next_post_order(_node), 1; });        \
+         _node = _next)
 
 
 /*
@@ -391,32 +395,34 @@ void pctree_node_remove(struct pctree_node* node);
  * @param _next: next node to return
  * @param _top:  top node of tree/subtree that is currently looped for
  */
-#define pctree_next_pre_order(_node, _top)            \
-    ({                                                \
-        struct pctree_node *_p = NULL;                \
-        if (_node->first_child) {                     \
-            _p = _node->first_child;                  \
-        } else if (_node->next) {                     \
-            if (_node==_top) {                        \
-                _p = NULL;                            \
-            } else {                                  \
-                _p = _node->next;                     \
-            }                                         \
-        } else if (_node==_top) {                     \
-            _p = NULL;                                \
-        } else {                                      \
-            _p = NULL;                                \
-            struct pctree_node *_t = _node;           \
-            while (_t->parent) {                      \
-                if (_t->parent==_top)                 \
-                    break;                            \
-                _p = _t->parent->next;                \
-                if (_p)                               \
-                    break;                            \
-                _t = _t->parent;                      \
-            }                                         \
-        }                                             \
-        _p; })
+static inline struct pctree_node*
+pctree_next_pre_order(struct pctree_node *node, struct pctree_node *top)
+{
+    struct pctree_node *p = NULL;
+    if (node->first_child) {
+        p = node->first_child;
+    } else if (node->next) {
+        if (node==top) {
+            p = NULL;
+        } else {
+            p = node->next;
+        }
+    } else if (node==top) {
+        p = NULL;
+    } else {
+        p = NULL;
+        struct pctree_node *t = node;
+        while (t->parent) {
+            if (t->parent==top)
+                break;
+            p = t->parent->next;
+            if (p)
+                break;
+            t = t->parent;
+        }
+    }
+    return p;
+}
 
 /*
  * Loop over a block of nodes of the tree/subtree in pre_order,
@@ -431,6 +437,23 @@ void pctree_node_remove(struct pctree_node* node);
          _next=NULL;                                                   \
          _node && ({_next = pctree_next_pre_order(_node, _top), 1;});  \
          _node = _next)
+
+static inline size_t
+pctree_levels(struct pctree_node *top)
+{
+    struct pctree_node *node, *next;
+    size_t lvls = 1;
+    pctree_for_each_post_order(top, node, next) {
+        size_t _l = 1;
+        while (node!=top) {
+            ++_l;
+            node = node->parent;
+        }
+        if (_l>lvls)
+            lvls = _l;
+    }
+    return lvls;
+}
 
 
 #ifdef __cplusplus
