@@ -497,3 +497,180 @@ TEST(tree, pod)
     ASSERT_EQ(ret, 0);
 }
 
+static void
+_do_pre_order(struct pctree_node *node, purc_rwstream_t rws)
+{
+    pctree_node_pre_order_traversal(node, build_output_buf2, rws);
+}
+
+static void
+_do_post_order(struct pctree_node *node, purc_rwstream_t rws)
+{
+    pctree_node_post_order_traversal(node, build_output_buf2, rws);
+}
+
+static void
+_do_level_order(struct pctree_node *node, purc_rwstream_t rws)
+{
+    pctree_node_level_order_traversal(node, build_output_buf2, rws);
+}
+
+static void
+_do_pre_order_loop(struct pctree_node *node, purc_rwstream_t rws)
+{
+    struct pctree_node *n, *next;
+    pctree_for_each_pre_order(node, n, next) {
+        char tmp[1000] = {0};
+        struct number_node *p = container_of(n, struct number_node, node);
+        snprintf(tmp, 1000, "%d ", p->val);
+        purc_rwstream_write (rws, tmp, strlen(tmp));
+    }
+}
+
+static void
+_do_post_order_loop(struct pctree_node *node, purc_rwstream_t rws)
+{
+    struct pctree_node *n, *next;
+    pctree_for_each_post_order(node, n, next) {
+        char tmp[1000] = {0};
+        struct number_node *p = container_of(n, struct number_node, node);
+        snprintf(tmp, 1000, "%d ", p->val);
+        purc_rwstream_write (rws, tmp, strlen(tmp));
+    }
+}
+
+typedef void (*_do_f)(struct pctree_node *node, purc_rwstream_t rws);
+
+TEST(tree, perf)
+{
+    const char *method = getenv("METHOD");
+    const char *loops  = getenv("LOOPS");
+    EXPECT_NE(method, nullptr) << "You shall specify env METHOD" << std::endl;
+
+    int nr_loops = loops ? atoi(loops) : 0;
+    if (nr_loops <= 0) {
+        nr_loops = 1;
+    }
+
+    const char *post_orders[] = {
+        "4 5 6 2 8 9 10 11 7 3 1 ",
+        "4 5 6 2 ",
+        "8 9 10 11 7 3 ",
+        "4 ",
+        "5 ",
+        "6 ",
+        "8 9 10 11 7 ",
+        "8 ",
+        "9 ",
+        "10 ",
+        "11 ",
+    };
+    const char *pre_orders[] = {
+        "1 2 4 5 6 3 7 8 9 10 11 ",
+        "2 4 5 6 ",
+        "3 7 8 9 10 11 ",
+        "4 ",
+        "5 ",
+        "6 ",
+        "7 8 9 10 11 ",
+        "8 ",
+        "9 ",
+        "10 ",
+        "11 ",
+    };
+/*               1
+ *             /   \
+ *           2       3
+ *         / | \       \
+ *       4   5   6       7
+ *                     / /\ \
+ *                   8  9  10  11
+ *
+ */
+    const char *level_orders[] = {
+        "1 2 3 4 5 6 7 8 9 10 11 ",
+        "2 4 5 6 ",
+        "3 7 8 9 10 11 ",
+        "4 ",
+        "5 ",
+        "6 ",
+        "7 8 9 10 11 ",
+        "8 ",
+        "9 ",
+        "10 ",
+        "11 ",
+    };
+
+    _do_f method_f = NULL;
+    const char **expects = NULL;
+
+    if (strcasecmp(method, "pre_order")==0) {
+        method_f = _do_pre_order;
+        expects = pre_orders;
+    }
+    if (strcasecmp(method, "post_order")==0) {
+        method_f = _do_post_order;
+        expects = post_orders;
+    }
+    if (strcasecmp(method, "level_order")==0) {
+        method_f = _do_level_order;
+        expects = level_orders;
+    }
+    if (strcasecmp(method, "pre_order_loop")==0) {
+        method_f = _do_pre_order_loop;
+        expects = pre_orders;
+    }
+    if (strcasecmp(method, "post_order_loop")==0) {
+        method_f = _do_post_order_loop;
+        expects = post_orders;
+    }
+
+    struct number_node nodes[11];
+    memset(&nodes[0], 0, sizeof(nodes));
+
+    for (size_t i=0; i<sizeof(nodes)/sizeof(nodes[0]); ++i) {
+        nodes[i].val = i+1;
+    }
+
+    ASSERT_TRUE(pctree_node_append_child(&nodes[0].node, &nodes[1].node));
+    ASSERT_EQ(pctree_node_children_number(&nodes[0].node), 1);
+    ASSERT_TRUE(pctree_node_append_child(&nodes[0].node, &nodes[2].node));
+    ASSERT_EQ(pctree_node_children_number(&nodes[0].node), 2);
+
+    ASSERT_TRUE(pctree_node_append_child(&nodes[1].node, &nodes[3].node));
+    ASSERT_TRUE(pctree_node_append_child(&nodes[1].node, &nodes[4].node));
+    ASSERT_TRUE(pctree_node_append_child(&nodes[1].node, &nodes[5].node));
+    ASSERT_EQ(pctree_node_children_number(&nodes[1].node), 3);
+
+    ASSERT_TRUE(pctree_node_append_child(&nodes[2].node, &nodes[6].node));
+    ASSERT_EQ(pctree_node_children_number(&nodes[2].node), 1);
+
+    ASSERT_TRUE(pctree_node_append_child(&nodes[6].node, &nodes[7].node));
+    ASSERT_TRUE(pctree_node_append_child(&nodes[6].node, &nodes[8].node));
+    ASSERT_TRUE(pctree_node_append_child(&nodes[6].node, &nodes[9].node));
+    ASSERT_TRUE(pctree_node_append_child(&nodes[6].node, &nodes[10].node));
+    ASSERT_EQ(pctree_node_children_number(&nodes[6].node), 4);
+
+    char buf[1024] = {0};
+    size_t buf_len = 1023;
+    purc_rwstream_t rws = purc_rwstream_new_from_mem (buf, buf_len);
+    ASSERT_NE(rws, nullptr);
+
+    ASSERT_NE(method, nullptr)
+        << "METHOD shall be pre_order/post_order/level_order/pre_order_loop/post_order_loop"
+        << std::endl;
+
+
+    for (size_t i=0; i<sizeof(nodes)/sizeof(nodes[0]); ++i) {
+        for (int j=0; j<nr_loops; ++j) {
+            purc_rwstream_seek (rws, 0, SEEK_SET);
+            memset(buf, 0, sizeof(buf));
+            method_f(&nodes[i].node, rws);
+            EXPECT_STREQ(buf, expects[i]);
+        }
+    }
+
+    int ret = purc_rwstream_destroy (rws);
+    ASSERT_EQ(ret, 0);
+}
+
