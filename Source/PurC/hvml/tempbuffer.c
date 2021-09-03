@@ -114,6 +114,56 @@ void pchvml_temp_buffer_append (struct pchvml_temp_buffer* buffer,
     }
 }
 
+static inline size_t uc_to_utf8(wchar_t c, char* outbuf)
+{
+    size_t len = 0;
+    int first;
+    int i;
+
+    if (c < 0x80) {
+        first = 0;
+        len = 1;
+    }
+    else if (c < 0x800) {
+        first = 0xc0;
+        len = 2;
+    }
+    else if (c < 0x10000) {
+        first = 0xe0;
+        len = 3;
+    }
+    else if (c < 0x200000) {
+        first = 0xf0;
+        len = 4;
+    }
+    else if (c < 0x4000000) {
+        first = 0xf8;
+        len = 5;
+    }
+    else {
+        first = 0xfc;
+        len = 6;
+    }
+
+    if (outbuf) {
+        for (i = len - 1; i > 0; --i) {
+            outbuf[i] = (c & 0x3f) | 0x80;
+            c >>= 6;
+        }
+        outbuf[0] = c | first;
+    }
+
+    return len;
+}
+
+void pchvml_temp_buffer_append_uc (struct pchvml_temp_buffer* buffer,
+        wchar_t uc)
+{
+    char buf[8] = {0};
+    size_t len = uc_to_utf8(uc, buf);
+    pchvml_temp_buffer_append (buffer, buf, len);
+}
+
 bool pchvml_temp_buffer_end_with (struct pchvml_temp_buffer* buffer,
         const char* bytes, size_t nr_bytes)
 {
