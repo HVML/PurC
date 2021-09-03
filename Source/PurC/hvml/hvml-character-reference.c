@@ -1,0 +1,4583 @@
+/*
+ * @file hvml-character-reference.c
+ * @author XueShuming
+ * @date 2021/09/03
+ * @brief The impl for hvml character reference entity.
+ *
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+
+#include "hvml-character-reference.h"
+
+#include <stddef.h>
+#include <stdint.h>
+
+static const char AEligEntityName[] = "AElig";
+static const char AEligSemicolonEntityName[] = "AElig;";
+static const char AMPEntityName[] = "AMP";
+static const char AMPSemicolonEntityName[] = "AMP;";
+static const char AacuteEntityName[] = "Aacute";
+static const char AacuteSemicolonEntityName[] = "Aacute;";
+static const char AbreveSemicolonEntityName[] = "Abreve;";
+static const char AcircEntityName[] = "Acirc";
+static const char AcircSemicolonEntityName[] = "Acirc;";
+static const char AcySemicolonEntityName[] = "Acy;";
+static const char AfrSemicolonEntityName[] = "Afr;";
+static const char AgraveEntityName[] = "Agrave";
+static const char AgraveSemicolonEntityName[] = "Agrave;";
+static const char AlphaSemicolonEntityName[] = "Alpha;";
+static const char AmacrSemicolonEntityName[] = "Amacr;";
+static const char AndSemicolonEntityName[] = "And;";
+static const char AogonSemicolonEntityName[] = "Aogon;";
+static const char AopfSemicolonEntityName[] = "Aopf;";
+static const char ApplyFunctionSemicolonEntityName[] = "ApplyFunction;";
+static const char AringEntityName[] = "Aring";
+static const char AringSemicolonEntityName[] = "Aring;";
+static const char AscrSemicolonEntityName[] = "Ascr;";
+static const char AssignSemicolonEntityName[] = "Assign;";
+static const char AtildeEntityName[] = "Atilde";
+static const char AtildeSemicolonEntityName[] = "Atilde;";
+static const char AumlEntityName[] = "Auml";
+static const char AumlSemicolonEntityName[] = "Auml;";
+static const char BackslashSemicolonEntityName[] = "Backslash;";
+static const char BarvSemicolonEntityName[] = "Barv;";
+static const char BarwedSemicolonEntityName[] = "Barwed;";
+static const char BcySemicolonEntityName[] = "Bcy;";
+static const char BecauseSemicolonEntityName[] = "Because;";
+static const char BernoullisSemicolonEntityName[] = "Bernoullis;";
+static const char BetaSemicolonEntityName[] = "Beta;";
+static const char BfrSemicolonEntityName[] = "Bfr;";
+static const char BopfSemicolonEntityName[] = "Bopf;";
+static const char BreveSemicolonEntityName[] = "Breve;";
+static const char BscrSemicolonEntityName[] = "Bscr;";
+static const char BumpeqSemicolonEntityName[] = "Bumpeq;";
+static const char CHcySemicolonEntityName[] = "CHcy;";
+static const char COPYEntityName[] = "COPY";
+static const char COPYSemicolonEntityName[] = "COPY;";
+static const char CacuteSemicolonEntityName[] = "Cacute;";
+static const char CapSemicolonEntityName[] = "Cap;";
+static const char CapitalDifferentialDSemicolonEntityName[] = "CapitalDifferentialD;";
+static const char CayleysSemicolonEntityName[] = "Cayleys;";
+static const char CcaronSemicolonEntityName[] = "Ccaron;";
+static const char CcedilEntityName[] = "Ccedil";
+static const char CcedilSemicolonEntityName[] = "Ccedil;";
+static const char CcircSemicolonEntityName[] = "Ccirc;";
+static const char CconintSemicolonEntityName[] = "Cconint;";
+static const char CdotSemicolonEntityName[] = "Cdot;";
+static const char CedillaSemicolonEntityName[] = "Cedilla;";
+static const char CenterDotSemicolonEntityName[] = "CenterDot;";
+static const char CfrSemicolonEntityName[] = "Cfr;";
+static const char ChiSemicolonEntityName[] = "Chi;";
+static const char CircleDotSemicolonEntityName[] = "CircleDot;";
+static const char CircleMinusSemicolonEntityName[] = "CircleMinus;";
+static const char CirclePlusSemicolonEntityName[] = "CirclePlus;";
+static const char CircleTimesSemicolonEntityName[] = "CircleTimes;";
+static const char ClockwiseContourIntegralSemicolonEntityName[] = "ClockwiseContourIntegral;";
+static const char CloseCurlyDoubleQuoteSemicolonEntityName[] = "CloseCurlyDoubleQuote;";
+static const char CloseCurlyQuoteSemicolonEntityName[] = "CloseCurlyQuote;";
+static const char ColonSemicolonEntityName[] = "Colon;";
+static const char ColoneSemicolonEntityName[] = "Colone;";
+static const char CongruentSemicolonEntityName[] = "Congruent;";
+static const char ConintSemicolonEntityName[] = "Conint;";
+static const char ContourIntegralSemicolonEntityName[] = "ContourIntegral;";
+static const char CopfSemicolonEntityName[] = "Copf;";
+static const char CoproductSemicolonEntityName[] = "Coproduct;";
+static const char CounterClockwiseContourIntegralSemicolonEntityName[] = "CounterClockwiseContourIntegral;";
+static const char CrossSemicolonEntityName[] = "Cross;";
+static const char CscrSemicolonEntityName[] = "Cscr;";
+static const char CupSemicolonEntityName[] = "Cup;";
+static const char CupCapSemicolonEntityName[] = "CupCap;";
+static const char DDSemicolonEntityName[] = "DD;";
+static const char DDotrahdSemicolonEntityName[] = "DDotrahd;";
+static const char DJcySemicolonEntityName[] = "DJcy;";
+static const char DScySemicolonEntityName[] = "DScy;";
+static const char DZcySemicolonEntityName[] = "DZcy;";
+static const char DaggerSemicolonEntityName[] = "Dagger;";
+static const char DarrSemicolonEntityName[] = "Darr;";
+static const char DashvSemicolonEntityName[] = "Dashv;";
+static const char DcaronSemicolonEntityName[] = "Dcaron;";
+static const char DcySemicolonEntityName[] = "Dcy;";
+static const char DelSemicolonEntityName[] = "Del;";
+static const char DeltaSemicolonEntityName[] = "Delta;";
+static const char DfrSemicolonEntityName[] = "Dfr;";
+static const char DiacriticalAcuteSemicolonEntityName[] = "DiacriticalAcute;";
+static const char DiacriticalDotSemicolonEntityName[] = "DiacriticalDot;";
+static const char DiacriticalDoubleAcuteSemicolonEntityName[] = "DiacriticalDoubleAcute;";
+static const char DiacriticalGraveSemicolonEntityName[] = "DiacriticalGrave;";
+static const char DiacriticalTildeSemicolonEntityName[] = "DiacriticalTilde;";
+static const char DiamondSemicolonEntityName[] = "Diamond;";
+static const char DifferentialDSemicolonEntityName[] = "DifferentialD;";
+static const char DopfSemicolonEntityName[] = "Dopf;";
+static const char DotSemicolonEntityName[] = "Dot;";
+static const char DotDotSemicolonEntityName[] = "DotDot;";
+static const char DotEqualSemicolonEntityName[] = "DotEqual;";
+static const char DoubleContourIntegralSemicolonEntityName[] = "DoubleContourIntegral;";
+static const char DoubleDotSemicolonEntityName[] = "DoubleDot;";
+static const char DoubleDownArrowSemicolonEntityName[] = "DoubleDownArrow;";
+static const char DoubleLeftArrowSemicolonEntityName[] = "DoubleLeftArrow;";
+static const char DoubleLeftRightArrowSemicolonEntityName[] = "DoubleLeftRightArrow;";
+static const char DoubleLeftTeeSemicolonEntityName[] = "DoubleLeftTee;";
+static const char DoubleLongLeftArrowSemicolonEntityName[] = "DoubleLongLeftArrow;";
+static const char DoubleLongLeftRightArrowSemicolonEntityName[] = "DoubleLongLeftRightArrow;";
+static const char DoubleLongRightArrowSemicolonEntityName[] = "DoubleLongRightArrow;";
+static const char DoubleRightArrowSemicolonEntityName[] = "DoubleRightArrow;";
+static const char DoubleRightTeeSemicolonEntityName[] = "DoubleRightTee;";
+static const char DoubleUpArrowSemicolonEntityName[] = "DoubleUpArrow;";
+static const char DoubleUpDownArrowSemicolonEntityName[] = "DoubleUpDownArrow;";
+static const char DoubleVerticalBarSemicolonEntityName[] = "DoubleVerticalBar;";
+static const char DownArrowSemicolonEntityName[] = "DownArrow;";
+static const char DownArrowBarSemicolonEntityName[] = "DownArrowBar;";
+static const char DownArrowUpArrowSemicolonEntityName[] = "DownArrowUpArrow;";
+static const char DownBreveSemicolonEntityName[] = "DownBreve;";
+static const char DownLeftRightVectorSemicolonEntityName[] = "DownLeftRightVector;";
+static const char DownLeftTeeVectorSemicolonEntityName[] = "DownLeftTeeVector;";
+static const char DownLeftVectorSemicolonEntityName[] = "DownLeftVector;";
+static const char DownLeftVectorBarSemicolonEntityName[] = "DownLeftVectorBar;";
+static const char DownRightTeeVectorSemicolonEntityName[] = "DownRightTeeVector;";
+static const char DownRightVectorSemicolonEntityName[] = "DownRightVector;";
+static const char DownRightVectorBarSemicolonEntityName[] = "DownRightVectorBar;";
+static const char DownTeeSemicolonEntityName[] = "DownTee;";
+static const char DownTeeArrowSemicolonEntityName[] = "DownTeeArrow;";
+static const char DownarrowSemicolonEntityName[] = "Downarrow;";
+static const char DscrSemicolonEntityName[] = "Dscr;";
+static const char DstrokSemicolonEntityName[] = "Dstrok;";
+static const char ENGSemicolonEntityName[] = "ENG;";
+static const char ETHEntityName[] = "ETH";
+static const char ETHSemicolonEntityName[] = "ETH;";
+static const char EacuteEntityName[] = "Eacute";
+static const char EacuteSemicolonEntityName[] = "Eacute;";
+static const char EcaronSemicolonEntityName[] = "Ecaron;";
+static const char EcircEntityName[] = "Ecirc";
+static const char EcircSemicolonEntityName[] = "Ecirc;";
+static const char EcySemicolonEntityName[] = "Ecy;";
+static const char EdotSemicolonEntityName[] = "Edot;";
+static const char EfrSemicolonEntityName[] = "Efr;";
+static const char EgraveEntityName[] = "Egrave";
+static const char EgraveSemicolonEntityName[] = "Egrave;";
+static const char ElementSemicolonEntityName[] = "Element;";
+static const char EmacrSemicolonEntityName[] = "Emacr;";
+static const char EmptySmallSquareSemicolonEntityName[] = "EmptySmallSquare;";
+static const char EmptyVerySmallSquareSemicolonEntityName[] = "EmptyVerySmallSquare;";
+static const char EogonSemicolonEntityName[] = "Eogon;";
+static const char EopfSemicolonEntityName[] = "Eopf;";
+static const char EpsilonSemicolonEntityName[] = "Epsilon;";
+static const char EqualSemicolonEntityName[] = "Equal;";
+static const char EqualTildeSemicolonEntityName[] = "EqualTilde;";
+static const char EquilibriumSemicolonEntityName[] = "Equilibrium;";
+static const char EscrSemicolonEntityName[] = "Escr;";
+static const char EsimSemicolonEntityName[] = "Esim;";
+static const char EtaSemicolonEntityName[] = "Eta;";
+static const char EumlEntityName[] = "Euml";
+static const char EumlSemicolonEntityName[] = "Euml;";
+static const char ExistsSemicolonEntityName[] = "Exists;";
+static const char ExponentialESemicolonEntityName[] = "ExponentialE;";
+static const char FcySemicolonEntityName[] = "Fcy;";
+static const char FfrSemicolonEntityName[] = "Ffr;";
+static const char FilledSmallSquareSemicolonEntityName[] = "FilledSmallSquare;";
+static const char FilledVerySmallSquareSemicolonEntityName[] = "FilledVerySmallSquare;";
+static const char FopfSemicolonEntityName[] = "Fopf;";
+static const char ForAllSemicolonEntityName[] = "ForAll;";
+static const char FouriertrfSemicolonEntityName[] = "Fouriertrf;";
+static const char FscrSemicolonEntityName[] = "Fscr;";
+static const char GJcySemicolonEntityName[] = "GJcy;";
+static const char GTEntityName[] = "GT";
+static const char GTSemicolonEntityName[] = "GT;";
+static const char GammaSemicolonEntityName[] = "Gamma;";
+static const char GammadSemicolonEntityName[] = "Gammad;";
+static const char GbreveSemicolonEntityName[] = "Gbreve;";
+static const char GcedilSemicolonEntityName[] = "Gcedil;";
+static const char GcircSemicolonEntityName[] = "Gcirc;";
+static const char GcySemicolonEntityName[] = "Gcy;";
+static const char GdotSemicolonEntityName[] = "Gdot;";
+static const char GfrSemicolonEntityName[] = "Gfr;";
+static const char GgSemicolonEntityName[] = "Gg;";
+static const char GopfSemicolonEntityName[] = "Gopf;";
+static const char GreaterEqualSemicolonEntityName[] = "GreaterEqual;";
+static const char GreaterEqualLessSemicolonEntityName[] = "GreaterEqualLess;";
+static const char GreaterFullEqualSemicolonEntityName[] = "GreaterFullEqual;";
+static const char GreaterGreaterSemicolonEntityName[] = "GreaterGreater;";
+static const char GreaterLessSemicolonEntityName[] = "GreaterLess;";
+static const char GreaterSlantEqualSemicolonEntityName[] = "GreaterSlantEqual;";
+static const char GreaterTildeSemicolonEntityName[] = "GreaterTilde;";
+static const char GscrSemicolonEntityName[] = "Gscr;";
+static const char GtSemicolonEntityName[] = "Gt;";
+static const char HARDcySemicolonEntityName[] = "HARDcy;";
+static const char HacekSemicolonEntityName[] = "Hacek;";
+static const char HatSemicolonEntityName[] = "Hat;";
+static const char HcircSemicolonEntityName[] = "Hcirc;";
+static const char HfrSemicolonEntityName[] = "Hfr;";
+static const char HilbertSpaceSemicolonEntityName[] = "HilbertSpace;";
+static const char HopfSemicolonEntityName[] = "Hopf;";
+static const char HorizontalLineSemicolonEntityName[] = "HorizontalLine;";
+static const char HscrSemicolonEntityName[] = "Hscr;";
+static const char HstrokSemicolonEntityName[] = "Hstrok;";
+static const char HumpDownHumpSemicolonEntityName[] = "HumpDownHump;";
+static const char HumpEqualSemicolonEntityName[] = "HumpEqual;";
+static const char IEcySemicolonEntityName[] = "IEcy;";
+static const char IJligSemicolonEntityName[] = "IJlig;";
+static const char IOcySemicolonEntityName[] = "IOcy;";
+static const char IacuteEntityName[] = "Iacute";
+static const char IacuteSemicolonEntityName[] = "Iacute;";
+static const char IcircEntityName[] = "Icirc";
+static const char IcircSemicolonEntityName[] = "Icirc;";
+static const char IcySemicolonEntityName[] = "Icy;";
+static const char IdotSemicolonEntityName[] = "Idot;";
+static const char IfrSemicolonEntityName[] = "Ifr;";
+static const char IgraveEntityName[] = "Igrave";
+static const char IgraveSemicolonEntityName[] = "Igrave;";
+static const char ImSemicolonEntityName[] = "Im;";
+static const char ImacrSemicolonEntityName[] = "Imacr;";
+static const char ImaginaryISemicolonEntityName[] = "ImaginaryI;";
+static const char ImpliesSemicolonEntityName[] = "Implies;";
+static const char IntSemicolonEntityName[] = "Int;";
+static const char IntegralSemicolonEntityName[] = "Integral;";
+static const char IntersectionSemicolonEntityName[] = "Intersection;";
+static const char InvisibleCommaSemicolonEntityName[] = "InvisibleComma;";
+static const char InvisibleTimesSemicolonEntityName[] = "InvisibleTimes;";
+static const char IogonSemicolonEntityName[] = "Iogon;";
+static const char IopfSemicolonEntityName[] = "Iopf;";
+static const char IotaSemicolonEntityName[] = "Iota;";
+static const char IscrSemicolonEntityName[] = "Iscr;";
+static const char ItildeSemicolonEntityName[] = "Itilde;";
+static const char IukcySemicolonEntityName[] = "Iukcy;";
+static const char IumlEntityName[] = "Iuml";
+static const char IumlSemicolonEntityName[] = "Iuml;";
+static const char JcircSemicolonEntityName[] = "Jcirc;";
+static const char JcySemicolonEntityName[] = "Jcy;";
+static const char JfrSemicolonEntityName[] = "Jfr;";
+static const char JopfSemicolonEntityName[] = "Jopf;";
+static const char JscrSemicolonEntityName[] = "Jscr;";
+static const char JsercySemicolonEntityName[] = "Jsercy;";
+static const char JukcySemicolonEntityName[] = "Jukcy;";
+static const char KHcySemicolonEntityName[] = "KHcy;";
+static const char KJcySemicolonEntityName[] = "KJcy;";
+static const char KappaSemicolonEntityName[] = "Kappa;";
+static const char KcedilSemicolonEntityName[] = "Kcedil;";
+static const char KcySemicolonEntityName[] = "Kcy;";
+static const char KfrSemicolonEntityName[] = "Kfr;";
+static const char KopfSemicolonEntityName[] = "Kopf;";
+static const char KscrSemicolonEntityName[] = "Kscr;";
+static const char LJcySemicolonEntityName[] = "LJcy;";
+static const char LTEntityName[] = "LT";
+static const char LTSemicolonEntityName[] = "LT;";
+static const char LacuteSemicolonEntityName[] = "Lacute;";
+static const char LambdaSemicolonEntityName[] = "Lambda;";
+static const char LangSemicolonEntityName[] = "Lang;";
+static const char LaplacetrfSemicolonEntityName[] = "Laplacetrf;";
+static const char LarrSemicolonEntityName[] = "Larr;";
+static const char LcaronSemicolonEntityName[] = "Lcaron;";
+static const char LcedilSemicolonEntityName[] = "Lcedil;";
+static const char LcySemicolonEntityName[] = "Lcy;";
+static const char LeftAngleBracketSemicolonEntityName[] = "LeftAngleBracket;";
+static const char LeftArrowSemicolonEntityName[] = "LeftArrow;";
+static const char LeftArrowBarSemicolonEntityName[] = "LeftArrowBar;";
+static const char LeftArrowRightArrowSemicolonEntityName[] = "LeftArrowRightArrow;";
+static const char LeftCeilingSemicolonEntityName[] = "LeftCeiling;";
+static const char LeftDoubleBracketSemicolonEntityName[] = "LeftDoubleBracket;";
+static const char LeftDownTeeVectorSemicolonEntityName[] = "LeftDownTeeVector;";
+static const char LeftDownVectorSemicolonEntityName[] = "LeftDownVector;";
+static const char LeftDownVectorBarSemicolonEntityName[] = "LeftDownVectorBar;";
+static const char LeftFloorSemicolonEntityName[] = "LeftFloor;";
+static const char LeftRightArrowSemicolonEntityName[] = "LeftRightArrow;";
+static const char LeftRightVectorSemicolonEntityName[] = "LeftRightVector;";
+static const char LeftTeeSemicolonEntityName[] = "LeftTee;";
+static const char LeftTeeArrowSemicolonEntityName[] = "LeftTeeArrow;";
+static const char LeftTeeVectorSemicolonEntityName[] = "LeftTeeVector;";
+static const char LeftTriangleSemicolonEntityName[] = "LeftTriangle;";
+static const char LeftTriangleBarSemicolonEntityName[] = "LeftTriangleBar;";
+static const char LeftTriangleEqualSemicolonEntityName[] = "LeftTriangleEqual;";
+static const char LeftUpDownVectorSemicolonEntityName[] = "LeftUpDownVector;";
+static const char LeftUpTeeVectorSemicolonEntityName[] = "LeftUpTeeVector;";
+static const char LeftUpVectorSemicolonEntityName[] = "LeftUpVector;";
+static const char LeftUpVectorBarSemicolonEntityName[] = "LeftUpVectorBar;";
+static const char LeftVectorSemicolonEntityName[] = "LeftVector;";
+static const char LeftVectorBarSemicolonEntityName[] = "LeftVectorBar;";
+static const char LeftarrowSemicolonEntityName[] = "Leftarrow;";
+static const char LeftrightarrowSemicolonEntityName[] = "Leftrightarrow;";
+static const char LessEqualGreaterSemicolonEntityName[] = "LessEqualGreater;";
+static const char LessFullEqualSemicolonEntityName[] = "LessFullEqual;";
+static const char LessGreaterSemicolonEntityName[] = "LessGreater;";
+static const char LessLessSemicolonEntityName[] = "LessLess;";
+static const char LessSlantEqualSemicolonEntityName[] = "LessSlantEqual;";
+static const char LessTildeSemicolonEntityName[] = "LessTilde;";
+static const char LfrSemicolonEntityName[] = "Lfr;";
+static const char LlSemicolonEntityName[] = "Ll;";
+static const char LleftarrowSemicolonEntityName[] = "Lleftarrow;";
+static const char LmidotSemicolonEntityName[] = "Lmidot;";
+static const char LongLeftArrowSemicolonEntityName[] = "LongLeftArrow;";
+static const char LongLeftRightArrowSemicolonEntityName[] = "LongLeftRightArrow;";
+static const char LongRightArrowSemicolonEntityName[] = "LongRightArrow;";
+static const char LongleftarrowSemicolonEntityName[] = "Longleftarrow;";
+static const char LongleftrightarrowSemicolonEntityName[] = "Longleftrightarrow;";
+static const char LongrightarrowSemicolonEntityName[] = "Longrightarrow;";
+static const char LopfSemicolonEntityName[] = "Lopf;";
+static const char LowerLeftArrowSemicolonEntityName[] = "LowerLeftArrow;";
+static const char LowerRightArrowSemicolonEntityName[] = "LowerRightArrow;";
+static const char LscrSemicolonEntityName[] = "Lscr;";
+static const char LshSemicolonEntityName[] = "Lsh;";
+static const char LstrokSemicolonEntityName[] = "Lstrok;";
+static const char LtSemicolonEntityName[] = "Lt;";
+static const char MapSemicolonEntityName[] = "Map;";
+static const char McySemicolonEntityName[] = "Mcy;";
+static const char MediumSpaceSemicolonEntityName[] = "MediumSpace;";
+static const char MellintrfSemicolonEntityName[] = "Mellintrf;";
+static const char MfrSemicolonEntityName[] = "Mfr;";
+static const char MinusPlusSemicolonEntityName[] = "MinusPlus;";
+static const char MopfSemicolonEntityName[] = "Mopf;";
+static const char MscrSemicolonEntityName[] = "Mscr;";
+static const char MuSemicolonEntityName[] = "Mu;";
+static const char NJcySemicolonEntityName[] = "NJcy;";
+static const char NacuteSemicolonEntityName[] = "Nacute;";
+static const char NcaronSemicolonEntityName[] = "Ncaron;";
+static const char NcedilSemicolonEntityName[] = "Ncedil;";
+static const char NcySemicolonEntityName[] = "Ncy;";
+static const char NegativeMediumSpaceSemicolonEntityName[] = "NegativeMediumSpace;";
+static const char NegativeThickSpaceSemicolonEntityName[] = "NegativeThickSpace;";
+static const char NegativeThinSpaceSemicolonEntityName[] = "NegativeThinSpace;";
+static const char NegativeVeryThinSpaceSemicolonEntityName[] = "NegativeVeryThinSpace;";
+static const char NestedGreaterGreaterSemicolonEntityName[] = "NestedGreaterGreater;";
+static const char NestedLessLessSemicolonEntityName[] = "NestedLessLess;";
+static const char NewLineSemicolonEntityName[] = "NewLine;";
+static const char NfrSemicolonEntityName[] = "Nfr;";
+static const char NoBreakSemicolonEntityName[] = "NoBreak;";
+static const char NonBreakingSpaceSemicolonEntityName[] = "NonBreakingSpace;";
+static const char NopfSemicolonEntityName[] = "Nopf;";
+static const char NotSemicolonEntityName[] = "Not;";
+static const char NotCongruentSemicolonEntityName[] = "NotCongruent;";
+static const char NotCupCapSemicolonEntityName[] = "NotCupCap;";
+static const char NotDoubleVerticalBarSemicolonEntityName[] = "NotDoubleVerticalBar;";
+static const char NotElementSemicolonEntityName[] = "NotElement;";
+static const char NotEqualSemicolonEntityName[] = "NotEqual;";
+static const char NotEqualTildeSemicolonEntityName[] = "NotEqualTilde;";
+static const char NotExistsSemicolonEntityName[] = "NotExists;";
+static const char NotGreaterSemicolonEntityName[] = "NotGreater;";
+static const char NotGreaterEqualSemicolonEntityName[] = "NotGreaterEqual;";
+static const char NotGreaterFullEqualSemicolonEntityName[] = "NotGreaterFullEqual;";
+static const char NotGreaterGreaterSemicolonEntityName[] = "NotGreaterGreater;";
+static const char NotGreaterLessSemicolonEntityName[] = "NotGreaterLess;";
+static const char NotGreaterSlantEqualSemicolonEntityName[] = "NotGreaterSlantEqual;";
+static const char NotGreaterTildeSemicolonEntityName[] = "NotGreaterTilde;";
+static const char NotHumpDownHumpSemicolonEntityName[] = "NotHumpDownHump;";
+static const char NotHumpEqualSemicolonEntityName[] = "NotHumpEqual;";
+static const char NotLeftTriangleSemicolonEntityName[] = "NotLeftTriangle;";
+static const char NotLeftTriangleBarSemicolonEntityName[] = "NotLeftTriangleBar;";
+static const char NotLeftTriangleEqualSemicolonEntityName[] = "NotLeftTriangleEqual;";
+static const char NotLessSemicolonEntityName[] = "NotLess;";
+static const char NotLessEqualSemicolonEntityName[] = "NotLessEqual;";
+static const char NotLessGreaterSemicolonEntityName[] = "NotLessGreater;";
+static const char NotLessLessSemicolonEntityName[] = "NotLessLess;";
+static const char NotLessSlantEqualSemicolonEntityName[] = "NotLessSlantEqual;";
+static const char NotLessTildeSemicolonEntityName[] = "NotLessTilde;";
+static const char NotNestedGreaterGreaterSemicolonEntityName[] = "NotNestedGreaterGreater;";
+static const char NotNestedLessLessSemicolonEntityName[] = "NotNestedLessLess;";
+static const char NotPrecedesSemicolonEntityName[] = "NotPrecedes;";
+static const char NotPrecedesEqualSemicolonEntityName[] = "NotPrecedesEqual;";
+static const char NotPrecedesSlantEqualSemicolonEntityName[] = "NotPrecedesSlantEqual;";
+static const char NotReverseElementSemicolonEntityName[] = "NotReverseElement;";
+static const char NotRightTriangleSemicolonEntityName[] = "NotRightTriangle;";
+static const char NotRightTriangleBarSemicolonEntityName[] = "NotRightTriangleBar;";
+static const char NotRightTriangleEqualSemicolonEntityName[] = "NotRightTriangleEqual;";
+static const char NotSquareSubsetSemicolonEntityName[] = "NotSquareSubset;";
+static const char NotSquareSubsetEqualSemicolonEntityName[] = "NotSquareSubsetEqual;";
+static const char NotSquareSupersetSemicolonEntityName[] = "NotSquareSuperset;";
+static const char NotSquareSupersetEqualSemicolonEntityName[] = "NotSquareSupersetEqual;";
+static const char NotSubsetSemicolonEntityName[] = "NotSubset;";
+static const char NotSubsetEqualSemicolonEntityName[] = "NotSubsetEqual;";
+static const char NotSucceedsSemicolonEntityName[] = "NotSucceeds;";
+static const char NotSucceedsEqualSemicolonEntityName[] = "NotSucceedsEqual;";
+static const char NotSucceedsSlantEqualSemicolonEntityName[] = "NotSucceedsSlantEqual;";
+static const char NotSucceedsTildeSemicolonEntityName[] = "NotSucceedsTilde;";
+static const char NotSupersetSemicolonEntityName[] = "NotSuperset;";
+static const char NotSupersetEqualSemicolonEntityName[] = "NotSupersetEqual;";
+static const char NotTildeSemicolonEntityName[] = "NotTilde;";
+static const char NotTildeEqualSemicolonEntityName[] = "NotTildeEqual;";
+static const char NotTildeFullEqualSemicolonEntityName[] = "NotTildeFullEqual;";
+static const char NotTildeTildeSemicolonEntityName[] = "NotTildeTilde;";
+static const char NotVerticalBarSemicolonEntityName[] = "NotVerticalBar;";
+static const char NscrSemicolonEntityName[] = "Nscr;";
+static const char NtildeEntityName[] = "Ntilde";
+static const char NtildeSemicolonEntityName[] = "Ntilde;";
+static const char NuSemicolonEntityName[] = "Nu;";
+static const char OEligSemicolonEntityName[] = "OElig;";
+static const char OacuteEntityName[] = "Oacute";
+static const char OacuteSemicolonEntityName[] = "Oacute;";
+static const char OcircEntityName[] = "Ocirc";
+static const char OcircSemicolonEntityName[] = "Ocirc;";
+static const char OcySemicolonEntityName[] = "Ocy;";
+static const char OdblacSemicolonEntityName[] = "Odblac;";
+static const char OfrSemicolonEntityName[] = "Ofr;";
+static const char OgraveEntityName[] = "Ograve";
+static const char OgraveSemicolonEntityName[] = "Ograve;";
+static const char OmacrSemicolonEntityName[] = "Omacr;";
+static const char OmegaSemicolonEntityName[] = "Omega;";
+static const char OmicronSemicolonEntityName[] = "Omicron;";
+static const char OopfSemicolonEntityName[] = "Oopf;";
+static const char OpenCurlyDoubleQuoteSemicolonEntityName[] = "OpenCurlyDoubleQuote;";
+static const char OpenCurlyQuoteSemicolonEntityName[] = "OpenCurlyQuote;";
+static const char OrSemicolonEntityName[] = "Or;";
+static const char OscrSemicolonEntityName[] = "Oscr;";
+static const char OslashEntityName[] = "Oslash";
+static const char OslashSemicolonEntityName[] = "Oslash;";
+static const char OtildeEntityName[] = "Otilde";
+static const char OtildeSemicolonEntityName[] = "Otilde;";
+static const char OtimesSemicolonEntityName[] = "Otimes;";
+static const char OumlEntityName[] = "Ouml";
+static const char OumlSemicolonEntityName[] = "Ouml;";
+static const char OverBarSemicolonEntityName[] = "OverBar;";
+static const char OverBraceSemicolonEntityName[] = "OverBrace;";
+static const char OverBracketSemicolonEntityName[] = "OverBracket;";
+static const char OverParenthesisSemicolonEntityName[] = "OverParenthesis;";
+static const char PartialDSemicolonEntityName[] = "PartialD;";
+static const char PcySemicolonEntityName[] = "Pcy;";
+static const char PfrSemicolonEntityName[] = "Pfr;";
+static const char PhiSemicolonEntityName[] = "Phi;";
+static const char PiSemicolonEntityName[] = "Pi;";
+static const char PlusMinusSemicolonEntityName[] = "PlusMinus;";
+static const char PoincareplaneSemicolonEntityName[] = "Poincareplane;";
+static const char PopfSemicolonEntityName[] = "Popf;";
+static const char PrSemicolonEntityName[] = "Pr;";
+static const char PrecedesSemicolonEntityName[] = "Precedes;";
+static const char PrecedesEqualSemicolonEntityName[] = "PrecedesEqual;";
+static const char PrecedesSlantEqualSemicolonEntityName[] = "PrecedesSlantEqual;";
+static const char PrecedesTildeSemicolonEntityName[] = "PrecedesTilde;";
+static const char PrimeSemicolonEntityName[] = "Prime;";
+static const char ProductSemicolonEntityName[] = "Product;";
+static const char ProportionSemicolonEntityName[] = "Proportion;";
+static const char ProportionalSemicolonEntityName[] = "Proportional;";
+static const char PscrSemicolonEntityName[] = "Pscr;";
+static const char PsiSemicolonEntityName[] = "Psi;";
+static const char QUOTEntityName[] = "QUOT";
+static const char QUOTSemicolonEntityName[] = "QUOT;";
+static const char QfrSemicolonEntityName[] = "Qfr;";
+static const char QopfSemicolonEntityName[] = "Qopf;";
+static const char QscrSemicolonEntityName[] = "Qscr;";
+static const char RBarrSemicolonEntityName[] = "RBarr;";
+static const char REGEntityName[] = "REG";
+static const char REGSemicolonEntityName[] = "REG;";
+static const char RacuteSemicolonEntityName[] = "Racute;";
+static const char RangSemicolonEntityName[] = "Rang;";
+static const char RarrSemicolonEntityName[] = "Rarr;";
+static const char RarrtlSemicolonEntityName[] = "Rarrtl;";
+static const char RcaronSemicolonEntityName[] = "Rcaron;";
+static const char RcedilSemicolonEntityName[] = "Rcedil;";
+static const char RcySemicolonEntityName[] = "Rcy;";
+static const char ReSemicolonEntityName[] = "Re;";
+static const char ReverseElementSemicolonEntityName[] = "ReverseElement;";
+static const char ReverseEquilibriumSemicolonEntityName[] = "ReverseEquilibrium;";
+static const char ReverseUpEquilibriumSemicolonEntityName[] = "ReverseUpEquilibrium;";
+static const char RfrSemicolonEntityName[] = "Rfr;";
+static const char RhoSemicolonEntityName[] = "Rho;";
+static const char RightAngleBracketSemicolonEntityName[] = "RightAngleBracket;";
+static const char RightArrowSemicolonEntityName[] = "RightArrow;";
+static const char RightArrowBarSemicolonEntityName[] = "RightArrowBar;";
+static const char RightArrowLeftArrowSemicolonEntityName[] = "RightArrowLeftArrow;";
+static const char RightCeilingSemicolonEntityName[] = "RightCeiling;";
+static const char RightDoubleBracketSemicolonEntityName[] = "RightDoubleBracket;";
+static const char RightDownTeeVectorSemicolonEntityName[] = "RightDownTeeVector;";
+static const char RightDownVectorSemicolonEntityName[] = "RightDownVector;";
+static const char RightDownVectorBarSemicolonEntityName[] = "RightDownVectorBar;";
+static const char RightFloorSemicolonEntityName[] = "RightFloor;";
+static const char RightTeeSemicolonEntityName[] = "RightTee;";
+static const char RightTeeArrowSemicolonEntityName[] = "RightTeeArrow;";
+static const char RightTeeVectorSemicolonEntityName[] = "RightTeeVector;";
+static const char RightTriangleSemicolonEntityName[] = "RightTriangle;";
+static const char RightTriangleBarSemicolonEntityName[] = "RightTriangleBar;";
+static const char RightTriangleEqualSemicolonEntityName[] = "RightTriangleEqual;";
+static const char RightUpDownVectorSemicolonEntityName[] = "RightUpDownVector;";
+static const char RightUpTeeVectorSemicolonEntityName[] = "RightUpTeeVector;";
+static const char RightUpVectorSemicolonEntityName[] = "RightUpVector;";
+static const char RightUpVectorBarSemicolonEntityName[] = "RightUpVectorBar;";
+static const char RightVectorSemicolonEntityName[] = "RightVector;";
+static const char RightVectorBarSemicolonEntityName[] = "RightVectorBar;";
+static const char RightarrowSemicolonEntityName[] = "Rightarrow;";
+static const char RopfSemicolonEntityName[] = "Ropf;";
+static const char RoundImpliesSemicolonEntityName[] = "RoundImplies;";
+static const char RrightarrowSemicolonEntityName[] = "Rrightarrow;";
+static const char RscrSemicolonEntityName[] = "Rscr;";
+static const char RshSemicolonEntityName[] = "Rsh;";
+static const char RuleDelayedSemicolonEntityName[] = "RuleDelayed;";
+static const char SHCHcySemicolonEntityName[] = "SHCHcy;";
+static const char SHcySemicolonEntityName[] = "SHcy;";
+static const char SOFTcySemicolonEntityName[] = "SOFTcy;";
+static const char SacuteSemicolonEntityName[] = "Sacute;";
+static const char ScSemicolonEntityName[] = "Sc;";
+static const char ScaronSemicolonEntityName[] = "Scaron;";
+static const char ScedilSemicolonEntityName[] = "Scedil;";
+static const char ScircSemicolonEntityName[] = "Scirc;";
+static const char ScySemicolonEntityName[] = "Scy;";
+static const char SfrSemicolonEntityName[] = "Sfr;";
+static const char ShortDownArrowSemicolonEntityName[] = "ShortDownArrow;";
+static const char ShortLeftArrowSemicolonEntityName[] = "ShortLeftArrow;";
+static const char ShortRightArrowSemicolonEntityName[] = "ShortRightArrow;";
+static const char ShortUpArrowSemicolonEntityName[] = "ShortUpArrow;";
+static const char SigmaSemicolonEntityName[] = "Sigma;";
+static const char SmallCircleSemicolonEntityName[] = "SmallCircle;";
+static const char SopfSemicolonEntityName[] = "Sopf;";
+static const char SqrtSemicolonEntityName[] = "Sqrt;";
+static const char SquareSemicolonEntityName[] = "Square;";
+static const char SquareIntersectionSemicolonEntityName[] = "SquareIntersection;";
+static const char SquareSubsetSemicolonEntityName[] = "SquareSubset;";
+static const char SquareSubsetEqualSemicolonEntityName[] = "SquareSubsetEqual;";
+static const char SquareSupersetSemicolonEntityName[] = "SquareSuperset;";
+static const char SquareSupersetEqualSemicolonEntityName[] = "SquareSupersetEqual;";
+static const char SquareUnionSemicolonEntityName[] = "SquareUnion;";
+static const char SscrSemicolonEntityName[] = "Sscr;";
+static const char StarSemicolonEntityName[] = "Star;";
+static const char SubSemicolonEntityName[] = "Sub;";
+static const char SubsetSemicolonEntityName[] = "Subset;";
+static const char SubsetEqualSemicolonEntityName[] = "SubsetEqual;";
+static const char SucceedsSemicolonEntityName[] = "Succeeds;";
+static const char SucceedsEqualSemicolonEntityName[] = "SucceedsEqual;";
+static const char SucceedsSlantEqualSemicolonEntityName[] = "SucceedsSlantEqual;";
+static const char SucceedsTildeSemicolonEntityName[] = "SucceedsTilde;";
+static const char SuchThatSemicolonEntityName[] = "SuchThat;";
+static const char SumSemicolonEntityName[] = "Sum;";
+static const char SupSemicolonEntityName[] = "Sup;";
+static const char SupersetSemicolonEntityName[] = "Superset;";
+static const char SupersetEqualSemicolonEntityName[] = "SupersetEqual;";
+static const char SupsetSemicolonEntityName[] = "Supset;";
+static const char THORNEntityName[] = "THORN";
+static const char THORNSemicolonEntityName[] = "THORN;";
+static const char TRADESemicolonEntityName[] = "TRADE;";
+static const char TSHcySemicolonEntityName[] = "TSHcy;";
+static const char TScySemicolonEntityName[] = "TScy;";
+static const char TabSemicolonEntityName[] = "Tab;";
+static const char TauSemicolonEntityName[] = "Tau;";
+static const char TcaronSemicolonEntityName[] = "Tcaron;";
+static const char TcedilSemicolonEntityName[] = "Tcedil;";
+static const char TcySemicolonEntityName[] = "Tcy;";
+static const char TfrSemicolonEntityName[] = "Tfr;";
+static const char ThereforeSemicolonEntityName[] = "Therefore;";
+static const char ThetaSemicolonEntityName[] = "Theta;";
+static const char ThickSpaceSemicolonEntityName[] = "ThickSpace;";
+static const char ThinSpaceSemicolonEntityName[] = "ThinSpace;";
+static const char TildeSemicolonEntityName[] = "Tilde;";
+static const char TildeEqualSemicolonEntityName[] = "TildeEqual;";
+static const char TildeFullEqualSemicolonEntityName[] = "TildeFullEqual;";
+static const char TildeTildeSemicolonEntityName[] = "TildeTilde;";
+static const char TopfSemicolonEntityName[] = "Topf;";
+static const char TripleDotSemicolonEntityName[] = "TripleDot;";
+static const char TscrSemicolonEntityName[] = "Tscr;";
+static const char TstrokSemicolonEntityName[] = "Tstrok;";
+static const char UacuteEntityName[] = "Uacute";
+static const char UacuteSemicolonEntityName[] = "Uacute;";
+static const char UarrSemicolonEntityName[] = "Uarr;";
+static const char UarrocirSemicolonEntityName[] = "Uarrocir;";
+static const char UbrcySemicolonEntityName[] = "Ubrcy;";
+static const char UbreveSemicolonEntityName[] = "Ubreve;";
+static const char UcircEntityName[] = "Ucirc";
+static const char UcircSemicolonEntityName[] = "Ucirc;";
+static const char UcySemicolonEntityName[] = "Ucy;";
+static const char UdblacSemicolonEntityName[] = "Udblac;";
+static const char UfrSemicolonEntityName[] = "Ufr;";
+static const char UgraveEntityName[] = "Ugrave";
+static const char UgraveSemicolonEntityName[] = "Ugrave;";
+static const char UmacrSemicolonEntityName[] = "Umacr;";
+static const char UnderBarSemicolonEntityName[] = "UnderBar;";
+static const char UnderBraceSemicolonEntityName[] = "UnderBrace;";
+static const char UnderBracketSemicolonEntityName[] = "UnderBracket;";
+static const char UnderParenthesisSemicolonEntityName[] = "UnderParenthesis;";
+static const char UnionSemicolonEntityName[] = "Union;";
+static const char UnionPlusSemicolonEntityName[] = "UnionPlus;";
+static const char UogonSemicolonEntityName[] = "Uogon;";
+static const char UopfSemicolonEntityName[] = "Uopf;";
+static const char UpArrowSemicolonEntityName[] = "UpArrow;";
+static const char UpArrowBarSemicolonEntityName[] = "UpArrowBar;";
+static const char UpArrowDownArrowSemicolonEntityName[] = "UpArrowDownArrow;";
+static const char UpDownArrowSemicolonEntityName[] = "UpDownArrow;";
+static const char UpEquilibriumSemicolonEntityName[] = "UpEquilibrium;";
+static const char UpTeeSemicolonEntityName[] = "UpTee;";
+static const char UpTeeArrowSemicolonEntityName[] = "UpTeeArrow;";
+static const char UparrowSemicolonEntityName[] = "Uparrow;";
+static const char UpdownarrowSemicolonEntityName[] = "Updownarrow;";
+static const char UpperLeftArrowSemicolonEntityName[] = "UpperLeftArrow;";
+static const char UpperRightArrowSemicolonEntityName[] = "UpperRightArrow;";
+static const char UpsiSemicolonEntityName[] = "Upsi;";
+static const char UpsilonSemicolonEntityName[] = "Upsilon;";
+static const char UringSemicolonEntityName[] = "Uring;";
+static const char UscrSemicolonEntityName[] = "Uscr;";
+static const char UtildeSemicolonEntityName[] = "Utilde;";
+static const char UumlEntityName[] = "Uuml";
+static const char UumlSemicolonEntityName[] = "Uuml;";
+static const char VDashSemicolonEntityName[] = "VDash;";
+static const char VbarSemicolonEntityName[] = "Vbar;";
+static const char VcySemicolonEntityName[] = "Vcy;";
+static const char VdashSemicolonEntityName[] = "Vdash;";
+static const char VdashlSemicolonEntityName[] = "Vdashl;";
+static const char VeeSemicolonEntityName[] = "Vee;";
+static const char VerbarSemicolonEntityName[] = "Verbar;";
+static const char VertSemicolonEntityName[] = "Vert;";
+static const char VerticalBarSemicolonEntityName[] = "VerticalBar;";
+static const char VerticalLineSemicolonEntityName[] = "VerticalLine;";
+static const char VerticalSeparatorSemicolonEntityName[] = "VerticalSeparator;";
+static const char VerticalTildeSemicolonEntityName[] = "VerticalTilde;";
+static const char VeryThinSpaceSemicolonEntityName[] = "VeryThinSpace;";
+static const char VfrSemicolonEntityName[] = "Vfr;";
+static const char VopfSemicolonEntityName[] = "Vopf;";
+static const char VscrSemicolonEntityName[] = "Vscr;";
+static const char VvdashSemicolonEntityName[] = "Vvdash;";
+static const char WcircSemicolonEntityName[] = "Wcirc;";
+static const char WedgeSemicolonEntityName[] = "Wedge;";
+static const char WfrSemicolonEntityName[] = "Wfr;";
+static const char WopfSemicolonEntityName[] = "Wopf;";
+static const char WscrSemicolonEntityName[] = "Wscr;";
+static const char XfrSemicolonEntityName[] = "Xfr;";
+static const char XiSemicolonEntityName[] = "Xi;";
+static const char XopfSemicolonEntityName[] = "Xopf;";
+static const char XscrSemicolonEntityName[] = "Xscr;";
+static const char YAcySemicolonEntityName[] = "YAcy;";
+static const char YIcySemicolonEntityName[] = "YIcy;";
+static const char YUcySemicolonEntityName[] = "YUcy;";
+static const char YacuteEntityName[] = "Yacute";
+static const char YacuteSemicolonEntityName[] = "Yacute;";
+static const char YcircSemicolonEntityName[] = "Ycirc;";
+static const char YcySemicolonEntityName[] = "Ycy;";
+static const char YfrSemicolonEntityName[] = "Yfr;";
+static const char YopfSemicolonEntityName[] = "Yopf;";
+static const char YscrSemicolonEntityName[] = "Yscr;";
+static const char YumlSemicolonEntityName[] = "Yuml;";
+static const char ZHcySemicolonEntityName[] = "ZHcy;";
+static const char ZacuteSemicolonEntityName[] = "Zacute;";
+static const char ZcaronSemicolonEntityName[] = "Zcaron;";
+static const char ZcySemicolonEntityName[] = "Zcy;";
+static const char ZdotSemicolonEntityName[] = "Zdot;";
+static const char ZeroWidthSpaceSemicolonEntityName[] = "ZeroWidthSpace;";
+static const char ZetaSemicolonEntityName[] = "Zeta;";
+static const char ZfrSemicolonEntityName[] = "Zfr;";
+static const char ZopfSemicolonEntityName[] = "Zopf;";
+static const char ZscrSemicolonEntityName[] = "Zscr;";
+static const char aacuteEntityName[] = "aacute";
+static const char aacuteSemicolonEntityName[] = "aacute;";
+static const char abreveSemicolonEntityName[] = "abreve;";
+static const char acSemicolonEntityName[] = "ac;";
+static const char acESemicolonEntityName[] = "acE;";
+static const char acdSemicolonEntityName[] = "acd;";
+static const char acircEntityName[] = "acirc";
+static const char acircSemicolonEntityName[] = "acirc;";
+static const char acuteEntityName[] = "acute";
+static const char acuteSemicolonEntityName[] = "acute;";
+static const char acySemicolonEntityName[] = "acy;";
+static const char aeligEntityName[] = "aelig";
+static const char aeligSemicolonEntityName[] = "aelig;";
+static const char afSemicolonEntityName[] = "af;";
+static const char afrSemicolonEntityName[] = "afr;";
+static const char agraveEntityName[] = "agrave";
+static const char agraveSemicolonEntityName[] = "agrave;";
+static const char alefsymSemicolonEntityName[] = "alefsym;";
+static const char alephSemicolonEntityName[] = "aleph;";
+static const char alphaSemicolonEntityName[] = "alpha;";
+static const char amacrSemicolonEntityName[] = "amacr;";
+static const char amalgSemicolonEntityName[] = "amalg;";
+static const char ampEntityName[] = "amp";
+static const char ampSemicolonEntityName[] = "amp;";
+static const char andSemicolonEntityName[] = "and;";
+static const char andandSemicolonEntityName[] = "andand;";
+static const char anddSemicolonEntityName[] = "andd;";
+static const char andslopeSemicolonEntityName[] = "andslope;";
+static const char andvSemicolonEntityName[] = "andv;";
+static const char angSemicolonEntityName[] = "ang;";
+static const char angeSemicolonEntityName[] = "ange;";
+static const char angleSemicolonEntityName[] = "angle;";
+static const char angmsdSemicolonEntityName[] = "angmsd;";
+static const char angmsdaaSemicolonEntityName[] = "angmsdaa;";
+static const char angmsdabSemicolonEntityName[] = "angmsdab;";
+static const char angmsdacSemicolonEntityName[] = "angmsdac;";
+static const char angmsdadSemicolonEntityName[] = "angmsdad;";
+static const char angmsdaeSemicolonEntityName[] = "angmsdae;";
+static const char angmsdafSemicolonEntityName[] = "angmsdaf;";
+static const char angmsdagSemicolonEntityName[] = "angmsdag;";
+static const char angmsdahSemicolonEntityName[] = "angmsdah;";
+static const char angrtSemicolonEntityName[] = "angrt;";
+static const char angrtvbSemicolonEntityName[] = "angrtvb;";
+static const char angrtvbdSemicolonEntityName[] = "angrtvbd;";
+static const char angsphSemicolonEntityName[] = "angsph;";
+static const char angstSemicolonEntityName[] = "angst;";
+static const char angzarrSemicolonEntityName[] = "angzarr;";
+static const char aogonSemicolonEntityName[] = "aogon;";
+static const char aopfSemicolonEntityName[] = "aopf;";
+static const char apSemicolonEntityName[] = "ap;";
+static const char apESemicolonEntityName[] = "apE;";
+static const char apacirSemicolonEntityName[] = "apacir;";
+static const char apeSemicolonEntityName[] = "ape;";
+static const char apidSemicolonEntityName[] = "apid;";
+static const char aposSemicolonEntityName[] = "apos;";
+static const char approxSemicolonEntityName[] = "approx;";
+static const char approxeqSemicolonEntityName[] = "approxeq;";
+static const char aringEntityName[] = "aring";
+static const char aringSemicolonEntityName[] = "aring;";
+static const char ascrSemicolonEntityName[] = "ascr;";
+static const char astSemicolonEntityName[] = "ast;";
+static const char asympSemicolonEntityName[] = "asymp;";
+static const char asympeqSemicolonEntityName[] = "asympeq;";
+static const char atildeEntityName[] = "atilde";
+static const char atildeSemicolonEntityName[] = "atilde;";
+static const char aumlEntityName[] = "auml";
+static const char aumlSemicolonEntityName[] = "auml;";
+static const char awconintSemicolonEntityName[] = "awconint;";
+static const char awintSemicolonEntityName[] = "awint;";
+static const char bNotSemicolonEntityName[] = "bNot;";
+static const char backcongSemicolonEntityName[] = "backcong;";
+static const char backepsilonSemicolonEntityName[] = "backepsilon;";
+static const char backprimeSemicolonEntityName[] = "backprime;";
+static const char backsimSemicolonEntityName[] = "backsim;";
+static const char backsimeqSemicolonEntityName[] = "backsimeq;";
+static const char barveeSemicolonEntityName[] = "barvee;";
+static const char barwedSemicolonEntityName[] = "barwed;";
+static const char barwedgeSemicolonEntityName[] = "barwedge;";
+static const char bbrkSemicolonEntityName[] = "bbrk;";
+static const char bbrktbrkSemicolonEntityName[] = "bbrktbrk;";
+static const char bcongSemicolonEntityName[] = "bcong;";
+static const char bcySemicolonEntityName[] = "bcy;";
+static const char bdquoSemicolonEntityName[] = "bdquo;";
+static const char becausSemicolonEntityName[] = "becaus;";
+static const char becauseSemicolonEntityName[] = "because;";
+static const char bemptyvSemicolonEntityName[] = "bemptyv;";
+static const char bepsiSemicolonEntityName[] = "bepsi;";
+static const char bernouSemicolonEntityName[] = "bernou;";
+static const char betaSemicolonEntityName[] = "beta;";
+static const char bethSemicolonEntityName[] = "beth;";
+static const char betweenSemicolonEntityName[] = "between;";
+static const char bfrSemicolonEntityName[] = "bfr;";
+static const char bigcapSemicolonEntityName[] = "bigcap;";
+static const char bigcircSemicolonEntityName[] = "bigcirc;";
+static const char bigcupSemicolonEntityName[] = "bigcup;";
+static const char bigodotSemicolonEntityName[] = "bigodot;";
+static const char bigoplusSemicolonEntityName[] = "bigoplus;";
+static const char bigotimesSemicolonEntityName[] = "bigotimes;";
+static const char bigsqcupSemicolonEntityName[] = "bigsqcup;";
+static const char bigstarSemicolonEntityName[] = "bigstar;";
+static const char bigtriangledownSemicolonEntityName[] = "bigtriangledown;";
+static const char bigtriangleupSemicolonEntityName[] = "bigtriangleup;";
+static const char biguplusSemicolonEntityName[] = "biguplus;";
+static const char bigveeSemicolonEntityName[] = "bigvee;";
+static const char bigwedgeSemicolonEntityName[] = "bigwedge;";
+static const char bkarowSemicolonEntityName[] = "bkarow;";
+static const char blacklozengeSemicolonEntityName[] = "blacklozenge;";
+static const char blacksquareSemicolonEntityName[] = "blacksquare;";
+static const char blacktriangleSemicolonEntityName[] = "blacktriangle;";
+static const char blacktriangledownSemicolonEntityName[] = "blacktriangledown;";
+static const char blacktriangleleftSemicolonEntityName[] = "blacktriangleleft;";
+static const char blacktrianglerightSemicolonEntityName[] = "blacktriangleright;";
+static const char blankSemicolonEntityName[] = "blank;";
+static const char blk12SemicolonEntityName[] = "blk12;";
+static const char blk14SemicolonEntityName[] = "blk14;";
+static const char blk34SemicolonEntityName[] = "blk34;";
+static const char blockSemicolonEntityName[] = "block;";
+static const char bneSemicolonEntityName[] = "bne;";
+static const char bnequivSemicolonEntityName[] = "bnequiv;";
+static const char bnotSemicolonEntityName[] = "bnot;";
+static const char bopfSemicolonEntityName[] = "bopf;";
+static const char botSemicolonEntityName[] = "bot;";
+static const char bottomSemicolonEntityName[] = "bottom;";
+static const char bowtieSemicolonEntityName[] = "bowtie;";
+static const char boxDLSemicolonEntityName[] = "boxDL;";
+static const char boxDRSemicolonEntityName[] = "boxDR;";
+static const char boxDlSemicolonEntityName[] = "boxDl;";
+static const char boxDrSemicolonEntityName[] = "boxDr;";
+static const char boxHSemicolonEntityName[] = "boxH;";
+static const char boxHDSemicolonEntityName[] = "boxHD;";
+static const char boxHUSemicolonEntityName[] = "boxHU;";
+static const char boxHdSemicolonEntityName[] = "boxHd;";
+static const char boxHuSemicolonEntityName[] = "boxHu;";
+static const char boxULSemicolonEntityName[] = "boxUL;";
+static const char boxURSemicolonEntityName[] = "boxUR;";
+static const char boxUlSemicolonEntityName[] = "boxUl;";
+static const char boxUrSemicolonEntityName[] = "boxUr;";
+static const char boxVSemicolonEntityName[] = "boxV;";
+static const char boxVHSemicolonEntityName[] = "boxVH;";
+static const char boxVLSemicolonEntityName[] = "boxVL;";
+static const char boxVRSemicolonEntityName[] = "boxVR;";
+static const char boxVhSemicolonEntityName[] = "boxVh;";
+static const char boxVlSemicolonEntityName[] = "boxVl;";
+static const char boxVrSemicolonEntityName[] = "boxVr;";
+static const char boxboxSemicolonEntityName[] = "boxbox;";
+static const char boxdLSemicolonEntityName[] = "boxdL;";
+static const char boxdRSemicolonEntityName[] = "boxdR;";
+static const char boxdlSemicolonEntityName[] = "boxdl;";
+static const char boxdrSemicolonEntityName[] = "boxdr;";
+static const char boxhSemicolonEntityName[] = "boxh;";
+static const char boxhDSemicolonEntityName[] = "boxhD;";
+static const char boxhUSemicolonEntityName[] = "boxhU;";
+static const char boxhdSemicolonEntityName[] = "boxhd;";
+static const char boxhuSemicolonEntityName[] = "boxhu;";
+static const char boxminusSemicolonEntityName[] = "boxminus;";
+static const char boxplusSemicolonEntityName[] = "boxplus;";
+static const char boxtimesSemicolonEntityName[] = "boxtimes;";
+static const char boxuLSemicolonEntityName[] = "boxuL;";
+static const char boxuRSemicolonEntityName[] = "boxuR;";
+static const char boxulSemicolonEntityName[] = "boxul;";
+static const char boxurSemicolonEntityName[] = "boxur;";
+static const char boxvSemicolonEntityName[] = "boxv;";
+static const char boxvHSemicolonEntityName[] = "boxvH;";
+static const char boxvLSemicolonEntityName[] = "boxvL;";
+static const char boxvRSemicolonEntityName[] = "boxvR;";
+static const char boxvhSemicolonEntityName[] = "boxvh;";
+static const char boxvlSemicolonEntityName[] = "boxvl;";
+static const char boxvrSemicolonEntityName[] = "boxvr;";
+static const char bprimeSemicolonEntityName[] = "bprime;";
+static const char breveSemicolonEntityName[] = "breve;";
+static const char brvbarEntityName[] = "brvbar";
+static const char brvbarSemicolonEntityName[] = "brvbar;";
+static const char bscrSemicolonEntityName[] = "bscr;";
+static const char bsemiSemicolonEntityName[] = "bsemi;";
+static const char bsimSemicolonEntityName[] = "bsim;";
+static const char bsimeSemicolonEntityName[] = "bsime;";
+static const char bsolSemicolonEntityName[] = "bsol;";
+static const char bsolbSemicolonEntityName[] = "bsolb;";
+static const char bsolhsubSemicolonEntityName[] = "bsolhsub;";
+static const char bullSemicolonEntityName[] = "bull;";
+static const char bulletSemicolonEntityName[] = "bullet;";
+static const char bumpSemicolonEntityName[] = "bump;";
+static const char bumpESemicolonEntityName[] = "bumpE;";
+static const char bumpeSemicolonEntityName[] = "bumpe;";
+static const char bumpeqSemicolonEntityName[] = "bumpeq;";
+static const char cacuteSemicolonEntityName[] = "cacute;";
+static const char capSemicolonEntityName[] = "cap;";
+static const char capandSemicolonEntityName[] = "capand;";
+static const char capbrcupSemicolonEntityName[] = "capbrcup;";
+static const char capcapSemicolonEntityName[] = "capcap;";
+static const char capcupSemicolonEntityName[] = "capcup;";
+static const char capdotSemicolonEntityName[] = "capdot;";
+static const char capsSemicolonEntityName[] = "caps;";
+static const char caretSemicolonEntityName[] = "caret;";
+static const char caronSemicolonEntityName[] = "caron;";
+static const char ccapsSemicolonEntityName[] = "ccaps;";
+static const char ccaronSemicolonEntityName[] = "ccaron;";
+static const char ccedilEntityName[] = "ccedil";
+static const char ccedilSemicolonEntityName[] = "ccedil;";
+static const char ccircSemicolonEntityName[] = "ccirc;";
+static const char ccupsSemicolonEntityName[] = "ccups;";
+static const char ccupssmSemicolonEntityName[] = "ccupssm;";
+static const char cdotSemicolonEntityName[] = "cdot;";
+static const char cedilEntityName[] = "cedil";
+static const char cedilSemicolonEntityName[] = "cedil;";
+static const char cemptyvSemicolonEntityName[] = "cemptyv;";
+static const char centEntityName[] = "cent";
+static const char centSemicolonEntityName[] = "cent;";
+static const char centerdotSemicolonEntityName[] = "centerdot;";
+static const char cfrSemicolonEntityName[] = "cfr;";
+static const char chcySemicolonEntityName[] = "chcy;";
+static const char checkSemicolonEntityName[] = "check;";
+static const char checkmarkSemicolonEntityName[] = "checkmark;";
+static const char chiSemicolonEntityName[] = "chi;";
+static const char cirSemicolonEntityName[] = "cir;";
+static const char cirESemicolonEntityName[] = "cirE;";
+static const char circSemicolonEntityName[] = "circ;";
+static const char circeqSemicolonEntityName[] = "circeq;";
+static const char circlearrowleftSemicolonEntityName[] = "circlearrowleft;";
+static const char circlearrowrightSemicolonEntityName[] = "circlearrowright;";
+static const char circledRSemicolonEntityName[] = "circledR;";
+static const char circledSSemicolonEntityName[] = "circledS;";
+static const char circledastSemicolonEntityName[] = "circledast;";
+static const char circledcircSemicolonEntityName[] = "circledcirc;";
+static const char circleddashSemicolonEntityName[] = "circleddash;";
+static const char cireSemicolonEntityName[] = "cire;";
+static const char cirfnintSemicolonEntityName[] = "cirfnint;";
+static const char cirmidSemicolonEntityName[] = "cirmid;";
+static const char cirscirSemicolonEntityName[] = "cirscir;";
+static const char clubsSemicolonEntityName[] = "clubs;";
+static const char clubsuitSemicolonEntityName[] = "clubsuit;";
+static const char colonSemicolonEntityName[] = "colon;";
+static const char coloneSemicolonEntityName[] = "colone;";
+static const char coloneqSemicolonEntityName[] = "coloneq;";
+static const char commaSemicolonEntityName[] = "comma;";
+static const char commatSemicolonEntityName[] = "commat;";
+static const char compSemicolonEntityName[] = "comp;";
+static const char compfnSemicolonEntityName[] = "compfn;";
+static const char complementSemicolonEntityName[] = "complement;";
+static const char complexesSemicolonEntityName[] = "complexes;";
+static const char congSemicolonEntityName[] = "cong;";
+static const char congdotSemicolonEntityName[] = "congdot;";
+static const char conintSemicolonEntityName[] = "conint;";
+static const char copfSemicolonEntityName[] = "copf;";
+static const char coprodSemicolonEntityName[] = "coprod;";
+static const char copyEntityName[] = "copy";
+static const char copySemicolonEntityName[] = "copy;";
+static const char copysrSemicolonEntityName[] = "copysr;";
+static const char crarrSemicolonEntityName[] = "crarr;";
+static const char crossSemicolonEntityName[] = "cross;";
+static const char cscrSemicolonEntityName[] = "cscr;";
+static const char csubSemicolonEntityName[] = "csub;";
+static const char csubeSemicolonEntityName[] = "csube;";
+static const char csupSemicolonEntityName[] = "csup;";
+static const char csupeSemicolonEntityName[] = "csupe;";
+static const char ctdotSemicolonEntityName[] = "ctdot;";
+static const char cudarrlSemicolonEntityName[] = "cudarrl;";
+static const char cudarrrSemicolonEntityName[] = "cudarrr;";
+static const char cueprSemicolonEntityName[] = "cuepr;";
+static const char cuescSemicolonEntityName[] = "cuesc;";
+static const char cularrSemicolonEntityName[] = "cularr;";
+static const char cularrpSemicolonEntityName[] = "cularrp;";
+static const char cupSemicolonEntityName[] = "cup;";
+static const char cupbrcapSemicolonEntityName[] = "cupbrcap;";
+static const char cupcapSemicolonEntityName[] = "cupcap;";
+static const char cupcupSemicolonEntityName[] = "cupcup;";
+static const char cupdotSemicolonEntityName[] = "cupdot;";
+static const char cuporSemicolonEntityName[] = "cupor;";
+static const char cupsSemicolonEntityName[] = "cups;";
+static const char curarrSemicolonEntityName[] = "curarr;";
+static const char curarrmSemicolonEntityName[] = "curarrm;";
+static const char curlyeqprecSemicolonEntityName[] = "curlyeqprec;";
+static const char curlyeqsuccSemicolonEntityName[] = "curlyeqsucc;";
+static const char curlyveeSemicolonEntityName[] = "curlyvee;";
+static const char curlywedgeSemicolonEntityName[] = "curlywedge;";
+static const char currenEntityName[] = "curren";
+static const char currenSemicolonEntityName[] = "curren;";
+static const char curvearrowleftSemicolonEntityName[] = "curvearrowleft;";
+static const char curvearrowrightSemicolonEntityName[] = "curvearrowright;";
+static const char cuveeSemicolonEntityName[] = "cuvee;";
+static const char cuwedSemicolonEntityName[] = "cuwed;";
+static const char cwconintSemicolonEntityName[] = "cwconint;";
+static const char cwintSemicolonEntityName[] = "cwint;";
+static const char cylctySemicolonEntityName[] = "cylcty;";
+static const char dArrSemicolonEntityName[] = "dArr;";
+static const char dHarSemicolonEntityName[] = "dHar;";
+static const char daggerSemicolonEntityName[] = "dagger;";
+static const char dalethSemicolonEntityName[] = "daleth;";
+static const char darrSemicolonEntityName[] = "darr;";
+static const char dashSemicolonEntityName[] = "dash;";
+static const char dashvSemicolonEntityName[] = "dashv;";
+static const char dbkarowSemicolonEntityName[] = "dbkarow;";
+static const char dblacSemicolonEntityName[] = "dblac;";
+static const char dcaronSemicolonEntityName[] = "dcaron;";
+static const char dcySemicolonEntityName[] = "dcy;";
+static const char ddSemicolonEntityName[] = "dd;";
+static const char ddaggerSemicolonEntityName[] = "ddagger;";
+static const char ddarrSemicolonEntityName[] = "ddarr;";
+static const char ddotseqSemicolonEntityName[] = "ddotseq;";
+static const char degEntityName[] = "deg";
+static const char degSemicolonEntityName[] = "deg;";
+static const char deltaSemicolonEntityName[] = "delta;";
+static const char demptyvSemicolonEntityName[] = "demptyv;";
+static const char dfishtSemicolonEntityName[] = "dfisht;";
+static const char dfrSemicolonEntityName[] = "dfr;";
+static const char dharlSemicolonEntityName[] = "dharl;";
+static const char dharrSemicolonEntityName[] = "dharr;";
+static const char diamSemicolonEntityName[] = "diam;";
+static const char diamondSemicolonEntityName[] = "diamond;";
+static const char diamondsuitSemicolonEntityName[] = "diamondsuit;";
+static const char diamsSemicolonEntityName[] = "diams;";
+static const char dieSemicolonEntityName[] = "die;";
+static const char digammaSemicolonEntityName[] = "digamma;";
+static const char disinSemicolonEntityName[] = "disin;";
+static const char divSemicolonEntityName[] = "div;";
+static const char divideEntityName[] = "divide";
+static const char divideSemicolonEntityName[] = "divide;";
+static const char divideontimesSemicolonEntityName[] = "divideontimes;";
+static const char divonxSemicolonEntityName[] = "divonx;";
+static const char djcySemicolonEntityName[] = "djcy;";
+static const char dlcornSemicolonEntityName[] = "dlcorn;";
+static const char dlcropSemicolonEntityName[] = "dlcrop;";
+static const char dollarSemicolonEntityName[] = "dollar;";
+static const char dopfSemicolonEntityName[] = "dopf;";
+static const char dotSemicolonEntityName[] = "dot;";
+static const char doteqSemicolonEntityName[] = "doteq;";
+static const char doteqdotSemicolonEntityName[] = "doteqdot;";
+static const char dotminusSemicolonEntityName[] = "dotminus;";
+static const char dotplusSemicolonEntityName[] = "dotplus;";
+static const char dotsquareSemicolonEntityName[] = "dotsquare;";
+static const char doublebarwedgeSemicolonEntityName[] = "doublebarwedge;";
+static const char downarrowSemicolonEntityName[] = "downarrow;";
+static const char downdownarrowsSemicolonEntityName[] = "downdownarrows;";
+static const char downharpoonleftSemicolonEntityName[] = "downharpoonleft;";
+static const char downharpoonrightSemicolonEntityName[] = "downharpoonright;";
+static const char drbkarowSemicolonEntityName[] = "drbkarow;";
+static const char drcornSemicolonEntityName[] = "drcorn;";
+static const char drcropSemicolonEntityName[] = "drcrop;";
+static const char dscrSemicolonEntityName[] = "dscr;";
+static const char dscySemicolonEntityName[] = "dscy;";
+static const char dsolSemicolonEntityName[] = "dsol;";
+static const char dstrokSemicolonEntityName[] = "dstrok;";
+static const char dtdotSemicolonEntityName[] = "dtdot;";
+static const char dtriSemicolonEntityName[] = "dtri;";
+static const char dtrifSemicolonEntityName[] = "dtrif;";
+static const char duarrSemicolonEntityName[] = "duarr;";
+static const char duharSemicolonEntityName[] = "duhar;";
+static const char dwangleSemicolonEntityName[] = "dwangle;";
+static const char dzcySemicolonEntityName[] = "dzcy;";
+static const char dzigrarrSemicolonEntityName[] = "dzigrarr;";
+static const char eDDotSemicolonEntityName[] = "eDDot;";
+static const char eDotSemicolonEntityName[] = "eDot;";
+static const char eacuteEntityName[] = "eacute";
+static const char eacuteSemicolonEntityName[] = "eacute;";
+static const char easterSemicolonEntityName[] = "easter;";
+static const char ecaronSemicolonEntityName[] = "ecaron;";
+static const char ecirSemicolonEntityName[] = "ecir;";
+static const char ecircEntityName[] = "ecirc";
+static const char ecircSemicolonEntityName[] = "ecirc;";
+static const char ecolonSemicolonEntityName[] = "ecolon;";
+static const char ecySemicolonEntityName[] = "ecy;";
+static const char edotSemicolonEntityName[] = "edot;";
+static const char eeSemicolonEntityName[] = "ee;";
+static const char efDotSemicolonEntityName[] = "efDot;";
+static const char efrSemicolonEntityName[] = "efr;";
+static const char egSemicolonEntityName[] = "eg;";
+static const char egraveEntityName[] = "egrave";
+static const char egraveSemicolonEntityName[] = "egrave;";
+static const char egsSemicolonEntityName[] = "egs;";
+static const char egsdotSemicolonEntityName[] = "egsdot;";
+static const char elSemicolonEntityName[] = "el;";
+static const char elintersSemicolonEntityName[] = "elinters;";
+static const char ellSemicolonEntityName[] = "ell;";
+static const char elsSemicolonEntityName[] = "els;";
+static const char elsdotSemicolonEntityName[] = "elsdot;";
+static const char emacrSemicolonEntityName[] = "emacr;";
+static const char emptySemicolonEntityName[] = "empty;";
+static const char emptysetSemicolonEntityName[] = "emptyset;";
+static const char emptyvSemicolonEntityName[] = "emptyv;";
+static const char emsp13SemicolonEntityName[] = "emsp13;";
+static const char emsp14SemicolonEntityName[] = "emsp14;";
+static const char emspSemicolonEntityName[] = "emsp;";
+static const char engSemicolonEntityName[] = "eng;";
+static const char enspSemicolonEntityName[] = "ensp;";
+static const char eogonSemicolonEntityName[] = "eogon;";
+static const char eopfSemicolonEntityName[] = "eopf;";
+static const char eparSemicolonEntityName[] = "epar;";
+static const char eparslSemicolonEntityName[] = "eparsl;";
+static const char eplusSemicolonEntityName[] = "eplus;";
+static const char epsiSemicolonEntityName[] = "epsi;";
+static const char epsilonSemicolonEntityName[] = "epsilon;";
+static const char epsivSemicolonEntityName[] = "epsiv;";
+static const char eqcircSemicolonEntityName[] = "eqcirc;";
+static const char eqcolonSemicolonEntityName[] = "eqcolon;";
+static const char eqsimSemicolonEntityName[] = "eqsim;";
+static const char eqslantgtrSemicolonEntityName[] = "eqslantgtr;";
+static const char eqslantlessSemicolonEntityName[] = "eqslantless;";
+static const char equalsSemicolonEntityName[] = "equals;";
+static const char equestSemicolonEntityName[] = "equest;";
+static const char equivSemicolonEntityName[] = "equiv;";
+static const char equivDDSemicolonEntityName[] = "equivDD;";
+static const char eqvparslSemicolonEntityName[] = "eqvparsl;";
+static const char erDotSemicolonEntityName[] = "erDot;";
+static const char erarrSemicolonEntityName[] = "erarr;";
+static const char escrSemicolonEntityName[] = "escr;";
+static const char esdotSemicolonEntityName[] = "esdot;";
+static const char esimSemicolonEntityName[] = "esim;";
+static const char etaSemicolonEntityName[] = "eta;";
+static const char ethEntityName[] = "eth";
+static const char ethSemicolonEntityName[] = "eth;";
+static const char eumlEntityName[] = "euml";
+static const char eumlSemicolonEntityName[] = "euml;";
+static const char euroSemicolonEntityName[] = "euro;";
+static const char exclSemicolonEntityName[] = "excl;";
+static const char existSemicolonEntityName[] = "exist;";
+static const char expectationSemicolonEntityName[] = "expectation;";
+static const char exponentialeSemicolonEntityName[] = "exponentiale;";
+static const char fallingdotseqSemicolonEntityName[] = "fallingdotseq;";
+static const char fcySemicolonEntityName[] = "fcy;";
+static const char femaleSemicolonEntityName[] = "female;";
+static const char ffiligSemicolonEntityName[] = "ffilig;";
+static const char ffligSemicolonEntityName[] = "fflig;";
+static const char fflligSemicolonEntityName[] = "ffllig;";
+static const char ffrSemicolonEntityName[] = "ffr;";
+static const char filigSemicolonEntityName[] = "filig;";
+static const char fjligSemicolonEntityName[] = "fjlig;";
+static const char flatSemicolonEntityName[] = "flat;";
+static const char flligSemicolonEntityName[] = "fllig;";
+static const char fltnsSemicolonEntityName[] = "fltns;";
+static const char fnofSemicolonEntityName[] = "fnof;";
+static const char fopfSemicolonEntityName[] = "fopf;";
+static const char forallSemicolonEntityName[] = "forall;";
+static const char forkSemicolonEntityName[] = "fork;";
+static const char forkvSemicolonEntityName[] = "forkv;";
+static const char fpartintSemicolonEntityName[] = "fpartint;";
+static const char frac12EntityName[] = "frac12";
+static const char frac12SemicolonEntityName[] = "frac12;";
+static const char frac13SemicolonEntityName[] = "frac13;";
+static const char frac14EntityName[] = "frac14";
+static const char frac14SemicolonEntityName[] = "frac14;";
+static const char frac15SemicolonEntityName[] = "frac15;";
+static const char frac16SemicolonEntityName[] = "frac16;";
+static const char frac18SemicolonEntityName[] = "frac18;";
+static const char frac23SemicolonEntityName[] = "frac23;";
+static const char frac25SemicolonEntityName[] = "frac25;";
+static const char frac34EntityName[] = "frac34";
+static const char frac34SemicolonEntityName[] = "frac34;";
+static const char frac35SemicolonEntityName[] = "frac35;";
+static const char frac38SemicolonEntityName[] = "frac38;";
+static const char frac45SemicolonEntityName[] = "frac45;";
+static const char frac56SemicolonEntityName[] = "frac56;";
+static const char frac58SemicolonEntityName[] = "frac58;";
+static const char frac78SemicolonEntityName[] = "frac78;";
+static const char fraslSemicolonEntityName[] = "frasl;";
+static const char frownSemicolonEntityName[] = "frown;";
+static const char fscrSemicolonEntityName[] = "fscr;";
+static const char gESemicolonEntityName[] = "gE;";
+static const char gElSemicolonEntityName[] = "gEl;";
+static const char gacuteSemicolonEntityName[] = "gacute;";
+static const char gammaSemicolonEntityName[] = "gamma;";
+static const char gammadSemicolonEntityName[] = "gammad;";
+static const char gapSemicolonEntityName[] = "gap;";
+static const char gbreveSemicolonEntityName[] = "gbreve;";
+static const char gcircSemicolonEntityName[] = "gcirc;";
+static const char gcySemicolonEntityName[] = "gcy;";
+static const char gdotSemicolonEntityName[] = "gdot;";
+static const char geSemicolonEntityName[] = "ge;";
+static const char gelSemicolonEntityName[] = "gel;";
+static const char geqSemicolonEntityName[] = "geq;";
+static const char geqqSemicolonEntityName[] = "geqq;";
+static const char geqslantSemicolonEntityName[] = "geqslant;";
+static const char gesSemicolonEntityName[] = "ges;";
+static const char gesccSemicolonEntityName[] = "gescc;";
+static const char gesdotSemicolonEntityName[] = "gesdot;";
+static const char gesdotoSemicolonEntityName[] = "gesdoto;";
+static const char gesdotolSemicolonEntityName[] = "gesdotol;";
+static const char geslSemicolonEntityName[] = "gesl;";
+static const char geslesSemicolonEntityName[] = "gesles;";
+static const char gfrSemicolonEntityName[] = "gfr;";
+static const char ggSemicolonEntityName[] = "gg;";
+static const char gggSemicolonEntityName[] = "ggg;";
+static const char gimelSemicolonEntityName[] = "gimel;";
+static const char gjcySemicolonEntityName[] = "gjcy;";
+static const char glSemicolonEntityName[] = "gl;";
+static const char glESemicolonEntityName[] = "glE;";
+static const char glaSemicolonEntityName[] = "gla;";
+static const char gljSemicolonEntityName[] = "glj;";
+static const char gnESemicolonEntityName[] = "gnE;";
+static const char gnapSemicolonEntityName[] = "gnap;";
+static const char gnapproxSemicolonEntityName[] = "gnapprox;";
+static const char gneSemicolonEntityName[] = "gne;";
+static const char gneqSemicolonEntityName[] = "gneq;";
+static const char gneqqSemicolonEntityName[] = "gneqq;";
+static const char gnsimSemicolonEntityName[] = "gnsim;";
+static const char gopfSemicolonEntityName[] = "gopf;";
+static const char graveSemicolonEntityName[] = "grave;";
+static const char gscrSemicolonEntityName[] = "gscr;";
+static const char gsimSemicolonEntityName[] = "gsim;";
+static const char gsimeSemicolonEntityName[] = "gsime;";
+static const char gsimlSemicolonEntityName[] = "gsiml;";
+static const char gtEntityName[] = "gt";
+static const char gtSemicolonEntityName[] = "gt;";
+static const char gtccSemicolonEntityName[] = "gtcc;";
+static const char gtcirSemicolonEntityName[] = "gtcir;";
+static const char gtdotSemicolonEntityName[] = "gtdot;";
+static const char gtlParSemicolonEntityName[] = "gtlPar;";
+static const char gtquestSemicolonEntityName[] = "gtquest;";
+static const char gtrapproxSemicolonEntityName[] = "gtrapprox;";
+static const char gtrarrSemicolonEntityName[] = "gtrarr;";
+static const char gtrdotSemicolonEntityName[] = "gtrdot;";
+static const char gtreqlessSemicolonEntityName[] = "gtreqless;";
+static const char gtreqqlessSemicolonEntityName[] = "gtreqqless;";
+static const char gtrlessSemicolonEntityName[] = "gtrless;";
+static const char gtrsimSemicolonEntityName[] = "gtrsim;";
+static const char gvertneqqSemicolonEntityName[] = "gvertneqq;";
+static const char gvnESemicolonEntityName[] = "gvnE;";
+static const char hArrSemicolonEntityName[] = "hArr;";
+static const char hairspSemicolonEntityName[] = "hairsp;";
+static const char halfSemicolonEntityName[] = "half;";
+static const char hamiltSemicolonEntityName[] = "hamilt;";
+static const char hardcySemicolonEntityName[] = "hardcy;";
+static const char harrSemicolonEntityName[] = "harr;";
+static const char harrcirSemicolonEntityName[] = "harrcir;";
+static const char harrwSemicolonEntityName[] = "harrw;";
+static const char hbarSemicolonEntityName[] = "hbar;";
+static const char hcircSemicolonEntityName[] = "hcirc;";
+static const char heartsSemicolonEntityName[] = "hearts;";
+static const char heartsuitSemicolonEntityName[] = "heartsuit;";
+static const char hellipSemicolonEntityName[] = "hellip;";
+static const char herconSemicolonEntityName[] = "hercon;";
+static const char hfrSemicolonEntityName[] = "hfr;";
+static const char hksearowSemicolonEntityName[] = "hksearow;";
+static const char hkswarowSemicolonEntityName[] = "hkswarow;";
+static const char hoarrSemicolonEntityName[] = "hoarr;";
+static const char homthtSemicolonEntityName[] = "homtht;";
+static const char hookleftarrowSemicolonEntityName[] = "hookleftarrow;";
+static const char hookrightarrowSemicolonEntityName[] = "hookrightarrow;";
+static const char hopfSemicolonEntityName[] = "hopf;";
+static const char horbarSemicolonEntityName[] = "horbar;";
+static const char hscrSemicolonEntityName[] = "hscr;";
+static const char hslashSemicolonEntityName[] = "hslash;";
+static const char hstrokSemicolonEntityName[] = "hstrok;";
+static const char hybullSemicolonEntityName[] = "hybull;";
+static const char hyphenSemicolonEntityName[] = "hyphen;";
+static const char iacuteEntityName[] = "iacute";
+static const char iacuteSemicolonEntityName[] = "iacute;";
+static const char icSemicolonEntityName[] = "ic;";
+static const char icircEntityName[] = "icirc";
+static const char icircSemicolonEntityName[] = "icirc;";
+static const char icySemicolonEntityName[] = "icy;";
+static const char iecySemicolonEntityName[] = "iecy;";
+static const char iexclEntityName[] = "iexcl";
+static const char iexclSemicolonEntityName[] = "iexcl;";
+static const char iffSemicolonEntityName[] = "iff;";
+static const char ifrSemicolonEntityName[] = "ifr;";
+static const char igraveEntityName[] = "igrave";
+static const char igraveSemicolonEntityName[] = "igrave;";
+static const char iiSemicolonEntityName[] = "ii;";
+static const char iiiintSemicolonEntityName[] = "iiiint;";
+static const char iiintSemicolonEntityName[] = "iiint;";
+static const char iinfinSemicolonEntityName[] = "iinfin;";
+static const char iiotaSemicolonEntityName[] = "iiota;";
+static const char ijligSemicolonEntityName[] = "ijlig;";
+static const char imacrSemicolonEntityName[] = "imacr;";
+static const char imageSemicolonEntityName[] = "image;";
+static const char imaglineSemicolonEntityName[] = "imagline;";
+static const char imagpartSemicolonEntityName[] = "imagpart;";
+static const char imathSemicolonEntityName[] = "imath;";
+static const char imofSemicolonEntityName[] = "imof;";
+static const char impedSemicolonEntityName[] = "imped;";
+static const char inSemicolonEntityName[] = "in;";
+static const char incareSemicolonEntityName[] = "incare;";
+static const char infinSemicolonEntityName[] = "infin;";
+static const char infintieSemicolonEntityName[] = "infintie;";
+static const char inodotSemicolonEntityName[] = "inodot;";
+static const char intSemicolonEntityName[] = "int;";
+static const char intcalSemicolonEntityName[] = "intcal;";
+static const char integersSemicolonEntityName[] = "integers;";
+static const char intercalSemicolonEntityName[] = "intercal;";
+static const char intlarhkSemicolonEntityName[] = "intlarhk;";
+static const char intprodSemicolonEntityName[] = "intprod;";
+static const char iocySemicolonEntityName[] = "iocy;";
+static const char iogonSemicolonEntityName[] = "iogon;";
+static const char iopfSemicolonEntityName[] = "iopf;";
+static const char iotaSemicolonEntityName[] = "iota;";
+static const char iprodSemicolonEntityName[] = "iprod;";
+static const char iquestEntityName[] = "iquest";
+static const char iquestSemicolonEntityName[] = "iquest;";
+static const char iscrSemicolonEntityName[] = "iscr;";
+static const char isinSemicolonEntityName[] = "isin;";
+static const char isinESemicolonEntityName[] = "isinE;";
+static const char isindotSemicolonEntityName[] = "isindot;";
+static const char isinsSemicolonEntityName[] = "isins;";
+static const char isinsvSemicolonEntityName[] = "isinsv;";
+static const char isinvSemicolonEntityName[] = "isinv;";
+static const char itSemicolonEntityName[] = "it;";
+static const char itildeSemicolonEntityName[] = "itilde;";
+static const char iukcySemicolonEntityName[] = "iukcy;";
+static const char iumlEntityName[] = "iuml";
+static const char iumlSemicolonEntityName[] = "iuml;";
+static const char jcircSemicolonEntityName[] = "jcirc;";
+static const char jcySemicolonEntityName[] = "jcy;";
+static const char jfrSemicolonEntityName[] = "jfr;";
+static const char jmathSemicolonEntityName[] = "jmath;";
+static const char jopfSemicolonEntityName[] = "jopf;";
+static const char jscrSemicolonEntityName[] = "jscr;";
+static const char jsercySemicolonEntityName[] = "jsercy;";
+static const char jukcySemicolonEntityName[] = "jukcy;";
+static const char kappaSemicolonEntityName[] = "kappa;";
+static const char kappavSemicolonEntityName[] = "kappav;";
+static const char kcedilSemicolonEntityName[] = "kcedil;";
+static const char kcySemicolonEntityName[] = "kcy;";
+static const char kfrSemicolonEntityName[] = "kfr;";
+static const char kgreenSemicolonEntityName[] = "kgreen;";
+static const char khcySemicolonEntityName[] = "khcy;";
+static const char kjcySemicolonEntityName[] = "kjcy;";
+static const char kopfSemicolonEntityName[] = "kopf;";
+static const char kscrSemicolonEntityName[] = "kscr;";
+static const char lAarrSemicolonEntityName[] = "lAarr;";
+static const char lArrSemicolonEntityName[] = "lArr;";
+static const char lAtailSemicolonEntityName[] = "lAtail;";
+static const char lBarrSemicolonEntityName[] = "lBarr;";
+static const char lESemicolonEntityName[] = "lE;";
+static const char lEgSemicolonEntityName[] = "lEg;";
+static const char lHarSemicolonEntityName[] = "lHar;";
+static const char lacuteSemicolonEntityName[] = "lacute;";
+static const char laemptyvSemicolonEntityName[] = "laemptyv;";
+static const char lagranSemicolonEntityName[] = "lagran;";
+static const char lambdaSemicolonEntityName[] = "lambda;";
+static const char langSemicolonEntityName[] = "lang;";
+static const char langdSemicolonEntityName[] = "langd;";
+static const char langleSemicolonEntityName[] = "langle;";
+static const char lapSemicolonEntityName[] = "lap;";
+static const char laquoEntityName[] = "laquo";
+static const char laquoSemicolonEntityName[] = "laquo;";
+static const char larrSemicolonEntityName[] = "larr;";
+static const char larrbSemicolonEntityName[] = "larrb;";
+static const char larrbfsSemicolonEntityName[] = "larrbfs;";
+static const char larrfsSemicolonEntityName[] = "larrfs;";
+static const char larrhkSemicolonEntityName[] = "larrhk;";
+static const char larrlpSemicolonEntityName[] = "larrlp;";
+static const char larrplSemicolonEntityName[] = "larrpl;";
+static const char larrsimSemicolonEntityName[] = "larrsim;";
+static const char larrtlSemicolonEntityName[] = "larrtl;";
+static const char latSemicolonEntityName[] = "lat;";
+static const char latailSemicolonEntityName[] = "latail;";
+static const char lateSemicolonEntityName[] = "late;";
+static const char latesSemicolonEntityName[] = "lates;";
+static const char lbarrSemicolonEntityName[] = "lbarr;";
+static const char lbbrkSemicolonEntityName[] = "lbbrk;";
+static const char lbraceSemicolonEntityName[] = "lbrace;";
+static const char lbrackSemicolonEntityName[] = "lbrack;";
+static const char lbrkeSemicolonEntityName[] = "lbrke;";
+static const char lbrksldSemicolonEntityName[] = "lbrksld;";
+static const char lbrksluSemicolonEntityName[] = "lbrkslu;";
+static const char lcaronSemicolonEntityName[] = "lcaron;";
+static const char lcedilSemicolonEntityName[] = "lcedil;";
+static const char lceilSemicolonEntityName[] = "lceil;";
+static const char lcubSemicolonEntityName[] = "lcub;";
+static const char lcySemicolonEntityName[] = "lcy;";
+static const char ldcaSemicolonEntityName[] = "ldca;";
+static const char ldquoSemicolonEntityName[] = "ldquo;";
+static const char ldquorSemicolonEntityName[] = "ldquor;";
+static const char ldrdharSemicolonEntityName[] = "ldrdhar;";
+static const char ldrusharSemicolonEntityName[] = "ldrushar;";
+static const char ldshSemicolonEntityName[] = "ldsh;";
+static const char leSemicolonEntityName[] = "le;";
+static const char leftarrowSemicolonEntityName[] = "leftarrow;";
+static const char leftarrowtailSemicolonEntityName[] = "leftarrowtail;";
+static const char leftharpoondownSemicolonEntityName[] = "leftharpoondown;";
+static const char leftharpoonupSemicolonEntityName[] = "leftharpoonup;";
+static const char leftleftarrowsSemicolonEntityName[] = "leftleftarrows;";
+static const char leftrightarrowSemicolonEntityName[] = "leftrightarrow;";
+static const char leftrightarrowsSemicolonEntityName[] = "leftrightarrows;";
+static const char leftrightharpoonsSemicolonEntityName[] = "leftrightharpoons;";
+static const char leftrightsquigarrowSemicolonEntityName[] = "leftrightsquigarrow;";
+static const char leftthreetimesSemicolonEntityName[] = "leftthreetimes;";
+static const char legSemicolonEntityName[] = "leg;";
+static const char leqSemicolonEntityName[] = "leq;";
+static const char leqqSemicolonEntityName[] = "leqq;";
+static const char leqslantSemicolonEntityName[] = "leqslant;";
+static const char lesSemicolonEntityName[] = "les;";
+static const char lesccSemicolonEntityName[] = "lescc;";
+static const char lesdotSemicolonEntityName[] = "lesdot;";
+static const char lesdotoSemicolonEntityName[] = "lesdoto;";
+static const char lesdotorSemicolonEntityName[] = "lesdotor;";
+static const char lesgSemicolonEntityName[] = "lesg;";
+static const char lesgesSemicolonEntityName[] = "lesges;";
+static const char lessapproxSemicolonEntityName[] = "lessapprox;";
+static const char lessdotSemicolonEntityName[] = "lessdot;";
+static const char lesseqgtrSemicolonEntityName[] = "lesseqgtr;";
+static const char lesseqqgtrSemicolonEntityName[] = "lesseqqgtr;";
+static const char lessgtrSemicolonEntityName[] = "lessgtr;";
+static const char lesssimSemicolonEntityName[] = "lesssim;";
+static const char lfishtSemicolonEntityName[] = "lfisht;";
+static const char lfloorSemicolonEntityName[] = "lfloor;";
+static const char lfrSemicolonEntityName[] = "lfr;";
+static const char lgSemicolonEntityName[] = "lg;";
+static const char lgESemicolonEntityName[] = "lgE;";
+static const char lhardSemicolonEntityName[] = "lhard;";
+static const char lharuSemicolonEntityName[] = "lharu;";
+static const char lharulSemicolonEntityName[] = "lharul;";
+static const char lhblkSemicolonEntityName[] = "lhblk;";
+static const char ljcySemicolonEntityName[] = "ljcy;";
+static const char llSemicolonEntityName[] = "ll;";
+static const char llarrSemicolonEntityName[] = "llarr;";
+static const char llcornerSemicolonEntityName[] = "llcorner;";
+static const char llhardSemicolonEntityName[] = "llhard;";
+static const char lltriSemicolonEntityName[] = "lltri;";
+static const char lmidotSemicolonEntityName[] = "lmidot;";
+static const char lmoustSemicolonEntityName[] = "lmoust;";
+static const char lmoustacheSemicolonEntityName[] = "lmoustache;";
+static const char lnESemicolonEntityName[] = "lnE;";
+static const char lnapSemicolonEntityName[] = "lnap;";
+static const char lnapproxSemicolonEntityName[] = "lnapprox;";
+static const char lneSemicolonEntityName[] = "lne;";
+static const char lneqSemicolonEntityName[] = "lneq;";
+static const char lneqqSemicolonEntityName[] = "lneqq;";
+static const char lnsimSemicolonEntityName[] = "lnsim;";
+static const char loangSemicolonEntityName[] = "loang;";
+static const char loarrSemicolonEntityName[] = "loarr;";
+static const char lobrkSemicolonEntityName[] = "lobrk;";
+static const char longleftarrowSemicolonEntityName[] = "longleftarrow;";
+static const char longleftrightarrowSemicolonEntityName[] = "longleftrightarrow;";
+static const char longmapstoSemicolonEntityName[] = "longmapsto;";
+static const char longrightarrowSemicolonEntityName[] = "longrightarrow;";
+static const char looparrowleftSemicolonEntityName[] = "looparrowleft;";
+static const char looparrowrightSemicolonEntityName[] = "looparrowright;";
+static const char loparSemicolonEntityName[] = "lopar;";
+static const char lopfSemicolonEntityName[] = "lopf;";
+static const char loplusSemicolonEntityName[] = "loplus;";
+static const char lotimesSemicolonEntityName[] = "lotimes;";
+static const char lowastSemicolonEntityName[] = "lowast;";
+static const char lowbarSemicolonEntityName[] = "lowbar;";
+static const char lozSemicolonEntityName[] = "loz;";
+static const char lozengeSemicolonEntityName[] = "lozenge;";
+static const char lozfSemicolonEntityName[] = "lozf;";
+static const char lparSemicolonEntityName[] = "lpar;";
+static const char lparltSemicolonEntityName[] = "lparlt;";
+static const char lrarrSemicolonEntityName[] = "lrarr;";
+static const char lrcornerSemicolonEntityName[] = "lrcorner;";
+static const char lrharSemicolonEntityName[] = "lrhar;";
+static const char lrhardSemicolonEntityName[] = "lrhard;";
+static const char lrmSemicolonEntityName[] = "lrm;";
+static const char lrtriSemicolonEntityName[] = "lrtri;";
+static const char lsaquoSemicolonEntityName[] = "lsaquo;";
+static const char lscrSemicolonEntityName[] = "lscr;";
+static const char lshSemicolonEntityName[] = "lsh;";
+static const char lsimSemicolonEntityName[] = "lsim;";
+static const char lsimeSemicolonEntityName[] = "lsime;";
+static const char lsimgSemicolonEntityName[] = "lsimg;";
+static const char lsqbSemicolonEntityName[] = "lsqb;";
+static const char lsquoSemicolonEntityName[] = "lsquo;";
+static const char lsquorSemicolonEntityName[] = "lsquor;";
+static const char lstrokSemicolonEntityName[] = "lstrok;";
+static const char ltEntityName[] = "lt";
+static const char ltSemicolonEntityName[] = "lt;";
+static const char ltccSemicolonEntityName[] = "ltcc;";
+static const char ltcirSemicolonEntityName[] = "ltcir;";
+static const char ltdotSemicolonEntityName[] = "ltdot;";
+static const char lthreeSemicolonEntityName[] = "lthree;";
+static const char ltimesSemicolonEntityName[] = "ltimes;";
+static const char ltlarrSemicolonEntityName[] = "ltlarr;";
+static const char ltquestSemicolonEntityName[] = "ltquest;";
+static const char ltrParSemicolonEntityName[] = "ltrPar;";
+static const char ltriSemicolonEntityName[] = "ltri;";
+static const char ltrieSemicolonEntityName[] = "ltrie;";
+static const char ltrifSemicolonEntityName[] = "ltrif;";
+static const char lurdsharSemicolonEntityName[] = "lurdshar;";
+static const char luruharSemicolonEntityName[] = "luruhar;";
+static const char lvertneqqSemicolonEntityName[] = "lvertneqq;";
+static const char lvnESemicolonEntityName[] = "lvnE;";
+static const char mDDotSemicolonEntityName[] = "mDDot;";
+static const char macrEntityName[] = "macr";
+static const char macrSemicolonEntityName[] = "macr;";
+static const char maleSemicolonEntityName[] = "male;";
+static const char maltSemicolonEntityName[] = "malt;";
+static const char malteseSemicolonEntityName[] = "maltese;";
+static const char mapSemicolonEntityName[] = "map;";
+static const char mapstoSemicolonEntityName[] = "mapsto;";
+static const char mapstodownSemicolonEntityName[] = "mapstodown;";
+static const char mapstoleftSemicolonEntityName[] = "mapstoleft;";
+static const char mapstoupSemicolonEntityName[] = "mapstoup;";
+static const char markerSemicolonEntityName[] = "marker;";
+static const char mcommaSemicolonEntityName[] = "mcomma;";
+static const char mcySemicolonEntityName[] = "mcy;";
+static const char mdashSemicolonEntityName[] = "mdash;";
+static const char measuredangleSemicolonEntityName[] = "measuredangle;";
+static const char mfrSemicolonEntityName[] = "mfr;";
+static const char mhoSemicolonEntityName[] = "mho;";
+static const char microEntityName[] = "micro";
+static const char microSemicolonEntityName[] = "micro;";
+static const char midSemicolonEntityName[] = "mid;";
+static const char midastSemicolonEntityName[] = "midast;";
+static const char midcirSemicolonEntityName[] = "midcir;";
+static const char middotEntityName[] = "middot";
+static const char middotSemicolonEntityName[] = "middot;";
+static const char minusSemicolonEntityName[] = "minus;";
+static const char minusbSemicolonEntityName[] = "minusb;";
+static const char minusdSemicolonEntityName[] = "minusd;";
+static const char minusduSemicolonEntityName[] = "minusdu;";
+static const char mlcpSemicolonEntityName[] = "mlcp;";
+static const char mldrSemicolonEntityName[] = "mldr;";
+static const char mnplusSemicolonEntityName[] = "mnplus;";
+static const char modelsSemicolonEntityName[] = "models;";
+static const char mopfSemicolonEntityName[] = "mopf;";
+static const char mpSemicolonEntityName[] = "mp;";
+static const char mscrSemicolonEntityName[] = "mscr;";
+static const char mstposSemicolonEntityName[] = "mstpos;";
+static const char muSemicolonEntityName[] = "mu;";
+static const char multimapSemicolonEntityName[] = "multimap;";
+static const char mumapSemicolonEntityName[] = "mumap;";
+static const char nGgSemicolonEntityName[] = "nGg;";
+static const char nGtSemicolonEntityName[] = "nGt;";
+static const char nGtvSemicolonEntityName[] = "nGtv;";
+static const char nLeftarrowSemicolonEntityName[] = "nLeftarrow;";
+static const char nLeftrightarrowSemicolonEntityName[] = "nLeftrightarrow;";
+static const char nLlSemicolonEntityName[] = "nLl;";
+static const char nLtSemicolonEntityName[] = "nLt;";
+static const char nLtvSemicolonEntityName[] = "nLtv;";
+static const char nRightarrowSemicolonEntityName[] = "nRightarrow;";
+static const char nVDashSemicolonEntityName[] = "nVDash;";
+static const char nVdashSemicolonEntityName[] = "nVdash;";
+static const char nablaSemicolonEntityName[] = "nabla;";
+static const char nacuteSemicolonEntityName[] = "nacute;";
+static const char nangSemicolonEntityName[] = "nang;";
+static const char napSemicolonEntityName[] = "nap;";
+static const char napESemicolonEntityName[] = "napE;";
+static const char napidSemicolonEntityName[] = "napid;";
+static const char naposSemicolonEntityName[] = "napos;";
+static const char napproxSemicolonEntityName[] = "napprox;";
+static const char naturSemicolonEntityName[] = "natur;";
+static const char naturalSemicolonEntityName[] = "natural;";
+static const char naturalsSemicolonEntityName[] = "naturals;";
+static const char nbspEntityName[] = "nbsp";
+static const char nbspSemicolonEntityName[] = "nbsp;";
+static const char nbumpSemicolonEntityName[] = "nbump;";
+static const char nbumpeSemicolonEntityName[] = "nbumpe;";
+static const char ncapSemicolonEntityName[] = "ncap;";
+static const char ncaronSemicolonEntityName[] = "ncaron;";
+static const char ncedilSemicolonEntityName[] = "ncedil;";
+static const char ncongSemicolonEntityName[] = "ncong;";
+static const char ncongdotSemicolonEntityName[] = "ncongdot;";
+static const char ncupSemicolonEntityName[] = "ncup;";
+static const char ncySemicolonEntityName[] = "ncy;";
+static const char ndashSemicolonEntityName[] = "ndash;";
+static const char neSemicolonEntityName[] = "ne;";
+static const char neArrSemicolonEntityName[] = "neArr;";
+static const char nearhkSemicolonEntityName[] = "nearhk;";
+static const char nearrSemicolonEntityName[] = "nearr;";
+static const char nearrowSemicolonEntityName[] = "nearrow;";
+static const char nedotSemicolonEntityName[] = "nedot;";
+static const char nequivSemicolonEntityName[] = "nequiv;";
+static const char nesearSemicolonEntityName[] = "nesear;";
+static const char nesimSemicolonEntityName[] = "nesim;";
+static const char nexistSemicolonEntityName[] = "nexist;";
+static const char nexistsSemicolonEntityName[] = "nexists;";
+static const char nfrSemicolonEntityName[] = "nfr;";
+static const char ngESemicolonEntityName[] = "ngE;";
+static const char ngeSemicolonEntityName[] = "nge;";
+static const char ngeqSemicolonEntityName[] = "ngeq;";
+static const char ngeqqSemicolonEntityName[] = "ngeqq;";
+static const char ngeqslantSemicolonEntityName[] = "ngeqslant;";
+static const char ngesSemicolonEntityName[] = "nges;";
+static const char ngsimSemicolonEntityName[] = "ngsim;";
+static const char ngtSemicolonEntityName[] = "ngt;";
+static const char ngtrSemicolonEntityName[] = "ngtr;";
+static const char nhArrSemicolonEntityName[] = "nhArr;";
+static const char nharrSemicolonEntityName[] = "nharr;";
+static const char nhparSemicolonEntityName[] = "nhpar;";
+static const char niSemicolonEntityName[] = "ni;";
+static const char nisSemicolonEntityName[] = "nis;";
+static const char nisdSemicolonEntityName[] = "nisd;";
+static const char nivSemicolonEntityName[] = "niv;";
+static const char njcySemicolonEntityName[] = "njcy;";
+static const char nlArrSemicolonEntityName[] = "nlArr;";
+static const char nlESemicolonEntityName[] = "nlE;";
+static const char nlarrSemicolonEntityName[] = "nlarr;";
+static const char nldrSemicolonEntityName[] = "nldr;";
+static const char nleSemicolonEntityName[] = "nle;";
+static const char nleftarrowSemicolonEntityName[] = "nleftarrow;";
+static const char nleftrightarrowSemicolonEntityName[] = "nleftrightarrow;";
+static const char nleqSemicolonEntityName[] = "nleq;";
+static const char nleqqSemicolonEntityName[] = "nleqq;";
+static const char nleqslantSemicolonEntityName[] = "nleqslant;";
+static const char nlesSemicolonEntityName[] = "nles;";
+static const char nlessSemicolonEntityName[] = "nless;";
+static const char nlsimSemicolonEntityName[] = "nlsim;";
+static const char nltSemicolonEntityName[] = "nlt;";
+static const char nltriSemicolonEntityName[] = "nltri;";
+static const char nltrieSemicolonEntityName[] = "nltrie;";
+static const char nmidSemicolonEntityName[] = "nmid;";
+static const char nopfSemicolonEntityName[] = "nopf;";
+static const char notEntityName[] = "not";
+static const char notSemicolonEntityName[] = "not;";
+static const char notinSemicolonEntityName[] = "notin;";
+static const char notinESemicolonEntityName[] = "notinE;";
+static const char notindotSemicolonEntityName[] = "notindot;";
+static const char notinvaSemicolonEntityName[] = "notinva;";
+static const char notinvbSemicolonEntityName[] = "notinvb;";
+static const char notinvcSemicolonEntityName[] = "notinvc;";
+static const char notniSemicolonEntityName[] = "notni;";
+static const char notnivaSemicolonEntityName[] = "notniva;";
+static const char notnivbSemicolonEntityName[] = "notnivb;";
+static const char notnivcSemicolonEntityName[] = "notnivc;";
+static const char nparSemicolonEntityName[] = "npar;";
+static const char nparallelSemicolonEntityName[] = "nparallel;";
+static const char nparslSemicolonEntityName[] = "nparsl;";
+static const char npartSemicolonEntityName[] = "npart;";
+static const char npolintSemicolonEntityName[] = "npolint;";
+static const char nprSemicolonEntityName[] = "npr;";
+static const char nprcueSemicolonEntityName[] = "nprcue;";
+static const char npreSemicolonEntityName[] = "npre;";
+static const char nprecSemicolonEntityName[] = "nprec;";
+static const char npreceqSemicolonEntityName[] = "npreceq;";
+static const char nrArrSemicolonEntityName[] = "nrArr;";
+static const char nrarrSemicolonEntityName[] = "nrarr;";
+static const char nrarrcSemicolonEntityName[] = "nrarrc;";
+static const char nrarrwSemicolonEntityName[] = "nrarrw;";
+static const char nrightarrowSemicolonEntityName[] = "nrightarrow;";
+static const char nrtriSemicolonEntityName[] = "nrtri;";
+static const char nrtrieSemicolonEntityName[] = "nrtrie;";
+static const char nscSemicolonEntityName[] = "nsc;";
+static const char nsccueSemicolonEntityName[] = "nsccue;";
+static const char nsceSemicolonEntityName[] = "nsce;";
+static const char nscrSemicolonEntityName[] = "nscr;";
+static const char nshortmidSemicolonEntityName[] = "nshortmid;";
+static const char nshortparallelSemicolonEntityName[] = "nshortparallel;";
+static const char nsimSemicolonEntityName[] = "nsim;";
+static const char nsimeSemicolonEntityName[] = "nsime;";
+static const char nsimeqSemicolonEntityName[] = "nsimeq;";
+static const char nsmidSemicolonEntityName[] = "nsmid;";
+static const char nsparSemicolonEntityName[] = "nspar;";
+static const char nsqsubeSemicolonEntityName[] = "nsqsube;";
+static const char nsqsupeSemicolonEntityName[] = "nsqsupe;";
+static const char nsubSemicolonEntityName[] = "nsub;";
+static const char nsubESemicolonEntityName[] = "nsubE;";
+static const char nsubeSemicolonEntityName[] = "nsube;";
+static const char nsubsetSemicolonEntityName[] = "nsubset;";
+static const char nsubseteqSemicolonEntityName[] = "nsubseteq;";
+static const char nsubseteqqSemicolonEntityName[] = "nsubseteqq;";
+static const char nsuccSemicolonEntityName[] = "nsucc;";
+static const char nsucceqSemicolonEntityName[] = "nsucceq;";
+static const char nsupSemicolonEntityName[] = "nsup;";
+static const char nsupESemicolonEntityName[] = "nsupE;";
+static const char nsupeSemicolonEntityName[] = "nsupe;";
+static const char nsupsetSemicolonEntityName[] = "nsupset;";
+static const char nsupseteqSemicolonEntityName[] = "nsupseteq;";
+static const char nsupseteqqSemicolonEntityName[] = "nsupseteqq;";
+static const char ntglSemicolonEntityName[] = "ntgl;";
+static const char ntildeEntityName[] = "ntilde";
+static const char ntildeSemicolonEntityName[] = "ntilde;";
+static const char ntlgSemicolonEntityName[] = "ntlg;";
+static const char ntriangleleftSemicolonEntityName[] = "ntriangleleft;";
+static const char ntrianglelefteqSemicolonEntityName[] = "ntrianglelefteq;";
+static const char ntrianglerightSemicolonEntityName[] = "ntriangleright;";
+static const char ntrianglerighteqSemicolonEntityName[] = "ntrianglerighteq;";
+static const char nuSemicolonEntityName[] = "nu;";
+static const char numSemicolonEntityName[] = "num;";
+static const char numeroSemicolonEntityName[] = "numero;";
+static const char numspSemicolonEntityName[] = "numsp;";
+static const char nvDashSemicolonEntityName[] = "nvDash;";
+static const char nvHarrSemicolonEntityName[] = "nvHarr;";
+static const char nvapSemicolonEntityName[] = "nvap;";
+static const char nvdashSemicolonEntityName[] = "nvdash;";
+static const char nvgeSemicolonEntityName[] = "nvge;";
+static const char nvgtSemicolonEntityName[] = "nvgt;";
+static const char nvinfinSemicolonEntityName[] = "nvinfin;";
+static const char nvlArrSemicolonEntityName[] = "nvlArr;";
+static const char nvleSemicolonEntityName[] = "nvle;";
+static const char nvltSemicolonEntityName[] = "nvlt;";
+static const char nvltrieSemicolonEntityName[] = "nvltrie;";
+static const char nvrArrSemicolonEntityName[] = "nvrArr;";
+static const char nvrtrieSemicolonEntityName[] = "nvrtrie;";
+static const char nvsimSemicolonEntityName[] = "nvsim;";
+static const char nwArrSemicolonEntityName[] = "nwArr;";
+static const char nwarhkSemicolonEntityName[] = "nwarhk;";
+static const char nwarrSemicolonEntityName[] = "nwarr;";
+static const char nwarrowSemicolonEntityName[] = "nwarrow;";
+static const char nwnearSemicolonEntityName[] = "nwnear;";
+static const char oSSemicolonEntityName[] = "oS;";
+static const char oacuteEntityName[] = "oacute";
+static const char oacuteSemicolonEntityName[] = "oacute;";
+static const char oastSemicolonEntityName[] = "oast;";
+static const char ocirSemicolonEntityName[] = "ocir;";
+static const char ocircEntityName[] = "ocirc";
+static const char ocircSemicolonEntityName[] = "ocirc;";
+static const char ocySemicolonEntityName[] = "ocy;";
+static const char odashSemicolonEntityName[] = "odash;";
+static const char odblacSemicolonEntityName[] = "odblac;";
+static const char odivSemicolonEntityName[] = "odiv;";
+static const char odotSemicolonEntityName[] = "odot;";
+static const char odsoldSemicolonEntityName[] = "odsold;";
+static const char oeligSemicolonEntityName[] = "oelig;";
+static const char ofcirSemicolonEntityName[] = "ofcir;";
+static const char ofrSemicolonEntityName[] = "ofr;";
+static const char ogonSemicolonEntityName[] = "ogon;";
+static const char ograveEntityName[] = "ograve";
+static const char ograveSemicolonEntityName[] = "ograve;";
+static const char ogtSemicolonEntityName[] = "ogt;";
+static const char ohbarSemicolonEntityName[] = "ohbar;";
+static const char ohmSemicolonEntityName[] = "ohm;";
+static const char ointSemicolonEntityName[] = "oint;";
+static const char olarrSemicolonEntityName[] = "olarr;";
+static const char olcirSemicolonEntityName[] = "olcir;";
+static const char olcrossSemicolonEntityName[] = "olcross;";
+static const char olineSemicolonEntityName[] = "oline;";
+static const char oltSemicolonEntityName[] = "olt;";
+static const char omacrSemicolonEntityName[] = "omacr;";
+static const char omegaSemicolonEntityName[] = "omega;";
+static const char omicronSemicolonEntityName[] = "omicron;";
+static const char omidSemicolonEntityName[] = "omid;";
+static const char ominusSemicolonEntityName[] = "ominus;";
+static const char oopfSemicolonEntityName[] = "oopf;";
+static const char oparSemicolonEntityName[] = "opar;";
+static const char operpSemicolonEntityName[] = "operp;";
+static const char oplusSemicolonEntityName[] = "oplus;";
+static const char orSemicolonEntityName[] = "or;";
+static const char orarrSemicolonEntityName[] = "orarr;";
+static const char ordSemicolonEntityName[] = "ord;";
+static const char orderSemicolonEntityName[] = "order;";
+static const char orderofSemicolonEntityName[] = "orderof;";
+static const char ordfEntityName[] = "ordf";
+static const char ordfSemicolonEntityName[] = "ordf;";
+static const char ordmEntityName[] = "ordm";
+static const char ordmSemicolonEntityName[] = "ordm;";
+static const char origofSemicolonEntityName[] = "origof;";
+static const char ororSemicolonEntityName[] = "oror;";
+static const char orslopeSemicolonEntityName[] = "orslope;";
+static const char orvSemicolonEntityName[] = "orv;";
+static const char oscrSemicolonEntityName[] = "oscr;";
+static const char oslashEntityName[] = "oslash";
+static const char oslashSemicolonEntityName[] = "oslash;";
+static const char osolSemicolonEntityName[] = "osol;";
+static const char otildeEntityName[] = "otilde";
+static const char otildeSemicolonEntityName[] = "otilde;";
+static const char otimesSemicolonEntityName[] = "otimes;";
+static const char otimesasSemicolonEntityName[] = "otimesas;";
+static const char oumlEntityName[] = "ouml";
+static const char oumlSemicolonEntityName[] = "ouml;";
+static const char ovbarSemicolonEntityName[] = "ovbar;";
+static const char parSemicolonEntityName[] = "par;";
+static const char paraEntityName[] = "para";
+static const char paraSemicolonEntityName[] = "para;";
+static const char parallelSemicolonEntityName[] = "parallel;";
+static const char parsimSemicolonEntityName[] = "parsim;";
+static const char parslSemicolonEntityName[] = "parsl;";
+static const char partSemicolonEntityName[] = "part;";
+static const char pcySemicolonEntityName[] = "pcy;";
+static const char percntSemicolonEntityName[] = "percnt;";
+static const char periodSemicolonEntityName[] = "period;";
+static const char permilSemicolonEntityName[] = "permil;";
+static const char perpSemicolonEntityName[] = "perp;";
+static const char pertenkSemicolonEntityName[] = "pertenk;";
+static const char pfrSemicolonEntityName[] = "pfr;";
+static const char phiSemicolonEntityName[] = "phi;";
+static const char phivSemicolonEntityName[] = "phiv;";
+static const char phmmatSemicolonEntityName[] = "phmmat;";
+static const char phoneSemicolonEntityName[] = "phone;";
+static const char piSemicolonEntityName[] = "pi;";
+static const char pitchforkSemicolonEntityName[] = "pitchfork;";
+static const char pivSemicolonEntityName[] = "piv;";
+static const char planckSemicolonEntityName[] = "planck;";
+static const char planckhSemicolonEntityName[] = "planckh;";
+static const char plankvSemicolonEntityName[] = "plankv;";
+static const char plusSemicolonEntityName[] = "plus;";
+static const char plusacirSemicolonEntityName[] = "plusacir;";
+static const char plusbSemicolonEntityName[] = "plusb;";
+static const char pluscirSemicolonEntityName[] = "pluscir;";
+static const char plusdoSemicolonEntityName[] = "plusdo;";
+static const char plusduSemicolonEntityName[] = "plusdu;";
+static const char pluseSemicolonEntityName[] = "pluse;";
+static const char plusmnEntityName[] = "plusmn";
+static const char plusmnSemicolonEntityName[] = "plusmn;";
+static const char plussimSemicolonEntityName[] = "plussim;";
+static const char plustwoSemicolonEntityName[] = "plustwo;";
+static const char pmSemicolonEntityName[] = "pm;";
+static const char pointintSemicolonEntityName[] = "pointint;";
+static const char popfSemicolonEntityName[] = "popf;";
+static const char poundEntityName[] = "pound";
+static const char poundSemicolonEntityName[] = "pound;";
+static const char prSemicolonEntityName[] = "pr;";
+static const char prESemicolonEntityName[] = "prE;";
+static const char prapSemicolonEntityName[] = "prap;";
+static const char prcueSemicolonEntityName[] = "prcue;";
+static const char preSemicolonEntityName[] = "pre;";
+static const char precSemicolonEntityName[] = "prec;";
+static const char precapproxSemicolonEntityName[] = "precapprox;";
+static const char preccurlyeqSemicolonEntityName[] = "preccurlyeq;";
+static const char preceqSemicolonEntityName[] = "preceq;";
+static const char precnapproxSemicolonEntityName[] = "precnapprox;";
+static const char precneqqSemicolonEntityName[] = "precneqq;";
+static const char precnsimSemicolonEntityName[] = "precnsim;";
+static const char precsimSemicolonEntityName[] = "precsim;";
+static const char primeSemicolonEntityName[] = "prime;";
+static const char primesSemicolonEntityName[] = "primes;";
+static const char prnESemicolonEntityName[] = "prnE;";
+static const char prnapSemicolonEntityName[] = "prnap;";
+static const char prnsimSemicolonEntityName[] = "prnsim;";
+static const char prodSemicolonEntityName[] = "prod;";
+static const char profalarSemicolonEntityName[] = "profalar;";
+static const char proflineSemicolonEntityName[] = "profline;";
+static const char profsurfSemicolonEntityName[] = "profsurf;";
+static const char propSemicolonEntityName[] = "prop;";
+static const char proptoSemicolonEntityName[] = "propto;";
+static const char prsimSemicolonEntityName[] = "prsim;";
+static const char prurelSemicolonEntityName[] = "prurel;";
+static const char pscrSemicolonEntityName[] = "pscr;";
+static const char psiSemicolonEntityName[] = "psi;";
+static const char puncspSemicolonEntityName[] = "puncsp;";
+static const char qfrSemicolonEntityName[] = "qfr;";
+static const char qintSemicolonEntityName[] = "qint;";
+static const char qopfSemicolonEntityName[] = "qopf;";
+static const char qprimeSemicolonEntityName[] = "qprime;";
+static const char qscrSemicolonEntityName[] = "qscr;";
+static const char quaternionsSemicolonEntityName[] = "quaternions;";
+static const char quatintSemicolonEntityName[] = "quatint;";
+static const char questSemicolonEntityName[] = "quest;";
+static const char questeqSemicolonEntityName[] = "questeq;";
+static const char quotEntityName[] = "quot";
+static const char quotSemicolonEntityName[] = "quot;";
+static const char rAarrSemicolonEntityName[] = "rAarr;";
+static const char rArrSemicolonEntityName[] = "rArr;";
+static const char rAtailSemicolonEntityName[] = "rAtail;";
+static const char rBarrSemicolonEntityName[] = "rBarr;";
+static const char rHarSemicolonEntityName[] = "rHar;";
+static const char raceSemicolonEntityName[] = "race;";
+static const char racuteSemicolonEntityName[] = "racute;";
+static const char radicSemicolonEntityName[] = "radic;";
+static const char raemptyvSemicolonEntityName[] = "raemptyv;";
+static const char rangSemicolonEntityName[] = "rang;";
+static const char rangdSemicolonEntityName[] = "rangd;";
+static const char rangeSemicolonEntityName[] = "range;";
+static const char rangleSemicolonEntityName[] = "rangle;";
+static const char raquoEntityName[] = "raquo";
+static const char raquoSemicolonEntityName[] = "raquo;";
+static const char rarrSemicolonEntityName[] = "rarr;";
+static const char rarrapSemicolonEntityName[] = "rarrap;";
+static const char rarrbSemicolonEntityName[] = "rarrb;";
+static const char rarrbfsSemicolonEntityName[] = "rarrbfs;";
+static const char rarrcSemicolonEntityName[] = "rarrc;";
+static const char rarrfsSemicolonEntityName[] = "rarrfs;";
+static const char rarrhkSemicolonEntityName[] = "rarrhk;";
+static const char rarrlpSemicolonEntityName[] = "rarrlp;";
+static const char rarrplSemicolonEntityName[] = "rarrpl;";
+static const char rarrsimSemicolonEntityName[] = "rarrsim;";
+static const char rarrtlSemicolonEntityName[] = "rarrtl;";
+static const char rarrwSemicolonEntityName[] = "rarrw;";
+static const char ratailSemicolonEntityName[] = "ratail;";
+static const char ratioSemicolonEntityName[] = "ratio;";
+static const char rationalsSemicolonEntityName[] = "rationals;";
+static const char rbarrSemicolonEntityName[] = "rbarr;";
+static const char rbbrkSemicolonEntityName[] = "rbbrk;";
+static const char rbraceSemicolonEntityName[] = "rbrace;";
+static const char rbrackSemicolonEntityName[] = "rbrack;";
+static const char rbrkeSemicolonEntityName[] = "rbrke;";
+static const char rbrksldSemicolonEntityName[] = "rbrksld;";
+static const char rbrksluSemicolonEntityName[] = "rbrkslu;";
+static const char rcaronSemicolonEntityName[] = "rcaron;";
+static const char rcedilSemicolonEntityName[] = "rcedil;";
+static const char rceilSemicolonEntityName[] = "rceil;";
+static const char rcubSemicolonEntityName[] = "rcub;";
+static const char rcySemicolonEntityName[] = "rcy;";
+static const char rdcaSemicolonEntityName[] = "rdca;";
+static const char rdldharSemicolonEntityName[] = "rdldhar;";
+static const char rdquoSemicolonEntityName[] = "rdquo;";
+static const char rdquorSemicolonEntityName[] = "rdquor;";
+static const char rdshSemicolonEntityName[] = "rdsh;";
+static const char realSemicolonEntityName[] = "real;";
+static const char realineSemicolonEntityName[] = "realine;";
+static const char realpartSemicolonEntityName[] = "realpart;";
+static const char realsSemicolonEntityName[] = "reals;";
+static const char rectSemicolonEntityName[] = "rect;";
+static const char regEntityName[] = "reg";
+static const char regSemicolonEntityName[] = "reg;";
+static const char rfishtSemicolonEntityName[] = "rfisht;";
+static const char rfloorSemicolonEntityName[] = "rfloor;";
+static const char rfrSemicolonEntityName[] = "rfr;";
+static const char rhardSemicolonEntityName[] = "rhard;";
+static const char rharuSemicolonEntityName[] = "rharu;";
+static const char rharulSemicolonEntityName[] = "rharul;";
+static const char rhoSemicolonEntityName[] = "rho;";
+static const char rhovSemicolonEntityName[] = "rhov;";
+static const char rightarrowSemicolonEntityName[] = "rightarrow;";
+static const char rightarrowtailSemicolonEntityName[] = "rightarrowtail;";
+static const char rightharpoondownSemicolonEntityName[] = "rightharpoondown;";
+static const char rightharpoonupSemicolonEntityName[] = "rightharpoonup;";
+static const char rightleftarrowsSemicolonEntityName[] = "rightleftarrows;";
+static const char rightleftharpoonsSemicolonEntityName[] = "rightleftharpoons;";
+static const char rightrightarrowsSemicolonEntityName[] = "rightrightarrows;";
+static const char rightsquigarrowSemicolonEntityName[] = "rightsquigarrow;";
+static const char rightthreetimesSemicolonEntityName[] = "rightthreetimes;";
+static const char ringSemicolonEntityName[] = "ring;";
+static const char risingdotseqSemicolonEntityName[] = "risingdotseq;";
+static const char rlarrSemicolonEntityName[] = "rlarr;";
+static const char rlharSemicolonEntityName[] = "rlhar;";
+static const char rlmSemicolonEntityName[] = "rlm;";
+static const char rmoustSemicolonEntityName[] = "rmoust;";
+static const char rmoustacheSemicolonEntityName[] = "rmoustache;";
+static const char rnmidSemicolonEntityName[] = "rnmid;";
+static const char roangSemicolonEntityName[] = "roang;";
+static const char roarrSemicolonEntityName[] = "roarr;";
+static const char robrkSemicolonEntityName[] = "robrk;";
+static const char roparSemicolonEntityName[] = "ropar;";
+static const char ropfSemicolonEntityName[] = "ropf;";
+static const char roplusSemicolonEntityName[] = "roplus;";
+static const char rotimesSemicolonEntityName[] = "rotimes;";
+static const char rparSemicolonEntityName[] = "rpar;";
+static const char rpargtSemicolonEntityName[] = "rpargt;";
+static const char rppolintSemicolonEntityName[] = "rppolint;";
+static const char rrarrSemicolonEntityName[] = "rrarr;";
+static const char rsaquoSemicolonEntityName[] = "rsaquo;";
+static const char rscrSemicolonEntityName[] = "rscr;";
+static const char rshSemicolonEntityName[] = "rsh;";
+static const char rsqbSemicolonEntityName[] = "rsqb;";
+static const char rsquoSemicolonEntityName[] = "rsquo;";
+static const char rsquorSemicolonEntityName[] = "rsquor;";
+static const char rthreeSemicolonEntityName[] = "rthree;";
+static const char rtimesSemicolonEntityName[] = "rtimes;";
+static const char rtriSemicolonEntityName[] = "rtri;";
+static const char rtrieSemicolonEntityName[] = "rtrie;";
+static const char rtrifSemicolonEntityName[] = "rtrif;";
+static const char rtriltriSemicolonEntityName[] = "rtriltri;";
+static const char ruluharSemicolonEntityName[] = "ruluhar;";
+static const char rxSemicolonEntityName[] = "rx;";
+static const char sacuteSemicolonEntityName[] = "sacute;";
+static const char sbquoSemicolonEntityName[] = "sbquo;";
+static const char scSemicolonEntityName[] = "sc;";
+static const char scESemicolonEntityName[] = "scE;";
+static const char scapSemicolonEntityName[] = "scap;";
+static const char scaronSemicolonEntityName[] = "scaron;";
+static const char sccueSemicolonEntityName[] = "sccue;";
+static const char sceSemicolonEntityName[] = "sce;";
+static const char scedilSemicolonEntityName[] = "scedil;";
+static const char scircSemicolonEntityName[] = "scirc;";
+static const char scnESemicolonEntityName[] = "scnE;";
+static const char scnapSemicolonEntityName[] = "scnap;";
+static const char scnsimSemicolonEntityName[] = "scnsim;";
+static const char scpolintSemicolonEntityName[] = "scpolint;";
+static const char scsimSemicolonEntityName[] = "scsim;";
+static const char scySemicolonEntityName[] = "scy;";
+static const char sdotSemicolonEntityName[] = "sdot;";
+static const char sdotbSemicolonEntityName[] = "sdotb;";
+static const char sdoteSemicolonEntityName[] = "sdote;";
+static const char seArrSemicolonEntityName[] = "seArr;";
+static const char searhkSemicolonEntityName[] = "searhk;";
+static const char searrSemicolonEntityName[] = "searr;";
+static const char searrowSemicolonEntityName[] = "searrow;";
+static const char sectEntityName[] = "sect";
+static const char sectSemicolonEntityName[] = "sect;";
+static const char semiSemicolonEntityName[] = "semi;";
+static const char seswarSemicolonEntityName[] = "seswar;";
+static const char setminusSemicolonEntityName[] = "setminus;";
+static const char setmnSemicolonEntityName[] = "setmn;";
+static const char sextSemicolonEntityName[] = "sext;";
+static const char sfrSemicolonEntityName[] = "sfr;";
+static const char sfrownSemicolonEntityName[] = "sfrown;";
+static const char sharpSemicolonEntityName[] = "sharp;";
+static const char shchcySemicolonEntityName[] = "shchcy;";
+static const char shcySemicolonEntityName[] = "shcy;";
+static const char shortmidSemicolonEntityName[] = "shortmid;";
+static const char shortparallelSemicolonEntityName[] = "shortparallel;";
+static const char shyEntityName[] = "shy";
+static const char shySemicolonEntityName[] = "shy;";
+static const char sigmaSemicolonEntityName[] = "sigma;";
+static const char sigmafSemicolonEntityName[] = "sigmaf;";
+static const char sigmavSemicolonEntityName[] = "sigmav;";
+static const char simSemicolonEntityName[] = "sim;";
+static const char simdotSemicolonEntityName[] = "simdot;";
+static const char simeSemicolonEntityName[] = "sime;";
+static const char simeqSemicolonEntityName[] = "simeq;";
+static const char simgSemicolonEntityName[] = "simg;";
+static const char simgESemicolonEntityName[] = "simgE;";
+static const char simlSemicolonEntityName[] = "siml;";
+static const char simlESemicolonEntityName[] = "simlE;";
+static const char simneSemicolonEntityName[] = "simne;";
+static const char simplusSemicolonEntityName[] = "simplus;";
+static const char simrarrSemicolonEntityName[] = "simrarr;";
+static const char slarrSemicolonEntityName[] = "slarr;";
+static const char smallsetminusSemicolonEntityName[] = "smallsetminus;";
+static const char smashpSemicolonEntityName[] = "smashp;";
+static const char smeparslSemicolonEntityName[] = "smeparsl;";
+static const char smidSemicolonEntityName[] = "smid;";
+static const char smileSemicolonEntityName[] = "smile;";
+static const char smtSemicolonEntityName[] = "smt;";
+static const char smteSemicolonEntityName[] = "smte;";
+static const char smtesSemicolonEntityName[] = "smtes;";
+static const char softcySemicolonEntityName[] = "softcy;";
+static const char solSemicolonEntityName[] = "sol;";
+static const char solbSemicolonEntityName[] = "solb;";
+static const char solbarSemicolonEntityName[] = "solbar;";
+static const char sopfSemicolonEntityName[] = "sopf;";
+static const char spadesSemicolonEntityName[] = "spades;";
+static const char spadesuitSemicolonEntityName[] = "spadesuit;";
+static const char sparSemicolonEntityName[] = "spar;";
+static const char sqcapSemicolonEntityName[] = "sqcap;";
+static const char sqcapsSemicolonEntityName[] = "sqcaps;";
+static const char sqcupSemicolonEntityName[] = "sqcup;";
+static const char sqcupsSemicolonEntityName[] = "sqcups;";
+static const char sqsubSemicolonEntityName[] = "sqsub;";
+static const char sqsubeSemicolonEntityName[] = "sqsube;";
+static const char sqsubsetSemicolonEntityName[] = "sqsubset;";
+static const char sqsubseteqSemicolonEntityName[] = "sqsubseteq;";
+static const char sqsupSemicolonEntityName[] = "sqsup;";
+static const char sqsupeSemicolonEntityName[] = "sqsupe;";
+static const char sqsupsetSemicolonEntityName[] = "sqsupset;";
+static const char sqsupseteqSemicolonEntityName[] = "sqsupseteq;";
+static const char squSemicolonEntityName[] = "squ;";
+static const char squareSemicolonEntityName[] = "square;";
+static const char squarfSemicolonEntityName[] = "squarf;";
+static const char squfSemicolonEntityName[] = "squf;";
+static const char srarrSemicolonEntityName[] = "srarr;";
+static const char sscrSemicolonEntityName[] = "sscr;";
+static const char ssetmnSemicolonEntityName[] = "ssetmn;";
+static const char ssmileSemicolonEntityName[] = "ssmile;";
+static const char sstarfSemicolonEntityName[] = "sstarf;";
+static const char starSemicolonEntityName[] = "star;";
+static const char starfSemicolonEntityName[] = "starf;";
+static const char straightepsilonSemicolonEntityName[] = "straightepsilon;";
+static const char straightphiSemicolonEntityName[] = "straightphi;";
+static const char strnsSemicolonEntityName[] = "strns;";
+static const char subSemicolonEntityName[] = "sub;";
+static const char subESemicolonEntityName[] = "subE;";
+static const char subdotSemicolonEntityName[] = "subdot;";
+static const char subeSemicolonEntityName[] = "sube;";
+static const char subedotSemicolonEntityName[] = "subedot;";
+static const char submultSemicolonEntityName[] = "submult;";
+static const char subnESemicolonEntityName[] = "subnE;";
+static const char subneSemicolonEntityName[] = "subne;";
+static const char subplusSemicolonEntityName[] = "subplus;";
+static const char subrarrSemicolonEntityName[] = "subrarr;";
+static const char subsetSemicolonEntityName[] = "subset;";
+static const char subseteqSemicolonEntityName[] = "subseteq;";
+static const char subseteqqSemicolonEntityName[] = "subseteqq;";
+static const char subsetneqSemicolonEntityName[] = "subsetneq;";
+static const char subsetneqqSemicolonEntityName[] = "subsetneqq;";
+static const char subsimSemicolonEntityName[] = "subsim;";
+static const char subsubSemicolonEntityName[] = "subsub;";
+static const char subsupSemicolonEntityName[] = "subsup;";
+static const char succSemicolonEntityName[] = "succ;";
+static const char succapproxSemicolonEntityName[] = "succapprox;";
+static const char succcurlyeqSemicolonEntityName[] = "succcurlyeq;";
+static const char succeqSemicolonEntityName[] = "succeq;";
+static const char succnapproxSemicolonEntityName[] = "succnapprox;";
+static const char succneqqSemicolonEntityName[] = "succneqq;";
+static const char succnsimSemicolonEntityName[] = "succnsim;";
+static const char succsimSemicolonEntityName[] = "succsim;";
+static const char sumSemicolonEntityName[] = "sum;";
+static const char sungSemicolonEntityName[] = "sung;";
+static const char sup1EntityName[] = "sup1";
+static const char sup1SemicolonEntityName[] = "sup1;";
+static const char sup2EntityName[] = "sup2";
+static const char sup2SemicolonEntityName[] = "sup2;";
+static const char sup3EntityName[] = "sup3";
+static const char sup3SemicolonEntityName[] = "sup3;";
+static const char supSemicolonEntityName[] = "sup;";
+static const char supESemicolonEntityName[] = "supE;";
+static const char supdotSemicolonEntityName[] = "supdot;";
+static const char supdsubSemicolonEntityName[] = "supdsub;";
+static const char supeSemicolonEntityName[] = "supe;";
+static const char supedotSemicolonEntityName[] = "supedot;";
+static const char suphsolSemicolonEntityName[] = "suphsol;";
+static const char suphsubSemicolonEntityName[] = "suphsub;";
+static const char suplarrSemicolonEntityName[] = "suplarr;";
+static const char supmultSemicolonEntityName[] = "supmult;";
+static const char supnESemicolonEntityName[] = "supnE;";
+static const char supneSemicolonEntityName[] = "supne;";
+static const char supplusSemicolonEntityName[] = "supplus;";
+static const char supsetSemicolonEntityName[] = "supset;";
+static const char supseteqSemicolonEntityName[] = "supseteq;";
+static const char supseteqqSemicolonEntityName[] = "supseteqq;";
+static const char supsetneqSemicolonEntityName[] = "supsetneq;";
+static const char supsetneqqSemicolonEntityName[] = "supsetneqq;";
+static const char supsimSemicolonEntityName[] = "supsim;";
+static const char supsubSemicolonEntityName[] = "supsub;";
+static const char supsupSemicolonEntityName[] = "supsup;";
+static const char swArrSemicolonEntityName[] = "swArr;";
+static const char swarhkSemicolonEntityName[] = "swarhk;";
+static const char swarrSemicolonEntityName[] = "swarr;";
+static const char swarrowSemicolonEntityName[] = "swarrow;";
+static const char swnwarSemicolonEntityName[] = "swnwar;";
+static const char szligEntityName[] = "szlig";
+static const char szligSemicolonEntityName[] = "szlig;";
+static const char targetSemicolonEntityName[] = "target;";
+static const char tauSemicolonEntityName[] = "tau;";
+static const char tbrkSemicolonEntityName[] = "tbrk;";
+static const char tcaronSemicolonEntityName[] = "tcaron;";
+static const char tcedilSemicolonEntityName[] = "tcedil;";
+static const char tcySemicolonEntityName[] = "tcy;";
+static const char tdotSemicolonEntityName[] = "tdot;";
+static const char telrecSemicolonEntityName[] = "telrec;";
+static const char tfrSemicolonEntityName[] = "tfr;";
+static const char there4SemicolonEntityName[] = "there4;";
+static const char thereforeSemicolonEntityName[] = "therefore;";
+static const char thetaSemicolonEntityName[] = "theta;";
+static const char thetasymSemicolonEntityName[] = "thetasym;";
+static const char thetavSemicolonEntityName[] = "thetav;";
+static const char thickapproxSemicolonEntityName[] = "thickapprox;";
+static const char thicksimSemicolonEntityName[] = "thicksim;";
+static const char thinspSemicolonEntityName[] = "thinsp;";
+static const char thkapSemicolonEntityName[] = "thkap;";
+static const char thksimSemicolonEntityName[] = "thksim;";
+static const char thornEntityName[] = "thorn";
+static const char thornSemicolonEntityName[] = "thorn;";
+static const char tildeSemicolonEntityName[] = "tilde;";
+static const char timesEntityName[] = "times";
+static const char timesSemicolonEntityName[] = "times;";
+static const char timesbSemicolonEntityName[] = "timesb;";
+static const char timesbarSemicolonEntityName[] = "timesbar;";
+static const char timesdSemicolonEntityName[] = "timesd;";
+static const char tintSemicolonEntityName[] = "tint;";
+static const char toeaSemicolonEntityName[] = "toea;";
+static const char topSemicolonEntityName[] = "top;";
+static const char topbotSemicolonEntityName[] = "topbot;";
+static const char topcirSemicolonEntityName[] = "topcir;";
+static const char topfSemicolonEntityName[] = "topf;";
+static const char topforkSemicolonEntityName[] = "topfork;";
+static const char tosaSemicolonEntityName[] = "tosa;";
+static const char tprimeSemicolonEntityName[] = "tprime;";
+static const char tradeSemicolonEntityName[] = "trade;";
+static const char triangleSemicolonEntityName[] = "triangle;";
+static const char triangledownSemicolonEntityName[] = "triangledown;";
+static const char triangleleftSemicolonEntityName[] = "triangleleft;";
+static const char trianglelefteqSemicolonEntityName[] = "trianglelefteq;";
+static const char triangleqSemicolonEntityName[] = "triangleq;";
+static const char trianglerightSemicolonEntityName[] = "triangleright;";
+static const char trianglerighteqSemicolonEntityName[] = "trianglerighteq;";
+static const char tridotSemicolonEntityName[] = "tridot;";
+static const char trieSemicolonEntityName[] = "trie;";
+static const char triminusSemicolonEntityName[] = "triminus;";
+static const char triplusSemicolonEntityName[] = "triplus;";
+static const char trisbSemicolonEntityName[] = "trisb;";
+static const char tritimeSemicolonEntityName[] = "tritime;";
+static const char trpeziumSemicolonEntityName[] = "trpezium;";
+static const char tscrSemicolonEntityName[] = "tscr;";
+static const char tscySemicolonEntityName[] = "tscy;";
+static const char tshcySemicolonEntityName[] = "tshcy;";
+static const char tstrokSemicolonEntityName[] = "tstrok;";
+static const char twixtSemicolonEntityName[] = "twixt;";
+static const char twoheadleftarrowSemicolonEntityName[] = "twoheadleftarrow;";
+static const char twoheadrightarrowSemicolonEntityName[] = "twoheadrightarrow;";
+static const char uArrSemicolonEntityName[] = "uArr;";
+static const char uHarSemicolonEntityName[] = "uHar;";
+static const char uacuteEntityName[] = "uacute";
+static const char uacuteSemicolonEntityName[] = "uacute;";
+static const char uarrSemicolonEntityName[] = "uarr;";
+static const char ubrcySemicolonEntityName[] = "ubrcy;";
+static const char ubreveSemicolonEntityName[] = "ubreve;";
+static const char ucircEntityName[] = "ucirc";
+static const char ucircSemicolonEntityName[] = "ucirc;";
+static const char ucySemicolonEntityName[] = "ucy;";
+static const char udarrSemicolonEntityName[] = "udarr;";
+static const char udblacSemicolonEntityName[] = "udblac;";
+static const char udharSemicolonEntityName[] = "udhar;";
+static const char ufishtSemicolonEntityName[] = "ufisht;";
+static const char ufrSemicolonEntityName[] = "ufr;";
+static const char ugraveEntityName[] = "ugrave";
+static const char ugraveSemicolonEntityName[] = "ugrave;";
+static const char uharlSemicolonEntityName[] = "uharl;";
+static const char uharrSemicolonEntityName[] = "uharr;";
+static const char uhblkSemicolonEntityName[] = "uhblk;";
+static const char ulcornSemicolonEntityName[] = "ulcorn;";
+static const char ulcornerSemicolonEntityName[] = "ulcorner;";
+static const char ulcropSemicolonEntityName[] = "ulcrop;";
+static const char ultriSemicolonEntityName[] = "ultri;";
+static const char umacrSemicolonEntityName[] = "umacr;";
+static const char umlEntityName[] = "uml";
+static const char umlSemicolonEntityName[] = "uml;";
+static const char uogonSemicolonEntityName[] = "uogon;";
+static const char uopfSemicolonEntityName[] = "uopf;";
+static const char uparrowSemicolonEntityName[] = "uparrow;";
+static const char updownarrowSemicolonEntityName[] = "updownarrow;";
+static const char upharpoonleftSemicolonEntityName[] = "upharpoonleft;";
+static const char upharpoonrightSemicolonEntityName[] = "upharpoonright;";
+static const char uplusSemicolonEntityName[] = "uplus;";
+static const char upsiSemicolonEntityName[] = "upsi;";
+static const char upsihSemicolonEntityName[] = "upsih;";
+static const char upsilonSemicolonEntityName[] = "upsilon;";
+static const char upuparrowsSemicolonEntityName[] = "upuparrows;";
+static const char urcornSemicolonEntityName[] = "urcorn;";
+static const char urcornerSemicolonEntityName[] = "urcorner;";
+static const char urcropSemicolonEntityName[] = "urcrop;";
+static const char uringSemicolonEntityName[] = "uring;";
+static const char urtriSemicolonEntityName[] = "urtri;";
+static const char uscrSemicolonEntityName[] = "uscr;";
+static const char utdotSemicolonEntityName[] = "utdot;";
+static const char utildeSemicolonEntityName[] = "utilde;";
+static const char utriSemicolonEntityName[] = "utri;";
+static const char utrifSemicolonEntityName[] = "utrif;";
+static const char uuarrSemicolonEntityName[] = "uuarr;";
+static const char uumlEntityName[] = "uuml";
+static const char uumlSemicolonEntityName[] = "uuml;";
+static const char uwangleSemicolonEntityName[] = "uwangle;";
+static const char vArrSemicolonEntityName[] = "vArr;";
+static const char vBarSemicolonEntityName[] = "vBar;";
+static const char vBarvSemicolonEntityName[] = "vBarv;";
+static const char vDashSemicolonEntityName[] = "vDash;";
+static const char vangrtSemicolonEntityName[] = "vangrt;";
+static const char varepsilonSemicolonEntityName[] = "varepsilon;";
+static const char varkappaSemicolonEntityName[] = "varkappa;";
+static const char varnothingSemicolonEntityName[] = "varnothing;";
+static const char varphiSemicolonEntityName[] = "varphi;";
+static const char varpiSemicolonEntityName[] = "varpi;";
+static const char varproptoSemicolonEntityName[] = "varpropto;";
+static const char varrSemicolonEntityName[] = "varr;";
+static const char varrhoSemicolonEntityName[] = "varrho;";
+static const char varsigmaSemicolonEntityName[] = "varsigma;";
+static const char varsubsetneqSemicolonEntityName[] = "varsubsetneq;";
+static const char varsubsetneqqSemicolonEntityName[] = "varsubsetneqq;";
+static const char varsupsetneqSemicolonEntityName[] = "varsupsetneq;";
+static const char varsupsetneqqSemicolonEntityName[] = "varsupsetneqq;";
+static const char varthetaSemicolonEntityName[] = "vartheta;";
+static const char vartriangleleftSemicolonEntityName[] = "vartriangleleft;";
+static const char vartrianglerightSemicolonEntityName[] = "vartriangleright;";
+static const char vcySemicolonEntityName[] = "vcy;";
+static const char vdashSemicolonEntityName[] = "vdash;";
+static const char veeSemicolonEntityName[] = "vee;";
+static const char veebarSemicolonEntityName[] = "veebar;";
+static const char veeeqSemicolonEntityName[] = "veeeq;";
+static const char vellipSemicolonEntityName[] = "vellip;";
+static const char verbarSemicolonEntityName[] = "verbar;";
+static const char vertSemicolonEntityName[] = "vert;";
+static const char vfrSemicolonEntityName[] = "vfr;";
+static const char vltriSemicolonEntityName[] = "vltri;";
+static const char vnsubSemicolonEntityName[] = "vnsub;";
+static const char vnsupSemicolonEntityName[] = "vnsup;";
+static const char vopfSemicolonEntityName[] = "vopf;";
+static const char vpropSemicolonEntityName[] = "vprop;";
+static const char vrtriSemicolonEntityName[] = "vrtri;";
+static const char vscrSemicolonEntityName[] = "vscr;";
+static const char vsubnESemicolonEntityName[] = "vsubnE;";
+static const char vsubneSemicolonEntityName[] = "vsubne;";
+static const char vsupnESemicolonEntityName[] = "vsupnE;";
+static const char vsupneSemicolonEntityName[] = "vsupne;";
+static const char vzigzagSemicolonEntityName[] = "vzigzag;";
+static const char wcircSemicolonEntityName[] = "wcirc;";
+static const char wedbarSemicolonEntityName[] = "wedbar;";
+static const char wedgeSemicolonEntityName[] = "wedge;";
+static const char wedgeqSemicolonEntityName[] = "wedgeq;";
+static const char weierpSemicolonEntityName[] = "weierp;";
+static const char wfrSemicolonEntityName[] = "wfr;";
+static const char wopfSemicolonEntityName[] = "wopf;";
+static const char wpSemicolonEntityName[] = "wp;";
+static const char wrSemicolonEntityName[] = "wr;";
+static const char wreathSemicolonEntityName[] = "wreath;";
+static const char wscrSemicolonEntityName[] = "wscr;";
+static const char xcapSemicolonEntityName[] = "xcap;";
+static const char xcircSemicolonEntityName[] = "xcirc;";
+static const char xcupSemicolonEntityName[] = "xcup;";
+static const char xdtriSemicolonEntityName[] = "xdtri;";
+static const char xfrSemicolonEntityName[] = "xfr;";
+static const char xhArrSemicolonEntityName[] = "xhArr;";
+static const char xharrSemicolonEntityName[] = "xharr;";
+static const char xiSemicolonEntityName[] = "xi;";
+static const char xlArrSemicolonEntityName[] = "xlArr;";
+static const char xlarrSemicolonEntityName[] = "xlarr;";
+static const char xmapSemicolonEntityName[] = "xmap;";
+static const char xnisSemicolonEntityName[] = "xnis;";
+static const char xodotSemicolonEntityName[] = "xodot;";
+static const char xopfSemicolonEntityName[] = "xopf;";
+static const char xoplusSemicolonEntityName[] = "xoplus;";
+static const char xotimeSemicolonEntityName[] = "xotime;";
+static const char xrArrSemicolonEntityName[] = "xrArr;";
+static const char xrarrSemicolonEntityName[] = "xrarr;";
+static const char xscrSemicolonEntityName[] = "xscr;";
+static const char xsqcupSemicolonEntityName[] = "xsqcup;";
+static const char xuplusSemicolonEntityName[] = "xuplus;";
+static const char xutriSemicolonEntityName[] = "xutri;";
+static const char xveeSemicolonEntityName[] = "xvee;";
+static const char xwedgeSemicolonEntityName[] = "xwedge;";
+static const char yacuteEntityName[] = "yacute";
+static const char yacuteSemicolonEntityName[] = "yacute;";
+static const char yacySemicolonEntityName[] = "yacy;";
+static const char ycircSemicolonEntityName[] = "ycirc;";
+static const char ycySemicolonEntityName[] = "ycy;";
+static const char yenEntityName[] = "yen";
+static const char yenSemicolonEntityName[] = "yen;";
+static const char yfrSemicolonEntityName[] = "yfr;";
+static const char yicySemicolonEntityName[] = "yicy;";
+static const char yopfSemicolonEntityName[] = "yopf;";
+static const char yscrSemicolonEntityName[] = "yscr;";
+static const char yucySemicolonEntityName[] = "yucy;";
+static const char yumlEntityName[] = "yuml";
+static const char yumlSemicolonEntityName[] = "yuml;";
+static const char zacuteSemicolonEntityName[] = "zacute;";
+static const char zcaronSemicolonEntityName[] = "zcaron;";
+static const char zcySemicolonEntityName[] = "zcy;";
+static const char zdotSemicolonEntityName[] = "zdot;";
+static const char zeetrfSemicolonEntityName[] = "zeetrf;";
+static const char zetaSemicolonEntityName[] = "zeta;";
+static const char zfrSemicolonEntityName[] = "zfr;";
+static const char zhcySemicolonEntityName[] = "zhcy;";
+static const char zigrarrSemicolonEntityName[] = "zigrarr;";
+static const char zopfSemicolonEntityName[] = "zopf;";
+static const char zscrSemicolonEntityName[] = "zscr;";
+static const char zwjSemicolonEntityName[] = "zwj;";
+static const char zwnjSemicolonEntityName[] = "zwnj;";
+
+static const
+struct pchvml_entity pchvml_character_reference_entity_table[2231] = {
+    { AEligEntityName, 5, 0x000C6, 0 },
+    { AEligSemicolonEntityName, 6, 0x000C6, 0 },
+    { AMPEntityName, 3, 0x00026, 0 },
+    { AMPSemicolonEntityName, 4, 0x00026, 0 },
+    { AacuteEntityName, 6, 0x000C1, 0 },
+    { AacuteSemicolonEntityName, 7, 0x000C1, 0 },
+    { AbreveSemicolonEntityName, 7, 0x00102, 0 },
+    { AcircEntityName, 5, 0x000C2, 0 },
+    { AcircSemicolonEntityName, 6, 0x000C2, 0 },
+    { AcySemicolonEntityName, 4, 0x00410, 0 },
+    { AfrSemicolonEntityName, 4, 0x1D504, 0 },
+    { AgraveEntityName, 6, 0x000C0, 0 },
+    { AgraveSemicolonEntityName, 7, 0x000C0, 0 },
+    { AlphaSemicolonEntityName, 6, 0x00391, 0 },
+    { AmacrSemicolonEntityName, 6, 0x00100, 0 },
+    { AndSemicolonEntityName, 4, 0x02A53, 0 },
+    { AogonSemicolonEntityName, 6, 0x00104, 0 },
+    { AopfSemicolonEntityName, 5, 0x1D538, 0 },
+    { ApplyFunctionSemicolonEntityName, 14, 0x02061, 0 },
+    { AringEntityName, 5, 0x000C5, 0 },
+    { AringSemicolonEntityName, 6, 0x000C5, 0 },
+    { AscrSemicolonEntityName, 5, 0x1D49C, 0 },
+    { AssignSemicolonEntityName, 7, 0x02254, 0 },
+    { AtildeEntityName, 6, 0x000C3, 0 },
+    { AtildeSemicolonEntityName, 7, 0x000C3, 0 },
+    { AumlEntityName, 4, 0x000C4, 0 },
+    { AumlSemicolonEntityName, 5, 0x000C4, 0 },
+    { BackslashSemicolonEntityName, 10, 0x02216, 0 },
+    { BarvSemicolonEntityName, 5, 0x02AE7, 0 },
+    { BarwedSemicolonEntityName, 7, 0x02306, 0 },
+    { BcySemicolonEntityName, 4, 0x00411, 0 },
+    { BecauseSemicolonEntityName, 8, 0x02235, 0 },
+    { BernoullisSemicolonEntityName, 11, 0x0212C, 0 },
+    { BetaSemicolonEntityName, 5, 0x00392, 0 },
+    { BfrSemicolonEntityName, 4, 0x1D505, 0 },
+    { BopfSemicolonEntityName, 5, 0x1D539, 0 },
+    { BreveSemicolonEntityName, 6, 0x002D8, 0 },
+    { BscrSemicolonEntityName, 5, 0x0212C, 0 },
+    { BumpeqSemicolonEntityName, 7, 0x0224E, 0 },
+    { CHcySemicolonEntityName, 5, 0x00427, 0 },
+    { COPYEntityName, 4, 0x000A9, 0 },
+    { COPYSemicolonEntityName, 5, 0x000A9, 0 },
+    { CacuteSemicolonEntityName, 7, 0x00106, 0 },
+    { CapSemicolonEntityName, 4, 0x022D2, 0 },
+    { CapitalDifferentialDSemicolonEntityName, 21, 0x02145, 0 },
+    { CayleysSemicolonEntityName, 8, 0x0212D, 0 },
+    { CcaronSemicolonEntityName, 7, 0x0010C, 0 },
+    { CcedilEntityName, 6, 0x000C7, 0 },
+    { CcedilSemicolonEntityName, 7, 0x000C7, 0 },
+    { CcircSemicolonEntityName, 6, 0x00108, 0 },
+    { CconintSemicolonEntityName, 8, 0x02230, 0 },
+    { CdotSemicolonEntityName, 5, 0x0010A, 0 },
+    { CedillaSemicolonEntityName, 8, 0x000B8, 0 },
+    { CenterDotSemicolonEntityName, 10, 0x000B7, 0 },
+    { CfrSemicolonEntityName, 4, 0x0212D, 0 },
+    { ChiSemicolonEntityName, 4, 0x003A7, 0 },
+    { CircleDotSemicolonEntityName, 10, 0x02299, 0 },
+    { CircleMinusSemicolonEntityName, 12, 0x02296, 0 },
+    { CirclePlusSemicolonEntityName, 11, 0x02295, 0 },
+    { CircleTimesSemicolonEntityName, 12, 0x02297, 0 },
+    { ClockwiseContourIntegralSemicolonEntityName, 25, 0x02232, 0 },
+    { CloseCurlyDoubleQuoteSemicolonEntityName, 22, 0x0201D, 0 },
+    { CloseCurlyQuoteSemicolonEntityName, 16, 0x02019, 0 },
+    { ColonSemicolonEntityName, 6, 0x02237, 0 },
+    { ColoneSemicolonEntityName, 7, 0x02A74, 0 },
+    { CongruentSemicolonEntityName, 10, 0x02261, 0 },
+    { ConintSemicolonEntityName, 7, 0x0222F, 0 },
+    { ContourIntegralSemicolonEntityName, 16, 0x0222E, 0 },
+    { CopfSemicolonEntityName, 5, 0x02102, 0 },
+    { CoproductSemicolonEntityName, 10, 0x02210, 0 },
+    { CounterClockwiseContourIntegralSemicolonEntityName, 32, 0x02233, 0 },
+    { CrossSemicolonEntityName, 6, 0x02A2F, 0 },
+    { CscrSemicolonEntityName, 5, 0x1D49E, 0 },
+    { CupSemicolonEntityName, 4, 0x022D3, 0 },
+    { CupCapSemicolonEntityName, 7, 0x0224D, 0 },
+    { DDSemicolonEntityName, 3, 0x02145, 0 },
+    { DDotrahdSemicolonEntityName, 9, 0x02911, 0 },
+    { DJcySemicolonEntityName, 5, 0x00402, 0 },
+    { DScySemicolonEntityName, 5, 0x00405, 0 },
+    { DZcySemicolonEntityName, 5, 0x0040F, 0 },
+    { DaggerSemicolonEntityName, 7, 0x02021, 0 },
+    { DarrSemicolonEntityName, 5, 0x021A1, 0 },
+    { DashvSemicolonEntityName, 6, 0x02AE4, 0 },
+    { DcaronSemicolonEntityName, 7, 0x0010E, 0 },
+    { DcySemicolonEntityName, 4, 0x00414, 0 },
+    { DelSemicolonEntityName, 4, 0x02207, 0 },
+    { DeltaSemicolonEntityName, 6, 0x00394, 0 },
+    { DfrSemicolonEntityName, 4, 0x1D507, 0 },
+    { DiacriticalAcuteSemicolonEntityName, 17, 0x000B4, 0 },
+    { DiacriticalDotSemicolonEntityName, 15, 0x002D9, 0 },
+    { DiacriticalDoubleAcuteSemicolonEntityName, 23, 0x002DD, 0 },
+    { DiacriticalGraveSemicolonEntityName, 17, 0x00060, 0 },
+    { DiacriticalTildeSemicolonEntityName, 17, 0x002DC, 0 },
+    { DiamondSemicolonEntityName, 8, 0x022C4, 0 },
+    { DifferentialDSemicolonEntityName, 14, 0x02146, 0 },
+    { DopfSemicolonEntityName, 5, 0x1D53B, 0 },
+    { DotSemicolonEntityName, 4, 0x000A8, 0 },
+    { DotDotSemicolonEntityName, 7, 0x020DC, 0 },
+    { DotEqualSemicolonEntityName, 9, 0x02250, 0 },
+    { DoubleContourIntegralSemicolonEntityName, 22, 0x0222F, 0 },
+    { DoubleDotSemicolonEntityName, 10, 0x000A8, 0 },
+    { DoubleDownArrowSemicolonEntityName, 16, 0x021D3, 0 },
+    { DoubleLeftArrowSemicolonEntityName, 16, 0x021D0, 0 },
+    { DoubleLeftRightArrowSemicolonEntityName, 21, 0x021D4, 0 },
+    { DoubleLeftTeeSemicolonEntityName, 14, 0x02AE4, 0 },
+    { DoubleLongLeftArrowSemicolonEntityName, 20, 0x027F8, 0 },
+    { DoubleLongLeftRightArrowSemicolonEntityName, 25, 0x027FA, 0 },
+    { DoubleLongRightArrowSemicolonEntityName, 21, 0x027F9, 0 },
+    { DoubleRightArrowSemicolonEntityName, 17, 0x021D2, 0 },
+    { DoubleRightTeeSemicolonEntityName, 15, 0x022A8, 0 },
+    { DoubleUpArrowSemicolonEntityName, 14, 0x021D1, 0 },
+    { DoubleUpDownArrowSemicolonEntityName, 18, 0x021D5, 0 },
+    { DoubleVerticalBarSemicolonEntityName, 18, 0x02225, 0 },
+    { DownArrowSemicolonEntityName, 10, 0x02193, 0 },
+    { DownArrowBarSemicolonEntityName, 13, 0x02913, 0 },
+    { DownArrowUpArrowSemicolonEntityName, 17, 0x021F5, 0 },
+    { DownBreveSemicolonEntityName, 10, 0x00311, 0 },
+    { DownLeftRightVectorSemicolonEntityName, 20, 0x02950, 0 },
+    { DownLeftTeeVectorSemicolonEntityName, 18, 0x0295E, 0 },
+    { DownLeftVectorSemicolonEntityName, 15, 0x021BD, 0 },
+    { DownLeftVectorBarSemicolonEntityName, 18, 0x02956, 0 },
+    { DownRightTeeVectorSemicolonEntityName, 19, 0x0295F, 0 },
+    { DownRightVectorSemicolonEntityName, 16, 0x021C1, 0 },
+    { DownRightVectorBarSemicolonEntityName, 19, 0x02957, 0 },
+    { DownTeeSemicolonEntityName, 8, 0x022A4, 0 },
+    { DownTeeArrowSemicolonEntityName, 13, 0x021A7, 0 },
+    { DownarrowSemicolonEntityName, 10, 0x021D3, 0 },
+    { DscrSemicolonEntityName, 5, 0x1D49F, 0 },
+    { DstrokSemicolonEntityName, 7, 0x00110, 0 },
+    { ENGSemicolonEntityName, 4, 0x0014A, 0 },
+    { ETHEntityName, 3, 0x000D0, 0 },
+    { ETHSemicolonEntityName, 4, 0x000D0, 0 },
+    { EacuteEntityName, 6, 0x000C9, 0 },
+    { EacuteSemicolonEntityName, 7, 0x000C9, 0 },
+    { EcaronSemicolonEntityName, 7, 0x0011A, 0 },
+    { EcircEntityName, 5, 0x000CA, 0 },
+    { EcircSemicolonEntityName, 6, 0x000CA, 0 },
+    { EcySemicolonEntityName, 4, 0x0042D, 0 },
+    { EdotSemicolonEntityName, 5, 0x00116, 0 },
+    { EfrSemicolonEntityName, 4, 0x1D508, 0 },
+    { EgraveEntityName, 6, 0x000C8, 0 },
+    { EgraveSemicolonEntityName, 7, 0x000C8, 0 },
+    { ElementSemicolonEntityName, 8, 0x02208, 0 },
+    { EmacrSemicolonEntityName, 6, 0x00112, 0 },
+    { EmptySmallSquareSemicolonEntityName, 17, 0x025FB, 0 },
+    { EmptyVerySmallSquareSemicolonEntityName, 21, 0x025AB, 0 },
+    { EogonSemicolonEntityName, 6, 0x00118, 0 },
+    { EopfSemicolonEntityName, 5, 0x1D53C, 0 },
+    { EpsilonSemicolonEntityName, 8, 0x00395, 0 },
+    { EqualSemicolonEntityName, 6, 0x02A75, 0 },
+    { EqualTildeSemicolonEntityName, 11, 0x02242, 0 },
+    { EquilibriumSemicolonEntityName, 12, 0x021CC, 0 },
+    { EscrSemicolonEntityName, 5, 0x02130, 0 },
+    { EsimSemicolonEntityName, 5, 0x02A73, 0 },
+    { EtaSemicolonEntityName, 4, 0x00397, 0 },
+    { EumlEntityName, 4, 0x000CB, 0 },
+    { EumlSemicolonEntityName, 5, 0x000CB, 0 },
+    { ExistsSemicolonEntityName, 7, 0x02203, 0 },
+    { ExponentialESemicolonEntityName, 13, 0x02147, 0 },
+    { FcySemicolonEntityName, 4, 0x00424, 0 },
+    { FfrSemicolonEntityName, 4, 0x1D509, 0 },
+    { FilledSmallSquareSemicolonEntityName, 18, 0x025FC, 0 },
+    { FilledVerySmallSquareSemicolonEntityName, 22, 0x025AA, 0 },
+    { FopfSemicolonEntityName, 5, 0x1D53D, 0 },
+    { ForAllSemicolonEntityName, 7, 0x02200, 0 },
+    { FouriertrfSemicolonEntityName, 11, 0x02131, 0 },
+    { FscrSemicolonEntityName, 5, 0x02131, 0 },
+    { GJcySemicolonEntityName, 5, 0x00403, 0 },
+    { GTEntityName, 2, 0x0003E, 0 },
+    { GTSemicolonEntityName, 3, 0x0003E, 0 },
+    { GammaSemicolonEntityName, 6, 0x00393, 0 },
+    { GammadSemicolonEntityName, 7, 0x003DC, 0 },
+    { GbreveSemicolonEntityName, 7, 0x0011E, 0 },
+    { GcedilSemicolonEntityName, 7, 0x00122, 0 },
+    { GcircSemicolonEntityName, 6, 0x0011C, 0 },
+    { GcySemicolonEntityName, 4, 0x00413, 0 },
+    { GdotSemicolonEntityName, 5, 0x00120, 0 },
+    { GfrSemicolonEntityName, 4, 0x1D50A, 0 },
+    { GgSemicolonEntityName, 3, 0x022D9, 0 },
+    { GopfSemicolonEntityName, 5, 0x1D53E, 0 },
+    { GreaterEqualSemicolonEntityName, 13, 0x02265, 0 },
+    { GreaterEqualLessSemicolonEntityName, 17, 0x022DB, 0 },
+    { GreaterFullEqualSemicolonEntityName, 17, 0x02267, 0 },
+    { GreaterGreaterSemicolonEntityName, 15, 0x02AA2, 0 },
+    { GreaterLessSemicolonEntityName, 12, 0x02277, 0 },
+    { GreaterSlantEqualSemicolonEntityName, 18, 0x02A7E, 0 },
+    { GreaterTildeSemicolonEntityName, 13, 0x02273, 0 },
+    { GscrSemicolonEntityName, 5, 0x1D4A2, 0 },
+    { GtSemicolonEntityName, 3, 0x0226B, 0 },
+    { HARDcySemicolonEntityName, 7, 0x0042A, 0 },
+    { HacekSemicolonEntityName, 6, 0x002C7, 0 },
+    { HatSemicolonEntityName, 4, 0x0005E, 0 },
+    { HcircSemicolonEntityName, 6, 0x00124, 0 },
+    { HfrSemicolonEntityName, 4, 0x0210C, 0 },
+    { HilbertSpaceSemicolonEntityName, 13, 0x0210B, 0 },
+    { HopfSemicolonEntityName, 5, 0x0210D, 0 },
+    { HorizontalLineSemicolonEntityName, 15, 0x02500, 0 },
+    { HscrSemicolonEntityName, 5, 0x0210B, 0 },
+    { HstrokSemicolonEntityName, 7, 0x00126, 0 },
+    { HumpDownHumpSemicolonEntityName, 13, 0x0224E, 0 },
+    { HumpEqualSemicolonEntityName, 10, 0x0224F, 0 },
+    { IEcySemicolonEntityName, 5, 0x00415, 0 },
+    { IJligSemicolonEntityName, 6, 0x00132, 0 },
+    { IOcySemicolonEntityName, 5, 0x00401, 0 },
+    { IacuteEntityName, 6, 0x000CD, 0 },
+    { IacuteSemicolonEntityName, 7, 0x000CD, 0 },
+    { IcircEntityName, 5, 0x000CE, 0 },
+    { IcircSemicolonEntityName, 6, 0x000CE, 0 },
+    { IcySemicolonEntityName, 4, 0x00418, 0 },
+    { IdotSemicolonEntityName, 5, 0x00130, 0 },
+    { IfrSemicolonEntityName, 4, 0x02111, 0 },
+    { IgraveEntityName, 6, 0x000CC, 0 },
+    { IgraveSemicolonEntityName, 7, 0x000CC, 0 },
+    { ImSemicolonEntityName, 3, 0x02111, 0 },
+    { ImacrSemicolonEntityName, 6, 0x0012A, 0 },
+    { ImaginaryISemicolonEntityName, 11, 0x02148, 0 },
+    { ImpliesSemicolonEntityName, 8, 0x021D2, 0 },
+    { IntSemicolonEntityName, 4, 0x0222C, 0 },
+    { IntegralSemicolonEntityName, 9, 0x0222B, 0 },
+    { IntersectionSemicolonEntityName, 13, 0x022C2, 0 },
+    { InvisibleCommaSemicolonEntityName, 15, 0x02063, 0 },
+    { InvisibleTimesSemicolonEntityName, 15, 0x02062, 0 },
+    { IogonSemicolonEntityName, 6, 0x0012E, 0 },
+    { IopfSemicolonEntityName, 5, 0x1D540, 0 },
+    { IotaSemicolonEntityName, 5, 0x00399, 0 },
+    { IscrSemicolonEntityName, 5, 0x02110, 0 },
+    { ItildeSemicolonEntityName, 7, 0x00128, 0 },
+    { IukcySemicolonEntityName, 6, 0x00406, 0 },
+    { IumlEntityName, 4, 0x000CF, 0 },
+    { IumlSemicolonEntityName, 5, 0x000CF, 0 },
+    { JcircSemicolonEntityName, 6, 0x00134, 0 },
+    { JcySemicolonEntityName, 4, 0x00419, 0 },
+    { JfrSemicolonEntityName, 4, 0x1D50D, 0 },
+    { JopfSemicolonEntityName, 5, 0x1D541, 0 },
+    { JscrSemicolonEntityName, 5, 0x1D4A5, 0 },
+    { JsercySemicolonEntityName, 7, 0x00408, 0 },
+    { JukcySemicolonEntityName, 6, 0x00404, 0 },
+    { KHcySemicolonEntityName, 5, 0x00425, 0 },
+    { KJcySemicolonEntityName, 5, 0x0040C, 0 },
+    { KappaSemicolonEntityName, 6, 0x0039A, 0 },
+    { KcedilSemicolonEntityName, 7, 0x00136, 0 },
+    { KcySemicolonEntityName, 4, 0x0041A, 0 },
+    { KfrSemicolonEntityName, 4, 0x1D50E, 0 },
+    { KopfSemicolonEntityName, 5, 0x1D542, 0 },
+    { KscrSemicolonEntityName, 5, 0x1D4A6, 0 },
+    { LJcySemicolonEntityName, 5, 0x00409, 0 },
+    { LTEntityName, 2, 0x0003C, 0 },
+    { LTSemicolonEntityName, 3, 0x0003C, 0 },
+    { LacuteSemicolonEntityName, 7, 0x00139, 0 },
+    { LambdaSemicolonEntityName, 7, 0x0039B, 0 },
+    { LangSemicolonEntityName, 5, 0x027EA, 0 },
+    { LaplacetrfSemicolonEntityName, 11, 0x02112, 0 },
+    { LarrSemicolonEntityName, 5, 0x0219E, 0 },
+    { LcaronSemicolonEntityName, 7, 0x0013D, 0 },
+    { LcedilSemicolonEntityName, 7, 0x0013B, 0 },
+    { LcySemicolonEntityName, 4, 0x0041B, 0 },
+    { LeftAngleBracketSemicolonEntityName, 17, 0x027E8, 0 },
+    { LeftArrowSemicolonEntityName, 10, 0x02190, 0 },
+    { LeftArrowBarSemicolonEntityName, 13, 0x021E4, 0 },
+    { LeftArrowRightArrowSemicolonEntityName, 20, 0x021C6, 0 },
+    { LeftCeilingSemicolonEntityName, 12, 0x02308, 0 },
+    { LeftDoubleBracketSemicolonEntityName, 18, 0x027E6, 0 },
+    { LeftDownTeeVectorSemicolonEntityName, 18, 0x02961, 0 },
+    { LeftDownVectorSemicolonEntityName, 15, 0x021C3, 0 },
+    { LeftDownVectorBarSemicolonEntityName, 18, 0x02959, 0 },
+    { LeftFloorSemicolonEntityName, 10, 0x0230A, 0 },
+    { LeftRightArrowSemicolonEntityName, 15, 0x02194, 0 },
+    { LeftRightVectorSemicolonEntityName, 16, 0x0294E, 0 },
+    { LeftTeeSemicolonEntityName, 8, 0x022A3, 0 },
+    { LeftTeeArrowSemicolonEntityName, 13, 0x021A4, 0 },
+    { LeftTeeVectorSemicolonEntityName, 14, 0x0295A, 0 },
+    { LeftTriangleSemicolonEntityName, 13, 0x022B2, 0 },
+    { LeftTriangleBarSemicolonEntityName, 16, 0x029CF, 0 },
+    { LeftTriangleEqualSemicolonEntityName, 18, 0x022B4, 0 },
+    { LeftUpDownVectorSemicolonEntityName, 17, 0x02951, 0 },
+    { LeftUpTeeVectorSemicolonEntityName, 16, 0x02960, 0 },
+    { LeftUpVectorSemicolonEntityName, 13, 0x021BF, 0 },
+    { LeftUpVectorBarSemicolonEntityName, 16, 0x02958, 0 },
+    { LeftVectorSemicolonEntityName, 11, 0x021BC, 0 },
+    { LeftVectorBarSemicolonEntityName, 14, 0x02952, 0 },
+    { LeftarrowSemicolonEntityName, 10, 0x021D0, 0 },
+    { LeftrightarrowSemicolonEntityName, 15, 0x021D4, 0 },
+    { LessEqualGreaterSemicolonEntityName, 17, 0x022DA, 0 },
+    { LessFullEqualSemicolonEntityName, 14, 0x02266, 0 },
+    { LessGreaterSemicolonEntityName, 12, 0x02276, 0 },
+    { LessLessSemicolonEntityName, 9, 0x02AA1, 0 },
+    { LessSlantEqualSemicolonEntityName, 15, 0x02A7D, 0 },
+    { LessTildeSemicolonEntityName, 10, 0x02272, 0 },
+    { LfrSemicolonEntityName, 4, 0x1D50F, 0 },
+    { LlSemicolonEntityName, 3, 0x022D8, 0 },
+    { LleftarrowSemicolonEntityName, 11, 0x021DA, 0 },
+    { LmidotSemicolonEntityName, 7, 0x0013F, 0 },
+    { LongLeftArrowSemicolonEntityName, 14, 0x027F5, 0 },
+    { LongLeftRightArrowSemicolonEntityName, 19, 0x027F7, 0 },
+    { LongRightArrowSemicolonEntityName, 15, 0x027F6, 0 },
+    { LongleftarrowSemicolonEntityName, 14, 0x027F8, 0 },
+    { LongleftrightarrowSemicolonEntityName, 19, 0x027FA, 0 },
+    { LongrightarrowSemicolonEntityName, 15, 0x027F9, 0 },
+    { LopfSemicolonEntityName, 5, 0x1D543, 0 },
+    { LowerLeftArrowSemicolonEntityName, 15, 0x02199, 0 },
+    { LowerRightArrowSemicolonEntityName, 16, 0x02198, 0 },
+    { LscrSemicolonEntityName, 5, 0x02112, 0 },
+    { LshSemicolonEntityName, 4, 0x021B0, 0 },
+    { LstrokSemicolonEntityName, 7, 0x00141, 0 },
+    { LtSemicolonEntityName, 3, 0x0226A, 0 },
+    { MapSemicolonEntityName, 4, 0x02905, 0 },
+    { McySemicolonEntityName, 4, 0x0041C, 0 },
+    { MediumSpaceSemicolonEntityName, 12, 0x0205F, 0 },
+    { MellintrfSemicolonEntityName, 10, 0x02133, 0 },
+    { MfrSemicolonEntityName, 4, 0x1D510, 0 },
+    { MinusPlusSemicolonEntityName, 10, 0x02213, 0 },
+    { MopfSemicolonEntityName, 5, 0x1D544, 0 },
+    { MscrSemicolonEntityName, 5, 0x02133, 0 },
+    { MuSemicolonEntityName, 3, 0x0039C, 0 },
+    { NJcySemicolonEntityName, 5, 0x0040A, 0 },
+    { NacuteSemicolonEntityName, 7, 0x00143, 0 },
+    { NcaronSemicolonEntityName, 7, 0x00147, 0 },
+    { NcedilSemicolonEntityName, 7, 0x00145, 0 },
+    { NcySemicolonEntityName, 4, 0x0041D, 0 },
+    { NegativeMediumSpaceSemicolonEntityName, 20, 0x0200B, 0 },
+    { NegativeThickSpaceSemicolonEntityName, 19, 0x0200B, 0 },
+    { NegativeThinSpaceSemicolonEntityName, 18, 0x0200B, 0 },
+    { NegativeVeryThinSpaceSemicolonEntityName, 22, 0x0200B, 0 },
+    { NestedGreaterGreaterSemicolonEntityName, 21, 0x0226B, 0 },
+    { NestedLessLessSemicolonEntityName, 15, 0x0226A, 0 },
+    { NewLineSemicolonEntityName, 8, 0x0000A, 0 },
+    { NfrSemicolonEntityName, 4, 0x1D511, 0 },
+    { NoBreakSemicolonEntityName, 8, 0x02060, 0 },
+    { NonBreakingSpaceSemicolonEntityName, 17, 0x000A0, 0 },
+    { NopfSemicolonEntityName, 5, 0x02115, 0 },
+    { NotSemicolonEntityName, 4, 0x02AEC, 0 },
+    { NotCongruentSemicolonEntityName, 13, 0x02262, 0 },
+    { NotCupCapSemicolonEntityName, 10, 0x0226D, 0 },
+    { NotDoubleVerticalBarSemicolonEntityName, 21, 0x02226, 0 },
+    { NotElementSemicolonEntityName, 11, 0x02209, 0 },
+    { NotEqualSemicolonEntityName, 9, 0x02260, 0 },
+    { NotEqualTildeSemicolonEntityName, 14, 0x02242, 0x00338 },
+    { NotExistsSemicolonEntityName, 10, 0x02204, 0 },
+    { NotGreaterSemicolonEntityName, 11, 0x0226F, 0 },
+    { NotGreaterEqualSemicolonEntityName, 16, 0x02271, 0 },
+    { NotGreaterFullEqualSemicolonEntityName, 20, 0x02267, 0x00338 },
+    { NotGreaterGreaterSemicolonEntityName, 18, 0x0226B, 0x00338 },
+    { NotGreaterLessSemicolonEntityName, 15, 0x02279, 0 },
+    { NotGreaterSlantEqualSemicolonEntityName, 21, 0x02A7E, 0x00338 },
+    { NotGreaterTildeSemicolonEntityName, 16, 0x02275, 0 },
+    { NotHumpDownHumpSemicolonEntityName, 16, 0x0224E, 0x00338 },
+    { NotHumpEqualSemicolonEntityName, 13, 0x0224F, 0x00338 },
+    { NotLeftTriangleSemicolonEntityName, 16, 0x022EA, 0 },
+    { NotLeftTriangleBarSemicolonEntityName, 19, 0x029CF, 0x00338 },
+    { NotLeftTriangleEqualSemicolonEntityName, 21, 0x022EC, 0 },
+    { NotLessSemicolonEntityName, 8, 0x0226E, 0 },
+    { NotLessEqualSemicolonEntityName, 13, 0x02270, 0 },
+    { NotLessGreaterSemicolonEntityName, 15, 0x02278, 0 },
+    { NotLessLessSemicolonEntityName, 12, 0x0226A, 0x00338 },
+    { NotLessSlantEqualSemicolonEntityName, 18, 0x02A7D, 0x00338 },
+    { NotLessTildeSemicolonEntityName, 13, 0x02274, 0 },
+    { NotNestedGreaterGreaterSemicolonEntityName, 24, 0x02AA2, 0x00338 },
+    { NotNestedLessLessSemicolonEntityName, 18, 0x02AA1, 0x00338 },
+    { NotPrecedesSemicolonEntityName, 12, 0x02280, 0 },
+    { NotPrecedesEqualSemicolonEntityName, 17, 0x02AAF, 0x00338 },
+    { NotPrecedesSlantEqualSemicolonEntityName, 22, 0x022E0, 0 },
+    { NotReverseElementSemicolonEntityName, 18, 0x0220C, 0 },
+    { NotRightTriangleSemicolonEntityName, 17, 0x022EB, 0 },
+    { NotRightTriangleBarSemicolonEntityName, 20, 0x029D0, 0x00338 },
+    { NotRightTriangleEqualSemicolonEntityName, 22, 0x022ED, 0 },
+    { NotSquareSubsetSemicolonEntityName, 16, 0x0228F, 0x00338 },
+    { NotSquareSubsetEqualSemicolonEntityName, 21, 0x022E2, 0 },
+    { NotSquareSupersetSemicolonEntityName, 18, 0x02290, 0x00338 },
+    { NotSquareSupersetEqualSemicolonEntityName, 23, 0x022E3, 0 },
+    { NotSubsetSemicolonEntityName, 10, 0x02282, 0x020D2 },
+    { NotSubsetEqualSemicolonEntityName, 15, 0x02288, 0 },
+    { NotSucceedsSemicolonEntityName, 12, 0x02281, 0 },
+    { NotSucceedsEqualSemicolonEntityName, 17, 0x02AB0, 0x00338 },
+    { NotSucceedsSlantEqualSemicolonEntityName, 22, 0x022E1, 0 },
+    { NotSucceedsTildeSemicolonEntityName, 17, 0x0227F, 0x00338 },
+    { NotSupersetSemicolonEntityName, 12, 0x02283, 0x020D2 },
+    { NotSupersetEqualSemicolonEntityName, 17, 0x02289, 0 },
+    { NotTildeSemicolonEntityName, 9, 0x02241, 0 },
+    { NotTildeEqualSemicolonEntityName, 14, 0x02244, 0 },
+    { NotTildeFullEqualSemicolonEntityName, 18, 0x02247, 0 },
+    { NotTildeTildeSemicolonEntityName, 14, 0x02249, 0 },
+    { NotVerticalBarSemicolonEntityName, 15, 0x02224, 0 },
+    { NscrSemicolonEntityName, 5, 0x1D4A9, 0 },
+    { NtildeEntityName, 6, 0x000D1, 0 },
+    { NtildeSemicolonEntityName, 7, 0x000D1, 0 },
+    { NuSemicolonEntityName, 3, 0x0039D, 0 },
+    { OEligSemicolonEntityName, 6, 0x00152, 0 },
+    { OacuteEntityName, 6, 0x000D3, 0 },
+    { OacuteSemicolonEntityName, 7, 0x000D3, 0 },
+    { OcircEntityName, 5, 0x000D4, 0 },
+    { OcircSemicolonEntityName, 6, 0x000D4, 0 },
+    { OcySemicolonEntityName, 4, 0x0041E, 0 },
+    { OdblacSemicolonEntityName, 7, 0x00150, 0 },
+    { OfrSemicolonEntityName, 4, 0x1D512, 0 },
+    { OgraveEntityName, 6, 0x000D2, 0 },
+    { OgraveSemicolonEntityName, 7, 0x000D2, 0 },
+    { OmacrSemicolonEntityName, 6, 0x0014C, 0 },
+    { OmegaSemicolonEntityName, 6, 0x003A9, 0 },
+    { OmicronSemicolonEntityName, 8, 0x0039F, 0 },
+    { OopfSemicolonEntityName, 5, 0x1D546, 0 },
+    { OpenCurlyDoubleQuoteSemicolonEntityName, 21, 0x0201C, 0 },
+    { OpenCurlyQuoteSemicolonEntityName, 15, 0x02018, 0 },
+    { OrSemicolonEntityName, 3, 0x02A54, 0 },
+    { OscrSemicolonEntityName, 5, 0x1D4AA, 0 },
+    { OslashEntityName, 6, 0x000D8, 0 },
+    { OslashSemicolonEntityName, 7, 0x000D8, 0 },
+    { OtildeEntityName, 6, 0x000D5, 0 },
+    { OtildeSemicolonEntityName, 7, 0x000D5, 0 },
+    { OtimesSemicolonEntityName, 7, 0x02A37, 0 },
+    { OumlEntityName, 4, 0x000D6, 0 },
+    { OumlSemicolonEntityName, 5, 0x000D6, 0 },
+    { OverBarSemicolonEntityName, 8, 0x0203E, 0 },
+    { OverBraceSemicolonEntityName, 10, 0x023DE, 0 },
+    { OverBracketSemicolonEntityName, 12, 0x023B4, 0 },
+    { OverParenthesisSemicolonEntityName, 16, 0x023DC, 0 },
+    { PartialDSemicolonEntityName, 9, 0x02202, 0 },
+    { PcySemicolonEntityName, 4, 0x0041F, 0 },
+    { PfrSemicolonEntityName, 4, 0x1D513, 0 },
+    { PhiSemicolonEntityName, 4, 0x003A6, 0 },
+    { PiSemicolonEntityName, 3, 0x003A0, 0 },
+    { PlusMinusSemicolonEntityName, 10, 0x000B1, 0 },
+    { PoincareplaneSemicolonEntityName, 14, 0x0210C, 0 },
+    { PopfSemicolonEntityName, 5, 0x02119, 0 },
+    { PrSemicolonEntityName, 3, 0x02ABB, 0 },
+    { PrecedesSemicolonEntityName, 9, 0x0227A, 0 },
+    { PrecedesEqualSemicolonEntityName, 14, 0x02AAF, 0 },
+    { PrecedesSlantEqualSemicolonEntityName, 19, 0x0227C, 0 },
+    { PrecedesTildeSemicolonEntityName, 14, 0x0227E, 0 },
+    { PrimeSemicolonEntityName, 6, 0x02033, 0 },
+    { ProductSemicolonEntityName, 8, 0x0220F, 0 },
+    { ProportionSemicolonEntityName, 11, 0x02237, 0 },
+    { ProportionalSemicolonEntityName, 13, 0x0221D, 0 },
+    { PscrSemicolonEntityName, 5, 0x1D4AB, 0 },
+    { PsiSemicolonEntityName, 4, 0x003A8, 0 },
+    { QUOTEntityName, 4, 0x00022, 0 },
+    { QUOTSemicolonEntityName, 5, 0x00022, 0 },
+    { QfrSemicolonEntityName, 4, 0x1D514, 0 },
+    { QopfSemicolonEntityName, 5, 0x0211A, 0 },
+    { QscrSemicolonEntityName, 5, 0x1D4AC, 0 },
+    { RBarrSemicolonEntityName, 6, 0x02910, 0 },
+    { REGEntityName, 3, 0x000AE, 0 },
+    { REGSemicolonEntityName, 4, 0x000AE, 0 },
+    { RacuteSemicolonEntityName, 7, 0x00154, 0 },
+    { RangSemicolonEntityName, 5, 0x027EB, 0 },
+    { RarrSemicolonEntityName, 5, 0x021A0, 0 },
+    { RarrtlSemicolonEntityName, 7, 0x02916, 0 },
+    { RcaronSemicolonEntityName, 7, 0x00158, 0 },
+    { RcedilSemicolonEntityName, 7, 0x00156, 0 },
+    { RcySemicolonEntityName, 4, 0x00420, 0 },
+    { ReSemicolonEntityName, 3, 0x0211C, 0 },
+    { ReverseElementSemicolonEntityName, 15, 0x0220B, 0 },
+    { ReverseEquilibriumSemicolonEntityName, 19, 0x021CB, 0 },
+    { ReverseUpEquilibriumSemicolonEntityName, 21, 0x0296F, 0 },
+    { RfrSemicolonEntityName, 4, 0x0211C, 0 },
+    { RhoSemicolonEntityName, 4, 0x003A1, 0 },
+    { RightAngleBracketSemicolonEntityName, 18, 0x027E9, 0 },
+    { RightArrowSemicolonEntityName, 11, 0x02192, 0 },
+    { RightArrowBarSemicolonEntityName, 14, 0x021E5, 0 },
+    { RightArrowLeftArrowSemicolonEntityName, 20, 0x021C4, 0 },
+    { RightCeilingSemicolonEntityName, 13, 0x02309, 0 },
+    { RightDoubleBracketSemicolonEntityName, 19, 0x027E7, 0 },
+    { RightDownTeeVectorSemicolonEntityName, 19, 0x0295D, 0 },
+    { RightDownVectorSemicolonEntityName, 16, 0x021C2, 0 },
+    { RightDownVectorBarSemicolonEntityName, 19, 0x02955, 0 },
+    { RightFloorSemicolonEntityName, 11, 0x0230B, 0 },
+    { RightTeeSemicolonEntityName, 9, 0x022A2, 0 },
+    { RightTeeArrowSemicolonEntityName, 14, 0x021A6, 0 },
+    { RightTeeVectorSemicolonEntityName, 15, 0x0295B, 0 },
+    { RightTriangleSemicolonEntityName, 14, 0x022B3, 0 },
+    { RightTriangleBarSemicolonEntityName, 17, 0x029D0, 0 },
+    { RightTriangleEqualSemicolonEntityName, 19, 0x022B5, 0 },
+    { RightUpDownVectorSemicolonEntityName, 18, 0x0294F, 0 },
+    { RightUpTeeVectorSemicolonEntityName, 17, 0x0295C, 0 },
+    { RightUpVectorSemicolonEntityName, 14, 0x021BE, 0 },
+    { RightUpVectorBarSemicolonEntityName, 17, 0x02954, 0 },
+    { RightVectorSemicolonEntityName, 12, 0x021C0, 0 },
+    { RightVectorBarSemicolonEntityName, 15, 0x02953, 0 },
+    { RightarrowSemicolonEntityName, 11, 0x021D2, 0 },
+    { RopfSemicolonEntityName, 5, 0x0211D, 0 },
+    { RoundImpliesSemicolonEntityName, 13, 0x02970, 0 },
+    { RrightarrowSemicolonEntityName, 12, 0x021DB, 0 },
+    { RscrSemicolonEntityName, 5, 0x0211B, 0 },
+    { RshSemicolonEntityName, 4, 0x021B1, 0 },
+    { RuleDelayedSemicolonEntityName, 12, 0x029F4, 0 },
+    { SHCHcySemicolonEntityName, 7, 0x00429, 0 },
+    { SHcySemicolonEntityName, 5, 0x00428, 0 },
+    { SOFTcySemicolonEntityName, 7, 0x0042C, 0 },
+    { SacuteSemicolonEntityName, 7, 0x0015A, 0 },
+    { ScSemicolonEntityName, 3, 0x02ABC, 0 },
+    { ScaronSemicolonEntityName, 7, 0x00160, 0 },
+    { ScedilSemicolonEntityName, 7, 0x0015E, 0 },
+    { ScircSemicolonEntityName, 6, 0x0015C, 0 },
+    { ScySemicolonEntityName, 4, 0x00421, 0 },
+    { SfrSemicolonEntityName, 4, 0x1D516, 0 },
+    { ShortDownArrowSemicolonEntityName, 15, 0x02193, 0 },
+    { ShortLeftArrowSemicolonEntityName, 15, 0x02190, 0 },
+    { ShortRightArrowSemicolonEntityName, 16, 0x02192, 0 },
+    { ShortUpArrowSemicolonEntityName, 13, 0x02191, 0 },
+    { SigmaSemicolonEntityName, 6, 0x003A3, 0 },
+    { SmallCircleSemicolonEntityName, 12, 0x02218, 0 },
+    { SopfSemicolonEntityName, 5, 0x1D54A, 0 },
+    { SqrtSemicolonEntityName, 5, 0x0221A, 0 },
+    { SquareSemicolonEntityName, 7, 0x025A1, 0 },
+    { SquareIntersectionSemicolonEntityName, 19, 0x02293, 0 },
+    { SquareSubsetSemicolonEntityName, 13, 0x0228F, 0 },
+    { SquareSubsetEqualSemicolonEntityName, 18, 0x02291, 0 },
+    { SquareSupersetSemicolonEntityName, 15, 0x02290, 0 },
+    { SquareSupersetEqualSemicolonEntityName, 20, 0x02292, 0 },
+    { SquareUnionSemicolonEntityName, 12, 0x02294, 0 },
+    { SscrSemicolonEntityName, 5, 0x1D4AE, 0 },
+    { StarSemicolonEntityName, 5, 0x022C6, 0 },
+    { SubSemicolonEntityName, 4, 0x022D0, 0 },
+    { SubsetSemicolonEntityName, 7, 0x022D0, 0 },
+    { SubsetEqualSemicolonEntityName, 12, 0x02286, 0 },
+    { SucceedsSemicolonEntityName, 9, 0x0227B, 0 },
+    { SucceedsEqualSemicolonEntityName, 14, 0x02AB0, 0 },
+    { SucceedsSlantEqualSemicolonEntityName, 19, 0x0227D, 0 },
+    { SucceedsTildeSemicolonEntityName, 14, 0x0227F, 0 },
+    { SuchThatSemicolonEntityName, 9, 0x0220B, 0 },
+    { SumSemicolonEntityName, 4, 0x02211, 0 },
+    { SupSemicolonEntityName, 4, 0x022D1, 0 },
+    { SupersetSemicolonEntityName, 9, 0x02283, 0 },
+    { SupersetEqualSemicolonEntityName, 14, 0x02287, 0 },
+    { SupsetSemicolonEntityName, 7, 0x022D1, 0 },
+    { THORNEntityName, 5, 0x000DE, 0 },
+    { THORNSemicolonEntityName, 6, 0x000DE, 0 },
+    { TRADESemicolonEntityName, 6, 0x02122, 0 },
+    { TSHcySemicolonEntityName, 6, 0x0040B, 0 },
+    { TScySemicolonEntityName, 5, 0x00426, 0 },
+    { TabSemicolonEntityName, 4, 0x00009, 0 },
+    { TauSemicolonEntityName, 4, 0x003A4, 0 },
+    { TcaronSemicolonEntityName, 7, 0x00164, 0 },
+    { TcedilSemicolonEntityName, 7, 0x00162, 0 },
+    { TcySemicolonEntityName, 4, 0x00422, 0 },
+    { TfrSemicolonEntityName, 4, 0x1D517, 0 },
+    { ThereforeSemicolonEntityName, 10, 0x02234, 0 },
+    { ThetaSemicolonEntityName, 6, 0x00398, 0 },
+    { ThickSpaceSemicolonEntityName, 11, 0x0205F, 0x0200A },
+    { ThinSpaceSemicolonEntityName, 10, 0x02009, 0 },
+    { TildeSemicolonEntityName, 6, 0x0223C, 0 },
+    { TildeEqualSemicolonEntityName, 11, 0x02243, 0 },
+    { TildeFullEqualSemicolonEntityName, 15, 0x02245, 0 },
+    { TildeTildeSemicolonEntityName, 11, 0x02248, 0 },
+    { TopfSemicolonEntityName, 5, 0x1D54B, 0 },
+    { TripleDotSemicolonEntityName, 10, 0x020DB, 0 },
+    { TscrSemicolonEntityName, 5, 0x1D4AF, 0 },
+    { TstrokSemicolonEntityName, 7, 0x00166, 0 },
+    { UacuteEntityName, 6, 0x000DA, 0 },
+    { UacuteSemicolonEntityName, 7, 0x000DA, 0 },
+    { UarrSemicolonEntityName, 5, 0x0219F, 0 },
+    { UarrocirSemicolonEntityName, 9, 0x02949, 0 },
+    { UbrcySemicolonEntityName, 6, 0x0040E, 0 },
+    { UbreveSemicolonEntityName, 7, 0x0016C, 0 },
+    { UcircEntityName, 5, 0x000DB, 0 },
+    { UcircSemicolonEntityName, 6, 0x000DB, 0 },
+    { UcySemicolonEntityName, 4, 0x00423, 0 },
+    { UdblacSemicolonEntityName, 7, 0x00170, 0 },
+    { UfrSemicolonEntityName, 4, 0x1D518, 0 },
+    { UgraveEntityName, 6, 0x000D9, 0 },
+    { UgraveSemicolonEntityName, 7, 0x000D9, 0 },
+    { UmacrSemicolonEntityName, 6, 0x0016A, 0 },
+    { UnderBarSemicolonEntityName, 9, 0x0005F, 0 },
+    { UnderBraceSemicolonEntityName, 11, 0x023DF, 0 },
+    { UnderBracketSemicolonEntityName, 13, 0x023B5, 0 },
+    { UnderParenthesisSemicolonEntityName, 17, 0x023DD, 0 },
+    { UnionSemicolonEntityName, 6, 0x022C3, 0 },
+    { UnionPlusSemicolonEntityName, 10, 0x0228E, 0 },
+    { UogonSemicolonEntityName, 6, 0x00172, 0 },
+    { UopfSemicolonEntityName, 5, 0x1D54C, 0 },
+    { UpArrowSemicolonEntityName, 8, 0x02191, 0 },
+    { UpArrowBarSemicolonEntityName, 11, 0x02912, 0 },
+    { UpArrowDownArrowSemicolonEntityName, 17, 0x021C5, 0 },
+    { UpDownArrowSemicolonEntityName, 12, 0x02195, 0 },
+    { UpEquilibriumSemicolonEntityName, 14, 0x0296E, 0 },
+    { UpTeeSemicolonEntityName, 6, 0x022A5, 0 },
+    { UpTeeArrowSemicolonEntityName, 11, 0x021A5, 0 },
+    { UparrowSemicolonEntityName, 8, 0x021D1, 0 },
+    { UpdownarrowSemicolonEntityName, 12, 0x021D5, 0 },
+    { UpperLeftArrowSemicolonEntityName, 15, 0x02196, 0 },
+    { UpperRightArrowSemicolonEntityName, 16, 0x02197, 0 },
+    { UpsiSemicolonEntityName, 5, 0x003D2, 0 },
+    { UpsilonSemicolonEntityName, 8, 0x003A5, 0 },
+    { UringSemicolonEntityName, 6, 0x0016E, 0 },
+    { UscrSemicolonEntityName, 5, 0x1D4B0, 0 },
+    { UtildeSemicolonEntityName, 7, 0x00168, 0 },
+    { UumlEntityName, 4, 0x000DC, 0 },
+    { UumlSemicolonEntityName, 5, 0x000DC, 0 },
+    { VDashSemicolonEntityName, 6, 0x022AB, 0 },
+    { VbarSemicolonEntityName, 5, 0x02AEB, 0 },
+    { VcySemicolonEntityName, 4, 0x00412, 0 },
+    { VdashSemicolonEntityName, 6, 0x022A9, 0 },
+    { VdashlSemicolonEntityName, 7, 0x02AE6, 0 },
+    { VeeSemicolonEntityName, 4, 0x022C1, 0 },
+    { VerbarSemicolonEntityName, 7, 0x02016, 0 },
+    { VertSemicolonEntityName, 5, 0x02016, 0 },
+    { VerticalBarSemicolonEntityName, 12, 0x02223, 0 },
+    { VerticalLineSemicolonEntityName, 13, 0x0007C, 0 },
+    { VerticalSeparatorSemicolonEntityName, 18, 0x02758, 0 },
+    { VerticalTildeSemicolonEntityName, 14, 0x02240, 0 },
+    { VeryThinSpaceSemicolonEntityName, 14, 0x0200A, 0 },
+    { VfrSemicolonEntityName, 4, 0x1D519, 0 },
+    { VopfSemicolonEntityName, 5, 0x1D54D, 0 },
+    { VscrSemicolonEntityName, 5, 0x1D4B1, 0 },
+    { VvdashSemicolonEntityName, 7, 0x022AA, 0 },
+    { WcircSemicolonEntityName, 6, 0x00174, 0 },
+    { WedgeSemicolonEntityName, 6, 0x022C0, 0 },
+    { WfrSemicolonEntityName, 4, 0x1D51A, 0 },
+    { WopfSemicolonEntityName, 5, 0x1D54E, 0 },
+    { WscrSemicolonEntityName, 5, 0x1D4B2, 0 },
+    { XfrSemicolonEntityName, 4, 0x1D51B, 0 },
+    { XiSemicolonEntityName, 3, 0x0039E, 0 },
+    { XopfSemicolonEntityName, 5, 0x1D54F, 0 },
+    { XscrSemicolonEntityName, 5, 0x1D4B3, 0 },
+    { YAcySemicolonEntityName, 5, 0x0042F, 0 },
+    { YIcySemicolonEntityName, 5, 0x00407, 0 },
+    { YUcySemicolonEntityName, 5, 0x0042E, 0 },
+    { YacuteEntityName, 6, 0x000DD, 0 },
+    { YacuteSemicolonEntityName, 7, 0x000DD, 0 },
+    { YcircSemicolonEntityName, 6, 0x00176, 0 },
+    { YcySemicolonEntityName, 4, 0x0042B, 0 },
+    { YfrSemicolonEntityName, 4, 0x1D51C, 0 },
+    { YopfSemicolonEntityName, 5, 0x1D550, 0 },
+    { YscrSemicolonEntityName, 5, 0x1D4B4, 0 },
+    { YumlSemicolonEntityName, 5, 0x00178, 0 },
+    { ZHcySemicolonEntityName, 5, 0x00416, 0 },
+    { ZacuteSemicolonEntityName, 7, 0x00179, 0 },
+    { ZcaronSemicolonEntityName, 7, 0x0017D, 0 },
+    { ZcySemicolonEntityName, 4, 0x00417, 0 },
+    { ZdotSemicolonEntityName, 5, 0x0017B, 0 },
+    { ZeroWidthSpaceSemicolonEntityName, 15, 0x0200B, 0 },
+    { ZetaSemicolonEntityName, 5, 0x00396, 0 },
+    { ZfrSemicolonEntityName, 4, 0x02128, 0 },
+    { ZopfSemicolonEntityName, 5, 0x02124, 0 },
+    { ZscrSemicolonEntityName, 5, 0x1D4B5, 0 },
+    { aacuteEntityName, 6, 0x000E1, 0 },
+    { aacuteSemicolonEntityName, 7, 0x000E1, 0 },
+    { abreveSemicolonEntityName, 7, 0x00103, 0 },
+    { acSemicolonEntityName, 3, 0x0223E, 0 },
+    { acESemicolonEntityName, 4, 0x0223E, 0x00333 },
+    { acdSemicolonEntityName, 4, 0x0223F, 0 },
+    { acircEntityName, 5, 0x000E2, 0 },
+    { acircSemicolonEntityName, 6, 0x000E2, 0 },
+    { acuteEntityName, 5, 0x000B4, 0 },
+    { acuteSemicolonEntityName, 6, 0x000B4, 0 },
+    { acySemicolonEntityName, 4, 0x00430, 0 },
+    { aeligEntityName, 5, 0x000E6, 0 },
+    { aeligSemicolonEntityName, 6, 0x000E6, 0 },
+    { afSemicolonEntityName, 3, 0x02061, 0 },
+    { afrSemicolonEntityName, 4, 0x1D51E, 0 },
+    { agraveEntityName, 6, 0x000E0, 0 },
+    { agraveSemicolonEntityName, 7, 0x000E0, 0 },
+    { alefsymSemicolonEntityName, 8, 0x02135, 0 },
+    { alephSemicolonEntityName, 6, 0x02135, 0 },
+    { alphaSemicolonEntityName, 6, 0x003B1, 0 },
+    { amacrSemicolonEntityName, 6, 0x00101, 0 },
+    { amalgSemicolonEntityName, 6, 0x02A3F, 0 },
+    { ampEntityName, 3, 0x00026, 0 },
+    { ampSemicolonEntityName, 4, 0x00026, 0 },
+    { andSemicolonEntityName, 4, 0x02227, 0 },
+    { andandSemicolonEntityName, 7, 0x02A55, 0 },
+    { anddSemicolonEntityName, 5, 0x02A5C, 0 },
+    { andslopeSemicolonEntityName, 9, 0x02A58, 0 },
+    { andvSemicolonEntityName, 5, 0x02A5A, 0 },
+    { angSemicolonEntityName, 4, 0x02220, 0 },
+    { angeSemicolonEntityName, 5, 0x029A4, 0 },
+    { angleSemicolonEntityName, 6, 0x02220, 0 },
+    { angmsdSemicolonEntityName, 7, 0x02221, 0 },
+    { angmsdaaSemicolonEntityName, 9, 0x029A8, 0 },
+    { angmsdabSemicolonEntityName, 9, 0x029A9, 0 },
+    { angmsdacSemicolonEntityName, 9, 0x029AA, 0 },
+    { angmsdadSemicolonEntityName, 9, 0x029AB, 0 },
+    { angmsdaeSemicolonEntityName, 9, 0x029AC, 0 },
+    { angmsdafSemicolonEntityName, 9, 0x029AD, 0 },
+    { angmsdagSemicolonEntityName, 9, 0x029AE, 0 },
+    { angmsdahSemicolonEntityName, 9, 0x029AF, 0 },
+    { angrtSemicolonEntityName, 6, 0x0221F, 0 },
+    { angrtvbSemicolonEntityName, 8, 0x022BE, 0 },
+    { angrtvbdSemicolonEntityName, 9, 0x0299D, 0 },
+    { angsphSemicolonEntityName, 7, 0x02222, 0 },
+    { angstSemicolonEntityName, 6, 0x000C5, 0 },
+    { angzarrSemicolonEntityName, 8, 0x0237C, 0 },
+    { aogonSemicolonEntityName, 6, 0x00105, 0 },
+    { aopfSemicolonEntityName, 5, 0x1D552, 0 },
+    { apSemicolonEntityName, 3, 0x02248, 0 },
+    { apESemicolonEntityName, 4, 0x02A70, 0 },
+    { apacirSemicolonEntityName, 7, 0x02A6F, 0 },
+    { apeSemicolonEntityName, 4, 0x0224A, 0 },
+    { apidSemicolonEntityName, 5, 0x0224B, 0 },
+    { aposSemicolonEntityName, 5, 0x00027, 0 },
+    { approxSemicolonEntityName, 7, 0x02248, 0 },
+    { approxeqSemicolonEntityName, 9, 0x0224A, 0 },
+    { aringEntityName, 5, 0x000E5, 0 },
+    { aringSemicolonEntityName, 6, 0x000E5, 0 },
+    { ascrSemicolonEntityName, 5, 0x1D4B6, 0 },
+    { astSemicolonEntityName, 4, 0x0002A, 0 },
+    { asympSemicolonEntityName, 6, 0x02248, 0 },
+    { asympeqSemicolonEntityName, 8, 0x0224D, 0 },
+    { atildeEntityName, 6, 0x000E3, 0 },
+    { atildeSemicolonEntityName, 7, 0x000E3, 0 },
+    { aumlEntityName, 4, 0x000E4, 0 },
+    { aumlSemicolonEntityName, 5, 0x000E4, 0 },
+    { awconintSemicolonEntityName, 9, 0x02233, 0 },
+    { awintSemicolonEntityName, 6, 0x02A11, 0 },
+    { bNotSemicolonEntityName, 5, 0x02AED, 0 },
+    { backcongSemicolonEntityName, 9, 0x0224C, 0 },
+    { backepsilonSemicolonEntityName, 12, 0x003F6, 0 },
+    { backprimeSemicolonEntityName, 10, 0x02035, 0 },
+    { backsimSemicolonEntityName, 8, 0x0223D, 0 },
+    { backsimeqSemicolonEntityName, 10, 0x022CD, 0 },
+    { barveeSemicolonEntityName, 7, 0x022BD, 0 },
+    { barwedSemicolonEntityName, 7, 0x02305, 0 },
+    { barwedgeSemicolonEntityName, 9, 0x02305, 0 },
+    { bbrkSemicolonEntityName, 5, 0x023B5, 0 },
+    { bbrktbrkSemicolonEntityName, 9, 0x023B6, 0 },
+    { bcongSemicolonEntityName, 6, 0x0224C, 0 },
+    { bcySemicolonEntityName, 4, 0x00431, 0 },
+    { bdquoSemicolonEntityName, 6, 0x0201E, 0 },
+    { becausSemicolonEntityName, 7, 0x02235, 0 },
+    { becauseSemicolonEntityName, 8, 0x02235, 0 },
+    { bemptyvSemicolonEntityName, 8, 0x029B0, 0 },
+    { bepsiSemicolonEntityName, 6, 0x003F6, 0 },
+    { bernouSemicolonEntityName, 7, 0x0212C, 0 },
+    { betaSemicolonEntityName, 5, 0x003B2, 0 },
+    { bethSemicolonEntityName, 5, 0x02136, 0 },
+    { betweenSemicolonEntityName, 8, 0x0226C, 0 },
+    { bfrSemicolonEntityName, 4, 0x1D51F, 0 },
+    { bigcapSemicolonEntityName, 7, 0x022C2, 0 },
+    { bigcircSemicolonEntityName, 8, 0x025EF, 0 },
+    { bigcupSemicolonEntityName, 7, 0x022C3, 0 },
+    { bigodotSemicolonEntityName, 8, 0x02A00, 0 },
+    { bigoplusSemicolonEntityName, 9, 0x02A01, 0 },
+    { bigotimesSemicolonEntityName, 10, 0x02A02, 0 },
+    { bigsqcupSemicolonEntityName, 9, 0x02A06, 0 },
+    { bigstarSemicolonEntityName, 8, 0x02605, 0 },
+    { bigtriangledownSemicolonEntityName, 16, 0x025BD, 0 },
+    { bigtriangleupSemicolonEntityName, 14, 0x025B3, 0 },
+    { biguplusSemicolonEntityName, 9, 0x02A04, 0 },
+    { bigveeSemicolonEntityName, 7, 0x022C1, 0 },
+    { bigwedgeSemicolonEntityName, 9, 0x022C0, 0 },
+    { bkarowSemicolonEntityName, 7, 0x0290D, 0 },
+    { blacklozengeSemicolonEntityName, 13, 0x029EB, 0 },
+    { blacksquareSemicolonEntityName, 12, 0x025AA, 0 },
+    { blacktriangleSemicolonEntityName, 14, 0x025B4, 0 },
+    { blacktriangledownSemicolonEntityName, 18, 0x025BE, 0 },
+    { blacktriangleleftSemicolonEntityName, 18, 0x025C2, 0 },
+    { blacktrianglerightSemicolonEntityName, 19, 0x025B8, 0 },
+    { blankSemicolonEntityName, 6, 0x02423, 0 },
+    { blk12SemicolonEntityName, 6, 0x02592, 0 },
+    { blk14SemicolonEntityName, 6, 0x02591, 0 },
+    { blk34SemicolonEntityName, 6, 0x02593, 0 },
+    { blockSemicolonEntityName, 6, 0x02588, 0 },
+    { bneSemicolonEntityName, 4, 0x0003D, 0x020E5 },
+    { bnequivSemicolonEntityName, 8, 0x02261, 0x020E5 },
+    { bnotSemicolonEntityName, 5, 0x02310, 0 },
+    { bopfSemicolonEntityName, 5, 0x1D553, 0 },
+    { botSemicolonEntityName, 4, 0x022A5, 0 },
+    { bottomSemicolonEntityName, 7, 0x022A5, 0 },
+    { bowtieSemicolonEntityName, 7, 0x022C8, 0 },
+    { boxDLSemicolonEntityName, 6, 0x02557, 0 },
+    { boxDRSemicolonEntityName, 6, 0x02554, 0 },
+    { boxDlSemicolonEntityName, 6, 0x02556, 0 },
+    { boxDrSemicolonEntityName, 6, 0x02553, 0 },
+    { boxHSemicolonEntityName, 5, 0x02550, 0 },
+    { boxHDSemicolonEntityName, 6, 0x02566, 0 },
+    { boxHUSemicolonEntityName, 6, 0x02569, 0 },
+    { boxHdSemicolonEntityName, 6, 0x02564, 0 },
+    { boxHuSemicolonEntityName, 6, 0x02567, 0 },
+    { boxULSemicolonEntityName, 6, 0x0255D, 0 },
+    { boxURSemicolonEntityName, 6, 0x0255A, 0 },
+    { boxUlSemicolonEntityName, 6, 0x0255C, 0 },
+    { boxUrSemicolonEntityName, 6, 0x02559, 0 },
+    { boxVSemicolonEntityName, 5, 0x02551, 0 },
+    { boxVHSemicolonEntityName, 6, 0x0256C, 0 },
+    { boxVLSemicolonEntityName, 6, 0x02563, 0 },
+    { boxVRSemicolonEntityName, 6, 0x02560, 0 },
+    { boxVhSemicolonEntityName, 6, 0x0256B, 0 },
+    { boxVlSemicolonEntityName, 6, 0x02562, 0 },
+    { boxVrSemicolonEntityName, 6, 0x0255F, 0 },
+    { boxboxSemicolonEntityName, 7, 0x029C9, 0 },
+    { boxdLSemicolonEntityName, 6, 0x02555, 0 },
+    { boxdRSemicolonEntityName, 6, 0x02552, 0 },
+    { boxdlSemicolonEntityName, 6, 0x02510, 0 },
+    { boxdrSemicolonEntityName, 6, 0x0250C, 0 },
+    { boxhSemicolonEntityName, 5, 0x02500, 0 },
+    { boxhDSemicolonEntityName, 6, 0x02565, 0 },
+    { boxhUSemicolonEntityName, 6, 0x02568, 0 },
+    { boxhdSemicolonEntityName, 6, 0x0252C, 0 },
+    { boxhuSemicolonEntityName, 6, 0x02534, 0 },
+    { boxminusSemicolonEntityName, 9, 0x0229F, 0 },
+    { boxplusSemicolonEntityName, 8, 0x0229E, 0 },
+    { boxtimesSemicolonEntityName, 9, 0x022A0, 0 },
+    { boxuLSemicolonEntityName, 6, 0x0255B, 0 },
+    { boxuRSemicolonEntityName, 6, 0x02558, 0 },
+    { boxulSemicolonEntityName, 6, 0x02518, 0 },
+    { boxurSemicolonEntityName, 6, 0x02514, 0 },
+    { boxvSemicolonEntityName, 5, 0x02502, 0 },
+    { boxvHSemicolonEntityName, 6, 0x0256A, 0 },
+    { boxvLSemicolonEntityName, 6, 0x02561, 0 },
+    { boxvRSemicolonEntityName, 6, 0x0255E, 0 },
+    { boxvhSemicolonEntityName, 6, 0x0253C, 0 },
+    { boxvlSemicolonEntityName, 6, 0x02524, 0 },
+    { boxvrSemicolonEntityName, 6, 0x0251C, 0 },
+    { bprimeSemicolonEntityName, 7, 0x02035, 0 },
+    { breveSemicolonEntityName, 6, 0x002D8, 0 },
+    { brvbarEntityName, 6, 0x000A6, 0 },
+    { brvbarSemicolonEntityName, 7, 0x000A6, 0 },
+    { bscrSemicolonEntityName, 5, 0x1D4B7, 0 },
+    { bsemiSemicolonEntityName, 6, 0x0204F, 0 },
+    { bsimSemicolonEntityName, 5, 0x0223D, 0 },
+    { bsimeSemicolonEntityName, 6, 0x022CD, 0 },
+    { bsolSemicolonEntityName, 5, 0x0005C, 0 },
+    { bsolbSemicolonEntityName, 6, 0x029C5, 0 },
+    { bsolhsubSemicolonEntityName, 9, 0x027C8, 0 },
+    { bullSemicolonEntityName, 5, 0x02022, 0 },
+    { bulletSemicolonEntityName, 7, 0x02022, 0 },
+    { bumpSemicolonEntityName, 5, 0x0224E, 0 },
+    { bumpESemicolonEntityName, 6, 0x02AAE, 0 },
+    { bumpeSemicolonEntityName, 6, 0x0224F, 0 },
+    { bumpeqSemicolonEntityName, 7, 0x0224F, 0 },
+    { cacuteSemicolonEntityName, 7, 0x00107, 0 },
+    { capSemicolonEntityName, 4, 0x02229, 0 },
+    { capandSemicolonEntityName, 7, 0x02A44, 0 },
+    { capbrcupSemicolonEntityName, 9, 0x02A49, 0 },
+    { capcapSemicolonEntityName, 7, 0x02A4B, 0 },
+    { capcupSemicolonEntityName, 7, 0x02A47, 0 },
+    { capdotSemicolonEntityName, 7, 0x02A40, 0 },
+    { capsSemicolonEntityName, 5, 0x02229, 0x0FE00 },
+    { caretSemicolonEntityName, 6, 0x02041, 0 },
+    { caronSemicolonEntityName, 6, 0x002C7, 0 },
+    { ccapsSemicolonEntityName, 6, 0x02A4D, 0 },
+    { ccaronSemicolonEntityName, 7, 0x0010D, 0 },
+    { ccedilEntityName, 6, 0x000E7, 0 },
+    { ccedilSemicolonEntityName, 7, 0x000E7, 0 },
+    { ccircSemicolonEntityName, 6, 0x00109, 0 },
+    { ccupsSemicolonEntityName, 6, 0x02A4C, 0 },
+    { ccupssmSemicolonEntityName, 8, 0x02A50, 0 },
+    { cdotSemicolonEntityName, 5, 0x0010B, 0 },
+    { cedilEntityName, 5, 0x000B8, 0 },
+    { cedilSemicolonEntityName, 6, 0x000B8, 0 },
+    { cemptyvSemicolonEntityName, 8, 0x029B2, 0 },
+    { centEntityName, 4, 0x000A2, 0 },
+    { centSemicolonEntityName, 5, 0x000A2, 0 },
+    { centerdotSemicolonEntityName, 10, 0x000B7, 0 },
+    { cfrSemicolonEntityName, 4, 0x1D520, 0 },
+    { chcySemicolonEntityName, 5, 0x00447, 0 },
+    { checkSemicolonEntityName, 6, 0x02713, 0 },
+    { checkmarkSemicolonEntityName, 10, 0x02713, 0 },
+    { chiSemicolonEntityName, 4, 0x003C7, 0 },
+    { cirSemicolonEntityName, 4, 0x025CB, 0 },
+    { cirESemicolonEntityName, 5, 0x029C3, 0 },
+    { circSemicolonEntityName, 5, 0x002C6, 0 },
+    { circeqSemicolonEntityName, 7, 0x02257, 0 },
+    { circlearrowleftSemicolonEntityName, 16, 0x021BA, 0 },
+    { circlearrowrightSemicolonEntityName, 17, 0x021BB, 0 },
+    { circledRSemicolonEntityName, 9, 0x000AE, 0 },
+    { circledSSemicolonEntityName, 9, 0x024C8, 0 },
+    { circledastSemicolonEntityName, 11, 0x0229B, 0 },
+    { circledcircSemicolonEntityName, 12, 0x0229A, 0 },
+    { circleddashSemicolonEntityName, 12, 0x0229D, 0 },
+    { cireSemicolonEntityName, 5, 0x02257, 0 },
+    { cirfnintSemicolonEntityName, 9, 0x02A10, 0 },
+    { cirmidSemicolonEntityName, 7, 0x02AEF, 0 },
+    { cirscirSemicolonEntityName, 8, 0x029C2, 0 },
+    { clubsSemicolonEntityName, 6, 0x02663, 0 },
+    { clubsuitSemicolonEntityName, 9, 0x02663, 0 },
+    { colonSemicolonEntityName, 6, 0x0003A, 0 },
+    { coloneSemicolonEntityName, 7, 0x02254, 0 },
+    { coloneqSemicolonEntityName, 8, 0x02254, 0 },
+    { commaSemicolonEntityName, 6, 0x0002C, 0 },
+    { commatSemicolonEntityName, 7, 0x00040, 0 },
+    { compSemicolonEntityName, 5, 0x02201, 0 },
+    { compfnSemicolonEntityName, 7, 0x02218, 0 },
+    { complementSemicolonEntityName, 11, 0x02201, 0 },
+    { complexesSemicolonEntityName, 10, 0x02102, 0 },
+    { congSemicolonEntityName, 5, 0x02245, 0 },
+    { congdotSemicolonEntityName, 8, 0x02A6D, 0 },
+    { conintSemicolonEntityName, 7, 0x0222E, 0 },
+    { copfSemicolonEntityName, 5, 0x1D554, 0 },
+    { coprodSemicolonEntityName, 7, 0x02210, 0 },
+    { copyEntityName, 4, 0x000A9, 0 },
+    { copySemicolonEntityName, 5, 0x000A9, 0 },
+    { copysrSemicolonEntityName, 7, 0x02117, 0 },
+    { crarrSemicolonEntityName, 6, 0x021B5, 0 },
+    { crossSemicolonEntityName, 6, 0x02717, 0 },
+    { cscrSemicolonEntityName, 5, 0x1D4B8, 0 },
+    { csubSemicolonEntityName, 5, 0x02ACF, 0 },
+    { csubeSemicolonEntityName, 6, 0x02AD1, 0 },
+    { csupSemicolonEntityName, 5, 0x02AD0, 0 },
+    { csupeSemicolonEntityName, 6, 0x02AD2, 0 },
+    { ctdotSemicolonEntityName, 6, 0x022EF, 0 },
+    { cudarrlSemicolonEntityName, 8, 0x02938, 0 },
+    { cudarrrSemicolonEntityName, 8, 0x02935, 0 },
+    { cueprSemicolonEntityName, 6, 0x022DE, 0 },
+    { cuescSemicolonEntityName, 6, 0x022DF, 0 },
+    { cularrSemicolonEntityName, 7, 0x021B6, 0 },
+    { cularrpSemicolonEntityName, 8, 0x0293D, 0 },
+    { cupSemicolonEntityName, 4, 0x0222A, 0 },
+    { cupbrcapSemicolonEntityName, 9, 0x02A48, 0 },
+    { cupcapSemicolonEntityName, 7, 0x02A46, 0 },
+    { cupcupSemicolonEntityName, 7, 0x02A4A, 0 },
+    { cupdotSemicolonEntityName, 7, 0x0228D, 0 },
+    { cuporSemicolonEntityName, 6, 0x02A45, 0 },
+    { cupsSemicolonEntityName, 5, 0x0222A, 0x0FE00 },
+    { curarrSemicolonEntityName, 7, 0x021B7, 0 },
+    { curarrmSemicolonEntityName, 8, 0x0293C, 0 },
+    { curlyeqprecSemicolonEntityName, 12, 0x022DE, 0 },
+    { curlyeqsuccSemicolonEntityName, 12, 0x022DF, 0 },
+    { curlyveeSemicolonEntityName, 9, 0x022CE, 0 },
+    { curlywedgeSemicolonEntityName, 11, 0x022CF, 0 },
+    { currenEntityName, 6, 0x000A4, 0 },
+    { currenSemicolonEntityName, 7, 0x000A4, 0 },
+    { curvearrowleftSemicolonEntityName, 15, 0x021B6, 0 },
+    { curvearrowrightSemicolonEntityName, 16, 0x021B7, 0 },
+    { cuveeSemicolonEntityName, 6, 0x022CE, 0 },
+    { cuwedSemicolonEntityName, 6, 0x022CF, 0 },
+    { cwconintSemicolonEntityName, 9, 0x02232, 0 },
+    { cwintSemicolonEntityName, 6, 0x02231, 0 },
+    { cylctySemicolonEntityName, 7, 0x0232D, 0 },
+    { dArrSemicolonEntityName, 5, 0x021D3, 0 },
+    { dHarSemicolonEntityName, 5, 0x02965, 0 },
+    { daggerSemicolonEntityName, 7, 0x02020, 0 },
+    { dalethSemicolonEntityName, 7, 0x02138, 0 },
+    { darrSemicolonEntityName, 5, 0x02193, 0 },
+    { dashSemicolonEntityName, 5, 0x02010, 0 },
+    { dashvSemicolonEntityName, 6, 0x022A3, 0 },
+    { dbkarowSemicolonEntityName, 8, 0x0290F, 0 },
+    { dblacSemicolonEntityName, 6, 0x002DD, 0 },
+    { dcaronSemicolonEntityName, 7, 0x0010F, 0 },
+    { dcySemicolonEntityName, 4, 0x00434, 0 },
+    { ddSemicolonEntityName, 3, 0x02146, 0 },
+    { ddaggerSemicolonEntityName, 8, 0x02021, 0 },
+    { ddarrSemicolonEntityName, 6, 0x021CA, 0 },
+    { ddotseqSemicolonEntityName, 8, 0x02A77, 0 },
+    { degEntityName, 3, 0x000B0, 0 },
+    { degSemicolonEntityName, 4, 0x000B0, 0 },
+    { deltaSemicolonEntityName, 6, 0x003B4, 0 },
+    { demptyvSemicolonEntityName, 8, 0x029B1, 0 },
+    { dfishtSemicolonEntityName, 7, 0x0297F, 0 },
+    { dfrSemicolonEntityName, 4, 0x1D521, 0 },
+    { dharlSemicolonEntityName, 6, 0x021C3, 0 },
+    { dharrSemicolonEntityName, 6, 0x021C2, 0 },
+    { diamSemicolonEntityName, 5, 0x022C4, 0 },
+    { diamondSemicolonEntityName, 8, 0x022C4, 0 },
+    { diamondsuitSemicolonEntityName, 12, 0x02666, 0 },
+    { diamsSemicolonEntityName, 6, 0x02666, 0 },
+    { dieSemicolonEntityName, 4, 0x000A8, 0 },
+    { digammaSemicolonEntityName, 8, 0x003DD, 0 },
+    { disinSemicolonEntityName, 6, 0x022F2, 0 },
+    { divSemicolonEntityName, 4, 0x000F7, 0 },
+    { divideEntityName, 6, 0x000F7, 0 },
+    { divideSemicolonEntityName, 7, 0x000F7, 0 },
+    { divideontimesSemicolonEntityName, 14, 0x022C7, 0 },
+    { divonxSemicolonEntityName, 7, 0x022C7, 0 },
+    { djcySemicolonEntityName, 5, 0x00452, 0 },
+    { dlcornSemicolonEntityName, 7, 0x0231E, 0 },
+    { dlcropSemicolonEntityName, 7, 0x0230D, 0 },
+    { dollarSemicolonEntityName, 7, 0x00024, 0 },
+    { dopfSemicolonEntityName, 5, 0x1D555, 0 },
+    { dotSemicolonEntityName, 4, 0x002D9, 0 },
+    { doteqSemicolonEntityName, 6, 0x02250, 0 },
+    { doteqdotSemicolonEntityName, 9, 0x02251, 0 },
+    { dotminusSemicolonEntityName, 9, 0x02238, 0 },
+    { dotplusSemicolonEntityName, 8, 0x02214, 0 },
+    { dotsquareSemicolonEntityName, 10, 0x022A1, 0 },
+    { doublebarwedgeSemicolonEntityName, 15, 0x02306, 0 },
+    { downarrowSemicolonEntityName, 10, 0x02193, 0 },
+    { downdownarrowsSemicolonEntityName, 15, 0x021CA, 0 },
+    { downharpoonleftSemicolonEntityName, 16, 0x021C3, 0 },
+    { downharpoonrightSemicolonEntityName, 17, 0x021C2, 0 },
+    { drbkarowSemicolonEntityName, 9, 0x02910, 0 },
+    { drcornSemicolonEntityName, 7, 0x0231F, 0 },
+    { drcropSemicolonEntityName, 7, 0x0230C, 0 },
+    { dscrSemicolonEntityName, 5, 0x1D4B9, 0 },
+    { dscySemicolonEntityName, 5, 0x00455, 0 },
+    { dsolSemicolonEntityName, 5, 0x029F6, 0 },
+    { dstrokSemicolonEntityName, 7, 0x00111, 0 },
+    { dtdotSemicolonEntityName, 6, 0x022F1, 0 },
+    { dtriSemicolonEntityName, 5, 0x025BF, 0 },
+    { dtrifSemicolonEntityName, 6, 0x025BE, 0 },
+    { duarrSemicolonEntityName, 6, 0x021F5, 0 },
+    { duharSemicolonEntityName, 6, 0x0296F, 0 },
+    { dwangleSemicolonEntityName, 8, 0x029A6, 0 },
+    { dzcySemicolonEntityName, 5, 0x0045F, 0 },
+    { dzigrarrSemicolonEntityName, 9, 0x027FF, 0 },
+    { eDDotSemicolonEntityName, 6, 0x02A77, 0 },
+    { eDotSemicolonEntityName, 5, 0x02251, 0 },
+    { eacuteEntityName, 6, 0x000E9, 0 },
+    { eacuteSemicolonEntityName, 7, 0x000E9, 0 },
+    { easterSemicolonEntityName, 7, 0x02A6E, 0 },
+    { ecaronSemicolonEntityName, 7, 0x0011B, 0 },
+    { ecirSemicolonEntityName, 5, 0x02256, 0 },
+    { ecircEntityName, 5, 0x000EA, 0 },
+    { ecircSemicolonEntityName, 6, 0x000EA, 0 },
+    { ecolonSemicolonEntityName, 7, 0x02255, 0 },
+    { ecySemicolonEntityName, 4, 0x0044D, 0 },
+    { edotSemicolonEntityName, 5, 0x00117, 0 },
+    { eeSemicolonEntityName, 3, 0x02147, 0 },
+    { efDotSemicolonEntityName, 6, 0x02252, 0 },
+    { efrSemicolonEntityName, 4, 0x1D522, 0 },
+    { egSemicolonEntityName, 3, 0x02A9A, 0 },
+    { egraveEntityName, 6, 0x000E8, 0 },
+    { egraveSemicolonEntityName, 7, 0x000E8, 0 },
+    { egsSemicolonEntityName, 4, 0x02A96, 0 },
+    { egsdotSemicolonEntityName, 7, 0x02A98, 0 },
+    { elSemicolonEntityName, 3, 0x02A99, 0 },
+    { elintersSemicolonEntityName, 9, 0x023E7, 0 },
+    { ellSemicolonEntityName, 4, 0x02113, 0 },
+    { elsSemicolonEntityName, 4, 0x02A95, 0 },
+    { elsdotSemicolonEntityName, 7, 0x02A97, 0 },
+    { emacrSemicolonEntityName, 6, 0x00113, 0 },
+    { emptySemicolonEntityName, 6, 0x02205, 0 },
+    { emptysetSemicolonEntityName, 9, 0x02205, 0 },
+    { emptyvSemicolonEntityName, 7, 0x02205, 0 },
+    { emsp13SemicolonEntityName, 7, 0x02004, 0 },
+    { emsp14SemicolonEntityName, 7, 0x02005, 0 },
+    { emspSemicolonEntityName, 5, 0x02003, 0 },
+    { engSemicolonEntityName, 4, 0x0014B, 0 },
+    { enspSemicolonEntityName, 5, 0x02002, 0 },
+    { eogonSemicolonEntityName, 6, 0x00119, 0 },
+    { eopfSemicolonEntityName, 5, 0x1D556, 0 },
+    { eparSemicolonEntityName, 5, 0x022D5, 0 },
+    { eparslSemicolonEntityName, 7, 0x029E3, 0 },
+    { eplusSemicolonEntityName, 6, 0x02A71, 0 },
+    { epsiSemicolonEntityName, 5, 0x003B5, 0 },
+    { epsilonSemicolonEntityName, 8, 0x003B5, 0 },
+    { epsivSemicolonEntityName, 6, 0x003F5, 0 },
+    { eqcircSemicolonEntityName, 7, 0x02256, 0 },
+    { eqcolonSemicolonEntityName, 8, 0x02255, 0 },
+    { eqsimSemicolonEntityName, 6, 0x02242, 0 },
+    { eqslantgtrSemicolonEntityName, 11, 0x02A96, 0 },
+    { eqslantlessSemicolonEntityName, 12, 0x02A95, 0 },
+    { equalsSemicolonEntityName, 7, 0x0003D, 0 },
+    { equestSemicolonEntityName, 7, 0x0225F, 0 },
+    { equivSemicolonEntityName, 6, 0x02261, 0 },
+    { equivDDSemicolonEntityName, 8, 0x02A78, 0 },
+    { eqvparslSemicolonEntityName, 9, 0x029E5, 0 },
+    { erDotSemicolonEntityName, 6, 0x02253, 0 },
+    { erarrSemicolonEntityName, 6, 0x02971, 0 },
+    { escrSemicolonEntityName, 5, 0x0212F, 0 },
+    { esdotSemicolonEntityName, 6, 0x02250, 0 },
+    { esimSemicolonEntityName, 5, 0x02242, 0 },
+    { etaSemicolonEntityName, 4, 0x003B7, 0 },
+    { ethEntityName, 3, 0x000F0, 0 },
+    { ethSemicolonEntityName, 4, 0x000F0, 0 },
+    { eumlEntityName, 4, 0x000EB, 0 },
+    { eumlSemicolonEntityName, 5, 0x000EB, 0 },
+    { euroSemicolonEntityName, 5, 0x020AC, 0 },
+    { exclSemicolonEntityName, 5, 0x00021, 0 },
+    { existSemicolonEntityName, 6, 0x02203, 0 },
+    { expectationSemicolonEntityName, 12, 0x02130, 0 },
+    { exponentialeSemicolonEntityName, 13, 0x02147, 0 },
+    { fallingdotseqSemicolonEntityName, 14, 0x02252, 0 },
+    { fcySemicolonEntityName, 4, 0x00444, 0 },
+    { femaleSemicolonEntityName, 7, 0x02640, 0 },
+    { ffiligSemicolonEntityName, 7, 0x0FB03, 0 },
+    { ffligSemicolonEntityName, 6, 0x0FB00, 0 },
+    { fflligSemicolonEntityName, 7, 0x0FB04, 0 },
+    { ffrSemicolonEntityName, 4, 0x1D523, 0 },
+    { filigSemicolonEntityName, 6, 0x0FB01, 0 },
+    { fjligSemicolonEntityName, 6, 0x00066, 0x0006A },
+    { flatSemicolonEntityName, 5, 0x0266D, 0 },
+    { flligSemicolonEntityName, 6, 0x0FB02, 0 },
+    { fltnsSemicolonEntityName, 6, 0x025B1, 0 },
+    { fnofSemicolonEntityName, 5, 0x00192, 0 },
+    { fopfSemicolonEntityName, 5, 0x1D557, 0 },
+    { forallSemicolonEntityName, 7, 0x02200, 0 },
+    { forkSemicolonEntityName, 5, 0x022D4, 0 },
+    { forkvSemicolonEntityName, 6, 0x02AD9, 0 },
+    { fpartintSemicolonEntityName, 9, 0x02A0D, 0 },
+    { frac12EntityName, 6, 0x000BD, 0 },
+    { frac12SemicolonEntityName, 7, 0x000BD, 0 },
+    { frac13SemicolonEntityName, 7, 0x02153, 0 },
+    { frac14EntityName, 6, 0x000BC, 0 },
+    { frac14SemicolonEntityName, 7, 0x000BC, 0 },
+    { frac15SemicolonEntityName, 7, 0x02155, 0 },
+    { frac16SemicolonEntityName, 7, 0x02159, 0 },
+    { frac18SemicolonEntityName, 7, 0x0215B, 0 },
+    { frac23SemicolonEntityName, 7, 0x02154, 0 },
+    { frac25SemicolonEntityName, 7, 0x02156, 0 },
+    { frac34EntityName, 6, 0x000BE, 0 },
+    { frac34SemicolonEntityName, 7, 0x000BE, 0 },
+    { frac35SemicolonEntityName, 7, 0x02157, 0 },
+    { frac38SemicolonEntityName, 7, 0x0215C, 0 },
+    { frac45SemicolonEntityName, 7, 0x02158, 0 },
+    { frac56SemicolonEntityName, 7, 0x0215A, 0 },
+    { frac58SemicolonEntityName, 7, 0x0215D, 0 },
+    { frac78SemicolonEntityName, 7, 0x0215E, 0 },
+    { fraslSemicolonEntityName, 6, 0x02044, 0 },
+    { frownSemicolonEntityName, 6, 0x02322, 0 },
+    { fscrSemicolonEntityName, 5, 0x1D4BB, 0 },
+    { gESemicolonEntityName, 3, 0x02267, 0 },
+    { gElSemicolonEntityName, 4, 0x02A8C, 0 },
+    { gacuteSemicolonEntityName, 7, 0x001F5, 0 },
+    { gammaSemicolonEntityName, 6, 0x003B3, 0 },
+    { gammadSemicolonEntityName, 7, 0x003DD, 0 },
+    { gapSemicolonEntityName, 4, 0x02A86, 0 },
+    { gbreveSemicolonEntityName, 7, 0x0011F, 0 },
+    { gcircSemicolonEntityName, 6, 0x0011D, 0 },
+    { gcySemicolonEntityName, 4, 0x00433, 0 },
+    { gdotSemicolonEntityName, 5, 0x00121, 0 },
+    { geSemicolonEntityName, 3, 0x02265, 0 },
+    { gelSemicolonEntityName, 4, 0x022DB, 0 },
+    { geqSemicolonEntityName, 4, 0x02265, 0 },
+    { geqqSemicolonEntityName, 5, 0x02267, 0 },
+    { geqslantSemicolonEntityName, 9, 0x02A7E, 0 },
+    { gesSemicolonEntityName, 4, 0x02A7E, 0 },
+    { gesccSemicolonEntityName, 6, 0x02AA9, 0 },
+    { gesdotSemicolonEntityName, 7, 0x02A80, 0 },
+    { gesdotoSemicolonEntityName, 8, 0x02A82, 0 },
+    { gesdotolSemicolonEntityName, 9, 0x02A84, 0 },
+    { geslSemicolonEntityName, 5, 0x022DB, 0x0FE00 },
+    { geslesSemicolonEntityName, 7, 0x02A94, 0 },
+    { gfrSemicolonEntityName, 4, 0x1D524, 0 },
+    { ggSemicolonEntityName, 3, 0x0226B, 0 },
+    { gggSemicolonEntityName, 4, 0x022D9, 0 },
+    { gimelSemicolonEntityName, 6, 0x02137, 0 },
+    { gjcySemicolonEntityName, 5, 0x00453, 0 },
+    { glSemicolonEntityName, 3, 0x02277, 0 },
+    { glESemicolonEntityName, 4, 0x02A92, 0 },
+    { glaSemicolonEntityName, 4, 0x02AA5, 0 },
+    { gljSemicolonEntityName, 4, 0x02AA4, 0 },
+    { gnESemicolonEntityName, 4, 0x02269, 0 },
+    { gnapSemicolonEntityName, 5, 0x02A8A, 0 },
+    { gnapproxSemicolonEntityName, 9, 0x02A8A, 0 },
+    { gneSemicolonEntityName, 4, 0x02A88, 0 },
+    { gneqSemicolonEntityName, 5, 0x02A88, 0 },
+    { gneqqSemicolonEntityName, 6, 0x02269, 0 },
+    { gnsimSemicolonEntityName, 6, 0x022E7, 0 },
+    { gopfSemicolonEntityName, 5, 0x1D558, 0 },
+    { graveSemicolonEntityName, 6, 0x00060, 0 },
+    { gscrSemicolonEntityName, 5, 0x0210A, 0 },
+    { gsimSemicolonEntityName, 5, 0x02273, 0 },
+    { gsimeSemicolonEntityName, 6, 0x02A8E, 0 },
+    { gsimlSemicolonEntityName, 6, 0x02A90, 0 },
+    { gtEntityName, 2, 0x0003E, 0 },
+    { gtSemicolonEntityName, 3, 0x0003E, 0 },
+    { gtccSemicolonEntityName, 5, 0x02AA7, 0 },
+    { gtcirSemicolonEntityName, 6, 0x02A7A, 0 },
+    { gtdotSemicolonEntityName, 6, 0x022D7, 0 },
+    { gtlParSemicolonEntityName, 7, 0x02995, 0 },
+    { gtquestSemicolonEntityName, 8, 0x02A7C, 0 },
+    { gtrapproxSemicolonEntityName, 10, 0x02A86, 0 },
+    { gtrarrSemicolonEntityName, 7, 0x02978, 0 },
+    { gtrdotSemicolonEntityName, 7, 0x022D7, 0 },
+    { gtreqlessSemicolonEntityName, 10, 0x022DB, 0 },
+    { gtreqqlessSemicolonEntityName, 11, 0x02A8C, 0 },
+    { gtrlessSemicolonEntityName, 8, 0x02277, 0 },
+    { gtrsimSemicolonEntityName, 7, 0x02273, 0 },
+    { gvertneqqSemicolonEntityName, 10, 0x02269, 0x0FE00 },
+    { gvnESemicolonEntityName, 5, 0x02269, 0x0FE00 },
+    { hArrSemicolonEntityName, 5, 0x021D4, 0 },
+    { hairspSemicolonEntityName, 7, 0x0200A, 0 },
+    { halfSemicolonEntityName, 5, 0x000BD, 0 },
+    { hamiltSemicolonEntityName, 7, 0x0210B, 0 },
+    { hardcySemicolonEntityName, 7, 0x0044A, 0 },
+    { harrSemicolonEntityName, 5, 0x02194, 0 },
+    { harrcirSemicolonEntityName, 8, 0x02948, 0 },
+    { harrwSemicolonEntityName, 6, 0x021AD, 0 },
+    { hbarSemicolonEntityName, 5, 0x0210F, 0 },
+    { hcircSemicolonEntityName, 6, 0x00125, 0 },
+    { heartsSemicolonEntityName, 7, 0x02665, 0 },
+    { heartsuitSemicolonEntityName, 10, 0x02665, 0 },
+    { hellipSemicolonEntityName, 7, 0x02026, 0 },
+    { herconSemicolonEntityName, 7, 0x022B9, 0 },
+    { hfrSemicolonEntityName, 4, 0x1D525, 0 },
+    { hksearowSemicolonEntityName, 9, 0x02925, 0 },
+    { hkswarowSemicolonEntityName, 9, 0x02926, 0 },
+    { hoarrSemicolonEntityName, 6, 0x021FF, 0 },
+    { homthtSemicolonEntityName, 7, 0x0223B, 0 },
+    { hookleftarrowSemicolonEntityName, 14, 0x021A9, 0 },
+    { hookrightarrowSemicolonEntityName, 15, 0x021AA, 0 },
+    { hopfSemicolonEntityName, 5, 0x1D559, 0 },
+    { horbarSemicolonEntityName, 7, 0x02015, 0 },
+    { hscrSemicolonEntityName, 5, 0x1D4BD, 0 },
+    { hslashSemicolonEntityName, 7, 0x0210F, 0 },
+    { hstrokSemicolonEntityName, 7, 0x00127, 0 },
+    { hybullSemicolonEntityName, 7, 0x02043, 0 },
+    { hyphenSemicolonEntityName, 7, 0x02010, 0 },
+    { iacuteEntityName, 6, 0x000ED, 0 },
+    { iacuteSemicolonEntityName, 7, 0x000ED, 0 },
+    { icSemicolonEntityName, 3, 0x02063, 0 },
+    { icircEntityName, 5, 0x000EE, 0 },
+    { icircSemicolonEntityName, 6, 0x000EE, 0 },
+    { icySemicolonEntityName, 4, 0x00438, 0 },
+    { iecySemicolonEntityName, 5, 0x00435, 0 },
+    { iexclEntityName, 5, 0x000A1, 0 },
+    { iexclSemicolonEntityName, 6, 0x000A1, 0 },
+    { iffSemicolonEntityName, 4, 0x021D4, 0 },
+    { ifrSemicolonEntityName, 4, 0x1D526, 0 },
+    { igraveEntityName, 6, 0x000EC, 0 },
+    { igraveSemicolonEntityName, 7, 0x000EC, 0 },
+    { iiSemicolonEntityName, 3, 0x02148, 0 },
+    { iiiintSemicolonEntityName, 7, 0x02A0C, 0 },
+    { iiintSemicolonEntityName, 6, 0x0222D, 0 },
+    { iinfinSemicolonEntityName, 7, 0x029DC, 0 },
+    { iiotaSemicolonEntityName, 6, 0x02129, 0 },
+    { ijligSemicolonEntityName, 6, 0x00133, 0 },
+    { imacrSemicolonEntityName, 6, 0x0012B, 0 },
+    { imageSemicolonEntityName, 6, 0x02111, 0 },
+    { imaglineSemicolonEntityName, 9, 0x02110, 0 },
+    { imagpartSemicolonEntityName, 9, 0x02111, 0 },
+    { imathSemicolonEntityName, 6, 0x00131, 0 },
+    { imofSemicolonEntityName, 5, 0x022B7, 0 },
+    { impedSemicolonEntityName, 6, 0x001B5, 0 },
+    { inSemicolonEntityName, 3, 0x02208, 0 },
+    { incareSemicolonEntityName, 7, 0x02105, 0 },
+    { infinSemicolonEntityName, 6, 0x0221E, 0 },
+    { infintieSemicolonEntityName, 9, 0x029DD, 0 },
+    { inodotSemicolonEntityName, 7, 0x00131, 0 },
+    { intSemicolonEntityName, 4, 0x0222B, 0 },
+    { intcalSemicolonEntityName, 7, 0x022BA, 0 },
+    { integersSemicolonEntityName, 9, 0x02124, 0 },
+    { intercalSemicolonEntityName, 9, 0x022BA, 0 },
+    { intlarhkSemicolonEntityName, 9, 0x02A17, 0 },
+    { intprodSemicolonEntityName, 8, 0x02A3C, 0 },
+    { iocySemicolonEntityName, 5, 0x00451, 0 },
+    { iogonSemicolonEntityName, 6, 0x0012F, 0 },
+    { iopfSemicolonEntityName, 5, 0x1D55A, 0 },
+    { iotaSemicolonEntityName, 5, 0x003B9, 0 },
+    { iprodSemicolonEntityName, 6, 0x02A3C, 0 },
+    { iquestEntityName, 6, 0x000BF, 0 },
+    { iquestSemicolonEntityName, 7, 0x000BF, 0 },
+    { iscrSemicolonEntityName, 5, 0x1D4BE, 0 },
+    { isinSemicolonEntityName, 5, 0x02208, 0 },
+    { isinESemicolonEntityName, 6, 0x022F9, 0 },
+    { isindotSemicolonEntityName, 8, 0x022F5, 0 },
+    { isinsSemicolonEntityName, 6, 0x022F4, 0 },
+    { isinsvSemicolonEntityName, 7, 0x022F3, 0 },
+    { isinvSemicolonEntityName, 6, 0x02208, 0 },
+    { itSemicolonEntityName, 3, 0x02062, 0 },
+    { itildeSemicolonEntityName, 7, 0x00129, 0 },
+    { iukcySemicolonEntityName, 6, 0x00456, 0 },
+    { iumlEntityName, 4, 0x000EF, 0 },
+    { iumlSemicolonEntityName, 5, 0x000EF, 0 },
+    { jcircSemicolonEntityName, 6, 0x00135, 0 },
+    { jcySemicolonEntityName, 4, 0x00439, 0 },
+    { jfrSemicolonEntityName, 4, 0x1D527, 0 },
+    { jmathSemicolonEntityName, 6, 0x00237, 0 },
+    { jopfSemicolonEntityName, 5, 0x1D55B, 0 },
+    { jscrSemicolonEntityName, 5, 0x1D4BF, 0 },
+    { jsercySemicolonEntityName, 7, 0x00458, 0 },
+    { jukcySemicolonEntityName, 6, 0x00454, 0 },
+    { kappaSemicolonEntityName, 6, 0x003BA, 0 },
+    { kappavSemicolonEntityName, 7, 0x003F0, 0 },
+    { kcedilSemicolonEntityName, 7, 0x00137, 0 },
+    { kcySemicolonEntityName, 4, 0x0043A, 0 },
+    { kfrSemicolonEntityName, 4, 0x1D528, 0 },
+    { kgreenSemicolonEntityName, 7, 0x00138, 0 },
+    { khcySemicolonEntityName, 5, 0x00445, 0 },
+    { kjcySemicolonEntityName, 5, 0x0045C, 0 },
+    { kopfSemicolonEntityName, 5, 0x1D55C, 0 },
+    { kscrSemicolonEntityName, 5, 0x1D4C0, 0 },
+    { lAarrSemicolonEntityName, 6, 0x021DA, 0 },
+    { lArrSemicolonEntityName, 5, 0x021D0, 0 },
+    { lAtailSemicolonEntityName, 7, 0x0291B, 0 },
+    { lBarrSemicolonEntityName, 6, 0x0290E, 0 },
+    { lESemicolonEntityName, 3, 0x02266, 0 },
+    { lEgSemicolonEntityName, 4, 0x02A8B, 0 },
+    { lHarSemicolonEntityName, 5, 0x02962, 0 },
+    { lacuteSemicolonEntityName, 7, 0x0013A, 0 },
+    { laemptyvSemicolonEntityName, 9, 0x029B4, 0 },
+    { lagranSemicolonEntityName, 7, 0x02112, 0 },
+    { lambdaSemicolonEntityName, 7, 0x003BB, 0 },
+    { langSemicolonEntityName, 5, 0x027E8, 0 },
+    { langdSemicolonEntityName, 6, 0x02991, 0 },
+    { langleSemicolonEntityName, 7, 0x027E8, 0 },
+    { lapSemicolonEntityName, 4, 0x02A85, 0 },
+    { laquoEntityName, 5, 0x000AB, 0 },
+    { laquoSemicolonEntityName, 6, 0x000AB, 0 },
+    { larrSemicolonEntityName, 5, 0x02190, 0 },
+    { larrbSemicolonEntityName, 6, 0x021E4, 0 },
+    { larrbfsSemicolonEntityName, 8, 0x0291F, 0 },
+    { larrfsSemicolonEntityName, 7, 0x0291D, 0 },
+    { larrhkSemicolonEntityName, 7, 0x021A9, 0 },
+    { larrlpSemicolonEntityName, 7, 0x021AB, 0 },
+    { larrplSemicolonEntityName, 7, 0x02939, 0 },
+    { larrsimSemicolonEntityName, 8, 0x02973, 0 },
+    { larrtlSemicolonEntityName, 7, 0x021A2, 0 },
+    { latSemicolonEntityName, 4, 0x02AAB, 0 },
+    { latailSemicolonEntityName, 7, 0x02919, 0 },
+    { lateSemicolonEntityName, 5, 0x02AAD, 0 },
+    { latesSemicolonEntityName, 6, 0x02AAD, 0x0FE00 },
+    { lbarrSemicolonEntityName, 6, 0x0290C, 0 },
+    { lbbrkSemicolonEntityName, 6, 0x02772, 0 },
+    { lbraceSemicolonEntityName, 7, 0x0007B, 0 },
+    { lbrackSemicolonEntityName, 7, 0x0005B, 0 },
+    { lbrkeSemicolonEntityName, 6, 0x0298B, 0 },
+    { lbrksldSemicolonEntityName, 8, 0x0298F, 0 },
+    { lbrksluSemicolonEntityName, 8, 0x0298D, 0 },
+    { lcaronSemicolonEntityName, 7, 0x0013E, 0 },
+    { lcedilSemicolonEntityName, 7, 0x0013C, 0 },
+    { lceilSemicolonEntityName, 6, 0x02308, 0 },
+    { lcubSemicolonEntityName, 5, 0x0007B, 0 },
+    { lcySemicolonEntityName, 4, 0x0043B, 0 },
+    { ldcaSemicolonEntityName, 5, 0x02936, 0 },
+    { ldquoSemicolonEntityName, 6, 0x0201C, 0 },
+    { ldquorSemicolonEntityName, 7, 0x0201E, 0 },
+    { ldrdharSemicolonEntityName, 8, 0x02967, 0 },
+    { ldrusharSemicolonEntityName, 9, 0x0294B, 0 },
+    { ldshSemicolonEntityName, 5, 0x021B2, 0 },
+    { leSemicolonEntityName, 3, 0x02264, 0 },
+    { leftarrowSemicolonEntityName, 10, 0x02190, 0 },
+    { leftarrowtailSemicolonEntityName, 14, 0x021A2, 0 },
+    { leftharpoondownSemicolonEntityName, 16, 0x021BD, 0 },
+    { leftharpoonupSemicolonEntityName, 14, 0x021BC, 0 },
+    { leftleftarrowsSemicolonEntityName, 15, 0x021C7, 0 },
+    { leftrightarrowSemicolonEntityName, 15, 0x02194, 0 },
+    { leftrightarrowsSemicolonEntityName, 16, 0x021C6, 0 },
+    { leftrightharpoonsSemicolonEntityName, 18, 0x021CB, 0 },
+    { leftrightsquigarrowSemicolonEntityName, 20, 0x021AD, 0 },
+    { leftthreetimesSemicolonEntityName, 15, 0x022CB, 0 },
+    { legSemicolonEntityName, 4, 0x022DA, 0 },
+    { leqSemicolonEntityName, 4, 0x02264, 0 },
+    { leqqSemicolonEntityName, 5, 0x02266, 0 },
+    { leqslantSemicolonEntityName, 9, 0x02A7D, 0 },
+    { lesSemicolonEntityName, 4, 0x02A7D, 0 },
+    { lesccSemicolonEntityName, 6, 0x02AA8, 0 },
+    { lesdotSemicolonEntityName, 7, 0x02A7F, 0 },
+    { lesdotoSemicolonEntityName, 8, 0x02A81, 0 },
+    { lesdotorSemicolonEntityName, 9, 0x02A83, 0 },
+    { lesgSemicolonEntityName, 5, 0x022DA, 0x0FE00 },
+    { lesgesSemicolonEntityName, 7, 0x02A93, 0 },
+    { lessapproxSemicolonEntityName, 11, 0x02A85, 0 },
+    { lessdotSemicolonEntityName, 8, 0x022D6, 0 },
+    { lesseqgtrSemicolonEntityName, 10, 0x022DA, 0 },
+    { lesseqqgtrSemicolonEntityName, 11, 0x02A8B, 0 },
+    { lessgtrSemicolonEntityName, 8, 0x02276, 0 },
+    { lesssimSemicolonEntityName, 8, 0x02272, 0 },
+    { lfishtSemicolonEntityName, 7, 0x0297C, 0 },
+    { lfloorSemicolonEntityName, 7, 0x0230A, 0 },
+    { lfrSemicolonEntityName, 4, 0x1D529, 0 },
+    { lgSemicolonEntityName, 3, 0x02276, 0 },
+    { lgESemicolonEntityName, 4, 0x02A91, 0 },
+    { lhardSemicolonEntityName, 6, 0x021BD, 0 },
+    { lharuSemicolonEntityName, 6, 0x021BC, 0 },
+    { lharulSemicolonEntityName, 7, 0x0296A, 0 },
+    { lhblkSemicolonEntityName, 6, 0x02584, 0 },
+    { ljcySemicolonEntityName, 5, 0x00459, 0 },
+    { llSemicolonEntityName, 3, 0x0226A, 0 },
+    { llarrSemicolonEntityName, 6, 0x021C7, 0 },
+    { llcornerSemicolonEntityName, 9, 0x0231E, 0 },
+    { llhardSemicolonEntityName, 7, 0x0296B, 0 },
+    { lltriSemicolonEntityName, 6, 0x025FA, 0 },
+    { lmidotSemicolonEntityName, 7, 0x00140, 0 },
+    { lmoustSemicolonEntityName, 7, 0x023B0, 0 },
+    { lmoustacheSemicolonEntityName, 11, 0x023B0, 0 },
+    { lnESemicolonEntityName, 4, 0x02268, 0 },
+    { lnapSemicolonEntityName, 5, 0x02A89, 0 },
+    { lnapproxSemicolonEntityName, 9, 0x02A89, 0 },
+    { lneSemicolonEntityName, 4, 0x02A87, 0 },
+    { lneqSemicolonEntityName, 5, 0x02A87, 0 },
+    { lneqqSemicolonEntityName, 6, 0x02268, 0 },
+    { lnsimSemicolonEntityName, 6, 0x022E6, 0 },
+    { loangSemicolonEntityName, 6, 0x027EC, 0 },
+    { loarrSemicolonEntityName, 6, 0x021FD, 0 },
+    { lobrkSemicolonEntityName, 6, 0x027E6, 0 },
+    { longleftarrowSemicolonEntityName, 14, 0x027F5, 0 },
+    { longleftrightarrowSemicolonEntityName, 19, 0x027F7, 0 },
+    { longmapstoSemicolonEntityName, 11, 0x027FC, 0 },
+    { longrightarrowSemicolonEntityName, 15, 0x027F6, 0 },
+    { looparrowleftSemicolonEntityName, 14, 0x021AB, 0 },
+    { looparrowrightSemicolonEntityName, 15, 0x021AC, 0 },
+    { loparSemicolonEntityName, 6, 0x02985, 0 },
+    { lopfSemicolonEntityName, 5, 0x1D55D, 0 },
+    { loplusSemicolonEntityName, 7, 0x02A2D, 0 },
+    { lotimesSemicolonEntityName, 8, 0x02A34, 0 },
+    { lowastSemicolonEntityName, 7, 0x02217, 0 },
+    { lowbarSemicolonEntityName, 7, 0x0005F, 0 },
+    { lozSemicolonEntityName, 4, 0x025CA, 0 },
+    { lozengeSemicolonEntityName, 8, 0x025CA, 0 },
+    { lozfSemicolonEntityName, 5, 0x029EB, 0 },
+    { lparSemicolonEntityName, 5, 0x00028, 0 },
+    { lparltSemicolonEntityName, 7, 0x02993, 0 },
+    { lrarrSemicolonEntityName, 6, 0x021C6, 0 },
+    { lrcornerSemicolonEntityName, 9, 0x0231F, 0 },
+    { lrharSemicolonEntityName, 6, 0x021CB, 0 },
+    { lrhardSemicolonEntityName, 7, 0x0296D, 0 },
+    { lrmSemicolonEntityName, 4, 0x0200E, 0 },
+    { lrtriSemicolonEntityName, 6, 0x022BF, 0 },
+    { lsaquoSemicolonEntityName, 7, 0x02039, 0 },
+    { lscrSemicolonEntityName, 5, 0x1D4C1, 0 },
+    { lshSemicolonEntityName, 4, 0x021B0, 0 },
+    { lsimSemicolonEntityName, 5, 0x02272, 0 },
+    { lsimeSemicolonEntityName, 6, 0x02A8D, 0 },
+    { lsimgSemicolonEntityName, 6, 0x02A8F, 0 },
+    { lsqbSemicolonEntityName, 5, 0x0005B, 0 },
+    { lsquoSemicolonEntityName, 6, 0x02018, 0 },
+    { lsquorSemicolonEntityName, 7, 0x0201A, 0 },
+    { lstrokSemicolonEntityName, 7, 0x00142, 0 },
+    { ltEntityName, 2, 0x0003C, 0 },
+    { ltSemicolonEntityName, 3, 0x0003C, 0 },
+    { ltccSemicolonEntityName, 5, 0x02AA6, 0 },
+    { ltcirSemicolonEntityName, 6, 0x02A79, 0 },
+    { ltdotSemicolonEntityName, 6, 0x022D6, 0 },
+    { lthreeSemicolonEntityName, 7, 0x022CB, 0 },
+    { ltimesSemicolonEntityName, 7, 0x022C9, 0 },
+    { ltlarrSemicolonEntityName, 7, 0x02976, 0 },
+    { ltquestSemicolonEntityName, 8, 0x02A7B, 0 },
+    { ltrParSemicolonEntityName, 7, 0x02996, 0 },
+    { ltriSemicolonEntityName, 5, 0x025C3, 0 },
+    { ltrieSemicolonEntityName, 6, 0x022B4, 0 },
+    { ltrifSemicolonEntityName, 6, 0x025C2, 0 },
+    { lurdsharSemicolonEntityName, 9, 0x0294A, 0 },
+    { luruharSemicolonEntityName, 8, 0x02966, 0 },
+    { lvertneqqSemicolonEntityName, 10, 0x02268, 0x0FE00 },
+    { lvnESemicolonEntityName, 5, 0x02268, 0x0FE00 },
+    { mDDotSemicolonEntityName, 6, 0x0223A, 0 },
+    { macrEntityName, 4, 0x000AF, 0 },
+    { macrSemicolonEntityName, 5, 0x000AF, 0 },
+    { maleSemicolonEntityName, 5, 0x02642, 0 },
+    { maltSemicolonEntityName, 5, 0x02720, 0 },
+    { malteseSemicolonEntityName, 8, 0x02720, 0 },
+    { mapSemicolonEntityName, 4, 0x021A6, 0 },
+    { mapstoSemicolonEntityName, 7, 0x021A6, 0 },
+    { mapstodownSemicolonEntityName, 11, 0x021A7, 0 },
+    { mapstoleftSemicolonEntityName, 11, 0x021A4, 0 },
+    { mapstoupSemicolonEntityName, 9, 0x021A5, 0 },
+    { markerSemicolonEntityName, 7, 0x025AE, 0 },
+    { mcommaSemicolonEntityName, 7, 0x02A29, 0 },
+    { mcySemicolonEntityName, 4, 0x0043C, 0 },
+    { mdashSemicolonEntityName, 6, 0x02014, 0 },
+    { measuredangleSemicolonEntityName, 14, 0x02221, 0 },
+    { mfrSemicolonEntityName, 4, 0x1D52A, 0 },
+    { mhoSemicolonEntityName, 4, 0x02127, 0 },
+    { microEntityName, 5, 0x000B5, 0 },
+    { microSemicolonEntityName, 6, 0x000B5, 0 },
+    { midSemicolonEntityName, 4, 0x02223, 0 },
+    { midastSemicolonEntityName, 7, 0x0002A, 0 },
+    { midcirSemicolonEntityName, 7, 0x02AF0, 0 },
+    { middotEntityName, 6, 0x000B7, 0 },
+    { middotSemicolonEntityName, 7, 0x000B7, 0 },
+    { minusSemicolonEntityName, 6, 0x02212, 0 },
+    { minusbSemicolonEntityName, 7, 0x0229F, 0 },
+    { minusdSemicolonEntityName, 7, 0x02238, 0 },
+    { minusduSemicolonEntityName, 8, 0x02A2A, 0 },
+    { mlcpSemicolonEntityName, 5, 0x02ADB, 0 },
+    { mldrSemicolonEntityName, 5, 0x02026, 0 },
+    { mnplusSemicolonEntityName, 7, 0x02213, 0 },
+    { modelsSemicolonEntityName, 7, 0x022A7, 0 },
+    { mopfSemicolonEntityName, 5, 0x1D55E, 0 },
+    { mpSemicolonEntityName, 3, 0x02213, 0 },
+    { mscrSemicolonEntityName, 5, 0x1D4C2, 0 },
+    { mstposSemicolonEntityName, 7, 0x0223E, 0 },
+    { muSemicolonEntityName, 3, 0x003BC, 0 },
+    { multimapSemicolonEntityName, 9, 0x022B8, 0 },
+    { mumapSemicolonEntityName, 6, 0x022B8, 0 },
+    { nGgSemicolonEntityName, 4, 0x022D9, 0x00338 },
+    { nGtSemicolonEntityName, 4, 0x0226B, 0x020D2 },
+    { nGtvSemicolonEntityName, 5, 0x0226B, 0x00338 },
+    { nLeftarrowSemicolonEntityName, 11, 0x021CD, 0 },
+    { nLeftrightarrowSemicolonEntityName, 16, 0x021CE, 0 },
+    { nLlSemicolonEntityName, 4, 0x022D8, 0x00338 },
+    { nLtSemicolonEntityName, 4, 0x0226A, 0x020D2 },
+    { nLtvSemicolonEntityName, 5, 0x0226A, 0x00338 },
+    { nRightarrowSemicolonEntityName, 12, 0x021CF, 0 },
+    { nVDashSemicolonEntityName, 7, 0x022AF, 0 },
+    { nVdashSemicolonEntityName, 7, 0x022AE, 0 },
+    { nablaSemicolonEntityName, 6, 0x02207, 0 },
+    { nacuteSemicolonEntityName, 7, 0x00144, 0 },
+    { nangSemicolonEntityName, 5, 0x02220, 0x020D2 },
+    { napSemicolonEntityName, 4, 0x02249, 0 },
+    { napESemicolonEntityName, 5, 0x02A70, 0x00338 },
+    { napidSemicolonEntityName, 6, 0x0224B, 0x00338 },
+    { naposSemicolonEntityName, 6, 0x00149, 0 },
+    { napproxSemicolonEntityName, 8, 0x02249, 0 },
+    { naturSemicolonEntityName, 6, 0x0266E, 0 },
+    { naturalSemicolonEntityName, 8, 0x0266E, 0 },
+    { naturalsSemicolonEntityName, 9, 0x02115, 0 },
+    { nbspEntityName, 4, 0x000A0, 0 },
+    { nbspSemicolonEntityName, 5, 0x000A0, 0 },
+    { nbumpSemicolonEntityName, 6, 0x0224E, 0x00338 },
+    { nbumpeSemicolonEntityName, 7, 0x0224F, 0x00338 },
+    { ncapSemicolonEntityName, 5, 0x02A43, 0 },
+    { ncaronSemicolonEntityName, 7, 0x00148, 0 },
+    { ncedilSemicolonEntityName, 7, 0x00146, 0 },
+    { ncongSemicolonEntityName, 6, 0x02247, 0 },
+    { ncongdotSemicolonEntityName, 9, 0x02A6D, 0x00338 },
+    { ncupSemicolonEntityName, 5, 0x02A42, 0 },
+    { ncySemicolonEntityName, 4, 0x0043D, 0 },
+    { ndashSemicolonEntityName, 6, 0x02013, 0 },
+    { neSemicolonEntityName, 3, 0x02260, 0 },
+    { neArrSemicolonEntityName, 6, 0x021D7, 0 },
+    { nearhkSemicolonEntityName, 7, 0x02924, 0 },
+    { nearrSemicolonEntityName, 6, 0x02197, 0 },
+    { nearrowSemicolonEntityName, 8, 0x02197, 0 },
+    { nedotSemicolonEntityName, 6, 0x02250, 0x00338 },
+    { nequivSemicolonEntityName, 7, 0x02262, 0 },
+    { nesearSemicolonEntityName, 7, 0x02928, 0 },
+    { nesimSemicolonEntityName, 6, 0x02242, 0x00338 },
+    { nexistSemicolonEntityName, 7, 0x02204, 0 },
+    { nexistsSemicolonEntityName, 8, 0x02204, 0 },
+    { nfrSemicolonEntityName, 4, 0x1D52B, 0 },
+    { ngESemicolonEntityName, 4, 0x02267, 0x00338 },
+    { ngeSemicolonEntityName, 4, 0x02271, 0 },
+    { ngeqSemicolonEntityName, 5, 0x02271, 0 },
+    { ngeqqSemicolonEntityName, 6, 0x02267, 0x00338 },
+    { ngeqslantSemicolonEntityName, 10, 0x02A7E, 0x00338 },
+    { ngesSemicolonEntityName, 5, 0x02A7E, 0x00338 },
+    { ngsimSemicolonEntityName, 6, 0x02275, 0 },
+    { ngtSemicolonEntityName, 4, 0x0226F, 0 },
+    { ngtrSemicolonEntityName, 5, 0x0226F, 0 },
+    { nhArrSemicolonEntityName, 6, 0x021CE, 0 },
+    { nharrSemicolonEntityName, 6, 0x021AE, 0 },
+    { nhparSemicolonEntityName, 6, 0x02AF2, 0 },
+    { niSemicolonEntityName, 3, 0x0220B, 0 },
+    { nisSemicolonEntityName, 4, 0x022FC, 0 },
+    { nisdSemicolonEntityName, 5, 0x022FA, 0 },
+    { nivSemicolonEntityName, 4, 0x0220B, 0 },
+    { njcySemicolonEntityName, 5, 0x0045A, 0 },
+    { nlArrSemicolonEntityName, 6, 0x021CD, 0 },
+    { nlESemicolonEntityName, 4, 0x02266, 0x00338 },
+    { nlarrSemicolonEntityName, 6, 0x0219A, 0 },
+    { nldrSemicolonEntityName, 5, 0x02025, 0 },
+    { nleSemicolonEntityName, 4, 0x02270, 0 },
+    { nleftarrowSemicolonEntityName, 11, 0x0219A, 0 },
+    { nleftrightarrowSemicolonEntityName, 16, 0x021AE, 0 },
+    { nleqSemicolonEntityName, 5, 0x02270, 0 },
+    { nleqqSemicolonEntityName, 6, 0x02266, 0x00338 },
+    { nleqslantSemicolonEntityName, 10, 0x02A7D, 0x00338 },
+    { nlesSemicolonEntityName, 5, 0x02A7D, 0x00338 },
+    { nlessSemicolonEntityName, 6, 0x0226E, 0 },
+    { nlsimSemicolonEntityName, 6, 0x02274, 0 },
+    { nltSemicolonEntityName, 4, 0x0226E, 0 },
+    { nltriSemicolonEntityName, 6, 0x022EA, 0 },
+    { nltrieSemicolonEntityName, 7, 0x022EC, 0 },
+    { nmidSemicolonEntityName, 5, 0x02224, 0 },
+    { nopfSemicolonEntityName, 5, 0x1D55F, 0 },
+    { notEntityName, 3, 0x000AC, 0 },
+    { notSemicolonEntityName, 4, 0x000AC, 0 },
+    { notinSemicolonEntityName, 6, 0x02209, 0 },
+    { notinESemicolonEntityName, 7, 0x022F9, 0x00338 },
+    { notindotSemicolonEntityName, 9, 0x022F5, 0x00338 },
+    { notinvaSemicolonEntityName, 8, 0x02209, 0 },
+    { notinvbSemicolonEntityName, 8, 0x022F7, 0 },
+    { notinvcSemicolonEntityName, 8, 0x022F6, 0 },
+    { notniSemicolonEntityName, 6, 0x0220C, 0 },
+    { notnivaSemicolonEntityName, 8, 0x0220C, 0 },
+    { notnivbSemicolonEntityName, 8, 0x022FE, 0 },
+    { notnivcSemicolonEntityName, 8, 0x022FD, 0 },
+    { nparSemicolonEntityName, 5, 0x02226, 0 },
+    { nparallelSemicolonEntityName, 10, 0x02226, 0 },
+    { nparslSemicolonEntityName, 7, 0x02AFD, 0x020E5 },
+    { npartSemicolonEntityName, 6, 0x02202, 0x00338 },
+    { npolintSemicolonEntityName, 8, 0x02A14, 0 },
+    { nprSemicolonEntityName, 4, 0x02280, 0 },
+    { nprcueSemicolonEntityName, 7, 0x022E0, 0 },
+    { npreSemicolonEntityName, 5, 0x02AAF, 0x00338 },
+    { nprecSemicolonEntityName, 6, 0x02280, 0 },
+    { npreceqSemicolonEntityName, 8, 0x02AAF, 0x00338 },
+    { nrArrSemicolonEntityName, 6, 0x021CF, 0 },
+    { nrarrSemicolonEntityName, 6, 0x0219B, 0 },
+    { nrarrcSemicolonEntityName, 7, 0x02933, 0x00338 },
+    { nrarrwSemicolonEntityName, 7, 0x0219D, 0x00338 },
+    { nrightarrowSemicolonEntityName, 12, 0x0219B, 0 },
+    { nrtriSemicolonEntityName, 6, 0x022EB, 0 },
+    { nrtrieSemicolonEntityName, 7, 0x022ED, 0 },
+    { nscSemicolonEntityName, 4, 0x02281, 0 },
+    { nsccueSemicolonEntityName, 7, 0x022E1, 0 },
+    { nsceSemicolonEntityName, 5, 0x02AB0, 0x00338 },
+    { nscrSemicolonEntityName, 5, 0x1D4C3, 0 },
+    { nshortmidSemicolonEntityName, 10, 0x02224, 0 },
+    { nshortparallelSemicolonEntityName, 15, 0x02226, 0 },
+    { nsimSemicolonEntityName, 5, 0x02241, 0 },
+    { nsimeSemicolonEntityName, 6, 0x02244, 0 },
+    { nsimeqSemicolonEntityName, 7, 0x02244, 0 },
+    { nsmidSemicolonEntityName, 6, 0x02224, 0 },
+    { nsparSemicolonEntityName, 6, 0x02226, 0 },
+    { nsqsubeSemicolonEntityName, 8, 0x022E2, 0 },
+    { nsqsupeSemicolonEntityName, 8, 0x022E3, 0 },
+    { nsubSemicolonEntityName, 5, 0x02284, 0 },
+    { nsubESemicolonEntityName, 6, 0x02AC5, 0x00338 },
+    { nsubeSemicolonEntityName, 6, 0x02288, 0 },
+    { nsubsetSemicolonEntityName, 8, 0x02282, 0x020D2 },
+    { nsubseteqSemicolonEntityName, 10, 0x02288, 0 },
+    { nsubseteqqSemicolonEntityName, 11, 0x02AC5, 0x00338 },
+    { nsuccSemicolonEntityName, 6, 0x02281, 0 },
+    { nsucceqSemicolonEntityName, 8, 0x02AB0, 0x00338 },
+    { nsupSemicolonEntityName, 5, 0x02285, 0 },
+    { nsupESemicolonEntityName, 6, 0x02AC6, 0x00338 },
+    { nsupeSemicolonEntityName, 6, 0x02289, 0 },
+    { nsupsetSemicolonEntityName, 8, 0x02283, 0x020D2 },
+    { nsupseteqSemicolonEntityName, 10, 0x02289, 0 },
+    { nsupseteqqSemicolonEntityName, 11, 0x02AC6, 0x00338 },
+    { ntglSemicolonEntityName, 5, 0x02279, 0 },
+    { ntildeEntityName, 6, 0x000F1, 0 },
+    { ntildeSemicolonEntityName, 7, 0x000F1, 0 },
+    { ntlgSemicolonEntityName, 5, 0x02278, 0 },
+    { ntriangleleftSemicolonEntityName, 14, 0x022EA, 0 },
+    { ntrianglelefteqSemicolonEntityName, 16, 0x022EC, 0 },
+    { ntrianglerightSemicolonEntityName, 15, 0x022EB, 0 },
+    { ntrianglerighteqSemicolonEntityName, 17, 0x022ED, 0 },
+    { nuSemicolonEntityName, 3, 0x003BD, 0 },
+    { numSemicolonEntityName, 4, 0x00023, 0 },
+    { numeroSemicolonEntityName, 7, 0x02116, 0 },
+    { numspSemicolonEntityName, 6, 0x02007, 0 },
+    { nvDashSemicolonEntityName, 7, 0x022AD, 0 },
+    { nvHarrSemicolonEntityName, 7, 0x02904, 0 },
+    { nvapSemicolonEntityName, 5, 0x0224D, 0x020D2 },
+    { nvdashSemicolonEntityName, 7, 0x022AC, 0 },
+    { nvgeSemicolonEntityName, 5, 0x02265, 0x020D2 },
+    { nvgtSemicolonEntityName, 5, 0x0003E, 0x020D2 },
+    { nvinfinSemicolonEntityName, 8, 0x029DE, 0 },
+    { nvlArrSemicolonEntityName, 7, 0x02902, 0 },
+    { nvleSemicolonEntityName, 5, 0x02264, 0x020D2 },
+    { nvltSemicolonEntityName, 5, 0x0003C, 0x020D2 },
+    { nvltrieSemicolonEntityName, 8, 0x022B4, 0x020D2 },
+    { nvrArrSemicolonEntityName, 7, 0x02903, 0 },
+    { nvrtrieSemicolonEntityName, 8, 0x022B5, 0x020D2 },
+    { nvsimSemicolonEntityName, 6, 0x0223C, 0x020D2 },
+    { nwArrSemicolonEntityName, 6, 0x021D6, 0 },
+    { nwarhkSemicolonEntityName, 7, 0x02923, 0 },
+    { nwarrSemicolonEntityName, 6, 0x02196, 0 },
+    { nwarrowSemicolonEntityName, 8, 0x02196, 0 },
+    { nwnearSemicolonEntityName, 7, 0x02927, 0 },
+    { oSSemicolonEntityName, 3, 0x024C8, 0 },
+    { oacuteEntityName, 6, 0x000F3, 0 },
+    { oacuteSemicolonEntityName, 7, 0x000F3, 0 },
+    { oastSemicolonEntityName, 5, 0x0229B, 0 },
+    { ocirSemicolonEntityName, 5, 0x0229A, 0 },
+    { ocircEntityName, 5, 0x000F4, 0 },
+    { ocircSemicolonEntityName, 6, 0x000F4, 0 },
+    { ocySemicolonEntityName, 4, 0x0043E, 0 },
+    { odashSemicolonEntityName, 6, 0x0229D, 0 },
+    { odblacSemicolonEntityName, 7, 0x00151, 0 },
+    { odivSemicolonEntityName, 5, 0x02A38, 0 },
+    { odotSemicolonEntityName, 5, 0x02299, 0 },
+    { odsoldSemicolonEntityName, 7, 0x029BC, 0 },
+    { oeligSemicolonEntityName, 6, 0x00153, 0 },
+    { ofcirSemicolonEntityName, 6, 0x029BF, 0 },
+    { ofrSemicolonEntityName, 4, 0x1D52C, 0 },
+    { ogonSemicolonEntityName, 5, 0x002DB, 0 },
+    { ograveEntityName, 6, 0x000F2, 0 },
+    { ograveSemicolonEntityName, 7, 0x000F2, 0 },
+    { ogtSemicolonEntityName, 4, 0x029C1, 0 },
+    { ohbarSemicolonEntityName, 6, 0x029B5, 0 },
+    { ohmSemicolonEntityName, 4, 0x003A9, 0 },
+    { ointSemicolonEntityName, 5, 0x0222E, 0 },
+    { olarrSemicolonEntityName, 6, 0x021BA, 0 },
+    { olcirSemicolonEntityName, 6, 0x029BE, 0 },
+    { olcrossSemicolonEntityName, 8, 0x029BB, 0 },
+    { olineSemicolonEntityName, 6, 0x0203E, 0 },
+    { oltSemicolonEntityName, 4, 0x029C0, 0 },
+    { omacrSemicolonEntityName, 6, 0x0014D, 0 },
+    { omegaSemicolonEntityName, 6, 0x003C9, 0 },
+    { omicronSemicolonEntityName, 8, 0x003BF, 0 },
+    { omidSemicolonEntityName, 5, 0x029B6, 0 },
+    { ominusSemicolonEntityName, 7, 0x02296, 0 },
+    { oopfSemicolonEntityName, 5, 0x1D560, 0 },
+    { oparSemicolonEntityName, 5, 0x029B7, 0 },
+    { operpSemicolonEntityName, 6, 0x029B9, 0 },
+    { oplusSemicolonEntityName, 6, 0x02295, 0 },
+    { orSemicolonEntityName, 3, 0x02228, 0 },
+    { orarrSemicolonEntityName, 6, 0x021BB, 0 },
+    { ordSemicolonEntityName, 4, 0x02A5D, 0 },
+    { orderSemicolonEntityName, 6, 0x02134, 0 },
+    { orderofSemicolonEntityName, 8, 0x02134, 0 },
+    { ordfEntityName, 4, 0x000AA, 0 },
+    { ordfSemicolonEntityName, 5, 0x000AA, 0 },
+    { ordmEntityName, 4, 0x000BA, 0 },
+    { ordmSemicolonEntityName, 5, 0x000BA, 0 },
+    { origofSemicolonEntityName, 7, 0x022B6, 0 },
+    { ororSemicolonEntityName, 5, 0x02A56, 0 },
+    { orslopeSemicolonEntityName, 8, 0x02A57, 0 },
+    { orvSemicolonEntityName, 4, 0x02A5B, 0 },
+    { oscrSemicolonEntityName, 5, 0x02134, 0 },
+    { oslashEntityName, 6, 0x000F8, 0 },
+    { oslashSemicolonEntityName, 7, 0x000F8, 0 },
+    { osolSemicolonEntityName, 5, 0x02298, 0 },
+    { otildeEntityName, 6, 0x000F5, 0 },
+    { otildeSemicolonEntityName, 7, 0x000F5, 0 },
+    { otimesSemicolonEntityName, 7, 0x02297, 0 },
+    { otimesasSemicolonEntityName, 9, 0x02A36, 0 },
+    { oumlEntityName, 4, 0x000F6, 0 },
+    { oumlSemicolonEntityName, 5, 0x000F6, 0 },
+    { ovbarSemicolonEntityName, 6, 0x0233D, 0 },
+    { parSemicolonEntityName, 4, 0x02225, 0 },
+    { paraEntityName, 4, 0x000B6, 0 },
+    { paraSemicolonEntityName, 5, 0x000B6, 0 },
+    { parallelSemicolonEntityName, 9, 0x02225, 0 },
+    { parsimSemicolonEntityName, 7, 0x02AF3, 0 },
+    { parslSemicolonEntityName, 6, 0x02AFD, 0 },
+    { partSemicolonEntityName, 5, 0x02202, 0 },
+    { pcySemicolonEntityName, 4, 0x0043F, 0 },
+    { percntSemicolonEntityName, 7, 0x00025, 0 },
+    { periodSemicolonEntityName, 7, 0x0002E, 0 },
+    { permilSemicolonEntityName, 7, 0x02030, 0 },
+    { perpSemicolonEntityName, 5, 0x022A5, 0 },
+    { pertenkSemicolonEntityName, 8, 0x02031, 0 },
+    { pfrSemicolonEntityName, 4, 0x1D52D, 0 },
+    { phiSemicolonEntityName, 4, 0x003C6, 0 },
+    { phivSemicolonEntityName, 5, 0x003D5, 0 },
+    { phmmatSemicolonEntityName, 7, 0x02133, 0 },
+    { phoneSemicolonEntityName, 6, 0x0260E, 0 },
+    { piSemicolonEntityName, 3, 0x003C0, 0 },
+    { pitchforkSemicolonEntityName, 10, 0x022D4, 0 },
+    { pivSemicolonEntityName, 4, 0x003D6, 0 },
+    { planckSemicolonEntityName, 7, 0x0210F, 0 },
+    { planckhSemicolonEntityName, 8, 0x0210E, 0 },
+    { plankvSemicolonEntityName, 7, 0x0210F, 0 },
+    { plusSemicolonEntityName, 5, 0x0002B, 0 },
+    { plusacirSemicolonEntityName, 9, 0x02A23, 0 },
+    { plusbSemicolonEntityName, 6, 0x0229E, 0 },
+    { pluscirSemicolonEntityName, 8, 0x02A22, 0 },
+    { plusdoSemicolonEntityName, 7, 0x02214, 0 },
+    { plusduSemicolonEntityName, 7, 0x02A25, 0 },
+    { pluseSemicolonEntityName, 6, 0x02A72, 0 },
+    { plusmnEntityName, 6, 0x000B1, 0 },
+    { plusmnSemicolonEntityName, 7, 0x000B1, 0 },
+    { plussimSemicolonEntityName, 8, 0x02A26, 0 },
+    { plustwoSemicolonEntityName, 8, 0x02A27, 0 },
+    { pmSemicolonEntityName, 3, 0x000B1, 0 },
+    { pointintSemicolonEntityName, 9, 0x02A15, 0 },
+    { popfSemicolonEntityName, 5, 0x1D561, 0 },
+    { poundEntityName, 5, 0x000A3, 0 },
+    { poundSemicolonEntityName, 6, 0x000A3, 0 },
+    { prSemicolonEntityName, 3, 0x0227A, 0 },
+    { prESemicolonEntityName, 4, 0x02AB3, 0 },
+    { prapSemicolonEntityName, 5, 0x02AB7, 0 },
+    { prcueSemicolonEntityName, 6, 0x0227C, 0 },
+    { preSemicolonEntityName, 4, 0x02AAF, 0 },
+    { precSemicolonEntityName, 5, 0x0227A, 0 },
+    { precapproxSemicolonEntityName, 11, 0x02AB7, 0 },
+    { preccurlyeqSemicolonEntityName, 12, 0x0227C, 0 },
+    { preceqSemicolonEntityName, 7, 0x02AAF, 0 },
+    { precnapproxSemicolonEntityName, 12, 0x02AB9, 0 },
+    { precneqqSemicolonEntityName, 9, 0x02AB5, 0 },
+    { precnsimSemicolonEntityName, 9, 0x022E8, 0 },
+    { precsimSemicolonEntityName, 8, 0x0227E, 0 },
+    { primeSemicolonEntityName, 6, 0x02032, 0 },
+    { primesSemicolonEntityName, 7, 0x02119, 0 },
+    { prnESemicolonEntityName, 5, 0x02AB5, 0 },
+    { prnapSemicolonEntityName, 6, 0x02AB9, 0 },
+    { prnsimSemicolonEntityName, 7, 0x022E8, 0 },
+    { prodSemicolonEntityName, 5, 0x0220F, 0 },
+    { profalarSemicolonEntityName, 9, 0x0232E, 0 },
+    { proflineSemicolonEntityName, 9, 0x02312, 0 },
+    { profsurfSemicolonEntityName, 9, 0x02313, 0 },
+    { propSemicolonEntityName, 5, 0x0221D, 0 },
+    { proptoSemicolonEntityName, 7, 0x0221D, 0 },
+    { prsimSemicolonEntityName, 6, 0x0227E, 0 },
+    { prurelSemicolonEntityName, 7, 0x022B0, 0 },
+    { pscrSemicolonEntityName, 5, 0x1D4C5, 0 },
+    { psiSemicolonEntityName, 4, 0x003C8, 0 },
+    { puncspSemicolonEntityName, 7, 0x02008, 0 },
+    { qfrSemicolonEntityName, 4, 0x1D52E, 0 },
+    { qintSemicolonEntityName, 5, 0x02A0C, 0 },
+    { qopfSemicolonEntityName, 5, 0x1D562, 0 },
+    { qprimeSemicolonEntityName, 7, 0x02057, 0 },
+    { qscrSemicolonEntityName, 5, 0x1D4C6, 0 },
+    { quaternionsSemicolonEntityName, 12, 0x0210D, 0 },
+    { quatintSemicolonEntityName, 8, 0x02A16, 0 },
+    { questSemicolonEntityName, 6, 0x0003F, 0 },
+    { questeqSemicolonEntityName, 8, 0x0225F, 0 },
+    { quotEntityName, 4, 0x00022, 0 },
+    { quotSemicolonEntityName, 5, 0x00022, 0 },
+    { rAarrSemicolonEntityName, 6, 0x021DB, 0 },
+    { rArrSemicolonEntityName, 5, 0x021D2, 0 },
+    { rAtailSemicolonEntityName, 7, 0x0291C, 0 },
+    { rBarrSemicolonEntityName, 6, 0x0290F, 0 },
+    { rHarSemicolonEntityName, 5, 0x02964, 0 },
+    { raceSemicolonEntityName, 5, 0x0223D, 0x00331 },
+    { racuteSemicolonEntityName, 7, 0x00155, 0 },
+    { radicSemicolonEntityName, 6, 0x0221A, 0 },
+    { raemptyvSemicolonEntityName, 9, 0x029B3, 0 },
+    { rangSemicolonEntityName, 5, 0x027E9, 0 },
+    { rangdSemicolonEntityName, 6, 0x02992, 0 },
+    { rangeSemicolonEntityName, 6, 0x029A5, 0 },
+    { rangleSemicolonEntityName, 7, 0x027E9, 0 },
+    { raquoEntityName, 5, 0x000BB, 0 },
+    { raquoSemicolonEntityName, 6, 0x000BB, 0 },
+    { rarrSemicolonEntityName, 5, 0x02192, 0 },
+    { rarrapSemicolonEntityName, 7, 0x02975, 0 },
+    { rarrbSemicolonEntityName, 6, 0x021E5, 0 },
+    { rarrbfsSemicolonEntityName, 8, 0x02920, 0 },
+    { rarrcSemicolonEntityName, 6, 0x02933, 0 },
+    { rarrfsSemicolonEntityName, 7, 0x0291E, 0 },
+    { rarrhkSemicolonEntityName, 7, 0x021AA, 0 },
+    { rarrlpSemicolonEntityName, 7, 0x021AC, 0 },
+    { rarrplSemicolonEntityName, 7, 0x02945, 0 },
+    { rarrsimSemicolonEntityName, 8, 0x02974, 0 },
+    { rarrtlSemicolonEntityName, 7, 0x021A3, 0 },
+    { rarrwSemicolonEntityName, 6, 0x0219D, 0 },
+    { ratailSemicolonEntityName, 7, 0x0291A, 0 },
+    { ratioSemicolonEntityName, 6, 0x02236, 0 },
+    { rationalsSemicolonEntityName, 10, 0x0211A, 0 },
+    { rbarrSemicolonEntityName, 6, 0x0290D, 0 },
+    { rbbrkSemicolonEntityName, 6, 0x02773, 0 },
+    { rbraceSemicolonEntityName, 7, 0x0007D, 0 },
+    { rbrackSemicolonEntityName, 7, 0x0005D, 0 },
+    { rbrkeSemicolonEntityName, 6, 0x0298C, 0 },
+    { rbrksldSemicolonEntityName, 8, 0x0298E, 0 },
+    { rbrksluSemicolonEntityName, 8, 0x02990, 0 },
+    { rcaronSemicolonEntityName, 7, 0x00159, 0 },
+    { rcedilSemicolonEntityName, 7, 0x00157, 0 },
+    { rceilSemicolonEntityName, 6, 0x02309, 0 },
+    { rcubSemicolonEntityName, 5, 0x0007D, 0 },
+    { rcySemicolonEntityName, 4, 0x00440, 0 },
+    { rdcaSemicolonEntityName, 5, 0x02937, 0 },
+    { rdldharSemicolonEntityName, 8, 0x02969, 0 },
+    { rdquoSemicolonEntityName, 6, 0x0201D, 0 },
+    { rdquorSemicolonEntityName, 7, 0x0201D, 0 },
+    { rdshSemicolonEntityName, 5, 0x021B3, 0 },
+    { realSemicolonEntityName, 5, 0x0211C, 0 },
+    { realineSemicolonEntityName, 8, 0x0211B, 0 },
+    { realpartSemicolonEntityName, 9, 0x0211C, 0 },
+    { realsSemicolonEntityName, 6, 0x0211D, 0 },
+    { rectSemicolonEntityName, 5, 0x025AD, 0 },
+    { regEntityName, 3, 0x000AE, 0 },
+    { regSemicolonEntityName, 4, 0x000AE, 0 },
+    { rfishtSemicolonEntityName, 7, 0x0297D, 0 },
+    { rfloorSemicolonEntityName, 7, 0x0230B, 0 },
+    { rfrSemicolonEntityName, 4, 0x1D52F, 0 },
+    { rhardSemicolonEntityName, 6, 0x021C1, 0 },
+    { rharuSemicolonEntityName, 6, 0x021C0, 0 },
+    { rharulSemicolonEntityName, 7, 0x0296C, 0 },
+    { rhoSemicolonEntityName, 4, 0x003C1, 0 },
+    { rhovSemicolonEntityName, 5, 0x003F1, 0 },
+    { rightarrowSemicolonEntityName, 11, 0x02192, 0 },
+    { rightarrowtailSemicolonEntityName, 15, 0x021A3, 0 },
+    { rightharpoondownSemicolonEntityName, 17, 0x021C1, 0 },
+    { rightharpoonupSemicolonEntityName, 15, 0x021C0, 0 },
+    { rightleftarrowsSemicolonEntityName, 16, 0x021C4, 0 },
+    { rightleftharpoonsSemicolonEntityName, 18, 0x021CC, 0 },
+    { rightrightarrowsSemicolonEntityName, 17, 0x021C9, 0 },
+    { rightsquigarrowSemicolonEntityName, 16, 0x0219D, 0 },
+    { rightthreetimesSemicolonEntityName, 16, 0x022CC, 0 },
+    { ringSemicolonEntityName, 5, 0x002DA, 0 },
+    { risingdotseqSemicolonEntityName, 13, 0x02253, 0 },
+    { rlarrSemicolonEntityName, 6, 0x021C4, 0 },
+    { rlharSemicolonEntityName, 6, 0x021CC, 0 },
+    { rlmSemicolonEntityName, 4, 0x0200F, 0 },
+    { rmoustSemicolonEntityName, 7, 0x023B1, 0 },
+    { rmoustacheSemicolonEntityName, 11, 0x023B1, 0 },
+    { rnmidSemicolonEntityName, 6, 0x02AEE, 0 },
+    { roangSemicolonEntityName, 6, 0x027ED, 0 },
+    { roarrSemicolonEntityName, 6, 0x021FE, 0 },
+    { robrkSemicolonEntityName, 6, 0x027E7, 0 },
+    { roparSemicolonEntityName, 6, 0x02986, 0 },
+    { ropfSemicolonEntityName, 5, 0x1D563, 0 },
+    { roplusSemicolonEntityName, 7, 0x02A2E, 0 },
+    { rotimesSemicolonEntityName, 8, 0x02A35, 0 },
+    { rparSemicolonEntityName, 5, 0x00029, 0 },
+    { rpargtSemicolonEntityName, 7, 0x02994, 0 },
+    { rppolintSemicolonEntityName, 9, 0x02A12, 0 },
+    { rrarrSemicolonEntityName, 6, 0x021C9, 0 },
+    { rsaquoSemicolonEntityName, 7, 0x0203A, 0 },
+    { rscrSemicolonEntityName, 5, 0x1D4C7, 0 },
+    { rshSemicolonEntityName, 4, 0x021B1, 0 },
+    { rsqbSemicolonEntityName, 5, 0x0005D, 0 },
+    { rsquoSemicolonEntityName, 6, 0x02019, 0 },
+    { rsquorSemicolonEntityName, 7, 0x02019, 0 },
+    { rthreeSemicolonEntityName, 7, 0x022CC, 0 },
+    { rtimesSemicolonEntityName, 7, 0x022CA, 0 },
+    { rtriSemicolonEntityName, 5, 0x025B9, 0 },
+    { rtrieSemicolonEntityName, 6, 0x022B5, 0 },
+    { rtrifSemicolonEntityName, 6, 0x025B8, 0 },
+    { rtriltriSemicolonEntityName, 9, 0x029CE, 0 },
+    { ruluharSemicolonEntityName, 8, 0x02968, 0 },
+    { rxSemicolonEntityName, 3, 0x0211E, 0 },
+    { sacuteSemicolonEntityName, 7, 0x0015B, 0 },
+    { sbquoSemicolonEntityName, 6, 0x0201A, 0 },
+    { scSemicolonEntityName, 3, 0x0227B, 0 },
+    { scESemicolonEntityName, 4, 0x02AB4, 0 },
+    { scapSemicolonEntityName, 5, 0x02AB8, 0 },
+    { scaronSemicolonEntityName, 7, 0x00161, 0 },
+    { sccueSemicolonEntityName, 6, 0x0227D, 0 },
+    { sceSemicolonEntityName, 4, 0x02AB0, 0 },
+    { scedilSemicolonEntityName, 7, 0x0015F, 0 },
+    { scircSemicolonEntityName, 6, 0x0015D, 0 },
+    { scnESemicolonEntityName, 5, 0x02AB6, 0 },
+    { scnapSemicolonEntityName, 6, 0x02ABA, 0 },
+    { scnsimSemicolonEntityName, 7, 0x022E9, 0 },
+    { scpolintSemicolonEntityName, 9, 0x02A13, 0 },
+    { scsimSemicolonEntityName, 6, 0x0227F, 0 },
+    { scySemicolonEntityName, 4, 0x00441, 0 },
+    { sdotSemicolonEntityName, 5, 0x022C5, 0 },
+    { sdotbSemicolonEntityName, 6, 0x022A1, 0 },
+    { sdoteSemicolonEntityName, 6, 0x02A66, 0 },
+    { seArrSemicolonEntityName, 6, 0x021D8, 0 },
+    { searhkSemicolonEntityName, 7, 0x02925, 0 },
+    { searrSemicolonEntityName, 6, 0x02198, 0 },
+    { searrowSemicolonEntityName, 8, 0x02198, 0 },
+    { sectEntityName, 4, 0x000A7, 0 },
+    { sectSemicolonEntityName, 5, 0x000A7, 0 },
+    { semiSemicolonEntityName, 5, 0x0003B, 0 },
+    { seswarSemicolonEntityName, 7, 0x02929, 0 },
+    { setminusSemicolonEntityName, 9, 0x02216, 0 },
+    { setmnSemicolonEntityName, 6, 0x02216, 0 },
+    { sextSemicolonEntityName, 5, 0x02736, 0 },
+    { sfrSemicolonEntityName, 4, 0x1D530, 0 },
+    { sfrownSemicolonEntityName, 7, 0x02322, 0 },
+    { sharpSemicolonEntityName, 6, 0x0266F, 0 },
+    { shchcySemicolonEntityName, 7, 0x00449, 0 },
+    { shcySemicolonEntityName, 5, 0x00448, 0 },
+    { shortmidSemicolonEntityName, 9, 0x02223, 0 },
+    { shortparallelSemicolonEntityName, 14, 0x02225, 0 },
+    { shyEntityName, 3, 0x000AD, 0 },
+    { shySemicolonEntityName, 4, 0x000AD, 0 },
+    { sigmaSemicolonEntityName, 6, 0x003C3, 0 },
+    { sigmafSemicolonEntityName, 7, 0x003C2, 0 },
+    { sigmavSemicolonEntityName, 7, 0x003C2, 0 },
+    { simSemicolonEntityName, 4, 0x0223C, 0 },
+    { simdotSemicolonEntityName, 7, 0x02A6A, 0 },
+    { simeSemicolonEntityName, 5, 0x02243, 0 },
+    { simeqSemicolonEntityName, 6, 0x02243, 0 },
+    { simgSemicolonEntityName, 5, 0x02A9E, 0 },
+    { simgESemicolonEntityName, 6, 0x02AA0, 0 },
+    { simlSemicolonEntityName, 5, 0x02A9D, 0 },
+    { simlESemicolonEntityName, 6, 0x02A9F, 0 },
+    { simneSemicolonEntityName, 6, 0x02246, 0 },
+    { simplusSemicolonEntityName, 8, 0x02A24, 0 },
+    { simrarrSemicolonEntityName, 8, 0x02972, 0 },
+    { slarrSemicolonEntityName, 6, 0x02190, 0 },
+    { smallsetminusSemicolonEntityName, 14, 0x02216, 0 },
+    { smashpSemicolonEntityName, 7, 0x02A33, 0 },
+    { smeparslSemicolonEntityName, 9, 0x029E4, 0 },
+    { smidSemicolonEntityName, 5, 0x02223, 0 },
+    { smileSemicolonEntityName, 6, 0x02323, 0 },
+    { smtSemicolonEntityName, 4, 0x02AAA, 0 },
+    { smteSemicolonEntityName, 5, 0x02AAC, 0 },
+    { smtesSemicolonEntityName, 6, 0x02AAC, 0x0FE00 },
+    { softcySemicolonEntityName, 7, 0x0044C, 0 },
+    { solSemicolonEntityName, 4, 0x0002F, 0 },
+    { solbSemicolonEntityName, 5, 0x029C4, 0 },
+    { solbarSemicolonEntityName, 7, 0x0233F, 0 },
+    { sopfSemicolonEntityName, 5, 0x1D564, 0 },
+    { spadesSemicolonEntityName, 7, 0x02660, 0 },
+    { spadesuitSemicolonEntityName, 10, 0x02660, 0 },
+    { sparSemicolonEntityName, 5, 0x02225, 0 },
+    { sqcapSemicolonEntityName, 6, 0x02293, 0 },
+    { sqcapsSemicolonEntityName, 7, 0x02293, 0x0FE00 },
+    { sqcupSemicolonEntityName, 6, 0x02294, 0 },
+    { sqcupsSemicolonEntityName, 7, 0x02294, 0x0FE00 },
+    { sqsubSemicolonEntityName, 6, 0x0228F, 0 },
+    { sqsubeSemicolonEntityName, 7, 0x02291, 0 },
+    { sqsubsetSemicolonEntityName, 9, 0x0228F, 0 },
+    { sqsubseteqSemicolonEntityName, 11, 0x02291, 0 },
+    { sqsupSemicolonEntityName, 6, 0x02290, 0 },
+    { sqsupeSemicolonEntityName, 7, 0x02292, 0 },
+    { sqsupsetSemicolonEntityName, 9, 0x02290, 0 },
+    { sqsupseteqSemicolonEntityName, 11, 0x02292, 0 },
+    { squSemicolonEntityName, 4, 0x025A1, 0 },
+    { squareSemicolonEntityName, 7, 0x025A1, 0 },
+    { squarfSemicolonEntityName, 7, 0x025AA, 0 },
+    { squfSemicolonEntityName, 5, 0x025AA, 0 },
+    { srarrSemicolonEntityName, 6, 0x02192, 0 },
+    { sscrSemicolonEntityName, 5, 0x1D4C8, 0 },
+    { ssetmnSemicolonEntityName, 7, 0x02216, 0 },
+    { ssmileSemicolonEntityName, 7, 0x02323, 0 },
+    { sstarfSemicolonEntityName, 7, 0x022C6, 0 },
+    { starSemicolonEntityName, 5, 0x02606, 0 },
+    { starfSemicolonEntityName, 6, 0x02605, 0 },
+    { straightepsilonSemicolonEntityName, 16, 0x003F5, 0 },
+    { straightphiSemicolonEntityName, 12, 0x003D5, 0 },
+    { strnsSemicolonEntityName, 6, 0x000AF, 0 },
+    { subSemicolonEntityName, 4, 0x02282, 0 },
+    { subESemicolonEntityName, 5, 0x02AC5, 0 },
+    { subdotSemicolonEntityName, 7, 0x02ABD, 0 },
+    { subeSemicolonEntityName, 5, 0x02286, 0 },
+    { subedotSemicolonEntityName, 8, 0x02AC3, 0 },
+    { submultSemicolonEntityName, 8, 0x02AC1, 0 },
+    { subnESemicolonEntityName, 6, 0x02ACB, 0 },
+    { subneSemicolonEntityName, 6, 0x0228A, 0 },
+    { subplusSemicolonEntityName, 8, 0x02ABF, 0 },
+    { subrarrSemicolonEntityName, 8, 0x02979, 0 },
+    { subsetSemicolonEntityName, 7, 0x02282, 0 },
+    { subseteqSemicolonEntityName, 9, 0x02286, 0 },
+    { subseteqqSemicolonEntityName, 10, 0x02AC5, 0 },
+    { subsetneqSemicolonEntityName, 10, 0x0228A, 0 },
+    { subsetneqqSemicolonEntityName, 11, 0x02ACB, 0 },
+    { subsimSemicolonEntityName, 7, 0x02AC7, 0 },
+    { subsubSemicolonEntityName, 7, 0x02AD5, 0 },
+    { subsupSemicolonEntityName, 7, 0x02AD3, 0 },
+    { succSemicolonEntityName, 5, 0x0227B, 0 },
+    { succapproxSemicolonEntityName, 11, 0x02AB8, 0 },
+    { succcurlyeqSemicolonEntityName, 12, 0x0227D, 0 },
+    { succeqSemicolonEntityName, 7, 0x02AB0, 0 },
+    { succnapproxSemicolonEntityName, 12, 0x02ABA, 0 },
+    { succneqqSemicolonEntityName, 9, 0x02AB6, 0 },
+    { succnsimSemicolonEntityName, 9, 0x022E9, 0 },
+    { succsimSemicolonEntityName, 8, 0x0227F, 0 },
+    { sumSemicolonEntityName, 4, 0x02211, 0 },
+    { sungSemicolonEntityName, 5, 0x0266A, 0 },
+    { sup1EntityName, 4, 0x000B9, 0 },
+    { sup1SemicolonEntityName, 5, 0x000B9, 0 },
+    { sup2EntityName, 4, 0x000B2, 0 },
+    { sup2SemicolonEntityName, 5, 0x000B2, 0 },
+    { sup3EntityName, 4, 0x000B3, 0 },
+    { sup3SemicolonEntityName, 5, 0x000B3, 0 },
+    { supSemicolonEntityName, 4, 0x02283, 0 },
+    { supESemicolonEntityName, 5, 0x02AC6, 0 },
+    { supdotSemicolonEntityName, 7, 0x02ABE, 0 },
+    { supdsubSemicolonEntityName, 8, 0x02AD8, 0 },
+    { supeSemicolonEntityName, 5, 0x02287, 0 },
+    { supedotSemicolonEntityName, 8, 0x02AC4, 0 },
+    { suphsolSemicolonEntityName, 8, 0x027C9, 0 },
+    { suphsubSemicolonEntityName, 8, 0x02AD7, 0 },
+    { suplarrSemicolonEntityName, 8, 0x0297B, 0 },
+    { supmultSemicolonEntityName, 8, 0x02AC2, 0 },
+    { supnESemicolonEntityName, 6, 0x02ACC, 0 },
+    { supneSemicolonEntityName, 6, 0x0228B, 0 },
+    { supplusSemicolonEntityName, 8, 0x02AC0, 0 },
+    { supsetSemicolonEntityName, 7, 0x02283, 0 },
+    { supseteqSemicolonEntityName, 9, 0x02287, 0 },
+    { supseteqqSemicolonEntityName, 10, 0x02AC6, 0 },
+    { supsetneqSemicolonEntityName, 10, 0x0228B, 0 },
+    { supsetneqqSemicolonEntityName, 11, 0x02ACC, 0 },
+    { supsimSemicolonEntityName, 7, 0x02AC8, 0 },
+    { supsubSemicolonEntityName, 7, 0x02AD4, 0 },
+    { supsupSemicolonEntityName, 7, 0x02AD6, 0 },
+    { swArrSemicolonEntityName, 6, 0x021D9, 0 },
+    { swarhkSemicolonEntityName, 7, 0x02926, 0 },
+    { swarrSemicolonEntityName, 6, 0x02199, 0 },
+    { swarrowSemicolonEntityName, 8, 0x02199, 0 },
+    { swnwarSemicolonEntityName, 7, 0x0292A, 0 },
+    { szligEntityName, 5, 0x000DF, 0 },
+    { szligSemicolonEntityName, 6, 0x000DF, 0 },
+    { targetSemicolonEntityName, 7, 0x02316, 0 },
+    { tauSemicolonEntityName, 4, 0x003C4, 0 },
+    { tbrkSemicolonEntityName, 5, 0x023B4, 0 },
+    { tcaronSemicolonEntityName, 7, 0x00165, 0 },
+    { tcedilSemicolonEntityName, 7, 0x00163, 0 },
+    { tcySemicolonEntityName, 4, 0x00442, 0 },
+    { tdotSemicolonEntityName, 5, 0x020DB, 0 },
+    { telrecSemicolonEntityName, 7, 0x02315, 0 },
+    { tfrSemicolonEntityName, 4, 0x1D531, 0 },
+    { there4SemicolonEntityName, 7, 0x02234, 0 },
+    { thereforeSemicolonEntityName, 10, 0x02234, 0 },
+    { thetaSemicolonEntityName, 6, 0x003B8, 0 },
+    { thetasymSemicolonEntityName, 9, 0x003D1, 0 },
+    { thetavSemicolonEntityName, 7, 0x003D1, 0 },
+    { thickapproxSemicolonEntityName, 12, 0x02248, 0 },
+    { thicksimSemicolonEntityName, 9, 0x0223C, 0 },
+    { thinspSemicolonEntityName, 7, 0x02009, 0 },
+    { thkapSemicolonEntityName, 6, 0x02248, 0 },
+    { thksimSemicolonEntityName, 7, 0x0223C, 0 },
+    { thornEntityName, 5, 0x000FE, 0 },
+    { thornSemicolonEntityName, 6, 0x000FE, 0 },
+    { tildeSemicolonEntityName, 6, 0x002DC, 0 },
+    { timesEntityName, 5, 0x000D7, 0 },
+    { timesSemicolonEntityName, 6, 0x000D7, 0 },
+    { timesbSemicolonEntityName, 7, 0x022A0, 0 },
+    { timesbarSemicolonEntityName, 9, 0x02A31, 0 },
+    { timesdSemicolonEntityName, 7, 0x02A30, 0 },
+    { tintSemicolonEntityName, 5, 0x0222D, 0 },
+    { toeaSemicolonEntityName, 5, 0x02928, 0 },
+    { topSemicolonEntityName, 4, 0x022A4, 0 },
+    { topbotSemicolonEntityName, 7, 0x02336, 0 },
+    { topcirSemicolonEntityName, 7, 0x02AF1, 0 },
+    { topfSemicolonEntityName, 5, 0x1D565, 0 },
+    { topforkSemicolonEntityName, 8, 0x02ADA, 0 },
+    { tosaSemicolonEntityName, 5, 0x02929, 0 },
+    { tprimeSemicolonEntityName, 7, 0x02034, 0 },
+    { tradeSemicolonEntityName, 6, 0x02122, 0 },
+    { triangleSemicolonEntityName, 9, 0x025B5, 0 },
+    { triangledownSemicolonEntityName, 13, 0x025BF, 0 },
+    { triangleleftSemicolonEntityName, 13, 0x025C3, 0 },
+    { trianglelefteqSemicolonEntityName, 15, 0x022B4, 0 },
+    { triangleqSemicolonEntityName, 10, 0x0225C, 0 },
+    { trianglerightSemicolonEntityName, 14, 0x025B9, 0 },
+    { trianglerighteqSemicolonEntityName, 16, 0x022B5, 0 },
+    { tridotSemicolonEntityName, 7, 0x025EC, 0 },
+    { trieSemicolonEntityName, 5, 0x0225C, 0 },
+    { triminusSemicolonEntityName, 9, 0x02A3A, 0 },
+    { triplusSemicolonEntityName, 8, 0x02A39, 0 },
+    { trisbSemicolonEntityName, 6, 0x029CD, 0 },
+    { tritimeSemicolonEntityName, 8, 0x02A3B, 0 },
+    { trpeziumSemicolonEntityName, 9, 0x023E2, 0 },
+    { tscrSemicolonEntityName, 5, 0x1D4C9, 0 },
+    { tscySemicolonEntityName, 5, 0x00446, 0 },
+    { tshcySemicolonEntityName, 6, 0x0045B, 0 },
+    { tstrokSemicolonEntityName, 7, 0x00167, 0 },
+    { twixtSemicolonEntityName, 6, 0x0226C, 0 },
+    { twoheadleftarrowSemicolonEntityName, 17, 0x0219E, 0 },
+    { twoheadrightarrowSemicolonEntityName, 18, 0x021A0, 0 },
+    { uArrSemicolonEntityName, 5, 0x021D1, 0 },
+    { uHarSemicolonEntityName, 5, 0x02963, 0 },
+    { uacuteEntityName, 6, 0x000FA, 0 },
+    { uacuteSemicolonEntityName, 7, 0x000FA, 0 },
+    { uarrSemicolonEntityName, 5, 0x02191, 0 },
+    { ubrcySemicolonEntityName, 6, 0x0045E, 0 },
+    { ubreveSemicolonEntityName, 7, 0x0016D, 0 },
+    { ucircEntityName, 5, 0x000FB, 0 },
+    { ucircSemicolonEntityName, 6, 0x000FB, 0 },
+    { ucySemicolonEntityName, 4, 0x00443, 0 },
+    { udarrSemicolonEntityName, 6, 0x021C5, 0 },
+    { udblacSemicolonEntityName, 7, 0x00171, 0 },
+    { udharSemicolonEntityName, 6, 0x0296E, 0 },
+    { ufishtSemicolonEntityName, 7, 0x0297E, 0 },
+    { ufrSemicolonEntityName, 4, 0x1D532, 0 },
+    { ugraveEntityName, 6, 0x000F9, 0 },
+    { ugraveSemicolonEntityName, 7, 0x000F9, 0 },
+    { uharlSemicolonEntityName, 6, 0x021BF, 0 },
+    { uharrSemicolonEntityName, 6, 0x021BE, 0 },
+    { uhblkSemicolonEntityName, 6, 0x02580, 0 },
+    { ulcornSemicolonEntityName, 7, 0x0231C, 0 },
+    { ulcornerSemicolonEntityName, 9, 0x0231C, 0 },
+    { ulcropSemicolonEntityName, 7, 0x0230F, 0 },
+    { ultriSemicolonEntityName, 6, 0x025F8, 0 },
+    { umacrSemicolonEntityName, 6, 0x0016B, 0 },
+    { umlEntityName, 3, 0x000A8, 0 },
+    { umlSemicolonEntityName, 4, 0x000A8, 0 },
+    { uogonSemicolonEntityName, 6, 0x00173, 0 },
+    { uopfSemicolonEntityName, 5, 0x1D566, 0 },
+    { uparrowSemicolonEntityName, 8, 0x02191, 0 },
+    { updownarrowSemicolonEntityName, 12, 0x02195, 0 },
+    { upharpoonleftSemicolonEntityName, 14, 0x021BF, 0 },
+    { upharpoonrightSemicolonEntityName, 15, 0x021BE, 0 },
+    { uplusSemicolonEntityName, 6, 0x0228E, 0 },
+    { upsiSemicolonEntityName, 5, 0x003C5, 0 },
+    { upsihSemicolonEntityName, 6, 0x003D2, 0 },
+    { upsilonSemicolonEntityName, 8, 0x003C5, 0 },
+    { upuparrowsSemicolonEntityName, 11, 0x021C8, 0 },
+    { urcornSemicolonEntityName, 7, 0x0231D, 0 },
+    { urcornerSemicolonEntityName, 9, 0x0231D, 0 },
+    { urcropSemicolonEntityName, 7, 0x0230E, 0 },
+    { uringSemicolonEntityName, 6, 0x0016F, 0 },
+    { urtriSemicolonEntityName, 6, 0x025F9, 0 },
+    { uscrSemicolonEntityName, 5, 0x1D4CA, 0 },
+    { utdotSemicolonEntityName, 6, 0x022F0, 0 },
+    { utildeSemicolonEntityName, 7, 0x00169, 0 },
+    { utriSemicolonEntityName, 5, 0x025B5, 0 },
+    { utrifSemicolonEntityName, 6, 0x025B4, 0 },
+    { uuarrSemicolonEntityName, 6, 0x021C8, 0 },
+    { uumlEntityName, 4, 0x000FC, 0 },
+    { uumlSemicolonEntityName, 5, 0x000FC, 0 },
+    { uwangleSemicolonEntityName, 8, 0x029A7, 0 },
+    { vArrSemicolonEntityName, 5, 0x021D5, 0 },
+    { vBarSemicolonEntityName, 5, 0x02AE8, 0 },
+    { vBarvSemicolonEntityName, 6, 0x02AE9, 0 },
+    { vDashSemicolonEntityName, 6, 0x022A8, 0 },
+    { vangrtSemicolonEntityName, 7, 0x0299C, 0 },
+    { varepsilonSemicolonEntityName, 11, 0x003F5, 0 },
+    { varkappaSemicolonEntityName, 9, 0x003F0, 0 },
+    { varnothingSemicolonEntityName, 11, 0x02205, 0 },
+    { varphiSemicolonEntityName, 7, 0x003D5, 0 },
+    { varpiSemicolonEntityName, 6, 0x003D6, 0 },
+    { varproptoSemicolonEntityName, 10, 0x0221D, 0 },
+    { varrSemicolonEntityName, 5, 0x02195, 0 },
+    { varrhoSemicolonEntityName, 7, 0x003F1, 0 },
+    { varsigmaSemicolonEntityName, 9, 0x003C2, 0 },
+    { varsubsetneqSemicolonEntityName, 13, 0x0228A, 0x0FE00 },
+    { varsubsetneqqSemicolonEntityName, 14, 0x02ACB, 0x0FE00 },
+    { varsupsetneqSemicolonEntityName, 13, 0x0228B, 0x0FE00 },
+    { varsupsetneqqSemicolonEntityName, 14, 0x02ACC, 0x0FE00 },
+    { varthetaSemicolonEntityName, 9, 0x003D1, 0 },
+    { vartriangleleftSemicolonEntityName, 16, 0x022B2, 0 },
+    { vartrianglerightSemicolonEntityName, 17, 0x022B3, 0 },
+    { vcySemicolonEntityName, 4, 0x00432, 0 },
+    { vdashSemicolonEntityName, 6, 0x022A2, 0 },
+    { veeSemicolonEntityName, 4, 0x02228, 0 },
+    { veebarSemicolonEntityName, 7, 0x022BB, 0 },
+    { veeeqSemicolonEntityName, 6, 0x0225A, 0 },
+    { vellipSemicolonEntityName, 7, 0x022EE, 0 },
+    { verbarSemicolonEntityName, 7, 0x0007C, 0 },
+    { vertSemicolonEntityName, 5, 0x0007C, 0 },
+    { vfrSemicolonEntityName, 4, 0x1D533, 0 },
+    { vltriSemicolonEntityName, 6, 0x022B2, 0 },
+    { vnsubSemicolonEntityName, 6, 0x02282, 0x020D2 },
+    { vnsupSemicolonEntityName, 6, 0x02283, 0x020D2 },
+    { vopfSemicolonEntityName, 5, 0x1D567, 0 },
+    { vpropSemicolonEntityName, 6, 0x0221D, 0 },
+    { vrtriSemicolonEntityName, 6, 0x022B3, 0 },
+    { vscrSemicolonEntityName, 5, 0x1D4CB, 0 },
+    { vsubnESemicolonEntityName, 7, 0x02ACB, 0x0FE00 },
+    { vsubneSemicolonEntityName, 7, 0x0228A, 0x0FE00 },
+    { vsupnESemicolonEntityName, 7, 0x02ACC, 0x0FE00 },
+    { vsupneSemicolonEntityName, 7, 0x0228B, 0x0FE00 },
+    { vzigzagSemicolonEntityName, 8, 0x0299A, 0 },
+    { wcircSemicolonEntityName, 6, 0x00175, 0 },
+    { wedbarSemicolonEntityName, 7, 0x02A5F, 0 },
+    { wedgeSemicolonEntityName, 6, 0x02227, 0 },
+    { wedgeqSemicolonEntityName, 7, 0x02259, 0 },
+    { weierpSemicolonEntityName, 7, 0x02118, 0 },
+    { wfrSemicolonEntityName, 4, 0x1D534, 0 },
+    { wopfSemicolonEntityName, 5, 0x1D568, 0 },
+    { wpSemicolonEntityName, 3, 0x02118, 0 },
+    { wrSemicolonEntityName, 3, 0x02240, 0 },
+    { wreathSemicolonEntityName, 7, 0x02240, 0 },
+    { wscrSemicolonEntityName, 5, 0x1D4CC, 0 },
+    { xcapSemicolonEntityName, 5, 0x022C2, 0 },
+    { xcircSemicolonEntityName, 6, 0x025EF, 0 },
+    { xcupSemicolonEntityName, 5, 0x022C3, 0 },
+    { xdtriSemicolonEntityName, 6, 0x025BD, 0 },
+    { xfrSemicolonEntityName, 4, 0x1D535, 0 },
+    { xhArrSemicolonEntityName, 6, 0x027FA, 0 },
+    { xharrSemicolonEntityName, 6, 0x027F7, 0 },
+    { xiSemicolonEntityName, 3, 0x003BE, 0 },
+    { xlArrSemicolonEntityName, 6, 0x027F8, 0 },
+    { xlarrSemicolonEntityName, 6, 0x027F5, 0 },
+    { xmapSemicolonEntityName, 5, 0x027FC, 0 },
+    { xnisSemicolonEntityName, 5, 0x022FB, 0 },
+    { xodotSemicolonEntityName, 6, 0x02A00, 0 },
+    { xopfSemicolonEntityName, 5, 0x1D569, 0 },
+    { xoplusSemicolonEntityName, 7, 0x02A01, 0 },
+    { xotimeSemicolonEntityName, 7, 0x02A02, 0 },
+    { xrArrSemicolonEntityName, 6, 0x027F9, 0 },
+    { xrarrSemicolonEntityName, 6, 0x027F6, 0 },
+    { xscrSemicolonEntityName, 5, 0x1D4CD, 0 },
+    { xsqcupSemicolonEntityName, 7, 0x02A06, 0 },
+    { xuplusSemicolonEntityName, 7, 0x02A04, 0 },
+    { xutriSemicolonEntityName, 6, 0x025B3, 0 },
+    { xveeSemicolonEntityName, 5, 0x022C1, 0 },
+    { xwedgeSemicolonEntityName, 7, 0x022C0, 0 },
+    { yacuteEntityName, 6, 0x000FD, 0 },
+    { yacuteSemicolonEntityName, 7, 0x000FD, 0 },
+    { yacySemicolonEntityName, 5, 0x0044F, 0 },
+    { ycircSemicolonEntityName, 6, 0x00177, 0 },
+    { ycySemicolonEntityName, 4, 0x0044B, 0 },
+    { yenEntityName, 3, 0x000A5, 0 },
+    { yenSemicolonEntityName, 4, 0x000A5, 0 },
+    { yfrSemicolonEntityName, 4, 0x1D536, 0 },
+    { yicySemicolonEntityName, 5, 0x00457, 0 },
+    { yopfSemicolonEntityName, 5, 0x1D56A, 0 },
+    { yscrSemicolonEntityName, 5, 0x1D4CE, 0 },
+    { yucySemicolonEntityName, 5, 0x0044E, 0 },
+    { yumlEntityName, 4, 0x000FF, 0 },
+    { yumlSemicolonEntityName, 5, 0x000FF, 0 },
+    { zacuteSemicolonEntityName, 7, 0x0017A, 0 },
+    { zcaronSemicolonEntityName, 7, 0x0017E, 0 },
+    { zcySemicolonEntityName, 4, 0x00437, 0 },
+    { zdotSemicolonEntityName, 5, 0x0017C, 0 },
+    { zeetrfSemicolonEntityName, 7, 0x02128, 0 },
+    { zetaSemicolonEntityName, 5, 0x003B6, 0 },
+    { zfrSemicolonEntityName, 4, 0x1D537, 0 },
+    { zhcySemicolonEntityName, 5, 0x00436, 0 },
+    { zigrarrSemicolonEntityName, 8, 0x021DD, 0 },
+    { zopfSemicolonEntityName, 5, 0x1D56B, 0 },
+    { zscrSemicolonEntityName, 5, 0x1D4CF, 0 },
+    { zwjSemicolonEntityName, 4, 0x0200D, 0 },
+    { zwnjSemicolonEntityName, 5, 0x0200C, 0 },
+};
+
+static const
+struct pchvml_entity* pchvml_character_reference_upper_case_offset[] = {
+    &pchvml_character_reference_entity_table[0],
+    &pchvml_character_reference_entity_table[27],
+    &pchvml_character_reference_entity_table[39],
+    &pchvml_character_reference_entity_table[75],
+    &pchvml_character_reference_entity_table[129],
+    &pchvml_character_reference_entity_table[159],
+    &pchvml_character_reference_entity_table[167],
+    &pchvml_character_reference_entity_table[189],
+    &pchvml_character_reference_entity_table[201],
+    &pchvml_character_reference_entity_table[230],
+    &pchvml_character_reference_entity_table[237],
+    &pchvml_character_reference_entity_table[245],
+    &pchvml_character_reference_entity_table[305],
+    &pchvml_character_reference_entity_table[314],
+    &pchvml_character_reference_entity_table[386],
+    &pchvml_character_reference_entity_table[415],
+    &pchvml_character_reference_entity_table[434],
+    &pchvml_character_reference_entity_table[439],
+    &pchvml_character_reference_entity_table[484],
+    &pchvml_character_reference_entity_table[524],
+    &pchvml_character_reference_entity_table[547],
+    &pchvml_character_reference_entity_table[587],
+    &pchvml_character_reference_entity_table[604],
+    &pchvml_character_reference_entity_table[609],
+    &pchvml_character_reference_entity_table[613],
+    &pchvml_character_reference_entity_table[624],
+    &pchvml_character_reference_entity_table[634],
+};
+
+static const
+struct pchvml_entity* pchvml_character_reference_lower_case_offset[] = {
+    &pchvml_character_reference_entity_table[634],
+    &pchvml_character_reference_entity_table[703],
+    &pchvml_character_reference_entity_table[819],
+    &pchvml_character_reference_entity_table[918],
+    &pchvml_character_reference_entity_table[984],
+    &pchvml_character_reference_entity_table[1051],
+    &pchvml_character_reference_entity_table[1090],
+    &pchvml_character_reference_entity_table[1150],
+    &pchvml_character_reference_entity_table[1178],
+    &pchvml_character_reference_entity_table[1234],
+    &pchvml_character_reference_entity_table[1242],
+    &pchvml_character_reference_entity_table[1252],
+    &pchvml_character_reference_entity_table[1406],
+    &pchvml_character_reference_entity_table[1446],
+    &pchvml_character_reference_entity_table[1614],
+    &pchvml_character_reference_entity_table[1675],
+    &pchvml_character_reference_entity_table[1744],
+    &pchvml_character_reference_entity_table[1755],
+    &pchvml_character_reference_entity_table[1859],
+    &pchvml_character_reference_entity_table[2017],
+    &pchvml_character_reference_entity_table[2075],
+    &pchvml_character_reference_entity_table[2127],
+    &pchvml_character_reference_entity_table[2169],
+    &pchvml_character_reference_entity_table[2180],
+    &pchvml_character_reference_entity_table[2204],
+    &pchvml_character_reference_entity_table[2218],
+    &pchvml_character_reference_entity_table[2231],
+};
+
+
+const struct pchvml_entity* pchvml_character_reference_first_starting_with(
+        char c)
+{
+    if (c >= 'A' && c <= 'Z') {
+        return pchvml_character_reference_upper_case_offset[c - 'A'];
+    }
+    if (c >= 'a' && c <= 'z') {
+        return pchvml_character_reference_lower_case_offset[c - 'a'];
+    }
+    return NULL;
+}
+
+const struct pchvml_entity* pchvml_character_reference_last_starting_with(
+        char c)
+{
+    if (c >= 'A' && c <= 'Z') {
+        return pchvml_character_reference_upper_case_offset[c - 'A' + 1] - 1;
+    }
+    if (c >= 'a' && c <= 'z') {
+        return pchvml_character_reference_lower_case_offset[c - 'a' + 1] - 1;
+    }
+    return NULL;
+}

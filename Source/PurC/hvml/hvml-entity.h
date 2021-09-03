@@ -32,8 +32,14 @@
 #include "config.h"
 #include "purc-utils.h"
 
-struct pchvml_entity;
+
 struct pchvml_entity_search;
+struct pchvml_entity {
+    const char* entity;
+    size_t length;
+    wchar_t first_value;
+    wchar_t second_value;
+};
 
 typedef struct pchvml_entity* (first_entry_starting_with_fn)(char c);
 typedef struct pchvml_entity* (last_entry_starting_with_fn)(char c);

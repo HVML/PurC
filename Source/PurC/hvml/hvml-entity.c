@@ -45,13 +45,6 @@
 #define    PCHVML_FREE(p)     free(p)
 #endif
 
-struct pchvml_entity {
-    const char* entity;
-    size_t length;
-    wchar_t first_value;
-    wchar_t second_value;
-};
-
 struct pchvml_entity_search {
     struct pchvml_entity* first;
     struct pchvml_entity* last;
