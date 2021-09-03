@@ -28,6 +28,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "config.h"
+#include "purc-utils.h"
 
 #define pchvml_temp_buffer_append_temp_buffer(buffer, append)                \
     pchvml_temp_buffer_append(buffer, pchvml_temp_buffer_get_buffer(append), \
