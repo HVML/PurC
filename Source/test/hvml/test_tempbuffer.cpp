@@ -142,7 +142,7 @@ TEST(temp_buffer, append_temp_buffer)
     pchvml_temp_buffer_destroy(buffer);
 }
 
-TEST(temp_buffer, append_uc)
+TEST(temp_buffer, append_ucs)
 {
     struct pchvml_temp_buffer* buffer = pchvml_temp_buffer_new ();
     ASSERT_NE(buffer, nullptr);
@@ -157,12 +157,12 @@ TEST(temp_buffer, append_uc)
     ASSERT_STREQ("abcde", pchvml_temp_buffer_get_buffer(buffer));
 
 
-    wchar_t wc = 0x4F60;
-    pchvml_temp_buffer_append_uc(buffer, wc);
-    ASSERT_EQ(8, pchvml_temp_buffer_get_size_in_bytes(buffer));
-    ASSERT_EQ(6, pchvml_temp_buffer_get_size_in_chars(buffer));
-    ASSERT_EQ(wc, pchvml_temp_buffer_get_last_char(buffer));
-    ASSERT_STREQ("abcde你", pchvml_temp_buffer_get_buffer(buffer));
+    wchar_t wc[] = {0x4F60, 0x597D};
+    pchvml_temp_buffer_append_ucs(buffer, wc, 2);
+    ASSERT_EQ(11, pchvml_temp_buffer_get_size_in_bytes(buffer));
+    ASSERT_EQ(7, pchvml_temp_buffer_get_size_in_chars(buffer));
+    ASSERT_EQ(wc[1], pchvml_temp_buffer_get_last_char(buffer));
+    ASSERT_STREQ("abcde你好", pchvml_temp_buffer_get_buffer(buffer));
 
     pchvml_temp_buffer_destroy(buffer);
 }

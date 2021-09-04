@@ -156,12 +156,20 @@ static inline size_t uc_to_utf8(wchar_t c, char* outbuf)
     return len;
 }
 
-void pchvml_temp_buffer_append_uc (struct pchvml_temp_buffer* buffer,
+static void pchvml_temp_buffer_append_uc (struct pchvml_temp_buffer* buffer,
         wchar_t uc)
 {
     char buf[8] = {0};
     size_t len = uc_to_utf8(uc, buf);
     pchvml_temp_buffer_append (buffer, buf, len);
+}
+
+void pchvml_temp_buffer_append_ucs (struct pchvml_temp_buffer* buffer,
+        const wchar_t* ucs, size_t nr_ucs)
+{
+    for (size_t i = 0; i < nr_ucs; i++) {
+        pchvml_temp_buffer_append_uc (buffer, ucs[i]);
+    }
 }
 
 bool pchvml_temp_buffer_end_with (struct pchvml_temp_buffer* buffer,
