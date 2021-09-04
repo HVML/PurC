@@ -24,6 +24,7 @@
 
 #include "hvml-entity.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
@@ -56,22 +57,22 @@ struct pchvml_entity_search {
 
 const char* pchvml_entity_get_entity(const struct pchvml_entity* entity)
 {
-    return entity->entity;
+    return entity ? entity->entity : NULL;
 }
 
 size_t pchvml_entity_get_entity_length(const struct pchvml_entity* entity)
 {
-    return entity->length;
+    return entity ? entity->length : 0;
 }
 
 wchar_t pchvml_entity_get_first_value(const struct pchvml_entity* entity)
 {
-    return entity->first_value;
+    return entity ? entity->first_value : 0;
 }
 
 wchar_t pchvml_entity_get_last_value(const struct pchvml_entity* entity)
 {
-    return entity->second_value;
+    return entity ? entity->second_value : 0;
 }
 
 struct pchvml_entity_search* pchvml_entity_search_new_ex(
@@ -219,7 +220,7 @@ bool pchvml_entity_advance(struct pchvml_entity_search* search,
         search->last = pchvml_entity_search_find_last(search, next_character);
         if (search->first == search->last &&
             pchvml_entity_search_compare(search, search->first,
-               next_character) != PCHVML_ENTITY_SEARCH_COMPARE_RESULT_BEFORE) {
+               next_character) != PCHVML_ENTITY_SEARCH_COMPARE_RESULT_PREFIX) {
             search->first = NULL;
             search->last = NULL;
             return false;

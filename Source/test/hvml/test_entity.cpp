@@ -27,5 +27,29 @@ TEST(hvml_character_reference, init_search)
             pchvml_character_reference_first_starting_with,
             pchvml_character_reference_last_starting_with);
     ASSERT_NE(search, nullptr);
+
+    bool ret = false;
+    const struct pchvml_entity* entity = NULL;
+
+    ret = pchvml_entity_advance(search, 'A');
+    ASSERT_EQ(ret, true);
+    entity = pchvml_entity_search_most_recent_match(search);
+    ASSERT_EQ(entity, nullptr);
+
+    ret = pchvml_entity_advance(search, 'M');
+    ASSERT_EQ(ret, true);
+    entity = pchvml_entity_search_most_recent_match(search);
+    ASSERT_EQ(entity, nullptr);
+
+    ret = pchvml_entity_advance(search, 'P');
+    ASSERT_EQ(ret, true);
+    entity = pchvml_entity_search_most_recent_match(search);
+    ASSERT_NE(entity, nullptr);
+
+    ret = pchvml_entity_advance(search, ';');
+    ASSERT_EQ(ret, true);
+    entity = pchvml_entity_search_most_recent_match(search);
+    ASSERT_NE(entity, nullptr);
+
     pchvml_entity_search_destroy(search);
 }
