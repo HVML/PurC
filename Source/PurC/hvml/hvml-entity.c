@@ -46,9 +46,9 @@
 #endif
 
 struct pchvml_entity_search {
-    struct pchvml_entity* first;
-    struct pchvml_entity* last;
-    struct pchvml_entity* most_recent_match;
+    const struct pchvml_entity* first;
+    const struct pchvml_entity* last;
+    const struct pchvml_entity* most_recent_match;
     first_entry_starting_with_fn* first_starting_with;
     last_entry_starting_with_fn* last_starting_with;
     size_t current_length;
@@ -75,7 +75,8 @@ wchar_t pchvml_entity_get_last_value(struct pchvml_entity* entity)
 }
 
 struct pchvml_entity_search* pchvml_entity_search_new_ex(
-        struct pchvml_entity* first, struct pchvml_entity* last,
+        const struct pchvml_entity* first,
+        const struct pchvml_entity* last,
         first_entry_starting_with_fn* first_starting_with,
         last_entry_starting_with_fn* last_starting_with)
 {
@@ -102,7 +103,7 @@ void pchvml_entity_search_destroy(struct pchvml_entity_search* search)
     }
 }
 
-struct pchvml_entity* pchvml_entity_search_most_recent_match(
+const struct pchvml_entity* pchvml_entity_search_most_recent_match(
         struct pchvml_entity_search* search)
 {
     return search->most_recent_match;
@@ -119,14 +120,14 @@ enum pchvml_entity_search_compare_result {
     PCHVML_ENTITY_SEARCH_COMPARE_RESULT_AFTER,
 };
 
-struct pchvml_entity* pchvml_entity_search_halfway(
-        struct pchvml_entity* left, const struct pchvml_entity* right)
+const struct pchvml_entity* pchvml_entity_search_halfway(
+        const struct pchvml_entity* left, const struct pchvml_entity* right)
 {
     return &left[(right - left) / 2];
 }
 
 enum pchvml_entity_search_compare_result pchvml_entity_search_compare(
-        struct pchvml_entity_search* search, struct pchvml_entity* entry,
+        struct pchvml_entity_search* search, const struct pchvml_entity* entry,
         wchar_t next_character)
 {
     if (entry->length < search->current_length + 1) {
@@ -141,11 +142,11 @@ enum pchvml_entity_search_compare_result pchvml_entity_search_compare(
         PCHVML_ENTITY_SEARCH_COMPARE_RESULT_AFTER;
 }
 
-struct pchvml_entity* pchvml_entity_search_find_first(
+const struct pchvml_entity* pchvml_entity_search_find_first(
         struct pchvml_entity_search* search, wchar_t next_character)
 {
-    struct pchvml_entity* left = search->first;
-    struct pchvml_entity* right = search->last;
+    const struct pchvml_entity* left = search->first;
+    const struct pchvml_entity* right = search->last;
     if (left == right) {
         return left;
     }
@@ -158,7 +159,7 @@ struct pchvml_entity* pchvml_entity_search_find_first(
         return right;
     }
     while (left + 1 < right) {
-        struct pchvml_entity* probe = pchvml_entity_search_halfway(left,
+        const struct pchvml_entity* probe = pchvml_entity_search_halfway(left,
                 right);
         result = pchvml_entity_search_compare(search, probe, next_character);
         if (result == PCHVML_ENTITY_SEARCH_COMPARE_RESULT_BEFORE) {
@@ -171,11 +172,11 @@ struct pchvml_entity* pchvml_entity_search_find_first(
     return right;
 }
 
-struct pchvml_entity* pchvml_entity_search_find_last(
+const struct pchvml_entity* pchvml_entity_search_find_last(
         struct pchvml_entity_search* search, wchar_t next_character)
 {
-    struct pchvml_entity* left = search->first;
-    struct pchvml_entity* right = search->last;
+    const struct pchvml_entity* left = search->first;
+    const struct pchvml_entity* right = search->last;
     if (left == right) {
         return right;
     }
@@ -188,7 +189,7 @@ struct pchvml_entity* pchvml_entity_search_find_last(
         return left;
     }
     while (left + 1 < right) {
-        struct pchvml_entity* probe = pchvml_entity_search_halfway(left,
+        const struct pchvml_entity* probe = pchvml_entity_search_halfway(left,
                 right);
         result = pchvml_entity_search_compare(search, probe, next_character);
         if (result == PCHVML_ENTITY_SEARCH_COMPARE_RESULT_AFTER) {

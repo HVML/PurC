@@ -41,8 +41,8 @@ struct pchvml_entity {
     wchar_t second_value;
 };
 
-typedef struct pchvml_entity* (first_entry_starting_with_fn)(char c);
-typedef struct pchvml_entity* (last_entry_starting_with_fn)(char c);
+typedef const struct pchvml_entity* (first_entry_starting_with_fn)(char c);
+typedef const struct pchvml_entity* (last_entry_starting_with_fn)(char c);
 
 
 #ifdef __cplusplus
@@ -56,7 +56,8 @@ wchar_t pchvml_entity_get_last_value(struct pchvml_entity* entity);
 
 
 struct pchvml_entity_search* pchvml_entity_search_new_ex(
-        struct pchvml_entity* first, struct pchvml_entity* last,
+        const struct pchvml_entity* first, 
+        const struct pchvml_entity* last,
         first_entry_starting_with_fn* first_starting_with,
         last_entry_starting_with_fn* last_starting_with);
 
@@ -69,7 +70,7 @@ struct pchvml_entity_search* pchvml_entity_search_new(
 
 void pchvml_entity_search_destroy(struct pchvml_entity_search* search);
 
-struct pchvml_entity* pchvml_entity_search_most_recent_match(
+const struct pchvml_entity* pchvml_entity_search_most_recent_match(
         struct pchvml_entity_search* search);
 
 size_t pchvml_entity_search_current_length(struct pchvml_entity_search* search);
