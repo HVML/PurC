@@ -36,6 +36,8 @@
 extern "C" {
 #endif  /* __cplusplus */
 
+const struct pchvml_entity* pchvml_character_reference_first(void);
+const struct pchvml_entity* pchvml_character_reference_last(void);
 
 const struct pchvml_entity* pchvml_character_reference_first_starting_with(
         char c);

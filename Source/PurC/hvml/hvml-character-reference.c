@@ -4557,6 +4557,15 @@ struct pchvml_entity* pchvml_character_reference_lower_case_offset[] = {
     &pchvml_character_reference_entity_table[2231],
 };
 
+const struct pchvml_entity* pchvml_character_reference_first(void)
+{
+    return &pchvml_character_reference_entity_table[0];
+}
+
+const struct pchvml_entity* pchvml_character_reference_last(void)
+{
+    return &pchvml_character_reference_entity_table[2231 - 1];
+}
 
 const struct pchvml_entity* pchvml_character_reference_first_starting_with(
         char c)
