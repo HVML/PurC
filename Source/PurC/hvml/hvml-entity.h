@@ -36,9 +36,9 @@
 struct pchvml_entity_search;
 struct pchvml_entity {
     const char* entity;
-    size_t length;
-    wchar_t first_value;
-    wchar_t second_value;
+    size_t nr_entity;
+    const wchar_t* value;
+    size_t nr_value;
 };
 
 typedef const struct pchvml_entity* (first_entry_starting_with_fn)(char c);
@@ -49,11 +49,29 @@ typedef const struct pchvml_entity* (last_entry_starting_with_fn)(char c);
 extern "C" {
 #endif  /* __cplusplus */
 
-const char* pchvml_entity_get_entity(const struct pchvml_entity* entity);
-size_t pchvml_entity_get_entity_length(const struct pchvml_entity* entity);
-wchar_t pchvml_entity_get_first_value(const struct pchvml_entity* entity);
-wchar_t pchvml_entity_get_last_value(const struct pchvml_entity* entity);
+PCA_INLINE
+const char* pchvml_entity_get_entity(const struct pchvml_entity* entity)
+{
+    return entity ? entity->entity : NULL;
+}
 
+PCA_INLINE
+size_t pchvml_entity_get_entity_length(const struct pchvml_entity* entity)
+{
+    return entity ? entity->nr_entity : 0;
+}
+
+PCA_INLINE
+const wchar_t* pchvml_entity_get_value(const struct pchvml_entity* entity)
+{
+    return entity ? entity->value : NULL;
+}
+
+PCA_INLINE
+size_t pchvml_entity_get_value_length(const struct pchvml_entity* entity)
+{
+    return entity ? entity->nr_value: 0;
+}
 
 struct pchvml_entity_search* pchvml_entity_search_new_ex(
         const struct pchvml_entity* first, 
