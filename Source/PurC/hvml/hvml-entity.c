@@ -54,22 +54,22 @@ struct pchvml_entity_search {
     size_t current_length;
 };
 
-const char* pchvml_entity_get_entity(struct pchvml_entity* entity)
+const char* pchvml_entity_get_entity(const struct pchvml_entity* entity)
 {
     return entity->entity;
 }
 
-size_t pchvml_entity_get_entity_length(struct pchvml_entity* entity)
+size_t pchvml_entity_get_entity_length(const struct pchvml_entity* entity)
 {
     return entity->length;
 }
 
-wchar_t pchvml_entity_get_first_value(struct pchvml_entity* entity)
+wchar_t pchvml_entity_get_first_value(const struct pchvml_entity* entity)
 {
     return entity->first_value;
 }
 
-wchar_t pchvml_entity_get_last_value(struct pchvml_entity* entity)
+wchar_t pchvml_entity_get_last_value(const struct pchvml_entity* entity)
 {
     return entity->second_value;
 }
