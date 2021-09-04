@@ -99,3 +99,23 @@ TEST(hvml_character_reference, unmatch)
 
     pchvml_entity_search_destroy(search);
 }
+
+TEST(hvml_character_reference, unmatch_1)
+{
+    struct pchvml_entity_search* search = pchvml_entity_search_new_ex(
+            pchvml_character_reference_first(),
+            pchvml_character_reference_last(),
+            pchvml_character_reference_first_starting_with,
+            pchvml_character_reference_last_starting_with);
+    ASSERT_NE(search, nullptr);
+
+    bool ret = false;
+    const struct pchvml_entity* entity = NULL;
+
+    ret = pchvml_entity_advance(search, '1');
+    ASSERT_EQ(ret, false);
+    entity = pchvml_entity_search_most_recent_match(search);
+    ASSERT_EQ(entity, nullptr);
+
+    pchvml_entity_search_destroy(search);
+}
