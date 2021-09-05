@@ -45,48 +45,8 @@
 #define FORMAT_ISO8601  1
 #define FORMAT_RFC822   2
 
-https://www.doxygen.nl/manual/output.html
+//https://www.doxygen.nl/manual/output.html
 
-/**
- * @brief       Get system information 
- *
- * @param[in]   root    : The context variant
- * @param[in]   nr_args : The number of elements in argv array, it should be 0
- * @param[in]   argv    : A varaint array
- *                        argv[0], it should be PURC_VARIANT_INVALID 
- *
- * @return
- *              - PURC_VARIANT_INVALID, with errno:
- *                  PURC_ERROR_INVALID_VALUE when creates variant error,
- *                  PURC_ERROR_BAD_SYSTEM_CALL when invokes uname error.
- *              - A PURC_VARIANT_TYPE_OBJECT varint with:
- *                  {
- *                      "kernel-name"       : "xxxxxxx",
- *                      "nodename"          : "xxxxxxx",
- *                      "kernel-release"    : "xxxxxxx",
- *                      "kernel-version"    : "xxxxxxx",
- *                      "machine"           : "xxxxxxx",
- *                      "processor"         : "xxxxxxx",
- *                      "hardware-platform" : "xxxxxxx",
- *                      "operating-system"  : "xxxxxxx"
- *                  }
- *
- * @par sample
- * @code
- *              purc_variant_t sys = pcdvojbs_get_system();
- *              purc_variant_t dynamic = purc_variant_object_get_c (sys, "uname");
- *              purc_dvariant_method func = 
- *                                  purc_variant_dynamic_get_getter (dynamic);
- *
- *              purc_variant_t param[1];
- *              param[0] = PURC_VARIANT_INVALID;
- *              purc_variant_t var = func (root, 0, param);
- * @endcode
- *
- * @note        The function does not check the validity of parameters,
- *              you can simplify the code as:
- *              purc_variant_t var = func (root, 0, PURC_VARIANT_INVALID);
-*/
 static purc_variant_t
 uname_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
@@ -131,48 +91,6 @@ uname_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 
-/**
- * @brief       Get system information according to user's input 
- *
- * @param[in]   root    : The context variant
- * @param[in]   nr_args : The number of elements in argv array, it should be 1
- * @param[in]   argv    : A varaint array
- *                        argv[0], a PURC_VARIANT_TYPE_STRING type, can be one
- *                            or more items as below:
- *                            "kernel-name", "kernel-release", "kernel-version", 
- *                            "nodename", "machine", "processor", 
- *                            "hardware-platform", "operating-system".
- *                            or :
- *                            "all"
- *                            or :
- *                            "default"
- *
- * @return
- *              - PURC_VARIANT_INVALID, with errno:
- *                  PURC_ERROR_INVALID_VALUE when creates variant error,
- *                  PURC_ERROR_BAD_SYSTEM_CALL when invokes uname error,
- *                  PURC_ERROR_WRONG_ARGS when input parameter is error.
- *              - A PURC_VARIANT_TYPE_STRING varint, accroding to the 
- *                  input orders with white space as delimiter.
- *
- * @par sample
- * @code
- *              purc_variant_t sys = pcdvojbs_get_system();
- *              purc_variant_t dynamic = purc_variant_object_get_c (sys, "uname_prt");
- *              purc_dvariant_method func = 
- *                                  purc_variant_dynamic_get_getter (dynamic);
- *
- *              purc_variant_t param[2];
- *              param[0] = purc_variant_make_string ("kernel-name processor");
- *              param[1] = NULL;
- *              purc_variant_t var = func (root, 1, param);
- * @endcode
- *
- * @note        If input multiple items, use white space as delimiter.
- *              If input "all", you will get all system information.
- *              If input "default", only get "kernel-name", "kernel-release", 
- *                  "kernel-version", "nodename", "machine".
-*/
 static purc_variant_t
 uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
@@ -393,39 +311,6 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 
-/**
- * @brief       Get locale information according to user's input 
- *
- * @param[in]   root    : The context variant
- * @param[in]   nr_args : The number of elements in argv array, it should be 1
- * @param[in]   argv    : A varaint array
- *                        argv[0], a PURC_VARIANT_TYPE_STRING type, can be one
- *                            items as below:
- *                            "ctype", "numeric", "time", "collate", "monetary", 
- *                            "messages", "paper", "name", "address", "telephone", 
- *                            "measurement", "identification"
- *
- * @return
- *              - PURC_VARIANT_INVALID, with errno:
- *                  PURC_ERROR_INVALID_VALUE when creates variant error,
- *                  PURC_ERROR_WRONG_ARGS when input parameter is error.
- *              - A PURC_VARIANT_TYPE_STRING varint, accroding to the input. 
- *
- * @par sample
- * @code
- *              purc_variant_t sys = pcdvojbs_get_system();
- *              purc_variant_t dynamic = purc_variant_object_get_c (sys, "locale");
- *              purc_dvariant_method func = 
- *                                  purc_variant_dynamic_get_getter (dynamic);
- *
- *              purc_variant_t param[2];
- *              param[0] = purc_variant_make_string ("ctype");
- *              param[1] = NULL;
- *              purc_variant_t var = func (root, 1, param);
- * @endcode
- *
- * @note
-*/
 static purc_variant_t
 locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
@@ -540,46 +425,6 @@ locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     return ret_var;
 }
 
-/**
- * @brief       Set locale information according to user's input 
- *
- * @param[in]   root    : The context variant
- * @param[in]   nr_args : The number of elements in argv array, it should be 2
- * @param[in]   argv    : A varaint array
- *                        argv[0], a PURC_VARIANT_TYPE_STRING type, can be one
- *                            or more items as below:
- *                            "ctype", "numeric", "time", "collate", "monetary", 
- *                            "messages", "paper", "name", "address", "telephone", 
- *                            "measurement", "identification"
- *                            or :
- *                            "all"
- *                        argv[1], a PURC_VARIANT_TYPE_STRING type, the locale 
- *                            to be set.
- *
- * @return
- *              - PURC_VARIANT_INVALID, with errno:
- *                  PURC_ERROR_INVALID_VALUE when creates variant error,
- *                  PURC_ERROR_WRONG_ARGS when input parameter is error.
- *              - A PURC_VARIANT_TYPE_BOOLEAN varint.
- *                  PURC_VARIANT_TRUE for successful, otherwise 
- *                  PURC_VARIANT_FALSE.
- *
- * @par sample
- * @code
- *              purc_variant_t sys = pcdvojbs_get_system();
- *              purc_variant_t dynamic = purc_variant_object_get_c (sys, "locale");
- *              purc_dvariant_method func = 
- *                                  purc_variant_dynamic_get_setter (dynamic);
- *
- *              purc_variant_t param[3];
- *              param[0] = purc_variant_make_string ("ctype");
- *              param[1] = purc_variant_make_string ("zh_CN");
- *              param[2] = NULL;
- *              purc_variant_t var = func (root, 1, param);
- * @endcode
- *
- * @note        If input is "all", the function will set all items.
-*/
 static purc_variant_t
 locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
@@ -737,35 +582,6 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 
-/**
- * @brief       Get a random, the range is from 0 to user defined. 
- *
- * @param[in]   root    : The context variant
- * @param[in]   nr_args : The number of elements in argv array, it should be 1 
- * @param[in]   argv    : A varaint array
- *                        argv[0], a PURC_VARIANT_TYPE_NUMBER type, the maxium
- *
- * @return
- *              - PURC_VARIANT_INVALID, with errno:
- *                  PURC_ERROR_INVALID_VALUE when creates variant error,
- *                  PURC_ERROR_WRONG_ARGS when input parameter is error.
- *              - A PURC_VARIANT_TYPE_NUMBER varint for the random.
- *
- * @par sample
- * @code
- *              purc_variant_t sys = pcdvojbs_get_system();
- *              purc_variant_t dynamic = purc_variant_object_get_c (sys, "random");
- *              purc_dvariant_method func = 
- *                                  purc_variant_dynamic_get_getter (dynamic);
- *
- *              purc_variant_t param[2];
- *              param[0] = purc_variant_make_string (34.0d);
- *              param[1] = NULL;
- *              purc_variant_t var = func (root, 1, param);
- * @endcode
- *
- * @note        You can use MRAND_MAX for the maxium value the system supports.
-*/
 static purc_variant_t
 random_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
@@ -915,72 +731,6 @@ get_time_format (int type, double epoch, const char *timezone)
 }
 
 
-/**
- * @brief       Get time information. 
- *
- * @param[in]   root    : The context variant
- * @param[in]   nr_args : The number of elements in argv array, it should be 3 
- * @param[in]   argv    : A varaint array
- *                        argv[0], a PURC_VARIANT_TYPE_STRING type, time format
- *                            -"tm": get the time information as struct tm;
- *                            -"iso8601": get the time in iso8601 format;
- *                            -"RFC822": get the time in RFC822 format;
- *                            -format string: get the time with string user defined
- *                        argv[1], seconds since the Epoch, can be 
- *                            PURC_VARIANT_TYPE_NUMBER, 
- *                            PURC_VARIANT_TYPE_ULONGINT,
- *                            PURC_VARIANT_TYPE_LONGDOUBLE, 
- *                            PURC_VARIANT_TYPE_LONGINT type
- *                        argv[2], a PURC_VARIANT_TYPE_STRING type, timezone
- *
- * @return
- *              - PURC_VARIANT_INVALID, with errno:
- *                  PURC_ERROR_INVALID_VALUE when creates variant error,
- *                  PURC_ERROR_WRONG_ARGS when input parameter is error.
- *              - A PURC_VARIANT_TYPE_STRING varint for the time information.
- *
- * @par sample
- * @code
- *              purc_variant_t sys = pcdvojbs_get_system();
- *              purc_variant_t dynamic = purc_variant_object_get_c (sys, "time");
- *              purc_dvariant_method func = 
- *                                  purc_variant_dynamic_get_getter (dynamic);
- *
- *              // get the current time in iso8601 format
- *              purc_variant_t param[4];
- *              param[0] = purc_variant_make_string ("iso8601");
- *              param[1] = PURC_VARIANT_UNDEFINED;
- *              param[2] = PURC_VARIANT_UNDEFINED;
- *              param[3] = NULL;
- *              purc_variant_t var1 = func (root, 3, param);
- *
- *              // get time in Asia/Shanghai, and Epoch is 1234567,
- *              // and return string format is iso8601
- *              param[0] = purc_variant_make_string ("iso8601");
- *              param[1] = purc_variant_make_number (1234567);
- *              param[2] = purc_variant_make_string ("Asia/Shanghai");
- *              param[3] = NULL;
- *              purc_variant_t var2 = func (root, 3, param);
- *
- *              // get time in Asia/Shanghai, and Epoch is 1234567,
- *              // and return string is in user defined format
- *              param[0] = purc_variant_make_string ("The Shanghai time is %H:%m");
- *              param[1] = purc_variant_make_number (1234567);
- *              param[2] = purc_variant_make_string ("Asia/Shanghai");
- *              param[3] = NULL;
- *              purc_variant_t var3 = func (root, 3, param);
- * @endcode
- *
- * @note        If do not indicate seconds since the Epoch, or time zone, 
- *              argv[1] and argv[2] should be PURC_VARIANT_UNDEFINED.
- *              Support user define format, as below:
- *                  %Y: the year
- *                  %m: the month
- *                  %d: the day
- *                  %H: the hour
- *                  %M: the minute
- *                  %S: the second
-*/
 static purc_variant_t
 time_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
@@ -1157,39 +907,6 @@ time_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 
-/**
- * @brief       Set time. 
- *
- * @param[in]   root    : The context variant
- * @param[in]   nr_args : The number of elements in argv array, it should be 1
- * @param[in]   argv    : A varaint array
- *                        argv[0], seconds since the Epoch, it should be 
- *                            PURC_VARIANT_TYPE_NUMBER type.
- *
- * @return
- *              - PURC_VARIANT_INVALID, with errno:
- *                  PURC_ERROR_INVALID_VALUE when creates variant error,
- *                  PURC_ERROR_WRONG_ARGS when input parameter is error.
- *              - A PURC_VARIANT_TYPE_BOOLEAN varint.
- *                  PURC_VARIANT_TRUE for successful, otherwise 
- *                  PURC_VARIANT_FALSE.
- *
- * @par sample
- * @code
- *              purc_variant_t sys = pcdvojbs_get_system();
- *              purc_variant_t dynamic = purc_variant_object_get_c (sys, "time");
- *              purc_dvariant_method func = 
- *                                  purc_variant_dynamic_get_setter (dynamic);
- *
- *              // get the current time in iso8601 format
- *              purc_variant_t param[2];
- *              param[0] = purc_variant_make_number (1234567);
- *              param[1] = NULL;
- *              purc_variant_t var = func (root, 1, param);
- * @endcode
- *
- * @note 
-*/
 static purc_variant_t
 time_setter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {

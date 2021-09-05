@@ -145,60 +145,39 @@ number random (number max_range);
 /**
  * @brief       Get or Set time. 
  *
- * @param[in]   format    : A varaint array
- *                        argv[0], a PURC_VARIANT_TYPE_STRING type, time format
- *                            -"tm": get the time information as struct tm;
- *                            -"iso8601": get the time in iso8601 format;
- *                            -"RFC822": get the time in RFC822 format;
- *                            -format string: get the time with string user defined
- *                        argv[1], seconds since the Epoch, can be 
- *                            PURC_VARIANT_TYPE_NUMBER, 
- *                            PURC_VARIANT_TYPE_ULONGINT,
- *                            PURC_VARIANT_TYPE_LONGDOUBLE, 
- *                            PURC_VARIANT_TYPE_LONGINT type
- *                        argv[2], a PURC_VARIANT_TYPE_STRING type, timezone
+ * GETTER:
+ * @param[in]   format    : time format\n
+ *                          -"tm": get the time information as struct tm;\n
+ *                          -"iso8601": get the time in iso8601 format;\n
+ *                          -"RFC822": get the time in RFC822 format;\n
+ *                          -format string: get the time with string user defined
+ * @param[in]   epoch     : seconds since the Epoch
+ * @param[in]   locale    : timezone
+ *
+ * SETTER:
+ * @param[in]   epoch     : seconds since the Epoch
  *
  * @return
- *              - PURC_VARIANT_INVALID, with errno:
- *                  PURC_ERROR_INVALID_VALUE when creates variant error,
- *                  PURC_ERROR_WRONG_ARGS when input parameter is error.
- *              - A PURC_VARIANT_TYPE_STRING varint for the time information.
+ * GETTER:      A string with time information.
+ * SETTER:      A boolean, true for successfully, otherwise false.
  *
  * @par sample
  * @code
- *              purc_variant_t sys = pcdvojbs_get_system();
- *              purc_variant_t dynamic = purc_variant_object_get_c (sys, "time");
- *              purc_dvariant_method func = 
- *                                  purc_variant_dynamic_get_getter (dynamic);
- *
- *              // get the current time in iso8601 format
- *              purc_variant_t param[4];
- *              param[0] = purc_variant_make_string ("iso8601");
- *              param[1] = PURC_VARIANT_UNDEFINED;
- *              param[2] = PURC_VARIANT_UNDEFINED;
- *              param[3] = NULL;
- *              purc_variant_t var1 = func (root, 3, param);
- *
+ *              // get time with iso8601 format
+ *              $SYSTEM.time("iso8601);
+ *              
  *              // get time in Asia/Shanghai, and Epoch is 1234567,
- *              // and return string format is iso8601
- *              param[0] = purc_variant_make_string ("iso8601");
- *              param[1] = purc_variant_make_number (1234567);
- *              param[2] = purc_variant_make_string ("Asia/Shanghai");
- *              param[3] = NULL;
- *              purc_variant_t var2 = func (root, 3, param);
+ *              $SYSTEM.time("iso8601, 1234567, "Asia/Shanghai");
  *
  *              // get time in Asia/Shanghai, and Epoch is 1234567,
  *              // and return string is in user defined format
- *              param[0] = purc_variant_make_string ("The Shanghai time is %H:%m");
- *              param[1] = purc_variant_make_number (1234567);
- *              param[2] = purc_variant_make_string ("Asia/Shanghai");
- *              param[3] = NULL;
- *              purc_variant_t var3 = func (root, 3, param);
+ *              $SYSTEM.time ("The Shanghai time is %H:%m", 1234567, "Asia/Shanghai");
+ *
+ *              // set time, and Epoch is 1234567
+ *              $SYSTEM.time (!1234567);
  * @endcode
  *
- * @note        If do not indicate seconds since the Epoch, or time zone, 
- *              argv[1] and argv[2] should be PURC_VARIANT_UNDEFINED.
- *              Support user define format, as below:
+ * @note        Supported user define format, as below:
  *                  %Y: the year
  *                  %m: the month
  *                  %d: the day
@@ -206,47 +185,7 @@ number random (number max_range);
  *                  %M: the minute
  *                  %S: the second
  */
-string time (string format, number epoch, string locale);
-
-
-/**
- * @brief       Set time. 
- *
- * @param[in]   root    : The context variant
- * @param[in]   nr_args : The number of elements in argv array, it should be 1
- * @param[in]   argv    : A varaint array
- *                        argv[0], seconds since the Epoch, it should be 
- *                            PURC_VARIANT_TYPE_NUMBER type.
- *
- * @return
- *              - PURC_VARIANT_INVALID, with errno:
- *                  PURC_ERROR_INVALID_VALUE when creates variant error,
- *                  PURC_ERROR_WRONG_ARGS when input parameter is error.
- *              - A PURC_VARIANT_TYPE_BOOLEAN varint.
- *                  PURC_VARIANT_TRUE for successful, otherwise 
- *                  PURC_VARIANT_FALSE.
- *
- * @par sample
- * @code
- *              purc_variant_t sys = pcdvojbs_get_system();
- *              purc_variant_t dynamic = purc_variant_object_get_c (sys, "time");
- *              purc_dvariant_method func = 
- *                                  purc_variant_dynamic_get_setter (dynamic);
- *
- *              // get the current time in iso8601 format
- *              purc_variant_t param[2];
- *              param[0] = purc_variant_make_number (1234567);
- *              param[1] = NULL;
- *              purc_variant_t var = func (root, 1, param);
- * @endcode
- *
- * @note 
- */
-purc_variant_t
-time_setter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
-{
-}
+string time (string format, [<number | longint | ulongint | longdouble: epoch>[, <string: timezone>]]);
 
 /** @} end of bv_system */
 /** @} end of builtin_vars */
-
