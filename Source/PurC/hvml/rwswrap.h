@@ -49,6 +49,9 @@ void pchvml_rwswrap_set_rwstream (struct pchvml_rwswrap* wrap,
 
 wchar_t pchvml_rwswrap_next_char (struct pchvml_rwswrap* wrap);
 
+int pchvml_rwswrap_next_utf8_char (struct pchvml_rwswrap* wrap, char* bytes,
+        wchar_t* uc);
+
 bool pchvml_rwswrap_buffer_chars (struct pchvml_rwswrap* wrap,
         wchar_t* ucs, size_t nr_ucs);
 
