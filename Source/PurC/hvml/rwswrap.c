@@ -83,7 +83,7 @@ void pchvml_rwswrap_set_rwstream (struct pchvml_rwswrap* wrap,
 static wchar_t pchvml_rwswrap_read_from_rwstream (struct pchvml_rwswrap* wrap)
 {
     char c[8] = {0};
-    wchar_t uc = 0xFFFFFFFF;
+    wchar_t uc = 0;
     purc_rwstream_read_utf8_char (wrap->rws, c, &uc);
     return uc;
 }
