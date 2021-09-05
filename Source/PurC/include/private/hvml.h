@@ -144,20 +144,18 @@ enum pchvml_state {
 
 struct pchvml_temp_buffer;
 struct pchvml_token;
+struct pchvml_rwswrap;
 
 struct pchvml_parser {
     enum pchvml_state state;
     enum pchvml_state return_state;
     uint32_t flags;
-    uint32_t sz_c;
-    wchar_t wc;
-    char c[8];
     size_t queue_size;
+    struct pchvml_rwswrap* rwswrap;
     struct pchvml_temp_buffer* temp_buffer;
     struct pchvml_temp_buffer* appropriate_tag_name;
     struct pchvml_token* current_token;
     uint64_t character_reference_code;
-    bool need_reconsume;
 };
 
 #ifdef __cplusplus
