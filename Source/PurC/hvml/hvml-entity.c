@@ -52,6 +52,7 @@ struct pchvml_entity_search {
     const struct pchvml_entity* most_recent_match;
     first_entry_starting_with_fn* first_starting_with;
     last_entry_starting_with_fn* last_starting_with;
+    struct pcutils_arrlist* ucs;
     size_t current_length;
 };
 
@@ -73,6 +74,7 @@ struct pchvml_entity_search* pchvml_entity_search_new_ex(
     search->most_recent_match = NULL;
     search->first_starting_with = first_starting_with;
     search->last_starting_with = last_starting_with;
+    search->ucs = pcutils_arrlist_new(NULL);
 
     return search;
 }
@@ -80,6 +82,7 @@ struct pchvml_entity_search* pchvml_entity_search_new_ex(
 void pchvml_entity_search_destroy(struct pchvml_entity_search* search)
 {
     if (search) {
+        pcutils_arrlist_free(search->ucs);
         PCHVML_FREE(search);
     }
 }
@@ -186,6 +189,7 @@ const struct pchvml_entity* pchvml_entity_search_find_last(
 bool pchvml_entity_advance(struct pchvml_entity_search* search,
         wchar_t next_character)
 {
+    pcutils_arrlist_add (search->ucs, (void*)(uintptr_t)next_character);
     if (!search->current_length && search->first_starting_with
             && search->last_starting_with) {
         search->first = search->first_starting_with(next_character);
@@ -214,4 +218,9 @@ bool pchvml_entity_advance(struct pchvml_entity_search* search,
     return true;
 }
 
+struct pcutils_arrlist* pchvml_entity_get_buffered_usc (
+        struct pchvml_entity_search* search)
+{
+    return search->ucs;
+}
 

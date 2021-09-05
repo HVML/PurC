@@ -97,6 +97,16 @@ TEST(hvml_character_reference, unmatch)
     entity = pchvml_entity_search_most_recent_match(search);
     ASSERT_NE(entity, nullptr);
 
+    struct pcutils_arrlist* ucs = pchvml_entity_get_buffered_usc(search);
+    wchar_t uc = (wchar_t)(uintptr_t)pcutils_arrlist_get_idx (ucs, 0);
+    ASSERT_EQ(uc, 'A');
+    uc = (wchar_t)(uintptr_t)pcutils_arrlist_get_idx (ucs, 1);
+    ASSERT_EQ(uc, 'M');
+    uc = (wchar_t)(uintptr_t)pcutils_arrlist_get_idx (ucs, 2);
+    ASSERT_EQ(uc, 'P');
+    uc = (wchar_t)(uintptr_t)pcutils_arrlist_get_idx (ucs, 3);
+    ASSERT_EQ(uc, 'x');
+
     pchvml_entity_search_destroy(search);
 }
 

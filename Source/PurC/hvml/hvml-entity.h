@@ -95,7 +95,11 @@ size_t pchvml_entity_search_current_length(struct pchvml_entity_search* search);
 
 bool pchvml_entity_advance(struct pchvml_entity_search* search, wchar_t uc);
 
-
+/*
+ * return arraylist of unicode character (wchar_t)
+ */
+struct pcutils_arrlist* pchvml_entity_get_buffered_usc (
+        struct pchvml_entity_search* search);
 
 #ifdef __cplusplus
 }
