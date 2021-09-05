@@ -29,6 +29,7 @@
 #include "purc-utils.h"
 #include "purc-rwstream.h"
 #include "private/list.h"
+#include "private/arraylist.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -54,6 +55,12 @@ int pchvml_rwswrap_next_utf8_char (struct pchvml_rwswrap* wrap, char* bytes,
 
 bool pchvml_rwswrap_buffer_chars (struct pchvml_rwswrap* wrap,
         wchar_t* ucs, size_t nr_ucs);
+
+/*
+ * ucs is array list of unicode character (wchar_t)
+ */
+bool pchvml_rwswrap_buffer_arrlist (struct pchvml_rwswrap* wrap,
+        struct pcutils_arrlist* ucs);
 
 void pchvml_rwswrap_destroy (struct pchvml_rwswrap* wrap);
 

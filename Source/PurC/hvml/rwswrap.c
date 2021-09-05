@@ -171,7 +171,24 @@ bool pchvml_rwswrap_buffer_chars (struct pchvml_rwswrap* wrap,
         puc->uc = ucs[i];
         list_add(&puc->list, &wrap->uc_list);
     }
-    return 0;
+    return true;
+}
+
+bool pchvml_rwswrap_buffer_arrlist (struct pchvml_rwswrap* wrap,
+        struct pcutils_arrlist* ucs)
+{
+    size_t length = pcutils_arrlist_length(ucs);
+    for (int i = length - 1; i >= 0; i--) {
+        wchar_t uc = (wchar_t)(uintptr_t) pcutils_arrlist_get_idx (ucs, i);
+        struct pchvml_uc* puc = pchvml_uc_new ();
+        if (!puc) {
+            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            return false;
+        }
+        puc->uc = uc;
+        list_add(&puc->list, &wrap->uc_list);
+    }
+    return true;
 }
 
 void pchvml_rwswrap_destroy (struct pchvml_rwswrap* wrap)
