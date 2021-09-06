@@ -1077,6 +1077,8 @@ next_state:
                 pchvml_rwswrap_buffer_arrlist(hvml->rwswrap,
                         pchvml_sbst_get_buffered_ucs(hvml->sbst));
                 hvml->current_token = pchvml_token_new_comment();
+                pchvml_sbst_destroy(hvml->sbst);
+                hvml->sbst = NULL;
                 ADVANCE_TO(PCHVML_BOGUS_COMMENT_STATE);
             }
 
@@ -1087,14 +1089,20 @@ next_state:
 
             if (strcmp(value, "--")) {
                 hvml->current_token = pchvml_token_new_comment();
+                pchvml_sbst_destroy(hvml->sbst);
+                hvml->sbst = NULL;
                 ADVANCE_TO(PCHVML_COMMENT_START_STATE);
             }
             if (strcmp(value, "DOCTYPE")) {
+                pchvml_sbst_destroy(hvml->sbst);
+                hvml->sbst = NULL;
                 ADVANCE_TO(PCHVML_DOCTYPE_STATE);
             }
             if (strcmp(value, "[CDATA[")) {
-                // todo
+                // TODO
                 // check if is adjust current node
+                pchvml_sbst_destroy(hvml->sbst);
+                hvml->sbst = NULL;
             }
         END_STATE()
 
