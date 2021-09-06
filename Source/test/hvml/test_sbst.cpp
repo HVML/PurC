@@ -132,19 +132,19 @@ TEST(hvml_markup_declaration_open_state, match_doctype)
 
     bool ret = false;
 
-    ret = pchvml_sbst_advance_case_insensitive(search, 'd');
+    ret = pchvml_sbst_advance_ex(search, 'd', true);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_case_insensitive(search, 'O');
+    ret = pchvml_sbst_advance_ex(search, 'O', true);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_case_insensitive(search, 'C');
+    ret = pchvml_sbst_advance_ex(search, 'C', true);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_case_insensitive(search, 'T');
+    ret = pchvml_sbst_advance_ex(search, 'T', true);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_case_insensitive(search, 'y');
+    ret = pchvml_sbst_advance_ex(search, 'y', true);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_case_insensitive(search, 'P');
+    ret = pchvml_sbst_advance_ex(search, 'P', true);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_case_insensitive(search, 'e');
+    ret = pchvml_sbst_advance_ex(search, 'e', true);
     ASSERT_EQ(ret, true);
 
     const char* match = pchvml_sbst_get_match(search);
@@ -196,17 +196,17 @@ TEST(hvml_new_after_doctype_name_state, match_public)
 
     bool ret = false;
 
-    ret = pchvml_sbst_advance_case_insensitive(search, 'P');
+    ret = pchvml_sbst_advance_ex(search, 'P', true);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_case_insensitive(search, 'U');
+    ret = pchvml_sbst_advance_ex(search, 'U', true);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_case_insensitive(search, 'B');
+    ret = pchvml_sbst_advance_ex(search, 'B', true);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_case_insensitive(search, 'L');
+    ret = pchvml_sbst_advance_ex(search, 'L', true);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_case_insensitive(search, 'I');
+    ret = pchvml_sbst_advance_ex(search, 'I', true);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_case_insensitive(search, 'C');
+    ret = pchvml_sbst_advance_ex(search, 'C', true);
     ASSERT_EQ(ret, true);
 
     const char* match = pchvml_sbst_get_match(search);
@@ -226,17 +226,17 @@ TEST(hvml_new_after_doctype_name_state, match_system)
 
     bool ret = false;
 
-    ret = pchvml_sbst_advance_case_insensitive(search, 'S');
+    ret = pchvml_sbst_advance_ex(search, 'S', true);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_case_insensitive(search, 'Y');
+    ret = pchvml_sbst_advance_ex(search, 'Y', true);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_case_insensitive(search, 'S');
+    ret = pchvml_sbst_advance_ex(search, 'S', true);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_case_insensitive(search, 'T');
+    ret = pchvml_sbst_advance_ex(search, 'T', true);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_case_insensitive(search, 'E');
+    ret = pchvml_sbst_advance_ex(search, 'E', true);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_case_insensitive(search, 'M');
+    ret = pchvml_sbst_advance_ex(search, 'M', true);
     ASSERT_EQ(ret, true);
 
     const char* match = pchvml_sbst_get_match(search);

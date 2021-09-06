@@ -44,10 +44,17 @@ struct pchvml_sbst* pchvml_sbst_new_after_doctype_name_state(void);
 
 void pchvml_sbst_destroy (struct pchvml_sbst* sbst);
 
-bool pchvml_sbst_advance (struct pchvml_sbst* sbst, wchar_t uc);
+bool pchvml_sbst_advance_ex (struct pchvml_sbst* sbst,
+        wchar_t uc, bool case_insensitive);
 
-bool pchvml_sbst_advance_case_insensitive (struct pchvml_sbst* sbst,
-        wchar_t uc);
+/*
+ * case sensitive
+ */
+PCA_INLINE
+bool pchvml_sbst_advance (struct pchvml_sbst* sbst, wchar_t uc)
+{
+    return pchvml_sbst_advance_ex(sbst, uc, false);
+}
 
 const char* pchvml_sbst_get_match (struct pchvml_sbst* sbst);
 
