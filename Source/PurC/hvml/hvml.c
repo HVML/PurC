@@ -1087,18 +1087,18 @@ next_state:
                 ADVANCE_TO(PCHVML_MARKUP_DECLARATION_OPEN_STATE);
             }
 
-            if (strcmp(value, "--")) {
+            if (strcmp(value, "--") == 0) {
                 hvml->current_token = pchvml_token_new_comment();
                 pchvml_sbst_destroy(hvml->sbst);
                 hvml->sbst = NULL;
                 ADVANCE_TO(PCHVML_COMMENT_START_STATE);
             }
-            if (strcmp(value, "DOCTYPE")) {
+            if (strcmp(value, "DOCTYPE") == 0) {
                 pchvml_sbst_destroy(hvml->sbst);
                 hvml->sbst = NULL;
                 ADVANCE_TO(PCHVML_DOCTYPE_STATE);
             }
-            if (strcmp(value, "[CDATA[")) {
+            if (strcmp(value, "[CDATA[") == 0) {
                 // TODO
                 // check if is adjust current node
                 pchvml_sbst_destroy(hvml->sbst);
@@ -1302,7 +1302,44 @@ next_state:
                 pchvml_token_set_force_quirks(hvml->current_token, true);
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
-            // TODO : six characters starting from the current input character
+            if (hvml->sbst == NULL) {
+                hvml->sbst = pchvml_sbst_new_after_doctype_name_state();
+            }
+            bool ret = pchvml_sbst_advance_ex(hvml->sbst, character, true);
+            if (!ret) {
+                PCHVML_SET_ERROR(
+                    PCHVML_ERROR_INVALID_CHARACTER_SEQUENCE_AFTER_DOCTYPE_NAME);
+                pchvml_rwswrap_buffer_arrlist(hvml->rwswrap,
+                        pchvml_sbst_get_buffered_ucs(hvml->sbst));
+                pchvml_sbst_destroy(hvml->sbst);
+                hvml->sbst = NULL;
+                pchvml_token_set_force_quirks(hvml->current_token, true);
+                ADVANCE_TO(PCHVML_BOGUS_COMMENT_STATE);
+            }
+
+            const char* value = pchvml_sbst_get_match(hvml->sbst);
+            if (value == NULL) {
+                ADVANCE_TO(PCHVML_MARKUP_DECLARATION_OPEN_STATE);
+            }
+
+            if (strcmp(value, "PUBLIC") == 0) {
+                pchvml_sbst_destroy(hvml->sbst);
+                hvml->sbst = NULL;
+                ADVANCE_TO(PCHVML_AFTER_DOCTYPE_PUBLIC_KEYWORD_STATE);
+            }
+            if (strcmp(value, "SYSTEM") == 0) {
+                pchvml_sbst_destroy(hvml->sbst);
+                hvml->sbst = NULL;
+                ADVANCE_TO(PCHVML_AFTER_DOCTYPE_SYSTEM_KEYWORD_STATE);
+            }
+            PCHVML_SET_ERROR(
+                PCHVML_ERROR_INVALID_CHARACTER_SEQUENCE_AFTER_DOCTYPE_NAME);
+            pchvml_rwswrap_buffer_arrlist(hvml->rwswrap,
+                    pchvml_sbst_get_buffered_ucs(hvml->sbst));
+            pchvml_sbst_destroy(hvml->sbst);
+            hvml->sbst = NULL;
+            pchvml_token_set_force_quirks(hvml->current_token, true);
+            ADVANCE_TO(PCHVML_BOGUS_COMMENT_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_AFTER_DOCTYPE_PUBLIC_KEYWORD_STATE)
