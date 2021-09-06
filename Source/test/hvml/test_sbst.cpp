@@ -188,3 +188,63 @@ TEST(hvml_markup_declaration_open_state, match_cdata)
 
     pchvml_sbst_destroy(search);
 }
+
+TEST(hvml_new_after_doctype_name_state, match_public)
+{
+    struct pchvml_sbst* search = pchvml_sbst_new_after_doctype_name_state();
+    ASSERT_NE(search, nullptr);
+
+    bool ret = false;
+
+    ret = pchvml_sbst_advance_case_insensitive(search, 'P');
+    ASSERT_EQ(ret, true);
+    ret = pchvml_sbst_advance_case_insensitive(search, 'U');
+    ASSERT_EQ(ret, true);
+    ret = pchvml_sbst_advance_case_insensitive(search, 'B');
+    ASSERT_EQ(ret, true);
+    ret = pchvml_sbst_advance_case_insensitive(search, 'L');
+    ASSERT_EQ(ret, true);
+    ret = pchvml_sbst_advance_case_insensitive(search, 'I');
+    ASSERT_EQ(ret, true);
+    ret = pchvml_sbst_advance_case_insensitive(search, 'C');
+    ASSERT_EQ(ret, true);
+
+    const char* match = pchvml_sbst_get_match(search);
+    ASSERT_STREQ(match, "PUBLIC");
+
+    struct pcutils_arrlist* ucs = pchvml_sbst_get_buffered_ucs(search);
+    size_t len = pcutils_arrlist_length(ucs);
+    ASSERT_EQ(len, 6);
+
+    pchvml_sbst_destroy(search);
+}
+
+TEST(hvml_new_after_doctype_name_state, match_system)
+{
+    struct pchvml_sbst* search = pchvml_sbst_new_after_doctype_name_state();
+    ASSERT_NE(search, nullptr);
+
+    bool ret = false;
+
+    ret = pchvml_sbst_advance_case_insensitive(search, 'S');
+    ASSERT_EQ(ret, true);
+    ret = pchvml_sbst_advance_case_insensitive(search, 'Y');
+    ASSERT_EQ(ret, true);
+    ret = pchvml_sbst_advance_case_insensitive(search, 'S');
+    ASSERT_EQ(ret, true);
+    ret = pchvml_sbst_advance_case_insensitive(search, 'T');
+    ASSERT_EQ(ret, true);
+    ret = pchvml_sbst_advance_case_insensitive(search, 'E');
+    ASSERT_EQ(ret, true);
+    ret = pchvml_sbst_advance_case_insensitive(search, 'M');
+    ASSERT_EQ(ret, true);
+
+    const char* match = pchvml_sbst_get_match(search);
+    ASSERT_STREQ(match, "SYSTEM");
+
+    struct pcutils_arrlist* ucs = pchvml_sbst_get_buffered_ucs(search);
+    size_t len = pcutils_arrlist_length(ucs);
+    ASSERT_EQ(len, 6);
+
+    pchvml_sbst_destroy(search);
+}

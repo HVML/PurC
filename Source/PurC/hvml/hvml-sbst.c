@@ -97,6 +97,7 @@ bool pchvml_sbst_advance (struct pchvml_sbst* sbst,
         return true;
     }
     sbst->root = NULL;
+    sbst->match = NULL;
     return false;
 }
 
@@ -121,6 +122,7 @@ bool pchvml_sbst_advance_case_insensitive (struct pchvml_sbst* sbst,
         return true;
     }
     sbst->root = NULL;
+    sbst->match = NULL;
     return false;
 }
 
@@ -168,3 +170,26 @@ struct pchvml_sbst* pchvml_sbst_new_markup_declaration_open_state(void)
 {
     return pchvml_sbst_new(markup_declaration_open_state_sbst);
 }
+
+static const pchtml_sbst_entry_static_t after_doctype_name_state_sbst[] =
+{
+    {0x00, NULL, 0, 0, 0, 0},
+    {0x73, NULL, 0, 2, 0, 3},
+    {0x70, NULL, 0, 0, 0, 8},
+    {0x79, NULL, 0, 0, 0, 4},
+    {0x73, NULL, 0, 0, 0, 5},
+    {0x74, NULL, 0, 0, 0, 6},
+    {0x65, NULL, 0, 0, 0, 7},
+    {0x6d, (char*)"\x53\x59\x53\x54\x45\x4d", 6, 0, 0, 0},
+    {0x75, NULL, 0, 0, 0, 9},
+    {0x62, NULL, 0, 0, 0, 10},
+    {0x6c, NULL, 0, 0, 0, 11},
+    {0x69, NULL, 0, 0, 0, 12},
+    {0x63, (char*)"\x50\x55\x42\x4c\x49\x43", 6, 0, 0, 0}
+};
+
+struct pchvml_sbst* pchvml_sbst_new_after_doctype_name_state(void)
+{
+    return pchvml_sbst_new(after_doctype_name_state_sbst);
+}
+

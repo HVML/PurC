@@ -40,6 +40,7 @@ extern "C" {
 
 struct pchvml_sbst* pchvml_sbst_new_char_ref(void);
 struct pchvml_sbst* pchvml_sbst_new_markup_declaration_open_state(void);
+struct pchvml_sbst* pchvml_sbst_new_after_doctype_name_state(void);
 
 void pchvml_sbst_destroy (struct pchvml_sbst* sbst);
 
