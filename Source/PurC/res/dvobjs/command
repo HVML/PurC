@@ -1,0 +1,8 @@
+#!/bin/bash
+
+bison -d mathlex.y
+flex -o mathlex.lex.c mathlex.l
+bison -d logicallex.y
+flex -o logicallex.lex.c logicallex.l
+
+cp mathlex.lex.* mathlex.tab.* logicallex.lex.* logicallex.tab.* ../../dvobjs/ 
