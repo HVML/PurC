@@ -145,6 +145,7 @@ enum pchvml_state {
 struct pchvml_temp_buffer;
 struct pchvml_token;
 struct pchvml_rwswrap;
+struct pchvml_sbst;
 
 struct pchvml_parser {
     enum pchvml_state state;
@@ -155,6 +156,7 @@ struct pchvml_parser {
     struct pchvml_temp_buffer* temp_buffer;
     struct pchvml_temp_buffer* appropriate_tag_name;
     struct pchvml_token* current_token;
+    struct pchvml_sbst* sbst;
     uint64_t character_reference_code;
 };
 

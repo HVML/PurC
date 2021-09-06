@@ -32,6 +32,7 @@
 #include "tempbuffer.h"
 #include "rwswrap.h"
 #include "hvml-token.h"
+#include "hvml-sbst.h"
 #include "config.h"
 
 #if HAVE(GLIB)
@@ -415,6 +416,9 @@ void pchvml_destroy(struct pchvml_parser* parser)
     if (parser) {
         pchvml_rwswrap_destroy (parser->rwswrap);
         pchvml_temp_buffer_destroy (parser->temp_buffer);
+        if (parser->sbst) {
+            pchvml_sbst_destroy(parser->sbst);
+        }
         PCHVML_FREE(parser);
     }
 }
@@ -1064,7 +1068,34 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_MARKUP_DECLARATION_OPEN_STATE)
-            //TODO
+            if (hvml->sbst == NULL) {
+                hvml->sbst = pchvml_sbst_new_markup_declaration_open_state();
+            }
+            bool ret = pchvml_sbst_advance_ex(hvml->sbst, character, true);
+            if (!ret) {
+                PCHVML_SET_ERROR(PCHVML_ERROR_INCORRECTLY_OPENED_COMMENT);
+                pchvml_rwswrap_buffer_arrlist(hvml->rwswrap,
+                        pchvml_sbst_get_buffered_ucs(hvml->sbst));
+                hvml->current_token = pchvml_token_new_comment();
+                ADVANCE_TO(PCHVML_BOGUS_COMMENT_STATE);
+            }
+
+            const char* value = pchvml_sbst_get_match(hvml->sbst);
+            if (value == NULL) {
+                ADVANCE_TO(PCHVML_MARKUP_DECLARATION_OPEN_STATE);
+            }
+
+            if (strcmp(value, "--")) {
+                hvml->current_token = pchvml_token_new_comment();
+                ADVANCE_TO(PCHVML_COMMENT_START_STATE);
+            }
+            if (strcmp(value, "DOCTYPE")) {
+                ADVANCE_TO(PCHVML_DOCTYPE_STATE);
+            }
+            if (strcmp(value, "[CDATA[")) {
+                // todo
+                // check if is adjust current node
+            }
         END_STATE()
 
         BEGIN_STATE(PCHVML_COMMENT_START_STATE)
