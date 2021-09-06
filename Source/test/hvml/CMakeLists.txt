@@ -61,10 +61,10 @@ PURC_COMPUTE_SOURCES(test_tempbuffer)
 PURC_FRAMEWORK(test_tempbuffer)
 GTEST_DISCOVER_TESTS(test_tempbuffer)
 
-# test_char_ref
-PURC_EXECUTABLE_DECLARE(test_char_ref)
+# test_sbst
+PURC_EXECUTABLE_DECLARE(test_sbst)
 
-list(APPEND test_char_ref_PRIVATE_INCLUDE_DIRECTORIES
+list(APPEND test_sbst_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR}/include
     ${PURC_DIR}/hvml
     ${PURC_DIR}/html
@@ -74,22 +74,22 @@ list(APPEND test_char_ref_PRIVATE_INCLUDE_DIRECTORIES
     ${WTF_DIR}
 )
 
-PURC_EXECUTABLE(test_char_ref)
+PURC_EXECUTABLE(test_sbst)
 
-set(test_char_ref_SOURCES
-    test_char_ref.cpp
+set(test_sbst_SOURCES
+    test_sbst.cpp
 )
 
-set(test_char_ref_LIBRARIES
+set(test_sbst_LIBRARIES
     PurC::PurC
     gtest_main
     gtest
     pthread
 )
 
-PURC_COMPUTE_SOURCES(test_char_ref)
-PURC_FRAMEWORK(test_char_ref)
-GTEST_DISCOVER_TESTS(test_char_ref)
+PURC_COMPUTE_SOURCES(test_sbst)
+PURC_FRAMEWORK(test_sbst)
+GTEST_DISCOVER_TESTS(test_sbst)
 
 # test_rwswrap
 PURC_EXECUTABLE_DECLARE(test_rwswrap)
