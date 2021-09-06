@@ -103,3 +103,88 @@ TEST(hvml_character_reference, unmatch)
 
     pchvml_sbst_destroy(search);
 }
+
+TEST(hvml_markup_declaration_open_state, match_two_minus)
+{
+    struct pchvml_sbst* search = pchvml_sbst_new_markup_declaration_open_state();
+    ASSERT_NE(search, nullptr);
+
+    bool ret = pchvml_sbst_advance(search, '-');
+    ASSERT_EQ(ret, true);
+
+    ret = pchvml_sbst_advance(search, '-');
+    ASSERT_EQ(ret, true);
+
+    const char* match = pchvml_sbst_get_match(search);
+    ASSERT_STREQ(match, "--");
+
+    struct pcutils_arrlist* ucs = pchvml_sbst_get_buffered_ucs(search);
+    size_t len = pcutils_arrlist_length(ucs);
+    ASSERT_EQ(len, 2);
+
+    pchvml_sbst_destroy(search);
+}
+
+TEST(hvml_markup_declaration_open_state, match_doctype)
+{
+    struct pchvml_sbst* search = pchvml_sbst_new_markup_declaration_open_state();
+    ASSERT_NE(search, nullptr);
+
+    bool ret = false;
+
+    ret = pchvml_sbst_advance_case_insensitive(search, 'd');
+    ASSERT_EQ(ret, true);
+    ret = pchvml_sbst_advance_case_insensitive(search, 'O');
+    ASSERT_EQ(ret, true);
+    ret = pchvml_sbst_advance_case_insensitive(search, 'C');
+    ASSERT_EQ(ret, true);
+    ret = pchvml_sbst_advance_case_insensitive(search, 'T');
+    ASSERT_EQ(ret, true);
+    ret = pchvml_sbst_advance_case_insensitive(search, 'y');
+    ASSERT_EQ(ret, true);
+    ret = pchvml_sbst_advance_case_insensitive(search, 'P');
+    ASSERT_EQ(ret, true);
+    ret = pchvml_sbst_advance_case_insensitive(search, 'e');
+    ASSERT_EQ(ret, true);
+
+    const char* match = pchvml_sbst_get_match(search);
+    ASSERT_STREQ(match, "DOCTYPE");
+
+    struct pcutils_arrlist* ucs = pchvml_sbst_get_buffered_ucs(search);
+    size_t len = pcutils_arrlist_length(ucs);
+    ASSERT_EQ(len, 7);
+
+    pchvml_sbst_destroy(search);
+}
+
+TEST(hvml_markup_declaration_open_state, match_cdata)
+{
+    struct pchvml_sbst* search = pchvml_sbst_new_markup_declaration_open_state();
+    ASSERT_NE(search, nullptr);
+
+    bool ret = false;
+
+    ret = pchvml_sbst_advance(search, '[');
+    ASSERT_EQ(ret, true);
+    ret = pchvml_sbst_advance(search, 'C');
+    ASSERT_EQ(ret, true);
+    ret = pchvml_sbst_advance(search, 'D');
+    ASSERT_EQ(ret, true);
+    ret = pchvml_sbst_advance(search, 'A');
+    ASSERT_EQ(ret, true);
+    ret = pchvml_sbst_advance(search, 'T');
+    ASSERT_EQ(ret, true);
+    ret = pchvml_sbst_advance(search, 'A');
+    ASSERT_EQ(ret, true);
+    ret = pchvml_sbst_advance(search, '[');
+    ASSERT_EQ(ret, true);
+
+    const char* match = pchvml_sbst_get_match(search);
+    ASSERT_STREQ(match, "[CDATA[");
+
+    struct pcutils_arrlist* ucs = pchvml_sbst_get_buffered_ucs(search);
+    size_t len = pcutils_arrlist_length(ucs);
+    ASSERT_EQ(len, 7);
+
+    pchvml_sbst_destroy(search);
+}

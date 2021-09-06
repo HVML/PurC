@@ -53,6 +53,7 @@
 struct pchvml_sbst {
     const pchtml_sbst_entry_static_t* strt;
     const pchtml_sbst_entry_static_t* root;
+    const pchtml_sbst_entry_static_t* match;
     struct pcutils_arrlist* ucs;
 };
 
@@ -89,6 +90,9 @@ bool pchvml_sbst_advance (struct pchvml_sbst* sbst,
     const pchtml_sbst_entry_static_t* ret =
                 pchtml_sbst_entry_static_find(sbst->strt, sbst->root, uc);
     if (ret) {
+        if (ret->value) {
+            sbst->match = ret;
+        }
         sbst->root = sbst->strt + ret->next;
         return true;
     }
@@ -110,6 +114,9 @@ bool pchvml_sbst_advance_case_insensitive (struct pchvml_sbst* sbst,
     const pchtml_sbst_entry_static_t* ret =
                 pchtml_sbst_entry_static_find(sbst->strt, sbst->root, uc);
     if (ret) {
+        if (ret->value) {
+            sbst->match = ret;
+        }
         sbst->root = sbst->strt + ret->next;
         return true;
     }
@@ -119,8 +126,8 @@ bool pchvml_sbst_advance_case_insensitive (struct pchvml_sbst* sbst,
 
 const char* pchvml_sbst_get_match (struct pchvml_sbst* sbst)
 {
-    if (sbst->root) {
-        return (char*)sbst->root->value;
+    if (sbst->match) {
+        return (char*)sbst->match->value;
     }
     return NULL;
 }
