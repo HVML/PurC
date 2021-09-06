@@ -67,6 +67,7 @@ PURC_EXECUTABLE_DECLARE(test_entity)
 list(APPEND test_entity_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR}/include
     ${PURC_DIR}/hvml
+    ${PURC_DIR}/html
     ${PurC_DERIVED_SOURCES_DIR}
     ${PURC_DIR}
     ${CMAKE_BINARY_DIR}
