@@ -26,10 +26,11 @@
 #define PURC_HVML_CHAR_REF_H
 
 
-#include "hvml-entity.h"
-
 #include <stddef.h>
 #include <stdint.h>
+
+#include "config.h"
+#include "purc-utils.h"
 
 struct pchvml_char_ref_search;
 

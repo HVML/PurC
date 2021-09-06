@@ -23,7 +23,11 @@
  */
 
 
+
 #include "hvml-char-ref.h"
+#include "config.h"
+#include "purc-utils.h"
+#include "private/arraylist.h"
 
 #include "html/sbst.h"
 #define PCHTML_HTML_TOKENIZER_RES_ENTITIES_SBST

@@ -2,6 +2,7 @@
 
 #include "tempbuffer.h"
 #include "hvml-char-ref.h"
+#include "private/arraylist.h"
 
 #include <stdio.h>
 #include <errno.h>
