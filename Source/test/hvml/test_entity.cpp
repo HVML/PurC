@@ -101,7 +101,7 @@ TEST(hvml_character_reference, unmatch)
     entity = pchvml_entity_search_most_recent_match(search);
     ASSERT_NE(entity, nullptr);
 
-    struct pcutils_arrlist* ucs = pchvml_entity_get_buffered_usc(search);
+    struct pcutils_arrlist* ucs = pchvml_entity_search_get_buffered_usc(search);
     wchar_t uc = (wchar_t)(uintptr_t)pcutils_arrlist_get_idx (ucs, 0);
     ASSERT_EQ(uc, 'A');
     uc = (wchar_t)(uintptr_t)pcutils_arrlist_get_idx (ucs, 1);
