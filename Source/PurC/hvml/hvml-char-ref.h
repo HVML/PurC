@@ -1,5 +1,5 @@
 /*
- * @file hvml-character-reference.h
+ * @file hvml-char-ref.h
  * @author XueShuming
  * @date 2021/09/03
  * @brief The interfaces for hvml character reference entity.
@@ -22,8 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef PURC_HVML_CHARACTER_REFERENCE_H
-#define PURC_HVML_CHARACTER_REFERENCE_H
+#ifndef PURC_HVML_CHAR_REF_H
+#define PURC_HVML_CHAR_REF_H
 
 
 #include "hvml-entity.h"
@@ -31,22 +31,30 @@
 #include <stddef.h>
 #include <stdint.h>
 
+struct pchvml_char_ref_search;
 
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
 
-const struct pchvml_entity* pchvml_character_reference_first(void);
-const struct pchvml_entity* pchvml_character_reference_last(void);
+struct pchvml_char_ref_search* pchvml_char_ref_search_new(void);
 
-const struct pchvml_entity* pchvml_character_reference_first_starting_with(
-        char c);
-const struct pchvml_entity* pchvml_character_reference_last_starting_with(
-        char c);
+void pchvml_char_ref_search_destroy (struct pchvml_char_ref_search* search);
+
+bool pchvml_char_ref_advance (struct pchvml_char_ref_search* search,
+        wchar_t uc);
+
+const char* pchvml_char_ref_get_match (struct pchvml_char_ref_search* search);
+
+/*
+ * return arraylist of unicode character (wchar_t)
+ */
+struct pcutils_arrlist* pchvml_char_ref_get_buffered_ucs (
+        struct pchvml_char_ref_search* search);
 
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
 
-#endif /* not defined PURC_HVML_CHARACTER_REFERENCE_H */
+#endif /* not defined PURC_HVML_CHAR_REF_H */
 
