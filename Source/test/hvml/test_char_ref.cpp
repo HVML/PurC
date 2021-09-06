@@ -1,7 +1,7 @@
 #include "purc.h"
 
 #include "tempbuffer.h"
-#include "hvml-char-ref.h"
+#include "hvml-sbst.h"
 #include "private/arraylist.h"
 
 #include <stdio.h>
@@ -42,50 +42,50 @@ TEST(hvml_entity, sbst_find)
 
 TEST(hvml_character_reference, new_destory)
 {
-    struct pchvml_char_ref_search* search = pchvml_char_ref_search_new();
+    struct pchvml_sbst* search = pchvml_sbst_new_char_ref();
     ASSERT_NE(search, nullptr);
-    pchvml_char_ref_search_destroy(search);
+    pchvml_sbst_destroy(search);
 }
 
 TEST(hvml_character_reference, match)
 {
-    struct pchvml_char_ref_search* search = pchvml_char_ref_search_new();
+    struct pchvml_sbst* search = pchvml_sbst_new_char_ref();
     ASSERT_NE(search, nullptr);
 
-    bool ret = pchvml_char_ref_advance(search, 'A');
+    bool ret = pchvml_sbst_advance(search, 'A');
     ASSERT_EQ(ret, true);
 
-    ret = pchvml_char_ref_advance(search, 'M');
+    ret = pchvml_sbst_advance(search, 'M');
     ASSERT_EQ(ret, true);
 
-    ret = pchvml_char_ref_advance(search, 'P');
+    ret = pchvml_sbst_advance(search, 'P');
     ASSERT_EQ(ret, true);
 
-    ret = pchvml_char_ref_advance(search, ';');
+    ret = pchvml_sbst_advance(search, ';');
     ASSERT_EQ(ret, true);
 
-    pchvml_char_ref_search_destroy(search);
+    pchvml_sbst_destroy(search);
 }
 
 
 TEST(hvml_character_reference, unmatch)
 {
-    struct pchvml_char_ref_search* search = pchvml_char_ref_search_new();
+    struct pchvml_sbst* search = pchvml_sbst_new_char_ref();
     ASSERT_NE(search, nullptr);
 
-    bool ret = pchvml_char_ref_advance(search, 'A');
+    bool ret = pchvml_sbst_advance(search, 'A');
     ASSERT_EQ(ret, true);
 
-    ret = pchvml_char_ref_advance(search, 'M');
+    ret = pchvml_sbst_advance(search, 'M');
     ASSERT_EQ(ret, true);
 
-    ret = pchvml_char_ref_advance(search, 'P');
+    ret = pchvml_sbst_advance(search, 'P');
     ASSERT_EQ(ret, true);
 
-    ret = pchvml_char_ref_advance(search, 'n');
+    ret = pchvml_sbst_advance(search, 'n');
     ASSERT_EQ(ret, false);
 
-    struct pcutils_arrlist* ucs = pchvml_char_ref_get_buffered_ucs(search);
+    struct pcutils_arrlist* ucs = pchvml_sbst_get_buffered_ucs(search);
     size_t len = pcutils_arrlist_length(ucs);
     ASSERT_EQ(len, 4);
 
@@ -101,5 +101,5 @@ TEST(hvml_character_reference, unmatch)
     uc = (wchar_t)(uintptr_t) pcutils_arrlist_get_idx(ucs, 3);
     ASSERT_EQ(uc, 'n');
 
-    pchvml_char_ref_search_destroy(search);
+    pchvml_sbst_destroy(search);
 }
