@@ -171,6 +171,11 @@
         pchvml_temp_buffer_append (hvml->temp_buffer, c, sz_c);             \
     } while (false)
 
+#define APPEND_TEMP_BUFFER_UC(c, sz_c)                                      \
+    do {                                                                    \
+        pchvml_temp_buffer_append_ucs (hvml->temp_buffer, c, sz_c);         \
+    } while (false)
+
 static const char* hvml_err_msgs[] = {
     /* PCHVML_ERROR_UNEXPECTED_NULL_CHARACTER */
     "pchvml error unexpected null character",
@@ -1684,7 +1689,45 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_NAMED_CHARACTER_REFERENCE_STATE)
-        // TODO
+            if (hvml->sbst == NULL) {
+                hvml->sbst = pchvml_sbst_new_char_ref();
+            }
+            bool ret = pchvml_sbst_advance(hvml->sbst, character);
+            if (!ret) {
+                struct pcutils_arrlist* ucs = pchvml_sbst_get_buffered_ucs(
+                        hvml->sbst);
+                size_t length = pcutils_arrlist_length(ucs);
+                for (size_t i = 0; i < length; i++) {
+                    wchar_t uc = (wchar_t)(uintptr_t) pcutils_arrlist_get_idx(
+                            ucs, i);
+                    APPEND_TEMP_BUFFER_UC(&uc, 1);
+                }
+                pchvml_sbst_destroy(hvml->sbst);
+                hvml->sbst = NULL;
+                ADVANCE_TO(PCHVML_AMBIGUOUS_AMPERSAND_STATE);
+            }
+
+            const char* value = pchvml_sbst_get_match(hvml->sbst);
+            if (value == NULL) {
+                ADVANCE_TO(PCHVML_MARKUP_DECLARATION_OPEN_STATE);
+            }
+            if (character != ';') {
+                PCHVML_SET_ERROR(
+                    PCHVML_ERROR_MISSING_SEMICOLON_AFTER_CHARACTER_REFERENCE);
+            }
+            RESET_TEMP_BUFFER();
+            APPEND_TEMP_BUFFER(value, strlen(value));
+            struct pcutils_arrlist* ucs = pchvml_sbst_get_buffered_ucs(
+                    hvml->sbst);
+            size_t length = pcutils_arrlist_length(ucs);
+            for (size_t i = 0; i < length; i++) {
+                wchar_t uc = (wchar_t)(uintptr_t) pcutils_arrlist_get_idx(
+                        ucs, i);
+                APPEND_TEMP_BUFFER_UC(&uc, 1);
+            }
+            pchvml_sbst_destroy(hvml->sbst);
+            hvml->sbst = NULL;
+            ADVANCE_TO(hvml->return_state);
         END_STATE()
 
         BEGIN_STATE(PCHVML_AMBIGUOUS_AMPERSAND_STATE)
