@@ -56,6 +56,7 @@ struct pchvml_sbst {
     struct pcutils_arrlist* ucs;
 };
 
+static
 struct pchvml_sbst* pchvml_sbst_new(const pchtml_sbst_entry_static_t* strt)
 {
     struct pchvml_sbst* sbst = (struct pchvml_sbst*)
@@ -67,11 +68,6 @@ struct pchvml_sbst* pchvml_sbst_new(const pchtml_sbst_entry_static_t* strt)
     sbst->root = strt + 1;
     sbst->ucs = pcutils_arrlist_new(NULL);
     return sbst;
-}
-
-struct pchvml_sbst* pchvml_sbst_new_char_ref(void)
-{
-    return pchvml_sbst_new(pchtml_html_tokenizer_res_entities_sbst);
 }
 
 void pchvml_sbst_destroy (struct pchvml_sbst* sbst)
@@ -112,4 +108,9 @@ struct pcutils_arrlist* pchvml_sbst_get_buffered_ucs (
         struct pchvml_sbst* sbst)
 {
     return sbst->ucs;
+}
+
+struct pchvml_sbst* pchvml_sbst_new_char_ref(void)
+{
+    return pchvml_sbst_new(pchtml_html_tokenizer_res_entities_sbst);
 }
