@@ -96,6 +96,27 @@ bool pchvml_sbst_advance (struct pchvml_sbst* sbst,
     return false;
 }
 
+bool pchvml_sbst_advance_case_insensitive (struct pchvml_sbst* sbst,
+        wchar_t uc)
+{
+    pcutils_arrlist_add (sbst->ucs, (void*)(uintptr_t)uc);
+    if (uc > 0x7F) {
+        return false;
+    }
+
+    if (uc >= 'A' && uc <= 'Z') {
+        uc = uc | 0x20;
+    }
+    const pchtml_sbst_entry_static_t* ret =
+                pchtml_sbst_entry_static_find(sbst->strt, sbst->root, uc);
+    if (ret) {
+        sbst->root = sbst->strt + ret->next;
+        return true;
+    }
+    sbst->root = NULL;
+    return false;
+}
+
 const char* pchvml_sbst_get_match (struct pchvml_sbst* sbst)
 {
     if (sbst->root) {

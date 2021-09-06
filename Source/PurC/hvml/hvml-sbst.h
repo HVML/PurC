@@ -44,6 +44,9 @@ void pchvml_sbst_destroy (struct pchvml_sbst* sbst);
 
 bool pchvml_sbst_advance (struct pchvml_sbst* sbst, wchar_t uc);
 
+bool pchvml_sbst_advance_case_insensitive (struct pchvml_sbst* sbst,
+        wchar_t uc);
+
 const char* pchvml_sbst_get_match (struct pchvml_sbst* sbst);
 
 /*
