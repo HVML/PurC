@@ -294,7 +294,15 @@ static const char* hvml_err_msgs[] = {
     /* PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM_IDENTIFIER */
     "pchvml error missing quote before doctype system identifier",
     /* PCHVML_ERROR_MISSING_SEMICOLON_AFTER_CHARACTER_REFERENCE */
-    "pchvml error missing semicolon after character reference"
+    "pchvml error missing semicolon after character reference",
+    /* PCHVML_ERROR_CHARACTER_REFERENCE_OUTSIDE_UNICODE_RANGE */
+    "pchvml error character reference outside unicode range",
+    /* PCHVML_ERROR_SURROGATE_CHARACTER_REFERENCE */
+    "pchvml error surrogate character reference",
+    /* PCHVML_ERROR_NONCHARACTER_CHARACTER_REFERENCE */
+    "pchvml error noncharacter character reference",
+    /* PCHVML_ERROR_NULL_CHARACTER_REFERENCE */
+    "pchvml error null character reference"
 };
 
 static struct err_msg_seg _hvml_err_msgs_seg = {
@@ -1812,7 +1820,66 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_NUMERIC_CHARACTER_REFERENCE_END_STATE)
-        // TODO
+            if (hvml->character_reference_code == 0x00) {
+                PCHVML_SET_ERROR(PCHVML_ERROR_NULL_CHARACTER_REFERENCE);
+                hvml->character_reference_code = 0xFFFD;
+            }
+            if (hvml->character_reference_code > 0x10FFFF) {
+                PCHVML_SET_ERROR(
+                    PCHVML_ERROR_CHARACTER_REFERENCE_OUTSIDE_UNICODE_RANGE);
+                hvml->character_reference_code = 0xFFFD;
+            }
+            if (hvml->character_reference_code >= 0xD800
+                    && hvml->character_reference_code<= 0xDFFF) {
+                PCHVML_SET_ERROR(
+                        PCHVML_ERROR_SURROGATE_CHARACTER_REFERENCE);
+            }
+            if (hvml->character_reference_code >= 0xFDD0
+                    && hvml->character_reference_code <= 0xFDEF) {
+                PCHVML_SET_ERROR(
+                        PCHVML_ERROR_NONCHARACTER_CHARACTER_REFERENCE);
+            }
+            switch (hvml->character_reference_code) {
+                case 0x10FFFE:
+                case 0x10FFFF:
+                case 0x1FFFE:
+                case 0x1FFFF:
+                case 0x2FFFE:
+                case 0x2FFFF:
+                case 0x3FFFE:
+                case 0x3FFFF:
+                case 0x4FFFE:
+                case 0x4FFFF:
+                case 0x5FFFE:
+                case 0x5FFFF:
+                case 0x6FFFE:
+                case 0x6FFFF:
+                case 0x7FFFE:
+                case 0x7FFFF:
+                case 0x8FFFE:
+                case 0x8FFFF:
+                case 0x9FFFE:
+                case 0x9FFFF:
+                case 0xAFFFE:
+                case 0xAFFFF:
+                case 0xBFFFE:
+                case 0xBFFFF:
+                case 0xCFFFE:
+                case 0xCFFFF:
+                case 0xDFFFE:
+                case 0xDFFFF:
+                case 0xEFFFE:
+                case 0xEFFFF:
+                case 0xFFFE:
+                case 0xFFFF:
+                case 0xFFFFE:
+                case 0xFFFFF:
+                    PCHVML_SET_ERROR(
+                        PCHVML_ERROR_NONCHARACTER_CHARACTER_REFERENCE);
+                    break;
+            }
+            // TODO : add a table
+
         END_STATE()
 
         BEGIN_STATE(PCHVML_SPECIAL_ATTRIBUTE_OPERATOR_IN_ATTRIBUTE_NAME_STATE)
