@@ -670,8 +670,9 @@ static const flex_int16_t yy_chk[65] =
 #define YY_NO_UNPUT
 
 static double get_data (char * text, struct pcdvobjs_math_param * pp);
-#line 674 "mathlex.lex.c"
+static long double get_data_l (char * text, struct pcdvobjs_math_param * pp);
 #line 675 "mathlex.lex.c"
+#line 676 "mathlex.lex.c"
 
 #define INITIAL 0
 
@@ -945,14 +946,14 @@ YY_DECL
 		}
 
 	{
-#line 17 "mathlex.l"
+#line 18 "mathlex.l"
 
 
-#line 20 "mathlex.l"
+#line 21 "mathlex.l"
   struct pcdvobjs_math_param *pp = yyextra;
 
 
-#line 956 "mathlex.lex.c"
+#line 957 "mathlex.lex.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1011,73 +1012,77 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 23 "mathlex.l"
+#line 24 "mathlex.l"
 { return ADD; }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 24 "mathlex.l"
+#line 25 "mathlex.l"
 { return SUB; }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 25 "mathlex.l"
+#line 26 "mathlex.l"
 { return MUL; }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 26 "mathlex.l"
+#line 27 "mathlex.l"
 { return DIV; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 27 "mathlex.l"
+#line 28 "mathlex.l"
 { return OP; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 28 "mathlex.l"
+#line 29 "mathlex.l"
 { return CP; }
 	YY_BREAK
 case 7:
-#line 30 "mathlex.l"
+#line 31 "mathlex.l"
 case 8:
 YY_RULE_SETUP
-#line 30 "mathlex.l"
+#line 31 "mathlex.l"
 { yylval->d = atof(yytext); return NUMBER; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 32 "mathlex.l"
+#line 33 "mathlex.l"
 { return EOL; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 33 "mathlex.l"
+#line 34 "mathlex.l"
 
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 34 "mathlex.l"
+#line 35 "mathlex.l"
 { /* ignore white space */ }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 36 "mathlex.l"
-{ yylval->d = get_data(yytext, pp); return NUMBER; }
+#line 37 "mathlex.l"
+{ if (pp->type == 0)
+                    yylval->d = get_data(yytext, pp); 
+                else
+                    yylval->dl = get_data_l(yytext, pp); 
+                return NUMBER; }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 37 "mathlex.l"
+#line 42 "mathlex.l"
 {return *yytext; } /* we don't call yyerror here, because it has no way to communicate with bison */
 	YY_BREAK
 /* normally, we just return character token and defer the error handling in bison */
 case 14:
 YY_RULE_SETUP
-#line 40 "mathlex.l"
+#line 45 "mathlex.l"
 ECHO;
 	YY_BREAK
-#line 1081 "mathlex.lex.c"
+#line 1086 "mathlex.lex.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2258,21 +2263,37 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 40 "mathlex.l"
+#line 45 "mathlex.l"
 
 
 static double get_data (char * text, struct pcdvobjs_math_param * pp)
 {
     double number = 0.0d;
-   if ((pp->v != NULL) && (!purc_variant_is_string (pp->v))) {
+    if ((pp->v != NULL) && (!purc_variant_is_string (pp->v))) {
         return number;
     }
- 
+
     purc_variant_t var = NULL;
-    
+
     var = purc_variant_object_get_c (pp->v, text);
     if (var) 
         purc_variant_cast_to_number (var, &number, false);
+
+    return number;
+}
+
+static long double get_data_l (char * text, struct pcdvobjs_math_param * pp)
+{
+    long double number = 0.0d;
+    if ((pp->v != NULL) && (!purc_variant_is_string (pp->v))) {
+        return number;
+    }
+
+    purc_variant_t var = NULL;
+
+    var = purc_variant_object_get_c (pp->v, text);
+    if (var) 
+        purc_variant_cast_to_long_double (var, &number, false);
 
     return number;
 }

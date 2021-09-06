@@ -31,7 +31,7 @@
  *      $SYSTEM.uname
  * @endcode
  *
- * @sa          uname_prt
+ * @sa          uname_prt()
  */
 object uname;
 
@@ -102,28 +102,37 @@ string uname_prt(string keywords_list);
 
 
 /**
- * @brief       Get or Set locale information according to user's input 
+ * @brief       Get locale information according to user's input 
  *
  * @param[in]   category : which category information you will get or set.\n 
- *              GETTER: ctype | numeric | time | collate | monetary | messages | paper | name | address | telephone | measurement | identification
- *              SETTER: [ctype || numeric || time || collate || monetary || messages || paper || name || address || telephone || measurement || identification] | all
- * @param[in]   locale : which locale you will set.\n 
- *              GETTER: None
- *              SETTER: <string: locale> 
+ *              ctype | numeric | time | collate | monetary | messages | paper | name | address | telephone | measurement | identification
  *
- * @return      GETTER : A string contains the indicated locale information.
- *              SETTER : A boolean variable, true for successful, otherwise false.
+ * @return      A string contains the indicated locale information.
  *
  * @par sample
  * @code
  *              // get locale for LC_COLLATE
  *              $SYSTEM.locale('collate')
- *
- *              // set local for LC_COLLATE
- *              $SYSTEM.locale(!'collate', "en_US.UTF-8")
  * @endcode
  */
-string locale (string category, string locale);
+string locale(string category);
+
+
+/**
+ * @brief       Set locale information according to user's input 
+ *
+ * @param[in]   category : which category information you will get or set.\n 
+ *              [ctype || numeric || time || collate || monetary || messages || paper || name || address || telephone || measurement || identification] | all
+ * @param[in]   locale : which locale you will set.\n 
+ *
+ * @return      A boolean variant, true for successful, otherwise false.
+ *
+ * @par sample
+ * @code
+ *              $SYSTEM.locale(! 'collate', "en_US.UTF-8")
+ * @endcode
+ */
+boolean locale(string category, string locale);
 
 
 
@@ -136,45 +145,36 @@ string locale (string category, string locale);
  *
  * @par sample
  * @code
- *              $SYSTEM.random (3.1415926)
+ *              $SYSTEM.random(3.1415926)
  * @endcode
  */
-number random (number max_range);
+number random(number max_range);
 
 
 /**
- * @brief       Get or Set time. 
+ * @brief       Get time information in string format. 
  *
- * GETTER:
- * @param[in]   format    : time format\n
+ * @param[in]   format    : time string format\n
  *                          -"tm": get the time information as struct tm;\n
- *                          -"iso8601": get the time in iso8601 format;\n
+ *                          -"ISO8601": get the time in ISO8601 format;\n
  *                          -"RFC822": get the time in RFC822 format;\n
  *                          -format string: get the time with string user defined
  * @param[in]   epoch     : seconds since the Epoch
  * @param[in]   locale    : timezone
  *
- * SETTER:
- * @param[in]   epoch     : seconds since the Epoch
- *
- * @return
- * GETTER:      A string with time information.
- * SETTER:      A boolean, true for successfully, otherwise false.
+ * @return      A string with time information.
  *
  * @par sample
  * @code
- *              // get time with iso8601 format
- *              $SYSTEM.time("iso8601);
+ *              // get time with ISO8601 format
+ *              $SYSTEM.time("ISO8601");
  *              
  *              // get time in Asia/Shanghai, and Epoch is 1234567,
- *              $SYSTEM.time("iso8601, 1234567, "Asia/Shanghai");
+ *              $SYSTEM.time("ISO8601", 1234567, "Asia/Shanghai");
  *
  *              // get time in Asia/Shanghai, and Epoch is 1234567,
  *              // and return string is in user defined format
- *              $SYSTEM.time ("The Shanghai time is %H:%m", 1234567, "Asia/Shanghai");
- *
- *              // set time, and Epoch is 1234567
- *              $SYSTEM.time (!1234567);
+ *              $SYSTEM.time("The Shanghai time is %H:%m", 1234567, "Asia/Shanghai");
  * @endcode
  *
  * @note        Supported user define format, as below:
@@ -185,7 +185,23 @@ number random (number max_range);
  *                  %M: the minute
  *                  %S: the second
  */
-string time (string format, [<number | longint | ulongint | longdouble: epoch>[, <string: timezone>]]);
+string time(string format [, <number | longint | ulongint | longdouble: epoch>[, <string: timezone>]]);
+
+
+/**
+ * @brief       Set time. 
+ *
+ * @param[in]   epoch     : seconds since the Epoch
+ *
+ * @return      A boolean, true for successfully, otherwise false.
+ *
+ * @par sample
+ * @code
+ *              // set time, and Epoch is 1234567
+ *              $SYSTEM.time(! 1234567);
+ * @endcode
+ */
+boolean time(number epoch);
 
 /** @} end of bv_system */
 /** @} end of builtin_vars */

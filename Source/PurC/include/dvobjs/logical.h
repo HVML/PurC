@@ -1,5 +1,5 @@
 /**
- * @brief The description of Builtin LOGICAL dynamic variants.
+ * @brief The description of Builtin dynamic variants.
  * \defgroup builtin_vars Builtin Variables
  * @{
  */
@@ -14,7 +14,7 @@
  *
  * @param[in]   value : the value to be inverted
  *
- * @return      A boolean value with logical invert.
+ * @return      A boolean variant with logical invert.
  *
  * @par sample
  * @code
@@ -23,17 +23,19 @@
  * @endcode
  * @note        
  *
- * @sa          and or xor 
+ * @sa          and()    or()    xor() 
  */
-boolean not(<any: value>);
+boolean not(<any> value);
 
 
 /**
  * @brief       Get logical AND
  *
- * @param[in]   value : the value to be AND operation
+ * @param[in]   value1 : the value to be AND operation
+ * @param[in]   value2 : the value to be AND operation
+ * @param[in]   value3 : the value to be AND operation
  *
- * @return      A boolean value with logical AND.
+ * @return      A boolean variant with logical AND.
  *
  * @par sample
  * @code
@@ -42,17 +44,17 @@ boolean not(<any: value>);
  * @endcode
  * @note        
  *
- * @sa          not or xor 
+ * @sa          not()  or()  xor()
  */
-boolean and(<any: value1>, <any: value2> [, <any: value3> [, .....]]);
+boolean and(<any> value1, <any> value2 [, <any> value3 [, .....]]);
 
 
 /**
- * @brief       Get logical OR 
+ * @brief       Get logical OR
  *
  * @param[in]   value : the value to be OR operation
  *
- * @return      A boolean value with logical OR.
+ * @return      A boolean variant with logical OR.
  *
  * @par sample
  * @code
@@ -61,7 +63,7 @@ boolean and(<any: value1>, <any: value2> [, <any: value3> [, .....]]);
  * @endcode
  * @note        
  *
- * @sa          not and xor 
+ * @sa          not()  and()  xor()
  */
 boolean or(<any: value1>, <any: value2> [, <any: value3> [, .....]]);
 
@@ -72,7 +74,7 @@ boolean or(<any: value1>, <any: value2> [, <any: value3> [, .....]]);
  * @param[in]   value1 : the value to be XOR operation
  * @param[in]   value2 : the value to be XOR operation
  *
- * @return      A boolean value with logical XOR.
+ * @return      A boolean variant with logical XOR.
  *
  * @par sample
  * @code
@@ -81,7 +83,7 @@ boolean or(<any: value1>, <any: value2> [, <any: value3> [, .....]]);
  * @endcode
  * @note        
  *
- * @sa          not and or 
+ * @sa          not()  and()  or() 
  */
 boolean xor(<any: value1>, <any: value2>);
 
@@ -92,16 +94,16 @@ boolean xor(<any: value1>, <any: value2>);
  * @param[in]   value1 : the value to be compared
  * @param[in]   value2 : the value to be compared
  *
- * @return      A boolean value, true for successful, otherwise false.
+ * @return      A boolean variant, true for successful, otherwise false.
  *
  * @par sample
  * @code
- *              $L.eq($MATH.sin (2), 5)
+ *              $L.eq($MATH.sin(2), 5)
  *
  * @endcode
  * @note        
  *
- * @sa          eq ne gt ge lt le 
+ * @sa          eq()  ne()  gt()  ge()  lt()  le() 
  */
 boolean eq(<any: value1>, <any: value2>);
 
@@ -112,7 +114,7 @@ boolean eq(<any: value1>, <any: value2>);
  * @param[in]   value1 : the value to be compared
  * @param[in]   value2 : the value to be compared
  *
- * @return      A boolean value, true for successful, otherwise false.
+ * @return      A boolean variant, true for successful, otherwise false.
  *
  * @par sample
  * @code
@@ -121,7 +123,7 @@ boolean eq(<any: value1>, <any: value2>);
  * @endcode
  * @note        
  *
- * @sa          eq gt ge lt le 
+ * @sa          eq()  gt()  ge()  lt()  le() 
  */
 boolean ne(<any: value1>, <any: value2>);
 
@@ -132,16 +134,16 @@ boolean ne(<any: value1>, <any: value2>);
  * @param[in]   value1 : the value to be compared
  * @param[in]   value2 : the value to be compared
  *
- * @return      A boolean value, true for successful, otherwise false.
+ * @return      A boolean variant, true for successful, otherwise false.
  *
  * @par sample
  * @code
- *              $L.gt($MATH.sin (2), 0.2)
+ *              $L.gt($MATH.sin(2), 0.2)
  *
  * @endcode
  * @note        
  *
- * @sa          eq ne ge lt le 
+ * @sa          eq()  ne()  ge()  lt()  le() 
  */
 boolean gt(<any: value1>, <any: value2>);
 
@@ -152,16 +154,16 @@ boolean gt(<any: value1>, <any: value2>);
  * @param[in]   value1 : the value to be compared
  * @param[in]   value2 : the value to be compared
  *
- * @return      A boolean value, true for successful, otherwise false.
+ * @return      A boolean variant, true for successful, otherwise false.
  *
  * @par sample
  * @code
- *              $L.ge($MATH.sin (2), 0.2)
+ *              $L.ge($MATH.sin(2), 0.2)
  *
  * @endcode
  * @note        
  *
- * @sa          eq ne gt lt le 
+ * @sa          eq()  ne()  gt()  lt()  le() 
  */
 boolean ge(<any: value1>, <any: value2>);
 
@@ -172,16 +174,16 @@ boolean ge(<any: value1>, <any: value2>);
  * @param[in]   value1 : the value to be compared
  * @param[in]   value2 : the value to be compared
  *
- * @return      A boolean value, true for successful, otherwise false.
+ * @return      A boolean variant, true for successful, otherwise false.
  *
  * @par sample
  * @code
- *              $L.lt($MATH.sin (2), 0.2)
+ *              $L.lt($MATH.sin(2), 0.2)
  *
  * @endcode
  * @note        
  *
- * @sa          eq ne ge gt le 
+ * @sa          eq()  ne()  ge()  gt()  le() 
  */
 boolean lt(<any: value1>, <any: value2>);
 
@@ -192,16 +194,16 @@ boolean lt(<any: value1>, <any: value2>);
  * @param[in]   value1 : the value to be compared
  * @param[in]   value2 : the value to be compared
  *
- * @return      A boolean value, true for successful, otherwise false.
+ * @return      A boolean variant, true for successful, otherwise false.
  *
  * @par sample
  * @code
- *              $L.le($MATH.sin (2), 0.2)
+ *              $L.le($MATH.sin(2), 0.2)
  *
  * @endcode
  * @note        
  *
- * @sa          eq ne ge gt lt 
+ * @sa          eq()  ne()  ge()  gt()  lt() 
  */
 boolean le(<any: value1>, <any: value2>);
 
@@ -214,7 +216,7 @@ boolean le(<any: value1>, <any: value2>);
  * @param[in]   value1 : the value to be compared, or wildcard | reg, if first parameter is wildcard | reg. 
  * @param[in]   value2 : the value to be compared
  *
- * @return      A boolean value, true for successful, otherwise false.
+ * @return      A boolean variant, true for successful, otherwise false.
  *
  * @par sample
  * @code
@@ -223,7 +225,7 @@ boolean le(<any: value1>, <any: value2>);
  * @endcode
  * @note        
  *
- * @sa          strne strge strgt strlt  strle
+ * @sa          strne()  strge()  strgt()  strlt()  strle()
  */
 boolean streq(string option, <any: value1>, <any: value2>);
 
@@ -236,7 +238,7 @@ boolean streq(string option, <any: value1>, <any: value2>);
  * @param[in]   value1 : the value to be compared, or wildcard | reg, if first parameter is wildcard | reg. 
  * @param[in]   value2 : the value to be compared
  *
- * @return      A boolean value, true for successful, otherwise false.
+ * @return      A boolean variant, true for successful, otherwise false.
  *
  * @par sample
  * @code
@@ -245,7 +247,7 @@ boolean streq(string option, <any: value1>, <any: value2>);
  * @endcode
  * @note        
  *
- * @sa          streq strge strgt strlt  strle
+ * @sa          streq()  strge()  strgt()  strlt()  strle()
  */
 boolean strne(string option, <any: value1>, <any: value2>);
 
@@ -258,7 +260,7 @@ boolean strne(string option, <any: value1>, <any: value2>);
  * @param[in]   value1 : the value to be compared 
  * @param[in]   value2 : the value to be compared
  *
- * @return      A boolean value, true for successful, otherwise false.
+ * @return      A boolean variant, true for successful, otherwise false.
  *
  * @par sample
  * @code
@@ -267,7 +269,7 @@ boolean strne(string option, <any: value1>, <any: value2>);
  * @endcode
  * @note        
  *
- * @sa          streq strne strge strlt strle
+ * @sa          streq()  strne()  strge()  strlt()  strle()
  */
 boolean strgt(string option, <any: value1>, <any: value2>);
 
@@ -280,7 +282,7 @@ boolean strgt(string option, <any: value1>, <any: value2>);
  * @param[in]   value1 : the value to be compared 
  * @param[in]   value2 : the value to be compared
  *
- * @return      A boolean value, true for successful, otherwise false.
+ * @return      A boolean variant, true for successful, otherwise false.
  *
  * @par sample
  * @code
@@ -289,7 +291,7 @@ boolean strgt(string option, <any: value1>, <any: value2>);
  * @endcode
  * @note        
  *
- * @sa          streq strne strgt strlt strle
+ * @sa          streq()  strne()  strgt()  strlt()  strle()
  */
 boolean strge(string option, <any: value1>, <any: value2>);
 
@@ -298,11 +300,11 @@ boolean strge(string option, <any: value1>, <any: value2>);
  * @brief       Compare two string, whether value1 is less than value2 
  *
  * @param[in]   option : compare option, it can be\n
- *                  caseless | case
+ *              caseless | case
  * @param[in]   value1 : the value to be compared 
  * @param[in]   value2 : the value to be compared
  *
- * @return      A boolean value, true for successful, otherwise false.
+ * @return      A boolean variant, true for successful, otherwise false.
  *
  * @par sample
  * @code
@@ -311,7 +313,7 @@ boolean strge(string option, <any: value1>, <any: value2>);
  * @endcode
  * @note        
  *
- * @sa          streq strne strge strgt strle
+ * @sa          streq()  strne()  strge()  strgt()  strle()
  */
 boolean strlt(string option, <any: value1>, <any: value2>);
 
@@ -324,7 +326,7 @@ boolean strlt(string option, <any: value1>, <any: value2>);
  * @param[in]   value1 : the value to be compared 
  * @param[in]   value2 : the value to be compared
  *
- * @return      A boolean value, true for successful, otherwise false.
+ * @return      A boolean variant, true for successful, otherwise false.
  *
  * @par sample
  * @code
@@ -333,7 +335,7 @@ boolean strlt(string option, <any: value1>, <any: value2>);
  * @endcode
  * @note        
  *
- * @sa          streq strne strgt strge strlt
+ * @sa          streq()  strne()  strgt()  strge()  strlt()
  */
 boolean strle(string option, <any: value1>, <any: value2>);
 
@@ -353,7 +355,7 @@ boolean strle(string option, <any: value1>, <any: value2>);
  *
  * @note        
  */
-boolean eval (string expression [, object dict]);
+boolean eval(string expression [, object dict]);
 
 
 /** @} end of bv_logical */

@@ -369,6 +369,7 @@ eval_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
+    int result = 0;
 
     if ((argv[0] != PURC_VARIANT_INVALID) && 
                         (!purc_variant_is_string (argv[0]))) {
@@ -383,8 +384,8 @@ eval_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     size_t length = purc_variant_string_length (argv[0]);
-    struct pcdvobjs_math_param myparam = {0, argv[1]}; /* my instance data */
-    yyscan_t lexer;                 /* flex instance data */
+    struct pcdvobjs_math_param myparam = {0.0d, 0.0d, 0, argv[1]};
+    yyscan_t lexer;
 
     if (mathlex_init_extra (&myparam, &lexer)) {
         return PURC_VARIANT_INVALID;
@@ -393,11 +394,59 @@ eval_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     YY_BUFFER_STATE buffer = math_scan_bytes (
                     purc_variant_get_string_const (argv[0]), length, lexer);
     math_switch_to_buffer (buffer, lexer);
-    mathparse(&myparam, lexer);
+    result = mathparse(&myparam, lexer);
     math_delete_buffer(buffer, lexer);
     mathlex_destroy (lexer);
 
+    if (result != 0) {
+        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+        return PURC_VARIANT_INVALID;
+    }
+
     return purc_variant_make_number (myparam.result);
+}
+
+
+static purc_variant_t
+eval_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    int result = 0;
+
+    if ((argv[0] != PURC_VARIANT_INVALID) && 
+                        (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[1] != PURC_VARIANT_INVALID) && 
+                        (!purc_variant_is_object (argv[1]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    size_t length = purc_variant_string_length (argv[0]);
+    struct pcdvobjs_math_param myparam = {0.0d, 0.0d, 1, argv[1]};
+    yyscan_t lexer;
+
+    if (mathlex_init_extra (&myparam, &lexer)) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    YY_BUFFER_STATE buffer = math_scan_bytes (
+                    purc_variant_get_string_const (argv[0]), length, lexer);
+    math_switch_to_buffer (buffer, lexer);
+    result = mathparse(&myparam, lexer);
+    math_delete_buffer(buffer, lexer);
+    mathlex_destroy (lexer);
+
+    if (result != 0) {
+        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+        return PURC_VARIANT_INVALID;
+    }
+
+    return purc_variant_make_longdouble (myparam.resultl);
 }
 
 
@@ -412,11 +461,12 @@ purc_variant_t pcdvojbs_get_math (void)
             "const",    purc_variant_make_dynamic (const_getter, NULL),
             "const_l",  purc_variant_make_dynamic (const_l_getter, NULL),
             "eval",     purc_variant_make_dynamic (eval_getter, NULL),
+            "eval_l",   purc_variant_make_dynamic (eval_l_getter, NULL),
             "sin",      purc_variant_make_dynamic (sin_getter, NULL),
-            "cos",      purc_variant_make_dynamic (cos_getter, NULL),
-            "sqrt",     purc_variant_make_dynamic (sqrt_getter, NULL),
             "sin_l",    purc_variant_make_dynamic (sin_l_getter, NULL),
+            "cos",      purc_variant_make_dynamic (cos_getter, NULL),
             "cos_l",    purc_variant_make_dynamic (cos_l_getter, NULL),
+            "sqrt",     purc_variant_make_dynamic (sqrt_getter, NULL),
             "sqrt_l",   purc_variant_make_dynamic (sqrt_l_getter, NULL)
        );
     return math;

@@ -712,7 +712,7 @@ extern int yylex \
 #undef yyTABLES_NAME
 #endif
 
-#line 40 "mathlex.l"
+#line 45 "mathlex.l"
 
 
 #line 719 "mathlex.lex.h"

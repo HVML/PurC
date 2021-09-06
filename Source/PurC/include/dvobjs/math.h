@@ -88,9 +88,9 @@ long double e_l;
  *
  * @note        
  *
- * @sa          const_l
+ * @sa          const_l()
  */
-double const (string);
+double const(string);
 
 
 /**
@@ -108,9 +108,9 @@ double const (string);
  *
  * @note        
  *
- * @sa          const
+ * @sa          const()
  */
-long double const_l (string);
+long double const_l(string);
 
 
 /**
@@ -127,9 +127,9 @@ long double const_l (string);
  *
  * @note        The angle is given in RADIANS.
  *
- * @sa          sin_l
+ * @sa          sin_l()
  */
-double sin (double angle);
+double sin(double angle);
 
 
 /**
@@ -146,9 +146,9 @@ double sin (double angle);
  *
  * @note        The angle is given in RADIANS.
  *
- * @sa          sin
+ * @sa          sin()
  */
-long double sin_l (long double angle);
+long double sin_l(long double angle);
 
 
 /**
@@ -165,9 +165,9 @@ long double sin_l (long double angle);
  *
  * @note        The angle is given in RADIANS.
  *
- * @sa          cos_l
+ * @sa          cos_l()
  */
-double cos (double angle);
+double cos(double angle);
 
 
 /**
@@ -184,9 +184,9 @@ double cos (double angle);
  *
  * @note        The angle is given in RADIANS.
  *
- * @sa          cos
+ * @sa          cos()
  */
-long double cos_l (long double angle);
+long double cos_l(long double angle);
 
 
 /**
@@ -203,9 +203,9 @@ long double cos_l (long double angle);
  *
  * @note        
  *
- * @sa          sqrt_l
+ * @sa          sqrt_l()
  */
-double sqrt (double number);
+double sqrt(double number);
 
 
 /**
@@ -222,9 +222,9 @@ double sqrt (double number);
  *
  * @note        
  *
- * @sa          sqrt
+ * @sa          sqrt()
  */
-long double sqrt_l (long double number);
+long double sqrt_l(long double number);
 
 
 /**
@@ -246,9 +246,9 @@ long double sqrt_l (long double number);
  *
  * @note        
  *
- * @sa          eval_l
+ * @sa          eval_l()
  */
-double eval (string expression [, object dict]);
+double eval(string expression [, object dict]);
 
 
 /**
@@ -270,9 +270,9 @@ double eval (string expression [, object dict]);
  *
  * @note        
  *
- * @sa          eval
+ * @sa          eval()
  */
-long double eval_l (string expression [, object dict]);
+long double eval_l(string expression [, object dict]);
 
 /** @} end of lv_math */
 /** @} end of loadable_vars */

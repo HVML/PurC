@@ -155,7 +155,7 @@ union YYSTYPE
 #line 23 "mathlex.y"
 
     double d;
-    int i;
+    long double dl;
 
 #line 161 "mathlex.tab.c"
 
@@ -540,8 +540,8 @@ static const yytype_int8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    50,    50,    51,    52,    55,    56,    57,    60,    61,
-      62,    65,    66
+       0,    50,    50,    51,    56,    59,    60,    61,    64,    65,
+      66,    69,    70
 };
 #endif
 
@@ -1352,48 +1352,52 @@ yyreduce:
 
   case 3:
 #line 51 "mathlex.y"
-                   { printf("= %f\n> ", (yyvsp[-1].d)); myparam->result = (yyvsp[-1].d);}
-#line 1357 "mathlex.tab.c"
+                   { printf("= %f\n> ", (yyvsp[-1].d)); 
+                     if (myparam->type == 0) 
+                         myparam->result = (yyvsp[-1].d); 
+                     else 
+                         myparam->resultl = (yyvsp[-1].d); }
+#line 1361 "mathlex.tab.c"
     break;
 
   case 4:
-#line 52 "mathlex.y"
+#line 56 "mathlex.y"
                { printf("> "); }
-#line 1363 "mathlex.tab.c"
+#line 1367 "mathlex.tab.c"
     break;
 
   case 6:
-#line 56 "mathlex.y"
+#line 60 "mathlex.y"
               { (yyval.d) = (yyvsp[-2].d) + (yyvsp[0].d); }
-#line 1369 "mathlex.tab.c"
+#line 1373 "mathlex.tab.c"
     break;
 
   case 7:
-#line 57 "mathlex.y"
+#line 61 "mathlex.y"
                  { (yyval.d) = (yyvsp[-2].d) - (yyvsp[0].d); }
-#line 1375 "mathlex.tab.c"
+#line 1379 "mathlex.tab.c"
     break;
 
   case 9:
-#line 61 "mathlex.y"
+#line 65 "mathlex.y"
                   { (yyval.d) = (yyvsp[-2].d) * (yyvsp[0].d); }
-#line 1381 "mathlex.tab.c"
+#line 1385 "mathlex.tab.c"
     break;
 
   case 10:
-#line 62 "mathlex.y"
-                  { (yyval.d) = (yyvsp[-2].d) / (yyvsp[0].d); }
-#line 1387 "mathlex.tab.c"
+#line 66 "mathlex.y"
+                  { if ((yyvsp[0].d) == 0.0) YYABORT; (yyval.d) = (yyvsp[-2].d) / (yyvsp[0].d); }
+#line 1391 "mathlex.tab.c"
     break;
 
   case 12:
-#line 66 "mathlex.y"
+#line 70 "mathlex.y"
             { (yyval.d) = (yyvsp[-1].d); }
-#line 1393 "mathlex.tab.c"
+#line 1397 "mathlex.tab.c"
     break;
 
 
-#line 1397 "mathlex.tab.c"
+#line 1401 "mathlex.tab.c"
 
       default: break;
     }
@@ -1625,7 +1629,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 68 "mathlex.y"
+#line 72 "mathlex.y"
 
 
 void yyerror (struct pcdvobjs_math_param *p, yyscan_t arg, const char *s)

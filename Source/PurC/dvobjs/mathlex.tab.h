@@ -74,7 +74,7 @@ union YYSTYPE
 #line 23 "mathlex.y"
 
     double d;
-    int i;
+    long double dl;
 
 #line 80 "mathlex.tab.h"
 

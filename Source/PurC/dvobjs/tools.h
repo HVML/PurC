@@ -35,6 +35,8 @@ extern "C" {
 
 struct pcdvobjs_math_param {
     double result;
+    long double resultl;
+    int type;
     purc_variant_t v;
 };
 
