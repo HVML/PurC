@@ -453,7 +453,7 @@ eval_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 // only for test now.
 purc_variant_t pcdvojbs_get_math (void)
 {
-    purc_variant_t math = purc_variant_make_object_c (7,
+    purc_variant_t math = purc_variant_make_object_c (14,
             "pi",       purc_variant_make_dynamic (pi_getter, NULL),
             "pi_l",     purc_variant_make_dynamic (pi_l_getter, NULL),
             "e",        purc_variant_make_dynamic (e_getter, NULL),
