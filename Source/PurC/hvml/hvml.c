@@ -2012,6 +2012,15 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_DATA_STATE)
+            if (is_whitespace (character) || character == 0xFEFF) {
+                ADVANCE_TO(PCHVML_EJSON_DATA_STATE);
+            }
+            if (is_eof(character)) {
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
+                return pchvml_token_new_eof();
+            }
+            hvml->curr_vcm_tree = NULL;
+            RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_FINISHED_STATE)
