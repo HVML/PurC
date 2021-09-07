@@ -302,7 +302,9 @@ static const char* hvml_err_msgs[] = {
     /* PCHVML_ERROR_NONCHARACTER_CHARACTER_REFERENCE */
     "pchvml error noncharacter character reference",
     /* PCHVML_ERROR_NULL_CHARACTER_REFERENCE */
-    "pchvml error null character reference"
+    "pchvml error null character reference",
+    /* PCHVML_ERROR_CONTROL_CHARACTER_REFERENCE*/
+    "pchvml error control character reference"
 };
 
 static struct err_msg_seg _hvml_err_msgs_seg = {
@@ -310,6 +312,13 @@ static struct err_msg_seg _hvml_err_msgs_seg = {
     PURC_ERROR_FIRST_HVML,
     PURC_ERROR_FIRST_HVML + PCA_TABLESIZE(hvml_err_msgs) - 1,
     hvml_err_msgs
+};
+
+static const wchar_t numeric_char_ref_extension_array[32] = {
+    0x20AC, 0x0081, 0x201A, 0x0192, 0x201E, 0x2026, 0x2020, 0x2021, // 80-87
+    0x02C6, 0x2030, 0x0160, 0x2039, 0x0152, 0x008D, 0x017D, 0x008F, // 88-8F
+    0x0090, 0x2018, 0x2019, 0x201C, 0x201D, 0x2022, 0x2013, 0x2014, // 90-97
+    0x02DC, 0x2122, 0x0161, 0x203A, 0x0153, 0x009D, 0x017E, 0x0178, // 98-9F
 };
 
 static inline bool is_whitespace (wchar_t character)
@@ -1820,66 +1829,42 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_NUMERIC_CHARACTER_REFERENCE_END_STATE)
-            if (hvml->character_reference_code == 0x00) {
+            wchar_t uc = hvml->character_reference_code;
+            if (uc == 0x00) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_NULL_CHARACTER_REFERENCE);
                 hvml->character_reference_code = 0xFFFD;
             }
-            if (hvml->character_reference_code > 0x10FFFF) {
+            if (uc > 0x10FFFF) {
                 PCHVML_SET_ERROR(
                     PCHVML_ERROR_CHARACTER_REFERENCE_OUTSIDE_UNICODE_RANGE);
                 hvml->character_reference_code = 0xFFFD;
             }
-            if (hvml->character_reference_code >= 0xD800
-                    && hvml->character_reference_code<= 0xDFFF) {
+            if ((uc & 0xFFFFF800) == 0xD800) {
                 PCHVML_SET_ERROR(
                         PCHVML_ERROR_SURROGATE_CHARACTER_REFERENCE);
             }
-            if (hvml->character_reference_code >= 0xFDD0
-                    && hvml->character_reference_code <= 0xFDEF) {
+            if (uc >= 0xFDD0 && (uc <= 0xFDEF || (uc&0xFFFE) == 0xFFFE) &&
+                    uc <= 0x10FFFF) {
                 PCHVML_SET_ERROR(
                         PCHVML_ERROR_NONCHARACTER_CHARACTER_REFERENCE);
             }
-            switch (hvml->character_reference_code) {
-                case 0x10FFFE:
-                case 0x10FFFF:
-                case 0x1FFFE:
-                case 0x1FFFF:
-                case 0x2FFFE:
-                case 0x2FFFF:
-                case 0x3FFFE:
-                case 0x3FFFF:
-                case 0x4FFFE:
-                case 0x4FFFF:
-                case 0x5FFFE:
-                case 0x5FFFF:
-                case 0x6FFFE:
-                case 0x6FFFF:
-                case 0x7FFFE:
-                case 0x7FFFF:
-                case 0x8FFFE:
-                case 0x8FFFF:
-                case 0x9FFFE:
-                case 0x9FFFF:
-                case 0xAFFFE:
-                case 0xAFFFF:
-                case 0xBFFFE:
-                case 0xBFFFF:
-                case 0xCFFFE:
-                case 0xCFFFF:
-                case 0xDFFFE:
-                case 0xDFFFF:
-                case 0xEFFFE:
-                case 0xEFFFF:
-                case 0xFFFE:
-                case 0xFFFF:
-                case 0xFFFFE:
-                case 0xFFFFF:
-                    PCHVML_SET_ERROR(
-                        PCHVML_ERROR_NONCHARACTER_CHARACTER_REFERENCE);
-                    break;
+            if (uc >= 0x00 && uc <= 0x1F &&
+                    !(uc == 0x09 || uc == 0x0A || uc == 0x0C)){
+                PCHVML_SET_ERROR(
+                    PCHVML_ERROR_CONTROL_CHARACTER_REFERENCE);
             }
-            // TODO : add a table
-
+            if (uc >= 0x7F && uc <= 0x9F) {
+                PCHVML_SET_ERROR(
+                    PCHVML_ERROR_CONTROL_CHARACTER_REFERENCE);
+                if (uc >= 0x80) {
+                    hvml->character_reference_code =
+                        numeric_char_ref_extension_array[uc - 0x80];
+                }
+            }
+            RESET_TEMP_BUFFER();
+            uc = hvml->character_reference_code;
+            APPEND_TEMP_BUFFER_UC(&uc, 1);
+            ADVANCE_TO(hvml->return_state);
         END_STATE()
 
         BEGIN_STATE(PCHVML_SPECIAL_ATTRIBUTE_OPERATOR_IN_ATTRIBUTE_NAME_STATE)
