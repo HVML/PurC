@@ -2529,6 +2529,39 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_BEFORE_NAME_STATE)
+            if (is_whitespace(character)) {
+                RECONSUME_IN(PCHVML_EJSON_BEFORE_NAME_STATE);
+            }
+            wchar_t uc = pcutils_stack_top(hvml->ejson_nesting_stack);
+            if (character == '"') {
+                RESET_TEMP_BUFFER();
+                if (uc == '{') {
+                    pcutils_stack_push(hvml->ejson_nesting_stack, ':');
+                }
+                RECONSUME_IN(PCHVML_EJSON_NAME_DOUBLE_QUOTED_STATE);
+            }
+            if (character == '\'') {
+                RESET_TEMP_BUFFER();
+                if (uc == '{') {
+                    pcutils_stack_push(hvml->ejson_nesting_stack, ':');
+                }
+                RECONSUME_IN(PCHVML_EJSON_NAME_SINGLE_QUOTED_STATE);
+            }
+            if (character == '}') {
+                RECONSUME_IN(PCHVML_EJSON_RIGHT_BRACE_STATE);
+            }
+            if (character == '$') {
+                RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
+            }
+            if (is_ascii_alpha(character)) {
+                RESET_TEMP_BUFFER();
+                if (uc == '{') {
+                    pcutils_stack_push(hvml->ejson_nesting_stack, ':');
+                }
+                RECONSUME_IN(PCHVML_EJSON_NAME_UNQUOTED_STATE);
+            }
+            PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_AFTER_NAME_STATE)
