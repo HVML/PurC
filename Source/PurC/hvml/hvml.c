@@ -2490,6 +2490,42 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_AFTER_VALUE_STATE)
+            if (is_whitespace(character)) {
+                ADVANCE_TO(PCHVML_EJSON_AFTER_VALUE_STATE);
+            }
+            if (is_eof(character)) {
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
+                return pchvml_token_new_eof();
+            }
+            if (character == '"' || character == '\'') {
+                struct pcvcm_node* node = pcvcm_node_new_string(
+                        pchvml_temp_buffer_get_buffer(hvml->temp_buffer));
+                struct pcvcm_node* p = pcvcm_stack_pop(hvml->vcm_node_stack);
+                pctree_node_append_child((struct pctree_node*)p,
+                            (struct pctree_node*)node);
+                hvml->curr_vcm_node = p;
+                ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
+            }
+            if (character == '}') {
+                RECONSUME_IN(PCHVML_EJSON_RIGHT_BRACE_STATE);
+            }
+            if (character == ']') {
+                RECONSUME_IN(PCHVML_EJSON_RIGHT_BRACKET_STATE);
+            }
+            if (character == ',') {
+                pcutils_stack_pop(hvml->ejson_nesting_stack);
+                wchar_t uc = pcutils_stack_top(hvml->ejson_nesting_stack);
+                if (uc == '{') {
+                    ADVANCE_TO(PCHVML_EJSON_BEFORE_NAME_STATE);
+                }
+                if (uc == '[') {
+                    ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
+                }
+                PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+                RETURN_AND_STOP_PARSE();
+            }
+            PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_BEFORE_NAME_STATE)
