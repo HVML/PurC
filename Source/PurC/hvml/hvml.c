@@ -418,6 +418,7 @@ struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
     parser->rwswrap = pchvml_rwswrap_new ();
     parser->temp_buffer = pchvml_temp_buffer_new ();
     parser->appropriate_tag_name = pchvml_temp_buffer_new ();
+    parser->vcm_node_stack = pcutils_stack_new(0);
     return parser;
 }
 
@@ -431,6 +432,7 @@ void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
     parser->rwswrap = pchvml_rwswrap_new ();
     pchvml_temp_buffer_reset (parser->temp_buffer);
     pchvml_temp_buffer_reset (parser->appropriate_tag_name);
+    pcutils_stack_destroy(parser->vcm_node_stack);
 }
 
 void pchvml_destroy(struct pchvml_parser* parser)
