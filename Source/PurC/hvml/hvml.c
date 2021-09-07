@@ -2469,6 +2469,24 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_DOLLAR_STATE)
+            if (is_whitespace(character)) {
+                PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+                RETURN_AND_STOP_PARSE();
+            }
+            if (is_eof(character)) {
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
+                return pchvml_token_new_eof();
+            }
+            if (character == '$') {
+                if (hvml->curr_vcm_node) {
+                    pcvcm_stack_push(hvml->vcm_node_stack, hvml->curr_vcm_node);
+                }
+                pcutils_stack_push(hvml->ejson_nesting_stack, '$');
+                hvml->curr_vcm_node = pcvcm_node_new_get_variable(NULL);
+                ADVANCE_TO(PCHVML_EJSON_DOLLAR_STATE);
+            }
+            RESET_TEMP_BUFFER();
+            RECONSUME_IN(PCHVML_EJSON_JSONEE_VARIABLE_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_AFTER_VALUE_STATE)
