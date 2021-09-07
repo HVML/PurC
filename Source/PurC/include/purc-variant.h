@@ -330,21 +330,46 @@ purc_variant_make_dynamic(purc_dvariant_method getter,
         purc_dvariant_method setter);
 
 
-typedef bool (*purc_navtive_releaser) (void* entity);
+typedef purc_variant_t (*purc_nvariant_method) (void* native_entity,
+            size_t nr_args, purc_variant_t* argv);
+
+struct purc_native_ops {
+    // query the getter for a specific property.
+    purc_nvariant_method (*property_getter) (const char* key_name);
+
+    // query the setter for a specific property.
+    purc_nvariant_method (*property_setter) (const char* key_name);
+
+    // query the eraser for a specific property.
+    purc_nvariant_method (*property_eraser) (const char* key_name);
+
+    // query the cleaner for a specific property.
+    purc_nvariant_method (*property_cleaner) (const char* key_name);
+
+    // the cleaner to clear the content of the native entity.
+    bool (*cleaner) (void* native_entity);
+
+    // the eraser to erase the native entity.
+    bool (*eraser) (void* native_entity);
+
+    // the callback when the variant was observed (nullable).
+    bool (*observe) (void* native_entity, ...);
+};
 
 /**
  * Creates a variant value of native type.
  *
  * @param entity: the pointer to the native entity.
- * @param releaser: the pointer to a purc_navtive_releaser function.
+ * @param ops: the pointer to the ops for the native entity.
  *
  * Returns: A purc_variant_t with native value,
  *      or PURC_VARIANT_INVALID on failure.
  *
- * Since: 0.0.1
+ * Since: 0.0.2
  */
-PCA_EXPORT purc_variant_t
-purc_variant_make_native(void *entity, purc_navtive_releaser releaser);
+purc_variant_t purc_variant_make_native (void *native_entity,
+    const struct purc_native_ops *ops);
+
 
 
 /**

@@ -498,11 +498,11 @@ purc_variant_t purc_variant_make_dynamic (purc_dvariant_method getter,
 }
 
 
-purc_variant_t purc_variant_make_native (void *entity,
-        purc_navtive_releaser releaser)
+purc_variant_t purc_variant_make_native (void *native_entity,
+    const struct purc_native_ops *ops)
 {
     // VWNOTE: check entity is not NULL.
-    PCVARIANT_CHECK_FAIL_RET((entity != NULL), PURC_VARIANT_INVALID);
+    PCVARIANT_CHECK_FAIL_RET((native_entity != NULL), PURC_VARIANT_INVALID);
 
     purc_variant_t value = pcvariant_get (PURC_VARIANT_TYPE_NATIVE);
 
@@ -515,8 +515,8 @@ purc_variant_t purc_variant_make_native (void *entity,
     value->size = 0;
     value->flags = 0;
     value->refc = 1;
-    value->ptr_ptr[0] = entity;
-    value->ptr_ptr[1] = releaser;
+    value->ptr_ptr[0] = native_entity;
+    value->ptr_ptr[1] = (void*)ops; // FIXME: globally available ?
 
     return value;
 }
@@ -524,9 +524,10 @@ purc_variant_t purc_variant_make_native (void *entity,
 void pcvariant_native_release(purc_variant_t value)
 {
     if (value->type == PURC_VARIANT_TYPE_NATIVE) {
-        purc_navtive_releaser releaser = value->ptr_ptr[1];
-        if (releaser) {
-            releaser (value->ptr_ptr[0]);
+        struct purc_native_ops *ops;
+        ops = (struct purc_native_ops*)value->ptr_ptr[1];
+        if (ops && ops->eraser) {
+            ops->eraser(value->ptr_ptr[0]);
         }
     }
 }

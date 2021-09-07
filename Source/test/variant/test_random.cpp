@@ -191,13 +191,23 @@ static bool _dummy_releaser (void* entity)
     return true;
 }
 
+static struct purc_native_ops _dummy_ops = {
+    .property_getter       = NULL,
+    .property_setter       = NULL,
+    .property_eraser       = NULL,
+    .property_cleaner      = NULL,
+    .cleaner               = NULL,
+    .eraser                = _dummy_releaser,
+    .observe               = NULL,
+};
+
 static purc_variant_t _make_native(int lvl)
 {
     // what a compiler
     if (0) _make_native(0);
 
     UNUSED_PARAM(lvl);
-    return purc_variant_make_native((void*)_dummy_releaser, _dummy_releaser);
+    return purc_variant_make_native((void*)_dummy_releaser, &_dummy_ops);
 }
 
 static size_t _nr_level       = 4;
