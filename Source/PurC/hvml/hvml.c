@@ -1001,7 +1001,18 @@ next_state:
                 ADVANCE_TO(PCHVML_CHARACTER_REFERENCE_STATE);
             }
             if (character == '$') {
-                // TODO : concat-string
+                hvml->curr_vcm_node = pcvcm_node_new_concat_string(0, NULL);
+                pcutils_stack_push(hvml->ejson_nesting_stack, '"');
+                if (!pchvml_temp_buffer_is_empty(hvml->temp_buffer)) {
+                    struct pcvcm_node* node = pcvcm_node_new_string(
+                            pchvml_temp_buffer_get_buffer(hvml->temp_buffer)
+                            );
+                    pctree_node_append_child(
+                            (struct pctree_node*)hvml->current_token,
+                            (struct pctree_node*)node);
+                    RESET_TEMP_BUFFER();
+                }
+                RECONSUME_IN(PCHVML_EJSON_DATA_STATE);
             }
             if (is_eof(character)) {
                 pchvml_token_attribute_end(hvml->current_token);
@@ -1051,7 +1062,17 @@ next_state:
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
             if (character == '$') {
-                // TODO concat-string and so on
+                hvml->curr_vcm_node = pcvcm_node_new_concat_string(0, NULL);
+                pcutils_stack_push(hvml->ejson_nesting_stack, 'U');
+                if (!pchvml_temp_buffer_is_empty(hvml->temp_buffer)) {
+                    struct pcvcm_node* node = pcvcm_node_new_string(
+                            pchvml_temp_buffer_get_buffer(hvml->temp_buffer)
+                            );
+                    pctree_node_append_child(
+                            (struct pctree_node*)hvml->current_token,
+                            (struct pctree_node*)node);
+                    RESET_TEMP_BUFFER();
+                }
                 RECONSUME_IN(PCHVML_EJSON_DATA_STATE);
             }
             if (character == '"' || character == '\'' || character == '<'
