@@ -2565,6 +2565,24 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_AFTER_NAME_STATE)
+            if (is_whitespace(character)) {
+                ADVANCE_TO(PCHVML_EJSON_AFTER_NAME_STATE);
+            }
+            if (character == ':') {
+                if (pchvml_temp_buffer_is_empty(hvml->temp_buffer)) {
+                    PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_JSON_KEY_NAME);
+                    RETURN_AND_STOP_PARSE();
+                }
+                struct pcvcm_node* node = pcvcm_node_new_string(
+                        pchvml_temp_buffer_get_buffer(hvml->temp_buffer));
+                struct pcvcm_node* p = pcvcm_stack_pop(hvml->vcm_node_stack);
+                pctree_node_append_child((struct pctree_node*)p,
+                            (struct pctree_node*)node);
+                hvml->curr_vcm_node = p;
+                ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
+            }
+            PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_NAME_UNQUOTED_STATE)
