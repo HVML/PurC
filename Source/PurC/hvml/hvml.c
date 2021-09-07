@@ -2120,6 +2120,90 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_CONTROL_STATE)
+            wchar_t uc = pcutils_stack_top (hvml->ejson_nesting_stack);
+            if (is_whitespace(character)) {
+                if (hvml->curr_vcm_node->type ==
+                        PCVCM_NODE_TYPE_FUNC_CONCAT_STRING
+                        && (uc == '"' || uc == '\'' || uc == 'U')) {
+                    RECONSUME_IN(PCHVML_EJSON_AFTER_JSONEE_STRING_STATE);
+                }
+                ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
+            }
+            if (character == '{') {
+                RECONSUME_IN(PCHVML_EJSON_LEFT_BRACE_STATE);
+            }
+            if (character == '}') {
+                if (hvml->curr_vcm_node->type ==
+                        PCVCM_NODE_TYPE_FUNC_CONCAT_STRING
+                        && (uc == '"' || uc == '\'' || uc == 'U')) {
+                    RECONSUME_IN(PCHVML_EJSON_AFTER_JSONEE_STRING_STATE);
+                }
+                RECONSUME_IN(PCHVML_EJSON_RIGHT_BRACE_STATE);
+            }
+            if (character == '[') {
+                RECONSUME_IN(PCHVML_EJSON_LEFT_BRACKET_STATE);
+            }
+            if (character == ']') {
+                if (hvml->curr_vcm_node->type ==
+                        PCVCM_NODE_TYPE_FUNC_CONCAT_STRING
+                        && (uc == '"' || uc == '\'' || uc == 'U')) {
+                    RECONSUME_IN(PCHVML_EJSON_AFTER_JSONEE_STRING_STATE);
+                }
+                RECONSUME_IN(PCHVML_EJSON_RIGHT_BRACKET_STATE);
+            }
+            if (character == '<') {
+                RECONSUME_IN(PCHVML_EJSON_FINISHED_STATE);
+            }
+            if (character == '(') {
+                RECONSUME_IN(PCHVML_EJSON_LEFT_PARENTHESIS_STATE);
+            }
+            if (character == ')') {
+                if (uc == '"' || uc == '\'' || uc == 'U') {
+                    RECONSUME_IN(PCHVML_EJSON_AFTER_JSONEE_STRING_STATE);
+                }
+                RECONSUME_IN(PCHVML_EJSON_RIGHT_PARENTHESIS_STATE);
+            }
+            if (character == '$') {
+                RECONSUME_IN(PCHVML_EJSON_DOLLAR_STATE);
+            }
+            if (character == '"') {
+                if (uc == '"') {
+                    RECONSUME_IN(PCHVML_EJSON_AFTER_JSONEE_STRING_STATE);
+                }
+                else {
+                    RESET_TEMP_BUFFER();
+                    RECONSUME_IN(PCHVML_EJSON_VALUE_DOUBLE_QUOTED_STATE);
+                }
+            }
+            if (character == '\'') {
+                RESET_TEMP_BUFFER();
+                RECONSUME_IN(PCHVML_EJSON_VALUE_SINGLE_QUOTED_STATE);
+            }
+            if (character == 'b') {
+                RESET_TEMP_BUFFER();
+                RECONSUME_IN(PCHVML_EJSON_BYTE_SEQUENCE_STATE);
+            }
+            if (character == 't' || character == 'f' || character == 'n') {
+                RESET_TEMP_BUFFER();
+                RECONSUME_IN(PCHVML_EJSON_KEYWORD_STATE);
+            }
+            if (character == 'I') {
+                RESET_TEMP_BUFFER();
+                RECONSUME_IN(PCHVML_EJSON_VALUE_NUMBER_INFINITY_STATE);
+            }
+            if (character == 'N') {
+                RESET_TEMP_BUFFER();
+                RECONSUME_IN(PCHVML_EJSON_VALUE_NAN_STATE);
+            }
+            if (is_ascii_digit(character) || character == '-') {
+                RESET_TEMP_BUFFER();
+                RECONSUME_IN(PCHVML_EJSON_VALUE_NUMBER_STATE);
+            }
+            if (is_eof(character)) {
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
+                return pchvml_token_new_eof();
+            }
+            RECONSUME_IN(PCHVML_EJSON_JSONEE_STRING_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_LEFT_BRACE_STATE)
