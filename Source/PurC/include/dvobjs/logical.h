@@ -65,7 +65,7 @@ boolean and(<any> value1, <any> value2 [, <any> value3 [, .....]]);
  *
  * @sa          not()  and()  xor()
  */
-boolean or(<any: value1>, <any: value2> [, <any: value3> [, .....]]);
+boolean or(<any> value1, <any> value2 [, <any> value3 [, .....]]);
 
 
 /**
@@ -85,7 +85,7 @@ boolean or(<any: value1>, <any: value2> [, <any: value3> [, .....]]);
  *
  * @sa          not()  and()  or() 
  */
-boolean xor(<any: value1>, <any: value2>);
+boolean xor(<any> value1, <any> value2);
 
 
 /**
@@ -105,7 +105,7 @@ boolean xor(<any: value1>, <any: value2>);
  *
  * @sa          eq()  ne()  gt()  ge()  lt()  le() 
  */
-boolean eq(<any: value1>, <any: value2>);
+boolean eq(<any> value1, <any> value2);
 
 
 /**
@@ -125,7 +125,7 @@ boolean eq(<any: value1>, <any: value2>);
  *
  * @sa          eq()  gt()  ge()  lt()  le() 
  */
-boolean ne(<any: value1>, <any: value2>);
+boolean ne(<any> value1, <any> value2);
 
 
 /**
@@ -145,7 +145,7 @@ boolean ne(<any: value1>, <any: value2>);
  *
  * @sa          eq()  ne()  ge()  lt()  le() 
  */
-boolean gt(<any: value1>, <any: value2>);
+boolean gt(<any> value1, <any> value2);
 
 
 /**
@@ -165,7 +165,7 @@ boolean gt(<any: value1>, <any: value2>);
  *
  * @sa          eq()  ne()  gt()  lt()  le() 
  */
-boolean ge(<any: value1>, <any: value2>);
+boolean ge(<any> value1, <any> value2);
 
 
 /**
@@ -185,7 +185,7 @@ boolean ge(<any: value1>, <any: value2>);
  *
  * @sa          eq()  ne()  ge()  gt()  le() 
  */
-boolean lt(<any: value1>, <any: value2>);
+boolean lt(<any> value1, <any> value2);
 
 
 /**
@@ -205,7 +205,7 @@ boolean lt(<any: value1>, <any: value2>);
  *
  * @sa          eq()  ne()  ge()  gt()  lt() 
  */
-boolean le(<any: value1>, <any: value2>);
+boolean le(<any> value1, <any> value2);
 
 
 /**
@@ -227,7 +227,7 @@ boolean le(<any: value1>, <any: value2>);
  *
  * @sa          strne()  strge()  strgt()  strlt()  strle()
  */
-boolean streq(string option, <any: value1>, <any: value2>);
+boolean streq(string option, <any> value1, <any> value2);
 
 
 /**
@@ -249,7 +249,7 @@ boolean streq(string option, <any: value1>, <any: value2>);
  *
  * @sa          streq()  strge()  strgt()  strlt()  strle()
  */
-boolean strne(string option, <any: value1>, <any: value2>);
+boolean strne(string option, <any> value1, <any> value2);
 
 
 /**
@@ -271,7 +271,7 @@ boolean strne(string option, <any: value1>, <any: value2>);
  *
  * @sa          streq()  strne()  strge()  strlt()  strle()
  */
-boolean strgt(string option, <any: value1>, <any: value2>);
+boolean strgt(string option, <any> value1, <any> value2);
 
 
 /**
@@ -293,7 +293,7 @@ boolean strgt(string option, <any: value1>, <any: value2>);
  *
  * @sa          streq()  strne()  strgt()  strlt()  strle()
  */
-boolean strge(string option, <any: value1>, <any: value2>);
+boolean strge(string option, <any> value1, <any> value2);
 
 
 /**
@@ -315,7 +315,7 @@ boolean strge(string option, <any: value1>, <any: value2>);
  *
  * @sa          streq()  strne()  strge()  strgt()  strle()
  */
-boolean strlt(string option, <any: value1>, <any: value2>);
+boolean strlt(string option, <any> value1, <any> value2);
 
 
 /**
@@ -337,7 +337,7 @@ boolean strlt(string option, <any: value1>, <any: value2>);
  *
  * @sa          streq()  strne()  strgt()  strge()  strlt()
  */
-boolean strle(string option, <any: value1>, <any: value2>);
+boolean strle(string option, <any> value1, <any> value2);
 
 
 /**

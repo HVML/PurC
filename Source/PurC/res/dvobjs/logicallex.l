@@ -49,12 +49,15 @@ EXP ([Ee][-+]?[0-9]+)
 static double get_data (char * text, struct pcdvobjs_logical_param * pp)
 {
     double number = 0.0d;
-   if ((pp->v != NULL) && (!purc_variant_is_string (pp->v))) {
+
+    if (pp->v == NULL)
         return number;
-    }
- 
+
+    if ((pp->v != NULL) && (!purc_variant_is_object (pp->v))) 
+        return number;
+
     purc_variant_t var = NULL;
-    
+
     var = purc_variant_object_get_c (pp->v, text);
     if (var) 
         purc_variant_cast_to_number (var, &number, false);

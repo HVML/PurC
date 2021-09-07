@@ -64,14 +64,14 @@
 
 
 /* Substitute the variable and function names.  */
-#define yyparse         logicalparse
-#define yylex           logicallex
-#define yyerror         logicalerror
-#define yydebug         logicaldebug
-#define yynerrs         logicalnerrs
+#define yyparse         mathldparse
+#define yylex           mathldlex
+#define yyerror         mathlderror
+#define yydebug         mathlddebug
+#define yynerrs         mathldnerrs
 
 /* First part of user prologue.  */
-#line 2 "logicallex.y"
+#line 2 "mathldlex.y"
 
 #include <stdio.h>
 #include "private/instance.h"
@@ -82,7 +82,7 @@
 #include "private/html.h"
 #include "purc-variant.h"
 
-#line 86 "logicallex.tab.c"
+#line 86 "mathldlex.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -115,22 +115,22 @@
 
 /* Use api.header.include to #include this header
    instead of duplicating it here.  */
-#ifndef YY_LOGICAL_LOGICALLEX_TAB_H_INCLUDED
-# define YY_LOGICAL_LOGICALLEX_TAB_H_INCLUDED
+#ifndef YY_MATHLD_MATHLDLEX_TAB_H_INCLUDED
+# define YY_MATHLD_MATHLDLEX_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
 #endif
 #if YYDEBUG
-extern int logicaldebug;
+extern int mathlddebug;
 #endif
 /* "%code requires" blocks.  */
-#line 13 "logicallex.y"
+#line 13 "mathldlex.y"
 
   #include "tools.h"
   typedef void *yyscan_t;
 
-#line 134 "logicallex.tab.c"
+#line 134 "mathldlex.tab.c"
 
 /* Token type.  */
 #ifndef YYTOKENTYPE
@@ -138,19 +138,13 @@ extern int logicaldebug;
   enum yytokentype
   {
     NUMBER = 258,
-    GT = 259,
-    GE = 260,
-    LT = 261,
-    LE = 262,
-    EQU = 263,
-    NOEQU = 264,
-    AND = 265,
-    OR = 266,
-    XOR = 267,
-    ANTI = 268,
-    OP = 269,
-    CP = 270,
-    EOL = 271
+    ADD = 259,
+    SUB = 260,
+    MUL = 261,
+    DIV = 262,
+    OP = 263,
+    CP = 264,
+    EOL = 265
   };
 #endif
 
@@ -158,11 +152,11 @@ extern int logicaldebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 23 "logicallex.y"
+#line 23 "mathldlex.y"
 
-    double d;
+    long double d;
 
-#line 166 "logicallex.tab.c"
+#line 160 "mathldlex.tab.c"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -172,18 +166,18 @@ typedef union YYSTYPE YYSTYPE;
 
 
 
-int logicalparse (struct pcdvobjs_logical_param * myparam, yyscan_t arg);
+int mathldparse (struct pcdvobjs_mathld_param * myparam, yyscan_t arg);
 
-#endif /* !YY_LOGICAL_LOGICALLEX_TAB_H_INCLUDED  */
+#endif /* !YY_MATHLD_MATHLDLEX_TAB_H_INCLUDED  */
 
 /* Second part of user prologue.  */
-#line 39 "logicallex.y"
+#line 39 "mathldlex.y"
 
   /* put here, just after all tokens defined above */
-  #include "logicallex.lex.h"
-  void logicalerror (struct pcdvobjs_logical_param *, yyscan_t, const char *); /* first: %parse-param; second: %param */
+  #include "mathldlex.lex.h"
+  void yyerror (struct pcdvobjs_mathld_param *, yyscan_t, const char *); /* first: %parse-param; second: %param */
 
-#line 187 "logicallex.tab.c"
+#line 181 "mathldlex.tab.c"
 
 
 #ifdef short
@@ -488,19 +482,19 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  2
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   39
+#define YYLAST   21
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  21
+#define YYNTOKENS  15
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  6
+#define YYNNTS  5
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  19
+#define YYNRULES  12
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  33
+#define YYNSTATES  20
 
 #define YYUNDEFTOK  2
-#define YYMAXUTOK   271
+#define YYMAXUTOK   265
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -516,9 +510,9 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,    20,    18,     2,    19,     2,     2,     2,     2,
+       2,     2,    14,    12,     2,    13,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,    17,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,    11,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -538,16 +532,15 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
-       5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
-      15,    16
+       5,     6,     7,     8,     9,    10
 };
 
 #if YYDEBUG
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    49,    49,    50,    51,    54,    55,    56,    57,    60,
-      61,    62,    63,    64,    65,    66,    69,    70,    73,    74
+       0,    49,    49,    50,    51,    54,    55,    56,    59,    60,
+      61,    64,    65
 };
 #endif
 
@@ -556,9 +549,9 @@ static const yytype_int8 yyrline[] =
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "$end", "error", "$undefined", "NUMBER", "GT", "GE", "LT", "LE", "EQU",
-  "NOEQU", "AND", "OR", "XOR", "ANTI", "OP", "CP", "EOL", "'='", "'+'",
-  "'-'", "'*'", "$accept", "calclist", "exp", "factor", "anti", "term", YY_NULLPTR
+  "$end", "error", "$undefined", "NUMBER", "ADD", "SUB", "MUL", "DIV",
+  "OP", "CP", "EOL", "'='", "'+'", "'-'", "'*'", "$accept", "calclist",
+  "exp", "factor", "term", YY_NULLPTR
 };
 #endif
 
@@ -568,12 +561,11 @@ static const char *const yytname[] =
 static const yytype_int16 yytoknum[] =
 {
        0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
-     265,   266,   267,   268,   269,   270,   271,    61,    43,    45,
-      42
+     265,    61,    43,    45,    42
 };
 # endif
 
-#define YYPACT_NINF (-13)
+#define YYPACT_NINF (-8)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -587,10 +579,8 @@ static const yytype_int16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-     -13,     0,   -13,   -13,     1,    -2,   -13,     7,    20,   -13,
-     -13,   -13,    21,    -2,    -2,    -2,   -13,    -2,    -2,    -2,
-      -2,    -2,    -2,   -13,    20,    20,    20,   -13,   -13,   -13,
-     -13,   -13,   -13
+      -8,     0,    -8,    -8,     6,    -8,    -3,     9,    -8,     8,
+       6,     6,    -8,     6,     6,    -8,    14,     9,    -8,    -8
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -598,22 +588,20 @@ static const yytype_int8 yypact[] =
      means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       2,     0,     1,    18,     0,     0,     4,     0,     5,     9,
-      16,    17,     0,     0,     0,     0,     3,     0,     0,     0,
-       0,     0,     0,    19,     6,     7,     8,    10,    11,    12,
-      13,    14,    15
+       2,     0,     1,    11,     0,     4,     0,     5,     8,     0,
+       0,     0,     3,     0,     0,    12,     6,     7,     9,    10
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -13,   -13,    -3,    24,   -12,    16
+      -8,    -8,     1,    -7,     7
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,     1,     7,     8,     9,    10
+      -1,     1,     6,     7,     8
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -621,42 +609,38 @@ static const yytype_int8 yydefgoto[] =
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-       2,     3,    12,     3,     3,    27,    28,    29,    30,    31,
-      32,     4,     5,     4,     5,     5,     6,    13,    14,    15,
-      11,     0,     0,    16,    17,    18,    19,    20,    21,    22,
-       0,    13,    14,    15,     0,     0,    23,    24,    25,    26
+       2,    10,    11,     3,    17,     9,     0,    12,     4,     3,
+       5,    16,    10,    11,     4,    13,    14,    15,    10,    11,
+      18,    19
 };
 
 static const yytype_int8 yycheck[] =
 {
-       0,     3,     5,     3,     3,    17,    18,    19,    20,    21,
-      22,    13,    14,    13,    14,    14,    16,    10,    11,    12,
-       4,    -1,    -1,    16,     4,     5,     6,     7,     8,     9,
-      -1,    10,    11,    12,    -1,    -1,    15,    13,    14,    15
+       0,     4,     5,     3,    11,     4,    -1,    10,     8,     3,
+      10,    10,     4,     5,     8,     6,     7,     9,     4,     5,
+      13,    14
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
      symbol of state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,    22,     0,     3,    13,    14,    16,    23,    24,    25,
-      26,    26,    23,    10,    11,    12,    16,     4,     5,     6,
-       7,     8,     9,    15,    24,    24,    24,    25,    25,    25,
-      25,    25,    25
+       0,    16,     0,     3,     8,    10,    17,    18,    19,    17,
+       4,     5,    10,     6,     7,     9,    17,    18,    19,    19
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    21,    22,    22,    22,    23,    23,    23,    23,    24,
-      24,    24,    24,    24,    24,    24,    25,    25,    26,    26
+       0,    15,    16,    16,    16,    17,    17,    17,    18,    18,
+      18,    19,    19
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     0,     3,     2,     1,     3,     3,     3,     1,
-       3,     3,     3,     3,     3,     3,     1,     2,     1,     3
+       0,     2,     0,     3,     2,     1,     3,     3,     1,     3,
+       3,     1,     3
 };
 
 
@@ -732,7 +716,7 @@ do {                                                                      \
 `-----------------------------------*/
 
 static void
-yy_symbol_value_print (FILE *yyo, int yytype, YYSTYPE const * const yyvaluep, struct pcdvobjs_logical_param * myparam, yyscan_t arg)
+yy_symbol_value_print (FILE *yyo, int yytype, YYSTYPE const * const yyvaluep, struct pcdvobjs_mathld_param * myparam, yyscan_t arg)
 {
   FILE *yyoutput = yyo;
   YYUSE (yyoutput);
@@ -755,7 +739,7 @@ yy_symbol_value_print (FILE *yyo, int yytype, YYSTYPE const * const yyvaluep, st
 `---------------------------*/
 
 static void
-yy_symbol_print (FILE *yyo, int yytype, YYSTYPE const * const yyvaluep, struct pcdvobjs_logical_param * myparam, yyscan_t arg)
+yy_symbol_print (FILE *yyo, int yytype, YYSTYPE const * const yyvaluep, struct pcdvobjs_mathld_param * myparam, yyscan_t arg)
 {
   YYFPRINTF (yyo, "%s %s (",
              yytype < YYNTOKENS ? "token" : "nterm", yytname[yytype]);
@@ -793,7 +777,7 @@ do {                                                            \
 `------------------------------------------------*/
 
 static void
-yy_reduce_print (yy_state_t *yyssp, YYSTYPE *yyvsp, int yyrule, struct pcdvobjs_logical_param * myparam, yyscan_t arg)
+yy_reduce_print (yy_state_t *yyssp, YYSTYPE *yyvsp, int yyrule, struct pcdvobjs_mathld_param * myparam, yyscan_t arg)
 {
   int yylno = yyrline[yyrule];
   int yynrhs = yyr2[yyrule];
@@ -1083,7 +1067,7 @@ yysyntax_error (YYPTRDIFF_T *yymsg_alloc, char **yymsg,
 `-----------------------------------------------*/
 
 static void
-yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, struct pcdvobjs_logical_param * myparam, yyscan_t arg)
+yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, struct pcdvobjs_mathld_param * myparam, yyscan_t arg)
 {
   YYUSE (yyvaluep);
   YYUSE (myparam);
@@ -1105,7 +1089,7 @@ yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, struct pcdvobjs_lo
 `----------*/
 
 int
-yyparse (struct pcdvobjs_logical_param * myparam, yyscan_t arg)
+yyparse (struct pcdvobjs_mathld_param * myparam, yyscan_t arg)
 {
 /* The lookahead symbol.  */
 int yychar;
@@ -1360,91 +1344,55 @@ yyreduce:
   switch (yyn)
     {
   case 2:
-#line 49 "logicallex.y"
+#line 49 "mathldlex.y"
                    { }
-#line 1366 "logicallex.tab.c"
+#line 1350 "mathldlex.tab.c"
     break;
 
   case 3:
-#line 50 "logicallex.y"
-                   { myparam->result = (yyvsp[-1].d)? 1: 0; }
-#line 1372 "logicallex.tab.c"
+#line 50 "mathldlex.y"
+                   { myparam->result = (yyvsp[-1].d); }
+#line 1356 "mathldlex.tab.c"
     break;
 
   case 4:
-#line 51 "logicallex.y"
-               { printf("> "); }
-#line 1378 "logicallex.tab.c"
+#line 51 "mathldlex.y"
+               {  }
+#line 1362 "mathldlex.tab.c"
     break;
 
   case 6:
-#line 55 "logicallex.y"
-                 { (yyval.d) = (yyvsp[-2].d) && (yyvsp[0].d); }
-#line 1384 "logicallex.tab.c"
+#line 55 "mathldlex.y"
+              { (yyval.d) = (yyvsp[-2].d) + (yyvsp[0].d); }
+#line 1368 "mathldlex.tab.c"
     break;
 
   case 7:
-#line 56 "logicallex.y"
-                { (yyval.d) = (yyvsp[-2].d) || (yyvsp[0].d); }
-#line 1390 "logicallex.tab.c"
+#line 56 "mathldlex.y"
+                 { (yyval.d) = (yyvsp[-2].d) - (yyvsp[0].d); }
+#line 1374 "mathldlex.tab.c"
     break;
 
-  case 8:
-#line 57 "logicallex.y"
-                 { (yyval.d) = (int)(yyvsp[-2].d) ^ (int)(yyvsp[0].d); }
-#line 1396 "logicallex.tab.c"
+  case 9:
+#line 60 "mathldlex.y"
+                  { (yyval.d) = (yyvsp[-2].d) * (yyvsp[0].d);}
+#line 1380 "mathldlex.tab.c"
     break;
 
   case 10:
-#line 61 "logicallex.y"
-                 { (yyval.d) = ((yyvsp[-2].d) > (yyvsp[0].d))? 1 : 0; }
-#line 1402 "logicallex.tab.c"
-    break;
-
-  case 11:
-#line 62 "logicallex.y"
-                 { (yyval.d) = ((yyvsp[-2].d) >= (yyvsp[0].d))? 1 : 0; }
-#line 1408 "logicallex.tab.c"
+#line 61 "mathldlex.y"
+                  { if ((yyvsp[0].d) == 0.0) YYABORT; (yyval.d) = (yyvsp[-2].d) / (yyvsp[0].d); }
+#line 1386 "mathldlex.tab.c"
     break;
 
   case 12:
-#line 63 "logicallex.y"
-                 { (yyval.d) = ((yyvsp[-2].d) < (yyvsp[0].d))? 1 : 0; }
-#line 1414 "logicallex.tab.c"
-    break;
-
-  case 13:
-#line 64 "logicallex.y"
-                 { (yyval.d) = ((yyvsp[-2].d) <= (yyvsp[0].d))? 1 : 0; }
-#line 1420 "logicallex.tab.c"
-    break;
-
-  case 14:
-#line 65 "logicallex.y"
-                  { (yyval.d) = ((yyvsp[-2].d) == (yyvsp[0].d))? 1 : 0; }
-#line 1426 "logicallex.tab.c"
-    break;
-
-  case 15:
-#line 66 "logicallex.y"
-                    { (yyval.d) = ((yyvsp[-2].d) != (yyvsp[0].d))? 1 : 0; }
-#line 1432 "logicallex.tab.c"
-    break;
-
-  case 17:
-#line 70 "logicallex.y"
-            { (yyval.d) = (yyvsp[0].d)? 0: 1; }
-#line 1438 "logicallex.tab.c"
-    break;
-
-  case 19:
-#line 74 "logicallex.y"
+#line 65 "mathldlex.y"
             { (yyval.d) = (yyvsp[-1].d); }
-#line 1444 "logicallex.tab.c"
+#line 1392 "mathldlex.tab.c"
     break;
 
 
-#line 1448 "logicallex.tab.c"
+#line 1396 "mathldlex.tab.c"
 
       default: break;
     }
@@ -1676,13 +1624,14 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 76 "logicallex.y"
+#line 67 "mathldlex.y"
 
 
-void logicalerror (struct pcdvobjs_logical_param *p, yyscan_t arg, const char *s)
+void yyerror (struct pcdvobjs_mathld_param *p, yyscan_t arg, const char *s)
 {
   (void)p;
   (void)arg;
-  fprintf(stderr, "error: %s\n", s);
+
+  printf ("math long double bison error: %s\n", s);
 }
 

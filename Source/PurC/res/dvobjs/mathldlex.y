@@ -1,4 +1,4 @@
-%name-prefix "math"
+%name-prefix "mathld"
 %{
 #include <stdio.h>
 #include "private/instance.h"
@@ -16,12 +16,12 @@
 }
 
 %define api.pure
-%parse-param { struct pcdvobjs_math_param * myparam }
+%parse-param { struct pcdvobjs_mathld_param * myparam }
 %param { yyscan_t arg }  /* because of reentrant in .l */
 %define parse.error verbose
 
 %union {
-    double d;
+    long double d;
 }
 
 
@@ -38,8 +38,8 @@
 
 %{
   /* put here, just after all tokens defined above */
-  #include "mathlex.lex.h"
-  void yyerror (struct pcdvobjs_math_param *, yyscan_t, const char *); /* first: %parse-param; second: %param */
+  #include "mathldlex.lex.h"
+  void yyerror (struct pcdvobjs_mathld_param *, yyscan_t, const char *); /* first: %parse-param; second: %param */
 %}
 
 %start calclist
@@ -66,11 +66,11 @@ term: NUMBER
 ;
 %%
 
-void yyerror (struct pcdvobjs_math_param *p, yyscan_t arg, const char *s)
+void yyerror (struct pcdvobjs_mathld_param *p, yyscan_t arg, const char *s)
 {
   (void)p;
   (void)arg;
 
-  printf ("math bison error: %s\n", s);
+  printf ("math long double bison error: %s\n", s);
 }
 

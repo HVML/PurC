@@ -1373,7 +1373,7 @@ yyreduce:
 
   case 4:
 #line 51 "logicallex.y"
-               { printf("> "); }
+               { }
 #line 1378 "logicallex.tab.c"
     break;
 
@@ -1679,10 +1679,10 @@ yyreturn:
 #line 76 "logicallex.y"
 
 
-void logicalerror (struct pcdvobjs_logical_param *p, yyscan_t arg, const char *s)
+void UNUSED_FUNCTION logicalerror (struct pcdvobjs_logical_param *p, yyscan_t arg, const char *s)
 {
-  (void)p;
-  (void)arg;
-  fprintf(stderr, "error: %s\n", s);
-}
+    (void)p;
+    (void)arg;
 
+    printf ("logical bison error: %s\n", s);
+}

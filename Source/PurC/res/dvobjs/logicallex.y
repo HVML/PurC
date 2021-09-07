@@ -48,7 +48,7 @@
 calclist:
   %empty           { }
 | calclist exp EOL { myparam->result = $2? 1: 0; }
-| calclist EOL { printf("> "); } /* blank line or a comment */
+| calclist EOL { } /* blank line or a comment */
 ;
 
 exp: factor
@@ -75,10 +75,10 @@ term: NUMBER
 ;
 %%
 
-void logicalerror (struct pcdvobjs_logical_param *p, yyscan_t arg, const char *s)
+void UNUSED_FUNCTION logicalerror (struct pcdvobjs_logical_param *p, yyscan_t arg, const char *s)
 {
-  (void)p;
-  (void)arg;
-  fprintf(stderr, "error: %s\n", s);
-}
+    (void)p;
+    (void)arg;
 
+    printf ("logical bison error: %s\n", s);
+}

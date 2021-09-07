@@ -1,22 +1,22 @@
 %option noyywrap reentrant bison-bridge
-%option header-file="mathlex.lex.h"
-%option prefix="math"
+%option header-file="mathldlex.lex.h"
+%option prefix="mathld"
 
 %{
-#include "mathlex.tab.h"
+#include "mathldlex.tab.h"
 #include "tools.h"
 
 #define YY_NO_INPUT
 #define YY_NO_UNPUT
 
-static double get_data (char * text, struct pcdvobjs_math_param * pp);
+static long double get_data (char * text, struct pcdvobjs_mathld_param * pp);
 %}
 
 EXP ([Ee][-+]?[0-9]+)
 
 %%
 %{
-  struct pcdvobjs_math_param *pp = yyextra;
+  struct pcdvobjs_mathld_param *pp = yyextra;
 %}
 
 "+"	{ return ADD; }
@@ -38,9 +38,9 @@ EXP ([Ee][-+]?[0-9]+)
 
 %%
 
-static double get_data (char * text, struct pcdvobjs_math_param * pp)
+static long double get_data (char * text, struct pcdvobjs_mathld_param * pp)
 {
-    double number = 0.0d;
+    long double number = 0.0d;
 
     if (pp->v == NULL)
         return number;
@@ -52,7 +52,7 @@ static double get_data (char * text, struct pcdvobjs_math_param * pp)
 
     var = purc_variant_object_get_c (pp->v, text);
     if (var) 
-        purc_variant_cast_to_number (var, &number, false);
+        purc_variant_cast_to_long_double (var, &number, false);
 
     return number;
 }

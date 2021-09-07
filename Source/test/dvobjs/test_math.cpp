@@ -504,15 +504,33 @@ TEST(dvobjs, dvobjs_math_eval)
     func = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(func, nullptr);
 
-    param[0] = purc_variant_make_string ("(3 + 7) / (2 + 3)", false);
-    param[1] = PURC_VARIANT_UNDEFINED;
+    param[0] = purc_variant_make_string ("(3 + 7) * (2 + 3)", false);
+    param[1] = PURC_VARIANT_INVALID;
     param[2] = NULL;
     ret_var = func (NULL, 2, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
     purc_variant_cast_to_number (ret_var, &number, false);
-    printf("TEST eval: param is \"(3 + 7) / (2 + 3)\" : %lf\n", number);
+    printf("TEST eval: param is \"(3 + 7) * (2 + 3)\" = %lf\n", number);
 
+    param[0] = purc_variant_make_string ("(3 + 7) / (2  - 2)", false);
+    param[1] = PURC_VARIANT_INVALID;
+    param[2] = NULL;
+    ret_var = func (NULL, 2, param);
+    ASSERT_EQ(ret_var, nullptr);
+    printf("TEST eval: param is \"(3 + 7) / (2 - 2)\" = PURC_VARIANT_INVALID\n");
+
+    param[0] = purc_variant_make_string ("pi * r * r", false);
+    param[1] = purc_variant_make_object (0, PURC_VARIANT_INVALID,
+                PURC_VARIANT_INVALID);
+    purc_variant_object_set_c (param[1], "pi", purc_variant_make_number (M_PI));
+    purc_variant_object_set_c (param[1], "r", purc_variant_make_number (1.0));
+    param[2] = NULL;
+    ret_var = func (NULL, 2, param);
+    ASSERT_NE(ret_var, nullptr);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
+    purc_variant_cast_to_number (ret_var, &number, false);
+    printf("TEST eval: param is \"pi * r * r\", r = 1.0, value = %lf\n", number);
 
     dynamic = purc_variant_object_get_c (math, "eval_l");
     ASSERT_NE(dynamic, nullptr);
@@ -521,14 +539,33 @@ TEST(dvobjs, dvobjs_math_eval)
     func = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(func, nullptr);
 
-    param[0] = purc_variant_make_string ("(3 + 7) / (2 + 3)", false);
-    param[1] = PURC_VARIANT_UNDEFINED;
+    param[0] = purc_variant_make_string ("(3 + 7) * (2 + 3)", false);
+    param[1] = PURC_VARIANT_INVALID;
     param[2] = NULL;
     ret_var = func (NULL, 2, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE), true);
     purc_variant_cast_to_long_double (ret_var, &numberl, false);
-    printf("TEST eval_l: param is \"(3 + 7) / (2 + 3)\" : %Lf\n", numberl);
+    printf("TEST eval_l: param is \"(3 + 7) * (2 + 3)\" = %Lf\n", numberl);
+
+    param[0] = purc_variant_make_string ("(3 + 7) / (2  - 2)", false);
+    param[1] = PURC_VARIANT_INVALID;
+    param[2] = NULL;
+    ret_var = func (NULL, 2, param);
+    ASSERT_EQ(ret_var, nullptr);
+    printf("TEST eval_l: param is \"(3 + 7) / (2 - 2)\" = PURC_VARIANT_INVALID\n");
+
+    param[0] = purc_variant_make_string ("pi * r * r", false);
+    param[1] = purc_variant_make_object (0, PURC_VARIANT_INVALID,
+                PURC_VARIANT_INVALID);
+    purc_variant_object_set_c (param[1], "pi", purc_variant_make_longdouble (M_PI));
+    purc_variant_object_set_c (param[1], "r", purc_variant_make_longdouble (1.0));
+    param[2] = NULL;
+    ret_var = func (NULL, 2, param);
+    ASSERT_NE(ret_var, nullptr);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE), true);
+    purc_variant_cast_to_long_double (ret_var, &numberl, false);
+    printf("TEST eval_l: param is \"pi * r * r\", r = 1.0, value = %Lf\n", numberl);
 
     purc_cleanup ();
 }

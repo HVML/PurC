@@ -74,9 +74,8 @@ union YYSTYPE
 #line 23 "mathlex.y"
 
     double d;
-    long double dl;
 
-#line 80 "mathlex.tab.h"
+#line 79 "mathlex.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

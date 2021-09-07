@@ -34,22 +34,22 @@
 /* Undocumented macros, especially those whose name start with YY_,
    are private implementation details.  Do not rely on them.  */
 
-#ifndef YY_MATH_MATHLEX_TAB_H_INCLUDED
-# define YY_MATH_MATHLEX_TAB_H_INCLUDED
+#ifndef YY_MATHLD_MATHLDLEX_TAB_H_INCLUDED
+# define YY_MATHLD_MATHLDLEX_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
 #endif
 #if YYDEBUG
-extern int mathdebug;
+extern int mathlddebug;
 #endif
 /* "%code requires" blocks.  */
-#line 13 "mathlex.y"
+#line 13 "mathldlex.y"
 
   #include "tools.h"
   typedef void *yyscan_t;
 
-#line 53 "mathlex.tab.h"
+#line 53 "mathldlex.tab.h"
 
 /* Token type.  */
 #ifndef YYTOKENTYPE
@@ -71,12 +71,11 @@ extern int mathdebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 23 "mathlex.y"
+#line 23 "mathldlex.y"
 
-    double d;
-    long double dl;
+    long double d;
 
-#line 80 "mathlex.tab.h"
+#line 79 "mathldlex.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -86,6 +85,6 @@ typedef union YYSTYPE YYSTYPE;
 
 
 
-int mathparse (struct pcdvobjs_math_param * myparam, yyscan_t arg);
+int mathldparse (struct pcdvobjs_mathld_param * myparam, yyscan_t arg);
 
-#endif /* !YY_MATH_MATHLEX_TAB_H_INCLUDED  */
+#endif /* !YY_MATHLD_MATHLDLEX_TAB_H_INCLUDED  */

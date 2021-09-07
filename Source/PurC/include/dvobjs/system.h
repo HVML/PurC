@@ -115,7 +115,7 @@ string uname_prt(string keywords_list);
  *              $SYSTEM.locale('collate')
  * @endcode
  */
-string locale(string category);
+string locale(string category)  GETTER;
 
 
 /**
@@ -132,7 +132,7 @@ string locale(string category);
  *              $SYSTEM.locale(! 'collate', "en_US.UTF-8")
  * @endcode
  */
-boolean locale(string category, string locale);
+boolean locale(string category, string locale)  SETTER;
 
 
 
@@ -177,15 +177,27 @@ number random(number max_range);
  *              $SYSTEM.time("The Shanghai time is %H:%m", 1234567, "Asia/Shanghai");
  * @endcode
  *
- * @note        Supported user define format, as below:
- *                  %Y: the year
- *                  %m: the month
- *                  %d: the day
- *                  %H: the hour
- *                  %M: the minute
- *                  %S: the second
+ * @note        
+ * @code
+ *              multiple_type can be:
+ *                  number
+ *                  longint
+ *                  ulongint
+ *                  longdouble
+ * @endcode
+ *
+ * @par 
+ * @code
+ *              Supported user define format, as below:
+ *                  %%Y: the year
+ *                  %%m: the month
+ *                  %%d: the day
+ *                  %%H: the hour
+ *                  %%M: the minute
+ *                  %%S: the second
+ * @endcode
  */
-string time(string format [, <number | longint | ulongint | longdouble: epoch>[, <string: timezone>]]);
+string time(string format [, multiple_type epoch[, string: timezone]])  GETTER;
 
 
 /**
@@ -201,7 +213,7 @@ string time(string format [, <number | longint | ulongint | longdouble: epoch>[,
  *              $SYSTEM.time(! 1234567);
  * @endcode
  */
-boolean time(number epoch);
+boolean time(number epoch)  SETTER;
 
 /** @} end of bv_system */
 /** @} end of builtin_vars */

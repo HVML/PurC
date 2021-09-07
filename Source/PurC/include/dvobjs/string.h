@@ -122,17 +122,31 @@ string replace(string string, string oldstr, string newstr);
  *              $STR.format_c("hello %s", "world")
  *
  * @endcode
- * @note        Supported user define format, as below:
+ * @note        
+ * @code
+ *              multiple_type can be:
+ *                  boolean 
+ *                  number
+ *                  longint
+ *                  ulongint
+ *                  longdouble
+ *                  string
+ * @endcode
+ *
+ * @par 
+ * @code
+ *              Supported user define format, as below:
  *                  %d: the integer
  *                  %o: the number in octal
  *                  %u: the unsinged integer
  *                  %x: the number in hexadecimal
  *                  %f: the double
  *                  %s: the string
+ * @endcode
  *
  * @sa          format_p()
  */
-string format_c(string format [, <boolean | number | longint | ulongint | longdouble | string> value [, ...]]);
+string format_c(string format [, multiple_type value [, ...]]);
 
 
 /**
@@ -150,9 +164,14 @@ string format_c(string format [, <boolean | number | longint | ulongint | longdo
  *
  * @endcode
  * @note        
+ * @code
+ *              multiple_type can be:
+ *                  array 
+ *                  object
+ * @endcode
  * @sa          format_c()
  */
-string format_p(<string: string>, [<array> | <object> elements]);
+string format_p(<string: string>, [multiple_type elements]);
 
 
 

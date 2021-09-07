@@ -155,9 +155,8 @@ union YYSTYPE
 #line 23 "mathlex.y"
 
     double d;
-    long double dl;
 
-#line 161 "mathlex.tab.c"
+#line 160 "mathlex.tab.c"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -172,13 +171,13 @@ int mathparse (struct pcdvobjs_math_param * myparam, yyscan_t arg);
 #endif /* !YY_MATH_MATHLEX_TAB_H_INCLUDED  */
 
 /* Second part of user prologue.  */
-#line 40 "mathlex.y"
+#line 39 "mathlex.y"
 
   /* put here, just after all tokens defined above */
   #include "mathlex.lex.h"
   void yyerror (struct pcdvobjs_math_param *, yyscan_t, const char *); /* first: %parse-param; second: %param */
 
-#line 182 "mathlex.tab.c"
+#line 181 "mathlex.tab.c"
 
 
 #ifdef short
@@ -540,8 +539,8 @@ static const yytype_int8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    50,    50,    51,    56,    59,    60,    61,    64,    65,
-      66,    69,    70
+       0,    49,    49,    50,    51,    54,    55,    56,    59,    60,
+      61,    64,    65
 };
 #endif
 
@@ -1345,59 +1344,55 @@ yyreduce:
   switch (yyn)
     {
   case 2:
-#line 50 "mathlex.y"
+#line 49 "mathlex.y"
                    { }
-#line 1351 "mathlex.tab.c"
+#line 1350 "mathlex.tab.c"
     break;
 
   case 3:
-#line 51 "mathlex.y"
-                   { printf("= %f\n> ", (yyvsp[-1].d)); 
-                     if (myparam->type == 0) 
-                         myparam->result = (yyvsp[-1].d); 
-                     else 
-                         myparam->resultl = (yyvsp[-1].d); }
-#line 1361 "mathlex.tab.c"
+#line 50 "mathlex.y"
+                   { myparam->result = (yyvsp[-1].d); }
+#line 1356 "mathlex.tab.c"
     break;
 
   case 4:
-#line 56 "mathlex.y"
-               { printf("> "); }
-#line 1367 "mathlex.tab.c"
+#line 51 "mathlex.y"
+               {  }
+#line 1362 "mathlex.tab.c"
     break;
 
   case 6:
-#line 60 "mathlex.y"
+#line 55 "mathlex.y"
               { (yyval.d) = (yyvsp[-2].d) + (yyvsp[0].d); }
-#line 1373 "mathlex.tab.c"
+#line 1368 "mathlex.tab.c"
     break;
 
   case 7:
-#line 61 "mathlex.y"
+#line 56 "mathlex.y"
                  { (yyval.d) = (yyvsp[-2].d) - (yyvsp[0].d); }
-#line 1379 "mathlex.tab.c"
+#line 1374 "mathlex.tab.c"
     break;
 
   case 9:
-#line 65 "mathlex.y"
-                  { (yyval.d) = (yyvsp[-2].d) * (yyvsp[0].d); }
-#line 1385 "mathlex.tab.c"
+#line 60 "mathlex.y"
+                  { (yyval.d) = (yyvsp[-2].d) * (yyvsp[0].d);}
+#line 1380 "mathlex.tab.c"
     break;
 
   case 10:
-#line 66 "mathlex.y"
+#line 61 "mathlex.y"
                   { if ((yyvsp[0].d) == 0.0) YYABORT; (yyval.d) = (yyvsp[-2].d) / (yyvsp[0].d); }
-#line 1391 "mathlex.tab.c"
+#line 1386 "mathlex.tab.c"
     break;
 
   case 12:
-#line 70 "mathlex.y"
+#line 65 "mathlex.y"
             { (yyval.d) = (yyvsp[-1].d); }
-#line 1397 "mathlex.tab.c"
+#line 1392 "mathlex.tab.c"
     break;
 
 
-#line 1401 "mathlex.tab.c"
+#line 1396 "mathlex.tab.c"
 
       default: break;
     }
@@ -1629,13 +1624,14 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 72 "mathlex.y"
+#line 67 "mathlex.y"
 
 
 void yyerror (struct pcdvobjs_math_param *p, yyscan_t arg, const char *s)
 {
   (void)p;
   (void)arg;
-  fprintf(stderr, "error: %s\n", s);
+
+  printf ("math bison error: %s\n", s);
 }
 

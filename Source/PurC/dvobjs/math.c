@@ -32,6 +32,8 @@
 #include "purc-variant.h"
 #include "mathlex.tab.h"
 #include "mathlex.lex.h"
+#include "mathldlex.tab.h"
+#include "mathldlex.lex.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -384,7 +386,7 @@ eval_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     size_t length = purc_variant_string_length (argv[0]);
-    struct pcdvobjs_math_param myparam = {0.0d, 0.0d, 0, argv[1]};
+    struct pcdvobjs_math_param myparam = {0.0d, argv[1]};
     yyscan_t lexer;
 
     if (mathlex_init_extra (&myparam, &lexer)) {
@@ -427,26 +429,26 @@ eval_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     size_t length = purc_variant_string_length (argv[0]);
-    struct pcdvobjs_math_param myparam = {0.0d, 0.0d, 1, argv[1]};
+    struct pcdvobjs_mathld_param myparam = {0.0d, argv[1]};
     yyscan_t lexer;
 
-    if (mathlex_init_extra (&myparam, &lexer)) {
+    if (mathldlex_init_extra (&myparam, &lexer)) {
         return PURC_VARIANT_INVALID;
     }
 
-    YY_BUFFER_STATE buffer = math_scan_bytes (
+    YY_BUFFER_STATE buffer = mathld_scan_bytes (
                     purc_variant_get_string_const (argv[0]), length, lexer);
-    math_switch_to_buffer (buffer, lexer);
-    result = mathparse(&myparam, lexer);
-    math_delete_buffer(buffer, lexer);
-    mathlex_destroy (lexer);
+    mathld_switch_to_buffer (buffer, lexer);
+    result = mathldparse(&myparam, lexer);
+    mathld_delete_buffer(buffer, lexer);
+    mathldlex_destroy (lexer);
 
     if (result != 0) {
         pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         return PURC_VARIANT_INVALID;
     }
 
-    return purc_variant_make_longdouble (myparam.resultl);
+    return purc_variant_make_longdouble (myparam.result);
 }
 
 

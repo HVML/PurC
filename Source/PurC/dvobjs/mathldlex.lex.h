@@ -1,10 +1,10 @@
-#ifndef mathHEADER_H
-#define mathHEADER_H 1
-#define mathIN_HEADER 1
+#ifndef mathldHEADER_H
+#define mathldHEADER_H 1
+#define mathldIN_HEADER 1
 
-#line 6 "mathlex.lex.h"
+#line 6 "mathldlex.lex.h"
 
-#line 8 "mathlex.lex.h"
+#line 8 "mathldlex.lex.h"
 
 #define  YY_INT_ALIGNED short int
 
@@ -19,225 +19,225 @@
 #endif
 
 #ifdef yy_create_buffer
-#define math_create_buffer_ALREADY_DEFINED
+#define mathld_create_buffer_ALREADY_DEFINED
 #else
-#define yy_create_buffer math_create_buffer
+#define yy_create_buffer mathld_create_buffer
 #endif
 
 #ifdef yy_delete_buffer
-#define math_delete_buffer_ALREADY_DEFINED
+#define mathld_delete_buffer_ALREADY_DEFINED
 #else
-#define yy_delete_buffer math_delete_buffer
+#define yy_delete_buffer mathld_delete_buffer
 #endif
 
 #ifdef yy_scan_buffer
-#define math_scan_buffer_ALREADY_DEFINED
+#define mathld_scan_buffer_ALREADY_DEFINED
 #else
-#define yy_scan_buffer math_scan_buffer
+#define yy_scan_buffer mathld_scan_buffer
 #endif
 
 #ifdef yy_scan_string
-#define math_scan_string_ALREADY_DEFINED
+#define mathld_scan_string_ALREADY_DEFINED
 #else
-#define yy_scan_string math_scan_string
+#define yy_scan_string mathld_scan_string
 #endif
 
 #ifdef yy_scan_bytes
-#define math_scan_bytes_ALREADY_DEFINED
+#define mathld_scan_bytes_ALREADY_DEFINED
 #else
-#define yy_scan_bytes math_scan_bytes
+#define yy_scan_bytes mathld_scan_bytes
 #endif
 
 #ifdef yy_init_buffer
-#define math_init_buffer_ALREADY_DEFINED
+#define mathld_init_buffer_ALREADY_DEFINED
 #else
-#define yy_init_buffer math_init_buffer
+#define yy_init_buffer mathld_init_buffer
 #endif
 
 #ifdef yy_flush_buffer
-#define math_flush_buffer_ALREADY_DEFINED
+#define mathld_flush_buffer_ALREADY_DEFINED
 #else
-#define yy_flush_buffer math_flush_buffer
+#define yy_flush_buffer mathld_flush_buffer
 #endif
 
 #ifdef yy_load_buffer_state
-#define math_load_buffer_state_ALREADY_DEFINED
+#define mathld_load_buffer_state_ALREADY_DEFINED
 #else
-#define yy_load_buffer_state math_load_buffer_state
+#define yy_load_buffer_state mathld_load_buffer_state
 #endif
 
 #ifdef yy_switch_to_buffer
-#define math_switch_to_buffer_ALREADY_DEFINED
+#define mathld_switch_to_buffer_ALREADY_DEFINED
 #else
-#define yy_switch_to_buffer math_switch_to_buffer
+#define yy_switch_to_buffer mathld_switch_to_buffer
 #endif
 
 #ifdef yypush_buffer_state
-#define mathpush_buffer_state_ALREADY_DEFINED
+#define mathldpush_buffer_state_ALREADY_DEFINED
 #else
-#define yypush_buffer_state mathpush_buffer_state
+#define yypush_buffer_state mathldpush_buffer_state
 #endif
 
 #ifdef yypop_buffer_state
-#define mathpop_buffer_state_ALREADY_DEFINED
+#define mathldpop_buffer_state_ALREADY_DEFINED
 #else
-#define yypop_buffer_state mathpop_buffer_state
+#define yypop_buffer_state mathldpop_buffer_state
 #endif
 
 #ifdef yyensure_buffer_stack
-#define mathensure_buffer_stack_ALREADY_DEFINED
+#define mathldensure_buffer_stack_ALREADY_DEFINED
 #else
-#define yyensure_buffer_stack mathensure_buffer_stack
+#define yyensure_buffer_stack mathldensure_buffer_stack
 #endif
 
 #ifdef yylex
-#define mathlex_ALREADY_DEFINED
+#define mathldlex_ALREADY_DEFINED
 #else
-#define yylex mathlex
+#define yylex mathldlex
 #endif
 
 #ifdef yyrestart
-#define mathrestart_ALREADY_DEFINED
+#define mathldrestart_ALREADY_DEFINED
 #else
-#define yyrestart mathrestart
+#define yyrestart mathldrestart
 #endif
 
 #ifdef yylex_init
-#define mathlex_init_ALREADY_DEFINED
+#define mathldlex_init_ALREADY_DEFINED
 #else
-#define yylex_init mathlex_init
+#define yylex_init mathldlex_init
 #endif
 
 #ifdef yylex_init_extra
-#define mathlex_init_extra_ALREADY_DEFINED
+#define mathldlex_init_extra_ALREADY_DEFINED
 #else
-#define yylex_init_extra mathlex_init_extra
+#define yylex_init_extra mathldlex_init_extra
 #endif
 
 #ifdef yylex_destroy
-#define mathlex_destroy_ALREADY_DEFINED
+#define mathldlex_destroy_ALREADY_DEFINED
 #else
-#define yylex_destroy mathlex_destroy
+#define yylex_destroy mathldlex_destroy
 #endif
 
 #ifdef yyget_debug
-#define mathget_debug_ALREADY_DEFINED
+#define mathldget_debug_ALREADY_DEFINED
 #else
-#define yyget_debug mathget_debug
+#define yyget_debug mathldget_debug
 #endif
 
 #ifdef yyset_debug
-#define mathset_debug_ALREADY_DEFINED
+#define mathldset_debug_ALREADY_DEFINED
 #else
-#define yyset_debug mathset_debug
+#define yyset_debug mathldset_debug
 #endif
 
 #ifdef yyget_extra
-#define mathget_extra_ALREADY_DEFINED
+#define mathldget_extra_ALREADY_DEFINED
 #else
-#define yyget_extra mathget_extra
+#define yyget_extra mathldget_extra
 #endif
 
 #ifdef yyset_extra
-#define mathset_extra_ALREADY_DEFINED
+#define mathldset_extra_ALREADY_DEFINED
 #else
-#define yyset_extra mathset_extra
+#define yyset_extra mathldset_extra
 #endif
 
 #ifdef yyget_in
-#define mathget_in_ALREADY_DEFINED
+#define mathldget_in_ALREADY_DEFINED
 #else
-#define yyget_in mathget_in
+#define yyget_in mathldget_in
 #endif
 
 #ifdef yyset_in
-#define mathset_in_ALREADY_DEFINED
+#define mathldset_in_ALREADY_DEFINED
 #else
-#define yyset_in mathset_in
+#define yyset_in mathldset_in
 #endif
 
 #ifdef yyget_out
-#define mathget_out_ALREADY_DEFINED
+#define mathldget_out_ALREADY_DEFINED
 #else
-#define yyget_out mathget_out
+#define yyget_out mathldget_out
 #endif
 
 #ifdef yyset_out
-#define mathset_out_ALREADY_DEFINED
+#define mathldset_out_ALREADY_DEFINED
 #else
-#define yyset_out mathset_out
+#define yyset_out mathldset_out
 #endif
 
 #ifdef yyget_leng
-#define mathget_leng_ALREADY_DEFINED
+#define mathldget_leng_ALREADY_DEFINED
 #else
-#define yyget_leng mathget_leng
+#define yyget_leng mathldget_leng
 #endif
 
 #ifdef yyget_text
-#define mathget_text_ALREADY_DEFINED
+#define mathldget_text_ALREADY_DEFINED
 #else
-#define yyget_text mathget_text
+#define yyget_text mathldget_text
 #endif
 
 #ifdef yyget_lineno
-#define mathget_lineno_ALREADY_DEFINED
+#define mathldget_lineno_ALREADY_DEFINED
 #else
-#define yyget_lineno mathget_lineno
+#define yyget_lineno mathldget_lineno
 #endif
 
 #ifdef yyset_lineno
-#define mathset_lineno_ALREADY_DEFINED
+#define mathldset_lineno_ALREADY_DEFINED
 #else
-#define yyset_lineno mathset_lineno
+#define yyset_lineno mathldset_lineno
 #endif
 
 #ifdef yyget_column
-#define mathget_column_ALREADY_DEFINED
+#define mathldget_column_ALREADY_DEFINED
 #else
-#define yyget_column mathget_column
+#define yyget_column mathldget_column
 #endif
 
 #ifdef yyset_column
-#define mathset_column_ALREADY_DEFINED
+#define mathldset_column_ALREADY_DEFINED
 #else
-#define yyset_column mathset_column
+#define yyset_column mathldset_column
 #endif
 
 #ifdef yywrap
-#define mathwrap_ALREADY_DEFINED
+#define mathldwrap_ALREADY_DEFINED
 #else
-#define yywrap mathwrap
+#define yywrap mathldwrap
 #endif
 
 #ifdef yyget_lval
-#define mathget_lval_ALREADY_DEFINED
+#define mathldget_lval_ALREADY_DEFINED
 #else
-#define yyget_lval mathget_lval
+#define yyget_lval mathldget_lval
 #endif
 
 #ifdef yyset_lval
-#define mathset_lval_ALREADY_DEFINED
+#define mathldset_lval_ALREADY_DEFINED
 #else
-#define yyset_lval mathset_lval
+#define yyset_lval mathldset_lval
 #endif
 
 #ifdef yyalloc
-#define mathalloc_ALREADY_DEFINED
+#define mathldalloc_ALREADY_DEFINED
 #else
-#define yyalloc mathalloc
+#define yyalloc mathldalloc
 #endif
 
 #ifdef yyrealloc
-#define mathrealloc_ALREADY_DEFINED
+#define mathldrealloc_ALREADY_DEFINED
 #else
-#define yyrealloc mathrealloc
+#define yyrealloc mathldrealloc
 #endif
 
 #ifdef yyfree
-#define mathfree_ALREADY_DEFINED
+#define mathldfree_ALREADY_DEFINED
 #else
-#define yyfree mathfree
+#define yyfree mathldfree
 #endif
 
 /* First, we deal with  platform-specific or compiler-specific issues. */
@@ -438,7 +438,7 @@ void yyfree ( void * , yyscan_t yyscanner );
 
 /* Begin user sect3 */
 
-#define mathwrap(yyscanner) (/*CONSTCOND*/1)
+#define mathldwrap(yyscanner) (/*CONSTCOND*/1)
 #define YY_SKIP_YYWRAP
 
 #define yytext_ptr yytext_r
@@ -567,154 +567,154 @@ extern int yylex \
 #undef YY_DECL
 #endif
 
-#ifndef math_create_buffer_ALREADY_DEFINED
+#ifndef mathld_create_buffer_ALREADY_DEFINED
 #undef yy_create_buffer
 #endif
-#ifndef math_delete_buffer_ALREADY_DEFINED
+#ifndef mathld_delete_buffer_ALREADY_DEFINED
 #undef yy_delete_buffer
 #endif
-#ifndef math_scan_buffer_ALREADY_DEFINED
+#ifndef mathld_scan_buffer_ALREADY_DEFINED
 #undef yy_scan_buffer
 #endif
-#ifndef math_scan_string_ALREADY_DEFINED
+#ifndef mathld_scan_string_ALREADY_DEFINED
 #undef yy_scan_string
 #endif
-#ifndef math_scan_bytes_ALREADY_DEFINED
+#ifndef mathld_scan_bytes_ALREADY_DEFINED
 #undef yy_scan_bytes
 #endif
-#ifndef math_init_buffer_ALREADY_DEFINED
+#ifndef mathld_init_buffer_ALREADY_DEFINED
 #undef yy_init_buffer
 #endif
-#ifndef math_flush_buffer_ALREADY_DEFINED
+#ifndef mathld_flush_buffer_ALREADY_DEFINED
 #undef yy_flush_buffer
 #endif
-#ifndef math_load_buffer_state_ALREADY_DEFINED
+#ifndef mathld_load_buffer_state_ALREADY_DEFINED
 #undef yy_load_buffer_state
 #endif
-#ifndef math_switch_to_buffer_ALREADY_DEFINED
+#ifndef mathld_switch_to_buffer_ALREADY_DEFINED
 #undef yy_switch_to_buffer
 #endif
-#ifndef mathpush_buffer_state_ALREADY_DEFINED
+#ifndef mathldpush_buffer_state_ALREADY_DEFINED
 #undef yypush_buffer_state
 #endif
-#ifndef mathpop_buffer_state_ALREADY_DEFINED
+#ifndef mathldpop_buffer_state_ALREADY_DEFINED
 #undef yypop_buffer_state
 #endif
-#ifndef mathensure_buffer_stack_ALREADY_DEFINED
+#ifndef mathldensure_buffer_stack_ALREADY_DEFINED
 #undef yyensure_buffer_stack
 #endif
-#ifndef mathlex_ALREADY_DEFINED
+#ifndef mathldlex_ALREADY_DEFINED
 #undef yylex
 #endif
-#ifndef mathrestart_ALREADY_DEFINED
+#ifndef mathldrestart_ALREADY_DEFINED
 #undef yyrestart
 #endif
-#ifndef mathlex_init_ALREADY_DEFINED
+#ifndef mathldlex_init_ALREADY_DEFINED
 #undef yylex_init
 #endif
-#ifndef mathlex_init_extra_ALREADY_DEFINED
+#ifndef mathldlex_init_extra_ALREADY_DEFINED
 #undef yylex_init_extra
 #endif
-#ifndef mathlex_destroy_ALREADY_DEFINED
+#ifndef mathldlex_destroy_ALREADY_DEFINED
 #undef yylex_destroy
 #endif
-#ifndef mathget_debug_ALREADY_DEFINED
+#ifndef mathldget_debug_ALREADY_DEFINED
 #undef yyget_debug
 #endif
-#ifndef mathset_debug_ALREADY_DEFINED
+#ifndef mathldset_debug_ALREADY_DEFINED
 #undef yyset_debug
 #endif
-#ifndef mathget_extra_ALREADY_DEFINED
+#ifndef mathldget_extra_ALREADY_DEFINED
 #undef yyget_extra
 #endif
-#ifndef mathset_extra_ALREADY_DEFINED
+#ifndef mathldset_extra_ALREADY_DEFINED
 #undef yyset_extra
 #endif
-#ifndef mathget_in_ALREADY_DEFINED
+#ifndef mathldget_in_ALREADY_DEFINED
 #undef yyget_in
 #endif
-#ifndef mathset_in_ALREADY_DEFINED
+#ifndef mathldset_in_ALREADY_DEFINED
 #undef yyset_in
 #endif
-#ifndef mathget_out_ALREADY_DEFINED
+#ifndef mathldget_out_ALREADY_DEFINED
 #undef yyget_out
 #endif
-#ifndef mathset_out_ALREADY_DEFINED
+#ifndef mathldset_out_ALREADY_DEFINED
 #undef yyset_out
 #endif
-#ifndef mathget_leng_ALREADY_DEFINED
+#ifndef mathldget_leng_ALREADY_DEFINED
 #undef yyget_leng
 #endif
-#ifndef mathget_text_ALREADY_DEFINED
+#ifndef mathldget_text_ALREADY_DEFINED
 #undef yyget_text
 #endif
-#ifndef mathget_lineno_ALREADY_DEFINED
+#ifndef mathldget_lineno_ALREADY_DEFINED
 #undef yyget_lineno
 #endif
-#ifndef mathset_lineno_ALREADY_DEFINED
+#ifndef mathldset_lineno_ALREADY_DEFINED
 #undef yyset_lineno
 #endif
-#ifndef mathget_column_ALREADY_DEFINED
+#ifndef mathldget_column_ALREADY_DEFINED
 #undef yyget_column
 #endif
-#ifndef mathset_column_ALREADY_DEFINED
+#ifndef mathldset_column_ALREADY_DEFINED
 #undef yyset_column
 #endif
-#ifndef mathwrap_ALREADY_DEFINED
+#ifndef mathldwrap_ALREADY_DEFINED
 #undef yywrap
 #endif
-#ifndef mathget_lval_ALREADY_DEFINED
+#ifndef mathldget_lval_ALREADY_DEFINED
 #undef yyget_lval
 #endif
-#ifndef mathset_lval_ALREADY_DEFINED
+#ifndef mathldset_lval_ALREADY_DEFINED
 #undef yyset_lval
 #endif
-#ifndef mathget_lloc_ALREADY_DEFINED
+#ifndef mathldget_lloc_ALREADY_DEFINED
 #undef yyget_lloc
 #endif
-#ifndef mathset_lloc_ALREADY_DEFINED
+#ifndef mathldset_lloc_ALREADY_DEFINED
 #undef yyset_lloc
 #endif
-#ifndef mathalloc_ALREADY_DEFINED
+#ifndef mathldalloc_ALREADY_DEFINED
 #undef yyalloc
 #endif
-#ifndef mathrealloc_ALREADY_DEFINED
+#ifndef mathldrealloc_ALREADY_DEFINED
 #undef yyrealloc
 #endif
-#ifndef mathfree_ALREADY_DEFINED
+#ifndef mathldfree_ALREADY_DEFINED
 #undef yyfree
 #endif
-#ifndef mathtext_ALREADY_DEFINED
+#ifndef mathldtext_ALREADY_DEFINED
 #undef yytext
 #endif
-#ifndef mathleng_ALREADY_DEFINED
+#ifndef mathldleng_ALREADY_DEFINED
 #undef yyleng
 #endif
-#ifndef mathin_ALREADY_DEFINED
+#ifndef mathldin_ALREADY_DEFINED
 #undef yyin
 #endif
-#ifndef mathout_ALREADY_DEFINED
+#ifndef mathldout_ALREADY_DEFINED
 #undef yyout
 #endif
-#ifndef math_flex_debug_ALREADY_DEFINED
+#ifndef mathld_flex_debug_ALREADY_DEFINED
 #undef yy_flex_debug
 #endif
-#ifndef mathlineno_ALREADY_DEFINED
+#ifndef mathldlineno_ALREADY_DEFINED
 #undef yylineno
 #endif
-#ifndef mathtables_fload_ALREADY_DEFINED
+#ifndef mathldtables_fload_ALREADY_DEFINED
 #undef yytables_fload
 #endif
-#ifndef mathtables_destroy_ALREADY_DEFINED
+#ifndef mathldtables_destroy_ALREADY_DEFINED
 #undef yytables_destroy
 #endif
-#ifndef mathTABLES_NAME_ALREADY_DEFINED
+#ifndef mathldTABLES_NAME_ALREADY_DEFINED
 #undef yyTABLES_NAME
 #endif
 
-#line 45 "mathlex.l"
+#line 40 "mathldlex.l"
 
 
-#line 719 "mathlex.lex.h"
-#undef mathIN_HEADER
-#endif /* mathHEADER_H */
+#line 719 "mathldlex.lex.h"
+#undef mathldIN_HEADER
+#endif /* mathldHEADER_H */

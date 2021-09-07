@@ -1,6 +1,6 @@
-#line 2 "logicallex.lex.c"
+#line 2 "mathldlex.lex.c"
 
-#line 4 "logicallex.lex.c"
+#line 4 "mathldlex.lex.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -15,225 +15,225 @@
 #endif
 
 #ifdef yy_create_buffer
-#define logical_create_buffer_ALREADY_DEFINED
+#define mathld_create_buffer_ALREADY_DEFINED
 #else
-#define yy_create_buffer logical_create_buffer
+#define yy_create_buffer mathld_create_buffer
 #endif
 
 #ifdef yy_delete_buffer
-#define logical_delete_buffer_ALREADY_DEFINED
+#define mathld_delete_buffer_ALREADY_DEFINED
 #else
-#define yy_delete_buffer logical_delete_buffer
+#define yy_delete_buffer mathld_delete_buffer
 #endif
 
 #ifdef yy_scan_buffer
-#define logical_scan_buffer_ALREADY_DEFINED
+#define mathld_scan_buffer_ALREADY_DEFINED
 #else
-#define yy_scan_buffer logical_scan_buffer
+#define yy_scan_buffer mathld_scan_buffer
 #endif
 
 #ifdef yy_scan_string
-#define logical_scan_string_ALREADY_DEFINED
+#define mathld_scan_string_ALREADY_DEFINED
 #else
-#define yy_scan_string logical_scan_string
+#define yy_scan_string mathld_scan_string
 #endif
 
 #ifdef yy_scan_bytes
-#define logical_scan_bytes_ALREADY_DEFINED
+#define mathld_scan_bytes_ALREADY_DEFINED
 #else
-#define yy_scan_bytes logical_scan_bytes
+#define yy_scan_bytes mathld_scan_bytes
 #endif
 
 #ifdef yy_init_buffer
-#define logical_init_buffer_ALREADY_DEFINED
+#define mathld_init_buffer_ALREADY_DEFINED
 #else
-#define yy_init_buffer logical_init_buffer
+#define yy_init_buffer mathld_init_buffer
 #endif
 
 #ifdef yy_flush_buffer
-#define logical_flush_buffer_ALREADY_DEFINED
+#define mathld_flush_buffer_ALREADY_DEFINED
 #else
-#define yy_flush_buffer logical_flush_buffer
+#define yy_flush_buffer mathld_flush_buffer
 #endif
 
 #ifdef yy_load_buffer_state
-#define logical_load_buffer_state_ALREADY_DEFINED
+#define mathld_load_buffer_state_ALREADY_DEFINED
 #else
-#define yy_load_buffer_state logical_load_buffer_state
+#define yy_load_buffer_state mathld_load_buffer_state
 #endif
 
 #ifdef yy_switch_to_buffer
-#define logical_switch_to_buffer_ALREADY_DEFINED
+#define mathld_switch_to_buffer_ALREADY_DEFINED
 #else
-#define yy_switch_to_buffer logical_switch_to_buffer
+#define yy_switch_to_buffer mathld_switch_to_buffer
 #endif
 
 #ifdef yypush_buffer_state
-#define logicalpush_buffer_state_ALREADY_DEFINED
+#define mathldpush_buffer_state_ALREADY_DEFINED
 #else
-#define yypush_buffer_state logicalpush_buffer_state
+#define yypush_buffer_state mathldpush_buffer_state
 #endif
 
 #ifdef yypop_buffer_state
-#define logicalpop_buffer_state_ALREADY_DEFINED
+#define mathldpop_buffer_state_ALREADY_DEFINED
 #else
-#define yypop_buffer_state logicalpop_buffer_state
+#define yypop_buffer_state mathldpop_buffer_state
 #endif
 
 #ifdef yyensure_buffer_stack
-#define logicalensure_buffer_stack_ALREADY_DEFINED
+#define mathldensure_buffer_stack_ALREADY_DEFINED
 #else
-#define yyensure_buffer_stack logicalensure_buffer_stack
+#define yyensure_buffer_stack mathldensure_buffer_stack
 #endif
 
 #ifdef yylex
-#define logicallex_ALREADY_DEFINED
+#define mathldlex_ALREADY_DEFINED
 #else
-#define yylex logicallex
+#define yylex mathldlex
 #endif
 
 #ifdef yyrestart
-#define logicalrestart_ALREADY_DEFINED
+#define mathldrestart_ALREADY_DEFINED
 #else
-#define yyrestart logicalrestart
+#define yyrestart mathldrestart
 #endif
 
 #ifdef yylex_init
-#define logicallex_init_ALREADY_DEFINED
+#define mathldlex_init_ALREADY_DEFINED
 #else
-#define yylex_init logicallex_init
+#define yylex_init mathldlex_init
 #endif
 
 #ifdef yylex_init_extra
-#define logicallex_init_extra_ALREADY_DEFINED
+#define mathldlex_init_extra_ALREADY_DEFINED
 #else
-#define yylex_init_extra logicallex_init_extra
+#define yylex_init_extra mathldlex_init_extra
 #endif
 
 #ifdef yylex_destroy
-#define logicallex_destroy_ALREADY_DEFINED
+#define mathldlex_destroy_ALREADY_DEFINED
 #else
-#define yylex_destroy logicallex_destroy
+#define yylex_destroy mathldlex_destroy
 #endif
 
 #ifdef yyget_debug
-#define logicalget_debug_ALREADY_DEFINED
+#define mathldget_debug_ALREADY_DEFINED
 #else
-#define yyget_debug logicalget_debug
+#define yyget_debug mathldget_debug
 #endif
 
 #ifdef yyset_debug
-#define logicalset_debug_ALREADY_DEFINED
+#define mathldset_debug_ALREADY_DEFINED
 #else
-#define yyset_debug logicalset_debug
+#define yyset_debug mathldset_debug
 #endif
 
 #ifdef yyget_extra
-#define logicalget_extra_ALREADY_DEFINED
+#define mathldget_extra_ALREADY_DEFINED
 #else
-#define yyget_extra logicalget_extra
+#define yyget_extra mathldget_extra
 #endif
 
 #ifdef yyset_extra
-#define logicalset_extra_ALREADY_DEFINED
+#define mathldset_extra_ALREADY_DEFINED
 #else
-#define yyset_extra logicalset_extra
+#define yyset_extra mathldset_extra
 #endif
 
 #ifdef yyget_in
-#define logicalget_in_ALREADY_DEFINED
+#define mathldget_in_ALREADY_DEFINED
 #else
-#define yyget_in logicalget_in
+#define yyget_in mathldget_in
 #endif
 
 #ifdef yyset_in
-#define logicalset_in_ALREADY_DEFINED
+#define mathldset_in_ALREADY_DEFINED
 #else
-#define yyset_in logicalset_in
+#define yyset_in mathldset_in
 #endif
 
 #ifdef yyget_out
-#define logicalget_out_ALREADY_DEFINED
+#define mathldget_out_ALREADY_DEFINED
 #else
-#define yyget_out logicalget_out
+#define yyget_out mathldget_out
 #endif
 
 #ifdef yyset_out
-#define logicalset_out_ALREADY_DEFINED
+#define mathldset_out_ALREADY_DEFINED
 #else
-#define yyset_out logicalset_out
+#define yyset_out mathldset_out
 #endif
 
 #ifdef yyget_leng
-#define logicalget_leng_ALREADY_DEFINED
+#define mathldget_leng_ALREADY_DEFINED
 #else
-#define yyget_leng logicalget_leng
+#define yyget_leng mathldget_leng
 #endif
 
 #ifdef yyget_text
-#define logicalget_text_ALREADY_DEFINED
+#define mathldget_text_ALREADY_DEFINED
 #else
-#define yyget_text logicalget_text
+#define yyget_text mathldget_text
 #endif
 
 #ifdef yyget_lineno
-#define logicalget_lineno_ALREADY_DEFINED
+#define mathldget_lineno_ALREADY_DEFINED
 #else
-#define yyget_lineno logicalget_lineno
+#define yyget_lineno mathldget_lineno
 #endif
 
 #ifdef yyset_lineno
-#define logicalset_lineno_ALREADY_DEFINED
+#define mathldset_lineno_ALREADY_DEFINED
 #else
-#define yyset_lineno logicalset_lineno
+#define yyset_lineno mathldset_lineno
 #endif
 
 #ifdef yyget_column
-#define logicalget_column_ALREADY_DEFINED
+#define mathldget_column_ALREADY_DEFINED
 #else
-#define yyget_column logicalget_column
+#define yyget_column mathldget_column
 #endif
 
 #ifdef yyset_column
-#define logicalset_column_ALREADY_DEFINED
+#define mathldset_column_ALREADY_DEFINED
 #else
-#define yyset_column logicalset_column
+#define yyset_column mathldset_column
 #endif
 
 #ifdef yywrap
-#define logicalwrap_ALREADY_DEFINED
+#define mathldwrap_ALREADY_DEFINED
 #else
-#define yywrap logicalwrap
+#define yywrap mathldwrap
 #endif
 
 #ifdef yyget_lval
-#define logicalget_lval_ALREADY_DEFINED
+#define mathldget_lval_ALREADY_DEFINED
 #else
-#define yyget_lval logicalget_lval
+#define yyget_lval mathldget_lval
 #endif
 
 #ifdef yyset_lval
-#define logicalset_lval_ALREADY_DEFINED
+#define mathldset_lval_ALREADY_DEFINED
 #else
-#define yyset_lval logicalset_lval
+#define yyset_lval mathldset_lval
 #endif
 
 #ifdef yyalloc
-#define logicalalloc_ALREADY_DEFINED
+#define mathldalloc_ALREADY_DEFINED
 #else
-#define yyalloc logicalalloc
+#define yyalloc mathldalloc
 #endif
 
 #ifdef yyrealloc
-#define logicalrealloc_ALREADY_DEFINED
+#define mathldrealloc_ALREADY_DEFINED
 #else
-#define yyrealloc logicalrealloc
+#define yyrealloc mathldrealloc
 #endif
 
 #ifdef yyfree
-#define logicalfree_ALREADY_DEFINED
+#define mathldfree_ALREADY_DEFINED
 #else
-#define yyfree logicalfree
+#define yyfree mathldfree
 #endif
 
 /* First, we deal with  platform-specific or compiler-specific issues. */
@@ -539,7 +539,7 @@ void yyfree ( void * , yyscan_t yyscanner );
 
 /* Begin user sect3 */
 
-#define logicalwrap(yyscanner) (/*CONSTCOND*/1)
+#define mathldwrap(yyscanner) (/*CONSTCOND*/1)
 #define YY_SKIP_YYWRAP
 typedef flex_uint8_t YY_CHAR;
 
@@ -561,8 +561,8 @@ static void yynoreturn yy_fatal_error ( const char* msg , yyscan_t yyscanner );
 	yyg->yy_hold_char = *yy_cp; \
 	*yy_cp = '\0'; \
 	yyg->yy_c_buf_p = yy_cp;
-#define YY_NUM_RULES 20
-#define YY_END_OF_BUFFER 21
+#define YY_NUM_RULES 14
+#define YY_END_OF_BUFFER 15
 /* This struct is not used in this scanner,
    but its presence is necessary. */
 struct yy_trans_info
@@ -570,13 +570,12 @@ struct yy_trans_info
 	flex_int32_t yy_verify;
 	flex_int32_t yy_nxt;
 	};
-static const flex_int16_t yy_accept[43] =
+static const flex_int16_t yy_accept[33] =
     {   0,
-        0,    0,   21,   19,   18,   20,    1,   19,   11,   12,
-       19,   19,   14,    4,   19,    2,   15,   10,   19,   16,
-        7,    8,   14,   17,   13,   14,   15,   15,    5,    6,
-        3,    9,    0,   17,   13,    0,    0,   14,   14,    0,
-       13,    0
+        0,    0,   15,   13,   11,   14,    5,    6,    3,    1,
+        2,   13,    4,    8,   12,    9,    8,   10,    7,    8,
+       12,   12,    0,   10,    7,    0,    0,    8,    8,    0,
+        7,    0
     } ;
 
 static const YY_CHAR yy_ec[256] =
@@ -584,17 +583,17 @@ static const YY_CHAR yy_ec[256] =
         1,    1,    1,    1,    1,    1,    1,    1,    2,    3,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    2,    4,    1,    1,    1,    1,    5,    1,    6,
-        7,    1,    8,    1,    8,    9,   10,   11,   11,   11,
-       11,   11,   11,   11,   11,   11,   11,    1,    1,   12,
-       13,   14,    1,    1,   15,   15,   15,   15,   16,   15,
-       15,   15,   15,   15,   15,   15,   15,   15,   15,   15,
-       15,   15,   15,   15,   15,   15,   15,   15,   15,   15,
-       15,   15,   15,   17,   15,   15,   15,   15,   15,   15,
+        1,    2,    1,    1,    1,    1,    1,    1,    1,    4,
+        5,    6,    7,    1,    8,    9,   10,   11,   11,   11,
+       11,   11,   11,   11,   11,   11,   11,    1,    1,    1,
+        1,    1,    1,    1,   12,   12,   12,   12,   13,   12,
+       12,   12,   12,   12,   12,   12,   12,   12,   12,   12,
+       12,   12,   12,   12,   12,   12,   12,   12,   12,   12,
+       12,   12,   12,   12,   12,   12,   12,   12,   12,   12,
 
-       16,   15,   15,   15,   15,   15,   15,   15,   15,   15,
-       15,   15,   15,   15,   15,   15,   15,   15,   15,   15,
-       15,   15,    1,   18,    1,    1,    1,    1,    1,    1,
+       13,   12,   12,   12,   12,   12,   12,   12,   12,   12,
+       12,   12,   12,   12,   12,   12,   12,   12,   12,   12,
+       12,   12,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
@@ -611,52 +610,48 @@ static const YY_CHAR yy_ec[256] =
         1,    1,    1,    1,    1
     } ;
 
-static const YY_CHAR yy_meta[20] =
+static const YY_CHAR yy_meta[15] =
     {   0,
-        1,    1,    2,    1,    1,    1,    1,    1,    1,    1,
-        3,    1,    1,    1,    3,    3,    3,    1,    1
+        1,    1,    2,    1,    1,    1,    3,    3,    1,    1,
+        4,    5,    5,    1
     } ;
 
-static const flex_int16_t yy_base[45] =
+static const flex_int16_t yy_base[37] =
     {   0,
-        0,    0,   53,   54,   54,   54,   39,   46,   54,   54,
-       39,   39,   11,   35,   34,   33,    0,    0,   27,   54,
-       54,   54,   13,    0,   14,    0,    0,   23,   54,   54,
-       54,   54,   24,    0,   22,   28,   33,   32,   30,   26,
-       12,   54,   18,   39
+        0,    0,   49,   50,   50,   50,   50,   50,   50,   50,
+       50,   37,   37,    6,    0,   50,    9,    0,   10,    0,
+        0,   17,   35,    0,   20,   34,   26,   21,   16,   15,
+        5,   50,   30,   35,   38,   40
     } ;
 
-static const flex_int16_t yy_def[45] =
+static const flex_int16_t yy_def[37] =
     {   0,
-       42,    1,   42,   42,   42,   42,   42,   42,   42,   42,
-       42,   42,   42,   42,   42,   42,   43,   43,   42,   42,
-       42,   42,   42,   44,   42,   13,   43,   43,   42,   42,
-       42,   42,   42,   44,   42,   42,   42,   43,   42,   42,
-       42,    0,   42,   42
+       32,    1,   32,   32,   32,   32,   32,   32,   32,   32,
+       32,   32,   32,   32,   33,   32,   32,   34,   32,   14,
+       33,   32,   35,   34,   32,   36,   32,   33,   32,   32,
+       32,    0,   32,   32,   32,   32
     } ;
 
-static const flex_int16_t yy_nxt[74] =
+static const flex_int16_t yy_nxt[65] =
     {   0,
-        4,    5,    6,    7,    8,    9,   10,    4,   11,   12,
-       13,   14,   15,   16,   17,   17,   18,   19,   20,   25,
-       27,   26,   41,   23,   35,   27,   28,   27,   33,   36,
-       37,   37,   35,   38,   39,   40,   41,   36,   41,   34,
-       39,   34,   38,   39,   32,   31,   30,   29,   24,   23,
-       22,   21,   42,    3,   42,   42,   42,   42,   42,   42,
-       42,   42,   42,   42,   42,   42,   42,   42,   42,   42,
-       42,   42,   42
+        4,    5,    6,    7,    8,    9,   10,   11,   12,   13,
+       14,   15,   15,   16,   19,   31,   20,   21,   22,   17,
+       25,   23,   26,   27,   27,   31,   29,   28,   21,   21,
+       25,   28,   26,   21,   21,   24,   29,   24,   24,   24,
+       27,   27,   30,   30,   31,   29,   18,   17,   32,    3,
+       32,   32,   32,   32,   32,   32,   32,   32,   32,   32,
+       32,   32,   32,   32
     } ;
 
-static const flex_int16_t yy_chk[74] =
+static const flex_int16_t yy_chk[65] =
     {   0,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    1,    1,    1,    1,    1,   13,
-       43,   13,   41,   23,   25,   13,   13,   13,   23,   25,
-       28,   33,   35,   28,   33,   36,   40,   35,   36,   44,
-       39,   44,   38,   37,   19,   16,   15,   14,   12,   11,
-        8,    7,    3,   42,   42,   42,   42,   42,   42,   42,
-       42,   42,   42,   42,   42,   42,   42,   42,   42,   42,
-       42,   42,   42
+        1,    1,    1,    1,   14,   31,   14,   14,   14,   17,
+       19,   17,   19,   22,   22,   30,   29,   22,   22,   22,
+       25,   28,   25,   33,   33,   34,   27,   34,   34,   34,
+       35,   35,   36,   36,   26,   23,   13,   12,    3,   32,
+       32,   32,   32,   32,   32,   32,   32,   32,   32,   32,
+       32,   32,   32,   32
     } ;
 
 /* The intent behind this definition is that it'll catch
@@ -666,17 +661,17 @@ static const flex_int16_t yy_chk[74] =
 #define yymore() yymore_used_but_not_detected
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
-#line 1 "logicallex.l"
-#line 6 "logicallex.l"
-#include "logicallex.tab.h"
+#line 1 "mathldlex.l"
+#line 6 "mathldlex.l"
+#include "mathldlex.tab.h"
 #include "tools.h"
 
 #define YY_NO_INPUT
 #define YY_NO_UNPUT
 
-static double get_data (char * text, struct pcdvobjs_logical_param * pp);
-#line 679 "logicallex.lex.c"
-#line 680 "logicallex.lex.c"
+static long double get_data (char * text, struct pcdvobjs_mathld_param * pp);
+#line 674 "mathldlex.lex.c"
+#line 675 "mathldlex.lex.c"
 
 #define INITIAL 0
 
@@ -950,14 +945,14 @@ YY_DECL
 		}
 
 	{
-#line 17 "logicallex.l"
+#line 17 "mathldlex.l"
 
 
-#line 20 "logicallex.l"
-  struct pcdvobjs_logical_param *pp = yyextra;
+#line 20 "mathldlex.l"
+  struct pcdvobjs_mathld_param *pp = yyextra;
 
 
-#line 961 "logicallex.lex.c"
+#line 956 "mathldlex.lex.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -984,13 +979,13 @@ yy_match:
 			while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 				{
 				yy_current_state = (int) yy_def[yy_current_state];
-				if ( yy_current_state >= 43 )
+				if ( yy_current_state >= 33 )
 					yy_c = yy_meta[yy_c];
 				}
 			yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
 			++yy_cp;
 			}
-		while ( yy_base[yy_current_state] != 54 );
+		while ( yy_base[yy_current_state] != 50 );
 
 yy_find_action:
 		yy_act = yy_accept[yy_current_state];
@@ -1016,103 +1011,73 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 23 "logicallex.l"
-{ return ANTI; }
+#line 23 "mathldlex.l"
+{ return ADD; }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 24 "logicallex.l"
-{ return GT; }
+#line 24 "mathldlex.l"
+{ return SUB; }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 25 "logicallex.l"
-{ return GE; }
+#line 25 "mathldlex.l"
+{ return MUL; }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 26 "logicallex.l"
-{ return LT; }
+#line 26 "mathldlex.l"
+{ return DIV; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 27 "logicallex.l"
-{ return LE; }
+#line 27 "mathldlex.l"
+{ return OP; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 28 "logicallex.l"
-{ return EQU; }
+#line 28 "mathldlex.l"
+{ return CP; }
 	YY_BREAK
 case 7:
-YY_RULE_SETUP
-#line 29 "logicallex.l"
-{ return NOEQU; }
-	YY_BREAK
+#line 30 "mathldlex.l"
 case 8:
 YY_RULE_SETUP
-#line 30 "logicallex.l"
-{ return AND; }
+#line 30 "mathldlex.l"
+{ yylval->d = atof(yytext); return NUMBER; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 31 "logicallex.l"
-{ return OR; }
+#line 32 "mathldlex.l"
+{ return EOL; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 32 "logicallex.l"
-{ return XOR; }
+#line 33 "mathldlex.l"
+
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 33 "logicallex.l"
-{ return OP; }
+#line 34 "mathldlex.l"
+{ /* ignore white space */ }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 34 "logicallex.l"
-{ return CP; }
-	YY_BREAK
-case 13:
-#line 37 "logicallex.l"
-case 14:
-YY_RULE_SETUP
-#line 37 "logicallex.l"
-{ yylval->d = atof(yytext); return NUMBER; }
-	YY_BREAK
-case 15:
-YY_RULE_SETUP
-#line 39 "logicallex.l"
+#line 36 "mathldlex.l"
 { yylval->d = get_data(yytext, pp); return NUMBER; }
 	YY_BREAK
-case 16:
+case 13:
 YY_RULE_SETUP
-#line 41 "logicallex.l"
-{ return EOL; }
-	YY_BREAK
-case 17:
-YY_RULE_SETUP
-#line 42 "logicallex.l"
-
-	YY_BREAK
-case 18:
-YY_RULE_SETUP
-#line 43 "logicallex.l"
-{ /* ignore white space */ }
-	YY_BREAK
-case 19:
-YY_RULE_SETUP
-#line 45 "logicallex.l"
+#line 37 "mathldlex.l"
 {return *yytext; } /* we don't call yyerror here, because it has no way to communicate with bison */
 	YY_BREAK
 /* normally, we just return character token and defer the error handling in bison */
-case 20:
+case 14:
 YY_RULE_SETUP
-#line 48 "logicallex.l"
+#line 40 "mathldlex.l"
 ECHO;
 	YY_BREAK
-#line 1116 "logicallex.lex.c"
+#line 1081 "mathldlex.lex.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1402,7 +1367,7 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 
 	for ( yy_cp = yyg->yytext_ptr + YY_MORE_ADJ; yy_cp < yyg->yy_c_buf_p; ++yy_cp )
 		{
-		YY_CHAR yy_c = (*yy_cp ? yy_ec[YY_SC_TO_UI(*yy_cp)] : 19);
+		YY_CHAR yy_c = (*yy_cp ? yy_ec[YY_SC_TO_UI(*yy_cp)] : 14);
 		if ( yy_accept[yy_current_state] )
 			{
 			yyg->yy_last_accepting_state = yy_current_state;
@@ -1411,7 +1376,7 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 		while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 			{
 			yy_current_state = (int) yy_def[yy_current_state];
-			if ( yy_current_state >= 43 )
+			if ( yy_current_state >= 33 )
 				yy_c = yy_meta[yy_c];
 			}
 		yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
@@ -1431,7 +1396,7 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner; /* This var may be unused depending upon options. */
 	char *yy_cp = yyg->yy_c_buf_p;
 
-	YY_CHAR yy_c = 19;
+	YY_CHAR yy_c = 14;
 	if ( yy_accept[yy_current_state] )
 		{
 		yyg->yy_last_accepting_state = yy_current_state;
@@ -1440,11 +1405,11 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 	while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 		{
 		yy_current_state = (int) yy_def[yy_current_state];
-		if ( yy_current_state >= 43 )
+		if ( yy_current_state >= 33 )
 			yy_c = yy_meta[yy_c];
 		}
 	yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
-	yy_is_jam = (yy_current_state == 42);
+	yy_is_jam = (yy_current_state == 32);
 
 	(void)yyg;
 	return yy_is_jam ? 0 : yy_current_state;
@@ -2293,21 +2258,24 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 48 "logicallex.l"
+#line 40 "mathldlex.l"
 
 
-static double get_data (char * text, struct pcdvobjs_logical_param * pp)
+static long double get_data (char * text, struct pcdvobjs_mathld_param * pp)
 {
-    double number = 0.0d;
-   if ((pp->v != NULL) && (!purc_variant_is_string (pp->v))) {
+    long double number = 0.0d;
+
+    if (pp->v == NULL)
         return number;
-    }
- 
+
+    if ((pp->v != NULL) && (!purc_variant_is_object (pp->v))) 
+        return number;
+
     purc_variant_t var = NULL;
-    
+
     var = purc_variant_object_get_c (pp->v, text);
     if (var) 
-        purc_variant_cast_to_number (var, &number, false);
+        purc_variant_cast_to_long_double (var, &number, false);
 
     return number;
 }
