@@ -139,6 +139,11 @@
         return token;                                                      \
     } while (false)
 
+#define RETURN_AND_STOP_PARSE()                                            \
+    do {                                                                   \
+        return NULL;                                                       \
+    } while (false)
+
 #define STATE_DESC(state_name)                                              \
     case state_name:                                                        \
         return ""#state_name;                                               \
@@ -2116,7 +2121,7 @@ next_state:
                 return pchvml_token_new_eof();
             }
             PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
-            return NULL;
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_CONTROL_STATE)
@@ -2207,6 +2212,25 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_LEFT_BRACE_STATE)
+            if (character == '{') {
+                pcutils_stack_push(hvml->ejson_nesting_stack, 'P');
+                ADVANCE_TO(PCHVML_EJSON_LEFT_BRACE_STATE);
+            }
+            if (character == '$') {
+                RECONSUME_IN(PCHVML_EJSON_DOLLAR_STATE);
+            }
+            wchar_t uc = pcutils_stack_top (hvml->ejson_nesting_stack);
+            if (uc == 'P') {
+                pcutils_stack_pop(hvml->ejson_nesting_stack);
+                pcutils_stack_push(hvml->ejson_nesting_stack, '{');
+                if (hvml->curr_vcm_node) {
+                    pcvcm_stack_push(hvml->vcm_node_stack, hvml->curr_vcm_node);
+                    hvml->curr_vcm_node = NULL;
+                }
+                RECONSUME_IN(PCHVML_EJSON_BEFORE_NAME_STATE);
+            }
+            PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_RIGHT_BRACE_STATE)
