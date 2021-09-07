@@ -622,6 +622,20 @@ bool pchvml_parser_is_preposition_attribute (struct pchvml_token_attribute* attr
     return true;
 }
 
+bool pchvml_parse_is_adjusted_current_node (struct pchvml_parser* hvml)
+{
+    UNUSED_PARAM(hvml);
+    // TODO
+    return false;
+}
+
+bool pchvml_parse_is_not_in_hvml_namespace (struct pchvml_parser* hvml)
+{
+    UNUSED_PARAM(hvml);
+    // TODO
+    return false;
+}
+
 bool pchvml_parser_is_in_attribute (struct pchvml_parser* parser)
 {
     return parser->current_token && parser->current_token->curr_attr;
@@ -1121,11 +1135,26 @@ next_state:
                 ADVANCE_TO(PCHVML_DOCTYPE_STATE);
             }
             if (strcmp(value, "[CDATA[") == 0) {
-                // TODO
-                // check if is adjust current node
                 pchvml_sbst_destroy(hvml->sbst);
                 hvml->sbst = NULL;
+                if (pchvml_parse_is_adjusted_current_node(hvml)
+                       && pchvml_parse_is_not_in_hvml_namespace(hvml) ) {
+                    ADVANCE_TO(PCHVML_CDATA_SECTION_STATE);
+                }
+                else {
+                    PCHVML_SET_ERROR(PCHVML_ERROR_CDATA_IN_HTML_CONTENT);
+                    hvml->current_token = pchvml_token_new_comment();
+                    APPEND_TO_CHARACTER("[CDATA[", 7);
+                    ADVANCE_TO(PCHVML_BOGUS_COMMENT_STATE);
+                }
             }
+            PCHVML_SET_ERROR(PCHVML_ERROR_INCORRECTLY_OPENED_COMMENT);
+            pchvml_rwswrap_buffer_arrlist(hvml->rwswrap,
+                    pchvml_sbst_get_buffered_ucs(hvml->sbst));
+            hvml->current_token = pchvml_token_new_comment();
+            pchvml_sbst_destroy(hvml->sbst);
+            hvml->sbst = NULL;
+            ADVANCE_TO(PCHVML_BOGUS_COMMENT_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_COMMENT_START_STATE)
