@@ -2447,6 +2447,25 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_RIGHT_PARENTHESIS_STATE)
+            if (character == ')') {
+                wchar_t uc = pcutils_stack_top(hvml->ejson_nesting_stack);
+                if (uc == '(') {
+                    struct pcvcm_node* node = pcvcm_stack_pop(
+                            hvml->vcm_node_stack);
+
+                    if (hvml->curr_vcm_node) {
+                        pctree_node_append_child((struct pctree_node*)node,
+                                (struct pctree_node*)hvml->curr_vcm_node);
+                    }
+                    hvml->curr_vcm_node = node;
+                    ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
+                }
+                if (pcutils_stack_is_empty(hvml->ejson_nesting_stack)) {
+                    PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+                    RETURN_AND_STOP_PARSE();
+                }
+                ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
+            }
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_DOLLAR_STATE)
