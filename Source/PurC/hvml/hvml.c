@@ -2390,16 +2390,60 @@ next_state:
                 RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
             }
             ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
-
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_LESS_THAN_SIGN_STATE)
+        // TODO: remove
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_GREATER_THAN_SIGN_STATE)
+        // TODO: remove
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_LEFT_PARENTHESIS_STATE)
+            if (character == '!') {
+                if (hvml->curr_vcm_node->type ==
+                        PCVCM_NODE_TYPE_FUNC_GET_VARIABLE ||
+                        hvml->curr_vcm_node->type ==
+                        PCVCM_NODE_TYPE_FUNC_GET_ELEMENT) {
+                    struct pcvcm_node* node = pcvcm_node_new_call_getter(NULL,
+                            0, NULL);
+                    if (hvml->curr_vcm_node) {
+                        pctree_node_append_child(
+                                (struct pctree_node*)node,
+                                (struct pctree_node*)hvml->current_token);
+                    }
+                    hvml->curr_vcm_node = node;
+                    pcutils_stack_push(hvml->ejson_nesting_stack, '<');
+                    RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
+                }
+                PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+                RETURN_AND_STOP_PARSE();
+            }
+            if (is_eof(character)) {
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
+                return pchvml_token_new_eof();
+            }
+            if (hvml->curr_vcm_node->type ==
+                    PCVCM_NODE_TYPE_FUNC_GET_VARIABLE ||
+                    hvml->curr_vcm_node->type ==
+                    PCVCM_NODE_TYPE_FUNC_GET_ELEMENT) {
+                struct pcvcm_node* node = pcvcm_node_new_call_setter(NULL,
+                        0, NULL);
+                if (hvml->curr_vcm_node) {
+                    pctree_node_append_child(
+                            (struct pctree_node*)node,
+                            (struct pctree_node*)hvml->current_token);
+                }
+                hvml->curr_vcm_node = node;
+                pcutils_stack_push(hvml->ejson_nesting_stack, '(');
+                RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
+            }
+            if (pcutils_stack_is_empty(hvml->ejson_nesting_stack)) {
+                RECONSUME_IN(PCHVML_EJSON_FINISHED_STATE);
+            }
+            PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_RIGHT_PARENTHESIS_STATE)
