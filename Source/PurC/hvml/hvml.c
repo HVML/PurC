@@ -2346,6 +2346,51 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_RIGHT_BRACKET_STATE)
+            if (is_whitespace(character)) {
+                ADVANCE_TO(PCHVML_EJSON_RIGHT_BRACE_STATE);
+            }
+            if (is_eof(character)) {
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
+                return pchvml_token_new_eof();
+            }
+            wchar_t uc = pcutils_stack_top(hvml->ejson_nesting_stack);
+            if (character == ']') {
+                if (uc == '.') {
+                    pcutils_stack_pop(hvml->ejson_nesting_stack);
+                    struct pcvcm_node* node = pcvcm_stack_pop(
+                            hvml->vcm_node_stack);
+
+                    if (hvml->curr_vcm_node) {
+                        pctree_node_append_child((struct pctree_node*)node,
+                                (struct pctree_node*)hvml->curr_vcm_node);
+                    }
+                    hvml->curr_vcm_node = node;
+                }
+                if (uc == '[') {
+                    pcutils_stack_pop(hvml->ejson_nesting_stack);
+                    struct pcvcm_node* node = pcvcm_stack_pop(
+                            hvml->vcm_node_stack);
+
+                    if (hvml->curr_vcm_node) {
+                        pctree_node_append_child((struct pctree_node*)node,
+                                (struct pctree_node*)hvml->curr_vcm_node);
+                    }
+                    hvml->curr_vcm_node = (struct pcvcm_node*)
+                                pctree_node_parent((struct pctree_node*)node);
+                    if (pcutils_stack_is_empty(hvml->ejson_nesting_stack)) {
+                        ADVANCE_TO(PCHVML_EJSON_FINISHED_STATE);
+                    }
+                    ADVANCE_TO(PCHVML_EJSON_AFTER_VALUE_STATE);
+                }
+                PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+                RETURN_AND_STOP_PARSE();
+            }
+            if (pcutils_stack_is_empty(hvml->ejson_nesting_stack)
+                    || uc == '(' || uc == '<') {
+                RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
+            }
+            ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
+
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_LESS_THAN_SIGN_STATE)
