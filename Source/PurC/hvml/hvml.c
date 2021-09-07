@@ -2304,6 +2304,45 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_LEFT_BRACKET_STATE)
+            if (character == '[') {
+                if (pcutils_stack_is_empty(hvml->ejson_nesting_stack)) {
+                    pcutils_stack_push(hvml->ejson_nesting_stack, '[');
+                    RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
+                }
+                wchar_t uc = pcutils_stack_top (hvml->ejson_nesting_stack);
+                if (uc == '(' || uc == '<') {
+                    pcutils_stack_push(hvml->ejson_nesting_stack, '[');
+                    if (hvml->curr_vcm_node) {
+                        pcvcm_stack_push(hvml->vcm_node_stack,
+                                hvml->curr_vcm_node);
+                    }
+                    hvml->curr_vcm_node = NULL;
+                    RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
+                }
+                if (hvml->curr_vcm_node->type ==
+                        PCVCM_NODE_TYPE_FUNC_GET_VARIABLE ||
+                        hvml->curr_vcm_node->type ==
+                        PCVCM_NODE_TYPE_FUNC_GET_ELEMENT) {
+                    pcutils_stack_push(hvml->ejson_nesting_stack, '.');
+                    struct pcvcm_node* node = pcvcm_node_new_get_element(NULL,
+                            NULL);
+                    if (hvml->curr_vcm_node) {
+                        pctree_node_append_child(
+                                (struct pctree_node*)node,
+                                (struct pctree_node*)hvml->current_token);
+                    }
+                    hvml->curr_vcm_node = node;
+                    RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
+                }
+                PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+                RETURN_AND_STOP_PARSE();
+            }
+            if (is_eof(character)) {
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
+                return pchvml_token_new_eof();
+            }
+            PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_RIGHT_BRACKET_STATE)
