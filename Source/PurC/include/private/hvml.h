@@ -159,7 +159,7 @@ struct pchvml_parser {
     struct pchvml_sbst* sbst;
     struct pcvcm_node* curr_vcm_tree;
     struct pcvcm_node* curr_vcm_node;
-    struct pcutils_stack* vcm_node_stack;
+    struct pcvcm_stack* vcm_node_stack;
     struct pcutils_stack* ejson_nesting_stack;
     uint64_t character_reference_code;
 };

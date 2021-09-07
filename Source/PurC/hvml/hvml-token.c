@@ -118,6 +118,12 @@ void pchvml_token_attribute_append_to_value (struct pchvml_token* token,
     pchvml_temp_buffer_append(token->curr_attr->value, bytes, sz_bytes);
 }
 
+void pchvml_token_attribute_append_vcm (struct pchvml_token* token,
+        struct pcvcm_node* vcm)
+{
+    token->curr_attr->vcm = vcm;
+}
+
 void pchvml_token_attribute_set_assignment (struct pchvml_token* token,
         enum pchvml_attribute_assignment assignment)
 {

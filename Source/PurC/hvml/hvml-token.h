@@ -66,6 +66,7 @@ struct pchvml_token_attribute {
 struct pchvml_token {
     enum pchvml_token_type type;
     char* data;
+    struct pcvcm_node* vcm;
     struct pcutils_arrlist* attr_list;
     struct pchvml_token_attribute* curr_attr;
     struct pchvml_temp_buffer* temp_buffer;
@@ -91,6 +92,8 @@ void pchvml_token_attribute_append_to_name (struct pchvml_token* token,
         const char* bytes, size_t sz_bytes);
 void pchvml_token_attribute_append_to_value (struct pchvml_token* token,
         const char* bytes, size_t sz_bytes);
+void pchvml_token_attribute_append_vcm (struct pchvml_token* token,
+        struct pcvcm_node* vcm);
 void pchvml_token_attribute_set_assignment (struct pchvml_token* token,
         enum pchvml_attribute_assignment assignment);
 void pchvml_token_attribute_end (struct pchvml_token* token);
@@ -126,6 +129,13 @@ struct pchvml_token* pchvml_token_new_comment () {
 PCA_INLINE
 struct pchvml_token* pchvml_token_new_doctype () {
     return pchvml_token_new(PCHVML_TOKEN_DOCTYPE);
+}
+
+PCA_INLINE
+struct pchvml_token* pchvml_token_new_vcm (struct pcvcm_node* vcm) {
+    struct pchvml_token* token =  pchvml_token_new(PCHVML_TOKEN_VCM_TREE);
+    token->vcm = vcm;
+    return token;
 }
 
 void pchvml_token_append (struct pchvml_token* token,
