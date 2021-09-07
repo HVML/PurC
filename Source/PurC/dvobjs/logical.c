@@ -255,16 +255,12 @@ static purc_variant_t
 logical_not (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
 
     purc_variant_t ret_var = NULL;
 
-    if ((argv == NULL) || (nr_args != 1)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if (argv[0] == NULL) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if (argv[0] == PURC_VARIANT_INVALID) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -946,7 +942,7 @@ logical_eval (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 // only for test now.
 purc_variant_t pcdvojbs_get_logical (void)
 {
-    purc_variant_t logical = purc_variant_make_object_c (7,
+    purc_variant_t logical = purc_variant_make_object_c (17,
             "not",    purc_variant_make_dynamic (logical_not, NULL),
             "and",    purc_variant_make_dynamic (logical_and, NULL),
             "or",     purc_variant_make_dynamic (logical_or, NULL),

@@ -13,22 +13,20 @@
 #include <errno.h>
 #include <gtest/gtest.h>
 
-TEST(dvobjs, dvobjs_logical_uname)
+TEST(dvobjs, dvobjs_logical_not)
 {
     purc_variant_t param[10];
     purc_variant_t ret_var = NULL;
-    const char * result = NULL;
-    size_t i = 0;
 
     purc_instance_extra_info info = {0, 0};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t sys = pcdvojbs_get_system();
-    ASSERT_NE(sys, nullptr);
-    ASSERT_EQ(purc_variant_is_object (sys), true);
+    purc_variant_t logical = pcdvojbs_get_logical();
+    ASSERT_NE(logical, nullptr);
+    ASSERT_EQ(purc_variant_is_object (logical), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_c (sys, "uname");
+    purc_variant_t dynamic = purc_variant_object_get_c (logical, "not");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -36,27 +34,94 @@ TEST(dvobjs, dvobjs_logical_uname)
     func = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(func, nullptr);
 
-    printf ("TEST get_uname: nr_args = 0, param = \"  beijing  shanghai\" :\n");
-    param[0] = purc_variant_make_string ("  beijing shanghai", true);
+    param[0] = purc_variant_make_undefined ();
     param[1] = NULL;
     ret_var = func (NULL, 0, param);
-    ASSERT_NE(ret_var, nullptr);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    ASSERT_EQ(ret_var->b, true);
 
-    purc_variant_object_iterator* it = purc_variant_object_make_iterator_begin(ret_var);
-    for (i = 0; i < purc_variant_object_get_size (ret_var); i++) {
-        const char     *key = purc_variant_object_iterator_get_key(it);
-        purc_variant_t  val = purc_variant_object_iterator_get_value(it);
+    param[0] = purc_variant_make_null ();
+    param[1] = NULL;
+    ret_var = func (NULL, 0, param);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    ASSERT_EQ(ret_var->b, true);
 
-        result = purc_variant_get_string_const (val);
+    param[0] = purc_variant_make_boolean (true);
+    param[1] = NULL;
+    ret_var = func (NULL, 0, param);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    ASSERT_EQ(ret_var->b, false);
 
-        printf("\t\t%s: %s\n", key, result);
+    param[0] = purc_variant_make_boolean (false);
+    param[1] = NULL;
+    ret_var = func (NULL, 0, param);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    ASSERT_EQ(ret_var->b, true);
 
-        bool having = purc_variant_object_iterator_next(it);
-        if (!having) {
-            purc_variant_object_release_iterator(it);
-            break;
-        }
-    }
+    param[0] = purc_variant_make_number (0.0);
+    param[1] = NULL;
+    ret_var = func (NULL, 0, param);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    ASSERT_EQ(ret_var->b, true);
+
+    param[0] = purc_variant_make_number (1.1);
+    param[1] = NULL;
+    ret_var = func (NULL, 0, param);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    ASSERT_EQ(ret_var->b, false);
+
+    param[0] = purc_variant_make_number (-1.1);
+    param[1] = NULL;
+    ret_var = func (NULL, 0, param);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    ASSERT_EQ(ret_var->b, false);
+   
+    param[0] = purc_variant_make_ulongint (1);
+    param[1] = NULL;
+    ret_var = func (NULL, 0, param);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    ASSERT_EQ(ret_var->b, false);
+   
+    param[0] = purc_variant_make_longint(-1);
+    param[1] = NULL;
+    ret_var = func (NULL, 0, param);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    ASSERT_EQ(ret_var->b, false);
+   
+    param[0] = purc_variant_make_longdouble(-1.2);
+    param[1] = NULL;
+    ret_var = func (NULL, 0, param);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    ASSERT_EQ(ret_var->b, false);
+
+    param[0] = purc_variant_make_string("", false);
+    param[1] = NULL;
+    ret_var = func (NULL, 0, param);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    ASSERT_EQ(ret_var->b, true);
+
+    param[0] = purc_variant_make_string("hello", false);
+    param[1] = NULL;
+    ret_var = func (NULL, 0, param);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    ASSERT_EQ(ret_var->b, false);
+
+    param[0] = purc_variant_make_atom_string("", false);
+    param[1] = NULL;
+    ret_var = func (NULL, 0, param);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    ASSERT_EQ(ret_var->b, true);
+
+    param[0] = purc_variant_make_atom_string("hello world", false);
+    param[1] = NULL;
+    ret_var = func (NULL, 0, param);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    ASSERT_EQ(ret_var->b, false);
+
+
+
+
+    printf ("TEST not: OK\n");
 
     purc_cleanup ();
 }

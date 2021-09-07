@@ -268,6 +268,8 @@ purc_variant_make_string_reuse_buff (char* str_utf8, size_t sz_buff,
 
     return value;
 }
+
+
 purc_variant_t
 purc_variant_make_string_static (const char* str_utf8, bool check_encoding)
 {
