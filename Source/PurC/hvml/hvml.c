@@ -35,6 +35,8 @@
 #include "hvml-sbst.h"
 #include "config.h"
 
+#include <math.h>
+
 #if HAVE(GLIB)
 #include <gmodule.h>
 #else
@@ -3325,6 +3327,117 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_VALUE_NUMBER_INFINITY_STATE)
+            if (is_whitespace(character) || character == '}'
+                    || character == ']' || character == ',' ) {
+                if (pchvml_temp_buffer_equal_to(hvml->temp_buffer,
+                            "-Infinity", 9)) {
+                    double d = -INFINITY;
+                    struct pcvcm_node* node = pcvcm_node_new_number(d);
+                    if (!hvml->curr_vcm_node) {
+                        hvml->curr_vcm_node = pcvcm_stack_pop(hvml->vcm_node_stack);
+                    }
+                    pctree_node_append_child(
+                            (struct pctree_node*)hvml->current_token,
+                            (struct pctree_node*)node);
+                    RESET_TEMP_BUFFER();
+                    RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_STATE);
+                }
+                if (pchvml_temp_buffer_equal_to(hvml->temp_buffer,
+                        "Infinity", 8)) {
+                    double d = INFINITY;
+                    struct pcvcm_node* node = pcvcm_node_new_number(d);
+                    if (!hvml->curr_vcm_node) {
+                        hvml->curr_vcm_node = pcvcm_stack_pop(hvml->vcm_node_stack);
+                    }
+                    pctree_node_append_child(
+                            (struct pctree_node*)hvml->current_token,
+                            (struct pctree_node*)node);
+                    RESET_TEMP_BUFFER();
+                    RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_STATE);
+                }
+                PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_JSON_NUMBER);
+                RETURN_AND_STOP_PARSE();
+            }
+            if (character == 'I') {
+                if (pchvml_temp_buffer_is_empty(hvml->temp_buffer)
+                    || pchvml_temp_buffer_equal_to(hvml->temp_buffer, "-", 1)) {
+                    APPEND_TEMP_BUFFER(c, nr_c);
+                    ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_INFINITY_STATE);
+                }
+                PCHVML_SET_ERROR(
+                        PCHVML_ERROR_UNEXPECTED_JSON_NUMBER);
+                RETURN_AND_STOP_PARSE();
+            }
+
+            if (character == 'n') {
+                if (pchvml_temp_buffer_equal_to(hvml->temp_buffer, "I", 1)
+                  || pchvml_temp_buffer_equal_to(hvml->temp_buffer, "-I", 2)
+                  || pchvml_temp_buffer_equal_to(hvml->temp_buffer, "Infi", 4)
+                  || pchvml_temp_buffer_equal_to(hvml->temp_buffer, "-Infi", 5)
+                    ) {
+                    APPEND_TEMP_BUFFER(c, nr_c);
+                    ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_INFINITY_STATE);
+                }
+                PCHVML_SET_ERROR(
+                        PCHVML_ERROR_UNEXPECTED_JSON_NUMBER);
+                RETURN_AND_STOP_PARSE();
+            }
+
+            if (character == 'f') {
+                if (pchvml_temp_buffer_equal_to(hvml->temp_buffer, "In", 2)
+                    || pchvml_temp_buffer_equal_to (hvml->temp_buffer, "-In", 3)
+                        ) {
+                    APPEND_TEMP_BUFFER(c, nr_c);
+                    ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_INFINITY_STATE);
+                }
+                PCHVML_SET_ERROR(
+                        PCHVML_ERROR_UNEXPECTED_JSON_NUMBER);
+                RETURN_AND_STOP_PARSE();
+            }
+
+            if (character == 'i') {
+                if (pchvml_temp_buffer_equal_to(hvml->temp_buffer, "Inf", 3)
+                 || pchvml_temp_buffer_equal_to(hvml->temp_buffer, "-Inf", 4)
+                 || pchvml_temp_buffer_equal_to(hvml->temp_buffer, "Infin", 5)
+                 || pchvml_temp_buffer_equal_to(hvml->temp_buffer, "-Infin", 6)
+                 ) {
+                    APPEND_TEMP_BUFFER(c, nr_c);
+                    ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_INFINITY_STATE);
+                }
+                PCHVML_SET_ERROR(
+                        PCHVML_ERROR_UNEXPECTED_JSON_NUMBER);
+                RETURN_AND_STOP_PARSE();
+            }
+
+            if (character == 't') {
+                if (pchvml_temp_buffer_equal_to(hvml->temp_buffer, "Infini", 6)
+                    || pchvml_temp_buffer_equal_to (hvml->temp_buffer,
+                        "-Infini", 7)
+                        ) {
+                    APPEND_TEMP_BUFFER(c, nr_c);
+                    ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_INFINITY_STATE);
+                }
+                PCHVML_SET_ERROR(
+                        PCHVML_ERROR_UNEXPECTED_JSON_NUMBER);
+                RETURN_AND_STOP_PARSE();
+            }
+
+            if (character == 'y') {
+                if (pchvml_temp_buffer_equal_to(hvml->temp_buffer, "Infinit", 7)
+                   || pchvml_temp_buffer_equal_to (hvml->temp_buffer,
+                       "-Infinit", 8)
+                        ) {
+                    APPEND_TEMP_BUFFER(c, nr_c);
+                    ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_INFINITY_STATE);
+                }
+                PCHVML_SET_ERROR(
+                        PCHVML_ERROR_UNEXPECTED_JSON_NUMBER);
+                RETURN_AND_STOP_PARSE();
+            }
+
+            PCHVML_SET_ERROR(
+                    PCHVML_ERROR_UNEXPECTED_JSON_NUMBER);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_VALUE_NAN_STATE)
