@@ -27,6 +27,10 @@
 
 #include "private/list.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define RB_RED      0
 #define RB_BLACK    1
 

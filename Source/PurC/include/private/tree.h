@@ -334,6 +334,15 @@ void pctree_node_post_order_traversal (struct pctree_node* node,
 void pctree_node_level_order_traversal (struct pctree_node* node,
         pctree_node_for_each_fn* func, void* data);
 
+/*
+ * remove subtree from it's parent
+ *
+ * @param node: the given node which is the root of the subtree
+ *
+ * Since: 0.0.1
+ */
+ void pctree_node_remove(struct pctree_node* node);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

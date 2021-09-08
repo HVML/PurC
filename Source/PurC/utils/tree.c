@@ -259,3 +259,30 @@ void pctree_node_level_order_traversal (struct pctree_node* node,
         level++;
     }
 }
+
+void pctree_node_remove(struct pctree_node* node)
+{
+    struct pctree_node *parent = node->parent;
+    struct pctree_node *next   = node->next;
+    struct pctree_node *prev   = node->prev;
+
+    if (parent==NULL)
+        return;
+
+    if (next)
+        next->prev = prev;
+    else
+        parent->last_child = prev;
+
+    if (prev)
+        prev->next = next;
+    else
+        parent->first_child = next;
+
+    node->parent = NULL;
+    node->next   = NULL;
+    node->prev   = NULL;
+
+    parent->nr_children -= node->nr_children + 1;
+}
+

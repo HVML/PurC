@@ -665,14 +665,14 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
     PC_ASSERT(value);
 
     switch (value->type) {
-        case PURC_VARIANT_TYPE_NULL:
-            content = "null";
-            sz_content = 4;
-            break;
-
         case PURC_VARIANT_TYPE_UNDEFINED:
             content = "undefined";
             sz_content = 9;
+            break;
+
+        case PURC_VARIANT_TYPE_NULL:
+            content = "null";
+            sz_content = 4;
             break;
 
         case PURC_VARIANT_TYPE_BOOLEAN:
