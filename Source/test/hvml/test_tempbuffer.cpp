@@ -166,3 +166,64 @@ TEST(temp_buffer, append_ucs)
 
     pchvml_temp_buffer_destroy(buffer);
 }
+
+TEST(temp_buffer, delete_head)
+{
+    struct pchvml_temp_buffer* buffer = pchvml_temp_buffer_new ();
+    ASSERT_NE(buffer, nullptr);
+    ASSERT_EQ(0, pchvml_temp_buffer_get_size_in_bytes(buffer));
+    ASSERT_EQ(0, pchvml_temp_buffer_get_size_in_chars(buffer));
+
+    wchar_t wc[] = {0x4F60, 0x597D};
+    pchvml_temp_buffer_append_ucs(buffer, wc, 2);
+    ASSERT_EQ(6, pchvml_temp_buffer_get_size_in_bytes(buffer));
+    ASSERT_EQ(2, pchvml_temp_buffer_get_size_in_chars(buffer));
+    ASSERT_EQ(wc[1], pchvml_temp_buffer_get_last_char(buffer));
+    ASSERT_STREQ("你好", pchvml_temp_buffer_get_buffer(buffer));
+
+    pchvml_temp_buffer_append(buffer, "a", 1);
+    pchvml_temp_buffer_append(buffer, "b", 1);
+    pchvml_temp_buffer_append(buffer, "c", 1);
+    pchvml_temp_buffer_append(buffer, "d", 1);
+    pchvml_temp_buffer_append(buffer, "e", 1);
+    ASSERT_STREQ("你好abcde", pchvml_temp_buffer_get_buffer(buffer));
+
+    pchvml_temp_buffer_delete_head_chars(buffer, 1);
+    ASSERT_STREQ("好abcde", pchvml_temp_buffer_get_buffer(buffer));
+
+    pchvml_temp_buffer_delete_head_chars(buffer, 3);
+    ASSERT_STREQ("cde", pchvml_temp_buffer_get_buffer(buffer));
+
+    pchvml_temp_buffer_destroy(buffer);
+}
+TEST(temp_buffer, delete_tail)
+{
+    struct pchvml_temp_buffer* buffer = pchvml_temp_buffer_new ();
+    ASSERT_NE(buffer, nullptr);
+    ASSERT_EQ(0, pchvml_temp_buffer_get_size_in_bytes(buffer));
+    ASSERT_EQ(0, pchvml_temp_buffer_get_size_in_chars(buffer));
+
+    pchvml_temp_buffer_append(buffer, "a", 1);
+    pchvml_temp_buffer_append(buffer, "b", 1);
+    pchvml_temp_buffer_append(buffer, "c", 1);
+    pchvml_temp_buffer_append(buffer, "d", 1);
+    pchvml_temp_buffer_append(buffer, "e", 1);
+    ASSERT_STREQ("abcde", pchvml_temp_buffer_get_buffer(buffer));
+
+
+    wchar_t wc[] = {0x4F60, 0x597D};
+    pchvml_temp_buffer_append_ucs(buffer, wc, 2);
+    ASSERT_EQ(11, pchvml_temp_buffer_get_size_in_bytes(buffer));
+    ASSERT_EQ(7, pchvml_temp_buffer_get_size_in_chars(buffer));
+    ASSERT_EQ(wc[1], pchvml_temp_buffer_get_last_char(buffer));
+    ASSERT_STREQ("abcde你好", pchvml_temp_buffer_get_buffer(buffer));
+
+
+    pchvml_temp_buffer_delete_tail_chars(buffer, 1);
+    ASSERT_STREQ("abcde你", pchvml_temp_buffer_get_buffer(buffer));
+
+    pchvml_temp_buffer_delete_tail_chars(buffer, 3);
+    ASSERT_STREQ("abc", pchvml_temp_buffer_get_buffer(buffer));
+
+    pchvml_temp_buffer_destroy(buffer);
+}

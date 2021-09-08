@@ -23,6 +23,7 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <stdint.h>
 #include <string.h>
 #include <errno.h>
@@ -170,6 +171,38 @@ void pchvml_temp_buffer_append_ucs (struct pchvml_temp_buffer* buffer,
     for (size_t i = 0; i < nr_ucs; i++) {
         pchvml_temp_buffer_append_uc (buffer, ucs[i]);
     }
+}
+
+void pchvml_temp_buffer_delete_head_chars (
+        struct pchvml_temp_buffer* buffer, size_t sz)
+{
+    uint8_t* p = buffer->base;
+    size_t nr = 0;
+    while (p < buffer->here && nr <= sz) {
+        if (is_utf8_leading_byte(*p)) {
+            nr++;
+        }
+        p = p + 1;
+    }
+    p = p - 1;
+    size_t n = buffer->here - p;
+    memmove(buffer->base, p, n);
+    buffer->here = buffer->base + n;
+    memset(buffer->here, 0, buffer->stop - buffer->here);
+}
+
+void pchvml_temp_buffer_delete_tail_chars (
+        struct pchvml_temp_buffer* buffer, size_t sz)
+{
+    uint8_t* p = buffer->here - 1;
+    while (p >= buffer->base && sz > 0) {
+        if (is_utf8_leading_byte(*p)) {
+            sz--;
+        }
+        p = p - 1;
+    }
+    buffer->here = p + 1;
+    memset(buffer->here, 0, buffer->stop - buffer->here);
 }
 
 bool pchvml_temp_buffer_end_with (struct pchvml_temp_buffer* buffer,

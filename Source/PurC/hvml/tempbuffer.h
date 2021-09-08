@@ -79,6 +79,18 @@ void pchvml_temp_buffer_append (struct pchvml_temp_buffer* buffer,
 void pchvml_temp_buffer_append_ucs (struct pchvml_temp_buffer* buffer,
         const wchar_t* ucs, size_t nr_ucs);
 
+/*
+ * delete characters from head
+ */
+void pchvml_temp_buffer_delete_head_chars (
+        struct pchvml_temp_buffer* buffer, size_t sz);
+
+/*
+ * delete characters from tail
+ */
+void pchvml_temp_buffer_delete_tail_chars (
+        struct pchvml_temp_buffer* buffer, size_t sz);
+
 bool pchvml_temp_buffer_end_with (struct pchvml_temp_buffer* buffer,
         const char* bytes, size_t nr_bytes);
 
