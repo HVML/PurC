@@ -2714,6 +2714,44 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_VALUE_DOUBLE_QUOTED_STATE)
+            if (character == '"') {
+                if (pchvml_temp_buffer_is_empty(hvml->temp_buffer)) {
+                    APPEND_TEMP_BUFFER(c, nr_c);
+                    ADVANCE_TO(PCHVML_EJSON_VALUE_DOUBLE_QUOTED_STATE);
+                }
+                else if (pchvml_temp_buffer_equal_to(hvml->temp_buffer, "\"",
+                            1)) {
+                    RECONSUME_IN(PCHVML_EJSON_VALUE_TWO_DOUBLE_QUOTED_STATE);
+                }
+                RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_DOUBLE_QUOTED_STATE);
+            }
+            if (character == '\\') {
+                SET_RETURN_STATE(current_state);
+                ADVANCE_TO(PCHVML_EJSON_STRING_ESCAPE_STATE);
+            }
+            if (is_eof(character)) {
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
+                return pchvml_token_new_eof();
+            }
+            if (character == '$') {
+                if (hvml->curr_vcm_node) {
+                    pcvcm_stack_push(hvml->vcm_node_stack, hvml->curr_vcm_node);
+                }
+                hvml->curr_vcm_node = pcvcm_node_new_concat_string(0, NULL);
+                pcutils_stack_push(hvml->ejson_nesting_stack, '"');
+                if (!pchvml_temp_buffer_is_empty(hvml->temp_buffer)) {
+                    struct pcvcm_node* node = pcvcm_node_new_string(
+                            pchvml_temp_buffer_get_buffer(hvml->temp_buffer)
+                            );
+                    pctree_node_append_child(
+                            (struct pctree_node*)hvml->current_token,
+                            (struct pctree_node*)node);
+                    RESET_TEMP_BUFFER();
+                }
+                RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
+            }
+            APPEND_TEMP_BUFFER(c, nr_c);
+            ADVANCE_TO(PCHVML_EJSON_VALUE_DOUBLE_QUOTED_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_AFTER_VALUE_DOUBLE_QUOTED_STATE)
