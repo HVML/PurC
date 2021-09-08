@@ -3025,10 +3025,20 @@ next_state:
             }
             PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
             RETURN_AND_STOP_PARSE();
-            return NULL;
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_HEX_BYTE_SEQUENCE_STATE)
+            if (is_whitespace(character) || character == '}'
+                    || character == ']' || character == ',' ) {
+                RECONSUME_IN(PCHVML_EJSON_AFTER_BYTE_SEQUENCE_STATE);
+            }
+            else if (is_ascii_digit(character)
+                    || is_ascii_hex_digit(character)) {
+                APPEND_TEMP_BUFFER(c, nr_c);
+                ADVANCE_TO(PCHVML_EJSON_HEX_BYTE_SEQUENCE_STATE);
+            }
+            PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_BINARY_BYTE_SEQUENCE_STATE)
