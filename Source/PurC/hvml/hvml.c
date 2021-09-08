@@ -3131,7 +3131,7 @@ next_state:
                         (struct pctree_node*)hvml->current_token,
                         (struct pctree_node*)node);
                 RESET_TEMP_BUFFER();
-                RECONSUME_IN_NEXT(PCHVML_EJSON_AFTER_VALUE_STATE);
+                RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_STATE);
             }
             PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_JSON_NUMBER);
             RETURN_AND_STOP_PARSE();
@@ -3169,6 +3169,50 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_VALUE_NUMBER_FRACTION_STATE)
+            if (is_whitespace(character) || character == '}'
+                    || character == ']' || character == ',' ) {
+                RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_NUMBER_STATE);
+            }
+
+            if (is_ascii_digit(character)) {
+                if (pchvml_temp_buffer_end_with(hvml->temp_buffer, "F", 1)) {
+                    PCHVML_SET_ERROR(PCHVML_ERROR_BAD_JSON_NUMBER);
+                    RETURN_AND_STOP_PARSE();
+                }
+                APPEND_TEMP_BUFFER(c, nr_c);
+                ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_FRACTION_STATE);
+            }
+            if (character == 'F') {
+                APPEND_TEMP_BUFFER(c, nr_c);
+                ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_FRACTION_STATE);
+            }
+            if (character == 'L') {
+                if (pchvml_temp_buffer_end_with(hvml->temp_buffer, "F", 1)) {
+                    APPEND_TEMP_BUFFER(c, nr_c);
+                    long double ld = strtold (
+                            pchvml_temp_buffer_get_buffer(hvml->temp_buffer), NULL);
+                    struct pcvcm_node* node = pcvcm_node_new_longdouble(ld);
+                    if (!hvml->curr_vcm_node) {
+                        hvml->curr_vcm_node = pcvcm_stack_pop(hvml->vcm_node_stack);
+                    }
+                    pctree_node_append_child(
+                            (struct pctree_node*)hvml->current_token,
+                            (struct pctree_node*)node);
+                    RESET_TEMP_BUFFER();
+                    ADVANCE_TO(PCHVML_EJSON_AFTER_VALUE_STATE);
+                }
+            }
+            if (character == 'E' || character == 'e') {
+                if (pchvml_temp_buffer_end_with(hvml->temp_buffer, ".", 1)) {
+                    PCHVML_SET_ERROR(
+                            PCHVML_ERROR_UNEXPECTED_JSON_NUMBER_FRACTION);
+                    RETURN_AND_STOP_PARSE();
+                }
+                APPEND_TEMP_BUFFER("e", 1);
+                ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_EXPONENT_STATE);
+            }
+            PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_JSON_NUMBER_FRACTION);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_VALUE_NUMBER_EXPONENT_STATE)
