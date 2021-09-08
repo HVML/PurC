@@ -2755,6 +2755,12 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_AFTER_VALUE_DOUBLE_QUOTED_STATE)
+            if (character == '\"') {
+                pchvml_temp_buffer_delete_head_chars(hvml->temp_buffer, 1);
+                RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_STATE);
+            }
+            PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_VALUE_TWO_DOUBLE_QUOTED_STATE)
