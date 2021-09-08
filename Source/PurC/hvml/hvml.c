@@ -2764,6 +2764,28 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_VALUE_TWO_DOUBLE_QUOTED_STATE)
+            if (character == '"') {
+                if (pchvml_temp_buffer_equal_to(hvml->temp_buffer, "\"", 1)) {
+                    APPEND_TEMP_BUFFER(c, nr_c);
+                    ADVANCE_TO(PCHVML_EJSON_VALUE_TWO_DOUBLE_QUOTED_STATE);
+                }
+                if (pchvml_temp_buffer_equal_to(hvml->temp_buffer, "\"\"", 2)) {
+                    RECONSUME_IN(PCHVML_EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE);
+                }
+            }
+            pchvml_temp_buffer_delete_head_chars(hvml->temp_buffer, 1);
+            pchvml_temp_buffer_delete_tail_chars(hvml->temp_buffer, 1);
+            struct pcvcm_node* node = pcvcm_node_new_string(
+                    pchvml_temp_buffer_get_buffer(hvml->temp_buffer)
+                    );
+            if (!hvml->curr_vcm_node) {
+                hvml->curr_vcm_node = pcvcm_stack_pop(hvml->vcm_node_stack);
+            }
+            pctree_node_append_child(
+                    (struct pctree_node*)hvml->curr_vcm_node,
+                    (struct pctree_node*)node);
+            RESET_TEMP_BUFFER();
+            ADVANCE_TO(PCHVML_EJSON_AFTER_NAME_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE)
