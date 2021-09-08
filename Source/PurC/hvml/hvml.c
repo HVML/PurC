@@ -645,6 +645,25 @@ bool pchvml_parse_is_not_in_hvml_namespace (struct pchvml_parser* hvml)
     return false;
 }
 
+struct pcvcm_node* pchvml_parser_new_byte_sequence (struct pchvml_parser* hvml,
+    struct pchvml_temp_buffer* buffer)
+{
+    UNUSED_PARAM(hvml);
+    UNUSED_PARAM(buffer);
+    size_t nr_bytes = pchvml_temp_buffer_get_size_in_bytes(buffer);
+    const char* bytes = pchvml_temp_buffer_get_buffer(buffer);
+    if (bytes[1] == 'x') {
+        return pcvcm_node_new_byte_sequence_from_bx(bytes + 2, nr_bytes - 2);
+    }
+    else if (bytes[1] == 'b') {
+        return pcvcm_node_new_byte_sequence_from_bb(bytes + 2, nr_bytes - 2);
+    }
+    else if (bytes[1] == '6') {
+        return pcvcm_node_new_byte_sequence_from_b64(bytes + 3, nr_bytes - 3);
+    }
+    return NULL;
+}
+
 bool pchvml_parser_is_in_attribute (struct pchvml_parser* parser)
 {
     return parser->current_token && parser->current_token->curr_attr;
@@ -2987,6 +3006,26 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_AFTER_BYTE_SEQUENCE_STATE)
+            if (is_whitespace(character) || character == '}'
+                    || character == ']' || character == ',' ) {
+                struct pcvcm_node* node = pchvml_parser_new_byte_sequence(hvml,
+                        hvml->temp_buffer);
+                if (node == NULL) {
+                    PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+                    RETURN_AND_STOP_PARSE();
+                }
+                if (hvml->curr_vcm_node) {
+                    hvml->curr_vcm_node = pcvcm_stack_pop(hvml->vcm_node_stack);
+                }
+                pctree_node_append_child(
+                        (struct pctree_node*)hvml->current_token,
+                        (struct pctree_node*)node);
+                RESET_TEMP_BUFFER();
+                RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_STATE);
+            }
+            PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+            RETURN_AND_STOP_PARSE();
+            return NULL;
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_HEX_BYTE_SEQUENCE_STATE)
