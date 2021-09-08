@@ -3138,6 +3138,34 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_VALUE_NUMBER_INTEGER_STATE)
+            if (is_whitespace(character) || character == '}'
+                    || character == ']' || character == ',' ) {
+                RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_NUMBER_STATE);
+            }
+            if (is_ascii_digit(character)) {
+                APPEND_TEMP_BUFFER(c, nr_c);
+                ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_INTEGER_STATE);
+            }
+            if (character == 'E' || character == 'e') {
+                APPEND_TEMP_BUFFER("e", 1);
+                ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_EXPONENT_STATE);
+            }
+            if (character == '.' || character == 'F') {
+                APPEND_TEMP_BUFFER(c, nr_c);
+                ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_FRACTION_STATE);
+            }
+            if (character == 'U' || character == 'L') {
+                RECONSUME_IN(PCHVML_EJSON_VALUE_NUMBER_SUFFIX_INTEGER_STATE);
+            }
+            if (character == 'I' && (
+                        pchvml_temp_buffer_is_empty(hvml->temp_buffer) ||
+                        pchvml_temp_buffer_equal_to(hvml->temp_buffer, "-", 1)
+                        )) {
+                RECONSUME_IN(PCHVML_EJSON_VALUE_NUMBER_INFINITY_STATE);
+            }
+            PCHVML_SET_ERROR(
+                    PCHVML_ERROR_UNEXPECTED_JSON_NUMBER_INTEGER);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_VALUE_NUMBER_FRACTION_STATE)
