@@ -3042,6 +3042,19 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_BINARY_BYTE_SEQUENCE_STATE)
+            if (is_whitespace(character) || character == '}'
+                    || character == ']' || character == ',' ) {
+                RECONSUME_IN(PCHVML_EJSON_AFTER_BYTE_SEQUENCE_STATE);
+            }
+            else if (is_ascii_binary_digit(character)) {
+                APPEND_TEMP_BUFFER(c, nr_c);
+                ADVANCE_TO(PCHVML_EJSON_BINARY_BYTE_SEQUENCE_STATE);
+            }
+            if (character == '.') {
+                ADVANCE_TO(PCHVML_EJSON_BINARY_BYTE_SEQUENCE_STATE);
+            }
+            PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_BASE64_BYTE_SEQUENCE_STATE)
