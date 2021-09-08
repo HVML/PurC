@@ -203,33 +203,8 @@ unsigned int purc_variant_ref (purc_variant_t value)
         return 0;
     }
 
-
     value->refc++;
-#if 0
-    purc_variant_t variant = NULL;
-    switch (value->type) {
-        case PURC_VARIANT_TYPE_OBJECT:
-            foreach_value_in_variant_object(value, variant)
-                purc_variant_ref(variant);
-            end_foreach;
-            break;
 
-        case PURC_VARIANT_TYPE_ARRAY:
-            foreach_value_in_variant_array(value, variant)
-                purc_variant_ref(variant);
-            end_foreach;
-            break;
-
-        case PURC_VARIANT_TYPE_SET:
-            foreach_value_in_variant_set(value, variant)
-                purc_variant_ref(variant);
-            end_foreach;
-            break;
-
-        default:
-            break;
-    }
-#endif // 0
     return value->refc;
 }
 
