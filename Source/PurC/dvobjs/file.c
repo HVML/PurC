@@ -125,10 +125,94 @@ static ssize_t find_line (FILE *fp, int line_num, ssize_t file_length)
     return pos;
 }
 
+static char * find_line_in_stream (purc_rwstream_t stream, int line_num, 
+                                                                size_t *position)
+{
+    size_t pos = 0;
+    unsigned char buffer[1024];
+    ssize_t read_size = 0;
+    size_t length = 0;
+    const char* head = NULL;
+    char *content = NULL;
+    char *temp = NULL;
+    size_t buf_size = 4 * 1024;
+    size_t buf_length = 0;
+
+    content = malloc (buf_size);
+    if (content == NULL)
+        return content;
+
+    while (line_num) {
+        read_size = purc_rwstream_read (stream, buffer, 1024);
+        if (read_size < 0) 
+            break;
+        
+        if ((buf_length + read_size) > buf_size) {
+            temp = content;
+            buf_size += 4 * 1024;
+            content = malloc (buf_size);
+            if (content == NULL) {
+                free (temp);
+                return content;
+            }
+            else {
+                memcpy (content, temp, buf_length);
+                memcpy (content + buf_length, buffer, read_size);
+                buf_length += read_size;
+                free (temp);
+            }
+        }
+        else {
+            memcpy (content + buf_length, buffer, read_size);
+            buf_length += read_size;
+        }
+
+        head = pcdvobjs_file_get_next_option ((char *)buffer, "\n", &length);
+        while (head) {
+            pos += length + 1;          // to be checked
+            line_num --;
+
+            if (line_num == 0)
+                break;
+
+            head = pcdvobjs_file_get_next_option (head + length + 1, "\n", &length);
+        }
+        if (read_size < 1024)           // to the end
+            break;
+
+        if (line_num == 0)
+            break;
+    }
+
+    if (pos == 0) {
+        if (content) {
+            free (content);
+            content = NULL;
+        }
+    }
+    else
+    {
+        temp = content;
+        content = malloc (pos + 1);
+        if (content == NULL) {
+            free (temp);
+        }
+        else {
+            memcpy (content, temp, buf_length);
+            free (temp);
+            *(content + pos) = 0x00;
+            *position = pos + 1;
+        }
+    }
+
+    return content;
+}
+
 static purc_variant_t
 text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
     
     int64_t line_num = 0;
     char filename[PATH_MAX] = {0,};
@@ -138,13 +222,9 @@ text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     struct stat filestat;
     purc_variant_t ret_var = NULL;
 
-    if ((argv == NULL) || (nr_args == 0)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[0] != PURC_VARIANT_INVALID) && 
+                        (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -174,12 +254,14 @@ text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return purc_variant_make_string ("", false); 
     }
 
-    if (argv[1] != NULL) 
+    if (argv[1] != PURC_VARIANT_INVALID) 
         purc_variant_cast_to_longint (argv[1], &line_num, false);
 
     fp = fopen (filename, "r");
-    if (fp == NULL)
-        return 0;
+    if (fp == NULL) {
+        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+        return PURC_VARIANT_INVALID;
+    }
 
     if (line_num == 0)
         pos = filestat.st_size;
@@ -207,6 +289,7 @@ static purc_variant_t
 text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
 
     int64_t line_num = 0;
     char filename[PATH_MAX] = {0,};
@@ -216,13 +299,10 @@ text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     struct stat filestat;
     purc_variant_t ret_var = NULL;
 
-    if ((argv == NULL) || (nr_args == 0)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
-    }
 
-    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[0] != PURC_VARIANT_INVALID) && 
+                        (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -252,14 +332,16 @@ text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return purc_variant_make_string ("", false); 
     }
 
-    if (argv[1] != NULL) 
+    if (argv[1] != PURC_VARIANT_INVALID) 
         purc_variant_cast_to_longint (argv[1], &line_num, false);
 
     line_num = -1 * line_num;
 
     fp = fopen (filename, "r");
-    if (fp == NULL)
-        return 0;
+    if (fp == NULL) {
+        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+        return PURC_VARIANT_INVALID;
+    }
 
     if (line_num == 0)
         pos = filestat.st_size;
@@ -294,6 +376,7 @@ static purc_variant_t
 bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
 
     int64_t byte_num = 0;
     char filename[PATH_MAX] = {0,};
@@ -303,13 +386,9 @@ bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     struct stat filestat;
     purc_variant_t ret_var = NULL;
 
-    if ((argv == NULL) || (nr_args == 0)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[0] != PURC_VARIANT_INVALID) && 
+                        (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -339,12 +418,14 @@ bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return purc_variant_make_byte_sequence (NULL, 0);
     }
 
-    if (argv[1] != NULL) 
+    if (argv[1] != PURC_VARIANT_INVALID) 
         purc_variant_cast_to_longint (argv[1], &byte_num, false);
 
     fp = fopen (filename, "r");
-    if (fp == NULL) 
-        return 0;
+    if (fp == NULL) { 
+        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+        return PURC_VARIANT_INVALID;
+    }
 
     if (byte_num == 0)
         pos = filestat.st_size;
@@ -379,6 +460,7 @@ static purc_variant_t
 bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
 
     int64_t byte_num = 0;
     char filename[PATH_MAX] = {0,};
@@ -388,13 +470,9 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     struct stat filestat;
     purc_variant_t ret_var = NULL;
 
-    if ((argv == NULL) || (nr_args == 0)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[0] != PURC_VARIANT_INVALID) && 
+                        (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -428,8 +506,10 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         purc_variant_cast_to_longint (argv[1], &byte_num, false);
 
     fp = fopen (filename, "r");
-    if (fp == NULL)
-        return 0;
+    if (fp == NULL) {
+        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+        return PURC_VARIANT_INVALID;
+    }
 
     if (byte_num == 0)
         pos = filestat.st_size;
@@ -460,10 +540,12 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     return ret_var;
 }
 
+
 static purc_variant_t
 stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
 
     char filename[PATH_MAX] = {0,};
     const char *string_filename = NULL;
@@ -471,13 +553,9 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     purc_variant_t ret_var = NULL;
     purc_rwstream_t rwstream = NULL;
 
-    if ((argv == NULL) || (nr_args != 1)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[0] != PURC_VARIANT_INVALID) && 
+                            (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -503,18 +581,16 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         return PURC_VARIANT_INVALID;
     }
-    if (filestat.st_size == 0) {
-        return purc_variant_make_byte_sequence (NULL, 0);
-    }
 
     rwstream = purc_rwstream_new_from_file (filename, "r");
 
-    if (0)
-        ret_var = purc_variant_make_native (rwstream, NULL);
-    if(ret_var == PURC_VARIANT_INVALID) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if (rwstream == NULL) {
+        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         return PURC_VARIANT_INVALID;
     }
+
+    struct purc_native_ops ops;
+    ret_var = purc_variant_make_native (rwstream, &ops);
 
     return ret_var;
 }
@@ -535,28 +611,41 @@ stream_readlines_getter (purc_variant_t root, size_t nr_args,
                                                         purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
 
     purc_variant_t ret_var = NULL;
-//    unsigned char *sequence = NULL;
-    size_t line_num = 0;
+    purc_rwstream_t rwstream = NULL; 
+    int64_t line_num = 0;
 
-    if ((argv == NULL) || (nr_args != 2)) {
+
+    if ((argv[0] != PURC_VARIANT_INVALID) && 
+                        (!purc_variant_is_native (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+    rwstream = purc_variant_native_get_entity (argv[0]); 
+    if (rwstream == NULL) {
         pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != NULL) && (!purc_variant_is_native (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
+    if (argv[1] != PURC_VARIANT_INVALID) {
+        purc_variant_cast_to_longint (argv[1], &line_num, false);
+        if (line_num < 0)
+            line_num = 0;
     }
 
-    if (argv[1] == NULL) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
+    if (line_num == 0)
+        ret_var = purc_variant_make_string ("", false);
+    else {
+        size_t pos = 0;
+        char * content = find_line_in_stream (rwstream, line_num, &pos);
+        if (content == NULL) {
+            return purc_variant_make_string ("", false);
+        }
+
+        ret_var = purc_variant_make_string_reuse_buff (content, pos, false); 
     }
-
-    purc_variant_cast_to_ulongint (argv[1], &line_num, false);
-
     return ret_var;
 }
 
@@ -565,27 +654,48 @@ stream_readbytes_getter (purc_variant_t root, size_t nr_args,
                                                         purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
 
     purc_variant_t ret_var = NULL;
-//    unsigned char *sequence = NULL;
-    size_t byte_num = 0;
+    purc_rwstream_t rwstream = NULL; 
+    uint64_t byte_num = 0;
 
-    if ((argv == NULL) || (nr_args != 2)) {
+    if ((argv[0] != PURC_VARIANT_INVALID) && 
+                        (!purc_variant_is_native (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+    rwstream = purc_variant_native_get_entity (argv[0]); 
+    if (rwstream == NULL) {
         pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != NULL) && (!purc_variant_is_native (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
+    if (argv[1] != PURC_VARIANT_INVALID) {
+        purc_variant_cast_to_ulongint (argv[1], &byte_num, false);
     }
 
-    if (argv[1] == NULL) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
-    }
+    if (byte_num == 0)
+        ret_var = purc_variant_make_byte_sequence (NULL, 0);
+    else {
+        char * content = malloc (byte_num);
+        size_t size = 0;
 
-    purc_variant_cast_to_ulongint (argv[1], &byte_num, false);
+        if (content == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
+            return PURC_VARIANT_INVALID;
+        }
+
+        size = purc_rwstream_read (rwstream, content, byte_num);
+        if (size > 0)
+            ret_var = purc_variant_make_byte_sequence_reuse_buff (content, 
+                                                            byte_num, byte_num);
+        else {
+            free (content);
+            pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+            return PURC_VARIANT_INVALID;
+        }
+    }
 
     return ret_var;
 }
@@ -595,26 +705,62 @@ stream_seek_getter (purc_variant_t root, size_t nr_args,
                                                         purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
 
     purc_variant_t ret_var = NULL;
-    size_t pos = 0;
+    purc_rwstream_t rwstream = NULL; 
+    int64_t byte_num = 0;
+    off_t off = 0;
 
-    if ((argv == NULL) || (nr_args != 2)) {
+    if ((argv[0] != PURC_VARIANT_INVALID) && 
+                        (!purc_variant_is_native (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+    rwstream = purc_variant_native_get_entity (argv[0]); 
+    if (rwstream == NULL) {
         pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != NULL) && (!purc_variant_is_native (argv[0]))) {
+    if (argv[1] != PURC_VARIANT_INVALID) {
+        purc_variant_cast_to_longint (argv[1], &byte_num, false);
+    }
+
+    off = purc_rwstream_seek (rwstream, byte_num, SEEK_CUR);
+    ret_var = purc_variant_make_ulongint (off);
+
+    return ret_var;
+}
+
+static purc_variant_t
+stream_close_getter (purc_variant_t root, size_t nr_args, 
+                                                        purc_variant_t* argv)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+
+    purc_variant_t ret_var = NULL;
+    purc_rwstream_t rwstream = NULL; 
+    int close = 0;
+
+    if ((argv[0] != PURC_VARIANT_INVALID) && 
+                        (!purc_variant_is_native (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+    rwstream = purc_variant_native_get_entity (argv[0]); 
+    if (rwstream == NULL) {
         pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
 
-    if (argv[1] == NULL) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
-    }
+    close = purc_rwstream_destroy (rwstream);
 
-    purc_variant_cast_to_ulongint (argv[1], &pos, false);
+    if (close == 0)
+        ret_var = purc_variant_make_boolean (true);
+    else
+        ret_var = purc_variant_make_boolean (false);
 
     return ret_var;
 }
@@ -630,7 +776,7 @@ purc_variant_t pcdvojbs_get_file (void)
             "head",       purc_variant_make_dynamic (bin_head_getter, NULL),
             "tail",       purc_variant_make_dynamic (bin_tail_getter, NULL));
 
-    purc_variant_t file_stream = purc_variant_make_object_c (5,
+    purc_variant_t file_stream = purc_variant_make_object_c (6,
             "open",       purc_variant_make_dynamic 
                                             (stream_open_getter, NULL),
             "readstruct", purc_variant_make_dynamic 
@@ -640,9 +786,11 @@ purc_variant_t pcdvojbs_get_file (void)
             "readbytes",  purc_variant_make_dynamic 
                                             (stream_readbytes_getter, NULL),
             "seek",       purc_variant_make_dynamic 
-                                            (stream_seek_getter, NULL));
+                                            (stream_seek_getter, NULL),
+            "close",      purc_variant_make_dynamic 
+                                            (stream_close_getter, NULL));
 
-    purc_variant_t file = purc_variant_make_object_c (2,
+    purc_variant_t file = purc_variant_make_object_c (3,
             "text",   file_text,
             "bin",    file_bin,
             "stream", file_stream);
