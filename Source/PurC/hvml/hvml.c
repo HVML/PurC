@@ -3066,7 +3066,7 @@ next_state:
                 APPEND_TEMP_BUFFER(c, nr_c);
                 ADVANCE_TO(PCHVML_EJSON_BASE64_BYTE_SEQUENCE_STATE);
             }
-            else if (is_ascii_digit(character) || is_ascii_alpha(character)
+            if (is_ascii_digit(character) || is_ascii_alpha(character)
                     || character == '+' || character == '-') {
                 if (!pchvml_temp_buffer_end_with(hvml->temp_buffer, "=", 1)) {
                     APPEND_TEMP_BUFFER(c, nr_c);
@@ -3080,6 +3080,36 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_VALUE_NUMBER_STATE)
+            if (is_whitespace(character) || character == '}'
+                    || character == ']' || character == ',' ) {
+                RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_NUMBER_STATE);
+            }
+            if (is_ascii_digit(character)) {
+                RECONSUME_IN(PCHVML_EJSON_VALUE_NUMBER_INTEGER_STATE);
+            }
+            if (character == '-') {
+                APPEND_TEMP_BUFFER(c, nr_c);
+                ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_INTEGER_STATE);
+            }
+            if (character == '$') {
+                if (hvml->curr_vcm_node) {
+                    pcvcm_stack_push(hvml->vcm_node_stack, hvml->curr_vcm_node);
+                }
+                hvml->curr_vcm_node = pcvcm_node_new_concat_string(0, NULL);
+                pcutils_stack_push(hvml->ejson_nesting_stack, 'U');
+                if (!pchvml_temp_buffer_is_empty(hvml->temp_buffer)) {
+                    struct pcvcm_node* node = pcvcm_node_new_string(
+                            pchvml_temp_buffer_get_buffer(hvml->temp_buffer)
+                            );
+                    pctree_node_append_child(
+                            (struct pctree_node*)hvml->current_token,
+                            (struct pctree_node*)node);
+                    RESET_TEMP_BUFFER();
+                }
+                RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
+            }
+            PCHVML_SET_ERROR(PCHVML_ERROR_BAD_JSON_NUMBER);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_AFTER_VALUE_NUMBER_STATE)
