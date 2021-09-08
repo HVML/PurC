@@ -3270,6 +3270,58 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_VALUE_NUMBER_SUFFIX_INTEGER_STATE)
+            wchar_t last_c = pchvml_temp_buffer_get_last_char(
+                    hvml->temp_buffer);
+            if (is_whitespace(character) || character == '}'
+                    || character == ']' || character == ',' ) {
+                RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_NUMBER_STATE);
+            }
+            if (character == 'U') {
+                if (is_ascii_digit(last_c)) {
+                    APPEND_TEMP_BUFFER(c, nr_c);
+                    ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_SUFFIX_INTEGER_STATE);
+                }
+            }
+            if (character == 'L') {
+                if (is_ascii_digit(last_c) || last_c == 'U') {
+                    APPEND_TEMP_BUFFER(c, nr_c);
+                    if (pchvml_temp_buffer_end_with(hvml->temp_buffer, "UL", 2)
+                            ) {
+                        uint64_t u64 = strtoull (
+                            pchvml_temp_buffer_get_buffer(hvml->temp_buffer),
+                            NULL, 10);
+                        struct pcvcm_node* node = pcvcm_node_new_ulongint(u64);
+                        if (!hvml->curr_vcm_node) {
+                            hvml->curr_vcm_node = pcvcm_stack_pop(
+                                    hvml->vcm_node_stack);
+                        }
+                        pctree_node_append_child(
+                                (struct pctree_node*)hvml->current_token,
+                                (struct pctree_node*)node);
+                        RESET_TEMP_BUFFER();
+                        ADVANCE_TO(PCHVML_EJSON_AFTER_VALUE_STATE);
+                    }
+                    else if (pchvml_temp_buffer_end_with(hvml->temp_buffer,
+                                "L", 1)) {
+                        int64_t i64 = strtoll (
+                            pchvml_temp_buffer_get_buffer(hvml->temp_buffer),
+                            NULL, 10);
+                        struct pcvcm_node* node = pcvcm_node_new_ulongint(i64);
+                        if (!hvml->curr_vcm_node) {
+                            hvml->curr_vcm_node = pcvcm_stack_pop(
+                                    hvml->vcm_node_stack);
+                        }
+                        pctree_node_append_child(
+                                (struct pctree_node*)hvml->current_token,
+                                (struct pctree_node*)node);
+                        RESET_TEMP_BUFFER();
+                        ADVANCE_TO(PCHVML_EJSON_AFTER_VALUE_STATE);
+                    }
+                }
+            }
+            PCHVML_SET_ERROR(
+                    PCHVML_ERROR_UNEXPECTED_JSON_NUMBER_INTEGER);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_VALUE_NUMBER_INFINITY_STATE)
