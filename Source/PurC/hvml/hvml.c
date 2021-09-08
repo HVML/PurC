@@ -3216,6 +3216,19 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_VALUE_NUMBER_EXPONENT_STATE)
+            if (is_whitespace(character) || character == '}'
+                    || character == ']' || character == ',' ) {
+                RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_NUMBER_STATE);
+            }
+            if (is_ascii_digit(character)) {
+                RECONSUME_IN(PCHVML_EJSON_VALUE_NUMBER_EXPONENT_INTEGER_STATE);
+            }
+            if (character == '+' || character == '-') {
+                APPEND_TEMP_BUFFER(c, nr_c);
+                ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_EXPONENT_INTEGER_STATE);
+            }
+            PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_JSON_NUMBER_EXPONENT);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_VALUE_NUMBER_EXPONENT_INTEGER_STATE)
