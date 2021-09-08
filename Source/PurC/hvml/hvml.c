@@ -2616,6 +2616,26 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_NAME_SINGLE_QUOTED_STATE)
+            if (character == '\'') {
+                size_t tmp_buf_len = pchvml_temp_buffer_get_size_in_chars(
+                        hvml->temp_buffer);
+                if (tmp_buf_len >= 1) {
+                    ADVANCE_TO(PCHVML_EJSON_AFTER_NAME_STATE);
+                }
+                else {
+                    ADVANCE_TO(PCHVML_EJSON_NAME_SINGLE_QUOTED_STATE);
+                }
+            }
+            if (character == '\\') {
+                SET_RETURN_STATE(PCHVML_EJSON_NAME_SINGLE_QUOTED_STATE);
+                ADVANCE_TO(PCHVML_EJSON_STRING_ESCAPE_STATE);
+            }
+            if (is_eof(character)) {
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
+                return pchvml_token_new_eof();
+            }
+            APPEND_TEMP_BUFFER(c, nr_c);
+            ADVANCE_TO(PCHVML_EJSON_NAME_SINGLE_QUOTED_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_NAME_DOUBLE_QUOTED_STATE)
