@@ -3058,6 +3058,25 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_BASE64_BYTE_SEQUENCE_STATE)
+            if (is_whitespace(character) || character == '}'
+                    || character == ']' || character == ',' ) {
+                RECONSUME_IN(PCHVML_EJSON_AFTER_BYTE_SEQUENCE_STATE);
+            }
+            if (character == '=') {
+                APPEND_TEMP_BUFFER(c, nr_c);
+                ADVANCE_TO(PCHVML_EJSON_BASE64_BYTE_SEQUENCE_STATE);
+            }
+            else if (is_ascii_digit(character) || is_ascii_alpha(character)
+                    || character == '+' || character == '-') {
+                if (!pchvml_temp_buffer_end_with(hvml->temp_buffer, "=", 1)) {
+                    APPEND_TEMP_BUFFER(c, nr_c);
+                    ADVANCE_TO(PCHVML_EJSON_BASE64_BYTE_SEQUENCE_STATE);
+                }
+                PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_BASE64);
+                RETURN_AND_STOP_PARSE();
+            }
+            PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_VALUE_NUMBER_STATE)
