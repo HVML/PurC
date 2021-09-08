@@ -1045,11 +1045,21 @@ TEST(variant, pcvariant_dynamic)
 // to test:
 // purc_variant_make_native ();
 // purc_variant_serialize ()
-bool releaser (void* entity)
+static bool rws_releaser (void* entity)
 {
     UNUSED_PARAM(entity);
     return true;
 }
+
+static struct purc_native_ops _rws_ops = {
+    .property_getter       = NULL,
+    .property_setter       = NULL,
+    .property_eraser       = NULL,
+    .property_cleaner      = NULL,
+    .cleaner               = NULL,
+    .eraser                = rws_releaser,
+    .observe               = NULL,
+};
 
 TEST(variant, pcvariant_native)
 {
@@ -1064,13 +1074,13 @@ TEST(variant, pcvariant_native)
     char buf[32];
     purc_rwstream_t my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
 
-    value = purc_variant_make_native (my_rws, releaser);
+    value = purc_variant_make_native (my_rws, &_rws_ops);
     ASSERT_NE(value, PURC_VARIANT_INVALID);
     purc_variant_unref(value);
 
     // create native variant with native_entity = NULL
     // expected: return PURC_VARIANT_INVALID 
-    value = purc_variant_make_native (NULL, releaser);
+    value = purc_variant_make_native (NULL, &_rws_ops);
     ASSERT_EQ(value, PURC_VARIANT_INVALID);
 
     // create native variant with valid native_entity and releaser = NULL
@@ -1233,13 +1243,24 @@ _getter(purc_variant_t root, size_t nr_args, purc_variant_t * argv)
 }
 
 static inline bool
-_native_releaser(void* entity)
+_nr_native_releaser(void* entity)
 {
     size_t nr = *(size_t*)entity;
     if (nr!=1)
         abort();
     return true;
 }
+
+static struct purc_native_ops _nr_ops = {
+    .property_getter       = NULL,
+    .property_setter       = NULL,
+    .property_eraser       = NULL,
+    .property_cleaner      = NULL,
+    .cleaner               = NULL,
+    .eraser                = _nr_native_releaser,
+    .observe               = NULL,
+};
+
 
 TEST(variant, api_edge_case_bad_arg)
 {
@@ -1348,7 +1369,7 @@ TEST(variant, api_edge_case_bad_arg)
     ASSERT_NE(v, PURC_VARIANT_INVALID);
     purc_variant_unref(v);
     nr = 1;
-    v = purc_variant_make_native(&nr, _native_releaser);
+    v = purc_variant_make_native(&nr, &_nr_ops);
     ASSERT_NE(v, PURC_VARIANT_INVALID);
     purc_variant_unref(v);
 

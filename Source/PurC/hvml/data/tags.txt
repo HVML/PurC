@@ -1,0 +1,54 @@
+# -undef should always be the first one.
+-undef
+    state: data
+    categories: noun ordinary
+
+# -text should always be the second one.
+# FIXME: keep it or not?
+-text
+    state: data
+    categories: noun ordinary
+
+_comment
+# FIXME: keep it or not?
+    state: data
+    categories: noun ordinary
+
+_foreign
+    state: rawtext
+    categories: foreign ordinary
+
+!DOCTYPE
+    state: data
+    categories: noun special
+
+# framework elements
+hvml head body
+    state: data
+    categories: framework noun
+
+# normal elements: fragement template elements
+archetype error except
+    state: rawtext
+    categories: template fragment ordinary noun
+
+# normal elements: JSON template elements
+archedata
+    state: rawtext
+    categories: template data ordinary noun
+
+# normal elements: ordinary operation elements
+back call catch close clear define erase include iterate listen load match observe request reduce return test update
+    state: data
+    categories: verb ordinary
+
+# normal elements: JSON operation elements
+init set
+    state: data
+    categories: verb data ordinary
+
+# -end-of-file should always be the last one.
+-end-of-file
+    state: data
+    categories: noun ordinary
+

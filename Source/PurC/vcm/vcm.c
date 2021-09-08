@@ -48,7 +48,7 @@ static struct pcvcm_node* pcvcm_node_new (enum pcvcm_node_type type)
 
 
 struct pcvcm_node* pcvcm_node_new_object (size_t nr_nodes,
-        struct pcvcm_node* nodes)
+        struct pcvcm_node** nodes)
 {
     struct pcvcm_node* n = pcvcm_node_new (PCVCM_NODE_TYPE_OBJECT);
     if (!n) {
@@ -56,15 +56,15 @@ struct pcvcm_node* pcvcm_node_new_object (size_t nr_nodes,
     }
 
     for (size_t i = 0; i < nr_nodes; i++) {
-        pctree_node_append_child ((struct pctree_node*)n,
-                (struct pctree_node*)(nodes + i));
+        struct pcvcm_node *v = nodes[i];
+        pctree_node_append_child(&n->tree_node, &v->tree_node);
     }
 
     return n;
 }
 
 struct pcvcm_node* pcvcm_node_new_array (size_t nr_nodes,
-        struct pcvcm_node* nodes)
+        struct pcvcm_node** nodes)
 {
     struct pcvcm_node* n = pcvcm_node_new (PCVCM_NODE_TYPE_ARRAY);
     if (!n) {
@@ -72,8 +72,8 @@ struct pcvcm_node* pcvcm_node_new_array (size_t nr_nodes,
     }
 
     for (size_t i = 0; i < nr_nodes; i++) {
-        pctree_node_append_child ((struct pctree_node*)n,
-                (struct pctree_node*)(nodes + i));
+        struct pcvcm_node *v = nodes[i];
+        pctree_node_append_child(&n->tree_node, &v->tree_node);
     }
 
     return n;
@@ -420,9 +420,9 @@ purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node)
 }
 
 // TODO : need pcintr_stack_t
-purc_variant_t pcvcm_eval (struct pcvcm_node* tree, struct pcvdom_element* elem)
+purc_variant_t pcvcm_eval (struct pcvcm_node* tree, struct pcintr_stack* stack)
 {
-    UNUSED_PARAM(elem);
+    UNUSED_PARAM(stack);
     if (!tree) {
         return purc_variant_make_null();
     }

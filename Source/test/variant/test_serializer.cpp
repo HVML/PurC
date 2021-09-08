@@ -360,12 +360,22 @@ TEST(variant, serialize_dynamic)
     purc_cleanup ();
 }
 
-static bool my_releaser (void* native_entity)
+static bool _my_releaser (void* native_entity)
 {
     my_puts("my_releaser is called\n");
     free (native_entity);
     return true;
 }
+
+static struct purc_native_ops _my_ops = {
+    .property_getter       = NULL,
+    .property_setter       = NULL,
+    .property_eraser       = NULL,
+    .property_cleaner      = NULL,
+    .cleaner               = NULL,
+    .eraser                = _my_releaser,
+    .observe               = NULL,
+};
 
 // to test: serialize a native entity
 TEST(variant, serialize_native)
@@ -382,7 +392,7 @@ TEST(variant, serialize_native)
     my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
     ASSERT_NE(my_rws, nullptr);
 
-    my_variant = purc_variant_make_native(strdup("HVML"), my_releaser);
+    my_variant = purc_variant_make_native(strdup("HVML"), &_my_ops);
     ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
 
     purc_rwstream_seek(my_rws, 0, SEEK_SET);

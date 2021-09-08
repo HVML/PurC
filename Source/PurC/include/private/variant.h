@@ -81,12 +81,16 @@ struct purc_variant {
         /* for long double */
         long double ld;
 
-        /* for dynamic and native variant (two pointers) */
+        /* for dynamic and native variant (two pointers)
+           for native variant,
+           ptr_ptr[0] stores the native entity of it's self, and
+           ptr_ptr[1] stores the ops that's bound to the class of
+           such entity. */
         void*       ptr_ptr[2];
 
         /* for long string, long byte sequence, array, object,
            and set (sz_ptr[0] for size, sz_ptr[1] for pointer).
-           for atom string, sz_ptr[0] stores the atom.  */
+           for atom string, sz_ptr[0] stores the atom. */
 
         uintptr_t   sz_ptr[2];
 

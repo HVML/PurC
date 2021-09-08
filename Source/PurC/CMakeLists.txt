@@ -36,6 +36,8 @@ set(PurC_PLATFORM_INDEPENDENT_DIRS
     "html"
     "edom"
     "dvobjs"
+    "hvml"
+    "vdom"
 )
 
 # This macro will append all C/CXX source files in ${PurC_PLATFORM_INDEPENDENT_DIRS}
@@ -128,6 +130,36 @@ add_custom_command(
     COMMENT "Copying str_res.h.in to DerivedSources"
     VERBATIM)
 list(APPEND PurC_SOURCES ${PurC_DERIVED_SOURCES_DIR}/html_bar.c)
+
+# Generate attrs table for hvml parser
+add_custom_command(
+    OUTPUT "${PurC_DERIVED_SOURCES_DIR}/hvml-attr-foo.c"
+           "${PurC_DERIVED_SOURCES_DIR}/hvml-attr-static-list.inc"
+    MAIN_DEPENDENCY ${PURC_DIR}/hvml/make-attrs-table.py
+    DEPENDS "${PURC_DIR}/hvml/data/attrs.txt"
+            "${PURC_DIR}/hvml/data/attr-static-list.inc.in"
+    COMMAND ${Python3_EXECUTABLE} ${PURC_DIR}/hvml/make-attrs-table.py "${PurC_DERIVED_SOURCES_DIR}" --without-print
+    COMMAND touch "${PurC_DERIVED_SOURCES_DIR}/hvml-attr-foo.c"
+    COMMENT "Generating hvml-attr-static-list.inc by using ${Python3_EXECUTABLE}"
+    WORKING_DIRECTORY "${PURC_DIR}/hvml/"
+    VERBATIM)
+list(APPEND PurC_SOURCES ${PurC_DERIVED_SOURCES_DIR}/hvml-attr-foo.c)
+
+# Generate tags table for hvml parser
+add_custom_command(
+    OUTPUT "${PurC_DERIVED_SOURCES_DIR}/hvml-tag-foo.c"
+           "${PurC_DERIVED_SOURCES_DIR}/hvml-tag-static-list.inc"
+           "${PurC_DERIVED_SOURCES_DIR}/hvml-tag.h"
+    MAIN_DEPENDENCY ${PURC_DIR}/hvml/make-tags-table.py
+    DEPENDS "${PURC_DIR}/hvml/data/tags.txt"
+            "${PURC_DIR}/hvml/data/tag-static-list.inc.in"
+            "${PURC_DIR}/hvml/data/tag.h.in"
+    COMMAND ${Python3_EXECUTABLE} ${PURC_DIR}/hvml/make-tags-table.py "${PurC_DERIVED_SOURCES_DIR}" --without-print
+    COMMAND touch "${PurC_DERIVED_SOURCES_DIR}/hvml-tag-foo.c"
+    COMMENT "Generating hvml-tag-static-list.inc/hvml-tag.h by using ${Python3_EXECUTABLE}"
+    WORKING_DIRECTORY "${PURC_DIR}/hvml/"
+    VERBATIM)
+list(APPEND PurC_SOURCES ${PurC_DERIVED_SOURCES_DIR}/hvml-tag-foo.c)
 
 
 

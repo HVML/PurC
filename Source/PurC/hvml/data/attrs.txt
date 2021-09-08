@@ -1,0 +1,76 @@
+asc
+    type: adverb
+    alias: ascendingly
+
+async
+    type: adverb
+    alias: asynchronously
+
+desc
+    type: adverb
+    alias: descendingly
+
+excl
+    type: adverb
+    alias: exclusively
+
+sync
+    type: adverb
+    alias: synchronously
+
+uniq
+    type: adverb
+    alias: uniquely
+
+as
+    type: prep
+
+at
+    type: prep
+
+by
+    type: prep
+
+except
+    type: prep
+
+for
+    type: prep
+
+from
+    type: prep
+
+in
+    type: prep
+
+on
+    type: prep
+
+once
+    type: prep
+
+to
+    type: prep
+
+with
+    type: prep
+
+attr
+    type: update
+
+style
+    type: update
+
+text
+    type: update
+    alias: textContent
+
+value
+    type: update
+
+array
+    type: update
+
+key
+    type: update
+

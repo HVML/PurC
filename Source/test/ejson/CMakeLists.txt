@@ -59,29 +59,29 @@ PURC_COMPUTE_SOURCES(test_ejson)
 PURC_FRAMEWORK(test_ejson)
 GTEST_DISCOVER_TESTS(test_ejson)
 
-# test_vcm
-PURC_EXECUTABLE_DECLARE(test_vcm)
+# test_ejson_vcm
+PURC_EXECUTABLE_DECLARE(test_ejson_vcm)
 
-list(APPEND test_vcm_PRIVATE_INCLUDE_DIRECTORIES
+list(APPEND test_ejson_vcm_PRIVATE_INCLUDE_DIRECTORIES
         ${PURC_DIR}/include
         ${PurC_DERIVED_SOURCES_DIR}
         ${PURC_DIR}
         ${CMAKE_BINARY_DIR}
         ${WTF_DIR})
 
-PURC_EXECUTABLE(test_vcm)
+PURC_EXECUTABLE(test_ejson_vcm)
 
-set(test_vcm_SOURCES
+set(test_ejson_vcm_SOURCES
     test_vcm.cpp
 )
 
-set(test_vcm_LIBRARIES
+set(test_ejson_vcm_LIBRARIES
     PurC::PurC
     gtest_main
     gtest
     pthread
 )
 
-PURC_COMPUTE_SOURCES(test_vcm)
-PURC_FRAMEWORK(test_vcm)
-GTEST_DISCOVER_TESTS(test_vcm)
+PURC_COMPUTE_SOURCES(test_ejson_vcm)
+PURC_FRAMEWORK(test_ejson_vcm)
+GTEST_DISCOVER_TESTS(test_ejson_vcm)

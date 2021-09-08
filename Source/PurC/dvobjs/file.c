@@ -460,15 +460,6 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     return ret_var;
 }
 
-static bool release_rwstream (void *rwstream)
-{
-    if (rwstream == NULL)
-        return false;
-
-    purc_rwstream_destroy ((purc_rwstream_t)rwstream);
-
-    return true;
-}
 static purc_variant_t
 stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
@@ -518,7 +509,8 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     rwstream = purc_rwstream_new_from_file (filename, "r");
 
-    ret_var = purc_variant_make_native (rwstream, release_rwstream);
+    if (0)
+        ret_var = purc_variant_make_native (rwstream, NULL);
     if(ret_var == PURC_VARIANT_INVALID) {
         pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
