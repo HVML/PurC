@@ -2789,6 +2789,36 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE)
+            if (character == '\"') {
+                APPEND_TEMP_BUFFER(c, nr_c);
+                size_t buf_len = pchvml_temp_buffer_get_size_in_chars(
+                        hvml->temp_buffer);
+                if (buf_len >= 6
+                        && pchvml_temp_buffer_end_with(hvml->temp_buffer,
+                            "\"\"\"", 3)) {
+                    pchvml_temp_buffer_delete_head_chars(hvml->temp_buffer, 3);
+                    pchvml_temp_buffer_delete_tail_chars(hvml->temp_buffer, 3);
+                    struct pcvcm_node* node = pcvcm_node_new_string(
+                            pchvml_temp_buffer_get_buffer(hvml->temp_buffer)
+                            );
+                    if (!hvml->curr_vcm_node) {
+                        hvml->curr_vcm_node = pcvcm_stack_pop(
+                                hvml->vcm_node_stack);
+                    }
+                    pctree_node_append_child(
+                            (struct pctree_node*)hvml->curr_vcm_node,
+                            (struct pctree_node*)node);
+                    RESET_TEMP_BUFFER();
+                    ADVANCE_TO(PCHVML_EJSON_AFTER_VALUE_STATE);
+                }
+                ADVANCE_TO(PCHVML_EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE);
+            }
+            if (is_eof(character)) {
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
+                return pchvml_token_new_eof();
+            }
+            APPEND_TEMP_BUFFER(c, nr_c);
+            ADVANCE_TO(PCHVML_EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_KEYWORD_STATE)
