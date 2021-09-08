@@ -2909,6 +2909,43 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_AFTER_KEYWORD_STATE)
+            if (is_whitespace(character) || character == '}'
+                    || character == ']' || character == ',' ) {
+                if (pchvml_temp_buffer_equal_to(hvml->temp_buffer, "true", 4)) {
+                    if (!hvml->curr_vcm_node) {
+                        hvml->curr_vcm_node = pcvcm_stack_pop(
+                                hvml->vcm_node_stack);
+                    }
+                    struct pcvcm_node* node = pcvcm_node_new_boolean(true);
+                    pctree_node_append_child(
+                            (struct pctree_node*)hvml->curr_vcm_node,
+                            (struct pctree_node*)node);
+                    RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_STATE);
+                }
+                if (pchvml_temp_buffer_equal_to(hvml->temp_buffer, "false",
+                            5)) {
+                    if (!hvml->curr_vcm_node) {
+                        hvml->curr_vcm_node = pcvcm_stack_pop(
+                                hvml->vcm_node_stack);
+                    }
+                    struct pcvcm_node* node = pcvcm_node_new_boolean(false);
+                    pctree_node_append_child(
+                            (struct pctree_node*)hvml->curr_vcm_node,
+                            (struct pctree_node*)node);
+                    RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_STATE);
+                }
+                if (pchvml_temp_buffer_equal_to(hvml->temp_buffer, "null", 4)) {
+                    struct pcvcm_node* node = pcvcm_node_new_null();
+                    pctree_node_append_child(
+                            (struct pctree_node*)hvml->curr_vcm_node,
+                            (struct pctree_node*)node);
+                    RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_STATE);
+                }
+                PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+                RETURN_AND_STOP_PARSE();
+            }
+            PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_BYTE_SEQUENCE_STATE)
