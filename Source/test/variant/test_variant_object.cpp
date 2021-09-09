@@ -377,13 +377,15 @@ TEST(object, unref)
 
     purc_variant_ref(obj);
     ASSERT_EQ(obj->refc, 2);
-    ASSERT_EQ(v1->refc, 2);
+    ASSERT_EQ(v1->refc, 1);
 
+    ASSERT_EQ(v2->refc, 1);
     ok = purc_variant_object_set_c(obj, k2, v2);
     ASSERT_EQ(ok, true);
+    ASSERT_EQ(v2->refc, 2);
     ASSERT_EQ(obj->refc, 2);
     purc_variant_unref(v2);
-    ASSERT_EQ(v1->refc, 2);
+    ASSERT_EQ(v1->refc, 1);
     ASSERT_EQ(v2->refc, 1);
 
     nr = purc_variant_object_get_size(obj);
@@ -394,7 +396,7 @@ TEST(object, unref)
     ASSERT_EQ(v1->refc, 1);
 
     nr = purc_variant_object_get_size(obj);
-    ASSERT_EQ(nr, 1);
+    ASSERT_EQ(nr, 2);
 
     purc_variant_unref(obj);
 

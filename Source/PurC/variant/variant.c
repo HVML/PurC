@@ -203,31 +203,8 @@ unsigned int purc_variant_ref (purc_variant_t value)
         return 0;
     }
 
-    purc_variant_t variant = NULL;
-
     value->refc++;
-    switch (value->type) {
-        case PURC_VARIANT_TYPE_OBJECT:
-            foreach_value_in_variant_object(value, variant)
-                purc_variant_ref(variant);
-            end_foreach;
-            break;
 
-        case PURC_VARIANT_TYPE_ARRAY:
-            foreach_value_in_variant_array(value, variant)
-                purc_variant_ref(variant);
-            end_foreach;
-            break;
-
-        case PURC_VARIANT_TYPE_SET:
-            foreach_value_in_variant_set(value, variant)
-                purc_variant_ref(variant);
-            end_foreach;
-            break;
-
-        default:
-            break;
-    }
     return value->refc;
 }
 
@@ -235,61 +212,10 @@ unsigned int purc_variant_unref(purc_variant_t value)
 {
     PC_ASSERT(value);
 
-    purc_variant_t variant = NULL;
-
     /* this should not occur */
     if (value->refc == 0) {
         PC_ASSERT(0);
         return 0;
-    }
-
-    switch ((int)value->type) {
-        case PURC_VARIANT_TYPE_OBJECT:
-        {
-            struct pchash_entry *curr;
-            foreach_in_variant_object_safe(value, curr) {
-                const char *k = pchash_entry_k(curr);
-                variant = pchash_entry_v(curr);
-                if (purc_variant_unref(variant)==0) {
-                    int r;
-                    r = pchash_table_delete_entry(_ht, curr);
-                    PC_ASSERT(r==0);
-                    free((void*)k);
-                }
-            } end_foreach;
-            break;
-        }
-
-        case PURC_VARIANT_TYPE_ARRAY:
-        {
-            size_t curr;
-            foreach_value_in_variant_array_safe(value, variant, curr) {
-                if (purc_variant_unref(variant)==0) {
-                    int r = pcutils_arrlist_del_idx(_al, curr, 1);
-                    PC_ASSERT(r==0);
-                    --curr;
-                }
-            } end_foreach;
-            break;
-        }
-
-        case PURC_VARIANT_TYPE_SET:
-        {
-            struct obj_node *curr;
-            foreach_value_in_variant_set_safe(value, variant, curr) {
-                if (variant->refc==1) {
-                    pcutils_avl_delete(_tree, &curr->avl);
-                    pcvariant_set_release_obj(curr);
-                    free(curr);
-                } else {
-                    purc_variant_unref(variant);
-                }
-            } end_foreach;
-            break;
-        }
-
-        default:
-            break;
     }
 
     value->refc--;

@@ -61,6 +61,15 @@ const char* pcdvobjs_file_get_next_option (const char* data, const char* delims,
 const char* pcdvobjs_file_get_prev_option (const char* data, size_t str_len, 
                             const char* delims, size_t* length) WTF_INTERNAL;
 
+extern int
+math_parse(const char *input, struct pcdvobjs_math_param *param);
+
+extern int
+mathld_parse(const char *input, struct pcdvobjs_mathld_param *param);
+
+extern int
+logical_parse(const char *input, struct pcdvobjs_logical_param *param);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

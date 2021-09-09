@@ -377,20 +377,23 @@ TEST(variant_array, make_ref_add_unref_unref)
 
     purc_variant_t s1 = purc_variant_make_string("hello", false);
     purc_variant_t arr = purc_variant_make_array(1, s1);
+    EXPECT_EQ(s1->refc, 2);
     purc_variant_unref(s1);
+    EXPECT_EQ(s1->refc, 1);
 
     purc_variant_ref(arr);
+    EXPECT_EQ(s1->refc, 1);
     s1 = purc_variant_make_string("world", false);
+    EXPECT_EQ(s1->refc, 1);
     purc_variant_array_append(arr, s1);
+    EXPECT_EQ(s1->refc, 2);
     purc_variant_unref(s1);
+    EXPECT_EQ(s1->refc, 1);
     size_t n = purc_variant_array_get_size(arr);
     ASSERT_EQ(n, 2);
-    // unref will implicitly remove the latter string just added
-    // in level 2
-    // consideration: is this expected behaviour?
     purc_variant_unref(arr);
     n = purc_variant_array_get_size(arr);
-    ASSERT_EQ(n, 1); // removed
+    ASSERT_EQ(n, 2);
 
 
     ASSERT_EQ(arr->refc, 1);
