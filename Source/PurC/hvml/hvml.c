@@ -3540,6 +3540,120 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_JSONEE_VARIABLE_STATE)
+            if (character == '#' || character == '%'
+                    || character == '?' || character == '@'
+                    || character == '&') {
+                if (pchvml_temp_buffer_is_empty(hvml->temp_buffer)
+                    || pchvml_temp_buffer_is_int(hvml->temp_buffer)) {
+                    APPEND_TO_CHARACTER(c, nr_c);
+                }
+                PCHVML_SET_ERROR(PCHVML_ERROR_BAD_JSONEE_VARIABLE_NAME);
+            }
+            if (character == '_' || is_ascii_digit(character)) {
+                if (pchvml_temp_buffer_is_empty(hvml->temp_buffer)
+                    || is_ascii_digit(
+                        pchvml_temp_buffer_get_last_char(hvml->temp_buffer))
+                   ) {
+                    APPEND_TO_CHARACTER(c, nr_c);
+                }
+                PCHVML_SET_ERROR(PCHVML_ERROR_BAD_JSONEE_VARIABLE_NAME);
+                RETURN_AND_STOP_PARSE();
+            }
+            if (is_ascii_alpha(character)) {
+                APPEND_TO_CHARACTER(c, nr_c);
+            }
+            if (is_whitespace(character) || character == '}'
+                    || character == '"' || character == '$') {
+                if (pchvml_temp_buffer_is_empty(hvml->temp_buffer)) {
+                    PCHVML_SET_ERROR(PCHVML_ERROR_BAD_JSONEE_VARIABLE_NAME);
+                    RETURN_AND_STOP_PARSE();
+                }
+                if (hvml->curr_vcm_node) {
+                    pcvcm_stack_push(hvml->vcm_node_stack, hvml->curr_vcm_node);
+                }
+                hvml->curr_vcm_node = pcvcm_node_new_string(
+                           pchvml_temp_buffer_get_buffer(hvml->temp_buffer));
+                RESET_TEMP_BUFFER();
+                wchar_t uc = pcutils_stack_top (hvml->ejson_nesting_stack);
+                while (uc == '$') {
+                    pcutils_stack_pop (hvml->ejson_nesting_stack);
+                    struct pcvcm_node* node = pcvcm_stack_pop(
+                            hvml->vcm_node_stack);
+                    pctree_node_append_child((struct pctree_node*)node,
+                                (struct pctree_node*)hvml->curr_vcm_node);
+                    hvml->curr_vcm_node = node;
+                    uc = pcutils_stack_top (hvml->ejson_nesting_stack);
+                }
+                RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
+            }
+            if (character == '[' || character == '(') {
+                if (pchvml_temp_buffer_is_empty(hvml->temp_buffer)) {
+                    PCHVML_SET_ERROR(PCHVML_ERROR_BAD_JSONEE_VARIABLE_NAME);
+                    RETURN_AND_STOP_PARSE();
+                }
+                if (hvml->curr_vcm_node) {
+                    pcvcm_stack_push(hvml->vcm_node_stack, hvml->curr_vcm_node);
+                }
+                hvml->curr_vcm_node = pcvcm_node_new_string(
+                           pchvml_temp_buffer_get_buffer(hvml->temp_buffer));
+                RESET_TEMP_BUFFER();
+                wchar_t uc = pcutils_stack_top (hvml->ejson_nesting_stack);
+                if (uc == '$') {
+                    pcutils_stack_pop (hvml->ejson_nesting_stack);
+                    struct pcvcm_node* node = pcvcm_stack_pop(
+                            hvml->vcm_node_stack);
+                    pctree_node_append_child((struct pctree_node*)node,
+                                (struct pctree_node*)hvml->curr_vcm_node);
+                    hvml->curr_vcm_node = node;
+                }
+                RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
+            }
+            if (character == '<') {
+                // FIXME
+                if (pchvml_temp_buffer_is_empty(hvml->temp_buffer)) {
+                    APPEND_TEMP_BUFFER(c, nr_c);
+                }
+                if (hvml->curr_vcm_node) {
+                    pcvcm_stack_push(hvml->vcm_node_stack, hvml->curr_vcm_node);
+                }
+                hvml->curr_vcm_node = pcvcm_node_new_string(
+                           pchvml_temp_buffer_get_buffer(hvml->temp_buffer));
+                RESET_TEMP_BUFFER();
+                wchar_t uc = pcutils_stack_top (hvml->ejson_nesting_stack);
+                if (uc == '$') {
+                    pcutils_stack_pop (hvml->ejson_nesting_stack);
+                    struct pcvcm_node* node = pcvcm_stack_pop(
+                            hvml->vcm_node_stack);
+                    pctree_node_append_child((struct pctree_node*)node,
+                                (struct pctree_node*)hvml->curr_vcm_node);
+                    hvml->curr_vcm_node = node;
+                }
+                RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
+            }
+            if (character == '.') {
+                if (pchvml_temp_buffer_is_empty(hvml->temp_buffer)) {
+                    PCHVML_SET_ERROR(PCHVML_ERROR_BAD_JSONEE_VARIABLE_NAME);
+                    RETURN_AND_STOP_PARSE();
+                }
+                if (hvml->curr_vcm_node) {
+                    pcvcm_stack_push(hvml->vcm_node_stack, hvml->curr_vcm_node);
+                }
+                hvml->curr_vcm_node = pcvcm_node_new_string(
+                           pchvml_temp_buffer_get_buffer(hvml->temp_buffer));
+                RESET_TEMP_BUFFER();
+                wchar_t uc = pcutils_stack_top (hvml->ejson_nesting_stack);
+                if (uc == '$') {
+                    pcutils_stack_pop (hvml->ejson_nesting_stack);
+                    struct pcvcm_node* node = pcvcm_stack_pop(
+                            hvml->vcm_node_stack);
+                    pctree_node_append_child((struct pctree_node*)node,
+                                (struct pctree_node*)hvml->curr_vcm_node);
+                    hvml->curr_vcm_node = node;
+                }
+                RECONSUME_IN(PCHVML_EJSON_JSONEE_FULL_STOP_SIGN_STATE);
+            }
+            PCHVML_SET_ERROR(PCHVML_ERROR_BAD_JSONEE_VARIABLE_NAME);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_JSONEE_FULL_STOP_SIGN_STATE)
