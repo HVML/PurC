@@ -30,8 +30,6 @@
 #include "private/html.h"
 
 #include "purc-variant.h"
-#include "logicallex.tab.h"
-#include "logicallex.lex.h"
 #include "tools.h"
 
 #include <stdbool.h>
@@ -916,6 +914,7 @@ logical_eval (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
+#if 0
     size_t length = purc_variant_string_length (argv[0]);
     struct pcdvobjs_logical_param myparam = {0, argv[1]}; /* my instance data */
     yyscan_t lexer;                 /* flex instance data */
@@ -930,6 +929,10 @@ logical_eval (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     logicalparse(&myparam, lexer);
     logical_delete_buffer(buffer, lexer);
     logicallex_destroy (lexer);
+#else // ! 0
+    struct pcdvobjs_logical_param myparam = {0.0d, argv[1]};
+    logical_parse(purc_variant_get_string_const(argv[0]), &myparam);
+#endif // 0
 
     if (myparam.result)
         ret_var = purc_variant_make_boolean (true);

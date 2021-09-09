@@ -67,6 +67,9 @@ math_parse(const char *input, struct pcdvobjs_math_param *param);
 extern int
 mathld_parse(const char *input, struct pcdvobjs_mathld_param *param);
 
+extern int
+logical_parse(const char *input, struct pcdvobjs_logical_param *param);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

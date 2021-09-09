@@ -30,16 +30,7 @@
 }
 
 %code requires {
-    // related struct/function decls
-    // especially, for struct logical_parse_param
-    // and parse function for example:
-    // int logical_parse(const char *input,
-    //        struct logical_parse_param *param);
-    // #include "logical.h"
-    // here we define them locally
-    struct logical_parse_param {
-        char      placeholder[0];
-    };
+    #include "tools.h"
 
     #define YYSTYPE       LOGICAL_YYSTYPE
     #define YYLTYPE       LOGICAL_YYLTYPE
@@ -57,7 +48,7 @@
     static void yyerror(
         YYLTYPE *yylloc,                   // match %define locations
         yyscan_t arg,                      // match %param
-        struct logical_parse_param *param, // match %parse-param
+        struct pcdvobjs_logical_param *param, // match %parse-param
         const char *errsg
     );
 }
@@ -73,25 +64,51 @@
 %verbose
 
 %param { yyscan_t arg }
-%parse-param { struct logical_parse_param *param }
+%parse-param { struct pcdvobjs_logical_param *param }
 
-%union { char *str; }      // union member
-%token <str>  STRING       // token STRING use `str` to store semantic value
-%destructor { free($$); } <str> // destructor for `str`
-%nterm <str> input         // non-terminal `input` use `str` to store
-                           // semantic value as well
+%union { double d; }
 
+/* declare tokens */
+%token <d> NUMBER
+%token GT GE LT LE EQU NOEQU AND OR XOR ANTI
+%token OP CP
+%token EOL
+%right '='
+%left '+' '-'
+%left '*'
+
+%nterm <d> calclist exp factor anti term
+
+%start calclist
 
 %% /* The grammar follows. */
 
-input:
-  %empty      { $$ = NULL; }
-| args        { $$ = NULL; }
+calclist:
+  %empty      { }
+| exp         { param->result = $1 ? 1 : 0; }
 ;
 
-args:
-  STRING      { free($1); }
-| args STRING { free($2); }
+exp: factor
+| exp AND factor { $$ = $1 && $3; }
+| exp OR factor { $$ = $1 || $3; }
+| exp XOR factor { $$ = (int)$1 ^ (int)$3; }
+;
+
+factor: anti
+| factor GT anti { $$ = ($1 > $3)? 1 : 0; }
+| factor GE anti { $$ = ($1 >= $3)? 1 : 0; }
+| factor LT anti { $$ = ($1 < $3)? 1 : 0; }
+| factor LE anti { $$ = ($1 <= $3)? 1 : 0; }
+| factor EQU anti { $$ = ($1 == $3)? 1 : 0; }
+| factor NOEQU anti { $$ = ($1 != $3)? 1 : 0; }
+;
+
+anti: term
+| ANTI term { $$ = $2? 0: 1; }
+;
+
+term: NUMBER
+| OP exp CP { $$ = $2; }
 ;
 
 %%
@@ -101,7 +118,7 @@ static void
 yyerror(
     YYLTYPE *yylloc,                   // match %define locations
     yyscan_t arg,                      // match %param
-    struct logical_parse_param *param, // match %parse-param
+    struct pcdvobjs_logical_param *param, // match %parse-param
     const char *errsg
 )
 {
@@ -113,15 +130,16 @@ yyerror(
 }
 
 int logical_parse(const char *input,
-        struct logical_parse_param *param)
+        struct pcdvobjs_logical_param *param)
 {
     yyscan_t arg = {0};
     logical_yylex_init(&arg);
     // logical_yyset_in(in, arg);
     // logical_yyset_debug(debug, arg);
-    // logical_yyset_extra(param, arg);
+    logical_yyset_extra(param, arg);
     logical_yy_scan_string(input, arg);
     int ret =logical_yyparse(arg, param);
     logical_yylex_destroy(arg);
     return ret ? 1 : 0;
 }
+
