@@ -3558,6 +3558,60 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_JSONEE_KEYWORD_STATE)
+            if (is_ascii_digit(character)) {
+                if (pchvml_temp_buffer_is_empty(hvml->temp_buffer)) {
+                    PCHVML_SET_ERROR(PCHVML_ERROR_BAD_JSONEE_KEYWORD);
+                    RETURN_AND_STOP_PARSE();
+                }
+                APPEND_TEMP_BUFFER(c, nr_c);
+                ADVANCE_TO(PCHVML_EJSON_JSONEE_KEYWORD_STATE);
+            }
+            if (is_ascii_alpha(character) || character == '_') {
+                APPEND_TEMP_BUFFER(c, nr_c);
+                ADVANCE_TO(PCHVML_EJSON_JSONEE_KEYWORD_STATE);
+            }
+            if (is_whitespace(character) || character == '[' ||
+                    character == '(' || character == '<' || character == '}' ||
+                    character == '$') {
+                if (pchvml_temp_buffer_is_empty(hvml->temp_buffer)) {
+                    PCHVML_SET_ERROR(PCHVML_ERROR_BAD_JSONEE_KEYWORD);
+                    RETURN_AND_STOP_PARSE();
+                }
+                if (hvml->curr_vcm_node) {
+                    pcvcm_stack_push(hvml->vcm_node_stack, hvml->curr_vcm_node);
+                }
+                hvml->curr_vcm_node = pcvcm_node_new_string(
+                           pchvml_temp_buffer_get_buffer(hvml->temp_buffer));
+                RESET_TEMP_BUFFER();
+                pcutils_stack_pop(hvml->ejson_nesting_stack);
+                struct pcvcm_node* node = pcvcm_stack_pop(
+                        hvml->vcm_node_stack);
+                pctree_node_append_child((struct pctree_node*)node,
+                        (struct pctree_node*)hvml->curr_vcm_node);
+                hvml->curr_vcm_node = node;
+                RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
+            }
+            if (character == '.') {
+                if (pchvml_temp_buffer_is_empty(hvml->temp_buffer)) {
+                    PCHVML_SET_ERROR(PCHVML_ERROR_BAD_JSONEE_KEYWORD);
+                    RETURN_AND_STOP_PARSE();
+                }
+                if (hvml->curr_vcm_node) {
+                    pcvcm_stack_push(hvml->vcm_node_stack, hvml->curr_vcm_node);
+                }
+                hvml->curr_vcm_node = pcvcm_node_new_string(
+                           pchvml_temp_buffer_get_buffer(hvml->temp_buffer));
+                RESET_TEMP_BUFFER();
+                pcutils_stack_pop(hvml->ejson_nesting_stack);
+                struct pcvcm_node* node = pcvcm_stack_pop(
+                        hvml->vcm_node_stack);
+                pctree_node_append_child((struct pctree_node*)node,
+                        (struct pctree_node*)hvml->curr_vcm_node);
+                hvml->curr_vcm_node = node;
+                RECONSUME_IN(PCHVML_EJSON_JSONEE_FULL_STOP_SIGN_STATE);
+            }
+            PCHVML_SET_ERROR(PCHVML_ERROR_BAD_JSONEE_KEYWORD);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_JSONEE_STRING_STATE)
