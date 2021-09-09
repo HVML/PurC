@@ -595,16 +595,96 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     return ret_var;
 }
 
+
 static purc_variant_t
 stream_readstruct_getter (purc_variant_t root, size_t nr_args, 
                                                         purc_variant_t* argv)
 {
+}
+
+static make_stream (purc_variant_t var, const char * buf, int *len)
+{
+    enum purc_variant_type type = purc_variant_get_type (var);
+
+    switch ((int)type) {
+        case PURC_VARIANT_TYPE_NULL:
+            break;
+        case PURC_VARIANT_TYPE_UNDEFINED:
+            break;
+        case PURC_VARIANT_TYPE_BOOLEAN:
+            break;
+        case PURC_VARIANT_TYPE_NUMBER:
+            break;
+        case PURC_VARIANT_TYPE_LONGINT:
+            break;
+        case PURC_VARIANT_TYPE_ULONGINT:
+            break;
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+            break;
+        case PURC_VARIANT_TYPE_ATOMSTRING:
+            break;
+        case PURC_VARIANT_TYPE_STRING:
+            break;
+        case PURC_VARIANT_TYPE_BSEQUENCE:
+            break;
+        case PURC_VARIANT_TYPE_DYNAMIC:
+            break;
+        case PURC_VARIANT_TYPE_NATIVE:
+            break;
+        case PURC_VARIANT_TYPE_OBJECT:
+            break;
+        case PURC_VARIANT_TYPE_ARRAY:
+            break;
+        case PURC_VARIANT_TYPE_SET:
+            break;
+        default:
+            break;
+    }
+}
+
+static purc_variant_t
+stream_writestruct_getter (purc_variant_t root, size_t nr_args, 
+                                                        purc_variant_t* argv)
+{
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
 
-    return NULL;
+    purc_variant_t ret_var = NULL;
+    purc_variant_t var = NULL;
+    purc_variant_t val = NULL;
+    purc_rwstream_t rwstream = NULL; 
+    size_t size = 0;
+    int i = 0;
+    unsigned char * buffer = NULL;
+    size_t len = 0;
+
+    if ((argv[0] != PURC_VARIANT_INVALID) && 
+                        (!purc_variant_is_native (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+    rwstream = purc_variant_native_get_entity (argv[0]); 
+    if (rwstream == NULL) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[1] != PURC_VARIANT_INVALID) && 
+                        (!purc_variant_is_array (argv[1]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+    var = argv[1];
+    size = purc_variant_array_get_size (var);
+
+    for (i = 0; i < size; ++i) {
+        val = purc_variant_array_get(var, i);
+        make_stream (val, buffer, &len);
+    }
+
+    return ret_var;
 }
+
 
 static purc_variant_t
 stream_readlines_getter (purc_variant_t root, size_t nr_args, 
@@ -776,11 +856,13 @@ purc_variant_t pcdvojbs_get_file (void)
             "head",       purc_variant_make_dynamic (bin_head_getter, NULL),
             "tail",       purc_variant_make_dynamic (bin_tail_getter, NULL));
 
-    purc_variant_t file_stream = purc_variant_make_object_c (6,
+    purc_variant_t file_stream = purc_variant_make_object_c (7,
             "open",       purc_variant_make_dynamic 
                                             (stream_open_getter, NULL),
             "readstruct", purc_variant_make_dynamic 
                                             (stream_readstruct_getter, NULL),
+            "writestruct",purc_variant_make_dynamic 
+                                            (stream_writestruct_getter, NULL),
             "readlines",  purc_variant_make_dynamic 
                                             (stream_readlines_getter, NULL),
             "readbytes",  purc_variant_make_dynamic 
