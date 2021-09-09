@@ -34,13 +34,10 @@ extern "C" {
 #endif  /* __cplusplus */
 
 struct pcdvobjs_math_param {
-    double result;
+    double d;
+    long double ld;
     purc_variant_t v;
-};
-
-struct pcdvobjs_mathld_param {
-    long double result;
-    purc_variant_t v;
+    int is_long_double;
 };
 
 struct pcdvobjs_logical_param {
@@ -63,9 +60,6 @@ const char* pcdvobjs_file_get_prev_option (const char* data, size_t str_len,
 
 extern int
 math_parse(const char *input, struct pcdvobjs_math_param *param);
-
-extern int
-mathld_parse(const char *input, struct pcdvobjs_mathld_param *param);
 
 extern int
 logical_parse(const char *input, struct pcdvobjs_logical_param *param);

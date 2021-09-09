@@ -398,7 +398,12 @@ eval_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     math_delete_buffer(buffer, lexer);
     mathlex_destroy (lexer);
 #else // ! 0
-    struct pcdvobjs_math_param myparam = {0.0d, argv[1]};
+    struct pcdvobjs_math_param myparam = {
+        0.0,
+        0.0,
+        argv[1],
+        0, // not long double
+    };
     result = math_parse(purc_variant_get_string_const(argv[0]), &myparam);
 #endif // 0
 
@@ -407,7 +412,9 @@ eval_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    return purc_variant_make_number (myparam.result);
+    return myparam.is_long_double ?
+        purc_variant_make_longdouble (myparam.ld) :
+        purc_variant_make_number (myparam.d);
 }
 
 
@@ -446,8 +453,13 @@ eval_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     mathld_delete_buffer(buffer, lexer);
     mathldlex_destroy (lexer);
 #else // ! 0
-    struct pcdvobjs_mathld_param myparam = {0.0d, argv[1]};
-    result = mathld_parse(purc_variant_get_string_const(argv[0]), &myparam);
+    struct pcdvobjs_math_param myparam = {
+        0.0,
+        0.0,
+        argv[1],
+        1, // is long double
+    };
+    result = math_parse(purc_variant_get_string_const(argv[0]), &myparam);
 #endif // 0
 
     if (result != 0) {
@@ -455,7 +467,9 @@ eval_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    return purc_variant_make_longdouble (myparam.result);
+    return myparam.is_long_double ?
+        purc_variant_make_longdouble (myparam.ld) :
+        purc_variant_make_number (myparam.d);
 }
 
 
