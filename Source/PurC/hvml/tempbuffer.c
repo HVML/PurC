@@ -250,3 +250,10 @@ void pchvml_temp_buffer_destroy (struct pchvml_temp_buffer* buffer)
         free(buffer);
     }
 }
+
+bool pchvml_temp_buffer_is_int (struct pchvml_temp_buffer* buffer)
+{
+    char* p = NULL;
+    strtol((const char*)buffer->base, &p, 10);
+    return (p == (char*)buffer->here);
+}

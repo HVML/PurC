@@ -196,6 +196,7 @@ TEST(temp_buffer, delete_head)
 
     pchvml_temp_buffer_destroy(buffer);
 }
+
 TEST(temp_buffer, delete_tail)
 {
     struct pchvml_temp_buffer* buffer = pchvml_temp_buffer_new ();
@@ -224,6 +225,28 @@ TEST(temp_buffer, delete_tail)
 
     pchvml_temp_buffer_delete_tail_chars(buffer, 3);
     ASSERT_STREQ("abc", pchvml_temp_buffer_get_buffer(buffer));
+
+    pchvml_temp_buffer_destroy(buffer);
+}
+
+TEST(temp_buffer, is_int)
+{
+    struct pchvml_temp_buffer* buffer = pchvml_temp_buffer_new ();
+    ASSERT_NE(buffer, nullptr);
+    ASSERT_EQ(0, pchvml_temp_buffer_get_size_in_bytes(buffer));
+    ASSERT_EQ(0, pchvml_temp_buffer_get_size_in_chars(buffer));
+
+    pchvml_temp_buffer_append(buffer, "1", 1);
+    pchvml_temp_buffer_append(buffer, "2", 1);
+    pchvml_temp_buffer_append(buffer, "3", 1);
+    ASSERT_STREQ("123", pchvml_temp_buffer_get_buffer(buffer));
+
+    bool is_int = pchvml_temp_buffer_is_int(buffer);
+    ASSERT_EQ(is_int, true);
+
+    pchvml_temp_buffer_append(buffer, " ", 1);
+    is_int = pchvml_temp_buffer_is_int(buffer);
+    ASSERT_EQ(is_int, false);
 
     pchvml_temp_buffer_destroy(buffer);
 }

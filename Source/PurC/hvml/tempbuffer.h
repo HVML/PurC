@@ -103,6 +103,8 @@ void pchvml_temp_buffer_reset (struct pchvml_temp_buffer* buffer);
 
 void pchvml_temp_buffer_destroy (struct pchvml_temp_buffer* buffer);
 
+bool pchvml_temp_buffer_is_int (struct pchvml_temp_buffer* buffer);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
