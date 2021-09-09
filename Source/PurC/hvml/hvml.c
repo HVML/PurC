@@ -3441,6 +3441,45 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_VALUE_NAN_STATE)
+            if (is_whitespace(character) || character == '}'
+                    || character == ']' || character == ',' ) {
+                if (pchvml_temp_buffer_equal_to(hvml->temp_buffer, "NaN", 3)) {
+                    double d = NAN;
+                    struct pcvcm_node* node = pcvcm_node_new_number(d);
+                    if (!hvml->curr_vcm_node) {
+                        hvml->curr_vcm_node = pcvcm_stack_pop(hvml->vcm_node_stack);
+                    }
+                    pctree_node_append_child(
+                            (struct pctree_node*)hvml->current_token,
+                            (struct pctree_node*)node);
+                    RESET_TEMP_BUFFER();
+                    RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_STATE);
+                }
+                PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_JSON_NUMBER);
+                RETURN_AND_STOP_PARSE();
+            }
+            if (character == 'N') {
+                if (pchvml_temp_buffer_is_empty(hvml->temp_buffer)
+                  || pchvml_temp_buffer_equal_to(hvml->temp_buffer, "Na", 2)) {
+                    APPEND_TEMP_BUFFER(c, nr_c);
+                    ADVANCE_TO(PCHVML_EJSON_VALUE_NAN_STATE);
+                }
+                PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_JSON_NUMBER);
+                RETURN_AND_STOP_PARSE();
+            }
+
+            if (character == 'a') {
+                if (pchvml_temp_buffer_equal_to(hvml->temp_buffer, "N", 1)) {
+                    APPEND_TEMP_BUFFER(c, nr_c);
+                    ADVANCE_TO(PCHVML_EJSON_VALUE_NAN_STATE);
+                }
+                PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_JSON_NUMBER);
+                RETURN_AND_STOP_PARSE();
+            }
+
+            PCHVML_SET_ERROR(
+                    PCHVML_ERROR_UNEXPECTED_JSON_NUMBER);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_STRING_ESCAPE_STATE)
