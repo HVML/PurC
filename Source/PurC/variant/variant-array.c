@@ -132,6 +132,15 @@ void pcvariant_array_release (purc_variant_t value)
     if (!al)
         return;
 
+    size_t curr;
+    purc_variant_t variant = NULL;
+    foreach_value_in_variant_array_safe(value, variant, curr) {
+        purc_variant_unref(variant);
+        int r = pcutils_arrlist_del_idx(_al, curr, 1);
+        PC_ASSERT(r==0);
+        --curr;
+    } end_foreach;
+
     pcutils_arrlist_free(al);
     value->sz_ptr[1] = (uintptr_t)NULL;
 }

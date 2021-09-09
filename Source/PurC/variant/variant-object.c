@@ -259,12 +259,11 @@ void pcvariant_object_release (purc_variant_t value)
     struct pchash_entry *e, *tmp;
     pchash_foreach_safe(ht, e, tmp) {
         char *key = (char*)pchash_entry_k(e);
-        // purc_variant_t v = (purc_variant_t)pchash_entry_v(e);
+        purc_variant_t v = (purc_variant_t)pchash_entry_v(e);
         int r = pchash_table_delete_entry(ht, e);
         PC_ASSERT(r==0);
         free(key);
-        // shall we unref here?!!!
-        // purc_variant_unref(v);
+        purc_variant_unref(v);
     }
     pchash_table_free(ht);
     value->sz_ptr[1] = (uintptr_t)NULL; // say no to double free
