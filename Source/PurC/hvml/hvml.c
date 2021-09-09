@@ -425,6 +425,7 @@ struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
     parser->rwswrap = pchvml_rwswrap_new ();
     parser->temp_buffer = pchvml_temp_buffer_new ();
     parser->appropriate_tag_name = pchvml_temp_buffer_new ();
+    parser->escape_buffer = pchvml_temp_buffer_new ();
     parser->vcm_node_stack = pcvcm_stack_new();
     parser->ejson_nesting_stack = pcutils_stack_new(0);
     return parser;
@@ -440,6 +441,7 @@ void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
     parser->rwswrap = pchvml_rwswrap_new ();
     pchvml_temp_buffer_reset (parser->temp_buffer);
     pchvml_temp_buffer_reset (parser->appropriate_tag_name);
+    pchvml_temp_buffer_reset (parser->escape_buffer);
     pcvcm_stack_destroy(parser->vcm_node_stack);
     pcutils_stack_destroy(parser->ejson_nesting_stack);
 }
@@ -3483,6 +3485,38 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_STRING_ESCAPE_STATE)
+            switch (character)
+            {
+                case 'b':
+                case 'f':
+                case 'n':
+                case 'r':
+                case 't':
+                    APPEND_TEMP_BUFFER("\\", 1);
+                    APPEND_TEMP_BUFFER(c, nr_c);
+                    ADVANCE_TO(hvml->return_state);
+                    break;
+                case '$':
+                case '{':
+                case '}':
+                case '<':
+                case '>':
+                case '/':
+                case '\\':
+                case '"':
+                    APPEND_TEMP_BUFFER(c, nr_c);
+                    ADVANCE_TO(hvml->return_state);
+                    break;
+                case 'u':
+                    pchvml_temp_buffer_reset(hvml->escape_buffer);
+                    ADVANCE_TO(
+                      PCHVML_EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS_STATE);
+                    break;
+                default:
+                    PCHVML_SET_ERROR(
+                         PCHVML_ERROR_BAD_JSON_STRING_ESCAPE_ENTITY);
+                    RETURN_AND_STOP_PARSE();
+            }
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS_STATE)
