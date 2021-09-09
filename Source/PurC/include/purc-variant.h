@@ -1393,67 +1393,67 @@ purc_variant_get_type(const purc_variant_t value);
  *
  * Since: 0.0.1
  */
-PCA_EXPORT inline bool purc_variant_is_boolean(purc_variant_t v)
+static inline bool purc_variant_is_boolean(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_BOOLEAN);
 }
 
-PCA_EXPORT inline bool purc_variant_is_number(purc_variant_t v)
+static inline bool purc_variant_is_number(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_NUMBER);
 }
 
-PCA_EXPORT inline bool purc_variant_is_longint(purc_variant_t v)
+static inline bool purc_variant_is_longint(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_LONGINT);
 }
 
-PCA_EXPORT inline bool purc_variant_is_ulongint(purc_variant_t v)
+static inline bool purc_variant_is_ulongint(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_ULONGINT);
 }
 
-PCA_EXPORT inline bool purc_variant_is_longdouble(purc_variant_t v)
+static inline bool purc_variant_is_longdouble(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_LONGDOUBLE);
 }
 
-PCA_EXPORT inline bool purc_variant_is_atomstring(purc_variant_t v)
+static inline bool purc_variant_is_atomstring(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_ATOMSTRING);
 }
 
-PCA_EXPORT inline bool purc_variant_is_string(purc_variant_t v)
+static inline bool purc_variant_is_string(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_STRING);
 }
 
-PCA_EXPORT inline bool purc_variant_is_sequence(purc_variant_t v)
+static inline bool purc_variant_is_sequence(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_BSEQUENCE);
 }
 
-PCA_EXPORT inline bool purc_variant_is_dynamic(purc_variant_t v)
+static inline bool purc_variant_is_dynamic(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_DYNAMIC);
 }
 
-PCA_EXPORT inline bool purc_variant_is_native(purc_variant_t v)
+static inline bool purc_variant_is_native(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_NATIVE);
 }
 
-PCA_EXPORT inline bool purc_variant_is_object(purc_variant_t v)
+static inline bool purc_variant_is_object(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_OBJECT);
 }
 
-PCA_EXPORT inline bool purc_variant_is_array(purc_variant_t v)
+static inline bool purc_variant_is_array(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_ARRAY);
 }
 
-PCA_EXPORT inline bool purc_variant_is_set(purc_variant_t v)
+static inline bool purc_variant_is_set(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_SET);
 }
