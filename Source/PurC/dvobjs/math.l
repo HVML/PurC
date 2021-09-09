@@ -63,7 +63,21 @@ do {                                              \
     yylloc->first_line   = yylloc->last_line;     \
 } while (0)
 
-static double get_data (char * text, struct pcdvobjs_math_param * pp);
+#define SET_ZERO() do {                                               \
+    if (((struct pcdvobjs_math_param*)yyextra)->is_long_double) {     \
+        yylval->ld = 0;                                               \
+    } else {                                                          \
+        yylval->d = 0;                                                \
+    }                                                                 \
+} while (0)
+
+#define SET_NUMBER(_s) do {                                           \
+    if (((struct pcdvobjs_math_param*)yyextra)->is_long_double) {     \
+        yylval->ld = atof(_s);                                        \
+    } else {                                                          \
+        yylval->d = atof(_s);                                         \
+    }                                                                 \
+} while (0)
 
 %}
 
@@ -82,44 +96,25 @@ static double get_data (char * text, struct pcdvobjs_math_param * pp);
 EXP ([Ee][-+]?[0-9]+)
 
 %%
+
 <<EOF>> { int state = TOP_STATE();
           if (state != INITIAL) return -1;
           yyterminate(); }
 
-"+"	    { return MKT(ADD); }
-"-"	    { return MKT(SUB); }
-"*"	    { return MKT(MUL); }
-"/"	    { return MKT(DIV); }
-"("     { return MKT(OP); }
-")"     { return MKT(CP); }
-[0-9]+"."[0-9]*{EXP}? |
-"."?[0-9]+{EXP}?	{ yylval->d = atof(yytext); return MKT(NUMBER); }
+[-+*/()^]    { return *yytext; }
 
-"//".*
+[+-]?0                { yylval->str = (yytext); return MKT(NUMBER); }
+[+-]?[1-9][0-9]*      { yylval->str = (yytext); return MKT(NUMBER); }
+[+-]?"0."[0-9]*       { yylval->str = (yytext); return MKT(NUMBER); }
+[+-]?[0-9]+"."[0-9]*  { yylval->str = (yytext); return MKT(NUMBER); }
+[+-]?[0-9]+("."[0-9]*)?[eE][+-]?[0-9]+ { yylval->str = (yytext); return MKT(NUMBER); }
+
+[_[:alpha:]][[:alnum:]]*  { yylval->str = (yytext); return MKT(VAR); }
+
 [ \t]   { /* ignore white space */ }
 
-[a-zA-z0-9]+  { yylval->d = get_data(yytext, yyextra); return MKT(NUMBER); }
-.	{return *yytext; } /* we don't call yyerror here, because it has no way to communicate with bison */
-                      /* normally, we just return character token and defer the error handling in bison */
+.	    { return *yytext; } /* let bison to handle it */
+\n      { /* eat it */ }
+
 %%
-
-
-static double get_data (char * text, struct pcdvobjs_math_param * pp)
-{
-    double number = 0.0d;
-
-    if (pp->v == NULL)
-        return number;
-
-    if ((pp->v != NULL) && (!purc_variant_is_object (pp->v)))
-        return number;
-
-    purc_variant_t var = NULL;
-
-    var = purc_variant_object_get_c (pp->v, text);
-    if (var)
-        purc_variant_cast_to_number (var, &number, false);
-
-    return number;
-}
 

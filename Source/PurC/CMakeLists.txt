@@ -85,7 +85,7 @@ set(PurC_INTERFACE_INCLUDE_DIRECTORIES ${PurC_PRIVATE_FRAMEWORK_HEADERS_DIR})
 PURC_FRAMEWORK_DECLARE(PurC)
 PURC_INCLUDE_CONFIG_FILES_IF_EXISTS()
 
-set(dvobjs_parsers math mathld logical)
+set(dvobjs_parsers math logical)
 PURC_FLEX_BISON(PurC dvobjs "${dvobjs_parsers}")
 unset(my_parsers)
 

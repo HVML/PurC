@@ -51,6 +51,77 @@
         struct pcdvobjs_math_param *param, // match %parse-param
         const char *errsg
     );
+
+    #define SET(_r, _a) do {                           \
+        if (_a.is_long_double) {                       \
+            _r->ld = _a.ld;                            \
+        } else {                                       \
+            _r->d = _a.d;                              \
+        }                                              \
+        _r->is_long_double = _a.is_long_double;        \
+    } while (0)
+
+    #define ADD(_r, _a, _b) do {                       \
+        if (_a.is_long_double) {                       \
+            _r.ld = _a.ld + _b.ld;                     \
+        } else {                                       \
+            _r.d = _a.d + _b.d;                        \
+        }                                              \
+        _r.is_long_double = _a.is_long_double;         \
+    } while (0)
+
+    #define SUB(_r, _a, _b) do {                       \
+        if (_a.is_long_double) {                       \
+            _r.ld = _a.ld - _b.ld;                     \
+        } else {                                       \
+            _r.d = _a.d - _b.d;                        \
+        }                                              \
+        _r.is_long_double = _a.is_long_double;         \
+    } while (0)
+
+    #define MUL(_r, _a, _b) do {                       \
+        if (_a.is_long_double) {                       \
+            _r.ld = _a.ld * _b.ld;                     \
+        } else {                                       \
+            _r.d = _a.d * _b.d;                        \
+        }                                              \
+        _r.is_long_double = _a.is_long_double;         \
+    } while (0)
+
+    #define DIV(_r, _a, _b) do {                       \
+        if (_a.is_long_double) {                       \
+            _r.ld = _a.ld / _b.ld;                     \
+        } else {                                       \
+            _r.d = _a.d / _b.d;                        \
+        }                                              \
+        _r.is_long_double = _a.is_long_double;         \
+    } while (0)
+
+    #define SET_BY_NUM(_r, _a) do {                    \
+        if (param->is_long_double) {                   \
+            _r.ld = atof(_a);                          \
+        } else {                                       \
+            _r.d = atof(_a);                           \
+        }                                              \
+        _r.is_long_double = param->is_long_double;     \
+    } while (0)
+
+    #define SET_BY_VAR(_r, _a) do {                                    \
+        if (!param->v && !purc_variant_is_object(param->v)) {          \
+            YYABORT;                                                   \
+        }                                                              \
+        purc_variant_t _v;                                             \
+        _v = purc_variant_object_get_c (param->v, _a);                 \
+        if (!_v) {                                                     \
+            YYABORT;                                                   \
+        }                                                              \
+        if (param->is_long_double) {                                   \
+            purc_variant_cast_to_long_double (_v, &_r.ld, false);      \
+        } else {                                                       \
+            purc_variant_cast_to_number (_v, &_r.d, false);            \
+        }                                                              \
+        _r.is_long_double = param->is_long_double;                     \
+    } while (0)
 }
 
 /* Bison declarations. */
@@ -66,38 +137,42 @@
 %param { yyscan_t arg }
 %parse-param { struct pcdvobjs_math_param *param }
 
-%union { double d; }
+%union { const char *str; }
+%union { struct pcdvobjs_math_param v; }
 
-%token <d> NUMBER
-%token ADD SUB MUL DIV
-%token OP CP
-%right '='
-%left '+' '-'
-%left '*'
+%precedence '='
+%left '-' '+'
+%left '*' '/'
+%precedence NEG /* negation--unary minus */
+%right '^'      /* exponentiation */
 
-%nterm <d> calclist exp factor term
+%token <str> NUMBER VAR
+%nterm <v> exp factor term
 
-%start calclist
 
 %% /* The grammar follows. */
 
-calclist:
+input:
   %empty           { }
-| exp              { param->result = $1; }
+| exp              { SET(param, $1); }
 ;
 
-exp: factor
-| exp ADD exp { $$ = $1 + $3; }
-| exp SUB factor { $$ = $1 - $3; }
+exp: 
+  factor
+| exp '+' exp      { ADD($$, $1, $3); }
+| exp '-' factor   { SUB($$, $1, $3); }
 ;
 
-factor: term
-| factor MUL term { $$ = $1 * $3;}
-| factor DIV term { if ($3 == 0.0) YYABORT; $$ = $1 / $3; }
+factor:
+  term
+| factor '*' term { MUL($$, $1, $3); }
+| factor '/' term { DIV($$, $1, $3); }
 ;
 
-term: NUMBER
-| OP exp CP { $$ = $2; }
+term:
+  NUMBER      { SET_BY_NUM($$, $1); }
+| VAR         { SET_BY_VAR($$, $1); }
+| '(' exp ')' { $$ = $2; }
 ;
 
 %%
