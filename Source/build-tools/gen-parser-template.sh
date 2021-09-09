@@ -96,6 +96,7 @@ do {                                              \\
 %x STR
 
 %%
+
 <<EOF>> { int state = TOP_STATE();
           if (state != INITIAL) return -1;
           yyterminate(); }
@@ -110,6 +111,9 @@ do {                                              \\
 [^"\n]+   { C(); yylval->str=(yytext); R(); return MKT(STRING); }
 \n        { L(); R(); return *yytext; } /* let bison to handle */
 }
+
+%%
+
 EOF
 
 if [ ! $? -eq 0 ]; then exit; fi
@@ -152,7 +156,11 @@ cat > "${RELPATH}/${NAME}.y" << EOF
     // and parse function for example:
     // int ${NAME}_parse(const char *input,
     //        struct ${NAME}_parse_param *param);
-    #include "${NAME}.h"
+    // #include "${NAME}.h"
+    // here we define them locally
+    struct ${NAME}_parse_param {
+        char      placeholder[0];
+    };
 
     #define YYSTYPE       ${NAME^^}_YYSTYPE
     #define YYLTYPE       ${NAME^^}_YYLTYPE
@@ -238,6 +246,9 @@ int ${NAME}_parse(const char *input,
     ${NAME}_yylex_destroy(arg);
     return ret ? 1 : 0;
 }
+
+%%
+
 EOF
 
 if [ ! $? -eq 0 ]; then exit; fi
