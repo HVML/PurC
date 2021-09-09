@@ -3520,6 +3520,23 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS_STATE)
+            if (is_ascii_hex_digit(character)) {
+                pchvml_temp_buffer_append(hvml->escape_buffer, c, nr_c);
+                size_t nr_chars = pchvml_temp_buffer_get_size_in_chars(
+                        hvml->escape_buffer);
+                if (nr_chars == 4) {
+                    APPEND_TEMP_BUFFER("\\u", 2);
+                    pchvml_temp_buffer_append_temp_buffer(hvml->temp_buffer,
+                            hvml->escape_buffer);
+                    pchvml_temp_buffer_reset(hvml->escape_buffer);
+                    ADVANCE_TO(hvml->return_state);
+                }
+                ADVANCE_TO(
+                    PCHVML_EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS_STATE);
+            }
+            PCHVML_SET_ERROR(
+                    PCHVML_ERROR_BAD_JSON_STRING_ESCAPE_ENTITY);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_JSONEE_VARIABLE_STATE)
