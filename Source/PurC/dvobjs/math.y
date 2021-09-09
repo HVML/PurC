@@ -99,6 +99,7 @@ factor: term
 term: NUMBER
 | OP exp CP { $$ = $2; }
 ;
+
 %%
 
 /* Called by yyparse on error. */
@@ -130,3 +131,4 @@ int math_parse(const char *input,
     math_yylex_destroy(arg);
     return ret ? 1 : 0;
 }
+

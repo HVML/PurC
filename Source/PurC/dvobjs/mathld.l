@@ -63,8 +63,11 @@ do {                                              \
     yylloc->first_line   = yylloc->last_line;     \
 } while (0)
 
+static long double get_data (char * text, struct pcdvobjs_mathld_param * pp);
 
 %}
+
+EXP ([Ee][-+]?[0-9]+)
 
 %option prefix="mathld_yy"
 %option bison-bridge bison-locations reentrant
@@ -79,17 +82,45 @@ do {                                              \
 %x STR
 
 %%
+
 <<EOF>> { int state = TOP_STATE();
           if (state != INITIAL) return -1;
           yyterminate(); }
 
-["]     { C(); PUSH(STR); R(); return *yytext; }
-[ \t]   { C(); R(); } /* eat */
-\n      { L(); R(); } /* eat */
-.       { C(); R(); return *yytext; } /* let bison to handle */
+"+"	    { return MKT(ADD); }
+"-"	    { return MKT(SUB); }
+"*"	    { return MKT(MUL); }
+"/"	    { return MKT(DIV); }
+"("     { return MKT(OP); }
+")"     { return MKT(CP); }
+[0-9]+"."[0-9]*{EXP}?|"."?[0-9]+{EXP}?	{
+        yylval->d = atof(yytext); return MKT(NUMBER);
+    }
 
-<STR>{
-["]       { C(); POP(); R(); return *yytext; }
-[^"\n]+   { C(); yylval->str=(yytext); R(); return MKT(STRING); }
-\n        { L(); R(); return *yytext; } /* let bison to handle */
+"//".*  
+[ \t]   { /* ignore white space */ }
+
+[a-zA-z0-9]+  { yylval->d = get_data(yytext, yyextra); return MKT(NUMBER); }
+.	{return *yytext; } /* we don't call yyerror here, because it has no way to communicate with bison */
+                      /* normally, we just return character token and defer the error handling in bison */
+%%
+
+static long double get_data (char * text, struct pcdvobjs_mathld_param * pp)
+{
+    long double number = 0.0d;
+
+    if (pp->v == NULL)
+        return number;
+
+    if ((pp->v != NULL) && (!purc_variant_is_object (pp->v))) 
+        return number;
+
+    purc_variant_t var = NULL;
+
+    var = purc_variant_object_get_c (pp->v, text);
+    if (var) 
+        purc_variant_cast_to_long_double (var, &number, false);
+
+    return number;
 }
+
