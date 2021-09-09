@@ -3543,6 +3543,18 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_JSONEE_FULL_STOP_SIGN_STATE)
+            if (character == '.') {
+                pcutils_stack_push(hvml->ejson_nesting_stack, '.');
+                struct pcvcm_node* node = pcvcm_node_new_get_element(NULL,
+                        NULL);
+                if (hvml->curr_vcm_node) {
+                    pctree_node_append_child(
+                            (struct pctree_node*)node,
+                            (struct pctree_node*)hvml->current_token);
+                }
+                hvml->curr_vcm_node = node;
+                ADVANCE_TO(PCHVML_EJSON_JSONEE_KEYWORD_STATE);
+            }
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_JSONEE_KEYWORD_STATE)
