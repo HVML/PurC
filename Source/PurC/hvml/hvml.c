@@ -230,16 +230,16 @@ static const char* hvml_err_msgs[] = {
     "pchvml error missing quote before doctype public identifier",
     /* PCHVML_ERROR_ABRUPT_DOCTYPE_PUBLIC_IDENTIFIER */
     "pchvml error abrupt doctype public identifier",
-    /* PCHVML_ERROR_MISSING_WHITESPACE_BETWEEN_DOCTYPE_PUBLIC_AND_SYSTEM_IDENTIFIERS */
-    "pchvml error missing whitespace between doctype public and system identifiers",
+    /* PCHVML_ERROR_MISSING_WHITESPACE_BETWEEN_DOCTYPE_PUBLIC_AND_SYSTEM_INFORMATIONS */
+    "pchvml error missing whitespace between doctype public and system informations",
     /* PCHVML_ERROR_MISSING_WHITESPACE_AFTER_DOCTYPE_SYSTEM_KEYWORD */
     "pchvml error missing whitespace after doctype system keyword",
-    /* PCHVML_ERROR_MISSING_DOCTYPE_SYSTEM_IDENTIFIER */
-    "pchvml error missing doctype system identifier",
-    /* PCHVML_ERROR_ABRUPT_DOCTYPE_SYSTEM_IDENTIFIER */
-    "pchvml error abrupt doctype system identifier",
-    /* PCHVML_ERROR_UNEXPECTED_CHARACTER_AFTER_DOCTYPE_SYSTEM_IDENTIFIER */
-    "pchvml error unexpected character after doctype system identifier",
+    /* PCHVML_ERROR_MISSING_DOCTYPE_SYSTEM_INFORMATION */
+    "pchvml error missing doctype system information",
+    /* PCHVML_ERROR_ABRUPT_DOCTYPE_SYSTEM_INFORMATION */
+    "pchvml error abrupt doctype system information",
+    /* PCHVML_ERROR_UNEXPECTED_CHARACTER_AFTER_DOCTYPE_SYSTEM_INFORMATION */
+    "pchvml error unexpected character after doctype system information",
     /* PCHVML_ERROR_EOF_IN_CDATA */
     "pchvml error eof in cdata",
     /* PCHVML_ERROR_UNKNOWN_NAMED_CHARACTER_REFERENCE */
@@ -298,8 +298,8 @@ static const char* hvml_err_msgs[] = {
     "pchvml error nested comment",
     /* PCHVML_ERROR_INCORRECTLY_CLOSED_COMMENT */
     "pchvml error incorrectly closed comment",
-    /* PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM_IDENTIFIER */
-    "pchvml error missing quote before doctype system identifier",
+    /* PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM_INFORMATION */
+    "pchvml error missing quote before doctype system information",
     /* PCHVML_ERROR_MISSING_SEMICOLON_AFTER_CHARACTER_REFERENCE */
     "pchvml error missing semicolon after character reference",
     /* PCHVML_ERROR_CHARACTER_REFERENCE_OUTSIDE_UNICODE_RANGE */
@@ -1559,7 +1559,7 @@ next_state:
             }
             if (character == '"') {
                 PCHVML_SET_ERROR(
-                  PCHVML_ERROR_MISSING_WHITESPACE_BETWEEN_DOCTYPE_PUBLIC_AND_SYSTEM_IDENTIFIERS
+                  PCHVML_ERROR_MISSING_WHITESPACE_BETWEEN_DOCTYPE_PUBLIC_AND_SYSTEM_INFORMATIONS
                   );
                 pchvml_temp_buffer_reset(
                         hvml->token->system_identifier);
@@ -1567,7 +1567,7 @@ next_state:
             }
             if (character == '\'') {
                 PCHVML_SET_ERROR(
-                  PCHVML_ERROR_MISSING_WHITESPACE_BETWEEN_DOCTYPE_PUBLIC_AND_SYSTEM_IDENTIFIERS
+                  PCHVML_ERROR_MISSING_WHITESPACE_BETWEEN_DOCTYPE_PUBLIC_AND_SYSTEM_INFORMATIONS
                   );
                 pchvml_temp_buffer_reset(
                         hvml->token->system_identifier);
@@ -1579,7 +1579,7 @@ next_state:
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
             PCHVML_SET_ERROR(
-                PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM_IDENTIFIER);
+                PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM_INFORMATION);
             pchvml_token_set_force_quirks(hvml->token, true);
             ADVANCE_TO(PCHVML_BOGUS_DOCTYPE_STATE);
         END_STATE()
@@ -1607,7 +1607,7 @@ next_state:
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
             PCHVML_SET_ERROR(
-                PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM_IDENTIFIER);
+                PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM_INFORMATION);
             pchvml_token_set_force_quirks(hvml->token, true);
             ADVANCE_TO(PCHVML_BOGUS_DOCTYPE_STATE);
         END_STATE()
@@ -1631,7 +1631,7 @@ next_state:
                 ADVANCE_TO(PCHVML_DOCTYPE_SYSTEM_INFORMATION_SINGLE_QUOTED_STATE);
             }
             if (character == '>') {
-                PCHVML_SET_ERROR(PCHVML_ERROR_MISSING_DOCTYPE_SYSTEM_IDENTIFIER);
+                PCHVML_SET_ERROR(PCHVML_ERROR_MISSING_DOCTYPE_SYSTEM_INFORMATION);
                 pchvml_token_set_force_quirks(hvml->token, true);
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
@@ -1640,7 +1640,7 @@ next_state:
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
             PCHVML_SET_ERROR(
-                PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM_IDENTIFIER);
+                PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM_INFORMATION);
             pchvml_token_set_force_quirks(hvml->token, true);
             ADVANCE_TO(PCHVML_BOGUS_DOCTYPE_STATE);
         END_STATE()
@@ -1661,7 +1661,7 @@ next_state:
             }
             if (character == '>') {
                 PCHVML_SET_ERROR(
-                        PCHVML_ERROR_MISSING_DOCTYPE_SYSTEM_IDENTIFIER);
+                        PCHVML_ERROR_MISSING_DOCTYPE_SYSTEM_INFORMATION);
                 pchvml_token_set_force_quirks(hvml->token, true);
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
@@ -1671,7 +1671,7 @@ next_state:
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
             PCHVML_SET_ERROR(
-                PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM_IDENTIFIER);
+                PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM_INFORMATION);
             pchvml_token_set_force_quirks(hvml->token, true);
             ADVANCE_TO(PCHVML_BOGUS_DOCTYPE_STATE);
         END_STATE()
@@ -1681,7 +1681,7 @@ next_state:
                 ADVANCE_TO(PCHVML_AFTER_DOCTYPE_SYSTEM_INFORMATION_STATE);
             }
             if (character == '>') {
-                PCHVML_SET_ERROR(PCHVML_ERROR_ABRUPT_DOCTYPE_SYSTEM_IDENTIFIER);
+                PCHVML_SET_ERROR(PCHVML_ERROR_ABRUPT_DOCTYPE_SYSTEM_INFORMATION);
                 pchvml_token_set_force_quirks(hvml->token, true);
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
@@ -1700,7 +1700,7 @@ next_state:
                 ADVANCE_TO(PCHVML_AFTER_DOCTYPE_SYSTEM_INFORMATION_STATE);
             }
             if (character == '>') {
-                PCHVML_SET_ERROR(PCHVML_ERROR_ABRUPT_DOCTYPE_SYSTEM_IDENTIFIER);
+                PCHVML_SET_ERROR(PCHVML_ERROR_ABRUPT_DOCTYPE_SYSTEM_INFORMATION);
                 pchvml_token_set_force_quirks(hvml->token, true);
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
@@ -1727,7 +1727,7 @@ next_state:
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
             PCHVML_SET_ERROR(
-             PCHVML_ERROR_UNEXPECTED_CHARACTER_AFTER_DOCTYPE_SYSTEM_IDENTIFIER);
+             PCHVML_ERROR_UNEXPECTED_CHARACTER_AFTER_DOCTYPE_SYSTEM_INFORMATION);
             ADVANCE_TO(PCHVML_BOGUS_DOCTYPE_STATE);
         END_STATE()
 
