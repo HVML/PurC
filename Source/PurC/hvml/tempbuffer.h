@@ -77,6 +77,9 @@ const char* pchvml_temp_buffer_get_buffer (
 void pchvml_temp_buffer_append_bytes (struct pchvml_temp_buffer* buffer,
         const char* bytes, size_t nr_bytes);
 
+void pchvml_temp_buffer_append (struct pchvml_temp_buffer* buffer,
+        uint32_t uc);
+
 void pchvml_temp_buffer_append_chars (struct pchvml_temp_buffer* buffer,
         const uint32_t* ucs, size_t nr_ucs);
 

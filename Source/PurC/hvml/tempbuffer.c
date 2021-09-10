@@ -157,7 +157,7 @@ static inline size_t uc_to_utf8(uint32_t c, char* outbuf)
     return len;
 }
 
-static void pchvml_temp_buffer_append_uc (struct pchvml_temp_buffer* buffer,
+void pchvml_temp_buffer_append (struct pchvml_temp_buffer* buffer,
         uint32_t uc)
 {
     char buf[8] = {0};
@@ -169,7 +169,7 @@ void pchvml_temp_buffer_append_chars (struct pchvml_temp_buffer* buffer,
         const uint32_t* ucs, size_t nr_ucs)
 {
     for (size_t i = 0; i < nr_ucs; i++) {
-        pchvml_temp_buffer_append_uc (buffer, ucs[i]);
+        pchvml_temp_buffer_append (buffer, ucs[i]);
     }
 }
 
@@ -209,7 +209,7 @@ bool pchvml_temp_buffer_end_with (struct pchvml_temp_buffer* buffer,
         const char* bytes, size_t nr_bytes)
 {
     size_t sz = pchvml_temp_buffer_get_size_in_bytes(buffer);
-    return (sz >= nr_bytes 
+    return (sz >= nr_bytes
             && memcmp(buffer->here - nr_bytes, bytes, nr_bytes) == 0);
 }
 
