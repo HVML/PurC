@@ -150,19 +150,17 @@ struct pchvml_sbst;
 struct pchvml_parser {
     enum pchvml_state state;
     enum pchvml_state return_state;
-    uint32_t flags;
-    size_t queue_size;
     struct pchvml_rwswrap* rwswrap;
     struct pchvml_temp_buffer* temp_buffer;
     struct pchvml_temp_buffer* appropriate_tag_name;
     struct pchvml_temp_buffer* escape_buffer;
-    struct pchvml_token* curr_token;
+    struct pchvml_token* token;
     struct pchvml_sbst* sbst;
-    struct pcvcm_node* curr_vcm_tree;
-    struct pcvcm_node* curr_vcm_node;
-    struct pcvcm_stack* vcm_node_stack;
-    struct pcutils_stack* ejson_nesting_stack;
-    uint64_t character_reference_code;
+    struct pcvcm_node* vcm_tree;
+    struct pcvcm_node* vcm_node;
+    struct pcvcm_stack* vcm_stack;
+    struct pcutils_stack* ejson_stack;
+    uint64_t char_ref_code;
 };
 
 #ifdef __cplusplus
