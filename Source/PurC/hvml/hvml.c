@@ -174,14 +174,19 @@
         pchvml_temp_buffer_reset(hvml->temp_buffer);                        \
     } while (false)
 
+#define APPEND_TO_TEMP_BUFFER(uc)                                           \
+    do {                                                                    \
+        pchvml_temp_buffer_append(hvml->temp_buffer, uc);                   \
+    } while (false)
+
 #define APPEND_BYTES_TO_TEMP_BUFFER(bytes, nr_bytes)                        \
     do {                                                                    \
         pchvml_temp_buffer_append_bytes(hvml->temp_buffer, bytes, nr_bytes);\
     } while (false)
 
-#define APPEND_TO_TEMP_BUFFER(uc)                                           \
+#define APPEND_BUFFER_TO_TEMP_BUFFER(buffer)                                \
     do {                                                                    \
-        pchvml_temp_buffer_append(hvml->temp_buffer, uc);                   \
+        pchvml_temp_buffer_append_temp_buffer(hvml->temp_buffer, buffer);   \
     } while (false)
 
 static const char* hvml_err_msgs[] = {
@@ -3527,8 +3532,7 @@ next_state:
                         hvml->escape_buffer);
                 if (nr_chars == 4) {
                     APPEND_BYTES_TO_TEMP_BUFFER("\\u", 2);
-                    pchvml_temp_buffer_append_temp_buffer(hvml->temp_buffer,
-                            hvml->escape_buffer);
+                    APPEND_BUFFER_TO_TEMP_BUFFER(hvml->escape_buffer);
                     pchvml_temp_buffer_reset(hvml->escape_buffer);
                     ADVANCE_TO(hvml->return_state);
                 }
