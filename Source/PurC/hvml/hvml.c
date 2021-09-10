@@ -176,12 +176,12 @@
 
 #define APPEND_TEMP_BUFFER(c, sz_c)                                         \
     do {                                                                    \
-        pchvml_temp_buffer_append (hvml->temp_buffer, c, sz_c);             \
+        pchvml_temp_buffer_append_bytes (hvml->temp_buffer, c, sz_c);       \
     } while (false)
 
 #define APPEND_TEMP_BUFFER_UC(c, sz_c)                                      \
     do {                                                                    \
-        pchvml_temp_buffer_append_ucs (hvml->temp_buffer, c, sz_c);         \
+        pchvml_temp_buffer_append_chars (hvml->temp_buffer, c, sz_c);       \
     } while (false)
 
 static const char* hvml_err_msgs[] = {
@@ -598,7 +598,7 @@ void pchvml_parser_save_appropriate_tag_name (struct pchvml_parser* hvml)
 {
     if (pchvml_token_is_type (hvml->token, PCHVML_TOKEN_START_TAG)) {
         const char* name = pchvml_token_get_name(hvml->token);
-        pchvml_temp_buffer_append(hvml->appropriate_tag_name,
+        pchvml_temp_buffer_append_bytes(hvml->appropriate_tag_name,
                 name, strlen(name));
     }
 }
@@ -3522,7 +3522,7 @@ next_state:
 
         BEGIN_STATE(PCHVML_EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS_STATE)
             if (is_ascii_hex_digit(character)) {
-                pchvml_temp_buffer_append(hvml->escape_buffer, c, nr_c);
+                pchvml_temp_buffer_append_bytes(hvml->escape_buffer, c, nr_c);
                 size_t nr_chars = pchvml_temp_buffer_get_size_in_chars(
                         hvml->escape_buffer);
                 if (nr_chars == 4) {

@@ -101,7 +101,7 @@ static void pchvml_temp_buffer_append_inner (struct pchvml_temp_buffer* buffer,
     *buffer->here = 0;
 }
 
-void pchvml_temp_buffer_append (struct pchvml_temp_buffer* buffer,
+void pchvml_temp_buffer_append_bytes (struct pchvml_temp_buffer* buffer,
         const char* bytes, size_t nr_bytes)
 {
     pchvml_temp_buffer_append_inner (buffer, bytes, nr_bytes);
@@ -162,10 +162,10 @@ static void pchvml_temp_buffer_append_uc (struct pchvml_temp_buffer* buffer,
 {
     char buf[8] = {0};
     size_t len = uc_to_utf8(uc, buf);
-    pchvml_temp_buffer_append (buffer, buf, len);
+    pchvml_temp_buffer_append_bytes (buffer, buf, len);
 }
 
-void pchvml_temp_buffer_append_ucs (struct pchvml_temp_buffer* buffer,
+void pchvml_temp_buffer_append_chars (struct pchvml_temp_buffer* buffer,
         const uint32_t* ucs, size_t nr_ucs)
 {
     for (size_t i = 0; i < nr_ucs; i++) {

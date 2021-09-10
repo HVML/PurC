@@ -106,7 +106,7 @@ void pchvml_token_attribute_append_to_name (struct pchvml_token* token,
     if (!token->curr_attr->name) {
         token->curr_attr->name = pchvml_temp_buffer_new ();
     }
-    pchvml_temp_buffer_append(token->curr_attr->name, bytes, sz_bytes);
+    pchvml_temp_buffer_append_bytes(token->curr_attr->name, bytes, sz_bytes);
 }
 
 void pchvml_token_attribute_append_to_value (struct pchvml_token* token,
@@ -115,7 +115,7 @@ void pchvml_token_attribute_append_to_value (struct pchvml_token* token,
     if (!token->curr_attr->value) {
         token->curr_attr->value = pchvml_temp_buffer_new ();
     }
-    pchvml_temp_buffer_append(token->curr_attr->value, bytes, sz_bytes);
+    pchvml_temp_buffer_append_bytes(token->curr_attr->value, bytes, sz_bytes);
 }
 
 void pchvml_token_attribute_append_vcm (struct pchvml_token* token,
@@ -152,7 +152,7 @@ void pchvml_token_append (struct pchvml_token* token,
     if (!token->temp_buffer) {
         token->temp_buffer = pchvml_temp_buffer_new ();
     }
-    pchvml_temp_buffer_append(token->temp_buffer, bytes, sz_bytes);
+    pchvml_temp_buffer_append_bytes(token->temp_buffer, bytes, sz_bytes);
 }
 
 void pchvml_token_append_to_public_identifier (struct pchvml_token* token,
@@ -161,7 +161,7 @@ void pchvml_token_append_to_public_identifier (struct pchvml_token* token,
     if (!token->public_identifier) {
         token->public_identifier = pchvml_temp_buffer_new ();
     }
-    pchvml_temp_buffer_append(token->public_identifier, bytes, sz_bytes);
+    pchvml_temp_buffer_append_bytes(token->public_identifier, bytes, sz_bytes);
 }
 
 void pchvml_token_append_to_system_identifier (struct pchvml_token* token,
@@ -170,7 +170,7 @@ void pchvml_token_append_to_system_identifier (struct pchvml_token* token,
     if (!token->system_identifier) {
         token->system_identifier = pchvml_temp_buffer_new ();
     }
-    pchvml_temp_buffer_append(token->system_identifier, bytes, sz_bytes);
+    pchvml_temp_buffer_append_bytes(token->system_identifier, bytes, sz_bytes);
 }
 
 void pchvml_token_done (struct pchvml_token* token)

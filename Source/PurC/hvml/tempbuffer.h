@@ -32,7 +32,8 @@
 #include "purc-utils.h"
 
 #define pchvml_temp_buffer_append_temp_buffer(buffer, append)                \
-    pchvml_temp_buffer_append(buffer, pchvml_temp_buffer_get_buffer(append), \
+    pchvml_temp_buffer_append_bytes(buffer,                                  \
+        pchvml_temp_buffer_get_buffer(append),                               \
         pchvml_temp_buffer_get_size_in_bytes(append))                        \
 
 struct pchvml_temp_buffer {
@@ -73,10 +74,10 @@ const char* pchvml_temp_buffer_get_buffer (
     return (const char*)buffer->base;
 }
 
-void pchvml_temp_buffer_append (struct pchvml_temp_buffer* buffer,
+void pchvml_temp_buffer_append_bytes (struct pchvml_temp_buffer* buffer,
         const char* bytes, size_t nr_bytes);
 
-void pchvml_temp_buffer_append_ucs (struct pchvml_temp_buffer* buffer,
+void pchvml_temp_buffer_append_chars (struct pchvml_temp_buffer* buffer,
         const uint32_t* ucs, size_t nr_ucs);
 
 /*
