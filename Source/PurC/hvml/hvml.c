@@ -29,6 +29,7 @@
 #include "private/utils.h"
 #include "private/edom.h"
 #include "private/hvml.h"
+
 #include "tempbuffer.h"
 #include "rwswrap.h"
 #include "hvml-token.h"
@@ -230,8 +231,10 @@ static const char* hvml_err_msgs[] = {
     "pchvml error missing quote before doctype public identifier",
     /* PCHVML_ERROR_ABRUPT_DOCTYPE_PUBLIC_IDENTIFIER */
     "pchvml error abrupt doctype public identifier",
-    /* PCHVML_ERROR_MISSING_WHITESPACE_BETWEEN_DOCTYPE_PUBLIC_AND_SYSTEM_INFORMATIONS */
-    "pchvml error missing whitespace between doctype public and system informations",
+    /* PCHVML_ERROR_MISSING_WHITESPACE_BETWEEN_DOCTYPE_PUBLIC_AND_SYSTEM\
+     _INFORMATIONS */
+    "pchvml error missing whitespace between doctype public and system\
+        informations",
     /* PCHVML_ERROR_MISSING_WHITESPACE_AFTER_DOCTYPE_SYSTEM_KEYWORD */
     "pchvml error missing whitespace after doctype system keyword",
     /* PCHVML_ERROR_MISSING_DOCTYPE_SYSTEM_INFORMATION */
