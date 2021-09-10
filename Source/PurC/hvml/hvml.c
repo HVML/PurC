@@ -331,85 +331,82 @@ static const uint32_t numeric_char_ref_extension_array[32] = {
     0x02DC, 0x2122, 0x0161, 0x203A, 0x0153, 0x009D, 0x017E, 0x0178, // 98-9F
 };
 
-PCA_INLINE UNUSED_FUNCTION bool is_whitespace (uint32_t character)
+PCA_INLINE UNUSED_FUNCTION bool is_whitespace (uint32_t uc)
 {
-    return character == ' ' || character == '\x0A' ||
-        character == '\x09' || character == '\x0C';
+    return uc == ' ' || uc == '\x0A' || uc == '\x09' || uc == '\x0C';
 }
 
-PCA_INLINE UNUSED_FUNCTION uint32_t to_ascii_lower_unchecked (uint32_t character)
+PCA_INLINE UNUSED_FUNCTION uint32_t to_ascii_lower_unchecked (uint32_t uc)
 {
-    return character | 0x20;
+    return uc | 0x20;
 }
 
-PCA_INLINE UNUSED_FUNCTION bool is_ascii (uint32_t character)
+PCA_INLINE UNUSED_FUNCTION bool is_ascii (uint32_t uc)
 {
-    return !(character & ~0x7F);
+    return !(uc & ~0x7F);
 }
 
-PCA_INLINE UNUSED_FUNCTION bool is_ascii_lower (uint32_t character)
+PCA_INLINE UNUSED_FUNCTION bool is_ascii_lower (uint32_t uc)
 {
-    return character >= 'a' && character <= 'z';
+    return uc >= 'a' && uc <= 'z';
 }
 
-PCA_INLINE UNUSED_FUNCTION bool is_ascii_upper (uint32_t character)
+PCA_INLINE UNUSED_FUNCTION bool is_ascii_upper (uint32_t uc)
 {
-     return character >= 'A' && character <= 'Z';
+     return uc >= 'A' && uc <= 'Z';
 }
 
-PCA_INLINE UNUSED_FUNCTION bool is_ascii_space (uint32_t character)
+PCA_INLINE UNUSED_FUNCTION bool is_ascii_space (uint32_t uc)
 {
-    return character <= ' ' &&
-        (character == ' ' || (character <= 0xD && character >= 0x9));
+    return uc <= ' ' && (uc == ' ' || (uc <= 0xD && uc >= 0x9));
 }
 
-PCA_INLINE UNUSED_FUNCTION bool is_ascii_digit (uint32_t character)
+PCA_INLINE UNUSED_FUNCTION bool is_ascii_digit (uint32_t uc)
 {
-    return character >= '0' && character <= '9';
+    return uc >= '0' && uc <= '9';
 }
 
-PCA_INLINE UNUSED_FUNCTION bool is_ascii_binary_digit (uint32_t character)
+PCA_INLINE UNUSED_FUNCTION bool is_ascii_binary_digit (uint32_t uc)
 {
-     return character == '0' || character == '1';
+     return uc == '0' || uc == '1';
 }
 
-PCA_INLINE UNUSED_FUNCTION bool is_ascii_hex_digit (uint32_t character)
+PCA_INLINE UNUSED_FUNCTION bool is_ascii_hex_digit (uint32_t uc)
 {
-     return is_ascii_digit(character) ||
-         (to_ascii_lower_unchecked(character) >= 'a' &&
-          to_ascii_lower_unchecked(character) <= 'f');
+     return is_ascii_digit(uc) || (
+             to_ascii_lower_unchecked(uc) >= 'a' &&
+             to_ascii_lower_unchecked(uc) <= 'f'
+             );
 }
 
-PCA_INLINE UNUSED_FUNCTION bool is_ascii_upper_hex_digit (uint32_t character)
+PCA_INLINE UNUSED_FUNCTION bool is_ascii_upper_hex_digit (uint32_t uc)
 {
-     return is_ascii_digit(character) ||
-         (character >= 'A' && character <= 'F');
+     return is_ascii_digit(uc) || (uc >= 'A' && uc <= 'F');
 }
 
-PCA_INLINE UNUSED_FUNCTION bool is_ascii_lower_hex_digit (uint32_t character)
+PCA_INLINE UNUSED_FUNCTION bool is_ascii_lower_hex_digit (uint32_t uc)
 {
-     return is_ascii_digit(character) ||
-         (character >= 'a' && character <= 'f');
+     return is_ascii_digit(uc) || (uc >= 'a' && uc <= 'f');
 }
 
-PCA_INLINE UNUSED_FUNCTION bool is_ascii_octal_digit (uint32_t character)
+PCA_INLINE UNUSED_FUNCTION bool is_ascii_octal_digit (uint32_t uc)
 {
-     return character >= '0' && character <= '7';
+     return uc >= '0' && uc <= '7';
 }
 
-PCA_INLINE UNUSED_FUNCTION bool is_ascii_alpha (uint32_t character)
+PCA_INLINE UNUSED_FUNCTION bool is_ascii_alpha (uint32_t uc)
 {
-    return is_ascii_lower(to_ascii_lower_unchecked(character));
+    return is_ascii_lower(to_ascii_lower_unchecked(uc));
 }
 
-PCA_INLINE UNUSED_FUNCTION bool is_ascii_alpha_numeric (uint32_t character)
+PCA_INLINE UNUSED_FUNCTION bool is_ascii_alpha_numeric (uint32_t uc)
 {
-    return is_ascii_digit(character) || is_ascii_alpha(character);
+    return is_ascii_digit(uc) || is_ascii_alpha(uc);
 }
 
-PCA_INLINE UNUSED_FUNCTION bool is_eof (uint32_t character)
+PCA_INLINE UNUSED_FUNCTION bool is_eof (uint32_t uc)
 {
-    return character == PCHVML_END_OF_FILE;
+    return uc == PCHVML_END_OF_FILE;
 }
 
 void pchvml_init_once(void)
