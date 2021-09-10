@@ -59,10 +59,10 @@ static bool is_utf8_leading_byte (char c)
     return (c & 0xC0) != 0x80;
 }
 
-static wchar_t utf8_to_wchar_t (const unsigned char* utf8_char,
+static uint32_t utf8_to_uint32_t (const unsigned char* utf8_char,
         int utf8_char_len)
 {
-    wchar_t wc = *((unsigned char *)(utf8_char++));
+    uint32_t wc = *((unsigned char *)(utf8_char++));
     int n = utf8_char_len;
     int t = 0;
 
@@ -115,7 +115,7 @@ void pchvml_temp_buffer_append (struct pchvml_temp_buffer* buffer,
     }
 }
 
-static inline size_t uc_to_utf8(wchar_t c, char* outbuf)
+static inline size_t uc_to_utf8(uint32_t c, char* outbuf)
 {
     size_t len = 0;
     int first;
@@ -158,7 +158,7 @@ static inline size_t uc_to_utf8(wchar_t c, char* outbuf)
 }
 
 static void pchvml_temp_buffer_append_uc (struct pchvml_temp_buffer* buffer,
-        wchar_t uc)
+        uint32_t uc)
 {
     char buf[8] = {0};
     size_t len = uc_to_utf8(uc, buf);
@@ -166,7 +166,7 @@ static void pchvml_temp_buffer_append_uc (struct pchvml_temp_buffer* buffer,
 }
 
 void pchvml_temp_buffer_append_ucs (struct pchvml_temp_buffer* buffer,
-        const wchar_t* ucs, size_t nr_ucs)
+        const uint32_t* ucs, size_t nr_ucs)
 {
     for (size_t i = 0; i < nr_ucs; i++) {
         pchvml_temp_buffer_append_uc (buffer, ucs[i]);
@@ -220,7 +220,7 @@ bool pchvml_temp_buffer_equal_to (struct pchvml_temp_buffer* buffer,
     return (sz == nr_bytes && memcmp(buffer->base, bytes, sz) == 0);
 }
 
-wchar_t pchvml_temp_buffer_get_last_char (struct pchvml_temp_buffer* buffer)
+uint32_t pchvml_temp_buffer_get_last_char (struct pchvml_temp_buffer* buffer)
 {
     if (pchvml_temp_buffer_is_empty(buffer)) {
         return 0;
@@ -233,7 +233,7 @@ wchar_t pchvml_temp_buffer_get_last_char (struct pchvml_temp_buffer* buffer)
         }
         p = p - 1;
     }
-    return utf8_to_wchar_t(p, buffer->here - p);
+    return utf8_to_uint32_t(p, buffer->here - p);
 }
 
 void pchvml_temp_buffer_reset (struct pchvml_temp_buffer* buffer)

@@ -48,16 +48,16 @@ struct pchvml_rwswrap* pchvml_rwswrap_new (void);
 void pchvml_rwswrap_set_rwstream (struct pchvml_rwswrap* wrap,
         purc_rwstream_t rws);
 
-wchar_t pchvml_rwswrap_next_char (struct pchvml_rwswrap* wrap);
+uint32_t pchvml_rwswrap_next_char (struct pchvml_rwswrap* wrap);
 
 int pchvml_rwswrap_next_utf8_char (struct pchvml_rwswrap* wrap, char* bytes,
-        wchar_t* uc);
+        uint32_t* uc);
 
 bool pchvml_rwswrap_buffer_chars (struct pchvml_rwswrap* wrap,
-        wchar_t* ucs, size_t nr_ucs);
+        uint32_t* ucs, size_t nr_ucs);
 
 /*
- * ucs is array list of unicode character (wchar_t)
+ * ucs is array list of unicode character (uint32_t)
  */
 bool pchvml_rwswrap_buffer_arrlist (struct pchvml_rwswrap* wrap,
         struct pcutils_arrlist* ucs);

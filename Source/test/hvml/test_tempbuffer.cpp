@@ -29,7 +29,7 @@ TEST(temp_buffer, append)
     ASSERT_EQ(0, pchvml_temp_buffer_get_size_in_chars(buffer));
 
     char c[8] = {0};
-    wchar_t wc = 0;
+    uint32_t wc = 0;
     pchvml_temp_buffer_append(buffer, c, 1);
     ASSERT_EQ(1, pchvml_temp_buffer_get_size_in_bytes(buffer));
     ASSERT_EQ(1, pchvml_temp_buffer_get_size_in_chars(buffer));
@@ -70,7 +70,7 @@ TEST(temp_buffer, end_with_and_is_equal)
     ASSERT_EQ(0, pchvml_temp_buffer_get_size_in_chars(buffer));
 
     char c[8] = {0};
-    wchar_t wc = 0;
+    uint32_t wc = 0;
     pchvml_temp_buffer_append(buffer, c, 1);
     ASSERT_EQ(1, pchvml_temp_buffer_get_size_in_bytes(buffer));
     ASSERT_EQ(1, pchvml_temp_buffer_get_size_in_chars(buffer));
@@ -157,7 +157,7 @@ TEST(temp_buffer, append_ucs)
     ASSERT_STREQ("abcde", pchvml_temp_buffer_get_buffer(buffer));
 
 
-    wchar_t wc[] = {0x4F60, 0x597D};
+    uint32_t wc[] = {0x4F60, 0x597D};
     pchvml_temp_buffer_append_ucs(buffer, wc, 2);
     ASSERT_EQ(11, pchvml_temp_buffer_get_size_in_bytes(buffer));
     ASSERT_EQ(7, pchvml_temp_buffer_get_size_in_chars(buffer));
@@ -174,7 +174,7 @@ TEST(temp_buffer, delete_head)
     ASSERT_EQ(0, pchvml_temp_buffer_get_size_in_bytes(buffer));
     ASSERT_EQ(0, pchvml_temp_buffer_get_size_in_chars(buffer));
 
-    wchar_t wc[] = {0x4F60, 0x597D};
+    uint32_t wc[] = {0x4F60, 0x597D};
     pchvml_temp_buffer_append_ucs(buffer, wc, 2);
     ASSERT_EQ(6, pchvml_temp_buffer_get_size_in_bytes(buffer));
     ASSERT_EQ(2, pchvml_temp_buffer_get_size_in_chars(buffer));
@@ -212,7 +212,7 @@ TEST(temp_buffer, delete_tail)
     ASSERT_STREQ("abcde", pchvml_temp_buffer_get_buffer(buffer));
 
 
-    wchar_t wc[] = {0x4F60, 0x597D};
+    uint32_t wc[] = {0x4F60, 0x597D};
     pchvml_temp_buffer_append_ucs(buffer, wc, 2);
     ASSERT_EQ(11, pchvml_temp_buffer_get_size_in_bytes(buffer));
     ASSERT_EQ(7, pchvml_temp_buffer_get_size_in_chars(buffer));

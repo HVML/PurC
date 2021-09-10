@@ -80,7 +80,7 @@ void pchvml_sbst_destroy (struct pchvml_sbst* sbst)
 }
 
 bool pchvml_sbst_advance_ex (struct pchvml_sbst* sbst,
-        wchar_t uc, bool case_insensitive)
+        uint32_t uc, bool case_insensitive)
 {
     pcutils_arrlist_add (sbst->ucs, (void*)(uintptr_t)uc);
     if (uc > 0x7F) {

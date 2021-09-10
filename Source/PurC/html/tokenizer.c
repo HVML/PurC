@@ -340,7 +340,7 @@ unsigned int
 pchtml_html_tokenizer_chunk(pchtml_html_tokenizer_t *tkz, const purc_rwstream_t html)
 {
     char utf8_buf[8] = {0};
-    wchar_t wc = 0;
+    uint32_t uc = 0;
     const unsigned char *end = NULL;
     const unsigned char *data = NULL;
     int size = 0;
@@ -348,7 +348,7 @@ pchtml_html_tokenizer_chunk(pchtml_html_tokenizer_t *tkz, const purc_rwstream_t 
     if (html == NULL)
         return PURC_ERROR_HTML;
 
-    size = purc_rwstream_read_utf8_char (html, utf8_buf, &wc);
+    size = purc_rwstream_read_utf8_char (html, utf8_buf, &uc);
 
     while (size > 0)
     {
@@ -363,7 +363,7 @@ pchtml_html_tokenizer_chunk(pchtml_html_tokenizer_t *tkz, const purc_rwstream_t 
             data = tkz->state(tkz, data, end);
         }
 
-        size = purc_rwstream_read_utf8_char (html, utf8_buf, &wc);
+        size = purc_rwstream_read_utf8_char (html, utf8_buf, &uc);
     }
 
     return tkz->status;

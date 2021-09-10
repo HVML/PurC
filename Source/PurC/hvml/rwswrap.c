@@ -49,7 +49,7 @@
 
 struct pchvml_uc {
     struct list_head list;
-    wchar_t uc;
+    uint32_t uc;
 };
 
 struct pchvml_uc* pchvml_uc_new (void)
@@ -80,25 +80,25 @@ void pchvml_rwswrap_set_rwstream (struct pchvml_rwswrap* wrap,
     wrap->rws = rws;
 }
 
-static wchar_t pchvml_rwswrap_read_from_rwstream (struct pchvml_rwswrap* wrap)
+static uint32_t pchvml_rwswrap_read_from_rwstream (struct pchvml_rwswrap* wrap)
 {
     char c[8] = {0};
-    wchar_t uc = 0;
+    uint32_t uc = 0;
     purc_rwstream_read_utf8_char (wrap->rws, c, &uc);
     return uc;
 }
 
-static wchar_t pchvml_rwswrap_read_from_uc_list (struct pchvml_rwswrap* wrap)
+static uint32_t pchvml_rwswrap_read_from_uc_list (struct pchvml_rwswrap* wrap)
 {
     struct pchvml_uc* puc = list_entry(wrap->uc_list.next,
             struct pchvml_uc, list);
-    wchar_t uc = puc->uc;
+    uint32_t uc = puc->uc;
     list_del_init(&puc->list);
     pchvml_uc_destroy(puc);
     return uc;
 }
 
-wchar_t pchvml_rwswrap_next_char (struct pchvml_rwswrap* wrap)
+uint32_t pchvml_rwswrap_next_char (struct pchvml_rwswrap* wrap)
 {
     if (list_empty (&wrap->uc_list)) {
         return pchvml_rwswrap_read_from_rwstream (wrap);
@@ -106,7 +106,7 @@ wchar_t pchvml_rwswrap_next_char (struct pchvml_rwswrap* wrap)
     return pchvml_rwswrap_read_from_uc_list (wrap);
 }
 
-static inline size_t uc_to_utf8(wchar_t c, char* outbuf)
+static inline size_t uc_to_utf8(uint32_t c, char* outbuf)
 {
     size_t len = 0;
     int first;
@@ -149,7 +149,7 @@ static inline size_t uc_to_utf8(wchar_t c, char* outbuf)
 }
 
 int pchvml_rwswrap_next_utf8_char (struct pchvml_rwswrap* wrap, char* bytes,
-        wchar_t* uc)
+        uint32_t* uc)
 {
     *uc = pchvml_rwswrap_next_char (wrap);
     if (*uc) {
@@ -160,7 +160,7 @@ int pchvml_rwswrap_next_utf8_char (struct pchvml_rwswrap* wrap, char* bytes,
 }
 
 bool pchvml_rwswrap_buffer_chars (struct pchvml_rwswrap* wrap,
-        wchar_t* ucs, size_t nr_ucs)
+        uint32_t* ucs, size_t nr_ucs)
 {
     for (int i = nr_ucs - 1; i >= 0; i--) {
         struct pchvml_uc* puc = pchvml_uc_new ();
@@ -179,7 +179,7 @@ bool pchvml_rwswrap_buffer_arrlist (struct pchvml_rwswrap* wrap,
 {
     size_t length = pcutils_arrlist_length(ucs);
     for (int i = length - 1; i >= 0; i--) {
-        wchar_t uc = (wchar_t)(uintptr_t) pcutils_arrlist_get_idx (ucs, i);
+        uint32_t uc = (uint32_t)(uintptr_t) pcutils_arrlist_get_idx (ucs, i);
         struct pchvml_uc* puc = pchvml_uc_new ();
         if (!puc) {
             pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);

@@ -444,10 +444,10 @@ ssize_t purc_rwstream_read (purc_rwstream_t rws, void* buf, size_t count)
     return rws->funcs->read(rws, buf, count);
 }
 
-static wchar_t utf8_to_wchar_t (const unsigned char* utf8_char,
+static uint32_t utf8_to_uint32_t (const unsigned char* utf8_char,
         int utf8_char_len)
 {
-    wchar_t wc = *((unsigned char *)(utf8_char++));
+    uint32_t wc = *((unsigned char *)(utf8_char++));
     int n = utf8_char_len;
     int t = 0;
 
@@ -463,7 +463,7 @@ static wchar_t utf8_to_wchar_t (const unsigned char* utf8_char,
 }
 
 int purc_rwstream_read_utf8_char (purc_rwstream_t rws, char* buf_utf8,
-        wchar_t* buf_wc)
+        uint32_t* buf_wc)
 {
     if (rws == NULL)
     {
@@ -503,7 +503,7 @@ int purc_rwstream_read_utf8_char (purc_rwstream_t rws, char* buf_utf8,
         }
     }
 
-    *buf_wc = utf8_to_wchar_t((const unsigned char*)buf_utf8, ch_len);
+    *buf_wc = utf8_to_uint32_t((const unsigned char*)buf_utf8, ch_len);
     return ch_len;
 }
 

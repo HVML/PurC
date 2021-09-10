@@ -28,7 +28,7 @@ TEST(rwswrap, next_char)
 
     pchvml_rwswrap_set_rwstream (wrap, rws);
 
-    wchar_t uc = pchvml_rwswrap_next_char (wrap);
+    uint32_t uc = pchvml_rwswrap_next_char (wrap);
     ASSERT_EQ(uc, 'T');
     uc = pchvml_rwswrap_next_char (wrap);
     ASSERT_EQ(uc, 'h');
@@ -57,7 +57,7 @@ TEST(rwswrap, buffer_char)
 
     pchvml_rwswrap_set_rwstream (wrap, rws);
 
-    wchar_t uc = pchvml_rwswrap_next_char (wrap);
+    uint32_t uc = pchvml_rwswrap_next_char (wrap);
     ASSERT_EQ(uc, 'T');
     uc = pchvml_rwswrap_next_char (wrap);
     ASSERT_EQ(uc, 'h');
@@ -66,7 +66,7 @@ TEST(rwswrap, buffer_char)
     uc = pchvml_rwswrap_next_char (wrap);
     ASSERT_EQ(uc, 's');
 
-    wchar_t buff[] = {'T', 'h', 'i', 's'};
+    uint32_t buff[] = {'T', 'h', 'i', 's'};
     pchvml_rwswrap_buffer_chars (wrap, buff, 4);
     uc = pchvml_rwswrap_next_char (wrap);
     ASSERT_EQ(uc, 'T');
@@ -102,7 +102,7 @@ TEST(rwswrap, buffer_arrlist)
 
     pchvml_rwswrap_set_rwstream (wrap, rws);
 
-    wchar_t uc = pchvml_rwswrap_next_char (wrap);
+    uint32_t uc = pchvml_rwswrap_next_char (wrap);
     ASSERT_EQ(uc, 'T');
     uc = pchvml_rwswrap_next_char (wrap);
     ASSERT_EQ(uc, 'h');

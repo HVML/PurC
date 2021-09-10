@@ -77,7 +77,7 @@ void pchvml_temp_buffer_append (struct pchvml_temp_buffer* buffer,
         const char* bytes, size_t nr_bytes);
 
 void pchvml_temp_buffer_append_ucs (struct pchvml_temp_buffer* buffer,
-        const wchar_t* ucs, size_t nr_ucs);
+        const uint32_t* ucs, size_t nr_ucs);
 
 /*
  * delete characters from head
@@ -97,7 +97,7 @@ bool pchvml_temp_buffer_end_with (struct pchvml_temp_buffer* buffer,
 bool pchvml_temp_buffer_equal_to (struct pchvml_temp_buffer* buffer,
         const char* bytes, size_t nr_bytes);
 
-wchar_t pchvml_temp_buffer_get_last_char (struct pchvml_temp_buffer* buffer);
+uint32_t pchvml_temp_buffer_get_last_char (struct pchvml_temp_buffer* buffer);
 
 void pchvml_temp_buffer_reset (struct pchvml_temp_buffer* buffer);
 

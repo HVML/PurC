@@ -324,94 +324,93 @@ static struct err_msg_seg _hvml_err_msgs_seg = {
     hvml_err_msgs
 };
 
-static const wchar_t numeric_char_ref_extension_array[32] = {
+static const uint32_t numeric_char_ref_extension_array[32] = {
     0x20AC, 0x0081, 0x201A, 0x0192, 0x201E, 0x2026, 0x2020, 0x2021, // 80-87
     0x02C6, 0x2030, 0x0160, 0x2039, 0x0152, 0x008D, 0x017D, 0x008F, // 88-8F
     0x0090, 0x2018, 0x2019, 0x201C, 0x201D, 0x2022, 0x2013, 0x2014, // 90-97
     0x02DC, 0x2122, 0x0161, 0x203A, 0x0153, 0x009D, 0x017E, 0x0178, // 98-9F
 };
 
-static inline UNUSED_FUNCTION bool is_whitespace (wchar_t character)
+PCA_INLINE UNUSED_FUNCTION bool is_whitespace (uint32_t character)
 {
     return character == ' ' || character == '\x0A' ||
         character == '\x09' || character == '\x0C';
 }
 
-static inline UNUSED_FUNCTION wchar_t to_ascii_lower_unchecked (wchar_t character)
+PCA_INLINE UNUSED_FUNCTION uint32_t to_ascii_lower_unchecked (uint32_t character)
 {
     return character | 0x20;
 }
 
-static inline UNUSED_FUNCTION bool is_ascii (wchar_t character)
+PCA_INLINE UNUSED_FUNCTION bool is_ascii (uint32_t character)
 {
     return !(character & ~0x7F);
 }
 
-static inline UNUSED_FUNCTION bool is_ascii_lower (wchar_t character)
+PCA_INLINE UNUSED_FUNCTION bool is_ascii_lower (uint32_t character)
 {
     return character >= 'a' && character <= 'z';
 }
 
-static inline UNUSED_FUNCTION bool is_ascii_upper (wchar_t character)
+PCA_INLINE UNUSED_FUNCTION bool is_ascii_upper (uint32_t character)
 {
      return character >= 'A' && character <= 'Z';
 }
 
-static inline UNUSED_FUNCTION bool is_ascii_space (wchar_t character)
+PCA_INLINE UNUSED_FUNCTION bool is_ascii_space (uint32_t character)
 {
     return character <= ' ' &&
         (character == ' ' || (character <= 0xD && character >= 0x9));
 }
 
-static inline UNUSED_FUNCTION bool is_ascii_digit (wchar_t character)
+PCA_INLINE UNUSED_FUNCTION bool is_ascii_digit (uint32_t character)
 {
     return character >= '0' && character <= '9';
 }
 
-static inline UNUSED_FUNCTION bool is_ascii_binary_digit (wchar_t character)
+PCA_INLINE UNUSED_FUNCTION bool is_ascii_binary_digit (uint32_t character)
 {
      return character == '0' || character == '1';
 }
 
-static inline UNUSED_FUNCTION bool is_ascii_hex_digit (wchar_t character)
+PCA_INLINE UNUSED_FUNCTION bool is_ascii_hex_digit (uint32_t character)
 {
      return is_ascii_digit(character) ||
          (to_ascii_lower_unchecked(character) >= 'a' &&
           to_ascii_lower_unchecked(character) <= 'f');
 }
 
-static inline UNUSED_FUNCTION bool is_ascii_upper_hex_digit (wchar_t character)
+PCA_INLINE UNUSED_FUNCTION bool is_ascii_upper_hex_digit (uint32_t character)
 {
      return is_ascii_digit(character) ||
          (character >= 'A' && character <= 'F');
 }
 
-static inline UNUSED_FUNCTION bool is_ascii_lower_hex_digit (wchar_t character)
+PCA_INLINE UNUSED_FUNCTION bool is_ascii_lower_hex_digit (uint32_t character)
 {
      return is_ascii_digit(character) ||
          (character >= 'a' && character <= 'f');
 }
 
-static inline UNUSED_FUNCTION bool is_ascii_octal_digit (wchar_t character)
+PCA_INLINE UNUSED_FUNCTION bool is_ascii_octal_digit (uint32_t character)
 {
      return character >= '0' && character <= '7';
 }
 
-static inline UNUSED_FUNCTION bool is_ascii_alpha (wchar_t character)
+PCA_INLINE UNUSED_FUNCTION bool is_ascii_alpha (uint32_t character)
 {
     return is_ascii_lower(to_ascii_lower_unchecked(character));
 }
 
-static inline UNUSED_FUNCTION bool is_ascii_alpha_numeric (wchar_t character)
+PCA_INLINE UNUSED_FUNCTION bool is_ascii_alpha_numeric (uint32_t character)
 {
     return is_ascii_digit(character) || is_ascii_alpha(character);
 }
 
-static inline UNUSED_FUNCTION bool is_eof (wchar_t character)
+PCA_INLINE UNUSED_FUNCTION bool is_eof (uint32_t character)
 {
     return character == PCHVML_END_OF_FILE;
 }
-
 
 void pchvml_init_once(void)
 {
@@ -683,7 +682,7 @@ struct pchvml_token* pchvml_next_token (struct pchvml_parser* hvml,
 {
     char c[8] = {0};
     int nr_c = 0;
-    wchar_t character = 0;
+    uint32_t character = 0;
     pchvml_rwswrap_set_rwstream (hvml->rwswrap, rws);
 
 next_input:
@@ -1802,7 +1801,7 @@ next_state:
                         hvml->sbst);
                 size_t length = pcutils_arrlist_length(ucs);
                 for (size_t i = 0; i < length; i++) {
-                    wchar_t uc = (wchar_t)(uintptr_t) pcutils_arrlist_get_idx(
+                    uint32_t uc = (uint32_t)(uintptr_t) pcutils_arrlist_get_idx(
                             ucs, i);
                     APPEND_TEMP_BUFFER_UC(&uc, 1);
                 }
@@ -1825,7 +1824,7 @@ next_state:
                     hvml->sbst);
             size_t length = pcutils_arrlist_length(ucs);
             for (size_t i = 0; i < length; i++) {
-                wchar_t uc = (wchar_t)(uintptr_t) pcutils_arrlist_get_idx(
+                uint32_t uc = (uint32_t)(uintptr_t) pcutils_arrlist_get_idx(
                         ucs, i);
                 APPEND_TEMP_BUFFER_UC(&uc, 1);
             }
@@ -1916,7 +1915,7 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_NUMERIC_CHARACTER_REFERENCE_END_STATE)
-            wchar_t uc = hvml->char_ref_code;
+            uint32_t uc = hvml->char_ref_code;
             if (uc == 0x00) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_NULL_CHARACTER_REFERENCE);
                 hvml->char_ref_code = 0xFFFD;
@@ -1935,7 +1934,7 @@ next_state:
                 PCHVML_SET_ERROR(
                         PCHVML_ERROR_NONCHARACTER_CHARACTER_REFERENCE);
             }
-            if (uc >= 0x00 && uc <= 0x1F &&
+            if (uc <= 0x1F &&
                     !(uc == 0x09 || uc == 0x0A || uc == 0x0C)){
                 PCHVML_SET_ERROR(
                     PCHVML_ERROR_CONTROL_CHARACTER_REFERENCE);
@@ -1962,7 +1961,7 @@ next_state:
                             PCHVML_ATTRIBUTE_ASSIGNMENT);
                 }
                 else {
-                    wchar_t op = pchvml_temp_buffer_get_last_char(
+                    uint32_t op = pchvml_temp_buffer_get_last_char(
                             hvml->temp_buffer);
                     switch (op) {
                         case '+':
@@ -2019,7 +2018,7 @@ next_state:
                             PCHVML_ATTRIBUTE_ASSIGNMENT);
                 }
                 else {
-                    wchar_t op = pchvml_temp_buffer_get_last_char(
+                    uint32_t op = pchvml_temp_buffer_get_last_char(
                             hvml->temp_buffer);
                     switch (op) {
                         case '+':
@@ -2153,7 +2152,7 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_CONTROL_STATE)
-            wchar_t uc = pcutils_stack_top (hvml->ejson_stack);
+            uint32_t uc = pcutils_stack_top (hvml->ejson_stack);
             if (is_whitespace(character)) {
                 if (hvml->vcm_node->type ==
                         PCVCM_NODE_TYPE_FUNC_CONCAT_STRING
@@ -2247,7 +2246,7 @@ next_state:
             if (character == '$') {
                 RECONSUME_IN(PCHVML_EJSON_DOLLAR_STATE);
             }
-            wchar_t uc = pcutils_stack_top (hvml->ejson_stack);
+            uint32_t uc = pcutils_stack_top (hvml->ejson_stack);
             if (uc == 'P') {
                 pcutils_stack_pop(hvml->ejson_stack);
                 pcutils_stack_push(hvml->ejson_stack, '{');
@@ -2269,7 +2268,7 @@ next_state:
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
                 return pchvml_token_new_eof();
             }
-            wchar_t uc = pcutils_stack_top (hvml->ejson_stack);
+            uint32_t uc = pcutils_stack_top (hvml->ejson_stack);
             if (character == '}') {
                 if (uc == '{') {
                     pcutils_stack_pop(hvml->ejson_stack);
@@ -2337,7 +2336,7 @@ next_state:
                     pcutils_stack_push(hvml->ejson_stack, '[');
                     RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
                 }
-                wchar_t uc = pcutils_stack_top (hvml->ejson_stack);
+                uint32_t uc = pcutils_stack_top (hvml->ejson_stack);
                 if (uc == '(' || uc == '<') {
                     pcutils_stack_push(hvml->ejson_stack, '[');
                     if (hvml->vcm_node) {
@@ -2381,7 +2380,7 @@ next_state:
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
                 return pchvml_token_new_eof();
             }
-            wchar_t uc = pcutils_stack_top(hvml->ejson_stack);
+            uint32_t uc = pcutils_stack_top(hvml->ejson_stack);
             if (character == ']') {
                 if (uc == '.') {
                     pcutils_stack_pop(hvml->ejson_stack);
@@ -2476,7 +2475,7 @@ next_state:
 
         BEGIN_STATE(PCHVML_EJSON_RIGHT_PARENTHESIS_STATE)
             if (character == ')') {
-                wchar_t uc = pcutils_stack_top(hvml->ejson_stack);
+                uint32_t uc = pcutils_stack_top(hvml->ejson_stack);
                 if (uc == '(') {
                     struct pcvcm_node* node = pcvcm_stack_pop(
                             hvml->vcm_stack);
@@ -2542,7 +2541,7 @@ next_state:
             }
             if (character == ',') {
                 pcutils_stack_pop(hvml->ejson_stack);
-                wchar_t uc = pcutils_stack_top(hvml->ejson_stack);
+                uint32_t uc = pcutils_stack_top(hvml->ejson_stack);
                 if (uc == '{') {
                     ADVANCE_TO(PCHVML_EJSON_BEFORE_NAME_STATE);
                 }
@@ -2560,7 +2559,7 @@ next_state:
             if (is_whitespace(character)) {
                 RECONSUME_IN(PCHVML_EJSON_BEFORE_NAME_STATE);
             }
-            wchar_t uc = pcutils_stack_top(hvml->ejson_stack);
+            uint32_t uc = pcutils_stack_top(hvml->ejson_stack);
             if (character == '"') {
                 RESET_TEMP_BUFFER();
                 if (uc == '{') {
@@ -3279,7 +3278,7 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_VALUE_NUMBER_SUFFIX_INTEGER_STATE)
-            wchar_t last_c = pchvml_temp_buffer_get_last_char(
+            uint32_t last_c = pchvml_temp_buffer_get_last_char(
                     hvml->temp_buffer);
             if (is_whitespace(character) || character == '}'
                     || character == ']' || character == ',' ) {
@@ -3579,7 +3578,7 @@ next_state:
                 hvml->vcm_node = pcvcm_node_new_string(
                            pchvml_temp_buffer_get_buffer(hvml->temp_buffer));
                 RESET_TEMP_BUFFER();
-                wchar_t uc = pcutils_stack_top (hvml->ejson_stack);
+                uint32_t uc = pcutils_stack_top (hvml->ejson_stack);
                 while (uc == '$') {
                     pcutils_stack_pop (hvml->ejson_stack);
                     struct pcvcm_node* node = pcvcm_stack_pop(
@@ -3602,7 +3601,7 @@ next_state:
                 hvml->vcm_node = pcvcm_node_new_string(
                            pchvml_temp_buffer_get_buffer(hvml->temp_buffer));
                 RESET_TEMP_BUFFER();
-                wchar_t uc = pcutils_stack_top (hvml->ejson_stack);
+                uint32_t uc = pcutils_stack_top (hvml->ejson_stack);
                 if (uc == '$') {
                     pcutils_stack_pop (hvml->ejson_stack);
                     struct pcvcm_node* node = pcvcm_stack_pop(
@@ -3624,7 +3623,7 @@ next_state:
                 hvml->vcm_node = pcvcm_node_new_string(
                            pchvml_temp_buffer_get_buffer(hvml->temp_buffer));
                 RESET_TEMP_BUFFER();
-                wchar_t uc = pcutils_stack_top (hvml->ejson_stack);
+                uint32_t uc = pcutils_stack_top (hvml->ejson_stack);
                 if (uc == '$') {
                     pcutils_stack_pop (hvml->ejson_stack);
                     struct pcvcm_node* node = pcvcm_stack_pop(
@@ -3646,7 +3645,7 @@ next_state:
                 hvml->vcm_node = pcvcm_node_new_string(
                            pchvml_temp_buffer_get_buffer(hvml->temp_buffer));
                 RESET_TEMP_BUFFER();
-                wchar_t uc = pcutils_stack_top (hvml->ejson_stack);
+                uint32_t uc = pcutils_stack_top (hvml->ejson_stack);
                 if (uc == '$') {
                     pcutils_stack_pop (hvml->ejson_stack);
                     struct pcvcm_node* node = pcvcm_stack_pop(
@@ -3734,7 +3733,7 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_JSONEE_STRING_STATE)
-            wchar_t uc = pcutils_stack_top (hvml->ejson_stack);
+            uint32_t uc = pcutils_stack_top (hvml->ejson_stack);
             if (is_whitespace(character)) {
                 if (uc == 'U') {
                     RECONSUME_IN(PCHVML_EJSON_AFTER_JSONEE_STRING_STATE);
@@ -3772,7 +3771,7 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_AFTER_JSONEE_STRING_STATE)
-            wchar_t uc = pcutils_stack_top (hvml->ejson_stack);
+            uint32_t uc = pcutils_stack_top (hvml->ejson_stack);
             if (is_whitespace(character)) {
                 struct pcvcm_node* node = pcvcm_stack_pop(hvml->vcm_stack);
 

@@ -103,7 +103,7 @@ TEST(stdio_rwstream, read_utf8_char)
     ASSERT_NE(rws, nullptr);
 
     char read_buf[100] = {0};
-    wchar_t wc = 0;
+    uint32_t wc = 0;
     int read_len = 0;
 
     read_len = purc_rwstream_read_utf8_char (rws, read_buf, &wc);
@@ -233,7 +233,7 @@ TEST(stdio_rwstream, seek_read)
     ASSERT_NE(rws, nullptr);
 
     char read_buf[100] = {0};
-    wchar_t wc = 0;
+    uint32_t wc = 0;
     int read_len = 0;
 
     read_len = purc_rwstream_read_utf8_char (rws, read_buf, &wc);
@@ -363,7 +363,7 @@ TEST(mem_rwstream, read_utf8_char)
     ASSERT_NE(rws, nullptr);
 
     char read_buf[100] = {0};
-    wchar_t wc = 0;
+    uint32_t wc = 0;
     int read_len = 0;
 
     read_len = purc_rwstream_read_utf8_char (rws, read_buf, &wc);
@@ -482,7 +482,7 @@ TEST(mem_rwstream, seek_read)
     ASSERT_NE(rws, nullptr);
 
     char read_buf[100] = {0};
-    wchar_t wc = 0;
+    uint32_t wc = 0;
     int read_len = 0;
 
     read_len = purc_rwstream_read_utf8_char (rws, read_buf, &wc);
@@ -666,7 +666,7 @@ TEST(buffer_rwstream, read_utf8_char)
     purc_rwstream_seek (rws, 0, SEEK_SET);
 
     char read_buf[100] = {0};
-    wchar_t wc = 0;
+    uint32_t wc = 0;
     int read_len = 0;
 
     read_len = purc_rwstream_read_utf8_char (rws, read_buf, &wc);
@@ -803,7 +803,7 @@ TEST(buffer_rwstream, seek_read)
     ASSERT_EQ(pos, 0);
 
     char read_buf[100] = {0};
-    wchar_t wc = 0;
+    uint32_t wc = 0;
     int read_len = 0;
 
     read_len = purc_rwstream_read_utf8_char (rws, read_buf, &wc);
@@ -963,7 +963,7 @@ TEST(gio_rwstream, read_utf8_char)
     ASSERT_NE(rws, nullptr);
 
     char read_buf[100] = {0};
-    wchar_t wc = 0;
+    uint32_t wc = 0;
     int read_len = 0;
 
     read_len = purc_rwstream_read_utf8_char (rws, read_buf, &wc);
@@ -1090,7 +1090,7 @@ TEST(gio_rwstream, seek_read)
     purc_rwstream_t rws = purc_rwstream_new_from_unix_fd (fd, 1024);
 
     char read_buf[100] = {0};
-    wchar_t wc = 0;
+    uint32_t wc = 0;
     int read_len = 0;
 
     read_len = purc_rwstream_read_utf8_char (rws, read_buf, &wc);

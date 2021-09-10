@@ -248,7 +248,7 @@ purc_rwstream_read (purc_rwstream_t rws, void* buf, size_t count);
  */
 PCA_EXPORT int
 purc_rwstream_read_utf8_char (purc_rwstream_t rws,
-        char* buf_utf8, wchar_t* buf_wc);
+        char* buf_utf8, uint32_t* buf_wc);
 
 
 /**
