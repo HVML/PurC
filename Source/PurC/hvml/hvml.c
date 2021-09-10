@@ -151,37 +151,37 @@
     case state_name:                                                        \
         return ""#state_name;                                               \
 
-#define APPEND_TO_CHARACTER(c, sz_c)                                           \
+#define APPEND_TO_CHARACTER(c, sz_c)                                        \
     do {                                                                    \
-        pchvml_parser_append_to_character (hvml, c, sz_c);                  \
+        pchvml_parser_append_to_character(hvml, c, sz_c);                   \
     } while (false)
 
 #define APPEND_TEMP_BUFFER_TO_CHARACTER()                                   \
     do {                                                                    \
-        pchvml_parser_append_to_character (hvml,                            \
+        pchvml_parser_append_to_character(hvml,                             \
             pchvml_temp_buffer_get_buffer(hvml->temp_buffer),               \
             pchvml_temp_buffer_get_size_in_bytes(hvml->temp_buffer));       \
-        pchvml_temp_buffer_reset (hvml->temp_buffer);                       \
+        pchvml_temp_buffer_reset(hvml->temp_buffer);                        \
     } while (false)
 
 #define APPEND_TO_TAG_NAME(c, sz_c)                                         \
     do {                                                                    \
-        pchvml_parser_append_to_tag_name (hvml, c, sz_c);                   \
+        pchvml_parser_append_to_tag_name(hvml, c, sz_c);                    \
     } while (false)
 
 #define RESET_TEMP_BUFFER()                                                 \
     do {                                                                    \
-        pchvml_temp_buffer_reset (hvml->temp_buffer);                       \
+        pchvml_temp_buffer_reset(hvml->temp_buffer);                        \
     } while (false)
 
-#define APPEND_TEMP_BUFFER(c, sz_c)                                         \
+#define APPEND_BYTES_TO_TEMP_BUFFER(bytes, nr_bytes)                        \
     do {                                                                    \
-        pchvml_temp_buffer_append_bytes (hvml->temp_buffer, c, sz_c);       \
+        pchvml_temp_buffer_append_bytes(hvml->temp_buffer, bytes, nr_bytes);\
     } while (false)
 
-#define APPEND_TEMP_BUFFER_UC(c, sz_c)                                      \
+#define APPEND_TO_TEMP_BUFFER(uc)                                           \
     do {                                                                    \
-        pchvml_temp_buffer_append_chars (hvml->temp_buffer, c, sz_c);       \
+        pchvml_temp_buffer_append(hvml->temp_buffer, uc);                   \
     } while (false)
 
 static const char* hvml_err_msgs[] = {
@@ -834,7 +834,7 @@ next_state:
         BEGIN_STATE(PCHVML_RCDATA_END_TAG_NAME_STATE)
             if (is_ascii_alpha(character)) {
                 APPEND_TO_TAG_NAME(c, nr_c);
-                APPEND_TEMP_BUFFER(c, nr_c);
+                APPEND_TO_TEMP_BUFFER(character);
                 ADVANCE_TO(PCHVML_RCDATA_END_TAG_NAME_STATE);
             }
             if (is_whitespace(character)) {
@@ -880,7 +880,7 @@ next_state:
         BEGIN_STATE(PCHVML_RAWTEXT_END_TAG_NAME_STATE)
             if (is_ascii_alpha(character)) {
                 APPEND_TO_TAG_NAME(c, nr_c);
-                APPEND_TEMP_BUFFER(c, nr_c);
+                APPEND_TO_TEMP_BUFFER(character);
                 ADVANCE_TO(PCHVML_RAWTEXT_END_TAG_NAME_STATE);
             }
             if (is_whitespace(character)) {
@@ -1775,12 +1775,12 @@ next_state:
 
         BEGIN_STATE(PCHVML_CHARACTER_REFERENCE_STATE)
             RESET_TEMP_BUFFER();
-            APPEND_TEMP_BUFFER("&", 1);
+            APPEND_TO_TEMP_BUFFER('&');
             if (is_ascii_alpha_numeric(character)) {
                 RECONSUME_IN(PCHVML_NAMED_CHARACTER_REFERENCE_STATE);
             }
             if (character == '#') {
-                APPEND_TEMP_BUFFER(c, nr_c);
+                APPEND_TO_TEMP_BUFFER(character);
                 SWITCH_TO(PCHVML_NUMERIC_CHARACTER_REFERENCE_STATE);
             }
             APPEND_TEMP_BUFFER_TO_CHARACTER();
@@ -1800,7 +1800,7 @@ next_state:
                 for (size_t i = 0; i < length; i++) {
                     uint32_t uc = (uint32_t)(uintptr_t) pcutils_arrlist_get_idx(
                             ucs, i);
-                    APPEND_TEMP_BUFFER_UC(&uc, 1);
+                    APPEND_TO_TEMP_BUFFER(uc);
                 }
                 pchvml_sbst_destroy(hvml->sbst);
                 hvml->sbst = NULL;
@@ -1816,14 +1816,14 @@ next_state:
                     PCHVML_ERROR_MISSING_SEMICOLON_AFTER_CHARACTER_REFERENCE);
             }
             RESET_TEMP_BUFFER();
-            APPEND_TEMP_BUFFER(value, strlen(value));
+            APPEND_BYTES_TO_TEMP_BUFFER(value, strlen(value));
             struct pcutils_arrlist* ucs = pchvml_sbst_get_buffered_ucs(
                     hvml->sbst);
             size_t length = pcutils_arrlist_length(ucs);
             for (size_t i = 0; i < length; i++) {
                 uint32_t uc = (uint32_t)(uintptr_t) pcutils_arrlist_get_idx(
                         ucs, i);
-                APPEND_TEMP_BUFFER_UC(&uc, 1);
+                APPEND_TO_TEMP_BUFFER(uc);
             }
             pchvml_sbst_destroy(hvml->sbst);
             hvml->sbst = NULL;
@@ -1851,7 +1851,7 @@ next_state:
         BEGIN_STATE(PCHVML_NUMERIC_CHARACTER_REFERENCE_STATE)
             hvml->char_ref_code = 0;
             if (character == 'x' || character == 'X') {
-                APPEND_TEMP_BUFFER(c, nr_c);
+                APPEND_TO_TEMP_BUFFER(character);
                 ADVANCE_TO(PCHVML_HEXADECIMAL_CHARACTER_REFERENCE_START_STATE);
             }
             RECONSUME_IN(PCHVML_DECIMAL_CHARACTER_REFERENCE_START_STATE);
@@ -1946,7 +1946,7 @@ next_state:
             }
             RESET_TEMP_BUFFER();
             uc = hvml->char_ref_code;
-            APPEND_TEMP_BUFFER_UC(&uc, 1);
+            APPEND_TO_TEMP_BUFFER(uc);
             ADVANCE_TO(hvml->return_state);
         END_STATE()
 
@@ -2615,7 +2615,7 @@ next_state:
             }
             if (is_ascii_alpha(character) || is_ascii_digit(character)
                     || character == '-' || character == '_') {
-                APPEND_TEMP_BUFFER(c, nr_c);
+                APPEND_TO_TEMP_BUFFER(character);
                 ADVANCE_TO(PCHVML_EJSON_NAME_UNQUOTED_STATE);
             }
             if (character == '$') {
@@ -2658,7 +2658,7 @@ next_state:
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
                 return pchvml_token_new_eof();
             }
-            APPEND_TEMP_BUFFER(c, nr_c);
+            APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(PCHVML_EJSON_NAME_SINGLE_QUOTED_STATE);
         END_STATE()
 
@@ -2682,7 +2682,7 @@ next_state:
                             (struct pctree_node*)node);
                     ADVANCE_TO(PCHVML_EJSON_AFTER_NAME_STATE);
                 }
-                APPEND_TEMP_BUFFER(c, nr_c);
+                APPEND_TO_TEMP_BUFFER(character);
                 ADVANCE_TO(PCHVML_EJSON_NAME_DOUBLE_QUOTED_STATE);
             }
             if (character == '\\') {
@@ -2710,7 +2710,7 @@ next_state:
                 }
                 RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
             }
-            APPEND_TEMP_BUFFER(c, nr_c);
+            APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(PCHVML_EJSON_NAME_DOUBLE_QUOTED_STATE);
         END_STATE()
 
@@ -2733,14 +2733,14 @@ next_state:
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
                 return pchvml_token_new_eof();
             }
-            APPEND_TEMP_BUFFER(c, nr_c);
+            APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(PCHVML_EJSON_VALUE_SINGLE_QUOTED_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_VALUE_DOUBLE_QUOTED_STATE)
             if (character == '"') {
                 if (pchvml_temp_buffer_is_empty(hvml->temp_buffer)) {
-                    APPEND_TEMP_BUFFER(c, nr_c);
+                    APPEND_TO_TEMP_BUFFER(character);
                     ADVANCE_TO(PCHVML_EJSON_VALUE_DOUBLE_QUOTED_STATE);
                 }
                 else if (pchvml_temp_buffer_equal_to(hvml->temp_buffer, "\"",
@@ -2774,7 +2774,7 @@ next_state:
                 }
                 RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
             }
-            APPEND_TEMP_BUFFER(c, nr_c);
+            APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(PCHVML_EJSON_VALUE_DOUBLE_QUOTED_STATE);
         END_STATE()
 
@@ -2790,7 +2790,7 @@ next_state:
         BEGIN_STATE(PCHVML_EJSON_VALUE_TWO_DOUBLE_QUOTED_STATE)
             if (character == '"') {
                 if (pchvml_temp_buffer_equal_to(hvml->temp_buffer, "\"", 1)) {
-                    APPEND_TEMP_BUFFER(c, nr_c);
+                    APPEND_TO_TEMP_BUFFER(character);
                     ADVANCE_TO(PCHVML_EJSON_VALUE_TWO_DOUBLE_QUOTED_STATE);
                 }
                 if (pchvml_temp_buffer_equal_to(hvml->temp_buffer, "\"\"", 2)) {
@@ -2814,7 +2814,7 @@ next_state:
 
         BEGIN_STATE(PCHVML_EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE)
             if (character == '\"') {
-                APPEND_TEMP_BUFFER(c, nr_c);
+                APPEND_TO_TEMP_BUFFER(character);
                 size_t buf_len = pchvml_temp_buffer_get_size_in_chars(
                         hvml->temp_buffer);
                 if (buf_len >= 6
@@ -2841,7 +2841,7 @@ next_state:
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
                 return pchvml_token_new_eof();
             }
-            APPEND_TEMP_BUFFER(c, nr_c);
+            APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(PCHVML_EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE);
         END_STATE()
 
@@ -2869,7 +2869,7 @@ next_state:
             }
             if (character == 't' || character == 'f' || character == 'n') {
                 if (pchvml_temp_buffer_is_empty(hvml->temp_buffer)) {
-                    APPEND_TEMP_BUFFER(c, nr_c);
+                    APPEND_TO_TEMP_BUFFER(character);
                     ADVANCE_TO(PCHVML_EJSON_KEYWORD_STATE);
                 }
                 PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_JSON_KEYWORD);
@@ -2877,7 +2877,7 @@ next_state:
             }
             if (character == 'r') {
                 if (pchvml_temp_buffer_equal_to(hvml->temp_buffer, "t", 1)) {
-                    APPEND_TEMP_BUFFER(c, nr_c);
+                    APPEND_TO_TEMP_BUFFER(character);
                     ADVANCE_TO(PCHVML_EJSON_KEYWORD_STATE);
                 }
                 PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_JSON_KEYWORD);
@@ -2886,7 +2886,7 @@ next_state:
             if (character == 'u') {
                 if (pchvml_temp_buffer_equal_to(hvml->temp_buffer, "tr", 2)
                    || pchvml_temp_buffer_equal_to(hvml->temp_buffer, "n", 1)) {
-                    APPEND_TEMP_BUFFER(c, nr_c);
+                    APPEND_TO_TEMP_BUFFER(character);
                     ADVANCE_TO(PCHVML_EJSON_KEYWORD_STATE);
                 }
                 PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_JSON_KEYWORD);
@@ -2896,7 +2896,7 @@ next_state:
                 if (pchvml_temp_buffer_equal_to(hvml->temp_buffer, "tru", 3)
                    || pchvml_temp_buffer_equal_to(hvml->temp_buffer, "fals", 4)
                    ) {
-                    APPEND_TEMP_BUFFER(c, nr_c);
+                    APPEND_TO_TEMP_BUFFER(character);
                     ADVANCE_TO(PCHVML_EJSON_KEYWORD_STATE);
                 }
                 PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_JSON_KEYWORD);
@@ -2904,7 +2904,7 @@ next_state:
             }
             if (character == 'a') {
                 if (pchvml_temp_buffer_equal_to(hvml->temp_buffer, "f", 1)) {
-                    APPEND_TEMP_BUFFER(c, nr_c);
+                    APPEND_TO_TEMP_BUFFER(character);
                     ADVANCE_TO(PCHVML_EJSON_KEYWORD_STATE);
                 }
                 PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_JSON_KEYWORD);
@@ -2914,7 +2914,7 @@ next_state:
                 if (pchvml_temp_buffer_equal_to(hvml->temp_buffer, "nu", 2)
                  || pchvml_temp_buffer_equal_to(hvml->temp_buffer, "nul", 3)
                  || pchvml_temp_buffer_equal_to(hvml->temp_buffer, "fa", 2)) {
-                    APPEND_TEMP_BUFFER(c, nr_c);
+                    APPEND_TO_TEMP_BUFFER(character);
                     ADVANCE_TO(PCHVML_EJSON_KEYWORD_STATE);
                 }
                 PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_JSON_KEYWORD);
@@ -2922,7 +2922,7 @@ next_state:
             }
             if (character == 's') {
                 if (pchvml_temp_buffer_equal_to(hvml->temp_buffer, "fal", 3)) {
-                    APPEND_TEMP_BUFFER(c, nr_c);
+                    APPEND_TO_TEMP_BUFFER(character);
                     ADVANCE_TO(PCHVML_EJSON_KEYWORD_STATE);
                 }
                 PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_JSON_KEYWORD);
@@ -2975,18 +2975,18 @@ next_state:
         BEGIN_STATE(PCHVML_EJSON_BYTE_SEQUENCE_STATE)
             if (character == 'b') {
                 if (pchvml_temp_buffer_is_empty(hvml->temp_buffer)) {
-                    APPEND_TEMP_BUFFER(c, nr_c);
+                    APPEND_TO_TEMP_BUFFER(character);
                     ADVANCE_TO(PCHVML_EJSON_BYTE_SEQUENCE_STATE);
                 }
-                APPEND_TEMP_BUFFER(c, nr_c);
+                APPEND_TO_TEMP_BUFFER(character);
                 ADVANCE_TO(PCHVML_EJSON_BINARY_BYTE_SEQUENCE_STATE);
             }
             if (character == 'x') {
-                APPEND_TEMP_BUFFER(c, nr_c);
+                APPEND_TO_TEMP_BUFFER(character);
                 ADVANCE_TO(PCHVML_EJSON_HEX_BYTE_SEQUENCE_STATE);
             }
             if (character == '6') {
-                APPEND_TEMP_BUFFER(c, nr_c);
+                APPEND_TO_TEMP_BUFFER(character);
                 ADVANCE_TO(PCHVML_EJSON_BASE64_BYTE_SEQUENCE_STATE);
             }
             if (character == '$') {
@@ -3039,7 +3039,7 @@ next_state:
             }
             else if (is_ascii_digit(character)
                     || is_ascii_hex_digit(character)) {
-                APPEND_TEMP_BUFFER(c, nr_c);
+                APPEND_TO_TEMP_BUFFER(character);
                 ADVANCE_TO(PCHVML_EJSON_HEX_BYTE_SEQUENCE_STATE);
             }
             PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
@@ -3052,7 +3052,7 @@ next_state:
                 RECONSUME_IN(PCHVML_EJSON_AFTER_BYTE_SEQUENCE_STATE);
             }
             else if (is_ascii_binary_digit(character)) {
-                APPEND_TEMP_BUFFER(c, nr_c);
+                APPEND_TO_TEMP_BUFFER(character);
                 ADVANCE_TO(PCHVML_EJSON_BINARY_BYTE_SEQUENCE_STATE);
             }
             if (character == '.') {
@@ -3068,13 +3068,13 @@ next_state:
                 RECONSUME_IN(PCHVML_EJSON_AFTER_BYTE_SEQUENCE_STATE);
             }
             if (character == '=') {
-                APPEND_TEMP_BUFFER(c, nr_c);
+                APPEND_TO_TEMP_BUFFER(character);
                 ADVANCE_TO(PCHVML_EJSON_BASE64_BYTE_SEQUENCE_STATE);
             }
             if (is_ascii_digit(character) || is_ascii_alpha(character)
                     || character == '+' || character == '-') {
                 if (!pchvml_temp_buffer_end_with(hvml->temp_buffer, "=", 1)) {
-                    APPEND_TEMP_BUFFER(c, nr_c);
+                    APPEND_TO_TEMP_BUFFER(character);
                     ADVANCE_TO(PCHVML_EJSON_BASE64_BYTE_SEQUENCE_STATE);
                 }
                 PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_BASE64);
@@ -3093,7 +3093,7 @@ next_state:
                 RECONSUME_IN(PCHVML_EJSON_VALUE_NUMBER_INTEGER_STATE);
             }
             if (character == '-') {
-                APPEND_TEMP_BUFFER(c, nr_c);
+                APPEND_TO_TEMP_BUFFER(character);
                 ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_INTEGER_STATE);
             }
             if (character == '$') {
@@ -3148,15 +3148,15 @@ next_state:
                 RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_NUMBER_STATE);
             }
             if (is_ascii_digit(character)) {
-                APPEND_TEMP_BUFFER(c, nr_c);
+                APPEND_TO_TEMP_BUFFER(character);
                 ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_INTEGER_STATE);
             }
             if (character == 'E' || character == 'e') {
-                APPEND_TEMP_BUFFER("e", 1);
+                APPEND_TO_TEMP_BUFFER('e');
                 ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_EXPONENT_STATE);
             }
             if (character == '.' || character == 'F') {
-                APPEND_TEMP_BUFFER(c, nr_c);
+                APPEND_TO_TEMP_BUFFER(character);
                 ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_FRACTION_STATE);
             }
             if (character == 'U' || character == 'L') {
@@ -3184,16 +3184,16 @@ next_state:
                     PCHVML_SET_ERROR(PCHVML_ERROR_BAD_JSON_NUMBER);
                     RETURN_AND_STOP_PARSE();
                 }
-                APPEND_TEMP_BUFFER(c, nr_c);
+                APPEND_TO_TEMP_BUFFER(character);
                 ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_FRACTION_STATE);
             }
             if (character == 'F') {
-                APPEND_TEMP_BUFFER(c, nr_c);
+                APPEND_TO_TEMP_BUFFER(character);
                 ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_FRACTION_STATE);
             }
             if (character == 'L') {
                 if (pchvml_temp_buffer_end_with(hvml->temp_buffer, "F", 1)) {
-                    APPEND_TEMP_BUFFER(c, nr_c);
+                    APPEND_TO_TEMP_BUFFER(character);
                     long double ld = strtold (
                             pchvml_temp_buffer_get_buffer(hvml->temp_buffer), NULL);
                     struct pcvcm_node* node = pcvcm_node_new_longdouble(ld);
@@ -3213,7 +3213,7 @@ next_state:
                             PCHVML_ERROR_UNEXPECTED_JSON_NUMBER_FRACTION);
                     RETURN_AND_STOP_PARSE();
                 }
-                APPEND_TEMP_BUFFER("e", 1);
+                APPEND_TO_TEMP_BUFFER('e');
                 ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_EXPONENT_STATE);
             }
             PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_JSON_NUMBER_FRACTION);
@@ -3229,7 +3229,7 @@ next_state:
                 RECONSUME_IN(PCHVML_EJSON_VALUE_NUMBER_EXPONENT_INTEGER_STATE);
             }
             if (character == '+' || character == '-') {
-                APPEND_TEMP_BUFFER(c, nr_c);
+                APPEND_TO_TEMP_BUFFER(character);
                 ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_EXPONENT_INTEGER_STATE);
             }
             PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_JSON_NUMBER_EXPONENT);
@@ -3246,16 +3246,16 @@ next_state:
                     PCHVML_SET_ERROR(PCHVML_ERROR_BAD_JSON_NUMBER);
                     RETURN_AND_STOP_PARSE();
                 }
-                APPEND_TEMP_BUFFER(c, nr_c);
+                APPEND_TO_TEMP_BUFFER(character);
                 ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_EXPONENT_INTEGER_STATE);
             }
             if (character == 'F') {
-                APPEND_TEMP_BUFFER(c, nr_c);
+                APPEND_TO_TEMP_BUFFER(character);
                 ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_EXPONENT_INTEGER_STATE);
             }
             if (character == 'L') {
                 if (pchvml_temp_buffer_end_with(hvml->temp_buffer, "F", 1)) {
-                    APPEND_TEMP_BUFFER(c, nr_c);
+                    APPEND_TO_TEMP_BUFFER(character);
                     long double ld = strtold (
                             pchvml_temp_buffer_get_buffer(hvml->temp_buffer), NULL);
                     struct pcvcm_node* node = pcvcm_node_new_longdouble(ld);
@@ -3283,13 +3283,13 @@ next_state:
             }
             if (character == 'U') {
                 if (is_ascii_digit(last_c)) {
-                    APPEND_TEMP_BUFFER(c, nr_c);
+                    APPEND_TO_TEMP_BUFFER(character);
                     ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_SUFFIX_INTEGER_STATE);
                 }
             }
             if (character == 'L') {
                 if (is_ascii_digit(last_c) || last_c == 'U') {
-                    APPEND_TEMP_BUFFER(c, nr_c);
+                    APPEND_TO_TEMP_BUFFER(character);
                     if (pchvml_temp_buffer_end_with(hvml->temp_buffer, "UL", 2)
                             ) {
                         uint64_t u64 = strtoull (
@@ -3364,7 +3364,7 @@ next_state:
             if (character == 'I') {
                 if (pchvml_temp_buffer_is_empty(hvml->temp_buffer)
                     || pchvml_temp_buffer_equal_to(hvml->temp_buffer, "-", 1)) {
-                    APPEND_TEMP_BUFFER(c, nr_c);
+                    APPEND_TO_TEMP_BUFFER(character);
                     ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_INFINITY_STATE);
                 }
                 PCHVML_SET_ERROR(
@@ -3378,7 +3378,7 @@ next_state:
                   || pchvml_temp_buffer_equal_to(hvml->temp_buffer, "Infi", 4)
                   || pchvml_temp_buffer_equal_to(hvml->temp_buffer, "-Infi", 5)
                     ) {
-                    APPEND_TEMP_BUFFER(c, nr_c);
+                    APPEND_TO_TEMP_BUFFER(character);
                     ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_INFINITY_STATE);
                 }
                 PCHVML_SET_ERROR(
@@ -3390,7 +3390,7 @@ next_state:
                 if (pchvml_temp_buffer_equal_to(hvml->temp_buffer, "In", 2)
                     || pchvml_temp_buffer_equal_to (hvml->temp_buffer, "-In", 3)
                         ) {
-                    APPEND_TEMP_BUFFER(c, nr_c);
+                    APPEND_TO_TEMP_BUFFER(character);
                     ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_INFINITY_STATE);
                 }
                 PCHVML_SET_ERROR(
@@ -3404,7 +3404,7 @@ next_state:
                  || pchvml_temp_buffer_equal_to(hvml->temp_buffer, "Infin", 5)
                  || pchvml_temp_buffer_equal_to(hvml->temp_buffer, "-Infin", 6)
                  ) {
-                    APPEND_TEMP_BUFFER(c, nr_c);
+                    APPEND_TO_TEMP_BUFFER(character);
                     ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_INFINITY_STATE);
                 }
                 PCHVML_SET_ERROR(
@@ -3417,7 +3417,7 @@ next_state:
                     || pchvml_temp_buffer_equal_to (hvml->temp_buffer,
                         "-Infini", 7)
                         ) {
-                    APPEND_TEMP_BUFFER(c, nr_c);
+                    APPEND_TO_TEMP_BUFFER(character);
                     ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_INFINITY_STATE);
                 }
                 PCHVML_SET_ERROR(
@@ -3430,7 +3430,7 @@ next_state:
                    || pchvml_temp_buffer_equal_to (hvml->temp_buffer,
                        "-Infinit", 8)
                         ) {
-                    APPEND_TEMP_BUFFER(c, nr_c);
+                    APPEND_TO_TEMP_BUFFER(character);
                     ADVANCE_TO(PCHVML_EJSON_VALUE_NUMBER_INFINITY_STATE);
                 }
                 PCHVML_SET_ERROR(
@@ -3464,7 +3464,7 @@ next_state:
             if (character == 'N') {
                 if (pchvml_temp_buffer_is_empty(hvml->temp_buffer)
                   || pchvml_temp_buffer_equal_to(hvml->temp_buffer, "Na", 2)) {
-                    APPEND_TEMP_BUFFER(c, nr_c);
+                    APPEND_TO_TEMP_BUFFER(character);
                     ADVANCE_TO(PCHVML_EJSON_VALUE_NAN_STATE);
                 }
                 PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_JSON_NUMBER);
@@ -3473,7 +3473,7 @@ next_state:
 
             if (character == 'a') {
                 if (pchvml_temp_buffer_equal_to(hvml->temp_buffer, "N", 1)) {
-                    APPEND_TEMP_BUFFER(c, nr_c);
+                    APPEND_TO_TEMP_BUFFER(character);
                     ADVANCE_TO(PCHVML_EJSON_VALUE_NAN_STATE);
                 }
                 PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_JSON_NUMBER);
@@ -3493,8 +3493,8 @@ next_state:
                 case 'n':
                 case 'r':
                 case 't':
-                    APPEND_TEMP_BUFFER("\\", 1);
-                    APPEND_TEMP_BUFFER(c, nr_c);
+                    APPEND_TO_TEMP_BUFFER('\\');
+                    APPEND_TO_TEMP_BUFFER(character);
                     ADVANCE_TO(hvml->return_state);
                     break;
                 case '$':
@@ -3505,7 +3505,7 @@ next_state:
                 case '/':
                 case '\\':
                 case '"':
-                    APPEND_TEMP_BUFFER(c, nr_c);
+                    APPEND_TO_TEMP_BUFFER(character);
                     ADVANCE_TO(hvml->return_state);
                     break;
                 case 'u':
@@ -3526,7 +3526,7 @@ next_state:
                 size_t nr_chars = pchvml_temp_buffer_get_size_in_chars(
                         hvml->escape_buffer);
                 if (nr_chars == 4) {
-                    APPEND_TEMP_BUFFER("\\u", 2);
+                    APPEND_BYTES_TO_TEMP_BUFFER("\\u", 2);
                     pchvml_temp_buffer_append_temp_buffer(hvml->temp_buffer,
                             hvml->escape_buffer);
                     pchvml_temp_buffer_reset(hvml->escape_buffer);
@@ -3612,7 +3612,7 @@ next_state:
             if (character == '<') {
                 // FIXME
                 if (pchvml_temp_buffer_is_empty(hvml->temp_buffer)) {
-                    APPEND_TEMP_BUFFER(c, nr_c);
+                    APPEND_TO_TEMP_BUFFER(character);
                 }
                 if (hvml->vcm_node) {
                     pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
@@ -3678,11 +3678,11 @@ next_state:
                     PCHVML_SET_ERROR(PCHVML_ERROR_BAD_JSONEE_KEYWORD);
                     RETURN_AND_STOP_PARSE();
                 }
-                APPEND_TEMP_BUFFER(c, nr_c);
+                APPEND_TO_TEMP_BUFFER(character);
                 ADVANCE_TO(PCHVML_EJSON_JSONEE_KEYWORD_STATE);
             }
             if (is_ascii_alpha(character) || character == '_') {
-                APPEND_TEMP_BUFFER(c, nr_c);
+                APPEND_TO_TEMP_BUFFER(character);
                 ADVANCE_TO(PCHVML_EJSON_JSONEE_KEYWORD_STATE);
             }
             if (is_whitespace(character) || character == '[' ||
@@ -3735,7 +3735,7 @@ next_state:
                 if (uc == 'U') {
                     RECONSUME_IN(PCHVML_EJSON_AFTER_JSONEE_STRING_STATE);
                 }
-                APPEND_TEMP_BUFFER(c, nr_c);
+                APPEND_TO_TEMP_BUFFER(character);
                 ADVANCE_TO(PCHVML_EJSON_JSONEE_STRING_STATE);
             }
             if (character == '$') {
@@ -3764,7 +3764,7 @@ next_state:
                 RESET_TEMP_BUFFER();
                 RECONSUME_IN(PCHVML_EJSON_AFTER_JSONEE_STRING_STATE);
             }
-            APPEND_TEMP_BUFFER(c, nr_c);
+            APPEND_TO_TEMP_BUFFER(character);
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_AFTER_JSONEE_STRING_STATE)
