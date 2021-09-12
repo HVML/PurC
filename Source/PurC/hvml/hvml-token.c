@@ -106,6 +106,15 @@ void pchvml_token_begin_attr (struct pchvml_token* token)
 }
 
 void pchvml_token_append_to_attr_name (struct pchvml_token* token,
+        uint32_t uc)
+{
+    if (!token->curr_attr->name) {
+        token->curr_attr->name = pchvml_temp_buffer_new ();
+    }
+    pchvml_temp_buffer_append(token->curr_attr->name, uc);
+}
+
+void pchvml_token_append_bytes_to_attr_name (struct pchvml_token* token,
         const char* bytes, size_t sz_bytes)
 {
     if (!token->curr_attr->name) {
@@ -115,6 +124,15 @@ void pchvml_token_append_to_attr_name (struct pchvml_token* token,
 }
 
 void pchvml_token_append_to_attr_value (struct pchvml_token* token,
+        uint32_t uc)
+{
+    if (!token->curr_attr->value) {
+        token->curr_attr->value = pchvml_temp_buffer_new ();
+    }
+    pchvml_temp_buffer_append(token->curr_attr->value, uc);
+}
+
+void pchvml_token_append_bytes_to_attr_value (struct pchvml_token* token,
         const char* bytes, size_t sz_bytes)
 {
     if (!token->curr_attr->value) {

@@ -181,10 +181,17 @@ bool pchvml_token_is_force_quirks (struct pchvml_token* token)
 }
 
 void pchvml_token_begin_attr (struct pchvml_token* token);
+
 void pchvml_token_append_to_attr_name (struct pchvml_token* token,
+        uint32_t uc);
+void pchvml_token_append_bytes_to_attr_name (struct pchvml_token* token,
         const char* bytes, size_t sz_bytes);
+
 void pchvml_token_append_to_attr_value (struct pchvml_token* token,
+        uint32_t);
+void pchvml_token_append_bytes_to_attr_value (struct pchvml_token* token,
         const char* bytes, size_t sz_bytes);
+
 void pchvml_token_append_vcm_to_attr (struct pchvml_token* token,
         struct pcvcm_node* vcm);
 void pchvml_token_set_assignment_to_attr (struct pchvml_token* token,

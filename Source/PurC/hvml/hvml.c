@@ -198,6 +198,40 @@
         pchvml_token_reset_system_information(hvml->token);                 \
     } while (false)
 
+#define APPEND_TO_TOKEN_ATTR_NAME(uc)                                       \
+    do {                                                                    \
+        pchvml_token_append_to_attr_name(hvml->token, uc);                  \
+    } while (false)
+
+#define APPEND_TEMP_BUFFER_TO_TOKEN_ATTR_NAME()                             \
+    do {                                                                    \
+        const char* c = pchvml_temp_buffer_get_buffer(hvml->temp_buffer);   \
+        size_t nr_c = pchvml_temp_buffer_get_size_in_bytes(                 \
+                hvml->temp_buffer);                                         \
+        pchvml_token_append_bytes_to_attr_name(hvml->token, c, nr_c);       \
+        pchvml_temp_buffer_reset(hvml->temp_buffer);                        \
+    } while (false)
+
+#define BEGIN_TOKEN_ATTR()                                                  \
+    do {                                                                    \
+        pchvml_token_begin_attr(hvml->token);                               \
+    } while (false)
+
+#define END_TOKEN_ATTR()                                                    \
+    do {                                                                    \
+        pchvml_token_end_attr(hvml->token);                                 \
+    } while (false)
+
+#define APPEND_TO_TOKEN_ATTR_VALUE(uc)                                      \
+    do {                                                                    \
+        pchvml_token_append_to_attr_value(hvml->token, uc);                 \
+    } while (false)
+
+#define APPEND_BYTES_TO_TOKEN_ATTR_VALUE(c, nr_c)                           \
+    do {                                                                    \
+        pchvml_token_append_bytes_to_attr_value(hvml->token, c, nr_c);      \
+    } while (false)
+
 #define RESET_TEMP_BUFFER()                                                 \
     do {                                                                    \
         pchvml_temp_buffer_reset(hvml->temp_buffer);                        \
@@ -934,12 +968,11 @@ next_state:
             if (character == '=') {
                 PCHVML_SET_ERROR(
                     PCHVML_ERROR_UNEXPECTED_EQUALS_SIGN_BEFORE_ATTRIBUTE_NAME);
-                pchvml_token_begin_attr (hvml->token);
-                pchvml_token_append_to_attr_name (
-                        hvml->token, c, nr_c);
+                BEGIN_TOKEN_ATTR();
+                APPEND_TO_TOKEN_ATTR_NAME(character);
                 ADVANCE_TO(PCHVML_ATTRIBUTE_NAME_STATE);
             }
-            pchvml_token_begin_attr (hvml->token);
+            BEGIN_TOKEN_ATTR();
             RECONSUME_IN(PCHVML_ATTRIBUTE_NAME_STATE);
         END_STATE()
 
@@ -954,8 +987,7 @@ next_state:
             if (character == '"' || character == '\'' || character == '<') {
                 PCHVML_SET_ERROR(
                         PCHVML_ERROR_UNEXPECTED_CHARACTER_IN_ATTRIBUTE_NAME);
-                pchvml_token_append_to_attr_name (
-                        hvml->token, c, nr_c);
+                APPEND_TO_TOKEN_ATTR_NAME(character);
             }
             if (character == '$' || character == '%' || character == '+'
                     || character == '-' || character == '^'
@@ -969,8 +1001,7 @@ next_state:
                     PCHVML_SPECIAL_ATTRIBUTE_OPERATOR_IN_ATTRIBUTE_NAME_STATE);
                 }
             }
-            pchvml_token_append_to_attr_name (
-                    hvml->token, c, nr_c);
+            APPEND_TO_TOKEN_ATTR_NAME(character);
             ADVANCE_TO(PCHVML_ATTRIBUTE_NAME_STATE);
         END_STATE()
 
@@ -1009,7 +1040,7 @@ next_state:
                         hvml->token->curr_attr)) {
                 ADVANCE_TO(PCHVML_BEFORE_ATTRIBUTE_VALUE_STATE);
             }
-            pchvml_token_begin_attr(hvml->token);
+            BEGIN_TOKEN_ATTR();
             RECONSUME_IN(PCHVML_ATTRIBUTE_NAME_STATE);
         END_STATE()
 
@@ -1041,7 +1072,7 @@ next_state:
 
         BEGIN_STATE(PCHVML_ATTRIBUTE_VALUE_DOUBLE_QUOTED_STATE)
             if (character == '"') {
-                pchvml_token_end_attr(hvml->token);
+                END_TOKEN_ATTR();
                 ADVANCE_TO(PCHVML_AFTER_ATTRIBUTE_VALUE_QUOTED_STATE);
             }
             if (character == '&') {
@@ -1063,18 +1094,17 @@ next_state:
                 RECONSUME_IN(PCHVML_EJSON_DATA_STATE);
             }
             if (is_eof(character)) {
-                pchvml_token_end_attr(hvml->token);
+                END_TOKEN_ATTR();
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
-            pchvml_token_append_to_attr_value(hvml->token,
-                    c, nr_c);
+            APPEND_TO_TOKEN_ATTR_VALUE(character);
             ADVANCE_TO(PCHVML_ATTRIBUTE_VALUE_DOUBLE_QUOTED_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_ATTRIBUTE_VALUE_SINGLE_QUOTED_STATE)
             if (character == '\'') {
-                pchvml_token_end_attr(hvml->token);
+                END_TOKEN_ATTR();
                 ADVANCE_TO(PCHVML_AFTER_ATTRIBUTE_VALUE_QUOTED_STATE);
             }
             if (character == '&') {
@@ -1082,18 +1112,17 @@ next_state:
                 ADVANCE_TO(PCHVML_CHARACTER_REFERENCE_STATE);
             }
             if (is_eof(character)) {
-                pchvml_token_end_attr(hvml->token);
+                END_TOKEN_ATTR();
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
-            pchvml_token_append_to_attr_value(hvml->token,
-                    c, nr_c);
+            APPEND_TO_TOKEN_ATTR_VALUE(character);
             ADVANCE_TO(PCHVML_ATTRIBUTE_VALUE_SINGLE_QUOTED_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_ATTRIBUTE_VALUE_UNQUOTED_STATE)
             if (is_whitespace(character)) {
-                pchvml_token_end_attr(hvml->token);
+                END_TOKEN_ATTR();
                 ADVANCE_TO(PCHVML_BEFORE_ATTRIBUTE_NAME_STATE);
             }
             if (character == '&') {
@@ -1101,11 +1130,11 @@ next_state:
                 ADVANCE_TO(PCHVML_CHARACTER_REFERENCE_STATE);
             }
             if (character == '>') {
-                pchvml_token_end_attr(hvml->token);
+                END_TOKEN_ATTR();
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
             if (is_eof(character)) {
-                pchvml_token_end_attr(hvml->token);
+                END_TOKEN_ATTR();
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
@@ -1128,8 +1157,7 @@ next_state:
                 PCHVML_SET_ERROR(
                 PCHVML_ERROR_UNEXPECTED_CHARACTER_IN_UNQUOTED_ATTRIBUTE_VALUE);
             }
-            pchvml_token_append_to_attr_value(hvml->token,
-                    c, nr_c);
+            APPEND_TO_TOKEN_ATTR_VALUE(character);
             ADVANCE_TO(PCHVML_ATTRIBUTE_VALUE_UNQUOTED_STATE);
         END_STATE()
 
@@ -1840,8 +1868,7 @@ next_state:
         BEGIN_STATE(PCHVML_AMBIGUOUS_AMPERSAND_STATE)
             if (is_ascii_alpha_numeric(character)) {
                 if (pchvml_parser_is_in_attribute(hvml)) {
-                    pchvml_token_append_to_attr_value(hvml->token,
-                            c, nr_c);
+                    APPEND_TO_TOKEN_ATTR_VALUE(character);
                     ADVANCE_TO(PCHVML_AMBIGUOUS_AMPERSAND_STATE);
                 }
                 else {
@@ -2007,10 +2034,7 @@ next_state:
                 }
                 SWITCH_TO(PCHVML_BEFORE_ATTRIBUTE_VALUE_STATE);
             }
-            pchvml_token_append_to_attr_name(hvml->token,
-                pchvml_temp_buffer_get_buffer(hvml->temp_buffer),
-                pchvml_temp_buffer_get_size_in_bytes(hvml->temp_buffer));
-            pchvml_temp_buffer_reset (hvml->temp_buffer);
+            APPEND_TEMP_BUFFER_TO_TOKEN_ATTR_NAME();
             RECONSUME_IN(PCHVML_ATTRIBUTE_NAME_STATE);
         END_STATE()
 
@@ -2064,11 +2088,8 @@ next_state:
                 }
                 SWITCH_TO(PCHVML_BEFORE_ATTRIBUTE_VALUE_STATE);
             }
-            pchvml_token_begin_attr (hvml->token);
-            pchvml_token_append_to_attr_name(hvml->token,
-                pchvml_temp_buffer_get_buffer(hvml->temp_buffer),
-                pchvml_temp_buffer_get_size_in_bytes(hvml->temp_buffer));
-            pchvml_temp_buffer_reset (hvml->temp_buffer);
+            BEGIN_TOKEN_ATTR();
+            APPEND_TEMP_BUFFER_TO_TOKEN_ATTR_NAME();
             RECONSUME_IN(PCHVML_ATTRIBUTE_NAME_STATE);
         END_STATE()
 
