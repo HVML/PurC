@@ -153,17 +153,23 @@
 
 #define APPEND_TO_TOKEN_NAME(uc)                                            \
     do {                                                                    \
-        pchvml_parser_append_to_token_name(hvml, uc);                       \
+        if (hvml->token == NULL) {                                          \
+            hvml->token = pchvml_token_new (PCHVML_TOKEN_CHARACTER);        \
+        }                                                                   \
+        pchvml_token_append_to_name(hvml->token, uc);                       \
     } while (false)
 
 #define APPEND_TO_TOKEN_TEXT(uc)                                            \
     do {                                                                    \
-        pchvml_parser_append_to_token_text(hvml, uc);                       \
+        if (hvml->token == NULL) {                                          \
+            hvml->token = pchvml_token_new (PCHVML_TOKEN_CHARACTER);        \
+        }                                                                   \
+        pchvml_token_append_to_text(hvml->token, uc);                       \
     } while (false)
 
 #define APPEND_BYTES_TO_TOKEN_TEXT(c, nr_c)                                 \
     do {                                                                    \
-        pchvml_parser_append_bytes_to_token_text(hvml, c, nr_c);            \
+        pchvml_token_append_bytes_to_text(hvml->token, c, nr_c);            \
     } while (false)
 
 #define APPEND_TEMP_BUFFER_TO_TOKEN_TEXT()                                  \
@@ -171,7 +177,7 @@
         const char* c = pchvml_temp_buffer_get_buffer(hvml->temp_buffer);   \
         size_t nr_c = pchvml_temp_buffer_get_size_in_bytes(                 \
                 hvml->temp_buffer);                                         \
-        pchvml_parser_append_bytes_to_token_text(hvml, c, nr_c);            \
+        pchvml_token_append_bytes_to_text(hvml->token, c, nr_c);            \
         pchvml_temp_buffer_reset(hvml->temp_buffer);                        \
     } while (false)
 
@@ -587,33 +593,6 @@ const char* pchvml_pchvml_state_desc (enum pchvml_state state)
         STATE_DESC(PCHVML_EJSON_AFTER_JSONEE_STRING_STATE)
     }
     return NULL;
-}
-
-void pchvml_parser_append_to_token_name (struct pchvml_parser* hvml,
-        uint32_t uc)
-{
-    if (hvml->token == NULL) {
-        hvml->token = pchvml_token_new (PCHVML_TOKEN_CHARACTER);
-    }
-    pchvml_token_append_to_name(hvml->token, uc);
-}
-
-void pchvml_parser_append_to_token_text (struct pchvml_parser* hvml,
-        uint32_t uc)
-{
-    if (hvml->token == NULL) {
-        hvml->token = pchvml_token_new (PCHVML_TOKEN_CHARACTER);
-    }
-    pchvml_token_append_to_text(hvml->token, uc);
-}
-
-void pchvml_parser_append_bytes_to_token_text (struct pchvml_parser* hvml,
-        const char* bytes, size_t nr_bytes)
-{
-    if (hvml->token == NULL) {
-        hvml->token = pchvml_token_new (PCHVML_TOKEN_CHARACTER);
-    }
-    pchvml_token_append_bytes_to_text(hvml->token, bytes, nr_bytes);
 }
 
 void pchvml_parser_save_appropriate_tag_name (struct pchvml_parser* hvml)
