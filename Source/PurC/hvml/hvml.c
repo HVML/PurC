@@ -679,7 +679,7 @@ bool pchvml_parser_is_operation_tag_token (struct pchvml_token* token)
     return true;
 }
 
-bool pchvml_parser_is_ordinary_attribute (struct pchvml_token_attribute* attr)
+bool pchvml_parser_is_ordinary_attribute (struct pchvml_token_attr* attr)
 {
     UNUSED_PARAM(attr);
     // TODO
@@ -687,7 +687,7 @@ bool pchvml_parser_is_ordinary_attribute (struct pchvml_token_attribute* attr)
 }
 
 bool pchvml_parser_is_preposition_attribute (
-        struct pchvml_token_attribute* attr)
+        struct pchvml_token_attr* attr)
 {
     UNUSED_PARAM(attr);
     // TODO
