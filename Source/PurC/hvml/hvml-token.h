@@ -61,8 +61,6 @@ struct pchvml_token {
     enum pchvml_token_type type;
     bool self_closing;
     bool force_quirks;
-    bool has_public_identifier;
-    bool has_system_information;
 
     struct pchvml_temp_buffer* name;
     struct pcutils_arrlist* attr_list;
@@ -180,30 +178,6 @@ PCA_INLINE
 bool pchvml_token_is_force_quirks (struct pchvml_token* token)
 {
     return token->force_quirks;
-}
-
-PCA_INLINE
-void pchvml_token_set_has_public_identifier (struct pchvml_token* token, bool b)
-{
-    token->has_public_identifier = b;
-}
-
-PCA_INLINE
-bool pchvml_token_has_public_identifier (struct pchvml_token* token)
-{
-    return token->has_public_identifier;
-}
-
-PCA_INLINE
-void pchvml_token_set_has_system_information (struct pchvml_token* token, bool b)
-{
-    token->has_system_information = b;
-}
-
-PCA_INLINE
-bool pchvml_token_has_system_information (struct pchvml_token* token)
-{
-    return token->has_system_information;
 }
 
 void pchvml_token_attribute_begin (struct pchvml_token* token);
