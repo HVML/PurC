@@ -94,9 +94,30 @@ void pchvml_token_destroy (struct pchvml_token* token)
         return;
     }
 
+    if (token->name) {
+        pchvml_temp_buffer_destroy(token->name);
+    }
+
     if (token->attr_list) {
         pcutils_arrlist_free (token->attr_list);
     }
+
+    if (token->text_content) {
+        pchvml_temp_buffer_destroy(token->text_content);
+    }
+
+    if (token->vcm_content) {
+        pcvcm_node_destroy(token->vcm_content);
+    }
+
+    if (token->public_identifier) {
+        pchvml_temp_buffer_destroy(token->public_identifier);
+    }
+
+    if (token->system_information) {
+        pchvml_temp_buffer_destroy(token->system_information);
+    }
+
     pchvml_token_attribute_destroy(token->curr_attr);
 }
 
