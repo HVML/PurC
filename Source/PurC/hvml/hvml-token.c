@@ -331,13 +331,28 @@ bool pchvml_token_is_force_quirks (struct pchvml_token* token)
     return token->force_quirks;
 }
 
+struct pchvml_token_attribute* pchvml_token_get_curr_attr (
+        struct pchvml_token* token)
+{
+    return token->curr_attr;
+}
+
 bool pchvml_token_is_in_attr (struct pchvml_token* token)
 {
     return token->curr_attr != NULL;
 }
 
-struct pchvml_token_attribute* pchvml_token_get_curr_attr (
-        struct pchvml_token* token)
+size_t pchvml_token_get_attr_size(struct pchvml_token* token)
 {
-    return token->curr_attr;
+    return token->attr_list ? pcutils_arrlist_length(token->attr_list) : 0;
+}
+
+struct pchvml_token_attribute* pchvml_token_get_attr(
+        struct pchvml_token* token, size_t i)
+{
+    if (token->attr_list) {
+        return (struct pchvml_token_attribute*) pcutils_arrlist_get_idx(
+                token->attr_list, i);
+    }
+    return NULL;
 }
