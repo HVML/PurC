@@ -599,226 +599,6 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 
-static const char * purc_variant_set_get_uniqkey (const purc_variant_t var)
-{
-    UNUSED_PARAM (var);
-    return "hello world";
-}
-
-
-static bool make_stream (const purc_variant_t var, unsigned char * buf, size_t *len)
-{
-    bool ret = true;
-    enum purc_variant_type type = purc_variant_get_type (var);
-    const char * content = NULL;
-    const unsigned char * uncontent = NULL;
-    size_t size = 0;
-    size_t size1 = 0;
-    struct purc_variant_object_iterator *it_obj = NULL;
-    struct purc_variant_set_iterator *it_set = NULL;
-    purc_variant_t val = NULL;
-    bool having = false;
-
-    switch ((int)type) {
-        case PURC_VARIANT_TYPE_NULL:
-            *(buf + *len++) = PURC_VARIANT_TYPE_NULL;
-            *(buf + *len++) = 0xFF;
-            *(buf + *len++) = 0xFF;
-            *(buf + *len++) = 0xFF;
-            break;
-        case PURC_VARIANT_TYPE_UNDEFINED:
-            *(buf + *len++) = PURC_VARIANT_TYPE_UNDEFINED;
-            *(buf + *len++) = 0xFF;
-            *(buf + *len++) = 0xFF;
-            *(buf + *len++) = 0xFF;
-            break;
-        case PURC_VARIANT_TYPE_BOOLEAN:
-            *(buf + *len++) = PURC_VARIANT_TYPE_BOOLEAN;
-            *(buf + *len++) = 0xFF;
-            *(buf + *len++) = 0xFF;
-            if (var->b)
-                *(buf + *len++) = 0x01;
-            else
-                *(buf + *len++) = 0x00;
-            break;
-        case PURC_VARIANT_TYPE_NUMBER:
-            *(buf + *len++) = PURC_VARIANT_TYPE_NUMBER;
-            *(buf + *len++) = sizeof (double);
-            *(buf + *len++) = 0x00;
-            *(buf + *len++) = 0x00;
-            memcpy (buf + *len, &(var->d), sizeof (double));
-            *len += 4;
-            break;
-        case PURC_VARIANT_TYPE_LONGINT:
-            *(buf + *len++) = PURC_VARIANT_TYPE_LONGINT;
-            *(buf + *len++) = sizeof (int64_t);
-            *(buf + *len++) = 0x00;
-            *(buf + *len++) = 0x00;
-            memcpy (buf + *len, &(var->i64), sizeof (int64_t));
-            *len += 4;
-            break;
-        case PURC_VARIANT_TYPE_ULONGINT:
-            *(buf + *len++) = PURC_VARIANT_TYPE_ULONGINT;
-            *(buf + *len++) = sizeof (uint64_t);
-            *(buf + *len++) = 0x00;
-            *(buf + *len++) = 0x00;
-            memcpy (buf + *len, &(var->u64), sizeof (uint64_t));
-            *len += 4;
-            break;
-        case PURC_VARIANT_TYPE_LONGDOUBLE:
-            *(buf + *len++) = PURC_VARIANT_TYPE_LONGDOUBLE;
-            *(buf + *len++) = sizeof (long double);
-            *(buf + *len++) = 0x00;
-            *(buf + *len++) = 0x00;
-            memcpy (buf + *len, &(var->ld), sizeof (long double));
-            *len += 4;
-            break;
-        case PURC_VARIANT_TYPE_ATOMSTRING:
-            content = purc_variant_get_atom_string_const (var);
-            size = strlen (content);
-            if (size) {
-                size1 = size + 1;
-                size1 = size1 + (4 - size1 % 4) % 4;
-            }
-                
-            *(buf + *len++) = PURC_VARIANT_TYPE_ATOMSTRING;
-            memcpy (buf + *len, &size1, 3);
-            *len += 3;
-            if (size) {
-                memcpy (buf + *len, content, size);
-                *(buf + *len + size) = 0x00;
-                *len += size1;
-            }
-            break;
-        case PURC_VARIANT_TYPE_STRING:
-            content = purc_variant_get_string_const (var);
-            size = purc_variant_string_length (var);
-            size1 = size + (4 - size % 4) % 4;
-            *(buf + *len++) = PURC_VARIANT_TYPE_STRING;
-            memcpy (buf + *len, &size1, 3);
-            *len += 3;
-            memcpy (buf + *len, content, size);
-            *len += size1;
-            break;
-        case PURC_VARIANT_TYPE_BSEQUENCE:
-            uncontent = purc_variant_get_bytes_const (var, &size);
-            size1 = size + (4 - size % 4) % 4;
-            *(buf + *len++) = PURC_VARIANT_TYPE_BSEQUENCE;
-            memcpy (buf + *len, &size1, 3);
-            *len += 3;
-            memcpy (buf + *len, &size, 4);
-            *len += 4;
-            memcpy (buf + *len, uncontent, size);
-            *len += size1;
-            break;
-        case PURC_VARIANT_TYPE_DYNAMIC:
-            ret = false;
-            break;
-        case PURC_VARIANT_TYPE_NATIVE:
-            ret = false;
-            break;
-        case PURC_VARIANT_TYPE_OBJECT:
-            size = purc_variant_object_get_size (var);
-            *(buf + *len++) = PURC_VARIANT_TYPE_OBJECT;
-            memcpy (buf + *len, &size, 3);
-            *len += 3;
-            if (size == 0)
-                break;
-
-            it_obj = purc_variant_object_make_iterator_begin (var);
-            while (it_obj) {
-                content = purc_variant_object_iterator_get_key (it_obj);
-                val = purc_variant_object_iterator_get_value (it_obj);
-
-                // set key
-                size = strlen (content);
-                if (size) {
-                    size1 = size + 1;
-                    size1 = size1 + (4 - size1 % 4) % 4;
-                }
-                *(buf + *len++) = PURC_VARIANT_KEY;
-                memcpy (buf + *len, &size, 3);
-                *len += 3;
-
-                if (size) {
-                    memcpy (buf + *len, content, size);
-                    *(buf + *len + size) = 0x00;
-                    *len += size1;
-                }
-
-                // set value
-                *(buf + *len++) = PURC_VARIANT_VALUE;
-                *(buf + *len++) = 0xFF;
-                *(buf + *len++) = 0xFF;
-                *(buf + *len++) = 0xFF;
-                make_stream (val, buf, len);
-
-                having = purc_variant_object_iterator_next (it_obj);
-                if (!having) 
-                    break;
-            }
-            if (it_obj)
-                purc_variant_object_release_iterator(it_obj);
-            break;
-        case PURC_VARIANT_TYPE_ARRAY:
-            size = purc_variant_array_get_size (var);
-            *(buf + *len++) = PURC_VARIANT_TYPE_ARRAY;
-            memcpy (buf + *len, &size, 3);
-            *len += 3;
-            if (size == 0)
-                break;
-
-            for (size1 = 0; size1 < size; size1++) { 
-                val = purc_variant_array_get (var, size1);
-                make_stream (val, buf, len);
-            }
-
-            break;
-        case PURC_VARIANT_TYPE_SET:
-            size = purc_variant_set_get_size (var);
-            *(buf + *len++) = PURC_VARIANT_TYPE_SET;
-            memcpy (buf + *len, &size, 3);
-            *len += 3;
-            if (size == 0)
-                break;
-            
-            // set unique key
-            content = purc_variant_set_get_uniqkey (var);
-            size = strlen (content);
-            if (size) {
-                size1 = size + 1;
-                size1 = size1 + (4 - size1 % 4) % 4;
-            }
-            *(buf + *len++) = PURC_VARIANT_KEY;
-            memcpy (buf + *len, &size, 3);
-            *len += 3;
-            if (size) {
-                memcpy (buf + *len, content, size);
-                *(buf + *len + size) = 0x00;
-                *len += size1;
-            }
-
-            // set element
-            it_set = purc_variant_set_make_iterator_begin (var);
-            while (it_set) {
-                val = purc_variant_set_iterator_get_value (it_set);
-                make_stream (val, buf, len);
-                
-                having = purc_variant_set_iterator_next(it_set);
-                if (!having) 
-                    break;
-            }
-            if (it_set)
-                purc_variant_set_release_iterator(it_set);
-            break;
-        default:
-            ret = false;
-            break;
-    }
-
-    return ret;
-}
-
 // check CPU type, true for little endian, otherwise big endian
 static bool is_little_endian (void)
 {
@@ -1238,7 +1018,7 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
                 break;
             case 's':
             case 'S':
-                if (strncasecmp (head, "bbe", 3) == 0) {    // bbe123
+                if (strncasecmp (head, "sbe", 3) == 0) {    // bbe123
                     if (length > 3)  { // get length
                         number_length = length - 3;
                         memcpy (buf, head + 3, number_length);
@@ -1266,7 +1046,7 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
                     else
                         val = purc_variant_make_string ("", false);
                 }
-                else if (strncasecmp (head, "ble", 3) == 0) {   // ble123
+                else if (strncasecmp (head, "sle", 3) == 0) {   // ble123
                     if (length > 3)  { // get length
                         number_length = length - 3;
                         memcpy (buf, head + 3, number_length);
@@ -1294,7 +1074,7 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
                     else
                         val = purc_variant_make_string ("", false);
                 }
-                else {  // b123
+                else {  // s123
                     if (length > 1)  { // get length
                         number_length = length - 3;
                         memcpy (buf, head + 3, number_length);
@@ -1339,13 +1119,24 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
     UNUSED_PARAM(nr_args);
 
     purc_variant_t ret_var = NULL;
-    purc_variant_t var = NULL;
     purc_variant_t val = NULL;
     purc_rwstream_t rwstream = NULL; 
-    size_t size = 0;
-    size_t i = 0;
-    unsigned char * buffer = NULL;
-    size_t len = 0;
+    const char *format = NULL;
+    const char *head = NULL;
+    size_t length = 0;
+    unsigned char buf[64];
+    const unsigned char * buffer = NULL;  // for string and bytes sequence
+    int64_t i64 = 0;
+    uint64_t u64 = 0;
+    float f = 0.0f;
+    double d = 0.0d;
+    long double ld = 0.0d;
+    bool little = is_little_endian ();
+    size_t number_length = 0;
+    int read_number = 0;
+    int i = 0;
+    size_t bsize = 0;
+    unsigned char *temp_buffer = NULL;
 
     if ((argv[0] != PURC_VARIANT_INVALID) && 
                         (!purc_variant_is_native (argv[0]))) {
@@ -1359,26 +1150,594 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
     }
 
     if ((argv[1] != PURC_VARIANT_INVALID) && 
-                        (!purc_variant_is_array (argv[1]))) {
+                        (!purc_variant_is_string (argv[1]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
-    var = argv[1];
-    size = purc_variant_array_get_size (var);
 
-    *(buffer) = PURC_VARIANT_TYPE_ARRAY;
-    memcpy (buffer + 1, &size, 3);
-    len = 4;
-    if (size == 0) {
-        purc_rwstream_write (rwstream, buffer, 4); 
-        return purc_variant_make_boolean (true);
+    if ((argv[2] != PURC_VARIANT_INVALID) && 
+                        (!purc_variant_is_array (argv[2]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
     }
 
-    for (i = 0; i < size; ++i) {
-        val = purc_variant_array_get(var, i);
-        make_stream (val, buffer, &len);
-    }
+    format = purc_variant_get_string_const (argv[1]);
+    head = pcdvobjs_get_next_option (format, " ", &length);
 
+    while (head) {
+        switch (* head)
+        {
+            case 'i':
+            case 'I':
+                if ((strncasecmp (head, "i8", length) == 0) ||
+                    (strncasecmp (head, "i8le", length) == 0))  { 
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_longint (val, &i64, false);
+                    if (!little)
+                        change_order ((unsigned char *)&i64, sizeof (int64_t));
+                    purc_rwstream_write (rwstream, (char *)&i64, 1);
+                }
+                else if (strncasecmp (head, "i8be", length) == 0)  { 
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_longint (val, &i64, false);
+                    if (little)
+                        change_order ((unsigned char *)&i64, sizeof (int64_t));
+                    purc_rwstream_write (rwstream, (char *)&i64, 1);
+                }
+                else if (strncasecmp (head, "i16", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_longint (val, &i64, false);
+                    if (!little)
+                        change_order ((unsigned char *)&i64, sizeof (int64_t));
+                    purc_rwstream_write (rwstream, (char *)&i64, 2);
+                }
+                else if (strncasecmp (head, "i32", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_longint (val, &i64, false);
+                    if (!little)
+                        change_order ((unsigned char *)&i64, sizeof (int64_t));
+                    purc_rwstream_write (rwstream, (char *)&i64, 4);
+                }
+                else if (strncasecmp (head, "i64", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_longint (val, &i64, false);
+                    if (!little)
+                        change_order ((unsigned char *)&i64, sizeof (int64_t));
+                    purc_rwstream_write (rwstream, (char *)&i64, 8);
+                }
+                else if (strncasecmp (head, "i16be", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_longint (val, &i64, false);
+                    if (little)
+                        change_order ((unsigned char *)&i64, sizeof (int64_t));
+                    purc_rwstream_write (rwstream, (char *)&i64, 2);
+                }
+                else if (strncasecmp (head, "i32be", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_longint (val, &i64, false);
+                    if (little)
+                        change_order ((unsigned char *)&i64, sizeof (int64_t));
+                    purc_rwstream_write (rwstream, (char *)&i64, 4);
+                }
+                else if (strncasecmp (head, "i64be", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_longint (val, &i64, false);
+                    if (little)
+                        change_order ((unsigned char *)&i64, sizeof (int64_t));
+                    purc_rwstream_write (rwstream, (char *)&i64, 8);
+                }
+                else if (strncasecmp (head, "i16le", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_longint (val, &i64, false);
+                    if (!little)
+                        change_order ((unsigned char *)&i64, sizeof (int64_t));
+                    purc_rwstream_write (rwstream, (char *)&i64, 2);
+                }
+                else if (strncasecmp (head, "i32le", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_longint (val, &i64, false);
+                    if (!little)
+                        change_order ((unsigned char *)&i64, sizeof (int64_t));
+                    purc_rwstream_write (rwstream, (char *)&i64, 4);
+                }
+                else if (strncasecmp (head, "i64le", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_longint (val, &i64, false);
+                    if (!little)
+                        change_order ((unsigned char *)&i64, sizeof (int64_t));
+                    purc_rwstream_write (rwstream, (char *)&i64, 8);
+                }
+                break;
+            case 'f':
+            case 'F':
+                if (strncasecmp (head, "f16", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_number (val, &d, false);
+                    if (!little)
+                        change_order ((unsigned char *)&d, sizeof (double));
+                    f = (float)d;
+                    purc_rwstream_write (rwstream, (char *)&f, 2);
+                }
+                else if (strncasecmp (head, "f32", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_number (val, &d, false);
+                    if (!little)
+                        change_order ((unsigned char *)&d, sizeof (double));
+                    f = (float)d;
+                    purc_rwstream_write (rwstream, (char *)&f, 4);
+                }
+                else if (strncasecmp (head, "f64", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_number (val, &d, false);
+                    if (!little)
+                        change_order ((unsigned char *)&d, sizeof (double));
+                    f = (float)d;
+                    purc_rwstream_write (rwstream, (char *)&f, 8);
+                }
+                else if (strncasecmp (head, "f16be", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_number (val, &d, false);
+                    if (little)
+                        change_order ((unsigned char *)&d, sizeof (double));
+                    f = (float)d;
+                    purc_rwstream_write (rwstream, (char *)&f, 2);
+                }
+                else if (strncasecmp (head, "f32be", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_number (val, &d, false);
+                    if (little)
+                        change_order ((unsigned char *)&d, sizeof (double));
+                    f = (float)d;
+                    purc_rwstream_write (rwstream, (char *)&f, 4);
+                }
+                else if (strncasecmp (head, "f64be", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_number (val, &d, false);
+                    if (little)
+                        change_order ((unsigned char *)&d, sizeof (double));
+                    f = (float)d;
+                    purc_rwstream_write (rwstream, (char *)&f, 8);
+                }
+                else if (strncasecmp (head, "f16le", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_number (val, &d, false);
+                    if (!little)
+                        change_order ((unsigned char *)&d, sizeof (double));
+                    f = (float)d;
+                    purc_rwstream_write (rwstream, (char *)&f, 2);
+                }
+                else if (strncasecmp (head, "f32le", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_number (val, &d, false);
+                    if (!little)
+                        change_order ((unsigned char *)&d, sizeof (double));
+                    f = (float)d;
+                    purc_rwstream_write (rwstream, (char *)&f, 4);
+                }
+                else if (strncasecmp (head, "f64le", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_number (val, &d, false);
+                    if (!little)
+                        change_order ((unsigned char *)&d, sizeof (double));
+                    f = (float)d;
+                    purc_rwstream_write (rwstream, (char *)&f, 8);
+                }
+                break;
+            case 'd':
+            case 'D':
+                if (strncasecmp (head, "d32", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_number (val, &d, false);
+                    if (!little)
+                        change_order ((unsigned char *)&d, sizeof (double));
+                    purc_rwstream_write (rwstream, (char *)&d, 4);
+                }
+                else if (strncasecmp (head, "d64", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_number (val, &d, false);
+                    if (!little)
+                        change_order ((unsigned char *)&d, sizeof (double));
+                    purc_rwstream_write (rwstream, (char *)&d, 8);
+                }
+                else if (strncasecmp (head, "d128", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_long_double (val, &ld, false);
+                    if (!little)
+                        change_order ((unsigned char *)&ld, sizeof (long double));
+                    purc_rwstream_write (rwstream, (char *)&ld, 16);
+                }
+                else if (strncasecmp (head, "d32be", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_number (val, &d, false);
+                    if (little)
+                        change_order ((unsigned char *)&d, sizeof (double));
+                    purc_rwstream_write (rwstream, (char *)&d, 4);
+                }
+                else if (strncasecmp (head, "d64be", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_number (val, &d, false);
+                    if (!little)
+                        change_order ((unsigned char *)&d, sizeof (double));
+                    purc_rwstream_write (rwstream, (char *)&d, 8);
+                }
+                else if (strncasecmp (head, "d128be", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_long_double (val, &ld, false);
+                    if (little)
+                        change_order ((unsigned char *)&ld, sizeof (long double));
+                    purc_rwstream_write (rwstream, (char *)&ld, 16);
+                }
+                else if (strncasecmp (head, "d32le", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_number (val, &d, false);
+                    if (!little)
+                        change_order ((unsigned char *)&d, sizeof (double));
+                    purc_rwstream_write (rwstream, (char *)&d, 4);
+                }
+                else if (strncasecmp (head, "d64le", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_number (val, &d, false);
+                    if (!little)
+                        change_order ((unsigned char *)&d, sizeof (double));
+                    purc_rwstream_write (rwstream, (char *)&d, 8);
+                }
+                else if (strncasecmp (head, "d128le", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_long_double (val, &ld, false);
+                    if (!little)
+                        change_order ((unsigned char *)&ld, sizeof (long double));
+                    purc_rwstream_write (rwstream, (char *)&ld, 16);
+                }
+                break;
+            case 'l':
+            case 'L':
+                if (strncasecmp (head, "ld96", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_long_double (val, &ld, false);
+                    if (!little)
+                        change_order ((unsigned char *)&ld, sizeof (long double));
+                    purc_rwstream_write (rwstream, (char *)&ld, 12);
+                }
+                else if (strncasecmp (head, "ld128", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_long_double (val, &ld, false);
+                    if (!little)
+                        change_order ((unsigned char *)&ld, sizeof (long double));
+                    purc_rwstream_write (rwstream, (char *)&ld, 16);
+                }
+                else if (strncasecmp (head, "ld96be", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_long_double (val, &ld, false);
+                    if (little)
+                        change_order ((unsigned char *)&ld, sizeof (long double));
+                    purc_rwstream_write (rwstream, (char *)&ld, 12);
+                }
+                else if (strncasecmp (head, "ld128be", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_long_double (val, &ld, false);
+                    if (little)
+                        change_order ((unsigned char *)&ld, sizeof (long double));
+                    purc_rwstream_write (rwstream, (char *)&ld, 16);
+                }
+                else if (strncasecmp (head, "d96le", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_long_double (val, &ld, false);
+                    if (!little)
+                        change_order ((unsigned char *)&ld, sizeof (long double));
+                    purc_rwstream_write (rwstream, (char *)&ld, 12);
+                }
+                else if (strncasecmp (head, "ld128le", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_long_double (val, &ld, false);
+                    if (!little)
+                        change_order ((unsigned char *)&ld, sizeof (long double));
+                    purc_rwstream_write (rwstream, (char *)&ld, 16);
+                }
+                break;
+            case 'u':
+            case 'U':
+                if ((strncasecmp (head, "u8", length) == 0) ||
+                    (strncasecmp (head, "u8le", length) == 0))  { 
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_ulongint (val, &u64, false);
+                    if (!little)
+                        change_order ((unsigned char *)&u64, sizeof (uint64_t));
+                    purc_rwstream_write (rwstream, (char *)&u64, 1);
+                }
+                else if (strncasecmp (head, "u8be", length) == 0)  { 
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_ulongint (val, &u64, false);
+                    if (little)
+                        change_order ((unsigned char *)&u64, sizeof (uint64_t));
+                    purc_rwstream_write (rwstream, (char *)&u64, 1);
+                }
+                else if (strncasecmp (head, "u16", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_ulongint (val, &u64, false);
+                    if (!little)
+                        change_order ((unsigned char *)&u64, sizeof (uint64_t));
+                    purc_rwstream_write (rwstream, (char *)&u64, 2);
+                }
+                else if (strncasecmp (head, "u32", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_ulongint (val, &u64, false);
+                    if (!little)
+                        change_order ((unsigned char *)&u64, sizeof (uint64_t));
+                    purc_rwstream_write (rwstream, (char *)&u64, 4);
+                }
+                else if (strncasecmp (head, "u64", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_ulongint (val, &u64, false);
+                    if (!little)
+                        change_order ((unsigned char *)&u64, sizeof (uint64_t));
+                    purc_rwstream_write (rwstream, (char *)&u64, 8);
+                }
+                else if (strncasecmp (head, "u16be", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_ulongint (val, &u64, false);
+                    if (little)
+                        change_order ((unsigned char *)&u64, sizeof (uint64_t));
+                    purc_rwstream_write (rwstream, (char *)&u64, 2);
+                }
+                else if (strncasecmp (head, "u32be", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_ulongint (val, &u64, false);
+                    if (little)
+                        change_order ((unsigned char *)&u64, sizeof (uint64_t));
+                    purc_rwstream_write (rwstream, (char *)&u64, 4);
+                }
+                else if (strncasecmp (head, "u64be", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_ulongint (val, &u64, false);
+                    if (little)
+                        change_order ((unsigned char *)&u64, sizeof (uint64_t));
+                    purc_rwstream_write (rwstream, (char *)&u64, 8);
+                }
+                else if (strncasecmp (head, "u16le", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_ulongint (val, &u64, false);
+                    if (!little)
+                        change_order ((unsigned char *)&u64, sizeof (uint64_t));
+                    purc_rwstream_write (rwstream, (char *)&u64, 2);
+                }
+                else if (strncasecmp (head, "u32le", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_ulongint (val, &u64, false);
+                    if (!little)
+                        change_order ((unsigned char *)&u64, sizeof (uint64_t));
+                    purc_rwstream_write (rwstream, (char *)&u64, 4);
+                }
+                else if (strncasecmp (head, "u64le", length) == 0) {
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    purc_variant_cast_to_ulongint (val, &u64, false);
+                    if (!little)
+                        change_order ((unsigned char *)&u64, sizeof (uint64_t));
+                    purc_rwstream_write (rwstream, (char *)&u64, 8);
+                }
+                break;
+            case 'b':
+            case 'B':
+                if (strncasecmp (head, "bbe", 3) == 0) {    // bbe123
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    if (length > 3)  { // get length
+                        number_length = length - 3;
+                        memcpy (buf, head + 3, number_length);
+                        if (little)
+                            change_order (buf, number_length);
+                        *(buf + number_length)= 0x00;
+                        read_number = atoi((char *)buf);
+
+                        if(read_number) {
+                            buffer = purc_variant_get_bytes_const (val, &bsize);
+                            if (little) {
+                                temp_buffer = malloc (bsize);
+                                memcpy(temp_buffer, buffer, bsize);
+                                change_order (temp_buffer, bsize);
+                                purc_rwstream_write (rwstream, temp_buffer, 
+                                                            read_number);
+                                free (temp_buffer);
+                            }
+                            else
+                                purc_rwstream_write (rwstream, buffer, 
+                                                            read_number);
+                        }
+                    }
+                }
+                else if (strncasecmp (head, "ble", 3) == 0) {   // ble123
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    if (length > 3)  { // get length
+                        number_length = length - 3;
+                        memcpy (buf, head + 3, number_length);
+                        if (!little)
+                            change_order (buf, number_length);
+                        *(buf + number_length)= 0x00;
+                        read_number = atoi((char *)buf);
+
+                        if(read_number) {
+                            buffer = purc_variant_get_bytes_const (val, &bsize);
+                            if (!little) {
+                                temp_buffer = malloc (bsize);
+                                memcpy(temp_buffer, buffer, bsize);
+                                change_order (temp_buffer, bsize);
+                                purc_rwstream_write (rwstream, temp_buffer, 
+                                                            read_number);
+                                free (temp_buffer);
+                            }
+                            else
+                                purc_rwstream_write (rwstream, buffer, 
+                                                            read_number);
+                        }
+                    }
+                }
+                else {  // b123
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    if (length > 1)  { // get length
+                        number_length = length - 3;
+                        memcpy (buf, head + 3, number_length);
+                        if (!little)
+                            change_order (buf, number_length);
+                        *(buf + number_length)= 0x00;
+                        read_number = atoi((char *)buf);
+
+                        if(read_number) {
+                            buffer = purc_variant_get_bytes_const (val, &bsize);
+                            if (!little) {
+                                temp_buffer = malloc (bsize);
+                                memcpy(temp_buffer, buffer, bsize);
+                                change_order (temp_buffer, bsize);
+                                purc_rwstream_write (rwstream, temp_buffer, 
+                                                            read_number);
+                                free (temp_buffer);
+                            }
+                            else
+                                purc_rwstream_write (rwstream, buffer, 
+                                                            read_number);
+                        }
+                    }
+                }
+                break;
+            case 's':
+            case 'S':
+                if (strncasecmp (head, "sbe", 3) == 0) {    // bbe123
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    if (length > 3)  { // get length
+                        number_length = length - 3;
+                        memcpy (buf, head + 3, number_length);
+                        if (little)
+                            change_order (buf, number_length);
+                        *(buf + number_length)= 0x00;
+                        read_number = atoi((char *)buf);
+
+                        if(read_number) {
+                            buffer = (unsigned char *)purc_variant_get_string_const
+                                                                             (val);
+                            if (little) {
+                                bsize = purc_variant_string_length (val);
+                                temp_buffer = malloc (bsize);
+                                memcpy (temp_buffer, buffer, bsize);
+                                change_order (temp_buffer, bsize);
+                                purc_rwstream_write (rwstream, temp_buffer, 
+                                        read_number);
+                                free (temp_buffer);
+                            }
+                            else
+                                purc_rwstream_write (rwstream, buffer, 
+                                                            read_number);
+                        }
+                    }
+                }
+                else if (strncasecmp (head, "sle", 3) == 0) {   // ble123
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    if (length > 3)  { // get length
+                        number_length = length - 3;
+                        memcpy (buf, head + 3, number_length);
+                        if (!little)
+                            change_order (buf, number_length);
+                        *(buf + number_length)= 0x00;
+                        read_number = atoi((char *)buf);
+
+                        if(read_number) {
+                            buffer = (unsigned char *)purc_variant_get_string_const
+                                                                            (val);
+                            if (!little) {
+                                bsize = purc_variant_string_length (val);
+                                temp_buffer = malloc (bsize);
+                                memcpy (temp_buffer, buffer, bsize);
+                                change_order (temp_buffer, bsize);
+                                purc_rwstream_write (rwstream, temp_buffer, 
+                                        read_number);
+                                free (temp_buffer);
+                            }
+                            else
+                                purc_rwstream_write (rwstream, buffer, 
+                                                            read_number);
+                        }
+                    }
+                }
+                else {  // s123
+                    val = purc_variant_array_get (argv[2], i);
+                    i++;
+                    if (length > 1)  { // get length
+                        number_length = length - 3;
+                        memcpy (buf, head + 3, number_length);
+                        if (!little)
+                            change_order (buf, number_length);
+                        *(buf + number_length)= 0x00;
+                        read_number = atoi((char *)buf);
+
+                        if(read_number) {
+                            buffer = (unsigned char *)purc_variant_get_string_const
+                                                                (val);
+                            if (!little) {
+                                bsize = purc_variant_string_length (val);
+                                temp_buffer = malloc (bsize);
+                                memcpy (temp_buffer, buffer, bsize);
+                                change_order (temp_buffer, bsize);
+                                purc_rwstream_write (rwstream, temp_buffer, 
+                                        read_number);
+                                free (temp_buffer);
+                            }
+                            else
+                                purc_rwstream_write (rwstream, buffer, 
+                                                            read_number);
+                        }
+                    }
+                }
+                break;
+        }
+        head = pcdvobjs_get_next_option (head + length + 1, " ", &length);
+    }
     return ret_var;
 }
 
