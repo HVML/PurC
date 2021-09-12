@@ -156,9 +156,14 @@ macro(_PURC_FLEX_BISON _target _relpath _parser)
         ${BISON_${_parser}Parser_OUTPUTS}
         ${FLEX_${_parser}Scanner_OUTPUTS}
     )
-    list(APPEND ${_target}_PRIVATE_INCLUDE_DIRECTORIES
-        ${CMAKE_CURRENT_SOURCE_DIR}/${_relpath}
+    set(_flags "-I${CMAKE_CURRENT_SOURCE_DIR}/${_relpath}")
+    set_source_files_properties(${BISON_${_parser}Parser_OUTPUTS}
+        PROPERTIES COMPILE_FLAGS "${_flags}"
     )
+    set_source_files_properties(${FLEX_${_parser}Scanner_OUTPUTS}
+        PROPERTIES COMPILE_FLAGS "${_flags}"
+    )
+    unset(_flags)
 endmacro()
 
 macro(PURC_FLEX_BISON _target _relpath _parsers)
