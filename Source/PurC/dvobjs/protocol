@@ -23,3 +23,53 @@ PURC_VARIANT_TYPE_SET:          size                    key, value0, value1, val
 ====================================================================
 PURC_VARIANT_KEY                length                  content
 PURC_VARIANT_VALUE              0xFF, 0xFF, 0xFF        variant
+
+
+tag
+    i8
+    u8
+    i16
+    u16
+    i32
+    u32
+    i64
+    u64
+
+f16
+f32
+f64
+
+
+d32
+d64
+d128
+
+
+ld96
+ld128
+
+b
+s
+
+endian
+le
+be
+
+tag-endian
+i32le
+u16be
+
+tag-endiani-length
+ble345
+sbe123
+
+数据类型 	            GCC 32位	GCC 64位
+sizeof(char)	            1	        1
+sizeof(short)	            2	        2
+sizeof(int)	                4	        4    
+sizeof(float)	            4	        4
+sizeof(long)	            4	        8
+sizeof(double)	            8	        8
+sizeof(long long)	        8	        8
+sizeof(long double)	        12	        16
+sizeof(complex long double)	16	        32
