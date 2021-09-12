@@ -79,15 +79,6 @@ TEST(rwswrap, buffer_char)
     uc = pchvml_rwswrap_next_char (wrap);
     ASSERT_EQ(uc, 0x6D4B);
 
-    char c[8] = {0};
-    int nr_c = pchvml_rwswrap_next_utf8_char (wrap, c, &uc);
-    ASSERT_EQ(uc, 0x8BD5);
-    ASSERT_EQ(nr_c, 3);
-
-    nr_c = pchvml_rwswrap_next_utf8_char (wrap, c, &uc);
-    ASSERT_EQ(uc, 0);
-    ASSERT_EQ(nr_c, 0);
-
     purc_rwstream_destroy (rws);
     pchvml_rwswrap_destroy(wrap);
 }
@@ -133,15 +124,6 @@ TEST(rwswrap, buffer_arrlist)
     ASSERT_EQ(uc, 's');
     uc = pchvml_rwswrap_next_char (wrap);
     ASSERT_EQ(uc, 0x6D4B);
-
-    char c[8] = {0};
-    int nr_c = pchvml_rwswrap_next_utf8_char (wrap, c, &uc);
-    ASSERT_EQ(uc, 0x8BD5);
-    ASSERT_EQ(nr_c, 3);
-
-    nr_c = pchvml_rwswrap_next_utf8_char (wrap, c, &uc);
-    ASSERT_EQ(uc, 0);
-    ASSERT_EQ(nr_c, 0);
 
     pcutils_arrlist_free(ucs);
     purc_rwstream_destroy (rws);

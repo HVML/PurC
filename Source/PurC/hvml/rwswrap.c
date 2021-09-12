@@ -148,17 +148,6 @@ static inline size_t uc_to_utf8(uint32_t c, char* outbuf)
     return len;
 }
 
-int pchvml_rwswrap_next_utf8_char (struct pchvml_rwswrap* wrap, char* bytes,
-        uint32_t* uc)
-{
-    *uc = pchvml_rwswrap_next_char (wrap);
-    if (*uc) {
-        return uc_to_utf8 (*uc, bytes);
-    }
-    bytes[0] = 0;
-    return 0;
-}
-
 bool pchvml_rwswrap_buffer_chars (struct pchvml_rwswrap* wrap,
         uint32_t* ucs, size_t nr_ucs)
 {

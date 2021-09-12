@@ -237,7 +237,7 @@
         pchvml_temp_buffer_reset(hvml->temp_buffer);                        \
     } while (false)
 
-#define APPEND_TO_TEMP_BUFFER(uc)                                        \
+#define APPEND_TO_TEMP_BUFFER(uc)                                           \
     do {                                                                    \
         pchvml_temp_buffer_append(hvml->temp_buffer, uc);                   \
     } while (false)
@@ -250,6 +250,11 @@
 #define APPEND_BUFFER_TO_TEMP_BUFFER(buffer)                                \
     do {                                                                    \
         pchvml_temp_buffer_append_temp_buffer(hvml->temp_buffer, buffer);   \
+    } while (false)
+
+#define APPEND_TO_ESCAPE_BUFFER(uc)                                         \
+    do {                                                                    \
+        pchvml_temp_buffer_append(hvml->escape_buffer, uc);                 \
     } while (false)
 
 static const char* hvml_err_msgs[] = {
@@ -730,17 +735,11 @@ bool pchvml_parser_is_in_attribute (struct pchvml_parser* parser)
 struct pchvml_token* pchvml_next_token (struct pchvml_parser* hvml,
                                           purc_rwstream_t rws)
 {
-    char c[8] = {0};
-    int nr_c = 0;
     uint32_t character = 0;
     pchvml_rwswrap_set_rwstream (hvml->rwswrap, rws);
 
 next_input:
-    nr_c = pchvml_rwswrap_next_utf8_char (hvml->rwswrap, c,
-            &character);
-    if (nr_c <= 0) {
-        return NULL;
-    }
+    character = pchvml_rwswrap_next_char (hvml->rwswrap);
 
 next_state:
     switch (hvml->state) {
@@ -3550,7 +3549,7 @@ next_state:
 
         BEGIN_STATE(PCHVML_EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS_STATE)
             if (is_ascii_hex_digit(character)) {
-                pchvml_temp_buffer_append_bytes(hvml->escape_buffer, c, nr_c);
+                APPEND_TO_ESCAPE_BUFFER(character);
                 size_t nr_chars = pchvml_temp_buffer_get_size_in_chars(
                         hvml->escape_buffer);
                 if (nr_chars == 4) {
