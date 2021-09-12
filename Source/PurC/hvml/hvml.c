@@ -178,6 +178,26 @@
         pchvml_temp_buffer_reset(hvml->temp_buffer);                        \
     } while (false)
 
+#define APPEND_TO_TOKEN_PUBLIC_IDENTIFIER(uc)                               \
+    do {                                                                    \
+        pchvml_token_append_to_public_identifier(hvml->token, uc);          \
+    } while (false)
+
+#define RESET_TOKEN_PUBLIC_IDENTIFIER()                                     \
+    do {                                                                    \
+        pchvml_token_reset_public_identifier(hvml->token);                  \
+    } while (false)
+
+#define APPEND_TO_TOKEN_SYSTEM_INFORMATION(uc)                              \
+    do {                                                                    \
+        pchvml_token_append_to_system_information(hvml->token, uc);         \
+    } while (false)
+
+#define RESET_TOKEN_SYSTEM_INFORMATION()                                    \
+    do {                                                                    \
+        pchvml_token_reset_system_information(hvml->token);                 \
+    } while (false)
+
 #define RESET_TEMP_BUFFER()                                                 \
     do {                                                                    \
         pchvml_temp_buffer_reset(hvml->temp_buffer);                        \
@@ -1453,7 +1473,7 @@ next_state:
             if (character == '"') {
                 PCHVML_SET_ERROR(
                   PCHVML_ERROR_MISSING_WHITESPACE_AFTER_DOCTYPE_PUBLIC_KEYWORD);
-                pchvml_temp_buffer_reset(hvml->token->public_identifier);
+                RESET_TOKEN_PUBLIC_IDENTIFIER();
                 ADVANCE_TO(PCHVML_DOCTYPE_PUBLIC_IDENTIFIER_DOUBLE_QUOTED_STATE);
             }
             if (character == '\'') {
@@ -1485,11 +1505,11 @@ next_state:
                 ADVANCE_TO(PCHVML_BEFORE_DOCTYPE_PUBLIC_IDENTIFIER_STATE);
             }
             if (character == '"') {
-                pchvml_temp_buffer_reset(hvml->token->public_identifier);
+                RESET_TOKEN_PUBLIC_IDENTIFIER();
                 ADVANCE_TO(PCHVML_DOCTYPE_PUBLIC_IDENTIFIER_DOUBLE_QUOTED_STATE);
             }
             if (character == '\'') {
-                pchvml_temp_buffer_reset(hvml->token->public_identifier);
+                RESET_TOKEN_PUBLIC_IDENTIFIER();
                 ADVANCE_TO(PCHVML_DOCTYPE_PUBLIC_IDENTIFIER_SINGLE_QUOTED_STATE);
             }
             if (character == '>') {
@@ -1523,8 +1543,7 @@ next_state:
                 pchvml_token_set_force_quirks(hvml->token, true);
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
-            pchvml_token_append_to_public_identifier(hvml->token,
-                    c, nr_c);
+            APPEND_TO_TOKEN_PUBLIC_IDENTIFIER(character);
             ADVANCE_TO(PCHVML_DOCTYPE_PUBLIC_IDENTIFIER_DOUBLE_QUOTED_STATE);
         END_STATE()
 
@@ -1542,8 +1561,7 @@ next_state:
                 pchvml_token_set_force_quirks(hvml->token, true);
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
-            pchvml_token_append_to_public_identifier(hvml->token,
-                    c, nr_c);
+            APPEND_TO_TOKEN_PUBLIC_IDENTIFIER(character);
             ADVANCE_TO(PCHVML_DOCTYPE_PUBLIC_IDENTIFIER_SINGLE_QUOTED_STATE);
         END_STATE()
 
@@ -1559,16 +1577,14 @@ next_state:
                 PCHVML_SET_ERROR(
                   PCHVML_ERROR_MISSING_WHITESPACE_BETWEEN_DOCTYPE_PUBLIC_AND_SYSTEM_INFORMATIONS
                   );
-                pchvml_temp_buffer_reset(
-                        hvml->token->system_identifier);
+                RESET_TOKEN_SYSTEM_INFORMATION();
                 ADVANCE_TO(PCHVML_DOCTYPE_SYSTEM_INFORMATION_DOUBLE_QUOTED_STATE);
             }
             if (character == '\'') {
                 PCHVML_SET_ERROR(
                   PCHVML_ERROR_MISSING_WHITESPACE_BETWEEN_DOCTYPE_PUBLIC_AND_SYSTEM_INFORMATIONS
                   );
-                pchvml_temp_buffer_reset(
-                        hvml->token->system_identifier);
+                RESET_TOKEN_SYSTEM_INFORMATION();
                 ADVANCE_TO(PCHVML_DOCTYPE_SYSTEM_INFORMATION_SINGLE_QUOTED_STATE);
             }
             if (is_eof(character)) {
@@ -1590,13 +1606,11 @@ next_state:
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
             if (character == '"') {
-                pchvml_temp_buffer_reset(
-                        hvml->token->system_identifier);
+                RESET_TOKEN_SYSTEM_INFORMATION();
                 ADVANCE_TO(PCHVML_DOCTYPE_SYSTEM_INFORMATION_DOUBLE_QUOTED_STATE);
             }
             if (character == '\'') {
-                pchvml_temp_buffer_reset(
-                        hvml->token->system_identifier);
+                RESET_TOKEN_SYSTEM_INFORMATION();
                 ADVANCE_TO(PCHVML_DOCTYPE_SYSTEM_INFORMATION_SINGLE_QUOTED_STATE);
             }
             if (is_eof(character)) {
@@ -1617,15 +1631,13 @@ next_state:
             if (character == '"') {
                 PCHVML_SET_ERROR(
                   PCHVML_ERROR_MISSING_WHITESPACE_AFTER_DOCTYPE_SYSTEM_KEYWORD);
-                pchvml_temp_buffer_reset(
-                        hvml->token->system_identifier);
+                RESET_TOKEN_SYSTEM_INFORMATION();
                 ADVANCE_TO(PCHVML_DOCTYPE_SYSTEM_INFORMATION_DOUBLE_QUOTED_STATE);
             }
             if (character == '\'') {
                 PCHVML_SET_ERROR(
                   PCHVML_ERROR_MISSING_WHITESPACE_AFTER_DOCTYPE_SYSTEM_KEYWORD);
-                pchvml_temp_buffer_reset(
-                        hvml->token->system_identifier);
+                RESET_TOKEN_SYSTEM_INFORMATION();
                 ADVANCE_TO(PCHVML_DOCTYPE_SYSTEM_INFORMATION_SINGLE_QUOTED_STATE);
             }
             if (character == '>') {
@@ -1648,13 +1660,11 @@ next_state:
                 ADVANCE_TO(PCHVML_BEFORE_DOCTYPE_SYSTEM_INFORMATION_STATE);
             }
             if (character == '"') {
-                pchvml_temp_buffer_reset(
-                        hvml->token->system_identifier);
+                RESET_TOKEN_SYSTEM_INFORMATION();
                 ADVANCE_TO(PCHVML_DOCTYPE_SYSTEM_INFORMATION_DOUBLE_QUOTED_STATE);
             }
             if (character == '\'') {
-                pchvml_temp_buffer_reset(
-                        hvml->token->system_identifier);
+                RESET_TOKEN_SYSTEM_INFORMATION();
                 ADVANCE_TO(PCHVML_DOCTYPE_SYSTEM_INFORMATION_SINGLE_QUOTED_STATE);
             }
             if (character == '>') {
@@ -1688,8 +1698,7 @@ next_state:
                 pchvml_token_set_force_quirks(hvml->token, true);
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
-            pchvml_token_append_to_system_identifier(hvml->token,
-                    c, nr_c);
+            APPEND_TO_TOKEN_SYSTEM_INFORMATION(character);
             ADVANCE_TO(PCHVML_DOCTYPE_SYSTEM_INFORMATION_DOUBLE_QUOTED_STATE);
         END_STATE()
 
@@ -1707,8 +1716,7 @@ next_state:
                 pchvml_token_set_force_quirks(hvml->token, true);
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
-            pchvml_token_append_to_system_identifier(hvml->token,
-                    c, nr_c);
+            APPEND_TO_TOKEN_SYSTEM_INFORMATION(character);
             ADVANCE_TO(PCHVML_DOCTYPE_SYSTEM_INFORMATION_SINGLE_QUOTED_STATE);
         END_STATE()
 

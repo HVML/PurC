@@ -189,20 +189,46 @@ void pchvml_token_append_bytes_to_text (struct pchvml_token* token,
 }
 
 void pchvml_token_append_to_public_identifier (struct pchvml_token* token,
-        const char* bytes, size_t sz_bytes)
+        uint32_t uc)
 {
     if (!token->public_identifier) {
         token->public_identifier = pchvml_temp_buffer_new ();
     }
-    pchvml_temp_buffer_append_bytes(token->public_identifier, bytes, sz_bytes);
+    pchvml_temp_buffer_append(token->public_identifier, uc);
 }
 
-void pchvml_token_append_to_system_identifier (struct pchvml_token* token,
-        const char* bytes, size_t sz_bytes)
+const char* pchvml_token_get_public_identifier (struct pchvml_token* token)
 {
-    if (!token->system_identifier) {
-        token->system_identifier = pchvml_temp_buffer_new ();
+    return token->public_identifier ?
+        pchvml_temp_buffer_get_buffer (token->public_identifier) : NULL;
+}
+
+void pchvml_token_reset_public_identifier (struct pchvml_token* token)
+{
+    if (token->public_identifier) {
+        pchvml_temp_buffer_reset (token->public_identifier);
     }
-    pchvml_temp_buffer_append_bytes(token->system_identifier, bytes, sz_bytes);
+}
+
+void pchvml_token_append_to_system_information (struct pchvml_token* token,
+        uint32_t uc)
+{
+    if (!token->system_information) {
+        token->system_information = pchvml_temp_buffer_new ();
+    }
+    pchvml_temp_buffer_append(token->system_information, uc);
+}
+
+const char* pchvml_token_get_system_information (struct pchvml_token* token)
+{
+    return token->system_information ?
+        pchvml_temp_buffer_get_buffer (token->system_information) : NULL;
+}
+
+void pchvml_token_reset_system_information (struct pchvml_token* token)
+{
+    if (token->system_information) {
+        pchvml_temp_buffer_reset (token->system_information);
+    }
 }
 
