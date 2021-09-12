@@ -50,30 +50,8 @@ enum pchvml_token_type {
     PCHVML_TOKEN_EOF
 };
 
-struct pchvml_token_attribute {
-    enum pchvml_attribute_assignment assignment;
-    struct pchvml_temp_buffer* name;
-    struct pchvml_temp_buffer* value;
-    struct pcvcm_node* vcm;
-};
-
-struct pchvml_token {
-    enum pchvml_token_type type;
-    bool self_closing;
-    bool force_quirks;
-
-    struct pchvml_temp_buffer* name;
-    struct pcutils_arrlist* attr_list;
-
-    struct pchvml_temp_buffer* text_content;
-    struct pcvcm_node* vcm_content;
-
-    struct pchvml_temp_buffer* public_identifier;
-    struct pchvml_temp_buffer* system_information;
-
-    struct pchvml_token_attribute* curr_attr;
-};
-
+struct pchvml_token_attribute;
+struct pchvml_token;
 
 #ifdef __cplusplus
 extern "C" {
@@ -114,12 +92,7 @@ struct pchvml_token* pchvml_token_new_doctype () {
     return pchvml_token_new(PCHVML_TOKEN_DOCTYPE);
 }
 
-PCA_INLINE
-struct pchvml_token* pchvml_token_new_vcm (struct pcvcm_node* vcm) {
-    struct pchvml_token* token =  pchvml_token_new(PCHVML_TOKEN_VCM_TREE);
-    token->vcm_content = vcm;
-    return token;
-}
+struct pchvml_token* pchvml_token_new_vcm (struct pcvcm_node* vcm);
 
 void pchvml_token_done (struct pchvml_token* token);
 
@@ -149,36 +122,16 @@ const char* pchvml_token_get_system_information (struct pchvml_token* token);
 
 void pchvml_token_reset_system_information (struct pchvml_token* token);
 
-PCA_INLINE
 bool pchvml_token_is_type (struct pchvml_token* token,
-        enum pchvml_token_type type)
-{
-    return token && token->type == type;
-}
+        enum pchvml_token_type type);
 
-PCA_INLINE
-void pchvml_token_set_self_closing (struct pchvml_token* token, bool b)
-{
-    token->self_closing = b;
-}
+void pchvml_token_set_self_closing (struct pchvml_token* token, bool b);
 
-PCA_INLINE
-bool pchvml_token_is_self_closing (struct pchvml_token* token)
-{
-    return token->self_closing;
-}
+bool pchvml_token_is_self_closing (struct pchvml_token* token);
 
-PCA_INLINE
-void pchvml_token_set_force_quirks (struct pchvml_token* token, bool b)
-{
-    token->force_quirks = b;
-}
+void pchvml_token_set_force_quirks (struct pchvml_token* token, bool b);
 
-PCA_INLINE
-bool pchvml_token_is_force_quirks (struct pchvml_token* token)
-{
-    return token->force_quirks;
-}
+bool pchvml_token_is_force_quirks (struct pchvml_token* token);
 
 void pchvml_token_begin_attr (struct pchvml_token* token);
 
@@ -196,7 +149,13 @@ void pchvml_token_append_vcm_to_attr (struct pchvml_token* token,
         struct pcvcm_node* vcm);
 void pchvml_token_set_assignment_to_attr (struct pchvml_token* token,
         enum pchvml_attribute_assignment assignment);
+
+bool pchvml_token_is_in_attr (struct pchvml_token* token);
+
 void pchvml_token_end_attr (struct pchvml_token* token);
+
+struct pchvml_token_attribute* pchvml_token_get_curr_attr (
+        struct pchvml_token* token);
 
 
 #ifdef __cplusplus

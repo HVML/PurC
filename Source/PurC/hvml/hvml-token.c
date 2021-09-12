@@ -50,12 +50,41 @@
 #define    PCHVML_FREE(p)     free(p)
 #endif
 
+struct pchvml_token_attribute {
+    enum pchvml_attribute_assignment assignment;
+    struct pchvml_temp_buffer* name;
+    struct pchvml_temp_buffer* value;
+    struct pcvcm_node* vcm;
+};
+
+struct pchvml_token {
+    enum pchvml_token_type type;
+    bool self_closing;
+    bool force_quirks;
+
+    struct pchvml_temp_buffer* name;
+    struct pcutils_arrlist* attr_list;
+
+    struct pchvml_temp_buffer* text_content;
+    struct pcvcm_node* vcm_content;
+
+    struct pchvml_temp_buffer* public_identifier;
+    struct pchvml_temp_buffer* system_information;
+
+    struct pchvml_token_attribute* curr_attr;
+};
 
 struct pchvml_token_attribute* pchvml_token_attribute_new ()
 {
     struct pchvml_token_attribute* attr = (struct pchvml_token_attribute*)
         PCHVML_ALLOC(sizeof(struct pchvml_token_attribute));
     return attr;
+}
+
+struct pchvml_token* pchvml_token_new_vcm (struct pcvcm_node* vcm) {
+    struct pchvml_token* token =  pchvml_token_new(PCHVML_TOKEN_VCM_TREE);
+    token->vcm_content = vcm;
+    return token;
 }
 
 void pchvml_token_done (struct pchvml_token* token)
@@ -276,4 +305,39 @@ void pchvml_token_reset_system_information (struct pchvml_token* token)
         pchvml_temp_buffer_reset (token->system_information);
     }
 }
+bool pchvml_token_is_type (struct pchvml_token* token,
+        enum pchvml_token_type type)
+{
+    return token && token->type == type;
+}
 
+void pchvml_token_set_self_closing (struct pchvml_token* token, bool b)
+{
+    token->self_closing = b;
+}
+
+bool pchvml_token_is_self_closing (struct pchvml_token* token)
+{
+    return token->self_closing;
+}
+
+void pchvml_token_set_force_quirks (struct pchvml_token* token, bool b)
+{
+    token->force_quirks = b;
+}
+
+bool pchvml_token_is_force_quirks (struct pchvml_token* token)
+{
+    return token->force_quirks;
+}
+
+bool pchvml_token_is_in_attr (struct pchvml_token* token)
+{
+    return token->curr_attr != NULL;
+}
+
+struct pchvml_token_attribute* pchvml_token_get_curr_attr (
+        struct pchvml_token* token)
+{
+    return token->curr_attr;
+}

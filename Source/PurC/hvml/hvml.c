@@ -729,7 +729,7 @@ struct pcvcm_node* pchvml_parser_new_byte_sequence (struct pchvml_parser* hvml,
 
 bool pchvml_parser_is_in_attribute (struct pchvml_parser* parser)
 {
-    return parser->token && parser->token->curr_attr;
+    return parser->token && pchvml_token_is_in_attr(parser->token);
 }
 
 struct pchvml_token* pchvml_next_token (struct pchvml_parser* hvml,
@@ -993,7 +993,7 @@ next_state:
                     || character == '~') {
                 if (pchvml_parser_is_operation_tag_token(hvml->token)
                         && pchvml_parser_is_ordinary_attribute(
-                            hvml->token->curr_attr)) {
+                            pchvml_token_get_curr_attr(hvml->token))) {
                     RESET_TEMP_BUFFER();
                     APPEND_TO_TOKEN_TEXT(character);
                     SWITCH_TO(
@@ -1026,7 +1026,7 @@ next_state:
                     || character == '~') {
                 if (pchvml_parser_is_operation_tag_token(hvml->token)
                         && pchvml_parser_is_ordinary_attribute(
-                            hvml->token->curr_attr)) {
+                            pchvml_token_get_curr_attr(hvml->token))) {
                     RESET_TEMP_BUFFER();
                     APPEND_TO_TOKEN_TEXT(character);
                     SWITCH_TO(
@@ -1036,7 +1036,7 @@ next_state:
             }
             if (pchvml_parser_is_operation_tag_token(hvml->token)
                 && pchvml_parser_is_preposition_attribute(
-                        hvml->token->curr_attr)) {
+                        pchvml_token_get_curr_attr(hvml->token))) {
                 ADVANCE_TO(PCHVML_BEFORE_ATTRIBUTE_VALUE_STATE);
             }
             BEGIN_TOKEN_ATTR();
@@ -1506,8 +1506,7 @@ next_state:
             if (character == '\'') {
                 PCHVML_SET_ERROR(
                   PCHVML_ERROR_MISSING_WHITESPACE_AFTER_DOCTYPE_PUBLIC_KEYWORD);
-                pchvml_temp_buffer_reset(
-                        hvml->token->public_identifier);
+                RESET_TOKEN_PUBLIC_IDENTIFIER();
                 ADVANCE_TO(PCHVML_DOCTYPE_PUBLIC_IDENTIFIER_SINGLE_QUOTED_STATE);
             }
             if (character == '>') {
@@ -2129,8 +2128,8 @@ next_state:
                         hvml->vcm_tree = hvml->vcm_node;
                     }
                 }
-                if (hvml->token && hvml->token->type ==
-                        PCHVML_TOKEN_START_TAG) {
+                if (pchvml_token_is_type(hvml->token, PCHVML_TOKEN_START_TAG)
+                        ) {
                     pchvml_token_append_vcm_to_attr(hvml->token,
                             hvml->vcm_tree);
                     RECONSUME_IN(PCHVML_AFTER_ATTRIBUTE_VALUE_QUOTED_STATE);
