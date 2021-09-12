@@ -58,6 +58,17 @@ struct pchvml_token_attribute* pchvml_token_attribute_new ()
     return attr;
 }
 
+void pchvml_token_done (struct pchvml_token* token)
+{
+    if (!token->temp_buffer) {
+        return;
+    }
+
+    token->data = strdup (pchvml_temp_buffer_get_buffer(token->temp_buffer));
+    pchvml_temp_buffer_destroy (token->temp_buffer);
+    token->temp_buffer = NULL;
+}
+
 void pchvml_token_attribute_destroy (struct pchvml_token_attribute* attr)
 {
     if (!attr) {
@@ -173,13 +184,3 @@ void pchvml_token_append_to_system_identifier (struct pchvml_token* token,
     pchvml_temp_buffer_append_bytes(token->system_identifier, bytes, sz_bytes);
 }
 
-void pchvml_token_done (struct pchvml_token* token)
-{
-    if (!token->temp_buffer) {
-        return;
-    }
-
-    token->data = strdup (pchvml_temp_buffer_get_buffer(token->temp_buffer));
-    pchvml_temp_buffer_destroy (token->temp_buffer);
-    token->temp_buffer = NULL;
-}

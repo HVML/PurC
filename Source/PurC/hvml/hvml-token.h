@@ -85,18 +85,6 @@ extern "C" {
 #endif  /* __cplusplus */
 
 struct pchvml_token* pchvml_token_new (enum pchvml_token_type type);
-void pchvml_token_destroy (struct pchvml_token* token);
-
-void pchvml_token_attribute_begin (struct pchvml_token* token);
-void pchvml_token_attribute_append_to_name (struct pchvml_token* token,
-        const char* bytes, size_t sz_bytes);
-void pchvml_token_attribute_append_to_value (struct pchvml_token* token,
-        const char* bytes, size_t sz_bytes);
-void pchvml_token_attribute_append_vcm (struct pchvml_token* token,
-        struct pcvcm_node* vcm);
-void pchvml_token_attribute_set_assignment (struct pchvml_token* token,
-        enum pchvml_attribute_assignment assignment);
-void pchvml_token_attribute_end (struct pchvml_token* token);
 
 PCA_INLINE
 struct pchvml_token* pchvml_token_new_character ()
@@ -138,6 +126,11 @@ struct pchvml_token* pchvml_token_new_vcm (struct pcvcm_node* vcm) {
     return token;
 }
 
+void pchvml_token_done (struct pchvml_token* token);
+
+void pchvml_token_destroy (struct pchvml_token* token);
+
+
 void pchvml_token_append (struct pchvml_token* token,
         const char* bytes, size_t sz_bytes);
 
@@ -151,8 +144,6 @@ PCA_INLINE
 const char* pchvml_token_get_data (struct pchvml_token* token) {
     return pchvml_temp_buffer_get_buffer(token->temp_buffer);
 }
-
-void pchvml_token_done (struct pchvml_token* token);
 
 PCA_INLINE
 bool pchvml_token_is_type (struct pchvml_token* token,
@@ -208,6 +199,18 @@ bool pchvml_token_has_system_identifier (struct pchvml_token* token)
 {
     return token->has_system_identifier;
 }
+
+void pchvml_token_attribute_begin (struct pchvml_token* token);
+void pchvml_token_attribute_append_to_name (struct pchvml_token* token,
+        const char* bytes, size_t sz_bytes);
+void pchvml_token_attribute_append_to_value (struct pchvml_token* token,
+        const char* bytes, size_t sz_bytes);
+void pchvml_token_attribute_append_vcm (struct pchvml_token* token,
+        struct pcvcm_node* vcm);
+void pchvml_token_attribute_set_assignment (struct pchvml_token* token,
+        enum pchvml_attribute_assignment assignment);
+void pchvml_token_attribute_end (struct pchvml_token* token);
+
 
 #ifdef __cplusplus
 }
