@@ -58,7 +58,7 @@
 #define PRINT_STATE(state_name)
 #else
 #define PRINT_STATE(state_name)                                             \
-    fprintf(stderr, "in %s|wc=%c|hex=%x\n",                                 \
+    fprintf(stderr, "in %s|wc=%c|hex=0x%X\n",                               \
             pchvml_pchvml_state_desc(state_name), character, character);
 #endif
 
@@ -829,7 +829,7 @@ next_state:
             if (is_ascii_alpha(character)) {
                 hvml->token = pchvml_token_new_end_tag();
                 pchvml_parser_reset_appropriate_tag_name(hvml);
-                ADVANCE_TO(PCHVML_TAG_NAME_STATE);
+                RECONSUME_IN(PCHVML_TAG_NAME_STATE);
             }
             if (character == '>') {
                 PCHVML_SET_ERROR(PCHVML_ERROR_MISSING_END_TAG_NAME);

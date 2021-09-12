@@ -125,6 +125,8 @@ void pchvml_token_reset_system_information (struct pchvml_token* token);
 bool pchvml_token_is_type (struct pchvml_token* token,
         enum pchvml_token_type type);
 
+enum pchvml_token_type pchvml_token_get_type(struct pchvml_token* token);
+
 void pchvml_token_set_self_closing (struct pchvml_token* token, bool b);
 
 bool pchvml_token_is_self_closing (struct pchvml_token* token);
