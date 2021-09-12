@@ -68,9 +68,15 @@ void pchvml_token_attribute_destroy (struct pchvml_token_attribute* attr)
     if (!attr) {
         return;
     }
-    pchvml_temp_buffer_destroy(attr->name);
-    pchvml_temp_buffer_destroy(attr->value);
-    pcvcm_node_destroy (attr->vcm);
+    if (attr->name) {
+        pchvml_temp_buffer_destroy(attr->name);
+    }
+    if (attr->value) {
+        pchvml_temp_buffer_destroy(attr->value);
+    }
+    if (attr->vcm) {
+        pcvcm_node_destroy (attr->vcm);
+    }
     PCHVML_FREE(attr);
 }
 
