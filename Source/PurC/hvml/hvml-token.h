@@ -30,12 +30,6 @@
 #include <private/arraylist.h>
 #include "tempbuffer.h"
 
-#define pchvml_token_append_to_name pchvml_token_append
-#define pchvml_token_append_to_comment pchvml_token_append
-#define pchvml_token_append_to_character pchvml_token_append
-
-#define pchvml_token_get_name pchvml_token_get_data
-
 enum pchvml_attribute_assignment {
     PCHVML_ATTRIBUTE_ASSIGNMENT,           // =
     PCHVML_ATTRIBUTE_ADDITION_ASSIGNMENT,  // +=
@@ -65,18 +59,21 @@ struct pchvml_token_attribute {
 
 struct pchvml_token {
     enum pchvml_token_type type;
-    char* data;
-    struct pcvcm_node* vcm;
-    struct pcutils_arrlist* attr_list;
-    struct pchvml_token_attribute* curr_attr;
-    struct pchvml_temp_buffer* temp_buffer;
     bool self_closing;
-    // DOCTYPE
     bool force_quirks;
     bool has_public_identifier;
     bool has_system_identifier;
+
+    struct pchvml_temp_buffer* name;
+    struct pcutils_arrlist* attr_list;
+
+    struct pchvml_temp_buffer* text_content;
+    struct pcvcm_node* vcm_content;
+
     struct pchvml_temp_buffer* public_identifier;
     struct pchvml_temp_buffer* system_identifier;
+
+    struct pchvml_token_attribute* curr_attr;
 };
 
 
@@ -122,7 +119,7 @@ struct pchvml_token* pchvml_token_new_doctype () {
 PCA_INLINE
 struct pchvml_token* pchvml_token_new_vcm (struct pcvcm_node* vcm) {
     struct pchvml_token* token =  pchvml_token_new(PCHVML_TOKEN_VCM_TREE);
-    token->vcm = vcm;
+    token->vcm_content = vcm;
     return token;
 }
 
@@ -130,20 +127,23 @@ void pchvml_token_done (struct pchvml_token* token);
 
 void pchvml_token_destroy (struct pchvml_token* token);
 
+void pchvml_token_append_to_name (struct pchvml_token* token, uint32_t uc);
 
-void pchvml_token_append (struct pchvml_token* token,
+const char* pchvml_token_get_name (struct pchvml_token* token);
+
+void pchvml_token_append_to_text (struct pchvml_token* token,
+        uint32_t uc);
+
+void pchvml_token_append_bytes_to_text (struct pchvml_token* token,
         const char* bytes, size_t sz_bytes);
+
+const char* pchvml_token_get_text (struct pchvml_token* token);
 
 void pchvml_token_append_to_public_identifier (struct pchvml_token* token,
         const char* bytes, size_t sz_bytes);
 
 void pchvml_token_append_to_system_identifier (struct pchvml_token* token,
         const char* bytes, size_t sz_bytes);
-
-PCA_INLINE
-const char* pchvml_token_get_data (struct pchvml_token* token) {
-    return pchvml_temp_buffer_get_buffer(token->temp_buffer);
-}
 
 PCA_INLINE
 bool pchvml_token_is_type (struct pchvml_token* token,

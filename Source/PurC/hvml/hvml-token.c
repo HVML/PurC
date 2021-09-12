@@ -60,13 +60,7 @@ struct pchvml_token_attribute* pchvml_token_attribute_new ()
 
 void pchvml_token_done (struct pchvml_token* token)
 {
-    if (!token->temp_buffer) {
-        return;
-    }
-
-    token->data = strdup (pchvml_temp_buffer_get_buffer(token->temp_buffer));
-    pchvml_temp_buffer_destroy (token->temp_buffer);
-    token->temp_buffer = NULL;
+    UNUSED_PARAM(token);
 }
 
 void pchvml_token_attribute_destroy (struct pchvml_token_attribute* attr)
@@ -157,13 +151,41 @@ void pchvml_token_attribute_end (struct pchvml_token* token)
     token->curr_attr = NULL;
 }
 
-void pchvml_token_append (struct pchvml_token* token,
+void pchvml_token_append_to_name (struct pchvml_token* token, uint32_t uc)
+{
+    if (!token->name) {
+        token->name = pchvml_temp_buffer_new();
+    }
+    pchvml_temp_buffer_append(token->name, uc);
+}
+
+const char* pchvml_token_get_name (struct pchvml_token* token)
+{
+    return token->name ? pchvml_temp_buffer_get_buffer (token->name) : NULL;
+}
+
+void pchvml_token_append_to_text (struct pchvml_token* token,
+        uint32_t uc)
+{
+    if (!token->text_content) {
+        token->text_content = pchvml_temp_buffer_new();
+    }
+    pchvml_temp_buffer_append(token->text_content, uc);
+}
+
+const char* pchvml_token_get_text (struct pchvml_token* token)
+{
+    return token->text_content ?
+        pchvml_temp_buffer_get_buffer (token->text_content) : NULL;
+}
+
+void pchvml_token_append_bytes_to_text (struct pchvml_token* token,
         const char* bytes, size_t sz_bytes)
 {
-    if (!token->temp_buffer) {
-        token->temp_buffer = pchvml_temp_buffer_new ();
+    if (!token->text_content) {
+        token->text_content = pchvml_temp_buffer_new();
     }
-    pchvml_temp_buffer_append_bytes(token->temp_buffer, bytes, sz_bytes);
+    pchvml_temp_buffer_append_bytes(token->text_content, bytes, sz_bytes);
 }
 
 void pchvml_token_append_to_public_identifier (struct pchvml_token* token,
