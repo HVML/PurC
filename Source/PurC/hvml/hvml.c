@@ -153,9 +153,6 @@
 
 #define APPEND_TO_TOKEN_NAME(uc)                                            \
     do {                                                                    \
-        if (hvml->token == NULL) {                                          \
-            hvml->token = pchvml_token_new (PCHVML_TOKEN_CHARACTER);        \
-        }                                                                   \
         pchvml_token_append_to_name(hvml->token, uc);                       \
     } while (false)
 
