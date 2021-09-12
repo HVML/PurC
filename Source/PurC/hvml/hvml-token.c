@@ -100,12 +100,12 @@ void pchvml_token_destroy (struct pchvml_token* token)
     pchvml_token_attribute_destroy(token->curr_attr);
 }
 
-void pchvml_token_attribute_begin (struct pchvml_token* token)
+void pchvml_token_begin_attr (struct pchvml_token* token)
 {
     token->curr_attr = pchvml_token_attribute_new();
 }
 
-void pchvml_token_attribute_append_to_name (struct pchvml_token* token,
+void pchvml_token_append_to_attr_name (struct pchvml_token* token,
         const char* bytes, size_t sz_bytes)
 {
     if (!token->curr_attr->name) {
@@ -114,7 +114,7 @@ void pchvml_token_attribute_append_to_name (struct pchvml_token* token,
     pchvml_temp_buffer_append_bytes(token->curr_attr->name, bytes, sz_bytes);
 }
 
-void pchvml_token_attribute_append_to_value (struct pchvml_token* token,
+void pchvml_token_append_to_attr_value (struct pchvml_token* token,
         const char* bytes, size_t sz_bytes)
 {
     if (!token->curr_attr->value) {
@@ -123,13 +123,13 @@ void pchvml_token_attribute_append_to_value (struct pchvml_token* token,
     pchvml_temp_buffer_append_bytes(token->curr_attr->value, bytes, sz_bytes);
 }
 
-void pchvml_token_attribute_append_vcm (struct pchvml_token* token,
+void pchvml_token_append_vcm_to_attr (struct pchvml_token* token,
         struct pcvcm_node* vcm)
 {
     token->curr_attr->vcm = vcm;
 }
 
-void pchvml_token_attribute_set_assignment (struct pchvml_token* token,
+void pchvml_token_set_assignment_to_attr (struct pchvml_token* token,
         enum pchvml_attribute_assignment assignment)
 {
     if (token->curr_attr) {
@@ -137,7 +137,7 @@ void pchvml_token_attribute_set_assignment (struct pchvml_token* token,
     }
 }
 
-void pchvml_token_attribute_end (struct pchvml_token* token)
+void pchvml_token_end_attr (struct pchvml_token* token)
 {
     if (!token->curr_attr) {
         return;
