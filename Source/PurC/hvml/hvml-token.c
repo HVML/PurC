@@ -217,6 +217,11 @@ void pchvml_token_end_attr (struct pchvml_token* token)
         return;
     }
 
+    if (token->curr_attr->value) {
+        token->curr_attr->vcm = pcvcm_node_new_string(
+                pchvml_temp_buffer_get_buffer(token->curr_attr->value));
+    }
+
     if (!token->attr_list) {
         token->attr_list = pcutils_arrlist_new(
                 pchvml_token_attr_list_free_fn);

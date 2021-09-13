@@ -56,7 +56,7 @@ TEST(hvml_tokenization, begin_tag_and_end_tag)
 
 TEST(hvml_tokenization, attribute)
 {
-    char hvml[] = "<hvml name=\"attr1\"></hvml>";
+    char hvml[] = "<hvml name=\"attr1\" vv=attr2></hvml>";
     purc_rwstream_t rws = purc_rwstream_new_from_mem(hvml, strlen(hvml));
 
     struct pchvml_parser* parser = pchvml_create(0, 32);
@@ -74,18 +74,33 @@ TEST(hvml_tokenization, attribute)
     ASSERT_NE(name, nullptr);
     ASSERT_STREQ(name, "hvml");
 
-    size_t attr_size = pchvml_token_get_attr_size(token);
-    ASSERT_EQ(attr_size, 1);
+    size_t attr_size = 0;
+    struct pchvml_token_attr* attr = NULL;
+    const char* attr_name = NULL;
+    const struct pcvcm_node* vcm = NULL;
 
-    struct pchvml_token_attr* attr = pchvml_token_get_attr(token, 0);
+    attr_size = pchvml_token_get_attr_size(token);
+    ASSERT_EQ(attr_size, 2);
+
+    attr = pchvml_token_get_attr(token, 0);
     ASSERT_NE(attr, nullptr);
-
-    const char* attr_name = pchvml_token_attr_get_name(attr);
+    attr_name = pchvml_token_attr_get_name(attr);
     ASSERT_NE(attr_name, nullptr);
     ASSERT_STREQ(attr_name, "name");
-
-    const struct pcvcm_node* vcm = pchvml_token_attr_get_value(attr);
+    vcm = pchvml_token_attr_get_value(attr);
     ASSERT_NE(vcm, nullptr);
+    ASSERT_EQ(vcm->type, PCVCM_NODE_TYPE_STRING);
+    ASSERT_STREQ((char*)vcm->data.sz_ptr[1], "attr1");
+
+    attr = pchvml_token_get_attr(token, 1);
+    ASSERT_NE(attr, nullptr);
+    attr_name = pchvml_token_attr_get_name(attr);
+    ASSERT_NE(attr_name, nullptr);
+    ASSERT_STREQ(attr_name, "vv");
+    vcm = pchvml_token_attr_get_value(attr);
+    ASSERT_NE(vcm, nullptr);
+    ASSERT_EQ(vcm->type, PCVCM_NODE_TYPE_STRING);
+    ASSERT_STREQ((char*)vcm->data.sz_ptr[1], "attr2");
 
     token = pchvml_next_token(parser, rws);
     ASSERT_NE(token, nullptr);
