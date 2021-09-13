@@ -30,7 +30,7 @@
 #include <private/arraylist.h>
 #include "tempbuffer.h"
 
-enum pchvml_attribute_assignment {
+enum pchvml_attr_assignment {
     PCHVML_ATTRIBUTE_ASSIGNMENT,           // =
     PCHVML_ATTRIBUTE_ADDITION_ASSIGNMENT,  // +=
     PCHVML_ATTRIBUTE_SUBTRACTION_ASSIGNMENT, // -=
@@ -150,7 +150,7 @@ void pchvml_token_append_bytes_to_attr_value (struct pchvml_token* token,
 void pchvml_token_append_vcm_to_attr (struct pchvml_token* token,
         struct pcvcm_node* vcm);
 void pchvml_token_set_assignment_to_attr (struct pchvml_token* token,
-        enum pchvml_attribute_assignment assignment);
+        enum pchvml_attr_assignment assignment);
 
 bool pchvml_token_is_in_attr (struct pchvml_token* token);
 
@@ -163,6 +163,13 @@ size_t pchvml_token_get_attr_size(struct pchvml_token* token);
 
 struct pchvml_token_attr* pchvml_token_get_attr(
         struct pchvml_token* token, size_t i);
+
+const char* pchvml_token_attr_get_name(struct pchvml_token_attr* attr);
+const struct pcvcm_node* pchvml_token_attr_get_value(
+        struct pchvml_token_attr* attr);
+enum pchvml_attr_assignment pchvml_token_attr_get_assignment(
+        struct pchvml_token_attr* attr);
+
 
 #ifdef __cplusplus
 }

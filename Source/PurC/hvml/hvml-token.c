@@ -51,7 +51,7 @@
 #endif
 
 struct pchvml_token_attr {
-    enum pchvml_attribute_assignment assignment;
+    enum pchvml_attr_assignment assignment;
     struct pchvml_temp_buffer* name;
     struct pchvml_temp_buffer* value;
     struct pcvcm_node* vcm;
@@ -204,7 +204,7 @@ void pchvml_token_append_vcm_to_attr (struct pchvml_token* token,
 }
 
 void pchvml_token_set_assignment_to_attr (struct pchvml_token* token,
-        enum pchvml_attribute_assignment assignment)
+        enum pchvml_attr_assignment assignment)
 {
     if (token->curr_attr) {
         token->curr_attr->assignment = assignment;
@@ -360,4 +360,21 @@ struct pchvml_token_attr* pchvml_token_get_attr(
                 token->attr_list, i);
     }
     return NULL;
+}
+
+const char* pchvml_token_attr_get_name(struct pchvml_token_attr* attr)
+{
+    return pchvml_temp_buffer_get_buffer(attr->name);
+}
+
+const struct pcvcm_node* pchvml_token_attr_get_value(
+        struct pchvml_token_attr* attr)
+{
+    return attr->vcm;
+}
+
+enum pchvml_attr_assignment pchvml_token_attr_get_assignment(
+        struct pchvml_token_attr* attr)
+{
+    return attr->assignment;
 }
