@@ -2106,7 +2106,7 @@ next_state:
 
         BEGIN_STATE(PCHVML_EJSON_FINISHED_STATE)
             if (is_whitespace(character) || character == '}' ||
-                    character == '"') {
+                    character == '"' || character == '>') {
                 while (!pcvcm_stack_is_empty(hvml->vcm_stack)) {
                     pcutils_stack_pop (hvml->ejson_stack);
                     struct pcvcm_node* node = pcvcm_stack_pop(
@@ -2133,6 +2133,7 @@ next_state:
                         ) {
                     pchvml_token_append_vcm_to_attr(hvml->token,
                             hvml->vcm_tree);
+                    END_TOKEN_ATTR();
                     RECONSUME_IN(PCHVML_AFTER_ATTRIBUTE_VALUE_QUOTED_STATE);
                 }
                 hvml->token = pchvml_token_new_vcm(hvml->vcm_tree);
@@ -2207,7 +2208,7 @@ next_state:
                 }
                 RECONSUME_IN(PCHVML_EJSON_RIGHT_BRACKET_STATE);
             }
-            if (character == '<') {
+            if (character == '<' || character == '>') {
                 RECONSUME_IN(PCHVML_EJSON_FINISHED_STATE);
             }
             if (character == '(') {
@@ -3573,8 +3574,10 @@ next_state:
                 if (pchvml_temp_buffer_is_empty(hvml->temp_buffer)
                     || pchvml_temp_buffer_is_int(hvml->temp_buffer)) {
                     APPEND_TO_TOKEN_TEXT(character);
+                    ADVANCE_TO(PCHVML_EJSON_JSONEE_VARIABLE_STATE);
                 }
                 PCHVML_SET_ERROR(PCHVML_ERROR_BAD_JSONEE_VARIABLE_NAME);
+                RETURN_AND_STOP_PARSE();
             }
             if (character == '_' || is_ascii_digit(character)) {
                 if (pchvml_temp_buffer_is_empty(hvml->temp_buffer)
@@ -3582,12 +3585,14 @@ next_state:
                         pchvml_temp_buffer_get_last_char(hvml->temp_buffer))
                    ) {
                     APPEND_TO_TOKEN_TEXT(character);
+                    ADVANCE_TO(PCHVML_EJSON_JSONEE_VARIABLE_STATE);
                 }
                 PCHVML_SET_ERROR(PCHVML_ERROR_BAD_JSONEE_VARIABLE_NAME);
                 RETURN_AND_STOP_PARSE();
             }
             if (is_ascii_alpha(character)) {
                 APPEND_TO_TOKEN_TEXT(character);
+                ADVANCE_TO(PCHVML_EJSON_JSONEE_VARIABLE_STATE);
             }
             if (is_whitespace(character) || character == '}'
                     || character == '"' || character == '$') {
@@ -3635,7 +3640,7 @@ next_state:
                 }
                 RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
             }
-            if (character == '<') {
+            if (character == '<' || character == '>') {
                 // FIXME
                 if (pchvml_temp_buffer_is_empty(hvml->temp_buffer)) {
                     APPEND_TO_TEMP_BUFFER(character);
