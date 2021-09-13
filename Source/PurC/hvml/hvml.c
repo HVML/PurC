@@ -1015,6 +1015,7 @@ next_state:
                 ADVANCE_TO(PCHVML_BEFORE_ATTRIBUTE_VALUE_STATE);
             }
             if (character == '>') {
+                END_TOKEN_ATTR();
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
             if (is_eof(character)) {
