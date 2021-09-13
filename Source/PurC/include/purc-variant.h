@@ -705,7 +705,8 @@ purc_variant_object_get_size(const purc_variant_t obj);
  *
  * purc_variant_t obj;
  * ...
- * purc_variant_object_iterator* it = purc_variant_object_make_iterator_begin(obj);
+ * purc_variant_object_iterator* it;
+ * it = purc_variant_object_make_iterator_begin(obj);
  * while (it) {
  *     const char     *key = purc_variant_object_iterator_get_key(it);
  *     purc_variant_t  val = purc_variant_object_iterator_get_value(it);
@@ -774,7 +775,8 @@ purc_variant_object_release_iterator(struct purc_variant_object_iterator* it);
  *
  * @param it: iterator of itself
  *
- * Returns: True if iterator `it` has no following key-val-pair, False otherwise
+ * Returns: True if iterator `it` has no following key-val-pair,
+ *          False otherwise
  *          dec original key-val-pair's ref
  *          inc current key-val-pair's ref
  *
@@ -821,7 +823,8 @@ purc_variant_object_iterator_get_key(struct purc_variant_object_iterator* it);
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t
-purc_variant_object_iterator_get_value(struct purc_variant_object_iterator* it);
+purc_variant_object_iterator_get_value(
+    struct purc_variant_object_iterator* it);
 
 /**
  * Creates a variant value of set type.
