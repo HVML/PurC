@@ -223,7 +223,7 @@ static purc_variant_t _make_object(int lvl)
         return PURC_VARIANT_INVALID;
 
     purc_variant_t v;
-    v = purc_variant_make_object_c(0, NULL, NULL);
+    v = purc_variant_make_object_by_static_ckey(0, NULL, NULL);
     if (v==PURC_VARIANT_INVALID)
         return v;
 
@@ -362,7 +362,7 @@ static purc_variant_t _make_set(int lvl)
                 ok = false;
                 break;
             }
-            ok = purc_variant_object_set_c(obj, key, val);
+            ok = purc_variant_object_set_by_static_ckey(obj, key, val);
             purc_variant_unref(val);
             if (!ok)
                 break;

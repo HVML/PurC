@@ -139,7 +139,7 @@ _variant_set_cache_obj_keyval(variant_set_t set,
     if (set->unique_key) {
         for (size_t i=0; i<set->nr_keynames; ++i) {
             purc_variant_t v;
-            v = purc_variant_object_get_c(value, set->keynames[i]);
+            v = purc_variant_object_get_by_ckey(value, set->keynames[i]);
             kvs[i] = v; // NULL if no property was found
         }
     } else {

@@ -41,6 +41,30 @@ typedef struct purc_variant* purc_variant_t;
 PCA_EXTERN_C_BEGIN
 
 /**
+ * Adds ref for a variant value
+ *
+ * @param value: variant value to be operated
+ *
+ * Returns: A purc_variant_t on success, NULL on failure.
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT unsigned int purc_variant_ref(purc_variant_t value);
+
+/**
+ * substract ref for a variant value. When ref is zero, releases the resource
+ * occupied by the data
+ *
+ * @param value: variant value to be operated
+ *
+ * Note: When the reference count reaches zero, the system will release
+ *      all memory used by value.
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT unsigned int purc_variant_unref(purc_variant_t value);
+
+/**
  * Creates a variant value of undefined type.
  *
  * Returns: A purc_variant_t with undefined type.
@@ -530,7 +554,7 @@ PCA_EXPORT size_t purc_variant_array_get_size(const purc_variant_t array);
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t
-purc_variant_make_object_c(size_t nr_kv_pairs,
+purc_variant_make_object_by_static_ckey(size_t nr_kv_pairs,
         const char* key0, purc_variant_t value0, ...);
 
 /**
@@ -550,19 +574,6 @@ purc_variant_make_object(size_t nr_kv_pairs,
         purc_variant_t key0, purc_variant_t value0, ...);
 
 /**
- * Gets the value by key from an object with key as c string
- *
- * @param obj: the variant value of obj type
- * @param key: the key of key-value pair
- *
- * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
- *
- * Since: 0.0.1
- */
-PCA_EXPORT purc_variant_t
-purc_variant_object_get_c(purc_variant_t obj, const char* key);
-
-/**
  * Gets the value by key from an object with key as another variant
  *
  * @param obj: the variant value of obj type
@@ -572,27 +583,31 @@ purc_variant_object_get_c(purc_variant_t obj, const char* key);
  *
  * Since: 0.0.1
  */
-static inline purc_variant_t
-purc_variant_object_get(purc_variant_t obj, purc_variant_t key)
-{
-    return purc_variant_object_get_c(obj, purc_variant_get_string_const(key));
-}
-
+PCA_EXPORT purc_variant_t
+purc_variant_object_get(purc_variant_t obj, purc_variant_t key);
 
 /**
- * Sets the value by key in an object with key as c string
+ * Gets the value by key from an object with key as c string
  *
  * @param obj: the variant value of obj type
  * @param key: the key of key-value pair
- * @param value: the value of key-value pair
  *
- * Returns: True on success, otherwise False.
+ * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
-PCA_EXPORT bool
-purc_variant_object_set_c(purc_variant_t obj, const char* key,
-        purc_variant_t value);
+static inline purc_variant_t
+purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key)
+{
+    purc_variant_t k = purc_variant_make_string_static(key, true);
+    if (k==PURC_VARIANT_INVALID) {
+        return PURC_VARIANT_INVALID;
+    }
+    purc_variant_t v = purc_variant_object_get(obj, k);
+    purc_variant_unref(k);
+    return v;
+}
+
 
 /**
  * Sets the value by key in an object with key as another variant
@@ -605,26 +620,33 @@ purc_variant_object_set_c(purc_variant_t obj, const char* key,
  *
  * Since: 0.0.1
  */
-static inline bool
+PCA_EXPORT bool
 purc_variant_object_set(purc_variant_t obj,
-        purc_variant_t key, purc_variant_t value)
-{
-    return purc_variant_object_set_c(obj,
-            purc_variant_get_string_const(key), value);
-}
+        purc_variant_t key, purc_variant_t value);
 
 /**
- * Remove a key-value pair from an object by key with key as c string
+ * Sets the value by key in an object with key as c string
  *
  * @param obj: the variant value of obj type
  * @param key: the key of key-value pair
+ * @param value: the value of key-value pair
  *
  * Returns: True on success, otherwise False.
  *
  * Since: 0.0.1
  */
-PCA_EXPORT bool
-purc_variant_object_remove_c(purc_variant_t obj, const char* key);
+static inline bool
+purc_variant_object_set_by_static_ckey(purc_variant_t obj, const char* key,
+        purc_variant_t value)
+{
+    purc_variant_t k = purc_variant_make_string_static(key, true);
+    if (k==PURC_VARIANT_INVALID) {
+        return false;
+    }
+    bool b = purc_variant_object_set(obj, k, value);
+    purc_variant_unref(k);
+    return b;
+}
 
 /**
  * Remove a key-value pair from an object by key with key as another variant
@@ -636,10 +658,29 @@ purc_variant_object_remove_c(purc_variant_t obj, const char* key);
  *
  * Since: 0.0.1
  */
+PCA_EXPORT bool
+purc_variant_object_remove(purc_variant_t obj, purc_variant_t key);
+
+/**
+ * Remove a key-value pair from an object by key with key as c string
+ *
+ * @param obj: the variant value of obj type
+ * @param key: the key of key-value pair
+ *
+ * Returns: True on success, otherwise False.
+ *
+ * Since: 0.0.1
+ */
 static inline bool
-purc_variant_object_remove(purc_variant_t obj, purc_variant_t key)
+purc_variant_object_remove_by_static_ckey(purc_variant_t obj, const char* key)
 {
-    return purc_variant_object_remove_c(obj, purc_variant_get_string_const(key));
+    purc_variant_t k = purc_variant_make_string_static(key, true);
+    if (k==PURC_VARIANT_INVALID) {
+        return false;
+    }
+    bool b = purc_variant_object_remove(obj, k);
+    purc_variant_unref(k);
+    return b;
 }
 
 /**
@@ -1033,30 +1074,6 @@ purc_variant_set_iterator_prev(struct purc_variant_set_iterator* it);
  */
 PCA_EXPORT purc_variant_t
 purc_variant_set_iterator_get_value(struct purc_variant_set_iterator* it);
-
-/**
- * Adds ref for a variant value
- *
- * @param value: variant value to be operated
- *
- * Returns: A purc_variant_t on success, NULL on failure.
- *
- * Since: 0.0.1
- */
-PCA_EXPORT unsigned int purc_variant_ref(purc_variant_t value);
-
-/**
- * substract ref for a variant value. When ref is zero, releases the resource
- * occupied by the data
- *
- * @param value: variant value to be operated
- *
- * Note: When the reference count reaches zero, the system will release
- *      all memory used by value.
- *
- * Since: 0.0.1
- */
-PCA_EXPORT unsigned int purc_variant_unref(purc_variant_t value);
 
 
 /**
