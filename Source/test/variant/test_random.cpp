@@ -341,7 +341,7 @@ static purc_variant_t _make_set(int lvl)
     }
 
     purc_variant_t v;
-    v = purc_variant_make_set_c(0, uniq, NULL);
+    v = purc_variant_make_set_by_ckey(0, uniq, NULL);
     if (v==PURC_VARIANT_INVALID)
         return v;
 

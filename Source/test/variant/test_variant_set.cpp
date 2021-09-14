@@ -52,7 +52,7 @@ TEST(variant_set, init_with_1_str)
     purc_variant_t str = purc_variant_make_string(s, false);
     ASSERT_EQ(stat->nr_values[PVT(_STRING)], 1);
 
-    purc_variant_t var = purc_variant_make_set_c(0, "hello", NULL);
+    purc_variant_t var = purc_variant_make_set_by_ckey(0, "hello", NULL);
     ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
     ASSERT_EQ(stat->nr_values[PVT(_STRING)], 1);
 
@@ -91,7 +91,7 @@ TEST(variant_set, init_0_elem)
     stat = purc_variant_usage_stat();
     ASSERT_NE(stat, nullptr);
 
-    purc_variant_t var = purc_variant_make_set_c(0, "hello", NULL);
+    purc_variant_t var = purc_variant_make_set_by_ckey(0, "hello", NULL);
     ASSERT_NE(var, nullptr);
     ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
     ASSERT_EQ(var->refc, 1);
@@ -128,7 +128,7 @@ TEST(variant_set, add_n_str)
     stat = purc_variant_usage_stat();
     ASSERT_NE(stat, nullptr);
 
-    purc_variant_t var = purc_variant_make_set_c(0, "hello", NULL);
+    purc_variant_t var = purc_variant_make_set_by_ckey(0, "hello", NULL);
     ASSERT_NE(var, nullptr);
     ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
     ASSERT_EQ(var->refc, 1);

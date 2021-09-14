@@ -842,7 +842,7 @@ purc_variant_object_iterator_get_value(
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t
-purc_variant_make_set_c(size_t sz, const char* unique_key,
+purc_variant_make_set_by_ckey(size_t sz, const char* unique_key,
         purc_variant_t value0, ...);
 
 /**
