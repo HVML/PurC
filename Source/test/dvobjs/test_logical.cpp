@@ -13,6 +13,7 @@
 #include <errno.h>
 #include <gtest/gtest.h>
 
+// it is the basic test
 TEST(dvobjs, dvobjs_logical_not)
 {
     purc_variant_t param[10];
@@ -34,18 +35,21 @@ TEST(dvobjs, dvobjs_logical_not)
     func = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(func, nullptr);
 
+    // undefined
     param[0] = purc_variant_make_undefined ();
     param[1] = NULL;
     ret_var = func (NULL, 0, param);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
     ASSERT_EQ(ret_var->b, true);
 
+    // null
     param[0] = purc_variant_make_null ();
     param[1] = NULL;
     ret_var = func (NULL, 0, param);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
     ASSERT_EQ(ret_var->b, true);
 
+    // boolean
     param[0] = purc_variant_make_boolean (true);
     param[1] = NULL;
     ret_var = func (NULL, 0, param);
@@ -58,6 +62,7 @@ TEST(dvobjs, dvobjs_logical_not)
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
     ASSERT_EQ(ret_var->b, true);
 
+    // number
     param[0] = purc_variant_make_number (0.0);
     param[1] = NULL;
     ret_var = func (NULL, 0, param);
@@ -76,24 +81,46 @@ TEST(dvobjs, dvobjs_logical_not)
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
     ASSERT_EQ(ret_var->b, false);
    
+    // ulongint
     param[0] = purc_variant_make_ulongint (1);
     param[1] = NULL;
     ret_var = func (NULL, 0, param);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
     ASSERT_EQ(ret_var->b, false);
    
+    param[0] = purc_variant_make_ulongint (0);
+    param[1] = NULL;
+    ret_var = func (NULL, 0, param);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    ASSERT_EQ(ret_var->b, true);
+   
+    // longint
     param[0] = purc_variant_make_longint(-1);
     param[1] = NULL;
     ret_var = func (NULL, 0, param);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
     ASSERT_EQ(ret_var->b, false);
    
+    param[0] = purc_variant_make_longint(0);
+    param[1] = NULL;
+    ret_var = func (NULL, 0, param);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    ASSERT_EQ(ret_var->b, true);
+   
+    // long double
     param[0] = purc_variant_make_longdouble(-1.2);
     param[1] = NULL;
     ret_var = func (NULL, 0, param);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
     ASSERT_EQ(ret_var->b, false);
 
+    param[0] = purc_variant_make_longdouble(0.0);
+    param[1] = NULL;
+    ret_var = func (NULL, 0, param);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    ASSERT_EQ(ret_var->b, true);
+
+    // string
     param[0] = purc_variant_make_string("", false);
     param[1] = NULL;
     ret_var = func (NULL, 0, param);
@@ -106,6 +133,7 @@ TEST(dvobjs, dvobjs_logical_not)
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
     ASSERT_EQ(ret_var->b, false);
 
+    // atom string
     param[0] = purc_variant_make_atom_string("", false);
     param[1] = NULL;
     ret_var = func (NULL, 0, param);
@@ -118,13 +146,70 @@ TEST(dvobjs, dvobjs_logical_not)
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
     ASSERT_EQ(ret_var->b, false);
 
+    // byte sequence
+    param[0] = purc_variant_make_byte_sequence ("hello world", 5);
+    param[1] = NULL;
+    ret_var = func (NULL, 0, param);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    ASSERT_EQ(ret_var->b, false);
 
+    // native
+    struct purc_native_ops ops;
+    param[0] = purc_variant_make_native (ret_var, &ops);
+    param[1] = NULL;
+    ret_var = func (NULL, 0, param);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    ASSERT_EQ(ret_var->b, false);
 
+    // object
+    param[0] = purc_variant_make_object (0, PURC_VARIANT_INVALID, 
+                                                    PURC_VARIANT_INVALID);
+    param[1] = NULL;
+    ret_var = func (NULL, 0, param);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    ASSERT_EQ(ret_var->b, true);
 
-    printf ("TEST not: OK\n");
+    param[0] = purc_variant_make_object (0, PURC_VARIANT_INVALID, 
+                                                    PURC_VARIANT_INVALID);
+    purc_variant_object_set (param[0], purc_variant_make_string("hello", false),
+                            purc_variant_make_longdouble(-1.2));
+    param[1] = NULL;
+    ret_var = func (NULL, 0, param);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    ASSERT_EQ(ret_var->b, false);
+
+    // array
+    param[0] = purc_variant_make_array (0, PURC_VARIANT_INVALID); 
+    param[1] = NULL;
+    ret_var = func (NULL, 0, param);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    ASSERT_EQ(ret_var->b, true);
+
+    param[0] = purc_variant_make_array (0, PURC_VARIANT_INVALID); 
+    purc_variant_array_append (param[0], purc_variant_make_string("hello", false));
+    param[1] = NULL;
+    ret_var = func (NULL, 0, param);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    ASSERT_EQ(ret_var->b, false);
+
+    // set
+    param[0] = purc_variant_make_set(0, PURC_VARIANT_INVALID, PURC_VARIANT_INVALID); 
+    param[1] = NULL;
+    ret_var = func (NULL, 0, param);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    ASSERT_EQ(ret_var->b, true);
+
+    param[0] = purc_variant_make_set(0, PURC_VARIANT_INVALID, PURC_VARIANT_INVALID); 
+    purc_variant_set_add (param[0], purc_variant_make_string("hello", false), false);
+    param[1] = NULL;
+    ret_var = func (NULL, 0, param);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    ASSERT_EQ(ret_var->b, false);
 
     purc_cleanup ();
 }
+
+#if 0
 TEST(dvobjs, dvobjs_logical_uname_prt)
 {
     purc_variant_t param[10];
@@ -595,4 +680,4 @@ TEST(dvobjs, dvobjs_logical_get_random)
 
     purc_cleanup ();
 }
-
+#endif

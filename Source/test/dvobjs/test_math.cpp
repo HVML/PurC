@@ -14,10 +14,50 @@
 #include <math.h>
 #include <gtest/gtest.h>
 
-TEST(dvobjs, dvobjs_math_pi)
+struct dvobjs_math_item
 {
+    const char * func_d;
+    enum purc_variant_type type_d;
+    double param_d;
+    double d;
+    const char * func_ld;
+    enum purc_variant_type type_ld;
+    long double param_ld;
+    long double ld;
+};
+
+TEST(dvobjs, dvobjs_math_pi_e)
+{
+    struct dvobjs_math_item math_item[] = 
+    {
+        {
+            "pi",
+            PURC_VARIANT_TYPE_NUMBER,
+            0.0d,
+            M_PI,
+            "pi_l",
+            PURC_VARIANT_TYPE_LONGDOUBLE,
+            0.0d,
+            M_PIl
+        },
+        {
+            "e",
+            PURC_VARIANT_TYPE_NUMBER,
+            0.0d,
+            M_E,
+            "e_l",
+            PURC_VARIANT_TYPE_LONGDOUBLE,
+            0.0d,
+            M_El
+        }
+    };
+
+    size_t i = 0;
+    size_t size = sizeof (math_item) / sizeof (struct dvobjs_math_item);
     purc_variant_t param[10];
     purc_variant_t ret_var = NULL;
+    double number;
+    long double numberl;
 
     purc_instance_extra_info info = {0, 0};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
@@ -27,88 +67,40 @@ TEST(dvobjs, dvobjs_math_pi)
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_c (math, "pi");
-    ASSERT_NE(dynamic, nullptr);
-    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+    for (i = 0; i < size; i++) {
+        // test double function
+        purc_variant_t dynamic = purc_variant_object_get_c (math, math_item[i].func_d);
+        ASSERT_NE(dynamic, nullptr);
+        ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
-    purc_dvariant_method func = NULL;
-    func = purc_variant_dynamic_get_getter (dynamic);
-    ASSERT_NE(func, nullptr);
+        purc_dvariant_method func = NULL;
+        func = purc_variant_dynamic_get_getter (dynamic);
+        ASSERT_NE(func, nullptr);
 
-    ret_var = func (NULL, 0, param);
-    ASSERT_NE(ret_var, nullptr);
+        ret_var = func (NULL, 0, param);
+        ASSERT_NE(ret_var, nullptr);
 
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
+        ASSERT_EQ(purc_variant_is_type (ret_var, math_item[i].type_d), true);
 
-    double number;
-    purc_variant_cast_to_number (ret_var, &number, false);
-    printf("TEST pi: %lf\n", number);
+        purc_variant_cast_to_number (ret_var, &number, false);
+        ASSERT_EQ(number, math_item[i].d);
 
-    dynamic = purc_variant_object_get_c (math, "pi_l");
-    ASSERT_NE(dynamic, nullptr);
-    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+        // test long double function
+        dynamic = purc_variant_object_get_c (math, math_item[i].func_ld);
+        ASSERT_NE(dynamic, nullptr);
+        ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
-    func = purc_variant_dynamic_get_getter (dynamic);
-    ASSERT_NE(func, nullptr);
+        func = purc_variant_dynamic_get_getter (dynamic);
+        ASSERT_NE(func, nullptr);
 
-    ret_var = func (NULL, 0, param);
-    ASSERT_NE(ret_var, nullptr);
+        ret_var = func (NULL, 0, param);
+        ASSERT_NE(ret_var, nullptr);
 
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE), true);
+        ASSERT_EQ(purc_variant_is_type (ret_var, math_item[i].type_ld), true);
 
-    long double numberl;
-    purc_variant_cast_to_long_double (ret_var, &numberl, false);
-    printf("TEST pi_l: %Lf\n", numberl);
-
-    purc_cleanup ();
-}
-
-
-TEST(dvobjs, dvobjs_math_e)
-{
-    purc_variant_t param[10];
-    purc_variant_t ret_var = NULL;
-
-    purc_instance_extra_info info = {0, 0};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
-    ASSERT_EQ (ret, PURC_ERROR_OK);
-
-    purc_variant_t math = pcdvojbs_get_math();
-    ASSERT_NE(math, nullptr);
-    ASSERT_EQ(purc_variant_is_object (math), true);
-
-    purc_variant_t dynamic = purc_variant_object_get_c (math, "e");
-    ASSERT_NE(dynamic, nullptr);
-    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
-
-    purc_dvariant_method func = NULL;
-    func = purc_variant_dynamic_get_getter (dynamic);
-    ASSERT_NE(func, nullptr);
-
-    ret_var = func (NULL, 0, param);
-    ASSERT_NE(ret_var, nullptr);
-
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
-
-    double number;
-    purc_variant_cast_to_number (ret_var, &number, false);
-    printf("TEST e: %lf\n", number);
-
-    dynamic = purc_variant_object_get_c (math, "e_l");
-    ASSERT_NE(dynamic, nullptr);
-    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
-
-    func = purc_variant_dynamic_get_getter (dynamic);
-    ASSERT_NE(func, nullptr);
-
-    ret_var = func (NULL, 0, param);
-    ASSERT_NE(ret_var, nullptr);
-
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE), true);
-
-    long double numberl;
-    purc_variant_cast_to_long_double (ret_var, &numberl, false);
-    printf("TEST e_l: %Lf\n", numberl);
+        purc_variant_cast_to_long_double (ret_var, &numberl, false);
+        ASSERT_EQ(numberl, math_item[i].ld);
+    }
 
     purc_cleanup ();
 }
@@ -116,6 +108,132 @@ TEST(dvobjs, dvobjs_math_e)
 
 TEST(dvobjs, dvobjs_math_const)
 {
+    struct dvobjs_math_item math_item[] = 
+    {
+        {
+            "e",
+            PURC_VARIANT_TYPE_NUMBER,
+            0.0d,
+            M_E,
+            "e",
+            PURC_VARIANT_TYPE_LONGDOUBLE,
+            0.0d,
+            M_El
+        },
+        {
+            "log2e",
+            PURC_VARIANT_TYPE_NUMBER,
+            0.0d,
+            M_LOG2E,
+            "log2e",
+            PURC_VARIANT_TYPE_LONGDOUBLE,
+            0.0d,
+            M_LOG2El
+        },
+        {
+            "log10e",
+            PURC_VARIANT_TYPE_NUMBER,
+            0.0d,
+            M_LOG10E,
+            "log10e",
+            PURC_VARIANT_TYPE_LONGDOUBLE,
+            0.0d,
+            M_LOG10El
+        },
+        {
+            "ln2",
+            PURC_VARIANT_TYPE_NUMBER,
+            0.0d,
+            M_LN2,
+            "ln2",
+            PURC_VARIANT_TYPE_LONGDOUBLE,
+            0.0d,
+            M_LN2l
+        },
+        {
+            "ln10",
+            PURC_VARIANT_TYPE_NUMBER,
+            0.0d,
+            M_LN10,
+            "ln10",
+            PURC_VARIANT_TYPE_LONGDOUBLE,
+            0.0d,
+            M_LN10l
+        },
+        {
+            "pi",
+            PURC_VARIANT_TYPE_NUMBER,
+            0.0d,
+            M_PI,
+            "pi",
+            PURC_VARIANT_TYPE_LONGDOUBLE,
+            0.0d,
+            M_PIl
+        },
+        {
+            "pi/2",
+            PURC_VARIANT_TYPE_NUMBER,
+            0.0d,
+            M_PI_2,
+            "pi/2",
+            PURC_VARIANT_TYPE_LONGDOUBLE,
+            0.0d,
+            M_PI_2l
+        },
+        {
+            "pi/4",
+            PURC_VARIANT_TYPE_NUMBER,
+            0.0d,
+            M_PI_4,
+            "pi/4",
+            PURC_VARIANT_TYPE_LONGDOUBLE,
+            0.0d,
+            M_PI_4l
+        },
+        {
+            "1/pi",
+            PURC_VARIANT_TYPE_NUMBER,
+            0.0d,
+            M_1_PI,
+            "1/pi",
+            PURC_VARIANT_TYPE_LONGDOUBLE,
+            0.0d,
+            M_1_PIl
+        },
+        {
+            "1/sqrt(2)",
+            PURC_VARIANT_TYPE_NUMBER,
+            0.0d,
+            M_SQRT1_2,
+            "1/sqrt(2)",
+            PURC_VARIANT_TYPE_LONGDOUBLE,
+            0.0d,
+            M_SQRT1_2l
+        },
+        {
+            "2/pi",
+            PURC_VARIANT_TYPE_NUMBER,
+            0.0d,
+            M_2_PI,
+            "2/pi",
+            PURC_VARIANT_TYPE_LONGDOUBLE,
+            0.0d,
+            M_2_PIl
+        },
+        {
+            "sqrt(2)",
+            PURC_VARIANT_TYPE_NUMBER,
+            0.0d,
+            M_SQRT2,
+            "sqrt(2)",
+            PURC_VARIANT_TYPE_LONGDOUBLE,
+            0.0d,
+            M_SQRT2l
+        }
+    };
+
+    size_t i = 0;
+    size_t size = sizeof (math_item) / sizeof (struct dvobjs_math_item);
     purc_variant_t param[10];
     purc_variant_t ret_var = NULL;
     double number;
@@ -137,94 +255,15 @@ TEST(dvobjs, dvobjs_math_const)
     func = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(func, nullptr);
 
-    param[0] = purc_variant_make_string ("e", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
-    purc_variant_cast_to_number (ret_var, &number, false);
-    printf("TEST const: param is \"e\": %lf\n", number);
-
-    param[0] = purc_variant_make_string ("log2e", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
-    purc_variant_cast_to_number (ret_var, &number, false);
-    printf("TEST const: param is \"log2e\": %lf\n", number);
-
-    param[0] = purc_variant_make_string ("log10e", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
-    purc_variant_cast_to_number (ret_var, &number, false);
-    printf("TEST const: param is \"log10e\": %lf\n", number);
-
-    param[0] = purc_variant_make_string ("ln2", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
-    purc_variant_cast_to_number (ret_var, &number, false);
-    printf("TEST const: param is \"ln2\": %lf\n", number);
-
-    param[0] = purc_variant_make_string ("ln10", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
-    purc_variant_cast_to_number (ret_var, &number, false);
-    printf("TEST const: param is \"ln10\": %lf\n", number);
-
-    param[0] = purc_variant_make_string ("pi", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
-    purc_variant_cast_to_number (ret_var, &number, false);
-    printf("TEST const: param is \"pi\": %lf\n", number);
-
-    param[0] = purc_variant_make_string ("pi/2", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
-    purc_variant_cast_to_number (ret_var, &number, false);
-    printf("TEST const: param is \"pi/2\": %lf\n", number);
-
-    param[0] = purc_variant_make_string ("pi/4", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
-    purc_variant_cast_to_number (ret_var, &number, false);
-    printf("TEST const: param is \"pi/4\": %lf\n", number);
-
-    param[0] = purc_variant_make_string ("1/pi", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
-    purc_variant_cast_to_number (ret_var, &number, false);
-    printf("TEST const: param is \"1/pi\": %lf\n", number);
-
-    param[0] = purc_variant_make_string ("2/pi", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
-    purc_variant_cast_to_number (ret_var, &number, false);
-    printf("TEST const: param is \"2/pi\": %lf\n", number);
-
-    param[0] = purc_variant_make_string ("sqrt(2)", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
-    purc_variant_cast_to_number (ret_var, &number, false);
-    printf("TEST const: param is \"sqrt(2)\": %lf\n", number);
-
+    for (i = 0; i < size; i++) {
+        param[0] = purc_variant_make_string (math_item[i].func_d, true);
+        param[1] = NULL;
+        ret_var = func (NULL, 1, param);
+        ASSERT_NE(ret_var, nullptr);
+        ASSERT_EQ(purc_variant_is_type (ret_var, math_item[i].type_d), true);
+        purc_variant_cast_to_number (ret_var, &number, false);
+        ASSERT_EQ(number, math_item[i].d);
+    }
 
     dynamic = purc_variant_object_get_c (math, "const_l");
     ASSERT_NE(dynamic, nullptr);
@@ -233,93 +272,15 @@ TEST(dvobjs, dvobjs_math_const)
     func = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(func, nullptr);
 
-    param[0] = purc_variant_make_string ("e", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE), true);
-    purc_variant_cast_to_long_double (ret_var, &numberl, false);
-    printf("TEST const_l: param is \"e\": %Lf\n", numberl);
-
-    param[0] = purc_variant_make_string ("log2e", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE), true);
-    purc_variant_cast_to_long_double (ret_var, &numberl, false);
-    printf("TEST const_l: param is \"log2e\": %Lf\n", numberl);
-
-    param[0] = purc_variant_make_string ("log10e", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE), true);
-    purc_variant_cast_to_long_double (ret_var, &numberl, false);
-    printf("TEST const-L: param is \"log10e\": %Lf\n", numberl);
-
-    param[0] = purc_variant_make_string ("ln2", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE), true);
-    purc_variant_cast_to_long_double (ret_var, &numberl, false);
-    printf("TEST const_l: param is \"ln2\": %Lf\n", numberl);
-
-    param[0] = purc_variant_make_string ("ln10", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE), true);
-    purc_variant_cast_to_long_double (ret_var, &numberl, false);
-    printf("TEST const_l: param is \"ln10\": %Lf\n", numberl);
-
-    param[0] = purc_variant_make_string ("pi", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE), true);
-    purc_variant_cast_to_long_double (ret_var, &numberl, false);
-    printf("TEST const_l: param is \"pi\": %Lf\n", numberl);
-
-    param[0] = purc_variant_make_string ("pi/2", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE), true);
-    purc_variant_cast_to_long_double (ret_var, &numberl, false);
-    printf("TEST const_l: param is \"pi/2\": %Lf\n", numberl);
-
-    param[0] = purc_variant_make_string ("pi/4", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE), true);
-    purc_variant_cast_to_long_double (ret_var, &numberl, false);
-    printf("TEST const_l: param is \"pi/4\": %Lf\n", numberl);
-
-    param[0] = purc_variant_make_string ("1/pi", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE), true);
-    purc_variant_cast_to_long_double (ret_var, &numberl, false);
-    printf("TEST const_l: param is \"1/pi\": %Lf\n", numberl);
-
-    param[0] = purc_variant_make_string ("2/pi", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE), true);
-    purc_variant_cast_to_long_double (ret_var, &numberl, false);
-    printf("TEST const_l: param is \"2/pi\": %Lf\n", numberl);
-
-    param[0] = purc_variant_make_string ("sqrt(2)", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE), true);
-    purc_variant_cast_to_long_double (ret_var, &numberl, false);
-    printf("TEST const_l: param is \"sqrt(2)\": %Lf\n", numberl);
+    for (i = 0; i < size; i++) {
+        param[0] = purc_variant_make_string (math_item[i].func_ld, true);
+        param[1] = NULL;
+        ret_var = func (NULL, 1, param);
+        ASSERT_NE(ret_var, nullptr);
+        ASSERT_EQ(purc_variant_is_type (ret_var, math_item[i].type_ld), true);
+        purc_variant_cast_to_long_double (ret_var, &numberl, false);
+        ASSERT_EQ(numberl, math_item[i].ld);
+    }
 
     param[0] = purc_variant_make_string ("abcd", true);
     param[1] = NULL;
@@ -329,8 +290,44 @@ TEST(dvobjs, dvobjs_math_const)
     purc_cleanup ();
 }
 
-TEST(dvobjs, dvobjs_math_sin)
+TEST(dvobjs, dvobjs_math_func)
 {
+    struct dvobjs_math_item math_item[] = 
+    {
+        {
+            "sin",
+            PURC_VARIANT_TYPE_NUMBER,
+            M_PI / 2,
+            1.0d,
+            "sin_l",
+            PURC_VARIANT_TYPE_LONGDOUBLE,
+            M_PIl / 2,
+            1.0d
+        },
+        {
+            "cos",
+            PURC_VARIANT_TYPE_NUMBER,
+            M_PI,
+            -1.0d,
+            "cos_l",
+            PURC_VARIANT_TYPE_LONGDOUBLE,
+            M_PIl,
+            -1.0
+        },
+        {
+            "sqrt",
+            PURC_VARIANT_TYPE_NUMBER,
+            9.0d,
+            3.0d,
+            "sqrt_l",
+            PURC_VARIANT_TYPE_LONGDOUBLE,
+            9.0d,
+            3.0d
+        }
+    };
+
+    size_t i = 0;
+    size_t size = sizeof (math_item) / sizeof (struct dvobjs_math_item);
     purc_variant_t param[10];
     purc_variant_t ret_var = NULL;
     double number;
@@ -344,142 +341,43 @@ TEST(dvobjs, dvobjs_math_sin)
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_c (math, "sin");
-    ASSERT_NE(dynamic, nullptr);
-    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
-    purc_dvariant_method func = NULL;
-    func = purc_variant_dynamic_get_getter (dynamic);
-    ASSERT_NE(func, nullptr);
+    for (i = 0; i < size; i++) {
+        purc_variant_t dynamic = purc_variant_object_get_c (math, math_item[i].func_d);
+        ASSERT_NE(dynamic, nullptr);
+        ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
-    param[0] = purc_variant_make_number (M_PI / 2);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
-    purc_variant_cast_to_number (ret_var, &number, false);
-    printf("TEST sin: param is M_PI / 2 : %lf\n", number);
+        purc_dvariant_method func = NULL;
+        func = purc_variant_dynamic_get_getter (dynamic);
+        ASSERT_NE(func, nullptr);
 
-
-    dynamic = purc_variant_object_get_c (math, "sin_l");
-    ASSERT_NE(dynamic, nullptr);
-    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
-
-    func = purc_variant_dynamic_get_getter (dynamic);
-    ASSERT_NE(func, nullptr);
-
-    param[0] = purc_variant_make_longdouble (M_PI / 2);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE), true);
-    purc_variant_cast_to_long_double (ret_var, &numberl, false);
-    printf("TEST sin_l: param is M_PI / 2 : %Lf\n", numberl);
-
-    purc_cleanup ();
-}
-
-TEST(dvobjs, dvobjs_math_cos)
-{
-    purc_variant_t param[10];
-    purc_variant_t ret_var = NULL;
-    double number;
-    long double numberl;
-
-    purc_instance_extra_info info = {0, 0};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
-    ASSERT_EQ (ret, PURC_ERROR_OK);
-
-    purc_variant_t math = pcdvojbs_get_math();
-    ASSERT_NE(math, nullptr);
-    ASSERT_EQ(purc_variant_is_object (math), true);
-
-    purc_variant_t dynamic = purc_variant_object_get_c (math, "cos");
-    ASSERT_NE(dynamic, nullptr);
-    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
-
-    purc_dvariant_method func = NULL;
-    func = purc_variant_dynamic_get_getter (dynamic);
-    ASSERT_NE(func, nullptr);
-
-    param[0] = purc_variant_make_number (M_PI);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
-    purc_variant_cast_to_number (ret_var, &number, false);
-    printf("TEST cos: param is M_PI : %lf\n", number);
+        param[0] = purc_variant_make_number (math_item[i].param_d);
+        param[1] = NULL;
+        ret_var = func (NULL, 1, param);
+        ASSERT_NE(ret_var, nullptr);
+        ASSERT_EQ(purc_variant_is_type (ret_var, math_item[i].type_d), true);
+        purc_variant_cast_to_number (ret_var, &number, false);
+        ASSERT_EQ(number, math_item[i].d);
 
 
-    dynamic = purc_variant_object_get_c (math, "cos_l");
-    ASSERT_NE(dynamic, nullptr);
-    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+        dynamic = purc_variant_object_get_c (math, math_item[i].func_ld);
+        ASSERT_NE(dynamic, nullptr);
+        ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
-    func = purc_variant_dynamic_get_getter (dynamic);
-    ASSERT_NE(func, nullptr);
+        func = purc_variant_dynamic_get_getter (dynamic);
+        ASSERT_NE(func, nullptr);
 
-    param[0] = purc_variant_make_longdouble (M_PI);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE), true);
-    purc_variant_cast_to_long_double (ret_var, &numberl, false);
-    printf("TEST cos_l: param is M_PI : %Lf\n", numberl);
+        param[0] = purc_variant_make_longdouble (math_item[i].param_ld);
+        param[1] = NULL;
+        ret_var = func (NULL, 1, param);
+        ASSERT_NE(ret_var, nullptr);
+        ASSERT_EQ(purc_variant_is_type (ret_var, math_item[i].type_ld), true);
+        purc_variant_cast_to_long_double (ret_var, &numberl, false);
+        ASSERT_EQ(numberl, math_item[i].ld);
+    }
 
     purc_cleanup ();
 }
-
-
-TEST(dvobjs, dvobjs_math_sqrt)
-{
-    purc_variant_t param[10];
-    purc_variant_t ret_var = NULL;
-    double number;
-    long double numberl;
-
-    purc_instance_extra_info info = {0, 0};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
-    ASSERT_EQ (ret, PURC_ERROR_OK);
-
-    purc_variant_t math = pcdvojbs_get_math();
-    ASSERT_NE(math, nullptr);
-    ASSERT_EQ(purc_variant_is_object (math), true);
-
-    purc_variant_t dynamic = purc_variant_object_get_c (math, "sqrt");
-    ASSERT_NE(dynamic, nullptr);
-    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
-
-    purc_dvariant_method func = NULL;
-    func = purc_variant_dynamic_get_getter (dynamic);
-    ASSERT_NE(func, nullptr);
-
-    param[0] = purc_variant_make_number (2.0d);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
-    purc_variant_cast_to_number (ret_var, &number, false);
-    printf("TEST sqrt: param is 2.0 : %lf\n", number);
-
-
-    dynamic = purc_variant_object_get_c (math, "sqrt_l");
-    ASSERT_NE(dynamic, nullptr);
-    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
-
-    func = purc_variant_dynamic_get_getter (dynamic);
-    ASSERT_NE(func, nullptr);
-
-    param[0] = purc_variant_make_longdouble (2.0d);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE), true);
-    purc_variant_cast_to_long_double (ret_var, &numberl, false);
-    printf("TEST sqrt_l: param is 2.0 : %Lf\n", numberl);
-
-    purc_cleanup ();
-}
-
 
 TEST(dvobjs, dvobjs_math_eval)
 {
