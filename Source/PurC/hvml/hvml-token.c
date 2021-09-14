@@ -532,6 +532,7 @@ struct pchvml_temp_buffer* pchvml_token_vcm_to_string(
         return NULL;
     }
     struct pchvml_temp_buffer* buffer = pchvml_temp_buffer_new();
+    pchvml_add_pcvcm_node_to_buffer(buffer, vcm);
     return buffer;
 }
 
@@ -653,6 +654,7 @@ struct pchvml_temp_buffer* pchvml_token_to_string(struct pchvml_token* token)
     // attributes
     size_t nr_attrs = pchvml_token_get_attr_size(token);
     for (size_t i = 0; i < nr_attrs; i++) {
+        pchvml_temp_buffer_append_bytes(buffer, " ", 1);
         struct pchvml_temp_buffer* attr_buffer = pchvml_token_attr_to_string(
                 pchvml_token_get_attr(token, i));
         if (attr_buffer) {
