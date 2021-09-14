@@ -40,6 +40,7 @@ TEST(hvml_tokenization, begin_tag_and_end_tag)
     name = pchvml_token_get_name(token);
     ASSERT_NE(name, nullptr);
     ASSERT_STREQ(name, "hvml");
+    pchvml_token_destroy(token);
 
     token = pchvml_next_token(parser, rws);
     ASSERT_NE(token, nullptr);
@@ -48,6 +49,7 @@ TEST(hvml_tokenization, begin_tag_and_end_tag)
     name = pchvml_token_get_name(token);
     ASSERT_NE(name, nullptr);
     ASSERT_STREQ(name, "hvml");
+    pchvml_token_destroy(token);
 
     pchvml_destroy (parser);
     purc_rwstream_destroy(rws);
@@ -102,6 +104,8 @@ TEST(hvml_tokenization, attribute)
     ASSERT_EQ(vcm->type, PCVCM_NODE_TYPE_STRING);
     ASSERT_STREQ((char*)vcm->sz_ptr[1], "attr2");
 
+    pchvml_token_destroy(token);
+
     token = pchvml_next_token(parser, rws);
     ASSERT_NE(token, nullptr);
     type = pchvml_token_get_type(token);
@@ -109,6 +113,7 @@ TEST(hvml_tokenization, attribute)
     name = pchvml_token_get_name(token);
     ASSERT_NE(name, nullptr);
     ASSERT_STREQ(name, "hvml");
+    pchvml_token_destroy(token);
 
     pchvml_destroy (parser);
     purc_rwstream_destroy(rws);
@@ -150,6 +155,8 @@ TEST(hvml_tokenization, attr_no_value)
     vcm = pchvml_token_attr_get_value(attr);
     ASSERT_EQ(vcm, nullptr);
 
+    pchvml_token_destroy(token);
+
     token = pchvml_next_token(parser, rws);
     ASSERT_NE(token, nullptr);
     type = pchvml_token_get_type(token);
@@ -157,6 +164,7 @@ TEST(hvml_tokenization, attr_no_value)
     name = pchvml_token_get_name(token);
     ASSERT_NE(name, nullptr);
     ASSERT_STREQ(name, "hvml");
+    pchvml_token_destroy(token);
 
     pchvml_destroy (parser);
     purc_rwstream_destroy(rws);
@@ -199,6 +207,8 @@ TEST(hvml_tokenization, ejson_attr_value)
     ASSERT_NE(vcm, nullptr);
     ASSERT_EQ(vcm->type, PCVCM_NODE_TYPE_FUNC_GET_VARIABLE);
 
+    pchvml_token_destroy(token);
+
     token = pchvml_next_token(parser, rws);
     ASSERT_NE(token, nullptr);
     type = pchvml_token_get_type(token);
@@ -206,6 +216,7 @@ TEST(hvml_tokenization, ejson_attr_value)
     name = pchvml_token_get_name(token);
     ASSERT_NE(name, nullptr);
     ASSERT_STREQ(name, "hvml");
+    pchvml_token_destroy(token);
 
     pchvml_destroy (parser);
     purc_rwstream_destroy(rws);
@@ -247,6 +258,7 @@ TEST(hvml_tokenization, ejson_get_element)
     vcm = pchvml_token_attr_get_value(attr);
     ASSERT_NE(vcm, nullptr);
     ASSERT_EQ(vcm->type, PCVCM_NODE_TYPE_FUNC_GET_ELEMENT);
+    pchvml_token_destroy(token);
 
     token = pchvml_next_token(parser, rws);
     ASSERT_NE(token, nullptr);
@@ -255,6 +267,7 @@ TEST(hvml_tokenization, ejson_get_element)
     name = pchvml_token_get_name(token);
     ASSERT_NE(name, nullptr);
     ASSERT_STREQ(name, "hvml");
+    pchvml_token_destroy(token);
 
     pchvml_destroy (parser);
     purc_rwstream_destroy(rws);

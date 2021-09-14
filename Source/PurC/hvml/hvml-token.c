@@ -154,6 +154,7 @@ void pchvml_token_destroy (struct pchvml_token* token)
     }
 
     pchvml_token_attr_destroy(token->curr_attr);
+    PCHVML_FREE(token);
 }
 
 void pchvml_token_begin_attr (struct pchvml_token* token)
@@ -387,4 +388,65 @@ enum pchvml_attr_assignment pchvml_token_attr_get_assignment(
         struct pchvml_token_attr* attr)
 {
     return attr->assignment;
+}
+
+struct pchvml_temp_buffer* pchvml_token_attr_to_string(
+        struct pchvml_token_attr* attr)
+{
+    UNUSED_PARAM(attr);
+    return NULL;
+}
+
+struct pchvml_temp_buffer* pchvml_token_to_string(struct pchvml_token* token)
+{
+    if (!token) {
+        return NULL;
+    }
+    struct pchvml_temp_buffer* buffer = pchvml_temp_buffer_new();
+
+    switch (token->type) {
+    case PCHVML_TOKEN_DOCTYPE:
+        break;
+
+    case PCHVML_TOKEN_START_TAG:
+        pchvml_temp_buffer_append_bytes(buffer, "<", 1);
+        break;
+
+    case PCHVML_TOKEN_END_TAG:
+        pchvml_temp_buffer_append_bytes(buffer, "</", 2);
+        break;
+
+    case PCHVML_TOKEN_COMMENT:
+        break;
+
+    case PCHVML_TOKEN_CHARACTER:
+        break;
+
+    case PCHVML_TOKEN_VCM_TREE:
+        break;
+
+    case PCHVML_TOKEN_EOF:
+        break;
+    }
+
+    // name
+    pchvml_temp_buffer_append_temp_buffer (buffer, token->name);
+
+    // attributes
+    size_t nr_attrs = pchvml_token_get_attr_size(token);
+    for (size_t i = 0; i < nr_attrs; i++) {
+        struct pchvml_temp_buffer* attr_buffer = pchvml_token_attr_to_string(
+                pchvml_token_get_attr(token, i));
+        if (attr_buffer) {
+            pchvml_temp_buffer_append_temp_buffer (buffer, attr_buffer);
+        }
+    }
+
+    // end
+    if (token->self_closing) {
+        pchvml_temp_buffer_append_bytes(buffer, "/", 1);
+    }
+    pchvml_temp_buffer_append_bytes(buffer, ">", 1);
+
+    return buffer;
 }

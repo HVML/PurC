@@ -119,6 +119,7 @@
             pchvml_parser_save_appropriate_tag_name(hvml);                  \
             pchvml_token_done(hvml->token);                                 \
             struct pchvml_token* token = hvml->token;                       \
+            hvml->token = NULL;                                             \
             return token;                                                   \
         }                                                                   \
         return NULL;                                                        \
@@ -130,6 +131,7 @@
         pchvml_parser_save_appropriate_tag_name(hvml);                      \
         pchvml_token_done(hvml->token);                                     \
         struct pchvml_token* token = hvml->token;                           \
+        hvml->token = NULL;                                                 \
         return token;                                                       \
     } while (false)
 
@@ -139,6 +141,7 @@
         pchvml_parser_save_appropriate_tag_name(hvml);                      \
         pchvml_token_done(hvml->token);                                     \
         struct pchvml_token* token = hvml->token;                           \
+        hvml->token = NULL;                                                 \
         return token;                                                       \
     } while (false)
 
@@ -522,7 +525,9 @@ void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
     pchvml_temp_buffer_reset (parser->appropriate_tag_name);
     pchvml_temp_buffer_reset (parser->escape_buffer);
     pcvcm_stack_destroy(parser->vcm_stack);
+    parser->vcm_stack = pcvcm_stack_new();
     pcutils_stack_destroy(parser->ejson_stack);
+    parser->ejson_stack = pcutils_stack_new(0);
 }
 
 void pchvml_destroy(struct pchvml_parser* parser)
@@ -530,9 +535,13 @@ void pchvml_destroy(struct pchvml_parser* parser)
     if (parser) {
         pchvml_rwswrap_destroy (parser->rwswrap);
         pchvml_temp_buffer_destroy (parser->temp_buffer);
+        pchvml_temp_buffer_destroy (parser->appropriate_tag_name);
+        pchvml_temp_buffer_destroy (parser->escape_buffer);
         if (parser->sbst) {
             pchvml_sbst_destroy(parser->sbst);
         }
+        pcvcm_stack_destroy(parser->vcm_stack);
+        pcutils_stack_destroy(parser->ejson_stack);
         PCHVML_FREE(parser);
     }
 }
