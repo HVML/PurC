@@ -2,3 +2,5 @@
 002_double_quoted_attr
 003_unquoted_attr
 004_attr_without_value
+005_jsonee_get_varialbe
+006_jsonee_get_element
