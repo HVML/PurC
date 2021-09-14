@@ -172,6 +172,8 @@ const struct pcvcm_node* pchvml_token_attr_get_value(
 enum pchvml_attr_assignment pchvml_token_attr_get_assignment(
         struct pchvml_token_attr* attr);
 
+struct pchvml_temp_buffer* pchvml_token_attr_to_string(
+        struct pchvml_token_attr* attr);
 struct pchvml_temp_buffer* pchvml_token_to_string(struct pchvml_token* token);
 
 #ifdef __cplusplus
