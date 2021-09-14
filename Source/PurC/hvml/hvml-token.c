@@ -55,6 +55,7 @@ struct pchvml_token_attr {
     struct pchvml_temp_buffer* name;
     struct pchvml_temp_buffer* value;
     struct pcvcm_node* vcm;
+    uint32_t quote;
 };
 
 struct pchvml_token {
@@ -390,11 +391,228 @@ enum pchvml_attr_assignment pchvml_token_attr_get_assignment(
     return attr->assignment;
 }
 
+#define APPEND_CHILD_NODE()                                                 \
+    do {                                                                    \
+        struct pctree_node* child = NULL;                                   \
+        struct pctree_node* tree_node = (struct pctree_node*) (node);       \
+        child = tree_node->first_child;                                     \
+        while (child) {                                                     \
+            pchvml_add_pcvcm_node_to_buffer(buffer,                         \
+                    (struct pcvcm_node*)child);                             \
+            child = child->next;                                            \
+            if (child) {                                                    \
+                pchvml_temp_buffer_append_bytes(buffer, ",", 1);            \
+            }                                                               \
+        }                                                                   \
+    } while (false)
+
+#define APPEND_VARIANT()                                                    \
+    do {                                                                    \
+        char buf[1024] = {0};                                               \
+        purc_rwstream_t my_rws = purc_rwstream_new_from_mem(buf, 1023);     \
+        size_t len_expected = 0;                                            \
+        ssize_t n = purc_variant_serialize(v, my_rws,                       \
+                       0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);    \
+        buf[n] = 0;                                                         \
+        purc_rwstream_destroy(my_rws);                                      \
+        pchvml_temp_buffer_append_bytes(buffer, buf, n);                    \
+    } while (false)
+
+void pchvml_add_pcvcm_node_to_buffer (struct pchvml_temp_buffer* buffer,
+        struct pcvcm_node* node)
+{
+    switch (node->type)
+    {
+    case PCVCM_NODE_TYPE_OBJECT:
+        pchvml_temp_buffer_append_bytes(buffer, "make_object(", 12);
+        APPEND_CHILD_NODE();
+        pchvml_temp_buffer_append_bytes(buffer, ")", 1);
+        break;
+
+    case PCVCM_NODE_TYPE_ARRAY:
+        pchvml_temp_buffer_append_bytes(buffer, "make_array(", 11);
+        APPEND_CHILD_NODE();
+        pchvml_temp_buffer_append_bytes(buffer, ")", 1);
+        break;
+
+    case PCVCM_NODE_TYPE_STRING:
+        pchvml_temp_buffer_append_bytes(buffer, (char*)node->sz_ptr[1],
+                node->sz_ptr[0]);
+        break;
+
+    case PCVCM_NODE_TYPE_NULL:
+        pchvml_temp_buffer_append_bytes(buffer, "null", 4);
+        break;
+
+    case PCVCM_NODE_TYPE_BOOLEAN:
+    {
+        purc_variant_t v = purc_variant_make_boolean (node->b);
+        APPEND_VARIANT();
+        purc_variant_unref(v);
+        break;
+    }
+
+    case PCVCM_NODE_TYPE_NUMBER:
+    {
+        purc_variant_t v = purc_variant_make_number (node->d);
+        APPEND_VARIANT();
+        purc_variant_unref(v);
+        break;
+    }
+
+    case PCVCM_NODE_TYPE_LONG_INT:
+    {
+        purc_variant_t v = purc_variant_make_longint (node->i64);
+        APPEND_VARIANT();
+        purc_variant_unref(v);
+        break;
+    }
+
+    case PCVCM_NODE_TYPE_ULONG_INT:
+    {
+        purc_variant_t v = purc_variant_make_ulongint (node->u64);
+        APPEND_VARIANT();
+        purc_variant_unref(v);
+        break;
+    }
+
+    case PCVCM_NODE_TYPE_LONG_DOUBLE:
+    {
+        purc_variant_t v = purc_variant_make_longdouble (node->ld);
+        APPEND_VARIANT();
+        purc_variant_unref(v);
+        break;
+    }
+
+    case PCVCM_NODE_TYPE_BYTE_SEQUENCE:
+    {
+        purc_variant_t v = purc_variant_make_byte_sequence(
+                (void*)node->sz_ptr[1], node->sz_ptr[0]);
+        APPEND_VARIANT();
+        purc_variant_unref(v);
+        break;
+    }
+
+    case PCVCM_NODE_TYPE_FUNC_CONCAT_STRING:
+        pchvml_temp_buffer_append_bytes(buffer, "concat_string(", 14);
+        APPEND_CHILD_NODE();
+        pchvml_temp_buffer_append_bytes(buffer, ")", 1);
+        break;
+
+    case PCVCM_NODE_TYPE_FUNC_GET_VARIABLE:
+        pchvml_temp_buffer_append_bytes(buffer, "get_variable(", 13);
+        APPEND_CHILD_NODE();
+        pchvml_temp_buffer_append_bytes(buffer, ")", 1);
+        break;
+
+    case PCVCM_NODE_TYPE_FUNC_GET_ELEMENT:
+        pchvml_temp_buffer_append_bytes(buffer, "get_element(", 12);
+        APPEND_CHILD_NODE();
+        pchvml_temp_buffer_append_bytes(buffer, ")", 1);
+        break;
+
+    case PCVCM_NODE_TYPE_FUNC_CALL_GETTER:
+        pchvml_temp_buffer_append_bytes(buffer, "call_getter(", 12);
+        APPEND_CHILD_NODE();
+        pchvml_temp_buffer_append_bytes(buffer, ")", 1);
+        break;
+
+    case PCVCM_NODE_TYPE_FUNC_CALL_SETTER:
+        pchvml_temp_buffer_append_bytes(buffer, "call_setter(", 12);
+        APPEND_CHILD_NODE();
+        pchvml_temp_buffer_append_bytes(buffer, ")", 1);
+        break;
+    }
+}
+
+struct pchvml_temp_buffer* pchvml_token_vcm_to_string(
+        struct pcvcm_node* vcm)
+{
+    if (!vcm) {
+        return NULL;
+    }
+    struct pchvml_temp_buffer* buffer = pchvml_temp_buffer_new();
+    return buffer;
+}
+
 struct pchvml_temp_buffer* pchvml_token_attr_to_string(
         struct pchvml_token_attr* attr)
 {
-    UNUSED_PARAM(attr);
-    return NULL;
+    if (!attr) {
+        return NULL;
+    }
+    struct pchvml_temp_buffer* buffer = pchvml_temp_buffer_new();
+    // name
+    pchvml_temp_buffer_append_temp_buffer (buffer, attr->name);
+    // assignment
+    switch (attr->assignment) {
+    case PCHVML_ATTRIBUTE_ASSIGNMENT:
+        pchvml_temp_buffer_append_bytes(buffer, "=", 1);
+        break;
+
+    case PCHVML_ATTRIBUTE_ADDITION_ASSIGNMENT:
+        pchvml_temp_buffer_append_bytes(buffer, "+=", 2);
+        break;
+
+    case PCHVML_ATTRIBUTE_SUBTRACTION_ASSIGNMENT:
+        pchvml_temp_buffer_append_bytes(buffer, "-=", 2);
+        break;
+
+    case PCHVML_ATTRIBUTE_REMAINDER_ASSIGNMENT:
+        pchvml_temp_buffer_append_bytes(buffer, "%=", 2);
+        break;
+
+    case PCHVML_ATTRIBUTE_REPLACE_ASSIGNMENT:
+        pchvml_temp_buffer_append_bytes(buffer, "~=", 2);
+        break;
+
+    case PCHVML_ATTRIBUTE_HEAD_ASSIGNMENT:
+        pchvml_temp_buffer_append_bytes(buffer, "^=", 2);
+        break;
+
+    case PCHVML_ATTRIBUTE_TAIL_ASSIGNMENT:
+        pchvml_temp_buffer_append_bytes(buffer, "$=", 2);
+        break;
+    }
+    // value
+    struct pchvml_temp_buffer* vcm_buff = pchvml_token_vcm_to_string(attr->vcm);
+    switch (attr->quote) {
+    case '"':
+        pchvml_temp_buffer_append_bytes(buffer, "\"", 1);
+        if (vcm_buff) {
+            pchvml_temp_buffer_append_temp_buffer(buffer, vcm_buff);
+            pchvml_temp_buffer_destroy(vcm_buff);
+        }
+        pchvml_temp_buffer_append_bytes(buffer, "\"", 1);
+        break;
+
+    case '\'':
+        pchvml_temp_buffer_append_bytes(buffer, "\'", 1);
+        if (vcm_buff) {
+            pchvml_temp_buffer_append_temp_buffer(buffer, vcm_buff);
+            pchvml_temp_buffer_destroy(vcm_buff);
+        }
+        pchvml_temp_buffer_append_bytes(buffer, "\'", 1);
+        break;
+
+    case 'U':
+        if (vcm_buff) {
+            pchvml_temp_buffer_append_temp_buffer(buffer, vcm_buff);
+            pchvml_temp_buffer_destroy(vcm_buff);
+        }
+        break;
+
+    default:
+        pchvml_temp_buffer_append_bytes(buffer, "\"", 1);
+        if (vcm_buff) {
+            pchvml_temp_buffer_append_temp_buffer(buffer, vcm_buff);
+            pchvml_temp_buffer_destroy(vcm_buff);
+        }
+        pchvml_temp_buffer_append_bytes(buffer, "\"", 1);
+        break;
+    }
+
+    return buffer;
 }
 
 struct pchvml_temp_buffer* pchvml_token_to_string(struct pchvml_token* token)
@@ -439,6 +657,7 @@ struct pchvml_temp_buffer* pchvml_token_to_string(struct pchvml_token* token)
                 pchvml_token_get_attr(token, i));
         if (attr_buffer) {
             pchvml_temp_buffer_append_temp_buffer (buffer, attr_buffer);
+            pchvml_temp_buffer_destroy(attr_buffer);
         }
     }
 
