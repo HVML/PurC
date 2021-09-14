@@ -545,6 +545,11 @@ struct pchvml_temp_buffer* pchvml_token_attr_to_string(
     struct pchvml_temp_buffer* buffer = pchvml_temp_buffer_new();
     // name
     pchvml_temp_buffer_append_temp_buffer (buffer, attr->name);
+
+    if (!attr->vcm) {
+        return buffer;
+    }
+
     // assignment
     switch (attr->assignment) {
     case PCHVML_ATTRIBUTE_ASSIGNMENT:
@@ -577,38 +582,33 @@ struct pchvml_temp_buffer* pchvml_token_attr_to_string(
     }
     // value
     struct pchvml_temp_buffer* vcm_buff = pchvml_token_vcm_to_string(attr->vcm);
+    if (!vcm_buff) {
+        return buffer;
+    }
     switch (attr->quote) {
     case '"':
         pchvml_temp_buffer_append_bytes(buffer, "\"", 1);
-        if (vcm_buff) {
-            pchvml_temp_buffer_append_temp_buffer(buffer, vcm_buff);
-            pchvml_temp_buffer_destroy(vcm_buff);
-        }
+        pchvml_temp_buffer_append_temp_buffer(buffer, vcm_buff);
+        pchvml_temp_buffer_destroy(vcm_buff);
         pchvml_temp_buffer_append_bytes(buffer, "\"", 1);
         break;
 
     case '\'':
         pchvml_temp_buffer_append_bytes(buffer, "\'", 1);
-        if (vcm_buff) {
-            pchvml_temp_buffer_append_temp_buffer(buffer, vcm_buff);
-            pchvml_temp_buffer_destroy(vcm_buff);
-        }
+        pchvml_temp_buffer_append_temp_buffer(buffer, vcm_buff);
+        pchvml_temp_buffer_destroy(vcm_buff);
         pchvml_temp_buffer_append_bytes(buffer, "\'", 1);
         break;
 
     case 'U':
-        if (vcm_buff) {
-            pchvml_temp_buffer_append_temp_buffer(buffer, vcm_buff);
-            pchvml_temp_buffer_destroy(vcm_buff);
-        }
+        pchvml_temp_buffer_append_temp_buffer(buffer, vcm_buff);
+        pchvml_temp_buffer_destroy(vcm_buff);
         break;
 
     default:
         pchvml_temp_buffer_append_bytes(buffer, "\"", 1);
-        if (vcm_buff) {
-            pchvml_temp_buffer_append_temp_buffer(buffer, vcm_buff);
-            pchvml_temp_buffer_destroy(vcm_buff);
-        }
+        pchvml_temp_buffer_append_temp_buffer(buffer, vcm_buff);
+        pchvml_temp_buffer_destroy(vcm_buff);
         pchvml_temp_buffer_append_bytes(buffer, "\"", 1);
         break;
     }

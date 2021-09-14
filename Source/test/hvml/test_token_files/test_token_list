@@ -1,3 +1,4 @@
 001_normal_tag
 002_double_quoted_attr
 003_unquoted_attr
+004_attr_without_value
