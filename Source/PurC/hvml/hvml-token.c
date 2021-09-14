@@ -644,7 +644,7 @@ struct pchvml_temp_buffer* pchvml_token_to_string(struct pchvml_token* token)
         break;
 
     case PCHVML_TOKEN_EOF:
-        break;
+        return NULL;
     }
 
     // name
