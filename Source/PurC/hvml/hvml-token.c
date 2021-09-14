@@ -321,6 +321,11 @@ enum pchvml_token_type pchvml_token_get_type(struct pchvml_token* token)
     return token->type;
 }
 
+struct pcvcm_node* pchvml_token_get_vcm(struct pchvml_token* token)
+{
+    return token->vcm_content;
+}
+
 void pchvml_token_set_self_closing (struct pchvml_token* token, bool b)
 {
     token->self_closing = b;
