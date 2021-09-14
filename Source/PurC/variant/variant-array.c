@@ -49,7 +49,8 @@ static void _fill_empty_with_undefined(struct pcutils_arrlist *al)
     }
 }
 
-purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
+static purc_variant_t
+pv_make_array_n (size_t sz, purc_variant_t value0, va_list ap)
 {
     PCVARIANT_CHECK_FAIL_RET((sz==0 && value0==NULL) || (sz > 0 && value0),
         PURC_VARIANT_INVALID);
@@ -79,10 +80,6 @@ purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
         var->sz_ptr[1]     = (uintptr_t)al;
 
         if (sz > 0) {
-
-            va_list ap;
-            va_start(ap, value0);
-
             purc_variant_t v = value0;
             // question: shall we track mem for al->array?
             if (pcutils_arrlist_add(al, v)) {
@@ -108,7 +105,6 @@ purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
 
                 i++;
             }
-            va_end(ap);
 
             if (i < sz)
                 break;
@@ -124,6 +120,17 @@ purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
     pcvariant_put(var);
 
     return PURC_VARIANT_INVALID;
+}
+
+purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
+{
+    purc_variant_t v;
+    va_list ap;
+    va_start(ap, value0);
+    v = pv_make_array_n(sz, value0, ap);
+    va_end(ap);
+
+    return v;
 }
 
 void pcvariant_array_release (purc_variant_t value)

@@ -190,9 +190,9 @@ static int v_object_remove(purc_variant_t obj, purc_variant_t key)
     return true;
 }
 
-purc_variant_t
-purc_variant_make_object_by_static_ckey (size_t nr_kv_pairs,
-    const char* key0, purc_variant_t value0, ...)
+static purc_variant_t
+pv_make_object_by_static_ckey_n (size_t nr_kv_pairs,
+    const char* key0, purc_variant_t value0, va_list ap)
 {
     PCVARIANT_CHECK_FAIL_RET((nr_kv_pairs==0 && key0==NULL && value0==NULL) ||
                          (nr_kv_pairs>0 && key0 && value0),
@@ -217,10 +217,7 @@ purc_variant_make_object_by_static_ckey (size_t nr_kv_pairs,
         }
 
         if (nr_kv_pairs > 1) {
-            va_list ap;
-            va_start(ap, value0);
             r = v_object_set_kvs_n(obj, nr_kv_pairs-1, 1, ap);
-            va_end(ap);
             if (r)
                 break;
         }
@@ -238,8 +235,21 @@ purc_variant_make_object_by_static_ckey (size_t nr_kv_pairs,
 }
 
 purc_variant_t
-purc_variant_make_object (size_t nr_kv_pairs,
-    purc_variant_t key0, purc_variant_t value0, ...)
+purc_variant_make_object_by_static_ckey (size_t nr_kv_pairs,
+    const char* key0, purc_variant_t value0, ...)
+{
+    purc_variant_t v;
+    va_list ap;
+    va_start(ap, value0);
+    v = pv_make_object_by_static_ckey_n(nr_kv_pairs, key0, value0, ap);
+    va_end(ap);
+
+    return v;
+}
+
+static purc_variant_t
+pv_make_object_n(size_t nr_kv_pairs,
+    purc_variant_t key0, purc_variant_t value0, va_list ap)
 {
     PCVARIANT_CHECK_FAIL_RET((nr_kv_pairs==0 && key0==NULL && value0==NULL) ||
                          (nr_kv_pairs>0 && key0 && value0),
@@ -260,10 +270,7 @@ purc_variant_make_object (size_t nr_kv_pairs,
         }
 
         if (nr_kv_pairs > 1) {
-            va_list ap;
-            va_start(ap, value0);
             int r = v_object_set_kvs_n(obj, nr_kv_pairs-1, 0, ap);
-            va_end(ap);
             if (r)
                 break;
         }
@@ -279,6 +286,19 @@ purc_variant_make_object (size_t nr_kv_pairs,
     purc_variant_unref(obj);
 
     return PURC_VARIANT_INVALID;
+}
+
+purc_variant_t
+purc_variant_make_object (size_t nr_kv_pairs,
+    purc_variant_t key0, purc_variant_t value0, ...)
+{
+    purc_variant_t v;
+    va_list ap;
+    va_start(ap, value0);
+    v = pv_make_object_n(nr_kv_pairs, key0, value0, ap);
+    va_end(ap);
+
+    return v;
 }
 
 void pcvariant_object_release (purc_variant_t value)
