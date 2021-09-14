@@ -103,7 +103,7 @@ pchvml_tag_static_search(const char* name, size_t length)
         if (!entry->name) {
             return NULL;
         }
-        if (strcasecmp(name, entry->name)==0) {
+        if (strncasecmp(name, entry->name, length)==0) {
             return entry;
         }
         if (rec->next==0) {

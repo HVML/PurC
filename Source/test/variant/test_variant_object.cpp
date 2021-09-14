@@ -15,7 +15,7 @@ _check_get_by_key_c(purc_variant_t obj, const char *key, purc_variant_t val,
     size_t refc = 0;
     if (val!=PURC_VARIANT_INVALID)
         refc = val->refc;
-    purc_variant_t v = purc_variant_object_get_c(obj, key);
+    purc_variant_t v = purc_variant_object_get_by_ckey(obj, key);
     ASSERT_EQ(v, val);
     if (found) {
         ASSERT_GT(refc, 0);
@@ -68,11 +68,12 @@ TEST(object, make_object_c)
     purc_variant_t  v3 = purc_variant_make_string("good", true);
 
     purc_variant_t obj;
-    obj = purc_variant_make_object_c(0,
+    obj = purc_variant_make_object_by_static_ckey(0,
             NULL, PURC_VARIANT_INVALID);
     ASSERT_NE(obj, PURC_VARIANT_INVALID);
     ASSERT_EQ(obj->refc, 1);
     _check_get_by_key_c(obj, k1, PURC_VARIANT_INVALID, false);
+
     purc_variant_object_iterator* it;
     it = purc_variant_object_make_iterator_begin(obj);
     int j = 0;
@@ -91,9 +92,10 @@ TEST(object, make_object_c)
     }
     purc_variant_object_release_iterator(it);
     ASSERT_EQ(j, 0);
+
     purc_variant_unref(obj);
 
-    obj = purc_variant_make_object_c(1, k1, v1);
+    obj = purc_variant_make_object_by_static_ckey(1, k1, v1);
     ASSERT_NE(obj, PURC_VARIANT_INVALID);
     ASSERT_EQ(obj->refc, 1);
     ASSERT_EQ(v1->refc, 2);
@@ -119,7 +121,7 @@ TEST(object, make_object_c)
     purc_variant_unref(obj);
     ASSERT_EQ(v1->refc, 1);
 
-    obj = purc_variant_make_object_c(2, k1, v1, k2, v2);
+    obj = purc_variant_make_object_by_static_ckey(2, k1, v1, k2, v2);
     ASSERT_NE(obj, PURC_VARIANT_INVALID);
     ASSERT_EQ(obj->refc, 1);
     ASSERT_EQ(v1->refc, 2);
@@ -145,7 +147,7 @@ TEST(object, make_object_c)
     purc_variant_object_release_iterator(it);
     ASSERT_EQ(j, 2);
 
-    ok = purc_variant_object_set_c(obj, k1, v1);
+    ok = purc_variant_object_set_by_static_ckey(obj, k1, v1);
     ASSERT_EQ(ok, true);
     ASSERT_EQ(v1->refc, 2);
     it = purc_variant_object_make_iterator_begin(obj);
@@ -166,7 +168,7 @@ TEST(object, make_object_c)
     purc_variant_object_release_iterator(it);
     ASSERT_EQ(j, 2);
 
-    ok = purc_variant_object_set_c(obj, k1, v2);
+    ok = purc_variant_object_set_by_static_ckey(obj, k1, v2);
     ASSERT_EQ(ok, true);
     ASSERT_EQ(v1->refc, 1);
     ASSERT_EQ(v2->refc, 3);
@@ -188,7 +190,7 @@ TEST(object, make_object_c)
     purc_variant_object_release_iterator(it);
     ASSERT_EQ(j, 2);
 
-    ok = purc_variant_object_set_c(obj, k1, v1);
+    ok = purc_variant_object_set_by_static_ckey(obj, k1, v1);
     ASSERT_EQ(ok, true);
     ASSERT_EQ(v1->refc, 2);
     ASSERT_EQ(v2->refc, 2);
@@ -210,7 +212,7 @@ TEST(object, make_object_c)
     purc_variant_object_release_iterator(it);
     ASSERT_EQ(j, 2);
 
-    ok = purc_variant_object_set_c(obj, k3, v3);
+    ok = purc_variant_object_set_by_static_ckey(obj, k3, v3);
     ASSERT_EQ(ok, true);
     ASSERT_EQ(v1->refc, 2);
     ASSERT_EQ(v2->refc, 2);
@@ -273,7 +275,7 @@ TEST(object, make_object)
     purc_variant_t  v3 = purc_variant_make_string("good", true);
 
     purc_variant_t obj;
-    obj = purc_variant_make_object_c(0,
+    obj = purc_variant_make_object_by_static_ckey(0,
             NULL, PURC_VARIANT_INVALID);
     ASSERT_NE(obj, PURC_VARIANT_INVALID);
     ASSERT_EQ(obj->refc, 1);
@@ -283,7 +285,7 @@ TEST(object, make_object)
     obj = purc_variant_make_object(1, k1, v1);
     ASSERT_NE(obj, PURC_VARIANT_INVALID);
     ASSERT_EQ(obj->refc, 1);
-    ASSERT_EQ(k1->refc, 1);
+    ASSERT_EQ(k1->refc, 2);
     ASSERT_EQ(v1->refc, 2);
     _check_get_by_key(obj, k1, v1, true);
     _check_get_by_key_c(obj, "foo", PURC_VARIANT_INVALID, false);
@@ -295,8 +297,8 @@ TEST(object, make_object)
     obj = purc_variant_make_object(2, k1, v1, k2, v2);
     ASSERT_NE(obj, PURC_VARIANT_INVALID);
     ASSERT_EQ(obj->refc, 1);
-    ASSERT_EQ(k1->refc, 1);
-    ASSERT_EQ(k2->refc, 1);
+    ASSERT_EQ(k1->refc, 2);
+    ASSERT_EQ(k2->refc, 2);
     ASSERT_EQ(v1->refc, 2);
     ASSERT_EQ(v2->refc, 2);
     _check_get_by_key(obj, k1, v1, true);
@@ -369,7 +371,7 @@ TEST(object, unref)
     purc_variant_t  v2 = purc_variant_make_string("bar", true);
 
     purc_variant_t obj;
-    obj = purc_variant_make_object_c(1, k1, v1);
+    obj = purc_variant_make_object_by_static_ckey(1, k1, v1);
     ASSERT_NE(obj, PURC_VARIANT_INVALID);
     ASSERT_EQ(obj->refc, 1);
     purc_variant_unref(v1);
@@ -377,13 +379,15 @@ TEST(object, unref)
 
     purc_variant_ref(obj);
     ASSERT_EQ(obj->refc, 2);
-    ASSERT_EQ(v1->refc, 2);
+    ASSERT_EQ(v1->refc, 1);
 
-    ok = purc_variant_object_set_c(obj, k2, v2);
+    ASSERT_EQ(v2->refc, 1);
+    ok = purc_variant_object_set_by_static_ckey(obj, k2, v2);
     ASSERT_EQ(ok, true);
+    ASSERT_EQ(v2->refc, 2);
     ASSERT_EQ(obj->refc, 2);
     purc_variant_unref(v2);
-    ASSERT_EQ(v1->refc, 2);
+    ASSERT_EQ(v1->refc, 1);
     ASSERT_EQ(v2->refc, 1);
 
     nr = purc_variant_object_get_size(obj);
@@ -394,7 +398,7 @@ TEST(object, unref)
     ASSERT_EQ(v1->refc, 1);
 
     nr = purc_variant_object_get_size(obj);
-    ASSERT_EQ(nr, 1);
+    ASSERT_EQ(nr, 2);
 
     purc_variant_unref(obj);
 

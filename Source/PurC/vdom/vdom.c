@@ -77,7 +77,7 @@ static void
 _content_destroy(struct pcvdom_content *doc);
 
 static struct pcvdom_content*
-_content_create(struct pcvcm_tree *vcm);
+_content_create(struct pcvcm_node *vcm);
 
 static void
 _vdom_node_remove(struct pcvdom_node *node);
@@ -184,7 +184,7 @@ pcvdom_element_create_c(const char *tag_name)
 }
 
 struct pcvdom_content*
-pcvdom_content_create(struct pcvcm_tree *vcm)
+pcvdom_content_create(struct pcvcm_node *vcm)
 {
     return _content_create(vcm);
 }
@@ -204,7 +204,7 @@ pcvdom_comment_create(const char *text)
 // for modification operators, such as +=|-=|%=|~=|^=|$=
 struct pcvdom_attr*
 pcvdom_attr_create(const char *key, enum pcvdom_attr_op op,
-    struct pcvcm_tree *vcm)
+    struct pcvcm_node *vcm)
 {
     if (!key) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
@@ -829,7 +829,7 @@ static void
 _content_reset(struct pcvdom_content *content)
 {
     if (content->vcm) {
-        // destroy vcm
+        pcvcm_node_destroy(content->vcm);
         content->vcm = NULL;
     }
 }
@@ -843,7 +843,7 @@ _content_destroy(struct pcvdom_content *content)
 }
 
 static struct pcvdom_content*
-_content_create(struct pcvcm_tree *vcm)
+_content_create(struct pcvcm_node *vcm)
 {
     struct pcvdom_content *content;
     content = (struct pcvdom_content*)calloc(1, sizeof(*content));
@@ -909,7 +909,7 @@ _attr_reset(struct pcvdom_attr *attr)
     attr->pre_defined = NULL;
     attr->key = NULL;
 
-    // destroy val
+    pcvcm_node_destroy(attr->val);
     attr->val = NULL;
 }
 

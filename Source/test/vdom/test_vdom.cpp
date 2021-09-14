@@ -82,7 +82,10 @@ TEST(vdom, basic)
     EXPECT_EQ(0, pcvdom_element_append_comment(elem4, comment41));
     EXPECT_EQ(pcvdom_comment_parent(comment41), elem4);
 
-    struct pcvdom_content *content41 = pcvdom_content_create(NULL);
+    struct pcvcm_node *vcm411 = pcvcm_node_new_string("hello world");
+    ASSERT_NE(vcm411, nullptr);
+
+    struct pcvdom_content *content41 = pcvdom_content_create(vcm411);
     ASSERT_NE(content41, nullptr);
     EXPECT_EQ(0, pcvdom_element_append_content(elem4, content41));
     EXPECT_EQ(pcvdom_content_parent(content41), elem4);

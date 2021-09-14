@@ -74,23 +74,26 @@ def get_value(line):
 
     return None
 
-def set_category_list(tag_info, tag_token, cats_info, categories):
+def set_category_list(tag_info, tag_tokens, cats_info, categories):
     category_list = categories.split()
-    tag_info[tag_token]['org_categories'] = category_list
+    for tag_token in tag_tokens.split():
+        tag_info[tag_token]['org_categories'] = category_list
 
     if len(category_list) > 0:
         for category in category_list:
             cats_info[category] = 1
 
     category_list = categories.split()
-    tag_info[tag_token]['categories'] = category_list
+
+    for tag_token in tag_tokens.split():
+        tag_info[tag_token]['categories'] = category_list
 
 def scan_src_file(fsrc):
     tag_info = {}
     cats_info = {}
     states_info = {}
 
-    tag_token = ""
+    tag_tokens = ""
     value_line = ""
     line_no = 1
     org_line = fsrc.readline()
@@ -108,7 +111,8 @@ def scan_src_file(fsrc):
                     print("scan_src_file (Line %d): state value expected (%s)" % (line_no, stripped_line, ))
                 return None
             else:
-                tag_info[tag_token]['state'] = state_value
+                for tag_token in tag_tokens.split():
+                    tag_info[tag_token]['state'] = state_value
                 states_info[state_value] = 1
 
         elif start_with_categories (org_line):
@@ -118,15 +122,16 @@ def scan_src_file(fsrc):
                     print("scan_src_file (Line %d): value list expected (%s)" % (line_no, stripped_line, ))
                 return None
             else:
-                set_category_list(tag_info, tag_token, cats_info, categories)
+                set_category_list(tag_info, tag_tokens, cats_info, categories)
 
         elif not start_with_space (org_line):
-            tag_token = stripped_line
-            if tag_token in tag_info:
-                if not WITHOUT_PRINT:
-                    print("scan_src_file (Line %d): duplicated property name (%s)" % (line_no, stripped_line, ))
-                return None
-            tag_info[tag_token] = {}
+            tag_tokens = stripped_line
+            for tag_token in tag_tokens.split():
+                if tag_token in tag_info:
+                    if not WITHOUT_PRINT:
+                        print("scan_src_file (Line %d): duplicated property name (%s)" % (line_no, stripped_line, ))
+                    return None
+                tag_info[tag_token] = {}
         else:
             if not WITHOUT_PRINT:
                 print("scan_src_file (Line %d): syntax error %s (%s)" % (line_no, tag_token, stripped_line, ))
@@ -204,7 +209,7 @@ def make_state_id(state_token):
 def make_category_id(category_token):
     category_id = category_token.upper()
 
-    return "PCHVML_TAG_CATEGORIES_" + category_id;
+    return "PCHVML_TAGCAT_" + category_id;
 
 def make_categories_value (categories_list):
     value = ""

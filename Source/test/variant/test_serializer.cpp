@@ -360,12 +360,22 @@ TEST(variant, serialize_dynamic)
     purc_cleanup ();
 }
 
-static bool my_releaser (void* native_entity)
+static bool _my_releaser (void* native_entity)
 {
     my_puts("my_releaser is called\n");
     free (native_entity);
     return true;
 }
+
+static struct purc_native_ops _my_ops = {
+    .property_getter       = NULL,
+    .property_setter       = NULL,
+    .property_eraser       = NULL,
+    .property_cleaner      = NULL,
+    .cleaner               = NULL,
+    .eraser                = _my_releaser,
+    .observe               = NULL,
+};
 
 // to test: serialize a native entity
 TEST(variant, serialize_native)
@@ -382,7 +392,7 @@ TEST(variant, serialize_native)
     my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
     ASSERT_NE(my_rws, nullptr);
 
-    my_variant = purc_variant_make_native(strdup("HVML"), my_releaser);
+    my_variant = purc_variant_make_native(strdup("HVML"), &_my_ops);
     ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
 
     purc_rwstream_seek(my_rws, 0, SEEK_SET);
@@ -692,7 +702,7 @@ TEST(variant, serialize_object)
     ASSERT_EQ(v2->refc, 1);
 
     purc_variant_t my_variant =
-        purc_variant_make_object_c(2, "v1", v1, "v2", v2);
+        purc_variant_make_object_by_static_ckey(2, "v1", v1, "v2", v2);
     ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
     ASSERT_EQ(v1->refc, 2);
     ASSERT_EQ(v2->refc, 2);
@@ -776,7 +786,7 @@ TEST(variant, serialize_object_with_empty_key)
     ASSERT_EQ(v1->refc, 1);
 
     purc_variant_t my_variant =
-        purc_variant_make_object_c(1, "", v1);
+        purc_variant_make_object_by_static_ckey(1, "", v1);
     ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
     ASSERT_EQ(v1->refc, 2);
     ASSERT_EQ(my_variant->refc, 1);
@@ -816,7 +826,7 @@ TEST(variant, serialize_object_with_empty_key2)
     ASSERT_EQ(v1->refc, 1);
 
     purc_variant_t my_variant =
-        purc_variant_make_object_c(2, "x", v1, "", v1);
+        purc_variant_make_object_by_static_ckey(2, "x", v1, "", v1);
     ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
     ASSERT_EQ(v1->refc, 3);
     ASSERT_EQ(my_variant->refc, 1);

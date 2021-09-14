@@ -37,9 +37,10 @@
 extern "C" {
 #endif  /* __cplusplus */
 
-#define PCVARIANT_FLAG_CONSTANT     (0x01 << 0)     // for null, true, ...
-#define PCVARIANT_FLAG_NOFREE       PCVARIANT_FLAG_CONSTANT
-#define PCVARIANT_FLAG_EXTRA_SIZE   (0x01 << 1)     // when use extra space
+#define PCVARIANT_FLAG_CONSTANT        (0x01 << 0)  // for null, true, ...
+#define PCVARIANT_FLAG_NOFREE          PCVARIANT_FLAG_CONSTANT
+#define PCVARIANT_FLAG_EXTRA_SIZE      (0x01 << 1)  // when use extra space
+#define PCVARIANT_FLAG_STRING_STATIC   (0x01 << 2)  // make_string_static
 
 #define PVT(t) (PURC_VARIANT_TYPE##t)
 
@@ -80,12 +81,16 @@ struct purc_variant {
         /* for long double */
         long double ld;
 
-        /* for dynamic and native variant (two pointers) */
+        /* for dynamic and native variant (two pointers)
+           for native variant,
+           ptr_ptr[0] stores the native entity of it's self, and
+           ptr_ptr[1] stores the ops that's bound to the class of
+           such entity. */
         void*       ptr_ptr[2];
 
         /* for long string, long byte sequence, array, object,
            and set (sz_ptr[0] for size, sz_ptr[1] for pointer).
-           for atom string, sz_ptr[0] stores the atom.  */
+           for atom string, sz_ptr[0] stores the atom. */
 
         uintptr_t   sz_ptr[2];
 
@@ -192,7 +197,7 @@ void pcvariant_set_release_obj(struct obj_node *p);
         struct pchash_entry *_entry;                                \
         pchash_foreach(_ht, _entry)                                 \
         {                                                           \
-            _key   = (const char*)_entry->k;                        \
+            _key = (purc_variant_t)_entry->k;                       \
             _val = (purc_variant_t)_entry->v;                       \
      /* } */                                                        \
  /* } while (0) */

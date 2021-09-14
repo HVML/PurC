@@ -203,31 +203,8 @@ unsigned int purc_variant_ref (purc_variant_t value)
         return 0;
     }
 
-    purc_variant_t variant = NULL;
-
     value->refc++;
-    switch (value->type) {
-        case PURC_VARIANT_TYPE_OBJECT:
-            foreach_value_in_variant_object(value, variant)
-                purc_variant_ref(variant);
-            end_foreach;
-            break;
 
-        case PURC_VARIANT_TYPE_ARRAY:
-            foreach_value_in_variant_array(value, variant)
-                purc_variant_ref(variant);
-            end_foreach;
-            break;
-
-        case PURC_VARIANT_TYPE_SET:
-            foreach_value_in_variant_set(value, variant)
-                purc_variant_ref(variant);
-            end_foreach;
-            break;
-
-        default:
-            break;
-    }
     return value->refc;
 }
 
@@ -235,61 +212,10 @@ unsigned int purc_variant_unref(purc_variant_t value)
 {
     PC_ASSERT(value);
 
-    purc_variant_t variant = NULL;
-
     /* this should not occur */
     if (value->refc == 0) {
         PC_ASSERT(0);
         return 0;
-    }
-
-    switch ((int)value->type) {
-        case PURC_VARIANT_TYPE_OBJECT:
-        {
-            struct pchash_entry *curr;
-            foreach_in_variant_object_safe(value, curr) {
-                const char *k = pchash_entry_k(curr);
-                variant = pchash_entry_v(curr);
-                if (purc_variant_unref(variant)==0) {
-                    int r;
-                    r = pchash_table_delete_entry(_ht, curr);
-                    PC_ASSERT(r==0);
-                    free((void*)k);
-                }
-            } end_foreach;
-            break;
-        }
-
-        case PURC_VARIANT_TYPE_ARRAY:
-        {
-            size_t curr;
-            foreach_value_in_variant_array_safe(value, variant, curr) {
-                if (purc_variant_unref(variant)==0) {
-                    int r = pcutils_arrlist_del_idx(_al, curr, 1);
-                    PC_ASSERT(r==0);
-                    --curr;
-                }
-            } end_foreach;
-            break;
-        }
-
-        case PURC_VARIANT_TYPE_SET:
-        {
-            struct obj_node *curr;
-            foreach_value_in_variant_set_safe(value, variant, curr) {
-                if (variant->refc==1) {
-                    pcutils_avl_delete(_tree, &curr->avl);
-                    pcvariant_set_release_obj(curr);
-                    free(curr);
-                } else {
-                    purc_variant_unref(variant);
-                }
-            } end_foreach;
-            break;
-        }
-
-        default:
-            break;
     }
 
     value->refc--;
@@ -433,7 +359,7 @@ static inline bool equal_long_doubles(long double a, long double b)
 static int compare_objects(purc_variant_t v1, purc_variant_t v2)
 {
     int diff;
-    const char* key;
+    purc_variant_t key;
     purc_variant_t m1, m2;
     size_t sz1 = purc_variant_object_get_size(v1);
     size_t sz2 = purc_variant_object_get_size(v2);
@@ -442,8 +368,7 @@ static int compare_objects(purc_variant_t v1, purc_variant_t v2)
         return (int)(sz1 - sz2);
 
     foreach_key_value_in_variant_object(v1, key, m1)
-
-        m2 = purc_variant_object_get_c(v2, key);
+        m2 = purc_variant_object_get(v2, key);
         diff = purc_variant_compare(m1, m2);
         if (diff != 0)
             return diff;
@@ -575,7 +500,11 @@ purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool parse_str)
             if (!parse_str)
                 break;
 
-            if (v->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
+            if (v->flags & PCVARIANT_FLAG_STRING_STATIC) {
+                bytes = (void*)v->sz_ptr[1];
+                sz = strlen((const char*)bytes);
+            }
+            else if (v->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
                 bytes = (void*)v->sz_ptr[1];
                 sz = v->sz_ptr[0];
             }
@@ -663,7 +592,11 @@ purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool parse_str)
             if (!parse_str)
                 break;
 
-            if (v->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
+            if (v->flags & PCVARIANT_FLAG_STRING_STATIC) {
+                bytes = (void*)v->sz_ptr[1];
+                sz = strlen((const char*)bytes);
+            }
+            else if (v->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
                 bytes = (void*)v->sz_ptr[1];
                 sz = v->sz_ptr[0];
             }
@@ -731,7 +664,11 @@ bool purc_variant_cast_to_number(purc_variant_t v, double *d, bool parse_str)
             if (!parse_str)
                 break;
 
-            if (v->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
+            if (v->flags & PCVARIANT_FLAG_STRING_STATIC) {
+                bytes = (void*)v->sz_ptr[1];
+                sz = strlen((const char*)bytes);
+            }
+            else if (v->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
                 bytes = (void*)v->sz_ptr[1];
                 sz = v->sz_ptr[0];
             }
@@ -801,7 +738,11 @@ purc_variant_cast_to_long_double(purc_variant_t v, long double *d,
             if (!parse_str)
                 break;
 
-            if (v->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
+            if (v->flags & PCVARIANT_FLAG_STRING_STATIC) {
+                bytes = (void*)v->sz_ptr[1];
+                sz = strlen((const char*)bytes);
+            }
+            else if (v->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
                 bytes = (void*)v->sz_ptr[1];
                 sz = v->sz_ptr[0];
             }
@@ -834,7 +775,11 @@ bool purc_variant_cast_to_byte_sequence(purc_variant_t v,
 
         case PURC_VARIANT_TYPE_STRING:
         case PURC_VARIANT_TYPE_BSEQUENCE:
-            if (v->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
+            if (v->flags & PCVARIANT_FLAG_STRING_STATIC) {
+                *bytes = (void*)v->sz_ptr[1];
+                *sz = strlen((const char*)*bytes);
+            }
+            else if (v->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
                 *bytes = (void*)v->sz_ptr[1];
                 *sz = v->sz_ptr[0];
             }
@@ -902,7 +847,11 @@ int purc_variant_compare(purc_variant_t v1, purc_variant_t v2)
 
         case PURC_VARIANT_TYPE_STRING:
         case PURC_VARIANT_TYPE_BSEQUENCE:
-            if (v1->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
+            if (v1->flags & PCVARIANT_FLAG_STRING_STATIC) {
+                str1 = (const char*)v1->sz_ptr[1];
+                len1 = strlen(str1);
+            }
+            else if (v1->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
                 str1 = (const char*)v1->sz_ptr[1];
                 len1 = v1->sz_ptr[0];
             }
@@ -911,7 +860,11 @@ int purc_variant_compare(purc_variant_t v1, purc_variant_t v2)
                 len1 = v1->size;
             }
 
-            if (v2->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
+            if (v2->flags & PCVARIANT_FLAG_STRING_STATIC) {
+                str2 = (const char*)v2->sz_ptr[1];
+                len2 = strlen(str2);
+            }
+            else if (v2->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
                 str2 = (const char*)v2->sz_ptr[1];
                 len2 = v2->sz_ptr[0];
             }

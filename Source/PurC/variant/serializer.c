@@ -653,7 +653,7 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
     int i;
     char buff [256];
     purc_variant_t member = NULL;
-    const char* key;
+    purc_variant_t key;
     char* format_double = NULL;
     char* format_long_double = NULL;
 
@@ -741,12 +741,16 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
 
         case PURC_VARIANT_TYPE_STRING:
         case PURC_VARIANT_TYPE_BSEQUENCE:
-            if (value->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
-                content = (void*)value->sz_ptr[1];
+            if (value->flags & PCVARIANT_FLAG_STRING_STATIC) {
+                content = (const char*)value->sz_ptr[1];
+                sz_content = strlen(content);
+            }
+            else if (value->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
+                content = (const char*)value->sz_ptr[1];
                 sz_content = (size_t)value->sz_ptr[0];
             }
             else {
-                content = (char*)value->bytes;
+                content = (const char*)value->bytes;
                 sz_content = value->size;
             }
             if (value->type == PURC_VARIANT_TYPE_STRING) {
@@ -799,7 +803,8 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
 
                 // key
                 MY_WRITE(rws, "\"", 1);
-                n = serialize_string(rws, key, strlen(key),
+                const char *ks = purc_variant_get_string_const(key);
+                n = serialize_string(rws, ks, strlen(ks),
                         flags, len_expected);
                 MY_CHECK(n);
                 MY_WRITE(rws, "\"", 1);

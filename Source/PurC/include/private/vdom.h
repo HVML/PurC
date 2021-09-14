@@ -34,6 +34,7 @@
 #include "private/list.h"
 #include "private/tree.h"
 #include "private/map.h"
+#include "private/vcm.h"
 
 #include "hvml-tag.h"
 
@@ -89,10 +90,6 @@ struct pcvdom_comment;
 typedef enum pchvml_tag_id   pcvdom_tag_id;
 struct pcvdom_attr;
 
-// TODO: replace with vcm.h
-struct pcvcm_tree;
-typedef struct pcvcm_tree* pcvcm_tree_t;
-
 struct pcvdom_node {
     struct pctree_node     node;
     enum pcvdom_nodetype   type;
@@ -126,7 +123,7 @@ struct pcvdom_attr {
     enum pcvdom_attr_op       op;
 
     // text/jsonnee/no-value
-    struct pcvcm_tree        *val;
+    struct pcvcm_node        *val;
 };
 
 struct pcvdom_element {
@@ -149,7 +146,7 @@ struct pcvdom_element {
 struct pcvdom_content {
     struct pcvdom_node      node;
 
-    struct pcvcm_tree      *vcm;
+    struct pcvcm_node      *vcm;
 };
 
 struct pcvdom_comment {
@@ -173,7 +170,7 @@ struct pcvdom_element*
 pcvdom_element_create_c(const char *tag_name);
 
 struct pcvdom_content*
-pcvdom_content_create(struct pcvcm_tree *vcm);
+pcvdom_content_create(struct pcvcm_node *vcm);
 
 struct pcvdom_comment*
 pcvdom_comment_create(const char *text);
@@ -181,13 +178,13 @@ pcvdom_comment_create(const char *text);
 // for modification operators, such as +=|-=|%=|~=|^=|$=
 struct pcvdom_attr*
 pcvdom_attr_create(const char *key, enum pcvdom_attr_op op,
-    struct pcvcm_tree *vcm);
+    struct pcvcm_node *vcm);
 
 // key = vcm
 // or
 // key,    in case when vcm == NULL
 static inline struct pcvdom_attr*
-pcvdom_attr_create_simple(const char *key, struct pcvcm_tree *vcm)
+pcvdom_attr_create_simple(const char *key, struct pcvcm_node *vcm)
 {
     return pcvdom_attr_create(key, PCVDOM_ATTR_OP_EQ, vcm);
 }

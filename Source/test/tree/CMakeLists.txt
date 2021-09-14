@@ -27,3 +27,4 @@ set(test_tree_LIBRARIES
 PURC_COMPUTE_SOURCES(test_tree)
 PURC_FRAMEWORK(test_tree)
 GTEST_DISCOVER_TESTS(test_tree)
+
