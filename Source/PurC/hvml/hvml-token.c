@@ -670,6 +670,10 @@ struct pchvml_temp_buffer* pchvml_token_to_string(struct pchvml_token* token)
         break;
 
     case PCHVML_TOKEN_CHARACTER:
+        buffer = pchvml_temp_buffer_new();
+        if (token->text_content) {
+            pchvml_temp_buffer_append_temp_buffer (buffer, token->text_content);
+        }
         break;
 
     case PCHVML_TOKEN_VCM_TREE:
