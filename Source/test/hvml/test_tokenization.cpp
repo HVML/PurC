@@ -90,7 +90,7 @@ TEST(hvml_tokenization, attribute)
     vcm = pchvml_token_attr_get_value(attr);
     ASSERT_NE(vcm, nullptr);
     ASSERT_EQ(vcm->type, PCVCM_NODE_TYPE_STRING);
-    ASSERT_STREQ((char*)vcm->data.sz_ptr[1], "attr1");
+    ASSERT_STREQ((char*)vcm->sz_ptr[1], "attr1");
 
     attr = pchvml_token_get_attr(token, 1);
     ASSERT_NE(attr, nullptr);
@@ -100,7 +100,7 @@ TEST(hvml_tokenization, attribute)
     vcm = pchvml_token_attr_get_value(attr);
     ASSERT_NE(vcm, nullptr);
     ASSERT_EQ(vcm->type, PCVCM_NODE_TYPE_STRING);
-    ASSERT_STREQ((char*)vcm->data.sz_ptr[1], "attr2");
+    ASSERT_STREQ((char*)vcm->sz_ptr[1], "attr2");
 
     token = pchvml_next_token(parser, rws);
     ASSERT_NE(token, nullptr);

@@ -55,20 +55,18 @@ enum pcvcm_node_type {
 #define EXTRA_PROTECT_FLAG      0x0001
 #define EXTRA_SUGAR_FLAG        0x0002
 
-union pcvcm_node_data {
-    bool        b;
-    double      d;
-    int64_t     i64;
-    uint64_t    u64;
-    long double ld;
-    uintptr_t   sz_ptr[2];
-};
-
 struct pcvcm_node {
     struct pctree_node tree_node;
     enum pcvcm_node_type type;
     uint32_t extra;
-    union pcvcm_node_data data;
+    union {
+        bool        b;
+        double      d;
+        int64_t     i64;
+        uint64_t    u64;
+        long double ld;
+        uintptr_t   sz_ptr[2];
+    };
 };
 
 #ifdef __cplusplus

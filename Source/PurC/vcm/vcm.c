@@ -92,8 +92,8 @@ struct pcvcm_node* pcvcm_node_new_string (const char* str_utf8)
     memcpy(buf, str_utf8, nr_bytes);
     buf[nr_bytes] = 0;
 
-    n->data.sz_ptr[0] = nr_bytes;
-    n->data.sz_ptr[1] = (uintptr_t) buf;
+    n->sz_ptr[0] = nr_bytes;
+    n->sz_ptr[1] = (uintptr_t) buf;
 
     return n;
 }
@@ -110,7 +110,7 @@ struct pcvcm_node* pcvcm_node_new_boolean (bool b)
         return NULL;
     }
 
-    n->data.b = b;
+    n->b = b;
     return n;
 }
 
@@ -121,7 +121,7 @@ struct pcvcm_node* pcvcm_node_new_number (double d)
         return NULL;
     }
 
-    n->data.d = d;
+    n->d = d;
     return n;
 }
 
@@ -132,7 +132,7 @@ struct pcvcm_node* pcvcm_node_new_longint (int64_t i64)
         return NULL;
     }
 
-    n->data.i64 = i64;
+    n->i64 = i64;
     return n;
 }
 
@@ -143,7 +143,7 @@ struct pcvcm_node* pcvcm_node_new_ulongint (uint64_t u64)
         return NULL;
     }
 
-    n->data.u64 = u64;
+    n->u64 = u64;
     return n;
 }
 
@@ -154,7 +154,7 @@ struct pcvcm_node* pcvcm_node_new_longdouble (long double ld)
         return NULL;
     }
 
-    n->data.ld = ld;
+    n->ld = ld;
     return n;
 }
 
@@ -170,8 +170,8 @@ struct pcvcm_node* pcvcm_node_new_byte_sequence (const void* bytes,
     memcpy(buf, bytes, nr_bytes);
     buf[nr_bytes] = 0;
 
-    n->data.sz_ptr[0] = nr_bytes;
-    n->data.sz_ptr[1] = (uintptr_t) buf;
+    n->sz_ptr[0] = nr_bytes;
+    n->sz_ptr[1] = (uintptr_t) buf;
     return n;
 }
 
@@ -224,8 +224,8 @@ struct pcvcm_node* pcvcm_node_new_byte_sequence_from_bx (const void* bytes,
     uint8_t* buf = (uint8_t*) calloc (sz_buf + 1, 1);
     hex_to_bytes (p, sz, buf);
 
-    n->data.sz_ptr[0] = sz_buf;
-    n->data.sz_ptr[1] = (uintptr_t) buf;
+    n->sz_ptr[0] = sz_buf;
+    n->sz_ptr[1] = (uintptr_t) buf;
     return n;
 }
 
@@ -257,8 +257,8 @@ struct pcvcm_node* pcvcm_node_new_byte_sequence_from_bb (const void* bytes,
         buf[i] = b;
     }
 
-    n->data.sz_ptr[0] = sz_buf;
-    n->data.sz_ptr[1] = (uintptr_t) buf;
+    n->sz_ptr[0] = sz_buf;
+    n->sz_ptr[1] = (uintptr_t) buf;
     return n;
 }
 
@@ -282,8 +282,8 @@ struct pcvcm_node* pcvcm_node_new_byte_sequence_from_b64 (const void* bytes,
         return NULL;
     }
 
-    n->data.sz_ptr[0] = ret;
-    n->data.sz_ptr[1] = (uintptr_t) buf;
+    n->sz_ptr[0] = ret;
+    n->sz_ptr[1] = (uintptr_t) buf;
     return n;
 }
 
@@ -387,8 +387,8 @@ static void pcvcm_node_destroy_callback (struct pctree_node* n,  void* data)
     struct pcvcm_node* node = (struct pcvcm_node*) n;
     if ((node->type == PCVCM_NODE_TYPE_STRING
                 || node->type == PCVCM_NODE_TYPE_BYTE_SEQUENCE
-        ) && node->data.sz_ptr[1]) {
-        free((void*)node->data.sz_ptr[1]);
+        ) && node->sz_ptr[1]) {
+        free((void*)node->sz_ptr[1]);
     }
     free(node);
 }
@@ -501,30 +501,30 @@ purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node)
             return pcvcm_node_array_to_variant (node);
 
         case PCVCM_NODE_TYPE_STRING:
-            return purc_variant_make_string ((char*)node->data.sz_ptr[1],
+            return purc_variant_make_string ((char*)node->sz_ptr[1],
                     false);
 
         case PCVCM_NODE_TYPE_NULL:
             return purc_variant_make_null ();
 
         case PCVCM_NODE_TYPE_BOOLEAN:
-            return purc_variant_make_boolean (node->data.b);
+            return purc_variant_make_boolean (node->b);
 
         case PCVCM_NODE_TYPE_NUMBER:
-            return purc_variant_make_number (node->data.d);
+            return purc_variant_make_number (node->d);
 
         case PCVCM_NODE_TYPE_LONG_INT:
-            return purc_variant_make_longint (node->data.i64);
+            return purc_variant_make_longint (node->i64);
 
         case PCVCM_NODE_TYPE_ULONG_INT:
-            return purc_variant_make_ulongint (node->data.u64);
+            return purc_variant_make_ulongint (node->u64);
 
         case PCVCM_NODE_TYPE_LONG_DOUBLE:
-            return purc_variant_make_longdouble (node->data.ld);
+            return purc_variant_make_longdouble (node->ld);
 
         case PCVCM_NODE_TYPE_BYTE_SEQUENCE:
             return purc_variant_make_byte_sequence(
-                    (void*)node->data.sz_ptr[1], node->data.sz_ptr[0]);
+                    (void*)node->sz_ptr[1], node->sz_ptr[0]);
         default:  //TODO
             return purc_variant_make_null();
     }
