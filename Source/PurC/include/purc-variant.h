@@ -38,24 +38,34 @@ typedef struct purc_variant* purc_variant_t;
 
 #define PURC_VARIANT_INVALID            ((purc_variant_t)(0))
 
-#define MARK_ANONYM(v) purc_variant_mark_as_anonymous(v)
+#define MARK_ANONYM(v) purc_variant_tag_as_anonymous(v)
 
 PCA_EXTERN_C_BEGIN
 
 /**
- * Mark input variant value as an anonymous one
+ * Tag input variant value as an anonymous one
  *
  * @param value: variant value to be marked as anonymous
  *
  * Returns: variant value by itself
  *
- * Note1: when anonymous variant is inserted into a container, such as
- *        array/object/set/..., it's refc won't get increased
- * Note2: once anonymous variant is inserted into a container,
- *        it'll reset itself as non-anonymous, or in other words, normal one
+ * Note: when anonymous variant is inserted into a container, such as
+ *       array/object/set/..., it's refc won't get increased
  * Since: 0.0.1
  */
-PCA_EXPORT purc_variant_t purc_variant_mark_as_anonymous(purc_variant_t value);
+PCA_EXPORT purc_variant_t purc_variant_tag_as_anonymous(purc_variant_t value);
+
+/**
+ * Untag input variant value as an anonymous one
+ *
+ * @param value: variant value to be marked as anonymous
+ *
+ * Returns: variant value by itself
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_untag_as_anonymous(purc_variant_t value);
 
 /**
  * Adds ref for a variant value

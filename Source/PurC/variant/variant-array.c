@@ -136,7 +136,6 @@ purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
         purc_variant_t v = value0;
         if (v && v->flags & PCVARIANT_FLAG_ANONYMOUS) {
             purc_variant_unref(v);
-            v->flags ^= PCVARIANT_FLAG_ANONYMOUS;
         }
 
         size_t i = 1;
@@ -145,7 +144,6 @@ purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
 
             if (v && v->flags & PCVARIANT_FLAG_ANONYMOUS) {
                 purc_variant_unref(v);
-                v->flags ^= PCVARIANT_FLAG_ANONYMOUS;
             }
         }
     }

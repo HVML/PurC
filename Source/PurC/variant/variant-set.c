@@ -435,7 +435,6 @@ purc_variant_make_set_by_ckey (size_t sz, const char* unique_key,
         purc_variant_t v = value0;
         if (v && v->flags & PCVARIANT_FLAG_ANONYMOUS) {
             purc_variant_unref(v);
-            v->flags ^= PCVARIANT_FLAG_ANONYMOUS;
         }
 
         size_t i = 1;
@@ -443,7 +442,6 @@ purc_variant_make_set_by_ckey (size_t sz, const char* unique_key,
             v = va_arg(ap, purc_variant_t);
             if (v && v->flags & PCVARIANT_FLAG_ANONYMOUS) {
                 purc_variant_unref(v);
-                v->flags ^= PCVARIANT_FLAG_ANONYMOUS;
             }
         }
     }
@@ -499,12 +497,10 @@ purc_variant_make_set (size_t sz, purc_variant_t unique_key,
         v = unique_key;
         if (v && v->flags & PCVARIANT_FLAG_ANONYMOUS) {
             purc_variant_unref(v);
-            v->flags ^= PCVARIANT_FLAG_ANONYMOUS;
         }
         v = value0;
         if (v && v->flags & PCVARIANT_FLAG_ANONYMOUS) {
             purc_variant_unref(v);
-            v->flags ^= PCVARIANT_FLAG_ANONYMOUS;
         }
 
         size_t i = 1;
@@ -512,7 +508,6 @@ purc_variant_make_set (size_t sz, purc_variant_t unique_key,
             v = va_arg(ap, purc_variant_t);
             if (v && v->flags & PCVARIANT_FLAG_ANONYMOUS) {
                 purc_variant_unref(v);
-                v->flags ^= PCVARIANT_FLAG_ANONYMOUS;
             }
         }
     }
