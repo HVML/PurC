@@ -120,35 +120,6 @@ PURC_COMPUTE_SOURCES(test_rwswrap)
 PURC_FRAMEWORK(test_rwswrap)
 GTEST_DISCOVER_TESTS(test_rwswrap)
 
-# test_tokenization
-PURC_EXECUTABLE_DECLARE(test_tokenization)
-
-list(APPEND test_tokenization_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PURC_DIR}/hvml
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
-    ${CMAKE_BINARY_DIR}
-    ${WTF_DIR}
-)
-
-PURC_EXECUTABLE(test_tokenization)
-
-set(test_tokenization_SOURCES
-    test_tokenization.cpp
-)
-
-set(test_tokenization_LIBRARIES
-    PurC::PurC
-    gtest_main
-    gtest
-    pthread
-)
-
-PURC_COMPUTE_SOURCES(test_tokenization)
-PURC_FRAMEWORK(test_tokenization)
-GTEST_DISCOVER_TESTS(test_tokenization)
-
 # test_token
 PURC_EXECUTABLE_DECLARE(test_token)
 
