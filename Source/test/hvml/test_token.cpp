@@ -10,6 +10,12 @@
 
 using namespace std;
 
+#define PTINTF(...)                                                       \
+    do {                                                                  \
+        printf("\e[0;32m[          ] \e[0m");                             \
+        printf(__VA_ARGS__);                                              \
+    } while(false)
+
 struct hvml_token_test_data {
     string name;
     string hvml;
@@ -92,6 +98,7 @@ TEST_P(hvml_parser_next_token, parse_and_serialize)
     const char* hvml = get_hvml();
     const char* comp = get_comp();
     int error_code = get_error();
+    PTINTF("test case : %s\n", get_name());
 
     struct pchvml_parser* parser = pchvml_create(0, 32);
     //fprintf(stderr, "hvml=%s|len=%ld\n", hvml, strlen(hvml));
@@ -184,12 +191,12 @@ std::vector<hvml_token_test_data> read_hvml_token_test_data()
 {
     std::vector<hvml_token_test_data> vec;
 
-    char* data_path = getenv("HVML_TOKEN_DATA_PATH");
+    char* data_path = getenv("HVML_TEST_TOKEN_FILES_PATH");
 
     if (data_path) {
         char file_path[1024] = {0};
         strcpy (file_path, data_path);
-        strcat (file_path, "/test_list");
+        strcat (file_path, "/test_token_list");
 
         FILE* fp = fopen(file_path, "r");
         if (fp) {
@@ -212,24 +219,25 @@ std::vector<hvml_token_test_data> read_hvml_token_test_data()
                     }
 
                     sprintf(file, "%s/%s.hvml", data_path, name);
-                    char* json_buf = read_file (file);
-                    if (!json_buf) {
+                    char* buf = read_file (file);
+
+                    if (!buf) {
                         continue;
                     }
 
                     sprintf(file, "%s/%s.serial", data_path, name);
                     char* comp_buf = read_file (file);
                     if (!comp_buf) {
-                        free (json_buf);
+                        free (buf);
                         continue;
                     }
 
                     vec.push_back(
                             hvml_token_test_data {
-                                name, json_buf, trim(comp_buf), error
+                                name, buf, trim(comp_buf), error
                                 });
 
-                    free (json_buf);
+                    free (buf);
                     free (comp_buf);
                 }
             }
