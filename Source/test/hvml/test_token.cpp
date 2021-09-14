@@ -10,10 +10,10 @@
 
 using namespace std;
 
-#define PTINTF(...)                                                       \
+#define PRINTF(...)                                                       \
     do {                                                                  \
-        printf("\e[0;32m[          ] \e[0m");                             \
-        printf(__VA_ARGS__);                                              \
+        fprintf(stderr, "\e[0;32m[          ] \e[0m");                             \
+        fprintf(stderr, __VA_ARGS__);                                              \
     } while(false)
 
 struct hvml_token_test_data {
@@ -98,7 +98,7 @@ TEST_P(hvml_parser_next_token, parse_and_serialize)
     const char* hvml = get_hvml();
     const char* comp = get_comp();
     int error_code = get_error();
-    PTINTF("test case : %s\n", get_name());
+    PRINTF("test case : %s\n", get_name());
 
     struct pchvml_parser* parser = pchvml_create(0, 32);
     //fprintf(stderr, "hvml=%s|len=%ld\n", hvml, strlen(hvml));
@@ -121,6 +121,7 @@ TEST_P(hvml_parser_next_token, parse_and_serialize)
         if (type == PCHVML_TOKEN_EOF) {
             break;
         }
+        //PRINTF("serial : %s\n", pchvml_temp_buffer_get_buffer(buffer));
     }
     int error = purc_get_last_error();
     ASSERT_EQ (error, error_code) << "Test Case : "<< get_name();
