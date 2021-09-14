@@ -234,6 +234,16 @@ unsigned int purc_variant_unref(purc_variant_t value)
     return value->refc;
 }
 
+purc_variant_t purc_variant_mark_as_anonymous(purc_variant_t value)
+{
+    if (value == PURC_VARIANT_INVALID)
+        return value;
+
+    value->flags |= PCVARIANT_FLAG_ANONYMOUS;
+
+    return value;
+}
+
 struct purc_variant_stat * purc_variant_usage_stat(void)
 {
     struct pcinst * inst = pcinst_current();
