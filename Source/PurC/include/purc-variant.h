@@ -38,8 +38,6 @@ typedef struct purc_variant* purc_variant_t;
 
 #define PURC_VARIANT_INVALID            ((purc_variant_t)(0))
 
-#define MARK_ANONYM(v) purc_variant_tag_as_anonymous(v)
-
 PCA_EXTERN_C_BEGIN
 
 /**

@@ -6,6 +6,8 @@
 #include <errno.h>
 #include <gtest/gtest.h>
 
+#define MARK_ANONYM(v) purc_variant_tag_as_anonymous(v)
+
 TEST(anonymous, basic)
 {
     int r;
