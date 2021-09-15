@@ -389,7 +389,7 @@ purc_variant_make_dynamic(purc_dvariant_method getter,
  *
  * @param dynamic: the variant value of dynamic type
  *
- * Returns: A purc_dvariant_method funciton pointer 
+ * Returns: A purc_dvariant_method funciton pointer
  *
  * Since: 0.0.1
  */
@@ -402,7 +402,7 @@ purc_variant_dynamic_get_getter(const purc_variant_t dynamic);
  *
  * @param dynamic: the variant value of dynamic type
  *
- * Returns: A purc_dvariant_method funciton pointer 
+ * Returns: A purc_dvariant_method funciton pointer
  *
  * Since: 0.0.1
  */
@@ -453,11 +453,11 @@ purc_variant_t purc_variant_make_native (void *native_entity,
 
 
 /**
- * Get the native pointer of native variant value 
+ * Get the native pointer of native variant value
  *
  * @param native: the variant value of native type
  *
- * Returns: the native pointer 
+ * Returns: the native pointer
  *
  * Since: 0.0.1
  */

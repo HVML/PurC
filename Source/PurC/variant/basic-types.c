@@ -94,7 +94,6 @@ purc_variant_t purc_variant_make_number (double d)
     return value;
 }
 
-
 purc_variant_t purc_variant_make_ulongint (uint64_t u64)
 {
     purc_variant_t value = pcvariant_get (PURC_VARIANT_TYPE_ULONGINT);
@@ -354,7 +353,6 @@ void pcvariant_string_release (purc_variant_t string)
     else
         pcinst_set_error (PCVARIANT_INVALID_TYPE);
 }
-
 
 purc_variant_t
 purc_variant_make_atom_string (const char* str_utf8, bool check_encoding)
@@ -685,6 +683,7 @@ void pcvariant_native_release(purc_variant_t value)
 void * purc_variant_native_get_entity(const purc_variant_t native)
 {
     PC_ASSERT(native);
+
     void * ret = NULL;
 
     if (purc_variant_is_type(native, PURC_VARIANT_TYPE_NATIVE)) {
