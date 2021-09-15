@@ -62,7 +62,7 @@
             pchvml_pchvml_state_desc(state_name), character, character);
 #endif
 
-#if 1
+#if 0
 #define PCHVML_SET_ERROR(err)    pcinst_set_error(err)
 #else
 #define PCHVML_SET_ERROR(err)    do {                                       \
@@ -85,7 +85,6 @@
 #define SET_RETURN_STATE(new_state)                                         \
     do {                                                                    \
         hvml->return_state = new_state;                                     \
-        goto next_state;                                                    \
     } while (false)
 
 #define RECONSUME_IN(new_state)                                             \
@@ -1852,27 +1851,21 @@ next_state:
                 }
                 pchvml_sbst_destroy(hvml->sbst);
                 hvml->sbst = NULL;
+                APPEND_TEMP_BUFFER_TO_TOKEN_TEXT();
+                RESET_TEMP_BUFFER();
                 ADVANCE_TO(PCHVML_AMBIGUOUS_AMPERSAND_STATE);
             }
 
             const char* value = pchvml_sbst_get_match(hvml->sbst);
             if (value == NULL) {
-                ADVANCE_TO(PCHVML_MARKUP_DECLARATION_OPEN_STATE);
+                ADVANCE_TO(PCHVML_NAMED_CHARACTER_REFERENCE_STATE);
             }
             if (character != ';') {
-                PCHVML_SET_ERROR(
-                    PCHVML_ERROR_MISSING_SEMICOLON_AFTER_CHARACTER_REFERENCE);
+                ADVANCE_TO(PCHVML_NAMED_CHARACTER_REFERENCE_STATE);
             }
             RESET_TEMP_BUFFER();
-            APPEND_BYTES_TO_TEMP_BUFFER(value, strlen(value));
-            struct pcutils_arrlist* ucs = pchvml_sbst_get_buffered_ucs(
-                    hvml->sbst);
-            size_t length = pcutils_arrlist_length(ucs);
-            for (size_t i = 0; i < length; i++) {
-                uint32_t uc = (uint32_t)(uintptr_t) pcutils_arrlist_get_idx(
-                        ucs, i);
-                APPEND_TO_TEMP_BUFFER(uc);
-            }
+            APPEND_BYTES_TO_TOKEN_TEXT(value, strlen(value));
+
             pchvml_sbst_destroy(hvml->sbst);
             hvml->sbst = NULL;
             ADVANCE_TO(hvml->return_state);

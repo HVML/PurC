@@ -158,7 +158,8 @@ TEST_P(hvml_parser_next_token, parse_and_serialize)
         if (type == PCHVML_TOKEN_EOF) {
             break;
         }
-        //PRINTF("serial : %s\n", pchvml_temp_buffer_get_buffer(buffer));
+//        PRINTF("serial : %s|code=%d\n", pchvml_temp_buffer_get_buffer(buffer)
+//                , purc_get_last_error());
     }
     int error = purc_get_last_error();
     ASSERT_EQ (error, error_code) << "Test Case : "<< get_name();
