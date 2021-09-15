@@ -62,7 +62,7 @@
             pchvml_pchvml_state_desc(state_name), character, character);
 #endif
 
-#if 0
+#if 1
 #define PCHVML_SET_ERROR(err)    pcinst_set_error(err)
 #else
 #define PCHVML_SET_ERROR(err)    do {                                       \
@@ -1828,7 +1828,7 @@ next_state:
             }
             if (character == '#') {
                 APPEND_TO_TEMP_BUFFER(character);
-                SWITCH_TO(PCHVML_NUMERIC_CHARACTER_REFERENCE_STATE);
+                ADVANCE_TO(PCHVML_NUMERIC_CHARACTER_REFERENCE_STATE);
             }
             APPEND_TEMP_BUFFER_TO_TOKEN_TEXT();
             RESET_TEMP_BUFFER();
@@ -1942,6 +1942,7 @@ next_state:
             if (is_ascii_digit(character)) {
                 hvml->char_ref_code *= 10;
                 hvml->char_ref_code += character - 0x30;
+                ADVANCE_TO(PCHVML_DECIMAL_CHARACTER_REFERENCE_STATE);
             }
             if (character == ';') {
                 ADVANCE_TO(PCHVML_NUMERIC_CHARACTER_REFERENCE_END_STATE);
@@ -1986,8 +1987,8 @@ next_state:
             }
             RESET_TEMP_BUFFER();
             uc = hvml->char_ref_code;
-            APPEND_TO_TEMP_BUFFER(uc);
-            ADVANCE_TO(hvml->return_state);
+            APPEND_TO_TOKEN_TEXT(uc);
+            RECONSUME_IN(hvml->return_state);
         END_STATE()
 
         BEGIN_STATE(PCHVML_SPECIAL_ATTRIBUTE_OPERATOR_IN_ATTRIBUTE_NAME_STATE)
