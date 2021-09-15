@@ -2591,6 +2591,9 @@ next_state:
             if (character == ']') {
                 RECONSUME_IN(PCHVML_EJSON_RIGHT_BRACKET_STATE);
             }
+            if (character == ')') {
+                RECONSUME_IN(PCHVML_EJSON_RIGHT_PARENTHESIS_STATE);
+            }
             if (character == ',') {
                 pcutils_stack_pop(hvml->ejson_stack);
                 uint32_t uc = pcutils_stack_top(hvml->ejson_stack);
@@ -3174,7 +3177,8 @@ next_state:
 
         BEGIN_STATE(PCHVML_EJSON_AFTER_VALUE_NUMBER_STATE)
             if (is_whitespace(character) || character == '}'
-                    || character == ']' || character == ',' ) {
+                    || character == ']' || character == ','
+                    || character == ')') {
                 if (pchvml_temp_buffer_end_with(hvml->temp_buffer, "-", 1)
                     || pchvml_temp_buffer_end_with(hvml->temp_buffer, "E", 1)
                     || pchvml_temp_buffer_end_with(hvml->temp_buffer, "e", 1)) {
@@ -3199,7 +3203,8 @@ next_state:
 
         BEGIN_STATE(PCHVML_EJSON_VALUE_NUMBER_INTEGER_STATE)
             if (is_whitespace(character) || character == '}'
-                    || character == ']' || character == ',' ) {
+                    || character == ']' || character == ','
+                    || character == ')') {
                 RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_NUMBER_STATE);
             }
             if (is_ascii_digit(character)) {
