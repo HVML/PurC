@@ -92,6 +92,7 @@ struct purc_variant {
         /* for long string, long byte sequence, array, object,
            and set (sz_ptr[0] for size, sz_ptr[1] for pointer).
            for atom string, sz_ptr[0] stores the atom. */
+        /* for string_static, we also store strlen(sz_ptr[1]) into sz_ptr[0] */
 
         uintptr_t   sz_ptr[2];
 
