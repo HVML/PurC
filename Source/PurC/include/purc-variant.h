@@ -315,7 +315,7 @@ purc_variant_make_byte_sequence(const void* bytes, size_t nr_bytes);
  * Since: 0.0.2
  */
 PCA_EXPORT purc_variant_t
-purc_variant_make_byte_sequence_static(const char* bytes, size_t nr_bytes);
+purc_variant_make_byte_sequence_static(const void* bytes, size_t nr_bytes);
 
 /**
  * VWNOTE: new API.
@@ -332,7 +332,7 @@ purc_variant_make_byte_sequence_static(const char* bytes, size_t nr_bytes);
  * Since: 0.0.2
  */
 PCA_EXPORT purc_variant_t
-purc_variant_make_byte_sequence_reuse_buff(char* bytes, size_t nr_bytes,
+purc_variant_make_byte_sequence_reuse_buff(void* bytes, size_t nr_bytes,
         size_t sz_buff);
 
 /**
