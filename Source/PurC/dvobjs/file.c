@@ -754,7 +754,7 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
         return PURC_VARIANT_INVALID;
     }
     format = purc_variant_get_string_const (argv[1]);
-    head = pcdvobjs_get_next_option (format, " ", &length);
+    head = pcdvobjs_get_next_option (format, " \t\n", &length);
 
     ret_var = purc_variant_make_array (0, PURC_VARIANT_INVALID);
 
@@ -908,7 +908,7 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
         }
 
         purc_variant_array_append (ret_var, val);
-        head = pcdvobjs_get_next_option (head + length + 1, " ", &length);
+        head = pcdvobjs_get_next_option (head + length + 1, " \t\n", &length);
     }
     return ret_var;
 }
@@ -988,7 +988,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
     }
 
     format = purc_variant_get_string_const (argv[1]);
-    head = pcdvobjs_get_next_option (format, " ", &length);
+    head = pcdvobjs_get_next_option (format, " \t\n", &length);
 
     while (head) {
         switch (* head)
@@ -1159,7 +1159,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                 }
                 break;
         }
-        head = pcdvobjs_get_next_option (head + length + 1, " ", &length);
+        head = pcdvobjs_get_next_option (head + length + 1, " \t\n", &length);
     }
     return ret_var;
 }
