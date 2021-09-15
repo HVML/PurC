@@ -31,6 +31,8 @@
 
 #include "purc-variant.h"
 
+#include "tools.h"
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -220,5 +222,52 @@ bool wildcard_cmp (const char *str1, const char *pattern)
         p2++;
     }
     return true;
+}
+
+int pcdvobjs_math_param_set_var(struct pcdvobjs_math_param *param,
+        const char *var, struct pcdvobjs_math_value *val)
+{
+    if (!param->variables) {
+        param->variables = purc_variant_make_object(0, NULL, NULL);
+        if (!param->variables) {
+            return -1;
+        }
+    }
+    purc_variant_t v;
+    if (param->is_long_double) {
+        v = purc_variant_make_longdouble(val->ld);
+    } else {
+        v = purc_variant_make_number(val->d);
+    }
+    if (!v)
+        return -1;
+
+    bool ok;
+    ok = purc_variant_object_set_by_static_ckey(param->variables,
+            var, v);
+    purc_variant_unref(v);
+
+    return ok ? 0 : -1;
+}
+
+int pcdvobjs_math_param_get_var(struct pcdvobjs_math_param *param,
+        const char *var, struct pcdvobjs_math_value *val)
+{
+    if (!param->variables) {
+        return -1;
+    }
+    purc_variant_t v;
+    v = purc_variant_object_get_by_ckey(param->variables, var);
+    if (!v)
+        return -1;
+
+    bool ok;
+    if (param->is_long_double) {
+        ok = purc_variant_cast_to_long_double(v, &val->ld, false);
+    } else {
+        ok = purc_variant_cast_to_number(v, &val->d, false);
+    }
+
+    return ok ? 0 : -1;
 }
 

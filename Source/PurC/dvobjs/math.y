@@ -44,6 +44,15 @@
     // generated header from flex
     // introduce yylex decl for later use
     #include "math.lex.h"
+    #include <math.h>
+
+    struct pcdvobjs_math_symbol {
+        char            *symbol;
+        union {
+            double           d;
+            long double      ld;
+        };
+    };
 
     static void yyerror(
         YYLTYPE *yylloc,                   // match %define locations
@@ -53,48 +62,58 @@
     );
 
     #define SET(_r, _a) do {                           \
-        if (_a.is_long_double) {                       \
+        if (param->is_long_double) {                   \
             _r->ld = _a.ld;                            \
         } else {                                       \
             _r->d = _a.d;                              \
         }                                              \
-        _r->is_long_double = _a.is_long_double;        \
+    } while (0)
+
+    #define ASSIGN(_a, _b) do {                             \
+        int r;                                              \
+        r = pcdvobjs_math_param_set_var(param, _a, &_b);    \
+        if (r)                                              \
+            YYABORT;                                        \
     } while (0)
 
     #define ADD(_r, _a, _b) do {                       \
-        if (_a.is_long_double) {                       \
+        if (param->is_long_double) {                   \
             _r.ld = _a.ld + _b.ld;                     \
         } else {                                       \
             _r.d = _a.d + _b.d;                        \
         }                                              \
-        _r.is_long_double = _a.is_long_double;         \
     } while (0)
 
     #define SUB(_r, _a, _b) do {                       \
-        if (_a.is_long_double) {                       \
+        if (param->is_long_double) {                   \
             _r.ld = _a.ld - _b.ld;                     \
         } else {                                       \
             _r.d = _a.d - _b.d;                        \
         }                                              \
-        _r.is_long_double = _a.is_long_double;         \
     } while (0)
 
     #define MUL(_r, _a, _b) do {                       \
-        if (_a.is_long_double) {                       \
+        if (param->is_long_double) {                   \
             _r.ld = _a.ld * _b.ld;                     \
         } else {                                       \
             _r.d = _a.d * _b.d;                        \
         }                                              \
-        _r.is_long_double = _a.is_long_double;         \
     } while (0)
 
     #define DIV(_r, _a, _b) do {                       \
-        if (_a.is_long_double) {                       \
+        if (param->is_long_double) {                   \
             _r.ld = _a.ld / _b.ld;                     \
         } else {                                       \
             _r.d = _a.d / _b.d;                        \
         }                                              \
-        _r.is_long_double = _a.is_long_double;         \
+    } while (0)
+
+    #define EXP(_r, _a, _b) do {                       \
+        if (param->is_long_double) {                   \
+            _r.ld = powl(_a.ld, _b.ld);                \
+        } else {                                       \
+            _r.d = pow(_a.d, _b.d);                    \
+        }                                              \
     } while (0)
 
     #define SET_BY_NUM(_r, _a) do {                    \
@@ -103,24 +122,42 @@
         } else {                                       \
             _r.d = atof(_a);                           \
         }                                              \
-        _r.is_long_double = param->is_long_double;     \
     } while (0)
 
-    #define SET_BY_VAR(_r, _a) do {                                    \
-        if (!param->v && !purc_variant_is_object(param->v)) {          \
-            YYABORT;                                                   \
-        }                                                              \
-        purc_variant_t _v;                                             \
-        _v = purc_variant_object_get_by_ckey (param->v, _a);           \
-        if (!_v) {                                                     \
-            YYABORT;                                                   \
-        }                                                              \
-        if (param->is_long_double) {                                   \
-            purc_variant_cast_to_long_double (_v, &_r.ld, false);      \
-        } else {                                                       \
-            purc_variant_cast_to_number (_v, &_r.d, false);            \
-        }                                                              \
-        _r.is_long_double = param->is_long_double;                     \
+    static int
+    _get_from_env(struct pcdvobjs_math_param *param,
+        const char *key, struct pcdvobjs_math_value *val)
+    {
+        purc_variant_t _v;
+        if (!param->v && !purc_variant_is_object(param->v))
+            return -1;
+
+        _v = purc_variant_object_get_by_ckey(param->v, key);
+        if (!_v)
+            return -1;
+
+        bool ok;
+        if (param->is_long_double) {
+            ok = purc_variant_cast_to_long_double(_v, &val->ld, false);
+        } else {
+            ok = purc_variant_cast_to_number(_v, &val->d, false);
+        }
+        if (!ok)
+            return -1;
+
+        return 0;
+    }
+
+    #define SET_BY_VAR(_r, _a) do {                         \
+        int r;                                              \
+        struct pcdvobjs_math_value val = {0};               \
+        r = pcdvobjs_math_param_get_var(param, _a, &val);   \
+        if (r) {                                            \
+            r = _get_from_env(param, _a, &val);             \
+        }                                                   \
+        if (r)                                              \
+            YYABORT;                                        \
+        _r = val;                                           \
     } while (0)
 }
 
@@ -137,8 +174,10 @@
 %param { yyscan_t arg }
 %parse-param { struct pcdvobjs_math_param *param }
 
-%union { const char *str; }
-%union { struct pcdvobjs_math_param v; }
+%union { char *str; }
+%union { struct pcdvobjs_math_value v; }
+
+%destructor { free($$); } <str>
 
 %precedence '='
 %left '-' '+'
@@ -147,31 +186,42 @@
 %right '^'      /* exponentiation */
 
 %token <str> NUMBER VAR
-%nterm <v> exp factor term
+%nterm <v> exp term
 
 
 %% /* The grammar follows. */
 
 input:
-  %empty           { }
-| exp              { SET(param, $1); }
+  statements
+;
+
+statements:
+  %empty
+| statement
+| statements '\n' statement
+;
+
+statement:
+  exp              { SET(param, $1); }
+| assignment        
+;
+
+assignment:
+  VAR '=' exp      { ASSIGN($1, $3); free($1); }
 ;
 
 exp: 
-  factor
-| exp '+' exp      { ADD($$, $1, $3); }
-| exp '-' factor   { SUB($$, $1, $3); }
-;
-
-factor:
   term
-| factor '*' term { MUL($$, $1, $3); }
-| factor '/' term { DIV($$, $1, $3); }
+| exp '+' exp   { ADD($$, $1, $3); }
+| exp '-' exp   { SUB($$, $1, $3); }
+| exp '*' exp   { MUL($$, $1, $3); }
+| exp '/' exp   { DIV($$, $1, $3); }
+| exp '^' exp   { EXP($$, $1, $3); }
 ;
 
 term:
-  NUMBER      { SET_BY_NUM($$, $1); }
-| VAR         { SET_BY_VAR($$, $1); }
+  NUMBER      { SET_BY_NUM($$, $1); free($1); }
+| VAR         { SET_BY_VAR($$, $1); free($1); }
 | '(' exp ')' { $$ = $2; }
 ;
 

@@ -91,10 +91,6 @@ do {                                              \
 %option perf-report
 %option 8bit
 
-%x STR
-
-EXP ([Ee][-+]?[0-9]+)
-
 %%
 
 <<EOF>> { int state = TOP_STATE();
@@ -103,18 +99,18 @@ EXP ([Ee][-+]?[0-9]+)
 
 [-+*/()^]    { return *yytext; }
 
-[+-]?0                { yylval->str = (yytext); return MKT(NUMBER); }
-[+-]?[1-9][0-9]*      { yylval->str = (yytext); return MKT(NUMBER); }
-[+-]?"0."[0-9]*       { yylval->str = (yytext); return MKT(NUMBER); }
-[+-]?[0-9]+"."[0-9]*  { yylval->str = (yytext); return MKT(NUMBER); }
-[+-]?[0-9]+("."[0-9]*)?[eE][+-]?[0-9]+ { yylval->str = (yytext); return MKT(NUMBER); }
+[+-]?0                { yylval->str = strdup(yytext); return MKT(NUMBER); }
+[+-]?[1-9][0-9]*      { yylval->str = strdup(yytext); return MKT(NUMBER); }
+[+-]?"0."[0-9]*       { yylval->str = strdup(yytext); return MKT(NUMBER); }
+[+-]?[0-9]+"."[0-9]*  { yylval->str = strdup(yytext); return MKT(NUMBER); }
+[+-]?[0-9]+("."[0-9]*)?[eE][+-]?[0-9]+ { yylval->str = strdup(yytext); return MKT(NUMBER); }
 
-[_[:alpha:]][[:alnum:]]*  { yylval->str = (yytext); return MKT(VAR); }
+[_[:alpha:]][[:alnum:]]*  { yylval->str = strdup(yytext); return MKT(VAR); }
 
 [ \t]   { /* ignore white space */ }
 
 .	    { return *yytext; } /* let bison to handle it */
-\n      { /* eat it */ }
+\n      { return *yytext; }
 
 %%
 

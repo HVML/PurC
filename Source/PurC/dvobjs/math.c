@@ -362,9 +362,9 @@ sqrt_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     return ret_var;
 }
 
-
 static purc_variant_t
-eval_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+internal_eval_getter (int is_long_double, purc_variant_t root,
+    size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
@@ -382,30 +382,14 @@ eval_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-#if 0
-    size_t length = purc_variant_string_length (argv[0]);
-    struct pcdvobjs_math_param myparam = {0.0d, argv[1]};
-    yyscan_t lexer;
-
-    if (mathlex_init_extra (&myparam, &lexer)) {
-        return PURC_VARIANT_INVALID;
-    }
-
-    YY_BUFFER_STATE buffer = math_scan_bytes (
-                    purc_variant_get_string_const (argv[0]), length, lexer);
-    math_switch_to_buffer (buffer, lexer);
-    result = mathparse(&myparam, lexer);
-    math_delete_buffer(buffer, lexer);
-    mathlex_destroy (lexer);
-#else // ! 0
     struct pcdvobjs_math_param myparam = {
         0.0,
         0.0,
         argv[1],
-        0, // not long double
+        is_long_double,
+        PURC_VARIANT_INVALID,
     };
     result = math_parse(purc_variant_get_string_const(argv[0]), &myparam);
-#endif // 0
 
     if (result != 0) {
         pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
@@ -419,57 +403,16 @@ eval_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
 
 static purc_variant_t
+eval_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+{
+    return internal_eval_getter(0, root, nr_args, argv);
+}
+
+
+static purc_variant_t
 eval_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
-    UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    int result = 0;
-
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
-                        (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if ((argv[1] != PURC_VARIANT_INVALID) && 
-                        (!purc_variant_is_object (argv[1]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
-
-#if 0
-    size_t length = purc_variant_string_length (argv[0]);
-    struct pcdvobjs_mathld_param myparam = {0.0d, argv[1]};
-    yyscan_t lexer;
-
-    if (mathldlex_init_extra (&myparam, &lexer)) {
-        return PURC_VARIANT_INVALID;
-    }
-
-    YY_BUFFER_STATE buffer = mathld_scan_bytes (
-                    purc_variant_get_string_const (argv[0]), length, lexer);
-    mathld_switch_to_buffer (buffer, lexer);
-    result = mathldparse(&myparam, lexer);
-    mathld_delete_buffer(buffer, lexer);
-    mathldlex_destroy (lexer);
-#else // ! 0
-    struct pcdvobjs_math_param myparam = {
-        0.0,
-        0.0,
-        argv[1],
-        1, // is long double
-    };
-    result = math_parse(purc_variant_get_string_const(argv[0]), &myparam);
-#endif // 0
-
-    if (result != 0) {
-        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        return PURC_VARIANT_INVALID;
-    }
-
-    return myparam.is_long_double ?
-        purc_variant_make_longdouble (myparam.ld) :
-        purc_variant_make_number (myparam.d);
+    return internal_eval_getter(1, root, nr_args, argv);
 }
 
 

@@ -490,3 +490,38 @@ TEST(dvobjs, dvobjs_math_eval)
     purc_cleanup ();
 }
 
+TEST(dvobjs, dvobjs_math_assignment)
+{
+    purc_variant_t param[10];
+    purc_variant_t ret_var = NULL;
+    double number;
+
+    purc_instance_extra_info info = {0, 0};
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    purc_variant_t math = pcdvojbs_get_math();
+    ASSERT_NE(math, nullptr);
+    ASSERT_EQ(purc_variant_is_object (math), true);
+
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (math, "eval");
+    ASSERT_NE(dynamic, nullptr);
+    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+
+    purc_dvariant_method func = NULL;
+    func = purc_variant_dynamic_get_getter (dynamic);
+    ASSERT_NE(func, nullptr);
+
+    const char *exp = "x = (3 + 7) * (2 + 3 * 4)\nx * 3";
+    param[0] = purc_variant_make_string (exp, false);
+    param[1] = PURC_VARIANT_INVALID;
+    param[2] = NULL;
+    ret_var = func (NULL, 2, param);
+    ASSERT_NE(ret_var, nullptr);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
+    purc_variant_cast_to_number (ret_var, &number, false);
+    printf("TEST eval: param is \"%s\" = %lf\n", exp, number);
+
+    purc_cleanup ();
+}
+

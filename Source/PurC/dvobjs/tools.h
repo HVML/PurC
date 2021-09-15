@@ -33,12 +33,25 @@
 extern "C" {
 #endif  /* __cplusplus */
 
+struct pcdvobjs_math_value {
+    double d;
+    long double ld;
+};
+
 struct pcdvobjs_math_param {
     double d;
     long double ld;
     purc_variant_t v;
     int is_long_double;
+
+    purc_variant_t variables;
 };
+
+int pcdvobjs_math_param_set_var(struct pcdvobjs_math_param *param,
+        const char *var, struct pcdvobjs_math_value *val);
+
+int pcdvobjs_math_param_get_var(struct pcdvobjs_math_param *param,
+        const char *var, struct pcdvobjs_math_value *val);
 
 struct pcdvobjs_logical_param {
     int result;
