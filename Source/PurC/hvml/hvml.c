@@ -2492,7 +2492,7 @@ next_state:
                     }
                     SET_VCM_NODE(node);
                     pcutils_stack_push(hvml->ejson_stack, '<');
-                    RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
+                    ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
                 }
                 PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
                 RETURN_AND_STOP_PARSE();
