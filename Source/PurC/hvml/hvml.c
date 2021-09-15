@@ -2483,7 +2483,7 @@ next_state:
                         PCVCM_NODE_TYPE_FUNC_GET_VARIABLE ||
                         hvml->vcm_node->type ==
                         PCVCM_NODE_TYPE_FUNC_GET_ELEMENT) {
-                    struct pcvcm_node* node = pcvcm_node_new_call_getter(NULL,
+                    struct pcvcm_node* node = pcvcm_node_new_call_setter(NULL,
                             0, NULL);
                     if (hvml->vcm_node) {
                         pctree_node_append_child(
@@ -2505,7 +2505,7 @@ next_state:
                     PCVCM_NODE_TYPE_FUNC_GET_VARIABLE ||
                     hvml->vcm_node->type ==
                     PCVCM_NODE_TYPE_FUNC_GET_ELEMENT) {
-                struct pcvcm_node* node = pcvcm_node_new_call_setter(NULL,
+                struct pcvcm_node* node = pcvcm_node_new_call_getter(NULL,
                         0, NULL);
                 if (hvml->vcm_node) {
                     pctree_node_append_child(
