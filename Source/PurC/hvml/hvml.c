@@ -3744,7 +3744,7 @@ next_state:
             }
             if (is_whitespace(character) || character == '[' ||
                     character == '(' || character == '<' || character == '}' ||
-                    character == '$') {
+                    character == '$' || character == '>') {
                 if (pchvml_temp_buffer_is_empty(hvml->temp_buffer)) {
                     PCHVML_SET_ERROR(PCHVML_ERROR_BAD_JSONEE_KEYWORD);
                     RETURN_AND_STOP_PARSE();

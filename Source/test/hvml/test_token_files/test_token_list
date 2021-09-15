@@ -2,7 +2,7 @@
 002_double_quoted_attr
 003_unquoted_attr
 004_attr_without_value
-005_jsonee_get_varialbe
+05_jsonee_get_varialbe
 006_jsonee_get_element
 007_format_tag
 008_character
@@ -12,3 +12,5 @@
 012_jesonee_call_set
 013_char_ref_number
 014_multiple_char_ref
+015_jsonee_get_element_after_stop_sign
+016_jsonee_get_element_and_get_element
