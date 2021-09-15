@@ -2377,16 +2377,6 @@ next_state:
                     SET_VCM_NODE(node);
                     ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
                 }
-                uint32_t uc = pcutils_stack_top (hvml->ejson_stack);
-                if (uc == '(' || uc == '<') {
-                    pcutils_stack_push(hvml->ejson_stack, '[');
-                    if (hvml->vcm_node) {
-                        pcvcm_stack_push(hvml->vcm_stack,
-                                hvml->vcm_node);
-                    }
-                    SET_VCM_NODE(NULL);
-                    ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
-                }
                 if (hvml->vcm_node->type ==
                         PCVCM_NODE_TYPE_FUNC_GET_VARIABLE ||
                         hvml->vcm_node->type ==
@@ -2400,6 +2390,16 @@ next_state:
                                 (struct pctree_node*)hvml->vcm_node);
                     }
                     SET_VCM_NODE(node);
+                    ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
+                }
+                uint32_t uc = pcutils_stack_top (hvml->ejson_stack);
+                if (uc == '(' || uc == '<') {
+                    pcutils_stack_push(hvml->ejson_stack, '[');
+                    if (hvml->vcm_node) {
+                        pcvcm_stack_push(hvml->vcm_stack,
+                                hvml->vcm_node);
+                    }
+                    SET_VCM_NODE(NULL);
                     ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
                 }
                 PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
@@ -2433,6 +2433,7 @@ next_state:
                                 (struct pctree_node*)hvml->vcm_node);
                     }
                     SET_VCM_NODE(node);
+                    ADVANCE_TO(PCHVML_EJSON_AFTER_VALUE_STATE);
                 }
                 if (uc == '[') {
                     pcutils_stack_pop(hvml->ejson_stack);
