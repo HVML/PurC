@@ -41,6 +41,31 @@ typedef struct purc_variant* purc_variant_t;
 PCA_EXTERN_C_BEGIN
 
 /**
+ * Tag input variant value as an anonymous one
+ *
+ * @param value: variant value to be marked as anonymous
+ *
+ * Returns: variant value by itself
+ *
+ * Note: when anonymous variant is inserted into a container, such as
+ *       array/object/set/..., it's refc won't get increased
+ * Since: 0.0.1
+ */
+PCA_EXPORT purc_variant_t purc_variant_tag_as_anonymous(purc_variant_t value);
+
+/**
+ * Untag input variant value as an anonymous one
+ *
+ * @param value: variant value to be marked as anonymous
+ *
+ * Returns: variant value by itself
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_untag_as_anonymous(purc_variant_t value);
+
+/**
  * Adds ref for a variant value
  *
  * @param value: variant value to be operated
@@ -290,7 +315,7 @@ purc_variant_make_byte_sequence(const void* bytes, size_t nr_bytes);
  * Since: 0.0.2
  */
 PCA_EXPORT purc_variant_t
-purc_variant_make_byte_sequence_static(const char* bytes, size_t nr_bytes);
+purc_variant_make_byte_sequence_static(const void* bytes, size_t nr_bytes);
 
 /**
  * VWNOTE: new API.
@@ -307,7 +332,7 @@ purc_variant_make_byte_sequence_static(const char* bytes, size_t nr_bytes);
  * Since: 0.0.2
  */
 PCA_EXPORT purc_variant_t
-purc_variant_make_byte_sequence_reuse_buff(char* bytes, size_t nr_bytes,
+purc_variant_make_byte_sequence_reuse_buff(void* bytes, size_t nr_bytes,
         size_t sz_buff);
 
 /**

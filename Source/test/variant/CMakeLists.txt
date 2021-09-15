@@ -172,3 +172,31 @@ PURC_COMPUTE_SOURCES(test_random)
 PURC_FRAMEWORK(test_random)
 GTEST_DISCOVER_TESTS(test_random)
 
+# test_anonymous
+PURC_EXECUTABLE_DECLARE(test_anonymous)
+
+list(APPEND test_anonymous_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_anonymous)
+
+set(test_anonymous_SOURCES
+    test_anonymous.cpp
+)
+
+set(test_anonymous_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_anonymous)
+PURC_FRAMEWORK(test_anonymous)
+GTEST_DISCOVER_TESTS(test_anonymous)
+
