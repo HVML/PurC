@@ -2590,12 +2590,16 @@ next_state:
                 RECONSUME_IN(PCHVML_EJSON_RIGHT_PARENTHESIS_STATE);
             }
             if (character == ',') {
-                pcutils_stack_pop(hvml->ejson_stack);
                 uint32_t uc = pcutils_stack_top(hvml->ejson_stack);
                 if (uc == '{') {
+                    pcutils_stack_pop(hvml->ejson_stack);
                     ADVANCE_TO(PCHVML_EJSON_BEFORE_NAME_STATE);
                 }
                 if (uc == '[') {
+                    pcutils_stack_pop(hvml->ejson_stack);
+                    ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
+                }
+                if (uc == '(') {
                     ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
                 }
                 PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);

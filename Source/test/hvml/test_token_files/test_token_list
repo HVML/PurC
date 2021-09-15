@@ -24,3 +24,4 @@
 024_jsonee_get_element_with_jsonee_call_set
 025_jsonee_call_get_with_jsonee_param
 026_jsonee_call_set_with_jsonee_param
+027_jsonee_call_get_with_multiple_param
