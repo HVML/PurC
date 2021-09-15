@@ -56,6 +56,7 @@ struct pchvml_token_attr {
     struct pchvml_temp_buffer* value;
     struct pcvcm_node* vcm;
     uint32_t quote;
+    bool vcm_reserved;
 };
 
 struct pchvml_token {
@@ -79,6 +80,7 @@ struct pchvml_token_attr* pchvml_token_attr_new ()
 {
     struct pchvml_token_attr* attr = (struct pchvml_token_attr*)
         PCHVML_ALLOC(sizeof(struct pchvml_token_attr));
+    attr->vcm_reserved = false;
     return attr;
 }
 
@@ -101,7 +103,7 @@ void pchvml_token_attr_destroy (struct pchvml_token_attr* attr)
     if (attr->name) {
         pchvml_temp_buffer_destroy(attr->name);
     }
-    if (attr->value) {
+    if (attr->value && !attr->vcm_reserved) {
         pchvml_temp_buffer_destroy(attr->value);
     }
     if (attr->vcm) {
@@ -379,9 +381,10 @@ const char* pchvml_token_attr_get_name(struct pchvml_token_attr* attr)
     return pchvml_temp_buffer_get_buffer(attr->name);
 }
 
-const struct pcvcm_node* pchvml_token_attr_get_value(
-        struct pchvml_token_attr* attr)
+struct pcvcm_node* pchvml_token_attr_get_value_ex(
+        struct pchvml_token_attr* attr, bool res_vcm)
 {
+    attr->vcm_reserved = res_vcm;
     return attr->vcm;
 }
 
