@@ -261,7 +261,7 @@ purc_variant_make_string_reuse_buff (char* str_utf8, size_t sz_buff,
     }
 
     value->type = PURC_VARIANT_TYPE_STRING;
-    value->flags |= PCVARIANT_FLAG_EXTRA_SIZE;
+    value->flags = PCVARIANT_FLAG_EXTRA_SIZE;
     value->refc = 1;
 
     value->sz_ptr[1] = (uintptr_t)(str_utf8);
@@ -294,7 +294,7 @@ purc_variant_make_string_static (const char* str_utf8, bool check_encoding)
     }
 
     value->type = PURC_VARIANT_TYPE_STRING;
-    value->flags |= PCVARIANT_FLAG_STRING_STATIC;
+    value->flags = PCVARIANT_FLAG_STRING_STATIC;
     value->refc = 1;
     value->sz_ptr[0] = str_size;
     value->sz_ptr[1] = (uintptr_t)str_utf8;
@@ -525,7 +525,7 @@ purc_variant_t purc_variant_make_byte_sequence_reuse_buff (void* bytes,
     }
 
     value->type = PURC_VARIANT_TYPE_BSEQUENCE;
-    value->flags |= PCVARIANT_FLAG_EXTRA_SIZE;
+    value->flags = PCVARIANT_FLAG_EXTRA_SIZE;
     value->flags = 0;
     value->refc = 1;
 
