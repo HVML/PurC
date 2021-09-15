@@ -2,7 +2,7 @@
 002_double_quoted_attr
 003_unquoted_attr
 004_attr_without_value
-05_jsonee_get_varialbe
+005_jsonee_get_varialbe
 006_jsonee_get_element
 007_format_tag
 008_character
@@ -18,3 +18,7 @@
 018_jsonee_multiple_get_variable_and_get_element
 019_jsonee_multiple_get_variable_and_call_get
 020_jsonee_multiple_get_variable_and_call_set
+021_jsonee_get_element_with_jsonee_param
+022_jsonee_get_element_with_jsonee_get_element_param
+023_jsonee_get_element_with_jsonee_call_get
+024_jsonee_get_element_with_jsonee_call_set

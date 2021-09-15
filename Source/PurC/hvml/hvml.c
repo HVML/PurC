@@ -2520,7 +2520,8 @@ next_state:
         BEGIN_STATE(PCHVML_EJSON_RIGHT_PARENTHESIS_STATE)
             if (character == ')') {
                 uint32_t uc = pcutils_stack_top(hvml->ejson_stack);
-                if (uc == '(') {
+                if (uc == '(' || uc == '<') {
+                    pcutils_stack_pop(hvml->ejson_stack);
                     if (!pcvcm_stack_is_empty(hvml->vcm_stack)) {
                         struct pcvcm_node* node = pcvcm_stack_pop(
                                 hvml->vcm_stack);
@@ -3621,7 +3622,8 @@ next_state:
                 ADVANCE_TO(PCHVML_EJSON_JSONEE_VARIABLE_STATE);
             }
             if (is_whitespace(character) || character == '}'
-                    || character == '"' || character == '$') {
+                    || character == '"' || character == '$'
+                    || character == ']') {
                 if (pchvml_temp_buffer_is_empty(hvml->temp_buffer)) {
                     PCHVML_SET_ERROR(PCHVML_ERROR_BAD_JSONEE_VARIABLE_NAME);
                     RETURN_AND_STOP_PARSE();
@@ -3744,7 +3746,7 @@ next_state:
             }
             if (is_whitespace(character) || character == '[' ||
                     character == '(' || character == '<' || character == '}' ||
-                    character == '$' || character == '>') {
+                    character == '$' || character == '>' || character == ']') {
                 if (pchvml_temp_buffer_is_empty(hvml->temp_buffer)) {
                     PCHVML_SET_ERROR(PCHVML_ERROR_BAD_JSONEE_KEYWORD);
                     RETURN_AND_STOP_PARSE();
