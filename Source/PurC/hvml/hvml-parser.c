@@ -83,7 +83,11 @@ static int
 _on_doctype(struct pchvml_vdom_parser *parser, struct pchvml_token *token)
 {
     PC_ASSERT(parser && parser->doc==NULL && parser->curr==NULL);
-    PC_ASSERT(token && token->data);
+    // TODO:  pchvml_token_get_name/text/attr
+#if 1
+    UNUSED_PARAM(token);
+#else
+    //PC_ASSERT(token && token->data);
 
     struct pcvdom_document *doc = pcvdom_document_create(token->data);
     if (!doc) {
@@ -93,6 +97,7 @@ _on_doctype(struct pchvml_vdom_parser *parser, struct pchvml_token *token)
 
     parser->doc  = doc;
     parser->curr = &doc->node;
+#endif
 
     return 0;
 }
@@ -101,6 +106,11 @@ static int
 _on_start_tag(struct pchvml_vdom_parser *parser, struct pchvml_token *token)
 {
     PC_ASSERT(parser && parser->doc && parser->curr);
+    // TODO:  pchvml_token_get_name/text/attr
+#if 1
+    UNUSED_PARAM(token);
+    return 0;
+#else
     PC_ASSERT(token->data);
 
     int is_doc = 0;
@@ -165,12 +175,18 @@ _on_start_tag(struct pchvml_vdom_parser *parser, struct pchvml_token *token)
     }
 
     return r ? -1 : 0;
+#endif
 }
 
 static int
 _on_end_tag(struct pchvml_vdom_parser *parser, struct pchvml_token *token)
 {
     PC_ASSERT(parser && parser->doc && parser->curr);
+    // TODO:  pchvml_token_get_name/text/attr
+#if 1
+    UNUSED_PARAM(token);
+    return 0;
+#else
     PC_ASSERT(token->data);
     PC_ASSERT(parser->curr != &parser->doc->node);
 
@@ -185,14 +201,19 @@ _on_end_tag(struct pchvml_vdom_parser *parser, struct pchvml_token *token)
 
     parser->curr = container_of(parser->curr->node.parent,
                         struct pcvdom_node, node);
-
     return 0;
+#endif
 }
 
 static int
 _on_comment(struct pchvml_vdom_parser *parser, struct pchvml_token *token)
 {
     PC_ASSERT(parser && parser->doc && parser->curr);
+    // TODO:  pchvml_token_get_name/text/attr
+#if 1
+    UNUSED_PARAM(token);
+    return 0;
+#else
     PC_ASSERT(token->data);
 
     int is_doc = 0;
@@ -222,6 +243,7 @@ _on_comment(struct pchvml_vdom_parser *parser, struct pchvml_token *token)
     }
 
     return r ? -1 : 0;
+#endif
 }
 
 static int
@@ -266,7 +288,7 @@ pchvml_vdom_parser_parse(struct pchvml_vdom_parser *parser,
             // feof(in) ?
             return 0;
         }
-        switch (token->type) {
+        switch (pchvml_token_get_type(token)) {
             case VTT(DOCTYPE):
             {
                 r = _on_doctype(parser, token);

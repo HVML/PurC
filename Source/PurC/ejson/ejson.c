@@ -154,71 +154,71 @@ void pcejson_init_once (void)
     pcinst_register_error_message_segment(&_ejson_err_msgs_seg);
 }
 
-static inline bool is_whitespace (wchar_t character)
+static inline bool is_whitespace (uint32_t character)
 {
     return character == ' ' || character == '\x0A' ||
         character == '\x09' || character == '\x0C';
 }
 
-static inline wchar_t to_ascii_lower_unchecked (wchar_t character)
+static inline uint32_t to_ascii_lower_unchecked (uint32_t character)
 {
         return character | 0x20;
 }
 
-static inline UNUSED_FUNCTION bool is_ascii (wchar_t character)
+static inline UNUSED_FUNCTION bool is_ascii (uint32_t character)
 {
     return !(character & ~0x7F);
 }
 
-static inline UNUSED_FUNCTION bool is_ascii_lower (wchar_t character)
+static inline UNUSED_FUNCTION bool is_ascii_lower (uint32_t character)
 {
     return character >= 'a' && character <= 'z';
 }
 
-static inline UNUSED_FUNCTION bool is_ascii_upper (wchar_t character)
+static inline UNUSED_FUNCTION bool is_ascii_upper (uint32_t character)
 {
      return character >= 'A' && character <= 'Z';
 }
 
-static inline UNUSED_FUNCTION bool is_ascii_space (wchar_t character)
+static inline UNUSED_FUNCTION bool is_ascii_space (uint32_t character)
 {
     return character <= ' ' &&
         (character == ' ' || (character <= 0xD && character >= 0x9));
 }
 
-static inline UNUSED_FUNCTION bool is_ascii_digit (wchar_t character)
+static inline UNUSED_FUNCTION bool is_ascii_digit (uint32_t character)
 {
     return character >= '0' && character <= '9';
 }
 
-static inline UNUSED_FUNCTION bool is_ascii_binary_digit (wchar_t character)
+static inline UNUSED_FUNCTION bool is_ascii_binary_digit (uint32_t character)
 {
      return character == '0' || character == '1';
 }
 
-static inline UNUSED_FUNCTION bool is_ascii_hex_digit (wchar_t character)
+static inline UNUSED_FUNCTION bool is_ascii_hex_digit (uint32_t character)
 {
      return is_ascii_digit(character) ||
          (to_ascii_lower_unchecked(character) >= 'a' &&
           to_ascii_lower_unchecked(character) <= 'f');
 }
 
-static inline UNUSED_FUNCTION bool is_ascii_octal_digit (wchar_t character)
+static inline UNUSED_FUNCTION bool is_ascii_octal_digit (uint32_t character)
 {
      return character >= '0' && character <= '7';
 }
 
-static inline UNUSED_FUNCTION bool is_ascii_alpha (wchar_t character)
+static inline UNUSED_FUNCTION bool is_ascii_alpha (uint32_t character)
 {
     return is_ascii_lower(to_ascii_lower_unchecked(character));
 }
 
-static inline UNUSED_FUNCTION bool is_ascii_alpha_numeric (wchar_t character)
+static inline UNUSED_FUNCTION bool is_ascii_alpha_numeric (uint32_t character)
 {
     return is_ascii_digit(character) || is_ascii_alpha(character);
 }
 
-static inline bool is_delimiter (wchar_t c)
+static inline bool is_delimiter (uint32_t c)
 {
     return is_whitespace(c) || c == '}' || c == ']' || c == ',' ||
         c == EJSON_END_OF_FILE;

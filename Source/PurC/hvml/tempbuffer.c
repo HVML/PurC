@@ -23,6 +23,7 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <stdint.h>
 #include <string.h>
 #include <errno.h>
@@ -58,10 +59,10 @@ static bool is_utf8_leading_byte (char c)
     return (c & 0xC0) != 0x80;
 }
 
-static wchar_t utf8_to_wchar_t (const unsigned char* utf8_char,
+static uint32_t utf8_to_uint32_t (const unsigned char* utf8_char,
         int utf8_char_len)
 {
-    wchar_t wc = *((unsigned char *)(utf8_char++));
+    uint32_t wc = *((unsigned char *)(utf8_char++));
     int n = utf8_char_len;
     int t = 0;
 
@@ -100,7 +101,7 @@ static void pchvml_temp_buffer_append_inner (struct pchvml_temp_buffer* buffer,
     *buffer->here = 0;
 }
 
-void pchvml_temp_buffer_append (struct pchvml_temp_buffer* buffer,
+void pchvml_temp_buffer_append_bytes (struct pchvml_temp_buffer* buffer,
         const char* bytes, size_t nr_bytes)
 {
     pchvml_temp_buffer_append_inner (buffer, bytes, nr_bytes);
@@ -114,11 +115,101 @@ void pchvml_temp_buffer_append (struct pchvml_temp_buffer* buffer,
     }
 }
 
+static inline size_t uc_to_utf8(uint32_t c, char* outbuf)
+{
+    size_t len = 0;
+    int first;
+    int i;
+
+    if (c < 0x80) {
+        first = 0;
+        len = 1;
+    }
+    else if (c < 0x800) {
+        first = 0xc0;
+        len = 2;
+    }
+    else if (c < 0x10000) {
+        first = 0xe0;
+        len = 3;
+    }
+    else if (c < 0x200000) {
+        first = 0xf0;
+        len = 4;
+    }
+    else if (c < 0x4000000) {
+        first = 0xf8;
+        len = 5;
+    }
+    else {
+        first = 0xfc;
+        len = 6;
+    }
+
+    if (outbuf) {
+        for (i = len - 1; i > 0; --i) {
+            outbuf[i] = (c & 0x3f) | 0x80;
+            c >>= 6;
+        }
+        outbuf[0] = c | first;
+    }
+
+    return len;
+}
+
+void pchvml_temp_buffer_append (struct pchvml_temp_buffer* buffer,
+        uint32_t uc)
+{
+    char buf[8] = {0};
+    size_t len = uc_to_utf8(uc, buf);
+    pchvml_temp_buffer_append_bytes (buffer, buf, len);
+}
+
+void pchvml_temp_buffer_append_chars (struct pchvml_temp_buffer* buffer,
+        const uint32_t* ucs, size_t nr_ucs)
+{
+    for (size_t i = 0; i < nr_ucs; i++) {
+        pchvml_temp_buffer_append (buffer, ucs[i]);
+    }
+}
+
+void pchvml_temp_buffer_delete_head_chars (
+        struct pchvml_temp_buffer* buffer, size_t sz)
+{
+    uint8_t* p = buffer->base;
+    size_t nr = 0;
+    while (p < buffer->here && nr <= sz) {
+        if (is_utf8_leading_byte(*p)) {
+            nr++;
+        }
+        p = p + 1;
+    }
+    p = p - 1;
+    size_t n = buffer->here - p;
+    memmove(buffer->base, p, n);
+    buffer->here = buffer->base + n;
+    memset(buffer->here, 0, buffer->stop - buffer->here);
+}
+
+void pchvml_temp_buffer_delete_tail_chars (
+        struct pchvml_temp_buffer* buffer, size_t sz)
+{
+    uint8_t* p = buffer->here - 1;
+    while (p >= buffer->base && sz > 0) {
+        if (is_utf8_leading_byte(*p)) {
+            sz--;
+        }
+        p = p - 1;
+    }
+    buffer->here = p + 1;
+    memset(buffer->here, 0, buffer->stop - buffer->here);
+}
+
 bool pchvml_temp_buffer_end_with (struct pchvml_temp_buffer* buffer,
         const char* bytes, size_t nr_bytes)
 {
     size_t sz = pchvml_temp_buffer_get_size_in_bytes(buffer);
-    return (sz >= nr_bytes 
+    return (sz >= nr_bytes
             && memcmp(buffer->here - nr_bytes, bytes, nr_bytes) == 0);
 }
 
@@ -129,7 +220,7 @@ bool pchvml_temp_buffer_equal_to (struct pchvml_temp_buffer* buffer,
     return (sz == nr_bytes && memcmp(buffer->base, bytes, sz) == 0);
 }
 
-wchar_t pchvml_temp_buffer_get_last_char (struct pchvml_temp_buffer* buffer)
+uint32_t pchvml_temp_buffer_get_last_char (struct pchvml_temp_buffer* buffer)
 {
     if (pchvml_temp_buffer_is_empty(buffer)) {
         return 0;
@@ -142,7 +233,7 @@ wchar_t pchvml_temp_buffer_get_last_char (struct pchvml_temp_buffer* buffer)
         }
         p = p - 1;
     }
-    return utf8_to_wchar_t(p, buffer->here - p);
+    return utf8_to_uint32_t(p, buffer->here - p);
 }
 
 void pchvml_temp_buffer_reset (struct pchvml_temp_buffer* buffer)
@@ -158,4 +249,11 @@ void pchvml_temp_buffer_destroy (struct pchvml_temp_buffer* buffer)
         free(buffer->base);
         free(buffer);
     }
+}
+
+bool pchvml_temp_buffer_is_int (struct pchvml_temp_buffer* buffer)
+{
+    char* p = NULL;
+    strtol((const char*)buffer->base, &p, 10);
+    return (p == (char*)buffer->here);
 }

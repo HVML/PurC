@@ -28,9 +28,12 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "config.h"
+#include "purc-utils.h"
 
 #define pchvml_temp_buffer_append_temp_buffer(buffer, append)                \
-    pchvml_temp_buffer_append(buffer, pchvml_temp_buffer_get_buffer(append), \
+    pchvml_temp_buffer_append_bytes(buffer,                                  \
+        pchvml_temp_buffer_get_buffer(append),                               \
         pchvml_temp_buffer_get_size_in_bytes(append))                        \
 
 struct pchvml_temp_buffer {
@@ -71,8 +74,26 @@ const char* pchvml_temp_buffer_get_buffer (
     return (const char*)buffer->base;
 }
 
-void pchvml_temp_buffer_append (struct pchvml_temp_buffer* buffer,
+void pchvml_temp_buffer_append_bytes (struct pchvml_temp_buffer* buffer,
         const char* bytes, size_t nr_bytes);
+
+void pchvml_temp_buffer_append (struct pchvml_temp_buffer* buffer,
+        uint32_t uc);
+
+void pchvml_temp_buffer_append_chars (struct pchvml_temp_buffer* buffer,
+        const uint32_t* ucs, size_t nr_ucs);
+
+/*
+ * delete characters from head
+ */
+void pchvml_temp_buffer_delete_head_chars (
+        struct pchvml_temp_buffer* buffer, size_t sz);
+
+/*
+ * delete characters from tail
+ */
+void pchvml_temp_buffer_delete_tail_chars (
+        struct pchvml_temp_buffer* buffer, size_t sz);
 
 bool pchvml_temp_buffer_end_with (struct pchvml_temp_buffer* buffer,
         const char* bytes, size_t nr_bytes);
@@ -80,11 +101,13 @@ bool pchvml_temp_buffer_end_with (struct pchvml_temp_buffer* buffer,
 bool pchvml_temp_buffer_equal_to (struct pchvml_temp_buffer* buffer,
         const char* bytes, size_t nr_bytes);
 
-wchar_t pchvml_temp_buffer_get_last_char (struct pchvml_temp_buffer* buffer);
+uint32_t pchvml_temp_buffer_get_last_char (struct pchvml_temp_buffer* buffer);
 
 void pchvml_temp_buffer_reset (struct pchvml_temp_buffer* buffer);
 
 void pchvml_temp_buffer_destroy (struct pchvml_temp_buffer* buffer);
+
+bool pchvml_temp_buffer_is_int (struct pchvml_temp_buffer* buffer);
 
 #ifdef __cplusplus
 }

@@ -702,7 +702,7 @@ TEST(variant, serialize_object)
     ASSERT_EQ(v2->refc, 1);
 
     purc_variant_t my_variant =
-        purc_variant_make_object_c(2, "v1", v1, "v2", v2);
+        purc_variant_make_object_by_static_ckey(2, "v1", v1, "v2", v2);
     ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
     ASSERT_EQ(v1->refc, 2);
     ASSERT_EQ(v2->refc, 2);
@@ -786,7 +786,7 @@ TEST(variant, serialize_object_with_empty_key)
     ASSERT_EQ(v1->refc, 1);
 
     purc_variant_t my_variant =
-        purc_variant_make_object_c(1, "", v1);
+        purc_variant_make_object_by_static_ckey(1, "", v1);
     ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
     ASSERT_EQ(v1->refc, 2);
     ASSERT_EQ(my_variant->refc, 1);
@@ -826,7 +826,7 @@ TEST(variant, serialize_object_with_empty_key2)
     ASSERT_EQ(v1->refc, 1);
 
     purc_variant_t my_variant =
-        purc_variant_make_object_c(2, "x", v1, "", v1);
+        purc_variant_make_object_by_static_ckey(2, "x", v1, "", v1);
     ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
     ASSERT_EQ(v1->refc, 3);
     ASSERT_EQ(my_variant->refc, 1);

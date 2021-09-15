@@ -125,7 +125,7 @@ static double get_data (char * text, struct pcdvobjs_logical_param * pp)
 
     purc_variant_t var = NULL;
 
-    var = purc_variant_object_get_c (pp->v, text);
+    var = purc_variant_object_get_by_ckey (pp->v, text);
     if (var)
         purc_variant_cast_to_number (var, &number, false);
 

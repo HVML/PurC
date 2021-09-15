@@ -144,19 +144,23 @@ enum pchvml_state {
 
 struct pchvml_temp_buffer;
 struct pchvml_token;
+struct pchvml_rwswrap;
+struct pchvml_sbst;
 
 struct pchvml_parser {
     enum pchvml_state state;
     enum pchvml_state return_state;
-    uint32_t flags;
-    uint32_t sz_c;
-    wchar_t wc;
-    char c[8];
-    size_t queue_size;
+    struct pchvml_rwswrap* rwswrap;
     struct pchvml_temp_buffer* temp_buffer;
     struct pchvml_temp_buffer* appropriate_tag_name;
-    struct pchvml_token* current_token;
-    bool need_reconsume;
+    struct pchvml_temp_buffer* escape_buffer;
+    struct pchvml_token* token;
+    struct pchvml_sbst* sbst;
+    struct pcvcm_node* vcm_tree;
+    struct pcvcm_node* vcm_node;
+    struct pcvcm_stack* vcm_stack;
+    struct pcutils_stack* ejson_stack;
+    uint64_t char_ref_code;
 };
 
 #ifdef __cplusplus

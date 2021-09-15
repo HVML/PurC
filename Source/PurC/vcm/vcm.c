@@ -175,6 +175,118 @@ struct pcvcm_node* pcvcm_node_new_byte_sequence (const void* bytes,
     return n;
 }
 
+
+static void hex_to_bytes (const uint8_t* hex, size_t sz_hex, uint8_t* result)
+{
+    uint8_t h = 0;
+    uint8_t l = 0;
+    for(size_t i = 0; i < sz_hex/2; i++) {
+        if (*hex < 58) {
+            h = *hex - 48;
+        }
+        else if (*hex < 71) {
+            h = *hex - 55;
+        }
+        else {
+            h = *hex - 87;
+        }
+
+        hex++;
+        if (*hex < 58) {
+            l = *hex - 48;
+        }
+        else if (*hex < 71) {
+            l = *hex - 55;
+        }
+        else {
+            l = *hex - 87;
+        }
+        hex++;
+        *result++ = h<<4|l;
+    }
+}
+
+struct pcvcm_node* pcvcm_node_new_byte_sequence_from_bx (const void* bytes,
+        size_t nr_bytes)
+{
+    struct pcvcm_node* n = pcvcm_node_new (PCVCM_NODE_TYPE_BYTE_SEQUENCE);
+    if (!n) {
+        return NULL;
+    }
+
+    const uint8_t* p = bytes;
+    size_t sz = nr_bytes;
+    if (sz % 2 != 0) {
+        pcinst_set_error(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+        return NULL;
+    }
+    size_t sz_buf = sz / 2;
+    uint8_t* buf = (uint8_t*) calloc (sz_buf + 1, 1);
+    hex_to_bytes (p, sz, buf);
+
+    n->data.sz_ptr[0] = sz_buf;
+    n->data.sz_ptr[1] = (uintptr_t) buf;
+    return n;
+}
+
+struct pcvcm_node* pcvcm_node_new_byte_sequence_from_bb (const void* bytes,
+        size_t nr_bytes)
+{
+    struct pcvcm_node* n = pcvcm_node_new (PCVCM_NODE_TYPE_BYTE_SEQUENCE);
+    if (!n) {
+        return NULL;
+    }
+
+    const uint8_t* p = bytes;
+    size_t sz = nr_bytes;
+    if (sz % 8 != 0) {
+        pcinst_set_error(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+        return NULL;
+    }
+
+    size_t sz_buf = sz / 8;
+    uint8_t* buf = (uint8_t*) calloc (sz_buf + 1, 1);
+    for(size_t i = 0; i < sz_buf; i++) {
+        uint8_t b = 0;
+        uint8_t c = 0;
+        for (int j = 7; j >= 0; j--) {
+            c = *p == '0' ? 0 : 1;
+            b = b | c << j;
+            p++;
+        }
+        buf[i] = b;
+    }
+
+    n->data.sz_ptr[0] = sz_buf;
+    n->data.sz_ptr[1] = (uintptr_t) buf;
+    return n;
+}
+
+int b64_decode(const void *src, void *dest, size_t dest_len);
+struct pcvcm_node* pcvcm_node_new_byte_sequence_from_b64 (const void* bytes,
+        size_t nr_bytes)
+{
+    struct pcvcm_node* n = pcvcm_node_new (PCVCM_NODE_TYPE_BYTE_SEQUENCE);
+    if (!n) {
+        return NULL;
+    }
+
+    const uint8_t* p = bytes;
+    size_t sz_buf = nr_bytes;
+    uint8_t* buf = (uint8_t*) calloc (sz_buf, 1);
+
+    int ret = b64_decode (p, buf, sz_buf);
+    if (ret == -1) {
+        free (buf);
+        pcinst_set_error(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+        return NULL;
+    }
+
+    n->data.sz_ptr[0] = ret;
+    n->data.sz_ptr[1] = (uintptr_t) buf;
+    return n;
+}
+
 struct pcvcm_node* pcvcm_node_new_concat_string (size_t nr_nodes,
         struct pcvcm_node* nodes)
 {

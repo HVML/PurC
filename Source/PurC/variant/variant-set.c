@@ -139,7 +139,7 @@ _variant_set_cache_obj_keyval(variant_set_t set,
     if (set->unique_key) {
         for (size_t i=0; i<set->nr_keynames; ++i) {
             purc_variant_t v;
-            v = purc_variant_object_get_c(value, set->keynames[i]);
+            v = purc_variant_object_get_by_ckey(value, set->keynames[i]);
             kvs[i] = v; // NULL if no property was found
         }
     } else {
@@ -405,9 +405,9 @@ _make_set_c(size_t sz, const char *unique_key,
     return PURC_VARIANT_INVALID;
 }
 
-purc_variant_t
-purc_variant_make_set_c (size_t sz, const char* unique_key,
-    purc_variant_t value0, ...)
+static purc_variant_t
+pv_make_set_by_ckey_n (size_t sz, const char* unique_key,
+    purc_variant_t value0, va_list ap)
 {
     PCVARIANT_CHECK_FAIL_RET((sz==0 && value0==NULL) || (sz>0 && value0),
         PURC_VARIANT_INVALID);
@@ -415,17 +415,44 @@ purc_variant_make_set_c (size_t sz, const char* unique_key,
     if (!unique_key)
         unique_key = "";
 
-    va_list ap;
-    va_start(ap, value0);
     purc_variant_t v = _make_set_c(sz, unique_key, value0, ap);
-    va_end(ap);
 
     return v;
 }
 
 purc_variant_t
-purc_variant_make_set (size_t sz, purc_variant_t unique_key,
+purc_variant_make_set_by_ckey (size_t sz, const char* unique_key,
     purc_variant_t value0, ...)
+{
+    purc_variant_t v;
+    va_list ap;
+    va_start(ap, value0);
+    v = pv_make_set_by_ckey_n(sz, unique_key, value0, ap);
+    va_end(ap);
+
+    va_start(ap, value0);
+    if (sz > 0) {
+        purc_variant_t v = value0;
+        if (v && v->flags & PCVARIANT_FLAG_ANONYMOUS) {
+            purc_variant_unref(v);
+        }
+
+        size_t i = 1;
+        for (i = 1; i < sz; ++i) {
+            v = va_arg(ap, purc_variant_t);
+            if (v && v->flags & PCVARIANT_FLAG_ANONYMOUS) {
+                purc_variant_unref(v);
+            }
+        }
+    }
+    va_end(ap);
+
+    return v;
+}
+
+static purc_variant_t
+pv_make_set_n (size_t sz, purc_variant_t unique_key,
+    purc_variant_t value0, va_list ap)
 {
     PCVARIANT_CHECK_FAIL_RET((sz==0 && value0==NULL) ||
         (sz>0 && value0),
@@ -447,12 +474,44 @@ purc_variant_make_set (size_t sz, purc_variant_t unique_key,
     const char *uk = purc_variant_get_string_const(unique_key);
     PC_ASSERT(uk);
 
-    va_list ap;
-    va_start(ap, value0);
     purc_variant_t v = _make_set_c(sz, uk, value0, ap);
-    va_end(ap);
 
     purc_variant_unref(unique_key);
+
+    return v;
+}
+
+purc_variant_t
+purc_variant_make_set (size_t sz, purc_variant_t unique_key,
+    purc_variant_t value0, ...)
+{
+    purc_variant_t v;
+    va_list ap;
+    va_start(ap, value0);
+    v = pv_make_set_n(sz, unique_key, value0, ap);
+    va_end(ap);
+
+    va_start(ap, value0);
+    if (sz > 0) {
+        purc_variant_t v;
+        v = unique_key;
+        if (v && v->flags & PCVARIANT_FLAG_ANONYMOUS) {
+            purc_variant_unref(v);
+        }
+        v = value0;
+        if (v && v->flags & PCVARIANT_FLAG_ANONYMOUS) {
+            purc_variant_unref(v);
+        }
+
+        size_t i = 1;
+        for (i = 1; i < sz; ++i) {
+            v = va_arg(ap, purc_variant_t);
+            if (v && v->flags & PCVARIANT_FLAG_ANONYMOUS) {
+                purc_variant_unref(v);
+            }
+        }
+    }
+    va_end(ap);
 
     return v;
 }

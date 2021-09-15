@@ -945,24 +945,76 @@ logical_eval (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 // only for test now.
 purc_variant_t pcdvojbs_get_logical (void)
 {
-    purc_variant_t logical = purc_variant_make_object_c (17,
-            "not",    purc_variant_make_dynamic (logical_not, NULL),
-            "and",    purc_variant_make_dynamic (logical_and, NULL),
-            "or",     purc_variant_make_dynamic (logical_or, NULL),
-            "xor",    purc_variant_make_dynamic (logical_xor, NULL),
-            "eq",     purc_variant_make_dynamic (logical_eq, NULL),
-            "ne",     purc_variant_make_dynamic (logical_ne, NULL),
-            "gt",     purc_variant_make_dynamic (logical_gt, NULL),
-            "ge",     purc_variant_make_dynamic (logical_ge, NULL),
-            "lt",     purc_variant_make_dynamic (logical_lt, NULL),
-            "le",     purc_variant_make_dynamic (logical_le, NULL),
-            "streq",  purc_variant_make_dynamic (logical_streq, NULL),
-            "strne",  purc_variant_make_dynamic (logical_strne, NULL),
-            "strgt",  purc_variant_make_dynamic (logical_strgt, NULL),
-            "strge",  purc_variant_make_dynamic (logical_strge, NULL),
-            "strlt",  purc_variant_make_dynamic (logical_strlt, NULL),
-            "strle",  purc_variant_make_dynamic (logical_strle, NULL),
-            "eval",   purc_variant_make_dynamic (logical_eval, NULL)
-       );
+    purc_variant_t v1 = NULL;
+    purc_variant_t v2 = NULL;
+    purc_variant_t v3 = NULL;
+    purc_variant_t v4 = NULL;
+    purc_variant_t v5 = NULL;
+    purc_variant_t v6 = NULL;
+    purc_variant_t v7 = NULL;
+    purc_variant_t v8 = NULL;
+    purc_variant_t v9 = NULL;
+    purc_variant_t v10 = NULL;
+    purc_variant_t v11 = NULL;
+    purc_variant_t v12 = NULL;
+    purc_variant_t v13 = NULL;
+    purc_variant_t v14 = NULL;
+    purc_variant_t v15 = NULL;
+    purc_variant_t v16 = NULL;
+    purc_variant_t v17 = NULL;
+
+    v1 = purc_variant_make_dynamic (logical_not, NULL);
+    v2 = purc_variant_make_dynamic (logical_and, NULL);
+    v3 = purc_variant_make_dynamic (logical_or, NULL);
+    v4 = purc_variant_make_dynamic (logical_xor, NULL);
+    v5 = purc_variant_make_dynamic (logical_eq, NULL);
+    v6 = purc_variant_make_dynamic (logical_ne, NULL);
+    v7 = purc_variant_make_dynamic (logical_gt, NULL);
+    v8 = purc_variant_make_dynamic (logical_ge, NULL);
+    v9 = purc_variant_make_dynamic (logical_lt, NULL);
+    v10 = purc_variant_make_dynamic (logical_le, NULL);
+    v11 = purc_variant_make_dynamic (logical_streq, NULL);
+    v12 = purc_variant_make_dynamic (logical_strne, NULL);
+    v13 = purc_variant_make_dynamic (logical_strgt, NULL);
+    v14 =purc_variant_make_dynamic (logical_strge, NULL);
+    v15 = purc_variant_make_dynamic (logical_strlt, NULL);
+    v16 = purc_variant_make_dynamic (logical_strle, NULL);
+    v17 = purc_variant_make_dynamic (logical_eval, NULL);
+
+    purc_variant_t logical = purc_variant_make_object_by_static_ckey (17,
+                                "not",    v1,
+                                "and",    v2,
+                                "or",     v3,
+                                "xor",    v4,
+                                "eq",     v5,
+                                "ne",     v6,
+                                "gt",     v7,
+                                "ge",     v8,
+                                "lt",     v9,
+                                "le",     v10,
+                                "streq",  v11,
+                                "strne",  v12,
+                                "strgt",  v13,
+                                "strge",  v14,
+                                "strlt",  v15,
+                                "strle",  v16,
+                                "eval",   v17);
+    purc_variant_unref (v1);
+    purc_variant_unref (v2);
+    purc_variant_unref (v3);
+    purc_variant_unref (v4);
+    purc_variant_unref (v5);
+    purc_variant_unref (v6);
+    purc_variant_unref (v7);
+    purc_variant_unref (v8);
+    purc_variant_unref (v9);
+    purc_variant_unref (v10);
+    purc_variant_unref (v11);
+    purc_variant_unref (v12);
+    purc_variant_unref (v13);
+    purc_variant_unref (v14);
+    purc_variant_unref (v15);
+    purc_variant_unref (v16);
+    purc_variant_unref (v17);
     return logical;
 }

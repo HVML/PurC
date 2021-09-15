@@ -56,6 +56,7 @@ uname_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     struct utsname name;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    purc_variant_t val = PURC_VARIANT_INVALID;
 
     if (uname (&name) < 0) {
         pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
@@ -70,22 +71,37 @@ uname_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_object_set_c (ret_var, "kernel-name",
-            purc_variant_make_string (name.sysname, true));
-    purc_variant_object_set_c (ret_var, "nodename",
-            purc_variant_make_string (name.nodename, true));
-    purc_variant_object_set_c (ret_var, "kernel-release",
-            purc_variant_make_string (name.release, true));
-    purc_variant_object_set_c (ret_var, "kernel-version",
-            purc_variant_make_string (name.version, true));
-    purc_variant_object_set_c (ret_var, "machine",
-            purc_variant_make_string (name.machine, true));
-    purc_variant_object_set_c (ret_var, "processor",
-            purc_variant_make_string (name.machine, true));
-    purc_variant_object_set_c (ret_var, "hardware-platform",
-            purc_variant_make_string (name.machine, true));
-    purc_variant_object_set_c (ret_var, "operating-system",
-            purc_variant_make_string (name.sysname, true));
+    val = purc_variant_make_string (name.sysname, true);
+    purc_variant_object_set_by_static_ckey (ret_var, "kernel-name", val);
+    purc_variant_unref (val);
+
+    val = purc_variant_make_string (name.nodename, true);
+    purc_variant_object_set_by_static_ckey (ret_var, "nodename", val);
+    purc_variant_unref (val);
+
+    val = purc_variant_make_string (name.release, true);
+    purc_variant_object_set_by_static_ckey (ret_var, "kernel-release", val);
+    purc_variant_unref (val);
+
+    val = purc_variant_make_string (name.version, true);
+    purc_variant_object_set_by_static_ckey (ret_var, "kernel-version", val);
+    purc_variant_unref (val);
+
+    val = purc_variant_make_string (name.machine, true);
+    purc_variant_object_set_by_static_ckey (ret_var, "machine", val);
+    purc_variant_unref (val);
+
+    val = purc_variant_make_string (name.machine, true);
+    purc_variant_object_set_by_static_ckey (ret_var, "processor", val);
+    purc_variant_unref (val);
+
+    val = purc_variant_make_string (name.machine, true);
+    purc_variant_object_set_by_static_ckey (ret_var, "hardware-platform", val);
+    purc_variant_unref (val);
+
+    val = purc_variant_make_string (name.sysname, true);
+    purc_variant_object_set_by_static_ckey (ret_var, "operating-system", val);
+    purc_variant_unref (val);
 
     return ret_var;
 }
@@ -738,6 +754,7 @@ time_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     UNUSED_PARAM(nr_args);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    purc_variant_t val = PURC_VARIANT_INVALID;
     double epoch = 0.0d;
     const char *name = NULL;
     const char *timezone = NULL;
@@ -783,24 +800,41 @@ time_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
             return PURC_VARIANT_INVALID;
         }
 
-        purc_variant_object_set_c (ret_var, "sec",
-                purc_variant_make_number (t_tm->tm_sec));
-        purc_variant_object_set_c (ret_var, "min",
-                purc_variant_make_number (t_tm->tm_min));
-        purc_variant_object_set_c (ret_var, "hour",
-                purc_variant_make_number (t_tm->tm_hour));
-        purc_variant_object_set_c (ret_var, "mday",
-                purc_variant_make_number (t_tm->tm_mday));
-        purc_variant_object_set_c (ret_var, "mon",
-                purc_variant_make_number (t_tm->tm_mon));
-        purc_variant_object_set_c (ret_var, "year",
-                purc_variant_make_number (t_tm->tm_year));
-        purc_variant_object_set_c (ret_var, "wday",
-                purc_variant_make_number (t_tm->tm_wday));
-        purc_variant_object_set_c (ret_var, "yday",
-                purc_variant_make_number (t_tm->tm_yday));
-        purc_variant_object_set_c (ret_var, "isdst",
-                purc_variant_make_number (t_tm->tm_isdst));
+        val = purc_variant_make_number (t_tm->tm_sec);
+        purc_variant_object_set_by_static_ckey (ret_var, "sec", val);
+        purc_variant_unref (val);
+
+        val = purc_variant_make_number (t_tm->tm_min);
+        purc_variant_object_set_by_static_ckey (ret_var, "min", val);
+        purc_variant_unref (val);
+
+        val = purc_variant_make_number (t_tm->tm_hour);
+        purc_variant_object_set_by_static_ckey (ret_var, "hour", val);
+        purc_variant_unref (val);
+
+        val = purc_variant_make_number (t_tm->tm_mday);
+        purc_variant_object_set_by_static_ckey (ret_var, "mday", val);
+        purc_variant_unref (val);
+
+        val = purc_variant_make_number (t_tm->tm_mon);
+        purc_variant_object_set_by_static_ckey (ret_var, "mon", val);
+        purc_variant_unref (val);
+
+        val = purc_variant_make_number (t_tm->tm_year);
+        purc_variant_object_set_by_static_ckey (ret_var, "year", val);
+        purc_variant_unref (val);
+
+        val = purc_variant_make_number (t_tm->tm_wday);
+        purc_variant_object_set_by_static_ckey (ret_var, "wday", val);
+        purc_variant_unref (val);
+
+        val = purc_variant_make_number (t_tm->tm_yday);
+        purc_variant_object_set_by_static_ckey (ret_var, "yday", val);
+        purc_variant_unref (val);
+
+        val = purc_variant_make_number (t_tm->tm_isdst);
+        purc_variant_object_set_by_static_ckey (ret_var, "isdst", val);
+        purc_variant_unref (val);
     }
     else if (strcasecmp (name, "iso8601") == 0) {
         get_time_format (FORMAT_ISO8601, epoch, timezone);
@@ -938,13 +972,30 @@ time_setter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 // only for test now.
 purc_variant_t pcdvojbs_get_system (void)
 {
-    purc_variant_t sys = purc_variant_make_object_c (6,
-            "uname",        purc_variant_make_dynamic (uname_getter, NULL),
-            "uname_prt",    purc_variant_make_dynamic (uname_prt_getter, NULL),
-            "locale",       purc_variant_make_dynamic (locale_getter, locale_setter),
-            "random",       purc_variant_make_dynamic (random_getter, NULL),
-            "time",         purc_variant_make_dynamic (time_getter, time_setter)
-       );
+    purc_variant_t v1 = NULL;
+    purc_variant_t v2 = NULL;
+    purc_variant_t v3 = NULL;
+    purc_variant_t v4 = NULL;
+    purc_variant_t v5 = NULL;
+
+    v1 = purc_variant_make_dynamic (uname_getter, NULL);
+    v2 = purc_variant_make_dynamic (uname_prt_getter, NULL);
+    v3 = purc_variant_make_dynamic (locale_getter, locale_setter);
+    v4 = purc_variant_make_dynamic (random_getter, NULL);
+    v5 = purc_variant_make_dynamic (time_getter, time_setter);
+
+    purc_variant_t sys = purc_variant_make_object_by_static_ckey (5,
+            "uname",        v1,
+            "uname_prt",    v2,
+            "locale",       v3,
+            "random",       v4,
+            "time",         v5);
+
+    purc_variant_unref (v1);
+    purc_variant_unref (v2);
+    purc_variant_unref (v3);
+    purc_variant_unref (v4);
+    purc_variant_unref (v5);
     return sys;
 }
 

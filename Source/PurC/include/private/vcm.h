@@ -98,6 +98,15 @@ struct pcvcm_node* pcvcm_node_new_longdouble (long double ld);
 struct pcvcm_node* pcvcm_node_new_byte_sequence (const void* bytes,
         size_t nr_bytes);
 
+struct pcvcm_node* pcvcm_node_new_byte_sequence_from_bx (const void* bytes,
+        size_t nr_bytes);
+
+struct pcvcm_node* pcvcm_node_new_byte_sequence_from_bb (const void* bytes,
+        size_t nr_bytes);
+
+struct pcvcm_node* pcvcm_node_new_byte_sequence_from_b64 (const void* bytes,
+        size_t nr_bytes);
+
 struct pcvcm_node* pcvcm_node_new_concat_string (size_t nr_nodes,
         struct pcvcm_node* nodes);
 

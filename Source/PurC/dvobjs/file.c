@@ -908,6 +908,7 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
         }
 
         purc_variant_array_append (ret_var, val);
+        purc_variant_unref (val);
         head = pcdvobjs_get_next_option (head + length + 1, " \t\n", &length);
     }
     return ret_var;
@@ -1326,34 +1327,61 @@ stream_close_getter (purc_variant_t root, size_t nr_args,
 // only for test now.
 purc_variant_t pcdvojbs_get_file (void)
 {
-    purc_variant_t file_text = purc_variant_make_object_c (2,
-            "head",       purc_variant_make_dynamic (text_head_getter, NULL),
-            "tail",       purc_variant_make_dynamic (text_tail_getter, NULL));
+    purc_variant_t v1 = NULL;
+    purc_variant_t v2 = NULL;
+    purc_variant_t v3 = NULL;
+    purc_variant_t v4 = NULL;
+    purc_variant_t v5 = NULL;
+    purc_variant_t v6 = NULL;
+    purc_variant_t v7 = NULL;
+
+    v1 = purc_variant_make_dynamic (text_head_getter, NULL);
+    v2 = purc_variant_make_dynamic (text_tail_getter, NULL);
+    purc_variant_t file_text = purc_variant_make_object_by_static_ckey (2,
+                                "head",       v1,
+                                "tail",       v2);
+    purc_variant_unref (v1);
+    purc_variant_unref (v2);
             
-    purc_variant_t file_bin = purc_variant_make_object_c (2,
-            "head",       purc_variant_make_dynamic (bin_head_getter, NULL),
-            "tail",       purc_variant_make_dynamic (bin_tail_getter, NULL));
 
-    purc_variant_t file_stream = purc_variant_make_object_c (7,
-            "open",       purc_variant_make_dynamic 
-                                            (stream_open_getter, NULL),
-            "readstruct", purc_variant_make_dynamic 
-                                            (stream_readstruct_getter, NULL),
-            "writestruct",purc_variant_make_dynamic 
-                                            (stream_writestruct_getter, NULL),
-            "readlines",  purc_variant_make_dynamic 
-                                            (stream_readlines_getter, NULL),
-            "readbytes",  purc_variant_make_dynamic 
-                                            (stream_readbytes_getter, NULL),
-            "seek",       purc_variant_make_dynamic 
-                                            (stream_seek_getter, NULL),
-            "close",      purc_variant_make_dynamic 
-                                            (stream_close_getter, NULL));
+    v1 = purc_variant_make_dynamic (bin_head_getter, NULL);
+    v2 = purc_variant_make_dynamic (bin_tail_getter, NULL);
+    purc_variant_t file_bin = purc_variant_make_object_by_static_ckey (2,
+                                "head",       v1,
+                                "tail",       v2);
+    purc_variant_unref (v1);
+    purc_variant_unref (v2);
 
-    purc_variant_t file = purc_variant_make_object_c (3,
-            "text",   file_text,
-            "bin",    file_bin,
-            "stream", file_stream);
+    v1 = purc_variant_make_dynamic (stream_open_getter, NULL);
+    v2 = purc_variant_make_dynamic (stream_readstruct_getter, NULL);
+    v3 = purc_variant_make_dynamic (stream_writestruct_getter, NULL);
+    v4 = purc_variant_make_dynamic (stream_readlines_getter, NULL);
+    v5 = purc_variant_make_dynamic (stream_readbytes_getter, NULL);
+    v6 = purc_variant_make_dynamic (stream_seek_getter, NULL);
+    v7 = purc_variant_make_dynamic (stream_close_getter, NULL);
+    purc_variant_t file_stream = purc_variant_make_object_by_static_ckey (7,
+                                "open",       v1,
+                                "readstruct", v2,
+                                "writestruct",v3,
+                                "readlines",  v4,
+                                "readbytes",  v5,
+                                "seek",       v6,
+                                "close",      v7);
+    purc_variant_unref (v1);
+    purc_variant_unref (v2);
+    purc_variant_unref (v3);
+    purc_variant_unref (v4);
+    purc_variant_unref (v5);
+    purc_variant_unref (v6);
+    purc_variant_unref (v7);
+
+    purc_variant_t file = purc_variant_make_object_by_static_ckey (3,
+                                "text",   file_text,
+                                "bin",    file_bin,
+                                "stream", file_stream);
+    purc_variant_unref (file_text);
+    purc_variant_unref (file_bin);
+    purc_variant_unref (file_stream);
 
     return file;
 }

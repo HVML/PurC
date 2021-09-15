@@ -106,7 +106,7 @@ struct pcejson {
     purc_rwstream_t tmp_buff2;
     char c[8];
     int c_len;
-    wchar_t wc;
+    uint32_t wc;
     bool need_reconsume;
 };
 

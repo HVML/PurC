@@ -111,7 +111,7 @@
             YYABORT;                                                   \
         }                                                              \
         purc_variant_t _v;                                             \
-        _v = purc_variant_object_get_c (param->v, _a);                 \
+        _v = purc_variant_object_get_by_ckey (param->v, _a);           \
         if (!_v) {                                                     \
             YYABORT;                                                   \
         }                                                              \

@@ -37,10 +37,11 @@
 extern "C" {
 #endif  /* __cplusplus */
 
-#define PCVARIANT_FLAG_CONSTANT     (0x01 << 0)     // for null, true, ...
-#define PCVARIANT_FLAG_NOFREE       PCVARIANT_FLAG_CONSTANT
-#define PCVARIANT_FLAG_EXTRA_SIZE   (0x01 << 1)     // when use extra space
-#define PCVARIANT_FLAG_STATIC       (0x01 << 2)     // for the variant with static type
+#define PCVARIANT_FLAG_CONSTANT        (0x01 << 0)  // for null, true, ...
+#define PCVARIANT_FLAG_NOFREE          PCVARIANT_FLAG_CONSTANT
+#define PCVARIANT_FLAG_EXTRA_SIZE      (0x01 << 1)  // when use extra space
+#define PCVARIANT_FLAG_STRING_STATIC   (0x01 << 2)  // make_string_static
+#define PCVARIANT_FLAG_ANONYMOUS       (0x01 << 3)  // mark as anonymous
 
 #define PVT(t) (PURC_VARIANT_TYPE##t)
 
@@ -197,7 +198,7 @@ void pcvariant_set_release_obj(struct obj_node *p);
         struct pchash_entry *_entry;                                \
         pchash_foreach(_ht, _entry)                                 \
         {                                                           \
-            _key   = (const char*)_entry->k;                        \
+            _key = (purc_variant_t)_entry->k;                       \
             _val = (purc_variant_t)_entry->v;                       \
      /* } */                                                        \
  /* } while (0) */

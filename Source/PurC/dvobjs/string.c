@@ -159,6 +159,7 @@ string_explode (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = NULL;
+    purc_variant_t val = NULL;
 
     if ((argv == NULL) || (nr_args != 2)) {
         pcinst_set_error (PURC_ERROR_INVALID_VALUE);
@@ -184,8 +185,9 @@ string_explode (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     ret_var = purc_variant_make_array (0, PURC_VARIANT_INVALID);
 
     while (head) {
-        purc_variant_array_append (ret_var, 
-                            purc_variant_make_string (head, true));
+        val = purc_variant_make_string (head, true);
+        purc_variant_array_append (ret_var, val);
+        purc_variant_unref (val);
     
         if (*(head + length) != 0x00)
             head = get_next_segment (head + length + len_delim, 
@@ -536,7 +538,7 @@ string_format_p (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
             *(buffer + (end - start)) = 0x00;
             pcdvobjs_remove_space (buffer);
 
-            tmp_var = purc_variant_object_get_c (argv[1], buffer);
+            tmp_var = purc_variant_object_get_by_ckey (argv[1], buffer);
             if (tmp_var == NULL) {
                 purc_rwstream_destroy (rwstream); 
                 return PURC_VARIANT_INVALID;
@@ -561,15 +563,38 @@ string_format_p (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 // only for test now.
 purc_variant_t pcdvojbs_get_string (void)
 {
-    purc_variant_t string = purc_variant_make_object_c (7,
-            "conatins",     purc_variant_make_dynamic (string_contains, NULL),
-            "ends_with",    purc_variant_make_dynamic (string_ends_with, NULL),
-            "explode",      purc_variant_make_dynamic (string_explode, NULL),
-            "shuffle",      purc_variant_make_dynamic (string_shuffle, NULL),
-            "replace",      purc_variant_make_dynamic (string_replace, NULL),
-            "format_c",     purc_variant_make_dynamic (string_format_c, NULL),
-            "format_p",     purc_variant_make_dynamic (string_format_p, NULL)
-       );
+    purc_variant_t v1 = NULL;
+    purc_variant_t v2 = NULL;
+    purc_variant_t v3 = NULL;
+    purc_variant_t v4 = NULL;
+    purc_variant_t v5 = NULL;
+    purc_variant_t v6 = NULL;
+    purc_variant_t v7 = NULL;
+
+    v1 = purc_variant_make_dynamic (string_contains, NULL);
+    v2 = purc_variant_make_dynamic (string_ends_with, NULL);
+    v3 = purc_variant_make_dynamic (string_explode, NULL);
+    v4 = purc_variant_make_dynamic (string_shuffle, NULL);
+    v5 = purc_variant_make_dynamic (string_replace, NULL);
+    v6 = purc_variant_make_dynamic (string_format_c, NULL);
+    v7 = purc_variant_make_dynamic (string_format_p, NULL);
+
+    purc_variant_t string = purc_variant_make_object_by_static_ckey (7,
+                                "conatins",     v1,
+                                "ends_with",    v2,
+                                "explode",      v3,
+                                "shuffle",      v4,
+                                "replace",      v5,
+                                "format_c",     v6,
+                                "format_p",     v7);
+
+    purc_variant_unref (v1);
+    purc_variant_unref (v2);
+    purc_variant_unref (v3);
+    purc_variant_unref (v4);
+    purc_variant_unref (v5);
+    purc_variant_unref (v6);
+    purc_variant_unref (v7);
     return string;
 }
 

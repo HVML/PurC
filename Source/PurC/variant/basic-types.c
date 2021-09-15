@@ -237,6 +237,7 @@ purc_variant_make_string (const char* str_utf8, bool check_encoding)
     return value;
 }
 
+
 purc_variant_t
 purc_variant_make_string_reuse_buff (char* str_utf8, size_t sz_buff,
                                                     bool check_encoding)
@@ -293,7 +294,7 @@ purc_variant_make_string_static (const char* str_utf8, bool check_encoding)
     }
 
     value->type = PURC_VARIANT_TYPE_STRING;
-    value->flags |= PCVARIANT_FLAG_STATIC;
+    value->flags |= PCVARIANT_FLAG_STRING_STATIC;
     value->refc = 1;
     value->sz_ptr[0] = str_size;
     value->sz_ptr[1] = (uintptr_t)str_utf8;
@@ -309,7 +310,7 @@ const char* purc_variant_get_string_const (purc_variant_t string)
 
     if (purc_variant_is_type (string, PURC_VARIANT_TYPE_STRING)) {
         if ((string->flags & PCVARIANT_FLAG_EXTRA_SIZE) ||
-                (string->flags & PCVARIANT_FLAG_STATIC))
+                (string->flags & PCVARIANT_FLAG_STRING_STATIC))
             str_str = (char *)string->sz_ptr[1];
         else
             str_str = (char *)string->bytes;
@@ -328,7 +329,7 @@ size_t purc_variant_string_length (const purc_variant_t string)
 
     if (purc_variant_is_type(string, PURC_VARIANT_TYPE_STRING)) {
         if ((string->flags & PCVARIANT_FLAG_EXTRA_SIZE) ||
-                (string->flags & PCVARIANT_FLAG_STATIC))
+                (string->flags & PCVARIANT_FLAG_STRING_STATIC))
             str_size = (size_t)string->sz_ptr[0];
         else
             str_size = string->size;
@@ -423,7 +424,7 @@ purc_variant_make_atom_string_static (const char* str_utf8,
     /* VWNOTE: for atomstring, only store the atom value */
     value->type = PURC_VARIANT_TYPE_ATOMSTRING;
     value->size = 0;
-    value->flags |= PCVARIANT_FLAG_STATIC;
+    value->flags |= PCVARIANT_FLAG_STRING_STATIC;
     value->refc = 1;
     value->sz_ptr[1] = atom;
 
@@ -500,7 +501,7 @@ purc_variant_t purc_variant_make_byte_sequence_static (const void* bytes,
     }
 
     value->type = PURC_VARIANT_TYPE_BSEQUENCE;
-    value->flags |= PCVARIANT_FLAG_STATIC;
+    value->flags |= PCVARIANT_FLAG_STRING_STATIC;
     value->flags = 0;
     value->refc = 1;
     value->sz_ptr[0] = nr_bytes;
@@ -509,7 +510,7 @@ purc_variant_t purc_variant_make_byte_sequence_static (const void* bytes,
     return value;
 }
 
-purc_variant_t purc_variant_make_byte_sequence_reuse_buff (void* bytes, 
+purc_variant_t purc_variant_make_byte_sequence_reuse_buff (void* bytes,
                                         size_t nr_bytes, size_t sz_buff)
 {
     // VWNOTE: check nr_bytes is not zero.
@@ -544,7 +545,7 @@ purc_variant_get_bytes_const (purc_variant_t sequence, size_t* nr_bytes)
 
     if (purc_variant_is_type(sequence, PURC_VARIANT_TYPE_BSEQUENCE)) {
         if ((sequence->flags & PCVARIANT_FLAG_EXTRA_SIZE) ||
-                    (sequence->flags & PCVARIANT_FLAG_STATIC)) {
+                    (sequence->flags & PCVARIANT_FLAG_STRING_STATIC)) {
             bytes = (unsigned char *)sequence->sz_ptr[1];
             * nr_bytes = (size_t)sequence->sz_ptr[0];
         }
@@ -567,7 +568,7 @@ size_t purc_variant_sequence_length(const purc_variant_t sequence)
 
     if (purc_variant_is_type (sequence, PURC_VARIANT_TYPE_BSEQUENCE)) {
         if ((sequence->flags & PCVARIANT_FLAG_EXTRA_SIZE) ||
-                    (sequence->flags & PCVARIANT_FLAG_STATIC)) 
+                    (sequence->flags & PCVARIANT_FLAG_STRING_STATIC))
             nr_bytes = (size_t)sequence->sz_ptr[0];
         else
             nr_bytes = sequence->size;
@@ -616,7 +617,6 @@ purc_variant_t purc_variant_make_dynamic (purc_dvariant_method getter,
 
     return value;
 }
-
 
 purc_dvariant_method
 purc_variant_dynamic_get_getter(const purc_variant_t dynamic)
@@ -685,7 +685,6 @@ void pcvariant_native_release(purc_variant_t value)
 void * purc_variant_native_get_entity(const purc_variant_t native)
 {
     PC_ASSERT(native);
-    
     void * ret = NULL;
 
     if (purc_variant_is_type(native, PURC_VARIANT_TYPE_NATIVE)) {

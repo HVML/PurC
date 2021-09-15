@@ -758,10 +758,10 @@ TEST(tree, random)
     s_post_order = (const char*)purc_rwstream_get_mem_buffer(post_order, NULL);
     s_level_order = (const char*)purc_rwstream_get_mem_buffer(level_order, NULL);
 
-    fprintf(stderr, "pre_order: %s\n", s_pre_order);
-    fprintf(stderr, "post_order: %s\n", s_post_order);
-    fprintf(stderr, "level_order: %s\n", s_level_order);
-
+    // fprintf(stderr, "pre_order: %s\n", s_pre_order);
+    // fprintf(stderr, "post_order: %s\n", s_post_order);
+    // fprintf(stderr, "level_order: %s\n", s_level_order);
+    (void)s_level_order;
 
     purc_rwstream_t rws;
     struct pctree_node *n, *next;
@@ -791,6 +791,8 @@ TEST(tree, random)
     ASSERT_STREQ(sz, s_post_order);
     purc_rwstream_destroy(rws);
 
+    size_t lvls = pctree_levels(&nodes[0].node);
+    fprintf(stderr, "levels: %zd\n", lvls);
 
     purc_rwstream_destroy(pre_order);
     purc_rwstream_destroy(post_order);

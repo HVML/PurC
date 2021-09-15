@@ -28,7 +28,7 @@ TEST(dvobjs, dvobjs_sys_uname)
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_c (sys, "uname");
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (sys, "uname");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -74,7 +74,7 @@ TEST(dvobjs, dvobjs_sys_uname_prt)
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_c (sys, "uname_prt");
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (sys, "uname_prt");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -166,7 +166,7 @@ TEST(dvobjs, dvobjs_sys_get_local)
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_c (sys, "locale");
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (sys, "locale");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -314,7 +314,7 @@ TEST(dvobjs, dvobjs_sys_set_local)
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_c (sys, "locale");
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (sys, "locale");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -496,7 +496,7 @@ TEST(dvobjs, dvobjs_sys_get_random)
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_c (sys, "random");
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (sys, "random");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -595,11 +595,11 @@ TEST(dvobjs, dvobjs_file_text_tail)
     ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
 
-    purc_variant_t text = purc_variant_object_get_c (file, "text");
+    purc_variant_t text = purc_variant_object_get_by_ckey (file, "text");
     ASSERT_NE(text, nullptr);
     ASSERT_EQ(purc_variant_is_object (text), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_c (text, "text_tail_getter");
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (text, "text_tail_getter");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
