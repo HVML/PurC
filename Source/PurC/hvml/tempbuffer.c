@@ -82,7 +82,7 @@ static void pchvml_temp_buffer_append_inner (struct pchvml_temp_buffer* buffer,
 {
     uint8_t* newpos = buffer->here + nr_bytes;
     if ( newpos > buffer->stop ) {
-        size_t new_size = get_buffer_size(buffer->stop - buffer->base);
+        size_t new_size = get_buffer_size(newpos - buffer->base);
         off_t here_offset = buffer->here - buffer->base;
 
         uint8_t* newbuf = (uint8_t*) realloc(buffer->base, new_size + 1);
