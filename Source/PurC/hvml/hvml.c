@@ -2616,7 +2616,7 @@ next_state:
 
         BEGIN_STATE(PCHVML_EJSON_BEFORE_NAME_STATE)
             if (is_whitespace(character)) {
-                RECONSUME_IN(PCHVML_EJSON_BEFORE_NAME_STATE);
+                ADVANCE_TO(PCHVML_EJSON_BEFORE_NAME_STATE);
             }
             uint32_t uc = pcutils_stack_top(hvml->ejson_stack);
             if (character == '"') {
