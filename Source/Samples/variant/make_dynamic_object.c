@@ -49,7 +49,7 @@ bar_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     return purc_variant_make_string_static("BAR", false);
 }
 
-static struct method_info {
+static const struct method_info {
     const char          *name;
     purc_dvariant_method getter;
     purc_dvariant_method setter;
@@ -82,7 +82,7 @@ static struct method_info {
         }                                                               \
     } while (0)
 
-#define ERROR_ANONY_DVARS(postfix)                                      \
+#define UNREF_ANONY_VARS(postfix)                                       \
 error_##postfix:                                                        \
     do {                                                                \
         for (size_t i = 0; i < nr_##postfix; i++) {                     \
@@ -112,7 +112,7 @@ static purc_variant_t make_dvobj_foobar(void)
         }
     }
 
-    ERROR_ANONY_DVARS(dynamic);
+    UNREF_ANONY_VARS(dynamic);
 
     return math;
 }
