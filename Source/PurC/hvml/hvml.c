@@ -2284,6 +2284,9 @@ next_state:
                 PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
                 RETURN_AND_STOP_PARSE();
             }
+            if (character == '.') {
+                RECONSUME_IN(PCHVML_EJSON_JSONEE_FULL_STOP_SIGN_STATE);
+            }
             RECONSUME_IN(PCHVML_EJSON_JSONEE_STRING_STATE);
         END_STATE()
 
@@ -2380,6 +2383,16 @@ next_state:
                 }
                 PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
                 RETURN_AND_STOP_PARSE();
+            }
+            if (character == '.' && uc == '$') {
+                pcutils_stack_pop(hvml->ejson_stack);
+                struct pcvcm_node* node = pcvcm_stack_pop(hvml->vcm_stack);
+                if (hvml->vcm_node) {
+                    pctree_node_append_child(
+                            (struct pctree_node*)node,
+                            (struct pctree_node*)hvml->vcm_node);
+                }
+                SET_VCM_NODE(node);
             }
             RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
         END_STATE()
