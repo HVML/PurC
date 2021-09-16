@@ -31,7 +31,7 @@
 #include "private/hvml.h"
 
 #include "hvml-buffer.h"
-#include "rwswrap.h"
+#include "hvml-rwswrap.h"
 #include "hvml-token.h"
 #include "hvml-sbst.h"
 #include "config.h"

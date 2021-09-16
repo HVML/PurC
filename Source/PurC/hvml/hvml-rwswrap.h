@@ -1,8 +1,8 @@
 /*
- * @file rwswrap.h
+ * @file hvml-rwswrap.h
  * @author XueShuming
  * @date 2021/09/05
- * @brief The interfaces for rwswrap.
+ * @brief The interfaces for hvml rwswrap.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *

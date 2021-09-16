@@ -1,8 +1,8 @@
 /*
- * @file rwswrap.c
+ * @file hvml-rwswrap.c
  * @author XueShuming
  * @date 2021/09/05
- * @brief The impl of rwswrap.
+ * @brief The impl of hvml rwswrap.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -31,7 +31,7 @@
 #include "purc-utils.h"
 #include "purc-errors.h"
 #include "private/errors.h"
-#include "rwswrap.h"
+#include "hvml-rwswrap.h"
 
 #if HAVE(GLIB)
 #include <gmodule.h>
