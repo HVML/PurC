@@ -3636,6 +3636,9 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_JSONEE_VARIABLE_STATE)
+            if (character == '$') {
+                RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
+            }
             if (character == '#' || character == '%'
                     || character == '?' || character == '@'
                     || character == '&') {

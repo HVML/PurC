@@ -48,3 +48,4 @@
 048_jsonee_nesting_call_set_with_ejson_param
 049_jsonee_with_brace
 050_jsonee_get_variable_with_brace
+051_jsonee_multiple_dollar_and_brace
