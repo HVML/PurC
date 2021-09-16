@@ -2381,7 +2381,7 @@ next_state:
                 PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
                 RETURN_AND_STOP_PARSE();
             }
-            ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
+            RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_LEFT_BRACKET_STATE)
@@ -2579,6 +2579,11 @@ next_state:
                 pcutils_stack_push(hvml->ejson_stack, '$');
                 SET_VCM_NODE(pcvcm_node_new_get_variable(NULL));
                 ADVANCE_TO(PCHVML_EJSON_DOLLAR_STATE);
+            }
+            if (character == '{') {
+                pcutils_stack_push(hvml->ejson_stack, 'P');
+                RESET_TEMP_BUFFER();
+                ADVANCE_TO(PCHVML_EJSON_JSONEE_VARIABLE_STATE);
             }
             RESET_TEMP_BUFFER();
             RECONSUME_IN(PCHVML_EJSON_JSONEE_VARIABLE_STATE);

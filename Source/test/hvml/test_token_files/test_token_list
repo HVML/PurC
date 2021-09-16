@@ -46,3 +46,4 @@
 046_jsonee_nesting_call_set
 047_jsonee_nesting_call_get_with_ejson_param
 048_jsonee_nesting_call_set_with_ejson_param
+049_jsonee_with_brace
