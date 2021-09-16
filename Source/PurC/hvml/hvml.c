@@ -44,6 +44,8 @@
 #include <stdlib.h>
 #endif
 
+//#define HVML_DEBUG_PRINT
+
 #define PCHVML_END_OF_FILE       0
 
 #if HAVE(GLIB)
@@ -53,8 +55,6 @@
 #define    PCHVML_ALLOC(sz)   calloc(1, sz)
 #define    PCHVML_FREE(p)     free(p)
 #endif
-
-//#define HVML_DEBUG_PRINT
 
 #ifdef HVML_DEBUG_PRINT
 #define PRINT_STATE(state_name)                                             \
@@ -2424,7 +2424,7 @@ next_state:
                                 (struct pctree_node*)hvml->vcm_node);
                     }
                     SET_VCM_NODE(node);
-                    ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
+                    ADVANCE_TO(PCHVML_EJSON_JSONEE_VARIABLE_STATE);
                 }
                 uint32_t uc = pcutils_stack_top (hvml->ejson_stack);
                 if (uc == '(' || uc == '<') {
@@ -3703,7 +3703,7 @@ next_state:
                     SET_VCM_NODE(node);
                     uc = pcutils_stack_top (hvml->ejson_stack);
                 }
-                if (uc == '(' || uc == '<') {
+                if (uc == '(' || uc == '<' || uc == '.') {
                     struct pcvcm_node* node = pcvcm_stack_pop(
                             hvml->vcm_stack);
                     pctree_node_append_child((struct pctree_node*)node,
