@@ -49,3 +49,5 @@
 049_jsonee_with_brace
 050_jsonee_get_variable_with_brace
 051_jsonee_multiple_dollar_and_brace
+052_jsonee_call_get_with_ejson_object_and_jsonee
+053_jsonee_call_set_with_ejson_object_and_jsonee
