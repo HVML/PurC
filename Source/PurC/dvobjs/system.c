@@ -334,13 +334,17 @@ static purc_variant_t
 locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
 
     size_t length = 0;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
-                        (!purc_variant_is_string (argv[0]))) {
+    if ((nr_args != 0) && (argv == NULL))  {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if (argv && ((argv[0] != PURC_VARIANT_INVALID) && 
+                        (!purc_variant_is_string (argv[0])))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -433,7 +437,7 @@ locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         }
     }
     else
-        ret_var = purc_variant_make_string (setlocale (LC_ALL, NULL), true);
+        ret_var = purc_variant_make_string (setlocale (LC_MESSAGES, NULL), true);
 
     if (ret_var == PURC_VARIANT_INVALID)
     {
@@ -448,10 +452,14 @@ static purc_variant_t
 locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
 
     size_t length = 0;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args != 2) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
 
     if ((argv[0] != PURC_VARIANT_INVALID) && 
                     (!purc_variant_is_string (argv[0]))) {
@@ -605,10 +613,14 @@ static purc_variant_t
 random_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
 
     double random = 0.0d;
     double number = 0.0d;
+
+    if (nr_args == 0)  {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
 
     if ((argv[0] != PURC_VARIANT_INVALID) 
                        && (!purc_variant_is_number (argv[0]))) {

@@ -1,0 +1,30 @@
+# undefined
+# null
+# boolean
+# number
+# longint
+# ulongint
+# longdouble
+# atromstring
+# string
+# bsequence
+# object
+# array
+# set
+# invalid
+
+test_begin
+param_begin
+boolean:true;
+boolean:false;
+number:3.1415926;
+string:hello world;
+param_end
+boolean:true;
+test_end
+
+
+object:key:adf;boolean:true;
+array:boolean:false;boolean:true;
+set:row:boolean:true;boolean:false;row:number:12.3;number:34.5;
+
