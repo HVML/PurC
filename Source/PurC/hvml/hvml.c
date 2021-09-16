@@ -2634,6 +2634,23 @@ next_state:
                     ADVANCE_TO(PCHVML_EJSON_BEFORE_NAME_STATE);
                 }
                 if (uc == '[') {
+                    if (!pchvml_temp_buffer_is_empty(hvml->temp_buffer)) {
+                        struct pcvcm_node* node = pcvcm_node_new_string(
+                        pchvml_temp_buffer_get_buffer(hvml->temp_buffer));
+                        pctree_node_append_child(
+                                (struct pctree_node*)hvml->vcm_node,
+                                (struct pctree_node*)node);
+                        RESET_TEMP_BUFFER();
+                    }
+                    if (hvml->vcm_node && 
+                            hvml->vcm_node->type != PCVCM_NODE_TYPE_ARRAY) {
+                        struct pcvcm_node* node = pcvcm_stack_pop(
+                                hvml->vcm_stack);
+                        pctree_node_append_child(
+                                (struct pctree_node*)node,
+                                (struct pctree_node*)hvml->vcm_node);
+                        SET_VCM_NODE(node);
+                    }
                     ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
                 }
                 if (uc == '(') {
