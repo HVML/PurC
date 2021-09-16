@@ -138,7 +138,7 @@ _on_start_tag(struct pchvml_vdom_parser *parser, struct pchvml_token *token)
             PC_ASSERT(src);
             PC_ASSERT(src->name);
 
-            const char* key = pchvml_temp_buffer_get_buffer(src->name);
+            const char* key = pchvml_buffer_get_buffer(src->name);
             PC_ASSERT(key);
 
             struct pcvdom_attr *attr;
