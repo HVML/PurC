@@ -37,33 +37,13 @@ typedef struct purc_variant purc_variant;
 typedef struct purc_variant* purc_variant_t;
 
 #define PURC_VARIANT_INVALID            ((purc_variant_t)(0))
+#define PURC_VARIANT_UNDEFINED          ((purc_variant_t)(-1))
+#define PURC_VARIANT_NULL               ((purc_variant_t)(-2))
+#define PURC_VARIANT_TRUE               ((purc_variant_t)(1))
+#define PURC_VARIANT_FALSE              ((purc_variant_t)(2))
+
 
 PCA_EXTERN_C_BEGIN
-
-/**
- * Tag input variant value as an anonymous one
- *
- * @param value: variant value to be marked as anonymous
- *
- * Returns: variant value by itself
- *
- * Note: when anonymous variant is inserted into a container, such as
- *       array/object/set/..., it's refc won't get increased
- * Since: 0.0.1
- */
-PCA_EXPORT purc_variant_t purc_variant_tag_as_anonymous(purc_variant_t value);
-
-/**
- * Untag input variant value as an anonymous one
- *
- * @param value: variant value to be marked as anonymous
- *
- * Returns: variant value by itself
- *
- * Since: 0.0.1
- */
-PCA_EXPORT purc_variant_t
-purc_variant_untag_as_anonymous(purc_variant_t value);
 
 /**
  * Adds ref for a variant value
@@ -361,7 +341,7 @@ purc_variant_get_bytes_const(purc_variant_t value, size_t* nr_bytes);
 PCA_EXPORT size_t purc_variant_sequence_length(const purc_variant_t sequence);
 
 typedef purc_variant_t (*purc_dvariant_method) (purc_variant_t root,
-        int nr_args, purc_variant_t * argv);
+        size_t nr_args, purc_variant_t * argv);
 
 /**
  * Creates dynamic value by setter and getter functions
@@ -377,6 +357,32 @@ typedef purc_variant_t (*purc_dvariant_method) (purc_variant_t root,
 PCA_EXPORT purc_variant_t
 purc_variant_make_dynamic(purc_dvariant_method getter,
         purc_dvariant_method setter);
+
+
+/**
+ * Get the getter function from a dynamic value
+ *
+ * @param dynamic: the variant value of dynamic type
+ *
+ * Returns: A purc_dvariant_method funciton pointer
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT purc_dvariant_method
+purc_variant_dynamic_get_getter(const purc_variant_t dynamic);
+
+
+/**
+ * Get the setter function from a dynamic value
+ *
+ * @param dynamic: the variant value of dynamic type
+ *
+ * Returns: A purc_dvariant_method funciton pointer
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT purc_dvariant_method
+purc_variant_dynamic_get_setter(const purc_variant_t dynamic);
 
 
 typedef purc_variant_t (*purc_nvariant_method) (void* native_entity,
@@ -419,6 +425,19 @@ struct purc_native_ops {
 purc_variant_t purc_variant_make_native (void *native_entity,
     const struct purc_native_ops *ops);
 
+
+
+/**
+ * Get the native pointer of native variant value
+ *
+ * @param native: the variant value of native type
+ *
+ * Returns: the native pointer
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT void *
+purc_variant_native_get_entity(const purc_variant_t native);
 
 
 /**
