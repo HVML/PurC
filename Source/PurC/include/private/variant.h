@@ -41,7 +41,6 @@ extern "C" {
 #define PCVARIANT_FLAG_NOFREE          PCVARIANT_FLAG_CONSTANT
 #define PCVARIANT_FLAG_EXTRA_SIZE      (0x01 << 1)  // when use extra space
 #define PCVARIANT_FLAG_STRING_STATIC   (0x01 << 2)  // make_string_static
-#define PCVARIANT_FLAG_ANONYMOUS       (0x01 << 3)  // mark as anonymous
 
 #define PVT(t) (PURC_VARIANT_TYPE##t)
 

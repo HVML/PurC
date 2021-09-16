@@ -130,25 +130,6 @@ purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
     v = pv_make_array_n(sz, value0, ap);
     va_end(ap);
 
-    // if anonymous, unref it
-    va_start(ap, value0);
-    if (sz > 0) {
-        purc_variant_t v = value0;
-        if (v && v->flags & PCVARIANT_FLAG_ANONYMOUS) {
-            purc_variant_unref(v);
-        }
-
-        size_t i = 1;
-        for (i = 1; i < sz; ++i) {
-            v = va_arg(ap, purc_variant_t);
-
-            if (v && v->flags & PCVARIANT_FLAG_ANONYMOUS) {
-                purc_variant_unref(v);
-            }
-        }
-    }
-    va_end(ap);
-
     return v;
 }
 
