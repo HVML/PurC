@@ -1,6 +1,6 @@
 #include "purc.h"
 
-#include "tempbuffer.h"
+#include "hvml-buffer.h"
 #include "hvml-sbst.h"
 #include "private/arraylist.h"
 

@@ -1,8 +1,8 @@
 /*
- * @file tempbuffer.h
+ * @file hvml-buffer.h
  * @author XueShuming
  * @date 2021/08/27
- * @brief The interfaces for temp buffer.
+ * @brief The interfaces for hvml buffer.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -22,8 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef PURC_HVML_TEMPBUFFER_H
-#define PURC_HVML_TEMPBUFFER_H
+#ifndef PURC_HVML_HVML_BUFFER_H
+#define PURC_HVML_HVML_BUFFER_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -113,5 +113,5 @@ bool pchvml_temp_buffer_is_int (struct pchvml_temp_buffer* buffer);
 }
 #endif  /* __cplusplus */
 
-#endif /* not defined PURC_HVML_TEMPBUFFER_H */
+#endif /* not defined PURC_HVML_HVML_BUFFER_H */
 

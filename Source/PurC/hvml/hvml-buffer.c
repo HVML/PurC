@@ -1,8 +1,8 @@
 /*
- * @file tempbuffer.c
+ * @file hvml-buffer.c
  * @author XueShuming
  * @date 2021/08/27
- * @brief The impl of tempbuffer.
+ * @brief The impl of hvml buffer.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -32,7 +32,7 @@
 #include "purc-utils.h"
 #include "purc-errors.h"
 #include "private/errors.h"
-#include "tempbuffer.h"
+#include "hvml-buffer.h"
 
 #define MIN_BUFFER_CAPACITY 32
 

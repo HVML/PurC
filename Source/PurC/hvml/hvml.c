@@ -30,7 +30,7 @@
 #include "private/edom.h"
 #include "private/hvml.h"
 
-#include "tempbuffer.h"
+#include "hvml-buffer.h"
 #include "rwswrap.h"
 #include "hvml-token.h"
 #include "hvml-sbst.h"

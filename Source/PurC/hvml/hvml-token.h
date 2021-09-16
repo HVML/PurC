@@ -28,7 +28,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <private/arraylist.h>
-#include "tempbuffer.h"
+#include "hvml-buffer.h"
 
 enum pchvml_attr_assignment {
     PCHVML_ATTRIBUTE_ASSIGNMENT,           // =

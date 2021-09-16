@@ -1,6 +1,6 @@
 #include "purc.h"
 
-#include "tempbuffer.h"
+#include "hvml-buffer.h"
 
 #include <stdio.h>
 #include <errno.h>
