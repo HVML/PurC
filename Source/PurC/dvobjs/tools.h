@@ -47,6 +47,12 @@ struct pcdvobjs_math_param {
     purc_variant_t variables;
 };
 
+struct pcdvojbs_dvobjs {
+    const char * name;
+    purc_dvariant_method getter;
+    purc_dvariant_method setter;
+};
+
 int pcdvobjs_math_param_set_var(struct pcdvobjs_math_param *param,
         const char *var, struct pcdvobjs_math_value *val);
 
@@ -70,6 +76,9 @@ const char* pcdvobjs_file_get_next_option (const char* data, const char* delims,
                                             size_t* length) WTF_INTERNAL;
 const char* pcdvobjs_file_get_prev_option (const char* data, size_t str_len, 
                             const char* delims, size_t* length) WTF_INTERNAL;
+
+purc_variant_t pcdvobjs_make_dvobjs (const struct pcdvojbs_dvobjs *method,
+                                    size_t size);
 
 extern int
 math_parse(const char *input, struct pcdvobjs_math_param *param);

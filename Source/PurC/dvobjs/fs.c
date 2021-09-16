@@ -868,38 +868,15 @@ rm_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 // only for test now.
 purc_variant_t pcdvojbs_get_fs (void)
 {
-    purc_variant_t v1 = NULL;
-    purc_variant_t v2 = NULL;
-    purc_variant_t v3 = NULL;
-    purc_variant_t v4 = NULL;
-    purc_variant_t v5 = NULL;
-    purc_variant_t v6 = NULL;
-    purc_variant_t v7 = NULL;
+    static struct pcdvojbs_dvobjs method [] = {
+        {"list",     list_getter, NULL},
+        {"list_prt", list_prt_getter, NULL},
+        {"mkdir",    mkdir_getter, NULL},
+        {"rmdir",    rmdir_getter, NULL},
+        {"touch",    touch_getter, NULL},
+        {"unlink",   unlink_getter, NULL},
+        {"rm",       rm_getter, NULL} };
 
-    v1 = purc_variant_make_dynamic (list_getter, NULL);
-    v2 = purc_variant_make_dynamic (list_prt_getter, NULL);
-    v3 = purc_variant_make_dynamic (mkdir_getter, NULL);
-    v4 = purc_variant_make_dynamic (rmdir_getter, NULL);
-    v5 = purc_variant_make_dynamic (touch_getter, NULL);
-    v6 = purc_variant_make_dynamic (unlink_getter, NULL);
-    v7 = purc_variant_make_dynamic (rm_getter, NULL);
-
-    purc_variant_t fs = purc_variant_make_object_by_static_ckey (7,
-                        "list",      v1,
-                        "list_prt",  v2,
-                        "mkdir",     v3,
-                         "rmdir",    v4,
-                        "touch",     v5,
-                        "unlink",    v6,
-                        "rm",        v7);
-
-    purc_variant_unref (v1);
-    purc_variant_unref (v2);
-    purc_variant_unref (v3);
-    purc_variant_unref (v4);
-    purc_variant_unref (v5);
-    purc_variant_unref (v6);
-    purc_variant_unref (v7);
-    return fs;
+    size_t size = sizeof (method) / sizeof (struct pcdvojbs_dvobjs);
+    return pcdvobjs_make_dvobjs (method, size);
 }
-

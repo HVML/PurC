@@ -272,3 +272,39 @@ int pcdvobjs_math_param_get_var(struct pcdvobjs_math_param *param,
     return ok ? 0 : -1;
 }
 
+purc_variant_t pcdvobjs_make_dvobjs (const struct pcdvojbs_dvobjs *method,
+                                    size_t size)
+{
+    size_t i = 0;
+    purc_variant_t val = PURC_VARIANT_INVALID;
+    purc_variant_t ret_var= purc_variant_make_object (0, PURC_VARIANT_INVALID,
+                                                    PURC_VARIANT_INVALID);
+    bool error = false;
+
+    if (ret_var == PURC_VARIANT_INVALID)
+        return PURC_VARIANT_INVALID;
+
+    for (i = 0; i < size; i++) {
+        val = purc_variant_make_dynamic (method[i].getter, method[i].setter);
+        if (val == PURC_VARIANT_INVALID) {
+            error = true;
+            break;
+        }
+
+        if (!purc_variant_object_set_by_static_ckey (ret_var, method[i].name, 
+                                                                    val)) {
+            error = true;
+            break;
+        }
+        
+        purc_variant_unref (val);
+    }
+
+    if (error) {
+        purc_variant_unref (ret_var);
+        ret_var = PURC_VARIANT_INVALID;
+    }
+
+    return ret_var;
+}
+

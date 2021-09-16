@@ -419,66 +419,22 @@ eval_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 // only for test now.
 purc_variant_t pcdvojbs_get_math (void)
 {
-    purc_variant_t v1 = NULL;
-    purc_variant_t v2 = NULL;
-    purc_variant_t v3 = NULL;
-    purc_variant_t v4 = NULL;
-    purc_variant_t v5 = NULL;
-    purc_variant_t v6 = NULL;
-    purc_variant_t v7 = NULL;
-    purc_variant_t v8 = NULL;
-    purc_variant_t v9 = NULL;
-    purc_variant_t v10 = NULL;
-    purc_variant_t v11 = NULL;
-    purc_variant_t v12 = NULL;
-    purc_variant_t v13 = NULL;
-    purc_variant_t v14 = NULL;
+    static struct pcdvojbs_dvobjs method [] = {
+        {"pi",      pi_getter, NULL},
+        {"pi_l",    pi_l_getter, NULL},
+        {"e",       e_getter, NULL},
+        {"e_l",     e_l_getter, NULL},
+        {"const",   const_getter, NULL},
+        {"const_l", const_l_getter, NULL},
+        {"eval",    eval_getter, NULL},
+        {"eval_l",  eval_l_getter, NULL},
+        {"sin",     sin_getter, NULL},
+        {"sin_l",   sin_l_getter, NULL},
+        {"cos",     cos_getter, NULL},
+        {"cos_l",   cos_l_getter, NULL},
+        {"sqrt",    sqrt_getter, NULL},
+        {"sqrt_l",  sqrt_l_getter, NULL} };
 
-    v1 = purc_variant_make_dynamic (pi_getter, NULL);
-    v2 = purc_variant_make_dynamic (pi_l_getter, NULL);
-    v3 = purc_variant_make_dynamic (e_getter, NULL);
-    v4 = purc_variant_make_dynamic (e_l_getter, NULL);
-    v5 = purc_variant_make_dynamic (const_getter, NULL);
-    v6 = purc_variant_make_dynamic (const_l_getter, NULL);
-    v7 = purc_variant_make_dynamic (eval_getter, NULL);
-    v8 = purc_variant_make_dynamic (eval_l_getter, NULL);
-    v9 = purc_variant_make_dynamic (sin_getter, NULL);
-    v10 = purc_variant_make_dynamic (sin_l_getter, NULL);
-    v11 = purc_variant_make_dynamic (cos_getter, NULL);
-    v12 = purc_variant_make_dynamic (cos_l_getter, NULL);
-    v13 = purc_variant_make_dynamic (sqrt_getter, NULL);
-    v14 =purc_variant_make_dynamic (sqrt_l_getter, NULL);
-
-    purc_variant_t math = purc_variant_make_object_by_static_ckey (14,
-                                "pi",       v1,
-                                "pi_l",     v2,
-                                "e",        v3,
-                                "e_l",      v4,
-                                "const",    v5,
-                                "const_l",  v6,
-                                "eval",     v7,
-                                "eval_l",   v8,
-                                "sin",      v9,
-                                "sin_l",    v10,
-                                "cos",      v11,
-                                "cos_l",    v12,
-                                "sqrt",     v13,
-                                "sqrt_l",   v14);
-
-    purc_variant_unref (v1);
-    purc_variant_unref (v2);
-    purc_variant_unref (v3);
-    purc_variant_unref (v4);
-    purc_variant_unref (v5);
-    purc_variant_unref (v6);
-    purc_variant_unref (v7);
-    purc_variant_unref (v8);
-    purc_variant_unref (v9);
-    purc_variant_unref (v10);
-    purc_variant_unref (v11);
-    purc_variant_unref (v12);
-    purc_variant_unref (v13);
-    purc_variant_unref (v14);
-    return math;
+    size_t size = sizeof (method) / sizeof (struct pcdvojbs_dvobjs);
+    return pcdvobjs_make_dvobjs (method, size);
 }
-

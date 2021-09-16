@@ -1327,53 +1327,45 @@ stream_close_getter (purc_variant_t root, size_t nr_args,
 // only for test now.
 purc_variant_t pcdvojbs_get_file (void)
 {
-    purc_variant_t v1 = NULL;
-    purc_variant_t v2 = NULL;
-    purc_variant_t v3 = NULL;
-    purc_variant_t v4 = NULL;
-    purc_variant_t v5 = NULL;
-    purc_variant_t v6 = NULL;
-    purc_variant_t v7 = NULL;
+    size_t size = 0;
 
-    v1 = purc_variant_make_dynamic (text_head_getter, NULL);
-    v2 = purc_variant_make_dynamic (text_tail_getter, NULL);
-    purc_variant_t file_text = purc_variant_make_object_by_static_ckey (2,
-                                "head",       v1,
-                                "tail",       v2);
-    purc_variant_unref (v1);
-    purc_variant_unref (v2);
-            
+    static struct pcdvojbs_dvobjs text [] = {
+        {"head",     text_head_getter, NULL},
+        {"tail",     text_tail_getter, NULL} };
 
-    v1 = purc_variant_make_dynamic (bin_head_getter, NULL);
-    v2 = purc_variant_make_dynamic (bin_tail_getter, NULL);
-    purc_variant_t file_bin = purc_variant_make_object_by_static_ckey (2,
-                                "head",       v1,
-                                "tail",       v2);
-    purc_variant_unref (v1);
-    purc_variant_unref (v2);
+    static struct pcdvojbs_dvobjs  bin[] = {
+        {"head",     bin_head_getter, NULL},
+        {"tail",     bin_tail_getter, NULL} };
 
-    v1 = purc_variant_make_dynamic (stream_open_getter, NULL);
-    v2 = purc_variant_make_dynamic (stream_readstruct_getter, NULL);
-    v3 = purc_variant_make_dynamic (stream_writestruct_getter, NULL);
-    v4 = purc_variant_make_dynamic (stream_readlines_getter, NULL);
-    v5 = purc_variant_make_dynamic (stream_readbytes_getter, NULL);
-    v6 = purc_variant_make_dynamic (stream_seek_getter, NULL);
-    v7 = purc_variant_make_dynamic (stream_close_getter, NULL);
-    purc_variant_t file_stream = purc_variant_make_object_by_static_ckey (7,
-                                "open",       v1,
-                                "readstruct", v2,
-                                "writestruct",v3,
-                                "readlines",  v4,
-                                "readbytes",  v5,
-                                "seek",       v6,
-                                "close",      v7);
-    purc_variant_unref (v1);
-    purc_variant_unref (v2);
-    purc_variant_unref (v3);
-    purc_variant_unref (v4);
-    purc_variant_unref (v5);
-    purc_variant_unref (v6);
-    purc_variant_unref (v7);
+    static struct pcdvojbs_dvobjs  stream[] = {
+        {"open",        stream_open_getter,        NULL},
+        {"readstruct",  stream_readstruct_getter,  NULL},
+        {"writestruct", stream_writestruct_getter, NULL},
+        {"readlines",   stream_readlines_getter,   NULL},
+        {"readbytes",   stream_readbytes_getter,   NULL},
+        {"seek",        stream_seek_getter,        NULL},
+        {"close",       stream_close_getter,       NULL} };
+
+    size = sizeof (text) / sizeof (struct pcdvojbs_dvobjs);
+    purc_variant_t file_text = pcdvobjs_make_dvobjs (text, size);
+    if (file_text == PURC_VARIANT_INVALID)
+        return PURC_VARIANT_INVALID;
+
+
+    size = sizeof (bin) / sizeof (struct pcdvojbs_dvobjs);
+    purc_variant_t file_bin = pcdvobjs_make_dvobjs (bin, size);
+    if (file_bin == PURC_VARIANT_INVALID) {
+        purc_variant_unref (file_text);
+        return PURC_VARIANT_INVALID;
+    }
+
+    size = sizeof (stream) / sizeof (struct pcdvojbs_dvobjs);
+    purc_variant_t file_stream = pcdvobjs_make_dvobjs (stream, size);
+    if (file_stream == PURC_VARIANT_INVALID) {
+        purc_variant_unref (file_text);
+        purc_variant_unref (file_bin);
+        return PURC_VARIANT_INVALID;
+    }
 
     purc_variant_t file = purc_variant_make_object_by_static_ckey (3,
                                 "text",   file_text,

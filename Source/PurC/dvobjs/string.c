@@ -563,38 +563,15 @@ string_format_p (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 // only for test now.
 purc_variant_t pcdvojbs_get_string (void)
 {
-    purc_variant_t v1 = NULL;
-    purc_variant_t v2 = NULL;
-    purc_variant_t v3 = NULL;
-    purc_variant_t v4 = NULL;
-    purc_variant_t v5 = NULL;
-    purc_variant_t v6 = NULL;
-    purc_variant_t v7 = NULL;
+    static struct pcdvojbs_dvobjs method [] = {
+        {"conatins",  string_contains,  NULL},
+        {"ends_with", string_ends_with, NULL},
+        {"explode",   string_explode,   NULL},
+        {"shuffle",   string_shuffle,   NULL},
+        {"replace",   string_replace,   NULL},
+        {"format_c",  string_format_c,  NULL},
+        {"format_p",  string_format_p,  NULL} };
 
-    v1 = purc_variant_make_dynamic (string_contains, NULL);
-    v2 = purc_variant_make_dynamic (string_ends_with, NULL);
-    v3 = purc_variant_make_dynamic (string_explode, NULL);
-    v4 = purc_variant_make_dynamic (string_shuffle, NULL);
-    v5 = purc_variant_make_dynamic (string_replace, NULL);
-    v6 = purc_variant_make_dynamic (string_format_c, NULL);
-    v7 = purc_variant_make_dynamic (string_format_p, NULL);
-
-    purc_variant_t string = purc_variant_make_object_by_static_ckey (7,
-                                "conatins",     v1,
-                                "ends_with",    v2,
-                                "explode",      v3,
-                                "shuffle",      v4,
-                                "replace",      v5,
-                                "format_c",     v6,
-                                "format_p",     v7);
-
-    purc_variant_unref (v1);
-    purc_variant_unref (v2);
-    purc_variant_unref (v3);
-    purc_variant_unref (v4);
-    purc_variant_unref (v5);
-    purc_variant_unref (v6);
-    purc_variant_unref (v7);
-    return string;
+    size_t size = sizeof (method) / sizeof (struct pcdvojbs_dvobjs);
+    return pcdvobjs_make_dvobjs (method, size);
 }
-

@@ -117,11 +117,14 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     bool first = true;
     const char * delim = " ";
-
-    purc_rwstream_t rwstream = purc_rwstream_new_buffer (32, 1024);
-
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
-                                (!purc_variant_is_string (argv[0]))) {
+    purc_rwstream_t rwstream = NULL;
+    size_t rw_size = 0;
+    size_t content_size = 0;
+    char * rw_string = NULL;
+ 
+    if ((argv == NULL) || 
+        ((argv[0] != PURC_VARIANT_INVALID) &&
+                                (!purc_variant_is_string (argv[0])))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -130,6 +133,8 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         return PURC_VARIANT_INVALID;
     }
+
+    rwstream = purc_rwstream_new_buffer (32, 1024);
 
     if (nr_args) {
         const char * option = purc_variant_get_string_const (argv[0]);
@@ -307,11 +312,9 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     else
         purc_rwstream_write (rwstream, name.sysname, strlen (name.sysname));
 
-    size_t rw_size = 0;
-    size_t content_size = 0;
-    char * rw_string = purc_rwstream_get_mem_buffer_ex (rwstream, 
+    rw_string = purc_rwstream_get_mem_buffer_ex (rwstream, 
                                             &content_size, &rw_size, true);
-    if ((rw_size == 0) || (rw_string == NULL))
+    if ((content_size == 0) || (rw_string == NULL) || (rw_size == 0))
         ret_var = PURC_VARIANT_INVALID;
     else {
         ret_var = purc_variant_make_string_reuse_buff (rw_string, rw_size, false); 
@@ -972,30 +975,13 @@ time_setter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 // only for test now.
 purc_variant_t pcdvojbs_get_system (void)
 {
-    purc_variant_t v1 = NULL;
-    purc_variant_t v2 = NULL;
-    purc_variant_t v3 = NULL;
-    purc_variant_t v4 = NULL;
-    purc_variant_t v5 = NULL;
+    static struct pcdvojbs_dvobjs method [] = {
+        {"uname",     uname_getter,     NULL},
+        {"uname_prt", uname_prt_getter, NULL},
+        {"locale",    locale_getter,    locale_setter},
+        {"random",    random_getter,    NULL},
+        {"time",      time_getter,      time_setter} };
 
-    v1 = purc_variant_make_dynamic (uname_getter, NULL);
-    v2 = purc_variant_make_dynamic (uname_prt_getter, NULL);
-    v3 = purc_variant_make_dynamic (locale_getter, locale_setter);
-    v4 = purc_variant_make_dynamic (random_getter, NULL);
-    v5 = purc_variant_make_dynamic (time_getter, time_setter);
-
-    purc_variant_t sys = purc_variant_make_object_by_static_ckey (5,
-            "uname",        v1,
-            "uname_prt",    v2,
-            "locale",       v3,
-            "random",       v4,
-            "time",         v5);
-
-    purc_variant_unref (v1);
-    purc_variant_unref (v2);
-    purc_variant_unref (v3);
-    purc_variant_unref (v4);
-    purc_variant_unref (v5);
-    return sys;
+    size_t size = sizeof (method) / sizeof (struct pcdvojbs_dvobjs);
+    return pcdvobjs_make_dvobjs (method, size);
 }
-
