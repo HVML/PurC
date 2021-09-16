@@ -42,3 +42,5 @@
 042_jsonee_call_get_with_multiple_ejcon_array
 043_jsonee_call_set_with_ejson_array
 044_jsonee_call_set_with_multiple_ejcon_array
+045_jsonee_nesting_call_get
+046_jsonee_nesting_call_set
