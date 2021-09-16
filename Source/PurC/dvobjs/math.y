@@ -254,6 +254,10 @@ int math_parse(const char *input,
     math_yy_scan_string(input, arg);
     int ret =math_yyparse(arg, param);
     math_yylex_destroy(arg);
+    if (param->variables) {
+        purc_variant_unref(param->variables);
+        param->variables = NULL;
+    }
     return ret ? 1 : 0;
 }
 

@@ -512,7 +512,7 @@ TEST(dvobjs, dvobjs_math_assignment)
     func = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(func, nullptr);
 
-    const char *exp = "x = (3 + 7) * (2 + 3 * 4)\nx * 3";
+    const char *exp = "x = (3 + 7) * (2 + 3 * 4)\nx*3";
     param[0] = purc_variant_make_string (exp, false);
     param[1] = PURC_VARIANT_INVALID;
     param[2] = NULL;
@@ -521,6 +521,13 @@ TEST(dvobjs, dvobjs_math_assignment)
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
     purc_variant_cast_to_number (ret_var, &number, false);
     printf("TEST eval: param is \"%s\" = %lf\n", exp, number);
+
+    purc_variant_unref(param[0]);
+    if (param[1])
+        purc_variant_unref(param[1]);
+
+    purc_variant_unref(ret_var);
+    purc_variant_unref(math);
 
     purc_cleanup ();
 }

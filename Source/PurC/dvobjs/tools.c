@@ -242,9 +242,10 @@ int pcdvobjs_math_param_set_var(struct pcdvobjs_math_param *param,
     if (!v)
         return -1;
 
+    purc_variant_t k = purc_variant_make_string(var, true);
     bool ok;
-    ok = purc_variant_object_set_by_static_ckey(param->variables,
-            var, v);
+    ok = purc_variant_object_set(param->variables, k, v);
+    purc_variant_unref(k);
     purc_variant_unref(v);
 
     return ok ? 0 : -1;
