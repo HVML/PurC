@@ -2,7 +2,8 @@
  * @file make_dynamic_object.c
  * @author Vincent Wei
  * @date 2021/09/16
- * @brief A sample to make a dynamic object.
+ * @brief A sample demonstrating how to make a dynamic object and
+ *      manage the anonymous properties correctly.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
