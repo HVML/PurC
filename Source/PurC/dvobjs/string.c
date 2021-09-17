@@ -30,7 +30,7 @@
 #include "private/html.h"
 
 #include "purc-variant.h"
-#include "tools.h"
+#include "helper.h"
 
 #include <stdbool.h>
 #include <stddef.h>

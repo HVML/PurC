@@ -29,7 +29,7 @@
 #include "private/edom.h"
 #include "private/html.h"
 #include "purc-variant.h"
-#include "tools.h"
+#include "helper.h"
 
 #include <unistd.h>
 #include <stdbool.h>

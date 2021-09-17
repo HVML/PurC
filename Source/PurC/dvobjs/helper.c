@@ -1,5 +1,5 @@
 /*
- * @file tools.c
+ * @file helper.c
  * @author Geng Yue
  * @date 2021/07/02
  * @brief The implementation of tools for all files in this directory.
@@ -31,7 +31,7 @@
 
 #include "purc-variant.h"
 
-#include "tools.h"
+#include "helper.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -183,22 +183,18 @@ bool wildcard_cmp (const char *str1, const char *pattern)
     int p1 = 0;
     int p2 = 0;
 
-    while ((p1 < len1) && (p2<len2))
-    {
-        if (pattern[p2] == '?')
-        {
+    while ((p1 < len1) && (p2<len2))  {
+        if (pattern[p2] == '?')  {
             p1++;
             p2++;
             continue;
         }
-        if (pattern[p2] == '*')
-        {
+        if (pattern[p2] == '*')  {
             p2++;
             mark = p2;
             continue;
         }
-        if (str1[p1] != pattern[p2])
-        {
+        if (str1[p1] != pattern[p2])  {
             if (p1 == 0 && p2 == 0)
                 return false;
             p1 -= p2 - mark - 1;
@@ -208,15 +204,13 @@ bool wildcard_cmp (const char *str1, const char *pattern)
         p1++;
         p2++;
     }
-    if (p2 == len2)
-    {
+    if (p2 == len2)  {
         if (p1 == len1)
             return true;
         if (pattern[p2 - 1] == '*')
             return true;
     }
-    while (p2 < len2)
-    {
+    while (p2 < len2)  {
         if (pattern[p2] != '*')
             return false;
         p2++;
@@ -279,7 +273,6 @@ purc_variant_t pcdvobjs_make_dvobjs (const struct pcdvojbs_dvobjs *method,
     purc_variant_t val = PURC_VARIANT_INVALID;
     purc_variant_t ret_var= purc_variant_make_object (0, PURC_VARIANT_INVALID,
                                                     PURC_VARIANT_INVALID);
-    bool error = false;
 
     if (ret_var == PURC_VARIANT_INVALID)
         return PURC_VARIANT_INVALID;
@@ -287,24 +280,22 @@ purc_variant_t pcdvobjs_make_dvobjs (const struct pcdvojbs_dvobjs *method,
     for (i = 0; i < size; i++) {
         val = purc_variant_make_dynamic (method[i].getter, method[i].setter);
         if (val == PURC_VARIANT_INVALID) {
-            error = true;
-            break;
+            goto error;
         }
 
-        if (!purc_variant_object_set_by_static_ckey (ret_var, method[i].name, 
-                                                                    val)) {
-            error = true;
-            break;
+        if (!purc_variant_object_set_by_static_ckey (ret_var, 
+                    method[i].name, val)) {
+            goto error;
         }
         
         purc_variant_unref (val);
     }
 
-    if (error) {
-        purc_variant_unref (ret_var);
-        ret_var = PURC_VARIANT_INVALID;
-    }
 
     return ret_var;
+
+error:
+    purc_variant_unref (ret_var);
+    return PURC_VARIANT_INVALID;
 }
 

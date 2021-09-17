@@ -30,7 +30,7 @@
 #include "private/html.h"
 
 #include "purc-variant.h"
-#include "tools.h"
+#include "helper.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>

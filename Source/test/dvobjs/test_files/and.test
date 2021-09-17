@@ -1,30 +1,121 @@
-# undefined
-# null
-# boolean
-# number
-# longint
-# ulongint
-# longdouble
-# atromstring
-# string
-# bsequence
-# object
-# array
-# set
-# invalid
+# test case sample
+#
+# test_begin_index
+# param_begin
+# your parameters
+# param_end
+# your result
+# test_end
 
-test_begin
+# variant in test case:
+# undefined:;
+# null:;
+# boolean:true;
+# number:3.1415926;
+# longint:3;
+# ulongint:5;
+# longdouble:3.1415926;
+# string:"hello world"
+# atromstring:"hello world"
+# bsequence:"hello world"
+# dynamic:;
+# native:;
+# object:2:"key1";boolean:true;"key2";boolean:false;
+# array:2:boolean:true;boolean:false;
+# set:2:object:2:"key1";boolean:true;"key2";boolean:false;object:2:"abc";boolean:false;"xyz";boolean:true;
+# invalid:;
+
+# Notation:
+# 1. NO white space is permitted in a line;
+# 2. NO BLANK LINE is permitted in a test case;
+# 3. One variant must end with ';';
+# 4. The contents in dynamic and native type, are all pointers. So the code constructs pointers, do not input anything.
+
+test_begin_1
+param_begin
+param_end
+invalid:;
+test_end
+
+test_begin_2
+param_begin
+boolean:true;
+param_end
+invalid:;
+test_end
+
+test_begin_3
+param_begin
+null:;
+param_end
+invalid:;
+test_end
+
+test_begin_4
+param_begin
+invalid:;
+param_end
+invalid:;
+test_end
+
+test_begin_5
 param_begin
 boolean:true;
 boolean:false;
-number:3.1415926;
-string:hello world;
+param_end
+boolean:false;
+test_end
+
+test_begin_6
+param_begin
+boolean:true;
+boolean:true;
 param_end
 boolean:true;
 test_end
 
+test_begin_7
+param_begin
+boolean:true;
+boolean:true;
+number:0;
+param_end
+boolean:false;
+test_end
 
-object:key:adf;boolean:true;
-array:boolean:false;boolean:true;
-set:row:boolean:true;boolean:false;row:number:12.3;number:34.5;
+test_begin_8
+param_begin
+boolean:true;
+string:"";
+boolean:true;
+param_end
+boolean:false;
+test_end
+
+test_begin_9
+param_begin
+boolean:true;
+boolean:true;
+null:;
+param_end
+boolean:false;
+test_end
+
+test_begin_10
+param_begin
+boolean:true;
+undefined:;
+boolean:true;
+param_end
+boolean:false;
+test_end
+
+test_begin_11
+param_begin
+object:2:"key1";boolean:true;"key2";boolean:false;
+set:2:object:2:"key1";boolean:true;"key2";boolean:false;object:2:"abc";boolean:false;"xyz";boolean:true;
+boolean:true;
+param_end
+boolean:true;
+test_end
 

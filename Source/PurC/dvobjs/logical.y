@@ -30,7 +30,7 @@
 }
 
 %code requires {
-    #include "tools.h"
+    #include "helper.h"
 
     #define YYSTYPE       LOGICAL_YYSTYPE
     #define YYLTYPE       LOGICAL_YYLTYPE
