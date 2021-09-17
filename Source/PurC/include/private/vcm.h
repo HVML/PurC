@@ -119,6 +119,9 @@ struct pcvcm_node* pcvcm_node_new_call_getter (struct pcvcm_node* variable,
 struct pcvcm_node* pcvcm_node_new_call_setter (struct pcvcm_node* variable,
         size_t nr_params, struct pcvcm_node* params);
 
+
+char* pcvcm_node_to_string (struct pcvcm_node* node, size_t* nr_bytes);
+
 /*
  * Removes root and its children from the tree, freeing any memory allocated.
  */

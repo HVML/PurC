@@ -271,7 +271,7 @@ static size_t get_min_size(size_t sz_min, size_t sz_max) {
 /* rwstream api */
 purc_rwstream_t purc_rwstream_new_buffer (size_t sz_init, size_t sz_max)
 {
-    if (sz_init == 0 || sz_max <= sz_init || sz_init >= SIZE_MAX)
+    if (sz_init == 0 || sz_max <= sz_init)
     {
         RWSTREAM_SET_ERROR(PURC_ERROR_INVALID_VALUE);
         return NULL;
