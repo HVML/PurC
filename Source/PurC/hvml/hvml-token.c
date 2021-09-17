@@ -444,6 +444,7 @@ struct pchvml_buffer* pchvml_token_attr_to_string(
     if (!vcm_buffer) {
         return buffer;
     }
+#if 0
     switch (attr->quote) {
     case '"':
         pchvml_buffer_append_bytes(buffer, "\"", 1);
@@ -467,6 +468,9 @@ struct pchvml_buffer* pchvml_token_attr_to_string(
         pchvml_buffer_append_bytes(buffer, "\"", 1);
         break;
     }
+#else
+    pchvml_buffer_append_bytes(buffer, vcm_buffer, nr_vcm_buffer);
+#endif
     free(vcm_buffer);
 
     return buffer;

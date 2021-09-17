@@ -422,8 +422,10 @@ void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node* node)
         break;
 
     case PCVCM_NODE_TYPE_STRING:
+        purc_rwstream_write(rws, "\"", 1);
         purc_rwstream_write(rws, (char*)node->sz_ptr[1],
                 node->sz_ptr[0]);
+        purc_rwstream_write(rws, "\"", 1);
         break;
 
     case PCVCM_NODE_TYPE_NULL:

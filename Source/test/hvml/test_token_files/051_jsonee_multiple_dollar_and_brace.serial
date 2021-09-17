@@ -1,1 +1,1 @@
-<hvml attr="get_variable(get_element(get_element(get_variable(a),attr),class))"></hvml>
+<hvml attr=get_variable(get_element(get_element(get_variable("a"),"attr"),"class"))></hvml>

@@ -1,1 +1,1 @@
-<hvml attr="call_setter(get_element(get_variable(ABC),b),123,456)"></hvml>
+<hvml attr=call_setter(get_element(get_variable("ABC"),"b"),123,456)></hvml>
