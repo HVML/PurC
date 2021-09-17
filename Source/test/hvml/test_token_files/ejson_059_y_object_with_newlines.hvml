@@ -1,0 +1,3 @@
+<hvml ejson=$EJSON({
+"a": "b"
+})></hvml>
