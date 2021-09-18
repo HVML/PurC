@@ -178,6 +178,7 @@ TEST_P(hvml_parser_next_token, parse_and_serialize)
 
 
     const char* serial = pchvml_buffer_get_buffer(buffer);
+//    PRINTF("serial : %s", serial);
     ASSERT_STREQ(serial, comp) << "Test Case : "<< get_name();
 
     purc_rwstream_destroy(rws);
