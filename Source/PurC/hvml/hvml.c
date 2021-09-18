@@ -2291,7 +2291,7 @@ next_state:
                                 (struct pctree_node*)node);
                         RESET_TEMP_BUFFER();
                     }
-                    if (hvml->vcm_node && 
+                    if (hvml->vcm_node &&
                             hvml->vcm_node->type != PCVCM_NODE_TYPE_OBJECT) {
                         struct pcvcm_node* node = pcvcm_stack_pop(
                                 hvml->vcm_stack);
@@ -2666,7 +2666,7 @@ next_state:
                                 (struct pctree_node*)node);
                         RESET_TEMP_BUFFER();
                     }
-                    if (hvml->vcm_node && 
+                    if (hvml->vcm_node &&
                             hvml->vcm_node->type != PCVCM_NODE_TYPE_ARRAY) {
                         struct pcvcm_node* node = pcvcm_stack_pop(
                                 hvml->vcm_stack);
@@ -2693,7 +2693,7 @@ next_state:
                                 (struct pctree_node*)node);
                         RESET_TEMP_BUFFER();
                     }
-                    if (hvml->vcm_node && 
+                    if (hvml->vcm_node &&
                             hvml->vcm_node->type != PCVCM_NODE_TYPE_OBJECT) {
                         struct pcvcm_node* node = pcvcm_stack_pop(
                                 hvml->vcm_stack);
@@ -2966,7 +2966,7 @@ next_state:
                     (struct pctree_node*)hvml->vcm_node,
                     (struct pctree_node*)node);
             RESET_TEMP_BUFFER();
-            ADVANCE_TO(PCHVML_EJSON_AFTER_VALUE_STATE);
+            RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE)
@@ -3004,7 +3004,8 @@ next_state:
 
         BEGIN_STATE(PCHVML_EJSON_KEYWORD_STATE)
             if (is_whitespace(character) || character == '}'
-                    || character == ']' || character == ',' ) {
+                    || character == ']' || character == ','
+                    || character == ')') {
                 RECONSUME_IN(PCHVML_EJSON_AFTER_KEYWORD_STATE);
             }
             if (character == '$') {
@@ -3091,7 +3092,8 @@ next_state:
 
         BEGIN_STATE(PCHVML_EJSON_AFTER_KEYWORD_STATE)
             if (is_whitespace(character) || character == '}'
-                    || character == ']' || character == ',' ) {
+                    || character == ']' || character == ','
+                    || character == ')') {
                 if (pchvml_buffer_equal_to(hvml->temp_buffer, "true", 4)) {
                     if (!hvml->vcm_node) {
                         hvml->vcm_node = pcvcm_stack_pop(
