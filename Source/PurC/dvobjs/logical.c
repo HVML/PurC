@@ -77,7 +77,7 @@ static bool reg_cmp (const char *buf1, const char *buf2)
 
 static bool test_variant (purc_variant_t var) 
 {
-    if (var == NULL)
+    if (var == PURC_VARIANT_INVALID)
         return false;
 
     double number = 0.0d;
@@ -142,18 +142,17 @@ static bool test_variant (purc_variant_t var)
 }
 
 
-static double get_variant_value (purc_variant_t var) 
+static long double get_variant_value (purc_variant_t var) 
 {
-    if (var == NULL)
+    if (var == PURC_VARIANT_INVALID)
         return false;
 
-    double number = 0.0d;
+    long double number = 0.0d;
     size_t length = 0;
     long int templongint = 0;
     uintptr_t temppointer = 0;
     struct purc_variant_object_iterator* it_obj = NULL;
     struct purc_variant_set_iterator* it_set = NULL;
-    const char* key = NULL;
     purc_variant_t val = NULL;
     size_t i = 0;
     bool having = false;
@@ -164,7 +163,7 @@ static double get_variant_value (purc_variant_t var)
         case PURC_VARIANT_TYPE_UNDEFINED:
             break;
         case PURC_VARIANT_TYPE_BOOLEAN:
-            purc_variant_cast_to_number (var, &number, false);
+            purc_variant_cast_to_long_double (var, &number, false);
             if (number)
                 number = 1.0d;
             break;
@@ -172,13 +171,13 @@ static double get_variant_value (purc_variant_t var)
         case PURC_VARIANT_TYPE_LONGINT:
         case PURC_VARIANT_TYPE_ULONGINT:
         case PURC_VARIANT_TYPE_LONGDOUBLE:
-            purc_variant_cast_to_number (var, &number, false);
+            purc_variant_cast_to_long_double (var, &number, false);
             break;
         case PURC_VARIANT_TYPE_ATOMSTRING:
-            number = strtod (purc_variant_get_atom_string_const (var), NULL);
+            number = strtold (purc_variant_get_atom_string_const (var), NULL);
             break;
         case PURC_VARIANT_TYPE_STRING:
-            number = strtod (purc_variant_get_string_const (var), NULL);
+            number = strtold (purc_variant_get_string_const (var), NULL);
             break;
         case PURC_VARIANT_TYPE_BSEQUENCE:
             length = purc_variant_sequence_length (var);
@@ -186,26 +185,23 @@ static double get_variant_value (purc_variant_t var)
                 memcpy (&templongint, purc_variant_get_bytes_const (var,
                                             &length) + length - 8, 8);
             else 
-                templongint = *((long int *)purc_variant_get_bytes_const 
-                                                        (var, &length));
-            number = (double) templongint;
+                memcpy (&templongint, purc_variant_get_bytes_const (var, 
+                                            &length), length);
+            number = (long double) templongint;
             break;
         case PURC_VARIANT_TYPE_DYNAMIC:
             temppointer = (uintptr_t)purc_variant_dynamic_get_getter (var);
             temppointer += (uintptr_t)purc_variant_dynamic_get_setter (var);
-            number = (double) temppointer;
+            number = (long double) temppointer;
             break;
         case PURC_VARIANT_TYPE_NATIVE:
             temppointer = (uintptr_t)purc_variant_native_get_entity (var);
-            number = (double) temppointer;
+            number = (long double) temppointer;
             break;
         case PURC_VARIANT_TYPE_OBJECT:
             it_obj = purc_variant_object_make_iterator_begin(var);
             while (it_obj) {
-                key = purc_variant_object_iterator_get_key(it_obj);
                 val = purc_variant_object_iterator_get_value(it_obj);
-
-                number += strtod (key, NULL);
                 number += get_variant_value (val);
 
                 having = purc_variant_object_iterator_next(it_obj);
@@ -255,7 +251,7 @@ logical_not (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
 
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (argv[0] == PURC_VARIANT_INVALID) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
@@ -277,10 +273,10 @@ logical_and (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     bool judge = true;
     int i = 0;
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if ((argv == NULL) || (nr_args < 2)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -307,10 +303,10 @@ logical_or (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     bool judge = false;
     int i = 0;
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if ((argv == NULL) || (nr_args < 2)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -335,17 +331,17 @@ logical_xor (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
     unsigned judge1 = 0x00;
     unsigned judge2 = 0x00;
 
     if ((argv == NULL) || (nr_args != 2)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] == NULL) || (argv[1] == NULL)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -370,17 +366,17 @@ logical_eq (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
-    purc_variant_t ret_var = NULL;
-    double value1 = 0.0d;
-    double value2 = 0.0d;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    long double value1 = 0.0d;
+    long double value2 = 0.0d;
 
     if ((argv == NULL) || (nr_args != 2)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] == NULL) || (argv[1] == NULL)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -401,8 +397,8 @@ logical_ne (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = NULL;
-    double value1 = 0.0d;
-    double value2 = 0.0d;
+    long double value1 = 0.0d;
+    long double value2 = 0.0d;
 
     if ((argv == NULL) || (nr_args != 2)) {
         pcinst_set_error (PURC_ERROR_INVALID_VALUE);
@@ -431,8 +427,8 @@ logical_gt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = NULL;
-    double value1 = 0.0d;
-    double value2 = 0.0d;
+    long double value1 = 0.0d;
+    long double value2 = 0.0d;
 
     if ((argv == NULL) || (nr_args != 2)) {
         pcinst_set_error (PURC_ERROR_INVALID_VALUE);
@@ -461,8 +457,8 @@ logical_ge (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = NULL;
-    double value1 = 0.0d;
-    double value2 = 0.0d;
+    long double value1 = 0.0d;
+    long double value2 = 0.0d;
 
     if ((argv == NULL) || (nr_args != 2)) {
         pcinst_set_error (PURC_ERROR_INVALID_VALUE);
@@ -491,8 +487,8 @@ logical_lt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = NULL;
-    double value1 = 0.0d;
-    double value2 = 0.0d;
+    long double value1 = 0.0d;
+    long double value2 = 0.0d;
 
     if ((argv == NULL) || (nr_args != 2)) {
         pcinst_set_error (PURC_ERROR_INVALID_VALUE);
@@ -521,8 +517,8 @@ logical_le (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = NULL;
-    double value1 = 0.0d;
-    double value2 = 0.0d;
+    long double value1 = 0.0d;
+    long double value2 = 0.0d;
 
     if ((argv == NULL) || (nr_args != 2)) {
         pcinst_set_error (PURC_ERROR_INVALID_VALUE);

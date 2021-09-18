@@ -13,7 +13,8 @@
 #include <errno.h>
 #include <gtest/gtest.h>
 
-static purc_variant_t getter(purc_variant_t root, size_t nr_args, purc_variant_t * argv)
+static purc_variant_t getter(
+        purc_variant_t root, size_t nr_args, purc_variant_t * argv)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
@@ -22,7 +23,8 @@ static purc_variant_t getter(purc_variant_t root, size_t nr_args, purc_variant_t
     return value;
 }
 
-static purc_variant_t setter(purc_variant_t root, size_t nr_args, purc_variant_t * argv)
+static purc_variant_t setter(
+        purc_variant_t root, size_t nr_args, purc_variant_t * argv)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
@@ -46,6 +48,49 @@ static struct purc_native_ops rws_ops = {
     .eraser                = rws_releaser,
     .observe               = NULL,
 };
+
+static void replace_for_bsequence(char *buf, size_t *length_sub)
+{
+    size_t tail = 0;
+    size_t head = 0;
+    char chr = 0;
+    unsigned char number = 0;
+    unsigned char temp = 0;
+
+    for (tail = 0; tail < *length_sub; tail++)  {
+        if (*(buf + tail) == '\\')  {
+            tail++;
+            chr = *(buf + tail);
+            if ((chr >= '0') && (chr <= '9'))
+                number = chr - '0';
+            else if ((chr >= 'a') && (chr <= 'z'))
+                number = chr - 'a';
+            else if ((chr >= 'A') && (chr <= 'Z'))
+                number = chr - 'A';
+            number = number << 4;
+
+            tail++;
+            chr = *(buf + tail);
+            if ((chr >= '0') && (chr <= '9'))
+                temp = chr - '0';
+            else if ((chr >= 'a') && (chr <= 'z'))
+                temp = chr - 'a';
+            else if ((chr >= 'A') && (chr <= 'Z'))
+                temp = chr - 'A';
+            number |= temp;
+
+            *(buf + head) = number;
+            head++;
+        } else {
+            *(buf + head) = *(buf + tail);
+            head++;
+        }
+    }
+
+    *length_sub = head;
+
+    return;
+}
 
 purc_variant_t get_variant (char *buf, size_t *length)
 {
@@ -120,7 +165,9 @@ purc_variant_t get_variant (char *buf, size_t *length)
                 case 'S':
                     temp = strchr (temp + 1, '\"');
                     temp_end = strchr (temp + 1, '\"');
-                    ret_var = purc_variant_make_byte_sequence (temp + 1, temp_end - temp - 1);
+                    length_sub = temp_end - temp - 1;
+                    replace_for_bsequence(temp + 1, &length_sub);
+                    ret_var = purc_variant_make_byte_sequence (temp + 1, length_sub);
                     *length = temp_end + 1 - buf;
                     break;
                 default:
@@ -221,6 +268,7 @@ purc_variant_t get_variant (char *buf, size_t *length)
                 *length = temp - buf;
                 val = get_variant (temp, &length_sub);
                 purc_variant_object_set_by_static_ckey (ret_var, tag, val);
+            printf ("=========== size = %ld, tag = %s\n", purc_variant_object_get_size (ret_var), tag);
                 purc_variant_unref (val);
                 if (i < number - 1)
                     temp += (length_sub + 1);
@@ -305,6 +353,7 @@ TEST(dvobjs, dvobjs_logical_not)
     purc_variant_t ret_result = PURC_VARIANT_INVALID;
     size_t function_size = sizeof(function) / sizeof(char *);
     size_t i = 0;
+    size_t line_number = 0;
 
     // get and function
     purc_instance_extra_info info = {0, 0};
@@ -342,19 +391,23 @@ TEST(dvobjs, dvobjs_logical_not)
         char *line = NULL;
         size_t sz = 0;
         ssize_t read = 0;
-        int i = 0;
         int j = 0;
         size_t length_sub = 0;
 
+        line_number = 0;
+
         while ((read = getline(&line, &sz, fp)) != -1) {
             *(line + read - 1) = 0;
+            line_number ++;
+
             if (strncasecmp (line, "test_begin", 10) == 0)  {    // begin a new test
-                i ++;
-                printf ("\ttest case %d\n", i);
+                printf ("\ttest case on line %ld\n", line_number);
 
                 // get parameters
                 read = getline(&line, &sz, fp);
                 *(line + read - 1) = 0;
+                line_number ++;
+
                 if (strcmp (line, "param_begin") == 0)  {   // begin param section
                     j = 0;
 
@@ -362,6 +415,8 @@ TEST(dvobjs, dvobjs_logical_not)
                     while (1) {
                         read = getline(&line, &sz, fp);
                         *(line + read - 1) = 0;
+                        line_number ++;
+
                         if (strcmp (line, "param_end") == 0)  {   // end param section
                             param[j] = NULL;
                             break;
@@ -373,12 +428,16 @@ TEST(dvobjs, dvobjs_logical_not)
                     // get result
                     read = getline(&line, &sz, fp);
                     *(line + read - 1) = 0;
+                    line_number ++;
+
                     ret_result = get_variant(line, &length_sub);
 
                     // test case end
                     while (1) {
                         read = getline(&line, &sz, fp);
                         *(line + read - 1) = 0;
+                        line_number ++;
+
                         if (strcmp (line, "test_end") == 0)  {   // end test case 
                             break;
                         }
