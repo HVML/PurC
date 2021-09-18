@@ -2451,7 +2451,7 @@ next_state:
                     ADVANCE_TO(PCHVML_EJSON_JSONEE_VARIABLE_STATE);
                 }
                 uint32_t uc = pcutils_stack_top (hvml->ejson_stack);
-                if (uc == '(' || uc == '<' || uc == '[') {
+                if (uc == '(' || uc == '<' || uc == '[' || uc == ':') {
                     pcutils_stack_push(hvml->ejson_stack, '[');
                     if (hvml->vcm_node) {
                         pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
