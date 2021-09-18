@@ -2273,7 +2273,6 @@ next_state:
                 return pchvml_token_new_eof();
             }
             if (character == ',') {
-                uint32_t uc = pcutils_stack_top(hvml->ejson_stack);
                 if (uc == '{') {
                     pcutils_stack_pop(hvml->ejson_stack);
                     ADVANCE_TO(PCHVML_EJSON_BEFORE_NAME_STATE);
@@ -2313,6 +2312,10 @@ next_state:
             }
             if (character == '.') {
                 RECONSUME_IN(PCHVML_EJSON_JSONEE_FULL_STOP_SIGN_STATE);
+            }
+            if (uc == '[') {
+                PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+                RETURN_AND_STOP_PARSE();
             }
             RECONSUME_IN(PCHVML_EJSON_JSONEE_STRING_STATE);
         END_STATE()
@@ -2382,7 +2385,7 @@ next_state:
                 else if (uc == '(' || uc == '<') {
                     ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
                 }
-                PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+                PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_RIGHT_BRACE);
                 RETURN_AND_STOP_PARSE();
             }
             if (character == ':') {
@@ -2518,7 +2521,7 @@ next_state:
                     }
                     ADVANCE_TO(PCHVML_EJSON_AFTER_VALUE_STATE);
                 }
-                PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+                PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_RIGHT_BRACKET);
                 RETURN_AND_STOP_PARSE();
             }
             if (pcutils_stack_is_empty(hvml->ejson_stack)
@@ -4061,7 +4064,12 @@ next_state:
                 RESET_TEMP_BUFFER();
                 RECONSUME_IN(PCHVML_EJSON_AFTER_JSONEE_STRING_STATE);
             }
+            if (is_eof(character)) {
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
+                return pchvml_token_new_eof();
+            }
             APPEND_TO_TEMP_BUFFER(character);
+            ADVANCE_TO(PCHVML_EJSON_JSONEE_STRING_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_AFTER_JSONEE_STRING_STATE)
