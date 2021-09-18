@@ -4068,6 +4068,11 @@ next_state:
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
                 return pchvml_token_new_eof();
             }
+            if (character == ':' && uc == ':') {
+                PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+                RESET_TEMP_BUFFER();
+                RETURN_AND_STOP_PARSE();
+            }
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(PCHVML_EJSON_JSONEE_STRING_STATE);
         END_STATE()
