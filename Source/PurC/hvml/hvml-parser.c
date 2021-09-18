@@ -28,326 +28,337 @@
 #include "private/utils.h"
 #include "hvml-parser.h"
 
+#include <libgen.h>
+
 #ifndef VTT
 #define VTT(x)  PCHVML_TOKEN##x
 #endif // VTT
 
-#ifndef VDC
-#define VDC(x)  PCVDOM_CONSTRUCTION##x
-#endif // VDC
+#define D(fmt, ...)                                    \
+    fprintf(stderr, "%s[%d]:%s(): " fmt "\n",          \
+        basename((char*)__FILE__), __LINE__, __func__, \
+        ##__VA_ARGS__);
 
-struct pcvdom_construction_stack*
-pcvdom_construction_stack_create(void)
+static int
+_push_node(struct pcvdom_gen *gen, struct pcvdom_node *node)
 {
-    struct pcvdom_construction_stack *stack;
-    stack = (struct pcvdom_construction_stack*)calloc(1, sizeof(*stack));
-    if (!stack)
+    if (gen->nr_open + 1 >= gen->sz_elements) {
+        size_t sz = gen->sz_elements + 16;
+        struct pcvdom_node **elems;
+        elems = (struct pcvdom_node**)realloc(gen->open_elements,
+            sz * sizeof(*elems));
+        if (!elems)
+            return -1;
+        gen->open_elements = elems;
+        gen->sz_elements   = sz;
+    }
+
+    gen->open_elements[gen->nr_open++] = node;
+
+    return 0;
+}
+
+static struct pcvdom_node*
+_pop_node(struct pcvdom_gen *gen)
+{
+    if (!gen->open_elements)
         return NULL;
 
-    return stack;
+    if (gen->nr_open <= 0) {
+        return NULL;
+    }
+
+    return gen->open_elements[--gen->nr_open];
+}
+
+static struct pcvdom_node*
+_top_node(struct pcvdom_gen *gen)
+{
+    if (!gen->open_elements)
+        return NULL;
+
+    if (gen->nr_open <= 0) {
+        return NULL;
+    }
+
+    return gen->open_elements[gen->nr_open-1];
+}
+
+static bool
+_is_doc_node(struct pcvdom_gen *gen, struct pcvdom_node *node)
+{
+    return &gen->doc->node == node ? true : false;
+}
+
+static struct pcvdom_element*
+_create_element(struct pcvdom_gen *gen, struct pchvml_token *token)
+{
+    UNUSED_PARAM(gen);
+
+    const char *tag = pchvml_token_get_name(token);
+    size_t nr_attrs = pchvml_token_get_attr_size(token);
+
+    struct pcvdom_element *elem = NULL;
+    elem = pcvdom_element_create_c(tag);
+    if (!elem)
+        goto end;
+
+    int r = 0;
+
+    for (size_t i=0; i<nr_attrs; ++i) {
+        struct pchvml_token_attr *attr;
+        attr = pchvml_token_get_attr(token, i);
+        const char *name;
+        enum pchvml_attr_assignment op;
+        struct pcvcm_node *vcm;
+        name = pchvml_token_attr_get_name(attr);
+        op = pchvml_token_attr_get_assignment(attr);
+        vcm = (struct pcvcm_node*)pchvml_token_attr_get_value(attr);
+
+        struct pcvdom_attr *vattr;
+        vattr = pcvdom_attr_create(name, op, vcm);
+
+        if (!vattr) {
+            r = -1;
+            break;
+        }
+
+        r = pcvdom_element_append_attr(elem, vattr);
+        if (r)
+            break;
+    }
+
+    if (r)
+        goto end;
+
+    return elem;
+
+end:
+    if (elem)
+        pcvdom_node_destroy(&elem->node);
+
+    return NULL;
+}
+
+struct pcvdom_gen*
+pcvdom_gen_create(void)
+{
+    struct pcvdom_gen *gen;
+    gen = (struct pcvdom_gen*)calloc(1, sizeof(*gen));
+    if (!gen)
+        return NULL;
+
+    return gen;
 }
 
 struct pcvdom_document*
-pcvdom_construction_stack_end(struct pcvdom_construction_stack *stack)
+pcvdom_gen_end(struct pcvdom_gen *gen)
 {
-    struct pcvdom_document *doc = stack->doc;
-    stack->doc  = NULL; // transfer ownership
-    stack->curr = NULL;
+    struct pcvdom_document *doc = gen->doc;
+    gen->doc  = NULL; // transfer ownership
+    gen->curr = NULL;
 
-    stack->eof = 1;
+    if (gen->open_elements) {
+        free(gen->open_elements);
+        gen->open_elements = NULL;
+        gen->nr_open       = 0;
+        gen->sz_elements   = 0;
+    }
+    gen->eof = 1;
 
     return doc;
 }
 
 void
-pcvdom_construction_stack_destroy(struct pcvdom_construction_stack *stack)
+pcvdom_gen_destroy(struct pcvdom_gen *gen)
 {
-    if (stack->doc) {
-        pcvdom_document_destroy(stack->doc);
-        stack->doc = NULL;
+    if (gen->doc) {
+        pcvdom_document_destroy(gen->doc);
+        gen->doc = NULL;
     }
 
-    stack->doc  = NULL;
-    stack->curr = NULL;
+    gen->doc  = NULL;
+    gen->curr = NULL;
 
-    free(stack);
+    if (gen->open_elements) {
+        free(gen->open_elements);
+        gen->open_elements = NULL;
+        gen->nr_open       = 0;
+        gen->sz_elements   = 0;
+    }
+
+    free(gen);
 }
 
 static int
-_on_initial(struct pcvdom_construction_stack *stack,
-        struct pchvml_token *token);
+_on_doctype(struct pcvdom_gen *gen, struct pchvml_token *token)
+{
+    D("");
+    struct pcvdom_node *node = _top_node(gen);
+    if (!_is_doc_node(gen, node)) {
+        // ignore
+        return 0;
+    }
+
+    const char *txt = pchvml_token_get_text(token);
+    const char *id  = pchvml_token_get_public_identifier(token);
+    const char *si  = pchvml_token_get_system_information(token);
+    (void)txt; (void)id;
+
+    int r;
+    r = pcvdom_document_set_doctype(gen->doc, si);
+
+    // TODO: check r
+
+    return r ? 0 : 0;
+}
 
 static int
-_on_before_hvml(struct pcvdom_construction_stack *stack,
-    struct pchvml_token *token);
+_on_start_tag(struct pcvdom_gen *gen, struct pchvml_token *token)
+{
+    D("");
+    struct pcvdom_node *node = _top_node(gen);
+    int is_doc = _is_doc_node(gen, node);
+
+    int r = 0;
+    const char *tag = pchvml_token_get_name(token);
+    fprintf(stderr, "tag: [%s]\n", tag);
+    if (is_doc) {
+        if (strcmp(tag, "hvml"))
+            return 0; // ignore
+        if (gen->doc->root)
+            return 0; // already set, ignore
+        struct pcvdom_element *hvml;
+        hvml = _create_element(gen, token);
+        if (!hvml)
+            return -1;
+
+        r = _push_node(gen, &hvml->node);
+        if (r) {
+            pcvdom_node_destroy(&hvml->node);
+            return -1;
+        }
+
+        gen->doc->root = hvml;
+
+        return 0;
+    }
+
+    return 0;
+}
 
 static int
-_on_before_head(struct pcvdom_construction_stack *stack,
-    struct pchvml_token *token);
+_on_end_tag(struct pcvdom_gen *gen, struct pchvml_token *token)
+{
+    D("");
+    UNUSED_PARAM(gen);
+    UNUSED_PARAM(token);
+    return 0;
+}
 
 static int
-_on_in_head(struct pcvdom_construction_stack *stack,
-    struct pchvml_token *token);
+_on_comment(struct pcvdom_gen *gen, struct pchvml_token *token)
+{
+    D("");
+    UNUSED_PARAM(gen);
+    UNUSED_PARAM(token);
+    return 0;
+}
 
 static int
-_on_after_head(struct pcvdom_construction_stack *stack,
-    struct pchvml_token *token);
+_on_character(struct pcvdom_gen *gen, struct pchvml_token *token)
+{
+    D("");
+    struct pcvdom_node *node = _top_node(gen);
+    int is_doc = _is_doc_node(gen, node);
+
+    if (is_doc)
+        return 0; // ignore
+
+    const char *txt = pchvml_token_get_text(token);
+    fprintf(stderr, "txt: [%s]\n", txt);
+    return 0;
+}
 
 static int
-_on_in_body(struct pcvdom_construction_stack *stack,
-    struct pchvml_token *token);
+_on_vcm_tree(struct pcvdom_gen *gen, struct pchvml_token *token)
+{
+    D("");
+    UNUSED_PARAM(gen);
+    UNUSED_PARAM(token);
+    return 0;
+}
 
 static int
-_on_text(struct pcvdom_construction_stack *stack,
-    struct pchvml_token *token);
+_on_eof(struct pcvdom_gen *gen)
+{
+    D("");
+    if (gen->eof)
+        return 0;
 
-static int
-_on_after_body(struct pcvdom_construction_stack *stack,
-    struct pchvml_token *token);
+    struct pcvdom_node *node = NULL;
+    while ((node=_pop_node(gen))) {
+        if (_is_doc_node(gen, node))
+            break;
+    }
 
-static int
-_on_after_after_body(struct pcvdom_construction_stack *stack,
-    struct pchvml_token *token);
+    gen->eof = 1;
+
+    return 0;
+}
 
 int
-pcvdom_construction_stack_push_token(struct pcvdom_construction_stack *stack,
+pcvdom_gen_push_token(struct pcvdom_gen *gen,
     struct pchvml_token *token)
 {
-    if (stack->eof)
-        return -1;
+    if (gen->eof)
+        return 0; // ignore
 
-    if (!stack->doc) {
-        stack->doc = pcvdom_document_create();
-        if (!stack->doc)
+    if (!gen->doc) {
+        // generate a new document object
+        gen->doc = pcvdom_document_create();
+        if (!gen->doc)
             return -1;
-    }
-
-    switch (stack->mode) {
-        case VDC(_INITIAL):
-            return _on_initial(stack, token);
-        case VDC(_BEFORE_HVML):
-            return _on_before_hvml(stack, token);
-        case VDC(_BEFORE_HEAD):
-            return _on_before_head(stack, token);
-        case VDC(_IN_HEAD):
-            return _on_in_head(stack, token);
-        case VDC(_AFTER_HEAD):
-            return _on_after_head(stack, token);
-        case VDC(_IN_BODY):
-            return _on_in_body(stack, token);
-        case VDC(_TEXT):
-            return _on_text(stack, token);
-        case VDC(_AFTER_BODY):
-            return _on_after_body(stack, token);
-        case VDC(_AFTER_AFTER_BODY):
-            return _on_after_after_body(stack, token);
-    default:
-        return -1;
-    }
-}
-
-static int
-_on_initial(struct pcvdom_construction_stack *stack,
-    struct pchvml_token *token)
-{
-    if (pchvml_token_is_type(token, VTT(_CHARACTER))) {
-        if (_is_blank(token))
-            return 0;
-    }
-    else if (pchvml_token_is_type(token, VTT(_COMMENT))) {
-        return _append_comment(stack, token);
-    }
-    else if (pchvml_token_is_type(token, VTT(_DOCTYPE))) {
-        return _set_doctype(stack, token);
-    }
-    _set_quirks(stack);
-    _set_empty_doctype(stack);
-    return 0;
-}
-
-static int
-_on_before_hvml(struct pcvdom_construction_stack *stack,
-    struct pchvml_token *token)
-{
-    if (pchvml_token_is_type(token, VTT(_DOCTYPE))) {
-        return 0;
-    }
-    else if (pchvml_token_is_type(token, VTT(_COMMENT))) {
-        return _append_comment(stack, token);
-    }
-    else if (pchvml_token_is_type(token, VTT(_START_TAG))) {
-        const char *tag = _get_tag_name(token);
-        if (strcmp(tag, "hvml")==0) {
-            return _create_hvml_element(stack, token);
-        }
-    }
-    else if (pchvml_token_is_type(token, VTT(_END_TAG))) {
-        if (strcmp(tag, "head") &&
-            strcmp(tag, "body") &&
-            strcmp(tag, "hvml"))
-        {
-            return 0;
-        }
-    }
-    _create_empty_hvml_element(stack);
-    return 0;
-}
-
-static int
-_on_before_head(struct pcvdom_construction_stack *stack,
-    struct pchvml_token *token)
-{
-    if (pchvml_token_is_type(token, VTT(_CHARACTER))) {
-        if (_is_blank(token))
-            return 0;
-    }
-    else if (pchvml_token_is_type(token, VTT(_COMMENT))) {
-        return _append_comment(stack, token);
-    }
-    else if (pchvml_token_is_type(token, VTT(_DOCTYPE))) {
-        return 0;
-    }
-    else if (pchvml_token_is_type(token, VTT(_START_TAG))) {
-        const char *tag = _get_tag_name(token);
-        if (strcmp(tag, "hvml")==0) {
-            return 0;
-        }
-        else if (strcmp(tag, "head")==0) {
-            return _create_head_element(stack, token);
-        }
-    }
-    else if (pchvml_token_is_type(token, VTT(_END_TAG))) {
-        if (strcmp(tag, "head") &&
-            strcmp(tag, "body") &&
-            strcmp(tag, "hvml"))
-        {
-            return 0;
-        }
-    }
-    _create_empty_head_element(stack);
-    _set_reprocess(stack);
-    return 0;
-}
-
-static int
-_on_in_head(struct pcvdom_construction_stack *stack,
-    struct pchvml_token *token)
-{
-    if (pchvml_token_is_type(token, VTT(_CHARACTER))) {
-        if (_is_blank(token))
-            return _append_text(token);
-    }
-    else if (pchvml_token_is_type(token, VTT(_COMMENT))) {
-        return _append_comment(stack, token);
-    }
-    else if (pchvml_token_is_type(token, VTT(_DOCTYPE))) {
-        return 0;
-    }
-    else if (pchvml_token_is_type(token, VTT(_START_TAG))) {
-        const char *tag = _get_tag_name(token);
-        if (strcmp(tag, "hvml")==0) {
-            return 0;
-        }
-        else if (_is_foreign(tag)) {
-            // TODO: a bit more explanation
+        if (_push_node(gen, &gen->doc->node)) {
+            pcvdom_document_destroy(gen->doc);
             return -1;
         }
-        else if (strcmp(tag, "init")==0 ||
-                 strcmp(tag, "set")==0 ||
-                 strcmp(tag, "bind")==0 ||
-                 strcmp(tag, "connect")==0)
-        {
-            return _create_element(stack, token);
-        }
-        else if (strcmp(tag, "head")==0) {
-            return 0;
-        }
-    }
-    else if (pchvml_token_is_type(token, VTT(_END_TAG))) {
-        if (strcmp(tag, "head") == 0) {
-            return _pop_head_off(stack);
-        }
-        else if (strcmp(tag, "body") &&
-                 strcmp(tag, "hvml"))
-        {
-            return 0;
-        }
-        else if (strcmp(tag, "archedata") == 0) {
-            return _append_archedata(stack);
-        }
-        else if (strcmp(tag, "archetype") == 0) {
-            return -1;
-        }
-        return 0;
+        PC_ASSERT(_is_doc_node(gen, _top_node(gen)));
     }
 
-    _pop_head_off(stack);
-    _set_mode(stack, VDC(_AFTER_HEAD));
-    _set_reprocess(stack);
-    return 0;
-}
+    int r = 0;
 
-static int
-_on_after_head(struct pcvdom_construction_stack *stack,
-    struct pchvml_token *token)
-{
-    if (pchvml_token_is_type(token, VTT(_CHARACTER))) {
-        if (_is_blank(token))
-            return _append_text(token);
-    }
-    else if (pchvml_token_is_type(token, VTT(_COMMENT))) {
-        return _append_comment(stack, token);
-    }
-    else if (pchvml_token_is_type(token, VTT(_DOCTYPE))) {
-        return 0;
-    }
-    else if (pchvml_token_is_type(token, VTT(_START_TAG))) {
-        const char *tag = _get_tag_name(token);
-        if (strcmp(tag, "hvml")==0) {
-            return 0;
-        }
-        else if (strcmp(tag, "body")==0) {
-            return _create_body(stack, token);
-        }
-        else if (strcmp(tag, "archetype")==0) {
-            return 0;
+again:
+    switch (pchvml_token_get_type(token)) {
+        case VTT(_DOCTYPE):
+            r = _on_doctype(gen, token);
+            break;
+        case VTT(_START_TAG):
+            r = _on_start_tag(gen, token);
+            break;
+        case VTT(_END_TAG):
+            r = _on_end_tag(gen, token);
+            break;
+        case VTT(_COMMENT):
+            r = _on_comment(gen, token);
+            break;
+        case VTT(_CHARACTER):
+            r = _on_character(gen, token);
+            break;
+        case VTT(_VCM_TREE):
+            r = _on_vcm_tree(gen, token);
+            break;
+        case VTT(_EOF):
+            r = _on_eof(gen);
+            break;
+        default: {
+            PC_ASSERT(0);
         }
     }
-}
 
-static int
-_on_in_body(struct pcvdom_construction_stack *stack,
-    struct pchvml_token *token)
-{
-    UNUSED_PARAM(stack);
-    UNUSED_PARAM(token);
-    return -1;
-}
+    if (r == 0 && gen->reprocess)
+        goto again;
 
-static int
-_on_text(struct pcvdom_construction_stack *stack,
-    struct pchvml_token *token)
-{
-    UNUSED_PARAM(stack);
-    UNUSED_PARAM(token);
-    return -1;
-}
-
-static int
-_on_after_body(struct pcvdom_construction_stack *stack,
-    struct pchvml_token *token)
-{
-    UNUSED_PARAM(stack);
-    UNUSED_PARAM(token);
-    return -1;
-}
-
-static int
-_on_after_after_body(struct pcvdom_construction_stack *stack,
-    struct pchvml_token *token)
-{
-    UNUSED_PARAM(stack);
-    UNUSED_PARAM(token);
-    return -1;
+    return r ? -1 : 0;
 }
 

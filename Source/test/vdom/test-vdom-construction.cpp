@@ -6,37 +6,37 @@
 
 #include <gtest/gtest.h>
 
-TEST(vdom_construction, basic)
+TEST(vdom_gen, basic)
 {
-    struct pcvdom_construction_stack *stack;
-    stack = pcvdom_construction_stack_create();
-    if (!stack)
+    struct pcvdom_gen *gen;
+    gen = pcvdom_gen_create();
+    if (!gen)
         goto end;
 
     struct pcvdom_document *doc;
-    doc = pcvdom_construction_stack_end(stack);
+    doc = pcvdom_gen_end(gen);
 
 end:
-    if (stack)
-        pcvdom_construction_stack_destroy(stack);
+    if (gen)
+        pcvdom_gen_destroy(gen);
     if (doc)
         pcvdom_document_destroy(doc);
 }
 
-TEST(vdom_construction, file)
+TEST(vdom_gen, file)
 {
     int r = 0;
     const char *src = NULL;
     FILE *fin = NULL;
     purc_rwstream_t rin = NULL;
     struct pchvml_parser *parser = NULL;
-    struct pcvdom_construction_stack *stack = NULL;
+    struct pcvdom_gen *gen = NULL;
     struct pcvdom_document *doc = NULL;
     struct pchvml_token *token = NULL;
 
     purc_instance_extra_info info = {0, 0};
     r = purc_init("cn.fmsoft.hybridos.test",
-        "vdom_construction", &info);
+        "vdom_gen", &info);
     ASSERT_EQ(r, PURC_ERROR_OK);
 
     src = getenv("SOURCE_FILE");
@@ -61,8 +61,8 @@ TEST(vdom_construction, file)
     if (!parser)
         goto end;
 
-    stack = pcvdom_construction_stack_create();
-    if (!stack)
+    gen = pcvdom_gen_create();
+    if (!gen)
         goto end;
 
 again:
@@ -70,15 +70,15 @@ again:
         pchvml_token_destroy(token);
     token = pchvml_next_token(parser, rin);
 
-    if (0==pcvdom_construction_stack_push_token(stack, token)) {
+    if (0==pcvdom_gen_push_token(gen, token)) {
         if (pchvml_token_is_type(token, PCHVML_TOKEN_EOF)) {
-            doc = pcvdom_construction_stack_end(stack);
+            doc = pcvdom_gen_end(gen);
             goto end;
         }
         goto again;
     }
 
-    ASSERT_TRUE(false) << "failed parsing" << std::endl;
+    EXPECT_TRUE(false) << "failed parsing" << std::endl;
 
 end:
     if (token)
@@ -87,8 +87,8 @@ end:
     if (doc)
         pcvdom_document_destroy(doc);
 
-    if (stack)
-        pcvdom_construction_stack_destroy(stack);
+    if (gen)
+        pcvdom_gen_destroy(gen);
 
     if (parser)
         pchvml_destroy(parser);

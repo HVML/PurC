@@ -35,38 +35,30 @@
 
 PCA_EXTERN_C_BEGIN
 
-enum pcvdom_construction_insertion_mode {
-    PCVDOM_CONSTRUCTION_INITIAL,
-    PCVDOM_CONSTRUCTION_BEFORE_HVML,
-    PCVDOM_CONSTRUCTION_BEFORE_HEAD,
-    PCVDOM_CONSTRUCTION_IN_HEAD,
-    PCVDOM_CONSTRUCTION_AFTER_HEAD,
-    PCVDOM_CONSTRUCTION_IN_BODY,
-    PCVDOM_CONSTRUCTION_TEXT,
-    PCVDOM_CONSTRUCTION_AFTER_BODY,
-    PCVDOM_CONSTRUCTION_AFTER_AFTER_BODY,
-};
-
-struct pcvdom_construction_stack {
+struct pcvdom_gen {
     struct pcvdom_document   *doc;
     struct pcvdom_node       *curr;
 
-    enum pcvdom_construction_insertion_mode      mode;
+    struct pcvdom_node      **open_elements;
+    size_t                    nr_open;
+    size_t                    sz_elements;
+
     unsigned int              eof:1;
+    unsigned int              reprocess:1;
 };
 
-struct pcvdom_construction_stack*
-pcvdom_construction_stack_create(void);
+struct pcvdom_gen*
+pcvdom_gen_create(void);
 
 int
-pcvdom_construction_stack_push_token(struct pcvdom_construction_stack *stack,
+pcvdom_gen_push_token(struct pcvdom_gen *stack,
     struct pchvml_token *token);
 
 struct pcvdom_document*
-pcvdom_construction_stack_end(struct pcvdom_construction_stack *stack);
+pcvdom_gen_end(struct pcvdom_gen *stack);
 
 void
-pcvdom_construction_stack_destroy(struct pcvdom_construction_stack *stack);
+pcvdom_gen_destroy(struct pcvdom_gen *stack);
 
 
 PCA_EXTERN_C_END
