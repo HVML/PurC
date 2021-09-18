@@ -76,6 +76,14 @@
             YYABORT;                                        \
     } while (0)
 
+    #define NEG(_r, _a) do {                           \
+        if (param->is_long_double) {                   \
+            _r.ld = -_a.ld;                            \
+        } else {                                       \
+            _r.d = -_a.d;                              \
+        }                                              \
+    } while (0)
+
     #define ADD(_r, _a, _b) do {                       \
         if (param->is_long_double) {                   \
             _r.ld = _a.ld + _b.ld;                     \
@@ -217,6 +225,7 @@ exp:
 | exp '*' exp   { MUL($$, $1, $3); }
 | exp '/' exp   { DIV($$, $1, $3); }
 | exp '^' exp   { EXP($$, $1, $3); }
+| '-' exp %prec NEG { NEG($$, $2); }
 ;
 
 term:

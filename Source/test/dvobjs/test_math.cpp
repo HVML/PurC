@@ -532,3 +532,73 @@ TEST(dvobjs, dvobjs_math_assignment)
     purc_cleanup ();
 }
 
+struct test_sample {
+    const char      *expr;
+    const char      *result;
+};
+
+TEST(dvobjs, dvobjs_math_samples)
+{
+    struct test_sample samples[] = {
+        {"1+2", "3"},
+        {"-1", "-1"},
+        {"1+-2", "-1"},
+        {"1 + - 2", "-1"},
+        {"x = (3 + 7) * (2 + 3 * 4)\nx*3", "420"},
+    };
+    purc_variant_t param[10];
+
+    purc_instance_extra_info info = {0, 0};
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    purc_variant_t math = pcdvojbs_get_math();
+    ASSERT_NE(math, nullptr);
+    ASSERT_EQ(purc_variant_is_object (math), true);
+
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (math, "eval");
+    ASSERT_NE(dynamic, nullptr);
+    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+
+    purc_dvariant_method func = NULL;
+    func = purc_variant_dynamic_get_getter (dynamic);
+    ASSERT_NE(func, nullptr);
+
+    char buf[4096];
+    purc_rwstream_t ws = purc_rwstream_new_from_mem(buf, sizeof(buf)-1);
+    for (size_t i=0; i<sizeof(samples)/sizeof(samples[0]); ++i) {
+        purc_rwstream_seek(ws, 0, SEEK_SET);
+        buf[0] = '\0';
+        buf[sizeof(buf)-1] = '\0';
+
+        const char *expr= samples[i].expr;
+        param[0] = purc_variant_make_string(expr, false);
+        param[1] = PURC_VARIANT_INVALID;
+        param[2] = NULL;
+        purc_variant_t ret_var = func(NULL, 2, param);
+        purc_variant_unref(param[0]);
+        if (param[1])
+            purc_variant_unref(param[1]);
+
+        if (!ret_var) {
+            EXPECT_NE(ret_var, nullptr) << "eval failed: ["
+                << expr << "]" << std::endl;
+            continue;
+        }
+        ssize_t nr = purc_variant_serialize(ret_var, ws,
+                        0, 0, NULL);
+        EXPECT_GE(nr, 0) << "cast failed: ["
+            << expr << "]" << std::endl;
+        if (nr>=0)
+            buf[nr] = '\0';
+        EXPECT_STREQ(buf, samples[i].result) << "eval failed: ["
+                << expr << "]" << std::endl;
+        purc_variant_unref(ret_var);
+    }
+
+    purc_rwstream_destroy(ws);
+    purc_variant_unref(math);
+
+    purc_cleanup ();
+}
+
