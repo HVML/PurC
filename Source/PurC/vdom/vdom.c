@@ -59,7 +59,10 @@ static void
 _document_destroy(struct pcvdom_document *doc);
 
 static struct pcvdom_document*
-_document_create(const char *doctype);
+_document_create(void);
+
+static int
+_document_set_doctype(struct pcvdom_document *doc, const char *doctype);
 
 static void
 _element_reset(struct pcvdom_element *elem);
@@ -114,14 +117,9 @@ pcvdom_document_destroy(struct pcvdom_document *doc)
 }
 
 struct pcvdom_document*
-pcvdom_document_create(const char *doctype)
+pcvdom_document_create(void)
 {
-    if (!doctype) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return NULL;
-    }
-
-    return _document_create(doctype);
+    return _document_create();
 }
 
 struct pcvdom_element*
@@ -251,6 +249,17 @@ pcvdom_attr_destroy(struct pcvdom_attr *attr)
 }
 
 // doc/dom construction api
+int
+pcvdom_document_set_doctype(struct pcvdom_document *doc, const char *doctype)
+{
+    if (!doc || !doctype) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+
+    return _document_set_doctype(doc, doctype);
+}
+
 int
 pcvdom_document_append_content(struct pcvdom_document *doc,
         struct pcvdom_content *content)
@@ -652,7 +661,7 @@ _document_remove_child(struct pcvdom_node *me, struct pcvdom_node *child)
 }
 
 static struct pcvdom_document*
-_document_create(const char *doctype)
+_document_create(void)
 {
     struct pcvdom_document *doc;
     doc = (struct pcvdom_document*)calloc(1, sizeof(*doc));
@@ -664,13 +673,6 @@ _document_create(const char *doctype)
     doc->node.type = VDT(DOCUMENT);
     doc->node.remove_child = _document_remove_child;
 
-    doc->doctype = strdup(doctype);
-    if (!doc->doctype) {
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        _document_destroy(doc);
-        return NULL;
-    }
-
     doc->variables = pcutils_map_create(_document_copy_key, _document_free_key,
         _document_copy_val, _document_free_val,
         _document_comp_key, false); // non-thread-safe
@@ -681,6 +683,18 @@ _document_create(const char *doctype)
     }
 
     return doc;
+}
+
+static int
+_document_set_doctype(struct pcvdom_document *doc, const char *doctype)
+{
+    doc->doctype = strdup(doctype);
+    if (!doc->doctype) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+
+    return 0;
 }
 
 static void

@@ -28,46 +28,45 @@
 #include "config.h"
 #include "purc-macros.h"
 #include "purc-errors.h"
+#include "private/hvml.h"
 #include "private/vdom.h"
 
 #include "hvml-token.h"
 
 PCA_EXTERN_C_BEGIN
 
+enum pcvdom_construction_insertion_mode {
+    PCVDOM_CONSTRUCTION_INITIAL,
+    PCVDOM_CONSTRUCTION_BEFORE_HVML,
+    PCVDOM_CONSTRUCTION_BEFORE_HEAD,
+    PCVDOM_CONSTRUCTION_IN_HEAD,
+    PCVDOM_CONSTRUCTION_AFTER_HEAD,
+    PCVDOM_CONSTRUCTION_IN_BODY,
+    PCVDOM_CONSTRUCTION_TEXT,
+    PCVDOM_CONSTRUCTION_AFTER_BODY,
+    PCVDOM_CONSTRUCTION_AFTER_AFTER_BODY,
+};
 
-struct pchvml_vdom_tokenizer;
-
-struct pchvml_vdom_parser {
+struct pcvdom_construction_stack {
     struct pcvdom_document   *doc;
     struct pcvdom_node       *curr;
 
-    struct pchvml_vdom_tokenizer  *tokenizer;
-    int                            eof;
+    enum pcvdom_construction_insertion_mode      mode;
+    unsigned int              eof:1;
 };
 
-struct pchvml_token*
-pchvml_vdom_next_token(struct pchvml_vdom_tokenizer *tokenizer,
-    purc_rwstream_t in);
-
-struct pchvml_vdom_parser*
-pchvml_vdom_parser_create(struct pchvml_vdom_tokenizer *tokenizer);
+struct pcvdom_construction_stack*
+pcvdom_construction_stack_create(void);
 
 int
-pchvml_vdom_parser_parse(struct pchvml_vdom_parser *parser,
-        purc_rwstream_t in);
-
-int
-pchvml_vdom_parser_parse_fragment(struct pchvml_vdom_parser *parser,
-        struct pcvdom_node *node, purc_rwstream_t in);
-
-int
-pchvml_vdom_parser_end(struct pchvml_vdom_parser *parser);
+pcvdom_construction_stack_push_token(struct pcvdom_construction_stack *stack,
+    struct pchvml_token *token);
 
 struct pcvdom_document*
-pchvml_vdom_parser_reset(struct pchvml_vdom_parser *parser);
+pcvdom_construction_stack_end(struct pcvdom_construction_stack *stack);
 
 void
-pchvml_vdom_parser_destroy(struct pchvml_vdom_parser *parser);
+pcvdom_construction_stack_destroy(struct pcvdom_construction_stack *stack);
 
 
 PCA_EXTERN_C_END

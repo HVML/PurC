@@ -28,350 +28,326 @@
 #include "private/utils.h"
 #include "hvml-parser.h"
 
-#define VTT(x) PCHVML_TOKEN_##x
+#ifndef VTT
+#define VTT(x)  PCHVML_TOKEN##x
+#endif // VTT
 
-struct pchvml_token*
-pchvml_vdom_next_token(struct pchvml_vdom_tokenizer *tokenizer,
-    purc_rwstream_t in)
+#ifndef VDC
+#define VDC(x)  PCVDOM_CONSTRUCTION##x
+#endif // VDC
+
+struct pcvdom_construction_stack*
+pcvdom_construction_stack_create(void)
 {
-    // TODO: dummy implementation
-    UNUSED_PARAM(tokenizer);
-    UNUSED_PARAM(in);
-
-    return NULL;
-}
-
-static void
-_vdom_parser_reset(struct pchvml_vdom_parser *parser)
-{
-    parser->curr = NULL;
-
-    if (parser->doc) {
-        pcvdom_document_destroy(parser->doc);
-        parser->doc = NULL;
-    }
-}
-
-static void
-_vdom_parser_destroy(struct pchvml_vdom_parser *parser)
-{
-    _vdom_parser_reset(parser);
-    free(parser);
-}
-
-struct pchvml_vdom_parser*
-pchvml_vdom_parser_create(struct pchvml_vdom_tokenizer *tokenizer)
-{
-    if (!tokenizer) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+    struct pcvdom_construction_stack *stack;
+    stack = (struct pcvdom_construction_stack*)calloc(1, sizeof(*stack));
+    if (!stack)
         return NULL;
-    }
 
-    struct pchvml_vdom_parser *parser;
-    parser = (struct pchvml_vdom_parser*)calloc(1, sizeof(*parser));
-    if (!parser) {
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return NULL;
-    }
-
-    parser->tokenizer = tokenizer;
-
-    return parser;
-}
-
-static int
-_on_doctype(struct pchvml_vdom_parser *parser, struct pchvml_token *token)
-{
-    PC_ASSERT(parser && parser->doc==NULL && parser->curr==NULL);
-    // TODO:  pchvml_token_get_name/text/attr
-#if 1
-    UNUSED_PARAM(token);
-#else
-    //PC_ASSERT(token && token->data);
-
-    struct pcvdom_document *doc = pcvdom_document_create(token->data);
-    if (!doc) {
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return -1;
-    }
-
-    parser->doc  = doc;
-    parser->curr = &doc->node;
-#endif
-
-    return 0;
-}
-
-static int
-_on_start_tag(struct pchvml_vdom_parser *parser, struct pchvml_token *token)
-{
-    PC_ASSERT(parser && parser->doc && parser->curr);
-    // TODO:  pchvml_token_get_name/text/attr
-#if 1
-    UNUSED_PARAM(token);
-    return 0;
-#else
-    PC_ASSERT(token->data);
-
-    int is_doc = 0;
-    if (parser->curr == &parser->doc->node) {
-        if (parser->doc->root) {
-            // root has already been set
-            return 0;
-        }
-        is_doc = 1;
-    }
-
-    struct pcvdom_element *elem;
-    elem = pcvdom_element_create_c(token->data);
-    if (!elem) {
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return -1;
-    }
-
-    int r = 0;
-
-    if (token->attr_list) {
-        for (size_t i=0; i<token->attr_list->length; ++i) {
-            struct pchvml_token_attribute *src;
-            src = (struct pchvml_token_attribute*)token->attr_list->array[i];
-            PC_ASSERT(src);
-            PC_ASSERT(src->name);
-
-            const char* key = pchvml_buffer_get_buffer(src->name);
-            PC_ASSERT(key);
-
-            struct pcvdom_attr *attr;
-            attr = pcvdom_attr_create(key, src->assignment, src->vcm);
-
-            if (!attr) {
-                r = -1;
-                break;
-            }
-
-            r = pcvdom_element_append_attr(elem, attr);
-            if (r)
-                break;
-        }
-    }
-
-    if (r==0) {
-        if (is_doc) {
-            r = pcvdom_document_set_root(parser->doc, elem);
-        } else {
-            r = pcvdom_element_append_element(
-                    container_of(parser->curr, struct pcvdom_element, node),
-                    elem);
-        }
-        if (r==0) {
-            if (!token->self_closing) {
-                parser->curr = &elem->node;
-            }
-        }
-    }
-
-    if (r) {
-        pcvdom_node_destroy(&elem->node);
-    }
-
-    return r ? -1 : 0;
-#endif
-}
-
-static int
-_on_end_tag(struct pchvml_vdom_parser *parser, struct pchvml_token *token)
-{
-    PC_ASSERT(parser && parser->doc && parser->curr);
-    // TODO:  pchvml_token_get_name/text/attr
-#if 1
-    UNUSED_PARAM(token);
-    return 0;
-#else
-    PC_ASSERT(token->data);
-    PC_ASSERT(parser->curr != &parser->doc->node);
-
-    struct pcvdom_element *elem;
-    elem = container_of(parser->curr, struct pcvdom_element, node);
-
-    const char *tag_name;
-    tag_name = pcvdom_element_get_tagname(elem);
-
-    PC_ASSERT(tag_name);
-    PC_ASSERT(strcasecmp(tag_name, token->data)==0);
-
-    parser->curr = container_of(parser->curr->node.parent,
-                        struct pcvdom_node, node);
-    return 0;
-#endif
-}
-
-static int
-_on_comment(struct pchvml_vdom_parser *parser, struct pchvml_token *token)
-{
-    PC_ASSERT(parser && parser->doc && parser->curr);
-    // TODO:  pchvml_token_get_name/text/attr
-#if 1
-    UNUSED_PARAM(token);
-    return 0;
-#else
-    PC_ASSERT(token->data);
-
-    int is_doc = 0;
-    if (parser->curr == &parser->doc->node) {
-        is_doc = 1;
-    }
-
-    struct pcvdom_comment *comment;
-    comment = pcvdom_comment_create(token->data);
-    if (!comment) {
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return -1;
-    }
-
-    int r = 0;
-
-    if (is_doc) {
-        r = pcvdom_document_append_comment(parser->doc, comment);
-    } else {
-        r = pcvdom_element_append_comment(
-                container_of(parser->curr, struct pcvdom_element, node),
-                comment);
-    }
-
-    if (r) {
-        pcvdom_node_destroy(&comment->node);
-    }
-
-    return r ? -1 : 0;
-#endif
-}
-
-static int
-_on_character(struct pchvml_vdom_parser *parser, struct pchvml_token *token)
-{
-    UNUSED_PARAM(parser);
-    UNUSED_PARAM(token);
-    return -1;
-}
-
-static int
-_on_vcm(struct pchvml_vdom_parser *parser, struct pchvml_token *token)
-{
-    UNUSED_PARAM(parser);
-    UNUSED_PARAM(token);
-    return -1;
-}
-
-int
-pchvml_vdom_parser_parse(struct pchvml_vdom_parser *parser,
-        purc_rwstream_t in)
-{
-    if (!parser || !in) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return -1;
-    }
-
-    if (!parser->tokenizer) {
-        pcinst_set_error(PURC_ERROR_NOT_EXISTS);
-        return-1;
-    }
-
-    PC_ASSERT(parser->eof == 0);
-
-    int r = 0;
-
-    while (1) {
-        struct pchvml_token *token = pchvml_vdom_next_token(parser->tokenizer,
-            in);
-        if (!token) {
-            // check error code
-            // feof(in) ?
-            return 0;
-        }
-        switch (pchvml_token_get_type(token)) {
-            case VTT(DOCTYPE):
-            {
-                r = _on_doctype(parser, token);
-            } break;
-            case VTT(START_TAG):
-            {
-                r = _on_start_tag(parser, token);
-            } break;
-            case VTT(END_TAG):
-            {
-                r = _on_end_tag(parser, token);
-            } break;
-            case VTT(COMMENT):
-            {
-                r = _on_comment(parser, token);
-            } break;
-            case VTT(CHARACTER):
-            {
-                r = _on_character(parser, token);
-            } break;
-            case VTT(VCM_TREE):
-            {
-                r = _on_vcm(parser, token);
-            } break;
-            case VTT(EOF):
-            {
-                parser->eof = 1;
-            } break;
-            default:
-            {
-                PC_ASSERT(0);
-            } break;
-        }
-
-        pchvml_token_destroy(token);
-    }
-
-    return r ? -1 : 0;
-}
-
-int
-pchvml_vdom_parser_parse_fragment(struct pchvml_vdom_parser *parser,
-        struct pcvdom_node *node, purc_rwstream_t in);
-
-int
-pchvml_vdom_parser_end(struct pchvml_vdom_parser *parser)
-{
-    PC_ASSERT(parser);
-
-    if (!parser->doc) {
-        // not iniialized yet
-        pcinst_set_error(PURC_ERROR_NULL_OBJECT);
-        return -1;
-    }
-
-    if (parser->curr != &parser->doc->root->node) {
-        // not full closed content
-        pcinst_set_error(PURC_ERROR_NULL_OBJECT);
-        return -1;
-    }
-
-    parser->curr = NULL;
-
-    return 0;
+    return stack;
 }
 
 struct pcvdom_document*
-pchvml_vdom_parser_reset(struct pchvml_vdom_parser *parser)
+pcvdom_construction_stack_end(struct pcvdom_construction_stack *stack)
 {
-    PC_ASSERT(parser);
-    struct pcvdom_document *doc = parser->doc;
-    parser->doc  = NULL;
-    parser->curr = NULL;
+    struct pcvdom_document *doc = stack->doc;
+    stack->doc  = NULL; // transfer ownership
+    stack->curr = NULL;
+
+    stack->eof = 1;
 
     return doc;
 }
 
 void
-pchvml_vdom_parser_destroy(struct pchvml_vdom_parser *parser)
+pcvdom_construction_stack_destroy(struct pcvdom_construction_stack *stack)
 {
-    if (!parser)
-        return;
+    if (stack->doc) {
+        pcvdom_document_destroy(stack->doc);
+        stack->doc = NULL;
+    }
 
-    _vdom_parser_destroy(parser);
+    stack->doc  = NULL;
+    stack->curr = NULL;
+
+    free(stack);
+}
+
+static int
+_on_initial(struct pcvdom_construction_stack *stack,
+        struct pchvml_token *token);
+
+static int
+_on_before_hvml(struct pcvdom_construction_stack *stack,
+    struct pchvml_token *token);
+
+static int
+_on_before_head(struct pcvdom_construction_stack *stack,
+    struct pchvml_token *token);
+
+static int
+_on_in_head(struct pcvdom_construction_stack *stack,
+    struct pchvml_token *token);
+
+static int
+_on_after_head(struct pcvdom_construction_stack *stack,
+    struct pchvml_token *token);
+
+static int
+_on_in_body(struct pcvdom_construction_stack *stack,
+    struct pchvml_token *token);
+
+static int
+_on_text(struct pcvdom_construction_stack *stack,
+    struct pchvml_token *token);
+
+static int
+_on_after_body(struct pcvdom_construction_stack *stack,
+    struct pchvml_token *token);
+
+static int
+_on_after_after_body(struct pcvdom_construction_stack *stack,
+    struct pchvml_token *token);
+
+int
+pcvdom_construction_stack_push_token(struct pcvdom_construction_stack *stack,
+    struct pchvml_token *token)
+{
+    if (stack->eof)
+        return -1;
+
+    if (!stack->doc) {
+        stack->doc = pcvdom_document_create();
+        if (!stack->doc)
+            return -1;
+    }
+
+    switch (stack->mode) {
+        case VDC(_INITIAL):
+            return _on_initial(stack, token);
+        case VDC(_BEFORE_HVML):
+            return _on_before_hvml(stack, token);
+        case VDC(_BEFORE_HEAD):
+            return _on_before_head(stack, token);
+        case VDC(_IN_HEAD):
+            return _on_in_head(stack, token);
+        case VDC(_AFTER_HEAD):
+            return _on_after_head(stack, token);
+        case VDC(_IN_BODY):
+            return _on_in_body(stack, token);
+        case VDC(_TEXT):
+            return _on_text(stack, token);
+        case VDC(_AFTER_BODY):
+            return _on_after_body(stack, token);
+        case VDC(_AFTER_AFTER_BODY):
+            return _on_after_after_body(stack, token);
+    default:
+        return -1;
+    }
+}
+
+static int
+_on_initial(struct pcvdom_construction_stack *stack,
+    struct pchvml_token *token)
+{
+    if (pchvml_token_is_type(token, VTT(_CHARACTER))) {
+        if (_is_blank(token))
+            return 0;
+    }
+    else if (pchvml_token_is_type(token, VTT(_COMMENT))) {
+        return _append_comment(stack, token);
+    }
+    else if (pchvml_token_is_type(token, VTT(_DOCTYPE))) {
+        return _set_doctype(stack, token);
+    }
+    _set_quirks(stack);
+    _set_empty_doctype(stack);
+    return 0;
+}
+
+static int
+_on_before_hvml(struct pcvdom_construction_stack *stack,
+    struct pchvml_token *token)
+{
+    if (pchvml_token_is_type(token, VTT(_DOCTYPE))) {
+        return 0;
+    }
+    else if (pchvml_token_is_type(token, VTT(_COMMENT))) {
+        return _append_comment(stack, token);
+    }
+    else if (pchvml_token_is_type(token, VTT(_START_TAG))) {
+        const char *tag = _get_tag_name(token);
+        if (strcmp(tag, "hvml")==0) {
+            return _create_hvml_element(stack, token);
+        }
+    }
+    else if (pchvml_token_is_type(token, VTT(_END_TAG))) {
+        if (strcmp(tag, "head") &&
+            strcmp(tag, "body") &&
+            strcmp(tag, "hvml"))
+        {
+            return 0;
+        }
+    }
+    _create_empty_hvml_element(stack);
+    return 0;
+}
+
+static int
+_on_before_head(struct pcvdom_construction_stack *stack,
+    struct pchvml_token *token)
+{
+    if (pchvml_token_is_type(token, VTT(_CHARACTER))) {
+        if (_is_blank(token))
+            return 0;
+    }
+    else if (pchvml_token_is_type(token, VTT(_COMMENT))) {
+        return _append_comment(stack, token);
+    }
+    else if (pchvml_token_is_type(token, VTT(_DOCTYPE))) {
+        return 0;
+    }
+    else if (pchvml_token_is_type(token, VTT(_START_TAG))) {
+        const char *tag = _get_tag_name(token);
+        if (strcmp(tag, "hvml")==0) {
+            return 0;
+        }
+        else if (strcmp(tag, "head")==0) {
+            return _create_head_element(stack, token);
+        }
+    }
+    else if (pchvml_token_is_type(token, VTT(_END_TAG))) {
+        if (strcmp(tag, "head") &&
+            strcmp(tag, "body") &&
+            strcmp(tag, "hvml"))
+        {
+            return 0;
+        }
+    }
+    _create_empty_head_element(stack);
+    _set_reprocess(stack);
+    return 0;
+}
+
+static int
+_on_in_head(struct pcvdom_construction_stack *stack,
+    struct pchvml_token *token)
+{
+    if (pchvml_token_is_type(token, VTT(_CHARACTER))) {
+        if (_is_blank(token))
+            return _append_text(token);
+    }
+    else if (pchvml_token_is_type(token, VTT(_COMMENT))) {
+        return _append_comment(stack, token);
+    }
+    else if (pchvml_token_is_type(token, VTT(_DOCTYPE))) {
+        return 0;
+    }
+    else if (pchvml_token_is_type(token, VTT(_START_TAG))) {
+        const char *tag = _get_tag_name(token);
+        if (strcmp(tag, "hvml")==0) {
+            return 0;
+        }
+        else if (_is_foreign(tag)) {
+            // TODO: a bit more explanation
+            return -1;
+        }
+        else if (strcmp(tag, "init")==0 ||
+                 strcmp(tag, "set")==0 ||
+                 strcmp(tag, "bind")==0 ||
+                 strcmp(tag, "connect")==0)
+        {
+            return _create_element(stack, token);
+        }
+        else if (strcmp(tag, "head")==0) {
+            return 0;
+        }
+    }
+    else if (pchvml_token_is_type(token, VTT(_END_TAG))) {
+        if (strcmp(tag, "head") == 0) {
+            return _pop_head_off(stack);
+        }
+        else if (strcmp(tag, "body") &&
+                 strcmp(tag, "hvml"))
+        {
+            return 0;
+        }
+        else if (strcmp(tag, "archedata") == 0) {
+            return _append_archedata(stack);
+        }
+        else if (strcmp(tag, "archetype") == 0) {
+            return -1;
+        }
+        return 0;
+    }
+
+    _pop_head_off(stack);
+    _set_mode(stack, VDC(_AFTER_HEAD));
+    _set_reprocess(stack);
+    return 0;
+}
+
+static int
+_on_after_head(struct pcvdom_construction_stack *stack,
+    struct pchvml_token *token)
+{
+    if (pchvml_token_is_type(token, VTT(_CHARACTER))) {
+        if (_is_blank(token))
+            return _append_text(token);
+    }
+    else if (pchvml_token_is_type(token, VTT(_COMMENT))) {
+        return _append_comment(stack, token);
+    }
+    else if (pchvml_token_is_type(token, VTT(_DOCTYPE))) {
+        return 0;
+    }
+    else if (pchvml_token_is_type(token, VTT(_START_TAG))) {
+        const char *tag = _get_tag_name(token);
+        if (strcmp(tag, "hvml")==0) {
+            return 0;
+        }
+        else if (strcmp(tag, "body")==0) {
+            return _create_body(stack, token);
+        }
+        else if (strcmp(tag, "archetype")==0) {
+            return 0;
+        }
+    }
+}
+
+static int
+_on_in_body(struct pcvdom_construction_stack *stack,
+    struct pchvml_token *token)
+{
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(token);
+    return -1;
+}
+
+static int
+_on_text(struct pcvdom_construction_stack *stack,
+    struct pchvml_token *token)
+{
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(token);
+    return -1;
+}
+
+static int
+_on_after_body(struct pcvdom_construction_stack *stack,
+    struct pchvml_token *token)
+{
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(token);
+    return -1;
+}
+
+static int
+_on_after_after_body(struct pcvdom_construction_stack *stack,
+    struct pchvml_token *token)
+{
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(token);
+    return -1;
 }
 
