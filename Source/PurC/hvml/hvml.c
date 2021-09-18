@@ -392,7 +392,9 @@ static const char* hvml_err_msgs[] = {
     /* PCHVML_ERROR_NULL_CHARACTER_REFERENCE */
     "pchvml error null character reference",
     /* PCHVML_ERROR_CONTROL_CHARACTER_REFERENCE*/
-    "pchvml error control character reference"
+    "pchvml error control character reference",
+    /* PCHVML_ERROR_INVALID_UTF8_CHARACTER */
+    "pchvml error invalid utf8 character",
 };
 
 static struct err_msg_seg _hvml_err_msgs_seg = {
@@ -751,6 +753,10 @@ struct pchvml_token* pchvml_next_token (struct pchvml_parser* hvml,
 
 next_input:
     character = pchvml_rwswrap_next_char (hvml->rwswrap);
+    if (character == 0xFFFFFFFF) {
+        PCHVML_SET_ERROR(PCHVML_ERROR_INVALID_UTF8_CHARACTER);
+        RETURN_AND_STOP_PARSE();
+    }
 
 next_state:
     switch (hvml->state) {
@@ -3477,7 +3483,7 @@ next_state:
                         int64_t i64 = strtoll (
                             pchvml_buffer_get_buffer(hvml->temp_buffer),
                             NULL, 10);
-                        struct pcvcm_node* node = pcvcm_node_new_ulongint(i64);
+                        struct pcvcm_node* node = pcvcm_node_new_longint(i64);
                         if (!hvml->vcm_node) {
                             hvml->vcm_node = pcvcm_stack_pop(
                                     hvml->vcm_stack);
