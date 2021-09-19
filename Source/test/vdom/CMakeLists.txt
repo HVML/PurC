@@ -32,10 +32,10 @@ PURC_COMPUTE_SOURCES(test_vdom)
 PURC_FRAMEWORK(test_vdom)
 GTEST_DISCOVER_TESTS(test_vdom)
 
-# test_vdom_construction
-PURC_EXECUTABLE_DECLARE(test_vdom_construction)
+# test_vdom_gen
+PURC_EXECUTABLE_DECLARE(test_vdom_gen)
 
-list(APPEND test_vdom_construction_PRIVATE_INCLUDE_DIRECTORIES
+list(APPEND test_vdom_gen_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR}/include
     ${PurC_DERIVED_SOURCES_DIR}
     ${PURC_DIR}
@@ -45,20 +45,20 @@ list(APPEND test_vdom_construction_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR}/hvml
 )
 
-PURC_EXECUTABLE(test_vdom_construction)
+PURC_EXECUTABLE(test_vdom_gen)
 
-set(test_vdom_construction_SOURCES
-    test-vdom-construction.cpp
+set(test_vdom_gen_SOURCES
+    test-vdom-gen.cpp
 )
 
-set(test_vdom_construction_LIBRARIES
+set(test_vdom_gen_LIBRARIES
     PurC::PurC
     gtest_main
     gtest
     pthread
 )
 
-PURC_COMPUTE_SOURCES(test_vdom_construction)
-PURC_FRAMEWORK(test_vdom_construction)
-GTEST_DISCOVER_TESTS(test_vdom_construction)
+PURC_COMPUTE_SOURCES(test_vdom_gen)
+PURC_FRAMEWORK(test_vdom_gen)
+GTEST_DISCOVER_TESTS(test_vdom_gen)
 
