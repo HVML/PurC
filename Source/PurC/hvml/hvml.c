@@ -1325,7 +1325,7 @@ next_state:
         BEGIN_STATE(PCHVML_SELF_CLOSING_START_TAG_STATE)
             if (character == '>') {
                 pchvml_token_set_self_closing(hvml->token, true);
-                RETURN_IN_CURRENT_STATE(PCHVML_DATA_STATE);
+                RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
@@ -2271,6 +2271,7 @@ next_state:
                     pchvml_token_append_vcm_to_attr(hvml->token,
                             hvml->vcm_tree);
                     END_TOKEN_ATTR();
+                    SET_VCM_NODE(NULL);
                     RECONSUME_IN(PCHVML_AFTER_ATTRIBUTE_VALUE_QUOTED_STATE);
                 }
                 hvml->token = pchvml_token_new_vcm(hvml->vcm_tree);
