@@ -70,8 +70,10 @@ again:
         }
         goto again;
     }
+    EXPECT_NE(token, nullptr) << "unexpected NULL token: ["
+        << token << "]" << std::endl;
 
-    EXPECT_TRUE(false) << "failed parsing" << std::endl;
+    EXPECT_TRUE(false) << "failed parsing: [" << fn << "]" << std::endl;
 
 end:
     if (token)

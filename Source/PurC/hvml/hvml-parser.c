@@ -34,17 +34,21 @@
 #define VTT(x)  PCHVML_TOKEN##x
 #endif // VTT
 
+#ifdef TO_DEBUG
 #ifndef D
 #define D(fmt, ...)                                    \
     fprintf(stderr, "%s[%d]:%s(): " fmt "\n",          \
         basename((char*)__FILE__), __LINE__, __func__, \
         ##__VA_ARGS__);
 #endif // D
+#else // ! TO_DEBUG
+#define D(fmt, ...)
+#endif // TO_DEBUG
 
 #ifndef FAIL_RET
 #define FAIL_RET()        \
     do {                  \
-        D("");            \
+        D("fail_ret");    \
         return -1;        \
     } while (0)
 #endif // FAIL_RET
@@ -302,10 +306,8 @@ _on_end_tag(struct pcvdom_gen *gen, struct pchvml_token *token)
     const char *tagname = pcvdom_element_get_tagname(elem);
     const char *tag = pchvml_token_get_name(token);
 
-    if (!tagname || !tag || strcmp(tagname, tag)) {
-        fprintf(stderr, "[%s] != [%s]\n", tagname, tag);
+    if (!tagname || !tag || strcmp(tagname, tag))
         FAIL_RET();
-    }
 
     _pop_node(gen);
 
@@ -332,7 +334,25 @@ _on_character(struct pcvdom_gen *gen, struct pchvml_token *token)
         return 0; // ignore
 
     const char *txt = pchvml_token_get_text(token);
-    (void)txt;
+    struct pcvcm_node *vcm = NULL;
+    struct pcvdom_content *content = NULL;
+    vcm = pcvcm_node_new_string(txt);
+    if (!vcm)
+        FAIL_RET();
+
+    content = pcvdom_content_create(vcm);
+    if (!content) {
+        pcvcm_node_destroy(vcm);
+        FAIL_RET();
+    }
+    struct pcvdom_element *elem;
+    elem = container_of(node, struct pcvdom_element, node);
+    int r;
+    r = pcvdom_element_append_content(elem, content);
+    if (r) {
+        pcvdom_node_destroy(&content->node);
+        FAIL_RET();
+    }
 
     return 0;
 }
