@@ -23,6 +23,32 @@ struct hvml_token_test_data {
     int error;
 };
 
+char* trim(char *str)
+{
+    if (!str)
+    {
+        return NULL;
+    }
+    char *end;
+
+    while (isspace((unsigned char)*str)) {
+        str++;
+    }
+
+    if(*str == 0) {
+        return str;
+    }
+
+    end = str + strlen(str) - 1;
+    while (end > str && isspace((unsigned char)*end)) {
+        end--;
+    }
+
+    end[1] = '\0';
+    return str;
+}
+
+
 class hvml_parser_next_token : public testing::TestWithParam<hvml_token_test_data>
 {
 protected:
@@ -127,6 +153,7 @@ int to_error(const char* err)
     TO_ERROR(PCHVML_ERROR_NONCHARACTER_CHARACTER_REFERENCE);
     TO_ERROR(PCHVML_ERROR_NULL_CHARACTER_REFERENCE);
     TO_ERROR(PCHVML_ERROR_CONTROL_CHARACTER_REFERENCE);
+    TO_ERROR(PCHVML_ERROR_INVALID_UTF8_CHARACTER);
     return -1;
 }
 
@@ -155,6 +182,7 @@ TEST_P(hvml_parser_next_token, parse_and_serialize)
         }
         enum pchvml_token_type type = pchvml_token_get_type(token);
         pchvml_token_destroy(token);
+        token = NULL;
         if (type == PCHVML_TOKEN_EOF) {
             break;
         }
@@ -166,19 +194,17 @@ TEST_P(hvml_parser_next_token, parse_and_serialize)
 
     if (error_code != PCHVML_SUCCESS)
     {
-        ASSERT_EQ (token, nullptr) << "Test Case : "<< get_name();
         purc_rwstream_destroy(rws);
         pchvml_buffer_destroy(buffer);
         pchvml_destroy(parser);
         return;
     }
-    else {
-        ASSERT_NE (token, nullptr) << "Test Case : "<< get_name();
-    }
-
 
     const char* serial = pchvml_buffer_get_buffer(buffer);
-    ASSERT_STREQ(serial, comp) << "Test Case : "<< get_name();
+    char* result = strdup(serial);
+//    PRINTF("serial : %s", serial);
+    ASSERT_STREQ(trim(result), comp) << "Test Case : "<< get_name();
+    free(result);
 
     purc_rwstream_destroy(rws);
     pchvml_buffer_destroy(buffer);
@@ -199,31 +225,6 @@ char* read_file (const char* file)
     fclose (fp);
     buf[sz] = 0;
     return buf;
-}
-
-char* trim(char *str)
-{
-    if (!str)
-    {
-        return NULL;
-    }
-    char *end;
-
-    while (isspace((unsigned char)*str)) {
-        str++;
-    }
-
-    if(*str == 0) {
-        return str;
-    }
-
-    end = str + strlen(str) - 1;
-    while (end > str && isspace((unsigned char)*end)) {
-        end--;
-    }
-
-    end[1] = '\0';
-    return str;
 }
 
 std::vector<hvml_token_test_data> read_hvml_token_test_data()

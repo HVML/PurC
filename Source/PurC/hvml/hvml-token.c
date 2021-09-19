@@ -394,151 +394,6 @@ enum pchvml_attr_assignment pchvml_token_attr_get_assignment(
     return attr->assignment;
 }
 
-#define APPEND_CHILD_NODE()                                                 \
-    do {                                                                    \
-        struct pctree_node* child = NULL;                                   \
-        struct pctree_node* tree_node = (struct pctree_node*) (node);       \
-        child = tree_node->first_child;                                     \
-        while (child) {                                                     \
-            pchvml_add_pcvcm_node_to_buffer(buffer,                         \
-                    (struct pcvcm_node*)child);                             \
-            child = child->next;                                            \
-            if (child) {                                                    \
-                pchvml_buffer_append_bytes(buffer, ",", 1);            \
-            }                                                               \
-        }                                                                   \
-    } while (false)
-
-#define APPEND_VARIANT()                                                    \
-    do {                                                                    \
-        char buf[1024] = {0};                                               \
-        purc_rwstream_t my_rws = purc_rwstream_new_from_mem(buf, 1023);     \
-        size_t len_expected = 0;                                            \
-        ssize_t n = purc_variant_serialize(v, my_rws,                       \
-                       0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);    \
-        buf[n] = 0;                                                         \
-        purc_rwstream_destroy(my_rws);                                      \
-        pchvml_buffer_append_bytes(buffer, buf, n);                    \
-    } while (false)
-
-void pchvml_add_pcvcm_node_to_buffer (struct pchvml_buffer* buffer,
-        struct pcvcm_node* node)
-{
-    switch (node->type)
-    {
-    case PCVCM_NODE_TYPE_OBJECT:
-        pchvml_buffer_append_bytes(buffer, "make_object(", 12);
-        APPEND_CHILD_NODE();
-        pchvml_buffer_append_bytes(buffer, ")", 1);
-        break;
-
-    case PCVCM_NODE_TYPE_ARRAY:
-        pchvml_buffer_append_bytes(buffer, "make_array(", 11);
-        APPEND_CHILD_NODE();
-        pchvml_buffer_append_bytes(buffer, ")", 1);
-        break;
-
-    case PCVCM_NODE_TYPE_STRING:
-        pchvml_buffer_append_bytes(buffer, (char*)node->sz_ptr[1],
-                node->sz_ptr[0]);
-        break;
-
-    case PCVCM_NODE_TYPE_NULL:
-        pchvml_buffer_append_bytes(buffer, "null", 4);
-        break;
-
-    case PCVCM_NODE_TYPE_BOOLEAN:
-    {
-        purc_variant_t v = purc_variant_make_boolean (node->b);
-        APPEND_VARIANT();
-        purc_variant_unref(v);
-        break;
-    }
-
-    case PCVCM_NODE_TYPE_NUMBER:
-    {
-        purc_variant_t v = purc_variant_make_number (node->d);
-        APPEND_VARIANT();
-        purc_variant_unref(v);
-        break;
-    }
-
-    case PCVCM_NODE_TYPE_LONG_INT:
-    {
-        purc_variant_t v = purc_variant_make_longint (node->i64);
-        APPEND_VARIANT();
-        purc_variant_unref(v);
-        break;
-    }
-
-    case PCVCM_NODE_TYPE_ULONG_INT:
-    {
-        purc_variant_t v = purc_variant_make_ulongint (node->u64);
-        APPEND_VARIANT();
-        purc_variant_unref(v);
-        break;
-    }
-
-    case PCVCM_NODE_TYPE_LONG_DOUBLE:
-    {
-        purc_variant_t v = purc_variant_make_longdouble (node->ld);
-        APPEND_VARIANT();
-        purc_variant_unref(v);
-        break;
-    }
-
-    case PCVCM_NODE_TYPE_BYTE_SEQUENCE:
-    {
-        purc_variant_t v = purc_variant_make_byte_sequence(
-                (void*)node->sz_ptr[1], node->sz_ptr[0]);
-        APPEND_VARIANT();
-        purc_variant_unref(v);
-        break;
-    }
-
-    case PCVCM_NODE_TYPE_FUNC_CONCAT_STRING:
-        pchvml_buffer_append_bytes(buffer, "concat_string(", 14);
-        APPEND_CHILD_NODE();
-        pchvml_buffer_append_bytes(buffer, ")", 1);
-        break;
-
-    case PCVCM_NODE_TYPE_FUNC_GET_VARIABLE:
-        pchvml_buffer_append_bytes(buffer, "get_variable(", 13);
-        APPEND_CHILD_NODE();
-        pchvml_buffer_append_bytes(buffer, ")", 1);
-        break;
-
-    case PCVCM_NODE_TYPE_FUNC_GET_ELEMENT:
-        pchvml_buffer_append_bytes(buffer, "get_element(", 12);
-        APPEND_CHILD_NODE();
-        pchvml_buffer_append_bytes(buffer, ")", 1);
-        break;
-
-    case PCVCM_NODE_TYPE_FUNC_CALL_GETTER:
-        pchvml_buffer_append_bytes(buffer, "call_getter(", 12);
-        APPEND_CHILD_NODE();
-        pchvml_buffer_append_bytes(buffer, ")", 1);
-        break;
-
-    case PCVCM_NODE_TYPE_FUNC_CALL_SETTER:
-        pchvml_buffer_append_bytes(buffer, "call_setter(", 12);
-        APPEND_CHILD_NODE();
-        pchvml_buffer_append_bytes(buffer, ")", 1);
-        break;
-    }
-}
-
-struct pchvml_buffer* pchvml_token_vcm_to_string(
-        struct pcvcm_node* vcm)
-{
-    if (!vcm) {
-        return NULL;
-    }
-    struct pchvml_buffer* buffer = pchvml_buffer_new();
-    pchvml_add_pcvcm_node_to_buffer(buffer, vcm);
-    return buffer;
-}
-
 struct pchvml_buffer* pchvml_token_attr_to_string(
         struct pchvml_token_attr* attr)
 {
@@ -584,37 +439,39 @@ struct pchvml_buffer* pchvml_token_attr_to_string(
         break;
     }
     // value
-    struct pchvml_buffer* vcm_buff = pchvml_token_vcm_to_string(attr->vcm);
-    if (!vcm_buff) {
+    size_t nr_vcm_buffer = 0;
+    char* vcm_buffer = pcvcm_node_to_string(attr->vcm, &nr_vcm_buffer);
+    if (!vcm_buffer) {
         return buffer;
     }
+#if 0
     switch (attr->quote) {
     case '"':
         pchvml_buffer_append_bytes(buffer, "\"", 1);
-        pchvml_buffer_append_temp_buffer(buffer, vcm_buff);
-        pchvml_buffer_destroy(vcm_buff);
+        pchvml_buffer_append_bytes(buffer, vcm_buffer, nr_vcm_buffer);
         pchvml_buffer_append_bytes(buffer, "\"", 1);
         break;
 
     case '\'':
         pchvml_buffer_append_bytes(buffer, "\'", 1);
-        pchvml_buffer_append_temp_buffer(buffer, vcm_buff);
-        pchvml_buffer_destroy(vcm_buff);
+        pchvml_buffer_append_bytes(buffer, vcm_buffer, nr_vcm_buffer);
         pchvml_buffer_append_bytes(buffer, "\'", 1);
         break;
 
     case 'U':
-        pchvml_buffer_append_temp_buffer(buffer, vcm_buff);
-        pchvml_buffer_destroy(vcm_buff);
+        pchvml_buffer_append_bytes(buffer, vcm_buffer, nr_vcm_buffer);
         break;
 
     default:
         pchvml_buffer_append_bytes(buffer, "\"", 1);
-        pchvml_buffer_append_temp_buffer(buffer, vcm_buff);
-        pchvml_buffer_destroy(vcm_buff);
+        pchvml_buffer_append_bytes(buffer, vcm_buffer, nr_vcm_buffer);
         pchvml_buffer_append_bytes(buffer, "\"", 1);
         break;
     }
+#else
+    pchvml_buffer_append_bytes(buffer, vcm_buffer, nr_vcm_buffer);
+#endif
+    free(vcm_buffer);
 
     return buffer;
 }

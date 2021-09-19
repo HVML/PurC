@@ -1,0 +1,1 @@
+<hvml ejson=call_getter(get_variable("EJSON"),make_object("x",make_array(make_object("id","xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")),"id","xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"))></hvml>
