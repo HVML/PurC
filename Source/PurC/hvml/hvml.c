@@ -148,6 +148,25 @@
         return NULL;                                                        \
     } while (false)
 
+#define RETURN_NEW_EOF_TOKEN()                                              \
+    do {                                                                    \
+        if (hvml->token) {                                                  \
+            struct pchvml_token* token = hvml->token;                       \
+            hvml->token = pchvml_token_new_eof();                           \
+            return token;                                                   \
+        }                                                                   \
+        return pchvml_token_new_eof();                                      \
+    } while (false)
+
+#define RETURN_CACHED_TOKEN()                                               \
+    do {                                                                    \
+        if (hvml->token) {                                                  \
+            struct pchvml_token* token = hvml->token;                       \
+            hvml->token = NULL;                                             \
+            return token;                                                   \
+        }                                                                   \
+    } while (false)
+
 #define STATE_DESC(state_name)                                              \
     case state_name:                                                        \
         return ""#state_name;                                               \
@@ -524,10 +543,26 @@ void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
     pchvml_buffer_reset (parser->temp_buffer);
     pchvml_buffer_reset (parser->appropriate_tag_name);
     pchvml_buffer_reset (parser->escape_buffer);
+
+    struct pcvcm_node* n = parser->vcm_node;
+    parser->vcm_node = NULL;
+    while (!pcvcm_stack_is_empty(parser->vcm_stack)) {
+        struct pcvcm_node* node = pcvcm_stack_pop(parser->vcm_stack);
+        if (n) {
+            pctree_node_append_child((struct pctree_node*)node,
+                    (struct pctree_node*)n);
+        }
+        n = node;
+    }
+    pcvcm_node_destroy(n);
     pcvcm_stack_destroy(parser->vcm_stack);
     parser->vcm_stack = pcvcm_stack_new();
     pcutils_stack_destroy(parser->ejson_stack);
     parser->ejson_stack = pcutils_stack_new(0);
+    if (parser->token) {
+        pchvml_token_destroy(parser->token);
+        parser->token = NULL;
+    }
 }
 
 void pchvml_destroy(struct pchvml_parser* parser)
@@ -540,8 +575,22 @@ void pchvml_destroy(struct pchvml_parser* parser)
         if (parser->sbst) {
             pchvml_sbst_destroy(parser->sbst);
         }
+        struct pcvcm_node* n = parser->vcm_node;
+        parser->vcm_node = NULL;
+        while (!pcvcm_stack_is_empty(parser->vcm_stack)) {
+            struct pcvcm_node* node = pcvcm_stack_pop(parser->vcm_stack);
+            if (n) {
+                pctree_node_append_child((struct pctree_node*)node,
+                        (struct pctree_node*)n);
+            }
+            n = node;
+        }
+        pcvcm_node_destroy(n);
         pcvcm_stack_destroy(parser->vcm_stack);
         pcutils_stack_destroy(parser->ejson_stack);
+        if (parser->token) {
+            pchvml_token_destroy(parser->token);
+        }
         PCHVML_FREE(parser);
     }
 }
@@ -823,6 +872,8 @@ struct pchvml_token* pchvml_next_token (struct pchvml_parser* hvml,
                                           purc_rwstream_t rws)
 {
     uint32_t character = 0;
+    RETURN_CACHED_TOKEN();
+
     pchvml_rwswrap_set_rwstream (hvml->rwswrap, rws);
 
 next_input:
@@ -847,7 +898,7 @@ next_state:
                 ADVANCE_TO(PCHVML_TAG_OPEN_STATE);
             }
             if (is_eof(character)) {
-                return pchvml_token_new_eof();
+                RETURN_NEW_EOF_TOKEN();
             }
             APPEND_TO_TOKEN_TEXT(character);
             ADVANCE_TO(PCHVML_DATA_STATE);
@@ -873,7 +924,7 @@ next_state:
                 ADVANCE_TO(PCHVML_RAWTEXT_LESS_THAN_SIGN_STATE);
             }
             if (is_eof(character)) {
-                return pchvml_token_new_eof();
+                RETURN_NEW_EOF_TOKEN();
             }
 
             APPEND_TO_TOKEN_TEXT(character);
@@ -882,7 +933,7 @@ next_state:
 
         BEGIN_STATE(PCHVML_PLAINTEXT_STATE)
             if (is_eof(character)) {
-                return pchvml_token_new_eof();
+                RETURN_NEW_EOF_TOKEN();
             }
 
             APPEND_TO_TOKEN_TEXT(character);
@@ -1111,7 +1162,7 @@ next_state:
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
-                return pchvml_token_new_eof();
+                RETURN_NEW_EOF_TOKEN();
             }
             if (character == '$' || character == '%' || character == '+'
                     || character == '-' || character == '^'
@@ -2184,7 +2235,7 @@ next_state:
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
-                return pchvml_token_new_eof();
+                RETURN_NEW_EOF_TOKEN();
             }
             hvml->vcm_tree = NULL;
             RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
@@ -2256,7 +2307,7 @@ next_state:
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
-                return pchvml_token_new_eof();
+                RETURN_NEW_EOF_TOKEN();
             }
             PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
             RETURN_AND_STOP_PARSE();
@@ -2344,7 +2395,7 @@ next_state:
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
-                return pchvml_token_new_eof();
+                RETURN_NEW_EOF_TOKEN();
             }
             if (character == ',') {
                 if (uc == '{') {
@@ -2423,7 +2474,7 @@ next_state:
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
-                return pchvml_token_new_eof();
+                RETURN_NEW_EOF_TOKEN();
             }
             uint32_t uc = pcutils_stack_top (hvml->ejson_stack);
             if (character == '}') {
@@ -2548,7 +2599,7 @@ next_state:
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
-                return pchvml_token_new_eof();
+                RETURN_NEW_EOF_TOKEN();
             }
             PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
             RETURN_AND_STOP_PARSE();
@@ -2560,7 +2611,7 @@ next_state:
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
-                return pchvml_token_new_eof();
+                RETURN_NEW_EOF_TOKEN();
             }
             uint32_t uc = pcutils_stack_top(hvml->ejson_stack);
             if (character == ']') {
@@ -2635,7 +2686,7 @@ next_state:
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
-                return pchvml_token_new_eof();
+                RETURN_NEW_EOF_TOKEN();
             }
             if (hvml->vcm_node->type ==
                     PCVCM_NODE_TYPE_FUNC_GET_VARIABLE ||
@@ -2690,7 +2741,7 @@ next_state:
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
-                return pchvml_token_new_eof();
+                RETURN_NEW_EOF_TOKEN();
             }
             if (character == '$') {
                 if (hvml->vcm_node) {
@@ -2715,7 +2766,7 @@ next_state:
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
-                return pchvml_token_new_eof();
+                RETURN_NEW_EOF_TOKEN();
             }
             if (character == '"' || character == '\'') {
                 struct pcvcm_node* node = pcvcm_node_new_string(
@@ -2894,7 +2945,7 @@ next_state:
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
-                return pchvml_token_new_eof();
+                RETURN_NEW_EOF_TOKEN();
             }
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(PCHVML_EJSON_NAME_SINGLE_QUOTED_STATE);
@@ -2929,7 +2980,7 @@ next_state:
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
-                return pchvml_token_new_eof();
+                RETURN_NEW_EOF_TOKEN();
             }
             if (character == '$') {
                 if (hvml->vcm_node) {
@@ -2969,7 +3020,7 @@ next_state:
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
-                return pchvml_token_new_eof();
+                RETURN_NEW_EOF_TOKEN();
             }
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(PCHVML_EJSON_VALUE_SINGLE_QUOTED_STATE);
@@ -2993,7 +3044,7 @@ next_state:
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
-                return pchvml_token_new_eof();
+                RETURN_NEW_EOF_TOKEN();
             }
             if (character == '$') {
                 if (hvml->vcm_node) {
@@ -3077,7 +3128,7 @@ next_state:
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
-                return pchvml_token_new_eof();
+                RETURN_NEW_EOF_TOKEN();
             }
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(PCHVML_EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE);
@@ -4138,7 +4189,7 @@ next_state:
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
-                return pchvml_token_new_eof();
+                RETURN_NEW_EOF_TOKEN();
             }
             if (character == ':' && uc == ':') {
                 PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
