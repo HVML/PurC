@@ -34,10 +34,12 @@
 #define VTT(x)  PCHVML_TOKEN##x
 #endif // VTT
 
+#ifndef D
 #define D(fmt, ...)                                    \
     fprintf(stderr, "%s[%d]:%s(): " fmt "\n",          \
         basename((char*)__FILE__), __LINE__, __func__, \
         ##__VA_ARGS__);
+#endif // D
 
 static int
 _push_node(struct pcvdom_gen *gen, struct pcvdom_node *node)
@@ -106,6 +108,8 @@ _create_element(struct pcvdom_gen *gen, struct pchvml_token *token)
     int r = 0;
 
     for (size_t i=0; i<nr_attrs; ++i) {
+        // TODO: how to traverse attr
+        if (1) continue;
         struct pchvml_token_attr *attr;
         attr = pchvml_token_get_attr(token, i);
         const char *name;
@@ -113,19 +117,28 @@ _create_element(struct pcvdom_gen *gen, struct pchvml_token *token)
         struct pcvcm_node *vcm;
         name = pchvml_token_attr_get_name(attr);
         op = pchvml_token_attr_get_assignment(attr);
-        vcm = (struct pcvcm_node*)pchvml_token_attr_get_value(attr);
+        vcm = (struct pcvcm_node*)pchvml_token_attr_get_value_ex(attr, true);
 
         struct pcvdom_attr *vattr;
         vattr = pcvdom_attr_create(name, op, vcm);
+        if (vattr) {
+            pcvdom_attr_destroy(vattr);
+            continue;
+        }
 
         if (!vattr) {
             r = -1;
+            if (vcm) {
+                pcvcm_node_destroy(vcm);
+            }
             break;
         }
 
         r = pcvdom_element_append_attr(elem, vattr);
-        if (r)
+        if (r) {
+            pcvdom_attr_destroy(vattr);
             break;
+        }
     }
 
     if (r)
@@ -235,6 +248,13 @@ _on_start_tag(struct pcvdom_gen *gen, struct pchvml_token *token)
 
         r = _push_node(gen, &hvml->node);
         if (r) {
+            pcvdom_node_destroy(&hvml->node);
+            return -1;
+        }
+
+        r = pcvdom_document_set_root(gen->doc, hvml);
+        if (r) {
+            _pop_node(gen);
             pcvdom_node_destroy(&hvml->node);
             return -1;
         }

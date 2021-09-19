@@ -5,6 +5,7 @@
 #include "hvml-parser.h"
 
 #include <gtest/gtest.h>
+#include <dirent.h>
 
 TEST(vdom_gen, basic)
 {
@@ -23,10 +24,9 @@ end:
         pcvdom_document_destroy(doc);
 }
 
-TEST(vdom_gen, file)
+static void
+_process_file(const char *fn)
 {
-    int r = 0;
-    const char *src = NULL;
     FILE *fin = NULL;
     purc_rwstream_t rin = NULL;
     struct pchvml_parser *parser = NULL;
@@ -34,20 +34,11 @@ TEST(vdom_gen, file)
     struct pcvdom_document *doc = NULL;
     struct pchvml_token *token = NULL;
 
-    purc_instance_extra_info info = {0, 0};
-    r = purc_init("cn.fmsoft.hybridos.test",
-        "vdom_gen", &info);
-    ASSERT_EQ(r, PURC_ERROR_OK);
-
-    src = getenv("SOURCE_FILE");
-    ASSERT_NE(src, nullptr) << "You shall specify via env `SOURCE_FILE`"
-                            << std::endl;
-
-    fin = fopen(src, "r");
+    fin = fopen(fn, "r");
     if (!fin) {
         int err = errno;
         EXPECT_NE(fin, nullptr) << "Failed to open ["
-            << src << "]: [" << err << "]" << strerror(err) << std::endl;
+            << fn << "]: [" << err << "]" << strerror(err) << std::endl;
         goto end;
     }
 
@@ -68,11 +59,13 @@ TEST(vdom_gen, file)
 again:
     if (token)
         pchvml_token_destroy(token);
+
     token = pchvml_next_token(parser, rin);
 
-    if (0==pcvdom_gen_push_token(gen, token)) {
+    if (token && 0==pcvdom_gen_push_token(gen, token)) {
         if (pchvml_token_is_type(token, PCHVML_TOKEN_EOF)) {
             doc = pcvdom_gen_end(gen);
+            std::cout << "Succeeded in parsing: [" << fn << "]" << std::endl;
             goto end;
         }
         goto again;
@@ -98,7 +91,44 @@ end:
 
     if (fin)
         fclose(fin);
+}
 
+TEST(vdom_gen, files)
+{
+    int r = 0;
+    DIR *d = NULL;
+    struct dirent *dir = NULL;
+
+    purc_instance_extra_info info = {0, 0};
+    r = purc_init("cn.fmsoft.hybridos.test",
+        "vdom_gen", &info);
+    EXPECT_EQ(r, PURC_ERROR_OK);
+    if (r)
+        return;
+
+    const char *env = "SOURCE_FILES_DIR";
+    const char *path = getenv("SOURCE_FILES_DIR");
+    std::cout << "env: " << env << "=" << path << std::endl;
+    EXPECT_NE(path, nullptr) << "You shall specify via env `SOURCE_FILES_DIR`"
+                            << std::endl;
+    if (!path)
+        goto end;
+
+    d = opendir(path);
+    EXPECT_NE(d, nullptr) << "Failed to open dir @["
+            << path << "]: [" << errno << "]" << strerror(errno)
+            << std::endl;
+
+    if (d) {
+        chdir(path);
+        while ((dir = readdir(d)) != NULL) {
+            if (dir->d_type & DT_REG)
+                _process_file(dir->d_name);
+        }
+        closedir(d);
+    }
+
+end:
     purc_cleanup ();
 }
 

@@ -539,6 +539,8 @@ void pchvml_destroy(struct pchvml_parser* parser)
         }
         pcvcm_stack_destroy(parser->vcm_stack);
         pcutils_stack_destroy(parser->ejson_stack);
+        if (parser->token)
+            pchvml_token_destroy(parser->token);
         PCHVML_FREE(parser);
     }
 }
