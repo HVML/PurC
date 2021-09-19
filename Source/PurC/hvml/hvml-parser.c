@@ -209,8 +209,7 @@ _on_doctype(struct pcvdom_gen *gen, struct pchvml_token *token)
     D("");
     struct pcvdom_node *node = _top_node(gen);
     if (!_is_doc_node(gen, node)) {
-        // ignore
-        return 0;
+        return -1;
     }
 
     const char *txt = pchvml_token_get_text(token);
@@ -218,12 +217,13 @@ _on_doctype(struct pcvdom_gen *gen, struct pchvml_token *token)
     const char *si  = pchvml_token_get_system_information(token);
     (void)txt; (void)id;
 
-    int r;
-    r = pcvdom_document_set_doctype(gen->doc, si);
+    int r = 0;
+    if (si)
+        r = pcvdom_document_set_doctype(gen->doc, si);
 
     // TODO: check r
 
-    return r ? 0 : 0;
+    return r ? -1 : 0;
 }
 
 static int
@@ -238,9 +238,9 @@ _on_start_tag(struct pcvdom_gen *gen, struct pchvml_token *token)
     fprintf(stderr, "tag: [%s]\n", tag);
     if (is_doc) {
         if (strcmp(tag, "hvml"))
-            return 0; // ignore
+            return -1;
         if (gen->doc->root)
-            return 0; // already set, ignore
+            return -1;
         struct pcvdom_element *hvml;
         hvml = _create_element(gen, token);
         if (!hvml)
@@ -282,7 +282,7 @@ _on_comment(struct pcvdom_gen *gen, struct pchvml_token *token)
     D("");
     UNUSED_PARAM(gen);
     UNUSED_PARAM(token);
-    return 0;
+    return -1;
 }
 
 static int
@@ -306,7 +306,7 @@ _on_vcm_tree(struct pcvdom_gen *gen, struct pchvml_token *token)
     D("");
     UNUSED_PARAM(gen);
     UNUSED_PARAM(token);
-    return 0;
+    return -1;
 }
 
 static int
@@ -314,7 +314,7 @@ _on_eof(struct pcvdom_gen *gen)
 {
     D("");
     if (gen->eof)
-        return 0;
+        return -1;
 
     struct pcvdom_node *node = NULL;
     while ((node=_pop_node(gen))) {
