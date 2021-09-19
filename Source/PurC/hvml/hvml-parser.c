@@ -41,6 +41,14 @@
         ##__VA_ARGS__);
 #endif // D
 
+#ifndef FAIL_RET
+#define FAIL_RET()        \
+    do {                  \
+        D("");            \
+        return -1;        \
+    } while (0)
+#endif // FAIL_RET
+
 static int
 _push_node(struct pcvdom_gen *gen, struct pcvdom_node *node)
 {
@@ -209,7 +217,7 @@ _on_doctype(struct pcvdom_gen *gen, struct pchvml_token *token)
     D("");
     struct pcvdom_node *node = _top_node(gen);
     if (!_is_doc_node(gen, node)) {
-        return -1;
+        FAIL_RET();
     }
 
     const char *txt = pchvml_token_get_text(token);
@@ -223,6 +231,9 @@ _on_doctype(struct pcvdom_gen *gen, struct pchvml_token *token)
 
     // TODO: check r
 
+    if (r)
+        FAIL_RET();
+
     return r ? -1 : 0;
 }
 
@@ -235,33 +246,42 @@ _on_start_tag(struct pcvdom_gen *gen, struct pchvml_token *token)
 
     int r = 0;
     const char *tag = pchvml_token_get_name(token);
-    fprintf(stderr, "tag: [%s]\n", tag);
     if (is_doc) {
         if (strcmp(tag, "hvml"))
-            return -1;
+            FAIL_RET();
         if (gen->doc->root)
-            return -1;
-        struct pcvdom_element *hvml;
-        hvml = _create_element(gen, token);
-        if (!hvml)
-            return -1;
+            FAIL_RET();
+    } else {
+        if (strcmp(tag, "hvml")==0)
+            FAIL_RET();
+        if (gen->doc->root==NULL)
+            FAIL_RET();
+    }
 
-        r = _push_node(gen, &hvml->node);
+    struct pcvdom_element *elem;
+    elem = _create_element(gen, token);
+    if (!elem)
+        FAIL_RET();
+
+    if (!pchvml_token_is_self_closing(token)) {
+        r = _push_node(gen, &elem->node);
         if (r) {
-            pcvdom_node_destroy(&hvml->node);
-            return -1;
+            pcvdom_node_destroy(&elem->node);
+            FAIL_RET();
+        }
+    }
+
+    if (is_doc) {
+        r = pcvdom_document_set_root(gen->doc, elem);
+        if (r) {
+            if (!pchvml_token_is_self_closing(token)) {
+                _pop_node(gen);
+            }
+            pcvdom_node_destroy(&elem->node);
+            FAIL_RET();
         }
 
-        r = pcvdom_document_set_root(gen->doc, hvml);
-        if (r) {
-            _pop_node(gen);
-            pcvdom_node_destroy(&hvml->node);
-            return -1;
-        }
-
-        gen->doc->root = hvml;
-
-        return 0;
+        gen->doc->root = elem;
     }
 
     return 0;
@@ -271,8 +291,24 @@ static int
 _on_end_tag(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
     D("");
-    UNUSED_PARAM(gen);
-    UNUSED_PARAM(token);
+    struct pcvdom_node *node = _top_node(gen);
+    int is_doc = _is_doc_node(gen, node);
+
+    if (is_doc)
+        FAIL_RET();
+
+    struct pcvdom_element *elem;
+    elem = container_of(node, struct pcvdom_element, node);
+    const char *tagname = pcvdom_element_get_tagname(elem);
+    const char *tag = pchvml_token_get_name(token);
+
+    if (!tagname || !tag || strcmp(tagname, tag)) {
+        fprintf(stderr, "[%s] != [%s]\n", tagname, tag);
+        FAIL_RET();
+    }
+
+    _pop_node(gen);
+
     return 0;
 }
 
@@ -282,7 +318,7 @@ _on_comment(struct pcvdom_gen *gen, struct pchvml_token *token)
     D("");
     UNUSED_PARAM(gen);
     UNUSED_PARAM(token);
-    return -1;
+    FAIL_RET();
 }
 
 static int
@@ -296,7 +332,8 @@ _on_character(struct pcvdom_gen *gen, struct pchvml_token *token)
         return 0; // ignore
 
     const char *txt = pchvml_token_get_text(token);
-    fprintf(stderr, "txt: [%s]\n", txt);
+    (void)txt;
+
     return 0;
 }
 
@@ -306,7 +343,7 @@ _on_vcm_tree(struct pcvdom_gen *gen, struct pchvml_token *token)
     D("");
     UNUSED_PARAM(gen);
     UNUSED_PARAM(token);
-    return -1;
+    FAIL_RET();
 }
 
 static int
@@ -314,7 +351,7 @@ _on_eof(struct pcvdom_gen *gen)
 {
     D("");
     if (gen->eof)
-        return -1;
+        FAIL_RET();
 
     struct pcvdom_node *node = NULL;
     while ((node=_pop_node(gen))) {
@@ -338,10 +375,10 @@ pcvdom_gen_push_token(struct pcvdom_gen *gen,
         // generate a new document object
         gen->doc = pcvdom_document_create();
         if (!gen->doc)
-            return -1;
+            FAIL_RET();
         if (_push_node(gen, &gen->doc->node)) {
             pcvdom_document_destroy(gen->doc);
-            return -1;
+            FAIL_RET();
         }
         PC_ASSERT(_is_doc_node(gen, _top_node(gen)));
     }
