@@ -813,6 +813,8 @@ TEST(dvobjs, dvobjs_math_bc)
                 _process_file(func, dir->d_name, l, sizeof(l));
                 _eval_bc(dir->d_name, r, sizeof(r));
                 fprintf(stderr, "[%s] =?= [%s]\n", l, r);
+                EXPECT_STREQ(l, r) << "Failed to parse bc file: ["
+                    << dir->d_name << "]" << std::endl;
             }
         }
         closedir(d);
