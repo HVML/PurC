@@ -214,7 +214,9 @@ statements:
 
 nop:
   '\n'
+| ';'
 | nop '\n'
+| nop ';'
 ;
 
 statement:

@@ -97,7 +97,7 @@ do {                                              \
           if (state != INITIAL) return -1;
           yyterminate(); }
 
-[-+*/()^]    { return *yytext; }
+[-+*/()^;]   { return *yytext; }
 
 0                { yylval->str = strdup(yytext); return MKT(NUMBER); }
 [1-9][0-9]*      { yylval->str = strdup(yytext); return MKT(NUMBER); }
