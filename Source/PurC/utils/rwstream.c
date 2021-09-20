@@ -474,7 +474,7 @@ int purc_rwstream_read_utf8_char (purc_rwstream_t rws, char* buf_utf8,
     ssize_t ret =  purc_rwstream_read (rws, buf_utf8, 1);
     if (ret != 1)
     {
-        return -1;
+        return ret;
     }
 
     int n = 1;
