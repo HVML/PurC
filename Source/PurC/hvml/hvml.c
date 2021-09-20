@@ -279,11 +279,6 @@
         pchvml_buffer_append_temp_buffer(hvml->temp_buffer, buffer);        \
     } while (false)
 
-#define APPEND_TO_ESCAPE_BUFFER(uc)                                         \
-    do {                                                                    \
-        pchvml_buffer_append(hvml->escape_buffer, uc);                      \
-    } while (false)
-
 #define RESET_STRING_BUFFER()                                               \
     do {                                                                    \
         pchvml_buffer_reset(hvml->string_buffer);                           \
@@ -542,7 +537,6 @@ struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
     parser->rwswrap = pchvml_rwswrap_new ();
     parser->temp_buffer = pchvml_buffer_new ();
     parser->appropriate_tag_name = pchvml_buffer_new ();
-    parser->escape_buffer = pchvml_buffer_new ();
     parser->string_buffer = pchvml_buffer_new ();
     parser->vcm_stack = pcvcm_stack_new();
     parser->ejson_stack = pcutils_stack_new(0);
@@ -560,7 +554,6 @@ void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
     parser->rwswrap = pchvml_rwswrap_new ();
     pchvml_buffer_reset (parser->temp_buffer);
     pchvml_buffer_reset (parser->appropriate_tag_name);
-    pchvml_buffer_reset (parser->escape_buffer);
     pchvml_buffer_reset (parser->string_buffer);
 
     struct pcvcm_node* n = parser->vcm_node;
@@ -590,7 +583,6 @@ void pchvml_destroy(struct pchvml_parser* parser)
         pchvml_rwswrap_destroy (parser->rwswrap);
         pchvml_buffer_destroy (parser->temp_buffer);
         pchvml_buffer_destroy (parser->appropriate_tag_name);
-        pchvml_buffer_destroy (parser->escape_buffer);
         pchvml_buffer_destroy (parser->string_buffer);
         if (parser->sbst) {
             pchvml_sbst_destroy(parser->sbst);
@@ -3852,7 +3844,7 @@ next_state:
                     ADVANCE_TO(hvml->return_state);
                     break;
                 case 'u':
-                    pchvml_buffer_reset(hvml->escape_buffer);
+                    RESET_STRING_BUFFER();
                     ADVANCE_TO(
                       PCHVML_EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS_STATE);
                     break;
@@ -3865,13 +3857,13 @@ next_state:
 
         BEGIN_STATE(PCHVML_EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS_STATE)
             if (is_ascii_hex_digit(character)) {
-                APPEND_TO_ESCAPE_BUFFER(character);
+                APPEND_TO_STRING_BUFFER(character);
                 size_t nr_chars = pchvml_buffer_get_size_in_chars(
-                        hvml->escape_buffer);
+                        hvml->string_buffer);
                 if (nr_chars == 4) {
                     APPEND_BYTES_TO_TEMP_BUFFER("\\u", 2);
-                    APPEND_BUFFER_TO_TEMP_BUFFER(hvml->escape_buffer);
-                    pchvml_buffer_reset(hvml->escape_buffer);
+                    APPEND_BUFFER_TO_TEMP_BUFFER(hvml->string_buffer);
+                    RESET_STRING_BUFFER();
                     ADVANCE_TO(hvml->return_state);
                 }
                 ADVANCE_TO(
