@@ -1,0 +1,1 @@
+<hvml name=concat_string("attr",get_variable("VAR"))></hvml>
