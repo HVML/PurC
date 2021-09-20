@@ -1,8 +1,8 @@
 /*
- * @file make_array.c
+ * @file make_simple_array.c
  * @author Vincent Wei
  * @date 2021/09/16
- * @brief A sample demonstrating how to make an array and
+ * @brief A sample demonstrating how to make a simple array and
  *      manage the anonymous members correctly.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
@@ -30,71 +30,48 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#define TABLE_SIZE(table)                               \
-    (sizeof(table)/sizeof(table[0]))
-
-#define DEF_ANONY_VARS(postfix, nr)                     \
-    purc_variant_t vars_##postfix[nr] = { NULL };       \
-    size_t nr_##postfix = 0;
-
-#define MAKE_ANONY_VAR(postfix, v)                                      \
-    do {                                                                \
-        if (v == PURC_VARIANT_INVALID) {                                \
-            goto error_##postfix;                                       \
-        }                                                               \
-                                                                        \
-        vars_##postfix[nr_##postfix] = v;                               \
-        nr_##postfix++;                                                 \
-    } while (0)
-
-#define UNREF_ANONY_VARS(postfix)                                       \
-error_##postfix:                                                        \
-    do {                                                                \
-        for (size_t i = 0; i < nr_##postfix; i++) {                     \
-            assert(vars_##postfix[i] != NULL);                          \
-            purc_variant_unref(vars_##postfix[i]);                      \
-            vars_##postfix[i] = NULL;                                   \
-        }                                                               \
-    } while (0)
-
 /* XXX: overflow uint64 since fibonacci[93] */
 #define NR_MEMBERS      93
+
+#define APPEND_ANONY_VAR(array, v)                                      \
+    do {                                                                \
+        if (v == PURC_VARIANT_INVALID ||                                \
+                !purc_variant_array_append(array, v))                   \
+            goto error;                                                 \
+        purc_variant_unref(v);                                          \
+    } while (0)
 
 static purc_variant_t make_fibonacci_array(void)
 {
     purc_variant_t fibonacci;
 
     fibonacci = purc_variant_make_array(0, PURC_VARIANT_INVALID);
-    if (fibonacci) {
+    if (fibonacci != PURC_VARIANT_INVALID) {
         int i;
         uint64_t a1 = 1, a2 = 1, a3;
         purc_variant_t v;
-        DEF_ANONY_VARS(number, NR_MEMBERS);
 
         v = purc_variant_make_ulongint(a1);
-        MAKE_ANONY_VAR(number, v);
+        APPEND_ANONY_VAR(fibonacci, v);
 
         v = purc_variant_make_ulongint(a2);
-        MAKE_ANONY_VAR(number, v);
+        APPEND_ANONY_VAR(fibonacci, v);
 
         for (i = 2; i < NR_MEMBERS; i++) {
             a3 = a1 + a2;
             v = purc_variant_make_ulongint(a3);
-            MAKE_ANONY_VAR(number, v);
+            APPEND_ANONY_VAR(fibonacci, v);
 
             a1 = a2;
             a2 = a3;
         }
-
-        for (i = 0; i < NR_MEMBERS; i++) {
-            /* XXX: we ignore the failure of appending a member */
-            purc_variant_array_append(fibonacci, vars_number[i]);
-        }
-
-        UNREF_ANONY_VARS(number);
     }
 
     return fibonacci;
+
+error:
+    purc_variant_unref(fibonacci);
+    return PURC_VARIANT_INVALID;
 }
 
 static void quit_on_error(int errcode)
