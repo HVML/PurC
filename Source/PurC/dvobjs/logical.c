@@ -383,7 +383,7 @@ logical_eq (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     value1 = get_variant_value (argv[0]);
     value2 = get_variant_value (argv[1]);
 
-    if (fabs (value1 - value2) < 1.0E-10) 
+    if (fabsl (value1 - value2) < 1.0E-10) 
         ret_var = purc_variant_make_boolean (true);
     else
         ret_var = purc_variant_make_boolean (false);
@@ -413,7 +413,7 @@ logical_ne (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     value1 = get_variant_value (argv[0]);
     value2 = get_variant_value (argv[1]);
 
-    if (fabs (value1 - value2) >= 1.0E-10) 
+    if (fabsl (value1 - value2) >= 1.0E-10) 
         ret_var = purc_variant_make_boolean (true);
     else
         ret_var = purc_variant_make_boolean (false);

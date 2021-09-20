@@ -10,6 +10,7 @@
 #include "private/dvobjs.h"
 
 #include <stdio.h>
+#include <dirent.h>
 #include <errno.h>
 #include <math.h>
 #include <gtest/gtest.h>
@@ -605,7 +606,11 @@ TEST(dvobjs, dvobjs_math_samples)
         {"1 + - 2", "-1"},
         {"x = (3 + 7) * (2 + 3 * 4)\nx*3", "420"},
         {"-(3+4)", "-7"},
-        {"-(3-4)", "1"},
+        {"1+2\n", "3"},
+        {"1+2\n\n", "3"},
+        {"\n\n1+2\n\n", "3"},
+        {"\n\n1+2", "3"},
+        {"\n1+2", "3"},
     };
     purc_variant_t param[10];
 
@@ -659,6 +664,163 @@ TEST(dvobjs, dvobjs_math_samples)
 
     purc_rwstream_destroy(ws);
     purc_variant_unref(math);
+
+    purc_cleanup ();
+}
+
+static void
+_trim_tail_spaces(char *dest, size_t n)
+{
+    while (n>1) {
+        if (!isspace(dest[n-1]))
+            break;
+        dest[--n] = '\0';
+    }
+}
+
+static void
+_eval(purc_dvariant_method func, const char *expr,
+    char *dest, size_t dlen)
+{
+    size_t n = 0;
+    dest[0] = '\0';
+
+    purc_variant_t param[3];
+    param[0] = purc_variant_make_string(expr, false);
+    param[1] = PURC_VARIANT_INVALID;
+    param[2] = NULL;
+
+    purc_variant_t ret_var = func(NULL, 2, param);
+    purc_variant_unref(param[0]);
+    if (param[1])
+        purc_variant_unref(param[1]);
+
+    if (!ret_var) {
+        EXPECT_NE(ret_var, nullptr) << "eval failed: ["
+            << expr << "]" << std::endl;
+        return;
+    }
+
+    purc_rwstream_t ows;
+    ows = purc_rwstream_new_from_mem(dest, dlen-1);
+    if (!ows)
+        goto end;
+
+    purc_variant_serialize(ret_var, ows, 0, 0, &n);
+    purc_rwstream_get_mem_buffer(ows, NULL);
+    dest[n] = '\0';
+    _trim_tail_spaces(dest, n);
+
+    purc_rwstream_destroy(ows);
+
+end:
+    purc_variant_unref(ret_var);
+}
+
+static void
+_eval_bc(const char *fn, char *dest, size_t dlen)
+{
+    FILE *fin = NULL;
+    char cmd[8192];
+    size_t n = 0;
+
+    snprintf(cmd, sizeof(cmd), "cat '%s' | bc", fn);
+    fin = popen(cmd, "r");
+    EXPECT_NE(fin, nullptr) << "failed to execute: [" << cmd << "]"
+        << std::endl;
+    if (!fin)
+        goto end;
+
+    n = fread(dest, 1, dlen-1, fin);
+    dest[n] = '\0';
+    _trim_tail_spaces(dest, n);
+
+end:
+    if (fin)
+        pclose(fin);
+}
+
+static void
+_process_file(purc_dvariant_method func, const char *fn,
+    char *dest, size_t dlen)
+{
+    FILE *fin = NULL;
+    size_t sz = 0;
+    char buf[8192];
+    buf[0] = '\0';
+
+    fin = fopen(fn, "r");
+    if (!fin) {
+        int err = errno;
+        EXPECT_NE(fin, nullptr) << "Failed to open ["
+            << fn << "]: [" << err << "]" << strerror(err) << std::endl;
+        goto end;
+    }
+
+    sz = fread(buf, 1, sizeof(buf)-1, fin);
+    buf[sz] = '\0';
+
+    _eval(func, buf, dest, dlen);
+
+end:
+    if (fin)
+        fclose(fin);
+}
+
+TEST(dvobjs, dvobjs_math_bc)
+{
+    int r = 0;
+    DIR *d = NULL;
+    struct dirent *dir = NULL;
+
+    purc_instance_extra_info info = {0, 0};
+    r = purc_init("cn.fmsoft.hybridos.test",
+        "dvobjs_math_bc", &info);
+    EXPECT_EQ(r, PURC_ERROR_OK);
+    if (r)
+        return;
+
+    purc_variant_t math = pcdvojbs_get_math();
+    ASSERT_NE(math, nullptr);
+    ASSERT_EQ(purc_variant_is_object (math), true);
+
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (math, "eval");
+    ASSERT_NE(dynamic, nullptr);
+    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+
+    purc_dvariant_method func = NULL;
+    func = purc_variant_dynamic_get_getter (dynamic);
+    ASSERT_NE(func, nullptr);
+
+    const char *env = "BC_FILES_DIR";
+    const char *path = getenv(env);
+    std::cout << "env: " << env << "=" << path << std::endl;
+    EXPECT_NE(path, nullptr) << "You shall specify via env `"
+        << env << "`" << std::endl;
+    if (!path)
+        goto end;
+
+    d = opendir(path);
+    EXPECT_NE(d, nullptr) << "Failed to open dir @["
+            << path << "]: [" << errno << "]" << strerror(errno)
+            << std::endl;
+
+    if (d) {
+        chdir(path);
+        while ((dir = readdir(d)) != NULL) {
+            if (dir->d_type & DT_REG) {
+                char l[8192], r[8192];
+                _process_file(func, dir->d_name, l, sizeof(l));
+                _eval_bc(dir->d_name, r, sizeof(r));
+                fprintf(stderr, "[%s] =?= [%s]\n", l, r);
+            }
+        }
+        closedir(d);
+    }
+
+end:
+    if (math)
+        purc_variant_unref(math);
 
     purc_cleanup ();
 }

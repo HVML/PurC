@@ -200,13 +200,21 @@
 %% /* The grammar follows. */
 
 input:
-  statements
+  %empty
+| statements
+| statements nop
+| nop statements
+| nop statements nop
 ;
 
 statements:
-  %empty
-| statement
-| statements '\n' statement
+  statement
+| statements nop statement
+;
+
+nop:
+  '\n'
+| nop '\n'
 ;
 
 statement:
