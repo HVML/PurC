@@ -167,8 +167,7 @@ TEST_P(hvml_parser_next_token, parse_and_serialize)
     struct pchvml_parser* parser = pchvml_create(0, 32);
     //fprintf(stderr, "hvml=%s|len=%ld\n", hvml, strlen(hvml));
     //fprintf(stderr, "comp=%s\n", comp);
-    // read end of string as eof
-    size_t sz = strlen (hvml) + 1;
+    size_t sz = strlen (hvml);
     purc_rwstream_t rws = purc_rwstream_new_from_mem((void*)hvml, sz);
 
     struct pchvml_buffer* buffer = pchvml_buffer_new();
