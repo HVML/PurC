@@ -2358,6 +2358,9 @@ next_state:
                         && (uc == '"' || uc == '\'' || uc == 'U')) {
                     RECONSUME_IN(PCHVML_EJSON_AFTER_JSONEE_STRING_STATE);
                 }
+                if (pcutils_stack_is_empty(hvml->ejson_stack)) {
+                    RECONSUME_IN(PCHVML_EJSON_FINISHED_STATE);
+                }
                 ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
             }
             if (character == '{') {
