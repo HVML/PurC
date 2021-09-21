@@ -2822,8 +2822,8 @@ next_state:
             if (character == ')') {
                 RECONSUME_IN(PCHVML_EJSON_RIGHT_PARENTHESIS_STATE);
             }
+            uint32_t uc = pcutils_stack_top(hvml->ejson_stack);
             if (character == ',') {
-                uint32_t uc = pcutils_stack_top(hvml->ejson_stack);
                 if (uc == '{') {
                     pcutils_stack_pop(hvml->ejson_stack);
                     ADVANCE_TO(PCHVML_EJSON_BEFORE_NAME_STATE);
@@ -2877,6 +2877,9 @@ next_state:
                 }
                 PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
                 RETURN_AND_STOP_PARSE();
+            }
+            if (uc == '"' || uc  == 'U') {
+                RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
             }
             PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
             RETURN_AND_STOP_PARSE();

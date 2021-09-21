@@ -1,0 +1,1 @@
+<hvml name=concat_string("test string with jsonee ",get_element(get_variable("VAR"),"0"),get_element(get_variable("VVV"),"BBB",call_getter(get_element(get_variable("A"),"C"),123,456,make_array(1,2,3))),"at here.")></hvml>
