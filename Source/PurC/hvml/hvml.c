@@ -4120,7 +4120,7 @@ next_state:
             if (is_whitespace(character) || character == '[' ||
                     character == '(' || character == '<' || character == '}' ||
                     character == '$' || character == '>' || character == ']'
-                    || character == ')') {
+                    || character == ')' || character == '"') {
                 if (pchvml_buffer_is_empty(hvml->temp_buffer)) {
                     PCHVML_SET_ERROR(PCHVML_ERROR_BAD_JSONEE_KEYWORD);
                     RETURN_AND_STOP_PARSE();
@@ -4219,6 +4219,16 @@ next_state:
                 ADVANCE_TO(PCHVML_EJSON_STRING_ESCAPE_STATE);
             }
             if (character == '"') {
+                if (hvml->vcm_node) {
+                    struct pcvcm_node* node = pcvcm_stack_pop(hvml->vcm_stack);
+                    if (node) {
+                        pctree_node_append_child(
+                                (struct pctree_node*)node,
+                                (struct pctree_node*)hvml->vcm_node);
+                        SET_VCM_NODE(node);
+                    }
+                    pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
+                }
                 hvml->vcm_node = pcvcm_node_new_string(
                         pchvml_buffer_get_buffer(hvml->temp_buffer));
                 RESET_TEMP_BUFFER();
