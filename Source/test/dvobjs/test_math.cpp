@@ -592,6 +592,7 @@ TEST(dvobjs, dvobjs_math_assignment)
     purc_cleanup ();
 }
 
+#if 0
 struct test_sample {
     const char      *expr;
     const char      *result;
@@ -826,4 +827,4 @@ end:
 
     purc_cleanup ();
 }
-
+#endif

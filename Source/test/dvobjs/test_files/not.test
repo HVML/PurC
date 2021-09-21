@@ -22,7 +22,7 @@
 # native:;
 # object:2:"key1";boolean:true;"key2";boolean:false;
 # array:2:boolean:true;boolean:false;
-# set:2:object:2:"key1";boolean:true;"key2";boolean:false;object:2:"abc";boolean:false;"xyz";boolean:true;
+# set:2:object:2:"key1";boolean:false;"key2";boolean:false;object:2:"key1";boolean:false;"key2";boolean:false;
 # invalid:;
 
 # Notation:
@@ -31,191 +31,191 @@
 # 3. One variant must end with ';';
 # 4. The contents in dynamic and native type, are all pointers. So the code constructs pointers, do not input anything.
 
-test_begin_1
+test_begin
 param_begin
 undefined:;
 param_end
 boolean:true;
 test_end
 
-test_begin_2
+test_begin
 param_begin
 null:;
 param_end
 boolean:true;
 test_end
 
-test_begin_3
+test_begin
 param_begin
 boolean:true;
 param_end
 boolean:false;
 test_end
 
-test_begin_4
+test_begin
 param_begin
 boolean:false;
 param_end
 boolean:true;
 test_end
 
-test_begin_5
+test_begin
 param_begin
 number:0.0;
 param_end
 boolean:true;
 test_end
 
-test_begin_6
+test_begin
 param_begin
 number:1.0;
 param_end
 boolean:false;
 test_end
 
-test_begin_7
+test_begin
 param_begin
 number:-1.0;
 param_end
 boolean:false;
 test_end
 
-test_begin_8
+test_begin
 param_begin
 ulongint:1;
 param_end
 boolean:false;
 test_end
 
-test_begin_9
+test_begin
 param_begin
 ulongint:0;
 param_end
 boolean:true;
 test_end
 
-test_begin_10
+test_begin
 param_begin
 longint:0;
 param_end
 boolean:true;
 test_end
 
-test_begin_11
+test_begin
 param_begin
 longint:1;
 param_end
 boolean:false;
 test_end
 
-test_begin_12
+test_begin
 param_begin
 longint:-1;
 param_end
 boolean:false;
 test_end
 
-test_begin_13
+test_begin
 param_begin
 longdouble:-1.0;
 param_end
 boolean:false;
 test_end
 
-test_begin_14
+test_begin
 param_begin
 longdouble:0.0;
 param_end
 boolean:true;
 test_end
 
-test_begin_15
+test_begin
 param_begin
 string:"";
 param_end
 boolean:true;
 test_end
 
-test_begin_16
+test_begin
 param_begin
 string:"hello";
 param_end
 boolean:false;
 test_end
 
-test_begin_17
+test_begin
 param_begin
 atomstring:"";
 param_end
 boolean:true;
 test_end
 
-test_begin_18
+test_begin
 param_begin
 atomstring:"hello";
 param_end
 boolean:false;
 test_end
 
-test_begin_19
+test_begin
 param_begin
 bsequence:"hello world";
 param_end
 boolean:false;
 test_end
 
-test_begin_20
+test_begin
 param_begin
 dynamic:;
 param_end
 boolean:false;
 test_end
 
-test_begin_21
+test_begin
 param_begin
 native:;
 param_end
 boolean:false;
 test_end
 
-test_begin_22
+test_begin
 param_begin
 object:0:;
 param_end
 boolean:true;
 test_end
 
-test_begin_23
+test_begin
 param_begin
 object:2:"key1";boolean:true;"key2";boolean:false;
 param_end
 boolean:false;
 test_end
 
-test_begin_24
+test_begin
 param_begin
 array:0:;
 param_end
 boolean:true;
 test_end
 
-test_begin_25
+test_begin
 param_begin
 array:2:boolean:true;boolean:false;
 param_end
 boolean:false;
 test_end
 
-test_begin_26
+test_begin
 param_begin
 set:0:;
 param_end
 boolean:true;
 test_end
 
-test_begin_27
+test_begin
 param_begin
-set:2:object:2:"key1";boolean:true;"key2";boolean:false;object:2:"abc";boolean:false;"xyz";boolean:true;
+set:2:object:2:"key1";boolean:false;"key2";boolean:false;object:2:"key1";boolean:false;"key2";boolean:false;
 param_end
 boolean:false;
 test_end

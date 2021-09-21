@@ -22,7 +22,7 @@
 # native:;
 # object:2:"key1";boolean:true;"key2";boolean:false;
 # array:2:boolean:true;boolean:false;
-# set:2:object:2:"key1";boolean:false;"key2";boolean:false;object:2:"key1";boolean:false;"key2";boolean:false;
+# set:2:object:2:"key1";boolean:true;"key2";boolean:false;object:2:"key1";boolean:false;"key2";boolean:true;
 # invalid:;
 
 # Notation:
@@ -39,13 +39,6 @@ test_end
 
 test_begin
 param_begin
-boolean:true;
-param_end
-invalid:;
-test_end
-
-test_begin
-param_begin
 null:;
 param_end
 invalid:;
@@ -53,69 +46,71 @@ test_end
 
 test_begin
 param_begin
-invalid:;
-param_end
-invalid:;
-test_end
-
-test_begin
-param_begin
-boolean:true;
-boolean:false;
-param_end
-boolean:false;
-test_end
-
-test_begin
-param_begin
-boolean:true;
-boolean:true;
-param_end
-boolean:true;
-test_end
-
-test_begin
-param_begin
-boolean:true;
-boolean:true;
-number:0;
-param_end
-boolean:false;
-test_end
-
-test_begin
-param_begin
-boolean:true;
-string:"";
-boolean:true;
-param_end
-boolean:false;
-test_end
-
-test_begin
-param_begin
-boolean:true;
-boolean:true;
-null:;
-param_end
-boolean:false;
-test_end
-
-test_begin
-param_begin
-boolean:true;
 undefined:;
+boolean:false;
+param_end
+invalid:;
+test_end
+
+test_begin
+param_begin
+null:;
+number:1;
+undefined:;
+param_end
+invalid:;
+test_end
+
+test_begin
+param_begin
+string:"caseless";
+number:1;
+undefined:;
+param_end
 boolean:true;
+test_end
+
+test_begin
+param_begin
+string:"caseless";
+string:"hello world";
+string:"HELLO WORLD";
+param_end
+boolean:true;
+test_end
+
+test_begin
+param_begin
+string:"case";
+string:"hello world";
+string:"HELLO WORLD";
 param_end
 boolean:false;
 test_end
 
 test_begin
 param_begin
-object:2:"key1";boolean:true;"key2";boolean:false;
-set:2:object:2:"key1";boolean:false;"key2";boolean:false;object:2:"key1";boolean:false;"key2";boolean:false;
-boolean:true;
+string:"case";
+string:"hello world";
+string:"hello world";
 param_end
 boolean:true;
 test_end
 
+test_begin
+param_begin
+string:"case";
+string:"hello w";
+string:"hello world";
+param_end
+boolean:true;
+test_end
+
+test_begin
+param_begin
+string:"case";
+string:"hello world";
+string:"hfllo world";
+param_end
+boolean:true;
+test_end

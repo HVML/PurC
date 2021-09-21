@@ -22,7 +22,7 @@
 # native:;
 # object:2:"key1";boolean:true;"key2";boolean:false;
 # array:2:boolean:true;boolean:false;
-# set:2:object:2:"key1";boolean:true;"key2";boolean:false;object:2:"abc";boolean:false;"xyz";boolean:true;
+# set:2:object:2:"key1";boolean:false;"key2";boolean:false;object:2:"key1";boolean:false;"key2";boolean:false;
 # invalid:;
 
 # Notation:
@@ -31,34 +31,34 @@
 # 3. One variant must end with ';';
 # 4. The contents in dynamic and native type, are all pointers. So the code constructs pointers, do not input anything.
 
-test_begin_1
+test_begin
 param_begin
 param_end
 invalid:;
 test_end
 
-test_begin_2
+test_begin
 param_begin
 boolean:true;
 param_end
 invalid:;
 test_end
 
-test_begin_3
+test_begin
 param_begin
 null:;
 param_end
 invalid:;
 test_end
 
-test_begin_4
+test_begin
 param_begin
 invalid:;
 param_end
 invalid:;
 test_end
 
-test_begin_5
+test_begin
 param_begin
 boolean:true;
 boolean:false;
@@ -66,7 +66,7 @@ param_end
 boolean:true;
 test_end
 
-test_begin_6
+test_begin
 param_begin
 boolean:true;
 boolean:true;
@@ -74,7 +74,7 @@ param_end
 boolean:true;
 test_end
 
-test_begin_7
+test_begin
 param_begin
 boolean:true;
 boolean:true;
@@ -83,7 +83,7 @@ param_end
 boolean:true;
 test_end
 
-test_begin_8
+test_begin
 param_begin
 boolean:true;
 string:"";
@@ -92,7 +92,7 @@ param_end
 boolean:true;
 test_end
 
-test_begin_9
+test_begin
 param_begin
 boolean:true;
 boolean:true;
@@ -101,7 +101,7 @@ param_end
 boolean:true;
 test_end
 
-test_begin_10
+test_begin
 param_begin
 boolean:true;
 undefined:;
@@ -110,12 +110,11 @@ param_end
 boolean:true;
 test_end
 
-test_begin_11
+test_begin
 param_begin
 object:2:"key1";boolean:true;"key2";boolean:false;
-set:2:object:2:"key1";boolean:true;"key2";boolean:false;object:2:"abc";boolean:false;"xyz";boolean:true;
+set:2:object:2:"key1";boolean:false;"key2";boolean:false;object:2:"key1";boolean:false;"key2";boolean:false;
 boolean:false;
 param_end
 boolean:true;
 test_end
-

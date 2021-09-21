@@ -157,7 +157,7 @@ purc_variant_t get_variant (char *buf, size_t *length)
                     *temp_end = 0x00;
                     if (strncasecmp (temp + 1, "true", 4) == 0)
                         ret_var = purc_variant_make_boolean (true);
-                    else
+                    else  
                         ret_var = purc_variant_make_boolean (false);
                     *length = temp_end - buf;
                     break;
@@ -259,16 +259,19 @@ purc_variant_t get_variant (char *buf, size_t *length)
                                                     PURC_VARIANT_INVALID);
             for (i = 0; i < number; i++) {
                 // get key
+                purc_variant_t key = PURC_VARIANT_INVALID;
                 temp = strchr (temp, '\"');
                 temp_end = strchr (temp + 1, '\"');
                 snprintf (tag, temp_end - temp, "%s", temp + 1);
+                key = purc_variant_make_string(tag, true);
 
                 // get value
                 temp = temp_end + 2;
                 *length = temp - buf;
                 val = get_variant (temp, &length_sub);
-                purc_variant_object_set_by_static_ckey (ret_var, tag, val);
-            printf ("=========== size = %ld, tag = %s\n", purc_variant_object_get_size (ret_var), tag);
+                purc_variant_object_set (ret_var, key, val);
+
+                purc_variant_unref (key);
                 purc_variant_unref (val);
                 if (i < number - 1)
                     temp += (length_sub + 1);
@@ -347,7 +350,9 @@ purc_variant_t get_variant (char *buf, size_t *length)
 
 TEST(dvobjs, dvobjs_logical_not)
 {
-    const char *function[] = {"not", "and", "or", "xor", "eq"};
+    const char *function[] = {"not", "and", "or", "xor", "eq", "ne", "gt",
+                              "ge", "lt", "le", "streq", "strne", "strgt",
+                              "strge", "strlt", "strle"};
     purc_variant_t param[10];
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t ret_result = PURC_VARIANT_INVALID;

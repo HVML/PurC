@@ -291,7 +291,6 @@ purc_variant_t pcdvobjs_make_dvobjs (const struct pcdvojbs_dvobjs *method,
         purc_variant_unref (val);
     }
 
-
     return ret_var;
 
 error:

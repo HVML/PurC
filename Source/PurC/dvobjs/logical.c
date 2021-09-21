@@ -153,7 +153,7 @@ static long double get_variant_value (purc_variant_t var)
     uintptr_t temppointer = 0;
     struct purc_variant_object_iterator* it_obj = NULL;
     struct purc_variant_set_iterator* it_set = NULL;
-    purc_variant_t val = NULL;
+    purc_variant_t val = PURC_VARIANT_INVALID;
     size_t i = 0;
     bool having = false;
     enum purc_variant_type type = purc_variant_get_type (var);
@@ -340,7 +340,8 @@ logical_xor (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] == NULL) || (argv[1] == NULL)) {
+    if ((argv[0] == PURC_VARIANT_INVALID) || 
+            (argv[1] == PURC_VARIANT_INVALID)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -375,7 +376,8 @@ logical_eq (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] == NULL) || (argv[1] == NULL)) {
+    if ((argv[0] == PURC_VARIANT_INVALID) || 
+            (argv[1] == PURC_VARIANT_INVALID)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -396,17 +398,18 @@ logical_ne (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
     long double value1 = 0.0d;
     long double value2 = 0.0d;
 
     if ((argv == NULL) || (nr_args != 2)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] == NULL) || (argv[1] == NULL)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[0] == PURC_VARIANT_INVALID) || 
+            (argv[1] == PURC_VARIANT_INVALID)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -426,17 +429,18 @@ logical_gt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
     long double value1 = 0.0d;
     long double value2 = 0.0d;
 
     if ((argv == NULL) || (nr_args != 2)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] == NULL) || (argv[1] == NULL)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[0] == PURC_VARIANT_INVALID) || 
+            (argv[1] == PURC_VARIANT_INVALID)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -456,17 +460,18 @@ logical_ge (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
     long double value1 = 0.0d;
     long double value2 = 0.0d;
 
     if ((argv == NULL) || (nr_args != 2)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] == NULL) || (argv[1] == NULL)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[0] == PURC_VARIANT_INVALID) || 
+            (argv[1] == PURC_VARIANT_INVALID)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -486,17 +491,18 @@ logical_lt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
     long double value1 = 0.0d;
     long double value2 = 0.0d;
 
     if ((argv == NULL) || (nr_args != 2)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] == NULL) || (argv[1] == NULL)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[0] == PURC_VARIANT_INVALID) || 
+            (argv[1] == PURC_VARIANT_INVALID)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -516,17 +522,18 @@ logical_le (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
     long double value1 = 0.0d;
     long double value2 = 0.0d;
 
     if ((argv == NULL) || (nr_args != 2)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] == NULL) || (argv[1] == NULL)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[0] == PURC_VARIANT_INVALID) || 
+            (argv[1] == PURC_VARIANT_INVALID)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -546,20 +553,22 @@ logical_streq (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if ((argv == NULL) || (nr_args != 2)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv == NULL) || (nr_args != 3)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[0] != PURC_VARIANT_INVALID) && 
+            (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[1] == NULL) || (argv[2] == NULL)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[1] == PURC_VARIANT_INVALID) || 
+            (argv[2] == PURC_VARIANT_INVALID)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -570,7 +579,7 @@ logical_streq (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     size_t sz_stream2 = 0;
 
     purc_variant_serialize (argv[1], stream1, 3, 0, &sz_stream1);
-    purc_variant_serialize (argv[1], stream2, 3, 0, &sz_stream2);
+    purc_variant_serialize (argv[2], stream2, 3, 0, &sz_stream2);
 
     char *buf1 = purc_rwstream_get_mem_buffer (stream1, &sz_stream1);
     char *buf2 = purc_rwstream_get_mem_buffer (stream2, &sz_stream2);
@@ -588,7 +597,7 @@ logical_streq (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
             ret_var = purc_variant_make_boolean (false);
     }
     else if (strcasecmp (option, "wildcard") == 0) {
-        if (wildcard_cmp (buf1, buf2))
+        if (wildcard_cmp (buf2, buf1))
             ret_var = purc_variant_make_boolean (true);
         else
             ret_var = purc_variant_make_boolean (false);
@@ -611,20 +620,22 @@ logical_strne (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if ((argv == NULL) || (nr_args != 2)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv == NULL) || (nr_args != 3)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[0] != PURC_VARIANT_INVALID) && 
+            (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[1] == NULL) || (argv[2] == NULL)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[1] == PURC_VARIANT_INVALID) || 
+            (argv[2] == PURC_VARIANT_INVALID)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -636,7 +647,7 @@ logical_strne (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
 
     purc_variant_serialize (argv[1], stream1, 3, 0, &sz_stream1);
-    purc_variant_serialize (argv[1], stream2, 3, 0, &sz_stream2);
+    purc_variant_serialize (argv[2], stream2, 3, 0, &sz_stream2);
 
     char *buf1 = purc_rwstream_get_mem_buffer (stream1, &sz_stream1);
     char *buf2 = purc_rwstream_get_mem_buffer (stream2, &sz_stream2);
@@ -654,7 +665,7 @@ logical_strne (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
             ret_var = purc_variant_make_boolean (true);
     }
     else if (strcasecmp (option, "wildcard") == 0) {
-        if (wildcard_cmp (buf1, buf2))
+        if (wildcard_cmp (buf2, buf1))
             ret_var = purc_variant_make_boolean (false);
         else
             ret_var = purc_variant_make_boolean (true);
@@ -677,20 +688,22 @@ logical_strgt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if ((argv == NULL) || (nr_args != 2)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv == NULL) || (nr_args != 3)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[0] != PURC_VARIANT_INVALID) && 
+            (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[1] == NULL) || (argv[2] == NULL)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[1] == PURC_VARIANT_INVALID) || 
+            (argv[2] == PURC_VARIANT_INVALID)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -700,9 +713,8 @@ logical_strgt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     size_t sz_stream1 = 0;
     size_t sz_stream2 = 0;
 
-
     purc_variant_serialize (argv[1], stream1, 3, 0, &sz_stream1);
-    purc_variant_serialize (argv[1], stream2, 3, 0, &sz_stream2);
+    purc_variant_serialize (argv[2], stream2, 3, 0, &sz_stream2);
 
     char *buf1 = purc_rwstream_get_mem_buffer (stream1, &sz_stream1);
     char *buf2 = purc_rwstream_get_mem_buffer (stream2, &sz_stream2);
@@ -731,20 +743,22 @@ logical_strge (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if ((argv == NULL) || (nr_args != 2)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv == NULL) || (nr_args != 3)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[0] != PURC_VARIANT_INVALID) && 
+            (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[1] == NULL) || (argv[2] == NULL)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[1] == PURC_VARIANT_INVALID) || 
+            (argv[2] == PURC_VARIANT_INVALID)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -756,7 +770,7 @@ logical_strge (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
 
     purc_variant_serialize (argv[1], stream1, 3, 0, &sz_stream1);
-    purc_variant_serialize (argv[1], stream2, 3, 0, &sz_stream2);
+    purc_variant_serialize (argv[2], stream2, 3, 0, &sz_stream2);
 
     char *buf1 = purc_rwstream_get_mem_buffer (stream1, &sz_stream1);
     char *buf2 = purc_rwstream_get_mem_buffer (stream2, &sz_stream2);
@@ -785,20 +799,22 @@ logical_strlt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if ((argv == NULL) || (nr_args != 2)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv == NULL) || (nr_args != 3)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[0] != PURC_VARIANT_INVALID) && 
+            (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[1] == NULL) || (argv[2] == NULL)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[1] == PURC_VARIANT_INVALID) || 
+            (argv[2] == PURC_VARIANT_INVALID)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -810,7 +826,7 @@ logical_strlt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
 
     purc_variant_serialize (argv[1], stream1, 3, 0, &sz_stream1);
-    purc_variant_serialize (argv[1], stream2, 3, 0, &sz_stream2);
+    purc_variant_serialize (argv[2], stream2, 3, 0, &sz_stream2);
 
     char *buf1 = purc_rwstream_get_mem_buffer (stream1, &sz_stream1);
     char *buf2 = purc_rwstream_get_mem_buffer (stream2, &sz_stream2);
@@ -839,20 +855,22 @@ logical_strle (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if ((argv == NULL) || (nr_args != 2)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv == NULL) || (nr_args != 3)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[0] != PURC_VARIANT_INVALID) && 
+            (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[1] == NULL) || (argv[2] == NULL)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[1] == PURC_VARIANT_INVALID) || 
+            (argv[2] == PURC_VARIANT_INVALID)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -864,7 +882,7 @@ logical_strle (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
 
     purc_variant_serialize (argv[1], stream1, 3, 0, &sz_stream1);
-    purc_variant_serialize (argv[1], stream2, 3, 0, &sz_stream2);
+    purc_variant_serialize (argv[2], stream2, 3, 0, &sz_stream2);
 
     char *buf1 = purc_rwstream_get_mem_buffer (stream1, &sz_stream1);
     char *buf2 = purc_rwstream_get_mem_buffer (stream2, &sz_stream2);
@@ -893,20 +911,22 @@ logical_eval (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if ((argv == NULL) || (nr_args != 2)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[0] != PURC_VARIANT_INVALID) && 
+            (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[1] != NULL) && (!purc_variant_is_object (argv[1]))) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[1] != PURC_VARIANT_INVALID) && 
+            (!purc_variant_is_object (argv[1]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
