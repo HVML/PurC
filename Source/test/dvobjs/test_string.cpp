@@ -13,522 +13,1105 @@
 #include <errno.h>
 #include <gtest/gtest.h>
 
-#if 0
-TEST(dvobjs, dvobjs_string_uname)
+static purc_variant_t getter(
+        purc_variant_t root, size_t nr_args, purc_variant_t * argv)
 {
-    purc_variant_t param[10];
-    purc_variant_t ret_var = NULL;
-    const char * result = NULL;
-    size_t i = 0;
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    purc_variant_t value = purc_variant_make_number (3.1415926);
+    return value;
+}
 
-    purc_instance_extra_info info = {0, 0};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
-    ASSERT_EQ (ret, PURC_ERROR_OK);
+static purc_variant_t setter(
+        purc_variant_t root, size_t nr_args, purc_variant_t * argv)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    purc_variant_t value = purc_variant_make_number (2.71828828);
+    return value;
+}
 
-    purc_variant_t sys = pcdvojbs_get_system();
-    ASSERT_NE(sys, nullptr);
-    ASSERT_EQ(purc_variant_is_object (sys), true);
+static bool rws_releaser (void* entity)
+{
+    UNUSED_PARAM(entity);
+    return true;
+}
 
-    purc_variant_t dynamic = purc_variant_object_get_c (sys, "uname");
-    ASSERT_NE(dynamic, nullptr);
-    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+static struct purc_native_ops rws_ops = {
+    .property_getter       = NULL,
+    .property_setter       = NULL,
+    .property_eraser       = NULL,
+    .property_cleaner      = NULL,
+    .cleaner               = NULL,
+    .eraser                = rws_releaser,
+    .observe               = NULL,
+};
 
-    purc_dvariant_method func = NULL;
-    func = purc_variant_dynamic_get_getter (dynamic);
-    ASSERT_NE(func, nullptr);
+static void replace_for_bsequence(char *buf, size_t *length_sub)
+{
+    size_t tail = 0;
+    size_t head = 0;
+    char chr = 0;
+    unsigned char number = 0;
+    unsigned char temp = 0;
 
-    printf ("TEST get_uname: nr_args = 0, param = \"  beijing  shanghai\" :\n");
-    param[0] = purc_variant_make_string ("  beijing shanghai", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 0, param);
-    ASSERT_NE(ret_var, nullptr);
+    for (tail = 0; tail < *length_sub; tail++)  {
+        if (*(buf + tail) == '\\')  {
+            tail++;
+            chr = *(buf + tail);
+            if ((chr >= '0') && (chr <= '9'))
+                number = chr - '0';
+            else if ((chr >= 'a') && (chr <= 'z'))
+                number = chr - 'a';
+            else if ((chr >= 'A') && (chr <= 'Z'))
+                number = chr - 'A';
+            number = number << 4;
 
-    purc_variant_object_iterator* it = purc_variant_object_make_iterator_begin(ret_var);
-    for (i = 0; i < purc_variant_object_get_size (ret_var); i++) {
-        const char     *key = purc_variant_object_iterator_get_key(it);
-        purc_variant_t  val = purc_variant_object_iterator_get_value(it);
+            tail++;
+            chr = *(buf + tail);
+            if ((chr >= '0') && (chr <= '9'))
+                temp = chr - '0';
+            else if ((chr >= 'a') && (chr <= 'z'))
+                temp = chr - 'a';
+            else if ((chr >= 'A') && (chr <= 'Z'))
+                temp = chr - 'A';
+            number |= temp;
 
-        result = purc_variant_get_string_const (val);
-
-        printf("\t\t%s: %s\n", key, result);
-
-        bool having = purc_variant_object_iterator_next(it);
-        if (!having) {
-            purc_variant_object_release_iterator(it);
-            break;
+            *(buf + head) = number;
+            head++;
+        } else {
+            *(buf + head) = *(buf + tail);
+            head++;
         }
     }
 
-    purc_cleanup ();
-}
-TEST(dvobjs, dvobjs_string_uname_prt)
-{
-    purc_variant_t param[10];
-    purc_variant_t ret_var = NULL;
-    const char * result = NULL;
+    *length_sub = head;
 
+    return;
+}
+
+purc_variant_t get_variant (char *buf, size_t *length)
+{
+    purc_variant_t ret_var = NULL;
+    purc_variant_t val = NULL;
+    char *temp = NULL;
+    char *temp_end = NULL;
+    char tag[64];
+    double d = 0.0d;
+    int64_t i64;
+    uint64_t u64;
+    long double ld = 0.0d;
+    int number = 0;
+    int i = 0;
+    size_t length_sub = 0;
+
+    *length = 0;
+
+    temp = strchr (buf, ':');
+    snprintf (tag, (temp - buf + 1), "%s", buf);
+
+    switch (*tag) {
+        case 'a':
+        case 'A':
+            switch (*(tag + 1))  {
+                case 'r':       // array
+                case 'R':
+                    temp_end = strchr (temp + 1, ':');
+                    snprintf (tag, (temp_end - temp), "%s", temp + 1);
+                    number = atoi (tag);
+                    temp = temp_end + 1;
+                    ret_var = purc_variant_make_array (0, PURC_VARIANT_INVALID);
+                    for (i = 0; i < number; i++) {
+                        val = get_variant (temp, &length_sub);
+                        purc_variant_array_append (ret_var, val);
+                        purc_variant_unref (val);
+                        if (i < number - 1)
+                            temp += (length_sub + 1);
+                    }
+                    *length = temp - buf + length_sub;
+                    break;
+                case 't':       // atomstring
+                case 'T':
+                    temp = strchr (temp + 1, '\"');
+                    temp_end = strchr (temp + 1, '\"');
+                    *temp_end = 0x00;
+                    ret_var = purc_variant_make_atom_string (temp + 1, false);
+                    *length = temp_end + 1 - buf;
+                    break;
+                default:
+                    temp_end = strchr (buf, ';');
+                    *length = temp_end - buf;
+                    ret_var = PURC_VARIANT_INVALID; 
+                    break;
+            }
+            break;
+        case 'b':
+        case 'B':
+            switch (*(tag + 1))  {
+                case 'o':       // boolean
+                case 'O':
+                    temp_end = strchr (buf, ';');
+                    *temp_end = 0x00;
+                    if (strncasecmp (temp + 1, "true", 4) == 0)
+                        ret_var = purc_variant_make_boolean (true);
+                    else  
+                        ret_var = purc_variant_make_boolean (false);
+                    *length = temp_end - buf;
+                    break;
+                case 's':       // byte sequence
+                case 'S':
+                    temp = strchr (temp + 1, '\"');
+                    temp_end = strchr (temp + 1, '\"');
+                    length_sub = temp_end - temp - 1;
+                    replace_for_bsequence(temp + 1, &length_sub);
+                    ret_var = purc_variant_make_byte_sequence (temp + 1, length_sub);
+                    *length = temp_end + 1 - buf;
+                    break;
+                default:
+                    temp_end = strchr (buf, ';');
+                    *length = temp_end - buf;
+                    ret_var = PURC_VARIANT_INVALID; 
+                    break;
+            }
+            break;
+        case 'd':               // dynamic
+        case 'D':
+            temp_end = strchr (buf, ';');
+            *temp_end = 0x00;
+            ret_var = purc_variant_make_dynamic (getter, setter);
+            *length = temp_end - buf;
+            break;
+        case 'i':
+        case 'I':
+            temp_end = strchr (buf, ';');
+            *length = temp_end - buf;
+            ret_var = PURC_VARIANT_INVALID; 
+            break;
+        case 'l':
+        case 'L':
+            switch (*(tag + 4))  {
+                case 'd':       // long double
+                case 'D':
+                    temp_end = strchr (buf, ';');
+                    *temp_end = 0x00;
+                    ld = atof (temp + 1);
+                    ret_var = purc_variant_make_longdouble (ld);
+                    *length = temp_end - buf;
+                    break;
+                case 'i':       // long int
+                case 'I':
+                    temp_end = strchr (buf, ';');
+                    *temp_end = 0x00;
+                    i64 = atoll (temp + 1);
+                    ret_var = purc_variant_make_longint (i64);
+                    *length = temp_end - buf;
+                    break;
+                default:
+                    temp_end = strchr (buf, ';');
+                    *length = temp_end - buf;
+                    ret_var = PURC_VARIANT_INVALID; 
+                    break;
+            }
+            break;
+        case 'n':
+        case 'N':
+            switch (*(tag + 2))  {
+                case 't':       // native;
+                case 'T':
+                    temp_end = strchr (buf, ';');
+                    *temp_end = 0x00;
+                    ret_var = purc_variant_make_native ((void *)"hello world", &rws_ops);
+                    *length = temp_end - buf;
+                    break;
+                case 'l':       // null;
+                case 'L':
+                    temp_end = strchr (buf, ';');
+                    *temp_end = 0x00;
+                    ret_var = purc_variant_make_null ();
+                    *length = temp_end - buf;
+                    break;
+                case 'm':       // number
+                case 'M':
+                    temp_end = strchr (temp + 1, ';');
+                    *temp_end = 0x00;
+                    d = atof (temp + 1);
+                    ret_var = purc_variant_make_number (d);
+                    *length = temp_end - buf;
+                    break;
+                default:
+                    temp_end = strchr (buf, ';');
+                    *length = temp_end - buf;
+                    ret_var = PURC_VARIANT_INVALID; 
+                    break;
+            }
+            break;
+        case 'o':               // object
+        case 'O':
+            temp_end = strchr (temp + 1, ':');
+            snprintf (tag, (temp_end - temp), "%s", temp + 1);
+            number = atoi (tag);
+            temp = temp_end + 1;
+            
+            ret_var = purc_variant_make_object (0, PURC_VARIANT_INVALID,
+                                                    PURC_VARIANT_INVALID);
+            for (i = 0; i < number; i++) {
+                // get key
+                purc_variant_t key = PURC_VARIANT_INVALID;
+                temp = strchr (temp, '\"');
+                temp_end = strchr (temp + 1, '\"');
+                snprintf (tag, temp_end - temp, "%s", temp + 1);
+                key = purc_variant_make_string(tag, true);
+
+                // get value
+                temp = temp_end + 2;
+                *length = temp - buf;
+                val = get_variant (temp, &length_sub);
+                purc_variant_object_set (ret_var, key, val);
+
+                purc_variant_unref (key);
+                purc_variant_unref (val);
+                if (i < number - 1)
+                    temp += (length_sub + 1);
+            }
+            *length = temp - buf + length_sub;
+            break;
+        case 's':
+        case 'S':
+            switch (*(tag + 1))  {
+                case 'e':       // set
+                case 'E':
+                    temp_end = strchr (temp + 1, ':');
+                    snprintf (tag, (temp_end - temp), "%s", temp + 1);
+                    number = atoi (tag);
+                    temp = temp_end + 1;
+
+                    ret_var = purc_variant_make_set_by_ckey(0, "key1", NULL);
+                    for (i = 0; i < number; i++) {
+                        val = get_variant (temp, &length_sub);
+                        purc_variant_set_add (ret_var, val, false);
+                        purc_variant_unref (val);
+                        if (i < number - 1)
+                            temp += (length_sub + 1);
+                    }
+                    *length = temp - buf + length_sub;
+                    break;
+                case 't':       // sting
+                case 'T':
+                    temp = strchr (temp + 1, '\"');
+                    temp_end = strchr (temp + 1, '\"');
+                    *temp_end = 0x00;
+                    ret_var = purc_variant_make_string (temp + 1, false);
+                    *length = temp_end + 1 - buf;
+                    break;
+                default:
+                    temp_end = strchr (buf, ';');
+                    *length = temp_end - buf;
+                    ret_var = PURC_VARIANT_INVALID; 
+                    break;
+            }
+            break;
+        case 'u':
+        case 'U':
+            switch (*(tag + 1))  {
+                case 'l':       // unsigned long int
+                case 'L':
+                    temp_end = strchr (buf, ';');
+                    *temp_end = 0x00;
+                    u64 = atoll (temp + 1);
+                    ret_var = purc_variant_make_ulongint (u64);
+                    *length = temp_end - buf;
+                    break;
+                case 'n':       // undefined
+                case 'N':
+                    temp_end = strchr (buf, ';');
+                    *temp_end = 0x00;
+                    ret_var = purc_variant_make_undefined ();
+                    *length = temp_end - buf;
+                    break;
+                default:
+                    temp_end = strchr (buf, ';');
+                    *length = temp_end - buf;
+                    ret_var = PURC_VARIANT_INVALID; 
+                    break;
+            }
+            break;
+        default:
+            temp_end = strchr (buf, ';');
+            *length = temp_end - buf;
+            ret_var = PURC_VARIANT_INVALID; 
+            break;
+    }
+
+    return ret_var;
+}
+
+TEST(dvobjs, dvobjs_string_contains)
+{
+    const char *function[] = {"contains", "ends_with"};
+    purc_variant_t param[10];
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    purc_variant_t ret_result = PURC_VARIANT_INVALID;
+    size_t function_size = sizeof(function) / sizeof(char *);
+    size_t i = 0;
+    size_t line_number = 0;
+
+    // get and function
     purc_instance_extra_info info = {0, 0};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t sys = pcdvojbs_get_system();
-    ASSERT_NE(sys, nullptr);
-    ASSERT_EQ(purc_variant_is_object (sys), true);
+    purc_variant_t string = pcdvojbs_get_string();
+    ASSERT_NE(string, nullptr);
+    ASSERT_EQ(purc_variant_is_object (string), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_c (sys, "uname_prt");
-    ASSERT_NE(dynamic, nullptr);
-    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+    for (i = 0; i < function_size; i++)  {
+        printf ("test _L.%s:\n", function[i]);
 
-    purc_dvariant_method func = NULL;
-    func = purc_variant_dynamic_get_getter (dynamic);
-    ASSERT_NE(func, nullptr);
+        purc_variant_t dynamic = purc_variant_object_get_by_ckey (string, function[i]);
+        ASSERT_NE(dynamic, nullptr);
+        ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
-    printf ("TEST get_uname_prt: nr_args = 1, param = NULL:\n");
-    param[0] = purc_variant_make_string ("  hello   world  ", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, NULL);
-    ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
-    printf("\t\tReturn PURC_VARIANT_INVALID\n");
+        purc_dvariant_method func = NULL;
+        func = purc_variant_dynamic_get_getter (dynamic);
+        ASSERT_NE(func, nullptr);
 
-    printf ("TEST get_uname_prt: nr_args = 1, param[0] type is number:\n");
-    param[0] = purc_variant_make_number (3.1415926);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
-    printf("\t\tReturn PURC_VARIANT_INVALID\n");
+        // get test file
+        char* data_path = getenv("DVOBJS_TEST_PATH");
+        ASSERT_NE(data_path, nullptr);
 
-    printf ("TEST get_uname_prt: nr_args = 1, param = \"  hello   world  \" :\n");
-    param[0] = purc_variant_make_string ("  hello   world  ", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
-    printf("\t\tReturn PURC_VARIANT_INVALID\n");
+        char file_path[1024] = {0};
+        strcpy (file_path, data_path);
+        strcat (file_path, "/");
+        strcat (file_path, function[i]);
+        strcat (file_path, ".test");
 
+        FILE *fp = fopen(file_path, "r");   // open test_list
+        ASSERT_NE(fp, nullptr);
 
-    printf ("TEST get_uname_prt: nr_args = 0, param = \"hello world\" :\n");
-    ret_var = func (NULL, 0, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_string (ret_var), true);
-    result = purc_variant_get_string_const (ret_var);
-    printf("\t\tReturn : %s\n", result);
+        char *line = NULL;
+        size_t sz = 0;
+        ssize_t read = 0;
+        int j = 0;
+        size_t length_sub = 0;
 
-    printf ("TEST get_uname_prt: nr_args = 1, param = \"all default\" :\n");
-    param[0] = purc_variant_make_string ("all default", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_string (ret_var), true);
-    result = purc_variant_get_string_const (ret_var);
-    printf("\t\tReturn : %s\n", result);
+        line_number = 0;
 
+        while ((read = getline(&line, &sz, fp)) != -1) {
+            *(line + read - 1) = 0;
+            line_number ++;
 
-    printf ("TEST get_uname_prt: nr_args = 1, param = \"default all\" :\n");
-    param[0] = purc_variant_make_string ("default all", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_string (ret_var), true);
-    result = purc_variant_get_string_const (ret_var);
-    printf("\t\tReturn : %s\n", result);
+            if (strncasecmp (line, "test_begin", 10) == 0)  {    // begin a new test
+                printf ("\ttest case on line %ld\n", line_number);
 
+                // get parameters
+                read = getline(&line, &sz, fp);
+                *(line + read - 1) = 0;
+                line_number ++;
 
-    printf ("TEST get_uname_prt: nr_args = 1, param = \"hardware-platform kernel-version\" :\n");
-    param[0] = purc_variant_make_string ("hardware-platform kernel-version", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_string (ret_var), true);
-    result = purc_variant_get_string_const (ret_var);
-    printf("\t\tReturn : %s\n", result);
+                if (strcmp (line, "param_begin") == 0)  {   // begin param section
+                    j = 0;
 
+                    // get param
+                    while (1) {
+                        read = getline(&line, &sz, fp);
+                        *(line + read - 1) = 0;
+                        line_number ++;
 
-    printf ("TEST get_uname_prt: nr_args = 1, param = \"   nodename   wrong-word   kernel-release   \" :\n");
-    param[0] = purc_variant_make_string ("   nodename   wrong-word   kernel-release   ", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_string (ret_var), true);
-    result = purc_variant_get_string_const (ret_var);
-    printf("\t\tReturn : %s\n", result);
+                        if (strcmp (line, "param_end") == 0)  {   // end param section
+                            param[j] = NULL;
+                            break;
+                        }
+                        param[j] = get_variant (line, &length_sub);
+                        j++;
+                    }
 
+                    // get result
+                    read = getline(&line, &sz, fp);
+                    *(line + read - 1) = 0;
+                    line_number ++;
+
+                    ret_result = get_variant(line, &length_sub);
+
+                    // test case end
+                    while (1) {
+                        read = getline(&line, &sz, fp);
+                        *(line + read - 1) = 0;
+                        line_number ++;
+
+                        if (strcmp (line, "test_end") == 0)  {   // end test case 
+                            break;
+                        }
+                    }
+
+                    ret_var = func (NULL, j, param);
+
+                    if (ret_result == PURC_VARIANT_INVALID)  {
+                        ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
+                    }
+                    else {
+                        // USER MODIFIED HERE.
+                        ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+                        ASSERT_EQ(ret_var->b, ret_result->b);
+                    }
+                }
+                else
+                    continue;
+            }
+            else
+                continue;
+        }
+
+        length_sub++;
+        fclose(fp);
+    }
     purc_cleanup ();
 }
 
-TEST(dvobjs, dvobjs_string_get_local)
-{
-    purc_variant_t param[10];
-    purc_variant_t ret_var = NULL;
 
+TEST(dvobjs, dvobjs_string_explode)
+{
+    const char *function[] = {"explode"};
+    purc_variant_t param[10];
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    purc_variant_t ret_result = PURC_VARIANT_INVALID;
+    size_t function_size = sizeof(function) / sizeof(char *);
+    size_t i = 0;
+    size_t line_number = 0;
+
+    // get and function
     purc_instance_extra_info info = {0, 0};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t sys = pcdvojbs_get_system();
-    ASSERT_NE(sys, nullptr);
-    ASSERT_EQ(purc_variant_is_object (sys), true);
+    purc_variant_t string = pcdvojbs_get_string();
+    ASSERT_NE(string, nullptr);
+    ASSERT_EQ(purc_variant_is_object (string), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_c (sys, "locale");
-    ASSERT_NE(dynamic, nullptr);
-    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+    for (i = 0; i < function_size; i++)  {
+        printf ("test _L.%s:\n", function[i]);
 
-    purc_dvariant_method func = NULL;
-    func = purc_variant_dynamic_get_getter (dynamic);
-    ASSERT_NE(func, nullptr);
+        purc_variant_t dynamic = purc_variant_object_get_by_ckey (string, function[i]);
+        ASSERT_NE(dynamic, nullptr);
+        ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
-    printf ("TEST get_locale: nr_args = 0, param = NULL:\n");
-    ret_var = func (NULL, 0, NULL);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_string (ret_var), true);
-    printf("\t\t0 : %s\n", purc_variant_get_string_const (ret_var));
+        purc_dvariant_method func = NULL;
+        func = purc_variant_dynamic_get_getter (dynamic);
+        ASSERT_NE(func, nullptr);
 
-    printf ("TEST get_locale: nr_args = 1, param = NULL:\n");
-    param[0] = purc_variant_make_string ("  hello   world  ", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, NULL);
-    ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
-    printf("\t\tReturn PURC_VARIANT_INVALID\n");
+        // get test file
+        char* data_path = getenv("DVOBJS_TEST_PATH");
+        ASSERT_NE(data_path, nullptr);
 
-    printf ("TEST get_locale: nr_args = 1, param = \"hello world\":\n");
-    param[0] = purc_variant_make_string ("hello world", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
-    printf("\t\tReturn PURC_VARIANT_INVALID\n");
+        char file_path[1024] = {0};
+        strcpy (file_path, data_path);
+        strcat (file_path, "/");
+        strcat (file_path, function[i]);
+        strcat (file_path, ".test");
 
-    printf ("TEST get_locale: nr_args = 1, param[0] type is number:\n");
-    param[0] = purc_variant_make_number (3.1415926);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
-    printf("\t\tReturn PURC_VARIANT_INVALID\n");
+        FILE *fp = fopen(file_path, "r");   // open test_list
+        ASSERT_NE(fp, nullptr);
 
-    printf ("TEST get_locale: nr_args = 1, param = ctype:\n");
-    param[0] = purc_variant_make_string ("ctype", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_string (ret_var), true);
-    printf("\t\tctype : %s\n", purc_variant_get_string_const (ret_var));
+        char *line = NULL;
+        size_t sz = 0;
+        ssize_t read = 0;
+        int j = 0;
+        size_t length_sub = 0;
 
-    printf ("TEST get_locale: nr_args = 1, param = numeric:\n");
-    param[0] = purc_variant_make_string ("numeric", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_string (ret_var), true);
-    printf("\t\tnumeric : %s\n", purc_variant_get_string_const (ret_var));
+        line_number = 0;
 
-    printf ("TEST get_locale: nr_args = 1, param = time:\n");
-    param[0] = purc_variant_make_string ("time", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_string (ret_var), true);
-    printf("\t\ttime : %s\n", purc_variant_get_string_const (ret_var));
+        while ((read = getline(&line, &sz, fp)) != -1) {
+            *(line + read - 1) = 0;
+            line_number ++;
 
-    printf ("TEST get_locale: nr_args = 1, param = collate:\n");
-    param[0] = purc_variant_make_string ("collate", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_string (ret_var), true);
-    printf("\t\tcollate : %s\n", purc_variant_get_string_const (ret_var));
+            if (strncasecmp (line, "test_begin", 10) == 0)  {    // begin a new test
+                printf ("\ttest case on line %ld\n", line_number);
 
-    printf ("TEST get_locale: nr_args = 1, param = monetary:\n");
-    param[0] = purc_variant_make_string ("monetary", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_string (ret_var), true);
-    printf("\t\tmonetary : %s\n", purc_variant_get_string_const (ret_var));
+                // get parameters
+                read = getline(&line, &sz, fp);
+                *(line + read - 1) = 0;
+                line_number ++;
 
-    printf ("TEST get_locale: nr_args = 1, param = messages:\n");
-    param[0] = purc_variant_make_string ("messages", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_string (ret_var), true);
-    printf("\t\tmessages : %s\n", purc_variant_get_string_const (ret_var));
+                if (strcmp (line, "param_begin") == 0)  {   // begin param section
+                    j = 0;
 
-    printf ("TEST get_locale: nr_args = 1, param = paper:\n");
-    param[0] = purc_variant_make_string ("paper", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_string (ret_var), true);
-    printf("\t\tpaper : %s\n", purc_variant_get_string_const (ret_var));
+                    // get param
+                    while (1) {
+                        read = getline(&line, &sz, fp);
+                        *(line + read - 1) = 0;
+                        line_number ++;
 
-    printf ("TEST get_locale: nr_args = 1, param = name:\n");
-    param[0] = purc_variant_make_string ("name", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_string (ret_var), true);
-    printf("\t\tname : %s\n", purc_variant_get_string_const (ret_var));
+                        if (strcmp (line, "param_end") == 0)  {   // end param section
+                            param[j] = NULL;
+                            break;
+                        }
+                        param[j] = get_variant (line, &length_sub);
+                        j++;
+                    }
 
-    printf ("TEST get_locale: nr_args = 1, param = address:\n");
-    param[0] = purc_variant_make_string ("address", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_string (ret_var), true);
-    printf("\t\taddress : %s\n", purc_variant_get_string_const (ret_var));
+                    // get result
+                    read = getline(&line, &sz, fp);
+                    *(line + read - 1) = 0;
+                    line_number ++;
 
-    printf ("TEST get_locale: nr_args = 1, param = telephone:\n");
-    param[0] = purc_variant_make_string ("telephone", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_string (ret_var), true);
-    printf("\t\ttelephone : %s\n", purc_variant_get_string_const (ret_var));
+                    ret_result = get_variant(line, &length_sub);
 
-    printf ("TEST get_locale: nr_args = 1, param = measurement:\n");
-    param[0] = purc_variant_make_string ("measurement", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_string (ret_var), true);
-    printf("\t\tmeasurement : %s\n", purc_variant_get_string_const (ret_var));
+                    // test case end
+                    while (1) {
+                        read = getline(&line, &sz, fp);
+                        *(line + read - 1) = 0;
+                        line_number ++;
 
-    printf ("TEST get_locale: nr_args = 1, param = identification:\n");
-    param[0] = purc_variant_make_string ("identification", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_string (ret_var), true);
-    printf("\t\tidentification : %s\n", purc_variant_get_string_const (ret_var));
+                        if (strcmp (line, "test_end") == 0)  {   // end test case 
+                            break;
+                        }
+                    }
 
+                    ret_var = func (NULL, j, param);
+
+                    if (ret_result == PURC_VARIANT_INVALID)  {
+                        ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
+                    }
+                    else {
+                        // USER MODIFIED HERE.
+                        ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_ARRAY), true);
+                        size_t number = purc_variant_array_get_size (ret_var);
+                        size_t i = 0;
+
+                        ASSERT_EQ(number, purc_variant_array_get_size (ret_result));
+                        for (i = 0; i < number; i++)  {
+                            purc_variant_t v1 = purc_variant_array_get (ret_var, i);
+                            purc_variant_t v2 = purc_variant_array_get (ret_result, i);
+
+                            const char * s1 = purc_variant_get_string_const (v1);
+                            const char * s2 = purc_variant_get_string_const (v2);
+                            ASSERT_STREQ (s1, s2);
+                        }
+                    }
+                }
+                else
+                    continue;
+            }
+            else
+                continue;
+        }
+
+        length_sub++;
+        fclose(fp);
+    }
     purc_cleanup ();
 }
 
 
-TEST(dvobjs, dvobjs_string_set_local)
+TEST(dvobjs, dvobjs_string_shuffle)
 {
+    const char *function[] = {"shuffle"};
     purc_variant_t param[10];
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    purc_variant_t ret_result = PURC_VARIANT_INVALID;
+    size_t function_size = sizeof(function) / sizeof(char *);
+    size_t i = 0;
+    size_t line_number = 0;
 
+    // get and function
     purc_instance_extra_info info = {0, 0};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t sys = pcdvojbs_get_system();
-    ASSERT_NE(sys, nullptr);
-    ASSERT_EQ(purc_variant_is_object (sys), true);
+    purc_variant_t string = pcdvojbs_get_string();
+    ASSERT_NE(string, nullptr);
+    ASSERT_EQ(purc_variant_is_object (string), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_c (sys, "locale");
-    ASSERT_NE(dynamic, nullptr);
-    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+    for (i = 0; i < function_size; i++)  {
+        printf ("test _L.%s:\n", function[i]);
 
-    purc_dvariant_method func = NULL;
-    func = purc_variant_dynamic_get_setter (dynamic);
-    ASSERT_NE(func, nullptr);
+        purc_variant_t dynamic = purc_variant_object_get_by_ckey (string, function[i]);
+        ASSERT_NE(dynamic, nullptr);
+        ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
-    printf ("TEST set_locale: nr_args = 1, param1 = \"all\", param2 = \"en_US.UTF-8\":\n");
-    param[0] = purc_variant_make_string ("all", true);
-    param[1] = purc_variant_make_string ("en_US.UTF-8", true);
-    param[2] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
-    printf("\t\tReturn PURC_VARIANT_INVALID\n");
+        purc_dvariant_method func = NULL;
+        func = purc_variant_dynamic_get_getter (dynamic);
+        ASSERT_NE(func, nullptr);
 
-    printf ("TEST set_locale: nr_args = 2, param1 = \"all\", param2 type is number:\n");
-    param[0] = purc_variant_make_string ("all", true);
-    param[1] = purc_variant_make_number (3.1415926);
-    param[2] = NULL;
-    ret_var = func (NULL, 2, param);
-    ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
-    printf("\t\tReturn PURC_VARIANT_INVALID\n");
+        // get test file
+        char* data_path = getenv("DVOBJS_TEST_PATH");
+        ASSERT_NE(data_path, nullptr);
 
-    printf ("TEST set_locale: nr_args = 2, param1 type is number, param2 = \"en_US.UTF-8\":\n");
-    param[0] = purc_variant_make_number (3.1415926);
-    param[1] = purc_variant_make_string ("en_US.UTF-8", true);
-    param[2] = NULL;
-    ret_var = func (NULL, 22, param);
-    ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
-    printf("\t\tReturn PURC_VARIANT_INVALID\n");
+        char file_path[1024] = {0};
+        strcpy (file_path, data_path);
+        strcat (file_path, "/");
+        strcat (file_path, function[i]);
+        strcat (file_path, ".test");
 
-    printf ("TEST set_locale: nr_args = 2, param1 = \"china\", param2 = \"en_US.UTF-8\":\n");
-    param[0] = purc_variant_make_string ("china", true);
-    param[1] = purc_variant_make_string ("en_US.UTF-8", true);
-    param[2] = NULL;
-    ret_var = func (NULL, 2, param);
-    ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
-    printf("\t\tReturn PURC_VARIANT_INVALID\n");
+        FILE *fp = fopen(file_path, "r");   // open test_list
+        ASSERT_NE(fp, nullptr);
 
-    printf ("TEST set_locale: nr_args = 2, param1 = \"all\", param2 = \"china\":\n");
-    param[0] = purc_variant_make_string ("china", true);
-    param[1] = purc_variant_make_string ("en_US.UTF-8", true);
-    param[2] = NULL;
-    ret_var = func (NULL, 2, param);
-    ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
-    printf("\t\tReturn PURC_VARIANT_INVALID\n");
+        char *line = NULL;
+        size_t sz = 0;
+        ssize_t read = 0;
+        int j = 0;
+        size_t length_sub = 0;
 
-    printf ("TEST set_locale: nr_args = 2, param1 = \"all\", param2 = \"\":\n");
-    param[0] = purc_variant_make_string ("all", true);
-    param[1] = purc_variant_make_string ("", true);
-    param[2] = NULL;
-    ret_var = func (NULL, 2, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(ret_var, PURC_VARIANT_TRUE);
-    printf("\t\tReturn PURC_VARIANT_TRUE\n");
+        line_number = 0;
 
-    printf ("TEST set_locale: nr_args = 2, param1 = \"ctype\", param2 = \"en_US.UTF-8\":\n");
-    param[0] = purc_variant_make_string ("ctype", true);
-    param[1] = purc_variant_make_string ("en_US.UTF-8", true);
-    param[2] = NULL;
-    ret_var = func (NULL, 2, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(ret_var, PURC_VARIANT_TRUE);
-    printf("\t\tReturn PURC_VARIANT_TRUE\n");
+        while ((read = getline(&line, &sz, fp)) != -1) {
+            *(line + read - 1) = 0;
+            line_number ++;
 
-    printf ("TEST set_locale: nr_args = 2, param1 = \"numeric\", param2 = \"zh_CN.UTF-8\":\n");
-    param[0] = purc_variant_make_string ("numeric", true);
-    param[1] = purc_variant_make_string ("zh_CN.UTF-8", true);
-    param[2] = NULL;
-    ret_var = func (NULL, 2, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(ret_var, PURC_VARIANT_TRUE);
-    printf("\t\tReturn PURC_VARIANT_TRUE\n");
+            if (strncasecmp (line, "test_begin", 10) == 0)  {    // begin a new test
+                printf ("\ttest case on line %ld\n", line_number);
 
-    printf ("TEST set_locale: nr_args = 2, param1 = \"time\", param2 = \"zh_CN.UTF-8\":\n");
-    param[0] = purc_variant_make_string ("time", true);
-    param[1] = purc_variant_make_string ("zh_CN.UTF-8", true);
-    param[2] = NULL;
-    ret_var = func (NULL, 2, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(ret_var, PURC_VARIANT_TRUE);
-    printf("\t\tReturn PURC_VARIANT_TRUE\n");
+                // get parameters
+                read = getline(&line, &sz, fp);
+                *(line + read - 1) = 0;
+                line_number ++;
 
-    printf ("TEST set_locale: nr_args = 2, param1 = \"collate\", param2 = \"en_US.UTF-8\":\n");
-    param[0] = purc_variant_make_string ("collate", true);
-    param[1] = purc_variant_make_string ("en_US.UTF-8", true);
-    param[2] = NULL;
-    ret_var = func (NULL, 2, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(ret_var, PURC_VARIANT_TRUE);
-    printf("\t\tReturn PURC_VARIANT_TRUE\n");
+                if (strcmp (line, "param_begin") == 0)  {   // begin param section
+                    j = 0;
 
-    printf ("TEST set_locale: nr_args = 2, param1 = \"monetary\", param2 = \"zh_CN.UTF-8\":\n");
-    param[0] = purc_variant_make_string ("monetary", true);
-    param[1] = purc_variant_make_string ("zh_CN.UTF-8", true);
-    param[2] = NULL;
-    ret_var = func (NULL, 2, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(ret_var, PURC_VARIANT_TRUE);
-    printf("\t\tReturn PURC_VARIANT_TRUE\n");
+                    // get param
+                    while (1) {
+                        read = getline(&line, &sz, fp);
+                        *(line + read - 1) = 0;
+                        line_number ++;
 
-    printf ("TEST set_locale: nr_args = 2, param1 = \"messages\", param2 = \"en_US.UTF-8\":\n");
-    param[0] = purc_variant_make_string ("messages", true);
-    param[1] = purc_variant_make_string ("en_US.UTF-8", true);
-    param[2] = NULL;
-    ret_var = func (NULL, 2, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(ret_var, PURC_VARIANT_TRUE);
-    printf("\t\tReturn PURC_VARIANT_TRUE\n");
+                        if (strcmp (line, "param_end") == 0)  {   // end param section
+                            param[j] = NULL;
+                            break;
+                        }
+                        param[j] = get_variant (line, &length_sub);
+                        j++;
+                    }
 
-    printf ("TEST set_locale: nr_args = 2, param1 = \"paper\", param2 = \"zh_CN.UTF-8\":\n");
-    param[0] = purc_variant_make_string ("paper", true);
-    param[1] = purc_variant_make_string ("zh_CN.UTF-8", true);
-    param[2] = NULL;
-    ret_var = func (NULL, 2, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(ret_var, PURC_VARIANT_TRUE);
-    printf("\t\tReturn PURC_VARIANT_TRUE\n");
+                    // get result
+                    read = getline(&line, &sz, fp);
+                    *(line + read - 1) = 0;
+                    line_number ++;
 
-    printf ("TEST set_locale: nr_args = 2, param1 = \"name\", param2 = \"zh_CN.UTF-8\":\n");
-    param[0] = purc_variant_make_string ("name", true);
-    param[1] = purc_variant_make_string ("zh_CN.UTF-8", true);
-    param[2] = NULL;
-    ret_var = func (NULL, 2, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(ret_var, PURC_VARIANT_TRUE);
-    printf("\t\tReturn PURC_VARIANT_TRUE\n");
+                    ret_result = get_variant(line, &length_sub);
 
-    printf ("TEST set_locale: nr_args = 2, param1 = \"address\", param2 = \"zh_CN.UTF-8\":\n");
-    param[0] = purc_variant_make_string ("address", true);
-    param[1] = purc_variant_make_string ("zh_CN.UTF-8", true);
-    param[2] = NULL;
-    ret_var = func (NULL, 2, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(ret_var, PURC_VARIANT_TRUE);
-    printf("\t\tReturn PURC_VARIANT_TRUE\n");
+                    // test case end
+                    while (1) {
+                        read = getline(&line, &sz, fp);
+                        *(line + read - 1) = 0;
+                        line_number ++;
 
-    printf ("TEST set_locale: nr_args = 2, param1 = \"telephone\", param2 = \"zh_CN.UTF-8\":\n");
-    param[0] = purc_variant_make_string ("telephone", true);
-    param[1] = purc_variant_make_string ("zh_CN.UTF-8", true);
-    param[2] = NULL;
-    ret_var = func (NULL, 2, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(ret_var, PURC_VARIANT_TRUE);
-    printf("\t\tReturn PURC_VARIANT_TRUE\n");
+                        if (strcmp (line, "test_end") == 0)  {   // end test case 
+                            break;
+                        }
+                    }
 
-    printf ("TEST set_locale: nr_args = 2, param1 = \"measurement\", param2 = \"zh_CN.UTF-8\":\n");
-    param[0] = purc_variant_make_string ("measurement", true);
-    param[1] = purc_variant_make_string ("zh_CN.UTF-8", true);
-    param[2] = NULL;
-    ret_var = func (NULL, 2, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(ret_var, PURC_VARIANT_TRUE);
-    printf("\t\tReturn PURC_VARIANT_TRUE\n");
+                    ret_var = func (NULL, j, param);
 
-    printf ("TEST set_locale: nr_args = 2, param1 = \"identification\", param2 = \"zh_CN.UTF-8\":\n");
-    param[0] = purc_variant_make_string ("identification", true);
-    param[1] = purc_variant_make_string ("zh_CN.UTF-8", true);
-    param[2] = NULL;
-    ret_var = func (NULL, 2, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(ret_var, PURC_VARIANT_TRUE);
-    printf("\t\tReturn PURC_VARIANT_TRUE\n");
+                    if (ret_result == PURC_VARIANT_INVALID)  {
+                        ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
+                    }
+                    else {
+                        // USER MODIFIED HERE.
+                        ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_STRING), true);
+                        size_t number1 = purc_variant_string_length (ret_var);
+                        size_t number2 = purc_variant_string_length (param[0]);
+                        ASSERT_EQ(number1, number2);
 
+                        const char *s1 = purc_variant_get_string_const (ret_var);
+                        const char *s2 = purc_variant_get_string_const (param[0]);
+                        size_t i = 0;
+                        unsigned int v1 = 0;
+                        unsigned int v2 = 0;
+
+                        for (i = 0; i < number1; i++)  {
+                           v1 += *(s1 + i);
+                           v2 += *(s2 + i);
+                        }
+                        ASSERT_EQ(v1, v2);
+                    }
+                }
+                else
+                    continue;
+            }
+            else
+                continue;
+        }
+
+        length_sub++;
+        fclose(fp);
+    }
     purc_cleanup ();
 }
 
-
-TEST(dvobjs, dvobjs_string_get_random)
+TEST(dvobjs, dvobjs_string_replace)
 {
+    const char *function[] = {"replace"};
     purc_variant_t param[10];
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    purc_variant_t ret_result = PURC_VARIANT_INVALID;
+    size_t function_size = sizeof(function) / sizeof(char *);
+    size_t i = 0;
+    size_t line_number = 0;
 
+    // get and function
     purc_instance_extra_info info = {0, 0};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t sys = pcdvojbs_get_system();
-    ASSERT_NE(sys, nullptr);
-    ASSERT_EQ(purc_variant_is_object (sys), true);
+    purc_variant_t string = pcdvojbs_get_string();
+    ASSERT_NE(string, nullptr);
+    ASSERT_EQ(purc_variant_is_object (string), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_c (sys, "random");
-    ASSERT_NE(dynamic, nullptr);
-    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+    for (i = 0; i < function_size; i++)  {
+        printf ("test _L.%s:\n", function[i]);
 
-    purc_dvariant_method func = NULL;
-    func = purc_variant_dynamic_get_getter (dynamic);
-    ASSERT_NE(func, nullptr);
+        purc_variant_t dynamic = purc_variant_object_get_by_ckey (string, function[i]);
+        ASSERT_NE(dynamic, nullptr);
+        ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
-    printf ("TEST get_random: nr_args = 0, param = 125.0d:\n");
-    param[0] = purc_variant_make_number (125.0d);
-    param[1] = NULL;
-    ret_var = func (NULL, 0, param);
-    ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
-    printf("\t\tReturn PURC_VARIANT_INVALID\n");
+        purc_dvariant_method func = NULL;
+        func = purc_variant_dynamic_get_getter (dynamic);
+        ASSERT_NE(func, nullptr);
 
-    printf ("TEST get_random: nr_args = 1, param = 1E-11:\n");
-    param[0] = purc_variant_make_number (1E-11);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
-    printf("\t\tReturn PURC_VARIANT_INVALID\n");
+        // get test file
+        char* data_path = getenv("DVOBJS_TEST_PATH");
+        ASSERT_NE(data_path, nullptr);
 
-    printf ("TEST get_random: nr_args = 1, param = 125.0d:\n");
-    param[0] = purc_variant_make_number (125.0d);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_number (ret_var), true);
-    double number = 0.0d;
-    purc_variant_cast_to_number (ret_var, &number, false);
-    printf("\t\tReturn random: %lf\n", number);
+        char file_path[1024] = {0};
+        strcpy (file_path, data_path);
+        strcat (file_path, "/");
+        strcat (file_path, function[i]);
+        strcat (file_path, ".test");
 
+        FILE *fp = fopen(file_path, "r");   // open test_list
+        ASSERT_NE(fp, nullptr);
+
+        char *line = NULL;
+        size_t sz = 0;
+        ssize_t read = 0;
+        int j = 0;
+        size_t length_sub = 0;
+
+        line_number = 0;
+
+        while ((read = getline(&line, &sz, fp)) != -1) {
+            *(line + read - 1) = 0;
+            line_number ++;
+
+            if (strncasecmp (line, "test_begin", 10) == 0)  {    // begin a new test
+                printf ("\ttest case on line %ld\n", line_number);
+
+                // get parameters
+                read = getline(&line, &sz, fp);
+                *(line + read - 1) = 0;
+                line_number ++;
+
+                if (strcmp (line, "param_begin") == 0)  {   // begin param section
+                    j = 0;
+
+                    // get param
+                    while (1) {
+                        read = getline(&line, &sz, fp);
+                        *(line + read - 1) = 0;
+                        line_number ++;
+
+                        if (strcmp (line, "param_end") == 0)  {   // end param section
+                            param[j] = NULL;
+                            break;
+                        }
+                        param[j] = get_variant (line, &length_sub);
+                        j++;
+                    }
+
+                    // get result
+                    read = getline(&line, &sz, fp);
+                    *(line + read - 1) = 0;
+                    line_number ++;
+
+                    ret_result = get_variant(line, &length_sub);
+
+                    // test case end
+                    while (1) {
+                        read = getline(&line, &sz, fp);
+                        *(line + read - 1) = 0;
+                        line_number ++;
+
+                        if (strcmp (line, "test_end") == 0)  {   // end test case 
+                            break;
+                        }
+                    }
+
+                    ret_var = func (NULL, j, param);
+
+                    if (ret_result == PURC_VARIANT_INVALID)  {
+                        ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
+                    }
+                    else {
+                        // USER MODIFIED HERE.
+                        ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_STRING), true);
+
+                        const char * s1 = purc_variant_get_string_const (ret_var);
+                        const char * s2 = purc_variant_get_string_const (ret_result);
+                        ASSERT_STREQ (s1, s2);
+                    }
+                }
+                else
+                    continue;
+            }
+            else
+                continue;
+        }
+
+        length_sub++;
+        fclose(fp);
+    }
     purc_cleanup ();
 }
-#endif
+
+
+TEST(dvobjs, dvobjs_string_format_c)
+{
+    const char *function[] = {"format_c"};
+    purc_variant_t param[10];
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    purc_variant_t ret_result = PURC_VARIANT_INVALID;
+    size_t function_size = sizeof(function) / sizeof(char *);
+    size_t i = 0;
+    size_t line_number = 0;
+
+    // get and function
+    purc_instance_extra_info info = {0, 0};
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    purc_variant_t string = pcdvojbs_get_string();
+    ASSERT_NE(string, nullptr);
+    ASSERT_EQ(purc_variant_is_object (string), true);
+
+    for (i = 0; i < function_size; i++)  {
+        printf ("test _L.%s:\n", function[i]);
+
+        purc_variant_t dynamic = purc_variant_object_get_by_ckey (string, function[i]);
+        ASSERT_NE(dynamic, nullptr);
+        ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+
+        purc_dvariant_method func = NULL;
+        func = purc_variant_dynamic_get_getter (dynamic);
+        ASSERT_NE(func, nullptr);
+
+        // get test file
+        char* data_path = getenv("DVOBJS_TEST_PATH");
+        ASSERT_NE(data_path, nullptr);
+
+        char file_path[1024] = {0};
+        strcpy (file_path, data_path);
+        strcat (file_path, "/");
+        strcat (file_path, function[i]);
+        strcat (file_path, ".test");
+
+        FILE *fp = fopen(file_path, "r");   // open test_list
+        ASSERT_NE(fp, nullptr);
+
+        char *line = NULL;
+        size_t sz = 0;
+        ssize_t read = 0;
+        int j = 0;
+        size_t length_sub = 0;
+
+        line_number = 0;
+
+        while ((read = getline(&line, &sz, fp)) != -1) {
+            *(line + read - 1) = 0;
+            line_number ++;
+
+            if (strncasecmp (line, "test_begin", 10) == 0)  {    // begin a new test
+                printf ("\ttest case on line %ld\n", line_number);
+
+                // get parameters
+                read = getline(&line, &sz, fp);
+                *(line + read - 1) = 0;
+                line_number ++;
+
+                if (strcmp (line, "param_begin") == 0)  {   // begin param section
+                    j = 0;
+
+                    // get param
+                    while (1) {
+                        read = getline(&line, &sz, fp);
+                        *(line + read - 1) = 0;
+                        line_number ++;
+
+                        if (strcmp (line, "param_end") == 0)  {   // end param section
+                            param[j] = NULL;
+                            break;
+                        }
+                        param[j] = get_variant (line, &length_sub);
+                        j++;
+                    }
+
+                    // get result
+                    read = getline(&line, &sz, fp);
+                    *(line + read - 1) = 0;
+                    line_number ++;
+
+                    ret_result = get_variant(line, &length_sub);
+
+                    // test case end
+                    while (1) {
+                        read = getline(&line, &sz, fp);
+                        *(line + read - 1) = 0;
+                        line_number ++;
+
+                        if (strcmp (line, "test_end") == 0)  {   // end test case 
+                            break;
+                        }
+                    }
+
+                    ret_var = func (NULL, j, param);
+
+                    if (ret_result == PURC_VARIANT_INVALID)  {
+                        ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
+                    }
+                    else {
+                        // USER MODIFIED HERE.
+                        ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_STRING), true);
+
+                        const char * s1 = purc_variant_get_string_const (ret_var);
+                        const char * s2 = purc_variant_get_string_const (ret_result);
+                        ASSERT_STREQ (s1, s2);
+                    }
+                }
+                else
+                    continue;
+            }
+            else
+                continue;
+        }
+
+        length_sub++;
+        fclose(fp);
+    }
+    purc_cleanup ();
+}
+
+TEST(dvobjs, dvobjs_string_format_p)
+{
+    const char *function[] = {"format_p"};
+    purc_variant_t param[10];
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    purc_variant_t ret_result = PURC_VARIANT_INVALID;
+    size_t function_size = sizeof(function) / sizeof(char *);
+    size_t i = 0;
+    size_t line_number = 0;
+
+    // get and function
+    purc_instance_extra_info info = {0, 0};
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    purc_variant_t string = pcdvojbs_get_string();
+    ASSERT_NE(string, nullptr);
+    ASSERT_EQ(purc_variant_is_object (string), true);
+
+    for (i = 0; i < function_size; i++)  {
+        printf ("test _L.%s:\n", function[i]);
+
+        purc_variant_t dynamic = purc_variant_object_get_by_ckey (string, function[i]);
+        ASSERT_NE(dynamic, nullptr);
+        ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+
+        purc_dvariant_method func = NULL;
+        func = purc_variant_dynamic_get_getter (dynamic);
+        ASSERT_NE(func, nullptr);
+
+        // get test file
+        char* data_path = getenv("DVOBJS_TEST_PATH");
+        ASSERT_NE(data_path, nullptr);
+
+        char file_path[1024] = {0};
+        strcpy (file_path, data_path);
+        strcat (file_path, "/");
+        strcat (file_path, function[i]);
+        strcat (file_path, ".test");
+
+        FILE *fp = fopen(file_path, "r");   // open test_list
+        ASSERT_NE(fp, nullptr);
+
+        char *line = NULL;
+        size_t sz = 0;
+        ssize_t read = 0;
+        int j = 0;
+        size_t length_sub = 0;
+
+        line_number = 0;
+
+        while ((read = getline(&line, &sz, fp)) != -1) {
+            *(line + read - 1) = 0;
+            line_number ++;
+
+            if (strncasecmp (line, "test_begin", 10) == 0)  {    // begin a new test
+                printf ("\ttest case on line %ld\n", line_number);
+
+                // get parameters
+                read = getline(&line, &sz, fp);
+                *(line + read - 1) = 0;
+                line_number ++;
+
+                if (strcmp (line, "param_begin") == 0)  {   // begin param section
+                    j = 0;
+
+                    // get param
+                    while (1) {
+                        read = getline(&line, &sz, fp);
+                        *(line + read - 1) = 0;
+                        line_number ++;
+
+                        if (strcmp (line, "param_end") == 0)  {   // end param section
+                            param[j] = NULL;
+                            break;
+                        }
+                        param[j] = get_variant (line, &length_sub);
+                        j++;
+                    }
+
+                    // get result
+                    read = getline(&line, &sz, fp);
+                    *(line + read - 1) = 0;
+                    line_number ++;
+
+                    ret_result = get_variant(line, &length_sub);
+
+                    // test case end
+                    while (1) {
+                        read = getline(&line, &sz, fp);
+                        *(line + read - 1) = 0;
+                        line_number ++;
+
+                        if (strcmp (line, "test_end") == 0)  {   // end test case 
+                            break;
+                        }
+                    }
+
+                    ret_var = func (NULL, j, param);
+
+                    if (ret_result == PURC_VARIANT_INVALID)  {
+                        ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
+                    }
+                    else {
+                        // USER MODIFIED HERE.
+                        ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_STRING), true);
+
+                        const char * s1 = purc_variant_get_string_const (ret_var);
+                        const char * s2 = purc_variant_get_string_const (ret_result);
+                        ASSERT_STREQ (s1, s2);
+                    }
+                }
+                else
+                    continue;
+            }
+            else
+                continue;
+        }
+
+        length_sub++;
+        fclose(fp);
+    }
+    purc_cleanup ();
+}

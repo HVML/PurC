@@ -348,7 +348,7 @@ purc_variant_t get_variant (char *buf, size_t *length)
     return ret_var;
 }
 
-TEST(dvobjs, dvobjs_logical_not)
+TEST(dvobjs, dvobjs_logical)
 {
     const char *function[] = {"not", "and", "or", "xor", "eq", "ne", "gt",
                               "ge", "lt", "le", "streq", "strne", "strgt",
