@@ -329,6 +329,10 @@
 #define ejson_stack_pop()  pcutils_stack_pop(hvml->ejson_stack)
 #define ejson_stack_push(c) pcutils_stack_push(hvml->ejson_stack, c)
 
+#define vcm_stack_is_empty() pcvcm_stack_is_empty(hvml->vcm_stack)
+#define vcm_stack_push(c) pcvcm_stack_push(hvml->vcm_stack, c)
+#define vcm_stack_pop() pcvcm_stack_pop(hvml->vcm_stack)
+
 static const char* hvml_err_msgs[] = {
     /* PCHVML_ERROR_UNEXPECTED_NULL_CHARACTER */
     "pchvml error unexpected null character",
@@ -2305,7 +2309,7 @@ next_state:
         BEGIN_STATE(PCHVML_EJSON_FINISHED_STATE)
             if (is_whitespace(character) || character == '}' ||
                     character == '"' || character == '>') {
-                while (!pcvcm_stack_is_empty(hvml->vcm_stack)) {
+                while (!vcm_stack_is_empty()) {
                     ejson_stack_pop();
                     POP_AS_VCM_PARENT_AND_UPDATE_VCM();
                 }
@@ -2332,7 +2336,7 @@ next_state:
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
             if (character == '<') {
-                while (!pcvcm_stack_is_empty(hvml->vcm_stack)) {
+                while (!vcm_stack_is_empty()) {
                     ejson_stack_pop();
                     POP_AS_VCM_PARENT_AND_UPDATE_VCM();
                 }
@@ -2498,7 +2502,7 @@ next_state:
                 ejson_stack_pop();
                 ejson_stack_push('{');
                 if (hvml->vcm_node) {
-                    pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
+                    vcm_stack_push(hvml->vcm_node);
                 }
                 struct pcvcm_node* node = pcvcm_node_new_object(0, NULL);
                 UPDATE_VCM_NODE(node);
@@ -2548,10 +2552,8 @@ next_state:
             }
             if (character == ':') {
                 if (uc == '{') {
-                    struct pcvcm_node* node = pcvcm_stack_pop(
-                            hvml->vcm_stack);
-                    APPEND_CHILD(node, hvml->vcm_node);
-                    pcvcm_stack_push(hvml->vcm_stack, node);
+                    POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+                    vcm_stack_push(hvml->vcm_node);
                     RESET_VCM_NODE();
                     ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
                 }
@@ -2560,7 +2562,7 @@ next_state:
                     ejson_stack_push('{');
                     struct pcvcm_node* node = pcvcm_node_new_object(0, NULL);
                     APPEND_CHILD(node, hvml->vcm_node);
-                    pcvcm_stack_push(hvml->vcm_stack, node);
+                    vcm_stack_push(node);
                     RESET_VCM_NODE();
                     ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
                 }
@@ -2599,7 +2601,7 @@ next_state:
                 if (uc == '(' || uc == '<' || uc == '[' || uc == ':') {
                     ejson_stack_push('[');
                     if (hvml->vcm_node) {
-                        pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
+                        vcm_stack_push(hvml->vcm_node);
                     }
                     struct pcvcm_node* node = pcvcm_node_new_array(0, NULL);
                     UPDATE_VCM_NODE(node);
@@ -2705,7 +2707,7 @@ next_state:
                 uint32_t uc = ejson_stack_top();
                 if (uc == '(' || uc == '<') {
                     ejson_stack_pop();
-                    if (!pcvcm_stack_is_empty(hvml->vcm_stack)) {
+                    if (!vcm_stack_is_empty()) {
                         POP_AS_VCM_PARENT_AND_UPDATE_VCM();
                     }
                     ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
@@ -2729,7 +2731,7 @@ next_state:
             }
             if (character == '$') {
                 if (hvml->vcm_node) {
-                    pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
+                    vcm_stack_push(hvml->vcm_node);
                 }
                 ejson_stack_push('$');
                 UPDATE_VCM_NODE(pcvcm_node_new_get_variable(NULL));
@@ -2880,7 +2882,7 @@ next_state:
             }
             if (character == '$') {
                 if (hvml->vcm_node) {
-                    pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
+                    vcm_stack_push(hvml->vcm_node);
                 }
                 UPDATE_VCM_NODE(pcvcm_node_new_concat_string(0, NULL));
                 ejson_stack_push('U');
@@ -2948,7 +2950,7 @@ next_state:
             }
             if (character == '$') {
                 if (hvml->vcm_node) {
-                    pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
+                    vcm_stack_push(hvml->vcm_node);
                 }
                 UPDATE_VCM_NODE(pcvcm_node_new_concat_string(0, NULL));
                 ejson_stack_push('"');
@@ -3010,7 +3012,7 @@ next_state:
             }
             if (character == '$') {
                 if (hvml->vcm_node) {
-                    pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
+                    vcm_stack_push(hvml->vcm_node);
                 }
                 UPDATE_VCM_NODE(pcvcm_node_new_concat_string(0, NULL));
                 ejson_stack_push('"');
@@ -3093,7 +3095,7 @@ next_state:
             }
             if (character == '$') {
                 if (hvml->vcm_node) {
-                    pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
+                    vcm_stack_push(hvml->vcm_node);
                 }
                 UPDATE_VCM_NODE(pcvcm_node_new_concat_string(0, NULL));
                 ejson_stack_push('U');
@@ -3224,7 +3226,7 @@ next_state:
             }
             if (character == '$') {
                 if (hvml->vcm_node) {
-                    pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
+                    vcm_stack_push(hvml->vcm_node);
                 }
                 UPDATE_VCM_NODE(pcvcm_node_new_concat_string(0, NULL));
                 ejson_stack_push('U');
@@ -3325,7 +3327,7 @@ next_state:
             }
             if (character == '$') {
                 if (hvml->vcm_node) {
-                    pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
+                    vcm_stack_push(hvml->vcm_node);
                 }
                 UPDATE_VCM_NODE(pcvcm_node_new_concat_string(0, NULL));
                 ejson_stack_push('U');
@@ -3771,7 +3773,7 @@ next_state:
                     RETURN_AND_STOP_PARSE();
                 }
                 if (hvml->vcm_node) {
-                    pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
+                    vcm_stack_push(hvml->vcm_node);
                 }
                 hvml->vcm_node = pcvcm_node_new_string(
                            pchvml_buffer_get_buffer(hvml->temp_buffer));
@@ -3793,7 +3795,7 @@ next_state:
                     RETURN_AND_STOP_PARSE();
                 }
                 if (hvml->vcm_node) {
-                    pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
+                    vcm_stack_push(hvml->vcm_node);
                 }
                 hvml->vcm_node = pcvcm_node_new_string(
                            pchvml_buffer_get_buffer(hvml->temp_buffer));
@@ -3818,7 +3820,7 @@ next_state:
                     RETURN_AND_STOP_PARSE();
                 }
                 if (hvml->vcm_node) {
-                    pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
+                    vcm_stack_push(hvml->vcm_node);
                 }
                 hvml->vcm_node = pcvcm_node_new_string(
                            pchvml_buffer_get_buffer(hvml->temp_buffer));
@@ -3854,7 +3856,7 @@ next_state:
                     RETURN_AND_STOP_PARSE();
                 }
                 if (hvml->vcm_node) {
-                    pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
+                    vcm_stack_push(hvml->vcm_node);
                 }
                 hvml->vcm_node = pcvcm_node_new_string(
                            pchvml_buffer_get_buffer(hvml->temp_buffer));
@@ -3872,7 +3874,7 @@ next_state:
                     APPEND_TO_TEMP_BUFFER(character);
                 }
                 if (hvml->vcm_node) {
-                    pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
+                    vcm_stack_push(hvml->vcm_node);
                 }
                 hvml->vcm_node = pcvcm_node_new_string(
                            pchvml_buffer_get_buffer(hvml->temp_buffer));
@@ -3890,7 +3892,7 @@ next_state:
                     RETURN_AND_STOP_PARSE();
                 }
                 if (hvml->vcm_node) {
-                    pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
+                    vcm_stack_push(hvml->vcm_node);
                 }
                 hvml->vcm_node = pcvcm_node_new_string(
                            pchvml_buffer_get_buffer(hvml->temp_buffer));
@@ -3939,7 +3941,7 @@ next_state:
                     RETURN_AND_STOP_PARSE();
                 }
                 if (hvml->vcm_node) {
-                    pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
+                    vcm_stack_push(hvml->vcm_node);
                 }
                 hvml->vcm_node = pcvcm_node_new_string(
                            pchvml_buffer_get_buffer(hvml->temp_buffer));
@@ -3954,7 +3956,7 @@ next_state:
                     RETURN_AND_STOP_PARSE();
                 }
                 if (hvml->vcm_node) {
-                    pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
+                    vcm_stack_push(hvml->vcm_node);
                 }
                 hvml->vcm_node = pcvcm_node_new_string(
                            pchvml_buffer_get_buffer(hvml->temp_buffer));
@@ -3973,7 +3975,7 @@ next_state:
                     RETURN_AND_STOP_PARSE();
                 }
                 if (hvml->vcm_node) {
-                    pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
+                    vcm_stack_push(hvml->vcm_node);
                 }
                 hvml->vcm_node = pcvcm_node_new_string(
                            pchvml_buffer_get_buffer(hvml->temp_buffer));
@@ -4016,7 +4018,7 @@ next_state:
             if (character == '"') {
                 if (hvml->vcm_node) {
                     POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-                    pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
+                    vcm_stack_push(hvml->vcm_node);
                 }
                 hvml->vcm_node = pcvcm_node_new_string(
                         pchvml_buffer_get_buffer(hvml->temp_buffer));
