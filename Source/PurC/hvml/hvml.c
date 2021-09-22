@@ -1225,7 +1225,7 @@ next_state:
             if (pchvml_parser_is_operation_tag_token(parser->token)
                 && pchvml_parser_is_preposition_attribute(
                         pchvml_token_get_curr_attr(parser->token))) {
-                ADVANCE_TO(PCHVML_BEFORE_ATTRIBUTE_VALUE_STATE);
+                RECONSUME_IN(PCHVML_BEFORE_ATTRIBUTE_VALUE_STATE);
             }
             BEGIN_TOKEN_ATTR();
             RECONSUME_IN(PCHVML_ATTRIBUTE_NAME_STATE);
