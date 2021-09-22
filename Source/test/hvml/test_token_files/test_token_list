@@ -80,6 +80,7 @@ jsonee_073_string_with_jsonee_call_set
 jsonee_074_multiple_attr
 jsonee_075_multiple_jsonee
 #####jsonee_076_jsonee_context_variable
+jsonee_077_jsonee_name_with_minus
 ejson_001_i_number_double_huge_neg_exp
 ejson_002_i_number_huge_exp
 ejson_003_i_number_neg_int_huge_exp

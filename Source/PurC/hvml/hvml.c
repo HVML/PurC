@@ -3761,7 +3761,7 @@ next_state:
                 APPEND_TO_TEMP_BUFFER(character);
                 ADVANCE_TO(PCHVML_EJSON_JSONEE_VARIABLE_STATE);
             }
-            if (is_ascii_alpha(character)) {
+            if (is_ascii_alpha(character) || character == '-') {
                 APPEND_TO_TEMP_BUFFER(character);
                 ADVANCE_TO(PCHVML_EJSON_JSONEE_VARIABLE_STATE);
             }
