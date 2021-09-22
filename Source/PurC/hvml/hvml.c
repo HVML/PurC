@@ -2535,7 +2535,7 @@ next_state:
                     }
                     ADVANCE_TO(PCHVML_EJSON_RIGHT_BRACE_STATE);
                 }
-                else if (uc == '(' || uc == '<') {
+                else if (uc == '(' || uc == '<' || uc == '"') {
                     ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
                 }
                 PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_RIGHT_BRACE);
@@ -3800,6 +3800,14 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_JSONEE_VARIABLE_STATE)
+            if (pchvml_buffer_is_empty(hvml->temp_buffer)) {
+                if (character == '"') {
+                    RECONSUME_IN(PCHVML_EJSON_VALUE_DOUBLE_QUOTED_STATE);
+                }
+                if (character == '\'') {
+                    RECONSUME_IN(PCHVML_EJSON_VALUE_SINGLE_QUOTED_STATE);
+                }
+            }
             if (character == '$') {
                 RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
             }
@@ -4176,10 +4184,10 @@ next_state:
                     RETURN_AND_STOP_PARSE();
                 }
                 struct pcvcm_node* node = pcvcm_stack_pop(hvml->vcm_stack);
-                if (hvml->vcm_node) {
+                if (node && hvml->vcm_node) {
                     APPEND_CHILD(node, hvml->vcm_node);
+                    SET_VCM_NODE(node);
                 }
-                SET_VCM_NODE(node);
                 pcutils_stack_pop(hvml->ejson_stack);
                 if (!pcutils_stack_is_empty(hvml->ejson_stack)) {
                     struct pcvcm_node* node = pcvcm_stack_pop(
