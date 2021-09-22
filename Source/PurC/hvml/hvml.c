@@ -3754,6 +3754,24 @@ next_state:
                 }
             }
             if (character == '$') {
+                if (pchvml_buffer_is_empty(parser->temp_buffer)) {
+                    RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
+                }
+                if (parser->vcm_node) {
+                    vcm_stack_push(parser->vcm_node);
+                }
+                parser->vcm_node = pcvcm_node_new_string(
+                           pchvml_buffer_get_buffer(parser->temp_buffer));
+                RESET_TEMP_BUFFER();
+                uint32_t uc = pcutils_stack_top (parser->ejson_stack);
+                while (uc == '$') {
+                    ejson_stack_pop();
+                    POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+                    uc = pcutils_stack_top (parser->ejson_stack);
+                }
+                if (uc == '(' || uc == '<' || uc == '.' || uc == '"') {
+                    POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+                }
                 RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
             }
             if (character == '#' || character == '%'
@@ -3776,7 +3794,7 @@ next_state:
                 ADVANCE_TO(PCHVML_EJSON_JSONEE_VARIABLE_STATE);
             }
             if (is_whitespace(character) || character == '}'
-                    || character == '"' || character == '$'
+                    || character == '"'
                     || character == ']' || character == ')') {
                 if (pchvml_buffer_is_empty(parser->temp_buffer)) {
                     PCHVML_SET_ERROR(PCHVML_ERROR_BAD_JSONEE_VARIABLE_NAME);
@@ -3794,7 +3812,7 @@ next_state:
                     POP_AS_VCM_PARENT_AND_UPDATE_VCM();
                     uc = pcutils_stack_top (parser->ejson_stack);
                 }
-                if (uc == '(' || uc == '<' || uc == '.') {
+                if (uc == '(' || uc == '<' || uc == '.' || uc == '"') {
                     POP_AS_VCM_PARENT_AND_UPDATE_VCM();
                 }
                 RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
