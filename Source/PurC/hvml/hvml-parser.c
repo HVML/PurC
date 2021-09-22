@@ -34,6 +34,8 @@
 #define VTT(x)  PCHVML_TOKEN##x
 #endif // VTT
 
+#define TO_DEBUG
+
 #ifdef TO_DEBUG
 #ifndef D
 #define D(fmt, ...)                                    \
@@ -191,6 +193,8 @@ pcvdom_gen_end(struct pcvdom_gen *gen)
     }
     gen->eof = 1;
 
+    gen->parser = NULL;
+
     return doc;
 }
 
@@ -286,6 +290,12 @@ _on_start_tag(struct pcvdom_gen *gen, struct pchvml_token *token)
         }
 
         gen->doc->root = elem;
+        return 0;
+    }
+
+    if (strcmp(tag, "init")==0) {
+        gen->parser->state = PCHVML_EJSON_DATA_STATE;
+        return 0;
     }
 
     return 0;
@@ -363,7 +373,7 @@ _on_vcm_tree(struct pcvdom_gen *gen, struct pchvml_token *token)
     D("");
     UNUSED_PARAM(gen);
     UNUSED_PARAM(token);
-    FAIL_RET();
+    return 0;
 }
 
 static int
@@ -386,10 +396,13 @@ _on_eof(struct pcvdom_gen *gen)
 
 int
 pcvdom_gen_push_token(struct pcvdom_gen *gen,
+    struct pchvml_parser     *parser, /* exists for tokenizer state change */
     struct pchvml_token *token)
 {
     if (gen->eof)
         return 0; // ignore
+
+    gen->parser = parser;
 
     if (!gen->doc) {
         // generate a new document object

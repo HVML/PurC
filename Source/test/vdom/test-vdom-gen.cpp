@@ -62,7 +62,7 @@ again:
 
     token = pchvml_next_token(parser, rin);
 
-    if (token && 0==pcvdom_gen_push_token(gen, token)) {
+    if (token && 0==pcvdom_gen_push_token(gen, parser, token)) {
         if (pchvml_token_is_type(token, PCHVML_TOKEN_EOF)) {
             doc = pcvdom_gen_end(gen);
             std::cout << "Succeeded in parsing: [" << fn << "]" << std::endl;

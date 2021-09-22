@@ -43,6 +43,9 @@ struct pcvdom_gen {
     size_t                    nr_open;
     size_t                    sz_elements;
 
+    /* exists for tokenizer state change */
+    struct pchvml_parser     *parser;
+
     unsigned int              eof:1;
     unsigned int              reprocess:1;
 };
@@ -52,6 +55,7 @@ pcvdom_gen_create(void);
 
 int
 pcvdom_gen_push_token(struct pcvdom_gen *stack,
+    struct pchvml_parser     *parser, /* exists for tokenizer state change */
     struct pchvml_token *token);
 
 struct pcvdom_document*
