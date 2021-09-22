@@ -34,6 +34,8 @@
 #include "hvml-rwswrap.h"
 #include "hvml-token.h"
 #include "hvml-sbst.h"
+#include "hvml-attr.h"
+#include "hvml-tag.h"
 #include "config.h"
 
 #include <math.h>
@@ -856,23 +858,31 @@ bool pchvml_parser_is_appropriate_end_tag (struct pchvml_parser* parser)
 bool pchvml_parser_is_operation_tag_token (struct pchvml_token* token)
 {
     UNUSED_PARAM(token);
-    // TODO
+#if 0
+    const char* name = pchvml_token_get_name(token);
+    const struct pchvml_tag_entry* entry = pchvml_tag_static_search(name,
+            strlen(name));
+    return (entry && (entry->cats & PCHVML_TAGCAT_ORDINARY));
+#else
     return true;
+#endif
 }
 
 bool pchvml_parser_is_ordinary_attribute (struct pchvml_token_attr* attr)
 {
-    UNUSED_PARAM(attr);
-    // TODO
-    return true;
+    const char* name = pchvml_token_attr_get_name(attr);
+    const struct pchvml_attr_entry* entry =pchvml_attr_static_search(name,
+            strlen(name));
+    return (entry && entry->type == PCHVML_ATTR_TYPE_ORDINARY);
 }
 
 bool pchvml_parser_is_preposition_attribute (
         struct pchvml_token_attr* attr)
 {
-    UNUSED_PARAM(attr);
-    // TODO
-    return true;
+    const char* name = pchvml_token_attr_get_name(attr);
+    const struct pchvml_attr_entry* entry =pchvml_attr_static_search(name,
+            strlen(name));
+    return (entry && entry->type == PCHVML_ATTR_TYPE_PREP);
 }
 
 bool pchvml_parse_is_adjusted_current_node (struct pchvml_parser* hvml)
