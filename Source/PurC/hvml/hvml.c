@@ -289,9 +289,24 @@
         pchvml_buffer_append(hvml->string_buffer, uc);                      \
     } while (false)
 
-#define SET_VCM_NODE(node)                                                  \
+#define UPDATE_VCM_NODE(node)                                                  \
     do {                                                                    \
-        hvml->vcm_node = node;                                              \
+        if (node) {                                                         \
+            hvml->vcm_node = node;                                          \
+        }                                                                   \
+    } while (false)
+
+#define RESET_VCM_NODE()                                                    \
+    do {                                                                    \
+        hvml->vcm_node = NULL;                                              \
+    } while (false)
+
+#define APPEND_CHILD(parent, child)                                         \
+    do {                                                                    \
+        if (parent && child) {                                              \
+            pctree_node_append_child((struct pctree_node*)parent,           \
+                (struct pctree_node*)child);                                \
+        }                                                                   \
     } while (false)
 
 static const char* hvml_err_msgs[] = {
@@ -560,10 +575,7 @@ void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
     parser->vcm_node = NULL;
     while (!pcvcm_stack_is_empty(parser->vcm_stack)) {
         struct pcvcm_node* node = pcvcm_stack_pop(parser->vcm_stack);
-        if (n) {
-            pctree_node_append_child((struct pctree_node*)node,
-                    (struct pctree_node*)n);
-        }
+        APPEND_CHILD(node, n);
         n = node;
     }
     pcvcm_node_destroy(n);
@@ -591,10 +603,7 @@ void pchvml_destroy(struct pchvml_parser* parser)
         parser->vcm_node = NULL;
         while (!pcvcm_stack_is_empty(parser->vcm_stack)) {
             struct pcvcm_node* node = pcvcm_stack_pop(parser->vcm_stack);
-            if (n) {
-                pctree_node_append_child((struct pctree_node*)node,
-                        (struct pctree_node*)n);
-            }
+            APPEND_CHILD(node, n);
             n = node;
         }
         pcvcm_node_destroy(n);
@@ -1241,15 +1250,13 @@ next_state:
                 ADVANCE_TO(PCHVML_CHARACTER_REFERENCE_STATE);
             }
             if (character == '$') {
-                SET_VCM_NODE(pcvcm_node_new_concat_string(0, NULL));
+                UPDATE_VCM_NODE(pcvcm_node_new_concat_string(0, NULL));
                 pcutils_stack_push(hvml->ejson_stack, '"');
                 if (!pchvml_buffer_is_empty(hvml->string_buffer)) {
                     struct pcvcm_node* node = pcvcm_node_new_string(
                             pchvml_buffer_get_buffer(hvml->string_buffer)
                             );
-                    pctree_node_append_child(
-                            (struct pctree_node*)hvml->vcm_node,
-                            (struct pctree_node*)node);
+                    APPEND_CHILD(hvml->vcm_node, node);
                     RESET_STRING_BUFFER();
                 }
                 RECONSUME_IN(PCHVML_EJSON_DATA_STATE);
@@ -1316,15 +1323,13 @@ next_state:
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
             if (character == '$') {
-                SET_VCM_NODE(pcvcm_node_new_concat_string(0, NULL));
+                UPDATE_VCM_NODE(pcvcm_node_new_concat_string(0, NULL));
                 pcutils_stack_push(hvml->ejson_stack, 'U');
                 if (!pchvml_buffer_is_empty(hvml->string_buffer)) {
                     struct pcvcm_node* node = pcvcm_node_new_string(
                             pchvml_buffer_get_buffer(hvml->string_buffer)
                             );
-                    pctree_node_append_child(
-                            (struct pctree_node*)hvml->vcm_node,
-                            (struct pctree_node*)node);
+                    APPEND_CHILD(hvml->vcm_node, node);
                     RESET_STRING_BUFFER();
                 }
                 RECONSUME_IN(PCHVML_EJSON_DATA_STATE);
@@ -2284,19 +2289,13 @@ next_state:
                     pcutils_stack_pop (hvml->ejson_stack);
                     struct pcvcm_node* node = pcvcm_stack_pop(
                             hvml->vcm_stack);
-
-                    if (hvml->vcm_node) {
-                        pctree_node_append_child((struct pctree_node*)node,
-                                (struct pctree_node*)hvml->vcm_node);
-                    }
-                    SET_VCM_NODE(node);
+                    APPEND_CHILD(node, hvml->vcm_node);
+                    UPDATE_VCM_NODE(node);
                 }
 
                 if (hvml->vcm_node) {
                     if (hvml->vcm_tree) {
-                        pctree_node_append_child(
-                                (struct pctree_node*)hvml->vcm_tree,
-                                (struct pctree_node*)hvml->vcm_node);
+                        APPEND_CHILD(hvml->vcm_tree, hvml->vcm_node);
                     }
                     else {
                         hvml->vcm_tree = hvml->vcm_node;
@@ -2307,12 +2306,12 @@ next_state:
                     pchvml_token_append_vcm_to_attr(hvml->token,
                             hvml->vcm_tree);
                     END_TOKEN_ATTR();
-                    SET_VCM_NODE(NULL);
+                    RESET_VCM_NODE();
                     RECONSUME_IN(PCHVML_AFTER_ATTRIBUTE_VALUE_QUOTED_STATE);
                 }
                 hvml->token = pchvml_token_new_vcm(hvml->vcm_tree);
                 hvml->vcm_tree = NULL;
-                SET_VCM_NODE(NULL);
+                RESET_VCM_NODE();
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
             if (character == '<') {
@@ -2320,18 +2319,12 @@ next_state:
                     pcutils_stack_pop (hvml->ejson_stack);
                     struct pcvcm_node* node = pcvcm_stack_pop(
                             hvml->vcm_stack);
-
-                    if (hvml->vcm_node) {
-                        pctree_node_append_child((struct pctree_node*)node,
-                                (struct pctree_node*)hvml->vcm_node);
-                    }
-                    SET_VCM_NODE(node);
+                    APPEND_CHILD(node, hvml->vcm_node);
+                    UPDATE_VCM_NODE(node);
                 }
                 if (hvml->vcm_node) {
                     if (hvml->vcm_tree) {
-                        pctree_node_append_child(
-                                (struct pctree_node*)hvml->vcm_tree,
-                                (struct pctree_node*)hvml->vcm_node);
+                        APPEND_CHILD(hvml->vcm_tree, hvml->vcm_node);
                     }
                     else {
                         hvml->vcm_tree = hvml->vcm_node;
@@ -2339,7 +2332,7 @@ next_state:
                 }
                 hvml->token = pchvml_token_new_vcm(hvml->vcm_tree);
                 hvml->vcm_tree = NULL;
-                SET_VCM_NODE(NULL);
+                RESET_VCM_NODE();
                 RETURN_AND_SWITCH_TO(PCHVML_TAG_OPEN_STATE);
             }
             if (is_eof(character)) {
@@ -2456,19 +2449,15 @@ next_state:
                     if (!pchvml_buffer_is_empty(hvml->temp_buffer)) {
                         struct pcvcm_node* node = pcvcm_node_new_string(
                         pchvml_buffer_get_buffer(hvml->temp_buffer));
-                        pctree_node_append_child(
-                                (struct pctree_node*)hvml->vcm_node,
-                                (struct pctree_node*)node);
+                        APPEND_CHILD(hvml->vcm_node, node);
                         RESET_TEMP_BUFFER();
                     }
                     if (hvml->vcm_node &&
                             hvml->vcm_node->type != PCVCM_NODE_TYPE_OBJECT) {
                         struct pcvcm_node* node = pcvcm_stack_pop(
                                 hvml->vcm_stack);
-                        pctree_node_append_child(
-                                (struct pctree_node*)node,
-                                (struct pctree_node*)hvml->vcm_node);
-                        SET_VCM_NODE(node);
+                        APPEND_CHILD(node, hvml->vcm_node);
+                        UPDATE_VCM_NODE(node);
                     }
                     ADVANCE_TO(PCHVML_EJSON_BEFORE_NAME_STATE);
                 }
@@ -2501,7 +2490,7 @@ next_state:
                     pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
                 }
                 struct pcvcm_node* node = pcvcm_node_new_object(0, NULL);
-                SET_VCM_NODE(node);
+                UPDATE_VCM_NODE(node);
                 RECONSUME_IN(PCHVML_EJSON_BEFORE_NAME_STATE);
             }
             PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
@@ -2526,12 +2515,8 @@ next_state:
                     pcutils_stack_pop(hvml->ejson_stack);
                     struct pcvcm_node* node = pcvcm_stack_pop(
                             hvml->vcm_stack);
-                    if (node && hvml->vcm_node) {
-                        pctree_node_append_child(
-                                (struct pctree_node*)node,
-                                (struct pctree_node*)hvml->vcm_node);
-                        SET_VCM_NODE(node);
-                    }
+                    APPEND_CHILD(node, hvml->vcm_node);
+                    UPDATE_VCM_NODE(node);
                     if (pcutils_stack_is_empty(hvml->ejson_stack)) {
                         ADVANCE_TO(PCHVML_EJSON_FINISHED_STATE);
                     }
@@ -2547,7 +2532,7 @@ next_state:
                     }
                     ADVANCE_TO(PCHVML_EJSON_RIGHT_BRACE_STATE);
                 }
-                else if (uc == '(' || uc == '<') {
+                else if (uc == '(' || uc == '<' || uc == '"') {
                     ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
                 }
                 PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_RIGHT_BRACE);
@@ -2557,26 +2542,18 @@ next_state:
                 if (uc == '{') {
                     struct pcvcm_node* node = pcvcm_stack_pop(
                             hvml->vcm_stack);
-                    if (hvml->vcm_node) {
-                        pctree_node_append_child(
-                                (struct pctree_node*)node,
-                                (struct pctree_node*)hvml->vcm_node);
-                    }
+                    APPEND_CHILD(node, hvml->vcm_node);
                     pcvcm_stack_push(hvml->vcm_stack, node);
-                    SET_VCM_NODE(NULL);
+                    RESET_VCM_NODE();
                     ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
                 }
                 if (uc == 'P') {
                     pcutils_stack_pop(hvml->ejson_stack);
                     pcutils_stack_push(hvml->ejson_stack, '{');
                     struct pcvcm_node* node = pcvcm_node_new_object(0, NULL);
-                    if (hvml->vcm_node) {
-                        pctree_node_append_child(
-                                (struct pctree_node*)node,
-                                (struct pctree_node*)hvml->vcm_node);
-                    }
+                    APPEND_CHILD(node, hvml->vcm_node);
                     pcvcm_stack_push(hvml->vcm_stack, node);
-                    SET_VCM_NODE(NULL);
+                    RESET_VCM_NODE();
                     ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
                 }
                 PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
@@ -2585,12 +2562,8 @@ next_state:
             if (character == '.' && uc == '$') {
                 pcutils_stack_pop(hvml->ejson_stack);
                 struct pcvcm_node* node = pcvcm_stack_pop(hvml->vcm_stack);
-                if (hvml->vcm_node) {
-                    pctree_node_append_child(
-                            (struct pctree_node*)node,
-                            (struct pctree_node*)hvml->vcm_node);
-                }
-                SET_VCM_NODE(node);
+                APPEND_CHILD(node, hvml->vcm_node);
+                UPDATE_VCM_NODE(node);
             }
             RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
         END_STATE()
@@ -2601,12 +2574,8 @@ next_state:
                     pcutils_stack_push(hvml->ejson_stack, '[');
                     struct pcvcm_node* node = pcvcm_node_new_get_element(NULL,
                             NULL);
-                    if (hvml->vcm_node) {
-                        pctree_node_append_child(
-                                (struct pctree_node*)node,
-                                (struct pctree_node*)hvml->vcm_node);
-                    }
-                    SET_VCM_NODE(node);
+                    APPEND_CHILD(node, hvml->vcm_node);
+                    UPDATE_VCM_NODE(node);
                     ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
                 }
                 if (hvml->vcm_node->type ==
@@ -2616,12 +2585,8 @@ next_state:
                     pcutils_stack_push(hvml->ejson_stack, '.');
                     struct pcvcm_node* node = pcvcm_node_new_get_element(NULL,
                             NULL);
-                    if (hvml->vcm_node) {
-                        pctree_node_append_child(
-                                (struct pctree_node*)node,
-                                (struct pctree_node*)hvml->vcm_node);
-                    }
-                    SET_VCM_NODE(node);
+                    APPEND_CHILD(node, hvml->vcm_node);
+                    UPDATE_VCM_NODE(node);
                     ADVANCE_TO(PCHVML_EJSON_JSONEE_VARIABLE_STATE);
                 }
                 uint32_t uc = pcutils_stack_top (hvml->ejson_stack);
@@ -2631,7 +2596,7 @@ next_state:
                         pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
                     }
                     struct pcvcm_node* node = pcvcm_node_new_array(0, NULL);
-                    SET_VCM_NODE(node);
+                    UPDATE_VCM_NODE(node);
                     ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
                 }
                 PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
@@ -2659,27 +2624,20 @@ next_state:
                     pcutils_stack_pop(hvml->ejson_stack);
                     struct pcvcm_node* node = pcvcm_stack_pop(
                             hvml->vcm_stack);
-
-                    if (node && hvml->vcm_node) {
-                        pctree_node_append_child((struct pctree_node*)node,
-                                (struct pctree_node*)hvml->vcm_node);
-                        SET_VCM_NODE(node);
-                    }
+                    APPEND_CHILD(node, hvml->vcm_node);
+                    UPDATE_VCM_NODE(node);
                     ADVANCE_TO(PCHVML_EJSON_AFTER_VALUE_STATE);
                 }
                 if (uc == '[') {
                     pcutils_stack_pop(hvml->ejson_stack);
                     struct pcvcm_node* node = pcvcm_stack_pop(
                             hvml->vcm_stack);
-                    if (node && hvml->vcm_node) {
-                        pctree_node_append_child((struct pctree_node*)node,
-                                (struct pctree_node*)hvml->vcm_node);
-                        SET_VCM_NODE(node);
-                    }
+                    APPEND_CHILD(node, hvml->vcm_node);
+                    UPDATE_VCM_NODE(node);
                     struct pcvcm_node* parent = (struct pcvcm_node*)
                         pctree_node_parent((struct pctree_node*)hvml->vcm_node);
                     if (parent) {
-                        SET_VCM_NODE(parent);
+                        UPDATE_VCM_NODE(parent);
                     }
                     if (pcutils_stack_is_empty(hvml->ejson_stack)) {
                         ADVANCE_TO(PCHVML_EJSON_FINISHED_STATE);
@@ -2712,12 +2670,8 @@ next_state:
                         PCVCM_NODE_TYPE_FUNC_GET_ELEMENT) {
                     struct pcvcm_node* node = pcvcm_node_new_call_setter(NULL,
                             0, NULL);
-                    if (hvml->vcm_node) {
-                        pctree_node_append_child(
-                                (struct pctree_node*)node,
-                                (struct pctree_node*)hvml->vcm_node);
-                    }
-                    SET_VCM_NODE(node);
+                    APPEND_CHILD(node, hvml->vcm_node);
+                    UPDATE_VCM_NODE(node);
                     pcutils_stack_push(hvml->ejson_stack, '<');
                     ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
                 }
@@ -2734,12 +2688,8 @@ next_state:
                     PCVCM_NODE_TYPE_FUNC_GET_ELEMENT) {
                 struct pcvcm_node* node = pcvcm_node_new_call_getter(NULL,
                         0, NULL);
-                if (hvml->vcm_node) {
-                    pctree_node_append_child(
-                            (struct pctree_node*)node,
-                            (struct pctree_node*)hvml->vcm_node);
-                }
-                SET_VCM_NODE(node);
+                APPEND_CHILD(node, hvml->vcm_node);
+                UPDATE_VCM_NODE(node);
                 pcutils_stack_push(hvml->ejson_stack, '(');
                 RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
             }
@@ -2758,11 +2708,8 @@ next_state:
                     if (!pcvcm_stack_is_empty(hvml->vcm_stack)) {
                         struct pcvcm_node* node = pcvcm_stack_pop(
                                 hvml->vcm_stack);
-                        if (hvml->vcm_node) {
-                            pctree_node_append_child((struct pctree_node*)node,
-                                    (struct pctree_node*)hvml->vcm_node);
-                        }
-                        SET_VCM_NODE(node);
+                        APPEND_CHILD(node, hvml->vcm_node);
+                        UPDATE_VCM_NODE(node);
                     }
                     ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
                 }
@@ -2788,7 +2735,7 @@ next_state:
                     pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
                 }
                 pcutils_stack_push(hvml->ejson_stack, '$');
-                SET_VCM_NODE(pcvcm_node_new_get_variable(NULL));
+                UPDATE_VCM_NODE(pcvcm_node_new_get_variable(NULL));
                 ADVANCE_TO(PCHVML_EJSON_DOLLAR_STATE);
             }
             if (character == '{') {
@@ -2811,8 +2758,7 @@ next_state:
             if (character == '"' || character == '\'') {
                 struct pcvcm_node* node = pcvcm_node_new_string(
                         pchvml_buffer_get_buffer(hvml->temp_buffer));
-                pctree_node_append_child((struct pctree_node*)hvml->vcm_node,
-                        (struct pctree_node*)node);
+                APPEND_CHILD(hvml->vcm_node, node);
                 RESET_TEMP_BUFFER();
                 ADVANCE_TO(PCHVML_EJSON_AFTER_VALUE_STATE);
             }
@@ -2835,19 +2781,15 @@ next_state:
                     if (!pchvml_buffer_is_empty(hvml->temp_buffer)) {
                         struct pcvcm_node* node = pcvcm_node_new_string(
                         pchvml_buffer_get_buffer(hvml->temp_buffer));
-                        pctree_node_append_child(
-                                (struct pctree_node*)hvml->vcm_node,
-                                (struct pctree_node*)node);
+                        APPEND_CHILD(hvml->vcm_node, node);
                         RESET_TEMP_BUFFER();
                     }
                     if (hvml->vcm_node &&
                             hvml->vcm_node->type != PCVCM_NODE_TYPE_ARRAY) {
                         struct pcvcm_node* node = pcvcm_stack_pop(
                                 hvml->vcm_stack);
-                        pctree_node_append_child(
-                                (struct pctree_node*)node,
-                                (struct pctree_node*)hvml->vcm_node);
-                        SET_VCM_NODE(node);
+                        APPEND_CHILD(node, hvml->vcm_node);
+                        UPDATE_VCM_NODE(node);
                     }
                     ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
                 }
@@ -2862,19 +2804,15 @@ next_state:
                     if (!pchvml_buffer_is_empty(hvml->temp_buffer)) {
                         struct pcvcm_node* node = pcvcm_node_new_string(
                         pchvml_buffer_get_buffer(hvml->temp_buffer));
-                        pctree_node_append_child(
-                                (struct pctree_node*)hvml->vcm_node,
-                                (struct pctree_node*)node);
+                        APPEND_CHILD(hvml->vcm_node, node);
                         RESET_TEMP_BUFFER();
                     }
                     if (hvml->vcm_node &&
                             hvml->vcm_node->type != PCVCM_NODE_TYPE_OBJECT) {
                         struct pcvcm_node* node = pcvcm_stack_pop(
                                 hvml->vcm_stack);
-                        pctree_node_append_child(
-                                (struct pctree_node*)node,
-                                (struct pctree_node*)hvml->vcm_node);
-                        SET_VCM_NODE(node);
+                        APPEND_CHILD(node, hvml->vcm_node);
+                        UPDATE_VCM_NODE(node);
                     }
                     ADVANCE_TO(PCHVML_EJSON_BEFORE_NAME_STATE);
                 }
@@ -2932,8 +2870,7 @@ next_state:
                 if (!pchvml_buffer_is_empty(hvml->temp_buffer)) {
                     struct pcvcm_node* node = pcvcm_node_new_string(
                         pchvml_buffer_get_buffer(hvml->temp_buffer));
-                    pctree_node_append_child((struct pctree_node*)hvml->vcm_node,
-                            (struct pctree_node*)node);
+                    APPEND_CHILD(hvml->vcm_node, node);
                 }
                 ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
             }
@@ -2954,15 +2891,13 @@ next_state:
                 if (hvml->vcm_node) {
                     pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
                 }
-                SET_VCM_NODE(pcvcm_node_new_concat_string(0, NULL));
+                UPDATE_VCM_NODE(pcvcm_node_new_concat_string(0, NULL));
                 pcutils_stack_push(hvml->ejson_stack, 'U');
                 if (!pchvml_buffer_is_empty(hvml->temp_buffer)) {
                     struct pcvcm_node* node = pcvcm_node_new_string(
                             pchvml_buffer_get_buffer(hvml->temp_buffer)
                             );
-                    pctree_node_append_child(
-                            (struct pctree_node*)hvml->vcm_node,
-                            (struct pctree_node*)node);
+                    APPEND_CHILD(hvml->vcm_node, node);
                     RESET_TEMP_BUFFER();
                 }
                 RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
@@ -3009,9 +2944,7 @@ next_state:
                         hvml->vcm_node = pcvcm_stack_pop(
                                 hvml->vcm_stack);
                     }
-                    pctree_node_append_child(
-                            (struct pctree_node*)hvml->vcm_node,
-                            (struct pctree_node*)node);
+                    APPEND_CHILD(hvml->vcm_node, node);
                     ADVANCE_TO(PCHVML_EJSON_AFTER_NAME_STATE);
                 }
                 APPEND_TO_TEMP_BUFFER(character);
@@ -3029,15 +2962,13 @@ next_state:
                 if (hvml->vcm_node) {
                     pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
                 }
-                SET_VCM_NODE(pcvcm_node_new_concat_string(0, NULL));
+                UPDATE_VCM_NODE(pcvcm_node_new_concat_string(0, NULL));
                 pcutils_stack_push(hvml->ejson_stack, '"');
                 if (!pchvml_buffer_is_empty(hvml->temp_buffer)) {
                     struct pcvcm_node* node = pcvcm_node_new_string(
                             pchvml_buffer_get_buffer(hvml->temp_buffer)
                             );
-                    pctree_node_append_child(
-                            (struct pctree_node*)hvml->vcm_node,
-                            (struct pctree_node*)node);
+                    APPEND_CHILD(hvml->vcm_node, node);
                     RESET_TEMP_BUFFER();
                 }
                 RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
@@ -3093,15 +3024,13 @@ next_state:
                 if (hvml->vcm_node) {
                     pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
                 }
-                SET_VCM_NODE(pcvcm_node_new_concat_string(0, NULL));
+                UPDATE_VCM_NODE(pcvcm_node_new_concat_string(0, NULL));
                 pcutils_stack_push(hvml->ejson_stack, '"');
                 if (!pchvml_buffer_is_empty(hvml->temp_buffer)) {
                     struct pcvcm_node* node = pcvcm_node_new_string(
                             pchvml_buffer_get_buffer(hvml->temp_buffer)
                             );
-                    pctree_node_append_child(
-                            (struct pctree_node*)hvml->vcm_node,
-                            (struct pctree_node*)node);
+                    APPEND_CHILD(hvml->vcm_node, node);
                     RESET_TEMP_BUFFER();
                 }
                 RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
@@ -3135,11 +3064,9 @@ next_state:
                     pchvml_buffer_get_buffer(hvml->temp_buffer)
                     );
             if (!hvml->vcm_node) {
-                SET_VCM_NODE(pcvcm_stack_pop(hvml->vcm_stack));
+                UPDATE_VCM_NODE(pcvcm_stack_pop(hvml->vcm_stack));
             }
-            pctree_node_append_child(
-                    (struct pctree_node*)hvml->vcm_node,
-                    (struct pctree_node*)node);
+            APPEND_CHILD(hvml->vcm_node, node);
             RESET_TEMP_BUFFER();
             RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_STATE);
         END_STATE()
@@ -3161,9 +3088,7 @@ next_state:
                         hvml->vcm_node = pcvcm_stack_pop(
                                 hvml->vcm_stack);
                     }
-                    pctree_node_append_child(
-                            (struct pctree_node*)hvml->vcm_node,
-                            (struct pctree_node*)node);
+                    APPEND_CHILD(hvml->vcm_node, node);
                     RESET_TEMP_BUFFER();
                     ADVANCE_TO(PCHVML_EJSON_AFTER_VALUE_STATE);
                 }
@@ -3187,15 +3112,13 @@ next_state:
                 if (hvml->vcm_node) {
                     pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
                 }
-                SET_VCM_NODE(pcvcm_node_new_concat_string(0, NULL));
+                UPDATE_VCM_NODE(pcvcm_node_new_concat_string(0, NULL));
                 pcutils_stack_push(hvml->ejson_stack, 'U');
                 if (!pchvml_buffer_is_empty(hvml->temp_buffer)) {
                     struct pcvcm_node* node = pcvcm_node_new_string(
                             pchvml_buffer_get_buffer(hvml->temp_buffer)
                             );
-                    pctree_node_append_child(
-                            (struct pctree_node*)hvml->vcm_node,
-                            (struct pctree_node*)node);
+                    APPEND_CHILD(hvml->vcm_node, node);
                     RESET_TEMP_BUFFER();
                 }
                 RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
@@ -3275,9 +3198,7 @@ next_state:
                                 hvml->vcm_stack);
                     }
                     struct pcvcm_node* node = pcvcm_node_new_boolean(true);
-                    pctree_node_append_child(
-                            (struct pctree_node*)hvml->vcm_node,
-                            (struct pctree_node*)node);
+                    APPEND_CHILD(hvml->vcm_node, node);
                     RESET_TEMP_BUFFER();
                     RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_STATE);
                 }
@@ -3288,17 +3209,13 @@ next_state:
                                 hvml->vcm_stack);
                     }
                     struct pcvcm_node* node = pcvcm_node_new_boolean(false);
-                    pctree_node_append_child(
-                            (struct pctree_node*)hvml->vcm_node,
-                            (struct pctree_node*)node);
+                    APPEND_CHILD(hvml->vcm_node, node);
                     RESET_TEMP_BUFFER();
                     RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_STATE);
                 }
                 if (pchvml_buffer_equal_to(hvml->temp_buffer, "null", 4)) {
                     struct pcvcm_node* node = pcvcm_node_new_null();
-                    pctree_node_append_child(
-                            (struct pctree_node*)hvml->vcm_node,
-                            (struct pctree_node*)node);
+                    APPEND_CHILD(hvml->vcm_node, node);
                     RESET_TEMP_BUFFER();
                     RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_STATE);
                 }
@@ -3332,15 +3249,13 @@ next_state:
                 if (hvml->vcm_node) {
                     pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
                 }
-                SET_VCM_NODE(pcvcm_node_new_concat_string(0, NULL));
+                UPDATE_VCM_NODE(pcvcm_node_new_concat_string(0, NULL));
                 pcutils_stack_push(hvml->ejson_stack, 'U');
                 if (!pchvml_buffer_is_empty(hvml->temp_buffer)) {
                     struct pcvcm_node* node = pcvcm_node_new_string(
                             pchvml_buffer_get_buffer(hvml->temp_buffer)
                             );
-                    pctree_node_append_child(
-                            (struct pctree_node*)hvml->vcm_node,
-                            (struct pctree_node*)node);
+                    APPEND_CHILD(hvml->vcm_node, node);
                     RESET_TEMP_BUFFER();
                 }
                 RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
@@ -3359,11 +3274,9 @@ next_state:
                     RETURN_AND_STOP_PARSE();
                 }
                 if (!hvml->vcm_node) {
-                    SET_VCM_NODE(pcvcm_stack_pop(hvml->vcm_stack));
+                    UPDATE_VCM_NODE(pcvcm_stack_pop(hvml->vcm_stack));
                 }
-                pctree_node_append_child(
-                        (struct pctree_node*)hvml->vcm_node,
-                        (struct pctree_node*)node);
+                APPEND_CHILD(hvml->vcm_node, node);
                 RESET_TEMP_BUFFER();
                 RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_STATE);
             }
@@ -3439,15 +3352,13 @@ next_state:
                 if (hvml->vcm_node) {
                     pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
                 }
-                SET_VCM_NODE(pcvcm_node_new_concat_string(0, NULL));
+                UPDATE_VCM_NODE(pcvcm_node_new_concat_string(0, NULL));
                 pcutils_stack_push(hvml->ejson_stack, 'U');
                 if (!pchvml_buffer_is_empty(hvml->temp_buffer)) {
                     struct pcvcm_node* node = pcvcm_node_new_string(
                             pchvml_buffer_get_buffer(hvml->temp_buffer)
                             );
-                    pctree_node_append_child(
-                            (struct pctree_node*)hvml->vcm_node,
-                            (struct pctree_node*)node);
+                    APPEND_CHILD(hvml->vcm_node, node);
                     RESET_TEMP_BUFFER();
                 }
                 RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
@@ -3470,11 +3381,9 @@ next_state:
                         pchvml_buffer_get_buffer(hvml->temp_buffer), NULL);
                 struct pcvcm_node* node = pcvcm_node_new_number(d);
                 if (!hvml->vcm_node) {
-                    SET_VCM_NODE(pcvcm_stack_pop(hvml->vcm_stack));
+                    UPDATE_VCM_NODE(pcvcm_stack_pop(hvml->vcm_stack));
                 }
-                pctree_node_append_child(
-                        (struct pctree_node*)hvml->vcm_node,
-                        (struct pctree_node*)node);
+                APPEND_CHILD(hvml->vcm_node, node);
                 RESET_TEMP_BUFFER();
                 RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_STATE);
             }
@@ -3539,11 +3448,9 @@ next_state:
                             pchvml_buffer_get_buffer(hvml->temp_buffer), NULL);
                     struct pcvcm_node* node = pcvcm_node_new_longdouble(ld);
                     if (!hvml->vcm_node) {
-                        SET_VCM_NODE(pcvcm_stack_pop(hvml->vcm_stack));
+                        UPDATE_VCM_NODE(pcvcm_stack_pop(hvml->vcm_stack));
                     }
-                    pctree_node_append_child(
-                            (struct pctree_node*)hvml->vcm_node,
-                            (struct pctree_node*)node);
+                    APPEND_CHILD(hvml->vcm_node, node);
                     RESET_TEMP_BUFFER();
                     ADVANCE_TO(PCHVML_EJSON_AFTER_VALUE_STATE);
                 }
@@ -3601,11 +3508,9 @@ next_state:
                             pchvml_buffer_get_buffer(hvml->temp_buffer), NULL);
                     struct pcvcm_node* node = pcvcm_node_new_longdouble(ld);
                     if (!hvml->vcm_node) {
-                        SET_VCM_NODE(pcvcm_stack_pop(hvml->vcm_stack));
+                        UPDATE_VCM_NODE(pcvcm_stack_pop(hvml->vcm_stack));
                     }
-                    pctree_node_append_child(
-                            (struct pctree_node*)hvml->vcm_node,
-                            (struct pctree_node*)node);
+                    APPEND_CHILD(hvml->vcm_node, node);
                     RESET_TEMP_BUFFER();
                     ADVANCE_TO(PCHVML_EJSON_AFTER_VALUE_NUMBER_STATE);
                 }
@@ -3641,9 +3546,7 @@ next_state:
                             hvml->vcm_node = pcvcm_stack_pop(
                                     hvml->vcm_stack);
                         }
-                        pctree_node_append_child(
-                                (struct pctree_node*)hvml->vcm_node,
-                                (struct pctree_node*)node);
+                        APPEND_CHILD(hvml->vcm_node, node);
                         RESET_TEMP_BUFFER();
                         ADVANCE_TO(PCHVML_EJSON_AFTER_VALUE_STATE);
                     }
@@ -3657,9 +3560,7 @@ next_state:
                             hvml->vcm_node = pcvcm_stack_pop(
                                     hvml->vcm_stack);
                         }
-                        pctree_node_append_child(
-                                (struct pctree_node*)hvml->vcm_node,
-                                (struct pctree_node*)node);
+                        APPEND_CHILD(hvml->vcm_node, node);
                         RESET_TEMP_BUFFER();
                         ADVANCE_TO(PCHVML_EJSON_AFTER_VALUE_STATE);
                     }
@@ -3678,11 +3579,9 @@ next_state:
                     double d = -INFINITY;
                     struct pcvcm_node* node = pcvcm_node_new_number(d);
                     if (!hvml->vcm_node) {
-                        SET_VCM_NODE(pcvcm_stack_pop(hvml->vcm_stack));
+                        UPDATE_VCM_NODE(pcvcm_stack_pop(hvml->vcm_stack));
                     }
-                    pctree_node_append_child(
-                            (struct pctree_node*)hvml->vcm_node,
-                            (struct pctree_node*)node);
+                    APPEND_CHILD(hvml->vcm_node, node);
                     RESET_TEMP_BUFFER();
                     RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_STATE);
                 }
@@ -3691,11 +3590,9 @@ next_state:
                     double d = INFINITY;
                     struct pcvcm_node* node = pcvcm_node_new_number(d);
                     if (!hvml->vcm_node) {
-                        SET_VCM_NODE(pcvcm_stack_pop(hvml->vcm_stack));
+                        UPDATE_VCM_NODE(pcvcm_stack_pop(hvml->vcm_stack));
                     }
-                    pctree_node_append_child(
-                            (struct pctree_node*)hvml->vcm_node,
-                            (struct pctree_node*)node);
+                    APPEND_CHILD(hvml->vcm_node, node);
                     RESET_TEMP_BUFFER();
                     RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_STATE);
                 }
@@ -3791,11 +3688,9 @@ next_state:
                     double d = NAN;
                     struct pcvcm_node* node = pcvcm_node_new_number(d);
                     if (!hvml->vcm_node) {
-                        SET_VCM_NODE(pcvcm_stack_pop(hvml->vcm_stack));
+                        UPDATE_VCM_NODE(pcvcm_stack_pop(hvml->vcm_stack));
                     }
-                    pctree_node_append_child(
-                            (struct pctree_node*)hvml->vcm_node,
-                            (struct pctree_node*)node);
+                    APPEND_CHILD(hvml->vcm_node, node);
                     RESET_TEMP_BUFFER();
                     RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_STATE);
                 }
@@ -3881,6 +3776,14 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_JSONEE_VARIABLE_STATE)
+            if (pchvml_buffer_is_empty(hvml->temp_buffer)) {
+                if (character == '"') {
+                    RECONSUME_IN(PCHVML_EJSON_VALUE_DOUBLE_QUOTED_STATE);
+                }
+                if (character == '\'') {
+                    RECONSUME_IN(PCHVML_EJSON_VALUE_SINGLE_QUOTED_STATE);
+                }
+            }
             if (character == '$') {
                 RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
             }
@@ -3921,17 +3824,15 @@ next_state:
                     pcutils_stack_pop (hvml->ejson_stack);
                     struct pcvcm_node* node = pcvcm_stack_pop(
                             hvml->vcm_stack);
-                    pctree_node_append_child((struct pctree_node*)node,
-                                (struct pctree_node*)hvml->vcm_node);
-                    SET_VCM_NODE(node);
+                    APPEND_CHILD(node, hvml->vcm_node);
+                    UPDATE_VCM_NODE(node);
                     uc = pcutils_stack_top (hvml->ejson_stack);
                 }
                 if (uc == '(' || uc == '<' || uc == '.') {
                     struct pcvcm_node* node = pcvcm_stack_pop(
                             hvml->vcm_stack);
-                    pctree_node_append_child((struct pctree_node*)node,
-                                (struct pctree_node*)hvml->vcm_node);
-                    SET_VCM_NODE(node);
+                    APPEND_CHILD(node, hvml->vcm_node);
+                    UPDATE_VCM_NODE(node);
                 }
                 RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
             }
@@ -3951,24 +3852,21 @@ next_state:
                     pcutils_stack_pop (hvml->ejson_stack);
                     struct pcvcm_node* node = pcvcm_stack_pop(
                             hvml->vcm_stack);
-                    pctree_node_append_child((struct pctree_node*)node,
-                                (struct pctree_node*)hvml->vcm_node);
-                    SET_VCM_NODE(node);
+                    APPEND_CHILD(node, hvml->vcm_node);
+                    UPDATE_VCM_NODE(node);
                     uc = pcutils_stack_top (hvml->ejson_stack);
                 }
                 if (uc == '(') {
                     struct pcvcm_node* node = pcvcm_stack_pop(
                             hvml->vcm_stack);
-                    pctree_node_append_child((struct pctree_node*)node,
-                                (struct pctree_node*)hvml->vcm_node);
-                    SET_VCM_NODE(node);
+                    APPEND_CHILD(node, hvml->vcm_node);
+                    UPDATE_VCM_NODE(node);
                 }
                 if (uc == '<') {
                     struct pcvcm_node* node = pcvcm_stack_pop(
                             hvml->vcm_stack);
-                    pctree_node_append_child((struct pctree_node*)node,
-                                (struct pctree_node*)hvml->vcm_node);
-                    SET_VCM_NODE(node);
+                    APPEND_CHILD(node, hvml->vcm_node);
+                    UPDATE_VCM_NODE(node);
                 }
                 RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_STATE);
             }
@@ -3988,40 +3886,35 @@ next_state:
                     pcutils_stack_pop (hvml->ejson_stack);
                     struct pcvcm_node* node = pcvcm_stack_pop(
                             hvml->vcm_stack);
-                    pctree_node_append_child((struct pctree_node*)node,
-                                (struct pctree_node*)hvml->vcm_node);
-                    SET_VCM_NODE(node);
+                    APPEND_CHILD(node, hvml->vcm_node);
+                    UPDATE_VCM_NODE(node);
                     uc = pcutils_stack_top(hvml->ejson_stack);
                 }
                 if (uc == '(') {
                     struct pcvcm_node* node = pcvcm_stack_pop(
                             hvml->vcm_stack);
-                    pctree_node_append_child((struct pctree_node*)node,
-                                (struct pctree_node*)hvml->vcm_node);
-                    SET_VCM_NODE(node);
+                    APPEND_CHILD(node, hvml->vcm_node);
+                    UPDATE_VCM_NODE(node);
                 }
                 if (uc == '<') {
                     struct pcvcm_node* node = pcvcm_stack_pop(
                             hvml->vcm_stack);
-                    pctree_node_append_child((struct pctree_node*)node,
-                                (struct pctree_node*)hvml->vcm_node);
-                    SET_VCM_NODE(node);
+                    APPEND_CHILD(node, hvml->vcm_node);
+                    UPDATE_VCM_NODE(node);
                 }
                 if (uc == 'P') {
                     pcutils_stack_pop(hvml->ejson_stack);
                     pcutils_stack_push(hvml->ejson_stack, '{');
                     pcutils_stack_push(hvml->ejson_stack, ':');
                     struct pcvcm_node* node = pcvcm_node_new_object(0, NULL);
-                    pctree_node_append_child((struct pctree_node*)node,
-                                (struct pctree_node*)hvml->vcm_node);
-                    SET_VCM_NODE(node);
+                    APPEND_CHILD(node, hvml->vcm_node);
+                    UPDATE_VCM_NODE(node);
                 }
                 if (uc == '{') {
                     struct pcvcm_node* node = pcvcm_stack_pop(
                             hvml->vcm_stack);
-                    pctree_node_append_child((struct pctree_node*)node,
-                                (struct pctree_node*)hvml->vcm_node);
-                    SET_VCM_NODE(node);
+                    APPEND_CHILD(node, hvml->vcm_node);
+                    UPDATE_VCM_NODE(node);
                 }
                 ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
             }
@@ -4041,9 +3934,8 @@ next_state:
                     pcutils_stack_pop (hvml->ejson_stack);
                     struct pcvcm_node* node = pcvcm_stack_pop(
                             hvml->vcm_stack);
-                    pctree_node_append_child((struct pctree_node*)node,
-                                (struct pctree_node*)hvml->vcm_node);
-                    SET_VCM_NODE(node);
+                    APPEND_CHILD(node, hvml->vcm_node);
+                    UPDATE_VCM_NODE(node);
                 }
                 RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
             }
@@ -4063,9 +3955,8 @@ next_state:
                     pcutils_stack_pop (hvml->ejson_stack);
                     struct pcvcm_node* node = pcvcm_stack_pop(
                             hvml->vcm_stack);
-                    pctree_node_append_child((struct pctree_node*)node,
-                                (struct pctree_node*)hvml->vcm_node);
-                    SET_VCM_NODE(node);
+                    APPEND_CHILD(node, hvml->vcm_node);
+                    UPDATE_VCM_NODE(node);
                 }
                 RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
             }
@@ -4085,9 +3976,8 @@ next_state:
                     pcutils_stack_pop (hvml->ejson_stack);
                     struct pcvcm_node* node = pcvcm_stack_pop(
                             hvml->vcm_stack);
-                    pctree_node_append_child((struct pctree_node*)node,
-                                (struct pctree_node*)hvml->vcm_node);
-                    SET_VCM_NODE(node);
+                    APPEND_CHILD(node, hvml->vcm_node);
+                    UPDATE_VCM_NODE(node);
                 }
                 RECONSUME_IN(PCHVML_EJSON_JSONEE_FULL_STOP_SIGN_STATE);
             }
@@ -4100,12 +3990,8 @@ next_state:
                 pcutils_stack_push(hvml->ejson_stack, '.');
                 struct pcvcm_node* node = pcvcm_node_new_get_element(NULL,
                         NULL);
-                if (hvml->vcm_node) {
-                    pctree_node_append_child(
-                            (struct pctree_node*)node,
-                            (struct pctree_node*)hvml->vcm_node);
-                }
-                SET_VCM_NODE(node);
+                APPEND_CHILD(node, hvml->vcm_node);
+                UPDATE_VCM_NODE(node);
                 ADVANCE_TO(PCHVML_EJSON_JSONEE_KEYWORD_STATE);
             }
         END_STATE()
@@ -4140,9 +4026,8 @@ next_state:
                 pcutils_stack_pop(hvml->ejson_stack);
                 struct pcvcm_node* node = pcvcm_stack_pop(
                         hvml->vcm_stack);
-                pctree_node_append_child((struct pctree_node*)node,
-                        (struct pctree_node*)hvml->vcm_node);
-                SET_VCM_NODE(node);
+                APPEND_CHILD(node, hvml->vcm_node);
+                UPDATE_VCM_NODE(node);
                 RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
             }
             if (character == ',') {
@@ -4159,16 +4044,14 @@ next_state:
                 pcutils_stack_pop(hvml->ejson_stack);
                 struct pcvcm_node* node = pcvcm_stack_pop(
                         hvml->vcm_stack);
-                pctree_node_append_child((struct pctree_node*)node,
-                        (struct pctree_node*)hvml->vcm_node);
-                SET_VCM_NODE(node);
+                APPEND_CHILD(node, hvml->vcm_node);
+                UPDATE_VCM_NODE(node);
                 uint32_t uc = pcutils_stack_top (hvml->ejson_stack);
                 if (uc == '(' || uc == '<') {
                     struct pcvcm_node* node = pcvcm_stack_pop(
                             hvml->vcm_stack);
-                    pctree_node_append_child((struct pctree_node*)node,
-                                (struct pctree_node*)hvml->vcm_node);
-                    SET_VCM_NODE(node);
+                    APPEND_CHILD(node, hvml->vcm_node);
+                    UPDATE_VCM_NODE(node);
                 }
                 RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_STATE);
             }
@@ -4186,9 +4069,8 @@ next_state:
                 pcutils_stack_pop(hvml->ejson_stack);
                 struct pcvcm_node* node = pcvcm_stack_pop(
                         hvml->vcm_stack);
-                pctree_node_append_child((struct pctree_node*)node,
-                        (struct pctree_node*)hvml->vcm_node);
-                SET_VCM_NODE(node);
+                APPEND_CHILD(node, hvml->vcm_node);
+                UPDATE_VCM_NODE(node);
                 RECONSUME_IN(PCHVML_EJSON_JSONEE_FULL_STOP_SIGN_STATE);
             }
             PCHVML_SET_ERROR(PCHVML_ERROR_BAD_JSONEE_KEYWORD);
@@ -4206,14 +4088,12 @@ next_state:
             }
             if (character == '$') {
                 if (uc != 'U' && uc != '"') {
-                    SET_VCM_NODE(pcvcm_node_new_concat_string(0, NULL));
+                    UPDATE_VCM_NODE(pcvcm_node_new_concat_string(0, NULL));
                     pcutils_stack_push(hvml->ejson_stack, '"');
                     if (!pchvml_buffer_is_empty(hvml->temp_buffer)) {
                         struct pcvcm_node* node = pcvcm_node_new_string(
                            pchvml_buffer_get_buffer(hvml->temp_buffer));
-                        pctree_node_append_child(
-                                (struct pctree_node*)hvml->vcm_node,
-                                (struct pctree_node*)node);
+                        APPEND_CHILD(hvml->vcm_node, node);
                         RESET_TEMP_BUFFER();
                         ADVANCE_TO(PCHVML_EJSON_JSONEE_STRING_STATE);
                     }
@@ -4227,12 +4107,8 @@ next_state:
             if (character == '"') {
                 if (hvml->vcm_node) {
                     struct pcvcm_node* node = pcvcm_stack_pop(hvml->vcm_stack);
-                    if (node) {
-                        pctree_node_append_child(
-                                (struct pctree_node*)node,
-                                (struct pctree_node*)hvml->vcm_node);
-                        SET_VCM_NODE(node);
-                    }
+                    APPEND_CHILD(node, hvml->vcm_node);
+                    UPDATE_VCM_NODE(node);
                     pcvcm_stack_push(hvml->vcm_stack, hvml->vcm_node);
                 }
                 hvml->vcm_node = pcvcm_node_new_string(
@@ -4257,20 +4133,15 @@ next_state:
             uint32_t uc = pcutils_stack_top (hvml->ejson_stack);
             if (is_whitespace(character)) {
                 struct pcvcm_node* node = pcvcm_stack_pop(hvml->vcm_stack);
-
-                if (hvml->vcm_node) {
-                    pctree_node_append_child((struct pctree_node*)node,
-                            (struct pctree_node*)hvml->vcm_node);
-                }
-                SET_VCM_NODE(node);
+                APPEND_CHILD(node, hvml->vcm_node);
+                UPDATE_VCM_NODE(node);
                 if (uc == 'U') {
                     pcutils_stack_pop(hvml->ejson_stack);
                     if (!pcutils_stack_is_empty(hvml->ejson_stack)) {
                         struct pcvcm_node* node = pcvcm_stack_pop(
                                 hvml->vcm_stack);
-                        pctree_node_append_child((struct pctree_node*)node,
-                            (struct pctree_node*)hvml->vcm_node);
-                        SET_VCM_NODE(node);
+                        APPEND_CHILD(node, hvml->vcm_node);
+                        UPDATE_VCM_NODE(node);
                     }
                     ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
                 }
@@ -4282,35 +4153,27 @@ next_state:
                     RETURN_AND_STOP_PARSE();
                 }
                 struct pcvcm_node* node = pcvcm_stack_pop(hvml->vcm_stack);
-                if (hvml->vcm_node) {
-                    pctree_node_append_child((struct pctree_node*)node,
-                            (struct pctree_node*)hvml->vcm_node);
-                }
-                SET_VCM_NODE(node);
+                APPEND_CHILD(node, hvml->vcm_node);
+                UPDATE_VCM_NODE(node);
                 pcutils_stack_pop(hvml->ejson_stack);
                 if (!pcutils_stack_is_empty(hvml->ejson_stack)) {
                     struct pcvcm_node* node = pcvcm_stack_pop(
                             hvml->vcm_stack);
-                    pctree_node_append_child((struct pctree_node*)node,
-                            (struct pctree_node*)hvml->vcm_node);
-                    SET_VCM_NODE(node);
+                    APPEND_CHILD(node, hvml->vcm_node);
+                    UPDATE_VCM_NODE(node);
                 }
                 ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
             }
             if (character == '}' || character == ']' || character == ')') {
                 struct pcvcm_node* node = pcvcm_stack_pop(hvml->vcm_stack);
-                if (hvml->vcm_node) {
-                    pctree_node_append_child((struct pctree_node*)node,
-                            (struct pctree_node*)hvml->vcm_node);
-                }
-                SET_VCM_NODE(node);
+                APPEND_CHILD(node, hvml->vcm_node);
+                UPDATE_VCM_NODE(node);
                 pcutils_stack_pop(hvml->ejson_stack);
                 if (!pcutils_stack_is_empty(hvml->ejson_stack)) {
                     struct pcvcm_node* node = pcvcm_stack_pop(
                             hvml->vcm_stack);
-                    pctree_node_append_child((struct pctree_node*)node,
-                            (struct pctree_node*)hvml->vcm_node);
-                    SET_VCM_NODE(node);
+                    APPEND_CHILD(node, hvml->vcm_node);
+                    UPDATE_VCM_NODE(node);
                 }
                 ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
             }

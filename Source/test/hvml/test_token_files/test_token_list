@@ -78,6 +78,8 @@ jsonee_071_string_before_after_jsonee
 jsonee_072_string_with_jsonee_call
 jsonee_073_string_with_jsonee_call_set
 jsonee_074_multiple_attr
+jsonee_075_multiple_jsonee
+#####jsonee_076_jsonee_context_variable
 ejson_001_i_number_double_huge_neg_exp
 ejson_002_i_number_huge_exp
 ejson_003_i_number_neg_int_huge_exp
@@ -389,3 +391,4 @@ ejson_307_n_structure_whitespace_formfeed
 #####ejson_309_n_structure_no_data
 ejson_310_p_unclosed_array_in_object PCHVML_ERROR_UNEXPECTED_RIGHT_BRACE
 ejson_311_p_unclosed_object_in_array PCHVML_ERROR_UNEXPECTED_RIGHT_BRACKET
+ejson_312_multiple_line_array
