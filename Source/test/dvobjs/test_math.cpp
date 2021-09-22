@@ -592,7 +592,6 @@ TEST(dvobjs, dvobjs_math_assignment)
     purc_cleanup ();
 }
 
-#if 0
 struct test_sample {
     const char      *expr;
     const char      *result;
@@ -669,6 +668,7 @@ TEST(dvobjs, dvobjs_math_samples)
     purc_cleanup ();
 }
 
+#if 0
 static void
 _trim_tail_spaces(char *dest, size_t n)
 {
