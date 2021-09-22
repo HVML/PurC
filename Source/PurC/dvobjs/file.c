@@ -44,12 +44,6 @@
 #define PURC_VARIANT_KEY    0xE2
 #define PURC_VARIANT_VALUE  0xE3
 
-static const char* get_work_dirctory (void)
-{
-    // todo: getcwd
-    return "/home/gengyue";
-}
-
 static ssize_t find_line (FILE *fp, int line_num, ssize_t file_length)
 {
     size_t pos = 0;
@@ -223,10 +217,10 @@ text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     FILE *fp = NULL;
     size_t pos = 0;
     struct stat filestat;
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if ((argv[0] != PURC_VARIANT_INVALID) && 
-                        (!purc_variant_is_string (argv[0]))) {
+            (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -237,7 +231,10 @@ text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         strcpy (filename, string_filename);
     }
     else {
-        strcpy (filename, get_work_dirctory ());
+        if (getcwd (filename, PATH_MAX) == NULL)  {
+            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+            return PURC_VARIANT_INVALID;
+        }
         strcat (filename, "/");
         strcat (filename, string_filename);
     }
@@ -300,11 +297,10 @@ text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     FILE *fp = NULL;
     size_t pos = 0;
     struct stat filestat;
-    purc_variant_t ret_var = NULL;
-
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if ((argv[0] != PURC_VARIANT_INVALID) && 
-                        (!purc_variant_is_string (argv[0]))) {
+            (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -315,7 +311,10 @@ text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         strcpy (filename, string_filename);
     }
     else {
-        strcpy (filename, get_work_dirctory ());
+        if (getcwd (filename, PATH_MAX) == NULL)  {
+            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+            return PURC_VARIANT_INVALID;
+        }
         strcat (filename, "/");
         strcat (filename, string_filename);
     }
@@ -387,10 +386,10 @@ bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     FILE *fp = NULL;
     size_t pos = 0;
     struct stat filestat;
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if ((argv[0] != PURC_VARIANT_INVALID) && 
-                        (!purc_variant_is_string (argv[0]))) {
+            (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -401,7 +400,10 @@ bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         strcpy (filename, string_filename);
     }
     else {
-        strcpy (filename, get_work_dirctory ());
+        if (getcwd (filename, PATH_MAX) == NULL)  {
+            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+            return PURC_VARIANT_INVALID;
+        }
         strcat (filename, "/");
         strcat (filename, string_filename);
     }
@@ -471,10 +473,10 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     FILE *fp = NULL;
     size_t pos = 0;
     struct stat filestat;
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if ((argv[0] != PURC_VARIANT_INVALID) && 
-                        (!purc_variant_is_string (argv[0]))) {
+            (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -485,7 +487,10 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         strcpy (filename, string_filename);
     }
     else {
-        strcpy (filename, get_work_dirctory ());
+        if (getcwd (filename, PATH_MAX) == NULL)  {
+            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+            return PURC_VARIANT_INVALID;
+        }
         strcat (filename, "/");
         strcat (filename, string_filename);
     }
@@ -553,11 +558,11 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     char filename[PATH_MAX] = {0,};
     const char *string_filename = NULL;
     struct stat filestat;
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_rwstream_t rwstream = NULL;
 
     if ((argv[0] != PURC_VARIANT_INVALID) && 
-                            (!purc_variant_is_string (argv[0]))) {
+            (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -568,7 +573,10 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         strcpy (filename, string_filename);
     }
     else {
-        strcpy (filename, get_work_dirctory ());
+        if (getcwd (filename, PATH_MAX) == NULL)  {
+            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+            return PURC_VARIANT_INVALID;
+        }
         strcat (filename, "/");
         strcat (filename, string_filename);
     }
@@ -638,7 +646,7 @@ static inline void read_rwstream (purc_rwstream_t rwstream,
 static inline purc_variant_t read_rwstream_float (purc_rwstream_t rwstream,
                                                     bool little, int bytes)
 {
-    purc_variant_t val = NULL;
+    purc_variant_t val = PURC_VARIANT_INVALID;
     unsigned char buf[128];
     int compiler = sizeof (void *);
     float f = 0.0;
@@ -724,8 +732,8 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
 
-    purc_variant_t ret_var = NULL;
-    purc_variant_t val = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    purc_variant_t val = PURC_VARIANT_INVALID;
     purc_rwstream_t rwstream = NULL; 
     const char *format = NULL;
     const char *head = NULL;
@@ -738,7 +746,7 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
     int read_number = 0;
 
     if ((argv[0] != PURC_VARIANT_INVALID) && 
-                        (!purc_variant_is_native (argv[0]))) {
+            (!purc_variant_is_native (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -917,7 +925,7 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
 static inline void write_rwstream_int (purc_rwstream_t rwstream, purc_variant_t arg,
                                         int *index, bool little, int bytes)
 {
-    purc_variant_t val = NULL;
+    purc_variant_t val = PURC_VARIANT_INVALID;
     int64_t i64 = 0;
 
     val = purc_variant_array_get (arg, *index);
@@ -931,7 +939,7 @@ static inline void write_rwstream_int (purc_rwstream_t rwstream, purc_variant_t 
 static inline void write_rwstream_uint (purc_rwstream_t rwstream, purc_variant_t arg,
                                         int *index, bool little, int bytes)
 {
-    purc_variant_t val = NULL;
+    purc_variant_t val = PURC_VARIANT_INVALID;
     uint64_t u64 = 0;
 
     val = purc_variant_array_get (arg, *index);
@@ -949,8 +957,8 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
 
-    purc_variant_t ret_var = NULL;
-    purc_variant_t val = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    purc_variant_t val = PURC_VARIANT_INVALID;
     purc_rwstream_t rwstream = NULL; 
     const char *format = NULL;
     const char *head = NULL;
@@ -966,7 +974,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
     size_t bsize = 0;
 
     if ((argv[0] != PURC_VARIANT_INVALID) && 
-                        (!purc_variant_is_native (argv[0]))) {
+            (!purc_variant_is_native (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -1172,13 +1180,13 @@ stream_readlines_getter (purc_variant_t root, size_t nr_args,
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
 
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_rwstream_t rwstream = NULL; 
     int64_t line_num = 0;
 
 
     if ((argv[0] != PURC_VARIANT_INVALID) && 
-                        (!purc_variant_is_native (argv[0]))) {
+            (!purc_variant_is_native (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -1215,12 +1223,12 @@ stream_readbytes_getter (purc_variant_t root, size_t nr_args,
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
 
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_rwstream_t rwstream = NULL; 
     uint64_t byte_num = 0;
 
     if ((argv[0] != PURC_VARIANT_INVALID) && 
-                        (!purc_variant_is_native (argv[0]))) {
+            (!purc_variant_is_native (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -1266,13 +1274,13 @@ stream_seek_getter (purc_variant_t root, size_t nr_args,
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
 
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_rwstream_t rwstream = NULL; 
     int64_t byte_num = 0;
     off_t off = 0;
 
     if ((argv[0] != PURC_VARIANT_INVALID) && 
-                        (!purc_variant_is_native (argv[0]))) {
+            (!purc_variant_is_native (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -1299,12 +1307,12 @@ stream_close_getter (purc_variant_t root, size_t nr_args,
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
 
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_rwstream_t rwstream = NULL; 
     int close = 0;
 
     if ((argv[0] != PURC_VARIANT_INVALID) && 
-                        (!purc_variant_is_native (argv[0]))) {
+            (!purc_variant_is_native (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }

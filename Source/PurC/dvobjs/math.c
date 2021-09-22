@@ -93,7 +93,7 @@ const_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     double number = 0.0d;
 
     if ((argv[0] != PURC_VARIANT_INVALID) && 
-                        (!purc_variant_is_string (argv[0]))) {
+            (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -184,7 +184,7 @@ const_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     long double number = 0.0d;
 
     if ((argv[0] != PURC_VARIANT_INVALID) && 
-                        (!purc_variant_is_string (argv[0]))) {
+            (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -371,13 +371,13 @@ internal_eval_getter (int is_long_double, purc_variant_t root,
     int result = 0;
 
     if ((argv[0] != PURC_VARIANT_INVALID) && 
-                        (!purc_variant_is_string (argv[0]))) {
+            (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[1] != PURC_VARIANT_INVALID) && 
-                        (!purc_variant_is_object (argv[1]))) {
+            (!purc_variant_is_object (argv[1]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }

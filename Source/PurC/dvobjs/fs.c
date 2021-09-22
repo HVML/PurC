@@ -44,12 +44,6 @@
 #include <stdlib.h>
 #include <sys/sysmacros.h>
 
-
-static const char* get_work_dirctory (void)
-{
-    return "/home/gengyue";
-}
-
 static bool remove_dir (char * dir)
 {
     char dir_name[PATH_MAX];
@@ -93,8 +87,9 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     char dir_name[PATH_MAX] = {0};
     char filename[PATH_MAX] = {0};
     const char *string_filename = NULL;
-    purc_variant_t ret_var = NULL;
-    purc_variant_t val = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    purc_variant_t val = PURC_VARIANT_INVALID;
+    purc_variant_t key = PURC_VARIANT_INVALID;
     const char *filter = NULL;
     char wildcard[10][16];
     int wildcard_num = 0;
@@ -106,8 +101,9 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[0] != PURC_VARIANT_INVALID) && 
+            (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -117,13 +113,18 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         strcpy (dir_name, string_filename);
     }
     else {
-        strcpy (dir_name, get_work_dirctory ());
+        if (getcwd (filename, PATH_MAX) == NULL)  {
+            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+            return PURC_VARIANT_INVALID;
+        }
         strcat (dir_name, "/");
         strcat (dir_name, string_filename);
     }
 
-    if (access(dir_name, F_OK | R_OK) == 0) 
-        return purc_variant_make_boolean (false);
+    if (access(dir_name, F_OK | R_OK) != 0)  { 
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
 
     // get the filter
     if ((argv[1] != NULL) && (!purc_variant_is_string (argv[1]))) {
@@ -150,7 +151,7 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     // get the dirctory content
     DIR *dir = NULL;
     struct dirent *ptr = NULL;
-    purc_variant_t obj_var = NULL;
+    purc_variant_t obj_var = PURC_VARIANT_INVALID;
     struct stat file_stat;
 
     if ((dir = opendir (dir_name)) == NULL) {
@@ -186,65 +187,89 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         
         // name
         val = purc_variant_make_string (ptr->d_name, false);
-        purc_variant_object_set_by_static_ckey (obj_var, "name", val);
+        key = purc_variant_make_string ("name", false);
+        purc_variant_object_set (obj_var, key, val);
+        purc_variant_unref (key);
         purc_variant_unref (val);
 
         // dev
         val = purc_variant_make_number (file_stat.st_dev);
-        purc_variant_object_set_by_static_ckey (obj_var, "name", val);
+        key = purc_variant_make_string ("dev", false);
+        purc_variant_object_set (obj_var, key, val);
+        purc_variant_unref (key);
         purc_variant_unref (val);
         
         // inode
         val = purc_variant_make_number (ptr->d_ino);
-        purc_variant_object_set_by_static_ckey (obj_var, "inode", val);
+        key = purc_variant_make_string ("inode", false);
+        purc_variant_object_set (obj_var, key, val);
+        purc_variant_unref (key);
         purc_variant_unref (val);
 
         // type
         if (ptr->d_type == DT_BLK) {
             val = purc_variant_make_string ("b", false);
-            purc_variant_object_set_by_static_ckey (obj_var, "type", val);
+            key = purc_variant_make_string ("type", false);
+            purc_variant_object_set (obj_var, key, val);
+            purc_variant_unref (key);
             purc_variant_unref (val);
         }
         else if(ptr->d_type == DT_CHR) {
             val = purc_variant_make_string ("c", false);
-            purc_variant_object_set_by_static_ckey (obj_var, "type", val);
+            key = purc_variant_make_string ("type", false);
+            purc_variant_object_set (obj_var, key, val);
+            purc_variant_unref (key);
             purc_variant_unref (val);
         }
         else if(ptr->d_type == DT_DIR) {
             val = purc_variant_make_string ("d", false);
-            purc_variant_object_set_by_static_ckey (obj_var, "type", val);
+            key = purc_variant_make_string ("type", false);
+            purc_variant_object_set (obj_var, key, val);
+            purc_variant_unref (key);
             purc_variant_unref (val);
         }
         else if(ptr->d_type == DT_FIFO) {
             val = purc_variant_make_string ("f", false);
-            purc_variant_object_set_by_static_ckey (obj_var, "type", val);
+            key = purc_variant_make_string ("type", false);
+            purc_variant_object_set (obj_var, key, val);
+            purc_variant_unref (key);
             purc_variant_unref (val);
         }
         else if(ptr->d_type == DT_LNK) {
             val = purc_variant_make_string ("l", false);
-            purc_variant_object_set_by_static_ckey (obj_var, "type", val);
+            key = purc_variant_make_string ("type", false);
+            purc_variant_object_set (obj_var, key, val);
+            purc_variant_unref (key);
             purc_variant_unref (val);
         }
         else if(ptr->d_type == DT_REG) {
             val = purc_variant_make_string ("r", false);
-            purc_variant_object_set_by_static_ckey (obj_var, "type", val);
+            key = purc_variant_make_string ("type", false);
+            purc_variant_object_set (obj_var, key, val);
+            purc_variant_unref (key);
             purc_variant_unref (val);
         }
         else if(ptr->d_type == DT_SOCK) {
             val = purc_variant_make_string ("s", false);
-            purc_variant_object_set_by_static_ckey (obj_var, "type", val);
+            key = purc_variant_make_string ("type", false);
+            purc_variant_object_set (obj_var, key, val);
+            purc_variant_unref (key);
             purc_variant_unref (val);
         }
         else if(ptr->d_type == DT_UNKNOWN) {
             val = purc_variant_make_string ("u", false);
-            purc_variant_object_set_by_static_ckey (obj_var, "type", val);
+            key = purc_variant_make_string ("type", false);
+            purc_variant_object_set (obj_var, key, val);
+            purc_variant_unref (key);
             purc_variant_unref (val);
         }
 
         // mode
         val = purc_variant_make_byte_sequence (&(file_stat.st_mode),
                                                     sizeof(unsigned long));
-        purc_variant_object_set_by_static_ckey (obj_var, "mode", val);
+        key = purc_variant_make_string ("mode", false);
+        purc_variant_object_set (obj_var, key, val);
+        purc_variant_unref (key);
         purc_variant_unref (val);
 
         // mode_str
@@ -263,62 +288,86 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
                 au[i * 3 + 2] = '-';
         }
         val = purc_variant_make_string (au, false);
-        purc_variant_object_set_by_static_ckey (obj_var, "mode_str", val);
+        key = purc_variant_make_string ("mode_str", false);
+        purc_variant_object_set (obj_var, key, val);
+        purc_variant_unref (key);
         purc_variant_unref (val);
 
         // nlink
         val = purc_variant_make_number (file_stat.st_nlink);
-        purc_variant_object_set_by_static_ckey (obj_var, "nlink", val);
+        key = purc_variant_make_string ("nlink", false);
+        purc_variant_object_set (obj_var, key, val);
+        purc_variant_unref (key);
         purc_variant_unref (val);
 
         // uid
         val = purc_variant_make_number (file_stat.st_uid);
-        purc_variant_object_set_by_static_ckey (obj_var, "uid", val);
+        key = purc_variant_make_string ("uid", false);
+        purc_variant_object_set (obj_var, key, val);
+        purc_variant_unref (key);
         purc_variant_unref (val);
 
         // gid
         val = purc_variant_make_number (file_stat.st_gid);
-        purc_variant_object_set_by_static_ckey (obj_var, "gid", val);
+        key = purc_variant_make_string ("gid", false);
+        purc_variant_object_set (obj_var, key, val);
+        purc_variant_unref (key);
         purc_variant_unref (val);
 
         // rdev_major 
         val = purc_variant_make_number (major(file_stat.st_dev));
-        purc_variant_object_set_by_static_ckey (obj_var, "rdev_major", val);
+        key = purc_variant_make_string ("rdev_major", false);
+        purc_variant_object_set (obj_var, key, val);
+        purc_variant_unref (key);
         purc_variant_unref (val);
         
         // rdev_minor
         val = purc_variant_make_number (minor(file_stat.st_dev));
-        purc_variant_object_set_by_static_ckey (obj_var, "rdev_minor", val);
+        key = purc_variant_make_string ("rdev_minor", false);
+        purc_variant_object_set (obj_var, key, val);
+        purc_variant_unref (key);
         purc_variant_unref (val);
 
         // size
         val = purc_variant_make_number (file_stat.st_size);
-        purc_variant_object_set_by_static_ckey (obj_var, "size", val);
+        key = purc_variant_make_string ("size", false);
+        purc_variant_object_set (obj_var, key, val);
+        purc_variant_unref (key);
         purc_variant_unref (val);
 
         // blksize
         val = purc_variant_make_number (file_stat.st_blksize);
-        purc_variant_object_set_by_static_ckey (obj_var, "blksize", val);
+        key = purc_variant_make_string ("blksize", false);
+        purc_variant_object_set (obj_var, key, val);
+        purc_variant_unref (key);
         purc_variant_unref (val);
 
         // blocks
         val = purc_variant_make_number (file_stat.st_blocks);
-        purc_variant_object_set_by_static_ckey (obj_var, "blocks", val);
+        key = purc_variant_make_string ("blocks", false);
+        purc_variant_object_set (obj_var, key, val);
+        purc_variant_unref (key);
         purc_variant_unref (val);
 
         // atime
         val = purc_variant_make_string (ctime(&file_stat.st_atime), false);
-        purc_variant_object_set_by_static_ckey (obj_var, "atime", val);
+        key = purc_variant_make_string ("atime", false);
+        purc_variant_object_set (obj_var, key, val);
+        purc_variant_unref (key);
         purc_variant_unref (val);
 
         // mtime
         val = purc_variant_make_string (ctime(&file_stat.st_mtime), false);
-        purc_variant_object_set_by_static_ckey (obj_var, "mtime", val);
+        key = purc_variant_make_string ("mtime", false);
+        purc_variant_object_set (obj_var, key, val);
+        purc_variant_unref (key);
         purc_variant_unref (val);
 
         // ctime
         val = purc_variant_make_string (ctime(&file_stat.st_ctime), false);
-        purc_variant_object_set_by_static_ckey (obj_var, "ctime", val);
+        key = purc_variant_make_string ("ctime", false);
+        purc_variant_object_set (obj_var, key, val);
+        purc_variant_unref (key);
         purc_variant_unref (val);
 
         purc_variant_array_append (ret_var, obj_var);
@@ -356,18 +405,19 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     int wildcard_num = 0;
     const char *mode = NULL;
     int display[10] = {0};
-    purc_variant_t ret_var = NULL;
-    purc_variant_t val = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    purc_variant_t val = PURC_VARIANT_INVALID;
     char au[10] = {0};
     int i = 0;
 
     if ((argv == NULL) || (nr_args < 1)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[0] != PURC_VARIANT_INVALID) && 
+            (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -377,13 +427,18 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         strcpy (dir_name, string_filename);
     }
     else {
-        strcpy (dir_name, get_work_dirctory ());
+        if (getcwd (filename, PATH_MAX) == NULL)  {
+            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+            return PURC_VARIANT_INVALID;
+        }
         strcat (dir_name, "/");
         strcat (dir_name, string_filename);
     }
 
-    if (access(dir_name, F_OK | R_OK) == 0) 
-        return purc_variant_make_boolean (false);
+    if (access(dir_name, F_OK | R_OK) != 0)  { 
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
 
     // get the filter
     if ((argv[1] != NULL) && (!purc_variant_is_string (argv[1]))) {
@@ -411,99 +466,104 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
-    if (argv[2] != NULL)
-        mode = purc_variant_get_string_const (argv[1]);
+    if (argv[2] != NULL)  {
+        mode = purc_variant_get_string_const (argv[2]);
     
-    // get mode array
-    i = 0;
-    bool quit = false;
-    size_t length = 0;
-    const char * head = pcdvobjs_get_next_option (mode, " ", &length);
-    while (head) {
-        switch (* head)
-        {
-            case 'm':
-            case 'M':
-                if (strncasecmp (head, "mode", length) == 0) {
-                    display[i] = DISPLAY_MODE;
-                    i++;
-                }
-                else if (strncasecmp (head, "mtime", length) == 0) {
-                    display[i] = DISPLAY_MTIME;
-                    i++;
-                }
-                break;
-            case 'n':
-            case 'N':
-                if (strncasecmp (head, "nlink", length) == 0) {
-                    display[i] = DISPLAY_NLINK;
-                    i++;
-                }
-                else if (strncasecmp (head, "name", length) == 0) {
-                    display[i] = DISPLAY_NAME;
-                    i++;
-                }
-                break;
-            case 'u':
-            case 'U':
-                if (strncasecmp (head, "uid", length) == 0) {
-                    display[i] = DISPLAY_UID;
-                    i++;
-                }
-                break;
-            case 'g':
-            case 'G':
-                if (strncasecmp (head, "gid", length) == 0) {
-                    display[i] = DISPLAY_GID;
-                    i++;
-                }
-                break;
-            case 's':
-            case 'S':
-                if (strncasecmp (head, "size", length) == 0) {
-                    display[i] = DISPLAY_SIZE;
-                    i++;
-                }
-                break;
-            case 'b':
-            case 'B':
-                if (strncasecmp (head, "blksize", length) == 0) {
-                    display[i] = DISPLAY_BLKSIZE;
-                    i++;
-                }
-                break;
-            case 'a':
-            case 'A':
-                if (strncasecmp (head, "atime", length) == 0) {
-                    display[i] = DISPLAY_ATIME;
-                    i++;
-                }
-                else if (strncasecmp (head, "all", length) == 0) {
-                    for (i = 0; i < 10; i++)
-                        display[i] = i + 1;
-                    quit = true;
-                }
-                break;
-            case 'c':
-            case 'C':
-                if (strncasecmp (head, "ctime", length) == 0) {
-                    display[i] = DISPLAY_CTIME;
-                    i++;
-                }
-                break;
-            case 'd':
-            case 'D':
-                if (strncasecmp (head, "default", length) == 0) {
-                    for (i = 0; i < 10; i++)
-                        display[i] = i + 1;
-                    quit = true;
-                }
-                break;
-        }
+        // get mode array
+        i = 0;
+        bool quit = false;
+        size_t length = 0;
+        const char * head = pcdvobjs_get_next_option (mode, " ", &length);
+        while (head) {
+            switch (* head)
+            {
+                case 'm':
+                case 'M':
+                    if (strncasecmp (head, "mode", length) == 0) {
+                        display[i] = DISPLAY_MODE;
+                        i++;
+                    }
+                    else if (strncasecmp (head, "mtime", length) == 0) {
+                        display[i] = DISPLAY_MTIME;
+                        i++;
+                    }
+                    break;
+                case 'n':
+                case 'N':
+                    if (strncasecmp (head, "nlink", length) == 0) {
+                        display[i] = DISPLAY_NLINK;
+                        i++;
+                    }
+                    else if (strncasecmp (head, "name", length) == 0) {
+                        display[i] = DISPLAY_NAME;
+                        i++;
+                    }
+                    break;
+                case 'u':
+                case 'U':
+                    if (strncasecmp (head, "uid", length) == 0) {
+                        display[i] = DISPLAY_UID;
+                        i++;
+                    }
+                    break;
+                case 'g':
+                case 'G':
+                    if (strncasecmp (head, "gid", length) == 0) {
+                        display[i] = DISPLAY_GID;
+                        i++;
+                    }
+                    break;
+                case 's':
+                case 'S':
+                    if (strncasecmp (head, "size", length) == 0) {
+                        display[i] = DISPLAY_SIZE;
+                        i++;
+                    }
+                    break;
+                case 'b':
+                case 'B':
+                    if (strncasecmp (head, "blksize", length) == 0) {
+                        display[i] = DISPLAY_BLKSIZE;
+                        i++;
+                    }
+                    break;
+                case 'a':
+                case 'A':
+                    if (strncasecmp (head, "atime", length) == 0) {
+                        display[i] = DISPLAY_ATIME;
+                        i++;
+                    }
+                    else if (strncasecmp (head, "all", length) == 0) {
+                        for (i = 0; i < 10; i++)
+                            display[i] = i + 1;
+                        quit = true;
+                    }
+                    break;
+                case 'c':
+                case 'C':
+                    if (strncasecmp (head, "ctime", length) == 0) {
+                        display[i] = DISPLAY_CTIME;
+                        i++;
+                    }
+                    break;
+                case 'd':
+                case 'D':
+                    if (strncasecmp (head, "default", length) == 0) {
+                        for (i = 0; i < 10; i++)
+                            display[i] = i + 1;
+                        quit = true;
+                    }
+                    break;
+            }
 
-        if (quit)
-            break;
-        head = pcdvobjs_get_next_option (head + length + 1, " ", &length);
+            if (quit)
+                break;
+            head = pcdvobjs_get_next_option (head + length + 1, " ", &length);
+        }
+    }
+    else {
+        for (i = 0; i < 10; i++)
+            display[i] = i + 1;
     }
 
     // get the dirctory content
@@ -643,15 +703,16 @@ mkdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     char filename[PATH_MAX] = {0,};
     const char* string_filename = NULL;
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if ((argv == NULL) || (nr_args != 1)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[0] != PURC_VARIANT_INVALID) && 
+            (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -661,15 +722,15 @@ mkdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         strcpy (filename, string_filename);
     }
     else {
-        strcpy (filename, get_work_dirctory ());
+        if (getcwd (filename, PATH_MAX) == NULL)  {
+            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+            return PURC_VARIANT_INVALID;
+        }
         strcat (filename, "/");
         strcat (filename, string_filename);
     }
 
-    if (access(filename, F_OK | R_OK) == 0) 
-        return purc_variant_make_boolean (false);
-
-    if (mkdir (filename, 777) == 0)
+    if (mkdir (filename, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == 0)
         ret_var = purc_variant_make_boolean (false);
     else
         ret_var = purc_variant_make_boolean (true);
@@ -688,16 +749,17 @@ rmdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     DIR *dirp;
     struct dirent *dp;
     struct stat dir_stat;
-    purc_variant_t ret_var = NULL;
-    bool empty = false;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    bool empty = true;
 
     if ((argv == NULL) || (nr_args != 1)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[0] != PURC_VARIANT_INVALID) && 
+            (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -707,13 +769,18 @@ rmdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         strcpy (filename, string_filename);
     }
     else {
-        strcpy (filename, get_work_dirctory ());
+        if (getcwd (filename, PATH_MAX) == NULL)  {
+            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+            return PURC_VARIANT_INVALID;
+        }
         strcat (filename, "/");
         strcat (filename, string_filename);
     }
 
-    if (access(filename, F_OK | R_OK) != 0) 
+    if (access(filename, F_OK | R_OK) != 0)  { 
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return purc_variant_make_boolean (false);
+    }
 
     if (stat(filename, &dir_stat) < 0) 
         return purc_variant_make_boolean (false);
@@ -725,6 +792,7 @@ rmdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
             if ((strcmp(dp->d_name, ".") == 0) || (strcmp(dp->d_name, "..") == 0)) 
                 continue;
             else {
+                empty = false;
                 break;
             }
         }
@@ -733,6 +801,8 @@ rmdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         if (empty) {
             if (rmdir(filename) == 0)
                 empty = true;
+            else
+                empty = false;
         }
     } 
 
@@ -751,15 +821,16 @@ touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     char filename[PATH_MAX] = {0,};
     const char* string_filename = NULL;
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if ((argv == NULL) || (nr_args != 1)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[0] != PURC_VARIANT_INVALID) && 
+            (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -769,9 +840,35 @@ touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         strcpy (filename, string_filename);
     }
     else {
-        strcpy (filename, get_work_dirctory ());
+        if (getcwd (filename, PATH_MAX) == NULL)  {
+            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+            return PURC_VARIANT_INVALID;
+        }
         strcat (filename, "/");
         strcat (filename, string_filename);
+    }
+
+    // file not exist, create it
+    if (access(filename, F_OK | R_OK) != 0)  { 
+        int fd = -1;
+        fd = open(filename, O_CREAT | O_WRONLY, 
+                S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH |S_IWOTH);
+
+        if (fd != -1)
+            ret_var = purc_variant_make_boolean (true);
+        else
+            ret_var = purc_variant_make_boolean (false);
+    }
+    else {      // change time
+        struct timespec newtime[2];
+        newtime[0].tv_nsec = UTIME_NOW;
+        newtime[1].tv_nsec = UTIME_NOW;
+        if (utimensat(AT_FDCWD, filename, newtime, 0) == 0)  {
+            ret_var = purc_variant_make_boolean (true);
+        }
+        else  {
+            ret_var = purc_variant_make_boolean (false);
+        }
     }
 
     return ret_var;
@@ -786,15 +883,16 @@ unlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     char filename[PATH_MAX] = {0,};
     const char* string_filename = NULL;
     struct stat filestat;
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if ((argv == NULL) || (nr_args != 1)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[0] != PURC_VARIANT_INVALID) && 
+            (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -804,13 +902,18 @@ unlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         strcpy (filename, string_filename);
     }
     else {
-        strcpy (filename, get_work_dirctory ());
+        if (getcwd (filename, PATH_MAX) == NULL)  {
+            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+            return PURC_VARIANT_INVALID;
+        }
         strcat (filename, "/");
         strcat (filename, string_filename);
     }
 
-    if (access(filename, F_OK | R_OK) == 0) 
-        return purc_variant_make_boolean (false);
+    if (access(filename, F_OK | R_OK) != 0)  { 
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return purc_variant_make_boolean (false); 
+    }
 
     if (stat(filename, &filestat) < 0) 
         return purc_variant_make_boolean (false);
@@ -834,15 +937,16 @@ rm_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     char filename[PATH_MAX] = {0,};
     const char* string_filename = NULL;
-    purc_variant_t ret_var = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if ((argv == NULL) || (nr_args != 1)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != NULL) && (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((argv[0] != PURC_VARIANT_INVALID) && 
+            (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -852,7 +956,10 @@ rm_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         strcpy (filename, string_filename);
     }
     else {
-        strcpy (filename, get_work_dirctory ());
+        if (getcwd (filename, PATH_MAX) == NULL)  {
+            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+            return PURC_VARIANT_INVALID;
+        }
         strcat (filename, "/");
         strcat (filename, string_filename);
     }
