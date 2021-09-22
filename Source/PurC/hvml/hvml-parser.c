@@ -31,20 +31,91 @@
 #include <libgen.h>
 
 #ifndef VTT
-#define VTT(x)  PCHVML_TOKEN##x
+#define VTT(x)         PCHVML_TOKEN##x
+#define VTT_S(x)       #x
+#define VTT_REC(x)     { VTT(x), VTT_S(x) }
 #endif // VTT
+
+#ifndef VGIM
+#define VGIM(x)        PCVDOM_GEN_INSERTION_MODE##x
+#define VGIM_S(x)      #x
+#define VGIM_REC(x)    { VGIM(x), VGIM_S(x) }
+#endif // VGIM
+
+struct _enum_to_str {
+    unsigned int     e;
+    const char      *s;
+};
+
+static const struct _enum_to_str vtts[] = {
+    VTT_REC(_DOCTYPE),
+    VTT_REC(_START_TAG),
+    VTT_REC(_END_TAG),
+    VTT_REC(_COMMENT),
+    VTT_REC(_CHARACTER),
+    VTT_REC(_VCM_TREE),
+    VTT_REC(_EOF),
+};
+
+static const struct _enum_to_str vgims[] = {
+    VGIM_REC(_INITIAL),
+    VGIM_REC(_BEFORE_HVML),
+    VGIM_REC(_BEFORE_HEAD),
+    VGIM_REC(_IN_HEAD),
+    VGIM_REC(_AFTER_HEAD),
+    VGIM_REC(_IN_BODY),
+    VGIM_REC(_TEXT),
+    VGIM_REC(_AFTER_BODY),
+    VGIM_REC(_AFTER_AFTER_BODY),
+};
+
+static const char*
+_vtt_to_string(struct pchvml_token *token)
+{
+    if (!token) return "_UNDEFINED";
+
+    enum pchvml_token_type type = pchvml_token_get_type(token);
+
+    for (size_t i=0; i<sizeof(vtts)/sizeof(vtts[0]); ++i) {
+        if (vtts[i].e == type)
+            return vtts[i].s;
+    }
+
+    return "_UNKNOWN";
+}
+
+static const char*
+_vgim_to_string(struct pcvdom_gen *gen)
+{
+    if (!gen) return "_UNDEFINED";
+
+    enum pcvdom_gen_insertion_mode mode = gen->insertion_mode;
+
+    for (size_t i=0; i<sizeof(vgims)/sizeof(vgims[0]); ++i) {
+        if (vgims[i].e == mode)
+            return vgims[i].s;
+    }
+
+    return "_UNKNOWN";
+}
+
 
 #define TO_DEBUG
 
 #ifdef TO_DEBUG
 #ifndef D
-#define D(fmt, ...)                                    \
-    fprintf(stderr, "%s[%d]:%s(): " fmt "\n",          \
-        basename((char*)__FILE__), __LINE__, __func__, \
+#define D(fmt, ...)                                           \
+    fprintf(stderr, "%s[%d]:%s(): %s @ %s" fmt "\n",          \
+        basename((char*)__FILE__), __LINE__, __func__,        \
+        _vtt_to_string(token),                                \
+        _vgim_to_string(gen),                                 \
         ##__VA_ARGS__);
 #endif // D
 #else // ! TO_DEBUG
-#define D(fmt, ...)
+#define D(fmt, ...) ({                                        \
+    UNUSED_PARAM(_vtt_to_string);                             \
+    UNUSED_PARAM(_vgim_to_string);                            \
+    })
 #endif // TO_DEBUG
 
 #ifndef FAIL_RET
@@ -220,22 +291,37 @@ pcvdom_gen_destroy(struct pcvdom_gen *gen)
 }
 
 static int
+_create_doctype(struct pcvdom_gen *gen, struct pchvml_token *token)
+{
+    const char *si = "v: SYSTEM MATH FILE FS";
+    if (token)
+        si = pchvml_token_get_system_information(token);
+    if (!si)
+        si = "v: SYSTEM MATH FILE FS";
+
+    int r = 0;
+
+    r = pcvdom_document_set_doctype(gen->doc, si);
+
+    // TODO: check r
+
+    if (r)
+        FAIL_RET();
+
+    return 0;
+}
+
+static int
 _on_doctype(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
+    int r = 0;
     D("");
     struct pcvdom_node *node = _top_node(gen);
     if (!_is_doc_node(gen, node)) {
         FAIL_RET();
     }
 
-    const char *txt = pchvml_token_get_text(token);
-    const char *id  = pchvml_token_get_public_identifier(token);
-    const char *si  = pchvml_token_get_system_information(token);
-    (void)txt; (void)id;
-
-    int r = 0;
-    if (si)
-        r = pcvdom_document_set_doctype(gen->doc, si);
+    r = _create_doctype(gen, token);
 
     // TODO: check r
 
@@ -377,8 +463,9 @@ _on_vcm_tree(struct pcvdom_gen *gen, struct pchvml_token *token)
 }
 
 static int
-_on_eof(struct pcvdom_gen *gen)
+_on_eof(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
+    UNUSED_PARAM(token);
     D("");
     if (gen->eof)
         FAIL_RET();
@@ -394,11 +481,245 @@ _on_eof(struct pcvdom_gen *gen)
     return 0;
 }
 
+static int
+_create_hvml(struct pcvdom_gen *gen, struct pchvml_token *token)
+{
+    int r = 0;
+    struct pcvdom_element *elem;
+    elem = _create_element(gen, token);
+    if (!elem)
+        FAIL_RET();
+
+    if (!pchvml_token_is_self_closing(token)) {
+        r = _push_node(gen, &elem->node);
+        if (r) {
+            pcvdom_node_destroy(&elem->node);
+            FAIL_RET();
+        }
+    }
+
+    r = pcvdom_document_set_root(gen->doc, elem);
+    if (r) {
+        if (!pchvml_token_is_self_closing(token)) {
+            _pop_node(gen);
+        }
+        pcvdom_node_destroy(&elem->node);
+        FAIL_RET();
+    }
+
+    gen->doc->root = elem;
+    gen->insertion_mode = VGIM(_BEFORE_HEAD);
+    return 0;
+}
+
+static int
+_on_mode_initial(struct pcvdom_gen *gen, struct pchvml_token *token)
+{
+    D("");
+    int r = 0;
+    enum pchvml_token_type type = pchvml_token_get_type(token);
+    if (type==VTT(_DOCTYPE)) {
+        if (gen->doc->doctype)
+            return 0; // just ignore
+
+        r = _create_doctype(gen, token);
+
+        // TODO: check r
+
+        if (r)
+            FAIL_RET();
+
+        return r ? -1 : 0;
+    }
+
+    if (type==VTT(_START_TAG)) {
+        const char *tag = pchvml_token_get_name(token);
+        if (strcmp(tag, "hvml")==0) {
+            if (gen->doc->doctype==NULL) {
+                r = _create_doctype(gen, NULL);
+
+                // TODO: check r
+
+                if (r)
+                    FAIL_RET();
+            }
+            gen->insertion_mode = VGIM(_BEFORE_HVML);
+            gen->reprocess = 1;
+            return 0;
+        }
+        goto anything_else;
+    }
+
+    if (type==VTT(_CHARACTER)) {
+        return 0; // just ignore
+    }
+
+anything_else:
+    UNUSED_PARAM(gen);
+    UNUSED_PARAM(token);
+    return -1;
+}
+
+static int
+_on_mode_before_hvml(struct pcvdom_gen *gen, struct pchvml_token *token)
+{
+    D("");
+    enum pchvml_token_type type = pchvml_token_get_type(token);
+    if (type==VTT(_DOCTYPE)) {
+        return 0; // just ignore
+    }
+
+    if (type==VTT(_START_TAG)) {
+        const char *tag = pchvml_token_get_name(token);
+        if (strcmp(tag, "hvml")==0) {
+            return _create_hvml(gen, token);
+        }
+        goto anything_else;
+    }
+
+    if (type==VTT(_CHARACTER)) {
+        return 0; // just ignore
+    }
+
+anything_else:
+    UNUSED_PARAM(gen);
+    UNUSED_PARAM(token);
+    return -1;
+}
+
+static int
+_on_mode_before_head(struct pcvdom_gen *gen, struct pchvml_token *token)
+{
+    int r = 0;
+    D("");
+    enum pchvml_token_type type = pchvml_token_get_type(token);
+    if (type==VTT(_DOCTYPE)) {
+        return 0; // just ignore
+    }
+
+    if (type==VTT(_START_TAG)) {
+        const char *tag = pchvml_token_get_name(token);
+        if (strcmp(tag, "hvml")==0)
+            FAIL_RET();
+
+        struct pcvdom_element *elem;
+        elem = _create_element(gen, token);
+        if (!elem)
+            FAIL_RET();
+
+        if (!pchvml_token_is_self_closing(token)) {
+            r = _push_node(gen, &elem->node);
+            if (r) {
+                pcvdom_node_destroy(&elem->node);
+                FAIL_RET();
+            }
+            return 0;
+        }
+
+        goto anything_else;
+    }
+
+    if (type==VTT(_END_TAG)) {
+        struct pcvdom_node *node = _top_node(gen);
+        struct pcvdom_element *elem;
+        elem = container_of(node, struct pcvdom_element, node);
+        const char *tagname = pcvdom_element_get_tagname(elem);
+        const char *tag = pchvml_token_get_name(token);
+
+        if (!tagname || !tag || strcmp(tagname, tag))
+            FAIL_RET();
+
+        _pop_node(gen);
+        return 0;
+    }
+
+    if (type==VTT(_EOF)) {
+        if (gen->eof)
+            FAIL_RET();
+
+        struct pcvdom_node *node = NULL;
+        while ((node=_pop_node(gen))) {
+            if (_is_doc_node(gen, node))
+                break;
+        }
+
+        gen->eof = 1;
+
+        return 0;
+    }
+
+    if (type==VTT(_CHARACTER)) {
+        return 0; // just ignore
+    }
+
+anything_else:
+    UNUSED_PARAM(gen);
+    UNUSED_PARAM(token);
+    return -1;
+}
+
+static int
+_on_mode_in_head(struct pcvdom_gen *gen, struct pchvml_token *token)
+{
+    D("");
+    UNUSED_PARAM(gen);
+    UNUSED_PARAM(token);
+    return -1;
+}
+
+static int
+_on_mode_after_head(struct pcvdom_gen *gen, struct pchvml_token *token)
+{
+    D("");
+    UNUSED_PARAM(gen);
+    UNUSED_PARAM(token);
+    return -1;
+}
+
+static int
+_on_mode_in_body(struct pcvdom_gen *gen, struct pchvml_token *token)
+{
+    D("");
+    UNUSED_PARAM(gen);
+    UNUSED_PARAM(token);
+    return -1;
+}
+
+static int
+_on_mode_text(struct pcvdom_gen *gen, struct pchvml_token *token)
+{
+    D("");
+    UNUSED_PARAM(gen);
+    UNUSED_PARAM(token);
+    return -1;
+}
+
+static int
+_on_mode_after_body(struct pcvdom_gen *gen, struct pchvml_token *token)
+{
+    D("");
+    UNUSED_PARAM(gen);
+    UNUSED_PARAM(token);
+    return -1;
+}
+
+static int
+_on_mode_after_after_body(struct pcvdom_gen *gen, struct pchvml_token *token)
+{
+    D("");
+    UNUSED_PARAM(gen);
+    UNUSED_PARAM(token);
+    return -1;
+}
+
+
 int
 pcvdom_gen_push_token(struct pcvdom_gen *gen,
     struct pchvml_parser     *parser, /* exists for tokenizer state change */
     struct pchvml_token *token)
 {
+    int r = 0;
+
     if (gen->eof)
         return 0; // ignore
 
@@ -416,9 +737,11 @@ pcvdom_gen_push_token(struct pcvdom_gen *gen,
         PC_ASSERT(_is_doc_node(gen, _top_node(gen)));
     }
 
-    int r = 0;
+    if (0) {
 
-again:
+again_x:
+    gen->reprocess = 0;
+
     switch (pchvml_token_get_type(token)) {
         case VTT(_DOCTYPE):
             r = _on_doctype(gen, token);
@@ -439,7 +762,7 @@ again:
             r = _on_vcm_tree(gen, token);
             break;
         case VTT(_EOF):
-            r = _on_eof(gen);
+            r = _on_eof(gen, token);
             break;
         default: {
             PC_ASSERT(0);
@@ -447,8 +770,52 @@ again:
     }
 
     if (r == 0 && gen->reprocess)
+        goto again_x;
+
+    return r ? -1 : 0;
+
+    } else {
+
+again:
+    gen->reprocess = 0;
+
+    switch (gen->insertion_mode) {
+        case VGIM(_INITIAL):
+            r = _on_mode_initial(gen, token);
+            break;
+        case VGIM(_BEFORE_HVML):
+            r = _on_mode_before_hvml(gen, token);
+            break;
+        case VGIM(_BEFORE_HEAD):
+            r = _on_mode_before_head(gen, token);
+            break;
+        case VGIM(_IN_HEAD):
+            r = _on_mode_in_head(gen, token);
+            break;
+        case VGIM(_AFTER_HEAD):
+            r = _on_mode_after_head(gen, token);
+            break;
+        case VGIM(_IN_BODY):
+            r = _on_mode_in_body(gen, token);
+            break;
+        case VGIM(_TEXT):
+            r = _on_mode_text(gen, token);
+            break;
+        case VGIM(_AFTER_BODY):
+            r = _on_mode_after_body(gen, token);
+            break;
+        case VGIM(_AFTER_AFTER_BODY):
+            r = _on_mode_after_after_body(gen, token);
+            break;
+        default:
+            PC_ASSERT(0);
+            break;
+    }
+
+    if (r == 0 && gen->reprocess)
         goto again;
 
     return r ? -1 : 0;
+    }
 }
 

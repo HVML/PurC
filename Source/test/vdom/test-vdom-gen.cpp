@@ -27,6 +27,8 @@ end:
 static void
 _process_file(const char *fn)
 {
+    std::cout << "Start parsing: [" << fn << "]" << std::endl;
+
     FILE *fin = NULL;
     purc_rwstream_t rin = NULL;
     struct pchvml_parser *parser = NULL;

@@ -35,7 +35,21 @@
 
 PCA_EXTERN_C_BEGIN
 
+enum pcvdom_gen_insertion_mode {
+    PCVDOM_GEN_INSERTION_MODE_INITIAL,
+    PCVDOM_GEN_INSERTION_MODE_BEFORE_HVML,
+    PCVDOM_GEN_INSERTION_MODE_BEFORE_HEAD,
+    PCVDOM_GEN_INSERTION_MODE_IN_HEAD,
+    PCVDOM_GEN_INSERTION_MODE_AFTER_HEAD,
+    PCVDOM_GEN_INSERTION_MODE_IN_BODY,
+    PCVDOM_GEN_INSERTION_MODE_TEXT,
+    PCVDOM_GEN_INSERTION_MODE_AFTER_BODY,
+    PCVDOM_GEN_INSERTION_MODE_AFTER_AFTER_BODY,
+};
+
 struct pcvdom_gen {
+    enum pcvdom_gen_insertion_mode      insertion_mode;
+
     struct pcvdom_document   *doc;
     struct pcvdom_node       *curr;
 
