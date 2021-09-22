@@ -501,6 +501,7 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
+
     // get the file length
     if(stat(filename, &filestat) < 0) {
         pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
