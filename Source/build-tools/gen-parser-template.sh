@@ -71,7 +71,7 @@ do {                                            \\
 #define L()                                     \\
 do {                                            \\
     yylloc->last_line   += 1;                   \\
-    yylloc->last_column  = 0;                   \\
+    yylloc->last_column  = 1;                   \\
 } while (0)
 
 #define R()                                       \\
@@ -230,7 +230,10 @@ yyerror(
     (void)yylloc;
     (void)arg;
     (void)param;
-    fprintf(stderr, "%s\n", errsg);
+    fprintf(stderr, "(%d,%d)->(%d,%d): %s\n",
+        yylloc->first_line, yylloc->first_column,
+        yylloc->last_line, yylloc->last_column,
+        errsg);
 }
 
 int ${NAME}_parse(const char *input,
