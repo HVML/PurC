@@ -2767,7 +2767,12 @@ next_state:
             if (character == '"' || character == '\'') {
                 struct pcvcm_node* node = pcvcm_node_new_string(
                         pchvml_buffer_get_buffer(parser->temp_buffer));
-                APPEND_CHILD(parser->vcm_node, node);
+                if (parser->vcm_node) {
+                    APPEND_CHILD(parser->vcm_node, node);
+                }
+                else {
+                    parser->vcm_node = node;
+                }
                 RESET_TEMP_BUFFER();
                 ADVANCE_TO(PCHVML_EJSON_AFTER_VALUE_STATE);
             }
