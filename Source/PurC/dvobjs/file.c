@@ -622,11 +622,11 @@ static inline void read_rwstream (purc_rwstream_t rwstream,
    http://c.biancheng.net/view/314.html
    遵循 IEEE 754
     符号   指数位 精度位  偏移量
-16   1      5       11      15
+16   1      5       10      15
 32   1      8       23     127
 64   1      11      52     1023
-96     
-128  1      16      63     16383
+96   1      15      64     16383
+128  1      15      64     16383
 */
 
 static inline purc_variant_t 
@@ -638,18 +638,21 @@ read_rwstream_float (purc_rwstream_t rwstream, int type, int bytes)
     float f = 0.0;
     double d = 0.0d;
     long double ld = 0.0d;
+    unsigned long long sign = 0;
+    unsigned long long e = 0;
+    unsigned long long base = 0;
 
+    // change byte order to little endian
     purc_rwstream_read (rwstream, buf, bytes);
     switch (type) {
         case ENDIAN_PLATFORM:
-            break;
-        case ENDIAN_LITTLE:
             if (!platform_le)
                 change_order (buf, bytes);
             break;
+        case ENDIAN_LITTLE:
+            break;
         case ENDIAN_BIG:
-            if (platform_le)
-                change_order (buf, bytes);
+            change_order (buf, bytes);
             break;
     }
 
@@ -657,22 +660,87 @@ read_rwstream_float (purc_rwstream_t rwstream, int type, int bytes)
         case 2:
             switch (compiler) {
                 case 16:
+                    switch (type) {
+                        case ENDIAN_PLATFORM:
+                            if (!platform_le)
+                                change_order (buf, bytes);
+                            break;
+                        case ENDIAN_LITTLE:
+                            break;
+                        case ENDIAN_BIG:
+                            change_order (buf, bytes);
+                            break;
+                    }
                     f = *((float *)buf);
                     d = (double)f;
                     val = purc_variant_make_number (d);
                     break;
                 case 32:
-                    break;
                 case 64:
+                    sign = *(buf + 1) >> 7;
+                    e = (*(buf + 1) >> 2) & 0x1F;
+                    memcpy (&base, buf, 2);
+                    base &= 0x3FF;
+
+                    sign = sign << 63;
+                    e = 1023 + e - 15;
+                    e = e << 52;
+                    sign |= e;
+                    base = base << (52 - 10);
+                    sign |= base;
+                    memcpy (buf, &sign, 8);
+
+                    switch (type) {
+                        case ENDIAN_PLATFORM:
+                            if (!platform_le)
+                                change_order (buf, 8);
+                            break;
+                        case ENDIAN_LITTLE:
+                            break;
+                        case ENDIAN_BIG:
+                            change_order (buf, 8);
+                            break;
+                    }
+
+                    d = *((double *)buf);
+                    val = purc_variant_make_number (d);
+                    break;
+
                     break;
             }
             break;
         case 4:
             switch (compiler) {
                 case 16:
+                    switch (type) {
+                        case ENDIAN_PLATFORM:
+                            if (!platform_le)
+                                change_order (buf, 4);
+                            break;
+                        case ENDIAN_LITTLE:
+                            break;
+                        case ENDIAN_BIG:
+                            change_order (buf, 4);
+                            break;
+                    }
+
+                    d = *((double *)buf);
+                    val = purc_variant_make_number (d);
                     break;
                 case 32:
                 case 64:
+                    switch (type) {
+                        case ENDIAN_PLATFORM:
+                            if (!platform_le)
+                                change_order (buf, 4);
+                            break;
+                        case ENDIAN_LITTLE:
+                            break;
+                        case ENDIAN_BIG:
+                            change_order (buf, 4);
+                            break;
+                    }
+
                     f = *((float *)buf);
                     d = (double)f;
                     val = purc_variant_make_number (d);
@@ -682,35 +750,98 @@ read_rwstream_float (purc_rwstream_t rwstream, int type, int bytes)
         case 8:
             switch (compiler) {
                 case 16:
-                    val = purc_variant_make_number (0.0d);
+                    sign = *(buf + 7) >> 7;
+                    memcpy (&e, buf + 6, 2);
+                    e = (e >> 4) & 0x7FF;
+                    if (((e - 1023) > 127) || ((int)(e - 1023) < -126))
+                        val = purc_variant_make_number (0.0d);
+                    else  {
+                        memcpy (&base, buf + 3, 4);
+                        base = base >> 5;
+                        base &= 0x7FFFFFFF;
+                        base |= (sign << 31);
+                        base |= ((127 + e - 1023) << 23);
+                        memcpy (buf, &base, 4);
+
+                        switch (type) {
+                            case ENDIAN_PLATFORM:
+                                if (!platform_le)
+                                    change_order (buf, 8);
+                                break;
+                            case ENDIAN_LITTLE:
+                                break;
+                            case ENDIAN_BIG:
+                                change_order (buf, 8);
+                                break;
+                        }
+
+                        d = *((double *)buf);
+                        val = purc_variant_make_number (0.0d);
+                    }
                     break;
                 case 32:
                 case 64:
+                    switch (type) {
+                        case ENDIAN_PLATFORM:
+                            if (!platform_le)
+                                change_order (buf, 8);
+                            break;
+                        case ENDIAN_LITTLE:
+                            break;
+                        case ENDIAN_BIG:
+                            change_order (buf, 8);
+                            break;
+                    }
                     d = *((double *)buf);
                     val = purc_variant_make_number (d);
                     break;
             }
             break;
         case 12:
-            switch (compiler) {
-                case 16:
-                    val = purc_variant_make_number (0.0d);
-                    break;
-                case 32:
-                    val = purc_variant_make_number (0.0d);
-                    break;
-                case 64:
-                    break;
-            }
-            break;
         case 16:
             switch (compiler) {
                 case 16:
-                    val = purc_variant_make_number (0.0d);
+                    sign = *(buf + 9) >> 7;
+                    memcpy (&e, buf + 8, 2);
+                    e = e & 0x7FFF;
+                    if (((e - 16383) > 127) || ((int)(e - 16383) < -126))
+                        val = purc_variant_make_number (0.0d);
+                    else  {
+                        memcpy (&base, buf + 5, 3);
+                        base = base >> 1;
+                        base |= (sign << 31);
+                        base |= ((127 + e - 16383) << 23);
+                        memcpy (buf, &base, 4);
+
+                        switch (type) {
+                            case ENDIAN_PLATFORM:
+                                if (!platform_le)
+                                    change_order (buf, 12);
+                                break;
+                            case ENDIAN_LITTLE:
+                                break;
+                            case ENDIAN_BIG:
+                                change_order (buf, 12);
+                                break;
+                        }
+
+                        d = *((double *)buf);
+                        val = purc_variant_make_number (d);
+                    }
                     break;
                 case 32:
-                    break;
                 case 64:
+                    switch (type) {
+                        case ENDIAN_PLATFORM:
+                            if (!platform_le)
+                                change_order (buf, 8);
+                            break;
+                        case ENDIAN_LITTLE:
+                            break;
+                        case ENDIAN_BIG:
+                            change_order (buf, 8);
+                            break;
+                    }
                     ld = *((long double *)buf);
                     val = purc_variant_make_longdouble (ld);
                     break;
