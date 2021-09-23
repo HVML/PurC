@@ -124,7 +124,8 @@ TEST(vdom_gen, files)
             << std::endl;
 
     if (d) {
-        chdir(path);
+        if (chdir(path))
+            goto end;
         while ((dir = readdir(d)) != NULL) {
             if (dir->d_type & DT_REG)
                 _process_file(dir->d_name);
