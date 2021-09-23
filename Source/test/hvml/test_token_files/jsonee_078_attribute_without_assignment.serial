@@ -1,4 +1,4 @@
 <hvml>
-    <choose on=concat_string(get_element(get_variable("2"),"payload")) to="append update" in="#the-user-list" with=concat_string(get_variable("user_item"))>
+    <choose on=get_element(get_variable("2"),"payload") to="append update" in="#the-user-list" with=get_variable("user_item")>
     </choose>
 </hvml>
