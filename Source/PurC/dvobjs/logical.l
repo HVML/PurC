@@ -97,7 +97,7 @@ EXP ([Ee][-+]?[0-9]+)
 "&&"	{ return MKT(AND); }
 "||"	{ return MKT(OR); }
 "^"	    { return MKT(XOR); }
-"MKT("     { return MKT(OP); }
+"("     { return MKT(OP); }
 ")"     { return MKT(CP); }
 
 [0-9]+"."[0-9]*{EXP}? |
