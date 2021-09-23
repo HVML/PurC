@@ -156,7 +156,6 @@ struct pchvml_parser {
     struct pchvml_buffer* string_buffer;
     struct pchvml_token* token;
     struct pchvml_sbst* sbst;
-    struct pcvcm_node* vcm_tree;
     struct pcvcm_node* vcm_node;
     struct pcvcm_stack* vcm_stack;
     struct pcutils_stack* ejson_stack;

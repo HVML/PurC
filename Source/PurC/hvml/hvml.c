@@ -2334,7 +2334,6 @@ next_state:
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
                 RETURN_NEW_EOF_TOKEN();
             }
-            parser->vcm_tree = NULL;
             RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
         END_STATE()
 
@@ -2346,24 +2345,16 @@ next_state:
                     POP_AS_VCM_PARENT_AND_UPDATE_VCM();
                 }
 
-                if (parser->vcm_node) {
-                    if (parser->vcm_tree) {
-                        APPEND_CHILD(parser->vcm_tree, parser->vcm_node);
-                    }
-                    else {
-                        parser->vcm_tree = parser->vcm_node;
-                    }
-                }
                 if (pchvml_token_is_type(parser->token, PCHVML_TOKEN_START_TAG)
                         ) {
                     pchvml_token_append_vcm_to_attr(parser->token,
-                            parser->vcm_tree);
+                            parser->vcm_node);
                     END_TOKEN_ATTR();
                     RESET_VCM_NODE();
                     RECONSUME_IN(PCHVML_AFTER_ATTRIBUTE_VALUE_QUOTED_STATE);
                 }
-                parser->token = pchvml_token_new_vcm(parser->vcm_tree);
-                parser->vcm_tree = NULL;
+                parser->token = pchvml_token_new_vcm(parser->vcm_node);
+                parser->vcm_node = NULL;
                 RESET_VCM_NODE();
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
@@ -2372,16 +2363,8 @@ next_state:
                     ejson_stack_pop();
                     POP_AS_VCM_PARENT_AND_UPDATE_VCM();
                 }
-                if (parser->vcm_node) {
-                    if (parser->vcm_tree) {
-                        APPEND_CHILD(parser->vcm_tree, parser->vcm_node);
-                    }
-                    else {
-                        parser->vcm_tree = parser->vcm_node;
-                    }
-                }
-                parser->token = pchvml_token_new_vcm(parser->vcm_tree);
-                parser->vcm_tree = NULL;
+                parser->token = pchvml_token_new_vcm(parser->vcm_node);
+                parser->vcm_node = NULL;
                 RESET_VCM_NODE();
                 RETURN_AND_SWITCH_TO(PCHVML_TAG_OPEN_STATE);
             }
