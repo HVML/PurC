@@ -21,7 +21,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
+#include "config.h"
 #include "private/instance.h"
 #include "private/errors.h"
 #include "private/debug.h"
@@ -43,6 +43,8 @@
 
 #define PURC_VARIANT_KEY    0xE2
 #define PURC_VARIANT_VALUE  0xE3
+
+static bool platform_le = false;
 
 static ssize_t find_line (FILE *fp, int line_num, ssize_t file_length)
 {
@@ -1339,7 +1341,10 @@ stream_close_getter (purc_variant_t root, size_t nr_args,
 // only for test now.
 purc_variant_t pcdvojbs_get_file (void)
 {
-    size_t size = 0;
+    purc_variant_t file_text = PURC_VARIANT_INVALID;
+    purc_variant_t file_bin = PURC_VARIANT_INVALID;
+    purc_variant_t file_stream = PURC_VARIANT_INVALID;
+    purc_variant_t file = PURC_VARIANT_INVALID;
 
     static struct pcdvojbs_dvobjs text [] = {
         {"head",     text_head_getter, NULL},
@@ -1358,34 +1363,39 @@ purc_variant_t pcdvojbs_get_file (void)
         {"seek",        stream_seek_getter,        NULL},
         {"close",       stream_close_getter,       NULL} };
 
-    size = sizeof (text) / sizeof (struct pcdvojbs_dvobjs);
-    purc_variant_t file_text = pcdvobjs_make_dvobjs (text, size);
+    // get the endian of the platform
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+    platform_le = false;
+#elif __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+    platform_le = true;
+#else
+#error "Unknown endian" 
+#endif
+
+    file_text = pcdvobjs_make_dvobjs (text, PCA_TABLESIZE(text));
     if (file_text == PURC_VARIANT_INVALID)
-        return PURC_VARIANT_INVALID;
+        goto error_text;
 
 
-    size = sizeof (bin) / sizeof (struct pcdvojbs_dvobjs);
-    purc_variant_t file_bin = pcdvobjs_make_dvobjs (bin, size);
-    if (file_bin == PURC_VARIANT_INVALID) {
-        purc_variant_unref (file_text);
-        return PURC_VARIANT_INVALID;
-    }
+    file_bin = pcdvobjs_make_dvobjs (bin, PCA_TABLESIZE(bin));
+    if (file_bin == PURC_VARIANT_INVALID) 
+        goto error_bin;
 
-    size = sizeof (stream) / sizeof (struct pcdvojbs_dvobjs);
-    purc_variant_t file_stream = pcdvobjs_make_dvobjs (stream, size);
-    if (file_stream == PURC_VARIANT_INVALID) {
-        purc_variant_unref (file_text);
-        purc_variant_unref (file_bin);
-        return PURC_VARIANT_INVALID;
-    }
+    file_stream = pcdvobjs_make_dvobjs (stream, PCA_TABLESIZE(stream));
+    if (file_stream == PURC_VARIANT_INVALID) 
+        goto error_stream;
 
-    purc_variant_t file = purc_variant_make_object_by_static_ckey (3,
+    file = purc_variant_make_object_by_static_ckey (3,
                                 "text",   file_text,
                                 "bin",    file_bin,
                                 "stream", file_stream);
-    purc_variant_unref (file_text);
-    purc_variant_unref (file_bin);
+
     purc_variant_unref (file_stream);
+error_stream:
+    purc_variant_unref (file_bin);
+error_bin:
+    purc_variant_unref (file_text);
+error_text:
 
     return file;
 }
