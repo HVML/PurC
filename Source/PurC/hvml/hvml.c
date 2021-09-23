@@ -914,6 +914,29 @@ bool pchvml_parser_is_preposition_attribute (
     return (entry && entry->type == PCHVML_ATTR_TYPE_PREP);
 }
 
+bool pchvml_parser_is_handle_as_jsonee(struct pchvml_token* token, uint32_t uc)
+{
+    if (!(uc == '[' || uc == '{' || uc == '$')) {
+        return false;
+    }
+
+    struct pchvml_token_attr* attr = pchvml_token_get_curr_attr(token);
+    const char* name = pchvml_token_attr_get_name(attr);
+    if (pchvml_parser_is_operation_tag_token(token)
+            && (strcmp(name, "on") == 0 || strcmp(name, "with") == 0)) {
+        return true;
+    }
+    const char* token_name = pchvml_token_get_name(token);
+    if (strcmp(name, "via") == 0 && (
+                strcmp(token_name, "choose") == 0 ||
+                strcmp(token_name, "iterate") == 0 ||
+                strcmp(token_name, "reduce") == 0 ||
+                strcmp(token_name, "update") == 0)) {
+        return true;
+    }
+    return false;
+}
+
 bool pchvml_parse_is_adjusted_current_node (struct pchvml_parser* hvml)
 {
     UNUSED_PARAM(hvml);
@@ -1324,7 +1347,17 @@ next_state:
                 SET_RETURN_STATE(PCHVML_ATTRIBUTE_VALUE_DOUBLE_QUOTED_STATE);
                 ADVANCE_TO(PCHVML_CHARACTER_REFERENCE_STATE);
             }
-            if (character == '$') {
+            if (character == '$' || character == '{' || character == '[') {
+                bool handle = pchvml_parser_is_handle_as_jsonee(parser->token,
+                        character);
+                bool buffer_is_white = pchvml_buffer_is_whitespace(
+                        parser->string_buffer);
+                if (handle && buffer_is_white) {
+                    ejson_stack_push('"');
+                    RESET_STRING_BUFFER();
+                    RECONSUME_IN(PCHVML_EJSON_DATA_STATE);
+                }
+
                 if (parser->vcm_node) {
                     vcm_stack_push(parser->vcm_node);
                 }
