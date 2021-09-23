@@ -72,12 +72,12 @@ TEST(vcm, object)
         k7, v7,
     };
 
-    for (size_t i=0; i<sizeof(nodes)/sizeof(nodes[0]); ++i) {
+    for (size_t i=0; i<PCA_TABLESIZE(nodes); ++i) {
         ASSERT_NE(nodes[i], nullptr);
     }
 
     struct pcvcm_node *root;
-    root = pcvcm_node_new_object(sizeof(nodes)/sizeof(nodes[0]), nodes);
+    root = pcvcm_node_new_object(PCA_TABLESIZE(nodes), nodes);
     ASSERT_NE(root, nullptr);
 
     pcvcm_node_destroy(root);
@@ -119,12 +119,12 @@ TEST(vcm, array)
         vo,
     };
 
-    for (size_t i=0; i<sizeof(nodes)/sizeof(nodes[0]); ++i) {
+    for (size_t i=0; i<PCA_TABLESIZE(nodes); ++i) {
         ASSERT_NE(nodes[i], nullptr);
     }
 
     struct pcvcm_node *root;
-    root = pcvcm_node_new_array(sizeof(nodes)/sizeof(nodes[0]), nodes);
+    root = pcvcm_node_new_array(PCA_TABLESIZE(nodes), nodes);
     ASSERT_NE(root, nullptr);
 
     pcvcm_node_destroy(root);

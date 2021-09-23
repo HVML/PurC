@@ -76,7 +76,7 @@ _vtt_to_string(struct pchvml_token *token)
 
     enum pchvml_token_type type = pchvml_token_get_type(token);
 
-    for (size_t i=0; i<sizeof(vtts)/sizeof(vtts[0]); ++i) {
+    for (size_t i=0; i<PCA_TABLESIZE(vtts); ++i) {
         if (vtts[i].e == type)
             return vtts[i].s;
     }
@@ -91,7 +91,7 @@ _vgim_to_string(struct pcvdom_gen *gen)
 
     enum pcvdom_gen_insertion_mode mode = gen->insertion_mode;
 
-    for (size_t i=0; i<sizeof(vgims)/sizeof(vgims[0]); ++i) {
+    for (size_t i=0; i<PCA_TABLESIZE(vgims); ++i) {
         if (vgims[i].e == mode)
             return vgims[i].s;
     }

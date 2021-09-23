@@ -374,7 +374,7 @@ TEST(tree, pod)
     struct number_node nodes[11];
     memset(&nodes[0], 0, sizeof(nodes));
 
-    for (size_t i=0; i<sizeof(nodes)/sizeof(nodes[0]); ++i) {
+    for (size_t i=0; i<PCA_TABLESIZE(nodes); ++i) {
         nodes[i].val = i+1;
     }
 
@@ -452,7 +452,7 @@ TEST(tree, pod)
         "10 ",
         "11 ",
     };
-    for (size_t i=0; i<sizeof(nodes)/sizeof(nodes[0]); ++i) {
+    for (size_t i=0; i<PCA_TABLESIZE(nodes); ++i) {
         for (size_t j=0; j<2; ++j) {
             purc_rwstream_seek (rws, 0, SEEK_SET);
             memset(buf, 0, sizeof(buf));
@@ -479,7 +479,7 @@ TEST(tree, pod)
         "10 ",
         "11 ",
     };
-    for (size_t i=0; i<sizeof(nodes)/sizeof(nodes[0]); ++i) {
+    for (size_t i=0; i<PCA_TABLESIZE(nodes); ++i) {
         for (size_t j=0; j<2; ++j) {
             purc_rwstream_seek (rws, 0, SEEK_SET);
             memset(buf, 0, sizeof(buf));
@@ -631,7 +631,7 @@ TEST(tree, perf)
     struct number_node nodes[11];
     memset(&nodes[0], 0, sizeof(nodes));
 
-    for (size_t i=0; i<sizeof(nodes)/sizeof(nodes[0]); ++i) {
+    for (size_t i=0; i<PCA_TABLESIZE(nodes); ++i) {
         nodes[i].val = i+1;
     }
 
@@ -659,7 +659,7 @@ TEST(tree, perf)
     purc_rwstream_t rws = purc_rwstream_new_from_mem (buf, buf_len);
     ASSERT_NE(rws, nullptr);
 
-    for (size_t i=0; i<sizeof(nodes)/sizeof(nodes[0]); ++i) {
+    for (size_t i=0; i<PCA_TABLESIZE(nodes); ++i) {
         for (size_t j=0; j<nr_loops; ++j) {
             if (method_f) {
                 purc_rwstream_seek (rws, 0, SEEK_SET);
