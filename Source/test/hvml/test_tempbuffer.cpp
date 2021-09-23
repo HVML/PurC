@@ -250,3 +250,23 @@ TEST(temp_buffer, is_int)
 
     pchvml_buffer_destroy(buffer);
 }
+
+TEST(temp_buffer, is_whitespace)
+{
+    struct pchvml_buffer* buffer = pchvml_buffer_new ();
+    ASSERT_NE(buffer, nullptr);
+    ASSERT_EQ(0, pchvml_buffer_get_size_in_bytes(buffer));
+    ASSERT_EQ(0, pchvml_buffer_get_size_in_chars(buffer));
+
+    pchvml_buffer_append_bytes(buffer, " ", 1);
+    pchvml_buffer_append_bytes(buffer, "\n", 1);
+
+    bool is_whitespace = pchvml_buffer_is_whitespace(buffer);
+    ASSERT_EQ(is_whitespace, true);
+
+    pchvml_buffer_append_bytes(buffer, "a", 1);
+    is_whitespace = pchvml_buffer_is_whitespace(buffer);
+    ASSERT_EQ(is_whitespace, false);
+
+    pchvml_buffer_destroy(buffer);
+}

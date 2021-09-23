@@ -109,6 +109,8 @@ void pchvml_buffer_destroy (struct pchvml_buffer* buffer);
 
 bool pchvml_buffer_is_int (struct pchvml_buffer* buffer);
 
+bool pchvml_buffer_is_whitespace(struct pchvml_buffer* buffer);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
