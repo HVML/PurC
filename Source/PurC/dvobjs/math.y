@@ -61,6 +61,12 @@
         const char *errsg
     );
 
+    #define PL(x,y)                                            \
+      fprintf(stderr, "location[%d]: (%d,%d)->(%d,%d)\n",      \
+                            x,                                 \
+                            y.first_line, y.first_column-1,    \
+                            y.last_line,  y.last_column-1)
+
     #define SET(_r, _a) do {                           \
         if (param->is_long_double) {                   \
             _r->ld = _a.ld;                            \
@@ -220,7 +226,7 @@ nop:
 ;
 
 statement:
-  exp              { SET(param, $1); }
+  exp         { SET(param, $1); }
 | assignment        
 ;
 
@@ -259,7 +265,10 @@ yyerror(
     (void)yylloc;
     (void)arg;
     (void)param;
-    fprintf(stderr, "%s\n", errsg);
+    fprintf(stderr, "(%d,%d)->(%d,%d): %s\n",
+        yylloc->first_line, yylloc->first_column-1,
+        yylloc->last_line,  yylloc->last_column-1,
+        errsg);
 }
 
 int math_parse(const char *input,

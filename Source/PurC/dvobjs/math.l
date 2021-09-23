@@ -48,13 +48,13 @@ do {                                         \
 
 #define C()                                     \
 do {                                            \
-    yylloc->last_column += strlen(yytext);      \
+    yylloc->last_column += yyleng;              \
 } while (0)
 
 #define L()                                     \
 do {                                            \
     yylloc->last_line   += 1;                   \
-    yylloc->last_column  = 0;                   \
+    yylloc->last_column  = 1;                   \
 } while (0)
 
 #define R()                                       \
@@ -97,20 +97,20 @@ do {                                              \
           if (state != INITIAL) return -1;
           yyterminate(); }
 
-[-+*/()^;]   { return *yytext; }
+[-+*/()^;]   { C(); R(); return *yytext; }
 
-0                { yylval->str = strdup(yytext); return MKT(NUMBER); }
-[1-9][0-9]*      { yylval->str = strdup(yytext); return MKT(NUMBER); }
-"0."[0-9]*       { yylval->str = strdup(yytext); return MKT(NUMBER); }
-[0-9]+"."[0-9]*  { yylval->str = strdup(yytext); return MKT(NUMBER); }
-[0-9]+("."[0-9]*)?[eE][+-]?[0-9]+ { yylval->str = strdup(yytext); return MKT(NUMBER); }
+0                { C(); yylval->str = strdup(yytext); R(); return MKT(NUMBER); }
+[1-9][0-9]*      { C(); yylval->str = strdup(yytext); R(); return MKT(NUMBER); }
+"0."[0-9]*       { C(); yylval->str = strdup(yytext); R(); return MKT(NUMBER); }
+[0-9]+"."[0-9]*  { C(); yylval->str = strdup(yytext); R(); return MKT(NUMBER); }
+[0-9]+("."[0-9]*)?[eE][+-]?[0-9]+ { C(); yylval->str = strdup(yytext); R(); return MKT(NUMBER); }
 
-[_[:alpha:]][[:alnum:]]*  { yylval->str = strdup(yytext); return MKT(VAR); }
+[_[:alpha:]][[:alnum:]]*  { C(); yylval->str = strdup(yytext); R(); return MKT(VAR); }
 
-[ \t]   { /* ignore white space */ }
+[ \t]   { C(); R(); /* ignore white space */ }
 
-.	    { return *yytext; } /* let bison to handle it */
-\n      { return *yytext; }
+.	    { C(); R(); return *yytext; } /* let bison to handle it */
+\n      { L(); R(); return *yytext; }
 
 %%
 
