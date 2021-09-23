@@ -169,7 +169,8 @@ purc_variant_t get_variant (char *buf, size_t *length)
                     temp_end = strchr (temp + 1, '\"');
                     length_sub = temp_end - temp - 1;
                     replace_for_bsequence(temp + 1, &length_sub);
-                    ret_var = purc_variant_make_byte_sequence (temp + 1, length_sub);
+                    ret_var = purc_variant_make_byte_sequence (temp + 1, 
+                            length_sub);
                     *length = temp_end + 1 - buf;
                     break;
                 default:
@@ -225,7 +226,8 @@ purc_variant_t get_variant (char *buf, size_t *length)
                 case 'T':
                     temp_end = strchr (buf, ';');
                     *temp_end = 0x00;
-                    ret_var = purc_variant_make_native ((void *)"hello world", &rws_ops);
+                    ret_var = purc_variant_make_native ((void *)"hello world", 
+                            &rws_ops);
                     *length = temp_end - buf;
                     break;
                 case 'l':       // null;
@@ -374,7 +376,8 @@ TEST(dvobjs, dvobjs_logical)
     for (i = 0; i < function_size; i++)  {
         printf ("test _L.%s:\n", function[i]);
 
-        purc_variant_t dynamic = purc_variant_object_get_by_ckey (logical, function[i]);
+        purc_variant_t dynamic = purc_variant_object_get_by_ckey (logical, 
+                function[i]);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -407,7 +410,7 @@ TEST(dvobjs, dvobjs_logical)
             *(line + read - 1) = 0;
             line_number ++;
 
-            if (strncasecmp (line, "test_begin", 10) == 0)  {    // begin a new test
+            if (strncasecmp (line, "test_begin", 10) == 0)  {
                 printf ("\ttest case on line %ld\n", line_number);
 
                 // get parameters
@@ -415,7 +418,7 @@ TEST(dvobjs, dvobjs_logical)
                 *(line + read - 1) = 0;
                 line_number ++;
 
-                if (strcmp (line, "param_begin") == 0)  {   // begin param section
+                if (strcmp (line, "param_begin") == 0)  {
                     j = 0;
 
                     // get param
@@ -424,7 +427,7 @@ TEST(dvobjs, dvobjs_logical)
                         *(line + read - 1) = 0;
                         line_number ++;
 
-                        if (strcmp (line, "param_end") == 0)  {   // end param section
+                        if (strcmp (line, "param_end") == 0)  {
                             param[j] = NULL;
                             break;
                         }
@@ -445,7 +448,7 @@ TEST(dvobjs, dvobjs_logical)
                         *(line + read - 1) = 0;
                         line_number ++;
 
-                        if (strcmp (line, "test_end") == 0)  {   // end test case 
+                        if (strcmp (line, "test_end") == 0)  {
                             break;
                         }
                     }
@@ -457,7 +460,8 @@ TEST(dvobjs, dvobjs_logical)
                     }
                     else {
                         // USER MODIFIED HERE.
-                        ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+                        ASSERT_EQ(purc_variant_is_type (ret_var, 
+                                    PURC_VARIANT_TYPE_BOOLEAN), true);
                         ASSERT_EQ(ret_var->b, ret_result->b);
                     }
                 }
@@ -474,8 +478,17 @@ TEST(dvobjs, dvobjs_logical)
     purc_cleanup ();
 }
 
+struct test_sample {
+    const char      *expr;
+    const int       result;
+};
+
 TEST(dvobjs, dvobjs_logical_eval)
 {
+    struct test_sample samples[] = {
+        {"(1 < 2) && (2 > 4)", 0}
+    };
+
     purc_variant_t param[10];
     purc_variant_t ret_var = NULL;
 
@@ -483,7 +496,7 @@ TEST(dvobjs, dvobjs_logical_eval)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t logical = pcdvojbs_get_math();
+    purc_variant_t logical = pcdvojbs_get_logical();
     ASSERT_NE(logical, nullptr);
     ASSERT_EQ(purc_variant_is_object (logical), true);
 
@@ -495,16 +508,19 @@ TEST(dvobjs, dvobjs_logical_eval)
     func = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(func, nullptr);
 
-    const char *exp = "(3 + 7) < (2 + 3 * 4)";
-    param[0] = purc_variant_make_string (exp, false);
-    param[1] = PURC_VARIANT_INVALID;
-    param[2] = NULL;
-    ret_var = func (NULL, 2, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
-    printf("TEST eval: param is \"%s\" = %d\n", exp, ret_var->b);
-    purc_variant_unref(ret_var);
-    purc_variant_unref(param[0]);
+    for (size_t i = 0; i < PCA_TABLESIZE (samples); i++)  {
+        param[0] = purc_variant_make_string (samples[i].expr, false);
+        param[1] = PURC_VARIANT_INVALID;
+        param[2] = NULL;
+        ret_var = func (NULL, 2, param);
+        ASSERT_NE(ret_var, nullptr);
+        ASSERT_EQ(purc_variant_is_type (ret_var, 
+                    PURC_VARIANT_TYPE_BOOLEAN), true);
+        ASSERT_EQ(samples[i].result, ret_var->b);
+
+        purc_variant_unref(ret_var);
+        purc_variant_unref(param[0]);
+    }
 
     purc_variant_unref(logical);
 

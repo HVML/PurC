@@ -61,7 +61,8 @@ static ssize_t find_line (FILE *fp, int line_num, ssize_t file_length)
             if (read_size < 0) 
                 break;
 
-            head = pcdvobjs_file_get_next_option ((char *)buffer, "\n", &length);
+            head = pcdvobjs_file_get_next_option ((char *)buffer, 
+                    "\n", &length);
             while (head) {
                 pos += length + 1;          // to be checked
                 line_num --;
@@ -69,7 +70,8 @@ static ssize_t find_line (FILE *fp, int line_num, ssize_t file_length)
                 if (line_num == 0)
                     break;
 
-                head = pcdvobjs_file_get_next_option (head + length + 1, "\n", &length);
+                head = pcdvobjs_file_get_next_option (head + length + 1, 
+                        "\n", &length);
             }
             if (read_size < 1024)           // to the end
                 break;
@@ -93,8 +95,8 @@ static ssize_t find_line (FILE *fp, int line_num, ssize_t file_length)
             if (read_size < 0) 
                 break;
 
-            head = pcdvobjs_file_get_prev_option ((char *)buffer, read_size, 
-                                                                "\n", &length);
+            head = pcdvobjs_file_get_prev_option ((char *)buffer, 
+                    read_size, "\n", &length);
             while (head) {
                 pos -= length;
                 pos--;
@@ -105,8 +107,8 @@ static ssize_t find_line (FILE *fp, int line_num, ssize_t file_length)
 
                 read_size -= length;
                 read_size--;
-                head = pcdvobjs_file_get_prev_option ((char *)buffer, read_size, "\n",
-                                                                    &length);
+                head = pcdvobjs_file_get_prev_option ((char *)buffer, 
+                        read_size, "\n", &length);
             }
             if (read_size < 1024)           // to the end
                 break;
@@ -122,8 +124,8 @@ static ssize_t find_line (FILE *fp, int line_num, ssize_t file_length)
     return pos;
 }
 
-static char * find_line_in_stream (purc_rwstream_t stream, int line_num, 
-                                                                size_t *position)
+static char * find_line_in_stream (
+        purc_rwstream_t stream, int line_num, size_t *position)
 {
     size_t pos = 0;
     unsigned char buffer[1024];
@@ -172,7 +174,8 @@ static char * find_line_in_stream (purc_rwstream_t stream, int line_num,
             if (line_num == 0)
                 break;
 
-            head = pcdvobjs_file_get_next_option (head + length + 1, "\n", &length);
+            head = pcdvobjs_file_get_next_option (head + length + 1, 
+                    "\n", &length);
         }
         if (read_size < 1024)           // to the end
             break;
@@ -923,8 +926,8 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
     return ret_var;
 }
 
-static inline void write_rwstream_int (purc_rwstream_t rwstream, purc_variant_t arg,
-                                        int *index, bool little, int bytes)
+static inline void write_rwstream_int (purc_rwstream_t rwstream, 
+        purc_variant_t arg, int *index, bool little, int bytes)
 {
     purc_variant_t val = PURC_VARIANT_INVALID;
     int64_t i64 = 0;
@@ -937,8 +940,8 @@ static inline void write_rwstream_int (purc_rwstream_t rwstream, purc_variant_t 
     purc_rwstream_write (rwstream, (char *)&i64, bytes);
 }
 
-static inline void write_rwstream_uint (purc_rwstream_t rwstream, purc_variant_t arg,
-                                        int *index, bool little, int bytes)
+static inline void write_rwstream_uint (purc_rwstream_t rwstream, 
+        purc_variant_t arg, int *index, bool little, int bytes)
 {
     purc_variant_t val = PURC_VARIANT_INVALID;
     uint64_t u64 = 0;
@@ -952,8 +955,8 @@ static inline void write_rwstream_uint (purc_rwstream_t rwstream, purc_variant_t
 }
 
 static purc_variant_t
-stream_writestruct_getter (purc_variant_t root, size_t nr_args, 
-                                                        purc_variant_t* argv)
+stream_writestruct_getter (purc_variant_t root, 
+        size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
@@ -1175,8 +1178,8 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
 }
 
 static purc_variant_t
-stream_readlines_getter (purc_variant_t root, size_t nr_args, 
-                                                        purc_variant_t* argv)
+stream_readlines_getter (purc_variant_t root, 
+        size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
@@ -1217,9 +1220,9 @@ stream_readlines_getter (purc_variant_t root, size_t nr_args,
     return ret_var;
 }
 
-static purc_variant_t
-stream_readbytes_getter (purc_variant_t root, size_t nr_args, 
-                                                        purc_variant_t* argv)
+static purc_variant_t 
+stream_readbytes_getter (purc_variant_t root, 
+        size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
@@ -1268,9 +1271,9 @@ stream_readbytes_getter (purc_variant_t root, size_t nr_args,
     return ret_var;
 }
 
-static purc_variant_t
-stream_seek_getter (purc_variant_t root, size_t nr_args, 
-                                                        purc_variant_t* argv)
+static purc_variant_t 
+stream_seek_getter (purc_variant_t root, 
+        size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);

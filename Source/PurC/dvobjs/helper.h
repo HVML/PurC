@@ -33,6 +33,9 @@
 extern "C" {
 #endif  /* __cplusplus */
 
+
+#define STREAM_SIZE 1024
+
 struct pcdvobjs_math_value {
     double d;
     long double ld;
