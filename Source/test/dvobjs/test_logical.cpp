@@ -471,3 +471,41 @@ TEST(dvobjs, dvobjs_logical)
     }
     purc_cleanup ();
 }
+
+TEST(dvobjs, dvobjs_logical_eval)
+{
+    purc_variant_t param[10];
+    purc_variant_t ret_var = NULL;
+
+    purc_instance_extra_info info = {0, 0};
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    purc_variant_t logical = pcdvojbs_get_math();
+    ASSERT_NE(logical, nullptr);
+    ASSERT_EQ(purc_variant_is_object (logical), true);
+
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (logical, "eval");
+    ASSERT_NE(dynamic, nullptr);
+    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+
+    purc_dvariant_method func = NULL;
+    func = purc_variant_dynamic_get_getter (dynamic);
+    ASSERT_NE(func, nullptr);
+
+    const char *exp = "(3 + 7) < (2 + 3 * 4)";
+    param[0] = purc_variant_make_string (exp, false);
+    param[1] = PURC_VARIANT_INVALID;
+    param[2] = NULL;
+    ret_var = func (NULL, 2, param);
+    ASSERT_NE(ret_var, nullptr);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    printf("TEST eval: param is \"%s\" = %d\n", exp, ret_var->b);
+    purc_variant_unref(ret_var);
+    purc_variant_unref(param[0]);
+
+    purc_variant_unref(logical);
+
+    purc_cleanup ();
+}
+

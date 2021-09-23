@@ -668,7 +668,6 @@ TEST(dvobjs, dvobjs_math_samples)
     purc_cleanup ();
 }
 
-#if 0
 static void
 _trim_tail_spaces(char *dest, size_t n)
 {
@@ -773,6 +772,7 @@ TEST(dvobjs, dvobjs_math_bc)
     int r = 0;
     DIR *d = NULL;
     struct dirent *dir = NULL;
+    char path[1024] = {0};
 
     purc_instance_extra_info info = {0, 0};
     r = purc_init("cn.fmsoft.hybridos.test",
@@ -793,13 +793,16 @@ TEST(dvobjs, dvobjs_math_bc)
     func = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(func, nullptr);
 
-    const char *env = "BC_FILES_DIR";
-    const char *path = getenv(env);
-    std::cout << "env: " << env << "=" << path << std::endl;
-    EXPECT_NE(path, nullptr) << "You shall specify via env `"
+    const char *env = "DVOBJS_TEST_PATH";
+    const char *math_path = getenv(env);
+    std::cout << "env: " << env << "=" << math_path << std::endl;
+    EXPECT_NE(math_path, nullptr) << "You shall specify via env `"
         << env << "`" << std::endl;
-    if (!path)
+    if (!math_path)
         goto end;
+
+    strcpy (path, math_path);
+    strcat (path, "/math_bc");
 
     d = opendir(path);
     EXPECT_NE(d, nullptr) << "Failed to open dir @["
@@ -807,7 +810,10 @@ TEST(dvobjs, dvobjs_math_bc)
             << std::endl;
 
     if (d) {
-        chdir(path);
+        if (chdir(path) != 0) {
+            purc_variant_unref(math);
+            return;
+        }
         while ((dir = readdir(d)) != NULL) {
             if (dir->d_type & DT_REG) {
                 char l[8192], r[8192];
@@ -827,4 +833,3 @@ end:
 
     purc_cleanup ();
 }
-#endif
