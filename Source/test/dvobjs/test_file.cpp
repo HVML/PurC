@@ -38,21 +38,21 @@ TEST(dvobjs, dvobjs_file_text_head)
     func = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(func, nullptr);
 
-    printf ("TEST text_head: nr_args = 2, param1 = \"/etc/passwd\", param2 = 0 :\n");
+    printf ("TEST text_head: nr_args=2, param1=\"/etc/passwd\", param2=0:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (0);
     param[2] = NULL;
     ret_var = func (NULL, 2, param);
     printf("\t\tReturn : %s\n", purc_variant_get_string_const (ret_var));
 
-    printf ("TEST text_head: nr_args = 2, param1 = \"/etc/passwd\", param2 = 3 :\n");
+    printf ("TEST text_head: nr_args=2, param1=\"/etc/passwd\", param2=3:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (3);
     param[2] = NULL;
     ret_var = func (NULL, 2, param);
     printf("\t\tReturn : %s\n", purc_variant_get_string_const (ret_var));
 
-    printf ("TEST text_head: nr_args = 2, param1 = \"/etc/passwd\", param2 = -3 :\n");
+    printf ("TEST text_head: nr_args=2, param1=\"/etc/passwd\", param2=-3:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (-3);
     param[2] = NULL;
@@ -87,21 +87,21 @@ TEST(dvobjs, dvobjs_file_text_tail)
     func = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(func, nullptr);
 
-    printf ("TEST text_tail: nr_args = 2, param1 = \"/etc/passwd\", param2 = 0 :\n");
+    printf ("TEST text_tail: nr_args=2, param1=\"/etc/passwd\", param2=0:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (0);
     param[2] = NULL;
     ret_var = func (NULL, 2, param);
     printf("\t\tReturn : %s\n", purc_variant_get_string_const (ret_var));
 
-    printf ("TEST text_tail: nr_args = 2, param1 = \"/etc/passwd\", param2 = 3 :\n");
+    printf ("TEST text_tail: nr_args=2, param1=\"/etc/passwd\", param2=3:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (3);
     param[2] = NULL;
     ret_var = func (NULL, 2, param);
     printf("\t\tReturn : %s\n", purc_variant_get_string_const (ret_var));
 
-    printf ("TEST text_tail: nr_args = 2, param1 = \"/etc/passwd\", param2 = -3 :\n");
+    printf ("TEST text_tail: nr_args=2, param1=\"/etc/passwd\", param2=-3:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (-3);
     param[2] = NULL;
@@ -109,7 +109,6 @@ TEST(dvobjs, dvobjs_file_text_tail)
     printf("\t\tReturn : %s\n", purc_variant_get_string_const (ret_var));
     purc_cleanup ();
 }
-
 
 TEST(dvobjs, dvobjs_file_bin_head)
 {
@@ -137,21 +136,21 @@ TEST(dvobjs, dvobjs_file_bin_head)
     func = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(func, nullptr);
 
-    printf ("TEST bin_head: nr_args = 2, param1 = \"/etc/passwd\", param2 = 0 :\n");
+    printf ("TEST bin_head: nr_args=2, param1=\"/etc/passwd\", param2=0 :\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (0);
     param[2] = NULL;
     ret_var = func (NULL, 2, param);
     printf("\t\tReturn : %s\n", purc_variant_get_bytes_const (ret_var, &size));
 
-    printf ("TEST bin_head: nr_args = 2, param1 = \"/etc/passwd\", param2 = 3 :\n");
+    printf ("TEST bin_head: nr_args=2, param1=\"/etc/passwd\", param2=3:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (3);
     param[2] = NULL;
     ret_var = func (NULL, 2, param);
     printf("\t\tReturn : %s\n", purc_variant_get_bytes_const (ret_var, &size));
 
-    printf ("TEST bin_head: nr_args = 2, param1 = \"/etc/passwd\", param2 = -3 :\n");
+    printf ("TEST bin_head: nr_args=2, param1=\"/etc/passwd\", param2=-3:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (-3);
     param[2] = NULL;
@@ -187,21 +186,21 @@ TEST(dvobjs, dvobjs_file_bin_tail)
     func = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(func, nullptr);
 
-    printf ("TEST bin_tail: nr_args = 2, param1 = \"/etc/passwd\", param2 = 0 :\n");
+    printf ("TEST bin_tail: nr_args=2, param1=\"/etc/passwd\", param2=0:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (0);
     param[2] = NULL;
     ret_var = func (NULL, 2, param);
     printf("\t\tReturn : %s\n", purc_variant_get_bytes_const (ret_var, &size));
 
-    printf ("TEST bin_tail: nr_args = 2, param1 = \"/etc/passwd\", param2 = 3 :\n");
+    printf ("TEST bin_tail: nr_args=2, param1=\"/etc/passwd\", param2=3:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (3);
     param[2] = NULL;
     ret_var = func (NULL, 2, param);
     printf("\t\tReturn : %s\n", purc_variant_get_bytes_const (ret_var, &size));
 
-    printf ("TEST bin_tail: nr_args = 2, param1 = \"/etc/passwd\", param2 = -3 :\n");
+    printf ("TEST bin_tail: nr_args=2, param1=\"/etc/passwd\", param2=-3:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (-3);
     param[2] = NULL;
@@ -210,5 +209,6 @@ TEST(dvobjs, dvobjs_file_bin_tail)
 
     size = purc_variant_sequence_length (ret_var);
     printf ("size = %ld\n", size);
+
     purc_cleanup ();
 }

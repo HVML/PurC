@@ -486,7 +486,8 @@ struct test_sample {
 TEST(dvobjs, dvobjs_logical_eval)
 {
     struct test_sample samples[] = {
-        {"(1 < 2) && (2 > 4)", 0}
+        {"(1 < 2) && (2 > 4)", 0},
+        {"(1 < 2) || (2 > 4)", 1}
     };
 
     purc_variant_t param[10];
