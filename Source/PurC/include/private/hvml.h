@@ -142,7 +142,7 @@ enum pchvml_state {
     PCHVML_EJSON_AFTER_JSONEE_STRING_STATE
 };
 
-struct pchvml_temp_buffer;
+struct pchvml_buffer;
 struct pchvml_token;
 struct pchvml_rwswrap;
 struct pchvml_sbst;
@@ -151,9 +151,9 @@ struct pchvml_parser {
     enum pchvml_state state;
     enum pchvml_state return_state;
     struct pchvml_rwswrap* rwswrap;
-    struct pchvml_temp_buffer* temp_buffer;
-    struct pchvml_temp_buffer* appropriate_tag_name;
-    struct pchvml_temp_buffer* escape_buffer;
+    struct pchvml_buffer* temp_buffer;
+    struct pchvml_buffer* appropriate_tag_name;
+    struct pchvml_buffer* string_buffer;
     struct pchvml_token* token;
     struct pchvml_sbst* sbst;
     struct pcvcm_node* vcm_tree;

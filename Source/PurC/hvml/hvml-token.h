@@ -28,7 +28,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <private/arraylist.h>
-#include "tempbuffer.h"
+#include "hvml-buffer.h"
 
 enum pchvml_attr_assignment {
     PCHVML_ATTRIBUTE_ASSIGNMENT,           // =
@@ -179,9 +179,9 @@ const struct pcvcm_node* pchvml_token_attr_get_value(
 enum pchvml_attr_assignment pchvml_token_attr_get_assignment(
         struct pchvml_token_attr* attr);
 
-struct pchvml_temp_buffer* pchvml_token_attr_to_string(
+struct pchvml_buffer* pchvml_token_attr_to_string(
         struct pchvml_token_attr* attr);
-struct pchvml_temp_buffer* pchvml_token_to_string(struct pchvml_token* token);
+struct pchvml_buffer* pchvml_token_to_string(struct pchvml_token* token);
 
 #ifdef __cplusplus
 }

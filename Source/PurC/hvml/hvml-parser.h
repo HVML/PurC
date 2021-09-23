@@ -28,46 +28,55 @@
 #include "config.h"
 #include "purc-macros.h"
 #include "purc-errors.h"
+#include "private/hvml.h"
 #include "private/vdom.h"
 
 #include "hvml-token.h"
 
 PCA_EXTERN_C_BEGIN
 
+enum pcvdom_gen_insertion_mode {
+    PCVDOM_GEN_INSERTION_MODE_INITIAL,
+    PCVDOM_GEN_INSERTION_MODE_BEFORE_HVML,
+    PCVDOM_GEN_INSERTION_MODE_BEFORE_HEAD,
+    PCVDOM_GEN_INSERTION_MODE_IN_HEAD,
+    PCVDOM_GEN_INSERTION_MODE_AFTER_HEAD,
+    PCVDOM_GEN_INSERTION_MODE_IN_BODY,
+    PCVDOM_GEN_INSERTION_MODE_TEXT,
+    PCVDOM_GEN_INSERTION_MODE_AFTER_BODY,
+    PCVDOM_GEN_INSERTION_MODE_AFTER_AFTER_BODY,
+};
 
-struct pchvml_vdom_tokenizer;
+struct pcvdom_gen {
+    enum pcvdom_gen_insertion_mode      insertion_mode;
 
-struct pchvml_vdom_parser {
     struct pcvdom_document   *doc;
     struct pcvdom_node       *curr;
 
-    struct pchvml_vdom_tokenizer  *tokenizer;
-    int                            eof;
+    struct pcvdom_node      **open_elements;
+    size_t                    nr_open;
+    size_t                    sz_elements;
+
+    /* exists for tokenizer state change */
+    struct pchvml_parser     *parser;
+
+    unsigned int              eof:1;
+    unsigned int              reprocess:1;
 };
 
-struct pchvml_token*
-pchvml_vdom_next_token(struct pchvml_vdom_tokenizer *tokenizer,
-    purc_rwstream_t in);
-
-struct pchvml_vdom_parser*
-pchvml_vdom_parser_create(struct pchvml_vdom_tokenizer *tokenizer);
+struct pcvdom_gen*
+pcvdom_gen_create(void);
 
 int
-pchvml_vdom_parser_parse(struct pchvml_vdom_parser *parser,
-        purc_rwstream_t in);
-
-int
-pchvml_vdom_parser_parse_fragment(struct pchvml_vdom_parser *parser,
-        struct pcvdom_node *node, purc_rwstream_t in);
-
-int
-pchvml_vdom_parser_end(struct pchvml_vdom_parser *parser);
+pcvdom_gen_push_token(struct pcvdom_gen *stack,
+    struct pchvml_parser     *parser, /* exists for tokenizer state change */
+    struct pchvml_token *token);
 
 struct pcvdom_document*
-pchvml_vdom_parser_reset(struct pchvml_vdom_parser *parser);
+pcvdom_gen_end(struct pcvdom_gen *stack);
 
 void
-pchvml_vdom_parser_destroy(struct pchvml_vdom_parser *parser);
+pcvdom_gen_destroy(struct pcvdom_gen *stack);
 
 
 PCA_EXTERN_C_END

@@ -1,0 +1,4 @@
+<hvml>
+    <choose on "$2.payload" to "append update" in "#the-user-list" with "$user_item">
+    </choose>
+</hvml>

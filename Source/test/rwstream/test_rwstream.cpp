@@ -287,6 +287,13 @@ TEST(stdio_rwstream, seek_read)
     ASSERT_EQ(read_len, 1);
     ASSERT_EQ(read_buf[0], buf[5]);
 
+    purc_rwstream_seek (rws, 0, SEEK_END);
+    memset(read_buf, 0, sizeof(read_buf));
+    wc = 0;
+    read_len = purc_rwstream_read_utf8_char (rws, read_buf, &wc);
+    ASSERT_EQ(read_len, 0);
+    ASSERT_EQ(wc, 0);
+
     int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 

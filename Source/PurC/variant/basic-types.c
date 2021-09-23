@@ -500,7 +500,6 @@ purc_variant_t purc_variant_make_byte_sequence_static (const void* bytes,
 
     value->type = PURC_VARIANT_TYPE_BSEQUENCE;
     value->flags |= PCVARIANT_FLAG_STRING_STATIC;
-    value->flags = 0;
     value->refc = 1;
     value->sz_ptr[0] = nr_bytes;
     value->sz_ptr[1] = (uintptr_t)bytes;
@@ -524,7 +523,6 @@ purc_variant_t purc_variant_make_byte_sequence_reuse_buff (void* bytes,
 
     value->type = PURC_VARIANT_TYPE_BSEQUENCE;
     value->flags = PCVARIANT_FLAG_EXTRA_SIZE;
-    value->flags = 0;
     value->refc = 1;
 
     value->sz_ptr[1] = (uintptr_t) bytes;

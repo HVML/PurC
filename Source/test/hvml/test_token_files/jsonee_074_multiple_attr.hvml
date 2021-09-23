@@ -1,0 +1,6 @@
+<hvml>
+    <body>
+        <choose on="$aaa.bbb" to="iterate" end="$XXX.YYY">
+        </choose>
+    </body>
+</hvml>

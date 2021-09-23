@@ -30,6 +30,7 @@
 #include "config.h"
 #include "purc-utils.h"
 #include "purc-errors.h"
+#include "purc-rwstream.h"
 #include "private/errors.h"
 #include "private/vcm.h"
 #include "private/stack.h"
@@ -379,6 +380,167 @@ struct pcvcm_node* pcvcm_node_new_call_setter (struct pcvcm_node* variable,
     }
 
     return n;
+}
+
+#define APPEND_CHILD_NODE()                                                 \
+    do {                                                                    \
+        struct pctree_node* child = NULL;                                   \
+        struct pctree_node* tree_node = (struct pctree_node*) (node);       \
+        child = tree_node->first_child;                                     \
+        while (child) {                                                     \
+            pcvcm_node_write_to_rwstream(rws,                               \
+                    (struct pcvcm_node*)child);                             \
+            child = child->next;                                            \
+            if (child) {                                                    \
+                purc_rwstream_write(rws, ",", 1);                           \
+            }                                                               \
+        }                                                                   \
+    } while (false)
+
+#define APPEND_VARIANT()                                                    \
+    do {                                                                    \
+        size_t len_expected = 0;                                            \
+        purc_variant_serialize(v, rws, 0, PCVARIANT_SERIALIZE_OPT_PLAIN,    \
+                &len_expected);                                             \
+    } while (false)
+
+static
+void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node* node)
+{
+    switch (node->type)
+    {
+    case PCVCM_NODE_TYPE_OBJECT:
+        purc_rwstream_write(rws, "make_object(", 12);
+        APPEND_CHILD_NODE();
+        purc_rwstream_write(rws, ")", 1);
+        break;
+
+    case PCVCM_NODE_TYPE_ARRAY:
+        purc_rwstream_write(rws, "make_array(", 11);
+        APPEND_CHILD_NODE();
+        purc_rwstream_write(rws, ")", 1);
+        break;
+
+    case PCVCM_NODE_TYPE_STRING:
+        purc_rwstream_write(rws, "\"", 1);
+        purc_rwstream_write(rws, (char*)node->sz_ptr[1],
+                node->sz_ptr[0]);
+        purc_rwstream_write(rws, "\"", 1);
+        break;
+
+    case PCVCM_NODE_TYPE_NULL:
+        purc_rwstream_write(rws, "null", 4);
+        break;
+
+    case PCVCM_NODE_TYPE_BOOLEAN:
+    {
+        purc_variant_t v = purc_variant_make_boolean (node->b);
+        APPEND_VARIANT();
+        purc_variant_unref(v);
+        break;
+    }
+
+    case PCVCM_NODE_TYPE_NUMBER:
+    {
+        purc_variant_t v = purc_variant_make_number (node->d);
+        APPEND_VARIANT();
+        purc_variant_unref(v);
+        break;
+    }
+
+    case PCVCM_NODE_TYPE_LONG_INT:
+    {
+        purc_variant_t v = purc_variant_make_longint (node->i64);
+        APPEND_VARIANT();
+        purc_variant_unref(v);
+        break;
+    }
+
+    case PCVCM_NODE_TYPE_ULONG_INT:
+    {
+        purc_variant_t v = purc_variant_make_ulongint (node->u64);
+        APPEND_VARIANT();
+        purc_variant_unref(v);
+        break;
+    }
+
+    case PCVCM_NODE_TYPE_LONG_DOUBLE:
+    {
+        purc_variant_t v = purc_variant_make_longdouble (node->ld);
+        APPEND_VARIANT();
+        purc_variant_unref(v);
+        break;
+    }
+
+    case PCVCM_NODE_TYPE_BYTE_SEQUENCE:
+    {
+        purc_variant_t v = purc_variant_make_byte_sequence(
+                (void*)node->sz_ptr[1], node->sz_ptr[0]);
+        APPEND_VARIANT();
+        purc_variant_unref(v);
+        break;
+    }
+
+    case PCVCM_NODE_TYPE_FUNC_CONCAT_STRING:
+        purc_rwstream_write(rws, "concat_string(", 14);
+        APPEND_CHILD_NODE();
+        purc_rwstream_write(rws, ")", 1);
+        break;
+
+    case PCVCM_NODE_TYPE_FUNC_GET_VARIABLE:
+        purc_rwstream_write(rws, "get_variable(", 13);
+        APPEND_CHILD_NODE();
+        purc_rwstream_write(rws, ")", 1);
+        break;
+
+    case PCVCM_NODE_TYPE_FUNC_GET_ELEMENT:
+        purc_rwstream_write(rws, "get_element(", 12);
+        APPEND_CHILD_NODE();
+        purc_rwstream_write(rws, ")", 1);
+        break;
+
+    case PCVCM_NODE_TYPE_FUNC_CALL_GETTER:
+        purc_rwstream_write(rws, "call_getter(", 12);
+        APPEND_CHILD_NODE();
+        purc_rwstream_write(rws, ")", 1);
+        break;
+
+    case PCVCM_NODE_TYPE_FUNC_CALL_SETTER:
+        purc_rwstream_write(rws, "call_setter(", 12);
+        APPEND_CHILD_NODE();
+        purc_rwstream_write(rws, ")", 1);
+        break;
+    }
+}
+
+char* pcvcm_node_to_string (struct pcvcm_node* node, size_t* nr_bytes)
+{
+    if (!node) {
+        if (nr_bytes) {
+            *nr_bytes = 0;
+        }
+        return NULL;
+    }
+
+    purc_rwstream_t rws = purc_rwstream_new_buffer(32, SIZE_MAX);
+    if (!rws) {
+        if (nr_bytes) {
+            *nr_bytes = 0;
+        }
+        return NULL;
+    }
+
+    pcvcm_node_write_to_rwstream(rws, node);
+
+    size_t sz_content = 0;
+    char* buf = (char*) purc_rwstream_get_mem_buffer_ex(rws, &sz_content,
+        NULL, true);
+    if (nr_bytes) {
+        *nr_bytes = sz_content;
+    }
+
+    purc_rwstream_destroy(rws);
+    return buf;
 }
 
 static void pcvcm_node_destroy_callback (struct pctree_node* n,  void* data)

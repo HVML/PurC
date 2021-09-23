@@ -23,6 +23,32 @@ struct hvml_token_test_data {
     int error;
 };
 
+char* trim(char *str)
+{
+    if (!str)
+    {
+        return NULL;
+    }
+    char *end;
+
+    while (isspace((unsigned char)*str)) {
+        str++;
+    }
+
+    if(*str == 0) {
+        return str;
+    }
+
+    end = str + strlen(str) - 1;
+    while (end > str && isspace((unsigned char)*end)) {
+        end--;
+    }
+
+    end[1] = '\0';
+    return str;
+}
+
+
 class hvml_parser_next_token : public testing::TestWithParam<hvml_token_test_data>
 {
 protected:
@@ -127,6 +153,7 @@ int to_error(const char* err)
     TO_ERROR(PCHVML_ERROR_NONCHARACTER_CHARACTER_REFERENCE);
     TO_ERROR(PCHVML_ERROR_NULL_CHARACTER_REFERENCE);
     TO_ERROR(PCHVML_ERROR_CONTROL_CHARACTER_REFERENCE);
+    TO_ERROR(PCHVML_ERROR_INVALID_UTF8_CHARACTER);
     return -1;
 }
 
@@ -140,25 +167,25 @@ TEST_P(hvml_parser_next_token, parse_and_serialize)
     struct pchvml_parser* parser = pchvml_create(0, 32);
     //fprintf(stderr, "hvml=%s|len=%ld\n", hvml, strlen(hvml));
     //fprintf(stderr, "comp=%s\n", comp);
-    // read end of string as eof
-    size_t sz = strlen (hvml) + 1;
+    size_t sz = strlen (hvml);
     purc_rwstream_t rws = purc_rwstream_new_from_mem((void*)hvml, sz);
 
-    struct pchvml_temp_buffer* buffer = pchvml_temp_buffer_new();
+    struct pchvml_buffer* buffer = pchvml_buffer_new();
 
     struct pchvml_token* token = NULL;
     while((token = pchvml_next_token(parser, rws)) != NULL) {
-        struct pchvml_temp_buffer* token_buff = pchvml_token_to_string(token);
+        struct pchvml_buffer* token_buff = pchvml_token_to_string(token);
         if (token_buff) {
-            pchvml_temp_buffer_append_temp_buffer(buffer, token_buff);
-            pchvml_temp_buffer_destroy(token_buff);
+            pchvml_buffer_append_temp_buffer(buffer, token_buff);
+            pchvml_buffer_destroy(token_buff);
         }
         enum pchvml_token_type type = pchvml_token_get_type(token);
         pchvml_token_destroy(token);
+        token = NULL;
         if (type == PCHVML_TOKEN_EOF) {
             break;
         }
-//        PRINTF("serial : %s|code=%d\n", pchvml_temp_buffer_get_buffer(buffer)
+//        PRINTF("serial : %s|code=%d\n", pchvml_buffer_get_buffer(buffer)
 //                , purc_get_last_error());
     }
     int error = purc_get_last_error();
@@ -166,22 +193,20 @@ TEST_P(hvml_parser_next_token, parse_and_serialize)
 
     if (error_code != PCHVML_SUCCESS)
     {
-        ASSERT_EQ (token, nullptr) << "Test Case : "<< get_name();
         purc_rwstream_destroy(rws);
-        pchvml_temp_buffer_destroy(buffer);
+        pchvml_buffer_destroy(buffer);
         pchvml_destroy(parser);
         return;
     }
-    else {
-        ASSERT_NE (token, nullptr) << "Test Case : "<< get_name();
-    }
 
-
-    const char* serial = pchvml_temp_buffer_get_buffer(buffer);
-    ASSERT_STREQ(serial, comp) << "Test Case : "<< get_name();
+    const char* serial = pchvml_buffer_get_buffer(buffer);
+    char* result = strdup(serial);
+//    PRINTF("serial : %s", serial);
+    ASSERT_STREQ(trim(result), comp) << "Test Case : "<< get_name();
+    free(result);
 
     purc_rwstream_destroy(rws);
-    pchvml_temp_buffer_destroy(buffer);
+    pchvml_buffer_destroy(buffer);
     pchvml_destroy(parser);
 }
 
@@ -199,31 +224,6 @@ char* read_file (const char* file)
     fclose (fp);
     buf[sz] = 0;
     return buf;
-}
-
-char* trim(char *str)
-{
-    if (!str)
-    {
-        return NULL;
-    }
-    char *end;
-
-    while (isspace((unsigned char)*str)) {
-        str++;
-    }
-
-    if(*str == 0) {
-        return str;
-    }
-
-    end = str + strlen(str) - 1;
-    while (end > str && isspace((unsigned char)*end)) {
-        end--;
-    }
-
-    end[1] = '\0';
-    return str;
 }
 
 std::vector<hvml_token_test_data> read_hvml_token_test_data()

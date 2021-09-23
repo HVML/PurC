@@ -271,7 +271,7 @@ static size_t get_min_size(size_t sz_min, size_t sz_max) {
 /* rwstream api */
 purc_rwstream_t purc_rwstream_new_buffer (size_t sz_init, size_t sz_max)
 {
-    if (sz_init == 0 || sz_max <= sz_init || sz_init >= SIZE_MAX)
+    if (sz_init == 0 || sz_max <= sz_init)
     {
         RWSTREAM_SET_ERROR(PURC_ERROR_INVALID_VALUE);
         return NULL;
@@ -474,12 +474,16 @@ int purc_rwstream_read_utf8_char (purc_rwstream_t rws, char* buf_utf8,
     ssize_t ret =  purc_rwstream_read (rws, buf_utf8, 1);
     if (ret != 1)
     {
-        return -1;
+        return ret;
     }
 
     int n = 1;
     int ch_len = 0;
-    int c = buf_utf8[0];
+    uint8_t c = buf_utf8[0];
+    if (c > 0xFD) {
+        return -1;
+    }
+
     if (c & 0x80)
     {
         while (c & (0x80 >> n))
@@ -493,14 +497,20 @@ int purc_rwstream_read_utf8_char (purc_rwstream_t rws, char* buf_utf8,
     }
 
     int read_len = ch_len - 1;
-    if (read_len > 0)
-    {
-        ret =  purc_rwstream_read (rws, buf_utf8+1, read_len);
-        if (ret != read_len)
+    char* p = buf_utf8 + 1;
+    while (read_len > 0) {
+        ret =  purc_rwstream_read (rws, p, 1);
+        if (ret != 1)
         {
             RWSTREAM_SET_ERROR(PCRWSTREAM_ERROR_IO);
             return -1;
         }
+        c = *p;
+        if ((c & 0xC0) != 0x80) {
+            return -1;
+        }
+        p++;
+        read_len--;
     }
 
     *buf_wc = utf8_to_uint32_t((const unsigned char*)buf_utf8, ch_len);
