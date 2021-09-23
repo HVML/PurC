@@ -186,6 +186,31 @@ _top_element(struct pcvdom_gen *gen)
     return elem;
 }
 
+static inline bool
+_is_tag_of_hvml(const char *tag)
+{
+    const struct pchvml_tag_entry *entry;
+    entry = pchvml_tag_static_search(tag, strlen(tag));
+    return entry && entry->id;
+}
+
+static inline bool
+_is_element_of_hvml(struct pcvdom_element *elem)
+{
+    return elem->tag_id;
+}
+
+static inline bool
+_is_top_node_of_hvml(struct pcvdom_gen *gen)
+{
+    struct pcvdom_node *top = _top_node(gen);
+    if (_is_doc_node(gen, top))
+        return true;
+    struct pcvdom_element *elem;
+    elem = container_of(top, struct pcvdom_element, node);
+    return _is_element_of_hvml(elem);
+}
+
 static struct pcvdom_element*
 _create_element(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
@@ -659,7 +684,7 @@ _on_mode_in_head(struct pcvdom_gen *gen, struct pchvml_token *token)
             }
         }
 
-        if (strcmp(tag, "init")==0) {
+        if (_is_tag_of_hvml(tag)) {
             gen->parser->state = PCHVML_EJSON_DATA_STATE;
         }
 
@@ -820,7 +845,7 @@ _on_mode_in_body(struct pcvdom_gen *gen, struct pchvml_token *token)
             }
         }
 
-        if (strcmp(tag, "init")==0) {
+        if (_is_tag_of_hvml(tag)) {
             gen->parser->state = PCHVML_EJSON_DATA_STATE;
         }
 
