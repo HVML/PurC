@@ -1248,6 +1248,7 @@ next_state:
                         pchvml_token_get_curr_attr(parser->token))) {
                 RECONSUME_IN(PCHVML_BEFORE_ATTRIBUTE_VALUE_STATE);
             }
+            END_TOKEN_ATTR();
             BEGIN_TOKEN_ATTR();
             RECONSUME_IN(PCHVML_ATTRIBUTE_NAME_STATE);
         END_STATE()

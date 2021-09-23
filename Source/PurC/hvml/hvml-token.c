@@ -162,6 +162,7 @@ void pchvml_token_destroy (struct pchvml_token* token)
 
 void pchvml_token_begin_attr (struct pchvml_token* token)
 {
+    pchvml_token_end_attr(token);
     token->curr_attr = pchvml_token_attr_new();
 }
 
