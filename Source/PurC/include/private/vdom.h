@@ -161,7 +161,7 @@ void
 pcvdom_document_destroy(struct pcvdom_document *doc);
 
 struct pcvdom_document*
-pcvdom_document_create(const char *doctype);
+pcvdom_document_create(void);
 
 struct pcvdom_element*
 pcvdom_element_create(pcvdom_tag_id tag);
@@ -193,6 +193,9 @@ void
 pcvdom_attr_destroy(struct pcvdom_attr *attr);
 
 // doc/dom construction api
+int
+pcvdom_document_set_doctype(struct pcvdom_document *doc, const char *doctype);
+
 int
 pcvdom_document_append_content(struct pcvdom_document *doc,
         struct pcvdom_content *content);
@@ -257,6 +260,16 @@ typedef int (*vdom_element_traverse_f)(struct pcvdom_element *top,
     struct pcvdom_element *elem, void *ctx);
 int pcvdom_element_traverse(struct pcvdom_element *elem, void *ctx,
         vdom_element_traverse_f cb);
+
+#define pcvdom_document_create_with_doctype(doctype) ({           \
+    struct pcvdom_document *doc = pcvdom_document_create();       \
+    if (doc) {                                                    \
+        if (pcvdom_document_set_doctype(doc,doctype)) {           \
+            pcvdom_document_destroy(doc);                         \
+            doc = NULL;                                           \
+        }                                                         \
+    }                                                             \
+    doc; })
 
 PCA_EXTERN_C_END
 

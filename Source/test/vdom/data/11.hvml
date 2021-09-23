@@ -1,0 +1,14 @@
+<!DOCTYPE hvml>
+<hvml target="html" script="python">
+    <head>
+        <init as="_" with="https://foo.bar/messages/$SYSTEM.locale">
+        </init>
+
+        <title>Hello, world!</title>
+    </head>
+
+    <body>
+        <p>$_("Hello, world!")</p>
+    </body>
+
+</hvml>
