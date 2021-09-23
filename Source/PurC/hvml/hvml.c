@@ -2825,6 +2825,9 @@ next_state:
             if (uc == '"' || uc  == 'U') {
                 RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
             }
+            if (character == '<') {
+                RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
+            }
             PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
             RETURN_AND_STOP_PARSE();
         END_STATE()
