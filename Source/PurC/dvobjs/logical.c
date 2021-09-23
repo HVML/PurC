@@ -573,8 +573,8 @@ logical_streq (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     const char * option = purc_variant_get_string_const (argv[0]);
-    purc_rwstream_t stream1 = purc_rwstream_new_buffer (32, 1024);
-    purc_rwstream_t stream2 = purc_rwstream_new_buffer (32, 1024);
+    purc_rwstream_t stream1 = purc_rwstream_new_buffer (32, STREAM_SIZE);
+    purc_rwstream_t stream2 = purc_rwstream_new_buffer (32, STREAM_SIZE);
     size_t sz_stream1 = 0;
     size_t sz_stream2 = 0;
 
@@ -640,8 +640,8 @@ logical_strne (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     const char * option = purc_variant_get_string_const (argv[0]);
-    purc_rwstream_t stream1 = purc_rwstream_new_buffer (32, 1024);
-    purc_rwstream_t stream2 = purc_rwstream_new_buffer (32, 1024);
+    purc_rwstream_t stream1 = purc_rwstream_new_buffer (32, STREAM_SIZE);
+    purc_rwstream_t stream2 = purc_rwstream_new_buffer (32, STREAM_SIZE);
     size_t sz_stream1 = 0;
     size_t sz_stream2 = 0;
 
@@ -708,8 +708,8 @@ logical_strgt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     const char * option = purc_variant_get_string_const (argv[0]);
-    purc_rwstream_t stream1 = purc_rwstream_new_buffer (32, 1024);
-    purc_rwstream_t stream2 = purc_rwstream_new_buffer (32, 1024);
+    purc_rwstream_t stream1 = purc_rwstream_new_buffer (32, STREAM_SIZE);
+    purc_rwstream_t stream2 = purc_rwstream_new_buffer (32, STREAM_SIZE);
     size_t sz_stream1 = 0;
     size_t sz_stream2 = 0;
 
@@ -763,8 +763,8 @@ logical_strge (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     const char * option = purc_variant_get_string_const (argv[0]);
-    purc_rwstream_t stream1 = purc_rwstream_new_buffer (32, 1024);
-    purc_rwstream_t stream2 = purc_rwstream_new_buffer (32, 1024);
+    purc_rwstream_t stream1 = purc_rwstream_new_buffer (32, STREAM_SIZE);
+    purc_rwstream_t stream2 = purc_rwstream_new_buffer (32, STREAM_SIZE);
     size_t sz_stream1 = 0;
     size_t sz_stream2 = 0;
 
@@ -819,8 +819,8 @@ logical_strlt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     const char * option = purc_variant_get_string_const (argv[0]);
-    purc_rwstream_t stream1 = purc_rwstream_new_buffer (32, 1024);
-    purc_rwstream_t stream2 = purc_rwstream_new_buffer (32, 1024);
+    purc_rwstream_t stream1 = purc_rwstream_new_buffer (32, STREAM_SIZE);
+    purc_rwstream_t stream2 = purc_rwstream_new_buffer (32, STREAM_SIZE);
     size_t sz_stream1 = 0;
     size_t sz_stream2 = 0;
 
@@ -875,8 +875,8 @@ logical_strle (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     const char * option = purc_variant_get_string_const (argv[0]);
-    purc_rwstream_t stream1 = purc_rwstream_new_buffer (32, 1024);
-    purc_rwstream_t stream2 = purc_rwstream_new_buffer (32, 1024);
+    purc_rwstream_t stream1 = purc_rwstream_new_buffer (32, STREAM_SIZE);
+    purc_rwstream_t stream2 = purc_rwstream_new_buffer (32, STREAM_SIZE);
     size_t sz_stream1 = 0;
     size_t sz_stream2 = 0;
 

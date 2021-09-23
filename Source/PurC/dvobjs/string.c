@@ -311,7 +311,7 @@ string_replace (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     const char* source = purc_variant_get_string_const (argv[0]);
     const char* delim = purc_variant_get_string_const (argv[1]);
     const char* replace = purc_variant_get_string_const (argv[2]);
-    purc_rwstream_t rwstream = purc_rwstream_new_buffer (32, 1024);
+    purc_rwstream_t rwstream = purc_rwstream_new_buffer (32, STREAM_SIZE);
 
     size_t len_replace = purc_variant_string_length (argv[2]) - 1;
     size_t length = 0;
@@ -352,7 +352,7 @@ string_format_c (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     const char *format = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    purc_rwstream_t rwstream = purc_rwstream_new_buffer (32, 1024);
+    purc_rwstream_t rwstream = purc_rwstream_new_buffer (32, STREAM_SIZE);
 
     if ((argv == NULL) || (nr_args == 0))  {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
@@ -506,7 +506,7 @@ string_format_p (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     const char *format = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t tmp_var = PURC_VARIANT_INVALID;
-    purc_rwstream_t rwstream = purc_rwstream_new_buffer (32, 1024);
+    purc_rwstream_t rwstream = purc_rwstream_new_buffer (32, STREAM_SIZE);
     int type = 0;
     char buffer[32];
     int index = 0;
@@ -563,7 +563,7 @@ string_format_p (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
                 return PURC_VARIANT_INVALID;
             }
 
-            serialize = purc_rwstream_new_buffer (32, 1024);
+            serialize = purc_rwstream_new_buffer (32, STREAM_SIZE);
             purc_variant_serialize (tmp_var, serialize, 3, 0, &sz_stream);
             buf = purc_rwstream_get_mem_buffer (serialize, &sz_stream);
             purc_rwstream_write (rwstream, buf + 1, sz_stream - 2);
@@ -600,7 +600,7 @@ string_format_p (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
                 return PURC_VARIANT_INVALID;
             }
 
-            serialize = purc_rwstream_new_buffer (32, 1024);
+            serialize = purc_rwstream_new_buffer (32, STREAM_SIZE);
             purc_variant_serialize (tmp_var, serialize, 3, 0, &sz_stream);
             buf = purc_rwstream_get_mem_buffer (serialize, &sz_stream);
             purc_rwstream_write (rwstream, buf + 1, sz_stream - 2);
