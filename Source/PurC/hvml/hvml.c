@@ -573,6 +573,24 @@ PCA_INLINE UNUSED_FUNCTION bool is_eof (uint32_t uc)
     return uc == PCHVML_END_OF_FILE;
 }
 
+PCA_INLINE UNUSED_FUNCTION bool is_separator(uint32_t c)
+{
+    switch (c) {
+        case '{':
+        case '}':
+        case '[':
+        case ']':
+        case '<':
+        case '>':
+        case '(':
+        case ')':
+        case ',':
+        case ':':
+            return true;
+    }
+    return false;
+}
+
 void pchvml_init_once(void)
 {
     pcinst_register_error_message_segment(&_hvml_err_msgs_seg);
@@ -947,6 +965,17 @@ next_input:
     if (character == 0xFFFFFFFF) {
         PCHVML_SET_ERROR(PCHVML_ERROR_INVALID_UTF8_CHARACTER);
         RETURN_AND_STOP_PARSE();
+    }
+
+    if (is_separator(character)) {
+        if (parser->prev_separator == ',' && character == ',') {
+            PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_COMMA);
+            RETURN_AND_STOP_PARSE();
+        }
+        parser->prev_separator = character;
+    }
+    else if (!is_whitespace(character)) {
+        parser->prev_separator = 0;
     }
 
 next_state:
