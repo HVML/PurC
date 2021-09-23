@@ -1,0 +1,107 @@
+<!DOCTYPE hvml>
+<hvml target="html" script="python" lang="en">
+    <head>
+        <init as "global">
+            { "locale" : "zh_CN" }
+        </init>
+
+        <init as "users">
+            [
+                { "id": "1", "avatar": "/img/avatars/1.png", "name": "Tom", "region": "en_US" },
+                { "id": "2", "avatar": "/img/avatars/2.png", "name": "Jerry", "region": "zh_CN" },
+                0,
+                -0,
+                -0.,
+                -0.1,,,,          ,,,,,,,,      ,,,   
+                -0.12,
+                -0.123e+0,
+                -0.123e+1,
+                -0.123e+12,
+                1,
+                12,
+                12.,
+                12.0,
+                12.01,
+                12.012e-0,
+                12.012e-2,
+            ]
+        </init>
+
+        <listen on "hibus://system/status" as "systemStatus" />
+    </head>
+
+    <body>
+        <archetype name="user_item">
+            <li class="user-item" id="user-$?.id" data-value="$?.id" data-region="$?.region">
+                <img class="avatar" src="$?.avatar" />
+                <span>$?.name</span>
+            </li>
+        </archetype>
+
+        <archedata name="item-user">
+            {
+                "id": "$?.attr.data-value", "avatar": "$?.content[0].attr.src",
+                "name": "$?.children[1].textContent", "region": "$?.attr.data-region"
+            }
+        </archedata>
+
+        <header id="theStatusBar">
+            <img class="mobile-status" src="" />
+            <span class="mobile-operator"></span>
+            <img class="wifi-status" src="" />
+            <span class="local-time">12:00</span>
+            <img class="battery-status" />>
+        </header>
+
+        <ul class="user-list">
+            <iterate on="$users" with="$user-item" to="append" by="CLASS: IUser">
+                <nodata>
+                    <img src="wait.png" />
+                </nodata>
+                <except on="StopIteration">
+                    <p>Bad user data!</p>
+                </except>
+            </iterate>
+        </ul>
+
+        <archetype name="footer_cn">
+            <p><a href="http://www.baidu.com">Baidu</a></p>
+        </archetype>
+
+        <archetype name="footer_tw">
+            <p><a href="http://www.bing.com">Bing</a></p>
+        </archetype>
+
+        <archetype name="footer_def">
+            <p><a href="http://www.google.com">Google</a></p>
+        </archetype>
+
+        <footer id="the-footer">
+            <test on="$global.locale" in='the-footer'>
+                <match for="~zh_CN" to="displace" with="$footer_cn" exclusively>
+                </match>
+                <match for="~zh_TW" to="displace" with="$footer_tw" exclusively>
+                </match>
+                <match for="*" to="displace" with="$footer_def">
+                </match>
+                <error on="nodata">
+                    <p>You forget to define the $global variable!</p>
+                </error>
+                <except on="KeyError">
+                    <p>Bad global data!</p>
+                </except>
+                <except on="IdentifierError">
+                    <p>Bad archetype data!</p>
+                </except>
+            </test>
+        </footer>
+
+        <observe on="$systemStatus" for="battery" by="FUNC: on_battery_changed">
+        </observe>
+
+        <observe on=".avatar" for="clicked" foo="hello&amp;&quot;&apos;&lt;&gt;world" by="FUNC: on_avatar_clicked">
+        </observe>
+        &amp;&quot;&apos;&lt;&gt;
+    </body>
+&lt;</hvml>
+

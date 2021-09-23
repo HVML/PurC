@@ -1,0 +1,12 @@
+<!DOCTYPE hvml>
+<hvml>
+    <head>
+        <init as="_TIMERS" uniquely by="id">
+        </init>
+
+    </head>
+
+    <body>
+    </body>
+</hvml>
+
