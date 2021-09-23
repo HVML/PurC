@@ -62,6 +62,8 @@
 
 #define PURC_VERSION_STRING ("@PROJECT_VERSION@")
 
+#define PURC_API_VERSION_STRING ("@PURC_API_VERSION@")
+
 /**
  * PURC_CHECK_VERSION:
  *
@@ -149,6 +151,18 @@ purc_get_versions (int *major, int *minor, int *micro) {
 PCA_INLINE const char *
 purc_get_version_string (void) {
     return PURC_VERSION_STRING;
+}
+
+/**
+ * purc_api_version_string:
+ *
+ * Returns: the pointer to the PurC API version string (e.g. "1.2" for version 1.2).
+ *
+ * Since 0.0.1
+ */
+PCA_INLINE const char *
+purc_get_api_version_string (void) {
+    return PURC_API_VERSION_STRING;
 }
 
 PCA_EXTERN_C_END
