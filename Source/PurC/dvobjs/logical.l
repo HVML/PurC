@@ -96,18 +96,13 @@ do {                                              \
           if (state != INITIAL) return -1;
           yyterminate(); }
 
-"!"	    { return *yytext; }
-">"	    { return *yytext; }
-">="	{ return MKT(GE); }
-"<"	    { return *yytext; }
-"<="	{ return MKT(LE); }
-"=="	{ return MKT(EQ); }
-"!="	{ return MKT(NE); }
-"&&"	{ return MKT(AND); }
-"||"	{ return MKT(OR); }
-"^"	    { return *yytext; }
-"("     { return *yytext; }
-")"     { return *yytext; }
+[!<>^();]      { C(); R(); return *yytext; }
+">="	       { C(); R(); return MKT(GE); }
+"<="	       { C(); R(); return MKT(LE); }
+"=="	       { C(); R(); return MKT(EQ); }
+"!="	       { C(); R(); return MKT(NE); }
+"&&"	       { C(); R(); return MKT(AND); }
+"||"	       { C(); R(); return MKT(OR); }
 
 
 
@@ -123,11 +118,10 @@ do {                                              \
 
 [_[:alpha:]][[:alnum:]]*  { C(); SET_VAR(); R(); return MKT(VAR); }
 
-[ \t]   { /* ignore white space */ }
+[ \t]   { C(); R(); /* ignore white space */ }
 
-.	{return *yytext; } /* we don't call yyerror here, because it has no way to communicate with bison */
-                      /* normally, we just return character token and defer the error handling in bison */
-\n  { /* just eat it */ }
+.	    { C(); R(); return *yytext; } /* let bison to handle it */
+\n      { L(); R(); return *yytext; }
 
 %%
 

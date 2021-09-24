@@ -277,16 +277,16 @@
         ptr[sz] = '\0';                                              \
         _r = purc_variant_object_get_by_ckey(param->variables, ptr); \
         ptr[sz] = c;                                                 \
-        if (_r)                                                      \
-            break;                                                   \
-                                                                     \
-        if (!param->v && !purc_variant_is_object(param->v))          \
-            YYABORT;                                                 \
-        ptr[sz] = '\0';                                              \
-        _r = purc_variant_object_get_by_ckey(param->v, ptr);         \
-        ptr[sz] = c;                                                 \
-        if (!_r)                                                     \
-            YYABORT;                                                 \
+        if (_r == PURC_VARIANT_INVALID) {                            \
+            if (!param->v && !purc_variant_is_object(param->v))      \
+                YYABORT;                                             \
+            ptr[sz] = '\0';                                          \
+            _r = purc_variant_object_get_by_ckey(param->v, ptr);     \
+            ptr[sz] = c;                                             \
+            if (_r == PURC_VARIANT_INVALID)                          \
+                YYABORT;                                             \
+        }                                                            \
+        purc_variant_ref(_r);                                        \
     } while (0)
 }
 
@@ -371,38 +371,6 @@ term:
 | '(' exp ')'        { $$ = $2; }
 ;
 
-
-
-
-
-    // calclist:
-    //   %empty      { }
-    // | exp         { param->result = $1 ? 1 : 0; }
-    // ;
-
-    // exp: factor
-    // | exp AND factor { $$ = $1 && $3; }
-    // | exp OR factor { $$ = $1 || $3; }
-    // | exp '^' factor { $$ = (int)$1 ^ (int)$3; }
-    // ;
-
-    // factor: anti
-    // | factor '>' anti { $$ = ($1 > $3)? 1 : 0; }
-    // | factor GE anti { $$ = ($1 >= $3)? 1 : 0; }
-    // | factor '<' anti { $$ = ($1 < $3)? 1 : 0; }
-    // | factor LE anti { $$ = ($1 <= $3)? 1 : 0; }
-    // | factor EQ anti { $$ = ($1 == $3)? 1 : 0; }
-    // | factor NE anti { $$ = ($1 != $3)? 1 : 0; }
-    // ;
-
-    // anti: term
-    // | '!' term  %prec NEG { $$ = $2? 0: 1; }
-    // ;
-
-    // term: NUMBER
-    // | '(' exp ')' { $$ = $2; }
-    // ;
-
 %%
 
 /* Called by yyparse on error. */
@@ -443,7 +411,6 @@ int logical_parse(const char *input,
     logical_yylex_init(&arg);
     // logical_yyset_in(in, arg);
     // logical_yyset_debug(debug, arg);
-    logical_yyset_debug(1, arg);
     logical_yyset_extra(param, arg);
     logical_yy_scan_string(input, arg);
     int ret =logical_yyparse(arg, &funcs, param);
