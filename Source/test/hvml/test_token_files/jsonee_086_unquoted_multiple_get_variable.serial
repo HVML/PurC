@@ -1,0 +1,3 @@
+<hvml>
+    <update on=get_variable("expression") value=concat_string(get_variable("expression"),get_element(get_variable("@"),"textContent"))/>
+</hvml>

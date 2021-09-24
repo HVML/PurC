@@ -1324,9 +1324,11 @@ next_state:
                 PCHVML_SET_ERROR(PCHVML_ERROR_MISSING_MISSING_ATTRIBUTE_VALUE);
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
+#if 0
             if (character == '{' || character == '[' || character == '$') {
                 RECONSUME_IN(PCHVML_EJSON_DATA_STATE);
             }
+#endif
             if (is_eof(character)) {
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
@@ -1435,15 +1437,25 @@ next_state:
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }
-            if (character == '$') {
-                if (parser->vcm_node) {
-                    vcm_stack_push(parser->vcm_node);
+            if (character == '$' || character == '{' || character == '[') {
+                bool handle = pchvml_parser_is_handle_as_jsonee(parser->token,
+                        character);
+                bool buffer_is_white = pchvml_buffer_is_whitespace(
+                        parser->string_buffer);
+                if (handle && buffer_is_white) {
+                    ejson_stack_push('U');
+                    RESET_STRING_BUFFER();
+                    RECONSUME_IN(PCHVML_EJSON_DATA_STATE);
                 }
-                struct pcvcm_node* snode = pcvcm_node_new_concat_string(0,
-                        NULL);
-                UPDATE_VCM_NODE(snode);
+
                 ejson_stack_push('U');
                 if (!pchvml_buffer_is_empty(parser->string_buffer)) {
+                    if (parser->vcm_node) {
+                        vcm_stack_push(parser->vcm_node);
+                    }
+                    struct pcvcm_node* snode = pcvcm_node_new_concat_string(0,
+                            NULL);
+                    UPDATE_VCM_NODE(snode);
                     struct pcvcm_node* node = pcvcm_node_new_string(
                             pchvml_buffer_get_buffer(parser->string_buffer)
                             );
@@ -2441,13 +2453,16 @@ next_state:
         BEGIN_STATE(PCHVML_EJSON_CONTROL_STATE)
             uint32_t uc = pcutils_stack_top (parser->ejson_stack);
             if (is_whitespace(character)) {
+                if (ejson_stack_is_empty()) {
+                    RECONSUME_IN(PCHVML_EJSON_FINISHED_STATE);
+                }
                 if (parser->vcm_node->type ==
                         PCVCM_NODE_TYPE_FUNC_CONCAT_STRING
                         && (uc == '"' || uc == '\'' || uc == 'U')) {
                     RECONSUME_IN(PCHVML_EJSON_AFTER_JSONEE_STRING_STATE);
                 }
-                if (ejson_stack_is_empty()) {
-                    RECONSUME_IN(PCHVML_EJSON_FINISHED_STATE);
+                if (uc == 'U' || uc == '"' || uc == '\'') {
+                    RECONSUME_IN(PCHVML_EJSON_AFTER_JSONEE_STRING_STATE);
                 }
                 ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
             }
@@ -2563,6 +2578,19 @@ next_state:
                 PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
                 RETURN_AND_STOP_PARSE();
             }
+            if (parser->vcm_node->type ==
+                    PCVCM_NODE_TYPE_FUNC_GET_VARIABLE ||
+                    parser->vcm_node->type ==
+                    PCVCM_NODE_TYPE_FUNC_GET_ELEMENT) {
+                size_t n = pctree_node_children_number(
+                        (struct pctree_node*)parser->vcm_node);
+                if (n < 2) {
+                    RECONSUME_IN(PCHVML_EJSON_JSONEE_VARIABLE_STATE);
+                }
+                else {
+                    POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+                }
+            }
             RECONSUME_IN(PCHVML_EJSON_JSONEE_STRING_STATE);
         END_STATE()
 
@@ -2672,7 +2700,8 @@ next_state:
                             NULL);
                     APPEND_CHILD(node, parser->vcm_node);
                     UPDATE_VCM_NODE(node);
-                    ADVANCE_TO(PCHVML_EJSON_JSONEE_VARIABLE_STATE);
+                    //ADVANCE_TO(PCHVML_EJSON_JSONEE_VARIABLE_STATE);
+                    ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
                 }
                 uint32_t uc = pcutils_stack_top (parser->ejson_stack);
                 if (uc == '(' || uc == '<' || uc == '[' || uc == ':') {
@@ -4163,7 +4192,7 @@ next_state:
                     if (!ejson_stack_is_empty()) {
                         POP_AS_VCM_PARENT_AND_UPDATE_VCM();
                     }
-                    ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
+                    RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
                 }
                 RECONSUME_IN(PCHVML_EJSON_JSONEE_STRING_STATE);
             }
