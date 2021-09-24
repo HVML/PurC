@@ -70,12 +70,11 @@
 
 /* declare tokens */
 %token <d> NUMBER
-%token GT GE LT LE EQU NOEQU AND OR XOR ANTI
-%token OP CP
-%token EOL
+%token GE LE EQ NE AND OR
 %right '='
 %left '+' '-'
 %left '*'
+%precedence NEG /* negation--unary minus */
 
 %nterm <d> calclist exp factor anti term
 
@@ -91,24 +90,24 @@ calclist:
 exp: factor
 | exp AND factor { $$ = $1 && $3; }
 | exp OR factor { $$ = $1 || $3; }
-| exp XOR factor { $$ = (int)$1 ^ (int)$3; }
+| exp '^' factor { $$ = (int)$1 ^ (int)$3; }
 ;
 
 factor: anti
-| factor GT anti { $$ = ($1 > $3)? 1 : 0; }
+| factor '>' anti { $$ = ($1 > $3)? 1 : 0; }
 | factor GE anti { $$ = ($1 >= $3)? 1 : 0; }
-| factor LT anti { $$ = ($1 < $3)? 1 : 0; }
+| factor '<' anti { $$ = ($1 < $3)? 1 : 0; }
 | factor LE anti { $$ = ($1 <= $3)? 1 : 0; }
-| factor EQU anti { $$ = ($1 == $3)? 1 : 0; }
-| factor NOEQU anti { $$ = ($1 != $3)? 1 : 0; }
+| factor EQ anti { $$ = ($1 == $3)? 1 : 0; }
+| factor NE anti { $$ = ($1 != $3)? 1 : 0; }
 ;
 
 anti: term
-| ANTI term { $$ = $2? 0: 1; }
+| '!' term  %prec NEG { $$ = $2? 0: 1; }
 ;
 
 term: NUMBER
-| OP exp CP { $$ = $2; }
+| '(' exp ')' { $$ = $2; }
 ;
 
 %%

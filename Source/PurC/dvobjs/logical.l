@@ -79,37 +79,35 @@ EXP ([Ee][-+]?[0-9]+)
 %option perf-report
 %option 8bit
 
-%x STR
-
 %%
 
 <<EOF>> { int state = TOP_STATE();
           if (state != INITIAL) return -1;
           yyterminate(); }
 
-"!"	    { return MKT(ANTI); }
-">"	    { return MKT(GT); }
+"!"	    { return *yytext; }
+">"	    { return *yytext; }
 ">="	{ return MKT(GE); }
-"<"	    { return MKT(LT); }
+"<"	    { return *yytext; }
 "<="	{ return MKT(LE); }
-"=="	{ return MKT(EQU); }
-"!="	{ return MKT(NOEQU); }
+"=="	{ return MKT(EQ); }
+"!="	{ return MKT(NE); }
 "&&"	{ return MKT(AND); }
 "||"	{ return MKT(OR); }
-"^"	    { return MKT(XOR); }
-"("     { return MKT(OP); }
-")"     { return MKT(CP); }
+"^"	    { return *yytext; }
+"("     { return *yytext; }
+")"     { return *yytext; }
 
 [0-9]+"."[0-9]*{EXP}? |
 "."?[0-9]+{EXP}?	{ yylval->d = atof(yytext); return MKT(NUMBER); }
 
 [a-zA-z0-9]+  { yylval->d = get_data(yytext, yyextra); return MKT(NUMBER); }
 
-"//".*
 [ \t]   { /* ignore white space */ }
 
 .	{return *yytext; } /* we don't call yyerror here, because it has no way to communicate with bison */
                       /* normally, we just return character token and defer the error handling in bison */
+\n  { /* just eat it */ }
 
 %%
 

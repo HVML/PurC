@@ -584,7 +584,7 @@ _eval_bc(const char *fn, char *dest, size_t dlen)
     char cmd[8192];
     size_t n = 0;
 
-    snprintf(cmd, sizeof(cmd), "cat '%s' | bc", fn);
+    snprintf(cmd, sizeof(cmd), "cat '%s' | bc | sed 's/1/true/g' | sed 's/0/false/g'", fn);
     fin = popen(cmd, "r");
     EXPECT_NE(fin, nullptr) << "failed to execute: [" << cmd << "]"
         << std::endl;
