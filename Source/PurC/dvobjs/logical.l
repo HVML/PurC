@@ -54,7 +54,7 @@ do {                                            \
 #define L()                                     \
 do {                                            \
     yylloc->last_line   += 1;                   \
-    yylloc->last_column  = 0;                   \
+    yylloc->last_column  = 1;                   \
 } while (0)
 
 #define R()                                       \
@@ -63,11 +63,22 @@ do {                                              \
     yylloc->first_line   = yylloc->last_line;     \
 } while (0)
 
-static double get_data (char * text, struct pcdvobjs_logical_param * pp);
+#define SET_INT() do {                            \
+    yylval->sz_ptr[0] = yyleng;                   \
+    yylval->sz_ptr[1] = (uintptr_t)yytext;        \
+} while (0)
 
+#define SET_NUM() do {                            \
+    yylval->sz_ptr[0] = yyleng;                   \
+    yylval->sz_ptr[1] = (uintptr_t)yytext;        \
+} while (0)
+
+#define SET_VAR() do {                            \
+    yylval->sz_ptr[0] = yyleng;                   \
+    yylval->sz_ptr[1] = (uintptr_t)yytext;        \
+} while (0)
 %}
 
-EXP ([Ee][-+]?[0-9]+)
 
 %option prefix="logical_yy"
 %option bison-bridge bison-locations reentrant
@@ -98,10 +109,19 @@ EXP ([Ee][-+]?[0-9]+)
 "("     { return *yytext; }
 ")"     { return *yytext; }
 
-[0-9]+"."[0-9]*{EXP}? |
-"."?[0-9]+{EXP}?	{ yylval->d = atof(yytext); return MKT(NUMBER); }
 
-[a-zA-z0-9]+  { yylval->d = get_data(yytext, yyextra); return MKT(NUMBER); }
+
+[-+]?0                { C(); SET_INT(); R(); return MKT(INT); }
+[-+]?[1-9][0-9]*      { C(); SET_INT(); R(); return MKT(INT); }
+[-+]?"0."[0-9]*       { C(); SET_NUM(); R(); return MKT(NUM); }
+[-+]?[0-9]+"."[0-9]*  { C(); SET_NUM(); R(); return MKT(NUM); }
+[-+]?[0-9]+("."[0-9]*)?[eE][+-]?[0-9]+ { C(); SET_NUM(); R(); return MKT(NUM); }
+
+
+
+
+
+[_[:alpha:]][[:alnum:]]*  { C(); SET_VAR(); R(); return MKT(VAR); }
 
 [ \t]   { /* ignore white space */ }
 
@@ -110,23 +130,4 @@ EXP ([Ee][-+]?[0-9]+)
 \n  { /* just eat it */ }
 
 %%
-
-static double get_data (char * text, struct pcdvobjs_logical_param * pp)
-{
-    double number = 0.0d;
-
-    if (pp->v == NULL)
-        return number;
-
-    if ((pp->v != NULL) && (!purc_variant_is_object (pp->v)))
-        return number;
-
-    purc_variant_t var = NULL;
-
-    var = purc_variant_object_get_by_ckey (pp->v, text);
-    if (var)
-        purc_variant_cast_to_number (var, &number, false);
-
-    return number;
-}
 

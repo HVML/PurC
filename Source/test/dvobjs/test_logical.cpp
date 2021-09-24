@@ -146,7 +146,7 @@ purc_variant_t get_variant (char *buf, size_t *length)
                 default:
                     temp_end = strchr (buf, ';');
                     *length = temp_end - buf;
-                    ret_var = PURC_VARIANT_INVALID; 
+                    ret_var = PURC_VARIANT_INVALID;
                     break;
             }
             break;
@@ -159,7 +159,7 @@ purc_variant_t get_variant (char *buf, size_t *length)
                     *temp_end = 0x00;
                     if (strncasecmp (temp + 1, "true", 4) == 0)
                         ret_var = purc_variant_make_boolean (true);
-                    else  
+                    else
                         ret_var = purc_variant_make_boolean (false);
                     *length = temp_end - buf;
                     break;
@@ -169,14 +169,14 @@ purc_variant_t get_variant (char *buf, size_t *length)
                     temp_end = strchr (temp + 1, '\"');
                     length_sub = temp_end - temp - 1;
                     replace_for_bsequence(temp + 1, &length_sub);
-                    ret_var = purc_variant_make_byte_sequence (temp + 1, 
+                    ret_var = purc_variant_make_byte_sequence (temp + 1,
                             length_sub);
                     *length = temp_end + 1 - buf;
                     break;
                 default:
                     temp_end = strchr (buf, ';');
                     *length = temp_end - buf;
-                    ret_var = PURC_VARIANT_INVALID; 
+                    ret_var = PURC_VARIANT_INVALID;
                     break;
             }
             break;
@@ -191,7 +191,7 @@ purc_variant_t get_variant (char *buf, size_t *length)
         case 'I':
             temp_end = strchr (buf, ';');
             *length = temp_end - buf;
-            ret_var = PURC_VARIANT_INVALID; 
+            ret_var = PURC_VARIANT_INVALID;
             break;
         case 'l':
         case 'L':
@@ -215,7 +215,7 @@ purc_variant_t get_variant (char *buf, size_t *length)
                 default:
                     temp_end = strchr (buf, ';');
                     *length = temp_end - buf;
-                    ret_var = PURC_VARIANT_INVALID; 
+                    ret_var = PURC_VARIANT_INVALID;
                     break;
             }
             break;
@@ -226,7 +226,7 @@ purc_variant_t get_variant (char *buf, size_t *length)
                 case 'T':
                     temp_end = strchr (buf, ';');
                     *temp_end = 0x00;
-                    ret_var = purc_variant_make_native ((void *)"hello world", 
+                    ret_var = purc_variant_make_native ((void *)"hello world",
                             &rws_ops);
                     *length = temp_end - buf;
                     break;
@@ -248,7 +248,7 @@ purc_variant_t get_variant (char *buf, size_t *length)
                 default:
                     temp_end = strchr (buf, ';');
                     *length = temp_end - buf;
-                    ret_var = PURC_VARIANT_INVALID; 
+                    ret_var = PURC_VARIANT_INVALID;
                     break;
             }
             break;
@@ -258,7 +258,7 @@ purc_variant_t get_variant (char *buf, size_t *length)
             snprintf (tag, (temp_end - temp), "%s", temp + 1);
             number = atoi (tag);
             temp = temp_end + 1;
-            
+
             ret_var = purc_variant_make_object (0, PURC_VARIANT_INVALID,
                                                     PURC_VARIANT_INVALID);
             for (i = 0; i < number; i++) {
@@ -313,7 +313,7 @@ purc_variant_t get_variant (char *buf, size_t *length)
                 default:
                     temp_end = strchr (buf, ';');
                     *length = temp_end - buf;
-                    ret_var = PURC_VARIANT_INVALID; 
+                    ret_var = PURC_VARIANT_INVALID;
                     break;
             }
             break;
@@ -338,14 +338,14 @@ purc_variant_t get_variant (char *buf, size_t *length)
                 default:
                     temp_end = strchr (buf, ';');
                     *length = temp_end - buf;
-                    ret_var = PURC_VARIANT_INVALID; 
+                    ret_var = PURC_VARIANT_INVALID;
                     break;
             }
             break;
         default:
             temp_end = strchr (buf, ';');
             *length = temp_end - buf;
-            ret_var = PURC_VARIANT_INVALID; 
+            ret_var = PURC_VARIANT_INVALID;
             break;
     }
 
@@ -376,7 +376,7 @@ TEST(dvobjs, dvobjs_logical)
     for (i = 0; i < function_size; i++)  {
         printf ("test _L.%s:\n", function[i]);
 
-        purc_variant_t dynamic = purc_variant_object_get_by_ckey (logical, 
+        purc_variant_t dynamic = purc_variant_object_get_by_ckey (logical,
                 function[i]);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
@@ -464,7 +464,7 @@ TEST(dvobjs, dvobjs_logical)
                     }
                     else {
                         // USER MODIFIED HERE.
-                        ASSERT_EQ(purc_variant_is_type (ret_var, 
+                        ASSERT_EQ(purc_variant_is_type (ret_var,
                                     PURC_VARIANT_TYPE_BOOLEAN), true);
                         ASSERT_EQ(ret_var->b, ret_result->b);
                         purc_variant_unref(ret_var);
@@ -504,6 +504,7 @@ struct test_sample {
 TEST(dvobjs, dvobjs_logical_eval)
 {
     struct test_sample samples[] = {
+        {"1 < 2", 1},
         {"(1 < 2) && (2 > 4)", 0},
         {"(1 < 2) || (2 > 4)", 1}
     };
@@ -531,9 +532,10 @@ TEST(dvobjs, dvobjs_logical_eval)
         param[0] = purc_variant_make_string (samples[i].expr, false);
         param[1] = PURC_VARIANT_INVALID;
         param[2] = NULL;
+        std::cout << "parsing [" << samples[i].expr << "]" << std::endl;
         ret_var = func (NULL, 2, param);
         ASSERT_NE(ret_var, nullptr);
-        ASSERT_EQ(purc_variant_is_type (ret_var, 
+        ASSERT_EQ(purc_variant_is_type (ret_var,
                     PURC_VARIANT_TYPE_BOOLEAN), true);
         ASSERT_EQ(samples[i].result, ret_var->b);
 
