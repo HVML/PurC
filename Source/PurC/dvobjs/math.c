@@ -88,11 +88,10 @@ static purc_variant_t
 const_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
 
     double number = 0.0d;
 
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
+    if ((nr_args >= 1) && (argv[0] != PURC_VARIANT_INVALID) && 
             (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
@@ -179,11 +178,10 @@ static purc_variant_t
 const_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     
     long double number = 0.0d;
 
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
+    if ((nr_args >= 1) && (argv[0] != PURC_VARIANT_INVALID) && 
             (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;

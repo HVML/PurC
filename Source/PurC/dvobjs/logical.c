@@ -249,11 +249,10 @@ static purc_variant_t
 logical_not (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if (argv[0] == PURC_VARIANT_INVALID) {
+    if ((nr_args == 1) && argv[0] == PURC_VARIANT_INVALID) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }

@@ -154,8 +154,8 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     size_t content_size = 0;
     char * rw_string = NULL;
  
-    if ((argv == NULL) || 
-        ((argv[0] != PURC_VARIANT_INVALID) && 
+    if ((nr_args == 0) || 
+        ((nr_args == 1) && (argv[0] != PURC_VARIANT_INVALID) && 
          (!purc_variant_is_string (argv[0])))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
@@ -383,7 +383,7 @@ locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if (argv && ((argv[0] != PURC_VARIANT_INVALID) && 
+    if ((nr_args == 1) && ((argv[0] != PURC_VARIANT_INVALID) && 
                 (!purc_variant_is_string (argv[0])))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
@@ -790,7 +790,6 @@ static purc_variant_t
 time_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t val = PURC_VARIANT_INVALID;
@@ -800,14 +799,14 @@ time_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     time_t t_time;
     struct tm *t_tm = NULL;
 
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
+    if ((nr_args >= 1) && (argv[0] != PURC_VARIANT_INVALID) && 
                     (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     } else
         name = purc_variant_get_string_const (argv[0]);
 
-    if ((argv[1] != PURC_VARIANT_INVALID) &&  
+    if ((nr_args >= 2) && (argv[1] != PURC_VARIANT_INVALID) &&  
             (!((purc_variant_is_ulongint (argv[1]))   || 
                (purc_variant_is_longdouble (argv[1])) || 
                (purc_variant_is_longint (argv[1]))    || 
@@ -818,7 +817,7 @@ time_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         purc_variant_cast_to_number (argv[1], &epoch, false);
         
         
-    if ((argv[2] != PURC_VARIANT_INVALID) && 
+    if ((nr_args >= 3) && (argv[2] != PURC_VARIANT_INVALID) && 
             (!purc_variant_is_string (argv[2]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
