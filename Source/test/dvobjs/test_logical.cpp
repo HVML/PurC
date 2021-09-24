@@ -357,7 +357,7 @@ TEST(dvobjs, dvobjs_logical)
     const char *function[] = {"not", "and", "or", "xor", "eq", "ne", "gt",
                               "ge", "lt", "le", "streq", "strne", "strgt",
                               "strge", "strlt", "strle"};
-    purc_variant_t param[10];
+    purc_variant_t param[10] = {0};
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t ret_result = PURC_VARIANT_INVALID;
     size_t function_size = sizeof(function) / sizeof(char *);
@@ -428,6 +428,10 @@ TEST(dvobjs, dvobjs_logical)
                         line_number ++;
 
                         if (strcmp (line, "param_end") == 0)  {
+                            if (param[j]) {
+                                purc_variant_unref(param[j]);
+                                param[j] = NULL;
+                            }
                             param[j] = NULL;
                             break;
                         }
@@ -463,6 +467,17 @@ TEST(dvobjs, dvobjs_logical)
                         ASSERT_EQ(purc_variant_is_type (ret_var, 
                                     PURC_VARIANT_TYPE_BOOLEAN), true);
                         ASSERT_EQ(ret_var->b, ret_result->b);
+                        purc_variant_unref(ret_var);
+                        ret_var = PURC_VARIANT_INVALID;
+                        purc_variant_unref(ret_result);
+                        ret_result = PURC_VARIANT_INVALID;
+                    }
+
+                    for (size_t i=0; i<PCA_TABLESIZE(param); ++i) {
+                        if (param[i]) {
+                            purc_variant_unref(param[i]);
+                            param[i] = NULL;
+                        }
                     }
                 }
                 else
@@ -474,7 +489,10 @@ TEST(dvobjs, dvobjs_logical)
 
         length_sub++;
         fclose(fp);
+        if (line)
+            free(line);
     }
+    purc_variant_unref(logical);
     purc_cleanup ();
 }
 
