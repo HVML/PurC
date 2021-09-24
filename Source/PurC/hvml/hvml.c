@@ -2854,7 +2854,11 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_AFTER_VALUE_STATE)
+            uint32_t uc = ejson_stack_top();
             if (is_whitespace(character)) {
+                if (uc  == 'U' || uc == '"') {
+                    RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
+                }
                 ADVANCE_TO(PCHVML_EJSON_AFTER_VALUE_STATE);
             }
             if (is_eof(character)) {
@@ -2862,10 +2866,18 @@ next_state:
                 RETURN_NEW_EOF_TOKEN();
             }
             if (character == '"' || character == '\'') {
-                struct pcvcm_node* node = pcvcm_node_new_string(
-                        pchvml_buffer_get_buffer(parser->temp_buffer));
-                APPEND_AS_VCM_CHILD(node);
-                RESET_TEMP_BUFFER();
+                if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
+                    struct pcvcm_node* node = pcvcm_node_new_string(
+                            pchvml_buffer_get_buffer(parser->temp_buffer));
+                    APPEND_AS_VCM_CHILD(node);
+                    RESET_TEMP_BUFFER();
+                }
+                if (uc == '"' || uc == '\'') {
+                    ejson_stack_pop();
+                    if (ejson_stack_is_empty()) {
+                        ADVANCE_TO(PCHVML_EJSON_FINISHED_STATE);
+                    }
+                }
                 ADVANCE_TO(PCHVML_EJSON_AFTER_VALUE_STATE);
             }
             if (character == '}') {
@@ -2877,7 +2889,6 @@ next_state:
             if (character == ')') {
                 RECONSUME_IN(PCHVML_EJSON_RIGHT_PARENTHESIS_STATE);
             }
-            uint32_t uc = ejson_stack_top();
             if (character == ',') {
                 if (uc == '{') {
                     ejson_stack_pop();
