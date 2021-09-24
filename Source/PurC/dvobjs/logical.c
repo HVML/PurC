@@ -56,7 +56,7 @@ static bool reg_cmp (const char *buf1, const char *buf2)
 
     err = regexec(&reg, buf2, number, pmatch, 0);
 
-    if (err == REG_NOMATCH) { 
+    if (err == REG_NOMATCH) {
         regfree (&reg);
         return false;
     }
@@ -75,7 +75,7 @@ static bool reg_cmp (const char *buf1, const char *buf2)
     return true;
 }
 
-static bool test_variant (purc_variant_t var) 
+static bool test_variant (purc_variant_t var)
 {
     if (var == PURC_VARIANT_INVALID)
         return false;
@@ -114,7 +114,7 @@ static bool test_variant (purc_variant_t var)
                 ret = true;
             break;
         case PURC_VARIANT_TYPE_DYNAMIC:
-            if ((purc_variant_dynamic_get_getter (var)) || 
+            if ((purc_variant_dynamic_get_getter (var)) ||
                 (purc_variant_dynamic_get_setter (var)))
                 ret = true;
             break;
@@ -142,7 +142,7 @@ static bool test_variant (purc_variant_t var)
 }
 
 
-static long double get_variant_value (purc_variant_t var) 
+static long double get_variant_value (purc_variant_t var)
 {
     if (var == PURC_VARIANT_INVALID)
         return false;
@@ -181,11 +181,11 @@ static long double get_variant_value (purc_variant_t var)
             break;
         case PURC_VARIANT_TYPE_BSEQUENCE:
             length = purc_variant_sequence_length (var);
-            if (length > 8) 
+            if (length > 8)
                 memcpy (&templongint, purc_variant_get_bytes_const (var,
                                             &length) + length - 8, 8);
-            else 
-                memcpy (&templongint, purc_variant_get_bytes_const (var, 
+            else
+                memcpy (&templongint, purc_variant_get_bytes_const (var,
                                             &length), length);
             number = (long double) templongint;
             break;
@@ -226,11 +226,11 @@ static long double get_variant_value (purc_variant_t var)
             it_set = purc_variant_set_make_iterator_begin(var);
             while (it_set) {
                 val = purc_variant_set_iterator_get_value(it_set);
-                
+
                 number += get_variant_value (val);
 
                 having = purc_variant_set_iterator_next(it_set);
-                if (!having) 
+                if (!having)
                     break;
             }
             if (it_set)
@@ -261,7 +261,7 @@ logical_not (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         ret_var = purc_variant_make_boolean (false);
     else
         ret_var = purc_variant_make_boolean (true);
-    
+
     return ret_var;
 }
 
@@ -291,7 +291,7 @@ logical_and (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         ret_var = purc_variant_make_boolean (true);
     else
         ret_var = purc_variant_make_boolean (false);
-    
+
     return ret_var;
 }
 
@@ -321,7 +321,7 @@ logical_or (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         ret_var = purc_variant_make_boolean (true);
     else
         ret_var = purc_variant_make_boolean (false);
-    
+
     return ret_var;
 }
 
@@ -339,7 +339,7 @@ logical_xor (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] == PURC_VARIANT_INVALID) || 
+    if ((argv[0] == PURC_VARIANT_INVALID) ||
             (argv[1] == PURC_VARIANT_INVALID)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
@@ -357,7 +357,7 @@ logical_xor (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         ret_var = purc_variant_make_boolean (true);
     else
         ret_var = purc_variant_make_boolean (false);
-    
+
     return ret_var;
 }
 
@@ -375,7 +375,7 @@ logical_eq (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] == PURC_VARIANT_INVALID) || 
+    if ((argv[0] == PURC_VARIANT_INVALID) ||
             (argv[1] == PURC_VARIANT_INVALID)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
@@ -384,11 +384,11 @@ logical_eq (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     value1 = get_variant_value (argv[0]);
     value2 = get_variant_value (argv[1]);
 
-    if (fabsl (value1 - value2) < 1.0E-10) 
+    if (fabsl (value1 - value2) < 1.0E-10)
         ret_var = purc_variant_make_boolean (true);
     else
         ret_var = purc_variant_make_boolean (false);
-    
+
     return ret_var;
 }
 
@@ -406,7 +406,7 @@ logical_ne (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] == PURC_VARIANT_INVALID) || 
+    if ((argv[0] == PURC_VARIANT_INVALID) ||
             (argv[1] == PURC_VARIANT_INVALID)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
@@ -415,11 +415,11 @@ logical_ne (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     value1 = get_variant_value (argv[0]);
     value2 = get_variant_value (argv[1]);
 
-    if (fabsl (value1 - value2) >= 1.0E-10) 
+    if (fabsl (value1 - value2) >= 1.0E-10)
         ret_var = purc_variant_make_boolean (true);
     else
         ret_var = purc_variant_make_boolean (false);
-    
+
     return ret_var;
 }
 
@@ -437,7 +437,7 @@ logical_gt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] == PURC_VARIANT_INVALID) || 
+    if ((argv[0] == PURC_VARIANT_INVALID) ||
             (argv[1] == PURC_VARIANT_INVALID)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
@@ -446,11 +446,11 @@ logical_gt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     value1 = get_variant_value (argv[0]);
     value2 = get_variant_value (argv[1]);
 
-    if (value1 > value2) 
+    if (value1 > value2)
         ret_var = purc_variant_make_boolean (true);
     else
         ret_var = purc_variant_make_boolean (false);
-    
+
     return ret_var;
 }
 
@@ -468,7 +468,7 @@ logical_ge (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] == PURC_VARIANT_INVALID) || 
+    if ((argv[0] == PURC_VARIANT_INVALID) ||
             (argv[1] == PURC_VARIANT_INVALID)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
@@ -477,11 +477,11 @@ logical_ge (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     value1 = get_variant_value (argv[0]);
     value2 = get_variant_value (argv[1]);
 
-    if (value1 >= value2) 
+    if (value1 >= value2)
         ret_var = purc_variant_make_boolean (true);
     else
         ret_var = purc_variant_make_boolean (false);
-    
+
     return ret_var;
 }
 
@@ -499,7 +499,7 @@ logical_lt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] == PURC_VARIANT_INVALID) || 
+    if ((argv[0] == PURC_VARIANT_INVALID) ||
             (argv[1] == PURC_VARIANT_INVALID)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
@@ -508,11 +508,11 @@ logical_lt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     value1 = get_variant_value (argv[0]);
     value2 = get_variant_value (argv[1]);
 
-    if (value1 < value2) 
+    if (value1 < value2)
         ret_var = purc_variant_make_boolean (true);
     else
         ret_var = purc_variant_make_boolean (false);
-    
+
     return ret_var;
 }
 
@@ -530,7 +530,7 @@ logical_le (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] == PURC_VARIANT_INVALID) || 
+    if ((argv[0] == PURC_VARIANT_INVALID) ||
             (argv[1] == PURC_VARIANT_INVALID)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
@@ -539,11 +539,11 @@ logical_le (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     value1 = get_variant_value (argv[0]);
     value2 = get_variant_value (argv[1]);
 
-    if (value1 <= value2) 
+    if (value1 <= value2)
         ret_var = purc_variant_make_boolean (true);
     else
         ret_var = purc_variant_make_boolean (false);
-    
+
     return ret_var;
 }
 
@@ -559,13 +559,13 @@ logical_streq (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[1] == PURC_VARIANT_INVALID) || 
+    if ((argv[1] == PURC_VARIANT_INVALID) ||
             (argv[2] == PURC_VARIANT_INVALID)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
@@ -626,13 +626,13 @@ logical_strne (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[1] == PURC_VARIANT_INVALID) || 
+    if ((argv[1] == PURC_VARIANT_INVALID) ||
             (argv[2] == PURC_VARIANT_INVALID)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
@@ -694,13 +694,13 @@ logical_strgt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[1] == PURC_VARIANT_INVALID) || 
+    if ((argv[1] == PURC_VARIANT_INVALID) ||
             (argv[2] == PURC_VARIANT_INVALID)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
@@ -749,13 +749,13 @@ logical_strge (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[1] == PURC_VARIANT_INVALID) || 
+    if ((argv[1] == PURC_VARIANT_INVALID) ||
             (argv[2] == PURC_VARIANT_INVALID)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
@@ -805,13 +805,13 @@ logical_strlt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[1] == PURC_VARIANT_INVALID) || 
+    if ((argv[1] == PURC_VARIANT_INVALID) ||
             (argv[2] == PURC_VARIANT_INVALID)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
@@ -861,13 +861,13 @@ logical_strle (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[1] == PURC_VARIANT_INVALID) || 
+    if ((argv[1] == PURC_VARIANT_INVALID) ||
             (argv[2] == PURC_VARIANT_INVALID)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
@@ -917,13 +917,13 @@ logical_eval (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[1] != PURC_VARIANT_INVALID) && 
+    if ((argv[1] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_object (argv[1]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;

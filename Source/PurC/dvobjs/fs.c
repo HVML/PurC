@@ -52,10 +52,10 @@ static bool remove_dir (char * dir)
     struct stat dir_stat;
     bool ret = true;
 
-    if (access(dir, F_OK | R_OK) != 0) 
+    if (access(dir, F_OK | R_OK) != 0)
         return false;
 
-    if (stat(dir, &dir_stat) < 0) 
+    if (stat(dir, &dir_stat) < 0)
         return false;
 
     if (S_ISREG(dir_stat.st_mode))
@@ -64,7 +64,8 @@ static bool remove_dir (char * dir)
         dirp = opendir(dir);
 
         while ((dp=readdir(dirp)) != NULL) {
-            if ((strcmp(dp->d_name, ".") == 0) || (strcmp(dp->d_name, "..") == 0)) 
+            if ((strcmp(dp->d_name, ".") == 0)
+                    || (strcmp(dp->d_name, "..") == 0))
                 continue;
             sprintf(dir_name, "%s/%s", dir, dp->d_name);
             remove_dir(dir_name);
@@ -72,10 +73,10 @@ static bool remove_dir (char * dir)
         closedir(dirp);
 
         rmdir(dir);
-    } 
-    else 
+    }
+    else
         ret = false;
-    
+
     return ret;
 }
 
@@ -101,7 +102,7 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
@@ -121,7 +122,7 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         strcat (dir_name, string_filename);
     }
 
-    if (access(dir_name, F_OK | R_OK) != 0)  { 
+    if (access(dir_name, F_OK | R_OK) != 0)  {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -175,16 +176,16 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
                 continue;
         }
 
-        obj_var = purc_variant_make_object (0, PURC_VARIANT_INVALID, 
+        obj_var = purc_variant_make_object (0, PURC_VARIANT_INVALID,
                                                     PURC_VARIANT_INVALID);
 
         strcpy (filename, dir_name);
         strcat (filename, "/");
         strcat (filename, ptr->d_name);
 
-        if (stat(filename, &file_stat) < 0) 
+        if (stat(filename, &file_stat) < 0)
             continue;
-        
+
         // name
         val = purc_variant_make_string (ptr->d_name, false);
         key = purc_variant_make_string ("name", false);
@@ -198,7 +199,7 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         purc_variant_object_set (obj_var, key, val);
         purc_variant_unref (key);
         purc_variant_unref (val);
-        
+
         // inode
         val = purc_variant_make_number (ptr->d_ino);
         key = purc_variant_make_string ("inode", false);
@@ -320,7 +321,7 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         purc_variant_object_set (obj_var, key, val);
         purc_variant_unref (key);
         purc_variant_unref (val);
-        
+
         // rdev_minor
         val = purc_variant_make_number (minor(file_stat.st_dev));
         key = purc_variant_make_string ("rdev_minor", false);
@@ -371,7 +372,7 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         purc_variant_unref (val);
 
         purc_variant_array_append (ret_var, obj_var);
-        purc_variant_unref (obj_var); 
+        purc_variant_unref (obj_var);
     }
 
     closedir(dir);
@@ -380,7 +381,7 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 #define DISPLAY_MODE    1
-#define DISPLAY_NLINK   2 
+#define DISPLAY_NLINK   2
 #define DISPLAY_UID     3
 #define DISPLAY_GID     4
 #define DISPLAY_SIZE    5
@@ -415,7 +416,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
@@ -435,7 +436,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         strcat (dir_name, string_filename);
     }
 
-    if (access(dir_name, F_OK | R_OK) != 0)  { 
+    if (access(dir_name, F_OK | R_OK) != 0)  {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -468,7 +469,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
     if (argv[2] != NULL)  {
         mode = purc_variant_get_string_const (argv[2]);
-    
+
         // get mode array
         i = 0;
         bool quit = false;
@@ -599,9 +600,9 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         strcat (filename, "/");
         strcat (filename, ptr->d_name);
 
-        if (stat(filename, &file_stat) < 0) 
+        if (stat(filename, &file_stat) < 0)
             continue;
-        
+
         for (i = 0; i < 10; i++) {
             switch (display[i]) {
                 case DISPLAY_MODE:
@@ -647,35 +648,43 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
                     break;
 
                 case DISPLAY_NLINK:
-                    sprintf (info + strlen (info), "%ld\t", (long)file_stat.st_nlink);
+                    sprintf (info + strlen (info), "%ld\t",
+                            (long)file_stat.st_nlink);
                     break;
-                
+
                 case DISPLAY_UID:
-                    sprintf (info + strlen (info), "%ld\t", (long)file_stat.st_uid);
+                    sprintf (info + strlen (info), "%ld\t",
+                            (long)file_stat.st_uid);
                     break;
 
                 case DISPLAY_GID:
-                    sprintf (info + strlen (info), "%ld\t", (long)file_stat.st_gid);
+                    sprintf (info + strlen (info), "%ld\t",
+                            (long)file_stat.st_gid);
                     break;
 
                 case DISPLAY_SIZE:
-                    sprintf (info + strlen (info), "%lld\t", (long long)file_stat.st_size);
+                    sprintf (info + strlen (info), "%lld\t",
+                            (long long)file_stat.st_size);
                     break;
 
                 case DISPLAY_BLKSIZE:
-                    sprintf (info + strlen (info), "%ld\t", file_stat.st_blksize);
+                    sprintf (info + strlen (info), "%ld\t",
+                            file_stat.st_blksize);
                     break;
 
                 case DISPLAY_ATIME:
-                    sprintf (info + strlen (info), "%s\t", ctime(&file_stat.st_atime));
+                    sprintf (info + strlen (info), "%s\t",
+                            ctime(&file_stat.st_atime));
                     break;
 
                 case DISPLAY_CTIME:
-                    sprintf (info + strlen (info), "%s\t", ctime(&file_stat.st_ctime));
+                    sprintf (info + strlen (info), "%s\t",
+                            ctime(&file_stat.st_ctime));
                     break;
 
                 case DISPLAY_MTIME:
-                    sprintf (info + strlen (info), "%s\t", ctime(&file_stat.st_mtime));
+                    sprintf (info + strlen (info), "%s\t",
+                            ctime(&file_stat.st_mtime));
                     break;
 
                 case DISPLAY_NAME:
@@ -710,7 +719,7 @@ mkdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
@@ -757,7 +766,7 @@ rmdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
@@ -777,19 +786,20 @@ rmdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         strcat (filename, string_filename);
     }
 
-    if (access(filename, F_OK | R_OK) != 0)  { 
+    if (access(filename, F_OK | R_OK) != 0)  {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return purc_variant_make_boolean (false);
     }
 
-    if (stat(filename, &dir_stat) < 0) 
+    if (stat(filename, &dir_stat) < 0)
         return purc_variant_make_boolean (false);
 
     if (S_ISDIR(dir_stat.st_mode)) {
         dirp = opendir(filename);
 
         while ((dp=readdir(dirp)) != NULL) {
-            if ((strcmp(dp->d_name, ".") == 0) || (strcmp(dp->d_name, "..") == 0)) 
+            if ((strcmp(dp->d_name, ".") == 0) ||
+                    (strcmp(dp->d_name, "..") == 0))
                 continue;
             else {
                 empty = false;
@@ -804,7 +814,7 @@ rmdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
             else
                 empty = false;
         }
-    } 
+    }
 
     if (empty)
         ret_var = purc_variant_make_boolean (true);
@@ -828,7 +838,7 @@ touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
@@ -849,9 +859,9 @@ touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     // file not exist, create it
-    if (access(filename, F_OK | R_OK) != 0)  { 
+    if (access(filename, F_OK | R_OK) != 0)  {
         int fd = -1;
-        fd = open(filename, O_CREAT | O_WRONLY, 
+        fd = open(filename, O_CREAT | O_WRONLY,
                 S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH |S_IWOTH);
 
         if (fd != -1)
@@ -890,7 +900,7 @@ unlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
@@ -910,12 +920,12 @@ unlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         strcat (filename, string_filename);
     }
 
-    if (access(filename, F_OK | R_OK) != 0)  { 
+    if (access(filename, F_OK | R_OK) != 0)  {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-        return purc_variant_make_boolean (false); 
+        return purc_variant_make_boolean (false);
     }
 
-    if (stat(filename, &filestat) < 0) 
+    if (stat(filename, &filestat) < 0)
         return purc_variant_make_boolean (false);
 
     if (S_ISREG(filestat.st_mode)) {
@@ -925,7 +935,7 @@ unlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
             ret_var = purc_variant_make_boolean (true);
     }
     else
-        ret_var = purc_variant_make_boolean (false); 
+        ret_var = purc_variant_make_boolean (false);
 
     return ret_var;
 }
@@ -944,7 +954,7 @@ rm_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;

@@ -62,10 +62,10 @@ static ssize_t find_line (FILE *fp, int line_num, ssize_t file_length)
 
         while (line_num) {
             read_size = fread (buffer, 1, BUFFER_SIZE, fp);
-            if (read_size < 0) 
+            if (read_size < 0)
                 break;
 
-            head = pcdvobjs_file_get_next_option ((char *)buffer, 
+            head = pcdvobjs_file_get_next_option ((char *)buffer,
                     "\n", &length);
             while (head) {
                 pos += length + 1;          // to be checked
@@ -96,10 +96,10 @@ static ssize_t find_line (FILE *fp, int line_num, ssize_t file_length)
                 fseek (fp, file_length - (i + 1) * BUFFER_SIZE, SEEK_SET);
 
             read_size = fread (buffer, 1, BUFFER_SIZE, fp);
-            if (read_size < 0) 
+            if (read_size < 0)
                 break;
 
-            head = pcdvobjs_file_get_prev_option ((char *)buffer, 
+            head = pcdvobjs_file_get_prev_option ((char *)buffer,
                     read_size, "\n", &length);
             while (head) {
                 pos -= length;
@@ -111,7 +111,7 @@ static ssize_t find_line (FILE *fp, int line_num, ssize_t file_length)
 
                 read_size -= length;
                 read_size--;
-                head = pcdvobjs_file_get_prev_option ((char *)buffer, 
+                head = pcdvobjs_file_get_prev_option ((char *)buffer,
                         read_size, "\n", &length);
             }
             if (read_size < BUFFER_SIZE)           // to the end
@@ -140,10 +140,10 @@ static ssize_t find_line_stream (purc_rwstream_t stream, int line_num)
 
     while (line_num) {
         read_size = purc_rwstream_read (stream, buffer, BUFFER_SIZE);
-        if (read_size < 0) 
+        if (read_size < 0)
             break;
 
-        head = pcdvobjs_file_get_next_option ((char *)buffer, 
+        head = pcdvobjs_file_get_next_option ((char *)buffer,
                 "\n", &length);
         while (head) {
             pos += length + 1;          // to be checked
@@ -152,7 +152,7 @@ static ssize_t find_line_stream (purc_rwstream_t stream, int line_num)
             if (line_num == 0)
                 break;
 
-            head = pcdvobjs_file_get_next_option (head + length + 1, 
+            head = pcdvobjs_file_get_next_option (head + length + 1,
                     "\n", &length);
         }
         if (read_size < BUFFER_SIZE)           // to the end
@@ -169,7 +169,7 @@ static purc_variant_t
 text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
-    
+
     int64_t line_num = 0;
     char filename[PATH_MAX] = {0,};
     const char* string_filename = NULL;
@@ -183,7 +183,7 @@ text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
@@ -215,10 +215,10 @@ text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
     if (filestat.st_size == 0) {
-        return purc_variant_make_string ("", false); 
+        return purc_variant_make_string ("", false);
     }
 
-    if (argv[1] != PURC_VARIANT_INVALID) 
+    if (argv[1] != PURC_VARIANT_INVALID)
         purc_variant_cast_to_longint (argv[1], &line_num, false);
 
     fp = fopen (filename, "r");
@@ -242,8 +242,7 @@ text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     pos = fread (content, 1, pos, fp);
     *(content + pos) = 0x00;
 
-    ret_var = purc_variant_make_string_reuse_buff (content, pos, false); 
-
+    ret_var = purc_variant_make_string_reuse_buff (content, pos, false);
     fclose (fp);
 
     return ret_var;
@@ -267,7 +266,7 @@ text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
@@ -299,10 +298,10 @@ text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
     if (filestat.st_size == 0) {
-        return purc_variant_make_string ("", false); 
+        return purc_variant_make_string ("", false);
     }
 
-    if (argv[1] != PURC_VARIANT_INVALID) 
+    if (argv[1] != PURC_VARIANT_INVALID)
         purc_variant_cast_to_longint (argv[1], &line_num, false);
 
     line_num = -1 * line_num;
@@ -320,7 +319,7 @@ text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     // pos is \n
     if (line_num < 0)
-        pos++;                          
+        pos++;
 
     fseek (fp, pos, SEEK_SET);
 
@@ -335,7 +334,7 @@ text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     pos = fread (content, 1, pos - 1, fp);
     *(content + pos) = 0x00;
 
-    ret_var = purc_variant_make_string_reuse_buff (content, pos, false); 
+    ret_var = purc_variant_make_string_reuse_buff (content, pos, false);
 
     fclose (fp);
 
@@ -360,7 +359,7 @@ bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
@@ -395,11 +394,11 @@ bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if (argv[1] != PURC_VARIANT_INVALID) 
+    if (argv[1] != PURC_VARIANT_INVALID)
         purc_variant_cast_to_longint (argv[1], &byte_num, false);
 
     fp = fopen (filename, "r");
-    if (fp == NULL) { 
+    if (fp == NULL) {
         pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         return PURC_VARIANT_INVALID;
     }
@@ -451,7 +450,7 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
@@ -487,7 +486,7 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if (argv[1] != NULL) 
+    if (argv[1] != NULL)
         purc_variant_cast_to_longint (argv[1], &byte_num, false);
 
     fp = fopen (filename, "r");
@@ -518,7 +517,7 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     pos = fread (content, 1, pos, fp);
 
-    ret_var = purc_variant_make_byte_sequence_reuse_buff (content, pos, pos); 
+    ret_var = purc_variant_make_byte_sequence_reuse_buff (content, pos, pos);
 
     fclose (fp);
 
@@ -542,7 +541,7 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_rwstream_t rwstream = NULL;
 
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
@@ -600,7 +599,7 @@ static inline void change_order (unsigned char * buf, size_t size)
     return;
 }
 
-static inline void read_rwstream (purc_rwstream_t rwstream, 
+static inline void read_rwstream (purc_rwstream_t rwstream,
                     unsigned char * buf, int type, int bytes)
 {
     purc_rwstream_read (rwstream, buf, bytes);
@@ -629,7 +628,7 @@ static inline void read_rwstream (purc_rwstream_t rwstream,
 128  1      15      64     16383
 */
 
-static purc_variant_t 
+static purc_variant_t
 read_rwstream_float (purc_rwstream_t rwstream, int type, int bytes)
 {
     purc_variant_t val = PURC_VARIANT_INVALID;
@@ -853,14 +852,14 @@ read_rwstream_float (purc_rwstream_t rwstream, int type, int bytes)
 }
 
 static purc_variant_t
-stream_readstruct_getter (purc_variant_t root, size_t nr_args, 
-                                                        purc_variant_t* argv)
+stream_readstruct_getter (purc_variant_t root,
+        size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t val = PURC_VARIANT_INVALID;
-    purc_rwstream_t rwstream = NULL; 
+    purc_rwstream_t rwstream = NULL;
     const char *format = NULL;
     const char *head = NULL;
     size_t length = 0;
@@ -875,18 +874,18 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_native (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
-    rwstream = purc_variant_native_get_entity (argv[0]); 
+    rwstream = purc_variant_native_get_entity (argv[0]);
     if (rwstream == NULL) {
         pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[1] != PURC_VARIANT_INVALID) && 
+    if ((argv[1] != PURC_VARIANT_INVALID) &&
                         (!purc_variant_is_string (argv[1]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
@@ -902,13 +901,13 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
             case 'i':
             case 'I':
                 *((int64_t *)buf) = 0;
-                if (strncasecmp (head, "i8", length) == 0)  
+                if (strncasecmp (head, "i8", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_PLATFORM, 1);
-                else if (strncasecmp (head, "i16", length) == 0)  
+                else if (strncasecmp (head, "i16", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_PLATFORM, 2);
-                else if (strncasecmp (head, "i32", length) == 0)  
+                else if (strncasecmp (head, "i32", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_PLATFORM, 4);
-                else if (strncasecmp (head, "i64", length) == 0)  
+                else if (strncasecmp (head, "i64", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_PLATFORM, 8);
                 else if (strncasecmp (head, "i16le", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_LITTLE, 2);
@@ -916,11 +915,11 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
                     read_rwstream (rwstream, buf, ENDIAN_LITTLE, 4);
                 else if (strncasecmp (head, "i64le", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_LITTLE, 8);
-                else if (strncasecmp (head, "i16be", length) == 0) 
+                else if (strncasecmp (head, "i16be", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_BIG, 2);
-                else if (strncasecmp (head, "i32be", length) == 0) 
+                else if (strncasecmp (head, "i32be", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_BIG, 4);
-                else if (strncasecmp (head, "i64be", length) == 0) 
+                else if (strncasecmp (head, "i64be", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_BIG, 8);
 
                 i64 = *((int64_t *)buf);
@@ -929,7 +928,7 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
             case 'f':
             case 'F':
                 *((float *)buf) = 0;
-                if (strncasecmp (head, "f16", length) == 0) 
+                if (strncasecmp (head, "f16", length) == 0)
                     val = read_rwstream_float (rwstream, ENDIAN_PLATFORM, 2);
                 else if (strncasecmp (head, "f32", length) == 0)
                     val = read_rwstream_float (rwstream, ENDIAN_PLATFORM, 4);
@@ -940,38 +939,38 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
                 else if (strncasecmp (head, "f128", length) == 0)
                     val = read_rwstream_float (rwstream, ENDIAN_PLATFORM, 16);
 
-                else if (strncasecmp (head, "f16le", length) == 0) 
+                else if (strncasecmp (head, "f16le", length) == 0)
                     val = read_rwstream_float (rwstream, ENDIAN_LITTLE, 2);
-                else if (strncasecmp (head, "f32le", length) == 0) 
+                else if (strncasecmp (head, "f32le", length) == 0)
                     val = read_rwstream_float (rwstream, ENDIAN_LITTLE, 4);
-                else if (strncasecmp (head, "f64le", length) == 0) 
+                else if (strncasecmp (head, "f64le", length) == 0)
                     val = read_rwstream_float (rwstream, ENDIAN_LITTLE, 8);
-                else if (strncasecmp (head, "f96le", length) == 0) 
+                else if (strncasecmp (head, "f96le", length) == 0)
                     val = read_rwstream_float (rwstream, ENDIAN_LITTLE, 12);
-                else if (strncasecmp (head, "f128le", length) == 0) 
+                else if (strncasecmp (head, "f128le", length) == 0)
                     val = read_rwstream_float (rwstream, ENDIAN_LITTLE, 16);
 
-                else if (strncasecmp (head, "f16be", length) == 0) 
+                else if (strncasecmp (head, "f16be", length) == 0)
                     val = read_rwstream_float (rwstream, ENDIAN_BIG, 2);
-                else if (strncasecmp (head, "f32be", length) == 0) 
+                else if (strncasecmp (head, "f32be", length) == 0)
                     val = read_rwstream_float (rwstream, ENDIAN_BIG, 4);
-                else if (strncasecmp (head, "f64be", length) == 0) 
+                else if (strncasecmp (head, "f64be", length) == 0)
                     val = read_rwstream_float (rwstream, ENDIAN_BIG, 8);
-                else if (strncasecmp (head, "f96be", length) == 0) 
+                else if (strncasecmp (head, "f96be", length) == 0)
                     val = read_rwstream_float (rwstream, ENDIAN_BIG, 12);
-                else if (strncasecmp (head, "f128be", length) == 0) 
+                else if (strncasecmp (head, "f128be", length) == 0)
                     val = read_rwstream_float (rwstream, ENDIAN_BIG, 16);
                 break;
             case 'u':
             case 'U':
                 *((uint64_t *)buf) = 0;
-                if (strncasecmp (head, "u8", length) == 0)  
+                if (strncasecmp (head, "u8", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_PLATFORM, 1);
-                else if (strncasecmp (head, "u16", length) == 0)  
+                else if (strncasecmp (head, "u16", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_PLATFORM, 2);
-                else if (strncasecmp (head, "u32", length) == 0)  
+                else if (strncasecmp (head, "u32", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_PLATFORM, 4);
-                else if (strncasecmp (head, "u64", length) == 0)  
+                else if (strncasecmp (head, "u64", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_PLATFORM, 8);
                 else if (strncasecmp (head, "u16le", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_LITTLE, 2);
@@ -979,11 +978,11 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
                     read_rwstream (rwstream, buf, ENDIAN_LITTLE, 4);
                 else if (strncasecmp (head, "u64le", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_LITTLE, 8);
-                else if (strncasecmp (head, "u16be", length) == 0) 
+                else if (strncasecmp (head, "u16be", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_BIG, 2);
-                else if (strncasecmp (head, "u32be", length) == 0) 
+                else if (strncasecmp (head, "u32be", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_BIG, 4);
-                else if (strncasecmp (head, "u64be", length) == 0) 
+                else if (strncasecmp (head, "u64be", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_BIG, 8);
 
                 u64 = (uint64_t)*buf;
@@ -1002,7 +1001,7 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
                             val = purc_variant_make_null();
                         else {
                             purc_rwstream_read (rwstream, buffer, read_number);
-                            ret_var = 
+                            ret_var =
                                 purc_variant_make_byte_sequence_reuse_buff(
                                         buffer, read_number, read_number);
                         }
@@ -1027,7 +1026,7 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
                         int times = read_number / sizeof(long double);
                         int rest = read_number % sizeof(long double);
                         for (i = 0; i < times; i++)
-                            purc_rwstream_read (rwstream, 
+                            purc_rwstream_read (rwstream,
                                     &temp, sizeof(long double));
                         purc_rwstream_read (rwstream, &temp, rest);
                     }
@@ -1084,7 +1083,7 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
     return ret_var;
 }
 
-static inline void write_rwstream_int (purc_rwstream_t rwstream, 
+static inline void write_rwstream_int (purc_rwstream_t rwstream,
         purc_variant_t arg, int *index, int type, int bytes)
 {
     purc_variant_t val = PURC_VARIANT_INVALID;
@@ -1109,7 +1108,7 @@ static inline void write_rwstream_int (purc_rwstream_t rwstream,
     purc_rwstream_write (rwstream, (char *)&i64, bytes);
 }
 
-static inline void write_rwstream_uint (purc_rwstream_t rwstream, 
+static inline void write_rwstream_uint (purc_rwstream_t rwstream,
         purc_variant_t arg, int *index, int type, int bytes)
 {
     purc_variant_t val = PURC_VARIANT_INVALID;
@@ -1134,14 +1133,14 @@ static inline void write_rwstream_uint (purc_rwstream_t rwstream,
 }
 
 static purc_variant_t
-stream_writestruct_getter (purc_variant_t root, 
+stream_writestruct_getter (purc_variant_t root,
         size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t val = PURC_VARIANT_INVALID;
-    purc_rwstream_t rwstream = NULL; 
+    purc_rwstream_t rwstream = NULL;
     const char *format = NULL;
     const char *head = NULL;
     size_t length = 0;
@@ -1158,24 +1157,24 @@ stream_writestruct_getter (purc_variant_t root,
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_native (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
-    rwstream = purc_variant_native_get_entity (argv[0]); 
+    rwstream = purc_variant_native_get_entity (argv[0]);
     if (rwstream == NULL) {
         pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[1] != PURC_VARIANT_INVALID) && 
+    if ((argv[1] != PURC_VARIANT_INVALID) &&
                         (!purc_variant_is_string (argv[1]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[2] != PURC_VARIANT_INVALID) && 
+    if ((argv[2] != PURC_VARIANT_INVALID) &&
                         (!purc_variant_is_array (argv[2]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
@@ -1189,35 +1188,35 @@ stream_writestruct_getter (purc_variant_t root,
         {
             case 'i':
             case 'I':
-                if (strncasecmp (head, "i8", length) == 0) 
-                    write_rwstream_int (rwstream, 
+                if (strncasecmp (head, "i8", length) == 0)
+                    write_rwstream_int (rwstream,
                             argv[2], &i, ENDIAN_PLATFORM, 1);
-                else if (strncasecmp (head, "i16", length) == 0) 
-                    write_rwstream_int (rwstream, 
+                else if (strncasecmp (head, "i16", length) == 0)
+                    write_rwstream_int (rwstream,
                             argv[2], &i, ENDIAN_PLATFORM, 2);
-                else if (strncasecmp (head, "i32", length) == 0) 
-                    write_rwstream_int (rwstream, 
+                else if (strncasecmp (head, "i32", length) == 0)
+                    write_rwstream_int (rwstream,
                             argv[2], &i, ENDIAN_PLATFORM, 4);
-                else if (strncasecmp (head, "i64", length) == 0) 
-                    write_rwstream_int (rwstream, 
+                else if (strncasecmp (head, "i64", length) == 0)
+                    write_rwstream_int (rwstream,
                             argv[2], &i, ENDIAN_PLATFORM, 8);
-                else if (strncasecmp (head, "i16le", length) == 0) 
-                    write_rwstream_int (rwstream, 
+                else if (strncasecmp (head, "i16le", length) == 0)
+                    write_rwstream_int (rwstream,
                             argv[2], &i, ENDIAN_LITTLE, 2);
                 else if (strncasecmp (head, "i32le", length) == 0)
-                    write_rwstream_int (rwstream, 
+                    write_rwstream_int (rwstream,
                             argv[2], &i, ENDIAN_LITTLE, 4);
                 else if (strncasecmp (head, "i64le", length) == 0)
-                    write_rwstream_int (rwstream, 
+                    write_rwstream_int (rwstream,
                             argv[2], &i, ENDIAN_LITTLE, 8);
-                else if (strncasecmp (head, "i16be", length) == 0) 
-                    write_rwstream_int (rwstream, 
+                else if (strncasecmp (head, "i16be", length) == 0)
+                    write_rwstream_int (rwstream,
                             argv[2], &i, ENDIAN_BIG, 2);
-                else if (strncasecmp (head, "i32be", length) == 0) 
-                    write_rwstream_int (rwstream, 
+                else if (strncasecmp (head, "i32be", length) == 0)
+                    write_rwstream_int (rwstream,
                             argv[2], &i, ENDIAN_BIG, 4);
-                else if (strncasecmp (head, "i64be", length) == 0) 
-                    write_rwstream_int (rwstream, 
+                else if (strncasecmp (head, "i64be", length) == 0)
+                    write_rwstream_int (rwstream,
                             argv[2], &i, ENDIAN_BIG, 8);
                 break;
             case 'f':
@@ -1281,7 +1280,7 @@ stream_writestruct_getter (purc_variant_t root,
                     i++;
                     purc_variant_cast_to_long_double (val, &ld, false);
                     if (platform_le)
-                        change_order ((unsigned char *)&ld, 
+                        change_order ((unsigned char *)&ld,
                                 sizeof (long double));
                     purc_rwstream_write (rwstream, (char *)&ld, 12);
                 }
@@ -1290,7 +1289,7 @@ stream_writestruct_getter (purc_variant_t root,
                     i++;
                     purc_variant_cast_to_long_double (val, &ld, false);
                     if (platform_le)
-                        change_order ((unsigned char *)&ld, 
+                        change_order ((unsigned char *)&ld,
                                 sizeof (long double));
                     purc_rwstream_write (rwstream, (char *)&ld, 16);
                 }
@@ -1323,7 +1322,7 @@ stream_writestruct_getter (purc_variant_t root,
                     i++;
                     purc_variant_cast_to_long_double (val, &ld, false);
                     if (!platform_le)
-                        change_order ((unsigned char *)&ld, 
+                        change_order ((unsigned char *)&ld,
                                 sizeof (long double));
                     purc_rwstream_write (rwstream, (char *)&ld, 12);
                 }
@@ -1332,42 +1331,42 @@ stream_writestruct_getter (purc_variant_t root,
                     i++;
                     purc_variant_cast_to_long_double (val, &ld, false);
                     if (!platform_le)
-                        change_order ((unsigned char *)&ld, 
+                        change_order ((unsigned char *)&ld,
                                 sizeof (long double));
                     purc_rwstream_write (rwstream, (char *)&ld, 16);
                 }
                 break;
             case 'u':
             case 'U':
-                if (strncasecmp (head, "u8", length) == 0) 
-                    write_rwstream_uint (rwstream, 
+                if (strncasecmp (head, "u8", length) == 0)
+                    write_rwstream_uint (rwstream,
                             argv[2], &i, ENDIAN_PLATFORM, 1);
-                else if (strncasecmp (head, "u16", length) == 0) 
-                    write_rwstream_uint (rwstream, 
+                else if (strncasecmp (head, "u16", length) == 0)
+                    write_rwstream_uint (rwstream,
                             argv[2], &i, ENDIAN_PLATFORM, 2);
-                else if (strncasecmp (head, "u32", length) == 0) 
-                    write_rwstream_uint (rwstream, 
+                else if (strncasecmp (head, "u32", length) == 0)
+                    write_rwstream_uint (rwstream,
                             argv[2], &i, ENDIAN_PLATFORM, 4);
-                else if (strncasecmp (head, "u64", length) == 0) 
-                    write_rwstream_uint (rwstream, 
+                else if (strncasecmp (head, "u64", length) == 0)
+                    write_rwstream_uint (rwstream,
                             argv[2], &i, ENDIAN_PLATFORM, 8);
-                else if (strncasecmp (head, "u16le", length) == 0) 
-                    write_rwstream_uint (rwstream, 
+                else if (strncasecmp (head, "u16le", length) == 0)
+                    write_rwstream_uint (rwstream,
                             argv[2], &i, ENDIAN_LITTLE, 2);
                 else if (strncasecmp (head, "u32le", length) == 0)
-                    write_rwstream_uint (rwstream, 
+                    write_rwstream_uint (rwstream,
                             argv[2], &i, ENDIAN_LITTLE, 4);
                 else if (strncasecmp (head, "u64le", length) == 0)
-                    write_rwstream_uint (rwstream, 
+                    write_rwstream_uint (rwstream,
                             argv[2], &i, ENDIAN_LITTLE, 8);
-                else if (strncasecmp (head, "u16be", length) == 0) 
-                    write_rwstream_uint (rwstream, 
+                else if (strncasecmp (head, "u16be", length) == 0)
+                    write_rwstream_uint (rwstream,
                             argv[2], &i, ENDIAN_BIG, 2);
-                else if (strncasecmp (head, "u32be", length) == 0) 
-                    write_rwstream_uint (rwstream, 
+                else if (strncasecmp (head, "u32be", length) == 0)
+                    write_rwstream_uint (rwstream,
                             argv[2], &i, ENDIAN_BIG, 4);
-                else if (strncasecmp (head, "u64be", length) == 0) 
-                    write_rwstream_uint (rwstream, 
+                else if (strncasecmp (head, "u64be", length) == 0)
+                    write_rwstream_uint (rwstream,
                             argv[2], &i, ENDIAN_BIG, 8);
 
                 break;
@@ -1407,7 +1406,7 @@ stream_writestruct_getter (purc_variant_t root,
                         int times = write_number / sizeof(long double);
                         int rest = write_number % sizeof(long double);
                         for (i = 0; i < times; i++)
-                            purc_rwstream_write (rwstream, 
+                            purc_rwstream_write (rwstream,
                                     &temp, sizeof(long double));
                         purc_rwstream_write (rwstream, &temp, rest);
                     }
@@ -1420,7 +1419,7 @@ stream_writestruct_getter (purc_variant_t root,
                 i++;
 
                 // get string length
-                if (length > 1)  { 
+                if (length > 1)  {
                     strncpy ((char *)buf, head + 1, length - 1);
                     *(buf + length - 1)= 0x00;
                     write_number = atoi((char *)buf);
@@ -1430,8 +1429,8 @@ stream_writestruct_getter (purc_variant_t root,
                 }
 
                 if(write_number) {
-                    buffer = (unsigned char *)purc_variant_get_string_const 
-                                                                        (val);
+                    buffer = (unsigned char *)purc_variant_get_string_const
+                        (val);
                     purc_rwstream_write (rwstream, buffer, write_number);
                 }
                 break;
@@ -1442,13 +1441,13 @@ stream_writestruct_getter (purc_variant_t root,
 }
 
 static purc_variant_t
-stream_readlines_getter (purc_variant_t root, 
+stream_readlines_getter (purc_variant_t root,
         size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    purc_rwstream_t rwstream = NULL; 
+    purc_rwstream_t rwstream = NULL;
     int64_t line_num = 0;
 
     if (nr_args != 2)  {
@@ -1456,12 +1455,12 @@ stream_readlines_getter (purc_variant_t root,
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_native (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
-    rwstream = purc_variant_native_get_entity (argv[0]); 
+    rwstream = purc_variant_native_get_entity (argv[0]);
     if (rwstream == NULL) {
         pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
@@ -1487,31 +1486,31 @@ stream_readlines_getter (purc_variant_t root,
         pos = purc_rwstream_read (rwstream, content, pos);
         *(content + pos) = 0x00;
 
-        ret_var = purc_variant_make_string_reuse_buff (content, pos, false); 
+        ret_var = purc_variant_make_string_reuse_buff (content, pos, false);
     }
     return ret_var;
 }
 
-static purc_variant_t 
-stream_readbytes_getter (purc_variant_t root, 
+static purc_variant_t
+stream_readbytes_getter (purc_variant_t root,
         size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    purc_rwstream_t rwstream = NULL; 
+    purc_rwstream_t rwstream = NULL;
     uint64_t byte_num = 0;
 
     if (nr_args != 2)  {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_native (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
-    rwstream = purc_variant_native_get_entity (argv[0]); 
+    rwstream = purc_variant_native_get_entity (argv[0]);
     if (rwstream == NULL) {
         pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
@@ -1523,7 +1522,7 @@ stream_readbytes_getter (purc_variant_t root,
 
     if (byte_num == 0)  {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-        ret_var = PURC_VARIANT_INVALID; 
+        ret_var = PURC_VARIANT_INVALID;
     }
     else {
         char * content = malloc (byte_num);
@@ -1536,26 +1535,26 @@ stream_readbytes_getter (purc_variant_t root,
 
         size = purc_rwstream_read (rwstream, content, byte_num);
         if (size > 0)
-            ret_var = 
+            ret_var =
                 purc_variant_make_byte_sequence_reuse_buff(content, size, size);
         else {
             free (content);
             pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-            ret_var = PURC_VARIANT_INVALID; 
+            ret_var = PURC_VARIANT_INVALID;
         }
     }
 
     return ret_var;
 }
 
-static purc_variant_t 
-stream_seek_getter (purc_variant_t root, 
+static purc_variant_t
+stream_seek_getter (purc_variant_t root,
         size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    purc_rwstream_t rwstream = NULL; 
+    purc_rwstream_t rwstream = NULL;
     int64_t byte_num = 0;
     off_t off = 0;
 
@@ -1564,12 +1563,12 @@ stream_seek_getter (purc_variant_t root,
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_native (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
-    rwstream = purc_variant_native_get_entity (argv[0]); 
+    rwstream = purc_variant_native_get_entity (argv[0]);
     if (rwstream == NULL) {
         pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
@@ -1586,13 +1585,13 @@ stream_seek_getter (purc_variant_t root,
 }
 
 static purc_variant_t
-stream_close_getter (purc_variant_t root, size_t nr_args, 
-                                                        purc_variant_t* argv)
+stream_close_getter (purc_variant_t root,
+        size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    purc_rwstream_t rwstream = NULL; 
+    purc_rwstream_t rwstream = NULL;
     int close = 0;
 
     if (nr_args != 1)  {
@@ -1600,12 +1599,12 @@ stream_close_getter (purc_variant_t root, size_t nr_args,
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) && 
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_native (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
-    rwstream = purc_variant_native_get_entity (argv[0]); 
+    rwstream = purc_variant_native_get_entity (argv[0]);
     if (rwstream == NULL) {
         pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
@@ -1661,11 +1660,11 @@ purc_variant_t pcdvojbs_get_file (void)
 
 
     file_bin = pcdvobjs_make_dvobjs (bin, PCA_TABLESIZE(bin));
-    if (file_bin == PURC_VARIANT_INVALID) 
+    if (file_bin == PURC_VARIANT_INVALID)
         goto error_bin;
 
     file_stream = pcdvobjs_make_dvobjs (stream, PCA_TABLESIZE(stream));
-    if (file_stream == PURC_VARIANT_INVALID) 
+    if (file_stream == PURC_VARIANT_INVALID)
         goto error_stream;
 
     file = purc_variant_make_object_by_static_ckey (3,
