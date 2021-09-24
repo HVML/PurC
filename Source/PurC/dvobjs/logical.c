@@ -246,7 +246,7 @@ static long double get_variant_value (purc_variant_t var)
 }
 
 static purc_variant_t
-logical_not (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+logical_not (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 

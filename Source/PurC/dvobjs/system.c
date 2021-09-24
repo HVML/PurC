@@ -46,7 +46,7 @@
 #define FORMAT_RFC822   2
 
 static purc_variant_t
-uname_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+uname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
@@ -140,7 +140,7 @@ error:
 
 
 static purc_variant_t
-uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -148,15 +148,14 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     size_t length = 0;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     bool first = true;
-    const char * delim = " ";
+    const char *delim = " ";
     purc_rwstream_t rwstream = NULL;
     size_t rw_size = 0;
     size_t content_size = 0;
-    char * rw_string = NULL;
+    char *rw_string = NULL;
 
-    if ((nr_args == 0) ||
-        ((nr_args == 1) && (argv[0] != PURC_VARIANT_INVALID) &&
-         (!purc_variant_is_string (argv[0])))) {
+    if ((nr_args >= 1) && (argv[0] != PURC_VARIANT_INVALID) &&
+         (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -169,8 +168,8 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     rwstream = purc_rwstream_new_buffer (32, STREAM_SIZE);
 
     if (nr_args) {
-        const char * option = purc_variant_get_string_const (argv[0]);
-        const char * head = pcdvobjs_get_next_option (option, " ", &length);
+        const char *option = purc_variant_get_string_const (argv[0]);
+        const char *head = pcdvobjs_get_next_option (option, " ", &length);
 
         while (head) {
             switch (* head) {
@@ -371,7 +370,7 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
 
 static purc_variant_t
-locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -390,8 +389,8 @@ locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     if (nr_args) {
-        const char* option = purc_variant_get_string_const (argv[0]);
-        const char * head = pcdvobjs_get_next_option (option, " ", &length);
+        const char *option = purc_variant_get_string_const (argv[0]);
+        const char *head = pcdvobjs_get_next_option (option, " ", &length);
 
         while (head) {
             switch (* head)
@@ -484,7 +483,7 @@ locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 static purc_variant_t
-locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -508,11 +507,11 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    const char* option = purc_variant_get_string_const (argv[0]);
-    const char * head = pcdvobjs_get_next_option (option, " ", &length);
+    const char *option = purc_variant_get_string_const (argv[0]);
+    const char *head = pcdvobjs_get_next_option (option, " ", &length);
 
     while (head) {
-        switch (* head)
+        switch (*head)
         {
             case 'a':
             case 'A':
@@ -637,7 +636,7 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
 
 static purc_variant_t
-random_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+random_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -787,7 +786,7 @@ get_time_format (int type, double epoch, const char *timezone)
 
 
 static purc_variant_t
-time_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+time_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -973,7 +972,7 @@ time_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
 
 static purc_variant_t
-time_setter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+time_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);

@@ -38,11 +38,11 @@ TEST(dvobjs, dvobjs_sys_uname)
 
     printf ("TEST get_uname: nr_args = 0, param = \"  beijing  shanghai\" :\n");
     param[0] = purc_variant_make_string ("  beijing shanghai", true);
-    param[1] = NULL;
     ret_var = func (NULL, 0, param);
     ASSERT_NE(ret_var, nullptr);
 
-    purc_variant_object_iterator* it = purc_variant_object_make_iterator_begin(ret_var);
+    purc_variant_object_iterator* it =
+        purc_variant_object_make_iterator_begin(ret_var);
     for (i = 0; i < purc_variant_object_get_size (ret_var); i++) {
         const char     *key = purc_variant_object_iterator_get_key(it);
         purc_variant_t  val = purc_variant_object_iterator_get_value(it);
@@ -82,27 +82,17 @@ TEST(dvobjs, dvobjs_sys_uname_prt)
     func = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(func, nullptr);
 
-    printf ("TEST get_uname_prt: nr_args = 1, param = NULL:\n");
-    param[0] = purc_variant_make_string ("  hello   world  ", true);
-    param[1] = NULL;
-    ret_var = func (NULL, 1, NULL);
-    ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
-    printf("\t\tReturn PURC_VARIANT_INVALID\n");
-
     printf ("TEST get_uname_prt: nr_args = 1, param[0] type is number:\n");
     param[0] = purc_variant_make_number (3.1415926);
-    param[1] = NULL;
     ret_var = func (NULL, 1, param);
     ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
     printf ("TEST get_uname_prt: nr_args = 1, param = \"  hello   world  \" :\n");
     param[0] = purc_variant_make_string ("  hello   world  ", true);
-    param[1] = NULL;
     ret_var = func (NULL, 1, param);
     ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
-
 
     printf ("TEST get_uname_prt: nr_args = 0, param = \"hello world\" :\n");
     ret_var = func (NULL, 0, param);
@@ -113,17 +103,14 @@ TEST(dvobjs, dvobjs_sys_uname_prt)
 
     printf ("TEST get_uname_prt: nr_args = 1, param = \"all default\" :\n");
     param[0] = purc_variant_make_string ("all default", true);
-    param[1] = NULL;
     ret_var = func (NULL, 1, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_string (ret_var), true);
     result = purc_variant_get_string_const (ret_var);
     printf("\t\tReturn : %s\n", result);
 
-
     printf ("TEST get_uname_prt: nr_args = 1, param = \"default all\" :\n");
     param[0] = purc_variant_make_string ("default all", true);
-    param[1] = NULL;
     ret_var = func (NULL, 1, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_string (ret_var), true);
@@ -133,7 +120,6 @@ TEST(dvobjs, dvobjs_sys_uname_prt)
 
     printf ("TEST get_uname_prt: nr_args = 1, param = \"hardware-platform kernel-version\" :\n");
     param[0] = purc_variant_make_string ("hardware-platform kernel-version", true);
-    param[1] = NULL;
     ret_var = func (NULL, 1, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_string (ret_var), true);
@@ -143,7 +129,6 @@ TEST(dvobjs, dvobjs_sys_uname_prt)
 
     printf ("TEST get_uname_prt: nr_args = 1, param = \"   nodename   wrong-word   kernel-release   \" :\n");
     param[0] = purc_variant_make_string ("   nodename   wrong-word   kernel-release   ", true);
-    param[1] = NULL;
     ret_var = func (NULL, 1, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_string (ret_var), true);
@@ -182,28 +167,24 @@ TEST(dvobjs, dvobjs_sys_get_locale)
 
     printf ("TEST get_locale: nr_args = 1, param = NULL:\n");
     param[0] = purc_variant_make_string ("  hello   world  ", true);
-    param[1] = NULL;
     ret_var = func (NULL, 1, NULL);
     ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
     printf ("TEST get_locale: nr_args = 1, param = \"hello world\":\n");
     param[0] = purc_variant_make_string ("hello world", true);
-    param[1] = NULL;
     ret_var = func (NULL, 1, param);
     ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
     printf ("TEST get_locale: nr_args = 1, param[0] type is number:\n");
     param[0] = purc_variant_make_number (3.1415926);
-    param[1] = NULL;
     ret_var = func (NULL, 1, param);
     ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
     printf ("TEST get_locale: nr_args = 1, param = ctype:\n");
     param[0] = purc_variant_make_string ("ctype", true);
-    param[1] = NULL;
     ret_var = func (NULL, 1, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_string (ret_var), true);
@@ -211,7 +192,6 @@ TEST(dvobjs, dvobjs_sys_get_locale)
 
     printf ("TEST get_locale: nr_args = 1, param = numeric:\n");
     param[0] = purc_variant_make_string ("numeric", true);
-    param[1] = NULL;
     ret_var = func (NULL, 1, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_string (ret_var), true);
@@ -219,7 +199,6 @@ TEST(dvobjs, dvobjs_sys_get_locale)
 
     printf ("TEST get_locale: nr_args = 1, param = time:\n");
     param[0] = purc_variant_make_string ("time", true);
-    param[1] = NULL;
     ret_var = func (NULL, 1, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_string (ret_var), true);
@@ -227,7 +206,6 @@ TEST(dvobjs, dvobjs_sys_get_locale)
 
     printf ("TEST get_locale: nr_args = 1, param = collate:\n");
     param[0] = purc_variant_make_string ("collate", true);
-    param[1] = NULL;
     ret_var = func (NULL, 1, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_string (ret_var), true);
@@ -235,7 +213,6 @@ TEST(dvobjs, dvobjs_sys_get_locale)
 
     printf ("TEST get_locale: nr_args = 1, param = monetary:\n");
     param[0] = purc_variant_make_string ("monetary", true);
-    param[1] = NULL;
     ret_var = func (NULL, 1, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_string (ret_var), true);
@@ -243,7 +220,6 @@ TEST(dvobjs, dvobjs_sys_get_locale)
 
     printf ("TEST get_locale: nr_args = 1, param = messages:\n");
     param[0] = purc_variant_make_string ("messages", true);
-    param[1] = NULL;
     ret_var = func (NULL, 1, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_string (ret_var), true);
@@ -251,7 +227,6 @@ TEST(dvobjs, dvobjs_sys_get_locale)
 
     printf ("TEST get_locale: nr_args = 1, param = paper:\n");
     param[0] = purc_variant_make_string ("paper", true);
-    param[1] = NULL;
     ret_var = func (NULL, 1, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_string (ret_var), true);
@@ -259,7 +234,6 @@ TEST(dvobjs, dvobjs_sys_get_locale)
 
     printf ("TEST get_locale: nr_args = 1, param = name:\n");
     param[0] = purc_variant_make_string ("name", true);
-    param[1] = NULL;
     ret_var = func (NULL, 1, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_string (ret_var), true);
@@ -267,7 +241,6 @@ TEST(dvobjs, dvobjs_sys_get_locale)
 
     printf ("TEST get_locale: nr_args = 1, param = address:\n");
     param[0] = purc_variant_make_string ("address", true);
-    param[1] = NULL;
     ret_var = func (NULL, 1, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_string (ret_var), true);
@@ -275,7 +248,6 @@ TEST(dvobjs, dvobjs_sys_get_locale)
 
     printf ("TEST get_locale: nr_args = 1, param = telephone:\n");
     param[0] = purc_variant_make_string ("telephone", true);
-    param[1] = NULL;
     ret_var = func (NULL, 1, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_string (ret_var), true);
@@ -283,7 +255,6 @@ TEST(dvobjs, dvobjs_sys_get_locale)
 
     printf ("TEST get_locale: nr_args = 1, param = measurement:\n");
     param[0] = purc_variant_make_string ("measurement", true);
-    param[1] = NULL;
     ret_var = func (NULL, 1, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_string (ret_var), true);
@@ -291,7 +262,6 @@ TEST(dvobjs, dvobjs_sys_get_locale)
 
     printf ("TEST get_locale: nr_args = 1, param = identification:\n");
     param[0] = purc_variant_make_string ("identification", true);
-    param[1] = NULL;
     ret_var = func (NULL, 1, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_string (ret_var), true);
@@ -325,7 +295,6 @@ TEST(dvobjs, dvobjs_sys_set_locale)
     printf ("TEST set_locale: nr_args = 1, param1 = \"all\", param2 = \"en_US.UTF-8\":\n");
     param[0] = purc_variant_make_string ("all", true);
     param[1] = purc_variant_make_string ("en_US.UTF-8", true);
-    param[2] = NULL;
     ret_var = func (NULL, 1, param);
     ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
@@ -333,7 +302,6 @@ TEST(dvobjs, dvobjs_sys_set_locale)
     printf ("TEST set_locale: nr_args = 2, param1 = \"all\", param2 type is number:\n");
     param[0] = purc_variant_make_string ("all", true);
     param[1] = purc_variant_make_number (3.1415926);
-    param[2] = NULL;
     ret_var = func (NULL, 2, param);
     ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
@@ -341,7 +309,6 @@ TEST(dvobjs, dvobjs_sys_set_locale)
     printf ("TEST set_locale: nr_args = 2, param1 type is number, param2 = \"en_US.UTF-8\":\n");
     param[0] = purc_variant_make_number (3.1415926);
     param[1] = purc_variant_make_string ("en_US.UTF-8", true);
-    param[2] = NULL;
     ret_var = func (NULL, 22, param);
     ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
@@ -349,7 +316,6 @@ TEST(dvobjs, dvobjs_sys_set_locale)
     printf ("TEST set_locale: nr_args = 2, param1 = \"china\", param2 = \"en_US.UTF-8\":\n");
     param[0] = purc_variant_make_string ("china", true);
     param[1] = purc_variant_make_string ("en_US.UTF-8", true);
-    param[2] = NULL;
     ret_var = func (NULL, 2, param);
     ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
@@ -357,7 +323,6 @@ TEST(dvobjs, dvobjs_sys_set_locale)
     printf ("TEST set_locale: nr_args = 2, param1 = \"all\", param2 = \"china\":\n");
     param[0] = purc_variant_make_string ("china", true);
     param[1] = purc_variant_make_string ("en_US.UTF-8", true);
-    param[2] = NULL;
     ret_var = func (NULL, 2, param);
     ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
@@ -365,7 +330,6 @@ TEST(dvobjs, dvobjs_sys_set_locale)
     printf ("TEST set_locale: nr_args = 2, param1 = \"all\", param2 = \"\":\n");
     param[0] = purc_variant_make_string ("all", true);
     param[1] = purc_variant_make_string ("", true);
-    param[2] = NULL;
     ret_var = func (NULL, 2, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(ret_var, PURC_VARIANT_TRUE);
@@ -374,7 +338,6 @@ TEST(dvobjs, dvobjs_sys_set_locale)
     printf ("TEST set_locale: nr_args = 2, param1 = \"ctype\", param2 = \"en_US.UTF-8\":\n");
     param[0] = purc_variant_make_string ("ctype", true);
     param[1] = purc_variant_make_string ("en_US.UTF-8", true);
-    param[2] = NULL;
     ret_var = func (NULL, 2, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(ret_var, PURC_VARIANT_TRUE);
@@ -383,7 +346,6 @@ TEST(dvobjs, dvobjs_sys_set_locale)
     printf ("TEST set_locale: nr_args = 2, param1 = \"numeric\", param2 = \"zh_CN.UTF-8\":\n");
     param[0] = purc_variant_make_string ("numeric", true);
     param[1] = purc_variant_make_string ("zh_CN.UTF-8", true);
-    param[2] = NULL;
     ret_var = func (NULL, 2, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(ret_var, PURC_VARIANT_TRUE);
@@ -392,7 +354,6 @@ TEST(dvobjs, dvobjs_sys_set_locale)
     printf ("TEST set_locale: nr_args = 2, param1 = \"time\", param2 = \"zh_CN.UTF-8\":\n");
     param[0] = purc_variant_make_string ("time", true);
     param[1] = purc_variant_make_string ("zh_CN.UTF-8", true);
-    param[2] = NULL;
     ret_var = func (NULL, 2, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(ret_var, PURC_VARIANT_TRUE);
@@ -401,7 +362,6 @@ TEST(dvobjs, dvobjs_sys_set_locale)
     printf ("TEST set_locale: nr_args = 2, param1 = \"collate\", param2 = \"en_US.UTF-8\":\n");
     param[0] = purc_variant_make_string ("collate", true);
     param[1] = purc_variant_make_string ("en_US.UTF-8", true);
-    param[2] = NULL;
     ret_var = func (NULL, 2, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(ret_var, PURC_VARIANT_TRUE);
@@ -410,7 +370,6 @@ TEST(dvobjs, dvobjs_sys_set_locale)
     printf ("TEST set_locale: nr_args = 2, param1 = \"monetary\", param2 = \"zh_CN.UTF-8\":\n");
     param[0] = purc_variant_make_string ("monetary", true);
     param[1] = purc_variant_make_string ("zh_CN.UTF-8", true);
-    param[2] = NULL;
     ret_var = func (NULL, 2, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(ret_var, PURC_VARIANT_TRUE);
@@ -419,7 +378,6 @@ TEST(dvobjs, dvobjs_sys_set_locale)
     printf ("TEST set_locale: nr_args = 2, param1 = \"messages\", param2 = \"en_US.UTF-8\":\n");
     param[0] = purc_variant_make_string ("messages", true);
     param[1] = purc_variant_make_string ("en_US.UTF-8", true);
-    param[2] = NULL;
     ret_var = func (NULL, 2, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(ret_var, PURC_VARIANT_TRUE);
@@ -428,7 +386,6 @@ TEST(dvobjs, dvobjs_sys_set_locale)
     printf ("TEST set_locale: nr_args = 2, param1 = \"paper\", param2 = \"zh_CN.UTF-8\":\n");
     param[0] = purc_variant_make_string ("paper", true);
     param[1] = purc_variant_make_string ("zh_CN.UTF-8", true);
-    param[2] = NULL;
     ret_var = func (NULL, 2, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(ret_var, PURC_VARIANT_TRUE);
@@ -437,7 +394,6 @@ TEST(dvobjs, dvobjs_sys_set_locale)
     printf ("TEST set_locale: nr_args = 2, param1 = \"name\", param2 = \"zh_CN.UTF-8\":\n");
     param[0] = purc_variant_make_string ("name", true);
     param[1] = purc_variant_make_string ("zh_CN.UTF-8", true);
-    param[2] = NULL;
     ret_var = func (NULL, 2, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(ret_var, PURC_VARIANT_TRUE);
@@ -446,7 +402,6 @@ TEST(dvobjs, dvobjs_sys_set_locale)
     printf ("TEST set_locale: nr_args = 2, param1 = \"address\", param2 = \"zh_CN.UTF-8\":\n");
     param[0] = purc_variant_make_string ("address", true);
     param[1] = purc_variant_make_string ("zh_CN.UTF-8", true);
-    param[2] = NULL;
     ret_var = func (NULL, 2, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(ret_var, PURC_VARIANT_TRUE);
@@ -455,7 +410,6 @@ TEST(dvobjs, dvobjs_sys_set_locale)
     printf ("TEST set_locale: nr_args = 2, param1 = \"telephone\", param2 = \"zh_CN.UTF-8\":\n");
     param[0] = purc_variant_make_string ("telephone", true);
     param[1] = purc_variant_make_string ("zh_CN.UTF-8", true);
-    param[2] = NULL;
     ret_var = func (NULL, 2, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(ret_var, PURC_VARIANT_TRUE);
@@ -464,7 +418,6 @@ TEST(dvobjs, dvobjs_sys_set_locale)
     printf ("TEST set_locale: nr_args = 2, param1 = \"measurement\", param2 = \"zh_CN.UTF-8\":\n");
     param[0] = purc_variant_make_string ("measurement", true);
     param[1] = purc_variant_make_string ("zh_CN.UTF-8", true);
-    param[2] = NULL;
     ret_var = func (NULL, 2, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(ret_var, PURC_VARIANT_TRUE);
@@ -473,7 +426,6 @@ TEST(dvobjs, dvobjs_sys_set_locale)
     printf ("TEST set_locale: nr_args = 2, param1 = \"identification\", param2 = \"zh_CN.UTF-8\":\n");
     param[0] = purc_variant_make_string ("identification", true);
     param[1] = purc_variant_make_string ("zh_CN.UTF-8", true);
-    param[2] = NULL;
     ret_var = func (NULL, 2, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(ret_var, PURC_VARIANT_TRUE);
@@ -513,14 +465,12 @@ TEST(dvobjs, dvobjs_sys_get_random)
 
     printf ("TEST get_random: nr_args = 1, param = 1E-11:\n");
     param[0] = purc_variant_make_number (1E-11);
-    param[1] = NULL;
     ret_var = func (NULL, 1, param);
     ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
     printf ("TEST get_random: nr_args = 1, param = 125.0d:\n");
     param[0] = purc_variant_make_number (125.0d);
-    param[1] = NULL;
     ret_var = func (NULL, 1, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_number (ret_var), true);

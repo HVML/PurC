@@ -271,7 +271,6 @@ TEST(dvobjs, dvobjs_math_const)
 
     for (i = 0; i < size; i++) {
         param[0] = purc_variant_make_string (math_d[i].func, true);
-        param[1] = NULL;
         ret_var = func (NULL, 1, param);
         ASSERT_NE(ret_var, nullptr);
         ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
@@ -279,8 +278,6 @@ TEST(dvobjs, dvobjs_math_const)
         ASSERT_EQ(number, math_d[i].d);
         purc_variant_unref(ret_var);
         purc_variant_unref(param[0]);
-        if (param[1])
-            purc_variant_unref(param[1]);
     }
 
     dynamic = purc_variant_object_get_by_ckey (math, "const_l");
@@ -292,7 +289,6 @@ TEST(dvobjs, dvobjs_math_const)
 
     for (i = 0; i < size; i++) {
         param[0] = purc_variant_make_string (math_ld[i].func, true);
-        param[1] = NULL;
         ret_var = func (NULL, 1, param);
         ASSERT_NE(ret_var, nullptr);
         ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE), true);
@@ -300,17 +296,12 @@ TEST(dvobjs, dvobjs_math_const)
         ASSERT_EQ(numberl, math_ld[i].ld);
         purc_variant_unref(ret_var);
         purc_variant_unref(param[0]);
-        if (param[1])
-            purc_variant_unref(param[1]);
     }
 
     param[0] = purc_variant_make_string ("abcd", true);
-    param[1] = NULL;
     ret_var = func (NULL, 1, param);
     ASSERT_EQ(ret_var, nullptr);
     purc_variant_unref(param[0]);
-    if (param[1])
-        purc_variant_unref(param[1]);
 
     purc_variant_unref(math);
     purc_cleanup ();
@@ -382,7 +373,6 @@ TEST(dvobjs, dvobjs_math_func)
         ASSERT_NE(func, nullptr);
 
         param[0] = purc_variant_make_number (math_d[i].param);
-        param[1] = NULL;
         ret_var = func (NULL, 1, param);
         ASSERT_NE(ret_var, nullptr);
         ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
@@ -391,8 +381,6 @@ TEST(dvobjs, dvobjs_math_func)
 
         purc_variant_unref(ret_var);
         purc_variant_unref(param[0]);
-        if (param[1])
-            purc_variant_unref(param[1]);
 
 
         dynamic = purc_variant_object_get_by_ckey (math, math_ld[i].func);
@@ -403,7 +391,6 @@ TEST(dvobjs, dvobjs_math_func)
         ASSERT_NE(func, nullptr);
 
         param[0] = purc_variant_make_longdouble (math_ld[i].param);
-        param[1] = NULL;
         ret_var = func (NULL, 1, param);
         ASSERT_NE(ret_var, nullptr);
         ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE), true);
@@ -412,8 +399,6 @@ TEST(dvobjs, dvobjs_math_func)
 
         purc_variant_unref(ret_var);
         purc_variant_unref(param[0]);
-        if (param[1])
-            purc_variant_unref(param[1]);
     }
 
     purc_variant_unref(math);
@@ -445,31 +430,23 @@ TEST(dvobjs, dvobjs_math_eval)
 
     const char *exp = "(3 + 7) * (2 + 3 * 4)";
     param[0] = purc_variant_make_string (exp, false);
-    param[1] = PURC_VARIANT_INVALID;
-    param[2] = NULL;
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 1, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
     purc_variant_cast_to_number (ret_var, &number, false);
     printf("TEST eval: param is \"%s\" = %lf\n", exp, number);
     purc_variant_unref(ret_var);
     purc_variant_unref(param[0]);
-    if (param[1])
-        purc_variant_unref(param[1]);
 
     exp = "(3 + 7) / (2 - 2)";
     param[0] = purc_variant_make_string (exp, false);
-    param[1] = PURC_VARIANT_INVALID;
-    param[2] = NULL;
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 1, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
     purc_variant_cast_to_number (ret_var, &number, false);
     printf("TEST eval: param is \"%s\" = %f\n", exp, number);
     purc_variant_unref(ret_var);
     purc_variant_unref(param[0]);
-    if (param[1])
-        purc_variant_unref(param[1]);
 
     param[0] = purc_variant_make_string ("pi * r * r", false);
     param[1] = purc_variant_make_object (0, PURC_VARIANT_INVALID,
@@ -480,7 +457,6 @@ TEST(dvobjs, dvobjs_math_eval)
     purc_variant_object_set_by_static_ckey (param[1], "r", one);
     purc_variant_unref(one);
     purc_variant_unref(pi);
-    param[2] = NULL;
     ret_var = func (NULL, 2, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
@@ -488,8 +464,7 @@ TEST(dvobjs, dvobjs_math_eval)
     printf("TEST eval: param is \"pi * r * r\", r = 1.0, value = %lf\n", number);
     purc_variant_unref(ret_var);
     purc_variant_unref(param[0]);
-    if (param[1])
-        purc_variant_unref(param[1]);
+    purc_variant_unref(param[1]);
 
     dynamic = purc_variant_object_get_by_ckey (math, "eval_l");
     ASSERT_NE(dynamic, nullptr);
@@ -500,31 +475,23 @@ TEST(dvobjs, dvobjs_math_eval)
 
     exp = "(3 + 7) * (2 + 3)";
     param[0] = purc_variant_make_string (exp, false);
-    param[1] = PURC_VARIANT_INVALID;
-    param[2] = NULL;
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 1, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE), true);
     purc_variant_cast_to_long_double (ret_var, &numberl, false);
     printf("TEST eval_l: param is \"%s\" = %Lf\n", exp, numberl);
     purc_variant_unref(ret_var);
     purc_variant_unref(param[0]);
-    if (param[1])
-        purc_variant_unref(param[1]);
 
     exp = "(3 + 7) / (2 - 2)";
     param[0] = purc_variant_make_string (exp, false);
-    param[1] = PURC_VARIANT_INVALID;
-    param[2] = NULL;
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 1, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE), true);
     purc_variant_cast_to_long_double (ret_var, &numberl, false);
     printf("TEST eval_l: param is \"%s\" = %Lf\n", exp, numberl);
     purc_variant_unref(ret_var);
     purc_variant_unref(param[0]);
-    if (param[1])
-        purc_variant_unref(param[1]);
 
     param[0] = purc_variant_make_string ("pi * r * r", false);
     param[1] = purc_variant_make_object (0, PURC_VARIANT_INVALID,
@@ -535,7 +502,6 @@ TEST(dvobjs, dvobjs_math_eval)
     purc_variant_object_set_by_static_ckey (param[1], "r", one);
     purc_variant_unref(one);
     purc_variant_unref(pi);
-    param[2] = NULL;
     ret_var = func (NULL, 2, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE), true);
@@ -543,8 +509,7 @@ TEST(dvobjs, dvobjs_math_eval)
     printf("TEST eval_l: param is \"pi * r * r\", r = 1.0, value = %Lf\n", numberl);
     purc_variant_unref(ret_var);
     purc_variant_unref(param[0]);
-    if (param[1])
-        purc_variant_unref(param[1]);
+    purc_variant_unref(param[1]);
 
     purc_variant_unref(math);
     purc_cleanup ();
@@ -574,17 +539,13 @@ TEST(dvobjs, dvobjs_math_assignment)
 
     const char *exp = "x = (3 + 7) * (2 + 3 * 4)\nx*3";
     param[0] = purc_variant_make_string (exp, false);
-    param[1] = PURC_VARIANT_INVALID;
-    param[2] = NULL;
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 1, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
     purc_variant_cast_to_number (ret_var, &number, false);
     printf("TEST eval: param is \"%s\" = %lf\n", exp, number);
 
     purc_variant_unref(param[0]);
-    if (param[1])
-        purc_variant_unref(param[1]);
 
     purc_variant_unref(ret_var);
     purc_variant_unref(math);
@@ -639,12 +600,8 @@ TEST(dvobjs, dvobjs_math_samples)
 
         const char *expr= samples[i].expr;
         param[0] = purc_variant_make_string(expr, false);
-        param[1] = PURC_VARIANT_INVALID;
-        param[2] = NULL;
-        purc_variant_t ret_var = func(NULL, 2, param);
+        purc_variant_t ret_var = func(NULL, 1, param);
         purc_variant_unref(param[0]);
-        if (param[1])
-            purc_variant_unref(param[1]);
 
         if (!ret_var) {
             EXPECT_NE(ret_var, nullptr) << "eval failed: ["
@@ -687,13 +644,9 @@ _eval(purc_dvariant_method func, const char *expr,
 
     purc_variant_t param[3];
     param[0] = purc_variant_make_string(expr, false);
-    param[1] = PURC_VARIANT_INVALID;
-    param[2] = NULL;
 
-    purc_variant_t ret_var = func(NULL, 2, param);
+    purc_variant_t ret_var = func(NULL, 1, param);
     purc_variant_unref(param[0]);
-    if (param[1])
-        purc_variant_unref(param[1]);
 
     if (!ret_var) {
         EXPECT_NE(ret_var, nullptr) << "eval failed: ["

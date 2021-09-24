@@ -91,13 +91,18 @@ const_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     double number = 0.0d;
 
+    if (nr_args == 0)  {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
     if ((nr_args >= 1) && (argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    const char * option = purc_variant_get_string_const (argv[0]);
+    const char *option = purc_variant_get_string_const (argv[0]);
     switch (*option) {
         case 'e':
         case 'E':
@@ -181,13 +186,17 @@ const_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     long double number = 0.0d;
 
+    if (nr_args == 0)  {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
     if ((nr_args >= 1) && (argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    const char * option = purc_variant_get_string_const (argv[0]);
+    const char *option = purc_variant_get_string_const (argv[0]);
     switch (*option) {
         case 'e':
         case 'E':
@@ -266,14 +275,17 @@ const_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
 
 static purc_variant_t
-sin_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+sin_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     double number = 0.0d;
 
+    if (nr_args == 0)  {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
     purc_variant_cast_to_number (argv[0], &number, false);
     ret_var = purc_variant_make_number (sin (number));
 
@@ -282,14 +294,17 @@ sin_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
 
 static purc_variant_t
-cos_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+cos_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     double number = 0.0d;
 
+    if (nr_args == 0)  {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
     purc_variant_cast_to_number (argv[0], &number, false);
     ret_var = purc_variant_make_number (cos (number));
 
@@ -298,14 +313,17 @@ cos_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
 
 static purc_variant_t
-sqrt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+sqrt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     double number = 0.0d;
 
+    if (nr_args == 0)  {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
     purc_variant_cast_to_number (argv[0], &number, false);
     ret_var = purc_variant_make_number (sqrt (number));
 
@@ -314,14 +332,17 @@ sqrt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
 
 static purc_variant_t
-sin_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+sin_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     long double number = 0.0d;
 
+    if (nr_args == 0)  {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
     purc_variant_cast_to_long_double (argv[0], &number, false);
     ret_var = purc_variant_make_longdouble (sinl (number));
 
@@ -330,13 +351,17 @@ sin_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
 
 static purc_variant_t
-cos_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+cos_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     long double number = 0.0d;
+
+    if (nr_args == 0)  {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
 
     purc_variant_cast_to_long_double (argv[0], &number, false);
     ret_var = purc_variant_make_longdouble (cosl (number));
@@ -346,14 +371,17 @@ cos_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
 
 static purc_variant_t
-sqrt_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+sqrt_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     long double number = 0.0d;
 
+    if (nr_args == 0)  {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
     purc_variant_cast_to_long_double (argv[0], &number, false);
     ret_var = purc_variant_make_longdouble (sqrtl (number));
 
@@ -362,11 +390,17 @@ sqrt_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
 static purc_variant_t
 internal_eval_getter (int is_long_double, purc_variant_t root,
-    size_t nr_args, purc_variant_t* argv)
+    size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
+
     int result = 0;
+    purc_variant_t param = PURC_VARIANT_INVALID;
+
+    if (nr_args == 0)  {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
@@ -374,16 +408,20 @@ internal_eval_getter (int is_long_double, purc_variant_t root,
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[1] != PURC_VARIANT_INVALID) &&
+    if (nr_args == 2) {
+        if ((argv[1] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_object (argv[1]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
+            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+            return PURC_VARIANT_INVALID;
+        }
+        else
+            param = argv[1];
     }
 
     struct pcdvobjs_math_param myparam = {
         0.0,
         0.0,
-        argv[1],
+        param,
         is_long_double,
         PURC_VARIANT_INVALID,
     };
@@ -401,14 +439,14 @@ internal_eval_getter (int is_long_double, purc_variant_t root,
 
 
 static purc_variant_t
-eval_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+eval_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     return internal_eval_getter(0, root, nr_args, argv);
 }
 
 
 static purc_variant_t
-eval_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+eval_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     return internal_eval_getter(1, root, nr_args, argv);
 }

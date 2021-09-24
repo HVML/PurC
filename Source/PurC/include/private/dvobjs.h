@@ -52,6 +52,7 @@ purc_variant_t pcdvojbs_get_math(void);
 purc_variant_t pcdvojbs_get_logical(void);
 purc_variant_t pcdvojbs_get_fs(void);
 purc_variant_t pcdvojbs_get_file(void);
+purc_variant_t pcdvojbs_get_ejson(void);
 
 #ifdef __cplusplus
 }
