@@ -629,7 +629,7 @@ static inline void read_rwstream (purc_rwstream_t rwstream,
 128  1      15      64     16383
 */
 
-static inline purc_variant_t 
+static purc_variant_t 
 read_rwstream_float (purc_rwstream_t rwstream, int type, int bytes)
 {
     purc_variant_t val = PURC_VARIANT_INVALID;
