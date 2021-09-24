@@ -945,7 +945,11 @@ logical_eval (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     logical_delete_buffer(buffer, lexer);
     logicallex_destroy (lexer);
 #else // ! 0
-    struct pcdvobjs_logical_param myparam = {0.0d, argv[1]};
+    struct pcdvobjs_logical_param myparam = {
+        0,
+        argv[1],
+        PURC_VARIANT_INVALID
+    };
     logical_parse(purc_variant_get_string_const(argv[0]), &myparam);
 #endif // 0
 
@@ -953,7 +957,7 @@ logical_eval (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         ret_var = purc_variant_make_boolean (true);
     else
         ret_var = purc_variant_make_boolean (false);
-    
+
     return ret_var;
 }
 

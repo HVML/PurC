@@ -54,7 +54,7 @@ do {                                            \
 #define L()                                     \
 do {                                            \
     yylloc->last_line   += 1;                   \
-    yylloc->last_column  = 0;                   \
+    yylloc->last_column  = 1;                   \
 } while (0)
 
 #define R()                                       \
@@ -63,11 +63,22 @@ do {                                              \
     yylloc->first_line   = yylloc->last_line;     \
 } while (0)
 
-static double get_data (char * text, struct pcdvobjs_logical_param * pp);
+#define SET_INT() do {                            \
+    yylval->sz_ptr[0] = yyleng;                   \
+    yylval->sz_ptr[1] = (uintptr_t)yytext;        \
+} while (0)
 
+#define SET_NUM() do {                            \
+    yylval->sz_ptr[0] = yyleng;                   \
+    yylval->sz_ptr[1] = (uintptr_t)yytext;        \
+} while (0)
+
+#define SET_VAR() do {                            \
+    yylval->sz_ptr[0] = yyleng;                   \
+    yylval->sz_ptr[1] = (uintptr_t)yytext;        \
+} while (0)
 %}
 
-EXP ([Ee][-+]?[0-9]+)
 
 %option prefix="logical_yy"
 %option bison-bridge bison-locations reentrant
@@ -79,56 +90,38 @@ EXP ([Ee][-+]?[0-9]+)
 %option perf-report
 %option 8bit
 
-%x STR
-
 %%
 
 <<EOF>> { int state = TOP_STATE();
           if (state != INITIAL) return -1;
           yyterminate(); }
 
-"!"	    { return MKT(ANTI); }
-">"	    { return MKT(GT); }
-">="	{ return MKT(GE); }
-"<"	    { return MKT(LT); }
-"<="	{ return MKT(LE); }
-"=="	{ return MKT(EQU); }
-"!="	{ return MKT(NOEQU); }
-"&&"	{ return MKT(AND); }
-"||"	{ return MKT(OR); }
-"^"	    { return MKT(XOR); }
-"("     { return MKT(OP); }
-")"     { return MKT(CP); }
+[!<>^();]      { C(); R(); return *yytext; }
+">="	       { C(); R(); return MKT(GE); }
+"<="	       { C(); R(); return MKT(LE); }
+"=="	       { C(); R(); return MKT(EQ); }
+"!="	       { C(); R(); return MKT(NE); }
+"&&"	       { C(); R(); return MKT(AND); }
+"||"	       { C(); R(); return MKT(OR); }
 
-[0-9]+"."[0-9]*{EXP}? |
-"."?[0-9]+{EXP}?	{ yylval->d = atof(yytext); return MKT(NUMBER); }
 
-[a-zA-z0-9]+  { yylval->d = get_data(yytext, yyextra); return MKT(NUMBER); }
 
-"//".*
-[ \t]   { /* ignore white space */ }
+[-+]?0                { C(); SET_INT(); R(); return MKT(INT); }
+[-+]?[1-9][0-9]*      { C(); SET_INT(); R(); return MKT(INT); }
+[-+]?"0."[0-9]*       { C(); SET_NUM(); R(); return MKT(NUM); }
+[-+]?[0-9]+"."[0-9]*  { C(); SET_NUM(); R(); return MKT(NUM); }
+[-+]?[0-9]+("."[0-9]*)?[eE][+-]?[0-9]+ { C(); SET_NUM(); R(); return MKT(NUM); }
 
-.	{return *yytext; } /* we don't call yyerror here, because it has no way to communicate with bison */
-                      /* normally, we just return character token and defer the error handling in bison */
+
+
+
+
+[_[:alpha:]][[:alnum:]]*  { C(); SET_VAR(); R(); return MKT(VAR); }
+
+[ \t]   { C(); R(); /* ignore white space */ }
+
+.	    { C(); R(); return *yytext; } /* let bison to handle it */
+\n      { L(); R(); return *yytext; }
 
 %%
-
-static double get_data (char * text, struct pcdvobjs_logical_param * pp)
-{
-    double number = 0.0d;
-
-    if (pp->v == NULL)
-        return number;
-
-    if ((pp->v != NULL) && (!purc_variant_is_object (pp->v)))
-        return number;
-
-    purc_variant_t var = NULL;
-
-    var = purc_variant_object_get_by_ckey (pp->v, text);
-    if (var)
-        purc_variant_cast_to_number (var, &number, false);
-
-    return number;
-}
 
