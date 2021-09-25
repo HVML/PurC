@@ -352,11 +352,9 @@ purc_variant_t get_variant (char *buf, size_t *length)
     return ret_var;
 }
 
-TEST(dvobjs, dvobjs_logical)
+TEST(dvobjs, dvobjs_ejson_type)
 {
-    const char *function[] = {"not", "and", "or", "xor", "eq", "ne", "gt",
-                              "ge", "lt", "le", "streq", "strne", "strgt",
-                              "strge", "strlt", "strle"};
+    const char *function[] = {"type"};
     purc_variant_t param[10] = {0};
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t ret_result = PURC_VARIANT_INVALID;
@@ -369,14 +367,14 @@ TEST(dvobjs, dvobjs_logical)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t logical = pcdvojbs_get_logical();
-    ASSERT_NE(logical, nullptr);
-    ASSERT_EQ(purc_variant_is_object (logical), true);
+    purc_variant_t ejson = pcdvojbs_get_ejson();
+    ASSERT_NE(ejson, nullptr);
+    ASSERT_EQ(purc_variant_is_object (ejson), true);
 
     for (i = 0; i < function_size; i++)  {
         printf ("test _L.%s:\n", function[i]);
 
-        purc_variant_t dynamic = purc_variant_object_get_by_ckey (logical,
+        purc_variant_t dynamic = purc_variant_object_get_by_ckey (ejson,
                 function[i]);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
@@ -465,8 +463,9 @@ TEST(dvobjs, dvobjs_logical)
                     else {
                         // USER MODIFIED HERE.
                         ASSERT_EQ(purc_variant_is_type (ret_var,
-                                    PURC_VARIANT_TYPE_BOOLEAN), true);
-                        ASSERT_EQ(ret_var->b, ret_result->b);
+                                    PURC_VARIANT_TYPE_STRING), true);
+                        ASSERT_STREQ(purc_variant_get_string_const (ret_var),
+                                purc_variant_get_string_const (ret_result));
                         purc_variant_unref(ret_var);
                         ret_var = PURC_VARIANT_INVALID;
                         purc_variant_unref(ret_result);
@@ -492,224 +491,150 @@ TEST(dvobjs, dvobjs_logical)
         if (line)
             free(line);
     }
-    purc_variant_unref(logical);
+    purc_variant_unref(ejson);
     purc_cleanup ();
 }
 
-struct test_sample {
-    const char      *expr;
-    const int       result;
-};
-
-TEST(dvobjs, dvobjs_logical_eval)
+TEST(dvobjs, dvobjs_ejson_number)
 {
-    struct test_sample samples[] = {
-        {"1 < 2", 1},
-        {"(1 < 2) && (2 > 4)", 0},
-        {"(1 < 2) || (2 > 4)", 1}
-    };
+    const char *function[] = {"number"};
+    purc_variant_t param[10] = {0};
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    purc_variant_t ret_result = PURC_VARIANT_INVALID;
+    size_t function_size = sizeof(function) / sizeof(char *);
+    size_t i = 0;
+    size_t line_number = 0;
 
-    purc_variant_t param[10];
-    purc_variant_t ret_var = NULL;
-
+    // get and function
     purc_instance_extra_info info = {0, 0};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t logical = pcdvojbs_get_logical();
-    ASSERT_NE(logical, nullptr);
-    ASSERT_EQ(purc_variant_is_object (logical), true);
+    purc_variant_t ejson = pcdvojbs_get_ejson();
+    ASSERT_NE(ejson, nullptr);
+    ASSERT_EQ(purc_variant_is_object (ejson), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (logical, "eval");
-    ASSERT_NE(dynamic, nullptr);
-    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+    for (i = 0; i < function_size; i++)  {
+        printf ("test _L.%s:\n", function[i]);
 
-    purc_dvariant_method func = NULL;
-    func = purc_variant_dynamic_get_getter (dynamic);
-    ASSERT_NE(func, nullptr);
+        purc_variant_t dynamic = purc_variant_object_get_by_ckey (ejson,
+                function[i]);
+        ASSERT_NE(dynamic, nullptr);
+        ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
-    for (size_t i = 0; i < PCA_TABLESIZE (samples); i++)  {
-        param[0] = purc_variant_make_string (samples[i].expr, false);
-        param[1] = PURC_VARIANT_INVALID;
-        param[2] = NULL;
-        std::cout << "parsing [" << samples[i].expr << "]" << std::endl;
-        ret_var = func (NULL, 2, param);
-        ASSERT_NE(ret_var, nullptr);
-        ASSERT_EQ(purc_variant_is_type (ret_var,
-                    PURC_VARIANT_TYPE_BOOLEAN), true);
-        ASSERT_EQ(samples[i].result, ret_var->b);
+        purc_dvariant_method func = NULL;
+        func = purc_variant_dynamic_get_getter (dynamic);
+        ASSERT_NE(func, nullptr);
 
-        purc_variant_unref(ret_var);
-        purc_variant_unref(param[0]);
-    }
+        // get test file
+        char* data_path = getenv("DVOBJS_TEST_PATH");
+        ASSERT_NE(data_path, nullptr);
 
-    purc_variant_unref(logical);
+        char file_path[1024] = {0};
+        strcpy (file_path, data_path);
+        strcat (file_path, "/");
+        strcat (file_path, function[i]);
+        strcat (file_path, ".test");
 
-    purc_cleanup ();
-}
+        FILE *fp = fopen(file_path, "r");   // open test_list
+        ASSERT_NE(fp, nullptr);
 
-static void
-_trim_tail_spaces(char *dest, size_t n)
-{
-    while (n>1) {
-        if (!isspace(dest[n-1]))
-            break;
-        dest[--n] = '\0';
-    }
-}
+        char *line = NULL;
+        size_t sz = 0;
+        ssize_t read = 0;
+        int j = 0;
+        size_t length_sub = 0;
 
-static void
-_eval(purc_dvariant_method func, const char *expr,
-    char *dest, size_t dlen)
-{
-    size_t n = 0;
-    dest[0] = '\0';
+        line_number = 0;
 
-    purc_variant_t param[3];
-    param[0] = purc_variant_make_string(expr, false);
-    param[1] = PURC_VARIANT_INVALID;
-    param[2] = NULL;
+        while ((read = getline(&line, &sz, fp)) != -1) {
+            *(line + read - 1) = 0;
+            line_number ++;
 
-    purc_variant_t ret_var = func(NULL, 2, param);
-    purc_variant_unref(param[0]);
-    if (param[1])
-        purc_variant_unref(param[1]);
+            if (strncasecmp (line, "test_begin", 10) == 0)  {
+                printf ("\ttest case on line %ld\n", line_number);
 
-    if (!ret_var) {
-        EXPECT_NE(ret_var, nullptr) << "eval failed: ["
-            << expr << "]" << std::endl;
-        return;
-    }
+                // get parameters
+                read = getline(&line, &sz, fp);
+                *(line + read - 1) = 0;
+                line_number ++;
 
-    purc_rwstream_t ows;
-    ows = purc_rwstream_new_from_mem(dest, dlen-1);
-    if (!ows)
-        goto end;
+                if (strcmp (line, "param_begin") == 0)  {
+                    j = 0;
 
-    purc_variant_serialize(ret_var, ows, 0, 0, &n);
-    purc_rwstream_get_mem_buffer(ows, NULL);
-    dest[n] = '\0';
-    _trim_tail_spaces(dest, n);
+                    // get param
+                    while (1) {
+                        read = getline(&line, &sz, fp);
+                        *(line + read - 1) = 0;
+                        line_number ++;
 
-    purc_rwstream_destroy(ows);
+                        if (strcmp (line, "param_end") == 0)  {
+                            if (param[j]) {
+                                purc_variant_unref(param[j]);
+                                param[j] = NULL;
+                            }
+                            param[j] = NULL;
+                            break;
+                        }
+                        param[j] = get_variant (line, &length_sub);
+                        j++;
+                    }
 
-end:
-    purc_variant_unref(ret_var);
-}
+                    // get result
+                    read = getline(&line, &sz, fp);
+                    *(line + read - 1) = 0;
+                    line_number ++;
 
-static void
-_eval_bc(const char *fn, char *dest, size_t dlen)
-{
-    FILE *fin = NULL;
-    char cmd[8192];
-    size_t n = 0;
+                    ret_result = get_variant(line, &length_sub);
 
-    snprintf(cmd, sizeof(cmd), "cat '%s' | bc | sed 's/1/true/g' | sed 's/0/false/g'", fn);
-    fin = popen(cmd, "r");
-    EXPECT_NE(fin, nullptr) << "failed to execute: [" << cmd << "]"
-        << std::endl;
-    if (!fin)
-        goto end;
+                    // test case end
+                    while (1) {
+                        read = getline(&line, &sz, fp);
+                        *(line + read - 1) = 0;
+                        line_number ++;
 
-    n = fread(dest, 1, dlen-1, fin);
-    dest[n] = '\0';
-    _trim_tail_spaces(dest, n);
+                        if (strcmp (line, "test_end") == 0)  {
+                            break;
+                        }
+                    }
 
-end:
-    if (fin)
-        pclose(fin);
-}
+                    ret_var = func (NULL, j, param);
 
-static void
-_process_file(purc_dvariant_method func, const char *fn,
-    char *dest, size_t dlen)
-{
-    FILE *fin = NULL;
-    size_t sz = 0;
-    char buf[8192];
-    buf[0] = '\0';
+                    if (ret_result == PURC_VARIANT_INVALID)  {
+                        ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
+                    }
+                    else {
+                        // USER MODIFIED HERE.
+                        ASSERT_EQ(purc_variant_is_type (ret_var,
+                                    PURC_VARIANT_TYPE_ULONGINT), true);
+                        ASSERT_EQ(ret_var->u64, ret_result->u64);
 
-    fin = fopen(fn, "r");
-    if (!fin) {
-        int err = errno;
-        EXPECT_NE(fin, nullptr) << "Failed to open ["
-            << fn << "]: [" << err << "]" << strerror(err) << std::endl;
-        goto end;
-    }
+                        purc_variant_unref(ret_var);
+                        ret_var = PURC_VARIANT_INVALID;
+                        purc_variant_unref(ret_result);
+                        ret_result = PURC_VARIANT_INVALID;
+                    }
 
-    sz = fread(buf, 1, sizeof(buf)-1, fin);
-    buf[sz] = '\0';
-
-    _eval(func, buf, dest, dlen);
-
-end:
-    if (fin)
-        fclose(fin);
-}
-
-TEST(dvobjs, dvobjs_logical_bc)
-{
-    int r = 0;
-    DIR *d = NULL;
-    struct dirent *dir = NULL;
-    char path[1024] = {0};
-
-    purc_instance_extra_info info = {0, 0};
-    r = purc_init("cn.fmsoft.hybridos.test",
-        "test_init", &info);
-    EXPECT_EQ(r, PURC_ERROR_OK);
-    if (r)
-        return;
-
-    purc_variant_t logical = pcdvojbs_get_logical();
-    ASSERT_NE(logical, nullptr);
-    ASSERT_EQ(purc_variant_is_object (logical), true);
-
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (logical, "eval");
-    ASSERT_NE(dynamic, nullptr);
-    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
-
-    purc_dvariant_method func = NULL;
-    func = purc_variant_dynamic_get_getter (dynamic);
-    ASSERT_NE(func, nullptr);
-
-    const char *env = "DVOBJS_TEST_PATH";
-    const char *logical_path = getenv(env);
-    std::cout << "env: " << env << "=" << logical_path << std::endl;
-    EXPECT_NE(logical_path, nullptr) << "You shall specify via env `"
-        << env << "`" << std::endl;
-    if (!logical_path)
-        goto end;
-
-    strcpy (path, logical_path);
-    strcat (path, "/logical_bc");
-
-    d = opendir(path);
-    EXPECT_NE(d, nullptr) << "Failed to open dir @["
-            << path << "]: [" << errno << "]" << strerror(errno)
-            << std::endl;
-
-    if (d) {
-        if (chdir(path) != 0) {
-            purc_variant_unref(logical);
-            return;
-        }
-        while ((dir = readdir(d)) != NULL) {
-            if (dir->d_type & DT_REG) {
-                char l[8192], r[8192];
-                _process_file(func, dir->d_name, l, sizeof(l));
-                _eval_bc(dir->d_name, r, sizeof(r));
-                fprintf(stderr, "[%s] =?= [%s]\n", l, r);
-                EXPECT_STREQ(l, r) << "Failed to parse bc file: ["
-                    << dir->d_name << "]" << std::endl;
+                    for (size_t i=0; i<PCA_TABLESIZE(param); ++i) {
+                        if (param[i]) {
+                            purc_variant_unref(param[i]);
+                            param[i] = NULL;
+                        }
+                    }
+                }
+                else
+                    continue;
             }
+            else
+                continue;
         }
-        closedir(d);
+
+        length_sub++;
+        fclose(fp);
+        if (line)
+            free(line);
     }
-
-end:
-    if (logical)
-        purc_variant_unref(logical);
-
+    purc_variant_unref(ejson);
     purc_cleanup ();
 }
+

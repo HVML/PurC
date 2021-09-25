@@ -287,7 +287,7 @@ purc_variant_t get_variant (char *buf, size_t *length)
                     number = atoi (tag);
                     temp = temp_end + 1;
 
-                    ret_var = purc_variant_make_set_by_ckey(0, "key1", NULL);
+                    ret_var = purc_variant_make_set_by_ckey(0, NULL, NULL);
                     for (i = 0; i < number; i++) {
                         val = get_variant (temp, &length_sub);
                         purc_variant_set_add (ret_var, val, false);
