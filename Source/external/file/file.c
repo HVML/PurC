@@ -21,13 +21,11 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-//#include "config.h"
+#include "config.h"
 #include "private/instance.h"
 #include "private/errors.h"
-#include "private/debug.h"
-#include "private/utils.h"
-#include "private/edom.h"
-#include "private/html.h"
+//#include "private/debug.h"
+//#include "private/utils.h"
 
 #include "purc-variant.h"
 #include "helper.h"
@@ -186,13 +184,13 @@ text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args != 2) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -203,7 +201,7 @@ text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
     else {
         if (getcwd (filename, PATH_MAX) == NULL)  {
-            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
             return PURC_VARIANT_INVALID;
         }
         strcat (filename, "/");
@@ -212,13 +210,13 @@ text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     // check whether the file exists
     if((access(filename, F_OK | R_OK)) != 0) {
-        pcinst_set_error (PURC_ERROR_NOT_EXISTS);
+//        pcinst_set_error (PURC_ERROR_NOT_EXISTS);
         return PURC_VARIANT_INVALID;
     }
 
     // get the file length
     if(stat(filename, &filestat) < 0) {
-        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+//        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         return PURC_VARIANT_INVALID;
     }
     if (filestat.st_size == 0) {
@@ -230,7 +228,7 @@ text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     fp = fopen (filename, "r");
     if (fp == NULL) {
-        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+//        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         return PURC_VARIANT_INVALID;
     }
 
@@ -269,13 +267,13 @@ text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args != 2) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -286,7 +284,7 @@ text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
     else {
         if (getcwd (filename, PATH_MAX) == NULL)  {
-            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
             return PURC_VARIANT_INVALID;
         }
         strcat (filename, "/");
@@ -295,13 +293,13 @@ text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     // check whether the file exists
     if((access(filename, F_OK | R_OK)) != 0) {
-        pcinst_set_error (PURC_ERROR_NOT_EXISTS);
+//        pcinst_set_error (PURC_ERROR_NOT_EXISTS);
         return PURC_VARIANT_INVALID;
     }
 
     // get the file length
     if(stat(filename, &filestat) < 0) {
-        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+//        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         return PURC_VARIANT_INVALID;
     }
     if (filestat.st_size == 0) {
@@ -315,7 +313,7 @@ text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     fp = fopen (filename, "r");
     if (fp == NULL) {
-        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+//        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         return PURC_VARIANT_INVALID;
     }
 
@@ -362,13 +360,13 @@ bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args != 2) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -379,7 +377,7 @@ bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
     else {
         if (getcwd (filename, PATH_MAX) == NULL)  {
-            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
             return PURC_VARIANT_INVALID;
         }
         strcat (filename, "/");
@@ -388,13 +386,13 @@ bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     // check whether the file exists
     if((access(filename, F_OK | R_OK)) != 0) {
-        pcinst_set_error (PURC_ERROR_NOT_EXISTS);
+//        pcinst_set_error (PURC_ERROR_NOT_EXISTS);
         return PURC_VARIANT_INVALID;
     }
 
     // get the file length
     if(stat(filename, &filestat) < 0) {
-        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+//        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         return PURC_VARIANT_INVALID;
     }
     if (filestat.st_size == 0) {
@@ -406,7 +404,7 @@ bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     fp = fopen (filename, "r");
     if (fp == NULL) {
-        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+//        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         return PURC_VARIANT_INVALID;
     }
 
@@ -453,13 +451,13 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args != 2) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -470,7 +468,7 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
     else {
         if (getcwd (filename, PATH_MAX) == NULL)  {
-            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
             return PURC_VARIANT_INVALID;
         }
         strcat (filename, "/");
@@ -479,14 +477,14 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     // check whether the file exists
     if((access(filename, F_OK | R_OK)) != 0) {
-        pcinst_set_error (PURC_ERROR_NOT_EXISTS);
+//        pcinst_set_error (PURC_ERROR_NOT_EXISTS);
         return PURC_VARIANT_INVALID;
     }
 
 
     // get the file length
     if(stat(filename, &filestat) < 0) {
-        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+//        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         return PURC_VARIANT_INVALID;
     }
     if (filestat.st_size == 0) {
@@ -498,7 +496,7 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     fp = fopen (filename, "r");
     if (fp == NULL) {
-        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+//        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         return PURC_VARIANT_INVALID;
     }
 
@@ -538,7 +536,7 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     UNUSED_PARAM(root);
 
     if (nr_args != 1) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -550,7 +548,7 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -561,7 +559,7 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
     else {
         if (getcwd (filename, PATH_MAX) == NULL)  {
-            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
             return PURC_VARIANT_INVALID;
         }
         strcat (filename, "/");
@@ -570,20 +568,20 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     // check whether the file exists
     if((access(filename, F_OK | R_OK)) != 0) {
-        pcinst_set_error (PURC_ERROR_NOT_EXISTS);
+//        pcinst_set_error (PURC_ERROR_NOT_EXISTS);
         return PURC_VARIANT_INVALID;
     }
 
     // get the file length
     if(stat(filename, &filestat) < 0) {
-        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+//        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         return PURC_VARIANT_INVALID;
     }
 
     rwstream = purc_rwstream_new_from_file (filename, "r");
 
     if (rwstream == NULL) {
-        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+//        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         return PURC_VARIANT_INVALID;
     }
 
@@ -719,24 +717,24 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
     int read_number = 0;
 
     if (nr_args != 2) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_native (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
     rwstream = purc_variant_native_get_entity (argv[0]);
     if (rwstream == NULL) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+//        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[1] != PURC_VARIANT_INVALID) &&
                         (!purc_variant_is_string (argv[1]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
     format = purc_variant_get_string_const (argv[1]);
@@ -1048,30 +1046,30 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
     unsigned short ui16 = 0;
 
     if (nr_args != 3) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_native (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
     rwstream = purc_variant_native_get_entity (argv[0]);
     if (rwstream == NULL) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+//        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[1] != PURC_VARIANT_INVALID) &&
                         (!purc_variant_is_string (argv[1]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[2] != PURC_VARIANT_INVALID) &&
                         (!purc_variant_is_array (argv[2]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -1348,18 +1346,18 @@ stream_readlines_getter (purc_variant_t root, size_t nr_args,
     int64_t line_num = 0;
 
     if (nr_args != 2)  {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_native (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
     rwstream = purc_variant_native_get_entity (argv[0]);
     if (rwstream == NULL) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+//        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
 
@@ -1399,17 +1397,17 @@ stream_readbytes_getter (purc_variant_t root, size_t nr_args,
     uint64_t byte_num = 0;
 
     if (nr_args != 2)  {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_native (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
     rwstream = purc_variant_native_get_entity (argv[0]);
     if (rwstream == NULL) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+//        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
 
@@ -1418,7 +1416,7 @@ stream_readbytes_getter (purc_variant_t root, size_t nr_args,
     }
 
     if (byte_num == 0)  {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         ret_var = PURC_VARIANT_INVALID;
     }
     else {
@@ -1426,7 +1424,7 @@ stream_readbytes_getter (purc_variant_t root, size_t nr_args,
         size_t size = 0;
 
         if (content == NULL) {
-            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
+//            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PURC_VARIANT_INVALID;
         }
 
@@ -1436,7 +1434,7 @@ stream_readbytes_getter (purc_variant_t root, size_t nr_args,
                 purc_variant_make_byte_sequence_reuse_buff(content, size, size);
         else {
             free (content);
-            pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+//            pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
             ret_var = PURC_VARIANT_INVALID;
         }
     }
@@ -1456,18 +1454,18 @@ stream_seek_getter (purc_variant_t root, size_t nr_args,
     off_t off = 0;
 
     if (nr_args != 2)  {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_native (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
     rwstream = purc_variant_native_get_entity (argv[0]);
     if (rwstream == NULL) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+//        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
 
@@ -1492,18 +1490,18 @@ stream_close_getter (purc_variant_t root, size_t nr_args,
     int close = 0;
 
     if (nr_args != 1)  {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_native (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
     rwstream = purc_variant_native_get_entity (argv[0]);
     if (rwstream == NULL) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+//        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
 

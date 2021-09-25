@@ -90,7 +90,6 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t val = PURC_VARIANT_INVALID;
-    purc_variant_t key = PURC_VARIANT_INVALID;
     const char *filter = NULL;
     char wildcard[10][16];
     int wildcard_num = 0;
@@ -188,89 +187,65 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
         // name
         val = purc_variant_make_string (ptr->d_name, false);
-        key = purc_variant_make_string ("name", false);
-        purc_variant_object_set (obj_var, key, val);
-        purc_variant_unref (key);
+        purc_variant_object_set_by_static_ckey (obj_var, "name", val);
         purc_variant_unref (val);
 
         // dev
         val = purc_variant_make_number (file_stat.st_dev);
-        key = purc_variant_make_string ("dev", false);
-        purc_variant_object_set (obj_var, key, val);
-        purc_variant_unref (key);
+        purc_variant_object_set_by_static_ckey (obj_var, "dev", val);
         purc_variant_unref (val);
 
         // inode
         val = purc_variant_make_number (ptr->d_ino);
-        key = purc_variant_make_string ("inode", false);
-        purc_variant_object_set (obj_var, key, val);
-        purc_variant_unref (key);
+        purc_variant_object_set_by_static_ckey (obj_var, "inode", val);
         purc_variant_unref (val);
 
         // type
         if (ptr->d_type == DT_BLK) {
             val = purc_variant_make_string ("b", false);
-            key = purc_variant_make_string ("type", false);
-            purc_variant_object_set (obj_var, key, val);
-            purc_variant_unref (key);
+            purc_variant_object_set_by_static_ckey (obj_var, "type", val);
             purc_variant_unref (val);
         }
         else if(ptr->d_type == DT_CHR) {
             val = purc_variant_make_string ("c", false);
-            key = purc_variant_make_string ("type", false);
-            purc_variant_object_set (obj_var, key, val);
-            purc_variant_unref (key);
+            purc_variant_object_set_by_static_ckey (obj_var, "type", val);
             purc_variant_unref (val);
         }
         else if(ptr->d_type == DT_DIR) {
             val = purc_variant_make_string ("d", false);
-            key = purc_variant_make_string ("type", false);
-            purc_variant_object_set (obj_var, key, val);
-            purc_variant_unref (key);
+            purc_variant_object_set_by_static_ckey (obj_var, "type", val);
             purc_variant_unref (val);
         }
         else if(ptr->d_type == DT_FIFO) {
             val = purc_variant_make_string ("f", false);
-            key = purc_variant_make_string ("type", false);
-            purc_variant_object_set (obj_var, key, val);
-            purc_variant_unref (key);
+            purc_variant_object_set_by_static_ckey (obj_var, "type", val);
             purc_variant_unref (val);
         }
         else if(ptr->d_type == DT_LNK) {
             val = purc_variant_make_string ("l", false);
-            key = purc_variant_make_string ("type", false);
-            purc_variant_object_set (obj_var, key, val);
-            purc_variant_unref (key);
+            purc_variant_object_set_by_static_ckey (obj_var, "type", val);
             purc_variant_unref (val);
         }
         else if(ptr->d_type == DT_REG) {
             val = purc_variant_make_string ("r", false);
-            key = purc_variant_make_string ("type", false);
-            purc_variant_object_set (obj_var, key, val);
-            purc_variant_unref (key);
+            purc_variant_object_set_by_static_ckey (obj_var, "type", val);
             purc_variant_unref (val);
         }
         else if(ptr->d_type == DT_SOCK) {
             val = purc_variant_make_string ("s", false);
-            key = purc_variant_make_string ("type", false);
-            purc_variant_object_set (obj_var, key, val);
-            purc_variant_unref (key);
+            purc_variant_object_set_by_static_ckey (obj_var, "type", val);
             purc_variant_unref (val);
         }
         else if(ptr->d_type == DT_UNKNOWN) {
             val = purc_variant_make_string ("u", false);
-            key = purc_variant_make_string ("type", false);
-            purc_variant_object_set (obj_var, key, val);
-            purc_variant_unref (key);
+            purc_variant_object_set_by_static_ckey (obj_var, "type", val);
             purc_variant_unref (val);
         }
 
         // mode
         val = purc_variant_make_byte_sequence (&(file_stat.st_mode),
                                                     sizeof(unsigned long));
-        key = purc_variant_make_string ("mode", false);
-        purc_variant_object_set (obj_var, key, val);
-        purc_variant_unref (key);
+        purc_variant_object_set_by_static_ckey (obj_var, "mode", val);
         purc_variant_unref (val);
 
         // mode_str
@@ -289,86 +264,62 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
                 au[i * 3 + 2] = '-';
         }
         val = purc_variant_make_string (au, false);
-        key = purc_variant_make_string ("mode_str", false);
-        purc_variant_object_set (obj_var, key, val);
-        purc_variant_unref (key);
+        purc_variant_object_set_by_static_ckey (obj_var, "mode_str", val);
         purc_variant_unref (val);
 
         // nlink
         val = purc_variant_make_number (file_stat.st_nlink);
-        key = purc_variant_make_string ("nlink", false);
-        purc_variant_object_set (obj_var, key, val);
-        purc_variant_unref (key);
+        purc_variant_object_set_by_static_ckey (obj_var, "nlink", val);
         purc_variant_unref (val);
 
         // uid
         val = purc_variant_make_number (file_stat.st_uid);
-        key = purc_variant_make_string ("uid", false);
-        purc_variant_object_set (obj_var, key, val);
-        purc_variant_unref (key);
+        purc_variant_object_set_by_static_ckey (obj_var, "uid", val);
         purc_variant_unref (val);
 
         // gid
         val = purc_variant_make_number (file_stat.st_gid);
-        key = purc_variant_make_string ("gid", false);
-        purc_variant_object_set (obj_var, key, val);
-        purc_variant_unref (key);
+        purc_variant_object_set_by_static_ckey (obj_var, "gid", val);
         purc_variant_unref (val);
 
         // rdev_major 
         val = purc_variant_make_number (major(file_stat.st_dev));
-        key = purc_variant_make_string ("rdev_major", false);
-        purc_variant_object_set (obj_var, key, val);
-        purc_variant_unref (key);
+        purc_variant_object_set_by_static_ckey (obj_var, "rdev_major", val);
         purc_variant_unref (val);
 
         // rdev_minor
         val = purc_variant_make_number (minor(file_stat.st_dev));
-        key = purc_variant_make_string ("rdev_minor", false);
-        purc_variant_object_set (obj_var, key, val);
-        purc_variant_unref (key);
+        purc_variant_object_set_by_static_ckey (obj_var, "rdev_minor", val);
         purc_variant_unref (val);
 
         // size
         val = purc_variant_make_number (file_stat.st_size);
-        key = purc_variant_make_string ("size", false);
-        purc_variant_object_set (obj_var, key, val);
-        purc_variant_unref (key);
+        purc_variant_object_set_by_static_ckey (obj_var, "size", val);
         purc_variant_unref (val);
 
         // blksize
         val = purc_variant_make_number (file_stat.st_blksize);
-        key = purc_variant_make_string ("blksize", false);
-        purc_variant_object_set (obj_var, key, val);
-        purc_variant_unref (key);
+        purc_variant_object_set_by_static_ckey (obj_var, "blksize", val);
         purc_variant_unref (val);
 
         // blocks
         val = purc_variant_make_number (file_stat.st_blocks);
-        key = purc_variant_make_string ("blocks", false);
-        purc_variant_object_set (obj_var, key, val);
-        purc_variant_unref (key);
+        purc_variant_object_set_by_static_ckey (obj_var, "blocks", val);
         purc_variant_unref (val);
 
         // atime
         val = purc_variant_make_string (ctime(&file_stat.st_atime), false);
-        key = purc_variant_make_string ("atime", false);
-        purc_variant_object_set (obj_var, key, val);
-        purc_variant_unref (key);
+        purc_variant_object_set_by_static_ckey (obj_var, "atime", val);
         purc_variant_unref (val);
 
         // mtime
         val = purc_variant_make_string (ctime(&file_stat.st_mtime), false);
-        key = purc_variant_make_string ("mtime", false);
-        purc_variant_object_set (obj_var, key, val);
-        purc_variant_unref (key);
+        purc_variant_object_set_by_static_ckey (obj_var, "mtime", val);
         purc_variant_unref (val);
 
         // ctime
         val = purc_variant_make_string (ctime(&file_stat.st_ctime), false);
-        key = purc_variant_make_string ("ctime", false);
-        purc_variant_object_set (obj_var, key, val);
-        purc_variant_unref (key);
+        purc_variant_object_set_by_static_ckey (obj_var, "ctime", val);
         purc_variant_unref (val);
 
         purc_variant_array_append (ret_var, obj_var);

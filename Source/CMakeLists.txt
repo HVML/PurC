@@ -9,6 +9,8 @@ add_subdirectory(WTF)
 
 add_subdirectory(PurC)
 
+add_subdirectory(external)
+
 if (ENABLE_API_TESTS)
     add_subdirectory(ThirdParty/gtest)
     add_subdirectory(test)
