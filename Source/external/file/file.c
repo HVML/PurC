@@ -1516,8 +1516,10 @@ stream_close_getter (purc_variant_t root, size_t nr_args,
 }
 
 // only for test now.
-purc_variant_t pcdvojbs_get_file (void)
+purc_variant_t get_variant_by_name (char * name)
 {
+    UNUSED_PARAM(name);
+
     purc_variant_t file_text = PURC_VARIANT_INVALID;
     purc_variant_t file_bin = PURC_VARIANT_INVALID;
     purc_variant_t file_stream = PURC_VARIANT_INVALID;

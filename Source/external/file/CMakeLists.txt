@@ -7,17 +7,19 @@ set(EXTERNAL_DVOBJS_INCLUDE_DIRECTORIES
     ${PURC_DIR}/include/private
 )
 
-find_library(PURC_LIBRARY NAMES purc HITS ${PURC_DIR})
+link_directories (${CMAKE_BINARY_DIR}/Source/PurC)
+
+set(EXTERNAL_DVOBJS_LIBRARIES                                                        
+    purc
+) 
 
 set(EXTERNAL_DVOBJS_FILE_SOURCES
     file.c
     helper.c
 )
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
-
 include_directories(SYSTEM ${EXTERNAL_DVOBJS_INCLUDE_DIRECTORIES})
 add_library(purc-dvobj-FILE SHARED ${EXTERNAL_DVOBJS_FILE_SOURCES})
-target_link_libraries(purc-dvobj-FILE ${PURC_LIBRARY})
+target_link_libraries(purc-dvobj-FILE ${EXTERNAL_DVOBJS_LIBRARIES})
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--no-as-needed")
-install(TARGETS purc-dvobj-FILE DESTINATION "${LIB_INSTALL_DIR}")
+install(TARGETS purc-dvobj-FILE DESTINATION "/usr/lib")
