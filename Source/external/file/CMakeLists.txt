@@ -9,9 +9,9 @@ set(EXTERNAL_DVOBJS_INCLUDE_DIRECTORIES
 
 link_directories (${CMAKE_BINARY_DIR}/Source/PurC)
 
-set(EXTERNAL_DVOBJS_LIBRARIES                                                        
+set(EXTERNAL_DVOBJS_LIBRARIES
     purc
-) 
+)
 
 set(EXTERNAL_DVOBJS_FILE_SOURCES
     file.c
