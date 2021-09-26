@@ -258,6 +258,13 @@ bool pchvml_buffer_is_int (struct pchvml_buffer* buffer)
     return (p == (char*)buffer->here);
 }
 
+bool pchvml_buffer_is_number(struct pchvml_buffer* buffer)
+{
+    char* p = NULL;
+    strtold((const char*)buffer->base, &p);
+    return (p == (const char*)buffer->here);
+}
+
 bool pchvml_buffer_is_whitespace(struct pchvml_buffer* buffer)
 {
     uint8_t* p = buffer->base;

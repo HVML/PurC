@@ -251,6 +251,32 @@ TEST(temp_buffer, is_int)
     pchvml_buffer_destroy(buffer);
 }
 
+TEST(temp_buffer, is_number)
+{
+    struct pchvml_buffer* buffer = pchvml_buffer_new ();
+    ASSERT_NE(buffer, nullptr);
+    ASSERT_EQ(0, pchvml_buffer_get_size_in_bytes(buffer));
+    ASSERT_EQ(0, pchvml_buffer_get_size_in_chars(buffer));
+
+    pchvml_buffer_append_bytes(buffer, "1", 1);
+    pchvml_buffer_append_bytes(buffer, "2", 1);
+    pchvml_buffer_append_bytes(buffer, ".", 1);
+    pchvml_buffer_append_bytes(buffer, "3", 1);
+    ASSERT_STREQ("12.3", pchvml_buffer_get_buffer(buffer));
+
+    bool is_int = pchvml_buffer_is_int(buffer);
+    ASSERT_EQ(is_int, false);
+
+    bool is_number = pchvml_buffer_is_number(buffer);
+    ASSERT_EQ(is_number, true);
+
+    pchvml_buffer_append_bytes(buffer, " ", 1);
+    is_number = pchvml_buffer_is_number(buffer);
+    ASSERT_EQ(is_number, false);
+
+    pchvml_buffer_destroy(buffer);
+}
+
 TEST(temp_buffer, is_whitespace)
 {
     struct pchvml_buffer* buffer = pchvml_buffer_new ();
