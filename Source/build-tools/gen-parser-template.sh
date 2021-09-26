@@ -51,8 +51,7 @@ cat > "${RELPATH}/${NAME}.l" << EOF
 #define PUSH(state)      yy_push_state(state, yyscanner)
 #define POP()            yy_pop_state(yyscanner)
 
-#define CHG(state)                           \\
-do {                                         \\
+#define CHG(state) do {                      \\
     yy_pop_state(yyscanner);                 \\
     yy_push_state(state, yyscanner);         \\
 } while (0)
@@ -63,13 +62,11 @@ do {                                         \\
         yy_pop_state(yyscanner);            \\
         _top; })
 
-#define C()                                     \\
-do {                                            \\
+#define C() do {                               \\
     yylloc->last_column += strlen(yytext);      \\
 } while (0)
 
-#define L()                                     \\
-do {                                            \\
+#define L() do {                                \\
     yylloc->last_line   += 1;                   \\
     yylloc->last_column  = 1;                   \\
 } while (0)
@@ -80,6 +77,10 @@ do {                                              \\
     yylloc->first_line   = yylloc->last_line;     \\
 } while (0)
 
+#define SET_STR() do {               \\
+    yylval->sval.text = yytext;      \\
+    yylval->sval.leng = yyleng;      \\
+} while (0)
 
 %}
 
@@ -108,7 +109,7 @@ do {                                              \\
 
 <STR>{
 ["]       { C(); POP(); R(); return *yytext; }
-[^"\n]+   { C(); yylval->str=(yytext); R(); return MKT(STRING); }
+[^"\n]+   { C(); SET_STR(); R(); return MKT(STR); }
 \n        { L(); R(); return *yytext; } /* let bison to handle */
 }
 
@@ -151,15 +152,21 @@ cat > "${RELPATH}/${NAME}.y" << EOF
 }
 
 %code requires {
+    #include <stddef.h>
     // related struct/function decls
-    // especially, for struct ${NAME}_parse_param
+    // especially, for struct ${NAME}_param
     // and parse function for example:
     // int ${NAME}_parse(const char *input,
-    //        struct ${NAME}_parse_param *param);
+    //        struct ${NAME}_param *param);
     // #include "${NAME}.h"
     // here we define them locally
-    struct ${NAME}_parse_param {
+    struct ${NAME}_param {
         char      placeholder[0];
+    };
+
+    struct ${NAME}_semantic {
+        const char      *text;
+        size_t           leng;
     };
 
     #define YYSTYPE       ${NAME^^}_YYSTYPE
@@ -178,9 +185,27 @@ cat > "${RELPATH}/${NAME}.y" << EOF
     static void yyerror(
         YYLTYPE *yylloc,                   // match %define locations
         yyscan_t arg,                      // match %param
-        struct ${NAME}_parse_param *param, // match %parse-param
+        struct ${NAME}_param *param,       // match %parse-param
         const char *errsg
     );
+
+    #define SET_ARGS(_r, _a) do {              \\
+        _r = strndup(_a.text, _a.leng);        \\
+        if (!_r)                               \\
+            YYABORT;                           \\
+    } while (0)
+
+    #define APPEND_ARGS(_r, _a, _b) do {       \\
+        size_t len = strlen(_a);               \\
+        size_t n   = len + _b.leng;            \\
+        char *s = (char*)realloc(_a, n+1);     \\
+        if (!s) {                              \\
+            free(_r);                          \\
+            YYABORT;                           \\
+        }                                      \\
+        memcpy(s+len, _b.text, _b.leng);       \\
+        _r = s;                                \\
+    } while (0)
 }
 
 /* Bison declarations. */
@@ -194,25 +219,28 @@ cat > "${RELPATH}/${NAME}.y" << EOF
 %verbose
 
 %param { yyscan_t arg }
-%parse-param { struct ${NAME}_parse_param *param }
+%parse-param { struct ${NAME}_param *param }
 
-%union { char *str; }      // union member
-%token <str>  STRING       // token STRING use \`str\` to store semantic value
+%union { struct ${NAME}_semantic sval; } // union member
+%union { char *str; }                    // union member
+
 %destructor { free(\$\$); } <str> // destructor for \`str\`
-%nterm <str> input         // non-terminal \`input\` use \`str\` to store
+
+%token <sval>  STR         // token STR use \`str\` to store semantic value
+%nterm <str>   args        // non-terminal \`input\` use \`str\` to store
                            // semantic value as well
 
 
 %% /* The grammar follows. */
 
 input:
-  %empty      { \$\$ = NULL; }
-| args        { \$\$ = NULL; }
+  %empty
+| args        { free(\$1); }
 ;
 
 args:
-  STRING      { free(\$1); }
-| args STRING { free(\$2); }
+  STR      { SET_ARGS(\$\$, \$1); }
+| args STR { APPEND_ARGS(\$\$, \$1, \$2); }
 ;
 
 %%
@@ -222,7 +250,7 @@ static void
 yyerror(
     YYLTYPE *yylloc,                   // match %define locations
     yyscan_t arg,                      // match %param
-    struct ${NAME}_parse_param *param, // match %parse-param
+    struct ${NAME}_param *param,       // match %parse-param
     const char *errsg
 )
 {
@@ -237,7 +265,7 @@ yyerror(
 }
 
 int ${NAME}_parse(const char *input,
-        struct ${NAME}_parse_param *param)
+        struct ${NAME}_param *param)
 {
     yyscan_t arg = {0};
     ${NAME}_yylex_init(&arg);
@@ -249,8 +277,6 @@ int ${NAME}_parse(const char *input,
     ${NAME}_yylex_destroy(arg);
     return ret ? 1 : 0;
 }
-
-%%
 
 EOF
 
