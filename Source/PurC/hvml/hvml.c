@@ -899,15 +899,10 @@ bool pchvml_parser_is_appropriate_end_tag (struct pchvml_parser* parser)
 
 bool pchvml_parser_is_operation_tag_token (struct pchvml_token* token)
 {
-    UNUSED_PARAM(token);
-#if 0
     const char* name = pchvml_token_get_name(token);
     const struct pchvml_tag_entry* entry = pchvml_tag_static_search(name,
             strlen(name));
     return (entry && (entry->cats & PCHVML_TAGCAT_ORDINARY));
-#else
-    return true;
-#endif
 }
 
 bool pchvml_parser_is_ordinary_attribute (struct pchvml_token_attr* attr)
