@@ -945,20 +945,6 @@ bool pchvml_parser_is_handle_as_jsonee(struct pchvml_token* token, uint32_t uc)
     return false;
 }
 
-bool pchvml_parse_is_adjusted_current_node (struct pchvml_parser* hvml)
-{
-    UNUSED_PARAM(hvml);
-    // TODO
-    return false;
-}
-
-bool pchvml_parse_is_not_in_hvml_namespace (struct pchvml_parser* hvml)
-{
-    UNUSED_PARAM(hvml);
-    // TODO
-    return false;
-}
-
 struct pcvcm_node* pchvml_parser_new_byte_sequence (struct pchvml_parser* hvml,
     struct pchvml_buffer* buffer)
 {
@@ -1558,16 +1544,7 @@ next_state:
             if (strcmp(value, "[CDATA[") == 0) {
                 pchvml_sbst_destroy(parser->sbst);
                 parser->sbst = NULL;
-                if (pchvml_parse_is_adjusted_current_node(parser)
-                       && pchvml_parse_is_not_in_hvml_namespace(parser) ) {
-                    ADVANCE_TO(PCHVML_CDATA_SECTION_STATE);
-                }
-                else {
-                    PCHVML_SET_ERROR(PCHVML_ERROR_CDATA_IN_HTML_CONTENT);
-                    parser->token = pchvml_token_new_comment();
-                    APPEND_BYTES_TO_TOKEN_TEXT("[CDATA[", 7);
-                    ADVANCE_TO(PCHVML_BOGUS_COMMENT_STATE);
-                }
+                ADVANCE_TO(PCHVML_CDATA_SECTION_STATE);
             }
             PCHVML_SET_ERROR(PCHVML_ERROR_INCORRECTLY_OPENED_COMMENT);
             pchvml_rwswrap_buffer_arrlist(parser->rwswrap,
