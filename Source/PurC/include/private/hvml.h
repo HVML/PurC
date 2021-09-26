@@ -150,7 +150,7 @@ struct pchvml_parser {
     enum pchvml_state return_state;
     struct pchvml_rwswrap* rwswrap;
     struct pchvml_buffer* temp_buffer;
-    struct pchvml_buffer* appropriate_tag_name;
+    struct pchvml_buffer* tag_name;
     struct pchvml_buffer* string_buffer;
     struct pchvml_buffer* quoted_buffer;
     struct pchvml_token* token;

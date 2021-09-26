@@ -116,7 +116,7 @@
         parser->state = curr_state;                                         \
         pchvml_rwswrap_buffer_chars(parser->rwswrap, &character, 1);        \
         if (expression) {                                                   \
-            pchvml_parser_save_appropriate_tag_name(parser);                \
+            pchvml_parser_save_tag_name(parser);                       \
             pchvml_token_done(parser->token);                               \
             struct pchvml_token* token = parser->token;                     \
             parser->token = NULL;                                           \
@@ -128,7 +128,7 @@
 #define RETURN_AND_SWITCH_TO(next_state)                                    \
     do {                                                                    \
         parser->state = next_state;                                         \
-        pchvml_parser_save_appropriate_tag_name(parser);                    \
+        pchvml_parser_save_tag_name(parser);                           \
         pchvml_token_done(parser->token);                                   \
         struct pchvml_token* token = parser->token;                         \
         parser->token = NULL;                                               \
@@ -138,7 +138,7 @@
 #define RETURN_AND_RECONSUME_IN(next_state)                                 \
     do {                                                                    \
         parser->state = next_state;                                         \
-        pchvml_parser_save_appropriate_tag_name(parser);                    \
+        pchvml_parser_save_tag_name(parser);                    \
         pchvml_token_done(parser->token);                                   \
         struct pchvml_token* token = parser->token;                         \
         parser->token = NULL;                                               \
@@ -616,7 +616,7 @@ struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
     parser->state = PCHVML_DATA_STATE;
     parser->rwswrap = pchvml_rwswrap_new ();
     parser->temp_buffer = pchvml_buffer_new ();
-    parser->appropriate_tag_name = pchvml_buffer_new ();
+    parser->tag_name = pchvml_buffer_new ();
     parser->string_buffer = pchvml_buffer_new ();
     parser->quoted_buffer = pchvml_buffer_new ();
     parser->vcm_stack = pcvcm_stack_new();
@@ -634,7 +634,7 @@ void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
     pchvml_rwswrap_destroy (parser->rwswrap);
     parser->rwswrap = pchvml_rwswrap_new ();
     pchvml_buffer_reset (parser->temp_buffer);
-    pchvml_buffer_reset (parser->appropriate_tag_name);
+    pchvml_buffer_reset (parser->tag_name);
     pchvml_buffer_reset (parser->string_buffer);
     pchvml_buffer_reset (parser->quoted_buffer);
 
@@ -661,7 +661,7 @@ void pchvml_destroy(struct pchvml_parser* parser)
     if (parser) {
         pchvml_rwswrap_destroy (parser->rwswrap);
         pchvml_buffer_destroy (parser->temp_buffer);
-        pchvml_buffer_destroy (parser->appropriate_tag_name);
+        pchvml_buffer_destroy (parser->tag_name);
         pchvml_buffer_destroy (parser->string_buffer);
         pchvml_buffer_destroy (parser->quoted_buffer);
         if (parser->sbst) {
@@ -874,24 +874,20 @@ const char* pchvml_pchvml_state_desc (enum pchvml_state state)
     return NULL;
 }
 
-void pchvml_parser_save_appropriate_tag_name (struct pchvml_parser* parser)
+void pchvml_parser_save_tag_name (struct pchvml_parser* parser)
 {
     if (pchvml_token_is_type (parser->token, PCHVML_TOKEN_START_TAG)) {
         const char* name = pchvml_token_get_name(parser->token);
-        pchvml_buffer_append_bytes(parser->appropriate_tag_name,
+        pchvml_buffer_reset(parser->tag_name);
+        pchvml_buffer_append_bytes(parser->tag_name,
                 name, strlen(name));
     }
-}
-
-void pchvml_parser_reset_appropriate_tag_name (struct pchvml_parser* parser)
-{
-    pchvml_buffer_reset(parser->appropriate_tag_name);
 }
 
 bool pchvml_parser_is_appropriate_end_tag (struct pchvml_parser* parser)
 {
     const char* name = pchvml_token_get_name(parser->token);
-    return pchvml_buffer_equal_to (parser->appropriate_tag_name, name,
+    return pchvml_buffer_equal_to (parser->tag_name, name,
             strlen(name));
 }
 
@@ -1080,7 +1076,6 @@ next_state:
         BEGIN_STATE(PCHVML_END_TAG_OPEN_STATE)
             if (is_ascii_alpha(character)) {
                 parser->token = pchvml_token_new_end_tag();
-                pchvml_parser_reset_appropriate_tag_name(parser);
                 RECONSUME_IN(PCHVML_TAG_NAME_STATE);
             }
             if (character == '>') {
