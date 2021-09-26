@@ -1318,11 +1318,6 @@ next_state:
                 PCHVML_SET_ERROR(PCHVML_ERROR_MISSING_MISSING_ATTRIBUTE_VALUE);
                 RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
             }
-#if 0
-            if (character == '{' || character == '[' || character == '$') {
-                RECONSUME_IN(PCHVML_EJSON_DATA_STATE);
-            }
-#endif
             if (is_eof(character)) {
                 RECONSUME_IN(PCHVML_DATA_STATE);
             }

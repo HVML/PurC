@@ -277,3 +277,4 @@ bool pchvml_buffer_is_whitespace(struct pchvml_buffer* buffer)
     }
     return true;
 }
+
