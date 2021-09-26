@@ -870,6 +870,8 @@ const char* pchvml_pchvml_state_desc (enum pchvml_state state)
         STATE_DESC(PCHVML_EJSON_JSONEE_KEYWORD_STATE)
         STATE_DESC(PCHVML_EJSON_JSONEE_STRING_STATE)
         STATE_DESC(PCHVML_EJSON_AFTER_JSONEE_STRING_STATE)
+        STATE_DESC(PCHVML_EJSON_ARCHEDATA_STATE)
+        STATE_DESC(PCHVML_EJSON_ARCHETYPE_STATE)
     }
     return NULL;
 }
@@ -914,6 +916,22 @@ bool pchvml_parser_is_preposition_attribute (
     const struct pchvml_attr_entry* entry =pchvml_attr_static_search(name,
             strlen(name));
     return (entry && entry->type == PCHVML_ATTR_TYPE_PREP);
+}
+
+bool pchvml_parser_is_on_archedata (struct pchvml_parser* parser)
+{
+    const char* name = pchvml_buffer_get_buffer(parser->tag_name);
+    const struct pchvml_tag_entry* entry = pchvml_tag_static_search(name,
+            strlen(name));
+    return (entry && (entry->id == PCHVML_TAG_ARCHEDATA));
+}
+
+bool pchvml_parser_is_on_archetype (struct pchvml_parser* parser)
+{
+    const char* name = pchvml_buffer_get_buffer(parser->tag_name);
+    const struct pchvml_tag_entry* entry = pchvml_tag_static_search(name,
+            strlen(name));
+    return (entry && (entry->id == PCHVML_TAG_ARCHETYPE));
 }
 
 bool pchvml_parser_is_handle_as_jsonee(struct pchvml_token* token, uint32_t uc)
@@ -2380,6 +2398,12 @@ next_state:
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
                 RETURN_NEW_EOF_TOKEN();
+            }
+            if (pchvml_parser_is_on_archedata(parser)) {
+                RECONSUME_IN(PCHVML_EJSON_ARCHEDATA_STATE);
+            }
+            if (pchvml_parser_is_on_archetype(parser)) {
+                RECONSUME_IN(PCHVML_EJSON_ARCHETYPE_STATE);
             }
             RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
         END_STATE()
@@ -4213,6 +4237,14 @@ next_state:
             }
             PCHVML_SET_ERROR(PCHVML_ERROR_BAD_JSONEE_NAME);
             RETURN_AND_STOP_PARSE();
+        END_STATE()
+
+        BEGIN_STATE(PCHVML_EJSON_ARCHEDATA_STATE)
+            RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
+        END_STATE()
+
+        BEGIN_STATE(PCHVML_EJSON_ARCHETYPE_STATE)
+            RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
         END_STATE()
 
         default:
