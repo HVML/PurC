@@ -1027,3 +1027,51 @@ purc_variant_t purc_variant_dynamic_value_load_from_so(const char* so_name,
 
 #endif
 
+purc_variant_t purc_variant_load_from_so (const char* so_name,
+        const char* var_name)
+{
+    purc_variant_t value = PURC_VARIANT_INVALID;
+    purc_variant_t val = PURC_VARIANT_INVALID;
+
+#if OS(LINUX) || OS(UNIX)
+    void * library_handle = NULL;
+
+    library_handle = dlopen(so_name, RTLD_LAZY);
+    if(!library_handle)
+        return PURC_VARIANT_INVALID;
+
+    purc_variant_t (* get_variant_by_name)(const char *);
+
+    get_variant_by_name = (purc_variant_t (*) (const char *))dlsym(
+            library_handle, "get_variant_by_name");
+    if(dlerror() != NULL)
+    {
+        dlclose(library_handle);
+        return PURC_VARIANT_INVALID;
+    }
+
+    value = get_variant_by_name(var_name);
+    if(value == PURC_VARIANT_INVALID)
+    {
+        dlclose(library_handle);
+        return PURC_VARIANT_INVALID;
+    }
+
+#else // 0
+    UNUSED_PARAM(so_name);
+    UNUSED_PARAM(var_name);
+#endif // !0
+
+    if (purc_variant_is_type (value, PURC_VARIANT_TYPE_OBJECT)) {
+        val = purc_variant_make_ulongint ((uint64_t)library_handle);
+        purc_variant_object_set_by_static_ckey (value,
+                "__intr_dlhandle", val);
+        purc_variant_unref (val);
+    }  else  {
+        purc_variant_unref (value);
+        dlclose(library_handle);
+        value = PURC_VARIANT_INVALID;
+    }
+
+    return value;
+}
