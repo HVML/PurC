@@ -27,7 +27,7 @@ hvml head body
     state: data
     categories: framework noun
 
-# normal elements: fragement template elements
+# normal elements: fragment template elements
 archetype error except
     state: rawtext
     categories: template fragment ordinary noun
