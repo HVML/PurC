@@ -25,8 +25,8 @@
 #ifndef _DVOJBS_TOOLS_H_
 #define _DVOJBS_TOOLS_H_
 
-#include "config.h"
-//#include "private/debug.h"
+// #include "config.h"
+// #include "private/debug.h"
 #include "purc-variant.h"
 
 #ifdef __cplusplus

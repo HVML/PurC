@@ -22,21 +22,22 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "config.h"
-#include "private/instance.h"
-#include "private/errors.h"
-
 #include "purc-variant.h"
-#include "../pub/helper.h"
+#include "helper.h"
+#include "purc-version.h"
 
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
 #include <sys/utsname.h>
 
 #define __USE_GNU
 #include <math.h>
 
+#define UNUSED_PARAM (void)
 
 static purc_variant_t
 pi_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)

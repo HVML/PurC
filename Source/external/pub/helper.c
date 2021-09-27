@@ -22,12 +22,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "private/instance.h"
-#include "private/errors.h"
-#include "private/debug.h"
-#include "private/utils.h"
-#include "private/edom.h"
-#include "private/html.h"
+// #include "private/instance.h"
+// #include "private/errors.h"
+// #include "private/debug.h"
+// #include "private/utils.h"
+// #include "private/edom.h"
+// #include "private/html.h"
 
 #include "purc-variant.h"
 
@@ -36,6 +36,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 #include <sys/utsname.h>
 #include <sys/time.h>
 
