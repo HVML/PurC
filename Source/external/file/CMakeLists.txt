@@ -22,4 +22,5 @@ include_directories(SYSTEM ${EXTERNAL_DVOBJS_INCLUDE_DIRECTORIES})
 add_library(purc-dvobj-FILE SHARED ${EXTERNAL_DVOBJS_FILE_SOURCES})
 target_link_libraries(purc-dvobj-FILE ${EXTERNAL_DVOBJS_LIBRARIES})
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--no-as-needed")
-install(TARGETS purc-dvobj-FILE DESTINATION "/usr/lib")
+
+install(TARGETS purc-dvobj-FILE DESTINATION "/usr/lib/purc-${PURC_API_VERSION}")
