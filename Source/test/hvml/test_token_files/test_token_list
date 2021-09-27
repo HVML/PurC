@@ -7,6 +7,7 @@ hvml_006_multiple_char_ref
 hvml_007_self_close
 hvml_008_multiple_self_close
 hvml_009_attribute_without_assignment
+hvml_010_archetype
 jsonee_001_double_quoted_attr
 jsonee_002_unquoted_attr
 jsonee_003_attr_without_value

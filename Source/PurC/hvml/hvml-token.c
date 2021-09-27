@@ -547,6 +547,13 @@ struct pchvml_buffer* pchvml_token_to_string(struct pchvml_token* token)
         break;
 
     case PCHVML_TOKEN_VCM_TREE:
+        {
+            buffer = pchvml_buffer_new();
+            size_t nr_vcm_buffer = 0;
+            char* vcm_buffer = pcvcm_node_to_string(token->vcm_content,
+                    &nr_vcm_buffer);
+            pchvml_buffer_append_bytes(buffer, vcm_buffer, nr_vcm_buffer);
+        }
         break;
 
     case PCHVML_TOKEN_EOF:

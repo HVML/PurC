@@ -116,7 +116,7 @@
         const char* name = pchvml_token_get_name(token);                    \
         if (pchvml_token_is_type(token, PCHVML_TOKEN_START_TAG) &&          \
                 pchvml_parser_is_template_tag(name)) {                      \
-            parser->state = PCHVML_EJSON_CONTROL_STATE;                     \
+            parser->state = PCHVML_EJSON_DATA_STATE;                        \
         }                                                                   \
     } while (false)
 
@@ -184,6 +184,7 @@
     do {                                                                    \
         parser->state = next_state;                                         \
         pchvml_token_done(token);                                           \
+        pchvml_token_done(next_token);                                      \
         parser->token = next_token;                                         \
         return token;                                                       \
     } while (false)
@@ -4272,7 +4273,8 @@ next_state:
 
         BEGIN_STATE(PCHVML_EJSON_TEMPLATE_DATA_STATE)
             if (character == '<') {
-                if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
+                if (!pchvml_buffer_is_empty(parser->temp_buffer) &&
+                        !pchvml_buffer_is_whitespace(parser->temp_buffer)) {
                     struct pcvcm_node* node = pcvcm_node_new_string(
                             pchvml_buffer_get_buffer(parser->temp_buffer)
                             );
@@ -4321,6 +4323,7 @@ next_state:
         BEGIN_STATE(PCHVML_EJSON_TEMPLATE_DATA_END_TAG_NAME_STATE)
             if (is_ascii_alpha(character)) {
                 APPEND_TO_STRING_BUFFER(character);
+                ADVANCE_TO(PCHVML_EJSON_TEMPLATE_DATA_END_TAG_NAME_STATE);
             }
             if (character == '>') {
                 const char* name = pchvml_buffer_get_buffer(
@@ -4332,8 +4335,16 @@ next_state:
             APPEND_TO_TEMP_BUFFER('<');
             APPEND_TO_TEMP_BUFFER('/');
             APPEND_BUFFER_TO_TEMP_BUFFER(parser->string_buffer);
+            APPEND_TO_TEMP_BUFFER('>');
+            if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
+                struct pcvcm_node* node = pcvcm_node_new_string(
+                        pchvml_buffer_get_buffer(parser->temp_buffer)
+                        );
+                APPEND_AS_VCM_CHILD(node);
+                RESET_TEMP_BUFFER();
+            }
             RESET_STRING_BUFFER();
-            RECONSUME_IN(PCHVML_EJSON_TEMPLATE_DATA_STATE);
+            ADVANCE_TO(PCHVML_EJSON_TEMPLATE_DATA_STATE);
         END_STATE()
 
         BEGIN_STATE(PCHVML_EJSON_TEMPLATE_FINISHED_STATE)
@@ -4346,7 +4357,6 @@ next_state:
             struct pchvml_token* next_token = pchvml_token_new_end_tag();
             pchvml_token_append_buffer_to_name(next_token,
                     parser->string_buffer);
-            parser->vcm_node = NULL;
             RESET_VCM_NODE();
             RESET_STRING_BUFFER();
             RETURN_MULTIPLE_AND_SWITCH_TO(token, next_token, PCHVML_DATA_STATE);
