@@ -111,15 +111,25 @@
         parser->state = new_state;                                          \
     } while (false)
 
+#define CHECK_TEMPLATE_TAG_AND_SWITCH_STATE(token)                          \
+    do {                                                                    \
+        const char* name = pchvml_token_get_name(token);                    \
+        if (pchvml_token_is_type(token, PCHVML_TOKEN_START_TAG) &&          \
+                pchvml_parser_is_template_tag(name)) {                      \
+            parser->state = PCHVML_EJSON_CONTROL_STATE;                     \
+        }                                                                   \
+    } while (false)
+
 #define RETURN_IN_CURRENT_STATE(expression)                                 \
     do {                                                                    \
         parser->state = curr_state;                                         \
         pchvml_rwswrap_buffer_chars(parser->rwswrap, &character, 1);        \
         if (expression) {                                                   \
-            pchvml_parser_save_tag_name(parser);                       \
+            pchvml_parser_save_tag_name(parser);                            \
             pchvml_token_done(parser->token);                               \
             struct pchvml_token* token = parser->token;                     \
             parser->token = NULL;                                           \
+            CHECK_TEMPLATE_TAG_AND_SWITCH_STATE(token);                     \
             return token;                                                   \
         }                                                                   \
         return NULL;                                                        \
@@ -132,6 +142,7 @@
         pchvml_token_done(parser->token);                                   \
         struct pchvml_token* token = parser->token;                         \
         parser->token = NULL;                                               \
+        CHECK_TEMPLATE_TAG_AND_SWITCH_STATE(token);                         \
         return token;                                                       \
     } while (false)
 
@@ -936,14 +947,19 @@ bool pchvml_parser_is_preposition_attribute (
     return (entry && entry->type == PCHVML_ATTR_TYPE_PREP);
 }
 
-bool pchvml_parser_is_in_template (struct pchvml_parser* parser)
+bool pchvml_parser_is_template_tag (const char* name)
 {
-    const char* name = pchvml_buffer_get_buffer(parser->tag_name);
     const struct pchvml_tag_entry* entry = pchvml_tag_static_search(name,
             strlen(name));
     return (entry && (entry->id == PCHVML_TAG_ARCHETYPE
                 || entry->id == PCHVML_TAG_ERROR
                 || entry->id == PCHVML_TAG_EXCEPT));
+}
+
+bool pchvml_parser_is_in_template (struct pchvml_parser* parser)
+{
+    const char* name = pchvml_buffer_get_buffer(parser->tag_name);
+    return pchvml_parser_is_template_tag(name);
 }
 
 bool pchvml_parser_is_handle_as_jsonee(struct pchvml_token* token, uint32_t uc)
