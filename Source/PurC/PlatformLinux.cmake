@@ -14,6 +14,7 @@ list(APPEND PurC_SOURCES
 list(APPEND PurC_LIBRARIES
     -lpthread
     -lm
+    -ldl
 )
 
 if (ENABLE_SOCKET_STREAM)

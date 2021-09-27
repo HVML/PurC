@@ -1027,3 +1027,91 @@ purc_variant_t purc_variant_dynamic_value_load_from_so(const char* so_name,
 
 #endif
 
+purc_variant_t purc_variant_load_from_so (const char* so_name,
+        const char* var_name, int *ver_code)
+{
+    purc_variant_t value = PURC_VARIANT_INVALID;
+    purc_variant_t val = PURC_VARIANT_INVALID;
+
+#if OS(LINUX) || OS(UNIX)
+    void * library_handle = NULL;
+
+    library_handle = dlopen(so_name, RTLD_LAZY);
+    if(!library_handle)  {
+        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t (* purcex_load_dynamic_variant)(const char *,
+            int* ver_code);
+
+    purcex_load_dynamic_variant = (purc_variant_t (*) (const char *, int *))
+        dlsym(library_handle, "__purcex_load_dynamic_variant");
+    if(dlerror() != NULL)
+    {
+        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+        dlclose(library_handle);
+        return PURC_VARIANT_INVALID;
+    }
+
+    value = purcex_load_dynamic_variant (var_name, ver_code);
+    if(value == PURC_VARIANT_INVALID)
+    {
+        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+        dlclose(library_handle);
+        return PURC_VARIANT_INVALID;
+    }
+
+#else // 0
+    UNUSED_PARAM(so_name);
+    UNUSED_PARAM(var_name);
+#endif // !0
+
+    if (purc_variant_is_type (value, PURC_VARIANT_TYPE_OBJECT)) {
+        val = purc_variant_make_ulongint ((uint64_t)library_handle);
+        purc_variant_object_set_by_static_ckey (value,
+                "__intr_dlhandle", val);
+        purc_variant_unref (val);
+    }  else  {
+        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+        purc_variant_unref (value);
+        dlclose(library_handle);
+        value = PURC_VARIANT_INVALID;
+    }
+
+    return value;
+}
+
+bool purc_variant_unload_so (purc_variant_t value)
+{
+    bool ret = true;
+
+    if (value == PURC_VARIANT_INVALID)  {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return false;
+    }
+
+    if (!purc_variant_is_type (value, PURC_VARIANT_TYPE_OBJECT))  {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return false;
+    }
+
+    uint64_t u64 = 0;
+    purc_variant_t val = purc_variant_object_get_by_ckey (value,
+            "__intr_dlhandle");
+    purc_variant_cast_to_ulongint (val, &u64, false);
+
+    if (u64) {
+        if (dlclose((void *)u64) == 0)  {
+            purc_variant_unref (value);
+        }  else  {
+            pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+            ret = false;
+        }
+    }  else  {
+        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+        ret = false;
+    }
+
+    return ret;
+}
