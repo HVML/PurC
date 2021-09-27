@@ -128,7 +128,7 @@
 #define RETURN_AND_SWITCH_TO(next_state)                                    \
     do {                                                                    \
         parser->state = next_state;                                         \
-        pchvml_parser_save_tag_name(parser);                           \
+        pchvml_parser_save_tag_name(parser);                                \
         pchvml_token_done(parser->token);                                   \
         struct pchvml_token* token = parser->token;                         \
         parser->token = NULL;                                               \
@@ -167,6 +167,14 @@
             parser->token = NULL;                                           \
             return token;                                                   \
         }                                                                   \
+    } while (false)
+
+#define RETURN_MULTIPLE_AND_SWITCH_TO(token, next_token, next_state)        \
+    do {                                                                    \
+        parser->state = next_state;                                         \
+        pchvml_token_done(token);                                           \
+        parser->token = next_token;                                         \
+        return token;                                                       \
     } while (false)
 
 #define STATE_DESC(state_name)                                              \
@@ -870,8 +878,11 @@ const char* pchvml_pchvml_state_desc (enum pchvml_state state)
         STATE_DESC(PCHVML_EJSON_JSONEE_KEYWORD_STATE)
         STATE_DESC(PCHVML_EJSON_JSONEE_STRING_STATE)
         STATE_DESC(PCHVML_EJSON_AFTER_JSONEE_STRING_STATE)
-        STATE_DESC(PCHVML_EJSON_ARCHEDATA_STATE)
-        STATE_DESC(PCHVML_EJSON_ARCHETYPE_STATE)
+        STATE_DESC(PCHVML_EJSON_TEMPLATE_DATA_STATE)
+        STATE_DESC(PCHVML_EJSON_TEMPLATE_DATA_LESS_THAN_SIGN_STATE)
+        STATE_DESC(PCHVML_EJSON_TEMPLATE_DATA_END_TAG_OPEN_STATE)
+        STATE_DESC(PCHVML_EJSON_TEMPLATE_DATA_END_TAG_NAME_STATE)
+        STATE_DESC(PCHVML_EJSON_TEMPLATE_FINISHED_STATE)
     }
     return NULL;
 }
@@ -889,6 +900,13 @@ void pchvml_parser_save_tag_name (struct pchvml_parser* parser)
 bool pchvml_parser_is_appropriate_end_tag (struct pchvml_parser* parser)
 {
     const char* name = pchvml_token_get_name(parser->token);
+    return pchvml_buffer_equal_to (parser->tag_name, name,
+            strlen(name));
+}
+
+bool pchvml_parser_is_appropriate_tag_name(struct pchvml_parser* parser,
+        const char* name)
+{
     return pchvml_buffer_equal_to (parser->tag_name, name,
             strlen(name));
 }
@@ -918,20 +936,14 @@ bool pchvml_parser_is_preposition_attribute (
     return (entry && entry->type == PCHVML_ATTR_TYPE_PREP);
 }
 
-bool pchvml_parser_is_on_archedata (struct pchvml_parser* parser)
+bool pchvml_parser_is_in_template (struct pchvml_parser* parser)
 {
     const char* name = pchvml_buffer_get_buffer(parser->tag_name);
     const struct pchvml_tag_entry* entry = pchvml_tag_static_search(name,
             strlen(name));
-    return (entry && (entry->id == PCHVML_TAG_ARCHEDATA));
-}
-
-bool pchvml_parser_is_on_archetype (struct pchvml_parser* parser)
-{
-    const char* name = pchvml_buffer_get_buffer(parser->tag_name);
-    const struct pchvml_tag_entry* entry = pchvml_tag_static_search(name,
-            strlen(name));
-    return (entry && (entry->id == PCHVML_TAG_ARCHETYPE));
+    return (entry && (entry->id == PCHVML_TAG_ARCHETYPE
+                || entry->id == PCHVML_TAG_ERROR
+                || entry->id == PCHVML_TAG_EXCEPT));
 }
 
 bool pchvml_parser_is_handle_as_jsonee(struct pchvml_token* token, uint32_t uc)
@@ -2399,11 +2411,14 @@ next_state:
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
                 RETURN_NEW_EOF_TOKEN();
             }
-            if (pchvml_parser_is_on_archedata(parser)) {
-                RECONSUME_IN(PCHVML_EJSON_ARCHEDATA_STATE);
-            }
-            if (pchvml_parser_is_on_archetype(parser)) {
-                RECONSUME_IN(PCHVML_EJSON_ARCHETYPE_STATE);
+            if (pchvml_parser_is_in_template(parser)) {
+                struct pcvcm_node* snode = pcvcm_node_new_concat_string(0,
+                        NULL);
+                UPDATE_VCM_NODE(snode);
+                ejson_stack_push('"');
+                RESET_TEMP_BUFFER();
+                RESET_STRING_BUFFER();
+                RECONSUME_IN(PCHVML_EJSON_TEMPLATE_DATA_STATE);
             }
             RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
         END_STATE()
@@ -4239,12 +4254,86 @@ next_state:
             RETURN_AND_STOP_PARSE();
         END_STATE()
 
-        BEGIN_STATE(PCHVML_EJSON_ARCHEDATA_STATE)
-            RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
+        BEGIN_STATE(PCHVML_EJSON_TEMPLATE_DATA_STATE)
+            if (character == '<') {
+                if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
+                    struct pcvcm_node* node = pcvcm_node_new_string(
+                            pchvml_buffer_get_buffer(parser->temp_buffer)
+                            );
+                    APPEND_AS_VCM_CHILD(node);
+                    RESET_TEMP_BUFFER();
+                }
+                ADVANCE_TO(PCHVML_EJSON_TEMPLATE_DATA_LESS_THAN_SIGN_STATE);
+            }
+            if (is_eof(character)) {
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
+                RETURN_NEW_EOF_TOKEN();
+            }
+            if (character == '$') {
+                if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
+                    struct pcvcm_node* node = pcvcm_node_new_string(
+                            pchvml_buffer_get_buffer(parser->temp_buffer)
+                            );
+                    APPEND_AS_VCM_CHILD(node);
+                    RESET_TEMP_BUFFER();
+                }
+                RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
+            }
+            APPEND_TO_TEMP_BUFFER(character);
+            ADVANCE_TO(PCHVML_EJSON_TEMPLATE_DATA_STATE);
         END_STATE()
 
-        BEGIN_STATE(PCHVML_EJSON_ARCHETYPE_STATE)
-            RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
+        BEGIN_STATE(PCHVML_EJSON_TEMPLATE_DATA_LESS_THAN_SIGN_STATE)
+            if (character == '/') {
+                RESET_TEMP_BUFFER();
+                ADVANCE_TO(PCHVML_EJSON_TEMPLATE_DATA_END_TAG_OPEN_STATE);
+            }
+            APPEND_TO_TEMP_BUFFER('<');
+            RECONSUME_IN(PCHVML_EJSON_TEMPLATE_DATA_STATE);
+        END_STATE()
+
+        BEGIN_STATE(PCHVML_EJSON_TEMPLATE_DATA_END_TAG_OPEN_STATE)
+            if (is_ascii_alpha(character)) {
+                RESET_STRING_BUFFER();
+                RECONSUME_IN(PCHVML_EJSON_TEMPLATE_DATA_END_TAG_NAME_STATE);
+            }
+            APPEND_TO_TEMP_BUFFER('<');
+            APPEND_TO_TEMP_BUFFER('/');
+            RECONSUME_IN(PCHVML_EJSON_TEMPLATE_DATA_STATE);
+        END_STATE()
+
+        BEGIN_STATE(PCHVML_EJSON_TEMPLATE_DATA_END_TAG_NAME_STATE)
+            if (is_ascii_alpha(character)) {
+                APPEND_TO_STRING_BUFFER(character);
+            }
+            if (character == '>') {
+                const char* name = pchvml_buffer_get_buffer(
+                        parser->string_buffer);
+                if (pchvml_parser_is_appropriate_tag_name(parser, name)) {
+                    RECONSUME_IN(PCHVML_EJSON_TEMPLATE_FINISHED_STATE);
+                }
+            }
+            APPEND_TO_TEMP_BUFFER('<');
+            APPEND_TO_TEMP_BUFFER('/');
+            APPEND_BUFFER_TO_TEMP_BUFFER(parser->string_buffer);
+            RESET_STRING_BUFFER();
+            RECONSUME_IN(PCHVML_EJSON_TEMPLATE_DATA_STATE);
+        END_STATE()
+
+        BEGIN_STATE(PCHVML_EJSON_TEMPLATE_FINISHED_STATE)
+            while (!vcm_stack_is_empty()) {
+                ejson_stack_pop();
+                POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+            }
+
+            struct pchvml_token* token = pchvml_token_new_vcm(parser->vcm_node);
+            struct pchvml_token* next_token = pchvml_token_new_end_tag();
+            pchvml_token_append_buffer_to_name(next_token,
+                    parser->string_buffer);
+            parser->vcm_node = NULL;
+            RESET_VCM_NODE();
+            RESET_STRING_BUFFER();
+            RETURN_MULTIPLE_AND_SWITCH_TO(token, next_token, PCHVML_DATA_STATE);
         END_STATE()
 
         default:

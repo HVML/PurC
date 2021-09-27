@@ -243,6 +243,15 @@ void pchvml_token_append_to_name (struct pchvml_token* token, uint32_t uc)
     pchvml_buffer_append(token->name, uc);
 }
 
+void pchvml_token_append_buffer_to_name (struct pchvml_token* token,
+        struct pchvml_buffer* buffer)
+{
+    if (!token->name) {
+        token->name = pchvml_buffer_new();
+    }
+    pchvml_buffer_append_temp_buffer(token->name, buffer);
+}
+
 const char* pchvml_token_get_name (struct pchvml_token* token)
 {
     return token->name ? pchvml_buffer_get_buffer (token->name) : NULL;

@@ -100,6 +100,9 @@ void pchvml_token_destroy (struct pchvml_token* token);
 
 void pchvml_token_append_to_name (struct pchvml_token* token, uint32_t uc);
 
+void pchvml_token_append_buffer_to_name (struct pchvml_token* token,
+        struct pchvml_buffer* buffer);
+
 const char* pchvml_token_get_name (struct pchvml_token* token);
 
 void pchvml_token_append_to_text (struct pchvml_token* token,
