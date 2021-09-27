@@ -129,18 +129,7 @@ _vgim_to_string(struct pcvdom_gen *gen)
 static inline int
 _push_node(struct pcvdom_gen *gen, struct pcvdom_node *node)
 {
-    if (gen->nr_open + 1 >= gen->sz_elements) {
-        size_t sz = gen->sz_elements + 16;
-        struct pcvdom_node **elems;
-        elems = (struct pcvdom_node**)realloc(gen->open_elements,
-            sz * sizeof(*elems));
-        if (!elems)
-            return -1;
-        gen->open_elements = elems;
-        gen->sz_elements   = sz;
-    }
-
-    gen->open_elements[gen->nr_open++] = node;
+    gen->curr = node;
 
     return 0;
 }
@@ -148,27 +137,20 @@ _push_node(struct pcvdom_gen *gen, struct pcvdom_node *node)
 static inline struct pcvdom_node*
 _pop_node(struct pcvdom_gen *gen)
 {
-    if (!gen->open_elements)
+    if (!gen->curr)
         return NULL;
 
-    if (gen->nr_open <= 0) {
-        return NULL;
-    }
-
-    return gen->open_elements[--gen->nr_open];
+    struct pcvdom_node *node;
+    node = container_of(gen->curr->node.parent,
+            struct pcvdom_node, node);
+    gen->curr = node;
+    return node;
 }
 
 static inline struct pcvdom_node*
 _top_node(struct pcvdom_gen *gen)
 {
-    if (!gen->open_elements)
-        return NULL;
-
-    if (gen->nr_open <= 0) {
-        return NULL;
-    }
-
-    return gen->open_elements[gen->nr_open-1];
+    return gen->curr;
 }
 
 static inline bool
@@ -411,12 +393,6 @@ pcvdom_gen_end(struct pcvdom_gen *gen)
     gen->doc  = NULL; // transfer ownership
     gen->curr = NULL;
 
-    if (gen->open_elements) {
-        free(gen->open_elements);
-        gen->open_elements = NULL;
-        gen->nr_open       = 0;
-        gen->sz_elements   = 0;
-    }
     gen->eof = 1;
 
     gen->parser = NULL;
@@ -434,13 +410,6 @@ pcvdom_gen_destroy(struct pcvdom_gen *gen)
 
     gen->doc  = NULL;
     gen->curr = NULL;
-
-    if (gen->open_elements) {
-        free(gen->open_elements);
-        gen->open_elements = NULL;
-        gen->nr_open       = 0;
-        gen->sz_elements   = 0;
-    }
 
     free(gen);
 }
