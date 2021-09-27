@@ -36,6 +36,23 @@ extern "C" {
 
 #define STREAM_SIZE 1024
 
+typedef purc_variant_t (*pcdvobjs_create) (void);
+
+// as FILE, FS, MATH
+struct pcdvojbs_dvobjs_object {
+    const char *name;
+    const char *description;
+    pcdvobjs_create create_func;
+};
+
+// dynamic variant in dynamic object
+struct pcdvojbs_dvobjs {
+    const char * name;
+    purc_dvariant_method getter;
+    purc_dvariant_method setter;
+};
+
+
 struct pcdvobjs_math_value {
     double d;
     long double ld;
@@ -48,12 +65,6 @@ struct pcdvobjs_math_param {
     int is_long_double;
 
     purc_variant_t variables;
-};
-
-struct pcdvojbs_dvobjs {
-    const char * name;
-    purc_dvariant_method getter;
-    purc_dvariant_method setter;
 };
 
 int pcdvobjs_math_param_set_var(struct pcdvobjs_math_param *param,

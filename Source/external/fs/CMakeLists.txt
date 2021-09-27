@@ -13,13 +13,13 @@ set(EXTERNAL_DVOBJS_LIBRARIES
     purc
 )
 
-set(EXTERNAL_DVOBJS_FILE_SOURCES
-    file.c
+set(EXTERNAL_DVOBJS_FS_SOURCES
+    fs.c
     ../pub/helper.c
 )
 
 include_directories(SYSTEM ${EXTERNAL_DVOBJS_INCLUDE_DIRECTORIES})
-add_library(purc-dvobj-FILE SHARED ${EXTERNAL_DVOBJS_FILE_SOURCES})
-target_link_libraries(purc-dvobj-FILE ${EXTERNAL_DVOBJS_LIBRARIES})
+add_library(purc-dvobj-FS SHARED ${EXTERNAL_DVOBJS_FS_SOURCES})
+target_link_libraries(purc-dvobj-FS ${EXTERNAL_DVOBJS_LIBRARIES})
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--no-as-needed")
-install(TARGETS purc-dvobj-FILE DESTINATION "/usr/lib")
+install(TARGETS purc-dvobj-FS DESTINATION "/usr/lib")

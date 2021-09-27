@@ -24,11 +24,9 @@
 #include "config.h"
 #include "private/instance.h"
 #include "private/errors.h"
-//#include "private/debug.h"
-//#include "private/utils.h"
 
 #include "purc-variant.h"
-#include "helper.h"
+#include "../pub/helper.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -1515,11 +1513,8 @@ stream_close_getter (purc_variant_t root, size_t nr_args,
     return ret_var;
 }
 
-// only for test now.
-purc_variant_t get_variant_by_name (char * name)
+static purc_variant_t pcdvobjs_create_file (void)
 {
-    UNUSED_PARAM(name);
-
     purc_variant_t file_text = PURC_VARIANT_INVALID;
     purc_variant_t file_bin = PURC_VARIANT_INVALID;
     purc_variant_t file_stream = PURC_VARIANT_INVALID;
@@ -1568,5 +1563,51 @@ error_bin:
     purc_variant_unref (file_text);
 error_text:
 
+
     return file;
+}
+
+static struct pcdvojbs_dvobjs_object dynamic_objects [] = {
+    {
+        "FILE",                             // name
+        "For File Operations in PURC",      // description
+        pcdvobjs_create_file                // create function
+    }
+};
+
+purc_variant_t __purcex_load_dynamic_variant (const char * name, int * ver_code)
+{
+    size_t i = 0;
+    for (i = 0; i < PCA_TABLESIZE(dynamic_objects); i++)  {
+        if (strncasecmp (name, dynamic_objects[i].name, strlen (name)) == 0)
+            break;
+    }
+
+    if (i == PCA_TABLESIZE(dynamic_objects))
+        return PURC_VARIANT_INVALID;
+    else  {
+        *ver_code = atoi (PURC_API_VERSION_STRING);
+        return dynamic_objects[i].create_func();
+    }
+}
+
+size_t __purcex_get_number_of_dynamic_variants (void)
+{
+    return PCA_TABLESIZE(dynamic_objects);
+}
+
+const char * __purcex_get_dynamic_variant_name (size_t idx)
+{
+    if (idx >= PCA_TABLESIZE(dynamic_objects))
+        return NULL;
+    else
+        return dynamic_objects[idx].name;
+}
+
+const char * __purcex_get_dynamic_variant_desc (size_t idx)
+{
+    if (idx >= PCA_TABLESIZE(dynamic_objects))
+        return NULL;
+    else
+        return dynamic_objects[idx].description;
 }

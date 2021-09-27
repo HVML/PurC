@@ -13,6 +13,7 @@
 #include <errno.h>
 #include <gtest/gtest.h>
 
+#if 0
 TEST(dvobjs, dvobjs_file_text_head)
 {
     purc_variant_t param[10];
@@ -219,3 +220,4 @@ TEST(dvobjs, dvobjs_file_bin_tail)
 
     purc_cleanup ();
 }
+#endif

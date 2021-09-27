@@ -15,6 +15,7 @@
 #include <math.h>
 #include <gtest/gtest.h>
 
+#if 0
 struct dvobjs_math_method_d
 {
     const char * func;
@@ -786,3 +787,5 @@ end:
 
     purc_cleanup ();
 }
+
+#endif

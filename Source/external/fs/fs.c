@@ -22,14 +22,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "config.h"
 #include "private/instance.h"
 #include "private/errors.h"
-#include "private/debug.h"
 #include "private/utils.h"
-#include "private/edom.h"
-#include "private/html.h"
 #include "purc-variant.h"
-#include "helper.h"
+#include "../pub/helper.h"
 
 #include <unistd.h>
 #include <stdbool.h>
@@ -97,13 +95,13 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     int i = 0;
 
     if ((argv == NULL) || (nr_args < 1)) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+//        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -114,7 +112,7 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
     else {
         if (getcwd (filename, PATH_MAX) == NULL)  {
-            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
             return PURC_VARIANT_INVALID;
         }
         strcat (dir_name, "/");
@@ -122,13 +120,13 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     if (access(dir_name, F_OK | R_OK) != 0)  {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
     // get the filter
     if ((argv[1] != NULL) && (!purc_variant_is_string (argv[1]))) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+//        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
     if (argv[1] != NULL)
@@ -155,7 +153,7 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     struct stat file_stat;
 
     if ((dir = opendir (dir_name)) == NULL) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+//        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
 
@@ -363,13 +361,13 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     int i = 0;
 
     if ((argv == NULL) || (nr_args < 1)) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -380,7 +378,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
     else {
         if (getcwd (filename, PATH_MAX) == NULL)  {
-            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
             return PURC_VARIANT_INVALID;
         }
         strcat (dir_name, "/");
@@ -388,13 +386,13 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     if (access(dir_name, F_OK | R_OK) != 0)  {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
     // get the filter
     if ((argv[1] != NULL) && (!purc_variant_is_string (argv[1]))) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+//        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
     if (argv[1] != NULL)
@@ -415,7 +413,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     // get the mode
     if ((argv[2] != NULL) && (!purc_variant_is_string (argv[2]))) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+//        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
     if (argv[2] != NULL)  {
@@ -525,7 +523,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     char info[512] = {0};
 
     if ((dir = opendir (dir_name)) == NULL) {
-        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+//        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
 
@@ -666,13 +664,13 @@ mkdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if ((argv == NULL) || (nr_args != 1)) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -683,7 +681,7 @@ mkdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
     else {
         if (getcwd (filename, PATH_MAX) == NULL)  {
-            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
             return PURC_VARIANT_INVALID;
         }
         strcat (filename, "/");
@@ -713,13 +711,13 @@ rmdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     bool empty = true;
 
     if ((argv == NULL) || (nr_args != 1)) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -730,7 +728,7 @@ rmdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
     else {
         if (getcwd (filename, PATH_MAX) == NULL)  {
-            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
             return PURC_VARIANT_INVALID;
         }
         strcat (filename, "/");
@@ -738,7 +736,7 @@ rmdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     if (access(filename, F_OK | R_OK) != 0)  {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return purc_variant_make_boolean (false);
     }
 
@@ -785,13 +783,13 @@ touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if ((argv == NULL) || (nr_args != 1)) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -802,7 +800,7 @@ touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
     else {
         if (getcwd (filename, PATH_MAX) == NULL)  {
-            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
             return PURC_VARIANT_INVALID;
         }
         strcat (filename, "/");
@@ -847,13 +845,13 @@ unlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if ((argv == NULL) || (nr_args != 1)) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -864,7 +862,7 @@ unlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
     else {
         if (getcwd (filename, PATH_MAX) == NULL)  {
-            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
             return PURC_VARIANT_INVALID;
         }
         strcat (filename, "/");
@@ -872,7 +870,7 @@ unlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     if (access(filename, F_OK | R_OK) != 0)  {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return purc_variant_make_boolean (false);
     }
 
@@ -901,13 +899,13 @@ rm_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if ((argv == NULL) || (nr_args != 1)) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -918,7 +916,7 @@ rm_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
     else {
         if (getcwd (filename, PATH_MAX) == NULL)  {
-            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
             return PURC_VARIANT_INVALID;
         }
         strcat (filename, "/");
@@ -934,7 +932,7 @@ rm_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
 }
 // only for test now.
-purc_variant_t pcdvojbs_get_fs (void)
+purc_variant_t pcdvobjs_create_fs(void)
 {
     static struct pcdvojbs_dvobjs method [] = {
         {"list",     list_getter, NULL},
@@ -947,4 +945,49 @@ purc_variant_t pcdvojbs_get_fs (void)
 
     size_t size = sizeof (method) / sizeof (struct pcdvojbs_dvobjs);
     return pcdvobjs_make_dvobjs (method, size);
+}
+
+static struct pcdvojbs_dvobjs_object dynamic_objects [] = {
+    {
+        "FS",                                   // name
+        "For File System Operations in PURC",   // description
+        pcdvobjs_create_fs                      // create function
+    }
+};
+
+purc_variant_t __purcex_load_dynamic_variant (const char * name, int * ver_code)
+{
+    size_t i = 0;
+    for (i = 0; i < PCA_TABLESIZE(dynamic_objects); i++)  {
+        if (strncasecmp (name, dynamic_objects[i].name, strlen (name)) == 0)
+            break;
+    }
+
+    if (i == PCA_TABLESIZE(dynamic_objects))
+        return PURC_VARIANT_INVALID;
+    else  {
+        *ver_code = atoi (PURC_API_VERSION_STRING);
+        return dynamic_objects[i].create_func();
+    }
+}
+
+size_t __purcex_get_number_of_dynamic_variants (void)
+{
+    return PCA_TABLESIZE(dynamic_objects);
+}
+
+const char * __purcex_get_dynamic_variant_name (size_t idx)
+{
+    if (idx >= PCA_TABLESIZE(dynamic_objects))
+        return NULL;
+    else
+        return dynamic_objects[idx].name;
+}
+
+const char * __purcex_get_dynamic_variant_desc (size_t idx)
+{
+    if (idx >= PCA_TABLESIZE(dynamic_objects))
+        return NULL;
+    else
+        return dynamic_objects[idx].description;
 }

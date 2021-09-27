@@ -22,22 +22,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "config.h"
 #include "private/instance.h"
 #include "private/errors.h"
-#include "private/debug.h"
-#include "private/utils.h"
-#include "private/edom.h"
-#include "private/html.h"
 
 #include "purc-variant.h"
-#include "helper.h"
+#include "../pub/helper.h"
 
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/utsname.h>
 
-#define __USE_GNU 
+#define __USE_GNU
 #include <math.h>
 
 
@@ -92,13 +89,13 @@ const_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     double number = 0.0d;
 
     if (nr_args == 0)  {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
     if ((nr_args >= 1) && (argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -109,7 +106,7 @@ const_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             if (strcasecmp (option, "e") == 0)
                 number = M_E;
             else {
-                pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//                pcinst_set_error (PURC_ERROR_WRONG_ARGS);
                 return PURC_VARIANT_INVALID;
             }
             break;
@@ -124,7 +121,7 @@ const_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             else if (strcasecmp (option, "ln10") == 0)
                 number = M_LN10;
             else {
-                pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//                pcinst_set_error (PURC_ERROR_WRONG_ARGS);
                 return PURC_VARIANT_INVALID;
             }
             break;
@@ -137,7 +134,7 @@ const_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             else if (strcasecmp (option, "pi/4") == 0)
                 number = M_PI_4;
             else {
-                pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//                pcinst_set_error (PURC_ERROR_WRONG_ARGS);
                 return PURC_VARIANT_INVALID;
             }
             break;
@@ -147,7 +144,7 @@ const_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             else if (strcasecmp (option, "1/sqrt(2)") == 0)
                 number = M_SQRT1_2;
             else {
-                pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//                pcinst_set_error (PURC_ERROR_WRONG_ARGS);
                 return PURC_VARIANT_INVALID;
             }
             break;
@@ -157,7 +154,7 @@ const_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             else if (strcasecmp (option, "2/sqrt(2)") == 0)
                 number = M_2_SQRTPI;
             else {
-                pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//                pcinst_set_error (PURC_ERROR_WRONG_ARGS);
                 return PURC_VARIANT_INVALID;
             }
             break;
@@ -166,12 +163,12 @@ const_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             if (strcasecmp (option, "sqrt(2)") == 0)
                 number = M_SQRT2;
             else {
-                pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//                pcinst_set_error (PURC_ERROR_WRONG_ARGS);
                 return PURC_VARIANT_INVALID;
             }
             break;
         default:
-            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
             return PURC_VARIANT_INVALID;
     }
 
@@ -187,12 +184,12 @@ const_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     long double number = 0.0d;
 
     if (nr_args == 0)  {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
     if ((nr_args >= 1) && (argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -203,7 +200,7 @@ const_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             if (strcasecmp (option, "e") == 0)
                 number = (long double)M_El;
             else {
-                pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//                pcinst_set_error (PURC_ERROR_WRONG_ARGS);
                 return PURC_VARIANT_INVALID;
             }
             break;
@@ -218,7 +215,7 @@ const_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             else if (strcasecmp (option, "ln10") == 0)
                 number = (long double)M_LN10l;
             else {
-                pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//                pcinst_set_error (PURC_ERROR_WRONG_ARGS);
                 return PURC_VARIANT_INVALID;
             }
             break;
@@ -231,7 +228,7 @@ const_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             else if (strcasecmp (option, "pi/4") == 0)
                 number = (long double)M_PI_4l;
             else {
-                pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//                pcinst_set_error (PURC_ERROR_WRONG_ARGS);
                 return PURC_VARIANT_INVALID;
             }
             break;
@@ -241,7 +238,7 @@ const_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             else if (strcasecmp (option, "1/sqrt(2)") == 0)
                 number = (long double)M_SQRT1_2l;
             else {
-                pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//                pcinst_set_error (PURC_ERROR_WRONG_ARGS);
                 return PURC_VARIANT_INVALID;
             }
             break;
@@ -251,7 +248,7 @@ const_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             else if (strcasecmp (option, "2/sqrt(2)") == 0)
                 number = (long double)M_2_SQRTPIl;
             else {
-                pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//                pcinst_set_error (PURC_ERROR_WRONG_ARGS);
                 return PURC_VARIANT_INVALID;
             }
             break;
@@ -260,12 +257,12 @@ const_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             if (strcasecmp (option, "sqrt(2)") == 0)
                 number = (long double)M_SQRT2l;
             else {
-                pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//                pcinst_set_error (PURC_ERROR_WRONG_ARGS);
                 return PURC_VARIANT_INVALID;
             }
             break;
         default:
-            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
             return PURC_VARIANT_INVALID;
     }
 
@@ -283,7 +280,7 @@ sin_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     double number = 0.0d;
 
     if (nr_args == 0)  {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
     purc_variant_cast_to_number (argv[0], &number, false);
@@ -302,7 +299,7 @@ cos_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     double number = 0.0d;
 
     if (nr_args == 0)  {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
     purc_variant_cast_to_number (argv[0], &number, false);
@@ -321,7 +318,7 @@ sqrt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     double number = 0.0d;
 
     if (nr_args == 0)  {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
     purc_variant_cast_to_number (argv[0], &number, false);
@@ -340,7 +337,7 @@ sin_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     long double number = 0.0d;
 
     if (nr_args == 0)  {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
     purc_variant_cast_to_long_double (argv[0], &number, false);
@@ -359,7 +356,7 @@ cos_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     long double number = 0.0d;
 
     if (nr_args == 0)  {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -379,7 +376,7 @@ sqrt_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     long double number = 0.0d;
 
     if (nr_args == 0)  {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
     purc_variant_cast_to_long_double (argv[0], &number, false);
@@ -398,20 +395,20 @@ internal_eval_getter (int is_long_double, purc_variant_t root,
     purc_variant_t param = PURC_VARIANT_INVALID;
 
     if (nr_args == 0)  {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
     if (nr_args == 2) {
         if ((argv[1] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_object (argv[1]))) {
-            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
             return PURC_VARIANT_INVALID;
         }
         else
@@ -428,7 +425,7 @@ internal_eval_getter (int is_long_double, purc_variant_t root,
     result = math_parse(purc_variant_get_string_const(argv[0]), &myparam);
 
     if (result != 0) {
-        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+//        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         return PURC_VARIANT_INVALID;
     }
 
@@ -453,7 +450,7 @@ eval_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
 
 // only for test now.
-purc_variant_t pcdvojbs_get_math (void)
+purc_variant_t pcdvobjs_create_math (void)
 {
     static struct pcdvojbs_dvobjs method [] = {
         {"pi",      pi_getter, NULL},
@@ -473,4 +470,49 @@ purc_variant_t pcdvojbs_get_math (void)
 
     size_t size = sizeof (method) / sizeof (struct pcdvojbs_dvobjs);
     return pcdvobjs_make_dvobjs (method, size);
+}
+
+static struct pcdvojbs_dvobjs_object dynamic_objects [] = {
+    {
+        "MATH",                             // name
+        "For MATH Operations in PURC",      // description
+        pcdvobjs_create_math                // create function
+    }
+};
+
+purc_variant_t __purcex_load_dynamic_variant (const char * name, int * ver_code)
+{
+    size_t i = 0;
+    for (i = 0; i < PCA_TABLESIZE(dynamic_objects); i++)  {
+        if (strncasecmp (name, dynamic_objects[i].name, strlen (name)) == 0)
+            break;
+    }
+
+    if (i == PCA_TABLESIZE(dynamic_objects))
+        return PURC_VARIANT_INVALID;
+    else  {
+        *ver_code = atoi (PURC_API_VERSION_STRING);
+        return dynamic_objects[i].create_func();
+    }
+}
+
+size_t __purcex_get_number_of_dynamic_variants (void)
+{
+    return PCA_TABLESIZE(dynamic_objects);
+}
+
+const char * __purcex_get_dynamic_variant_name (size_t idx)
+{
+    if (idx >= PCA_TABLESIZE(dynamic_objects))
+        return NULL;
+    else
+        return dynamic_objects[idx].name;
+}
+
+const char * __purcex_get_dynamic_variant_desc (size_t idx)
+{
+    if (idx >= PCA_TABLESIZE(dynamic_objects))
+        return NULL;
+    else
+        return dynamic_objects[idx].description;
 }
