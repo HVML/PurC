@@ -2494,6 +2494,10 @@ next_state:
                     RECONSUME_IN(PCHVML_EJSON_AFTER_JSONEE_STRING_STATE);
                 }
                 if (uc == 'T') {
+                    if (parser->vcm_node->type !=
+                            PCVCM_NODE_TYPE_FUNC_CONCAT_STRING) {
+                        POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+                    }
                     RECONSUME_IN(PCHVML_EJSON_TEMPLATE_DATA_STATE);
                 }
                 ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
@@ -2892,7 +2896,7 @@ next_state:
         BEGIN_STATE(PCHVML_EJSON_AFTER_VALUE_STATE)
             uint32_t uc = ejson_stack_top();
             if (is_whitespace(character)) {
-                if (uc  == 'U' || uc == '"') {
+                if (uc  == 'U' || uc == '"' || uc == 'T') {
                     RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
                 }
                 ADVANCE_TO(PCHVML_EJSON_AFTER_VALUE_STATE);
