@@ -53,10 +53,6 @@ struct pcvdom_gen {
     struct pcvdom_document   *doc;
     struct pcvdom_node       *curr;
 
-    struct pcvdom_node      **open_elements;
-    size_t                    nr_open;
-    size_t                    sz_elements;
-
     /* exists for tokenizer state change */
     struct pchvml_parser     *parser;
 
