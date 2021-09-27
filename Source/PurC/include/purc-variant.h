@@ -1406,12 +1406,26 @@ purc_variant_dynamic_value_load_from_so(const char* so_name,
  *
  * @param var_name: the variant value name
  *
+ * @param ver_code: version number
+ *
  * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
 .*
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t
-purc_variant_load_from_so (const char* so_name, const char* var_name);
+purc_variant_load_from_so (const char *so_name,
+        const char *var_name, int *ver_code);
+
+/**
+ * Unloads a dynamic library
+ *
+ * @value: dynamic object
+ *
+ * Returns: True for success, false on failure.
+.*
+ * Since: 0.0.1
+ */
+PCA_EXPORT bool purc_variant_unload_so (purc_variant_t value);
 
 typedef enum purc_variant_type
 {
