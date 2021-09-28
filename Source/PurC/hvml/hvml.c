@@ -903,9 +903,13 @@ void pchvml_parser_save_tag_name (struct pchvml_parser* parser)
 {
     if (pchvml_token_is_type (parser->token, PCHVML_TOKEN_START_TAG)) {
         const char* name = pchvml_token_get_name(parser->token);
+
         pchvml_buffer_reset(parser->tag_name);
         pchvml_buffer_append_bytes(parser->tag_name,
                 name, strlen(name));
+    }
+    else if (pchvml_token_is_type (parser->token, PCHVML_TOKEN_END_TAG)) {
+        pchvml_buffer_reset(parser->tag_name);
     }
 }
 
@@ -952,9 +956,10 @@ bool pchvml_parser_is_template_tag (const char* name)
 {
     const struct pchvml_tag_entry* entry = pchvml_tag_static_search(name,
             strlen(name));
-    return (entry && (entry->id == PCHVML_TAG_ARCHETYPE
+    bool ret = (entry && (entry->id == PCHVML_TAG_ARCHETYPE
                 || entry->id == PCHVML_TAG_ERROR
                 || entry->id == PCHVML_TAG_EXCEPT));
+    return ret;
 }
 
 bool pchvml_parser_is_in_template (struct pchvml_parser* parser)
@@ -2549,6 +2554,13 @@ next_state:
             if (character == '"') {
                 if (uc == '"') {
                     RECONSUME_IN(PCHVML_EJSON_AFTER_JSONEE_STRING_STATE);
+                }
+                else if (uc == 'T') {
+                    if (parser->vcm_node->type !=
+                            PCVCM_NODE_TYPE_FUNC_CONCAT_STRING) {
+                        POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+                    }
+                    RECONSUME_IN(PCHVML_EJSON_TEMPLATE_DATA_STATE);
                 }
                 else {
                     RESET_TEMP_BUFFER();
@@ -4366,6 +4378,7 @@ next_state:
                     parser->string_buffer);
             RESET_VCM_NODE();
             RESET_STRING_BUFFER();
+            ejson_stack_pop();
             RETURN_MULTIPLE_AND_SWITCH_TO(token, next_token, PCHVML_DATA_STATE);
         END_STATE()
 
