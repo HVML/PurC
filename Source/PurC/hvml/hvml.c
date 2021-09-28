@@ -1068,7 +1068,6 @@ next_state:
             if (is_eof(character)) {
                 RETURN_NEW_EOF_TOKEN();
             }
-
             APPEND_TO_TOKEN_TEXT(character);
             ADVANCE_TO(PCHVML_RAWTEXT_STATE);
         END_STATE()
@@ -1077,7 +1076,6 @@ next_state:
             if (is_eof(character)) {
                 RETURN_NEW_EOF_TOKEN();
             }
-
             APPEND_TO_TOKEN_TEXT(character);
             ADVANCE_TO(PCHVML_PLAINTEXT_STATE);
         END_STATE()
@@ -1096,17 +1094,15 @@ next_state:
             if (character == '?') {
                 PCHVML_SET_ERROR(
                     PCHVML_ERROR_UNEXPECTED_QUESTION_MARK_INSTEAD_OF_TAG_NAME);
-                parser->token = pchvml_token_new_comment();
-                RECONSUME_IN(PCHVML_BOGUS_COMMENT_STATE);
+                RETURN_AND_STOP_PARSE();
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_BEFORE_TAG_NAME);
                 APPEND_TO_TOKEN_TEXT('<');
-                RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
+                RETURN_NEW_EOF_TOKEN();
             }
             PCHVML_SET_ERROR(PCHVML_ERROR_INVALID_FIRST_CHARACTER_OF_TAG_NAME);
-            APPEND_TO_TOKEN_TEXT('<');
-            RECONSUME_IN(PCHVML_DATA_STATE);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_END_TAG_OPEN_STATE)
@@ -1116,17 +1112,16 @@ next_state:
             }
             if (character == '>') {
                 PCHVML_SET_ERROR(PCHVML_ERROR_MISSING_END_TAG_NAME);
-                ADVANCE_TO(PCHVML_DATA_STATE);
+                RETURN_AND_STOP_PARSE();
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_BEFORE_TAG_NAME);
                 APPEND_TO_TOKEN_TEXT('<');
                 APPEND_TO_TOKEN_TEXT('/');
-                RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
+                RETURN_NEW_EOF_TOKEN();
             }
             PCHVML_SET_ERROR(PCHVML_ERROR_INVALID_FIRST_CHARACTER_OF_TAG_NAME);
-            parser->token = pchvml_token_new_comment();
-            RECONSUME_IN(PCHVML_BOGUS_COMMENT_STATE);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_TAG_NAME_STATE)
