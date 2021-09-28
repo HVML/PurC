@@ -1,8 +1,8 @@
 /*
- * @file helper.h
+ * @file math.h
  * @author Geng Yue
  * @date 2021/07/02
- * @brief The header file of tools used by all files in this directory.
+ * @brief The header file of math operation.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -22,28 +22,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _DVOJBS_TOOLS_H_
-#define _DVOJBS_TOOLS_H_
+#ifndef _DVOJBS_MATH_H_
+#define _DVOJBS_MATH_H_
 
-// #include "config.h"
-// #include "private/debug.h"
 #include "purc-variant.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
 
-
-#define STREAM_SIZE 1024
-
 typedef purc_variant_t (*pcdvobjs_create) (void);
-
-// as FILE, FS, MATH
-struct pcdvojbs_dvobjs_object {
-    const char *name;
-    const char *description;
-    pcdvobjs_create create_func;
-};
 
 // dynamic variant in dynamic object
 struct pcdvojbs_dvobjs {
@@ -51,7 +39,6 @@ struct pcdvojbs_dvobjs {
     purc_dvariant_method getter;
     purc_dvariant_method setter;
 };
-
 
 struct pcdvobjs_math_value {
     double d;
@@ -73,37 +60,11 @@ int pcdvobjs_math_param_set_var(struct pcdvobjs_math_param *param,
 int pcdvobjs_math_param_get_var(struct pcdvobjs_math_param *param,
         const char *var, struct pcdvobjs_math_value *val);
 
-struct pcdvobjs_logical_param {
-    int result;
-    purc_variant_t v;
-
-    purc_variant_t variables;
-};
-
-bool wildcard_cmp (const char *str1, const char *pattern);
-
-const char * pcdvobjs_remove_space (char * buffer);
-
-const char* pcdvobjs_get_next_option (const char* data, const char* delims,
-                                            size_t* length);
-const char* pcdvobjs_get_prev_option (const char* data, size_t str_len,
-                            const char* delims, size_t* length);
-const char* pcdvobjs_file_get_next_option (const char* data, const char* delims,
-                                            size_t* length);
-const char* pcdvobjs_file_get_prev_option (const char* data, size_t str_len,
-                            const char* delims, size_t* length);
-
-purc_variant_t pcdvobjs_make_dvobjs (const struct pcdvojbs_dvobjs *method,
-                                    size_t size);
-
 extern int
 math_parse(const char *input, struct pcdvobjs_math_param *param);
-
-extern int
-logical_parse(const char *input, struct pcdvobjs_logical_param *param);
 
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
 
-#endif  // _DVOJBS_TOOLS_H_
+#endif  // _DVOJBS_MATH_H_

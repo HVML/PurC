@@ -39,8 +39,8 @@
 #include <sys/utsname.h>
 #include <sys/time.h>
 
-const char* pcdvobjs_get_next_option (const char* data, const char* delims, 
-                                                            size_t* length)
+const char* pcdvobjs_get_next_option (const char* data,
+        const char* delims, size_t* length)
 {
     const char* head = data;
     char* temp = NULL;
@@ -69,8 +69,8 @@ const char* pcdvobjs_get_next_option (const char* data, const char* delims,
     return head;
 }
 
-const char* pcdvobjs_get_prev_option (const char* data, size_t str_len, 
-                            const char* delims, size_t* length)
+const char* pcdvobjs_get_prev_option (const char* data,
+        size_t str_len, const char* delims, size_t* length)
 {
     const char* head = NULL;
     size_t tail = *length;
@@ -104,56 +104,6 @@ const char* pcdvobjs_get_prev_option (const char* data, size_t str_len,
     return head;
 }
 
-// for file to get '\n'
-const char* pcdvobjs_file_get_next_option (const char* data, 
-                                  const char* delims, size_t* length)
-{
-    const char* head = data;
-    char* temp = NULL;
-
-    if ((delims == NULL) || (data == NULL) || (*delims == 0x00))
-        return NULL;
-
-    *length = 0;
-
-    while (*data != 0x00) {
-        temp = strchr (delims, *data);
-        if (temp) 
-            break;
-        data++;
-    }
-
-    *length = data - head;
-
-    return head;
-}
-
-const char* pcdvobjs_file_get_prev_option (const char* data, size_t str_len, 
-                            const char* delims, size_t* length)
-{
-    const char* head = NULL;
-    size_t tail = str_len;
-    char* temp = NULL;
-
-    if ((delims == NULL) || (data == NULL) || (*delims == 0x00) ||
-                                                        (str_len == 0))
-        return NULL;
-
-    *length = 0;
-
-    while (str_len) {
-        temp = strchr (delims, *(data + str_len - 1));
-        if (temp) 
-            break;
-        str_len--;
-    }
-
-    *length = tail - str_len;
-    head = data + str_len;
-
-    return head;
-}
-
 const char * pcdvobjs_remove_space (char * buffer)
 {
     int i = 0;
@@ -172,9 +122,9 @@ const char * pcdvobjs_remove_space (char * buffer)
 
 bool wildcard_cmp (const char *str1, const char *pattern)
 {
-    if (str1 == NULL) 
+    if (str1 == NULL)
         return false;
-    if (pattern == NULL) 
+    if (pattern == NULL)
         return false;
 
     int len1 = strlen (str1);
@@ -218,54 +168,6 @@ bool wildcard_cmp (const char *str1, const char *pattern)
     return true;
 }
 
-int pcdvobjs_math_param_set_var(struct pcdvobjs_math_param *param,
-        const char *var, struct pcdvobjs_math_value *val)
-{
-    if (!param->variables) {
-        param->variables = purc_variant_make_object(0, NULL, NULL);
-        if (!param->variables) {
-            return -1;
-        }
-    }
-    purc_variant_t v;
-    if (param->is_long_double) {
-        v = purc_variant_make_longdouble(val->ld);
-    } else {
-        v = purc_variant_make_number(val->d);
-    }
-    if (!v)
-        return -1;
-
-    purc_variant_t k = purc_variant_make_string(var, true);
-    bool ok;
-    ok = purc_variant_object_set(param->variables, k, v);
-    purc_variant_unref(k);
-    purc_variant_unref(v);
-
-    return ok ? 0 : -1;
-}
-
-int pcdvobjs_math_param_get_var(struct pcdvobjs_math_param *param,
-        const char *var, struct pcdvobjs_math_value *val)
-{
-    if (!param->variables) {
-        return -1;
-    }
-    purc_variant_t v;
-    v = purc_variant_object_get_by_ckey(param->variables, var);
-    if (!v)
-        return -1;
-
-    bool ok;
-    if (param->is_long_double) {
-        ok = purc_variant_cast_to_long_double(v, &val->ld, false);
-    } else {
-        ok = purc_variant_cast_to_number(v, &val->d, false);
-    }
-
-    return ok ? 0 : -1;
-}
-
 purc_variant_t pcdvobjs_make_dvobjs (const struct pcdvojbs_dvobjs *method,
                                     size_t size)
 {
@@ -283,11 +185,11 @@ purc_variant_t pcdvobjs_make_dvobjs (const struct pcdvojbs_dvobjs *method,
             goto error;
         }
 
-        if (!purc_variant_object_set_by_static_ckey (ret_var, 
+        if (!purc_variant_object_set_by_static_ckey (ret_var,
                     method[i].name, val)) {
             goto error;
         }
-        
+
         purc_variant_unref (val);
     }
 

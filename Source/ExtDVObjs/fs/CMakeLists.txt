@@ -15,7 +15,6 @@ set(EXTERNAL_DVOBJS_LIBRARIES
 
 set(EXTERNAL_DVOBJS_FS_SOURCES
     fs.c
-    ../pub/helper.c
 )
 
 include_directories(SYSTEM ${EXTERNAL_DVOBJS_INCLUDE_DIRECTORIES})

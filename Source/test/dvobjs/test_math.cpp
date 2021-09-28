@@ -65,14 +65,13 @@ TEST(dvobjs, dvobjs_math_pi_e)
     purc_variant_t ret_var = NULL;
     double number;
     long double numberl;
-    int version = 0;
 
     purc_instance_extra_info info = {0, 0};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t math = purc_variant_load_from_so (
-            "/usr/lib/purc-0.0/libpurc-dvobj-MATH.so", "MATH", &version);
+    purc_variant_t math = purc_variant_load_dvobj_from_so (
+            "/usr/lib/purc-0.0/libpurc-dvobj-MATH.so", "MATH");
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
 
@@ -113,7 +112,7 @@ TEST(dvobjs, dvobjs_math_pi_e)
         purc_variant_unref(ret_var);
     }
 
-    purc_variant_unload_so (math);
+    purc_variant_unload_dvobj (math);
 
     purc_cleanup ();
 }
@@ -255,14 +254,13 @@ TEST(dvobjs, dvobjs_math_const)
     purc_variant_t ret_var = NULL;
     double number;
     long double numberl;
-    int version = 0;
 
     purc_instance_extra_info info = {0, 0};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t math = purc_variant_load_from_so (
-            "/usr/lib/purc-0.0/libpurc-dvobj-MATH.so", "MATH", &version);
+    purc_variant_t math = purc_variant_load_dvobj_from_so (
+            "/usr/lib/purc-0.0/libpurc-dvobj-MATH.so", "MATH");
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
 
@@ -308,7 +306,7 @@ TEST(dvobjs, dvobjs_math_const)
     ASSERT_EQ(ret_var, nullptr);
     purc_variant_unref(param[0]);
 
-    purc_variant_unload_so (math);
+    purc_variant_unload_dvobj (math);
 
     purc_cleanup ();
 }
@@ -359,14 +357,13 @@ TEST(dvobjs, dvobjs_math_func)
     purc_variant_t ret_var = NULL;
     double number;
     long double numberl;
-    int version = 0;
 
     purc_instance_extra_info info = {0, 0};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t math = purc_variant_load_from_so (
-            "/usr/lib/purc-0.0/libpurc-dvobj-MATH.so", "MATH", &version);
+    purc_variant_t math = purc_variant_load_dvobj_from_so (
+            "/usr/lib/purc-0.0/libpurc-dvobj-MATH.so", "MATH");
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
 
@@ -409,7 +406,7 @@ TEST(dvobjs, dvobjs_math_func)
         purc_variant_unref(param[0]);
     }
 
-    purc_variant_unload_so (math);
+    purc_variant_unload_dvobj (math);
 
     purc_cleanup ();
 }
@@ -420,14 +417,13 @@ TEST(dvobjs, dvobjs_math_eval)
     purc_variant_t ret_var = NULL;
     double number;
     long double numberl;
-    int version = 0;
 
     purc_instance_extra_info info = {0, 0};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t math = purc_variant_load_from_so (
-            "/usr/lib/purc-0.0/libpurc-dvobj-MATH.so", "MATH", &version);
+    purc_variant_t math = purc_variant_load_dvobj_from_so (
+            "/usr/lib/purc-0.0/libpurc-dvobj-MATH.so", "MATH");
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
 
@@ -522,7 +518,7 @@ TEST(dvobjs, dvobjs_math_eval)
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
 
-    purc_variant_unload_so (math);
+    purc_variant_unload_dvobj (math);
 
     purc_cleanup ();
 }
@@ -532,14 +528,13 @@ TEST(dvobjs, dvobjs_math_assignment)
     purc_variant_t param[10];
     purc_variant_t ret_var = NULL;
     double number;
-    int version = 0;
 
     purc_instance_extra_info info = {0, 0};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t math = purc_variant_load_from_so (
-            "/usr/lib/purc-0.0/libpurc-dvobj-MATH.so", "MATH", &version);
+    purc_variant_t math = purc_variant_load_dvobj_from_so (
+            "/usr/lib/purc-0.0/libpurc-dvobj-MATH.so", "MATH");
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
 
@@ -563,7 +558,7 @@ TEST(dvobjs, dvobjs_math_assignment)
 
     purc_variant_unref(ret_var);
 
-    purc_variant_unload_so (math);
+    purc_variant_unload_dvobj (math);
 
     purc_cleanup ();
 }
@@ -589,14 +584,13 @@ TEST(dvobjs, dvobjs_math_samples)
         {"\n1+2", "3"},
     };
     purc_variant_t param[10];
-    int version = 0;
 
     purc_instance_extra_info info = {0, 0};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t math = purc_variant_load_from_so (
-            "/usr/lib/purc-0.0/libpurc-dvobj-MATH.so", "MATH", &version);
+    purc_variant_t math = purc_variant_load_dvobj_from_so (
+            "/usr/lib/purc-0.0/libpurc-dvobj-MATH.so", "MATH");
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
 
@@ -638,7 +632,7 @@ TEST(dvobjs, dvobjs_math_samples)
 
     purc_rwstream_destroy(ws);
 
-    purc_variant_unload_so (math);
+    purc_variant_unload_dvobj (math);
 
     purc_cleanup ();
 }
@@ -744,7 +738,6 @@ TEST(dvobjs, dvobjs_math_bc)
     DIR *d = NULL;
     struct dirent *dir = NULL;
     char path[1024] = {0};
-    int version = 0;
 
     purc_instance_extra_info info = {0, 0};
     r = purc_init("cn.fmsoft.hybridos.test",
@@ -753,8 +746,8 @@ TEST(dvobjs, dvobjs_math_bc)
     if (r)
         return;
 
-    purc_variant_t math = purc_variant_load_from_so (
-            "/usr/lib/purc-0.0/libpurc-dvobj-MATH.so", "MATH", &version);
+    purc_variant_t math = purc_variant_load_dvobj_from_so (
+            "/usr/lib/purc-0.0/libpurc-dvobj-MATH.so", "MATH");
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
 
@@ -802,7 +795,7 @@ TEST(dvobjs, dvobjs_math_bc)
 
 end:
     if (math)
-        purc_variant_unload_so (math);
+        purc_variant_unload_dvobj (math);
 
     purc_cleanup ();
 }

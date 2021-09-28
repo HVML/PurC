@@ -23,7 +23,7 @@
  */
 
 #include "purc-variant.h"
- #include "helper.h"
+#include "mathlib.h"
 #include "purc-version.h"
 
 #include <stdbool.h>
@@ -38,6 +38,56 @@
 #include <math.h>
 
 #define UNUSED_PARAM (void)
+
+// used by parser
+int pcdvobjs_math_param_set_var(struct pcdvobjs_math_param *param,
+        const char *var, struct pcdvobjs_math_value *val)
+{
+    if (!param->variables) {
+        param->variables = purc_variant_make_object(0, NULL, NULL);
+        if (!param->variables) {
+            return -1;
+        }
+    }
+    purc_variant_t v;
+    if (param->is_long_double) {
+        v = purc_variant_make_longdouble(val->ld);
+    } else {
+        v = purc_variant_make_number(val->d);
+    }
+    if (!v)
+        return -1;
+
+    purc_variant_t k = purc_variant_make_string(var, true);
+    bool ok;
+    ok = purc_variant_object_set(param->variables, k, v);
+    purc_variant_unref(k);
+    purc_variant_unref(v);
+
+    return ok ? 0 : -1;
+}
+
+// used by parser
+int pcdvobjs_math_param_get_var(struct pcdvobjs_math_param *param,
+        const char *var, struct pcdvobjs_math_value *val)
+{
+    if (!param->variables) {
+        return -1;
+    }
+    purc_variant_t v;
+    v = purc_variant_object_get_by_ckey(param->variables, var);
+    if (!v)
+        return -1;
+
+    bool ok;
+    if (param->is_long_double) {
+        ok = purc_variant_cast_to_long_double(v, &val->ld, false);
+    } else {
+        ok = purc_variant_cast_to_number(v, &val->d, false);
+    }
+
+    return ok ? 0 : -1;
+}
 
 static purc_variant_t
 pi_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
@@ -449,9 +499,42 @@ eval_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     return internal_eval_getter(1, root, nr_args, argv);
 }
 
+static purc_variant_t pcdvobjs_make_dvobjs (
+        const struct pcdvojbs_dvobjs *method, size_t size)
+{
+    size_t i = 0;
+    purc_variant_t val = PURC_VARIANT_INVALID;
+    purc_variant_t ret_var= purc_variant_make_object (0, PURC_VARIANT_INVALID,
+                                                    PURC_VARIANT_INVALID);
+
+    if (ret_var == PURC_VARIANT_INVALID)
+        return PURC_VARIANT_INVALID;
+
+    for (i = 0; i < size; i++) {
+        val = purc_variant_make_dynamic (method[i].getter, method[i].setter);
+        if (val == PURC_VARIANT_INVALID) {
+            goto error;
+        }
+
+        if (!purc_variant_object_set_by_static_ckey (ret_var, 
+                    method[i].name, val)) {
+            goto error;
+        }
+
+        purc_variant_unref (val);
+    }
+
+    return ret_var;
+
+error:
+    purc_variant_unref (ret_var);
+
+    return PURC_VARIANT_INVALID;
+}
+
 
 // only for test now.
-purc_variant_t pcdvobjs_create_math (void)
+static purc_variant_t pcdvobjs_create_math (void)
 {
     static struct pcdvojbs_dvobjs method [] = {
         {"pi",      pi_getter, NULL},
@@ -472,47 +555,27 @@ purc_variant_t pcdvobjs_create_math (void)
     return pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));
 }
 
-static struct pcdvojbs_dvobjs_object dynamic_objects [] = {
-    {
-        "MATH",                             // name
-        "For MATH Operations in PURC",      // description
-        pcdvobjs_create_math                // create function
-    }
-};
-
 purc_variant_t __purcex_load_dynamic_variant (const char * name, int * ver_code)
 {
-    size_t i = 0;
-    for (i = 0; i < PCA_TABLESIZE(dynamic_objects); i++)  {
-        if (strncasecmp (name, dynamic_objects[i].name, strlen (name)) == 0)
-            break;
-    }
+    UNUSED_PARAM(name);
+    *ver_code = atoi (PURC_API_VERSION_STRING);
 
-    if (i == PCA_TABLESIZE(dynamic_objects))
-        return PURC_VARIANT_INVALID;
-    else  {
-        *ver_code = atoi (PURC_API_VERSION_STRING);
-        return dynamic_objects[i].create_func();
-    }
+    return pcdvobjs_create_math ();
 }
 
 size_t __purcex_get_number_of_dynamic_variants (void)
 {
-    return PCA_TABLESIZE(dynamic_objects);
+    return 1;
 }
 
 const char * __purcex_get_dynamic_variant_name (size_t idx)
 {
-    if (idx >= PCA_TABLESIZE(dynamic_objects))
-        return NULL;
-    else
-        return dynamic_objects[idx].name;
+    UNUSED_PARAM(idx);
+    return "MATH";
 }
 
 const char * __purcex_get_dynamic_variant_desc (size_t idx)
 {
-    if (idx >= PCA_TABLESIZE(dynamic_objects))
-        return NULL;
-    else
-        return dynamic_objects[idx].description;
+    UNUSED_PARAM(idx);
+    return "For MATH Operations in PURC";
 }

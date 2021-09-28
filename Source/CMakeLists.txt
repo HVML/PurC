@@ -9,7 +9,7 @@ add_subdirectory(WTF)
 
 add_subdirectory(PurC)
 
-add_subdirectory(external)
+add_subdirectory(ExtDVObjs)
 
 if (ENABLE_API_TESTS)
     add_subdirectory(ThirdParty/gtest)

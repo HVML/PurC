@@ -30,7 +30,7 @@
 }
 
 %code requires {
-    #include "helper.h"
+    #include "mathlib.h"
 
     #define YYSTYPE       MATH_YYSTYPE
     #define YYLTYPE       MATH_YYLTYPE

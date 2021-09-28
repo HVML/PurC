@@ -27,7 +27,6 @@
 #include "private/errors.h"
 #include "private/utils.h"
 #include "purc-variant.h"
-#include "../pub/helper.h"
 
 #include <unistd.h>
 #include <stdbool.h>
@@ -47,6 +46,198 @@
 #define ENDIAN_PLATFORM     0
 #define ENDIAN_LITTLE       1
 #define ENDIAN_BIG          2
+
+typedef purc_variant_t (*pcdvobjs_create) (void);
+
+// as FILE, FS, MATH
+struct pcdvojbs_dvobjs_object {
+    const char *name;
+    const char *description;
+    pcdvobjs_create create_func;
+};
+
+// dynamic variant in dynamic object
+struct pcdvojbs_dvobjs {
+    const char * name;
+    purc_dvariant_method getter;
+    purc_dvariant_method setter;
+};
+
+static const char* pcdvobjs_get_next_option (const char* data, 
+        const char* delims, size_t* length)
+{
+    const char* head = data;
+    char* temp = NULL;
+
+    if ((delims == NULL) || (data == NULL) || (*delims == 0x00))
+        return NULL;
+
+    *length = 0;
+
+    while (*data != 0x00) {
+        temp = strchr (delims, *data);
+        if (temp) {
+            if (head == data) {
+                head = data + 1;
+            }
+            else 
+                break;
+        }
+        data++;
+    }
+
+    *length = data - head;
+    if (*length == 0)
+        head = NULL;
+
+    return head;
+}
+
+// for file to get '\n'
+static const char* pcdvobjs_file_get_next_option (const char* data,
+        const char* delims, size_t* length)
+{
+    const char* head = data;
+    char* temp = NULL;
+
+    if ((delims == NULL) || (data == NULL) || (*delims == 0x00))
+        return NULL;
+
+    *length = 0;
+
+    while (*data != 0x00) {
+        temp = strchr (delims, *data);
+        if (temp) 
+            break;
+        data++;
+    }
+
+    *length = data - head;
+
+    return head;
+}
+
+static const char* pcdvobjs_file_get_prev_option (const char* data,
+        size_t str_len, const char* delims, size_t* length)
+{
+    const char* head = NULL;
+    size_t tail = str_len;
+    char* temp = NULL;
+
+    if ((delims == NULL) || (data == NULL) || (*delims == 0x00) ||
+                                                        (str_len == 0))
+        return NULL;
+
+    *length = 0;
+
+    while (str_len) {
+        temp = strchr (delims, *(data + str_len - 1));
+        if (temp) 
+            break;
+        str_len--;
+    }
+
+    *length = tail - str_len;
+    head = data + str_len;
+
+    return head;
+}
+
+static const char * pcdvobjs_remove_space (char * buffer)
+{
+    int i = 0;
+    int j = 0;
+    while (*(buffer + i) != 0x00) {
+        if (*(buffer + i) != ' ') {
+            *(buffer + j) = *(buffer + i);
+            j++;
+        }
+        i++;
+    }
+    *(buffer + j) = 0x00;
+
+    return buffer;
+}
+
+static bool wildcard_cmp (const char *str1, const char *pattern)
+{
+    if (str1 == NULL)
+        return false;
+    if (pattern == NULL)
+        return false;
+
+    int len1 = strlen (str1);
+    int len2 = strlen (pattern);
+    int mark = 0;
+    int p1 = 0;
+    int p2 = 0;
+
+    while ((p1 < len1) && (p2<len2))  {
+        if (pattern[p2] == '?')  {
+            p1++;
+            p2++;
+            continue;
+        }
+        if (pattern[p2] == '*')  {
+            p2++;
+            mark = p2;
+            continue;
+        }
+        if (str1[p1] != pattern[p2])  {
+            if (p1 == 0 && p2 == 0)
+                return false;
+            p1 -= p2 - mark - 1;
+            p2 = mark;
+            continue;
+        }
+        p1++;
+        p2++;
+    }
+    if (p2 == len2)  {
+        if (p1 == len1)
+            return true;
+        if (pattern[p2 - 1] == '*')
+            return true;
+    }
+    while (p2 < len2)  {
+        if (pattern[p2] != '*')
+            return false;
+        p2++;
+    }
+    return true;
+}
+
+static purc_variant_t pcdvobjs_make_dvobjs (
+        const struct pcdvojbs_dvobjs *method, size_t size)
+{
+    size_t i = 0;
+    purc_variant_t val = PURC_VARIANT_INVALID;
+    purc_variant_t ret_var= purc_variant_make_object (0, PURC_VARIANT_INVALID,
+                                                    PURC_VARIANT_INVALID);
+
+    if (ret_var == PURC_VARIANT_INVALID)
+        return PURC_VARIANT_INVALID;
+
+    for (i = 0; i < size; i++) {
+        val = purc_variant_make_dynamic (method[i].getter, method[i].setter);
+        if (val == PURC_VARIANT_INVALID) {
+            goto error;
+        }
+
+        if (!purc_variant_object_set_by_static_ckey (ret_var,
+                    method[i].name, val)) {
+            goto error;
+        }
+
+        purc_variant_unref (val);
+    }
+
+    return ret_var;
+
+error:
+    purc_variant_unref (ret_var);
+    return PURC_VARIANT_INVALID;
+}
 
 static inline bool is_endian (void)
 {

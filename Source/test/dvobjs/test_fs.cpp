@@ -21,14 +21,13 @@ TEST(dvobjs, dvobjs_fs_list)
     purc_variant_t tmp_obj = NULL;
     size_t i = 0;
     size_t size = 0;
-    int version = 0;
 
     purc_instance_extra_info info = {0, 0};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t fs = purc_variant_load_from_so (
-            "/usr/lib/purc-0.0/libpurc-dvobj-FS.so", "FS", &version);
+    purc_variant_t fs = purc_variant_load_dvobj_from_so (
+            "/usr/lib/purc-0.0/libpurc-dvobj-FS.so", "FS");
     ASSERT_NE(fs, nullptr);
     ASSERT_EQ(purc_variant_is_object (fs), true);
 
@@ -258,7 +257,7 @@ TEST(dvobjs, dvobjs_fs_list)
         printf ("\n");
     }
 
-    purc_variant_unload_so (fs);
+    purc_variant_unload_dvobj (fs);
 
     purc_cleanup ();
 }
@@ -271,14 +270,13 @@ TEST(dvobjs, dvobjs_fs_list_prt)
     purc_variant_t tmp_var = NULL;
     size_t i = 0;
     size_t size = 0;
-    int version = 0;
 
     purc_instance_extra_info info = {0, 0};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t fs = purc_variant_load_from_so (
-            "/usr/lib/purc-0.0/libpurc-dvobj-FS.so", "FS", &version);
+    purc_variant_t fs = purc_variant_load_dvobj_from_so (
+            "/usr/lib/purc-0.0/libpurc-dvobj-FS.so", "FS");
     ASSERT_NE(fs, nullptr);
     ASSERT_EQ(purc_variant_is_object (fs), true);
 
@@ -359,7 +357,7 @@ TEST(dvobjs, dvobjs_fs_list_prt)
         printf ("\t%s\n", purc_variant_get_string_const (tmp_var));
     }
 
-    purc_variant_unload_so (fs);
+    purc_variant_unload_dvobj (fs);
 
     purc_cleanup ();
 }
@@ -369,14 +367,13 @@ TEST(dvobjs, dvobjs_fs_mkdir)
 {
     purc_variant_t param[10];
     purc_variant_t ret_var = NULL;
-    int version = 0;
 
     purc_instance_extra_info info = {0, 0};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t fs = purc_variant_load_from_so (
-            "/usr/lib/purc-0.0/libpurc-dvobj-FS.so", "FS", &version);
+    purc_variant_t fs = purc_variant_load_dvobj_from_so (
+            "/usr/lib/purc-0.0/libpurc-dvobj-FS.so", "FS");
     ASSERT_NE(fs, nullptr);
     ASSERT_EQ(purc_variant_is_object (fs), true);
 
@@ -420,7 +417,7 @@ TEST(dvobjs, dvobjs_fs_mkdir)
         rmdir (file_path);
     }
 
-    purc_variant_unload_so (fs);
+    purc_variant_unload_dvobj (fs);
 
     purc_cleanup ();
 }
@@ -430,14 +427,13 @@ TEST(dvobjs, dvobjs_fs_rmdir)
 {
     purc_variant_t param[10];
     purc_variant_t ret_var = NULL;
-    int version = 0;
 
     purc_instance_extra_info info = {0, 0};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t fs = purc_variant_load_from_so (
-            "/usr/lib/purc-0.0/libpurc-dvobj-FS.so", "FS", &version);
+    purc_variant_t fs = purc_variant_load_dvobj_from_so (
+            "/usr/lib/purc-0.0/libpurc-dvobj-FS.so", "FS");
     ASSERT_NE(fs, nullptr);
     ASSERT_EQ(purc_variant_is_object (fs), true);
 
@@ -483,7 +479,7 @@ TEST(dvobjs, dvobjs_fs_rmdir)
         rmdir (file_path);
     }
 
-    purc_variant_unload_so (fs);
+    purc_variant_unload_dvobj (fs);
 
     purc_cleanup ();
 }
@@ -493,14 +489,13 @@ TEST(dvobjs, dvobjs_fs_rm)
 {
     purc_variant_t param[10];
     purc_variant_t ret_var = NULL;
-    int version = 0;
 
     purc_instance_extra_info info = {0, 0};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t fs = purc_variant_load_from_so (
-            "/usr/lib/purc-0.0/libpurc-dvobj-FS.so", "FS", &version);
+    purc_variant_t fs = purc_variant_load_dvobj_from_so (
+            "/usr/lib/purc-0.0/libpurc-dvobj-FS.so", "FS");
     ASSERT_NE(fs, nullptr);
     ASSERT_EQ(purc_variant_is_object (fs), true);
 
@@ -546,7 +541,7 @@ TEST(dvobjs, dvobjs_fs_rm)
         rmdir (file_path);
     }
 
-    purc_variant_unload_so (fs);
+    purc_variant_unload_dvobj (fs);
 
     purc_cleanup ();
 }
@@ -556,14 +551,13 @@ TEST(dvobjs, dvobjs_fs_unlink)
 {
     purc_variant_t param[10];
     purc_variant_t ret_var = NULL;
-    int version = 0;
 
     purc_instance_extra_info info = {0, 0};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t fs = purc_variant_load_from_so (
-            "/usr/lib/purc-0.0/libpurc-dvobj-FS.so", "FS", &version);
+    purc_variant_t fs = purc_variant_load_dvobj_from_so (
+            "/usr/lib/purc-0.0/libpurc-dvobj-FS.so", "FS");
     ASSERT_NE(fs, nullptr);
     ASSERT_EQ(purc_variant_is_object (fs), true);
 
@@ -605,7 +599,7 @@ TEST(dvobjs, dvobjs_fs_unlink)
         printf ("\tRemove file error!\n");
     }
 
-    purc_variant_unload_so (fs);
+    purc_variant_unload_dvobj (fs);
 
     purc_cleanup ();
 }
@@ -616,14 +610,13 @@ TEST(dvobjs, dvobjs_fs_touch)
     purc_variant_t param[10];
     purc_variant_t ret_var = NULL;
     struct stat file_stat;
-    int version = 0;
 
     purc_instance_extra_info info = {0, 0};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t fs = purc_variant_load_from_so (
-            "/usr/lib/purc-0.0/libpurc-dvobj-FS.so", "FS", &version);
+    purc_variant_t fs = purc_variant_load_dvobj_from_so (
+            "/usr/lib/purc-0.0/libpurc-dvobj-FS.so", "FS");
     ASSERT_NE(fs, nullptr);
     ASSERT_EQ(purc_variant_is_object (fs), true);
 
@@ -668,7 +661,7 @@ TEST(dvobjs, dvobjs_fs_touch)
 
     ASSERT_STRNE (old, newtime);
 
-    purc_variant_unload_so (fs);
+    purc_variant_unload_dvobj (fs);
 
     purc_cleanup ();
 }

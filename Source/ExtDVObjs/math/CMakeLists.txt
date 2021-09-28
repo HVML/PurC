@@ -3,7 +3,7 @@ include(PurCCommon)
 list(APPEND purc-dvobj-MATH_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR}/include
     ${PurC_DERIVED_SOURCES_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/../pub
+    ${CMAKE_CURRENT_SOURCE_DIR}/../math
 )
 
 set(purc-dvobj-MATH_SOURCES
