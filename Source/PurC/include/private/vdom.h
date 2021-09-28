@@ -113,6 +113,8 @@ struct pcvdom_document {
     // document-variables
     // such as `$REQUEST`、`$TIMERS`、`$T` and etc.
     pcutils_map            *variables;
+
+    unsigned int            quirks:1;
 };
 
 struct pcvdom_attr {

@@ -254,10 +254,18 @@ int
 pcvdom_document_set_doctype(struct pcvdom_document *doc,
     const char *name, const char *doctype)
 {
-    if (!doc || !name || !doctype) {
+    if (!doc) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return -1;
     }
+
+    PC_ASSERT(doc->doctype.name == NULL);
+
+    if (!name)
+        name = ""; // FIXME: "hvml" ?
+
+    if (!doctype)
+        doctype = "v:";
 
     return document_set_doctype(doc, name, doctype);
 }

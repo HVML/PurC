@@ -417,17 +417,13 @@ pcvdom_gen_destroy(struct pcvdom_gen *gen)
 static int
 create_doctype(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
-    const char *name = "v: SYSTEM MATH FILE FS";
+    const char *name = NULL;
     if (token)
         name = pchvml_token_get_public_identifier(token);
-    if (!name)
-        name = ""; // FIXME: "hvml" ?
 
-    const char *si = "v: SYSTEM MATH FILE FS";
+    const char *si = NULL;
     if (token)
         si = pchvml_token_get_system_information(token);
-    if (!si)
-        si = "v: SYSTEM MATH FILE FS";
 
     int r = 0;
 
