@@ -983,6 +983,5 @@ purc_variant_t pcdvojbs_get_logical (void)
         {"strle", logical_strle, NULL},
         {"eval",  logical_eval, NULL} };
 
-    size_t size = sizeof (method) / sizeof (struct pcdvojbs_dvobjs);
-    return pcdvobjs_make_dvobjs (method, size);
+    return pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));
 }

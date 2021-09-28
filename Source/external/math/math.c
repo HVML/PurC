@@ -469,8 +469,7 @@ purc_variant_t pcdvobjs_create_math (void)
         {"sqrt",    sqrt_getter, NULL},
         {"sqrt_l",  sqrt_l_getter, NULL} };
 
-    size_t size = sizeof (method) / sizeof (struct pcdvojbs_dvobjs);
-    return pcdvobjs_make_dvobjs (method, size);
+    return pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));
 }
 
 static struct pcdvojbs_dvobjs_object dynamic_objects [] = {

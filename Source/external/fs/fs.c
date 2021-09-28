@@ -943,8 +943,7 @@ purc_variant_t pcdvobjs_create_fs(void)
         {"unlink",   unlink_getter, NULL},
         {"rm",       rm_getter, NULL} };
 
-    size_t size = sizeof (method) / sizeof (struct pcdvojbs_dvobjs);
-    return pcdvobjs_make_dvobjs (method, size);
+    return pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));
 }
 
 static struct pcdvojbs_dvobjs_object dynamic_objects [] = {

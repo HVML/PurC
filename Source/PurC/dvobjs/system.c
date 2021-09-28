@@ -1009,6 +1009,5 @@ purc_variant_t pcdvojbs_get_system (void)
         {"random",    random_getter,    NULL},
         {"time",      time_getter,      time_setter} };
 
-    size_t size = sizeof (method) / sizeof (struct pcdvojbs_dvobjs);
-    return pcdvobjs_make_dvobjs (method, size);
+    return pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));
 }
