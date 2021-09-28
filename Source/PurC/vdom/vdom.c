@@ -53,58 +53,58 @@ void pcvdom_cleanup_instance(struct pcinst* inst)
 #define PAO(x)     PCVDOM_ATTR_OP_##x
 
 static void
-_document_reset(struct pcvdom_document *doc);
+document_reset(struct pcvdom_document *doc);
 
 static void
-_document_destroy(struct pcvdom_document *doc);
+document_destroy(struct pcvdom_document *doc);
 
 static struct pcvdom_document*
-_document_create(void);
+document_create(void);
 
 static int
-_document_set_doctype(struct pcvdom_document *doc, const char *doctype);
+document_set_doctype(struct pcvdom_document *doc, const char *doctype);
 
 static void
-_element_reset(struct pcvdom_element *elem);
+element_reset(struct pcvdom_element *elem);
 
 static void
-_element_destroy(struct pcvdom_element *elem);
+element_destroy(struct pcvdom_element *elem);
 
 static struct pcvdom_element*
-_element_create(void);
+element_create(void);
 
 static void
-_content_reset(struct pcvdom_content *doc);
+content_reset(struct pcvdom_content *doc);
 
 static void
-_content_destroy(struct pcvdom_content *doc);
+content_destroy(struct pcvdom_content *doc);
 
 static struct pcvdom_content*
-_content_create(struct pcvcm_node *vcm);
+content_create(struct pcvcm_node *vcm);
 
 static void
-_vdom_node_remove(struct pcvdom_node *node);
+vdom_node_remove(struct pcvdom_node *node);
 
 static void
-_comment_reset(struct pcvdom_comment *doc);
+comment_reset(struct pcvdom_comment *doc);
 
 static void
-_comment_destroy(struct pcvdom_comment *doc);
+comment_destroy(struct pcvdom_comment *doc);
 
 static struct pcvdom_comment*
-_comment_create(const char *text);
+comment_create(const char *text);
 
 static void
-_attr_reset(struct pcvdom_attr *doc);
+attr_reset(struct pcvdom_attr *doc);
 
 static void
-_attr_destroy(struct pcvdom_attr *doc);
+attr_destroy(struct pcvdom_attr *doc);
 
 static struct pcvdom_attr*
-_attr_create(void);
+attr_create(void);
 
 static void
-_vdom_node_destroy(struct pcvdom_node *node);
+vdom_node_destroy(struct pcvdom_node *node);
 
 // creating and destroying api
 void
@@ -113,13 +113,13 @@ pcvdom_document_destroy(struct pcvdom_document *doc)
     if (!doc)
         return;
 
-    _document_destroy(doc);
+    document_destroy(doc);
 }
 
 struct pcvdom_document*
 pcvdom_document_create(void)
 {
-    return _document_create();
+    return document_create();
 }
 
 struct pcvdom_element*
@@ -132,7 +132,7 @@ pcvdom_element_create(pcvdom_tag_id tag)
         return NULL;
     }
 
-    struct pcvdom_element *elem = _element_create();
+    struct pcvdom_element *elem = element_create();
     if (!elem) {
         return NULL;
     }
@@ -144,7 +144,7 @@ pcvdom_element_create(pcvdom_tag_id tag)
         elem->tag_name = (char*)entry->name;
     } else {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        _element_destroy(elem);
+        element_destroy(elem);
         return NULL;
     }
 
@@ -159,7 +159,7 @@ pcvdom_element_create_c(const char *tag_name)
         return NULL;
     }
 
-    struct pcvdom_element *elem = _element_create();
+    struct pcvdom_element *elem = element_create();
     if (!elem) {
         return NULL;
     }
@@ -173,7 +173,7 @@ pcvdom_element_create_c(const char *tag_name)
         elem->tag_name = strdup(tag_name);
         if (!elem->tag_name) {
             pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            _element_destroy(elem);
+            element_destroy(elem);
             return NULL;
         }
     }
@@ -184,7 +184,7 @@ pcvdom_element_create_c(const char *tag_name)
 struct pcvdom_content*
 pcvdom_content_create(struct pcvcm_node *vcm)
 {
-    return _content_create(vcm);
+    return content_create(vcm);
 }
 
 struct pcvdom_comment*
@@ -195,7 +195,7 @@ pcvdom_comment_create(const char *text)
         return NULL;
     }
 
-    return _comment_create(text);
+    return comment_create(text);
 
 }
 
@@ -213,7 +213,7 @@ pcvdom_attr_create(const char *key, enum pcvdom_attr_op op,
         return NULL;
     }
 
-    struct pcvdom_attr *attr = _attr_create();
+    struct pcvdom_attr *attr = attr_create();
     if (!attr) {
         return NULL;
     }
@@ -227,7 +227,7 @@ pcvdom_attr_create(const char *key, enum pcvdom_attr_op op,
         attr->key = strdup(key);
         if (!attr->key) {
             pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            _attr_destroy(attr);
+            attr_destroy(attr);
             return NULL;
         }
     }
@@ -245,7 +245,7 @@ pcvdom_attr_destroy(struct pcvdom_attr *attr)
 
     PC_ASSERT(attr->parent==NULL);
 
-    _attr_destroy(attr);
+    attr_destroy(attr);
 }
 
 // doc/dom construction api
@@ -257,7 +257,7 @@ pcvdom_document_set_doctype(struct pcvdom_document *doc, const char *doctype)
         return -1;
     }
 
-    return _document_set_doctype(doc, doctype);
+    return document_set_doctype(doc, doctype);
 }
 
 int
@@ -475,7 +475,7 @@ pcvdom_node_remove(struct pcvdom_node *node)
     if (!node)
         return;
 
-    _vdom_node_remove(node);
+    vdom_node_remove(node);
 }
 
 void
@@ -484,13 +484,13 @@ pcvdom_node_destroy(struct pcvdom_node *node)
     if (!node)
         return;
 
-    _vdom_node_destroy(node);
+    vdom_node_destroy(node);
 }
 
 
 
 // traverse all vdom_node
-struct _tree_node_arg {
+struct tree_node_arg {
     struct pcvdom_node       *top;
     void                     *ctx;
     vdom_node_traverse_f      cb;
@@ -499,9 +499,9 @@ struct _tree_node_arg {
 };
 
 static void
-_tree_node_cb(struct pctree_node* node,  void* data)
+tree_node_cb(struct pctree_node* node,  void* data)
 {
-    struct _tree_node_arg *arg = (struct _tree_node_arg*)data;
+    struct tree_node_arg *arg = (struct tree_node_arg*)data;
     if (arg->abortion)
         return;
 
@@ -520,7 +520,7 @@ pcvdom_node_traverse(struct pcvdom_node *node, void *ctx,
     if (!node || !cb)
         return 0;
 
-    struct _tree_node_arg arg = {
+    struct tree_node_arg arg = {
         .top        = node,
         .ctx        = ctx,
         .cb         = cb,
@@ -528,13 +528,13 @@ pcvdom_node_traverse(struct pcvdom_node *node, void *ctx,
     };
 
     pctree_node_pre_order_traversal(&node->node,
-        _tree_node_cb, &arg);
+        tree_node_cb, &arg);
 
     return arg.abortion;
 }
 
 // traverse all element
-struct _element_arg {
+struct element_arg {
     struct pcvdom_element    *top;
     void                     *ctx;
     vdom_element_traverse_f   cb;
@@ -543,9 +543,9 @@ struct _element_arg {
 };
 
 static void
-_element_cb(struct pctree_node* node,  void* data)
+element_cb(struct pctree_node* node,  void* data)
 {
-    struct _element_arg *arg = (struct _element_arg*)data;
+    struct element_arg *arg = (struct element_arg*)data;
     if (arg->abortion)
         return;
 
@@ -568,7 +568,7 @@ pcvdom_element_traverse(struct pcvdom_element *elem, void *ctx,
     if (!elem || !cb)
         return 0;
 
-    struct _element_arg arg = {
+    struct element_arg arg = {
         .top        = elem,
         .ctx        = ctx,
         .cb         = cb,
@@ -576,13 +576,13 @@ pcvdom_element_traverse(struct pcvdom_element *elem, void *ctx,
     };
 
     pctree_node_pre_order_traversal(&elem->node.node,
-        _element_cb, &arg);
+        element_cb, &arg);
 
     return arg.abortion;
 }
 
 static void
-_document_reset(struct pcvdom_document *doc)
+document_reset(struct pcvdom_document *doc)
 {
     int r;
 
@@ -604,27 +604,27 @@ _document_reset(struct pcvdom_document *doc)
 }
 
 static void
-_document_destroy(struct pcvdom_document *doc)
+document_destroy(struct pcvdom_document *doc)
 {
-    _document_reset(doc);
+    document_reset(doc);
     PC_ASSERT(doc->node.node.first_child == NULL);
     free(doc);
 }
 
 static void*
-_document_copy_key(const void *key)
+document_copy_key(const void *key)
 {
     return (void*)key;
 }
 
 static void
-_document_free_key(void *key)
+document_free_key(void *key)
 {
     UNUSED_PARAM(key);
 }
 
 static void*
-_document_copy_val(const void *val)
+document_copy_val(const void *val)
 {
     purc_variant_t var = (purc_variant_t)val;
     purc_variant_ref(var);
@@ -632,7 +632,7 @@ _document_copy_val(const void *val)
 }
 
 static int
-_document_comp_key(const void *key1, const void *key2)
+document_comp_key(const void *key1, const void *key2)
 {
     const char *s1 = (const char*)key1;
     const char *s2 = (const char*)key2;
@@ -641,14 +641,14 @@ _document_comp_key(const void *key1, const void *key2)
 }
 
 static void
-_document_free_val(void *val)
+document_free_val(void *val)
 {
     purc_variant_t var = (purc_variant_t)val;
     purc_variant_unref(var);
 }
 
 static void
-_document_remove_child(struct pcvdom_node *me, struct pcvdom_node *child)
+document_remove_child(struct pcvdom_node *me, struct pcvdom_node *child)
 {
     struct pcvdom_document *doc;
     doc = container_of(me, struct pcvdom_document, node);
@@ -661,7 +661,7 @@ _document_remove_child(struct pcvdom_node *me, struct pcvdom_node *child)
 }
 
 static struct pcvdom_document*
-_document_create(void)
+document_create(void)
 {
     struct pcvdom_document *doc;
     doc = (struct pcvdom_document*)calloc(1, sizeof(*doc));
@@ -671,14 +671,14 @@ _document_create(void)
     }
 
     doc->node.type = VDT(DOCUMENT);
-    doc->node.remove_child = _document_remove_child;
+    doc->node.remove_child = document_remove_child;
 
-    doc->variables = pcutils_map_create(_document_copy_key, _document_free_key,
-        _document_copy_val, _document_free_val,
-        _document_comp_key, false); // non-thread-safe
+    doc->variables = pcutils_map_create(document_copy_key, document_free_key,
+        document_copy_val, document_free_val,
+        document_comp_key, false); // non-thread-safe
     if (!doc->variables) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        _document_destroy(doc);
+        document_destroy(doc);
         return NULL;
     }
 
@@ -686,7 +686,7 @@ _document_create(void)
 }
 
 static int
-_document_set_doctype(struct pcvdom_document *doc, const char *doctype)
+document_set_doctype(struct pcvdom_document *doc, const char *doctype)
 {
     doc->doctype = strdup(doctype);
     if (!doc->doctype) {
@@ -698,7 +698,7 @@ _document_set_doctype(struct pcvdom_document *doc, const char *doctype)
 }
 
 static void
-_element_reset(struct pcvdom_element *elem)
+element_reset(struct pcvdom_element *elem)
 {
     int r;
 
@@ -728,33 +728,33 @@ _element_reset(struct pcvdom_element *elem)
 }
 
 static void
-_element_destroy(struct pcvdom_element *elem)
+element_destroy(struct pcvdom_element *elem)
 {
-    _element_reset(elem);
+    element_reset(elem);
     PC_ASSERT(elem->node.node.first_child == NULL);
     free(elem);
 }
 
 static void*
-_element_attr_copy_key(const void *key)
+element_attr_copy_key(const void *key)
 {
     return (void*)key;
 }
 
 static void
-_element_attr_free_key(void *key)
+element_attr_free_key(void *key)
 {
     UNUSED_PARAM(key);
 }
 
 static void*
-_element_attr_copy_val(const void *val)
+element_attr_copy_val(const void *val)
 {
     return (void*)val;
 }
 
 static int
-_element_attr_comp_key(const void *key1, const void *key2)
+element_attr_comp_key(const void *key1, const void *key2)
 {
     const char *s1 = (const char*)key1;
     const char *s2 = (const char*)key2;
@@ -763,33 +763,33 @@ _element_attr_comp_key(const void *key1, const void *key2)
 }
 
 static void
-_element_attr_free_val(void *val)
+element_attr_free_val(void *val)
 {
     struct pcvdom_attr *attr = (struct pcvdom_attr*)val;
     attr->parent = NULL;
-    _attr_destroy(attr);
+    attr_destroy(attr);
 }
 
 static void*
-_element_copy_key(const void *key)
+element_copy_key(const void *key)
 {
     return (void*)key;
 }
 
 static void
-_element_free_key(void *key)
+element_free_key(void *key)
 {
     UNUSED_PARAM(key);
 }
 
 static void*
-_element_copy_val(const void *val)
+element_copy_val(const void *val)
 {
     return (void*)val;
 }
 
 static int
-_element_comp_key(const void *key1, const void *key2)
+element_comp_key(const void *key1, const void *key2)
 {
     const char *s1 = (const char*)key1;
     const char *s2 = (const char*)key2;
@@ -798,13 +798,13 @@ _element_comp_key(const void *key1, const void *key2)
 }
 
 static void
-_element_free_val(void *val)
+element_free_val(void *val)
 {
     UNUSED_PARAM(val);    
 }
 
 static struct pcvdom_element*
-_element_create(void)
+element_create(void)
 {
     struct pcvdom_element *elem;
     elem = (struct pcvdom_element*)calloc(1, sizeof(*elem));
@@ -818,21 +818,21 @@ _element_create(void)
 
     elem->tag_id    = VTT(_UNDEF);
 
-    elem->attrs = pcutils_map_create(_element_attr_copy_key, _element_attr_free_key,
-        _element_attr_copy_val, _element_attr_free_val,
-        _element_attr_comp_key, false); // non-thread-safe
+    elem->attrs = pcutils_map_create(element_attr_copy_key, element_attr_free_key,
+        element_attr_copy_val, element_attr_free_val,
+        element_attr_comp_key, false); // non-thread-safe
     if (!elem->attrs) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        _element_destroy(elem);
+        element_destroy(elem);
         return NULL;
     }
 
-    elem->variables = pcutils_map_create(_element_copy_key, _element_free_key,
-        _element_copy_val, _element_free_val,
-        _element_comp_key, false); // non-thread-safe
+    elem->variables = pcutils_map_create(element_copy_key, element_free_key,
+        element_copy_val, element_free_val,
+        element_comp_key, false); // non-thread-safe
     if (!elem->variables) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        _element_destroy(elem);
+        element_destroy(elem);
         return NULL;
     }
 
@@ -840,7 +840,7 @@ _element_create(void)
 }
 
 static void
-_content_reset(struct pcvdom_content *content)
+content_reset(struct pcvdom_content *content)
 {
     if (content->vcm) {
         pcvcm_node_destroy(content->vcm);
@@ -849,15 +849,15 @@ _content_reset(struct pcvdom_content *content)
 }
 
 static void
-_content_destroy(struct pcvdom_content *content)
+content_destroy(struct pcvdom_content *content)
 {
-    _content_reset(content);
+    content_reset(content);
     PC_ASSERT(content->node.node.first_child == NULL);
     free(content);
 }
 
 static struct pcvdom_content*
-_content_create(struct pcvcm_node *vcm)
+content_create(struct pcvcm_node *vcm)
 {
     struct pcvdom_content *content;
     content = (struct pcvdom_content*)calloc(1, sizeof(*content));
@@ -875,7 +875,7 @@ _content_create(struct pcvcm_node *vcm)
 }
 
 static void
-_comment_reset(struct pcvdom_comment *comment)
+comment_reset(struct pcvdom_comment *comment)
 {
     if (comment->text) {
         free(comment->text);
@@ -884,15 +884,15 @@ _comment_reset(struct pcvdom_comment *comment)
 }
 
 static void
-_comment_destroy(struct pcvdom_comment *comment)
+comment_destroy(struct pcvdom_comment *comment)
 {
-    _comment_reset(comment);
+    comment_reset(comment);
     PC_ASSERT(comment->node.node.first_child == NULL);
     free(comment);
 }
 
 static struct pcvdom_comment*
-_comment_create(const char *text)
+comment_create(const char *text)
 {
     struct pcvdom_comment *comment;
     comment = (struct pcvdom_comment*)calloc(1, sizeof(*comment));
@@ -907,7 +907,7 @@ _comment_create(const char *text)
     comment->text = strdup(text);
     if (!comment->text) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        _comment_destroy(comment);
+        comment_destroy(comment);
         return NULL;
     }
 
@@ -915,7 +915,7 @@ _comment_create(const char *text)
 }
 
 static void
-_attr_reset(struct pcvdom_attr *attr)
+attr_reset(struct pcvdom_attr *attr)
 {
     if (attr->pre_defined==NULL) {
         free(attr->key);
@@ -928,15 +928,15 @@ _attr_reset(struct pcvdom_attr *attr)
 }
 
 static void
-_attr_destroy(struct pcvdom_attr *attr)
+attr_destroy(struct pcvdom_attr *attr)
 {
     PC_ASSERT(attr->parent==NULL);
-    _attr_reset(attr);
+    attr_reset(attr);
     free(attr);
 }
 
 static struct pcvdom_attr*
-_attr_create(void)
+attr_create(void)
 {
     struct pcvdom_attr *attr;
     attr = (struct pcvdom_attr*)calloc(1, sizeof(*attr));
@@ -949,7 +949,7 @@ _attr_create(void)
 }
 
 static void
-_vdom_node_remove(struct pcvdom_node *node)
+vdom_node_remove(struct pcvdom_node *node)
 {
     struct pcvdom_node *parent = pcvdom_node_parent(node);
     if (!parent)
@@ -959,7 +959,7 @@ _vdom_node_remove(struct pcvdom_node *node)
 }
 
 static void
-_vdom_node_destroy(struct pcvdom_node *node)
+vdom_node_destroy(struct pcvdom_node *node)
 {
     if (!node)
         return;
@@ -970,25 +970,25 @@ _vdom_node_destroy(struct pcvdom_node *node)
             {
                 struct pcvdom_document *doc;
                 doc = container_of(node, struct pcvdom_document, node);
-                _document_destroy(doc);
+                document_destroy(doc);
             } break;
         case VDT(ELEMENT):
             {
                 struct pcvdom_element *elem;
                 elem = container_of(node, struct pcvdom_element, node);
-                _element_destroy(elem);
+                element_destroy(elem);
             } break;
         case VDT(CONTENT):
             {
                 struct pcvdom_content *content;
                 content = container_of(node, struct pcvdom_content, node);
-                _content_destroy(content);
+                content_destroy(content);
             } break;
         case VDT(COMMENT):
             {
                 struct pcvdom_comment *comment;
                 comment = container_of(node, struct pcvdom_comment, node);
-                _comment_destroy(comment);
+                comment_destroy(comment);
             } break;
         default:
             {
