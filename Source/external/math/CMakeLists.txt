@@ -21,3 +21,4 @@ target_include_directories(purc-dvobj-MATH PRIVATE
     "${purc-dvobj-MATH_PRIVATE_INCLUDE_DIRECTORIES}")
 target_link_libraries(purc-dvobj-MATH PurC)
 
+install(TARGETS purc-dvobj-MATH DESTINATION "/usr/lib/purc-${PURC_API_VERSION}")
