@@ -202,6 +202,21 @@ is_top_node_of_hvml(struct pcvdom_gen *gen)
     return is_element_of_hvml(elem);
 }
 
+static inline enum pchvml_tag_id
+tag_id_from_tag(const char *tag)
+{
+    if (!tag)
+        return PCHVML_TAG__UNDEF;
+
+    const struct pchvml_tag_entry *entry;
+    entry = pchvml_tag_static_search(tag, strlen(tag));
+
+    if (entry)
+        return entry->id;
+
+    return PCHVML_TAG__UNDEF;
+}
+
 static struct pcvdom_element*
 create_element(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
@@ -507,7 +522,6 @@ create_hvml(struct pcvdom_gen *gen, struct pchvml_token *token)
         FAIL_RET();
     }
 
-    gen->doc->root = elem;
     gen->insertion_mode = VGIM(_BEFORE_HEAD);
     return 0;
 }
@@ -528,7 +542,12 @@ create_empty_hvml(struct pcvdom_gen *gen, struct pchvml_token *token)
         FAIL_RET();
     }
 
-    gen->doc->root = elem;
+    r = push_node(gen, &elem->node);
+    if (r) {
+        pcvdom_node_destroy(&elem->node);
+        FAIL_RET();
+    }
+
     gen->insertion_mode = VGIM(_BEFORE_HEAD);
     return 0;
 }
@@ -567,7 +586,7 @@ on_mode_initial(struct pcvdom_gen *gen, struct pchvml_token *token)
         return 0;
     }
 
-    r = create_doctype(gen, token);
+    r = create_doctype(gen, NULL);
 
     // TODO: check r
 
@@ -598,6 +617,20 @@ on_mode_before_hvml(struct pcvdom_gen *gen, struct pchvml_token *token)
         goto anything_else;
     }
 
+    if (type==VTT(_END_TAG)) {
+        const char *tag = pchvml_token_get_name(token);
+        enum pchvml_tag_id tag_id;
+        tag_id = tag_id_from_tag(tag);
+        if (tag_id == PCHVML_TAG_HEAD ||
+            tag_id == PCHVML_TAG_BODY ||
+            tag_id == PCHVML_TAG_HVML)
+        {
+            goto anything_else;
+        }
+
+        return 0; // just ignore
+    }
+
     if (type==VTT(_CHARACTER)) {
         return 0; // just ignore
     }
@@ -615,7 +648,7 @@ anything_else:
     if (create_empty_hvml(gen, token)) {
         return -1;
     }
-    gen->doc->quirks = 1;
+
     gen->reprocess = 1;
     return 0;
 }
