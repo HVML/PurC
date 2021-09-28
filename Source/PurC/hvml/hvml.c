@@ -1208,25 +1208,25 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_RAWTEXT_END_TAG_NAME_STATE)
+            if (is_whitespace(character)) {
+                if (pchvml_parser_is_appropriate_end_tag(parser)) {
+                    ADVANCE_TO(PCHVML_BEFORE_ATTRIBUTE_NAME_STATE);
+                }
+            }
+            if (character == '/') {
+                if (pchvml_parser_is_appropriate_end_tag(parser)) {
+                    ADVANCE_TO(PCHVML_SELF_CLOSING_START_TAG_STATE);
+                }
+            }
+            if (character == '>') {
+                if (pchvml_parser_is_appropriate_end_tag(parser)) {
+                    RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
+                }
+            }
             if (is_ascii_alpha(character)) {
                 APPEND_TO_TOKEN_NAME(character);
                 APPEND_TO_TEMP_BUFFER(character);
                 ADVANCE_TO(PCHVML_RAWTEXT_END_TAG_NAME_STATE);
-            }
-            if (is_whitespace(character)) {
-                if (pchvml_parser_is_appropriate_end_tag(parser)) {
-                    SWITCH_TO(PCHVML_BEFORE_ATTRIBUTE_NAME_STATE);
-                }
-            }
-            else if (character == '/') {
-                if (pchvml_parser_is_appropriate_end_tag(parser)) {
-                    SWITCH_TO(PCHVML_SELF_CLOSING_START_TAG_STATE);
-                }
-            }
-            else if (character == '>') {
-                if (pchvml_parser_is_appropriate_end_tag(parser)) {
-                    RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
-                }
             }
             APPEND_TO_TOKEN_TEXT('<');
             APPEND_TO_TOKEN_TEXT('/');
@@ -1245,9 +1245,7 @@ next_state:
             if (character == '=') {
                 PCHVML_SET_ERROR(
                     PCHVML_ERROR_UNEXPECTED_EQUALS_SIGN_BEFORE_ATTRIBUTE_NAME);
-                BEGIN_TOKEN_ATTR();
-                APPEND_TO_TOKEN_ATTR_NAME(character);
-                ADVANCE_TO(PCHVML_ATTRIBUTE_NAME_STATE);
+                RETURN_AND_STOP_PARSE();
             }
             BEGIN_TOKEN_ATTR();
             RECONSUME_IN(PCHVML_ATTRIBUTE_NAME_STATE);
