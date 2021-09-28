@@ -62,7 +62,8 @@ static struct pcvdom_document*
 document_create(void);
 
 static int
-document_set_doctype(struct pcvdom_document *doc, const char *doctype);
+document_set_doctype(struct pcvdom_document *doc,
+    const char *name, const char *doctype);
 
 static void
 element_reset(struct pcvdom_element *elem);
@@ -250,14 +251,15 @@ pcvdom_attr_destroy(struct pcvdom_attr *attr)
 
 // doc/dom construction api
 int
-pcvdom_document_set_doctype(struct pcvdom_document *doc, const char *doctype)
+pcvdom_document_set_doctype(struct pcvdom_document *doc,
+    const char *name, const char *doctype)
 {
-    if (!doc || !doctype) {
+    if (!doc || !name || !doctype) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return -1;
     }
 
-    return document_set_doctype(doc, doctype);
+    return document_set_doctype(doc, name, doctype);
 }
 
 int
@@ -581,13 +583,29 @@ pcvdom_element_traverse(struct pcvdom_element *elem, void *ctx,
     return arg.abortion;
 }
 
+static inline void
+doctype_reset(struct pcvdom_doctype *doctype)
+{
+    if (doctype->name) {
+        free(doctype->name);
+        doctype->name = NULL;
+    }
+    if (doctype->tag_prefix) {
+        free(doctype->tag_prefix);
+        doctype->tag_prefix = NULL;
+    }
+    if (doctype->system_info) {
+        free(doctype->system_info);
+        doctype->system_info = NULL;
+    }
+}
+
 static void
 document_reset(struct pcvdom_document *doc)
 {
     int r;
 
-    free(doc->doctype);
-    doc->doctype = NULL;
+    doctype_reset(&doc->doctype);
 
     while (doc->node.node.first_child) {
         struct pcvdom_node *node;
@@ -686,10 +704,17 @@ document_create(void)
 }
 
 static int
-document_set_doctype(struct pcvdom_document *doc, const char *doctype)
+document_set_doctype(struct pcvdom_document *doc,
+    const char *name, const char *doctype)
 {
-    doc->doctype = strdup(doctype);
-    if (!doc->doctype) {
+    doc->doctype.name = strdup(name);
+    if (!doc->doctype.name) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+
+    doc->doctype.system_info = strdup(doctype);
+    if (!doc->doctype.system_info) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return -1;
     }

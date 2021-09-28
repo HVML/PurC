@@ -417,6 +417,12 @@ pcvdom_gen_destroy(struct pcvdom_gen *gen)
 static int
 create_doctype(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
+    const char *name = "v: SYSTEM MATH FILE FS";
+    if (token)
+        name = pchvml_token_get_public_identifier(token);
+    if (!name)
+        name = ""; // FIXME: "hvml" ?
+
     const char *si = "v: SYSTEM MATH FILE FS";
     if (token)
         si = pchvml_token_get_system_information(token);
@@ -425,7 +431,7 @@ create_doctype(struct pcvdom_gen *gen, struct pchvml_token *token)
 
     int r = 0;
 
-    r = pcvdom_document_set_doctype(gen->doc, si);
+    r = pcvdom_document_set_doctype(gen->doc, name, si);
 
     // TODO: check r
 
@@ -473,7 +479,7 @@ on_mode_initial(struct pcvdom_gen *gen, struct pchvml_token *token)
     int r = 0;
     enum pchvml_token_type type = pchvml_token_get_type(token);
     if (type==VTT(_DOCTYPE)) {
-        if (gen->doc->doctype)
+        if (gen->doc->doctype.name)
             return 0; // just ignore
 
         r = create_doctype(gen, token);
@@ -489,7 +495,7 @@ on_mode_initial(struct pcvdom_gen *gen, struct pchvml_token *token)
     if (type==VTT(_START_TAG)) {
         const char *tag = pchvml_token_get_name(token);
         if (strcmp(tag, "hvml")==0) {
-            if (gen->doc->doctype==NULL) {
+            if (gen->doc->doctype.name==NULL) {
                 r = create_doctype(gen, NULL);
 
                 // TODO: check r

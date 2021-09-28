@@ -28,7 +28,7 @@ int _node_count(struct pcvdom_node *top,
 TEST(vdom, basic)
 {
     struct pcvdom_document *doc;
-    doc = pcvdom_document_create_with_doctype("v: MATH FS");
+    doc = pcvdom_document_create_with_doctype("hvml", "v: MATH FS");
     ASSERT_NE(doc, nullptr);
 
     struct pcvdom_comment *comment = pcvdom_comment_create("hello world");
