@@ -1413,7 +1413,7 @@ next_state:
             if (is_eof(character)) {
                 END_TOKEN_ATTR();
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
-                RECONSUME_IN(PCHVML_DATA_STATE);
+                RETURN_NEW_EOF_TOKEN();
             }
             APPEND_TO_TOKEN_ATTR_VALUE(character);
             ADVANCE_TO(PCHVML_ATTRIBUTE_VALUE_SINGLE_QUOTED_STATE);
