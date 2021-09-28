@@ -1262,11 +1262,11 @@ next_state:
             if (character == '"' || character == '\'' || character == '<') {
                 PCHVML_SET_ERROR(
                         PCHVML_ERROR_UNEXPECTED_CHARACTER_IN_ATTRIBUTE_NAME);
-                APPEND_TO_TOKEN_ATTR_NAME(character);
+                RETURN_AND_STOP_PARSE();
             }
-            if (character == '$' || character == '%' || character == '+'
-                    || character == '-' || character == '^'
-                    || character == '~') {
+            if (character == '$' || character == '%' || character == '+' ||
+                    character == '-' || character == '^' ||
+                    character == '~') {
                 if (pchvml_parser_is_operation_tag_token(parser->token)
                         && pchvml_parser_is_ordinary_attribute(
                             pchvml_token_get_curr_attr(parser->token))) {
@@ -1298,9 +1298,9 @@ next_state:
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
                 RETURN_NEW_EOF_TOKEN();
             }
-            if (character == '$' || character == '%' || character == '+'
-                    || character == '-' || character == '^'
-                    || character == '~') {
+            if (character == '$' || character == '%' || character == '+' ||
+                    character == '-' || character == '^' ||
+                    character == '~') {
                 if (pchvml_parser_is_operation_tag_token(parser->token)
                         && pchvml_parser_is_ordinary_attribute(
                             pchvml_token_get_curr_attr(parser->token))) {
@@ -1329,19 +1329,20 @@ next_state:
                 RESET_STRING_BUFFER();
                 ADVANCE_TO(PCHVML_ATTRIBUTE_VALUE_DOUBLE_QUOTED_STATE);
             }
+            if (character == '\'') {
+                ADVANCE_TO(PCHVML_ATTRIBUTE_VALUE_SINGLE_QUOTED_STATE);
+            }
             if (character == '&') {
                 RESET_STRING_BUFFER();
                 RECONSUME_IN(PCHVML_ATTRIBUTE_VALUE_UNQUOTED_STATE);
             }
-            if (character == '\'') {
-                ADVANCE_TO(PCHVML_ATTRIBUTE_VALUE_SINGLE_QUOTED_STATE);
-            }
             if (character == '>') {
                 PCHVML_SET_ERROR(PCHVML_ERROR_MISSING_MISSING_ATTRIBUTE_VALUE);
-                RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
+                RETURN_AND_STOP_PARSE();
             }
             if (is_eof(character)) {
-                RECONSUME_IN(PCHVML_DATA_STATE);
+                PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
+                RETURN_NEW_EOF_TOKEN();
             }
             RESET_STRING_BUFFER();
             RECONSUME_IN(PCHVML_ATTRIBUTE_VALUE_UNQUOTED_STATE);
