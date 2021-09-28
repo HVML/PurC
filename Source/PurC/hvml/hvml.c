@@ -1162,25 +1162,25 @@ next_state:
         END_STATE()
 
         BEGIN_STATE(PCHVML_RCDATA_END_TAG_NAME_STATE)
+            if (is_whitespace(character)) {
+                if (pchvml_parser_is_appropriate_end_tag(parser)) {
+                    ADVANCE_TO(PCHVML_BEFORE_ATTRIBUTE_NAME_STATE);
+                }
+            }
+            if (character == '/') {
+                if (pchvml_parser_is_appropriate_end_tag(parser)) {
+                    ADVANCE_TO(PCHVML_SELF_CLOSING_START_TAG_STATE);
+                }
+            }
+            if (character == '>') {
+                if (pchvml_parser_is_appropriate_end_tag(parser)) {
+                    RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
+                }
+            }
             if (is_ascii_alpha(character)) {
                 APPEND_TO_TOKEN_NAME(character);
                 APPEND_TO_TEMP_BUFFER(character);
                 ADVANCE_TO(PCHVML_RCDATA_END_TAG_NAME_STATE);
-            }
-            if (is_whitespace(character)) {
-                if (pchvml_parser_is_appropriate_end_tag(parser)) {
-                    SWITCH_TO(PCHVML_BEFORE_ATTRIBUTE_NAME_STATE);
-                }
-            }
-            else if (character == '/') {
-                if (pchvml_parser_is_appropriate_end_tag(parser)) {
-                    SWITCH_TO(PCHVML_SELF_CLOSING_START_TAG_STATE);
-                }
-            }
-            else if (character == '>') {
-                if (pchvml_parser_is_appropriate_end_tag(parser)) {
-                    RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
-                }
             }
             APPEND_TO_TOKEN_TEXT('<');
             APPEND_TO_TOKEN_TEXT('/');
