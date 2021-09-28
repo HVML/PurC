@@ -6,6 +6,7 @@
 
 #include <gtest/gtest.h>
 #include <dirent.h>
+#include <glob.h>
 
 TEST(vdom_gen, basic)
 {
@@ -130,6 +131,44 @@ TEST(vdom_gen, files)
                 _process_file(dir->d_name);
         }
         closedir(d);
+    }
+
+end:
+    purc_cleanup ();
+}
+
+TEST(vdom_gen, glob)
+{
+    int r = 0;
+    glob_t globbuf;
+    memset(&globbuf, 0, sizeof(globbuf));
+
+    purc_instance_extra_info info = {0, 0};
+    r = purc_init("cn.fmsoft.hybridos.test",
+        "vdom_gen", &info);
+    EXPECT_EQ(r, PURC_ERROR_OK);
+    if (r)
+        return;
+
+    const char *env = "SOURCE_FILES";
+    const char *path = getenv(env);
+    std::cout << "env: " << env << "=" << path << std::endl;
+    EXPECT_NE(path, nullptr) << "You shall specify via env `"
+                            << env << "`"
+                            << std::endl;
+    if (!path)
+        goto end;
+
+    globbuf.gl_offs = 0;
+    r = glob(path, GLOB_DOOFFS | GLOB_APPEND, NULL, &globbuf);
+    EXPECT_EQ(r, 0) << "Failed to globbing @["
+            << path << "]: [" << errno << "]" << strerror(errno)
+            << std::endl;
+
+    if (r == 0) {
+        for (size_t i=0; i<globbuf.gl_pathc; ++i) {
+            _process_file(globbuf.gl_pathv[i]);
+        }
     }
 
 end:
