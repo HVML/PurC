@@ -120,21 +120,6 @@
         }                                                                   \
     } while (false)
 
-#define RETURN_IN_CURRENT_STATE(expression)                                 \
-    do {                                                                    \
-        parser->state = curr_state;                                         \
-        pchvml_rwswrap_buffer_chars(parser->rwswrap, &character, 1);        \
-        if (expression) {                                                   \
-            pchvml_parser_save_tag_name(parser);                            \
-            pchvml_token_done(parser->token);                               \
-            struct pchvml_token* token = parser->token;                     \
-            parser->token = NULL;                                           \
-            CHECK_TEMPLATE_TAG_AND_SWITCH_STATE(token);                     \
-            return token;                                                   \
-        }                                                                   \
-        return NULL;                                                        \
-    } while (false)
-
 #define RETURN_AND_SWITCH_TO(next_state)                                    \
     do {                                                                    \
         parser->state = next_state;                                         \
@@ -1049,9 +1034,8 @@ next_state:
                 ADVANCE_TO(PCHVML_CHARACTER_REFERENCE_STATE);
             }
             if (character == '<') {
-                if (pchvml_token_is_type(parser->token,
-                            PCHVML_TOKEN_CHARACTER)) {
-                    RETURN_IN_CURRENT_STATE(true);
+                if (parser->token) {
+                    RETURN_AND_SWITCH_TO(PCHVML_TAG_OPEN_STATE);
                 }
                 ADVANCE_TO(PCHVML_TAG_OPEN_STATE);
             }
