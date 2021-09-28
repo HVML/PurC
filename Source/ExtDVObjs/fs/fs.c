@@ -371,8 +371,7 @@ text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     UNUSED_PARAM(root);
 
     int64_t line_num = 0;
-    char filename[PATH_MAX] = {0,};
-    const char* string_filename = NULL;
+    const char *filename = NULL;
     FILE *fp = NULL;
     size_t pos = 0;
     struct stat filestat;
@@ -390,18 +389,7 @@ text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     // get the file name
-    string_filename = purc_variant_get_string_const (argv[0]);
-    if (*string_filename == '/') {
-        strcpy (filename, string_filename);
-    }
-    else {
-        if (getcwd (filename, PATH_MAX) == NULL)  {
-//            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-            return PURC_VARIANT_INVALID;
-        }
-        strcat (filename, "/");
-        strcat (filename, string_filename);
-    }
+    filename = purc_variant_get_string_const (argv[0]);
 
     // check whether the file exists
     if((access(filename, F_OK | R_OK)) != 0) {
@@ -454,8 +442,7 @@ text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     UNUSED_PARAM(root);
 
     int64_t line_num = 0;
-    char filename[PATH_MAX] = {0,};
-    const char* string_filename = NULL;
+    const char *filename = NULL;
     FILE *fp = NULL;
     size_t pos = 0;
     struct stat filestat;
@@ -473,18 +460,7 @@ text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     // get the file name
-    string_filename = purc_variant_get_string_const (argv[0]);
-    if (*string_filename == '/') {
-        strcpy (filename, string_filename);
-    }
-    else {
-        if (getcwd (filename, PATH_MAX) == NULL)  {
-//            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-            return PURC_VARIANT_INVALID;
-        }
-        strcat (filename, "/");
-        strcat (filename, string_filename);
-    }
+    filename = purc_variant_get_string_const (argv[0]);
 
     // check whether the file exists
     if((access(filename, F_OK | R_OK)) != 0) {
@@ -547,8 +523,7 @@ bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     UNUSED_PARAM(root);
 
     int64_t byte_num = 0;
-    char filename[PATH_MAX] = {0,};
-    const char* string_filename = NULL;
+    const char *filename = NULL;
     FILE *fp = NULL;
     size_t pos = 0;
     struct stat filestat;
@@ -566,18 +541,7 @@ bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     // get the file name
-    string_filename = purc_variant_get_string_const (argv[0]);
-    if (*string_filename == '/') {
-        strcpy (filename, string_filename);
-    }
-    else {
-        if (getcwd (filename, PATH_MAX) == NULL)  {
-//            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-            return PURC_VARIANT_INVALID;
-        }
-        strcat (filename, "/");
-        strcat (filename, string_filename);
-    }
+    filename = purc_variant_get_string_const (argv[0]);
 
     // check whether the file exists
     if((access(filename, F_OK | R_OK)) != 0) {
@@ -638,8 +602,7 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     UNUSED_PARAM(root);
 
     int64_t byte_num = 0;
-    char filename[PATH_MAX] = {0,};
-    const char* string_filename = NULL;
+    const char *filename = NULL;
     FILE *fp = NULL;
     size_t pos = 0;
     struct stat filestat;
@@ -657,18 +620,7 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     // get the file name
-    string_filename = purc_variant_get_string_const (argv[0]);
-    if (*string_filename == '/') {
-        strcpy (filename, string_filename);
-    }
-    else {
-        if (getcwd (filename, PATH_MAX) == NULL)  {
-//            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-            return PURC_VARIANT_INVALID;
-        }
-        strcat (filename, "/");
-        strcat (filename, string_filename);
-    }
+    filename = purc_variant_get_string_const (argv[0]);
 
     // check whether the file exists
     if((access(filename, F_OK | R_OK)) != 0) {
@@ -735,8 +687,7 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    char filename[PATH_MAX] = {0,};
-    const char *string_filename = NULL;
+    const char *filename = NULL;
     struct stat filestat;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_rwstream_t rwstream = NULL;
@@ -748,18 +699,7 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     // get the file name
-    string_filename = purc_variant_get_string_const (argv[0]);
-    if (*string_filename == '/') {
-        strcpy (filename, string_filename);
-    }
-    else {
-        if (getcwd (filename, PATH_MAX) == NULL)  {
-//            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-            return PURC_VARIANT_INVALID;
-        }
-        strcat (filename, "/");
-        strcat (filename, string_filename);
-    }
+    filename = purc_variant_get_string_const (argv[0]);
 
     // check whether the file exists
     if((access(filename, F_OK | R_OK)) != 0) {
@@ -1830,17 +1770,7 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
-    if (*string_filename == '/') {
-        strcpy (dir_name, string_filename);
-    }
-    else {
-        if (getcwd (filename, PATH_MAX) == NULL)  {
-//            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-            return PURC_VARIANT_INVALID;
-        }
-        strcat (dir_name, "/");
-        strcat (dir_name, string_filename);
-    }
+    strcpy (dir_name, string_filename);
 
     if (access(dir_name, F_OK | R_OK) != 0)  {
 //        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
@@ -2096,17 +2026,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
-    if (*string_filename == '/') {
-        strcpy (dir_name, string_filename);
-    }
-    else {
-        if (getcwd (filename, PATH_MAX) == NULL)  {
-//            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-            return PURC_VARIANT_INVALID;
-        }
-        strcat (dir_name, "/");
-        strcat (dir_name, string_filename);
-    }
+    strcpy (dir_name, string_filename);
 
     if (access(dir_name, F_OK | R_OK) != 0)  {
 //        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
@@ -2382,8 +2302,7 @@ mkdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
-    char filename[PATH_MAX] = {0,};
-    const char* string_filename = NULL;
+    const char *filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if ((argv == NULL) || (nr_args != 1)) {
@@ -2398,18 +2317,7 @@ mkdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     // get the file name
-    string_filename = purc_variant_get_string_const (argv[0]);
-    if (*string_filename == '/') {
-        strcpy (filename, string_filename);
-    }
-    else {
-        if (getcwd (filename, PATH_MAX) == NULL)  {
-//            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-            return PURC_VARIANT_INVALID;
-        }
-        strcat (filename, "/");
-        strcat (filename, string_filename);
-    }
+    filename = purc_variant_get_string_const (argv[0]);
 
     if (mkdir (filename, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == 0)
         ret_var = purc_variant_make_boolean (false);
@@ -2425,8 +2333,7 @@ rmdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
-    char filename[PATH_MAX] = {0,};
-    const char* string_filename = NULL;
+    const char *filename = NULL;
     DIR *dirp;
     struct dirent *dp;
     struct stat dir_stat;
@@ -2445,18 +2352,7 @@ rmdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     // get the file name
-    string_filename = purc_variant_get_string_const (argv[0]);
-    if (*string_filename == '/') {
-        strcpy (filename, string_filename);
-    }
-    else {
-        if (getcwd (filename, PATH_MAX) == NULL)  {
-//            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-            return PURC_VARIANT_INVALID;
-        }
-        strcat (filename, "/");
-        strcat (filename, string_filename);
-    }
+    filename = purc_variant_get_string_const (argv[0]);
 
     if (access(filename, F_OK | R_OK) != 0)  {
 //        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
@@ -2501,8 +2397,7 @@ touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
-    char filename[PATH_MAX] = {0,};
-    const char* string_filename = NULL;
+    const char *filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if ((argv == NULL) || (nr_args != 1)) {
@@ -2517,18 +2412,7 @@ touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     // get the file name
-    string_filename = purc_variant_get_string_const (argv[0]);
-    if (*string_filename == '/') {
-        strcpy (filename, string_filename);
-    }
-    else {
-        if (getcwd (filename, PATH_MAX) == NULL)  {
-//            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-            return PURC_VARIANT_INVALID;
-        }
-        strcat (filename, "/");
-        strcat (filename, string_filename);
-    }
+    filename = purc_variant_get_string_const (argv[0]);
 
     // file not exist, create it
     if (access(filename, F_OK | R_OK) != 0)  {
@@ -2562,8 +2446,7 @@ unlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
-    char filename[PATH_MAX] = {0,};
-    const char* string_filename = NULL;
+    const char *filename = NULL;
     struct stat filestat;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
@@ -2579,18 +2462,7 @@ unlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     // get the file name
-    string_filename = purc_variant_get_string_const (argv[0]);
-    if (*string_filename == '/') {
-        strcpy (filename, string_filename);
-    }
-    else {
-        if (getcwd (filename, PATH_MAX) == NULL)  {
-//            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-            return PURC_VARIANT_INVALID;
-        }
-        strcat (filename, "/");
-        strcat (filename, string_filename);
-    }
+    filename = purc_variant_get_string_const (argv[0]);
 
     if (access(filename, F_OK | R_OK) != 0)  {
 //        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
@@ -2617,8 +2489,7 @@ rm_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
-    char filename[PATH_MAX] = {0,};
-    const char* string_filename = NULL;
+    const char *filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if ((argv == NULL) || (nr_args != 1)) {
@@ -2633,20 +2504,9 @@ rm_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     // get the file name
-    string_filename = purc_variant_get_string_const (argv[0]);
-    if (*string_filename == '/') {
-        strcpy (filename, string_filename);
-    }
-    else {
-        if (getcwd (filename, PATH_MAX) == NULL)  {
-//            pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-            return PURC_VARIANT_INVALID;
-        }
-        strcat (filename, "/");
-        strcat (filename, string_filename);
-    }
+    filename = purc_variant_get_string_const (argv[0]);
 
-    if (remove_dir (filename))
+    if (remove_dir ((char *)filename))
         ret_var = purc_variant_make_boolean (false);
     else
         ret_var = purc_variant_make_boolean (true);
