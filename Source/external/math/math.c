@@ -23,7 +23,7 @@
  */
 
 #include "purc-variant.h"
-#include "helper.h"
+ #include "helper.h"
 #include "purc-version.h"
 
 #include <stdbool.h>
