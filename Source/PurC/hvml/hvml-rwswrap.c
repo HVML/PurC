@@ -86,7 +86,7 @@ static uint32_t pchvml_rwswrap_read_from_rwstream (struct pchvml_rwswrap* wrap)
     uint32_t uc = 0;
     int nr_c = purc_rwstream_read_utf8_char (wrap->rws, c, &uc);
     if (nr_c < 0) {
-        uc = 0xFFFFFFFF;
+        uc = PCHVML_INVALID_CHARACTER;
     }
     return uc;
 }
