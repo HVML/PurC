@@ -458,6 +458,30 @@ create_doctype(struct pcvdom_gen *gen, struct pchvml_token *token)
 }
 
 static int
+create_comment(struct pcvdom_gen *gen, struct pchvml_token *token)
+{
+    const char *text;
+    text = pchvml_token_get_text(token);
+
+    struct pcvdom_comment *comment;
+    comment = pcvdom_comment_create(text);
+
+    if (!comment)
+        return -1;
+
+    int r = 0;
+
+    r = pcvdom_document_append_comment(gen->doc, comment);
+
+    // TODO: check r
+
+    if (r)
+        FAIL_RET();
+
+    return 0;
+}
+
+static int
 create_hvml(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
     int r = 0;
@@ -534,6 +558,15 @@ on_mode_initial(struct pcvdom_gen *gen, struct pchvml_token *token)
         return 0; // just ignore
     }
 
+    if (type==VTT(_COMMENT)) {
+        r = create_comment(gen, token);
+
+        if (r)
+            FAIL_RET();
+
+        return 0;
+    }
+
     r = create_doctype(gen, token);
 
     // TODO: check r
@@ -550,6 +583,7 @@ on_mode_initial(struct pcvdom_gen *gen, struct pchvml_token *token)
 static int
 on_mode_before_hvml(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
+    int r = 0;
     D("");
     enum pchvml_token_type type = pchvml_token_get_type(token);
     if (type==VTT(_DOCTYPE)) {
@@ -566,6 +600,15 @@ on_mode_before_hvml(struct pcvdom_gen *gen, struct pchvml_token *token)
 
     if (type==VTT(_CHARACTER)) {
         return 0; // just ignore
+    }
+
+    if (type==VTT(_COMMENT)) {
+        r = create_comment(gen, token);
+
+        if (r)
+            FAIL_RET();
+
+        return 0;
     }
 
 anything_else:
@@ -619,6 +662,15 @@ on_mode_before_head(struct pcvdom_gen *gen, struct pchvml_token *token)
 
     if (type==VTT(_CHARACTER)) {
         return 0; // just ignore
+    }
+
+    if (type==VTT(_COMMENT)) {
+        r = create_comment(gen, token);
+
+        if (r)
+            FAIL_RET();
+
+        return 0;
     }
 
 anything_else:
@@ -700,6 +752,15 @@ on_mode_in_head(struct pcvdom_gen *gen, struct pchvml_token *token)
         return 0; // just ignore
     }
 
+    if (type==VTT(_COMMENT)) {
+        r = create_comment(gen, token);
+
+        if (r)
+            FAIL_RET();
+
+        return 0;
+    }
+
     pop_node(gen); // FIXME: head at top?
     gen->insertion_mode = VGIM(_AFTER_HEAD);
     gen->reprocess = 1;
@@ -749,6 +810,15 @@ on_mode_after_head(struct pcvdom_gen *gen, struct pchvml_token *token)
 
     if (type==VTT(_CHARACTER)) {
         return 0; // just ignore
+    }
+
+    if (type==VTT(_COMMENT)) {
+        r = create_comment(gen, token);
+
+        if (r)
+            FAIL_RET();
+
+        return 0;
     }
 
 anything_else:
@@ -846,6 +916,15 @@ on_mode_in_body(struct pcvdom_gen *gen, struct pchvml_token *token)
         return 0; // just ignore
     }
 
+    if (type==VTT(_COMMENT)) {
+        r = create_comment(gen, token);
+
+        if (r)
+            FAIL_RET();
+
+        return 0;
+    }
+
     UNUSED_PARAM(gen);
     UNUSED_PARAM(token);
     return -1;
@@ -863,6 +942,7 @@ on_mode_text(struct pcvdom_gen *gen, struct pchvml_token *token)
 static int
 on_mode_after_body(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
+    int r = 0;
     D("");
     enum pchvml_token_type type = pchvml_token_get_type(token);
     if (type==VTT(_DOCTYPE)) {
@@ -905,6 +985,16 @@ on_mode_after_body(struct pcvdom_gen *gen, struct pchvml_token *token)
     if (type==VTT(_CHARACTER)) {
         return 0; // just ignore
     }
+
+    if (type==VTT(_COMMENT)) {
+        r = create_comment(gen, token);
+
+        if (r)
+            FAIL_RET();
+
+        return 0;
+    }
+
     UNUSED_PARAM(gen);
     UNUSED_PARAM(token);
     return -1;
@@ -913,6 +1003,8 @@ on_mode_after_body(struct pcvdom_gen *gen, struct pchvml_token *token)
 static int
 on_mode_after_after_body(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
+    int r = 0;
+
     D("");
 
     enum pchvml_token_type type = pchvml_token_get_type(token);
@@ -934,6 +1026,15 @@ on_mode_after_after_body(struct pcvdom_gen *gen, struct pchvml_token *token)
 
     if (type==VTT(_CHARACTER)) {
         return 0; // just ignore
+    }
+
+    if (type==VTT(_COMMENT)) {
+        r = create_comment(gen, token);
+
+        if (r)
+            FAIL_RET();
+
+        return 0;
     }
 
     UNUSED_PARAM(gen);
