@@ -1413,8 +1413,8 @@ purc_variant_dynamic_value_load_from_so(const char* so_name,
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t
-purc_variant_load_from_so (const char *so_name,
-        const char *var_name, int *ver_code);
+purc_variant_load_dvobj_from_so (const char *so_name,
+        const char *dvobj_name);
 
 /**
  * Unloads a dynamic library
@@ -1425,7 +1425,7 @@ purc_variant_load_from_so (const char *so_name,
 .*
  * Since: 0.0.1
  */
-PCA_EXPORT bool purc_variant_unload_so (purc_variant_t value);
+PCA_EXPORT bool purc_variant_unload_dvobj (purc_variant_t dvobj);
 
 typedef enum purc_variant_type
 {
