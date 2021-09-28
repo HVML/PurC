@@ -1,5 +1,5 @@
 /*
- * @file hvml-parser.c
+ * @file hvml-gen.c
  * @author Xu Xiaohong
  * @date 2021/09/01
  * @brief The interfaces for hvml token.
@@ -26,7 +26,7 @@
 #include "private/errors.h"
 #include "private/debug.h"
 #include "private/utils.h"
-#include "hvml-parser.h"
+#include "hvml-gen.h"
 
 #include <libgen.h>
 

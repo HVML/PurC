@@ -2,7 +2,7 @@
 #include "private/vdom.h"
 #include "private/hvml.h"
 #include "hvml-token.h"
-#include "hvml-parser.h"
+#include "hvml-gen.h"
 
 #include <gtest/gtest.h>
 #include <dirent.h>
