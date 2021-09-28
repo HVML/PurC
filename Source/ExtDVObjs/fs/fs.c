@@ -721,6 +721,7 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     struct purc_native_ops ops;
+    memset (&ops, 0, sizeof(ops));
     ret_var = purc_variant_make_native (rwstream, &ops);
 
     return ret_var;
@@ -1512,9 +1513,9 @@ stream_readlines_getter (purc_variant_t root, size_t nr_args,
             return purc_variant_make_string ("", false);
         }
 
-        pos = purc_rwstream_seek (rwstream, 0L, SEEK_SET);
+        purc_rwstream_seek (rwstream, 0L, SEEK_SET);
         pos = purc_rwstream_read (rwstream, content, pos);
-        *(content + pos) = 0x00;
+        *(content + pos - 1) = 0x00;
 
         ret_var = purc_variant_make_string_reuse_buff (content, pos, false);
     }
