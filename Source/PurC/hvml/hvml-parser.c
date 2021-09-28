@@ -315,7 +315,13 @@ create_empty_head(struct pcvdom_gen *gen, struct pchvml_token *token)
         FAIL_RET();
     }
 
-    gen->insertion_mode = VGIM(_AFTER_HEAD);
+    r = push_node(gen, &elem->node);
+    if (r) {
+        pcvdom_node_destroy(&elem->node);
+        FAIL_RET();
+    }
+
+    gen->insertion_mode = VGIM(_IN_HEAD);
     return 0;
 }
 
@@ -371,7 +377,13 @@ create_empty_body(struct pcvdom_gen *gen, struct pchvml_token *token)
         FAIL_RET();
     }
 
-    gen->insertion_mode = VGIM(_AFTER_BODY);
+    r = push_node(gen, &elem->node);
+    if (r) {
+        pcvdom_node_destroy(&elem->node);
+        FAIL_RET();
+    }
+
+    gen->insertion_mode = VGIM(_IN_BODY);
     return 0;
 }
 
@@ -427,12 +439,20 @@ create_doctype(struct pcvdom_gen *gen, struct pchvml_token *token)
 
     int r = 0;
 
+    if (!name)
+        name = ""; // FIXME: "hvml" ?
+    if (!si)
+        si = "v:";
+
     r = pcvdom_document_set_doctype(gen->doc, name, si);
 
     // TODO: check r
 
     if (r)
         FAIL_RET();
+
+    if (strcasecmp(name, "hvml"))
+        gen->doc->quirks = 1;
 
     return 0;
 }
@@ -469,6 +489,27 @@ create_hvml(struct pcvdom_gen *gen, struct pchvml_token *token)
 }
 
 static int
+create_empty_hvml(struct pcvdom_gen *gen, struct pchvml_token *token)
+{
+    int r = 0;
+    struct pcvdom_element *elem = NULL;
+    elem = pcvdom_element_create_c("hvml");
+
+    if (!elem)
+        FAIL_RET();
+
+    r = pcvdom_document_set_root(gen->doc, elem);
+    if (r) {
+        pcvdom_node_destroy(&elem->node);
+        FAIL_RET();
+    }
+
+    gen->doc->root = elem;
+    gen->insertion_mode = VGIM(_BEFORE_HEAD);
+    return 0;
+}
+
+static int
 on_mode_initial(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
     D("");
@@ -485,50 +526,25 @@ on_mode_initial(struct pcvdom_gen *gen, struct pchvml_token *token)
         if (r)
             FAIL_RET();
 
-        return r ? -1 : 0;
-    }
-
-    if (type==VTT(_START_TAG)) {
-        const char *tag = pchvml_token_get_name(token);
-        if (strcmp(tag, "hvml")==0) {
-            if (gen->doc->doctype.name==NULL) {
-                r = create_doctype(gen, NULL);
-
-                // TODO: check r
-
-                if (r)
-                    FAIL_RET();
-            }
-            gen->insertion_mode = VGIM(_BEFORE_HVML);
-            gen->reprocess = 1;
-            return 0;
-        }
-        goto anything_else;
+        gen->insertion_mode = VGIM(_BEFORE_HVML);
+        return 0;
     }
 
     if (type==VTT(_CHARACTER)) {
         return 0; // just ignore
     }
 
-    if (type==VTT(_EOF)) {
-        if (gen->eof)
-            FAIL_RET();
+    r = create_doctype(gen, token);
 
-        struct pcvdom_node *node = NULL;
-        while ((node=pop_node(gen))) {
-            if (is_doc_node(gen, node))
-                break;
-        }
+    // TODO: check r
 
-        gen->eof = 1;
+    if (r)
+        FAIL_RET();
 
-        return 0;
-    }
+    gen->insertion_mode = VGIM(_BEFORE_HVML);
+    gen->reprocess = 1;
 
-anything_else:
-    UNUSED_PARAM(gen);
-    UNUSED_PARAM(token);
-    return -1;
+    return 0;
 }
 
 static int
@@ -553,9 +569,12 @@ on_mode_before_hvml(struct pcvdom_gen *gen, struct pchvml_token *token)
     }
 
 anything_else:
-    UNUSED_PARAM(gen);
-    UNUSED_PARAM(token);
-    return -1;
+    if (create_empty_hvml(gen, token)) {
+        return -1;
+    }
+    gen->doc->quirks = 1;
+    gen->reprocess = 1;
+    return 0;
 }
 
 static int
@@ -581,12 +600,7 @@ on_mode_before_head(struct pcvdom_gen *gen, struct pchvml_token *token)
             return 0;
         }
 
-        r = create_empty_head(gen, NULL);
-        if (r)
-            FAIL_RET();
-
-        gen->reprocess = 1;
-        return 0;
+        goto anything_else;
     }
 
     if (type==VTT(_END_TAG)) {
@@ -603,28 +617,16 @@ on_mode_before_head(struct pcvdom_gen *gen, struct pchvml_token *token)
         return 0;
     }
 
-    if (type==VTT(_EOF)) {
-        if (gen->eof)
-            FAIL_RET();
-
-        struct pcvdom_node *node = NULL;
-        while ((node=pop_node(gen))) {
-            if (is_doc_node(gen, node))
-                break;
-        }
-
-        gen->eof = 1;
-
-        return 0;
-    }
-
     if (type==VTT(_CHARACTER)) {
         return 0; // just ignore
     }
 
-    UNUSED_PARAM(gen);
-    UNUSED_PARAM(token);
-    return -1;
+anything_else:
+    if (create_empty_head(gen, token)) {
+        return -1;
+    }
+    gen->reprocess = 1;
+    return 0;
 }
 
 static int
@@ -694,28 +696,14 @@ on_mode_in_head(struct pcvdom_gen *gen, struct pchvml_token *token)
         return 0; // ignore for now
     }
 
-    if (type==VTT(_EOF)) {
-        if (gen->eof)
-            FAIL_RET();
-
-        struct pcvdom_node *node = NULL;
-        while ((node=pop_node(gen))) {
-            if (is_doc_node(gen, node))
-                break;
-        }
-
-        gen->eof = 1;
-
-        return 0;
-    }
-
     if (type==VTT(_CHARACTER)) {
         return 0; // just ignore
     }
 
-    UNUSED_PARAM(gen);
-    UNUSED_PARAM(token);
-    return -1;
+    pop_node(gen); // FIXME: head at top?
+    gen->insertion_mode = VGIM(_AFTER_HEAD);
+    gen->reprocess = 1;
+    return 0;
 }
 
 static int
@@ -741,12 +729,7 @@ on_mode_after_head(struct pcvdom_gen *gen, struct pchvml_token *token)
             return 0;
         }
 
-        r = create_empty_body(gen, NULL);
-        if (r)
-            FAIL_RET();
-
-        gen->reprocess = 1;
-        return 0;
+        goto anything_else;
     }
 
     if (type==VTT(_END_TAG)) {
@@ -764,28 +747,17 @@ on_mode_after_head(struct pcvdom_gen *gen, struct pchvml_token *token)
         return 0;
     }
 
-    if (type==VTT(_EOF)) {
-        if (gen->eof)
-            FAIL_RET();
-
-        struct pcvdom_node *node = NULL;
-        while ((node=pop_node(gen))) {
-            if (is_doc_node(gen, node))
-                break;
-        }
-
-        gen->eof = 1;
-
-        return 0;
-    }
-
     if (type==VTT(_CHARACTER)) {
         return 0; // just ignore
     }
 
-    UNUSED_PARAM(gen);
-    UNUSED_PARAM(token);
-    return -1;
+anything_else:
+    r = create_empty_body(gen, NULL);
+    if (r)
+        FAIL_RET();
+
+    gen->reprocess = 1;
+    return 0;
 }
 
 static int
