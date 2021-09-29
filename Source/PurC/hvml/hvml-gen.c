@@ -349,7 +349,7 @@ create_head(struct pcvdom_gen *gen, struct pchvml_token *token)
 
 end:
     gen->doc->head      = elem;
-    gen->insertion_mode = VGIM(_AFTER_HEAD);
+    gen->insertion_mode = VGIM(_IN_HEAD);
     return 0;
 }
 
@@ -421,7 +421,7 @@ create_body(struct pcvdom_gen *gen, struct pchvml_token *token)
 
 end:
     gen->doc->body      = elem;
-    gen->insertion_mode = VGIM(_AFTER_BODY);
+    gen->insertion_mode = VGIM(_IN_BODY);
     return 0;
 }
 
@@ -784,14 +784,10 @@ on_mode_in_head(struct pcvdom_gen *gen, struct pchvml_token *token)
     if (type==VTT(_START_TAG)) {
         const char *tag = pchvml_token_get_name(token);
         const enum pchvml_tag_id tag_id = tag_id_from_tag(tag);
-        if (tag_id == PCHVML_TAG_HVML)
-            FAIL_RET();
-
-        if (tag_id != PCHVML_TAG_INIT &&
-            tag_id != PCHVML_TAG_SET &&
-            strcasecmp(tag, "title"))
+        if (tag_id == PCHVML_TAG_HEAD ||
+            tag_id == PCHVML_TAG_HVML)
         {
-            goto anything_else;
+            FAIL_RET();
         }
 
         struct pcvdom_element *elem;
@@ -824,25 +820,36 @@ on_mode_in_head(struct pcvdom_gen *gen, struct pchvml_token *token)
     if (type==VTT(_END_TAG)) {
         const char *tag = pchvml_token_get_name(token);
         const enum pchvml_tag_id tag_id = tag_id_from_tag(tag);
-        if (tag_id == PCHVML_TAG_BODY ||
-            tag_id == PCHVML_TAG_HVML)
-        {
-            goto anything_else;
-        }
 
         struct pcvdom_node *node = top_node(gen);
         struct pcvdom_element *elem;
         elem = container_of(node, struct pcvdom_element, node);
         const char *tagname = pcvdom_element_get_tagname(elem);
-        if (!tagname || !tag || strcmp(tagname, tag))
-            FAIL_RET();
 
-        pop_node(gen);
-
-        if (tag_id == PCHVML_TAG_HEAD) {
-            gen->insertion_mode = VGIM(_AFTER_HEAD);
+        if (strcasecmp(tagname, tag) == 0) {
+            if (is_top_node_of_head(gen)) {
+                pop_node(gen);
+                gen->insertion_mode = VGIM(_AFTER_HEAD);
+                return 0;
+            }
+            pop_node(gen);
+            return 0;
         }
 
+        if (is_top_node_of_head(gen)) {
+            if (tag_id == PCHVML_TAG_HEAD) {
+                pop_node(gen);
+                gen->insertion_mode = VGIM(_AFTER_HEAD);
+                return 0;
+            }
+            pop_node(gen);
+            gen->insertion_mode = VGIM(_AFTER_HEAD);
+            gen->reprocess = 1;
+            return 0;
+        }
+
+        pop_node(gen);
+        gen->reprocess = 1;
         return 0;
     }
 
@@ -863,7 +870,6 @@ on_mode_in_head(struct pcvdom_gen *gen, struct pchvml_token *token)
         return 0;
     }
 
-anything_else:
     pop_node(gen); // FIXME: head at top?
     gen->insertion_mode = VGIM(_AFTER_HEAD);
     gen->reprocess = 1;

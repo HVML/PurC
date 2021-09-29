@@ -170,6 +170,7 @@ TEST(vdom_gen, glob)
             _process_file(globbuf.gl_pathv[i]);
         }
     }
+    globfree(&globbuf);
 
 end:
     purc_cleanup ();
