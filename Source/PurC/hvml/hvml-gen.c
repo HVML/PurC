@@ -695,17 +695,16 @@ on_mode_before_head(struct pcvdom_gen *gen, struct pchvml_token *token)
     }
 
     if (type==VTT(_END_TAG)) {
-        struct pcvdom_node *node = top_node(gen);
-        struct pcvdom_element *elem;
-        elem = container_of(node, struct pcvdom_element, node);
-        const char *tagname = pcvdom_element_get_tagname(elem);
         const char *tag = pchvml_token_get_name(token);
+        const enum pchvml_tag_id tag_id = tag_id_from_tag(tag);
+        if (tag_id == PCHVML_TAG_HEAD ||
+            tag_id == PCHVML_TAG_BODY ||
+            tag_id == PCHVML_TAG_HVML)
+        {
+            goto anything_else;
+        }
 
-        if (!tagname || !tag || strcmp(tagname, tag))
-            FAIL_RET();
-
-        pop_node(gen);
-        return 0;
+        return 0; // just ignore
     }
 
     if (type==VTT(_CHARACTER)) {
