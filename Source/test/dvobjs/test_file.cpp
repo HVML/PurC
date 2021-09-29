@@ -858,6 +858,10 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
     purc_variant_t ret_result = PURC_VARIANT_INVALID;
     purc_variant_t test_file = PURC_VARIANT_INVALID;
     size_t line_number = 0;
+    int equal = 0;
+    const unsigned char *buf1 = NULL;
+    const unsigned char *buf2 = NULL;
+    size_t bsize = 0;
 
     // get and function
     purc_instance_extra_info info = {0, 0};
@@ -1046,11 +1050,58 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
 
                 // compare
                 ASSERT_EQ (purc_variant_array_get_size (ret_var), j - 2);
+                for (int k = 0; k < j - 2; k++) {
+                    double d1, d2;
+                    int64_t i1, i2;
+                    uint64_t u1, u2;
+                    long double ld1, ld2;
+
+                    ret_result = purc_variant_array_get (ret_var, k);
+                    ASSERT_EQ(purc_variant_get_type (param[ k+ 2]), 
+                            purc_variant_get_type (ret_result));
+                    switch (purc_variant_get_type (ret_result))   {
+                        case PURC_VARIANT_TYPE_NUMBER:
+                            purc_variant_cast_to_number (ret_result, &d1, false);
+                            purc_variant_cast_to_number (param[k + 2], &d2, false);
+                            ASSERT_EQ (d1, d2);
+                            break;
+                        case PURC_VARIANT_TYPE_LONGINT:
+                            purc_variant_cast_to_longint (ret_result, &i1, false);
+                            purc_variant_cast_to_longint (param[k + 2], &i2, false);
+                            ASSERT_EQ (i1, i2);
+                            break;
+                        case PURC_VARIANT_TYPE_ULONGINT:
+                            purc_variant_cast_to_ulongint (ret_result, &u1, false);
+                            purc_variant_cast_to_ulongint (param[k + 2], &u2, false);
+                            ASSERT_EQ (u1, u2);
+                            break;
+                        case PURC_VARIANT_TYPE_LONGDOUBLE:
+                            purc_variant_cast_to_long_double (ret_result, &ld1, false);
+                            purc_variant_cast_to_long_double (param[k + 2], &ld2, false);
+                            ASSERT_EQ (ld1, ld2);
+                            break;
+                        case PURC_VARIANT_TYPE_STRING:
+                            ASSERT_STREQ(purc_variant_get_string_const(ret_result),
+                                    purc_variant_get_string_const (param[k + 2]));
+                            break;
+                        case PURC_VARIANT_TYPE_BSEQUENCE:
+                            buf1 = purc_variant_get_bytes_const (ret_result, 
+                                    &bsize);
+                            buf2 = purc_variant_get_bytes_const (param[k + 2],
+                                    &bsize);
+                            equal = memcmp (buf1, buf2, bsize);
+                            ASSERT_EQ (equal, 0);
+                            break;
+                        default:
+                            break;
+                    }
+                }
 
                 // close
                 for_open[0] = test_file;
                 close (NULL, 1, for_open);
 
+                unlink (test_path);
             }
             else
                 continue;

@@ -904,7 +904,7 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
                 else if (strncasecmp (head, "i64be", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_BIG, 8);
 
-                i64 = *((int64_t *)buf);
+                i64 = (int64_t)(*((int64_t *)buf));
                 val = purc_variant_make_longint (i64);
                 break;
             case 'f':
@@ -967,7 +967,7 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
                 else if (strncasecmp (head, "u64be", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_BIG, 8);
 
-                u64 = (uint64_t)*buf;
+                u64 = (uint64_t)(*((uint64_t *)buf));
                 val = purc_variant_make_ulongint (u64);
                 break;
             case 'b':
