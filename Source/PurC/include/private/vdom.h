@@ -109,6 +109,8 @@ struct pcvdom_document {
 
     // redundant, for fast access
     struct pcvdom_element  *root;
+    struct pcvdom_element  *head;
+    struct pcvdom_element  *body;
 
     // document-variables
     // such as `$REQUEST`、`$TIMERS`、`$T` and etc.

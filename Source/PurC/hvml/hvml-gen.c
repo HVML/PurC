@@ -297,6 +297,10 @@ create_head(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
     int r = 0;
     struct pcvdom_element *elem = NULL;
+
+    if (gen->doc->head)
+        return -1;
+
     elem = pcvdom_element_create_c("head");
 
     if (!elem)
@@ -317,10 +321,12 @@ create_head(struct pcvdom_gen *gen, struct pchvml_token *token)
             pcvdom_node_destroy(&elem->node);
             FAIL_RET();
         }
-        gen->insertion_mode = VGIM(_IN_HEAD);
-        return 0;
+
+        goto end;
     }
 
+end:
+    gen->doc->head      = elem;
     gen->insertion_mode = VGIM(_AFTER_HEAD);
     return 0;
 }
@@ -330,6 +336,10 @@ create_empty_head(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
     int r = 0;
     struct pcvdom_element *elem = NULL;
+
+    if (gen->doc->head)
+        return -1;
+
     elem = pcvdom_element_create_c("head");
 
     if (!elem)
@@ -350,6 +360,7 @@ create_empty_head(struct pcvdom_gen *gen, struct pchvml_token *token)
         FAIL_RET();
     }
 
+    gen->doc->head      = elem;
     gen->insertion_mode = VGIM(_IN_HEAD);
     return 0;
 }
@@ -359,6 +370,10 @@ create_body(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
     int r = 0;
     struct pcvdom_element *elem = NULL;
+
+    if (gen->doc->body)
+        return -1;
+
     elem = pcvdom_element_create_c("body");
 
     if (!elem)
@@ -379,10 +394,11 @@ create_body(struct pcvdom_gen *gen, struct pchvml_token *token)
             pcvdom_node_destroy(&elem->node);
             FAIL_RET();
         }
-        gen->insertion_mode = VGIM(_IN_BODY);
-        return 0;
+        goto end;
     }
 
+end:
+    gen->doc->body      = elem;
     gen->insertion_mode = VGIM(_AFTER_BODY);
     return 0;
 }
@@ -392,6 +408,10 @@ create_empty_body(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
     int r = 0;
     struct pcvdom_element *elem = NULL;
+
+    if (gen->doc->body)
+        return -1;
+
     elem = pcvdom_element_create_c("body");
 
     if (!elem)
@@ -412,6 +432,7 @@ create_empty_body(struct pcvdom_gen *gen, struct pchvml_token *token)
         FAIL_RET();
     }
 
+    gen->doc->body      = elem;
     gen->insertion_mode = VGIM(_IN_BODY);
     return 0;
 }
