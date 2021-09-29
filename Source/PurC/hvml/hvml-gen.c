@@ -203,6 +203,28 @@ is_top_node_of_hvml(struct pcvdom_gen *gen)
     return is_element_of_hvml(elem);
 }
 
+static inline bool
+is_top_node_of_head(struct pcvdom_gen *gen)
+{
+    struct pcvdom_node *top = top_node(gen);
+    if (is_doc_node(gen, top))
+        return false;
+    struct pcvdom_element *elem;
+    elem = container_of(top, struct pcvdom_element, node);
+    return gen->doc->head == elem ? true : false;
+}
+
+static inline bool
+is_top_node_of_body(struct pcvdom_gen *gen)
+{
+    struct pcvdom_node *top = top_node(gen);
+    if (is_doc_node(gen, top))
+        return false;
+    struct pcvdom_element *elem;
+    elem = container_of(top, struct pcvdom_element, node);
+    return gen->doc->body == elem ? true : false;
+}
+
 static inline enum pchvml_tag_id
 tag_id_from_tag(const char *tag)
 {
