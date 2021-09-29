@@ -13,7 +13,7 @@ set(HEADER_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}" CACHE PATH "Absolute path t
 set(PURC_HEADER_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}/purc" CACHE PATH "Absolute path to PurC header installation directory")
 
 add_definitions(-DBUILDING_LINUX__=1)
-add_definitions(-DPURC_API_VERSION_STRING="${PURC_API_VERSION}")
+# add_definitions(-DPURC_API_VERSION_STRING="${PURC_API_VERSION}")
 
 find_package(GLIB 2.44.0 COMPONENTS gio gio-unix)
 find_package(HiBus 100)

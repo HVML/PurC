@@ -553,6 +553,7 @@ struct pchvml_buffer* pchvml_token_to_string(struct pchvml_token* token)
             char* vcm_buffer = pcvcm_node_to_string(token->vcm_content,
                     &nr_vcm_buffer);
             pchvml_buffer_append_bytes(buffer, vcm_buffer, nr_vcm_buffer);
+            free(vcm_buffer);
         }
         break;
 

@@ -1480,6 +1480,7 @@ next_state:
                     || character == '=' || character == '`') {
                 PCHVML_SET_ERROR(
                 PCHVML_ERROR_UNEXPECTED_CHARACTER_IN_UNQUOTED_ATTRIBUTE_VALUE);
+                RETURN_AND_STOP_PARSE();
             }
             APPEND_TO_STRING_BUFFER(character);
             ADVANCE_TO(PCHVML_ATTRIBUTE_VALUE_UNQUOTED_STATE);
@@ -1497,11 +1498,11 @@ next_state:
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
-                RECONSUME_IN(PCHVML_DATA_STATE);
+                RETURN_NEW_EOF_TOKEN();
             }
             PCHVML_SET_ERROR(
                     PCHVML_ERROR_MISSING_WHITESPACE_BETWEEN_ATTRIBUTES);
-            RECONSUME_IN(PCHVML_BEFORE_ATTRIBUTE_NAME_STATE);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_SELF_CLOSING_START_TAG_STATE)
@@ -1511,10 +1512,10 @@ next_state:
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
-                RECONSUME_IN(PCHVML_DATA_STATE);
+                RETURN_NEW_EOF_TOKEN();
             }
             PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_SOLIDUS_IN_TAG);
-            RECONSUME_IN(PCHVML_BEFORE_ATTRIBUTE_NAME_STATE);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_BOGUS_COMMENT_STATE)
@@ -1524,6 +1525,7 @@ next_state:
             if (is_eof(character)) {
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
+            // FIXME
             APPEND_TO_TOKEN_TEXT(character);
             ADVANCE_TO(PCHVML_BOGUS_COMMENT_STATE);
         END_STATE()
@@ -1535,12 +1537,9 @@ next_state:
             bool ret = pchvml_sbst_advance_ex(parser->sbst, character, true);
             if (!ret) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_INCORRECTLY_OPENED_COMMENT);
-                pchvml_rwswrap_buffer_arrlist(parser->rwswrap,
-                        pchvml_sbst_get_buffered_ucs(parser->sbst));
-                parser->token = pchvml_token_new_comment();
                 pchvml_sbst_destroy(parser->sbst);
                 parser->sbst = NULL;
-                ADVANCE_TO(PCHVML_BOGUS_COMMENT_STATE);
+                RETURN_AND_STOP_PARSE();
             }
 
             const char* value = pchvml_sbst_get_match(parser->sbst);
@@ -1565,12 +1564,9 @@ next_state:
                 ADVANCE_TO(PCHVML_CDATA_SECTION_STATE);
             }
             PCHVML_SET_ERROR(PCHVML_ERROR_INCORRECTLY_OPENED_COMMENT);
-            pchvml_rwswrap_buffer_arrlist(parser->rwswrap,
-                    pchvml_sbst_get_buffered_ucs(parser->sbst));
-            parser->token = pchvml_token_new_comment();
             pchvml_sbst_destroy(parser->sbst);
             parser->sbst = NULL;
-            ADVANCE_TO(PCHVML_BOGUS_COMMENT_STATE);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_COMMENT_START_STATE)
@@ -1579,7 +1575,7 @@ next_state:
             }
             if (character == '>') {
                 PCHVML_SET_ERROR(PCHVML_ERROR_ABRUPT_CLOSING_OF_EMPTY_COMMENT);
-                RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
+                RETURN_AND_STOP_PARSE();
             }
             RECONSUME_IN(PCHVML_COMMENT_STATE);
         END_STATE()
@@ -1590,11 +1586,11 @@ next_state:
             }
             if (character == '>') {
                 PCHVML_SET_ERROR(PCHVML_ERROR_ABRUPT_CLOSING_OF_EMPTY_COMMENT);
-                RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
+                RETURN_AND_STOP_PARSE();
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_COMMENT);
-                RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
+                RETURN_NEW_EOF_TOKEN();
             }
             APPEND_TO_TOKEN_TEXT('-');
             RECONSUME_IN(PCHVML_COMMENT_STATE);
@@ -1610,7 +1606,7 @@ next_state:
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_COMMENT);
-                RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
+                RETURN_NEW_EOF_TOKEN();
             }
             APPEND_TO_TOKEN_TEXT(character);
             ADVANCE_TO(PCHVML_COMMENT_STATE);
@@ -1656,7 +1652,7 @@ next_state:
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_COMMENT);
-                RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
+                RETURN_NEW_EOF_TOKEN();
             }
             APPEND_TO_TOKEN_TEXT('-');
             RECONSUME_IN(PCHVML_COMMENT_STATE);
@@ -1675,7 +1671,7 @@ next_state:
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_COMMENT);
-                RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
+                RETURN_NEW_EOF_TOKEN();
             }
             APPEND_TO_TOKEN_TEXT('-');
             APPEND_TO_TOKEN_TEXT('-');
@@ -1691,7 +1687,7 @@ next_state:
             }
             if (character == '>') {
                 PCHVML_SET_ERROR(PCHVML_ERROR_INCORRECTLY_CLOSED_COMMENT);
-                RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
+                RETURN_AND_STOP_PARSE();
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_COMMENT);
@@ -1718,7 +1714,7 @@ next_state:
             }
             PCHVML_SET_ERROR(
                     PCHVML_ERROR_MISSING_WHITESPACE_BEFORE_DOCTYPE_NAME);
-            RECONSUME_IN(PCHVML_BEFORE_DOCTYPE_NAME_STATE);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_BEFORE_DOCTYPE_NAME_STATE)
@@ -1727,9 +1723,7 @@ next_state:
             }
             if (character == '>') {
                 PCHVML_SET_ERROR(PCHVML_ERROR_MISSING_DOCTYPE_NAME);
-                parser->token = pchvml_token_new_doctype();
-                pchvml_token_set_force_quirks(parser->token, true);
-                RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
+                RETURN_AND_STOP_PARSE();
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_DOCTYPE);
@@ -1776,12 +1770,9 @@ next_state:
             if (!ret) {
                 PCHVML_SET_ERROR(
                     PCHVML_ERROR_INVALID_CHARACTER_SEQUENCE_AFTER_DOCTYPE_NAME);
-                pchvml_rwswrap_buffer_arrlist(parser->rwswrap,
-                        pchvml_sbst_get_buffered_ucs(parser->sbst));
                 pchvml_sbst_destroy(parser->sbst);
                 parser->sbst = NULL;
-                pchvml_token_set_force_quirks(parser->token, true);
-                ADVANCE_TO(PCHVML_BOGUS_COMMENT_STATE);
+                RETURN_AND_STOP_PARSE();
             }
 
             const char* value = pchvml_sbst_get_match(parser->sbst);
@@ -1801,12 +1792,9 @@ next_state:
             }
             PCHVML_SET_ERROR(
                 PCHVML_ERROR_INVALID_CHARACTER_SEQUENCE_AFTER_DOCTYPE_NAME);
-            pchvml_rwswrap_buffer_arrlist(parser->rwswrap,
-                    pchvml_sbst_get_buffered_ucs(parser->sbst));
             pchvml_sbst_destroy(parser->sbst);
             parser->sbst = NULL;
-            pchvml_token_set_force_quirks(parser->token, true);
-            ADVANCE_TO(PCHVML_BOGUS_COMMENT_STATE);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_AFTER_DOCTYPE_PUBLIC_KEYWORD_STATE)
@@ -1816,20 +1804,17 @@ next_state:
             if (character == '"') {
                 PCHVML_SET_ERROR(
                   PCHVML_ERROR_MISSING_WHITESPACE_AFTER_DOCTYPE_PUBLIC_KEYWORD);
-                RESET_TOKEN_PUBLIC_IDENTIFIER();
-                ADVANCE_TO(PCHVML_DOCTYPE_PUBLIC_IDENTIFIER_DOUBLE_QUOTED_STATE);
+                RETURN_AND_STOP_PARSE();
             }
             if (character == '\'') {
                 PCHVML_SET_ERROR(
                   PCHVML_ERROR_MISSING_WHITESPACE_AFTER_DOCTYPE_PUBLIC_KEYWORD);
-                RESET_TOKEN_PUBLIC_IDENTIFIER();
-                ADVANCE_TO(PCHVML_DOCTYPE_PUBLIC_IDENTIFIER_SINGLE_QUOTED_STATE);
+                RETURN_AND_STOP_PARSE();
             }
             if (character == '>') {
                 PCHVML_SET_ERROR(
                   PCHVML_ERROR_MISSING_DOCTYPE_PUBLIC_IDENTIFIER);
-                pchvml_token_set_force_quirks(parser->token, true);
-                RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
+                RETURN_AND_STOP_PARSE();
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_DOCTYPE);
@@ -1838,8 +1823,7 @@ next_state:
             }
             PCHVML_SET_ERROR(
                 PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_PUBLIC_IDENTIFIER);
-            pchvml_token_set_force_quirks(parser->token, true);
-            ADVANCE_TO(PCHVML_BOGUS_DOCTYPE_STATE);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_BEFORE_DOCTYPE_PUBLIC_IDENTIFIER_STATE)
@@ -1857,8 +1841,7 @@ next_state:
             if (character == '>') {
                 PCHVML_SET_ERROR(
                   PCHVML_ERROR_MISSING_DOCTYPE_PUBLIC_IDENTIFIER);
-                pchvml_token_set_force_quirks(parser->token, true);
-                RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
+                RETURN_AND_STOP_PARSE();
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_DOCTYPE);
@@ -1867,8 +1850,7 @@ next_state:
             }
             PCHVML_SET_ERROR(
                 PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_PUBLIC_IDENTIFIER);
-            pchvml_token_set_force_quirks(parser->token, true);
-            ADVANCE_TO(PCHVML_BOGUS_DOCTYPE_STATE);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_DOCTYPE_PUBLIC_IDENTIFIER_DOUBLE_QUOTED_STATE)
@@ -1877,8 +1859,7 @@ next_state:
             }
             if (character == '>') {
                 PCHVML_SET_ERROR(PCHVML_ERROR_ABRUPT_DOCTYPE_PUBLIC_IDENTIFIER);
-                pchvml_token_set_force_quirks(parser->token, true);
-                RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
+                RETURN_AND_STOP_PARSE();
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_DOCTYPE);
@@ -1895,8 +1876,7 @@ next_state:
             }
             if (character == '>') {
                 PCHVML_SET_ERROR(PCHVML_ERROR_ABRUPT_DOCTYPE_PUBLIC_IDENTIFIER);
-                pchvml_token_set_force_quirks(parser->token, true);
-                RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
+                RETURN_AND_STOP_PARSE();
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_DOCTYPE);
@@ -1919,15 +1899,13 @@ next_state:
                 PCHVML_SET_ERROR(
                   PCHVML_ERROR_MISSING_WHITESPACE_BETWEEN_DOCTYPE_PUBLIC_AND_SYSTEM_INFORMATIONS
                   );
-                RESET_TOKEN_SYSTEM_INFORMATION();
-                ADVANCE_TO(PCHVML_DOCTYPE_SYSTEM_INFORMATION_DOUBLE_QUOTED_STATE);
+                RETURN_AND_STOP_PARSE();
             }
             if (character == '\'') {
                 PCHVML_SET_ERROR(
                   PCHVML_ERROR_MISSING_WHITESPACE_BETWEEN_DOCTYPE_PUBLIC_AND_SYSTEM_INFORMATIONS
                   );
-                RESET_TOKEN_SYSTEM_INFORMATION();
-                ADVANCE_TO(PCHVML_DOCTYPE_SYSTEM_INFORMATION_SINGLE_QUOTED_STATE);
+                RETURN_AND_STOP_PARSE();
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_DOCTYPE);
@@ -1936,8 +1914,7 @@ next_state:
             }
             PCHVML_SET_ERROR(
                 PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM_INFORMATION);
-            pchvml_token_set_force_quirks(parser->token, true);
-            ADVANCE_TO(PCHVML_BOGUS_DOCTYPE_STATE);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_BETWEEN_DOCTYPE_PUBLIC_IDENTIFIER_AND_SYSTEM_INFORMATION_STATE)
@@ -1962,8 +1939,7 @@ next_state:
             }
             PCHVML_SET_ERROR(
                 PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM_INFORMATION);
-            pchvml_token_set_force_quirks(parser->token, true);
-            ADVANCE_TO(PCHVML_BOGUS_DOCTYPE_STATE);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_AFTER_DOCTYPE_SYSTEM_KEYWORD_STATE)
@@ -1973,19 +1949,16 @@ next_state:
             if (character == '"') {
                 PCHVML_SET_ERROR(
                   PCHVML_ERROR_MISSING_WHITESPACE_AFTER_DOCTYPE_SYSTEM_KEYWORD);
-                RESET_TOKEN_SYSTEM_INFORMATION();
-                ADVANCE_TO(PCHVML_DOCTYPE_SYSTEM_INFORMATION_DOUBLE_QUOTED_STATE);
+                RETURN_AND_STOP_PARSE();
             }
             if (character == '\'') {
                 PCHVML_SET_ERROR(
                   PCHVML_ERROR_MISSING_WHITESPACE_AFTER_DOCTYPE_SYSTEM_KEYWORD);
-                RESET_TOKEN_SYSTEM_INFORMATION();
-                ADVANCE_TO(PCHVML_DOCTYPE_SYSTEM_INFORMATION_SINGLE_QUOTED_STATE);
+                RETURN_AND_STOP_PARSE();
             }
             if (character == '>') {
                 PCHVML_SET_ERROR(PCHVML_ERROR_MISSING_DOCTYPE_SYSTEM_INFORMATION);
-                pchvml_token_set_force_quirks(parser->token, true);
-                RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
+                RETURN_AND_STOP_PARSE();
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_DOCTYPE);
@@ -1993,8 +1966,7 @@ next_state:
             }
             PCHVML_SET_ERROR(
                 PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM_INFORMATION);
-            pchvml_token_set_force_quirks(parser->token, true);
-            ADVANCE_TO(PCHVML_BOGUS_DOCTYPE_STATE);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_BEFORE_DOCTYPE_SYSTEM_INFORMATION_STATE)
@@ -2012,8 +1984,7 @@ next_state:
             if (character == '>') {
                 PCHVML_SET_ERROR(
                         PCHVML_ERROR_MISSING_DOCTYPE_SYSTEM_INFORMATION);
-                pchvml_token_set_force_quirks(parser->token, true);
-                RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
+                RETURN_AND_STOP_PARSE();
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_DOCTYPE);
@@ -2022,8 +1993,7 @@ next_state:
             }
             PCHVML_SET_ERROR(
                 PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM_INFORMATION);
-            pchvml_token_set_force_quirks(parser->token, true);
-            ADVANCE_TO(PCHVML_BOGUS_DOCTYPE_STATE);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_DOCTYPE_SYSTEM_INFORMATION_DOUBLE_QUOTED_STATE)
@@ -2032,8 +2002,7 @@ next_state:
             }
             if (character == '>') {
                 PCHVML_SET_ERROR(PCHVML_ERROR_ABRUPT_DOCTYPE_SYSTEM_INFORMATION);
-                pchvml_token_set_force_quirks(parser->token, true);
-                RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
+                RETURN_AND_STOP_PARSE();
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_DOCTYPE);
@@ -2050,8 +2019,7 @@ next_state:
             }
             if (character == '>') {
                 PCHVML_SET_ERROR(PCHVML_ERROR_ABRUPT_DOCTYPE_SYSTEM_INFORMATION);
-                pchvml_token_set_force_quirks(parser->token, true);
-                RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
+                RETURN_AND_STOP_PARSE();
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_DOCTYPE);
@@ -2076,7 +2044,7 @@ next_state:
             }
             PCHVML_SET_ERROR(
              PCHVML_ERROR_UNEXPECTED_CHARACTER_AFTER_DOCTYPE_SYSTEM_INFORMATION);
-            ADVANCE_TO(PCHVML_BOGUS_DOCTYPE_STATE);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_BOGUS_DOCTYPE_STATE)
@@ -2186,7 +2154,7 @@ next_state:
             }
             if (character == ';') {
                 PCHVML_SET_ERROR(PCHVML_ERROR_UNKNOWN_NAMED_CHARACTER_REFERENCE);
-                RECONSUME_IN(parser->return_state);
+                RETURN_AND_STOP_PARSE();
             }
             RECONSUME_IN(parser->return_state);
         END_STATE()
@@ -2206,8 +2174,7 @@ next_state:
             }
             PCHVML_SET_ERROR(
                 PCHVML_ERROR_ABSENCE_OF_DIGITS_IN_NUMERIC_CHARACTER_REFERENCE);
-            APPEND_TEMP_BUFFER_TO_TOKEN_TEXT();
-            RECONSUME_IN(parser->return_state);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_DECIMAL_CHARACTER_REFERENCE_START_STATE)
@@ -2216,8 +2183,7 @@ next_state:
             }
             PCHVML_SET_ERROR(
                 PCHVML_ERROR_ABSENCE_OF_DIGITS_IN_NUMERIC_CHARACTER_REFERENCE);
-            APPEND_TEMP_BUFFER_TO_TOKEN_TEXT();
-            RECONSUME_IN(parser->return_state);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_HEXADECIMAL_CHARACTER_REFERENCE_STATE)
@@ -2238,7 +2204,7 @@ next_state:
             }
             PCHVML_SET_ERROR(
                     PCHVML_ERROR_MISSING_SEMICOLON_AFTER_CHARACTER_REFERENCE);
-            RECONSUME_IN(PCHVML_NUMERIC_CHARACTER_REFERENCE_END_STATE);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_DECIMAL_CHARACTER_REFERENCE_STATE)
@@ -2252,7 +2218,7 @@ next_state:
             }
             PCHVML_SET_ERROR(
                     PCHVML_ERROR_MISSING_SEMICOLON_AFTER_CHARACTER_REFERENCE);
-            RECONSUME_IN(PCHVML_NUMERIC_CHARACTER_REFERENCE_END_STATE);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_NUMERIC_CHARACTER_REFERENCE_END_STATE)
@@ -2260,25 +2226,30 @@ next_state:
             if (uc == 0x00) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_NULL_CHARACTER_REFERENCE);
                 parser->char_ref_code = 0xFFFD;
+                RETURN_AND_STOP_PARSE();
             }
             if (uc > 0x10FFFF) {
                 PCHVML_SET_ERROR(
                     PCHVML_ERROR_CHARACTER_REFERENCE_OUTSIDE_UNICODE_RANGE);
                 parser->char_ref_code = 0xFFFD;
+                RETURN_AND_STOP_PARSE();
             }
             if ((uc & 0xFFFFF800) == 0xD800) {
                 PCHVML_SET_ERROR(
                         PCHVML_ERROR_SURROGATE_CHARACTER_REFERENCE);
+                RETURN_AND_STOP_PARSE();
             }
             if (uc >= 0xFDD0 && (uc <= 0xFDEF || (uc&0xFFFE) == 0xFFFE) &&
                     uc <= 0x10FFFF) {
                 PCHVML_SET_ERROR(
                         PCHVML_ERROR_NONCHARACTER_CHARACTER_REFERENCE);
+                RETURN_AND_STOP_PARSE();
             }
             if (uc <= 0x1F &&
                     !(uc == 0x09 || uc == 0x0A || uc == 0x0C)){
                 PCHVML_SET_ERROR(
                     PCHVML_ERROR_CONTROL_CHARACTER_REFERENCE);
+                RETURN_AND_STOP_PARSE();
             }
             if (uc >= 0x7F && uc <= 0x9F) {
                 PCHVML_SET_ERROR(
@@ -2287,6 +2258,7 @@ next_state:
                     parser->char_ref_code =
                         numeric_char_ref_extension_array[uc - 0x80];
                 }
+                RETURN_AND_STOP_PARSE();
             }
             RESET_TEMP_BUFFER();
             uc = parser->char_ref_code;

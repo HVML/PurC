@@ -223,7 +223,7 @@ purc_variant_make_string (const char* str_utf8, bool check_encoding)
             return PURC_VARIANT_INVALID;
         }
 
-        value->flags |= PCVARIANT_FLAG_EXTRA_SIZE;
+        value->flags = PCVARIANT_FLAG_EXTRA_SIZE;
         value->sz_ptr[1] = (uintptr_t)new_buf;
         // VWNOTE: sz_ptr[0] will be set in pcvariant_stat_set_extra_size
         // VWNOTE: use strcpy instead of memcpy
@@ -422,7 +422,7 @@ purc_variant_make_atom_string_static (const char* str_utf8,
     /* VWNOTE: for atomstring, only store the atom value */
     value->type = PURC_VARIANT_TYPE_ATOMSTRING;
     value->size = 0;
-    value->flags |= PCVARIANT_FLAG_STRING_STATIC;
+    value->flags = PCVARIANT_FLAG_STRING_STATIC;
     value->refc = 1;
     value->sz_ptr[1] = atom;
 
@@ -467,7 +467,7 @@ purc_variant_t purc_variant_make_byte_sequence (const void* bytes,
         memcpy (value->bytes, bytes, nr_bytes);
     }
     else {
-        value->flags |= PCVARIANT_FLAG_EXTRA_SIZE;
+        value->flags = PCVARIANT_FLAG_EXTRA_SIZE;
         value->sz_ptr[1] = (uintptr_t) malloc (nr_bytes);
         if (value->sz_ptr[1] == 0) {
             pcvariant_put (value);
@@ -499,8 +499,7 @@ purc_variant_t purc_variant_make_byte_sequence_static (const void* bytes,
     }
 
     value->type = PURC_VARIANT_TYPE_BSEQUENCE;
-    value->flags |= PCVARIANT_FLAG_STRING_STATIC;
-    value->flags = 0;
+    value->flags = PCVARIANT_FLAG_STRING_STATIC;
     value->refc = 1;
     value->sz_ptr[0] = nr_bytes;
     value->sz_ptr[1] = (uintptr_t)bytes;
@@ -524,7 +523,6 @@ purc_variant_t purc_variant_make_byte_sequence_reuse_buff (void* bytes,
 
     value->type = PURC_VARIANT_TYPE_BSEQUENCE;
     value->flags = PCVARIANT_FLAG_EXTRA_SIZE;
-    value->flags = 0;
     value->refc = 1;
 
     value->sz_ptr[1] = (uintptr_t) bytes;
