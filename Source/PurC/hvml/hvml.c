@@ -1497,11 +1497,11 @@ next_state:
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
-                RECONSUME_IN(PCHVML_DATA_STATE);
+                RETURN_NEW_EOF_TOKEN();
             }
             PCHVML_SET_ERROR(
                     PCHVML_ERROR_MISSING_WHITESPACE_BETWEEN_ATTRIBUTES);
-            RECONSUME_IN(PCHVML_BEFORE_ATTRIBUTE_NAME_STATE);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_SELF_CLOSING_START_TAG_STATE)
@@ -1511,10 +1511,10 @@ next_state:
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_TAG);
-                RECONSUME_IN(PCHVML_DATA_STATE);
+                RETURN_NEW_EOF_TOKEN();
             }
             PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_SOLIDUS_IN_TAG);
-            RECONSUME_IN(PCHVML_BEFORE_ATTRIBUTE_NAME_STATE);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_BOGUS_COMMENT_STATE)
@@ -1524,6 +1524,7 @@ next_state:
             if (is_eof(character)) {
                 RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
             }
+            // FIXME
             APPEND_TO_TOKEN_TEXT(character);
             ADVANCE_TO(PCHVML_BOGUS_COMMENT_STATE);
         END_STATE()
@@ -1565,12 +1566,9 @@ next_state:
                 ADVANCE_TO(PCHVML_CDATA_SECTION_STATE);
             }
             PCHVML_SET_ERROR(PCHVML_ERROR_INCORRECTLY_OPENED_COMMENT);
-            pchvml_rwswrap_buffer_arrlist(parser->rwswrap,
-                    pchvml_sbst_get_buffered_ucs(parser->sbst));
-            parser->token = pchvml_token_new_comment();
             pchvml_sbst_destroy(parser->sbst);
             parser->sbst = NULL;
-            ADVANCE_TO(PCHVML_BOGUS_COMMENT_STATE);
+            RETURN_AND_STOP_PARSE();
         END_STATE()
 
         BEGIN_STATE(PCHVML_COMMENT_START_STATE)
@@ -1579,7 +1577,7 @@ next_state:
             }
             if (character == '>') {
                 PCHVML_SET_ERROR(PCHVML_ERROR_ABRUPT_CLOSING_OF_EMPTY_COMMENT);
-                RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
+                RETURN_AND_STOP_PARSE();
             }
             RECONSUME_IN(PCHVML_COMMENT_STATE);
         END_STATE()
@@ -1590,11 +1588,11 @@ next_state:
             }
             if (character == '>') {
                 PCHVML_SET_ERROR(PCHVML_ERROR_ABRUPT_CLOSING_OF_EMPTY_COMMENT);
-                RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
+                RETURN_AND_STOP_PARSE();
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_COMMENT);
-                RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
+                RETURN_NEW_EOF_TOKEN();
             }
             APPEND_TO_TOKEN_TEXT('-');
             RECONSUME_IN(PCHVML_COMMENT_STATE);
@@ -1610,7 +1608,7 @@ next_state:
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_COMMENT);
-                RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
+                RETURN_NEW_EOF_TOKEN();
             }
             APPEND_TO_TOKEN_TEXT(character);
             ADVANCE_TO(PCHVML_COMMENT_STATE);
@@ -1656,7 +1654,7 @@ next_state:
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_COMMENT);
-                RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
+                RETURN_NEW_EOF_TOKEN();
             }
             APPEND_TO_TOKEN_TEXT('-');
             RECONSUME_IN(PCHVML_COMMENT_STATE);
@@ -1675,7 +1673,7 @@ next_state:
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_COMMENT);
-                RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
+                RETURN_NEW_EOF_TOKEN();
             }
             APPEND_TO_TOKEN_TEXT('-');
             APPEND_TO_TOKEN_TEXT('-');
@@ -1691,7 +1689,7 @@ next_state:
             }
             if (character == '>') {
                 PCHVML_SET_ERROR(PCHVML_ERROR_INCORRECTLY_CLOSED_COMMENT);
-                RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
+                RETURN_AND_STOP_PARSE();
             }
             if (is_eof(character)) {
                 PCHVML_SET_ERROR(PCHVML_ERROR_EOF_IN_COMMENT);
