@@ -2695,7 +2695,6 @@ next_state:
                             NULL);
                     APPEND_CHILD(node, parser->vcm_node);
                     UPDATE_VCM_NODE(node);
-                    //ADVANCE_TO(PCHVML_EJSON_JSONEE_VARIABLE_STATE);
                     ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
                 }
                 uint32_t uc = pcutils_stack_top (parser->ejson_stack);
