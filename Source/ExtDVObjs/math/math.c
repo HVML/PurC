@@ -555,10 +555,10 @@ static purc_variant_t pcdvobjs_create_math (void)
     return pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));
 }
 
-purc_variant_t __purcex_load_dynamic_variant (const char * name, int * ver_code)
+purc_variant_t __purcex_load_dynamic_variant (const char *name, int *ver_code)
 {
     UNUSED_PARAM(name);
-    *ver_code = atoi (PURC_API_VERSION_STRING);
+    *ver_code = 0;
 
     return pcdvobjs_create_math ();
 }
@@ -570,12 +570,16 @@ size_t __purcex_get_number_of_dynamic_variants (void)
 
 const char * __purcex_get_dynamic_variant_name (size_t idx)
 {
-    UNUSED_PARAM(idx);
+    if (idx != 0)
+        return NULL;
+
     return "MATH";
 }
 
 const char * __purcex_get_dynamic_variant_desc (size_t idx)
 {
-    UNUSED_PARAM(idx);
+    if (idx != 0)
+        return NULL;
+
     return "For MATH Operations in PURC";
 }
