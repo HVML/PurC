@@ -830,9 +830,11 @@ on_mode_in_head(struct pcvdom_gen *gen, struct pchvml_token *token)
             if (is_top_node_of_head(gen)) {
                 pop_node(gen);
                 gen->insertion_mode = VGIM(_AFTER_HEAD);
+                set_parser_state_if_necessary(gen);
                 return 0;
             }
             pop_node(gen);
+            set_parser_state_if_necessary(gen);
             return 0;
         }
 
@@ -840,15 +842,18 @@ on_mode_in_head(struct pcvdom_gen *gen, struct pchvml_token *token)
             if (tag_id == PCHVML_TAG_HEAD) {
                 pop_node(gen);
                 gen->insertion_mode = VGIM(_AFTER_HEAD);
+                set_parser_state_if_necessary(gen);
                 return 0;
             }
             pop_node(gen);
             gen->insertion_mode = VGIM(_AFTER_HEAD);
             gen->reprocess = 1;
+            set_parser_state_if_necessary(gen);
             return 0;
         }
 
         pop_node(gen);
+        set_parser_state_if_necessary(gen);
         gen->reprocess = 1;
         return 0;
     }
@@ -873,6 +878,7 @@ on_mode_in_head(struct pcvdom_gen *gen, struct pchvml_token *token)
     pop_node(gen); // FIXME: head at top?
     gen->insertion_mode = VGIM(_AFTER_HEAD);
     gen->reprocess = 1;
+    set_parser_state_if_necessary(gen);
     return 0;
 }
 
@@ -921,6 +927,7 @@ on_mode_after_head(struct pcvdom_gen *gen, struct pchvml_token *token)
             FAIL_RET();
 
         pop_node(gen);
+        set_parser_state_if_necessary(gen);
 
         return 0;
     }
@@ -943,6 +950,7 @@ anything_else:
     if (r)
         FAIL_RET();
 
+    set_parser_state_if_necessary(gen);
     gen->reprocess = 1;
     return 0;
 }
@@ -995,6 +1003,7 @@ on_mode_in_body(struct pcvdom_gen *gen, struct pchvml_token *token)
         const enum pchvml_tag_id tag_id = tag_id_from_tag(tag);
         if (tag_id == PCHVML_TAG_BODY) {
             pop_node(gen); // FIXME: body at top?
+            set_parser_state_if_necessary(gen);
             gen->insertion_mode = VGIM(_AFTER_BODY);
             return 0;
         }
@@ -1010,6 +1019,7 @@ on_mode_in_body(struct pcvdom_gen *gen, struct pchvml_token *token)
             FAIL_RET();
 
         pop_node(gen);
+        set_parser_state_if_necessary(gen);
 
         if (tag_id == PCHVML_TAG_BODY) {
             gen->insertion_mode = VGIM(_AFTER_BODY);
@@ -1052,6 +1062,7 @@ on_mode_in_body(struct pcvdom_gen *gen, struct pchvml_token *token)
 
 anything_else:
     pop_node(gen); // FIXME: body at top?
+    set_parser_state_if_necessary(gen);
     gen->insertion_mode = VGIM(_AFTER_BODY);
     gen->reprocess = 1;
     return 0;
