@@ -24,6 +24,8 @@
 
 #include "private/variant.h"
 #include "private/instance.h"
+#include "private/ejson.h"
+#include "private/vcm.h"
 #include "private/errors.h"
 #include "private/debug.h"
 #include "private/utils.h"
@@ -952,9 +954,26 @@ int purc_variant_compare(purc_variant_t v1, purc_variant_t v2)
 
 purc_variant_t purc_variant_load_from_json_stream(purc_rwstream_t stream)
 {
-    // TODO
-    UNUSED_PARAM(stream);
-    return PURC_VARIANT_INVALID;
+    if (stream  == NULL) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t value = PURC_VARIANT_INVALID;
+    uint32_t depth = 32;
+    struct pcvcm_node* root = NULL;
+    struct pcejson* parser = NULL;
+
+    int ret = pcejson_parse (&root, &parser, stream, depth);
+    if (ret != PCEJSON_SUCCESS) {
+        goto ret;
+    }
+
+    value = pcvcm_eval (root, NULL);
+
+ret:
+    pcvcm_node_destroy (root);
+    pcejson_destroy(parser);
+    return value;
 }
 
 purc_variant_t purc_variant_make_from_json_string(const char* json, size_t sz)
