@@ -172,7 +172,7 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         const char *head = pcdvobjs_get_next_option (option, " ", &length);
 
         while (head) {
-            switch (* head) {
+            switch (*head) {
                 case 'a':
                 case 'A':
                     if (strncasecmp (head, "all", length) == 0) {
@@ -377,7 +377,7 @@ locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     size_t length = 0;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if ((nr_args != 0) && (argv == NULL))  {
+    if ((nr_args != 0) && (argv == NULL)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -393,8 +393,7 @@ locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         const char *head = pcdvobjs_get_next_option (option, " ", &length);
 
         while (head) {
-            switch (* head)
-            {
+            switch (*head) {
                 case 'c':
                 case 'C':
                     if (strncasecmp (head, "ctype", length) == 0) {
@@ -473,8 +472,7 @@ locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         ret_var = purc_variant_make_string (
                 setlocale (LC_MESSAGES, NULL), true);
 
-    if (ret_var == PURC_VARIANT_INVALID)
-    {
+    if (ret_var == PURC_VARIANT_INVALID) {
         pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
@@ -511,8 +509,7 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     const char *head = pcdvobjs_get_next_option (option, " ", &length);
 
     while (head) {
-        switch (*head)
-        {
+        switch (*head) {
             case 'a':
             case 'A':
                 if (strncasecmp (head, "all", length) == 0) {
@@ -589,8 +586,7 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                         ret_var = PURC_VARIANT_TRUE;
                     else
                         ret_var = PURC_VARIANT_INVALID;
-                }
-                else if (strncasecmp (head, "messages", length) == 0) {
+                } else if (strncasecmp (head, "messages", length) == 0) {
                     if (setlocale (LC_MESSAGES,
                                 purc_variant_get_string_const (argv[1])))
                         ret_var = PURC_VARIANT_TRUE;
@@ -643,7 +639,7 @@ random_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     double random = 0.0d;
     double number = 0.0d;
 
-    if (nr_args == 0)  {
+    if (nr_args == 0) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -949,7 +945,7 @@ time_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
         size_t rw_size = 0;
         size_t content_size = 0;
-        char * rw_string = purc_rwstream_get_mem_buffer_ex (rwstream,
+        char *rw_string = purc_rwstream_get_mem_buffer_ex (rwstream,
                                             &content_size, &rw_size, true);
 
         if ((rw_size == 0) || (rw_string == NULL))

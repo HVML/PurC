@@ -50,8 +50,8 @@ static uint64_t get_variant_number (purc_variant_t var)
         return 0;
 
     uint64_t number = 1;
-    struct purc_variant_object_iterator* it_obj = NULL;
-    struct purc_variant_set_iterator* it_set = NULL;
+    struct purc_variant_object_iterator *it_obj = NULL;
+    struct purc_variant_set_iterator *it_set = NULL;
     purc_variant_t val = PURC_VARIANT_INVALID;
     size_t i = 0;
     bool having = false;
@@ -121,7 +121,7 @@ number_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     uint64_t number = 0;
 
-    if (nr_args == 0)  {
+    if (nr_args == 0) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -147,17 +147,17 @@ type_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if (nr_args == 0)  {
+    if (nr_args == 0) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if (argv[0] == PURC_VARIANT_INVALID)  {
+    if (argv[0] == PURC_VARIANT_INVALID) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    switch ((int)purc_variant_get_type (argv[0]))  {
+    switch ((int)purc_variant_get_type (argv[0])) {
         case PURC_VARIANT_TYPE_NULL:
             ret_var = purc_variant_make_string ("null", false);
             break;

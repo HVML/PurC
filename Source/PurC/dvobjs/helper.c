@@ -39,11 +39,11 @@
 #include <sys/utsname.h>
 #include <sys/time.h>
 
-const char* pcdvobjs_get_next_option (const char* data,
-        const char* delims, size_t* length)
+const char * pcdvobjs_get_next_option (const char *data,
+        const char *delims, size_t *length)
 {
-    const char* head = data;
-    char* temp = NULL;
+    const char *head = data;
+    char *temp = NULL;
 
     if ((delims == NULL) || (data == NULL) || (*delims == 0x00))
         return NULL;
@@ -55,8 +55,7 @@ const char* pcdvobjs_get_next_option (const char* data,
         if (temp) {
             if (head == data) {
                 head = data + 1;
-            }
-            else 
+            } else
                 break;
         }
         data++;
@@ -69,15 +68,15 @@ const char* pcdvobjs_get_next_option (const char* data,
     return head;
 }
 
-const char* pcdvobjs_get_prev_option (const char* data,
-        size_t str_len, const char* delims, size_t* length)
+const char * pcdvobjs_get_prev_option (const char *data,
+        size_t str_len, const char *delims, size_t *length)
 {
-    const char* head = NULL;
+    const char *head = NULL;
     size_t tail = *length;
     char* temp = NULL;
 
     if ((delims == NULL) || (data == NULL) || (*delims == 0x00) ||
-                                                        (str_len == 0))
+            (str_len == 0))
         return NULL;
 
     *length = 0;
@@ -88,8 +87,7 @@ const char* pcdvobjs_get_prev_option (const char* data,
             if (tail == str_len) {
                 str_len--;
                 tail = str_len;
-            }
-            else 
+            } else 
                 break;
         }
         str_len--;
@@ -104,7 +102,7 @@ const char* pcdvobjs_get_prev_option (const char* data,
     return head;
 }
 
-const char * pcdvobjs_remove_space (char * buffer)
+const char * pcdvobjs_remove_space (char *buffer)
 {
     int i = 0;
     int j = 0;
@@ -133,18 +131,18 @@ bool wildcard_cmp (const char *str1, const char *pattern)
     int p1 = 0;
     int p2 = 0;
 
-    while ((p1 < len1) && (p2<len2))  {
-        if (pattern[p2] == '?')  {
+    while ((p1 < len1) && (p2<len2)) {
+        if (pattern[p2] == '?') {
             p1++;
             p2++;
             continue;
         }
-        if (pattern[p2] == '*')  {
+        if (pattern[p2] == '*') {
             p2++;
             mark = p2;
             continue;
         }
-        if (str1[p1] != pattern[p2])  {
+        if (str1[p1] != pattern[p2]) {
             if (p1 == 0 && p2 == 0)
                 return false;
             p1 -= p2 - mark - 1;
@@ -154,13 +152,13 @@ bool wildcard_cmp (const char *str1, const char *pattern)
         p1++;
         p2++;
     }
-    if (p2 == len2)  {
+    if (p2 == len2) {
         if (p1 == len1)
             return true;
         if (pattern[p2 - 1] == '*')
             return true;
     }
-    while (p2 < len2)  {
+    while (p2 < len2) {
         if (pattern[p2] != '*')
             return false;
         p2++;

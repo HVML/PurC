@@ -47,6 +47,8 @@
 #define ENDIAN_LITTLE       1
 #define ENDIAN_BIG          2
 
+#define FS_DVOBJ_VERSION    0
+
 typedef purc_variant_t (*pcdvobjs_create) (void);
 
 // as FILE, FS, MATH
@@ -58,16 +60,16 @@ struct pcdvojbs_dvobjs_object {
 
 // dynamic variant in dynamic object
 struct pcdvojbs_dvobjs {
-    const char * name;
+    const char *name;
     purc_dvariant_method getter;
     purc_dvariant_method setter;
 };
 
-static const char* pcdvobjs_get_next_option (const char* data, 
-        const char* delims, size_t* length)
+static const char * pcdvobjs_get_next_option (const char *data, 
+        const char *delims, size_t *length)
 {
-    const char* head = data;
-    char* temp = NULL;
+    const char *head = data;
+    char *temp = NULL;
 
     if ((delims == NULL) || (data == NULL) || (*delims == 0x00))
         return NULL;
@@ -79,8 +81,7 @@ static const char* pcdvobjs_get_next_option (const char* data,
         if (temp) {
             if (head == data) {
                 head = data + 1;
-            }
-            else 
+            } else
                 break;
         }
         data++;
@@ -94,11 +95,11 @@ static const char* pcdvobjs_get_next_option (const char* data,
 }
 
 // for file to get '\n'
-static const char* pcdvobjs_file_get_next_option (const char* data,
-        const char* delims, size_t* length)
+static const char * pcdvobjs_file_get_next_option (const char *data,
+        const char *delims, size_t *length)
 {
-    const char* head = data;
-    char* temp = NULL;
+    const char *head = data;
+    char *temp = NULL;
 
     if ((delims == NULL) || (data == NULL) || (*delims == 0x00))
         return NULL;
@@ -117,15 +118,15 @@ static const char* pcdvobjs_file_get_next_option (const char* data,
     return head;
 }
 
-static const char* pcdvobjs_file_get_prev_option (const char* data,
-        size_t str_len, const char* delims, size_t* length)
+static const char * pcdvobjs_file_get_prev_option (const char *data,
+        size_t str_len, const char *delims, size_t *length)
 {
-    const char* head = NULL;
+    const char *head = NULL;
     size_t tail = str_len;
     char* temp = NULL;
 
     if ((delims == NULL) || (data == NULL) || (*delims == 0x00) ||
-                                                        (str_len == 0))
+            (str_len == 0))
         return NULL;
 
     *length = 0;
@@ -143,7 +144,7 @@ static const char* pcdvobjs_file_get_prev_option (const char* data,
     return head;
 }
 
-static const char * pcdvobjs_remove_space (char * buffer)
+static const char * pcdvobjs_remove_space (char *buffer)
 {
     int i = 0;
     int j = 0;
@@ -172,18 +173,18 @@ static bool wildcard_cmp (const char *str1, const char *pattern)
     int p1 = 0;
     int p2 = 0;
 
-    while ((p1 < len1) && (p2<len2))  {
-        if (pattern[p2] == '?')  {
+    while ((p1 < len1) && (p2<len2)) {
+        if (pattern[p2] == '?') {
             p1++;
             p2++;
             continue;
         }
-        if (pattern[p2] == '*')  {
+        if (pattern[p2] == '*') {
             p2++;
             mark = p2;
             continue;
         }
-        if (str1[p1] != pattern[p2])  {
+        if (str1[p1] != pattern[p2]) {
             if (p1 == 0 && p2 == 0)
                 return false;
             p1 -= p2 - mark - 1;
@@ -193,13 +194,13 @@ static bool wildcard_cmp (const char *str1, const char *pattern)
         p1++;
         p2++;
     }
-    if (p2 == len2)  {
+    if (p2 == len2) {
         if (p1 == len1)
             return true;
         if (pattern[p2 - 1] == '*')
             return true;
     }
-    while (p2 < len2)  {
+    while (p2 < len2) {
         if (pattern[p2] != '*')
             return false;
         p2++;
@@ -255,7 +256,7 @@ static ssize_t find_line (FILE *fp, int line_num, ssize_t file_length)
     unsigned char buffer[BUFFER_SIZE];
     ssize_t read_size = 0;
     size_t length = 0;
-    const char* head = NULL;
+    const char *head = NULL;
 
     if (line_num > 0) {
         fseek (fp, 0L, SEEK_SET);
@@ -283,8 +284,7 @@ static ssize_t find_line (FILE *fp, int line_num, ssize_t file_length)
             if (line_num == 0)
                 break;
         }
-    }
-    else {
+    } else {
         line_num = -1 * line_num;
         file_length --;                     // the last is 0x0A
         pos = file_length;
@@ -334,7 +334,7 @@ static ssize_t find_line_stream (purc_rwstream_t stream, int line_num)
     unsigned char buffer[BUFFER_SIZE];
     ssize_t read_size = 0;
     size_t length = 0;
-    const char* head = NULL;
+    const char *head = NULL;
 
     purc_rwstream_seek (stream, 0L, SEEK_SET);
 
@@ -366,7 +366,7 @@ static ssize_t find_line_stream (purc_rwstream_t stream, int line_num)
 }
 
 static purc_variant_t
-text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -420,7 +420,7 @@ text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     else
         pos = find_line (fp, line_num, filestat.st_size);
 
-    char * content = malloc (pos + 1);
+    char *content = malloc (pos + 1);
     if (content == NULL) {
         fclose (fp);
         return purc_variant_make_string ("", false);
@@ -437,7 +437,7 @@ text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 static purc_variant_t
-text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -501,7 +501,7 @@ text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     pos = filestat.st_size - pos;
 
-    char * content = malloc (pos + 1);
+    char *content = malloc (pos + 1);
     if (content == NULL) {
         fclose (fp);
         return purc_variant_make_string ("", false);
@@ -518,7 +518,7 @@ text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 static purc_variant_t
-bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -574,12 +574,11 @@ bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     else {
         if ((-1 * byte_num) > filestat.st_size) {
             return PURC_VARIANT_INVALID;
-        }
-        else
+        } else
             pos = filestat.st_size + byte_num;
     }
 
-    char * content = malloc (pos);
+    char *content = malloc (pos);
     if (content == NULL) {
         fclose (fp);
         return PURC_VARIANT_INVALID;
@@ -597,7 +596,7 @@ bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
 
 static purc_variant_t
-bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -654,14 +653,13 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     else {
         if ((-1 * byte_num) > filestat.st_size) {
             return PURC_VARIANT_INVALID;
-        }
-        else
+        } else
             pos = filestat.st_size + byte_num;
     }
 
     fseek (fp, filestat.st_size - pos, SEEK_SET);
 
-    char * content = malloc (pos);
+    char *content = malloc (pos);
     if (content == NULL) {
         fclose (fp);
         return PURC_VARIANT_INVALID;
@@ -678,7 +676,7 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
 
 static purc_variant_t
-stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -733,7 +731,7 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     return ret_var;
 }
 
-static inline void change_order (unsigned char * buf, size_t size)
+static inline void change_order (unsigned char *buf, size_t size)
 {
     size_t time = 0;
     unsigned char temp = 0;
@@ -747,7 +745,7 @@ static inline void change_order (unsigned char * buf, size_t size)
 }
 
 static inline void read_rwstream (purc_rwstream_t rwstream,
-                    unsigned char * buf, int type, int bytes)
+                    unsigned char *buf, int type, int bytes)
 {
     purc_rwstream_read (rwstream, buf, bytes);
     switch (type) {
@@ -842,7 +840,7 @@ read_rwstream_float (purc_rwstream_t rwstream, int type, int bytes)
 
 static purc_variant_t
 stream_readstruct_getter (purc_variant_t root, size_t nr_args,
-        purc_variant_t* argv)
+        purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -979,7 +977,7 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
                 break;
             case 'b':
             case 'B':
-                if (length > 1)  { // get length
+                if (length > 1) { // get length
                     strncpy ((char *)buf, head + 1, length - 1);
                     *(buf + length - 1)= 0x00;
                     read_number = atoi((char *)buf);
@@ -993,17 +991,15 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
                             val = purc_variant_make_byte_sequence_reuse_buff(
                                         buffer, read_number, read_number);
                         }
-                    }
-                    else
+                    } else
                         val = purc_variant_make_null();
-                }
-                else
+                } else
                     val = purc_variant_make_null();
 
                 break;
             case 'p':
             case 'P':
-                if (length > 1)  { // get length
+                if (length > 1) { // get length
                     strncpy ((char *)buf, head + 1, length - 1);
                     *(buf + length - 1)= 0x00;
                     read_number = atoi((char *)buf);
@@ -1022,7 +1018,7 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
                 break;
             case 's':
             case 'S':
-                if (length > 1)  { // get length
+                if (length > 1) {          // get length
                     strncpy ((char *)buf, head + 1, length - 1);
                     *(buf + length - 1)= 0x00;
                     read_number = atoi((char *)buf);
@@ -1037,17 +1033,15 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
                             val = purc_variant_make_string_reuse_buff (
                                     (char *)buffer, read_number + 1, false);
                         }
-                    }
-                    else
+                    } else
                         val = purc_variant_make_string ("", false);
-                }
-                else {
+                } else {
                     int i = 0;
                     int j = 0;
                     size_t mem_size = BUFFER_SIZE;
 
                     buffer = malloc (mem_size);
-                    for (i = 0, j = 0; ; i++, j++)  {
+                    for (i = 0, j = 0; ; i++, j++) {
                         purc_rwstream_read (rwstream, buffer + i, 1);
                         if (*(buffer + i) == 0x00)
                             break;
@@ -1401,7 +1395,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                 else if (strncasecmp (head, "u32", length) == 0)
                     write_rwstream_uint (rwstream,
                             argv[2], &i, ENDIAN_PLATFORM, 4, &write_length);
-                else if (strncasecmp (head, "u64", length) == 0)  {
+                else if (strncasecmp (head, "u64", length) == 0) {
                     write_rwstream_uint (rwstream,
                             argv[2], &i, ENDIAN_PLATFORM, 8, &write_length);
                 }
@@ -1431,7 +1425,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                 i++;
 
                 // get sequence length
-                if (length > 1)  {
+                if (length > 1) {
                     strncpy ((char *)buf, head + 1, length - 1);
                     *(buf + length - 1)= 0x00;
                     write_number = atoi((char *)buf);
@@ -1451,7 +1445,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                 i++;
 
                 // get white space length
-                if (length > 1)  {
+                if (length > 1) {
                     strncpy ((char *)buf, head + 1, length - 1);
                     *(buf + length - 1)= 0x00;
                     write_number = atoi((char *)buf);
@@ -1476,12 +1470,11 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                 i++;
 
                 // get string length
-                if (length > 1)  {
+                if (length > 1) {
                     strncpy ((char *)buf, head + 1, length - 1);
                     *(buf + length - 1)= 0x00;
                     write_number = atoi((char *)buf);
-                }
-                else {
+                } else {
                     write_number = purc_variant_string_length (val);
                 }
 
@@ -1502,7 +1495,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
 
 static purc_variant_t
 stream_readlines_getter (purc_variant_t root, size_t nr_args,
-        purc_variant_t* argv)
+        purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -1510,7 +1503,7 @@ stream_readlines_getter (purc_variant_t root, size_t nr_args,
     purc_rwstream_t rwstream = NULL;
     int64_t line_num = 0;
 
-    if (nr_args != 2)  {
+    if (nr_args != 2) {
 //        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -1553,7 +1546,7 @@ stream_readlines_getter (purc_variant_t root, size_t nr_args,
 
 static purc_variant_t
 stream_readbytes_getter (purc_variant_t root, size_t nr_args,
-        purc_variant_t* argv)
+        purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -1561,7 +1554,7 @@ stream_readbytes_getter (purc_variant_t root, size_t nr_args,
     purc_rwstream_t rwstream = NULL;
     uint64_t byte_num = 0;
 
-    if (nr_args != 2)  {
+    if (nr_args != 2) {
 //        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -1580,11 +1573,10 @@ stream_readbytes_getter (purc_variant_t root, size_t nr_args,
         purc_variant_cast_to_ulongint (argv[1], &byte_num, false);
     }
 
-    if (byte_num == 0)  {
+    if (byte_num == 0) {
 //        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         ret_var = PURC_VARIANT_INVALID;
-    }
-    else {
+    } else {
         char * content = malloc (byte_num);
         size_t size = 0;
 
@@ -1609,7 +1601,7 @@ stream_readbytes_getter (purc_variant_t root, size_t nr_args,
 
 static purc_variant_t
 stream_seek_getter (purc_variant_t root, size_t nr_args,
-        purc_variant_t* argv)
+        purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -1619,7 +1611,7 @@ stream_seek_getter (purc_variant_t root, size_t nr_args,
     off_t off = 0;
     int64_t whence = 0;
 
-    if (nr_args != 3)  {
+    if (nr_args != 3) {
 //        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -1651,7 +1643,7 @@ stream_seek_getter (purc_variant_t root, size_t nr_args,
 
 static purc_variant_t
 stream_close_getter (purc_variant_t root, size_t nr_args,
-        purc_variant_t* argv)
+        purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -1659,7 +1651,7 @@ stream_close_getter (purc_variant_t root, size_t nr_args,
     purc_rwstream_t rwstream = NULL;
     int close = 0;
 
-    if (nr_args != 1)  {
+    if (nr_args != 1) {
 //        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -1740,7 +1732,7 @@ error_text:
 }
 
 // for FS
-static bool remove_dir (char * dir)
+static bool remove_dir (char *dir)
 {
     char dir_name[PATH_MAX];
     DIR *dirp;
@@ -1769,15 +1761,14 @@ static bool remove_dir (char * dir)
         closedir(dirp);
 
         rmdir(dir);
-    }
-    else
+    } else
         ret = false;
 
     return ret;
 }
 
 static purc_variant_t
-list_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -1807,7 +1798,7 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     string_filename = purc_variant_get_string_const (argv[0]);
     strcpy (dir_name, string_filename);
 
-    if (access(dir_name, F_OK | R_OK) != 0)  {
+    if (access(dir_name, F_OK | R_OK) != 0) {
 //        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -1891,38 +1882,31 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
             val = purc_variant_make_string ("b", false);
             purc_variant_object_set_by_static_ckey (obj_var, "type", val);
             purc_variant_unref (val);
-        }
-        else if(ptr->d_type == DT_CHR) {
+        } else if(ptr->d_type == DT_CHR) {
             val = purc_variant_make_string ("c", false);
             purc_variant_object_set_by_static_ckey (obj_var, "type", val);
             purc_variant_unref (val);
-        }
-        else if(ptr->d_type == DT_DIR) {
+        } else if(ptr->d_type == DT_DIR) {
             val = purc_variant_make_string ("d", false);
             purc_variant_object_set_by_static_ckey (obj_var, "type", val);
             purc_variant_unref (val);
-        }
-        else if(ptr->d_type == DT_FIFO) {
+        } else if(ptr->d_type == DT_FIFO) {
             val = purc_variant_make_string ("f", false);
             purc_variant_object_set_by_static_ckey (obj_var, "type", val);
             purc_variant_unref (val);
-        }
-        else if(ptr->d_type == DT_LNK) {
+        } else if(ptr->d_type == DT_LNK) {
             val = purc_variant_make_string ("l", false);
             purc_variant_object_set_by_static_ckey (obj_var, "type", val);
             purc_variant_unref (val);
-        }
-        else if(ptr->d_type == DT_REG) {
+        } else if(ptr->d_type == DT_REG) {
             val = purc_variant_make_string ("r", false);
             purc_variant_object_set_by_static_ckey (obj_var, "type", val);
             purc_variant_unref (val);
-        }
-        else if(ptr->d_type == DT_SOCK) {
+        } else if(ptr->d_type == DT_SOCK) {
             val = purc_variant_make_string ("s", false);
             purc_variant_object_set_by_static_ckey (obj_var, "type", val);
             purc_variant_unref (val);
-        }
-        else if(ptr->d_type == DT_UNKNOWN) {
+        } else if(ptr->d_type == DT_UNKNOWN) {
             val = purc_variant_make_string ("u", false);
             purc_variant_object_set_by_static_ckey (obj_var, "type", val);
             purc_variant_unref (val);
@@ -2031,7 +2015,7 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 #define DISPLAY_DEFAULT 12
 
 static purc_variant_t
-list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -2063,7 +2047,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     string_filename = purc_variant_get_string_const (argv[0]);
     strcpy (dir_name, string_filename);
 
-    if (access(dir_name, F_OK | R_OK) != 0)  {
+    if (access(dir_name, F_OK | R_OK) != 0) {
 //        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -2094,7 +2078,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 //        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
-    if (argv[2] != NULL)  {
+    if (argv[2] != NULL) {
         mode = purc_variant_get_string_const (argv[2]);
 
         // get mode array
@@ -2110,8 +2094,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
                     if (strncasecmp (head, "mode", length) == 0) {
                         display[i] = DISPLAY_MODE;
                         i++;
-                    }
-                    else if (strncasecmp (head, "mtime", length) == 0) {
+                    } else if (strncasecmp (head, "mtime", length) == 0) {
                         display[i] = DISPLAY_MTIME;
                         i++;
                     }
@@ -2121,8 +2104,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
                     if (strncasecmp (head, "nlink", length) == 0) {
                         display[i] = DISPLAY_NLINK;
                         i++;
-                    }
-                    else if (strncasecmp (head, "name", length) == 0) {
+                    } else if (strncasecmp (head, "name", length) == 0) {
                         display[i] = DISPLAY_NAME;
                         i++;
                     }
@@ -2160,8 +2142,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
                     if (strncasecmp (head, "atime", length) == 0) {
                         display[i] = DISPLAY_ATIME;
                         i++;
-                    }
-                    else if (strncasecmp (head, "all", length) == 0) {
+                    } else if (strncasecmp (head, "all", length) == 0) {
                         for (i = 0; i < 10; i++)
                             display[i] = i + 1;
                         quit = true;
@@ -2188,8 +2169,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
                 break;
             head = pcdvobjs_get_next_option (head + length + 1, " ", &length);
         }
-    }
-    else {
+    } else {
         for (i = 0; i < 10; i++)
             display[i] = i + 1;
     }
@@ -2236,23 +2216,17 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
                     // type
                     if (ptr->d_type == DT_BLK) {
                         sprintf (info + strlen (info), "b");
-                    }
-                    else if(ptr->d_type == DT_CHR) {
+                    } else if(ptr->d_type == DT_CHR) {
                         sprintf (info + strlen (info), "c");
-                    }
-                    else if(ptr->d_type == DT_DIR) {
+                    } else if(ptr->d_type == DT_DIR) {
                         sprintf (info + strlen (info), "d");
-                    }
-                    else if(ptr->d_type == DT_FIFO) {
+                    } else if(ptr->d_type == DT_FIFO) {
                         sprintf (info + strlen (info), "f");
-                    }
-                    else if(ptr->d_type == DT_LNK) {
+                    } else if(ptr->d_type == DT_LNK) {
                         sprintf (info + strlen (info), "l");
-                    }
-                    else if(ptr->d_type == DT_REG) {
+                    } else if(ptr->d_type == DT_REG) {
                         sprintf (info + strlen (info), "-");
-                    }
-                    else if(ptr->d_type == DT_SOCK) {
+                    } else if(ptr->d_type == DT_SOCK) {
                         sprintf (info + strlen (info), "s");
                     }
 
@@ -2333,7 +2307,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 static purc_variant_t
-mkdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+mkdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -2364,7 +2338,7 @@ mkdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
 
 static purc_variant_t
-rmdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+rmdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -2389,7 +2363,7 @@ rmdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     // get the file name
     filename = purc_variant_get_string_const (argv[0]);
 
-    if (access(filename, F_OK | R_OK) != 0)  {
+    if (access(filename, F_OK | R_OK) != 0) {
 //        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return purc_variant_make_boolean (false);
     }
@@ -2428,7 +2402,7 @@ rmdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 static purc_variant_t
-touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -2450,7 +2424,7 @@ touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     filename = purc_variant_get_string_const (argv[0]);
 
     // file not exist, create it
-    if (access(filename, F_OK | R_OK) != 0)  {
+    if (access(filename, F_OK | R_OK) != 0) {
         int fd = -1;
         fd = open(filename, O_CREAT | O_WRONLY,
                 S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH |S_IWOTH);
@@ -2459,15 +2433,13 @@ touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
             ret_var = purc_variant_make_boolean (true);
         else
             ret_var = purc_variant_make_boolean (false);
-    }
-    else {      // change time
+    } else {      // change time
         struct timespec newtime[2];
         newtime[0].tv_nsec = UTIME_NOW;
         newtime[1].tv_nsec = UTIME_NOW;
-        if (utimensat(AT_FDCWD, filename, newtime, 0) == 0)  {
+        if (utimensat(AT_FDCWD, filename, newtime, 0) == 0) {
             ret_var = purc_variant_make_boolean (true);
-        }
-        else  {
+        } else {
             ret_var = purc_variant_make_boolean (false);
         }
     }
@@ -2477,7 +2449,7 @@ touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
 
 static purc_variant_t
-unlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+unlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -2499,7 +2471,7 @@ unlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     // get the file name
     filename = purc_variant_get_string_const (argv[0]);
 
-    if (access(filename, F_OK | R_OK) != 0)  {
+    if (access(filename, F_OK | R_OK) != 0) {
 //        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return purc_variant_make_boolean (false);
     }
@@ -2512,15 +2484,14 @@ unlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
             ret_var = purc_variant_make_boolean (false);
         else
             ret_var = purc_variant_make_boolean (true);
-    }
-    else
+    } else
         ret_var = purc_variant_make_boolean (false);
 
     return ret_var;
 }
 
 static purc_variant_t
-rm_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+rm_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -2577,18 +2548,18 @@ static struct pcdvojbs_dvobjs_object dynamic_objects [] = {
     }
 };
 
-purc_variant_t __purcex_load_dynamic_variant (const char * name, int * ver_code)
+purc_variant_t __purcex_load_dynamic_variant (const char *name, int *ver_code)
 {
     size_t i = 0;
-    for (i = 0; i < PCA_TABLESIZE(dynamic_objects); i++)  {
+    for (i = 0; i < PCA_TABLESIZE(dynamic_objects); i++) {
         if (strncasecmp (name, dynamic_objects[i].name, strlen (name)) == 0)
             break;
     }
 
     if (i == PCA_TABLESIZE(dynamic_objects))
         return PURC_VARIANT_INVALID;
-    else  {
-        *ver_code = atoi (PURC_API_VERSION_STRING);
+    else {
+        *ver_code = FS_DVOBJ_VERSION;
         return dynamic_objects[i].create_func();
     }
 }

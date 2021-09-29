@@ -59,8 +59,7 @@ static bool reg_cmp (const char *buf1, const char *buf2)
     if (err == REG_NOMATCH) {
         regfree (&reg);
         return false;
-    }
-    else if (err) {
+    } else if (err) {
         regfree (&reg);
         return false;
     }
@@ -151,8 +150,8 @@ static long double get_variant_value (purc_variant_t var)
     size_t length = 0;
     long int templongint = 0;
     uintptr_t temppointer = 0;
-    struct purc_variant_object_iterator* it_obj = NULL;
-    struct purc_variant_set_iterator* it_set = NULL;
+    struct purc_variant_object_iterator *it_obj = NULL;
+    struct purc_variant_set_iterator *it_set = NULL;
     purc_variant_t val = PURC_VARIANT_INVALID;
     size_t i = 0;
     bool having = false;
@@ -266,7 +265,7 @@ logical_not (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-logical_and (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+logical_and (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -296,7 +295,7 @@ logical_and (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 static purc_variant_t
-logical_or (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+logical_or (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -326,7 +325,7 @@ logical_or (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 static purc_variant_t
-logical_xor (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+logical_xor (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -362,7 +361,7 @@ logical_xor (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 static purc_variant_t
-logical_eq (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+logical_eq (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -393,7 +392,7 @@ logical_eq (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 static purc_variant_t
-logical_ne (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+logical_ne (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -424,7 +423,7 @@ logical_ne (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 static purc_variant_t
-logical_gt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+logical_gt (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -455,7 +454,7 @@ logical_gt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 static purc_variant_t
-logical_ge (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+logical_ge (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -486,7 +485,7 @@ logical_ge (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 static purc_variant_t
-logical_lt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+logical_lt (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -517,7 +516,7 @@ logical_lt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 static purc_variant_t
-logical_le (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+logical_le (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -548,7 +547,7 @@ logical_le (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 static purc_variant_t
-logical_streq (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+logical_streq (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -571,7 +570,7 @@ logical_streq (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    const char * option = purc_variant_get_string_const (argv[0]);
+    const char *option = purc_variant_get_string_const (argv[0]);
     purc_rwstream_t stream1 = purc_rwstream_new_buffer (32, STREAM_SIZE);
     purc_rwstream_t stream2 = purc_rwstream_new_buffer (32, STREAM_SIZE);
     size_t sz_stream1 = 0;
@@ -588,20 +587,17 @@ logical_streq (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
             ret_var = purc_variant_make_boolean (true);
         else
             ret_var = purc_variant_make_boolean (false);
-    }
-    else if (strcasecmp (option, "case") == 0) {
+    } else if (strcasecmp (option, "case") == 0) {
         if (strcmp (buf1, buf2) == 0)
             ret_var = purc_variant_make_boolean (true);
         else
             ret_var = purc_variant_make_boolean (false);
-    }
-    else if (strcasecmp (option, "wildcard") == 0) {
+    } else if (strcasecmp (option, "wildcard") == 0) {
         if (wildcard_cmp (buf2, buf1))
             ret_var = purc_variant_make_boolean (true);
         else
             ret_var = purc_variant_make_boolean (false);
-    }
-    else if (strcasecmp (option, "reg") == 0) {
+    } else if (strcasecmp (option, "reg") == 0) {
         if (reg_cmp (buf1, buf2))
             ret_var = purc_variant_make_boolean (true);
         else
@@ -615,7 +611,7 @@ logical_streq (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 static purc_variant_t
-logical_strne (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+logical_strne (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -638,12 +634,11 @@ logical_strne (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    const char * option = purc_variant_get_string_const (argv[0]);
+    const char *option = purc_variant_get_string_const (argv[0]);
     purc_rwstream_t stream1 = purc_rwstream_new_buffer (32, STREAM_SIZE);
     purc_rwstream_t stream2 = purc_rwstream_new_buffer (32, STREAM_SIZE);
     size_t sz_stream1 = 0;
     size_t sz_stream2 = 0;
-
 
     purc_variant_serialize (argv[1], stream1, 3, 0, &sz_stream1);
     purc_variant_serialize (argv[2], stream2, 3, 0, &sz_stream2);
@@ -656,20 +651,17 @@ logical_strne (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
             ret_var = purc_variant_make_boolean (false);
         else
             ret_var = purc_variant_make_boolean (true);
-    }
-    else if (strcasecmp (option, "case") == 0) {
+    } else if (strcasecmp (option, "case") == 0) {
         if (strcmp (buf1, buf2) == 0)
             ret_var = purc_variant_make_boolean (false);
         else
             ret_var = purc_variant_make_boolean (true);
-    }
-    else if (strcasecmp (option, "wildcard") == 0) {
+    } else if (strcasecmp (option, "wildcard") == 0) {
         if (wildcard_cmp (buf2, buf1))
             ret_var = purc_variant_make_boolean (false);
         else
             ret_var = purc_variant_make_boolean (true);
-    }
-    else if (strcasecmp (option, "reg") == 0) {
+    } else if (strcasecmp (option, "reg") == 0) {
         if (reg_cmp (buf1, buf2))
             ret_var = purc_variant_make_boolean (false);
         else
@@ -683,7 +675,7 @@ logical_strne (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 static purc_variant_t
-logical_strgt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+logical_strgt (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -706,7 +698,7 @@ logical_strgt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    const char * option = purc_variant_get_string_const (argv[0]);
+    const char *option = purc_variant_get_string_const (argv[0]);
     purc_rwstream_t stream1 = purc_rwstream_new_buffer (32, STREAM_SIZE);
     purc_rwstream_t stream2 = purc_rwstream_new_buffer (32, STREAM_SIZE);
     size_t sz_stream1 = 0;
@@ -723,8 +715,7 @@ logical_strgt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
             ret_var = purc_variant_make_boolean (true);
         else
             ret_var = purc_variant_make_boolean (false);
-    }
-    else if (strcasecmp (option, "case") == 0) {
+    } else if (strcasecmp (option, "case") == 0) {
         if (strcmp (buf1, buf2) > 0)
             ret_var = purc_variant_make_boolean (true);
         else
@@ -738,7 +729,7 @@ logical_strgt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 static purc_variant_t
-logical_strge (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+logical_strge (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -761,7 +752,7 @@ logical_strge (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    const char * option = purc_variant_get_string_const (argv[0]);
+    const char *option = purc_variant_get_string_const (argv[0]);
     purc_rwstream_t stream1 = purc_rwstream_new_buffer (32, STREAM_SIZE);
     purc_rwstream_t stream2 = purc_rwstream_new_buffer (32, STREAM_SIZE);
     size_t sz_stream1 = 0;
@@ -779,8 +770,7 @@ logical_strge (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
             ret_var = purc_variant_make_boolean (true);
         else
             ret_var = purc_variant_make_boolean (false);
-    }
-    else if (strcasecmp (option, "case") == 0) {
+    } else if (strcasecmp (option, "case") == 0) {
         if (strcmp (buf1, buf2) >= 0)
             ret_var = purc_variant_make_boolean (true);
         else
@@ -794,7 +784,7 @@ logical_strge (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 static purc_variant_t
-logical_strlt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+logical_strlt (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -817,7 +807,7 @@ logical_strlt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    const char * option = purc_variant_get_string_const (argv[0]);
+    const char *option = purc_variant_get_string_const (argv[0]);
     purc_rwstream_t stream1 = purc_rwstream_new_buffer (32, STREAM_SIZE);
     purc_rwstream_t stream2 = purc_rwstream_new_buffer (32, STREAM_SIZE);
     size_t sz_stream1 = 0;
@@ -835,8 +825,7 @@ logical_strlt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
             ret_var = purc_variant_make_boolean (true);
         else
             ret_var = purc_variant_make_boolean (false);
-    }
-    else if (strcasecmp (option, "case") == 0) {
+    } else if (strcasecmp (option, "case") == 0) {
         if (strcmp (buf1, buf2) < 0)
             ret_var = purc_variant_make_boolean (true);
         else
@@ -850,7 +839,7 @@ logical_strlt (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 static purc_variant_t
-logical_strle (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+logical_strle (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -873,12 +862,11 @@ logical_strle (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    const char * option = purc_variant_get_string_const (argv[0]);
+    const char *option = purc_variant_get_string_const (argv[0]);
     purc_rwstream_t stream1 = purc_rwstream_new_buffer (32, STREAM_SIZE);
     purc_rwstream_t stream2 = purc_rwstream_new_buffer (32, STREAM_SIZE);
     size_t sz_stream1 = 0;
     size_t sz_stream2 = 0;
-
 
     purc_variant_serialize (argv[1], stream1, 3, 0, &sz_stream1);
     purc_variant_serialize (argv[2], stream2, 3, 0, &sz_stream2);
@@ -891,8 +879,7 @@ logical_strle (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
             ret_var = purc_variant_make_boolean (true);
         else
             ret_var = purc_variant_make_boolean (false);
-    }
-    else if (strcasecmp (option, "case") == 0) {
+    } else if (strcasecmp (option, "case") == 0) {
         if (strcmp (buf1, buf2) <= 0)
             ret_var = purc_variant_make_boolean (true);
         else
@@ -906,7 +893,7 @@ logical_strle (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 static purc_variant_t
-logical_eval (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+logical_eval (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 

@@ -42,11 +42,11 @@
 #include <math.h>
 
 
-static const char* get_next_segment (const char* data,
-        const char* delim, size_t* length)
+static const char * get_next_segment (const char *data,
+        const char *delim, size_t *length)
 {
-    const char* head = NULL;
-    char* temp = NULL;
+    const char *head = NULL;
+    char *temp = NULL;
 
     *length = 0;
 
@@ -59,8 +59,7 @@ static const char* get_next_segment (const char* data,
 
     if (temp) {
         *length =  temp - head;
-    }
-    else {
+    } else {
         *length = strlen (head);
     }
 
@@ -68,7 +67,7 @@ static const char* get_next_segment (const char* data,
 }
 
 static purc_variant_t
-string_contains (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+string_contains (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -91,8 +90,8 @@ string_contains (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    const char* source = purc_variant_get_string_const (argv[0]);
-    const char* sub = purc_variant_get_string_const (argv[1]);
+    const char *source = purc_variant_get_string_const (argv[0]);
+    const char *sub = purc_variant_get_string_const (argv[1]);
 
     if (strstr (source, sub))
         ret_var = purc_variant_make_boolean (true);
@@ -104,7 +103,7 @@ string_contains (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
 
 static purc_variant_t
-string_ends_with (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+string_ends_with (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -127,9 +126,9 @@ string_ends_with (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    const char* source = purc_variant_get_string_const (argv[0]);
+    const char *source = purc_variant_get_string_const (argv[0]);
     size_t len_source = purc_variant_string_length (argv[0]) - 1;
-    const char* sub = purc_variant_get_string_const (argv[1]);
+    const char *sub = purc_variant_get_string_const (argv[1]);
     size_t len_sub = purc_variant_string_length (argv[1]) -1;
 
     size_t i = 0;
@@ -137,10 +136,8 @@ string_ends_with (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     if ((len_source == 0) || (len_sub == 0) || (len_source < len_sub)) {
         find = false;
-    }
-    else {
-        for (i = 0; i < len_sub; i++)
-        {
+    } else {
+        for (i = 0; i < len_sub; i++) {
             if (*(source + len_source - len_sub + i) != *(sub + i)) {
                 find = false;
                 break;
@@ -158,7 +155,7 @@ string_ends_with (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
 
 static purc_variant_t
-string_explode (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+string_explode (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -183,17 +180,17 @@ string_explode (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    const char* source = purc_variant_get_string_const (argv[0]);
-    const char* delim = purc_variant_get_string_const (argv[1]);
+    const char *source = purc_variant_get_string_const (argv[0]);
+    const char *delim = purc_variant_get_string_const (argv[1]);
     size_t len_delim = purc_variant_string_length (argv[1]) - 1;
     size_t length = 0;
-    const char* head = get_next_segment (source, delim, &length);
+    const char *head = get_next_segment (source, delim, &length);
 
     ret_var = purc_variant_make_array (0, PURC_VARIANT_INVALID);
 
     while (head) {
         buf = malloc (length + 1);
-        if (buf == NULL)  {
+        if (buf == NULL) {
             pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
             purc_variant_unref (ret_var);
             return PURC_VARIANT_INVALID;
@@ -217,7 +214,7 @@ string_explode (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
 
 static purc_variant_t
-string_shuffle (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+string_shuffle (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -240,8 +237,8 @@ string_shuffle (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    char * src = malloc (size);
-    if (src == NULL)  {
+    char *src = malloc (size);
+    if (src == NULL) {
         pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         return PURC_VARIANT_INVALID;
     }
@@ -253,8 +250,7 @@ string_shuffle (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     size_t i = 0;
     int random = 0;
-    for(i =  0; i < size - 2; i++)
-    {
+    for(i =  0; i < size - 2; i++) {
         random = i + (rand () % (size - 1 - i));
         int tmp = *(src + random);
         *(src + random) = *(src + i);
@@ -268,7 +264,7 @@ string_shuffle (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
 
 static purc_variant_t
-string_replace (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+string_replace (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -298,24 +294,24 @@ string_replace (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     size_t len_delim = purc_variant_string_length (argv[0]) - 1;
-    if (len_delim == 0)  {
+    if (len_delim == 0) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
     len_delim = purc_variant_string_length (argv[1]) - 1;
-    if (len_delim == 0)  {
+    if (len_delim == 0) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    const char* source = purc_variant_get_string_const (argv[0]);
-    const char* delim = purc_variant_get_string_const (argv[1]);
-    const char* replace = purc_variant_get_string_const (argv[2]);
+    const char *source = purc_variant_get_string_const (argv[0]);
+    const char *delim = purc_variant_get_string_const (argv[1]);
+    const char *replace = purc_variant_get_string_const (argv[2]);
     purc_rwstream_t rwstream = purc_rwstream_new_buffer (32, STREAM_SIZE);
 
     size_t len_replace = purc_variant_string_length (argv[2]) - 1;
     size_t length = 0;
-    const char* head = get_next_segment (source, delim, &length);
+    const char *head = get_next_segment (source, delim, &length);
 
     while (head) {
         purc_rwstream_write (rwstream, head, length);
@@ -324,13 +320,12 @@ string_replace (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
             purc_rwstream_write (rwstream, replace, len_replace);
             head = get_next_segment (head + length + len_delim,
                     delim, &length);
-        }
-        else
+        } else
             break;
     }
 
     size_t rw_size = 0;
-    const char * rw_string = purc_rwstream_get_mem_buffer (rwstream, &rw_size);
+    const char *rw_string = purc_rwstream_get_mem_buffer (rwstream, &rw_size);
 
     if ((rw_size == 0) || (rw_string == NULL))
         ret_var = PURC_VARIANT_INVALID;
@@ -346,7 +341,7 @@ string_replace (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 static purc_variant_t
-string_format_c (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+string_format_c (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -354,7 +349,7 @@ string_format_c (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_rwstream_t rwstream = purc_rwstream_new_buffer (32, STREAM_SIZE);
 
-    if ((argv == NULL) || (nr_args == 0))  {
+    if ((argv == NULL) || (nr_args == 0)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -363,8 +358,7 @@ string_format_c (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
             (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
-    }
-    else
+    } else
         format = purc_variant_get_string_const (argv[0]);
 
     char buffer[16];
@@ -479,7 +473,7 @@ string_format_c (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     size_t rw_size = 0;
     size_t content_size = 0;
-    char * rw_string = purc_rwstream_get_mem_buffer_ex (rwstream,
+    char *rw_string = purc_rwstream_get_mem_buffer_ex (rwstream,
             &content_size, &rw_size, true);
 
     if ((rw_size == 0) || (rw_string == NULL))
@@ -499,7 +493,7 @@ string_format_c (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 }
 
 static purc_variant_t
-string_format_p (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
+string_format_p (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -521,11 +515,10 @@ string_format_p (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_string (argv[0])))  {
+            (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
-    }
-    else  {
+    } else {
         format = purc_variant_get_string_const (argv[0]);
         format_size = purc_variant_string_length (argv[0]);
     }
@@ -536,7 +529,7 @@ string_format_p (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
     else if ((argv[1] != PURC_VARIANT_INVALID) &&
             (purc_variant_is_object (argv[1])))
         type = 1;
-    else  {
+    else {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -578,8 +571,7 @@ string_format_p (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
         if (end != NULL)
             purc_rwstream_write (rwstream, end, strlen (end));
-    }
-    else {
+    } else {
         const char *start = NULL;
         const char *end = NULL;
         size_t length = 0;
@@ -619,7 +611,7 @@ string_format_p (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     size_t rw_size = 0;
     size_t content_size = 0;
-    char * rw_string = purc_rwstream_get_mem_buffer_ex (rwstream,
+    char *rw_string = purc_rwstream_get_mem_buffer_ex (rwstream,
             &content_size, &rw_size, true);
 
     if ((rw_size == 0) || (rw_string == NULL))
