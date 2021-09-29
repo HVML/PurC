@@ -24,6 +24,8 @@
 
 #include "private/variant.h"
 #include "private/instance.h"
+#include "private/ejson.h"
+#include "private/vcm.h"
 #include "private/errors.h"
 #include "private/debug.h"
 #include "private/utils.h"
@@ -952,9 +954,25 @@ int purc_variant_compare(purc_variant_t v1, purc_variant_t v2)
 
 purc_variant_t purc_variant_load_from_json_stream(purc_rwstream_t stream)
 {
-    // TODO
-    UNUSED_PARAM(stream);
-    return PURC_VARIANT_INVALID;
+    if (stream  == NULL) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t value = PURC_VARIANT_INVALID;
+    struct pcvcm_node* root = NULL;
+    struct pcejson* parser = NULL;
+
+    int ret = pcejson_parse (&root, &parser, stream, PCEJSON_DEFAULT_DEPTH);
+    if (ret != PCEJSON_SUCCESS) {
+        goto ret;
+    }
+
+    value = pcvcm_eval (root, NULL);
+
+ret:
+    pcvcm_node_destroy (root);
+    pcejson_destroy(parser);
+    return value;
 }
 
 purc_variant_t purc_variant_make_from_json_string(const char* json, size_t sz)
@@ -1027,3 +1045,103 @@ purc_variant_t purc_variant_dynamic_value_load_from_so(const char* so_name,
 
 #endif
 
+purc_variant_t purc_variant_load_dvobj_from_so (const char* so_name,
+        const char* var_name)
+{
+    purc_variant_t value = PURC_VARIANT_INVALID;
+    purc_variant_t val = PURC_VARIANT_INVALID;
+    int ver_code;
+
+#if OS(LINUX) || OS(UNIX)
+    void * library_handle = NULL;
+
+    library_handle = dlopen(so_name, RTLD_LAZY);
+    if(!library_handle)  {
+        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t (* purcex_load_dynamic_variant)(const char *,
+            int* ver_code);
+
+    purcex_load_dynamic_variant = (purc_variant_t (*) (const char *, int *))
+        dlsym(library_handle, "__purcex_load_dynamic_variant");
+    if(dlerror() != NULL)
+    {
+        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+        dlclose(library_handle);
+        return PURC_VARIANT_INVALID;
+    }
+
+    value = purcex_load_dynamic_variant (var_name, &ver_code);
+    if(value == PURC_VARIANT_INVALID)
+    {
+        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+        dlclose(library_handle);
+        return PURC_VARIANT_INVALID;
+    }
+
+#else // 0
+    UNUSED_PARAM(so_name);
+    UNUSED_PARAM(var_name);
+#endif // !0
+
+    if (purc_variant_is_type (value, PURC_VARIANT_TYPE_OBJECT)) {
+        val = purc_variant_make_ulongint ((uint64_t)library_handle);
+        purc_variant_object_set_by_static_ckey (value,
+                "__intr_dlhandle", val);
+        purc_variant_unref (val);
+    }  else  {
+        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+        purc_variant_unref (value);
+        dlclose(library_handle);
+        value = PURC_VARIANT_INVALID;
+    }
+
+    return value;
+}
+
+bool purc_variant_unload_dvobj (purc_variant_t dvobj)
+{
+    bool ret = true;
+
+    if (dvobj == PURC_VARIANT_INVALID)  {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return false;
+    }
+
+    if (!purc_variant_is_type (dvobj, PURC_VARIANT_TYPE_OBJECT))  {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return false;
+    }
+
+    uint64_t u64 = 0;
+    purc_variant_t val = purc_variant_object_get_by_ckey (dvobj,
+            "__intr_dlhandle");
+    if (val == PURC_VARIANT_INVALID)  {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return false;
+    }
+
+    if (!purc_variant_cast_to_ulongint (val, &u64, false))  {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return false;
+    }
+
+#if OS(LINUX) || OS(UNIX)
+    if (u64) {
+        if (dlclose((void *)u64) == 0)  {
+            purc_variant_unref (dvobj);
+        }  else  {
+            pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+            ret = false;
+        }
+    }  else  {
+        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+        ret = false;
+    }
+#else // 0
+#endif // !0
+
+    return ret;
+}

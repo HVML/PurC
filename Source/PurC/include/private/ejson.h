@@ -33,6 +33,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define PCEJSON_DEFAULT_DEPTH 32
+
 enum ejson_state {
     EJSON_INIT_STATE,
     EJSON_FINISHED_STATE,

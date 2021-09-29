@@ -1495,3 +1495,24 @@ TEST(variant, four_constants)
     purc_cleanup ();
 }
 
+TEST(variant, load_from_so)
+{
+    purc_variant_t value = NULL;
+    purc_instance_extra_info info = {0, 0};
+
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    value = purc_variant_load_dvobj_from_so ("/usr/lib/purc-0.0/libpurc-dvobj-FS.so", "FS");
+    ASSERT_NE(value, PURC_VARIANT_INVALID);
+    ASSERT_EQ(purc_variant_is_type (value, PURC_VARIANT_TYPE_OBJECT), true);
+
+    purc_variant_t val = purc_variant_object_get_by_ckey (value, "__intr_dlhandle");
+    uint64_t u64 = 0;
+    purc_variant_cast_to_ulongint (val, &u64, false);
+
+    bool close = purc_variant_unload_dvobj (value);
+    ASSERT_EQ(close, true);
+    purc_cleanup ();
+}
+
