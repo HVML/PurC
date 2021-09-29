@@ -605,7 +605,8 @@ TEST(dvobjs, dvobjs_file_stream_open_seek_close)
 
     printf ("TEST stream_open_seek_close: nr_args=2, param1=\"test_files/stream.test\":\n");
     param[0] = purc_variant_make_string (file_path, false);
-    ret_var = func (NULL, 1, param);
+    param[1] = purc_variant_make_string ("r+", false);
+    ret_var = func (NULL, 2, param);
 
     ASSERT_EQ(purc_variant_is_type (ret_var,
                     PURC_VARIANT_TYPE_NATIVE), true);
@@ -688,7 +689,8 @@ TEST(dvobjs, dvobjs_file_stream_readbytes)
 
     printf ("TEST stream_readbytes: nr_args=2, param1=\"test_files/stream.test\":\n");
     param[0] = purc_variant_make_string (file_path, false);
-    ret_var = func (NULL, 1, param);
+    param[1] = purc_variant_make_string ("r+", false);
+    ret_var = func (NULL, 2, param);
     ASSERT_EQ(purc_variant_is_type (ret_var,
                     PURC_VARIANT_TYPE_NATIVE), true);
 
@@ -786,7 +788,8 @@ TEST(dvobjs, dvobjs_file_stream_readlines)
 
     printf ("TEST stream_readlines: nr_args=2, param1=\"test_files/stream.test\":\n");
     param[0] = purc_variant_make_string (file_path, false);
-    ret_var = func (NULL, 1, param);
+    param[1] = purc_variant_make_string ("r+", false);
+    ret_var = func (NULL, 2, param);
 
     ASSERT_EQ(purc_variant_is_type (ret_var,
                     PURC_VARIANT_TYPE_NATIVE), true);
@@ -1011,7 +1014,8 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
                 // test process
                 // open
                 for_open[0] = purc_variant_make_string (test_path, false);
-                test_file = open (NULL, 1, for_open);
+                for_open[1] = purc_variant_make_string ("r+", false);
+                test_file = open (NULL, 2, for_open);
                 ASSERT_EQ(purc_variant_is_type (test_file,
                             PURC_VARIANT_TYPE_NATIVE), true);
 

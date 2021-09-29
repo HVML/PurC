@@ -682,7 +682,7 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(root);
 
-    if (nr_args != 1) {
+    if (nr_args != 2) {
 //        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -694,6 +694,12 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[1] != PURC_VARIANT_INVALID) &&
+            (!purc_variant_is_string (argv[1]))) {
 //        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -712,7 +718,8 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t* argv)
         return PURC_VARIANT_INVALID;
     }
 
-    rwstream = purc_rwstream_new_from_file (filename, "r+");
+    rwstream = purc_rwstream_new_from_file (filename,
+            purc_variant_get_string_const (argv[1]));
 
     if (rwstream == NULL) {
 //        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
