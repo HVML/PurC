@@ -105,7 +105,7 @@ vgim_to_string(struct pcvdom_gen *gen)
 #ifdef TO_DEBUG
 #ifndef D
 #define D(fmt, ...)                                           \
-    fprintf(stderr, "%s[%d]:%s(): %s @ %s" fmt "\n",          \
+    fprintf(stderr, "%s[%d]:%s(): %s @ %s: " fmt "\n",        \
         basename((char*)__FILE__), __LINE__, __func__,        \
         vtt_to_string(token),                                 \
         vgim_to_string(gen),                                  \
@@ -215,6 +215,19 @@ tag_id_from_tag(const char *tag)
         return entry->id;
 
     return PCHVML_TAG__UNDEF;
+}
+
+static inline void
+set_parser_state_if_necessary(struct pcvdom_gen *gen)
+{
+    struct pcvdom_node *top = top_node(gen);
+    if (is_doc_node(gen, top))
+        return;
+
+    struct pcvdom_element *elem = top_element(gen);
+    if (is_element_of_hvml_data_cat(elem)) {
+        gen->parser->state = PCHVML_EJSON_DATA_STATE;
+    }
 }
 
 static struct pcvdom_element*
@@ -726,8 +739,19 @@ on_mode_in_head(struct pcvdom_gen *gen, struct pchvml_token *token)
 
     if (type==VTT(_START_TAG)) {
         const char *tag = pchvml_token_get_name(token);
+        D("tag: [%s], self-closing: %s", tag,
+            pchvml_token_is_self_closing(token) ? "true" : "false");
         if (strcmp(tag, "hvml")==0)
             FAIL_RET();
+
+        enum pchvml_tag_id tag_id;
+        tag_id = tag_id_from_tag(tag);
+        if (tag_id != PCHVML_TAG_INIT &&
+            tag_id != PCHVML_TAG_SET &&
+            strcasecmp(tag, "title"))
+        {
+            goto anything_else;
+        }
 
         struct pcvdom_element *elem;
         elem = create_element(gen, token);
@@ -751,19 +775,26 @@ on_mode_in_head(struct pcvdom_gen *gen, struct pchvml_token *token)
             }
         }
 
-        if (is_element_of_hvml_data_cat(elem)) {
-            gen->parser->state = PCHVML_EJSON_DATA_STATE;
-        }
+        set_parser_state_if_necessary(gen);
 
         return 0;
     }
 
     if (type==VTT(_END_TAG)) {
+        const char *tag = pchvml_token_get_name(token);
+        enum pchvml_tag_id tag_id;
+        tag_id = tag_id_from_tag(tag);
+        if (tag_id == PCHVML_TAG_BODY ||
+            tag_id == PCHVML_TAG_HVML)
+        {
+            goto anything_else;
+        }
+
         struct pcvdom_node *node = top_node(gen);
         struct pcvdom_element *elem;
         elem = container_of(node, struct pcvdom_element, node);
         const char *tagname = pcvdom_element_get_tagname(elem);
-        const char *tag = pchvml_token_get_name(token);
+        D("tagname: [%s]; tag: [%s]", tagname, tag);
 
         if (!tagname || !tag || strcmp(tagname, tag))
             FAIL_RET();
@@ -794,6 +825,7 @@ on_mode_in_head(struct pcvdom_gen *gen, struct pchvml_token *token)
         return 0;
     }
 
+anything_else:
     pop_node(gen); // FIXME: head at top?
     gen->insertion_mode = VGIM(_AFTER_HEAD);
     gen->reprocess = 1;
@@ -827,11 +859,19 @@ on_mode_after_head(struct pcvdom_gen *gen, struct pchvml_token *token)
     }
 
     if (type==VTT(_END_TAG)) {
+        const char *tag = pchvml_token_get_name(token);
+        enum pchvml_tag_id tag_id;
+        tag_id = tag_id_from_tag(tag);
+        if (tag_id == PCHVML_TAG_BODY ||
+            tag_id == PCHVML_TAG_HVML)
+        {
+            goto anything_else;
+        }
+
         struct pcvdom_node *node = top_node(gen);
         struct pcvdom_element *elem;
         elem = container_of(node, struct pcvdom_element, node);
         const char *tagname = pcvdom_element_get_tagname(elem);
-        const char *tag = pchvml_token_get_name(token);
 
         if (!tagname || !tag || strcmp(tagname, tag))
             FAIL_RET();
@@ -900,19 +940,27 @@ on_mode_in_body(struct pcvdom_gen *gen, struct pchvml_token *token)
             }
         }
 
-        if (is_element_of_hvml_data_cat(elem)) {
-            gen->parser->state = PCHVML_EJSON_DATA_STATE;
-        }
+        set_parser_state_if_necessary(gen);
 
         return 0;
     }
 
     if (type==VTT(_END_TAG)) {
+        const char *tag = pchvml_token_get_name(token);
+        enum pchvml_tag_id tag_id;
+        tag_id = tag_id_from_tag(tag);
+        if (tag_id == PCHVML_TAG_BODY) {
+            pop_node(gen); // FIXME: body at top?
+            gen->insertion_mode = VGIM(_AFTER_BODY);
+            return 0;
+        }
+        if (tag_id == PCHVML_TAG_HVML) {
+            goto anything_else;
+        }
         struct pcvdom_node *node = top_node(gen);
         struct pcvdom_element *elem;
         elem = container_of(node, struct pcvdom_element, node);
         const char *tagname = pcvdom_element_get_tagname(elem);
-        const char *tag = pchvml_token_get_name(token);
 
         if (!tagname || !tag || strcmp(tagname, tag))
             FAIL_RET();
@@ -958,9 +1006,11 @@ on_mode_in_body(struct pcvdom_gen *gen, struct pchvml_token *token)
         return 0;
     }
 
-    UNUSED_PARAM(gen);
-    UNUSED_PARAM(token);
-    return -1;
+anything_else:
+    pop_node(gen); // FIXME: body at top?
+    gen->insertion_mode = VGIM(_AFTER_BODY);
+    gen->reprocess = 1;
+    return 0;
 }
 
 static int
@@ -983,11 +1033,18 @@ on_mode_after_body(struct pcvdom_gen *gen, struct pchvml_token *token)
     }
 
     if (type==VTT(_END_TAG)) {
+        const char *tag = pchvml_token_get_name(token);
+        enum pchvml_tag_id tag_id;
+        tag_id = tag_id_from_tag(tag);
+        if (tag_id == PCHVML_TAG_HVML) {
+            gen->insertion_mode = VGIM(_AFTER_AFTER_BODY);
+            return 0;
+        }
         struct pcvdom_node *node = top_node(gen);
         struct pcvdom_element *elem;
         elem = container_of(node, struct pcvdom_element, node);
         const char *tagname = pcvdom_element_get_tagname(elem);
-        const char *tag = pchvml_token_get_name(token);
+        D("tagname: [%s]; tag: [%s]", tagname, tag);
 
         if (!tagname || !tag || strcmp(tagname, tag))
             FAIL_RET();
