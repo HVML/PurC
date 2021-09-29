@@ -481,6 +481,7 @@ int purc_rwstream_read_utf8_char (purc_rwstream_t rws, char* buf_utf8,
     int ch_len = 0;
     uint8_t c = buf_utf8[0];
     if (c > 0xFD) {
+        RWSTREAM_SET_ERROR(PCRWSTREAM_ERROR_IO);
         return -1;
     }
 
@@ -507,6 +508,7 @@ int purc_rwstream_read_utf8_char (purc_rwstream_t rws, char* buf_utf8,
         }
         c = *p;
         if ((c & 0xC0) != 0x80) {
+            RWSTREAM_SET_ERROR(PCRWSTREAM_ERROR_IO);
             return -1;
         }
         p++;
