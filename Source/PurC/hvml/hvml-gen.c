@@ -105,9 +105,10 @@ vgim_to_string(struct pcvdom_gen *gen)
 #ifdef TO_DEBUG
 #ifndef D
 #define D(fmt, ...)                                           \
-    fprintf(stderr, "%s[%d]:%s(): %s @ %s: " fmt "\n",        \
+    fprintf(stderr, "%s[%d]:%s(): %s[%s] @ %s: " fmt "\n",    \
         basename((char*)__FILE__), __LINE__, __func__,        \
         vtt_to_string(token),                                 \
+        pchvml_token_get_name(token),                         \
         vgim_to_string(gen),                                  \
         ##__VA_ARGS__);
 #endif // D
@@ -739,8 +740,6 @@ on_mode_in_head(struct pcvdom_gen *gen, struct pchvml_token *token)
 
     if (type==VTT(_START_TAG)) {
         const char *tag = pchvml_token_get_name(token);
-        D("tag: [%s], self-closing: %s", tag,
-            pchvml_token_is_self_closing(token) ? "true" : "false");
         if (strcmp(tag, "hvml")==0)
             FAIL_RET();
 
@@ -794,8 +793,6 @@ on_mode_in_head(struct pcvdom_gen *gen, struct pchvml_token *token)
         struct pcvdom_element *elem;
         elem = container_of(node, struct pcvdom_element, node);
         const char *tagname = pcvdom_element_get_tagname(elem);
-        D("tagname: [%s]; tag: [%s]", tagname, tag);
-
         if (!tagname || !tag || strcmp(tagname, tag))
             FAIL_RET();
 
@@ -1044,8 +1041,6 @@ on_mode_after_body(struct pcvdom_gen *gen, struct pchvml_token *token)
         struct pcvdom_element *elem;
         elem = container_of(node, struct pcvdom_element, node);
         const char *tagname = pcvdom_element_get_tagname(elem);
-        D("tagname: [%s]; tag: [%s]", tagname, tag);
-
         if (!tagname || !tag || strcmp(tagname, tag))
             FAIL_RET();
 
