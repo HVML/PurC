@@ -24,6 +24,8 @@
 
 #include "private/variant.h"
 #include "private/instance.h"
+#include "private/ejson.h"
+#include "private/vcm.h"
 #include "private/errors.h"
 #include "private/debug.h"
 #include "private/utils.h"
@@ -121,7 +123,7 @@ void pcvariant_init_once(void)
     // initialize others
 }
 
-void pcvariant_init_instance(struct pcinst* inst)
+void pcvariant_init_instance(struct pcinst *inst)
 {
     // initialize const values in instance
     inst->variant_heap.v_undefined.type = PURC_VARIANT_TYPE_UNDEFINED;
@@ -165,9 +167,9 @@ void pcvariant_init_instance(struct pcinst* inst)
     // initialize others
 }
 
-void pcvariant_cleanup_instance(struct pcinst* inst)
+void pcvariant_cleanup_instance(struct pcinst *inst)
 {
-    struct pcvariant_heap * heap = &(inst->variant_heap);
+    struct pcvariant_heap *heap = &(inst->variant_heap);
     int i = 0;
 
     /* VWNOTE: do not try to release the extra memory here. */
@@ -236,7 +238,7 @@ unsigned int purc_variant_unref(purc_variant_t value)
 
 struct purc_variant_stat * purc_variant_usage_stat(void)
 {
-    struct pcinst * inst = pcinst_current();
+    struct pcinst *inst = pcinst_current();
     if (inst == NULL) {
         /* VWNOTE: if you have the instance, directly set the errcode. */
         inst->errcode = PURC_ERROR_NO_INSTANCE;
@@ -260,12 +262,12 @@ struct purc_variant_stat * purc_variant_usage_stat(void)
 
 void pcvariant_stat_set_extra_size(purc_variant_t value, size_t extra_size)
 {
-    struct pcinst * instance = pcinst_current();
+    struct pcinst *instance = pcinst_current();
 
     PC_ASSERT(value);
     PC_ASSERT(instance);
 
-    struct purc_variant_stat * stat = &(instance->variant_heap.stat);
+    struct purc_variant_stat *stat = &(instance->variant_heap.stat);
     int type = value->type;
 
     if (value->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
@@ -317,9 +319,9 @@ purc_variant_t pcvariant_get(enum purc_variant_type type)
 
 void pcvariant_put(purc_variant_t value)
 {
-    struct pcinst * instance = pcinst_current();
-    struct pcvariant_heap * heap = &(instance->variant_heap);
-    struct purc_variant_stat * stat = &(heap->stat);
+    struct pcinst *instance = pcinst_current();
+    struct pcvariant_heap *heap = &(instance->variant_heap);
+    struct purc_variant_stat *stat = &(heap->stat);
 
     PC_ASSERT(value);
 
@@ -952,9 +954,25 @@ int purc_variant_compare(purc_variant_t v1, purc_variant_t v2)
 
 purc_variant_t purc_variant_load_from_json_stream(purc_rwstream_t stream)
 {
-    // TODO
-    UNUSED_PARAM(stream);
-    return PURC_VARIANT_INVALID;
+    if (stream  == NULL) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t value = PURC_VARIANT_INVALID;
+    struct pcvcm_node* root = NULL;
+    struct pcejson* parser = NULL;
+
+    int ret = pcejson_parse (&root, &parser, stream, PCEJSON_DEFAULT_DEPTH);
+    if (ret != PCEJSON_SUCCESS) {
+        goto ret;
+    }
+
+    value = pcvcm_eval (root, NULL);
+
+ret:
+    pcvcm_node_destroy (root);
+    pcejson_destroy(parser);
+    return value;
 }
 
 purc_variant_t purc_variant_make_from_json_string(const char* json, size_t sz)
@@ -1027,58 +1045,59 @@ purc_variant_t purc_variant_dynamic_value_load_from_so(const char* so_name,
 
 #endif
 
-purc_variant_t purc_variant_load_dvobj_from_so (const char* so_name,
-        const char* var_name)
+purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
+        const char *var_name)
 {
     purc_variant_t value = PURC_VARIANT_INVALID;
+
+#if OS(LINUX) || OS(UNIX)
     purc_variant_t val = PURC_VARIANT_INVALID;
     int ver_code;
 
-#if OS(LINUX) || OS(UNIX)
-    void * library_handle = NULL;
+    void *library_handle = NULL;
 
     library_handle = dlopen(so_name, RTLD_LAZY);
-    if(!library_handle)  {
+    if(!library_handle) {
         pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t (* purcex_load_dynamic_variant)(const char *,
-            int* ver_code);
+    purc_variant_t (* purcex_load_dynamic_variant)(const char *, int *);
 
     purcex_load_dynamic_variant = (purc_variant_t (*) (const char *, int *))
-        dlsym(library_handle, "__purcex_load_dynamic_variant");
-    if(dlerror() != NULL)
-    {
+        dlsym(library_handle, EXOBJ_LOAD_ENTRY);
+    if(dlerror() != NULL) {
         pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         dlclose(library_handle);
         return PURC_VARIANT_INVALID;
     }
 
     value = purcex_load_dynamic_variant (var_name, &ver_code);
-    if(value == PURC_VARIANT_INVALID)
-    {
+    if(value == PURC_VARIANT_INVALID) {
         pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         dlclose(library_handle);
         return PURC_VARIANT_INVALID;
     }
 
-#else // 0
-    UNUSED_PARAM(so_name);
-    UNUSED_PARAM(var_name);
-#endif // !0
-
     if (purc_variant_is_type (value, PURC_VARIANT_TYPE_OBJECT)) {
         val = purc_variant_make_ulongint ((uint64_t)library_handle);
         purc_variant_object_set_by_static_ckey (value,
-                "__intr_dlhandle", val);
+                EXOBJ_LOAD_HANDLE_KEY, val);
         purc_variant_unref (val);
-    }  else  {
+    } else {
         pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         purc_variant_unref (value);
         dlclose(library_handle);
         value = PURC_VARIANT_INVALID;
     }
+
+#else
+    UNUSED_PARAM(so_name);
+    UNUSED_PARAM(var_name);
+
+    // TODO: Add codes for other OS.
+    pcinst_set_error (PURC_ERROR_NOT_SUPPORTED);
+#endif
 
     return value;
 }
@@ -1092,38 +1111,40 @@ bool purc_variant_unload_dvobj (purc_variant_t dvobj)
         return false;
     }
 
-    if (!purc_variant_is_type (dvobj, PURC_VARIANT_TYPE_OBJECT))  {
+    if (!purc_variant_is_type (dvobj, PURC_VARIANT_TYPE_OBJECT)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return false;
     }
 
     uint64_t u64 = 0;
     purc_variant_t val = purc_variant_object_get_by_ckey (dvobj,
-            "__intr_dlhandle");
-    if (val == PURC_VARIANT_INVALID)  {
+            EXOBJ_LOAD_HANDLE_KEY);
+    if (val == PURC_VARIANT_INVALID) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return false;
     }
 
-    if (!purc_variant_cast_to_ulongint (val, &u64, false))  {
+    if (!purc_variant_cast_to_ulongint (val, &u64, false)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return false;
     }
 
 #if OS(LINUX) || OS(UNIX)
     if (u64) {
-        if (dlclose((void *)u64) == 0)  {
+        if (dlclose((void *)u64) == 0) {
             purc_variant_unref (dvobj);
-        }  else  {
+        } else {
             pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
             ret = false;
         }
-    }  else  {
+    } else {
         pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         ret = false;
     }
-#else // 0
-#endif // !0
+#else
+    // TODO: Add codes for other OS.
+    pcinst_set_error (PURC_ERROR_NOT_SUPPORTED);
+#endif
 
     return ret;
 }
