@@ -2440,11 +2440,6 @@ next_state:
                 if (ejson_stack_is_empty()) {
                     RECONSUME_IN(PCHVML_EJSON_FINISHED_STATE);
                 }
-                if (parser->vcm_node->type ==
-                        PCVCM_NODE_TYPE_FUNC_CONCAT_STRING
-                        && (uc == '"' || uc == '\'' || uc == 'U')) {
-                    RECONSUME_IN(PCHVML_EJSON_AFTER_JSONEE_STRING_STATE);
-                }
                 if (uc == 'U' || uc == '"' || uc == '\'') {
                     RECONSUME_IN(PCHVML_EJSON_AFTER_JSONEE_STRING_STATE);
                 }
@@ -2551,13 +2546,7 @@ next_state:
                     ejson_stack_pop();
                     ADVANCE_TO(PCHVML_EJSON_BEFORE_NAME_STATE);
                 }
-                if (uc == '[') {
-                    ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
-                }
-                if (uc == '(') {
-                    ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
-                }
-                if (uc == '<') {
+                if (uc == '[' || uc == '(' || uc == '<') {
                     ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
                 }
                 if (uc == ':') {
@@ -2706,7 +2695,6 @@ next_state:
                             NULL);
                     APPEND_CHILD(node, parser->vcm_node);
                     UPDATE_VCM_NODE(node);
-                    //ADVANCE_TO(PCHVML_EJSON_JSONEE_VARIABLE_STATE);
                     ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
                 }
                 uint32_t uc = pcutils_stack_top (parser->ejson_stack);
@@ -2909,10 +2897,7 @@ next_state:
                     }
                     ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
                 }
-                if (uc == '(') {
-                    ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
-                }
-                if (uc == '<') {
+                if (uc == '(' || uc == '<') {
                     ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
                 }
                 if (uc == ':') {
@@ -2932,13 +2917,10 @@ next_state:
                 PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
                 RETURN_AND_STOP_PARSE();
             }
+            if (character == '<' || character == '.') {
+                RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
+            }
             if (uc == '"' || uc  == 'U') {
-                RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
-            }
-            if (character == '<') {
-                RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
-            }
-            if (character == '.') {
                 RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
             }
             PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
