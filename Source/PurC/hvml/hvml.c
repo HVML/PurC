@@ -46,7 +46,7 @@
 #include <stdlib.h>
 #endif
 
-//#define HVML_DEBUG_PRINT
+#define HVML_DEBUG_PRINT
 
 #define PCHVML_END_OF_FILE       0
 
@@ -2411,6 +2411,10 @@ next_state:
                     RESET_VCM_NODE();
                     RECONSUME_IN(PCHVML_AFTER_ATTRIBUTE_VALUE_QUOTED_STATE);
                 }
+                if (!ejson_stack_is_empty()) {
+                    PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+                    RETURN_AND_STOP_PARSE();
+                }
                 parser->token = pchvml_token_new_vcm(parser->vcm_node);
                 parser->vcm_node = NULL;
                 RESET_VCM_NODE();
@@ -2420,6 +2424,10 @@ next_state:
                 while (!vcm_stack_is_empty()) {
                     ejson_stack_pop();
                     POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+                }
+                if (!ejson_stack_is_empty()) {
+                    PCHVML_SET_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+                    RETURN_AND_STOP_PARSE();
                 }
                 parser->token = pchvml_token_new_vcm(parser->vcm_node);
                 parser->vcm_node = NULL;
@@ -2686,10 +2694,10 @@ next_state:
                     UPDATE_VCM_NODE(node);
                     ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
                 }
-                if (parser->vcm_node->type ==
+                if (parser->vcm_node && (parser->vcm_node->type ==
                         PCVCM_NODE_TYPE_FUNC_GET_VARIABLE ||
                         parser->vcm_node->type ==
-                        PCVCM_NODE_TYPE_FUNC_GET_ELEMENT) {
+                        PCVCM_NODE_TYPE_FUNC_GET_ELEMENT)) {
                     ejson_stack_push('.');
                     struct pcvcm_node* node = pcvcm_node_new_get_element(NULL,
                             NULL);
@@ -3949,10 +3957,7 @@ next_state:
                     POP_AS_VCM_PARENT_AND_UPDATE_VCM();
                     uc = pcutils_stack_top (parser->ejson_stack);
                 }
-                if (uc == '(') {
-                    POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-                }
-                if (uc == '<') {
+                if (uc == '(' || uc == '<') {
                     POP_AS_VCM_PARENT_AND_UPDATE_VCM();
                 }
                 RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_STATE);
@@ -3974,10 +3979,7 @@ next_state:
                     POP_AS_VCM_PARENT_AND_UPDATE_VCM();
                     uc = ejson_stack_top();
                 }
-                if (uc == '(') {
-                    POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-                }
-                if (uc == '<') {
+                if (uc == '(' || uc == '<' || uc == '{') {
                     POP_AS_VCM_PARENT_AND_UPDATE_VCM();
                 }
                 if (uc == 'P') {
@@ -3987,9 +3989,6 @@ next_state:
                     struct pcvcm_node* node = pcvcm_node_new_object(0, NULL);
                     APPEND_CHILD(node, parser->vcm_node);
                     UPDATE_VCM_NODE(node);
-                }
-                if (uc == '{') {
-                    POP_AS_VCM_PARENT_AND_UPDATE_VCM();
                 }
                 ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
             }
