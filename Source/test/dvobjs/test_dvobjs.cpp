@@ -13,9 +13,18 @@
 #include <errno.h>
 #include <gtest/gtest.h>
 
+static void get_variant_total_info (size_t *mem, size_t *value)
+{
+    struct purc_variant_stat * stat = purc_variant_usage_stat ();
+    ASSERT_NE(stat, nullptr);
+
+    *mem = stat->sz_total_mem;
+    *value = stat->nr_total_values;
+}
+
 TEST(dvobjs, dvobjs_sys_uname)
 {
-    purc_variant_t param[10];
+    purc_variant_t param[10] = {PURC_VARIANT_INVALID};
     purc_variant_t ret_var = NULL;
     const char * result = NULL;
     size_t i = 0;
@@ -36,30 +45,49 @@ TEST(dvobjs, dvobjs_sys_uname)
     func = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(func, nullptr);
 
+    size_t sz_total_mem_before;
+    size_t sz_total_values_before;
+    get_variant_total_info (&sz_total_mem_before, &sz_total_values_before);
+
     printf ("TEST get_uname: nr_args = 0, param = \"  beijing  shanghai\" :\n");
     param[0] = purc_variant_make_string ("  beijing shanghai", true);
     ret_var = func (NULL, 0, param);
     ASSERT_NE(ret_var, nullptr);
 
-    purc_variant_object_iterator* it =
-        purc_variant_object_make_iterator_begin(ret_var);
+    purc_variant_object_iterator *it =
+        purc_variant_object_make_iterator_begin (ret_var);
     for (i = 0; i < purc_variant_object_get_size (ret_var); i++) {
-        const char     *key = purc_variant_object_iterator_get_key(it);
-        purc_variant_t  val = purc_variant_object_iterator_get_value(it);
+        const char     *key = purc_variant_object_iterator_get_key (it);
+        purc_variant_t  val = purc_variant_object_iterator_get_value (it);
 
         result = purc_variant_get_string_const (val);
 
         printf("\t\t%s: %s\n", key, result);
 
-        bool having = purc_variant_object_iterator_next(it);
+        bool having = purc_variant_object_iterator_next (it);
         if (!having) {
-            purc_variant_object_release_iterator(it);
+            purc_variant_object_release_iterator (it);
             break;
         }
     }
 
+    for (i = 0; i < 10; i++) {
+        if (param[i])
+            purc_variant_unref (param[i]);
+    }
+    purc_variant_unref (ret_var);
+
+    size_t sz_total_mem_after;
+    size_t sz_total_values_after;
+    get_variant_total_info (&sz_total_mem_after, &sz_total_values_after);
+    ASSERT_EQ(sz_total_values_before, sz_total_values_after);
+#if 0
+    ASSERT_EQ(sz_total_mem_before, sz_total_mem_after);
+#endif
+    purc_variant_unref (sys);
     purc_cleanup ();
 }
+
 TEST(dvobjs, dvobjs_sys_uname_prt)
 {
     purc_variant_t param[10];

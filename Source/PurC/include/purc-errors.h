@@ -197,6 +197,14 @@ PCA_EXPORT int
 purc_get_last_error (void);
 
 /**
+ * purc_set_error:
+ *
+ * Returns: PURC_ERROR_OK or PURC_ERROR_NO_INSTANCE.
+ */
+PCA_EXPORT int
+purc_set_error(int err_code);
+
+/**
  * purc_get_error_message:
  *
  * @errcode: the error code.

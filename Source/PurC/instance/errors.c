@@ -37,7 +37,7 @@ int purc_get_last_error(void)
     return PURC_ERROR_NO_INSTANCE;
 }
 
-int pcinst_set_error(int errcode)
+int purc_set_error(int errcode)
 {
     struct pcinst* inst = pcinst_current();
     if (inst) {
