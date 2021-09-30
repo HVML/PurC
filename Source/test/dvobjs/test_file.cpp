@@ -361,7 +361,7 @@ TEST(dvobjs, dvobjs_file_text_head)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t file = purc_variant_load_dvobj_from_so (
-            "/usr/lib/purc-0/libpurc-dvobj-FS.so", "FILE");
+            "/usr/local/lib/purc-0.0/libpurc-dvobj-FS.so", "FILE");
     ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
 
@@ -415,7 +415,7 @@ TEST(dvobjs, dvobjs_file_text_tail)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t file = purc_variant_load_dvobj_from_so (
-            "/usr/lib/purc-0/libpurc-dvobj-FS.so", "FILE");
+            "/usr/local/lib/purc-0.0/libpurc-dvobj-FS.so", "FILE");
     ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
 
@@ -470,7 +470,7 @@ TEST(dvobjs, dvobjs_file_bin_head)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t file = purc_variant_load_dvobj_from_so (
-            "/usr/lib/purc-0/libpurc-dvobj-FS.so", "FILE");
+            "/usr/local/lib/purc-0.0/libpurc-dvobj-FS.so", "FILE");
     ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
 
@@ -525,7 +525,7 @@ TEST(dvobjs, dvobjs_file_bin_tail)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t file = purc_variant_load_dvobj_from_so (
-            "/usr/lib/purc-0/libpurc-dvobj-FS.so", "FILE");
+            "/usr/local/lib/purc-0.0/libpurc-dvobj-FS.so", "FILE");
     ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
 
@@ -580,7 +580,7 @@ TEST(dvobjs, dvobjs_file_stream_open_seek_close)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t file = purc_variant_load_dvobj_from_so (
-            "/usr/lib/purc-0/libpurc-dvobj-FS.so", "FILE");
+            "/usr/local/lib/purc-0.0/libpurc-dvobj-FS.so", "FILE");
     ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
 
@@ -664,7 +664,7 @@ TEST(dvobjs, dvobjs_file_stream_readbytes)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t file = purc_variant_load_dvobj_from_so (
-            "/usr/lib/purc-0/libpurc-dvobj-FS.so", "FILE");
+            "/usr/local/lib/purc-0.0/libpurc-dvobj-FS.so", "FILE");
     ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
 
@@ -763,7 +763,7 @@ TEST(dvobjs, dvobjs_file_stream_readlines)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t file = purc_variant_load_dvobj_from_so (
-            "/usr/lib/purc-0/libpurc-dvobj-FS.so", "FILE");
+            "/usr/local/lib/purc-0.0/libpurc-dvobj-FS.so", "FILE");
     ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
 
@@ -872,7 +872,7 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t file = purc_variant_load_dvobj_from_so (
-            "/usr/lib/purc-0/libpurc-dvobj-FS.so", "FILE");
+            "/usr/local/lib/purc-0.0/libpurc-dvobj-FS.so", "FILE");
     ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
 
