@@ -3949,10 +3949,7 @@ next_state:
                     POP_AS_VCM_PARENT_AND_UPDATE_VCM();
                     uc = pcutils_stack_top (parser->ejson_stack);
                 }
-                if (uc == '(') {
-                    POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-                }
-                if (uc == '<') {
+                if (uc == '(' || uc == '<') {
                     POP_AS_VCM_PARENT_AND_UPDATE_VCM();
                 }
                 RECONSUME_IN(PCHVML_EJSON_AFTER_VALUE_STATE);
@@ -3974,10 +3971,7 @@ next_state:
                     POP_AS_VCM_PARENT_AND_UPDATE_VCM();
                     uc = ejson_stack_top();
                 }
-                if (uc == '(') {
-                    POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-                }
-                if (uc == '<') {
+                if (uc == '(' || uc == '<' || uc == '{') {
                     POP_AS_VCM_PARENT_AND_UPDATE_VCM();
                 }
                 if (uc == 'P') {
@@ -3987,9 +3981,6 @@ next_state:
                     struct pcvcm_node* node = pcvcm_node_new_object(0, NULL);
                     APPEND_CHILD(node, parser->vcm_node);
                     UPDATE_VCM_NODE(node);
-                }
-                if (uc == '{') {
-                    POP_AS_VCM_PARENT_AND_UPDATE_VCM();
                 }
                 ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
             }
