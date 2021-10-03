@@ -103,10 +103,10 @@ void pchvml_token_attr_destroy (struct pchvml_token_attr* attr)
     if (attr->name) {
         pchvml_buffer_destroy(attr->name);
     }
-    if (attr->value && !attr->vcm_reserved) {
+    if (attr->value) {
         pchvml_buffer_destroy(attr->value);
     }
-    if (attr->vcm) {
+    if (attr->vcm && !attr->vcm_reserved) {
         pcvcm_node_destroy (attr->vcm);
     }
     PCHVML_FREE(attr);
