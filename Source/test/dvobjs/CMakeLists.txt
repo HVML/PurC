@@ -77,6 +77,7 @@ PURC_EXECUTABLE(test_logical)
 
 set(test_logical_SOURCES
     test_logical.cpp
+    test_helper.cpp
 )
 
 set(test_logical_LIBRARIES

@@ -245,13 +245,17 @@ static long double get_variant_value (purc_variant_t var)
 }
 
 static purc_variant_t
-logical_not (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+not_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if ((nr_args == 1) && argv[0] == PURC_VARIANT_INVALID) {
+    if (nr_args == 0) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+    if (argv[0] == PURC_VARIANT_INVALID) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -265,28 +269,27 @@ logical_not (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-logical_and (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+and_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
     bool judge = true;
-    int i = 0;
+    size_t i = 0;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if ((argv == NULL) || (nr_args < 2)) {
+    if (nr_args < 2) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    while (argv[i]) {
-        if (!test_variant (argv[i])) {
+    for (i = 0; i < nr_args; i++) {
+        if ((argv[i] != PURC_VARIANT_INVALID) && (!test_variant (argv[i]))) {
             judge = false;
             break;
         }
-        i++;
     }
 
-    if (judge && (i > 0))
+    if (judge)
         ret_var = purc_variant_make_boolean (true);
     else
         ret_var = purc_variant_make_boolean (false);
@@ -295,7 +298,7 @@ logical_and (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-logical_or (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+or_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -325,7 +328,7 @@ logical_or (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-logical_xor (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+xor_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -361,7 +364,7 @@ logical_xor (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-logical_eq (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+eq_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -392,7 +395,7 @@ logical_eq (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-logical_ne (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+ne_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -423,7 +426,7 @@ logical_ne (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-logical_gt (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+gt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -454,7 +457,7 @@ logical_gt (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-logical_ge (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+ge_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -485,7 +488,7 @@ logical_ge (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-logical_lt (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+lt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -516,7 +519,7 @@ logical_lt (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-logical_le (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+le_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -547,7 +550,7 @@ logical_le (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-logical_streq (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+streq_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -611,7 +614,7 @@ logical_streq (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-logical_strne (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+strne_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -675,7 +678,7 @@ logical_strne (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-logical_strgt (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+strgt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -729,7 +732,7 @@ logical_strgt (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-logical_strge (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+strge_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -784,7 +787,7 @@ logical_strge (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-logical_strlt (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+strlt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -839,7 +842,7 @@ logical_strlt (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-logical_strle (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+strle_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -893,7 +896,7 @@ logical_strle (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-logical_eval (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+eval_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -952,23 +955,24 @@ logical_eval (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 purc_variant_t pcdvojbs_get_logical (void)
 {
     static struct pcdvojbs_dvobjs method [] = {
-        {"not",   logical_not, NULL},
-        {"and",   logical_and, NULL},
-        {"or",    logical_or, NULL},
-        {"xor",   logical_xor, NULL},
-        {"eq",    logical_eq, NULL},
-        {"ne",    logical_ne, NULL},
-        {"gt",    logical_gt, NULL},
-        {"ge",    logical_ge, NULL},
-        {"lt",    logical_lt, NULL},
-        {"le",    logical_le, NULL},
-        {"streq", logical_streq, NULL},
-        {"strne", logical_strne, NULL},
-        {"strgt", logical_strgt, NULL},
-        {"strge", logical_strge, NULL},
-        {"strlt", logical_strlt, NULL},
-        {"strle", logical_strle, NULL},
-        {"eval",  logical_eval, NULL} };
+        {"not",   not_getter,   NULL},
+        {"and",   and_getter,   NULL},
+        {"or",    or_getter,    NULL},
+        {"xor",   xor_getter,   NULL},
+        {"eq",    eq_getter,    NULL},
+        {"ne",    ne_getter,    NULL},
+        {"gt",    gt_getter,    NULL},
+        {"ge",    ge_getter,    NULL},
+        {"lt",    lt_getter,    NULL},
+        {"le",    le_getter,    NULL},
+        {"streq", streq_getter, NULL},
+        {"strne", strne_getter, NULL},
+        {"strgt", strgt_getter, NULL},
+        {"strge", strge_getter, NULL},
+        {"strlt", strlt_getter, NULL},
+        {"strle", strle_getter, NULL},
+        {"eval",  eval_getter,  NULL}
+    };
 
     return pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));
 }
