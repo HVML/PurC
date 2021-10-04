@@ -1532,7 +1532,7 @@ TEST(variant, empty_object)
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
 
-    purc_variant_t value = NULL;
+//    purc_variant_t value = NULL;
     purc_instance_extra_info info = {0, 0};
 
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
@@ -1540,14 +1540,14 @@ TEST(variant, empty_object)
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before);
 
-    value = purc_variant_make_object (0, PURC_VARIANT_INVALID,
-            PURC_VARIANT_INVALID);
-//    purc_variant_t key = purc_variant_make_string ("beijing", false);
+//    value = purc_variant_make_object (0, PURC_VARIANT_INVALID,
+//            PURC_VARIANT_INVALID);
+    purc_variant_t key = purc_variant_make_string ("beijing", false);
 //    purc_variant_t val = purc_variant_make_string ("guangzhou", false);
 //    purc_variant_object_set (value, key, val);
-//    purc_variant_unref (key);
+    purc_variant_unref (key);
 //    purc_variant_unref (val);
-    purc_variant_unref (value);
+//    purc_variant_unref (value);
 
     get_variant_total_info (&sz_total_mem_after, &sz_total_values_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
