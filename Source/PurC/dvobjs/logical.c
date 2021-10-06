@@ -251,7 +251,7 @@ not_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if (nr_args == 0) {
+    if ((argv == NULL) || (nr_args < 1)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -277,7 +277,7 @@ and_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     size_t i = 0;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if (nr_args < 2) {
+    if ((argv == NULL) || (nr_args < 2)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -303,7 +303,7 @@ or_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     UNUSED_PARAM(root);
 
     bool judge = false;
-    int i = 0;
+    size_t i = 0;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if ((argv == NULL) || (nr_args < 2)) {
@@ -311,12 +311,11 @@ or_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    while (argv[i]) {
-        if (test_variant (argv[i])) {
+    for (i = 0; i < nr_args; i++) {
+        if ((argv[i] != PURC_VARIANT_INVALID) && (test_variant (argv[i]))) {
             judge = true;
             break;
         }
-        i++;
     }
 
     if (judge)

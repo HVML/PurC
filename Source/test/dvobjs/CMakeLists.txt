@@ -195,6 +195,7 @@ PURC_EXECUTABLE(test_dvobjejson)
 
 set(test_dvobjejson_SOURCES
     test_ejson.cpp
+    test_helper.cpp
 )
 
 set(test_dvobjejson_LIBRARIES

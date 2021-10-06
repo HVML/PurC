@@ -105,6 +105,7 @@ TEST(dvobjs, dvobjs_logical)
                         }
                         param[j] = get_variant (line, &length_sub);
                         j++;
+                        ASSERT_LE(j, MAX_PARAM_NR); 
                     }
 
                     // get result
@@ -137,22 +138,26 @@ TEST(dvobjs, dvobjs_logical)
                         ASSERT_EQ(ret_var->b, ret_result->b);
                     }
 
-                    purc_variant_unref(ret_var);
-                    ret_var = PURC_VARIANT_INVALID;
+                    if (ret_var != PURC_VARIANT_INVALID) {
+                        purc_variant_unref(ret_var);
+                        ret_var = PURC_VARIANT_INVALID;
+                    }
 
-                    purc_variant_unref(ret_result);
-                    ret_result = PURC_VARIANT_INVALID;
+                    if (ret_result != PURC_VARIANT_INVALID) {
+                        purc_variant_unref(ret_result);
+                        ret_result = PURC_VARIANT_INVALID;
+                    }
 
                     for (size_t i = 0; i < j; ++i) {
-                        if (param[i]) {
+                        if (param[i] != PURC_VARIANT_INVALID) {
                             purc_variant_unref(param[i]);
-                            param[i] = NULL;
+                            param[i] = PURC_VARIANT_INVALID;
                         }
                     }
 
                     get_variant_total_info (&sz_total_mem_after, &sz_total_values_after);
                     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-                    ASSERT_EQ(sz_total_mem_before, sz_total_mem_after);
+//                    ASSERT_EQ(sz_total_mem_before, sz_total_mem_after);
                 }
                 else
                     continue;
@@ -178,13 +183,18 @@ struct test_sample {
 
 TEST(dvobjs, dvobjs_logical_eval)
 {
+    size_t sz_total_mem_before = 0;
+    size_t sz_total_values_before = 0;
+    size_t sz_total_mem_after = 0;
+    size_t sz_total_values_after = 0;
+
     struct test_sample samples[] = {
         {"1 < 2", 1},
         {"(1 < 2) && (2 > 4)", 0},
         {"(1 < 2) || (2 > 4)", 1}
     };
 
-    purc_variant_t param[10];
+    purc_variant_t param[MAX_PARAM_NR];
     purc_variant_t ret_var = NULL;
 
     purc_instance_extra_info info = {0, 0};
@@ -204,9 +214,10 @@ TEST(dvobjs, dvobjs_logical_eval)
     ASSERT_NE(func, nullptr);
 
     for (size_t i = 0; i < PCA_TABLESIZE (samples); i++)  {
+        get_variant_total_info (&sz_total_mem_before, &sz_total_values_before);
+
         param[0] = purc_variant_make_string (samples[i].expr, false);
         param[1] = PURC_VARIANT_INVALID;
-        param[2] = NULL;
         std::cout << "parsing [" << samples[i].expr << "]" << std::endl;
         ret_var = func (NULL, 2, param);
         ASSERT_NE(ret_var, nullptr);
@@ -216,6 +227,10 @@ TEST(dvobjs, dvobjs_logical_eval)
 
         purc_variant_unref(ret_var);
         purc_variant_unref(param[0]);
+
+        get_variant_total_info (&sz_total_mem_after, &sz_total_values_after);
+        ASSERT_EQ(sz_total_values_before, sz_total_values_after);
+//      ASSERT_EQ(sz_total_mem_before, sz_total_mem_after);
     }
 
     purc_variant_unref(logical);
@@ -243,7 +258,6 @@ _eval(purc_dvariant_method func, const char *expr,
     purc_variant_t param[3];
     param[0] = purc_variant_make_string(expr, false);
     param[1] = PURC_VARIANT_INVALID;
-    param[2] = NULL;
 
     purc_variant_t ret_var = func(NULL, 2, param);
     purc_variant_unref(param[0]);
