@@ -161,6 +161,7 @@ TEST(dvobjs, dvobjs_logical)
                     get_variant_total_info (&sz_total_mem_after,
                             &sz_total_values_after, &nr_reserved_after);
                     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
+printf ("=========== %ld, %ld, %ld\n", sz_total_mem_before, sz_total_mem_after, nr_reserved_after);
                     ASSERT_EQ(sz_total_mem_after, 
                             sz_total_mem_before + (nr_reserved_after - 
                                 nr_reserved_before) * sizeof(purc_variant));

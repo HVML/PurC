@@ -35,6 +35,23 @@
 extern "C" {
 #endif  /* __cplusplus */
 
+#define VARIANT_STRING_NULL         "null"
+#define VARIANT_STRING_UNDEFINED    "undefined"
+#define VARIANT_STRING_BOOLEAN      "boolean"
+#define VARIANT_STRING_NUMBER       "number"
+#define VARIANT_STRING_LONGINT      "longint"
+#define VARIANT_STRING_ULONGINT     "ulongint"
+#define VARIANT_STRING_LONGDOUBLE   "longdouble"
+#define VARIANT_STRING_ATOMSTRING   "atomstring"
+#define VARIANT_STRING_STRING       "string"
+#define VARIANT_STRING_BYTESEQUENCE "bsequence"
+#define VARIANT_STRING_DYNAMIC      "dynamic"
+#define VARIANT_STRING_NATIVE       "native"
+#define VARIANT_STRING_OBJECT       "object"
+#define VARIANT_STRING_ARRAY        "array"
+#define VARIANT_STRING_SET          "set"
+
+    
 // initialize dvobjs module (once)
 void pcdvobjs_init_once(void) WTF_INTERNAL;
 

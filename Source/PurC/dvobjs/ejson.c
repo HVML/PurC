@@ -24,10 +24,7 @@
 
 #include "private/instance.h"
 #include "private/errors.h"
-#include "private/debug.h"
-#include "private/utils.h"
-#include "private/edom.h"
-#include "private/html.h"
+#include "private/dvobjs.h"
 #include "purc-variant.h"
 #include "helper.h"
 
@@ -121,7 +118,7 @@ number_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     uint64_t number = 0;
 
-    if (nr_args == 0) {
+    if ((argv == NULL) && (nr_args == 0)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -147,7 +144,7 @@ type_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if (nr_args == 0) {
+    if ((argv == NULL) && (nr_args == 0)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -159,49 +156,53 @@ type_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     switch ((int)purc_variant_get_type (argv[0])) {
         case PURC_VARIANT_TYPE_NULL:
-            ret_var = purc_variant_make_string ("null", false);
+            ret_var = purc_variant_make_string (VARIANT_STRING_NULL, false);
             break;
         case PURC_VARIANT_TYPE_UNDEFINED:
-            ret_var = purc_variant_make_string ("undefined", false);
+            ret_var = purc_variant_make_string (VARIANT_STRING_UNDEFINED,
+                    false);
             break;
         case PURC_VARIANT_TYPE_BOOLEAN:
-            ret_var = purc_variant_make_string ("boolean", false);
+            ret_var = purc_variant_make_string (VARIANT_STRING_BOOLEAN, false);
             break;
         case PURC_VARIANT_TYPE_NUMBER:
-            ret_var = purc_variant_make_string ("number", false);
+            ret_var = purc_variant_make_string (VARIANT_STRING_NUMBER, false);
             break;
         case PURC_VARIANT_TYPE_LONGINT:
-            ret_var = purc_variant_make_string ("longint", false);
+            ret_var = purc_variant_make_string (VARIANT_STRING_LONGINT, false);
             break;
         case PURC_VARIANT_TYPE_ULONGINT:
-            ret_var = purc_variant_make_string ("ulongint", false);
+            ret_var = purc_variant_make_string (VARIANT_STRING_ULONGINT, false);
             break;
         case PURC_VARIANT_TYPE_LONGDOUBLE:
-            ret_var = purc_variant_make_string ("longdouble", false);
+            ret_var = purc_variant_make_string (VARIANT_STRING_LONGDOUBLE,
+                    false);
             break;
         case PURC_VARIANT_TYPE_ATOMSTRING:
-            ret_var = purc_variant_make_string ("atomstring", false);
+            ret_var = purc_variant_make_string (VARIANT_STRING_ATOMSTRING,
+                    false);
             break;
         case PURC_VARIANT_TYPE_STRING:
-            ret_var = purc_variant_make_string ("string", false);
+            ret_var = purc_variant_make_string (VARIANT_STRING_STRING, false);
             break;
         case PURC_VARIANT_TYPE_BSEQUENCE:
-            ret_var = purc_variant_make_string ("bsequence", false);
+            ret_var = purc_variant_make_string (VARIANT_STRING_BYTESEQUENCE,
+                    false);
             break;
         case PURC_VARIANT_TYPE_DYNAMIC:
-            ret_var = purc_variant_make_string ("dynamic", false);
+            ret_var = purc_variant_make_string (VARIANT_STRING_DYNAMIC, false);
             break;
         case PURC_VARIANT_TYPE_NATIVE:
-            ret_var = purc_variant_make_string ("native", false);
+            ret_var = purc_variant_make_string (VARIANT_STRING_NATIVE, false);
             break;
         case PURC_VARIANT_TYPE_OBJECT:
-            ret_var = purc_variant_make_string ("object", false);
+            ret_var = purc_variant_make_string (VARIANT_STRING_OBJECT, false);
             break;
         case PURC_VARIANT_TYPE_ARRAY:
-            ret_var = purc_variant_make_string ("array", false);
+            ret_var = purc_variant_make_string (VARIANT_STRING_ARRAY, false);
             break;
         case PURC_VARIANT_TYPE_SET:
-            ret_var = purc_variant_make_string ("set", false);
+            ret_var = purc_variant_make_string (VARIANT_STRING_SET, false);
             break;
         default:
             break;

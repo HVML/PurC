@@ -24,10 +24,7 @@
 
 #include "private/instance.h"
 #include "private/errors.h"
-#include "private/debug.h"
-#include "private/utils.h"
-#include "private/edom.h"
-#include "private/html.h"
+#include "private/dvobjs.h"
 
 #include "purc-variant.h"
 #include "helper.h"
