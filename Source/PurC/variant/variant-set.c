@@ -762,6 +762,7 @@ void pcvariant_set_release (purc_variant_t value)
     _variant_set_release(data);
     free(data);
     _pcv_set_set_data(value, NULL);
+    pcvariant_stat_set_extra_size(value, 0);
 }
 
 /* VWNOTE: unnecessary

@@ -150,6 +150,8 @@ void pcvariant_array_release (purc_variant_t value)
 
     pcutils_arrlist_free(al);
     value->sz_ptr[1] = (uintptr_t)NULL;
+
+    pcvariant_stat_set_extra_size(value, 0);
 }
 
 /* VWNOTE: unnecessary
