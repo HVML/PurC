@@ -1495,6 +1495,7 @@ TEST(variant, four_constants)
     purc_cleanup ();
 }
 
+#if 0
 TEST(variant, load_from_so)
 {
     purc_variant_t value = NULL;
@@ -1515,43 +1516,50 @@ TEST(variant, load_from_so)
     ASSERT_EQ(close, true);
     purc_cleanup ();
 }
+#endif
 
-static void get_variant_total_info (size_t *mem, size_t *value)
+static void get_variant_total_info (size_t *mem, size_t *value, size_t *resv)
 {
     struct purc_variant_stat * stat = purc_variant_usage_stat ();
     ASSERT_NE(stat, nullptr);
 
     *mem = stat->sz_total_mem;
     *value = stat->nr_total_values;
+    *resv = stat->nr_reserved;
 }
 
 TEST(variant, empty_object)
 {
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
+    size_t nr_reserved_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
+    size_t nr_reserved_after = 0;
 
-//    purc_variant_t value = NULL;
+    purc_variant_t value = NULL;
     purc_instance_extra_info info = {0, 0};
 
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    get_variant_total_info (&sz_total_mem_before, &sz_total_values_before);
+    get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
+            &nr_reserved_before);
 
-//    value = purc_variant_make_object (0, PURC_VARIANT_INVALID,
-//            PURC_VARIANT_INVALID);
+    value = purc_variant_make_object (0, PURC_VARIANT_INVALID,
+            PURC_VARIANT_INVALID);
     purc_variant_t key = purc_variant_make_string ("beijing", false);
-//    purc_variant_t val = purc_variant_make_string ("guangzhou", false);
-//    purc_variant_object_set (value, key, val);
+    purc_variant_t val = purc_variant_make_string ("guangzhou", false);
+    purc_variant_object_set (value, key, val);
     purc_variant_unref (key);
-//    purc_variant_unref (val);
-//    purc_variant_unref (value);
+    purc_variant_unref (val);
+    purc_variant_unref (value);
 
-    get_variant_total_info (&sz_total_mem_after, &sz_total_values_after);
+    get_variant_total_info (&sz_total_mem_after, &sz_total_values_after,
+            &nr_reserved_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_before, sz_total_mem_after);
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after
+                - nr_reserved_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
