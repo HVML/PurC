@@ -299,6 +299,7 @@ purc_variant_t pcvariant_get(enum purc_variant_type type)
     }
     else {
         value = heap->v_reserved[heap->tailpos];
+        value->sz_ptr[0] = 0;
         // must have a value.
         PC_ASSERT(value);
 
