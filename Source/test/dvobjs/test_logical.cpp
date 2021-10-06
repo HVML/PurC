@@ -16,14 +16,15 @@
 #include <gtest/gtest.h>
 
 extern purc_variant_t get_variant (char *buf, size_t *length);
-extern void get_variant_total_info (size_t *mem, size_t *value);
+extern void get_variant_total_info (size_t *mem, size_t *value, size_t *resv);
 #define MAX_PARAM_NR    20
 
 TEST(dvobjs, dvobjs_logical)
 {
-    const char *function[] = {"not", "and", "or", "xor", "eq", "ne", "gt",
-                              "ge", "lt", "le", "streq", "strne", "strgt",
-                              "strge", "strlt", "strle"};
+//    const char *function[] = {"not", "and", "or", "xor", "eq", "ne", "gt",
+//                              "ge", "lt", "le", "streq", "strne", "strgt",
+//                              "strge", "strlt", "strle"};
+    const char *function[] = {"not"};
     purc_variant_t param[MAX_PARAM_NR] = {0};
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t ret_result = PURC_VARIANT_INVALID;
@@ -32,8 +33,10 @@ TEST(dvobjs, dvobjs_logical)
     size_t line_number = 0;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
+    size_t nr_reserved_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
+    size_t nr_reserved_after = 0;
     char file_path[1024];
     char* data_path = getenv("DVOBJS_TEST_PATH");
 
@@ -77,7 +80,8 @@ TEST(dvobjs, dvobjs_logical)
 
         line_number = 0;
 
-        get_variant_total_info (&sz_total_mem_before, &sz_total_values_before);
+        get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
+                &nr_reserved_before);
 
         while ((read = getline(&line, &sz, fp)) != -1) {
             *(line + read - 1) = 0;
@@ -107,7 +111,6 @@ TEST(dvobjs, dvobjs_logical)
                         j++;
                         ASSERT_LE(j, MAX_PARAM_NR); 
                     }
-
                     // get result
                     read = getline(&line, &sz, fp);
                     *(line + read - 1) = 0;
@@ -155,9 +158,12 @@ TEST(dvobjs, dvobjs_logical)
                         }
                     }
 
-                    get_variant_total_info (&sz_total_mem_after, &sz_total_values_after);
+                    get_variant_total_info (&sz_total_mem_after,
+                            &sz_total_values_after, &nr_reserved_after);
                     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-//                    ASSERT_EQ(sz_total_mem_before, sz_total_mem_after);
+                    ASSERT_EQ(sz_total_mem_after, 
+                            sz_total_mem_before + (nr_reserved_after - 
+                                nr_reserved_before) * sizeof(purc_variant));
                 }
                 else
                     continue;
@@ -185,8 +191,10 @@ TEST(dvobjs, dvobjs_logical_eval)
 {
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
+    size_t nr_reserved_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
+    size_t nr_reserved_after = 0;
 
     struct test_sample samples[] = {
         {"1 < 2", 1},
@@ -214,7 +222,8 @@ TEST(dvobjs, dvobjs_logical_eval)
     ASSERT_NE(func, nullptr);
 
     for (size_t i = 0; i < PCA_TABLESIZE (samples); i++)  {
-        get_variant_total_info (&sz_total_mem_before, &sz_total_values_before);
+        get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
+                &nr_reserved_before);
 
         param[0] = purc_variant_make_string (samples[i].expr, false);
         param[1] = PURC_VARIANT_INVALID;
@@ -228,9 +237,12 @@ TEST(dvobjs, dvobjs_logical_eval)
         purc_variant_unref(ret_var);
         purc_variant_unref(param[0]);
 
-        get_variant_total_info (&sz_total_mem_after, &sz_total_values_after);
+        get_variant_total_info (&sz_total_mem_after, &sz_total_values_after,
+                &nr_reserved_after);
         ASSERT_EQ(sz_total_values_before, sz_total_values_after);
 //      ASSERT_EQ(sz_total_mem_before, sz_total_mem_after);
+        ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after - 
+                    nr_reserved_before) * sizeof(purc_variant));
     }
 
     purc_variant_unref(logical);

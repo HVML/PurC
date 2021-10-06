@@ -15,13 +15,14 @@
 #include <math.h>
 #include <gtest/gtest.h>
 
-void get_variant_total_info (size_t *mem, size_t *value)
+void get_variant_total_info (size_t *mem, size_t *value, size_t *resv)
 {
     struct purc_variant_stat * stat = purc_variant_usage_stat ();
     ASSERT_NE(stat, nullptr);
 
     *mem = stat->sz_total_mem;
     *value = stat->nr_total_values;
+    *resv = stat->nr_reserved;
 }
 
 static purc_variant_t getter(
