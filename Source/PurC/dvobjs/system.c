@@ -515,15 +515,15 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                 if (strncasecmp (head, "all", length) == 0) {
                     if (setlocale (LC_ALL,
                                 purc_variant_get_string_const (argv[1])))
-                        ret_var = PURC_VARIANT_TRUE;
+                        ret_var = purc_variant_make_boolean (true);
                     else
-                        ret_var = PURC_VARIANT_INVALID;
+                        ret_var = purc_variant_make_boolean (false);
                 } else if (strncasecmp (head, "address", length) == 0) {
                     if (setlocale (LC_ADDRESS,
                                 purc_variant_get_string_const (argv[1])))
-                        ret_var = PURC_VARIANT_TRUE;
+                        ret_var = purc_variant_make_boolean (true);
                     else
-                        ret_var = PURC_VARIANT_INVALID;
+                        ret_var = purc_variant_make_boolean (false);
                 }
                 break;
 
@@ -532,15 +532,15 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                 if (strncasecmp (head, "ctype", length) == 0) {
                     if (setlocale (LC_CTYPE,
                                 purc_variant_get_string_const (argv[1])))
-                        ret_var = PURC_VARIANT_TRUE;
+                        ret_var = purc_variant_make_boolean (true);
                     else
-                        ret_var = PURC_VARIANT_INVALID;
+                        ret_var = purc_variant_make_boolean (false);
                 } else if (strncasecmp (head, "collate", length) == 0) {
                     if (setlocale (LC_COLLATE,
                                 purc_variant_get_string_const (argv[1])))
-                        ret_var = PURC_VARIANT_TRUE;
+                        ret_var = purc_variant_make_boolean (true);
                     else
-                        ret_var = PURC_VARIANT_INVALID;
+                        ret_var = purc_variant_make_boolean (false);
                 }
                 break;
 
@@ -549,15 +549,15 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                 if (strncasecmp (head, "numeric", length) == 0) {
                     if (setlocale (LC_NUMERIC,
                                 purc_variant_get_string_const (argv[1])))
-                        ret_var = PURC_VARIANT_TRUE;
+                        ret_var = purc_variant_make_boolean (true);
                     else
-                        ret_var = PURC_VARIANT_INVALID;
+                        ret_var = purc_variant_make_boolean (false);
                 } else if (strncasecmp (head, "name", length) == 0) {
                     if (setlocale (LC_NAME,
                                 purc_variant_get_string_const (argv[1])))
-                        ret_var = PURC_VARIANT_TRUE;
+                        ret_var = purc_variant_make_boolean (true);
                     else
-                        ret_var = PURC_VARIANT_INVALID;
+                        ret_var = purc_variant_make_boolean (false);
                 }
                 break;
 
@@ -566,15 +566,15 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                 if (strncasecmp (head, "time", length) == 0) {
                     if (setlocale (LC_TIME,
                                 purc_variant_get_string_const (argv[1])))
-                        ret_var = PURC_VARIANT_TRUE;
+                        ret_var = purc_variant_make_boolean (true);
                     else
-                        ret_var = PURC_VARIANT_INVALID;
+                        ret_var = purc_variant_make_boolean (false);
                 } else if (strncasecmp (head, "telephone", length) == 0) {
                     if (setlocale (LC_TELEPHONE,
                                 purc_variant_get_string_const (argv[1])))
-                        ret_var = PURC_VARIANT_TRUE;
+                        ret_var = purc_variant_make_boolean (true);
                     else
-                        ret_var = PURC_VARIANT_INVALID;
+                        ret_var = purc_variant_make_boolean (false);
                 }
                 break;
 
@@ -583,21 +583,21 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                 if (strncasecmp (head, "monetary", length) == 0) {
                     if (setlocale (LC_MONETARY,
                                 purc_variant_get_string_const (argv[1])))
-                        ret_var = PURC_VARIANT_TRUE;
+                        ret_var = purc_variant_make_boolean (true);
                     else
-                        ret_var = PURC_VARIANT_INVALID;
+                        ret_var = purc_variant_make_boolean (false);
                 } else if (strncasecmp (head, "messages", length) == 0) {
                     if (setlocale (LC_MESSAGES,
                                 purc_variant_get_string_const (argv[1])))
-                        ret_var = PURC_VARIANT_TRUE;
+                        ret_var = purc_variant_make_boolean (true);
                     else
-                        ret_var = PURC_VARIANT_INVALID;
+                        ret_var = purc_variant_make_boolean (false);
                 } else if (strncasecmp (head, "measurement", length) == 0) {
                     if (setlocale (LC_MEASUREMENT,
                                 purc_variant_get_string_const (argv[1])))
-                        ret_var = PURC_VARIANT_TRUE;
+                        ret_var = purc_variant_make_boolean (true);
                     else
-                        ret_var = PURC_VARIANT_INVALID;
+                        ret_var = purc_variant_make_boolean (false);
                 }
                 break;
 
@@ -606,9 +606,9 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                 if (strncasecmp (head, "paper", length) == 0) {
                     if (setlocale (LC_PAPER,
                                 purc_variant_get_string_const (argv[1])))
-                        ret_var = PURC_VARIANT_TRUE;
+                        ret_var = purc_variant_make_boolean (true);
                     else
-                        ret_var = PURC_VARIANT_INVALID;
+                        ret_var = purc_variant_make_boolean (false);
                 }
                 break;
 
@@ -617,9 +617,9 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                 if (strncasecmp (head, "identification", length) == 0) {
                     if (setlocale (LC_IDENTIFICATION,
                                 purc_variant_get_string_const (argv[1])))
-                        ret_var = PURC_VARIANT_TRUE;
+                        ret_var = purc_variant_make_boolean (true);
                     else
-                        ret_var = PURC_VARIANT_INVALID;
+                        ret_var = purc_variant_make_boolean (false);
                 }
                 break;
         }

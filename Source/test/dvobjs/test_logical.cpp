@@ -21,10 +21,9 @@ extern void get_variant_total_info (size_t *mem, size_t *value, size_t *resv);
 
 TEST(dvobjs, dvobjs_logical)
 {
-//    const char *function[] = {"not", "and", "or", "xor", "eq", "ne", "gt",
-//                              "ge", "lt", "le", "streq", "strne", "strgt",
-//                              "strge", "strlt", "strle"};
-    const char *function[] = {"not"};
+    const char *function[] = {"not", "and", "or", "xor", "eq", "ne", "gt",
+                              "ge", "lt", "le", "streq", "strne", "strgt",
+                              "strge", "strlt", "strle"};
     purc_variant_t param[MAX_PARAM_NR] = {0};
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t ret_result = PURC_VARIANT_INVALID;
@@ -51,7 +50,7 @@ TEST(dvobjs, dvobjs_logical)
     ASSERT_NE(logical, nullptr);
     ASSERT_EQ(purc_variant_is_object (logical), true);
 
-    for (i = 0; i < function_size; i++)  {
+    for (i = 0; i < function_size; i++) {
         printf ("test _L.%s:\n", function[i]);
 
         purc_variant_t dynamic = purc_variant_object_get_by_ckey (logical,
@@ -87,7 +86,7 @@ TEST(dvobjs, dvobjs_logical)
             *(line + read - 1) = 0;
             line_number ++;
 
-            if (strncasecmp (line, "test_begin", 10) == 0)  {
+            if (strncasecmp (line, "test_begin", 10) == 0) {
                 printf ("\ttest case on line %ld\n", line_number);
 
                 // get parameters
@@ -95,7 +94,7 @@ TEST(dvobjs, dvobjs_logical)
                 *(line + read - 1) = 0;
                 line_number ++;
 
-                if (strcmp (line, "param_begin") == 0)  {
+                if (strcmp (line, "param_begin") == 0) {
                     j = 0;
 
                     // get param
@@ -104,7 +103,7 @@ TEST(dvobjs, dvobjs_logical)
                         *(line + read - 1) = 0;
                         line_number ++;
 
-                        if (strcmp (line, "param_end") == 0)  {
+                        if (strcmp (line, "param_end") == 0) {
                             break;
                         }
                         param[j] = get_variant (line, &length_sub);
@@ -124,17 +123,16 @@ TEST(dvobjs, dvobjs_logical)
                         *(line + read - 1) = 0;
                         line_number ++;
 
-                        if (strcmp (line, "test_end") == 0)  {
+                        if (strcmp (line, "test_end") == 0) {
                             break;
                         }
                     }
 
                     ret_var = func (NULL, j, param);
 
-                    if (ret_result == PURC_VARIANT_INVALID)  {
+                    if (ret_result == PURC_VARIANT_INVALID) {
                         ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
-                    }
-                    else {
+                    } else {
                         // USER MODIFIED HERE.
                         ASSERT_EQ(purc_variant_is_type (ret_var,
                                     PURC_VARIANT_TYPE_BOOLEAN), true);
@@ -161,15 +159,12 @@ TEST(dvobjs, dvobjs_logical)
                     get_variant_total_info (&sz_total_mem_after,
                             &sz_total_values_after, &nr_reserved_after);
                     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-printf ("=========== %ld, %ld, %ld\n", sz_total_mem_before, sz_total_mem_after, nr_reserved_after);
                     ASSERT_EQ(sz_total_mem_after, 
                             sz_total_mem_before + (nr_reserved_after - 
                                 nr_reserved_before) * sizeof(purc_variant));
-                }
-                else
+                } else
                     continue;
-            }
-            else
+            } else
                 continue;
         }
 
@@ -222,7 +217,7 @@ TEST(dvobjs, dvobjs_logical_eval)
     func = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(func, nullptr);
 
-    for (size_t i = 0; i < PCA_TABLESIZE (samples); i++)  {
+    for (size_t i = 0; i < PCA_TABLESIZE (samples); i++) {
         get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
                 &nr_reserved_before);
 
@@ -241,7 +236,6 @@ TEST(dvobjs, dvobjs_logical_eval)
         get_variant_total_info (&sz_total_mem_after, &sz_total_values_after,
                 &nr_reserved_after);
         ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-//      ASSERT_EQ(sz_total_mem_before, sz_total_mem_after);
         ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after - 
                     nr_reserved_before) * sizeof(purc_variant));
     }

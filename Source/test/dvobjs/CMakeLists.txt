@@ -19,6 +19,7 @@ PURC_EXECUTABLE(test_dvobjs)
 
 set(test_dvobjs_SOURCES
     test_dvobjs.cpp
+    test_helper.cpp
 )
 
 set(test_dvobjs_LIBRARIES
@@ -107,6 +108,7 @@ PURC_EXECUTABLE(test_string)
 
 set(test_string_SOURCES
     test_string.cpp
+    test_helper.cpp
 )
 
 set(test_string_LIBRARIES

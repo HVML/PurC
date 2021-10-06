@@ -118,7 +118,7 @@ number_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     uint64_t number = 0;
 
-    if ((argv == NULL) && (nr_args == 0)) {
+    if ((argv == NULL) || (nr_args == 0)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -144,7 +144,7 @@ type_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if ((argv == NULL) && (nr_args == 0)) {
+    if ((argv == NULL) || (nr_args == 0)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
