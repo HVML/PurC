@@ -319,6 +319,11 @@ sin_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         purc_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
+    if (argv[0] == PURC_VARIANT_INVALID) {
+        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
     purc_variant_cast_to_number (argv[0], &number, false);
     ret_var = purc_variant_make_number (sin (number));
 
@@ -338,6 +343,11 @@ cos_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         purc_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
+    if (argv[0] == PURC_VARIANT_INVALID) {
+        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
     purc_variant_cast_to_number (argv[0], &number, false);
     ret_var = purc_variant_make_number (cos (number));
 
@@ -357,6 +367,11 @@ sqrt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         purc_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
+    if (argv[0] == PURC_VARIANT_INVALID) {
+        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
     purc_variant_cast_to_number (argv[0], &number, false);
     ret_var = purc_variant_make_number (sqrt (number));
 
@@ -376,6 +391,11 @@ sin_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         purc_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
+    if (argv[0] == PURC_VARIANT_INVALID) {
+        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
     purc_variant_cast_to_long_double (argv[0], &number, false);
     ret_var = purc_variant_make_longdouble (sinl (number));
 
@@ -392,6 +412,10 @@ cos_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     long double number = 0.0d;
 
     if (nr_args == 0) {
+        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+    if (argv[0] == PURC_VARIANT_INVALID) {
         purc_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -415,6 +439,11 @@ sqrt_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         purc_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
+    if (argv[0] == PURC_VARIANT_INVALID) {
+        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
     purc_variant_cast_to_long_double (argv[0], &number, false);
     ret_var = purc_variant_make_longdouble (sqrtl (number));
 
@@ -500,7 +529,7 @@ static purc_variant_t pcdvobjs_make_dvobjs (
             goto error;
         }
 
-        if (!purc_variant_object_set_by_static_ckey (ret_var, 
+        if (!purc_variant_object_set_by_static_ckey (ret_var,
                     method[i].name, val)) {
             goto error;
         }

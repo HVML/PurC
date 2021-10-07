@@ -108,7 +108,7 @@ static const char * pcdvobjs_file_get_next_option (const char *data,
 
     while (*data != 0x00) {
         temp = strchr (delims, *data);
-        if (temp) 
+        if (temp)
             break;
         data++;
     }
@@ -133,7 +133,7 @@ static const char * pcdvobjs_file_get_prev_option (const char *data,
 
     while (str_len) {
         temp = strchr (delims, *(data + str_len - 1));
-        if (temp) 
+        if (temp)
             break;
         str_len--;
     }
@@ -213,8 +213,8 @@ static purc_variant_t pcdvobjs_make_dvobjs (
 {
     size_t i = 0;
     purc_variant_t val = PURC_VARIANT_INVALID;
-    purc_variant_t ret_var= purc_variant_make_object (0, PURC_VARIANT_INVALID,
-                                                    PURC_VARIANT_INVALID);
+    purc_variant_t ret_var= purc_variant_make_object (0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
 
     if (ret_var == PURC_VARIANT_INVALID)
         return PURC_VARIANT_INVALID;
@@ -763,8 +763,8 @@ static inline void read_rwstream (purc_rwstream_t rwstream,
 }
 
 /*
-   遵循 IEEE 754
-    符号   指数位 精度位  偏移量
+   According to IEEE 754
+    sign    e      base   offset
 16   1      5       10      15
 32   1      8       23     127
 64   1      11      52     1023
@@ -2431,8 +2431,10 @@ touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         fd = open(filename, O_CREAT | O_WRONLY,
                 S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH |S_IWOTH);
 
-        if (fd != -1)
+        if (fd != -1) {
             ret_var = purc_variant_make_boolean (true);
+            close (fd);
+        }
         else
             ret_var = purc_variant_make_boolean (false);
     } else {      // change time
@@ -2522,8 +2524,8 @@ rm_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     return ret_var;
 
 }
-// only for test now.
-purc_variant_t pcdvobjs_create_fs(void)
+
+static purc_variant_t pcdvobjs_create_fs(void)
 {
     static struct pcdvojbs_dvobjs method [] = {
         {"list",     list_getter, NULL},
