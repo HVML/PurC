@@ -21,7 +21,7 @@
  *              $L.not(true)
  *
  * @endcode
- * @note        
+ * @note
  *
  * @sa          and()    or()    xor() 
  */
@@ -42,7 +42,7 @@ boolean not(<any> value);
  *              $L.and(true, 5, 0, "hello world")
  *
  * @endcode
- * @note        
+ * @note
  *
  * @sa          not()  or()  xor()
  */
@@ -61,7 +61,7 @@ boolean and(<any> value1, <any> value2 [, <any> value3 [, .....]]);
  *              $L.or(true, 5, 0, "hello world")
  *
  * @endcode
- * @note        
+ * @note
  *
  * @sa          not()  and()  xor()
  */
@@ -81,7 +81,7 @@ boolean or(<any> value1, <any> value2 [, <any> value3 [, .....]]);
  *              $L.xor(true, 5)
  *
  * @endcode
- * @note        
+ * @note
  *
  * @sa          not()  and()  or() 
  */
@@ -101,7 +101,7 @@ boolean xor(<any> value1, <any> value2);
  *              $L.eq($MATH.sin(2), 5)
  *
  * @endcode
- * @note        
+ * @note
  *
  * @sa          eq()  ne()  gt()  ge()  lt()  le() 
  */
@@ -121,7 +121,7 @@ boolean eq(<any> value1, <any> value2);
  *              $L.ne("1", 1)
  *
  * @endcode
- * @note        
+ * @note
  *
  * @sa          eq()  gt()  ge()  lt()  le() 
  */
@@ -141,7 +141,7 @@ boolean ne(<any> value1, <any> value2);
  *              $L.gt($MATH.sin(2), 0.2)
  *
  * @endcode
- * @note        
+ * @note
  *
  * @sa          eq()  ne()  ge()  lt()  le() 
  */
@@ -161,7 +161,7 @@ boolean gt(<any> value1, <any> value2);
  *              $L.ge($MATH.sin(2), 0.2)
  *
  * @endcode
- * @note        
+ * @note
  *
  * @sa          eq()  ne()  gt()  lt()  le() 
  */
@@ -181,7 +181,7 @@ boolean ge(<any> value1, <any> value2);
  *              $L.lt($MATH.sin(2), 0.2)
  *
  * @endcode
- * @note        
+ * @note
  *
  * @sa          eq()  ne()  ge()  gt()  le() 
  */
@@ -201,7 +201,7 @@ boolean lt(<any> value1, <any> value2);
  *              $L.le($MATH.sin(2), 0.2)
  *
  * @endcode
- * @note        
+ * @note
  *
  * @sa          eq()  ne()  ge()  gt()  lt() 
  */
@@ -223,7 +223,7 @@ boolean le(<any> value1, <any> value2);
  *              $L.streq("wildcard", "*world", "hello world")
  *
  * @endcode
- * @note        
+ * @note
  *
  * @sa          strne()  strge()  strgt()  strlt()  strle()
  */
@@ -245,7 +245,7 @@ boolean streq(string option, <any> value1, <any> value2);
  *              $L.strne("wildcard", "*world", "hello world")
  *
  * @endcode
- * @note        
+ * @note
  *
  * @sa          streq()  strge()  strgt()  strlt()  strle()
  */
@@ -267,7 +267,7 @@ boolean strne(string option, <any> value1, <any> value2);
  *              $L.strgt("wildcard", "New York", "hello world")
  *
  * @endcode
- * @note        
+ * @note
  *
  * @sa          streq()  strne()  strge()  strlt()  strle()
  */
@@ -289,7 +289,7 @@ boolean strgt(string option, <any> value1, <any> value2);
  *              $L.strge("wildcard", "New York", "hello world")
  *
  * @endcode
- * @note        
+ * @note
  *
  * @sa          streq()  strne()  strgt()  strlt()  strle()
  */
@@ -311,7 +311,7 @@ boolean strge(string option, <any> value1, <any> value2);
  *              $L.strlt("wildcard", "New York", "hello world")
  *
  * @endcode
- * @note        
+ * @note
  *
  * @sa          streq()  strne()  strge()  strgt()  strle()
  */
@@ -333,7 +333,7 @@ boolean strlt(string option, <any> value1, <any> value2);
  *              $L.strle("wildcard", "New York", "hello world")
  *
  * @endcode
- * @note        
+ * @note
  *
  * @sa          streq()  strne()  strgt()  strge()  strlt()
  */
@@ -353,7 +353,7 @@ boolean strle(string option, <any> value1, <any> value2);
  *              $L.eval("x > y && y > z || b", { x: 2, y: 1, z: 0, b: $L.streq("case", $a, $b) })
  * @endcode
  *
- * @note        
+ * @note
  */
 boolean eval(string expression [, object dict]);
 

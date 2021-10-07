@@ -83,7 +83,7 @@ array list_prt(string: path [, string filters [, string order]]);
  *              $FS.mkdir("/home/user_home/workspace")
  * @endcode
  *
- * @note        
+ * @note
  * @sa          rmdir()  rm()  unlink()
  */
 boolean mkdir(string: path);
@@ -119,7 +119,7 @@ boolean rmdir(string: path);
  *              $FS.rm("/home/user_home/workspace")
  * @endcode
  *
- * @note        
+ * @note
  * @sa          mkdir()  rmdir()  unlink()
  */
 boolean rm(string: path);
@@ -137,7 +137,7 @@ boolean rm(string: path);
  *              $FS.unlink("/home/user_home/workspace/hello.java")
  * @endcode
  *
- * @note        
+ * @note
  * @sa          mkdir()  rmdir()  rm()
  */
 boolean unlink(string: path);
@@ -155,7 +155,7 @@ boolean unlink(string: path);
  *              $FS.touch("/home/user_home/workspace")
  * @endcode
  *
- * @note        
+ * @note
  * @sa          mkdir()  rmdir()  unlink()
  */
 boolean touch(string: path);

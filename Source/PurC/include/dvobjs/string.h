@@ -22,7 +22,7 @@
  *              $STR.contains("hello world", "china")
  *
  * @endcode
- * @note        
+ * @note
  *
  * @sa          ends_with()  explode()  shuffle()  replace()
  */
@@ -42,7 +42,7 @@ boolean contains(string haystack, string needle);
  *              $STR.ends_with("hello world", "hello")
  *
  * @endcode
- * @note        
+ * @note
  *
  * @sa          contains()  explode()  shuffle()  replace()
  */
@@ -62,7 +62,7 @@ boolean ends_with(string haystack, string needle);
  *              $STR.explode("hello world", "he")
  *
  * @endcode
- * @note        
+ * @note
  *
  * @sa          contains()  ends_with()  shuffle()  replace()
  */
@@ -81,7 +81,7 @@ array explode(string string, string delimits);
  *              $STR.shuffle("hello world")
  *
  * @endcode
- * @note        
+ * @note
  *
  * @sa          contains()  ends_with()  explode()  replace()
  */
@@ -102,7 +102,7 @@ string shuffle(string string);
  *              $STR.replace("hello world", "world", "china")
  *
  * @endcode
- * @note        
+ * @note
  *
  * @sa          contains()  ends_with()  explode()  shuffle()
  */
@@ -122,7 +122,7 @@ string replace(string string, string oldstr, string newstr);
  *              $STR.format_c("hello %s", "world")
  *
  * @endcode
- * @note        
+ * @note
  * @code
  *              multiple_type can be:
  *                  boolean 
@@ -133,7 +133,7 @@ string replace(string string, string oldstr, string newstr);
  *                  string
  * @endcode
  *
- * @par 
+ * @par
  * @code
  *              Supported user define format, as below:
  *                  %d: the integer
@@ -163,7 +163,7 @@ string format_c(string format [, multiple_type value [, ...]]);
  *              $STR.format_p('There are two boys: {name0} and {name1}', { name0: 'Tom', name1: 'Jerry'})
  *
  * @endcode
- * @note        
+ * @note
  * @code
  *              multiple_type can be:
  *                  array 

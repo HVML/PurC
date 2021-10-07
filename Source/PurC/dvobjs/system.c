@@ -24,10 +24,8 @@
 
 #include "private/instance.h"
 #include "private/errors.h"
-#include "private/debug.h"
 #include "private/utils.h"
-#include "private/edom.h"
-#include "private/html.h"
+#include "private/dvobjs.h"
 
 #include "purc-variant.h"
 #include "helper.h"
@@ -72,14 +70,14 @@ uname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     val = purc_variant_make_string (name.sysname, true);
     if (val == PURC_VARIANT_INVALID)
         goto error;
-    if (!purc_variant_object_set_by_static_ckey (ret_var, "kernel-name", val))
+    if (!purc_variant_object_set_by_static_ckey (ret_var, UNAME_KERNAME, val))
         goto error_unref;
     purc_variant_unref (val);
 
     val = purc_variant_make_string (name.nodename, true);
     if (val == PURC_VARIANT_INVALID)
         goto error;
-    if (!purc_variant_object_set_by_static_ckey (ret_var, "nodename", val))
+    if (!purc_variant_object_set_by_static_ckey (ret_var, UNAME_NODE_NAME, val))
         goto error_unref;
     purc_variant_unref (val);
 
@@ -87,7 +85,7 @@ uname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     if (val == PURC_VARIANT_INVALID)
         goto error;
     if (!purc_variant_object_set_by_static_ckey (ret_var,
-                "kernel-release", val))
+                UNAME_KERRELEASE, val))
         goto error_unref;
     purc_variant_unref (val);
 
@@ -95,21 +93,21 @@ uname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     if (val == PURC_VARIANT_INVALID)
         goto error;
     if (!purc_variant_object_set_by_static_ckey (ret_var,
-                "kernel-version", val))
+                UNAME_KERVERSION, val))
         goto error_unref;
     purc_variant_unref (val);
 
     val = purc_variant_make_string (name.machine, true);
     if (val == PURC_VARIANT_INVALID)
         goto error;
-    if (!purc_variant_object_set_by_static_ckey (ret_var, "machine", val))
+    if (!purc_variant_object_set_by_static_ckey (ret_var, UNAME_MACHINE, val))
         goto error_unref;
     purc_variant_unref (val);
 
     val = purc_variant_make_string (name.machine, true);
     if (val == PURC_VARIANT_INVALID)
         goto error;
-    if (!purc_variant_object_set_by_static_ckey (ret_var, "processor", val))
+    if (!purc_variant_object_set_by_static_ckey (ret_var, UNAME_PROCESSOR, val))
         goto error_unref;
     purc_variant_unref (val);
 
@@ -117,7 +115,7 @@ uname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     if (val == PURC_VARIANT_INVALID)
         goto error;
     if (!purc_variant_object_set_by_static_ckey (ret_var,
-                "hardware-platform", val))
+                UNAME_HARDWARE, val))
         goto error_unref;
     purc_variant_unref (val);
 
@@ -125,7 +123,7 @@ uname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     if (val == PURC_VARIANT_INVALID)
         goto error;
     if (!purc_variant_object_set_by_static_ckey (ret_var,
-                "operating-system", val))
+                UNAME_SYSTEM, val))
         goto error_unref;
     purc_variant_unref (val);
 
@@ -175,7 +173,7 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             switch (*head) {
                 case 'a':
                 case 'A':
-                    if (strncasecmp (head, "all", length) == 0) {
+                    if (strncasecmp (head, UNAME_ALL, length) == 0) {
                         purc_rwstream_seek (rwstream, 0, SEEK_SET);
 
                         purc_rwstream_write (rwstream, name.sysname,
@@ -215,7 +213,7 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                     break;
                 case 'd':
                 case 'D':
-                    if (strncasecmp (head, "default", length) == 0) {
+                    if (strncasecmp (head, UNAME_DEFAULT, length) == 0) {
                         purc_rwstream_seek (rwstream, 0, SEEK_SET);
 
                         purc_rwstream_write (rwstream, name.sysname,
@@ -241,7 +239,7 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
                 case 'o':
                 case 'O':
-                    if (strncasecmp (head, "operating-system", length) == 0) {
+                    if (strncasecmp (head, UNAME_SYSTEM, length) == 0) {
                         if (first)
                             first = false;
                         else
@@ -255,7 +253,7 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
                 case 'h':
                 case 'H':
-                    if (strncasecmp (head, "hardware-platform", length) == 0) {
+                    if (strncasecmp (head, UNAME_HARDWARE, length) == 0) {
                         if (first)
                             first = false;
                         else
@@ -269,7 +267,7 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
                 case 'p':
                 case 'P':
-                    if (strncasecmp (head, "processor", length) == 0) {
+                    if (strncasecmp (head, UNAME_PROCESSOR, length) == 0) {
                         if (first)
                             first = false;
                         else
@@ -283,7 +281,7 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
                 case 'm':
                 case 'M':
-                    if (strncasecmp (head, "machine", length) == 0) {
+                    if (strncasecmp (head, UNAME_MACHINE, length) == 0) {
                         if (first)
                             first = false;
                         else
@@ -297,7 +295,7 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
                 case 'n':
                 case 'N':
-                    if (strncasecmp (head, "nodename ", length) == 0) {
+                    if (strncasecmp (head, UNAME_NODE_NAME, length) == 0) {
                         if (first)
                             first = false;
                         else
@@ -311,7 +309,7 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
                 case 'k':
                 case 'K':
-                    if (strncasecmp (head, "kernel-name", length) == 0) {
+                    if (strncasecmp (head, UNAME_KERNAME, length) == 0) {
                         if (first)
                             first = false;
                         else
@@ -321,7 +319,7 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                         purc_rwstream_write (rwstream,
                                 name.sysname, strlen (name.sysname));
                     } else if (strncasecmp (head,
-                                "kernel-release", length) == 0) {
+                                UNAME_KERRELEASE, length) == 0) {
                         if (first)
                             first = false;
                         else
@@ -331,7 +329,7 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                         purc_rwstream_write (rwstream,
                                 name.release, strlen (name.release));
                     } else if (strncasecmp (head,
-                                "kernel-version", length) == 0) {
+                                UNAME_KERVERSION, length) == 0) {
                         if (first)
                             first = false;
                         else
@@ -396,10 +394,11 @@ locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             switch (*head) {
                 case 'c':
                 case 'C':
-                    if (strncasecmp (head, "ctype", length) == 0) {
+                    if (strncasecmp (head, LOCALE_CTYPE, length) == 0) {
                         ret_var = purc_variant_make_string (
                                 setlocale (LC_CTYPE, NULL), true);
-                    } else if (strncasecmp (head, "collate", length) == 0) {
+                    } else if (strncasecmp (head, LOCALE_COLLATE,
+                                length) == 0) {
                         ret_var = purc_variant_make_string (
                                 setlocale (LC_COLLATE, NULL), true);
                     }
@@ -407,10 +406,10 @@ locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
                 case 'n':
                 case 'N':
-                    if (strncasecmp (head, "numeric", length) == 0) {
+                    if (strncasecmp (head, LOCALE_NUMERIC, length) == 0) {
                         ret_var = purc_variant_make_string (
                                 setlocale (LC_NUMERIC, NULL), true);
-                    } else if (strncasecmp (head, "name", length) == 0) {
+                    } else if (strncasecmp (head, LOCALE_NAME, length) == 0) {
                         ret_var = purc_variant_make_string (
                                 setlocale (LC_NAME, NULL), true);
                     }
@@ -418,10 +417,11 @@ locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
                 case 't':
                 case 'T':
-                    if (strncasecmp (head, "time", length) == 0) {
+                    if (strncasecmp (head, LOCALE_TIME, length) == 0) {
                         ret_var = purc_variant_make_string (
                                 setlocale (LC_TIME, NULL), true);
-                    } else if (strncasecmp (head, "telephone", length) == 0) {
+                    } else if (strncasecmp (head, LOCALE_TELEPHONE,
+                                length) == 0) {
                         ret_var = purc_variant_make_string (
                                 setlocale (LC_TELEPHONE, NULL), true);
                     }
@@ -429,13 +429,15 @@ locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
                 case 'm':
                 case 'M':
-                    if (strncasecmp (head, "monetary", length) == 0) {
+                    if (strncasecmp (head, LOCALE_MONETARY, length) == 0) {
                         ret_var = purc_variant_make_string (
                                 setlocale (LC_MONETARY, NULL), true);
-                    } else if (strncasecmp (head, "messages", length) == 0) {
+                    } else if (strncasecmp (head, LOCALE_MESSAGE,
+                                length) == 0) {
                         ret_var = purc_variant_make_string (
                                 setlocale (LC_MESSAGES, NULL), true);
-                    } else if (strncasecmp (head, "measurement", length) == 0) {
+                    } else if (strncasecmp (head, LOCALE_MEASUREMENT,
+                                length) == 0) {
                         ret_var = purc_variant_make_string (
                                 setlocale (LC_MEASUREMENT, NULL), true);
                     }
@@ -443,7 +445,7 @@ locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
                 case 'p':
                 case 'P':
-                    if (strncasecmp (head, "paper", length) == 0) {
+                    if (strncasecmp (head, LOCALE_PAPER, length) == 0) {
                         ret_var = purc_variant_make_string (
                                 setlocale (LC_PAPER, NULL), true);
                     }
@@ -451,7 +453,7 @@ locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
                 case 'a':
                 case 'A':
-                    if (strncasecmp (head, "address", length) == 0) {
+                    if (strncasecmp (head, LOCALE_ADDRESS, length) == 0) {
                         ret_var = purc_variant_make_string (
                                 setlocale (LC_ADDRESS, NULL), true);
                     }
@@ -459,7 +461,8 @@ locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
                 case 'i':
                 case 'I':
-                    if (strncasecmp (head, "identification", length) == 0) {
+                    if (strncasecmp (head, LOCALE_IDENTIFICATION,
+                                length) == 0) {
                         ret_var = purc_variant_make_string (
                                 setlocale (LC_IDENTIFICATION, NULL), true);
                     }
@@ -512,13 +515,13 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         switch (*head) {
             case 'a':
             case 'A':
-                if (strncasecmp (head, "all", length) == 0) {
+                if (strncasecmp (head, LOCALE_ALL, length) == 0) {
                     if (setlocale (LC_ALL,
                                 purc_variant_get_string_const (argv[1])))
                         ret_var = purc_variant_make_boolean (true);
                     else
                         ret_var = purc_variant_make_boolean (false);
-                } else if (strncasecmp (head, "address", length) == 0) {
+                } else if (strncasecmp (head, LOCALE_ADDRESS, length) == 0) {
                     if (setlocale (LC_ADDRESS,
                                 purc_variant_get_string_const (argv[1])))
                         ret_var = purc_variant_make_boolean (true);
@@ -529,13 +532,13 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
             case 'c':
             case 'C':
-                if (strncasecmp (head, "ctype", length) == 0) {
+                if (strncasecmp (head, LOCALE_CTYPE, length) == 0) {
                     if (setlocale (LC_CTYPE,
                                 purc_variant_get_string_const (argv[1])))
                         ret_var = purc_variant_make_boolean (true);
                     else
                         ret_var = purc_variant_make_boolean (false);
-                } else if (strncasecmp (head, "collate", length) == 0) {
+                } else if (strncasecmp (head, LOCALE_COLLATE, length) == 0) {
                     if (setlocale (LC_COLLATE,
                                 purc_variant_get_string_const (argv[1])))
                         ret_var = purc_variant_make_boolean (true);
@@ -546,13 +549,13 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
             case 'n':
             case 'N':
-                if (strncasecmp (head, "numeric", length) == 0) {
+                if (strncasecmp (head, LOCALE_NUMERIC, length) == 0) {
                     if (setlocale (LC_NUMERIC,
                                 purc_variant_get_string_const (argv[1])))
                         ret_var = purc_variant_make_boolean (true);
                     else
                         ret_var = purc_variant_make_boolean (false);
-                } else if (strncasecmp (head, "name", length) == 0) {
+                } else if (strncasecmp (head, LOCALE_NAME, length) == 0) {
                     if (setlocale (LC_NAME,
                                 purc_variant_get_string_const (argv[1])))
                         ret_var = purc_variant_make_boolean (true);
@@ -563,13 +566,13 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
             case 't':
             case 'T':
-                if (strncasecmp (head, "time", length) == 0) {
+                if (strncasecmp (head, LOCALE_TIME, length) == 0) {
                     if (setlocale (LC_TIME,
                                 purc_variant_get_string_const (argv[1])))
                         ret_var = purc_variant_make_boolean (true);
                     else
                         ret_var = purc_variant_make_boolean (false);
-                } else if (strncasecmp (head, "telephone", length) == 0) {
+                } else if (strncasecmp (head, LOCALE_TELEPHONE, length) == 0) {
                     if (setlocale (LC_TELEPHONE,
                                 purc_variant_get_string_const (argv[1])))
                         ret_var = purc_variant_make_boolean (true);
@@ -580,19 +583,20 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
             case 'm':
             case 'M':
-                if (strncasecmp (head, "monetary", length) == 0) {
+                if (strncasecmp (head, LOCALE_MONETARY, length) == 0) {
                     if (setlocale (LC_MONETARY,
                                 purc_variant_get_string_const (argv[1])))
                         ret_var = purc_variant_make_boolean (true);
                     else
                         ret_var = purc_variant_make_boolean (false);
-                } else if (strncasecmp (head, "messages", length) == 0) {
+                } else if (strncasecmp (head, LOCALE_MESSAGE, length) == 0) {
                     if (setlocale (LC_MESSAGES,
                                 purc_variant_get_string_const (argv[1])))
                         ret_var = purc_variant_make_boolean (true);
                     else
                         ret_var = purc_variant_make_boolean (false);
-                } else if (strncasecmp (head, "measurement", length) == 0) {
+                } else if (strncasecmp (head, LOCALE_MEASUREMENT,
+                            length) == 0) {
                     if (setlocale (LC_MEASUREMENT,
                                 purc_variant_get_string_const (argv[1])))
                         ret_var = purc_variant_make_boolean (true);
@@ -603,7 +607,7 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
             case 'p':
             case 'P':
-                if (strncasecmp (head, "paper", length) == 0) {
+                if (strncasecmp (head, LOCALE_PAPER, length) == 0) {
                     if (setlocale (LC_PAPER,
                                 purc_variant_get_string_const (argv[1])))
                         ret_var = purc_variant_make_boolean (true);
@@ -614,7 +618,7 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
             case 'i':
             case 'I':
-                if (strncasecmp (head, "identification", length) == 0) {
+                if (strncasecmp (head, LOCALE_IDENTIFICATION, length) == 0) {
                     if (setlocale (LC_IDENTIFICATION,
                                 purc_variant_get_string_const (argv[1])))
                         ret_var = purc_variant_make_boolean (true);
@@ -657,7 +661,6 @@ random_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    srand(time(NULL));      // todo initial
     random = number * rand() / (double)(RAND_MAX);
 
     return purc_variant_make_number (random);

@@ -24,16 +24,14 @@
 
 #include "private/instance.h"
 #include "private/errors.h"
-#include "private/debug.h"
-#include "private/utils.h"
-#include "private/edom.h"
-#include "private/html.h"
+#include "private/dvobjs.h"
 
 #include "purc-variant.h"
 
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <time.h>
 
 void pcdvobjs_init_once(void)
 {
@@ -43,7 +41,7 @@ void pcdvobjs_init_once(void)
 void pcdvobjs_init_instance(struct pcinst* inst)
 {
     UNUSED_PARAM(inst);
-
+    srand(time(NULL));
 }
 
 void pcdvobjs_cleanup_instance(struct pcinst* inst)

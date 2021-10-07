@@ -73,7 +73,7 @@ const char * pcdvobjs_get_prev_option (const char *data,
 {
     const char *head = NULL;
     size_t tail = *length;
-    char* temp = NULL;
+    char *temp = NULL;
 
     if ((delims == NULL) || (data == NULL) || (*delims == 0x00) ||
             (str_len == 0))

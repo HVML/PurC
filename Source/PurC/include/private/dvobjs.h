@@ -51,7 +51,37 @@ extern "C" {
 #define VARIANT_STRING_ARRAY        "array"
 #define VARIANT_STRING_SET          "set"
 
-    
+#define STRING_COMP_MODE_CASELESS   "caseless"
+#define STRING_COMP_MODE_CASE       "case"
+#define STRING_COMP_MODE_REG        "reg"
+#define STRING_COMP_MODE_WILDCARD   "wildcard"
+
+#define UNAME_SYSTEM                "operating-system"
+#define UNAME_KERNAME               "kernel-name"
+#define UNAME_NODE_NAME             "nodename"
+#define UNAME_KERRELEASE            "kernel-release"
+#define UNAME_KERVERSION            "kernel-version"
+#define UNAME_HARDWARE              "hardware-platform"
+#define UNAME_PROCESSOR             "processor"
+#define UNAME_MACHINE               "machine"
+#define UNAME_DEFAULT               "default"
+#define UNAME_ALL                   "all"
+
+#define LOCALE_ALL                  "all"
+#define LOCALE_CTYPE                "ctype"
+#define LOCALE_ADDRESS              "address"
+#define LOCALE_COLLATE              "collate"
+#define LOCALE_NUMERIC              "numeric"
+#define LOCALE_NAME                 "name"
+#define LOCALE_TIME                 "time"
+#define LOCALE_TELEPHONE            "telephone"
+#define LOCALE_MONETARY             "monetary"
+#define LOCALE_PAPER                "paper"
+#define LOCALE_MESSAGE              "messages"
+#define LOCALE_MEASUREMENT          "measurement"
+#define LOCALE_IDENTIFICATION       "identification"
+
+
 // initialize dvobjs module (once)
 void pcdvobjs_init_once(void) WTF_INTERNAL;
 

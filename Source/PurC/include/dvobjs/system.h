@@ -168,7 +168,7 @@ number random(number max_range);
  * @code
  *              // get time with ISO8601 format
  *              $SYSTEM.time("ISO8601");
- *              
+ *
  *              // get time in Asia/Shanghai, and Epoch is 1234567,
  *              $SYSTEM.time("ISO8601", 1234567, "Asia/Shanghai");
  *
@@ -177,7 +177,7 @@ number random(number max_range);
  *              $SYSTEM.time("The Shanghai time is %H:%m", 1234567, "Asia/Shanghai");
  * @endcode
  *
- * @note        
+ * @note
  * @code
  *              multiple_type can be:
  *                  number
@@ -186,7 +186,7 @@ number random(number max_range);
  *                  longdouble
  * @endcode
  *
- * @par 
+ * @par
  * @code
  *              Supported user define format, as below:
  *                  %%Y: the year

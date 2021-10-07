@@ -47,28 +47,33 @@ static bool reg_cmp (const char *buf1, const char *buf2)
     int number = 10;
     regmatch_t pmatch[number];
 
-    if (regcomp (&reg, buf1, REG_EXTENDED) < 0) {
+    if ((buf1 == NULL) || (buf2 == NULL))
         return false;
+
+    if (regcomp (&reg, buf1, REG_EXTENDED) < 0) {
+        goto error;
     }
 
     err = regexec(&reg, buf2, number, pmatch, 0);
 
     if (err == REG_NOMATCH) {
-        regfree (&reg);
-        return false;
+        goto error_free;
     } else if (err) {
-        regfree (&reg);
-        return false;
+        goto error_free;
     }
 
     if (pmatch[0].rm_so == -1) {
-        regfree (&reg);
-        return false;
+        goto error_free;
     }
 
     regfree (&reg);
 
     return true;
+
+error_free:
+    regfree (&reg);
+error:
+    return false;
 }
 
 static bool test_variant (purc_variant_t var)
@@ -143,14 +148,14 @@ static long double get_variant_value (purc_variant_t var)
     if (var == PURC_VARIANT_INVALID)
         return false;
 
-    long double number = 0.0d;
+    size_t i = 0;
     size_t length = 0;
+    long double number = 0.0d;
     long int templongint = 0;
     uintptr_t temppointer = 0;
     struct purc_variant_object_iterator *it_obj = NULL;
     struct purc_variant_set_iterator *it_set = NULL;
     purc_variant_t val = PURC_VARIANT_INVALID;
-    size_t i = 0;
     bool having = false;
     enum purc_variant_type type = purc_variant_get_type (var);
 
@@ -248,7 +253,7 @@ not_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if ((argv == NULL) || (nr_args < 1)) {
+    if ((argv == NULL) || (nr_args != 1)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -581,22 +586,22 @@ streq_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     char *buf1 = purc_rwstream_get_mem_buffer (stream1, &sz_stream1);
     char *buf2 = purc_rwstream_get_mem_buffer (stream2, &sz_stream2);
 
-    if (strcasecmp (option, "caseless") == 0) {
+    if (strcasecmp (option, STRING_COMP_MODE_CASELESS) == 0) {
         if (strcasecmp (buf1, buf2) == 0)
             ret_var = purc_variant_make_boolean (true);
         else
             ret_var = purc_variant_make_boolean (false);
-    } else if (strcasecmp (option, "case") == 0) {
+    } else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0) {
         if (strcmp (buf1, buf2) == 0)
             ret_var = purc_variant_make_boolean (true);
         else
             ret_var = purc_variant_make_boolean (false);
-    } else if (strcasecmp (option, "wildcard") == 0) {
+    } else if (strcasecmp (option, STRING_COMP_MODE_WILDCARD) == 0) {
         if (wildcard_cmp (buf2, buf1))
             ret_var = purc_variant_make_boolean (true);
         else
             ret_var = purc_variant_make_boolean (false);
-    } else if (strcasecmp (option, "reg") == 0) {
+    } else if (strcasecmp (option, STRING_COMP_MODE_REG) == 0) {
         if (reg_cmp (buf1, buf2))
             ret_var = purc_variant_make_boolean (true);
         else
@@ -645,22 +650,22 @@ strne_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     char *buf1 = purc_rwstream_get_mem_buffer (stream1, &sz_stream1);
     char *buf2 = purc_rwstream_get_mem_buffer (stream2, &sz_stream2);
 
-    if (strcasecmp (option, "caseless") == 0) {
+    if (strcasecmp (option, STRING_COMP_MODE_CASELESS) == 0) {
         if (strcasecmp (buf1, buf2) == 0)
             ret_var = purc_variant_make_boolean (false);
         else
             ret_var = purc_variant_make_boolean (true);
-    } else if (strcasecmp (option, "case") == 0) {
+    } else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0) {
         if (strcmp (buf1, buf2) == 0)
             ret_var = purc_variant_make_boolean (false);
         else
             ret_var = purc_variant_make_boolean (true);
-    } else if (strcasecmp (option, "wildcard") == 0) {
+    } else if (strcasecmp (option, STRING_COMP_MODE_WILDCARD) == 0) {
         if (wildcard_cmp (buf2, buf1))
             ret_var = purc_variant_make_boolean (false);
         else
             ret_var = purc_variant_make_boolean (true);
-    } else if (strcasecmp (option, "reg") == 0) {
+    } else if (strcasecmp (option, STRING_COMP_MODE_REG) == 0) {
         if (reg_cmp (buf1, buf2))
             ret_var = purc_variant_make_boolean (false);
         else
@@ -709,12 +714,12 @@ strgt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     char *buf1 = purc_rwstream_get_mem_buffer (stream1, &sz_stream1);
     char *buf2 = purc_rwstream_get_mem_buffer (stream2, &sz_stream2);
 
-    if (strcasecmp (option, "caseless") == 0) {
+    if (strcasecmp (option, STRING_COMP_MODE_CASELESS) == 0) {
         if (strcasecmp (buf1, buf2) > 0)
             ret_var = purc_variant_make_boolean (true);
         else
             ret_var = purc_variant_make_boolean (false);
-    } else if (strcasecmp (option, "case") == 0) {
+    } else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0) {
         if (strcmp (buf1, buf2) > 0)
             ret_var = purc_variant_make_boolean (true);
         else
@@ -764,12 +769,12 @@ strge_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     char *buf1 = purc_rwstream_get_mem_buffer (stream1, &sz_stream1);
     char *buf2 = purc_rwstream_get_mem_buffer (stream2, &sz_stream2);
 
-    if (strcasecmp (option, "caseless") == 0) {
+    if (strcasecmp (option, STRING_COMP_MODE_CASELESS) == 0) {
         if (strcasecmp (buf1, buf2) >= 0)
             ret_var = purc_variant_make_boolean (true);
         else
             ret_var = purc_variant_make_boolean (false);
-    } else if (strcasecmp (option, "case") == 0) {
+    } else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0) {
         if (strcmp (buf1, buf2) >= 0)
             ret_var = purc_variant_make_boolean (true);
         else
@@ -819,12 +824,12 @@ strlt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     char *buf1 = purc_rwstream_get_mem_buffer (stream1, &sz_stream1);
     char *buf2 = purc_rwstream_get_mem_buffer (stream2, &sz_stream2);
 
-    if (strcasecmp (option, "caseless") == 0) {
+    if (strcasecmp (option, STRING_COMP_MODE_CASELESS) == 0) {
         if (strcasecmp (buf1, buf2) < 0)
             ret_var = purc_variant_make_boolean (true);
         else
             ret_var = purc_variant_make_boolean (false);
-    } else if (strcasecmp (option, "case") == 0) {
+    } else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0) {
         if (strcmp (buf1, buf2) < 0)
             ret_var = purc_variant_make_boolean (true);
         else
@@ -873,12 +878,12 @@ strle_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     char *buf1 = purc_rwstream_get_mem_buffer (stream1, &sz_stream1);
     char *buf2 = purc_rwstream_get_mem_buffer (stream2, &sz_stream2);
 
-    if (strcasecmp (option, "caseless") == 0) {
+    if (strcasecmp (option, STRING_COMP_MODE_CASELESS) == 0) {
         if (strcasecmp (buf1, buf2) <= 0)
             ret_var = purc_variant_make_boolean (true);
         else
             ret_var = purc_variant_make_boolean (false);
-    } else if (strcasecmp (option, "case") == 0) {
+    } else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0) {
         if (strcmp (buf1, buf2) <= 0)
             ret_var = purc_variant_make_boolean (true);
         else

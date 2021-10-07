@@ -24,10 +24,8 @@
 
 #include "private/instance.h"
 #include "private/errors.h"
-#include "private/debug.h"
 #include "private/utils.h"
-#include "private/edom.h"
-#include "private/html.h"
+#include "private/dvobjs.h"
 
 #include "purc-variant.h"
 #include "helper.h"
@@ -131,24 +129,14 @@ string_ends_with (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     const char *sub = purc_variant_get_string_const (argv[1]);
     size_t len_sub = purc_variant_string_length (argv[1]) -1;
 
-    size_t i = 0;
-    bool find = true;
-
     if ((len_source == 0) || (len_sub == 0) || (len_source < len_sub)) {
-        find = false;
-    } else {
-        for (i = 0; i < len_sub; i++) {
-            if (*(source + len_source - len_sub + i) != *(sub + i)) {
-                find = false;
-                break;
-            }
-        }
-    }
-
-    if (find)
-        ret_var = purc_variant_make_boolean (true);
-    else
         ret_var = purc_variant_make_boolean (false);
+    } else {
+        if (strncmp (source + len_source - len_sub, sub, len_sub) != 0)
+            ret_var = purc_variant_make_boolean (false);
+        else
+            ret_var = purc_variant_make_boolean (true);
+    }
 
     return ret_var;
 }
@@ -196,7 +184,7 @@ string_explode (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             return PURC_VARIANT_INVALID;
         }
 
-        memcpy (buf, head, length);
+        strncpy (buf, head, length + 1);
         *(buf + length)= 0x00;
         val = purc_variant_make_string_reuse_buff (buf, length + 1, true);
         purc_variant_array_append (ret_var, val);

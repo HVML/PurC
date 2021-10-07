@@ -86,7 +86,7 @@ long double e_l;
  *              $MATH.const('2/pi')
  * @endcode
  *
- * @note        
+ * @note
  *
  * @sa          const_l()
  */
@@ -106,7 +106,7 @@ double const(string);
  *              $MATH.const_l('2/pi')
  * @endcode
  *
- * @note        
+ * @note
  *
  * @sa          const()
  */
@@ -220,7 +220,7 @@ double sqrt(double number);
  *              $MATH.sqrt_l(2.0)
  * @endcode
  *
- * @note        
+ * @note
  *
  * @sa          sqrt()
  */
@@ -244,7 +244,7 @@ long double sqrt_l(long double number);
  *              $MATH.eval("pi * r * r", { pi: $MATH.pi, r: $MATH.sqrt(2) })
  * @endcode
  *
- * @note        
+ * @note
  *
  * @sa          eval_l()
  */
@@ -268,7 +268,7 @@ double eval(string expression [, object dict]);
  *              $MATH.eval("pi * r * r", { pi: $MATH.pi, r: $MATH.sqrt(2) })
  * @endcode
  *
- * @note        
+ * @note
  *
  * @sa          eval()
  */
