@@ -104,7 +104,7 @@ TEST(dvobjs, dvobjs_string_contains)
                         }
                         param[j] = get_variant (line, &length_sub);
                         j++;
-                        ASSERT_LE(j, MAX_PARAM_NR); 
+                        ASSERT_LE(j, MAX_PARAM_NR);
                     }
 
                     // get result
@@ -120,7 +120,7 @@ TEST(dvobjs, dvobjs_string_contains)
                         *(line + read - 1) = 0;
                         line_number ++;
 
-                        if (strcmp (line, "test_end") == 0) { 
+                        if (strcmp (line, "test_end") == 0) {
                             break;
                         }
                     }
@@ -131,7 +131,7 @@ TEST(dvobjs, dvobjs_string_contains)
                         ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
                     } else {
                         // USER MODIFIED HERE.
-                        ASSERT_EQ(purc_variant_is_type (ret_var, 
+                        ASSERT_EQ(purc_variant_is_type (ret_var,
                                     PURC_VARIANT_TYPE_BOOLEAN), true);
                         ASSERT_EQ(ret_var->b, ret_result->b);
                     }
@@ -155,8 +155,8 @@ TEST(dvobjs, dvobjs_string_contains)
                     get_variant_total_info (&sz_total_mem_after,
                             &sz_total_values_after, &nr_reserved_after);
                     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-                    ASSERT_EQ(sz_total_mem_after, 
-                            sz_total_mem_before + (nr_reserved_after - 
+                    ASSERT_EQ(sz_total_mem_after,
+                            sz_total_mem_before + (nr_reserved_after -
                                 nr_reserved_before) * sizeof(purc_variant));
                 } else
                     continue;
@@ -207,7 +207,7 @@ TEST(dvobjs, dvobjs_string_explode)
     for (i = 0; i < function_size; i++) {
         printf ("test _L.%s:\n", function[i]);
 
-        purc_variant_t dynamic = purc_variant_object_get_by_ckey (string, 
+        purc_variant_t dynamic = purc_variant_object_get_by_ckey (string,
                 function[i]);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
@@ -262,7 +262,7 @@ TEST(dvobjs, dvobjs_string_explode)
                         }
                         param[j] = get_variant (line, &length_sub);
                         j++;
-                        ASSERT_LE(j, MAX_PARAM_NR); 
+                        ASSERT_LE(j, MAX_PARAM_NR);
                     }
 
                     // get result
@@ -278,7 +278,7 @@ TEST(dvobjs, dvobjs_string_explode)
                         *(line + read - 1) = 0;
                         line_number ++;
 
-                        if (strcmp (line, "test_end") == 0) { 
+                        if (strcmp (line, "test_end") == 0) {
                             break;
                         }
                     }
@@ -289,7 +289,7 @@ TEST(dvobjs, dvobjs_string_explode)
                         ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
                     } else {
                         // USER MODIFIED HERE.
-                        ASSERT_EQ(purc_variant_is_type (ret_var, 
+                        ASSERT_EQ(purc_variant_is_type (ret_var,
                                     PURC_VARIANT_TYPE_ARRAY), true);
                         size_t number = purc_variant_array_get_size (ret_var);
                         size_t i = 0;
@@ -327,8 +327,8 @@ TEST(dvobjs, dvobjs_string_explode)
                     get_variant_total_info (&sz_total_mem_after,
                             &sz_total_values_after, &nr_reserved_after);
                     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-                    ASSERT_EQ(sz_total_mem_after, 
-                            sz_total_mem_before + (nr_reserved_after - 
+                    ASSERT_EQ(sz_total_mem_after,
+                            sz_total_mem_before + (nr_reserved_after -
                                 nr_reserved_before) * sizeof(purc_variant));
                 } else
                     continue;
@@ -434,7 +434,7 @@ TEST(dvobjs, dvobjs_string_shuffle)
                         }
                         param[j] = get_variant (line, &length_sub);
                         j++;
-                        ASSERT_LE(j, MAX_PARAM_NR); 
+                        ASSERT_LE(j, MAX_PARAM_NR);
                     }
 
                     // get result
@@ -501,8 +501,8 @@ TEST(dvobjs, dvobjs_string_shuffle)
                     get_variant_total_info (&sz_total_mem_after,
                             &sz_total_values_after, &nr_reserved_after);
                     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-                    ASSERT_EQ(sz_total_mem_after, 
-                            sz_total_mem_before + (nr_reserved_after - 
+                    ASSERT_EQ(sz_total_mem_after,
+                            sz_total_mem_before + (nr_reserved_after -
                                 nr_reserved_before) * sizeof(purc_variant));
                 } else
                     continue;
@@ -607,7 +607,7 @@ TEST(dvobjs, dvobjs_string_replace)
                         }
                         param[j] = get_variant (line, &length_sub);
                         j++;
-                        ASSERT_LE(j, MAX_PARAM_NR); 
+                        ASSERT_LE(j, MAX_PARAM_NR);
                     }
 
                     // get result
@@ -623,7 +623,7 @@ TEST(dvobjs, dvobjs_string_replace)
                         *(line + read - 1) = 0;
                         line_number ++;
 
-                        if (strcmp (line, "test_end") == 0) {   // end test case 
+                        if (strcmp (line, "test_end") == 0) {
                             break;
                         }
                     }
@@ -663,8 +663,8 @@ TEST(dvobjs, dvobjs_string_replace)
                     get_variant_total_info (&sz_total_mem_after,
                             &sz_total_values_after, &nr_reserved_after);
                     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-                    ASSERT_EQ(sz_total_mem_after, 
-                            sz_total_mem_before + (nr_reserved_after - 
+                    ASSERT_EQ(sz_total_mem_after,
+                            sz_total_mem_before + (nr_reserved_after -
                                 nr_reserved_before) * sizeof(purc_variant));
                 } else
                     continue;
@@ -770,7 +770,7 @@ TEST(dvobjs, dvobjs_string_format_c)
                         }
                         param[j] = get_variant (line, &length_sub);
                         j++;
-                        ASSERT_LE(j, MAX_PARAM_NR); 
+                        ASSERT_LE(j, MAX_PARAM_NR);
                     }
 
                     // get result
@@ -786,7 +786,7 @@ TEST(dvobjs, dvobjs_string_format_c)
                         *(line + read - 1) = 0;
                         line_number ++;
 
-                        if (strcmp (line, "test_end") == 0) { 
+                        if (strcmp (line, "test_end") == 0) {
                             break;
                         }
                     }
@@ -826,8 +826,8 @@ TEST(dvobjs, dvobjs_string_format_c)
                     get_variant_total_info (&sz_total_mem_after,
                             &sz_total_values_after, &nr_reserved_after);
                     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-                    ASSERT_EQ(sz_total_mem_after, 
-                            sz_total_mem_before + (nr_reserved_after - 
+                    ASSERT_EQ(sz_total_mem_after,
+                            sz_total_mem_before + (nr_reserved_after -
                                 nr_reserved_before) * sizeof(purc_variant));
                 } else
                     continue;
@@ -932,7 +932,7 @@ TEST(dvobjs, dvobjs_string_format_p)
                         }
                         param[j] = get_variant (line, &length_sub);
                         j++;
-                        ASSERT_LE(j, MAX_PARAM_NR); 
+                        ASSERT_LE(j, MAX_PARAM_NR);
                     }
 
                     // get result
@@ -948,7 +948,7 @@ TEST(dvobjs, dvobjs_string_format_p)
                         *(line + read - 1) = 0;
                         line_number ++;
 
-                        if (strcmp (line, "test_end") == 0) { 
+                        if (strcmp (line, "test_end") == 0) {
                             break;
                         }
                     }
@@ -988,8 +988,8 @@ TEST(dvobjs, dvobjs_string_format_p)
                     get_variant_total_info (&sz_total_mem_after,
                             &sz_total_values_after, &nr_reserved_after);
                     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-                    ASSERT_EQ(sz_total_mem_after, 
-                            sz_total_mem_before + (nr_reserved_after - 
+                    ASSERT_EQ(sz_total_mem_after,
+                            sz_total_mem_before + (nr_reserved_after -
                                 nr_reserved_before) * sizeof(purc_variant));
                 } else
                     continue;

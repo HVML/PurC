@@ -108,7 +108,7 @@ TEST(dvobjs, dvobjs_logical)
                         }
                         param[j] = get_variant (line, &length_sub);
                         j++;
-                        ASSERT_LE(j, MAX_PARAM_NR); 
+                        ASSERT_LE(j, MAX_PARAM_NR);
                     }
                     // get result
                     read = getline(&line, &sz, fp);
@@ -159,8 +159,8 @@ TEST(dvobjs, dvobjs_logical)
                     get_variant_total_info (&sz_total_mem_after,
                             &sz_total_values_after, &nr_reserved_after);
                     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-                    ASSERT_EQ(sz_total_mem_after, 
-                            sz_total_mem_before + (nr_reserved_after - 
+                    ASSERT_EQ(sz_total_mem_after,
+                            sz_total_mem_before + (nr_reserved_after -
                                 nr_reserved_before) * sizeof(purc_variant));
                 } else
                     continue;
@@ -236,7 +236,7 @@ TEST(dvobjs, dvobjs_logical_eval)
         get_variant_total_info (&sz_total_mem_after, &sz_total_values_after,
                 &nr_reserved_after);
         ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-        ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after - 
+        ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
                     nr_reserved_before) * sizeof(purc_variant));
     }
 
@@ -300,7 +300,8 @@ _eval_bc(const char *fn, char *dest, size_t dlen)
     char cmd[8192];
     size_t n = 0;
 
-    snprintf(cmd, sizeof(cmd), "cat '%s' | bc | sed 's/1/true/g' | sed 's/0/false/g'", fn);
+    snprintf(cmd, sizeof(cmd), 
+            "cat '%s' | bc | sed 's/1/true/g' | sed 's/0/false/g'", fn);
     fin = popen(cmd, "r");
     EXPECT_NE(fin, nullptr) << "failed to execute: [" << cmd << "]"
         << std::endl;

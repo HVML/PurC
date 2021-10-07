@@ -282,7 +282,7 @@ TEST(dvobjs, dvobjs_fs_list)
     get_variant_total_info (&sz_total_mem_after,
             &sz_total_values_after, &nr_reserved_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after - 
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
                 nr_reserved_before) * sizeof(purc_variant));
 
     purc_cleanup ();
@@ -405,7 +405,7 @@ TEST(dvobjs, dvobjs_fs_list_prt)
     get_variant_total_info (&sz_total_mem_after,
             &sz_total_values_after, &nr_reserved_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after - 
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
                 nr_reserved_before) * sizeof(purc_variant));
 
     purc_cleanup ();
@@ -481,7 +481,7 @@ TEST(dvobjs, dvobjs_fs_mkdir)
     get_variant_total_info (&sz_total_mem_after,
             &sz_total_values_after, &nr_reserved_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after - 
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
                 nr_reserved_before) * sizeof(purc_variant));
 
     purc_cleanup ();
@@ -559,7 +559,7 @@ TEST(dvobjs, dvobjs_fs_rmdir)
     get_variant_total_info (&sz_total_mem_after,
             &sz_total_values_after, &nr_reserved_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after - 
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
                 nr_reserved_before) * sizeof(purc_variant));
 
     purc_cleanup ();
@@ -637,7 +637,7 @@ TEST(dvobjs, dvobjs_fs_rm)
     get_variant_total_info (&sz_total_mem_after,
             &sz_total_values_after, &nr_reserved_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after - 
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
                 nr_reserved_before) * sizeof(purc_variant));
 
     purc_cleanup ();
@@ -711,7 +711,7 @@ TEST(dvobjs, dvobjs_fs_unlink)
     get_variant_total_info (&sz_total_mem_after,
             &sz_total_values_after, &nr_reserved_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after - 
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
                 nr_reserved_before) * sizeof(purc_variant));
 
     purc_cleanup ();
@@ -789,7 +789,7 @@ TEST(dvobjs, dvobjs_fs_touch)
     get_variant_total_info (&sz_total_mem_after,
             &sz_total_values_after, &nr_reserved_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after - 
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
                 nr_reserved_before) * sizeof(purc_variant));
 
     purc_cleanup ();

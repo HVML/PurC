@@ -78,7 +78,7 @@ TEST(dvobjs, dvobjs_sys_uname)
     get_variant_total_info (&sz_total_mem_after,
             &sz_total_values_after, &nr_reserved_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + 
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before +
             (nr_reserved_after - nr_reserved_before) * sizeof(purc_variant));
 
     purc_variant_unref (sys);
@@ -187,7 +187,7 @@ TEST(dvobjs, dvobjs_sys_uname_prt)
     get_variant_total_info (&sz_total_mem_after,
             &sz_total_values_after, &nr_reserved_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + 
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before +
             (nr_reserved_after - nr_reserved_before) * sizeof(purc_variant));
 
     purc_variant_unref (sys);
@@ -363,7 +363,7 @@ TEST(dvobjs, dvobjs_sys_get_locale)
     get_variant_total_info (&sz_total_mem_after,
             &sz_total_values_after, &nr_reserved_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + 
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before +
             (nr_reserved_after - nr_reserved_before) * sizeof(purc_variant));
 
     purc_variant_unref (sys);
@@ -597,7 +597,7 @@ TEST(dvobjs, dvobjs_sys_set_locale)
     get_variant_total_info (&sz_total_mem_after,
             &sz_total_values_after, &nr_reserved_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + 
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before +
             (nr_reserved_after - nr_reserved_before) * sizeof(purc_variant));
 
     purc_variant_unref (sys);
@@ -663,7 +663,7 @@ TEST(dvobjs, dvobjs_sys_get_random)
     get_variant_total_info (&sz_total_mem_after,
             &sz_total_values_after, &nr_reserved_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + 
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before +
             (nr_reserved_after - nr_reserved_before) * sizeof(purc_variant));
 
     purc_variant_unref (sys);

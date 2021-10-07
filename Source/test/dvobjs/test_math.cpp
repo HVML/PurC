@@ -34,7 +34,7 @@ struct dvobjs_math_method_ld
 
 TEST(dvobjs, dvobjs_math_pi_e)
 {
-    static struct dvobjs_math_method_d math_d[] = 
+    static struct dvobjs_math_method_d math_d[] =
     {
         {
             "pi",
@@ -48,7 +48,7 @@ TEST(dvobjs, dvobjs_math_pi_e)
         }
     };
 
-    static struct dvobjs_math_method_ld math_ld[] = 
+    static struct dvobjs_math_method_ld math_ld[] =
     {
         {
             "pi_l",
@@ -89,7 +89,7 @@ TEST(dvobjs, dvobjs_math_pi_e)
 
     for (i = 0; i < size; i++) {
         // test double function
-        purc_variant_t dynamic = purc_variant_object_get_by_ckey (math, 
+        purc_variant_t dynamic = purc_variant_object_get_by_ckey (math,
                 math_d[i].func);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
@@ -132,7 +132,7 @@ TEST(dvobjs, dvobjs_math_pi_e)
     get_variant_total_info (&sz_total_mem_after,
             &sz_total_values_after, &nr_reserved_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after - 
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
                 nr_reserved_before) * sizeof(purc_variant));
 
     purc_cleanup ();
@@ -141,7 +141,7 @@ TEST(dvobjs, dvobjs_math_pi_e)
 
 TEST(dvobjs, dvobjs_math_const)
 {
-    static struct dvobjs_math_method_d math_d[] = 
+    static struct dvobjs_math_method_d math_d[] =
     {
         {
             "e",
@@ -205,7 +205,7 @@ TEST(dvobjs, dvobjs_math_const)
         }
     };
 
-    static struct dvobjs_math_method_ld math_ld[] = 
+    static struct dvobjs_math_method_ld math_ld[] =
     {
         {
             "e",
@@ -344,7 +344,7 @@ TEST(dvobjs, dvobjs_math_const)
     get_variant_total_info (&sz_total_mem_after,
             &sz_total_values_after, &nr_reserved_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after - 
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
                 nr_reserved_before) * sizeof(purc_variant));
 
     purc_cleanup ();
@@ -352,7 +352,7 @@ TEST(dvobjs, dvobjs_math_const)
 
 TEST(dvobjs, dvobjs_math_func)
 {
-    static struct dvobjs_math_method_d math_d[] = 
+    static struct dvobjs_math_method_d math_d[] =
     {
         {
             "sin",
@@ -371,7 +371,7 @@ TEST(dvobjs, dvobjs_math_func)
         }
     };
 
-    static struct dvobjs_math_method_ld math_ld[] = 
+    static struct dvobjs_math_method_ld math_ld[] =
     {
         {
             "sin_l",
@@ -462,7 +462,7 @@ TEST(dvobjs, dvobjs_math_func)
     get_variant_total_info (&sz_total_mem_after,
             &sz_total_values_after, &nr_reserved_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after - 
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
                 nr_reserved_before) * sizeof(purc_variant));
 
     purc_cleanup ();
@@ -594,7 +594,7 @@ TEST(dvobjs, dvobjs_math_eval)
     get_variant_total_info (&sz_total_mem_after,
             &sz_total_values_after, &nr_reserved_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after - 
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
                 nr_reserved_before) * sizeof(purc_variant));
 
     purc_cleanup ();
@@ -649,7 +649,7 @@ TEST(dvobjs, dvobjs_math_assignment)
     get_variant_total_info (&sz_total_mem_after,
             &sz_total_values_after, &nr_reserved_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after - 
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
                 nr_reserved_before) * sizeof(purc_variant));
 
     purc_cleanup ();
@@ -738,7 +738,7 @@ TEST(dvobjs, dvobjs_math_samples)
     get_variant_total_info (&sz_total_mem_after,
             &sz_total_values_after, &nr_reserved_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after - 
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
                 nr_reserved_before) * sizeof(purc_variant));
 
     purc_cleanup ();

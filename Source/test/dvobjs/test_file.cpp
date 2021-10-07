@@ -87,7 +87,7 @@ TEST(dvobjs, dvobjs_file_text_head)
     get_variant_total_info (&sz_total_mem_after,
             &sz_total_values_after, &nr_reserved_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after - 
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
                 nr_reserved_before) * sizeof(purc_variant));
 
     purc_cleanup ();
@@ -163,7 +163,7 @@ TEST(dvobjs, dvobjs_file_text_tail)
     get_variant_total_info (&sz_total_mem_after,
             &sz_total_values_after, &nr_reserved_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after - 
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
                 nr_reserved_before) * sizeof(purc_variant));
 
     purc_cleanup ();
@@ -239,7 +239,7 @@ TEST(dvobjs, dvobjs_file_bin_head)
     get_variant_total_info (&sz_total_mem_after,
             &sz_total_values_after, &nr_reserved_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after - 
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
                 nr_reserved_before) * sizeof(purc_variant));
 
     purc_cleanup ();
@@ -315,7 +315,7 @@ TEST(dvobjs, dvobjs_file_bin_tail)
     get_variant_total_info (&sz_total_mem_after,
             &sz_total_values_after, &nr_reserved_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after - 
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
                 nr_reserved_before) * sizeof(purc_variant));
 
     purc_cleanup ();
@@ -364,7 +364,8 @@ TEST(dvobjs, dvobjs_file_stream_open_seek_close)
     strcpy (file_path, data_path);
     strcat (file_path, "/stream.test");
 
-    printf ("TEST stream_open_seek_close: nr_args=2, param1=\"test_files/stream.test\":\n");
+    printf ("TEST stream_open_seek_close: nr_args=2, \
+            param1=\"test_files/stream.test\":\n");
     param[0] = purc_variant_make_string (file_path, false);
     param[1] = purc_variant_make_string ("r+", false);
     ret_var = func (NULL, 2, param);
@@ -373,7 +374,6 @@ TEST(dvobjs, dvobjs_file_stream_open_seek_close)
                     PURC_VARIANT_TYPE_NATIVE), true);
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
-
 
     // seek
     dynamic = purc_variant_object_get_by_ckey (stream, "seek");
@@ -419,7 +419,7 @@ TEST(dvobjs, dvobjs_file_stream_open_seek_close)
     get_variant_total_info (&sz_total_mem_after,
             &sz_total_values_after, &nr_reserved_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after - 
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
                 nr_reserved_before) * sizeof(purc_variant));
 
     purc_cleanup ();
@@ -469,12 +469,15 @@ TEST(dvobjs, dvobjs_file_stream_readbytes)
     strcpy (file_path, data_path);
     strcat (file_path, "/stream.test");
 
-    printf ("TEST stream_readbytes: nr_args=2, param1=\"test_files/stream.test\":\n");
+    printf ("TEST stream_readbytes: \
+            nr_args=2, param1=\"test_files/stream.test\":\n");
     param[0] = purc_variant_make_string (file_path, false);
     param[1] = purc_variant_make_string ("r+", false);
     ret_var = func (NULL, 2, param);
     ASSERT_EQ(purc_variant_is_type (ret_var,
                     PURC_VARIANT_TYPE_NATIVE), true);
+    purc_variant_unref(param[0]);
+    purc_variant_unref(param[1]);
 
     // seek
     dynamic = purc_variant_object_get_by_ckey (stream, "seek");
@@ -492,8 +495,10 @@ TEST(dvobjs, dvobjs_file_stream_readbytes)
     ASSERT_EQ(purc_variant_is_type (val,
                     PURC_VARIANT_TYPE_LONGINT), true);
     int64_t byte_num = 0;
-    purc_variant_cast_to_longint (val, &byte_num, false); 
+    purc_variant_cast_to_longint (val, &byte_num, false);
     ASSERT_EQ(byte_num, 10);
+    purc_variant_unref(param[1]);
+    purc_variant_unref(param[2]);
     purc_variant_unref(val);
 
     // readbytes
@@ -511,6 +516,7 @@ TEST(dvobjs, dvobjs_file_stream_readbytes)
     ASSERT_EQ(purc_variant_is_type (val,
                     PURC_VARIANT_TYPE_BSEQUENCE), true);
     ASSERT_EQ(purc_variant_sequence_length (val), 20);
+    purc_variant_unref(param[1]);
     purc_variant_unref(val);
 
     // close
@@ -522,19 +528,20 @@ TEST(dvobjs, dvobjs_file_stream_readbytes)
     ASSERT_NE(func, nullptr);
 
     param[0] = ret_var;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
+    val = func (NULL, 1, param);
+    ASSERT_NE(val, nullptr);
 
-    ASSERT_EQ(purc_variant_is_type (ret_var,
+    ASSERT_EQ(purc_variant_is_type (val,
                     PURC_VARIANT_TYPE_BOOLEAN), true);
     purc_variant_unref(ret_var);
+    purc_variant_unref(val);
 
     purc_variant_unload_dvobj (file);
 
     get_variant_total_info (&sz_total_mem_after,
             &sz_total_values_after, &nr_reserved_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after - 
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
                 nr_reserved_before) * sizeof(purc_variant));
 
     purc_cleanup ();
@@ -583,14 +590,16 @@ TEST(dvobjs, dvobjs_file_stream_readlines)
     strcpy (file_path, data_path);
     strcat (file_path, "/stream.test");
 
-    printf ("TEST stream_readlines: nr_args=2, param1=\"test_files/stream.test\":\n");
+    printf ("TEST stream_readlines: nr_args=2, \
+            param1=\"test_files/stream.test\":\n");
     param[0] = purc_variant_make_string (file_path, false);
     param[1] = purc_variant_make_string ("r+", false);
     ret_var = func (NULL, 2, param);
 
     ASSERT_EQ(purc_variant_is_type (ret_var,
                     PURC_VARIANT_TYPE_NATIVE), true);
-
+    purc_variant_unref(param[0]);
+    purc_variant_unref(param[1]);
 
     // seek
     dynamic = purc_variant_object_get_by_ckey (stream, "seek");
@@ -608,9 +617,11 @@ TEST(dvobjs, dvobjs_file_stream_readlines)
     ASSERT_EQ(purc_variant_is_type (val,
                     PURC_VARIANT_TYPE_LONGINT), true);
     int64_t byte_num = 0;
-    purc_variant_cast_to_longint (val, &byte_num, false); 
+    purc_variant_cast_to_longint (val, &byte_num, false);
     ASSERT_EQ(byte_num, 0);
     purc_variant_unref(val);
+    purc_variant_unref(param[1]);
+    purc_variant_unref(param[2]);
 
     // readbytes
     dynamic = purc_variant_object_get_by_ckey (stream, "readlines");
@@ -626,8 +637,10 @@ TEST(dvobjs, dvobjs_file_stream_readlines)
 
     ASSERT_EQ(purc_variant_is_type (val,
                     PURC_VARIANT_TYPE_STRING), true);
-    ASSERT_STREQ(purc_variant_get_string_const(val), "root:x:0:0:root:/root:/bin/bash");
+    ASSERT_STREQ(purc_variant_get_string_const(val), \
+            "root:x:0:0:root:/root:/bin/bash");
     purc_variant_unref(val);
+    purc_variant_unref(param[1]);
 
     // close
     dynamic = purc_variant_object_get_by_ckey (stream, "close");
@@ -638,11 +651,12 @@ TEST(dvobjs, dvobjs_file_stream_readlines)
     ASSERT_NE(func, nullptr);
 
     param[0] = ret_var;
-    ret_var = func (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
+    val = func (NULL, 1, param);
+    ASSERT_NE(val, nullptr);
 
-    ASSERT_EQ(purc_variant_is_type (ret_var,
+    ASSERT_EQ(purc_variant_is_type (val,
                     PURC_VARIANT_TYPE_BOOLEAN), true);
+    purc_variant_unref(val);
     purc_variant_unref(ret_var);
 
     purc_variant_unload_dvobj (file);
@@ -650,7 +664,7 @@ TEST(dvobjs, dvobjs_file_stream_readlines)
     get_variant_total_info (&sz_total_mem_after,
             &sz_total_values_after, &nr_reserved_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after - 
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
                 nr_reserved_before) * sizeof(purc_variant));
 
     purc_cleanup ();
@@ -658,8 +672,8 @@ TEST(dvobjs, dvobjs_file_stream_readlines)
 
 TEST(dvobjs, dvobjs_file_stream_read_write_struct)
 {
-    purc_variant_t param[MAX_PARAM_NR] = {0};
-    purc_variant_t for_open[MAX_PARAM_NR] = {0};
+    purc_variant_t param[MAX_PARAM_NR] = {PURC_VARIANT_INVALID};
+    purc_variant_t for_open[MAX_PARAM_NR] = {PURC_VARIANT_INVALID};
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t ret_result = PURC_VARIANT_INVALID;
     purc_variant_t test_file = PURC_VARIANT_INVALID;
@@ -675,7 +689,6 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
     size_t sz_total_values_after = 0;
     size_t nr_reserved_after = 0;
 
-    // get and function
     purc_instance_extra_info info = {0, 0};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
@@ -737,32 +750,32 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
     close = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(close, nullptr);
 
-
-    // get test file
-    char* data_path = getenv("DVOBJS_TEST_PATH");
+    char *data_path = getenv("DVOBJS_TEST_PATH");
     ASSERT_NE(data_path, nullptr);
 
-    char file_path[1024] = {0};
-    strcpy (file_path, data_path);
-    strcat (file_path, "/");
-    strcat (file_path, "write.test");
+    // get test case list file
+    char test_case[1024] = {0};
+    strcpy (test_case, data_path);
+    strcat (test_case, "/");
+    strcat (test_case, "write.test");
 
-    char test_path[1024] = {0};
-    strcpy (test_path, data_path);
-    strcat (test_path, "/");
-    strcat (test_path, "rwstruct.test");
+    // get the temp file for write and read
+    char temp_file[1024] = {0};
+    strcpy (temp_file, data_path);
+    strcat (temp_file, "/");
+    strcat (temp_file, "rwstruct.test");
 
     char command[1024] = {0};
     strcat (command, "touch ");
-    strcat (command, test_path);
+    strcat (command, temp_file);
 
-    FILE *fp = fopen(file_path, "r");   // open test_list
+    FILE *fp = fopen(test_case, "r");   // open test case list
     ASSERT_NE(fp, nullptr);
 
     char *line = NULL;
     size_t sz = 0;
     ssize_t read = 0;
-    int j = 0;
+    size_t j = 0;
     size_t length_sub = 0;
 
     line_number = 0;
@@ -789,15 +802,11 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
                     line_number ++;
 
                     if (strcmp (line, "param_end") == 0)  {
-                        if (param[j]) {
-                            purc_variant_unref(param[j]);
-                            param[j] = NULL;
-                        }
-                        param[j] = NULL;
                         break;
                     }
                     param[j] = get_variant (line, &length_sub);
                     j++;
+                    ASSERT_LE(j, MAX_PARAM_NR);
                 }
 
                 // get result
@@ -805,7 +814,9 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
                 *(line + read - 1) = 0;
                 line_number ++;
 
+                // test_result is useless
                 ret_result = get_variant(line, &length_sub);
+                purc_variant_unref(ret_result);
 
                 // test case end
                 while (1) {
@@ -818,31 +829,35 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
                     }
                 }
 
-                // remove test file
-                unlink (test_path);
+                // remove temp file
+                unlink (temp_file);
                 int create_ok = system (command);
                 ASSERT_EQ(create_ok, 0);
 
                 // test process
                 // open
-                for_open[0] = purc_variant_make_string (test_path, false);
+                for_open[0] = purc_variant_make_string (temp_file, false);
                 for_open[1] = purc_variant_make_string ("r+", false);
                 test_file = open (NULL, 2, for_open);
                 ASSERT_EQ(purc_variant_is_type (test_file,
                             PURC_VARIANT_TYPE_NATIVE), true);
+                purc_variant_unref(for_open[0]);
+                purc_variant_unref(for_open[1]);
 
                 ret_result = param[1];
                 for_open[0] = test_file;
                 for_open[1] = param[1];
                 for_open[2] = purc_variant_make_array (0, PURC_VARIANT_INVALID);
 
-                for (int k = 2; k < j; k++)
+                for (size_t k = 2; k < j; k++)
                     purc_variant_array_append (for_open[2], param[k]);
 
                 // write
                 ret_var = writestruct (NULL, 3, for_open);
                 ASSERT_EQ(purc_variant_is_type (ret_var,
                             PURC_VARIANT_TYPE_ULONGINT), true);
+                purc_variant_unref(for_open[2]);
+                purc_variant_unref(ret_var);
 
                 // seek to the beginning
                 for_open[0] = test_file;
@@ -855,6 +870,9 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
                 int64_t byte_num = 0;
                 purc_variant_cast_to_longint (ret_var, &byte_num, false);
                 ASSERT_EQ(byte_num, 0);
+                purc_variant_unref(for_open[1]);
+                purc_variant_unref(for_open[2]);
+                purc_variant_unref(ret_var);
 
                 // read
                 for_open[0] = test_file;
@@ -866,42 +884,52 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
 
                 // compare
                 ASSERT_EQ (purc_variant_array_get_size (ret_var), j - 2);
-                for (int k = 0; k < j - 2; k++) {
+                for (size_t k = 0; k < j - 2; k++) {
                     double d1, d2;
                     int64_t i1, i2;
                     uint64_t u1, u2;
                     long double ld1, ld2;
 
                     ret_result = purc_variant_array_get (ret_var, k);
-                    ASSERT_EQ(purc_variant_get_type (param[ k+ 2]), 
+                    ASSERT_EQ(purc_variant_get_type (param[ k+ 2]),
                             purc_variant_get_type (ret_result));
                     switch (purc_variant_get_type (ret_result))   {
                         case PURC_VARIANT_TYPE_NUMBER:
-                            purc_variant_cast_to_number (ret_result, &d1, false);
-                            purc_variant_cast_to_number (param[k + 2], &d2, false);
+                            purc_variant_cast_to_number (ret_result,
+                                    &d1, false);
+                            purc_variant_cast_to_number (param[k + 2],
+                                    &d2, false);
                             ASSERT_EQ (d1, d2);
                             break;
                         case PURC_VARIANT_TYPE_LONGINT:
-                            purc_variant_cast_to_longint (ret_result, &i1, false);
-                            purc_variant_cast_to_longint (param[k + 2], &i2, false);
+                            purc_variant_cast_to_longint (ret_result,
+                                    &i1, false);
+                            purc_variant_cast_to_longint (param[k + 2],
+                                    &i2, false);
                             ASSERT_EQ (i1, i2);
                             break;
                         case PURC_VARIANT_TYPE_ULONGINT:
-                            purc_variant_cast_to_ulongint (ret_result, &u1, false);
-                            purc_variant_cast_to_ulongint (param[k + 2], &u2, false);
+                            purc_variant_cast_to_ulongint (ret_result,
+                                    &u1, false);
+                            purc_variant_cast_to_ulongint (param[k + 2],
+                                    &u2, false);
                             ASSERT_EQ (u1, u2);
                             break;
                         case PURC_VARIANT_TYPE_LONGDOUBLE:
-                            purc_variant_cast_to_long_double (ret_result, &ld1, false);
-                            purc_variant_cast_to_long_double (param[k + 2], &ld2, false);
+                            purc_variant_cast_to_long_double (ret_result,
+                                    &ld1, false);
+                            purc_variant_cast_to_long_double (param[k + 2],
+                                    &ld2, false);
                             ASSERT_EQ (ld1, ld2);
                             break;
                         case PURC_VARIANT_TYPE_STRING:
-                            ASSERT_STREQ(purc_variant_get_string_const(ret_result),
-                                    purc_variant_get_string_const (param[k + 2]));
+                            ASSERT_STREQ(purc_variant_get_string_const(
+                                        ret_result),
+                                    purc_variant_get_string_const (
+                                        param[k + 2]));
                             break;
                         case PURC_VARIANT_TYPE_BSEQUENCE:
-                            buf1 = purc_variant_get_bytes_const (ret_result, 
+                            buf1 = purc_variant_get_bytes_const (ret_result,
                                     &bsize);
                             buf2 = purc_variant_get_bytes_const (param[k + 2],
                                     &bsize);
@@ -912,12 +940,26 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
                             break;
                     }
                 }
+                purc_variant_unref(ret_var);
 
                 // close
                 for_open[0] = test_file;
-                close (NULL, 1, for_open);
+                ret_var = close (NULL, 1, for_open);
+                purc_variant_unref(test_file);
 
-                unlink (test_path);
+                if (ret_var != PURC_VARIANT_INVALID) {
+                    purc_variant_unref(ret_var);
+                    ret_var = PURC_VARIANT_INVALID;
+                }
+
+                for (size_t i = 0; i < j; ++i) {
+                    if (param[i] != PURC_VARIANT_INVALID) {
+                        purc_variant_unref(param[i]);
+                        param[i] = PURC_VARIANT_INVALID;
+                    }
+                }
+
+                unlink (temp_file);
             }
             else
                 continue;
@@ -936,7 +978,7 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
     get_variant_total_info (&sz_total_mem_after,
             &sz_total_values_after, &nr_reserved_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after - 
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
                 nr_reserved_before) * sizeof(purc_variant));
 
     purc_cleanup ();
