@@ -26,6 +26,7 @@
 #include "private/instance.h"
 #include "private/errors.h"
 #include "private/utils.h"
+#include "private/dvobjs.h"
 #include "purc-variant.h"
 
 #include <unistd.h>
@@ -1772,14 +1773,14 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
-    char dir_name[PATH_MAX] = {0};
-    char filename[PATH_MAX] = {0};
+    char dir_name[PATH_MAX];
+    char filename[PATH_MAX];
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t val = PURC_VARIANT_INVALID;
     const char *filter = NULL;
-    char wildcard[10][16];
-    int wildcard_num = 0;
+    struct wildcard_list *wildcard = NULL;
+    struct wildcard_list *temp_wildcard = NULL;
     char au[10] = {0};
     int i = 0;
 
@@ -1816,15 +1817,28 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     if (filter) {
         size_t length = 0;
         const char *head = pcdvobjs_get_next_option (filter, ";", &length);
-        while (head && (wildcard_num < 10)) {
-            strncpy(wildcard[wildcard_num], head, length);
-            wildcard[wildcard_num][length] = 0x00;
-            pcdvobjs_remove_space (wildcard[wildcard_num]);
-            wildcard_num ++;
+        while (head) {
+            if (wildcard == NULL) {
+                wildcard = malloc (sizeof(struct wildcard_list));
+                if (wildcard == NULL)
+                    goto error;
+                temp_wildcard = wildcard;
+            } else {
+                temp_wildcard->next = malloc (sizeof(struct wildcard_list));
+                if (temp_wildcard->next == NULL)
+                    goto error;
+                temp_wildcard = temp_wildcard->next;
+            }
+            temp_wildcard->next = NULL;
+            temp_wildcard->wildcard = malloc (length + 1);
+            if (temp_wildcard->wildcard == NULL)
+                goto error;
+            strncpy(temp_wildcard->wildcard, head, length);
+            *(temp_wildcard->wildcard + length) = 0x00;
+            pcdvobjs_remove_space (temp_wildcard->wildcard);
             head = pcdvobjs_get_next_option (head + length + 1, ";", &length);
         }
     }
-
 
     // get the dirctory content
     DIR *dir = NULL;
@@ -1834,7 +1848,7 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     if ((dir = opendir (dir_name)) == NULL) {
         purc_set_error (PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
+        goto error;
     }
 
     ret_var = purc_variant_make_array (0, PURC_VARIANT_INVALID);
@@ -1844,17 +1858,17 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             continue;
 
         // use filter
-        if (wildcard_num != 0) {
-            for (i = 0; i < wildcard_num; i++) {
-                if (wildcard_cmp (ptr->d_name, wildcard[i]))
-                    break;
-            }
-            if (i == wildcard_num)
-                continue;
+        temp_wildcard = wildcard;
+        while (temp_wildcard) {
+            if (wildcard_cmp (ptr->d_name, temp_wildcard->wildcard))
+                break;
+            temp_wildcard = temp_wildcard->next;
         }
+        if (wildcard && (temp_wildcard == NULL))
+            continue;
 
         obj_var = purc_variant_make_object (0, PURC_VARIANT_INVALID,
-                                                    PURC_VARIANT_INVALID);
+                PURC_VARIANT_INVALID);
 
         strcpy (filename, dir_name);
         strcat (filename, "/");
@@ -1999,35 +2013,42 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     closedir(dir);
 
+error:
+    while (wildcard) {
+        if (wildcard->wildcard)
+            free (wildcard->wildcard);
+        temp_wildcard = wildcard;
+        wildcard = wildcard->next;
+        free (temp_wildcard);
+    }
     return ret_var;
 }
-
-#define DISPLAY_MODE    1
-#define DISPLAY_NLINK   2
-#define DISPLAY_UID     3
-#define DISPLAY_GID     4
-#define DISPLAY_SIZE    5
-#define DISPLAY_BLKSIZE 6
-#define DISPLAY_ATIME   7
-#define DISPLAY_CTIME   8
-#define DISPLAY_MTIME   9
-#define DISPLAY_NAME    10
-#define DISPLAY_ALL     11
-#define DISPLAY_DEFAULT 12
 
 static purc_variant_t
 list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
-    char dir_name[PATH_MAX] = {0};
-    char filename[PATH_MAX] = {0};
+    enum display_order {
+        DISPLAY_MODE = 1,
+        DISPLAY_NLINK,
+        DISPLAY_UID,
+        DISPLAY_GID,
+        DISPLAY_SIZE,
+        DISPLAY_BLKSIZE,
+        DISPLAY_ATIME,
+        DISPLAY_CTIME,
+        DISPLAY_MTIME,
+        DISPLAY_NAME
+    };
+    char dir_name[PATH_MAX];
+    char filename[PATH_MAX];
     const char *string_filename = NULL;
     const char *filter = NULL;
-    char wildcard[10][16];
-    int wildcard_num = 0;
+    struct wildcard_list *wildcard = NULL;
+    struct wildcard_list *temp_wildcard = NULL;
     const char *mode = NULL;
-    int display[10] = {0};
+    char display[10] = {0};
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t val = PURC_VARIANT_INVALID;
     char au[10] = {0};
@@ -2066,11 +2087,25 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     if (filter) {
         size_t length = 0;
         const char *head = pcdvobjs_get_next_option (filter, ";", &length);
-        while (head && (wildcard_num < 10)) {
-            strncpy(wildcard[wildcard_num], head, length);
-            wildcard[wildcard_num][length] = 0x00;
-            pcdvobjs_remove_space (wildcard[wildcard_num]);
-            wildcard_num ++;
+        while (head) {
+            if (wildcard == NULL) {
+                wildcard = malloc (sizeof(struct wildcard_list));
+                if (wildcard == NULL)
+                    goto error;
+                temp_wildcard = wildcard;
+            } else {
+                temp_wildcard->next = malloc (sizeof(struct wildcard_list));
+                if (temp_wildcard->next == NULL)
+                    goto error;
+                temp_wildcard = temp_wildcard->next;
+            }
+            temp_wildcard->next = NULL;
+            temp_wildcard->wildcard = malloc (length + 1);
+            if (temp_wildcard->wildcard == NULL)
+                goto error;
+            strncpy(temp_wildcard->wildcard, head, length);
+            *(temp_wildcard->wildcard + length) = 0x00;
+            pcdvobjs_remove_space (temp_wildcard->wildcard);
             head = pcdvobjs_get_next_option (head + length + 1, ";", &length);
         }
     }
@@ -2078,7 +2113,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     // get the mode
     if ((nr_args > 2) && (argv[2] != NULL) && (!purc_variant_is_string (argv[2]))) {
         purc_set_error (PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
+        goto error;
     }
     if ((nr_args > 2) && (argv[2] != NULL)) {
         mode = purc_variant_get_string_const (argv[2]);
@@ -2180,11 +2215,11 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     DIR *dir = NULL;
     struct dirent *ptr = NULL;
     struct stat file_stat;
-    char info[512] = {0};
+    char info[PATH_MAX] = {0};
 
     if ((dir = opendir (dir_name)) == NULL) {
         purc_set_error (PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
+        goto error;
     }
 
     ret_var = purc_variant_make_array (0, PURC_VARIANT_INVALID);
@@ -2194,16 +2229,14 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             continue;
 
         // use filter
-        if (wildcard_num != 0) {
-            for (i = 0; i < wildcard_num; i++) {
-                if (wildcard_cmp (ptr->d_name, wildcard[i]))
-                    break;
-            }
-            if (i == wildcard_num)
-                continue;
+        temp_wildcard = wildcard;
+        while (temp_wildcard) {
+            if (wildcard_cmp (ptr->d_name, temp_wildcard->wildcard))
+                break;
+            temp_wildcard = temp_wildcard->next;
         }
-
-        info[0] = 0x00;
+        if (wildcard && (temp_wildcard == NULL))
+            continue;
 
         strcpy (filename, dir_name);
         strcat (filename, "/");
@@ -2305,6 +2338,14 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     closedir(dir);
 
+error:
+    while (wildcard) {
+        if (wildcard->wildcard)
+            free (wildcard->wildcard);
+        temp_wildcard = wildcard;
+        wildcard = wildcard->next;
+        free (temp_wildcard);
+    }
     return ret_var;
 }
 

@@ -98,6 +98,11 @@ purc_variant_t pcdvojbs_get_string(void);
 purc_variant_t pcdvojbs_get_logical(void);
 purc_variant_t pcdvojbs_get_ejson(void);
 
+struct wildcard_list {
+    char * wildcard;
+    struct wildcard_list *next;
+};
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
