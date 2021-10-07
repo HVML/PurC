@@ -49,6 +49,7 @@ PURC_EXECUTABLE(test_math)
 
 set(test_math_SOURCES
     test_math.cpp
+    test_helper.cpp
 )
 
 set(test_math_LIBRARIES
@@ -138,6 +139,7 @@ PURC_EXECUTABLE(test_fs)
 
 set(test_fs_SOURCES
     test_fs.cpp
+    test_helper.cpp
 )
 
 set(test_fs_LIBRARIES
@@ -167,6 +169,7 @@ PURC_EXECUTABLE(test_file)
 
 set(test_file_SOURCES
     test_file.cpp
+    test_helper.cpp
 )
 
 set(test_file_LIBRARIES
