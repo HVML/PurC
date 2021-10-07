@@ -2039,7 +2039,8 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         DISPLAY_ATIME,
         DISPLAY_CTIME,
         DISPLAY_MTIME,
-        DISPLAY_NAME
+        DISPLAY_NAME,
+        DISPLAY_MAX
     };
     char dir_name[PATH_MAX];
     char filename[PATH_MAX];
@@ -2048,7 +2049,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     struct wildcard_list *wildcard = NULL;
     struct wildcard_list *temp_wildcard = NULL;
     const char *mode = NULL;
-    char display[10] = {0};
+    char display[DISPLAY_MAX] = {0};
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t val = PURC_VARIANT_INVALID;
     char au[10] = {0};
@@ -2180,7 +2181,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                         display[i] = DISPLAY_ATIME;
                         i++;
                     } else if (strncasecmp (head, "all", length) == 0) {
-                        for (i = 0; i < 10; i++)
+                        for (i = 0; i < (DISPLAY_MAX - 1); i++)
                             display[i] = i + 1;
                         quit = true;
                     }
@@ -2195,7 +2196,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                 case 'd':
                 case 'D':
                     if (strncasecmp (head, "default", length) == 0) {
-                        for (i = 0; i < 10; i++)
+                        for (i = 0; i < (DISPLAY_MAX - 1); i++)
                             display[i] = i + 1;
                         quit = true;
                     }
@@ -2207,7 +2208,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             head = pcdvobjs_get_next_option (head + length + 1, " ", &length);
         }
     } else {
-        for (i = 0; i < 10; i++)
+        for (i = 0; i < (DISPLAY_MAX - 1); i++)
             display[i] = i + 1;
     }
 
@@ -2245,7 +2246,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         if (stat(filename, &file_stat) < 0)
             continue;
 
-        for (i = 0; i < 10; i++) {
+        for (i = 0; i < (DISPLAY_MAX - 1); i++) {
             switch (display[i]) {
                 case DISPLAY_MODE:
                     // type
