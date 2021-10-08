@@ -28,17 +28,18 @@
 #include "purc-variant.h"
 #include "helper.h"
 
-#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+
+#include <unistd.h>
 #include <dirent.h>
 #include <fcntl.h>
+#include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <time.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <sys/sysmacros.h>
 
 static uint64_t get_variant_number (purc_variant_t var)

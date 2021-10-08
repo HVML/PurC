@@ -29,18 +29,19 @@
 #include "private/dvobjs.h"
 #include "purc-variant.h"
 
-#include <unistd.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <dirent.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include <unistd.h>
 #include <sys/sysmacros.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <dirent.h>
+#include <fcntl.h>
+#include <time.h>
 
 // for FILE
 #define BUFFER_SIZE         1024
@@ -241,7 +242,7 @@ error:
     return PURC_VARIANT_INVALID;
 }
 
-static inline bool is_endian (void)
+static inline bool is_little_endian (void)
 {
 #if CPU(BIG_ENDIAN)
     return false;
@@ -628,7 +629,6 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-
     // get the file length
     if(stat(filename, &filestat) < 0) {
         purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
@@ -753,11 +753,11 @@ static inline void read_rwstream (purc_rwstream_t rwstream,
         case ENDIAN_PLATFORM:
             break;
         case ENDIAN_LITTLE:
-            if (!is_endian ())
+            if (!is_little_endian ())
                 change_order (buf, bytes);
             break;
         case ENDIAN_BIG:
-            if (is_endian ())
+            if (is_little_endian ())
                 change_order (buf, bytes);
             break;
     }
@@ -792,11 +792,11 @@ read_rwstream_float (purc_rwstream_t rwstream, int type, int bytes)
         case ENDIAN_PLATFORM:
             break;
         case ENDIAN_LITTLE:
-            if (!is_endian ())
+            if (!is_little_endian ())
                 change_order (buf, bytes);
             break;
         case ENDIAN_BIG:
-            if (is_endian ())
+            if (is_little_endian ())
                 change_order (buf, bytes);
             break;
     }
@@ -1079,16 +1079,16 @@ static inline void write_rwstream_int (purc_rwstream_t rwstream,
         case ENDIAN_PLATFORM:
             break;
         case ENDIAN_LITTLE:
-            if (!is_endian ())
+            if (!is_little_endian ())
                 change_order ((unsigned char *)&i64, sizeof (int64_t));
             break;
         case ENDIAN_BIG:
-            if (is_endian ())
+            if (is_little_endian ())
                 change_order ((unsigned char *)&i64, sizeof (int64_t));
             break;
     }
 
-    if (is_endian ())
+    if (is_little_endian ())
         purc_rwstream_write (rwstream, (char *)&i64, bytes);
     else
         purc_rwstream_write (rwstream,
@@ -1120,11 +1120,11 @@ static inline unsigned short  write_double_to_16 (double d, int type)
         case ENDIAN_PLATFORM:
             break;
         case ENDIAN_LITTLE:
-            if (!is_endian ())
+            if (!is_little_endian ())
                 change_order ((unsigned char *)&ret, 2);
             break;
         case ENDIAN_BIG:
-            if (is_endian ())
+            if (is_little_endian ())
                 change_order ((unsigned char *)&ret, 2);
             break;
     }
@@ -1144,16 +1144,16 @@ static inline void write_rwstream_uint (purc_rwstream_t rwstream,
         case ENDIAN_PLATFORM:
             break;
         case ENDIAN_LITTLE:
-            if (!is_endian ())
+            if (!is_little_endian ())
                 change_order ((unsigned char *)&u64, sizeof (uint64_t));
             break;
         case ENDIAN_BIG:
-            if (is_endian ())
+            if (is_little_endian ())
                 change_order ((unsigned char *)&u64, sizeof (uint64_t));
             break;
     }
 
-    if (is_endian ())
+    if (is_little_endian ())
         purc_rwstream_write (rwstream, (char *)&u64, bytes);
     else
         purc_rwstream_write (rwstream,
@@ -1303,7 +1303,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                     i++;
                     purc_variant_cast_to_number (val, &d, false);
                     f = (float)d;
-                    if (is_endian ())
+                    if (is_little_endian ())
                         change_order ((unsigned char *)&f, sizeof (float));
                     purc_rwstream_write (rwstream, (char *)&f, 4);
                     write_length += 4;
@@ -1312,7 +1312,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                     val = purc_variant_array_get (argv[2], i);
                     i++;
                     purc_variant_cast_to_number (val, &d, false);
-                    if (is_endian ())
+                    if (is_little_endian ())
                         change_order ((unsigned char *)&d, sizeof (double));
                     purc_rwstream_write (rwstream, (char *)&d, 8);
                     write_length += 8;
@@ -1321,7 +1321,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                     val = purc_variant_array_get (argv[2], i);
                     i++;
                     purc_variant_cast_to_long_double (val, &ld, false);
-                    if (is_endian ())
+                    if (is_little_endian ())
                         change_order ((unsigned char *)&ld,
                                 sizeof (long double));
                     purc_rwstream_write (rwstream, (char *)&ld, 12);
@@ -1331,7 +1331,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                     val = purc_variant_array_get (argv[2], i);
                     i++;
                     purc_variant_cast_to_long_double (val, &ld, false);
-                    if (is_endian ())
+                    if (is_little_endian ())
                         change_order ((unsigned char *)&ld,
                                 sizeof (long double));
                     purc_rwstream_write (rwstream, (char *)&ld, 16);
@@ -1350,7 +1350,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                     i++;
                     purc_variant_cast_to_number (val, &d, false);
                     f = (float)d;
-                    if (!is_endian ())
+                    if (!is_little_endian ())
                         change_order ((unsigned char *)&f, sizeof (float));
                     purc_rwstream_write (rwstream, (char *)&f, 4);
                     write_length += 4;
@@ -1359,7 +1359,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                     val = purc_variant_array_get (argv[2], i);
                     i++;
                     purc_variant_cast_to_number (val, &d, false);
-                    if (!is_endian ())
+                    if (!is_little_endian ())
                         change_order ((unsigned char *)&d, sizeof (double));
                     purc_rwstream_write (rwstream, (char *)&d, 8);
                     write_length += 8;
@@ -1368,7 +1368,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                     val = purc_variant_array_get (argv[2], i);
                     i++;
                     purc_variant_cast_to_long_double (val, &ld, false);
-                    if (!is_endian ())
+                    if (!is_little_endian ())
                         change_order ((unsigned char *)&ld,
                                 sizeof (long double));
                     purc_rwstream_write (rwstream, (char *)&ld, 12);
@@ -1378,7 +1378,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                     val = purc_variant_array_get (argv[2], i);
                     i++;
                     purc_variant_cast_to_long_double (val, &ld, false);
-                    if (!is_endian ())
+                    if (!is_little_endian ())
                         change_order ((unsigned char *)&ld,
                                 sizeof (long double));
                     purc_rwstream_write (rwstream, (char *)&ld, 16);
