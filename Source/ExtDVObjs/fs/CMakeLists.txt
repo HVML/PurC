@@ -5,6 +5,7 @@ set(FS_PUBLIC_HEADERS
 
 set(FS_SOURCES
     fs.c
+    file.c
 )
 
 set(FS_PRIVATE_INCLUDE_DIRECTORIES
