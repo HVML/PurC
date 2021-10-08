@@ -26,14 +26,7 @@
 #include "mathlib.h"
 #include "purc-version.h"
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
 #include <strings.h>
-
-#include <sys/utsname.h>
 
 #define __USE_GNU
 #include <math.h>

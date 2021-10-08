@@ -25,12 +25,8 @@
 #include "private/instance.h"
 #include "private/errors.h"
 #include "private/dvobjs.h"
-
 #include "purc-variant.h"
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
 #include <time.h>
 
 void pcdvobjs_init_once(void)

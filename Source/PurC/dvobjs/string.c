@@ -24,20 +24,9 @@
 
 #include "private/instance.h"
 #include "private/errors.h"
-#include "private/utils.h"
 #include "private/dvobjs.h"
-
 #include "purc-variant.h"
 #include "helper.h"
-
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <sys/utsname.h>
-#include <sys/time.h>
-#include <locale.h>
-#include <time.h>
-#include <math.h>
 
 
 static const char * get_next_segment (const char *data,
@@ -233,8 +222,6 @@ string_shuffle (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     strcpy (src, purc_variant_get_string_const (argv[0]));
     *(src + size - 1) = 0x00;
-
-    srand(time(NULL));
 
     size_t i = 0;
     int random = 0;

@@ -25,20 +25,11 @@
 #include "private/instance.h"
 #include "private/errors.h"
 #include "private/dvobjs.h"
-
 #include "purc-variant.h"
 #include "helper.h"
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <sys/utsname.h>
 #include <math.h>
-#include <stdio.h>
-#include <sys/types.h>
 #include <regex.h>
-#include <memory.h>
-#include <stdlib.h>
 
 static bool reg_cmp (const char *buf1, const char *buf2)
 {

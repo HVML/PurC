@@ -24,20 +24,9 @@
 
 #include "private/instance.h"
 #include "private/errors.h"
-#include "private/debug.h"
-#include "private/utils.h"
-#include "private/edom.h"
-#include "private/html.h"
-
+#include "private/dvobjs.h"
 #include "purc-variant.h"
-
 #include "helper.h"
-
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <sys/utsname.h>
-#include <sys/time.h>
 
 const char * pcdvobjs_get_next_option (const char *data,
         const char *delims, size_t *length)

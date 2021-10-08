@@ -25,15 +25,8 @@
 #include "config.h"
 #include "private/instance.h"
 #include "private/errors.h"
-#include "private/utils.h"
 #include "private/dvobjs.h"
 #include "purc-variant.h"
-
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 #include <unistd.h>
 #include <sys/sysmacros.h>

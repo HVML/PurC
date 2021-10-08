@@ -24,21 +24,15 @@
 
 #include "private/instance.h"
 #include "private/errors.h"
-#include "private/utils.h"
 #include "private/dvobjs.h"
-
 #include "purc-variant.h"
 #include "helper.h"
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <sys/utsname.h>
-#include <sys/time.h>
 #include <locale.h>
 #include <time.h>
 #include <math.h>
-#include <stdlib.h>
+#include <sys/utsname.h>
+#include <sys/time.h>
 
 #define FORMAT_ISO8601  1
 #define FORMAT_RFC822   2
