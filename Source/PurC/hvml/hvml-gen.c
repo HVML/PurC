@@ -64,7 +64,6 @@ static const struct enum_to_str vgims[] = {
     VGIM_REC(_IN_HEAD),
     VGIM_REC(_AFTER_HEAD),
     VGIM_REC(_IN_BODY),
-    VGIM_REC(_TEXT),
     VGIM_REC(_AFTER_BODY),
     VGIM_REC(_AFTER_AFTER_BODY),
 };

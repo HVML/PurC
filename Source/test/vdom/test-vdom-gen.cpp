@@ -28,14 +28,23 @@ end:
 static void
 _process_file(const char *fn)
 {
-    std::cout << "Start parsing: [" << fn << "]" << std::endl;
-
     FILE *fin = NULL;
     purc_rwstream_t rin = NULL;
     struct pchvml_parser *parser = NULL;
     struct pcvdom_gen *gen = NULL;
     struct pcvdom_document *doc = NULL;
     struct pchvml_token *token = NULL;
+    bool neg = false;
+
+    if (strstr(fn, "neg.")==fn) {
+        neg = true;
+    }
+
+    if (neg) {
+        std::cout << "Start parsing neg sample: [" << fn << "]" << std::endl;
+    } else {
+        std::cout << "Start parsing: [" << fn << "]" << std::endl;
+    }
 
     fin = fopen(fn, "r");
     if (!fin) {
@@ -68,7 +77,11 @@ again:
     if (token && 0==pcvdom_gen_push_token(gen, parser, token)) {
         if (pchvml_token_is_type(token, PCHVML_TOKEN_EOF)) {
             doc = pcvdom_gen_end(gen);
-            std::cout << "Succeeded in parsing: [" << fn << "]" << std::endl;
+            if (neg) {
+                EXPECT_TRUE(false) << "failed parsing neg sample: [" << fn << "]" << std::endl;
+            } else {
+                std::cout << "Succeeded in parsing: [" << fn << "]" << std::endl;
+            }
             goto end;
         }
         goto again;
@@ -76,7 +89,11 @@ again:
     EXPECT_NE(token, nullptr) << "unexpected NULL token: ["
         << token << "]" << std::endl;
 
-    EXPECT_TRUE(false) << "failed parsing: [" << fn << "]" << std::endl;
+    if (neg) {
+        EXPECT_TRUE(false) << "failed parsing: [" << fn << "]" << std::endl;
+    } else {
+        std::cout << "Succeeded in parsing neg sample: [" << fn << "]" << std::endl;
+    }
 
 end:
     if (token)
