@@ -36,8 +36,10 @@ _process_file(const char *fn)
     struct pchvml_token *token = NULL;
     bool neg = false;
 
-    if (strstr(fn, "neg.")==fn) {
+    const char *base = basename(fn);
+    if (strstr(base, "neg.")==base) {
         neg = true;
+        std::cout << "........................." << std::endl;
     }
 
     if (neg) {
@@ -86,13 +88,16 @@ again:
         }
         goto again;
     }
-    EXPECT_NE(token, nullptr) << "unexpected NULL token: ["
-        << token << "]" << std::endl;
+
+    if (!neg) {
+        EXPECT_NE(token, nullptr) << "unexpected NULL token: ["
+            << token << "]" << std::endl;
+    }
 
     if (neg) {
-        EXPECT_TRUE(false) << "failed parsing: [" << fn << "]" << std::endl;
-    } else {
         std::cout << "Succeeded in parsing neg sample: [" << fn << "]" << std::endl;
+    } else {
+        EXPECT_TRUE(false) << "failed parsing: [" << fn << "]" << std::endl;
     }
 
 end:

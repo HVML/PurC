@@ -1,0 +1,38 @@
+<hvml>
+    <head>
+    </head>
+
+    <body>
+        <button id="theBtnWifiList">Click to fetch WiFi List</button>
+
+        <archetype id="wifi-item">
+            <li>@?.name</li>
+        </archetype>
+
+        <ul id="theWifiList">
+        </ul>
+
+        <observe on="#theBtnWifiList" for="click">
+
+            <init as="paramWifiList">
+                { "action" : "get_list" }
+            </init>
+
+            <connect at="unix:///var/run/hibus.sock" as="hibus" for="hiBus" />
+
+            <send on="$hibus" to="call" at="@localhost/cn.fmsoft.hybridos.settings/inetd/wifiScanHotspots" with="$paramWifiList" as="hotspots_list" asynchronously>
+                <observe on="$hibus" for="result:$hotspots_list">
+                    <disconnect on="$hibus" />
+
+                    <!-- fill the Wifi list with the response data -->
+                    <iterate on="$?" to="append" with="#wifi-item" in="#theWifiList">
+                    </iterate>
+
+                </observe>
+            </send>
+
+        </observe>
+
+    </body>
+</hvml>
+

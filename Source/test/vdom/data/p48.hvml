@@ -1,0 +1,13 @@
+<hvml>
+    <body>
+        <init as="sysClock">
+            $SYSTEM.time
+        </init>
+
+        <bind on="$SYSTEM.time" as="rtClock" />
+
+        <p>The initial system time: $sysClock</p>
+
+        <p>The current system time: $rcClock.eval</p>
+    </body>
+</hvml>

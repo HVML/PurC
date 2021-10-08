@@ -1,0 +1,37 @@
+<hvml>
+    <body id="errorPage">
+        <define as="fillDirEntries">
+            <choose on="$?" to="iterate" by="CLASS: CDirEntries">
+                <iterate on="$?" to="append" with="#dir-entry" by="RANGE: 0">
+                </iterate>
+                <return with="$#" />
+            </choose>
+        </define>
+
+        <listbox id="entries">
+            <call on="$fillDirEntries" in="#entries" with="/home">
+            </call>
+        </listbox>
+
+        <button id="goRoot">
+            Root
+        </button>
+
+        <button id="goHome">
+            Home
+        </button>
+
+        <observe on="#goRoot" for="click">
+            <clear on="#entries" />
+            <call on="$fillDirEntries" in="#entries" with="/">
+            </call>
+        </observe>
+
+        <observe on="#goHome" for="click">
+            <clear on="#entries" />
+            <call on="$fillDirEntries" in="#entries" with="/home" />
+        </observe>
+    </body>
+</hvml>
+
+

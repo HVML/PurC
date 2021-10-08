@@ -1,0 +1,12 @@
+<hvml lang="en">
+    <head>
+        <set on="$TIMERS" to="merge">
+            [
+                { "id" : "foobar", "interval" : 3000, "active" : "yes" },
+            ]
+        </set>
+    </head>
+
+    <body>
+    </body>
+</hvml>

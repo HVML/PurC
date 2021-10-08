@@ -1,0 +1,40 @@
+<hvml lang="en">
+    <head>
+        <init as="users" uniquely by="id">
+            [
+                { "id": "1", "avatar": "/img/avatars/1.png", "name": "Tom", "region": "en_US" },
+                { "id": "2", "avatar": "/img/avatars/2.png", "name": "Jerry", "region": "zh_CN" }
+            ]
+        </init>
+
+        <init as="new_users">
+            [
+                { "id": "3", "avatar": "/img/avatars/3.png", "name": "David", "region": "zh_CN" }
+            ]
+        </init>
+
+        <!-- init $math from a shared library -->
+        <init as="math" from="purc_dvobj_math" via="LOAD" />
+
+        <init as="locales" from="http://foo.bar.com/locales" />
+
+        <!-- merge $new_users to $users -->
+        <set on="$users" to="merge" with="$new_users" />
+
+        <!-- reset $new_users -->
+        <set at="new_users">
+            [
+                { "id": "1", "avatar": "/img/avatars/101.png", "name": "Jerry", "region": "en_US" },
+                { "id": "2", "avatar": "/img/avatars/102.png", "name": "Tom", "region": "en_US" },
+                { "id": "3", "avatar": "/img/avatars/103.png", "name": "Mike", "region": "en_US" }
+            ]
+        </set>
+
+        <set on="$users" to="merge" from="http://foo.bar.com/new_users" />
+    </head>
+
+    <body>
+    </body>
+</hvml>
+
+

@@ -1,0 +1,33 @@
+<!DOCTYPE hvml>
+<hvml target="html">
+    <head>
+        <error raw>
+            <p class="text-danger">There is an error.</p>
+        </error>
+
+        <except>
+        </except>
+    </head>
+
+    <body>
+        <footer id="the-footer">
+            <test on="$global.locale" in='#the-footer'>
+                <match for="zh_CN" to="displace" with="#footer-cn" exclusively>
+                </match>
+                <match for="zh_TW" to="displace" with="#footer-tw" exclusively>
+                </match>
+                <match for="*" to="displace" with="#footer-others">
+                </match>
+
+                <error type="nodata">
+                    <p>You forget to define the $global variable!</p>
+                </error>
+                <except type="KeyError">
+                    <p>Bad global data!</p>
+                </except>
+            </test>
+        </footer>
+    </body>
+</hvml>
+
+

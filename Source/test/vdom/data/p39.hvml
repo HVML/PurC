@@ -1,0 +1,18 @@
+<hvml>
+    <head>
+        <init as="user_info">
+            {
+                "retcode": "ok",
+                "payload": [
+                    { "id": "5", "avatar": "/img/avatars/5.png", "name": "Vincent", "region": "en_US" }
+                ]
+            }
+        </init>
+
+        <back to="_caller" with="$user_info" />
+    </head>
+
+    <body>
+    </body>
+</hvml>
+

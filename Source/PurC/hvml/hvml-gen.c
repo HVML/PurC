@@ -719,6 +719,11 @@ on_mode_in_head(struct pcvdom_gen *gen, struct pchvml_token *token)
         else if (tag_id == PCHVML_TAG__UNDEF) {
             // fall through
         }
+        else if (tag_id == PCHVML_TAG_ERROR ||
+            tag_id == PCHVML_TAG_EXCEPT)
+        {
+            // fall through
+        }
         else {
             return 0; // ignore for now
         }

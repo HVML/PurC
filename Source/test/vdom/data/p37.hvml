@@ -1,0 +1,19 @@
+<hvml>
+    <head>
+        <connect at="unix:///var/run/hibus.sock" as="hibus" for="hiBus"/>
+    </head>
+
+    <body>
+        <send on="$hibus" to="call" at="@localhost/cn.fmsoft.hybridos.settings/inetd/wifiGetHotspots" as="wifilist" asynchronously>
+            <observe on="$hibus" for="result:$wifilist" to="iterate">
+            </observe>
+        </send>
+
+        <send on="$hibus" to="subscribe" at="@localhost/cn.fmsoft.hybridos.settings/inetd/NETWORKCHANGED" as="networkchanged">
+            <observe on="$hibus" for="event:$networkchanged">
+            </observe>
+        </send>
+        ...
+    </body>
+</hvml>
+

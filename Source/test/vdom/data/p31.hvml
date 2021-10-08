@@ -1,0 +1,17 @@
+<hvml lang="en">
+    <head>
+        <init as="new_user">
+            { "id": "5", "avatar": "/img/avatars/5.png", "name": "Vincent", "region": "zh_CN" }
+        </init>
+
+        <fire on="#user-list" for="new-user" with="$new_user" />
+
+        <observe on="#user-list" for="new-user:*">
+        </observe>
+    </head>
+
+    <body>
+    </body>
+</hvml>
+
+
