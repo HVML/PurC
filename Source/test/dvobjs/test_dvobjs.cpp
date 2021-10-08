@@ -669,3 +669,164 @@ TEST(dvobjs, dvobjs_sys_get_random)
     purc_variant_unref (sys);
     purc_cleanup ();
 }
+
+
+TEST(dvobjs, dvobjs_sys_gettime)
+{
+    purc_variant_t param[MAX_PARAM_NR] = {PURC_VARIANT_INVALID};
+    purc_variant_t ret_var = NULL;
+    double number = 0;
+    size_t sz_total_mem_before = 0;
+    size_t sz_total_values_before = 0;
+    size_t nr_reserved_before = 0;
+    size_t sz_total_mem_after = 0;
+    size_t sz_total_values_after = 0;
+    size_t nr_reserved_after = 0;
+
+    purc_instance_extra_info info = {0, 0};
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    purc_variant_t sys = pcdvojbs_get_system();
+    ASSERT_NE(sys, nullptr);
+    ASSERT_EQ(purc_variant_is_object (sys), true);
+
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (sys, "time");
+    ASSERT_NE(dynamic, nullptr);
+    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+
+    purc_dvariant_method func = NULL;
+    func = purc_variant_dynamic_get_getter (dynamic);
+    ASSERT_NE(func, nullptr);
+
+    get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
+            &nr_reserved_before);
+
+    printf ("TEST get_time: nr_args = 0 :\n");
+    time_t t_time;
+    t_time = time (NULL);
+    ret_var = func (NULL, 0, param);
+    ASSERT_NE(ret_var, PURC_VARIANT_INVALID);
+    ASSERT_EQ(t_time, ret_var->u64);
+    purc_variant_unref (ret_var);
+
+    printf ("TEST get_time: nr_args = 1, param = \"tm\":\n");
+    param[0] = purc_variant_make_string ("tm", false);
+    ret_var = func (NULL, 1, param);
+    ASSERT_EQ(purc_variant_is_type (ret_var,
+                PURC_VARIANT_TYPE_OBJECT), true);
+    purc_variant_object_iterator *it =
+        purc_variant_object_make_iterator_begin (ret_var);
+    for (size_t i = 0; i < purc_variant_object_get_size (ret_var); i++) {
+        const char     *key = purc_variant_object_iterator_get_key (it);
+        purc_variant_t  val = purc_variant_object_iterator_get_value (it);
+
+        purc_variant_cast_to_number (val, &number, false);
+
+        printf("\t\t%s: %d\n", key, (int)number);
+
+        bool having = purc_variant_object_iterator_next (it);
+        if (!having) {
+            purc_variant_object_release_iterator (it);
+            break;
+        }
+    }
+    purc_variant_unref (param[0]);
+    purc_variant_unref (ret_var);
+
+    printf ("TEST get_time: nr_args = 1, param = \"iso8601\":\n");
+    param[0] = purc_variant_make_string ("iso8601", false);
+    ret_var = func (NULL, 1, param);
+    ASSERT_NE(ret_var, PURC_VARIANT_INVALID);
+    ASSERT_EQ(purc_variant_is_type (ret_var,
+                PURC_VARIANT_TYPE_STRING), true);
+    printf("\t\tReturn: %s\n", purc_variant_get_string_const (ret_var));
+    purc_variant_unref (param[0]);
+    purc_variant_unref (ret_var);
+
+    printf ("TEST get_time: nr_args = 1, param = \"rfc822\":\n");
+    param[0] = purc_variant_make_string ("rfc822", false);
+    ret_var = func (NULL, 1, param);
+    ASSERT_NE(ret_var, PURC_VARIANT_INVALID);
+    ASSERT_EQ(purc_variant_is_type (ret_var,
+                PURC_VARIANT_TYPE_STRING), true);
+    printf("\t\tReturn: %s\n", purc_variant_get_string_const (ret_var));
+    purc_variant_unref (param[0]);
+    purc_variant_unref (ret_var);
+
+    printf ("TEST get_time: nr_args = 1, param = \"abcdefg\":\n");
+    param[0] = purc_variant_make_string ("abcdefg", false);
+    ret_var = func (NULL, 1, param);
+    ASSERT_NE(ret_var, PURC_VARIANT_INVALID);
+    ASSERT_EQ(purc_variant_is_type (ret_var,
+                PURC_VARIANT_TYPE_STRING), true);
+    ASSERT_STREQ ("abcdefg", purc_variant_get_string_const (ret_var));
+    purc_variant_unref (param[0]);
+    purc_variant_unref (ret_var);
+
+    printf ("TEST get_time: nr_args = 1, \
+            param = \"beijing time %%Y-%%m-%%d, %%H:%%M:%%S, shenzhen\"\n");
+    param[0] = purc_variant_make_string (
+            "beijing time %Y-%m-%d, %H:%M:%S, shenzhen", false);
+    ret_var = func (NULL, 1, param);
+    ASSERT_NE(ret_var, PURC_VARIANT_INVALID);
+    ASSERT_EQ(purc_variant_is_type (ret_var,
+                PURC_VARIANT_TYPE_STRING), true);
+    printf("\t\tReturn: %s\n", purc_variant_get_string_const (ret_var));
+    purc_variant_unref (param[0]);
+    purc_variant_unref (ret_var);
+
+    printf ("TEST get_time: nr_args = 1, \
+            param = \"beijing time %%Y-%%m-%%d, shenzhen\"\n");
+    param[0] = purc_variant_make_string (
+            "beijing time %Y-%m-%d, shenzhen", false);
+    ret_var = func (NULL, 1, param);
+    ASSERT_NE(ret_var, PURC_VARIANT_INVALID);
+    ASSERT_EQ(purc_variant_is_type (ret_var,
+                PURC_VARIANT_TYPE_STRING), true);
+    printf("\t\tReturn: %s\n", purc_variant_get_string_const (ret_var));
+    purc_variant_unref (param[0]);
+    purc_variant_unref (ret_var);
+
+    printf ("TEST get_time: nr_args = 2, \
+            param = \"beijing time %%Y-%%m-%%d, %%H:%%M:%%S, shenzhen\", \
+            %ld\n", t_time - 24 * 60 * 60);
+    param[0] = purc_variant_make_string (
+            "beijing time %Y-%m-%d, %H:%M:%S, shenzhen", false);
+    param[1] = purc_variant_make_number (t_time - 24 * 60 * 60);
+    ret_var = func (NULL, 2, param);
+    ASSERT_NE(ret_var, PURC_VARIANT_INVALID);
+    ASSERT_EQ(purc_variant_is_type (ret_var,
+                PURC_VARIANT_TYPE_STRING), true);
+    printf("\t\tReturn: %s\n", purc_variant_get_string_const (ret_var));
+    purc_variant_unref (param[0]);
+    purc_variant_unref (param[1]);
+    purc_variant_unref (ret_var);
+
+
+    printf ("TEST get_time: nr_args = 2, \
+            param = \"beijing time %%Y-%%m-%%d, %%H:%%M:%%S, shenzhen\", \
+            %ld, Europe/Belgrade\n", t_time - 24 * 60 * 60);
+    param[0] = purc_variant_make_string (
+            "beijing time %Y-%m-%d, %H:%M:%S, shenzhen", false);
+    param[1] = purc_variant_make_number (t_time - 24 * 60 * 60);
+    param[2] = purc_variant_make_string ("Europe/Belgrade", false);
+    ret_var = func (NULL, 3, param);
+    ASSERT_NE(ret_var, PURC_VARIANT_INVALID);
+    ASSERT_EQ(purc_variant_is_type (ret_var,
+                PURC_VARIANT_TYPE_STRING), true);
+    printf("\t\tReturn: %s\n", purc_variant_get_string_const (ret_var));
+    purc_variant_unref (param[0]);
+    purc_variant_unref (param[1]);
+    purc_variant_unref (param[2]);
+    purc_variant_unref (ret_var);
+
+    get_variant_total_info (&sz_total_mem_after,
+            &sz_total_values_after, &nr_reserved_after);
+    ASSERT_EQ(sz_total_values_before, sz_total_values_after);
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before +
+            (nr_reserved_after - nr_reserved_before) * sizeof(purc_variant));
+
+    purc_variant_unref (sys);
+    purc_cleanup ();
+}
