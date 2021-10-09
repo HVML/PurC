@@ -356,7 +356,7 @@ create_head(struct pcvdom_gen *gen, struct pchvml_token *token)
         FAIL_RET();
     }
 
-    if (!token || !pchvml_token_is_self_closing(token)) {
+    if (token && !pchvml_token_is_self_closing(token)) {
         r = push_node(gen, &elem->node);
         if (r) {
             pcvdom_node_destroy(&elem->node);
@@ -541,7 +541,9 @@ create_hvml(struct pcvdom_gen *gen, struct pchvml_token *token)
     if (!elem)
         FAIL_RET();
 
-    if (!pchvml_token_is_self_closing(token)) {
+    bool self_closing = pchvml_token_is_self_closing(token);
+
+    if (!self_closing) {
         r = push_node(gen, &elem->node);
         if (r) {
             pcvdom_node_destroy(&elem->node);
@@ -551,14 +553,18 @@ create_hvml(struct pcvdom_gen *gen, struct pchvml_token *token)
 
     r = pcvdom_document_set_root(gen->doc, elem);
     if (r) {
-        if (!pchvml_token_is_self_closing(token)) {
+        if (!self_closing) {
             pop_node(gen);
         }
         pcvdom_node_destroy(&elem->node);
         FAIL_RET();
     }
 
-    gen->insertion_mode = VGIM(_BEFORE_HEAD);
+    if (!self_closing) {
+        gen->insertion_mode = VGIM(_BEFORE_HEAD);
+    } else {
+        gen->insertion_mode = VGIM(_AFTER_AFTER_BODY);
+    }
     return 0;
 }
 
@@ -686,8 +692,6 @@ on_mode_before_head(struct pcvdom_gen *gen, struct pchvml_token *token)
         else if (tag_id == PCHVML_TAG_BODY) {
             if (create_head(gen, NULL))
                 FAIL_RET();
-            pop_node(gen);
-            gen->insertion_mode = VGIM(_AFTER_HEAD);
             gen->reprocess = 1;
             return 0;
         }
@@ -695,8 +699,6 @@ on_mode_before_head(struct pcvdom_gen *gen, struct pchvml_token *token)
     else if (type==VTT(_EOF)) {
         if (create_head(gen, NULL))
             FAIL_RET();
-        pop_node(gen);
-        gen->insertion_mode = VGIM(_AFTER_HEAD);
         gen->reprocess = 1;
         return 0;
     }

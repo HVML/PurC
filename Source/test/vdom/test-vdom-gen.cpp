@@ -39,7 +39,6 @@ _process_file(const char *fn)
     const char *base = basename(fn);
     if (strstr(base, "neg.")==base) {
         neg = true;
-        std::cout << "........................." << std::endl;
     }
 
     if (neg) {
@@ -80,7 +79,7 @@ again:
         if (pchvml_token_is_type(token, PCHVML_TOKEN_EOF)) {
             doc = pcvdom_gen_end(gen);
             if (neg) {
-                EXPECT_TRUE(false) << "failed parsing neg sample: [" << fn << "]" << std::endl;
+                EXPECT_TRUE(false) << "Unexpected successful in parsing neg sample: [" << fn << "]" << std::endl;
             } else {
                 std::cout << "Succeeded in parsing: [" << fn << "]" << std::endl;
             }
@@ -95,9 +94,9 @@ again:
     }
 
     if (neg) {
-        std::cout << "Succeeded in parsing neg sample: [" << fn << "]" << std::endl;
+        std::cout << "Succeeded in failure-parsing neg sample: [" << fn << "]" << std::endl;
     } else {
-        EXPECT_TRUE(false) << "failed parsing: [" << fn << "]" << std::endl;
+        EXPECT_TRUE(false) << "Failed parsing: [" << fn << "]" << std::endl;
     }
 
 end:
