@@ -432,3 +432,8 @@ ejson_311_p_unclosed_object_in_array PCHVML_ERROR_UNEXPECTED_RIGHT_BRACKET
 ejson_312_multiple_line_array
 ejson_313_multiple_comma_on_array PCHVML_ERROR_UNEXPECTED_COMMA
 ejson_314_key_value_with_minus
+neg.1
+neg.2
+neg.3
+neg.4
+neg.5
