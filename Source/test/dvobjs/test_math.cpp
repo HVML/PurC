@@ -754,6 +754,7 @@ _trim_tail_spaces(char *dest, size_t n)
     }
 }
 
+#if 0
 static void
 _eval(purc_dvariant_method func, const char *expr,
     char *dest, size_t dlen)
@@ -788,6 +789,30 @@ _eval(purc_dvariant_method func, const char *expr,
 end:
     purc_variant_unref(ret_var);
 }
+#endif
+
+static long double
+_eval(purc_dvariant_method func, const char *expr)
+{
+    purc_variant_t param[3];
+    param[0] = purc_variant_make_string(expr, false);
+
+    purc_variant_t ret_var = func(NULL, 1, param);
+    purc_variant_unref(param[0]);
+
+    if (!ret_var) {
+        EXPECT_NE(ret_var, nullptr) << "eval failed: ["
+            << expr << "]" << std::endl;
+        return 0;
+    }
+
+    long double result;
+    purc_variant_cast_to_long_double (ret_var, &result, false);
+
+    purc_variant_unref(ret_var);
+    return result;
+}
+
 
 static void
 _eval_bc(const char *fn, char *dest, size_t dlen)
@@ -812,6 +837,7 @@ end:
         pclose(fin);
 }
 
+#if 0
 static void
 _process_file(purc_dvariant_method func, const char *fn,
     char *dest, size_t dlen)
@@ -838,6 +864,37 @@ end:
     if (fin)
         fclose(fin);
 }
+#endif
+
+static long double
+_process_file(purc_dvariant_method func, const char *fn)
+{
+    FILE *fin = NULL;
+    size_t sz = 0;
+    char buf[8192];
+    buf[0] = '\0';
+    long double result = -999.999d;
+
+    fin = fopen(fn, "r");
+    if (!fin) {
+        int err = errno;
+        EXPECT_NE(fin, nullptr) << "Failed to open ["
+            << fn << "]: [" << err << "]" << strerror(err) << std::endl;
+        goto end;
+    }
+
+    sz = fread(buf, 1, sizeof(buf)-1, fin);
+    buf[sz] = '\0';
+
+    result = _eval(func, buf);
+
+end:
+    if (fin)
+        fclose(fin);
+
+    return result;
+}
+
 
 TEST(dvobjs, dvobjs_math_bc)
 {
@@ -889,12 +946,21 @@ TEST(dvobjs, dvobjs_math_bc)
         }
         while ((dir = readdir(d)) != NULL) {
             if (dir->d_type & DT_REG) {
+#if 0
                 char l[8192], r[8192];
                 _process_file(func, dir->d_name, l, sizeof(l));
                 _eval_bc(dir->d_name, r, sizeof(r));
                 fprintf(stderr, "[%s] =?= [%s]\n", l, r);
                 EXPECT_STREQ(l, r) << "Failed to parse bc file: ["
                     << dir->d_name << "]" << std::endl;
+#endif
+                char r[8192];
+                long double r_v, r_bc;
+                r_v = _process_file(func, dir->d_name);
+                _eval_bc(dir->d_name, r, sizeof(r));
+printf ("r=%s\n", r);
+                r_bc = atof (r);
+                ASSERT_LT(fabsl (r_v - r_bc), 0.1);
             }
         }
         closedir(d);
