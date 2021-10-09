@@ -1769,7 +1769,7 @@ next_state:
 
         const char* value = pchvml_sbst_get_match(parser->sbst);
         if (value == NULL) {
-            ADVANCE_TO(PCHVML_MARKUP_DECLARATION_OPEN_STATE);
+            ADVANCE_TO(PCHVML_AFTER_DOCTYPE_NAME_STATE);
         }
 
         if (strcmp(value, "PUBLIC") == 0) {
@@ -1920,8 +1920,9 @@ next_state:
             pchvml_token_set_force_quirks(parser->token, true);
             RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
         }
-        SET_ERR(PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM);
-        RETURN_AND_STOP_PARSE();
+        RECONSUME_IN(PCHVML_AFTER_DOCTYPE_NAME_STATE);
+        //SET_ERR(PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM);
+        //RETURN_AND_STOP_PARSE();
     END_STATE()
 
     BEGIN_STATE(PCHVML_AFTER_DOCTYPE_SYSTEM_KEYWORD_STATE)

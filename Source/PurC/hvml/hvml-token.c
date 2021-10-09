@@ -515,6 +515,22 @@ struct pchvml_buffer* pchvml_token_to_string(struct pchvml_token* token)
 
     switch (token->type) {
     case PCHVML_TOKEN_DOCTYPE:
+        buffer = pchvml_buffer_new();
+        pchvml_buffer_append_bytes(buffer, "<!DOCTYPE ", 10);
+        pchvml_buffer_append_temp_buffer (buffer, token->name);
+        if (token->public_identifier) {
+            pchvml_buffer_append_bytes(buffer, " PUBLIC \"", 9);
+            pchvml_buffer_append_temp_buffer(buffer, token->public_identifier);
+            pchvml_buffer_append_bytes(buffer, "\"", 1);
+        }
+
+        if (token->system_information) {
+            pchvml_buffer_append_bytes(buffer, " SYSTEM \"", 9);
+            pchvml_buffer_append_temp_buffer(buffer, token->system_information);
+            pchvml_buffer_append_bytes(buffer, "\"", 1);
+        }
+
+        pchvml_buffer_append_bytes(buffer, ">", 1);
         break;
 
     case PCHVML_TOKEN_START_TAG:
