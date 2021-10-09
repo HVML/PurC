@@ -41,7 +41,7 @@
             {
                 "id": "$?.attr.data-value", "avatar": "$?.content[0].attr.src",
                 "name": "$?.content[1].textContent", "region": "$?.attr.data-region"
-            },
+            }
         </archedata>
 
         <observe on="#the-user-list" for="change:content" to="iterate">
