@@ -46,7 +46,7 @@
 #include <stdlib.h>
 #endif
 
-#define HVML_DEBUG_PRINT
+//#define HVML_DEBUG_PRINT
 
 #define PCHVML_END_OF_FILE       0
 
@@ -1361,6 +1361,11 @@ next_state:
         if (character == '&') {
             SET_RETURN_STATE(PCHVML_ATTRIBUTE_VALUE_DOUBLE_QUOTED_STATE);
             ADVANCE_TO(PCHVML_CHARACTER_REFERENCE_STATE);
+        }
+        if (character == '[' &&
+                pchvml_buffer_equal_to(parser->string_buffer, "~", 1)) {
+            APPEND_TO_STRING_BUFFER(character);
+            ADVANCE_TO(PCHVML_ATTRIBUTE_VALUE_DOUBLE_QUOTED_STATE);
         }
         if (character == '$' || character == '{' || character == '[') {
             bool handle = pchvml_parser_is_handle_as_jsonee(parser->token,
@@ -2738,6 +2743,9 @@ next_state:
                     ADVANCE_TO(PCHVML_EJSON_FINISHED_STATE);
                 }
                 ADVANCE_TO(PCHVML_EJSON_AFTER_VALUE_STATE);
+            }
+            if (uc == '"') {
+                RECONSUME_IN(PCHVML_EJSON_JSONEE_STRING_STATE);
             }
             SET_ERR(PCHVML_ERROR_UNEXPECTED_RIGHT_BRACKET);
             RETURN_AND_STOP_PARSE();
