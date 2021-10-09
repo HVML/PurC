@@ -43,6 +43,7 @@
 
     struct internal_param {
         purc_variant_t param;
+        purc_variant_t variables;
 #ifdef M_math
         double d;
 #endif
@@ -80,7 +81,6 @@
     static void yyerror(
         YYLTYPE *yylloc,                   // match %define locations
         yyscan_t arg,                      // match %param
-        purc_variant_t variables,          // match %parse-param
         struct internal_param *param,      // match %parse-param
         const char *errsg
     );
@@ -108,25 +108,25 @@
             _r->d = _a.d;                              \
     } while (0)
 
-    #define ASSIGN(_a, _b) do {                                       \
-        if (!variables) {                                             \
-            variables = purc_variant_make_object(0, NULL, NULL);      \
-            if (!variables)                                           \
-                YYABORT;                                              \
-        }                                                             \
-        purc_variant_t v;                                             \
-        v = MAKE_NUMBER(_b.d);                                        \
-        if (!v)                                                       \
-            YYABORT;                                                  \
-                                                                      \
-        purc_variant_t k = purc_variant_make_string(_a, true);        \
-        bool ok;                                                      \
-        ok = purc_variant_object_set(variables, k, v);                \
-        purc_variant_unref(k);                                        \
-        purc_variant_unref(v);                                        \
-                                                                      \
-        if (!ok)                                                      \
-            YYABORT;                                                  \
+    #define ASSIGN(_a, _b) do {                                           \
+        if (!param->variables) {                                          \
+            param->variables = purc_variant_make_object(0, NULL, NULL);   \
+            if (!param->variables)                                        \
+                YYABORT;                                                  \
+        }                                                                 \
+        purc_variant_t v;                                                 \
+        v = MAKE_NUMBER(_b.d);                                            \
+        if (!v)                                                           \
+            YYABORT;                                                      \
+                                                                          \
+        purc_variant_t k = purc_variant_make_string(_a, true);            \
+        bool ok;                                                          \
+        ok = purc_variant_object_set(param->variables, k, v);             \
+        purc_variant_unref(k);                                            \
+        purc_variant_unref(v);                                            \
+                                                                          \
+        if (!ok)                                                          \
+            YYABORT;                                                      \
     } while (0)
 
     #define NEG(_r, _a) do {                           \
@@ -161,28 +161,27 @@
                 YYABORT;                                            \
     } while (0)
 
-    #define SET_BY_VAR(_r, _a) do {                                  \
-        if (variables) {                                             \
-            purc_variant_t _v;                                       \
-            _v = purc_variant_object_get_by_ckey(variables, _a);     \
-            if (_v) {                                                \
-                bool ok = CAST_TO_NUMBER(_v, &_r.d, false);          \
-                purc_variant_unref(_v);                              \
-                if (ok)                                              \
-                    break;                                           \
-            }                                                        \
-        }                                                            \
-        purc_variant_t _v;                                           \
-        if (!param->param || !purc_variant_is_object(param->param))  \
-            YYABORT;                                                 \
-                                                                     \
-        _v = purc_variant_object_get_by_ckey(param->param, _a);      \
-        if (!_v)                                                     \
-            YYABORT;                                                 \
-                                                                     \
-        bool ok = CAST_TO_NUMBER(_v, &_r.d, false);                  \
-        if (!ok)                                                     \
-            YYABORT;                                                 \
+    #define SET_BY_VAR(_r, _a) do {                                      \
+        if (param->variables) {                                          \
+            purc_variant_t _v;                                           \
+            _v = purc_variant_object_get_by_ckey(param->variables, _a);  \
+            if (_v) {                                                    \
+                bool ok = CAST_TO_NUMBER(_v, &_r.d, false);              \
+                if (ok)                                                  \
+                    break;                                               \
+            }                                                            \
+        }                                                                \
+        purc_variant_t _v;                                               \
+        if (!param->param || !purc_variant_is_object(param->param))      \
+            YYABORT;                                                     \
+                                                                         \
+        _v = purc_variant_object_get_by_ckey(param->param, _a);          \
+        if (!_v)                                                         \
+            YYABORT;                                                     \
+                                                                         \
+        bool ok = CAST_TO_NUMBER(_v, &_r.d, false);                      \
+        if (!ok)                                                         \
+            YYABORT;                                                     \
     } while (0)
 }
 
@@ -197,7 +196,6 @@
 %verbose
 
 %param { yyscan_t arg }
-%parse-param { purc_variant_t variables }
 %parse-param { struct internal_param *param }
 
 %union { char *str; }
@@ -269,7 +267,6 @@ static void
 yyerror(
     YYLTYPE *yylloc,                   // match %define locations
     yyscan_t arg,                      // match %param
-    purc_variant_t variables,          // match %parse-param
     struct internal_param *param,      // match %parse-param
     const char *errsg
 )
@@ -277,7 +274,6 @@ yyerror(
     // to implement it here
     (void)yylloc;
     (void)arg;
-    (void)variables;
     (void)param;
     fprintf(stderr, "(%d,%d)->(%d,%d): %s\n",
         yylloc->first_line, yylloc->first_column-1,
@@ -290,17 +286,18 @@ int math_eval(const char *input, double *d, purc_variant_t param)
 {
     struct internal_param ud = {0};
     ud.param = param;
+    ud.variables = PURC_VARIANT_INVALID;
+
     yyscan_t arg = {0};
     math_yylex_init(&arg);
     // math_yyset_in(in, arg);
     // math_yyset_debug(debug, arg);
     math_yyset_extra(param, arg);
     math_yy_scan_string(input, arg);
-    purc_variant_t variables = PURC_VARIANT_INVALID;
-    int ret =math_yyparse(arg, variables, &ud);
-    if (variables) {
-        purc_variant_unref(variables);
-        variables = PURC_VARIANT_INVALID;
+    int ret =math_yyparse(arg, &ud);
+    if (ud.variables) {
+        purc_variant_unref(ud.variables);
+        ud.variables = PURC_VARIANT_INVALID;
     }
     math_yylex_destroy(arg);
     if (ret==0 && d) {
@@ -314,17 +311,18 @@ int math_eval_l(const char *input, long double *d, purc_variant_t param)
 {
     struct internal_param ud = {0};
     ud.param = param;
+    ud.variables = PURC_VARIANT_INVALID;
+
     yyscan_t arg = {0};
     math_l_yylex_init(&arg);
     // math_l_yyset_in(in, arg);
     // math_l_yyset_debug(debug, arg);
     math_l_yyset_extra(param, arg);
     math_l_yy_scan_string(input, arg);
-    purc_variant_t variables = PURC_VARIANT_INVALID;
-    int ret =math_l_yyparse(arg, variables, &ud);
-    if (variables) {
-        purc_variant_unref(variables);
-        variables = PURC_VARIANT_INVALID;
+    int ret =math_l_yyparse(arg, &ud);
+    if (ud.variables) {
+        purc_variant_unref(ud.variables);
+        ud.variables = PURC_VARIANT_INVALID;
     }
     math_l_yylex_destroy(arg);
     if (ret==0 && d) {
