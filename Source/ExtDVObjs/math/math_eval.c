@@ -1,8 +1,8 @@
 /*
- * @file math.h
- * @author Geng Yue
- * @date 2021/07/02
- * @brief The header file of math operation.
+ * @file math_eval.c
+ * @author Xu Xiaohong
+ * @date 2021/10/09
+ * @brief The implementation of math.eval
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -22,34 +22,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _DVOJBS_MATH_H_
-#define _DVOJBS_MATH_H_
-
 #include "purc-variant.h"
+#include "mathlib.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif  /* __cplusplus */
+#define UNUSED_PARAM (void)
 
-typedef purc_variant_t (*pcdvobjs_create) (void);
+#include "math.tab.c"
 
-// dynamic variant in dynamic object
-struct pcdvojbs_dvobjs {
-    const char * name;
-    purc_dvariant_method getter;
-    purc_dvariant_method setter;
-};
-
-int
-math_eval(const char *input, double *d, purc_variant_t param)
-__attribute__((visibility("hidden")));
-
-int
-math_eval_l(const char *input, long double *d, purc_variant_t param)
-__attribute__((visibility("hidden")));
-
-#ifdef __cplusplus
+purc_variant_t
+eval_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    return PURC_VARIANT_INVALID;
 }
-#endif  /* __cplusplus */
 
-#endif  // _DVOJBS_MATH_H_

@@ -27,7 +27,12 @@
 
 
 %{
+#ifdef M_math
 #include "math.tab.h"
+#endif
+#ifdef M_math_l
+#include "math_l.tab.h"
+#endif
 
 #define MKT(x)    TOK_MATH_##x
 
@@ -63,25 +68,9 @@ do {                                              \
     yylloc->first_line   = yylloc->last_line;     \
 } while (0)
 
-#define SET_ZERO() do {                                               \
-    if (((struct pcdvobjs_math_param*)yyextra)->is_long_double) {     \
-        yylval->ld = 0;                                               \
-    } else {                                                          \
-        yylval->d = 0;                                                \
-    }                                                                 \
-} while (0)
-
-#define SET_NUMBER(_s) do {                                           \
-    if (((struct pcdvobjs_math_param*)yyextra)->is_long_double) {     \
-        yylval->ld = atof(_s);                                        \
-    } else {                                                          \
-        yylval->d = atof(_s);                                         \
-    }                                                                 \
-} while (0)
-
 %}
 
-%option prefix="math_yy"
+    /* %option prefix="math_yy" */
 %option bison-bridge bison-locations reentrant
 %option noyywrap noinput nounput
 %option verbose debug

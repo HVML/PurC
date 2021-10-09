@@ -5,9 +5,31 @@ set(MATH_SOURCES
     math.c
 )
 
-set(math_PARSERS math)
-PURC_FLEX_BISON(MATH parsers "${math_PARSERS}")
-unset(math_PARSERS)
+macro(MATH_FLEX_BISON _target _suffix _relpath _parser)
+    BISON_TARGET(${_parser}${_suffix}_Parser
+        ${CMAKE_CURRENT_SOURCE_DIR}/parsers/math.y
+        ${CMAKE_CURRENT_BINARY_DIR}/${_parser}${_suffix}.tab.c
+        COMPILE_FLAGS "-Dapi.prefix={${_parser}${_suffix}_yy}")
+    FLEX_TARGET(${_parser}${_suffix}_Scanner
+        ${CMAKE_CURRENT_SOURCE_DIR}/parsers/math.l
+        ${CMAKE_CURRENT_BINARY_DIR}/${_parser}${_suffix}.lex.c
+        COMPILE_FLAGS "--prefix=${_parser}${_suffix}_yy --header-file=${CMAKE_CURRENT_BINARY_DIR}/${_parser}${_suffix}.lex.h")
+    ADD_FLEX_BISON_DEPENDENCY(${_parser}${_suffix}_Scanner ${_parser}${_suffix}_Parser)
+    list(APPEND ${_target}_SOURCES
+            ${BISON_${_parser}${_suffix}_Parser_OUTPUTS}
+            ${FLEX_${_parser}${_suffix}_Scanner_OUTPUTS})
+    set(_flags "-DM_${_parser}${_suffix}")
+    set_source_files_properties(${BISON_${_parser}${_suffix}_Parser_OUTPUTS}
+        PROPERTIES COMPILE_FLAGS "${_flags}"
+    )
+    set_source_files_properties(${FLEX_${_parser}${_suffix}_Scanner_OUTPUTS}
+        PROPERTIES COMPILE_FLAGS "${_flags}"
+    )
+    unset(_flags)
+endmacro()
+
+MATH_FLEX_BISON(MATH "" parsers math)
+MATH_FLEX_BISON(MATH "_l" parsers math)
 
 set(MATH_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR}/include
@@ -36,3 +58,4 @@ if (MSVC)
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /SUBSYSTEM:WINDOWS")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS")
 endif ()
+

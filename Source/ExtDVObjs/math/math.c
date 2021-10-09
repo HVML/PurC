@@ -35,56 +35,6 @@
 #define MATH_DVOBJ_VERSION  0
 #define MATH_DESCRIPTION    "For MATH Operations in PURC"
 
-// used by parser
-int pcdvobjs_math_param_set_var(struct pcdvobjs_math_param *param,
-        const char *var, struct pcdvobjs_math_value *val)
-{
-    if (!param->variables) {
-        param->variables = purc_variant_make_object(0, NULL, NULL);
-        if (!param->variables) {
-            return -1;
-        }
-    }
-    purc_variant_t v;
-    if (param->is_long_double) {
-        v = purc_variant_make_longdouble(val->ld);
-    } else {
-        v = purc_variant_make_number(val->d);
-    }
-    if (!v)
-        return -1;
-
-    purc_variant_t k = purc_variant_make_string(var, true);
-    bool ok;
-    ok = purc_variant_object_set(param->variables, k, v);
-    purc_variant_unref(k);
-    purc_variant_unref(v);
-
-    return ok ? 0 : -1;
-}
-
-// used by parser
-int pcdvobjs_math_param_get_var(struct pcdvobjs_math_param *param,
-        const char *var, struct pcdvobjs_math_value *val)
-{
-    if (!param->variables) {
-        return -1;
-    }
-    purc_variant_t v;
-    v = purc_variant_object_get_by_ckey(param->variables, var);
-    if (!v)
-        return -1;
-
-    bool ok;
-    if (param->is_long_double) {
-        ok = purc_variant_cast_to_long_double(v, &val->ld, false);
-    } else {
-        ok = purc_variant_cast_to_number(v, &val->d, false);
-    }
-
-    return ok ? 0 : -1;
-}
-
 static purc_variant_t
 pi_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
@@ -450,46 +400,41 @@ internal_eval_getter (int is_long_double, purc_variant_t root,
 {
     UNUSED_PARAM(root);
 
-    int result = 0;
-    purc_variant_t param = PURC_VARIANT_INVALID;
-
-    if (nr_args == 0) {
+    if (nr_args < 1) {
         purc_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_string (argv[0]))) {
+    if (nr_args >= 2 && !purc_variant_is_object(argv[1])) {
         purc_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if (nr_args == 2) {
-        if ((argv[1] != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_object (argv[1]))) {
-            purc_set_error (PURC_ERROR_WRONG_ARGS);
+    const char *input = purc_variant_get_string_const(argv[0]);
+    if (!input) {
+        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t param = nr_args >=2 ? argv[1] : PURC_VARIANT_INVALID;
+
+    if (!is_long_double) {
+        double v = 0;
+        int r = math_eval(input, &v, param);
+        if (r) {
+            purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
             return PURC_VARIANT_INVALID;
-        } else
-            param = argv[1];
+        }
+        return purc_variant_make_number(v);
+    } else {
+        long double v = 0;
+        int r = math_eval_l(input, &v, param);
+        if (r) {
+            purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+            return PURC_VARIANT_INVALID;
+        }
+        return purc_variant_make_longdouble(v);
     }
-
-    struct pcdvobjs_math_param myparam = {
-        0.0,
-        0.0,
-        param,
-        is_long_double,
-        PURC_VARIANT_INVALID,
-    };
-    result = math_parse(purc_variant_get_string_const(argv[0]), &myparam);
-
-    if (result != 0) {
-        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        return PURC_VARIANT_INVALID;
-    }
-
-    return myparam.is_long_double ?
-        purc_variant_make_longdouble (myparam.ld) :
-        purc_variant_make_number (myparam.d);
 }
 
 
