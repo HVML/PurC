@@ -83,7 +83,7 @@ TEST(dvobjs, dvobjs_math_pi_e)
             &nr_reserved_before);
 
     purc_variant_t math = purc_variant_load_dvobj_from_so (
-            "/usr/local/lib/purc-0.0/libpurc-dvobj-MATH.so", "MATH");
+            "libpurc-dvobj-MATH.so", "MATH");
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
 
@@ -291,7 +291,7 @@ TEST(dvobjs, dvobjs_math_const)
             &nr_reserved_before);
 
     purc_variant_t math = purc_variant_load_dvobj_from_so (
-            "/usr/local/lib/purc-0.0/libpurc-dvobj-MATH.so", "MATH");
+            "libpurc-dvobj-MATH.so", "MATH");
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
 
@@ -411,7 +411,7 @@ TEST(dvobjs, dvobjs_math_func)
             &nr_reserved_before);
 
     purc_variant_t math = purc_variant_load_dvobj_from_so (
-            "/usr/local/lib/purc-0.0/libpurc-dvobj-MATH.so", "MATH");
+            "libpurc-dvobj-MATH.so", "MATH");
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
 
@@ -489,7 +489,7 @@ TEST(dvobjs, dvobjs_math_eval)
             &nr_reserved_before);
 
     purc_variant_t math = purc_variant_load_dvobj_from_so (
-            "/usr/local/lib/purc-0.0/libpurc-dvobj-MATH.so", "MATH");
+            "libpurc-dvobj-MATH.so", "MATH");
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
 
@@ -620,7 +620,7 @@ TEST(dvobjs, dvobjs_math_assignment)
             &nr_reserved_before);
 
     purc_variant_t math = purc_variant_load_dvobj_from_so (
-            "/usr/local/lib/purc-0.0/libpurc-dvobj-MATH.so", "MATH");
+            "libpurc-dvobj-MATH.so", "MATH");
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
 
@@ -691,7 +691,7 @@ TEST(dvobjs, dvobjs_math_samples)
             &nr_reserved_before);
 
     purc_variant_t math = purc_variant_load_dvobj_from_so (
-            "/usr/local/lib/purc-0.0/libpurc-dvobj-MATH.so", "MATH");
+            "libpurc-dvobj-MATH.so", "MATH");
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
 
@@ -854,7 +854,7 @@ TEST(dvobjs, dvobjs_math_bc)
         return;
 
     purc_variant_t math = purc_variant_load_dvobj_from_so (
-            "/usr/local/lib/purc-0.0/libpurc-dvobj-MATH.so", "MATH");
+            "libpurc-dvobj-MATH.so", "MATH");
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
 
