@@ -81,7 +81,7 @@ static void
 content_destroy(struct pcvdom_content *doc);
 
 static struct pcvdom_content*
-content_create(struct pcvcm_node *vcm);
+content_create(const char *text);
 
 static void
 vdom_node_remove(struct pcvdom_node *node);
@@ -183,9 +183,14 @@ pcvdom_element_create_c(const char *tag_name)
 }
 
 struct pcvdom_content*
-pcvdom_content_create(struct pcvcm_node *vcm)
+pcvdom_content_create(const char *text)
 {
-    return content_create(vcm);
+    if (!text) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return NULL;
+    }
+
+    return content_create(text);
 }
 
 struct pcvdom_comment*
@@ -869,9 +874,9 @@ element_create(void)
 static void
 content_reset(struct pcvdom_content *content)
 {
-    if (content->vcm) {
-        pcvcm_node_destroy(content->vcm);
-        content->vcm = NULL;
+    if (content->text) {
+        free(content->text);
+        content->text = NULL;
     }
 }
 
@@ -884,7 +889,7 @@ content_destroy(struct pcvdom_content *content)
 }
 
 static struct pcvdom_content*
-content_create(struct pcvcm_node *vcm)
+content_create(const char *text)
 {
     struct pcvdom_content *content;
     content = (struct pcvdom_content*)calloc(1, sizeof(*content));
@@ -896,7 +901,12 @@ content_create(struct pcvcm_node *vcm)
     content->node.type = VDT(CONTENT);
     content->node.remove_child = NULL;
 
-    content->vcm = vcm;
+    content->text = strdup(text);
+    if (!content->text) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        content_destroy(content);
+        return NULL;
+    }
 
     return content;
 }

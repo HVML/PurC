@@ -35,7 +35,7 @@ TEST(vdom, basic)
     ASSERT_NE(comment, nullptr);
     EXPECT_EQ(0, pcvdom_document_append_comment(doc, comment));
 
-    struct pcvdom_content *content = pcvdom_content_create(NULL);
+    struct pcvdom_content *content = pcvdom_content_create("foo bar");
     ASSERT_NE(content, nullptr);
     EXPECT_EQ(0, pcvdom_document_append_content(doc, content));
 
@@ -83,10 +83,9 @@ TEST(vdom, basic)
     EXPECT_EQ(0, pcvdom_element_append_comment(elem4, comment41));
     EXPECT_EQ(pcvdom_comment_parent(comment41), elem4);
 
-    struct pcvcm_node *vcm411 = pcvcm_node_new_string("hello world");
-    ASSERT_NE(vcm411, nullptr);
+    const char *text411 = "hello world";
 
-    struct pcvdom_content *content41 = pcvdom_content_create(vcm411);
+    struct pcvdom_content *content41 = pcvdom_content_create(text411);
     ASSERT_NE(content41, nullptr);
     EXPECT_EQ(0, pcvdom_element_append_content(elem4, content41));
     EXPECT_EQ(pcvdom_content_parent(content41), elem4);

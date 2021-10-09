@@ -507,6 +507,32 @@ create_comment(struct pcvdom_gen *gen, struct pchvml_token *token)
 }
 
 static int
+append_content(struct pcvdom_gen *gen, struct pchvml_token *token)
+{
+    UNUSED_PARAM(gen);
+
+    const char *text;
+    text = pchvml_token_get_text(token);
+
+    struct pcvdom_content *content;
+    content = pcvdom_content_create(text);
+
+    if (!content)
+        return -1;
+
+    int r = 0;
+
+    r = pcvdom_document_append_content(gen->doc, content);
+
+    // TODO: check r
+
+    if (r)
+        FAIL_RET();
+
+    return 0;
+}
+
+static int
 create_hvml(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
     int r = 0;
@@ -675,8 +701,7 @@ on_mode_before_head(struct pcvdom_gen *gen, struct pchvml_token *token)
         return 0;
     }
     else if (type==VTT(_CHARACTER)) {
-        // TODO: append
-        return 0; // just ignore
+        return append_content(gen, token);
     }
     else if (type==VTT(_COMMENT)) {
         r = create_comment(gen, token);
@@ -785,8 +810,7 @@ on_mode_in_head(struct pcvdom_gen *gen, struct pchvml_token *token)
         return 0; // ignore for now
     }
     else if (type==VTT(_CHARACTER)) {
-        // TODO: append
-        return 0; // just ignore
+        return append_content(gen, token);
     }
     else if (type==VTT(_COMMENT)) {
         r = create_comment(gen, token);
@@ -839,8 +863,7 @@ on_mode_after_head(struct pcvdom_gen *gen, struct pchvml_token *token)
         return 0;
     }
     else if (type==VTT(_CHARACTER)) {
-        // TODO: append
-        return 0; // just ignore
+        return append_content(gen, token);
     }
     else if (type==VTT(_COMMENT)) {
         r = create_comment(gen, token);
@@ -974,8 +997,7 @@ on_mode_in_body(struct pcvdom_gen *gen, struct pchvml_token *token)
         FAIL_RET();
     }
     else if (type==VTT(_CHARACTER)) {
-        // TODO: append
-        return 0; // just ignore
+        return append_content(gen, token);
     }
     else if (type==VTT(_COMMENT)) {
         r = create_comment(gen, token);
@@ -1015,7 +1037,7 @@ on_mode_after_body(struct pcvdom_gen *gen, struct pchvml_token *token)
         return 0;
     }
     else if (type==VTT(_CHARACTER)) {
-        return 0; // just ignore
+        return append_content(gen, token);
     }
     else if (type==VTT(_COMMENT)) {
         r = create_comment(gen, token);

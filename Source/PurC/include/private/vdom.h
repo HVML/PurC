@@ -155,7 +155,7 @@ struct pcvdom_element {
 struct pcvdom_content {
     struct pcvdom_node      node;
 
-    struct pcvcm_node      *vcm;
+    char                   *text;
 };
 
 struct pcvdom_comment {
@@ -179,7 +179,7 @@ struct pcvdom_element*
 pcvdom_element_create_c(const char *tag_name);
 
 struct pcvdom_content*
-pcvdom_content_create(struct pcvcm_node *vcm);
+pcvdom_content_create(const char *text);
 
 struct pcvdom_comment*
 pcvdom_comment_create(const char *text);
