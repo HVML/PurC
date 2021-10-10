@@ -553,6 +553,12 @@ struct pchvml_buffer* pchvml_token_to_string(struct pchvml_token* token)
         break;
 
     case PCHVML_TOKEN_COMMENT:
+        buffer = pchvml_buffer_new();
+        pchvml_buffer_append_bytes(buffer, "<!--", 4);
+        if (token->text_content) {
+            pchvml_buffer_append_temp_buffer (buffer, token->text_content);
+        }
+        pchvml_buffer_append_bytes(buffer, "-->", 3);
         break;
 
     case PCHVML_TOKEN_CHARACTER:

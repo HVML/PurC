@@ -1539,7 +1539,7 @@ next_state:
         if (parser->sbst == NULL) {
             parser->sbst = pchvml_sbst_new_markup_declaration_open_state();
         }
-        bool ret = pchvml_sbst_advance_ex(parser->sbst, character, true);
+        bool ret = pchvml_sbst_advance_ex(parser->sbst, character, false);
         if (!ret) {
             SET_ERR(PCHVML_ERROR_INCORRECTLY_OPENED_COMMENT);
             pchvml_sbst_destroy(parser->sbst);
