@@ -27,22 +27,53 @@
 #include "private/executor.h"
 #include "private/errors.h"
 
+struct pcexec_key_inst {
+    struct purc_exec_inst       super;
+};
+
 // 创建一个执行器实例
 static purc_exec_inst_t
 key_create(enum purc_exec_type type, purc_variant_t input, bool asc_desc)
 {
-    UNUSED_PARAM(type);
-    UNUSED_PARAM(input);
-    UNUSED_PARAM(asc_desc);
-    return NULL;
+    if (!purc_variant_is_object(input))
+        return NULL;
+
+    struct pcexec_key_inst *inst;
+    inst = calloc(1, sizeof(*inst));
+    if (!inst) {
+        pcinst_set_error(PCEXECUTOR_ERROR_OOM);
+        return NULL;
+    }
+
+    inst->super.type        = type;
+    inst->super.input       = input;
+    inst->super.asc_desc    = asc_desc;
+
+    purc_variant_ref(input);
+
+    return &inst->super;
+}
+
+static inline bool
+key_parse_rule(purc_exec_inst_t inst, const char* rule)
+{
+    // parse and fill the internal fields from rule
+    // for example, generating the `selected_keys` which contains all
+    // selected keys.
+    UNUSED_PARAM(inst);
+    UNUSED_PARAM(rule);
+
+    pcinst_set_error(PCEXECUTOR_ERROR_NOT_IMPLEMENTED);
+    return false;
 }
 
 // 用于执行选择
 static purc_variant_t
 key_choose(purc_exec_inst_t inst, const char* rule)
 {
-    UNUSED_PARAM(inst);
-    UNUSED_PARAM(rule);
+    if (!key_parse_rule(inst, rule))
+        return PURC_VARIANT_INVALID;
+    pcinst_set_error(PCEXECUTOR_ERROR_NOT_IMPLEMENTED);
     return PURC_VARIANT_INVALID;
 }
 
@@ -97,7 +128,19 @@ key_reduce(purc_exec_inst_t inst, const char* rule)
 static bool
 key_destroy(purc_exec_inst_t inst)
 {
-    UNUSED_PARAM(inst);
+    if (!inst) {
+        pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
+        return false;
+    }
+
+    struct pcexec_key_inst *key_inst = (struct pcexec_key_inst*)inst;
+
+    if (key_inst->super.input) {
+        purc_variant_unref(key_inst->super.input);
+        key_inst->super.input = PURC_VARIANT_INVALID;
+    }
+
+    free(key_inst);
     return true;
 }
 
