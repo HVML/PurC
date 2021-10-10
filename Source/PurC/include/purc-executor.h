@@ -62,13 +62,17 @@ typedef struct purc_exec_ops {
     purc_exec_iter_t (*it_begin) (purc_exec_inst_t inst, const char* rule);
 
     // 根据迭代子获得对应的变体值
-    purc_variant_t (*ite_value) (purc_exec_inst_t inst, purc_exec_iter_t it);
+    purc_variant_t (*it_value) (purc_exec_inst_t inst, purc_exec_iter_t it);
 
     // 获得下一个迭代子
     // 注意: 规则字符串可能在前后两次迭代中发生变化，比如在规则中引用了变量的情形下。
     // 如果规则并没有发生变化，则对 `rule` 参数传递 NULL。
     purc_exec_iter_t (*it_next) (purc_exec_inst_t inst, purc_exec_iter_t it,
              const char* rule);
+
+    // FIXME:
+    // 销毁当前迭代子
+    bool (*it_destroy) (purc_exec_inst_t inst, purc_exec_iter_t it);
 
     // 用于执行规约
     purc_variant_t (*reduce) (purc_exec_inst_t inst, const char* rule);
@@ -80,7 +84,6 @@ typedef struct purc_exec_ops* purc_exec_ops_t;
 
 // 注册一个执行器的操作集
 bool purc_register_executor(const char* name, purc_exec_ops_t ops);
-
 
 
 PCA_EXTERN_C_END

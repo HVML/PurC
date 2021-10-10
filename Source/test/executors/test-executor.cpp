@@ -15,11 +15,9 @@ TEST(executor, basic)
 
     bool ok;
 
-    purc_exec_ops_t ops = {0};
-    ok = purc_register_executor("KEY", ops);
-    EXPECT_TRUE(ok);
-
-    ok = purc_register_executor("KEY", ops);
+    struct purc_exec_ops ops;
+    memset(&ops, 0, sizeof(ops));
+    ok = purc_register_executor("KEY", &ops);
     EXPECT_FALSE(ok);
     EXPECT_EQ(purc_get_last_error(), PCEXECUTOR_ERROR_ALREAD_EXISTS);
 

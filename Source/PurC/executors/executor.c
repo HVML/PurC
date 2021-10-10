@@ -26,9 +26,11 @@
 #include "private/instance.h"
 #include "private/errors.h"
 
+#include "key.h"
+
 struct pcexec_record {
-    char               *name;
-    purc_exec_ops_t     ops;
+    char                      *name;
+    struct purc_exec_ops       ops;
 };
 
 static int comp_pcexec_key(const void *key1, const void *key2)
@@ -71,6 +73,8 @@ void pcexecutor_init_instance(struct pcinst *inst)
 {
     struct pcexecutor_heap *heap = &inst->executor_heap;
     UNUSED_PARAM(heap);
+
+    pcexec_key_register();
 }
 
 void pcexecutor_cleanup_instance(struct pcinst *inst)
@@ -85,7 +89,7 @@ void pcexecutor_cleanup_instance(struct pcinst *inst)
 
 bool purc_register_executor(const char* name, purc_exec_ops_t ops)
 {
-    if (!name) {
+    if (!name || !ops) {
         pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
         return false;
     }
@@ -123,7 +127,7 @@ bool purc_register_executor(const char* name, purc_exec_ops_t ops)
         pcinst_set_error(PCEXECUTOR_ERROR_OOM);
         goto failure;
     }
-    record->ops  = ops;
+    record->ops  = *ops;
 
     r = pcutils_map_insert(heap->executors, name, record);
     if (r) {
