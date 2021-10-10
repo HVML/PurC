@@ -1665,6 +1665,10 @@ next_state:
 
     BEGIN_STATE(PCHVML_COMMENT_END_STATE)
         if (character == '>') {
+            const char* text = pchvml_token_get_text(parser->token);
+            if (!text) {
+                APPEND_BYTES_TO_TOKEN_TEXT(NULL, 0);
+            }
             RETURN_AND_RECONSUME_IN(PCHVML_DATA_STATE);
         }
         if (character == '!') {
