@@ -69,6 +69,8 @@
 #define PURC_ERROR_FIRST_EDOM           2200
 #define PURC_ERROR_FIRST_VCM            2300
 
+#define PURC_ERROR_FIRST_EXECUTOR       2400
+
 // TODO: error codes for variant go here
 enum pcvariant_error
 {
@@ -184,6 +186,12 @@ enum pchvml_error
     PCHVML_ERROR_NULL_CHARACTER_REFERENCE,
     PCHVML_ERROR_CONTROL_CHARACTER_REFERENCE,
     PCHVML_ERROR_INVALID_UTF8_CHARACTER
+};
+
+enum pcexecutor_error
+{
+    PCEXECUTOR_SUCCESS = PURC_ERROR_OK,
+    PCEXECUTOR_INVALID_TYPE = PURC_ERROR_FIRST_EXECUTOR,
 };
 
 PCA_EXTERN_C_BEGIN
