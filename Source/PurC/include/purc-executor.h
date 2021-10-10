@@ -70,10 +70,6 @@ typedef struct purc_exec_ops {
     purc_exec_iter_t (*it_next) (purc_exec_inst_t inst, purc_exec_iter_t it,
              const char* rule);
 
-    // FIXME:
-    // 销毁当前迭代子
-    bool (*it_destroy) (purc_exec_inst_t inst, purc_exec_iter_t it);
-
     // 用于执行规约
     purc_variant_t (*reduce) (purc_exec_inst_t inst, const char* rule);
 

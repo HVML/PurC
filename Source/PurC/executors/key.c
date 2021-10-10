@@ -25,6 +25,8 @@
 #include "key.h"
 
 #include "private/executor.h"
+
+#include "private/debug.h"
 #include "private/errors.h"
 
 struct pcexec_key_inst {
@@ -60,6 +62,15 @@ key_parse_rule(purc_exec_inst_t inst, const char* rule)
     // parse and fill the internal fields from rule
     // for example, generating the `selected_keys` which contains all
     // selected keys.
+
+    // clear previously-selected-keys
+    if (inst->selected_keys) {
+        purc_variant_unref(inst->selected_keys);
+        inst->selected_keys = PURC_VARIANT_INVALID;
+    }
+
+    // TODO: parse rule and eval to selected_keys
+
     UNUSED_PARAM(inst);
     UNUSED_PARAM(rule);
 
@@ -71,9 +82,39 @@ key_parse_rule(purc_exec_inst_t inst, const char* rule)
 static purc_variant_t
 key_choose(purc_exec_inst_t inst, const char* rule)
 {
+    if (!inst || !rule) {
+        pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
+        return PURC_VARIANT_INVALID;
+    }
+
     if (!key_parse_rule(inst, rule))
         return PURC_VARIANT_INVALID;
-    pcinst_set_error(PCEXECUTOR_ERROR_NOT_IMPLEMENTED);
+
+    size_t sz = purc_variant_array_get_size(inst->selected_keys);
+
+    purc_variant_t vals = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    if (vals == PURC_VARIANT_INVALID) {
+        return vals;
+    }
+
+    bool ok = false;
+
+    for (size_t i=0; i<sz; ++i) {
+        purc_variant_t k;
+        k = purc_variant_array_get(inst->selected_keys, i);
+        purc_variant_t v;
+        v = purc_variant_object_get(inst->input, k);
+        if (v==PURC_VARIANT_INVALID)
+            continue;
+        ok = purc_variant_array_append(vals, v);
+        if (!ok)
+            break;
+    }
+
+    if (ok)
+        return vals;
+
+    purc_variant_unref(vals);
     return PURC_VARIANT_INVALID;
 }
 
@@ -81,18 +122,43 @@ key_choose(purc_exec_inst_t inst, const char* rule)
 static purc_exec_iter_t
 key_it_begin(purc_exec_inst_t inst, const char* rule)
 {
-    UNUSED_PARAM(inst);
-    UNUSED_PARAM(rule);
-    return NULL;
+    if (!inst || !rule) {
+        pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
+        return NULL;
+    }
+
+    inst->it.curr = 0;
+    if (!key_parse_rule(inst, rule))
+        return NULL;
+
+    size_t sz = purc_variant_array_get_size(inst->selected_keys);
+    if (sz<=0) {
+        pcinst_set_error(PCEXECUTOR_ERROR_NO_KEYS_SELECTED);
+        return NULL;
+    }
+
+    return &inst->it;
 }
 
 // 根据迭代子获得对应的变体值
 static purc_variant_t
 key_it_value(purc_exec_inst_t inst, purc_exec_iter_t it)
 {
-    UNUSED_PARAM(inst);
-    UNUSED_PARAM(it);
-    return PURC_VARIANT_INVALID;
+    if (!inst || !it) {
+        pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
+        return NULL;
+    }
+
+    PC_ASSERT(&inst->it == it);
+    PC_ASSERT(inst->selected_keys != PURC_VARIANT_INVALID);
+    PC_ASSERT(inst->input != PURC_VARIANT_INVALID);
+
+    purc_variant_t k;
+    k = purc_variant_array_get(inst->selected_keys, it->curr);
+    purc_variant_t v;
+    v = purc_variant_object_get(inst->input, k);
+
+    return v;
 }
 
 // 获得下一个迭代子
@@ -101,26 +167,74 @@ key_it_value(purc_exec_inst_t inst, purc_exec_iter_t it)
 static purc_exec_iter_t
 key_it_next(purc_exec_inst_t inst, purc_exec_iter_t it, const char* rule)
 {
-    UNUSED_PARAM(inst);
-    UNUSED_PARAM(it);
-    UNUSED_PARAM(rule);
-    return NULL;
-}
+    if (!inst || !it || !rule) {
+        pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
+        return NULL;
+    }
 
-// 销毁当前迭代子
-bool key_it_destroy(purc_exec_inst_t inst, purc_exec_iter_t it)
-{
-    UNUSED_PARAM(inst);
-    UNUSED_PARAM(it);
-    return true;
+    PC_ASSERT(&inst->it == it);
+
+    if (rule) {
+        // clear previously-selected-keys
+        if (inst->selected_keys) {
+            purc_variant_unref(inst->selected_keys);
+            inst->selected_keys = PURC_VARIANT_INVALID;
+        }
+
+        if (!key_parse_rule(inst, rule))
+            return NULL;
+    }
+
+    ++it->curr;
+
+    size_t sz = purc_variant_array_get_size(inst->selected_keys);
+    if (it->curr >= sz) {
+        it->curr = sz;
+        return NULL;
+    }
+
+    return it;
 }
 
 // 用于执行规约
 static purc_variant_t
 key_reduce(purc_exec_inst_t inst, const char* rule)
 {
-    UNUSED_PARAM(inst);
-    UNUSED_PARAM(rule);
+    if (!inst || !rule) {
+        pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if (!key_parse_rule(inst, rule))
+        return PURC_VARIANT_INVALID;
+
+    size_t sz = purc_variant_array_get_size(inst->selected_keys);
+
+    purc_variant_t objs;
+    objs = purc_variant_make_object(0,
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    if (objs == PURC_VARIANT_INVALID) {
+        return objs;
+    }
+
+    bool ok = false;
+
+    for (size_t i=0; i<sz; ++i) {
+        purc_variant_t k;
+        k = purc_variant_array_get(inst->selected_keys, i);
+        purc_variant_t v;
+        v = purc_variant_object_get(inst->input, k);
+        if (v==PURC_VARIANT_INVALID)
+            continue;
+        ok = purc_variant_object_set(objs, k, v);
+        if (!ok)
+            break;
+    }
+
+    if (ok)
+        return objs;
+
+    purc_variant_unref(objs);
     return PURC_VARIANT_INVALID;
 }
 
@@ -139,6 +253,10 @@ key_destroy(purc_exec_inst_t inst)
         purc_variant_unref(key_inst->super.input);
         key_inst->super.input = PURC_VARIANT_INVALID;
     }
+    if (key_inst->super.selected_keys) {
+        purc_variant_unref(key_inst->super.selected_keys);
+        key_inst->super.selected_keys = PURC_VARIANT_INVALID;
+    }
 
     free(key_inst);
     return true;
@@ -150,7 +268,6 @@ static struct purc_exec_ops key_ops = {
     key_it_begin,
     key_it_value,
     key_it_next,
-    key_it_destroy,
     key_reduce,
     key_destroy,
 };

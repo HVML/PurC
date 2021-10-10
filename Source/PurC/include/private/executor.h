@@ -39,16 +39,19 @@ struct pcexecutor_heap {
     struct pcutils_map *executors;
 };
 
+// 用于迭代的迭代器
+struct purc_exec_iter {
+    size_t                     curr;
+};
+
 // 执行器实例
 struct purc_exec_inst {
    enum purc_exec_type         type;
    purc_variant_t              input;
    bool                        asc_desc;
-};
 
-// 用于迭代的迭代器
-struct purc_exec_iter {
-    struct purc_exec_inst     *inst;
+   purc_variant_t              selected_keys;
+   struct purc_exec_iter       it; // FIXME: one `it` for one `exec_inst`
 };
 
 
