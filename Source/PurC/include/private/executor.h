@@ -31,10 +31,12 @@
 #include "purc-errors.h"
 #include "purc-executor.h"
 
+#include "private/map.h"
+
 PCA_EXTERN_C_BEGIN
 
 struct pcexecutor_heap {
-    char place_holder[0];
+    struct pcutils_map *executors;
 };
 
 // initialize executor module (once)

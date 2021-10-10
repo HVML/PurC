@@ -26,9 +26,29 @@
 #include "private/instance.h"
 #include "private/errors.h"
 
+struct pcexec_record {
+    char               *name;
+    purc_exec_ops_t     ops;
+};
+
+static int comp_pcexec_key(const void *key1, const void *key2)
+{
+    return strcmp(key1, key2);
+}
+
+static void free_pcexec_val(void *val)
+{
+    struct pcexec_record *record = (struct pcexec_record*)val;
+    if (record->name) {
+        free(record->name);
+    }
+    free(record);
+}
+
+
 static const char* executor_err_msgs[] = {
-    /* PCEXECUTOR_INVALID_TYPE */
-    "Invalid executor type",
+    /* PCEXECUTOR_ERROR_NOT_IMPLEMENTED */
+    "Executor: NOT IMPLEMENTED",
 };
 
 static struct err_msg_seg _executor_err_msgs_seg = {
@@ -57,5 +77,67 @@ void pcexecutor_cleanup_instance(struct pcinst *inst)
 {
     struct pcexecutor_heap *heap = &inst->executor_heap;
     UNUSED_PARAM(heap);
+    if (heap->executors) {
+        pcutils_map_destroy(heap->executors);
+        heap->executors = NULL;
+    }
+}
+
+bool purc_register_executor(const char* name, purc_exec_ops_t ops)
+{
+    if (!name) {
+        pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
+        return false;
+    }
+    
+    pcutils_map_entry *entry = NULL;
+    struct pcexec_record *record = NULL;
+    int r = 0;
+
+    struct pcexecutor_heap *heap;
+    heap = &pcinst_current()->executor_heap;
+    if (!heap->executors) {
+        heap->executors = pcutils_map_create(NULL, NULL,
+            NULL, free_pcexec_val,
+            comp_pcexec_key, false); // FIXME: thread-safe or NOT?
+        if (!heap->executors) {
+            pcinst_set_error(PCEXECUTOR_ERROR_OOM);
+            goto failure;
+        }
+    }
+
+    entry = pcutils_map_find(heap->executors, name);
+    if (entry) {
+        pcinst_set_error(PCEXECUTOR_ERROR_ALREAD_EXISTS);
+        goto failure;
+    }
+
+    record = (struct pcexec_record*)calloc(1, sizeof(*record));
+    if (!record) {
+        pcinst_set_error(PCEXECUTOR_ERROR_OOM);
+        goto failure;
+    }
+
+    record->name = strdup(name);
+    if (!record->name) {
+        pcinst_set_error(PCEXECUTOR_ERROR_OOM);
+        goto failure;
+    }
+    record->ops  = ops;
+
+    r = pcutils_map_insert(heap->executors, name, record);
+    if (r) {
+        pcinst_set_error(PCEXECUTOR_ERROR_OOM);
+        goto failure;
+    }
+
+    return true;
+
+failure:
+    if (record) {
+        free_pcexec_val(record);
+    }
+
+    return false;
 }
 
