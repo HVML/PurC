@@ -791,7 +791,7 @@ _eval_bc(const char *fn, long double *v,
     size_t n = 0;
     char *endptr = NULL;
 
-    snprintf(cmd, sizeof(cmd), "(echo 'scale=10'; cat '%s';) | bc", fn);
+    snprintf(cmd, sizeof(cmd), "(echo 'scale=20'; cat '%s';) | bc", fn);
     fin = popen(cmd, "r");
     EXPECT_NE(fin, nullptr) << "failed to execute: [" << cmd << "]"
         << std::endl;
@@ -839,6 +839,15 @@ _process_file(purc_dvariant_method func, const char *fn, long double *v,
 end:
     if (fin)
         fclose(fin);
+}
+
+static inline bool
+long_double_eq(long double l, long double r)
+{
+    long double lp = fabsl(l);
+    long double rp = fabsl(r);
+    long double maxp = lp > rp ? lp : rp;
+    return fabsl(lp - rp) <= maxp * FLT_EPSILON;
 }
 
 TEST(dvobjs, dvobjs_math_bc)
@@ -900,9 +909,10 @@ TEST(dvobjs, dvobjs_math_bc)
                 ss << "]";
                 ss << "==?==[" << fabsl(l-r) << "]";
                 std::cout << ss.str() << std::endl;
-                EXPECT_LT(fabsl(l - r), 0.0001)
+                EXPECT_TRUE(long_double_eq(l, r))
                     << "Failed to parse bc file: ["
-                    << dir->d_name << "]" << std::endl;
+                    << dir->d_name << "]"
+                    << std::endl;
             }
         }
         closedir(d);
