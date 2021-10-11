@@ -236,13 +236,22 @@ std::vector<ejson_test_data> read_ejson_test_data()
                         error = to_error (err);
                     }
 
-                    sprintf(file, "%s/%s.json", data_path, name);
+                    int n;
+                    n = snprintf(file, sizeof(file), "%s/%s.json", data_path, name);
+                    if (n>=0 && (size_t)n>=sizeof(file)) {
+                        // to circumvent format-truncation warning
+                        ;
+                    }
                     char* json_buf = read_file (file);
                     if (!json_buf) {
                         continue;
                     }
 
-                    sprintf(file, "%s/%s.serial", data_path, name);
+                    n = snprintf(file, sizeof(file), "%s/%s.serial", data_path, name);
+                    if (n>=0 && (size_t)n>=sizeof(file)) {
+                        // to circumvent format-truncation warning
+                        ;
+                    }
                     char* comp_buf = read_file (file);
                     if (!comp_buf) {
                         free (json_buf);

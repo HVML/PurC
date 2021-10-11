@@ -279,14 +279,23 @@ std::vector<hvml_token_test_data> read_hvml_token_test_data()
                         error = to_error (err);
                     }
 
-                    sprintf(file, "%s/%s.hvml", data_path, name);
+                    int n;
+                    n = snprintf(file, sizeof(file), "%s/%s.hvml", data_path, name);
+                    if (n>=0 && (size_t)n>=sizeof(file)) {
+                        // to circumvent format-truncation warning
+                        ;
+                    }
                     char* buf = read_file (file);
 
                     if (!buf) {
                         continue;
                     }
 
-                    sprintf(file, "%s/%s.serial", data_path, name);
+                    n = snprintf(file, sizeof(file), "%s/%s.serial", data_path, name);
+                    if (n>=0 && (size_t)n>=sizeof(file)) {
+                        // to circumvent format-truncation warning
+                        ;
+                    }
                     char* comp_buf = read_file (file);
                     if (!comp_buf) {
                         free (buf);
