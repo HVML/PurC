@@ -60,7 +60,6 @@
         purc_dvariant_method not_f;
         purc_dvariant_method and_f;
         purc_dvariant_method or_f;
-        purc_dvariant_method xor_f;
         purc_dvariant_method eq_f;
         purc_dvariant_method ne_f;
         purc_dvariant_method gt_f;
@@ -82,7 +81,6 @@
             { &funcs->not_f,    (void*)"not" },
             { &funcs->and_f,    (void*)"and" },
             { &funcs->or_f,     (void*)"or" },
-            { &funcs->xor_f,    (void*)"xor" },
             { &funcs->eq_f,     (void*)"eq" },
             { &funcs->ne_f,     (void*)"ne" },
             { &funcs->gt_f,     (void*)"gt" },
@@ -328,7 +326,6 @@
 %left AND                     /* && */
 %precedence NEG               /* ! */
 %left GE LE EQ NE '>' '<'     /* relational operators */
-%left '^'
 
 %nterm <v> term exp
 
@@ -374,7 +371,6 @@ exp:
 | exp OR exp         { EVAL_APPLY_2(funcs->or_f, $$, $1, $3); }
 | exp '>' exp        { EVAL_APPLY_2(funcs->gt_f, $$, $1, $3); }
 | exp '<' exp        { EVAL_APPLY_2(funcs->lt_f, $$, $1, $3); }
-| exp '^' exp        { EVAL_APPLY_2(funcs->xor_f, $$, $1, $3); }
 | '!' exp %prec NEG  { EVAL_APPLY_1(funcs->not_f, $$, $2); }
 ;
 

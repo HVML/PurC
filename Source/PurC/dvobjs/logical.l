@@ -96,7 +96,7 @@ do {                                              \
           if (state != INITIAL) return -1;
           yyterminate(); }
 
-[!<>^();]      { C(); R(); return *yytext; }
+[!<>();]       { C(); R(); return *yytext; }
 ">="	       { C(); R(); return MKT(GE); }
 "<="	       { C(); R(); return MKT(LE); }
 "=="	       { C(); R(); return MKT(EQ); }
