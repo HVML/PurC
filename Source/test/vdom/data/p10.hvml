@@ -1,0 +1,13 @@
+<!DOCTYPE hvml>
+<hvml target="html">
+    <body>
+        <archetype name="ERROR">
+            <p>There is an untreated error.</p>
+        </archetype>
+
+        <archetype name="EXCEPT">
+            <p>There is an uncaught exception.</p>
+        </archetype>
+    </body>
+</hvml>
+

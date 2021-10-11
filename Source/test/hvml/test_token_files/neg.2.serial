@@ -1,0 +1,33 @@
+<!DOCTYPE hvml>
+<hvml target="html">
+    <body>
+        <init as="global">
+            { "locale" : "zh_CN" }
+        </init>
+
+        <init as="locales">
+          {
+              "zh_CN" : {"se_name" : "Baidu", "se_url": "https://www.baidu.com", "se_title": "百度" },
+              "zh_TW" : {"se_name" : "Bing", "se_url": "https://www.bing.com", "se_title": "必应" }
+          }
+        </init>
+
+        <footer id="the-footer">
+            <p><a href="" title=""></a></p>
+        </footer>
+
+        <choose on=get_variable("locales") to="update" in="#the-footer" by=concat_string("KEY: ",get_element(get_variable("global"),"locale"))>
+            <update on="~ p > a" textContent=concat_string(get_element(get_variable("?"),"se_name")) attr.href=concat_string(get_element(get_variable("?"),"se_url")) attr.title=concat_string(get_element(get_variable("?"),"se_title"))/>
+            <catch for="error:nodata">
+                <update on="~ p" textContent="You forget to define the \$locales/\$global variables!"/>
+            </catch>
+            <catch for="KeyError">
+                <update on="~p > a" textContent="Google" attr.href="https://www.google.com" attr.title="Google"/>
+            </catch>
+            <catch for="*">
+                <update on="~p" textContent="Bad \$locales/\$global data!"/>
+            </catch>
+        </choose>
+    </body>
+</hvml>
+

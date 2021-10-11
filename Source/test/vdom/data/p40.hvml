@@ -1,0 +1,19 @@
+<hvml>
+    <head>
+        <load from="new_user.hvml" type="modal">
+            <test on="$?.retcode">
+                <match for="ok" exclusively>
+                    <choose on="$2.payload" to="append" in="#the-user-list" with="$user_item">
+                    </choose>
+                </match>
+                <match>
+                    <back to="_caller" />
+                </match>
+            </test>
+        </load>
+    </head>
+
+    <body>
+    </body>
+</hvml>
+

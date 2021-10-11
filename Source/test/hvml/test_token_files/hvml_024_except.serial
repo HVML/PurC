@@ -1,0 +1,5 @@
+<hvml>
+    <except>concat_string("
+        <tag>abcdef","</tag>
+    ")</except>
+</hvml>

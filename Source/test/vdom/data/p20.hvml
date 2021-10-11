@@ -1,0 +1,8 @@
+<!DOCTYPE hvml>
+<hvml target="html">
+    <body>
+        <iterate on="$users" to="erase" by="RANGE: FROM $EJSON($users) TO 0, ADVANCE -2">
+            <erase on="$users" at="$&" />
+        </iterate>
+    </body>
+</hvml>

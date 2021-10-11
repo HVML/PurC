@@ -1,5 +1,5 @@
 /*
- * @file hvml-parser.h
+ * @file hvml-gen.h
  * @author Xu Xiaohong
  * @date 2021/09/01
  * @brief The interfaces for hvml token.
@@ -42,7 +42,6 @@ enum pcvdom_gen_insertion_mode {
     PCVDOM_GEN_INSERTION_MODE_IN_HEAD,
     PCVDOM_GEN_INSERTION_MODE_AFTER_HEAD,
     PCVDOM_GEN_INSERTION_MODE_IN_BODY,
-    PCVDOM_GEN_INSERTION_MODE_TEXT,
     PCVDOM_GEN_INSERTION_MODE_AFTER_BODY,
     PCVDOM_GEN_INSERTION_MODE_AFTER_AFTER_BODY,
 };
@@ -52,10 +51,6 @@ struct pcvdom_gen {
 
     struct pcvdom_document   *doc;
     struct pcvdom_node       *curr;
-
-    struct pcvdom_node      **open_elements;
-    size_t                    nr_open;
-    size_t                    sz_elements;
 
     /* exists for tokenizer state change */
     struct pchvml_parser     *parser;

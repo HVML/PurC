@@ -257,3 +257,24 @@ bool pchvml_buffer_is_int (struct pchvml_buffer* buffer)
     strtol((const char*)buffer->base, &p, 10);
     return (p == (char*)buffer->here);
 }
+
+bool pchvml_buffer_is_number(struct pchvml_buffer* buffer)
+{
+    char* p = NULL;
+    strtold((const char*)buffer->base, &p);
+    return (p == (const char*)buffer->here);
+}
+
+bool pchvml_buffer_is_whitespace(struct pchvml_buffer* buffer)
+{
+    uint8_t* p = buffer->base;
+    while (p !=  buffer->here) {
+        if (*p == ' ' || *p == '\x0A' || *p == '\x09' || *p == '\x0C') {
+            p++;
+            continue;
+        }
+        return false;
+    }
+    return true;
+}
+

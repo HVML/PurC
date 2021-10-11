@@ -1,0 +1,122 @@
+<!DOCTYPE hvml>
+<hvml target="html" script="python" lang="en">
+    <head>
+        <init as="users">
+            [
+                { "id": "1", "avatar": "/img/avatars/1.png", "name": "Tom", "region": "en_US" },
+                { "id": "2", "avatar": "/img/avatars/2.png", "name": "Jerry", "region": "zh_CN" }
+            ]
+        </init>
+
+        <init as="_TIMERS" uniquely by="id">
+            [
+                { "id" : "foo", "interval" : 500,  "active" : "yes" },
+                { "id" : "bar", "interval" : 1000, "active" : "no" },
+            ]
+        </init>
+
+        <listen on="hibus://system/status" as="systemStatus" />
+    </head>
+
+    <body>
+        <archetype name="user_item">
+            <li class="user-item" id="user-$?.id" data-value="$?.id" data-region="$?.region">
+                <img class="avatar" src="$?.avatar" data-value="$?.id" />
+                <span>$?.name</span>
+            </li>
+        </archetype>
+
+        <archedata name="item_user">
+            {
+                "id": "$?.attr.data-value", "avatar": "$?.content[0].attr.src",
+                "name": "$?.children[1].textContent", "region": "$?.attr.data-region"
+            }
+        </archedata>
+
+        <header id="theStatusBar">
+            <img class="mobile-status" src="" />
+            <span class="mobile-operator"></span>
+            <img class="wifi-status" src="" />
+            <span class="local-time">12:00</span>
+            <img class="battery-status" />>
+        </header>
+
+        <ul class="user-list">
+            <iterate on="$users" with="#user-item" to="append" by="CLASS: IUser">
+                <error on="nodata">
+                    <img src="wait.png" />
+                </error>
+                <except on="StopIteration">
+                    <p>Bad user data!</p>
+                </except>
+            </iterate>
+        </ul>
+
+        <archetype name="footer_cn">
+            <p><a href="http://www.baidu.com">Baidu</a></p>
+        </archetype>
+
+        <archetype name="footer_tw">
+            <p><a href="http://www.bing.com">Bing</a></p>
+        </archetype>
+
+        <archetype name="footer_def">
+            <p><a href="http://www.google.com">Google</a></p>
+        </archetype>
+
+        <footer id="the-footer">
+            <test on="$_SYSTEM.locale" in='#the-footer'>
+                <match for="~zh_CN" to="displace" with="$footer_cn" exclusively>
+                </match>
+                <match for="~zh_TW" to="displace" with="$footer_tw" exclusively>
+                </match>
+                <match for="*" to="displace" with="$footer_def">
+                </match>
+                <error on="nodata">
+                    <p>You forget to define the global variable!</p>
+                </error>
+                <except on="KeyError">
+                    <p>Bad global data!</p>
+                </except>
+                <except on="IdentifierError">
+                    <p>Bad archetype data!</p>
+                </except>
+            </test>
+        </footer>
+
+        <observe on="$_TIMERS" for="foo" to="update" in="#the-header" >
+            <update on="> span.local-time" textContent="$_SYSTEM.time('%H:%m')" />
+        </observe>
+
+        <observe on="$systemStatus" for="battery" to="test">
+            <test on="$?.level" in="#the-header">
+                <match for="100" to="update" exclusively>
+                    <update on="img.mobile-status" attr.src="/battery-level-full.png" />
+                </match>
+                <match for=">90" to="update" exclusively>
+                    <update on="img.mobile-status" attr.src="/battery-level-90.png" />
+                </match>
+                <match for=">70" to="update" exclusively>
+                    <update on="img.mobile-status" attr.src="/battery-level-70.png" />
+                </match>
+                <match for=">50" to="update" exclusively>
+                    <update on="img.mobile-status" attr.src="/battery-level-50.png" />
+                </match>
+                <match for=">30" to="update" exclusively>
+                    <update on="img.mobile-status" attr.src="/battery-level-30.png" />
+                </match>
+                <match for=">10" to="update" exclusively>
+                    <update on="img.mobile-status" attr.src="/battery-level-10.png" />
+                </match>
+                <match for="*" to="update">
+                    <update on="img.mobile-status" attr.src="/battery-level-low.png" />
+                </match>
+            </test>
+        </observe>
+
+        <observe on=".avatar" for="clicked" to="load">
+            <load on="user.hvml" with="{'id': $@.attr['data-value']}" as="_modal" />
+        </observe>
+    </body>
+</hvml>
+

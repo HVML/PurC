@@ -1,0 +1,15 @@
+<!DOCTYPE hvml>
+<hvml target="html">
+    <body>
+        <archetype name="user_item">
+            <p>$?</p>
+        </archetype>
+        <ul>
+            <archetype name="user_item">
+                <li>$?</li>
+            </archetype>
+        </ul>
+    </body>
+</hvml>
+
+

@@ -1,0 +1,5 @@
+<hvml>
+    <except>concat_string("
+        ",call_setter(get_element(get_variable("VARABC"),"ELEM"),1,2,3)," ",get_element(get_variable("ABC"),0)," ",call_setter(get_element(get_element(get_element(get_element(get_element(get_variable("A"),"B"),"C"),"D"),"E"),"F"),4,5,6)," <tag>abcdef","</tag>
+    ")</except>
+</hvml>

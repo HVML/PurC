@@ -1,0 +1,5 @@
+<hvml>
+    <head>
+        <bind on="$users[0]" as="me" />
+    </head>
+</hvml>

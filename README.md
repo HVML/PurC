@@ -21,8 +21,8 @@ With the development of Internet technology and applications, the Web front-end
 development technology around HTML/CSS/JavaScript has evolved
 rapidly, and it can even be described as "thousand miles in a day". Five years ago,
 front-end frameworks based on jQuery and Bootstrap became popular. Since 2019,
-frameworks based on virtual DOM (Document Object Model) technology have been favored 
-by front-end developers, such as the famous React.js (https://reactjs.org/), 
+frameworks based on virtual DOM (Document Object Model) technology have been favored
+by front-end developers, such as the famous React.js (https://reactjs.org/),
 Vue.js (https://cn.vuejs.org) etc. It is worth noting that WeChat
 mini-programs and quick-apps etc, also use the virtual DOM technology
 to build application frameworks at the same time.
@@ -34,12 +34,11 @@ In the virtual DOM tree, some process control based on data is realized
 through some special attributes, such as conditions and loops.
 virtual DOM technology provides the following benefits:
 
-1. Because the script does not directly manipulate the real DOM tree. On the one hand, 
-   the existing framework    simplifies the complexity of front-end development, 
-   on the other hand,  it reduces the frequent operations on the DOM tree through 
-   dynamic modification of page content by optimizing the operation of the real DOM tree, 
+1. Because the script does not directly manipulate the real DOM tree. On the one hand,
+   the existing framework    simplifies the complexity of front-end development,
+   on the other hand,  it reduces the frequent operations on the DOM tree through
+   dynamic modification of page content by optimizing the operation of the real DOM tree,
    thus improving page rendering efficiency and user experience.
-   
 2. With the virtual DOM technology, the modification of a certain data
    by the program can directly be reflected on the content of the data-bound page,
    and the developer does not need to actively or directly call the relevant
@@ -55,10 +54,9 @@ great success, but have the following deficiencies and shortcomings:
    this kind of technology in Python scripts, there is currently no solution;
    another example is in traditional GUI application programming, you cannot benefit
    from this technology.
-   
 2. These technologies implement data-based conditions and loop flow controls
    by introducing virtual attributes such as `v-if`, `v-else`, and `v-for`. However,
-   this method brings a sharp drop in code readability, which in turn brings drop of 
+   this method brings a sharp drop in code readability, which in turn brings drop of
    code maintainability. Below is an example in Vue.js:
 
 ```html
@@ -160,13 +158,14 @@ The source tree of PurC contains the following modules:
 - `Source/PurC/ports/`: The ports for different operating systems, such as a POSIX-compliant system or Windows.
 - `Source/PurC/bindings/`: The bindings for Python, Lua, and other programming languages.
 - `Source/WTF/`: The simplified WTF (Web Template Framework) from WebKit.
-- `Source/bmalloc/`: The `bmalloc` from WebKit.
 - `Source/cmake/`: The cmake modules.
 - `Source/ThirdParty/`: The third-party libraries, such as `gtest`.
 - `Source/test/`: The unit test programs.
+- `Source/Samples/`: Examples for using the interfaces of PurC.
 - `Tools/`: The tools (executables), e.g., the command line program.
-- `Documents/`: Some notes for developers.
-- `Examples/`: Examples.
+- `Tools/purc`: The standalone HVML interpreter/debugger based-on PurC, which is an interactive command line program.
+- `Tools/visual-udom`: A visual uDOM editor in text mode, which runs as a simple HVML renderer.
+- `Documents/`: Some documents for developers.
 
 Note that the HTML parser and DOM operations of PurC are derived from:
 

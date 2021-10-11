@@ -2,10 +2,11 @@
 #include "private/vdom.h"
 #include "private/hvml.h"
 #include "hvml-token.h"
-#include "hvml-parser.h"
+#include "hvml-gen.h"
 
 #include <gtest/gtest.h>
 #include <dirent.h>
+#include <glob.h>
 
 TEST(vdom_gen, basic)
 {
@@ -27,14 +28,24 @@ end:
 static void
 _process_file(const char *fn)
 {
-    std::cout << "Start parsing: [" << fn << "]" << std::endl;
-
     FILE *fin = NULL;
     purc_rwstream_t rin = NULL;
     struct pchvml_parser *parser = NULL;
     struct pcvdom_gen *gen = NULL;
     struct pcvdom_document *doc = NULL;
     struct pchvml_token *token = NULL;
+    bool neg = false;
+
+    const char *base = basename(fn);
+    if (strstr(base, "neg.")==base) {
+        neg = true;
+    }
+
+    if (neg) {
+        std::cout << "Start parsing neg sample: [" << fn << "]" << std::endl;
+    } else {
+        std::cout << "Start parsing: [" << fn << "]" << std::endl;
+    }
 
     fin = fopen(fn, "r");
     if (!fin) {
@@ -67,15 +78,26 @@ again:
     if (token && 0==pcvdom_gen_push_token(gen, parser, token)) {
         if (pchvml_token_is_type(token, PCHVML_TOKEN_EOF)) {
             doc = pcvdom_gen_end(gen);
-            std::cout << "Succeeded in parsing: [" << fn << "]" << std::endl;
+            if (neg) {
+                EXPECT_TRUE(false) << "Unexpected successful in parsing neg sample: [" << fn << "]" << std::endl;
+            } else {
+                std::cout << "Succeeded in parsing: [" << fn << "]" << std::endl;
+            }
             goto end;
         }
         goto again;
     }
-    EXPECT_NE(token, nullptr) << "unexpected NULL token: ["
-        << token << "]" << std::endl;
 
-    EXPECT_TRUE(false) << "failed parsing: [" << fn << "]" << std::endl;
+    if (!neg) {
+        EXPECT_NE(token, nullptr) << "unexpected NULL token: ["
+            << token << "]" << std::endl;
+    }
+
+    if (neg) {
+        std::cout << "Succeeded in failure-parsing neg sample: [" << fn << "]" << std::endl;
+    } else {
+        EXPECT_TRUE(false) << "Failed parsing: [" << fn << "]" << std::endl;
+    }
 
 end:
     if (token)
@@ -132,6 +154,45 @@ TEST(vdom_gen, files)
         }
         closedir(d);
     }
+
+end:
+    purc_cleanup ();
+}
+
+TEST(vdom_gen, glob)
+{
+    int r = 0;
+    glob_t globbuf;
+    memset(&globbuf, 0, sizeof(globbuf));
+
+    purc_instance_extra_info info = {0, 0};
+    r = purc_init("cn.fmsoft.hybridos.test",
+        "vdom_gen", &info);
+    EXPECT_EQ(r, PURC_ERROR_OK);
+    if (r)
+        return;
+
+    const char *env = "SOURCE_FILES";
+    const char *path = getenv(env);
+    std::cout << "env: " << env << "=" << path << std::endl;
+    EXPECT_NE(path, nullptr) << "You shall specify via env `"
+                            << env << "`"
+                            << std::endl;
+    if (!path)
+        goto end;
+
+    globbuf.gl_offs = 0;
+    r = glob(path, GLOB_DOOFFS | GLOB_APPEND, NULL, &globbuf);
+    EXPECT_EQ(r, 0) << "Failed to globbing @["
+            << path << "]: [" << errno << "]" << strerror(errno)
+            << std::endl;
+
+    if (r == 0) {
+        for (size_t i=0; i<globbuf.gl_pathc; ++i) {
+            _process_file(globbuf.gl_pathv[i]);
+        }
+    }
+    globfree(&globbuf);
 
 end:
     purc_cleanup ();

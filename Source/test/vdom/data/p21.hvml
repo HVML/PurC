@@ -1,0 +1,6 @@
+<!DOCTYPE hvml>
+<hvml target="html">
+    <body>
+        <clear on="#the-user-stats > dl" />
+    </body>
+</hvml>

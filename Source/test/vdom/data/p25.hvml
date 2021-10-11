@@ -1,0 +1,24 @@
+<!DOCTYPE hvml>
+<hvml target="html">
+    <body>
+        <init as="global">
+            { "locale" : "zh_CN" }
+        </init>
+
+        <init as="locales">
+          {
+              "zh_CN" : {"se_name" : "Baidu", "se_url": "https://www.baidu.com", "se_title": "百度" },
+              "zh_TW" : {"se_name" : "Bing", "se_url": "https://www.bing.com", "se_title": "必应" }
+          }
+        </init>
+
+        <footer id="the-footer">
+            <p><a href="" title=""></a></p>
+        </footer>
+
+        <choose on="$locales" to="update" in="#the-footer" by="KEY: $global.locale">
+            <update on="~ p > a" textContent="$?.se_name" attr.href="$?.se_url" attr.title="$?.se_title" />
+        </choose>
+    </body>
+</hvml>
+

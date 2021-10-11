@@ -96,18 +96,27 @@ struct pcvdom_node {
     void (*remove_child)(struct pcvdom_node *me, struct pcvdom_node *child);
 };
 
+struct pcvdom_doctype {
+    char                   *name;
+    char                   *tag_prefix;
+    char                   *system_info;
+};
+
 struct pcvdom_document {
     struct pcvdom_node      node;
 
-    // doctype field
-    char                   *doctype;
+    struct pcvdom_doctype   doctype;
 
     // redundant, for fast access
     struct pcvdom_element  *root;
+    struct pcvdom_element  *head;
+    struct pcvdom_element  *body;
 
     // document-variables
     // such as `$REQUEST`、`$TIMERS`、`$T` and etc.
     pcutils_map            *variables;
+
+    unsigned int            quirks:1;
 };
 
 struct pcvdom_attr {
@@ -146,7 +155,7 @@ struct pcvdom_element {
 struct pcvdom_content {
     struct pcvdom_node      node;
 
-    struct pcvcm_node      *vcm;
+    char                   *text;
 };
 
 struct pcvdom_comment {
@@ -170,7 +179,7 @@ struct pcvdom_element*
 pcvdom_element_create_c(const char *tag_name);
 
 struct pcvdom_content*
-pcvdom_content_create(struct pcvcm_node *vcm);
+pcvdom_content_create(const char *text);
 
 struct pcvdom_comment*
 pcvdom_comment_create(const char *text);
@@ -194,7 +203,8 @@ pcvdom_attr_destroy(struct pcvdom_attr *attr);
 
 // doc/dom construction api
 int
-pcvdom_document_set_doctype(struct pcvdom_document *doc, const char *doctype);
+pcvdom_document_set_doctype(struct pcvdom_document *doc,
+        const char *name, const char *doctype);
 
 int
 pcvdom_document_append_content(struct pcvdom_document *doc,
@@ -261,10 +271,10 @@ typedef int (*vdom_element_traverse_f)(struct pcvdom_element *top,
 int pcvdom_element_traverse(struct pcvdom_element *elem, void *ctx,
         vdom_element_traverse_f cb);
 
-#define pcvdom_document_create_with_doctype(doctype) ({           \
+#define pcvdom_document_create_with_doctype(name, doctype) ({     \
     struct pcvdom_document *doc = pcvdom_document_create();       \
     if (doc) {                                                    \
-        if (pcvdom_document_set_doctype(doc,doctype)) {           \
+        if (pcvdom_document_set_doctype(doc,name, doctype)) {     \
             pcvdom_document_destroy(doc);                         \
             doc = NULL;                                           \
         }                                                         \

@@ -1,0 +1,6 @@
+<!DOCTYPE hvml>
+<hvml target="html">
+    <body>
+        <erase on="#the-user-stats > h2" />
+    </body>
+</hvml>

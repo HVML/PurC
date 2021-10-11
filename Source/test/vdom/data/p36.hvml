@@ -1,0 +1,10 @@
+<hvml lang="en">
+    <head>
+        <set on="$TIMERS" to="subtract">
+            { "id" : "foo" }
+        </set>
+    </head>
+
+    <body>
+    </body>
+</hvml>

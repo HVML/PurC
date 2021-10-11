@@ -1,0 +1,26 @@
+<!DOCTYPE hvml>
+<hvml target="html">
+    <body>
+        <archetype name="user_item">
+            <li class="user-item" id="user-$?.id" data-value="$?.id" data-region="$?.region">
+                <img class="avatar" src="$?.avatar" />
+                <span>$?.name</span>
+            </li>
+        </archetype>
+
+        <archedata name="item_user">
+            {
+                "id": "$?.attr.data-value", "avatar": "$?.children[0].attr.src",
+                "name": "$?.children[1].children[0].textContent", "region": "$?.attr.data-region"
+            }
+        </archedata>
+
+        <archetype name="unknown_user_item" raw>
+            <li class="user-item">
+                <img class="avatar" src="/def-avatar.png">
+                <span>Unknown</span>
+            </li>
+        </archetype>
+    </body>
+</hvml>
+

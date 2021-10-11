@@ -1,0 +1,9 @@
+<!DOCTYPE hvml>
+<hvml target="html">
+    <head>
+        <init as="locales" uniquely>
+            [ "zh_CN", "zh_HK", "zh_TW", "en_US", "en_UK", "en_US" ]
+        </init>
+    </head>
+</hvml>
+

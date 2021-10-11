@@ -1,0 +1,8 @@
+<!--do we support CDATA?-->
+<hvml>
+    <head/>
+    <body>
+        <![CDATA[ ... ]]>
+    </body>
+</hvml>
+

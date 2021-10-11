@@ -1,0 +1,11 @@
+<hvml>
+    <body>
+        <load from="#errorPage" />
+    </body>
+
+    <body id="errorPage">
+        <p>We encountered a fatal error!</p>
+    </body>
+</hvml>
+
+

@@ -6,6 +6,9 @@
 #include "hvml/hvml-token.h"
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
+#include <libgen.h>
 #include <gtest/gtest.h>
 
 using namespace std;
@@ -15,6 +18,22 @@ using namespace std;
         fprintf(stderr, "\e[0;32m[          ] \e[0m");                    \
         fprintf(stderr, __VA_ARGS__);                                     \
     } while(false)
+
+#if OS(LINUX) || OS(UNIX)
+// get path from env or __FILE__/../<rel> otherwise
+#define getpath_from_env_or_rel(_path, _len, _env, _rel) do {  \
+    const char *p = getenv(_env);                                      \
+    if (p) {                                                           \
+        snprintf(_path, _len, "%s", p);                                \
+    } else {                                                           \
+        char tmp[PATH_MAX+1];                                          \
+        snprintf(tmp, sizeof(tmp), __FILE__);                          \
+        const char *folder = dirname(tmp);                             \
+        snprintf(_path, _len, "%s/%s", folder, _rel);                  \
+    }                                                                  \
+} while (0)
+
+#endif // OS(LINUX) || OS(UNIX)
 
 struct hvml_token_test_data {
     string name;
@@ -109,14 +128,14 @@ int to_error(const char* err)
     TO_ERROR(PCHVML_ERROR_MISSING_DOCTYPE_NAME);
     TO_ERROR(PCHVML_ERROR_INVALID_CHARACTER_SEQUENCE_AFTER_DOCTYPE_NAME);
     TO_ERROR(PCHVML_ERROR_MISSING_WHITESPACE_AFTER_DOCTYPE_PUBLIC_KEYWORD);
-    TO_ERROR(PCHVML_ERROR_MISSING_DOCTYPE_PUBLIC_IDENTIFIER);
-    TO_ERROR(PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_PUBLIC_IDENTIFIER);
-    TO_ERROR(PCHVML_ERROR_ABRUPT_DOCTYPE_PUBLIC_IDENTIFIER);
-    TO_ERROR(PCHVML_ERROR_MISSING_WHITESPACE_BETWEEN_DOCTYPE_PUBLIC_AND_SYSTEM_INFORMATIONS);
+    TO_ERROR(PCHVML_ERROR_MISSING_DOCTYPE_PUBLIC_ID);
+    TO_ERROR(PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_PUBLIC_ID);
+    TO_ERROR(PCHVML_ERROR_ABRUPT_DOCTYPE_PUBLIC_ID);
+    TO_ERROR(PCHVML_ERROR_MISSING_WHITESPACE_BETWEEN_DOCTYPE_PUB_AND_SYS);
     TO_ERROR(PCHVML_ERROR_MISSING_WHITESPACE_AFTER_DOCTYPE_SYSTEM_KEYWORD);
-    TO_ERROR(PCHVML_ERROR_MISSING_DOCTYPE_SYSTEM_INFORMATION);
-    TO_ERROR(PCHVML_ERROR_ABRUPT_DOCTYPE_SYSTEM_INFORMATION);
-    TO_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER_AFTER_DOCTYPE_SYSTEM_INFORMATION);
+    TO_ERROR(PCHVML_ERROR_MISSING_DOCTYPE_SYSTEM);
+    TO_ERROR(PCHVML_ERROR_ABRUPT_DOCTYPE_SYSTEM);
+    TO_ERROR(PCHVML_ERROR_UNEXPECTED_CHARACTER_AFTER_DOCTYPE_SYSTEM);
     TO_ERROR(PCHVML_ERROR_EOF_IN_CDATA);
     TO_ERROR(PCHVML_ERROR_UNKNOWN_NAMED_CHARACTER_REFERENCE);
     TO_ERROR(PCHVML_ERROR_ABSENCE_OF_DIGITS_IN_NUMERIC_CHARACTER_REFERENCE);
@@ -146,7 +165,7 @@ int to_error(const char* err)
     TO_ERROR(PCHVML_ERROR_MISSING_MISSING_ATTRIBUTE_VALUE);
     TO_ERROR(PCHVML_ERROR_NESTED_COMMENT);
     TO_ERROR(PCHVML_ERROR_INCORRECTLY_CLOSED_COMMENT);
-    TO_ERROR(PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM_INFORMATION);
+    TO_ERROR(PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM);
     TO_ERROR(PCHVML_ERROR_MISSING_SEMICOLON_AFTER_CHARACTER_REFERENCE);
     TO_ERROR(PCHVML_ERROR_CHARACTER_REFERENCE_OUTSIDE_UNICODE_RANGE);
     TO_ERROR(PCHVML_ERROR_SURROGATE_CHARACTER_REFERENCE);
@@ -230,7 +249,10 @@ std::vector<hvml_token_test_data> read_hvml_token_test_data()
 {
     std::vector<hvml_token_test_data> vec;
 
-    char* data_path = getenv("HVML_TEST_TOKEN_FILES_PATH");
+    const char* env = "HVML_TEST_TOKEN_FILES_PATH";
+    char data_path[PATH_MAX+1] =  {0};
+    getpath_from_env_or_rel(data_path, sizeof(data_path), env,
+            "test_token_files");
 
     if (data_path) {
         char file_path[1024] = {0};
@@ -239,7 +261,7 @@ std::vector<hvml_token_test_data> read_hvml_token_test_data()
 
         FILE* fp = fopen(file_path, "r");
         if (fp) {
-            char file[1024] = {0};
+            char file[PATH_MAX+1] = {0};
 
             char* line = NULL;
             size_t sz = 0;
@@ -257,14 +279,23 @@ std::vector<hvml_token_test_data> read_hvml_token_test_data()
                         error = to_error (err);
                     }
 
-                    sprintf(file, "%s/%s.hvml", data_path, name);
+                    int n;
+                    n = snprintf(file, sizeof(file), "%s/%s.hvml", data_path, name);
+                    if (n>=0 && (size_t)n>=sizeof(file)) {
+                        // to circumvent format-truncation warning
+                        ;
+                    }
                     char* buf = read_file (file);
 
                     if (!buf) {
                         continue;
                     }
 
-                    sprintf(file, "%s/%s.serial", data_path, name);
+                    n = snprintf(file, sizeof(file), "%s/%s.serial", data_path, name);
+                    if (n>=0 && (size_t)n>=sizeof(file)) {
+                        // to circumvent format-truncation warning
+                        ;
+                    }
                     char* comp_buf = read_file (file);
                     if (!comp_buf) {
                         free (buf);

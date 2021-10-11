@@ -1,0 +1,16 @@
+<hvml>
+    <body id="errorPage">
+        <define as="collectAllDirEntriesRecursively">
+        </define>
+
+        <listbox id="entries">
+            <call as="my_task" on="$collectAllDirEntriesRecursively" with="/" asynchronously />
+            <observe on="$my_task" for="success">
+                <iterate on="$?" to="append" in="#entries" with="#dir-entry" by="RANGE: 0">
+                </iterate>
+            </observe>
+        </listbox>
+    </body>
+</hvml>
+
+
