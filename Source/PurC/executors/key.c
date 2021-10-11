@@ -167,7 +167,7 @@ key_it_value(purc_exec_inst_t inst, purc_exec_iter_t it)
 static purc_exec_iter_t
 key_it_next(purc_exec_inst_t inst, purc_exec_iter_t it, const char* rule)
 {
-    if (!inst || !it || !rule) {
+    if (!inst || !it) {
         pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
         return NULL;
     }
