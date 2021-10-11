@@ -47,6 +47,8 @@ extern "C" {
 #define MAX_RESERVED_VARIANTS   32
 #define MAX_EMBEDDED_LEVELS     64
 
+#define EXOBJ_LOAD_ENTRY        "__purcex_load_dynamic_variant"
+#define EXOBJ_LOAD_HANDLE_KEY   "__intr_dlhandle"
 // structure for variant
 struct purc_variant {
 
