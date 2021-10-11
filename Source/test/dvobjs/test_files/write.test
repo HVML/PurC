@@ -70,15 +70,15 @@ param_end
 undefined:;
 test_end
 
-test_begin
-param_begin
-string:"u16 i64 f64 b6 S";
-ulongint:256;
-longint:129;
-number:1.2345;
-bsequence:"\01\02\03\04\05\06";
-string:"hello";
-param_end
-undefined:;
-test_end
+# test_begin
+# param_begin
+# string:"u16 i64 f64 b6 S";
+# ulongint:256;
+# longint:129;
+# number:1.2345;
+# bsequence:"\01\02\03\04\05\06";
+# string:"hello";
+# param_end
+# undefined:;
+# test_end
 
