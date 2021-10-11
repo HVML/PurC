@@ -122,16 +122,16 @@ int pcutils_parse_long_double(const char *buf, size_t len, long double *retval);
 
 #if OS(LINUX) || OS(UNIX)
 // get path from env or __FILE__/../<rel> otherwise
-#define get_path_from_env_or_rel(_path, _len, _env, _rel) do {  \
-    const char *p = getenv(_env);                               \
-    if (p) {                                                    \
-        snprintf(_path, _len, "%s", p);                         \
-    } else {                                                    \
-        char tmp[PATH_MAX+1];                                   \
-        snprintf(tmp, sizeof(tmp), __FILE__);                   \
-        const char *folder = dirname(tmp);                      \
-        snprintf(_path, _len, "%s/%s", folder, _rel);           \
-    }                                                           \
+#define pcutils_getpath_from_env_or_rel(_path, _len, _env, _rel) do {  \
+    const char *p = getenv(_env);                                      \
+    if (p) {                                                           \
+        snprintf(_path, _len, "%s", p);                                \
+    } else {                                                           \
+        char tmp[PATH_MAX+1];                                          \
+        snprintf(tmp, sizeof(tmp), __FILE__);                          \
+        const char *folder = dirname(tmp);                             \
+        snprintf(_path, _len, "%s/%s", folder, _rel);                  \
+    }                                                                  \
 } while (0)
 
 #endif // OS(LINUX) || OS(UNIX)

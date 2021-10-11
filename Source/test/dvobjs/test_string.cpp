@@ -35,7 +35,8 @@ TEST(dvobjs, dvobjs_string_contains)
     char file_path[1024];
     char data_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
-    get_path_from_env_or_rel(data_path, sizeof(data_path), env, "test_files");
+    pcutils_getpath_from_env_or_rel(data_path, sizeof(data_path),
+        env, "test_files");
     std::cout << "env: " << env << "=" << data_path << std::endl;
 
     // get and function
@@ -194,7 +195,8 @@ TEST(dvobjs, dvobjs_string_explode)
     char file_path[1024];
     char data_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
-    get_path_from_env_or_rel(data_path, sizeof(data_path), env, "test_files");
+    pcutils_getpath_from_env_or_rel(data_path, sizeof(data_path),
+        env, "test_files");
     std::cout << "env: " << env << "=" << data_path << std::endl;
 
     // get and function
@@ -367,7 +369,8 @@ TEST(dvobjs, dvobjs_string_shuffle)
     char file_path[1024];
     char data_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
-    get_path_from_env_or_rel(data_path, sizeof(data_path), env, "test_files");
+    pcutils_getpath_from_env_or_rel(data_path, sizeof(data_path),
+        env, "test_files");
     std::cout << "env: " << env << "=" << data_path << std::endl;
 
     // get and function
@@ -541,7 +544,8 @@ TEST(dvobjs, dvobjs_string_replace)
     char file_path[1024];
     char data_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
-    get_path_from_env_or_rel(data_path, sizeof(data_path), env, "test_files");
+    pcutils_getpath_from_env_or_rel(data_path, sizeof(data_path),
+        env, "test_files");
     std::cout << "env: " << env << "=" << data_path << std::endl;
 
     // get and function
@@ -705,7 +709,8 @@ TEST(dvobjs, dvobjs_string_format_c)
     char file_path[1024];
     char data_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
-    get_path_from_env_or_rel(data_path, sizeof(data_path), env, "test_files");
+    pcutils_getpath_from_env_or_rel(data_path, sizeof(data_path),
+        env, "test_files");
     std::cout << "env: " << env << "=" << data_path << std::endl;
 
     // get and function
@@ -868,7 +873,8 @@ TEST(dvobjs, dvobjs_string_format_p)
     char file_path[1024];
     char data_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
-    get_path_from_env_or_rel(data_path, sizeof(data_path), env, "test_files");
+    pcutils_getpath_from_env_or_rel(data_path, sizeof(data_path),
+        env, "test_files");
     std::cout << "env: " << env << "=" << data_path << std::endl;
 
     // get and function

@@ -879,7 +879,8 @@ TEST(dvobjs, dvobjs_math_bc)
 
     char math_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
-    get_path_from_env_or_rel(math_path, sizeof(math_path), env, "test_files");
+    pcutils_getpath_from_env_or_rel(math_path, sizeof(math_path),
+        env, "test_files");
     std::cout << "env: " << env << "=" << math_path << std::endl;
 
     strcpy (path, math_path);
