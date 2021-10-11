@@ -310,10 +310,24 @@
 %destructor { EVAL_FREE($$); } <v>
 
 /* declare tokens */
+/*
+ * The expression precedence is as follows: (lowest to highest)
+ *        || operator, left associative
+ *        && operator, left associative
+ *        ! operator, nonassociative
+ *        Relational operators, left associative
+ *        Assignment operator, right associative
+ *        + and - operators, left associative
+ *        *, / and % operators, left associative
+ *        ^ operator, right associative
+ *        unary - operator, nonassociative
+ *        ++ and -- operators, nonassociative
+ */
 %token <sz_ptr> VAR INT NUM
-%left AND OR
-%left GE LE EQ NE '>' '<'
-%precedence NEG /* negation--unary minus */
+%left OR                      /* || */
+%left AND                     /* && */
+%precedence NEG               /* ! */
+%left GE LE EQ NE '>' '<'     /* relational operators */
 %left '^'
 
 %nterm <v> term exp
