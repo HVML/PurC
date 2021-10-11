@@ -944,7 +944,7 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
 
         purc_variant_array_append (ret_var, val);
         purc_variant_unref (val);
-        head = pcdvobjs_get_next_option (head + length + 1, " \t\n", &length);
+        head = pcdvobjs_get_next_option (head + length, " \t\n", &length);
     }
     return ret_var;
 }
@@ -1370,7 +1370,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                 }
                 break;
         }
-        head = pcdvobjs_get_next_option (head + length + 1, " \t\n", &length);
+        head = pcdvobjs_get_next_option (head + length, " \t\n", &length);
     }
 
     ret_var = purc_variant_make_ulongint (write_length);
