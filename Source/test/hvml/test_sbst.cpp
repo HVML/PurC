@@ -132,19 +132,19 @@ TEST(hvml_markup_declaration_open_state, match_doctype)
 
     bool ret = false;
 
-    ret = pchvml_sbst_advance_ex(search, 'd', true);
+    ret = pchvml_sbst_advance_ex(search, 'D', false);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_ex(search, 'O', true);
+    ret = pchvml_sbst_advance_ex(search, 'O', false);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_ex(search, 'C', true);
+    ret = pchvml_sbst_advance_ex(search, 'C', false);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_ex(search, 'T', true);
+    ret = pchvml_sbst_advance_ex(search, 'T', false);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_ex(search, 'y', true);
+    ret = pchvml_sbst_advance_ex(search, 'Y', false);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_ex(search, 'P', true);
+    ret = pchvml_sbst_advance_ex(search, 'P', false);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_ex(search, 'e', true);
+    ret = pchvml_sbst_advance_ex(search, 'E', false);
     ASSERT_EQ(ret, true);
 
     const char* match = pchvml_sbst_get_match(search);
