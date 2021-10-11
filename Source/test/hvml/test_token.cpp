@@ -261,7 +261,7 @@ std::vector<hvml_token_test_data> read_hvml_token_test_data()
 
         FILE* fp = fopen(file_path, "r");
         if (fp) {
-            char file[1024] = {0};
+            char file[PATH_MAX+1] = {0};
 
             char* line = NULL;
             size_t sz = 0;
