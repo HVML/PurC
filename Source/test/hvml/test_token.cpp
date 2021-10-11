@@ -6,6 +6,9 @@
 #include "hvml/hvml-token.h"
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
+#include <libgen.h>
 #include <gtest/gtest.h>
 
 using namespace std;
@@ -15,6 +18,22 @@ using namespace std;
         fprintf(stderr, "\e[0;32m[          ] \e[0m");                    \
         fprintf(stderr, __VA_ARGS__);                                     \
     } while(false)
+
+#if OS(LINUX) || OS(UNIX)
+// get path from env or __FILE__/../<rel> otherwise
+#define getpath_from_env_or_rel(_path, _len, _env, _rel) do {  \
+    const char *p = getenv(_env);                                      \
+    if (p) {                                                           \
+        snprintf(_path, _len, "%s", p);                                \
+    } else {                                                           \
+        char tmp[PATH_MAX+1];                                          \
+        snprintf(tmp, sizeof(tmp), __FILE__);                          \
+        const char *folder = dirname(tmp);                             \
+        snprintf(_path, _len, "%s/%s", folder, _rel);                  \
+    }                                                                  \
+} while (0)
+
+#endif // OS(LINUX) || OS(UNIX)
 
 struct hvml_token_test_data {
     string name;
@@ -230,7 +249,10 @@ std::vector<hvml_token_test_data> read_hvml_token_test_data()
 {
     std::vector<hvml_token_test_data> vec;
 
-    char* data_path = getenv("HVML_TEST_TOKEN_FILES_PATH");
+    const char* env = "HVML_TEST_TOKEN_FILES_PATH";
+    char data_path[PATH_MAX+1] =  {0};
+    getpath_from_env_or_rel(data_path, sizeof(data_path), env,
+            "test_token_files");
 
     if (data_path) {
         char file_path[1024] = {0};
