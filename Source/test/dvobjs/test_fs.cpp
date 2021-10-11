@@ -886,5 +886,7 @@ TEST(dvobjs, dvobjs_fs_touch)
     ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
                 nr_reserved_before) * sizeof(purc_variant));
 
+    unlink (file_path);
+
     purc_cleanup ();
 }

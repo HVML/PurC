@@ -1074,5 +1074,7 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
     ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
                 nr_reserved_before) * sizeof(purc_variant));
 
+    unlink (temp_file);
+
     purc_cleanup ();
 }
