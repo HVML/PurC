@@ -32,6 +32,12 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#if OS(LINUX) || OS(UNIX)
+#include <limits.h>
+#include <stdio.h>
+#include <libgen.h>
+#endif // OS(LINUX) || OS(UNIX)
+
 #define pcutils_html_whitespace(onechar, action, logic)   \
     (onechar action ' '  logic                            \
      onechar action '\t' logic                            \
@@ -113,6 +119,22 @@ int pcutils_parse_int64(const char *buf, size_t len, int64_t *retval);
 int pcutils_parse_uint64(const char *buf, size_t len, uint64_t *retval);
 int pcutils_parse_double(const char *buf, size_t len, double *retval);
 int pcutils_parse_long_double(const char *buf, size_t len, long double *retval);
+
+#if OS(LINUX) || OS(UNIX)
+// get path from env or __FILE__/../<rel> otherwise
+#define get_path_from_env_or_rel(_path, _len, _env, _rel) do {  \
+    const char *p = getenv(_env);                               \
+    if (p) {                                                    \
+        snprintf(_path, _len, "%s", p);                         \
+    } else {                                                    \
+        char tmp[PATH_MAX+1];                                   \
+        snprintf(tmp, sizeof(tmp), __FILE__);                   \
+        const char *folder = dirname(tmp);                      \
+        snprintf(_path, _len, "%s/%s", folder, _rel);           \
+    }                                                           \
+} while (0)
+
+#endif // OS(LINUX) || OS(UNIX)
 
 #ifdef __cplusplus
 }

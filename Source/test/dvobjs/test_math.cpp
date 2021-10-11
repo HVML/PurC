@@ -877,13 +877,10 @@ TEST(dvobjs, dvobjs_math_bc)
     func = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(func, nullptr);
 
+    char math_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
-    const char *math_path = getenv(env);
+    get_path_from_env_or_rel(math_path, sizeof(math_path), env, "test_files");
     std::cout << "env: " << env << "=" << math_path << std::endl;
-    EXPECT_NE(math_path, nullptr) << "You shall specify via env `"
-        << env << "`" << std::endl;
-    if (!math_path)
-        goto end;
 
     strcpy (path, math_path);
     strcat (path, "/math_bc");
@@ -918,7 +915,6 @@ TEST(dvobjs, dvobjs_math_bc)
         closedir(d);
     }
 
-end:
     if (math)
         purc_variant_unload_dvobj (math);
 

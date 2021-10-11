@@ -35,9 +35,10 @@ TEST(dvobjs, dvobjs_ejson_type)
     size_t sz_total_values_after = 0;
     size_t nr_reserved_after = 0;
     char file_path[1024];
-    char *data_path = getenv("DVOBJS_TEST_PATH");
-
-    ASSERT_NE(data_path, nullptr);
+    char data_path[PATH_MAX+1];
+    const char *env = "DVOBJS_TEST_PATH";
+    get_path_from_env_or_rel(data_path, sizeof(data_path), env, "test_files");
+    std::cout << "env: " << env << "=" << data_path << std::endl;
 
     // get and function
     purc_instance_extra_info info = {0, 0};
@@ -67,7 +68,10 @@ TEST(dvobjs, dvobjs_ejson_type)
         strcat (file_path, ".test");
 
         FILE *fp = fopen(file_path, "r");   // open test_list
-        ASSERT_NE(fp, nullptr);
+        ASSERT_NE(fp, nullptr) << "Failed to open file: ["
+                               << file_path
+                               << "]"
+                               << std::endl;
 
         char *line = NULL;
         size_t sz = 0;
@@ -194,9 +198,10 @@ TEST(dvobjs, dvobjs_ejson_number)
     size_t sz_total_values_after = 0;
     size_t nr_reserved_after = 0;
     char file_path[1024];
-    char *data_path = getenv("DVOBJS_TEST_PATH");
-
-    ASSERT_NE(data_path, nullptr);
+    char data_path[PATH_MAX+1];
+    const char *env = "DVOBJS_TEST_PATH";
+    get_path_from_env_or_rel(data_path, sizeof(data_path), env, "test_files");
+    std::cout << "env: " << env << "=" << data_path << std::endl;
 
     // get and function
     purc_instance_extra_info info = {0, 0};
@@ -226,7 +231,10 @@ TEST(dvobjs, dvobjs_ejson_number)
         strcat (file_path, ".test");
 
         FILE *fp = fopen(file_path, "r");   // open test_list
-        ASSERT_NE(fp, nullptr);
+        ASSERT_NE(fp, nullptr) << "Failed to open file: ["
+                               << file_path
+                               << "]"
+                               << std::endl;
 
         char *line = NULL;
         size_t sz = 0;
