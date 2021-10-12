@@ -2,12 +2,13 @@
 #include "private/avl.h"
 #include "private/arraylist.h"
 #include "private/hashtable.h"
-#include "purc-variant.h"
 #include "private/variant.h"
 #include "private/errors.h"
 #include "private/debug.h"
 #include "private/utils.h"
 #include "private/dvobjs.h"
+
+#include "../helpers.h"
 
 #include <stdio.h>
 #include <dirent.h>
@@ -39,7 +40,7 @@ TEST(dvobjs, dvobjs_logical)
     char file_path[1024];
     char data_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
-    pcutils_getpath_from_env_or_rel(data_path, sizeof(data_path),
+    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
         env, "test_files");
     std::cout << "env: " << env << "=" << data_path << std::endl;
 
@@ -377,7 +378,7 @@ TEST(dvobjs, dvobjs_logical_bc)
 
     char logical_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
-    pcutils_getpath_from_env_or_rel(logical_path, sizeof(logical_path),
+    test_getpath_from_env_or_rel(logical_path, sizeof(logical_path),
         env, "test_files");
     std::cout << "env: " << env << "=" << logical_path << std::endl;
     EXPECT_NE(logical_path, nullptr) << "You shall specify via env `"

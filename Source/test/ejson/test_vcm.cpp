@@ -218,7 +218,7 @@ std::vector<ejson_test_data> read_ejson_test_data()
 
         FILE* fp = fopen(file_path, "r");
         if (fp) {
-            char file[PATH_MAX+1] = {0};
+            char file[PATH_MAX+16] = {0};
 
             char* line = NULL;
             size_t sz = 0;

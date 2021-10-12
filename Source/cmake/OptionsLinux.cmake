@@ -25,8 +25,7 @@ find_package(SQLite3 3.10.0)
 find_package(MySQLClient 20.0.0)
 find_package(ZLIB 1.2.0)
 find_package(BISON 3.0 REQUIRED)
-find_package(FLEX  2.6.4 REQUIRED)
-
+find_package(FLEX 2.6.4 REQUIRED)
 
 if (NOT GLIB_FOUND)
     set(ENABLE_SOCKET_STREAM_DEFAULT OFF)

@@ -634,8 +634,8 @@ random_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
-    double random = 0.0d;
-    double number = 0.0d;
+    double random = 0.0;
+    double number = 0.0;
 
     if (nr_args == 0) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
@@ -678,7 +678,7 @@ get_time_format (int type, double epoch, const char *timezone)
     else
         sprintf (str_format, "%%FT%%T%%z");
 
-    if (epoch == 0.0d) {
+    if (epoch == 0) {
         if (timezone == NULL) {
             t_time = time (NULL);
             t_tm = localtime(&t_time);
@@ -785,7 +785,7 @@ time_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t val = PURC_VARIANT_INVALID;
-    double epoch = 0.0d;
+    double epoch = 0.0;
     const char *name = NULL;
     const char *timezone = NULL;
     time_t t_time;
@@ -885,7 +885,7 @@ time_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         int i = 0;
         char *tz_now = getenv ("TZ");
 
-        if (epoch == 0.0d) {
+        if (epoch == 0) {
             if (timezone == NULL) {
                 t_time = time (NULL);
                 t_tm = localtime(&t_time);
@@ -1034,7 +1034,7 @@ time_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    double epoch = 0.0d;
+    double epoch = 0.0;
     purc_variant_cast_to_number (argv[0], &epoch, false);
 
     gettimeofday (&stime, NULL);

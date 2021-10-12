@@ -2,12 +2,13 @@
 #include "private/avl.h"
 #include "private/arraylist.h"
 #include "private/hashtable.h"
-#include "purc-variant.h"
 #include "private/variant.h"
 #include "private/errors.h"
 #include "private/debug.h"
 #include "private/utils.h"
 #include "private/dvobjs.h"
+
+#include "../helpers.h"
 
 #include <stdio.h>
 #include <errno.h>
@@ -35,7 +36,7 @@ TEST(dvobjs, dvobjs_string_contains)
     char file_path[1024];
     char data_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
-    pcutils_getpath_from_env_or_rel(data_path, sizeof(data_path),
+    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
         env, "test_files");
     std::cout << "env: " << env << "=" << data_path << std::endl;
 
@@ -195,7 +196,7 @@ TEST(dvobjs, dvobjs_string_explode)
     char file_path[1024];
     char data_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
-    pcutils_getpath_from_env_or_rel(data_path, sizeof(data_path),
+    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
         env, "test_files");
     std::cout << "env: " << env << "=" << data_path << std::endl;
 
@@ -369,7 +370,7 @@ TEST(dvobjs, dvobjs_string_shuffle)
     char file_path[1024];
     char data_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
-    pcutils_getpath_from_env_or_rel(data_path, sizeof(data_path),
+    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
         env, "test_files");
     std::cout << "env: " << env << "=" << data_path << std::endl;
 
@@ -544,7 +545,7 @@ TEST(dvobjs, dvobjs_string_replace)
     char file_path[1024];
     char data_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
-    pcutils_getpath_from_env_or_rel(data_path, sizeof(data_path),
+    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
         env, "test_files");
     std::cout << "env: " << env << "=" << data_path << std::endl;
 
@@ -709,7 +710,7 @@ TEST(dvobjs, dvobjs_string_format_c)
     char file_path[1024];
     char data_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
-    pcutils_getpath_from_env_or_rel(data_path, sizeof(data_path),
+    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
         env, "test_files");
     std::cout << "env: " << env << "=" << data_path << std::endl;
 
@@ -873,7 +874,7 @@ TEST(dvobjs, dvobjs_string_format_p)
     char file_path[1024];
     char data_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
-    pcutils_getpath_from_env_or_rel(data_path, sizeof(data_path),
+    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
         env, "test_files");
     std::cout << "env: " << env << "=" << data_path << std::endl;
 

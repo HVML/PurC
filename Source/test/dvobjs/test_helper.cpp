@@ -2,12 +2,13 @@
 #include "private/avl.h"
 #include "private/arraylist.h"
 #include "private/hashtable.h"
-#include "purc-variant.h"
 #include "private/variant.h"
 #include "private/errors.h"
 #include "private/debug.h"
 #include "private/utils.h"
 #include "private/dvobjs.h"
+
+#include "../helpers.h"
 
 #include <stdio.h>
 #include <dirent.h>
