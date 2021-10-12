@@ -363,7 +363,7 @@ string_format_c (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                         return PURC_VARIANT_INVALID;
                     }
                     purc_variant_cast_to_longint (argv[j], &i64, false);
-                    sprintf (buffer, "%ld", i64);
+                    sprintf (buffer, "%lld", i64);
                     purc_rwstream_write (rwstream, buffer, strlen (buffer));
                     i++;
                     j++;
@@ -376,7 +376,7 @@ string_format_c (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                         return PURC_VARIANT_INVALID;
                     }
                     purc_variant_cast_to_ulongint (argv[j], &u64, false);
-                    sprintf (buffer, "%lo", u64);
+                    sprintf (buffer, "%llo", u64);
                     purc_rwstream_write (rwstream, buffer, strlen (buffer));
                     i++;
                     j++;
@@ -389,7 +389,7 @@ string_format_c (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                         return PURC_VARIANT_INVALID;
                     }
                     purc_variant_cast_to_ulongint (argv[j], &u64, false);
-                    sprintf (buffer, "%lu", u64);
+                    sprintf (buffer, "%llu", u64);
                     purc_rwstream_write (rwstream, buffer, strlen (buffer));
                     i++;
                     j++;
@@ -402,7 +402,7 @@ string_format_c (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                         return PURC_VARIANT_INVALID;
                     }
                     purc_variant_cast_to_ulongint (argv[j], &u64, false);
-                    sprintf (buffer, "%lx", u64);
+                    sprintf (buffer, "%llx", u64);
                     purc_rwstream_write (rwstream, buffer, strlen (buffer));
                     i++;
                     j++;
