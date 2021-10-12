@@ -16,6 +16,11 @@ extern "C" {
 #include <limits.h>
 
 #define ENV(env)      #env
+#define PRINTF(...)                                                       \
+    do {                                                                  \
+        fprintf(stderr, "\e[0;32m[          ] \e[0m");                    \
+        fprintf(stderr, __VA_ARGS__);                                     \
+    } while(false)
 
 TEST(executor, basic)
 {

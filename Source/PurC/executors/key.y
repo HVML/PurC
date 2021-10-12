@@ -96,6 +96,7 @@
 %define api.token.prefix {TOK_KEY_}
 %define locations
 %define parse.error verbose
+%define parse.lac full
 %defines
 %verbose
 
@@ -109,7 +110,7 @@
     /* %destructor { free($$); } <str> */ // destructor for `str`
 
 %token KEY ALL FOR VALUE KV LIKE
-%token SQ
+%token SQ "'"
 %token <token>  INTEGER
 %token <token>  STR CHR
 

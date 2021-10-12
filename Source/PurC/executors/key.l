@@ -87,6 +87,7 @@ do {                                              \
 %x ESCAPED_SQ ESCAPED_REG
 %x AFTER_SQ
 %x SQ_SUFFIX
+%x EXP_SPACE EXP_COLON
 
 %%
 
@@ -94,18 +95,30 @@ do {                                              \
           if (state != INITIAL) return -1;
           yyterminate(); }
 
-KEY     { C(); R(); return MKT(KEY); }
-LIKE    { C(); PUSH(LIKE); R(); return MKT(LIKE); }
+KEY     { C(); PUSH(EXP_COLON); R(); return MKT(KEY); }
+LIKE    { C(); PUSH(LIKE); PUSH(EXP_SPACE); R(); return MKT(LIKE); }
 [']     { C(); PUSH(SQ); R(); return MKT(SQ); }
 ALL     { C(); R(); return MKT(ALL); }
-FOR     { C(); R(); return MKT(FOR); }
-VALUE   { C(); R(); return MKT(VALUE); }
-KV      { C(); R(); return MKT(KV); }
+FOR     { C(); PUSH(EXP_SPACE); R(); return MKT(FOR); }
+VALUE   { C(); PUSH(EXP_SPACE); R(); return MKT(VALUE); }
+KV      { C(); PUSH(EXP_SPACE); R(); return MKT(KV); }
 [:,]    { C(); R(); return *yytext; }
 [/]     { C(); PUSH(REG); R(); return '/'; }
 [ \t]   { C(); R(); } /* eat */
 \n      { L(); R(); return *yytext; } /* let bison to handle */
 .       { C(); R(); return *yytext; } /* let bison to handle */
+
+<EXP_COLON>{
+[:]     { C(); POP(); R(); return *yytext; }
+\n      { L(); R(); return *yytext; } /* let bison to handle */
+.       { C(); R(); return *yytext; } /* let bison to handle */
+}
+
+<EXP_SPACE>{
+[ \t]   { C(); POP(); R(); }
+\n      { L(); R(); return *yytext; } /* let bison to handle */
+.       { C(); R(); return *yytext; } /* let bison to handle */
+}
 
 <LIKE>{
 [']     { C(); CHG(SQ); R(); return MKT(SQ); }
