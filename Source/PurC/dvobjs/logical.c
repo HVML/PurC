@@ -72,7 +72,7 @@ static bool test_variant (purc_variant_t var)
     if (var == PURC_VARIANT_INVALID)
         return false;
 
-    double number = 0.0d;
+    double number = 0.0L;
     bool ret = false;
     enum purc_variant_type type = purc_variant_get_type (var);
 
@@ -141,7 +141,7 @@ static long double get_variant_value (purc_variant_t var)
 
     size_t i = 0;
     size_t length = 0;
-    long double number = 0.0d;
+    long double number = 0.0L;
     long int templongint = 0;
     uintptr_t temppointer = 0;
     struct purc_variant_object_iterator *it_obj = NULL;
@@ -157,7 +157,7 @@ static long double get_variant_value (purc_variant_t var)
         case PURC_VARIANT_TYPE_BOOLEAN:
             purc_variant_cast_to_long_double (var, &number, false);
             if (number)
-                number = 1.0d;
+                number = 1.0L;
             break;
         case PURC_VARIANT_TYPE_NUMBER:
         case PURC_VARIANT_TYPE_LONGINT:
@@ -361,8 +361,8 @@ eq_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    long double value1 = 0.0d;
-    long double value2 = 0.0d;
+    long double value1 = 0.0L;
+    long double value2 = 0.0L;
 
     if ((argv == NULL) || (nr_args != 2)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
@@ -392,8 +392,8 @@ ne_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    long double value1 = 0.0d;
-    long double value2 = 0.0d;
+    long double value1 = 0.0L;
+    long double value2 = 0.0L;
 
     if ((argv == NULL) || (nr_args != 2)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
@@ -423,8 +423,8 @@ gt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    long double value1 = 0.0d;
-    long double value2 = 0.0d;
+    long double value1 = 0.0L;
+    long double value2 = 0.0L;
 
     if ((argv == NULL) || (nr_args != 2)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
@@ -454,8 +454,8 @@ ge_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    long double value1 = 0.0d;
-    long double value2 = 0.0d;
+    long double value1 = 0.0L;
+    long double value2 = 0.0L;
 
     if ((argv == NULL) || (nr_args != 2)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
@@ -485,8 +485,8 @@ lt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    long double value1 = 0.0d;
-    long double value2 = 0.0d;
+    long double value1 = 0.0L;
+    long double value2 = 0.0L;
 
     if ((argv == NULL) || (nr_args != 2)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
@@ -516,8 +516,8 @@ le_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    long double value1 = 0.0d;
-    long double value2 = 0.0d;
+    long double value1 = 0.0L;
+    long double value2 = 0.0L;
 
     if ((argv == NULL) || (nr_args != 2)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
