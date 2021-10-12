@@ -82,7 +82,11 @@ do {                                              \
 %option perf-report
 %option 8bit
 
-%x LIKE SQ REG ESCAPED_SQ ESCAPED_REG
+%x LIKE
+%x SQ REG
+%x ESCAPED_SQ ESCAPED_REG
+%x AFTER_SQ
+%x SQ_SUFFIX
 
 %%
 
@@ -98,21 +102,21 @@ FOR     { C(); R(); return MKT(FOR); }
 VALUE   { C(); R(); return MKT(VALUE); }
 KV      { C(); R(); return MKT(KV); }
 [:,]    { C(); R(); return *yytext; }
-[/]     { C(); PUSH(REG); R(); return *yytext; }
+[/]     { C(); PUSH(REG); R(); return '/'; }
 [ \t]   { C(); R(); } /* eat */
 \n      { L(); R(); return *yytext; } /* let bison to handle */
 .       { C(); R(); return *yytext; } /* let bison to handle */
 
 <LIKE>{
-[']     { C(); POP(); PUSH(SQ); R(); return MKT(SQ); }
-[/]     { C(); POP(); PUSH(REG); R(); return *yytext; }
+[']     { C(); CHG(SQ); R(); return MKT(SQ); }
+[/]     { C(); CHG(REG); R(); return '/'; }
 [ \t]   { C(); R(); } /* eat */
 \n      { L(); R(); return *yytext; } /* let bison to handle */
 .       { C(); R(); return *yytext; } /* let bison to handle */
 }
 
 <SQ>{
-[']       { C(); POP(); R(); return MKT(SQ); }
+[']       { C(); CHG(AFTER_SQ); R(); return MKT(SQ); }
 [^'\\\n]+ { C(); SET_STR(); R(); return MKT(STR); }
 \\        { C(); PUSH(ESCAPED_SQ); R(); }
 \n        { L(); R(); return *yytext; } /* let bison to handle */
@@ -122,6 +126,19 @@ KV      { C(); R(); return MKT(KV); }
 [']       { C(); SET_CHR("'"); POP(); R(); return MKT(CHR); }
 \n        { L(); R(); return *yytext; } /* let bison to handle */
 .         { C(); R(); return *yytext; } /* let bison to handle */
+}
+
+<AFTER_SQ>{
+[/]       { C(); CHG(SQ_SUFFIX); R(); return *yytext; }
+\n        { L(); R(); return *yytext; } /* let bison to handle */
+.         { C(); POP(); R(); yyless(0); } /* rescan */
+}
+
+<SQ_SUFFIX>{
+[isc]          { C(); R(); return *yytext; }
+[[:digit:]]+   { C(); SET_STR(); R(); return MKT(INTEGER); }
+\n        { L(); R(); return *yytext; } /* let bison to handle */
+.         { C(); POP(); R(); yyless(0); } /* rescan */
 }
 
 <REG>{

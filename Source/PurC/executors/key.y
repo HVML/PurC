@@ -121,24 +121,28 @@
 
 input:
   %empty
-| KEY ':' ALL
-| KEY ':' ALL ',' FOR VALUE
-| KEY ':' ALL ',' FOR KEY
-| KEY ':' ALL ',' FOR KV
-| KEY ':' key_name_list
-| KEY ':' key_name_list ',' FOR VALUE
-| KEY ':' key_name_list ',' FOR KEY
-| KEY ':' key_name_list ',' FOR KV
-| "'" 
+| rule
 ;
 
-key_name_list:
-  key_list_expression
-| key_name_list ',' key_list_expression
+rule:
+  key_rule
 ;
 
-key_list_expression:
-  LIKE key_pattern_expression
+key_rule:
+  KEY ':' key_subrules
+| KEY ':' key_subrules ',' FOR KV
+| KEY ':' key_subrules ',' FOR KEY
+| KEY ':' key_subrules ',' FOR VALUE
+;
+
+key_subrules:
+  key_subrule
+| key_subrules ',' key_subrule
+;
+
+key_subrule:
+  ALL
+| LIKE key_pattern_expression
 | literal_str_exp
 ;
 
@@ -154,9 +158,9 @@ literal_str:
 
 literal_str_exp:
   literal_str
-| literal_str matching_flags
-| literal_str matching_flags max_matching_length
-| literal_str max_matching_length
+| literal_str '/' matching_flags
+| literal_str '/' matching_flags max_matching_length
+| literal_str '/' max_matching_length
 ;
 
 sq_str:
@@ -173,13 +177,18 @@ regular_str:
 | regular_str CHR
 ;
 
-regexp_flags:
+regexp_flag:
   'g'
 | 'i'
 | 'm'
 | 's'
 | 'u'
 | 'y'
+;
+
+regexp_flags:
+  regexp_flag
+| regexp_flags regexp_flag
 ;
 
 matching_flags:

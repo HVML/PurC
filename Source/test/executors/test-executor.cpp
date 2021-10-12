@@ -4,12 +4,15 @@
 
 #include "private/utils.h"
 
+#include "../helpers.h"
+
 extern "C" {
 #include "key.tab.h"
 }
 
 #include <gtest/gtest.h>
 #include <glob.h>
+#include <libgen.h>
 #include <limits.h>
 
 #define ENV(env)      #env
@@ -81,18 +84,26 @@ TEST(executor, positive)
 }
 
 static inline void
-parse(const char *rule)
+parse(const char *rule, bool neg)
 {
     int r = key_parse(rule, NULL);
-    EXPECT_EQ(r, 0) << "Failed to parse: ["
-        << rule << "]" << std::endl;
+    if (neg) {
+        EXPECT_NE(r, 0) << "Failed to parse negative sample: ["
+            << rule << "]" << std::endl;
+    } else {
+        EXPECT_EQ(r, 0) << "Failed to parse positive sample: ["
+            << rule << "]" << std::endl;
+    }
 }
 
 static inline void
-process_file(FILE *f)
+process_file(FILE *f, const char *file)
 {
     char    *line = NULL;
     size_t   len  = 0;
+
+    const char *fn = basename((char*)file);
+    bool neg = (strstr(fn, "neg.")==fn) ? true : false;
 
     while (!feof(f)) {
         ssize_t n = getline(&line, &len, f);
@@ -112,7 +123,11 @@ process_file(FILE *f)
 
         line[n-1] = '\0';
 
-        parse(line);
+        if (neg) {
+            if (line[0] == '\0')
+                continue;
+        }
+        parse(line, neg);
     }
 }
 
@@ -131,7 +146,7 @@ TEST(executor, glob)
 
     char files[PATH_MAX+1];
     const char *env = ENV(EXECUTOR_FILES);
-    pcutils_getpath_from_env_or_rel(files, sizeof(files),
+    test_getpath_from_env_or_rel(files, sizeof(files),
         env, "data/*.rule");
     std::cout << "env: export " << env << "=" << files << std::endl;
 
@@ -152,7 +167,7 @@ TEST(executor, glob)
             if (!f)
                 continue;
 
-            process_file(f);
+            process_file(f, file);
             fclose(f);
         }
     }
