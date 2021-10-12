@@ -34,6 +34,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define PCHVML_INVALID_CHARACTER    0xFFFFFFFF
+
 struct pchvml_rwswrap {
     purc_rwstream_t rws;
     struct list_head uc_list;

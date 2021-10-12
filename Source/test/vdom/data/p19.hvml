@@ -1,0 +1,6 @@
+<!DOCTYPE hvml>
+<hvml target="html">
+    <body>
+        <erase on="$users[0]" at="property.name" />
+    </body>
+</hvml>

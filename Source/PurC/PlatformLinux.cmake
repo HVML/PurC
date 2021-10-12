@@ -13,6 +13,7 @@ list(APPEND PurC_SOURCES
 
 list(APPEND PurC_LIBRARIES
     -lpthread
+    -lm
     -ldl
 )
 

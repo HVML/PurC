@@ -35,6 +35,7 @@ set(PurC_PLATFORM_INDEPENDENT_DIRS
     "variant"
     "html"
     "edom"
+    "dvobjs"
     "hvml"
     "vdom"
     "executors"
@@ -58,6 +59,7 @@ list(APPEND PurC_UNIFIED_SOURCE_LIST_FILES
 )
 
 set(PurC_LIBRARIES)
+set(PurC_DEPENDENCIES)
 
 # TODO: the source files and libraries for optional features.
 if (ENABLE_WEBSOCKET)
@@ -83,6 +85,10 @@ set(PurC_INTERFACE_INCLUDE_DIRECTORIES ${PurC_PRIVATE_FRAMEWORK_HEADERS_DIR})
 
 PURC_FRAMEWORK_DECLARE(PurC)
 PURC_INCLUDE_CONFIG_FILES_IF_EXISTS()
+
+set(dvobjs_PARSERS logical)
+PURC_FLEX_BISON(PurC dvobjs "${dvobjs_PARSERS}")
+unset(dvobjs_PARSERS)
 
 # Generate constants for HTML ns/tags/interfaces
 add_custom_command(
@@ -178,6 +184,7 @@ list(APPEND PurC_INTERFACE_DEPENDENCIES PurC_CopyPrivateHeaders)
 if (NOT INTERNAL_BUILD)
     add_dependencies(PurC_CopyPrivateHeaders PurC)
 endif ()
+
 
 PURC_COMPUTE_SOURCES(PurC)
 PURC_FRAMEWORK(PurC)

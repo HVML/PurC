@@ -1,0 +1,101 @@
+# test case sample
+#
+# test_begin_index
+# param_begin
+# your parameters
+# param_end
+# your result
+# test_end
+
+# variant in test case:
+# undefined:;
+# null:;
+# boolean:true;
+# number:3.1415926;
+# longint:3;
+# ulongint:5;
+# longdouble:3.1415926;
+# string:"hello world"
+# atromstring:"hello world"
+# bsequence:"hello world"
+# dynamic:;
+# native:;
+# object:2:"key1";boolean:true;"key2";boolean:false;
+# array:2:boolean:true;boolean:false;
+# set:2:object:2:"key1";boolean:true;"key2";boolean:false;object:2:"key1";boolean:false;"key2";boolean:true;
+# invalid:;
+
+# Notation:
+# 1. NO white space is permitted in a line;
+# 2. NO BLANK LINE is permitted in a test case;
+# 3. One variant must end with ';';
+# 4. The contents in dynamic and native type, are all pointers. So the code constructs pointers, do not input anything.
+
+test_begin
+param_begin
+param_end
+invalid:;
+test_end
+
+test_begin
+param_begin
+null:;
+param_end
+invalid:;
+test_end
+
+test_begin
+param_begin
+undefined:;
+boolean:false;
+param_end
+invalid:;
+test_end
+
+test_begin
+param_begin
+string:"hello world {0} {1} {2}";
+array:3:string:"beijing";string:"shanghai";string:"guangzhou";
+param_end
+string:"hello world beijing shanghai guangzhou";
+test_end
+
+test_begin
+param_begin
+string:"hello world {0} {1} {2} shenzhen";
+array:3:string:"beijing";string:"shanghai";string:"guangzhou";
+param_end
+string:"hello world beijing shanghai guangzhou shenzhen";
+test_end
+
+test_begin
+param_begin
+string:"hello world {0} {1} {2} {0} shenzhen";
+array:3:string:"beijing";string:"shanghai";string:"guangzhou";
+param_end
+string:"hello world beijing shanghai guangzhou beijing shenzhen";
+test_end
+
+test_begin
+param_begin
+string:"hello world {city0} {city1} {city2}";
+object:3:"city0";string:"beijing";"city1";string:"shanghai";"city2";string:"guangzhou";
+param_end
+string:"hello world beijing shanghai guangzhou";
+test_end
+
+test_begin
+param_begin
+string:"hello world {city0} {city1} {city2} shenzhen";
+object:3:"city0";string:"beijing";"city1";string:"shanghai";"city2";string:"guangzhou";
+param_end
+string:"hello world beijing shanghai guangzhou shenzhen";
+test_end
+
+test_begin
+param_begin
+string:"hello world {city0} {city1} {city2} shenzhen {city0}";
+object:3:"city0";string:"beijing";"city1";string:"shanghai";"city2";string:"guangzhou";
+param_end
+string:"hello world beijing shanghai guangzhou shenzhen beijing";
+test_end

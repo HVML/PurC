@@ -1,0 +1,28 @@
+<hvml>
+    <head>
+        <connect at="unix:///var/run/hibus.sock" as="databus" for="hiBus"/>
+    </head>
+
+    <body>
+        <header id="the-footer">
+            <img class="mobile-status" src="/placeholder.png" />
+            <span class="mobile-operator"></span>
+            <img class="wifi-status" src="/placeholder.png" />
+            <span class="local-time">12:00</span>
+            <img class="battery-status" src="/placeholder.png" />
+        </header>
+
+        <send on="$databus" to="subscribe" at="@localhost/cn.fmsoft.hybridos.settings/inetd/NETWORKCHANGED">
+            <observe on="$databus" for="event:$?" to="update" in="#the-header">
+                <update on="~span.mobile-operator" textContent="$?.name">
+                    <error>
+                        <p>Bad scope.</p>
+                    </error>
+                    <except>
+                        <p>Failed to update mobile operator</p>
+                    </except>
+                </update>
+            </observe>
+        </send>
+    </body>
+</hvml>

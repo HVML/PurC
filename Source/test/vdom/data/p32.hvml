@@ -1,0 +1,13 @@
+<hvml lang="en">
+    <head>
+        <request on="http://foo.bar.com/foo" with="$params" via="POST" as="foo" async>
+            <observe on="$foo" for="result">
+            </observe>
+        </request>
+    </head>
+
+    <body>
+    </body>
+</hvml>
+
+

@@ -55,7 +55,7 @@ pchvml_tag_static_get_by_id(enum pchvml_tag_id id)
 #define FNV_INIT  0xcbf29ce484222325
 
 static uint64_t
-_hash_str(const char *name, size_t length)
+hash_str(const char *name, size_t length)
 {
     uint64_t v = FNV_INIT;
     for (size_t i=0; i<length; ++i) {
@@ -72,7 +72,7 @@ _hash_str(const char *name, size_t length)
 #define FNV_INIT  0x811c9dc5
 
 static uint32_t
-_hash_str(const char *name, size_t length)
+hash_str(const char *name, size_t length)
 {
     uint32_t v = FNV_INIT;
     for (size_t i=0; i<length; ++i) {
@@ -88,7 +88,7 @@ _hash_str(const char *name, size_t length)
 const struct pchvml_tag_entry*
 pchvml_tag_static_search(const char* name, size_t length)
 {
-    uint64_t v = _hash_str(name, length);
+    uint64_t v = hash_str(name, length);
     uint64_t idx = v % PCHVML_BASE_STATIC_SIZE;
 
     const struct pchvml_tag_static_list *rec;

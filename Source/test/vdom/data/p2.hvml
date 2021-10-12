@@ -1,0 +1,14 @@
+<!DOCTYPE hvml>
+<hvml target="html">
+    <head>
+        <set on="$T.map" from="https://foo.bar/messages/$SYSTEM.locale" to="merge" />
+
+        <title>$T.get('Hello, world!')</title>
+    </head>
+
+    <body>
+        <p>$T.get('Hello, HVML!')</p>
+    </body>
+
+</hvml>
+

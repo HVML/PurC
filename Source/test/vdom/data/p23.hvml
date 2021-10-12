@@ -1,0 +1,35 @@
+<!DOCTYPE hvml>
+<hvml target="html">
+    <body>
+        <archetype id="footer-cn">
+            <p><a href="http://www.baidu.com" title="百度">Baidu</a></p>
+        </archetype>
+
+        <archetype id="footer-tw">
+            <p><a href="http://www.bing.com" title="必應">Bing</a></p>
+        </archetype>
+
+        <archetype id="footer-others">
+            <p><a href="http://www.google.com" title="Google">Google</a></p>
+        </archetype>
+
+        <footer id="the-footer">
+            <test on="$global.locale" in='#the-footer'>
+                <match for="zh_CN" to="displace" with="#footer-cn" exclusively>
+                </match>
+                <match for="zh_TW" to="displace" with="#footer-tw" exclusively>
+                </match>
+                <match for="*" to="displace" with="#footer-others">
+                </match>
+
+                <error type="nodata">
+                    <p>You forget to define the $global variable!</p>
+                </error>
+                <except type="KeyError">
+                    <p>Bad global data!</p>
+                </except>
+            </test>
+        </footer>
+    </body>
+</hvml>
+

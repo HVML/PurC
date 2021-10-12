@@ -27,7 +27,7 @@ hvml head body
     state: data
     categories: framework noun
 
-# normal elements: fragement template elements
+# normal elements: fragment template elements
 archetype error except
     state: rawtext
     categories: template fragment ordinary noun
@@ -38,7 +38,7 @@ archedata
     categories: template data ordinary noun
 
 # normal elements: ordinary operation elements
-back call catch close clear define erase include iterate listen load match observe request reduce return test update
+back bind call catch choose close clear connect define erase include iterate listen load match observe request reduce return test update
     state: data
     categories: verb ordinary
 

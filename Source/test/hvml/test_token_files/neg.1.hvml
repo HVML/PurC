@@ -1,0 +1,11 @@
+<!DOCTYPE hvml>
+<hvml target="html">
+    <body>
+        <input type="text" name="user-name" id="the-user-name" placeholder="Your Name" value="" />
+        <bind on="$DOC.query('#the-user-name').attr.value" as="user_name">
+            <observe on="$user_name" for="change">
+            </observe>
+        </bind>
+    </body>
+</hvml>
+

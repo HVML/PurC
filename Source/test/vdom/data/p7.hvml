@@ -1,0 +1,7 @@
+<!DOCTYPE hvml>
+<hvml target="html">
+    <body>
+        <input type="text" name="user-name" id="the-user-name" placeholder="Your Name" value="" />
+    </body>
+</hvml>
+

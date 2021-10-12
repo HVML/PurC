@@ -1,0 +1,5 @@
+<hvml>
+    <archetype>concat_string("
+        ",get_variable("VARABC")," <tag>abcdef","</tag>
+    ")</archetype>
+</hvml>

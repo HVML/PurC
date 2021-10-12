@@ -34,6 +34,7 @@
 #include "private/ejson.h"
 #include "private/html.h"
 #include "private/edom.h"
+#include "private/dvobjs.h"
 #include "private/executor.h"
 
 #include <stdlib.h>
@@ -104,6 +105,7 @@ static void init_modules(void)
     pcutils_atom_init_once();
     pcrwstream_init_once();
     pcvariant_init_once();
+    pcdvobjs_init_once();
     pcejson_init_once();
     pchtml_init_once();
     pcedom_init_once();
@@ -211,6 +213,7 @@ int purc_init(const char* app_name, const char* runner_name,
 
     // TODO: init other fields
     pcvariant_init_instance(curr_inst);
+    pcdvobjs_init_instance(curr_inst);
     pchtml_init_instance(curr_inst);
     pcedom_init_instance(curr_inst);
     pcexecutor_init_instance(curr_inst);
@@ -230,10 +233,11 @@ bool purc_cleanup(void)
     if (curr_inst == NULL || curr_inst->app_name == NULL)
         return false;
 
-    // TODO: clean up other fields
+    // TODO: clean up other fields in reverse order
     pcexecutor_cleanup_instance(curr_inst);
     pcedom_cleanup_instance(curr_inst);
     pchtml_cleanup_instance(curr_inst);
+    pcdvobjs_cleanup_instance(curr_inst);
     pcvariant_cleanup_instance(curr_inst);
 
     cleanup_instance(curr_inst);

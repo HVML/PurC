@@ -1,0 +1,5 @@
+<hvml>
+    <except>concat_string("
+        this is test text.
+    ")</except>
+</hvml>

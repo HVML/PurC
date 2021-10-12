@@ -1,0 +1,5 @@
+<hvml>
+    <archetype>concat_string("
+        this is test text.
+    ")</archetype>
+</hvml>

@@ -1,0 +1,14 @@
+<!DOCTYPE hvml>
+<hvml target="html">
+    <head>
+        <init as="users" uniquely by="id">
+            [
+                { "id": "1", "avatar": "/img/avatars/1.png", "name": "Tom", "region": "en_US" },
+                { "id": "2", "avatar": "/img/avatars/2.png", "name": "Jerry", "region": "zh_CN" },
+                { "id": "2", "avatar": "/img/avatars/2.png", "name": "David", "region": "zh_CN" }
+            ]
+        </init>
+        <bind on="$users[$MATH.random(10)]" as="me" />
+    </head>
+</hvml>
+

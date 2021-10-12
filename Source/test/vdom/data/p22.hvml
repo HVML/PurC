@@ -1,0 +1,7 @@
+<!DOCTYPE hvml>
+<hvml target="html">
+    <body>
+        <clear on="$users[1]" />
+    </body>
+</hvml>
+

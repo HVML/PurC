@@ -5,9 +5,28 @@
 #include "purc-rwstream.h"
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
+#include <libgen.h>
 #include <gtest/gtest.h>
 
 using namespace std;
+
+#if OS(LINUX) || OS(UNIX)
+// get path from env or __FILE__/../<rel> otherwise
+#define getpath_from_env_or_rel(_path, _len, _env, _rel) do {  \
+    const char *p = getenv(_env);                                      \
+    if (p) {                                                           \
+        snprintf(_path, _len, "%s", p);                                \
+    } else {                                                           \
+        char tmp[PATH_MAX+1];                                          \
+        snprintf(tmp, sizeof(tmp), __FILE__);                          \
+        const char *folder = dirname(tmp);                             \
+        snprintf(_path, _len, "%s/%s", folder, _rel);                  \
+    }                                                                  \
+} while (0)
+
+#endif // OS(LINUX) || OS(UNIX)
 
 struct ejson_test_data {
     string name;
@@ -188,7 +207,9 @@ std::vector<ejson_test_data> read_ejson_test_data()
 {
     std::vector<ejson_test_data> vec;
 
-    char* data_path = getenv("EJSON_DATA_PATH");
+    const char* env = "EJSON_DATA_PATH";
+    char data_path[PATH_MAX+1] =  {0};
+    getpath_from_env_or_rel(data_path, sizeof(data_path), env, "data");
 
     if (data_path) {
         char file_path[1024] = {0};
@@ -197,7 +218,7 @@ std::vector<ejson_test_data> read_ejson_test_data()
 
         FILE* fp = fopen(file_path, "r");
         if (fp) {
-            char file[1024] = {0};
+            char file[PATH_MAX+1] = {0};
 
             char* line = NULL;
             size_t sz = 0;
@@ -215,13 +236,22 @@ std::vector<ejson_test_data> read_ejson_test_data()
                         error = to_error (err);
                     }
 
-                    sprintf(file, "%s/%s.json", data_path, name);
+                    int n;
+                    n = snprintf(file, sizeof(file), "%s/%s.json", data_path, name);
+                    if (n>=0 && (size_t)n>=sizeof(file)) {
+                        // to circumvent format-truncation warning
+                        ;
+                    }
                     char* json_buf = read_file (file);
                     if (!json_buf) {
                         continue;
                     }
 
-                    sprintf(file, "%s/%s.serial", data_path, name);
+                    n = snprintf(file, sizeof(file), "%s/%s.serial", data_path, name);
+                    if (n>=0 && (size_t)n>=sizeof(file)) {
+                        // to circumvent format-truncation warning
+                        ;
+                    }
                     char* comp_buf = read_file (file);
                     if (!comp_buf) {
                         free (json_buf);

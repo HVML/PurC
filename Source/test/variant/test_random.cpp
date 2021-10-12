@@ -321,10 +321,10 @@ static purc_variant_t _make_set(int lvl)
         "country",
         "ethic",
     };
-    size_t nr_temp = sizeof(temp)/sizeof(temp[0]);
+    size_t nr_temp = PCA_TABLESIZE(temp);
 
     // select keys
-    const char *keys[sizeof(temp)/sizeof(temp[0])];
+    const char *keys[PCA_TABLESIZE(temp)];
     size_t nr_keys = _get_random(nr_temp);
     for (size_t i=0; i<nr_keys; ++i) {
         keys[i] = temp[_get_random(nr_temp)];
@@ -409,7 +409,7 @@ static struct _map_s     _maps[] = {
     _MAP_REC(array),
     _MAP_REC(set),
 };
-#define _nr_maps (sizeof(_maps)/sizeof(_maps[0]))
+#define _nr_maps (PCA_TABLESIZE(_maps))
 static struct _map_s *_make_vars = _maps;
 static size_t _nr_make_vars = _nr_maps;
 

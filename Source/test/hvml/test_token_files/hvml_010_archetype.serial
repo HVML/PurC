@@ -1,0 +1,5 @@
+<hvml>
+    <archetype>concat_string("
+        <tag>abcdef","</tag>
+    ")</archetype>
+</hvml>

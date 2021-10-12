@@ -23,8 +23,9 @@
  */
 
 #include "private/executor.h"
-#include "private/instance.h"
+#include "private/debug.h"
 #include "private/errors.h"
+#include "private/instance.h"
 
 #include "key.h"
 

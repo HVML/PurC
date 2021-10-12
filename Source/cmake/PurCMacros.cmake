@@ -143,6 +143,38 @@ macro(PURC_EXECUTABLE_DECLARE _target)
     add_executable(${_target} "${CMAKE_BINARY_DIR}/cmakeconfig.h")
 endmacro()
 
+macro(_PURC_FLEX_BISON _target _relpath _parser)
+    BISON_TARGET(${_parser}Parser
+        ${CMAKE_CURRENT_SOURCE_DIR}/${_relpath}/${_parser}.y
+        ${CMAKE_CURRENT_BINARY_DIR}/${_relpath}/${_parser}.tab.c)
+    FLEX_TARGET(${_parser}Scanner
+        ${CMAKE_CURRENT_SOURCE_DIR}/${_relpath}/${_parser}.l
+        ${CMAKE_CURRENT_BINARY_DIR}/${_relpath}/${_parser}.lex.c
+        COMPILE_FLAGS "--header-file=${CMAKE_CURRENT_BINARY_DIR}/${_relpath}/${_parser}.lex.h")
+    ADD_FLEX_BISON_DEPENDENCY(${_parser}Scanner ${_parser}Parser)
+    list(APPEND ${_target}_SOURCES
+        ${BISON_${_parser}Parser_OUTPUTS}
+        ${FLEX_${_parser}Scanner_OUTPUTS}
+    )
+    set(_flags "-I${CMAKE_CURRENT_SOURCE_DIR}/${_relpath}")
+    set_source_files_properties(${BISON_${_parser}Parser_OUTPUTS}
+        PROPERTIES COMPILE_FLAGS "${_flags}"
+    )
+    set_source_files_properties(${FLEX_${_parser}Scanner_OUTPUTS}
+        PROPERTIES COMPILE_FLAGS "${_flags}"
+    )
+    unset(_flags)
+endmacro()
+
+macro(PURC_FLEX_BISON _target _relpath _parsers)
+    add_subdirectory(${_relpath}) # you shall add an empty CMakeLists.txt in <paath-to-relpath>
+    set(_var "${ARGV2}")
+    foreach (_parser IN LISTS _var)
+        _PURC_FLEX_BISON(${_target} ${_relpath} ${_parser})
+    endforeach()
+    unset(_var)
+endmacro()
+
 # Private macro for setting the properties of a target.
 # Rather than just having _target like PURC_FRAMEWORK and PURC_EXECUTABLE the parameters are
 # split into _target_logical_name, which is used for variable expansion, and _target_cmake_name.

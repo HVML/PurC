@@ -1,0 +1,95 @@
+<hvml target="html">
+    <head>
+    </head>
+
+    <body>
+        <init as="global">
+            { "locale" : "zh_CN" }
+        </init>
+
+        <init as="users">
+            [
+                { "id": "1", "avatar": "/img/avatars/1.png", "name": "Tom", "region": "en_US" },
+                { "id": "2", "avatar": "/img/avatars/2.png", "name": "Jerry", "region": "zh_CN" }
+            ]
+        </init>
+
+        <connect at="unix:///var/tmp/hibus.sock" as="databus" for="hiBus" />
+
+        <archetype name="user_item">
+            <li class="user-item" id="user-$?.id" data-value="$?.id" data-region="$?.region">
+                <img class="avatar" src="$?.avatar" />
+                <span>$?.name</span>
+            </li>
+        </archetype>
+
+        <archedata name="item_user">
+            {
+                "id": "$?.attr.data-value", "avatar": "$?.content[0].attr.src",
+                "name": "$?.children[1].textContent", "region": "$?.attr.data-region"
+            }
+        </archedata>
+
+        <header id="theStatusBar">
+            <img class="mobile-status" src="" />
+            <span class="mobile-operator"></span>
+            <img class="wifi-status" src="" />
+            <span class="local-time">12:00</span>
+            <img class="battery-status" />
+        </header>
+
+        <ul class="user-list">
+            <iterate on="$users" to="append" with="$user_item" by="CLASS: IUser">
+                <error type="nodata">
+                    <img src="wait.png" />
+                </error>
+                <except type="StopIteration">
+                    <p>Bad user data!</p>
+                </except>
+            </iterate>
+        </ul>
+
+        <archetype name="footer_cn">
+            <p><a href="http://www.baidu.com">Baidu</a></p>
+        </archetype>
+
+        <archetype name="footer_tw">
+            <p><a href="http://www.bing.com">Bing</a></p>
+        </archetype>
+
+        <archetype name="footer_def">
+            <p><a href="http://www.google.com">Google</a></p>
+        </archetype>
+
+        <footer id="the-footer">
+            <test on="$global.locale" in='the-footer'>
+                <match for="~zh_CN" to="displace" with="$footer_cn" exclusively>
+                </match>
+                <match for="~zh_TW" to="displace" with="$footer_tw" exclusively>
+                </match>
+                <match for="*" to="displace" with="$footer_def">
+                </match>
+                <error type="nodata">
+                    <p>You forget to define the $global variable!</p>
+                </error>
+                <except type="KeyError">
+                    <p>Bad global data!</p>
+                </except>
+                <except type="IdentifierError">
+                    <p>Bad archetype data!</p>
+                </except>
+            </test>
+        </footer>
+
+        <send on="$databus" to="subscribe" at="">
+            <observe on="$databus" for="event:$?" to="update" in="...">
+                <update by="FUNC: on_battery_changed" />
+            </observe>
+        </send>
+
+        <observe on=".avatar" for="click" to="update" in="...">
+            <update by="FUNC: on_avatar_clicked" />
+        </observe>
+    </body>
+</hvml>
+
