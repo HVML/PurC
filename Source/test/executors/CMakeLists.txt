@@ -12,6 +12,7 @@ list(APPEND test_executor_PRIVATE_INCLUDE_DIRECTORIES
     ${PurC_DERIVED_SOURCES_DIR}
     ${PURC_DIR}
     ${CMAKE_BINARY_DIR}
+    ${CMAKE_BINARY_DIR}/Source/PurC/executors
     ${WTF_DIR}
 )
 

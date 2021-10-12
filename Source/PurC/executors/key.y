@@ -50,6 +50,9 @@
     #define YYSTYPE       KEY_YYSTYPE
     #define YYLTYPE       KEY_YYLTYPE
     typedef void *yyscan_t;
+
+    int key_parse(const char *input,
+            struct key_param *param);
 }
 
 %code provides {
@@ -103,10 +106,14 @@
 %union { struct key_token token; }
 %union { char *str; }
 
-%destructor { free($$); } <str> // destructor for `str`
+    /* %destructor { free($$); } <str> */ // destructor for `str`
 
-%token <token>  STR        // token STR use `str` to store token value
-%nterm <str>   args        // non-terminal `input` use `str` to store
+%token KEY ALL FOR VALUE KV LIKE
+%token SQ
+%token <token>  INTEGER
+%token <token>  STR CHR
+
+ /* %nterm <str>   args */ // non-terminal `input` use `str` to store
                            // token value as well
 
 
@@ -114,12 +121,75 @@
 
 input:
   %empty
-| args        { free($1); }
+| KEY ':' ALL
+| KEY ':' ALL ',' FOR VALUE
+| KEY ':' ALL ',' FOR KEY
+| KEY ':' ALL ',' FOR KV
+| KEY ':' key_name_list
+| KEY ':' key_name_list ',' FOR VALUE
+| KEY ':' key_name_list ',' FOR KEY
+| KEY ':' key_name_list ',' FOR KV
+| "'" 
 ;
 
-args:
-  STR      { SET_ARGS($$, $1); }
-| args STR { APPEND_ARGS($$, $1, $2); }
+key_name_list:
+  key_list_expression
+| key_name_list ',' key_list_expression
+;
+
+key_list_expression:
+  LIKE key_pattern_expression
+| literal_str_exp
+;
+
+key_pattern_expression:
+  literal_str_exp
+| '/' regular_str '/'
+| '/' regular_str '/' regexp_flags
+;
+
+literal_str:
+  SQ sq_str SQ
+;
+
+literal_str_exp:
+  literal_str
+| literal_str matching_flags
+| literal_str matching_flags max_matching_length
+| literal_str max_matching_length
+;
+
+sq_str:
+  STR
+| CHR
+| sq_str STR
+| sq_str CHR
+;
+
+regular_str:
+  STR
+| CHR
+| regular_str STR
+| regular_str CHR
+;
+
+regexp_flags:
+  'g'
+| 'i'
+| 'm'
+| 's'
+| 'u'
+| 'y'
+;
+
+matching_flags:
+  'i'
+| 's'
+| 'c'
+;
+
+max_matching_length:
+  INTEGER
 ;
 
 %%
@@ -150,6 +220,7 @@ int key_parse(const char *input,
     key_yylex_init(&arg);
     // key_yyset_in(in, arg);
     // key_yyset_debug(1, arg);
+    key_yyset_debug(1, arg);
     // key_yyset_extra(param, arg);
     key_yy_scan_string(input, arg);
     int ret =key_yyparse(arg, param);

@@ -65,6 +65,11 @@ do {                                              \
     yylval->token.leng = yyleng;                  \
 } while (0)
 
+#define SET_CHR(chr) do {                         \
+    yylval->token.text = chr;                     \
+    yylval->token.leng = 1;                       \
+} while (0)
+
 %}
 
 %option prefix="key_yy"
@@ -77,7 +82,7 @@ do {                                              \
 %option perf-report
 %option 8bit
 
-%x STR
+%x LIKE SQ REG ESCAPED_SQ ESCAPED_REG
 
 %%
 
@@ -85,15 +90,51 @@ do {                                              \
           if (state != INITIAL) return -1;
           yyterminate(); }
 
-["]     { C(); PUSH(STR); R(); return *yytext; }
+KEY     { C(); R(); return MKT(KEY); }
+LIKE    { C(); PUSH(LIKE); R(); return MKT(LIKE); }
+[']     { C(); PUSH(SQ); R(); return MKT(SQ); }
+ALL     { C(); R(); return MKT(ALL); }
+FOR     { C(); R(); return MKT(FOR); }
+VALUE   { C(); R(); return MKT(VALUE); }
+KV      { C(); R(); return MKT(KV); }
+[:,]    { C(); R(); return *yytext; }
+[/]     { C(); PUSH(REG); R(); return *yytext; }
 [ \t]   { C(); R(); } /* eat */
-\n      { L(); R(); } /* eat */
+\n      { L(); R(); return *yytext; } /* let bison to handle */
 .       { C(); R(); return *yytext; } /* let bison to handle */
 
-<STR>{
-["]       { C(); POP(); R(); return *yytext; }
-[^"\n]+   { C(); SET_STR(); R(); return MKT(STR); }
+<LIKE>{
+[']     { C(); POP(); PUSH(SQ); R(); return MKT(SQ); }
+[/]     { C(); POP(); PUSH(REG); R(); return *yytext; }
+[ \t]   { C(); R(); } /* eat */
+\n      { L(); R(); return *yytext; } /* let bison to handle */
+.       { C(); R(); return *yytext; } /* let bison to handle */
+}
+
+<SQ>{
+[']       { C(); POP(); R(); return MKT(SQ); }
+[^'\\\n]+ { C(); SET_STR(); R(); return MKT(STR); }
+\\        { C(); PUSH(ESCAPED_SQ); R(); }
 \n        { L(); R(); return *yytext; } /* let bison to handle */
+}
+
+<ESCAPED_SQ>{
+[']       { C(); SET_CHR("'"); POP(); R(); return MKT(CHR); }
+\n        { L(); R(); return *yytext; } /* let bison to handle */
+.         { C(); R(); return *yytext; } /* let bison to handle */
+}
+
+<REG>{
+[/]       { C(); POP(); R(); return *yytext; }
+[^/\\\n]+ { C(); SET_STR(); R(); return MKT(STR); }
+\\        { C(); PUSH(ESCAPED_REG); R(); }
+\n        { L(); R(); return *yytext; } /* let bison to handle */
+}
+
+<ESCAPED_REG>{
+[/]       { C(); SET_CHR("/"); POP(); R(); return MKT(CHR); }
+\n        { L(); R(); return *yytext; } /* let bison to handle */
+.         { C(); R(); return *yytext; } /* let bison to handle */
 }
 
 %%
