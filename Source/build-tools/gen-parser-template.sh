@@ -78,8 +78,8 @@ do {                                              \\
 } while (0)
 
 #define SET_STR() do {                            \\
-    yylval->sval.text = yytext;                   \\
-    yylval->sval.leng = yyleng;                   \\
+    yylval->token.text = yytext;                  \\
+    yylval->token.leng = yyleng;                  \\
 } while (0)
 
 %}
@@ -164,7 +164,7 @@ cat > "${RELPATH}/${NAME}.y" << EOF
         char      placeholder[0];
     };
 
-    struct ${NAME}_semantic {
+    struct ${NAME}_token {
         const char      *text;
         size_t           leng;
     };
@@ -221,14 +221,15 @@ cat > "${RELPATH}/${NAME}.y" << EOF
 %param { yyscan_t arg }
 %parse-param { struct ${NAME}_param *param }
 
-%union { struct ${NAME}_semantic sval; } // union member
-%union { char *str; }                    // union member
+// union members
+%union { struct ${NAME}_token token; }
+%union { char *str; }
 
 %destructor { free(\$\$); } <str> // destructor for \`str\`
 
-%token <sval>  STR         // token STR use \`str\` to store semantic value
+%token <token>  STR        // token STR use \`str\` to store token value
 %nterm <str>   args        // non-terminal \`input\` use \`str\` to store
-                           // semantic value as well
+                           // token value as well
 
 
 %% /* The grammar follows. */
@@ -270,7 +271,7 @@ int ${NAME}_parse(const char *input,
     yyscan_t arg = {0};
     ${NAME}_yylex_init(&arg);
     // ${NAME}_yyset_in(in, arg);
-    // ${NAME}_yyset_debug(debug, arg);
+    // ${NAME}_yyset_debug(1, arg);
     // ${NAME}_yyset_extra(param, arg);
     ${NAME}_yy_scan_string(input, arg);
     int ret =${NAME}_yyparse(arg, param);

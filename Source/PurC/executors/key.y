@@ -42,7 +42,7 @@
         char      placeholder[0];
     };
 
-    struct key_semantic {
+    struct key_token {
         const char      *text;
         size_t           leng;
     };
@@ -99,14 +99,15 @@
 %param { yyscan_t arg }
 %parse-param { struct key_param *param }
 
-%union { struct key_semantic sval; } // union member
-%union { char *str; }                    // union member
+// union members
+%union { struct key_token token; }
+%union { char *str; }
 
 %destructor { free($$); } <str> // destructor for `str`
 
-%token <sval>  STR         // token STR use `str` to store semantic value
+%token <token>  STR        // token STR use `str` to store token value
 %nterm <str>   args        // non-terminal `input` use `str` to store
-                           // semantic value as well
+                           // token value as well
 
 
 %% /* The grammar follows. */
@@ -148,7 +149,7 @@ int key_parse(const char *input,
     yyscan_t arg = {0};
     key_yylex_init(&arg);
     // key_yyset_in(in, arg);
-    // key_yyset_debug(debug, arg);
+    // key_yyset_debug(1, arg);
     // key_yyset_extra(param, arg);
     key_yy_scan_string(input, arg);
     int ret =key_yyparse(arg, param);

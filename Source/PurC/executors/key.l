@@ -61,8 +61,8 @@ do {                                              \
 } while (0)
 
 #define SET_STR() do {                            \
-    yylval->sval.text = yytext;                   \
-    yylval->sval.leng = yyleng;                   \
+    yylval->token.text = yytext;                  \
+    yylval->token.leng = yyleng;                  \
 } while (0)
 
 %}
