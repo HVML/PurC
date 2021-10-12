@@ -7,6 +7,8 @@ find_package(LibXslt 1.1.7)
 find_package(CURL 7.60.0)
 find_package(OpenSSL 1.1.1)
 find_package(SQLite3 3.10.0)
+find_package(BISON 3.0 REQUIRED)
+find_package(FLEX 2.6.4 REQUIRED)
 
 PURC_OPTION_BEGIN()
 # Private options shared with other PurC ports. Add options here only if
