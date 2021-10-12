@@ -9,6 +9,8 @@
 #include "private/utils.h"
 #include "private/dvobjs.h"
 
+#include "helpers.h"
+
 #include <stdio.h>
 #include <errno.h>
 #include <gtest/gtest.h>
@@ -39,7 +41,7 @@ TEST(dvobjs, dvobjs_file_text_head)
     char so_path[PATH_MAX+1];
     const char *env;
     env = "DVOBJS_SO_PATH";
-    pcutils_getpath_from_env_or_rel(so_path, sizeof(so_path),
+    test_getpath_from_env_or_rel(so_path, sizeof(so_path),
         env, "../../../build/Source/ExtDVObjs");
     std::cout << "env: " << env << "=" << so_path << std::endl;
 
@@ -125,7 +127,7 @@ TEST(dvobjs, dvobjs_file_text_tail)
     char so_path[PATH_MAX+1];
     const char *env;
     env = "DVOBJS_SO_PATH";
-    pcutils_getpath_from_env_or_rel(so_path, sizeof(so_path),
+    test_getpath_from_env_or_rel(so_path, sizeof(so_path),
         env, "../../../build/Source/ExtDVObjs");
     std::cout << "env: " << env << "=" << so_path << std::endl;
 
@@ -211,7 +213,7 @@ TEST(dvobjs, dvobjs_file_bin_head)
     char so_path[PATH_MAX+1];
     const char *env;
     env = "DVOBJS_SO_PATH";
-    pcutils_getpath_from_env_or_rel(so_path, sizeof(so_path),
+    test_getpath_from_env_or_rel(so_path, sizeof(so_path),
         env, "../../../build/Source/ExtDVObjs");
     std::cout << "env: " << env << "=" << so_path << std::endl;
 
@@ -297,7 +299,7 @@ TEST(dvobjs, dvobjs_file_bin_tail)
     char so_path[PATH_MAX+1];
     const char *env;
     env = "DVOBJS_SO_PATH";
-    pcutils_getpath_from_env_or_rel(so_path, sizeof(so_path),
+    test_getpath_from_env_or_rel(so_path, sizeof(so_path),
         env, "../../../build/Source/ExtDVObjs");
     std::cout << "env: " << env << "=" << so_path << std::endl;
 
@@ -383,7 +385,7 @@ TEST(dvobjs, dvobjs_file_stream_open_seek_close)
     char so_path[PATH_MAX+1];
     const char *env;
     env = "DVOBJS_SO_PATH";
-    pcutils_getpath_from_env_or_rel(so_path, sizeof(so_path),
+    test_getpath_from_env_or_rel(so_path, sizeof(so_path),
         env, "../../../build/Source/ExtDVObjs");
     std::cout << "env: " << env << "=" << so_path << std::endl;
 
@@ -409,7 +411,7 @@ TEST(dvobjs, dvobjs_file_stream_open_seek_close)
 
     char data_path[PATH_MAX+1];
     env = "DVOBJS_TEST_PATH";
-    pcutils_getpath_from_env_or_rel(data_path, sizeof(data_path),
+    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
         env, "test_files");
     std::cout << "env: " << env << "=" << data_path << std::endl;
 
@@ -501,7 +503,7 @@ TEST(dvobjs, dvobjs_file_stream_readbytes)
     char so_path[PATH_MAX+1];
     const char *env;
     env = "DVOBJS_SO_PATH";
-    pcutils_getpath_from_env_or_rel(so_path, sizeof(so_path),
+    test_getpath_from_env_or_rel(so_path, sizeof(so_path),
         env, "../../../build/Source/ExtDVObjs");
     std::cout << "env: " << env << "=" << so_path << std::endl;
 
@@ -528,7 +530,7 @@ TEST(dvobjs, dvobjs_file_stream_readbytes)
 
     char data_path[PATH_MAX+1];
     env = "DVOBJS_TEST_PATH";
-    pcutils_getpath_from_env_or_rel(data_path, sizeof(data_path),
+    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
         env, "test_files");
     std::cout << "env: " << env << "=" << data_path << std::endl;
 
@@ -636,7 +638,7 @@ TEST(dvobjs, dvobjs_file_stream_readlines)
     char so_path[PATH_MAX+1];
     const char *env;
     env = "DVOBJS_SO_PATH";
-    pcutils_getpath_from_env_or_rel(so_path, sizeof(so_path),
+    test_getpath_from_env_or_rel(so_path, sizeof(so_path),
         env, "../../../build/Source/ExtDVObjs");
     std::cout << "env: " << env << "=" << so_path << std::endl;
 
@@ -662,7 +664,7 @@ TEST(dvobjs, dvobjs_file_stream_readlines)
 
     char data_path[PATH_MAX+1];
     env = "DVOBJS_TEST_PATH";
-    pcutils_getpath_from_env_or_rel(data_path, sizeof(data_path),
+    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
         env, "test_files");
     std::cout << "env: " << env << "=" << data_path << std::endl;
 
@@ -779,7 +781,7 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
     char so_path[PATH_MAX+1];
     const char *env;
     env = "DVOBJS_SO_PATH";
-    pcutils_getpath_from_env_or_rel(so_path, sizeof(so_path),
+    test_getpath_from_env_or_rel(so_path, sizeof(so_path),
         env, "../../../build/Source/ExtDVObjs");
     std::cout << "env: " << env << "=" << so_path << std::endl;
 
@@ -842,7 +844,7 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
 
     char data_path[PATH_MAX+1];
     env = "DVOBJS_TEST_PATH";
-    pcutils_getpath_from_env_or_rel(data_path, sizeof(data_path),
+    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
         env, "test_files");
     std::cout << "env: " << env << "=" << data_path << std::endl;
 
