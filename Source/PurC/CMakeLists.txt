@@ -90,6 +90,10 @@ set(dvobjs_PARSERS logical)
 PURC_FLEX_BISON(PurC dvobjs "${dvobjs_PARSERS}")
 unset(dvobjs_PARSERS)
 
+set(executors_PARSERS key)
+PURC_FLEX_BISON(PurC executors "${executors_PARSERS}")
+unset(executors_PARSERS)
+
 # Generate constants for HTML ns/tags/interfaces
 add_custom_command(
     OUTPUT "${PurC_DERIVED_SOURCES_DIR}/html_foo.c"

@@ -20,7 +20,7 @@ cat > "${RELPATH}/${NAME}.l" << EOF
  * @file ${NAME}.l
  * @author
  * @date
- * @brief The implementation of public part for vdom.
+ * @brief The implementation of public part for ${NAME}.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -51,24 +51,24 @@ cat > "${RELPATH}/${NAME}.l" << EOF
 #define PUSH(state)      yy_push_state(state, yyscanner)
 #define POP()            yy_pop_state(yyscanner)
 
-#define CHG(state) do {                      \\
-    yy_pop_state(yyscanner);                 \\
-    yy_push_state(state, yyscanner);         \\
+#define CHG(state) do {                           \\
+    yy_pop_state(yyscanner);                      \\
+    yy_push_state(state, yyscanner);              \\
 } while (0)
 
-#define TOP_STATE()                         \\
-    ({  yy_push_state(INITIAL, yyscanner);  \\
-        int _top = yy_top_state(yyscanner); \\
-        yy_pop_state(yyscanner);            \\
+#define TOP_STATE()                               \\
+    ({  yy_push_state(INITIAL, yyscanner);        \\
+        int _top = yy_top_state(yyscanner);       \\
+        yy_pop_state(yyscanner);                  \\
         _top; })
 
-#define C() do {                               \\
-    yylloc->last_column += strlen(yytext);      \\
+#define C() do {                                  \\
+    yylloc->last_column += strlen(yytext);        \\
 } while (0)
 
-#define L() do {                                \\
-    yylloc->last_line   += 1;                   \\
-    yylloc->last_column  = 1;                   \\
+#define L() do {                                  \\
+    yylloc->last_line   += 1;                     \\
+    yylloc->last_column  = 1;                     \\
 } while (0)
 
 #define R()                                       \\
@@ -77,9 +77,9 @@ do {                                              \\
     yylloc->first_line   = yylloc->last_line;     \\
 } while (0)
 
-#define SET_STR() do {               \\
-    yylval->sval.text = yytext;      \\
-    yylval->sval.leng = yyleng;      \\
+#define SET_STR() do {                            \\
+    yylval->sval.text = yytext;                   \\
+    yylval->sval.leng = yyleng;                   \\
 } while (0)
 
 %}
@@ -125,7 +125,7 @@ cat > "${RELPATH}/${NAME}.y" << EOF
  * @file ${NAME}.y
  * @author
  * @date
- * @brief The implementation of public part for vdom.
+ * @brief The implementation of public part for ${NAME}.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
