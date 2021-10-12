@@ -336,7 +336,7 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                     break;
             }
 
-            head = pcdvobjs_get_next_option (head + length + 1, " ", &length);
+            head = pcdvobjs_get_next_option (head + length, " ", &length);
         }
     } else {
         purc_rwstream_write (rwstream, name.sysname, strlen (name.sysname));
@@ -463,7 +463,7 @@ locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                     break;
             }
 
-            head = pcdvobjs_get_next_option (head + length + 1, " ", &length);
+            head = pcdvobjs_get_next_option (head + length, " ", &length);
         }
     } else
         ret_var = purc_variant_make_string (
@@ -622,7 +622,7 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                 break;
         }
 
-        head = pcdvobjs_get_next_option (head + length + 1, " ", &length);
+        head = pcdvobjs_get_next_option (head + length, " ", &length);
     }
 
     return ret_var;

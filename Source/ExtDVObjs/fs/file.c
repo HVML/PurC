@@ -46,7 +46,7 @@ struct pcdvojbs_dvobjs {
 extern purc_variant_t pcdvobjs_make_dvobjs (
         const struct pcdvojbs_dvobjs *method, size_t size);
 
-static const char * pcdvobjs_get_next_option (const char *data, 
+static const char * pcdvobjs_get_next_option (const char *data,
         const char *delims, size_t *length)
 {
     const char *head = data;
