@@ -159,11 +159,3 @@ TEST(executor, glob)
     ASSERT_TRUE(ok);
 }
 
-TEST(executor, foo)
-{
-    SUCCEED();
-    ADD_FAILURE();
-    ADD_FAILURE() << "damn";
-    ADD_FAILURE() << "xdamn";
-}
-
