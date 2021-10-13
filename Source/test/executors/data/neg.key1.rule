@@ -52,12 +52,17 @@ KEY: 'zh_
 KEY: 'zh
 KEY: 'z
 KEY: '
-# KEY: 'zh_CN'/i
-# KEY: 'zh_CN'/s
-# KEY: 'zh_CN'/c
-# KEY: 'zh_CN'/789
-# KEY: 'zh_CN'/i789
-KEY: 'zh_CN'/a
+# KEY: 'zh_CN'i
+# KEY: 'zh_CN's
+# KEY: 'zh_CN'c
+# KEY: 'zh_CN'789
+# KEY: 'zh_CN'i789
+# KEY: 'zh_CN'a
+KEY: 'zh_CN'a
+KEY: 'zh_CN'ia
+KEY: 'zh_CN'isc789i
+KEY: 'zh_CN'789i
+KEY: 'zh_CN'i i
 KEY: 'zh_CN'/
 # KEY: 'zh_CN', 'zh_HK'
 KEY: 'zh_CN', 'zh_HK
@@ -120,4 +125,8 @@ KEY: ALL,
 # KEY: LIKE /zh_[A-Z][A-Z]/i, FOR VALUE
 # KEY: 'zh_CN', LIKE 'zh_*', FOR VALUE
 # KEY: 'z', FOR VALUE 
+KEY: 'zh_CN' i
+KEY: 'zh_CN'i i
+KEY: LIKE /^head/tail/
+KEY: LIKE /tail$/ima sf
 

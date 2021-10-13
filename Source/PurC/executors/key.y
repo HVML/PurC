@@ -113,11 +113,13 @@
 // union members
 %union { struct key_token token; }
 %union { char *str; }
+%union { char c; }
 
     /* %destructor { free($$); } <str> */ // destructor for `str`
 
 %token KEY ALL FOR VALUE KV LIKE
 %token SQ "'"
+%token <c>      MATCHING_FLAG REGEXP_FLAG
 %token <token>  INTEGER
 %token <token>  STR CHR
 
@@ -166,9 +168,9 @@ literal_str:
 
 literal_str_exp:
   literal_str
-| literal_str '/' matching_flags
-| literal_str '/' matching_flags max_matching_length
-| literal_str '/' max_matching_length
+| literal_str matching_flags
+| literal_str matching_flags max_matching_length
+| literal_str max_matching_length
 ;
 
 sq_str:
@@ -185,24 +187,14 @@ regular_str:
 | regular_str CHR
 ;
 
-regexp_flag:
-  'g'
-| 'i'
-| 'm'
-| 's'
-| 'u'
-| 'y'
-;
-
 regexp_flags:
-  regexp_flag
-| regexp_flags regexp_flag
+  REGEXP_FLAG
+| regexp_flags REGEXP_FLAG
 ;
 
 matching_flags:
-  'i'
-| 's'
-| 'c'
+  MATCHING_FLAG
+| matching_flags MATCHING_FLAG
 ;
 
 max_matching_length:
@@ -226,9 +218,9 @@ yyerror(
     (void)arg;
     (void)err_msg;
     (void)param;
-    asprintf(err_msg, "(%d,%d)->(%d,%d): %s\n",
+    asprintf(err_msg, "(%d,%d)->(%d,%d): %s",
         yylloc->first_line, yylloc->first_column,
-        yylloc->last_line, yylloc->last_column,
+        yylloc->last_line, yylloc->last_column - 1,
         errsg);
 }
 
@@ -239,7 +231,6 @@ int key_parse(const char *input,
     yyscan_t arg = {0};
     key_yylex_init(&arg);
     // key_yyset_in(in, arg);
-    // key_yyset_debug(1, arg);
     // key_yyset_debug(1, arg);
     // key_yyset_extra(param, arg);
     key_yy_scan_string(input, arg);

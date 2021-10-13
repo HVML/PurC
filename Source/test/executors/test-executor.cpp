@@ -44,52 +44,6 @@ TEST(executor, basic)
     ASSERT_EQ(cleanup, true);
 }
 
-TEST(executor, positive)
-{
-    purc_instance_extra_info info = {0, 0};
-    bool cleanup = false;
-
-    const char *rules[] = {
-        "KEY: ALL",
-        "KEY: 'zh_CN', 'zh_HK'",
-        "KEY: LIKE 'zh_*'",
-        "KEY: LIKE /zh_[A-Z][A-Z]/i",
-        "KEY: 'zh_CN', LIKE 'zh_*'",
-        "KEY: ALL, FOR VALUE",
-        "KEY: 'zh_CN', 'zh_HK', FOR VALUE",
-        "KEY: LIKE 'zh_*', FOR VALUE",
-        "KEY: LIKE /zh_[A-Z][A-Z]/i, FOR VALUE",
-        "KEY: 'zh_CN', LIKE 'zh_*', FOR VALUE",
-    };
-
-    // initial purc
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
-    ASSERT_EQ(ret, PURC_ERROR_OK);
-
-    bool ok;
-
-    struct purc_exec_ops ops;
-    memset(&ops, 0, sizeof(ops));
-    ok = purc_register_executor("KEY", &ops);
-    EXPECT_FALSE(ok);
-    EXPECT_EQ(purc_get_last_error(), PCEXECUTOR_ERROR_ALREAD_EXISTS);
-
-    for (size_t i=0; i<PCA_TABLESIZE(rules); ++i) {
-        const char *rule = rules[i];
-        char *err_msg = NULL;
-        int r = key_parse(rule, &err_msg, NULL);
-        if (r) {
-            EXPECT_EQ(r, 0) << "Failed to parse: ["
-                << rule << "]" << (err_msg ? (const char*)err_msg : "")
-                << std::endl;
-        }
-        free(err_msg);
-    }
-
-    cleanup = purc_cleanup();
-    ASSERT_EQ(cleanup, true);
-}
-
 static inline bool
 parse_positive(const char *rule, char **err_msg)
 {
@@ -109,10 +63,12 @@ parse(const char *rule, bool neg)
     if (neg) {
         EXPECT_PRED2(parse_negative, rule, &err_msg);
         if (err_msg) {
-            std::cout << "As expected:[" << rule << "]:" << err_msg;
+            std::cout << "As expected:[" << rule << "]:"
+                << err_msg << std::endl;
         }
     } else {
-        EXPECT_PRED2(parse_positive, rule, &err_msg) << err_msg;
+        EXPECT_PRED2(parse_positive, rule, &err_msg)
+            << err_msg;
     }
     if (err_msg) {
         free(err_msg);
