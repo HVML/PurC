@@ -82,7 +82,7 @@ process_file(FILE *f, const char *file)
     size_t   len  = 0;
 
     const char *fn = basename((char*)file);
-    bool neg = (strstr(fn, "neg.")==fn) ? true : false;
+    bool neg = (strstr(fn, "N.")==fn) ? true : false;
 
     while (!feof(f)) {
         ssize_t n = getline(&line, &len, f);

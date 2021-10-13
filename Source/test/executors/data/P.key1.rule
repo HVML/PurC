@@ -25,4 +25,3 @@ KEY: 'z', FOR VALUE
 KEY: LIKE 'a', LIKE 'b*', FOR VALUE
 KEY: LIKE /^head/
 KEY: LIKE /tail$/im
-
