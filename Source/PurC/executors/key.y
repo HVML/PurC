@@ -30,6 +30,11 @@
 }
 
 %code requires {
+    #ifdef _GNU_SOURCE
+    #undef _GNU_SOURCE
+    #endif
+    #define _GNU_SOURCE
+    #include <stdio.h>
     #include <stddef.h>
     // related struct/function decls
     // especially, for struct key_param
@@ -51,7 +56,7 @@
     #define YYLTYPE       KEY_YYLTYPE
     typedef void *yyscan_t;
 
-    int key_parse(const char *input,
+    int key_parse(const char *input, char **err_msg,
             struct key_param *param);
 }
 
@@ -66,6 +71,7 @@
     static void yyerror(
         YYLTYPE *yylloc,                   // match %define locations
         yyscan_t arg,                      // match %param
+        char **err_msg,                    // match %parse-param
         struct key_param *param,       // match %parse-param
         const char *errsg
     );
@@ -101,6 +107,7 @@
 %verbose
 
 %param { yyscan_t arg }
+%parse-param { char **err_msg }
 %parse-param { struct key_param *param }
 
 // union members
@@ -209,6 +216,7 @@ static void
 yyerror(
     YYLTYPE *yylloc,                   // match %define locations
     yyscan_t arg,                      // match %param
+    char **err_msg,                    // match %parse-param
     struct key_param *param,       // match %parse-param
     const char *errsg
 )
@@ -216,24 +224,26 @@ yyerror(
     // to implement it here
     (void)yylloc;
     (void)arg;
+    (void)err_msg;
     (void)param;
-    fprintf(stderr, "(%d,%d)->(%d,%d): %s\n",
+    asprintf(err_msg, "(%d,%d)->(%d,%d): %s\n",
         yylloc->first_line, yylloc->first_column,
         yylloc->last_line, yylloc->last_column,
         errsg);
 }
 
 int key_parse(const char *input,
+        char **err_msg,
         struct key_param *param)
 {
     yyscan_t arg = {0};
     key_yylex_init(&arg);
     // key_yyset_in(in, arg);
     // key_yyset_debug(1, arg);
-    key_yyset_debug(1, arg);
+    // key_yyset_debug(1, arg);
     // key_yyset_extra(param, arg);
     key_yy_scan_string(input, arg);
-    int ret =key_yyparse(arg, param);
+    int ret =key_yyparse(arg, err_msg, param);
     key_yylex_destroy(arg);
     return ret ? 1 : 0;
 }

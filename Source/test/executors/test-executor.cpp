@@ -16,10 +16,11 @@ extern "C" {
 #include <limits.h>
 
 #define ENV(env)      #env
-#define PRINTF(...)                                                       \
+#define PRINTF(_ok, _fmt, ...)                                            \
     do {                                                                  \
-        fprintf(stderr, "\e[0;32m[          ] \e[0m");                    \
-        fprintf(stderr, __VA_ARGS__);                                     \
+        int _clr = 32;                                                    \
+        fprintf(stderr, "\e[0;%dm%s \e[0m" _fmt,                          \
+            _clr, _ok ? "[  SUCCESS ]" : "[     FAIL ]", __VA_ARGS__);    \
     } while(false)
 
 TEST(executor, basic)
@@ -75,29 +76,46 @@ TEST(executor, positive)
 
     for (size_t i=0; i<PCA_TABLESIZE(rules); ++i) {
         const char *rule = rules[i];
-        int r = key_parse(rule, NULL);
-        if (r==0) {
-            continue;
-        } else {
+        char *err_msg = NULL;
+        int r = key_parse(rule, &err_msg, NULL);
+        if (r) {
             EXPECT_EQ(r, 0) << "Failed to parse: ["
-                << rule << "]" << std::endl;
+                << rule << "]" << (err_msg ? (const char*)err_msg : "")
+                << std::endl;
         }
+        free(err_msg);
     }
 
     cleanup = purc_cleanup();
     ASSERT_EQ(cleanup, true);
 }
 
+static inline bool
+parse_positive(const char *rule, char **err_msg)
+{
+    return key_parse(rule, err_msg, NULL) == 0;
+}
+
+static inline bool
+parse_negative(const char *rule, char **err_msg)
+{
+    return !parse_positive(rule, err_msg);
+}
+
 static inline void
 parse(const char *rule, bool neg)
 {
-    int r = key_parse(rule, NULL);
+    char *err_msg = NULL;
     if (neg) {
-        EXPECT_NE(r, 0) << "Failed to parse negative sample: ["
-            << rule << "]" << std::endl;
+        EXPECT_PRED2(parse_negative, rule, &err_msg);
+        if (err_msg) {
+            std::cout << "As expected:[" << rule << "]:" << err_msg;
+        }
     } else {
-        EXPECT_EQ(r, 0) << "Failed to parse positive sample: ["
-            << rule << "]" << std::endl;
+        EXPECT_PRED2(parse_positive, rule, &err_msg) << err_msg;
+    }
+    if (err_msg) {
+        free(err_msg);
     }
 }
 
@@ -134,6 +152,9 @@ process_file(FILE *f, const char *file)
         }
         parse(line, neg);
     }
+
+    if (line)
+        free(line);
 }
 
 TEST(executor, glob)
@@ -180,5 +201,13 @@ TEST(executor, glob)
 
     bool ok = purc_cleanup ();
     ASSERT_TRUE(ok);
+}
+
+TEST(executor, foo)
+{
+    SUCCEED();
+    ADD_FAILURE();
+    ADD_FAILURE() << "damn";
+    ADD_FAILURE() << "xdamn";
 }
 
