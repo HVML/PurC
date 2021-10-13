@@ -128,7 +128,7 @@ KV      { R(); PUSH(EXP_SPACE); C(); return MKT(KV); }
 <SQ>{
 [']       { R(); CHG(SQ_SUFFIX); C(); return MKT(SQ); }
 [^'\\\n]+ { R(); SET_STR(); C(); return MKT(STR); }
-"\\'"     { R(); SET_CHR('\''); C(); return MKT(CHR); }
+\\['\\]   { R(); SET_CHR(yytext[1]); C(); return MKT(CHR); }
 \n        { R(); L(); return *yytext; } /* let bison to handle */
 .         { R(); C(); return *yytext; } /* let bison to handle */
 }
@@ -143,7 +143,7 @@ KV      { R(); PUSH(EXP_SPACE); C(); return MKT(KV); }
 <REG>{
 [/]       { R(); CHG(REG_SUFFIX); C(); return *yytext; }
 [^/\\\n]+ { R(); SET_STR(); C(); return MKT(STR); }
-"\\/"     { R(); SET_CHR('/'); C(); return MKT(CHR); }
+\\[/\\]   { R(); SET_CHR(yytext[1]); C(); return MKT(CHR); }
 \n        { R(); L(); return *yytext; } /* let bison to handle */
 .         { R(); C(); return *yytext; } /* let bison to handle */
 }
