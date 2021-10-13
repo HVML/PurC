@@ -83,7 +83,6 @@ do {                                              \
 
 %x LIKE
 %x SQ REG
-%x ESCAPED_SQ ESCAPED_REG
 %x SQ_SUFFIX REG_SUFFIX
 %x EXP_SPACE EXP_COLON
 
@@ -129,12 +128,7 @@ KV      { R(); PUSH(EXP_SPACE); C(); return MKT(KV); }
 <SQ>{
 [']       { R(); CHG(SQ_SUFFIX); C(); return MKT(SQ); }
 [^'\\\n]+ { R(); SET_STR(); C(); return MKT(STR); }
-\\        { R(); PUSH(ESCAPED_SQ); C(); }
-\n        { R(); L(); return *yytext; } /* let bison to handle */
-}
-
-<ESCAPED_SQ>{
-[']       { R(); SET_CHR(*yytext); POP(); C(); return MKT(CHR); }
+"\\'"     { R(); SET_CHR('\''); C(); return MKT(CHR); }
 \n        { R(); L(); return *yytext; } /* let bison to handle */
 .         { R(); C(); return *yytext; } /* let bison to handle */
 }
@@ -149,12 +143,7 @@ KV      { R(); PUSH(EXP_SPACE); C(); return MKT(KV); }
 <REG>{
 [/]       { R(); CHG(REG_SUFFIX); C(); return *yytext; }
 [^/\\\n]+ { R(); SET_STR(); C(); return MKT(STR); }
-\\        { R(); PUSH(ESCAPED_REG); C(); }
-\n        { R(); L(); return *yytext; } /* let bison to handle */
-}
-
-<ESCAPED_REG>{
-[/]       { R(); SET_CHR(*yytext); POP(); C(); return MKT(CHR); }
+"\\/"     { R(); SET_CHR('/'); C(); return MKT(CHR); }
 \n        { R(); L(); return *yytext; } /* let bison to handle */
 .         { R(); C(); return *yytext; } /* let bison to handle */
 }

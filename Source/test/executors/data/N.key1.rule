@@ -129,4 +129,30 @@ KEY: 'zh_CN' i
 KEY: 'zh_CN'i i
 KEY: LIKE /^head/tail/
 KEY: LIKE /tail$/ima sf
+# KEY: 'z\'a'
+KEY: 'z\'a
+KEY: 'z\'
+KEY: 'z\
+KEY: '
+KEY: 
+KEY
+KE
+K
+# KEY: LIKE /'z\/a'/
+KEY: LIKE /'z\/a'
+KEY: LIKE /'z\/a
+KEY: LIKE /'z\/
+KEY: LIKE /'z\
+KEY: LIKE /'
+KEY: LIKE /
+KEY: LIKE 
+KEY: LIKE
+KEY: LIK
+KEY: LI
+KEY: L
+KEY: 
+KEY:
+KEY
+
+KEY: 'a\d'
 
