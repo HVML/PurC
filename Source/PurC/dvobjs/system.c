@@ -516,11 +516,16 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                     else
                         ret_var = purc_variant_make_boolean (false);
                 } else if (strncasecmp (head, LOCALE_ADDRESS, length) == 0) {
+#ifdef LC_ADDRESS
                     if (setlocale (LC_ADDRESS,
                                 purc_variant_get_string_const (argv[1])))
                         ret_var = purc_variant_make_boolean (true);
                     else
                         ret_var = purc_variant_make_boolean (false);
+#else
+                    pcinst_set_error (PURC_ERROR_NOT_SUPPORTED);
+                    ret_var = purc_variant_make_boolean (false);
+#endif
                 }
                 break;
 
@@ -550,11 +555,16 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                     else
                         ret_var = purc_variant_make_boolean (false);
                 } else if (strncasecmp (head, LOCALE_NAME, length) == 0) {
+#ifdef LC_NAME
                     if (setlocale (LC_NAME,
                                 purc_variant_get_string_const (argv[1])))
                         ret_var = purc_variant_make_boolean (true);
                     else
                         ret_var = purc_variant_make_boolean (false);
+#else
+                    pcinst_set_error (PURC_ERROR_NOT_SUPPORTED);
+                    ret_var = purc_variant_make_boolean (false);
+#endif
                 }
                 break;
 
@@ -567,11 +577,16 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                     else
                         ret_var = purc_variant_make_boolean (false);
                 } else if (strncasecmp (head, LOCALE_TELEPHONE, length) == 0) {
+#ifdef LC_TELEPHONE
                     if (setlocale (LC_TELEPHONE,
                                 purc_variant_get_string_const (argv[1])))
                         ret_var = purc_variant_make_boolean (true);
                     else
                         ret_var = purc_variant_make_boolean (false);
+#else
+                    pcinst_set_error (PURC_ERROR_NOT_SUPPORTED);
+                    ret_var = purc_variant_make_boolean (false);
+#endif
                 }
                 break;
 
@@ -591,33 +606,48 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                         ret_var = purc_variant_make_boolean (false);
                 } else if (strncasecmp (head, LOCALE_MEASUREMENT,
                             length) == 0) {
+#ifdef LC_MEASUREMENT
                     if (setlocale (LC_MEASUREMENT,
                                 purc_variant_get_string_const (argv[1])))
                         ret_var = purc_variant_make_boolean (true);
                     else
                         ret_var = purc_variant_make_boolean (false);
+#else
+                    pcinst_set_error (PURC_ERROR_NOT_SUPPORTED);
+                    ret_var = purc_variant_make_boolean (false);
+#endif
                 }
                 break;
 
             case 'p':
             case 'P':
                 if (strncasecmp (head, LOCALE_PAPER, length) == 0) {
+#ifdef LC_PAPER
                     if (setlocale (LC_PAPER,
                                 purc_variant_get_string_const (argv[1])))
                         ret_var = purc_variant_make_boolean (true);
                     else
                         ret_var = purc_variant_make_boolean (false);
+#else
+                    pcinst_set_error (PURC_ERROR_NOT_SUPPORTED);
+                    ret_var = purc_variant_make_boolean (false);
+#endif
                 }
                 break;
 
             case 'i':
             case 'I':
                 if (strncasecmp (head, LOCALE_IDENTIFICATION, length) == 0) {
+#ifdef LC_IDENTIFICATION
                     if (setlocale (LC_IDENTIFICATION,
                                 purc_variant_get_string_const (argv[1])))
                         ret_var = purc_variant_make_boolean (true);
                     else
                         ret_var = purc_variant_make_boolean (false);
+#else
+                    pcinst_set_error (PURC_ERROR_NOT_SUPPORTED);
+                    ret_var = purc_variant_make_boolean (false);
+#endif
                 }
                 break;
         }
