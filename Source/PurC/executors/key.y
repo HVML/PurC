@@ -103,6 +103,7 @@
 %define locations
 %define parse.error verbose
 %define parse.lac full
+%define parse.trace true
 %defines
 %verbose
 
@@ -120,6 +121,7 @@
 %token KEY ALL FOR VALUE KV LIKE
 %token SQ "'"
 %token <c>      MATCHING_FLAG REGEXP_FLAG
+%token <token>  UNEXP
 %token <token>  INTEGER
 %token <token>  STR CHR
 
@@ -130,24 +132,45 @@
 %% /* The grammar follows. */
 
 input:
+  rules
+;
+
+opt_ln:
+  %empty
+| lns
+;
+
+lns:
+  '\n'
+| lns '\n'
+;
+
+rules:
   %empty
 | rule
+| rules ';'
+| rules ';' rule
 ;
 
 rule:
-  key_rule
+  lns
+| key_rule
 ;
 
 key_rule:
-  KEY ':' key_subrules
-| KEY ':' key_subrules ',' FOR KV
-| KEY ':' key_subrules ',' FOR KEY
-| KEY ':' key_subrules ',' FOR VALUE
+  KEY ':' opt_ln key_subrules for_clause
+;
+
+for_clause:
+  %empty
+| ',' opt_ln FOR KV
+| ',' opt_ln FOR KEY
+| ',' opt_ln FOR VALUE
 ;
 
 key_subrules:
   key_subrule
-| key_subrules ',' key_subrule
+| key_subrules ',' opt_ln key_subrule
 ;
 
 key_subrule:
@@ -232,6 +255,7 @@ int key_parse(const char *input,
     key_yylex_init(&arg);
     // key_yyset_in(in, arg);
     // key_yyset_debug(1, arg);
+    key_yyset_debug(1, arg);
     // key_yyset_extra(param, arg);
     key_yy_scan_string(input, arg);
     int ret =key_yyparse(arg, err_msg, param);

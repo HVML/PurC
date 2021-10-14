@@ -28,3 +28,4 @@ KEY: LIKE /tail$/im
 KEY: 'z\'a'
 KEY: LIKE /'z\/a'/
 KEY: LIKE /'z\\\/a'/
+KEY: ALL 

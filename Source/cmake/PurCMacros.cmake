@@ -146,7 +146,8 @@ endmacro()
 macro(_PURC_FLEX_BISON _target _relpath _parser)
     BISON_TARGET(${_parser}Parser
         ${CMAKE_CURRENT_SOURCE_DIR}/${_relpath}/${_parser}.y
-        ${CMAKE_CURRENT_BINARY_DIR}/${_relpath}/${_parser}.tab.c)
+        ${CMAKE_CURRENT_BINARY_DIR}/${_relpath}/${_parser}.tab.c
+        COMPILE_FLAGS "--warnings=error")
     FLEX_TARGET(${_parser}Scanner
         ${CMAKE_CURRENT_SOURCE_DIR}/${_relpath}/${_parser}.l
         ${CMAKE_CURRENT_BINARY_DIR}/${_relpath}/${_parser}.lex.c

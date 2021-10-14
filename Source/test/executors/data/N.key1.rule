@@ -15,7 +15,7 @@ KEY: 'zh_C
 KEY: 'zh_CN
 KEY: 'zh_CN'/789i
 KEY: 'zh_CN'/
-KEY: 'z',
+KEY: 'z,
 KEY: 'z', F
 KEY: 'z', FO
 KEY: 'z', FOR
@@ -28,8 +28,8 @@ KEY: 'z', FOR VALU
 KEY: 'z', FORKV
 KEY: 'z', FORKEY
 KEY: 'z', FORVALUE
-KEY : 'z'
-KEY: 'z',
+KEY : 'z
+KEY: 'z,
 KEY: L
 KEY: LI
 KEY: LIK
@@ -156,4 +156,5 @@ KEY
 
 KEY: 'a\d'
 KEY: LIKE /'z\a\/a'/
+KEY: LIKE /tail$/im i
 
