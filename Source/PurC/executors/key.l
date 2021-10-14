@@ -85,7 +85,6 @@ do {                                              \
 %x SQ REG
 %x AFTER_SQ AFTER_REG
 %x KEY
-%x EXP_SPACE
 
 SP       [ \t]
 LN       [\r\n]|[\f\r\n]
@@ -98,27 +97,21 @@ INTEGER  [0-9]+
           yyterminate(); }
 
 KEY       { R(); PUSH(KEY); C(); return MKT(KEY); }
-LIKE      { R(); PUSH(EXP_SPACE); C(); return MKT(LIKE); }
+LIKE      { R(); C(); return MKT(LIKE); }
 ALL       { R(); C(); return MKT(ALL); }
-FOR       { R(); PUSH(EXP_SPACE); C(); return MKT(FOR); }
+FOR       { R(); C(); return MKT(FOR); }
 VALUE     { R(); C(); return MKT(VALUE); }
 KV        { R(); C(); return MKT(KV); }
 [']       { R(); PUSH(SQ); C(); return MKT(SQ); }
 [/]       { R(); PUSH(REG); C(); return *yytext; }
 {INTEGER} { R(); SET_STR(); C(); return MKT(INTEGER); }
-{SP}      { R(); C(); } /* eat */
+{SP}      { R(); C(); return MKT(SP); } /* eat */
 {LN}      { R(); L(); return '\n'; }
 .         { R(); C(); return *yytext; } /* let bison to handle */
-
-<EXP_SPACE>{
-{SP}      { R(); POP(); C(); } /* eat */
-{LN}      { R(); L(); return '\n'; }
-.         { R(); C(); return *yytext; } /* let bison to handle */
-}
 
 <KEY>{
 [:]       { R(); POP(); C(); return *yytext; }
-{SP}      { R(); C(); } /* eat */
+{SP}      { R(); C(); return MKT(SP); } /* eat */
 {LN}      { R(); L(); return '\n'; }
 .         { R(); C(); return *yytext; } /* let bison to handle */
 }
@@ -142,14 +135,14 @@ KV        { R(); C(); return MKT(KV); }
 <AFTER_SQ>{
 [cis]     { R(); SET_CHR(*yytext); C(); return MKT(MATCHING_FLAG); }
 {INTEGER} { R(); SET_STR(); C(); return MKT(INTEGER); }
-{SP}      { R(); POP(); C(); } /* eat */
+{SP}      { R(); POP(); C(); return MKT(SP); } /* eat */
 {LN}      { R(); POP(); L(); yyless(0); }
 .         { R(); C(); return *yytext; } /* let bison to handle */
 }
 
 <AFTER_REG>{
 [igmsuy]  { R(); SET_CHR(*yytext); C(); return MKT(REGEXP_FLAG); }
-{SP}      { R(); POP(); C(); } /* eat */
+{SP}      { R(); POP(); C(); return MKT(SP); } /* eat */
 {LN}      { R(); POP(); L(); yyless(0); }
 .         { R(); C(); return *yytext; } /* let bison to handle */
 }

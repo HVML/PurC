@@ -120,8 +120,8 @@
 
 %token KEY ALL FOR VALUE KV LIKE
 %token SQ "'"
+%token SP LN
 %token <c>      MATCHING_FLAG REGEXP_FLAG
-%token <token>  UNEXP
 %token <token>  INTEGER
 %token <token>  STR CHR
 
@@ -132,51 +132,79 @@
 %% /* The grammar follows. */
 
 input:
-  rules
-;
-
-opt_ln:
-  %empty
-| lns
-;
-
-lns:
-  '\n'
-| lns '\n'
-;
-
-rules:
-  %empty
-| rule
-| rules ';'
-| rules ';' rule
+  rule
 ;
 
 rule:
-  lns
-| key_rule
+  key_rule
+| key_rule_ln
+;
+
+key_rule_ln:
+  key_rule LN
+| key_rule_ln ws
 ;
 
 key_rule:
-  KEY ':' opt_ln key_subrules for_clause
+  key colon key_subrules for_clause
+;
+
+ws:
+  SP
+| LN
+;
+
+colon:
+  ':'
+| colon SP
+;
+
+key:
+  KEY
+| KEY SP
 ;
 
 for_clause:
   %empty
-| ',' opt_ln FOR KV
-| ',' opt_ln FOR KEY
-| ',' opt_ln FOR VALUE
+| comma for for_param
+;
+
+for_param:
+  KV
+| KEY
+| VALUE
+| for_param SP
+;
+
+for:
+  FOR SP
+| for SP
+;
+
+comma:
+  ','
+| ',' ws
 ;
 
 key_subrules:
   key_subrule
-| key_subrules ',' opt_ln key_subrule
+| key_subrules comma key_subrule
 ;
 
 key_subrule:
+  ks
+| ks SP
+;
+
+ks:
   ALL
-| LIKE key_pattern_expression
+| like key_pattern_expression
 | literal_str_exp
+;
+
+like:
+  LIKE SP
+| like SP
 ;
 
 key_pattern_expression:

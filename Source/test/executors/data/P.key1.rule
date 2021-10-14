@@ -1,31 +1,40 @@
 # comment
-KEY: ALL
-KEY: 'zh_CN'
-KEY: 'zh_CN'i
-KEY: 'zh_CN's
-KEY: 'zh_CN'c
-KEY: 'zh_CN'789
-KEY: 'zh_CN'i789
-KEY: 'zh_CN', 'zh_HK'
-KEY: 'zh_CN', 'zh_HK', 'zh\'f'
-KEY: LIKE 'zh_*'
-KEY: LIKE /zh_[A-Z][A-Z]/
-KEY: LIKE /zh_[A-Z][A-Z]/i
-KEY: LIKE /zh_[A-Z][A-Z]/m
-KEY: LIKE /zh_[A-Z][A-Z]/g
-KEY: LIKE /zh_[A-Z][A-Z]/igmusy
-KEY: LIKE /zh_[A-Z]\/[A-Z]/igmusy
-KEY: 'zh_CN', LIKE 'zh_*'
-KEY: ALL, FOR VALUE
-KEY: 'zh_CN', 'zh_HK', FOR VALUE
-KEY: LIKE 'zh_*', FOR VALUE
-KEY: LIKE /zh_[A-Z][A-Z]/i, FOR VALUE
-KEY: 'zh_CN', LIKE 'zh_*', FOR VALUE
-KEY: 'z', FOR VALUE 
-KEY: LIKE 'a', LIKE 'b*', FOR VALUE
-KEY: LIKE /^head/
-KEY: LIKE /tail$/im
-KEY: 'z\'a'
-KEY: LIKE /'z\/a'/
-KEY: LIKE /'z\\\/a'/
-KEY: ALL 
+KEY: ALL;
+KEY: 'zh_CN';
+KEY: 'zh_CN'i;
+KEY: 'zh_CN's;
+KEY: 'zh_CN'c;
+KEY: 'zh_CN'789;
+KEY: 'zh_CN'i789;
+KEY: 'zh_CN', 'zh_HK';
+KEY: 'zh_CN', 'zh_HK', 'zh\'f';
+KEY: LIKE 'zh_*';
+KEY: LIKE /zh_[A-Z][A-Z]/;
+KEY: LIKE /zh_[A-Z][A-Z]/i;
+KEY: LIKE /zh_[A-Z][A-Z]/m;
+KEY: LIKE /zh_[A-Z][A-Z]/g;
+KEY: LIKE /zh_[A-Z][A-Z]/igmusy;
+KEY: LIKE /zh_[A-Z]\/[A-Z]/igmusy;
+KEY: 'zh_CN', LIKE 'zh_*';
+KEY: ALL, FOR VALUE;
+KEY: 'zh_CN', 'zh_HK', FOR VALUE;
+KEY: LIKE 'zh_*', FOR VALUE;
+KEY: LIKE /zh_[A-Z][A-Z]/i, FOR VALUE;
+KEY: 'zh_CN', LIKE 'zh_*', FOR VALUE;
+KEY: 'z', FOR VALUE ;
+KEY: LIKE 'a', LIKE 'b*', FOR VALUE;
+KEY: LIKE /^head/;
+KEY: LIKE /tail$/im;
+KEY: 'z\'a';
+KEY: LIKE /'z\/a'/;
+KEY: LIKE /'z\\\/a'/;
+KEY: ALL ;
+KEY: LIKE /tail$/;
+KEY: 'z', FOR VALUE ;
+KEY: 'z', FOR KEY ;
+KEY: 'z', FOR KV ;
+KEY: 'z', FOR KV ;
+KEY: 'z', FOR KV   ;
+KEY:
+'z'
+;

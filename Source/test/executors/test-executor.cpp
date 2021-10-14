@@ -75,6 +75,22 @@ parse(const char *rule, bool neg)
     }
 }
 
+static inline char* append(char *rule, const char *line)
+{
+    size_t len = 0;
+    if (rule)
+        len = strlen(rule);
+
+    size_t n = len + strlen(line);
+    char *p = (char*)realloc(rule, n + 1);
+    if (!p) {
+        free(rule);
+        return NULL;
+    }
+    strcat(p, line);
+    return p;
+}
+
 static inline void
 process_file(FILE *f, const char *file)
 {
@@ -83,6 +99,8 @@ process_file(FILE *f, const char *file)
 
     const char *fn = basename((char*)file);
     bool neg = (strstr(fn, "N.")==fn) ? true : false;
+
+    char *rule = NULL;
 
     while (!feof(f)) {
         ssize_t n = getline(&line, &len, f);
@@ -95,19 +113,46 @@ process_file(FILE *f, const char *file)
                 << strerror(err) << std::endl;
             break;
         }
-        if (n==0)
+        if (n<=0)
             continue;
+
+        // comment
         if (line[0] == '#')
             continue;
 
+        // remove '\n'
         line[n-1] = '\0';
 
-        if (neg) {
-            if (line[0] == '\0')
-                continue;
+        if (line[0] == '\0')
+            continue;
+
+        n = strlen(line);
+        if (line[n-1] != ';') {
+            rule = append(rule, line);
+            if (!rule) {
+                // warning?
+            }
+            continue;
         }
-        parse(line, neg);
+
+        // remove ';'
+        line[n-1] = '\0';
+        rule = append(rule, line);
+        if (!rule) {
+            // warning?
+            continue;
+        }
+
+        parse(rule, neg);
+        rule[0] = '\0';
     }
+
+    if (rule && rule[0]) {
+        parse(rule, neg);
+    }
+
+    if (rule)
+        free(rule);
 
     if (line)
         free(line);
