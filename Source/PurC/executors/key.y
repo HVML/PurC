@@ -44,7 +44,9 @@
     // #include "key.h"
     // here we define them locally
     struct key_param {
-        char      placeholder[0];
+        char *err_msg;
+        int debug_flex;
+        int debug_bison;
     };
 
     struct key_token {
@@ -56,7 +58,7 @@
     #define YYLTYPE       KEY_YYLTYPE
     typedef void *yyscan_t;
 
-    int key_parse(const char *input, char **err_msg,
+    int key_parse(const char *input, size_t len,
             struct key_param *param);
 }
 
@@ -71,8 +73,7 @@
     static void yyerror(
         YYLTYPE *yylloc,                   // match %define locations
         yyscan_t arg,                      // match %param
-        char **err_msg,                    // match %parse-param
-        struct key_param *param,       // match %parse-param
+        struct key_param *param,           // match %parse-param
         const char *errsg
     );
 
@@ -108,7 +109,6 @@
 %verbose
 
 %param { yyscan_t arg }
-%parse-param { char **err_msg }
 %parse-param { struct key_param *param }
 
 // union members
@@ -120,7 +120,7 @@
 
 %token KEY ALL FOR VALUE KV LIKE
 %token SQ "'"
-%token SP LN
+%token SP
 %token <c>      MATCHING_FLAG REGEXP_FLAG
 %token <token>  INTEGER
 %token <token>  STR CHR
@@ -141,7 +141,7 @@ rule:
 ;
 
 key_rule_ln:
-  key_rule LN
+  key_rule '\n'
 | key_rule_ln ws
 ;
 
@@ -151,17 +151,17 @@ key_rule:
 
 ws:
   SP
-| LN
+| '\n'
 ;
 
 colon:
   ':'
-| colon SP
+| colon ws
 ;
 
 key:
   KEY
-| KEY SP
+| key SP
 ;
 
 for_clause:
@@ -183,7 +183,7 @@ for:
 
 comma:
   ','
-| ',' ws
+| comma ws
 ;
 
 key_subrules:
@@ -259,34 +259,35 @@ static void
 yyerror(
     YYLTYPE *yylloc,                   // match %define locations
     yyscan_t arg,                      // match %param
-    char **err_msg,                    // match %parse-param
-    struct key_param *param,       // match %parse-param
+    struct key_param *param,           // match %parse-param
     const char *errsg
 )
 {
     // to implement it here
     (void)yylloc;
     (void)arg;
-    (void)err_msg;
     (void)param;
-    asprintf(err_msg, "(%d,%d)->(%d,%d): %s",
+    if (!param)
+        return;
+    asprintf(&param->err_msg, "(%d,%d)->(%d,%d): %s",
         yylloc->first_line, yylloc->first_column,
         yylloc->last_line, yylloc->last_column - 1,
         errsg);
 }
 
-int key_parse(const char *input,
-        char **err_msg,
+int key_parse(const char *input, size_t len,
         struct key_param *param)
 {
     yyscan_t arg = {0};
     key_yylex_init(&arg);
     // key_yyset_in(in, arg);
-    // key_yyset_debug(1, arg);
-    key_yyset_debug(1, arg);
+    int debug_flex = param ? param->debug_flex : 0;
+    int debug_bison = param ? param->debug_bison: 0;
+    key_yyset_debug(debug_flex, arg);
+    yydebug = debug_bison;
     // key_yyset_extra(param, arg);
-    key_yy_scan_string(input, arg);
-    int ret =key_yyparse(arg, err_msg, param);
+    key_yy_scan_bytes(input ? input : "", input ? len : 0, arg);
+    int ret =key_yyparse(arg, param);
     key_yylex_destroy(arg);
     return ret ? 1 : 0;
 }

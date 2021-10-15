@@ -158,3 +158,12 @@ KEY: 'a\d';
 KEY: LIKE /'z\a\/a'/;
 KEY: LIKE /tail$/im i;
 ;
+KEY: 'z' 
+,
+FOR KV     ;
+KEY: 'z' , 
+FOR 
+KV     ;
+
+
+
