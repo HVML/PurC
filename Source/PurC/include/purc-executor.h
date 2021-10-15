@@ -80,6 +80,7 @@ typedef struct purc_exec_ops* purc_exec_ops_t;
 
 // 注册一个执行器的操作集
 bool purc_register_executor(const char* name, purc_exec_ops_t ops);
+bool purc_get_executor(const char* name, purc_exec_ops_t ops);
 
 
 PCA_EXTERN_C_END

@@ -28,6 +28,7 @@
 #include "private/instance.h"
 
 #include "key.h"
+#include "range.h"
 
 struct pcexec_record {
     char                      *name;
@@ -80,6 +81,7 @@ void pcexecutor_init_instance(struct pcinst *inst)
     UNUSED_PARAM(heap);
 
     pcexec_key_register();
+    pcexec_range_register();
 }
 
 void pcexecutor_cleanup_instance(struct pcinst *inst)
@@ -148,5 +150,35 @@ failure:
     }
 
     return false;
+}
+
+bool purc_get_executor(const char* name, purc_exec_ops_t ops)
+{
+    if (!name) {
+        pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
+        return false;
+    }
+
+    pcutils_map_entry *entry = NULL;
+
+    struct pcexecutor_heap *heap;
+    heap = &pcinst_current()->executor_heap;
+    if (!heap) {
+        pcinst_set_error(PCEXECUTOR_ERROR_NOT_EXISTS);
+        return false;
+    }
+
+    entry = pcutils_map_find(heap->executors, name);
+    if (!entry) {
+        pcinst_set_error(PCEXECUTOR_ERROR_NOT_EXISTS);
+        return false;
+    }
+
+    struct pcexec_record *record = NULL;
+    record = (struct pcexec_record*)entry->val;
+    if (ops)
+        *ops = record->ops;
+
+    return true;
 }
 
