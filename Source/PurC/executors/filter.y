@@ -1,9 +1,9 @@
 %code top {
 /*
- * @file key.y
+ * @file filter.y
  * @author
  * @date
- * @brief The implementation of public part for key.
+ * @brief The implementation of public part for filter.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -26,7 +26,7 @@
 }
 
 %code top {
-    // here to include header files required for generated key.tab.c
+    // here to include header files required for generated filter.tab.c
 }
 
 %code requires {
@@ -37,29 +37,29 @@
     #include <stdio.h>
     #include <stddef.h>
     // related struct/function decls
-    // especially, for struct key_param
+    // especially, for struct filter_param
     // and parse function for example:
-    // int key_parse(const char *input,
-    //        struct key_param *param);
-    // #include "key.h"
+    // int filter_parse(const char *input,
+    //        struct filter_param *param);
+    // #include "filter.h"
     // here we define them locally
-    struct key_param {
+    struct filter_param {
         char *err_msg;
         int debug_flex;
         int debug_bison;
     };
 
-    struct key_token {
+    struct filter_token {
         const char      *text;
         size_t           leng;
     };
 
-    #define YYSTYPE       KEY_YYSTYPE
-    #define YYLTYPE       KEY_YYLTYPE
+    #define YYSTYPE       FILTER_YYSTYPE
+    #define YYLTYPE       FILTER_YYLTYPE
     typedef void *yyscan_t;
 
-    int key_parse(const char *input, size_t len,
-            struct key_param *param);
+    int filter_parse(const char *input, size_t len,
+            struct filter_param *param);
 }
 
 %code provides {
@@ -68,12 +68,12 @@
 %code {
     // generated header from flex
     // introduce yylex decl for later use
-    #include "key.lex.h"
+    #include "filter.lex.h"
 
     static void yyerror(
         YYLTYPE *yylloc,                   // match %define locations
         yyscan_t arg,                      // match %param
-        struct key_param *param,           // match %parse-param
+        struct filter_param *param,           // match %parse-param
         const char *errsg
     );
 
@@ -98,9 +98,9 @@
 
 /* Bison declarations. */
 %require "3.0.4"
-%define api.prefix {key_yy}
+%define api.prefix {filter_yy}
 %define api.pure full
-%define api.token.prefix {TOK_KEY_}
+%define api.token.prefix {TOK_FILTER_}
 %define locations
 %define parse.error verbose
 %define parse.lac full
@@ -109,39 +109,42 @@
 %verbose
 
 %param { yyscan_t arg }
-%parse-param { struct key_param *param }
+%parse-param { struct filter_param *param }
 
 // union members
-%union { struct key_token token; }
+%union { struct filter_token token; }
 %union { char *str; }
 %union { char c; }
 
     /* %destructor { free($$); } <str> */ // destructor for `str`
 
-%token KEY ALL FOR VALUE KV LIKE
-%token SQ "'"
+%token FILTER ALL LIKE KV KEY VALUE FOR
+%token LT GT LE GE NE EQ
 %token SP
-%token <c>      MATCHING_FLAG REGEXP_FLAG
+%token SQ "'"
+%token STR CHR
+%token <c>             MATCHING_FLAG REGEXP_FLAG
 %token <token>  INTEGER
-%token <token>  STR CHR
+
+%left '-' '+'
+%left '*' '/'
+%precedence NEG /* negation--unary minus */
 
  /* %nterm <str>   args */ // non-terminal `input` use `str` to store
                            // token value as well
 
-%expect 4
+%expect 21
 
 %% /* The grammar follows. */
 
 input:
   rule
+| rule_ln
 ;
 
-rule:
-  key_rule ows
-;
-
-key_rule:
-  KEY osp ':' ows key_subrules for_clause
+rule_ln:
+  rule '\n'
+| rule_ln ws
 ;
 
 ws:
@@ -161,14 +164,51 @@ sp:
 | sp SP
 ;
 
-osp:
-  %empty
-| sp
+colon:
+  ':'
+| colon ws
+;
+
+comma:
+  ','
+| comma ws
+;
+
+all:
+  ALL
+| all ws
+;
+
+for:
+  FOR
+| for SP
+;
+
+filter:
+  FILTER
+| filter SP
+;
+
+rule:
+  filter colon all for_clause
+| filter colon subrules for_clause
+;
+
+subrules:
+  subrule
+| subrules comma subrule
+;
+
+subrule:
+  pred_exp
+| LIKE sp pattern_expression
+| literal_str_exp
+| subrule SP
 ;
 
 for_clause:
   %empty
-| comma FOR sp for_param
+| comma for for_param
 ;
 
 for_param:
@@ -178,28 +218,20 @@ for_param:
 | for_param SP
 ;
 
-comma:
-  ','
-| comma ws
+pred_exp:
+  pred sp int_eval
 ;
 
-key_subrules:
-  key_subrule
-| key_subrules comma key_subrule
+pred:
+  LT
+| GT
+| LE
+| GE
+| NE
+| EQ
 ;
 
-key_subrule:
-  ks
-| ks SP
-;
-
-ks:
-  ALL
-| LIKE sp key_pattern_expression
-| literal_str_exp
-;
-
-key_pattern_expression:
+pattern_expression:
   literal_str_exp
 | '/' regular_str '/'
 | '/' regular_str '/' regexp_flags
@@ -244,6 +276,20 @@ max_matching_length:
   INTEGER
 ;
 
+int_eval:
+  exp
+;
+
+exp:
+  INTEGER
+| exp '+' ows exp
+| exp '-' ows exp
+| exp '*' ows exp
+| exp '/' ows exp
+| '(' ows exp ')'
+| exp ws
+;
+
 %%
 
 /* Called by yyparse on error. */
@@ -251,7 +297,7 @@ static void
 yyerror(
     YYLTYPE *yylloc,                   // match %define locations
     yyscan_t arg,                      // match %param
-    struct key_param *param,           // match %parse-param
+    struct filter_param *param,           // match %parse-param
     const char *errsg
 )
 {
@@ -267,20 +313,20 @@ yyerror(
         errsg);
 }
 
-int key_parse(const char *input, size_t len,
-        struct key_param *param)
+int filter_parse(const char *input, size_t len,
+        struct filter_param *param)
 {
     yyscan_t arg = {0};
-    key_yylex_init(&arg);
-    // key_yyset_in(in, arg);
+    filter_yylex_init(&arg);
+    // filter_yyset_in(in, arg);
     int debug_flex = param ? param->debug_flex : 0;
     int debug_bison = param ? param->debug_bison: 0;
-    key_yyset_debug(debug_flex, arg);
+    filter_yyset_debug(debug_flex, arg);
     yydebug = debug_bison;
-    // key_yyset_extra(param, arg);
-    key_yy_scan_bytes(input ? input : "", input ? len : 0, arg);
-    int ret =key_yyparse(arg, param);
-    key_yylex_destroy(arg);
+    // filter_yyset_extra(param, arg);
+    filter_yy_scan_bytes(input ? input : "", input ? len : 0, arg);
+    int ret =filter_yyparse(arg, param);
+    filter_yylex_destroy(arg);
     return ret ? 1 : 0;
 }
 

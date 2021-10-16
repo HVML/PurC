@@ -129,7 +129,7 @@
  /* %nterm <str>   args */ // non-terminal `input` use `str` to store
                            // token value as well
 
-%expect 23
+%expect 14
 
 %% /* The grammar follows. */
 
@@ -138,17 +138,11 @@ input:
 ;
 
 rule:
-  range_rule
-| range_rule_ln
-;
-
-range_rule_ln:
-  range_rule '\n'
-| range_rule_ln ws
+  range_rule ows
 ;
 
 range_rule:
-  range colon from_clause to_clause advance_clause
+  RANGE osp ':' ows FROM ws int_eval to_clause advance_clause
 ;
 
 ws:
@@ -163,9 +157,14 @@ ows:
 | ws
 ;
 
-colon:
-  ':'
-| colon ws
+sp:
+  SP
+| sp SP
+;
+
+osp:
+  %empty
+| sp
 ;
 
 comma:
@@ -173,38 +172,14 @@ comma:
 | comma ws
 ;
 
-range:
-  RANGE
-| range SP
-;
-
-from_clause:
-  from int_eval
-;
-
-from:
-  FROM
-| from ws
-;
-
 to_clause:
   %empty
-| to int_eval
-;
-
-to:
-  TO
-| to ws
+| TO ows int_eval
 ;
 
 advance_clause:
   %empty
-| comma advance int_eval
-;
-
-advance:
-  ADVANCE
-| advance ws
+| comma ADVANCE ows int_eval
 ;
 
 int_eval:

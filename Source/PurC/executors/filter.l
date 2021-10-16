@@ -1,9 +1,9 @@
 %{
 /*
- * @file key.l
+ * @file filter.l
  * @author
  * @date
- * @brief The implementation of public part for key.
+ * @brief The implementation of public part for filter.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -27,9 +27,9 @@
 
 
 %{
-#include "key.tab.h"
+#include "filter.tab.h"
 
-#define MKT(x)    TOK_KEY_##x
+#define MKT(x)    TOK_FILTER_##x
 
 #define PUSH(state)      yy_push_state(state, yyscanner)
 #define POP()            yy_pop_state(yyscanner)
@@ -71,7 +71,7 @@ do {                                              \
 
 %}
 
-%option prefix="key_yy"
+%option prefix="filter_yy"
 %option bison-bridge bison-locations reentrant
 %option noyywrap noinput nounput
 %option verbose
@@ -84,7 +84,7 @@ do {                                              \
 
 %x SQ REG
 %x AFTER_SQ AFTER_REG AFTER_INT
-%x KEY
+%x FILTER
 
 SP       [ \t]
 LN       [\r\n]|[\f\r\n]
@@ -96,7 +96,13 @@ INTEGER  [0-9]+
           if (state != INITIAL) return -1;
           yyterminate(); }
 
-KEY       { R(); PUSH(KEY); C(); return MKT(KEY); }
+FILTER    { R(); PUSH(FILTER); C(); return MKT(FILTER); }
+LT        { R(); C(); return MKT(LT); }
+GT        { R(); C(); return MKT(GT); }
+LE        { R(); C(); return MKT(LE); }
+GE        { R(); C(); return MKT(GE); }
+NE        { R(); C(); return MKT(NE); }
+EQ        { R(); C(); return MKT(EQ); }
 LIKE      { R(); C(); return MKT(LIKE); }
 ALL       { R(); C(); return MKT(ALL); }
 FOR       { R(); C(); return MKT(FOR); }
@@ -109,7 +115,7 @@ KV        { R(); C(); return MKT(KV); }
 {LN}      { R(); L(); return '\n'; }
 .         { R(); C(); return *yytext; } /* let bison to handle */
 
-<KEY>{
+<FILTER>{
 [:]       { R(); POP(); C(); return *yytext; }
 {SP}      { R(); C(); return MKT(SP); } /* eat */
 {LN}      { R(); L(); return '\n'; }
@@ -152,7 +158,6 @@ KV        { R(); C(); return MKT(KV); }
 {LN}      { R(); POP(); L(); return '\n'; }
 .         { R(); C(); return *yytext; } /* let bison to handle */
 }
-
 
 %%
 

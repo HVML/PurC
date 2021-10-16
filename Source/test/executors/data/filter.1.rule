@@ -1,0 +1,27 @@
+# state: `begin` | `in_sample`
+# sample type: `undefined` | `positive` | `negative`
+# <begin>/comment_line:  ^'#' .* '\n'
+# <begin>/sample_type:   ^('P'|'N') ':' .* '\n' { set sample_type; }
+# <begin>/blank_line:    ^[ \t]* '\n'
+# <begin>/@default:                             { switch to in_sample; }
+# <sample>sample_record: ^(.* '\n')* ';' '\n'   { process sample;
+#                                                 switch to begin; }
+
+
+# blank line
+                      
+P: # bellow are positive samples
+# blank line
+                      
+# all seperated with a SPACE
+FILTER : ALL ;
+FILTER : GT 30 ;
+FILTER : LIKE /0$/ ;
+# no SPACE in between
+FILTER:ALL;
+FILTER:GT 30;
+FILTER:LIKE /0$/;
+# multiple line
+FILTER:
+LIKE /0$/
+;
