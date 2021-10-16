@@ -4,10 +4,10 @@ include(GoogleTest)
 
 enable_testing()
 
-# test_executor
-PURC_EXECUTABLE_DECLARE(test_executor)
+# test_key
+PURC_EXECUTABLE_DECLARE(test_key)
 
-list(APPEND test_executor_PRIVATE_INCLUDE_DIRECTORIES
+list(APPEND test_key_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR}/include
     ${PurC_DERIVED_SOURCES_DIR}
     ${PURC_DIR}
@@ -16,21 +16,21 @@ list(APPEND test_executor_PRIVATE_INCLUDE_DIRECTORIES
     ${WTF_DIR}
 )
 
-PURC_EXECUTABLE(test_executor)
+PURC_EXECUTABLE(test_key)
 
-set(test_executor_SOURCES
-    test-executor.cpp
+set(test_key_SOURCES
+    test-key.cpp
 )
 
-set(test_executor_LIBRARIES
+set(test_key_LIBRARIES
     PurC::PurC
     gtest_main
     gtest
     pthread
 )
 
-PURC_COMPUTE_SOURCES(test_executor)
-PURC_FRAMEWORK(test_executor)
-GTEST_DISCOVER_TESTS(test_executor)
+PURC_COMPUTE_SOURCES(test_key)
+PURC_FRAMEWORK(test_key)
+GTEST_DISCOVER_TESTS(test_key)
 
 

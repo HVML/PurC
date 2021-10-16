@@ -1,4 +1,5 @@
 #comment
+N:
 ;
 X;
 KEY: 'zh_CN'/789i;
@@ -153,17 +154,12 @@ KEY: L;
 KEY: ;
 KEY:;
 KEY;
-;
 KEY: 'a\d';
 KEY: LIKE /'z\a\/a'/;
 KEY: LIKE /tail$/im i;
-;
 KEY: 'z' 
 ,
 FOR KV     ;
 KEY: 'z' , 
 FOR 
 KV     ;
-
-
-

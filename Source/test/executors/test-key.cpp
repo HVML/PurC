@@ -17,6 +17,17 @@ extern "C" {
 
 #define ENV(env)      #env
 
+enum sample_file_parsing_state {
+    SAMPLE_IN_BEGIN,
+    SAMPLE_IN_RULE,
+};
+
+enum sample_type {
+    UNRECOGNIZED_SAMPLE,
+    POSITIVE_SAMPLE,
+    NEGATIVE_SAMPLE,
+};
+
 static bool debug_flex  = false;       // trace flex
 static bool debug_bison = false;       // trace bison
 static bool verbose_neg = false;       // if print err_msg when neg 'succeeds'
@@ -40,43 +51,58 @@ static inline void print_statics(void)
         << std::endl;
 }
 
-static inline char*
-test_str_append(char *rule, const char *line)
+static inline void
+test_str_append(char **rule, const char *line)
 {
     size_t len = 0;
-    if (rule)
-        len = strlen(rule);
+    if (*rule)
+        len = strlen(*rule);
 
     size_t n = len + strlen(line);
 
-    char *p = (char*)realloc(rule, n + 1);
+    char *p = (char*)realloc(*rule, n + 1);
     if (!p) {
-        free(rule);
-        return NULL;
+        free(*rule);
+        FAIL() << "Out of memory";
+        return; // never reached here
     }
-    if (!rule)
+    if (!*rule)
         p[0] = '\0';
 
     strcat(p, line);
-    return p;
+    *rule = p;
+}
+
+static inline bool
+is_blank_line(const char *line)
+{
+    for (; *line; ++line) {
+        if (isblank(*line))
+            continue;
+        if (*line == '#')
+            continue;
+        return false;
+    }
+    return true;
 }
 
 static inline void
-process_file(FILE *f, const char *file,
-    std::function<void(const char *rule, bool neg)> on_rule)
+process_file(FILE *f,
+    std::function<void(const char *rule, enum sample_type st)> on_rule)
 {
-    char    *line = NULL;
+    char    *linebuf = NULL;
     size_t   len  = 0;
 
-    const char *fn = basename((char*)file);
-    bool neg = (strstr(fn, "N.")==fn) ? true : false;
+    enum sample_file_parsing_state state = SAMPLE_IN_BEGIN;
+    enum sample_type st = UNRECOGNIZED_SAMPLE;
 
     char *rule = NULL;
 
+    int lineno = 0;
     while (!feof(f)) {
-        if (line)
-            line[0] = '0';
-        ssize_t n = getline(&line, &len, f);
+        if (linebuf)
+            linebuf[0] = '0';
+        ssize_t n = getline(&linebuf, &len, f);
         if (n<0) {
             int err = errno;
             if (feof(f))
@@ -89,44 +115,74 @@ process_file(FILE *f, const char *file,
         if (n<=0)
             continue;
 
-        // comment
-        if (line[0] == '#')
-            continue;
+        ++lineno;
 
-        char *p = strstr(line, ";\n"); // FIXME: ';\r\n'
-        if (p) {
-            // remove ';\n';
-            *p = '\0';
+        char *line = linebuf;
 
-            rule = test_str_append(rule, line);
-            if (rule) {
-                on_rule(rule, neg);
-                rule[0] = '\0';
-                continue;
-            }
-            // warning?
-        } else {
-            rule = test_str_append(rule, line);
-            if (!rule) {
-                // warning?
-            }
+again:
+        switch (state) {
+            case SAMPLE_IN_BEGIN:
+                {
+                    // comment
+                    if (line[0] == '#')
+                        break;
+                    if (strstr(line, "P:") == line) {
+                        st = POSITIVE_SAMPLE;
+                        state = SAMPLE_IN_RULE;
+                    }
+                    else if (strstr(line, "N:") == line) {
+                        st = NEGATIVE_SAMPLE;
+                        state = SAMPLE_IN_RULE;
+                    }
+                    else {
+                        if (st != UNRECOGNIZED_SAMPLE) {
+                            state = SAMPLE_IN_RULE;
+                            goto again;
+                        }
+                        else if (!is_blank_line(line)) {
+                            std::cout << "Unrecognized: @" << lineno
+                                << "[" << line << "]" << std::endl;
+                        }
+                    }
+                } break;
+            case SAMPLE_IN_RULE:
+                {
+                    char *p = strstr(line, ";\n"); // FIXME: ';\r\n'
+                    if (p) {
+                        // remove ';\n';
+                        *p = '\0';
+
+                        test_str_append(&rule, line);
+                        on_rule(rule, st);
+                        rule[0] = '\0';
+                        state = SAMPLE_IN_BEGIN;
+                    } else {
+                        test_str_append(&rule, line);
+                    }
+                } break;
+            default:
+                FAIL() << "Internal logic error";
         }
     }
 
     if (rule) {
-        on_rule(rule, neg);
+        if (state == SAMPLE_IN_RULE) {
+            if (!is_blank_line(rule)) {
+                on_rule(rule, st);
+            }
+        }
     }
 
     if (rule)
         free(rule);
 
-    if (line)
-        free(line);
+    if (linebuf)
+        free(linebuf);
 }
 
 static inline void
 process_sample_files(const char *pattern,
-        std::function<void(const char *rule, bool neg)> on_rule)
+        std::function<void(const char *rule, enum sample_type st)> on_rule)
 {
     glob_t gbuf;
     memset(&gbuf, 0, sizeof(gbuf));
@@ -146,7 +202,7 @@ process_sample_files(const char *pattern,
             EXPECT_NE(f, nullptr) << "Failed to open file: ["
                 << file << "]" << std::endl;
             if (f) {
-                process_file(f, file, on_rule);
+                process_file(f, on_rule);
             }
 
             fclose(f);
@@ -246,7 +302,6 @@ parse_negative(const char *rule)
 
     ++counter.negatives;
 
-
     if (r && verbose_neg) {
         std::cout << "As expected:[" << rule << "]:"
             << err_msg << std::endl;
@@ -262,17 +317,19 @@ parse_negative(const char *rule)
 }
 
 static inline void
-parse(const char *rule, bool neg)
+parse(const char *rule, enum sample_type st)
 {
-    if (!neg) {
+    if (st == POSITIVE_SAMPLE) {
         if (rule[0] == '\0')
             return;
 
         if (!parse_positive(rule))
             ADD_FAILURE();
-    } else {
+    } else if (st == NEGATIVE_SAMPLE) {
         if (!parse_negative(rule))
             ADD_FAILURE();
+    } else {
+        FAIL() << "Unrecognized sample: [" << rule << "]" << std::endl;
     }
 }
 
@@ -292,8 +349,9 @@ TEST(executor, files)
     const char *rel = "data/*.rule";
     get_option_from_env(rel, false);
 
-    process_sample_files(sample_files, [](const char *rule, bool neg){
-        parse(rule, neg);
+    process_sample_files(sample_files, 
+            [](const char *rule, enum sample_type st){
+        parse(rule, st);
     });
 
     bool ok = purc_cleanup ();
