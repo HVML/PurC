@@ -83,6 +83,7 @@ do {                                              \
 %option 8bit
 
 %x RANGE
+%x AFTER_INT
 
 SP       [ \t]
 LN       [\r\n]|[\f\r\n]
@@ -95,20 +96,27 @@ INTEGER  [0-9]+
           yyterminate(); }
 
 RANGE     { R(); PUSH(RANGE); C(); return MKT(RANGE); }
+FROM      { R(); C(); return MKT(FROM); }
 TO        { R(); C(); return MKT(TO); }
 ADVANCE   { R(); C(); return MKT(ADVANCE); }
-{INTEGER} { R(); SET_STR(); C(); return MKT(INTEGER); }
-{SP}      { R(); C(); return MKT(SP); } /* eat */
+{INTEGER} { R(); PUSH(AFTER_INT); SET_STR(); C(); return MKT(INTEGER); }
+{SP}      { R(); C(); return MKT(SP); }
 {LN}      { R(); L(); return '\n'; }
 .         { R(); C(); return *yytext; } /* let bison to handle */
 
 <RANGE>{
 [:]       { R(); POP(); C(); return *yytext; }
-{SP}      { R(); C(); return MKT(SP); } /* eat */
+{SP}      { R(); C(); return MKT(SP); }
 {LN}      { R(); L(); return '\n'; }
 .         { R(); C(); return *yytext; } /* let bison to handle */
 }
 
+<AFTER_INT>{
+[-+*/(),] { R(); POP(); C(); return *yytext; }
+{SP}      { R(); POP(); C(); return MKT(SP); }
+{LN}      { R(); POP(); L(); return '\n'; }
+.         { R(); C(); return *yytext; } /* let bison to handle */
+}
 
 %%
 

@@ -12,12 +12,12 @@
 #include "../helpers.h"
 
 extern "C" {
-#include "key.tab.h"
+#include "range.tab.h"
 }
 
 #include "utils.cpp.in"
 
-TEST(key, basic)
+TEST(range, basic)
 {
     purc_instance_extra_info info = {0, 0};
     bool cleanup = false;
@@ -30,7 +30,7 @@ TEST(key, basic)
 
     struct purc_exec_ops ops;
     memset(&ops, 0, sizeof(ops));
-    ok = purc_register_executor("KEY", &ops);
+    ok = purc_register_executor("RANGE", &ops);
     EXPECT_FALSE(ok);
     EXPECT_EQ(purc_get_last_error(), PCEXECUTOR_ERROR_ALREAD_EXISTS);
 
@@ -41,18 +41,18 @@ TEST(key, basic)
 static inline bool
 parse(const char *rule, char **err_msg)
 {
-    struct key_param param = {
+    struct range_param param = {
         .err_msg            = nullptr,
         .debug_flex         = debug_flex,
         .debug_bison        = debug_bison,
     };
     bool r;
-    r = key_parse(rule, strlen(rule), &param) == 0;
+    r = range_parse(rule, strlen(rule), &param) == 0;
     *err_msg = param.err_msg;
     return r;
 }
 
-TEST(key, files)
+TEST(range, files)
 {
     int r = 0;
     glob_t globbuf;
@@ -65,7 +65,7 @@ TEST(key, files)
     if (r)
         return;
 
-    const char *rel = "data/key.*.rule";
+    const char *rel = "data/range.*.rule";
     get_option_from_env(rel, false);
 
     process_sample_files(sample_files,

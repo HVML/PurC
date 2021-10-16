@@ -129,7 +129,7 @@
  /* %nterm <str>   args */ // non-terminal `input` use `str` to store
                            // token value as well
 
-%expect 11
+%expect 23
 
 %% /* The grammar follows. */
 
@@ -154,6 +154,13 @@ range_rule:
 ws:
   SP
 | '\n'
+| ws SP
+| ws '\n'
+;
+
+ows:
+  %empty
+| ws
 ;
 
 colon:
@@ -181,7 +188,8 @@ from:
 ;
 
 to_clause:
-  to int_eval
+  %empty
+| to int_eval
 ;
 
 to:
@@ -191,7 +199,7 @@ to:
 
 advance_clause:
   %empty
-| ws comma advance int_eval
+| comma advance int_eval
 ;
 
 advance:
@@ -205,10 +213,11 @@ int_eval:
 
 exp:
   INTEGER
-| exp '+' exp
-| exp '-' exp
-| exp '*' exp
-| exp '/' exp
+| exp '+' ows exp
+| exp '-' ows exp
+| exp '*' ows exp
+| exp '/' ows exp
+| '(' ows exp ')'
 | exp ws
 ;
 

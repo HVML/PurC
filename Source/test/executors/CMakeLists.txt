@@ -33,4 +33,34 @@ PURC_COMPUTE_SOURCES(test_key)
 PURC_FRAMEWORK(test_key)
 GTEST_DISCOVER_TESTS(test_key)
 
+# test_range
+PURC_EXECUTABLE_DECLARE(test_range)
+
+list(APPEND test_range_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${CMAKE_BINARY_DIR}/Source/PurC/executors
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_range)
+
+set(test_range_SOURCES
+    test-range.cpp
+)
+
+set(test_range_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_range)
+PURC_FRAMEWORK(test_range)
+GTEST_DISCOVER_TESTS(test_range)
+
+
 
