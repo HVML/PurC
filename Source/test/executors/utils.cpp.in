@@ -11,6 +11,12 @@ enum sample_type {
     NEGATIVE_SAMPLE,
 };
 
+struct sample {
+    const char        *rule;
+    const char        *fn;
+    size_t             lineno;
+};
+
 static bool debug_flex  = false;       // trace flex
 static bool debug_bison = false;       // trace bison
 static bool verbose_neg = false;       // if print err_msg when neg 'succeeds'
@@ -68,9 +74,13 @@ is_blank_line(const char *line)
 }
 
 static inline bool
-process_positive(const char *rule,
+process_positive(const struct sample *sample,
         std::function<bool(const char *rule, char **err_msg)> on_rule)
 {
+    const char *rule   = sample->rule;
+    const char *fn     = sample->fn;
+    size_t      lineno = sample->lineno;
+
     char *err_msg = nullptr;
     bool r = on_rule(rule, &err_msg);
 
@@ -80,7 +90,7 @@ process_positive(const char *rule,
         ++counter.positives_fail;
 
         const char *err = err_msg ? err_msg : "";
-        std::cout << "Not postive:[" << rule << "]:"
+        std::cout << fn << "[" << lineno << "]:Not postive:[" << rule << "]:"
             << err << std::endl;
     }
 
@@ -91,9 +101,13 @@ process_positive(const char *rule,
 }
 
 static inline bool
-process_negative(const char *rule,
+process_negative(const struct sample *sample,
         std::function<bool(const char *rule, char **err_msg)> on_rule)
 {
+    const char *rule   = sample->rule;
+    const char *fn     = sample->fn;
+    size_t      lineno = sample->lineno;
+
     char *err_msg = nullptr;
     bool r = on_rule(rule, &err_msg);
 
@@ -101,11 +115,14 @@ process_negative(const char *rule,
 
     if (!r && verbose_neg) {
         const char *err = err_msg ? err_msg : "";
+
         std::cout << "As expected:[" << rule << "]:"
             << err << std::endl;
     } else if (r) {
         ++counter.negatives_fail;
-        std::cout << "Not negative:[" << rule << "]" << std::endl;
+
+        std::cout << fn << "[" << lineno << "]:Not negative:[" << rule << "]"
+            << std::endl;
     }
 
     if (err_msg)
@@ -115,27 +132,32 @@ process_negative(const char *rule,
 }
 
 static inline void
-process_rule(const char *rule, enum sample_type st,
+process_rule(const struct sample *sample, enum sample_type st,
         std::function<bool(const char *rule, char **err_msg)> on_rule)
 {
     if (st == POSITIVE_SAMPLE) {
+        const char *rule = sample->rule;
         if (rule[0] == '\0')
             return;
 
-        if (!process_positive(rule, on_rule))
+        if (!process_positive(sample, on_rule))
             ADD_FAILURE();
     } else if (st == NEGATIVE_SAMPLE) {
-        if (!process_negative(rule, on_rule))
+        if (!process_negative(sample, on_rule))
             ADD_FAILURE();
     } else {
+        const char *rule = sample->rule;
         FAIL() << "Unrecognized sample: [" << rule << "]" << std::endl;
     }
 }
 
 static inline void
-process_file(FILE *f,
+process_file(FILE *f, const char *fn,
         std::function<bool(const char *rule, char **err_msg)> on_rule)
 {
+    struct sample v;
+    v.fn = fn;
+
     char    *linebuf = NULL;
     size_t   len  = 0;
 
@@ -197,7 +219,9 @@ again:
                         *p = '\0';
 
                         test_str_append(&rule, line);
-                        process_rule(rule, st, on_rule);
+                        v.lineno = lineno;
+                        v.rule   = rule;
+                        process_rule(&v, st, on_rule);
                         rule[0] = '\0';
                         state = SAMPLE_IN_BEGIN;
                     } else {
@@ -212,7 +236,9 @@ again:
     if (rule) {
         if (state == SAMPLE_IN_RULE) {
             if (!is_blank_line(rule)) {
-                process_rule(rule, st, on_rule);
+                v.lineno = lineno;
+                v.rule   = rule;
+                process_rule(&v, st, on_rule);
             }
         }
     }
@@ -246,7 +272,8 @@ process_sample_files(const char *pattern,
             EXPECT_NE(f, nullptr) << "Failed to open file: ["
                 << file << "]" << std::endl;
             if (f) {
-                process_file(f, on_rule);
+                const char *fn = basename((char*)file);
+                process_file(f, fn, on_rule);
             }
 
             fclose(f);

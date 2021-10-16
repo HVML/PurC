@@ -8,11 +8,13 @@
 #                                                 switch to begin; }
 
 
-# blank line
+# blank lines
                       
+
 P: # bellow are positive samples
-# blank line
+# blank lines
                       
+
 # all seperated with a SPACE
 RANGE : FROM 0 ;
 RANGE : FROM 0 TO 10 ;
@@ -24,10 +26,8 @@ RANGE : FROM 0 TO 10 , ADVANCE 1 + 2 / ( 4 - 3 ) * 5 ;
 RANGE:FROM 0 TO 10,ADVANCE 1+2/(4-3)*5;
 # multiple line
 RANGE:
-        FROM
-        0
-        TO
-        1
+        FROM 0
+        TO 1
         +
         2
         /
@@ -39,8 +39,7 @@ RANGE:
         *
         5
         ,
-        ADVANCE
-        1
+        ADVANCE 1
         +
         2
         /
@@ -52,3 +51,27 @@ RANGE:
         *
         5
         ;
+
+N: # bellow are negative samples
+# blank lines
+                      
+
+# SPACE required
+RANGE:FROM0 TO 10,ADVANCE 1;
+RANGE:FROM 0TO 10,ADVANCE 1;
+RANGE:FROM 0 TO10,ADVANCE 1;
+RANGE:FROM 0 TO 10,ADVANCE1;
+
+# '\n' in wrong place
+RANGE
+:FROM 0 TO 10,ADVANCE 1;
+
+RANGE: FROM
+0 TO 10,ADVANCE 1;
+
+RANGE: FROM 0 TO
+10,ADVANCE 1;
+
+RANGE: FROM 0 TO 10, ADVANCE
+1;
+

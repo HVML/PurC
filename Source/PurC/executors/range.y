@@ -142,7 +142,7 @@ rule:
 ;
 
 range_rule:
-  RANGE osp ':' ows FROM ws int_eval to_clause advance_clause
+  RANGE osp ':' ows FROM sp int_eval to_clause advance_clause
 ;
 
 ws:
@@ -174,12 +174,12 @@ comma:
 
 to_clause:
   %empty
-| TO ows int_eval
+| TO sp int_eval
 ;
 
 advance_clause:
   %empty
-| comma ADVANCE ows int_eval
+| comma ADVANCE sp int_eval
 ;
 
 int_eval:
