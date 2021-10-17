@@ -14,8 +14,12 @@
 #include <dirent.h>
 #include <errno.h>
 
-#define __USE_GNU                       /* for GNU glibc */
-#define __MATH_LONG_DOUBLE_CONSTANTS    /* for MacOSX SDK */
+#ifndef __USE_GNU
+#define __USE_GNU                       /* for M_PIl when using glibc */
+#endif
+#ifndef __MATH_LONG_DOUBLE_CONSTANTS
+#define __MATH_LONG_DOUBLE_CONSTANTS    /* for M_PIl when using MacOSX SDK */
+#endif
 #include <math.h>
 #include <sstream>
 #include <gtest/gtest.h>
