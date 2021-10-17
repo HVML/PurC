@@ -28,8 +28,8 @@
 #include "private/dvobjs.h"
 #include "purc-variant.h"
 
+#include <limits.h>
 #include <unistd.h>
-#include <sys/sysmacros.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
