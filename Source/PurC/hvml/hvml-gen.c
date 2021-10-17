@@ -169,12 +169,6 @@ top_element(struct pcvdom_gen *gen)
 }
 
 static inline bool
-is_element_of_hvml(struct pcvdom_element *elem)
-{
-    return elem->tag_id ? true : false;
-}
-
-static inline bool
 is_element_of_hvml_data_cat(struct pcvdom_element *elem)
 {
     const struct pchvml_tag_entry *entry;
