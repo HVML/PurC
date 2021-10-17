@@ -137,7 +137,7 @@ KV        { R(); C(); return MKT(KV); }
 {INTEGER} { R(); SET_STR(); C(); return MKT(INTEGER); }
 {SP}      { R(); POP(); C(); return MKT(SP); } /* eat */
 {LN}      { R(); POP(); L(); yyless(0); }
-.         { R(); C(); return *yytext; } /* let bison to handle */
+.         { R(); POP(); C(); yyless(0); }
 }
 
 <AFTER_REG>{

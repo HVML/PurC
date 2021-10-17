@@ -128,8 +128,6 @@
  /* %nterm <str>   args */ // non-terminal `input` use `str` to store
                            // token value as well
 
-%expect 4
-
 %% /* The grammar follows. */
 
 input:
@@ -168,32 +166,21 @@ osp:
 
 for_clause:
   %empty
-| comma FOR sp for_param
+| ',' ows FOR sp for_param
 ;
 
 for_param:
   KV
 | KEY
 | VALUE
-| for_param SP
-;
-
-comma:
-  ','
-| comma ws
 ;
 
 key_subrules:
   key_subrule
-| key_subrules comma key_subrule
+| key_subrules ',' ows key_subrule
 ;
 
 key_subrule:
-  ks
-| ks SP
-;
-
-ks:
   ALL
 | LIKE sp key_pattern_expression
 | literal_str_exp
