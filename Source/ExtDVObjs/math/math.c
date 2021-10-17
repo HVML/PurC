@@ -28,7 +28,8 @@
 
 #include <strings.h>
 
-#define __USE_GNU
+#define __USE_GNU                       /* for GNU glibc */
+#define __MATH_LONG_DOUBLE_CONSTANTS    /* for MacOSX SDK */
 #include <math.h>
 
 #define UNUSED_PARAM (void)
@@ -83,7 +84,7 @@ const_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
-    double number = 0.0d;
+    double number = 0.0;
 
     if (nr_args == 0) {
         purc_set_error (PURC_ERROR_WRONG_ARGS);
@@ -170,7 +171,7 @@ const_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
-    long double number = 0.0d;
+    long double number = 0.0L;
 
     if (nr_args == 0) {
         purc_set_error (PURC_ERROR_WRONG_ARGS);
@@ -257,7 +258,7 @@ sin_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    double number = 0.0d;
+    double number = 0.0;
 
     if (nr_args == 0) {
         purc_set_error (PURC_ERROR_WRONG_ARGS);
@@ -281,7 +282,7 @@ cos_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    double number = 0.0d;
+    double number = 0.0;
 
     if (nr_args == 0) {
         purc_set_error (PURC_ERROR_WRONG_ARGS);
@@ -305,7 +306,7 @@ sqrt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    double number = 0.0d;
+    double number = 0.0;
 
     if (nr_args == 0) {
         purc_set_error (PURC_ERROR_WRONG_ARGS);
@@ -329,7 +330,7 @@ sin_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    long double number = 0.0d;
+    long double number = 0.0L;
 
     if (nr_args == 0) {
         purc_set_error (PURC_ERROR_WRONG_ARGS);
@@ -353,7 +354,7 @@ cos_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    long double number = 0.0d;
+    long double number = 0.0L;
 
     if (nr_args == 0) {
         purc_set_error (PURC_ERROR_WRONG_ARGS);
@@ -377,7 +378,7 @@ sqrt_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    long double number = 0.0d;
+    long double number = 0.0L;
 
     if (nr_args == 0) {
         purc_set_error (PURC_ERROR_WRONG_ARGS);

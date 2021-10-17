@@ -112,10 +112,10 @@ purc_variant_t get_variant (char *buf, size_t *length)
     char *temp = NULL;
     char *temp_end = NULL;
     char tag[64];
-    double d = 0.0d;
+    double d = 0.0;
     int64_t i64;
     uint64_t u64;
-    long double ld = 0.0d;
+    long double ld = 0.0L;
     int number = 0;
     int i = 0;
     size_t length_sub = 0;

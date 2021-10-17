@@ -7,6 +7,7 @@
 #include <gtest/gtest.h>
 #include <dirent.h>
 #include <glob.h>
+#include <libgen.h>
 
 TEST(vdom_gen, basic)
 {
@@ -36,7 +37,8 @@ _process_file(const char *fn)
     struct pchvml_token *token = NULL;
     bool neg = false;
 
-    const char *base = basename(fn);
+    /* FIXME */
+    char *base = basename((char *)fn);
     if (strstr(base, "neg.")==base) {
         neg = true;
     }
