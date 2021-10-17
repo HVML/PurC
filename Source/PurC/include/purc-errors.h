@@ -30,32 +30,8 @@
 
 #include "purc-macros.h"
 
-#define PURC_ERROR_OK                   0
-#define PURC_ERROR_BAD_SYSTEM_CALL      1
-#define PURC_ERROR_BAD_STDC_CALL        2
-#define PURC_ERROR_OUT_OF_MEMORY        3
-#define PURC_ERROR_INVALID_VALUE        4
-#define PURC_ERROR_DUPLICATED           5
-#define PURC_ERROR_NOT_IMPLEMENTED      6
-#define PURC_ERROR_NO_INSTANCE          7
-#define PURC_ERROR_TOO_LARGE_ENTITY     8
-#define PURC_ERROR_BAD_ENCODING         9
-#define PURC_ERROR_NOT_SUPPORTED        10
-#define PURC_ERROR_OUTPUT               11
-#define PURC_ERROR_TOO_SMALL_BUFF       12
-#define PURC_ERROR_NULL_OBJECT          13
-#define PURC_ERROR_TOO_SMALL_SIZE       14
-#define PURC_ERROR_INCOMPLETE_OBJECT    15
-#define PURC_ERROR_NO_FREE_SLOT         16
-#define PURC_ERROR_NOT_EXISTS           17
-#define PURC_ERROR_WRONG_ARGS           18
-#define PURC_ERROR_WRONG_STAGE          19
-#define PURC_ERROR_UNEXPECTED_RESULT    20
-#define PURC_ERROR_UNEXPECTED_DATA      21
-#define PURC_ERROR_OVERFLOW             22
-#define PURC_ERROR_UNKNOWN              23
-
 // the first error codes for various modules:
+#define PURC_ERROR_FIRST_GENERIC        0
 #define PURC_ERROR_FIRST_VARIANT        100
 #define PURC_ERROR_FIRST_RWSTREAM       200
 
@@ -69,18 +45,44 @@
 #define PURC_ERROR_FIRST_EDOM           2200
 #define PURC_ERROR_FIRST_VCM            2300
 
-// TODO: error codes for variant go here
-enum pcvariant_error
-{
+enum {
+    PURC_ERROR_OK = PURC_ERROR_FIRST_GENERIC,
+    PURC_ERROR_UNKNOWN,
+    PURC_ERROR_BAD_SYSTEM_CALL,
+    PURC_ERROR_BAD_STDC_CALL,
+    PURC_ERROR_OUT_OF_MEMORY,
+    PURC_ERROR_INVALID_VALUE,
+    PURC_ERROR_DUPLICATED,
+    PURC_ERROR_NOT_IMPLEMENTED,
+    PURC_ERROR_NO_INSTANCE,
+    PURC_ERROR_TOO_LARGE_ENTITY,
+    PURC_ERROR_BAD_ENCODING,
+    PURC_ERROR_NOT_SUPPORTED,
+    PURC_ERROR_OUTPUT,
+    PURC_ERROR_TOO_SMALL_BUFF,
+    PURC_ERROR_TOO_SMALL_SIZE,
+    PURC_ERROR_NULL_OBJECT,
+    PURC_ERROR_INCOMPLETE_OBJECT,
+    PURC_ERROR_NO_FREE_SLOT,
+    PURC_ERROR_NOT_EXISTS,
+    PURC_ERROR_WRONG_ARGS,
+    PURC_ERROR_WRONG_STAGE,
+    PURC_ERROR_UNEXPECTED_RESULT,
+    PURC_ERROR_UNEXPECTED_DATA,
+    PURC_ERROR_OVERFLOW,
+    PURC_ERROR_BAD_LOCALE_CATEGORY,
+};
+
+// error codes for variant go here
+enum {
     PCVARIANT_SUCCESS = PURC_ERROR_OK,
     PCVARIANT_INVALID_TYPE = PURC_ERROR_FIRST_VARIANT,
     PCVARIANT_STRING_NOT_UTF8,
     PCVARIANT_ERROR_NOT_FOUND,
 };
 
-// TODO: error codes for rwstream go here
-enum pcrwstream_error
-{
+// error codes for rwstream go here
+enum {
     PCRWSTREAM_SUCCESS = PURC_ERROR_OK,
     PCRWSTREAM_ERROR_FAILED = PURC_ERROR_FIRST_RWSTREAM,
     PCRWSTREAM_ERROR_FILE_TOO_BIG,
@@ -92,9 +94,8 @@ enum pcrwstream_error
     PCRWSTREAM_ERROR_PIPE,
 };
 
-// TODO: error codes for ejson go here
-enum pcejson_error
-{
+// error codes for ejson go here
+enum {
     PCEJSON_SUCCESS = PURC_ERROR_OK,
     PCEJSON_ERROR_UNEXPECTED_CHARACTER = PURC_ERROR_FIRST_EJSON,
     PCEJSON_ERROR_UNEXPECTED_NULL_CHARACTER,
@@ -115,9 +116,8 @@ enum pcejson_error
     PCEJSON_ERROR_MAX_DEPTH_EXCEEDED,
 };
 
-// TODO: error codes for hvml go here
-enum pchvml_error
-{
+// error codes for hvml go here
+enum {
     PCHVML_SUCCESS = PURC_ERROR_OK,
     PCHVML_ERROR_UNEXPECTED_NULL_CHARACTER = PURC_ERROR_FIRST_HVML,
     PCHVML_ERROR_UNEXPECTED_QUESTION_MARK_INSTEAD_OF_TAG_NAME,

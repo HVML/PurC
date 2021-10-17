@@ -68,8 +68,6 @@ struct pchtml_html_parser {
     size_t                  ref_count;
 };
 
-typedef struct pchtml_html_parser pchtml_html_parser_t;
-
 pchtml_html_parser_t *
 pchtml_html_parser_ref(pchtml_html_parser_t *parser) WTF_INTERNAL;
 
