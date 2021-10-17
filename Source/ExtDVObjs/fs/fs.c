@@ -28,6 +28,10 @@
 #include "private/dvobjs.h"
 #include "purc-variant.h"
 
+#if HAVE(SYS_SYSMACROS_H)
+#include <sys/sysmacros.h>
+#endif
+
 #include <limits.h>
 #include <unistd.h>
 #include <sys/types.h>
