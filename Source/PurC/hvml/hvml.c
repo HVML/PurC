@@ -688,7 +688,7 @@ void pchvml_destroy(struct pchvml_parser* parser)
     }
 }
 
-const char* pchvml_error_desc (enum pchvml_error err)
+const char* pchvml_error_desc (int err)
 {
     switch (err) {
     STATE_DESC(PCHVML_SUCCESS)
