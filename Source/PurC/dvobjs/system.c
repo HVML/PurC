@@ -391,11 +391,14 @@ locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                     if (strncasecmp (head, LOCALE_CTYPE, length) == 0) {
                         ret_var = purc_variant_make_string (
                                 setlocale (LC_CTYPE, NULL), true);
-                    } else if (strncasecmp (head, LOCALE_COLLATE,
+                    }
+                    else if (strncasecmp (head, LOCALE_COLLATE,
                                 length) == 0) {
                         ret_var = purc_variant_make_string (
                                 setlocale (LC_COLLATE, NULL), true);
                     }
+                    else
+                        goto bad_category;
                     break;
 
                 case 'n':
@@ -403,10 +406,15 @@ locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                     if (strncasecmp (head, LOCALE_NUMERIC, length) == 0) {
                         ret_var = purc_variant_make_string (
                                 setlocale (LC_NUMERIC, NULL), true);
-                    } else if (strncasecmp (head, LOCALE_NAME, length) == 0) {
+                    }
+#ifdef LC_NAME
+                    else if (strncasecmp (head, LOCALE_NAME, length) == 0) {
                         ret_var = purc_variant_make_string (
                                 setlocale (LC_NAME, NULL), true);
                     }
+#endif /* LC_NAME */
+                    else
+                        goto bad_category;
                     break;
 
                 case 't':
@@ -414,11 +422,16 @@ locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                     if (strncasecmp (head, LOCALE_TIME, length) == 0) {
                         ret_var = purc_variant_make_string (
                                 setlocale (LC_TIME, NULL), true);
-                    } else if (strncasecmp (head, LOCALE_TELEPHONE,
+                    }
+#ifdef LC_TELEPHONE
+                    else if (strncasecmp (head, LOCALE_TELEPHONE,
                                 length) == 0) {
                         ret_var = purc_variant_make_string (
                                 setlocale (LC_TELEPHONE, NULL), true);
                     }
+#endif /* LC_TELEPHONE */
+                    else
+                        goto bad_category;
                     break;
 
                 case 'm':
@@ -426,33 +439,49 @@ locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                     if (strncasecmp (head, LOCALE_MONETARY, length) == 0) {
                         ret_var = purc_variant_make_string (
                                 setlocale (LC_MONETARY, NULL), true);
-                    } else if (strncasecmp (head, LOCALE_MESSAGE,
+                    }
+                    else if (strncasecmp (head, LOCALE_MESSAGE,
                                 length) == 0) {
                         ret_var = purc_variant_make_string (
                                 setlocale (LC_MESSAGES, NULL), true);
-                    } else if (strncasecmp (head, LOCALE_MEASUREMENT,
+                    }
+#ifdef LC_MEASUREMENT
+                    else if (strncasecmp (head, LOCALE_MEASUREMENT,
                                 length) == 0) {
                         ret_var = purc_variant_make_string (
                                 setlocale (LC_MEASUREMENT, NULL), true);
                     }
+#endif /* LC_MEASUREMENT */
+                    else
+                        goto bad_category;
+
                     break;
 
+#ifdef LC_PAPER
                 case 'p':
                 case 'P':
                     if (strncasecmp (head, LOCALE_PAPER, length) == 0) {
                         ret_var = purc_variant_make_string (
                                 setlocale (LC_PAPER, NULL), true);
                     }
+                    else
+                        goto bad_category;
                     break;
+#endif /* LC_PAPER */
 
+#ifdef LC_ADDRESS
                 case 'a':
                 case 'A':
                     if (strncasecmp (head, LOCALE_ADDRESS, length) == 0) {
                         ret_var = purc_variant_make_string (
                                 setlocale (LC_ADDRESS, NULL), true);
                     }
+                    else
+                        goto bad_category;
                     break;
+#endif /* LC_ADDRESS */
 
+#ifdef LC_IDENTIFICATION
                 case 'i':
                 case 'I':
                     if (strncasecmp (head, LOCALE_IDENTIFICATION,
@@ -460,6 +489,13 @@ locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                         ret_var = purc_variant_make_string (
                                 setlocale (LC_IDENTIFICATION, NULL), true);
                     }
+                    else
+                        goto bad_category;
+                    break;
+#endif /* LC_IDENTIFICATION */
+
+                default:
+                    goto bad_category;
                     break;
             }
 
@@ -475,6 +511,10 @@ locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     }
 
     return ret_var;
+
+bad_category:
+    pcinst_set_error (PURC_ERROR_BAD_LOCALE_CATEGORY);
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
