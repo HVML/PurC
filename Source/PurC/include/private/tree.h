@@ -35,15 +35,18 @@
 
 struct pctree_node {
     void* user_data;
-
-    /* number of children */
-    size_t nr_children;
-
     struct pctree_node* parent;
     struct pctree_node* first_child;
     struct pctree_node* last_child;
     struct pctree_node* prev;
     struct pctree_node* next;
+
+    // FIXME: ALIGNMENT
+    union {
+        /* number of children */
+        size_t nr_children;
+        long double align;
+    };
 };
 
 #ifdef __cplusplus
