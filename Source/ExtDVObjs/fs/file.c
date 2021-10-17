@@ -661,9 +661,9 @@ read_rwstream_float (purc_rwstream_t rwstream, int type, int bytes)
 {
     purc_variant_t val = PURC_VARIANT_INVALID;
     unsigned char buf[128];
-    float f = 0.0;
-    double d = 0.0d;
-    long double ld = 0.0d;
+    float f = 0.0F;
+    double d = 0.0;
+    long double ld = 0.0L;
     unsigned long long sign = 0;
     unsigned long long e = 0;
     unsigned long long base = 0;
@@ -1058,9 +1058,9 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
     size_t length = 0;
     unsigned char buf[64];
     const unsigned char * buffer = NULL;  // for string and bytes sequence
-    float f = 0.0d;
-    double d = 0.0d;
-    long double ld = 0.0d;
+    float f = 0.0F;
+    double d = 0.0;
+    long double ld = 0.0L;
     int write_number = 0;
     int i = 0;
     size_t bsize = 0;
