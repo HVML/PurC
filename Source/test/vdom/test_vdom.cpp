@@ -69,12 +69,12 @@ TEST(vdom, basic)
     EXPECT_EQ(pcvdom_element_parent(elem22), elem2);
 
     struct pcvdom_attr *attr31;
-    attr31 = pcvdom_attr_create("for", PCVDOM_ATTR_OP_EQ, NULL);
+    attr31 = pcvdom_attr_create("for", PCHVML_ATTRIBUTE_ASSIGNMENT, NULL);
     ASSERT_NE(attr31, nullptr);
     ASSERT_EQ(0, pcvdom_element_append_attr(elem3, attr31));
 
     struct pcvdom_attr *attr32;
-    attr32 = pcvdom_attr_create("on", PCVDOM_ATTR_OP_EQ, NULL);
+    attr32 = pcvdom_attr_create("on", PCHVML_ATTRIBUTE_ASSIGNMENT, NULL);
     ASSERT_NE(attr32, nullptr);
     ASSERT_EQ(0, pcvdom_element_append_attr(elem3, attr32));
 
