@@ -121,14 +121,11 @@ extern "C" {
 #define pchtml_html_interface_video(obj) ((pchtml_html_video_element_t *) (obj))
 #define pchtml_html_interface_window(obj) ((pchtml_html_window_t *) (obj))
 
-
-//typedef struct pchtml_html_document pchtml_html_document_t;                   // gengyue
 typedef struct pchtml_html_anchor_element pchtml_html_anchor_element_t;
 typedef struct pchtml_html_area_element pchtml_html_area_element_t;
 typedef struct pchtml_html_audio_element pchtml_html_audio_element_t;
 typedef struct pchtml_html_br_element pchtml_html_br_element_t;
 typedef struct pchtml_html_base_element pchtml_html_base_element_t;
-typedef struct pchtml_html_body_element pchtml_html_body_element_t;
 typedef struct pchtml_html_button_element pchtml_html_button_element_t;
 typedef struct pchtml_html_canvas_element pchtml_html_canvas_element_t;
 typedef struct pchtml_html_d_list_element pchtml_html_d_list_element_t;
@@ -138,7 +135,6 @@ typedef struct pchtml_html_details_element pchtml_html_details_element_t;
 typedef struct pchtml_html_dialog_element pchtml_html_dialog_element_t;
 typedef struct pchtml_html_directory_element pchtml_html_directory_element_t;
 typedef struct pchtml_html_div_element pchtml_html_div_element_t;
-typedef struct pchtml_html_element pchtml_html_element_t;
 typedef struct pchtml_html_embed_element pchtml_html_embed_element_t;
 typedef struct pchtml_html_field_set_element pchtml_html_field_set_element_t;
 typedef struct pchtml_html_font_element pchtml_html_font_element_t;
