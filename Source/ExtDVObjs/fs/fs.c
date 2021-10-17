@@ -751,13 +751,13 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                     break;
 
                 case DISPLAY_SIZE:
-                    sprintf (info + strlen (info), "%lld\t",
-                            (long long)file_stat.st_size);
+                    sprintf (info + strlen (info), "%llu\t",
+                            (long long unsigned)file_stat.st_size);
                     break;
 
                 case DISPLAY_BLKSIZE:
-                    sprintf (info + strlen (info), "%ld\t",
-                            file_stat.st_blksize);
+                    sprintf (info + strlen (info), "%llu\t",
+                            (long long unsigned)file_stat.st_blksize);
                     break;
 
                 case DISPLAY_ATIME:
