@@ -105,13 +105,13 @@ KV        { R(); C(); return MKT(KV); }
 [']       { R(); PUSH(SQ); C(); return MKT(SQ); }
 [/]       { R(); PUSH(REG); C(); return *yytext; }
 {INTEGER} { R(); PUSH(AFTER_INT); SET_STR(); C(); return MKT(INTEGER); }
-{SP}      { R(); C(); return MKT(SP); } /* eat */
+{SP}      { R(); C(); return MKT(SP); }
 {LN}      { R(); L(); return '\n'; }
 .         { R(); C(); return *yytext; } /* let bison to handle */
 
 <KEY>{
 [:]       { R(); POP(); C(); return *yytext; }
-{SP}      { R(); C(); return MKT(SP); } /* eat */
+{SP}      { R(); C(); return MKT(SP); }
 {LN}      { R(); L(); return '\n'; }
 .         { R(); C(); return *yytext; } /* let bison to handle */
 }
@@ -135,14 +135,14 @@ KV        { R(); C(); return MKT(KV); }
 <AFTER_SQ>{
 [cis]     { R(); SET_CHR(*yytext); C(); return MKT(MATCHING_FLAG); }
 {INTEGER} { R(); SET_STR(); C(); return MKT(INTEGER); }
-{SP}      { R(); POP(); C(); return MKT(SP); } /* eat */
+{SP}      { R(); POP(); C(); return MKT(SP); }
 {LN}      { R(); POP(); L(); yyless(0); }
 .         { R(); POP(); C(); yyless(0); }
 }
 
 <AFTER_REG>{
 [igmsuy]  { R(); SET_CHR(*yytext); C(); return MKT(REGEXP_FLAG); }
-{SP}      { R(); POP(); C(); return MKT(SP); } /* eat */
+{SP}      { R(); POP(); C(); return MKT(SP); }
 {LN}      { R(); POP(); L(); yyless(0); }
 .         { R(); C(); return *yytext; } /* let bison to handle */
 }
