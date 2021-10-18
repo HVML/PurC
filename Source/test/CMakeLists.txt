@@ -8,3 +8,8 @@ add_subdirectory(dvobjs)
 add_subdirectory(hvml)
 add_subdirectory(vcm)
 add_subdirectory(vdom)
+
+PURC_COPY_FILES(TEST_Script
+    DESTINATION ${CMAKE_BINARY_DIR}/
+    FILES run_all_tests.sh
+)
