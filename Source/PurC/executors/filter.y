@@ -56,7 +56,10 @@
 
     #define YYSTYPE       FILTER_YYSTYPE
     #define YYLTYPE       FILTER_YYLTYPE
-    typedef void *yyscan_t;
+    #ifndef YY_TYPEDEF_YY_SCANNER_T
+    #define YY_TYPEDEF_YY_SCANNER_T
+    typedef void* yyscan_t;
+    #endif
 
     int filter_parse(const char *input, size_t len,
             struct filter_param *param);

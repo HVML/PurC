@@ -56,7 +56,10 @@
 
     #define YYSTYPE       KEY_YYSTYPE
     #define YYLTYPE       KEY_YYLTYPE
-    typedef void *yyscan_t;
+    #ifndef YY_TYPEDEF_YY_SCANNER_T
+    #define YY_TYPEDEF_YY_SCANNER_T
+    typedef void* yyscan_t;
+    #endif
 
     int key_parse(const char *input, size_t len,
             struct key_param *param);

@@ -56,7 +56,10 @@
 
     #define YYSTYPE       RANGE_YYSTYPE
     #define YYLTYPE       RANGE_YYLTYPE
-    typedef void *yyscan_t;
+    #ifndef YY_TYPEDEF_YY_SCANNER_T
+    #define YY_TYPEDEF_YY_SCANNER_T
+    typedef void* yyscan_t;
+    #endif
 
     int range_parse(const char *input, size_t len,
             struct range_param *param);
