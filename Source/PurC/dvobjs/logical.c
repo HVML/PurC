@@ -588,7 +588,7 @@ streq_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         else
             ret_var = purc_variant_make_boolean (false);
     } else if (strcasecmp (option, STRING_COMP_MODE_WILDCARD) == 0) {
-        if (wildcard_cmp (buf2, buf1))
+        if (pcdvobjs_wildcard_cmp (buf2, buf1))
             ret_var = purc_variant_make_boolean (true);
         else
             ret_var = purc_variant_make_boolean (false);
@@ -652,7 +652,7 @@ strne_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         else
             ret_var = purc_variant_make_boolean (true);
     } else if (strcasecmp (option, STRING_COMP_MODE_WILDCARD) == 0) {
-        if (wildcard_cmp (buf2, buf1))
+        if (pcdvobjs_wildcard_cmp (buf2, buf1))
             ret_var = purc_variant_make_boolean (false);
         else
             ret_var = purc_variant_make_boolean (true);
@@ -932,7 +932,7 @@ eval_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         argv[1],
         PURC_VARIANT_INVALID
     };
-    logical_parse(purc_variant_get_string_const(argv[0]), &myparam);
+    pcdvobjs_logical_parse(purc_variant_get_string_const(argv[0]), &myparam);
 #endif // 0
 
     if (myparam.result)

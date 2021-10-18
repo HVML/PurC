@@ -81,31 +81,28 @@ number_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     return ret_var;
 }
 
+static const char *type_names[] = {
+    VARIANT_TYPE_NAME_UNDEFINED,
+    VARIANT_TYPE_NAME_NULL,
+    VARIANT_TYPE_NAME_BOOLEAN,
+    VARIANT_TYPE_NAME_NUMBER,
+    VARIANT_TYPE_NAME_LONGINT,
+    VARIANT_TYPE_NAME_ULONGINT,
+    VARIANT_TYPE_NAME_LONGDOUBLE,
+    VARIANT_TYPE_NAME_ATOMSTRING,
+    VARIANT_TYPE_NAME_STRING,
+    VARIANT_TYPE_NAME_BYTESEQUENCE,
+    VARIANT_TYPE_NAME_DYNAMIC,
+    VARIANT_TYPE_NAME_NATIVE,
+    VARIANT_TYPE_NAME_OBJECT,
+    VARIANT_TYPE_NAME_ARRAY,
+    VARIANT_TYPE_NAME_SET,
+};
+
+
 static purc_variant_t
 type_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
-    static const char *type_names[] = {
-        "undefined",
-        "null",
-        "boolean",
-        "number",
-        "longint",
-        "ulongint",
-        "longdouble",
-        "atomstring",
-        "string",
-        "bsequence",
-        "dynamic",
-        "native",
-        "object",
-        "array",
-        "set",
-    };
-
-    /* make sure that the last one is `set` */
-    assert (sizeof(type_names[PURC_VARIANT_TYPE_FIRST]) == 10);
-    assert (sizeof(type_names[PURC_VARIANT_TYPE_LAST]) == 4);
-
     UNUSED_PARAM(root);
 
     if ((argv == NULL) || (nr_args == 0)) {
@@ -114,6 +111,11 @@ type_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     }
 
     assert (argv[0] != PURC_VARIANT_INVALID);
+
+    /* make sure that the first one is `undefined` */
+    assert (strcmp (type_names[PURC_VARIANT_TYPE_FIRST], "undefined") == 0);
+    /* make sure that the last one is `set` */
+    assert (strcmp (type_names[PURC_VARIANT_TYPE_LAST], "set") == 0);
 
     return purc_variant_make_string_static (
             type_names [purc_variant_get_type (argv[0])], false);
