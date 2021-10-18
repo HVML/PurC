@@ -41,11 +41,10 @@ struct pctree_node {
     struct pctree_node* prev;
     struct pctree_node* next;
 
-    // FIXME: ALIGNMENT
     union {
         /* number of children */
         size_t nr_children;
-        long double align;
+        long double __align;
     };
 };
 
