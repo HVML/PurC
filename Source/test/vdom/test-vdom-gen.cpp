@@ -11,12 +11,12 @@
 
 TEST(vdom_gen, basic)
 {
-    struct pcvdom_gen *gen;
+    struct pcvdom_gen *gen = NULL;
+    struct pcvdom_document *doc = NULL;
     gen = pcvdom_gen_create();
     if (!gen)
         goto end;
 
-    struct pcvdom_document *doc;
     doc = pcvdom_gen_end(gen);
 
 end:
@@ -136,10 +136,13 @@ TEST(vdom_gen, files)
 
     const char *env = "SOURCE_FILES_DIR";
     const char *path = getenv("SOURCE_FILES_DIR");
-    std::cout << "env: " << env << "=" << path << std::endl;
-    EXPECT_NE(path, nullptr) << "You shall specify via env `SOURCE_FILES_DIR`"
-                            << std::endl;
     if (!path)
+        path = "";
+
+    std::cout << "env: " << env << "=" << path << std::endl;
+    EXPECT_NE(path[0], 0) << "You shall specify via env `SOURCE_FILES_DIR`"
+                            << std::endl;
+    if (!*path)
         goto end;
 
     d = opendir(path);
@@ -176,11 +179,14 @@ TEST(vdom_gen, glob)
 
     const char *env = "SOURCE_FILES";
     const char *path = getenv(env);
+    if (!path)
+        path = "";
+
     std::cout << "env: " << env << "=" << path << std::endl;
-    EXPECT_NE(path, nullptr) << "You shall specify via env `"
+    EXPECT_NE(*path, 0) << "You shall specify via env `"
                             << env << "`"
                             << std::endl;
-    if (!path)
+    if (!*path)
         goto end;
 
     globbuf.gl_offs = 0;
