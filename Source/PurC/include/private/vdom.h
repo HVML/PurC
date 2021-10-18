@@ -55,6 +55,7 @@ enum pchvml_attr_assignment {
     PCHVML_ATTRIBUTE_REPLACE_ASSIGNMENT,     // ~=
     PCHVML_ATTRIBUTE_HEAD_ASSIGNMENT,        // ^=
     PCHVML_ATTRIBUTE_TAIL_ASSIGNMENT,        // $=
+    PCHVML_ATTRIBUTE_REGEX_ASSIGNMENT,        // /=
     PCHVML_ATTRIBUTE_MAX,
 };
 

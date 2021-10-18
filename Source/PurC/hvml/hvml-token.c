@@ -448,6 +448,11 @@ struct pchvml_buffer* pchvml_token_attr_to_string(
     case PCHVML_ATTRIBUTE_TAIL_ASSIGNMENT:
         pchvml_buffer_append_bytes(buffer, "$=", 2);
         break;
+
+    case PCHVML_ATTRIBUTE_REGEX_ASSIGNMENT:
+        pchvml_buffer_append_bytes(buffer, "/=", 2);
+        break;
+
     default:
         PC_ASSERT(0);
     }

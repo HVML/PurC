@@ -1247,7 +1247,7 @@ next_state:
     END_STATE()
 
     BEGIN_STATE(PCHVML_ATTRIBUTE_NAME_STATE)
-        if (is_whitespace(character) || character == '/'
+        if (is_whitespace(character)
                 || character == '>' || is_eof(character)) {
             RECONSUME_IN(PCHVML_AFTER_ATTRIBUTE_NAME_STATE);
         }
@@ -1260,15 +1260,16 @@ next_state:
         }
         if (character == '$' || character == '%' || character == '+' ||
                 character == '-' || character == '^' ||
-                character == '~') {
-            if (pchvml_parser_is_operation_tag_token(parser->token)
-                    && pchvml_parser_is_ordinary_attribute(
-                        pchvml_token_get_curr_attr(parser->token))) {
+                character == '~' || character == '/') {
+            if (pchvml_parser_is_operation_tag_token(parser->token)) {
                 RESET_TEMP_BUFFER();
-                APPEND_TO_TOKEN_TEXT(character);
-                SWITCH_TO(
+                APPEND_TO_TEMP_BUFFER(character);
+                ADVANCE_TO(
                 PCHVML_SPECIAL_ATTRIBUTE_OPERATOR_IN_ATTRIBUTE_NAME_STATE);
             }
+        }
+        if (character == '/') {
+            RECONSUME_IN(PCHVML_AFTER_ATTRIBUTE_NAME_STATE);
         }
         APPEND_TO_TOKEN_ATTR_NAME(character);
         ADVANCE_TO(PCHVML_ATTRIBUTE_NAME_STATE);
@@ -1277,9 +1278,6 @@ next_state:
     BEGIN_STATE(PCHVML_AFTER_ATTRIBUTE_NAME_STATE)
         if (is_whitespace(character)) {
             ADVANCE_TO(PCHVML_AFTER_ATTRIBUTE_NAME_STATE);
-        }
-        if (character == '/') {
-            ADVANCE_TO(PCHVML_SELF_CLOSING_START_TAG_STATE);
         }
         if (character == '=') {
             ADVANCE_TO(PCHVML_BEFORE_ATTRIBUTE_VALUE_STATE);
@@ -1294,13 +1292,11 @@ next_state:
         }
         if (character == '$' || character == '%' || character == '+' ||
                 character == '-' || character == '^' ||
-                character == '~') {
-            if (pchvml_parser_is_operation_tag_token(parser->token)
-                    && pchvml_parser_is_ordinary_attribute(
-                        pchvml_token_get_curr_attr(parser->token))) {
+                character == '~' || character == '/') {
+            if (pchvml_parser_is_operation_tag_token(parser->token)) {
                 RESET_TEMP_BUFFER();
-                APPEND_TO_TOKEN_TEXT(character);
-                SWITCH_TO(
+                APPEND_TO_TEMP_BUFFER(character);
+                ADVANCE_TO(
                 PCHVML_SPECIAL_ATTRIBUTE_OPERATOR_AFTER_ATTRIBUTE_NAME_STATE
                 );
             }
@@ -1309,6 +1305,10 @@ next_state:
             && pchvml_parser_is_preposition_attribute(
                     pchvml_token_get_curr_attr(parser->token))) {
             RECONSUME_IN(PCHVML_BEFORE_ATTRIBUTE_VALUE_STATE);
+        }
+        if (character == '/') {
+            END_TOKEN_ATTR();
+            ADVANCE_TO(PCHVML_SELF_CLOSING_START_TAG_STATE);
         }
         END_TOKEN_ATTR();
         BEGIN_TOKEN_ATTR();
@@ -1604,7 +1604,7 @@ next_state:
     BEGIN_STATE(PCHVML_COMMENT_STATE)
         if (character == '<') {
             APPEND_TO_TOKEN_TEXT(character);
-            SWITCH_TO(PCHVML_COMMENT_LESS_THAN_SIGN_STATE);
+            ADVANCE_TO(PCHVML_COMMENT_LESS_THAN_SIGN_STATE);
         }
         if (character == '-') {
             ADVANCE_TO(PCHVML_COMMENT_END_DASH_STATE);
@@ -1631,14 +1631,14 @@ next_state:
 
     BEGIN_STATE(PCHVML_COMMENT_LESS_THAN_SIGN_BANG_STATE)
         if (character == '-') {
-            SWITCH_TO(PCHVML_COMMENT_LESS_THAN_SIGN_BANG_DASH_STATE);
+            ADVANCE_TO(PCHVML_COMMENT_LESS_THAN_SIGN_BANG_DASH_STATE);
         }
         RECONSUME_IN(PCHVML_COMMENT_STATE);
     END_STATE()
 
     BEGIN_STATE(PCHVML_COMMENT_LESS_THAN_SIGN_BANG_DASH_STATE)
         if (character == '-') {
-            SWITCH_TO(PCHVML_COMMENT_LESS_THAN_SIGN_BANG_DASH_DASH_STATE);
+            ADVANCE_TO(PCHVML_COMMENT_LESS_THAN_SIGN_BANG_DASH_DASH_STATE);
         }
         RECONSUME_IN(PCHVML_COMMENT_END_DASH_STATE);
     END_STATE()
@@ -2294,6 +2294,11 @@ next_state:
                                 parser->token,
                                 PCHVML_ATTRIBUTE_TAIL_ASSIGNMENT);
                         break;
+                    case '/':
+                        pchvml_token_set_assignment_to_attr(
+                                parser->token,
+                                PCHVML_ATTRIBUTE_REGEX_ASSIGNMENT);
+                        break;
                     default:
                         pchvml_token_set_assignment_to_attr(
                                 parser->token,
@@ -2301,7 +2306,12 @@ next_state:
                         break;
                 }
             }
-            SWITCH_TO(PCHVML_BEFORE_ATTRIBUTE_VALUE_STATE);
+            ADVANCE_TO(PCHVML_BEFORE_ATTRIBUTE_VALUE_STATE);
+        }
+        if (character == '>'
+            &&  pchvml_buffer_equal_to(parser->temp_buffer, "/", 1)) {
+            END_TOKEN_ATTR();
+            RECONSUME_IN(PCHVML_SELF_CLOSING_START_TAG_STATE);
         }
         APPEND_TEMP_BUFFER_TO_TOKEN_ATTR_NAME();
         RECONSUME_IN(PCHVML_ATTRIBUTE_NAME_STATE);
@@ -2348,6 +2358,11 @@ next_state:
                                 parser->token,
                                 PCHVML_ATTRIBUTE_TAIL_ASSIGNMENT);
                         break;
+                    case '/':
+                        pchvml_token_set_assignment_to_attr(
+                                parser->token,
+                                PCHVML_ATTRIBUTE_REGEX_ASSIGNMENT);
+                        break;
                     default:
                         pchvml_token_set_assignment_to_attr(
                                 parser->token,
@@ -2355,7 +2370,18 @@ next_state:
                         break;
                 }
             }
-            SWITCH_TO(PCHVML_BEFORE_ATTRIBUTE_VALUE_STATE);
+            ADVANCE_TO(PCHVML_BEFORE_ATTRIBUTE_VALUE_STATE);
+        }
+        if (pchvml_buffer_equal_to(parser->temp_buffer, "$", 1)) {
+            pchvml_rwswrap_buffer_chars(parser->rwswrap, &character, 1);
+            uint32_t c = '$';
+            pchvml_rwswrap_buffer_chars(parser->rwswrap, &c, 1);
+            ADVANCE_TO(PCHVML_BEFORE_ATTRIBUTE_VALUE_STATE);
+        }
+        if (character == '>'
+            &&  pchvml_buffer_equal_to(parser->temp_buffer, "/", 1)) {
+            END_TOKEN_ATTR();
+            RECONSUME_IN(PCHVML_SELF_CLOSING_START_TAG_STATE);
         }
         BEGIN_TOKEN_ATTR();
         APPEND_TEMP_BUFFER_TO_TOKEN_ATTR_NAME();

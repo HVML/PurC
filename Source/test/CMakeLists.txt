@@ -9,3 +9,8 @@ add_subdirectory(hvml)
 add_subdirectory(vcm)
 add_subdirectory(vdom)
 add_subdirectory(executors)
+
+PURC_COPY_FILES(TEST_Script
+    DESTINATION ${CMAKE_BINARY_DIR}/
+    FILES run_all_tests.sh
+)
