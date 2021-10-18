@@ -125,14 +125,15 @@
 %token SP
 %token <token>  INTEGER
 
+%left FROM TO ADVANCE
 %left '-' '+'
 %left '*' '/'
 %precedence NEG /* negation--unary minus */
+%precedence '\n'
+%precedence SP
 
  /* %nterm <str>   args */ // non-terminal `input` use `str` to store
                            // token value as well
-
-%expect 14
 
 %% /* The grammar follows. */
 
@@ -145,7 +146,17 @@ rule:
 ;
 
 range_rule:
-  RANGE osp ':' ows FROM sp int_eval to_clause advance_clause
+  RANGE osp ':' ows FROM sp exp
+| RANGE osp ':' ows FROM sp exp to_clause
+| RANGE osp ':' ows FROM sp exp to_clause comma advance_clause
+;
+
+to_clause:
+  TO sp exp
+;
+
+advance_clause:
+  ADVANCE sp exp
 ;
 
 ws:
@@ -172,21 +183,8 @@ osp:
 
 comma:
   ','
-| comma ws
-;
-
-to_clause:
-  %empty
-| TO sp int_eval
-;
-
-advance_clause:
-  %empty
-| comma ADVANCE sp int_eval
-;
-
-int_eval:
-  exp
+| comma SP
+| comma '\n'
 ;
 
 exp:
@@ -196,7 +194,8 @@ exp:
 | exp '*' ows exp
 | exp '/' ows exp
 | '(' ows exp ')'
-| exp ws
+| exp SP
+| exp '\n'
 ;
 
 %%
