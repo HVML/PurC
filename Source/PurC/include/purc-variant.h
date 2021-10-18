@@ -37,11 +37,6 @@ typedef struct purc_variant purc_variant;
 typedef struct purc_variant* purc_variant_t;
 
 #define PURC_VARIANT_INVALID            ((purc_variant_t)(0))
-#define PURC_VARIANT_UNDEFINED          ((purc_variant_t)(-1))
-#define PURC_VARIANT_NULL               ((purc_variant_t)(-2))
-#define PURC_VARIANT_TRUE               ((purc_variant_t)(1))
-#define PURC_VARIANT_FALSE              ((purc_variant_t)(2))
-
 
 PCA_EXTERN_C_BEGIN
 

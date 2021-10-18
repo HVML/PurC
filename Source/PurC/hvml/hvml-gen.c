@@ -169,37 +169,12 @@ top_element(struct pcvdom_gen *gen)
 }
 
 static inline bool
-is_tag_of_hvml(const char *tag)
-{
-    const struct pchvml_tag_entry *entry;
-    entry = pchvml_tag_static_search(tag, strlen(tag));
-    return entry && entry->id;
-}
-
-static inline bool
-is_element_of_hvml(struct pcvdom_element *elem)
-{
-    return elem->tag_id ? true : false;
-}
-
-static inline bool
 is_element_of_hvml_data_cat(struct pcvdom_element *elem)
 {
     const struct pchvml_tag_entry *entry;
     entry = pchvml_tag_static_get_by_id(elem->tag_id);
 
     return entry && (entry->cats & PCHVML_TAGCAT_DATA);
-}
-
-static inline bool
-is_top_node_of_hvml(struct pcvdom_gen *gen)
-{
-    struct pcvdom_node *top = top_node(gen);
-    if (is_doc_node(gen, top))
-        return true;
-    struct pcvdom_element *elem;
-    elem = container_of(top, struct pcvdom_element, node);
-    return is_element_of_hvml(elem);
 }
 
 static inline bool

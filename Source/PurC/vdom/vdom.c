@@ -50,7 +50,7 @@ void pcvdom_cleanup_instance(struct pcinst* inst)
 
 #define VDT(x)     PCVDOM_NODE_##x
 #define VTT(x)     PCHVML_TAG_##x
-#define PAO(x)     PCVDOM_ATTR_OP_##x
+#define PAO(x)     PCHVML_ATTRIBUTE_##x
 
 static void
 document_reset(struct pcvdom_document *doc);
@@ -207,14 +207,14 @@ pcvdom_comment_create(const char *text)
 
 // for modification operators, such as +=|-=|%=|~=|^=|$=
 struct pcvdom_attr*
-pcvdom_attr_create(const char *key, enum pcvdom_attr_op op,
+pcvdom_attr_create(const char *key, enum pchvml_attr_assignment op,
     struct pcvcm_node *vcm)
 {
     if (!key) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return NULL;
     }
-    if (op<PAO(EQ) || op>=PAO(MAX)) {
+    if (op<PAO(ASSIGNMENT) || op>=PAO(MAX)) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return NULL;
     }

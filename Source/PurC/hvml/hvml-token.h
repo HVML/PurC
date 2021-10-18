@@ -28,17 +28,8 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <private/arraylist.h>
+#include <private/vdom.h>
 #include "hvml-buffer.h"
-
-enum pchvml_attr_assignment {
-    PCHVML_ATTRIBUTE_ASSIGNMENT,           // =
-    PCHVML_ATTRIBUTE_ADDITION_ASSIGNMENT,  // +=
-    PCHVML_ATTRIBUTE_SUBTRACTION_ASSIGNMENT, // -=
-    PCHVML_ATTRIBUTE_REMAINDER_ASSIGNMENT,  // %=
-    PCHVML_ATTRIBUTE_REPLACE_ASSIGNMENT,   // ~=
-    PCHVML_ATTRIBUTE_HEAD_ASSIGNMENT,   // ^=
-    PCHVML_ATTRIBUTE_TAIL_ASSIGNMENT,   // $=
-};
 
 enum pchvml_token_type {
     PCHVML_TOKEN_DOCTYPE,

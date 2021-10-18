@@ -688,7 +688,7 @@ void pchvml_destroy(struct pchvml_parser* parser)
     }
 }
 
-const char* pchvml_error_desc (enum pchvml_error err)
+const char* pchvml_error_desc (int err)
 {
     switch (err) {
     STATE_DESC(PCHVML_SUCCESS)
@@ -1055,7 +1055,7 @@ next_state:
             RECONSUME_IN(PCHVML_DATA_STATE);
         }
         APPEND_TO_TOKEN_TEXT(character);
-        ADVANCE_TO(PCHVML_TOKEN_CHARACTER);
+        ADVANCE_TO(PCHVML_RCDATA_STATE);
     END_STATE()
 
     BEGIN_STATE(PCHVML_RAWTEXT_STATE)
