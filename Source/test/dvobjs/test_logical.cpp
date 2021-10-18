@@ -383,9 +383,6 @@ TEST(dvobjs, dvobjs_logical_bc)
     std::cout << "env: " << env << "=" << logical_path << std::endl;
     EXPECT_NE(logical_path, nullptr) << "You shall specify via env `"
         << env << "`" << std::endl;
-    if (!logical_path)
-        goto end;
-
     strcpy (path, logical_path);
     strcat (path, "/logical_bc");
 
@@ -412,7 +409,6 @@ TEST(dvobjs, dvobjs_logical_bc)
         closedir(d);
     }
 
-end:
     if (logical)
         purc_variant_unref(logical);
 
