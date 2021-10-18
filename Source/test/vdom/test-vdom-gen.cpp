@@ -9,6 +9,8 @@
 #include <glob.h>
 #include <libgen.h>
 
+#include "../helpers.h"
+
 TEST(vdom_gen, basic)
 {
     struct pcvdom_gen *gen = NULL;
@@ -124,49 +126,6 @@ end:
 TEST(vdom_gen, files)
 {
     int r = 0;
-    DIR *d = NULL;
-    struct dirent *dir = NULL;
-
-    purc_instance_extra_info info = {0, 0};
-    r = purc_init("cn.fmsoft.hybridos.test",
-        "vdom_gen", &info);
-    EXPECT_EQ(r, PURC_ERROR_OK);
-    if (r)
-        return;
-
-    const char *env = "SOURCE_FILES_DIR";
-    const char *path = getenv("SOURCE_FILES_DIR");
-    if (!path)
-        path = "";
-
-    std::cout << "env: " << env << "=" << path << std::endl;
-    EXPECT_NE(path[0], 0) << "You shall specify via env `SOURCE_FILES_DIR`"
-                            << std::endl;
-    if (!*path)
-        goto end;
-
-    d = opendir(path);
-    EXPECT_NE(d, nullptr) << "Failed to open dir @["
-            << path << "]: [" << errno << "]" << strerror(errno)
-            << std::endl;
-
-    if (d) {
-        if (chdir(path))
-            goto end;
-        while ((dir = readdir(d)) != NULL) {
-            if (dir->d_type & DT_REG)
-                _process_file(dir->d_name);
-        }
-        closedir(d);
-    }
-
-end:
-    purc_cleanup ();
-}
-
-TEST(vdom_gen, glob)
-{
-    int r = 0;
     glob_t globbuf;
     memset(&globbuf, 0, sizeof(globbuf));
 
@@ -177,16 +136,14 @@ TEST(vdom_gen, glob)
     if (r)
         return;
 
-    const char *env = "SOURCE_FILES";
-    const char *path = getenv(env);
-    if (!path)
-        path = "";
-
+    char path[PATH_MAX+1];
+    const char *env;
+    env = "SOURCE_FILES";
+    test_getpath_from_env_or_rel(path, sizeof(path),
+        env, "/data/*.hvml");
     std::cout << "env: " << env << "=" << path << std::endl;
-    EXPECT_NE(*path, 0) << "You shall specify via env `"
-                            << env << "`"
-                            << std::endl;
-    if (!*path)
+
+    if (!path[0])
         goto end;
 
     globbuf.gl_offs = 0;
