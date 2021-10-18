@@ -1424,8 +1424,10 @@ PCA_EXPORT bool purc_variant_unload_dvobj (purc_variant_t dvobj);
 
 typedef enum purc_variant_type
 {
+    PURC_VARIANT_TYPE_FIRST = 0,
+
     /* critical: keep order as is */
-    PURC_VARIANT_TYPE_UNDEFINED,
+    PURC_VARIANT_TYPE_UNDEFINED = PURC_VARIANT_TYPE_FIRST,
     PURC_VARIANT_TYPE_NULL,
     PURC_VARIANT_TYPE_BOOLEAN,
     PURC_VARIANT_TYPE_NUMBER,
@@ -1440,9 +1442,13 @@ typedef enum purc_variant_type
     PURC_VARIANT_TYPE_OBJECT,
     PURC_VARIANT_TYPE_ARRAY,
     PURC_VARIANT_TYPE_SET,
+
     /* critical: this MUST be the last enum */
-    PURC_VARIANT_TYPE_MAX,
+    PURC_VARIANT_TYPE_LAST = PURC_VARIANT_TYPE_SET,
 } purc_variant_type;
+
+#define PURC_VARIANT_TYPE_NR \
+    (PURC_VARIANT_TYPE_LAST - PURC_VARIANT_TYPE_FIRST + 1)
 
 /**
  * Whether the vairant is indicated type.
@@ -1546,8 +1552,8 @@ static inline bool purc_variant_is_set(purc_variant_t v)
 }
 
 struct purc_variant_stat {
-    size_t nr_values[PURC_VARIANT_TYPE_MAX];
-    size_t sz_mem[PURC_VARIANT_TYPE_MAX];
+    size_t nr_values[PURC_VARIANT_TYPE_NR];
+    size_t sz_mem[PURC_VARIANT_TYPE_NR];
     size_t nr_total_values;
     size_t sz_total_mem;
     size_t nr_reserved;

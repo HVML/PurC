@@ -203,7 +203,7 @@ TEST(variant, pcvariant_init_once)
     EXPECT_EQ (stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN], 0);
     EXPECT_EQ (stat->sz_mem[PURC_VARIANT_TYPE_BOOLEAN], size * 2);
 
-    for (i = PURC_VARIANT_TYPE_NUMBER; i < PURC_VARIANT_TYPE_MAX; i++) {
+    for (i = PURC_VARIANT_TYPE_NUMBER; i < PURC_VARIANT_TYPE_NR; i++) {
         EXPECT_EQ (stat->nr_values[i], 0);
         EXPECT_EQ (stat->sz_mem[i], 0);
     }
@@ -247,7 +247,7 @@ TEST(variant, pcvariant_init_10_times)
         EXPECT_EQ (stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN], 0);
         EXPECT_EQ (stat->sz_mem[PURC_VARIANT_TYPE_BOOLEAN], size * 2);
 
-        for (i = PURC_VARIANT_TYPE_NUMBER; i < PURC_VARIANT_TYPE_MAX; i++) {
+        for (i = PURC_VARIANT_TYPE_NUMBER; i < PURC_VARIANT_TYPE_NR; i++) {
             EXPECT_EQ (stat->nr_values[i], 0);
             EXPECT_EQ (stat->sz_mem[i], 0);
         }
