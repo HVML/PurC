@@ -99,6 +99,13 @@ static const char *type_names[] = {
     VARIANT_TYPE_NAME_SET,
 };
 
+/* Make sure the number of variant types matches the size of `type_names` */
+#define _COMPILE_TIME_ASSERT(name, x)               \
+       typedef int _dummy_ ## name[(x) * 2 - 1]
+
+_COMPILE_TIME_ASSERT(types, PCA_TABLESIZE(type_names) == PURC_VARIANT_TYPE_NR);
+
+#undef _COMPILE_TIME_ASSERT
 
 static purc_variant_t
 type_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
