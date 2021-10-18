@@ -44,7 +44,7 @@
     #include <gmodule.h>
 #endif
 
-static pcvariant_release_fn variant_releasers[PURC_VARIANT_TYPE_MAX] = {
+static pcvariant_release_fn variant_releasers[PURC_VARIANT_TYPE_NR] = {
     NULL,                           // PURC_VARIANT_TYPE_UNDEFINED
     NULL,                           // PURC_VARIANT_TYPE_NULL
     NULL,                           // PURC_VARIANT_TYPE_BOOLEAN
@@ -929,7 +929,7 @@ int purc_variant_compare(purc_variant_t v1, purc_variant_t v2)
             return i;
         }
 
-        static const char* type_names[PURC_VARIANT_TYPE_MAX] = {
+        static const char* type_names[PURC_VARIANT_TYPE_NR] = {
             "undefined",        // PURC_VARIANT_TYPE_UNDEFINED
             "null",             // PURC_VARIANT_TYPE_NULL
             "boolean",          // PURC_VARIANT_TYPE_BOOLEAN
