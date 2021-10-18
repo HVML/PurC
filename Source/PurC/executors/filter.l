@@ -106,6 +106,7 @@ EQ        { R(); C(); return MKT(EQ); }
 LIKE      { R(); C(); return MKT(LIKE); }
 ALL       { R(); C(); return MKT(ALL); }
 FOR       { R(); C(); return MKT(FOR); }
+KEY       { R(); C(); return MKT(KEY); }
 VALUE     { R(); C(); return MKT(VALUE); }
 KV        { R(); C(); return MKT(KV); }
 [']       { R(); PUSH(SQ); C(); return MKT(SQ); }

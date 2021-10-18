@@ -29,6 +29,7 @@
 
 #include "key.h"
 #include "range.h"
+#include "filter.h"
 
 struct pcexec_record {
     char                      *name;
@@ -82,6 +83,7 @@ void pcexecutor_init_instance(struct pcinst *inst)
 
     pcexec_key_register();
     pcexec_range_register();
+    pcexec_filter_register();
 }
 
 void pcexecutor_cleanup_instance(struct pcinst *inst)

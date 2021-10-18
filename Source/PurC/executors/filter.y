@@ -129,25 +129,28 @@
 %token <c>             MATCHING_FLAG REGEXP_FLAG
 %token <token>  INTEGER
 
+%left ALL
+%left LT GT LE GE NE EQ
 %left '-' '+'
 %left '*' '/'
 %precedence NEG /* negation--unary minus */
+%precedence SQ
+%precedence '\n'
+%precedence SP
 
  /* %nterm <str>   args */ // non-terminal `input` use `str` to store
                            // token value as well
-
-%expect 21
 
 %% /* The grammar follows. */
 
 input:
   rule
-| rule_ln
 ;
 
-rule_ln:
-  rule '\n'
-| rule_ln ws
+rule:
+  filter_rule
+| rule SP
+| rule '\n'
 ;
 
 ws:
@@ -167,24 +170,21 @@ sp:
 | sp SP
 ;
 
+osp:
+  %empty
+| osp SP
+;
+
 colon:
   ':'
-| colon ws
+| colon SP
+| colon '\n'
 ;
 
 comma:
   ','
-| comma ws
-;
-
-all:
-  ALL
-| all ws
-;
-
-for:
-  FOR
-| for SP
+| comma SP
+| comma '\n'
 ;
 
 filter:
@@ -192,8 +192,12 @@ filter:
 | filter SP
 ;
 
-rule:
-  filter colon all for_clause
+filter_rule:
+  filter colon ALL
+| filter colon ALL for_clause
+| filter colon ALL sp
+| filter colon ALL sp for_clause
+| filter colon subrules
 | filter colon subrules for_clause
 ;
 
@@ -206,32 +210,25 @@ subrule:
   pred_exp
 | LIKE sp pattern_expression
 | literal_str_exp
-| subrule SP
 ;
 
 for_clause:
-  %empty
-| comma for for_param
+  comma FOR osp for_param
 ;
 
 for_param:
   KV
 | KEY
 | VALUE
-| for_param SP
 ;
 
 pred_exp:
-  pred sp int_eval
-;
-
-pred:
-  LT
-| GT
-| LE
-| GE
-| NE
-| EQ
+  LT sp exp
+| GT sp exp
+| LE sp exp
+| GE sp exp
+| NE sp exp
+| EQ sp exp
 ;
 
 pattern_expression:
@@ -279,10 +276,6 @@ max_matching_length:
   INTEGER
 ;
 
-int_eval:
-  exp
-;
-
 exp:
   INTEGER
 | exp '+' ows exp
@@ -290,7 +283,8 @@ exp:
 | exp '*' ows exp
 | exp '/' ows exp
 | '(' ows exp ')'
-| exp ws
+| exp SP
+| exp '\n'
 ;
 
 %%
