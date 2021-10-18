@@ -31,10 +31,6 @@
 
 #include <assert.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif  /* __cplusplus */
-
 #define VARIANT_STRING_NULL         "null"
 #define VARIANT_STRING_UNDEFINED    "undefined"
 #define VARIANT_STRING_BOOLEAN      "boolean"
@@ -81,6 +77,9 @@ extern "C" {
 #define LOCALE_MEASUREMENT          "measurement"
 #define LOCALE_IDENTIFICATION       "identification"
 
+#ifdef __cplusplus
+extern "C" {
+#endif  /* __cplusplus */
 
 // initialize dvobjs module (once)
 void pcdvobjs_init_once(void) WTF_INTERNAL;
