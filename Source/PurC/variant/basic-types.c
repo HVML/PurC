@@ -320,7 +320,7 @@ const char* purc_variant_get_string_const (purc_variant_t string)
     return str_str;
 }
 
-bool purc_variant_string_length_ex(purc_variant_t string, size_t *length)
+bool purc_variant_string_bytes(purc_variant_t string, size_t *length)
 {
     PC_ASSERT(string && length);
 
@@ -555,7 +555,7 @@ const unsigned char *purc_variant_get_bytes_const(purc_variant_t sequence,
     return bytes;
 }
 
-bool purc_variant_sequence_length_ex(purc_variant_t sequence, size_t *length)
+bool purc_variant_sequence_bytes(purc_variant_t sequence, size_t *length)
 {
     PC_ASSERT(sequence && length);
 

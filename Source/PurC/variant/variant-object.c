@@ -384,17 +384,20 @@ bool purc_variant_object_remove(purc_variant_t obj, purc_variant_t key)
     return true;
 }
 
-size_t purc_variant_object_get_size (purc_variant_t obj)
+bool purc_variant_object_size (purc_variant_t obj, size_t *sz)
 {
-    PCVARIANT_CHECK_FAIL_RET((obj && obj->type==PVT(_OBJECT) && obj->sz_ptr[1]),
-        (size_t)-1);
+    PC_ASSERT(obj && sz);
+
+    PCVARIANT_CHECK_FAIL_RET(obj->type == PVT(_OBJECT) && obj->sz_ptr[1],
+        false);
 
     struct pchash_table *ht = v_object_get_ht(obj);
-
     int nr = pchash_table_length(ht);
-    PC_ASSERT(nr>=0);
 
-    return (size_t)nr;
+    PC_ASSERT(nr >= 0);
+    *sz = (size_t)nr;
+
+    return true;
 }
 
 struct purc_variant_object_iterator {
