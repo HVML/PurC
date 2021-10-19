@@ -210,13 +210,15 @@ purc_variant_t purc_variant_array_get (purc_variant_t array, int idx)
     return var;
 }
 
-size_t purc_variant_array_get_size(purc_variant_t array)
+bool purc_variant_array_size(purc_variant_t array, size_t *sz)
 {
-    PCVARIANT_CHECK_FAIL_RET(array && array->type==PVT(_ARRAY),
-        (size_t)-1);
+    PC_ASSERT(array && sz);
+
+    PCVARIANT_CHECK_FAIL_RET(array->type==PVT(_ARRAY), false);
 
     struct pcutils_arrlist *al = (struct pcutils_arrlist*)array->sz_ptr[1];
-    return pcutils_arrlist_length(al);
+    *sz = pcutils_arrlist_length(al);
+    return true;
 }
 
 bool purc_variant_array_set (purc_variant_t array, int idx,

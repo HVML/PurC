@@ -365,7 +365,7 @@ purc_variant_sequence_length_ex(purc_variant_t sequence, size_t *length);
  * Returns: The number of bytes in an sequence variant value;
  *  \PURC_VARIANT_BADSIZE (-1) if the variant is not a byte sequence.
  *
- * Note: This function is deprecated, use \purc_variant_string_length_ex
+ * Note: This function is deprecated, use \purc_variant_sequence_length_ex
  *  instead.
  *
  * Since: 0.0.1
@@ -605,6 +605,18 @@ PCA_EXPORT bool
 purc_variant_array_insert_after(purc_variant_t array,
         int idx, purc_variant_t value);
 
+/**
+ * Get the number of elements in an array variant value.
+ *
+ * @param array: the variant value of array type
+ * @param sz: the buffer receiving the number of elements of the array.
+ *
+ * Returns: True on success, otherwise False.
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT bool
+purc_variant_array_size(purc_variant_t array, size_t *sz);
 
 /**
  * Get the number of elements in an array variant value.
@@ -614,10 +626,18 @@ purc_variant_array_insert_after(purc_variant_t array,
  * Returns: The number of elements in the array;
  *  \PURC_VARIANT_BADSIZE (-1) if the variant is not an array.
  *
+ * Note: This function is deprecated, use \purc_variant_array_size instead.
+ *
  * Since: 0.0.1
  */
-PCA_EXPORT size_t purc_variant_array_get_size(purc_variant_t array);
+static inline size_t purc_variant_array_get_size(purc_variant_t array)
+{
+    size_t sz;
+    if (!purc_variant_array_size(array, &sz))
+        return PURC_VARIANT_BADSIZE;
 
+    return sz;
+}
 
 /**
  * Creates a variant value of object type with key as c string
@@ -765,13 +785,36 @@ purc_variant_object_remove_by_static_ckey(purc_variant_t obj, const char* key)
  * Get the number of key-value pairs in an object variant value.
  *
  * @param obj: the variant value of object type
+ * @param sz: the buffer receiving the number of the key-value pairs
+ *  in the object
  *
- * Returns: The number of key-value pairs in the object;
- *  \PURC_VARIANT_BADSIZE (-1) if the variant is not an object.
+ * Returns: True on success, otherwise False if the variant is not an object.
  *
  * Since: 0.0.1
  */
-PCA_EXPORT size_t purc_variant_object_get_size(purc_variant_t obj);
+PCA_EXPORT bool
+purc_variant_object_size(purc_variant_t obj, size_t *sz);
+
+/**
+ * Get the number of key-value pairs in an object variant value.
+ *
+ * @param obj: the variant value of object type
+ *
+ * Returns: The number of the key-value pairs in the object;
+ *  \PURC_VARIANT_BADSIZE (-1) if the variant is not an object.
+ *
+ * Note: This function is deprecated, use \purc_variant_object_size instead.
+ *
+ * Since: 0.0.1
+ */
+static inline size_t purc_variant_object_get_size(purc_variant_t obj)
+{
+    size_t sz;
+    if (purc_variant_object_size(obj, &sz))
+        return PURC_VARIANT_BADSIZE;
+
+    return sz;
+}
 
 /**
  * object iterator usage example:
@@ -1017,13 +1060,33 @@ purc_variant_set_remove_member_by_key_values(purc_variant_t set,
  * Get the number of elements in a set variant value.
  *
  * @param set: the variant value of set type
+ * @param sz: the variant value of set type
+ *
+ * Returns: True on success, otherwise False if the variant is not a set.
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT bool purc_variant_set_size(purc_variant_t set, size_t *sz);
+
+/**
+ * Get the number of elements in a set variant value.
+ *
+ * @param set: the variant value of set type
  *
  * Returns: The number of elements in a set variant value;
  *  \PURC_VARIANT_BADSIZE (-1) if the variant is not a set.
  *
+ * Note: This function is deprecated, use \purc_variant_set_size instead.
+ *
  * Since: 0.0.1
  */
-PCA_EXPORT size_t purc_variant_set_get_size(purc_variant_t set);
+static inline size_t purc_variant_set_get_size(purc_variant_t set)
+{
+    size_t sz;
+    if (!purc_variant_set_size(set, &sz))
+        return PURC_VARIANT_BADSIZE;
+    return sz;
+}
 
 /**
  * set iterator usage example:
