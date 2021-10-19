@@ -64,11 +64,20 @@ static pcvariant_release_fn variant_releasers[PURC_VARIANT_TYPE_NR] = {
 
 
 static const char* variant_err_msgs[] = {
-    /* PCVARIANT_INVALID_TYPE */
+    /* PCVARIANT_ERROR_INVALID_TYPE */
     "Invalid variant type",
-    /* PCVARIANT_STRING_NOT_UTF8 */
-    "Input string is not in UTF-8 encoding",
+    /* PCVARIANT_ERROR_NOT_FOUND */
+    "Element not found",
 };
+
+/* Make sure the number of error messages matches the number of error codes */
+#define _COMPILE_TIME_ASSERT(name, x)               \
+       typedef int _dummy_ ## name[(x) * 2 - 1]
+
+_COMPILE_TIME_ASSERT(msgs,
+        PCA_TABLESIZE(variant_err_msgs) == PCVARIANT_ERROR_NR);
+
+#undef _COMPILE_TIME_ASSERT
 
 static struct err_msg_seg _variant_err_msgs_seg = {
     { NULL, NULL },

@@ -192,7 +192,7 @@ purc_variant_make_string (const char* str_utf8, bool check_encoding)
 
     if (check_encoding) {
         if (!purc_variant_string_check_utf8 (str_utf8)) {
-            pcinst_set_error (PCVARIANT_STRING_NOT_UTF8);
+            pcinst_set_error (PURC_ERROR_BAD_ENCODING);
             return PURC_VARIANT_INVALID;
         }
     }
@@ -247,7 +247,7 @@ purc_variant_make_string_reuse_buff (char* str_utf8, size_t sz_buff,
 
     if (check_encoding) {
         if (!purc_variant_string_check_utf8 (str_utf8)) {
-            pcinst_set_error (PCVARIANT_STRING_NOT_UTF8);
+            pcinst_set_error (PURC_ERROR_BAD_ENCODING);
             return PURC_VARIANT_INVALID;
         }
     }
@@ -280,7 +280,7 @@ purc_variant_make_string_static (const char* str_utf8, bool check_encoding)
 
     if (check_encoding) {
         if (!purc_variant_string_check_utf8 (str_utf8)) {
-            pcinst_set_error (PCVARIANT_STRING_NOT_UTF8);
+            pcinst_set_error (PURC_ERROR_BAD_ENCODING);
             return PURC_VARIANT_INVALID;
         }
     }
@@ -315,7 +315,7 @@ const char* purc_variant_get_string_const (purc_variant_t string)
             str_str = (char *)string->bytes;
     }
     else
-        pcinst_set_error (PCVARIANT_INVALID_TYPE);
+        pcinst_set_error (PCVARIANT_ERROR_INVALID_TYPE);
 
     return str_str;
 }
@@ -334,7 +334,7 @@ size_t purc_variant_string_length (const purc_variant_t string)
             str_size = string->size;
     }
     else
-        pcinst_set_error (PCVARIANT_INVALID_TYPE);
+        pcinst_set_error (PCVARIANT_ERROR_INVALID_TYPE);
 
     return str_size;
 }
@@ -351,7 +351,7 @@ void pcvariant_string_release (purc_variant_t string)
         }
     }
     else
-        pcinst_set_error (PCVARIANT_INVALID_TYPE);
+        pcinst_set_error (PCVARIANT_ERROR_INVALID_TYPE);
 }
 
 purc_variant_t
@@ -363,7 +363,7 @@ purc_variant_make_atom_string (const char* str_utf8, bool check_encoding)
 
     if (check_encoding) {
         if (!purc_variant_string_check_utf8 (str_utf8)) {
-            pcinst_set_error (PCVARIANT_STRING_NOT_UTF8);
+            pcinst_set_error (PURC_ERROR_BAD_ENCODING);
             return PURC_VARIANT_INVALID;
         }
     }
@@ -401,7 +401,7 @@ purc_variant_make_atom_string_static (const char* str_utf8,
 
     if (check_encoding) {
         if (!purc_variant_string_check_utf8 (str_utf8)) {
-            pcinst_set_error (PCVARIANT_STRING_NOT_UTF8);
+            pcinst_set_error (PURC_ERROR_BAD_ENCODING);
             return PURC_VARIANT_INVALID;
         }
     }
@@ -438,7 +438,7 @@ const char* purc_variant_get_atom_string_const (purc_variant_t atom_string)
     if (purc_variant_is_type (atom_string, PURC_VARIANT_TYPE_ATOMSTRING))
         str_str = purc_atom_to_string(atom_string->sz_ptr[1]);
     else
-        pcinst_set_error (PCVARIANT_INVALID_TYPE);
+        pcinst_set_error (PCVARIANT_ERROR_INVALID_TYPE);
 
     return str_str;
 }
@@ -551,7 +551,7 @@ purc_variant_get_bytes_const (purc_variant_t sequence, size_t* nr_bytes)
         }
     }
     else
-        pcinst_set_error (PCVARIANT_INVALID_TYPE);
+        pcinst_set_error (PCVARIANT_ERROR_INVALID_TYPE);
 
     return bytes;
 }
@@ -570,7 +570,7 @@ size_t purc_variant_sequence_length(const purc_variant_t sequence)
             nr_bytes = sequence->size;
     }
     else
-        pcinst_set_error (PCVARIANT_INVALID_TYPE);
+        pcinst_set_error (PCVARIANT_ERROR_INVALID_TYPE);
 
     return nr_bytes;
 }
@@ -587,7 +587,7 @@ void pcvariant_sequence_release(purc_variant_t sequence)
         }
     }
     else
-        pcinst_set_error (PCVARIANT_INVALID_TYPE);
+        pcinst_set_error (PCVARIANT_ERROR_INVALID_TYPE);
 }
 
 purc_variant_t purc_variant_make_dynamic (purc_dvariant_method getter,
@@ -624,7 +624,7 @@ purc_variant_dynamic_get_getter(const purc_variant_t dynamic)
         fn = dynamic->ptr_ptr[0];
     }
     else
-        pcinst_set_error (PCVARIANT_INVALID_TYPE);
+        pcinst_set_error (PCVARIANT_ERROR_INVALID_TYPE);
 
     return fn;
 }
@@ -639,7 +639,7 @@ purc_variant_dynamic_get_setter(const purc_variant_t dynamic)
         fn = dynamic->ptr_ptr[1];
     }
     else
-        pcinst_set_error (PCVARIANT_INVALID_TYPE);
+        pcinst_set_error (PCVARIANT_ERROR_INVALID_TYPE);
 
     return fn;
 }
@@ -688,7 +688,7 @@ void * purc_variant_native_get_entity(const purc_variant_t native)
         ret = native->ptr_ptr[0];
     }
     else
-        pcinst_set_error (PCVARIANT_INVALID_TYPE);
+        pcinst_set_error (PCVARIANT_ERROR_INVALID_TYPE);
 
     return ret;
 }

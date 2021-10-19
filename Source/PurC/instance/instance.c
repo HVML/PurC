@@ -40,55 +40,66 @@
 #include <string.h>
 
 static const char* generic_err_msgs[] = {
-    /* PURC_ERROR_OK (0) */
+    /* PURC_ERROR_OK */
     "Ok",
-    /* PURC_ERROR_BAD_SYSTEM_CALL (1) */
+    /* PURC_ERROR_BAD_SYSTEM_CALL */
     "Bad system call",
-    /* PURC_ERROR_BAD_STDC_CALL (2) */
+    /* PURC_ERROR_BAD_STDC_CALL */
     "Bad STDC call",
-    /* PURC_ERROR_OUT_OF_MEMORY (3) */
+    /* PURC_ERROR_OUT_OF_MEMORY */
     "Out of memory",
-    /* PURC_ERROR_INVALID_VALUE (4) */
+    /* PURC_ERROR_INVALID_VALUE */
     "Invalid value",
-    /* PURC_ERROR_DUPLICATED (5) */
+    /* PURC_ERROR_DUPLICATED */
     "Duplicated",
-    /* PURC_ERROR_NOT_IMPLEMENTED (6) */
+    /* PURC_ERROR_NOT_IMPLEMENTED */
     "Not implemented",
-    /* PURC_ERROR_NO_INSTANCE (7) */
+    /* PURC_ERROR_NO_INSTANCE */
     "No instance",
-    /* PURC_ERROR_TOO_LARGE_ENTITY (8) */
+    /* PURC_ERROR_TOO_LARGE_ENTITY */
     "Tool large entity",
-    /* PURC_ERROR_BAD_ENCODING (9) */
+    /* PURC_ERROR_BAD_ENCODING */
     "Bad encoding",
-    /* PURC_ERROR_NOT_SUPPORTED (10) */
+    /* PURC_ERROR_NOT_SUPPORTED */
     "Not supported",
-    /* PURC_ERROR_OUTPUT (11) */
+    /* PURC_ERROR_OUTPUT */
     "An output error is encountered",
-    /* PURC_ERROR_TOO_SMALL_BUFF (12) */
+    /* PURC_ERROR_TOO_SMALL_BUFF */
     "Too small buffer",
-    /* PURC_ERROR_NULL_OBJECT (13) */
+    /* PURC_ERROR_NULL_OBJECT */
     "Null object",
-    /* PURC_ERROR_TOO_SMALL_SIZE (14) */
+    /* PURC_ERROR_TOO_SMALL_SIZE */
     "Too small size",
-    /* PURC_ERROR_INCOMPLETE_OBJECT (15) */
+    /* PURC_ERROR_INCOMPLETE_OBJECT */
     "Incomplete object",
-    /* PURC_ERROR_NO_FREE_SLOT (16) */
+    /* PURC_ERROR_NO_FREE_SLOT */
     "No free slot",
-    /* PURC_ERROR_NOT_EXISTS (17) */
+    /* PURC_ERROR_NOT_EXISTS */
     "Does not exist",
-    /* PURC_ERROR_WRONG_ARGS (18) */
+    /* PURC_ERROR_WRONG_ARGS */
     "Wrong arguments",
-    /* PURC_ERROR_WRONG_STAGE (19) */
+    /* PURC_ERROR_WRONG_STAGE */
     "Wrong stage",
-    /* PURC_ERROR_UNEXPECTED_RESULT (20) */
+    /* PURC_ERROR_UNEXPECTED_RESULT */
     "Unexpected result",
-    /* PURC_ERROR_UNEXPECTED_DATA (21) */
+    /* PURC_ERROR_UNEXPECTED_DATA */
     "Unexpected data",
-    /* PURC_ERROR_OVERFLOW (22) */
+    /* PURC_ERROR_OVERFLOW */
     "Overflow",
-    /* PURC_ERROR_UNKNOWN (23) */
+    /* PURC_ERROR_UNKNOWN */
+    "Unknown",
+    /* PURC_ERROR_BAD_LOCALE_CATEGORY */
     "Unknown",
 };
+
+/* Make sure the number of error messages matches the number of error codes */
+#define _COMPILE_TIME_ASSERT(name, x)               \
+       typedef int _dummy_ ## name[(x) * 2 - 1]
+
+_COMPILE_TIME_ASSERT(msgs,
+        PCA_TABLESIZE(generic_err_msgs) == PURC_ERROR_NR);
+
+#undef _COMPILE_TIME_ASSERT
 
 static struct err_msg_seg _generic_err_msgs_seg = {
     { NULL, NULL },
