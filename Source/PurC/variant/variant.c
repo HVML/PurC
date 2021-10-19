@@ -193,13 +193,12 @@ void pcvariant_cleanup_instance(struct pcinst *inst)
     heap->tailpos = 0;
 }
 
-bool purc_variant_is_type(const purc_variant_t value,
-        enum purc_variant_type type)
+bool purc_variant_is_type(purc_variant_t value, enum purc_variant_type type)
 {
     return (value->type == type);
 }
 
-enum purc_variant_type purc_variant_get_type(const purc_variant_t value)
+enum purc_variant_type purc_variant_get_type(purc_variant_t value)
 {
     return value->type;
 }
