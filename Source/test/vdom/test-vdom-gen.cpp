@@ -46,9 +46,9 @@ _process_file(const char *fn)
     }
 
     if (neg) {
-        std::cout << "Start parsing neg sample: [" << fn << "]" << std::endl;
+        std::cerr << "Start parsing neg sample: [" << fn << "]" << std::endl;
     } else {
-        std::cout << "Start parsing: [" << fn << "]" << std::endl;
+        std::cerr << "Start parsing: [" << fn << "]" << std::endl;
     }
 
     fin = fopen(fn, "r");
@@ -85,7 +85,7 @@ again:
             if (neg) {
                 EXPECT_TRUE(false) << "Unexpected successful in parsing neg sample: [" << fn << "]" << std::endl;
             } else {
-                std::cout << "Succeeded in parsing: [" << fn << "]" << std::endl;
+                std::cerr << "Succeeded in parsing: [" << fn << "]" << std::endl;
             }
             goto end;
         }
@@ -98,7 +98,7 @@ again:
     }
 
     if (neg) {
-        std::cout << "Succeeded in failure-parsing neg sample: [" << fn << "]" << std::endl;
+        std::cerr << "Succeeded in failure-parsing neg sample: [" << fn << "]" << std::endl;
     } else {
         EXPECT_TRUE(false) << "Failed parsing: [" << fn << "]" << std::endl;
     }
@@ -141,7 +141,7 @@ TEST(vdom_gen, files)
     env = "SOURCE_FILES";
     test_getpath_from_env_or_rel(path, sizeof(path),
         env, "/data/*.hvml");
-    std::cout << "env: " << env << "=" << path << std::endl;
+    std::cerr << "env: " << env << "=" << path << std::endl;
 
     if (!path[0])
         goto end;

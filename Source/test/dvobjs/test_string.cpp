@@ -38,7 +38,7 @@ TEST(dvobjs, dvobjs_string_contains)
     const char *env = "DVOBJS_TEST_PATH";
     test_getpath_from_env_or_rel(data_path, sizeof(data_path),
         env, "test_files");
-    std::cout << "env: " << env << "=" << data_path << std::endl;
+    std::cerr << "env: " << env << "=" << data_path << std::endl;
 
     // get and function
     purc_instance_extra_info info = {0, 0};
@@ -198,7 +198,7 @@ TEST(dvobjs, dvobjs_string_explode)
     const char *env = "DVOBJS_TEST_PATH";
     test_getpath_from_env_or_rel(data_path, sizeof(data_path),
         env, "test_files");
-    std::cout << "env: " << env << "=" << data_path << std::endl;
+    std::cerr << "env: " << env << "=" << data_path << std::endl;
 
     // get and function
     purc_instance_extra_info info = {0, 0};
@@ -372,7 +372,7 @@ TEST(dvobjs, dvobjs_string_shuffle)
     const char *env = "DVOBJS_TEST_PATH";
     test_getpath_from_env_or_rel(data_path, sizeof(data_path),
         env, "test_files");
-    std::cout << "env: " << env << "=" << data_path << std::endl;
+    std::cerr << "env: " << env << "=" << data_path << std::endl;
 
     // get and function
     purc_instance_extra_info info = {0, 0};
@@ -547,7 +547,7 @@ TEST(dvobjs, dvobjs_string_replace)
     const char *env = "DVOBJS_TEST_PATH";
     test_getpath_from_env_or_rel(data_path, sizeof(data_path),
         env, "test_files");
-    std::cout << "env: " << env << "=" << data_path << std::endl;
+    std::cerr << "env: " << env << "=" << data_path << std::endl;
 
     // get and function
     purc_instance_extra_info info = {0, 0};
@@ -712,7 +712,7 @@ TEST(dvobjs, dvobjs_string_format_c)
     const char *env = "DVOBJS_TEST_PATH";
     test_getpath_from_env_or_rel(data_path, sizeof(data_path),
         env, "test_files");
-    std::cout << "env: " << env << "=" << data_path << std::endl;
+    std::cerr << "env: " << env << "=" << data_path << std::endl;
 
     // get and function
     purc_instance_extra_info info = {0, 0};
@@ -876,7 +876,7 @@ TEST(dvobjs, dvobjs_string_format_p)
     const char *env = "DVOBJS_TEST_PATH";
     test_getpath_from_env_or_rel(data_path, sizeof(data_path),
         env, "test_files");
-    std::cout << "env: " << env << "=" << data_path << std::endl;
+    std::cerr << "env: " << env << "=" << data_path << std::endl;
 
     // get and function
     purc_instance_extra_info info = {0, 0};

@@ -43,7 +43,7 @@ TEST(dvobjs, dvobjs_file_text_head)
     env = "DVOBJS_SO_PATH";
     test_getpath_from_env_or_rel(so_path, sizeof(so_path),
         env, "../../../build/Source/ExtDVObjs");
-    std::cout << "env: " << env << "=" << so_path << std::endl;
+    std::cerr << "env: " << env << "=" << so_path << std::endl;
 
     strncat(so_path, "/fs/libpurc-dvobj-FS.so", sizeof(so_path)-1);
     so_path[sizeof(so_path)-1] = '\0';
@@ -129,7 +129,7 @@ TEST(dvobjs, dvobjs_file_text_tail)
     env = "DVOBJS_SO_PATH";
     test_getpath_from_env_or_rel(so_path, sizeof(so_path),
         env, "../../../build/Source/ExtDVObjs");
-    std::cout << "env: " << env << "=" << so_path << std::endl;
+    std::cerr << "env: " << env << "=" << so_path << std::endl;
 
     strncat(so_path, "/fs/libpurc-dvobj-FS.so", sizeof(so_path)-1);
     so_path[sizeof(so_path)-1] = '\0';
@@ -215,7 +215,7 @@ TEST(dvobjs, dvobjs_file_bin_head)
     env = "DVOBJS_SO_PATH";
     test_getpath_from_env_or_rel(so_path, sizeof(so_path),
         env, "../../../build/Source/ExtDVObjs");
-    std::cout << "env: " << env << "=" << so_path << std::endl;
+    std::cerr << "env: " << env << "=" << so_path << std::endl;
 
     strncat(so_path, "/fs/libpurc-dvobj-FS.so", sizeof(so_path)-1);
     so_path[sizeof(so_path)-1] = '\0';
@@ -301,7 +301,7 @@ TEST(dvobjs, dvobjs_file_bin_tail)
     env = "DVOBJS_SO_PATH";
     test_getpath_from_env_or_rel(so_path, sizeof(so_path),
         env, "../../../build/Source/ExtDVObjs");
-    std::cout << "env: " << env << "=" << so_path << std::endl;
+    std::cerr << "env: " << env << "=" << so_path << std::endl;
 
     strncat(so_path, "/fs/libpurc-dvobj-FS.so", sizeof(so_path)-1);
     so_path[sizeof(so_path)-1] = '\0';
@@ -387,7 +387,7 @@ TEST(dvobjs, dvobjs_file_stream_open_seek_close)
     env = "DVOBJS_SO_PATH";
     test_getpath_from_env_or_rel(so_path, sizeof(so_path),
         env, "../../../build/Source/ExtDVObjs");
-    std::cout << "env: " << env << "=" << so_path << std::endl;
+    std::cerr << "env: " << env << "=" << so_path << std::endl;
 
     strncat(so_path, "/fs/libpurc-dvobj-FS.so", sizeof(so_path)-1);
     so_path[sizeof(so_path)-1] = '\0';
@@ -413,7 +413,7 @@ TEST(dvobjs, dvobjs_file_stream_open_seek_close)
     env = "DVOBJS_TEST_PATH";
     test_getpath_from_env_or_rel(data_path, sizeof(data_path),
         env, "test_files");
-    std::cout << "env: " << env << "=" << data_path << std::endl;
+    std::cerr << "env: " << env << "=" << data_path << std::endl;
 
     char file_path[1024] = {0};
     strcpy (file_path, data_path);
@@ -505,7 +505,7 @@ TEST(dvobjs, dvobjs_file_stream_readbytes)
     env = "DVOBJS_SO_PATH";
     test_getpath_from_env_or_rel(so_path, sizeof(so_path),
         env, "../../../build/Source/ExtDVObjs");
-    std::cout << "env: " << env << "=" << so_path << std::endl;
+    std::cerr << "env: " << env << "=" << so_path << std::endl;
 
     strncat(so_path, "/fs/libpurc-dvobj-FS.so", sizeof(so_path)-1);
     so_path[sizeof(so_path)-1] = '\0';
@@ -532,7 +532,7 @@ TEST(dvobjs, dvobjs_file_stream_readbytes)
     env = "DVOBJS_TEST_PATH";
     test_getpath_from_env_or_rel(data_path, sizeof(data_path),
         env, "test_files");
-    std::cout << "env: " << env << "=" << data_path << std::endl;
+    std::cerr << "env: " << env << "=" << data_path << std::endl;
 
     char file_path[1024] = {0};
     strcpy (file_path, data_path);
@@ -640,7 +640,7 @@ TEST(dvobjs, dvobjs_file_stream_readlines)
     env = "DVOBJS_SO_PATH";
     test_getpath_from_env_or_rel(so_path, sizeof(so_path),
         env, "../../../build/Source/ExtDVObjs");
-    std::cout << "env: " << env << "=" << so_path << std::endl;
+    std::cerr << "env: " << env << "=" << so_path << std::endl;
 
     strncat(so_path, "/fs/libpurc-dvobj-FS.so", sizeof(so_path)-1);
     so_path[sizeof(so_path)-1] = '\0';
@@ -666,7 +666,7 @@ TEST(dvobjs, dvobjs_file_stream_readlines)
     env = "DVOBJS_TEST_PATH";
     test_getpath_from_env_or_rel(data_path, sizeof(data_path),
         env, "test_files");
-    std::cout << "env: " << env << "=" << data_path << std::endl;
+    std::cerr << "env: " << env << "=" << data_path << std::endl;
 
     char file_path[1024] = {0};
     strcpy (file_path, data_path);
@@ -783,7 +783,7 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
     env = "DVOBJS_SO_PATH";
     test_getpath_from_env_or_rel(so_path, sizeof(so_path),
         env, "../../../build/Source/ExtDVObjs");
-    std::cout << "env: " << env << "=" << so_path << std::endl;
+    std::cerr << "env: " << env << "=" << so_path << std::endl;
 
     strncat(so_path, "/fs/libpurc-dvobj-FS.so", sizeof(so_path)-1);
     so_path[sizeof(so_path)-1] = '\0';
@@ -846,7 +846,7 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
     env = "DVOBJS_TEST_PATH";
     test_getpath_from_env_or_rel(data_path, sizeof(data_path),
         env, "test_files");
-    std::cout << "env: " << env << "=" << data_path << std::endl;
+    std::cerr << "env: " << env << "=" << data_path << std::endl;
 
     // get test case list file
     char test_case[1024] = {0};
