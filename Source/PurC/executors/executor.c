@@ -30,6 +30,15 @@
 #include "exe_key.h"
 #include "exe_range.h"
 #include "exe_filter.h"
+#include "exe_char.h"
+#include "exe_token.h"
+#include "exe_add.h"
+#include "exe_sub.h"
+#include "exe_mul.h"
+#include "exe_div.h"
+#include "exe_formula.h"
+#include "exe_sql.h"
+#include "exe_travel.h"
 
 struct pcexec_record {
     char                      *name;
@@ -93,6 +102,15 @@ void pcexecutor_init_instance(struct pcinst *inst)
     pcexec_exe_key_register();
     pcexec_exe_range_register();
     pcexec_exe_filter_register();
+    pcexec_exe_char_register();
+    pcexec_exe_token_register();
+    pcexec_exe_add_register();
+    pcexec_exe_sub_register();
+    pcexec_exe_mul_register();
+    pcexec_exe_div_register();
+    pcexec_exe_formula_register();
+    pcexec_exe_sql_register();
+    pcexec_exe_travel_register();
 }
 
 void pcexecutor_cleanup_instance(struct pcinst *inst)

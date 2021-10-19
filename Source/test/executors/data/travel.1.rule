@@ -1,0 +1,80 @@
+# state: `begin` | `in_sample`
+# sample type: `undefined` | `positive` | `negative`
+# <begin>/comment_line:  ^'#' .* '\n'
+# <begin>/sample_type:   ^('P'|'N') ':' .* '\n' { set sample_type; }
+# <begin>/blank_line:    ^[ \t]* '\n'
+# <begin>/@default:                             { switch to in_sample; }
+# <sample>sample_record: ^(.* '\n')* ';' '\n'   { process sample;
+#                                                 switch to begin; }
+
+
+# blank lines
+                      
+
+P: # bellow are positive samples
+# blank lines
+                      
+
+# all seperated with a SPACE
+TRAVEL : FROM 0 ;
+TRAVEL : FROM 0 TO 10 ;
+TRAVEL : FROM 0 TO 10 , ADVANCE 2 ;
+TRAVEL : FROM 0 TO 10 , ADVANCE 1 + 2 ;
+TRAVEL : FROM 0 TO 10 , ADVANCE 1 + 2 / 4 - 3 * 5 ;
+TRAVEL : FROM 0 TO 10 , ADVANCE 1 + 2 / ( 4 - 3 ) * 5 ;
+# no SPACE in between
+TRAVEL:FROM 0 TO 10,ADVANCE 1+2/(4-3)*5;
+# multiple line
+TRAVEL:
+        FROM 0
+        TO 1
+        +
+        2
+        /
+        (
+        4
+        -
+        3
+        )
+        *
+        5
+        ,
+        ADVANCE 1
+        +
+        2
+        /
+        (
+        4
+        -
+        3
+        )
+        *
+        5
+        ;
+
+N: # bellow are negative samples
+# blank lines
+                      
+
+# SPACE required
+TRAVEL:FROM0 TO 10,ADVANCE 1;
+TRAVEL:FROM 0TO 10,ADVANCE 1;
+TRAVEL:FROM 0 TO10,ADVANCE 1;
+TRAVEL:FROM 0 TO 10,ADVANCE1;
+
+# '\n' in wrong place
+TRAVEL
+:FROM 0 TO 10,ADVANCE 1;
+
+TRAVEL: FROM
+0 TO 10,ADVANCE 1;
+
+TRAVEL: FROM 0 TO
+10,ADVANCE 1;
+
+TRAVEL: FROM 0 TO 10, ADVANCE
+1;
+
+TRAVEL: FROM 0TO 10, ADVANCE
+1;
+
