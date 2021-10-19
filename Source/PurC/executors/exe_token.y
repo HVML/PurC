@@ -146,17 +146,17 @@ rule:
 ;
 
 exe_token_rule:
-  TOKEN osp ':' ows FROM sp exp
-| TOKEN osp ':' ows FROM sp exp to_clause
-| TOKEN osp ':' ows FROM sp exp to_clause comma advance_clause
+  TOKEN osp ':' ows from_clause
+| TOKEN osp ':' ows from_clause advance_clause
 ;
 
-to_clause:
-  TO sp exp
+from_clause:
+  FROM sp exp
+| FROM sp exp TO sp exp
 ;
 
 advance_clause:
-  ADVANCE sp exp
+  comma ADVANCE sp exp
 ;
 
 ws:

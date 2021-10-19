@@ -39,6 +39,7 @@ set(_targets
         range
         filter
         char
+        token
         add
         sub
         mul
