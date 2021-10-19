@@ -218,7 +218,7 @@ PCA_EXPORT const char* purc_variant_get_string_const(purc_variant_t value);
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_string_length_ex(purc_variant_t value, size_t *length);
+purc_variant_string_bytes(purc_variant_t value, size_t *length);
 
 /**
  * Get the length in bytes of a string variant value.
@@ -228,7 +228,7 @@ purc_variant_string_length_ex(purc_variant_t value, size_t *length);
  * Returns: The length in bytes of the string variant;
  *  \PURC_VARIANT_BADSIZE (-1) if the variant is not a string.
  *
- * Note: This function is deprecated, use \purc_variant_string_length_ex
+ * Note: This function is deprecated, use \purc_variant_string_bytes
  *  instead.
  *
  * Since: 0.0.1
@@ -236,7 +236,7 @@ purc_variant_string_length_ex(purc_variant_t value, size_t *length);
 static inline size_t purc_variant_string_length(purc_variant_t value)
 {
     size_t len;
-    if (!purc_variant_string_length_ex(value, &len))
+    if (!purc_variant_string_bytes(value, &len))
         return PURC_VARIANT_BADSIZE;
     return len;
 }
@@ -355,7 +355,7 @@ purc_variant_get_bytes_const(purc_variant_t value, size_t* nr_bytes);
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_sequence_length_ex(purc_variant_t sequence, size_t *length);
+purc_variant_sequence_bytes(purc_variant_t sequence, size_t *length);
 
 /**
  * Get the number of bytes in a byte sequence variant value.
@@ -365,7 +365,7 @@ purc_variant_sequence_length_ex(purc_variant_t sequence, size_t *length);
  * Returns: The number of bytes in an sequence variant value;
  *  \PURC_VARIANT_BADSIZE (-1) if the variant is not a byte sequence.
  *
- * Note: This function is deprecated, use \purc_variant_sequence_length_ex
+ * Note: This function is deprecated, use \purc_variant_sequence_bytes
  *  instead.
  *
  * Since: 0.0.1
@@ -373,7 +373,7 @@ purc_variant_sequence_length_ex(purc_variant_t sequence, size_t *length);
 static inline size_t purc_variant_sequence_length(purc_variant_t sequence)
 {
     size_t len;
-    if (!purc_variant_sequence_length_ex(sequence, &len))
+    if (!purc_variant_sequence_bytes(sequence, &len))
         return PURC_VARIANT_BADSIZE;
     return len;
 }
@@ -635,7 +635,6 @@ static inline size_t purc_variant_array_get_size(purc_variant_t array)
     size_t sz;
     if (!purc_variant_array_size(array, &sz))
         return PURC_VARIANT_BADSIZE;
-
     return sz;
 }
 
@@ -810,9 +809,8 @@ purc_variant_object_size(purc_variant_t obj, size_t *sz);
 static inline size_t purc_variant_object_get_size(purc_variant_t obj)
 {
     size_t sz;
-    if (purc_variant_object_size(obj, &sz))
+    if (!purc_variant_object_size(obj, &sz))
         return PURC_VARIANT_BADSIZE;
-
     return sz;
 }
 
