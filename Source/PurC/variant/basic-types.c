@@ -320,25 +320,22 @@ const char* purc_variant_get_string_const (purc_variant_t string)
     return str_str;
 }
 
-size_t purc_variant_string_length(purc_variant_t string)
+bool purc_variant_string_length_ex(purc_variant_t string, size_t *length)
 {
-    size_t str_size;
-
-    PC_ASSERT(string);
+    PC_ASSERT(string && length);
 
     if (IS_TYPE(string, PURC_VARIANT_TYPE_STRING)) {
         if ((string->flags & PCVARIANT_FLAG_EXTRA_SIZE) ||
                 (string->flags & PCVARIANT_FLAG_STRING_STATIC))
-            str_size = (size_t)string->sz_ptr[0];
+            *length = (size_t)string->sz_ptr[0];
         else
-            str_size = string->size;
-    }
-    else {
-        str_size = PURC_VARIANT_BADSIZE;
-        pcinst_set_error (PCVARIANT_ERROR_INVALID_TYPE);
+            *length = string->size;
+
+        return true;
     }
 
-    return str_size;
+    pcinst_set_error (PCVARIANT_ERROR_INVALID_TYPE);
+    return false;
 }
 
 void pcvariant_string_release (purc_variant_t string)
@@ -558,25 +555,22 @@ const unsigned char *purc_variant_get_bytes_const(purc_variant_t sequence,
     return bytes;
 }
 
-size_t purc_variant_sequence_length(purc_variant_t sequence)
+bool purc_variant_sequence_length_ex(purc_variant_t sequence, size_t *length)
 {
-    size_t nr_bytes;
-
-    PC_ASSERT(sequence);
+    PC_ASSERT(sequence && length);
 
     if (IS_TYPE (sequence, PURC_VARIANT_TYPE_BSEQUENCE)) {
         if ((sequence->flags & PCVARIANT_FLAG_EXTRA_SIZE) ||
                     (sequence->flags & PCVARIANT_FLAG_STRING_STATIC))
-            nr_bytes = (size_t)sequence->sz_ptr[0];
+            *length = (size_t)sequence->sz_ptr[0];
         else
-            nr_bytes = sequence->size;
-    }
-    else {
-        nr_bytes = PURC_VARIANT_BADSIZE;
-        pcinst_set_error (PCVARIANT_ERROR_INVALID_TYPE);
+            *length = sequence->size;
+
+        return true;
     }
 
-    return nr_bytes;
+    pcinst_set_error (PCVARIANT_ERROR_INVALID_TYPE);
+    return false;
 }
 
 void pcvariant_sequence_release(purc_variant_t sequence)

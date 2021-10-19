@@ -210,14 +210,36 @@ PCA_EXPORT const char* purc_variant_get_string_const(purc_variant_t value);
  * Get the length in bytes of a string variant value.
  *
  * @param value: the variant value of string type
+ * @param length: the buffer to receive the length (including the terminating
+ *  null byte) of the string.
+ *
+ * Returns: True on success, otherwise False (the variant is not a string).
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT bool
+purc_variant_string_length_ex(purc_variant_t value, size_t *length);
+
+/**
+ * Get the length in bytes of a string variant value.
+ *
+ * @param value: the variant value of string type
  *
  * Returns: The length in bytes of the string variant;
  *  \PURC_VARIANT_BADSIZE (-1) if the variant is not a string.
  *
+ * Note: This function is deprecated, use \purc_variant_string_length_ex
+ *  instead.
+ *
  * Since: 0.0.1
  */
-PCA_EXPORT size_t purc_variant_string_length(purc_variant_t value);
-
+static inline size_t purc_variant_string_length(purc_variant_t value)
+{
+    size_t len;
+    if (!purc_variant_string_length_ex(value, &len))
+        return PURC_VARIANT_BADSIZE;
+    return len;
+}
 
 /**
  * Creates a variant value of atom string type.
@@ -321,18 +343,40 @@ purc_variant_make_byte_sequence_reuse_buff(void* bytes, size_t nr_bytes,
 PCA_EXPORT const unsigned char*
 purc_variant_get_bytes_const(purc_variant_t value, size_t* nr_bytes);
 
+/**
+ * Get the number of bytes in a byte sequence variant value.
+ *
+ * @param sequence: the variant value of sequence type
+ * @param length: the buffer receiving the length in bytes of the byte
+ *  sequence.
+ *
+ * Returns: True on success, otherwise False.
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT bool
+purc_variant_sequence_length_ex(purc_variant_t sequence, size_t *length);
 
 /**
- * Get the number of bytes in an sequence variant value.
+ * Get the number of bytes in a byte sequence variant value.
  *
  * @param sequence: the variant value of sequence type
  *
  * Returns: The number of bytes in an sequence variant value;
  *  \PURC_VARIANT_BADSIZE (-1) if the variant is not a byte sequence.
  *
+ * Note: This function is deprecated, use \purc_variant_string_length_ex
+ *  instead.
+ *
  * Since: 0.0.1
  */
-PCA_EXPORT size_t purc_variant_sequence_length(purc_variant_t sequence);
+static inline size_t purc_variant_sequence_length(purc_variant_t sequence)
+{
+    size_t len;
+    if (!purc_variant_sequence_length_ex(sequence, &len))
+        return PURC_VARIANT_BADSIZE;
+    return len;
+}
 
 typedef purc_variant_t (*purc_dvariant_method) (purc_variant_t root,
         size_t nr_args, purc_variant_t * argv);
