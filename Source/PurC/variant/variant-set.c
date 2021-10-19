@@ -597,7 +597,7 @@ purc_variant_set_remove_member_by_key_values(purc_variant_t set,
     return v;
 }
 
-size_t purc_variant_set_get_size(const purc_variant_t set)
+size_t purc_variant_set_get_size(purc_variant_t set)
 {
     PCVARIANT_CHECK_FAIL_RET(set && set->type==PVT(_SET),
         -1);

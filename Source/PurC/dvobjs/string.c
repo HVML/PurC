@@ -209,7 +209,7 @@ string_shuffle (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     }
 
     size_t size = purc_variant_string_length (argv[0]);
-    if (size < 2) {      // it is an empty string
+    if (size < 2 || size == PURC_VARIANT_BADSIZE) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }

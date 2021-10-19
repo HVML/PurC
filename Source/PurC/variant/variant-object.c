@@ -384,7 +384,7 @@ bool purc_variant_object_remove(purc_variant_t obj, purc_variant_t key)
     return true;
 }
 
-size_t purc_variant_object_get_size (const purc_variant_t obj)
+size_t purc_variant_object_get_size (purc_variant_t obj)
 {
     PCVARIANT_CHECK_FAIL_RET((obj && obj->type==PVT(_OBJECT) && obj->sz_ptr[1]),
         (size_t)-1);

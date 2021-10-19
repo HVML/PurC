@@ -210,7 +210,7 @@ purc_variant_t purc_variant_array_get (purc_variant_t array, int idx)
     return var;
 }
 
-size_t purc_variant_array_get_size(const purc_variant_t array)
+size_t purc_variant_array_get_size(purc_variant_t array)
 {
     PCVARIANT_CHECK_FAIL_RET(array && array->type==PVT(_ARRAY),
         (size_t)-1);
