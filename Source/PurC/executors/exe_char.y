@@ -157,7 +157,7 @@ char_rule:
 ;
 
 from_clause:
-  CHAR osp ':' ows FROM sp exp
+  FROM sp exp
 ;
 
 to_clause:
