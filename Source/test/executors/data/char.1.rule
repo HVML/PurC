@@ -22,6 +22,9 @@ CHAR : FROM 0 TO 10 , ADVANCE 2 ;
 CHAR : FROM 0 TO 10 , ADVANCE 1 + 2 ;
 CHAR : FROM 0 TO 10 , ADVANCE 1 + 2 / 4 - 3 * 5 ;
 CHAR : FROM 0 TO 10 , ADVANCE 1 + 2 / ( 4 - 3 ) * 5 ;
+CHAR : FROM 0 TO 10 , ADVANCE 1 + 2 / ( 4 - 3 ) * 5 , STOP ON 'f' ;
+CHAR : FROM 0 TO 10 , STOP ON 'hello' ;
+CHAR : FROM 0 TO 10 , STOP ON '中' ;
 # no SPACE in between
 CHAR:FROM 0 TO 10,ADVANCE 1+2/(4-3)*5;
 # multiple line

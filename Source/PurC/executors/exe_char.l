@@ -82,8 +82,8 @@ do {                                              \
 %option perf-report
 %option 8bit
 
-%x CHAR
-%x AFTER_INT
+%x CHAR SQ_CHAR
+%x AFTER_INT AFTER_ON
 
 SP       [ \t]
 LN       [\r\n]|[\f\r\n]
@@ -95,10 +95,12 @@ INTEGER  [0-9]+
           if (state != INITIAL) return -1;
           yyterminate(); }
 
-CHAR     { R(); PUSH(CHAR); C(); return MKT(CHAR); }
+CHAR      { R(); PUSH(CHAR); C(); return MKT(CHAR); }
 FROM      { R(); C(); return MKT(FROM); }
 TO        { R(); C(); return MKT(TO); }
 ADVANCE   { R(); C(); return MKT(ADVANCE); }
+STOP      { R(); C(); return MKT(STOP); }
+ON        { R(); PUSH(AFTER_ON); C(); return MKT(ON); }
 {INTEGER} { R(); PUSH(AFTER_INT); SET_STR(); C(); return MKT(INTEGER); }
 {SP}      { R(); C(); return MKT(SP); }
 {LN}      { R(); L(); return '\n'; }
@@ -117,6 +119,22 @@ ADVANCE   { R(); C(); return MKT(ADVANCE); }
 {LN}      { R(); POP(); L(); return '\n'; }
 .         { R(); C(); return *yytext; } /* let bison to handle */
 }
+
+<AFTER_ON>{
+[']       { R(); CHG(SQ_CHAR); C(); return MKT(SQ); }
+{SP}      { R(); C(); return MKT(SP); }
+{LN}      { R(); L(); return '\n'; }
+.         { R(); C(); return *yytext; } /* let bison to handle */
+}
+
+<SQ_CHAR>{
+[']          { R(); POP(); C(); return MKT(SQ); }
+[^'\\\n]     { R(); SET_STR(); C(); return MKT(STR); }
+\\['\\]      { R(); SET_CHR(yytext[1]); C(); return MKT(CHR); }
+{LN}         { R(); L(); return '\n'; }
+.            { R(); C(); return *yytext; } /* let bison to handle */
+}
+
 
 %%
 

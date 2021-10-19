@@ -121,11 +121,11 @@
 
     /* %destructor { free($$); } <str> */ // destructor for `str`
 
-%token CHAR FROM TO ADVANCE
-%token SP
+%token CHAR FROM TO ADVANCE STOP ON
+%token SP SQ STR CHR
 %token <token>  INTEGER
 
-%left FROM TO ADVANCE
+%left FROM TO ADVANCE STOP ON
 %left '-' '+'
 %left '*' '/'
 %precedence NEG /* negation--unary minus */
@@ -142,13 +142,15 @@ input:
 ;
 
 rule:
-  exe_char_rule ows
+  char_rule ows
 ;
 
-exe_char_rule:
+char_rule:
   CHAR osp ':' ows FROM sp exp
 | CHAR osp ':' ows FROM sp exp to_clause
-| CHAR osp ':' ows FROM sp exp to_clause comma advance_clause
+| CHAR osp ':' ows FROM sp exp to_clause advance_clause
+| CHAR osp ':' ows FROM sp exp to_clause advance_clause stop_clause
+| CHAR osp ':' ows FROM sp exp to_clause stop_clause
 ;
 
 to_clause:
@@ -156,7 +158,11 @@ to_clause:
 ;
 
 advance_clause:
-  ADVANCE sp exp
+  comma ADVANCE sp exp
+;
+
+stop_clause:
+  comma STOP sp ON sp literal_str
 ;
 
 ws:
@@ -196,6 +202,17 @@ exp:
 | '(' ows exp ')'
 | exp SP
 | exp '\n'
+;
+
+literal_str:
+  SQ sq_str SQ
+;
+
+sq_str:
+  STR
+| CHR
+| sq_str STR
+| sq_str CHR
 ;
 
 %%
