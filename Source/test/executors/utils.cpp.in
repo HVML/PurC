@@ -32,10 +32,10 @@ static struct statistics counter;
 
 static inline void print_statics(void)
 {
-    std::cout << "positives/failes: ("
+    std::cerr << "positives/failes: ("
         << counter.positives << "/" << counter.positives_fail << ")"
         << std::endl;
-    std::cout << "negatives/failes: ("
+    std::cerr << "negatives/failes: ("
         << counter.negatives << "/" << counter.negatives_fail << ")"
         << std::endl;
 }
@@ -90,7 +90,7 @@ process_positive(const struct sample *sample,
         ++counter.positives_fail;
 
         const char *err = err_msg ? err_msg : "";
-        std::cout << fn << "[" << lineno << "]:Not postive:[" << rule << "]:"
+        std::cerr << fn << "[" << lineno << "]:Not postive:[" << rule << "]:"
             << err << std::endl;
     }
 
@@ -116,12 +116,12 @@ process_negative(const struct sample *sample,
     if (!r && verbose_neg) {
         const char *err = err_msg ? err_msg : "";
 
-        std::cout << "As expected:[" << rule << "]:"
+        std::cerr << "As expected:[" << rule << "]:"
             << err << std::endl;
     } else if (r) {
         ++counter.negatives_fail;
 
-        std::cout << fn << "[" << lineno << "]:Not negative:[" << rule << "]"
+        std::cerr << fn << "[" << lineno << "]:Not negative:[" << rule << "]"
             << std::endl;
     }
 
@@ -176,7 +176,7 @@ process_file(FILE *f, const char *fn,
             if (feof(f))
                 break;
 
-            std::cout << "Failed reading file: [" << err << "]"
+            std::cerr << "Failed reading file: [" << err << "]"
                 << strerror(err) << std::endl;
             break;
         }
@@ -207,7 +207,7 @@ again:
                             state = SAMPLE_IN_RULE;
                             goto again;
                         }
-                        std::cout << "Unrecognized: @" << lineno
+                        std::cerr << "Unrecognized: @" << lineno
                             << "[" << line << "]" << std::endl;
                     }
                 } break;
@@ -266,7 +266,7 @@ process_sample_files(const char *pattern,
     if (r == 0) {
         for (size_t i=0; i<gbuf.gl_pathc; ++i) {
             const char *file = gbuf.gl_pathv[i];
-            std::cout << "file: [" << file << "]" << std::endl;
+            std::cerr << "file: [" << file << "]" << std::endl;
 
             FILE *f = fopen(file, "r");
             EXPECT_NE(f, nullptr) << "Failed to open file: ["
@@ -290,25 +290,25 @@ static inline void get_option_from_env(const char *rel, bool print)
     test_getpath_from_env_or_rel(sample_files, sizeof(sample_files),
             env, rel);
     if (print) {
-        std::cout << "env: export " << env << "=" << sample_files << std::endl;
+        std::cerr << "env: export " << env << "=" << sample_files << std::endl;
     }
 
     env = ENV(DEBUG_FLEX);
     debug_flex = test_getbool_from_env_or_default(env, debug_flex);
     if (print) {
-        std::cout << "env: export " << env << "=" << debug_flex << std::endl;
+        std::cerr << "env: export " << env << "=" << debug_flex << std::endl;
     }
 
     env = ENV(DEBUG_BISON);
     debug_bison = test_getbool_from_env_or_default(env, debug_bison);
     if (print) {
-        std::cout << "env: export " << env << "=" << debug_bison << std::endl;
+        std::cerr << "env: export " << env << "=" << debug_bison << std::endl;
     }
 
     env = ENV(VERBOSE_NEG);
     verbose_neg = test_getbool_from_env_or_default(env, verbose_neg);
     if (print) {
-        std::cout << "env: export " << env << "=" << verbose_neg << std::endl;
+        std::cerr << "env: export " << env << "=" << verbose_neg << std::endl;
     }
 }
 

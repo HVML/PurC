@@ -75,10 +75,10 @@ TEST(exe_formula, files)
 
     bool ok = purc_cleanup ();
 
-    std::cout << std::endl;
+    std::cerr << std::endl;
     get_option_from_env(rel, true); // print
     print_statics();
-    std::cout << std::endl;
+    std::cerr << std::endl;
 
     ASSERT_TRUE(ok);
 }
