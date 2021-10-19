@@ -1,8 +1,8 @@
 /*
- * @file filter.c
+ * @file exe_range.c
  * @author Xu Xiaohong
  * @date 2021/10/10
- * @brief The implementation of public part for FILTER executor.
+ * @brief The implementation of public part for RANGE executor.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -22,25 +22,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "filter.h"
+#include "exe_range.h"
 
 #include "private/executor.h"
 
 #include "private/debug.h"
 #include "private/errors.h"
 
-struct pcexec_filter_inst {
+struct pcexec_exe_range_inst {
     struct purc_exec_inst       super;
 };
 
 // 创建一个执行器实例
 static purc_exec_inst_t
-filter_create(enum purc_exec_type type, purc_variant_t input, bool asc_desc)
+exe_range_create(enum purc_exec_type type, purc_variant_t input, bool asc_desc)
 {
     if (!purc_variant_is_object(input))
         return NULL;
 
-    struct pcexec_filter_inst *inst;
+    struct pcexec_exe_range_inst *inst;
     inst = calloc(1, sizeof(*inst));
     if (!inst) {
         pcinst_set_error(PCEXECUTOR_ERROR_OOM);
@@ -57,7 +57,7 @@ filter_create(enum purc_exec_type type, purc_variant_t input, bool asc_desc)
 }
 
 static inline bool
-filter_parse_rule(purc_exec_inst_t inst, const char* rule)
+exe_range_parse_rule(purc_exec_inst_t inst, const char* rule)
 {
     // parse and fill the internal fields from rule
     // for example, generating the `selected_keys` which contains all
@@ -80,14 +80,14 @@ filter_parse_rule(purc_exec_inst_t inst, const char* rule)
 
 // 用于执行选择
 static purc_variant_t
-filter_choose(purc_exec_inst_t inst, const char* rule)
+exe_range_choose(purc_exec_inst_t inst, const char* rule)
 {
     if (!inst || !rule) {
         pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
         return PURC_VARIANT_INVALID;
     }
 
-    if (!filter_parse_rule(inst, rule))
+    if (!exe_range_parse_rule(inst, rule))
         return PURC_VARIANT_INVALID;
 
     size_t sz = purc_variant_array_get_size(inst->selected_keys);
@@ -120,7 +120,7 @@ filter_choose(purc_exec_inst_t inst, const char* rule)
 
 // 获得用于迭代的初始迭代子
 static purc_exec_iter_t
-filter_it_begin(purc_exec_inst_t inst, const char* rule)
+exe_range_it_begin(purc_exec_inst_t inst, const char* rule)
 {
     if (!inst || !rule) {
         pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
@@ -128,7 +128,7 @@ filter_it_begin(purc_exec_inst_t inst, const char* rule)
     }
 
     inst->it.curr = 0;
-    if (!filter_parse_rule(inst, rule))
+    if (!exe_range_parse_rule(inst, rule))
         return NULL;
 
     size_t sz = purc_variant_array_get_size(inst->selected_keys);
@@ -142,7 +142,7 @@ filter_it_begin(purc_exec_inst_t inst, const char* rule)
 
 // 根据迭代子获得对应的变体值
 static purc_variant_t
-filter_it_value(purc_exec_inst_t inst, purc_exec_iter_t it)
+exe_range_it_value(purc_exec_inst_t inst, purc_exec_iter_t it)
 {
     if (!inst || !it) {
         pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
@@ -165,7 +165,7 @@ filter_it_value(purc_exec_inst_t inst, purc_exec_iter_t it)
 // 注意: 规则字符串可能在前后两次迭代中发生变化，比如在规则中引用了变量的情形下。
 // 如果规则并没有发生变化，则对 `rule` 参数传递 NULL。
 static purc_exec_iter_t
-filter_it_next(purc_exec_inst_t inst, purc_exec_iter_t it, const char* rule)
+exe_range_it_next(purc_exec_inst_t inst, purc_exec_iter_t it, const char* rule)
 {
     if (!inst || !it) {
         pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
@@ -181,7 +181,7 @@ filter_it_next(purc_exec_inst_t inst, purc_exec_iter_t it, const char* rule)
             inst->selected_keys = PURC_VARIANT_INVALID;
         }
 
-        if (!filter_parse_rule(inst, rule))
+        if (!exe_range_parse_rule(inst, rule))
             return NULL;
     }
 
@@ -198,14 +198,14 @@ filter_it_next(purc_exec_inst_t inst, purc_exec_iter_t it, const char* rule)
 
 // 用于执行规约
 static purc_variant_t
-filter_reduce(purc_exec_inst_t inst, const char* rule)
+exe_range_reduce(purc_exec_inst_t inst, const char* rule)
 {
     if (!inst || !rule) {
         pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
         return PURC_VARIANT_INVALID;
     }
 
-    if (!filter_parse_rule(inst, rule))
+    if (!exe_range_parse_rule(inst, rule))
         return PURC_VARIANT_INVALID;
 
     size_t sz = purc_variant_array_get_size(inst->selected_keys);
@@ -240,41 +240,41 @@ filter_reduce(purc_exec_inst_t inst, const char* rule)
 
 // 销毁一个执行器实例
 static bool
-filter_destroy(purc_exec_inst_t inst)
+exe_range_destroy(purc_exec_inst_t inst)
 {
     if (!inst) {
         pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
         return false;
     }
 
-    struct pcexec_filter_inst *filter_inst = (struct pcexec_filter_inst*)inst;
+    struct pcexec_exe_range_inst *exe_range_inst = (struct pcexec_exe_range_inst*)inst;
 
-    if (filter_inst->super.input) {
-        purc_variant_unref(filter_inst->super.input);
-        filter_inst->super.input = PURC_VARIANT_INVALID;
+    if (exe_range_inst->super.input) {
+        purc_variant_unref(exe_range_inst->super.input);
+        exe_range_inst->super.input = PURC_VARIANT_INVALID;
     }
-    if (filter_inst->super.selected_keys) {
-        purc_variant_unref(filter_inst->super.selected_keys);
-        filter_inst->super.selected_keys = PURC_VARIANT_INVALID;
+    if (exe_range_inst->super.selected_keys) {
+        purc_variant_unref(exe_range_inst->super.selected_keys);
+        exe_range_inst->super.selected_keys = PURC_VARIANT_INVALID;
     }
 
-    free(filter_inst);
+    free(exe_range_inst);
     return true;
 }
 
-static struct purc_exec_ops filter_ops = {
-    filter_create,
-    filter_choose,
-    filter_it_begin,
-    filter_it_value,
-    filter_it_next,
-    filter_reduce,
-    filter_destroy,
+static struct purc_exec_ops exe_range_ops = {
+    exe_range_create,
+    exe_range_choose,
+    exe_range_it_begin,
+    exe_range_it_value,
+    exe_range_it_next,
+    exe_range_reduce,
+    exe_range_destroy,
 };
 
-int pcexec_filter_register(void)
+int pcexec_exe_range_register(void)
 {
-    bool ok = purc_register_executor("FILTER", &filter_ops);
+    bool ok = purc_register_executor("RANGE", &exe_range_ops);
     return ok ? 0 : -1;
 }
 

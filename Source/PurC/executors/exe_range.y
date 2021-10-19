@@ -1,9 +1,9 @@
 %code top {
 /*
- * @file filter.y
+ * @file exe_range.y
  * @author
  * @date
- * @brief The implementation of public part for filter.
+ * @brief The implementation of public part for range.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -26,7 +26,7 @@
 }
 
 %code top {
-    // here to include header files required for generated filter.tab.c
+    // here to include header files required for generated exe_range.tab.c
 }
 
 %code requires {
@@ -37,32 +37,32 @@
     #include <stdio.h>
     #include <stddef.h>
     // related struct/function decls
-    // especially, for struct filter_param
+    // especially, for struct exe_range_param
     // and parse function for example:
-    // int filter_parse(const char *input,
-    //        struct filter_param *param);
-    // #include "filter.h"
+    // int exe_range_parse(const char *input,
+    //        struct exe_range_param *param);
+    // #include "exe_range.h"
     // here we define them locally
-    struct filter_param {
+    struct exe_range_param {
         char *err_msg;
         int debug_flex;
         int debug_bison;
     };
 
-    struct filter_token {
+    struct exe_range_token {
         const char      *text;
         size_t           leng;
     };
 
-    #define YYSTYPE       FILTER_YYSTYPE
-    #define YYLTYPE       FILTER_YYLTYPE
+    #define YYSTYPE       EXE_RANGE_YYSTYPE
+    #define YYLTYPE       EXE_RANGE_YYLTYPE
     #ifndef YY_TYPEDEF_YY_SCANNER_T
     #define YY_TYPEDEF_YY_SCANNER_T
     typedef void* yyscan_t;
     #endif
 
-    int filter_parse(const char *input, size_t len,
-            struct filter_param *param);
+    int exe_range_parse(const char *input, size_t len,
+            struct exe_range_param *param);
 }
 
 %code provides {
@@ -71,12 +71,12 @@
 %code {
     // generated header from flex
     // introduce yylex decl for later use
-    #include "filter.lex.h"
+    #include "exe_range.lex.h"
 
     static void yyerror(
         YYLTYPE *yylloc,                   // match %define locations
         yyscan_t arg,                      // match %param
-        struct filter_param *param,           // match %parse-param
+        struct exe_range_param *param,           // match %parse-param
         const char *errsg
     );
 
@@ -101,9 +101,9 @@
 
 /* Bison declarations. */
 %require "3.0.4"
-%define api.prefix {filter_yy}
+%define api.prefix {exe_range_yy}
 %define api.pure full
-%define api.token.prefix {TOK_FILTER_}
+%define api.token.prefix {TOK_EXE_RANGE_}
 %define locations
 %define parse.error verbose
 %define parse.lac full
@@ -112,29 +112,23 @@
 %verbose
 
 %param { yyscan_t arg }
-%parse-param { struct filter_param *param }
+%parse-param { struct exe_range_param *param }
 
 // union members
-%union { struct filter_token token; }
+%union { struct exe_range_token token; }
 %union { char *str; }
 %union { char c; }
 
     /* %destructor { free($$); } <str> */ // destructor for `str`
 
-%token FILTER ALL LIKE KV KEY VALUE FOR
-%token LT GT LE GE NE EQ
+%token RANGE FROM TO ADVANCE
 %token SP
-%token SQ "'"
-%token STR CHR
-%token <c>             MATCHING_FLAG REGEXP_FLAG
 %token <token>  INTEGER
 
-%left ALL
-%left LT GT LE GE NE EQ
+%left FROM TO ADVANCE
 %left '-' '+'
 %left '*' '/'
 %precedence NEG /* negation--unary minus */
-%precedence SQ
 %precedence '\n'
 %precedence SP
 
@@ -148,9 +142,21 @@ input:
 ;
 
 rule:
-  filter_rule
-| rule SP
-| rule '\n'
+  exe_range_rule ows
+;
+
+exe_range_rule:
+  RANGE osp ':' ows FROM sp exp
+| RANGE osp ':' ows FROM sp exp to_clause
+| RANGE osp ':' ows FROM sp exp to_clause comma advance_clause
+;
+
+to_clause:
+  TO sp exp
+;
+
+advance_clause:
+  ADVANCE sp exp
 ;
 
 ws:
@@ -172,108 +178,13 @@ sp:
 
 osp:
   %empty
-| osp SP
-;
-
-colon:
-  ':'
-| colon SP
-| colon '\n'
+| sp
 ;
 
 comma:
   ','
 | comma SP
 | comma '\n'
-;
-
-filter:
-  FILTER
-| filter SP
-;
-
-filter_rule:
-  filter colon ALL
-| filter colon ALL for_clause
-| filter colon ALL sp
-| filter colon ALL sp for_clause
-| filter colon subrules
-| filter colon subrules for_clause
-;
-
-subrules:
-  subrule
-| subrules comma subrule
-;
-
-subrule:
-  pred_exp
-| LIKE sp pattern_expression
-| literal_str_exp
-;
-
-for_clause:
-  comma FOR osp for_param
-;
-
-for_param:
-  KV
-| KEY
-| VALUE
-;
-
-pred_exp:
-  LT sp exp
-| GT sp exp
-| LE sp exp
-| GE sp exp
-| NE sp exp
-| EQ sp exp
-;
-
-pattern_expression:
-  literal_str_exp
-| '/' regular_str '/'
-| '/' regular_str '/' regexp_flags
-;
-
-literal_str:
-  SQ sq_str SQ
-;
-
-literal_str_exp:
-  literal_str
-| literal_str matching_flags
-| literal_str matching_flags max_matching_length
-| literal_str max_matching_length
-;
-
-sq_str:
-  STR
-| CHR
-| sq_str STR
-| sq_str CHR
-;
-
-regular_str:
-  STR
-| CHR
-| regular_str STR
-| regular_str CHR
-;
-
-regexp_flags:
-  REGEXP_FLAG
-| regexp_flags REGEXP_FLAG
-;
-
-matching_flags:
-  MATCHING_FLAG
-| matching_flags MATCHING_FLAG
-;
-
-max_matching_length:
-  INTEGER
 ;
 
 exp:
@@ -294,7 +205,7 @@ static void
 yyerror(
     YYLTYPE *yylloc,                   // match %define locations
     yyscan_t arg,                      // match %param
-    struct filter_param *param,           // match %parse-param
+    struct exe_range_param *param,           // match %parse-param
     const char *errsg
 )
 {
@@ -310,20 +221,20 @@ yyerror(
         errsg);
 }
 
-int filter_parse(const char *input, size_t len,
-        struct filter_param *param)
+int exe_range_parse(const char *input, size_t len,
+        struct exe_range_param *param)
 {
     yyscan_t arg = {0};
-    filter_yylex_init(&arg);
-    // filter_yyset_in(in, arg);
+    exe_range_yylex_init(&arg);
+    // exe_range_yyset_in(in, arg);
     int debug_flex = param ? param->debug_flex : 0;
     int debug_bison = param ? param->debug_bison: 0;
-    filter_yyset_debug(debug_flex, arg);
+    exe_range_yyset_debug(debug_flex, arg);
     yydebug = debug_bison;
-    // filter_yyset_extra(param, arg);
-    filter_yy_scan_bytes(input ? input : "", input ? len : 0, arg);
-    int ret =filter_yyparse(arg, param);
-    filter_yylex_destroy(arg);
+    // exe_range_yyset_extra(param, arg);
+    exe_range_yy_scan_bytes(input ? input : "", input ? len : 0, arg);
+    int ret =exe_range_yyparse(arg, param);
+    exe_range_yylex_destroy(arg);
     return ret ? 1 : 0;
 }
 

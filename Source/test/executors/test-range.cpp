@@ -12,12 +12,12 @@
 #include "../helpers.h"
 
 extern "C" {
-#include "range.tab.h"
+#include "exe_range.tab.h"
 }
 
 #include "utils.cpp.in"
 
-TEST(range, basic)
+TEST(exe_range, basic)
 {
     purc_instance_extra_info info = {0, 0};
     bool cleanup = false;
@@ -41,18 +41,18 @@ TEST(range, basic)
 static inline bool
 parse(const char *rule, char **err_msg)
 {
-    struct range_param param = {
+    struct exe_range_param param = {
         .err_msg            = nullptr,
         .debug_flex         = debug_flex,
         .debug_bison        = debug_bison,
     };
     bool r;
-    r = range_parse(rule, strlen(rule), &param) == 0;
+    r = exe_range_parse(rule, strlen(rule), &param) == 0;
     *err_msg = param.err_msg;
     return r;
 }
 
-TEST(range, files)
+TEST(exe_range, files)
 {
     int r = 0;
     glob_t globbuf;

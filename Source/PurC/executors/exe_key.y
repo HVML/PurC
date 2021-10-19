@@ -1,6 +1,6 @@
 %code top {
 /*
- * @file key.y
+ * @file exe_key.y
  * @author
  * @date
  * @brief The implementation of public part for key.
@@ -26,7 +26,7 @@
 }
 
 %code top {
-    // here to include header files required for generated key.tab.c
+    // here to include header files required for generated exe_key.tab.c
 }
 
 %code requires {
@@ -37,32 +37,32 @@
     #include <stdio.h>
     #include <stddef.h>
     // related struct/function decls
-    // especially, for struct key_param
+    // especially, for struct exe_key_param
     // and parse function for example:
-    // int key_parse(const char *input,
-    //        struct key_param *param);
-    // #include "key.h"
+    // int exe_key_parse(const char *input,
+    //        struct exe_key_param *param);
+    // #include "exe_key.h"
     // here we define them locally
-    struct key_param {
+    struct exe_key_param {
         char *err_msg;
         int debug_flex;
         int debug_bison;
     };
 
-    struct key_token {
+    struct exe_key_token {
         const char      *text;
         size_t           leng;
     };
 
-    #define YYSTYPE       KEY_YYSTYPE
-    #define YYLTYPE       KEY_YYLTYPE
+    #define YYSTYPE       EXE_KEY_YYSTYPE
+    #define YYLTYPE       EXE_KEY_YYLTYPE
     #ifndef YY_TYPEDEF_YY_SCANNER_T
     #define YY_TYPEDEF_YY_SCANNER_T
     typedef void* yyscan_t;
     #endif
 
-    int key_parse(const char *input, size_t len,
-            struct key_param *param);
+    int exe_key_parse(const char *input, size_t len,
+            struct exe_key_param *param);
 }
 
 %code provides {
@@ -71,12 +71,12 @@
 %code {
     // generated header from flex
     // introduce yylex decl for later use
-    #include "key.lex.h"
+    #include "exe_key.lex.h"
 
     static void yyerror(
         YYLTYPE *yylloc,                   // match %define locations
         yyscan_t arg,                      // match %param
-        struct key_param *param,           // match %parse-param
+        struct exe_key_param *param,           // match %parse-param
         const char *errsg
     );
 
@@ -101,9 +101,9 @@
 
 /* Bison declarations. */
 %require "3.0.4"
-%define api.prefix {key_yy}
+%define api.prefix {exe_key_yy}
 %define api.pure full
-%define api.token.prefix {TOK_KEY_}
+%define api.token.prefix {TOK_EXE_KEY_}
 %define locations
 %define parse.error verbose
 %define parse.lac full
@@ -112,10 +112,10 @@
 %verbose
 
 %param { yyscan_t arg }
-%parse-param { struct key_param *param }
+%parse-param { struct exe_key_param *param }
 
 // union members
-%union { struct key_token token; }
+%union { struct exe_key_token token; }
 %union { char *str; }
 %union { char c; }
 
@@ -241,7 +241,7 @@ static void
 yyerror(
     YYLTYPE *yylloc,                   // match %define locations
     yyscan_t arg,                      // match %param
-    struct key_param *param,           // match %parse-param
+    struct exe_key_param *param,           // match %parse-param
     const char *errsg
 )
 {
@@ -257,20 +257,20 @@ yyerror(
         errsg);
 }
 
-int key_parse(const char *input, size_t len,
-        struct key_param *param)
+int exe_key_parse(const char *input, size_t len,
+        struct exe_key_param *param)
 {
     yyscan_t arg = {0};
-    key_yylex_init(&arg);
-    // key_yyset_in(in, arg);
+    exe_key_yylex_init(&arg);
+    // exe_key_yyset_in(in, arg);
     int debug_flex = param ? param->debug_flex : 0;
     int debug_bison = param ? param->debug_bison: 0;
-    key_yyset_debug(debug_flex, arg);
+    exe_key_yyset_debug(debug_flex, arg);
     yydebug = debug_bison;
-    // key_yyset_extra(param, arg);
-    key_yy_scan_bytes(input ? input : "", input ? len : 0, arg);
-    int ret =key_yyparse(arg, param);
-    key_yylex_destroy(arg);
+    // exe_key_yyset_extra(param, arg);
+    exe_key_yy_scan_bytes(input ? input : "", input ? len : 0, arg);
+    int ret =exe_key_yyparse(arg, param);
+    exe_key_yylex_destroy(arg);
     return ret ? 1 : 0;
 }
 

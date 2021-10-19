@@ -27,9 +27,9 @@
 #include "private/errors.h"
 #include "private/instance.h"
 
-#include "key.h"
-#include "range.h"
-#include "filter.h"
+#include "exe_key.h"
+#include "exe_range.h"
+#include "exe_filter.h"
 
 struct pcexec_record {
     char                      *name;
@@ -81,9 +81,9 @@ void pcexecutor_init_instance(struct pcinst *inst)
     struct pcexecutor_heap *heap = &inst->executor_heap;
     UNUSED_PARAM(heap);
 
-    pcexec_key_register();
-    pcexec_range_register();
-    pcexec_filter_register();
+    pcexec_exe_key_register();
+    pcexec_exe_range_register();
+    pcexec_exe_filter_register();
 }
 
 void pcexecutor_cleanup_instance(struct pcinst *inst)

@@ -12,12 +12,12 @@
 #include "../helpers.h"
 
 extern "C" {
-#include "key.tab.h"
+#include "exe_key.tab.h"
 }
 
 #include "utils.cpp.in"
 
-TEST(key, basic)
+TEST(exe_key, basic)
 {
     purc_instance_extra_info info = {0, 0};
     bool cleanup = false;
@@ -41,18 +41,18 @@ TEST(key, basic)
 static inline bool
 parse(const char *rule, char **err_msg)
 {
-    struct key_param param = {
+    struct exe_key_param param = {
         .err_msg            = nullptr,
         .debug_flex         = debug_flex,
         .debug_bison        = debug_bison,
     };
     bool r;
-    r = key_parse(rule, strlen(rule), &param) == 0;
+    r = exe_key_parse(rule, strlen(rule), &param) == 0;
     *err_msg = param.err_msg;
     return r;
 }
 
-TEST(key, files)
+TEST(exe_key, files)
 {
     int r = 0;
     glob_t globbuf;

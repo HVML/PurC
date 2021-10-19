@@ -90,7 +90,7 @@ set(dvobjs_PARSERS logical)
 PURC_FLEX_BISON(PurC dvobjs "${dvobjs_PARSERS}")
 unset(dvobjs_PARSERS)
 
-set(executors_PARSERS key range filter)
+set(executors_PARSERS exe_key exe_range exe_filter)
 PURC_FLEX_BISON(PurC executors "${executors_PARSERS}")
 unset(executors_PARSERS)
 

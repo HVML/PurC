@@ -1,8 +1,8 @@
 /*
- * @file filter.h
+ * @file exe_range.h
  * @author Xu Xiaohong
  * @date 2021/10/10
- * @brief The implementation of public part for FILTER executor.
+ * @brief The implementation of public part for RANGE executor.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -23,8 +23,8 @@
  */
 
 
-#ifndef PURC_EXECUTOR_FILTER_H
-#define PURC_EXECUTOR_FILTER_H
+#ifndef PURC_EXECUTOR_RANGE_H
+#define PURC_EXECUTOR_RANGE_H
 
 #include "config.h"
 
@@ -32,9 +32,9 @@
 
 PCA_EXTERN_C_BEGIN
 
-int pcexec_filter_register(void);
+int pcexec_exe_range_register(void);
 
 PCA_EXTERN_C_END
 
-#endif // PURC_EXECUTOR_FILTER_H
+#endif // PURC_EXECUTOR_RANGE_H
 

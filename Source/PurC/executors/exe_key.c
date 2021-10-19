@@ -1,8 +1,8 @@
 /*
- * @file range.c
+ * @file exe_key.c
  * @author Xu Xiaohong
  * @date 2021/10/10
- * @brief The implementation of public part for RANGE executor.
+ * @brief The implementation of public part for KEY executor.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -22,25 +22,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "range.h"
+#include "exe_key.h"
 
 #include "private/executor.h"
 
 #include "private/debug.h"
 #include "private/errors.h"
 
-struct pcexec_range_inst {
+struct pcexec_exe_key_inst {
     struct purc_exec_inst       super;
 };
 
 // 创建一个执行器实例
 static purc_exec_inst_t
-range_create(enum purc_exec_type type, purc_variant_t input, bool asc_desc)
+exe_key_create(enum purc_exec_type type, purc_variant_t input, bool asc_desc)
 {
     if (!purc_variant_is_object(input))
         return NULL;
 
-    struct pcexec_range_inst *inst;
+    struct pcexec_exe_key_inst *inst;
     inst = calloc(1, sizeof(*inst));
     if (!inst) {
         pcinst_set_error(PCEXECUTOR_ERROR_OOM);
@@ -57,13 +57,13 @@ range_create(enum purc_exec_type type, purc_variant_t input, bool asc_desc)
 }
 
 static inline bool
-range_parse_rule(purc_exec_inst_t inst, const char* rule)
+exe_key_parse_rule(purc_exec_inst_t inst, const char* rule)
 {
     // parse and fill the internal fields from rule
     // for example, generating the `selected_keys` which contains all
-    // selected keys.
+    // selected exe_keys.
 
-    // clear previously-selected-keys
+    // clear previously-selected-exe_keys
     if (inst->selected_keys) {
         purc_variant_unref(inst->selected_keys);
         inst->selected_keys = PURC_VARIANT_INVALID;
@@ -80,14 +80,14 @@ range_parse_rule(purc_exec_inst_t inst, const char* rule)
 
 // 用于执行选择
 static purc_variant_t
-range_choose(purc_exec_inst_t inst, const char* rule)
+exe_key_choose(purc_exec_inst_t inst, const char* rule)
 {
     if (!inst || !rule) {
         pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
         return PURC_VARIANT_INVALID;
     }
 
-    if (!range_parse_rule(inst, rule))
+    if (!exe_key_parse_rule(inst, rule))
         return PURC_VARIANT_INVALID;
 
     size_t sz = purc_variant_array_get_size(inst->selected_keys);
@@ -120,7 +120,7 @@ range_choose(purc_exec_inst_t inst, const char* rule)
 
 // 获得用于迭代的初始迭代子
 static purc_exec_iter_t
-range_it_begin(purc_exec_inst_t inst, const char* rule)
+exe_key_it_begin(purc_exec_inst_t inst, const char* rule)
 {
     if (!inst || !rule) {
         pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
@@ -128,7 +128,7 @@ range_it_begin(purc_exec_inst_t inst, const char* rule)
     }
 
     inst->it.curr = 0;
-    if (!range_parse_rule(inst, rule))
+    if (!exe_key_parse_rule(inst, rule))
         return NULL;
 
     size_t sz = purc_variant_array_get_size(inst->selected_keys);
@@ -142,7 +142,7 @@ range_it_begin(purc_exec_inst_t inst, const char* rule)
 
 // 根据迭代子获得对应的变体值
 static purc_variant_t
-range_it_value(purc_exec_inst_t inst, purc_exec_iter_t it)
+exe_key_it_value(purc_exec_inst_t inst, purc_exec_iter_t it)
 {
     if (!inst || !it) {
         pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
@@ -165,7 +165,7 @@ range_it_value(purc_exec_inst_t inst, purc_exec_iter_t it)
 // 注意: 规则字符串可能在前后两次迭代中发生变化，比如在规则中引用了变量的情形下。
 // 如果规则并没有发生变化，则对 `rule` 参数传递 NULL。
 static purc_exec_iter_t
-range_it_next(purc_exec_inst_t inst, purc_exec_iter_t it, const char* rule)
+exe_key_it_next(purc_exec_inst_t inst, purc_exec_iter_t it, const char* rule)
 {
     if (!inst || !it) {
         pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
@@ -175,13 +175,13 @@ range_it_next(purc_exec_inst_t inst, purc_exec_iter_t it, const char* rule)
     PC_ASSERT(&inst->it == it);
 
     if (rule) {
-        // clear previously-selected-keys
+        // clear previously-selected-exe_keys
         if (inst->selected_keys) {
             purc_variant_unref(inst->selected_keys);
             inst->selected_keys = PURC_VARIANT_INVALID;
         }
 
-        if (!range_parse_rule(inst, rule))
+        if (!exe_key_parse_rule(inst, rule))
             return NULL;
     }
 
@@ -198,14 +198,14 @@ range_it_next(purc_exec_inst_t inst, purc_exec_iter_t it, const char* rule)
 
 // 用于执行规约
 static purc_variant_t
-range_reduce(purc_exec_inst_t inst, const char* rule)
+exe_key_reduce(purc_exec_inst_t inst, const char* rule)
 {
     if (!inst || !rule) {
         pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
         return PURC_VARIANT_INVALID;
     }
 
-    if (!range_parse_rule(inst, rule))
+    if (!exe_key_parse_rule(inst, rule))
         return PURC_VARIANT_INVALID;
 
     size_t sz = purc_variant_array_get_size(inst->selected_keys);
@@ -240,41 +240,41 @@ range_reduce(purc_exec_inst_t inst, const char* rule)
 
 // 销毁一个执行器实例
 static bool
-range_destroy(purc_exec_inst_t inst)
+exe_key_destroy(purc_exec_inst_t inst)
 {
     if (!inst) {
         pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
         return false;
     }
 
-    struct pcexec_range_inst *range_inst = (struct pcexec_range_inst*)inst;
+    struct pcexec_exe_key_inst *exe_key_inst = (struct pcexec_exe_key_inst*)inst;
 
-    if (range_inst->super.input) {
-        purc_variant_unref(range_inst->super.input);
-        range_inst->super.input = PURC_VARIANT_INVALID;
+    if (exe_key_inst->super.input) {
+        purc_variant_unref(exe_key_inst->super.input);
+        exe_key_inst->super.input = PURC_VARIANT_INVALID;
     }
-    if (range_inst->super.selected_keys) {
-        purc_variant_unref(range_inst->super.selected_keys);
-        range_inst->super.selected_keys = PURC_VARIANT_INVALID;
+    if (exe_key_inst->super.selected_keys) {
+        purc_variant_unref(exe_key_inst->super.selected_keys);
+        exe_key_inst->super.selected_keys = PURC_VARIANT_INVALID;
     }
 
-    free(range_inst);
+    free(exe_key_inst);
     return true;
 }
 
-static struct purc_exec_ops range_ops = {
-    range_create,
-    range_choose,
-    range_it_begin,
-    range_it_value,
-    range_it_next,
-    range_reduce,
-    range_destroy,
+static struct purc_exec_ops exe_key_ops = {
+    exe_key_create,
+    exe_key_choose,
+    exe_key_it_begin,
+    exe_key_it_value,
+    exe_key_it_next,
+    exe_key_reduce,
+    exe_key_destroy,
 };
 
-int pcexec_range_register(void)
+int pcexec_exe_key_register(void)
 {
-    bool ok = purc_register_executor("RANGE", &range_ops);
+    bool ok = purc_register_executor("KEY", &exe_key_ops);
     return ok ? 0 : -1;
 }
 

@@ -1,9 +1,9 @@
 %{
 /*
- * @file range.l
+ * @file exe_range.l
  * @author
  * @date
- * @brief The implementation of public part for range.
+ * @brief The implementation of public part for exe_range.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -27,9 +27,9 @@
 
 
 %{
-#include "range.tab.h"
+#include "exe_range.tab.h"
 
-#define MKT(x)    TOK_RANGE_##x
+#define MKT(x)    TOK_EXE_RANGE_##x
 
 #define PUSH(state)      yy_push_state(state, yyscanner)
 #define POP()            yy_pop_state(yyscanner)
@@ -71,7 +71,7 @@ do {                                              \
 
 %}
 
-%option prefix="range_yy"
+%option prefix="exe_range_yy"
 %option bison-bridge bison-locations reentrant
 %option noyywrap noinput nounput
 %option verbose

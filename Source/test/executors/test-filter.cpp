@@ -12,12 +12,12 @@
 #include "../helpers.h"
 
 extern "C" {
-#include "filter.tab.h"
+#include "exe_filter.tab.h"
 }
 
 #include "utils.cpp.in"
 
-TEST(filter, basic)
+TEST(exe_filter, basic)
 {
     purc_instance_extra_info info = {0, 0};
     bool cleanup = false;
@@ -41,18 +41,18 @@ TEST(filter, basic)
 static inline bool
 parse(const char *rule, char **err_msg)
 {
-    struct filter_param param = {
+    struct exe_filter_param param = {
         .err_msg            = nullptr,
         .debug_flex         = debug_flex,
         .debug_bison        = debug_bison,
     };
     bool r;
-    r = filter_parse(rule, strlen(rule), &param) == 0;
+    r = exe_filter_parse(rule, strlen(rule), &param) == 0;
     *err_msg = param.err_msg;
     return r;
 }
 
-TEST(filter, files)
+TEST(exe_filter, files)
 {
     int r = 0;
     glob_t globbuf;

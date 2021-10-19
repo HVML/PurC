@@ -1,5 +1,5 @@
 /*
- * @file key.h
+ * @file exe_key.h
  * @author Xu Xiaohong
  * @date 2021/10/10
  * @brief The implementation of public part for KEY executor.
@@ -32,7 +32,7 @@
 
 PCA_EXTERN_C_BEGIN
 
-int pcexec_key_register(void);
+int pcexec_exe_key_register(void);
 
 PCA_EXTERN_C_END
 
