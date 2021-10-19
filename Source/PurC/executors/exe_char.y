@@ -151,6 +151,9 @@ char_rule:
 | CHAR osp ':' ows FROM sp exp to_clause advance_clause
 | CHAR osp ':' ows FROM sp exp to_clause advance_clause stop_clause
 | CHAR osp ':' ows FROM sp exp to_clause stop_clause
+| CHAR osp ':' ows FROM sp exp advance_clause
+| CHAR osp ':' ows FROM sp exp advance_clause stop_clause
+| CHAR osp ':' ows FROM sp exp stop_clause
 ;
 
 to_clause:
