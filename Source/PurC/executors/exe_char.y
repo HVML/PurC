@@ -146,14 +146,18 @@ rule:
 ;
 
 char_rule:
+  CHAR osp ':' ows from_clause
+| CHAR osp ':' ows from_clause to_clause
+| CHAR osp ':' ows from_clause to_clause advance_clause
+| CHAR osp ':' ows from_clause to_clause advance_clause stop_clause
+| CHAR osp ':' ows from_clause to_clause stop_clause
+| CHAR osp ':' ows from_clause advance_clause
+| CHAR osp ':' ows from_clause advance_clause stop_clause
+| CHAR osp ':' ows from_clause stop_clause
+;
+
+from_clause:
   CHAR osp ':' ows FROM sp exp
-| CHAR osp ':' ows FROM sp exp to_clause
-| CHAR osp ':' ows FROM sp exp to_clause advance_clause
-| CHAR osp ':' ows FROM sp exp to_clause advance_clause stop_clause
-| CHAR osp ':' ows FROM sp exp to_clause stop_clause
-| CHAR osp ':' ows FROM sp exp advance_clause
-| CHAR osp ':' ows FROM sp exp advance_clause stop_clause
-| CHAR osp ':' ows FROM sp exp stop_clause
 ;
 
 to_clause:
