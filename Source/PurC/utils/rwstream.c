@@ -70,9 +70,16 @@ static const char* rwstream_err_msgs[] = {
     "Value too large for defined datatype",
     /* PCRWSTREAM_ERROR_PIPE */
     "Broken pipe",
-    /* PURC_ERROR_BAD_ENCODING */
-    "Bad encoding",
 };
+
+/* Make sure the number of error messages matches the number of error codes */
+#define _COMPILE_TIME_ASSERT(name, x)               \
+       typedef int _dummy_ ## name[(x) * 2 - 1]
+
+_COMPILE_TIME_ASSERT(msgs,
+        PCA_TABLESIZE(rwstream_err_msgs) == PCRWSTREAM_ERROR_NR);
+
+#undef _COMPILE_TIME_ASSERT
 
 static struct err_msg_seg _rwstream_err_msgs_seg = {
     { NULL, NULL },
