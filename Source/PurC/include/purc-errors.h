@@ -222,6 +222,7 @@ enum {
     /* XXX: change this when you append a new error code */
     PCHVML_ERROR_LAST               = PCHVML_ERROR_INVALID_UTF8_CHARACTER,
 };
+
 #define PCHVML_ERROR_NR \
     (PCHVML_ERROR_LAST - PCHVML_ERROR_FIRST + 1)
 
@@ -242,6 +243,7 @@ enum pcexecutor_error
     /* XXX: change this when you append a new error code */
     PCEXECUTOR_ERROR_LAST            = PCEXECUTOR_ERROR_NO_KEYS_SELECTED,
 };
+
 #define PCEXECUTOR_ERROR_NR \
     (PCEXECUTOR_ERROR_LAST - PCEXECUTOR_ERROR_FIRST + 1)
 
