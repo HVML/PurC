@@ -89,7 +89,7 @@ static const char* generic_err_msgs[] = {
     /* PURC_ERROR_UNKNOWN */
     "Unknown",
     /* PURC_ERROR_BAD_LOCALE_CATEGORY */
-    "Unknown",
+    "Bad locale category",
 };
 
 /* Make sure the number of error messages matches the number of error codes */
