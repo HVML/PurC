@@ -27,19 +27,19 @@ FILTER : LE  2 ;
 FILTER : GE  1 + 2 ;
 FILTER : EQ  1 + 2 / 4 - 3 * 5 ;
 FILTER : NE  1 + 2 / ( 4 - 3 ) * 5 ;
-FILTER : LT 123  LIKE 'a'  LIKE 'b'  LIKE 'de*f' ;
-FILTER : LT 123  LIKE 'a'  LIKE 'b'  LIKE 'de*f'  LIKE 'fadf?f' ;
-FILTER : LT 123  LIKE 'a'  LIKE 'b'  LIKE 'de*f'  LIKE 'fadf?f'  LIKE /hello/ ;
-FILTER : LT 123  LIKE 'a\b\f\r\n\t\\\uded0x' ;
-FILTER : LT 123  LIKE 'a'isc789 ;
-FILTER : LT 123  LIKE 'a'isc ;
-FILTER : LT 123  LIKE 'a'789 ;
-FILTER : LT 123  LIKE 'a'789  LIKE 'b' ;
-FILTER : LT 123  LIKE 'a'789  LIKE 'b'  LIKE /hello/igmsuy ;
-FILTER : LT 123  LIKE 'a'789  LIKE 'b'  LIKE /hello/igmsuy  LIKE 'world'isc789 ;
-FILTER : LT 123  LIKE 'a'789  LIKE 'b'  LIKE /hello/igmsuy  LIKE 'world'isc789 ,FOR KEY ;
+FILTER : LIKE 'a'  LIKE 'b'  LIKE 'de*f' ;
+FILTER : LIKE 'a'  LIKE 'b'  LIKE 'de*f'  LIKE 'fadf?f' ;
+FILTER : LIKE 'a'  LIKE 'b'  LIKE 'de*f'  LIKE 'fadf?f'  LIKE /hello/ ;
+FILTER : LIKE 'a\b\f\r\n\t\\\uded0x' ;
+FILTER : LIKE 'a'isc789 ;
+FILTER : LIKE 'a'isc ;
+FILTER : LIKE 'a'789 ;
+FILTER : LIKE 'a'789  LIKE 'b' ;
+FILTER : LIKE 'a'789  LIKE 'b'  LIKE /hello/igmsuy ;
+FILTER : LIKE 'a'789  LIKE 'b'  LIKE /hello/igmsuy  LIKE 'world'isc789 ;
+FILTER : LIKE 'a'789  LIKE 'b'  LIKE /hello/igmsuy  LIKE 'world'isc789 ,FOR KEY ;
 FILTER : LT 123  LT 234 ;
-FILTER : 'a'  'a' ;
+FILTER : AS 'a'  AS 'a' ;
 FILTER : LIKE 'a'  LIKE 'a' ;
 FILTER : LIKE 'a'sc  LIKE 'a'is ;
 
@@ -53,27 +53,28 @@ FILTER:GT 0;
 FILTER:LE 2;
 FILTER:GE 1+2;
 FILTER:EQ 1+2/4-3*5;
-FILTER:NE 1+2/( 4-3 )*5;
-FILTER:LT 123 LIKE 'a'LIKE 'b'LIKE 'de*f';
-FILTER:LT 123 LIKE 'a'LIKE 'b'LIKE 'de*f'LIKE 'fadf?f';
-FILTER:LT 123 LIKE 'a'LIKE 'b'LIKE 'de*f'LIKE 'fadf?f'LIKE /hello/;
-FILTER:LT 123 LIKE 'a\b\f\r\n\t\\\uded0x';
-FILTER:LT 123 LIKE 'a'isc789;
-FILTER:LT 123 LIKE 'a'isc;
-FILTER:LT 123 LIKE 'a'789;
-FILTER:LT 123 LIKE 'a'789 LIKE 'b';
-FILTER:LT 123 LIKE 'a'789 LIKE 'b'LIKE /hello/igmsuy;
-FILTER:LT 123 LIKE 'a'789 LIKE 'b'LIKE /hello/igmsuyLIKE 'world'isc789;
-FILTER:LT 123 LIKE 'a'789 LIKE 'b'LIKE /hello/igmsuyLIKE 'world'isc789,FOR KEY;
+FILTER:NE 1+2/(4-3)*5;
+FILTER:LIKE 'a' LIKE 'b' LIKE 'de*f';
+FILTER:LIKE 'a' LIKE 'b' LIKE 'de*f' LIKE 'fadf?f';
+FILTER:LIKE 'a' LIKE 'b' LIKE 'de*f' LIKE 'fadf?f' LIKE /hello/;
+FILTER:LIKE 'a\b\f\r\n\t\\\uded0x';
+FILTER:LIKE 'a'isc789;
+FILTER:LIKE 'a'isc;
+FILTER:LIKE 'a'789;
+FILTER:LIKE 'a'789 LIKE 'b';
+FILTER:LIKE 'a'789 LIKE 'b' LIKE /hello/igmsuy;
+FILTER:LIKE 'a'789 LIKE 'b' LIKE /hello/igmsuyLIKE 'world'isc789;
+FILTER:LIKE 'a'789 LIKE 'b' LIKE /hello/igmsuyLIKE 'world'isc789,FOR KEY;
 FILTER:LT 123 LT 234;
-FILTER:'a''a';
-FILTER:LIKE 'a'LIKE 'a';
-FILTER:LIKE 'a'scLIKE 'a'is;
+FILTER:AS 'a' AS 'a';
 
 # multiple line
 FILTER:
 LIKE /0$/
 ;
+FILTER: LIKE
+/0$/;
+
 FILTER:
 ALL,FOR KEY;
 FILTER:
@@ -86,26 +87,34 @@ N: # bellow are negative samples
                       
 
 # SPACE required
-FILTER : GT30;
-FILTER : LIKE/0$/;
+FILTER : GT30 ;
+FILTER : LIKE/0$/ ;
+FILTER : AS'a' ;
+FILTER:LIKE 'a'LIKE 'a' ;
+FILTER:LIKE 'a'scLIKE 'a'is ;
+FILTER : AS'a'LIKE 'a' ;
 
 # '\n' in wrong place
 FILTER
 : LIKE /0$/;
 
-FILTER: LIKE
-/0$/;
-
 # sub clauses
 FILTER: ALL ALL ;
-FILTER: ALL 'a' ;
+FILTER: ALL AS 'a' ;
 FILTER: ALL LIKE /hello/ ;
 FILTER: ALL LT 3 ;
-FILTER: LT 3  ALL ;
-FILTER: LIKE /hello/  ALL ;
-FILTER: 'a'  ALL ;
+FILTER: LT 3 ALL ;
+FILTER: LT 3 AS 'a' ;
+FILTER: LT 3 LIKE /hello/ ;
+FILTER: AS 'a' ALL ;
+FILTER: AS 'a' LIKE /hello/ ;
+FILTER: AS 'a' LT 3 ;
+FILTER: LIKE /hello/ ALL ;
+FILTER: LIKE /hello/ AS 'a' ;
+FILTER: LIKE /hello/ LT 3 ;
+
 
 P: # debugging
-FILTER:'a',FOR KEY;
-FILTER:'a' ,FOR KEY;
+FILTER:AS 'a',FOR KEY;
+FILTER:AS 'a' ,FOR KEY;
 

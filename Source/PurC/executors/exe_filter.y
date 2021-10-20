@@ -121,9 +121,8 @@
 
     /* %destructor { free($$); } <str> */ // destructor for `str`
 
-%token FILTER ALL LIKE KV KEY VALUE FOR
+%token FILTER ALL LIKE KV KEY VALUE FOR AS
 %token LT GT LE GE NE EQ
-%token SP
 %token SQ "'"
 %token STR CHR UNI
 %token <token>  INTEGER
@@ -134,8 +133,6 @@
 %left '*' '/'
 %precedence NEG /* negation--unary minus */
 %precedence SQ
-%precedence '\n'
-%precedence SP
 
  /* %nterm <str>   args */ // non-terminal `input` use `str` to store
                            // token value as well
@@ -148,72 +145,54 @@ input:
 
 rule:
   exe_filter_rule
-| rule SP
-| rule '\n'
-;
-
-ws:
-  SP
-| '\n'
-| ws SP
-| ws '\n'
-;
-
-ows:
-  %empty
-| ws
-;
-
-sp:
-  SP
-| sp SP
-;
-
-osp:
-  %empty
-| osp SP
-;
-
-colon:
-  ':'
-| colon SP
-| colon '\n'
-;
-
-comma:
-  ','
-| comma SP
-| comma '\n'
 ;
 
 filter:
   FILTER
-| filter SP
 ;
 
 exe_filter_rule:
-  filter colon ALL
-| filter colon ALL for_clause
-| filter colon ALL sp
-| filter colon ALL sp for_clause
-| filter colon subrules
-| filter colon subrules for_clause
+  filter ':' ALL
+| filter ':' ALL for_clause
+| filter ':' subrules
+| filter ':' subrules for_clause
 ;
 
 subrules:
-  subrule
-| subrules subrule
+  number_rules
+| string_rules
+| matching_rules
 ;
 
-subrule:
+number_rules:
+  number_rule
+| number_rules number_rule
+;
+
+number_rule:
   pred_exp
-| LIKE sp pattern_expression
-| LIKE sp pattern_expression sp
-| literal_str_exp
+;
+
+string_rules:
+  string_rule
+| string_rules string_rule
+;
+
+string_rule:
+  AS literal_str_exp
+;
+
+matching_rules:
+  matching_rule
+| matching_rules matching_rule
+;
+
+matching_rule:
+  LIKE pattern_expression
 ;
 
 for_clause:
-  comma FOR osp for_param
+  ',' FOR for_param
 ;
 
 for_param:
@@ -223,17 +202,16 @@ for_param:
 ;
 
 pred_exp:
-  LT sp exp
-| GT sp exp
-| LE sp exp
-| GE sp exp
-| NE sp exp
-| EQ sp exp
+  LT exp
+| GT exp
+| LE exp
+| GE exp
+| NE exp
+| EQ exp
 ;
 
 pattern_expression:
   SQ sq_str SQ
-| SQ sq_str SQ sp
 | literal_str matching_flags
 | literal_str matching_flags max_matching_length
 | literal_str max_matching_length
@@ -247,7 +225,6 @@ literal_str:
 
 literal_str_exp:
   SQ sq_str SQ
-| SQ sq_str SQ sp
 | literal_str matching_flags
 | literal_str matching_flags max_matching_length
 | literal_str max_matching_length
@@ -302,13 +279,11 @@ max_matching_length:
 
 exp:
   INTEGER
-| exp '+' ows exp
-| exp '-' ows exp
-| exp '*' ows exp
-| exp '/' ows exp
-| '(' ows exp ')'
-| exp SP
-| exp '\n'
+| exp '+' exp
+| exp '-' exp
+| exp '*' exp
+| exp '/' exp
+| '(' exp ')'
 ;
 
 %%
