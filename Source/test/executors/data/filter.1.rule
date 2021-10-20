@@ -77,6 +77,36 @@ ALL,FOR KEY;
 FILTER:
 ALL,
 FOR KEY;
+FILTER:
+ALL;
+FILTER:
+GT 30;
+FILTER:
+LIKE /0$/;
+FILTER:
+ALL,
+FOR KEY;
+FILTER:LT 0;
+FILTER:GT 0;
+FILTER:LE 2;
+FILTER:GE 1+2;
+FILTER:EQ 1+2/4-3*5;
+FILTER:NE 1+2/( 4-3 )*5;
+FILTER:LT 123,LIKE 'a',LIKE 'b',LIKE 'de*f';
+FILTER:LT 123,LIKE 'a',LIKE 'b',LIKE 'de*f',LIKE 'fadf?f';
+FILTER:LT 123,LIKE 'a',LIKE 'b',LIKE 'de*f',LIKE 'fadf?f',LIKE /hello/;
+FILTER:LT 123,LIKE 'a\b\f\r\n\t\\\uded0x';
+FILTER:LT 123,LIKE 'a'isc789;
+FILTER:LT 123,LIKE 'a'isc;
+FILTER:LT 123,LIKE 'a'789;
+FILTER:LT 123,LIKE 'a'789,LIKE 'b';
+FILTER:LT 123,LIKE 'a'789,LIKE 'b',LIKE /hello/igmsuy;
+FILTER:LT 123,LIKE 'a'789,LIKE 'b',LIKE /hello/igmsuy,LIKE 'world'isc789;
+FILTER:LT 123,LT 234;
+FILTER:'a','a';
+FILTER:LIKE 'a',LIKE 'a';
+FILTER:LIKE 'a'sc,LIKE 'a'is;
+
 
 N: # bellow are negative samples
 # blank lines
