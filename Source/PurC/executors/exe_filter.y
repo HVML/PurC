@@ -202,8 +202,7 @@ exe_filter_rule:
 
 subrules:
   subrule
-| subrules ',' subrule
-| subrules ',' ws subrule
+| subrules subrule
 ;
 
 subrule:
