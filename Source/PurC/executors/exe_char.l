@@ -82,8 +82,8 @@ do {                                              \
 %option perf-report
 %option 8bit
 
-%x CHAR SQ_CHAR
-%x AFTER_INT AFTER_ON
+%x IN_STR
+%x AFTER_INT
 
 SP       [ \t]
 LN       [\r\n]|[\f\r\n]
@@ -95,46 +95,38 @@ INTEGER  [0-9]+
           if (state != INITIAL) return -1;
           yyterminate(); }
 
-CHAR      { R(); PUSH(CHAR); C(); return MKT(CHAR); }
+CHAR      { R(); C(); return MKT(CHAR); }
 FROM      { R(); C(); return MKT(FROM); }
 TO        { R(); C(); return MKT(TO); }
 ADVANCE   { R(); C(); return MKT(ADVANCE); }
 STOP      { R(); C(); return MKT(STOP); }
-ON        { R(); PUSH(AFTER_ON); C(); return MKT(ON); }
+ON        { R(); C(); return MKT(ON); }
 {INTEGER} { R(); PUSH(AFTER_INT); SET_STR(); C(); return MKT(INTEGER); }
+[']       { R(); PUSH(IN_STR); C(); return MKT(SQ); }
 {SP}      { R(); C(); return MKT(SP); }
 {LN}      { R(); L(); return '\n'; }
 .         { R(); C(); return *yytext; } /* let bison to handle */
-
-<CHAR>{
-[:]       { R(); POP(); C(); return *yytext; }
-{SP}      { R(); C(); return MKT(SP); }
-{LN}      { R(); L(); return '\n'; }
-.         { R(); C(); return *yytext; } /* let bison to handle */
-}
 
 <AFTER_INT>{
-[-+*/(),] { R(); POP(); C(); return *yytext; }
+[-+*/,)]  { R(); POP(); C(); return *yytext; }
 {SP}      { R(); POP(); C(); return MKT(SP); }
 {LN}      { R(); POP(); L(); return '\n'; }
 .         { R(); C(); return *yytext; } /* let bison to handle */
 }
 
-<AFTER_ON>{
-[']       { R(); CHG(SQ_CHAR); C(); return MKT(SQ); }
-{SP}      { R(); C(); return MKT(SP); }
-{LN}      { R(); L(); return '\n'; }
-.         { R(); C(); return *yytext; } /* let bison to handle */
+<IN_STR>{
+[']                { R(); POP(); C(); return MKT(SQ); }
+[^'\\\f\r\n]+      { R(); SET_STR(); C(); return MKT(STR); }
+\\['\\]            { R(); SET_CHR(yytext[1]); C(); return MKT(CHR); }
+\\f                { R(); SET_CHR('\f'); C(); return MKT(CHR); }
+\\r                { R(); SET_CHR('\r'); C(); return MKT(CHR); }
+\\n                { R(); SET_CHR('\n'); C(); return MKT(CHR); }
+\\b                { R(); SET_CHR('\b'); C(); return MKT(CHR); }
+\\t                { R(); SET_CHR('\t'); C(); return MKT(CHR); }
+\\u[[:xdigit:]]{4} { R(); SET_STR(); C(); return MKT(UNI); }
+{LN}               { R(); L(); return '\n'; }
+.                  { R(); C(); return *yytext; } /* let bison to handle */
 }
-
-<SQ_CHAR>{
-[']          { R(); POP(); C(); return MKT(SQ); }
-[^'\\\n]     { R(); SET_STR(); C(); return MKT(STR); }
-\\['\\]      { R(); SET_CHR(yytext[1]); C(); return MKT(CHR); }
-{LN}         { R(); L(); return '\n'; }
-.            { R(); C(); return *yytext; } /* let bison to handle */
-}
-
 
 %%
 

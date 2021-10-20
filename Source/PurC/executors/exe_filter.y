@@ -125,12 +125,11 @@
 %token LT GT LE GE NE EQ
 %token SP
 %token SQ "'"
-%token STR CHR
-%token <c>             MATCHING_FLAG REGEXP_FLAG
+%token STR CHR UNI
 %token <token>  INTEGER
 
 %left ALL
-%left LT GT LE GE NE EQ
+%left LT GT LE GE NE EQ LIKE ','
 %left '-' '+'
 %left '*' '/'
 %precedence NEG /* negation--unary minus */
@@ -203,12 +202,14 @@ exe_filter_rule:
 
 subrules:
   subrule
-| subrules comma subrule
+| subrules ',' subrule
+| subrules ',' sp subrule
 ;
 
 subrule:
   pred_exp
 | LIKE sp pattern_expression
+| LIKE sp pattern_expression sp
 | literal_str_exp
 ;
 
@@ -232,7 +233,10 @@ pred_exp:
 ;
 
 pattern_expression:
-  literal_str_exp
+  SQ sq_str SQ
+| SQ sq_str SQ matching_flags
+| SQ sq_str SQ matching_flags max_matching_length
+| SQ sq_str SQ max_matching_length
 | '/' regular_str '/'
 | '/' regular_str '/' regexp_flags
 ;
@@ -242,8 +246,7 @@ literal_str:
 ;
 
 literal_str_exp:
-  literal_str
-| literal_str matching_flags
+  literal_str matching_flags
 | literal_str matching_flags max_matching_length
 | literal_str max_matching_length
 ;
@@ -251,25 +254,44 @@ literal_str_exp:
 sq_str:
   STR
 | CHR
+| UNI
 | sq_str STR
 | sq_str CHR
+| sq_str UNI
 ;
 
 regular_str:
   STR
 | CHR
+| UNI
 | regular_str STR
 | regular_str CHR
+| regular_str UNI
 ;
 
 regexp_flags:
-  REGEXP_FLAG
-| regexp_flags REGEXP_FLAG
+  regexp_flag
+| regexp_flags regexp_flag
+;
+
+regexp_flag:
+  'i'
+| 'g'
+| 'm'
+| 's'
+| 'u'
+| 'y'
 ;
 
 matching_flags:
-  MATCHING_FLAG
-| matching_flags MATCHING_FLAG
+  matching_flag
+| matching_flags matching_flag
+;
+
+matching_flag:
+  'c'
+| 'i'
+| 's'
 ;
 
 max_matching_length:

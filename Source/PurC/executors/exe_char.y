@@ -122,10 +122,10 @@
     /* %destructor { free($$); } <str> */ // destructor for `str`
 
 %token CHAR FROM TO ADVANCE STOP ON
-%token SP SQ STR CHR
+%token SP SQ STR CHR UNI
 %token <token>  INTEGER
 
-%left FROM TO ADVANCE STOP ON
+%left FROM TO ADVANCE STOP ON SQ
 %left '-' '+'
 %left '*' '/'
 %precedence NEG /* negation--unary minus */
@@ -147,9 +147,9 @@ rule:
 
 char_rule:
   CHAR osp ':' ows from_clause
+| CHAR osp ':' ows from_clause stop_clause
 | CHAR osp ':' ows from_clause advance_clause
 | CHAR osp ':' ows from_clause advance_clause stop_clause
-| CHAR osp ':' ows from_clause stop_clause
 ;
 
 from_clause:

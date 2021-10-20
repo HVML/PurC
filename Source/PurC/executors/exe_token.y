@@ -121,11 +121,11 @@
 
     /* %destructor { free($$); } <str> */ // destructor for `str`
 
-%token TOKEN FROM TO ADVANCE
-%token SP
+%token TOKEN FROM TO ADVANCE DELIMETERS STOP ON LIKE
+%token SP SQ STR CHR UNI
 %token <token>  INTEGER
 
-%left FROM TO ADVANCE
+%left FROM TO ADVANCE DELIMETERS STOP ON SQ
 %left '-' '+'
 %left '*' '/'
 %precedence NEG /* negation--unary minus */
@@ -147,7 +147,9 @@ rule:
 
 exe_token_rule:
   TOKEN osp ':' ows from_clause
-| TOKEN osp ':' ows from_clause advance_clause
+| TOKEN osp ':' ows from_clause stop_clause
+| TOKEN osp ':' ows from_clause opt_clauses
+| TOKEN osp ':' ows from_clause opt_clauses stop_clause
 ;
 
 from_clause:
@@ -155,8 +157,106 @@ from_clause:
 | FROM sp exp TO sp exp
 ;
 
+stop_clause:
+  comma STOP sp ON sp string_matching_list
+;
+
+opt_clauses: /* defer-detect-duplication */
+  opt_clause
+| opt_clauses opt_clause
+;
+
+opt_clause:
+  advance_clause
+| delimeters_clause
+;
+
 advance_clause:
   comma ADVANCE sp exp
+;
+
+delimeters_clause:
+  comma DELIMETERS sp SQ literal_char_sequence SQ
+| comma DELIMETERS sp SQ literal_char_sequence SQ sp
+;
+
+string_matching_list:
+  string_matching_expression
+| string_matching_list comma string_matching_expression
+;
+
+string_matching_expression:
+  LIKE sp string_pattern_expression
+| SQ literal_char_sequence SQ
+| SQ literal_char_sequence SQ sp
+| SQ literal_char_sequence SQ matching_suffix
+| SQ literal_char_sequence SQ matching_suffix sp
+;
+
+string_pattern_expression:
+  SQ wildcard_expression SQ
+| SQ wildcard_expression SQ sp
+| SQ wildcard_expression SQ matching_suffix
+| SQ wildcard_expression SQ matching_suffix sp
+| '/' regular_expression '/'
+| '/' regular_expression '/' sp
+| '/' regular_expression '/' regexp_flags
+| '/' regular_expression '/' regexp_flags sp
+;
+
+literal_char_sequence:
+  STR
+| CHR
+| UNI
+| literal_char_sequence STR
+| literal_char_sequence CHR
+| literal_char_sequence UNI
+;
+
+wildcard_expression:
+  literal_char_sequence
+;
+
+regular_expression:
+  STR
+| CHR
+| regular_expression STR
+| regular_expression CHR
+;
+
+matching_suffix:
+  matching_flags
+| matching_flags max_matching_length
+| max_matching_length
+;
+
+regexp_flags:
+  regexp_flag
+| regexp_flags regexp_flag
+;
+
+regexp_flag:
+  'i'
+| 'g'
+| 'm'
+| 's'
+| 'u'
+| 'y'
+;
+
+matching_flags:
+  matching_flag
+| matching_flags matching_flag
+;
+
+matching_flag:
+  'c'
+| 'i'
+| 's'
+;
+
+max_matching_length:
+  INTEGER
 ;
 
 ws:
