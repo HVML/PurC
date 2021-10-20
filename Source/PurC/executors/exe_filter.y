@@ -129,7 +129,7 @@
 %token <token>  INTEGER
 
 %left ALL
-%left LT GT LE GE NE EQ LIKE ','
+%left FOR LT GT LE GE NE EQ LIKE ','
 %left '-' '+'
 %left '*' '/'
 %precedence NEG /* negation--unary minus */
@@ -203,7 +203,7 @@ exe_filter_rule:
 subrules:
   subrule
 | subrules ',' subrule
-| subrules ',' sp subrule
+| subrules ',' ws subrule
 ;
 
 subrule:
