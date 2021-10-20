@@ -125,14 +125,11 @@
 %token LT GT LE GE NE EQ
 %token SQ "'"
 %token STR CHR UNI
-%token <token>  INTEGER
+%token <token>  INTEGER NUMBER
 
-%left ALL
-%left FOR LT GT LE GE NE EQ LIKE ','
 %left '-' '+'
 %left '*' '/'
-%precedence NEG /* negation--unary minus */
-%precedence SQ
+%precedence UMINUS
 
  /* %nterm <str>   args */ // non-terminal `input` use `str` to store
                            // token value as well
@@ -147,19 +144,13 @@ rule:
   exe_filter_rule
 ;
 
-filter:
-  FILTER
-;
-
 exe_filter_rule:
-  filter ':' ALL
-| filter ':' ALL for_clause
-| filter ':' subrules
-| filter ':' subrules for_clause
+  FILTER ':' subrules for_clause
 ;
 
 subrules:
-  number_rules
+  ALL
+| number_rules
 | string_rules
 | matching_rules
 ;
@@ -170,7 +161,12 @@ number_rules:
 ;
 
 number_rule:
-  pred_exp
+  LT exp
+| GT exp
+| LE exp
+| GE exp
+| NE exp
+| EQ exp
 ;
 
 string_rules:
@@ -192,60 +188,36 @@ matching_rule:
 ;
 
 for_clause:
-  ',' FOR for_param
-;
-
-for_param:
-  KV
-| KEY
-| VALUE
-;
-
-pred_exp:
-  LT exp
-| GT exp
-| LE exp
-| GE exp
-| NE exp
-| EQ exp
+  %empty
+| ',' FOR KV
+| ',' FOR KEY
+| ',' FOR VALUE
 ;
 
 pattern_expression:
-  SQ sq_str SQ
-| literal_str matching_flags
-| literal_str matching_flags max_matching_length
-| literal_str max_matching_length
-| '/' regular_str '/'
-| '/' regular_str '/' regexp_flags
+  literal_str_exp
+| '/' str '/'
+| '/' str '/' regexp_flags
 ;
 
 literal_str:
-  SQ sq_str SQ
+  SQ str SQ
 ;
 
 literal_str_exp:
-  SQ sq_str SQ
+  literal_str
 | literal_str matching_flags
 | literal_str matching_flags max_matching_length
 | literal_str max_matching_length
 ;
 
-sq_str:
+str:
   STR
 | CHR
 | UNI
-| sq_str STR
-| sq_str CHR
-| sq_str UNI
-;
-
-regular_str:
-  STR
-| CHR
-| UNI
-| regular_str STR
-| regular_str CHR
-| regular_str UNI
+| str STR
+| str CHR
+| str UNI
 ;
 
 regexp_flags:
@@ -279,10 +251,12 @@ max_matching_length:
 
 exp:
   INTEGER
+| NUMBER
 | exp '+' exp
 | exp '-' exp
 | exp '*' exp
 | exp '/' exp
+| '-' exp %prec UMINUS { fprintf(stderr, "xxxxxxxxxxxxxxxxxxx\n"); }
 | '(' exp ')'
 ;
 

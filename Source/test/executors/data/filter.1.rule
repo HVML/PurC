@@ -42,6 +42,27 @@ FILTER : LT 123  LT 234 ;
 FILTER : AS 'a'  AS 'a' ;
 FILTER : LIKE 'a'  LIKE 'a' ;
 FILTER : LIKE 'a'sc  LIKE 'a'is ;
+FILTER : AS 'a' , FOR KEY ;
+FILTER : AS 'a' , FOR KEY ;
+FILTER : LT 1 - 2 + - 3 - 4 ;
+FILTER : LT 1 - 2 - - 3 - 4 ;
+FILTER : LT 1 - 2 * - 3 - 4 ;
+FILTER : LT 1 - 2 / - 3 - 4 ;
+FILTER : LT 1 - 2 + - ( 3 - 4 ) ;
+
+# number
+FILTER : LT .3e+0 ;
+FILTER : LT .3 ;
+FILTER : LT .3e-0 ;
+FILTER : LT .3e-10 ;
+FILTER : LT .3e+10 ;
+FILTER : LT 0. ;
+FILTER : LT 0.3 ;
+FILTER : LT 0.3e+12 ;
+FILTER : LT 0.3e-12 ;
+FILTER : LT 00 ;
+FILTER : LT 00. ;
+FILTER : LT .00 ;
 
 # no SPACE in between
 FILTER:ALL;
@@ -113,8 +134,7 @@ FILTER: LIKE /hello/ ALL ;
 FILTER: LIKE /hello/ AS 'a' ;
 FILTER: LIKE /hello/ LT 3 ;
 
-
-P: # debugging
-FILTER:AS 'a',FOR KEY;
-FILTER:AS 'a' ,FOR KEY;
+# number
+FILTER : LT . ;
+FILTER : LT 0.3e ;
 

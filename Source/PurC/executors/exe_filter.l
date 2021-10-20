@@ -84,11 +84,12 @@ do {                                              \
 
 %x IN_STR IN_REGEXP IN_LIKE
 %x KW
-%x AFTER_INT AFTER_STR
+%x AFTER_STR AFTER_NUM
 
 SP       [ \t]
 LN       [\r\n]|[\f\r\n]
 INTEGER  [0-9]+
+NUMBER   ([.][0-9]+(e[-+][0-9]+)?)|([0-9]+[.][0-9]*(e[-+][0-9]+)?)
 
 %%
 
@@ -111,7 +112,8 @@ VALUE     { R(); PUSH(KW); C(); return MKT(VALUE); }
 KV        { R(); PUSH(KW); C(); return MKT(KV); }
 AS        { R(); PUSH(KW); C(); return MKT(AS); }
 [']       { R(); PUSH(IN_STR); C(); return MKT(SQ); }
-{INTEGER} { R(); PUSH(AFTER_INT); SET_STR(); C(); return MKT(INTEGER); }
+{INTEGER} { R(); PUSH(AFTER_NUM); SET_STR(); C(); return MKT(INTEGER); }
+{NUMBER}  { R(); PUSH(AFTER_NUM); SET_STR(); C(); return MKT(NUMBER); }
 {SP}      { R(); C(); } /* eat */
 {LN}      { R(); L(); } /* eat */
 .         { R(); C(); return *yytext; } /* let bison to handle */
@@ -158,7 +160,7 @@ AS        { R(); PUSH(KW); C(); return MKT(AS); }
 .               { R(); C(); return *yytext; } /* let bison to handle */
 }
 
-<AFTER_INT>{
+<AFTER_NUM>{
 [-+*/,)]  { R(); POP(); C(); yyless(0); }
 {SP}      { R(); POP(); C(); } /* eat */
 {LN}      { R(); POP(); L(); } /* eat */
