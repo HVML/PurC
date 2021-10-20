@@ -150,6 +150,7 @@ KV        { R(); C(); return MKT(KV); }
 }
 
 <AFTER_INT>{
+[-+*/,)]  { R(); POP(); C(); yyless(0); }
 {SP}      { R(); POP(); C(); return MKT(SP); }
 {LN}      { R(); POP(); L(); return '\n'; }
 .         { R(); C(); return *yytext; } /* let bison to handle */

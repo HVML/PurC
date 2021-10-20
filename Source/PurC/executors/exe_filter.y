@@ -234,9 +234,10 @@ pred_exp:
 
 pattern_expression:
   SQ sq_str SQ
-| SQ sq_str SQ matching_flags
-| SQ sq_str SQ matching_flags max_matching_length
-| SQ sq_str SQ max_matching_length
+| SQ sq_str SQ sp
+| literal_str matching_flags
+| literal_str matching_flags max_matching_length
+| literal_str max_matching_length
 | '/' regular_str '/'
 | '/' regular_str '/' regexp_flags
 ;
@@ -246,7 +247,9 @@ literal_str:
 ;
 
 literal_str_exp:
-  literal_str matching_flags
+  SQ sq_str SQ
+| SQ sq_str SQ sp
+| literal_str matching_flags
 | literal_str matching_flags max_matching_length
 | literal_str max_matching_length
 ;
