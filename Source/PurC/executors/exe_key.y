@@ -121,12 +121,12 @@
 
     /* %destructor { free($$); } <str> */ // destructor for `str`
 
-%token KEY ALL FOR VALUE KV LIKE
+%token KEY ALL LIKE FOR VALUE KV AS
 %token SQ "'"
-%token SP
 %token <c>      MATCHING_FLAG REGEXP_FLAG
+%token <token>  MATCHING_LENGTH
 %token <token>  INTEGER
-%token <token>  STR CHR
+%token <token>  STR CHR UNI
 
  /* %nterm <str>   args */ // non-terminal `input` use `str` to store
                            // token value as well
@@ -138,65 +138,52 @@ input:
 ;
 
 rule:
-  key_rule ows
+  key_rule
 ;
 
 key_rule:
-  KEY osp ':' ows key_subrules for_clause
+  KEY ':' subrules for_clause
 ;
 
-ws:
-  SP
-| '\n'
-| ws SP
-| ws '\n'
+subrules:
+  ALL
+| string_rules
+| matching_rules
 ;
 
-ows:
-  %empty
-| ws
+string_rules:
+  string_rule
+| string_rules string_rule
 ;
 
-sp:
-  SP
-| sp SP
+string_rule:
+  AS literal_str_exp
 ;
 
-osp:
-  %empty
-| sp
+matching_rules:
+  matching_rule
+| matching_rules matching_rule
+;
+
+matching_rule:
+  LIKE pattern_expression
 ;
 
 for_clause:
   %empty
-| ',' ows FOR sp for_param
+| ',' FOR KV
+| ',' FOR KEY
+| ',' FOR VALUE
 ;
 
-for_param:
-  KV
-| KEY
-| VALUE
-;
-
-key_subrules:
-  key_subrule
-| key_subrules ',' ows key_subrule
-;
-
-key_subrule:
-  ALL
-| LIKE sp key_pattern_expression
-| literal_str_exp
-;
-
-key_pattern_expression:
+pattern_expression:
   literal_str_exp
-| '/' regular_str '/'
-| '/' regular_str '/' regexp_flags
+| '/' str '/'
+| '/' str '/' regexp_flags
 ;
 
 literal_str:
-  SQ sq_str SQ
+  SQ str SQ
 ;
 
 literal_str_exp:
@@ -206,18 +193,13 @@ literal_str_exp:
 | literal_str max_matching_length
 ;
 
-sq_str:
+str:
   STR
 | CHR
-| sq_str STR
-| sq_str CHR
-;
-
-regular_str:
-  STR
-| CHR
-| regular_str STR
-| regular_str CHR
+| UNI
+| str STR
+| str CHR
+| str UNI
 ;
 
 regexp_flags:
@@ -231,7 +213,7 @@ matching_flags:
 ;
 
 max_matching_length:
-  INTEGER
+  MATCHING_LENGTH
 ;
 
 %%

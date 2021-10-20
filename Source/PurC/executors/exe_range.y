@@ -122,80 +122,48 @@
     /* %destructor { free($$); } <str> */ // destructor for `str`
 
 %token RANGE FROM TO ADVANCE
-%token SP
-%token <token>  INTEGER
+%token <token>  INTEGER NUMBER
 
-%left FROM TO ADVANCE
 %left '-' '+'
 %left '*' '/'
-%precedence NEG /* negation--unary minus */
-%precedence '\n'
-%precedence SP
+%precedence UMINUS
 
  /* %nterm <str>   args */ // non-terminal `input` use `str` to store
                            // token value as well
 
-%% /* The grammar follows. */
+%% /* The grammar foll. */
 
 input:
   rule
 ;
 
 rule:
-  exe_range_rule ows
+  exe_range_rule
 ;
 
 exe_range_rule:
-  RANGE osp ':' ows FROM sp exp
-| RANGE osp ':' ows FROM sp exp to_clause
-| RANGE osp ':' ows FROM sp exp to_clause comma advance_clause
+  RANGE ':' FROM exp to_clause advance_clause
 ;
 
 to_clause:
-  TO sp exp
+  %empty
+| TO exp
 ;
 
 advance_clause:
-  ADVANCE sp exp
-;
-
-ws:
-  SP
-| '\n'
-| ws SP
-| ws '\n'
-;
-
-ows:
   %empty
-| ws
-;
-
-sp:
-  SP
-| sp SP
-;
-
-osp:
-  %empty
-| sp
-;
-
-comma:
-  ','
-| comma SP
-| comma '\n'
+| ',' ADVANCE exp
 ;
 
 exp:
   INTEGER
-| exp '+' ows exp
-| exp '-' ows exp
-| exp '*' ows exp
-| exp '/' ows exp
-| '(' ows exp ')'
-| exp SP
-| exp '\n'
+| NUMBER
+| exp '+' exp
+| exp '-' exp
+| exp '*' exp
+| exp '/' exp
+| '-' exp %prec UMINUS
+| '(' exp ')'
 ;
 
 %%

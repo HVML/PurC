@@ -82,12 +82,13 @@ do {                                              \
 %option perf-report
 %option 8bit
 
-%x RANGE
-%x AFTER_INT
+%x AFTER_NUM
+%x KW
 
 SP       [ \t]
 LN       [\r\n]|[\f\r\n]
 INTEGER  [0-9]+
+NUMBER   ([.][0-9]+(e[-+][0-9]+)?)|([0-9]+[.][0-9]*(e[-+][0-9]+)?)
 
 %%
 
@@ -95,28 +96,29 @@ INTEGER  [0-9]+
           if (state != INITIAL) return -1;
           yyterminate(); }
 
-RANGE     { R(); PUSH(RANGE); C(); return MKT(RANGE); }
-FROM      { R(); C(); return MKT(FROM); }
-TO        { R(); C(); return MKT(TO); }
-ADVANCE   { R(); C(); return MKT(ADVANCE); }
-{INTEGER} { R(); PUSH(AFTER_INT); SET_STR(); C(); return MKT(INTEGER); }
-{SP}      { R(); C(); return MKT(SP); }
-{LN}      { R(); L(); return '\n'; }
+RANGE/[ \t]*:    { R(); C(); yyless(5); return MKT(RANGE); }
+FROM      { R(); PUSH(KW); C(); return MKT(FROM); }
+TO        { R(); PUSH(KW); C(); return MKT(TO); }
+ADVANCE   { R(); PUSH(KW); C(); return MKT(ADVANCE); }
+{INTEGER} { R(); PUSH(AFTER_NUM); SET_STR(); C(); return MKT(INTEGER); }
+{NUMBER}  { R(); PUSH(AFTER_NUM); SET_STR(); C(); return MKT(NUMBER); }
+{SP}      { R(); C(); } /* eat */
+{LN}      { R(); L(); } /* eat */
 .         { R(); C(); return *yytext; } /* let bison to handle */
 
-<RANGE>{
-[:]       { R(); POP(); C(); return *yytext; }
-{SP}      { R(); C(); return MKT(SP); }
-{LN}      { R(); L(); return '\n'; }
+<KW>{
+{SP}      { R(); POP(); C(); } /* eat */
+{LN}      { R(); POP(); L(); } /* eat */
 .         { R(); C(); return *yytext; } /* let bison to handle */
 }
 
-<AFTER_INT>{
-[-+*/(),] { R(); POP(); C(); return *yytext; }
-{SP}      { R(); POP(); C(); return MKT(SP); }
-{LN}      { R(); POP(); L(); return '\n'; }
+<AFTER_NUM>{
+[-+*/,)]  { R(); POP(); C(); yyless(0); }
+{SP}      { R(); POP(); C(); } /* eat */
+{LN}      { R(); POP(); L(); } /* eat */
 .         { R(); C(); return *yytext; } /* let bison to handle */
 }
+
 
 %%
 

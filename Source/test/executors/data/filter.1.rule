@@ -84,8 +84,8 @@ FILTER:LIKE 'a'isc;
 FILTER:LIKE 'a'789;
 FILTER:LIKE 'a'789 LIKE 'b';
 FILTER:LIKE 'a'789 LIKE 'b' LIKE /hello/igmsuy;
-FILTER:LIKE 'a'789 LIKE 'b' LIKE /hello/igmsuyLIKE 'world'isc789;
-FILTER:LIKE 'a'789 LIKE 'b' LIKE /hello/igmsuyLIKE 'world'isc789,FOR KEY;
+FILTER:LIKE 'a'789 LIKE 'b' LIKE /hello/igmsuy LIKE 'world'isc789;
+FILTER:LIKE 'a'789 LIKE 'b' LIKE /hello/igmsuy LIKE 'world'isc789,FOR KEY;
 FILTER:LT 123 LT 234;
 FILTER:AS 'a' AS 'a';
 

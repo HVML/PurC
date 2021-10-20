@@ -124,8 +124,10 @@
 %token FILTER ALL LIKE KV KEY VALUE FOR AS
 %token LT GT LE GE NE EQ
 %token SQ "'"
-%token STR CHR UNI
-%token <token>  INTEGER NUMBER
+%token <c>     MATCHING_FLAG REGEXP_FLAG
+%token <token> MATCHING_LENGTH
+%token <token> STR CHR UNI
+%token <token> INTEGER NUMBER
 
 %left '-' '+'
 %left '*' '/'
@@ -221,32 +223,17 @@ str:
 ;
 
 regexp_flags:
-  regexp_flag
-| regexp_flags regexp_flag
-;
-
-regexp_flag:
-  'i'
-| 'g'
-| 'm'
-| 's'
-| 'u'
-| 'y'
+  REGEXP_FLAG
+| regexp_flags REGEXP_FLAG
 ;
 
 matching_flags:
-  matching_flag
-| matching_flags matching_flag
-;
-
-matching_flag:
-  'c'
-| 'i'
-| 's'
+  MATCHING_FLAG
+| matching_flags MATCHING_FLAG
 ;
 
 max_matching_length:
-  INTEGER
+  MATCHING_LENGTH
 ;
 
 exp:
@@ -256,7 +243,7 @@ exp:
 | exp '-' exp
 | exp '*' exp
 | exp '/' exp
-| '-' exp %prec UMINUS { fprintf(stderr, "xxxxxxxxxxxxxxxxxxx\n"); }
+| '-' exp %prec UMINUS
 | '(' exp ')'
 ;
 

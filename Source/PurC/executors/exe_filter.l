@@ -84,7 +84,7 @@ do {                                              \
 
 %x IN_STR IN_REGEXP IN_LIKE
 %x KW
-%x AFTER_STR AFTER_NUM
+%x AFTER_STR AFTER_NUM AFTER_REGEXP
 
 SP       [ \t]
 LN       [\r\n]|[\f\r\n]
@@ -148,7 +148,7 @@ AS        { R(); PUSH(KW); C(); return MKT(AS); }
 }
 
 <IN_REGEXP>{
-[/]             { R(); POP(); C(); return *yytext; }
+[/]             { R(); CHG(AFTER_REGEXP); C(); return *yytext; }
 [^/\\\f\r\n]+   { R(); SET_STR(); C(); return MKT(STR); }
 \\[/\\]         { R(); SET_CHR(yytext[1]); C(); return MKT(CHR); }
 \\f             { R(); SET_CHR('\f'); C(); return MKT(CHR); }
@@ -169,12 +169,21 @@ AS        { R(); PUSH(KW); C(); return MKT(AS); }
 
 <AFTER_STR>{
 [,]            { R(); POP(); C(); yyless(0); }
-[cigmsuv]      { R(); C(); return *yytext; }
-[[:digit:]]+   { R(); SET_STR(); C(); return MKT(INTEGER); }
+[cis]     { R(); SET_CHR(*yytext); C(); return MKT(MATCHING_FLAG); }
+{INTEGER} { R(); SET_STR(); C(); return MKT(MATCHING_LENGTH); }
 {SP}      { R(); POP(); C(); } /* eat */
 {LN}      { R(); POP(); L(); } /* eat */
 .         { R(); C(); return *yytext; } /* let bison to handle */
 }
+
+<AFTER_REGEXP>{
+[,]            { R(); POP(); C(); yyless(0); }
+[gimsuy]  { R(); SET_CHR(*yytext); C(); return MKT(REGEXP_FLAG); }
+{SP}      { R(); POP(); C(); } /* eat */
+{LN}      { R(); POP(); L(); } /* eat */
+.         { R(); C(); return *yytext; } /* let bison to handle */
+}
+
 
 %%
 
