@@ -69,3 +69,13 @@ FILTER
 FILTER: LIKE
 /0$/;
 
+# sub clauses
+FILTER: ALL, ALL ;
+FILTER: ALL, 'a' ;
+FILTER: ALL, LIKE /hello/ ;
+FILTER: ALL, LT 3 ;
+FILTER: LT 3 , ALL ;
+FILTER: LIKE /hello/ , ALL ;
+FILTER: 'a' , ALL ;
+
+
