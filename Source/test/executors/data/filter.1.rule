@@ -116,6 +116,8 @@ ALL
 
 # logical expression
 FILTER: NOT (GE 0 AND LT 10);
+FILTER: NOT NOT (GE 0 AND LT 10);
+FILTER: NOT (GE (3+4)*2 AND LT (40-10)/30);
 
 N: # bellow are negative samples
 # blank lines
