@@ -154,36 +154,18 @@ filter_rule:
 
 subrule:
   ALL
-| number_comparing_logical_expression
-| string_matching_logical_expression
+| logical_expression
 ;
 
-number_comparing_logical_expression:
-  ncle
-;
-
-string_matching_logical_expression:
-  smle
-;
-
-ncle:
+logical_expression:
   number_comparing_condition
-| ncle AND ncle
-| ncle OR ncle
-| ncle XOR ncle
-| NOT ncle %prec NEG
-| '(' ncle ')'
+| string_matching_expression
+| logical_expression AND logical_expression
+| logical_expression OR logical_expression
+| logical_expression XOR logical_expression
+| NOT logical_expression %prec NEG
+| '(' logical_expression ')'
 ;
-
-smle:
-  string_matching_list
-| smle AND smle
-| smle OR smle
-| smle XOR smle
-| NOT smle %prec NEG
-| '(' smle ')'
-;
-
 
 for_clause:
   %empty
@@ -208,11 +190,6 @@ literal_char_sequence:
 | literal_char_sequence STR
 | literal_char_sequence CHR
 | literal_char_sequence UNI
-;
-
-string_matching_list:
-  string_matching_expression
-| string_matching_list ',' string_matching_expression
 ;
 
 string_matching_expression:
