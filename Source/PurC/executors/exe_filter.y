@@ -193,8 +193,22 @@ literal_char_sequence:
 ;
 
 string_matching_expression:
-  LIKE string_pattern_expression
-| AS '"' literal_char_sequence '"' matching_suffix
+  LIKE string_pattern_list
+| AS string_literal_list
+;
+
+string_literal_list:
+  string_literal_expression
+| string_literal_list ',' string_literal_expression
+;
+
+string_literal_expression:
+  '"' literal_char_sequence '"' matching_suffix
+;
+
+string_pattern_list:
+  string_pattern_expression
+| string_pattern_list ',' string_pattern_expression
 ;
 
 string_pattern_expression:

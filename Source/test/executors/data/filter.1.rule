@@ -160,3 +160,6 @@ FILTER: AS 'a'x;
 FILTER: LIKE /a/gim suy;
 FILTER: LIKE /a/x;
 
+P: # debug
+FILTER: LIKE /hello/gimsuy;
+FILTER: LIKE /hello/gimsuy, /hello/, 'h*d', /h*/i, 'h*'i9;

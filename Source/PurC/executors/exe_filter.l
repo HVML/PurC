@@ -123,11 +123,12 @@ AS        { R(); PUSH(KW); C(); return MKT(AS); }
 .         { R(); C(); return *yytext; } /* let bison to handle */
 
 <IN_LIKE>{
-[']       { R(); CHG(IN_STR); C(); return '"'; }
-[/]       { R(); CHG(IN_REGEXP); C(); return *yytext; }
+[']       { R(); PUSH(IN_STR); C(); return '"'; }
+[/]       { R(); PUSH(IN_REGEXP); C(); return *yytext; }
+[,]       { R(); C(); return *yytext; }
 {SP}      { R(); C(); } /* eat */
 {LN}      { R(); L(); } /* eat */
-.         { R(); C(); return *yytext; } /* let bison to handle */
+.         { R(); POP(); C(); yyless(0); }
 }
 
 <KW>{
@@ -172,20 +173,18 @@ AS        { R(); PUSH(KW); C(); return MKT(AS); }
 }
 
 <AFTER_STR>{
-[,]            { R(); POP(); C(); yyless(0); }
 [cis]     { R(); SET_CHR(*yytext); C(); return MKT(MATCHING_FLAG); }
 {INTEGER} { R(); SET_STR(); C(); return MKT(MATCHING_LENGTH); }
 {SP}      { R(); POP(); C(); } /* eat */
 {LN}      { R(); POP(); L(); } /* eat */
-.         { R(); C(); return *yytext; } /* let bison to handle */
+.         { R(); POP(); C(); yyless(0); }
 }
 
 <AFTER_REGEXP>{
-[,]            { R(); POP(); C(); yyless(0); }
 [gimsuy]  { R(); SET_CHR(*yytext); C(); return MKT(REGEXP_FLAG); }
 {SP}      { R(); POP(); C(); } /* eat */
 {LN}      { R(); POP(); L(); } /* eat */
-.         { R(); C(); return *yytext; } /* let bison to handle */
+.         { R(); POP(); C(); yyless(0); }
 }
 
 
