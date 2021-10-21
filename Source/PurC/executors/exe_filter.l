@@ -104,6 +104,10 @@ LE        { R(); PUSH(KW); C(); return MKT(LE); }
 GE        { R(); PUSH(KW); C(); return MKT(GE); }
 NE        { R(); PUSH(KW); C(); return MKT(NE); }
 EQ        { R(); PUSH(KW); C(); return MKT(EQ); }
+AND       { R(); PUSH(KW); C(); return MKT(AND); }
+OR        { R(); PUSH(KW); C(); return MKT(OR); }
+XOR       { R(); PUSH(KW); C(); return MKT(XOR); }
+NOT       { R(); PUSH(KW); C(); return MKT(NOT); }
 LIKE      { R(); PUSH(IN_LIKE); PUSH(KW); C(); return MKT(LIKE); }
 ALL       { R(); PUSH(KW); C(); return MKT(ALL); }
 FOR       { R(); PUSH(KW); C(); return MKT(FOR); }
@@ -111,7 +115,7 @@ KEY       { R(); PUSH(KW); C(); return MKT(KEY); }
 VALUE     { R(); PUSH(KW); C(); return MKT(VALUE); }
 KV        { R(); PUSH(KW); C(); return MKT(KV); }
 AS        { R(); PUSH(KW); C(); return MKT(AS); }
-[']       { R(); PUSH(IN_STR); C(); return MKT(SQ); }
+[']       { R(); PUSH(IN_STR); C(); return '"'; }
 {INTEGER} { R(); PUSH(AFTER_NUM); SET_STR(); C(); return MKT(INTEGER); }
 {NUMBER}  { R(); PUSH(AFTER_NUM); SET_STR(); C(); return MKT(NUMBER); }
 {SP}      { R(); C(); } /* eat */
@@ -119,7 +123,7 @@ AS        { R(); PUSH(KW); C(); return MKT(AS); }
 .         { R(); C(); return *yytext; } /* let bison to handle */
 
 <IN_LIKE>{
-[']       { R(); CHG(IN_STR); C(); return MKT(SQ); }
+[']       { R(); CHG(IN_STR); C(); return '"'; }
 [/]       { R(); CHG(IN_REGEXP); C(); return *yytext; }
 {SP}      { R(); C(); } /* eat */
 {LN}      { R(); L(); } /* eat */
@@ -134,7 +138,7 @@ AS        { R(); PUSH(KW); C(); return MKT(AS); }
 }
 
 <IN_STR>{
-[']                { R(); CHG(AFTER_STR); C(); return MKT(SQ); }
+[']                { R(); CHG(AFTER_STR); C(); return '"'; }
 [^'\\\f\r\n]+      { R(); SET_STR(); C(); return MKT(STR); }
 \\['\\]            { R(); SET_CHR(yytext[1]); C(); return MKT(CHR); }
 \\f                { R(); SET_CHR('\f'); C(); return MKT(CHR); }

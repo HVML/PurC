@@ -105,8 +105,8 @@ DELIMETERS  { R(); PUSH(KW); C(); return MKT(DELIMETERS); }
 UNTIL       { R(); PUSH(KW); C(); return MKT(UNTIL); }
 LIKE        { R(); PUSH(IN_LIKE); PUSH(KW); C(); return MKT(LIKE); }
 AS          { R(); PUSH(KW); C(); return MKT(AS); }
-[']         { R(); PUSH(IN_SQ); C(); return MKT(SQ); }
-["]         { R(); PUSH(IN_DQ); C(); return MKT(SQ); }
+[']         { R(); PUSH(IN_SQ); C(); return '"'; }
+["]         { R(); PUSH(IN_DQ); C(); return '"'; }
 {INTEGER}   { R(); PUSH(AFTER_NUM); SET_STR(); C(); return MKT(INTEGER); }
 {NUMBER}    { R(); PUSH(AFTER_NUM); SET_STR(); C(); return MKT(NUMBER); }
 {SP}        { R(); C(); } /* eat */
@@ -114,7 +114,7 @@ AS          { R(); PUSH(KW); C(); return MKT(AS); }
 .           { R(); C(); return *yytext; } /* let bison to handle */
 
 <IN_LIKE>{
-[']       { R(); CHG(IN_SQ); C(); return MKT(SQ); }
+[']       { R(); CHG(IN_SQ); C(); return '"'; }
 [/]       { R(); CHG(IN_REGEXP); C(); return *yytext; }
 {SP}      { R(); C(); } /* eat */
 {LN}      { R(); L(); } /* eat */
@@ -129,13 +129,13 @@ AS          { R(); PUSH(KW); C(); return MKT(AS); }
 }
 
 <IN_SQ>{
-[']                { R(); CHG(AFTER_STR); C(); return MKT(SQ); }
+[']                { R(); CHG(AFTER_STR); C(); return '"'; }
 [^'\\\f\r\n]+      { R(); SET_STR(); C(); return MKT(STR); }
 \\['\\]            { R(); SET_CHR(yytext[1]); C(); return MKT(CHR); }
 }
 
 <IN_DQ>{
-["]                { R(); CHG(AFTER_STR); C(); return MKT(SQ); }
+["]                { R(); CHG(AFTER_STR); C(); return '"'; }
 [^"\\\f\r\n]+      { R(); SET_STR(); C(); return MKT(STR); }
 \\["\\]            { R(); SET_CHR(yytext[1]); C(); return MKT(CHR); }
 }

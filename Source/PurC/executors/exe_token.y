@@ -122,7 +122,7 @@
     /* %destructor { free($$); } <str> */ // destructor for `str`
 
 %token TOKEN FROM TO ADVANCE DELIMETERS UNTIL LIKE AS
-%token SQ STR CHR UNI
+%token STR CHR UNI
 %token <c>     MATCHING_FLAG REGEXP_FLAG
 %token <token> MATCHING_LENGTH
 %token <token> INTEGER NUMBER
@@ -137,10 +137,6 @@
 %% /* The grammar follows. */
 
 input:
-  rule
-;
-
-rule:
   token_rule
 ;
 
@@ -164,7 +160,7 @@ advance_clause:
 
 delimeters_clause:
   %empty
-| DELIMETERS SQ literal_char_sequence SQ
+| DELIMETERS '"' literal_char_sequence '"'
 ;
 
 until_clause:
@@ -188,11 +184,11 @@ string_matching_list:
 
 string_matching_expression:
   LIKE string_pattern_expression
-| AS SQ literal_char_sequence SQ matching_suffix
+| AS '"' literal_char_sequence '"' matching_suffix
 ;
 
 string_pattern_expression:
-  SQ wildcard_expression SQ matching_suffix
+  '"' wildcard_expression '"' matching_suffix
 | '/' regular_expression '/' regexp_suffix
 ;
 

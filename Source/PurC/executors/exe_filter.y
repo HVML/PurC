@@ -122,8 +122,7 @@
     /* %destructor { free($$); } <str> */ // destructor for `str`
 
 %token FILTER ALL LIKE KV KEY VALUE FOR AS
-%token LT GT LE GE NE EQ
-%token SQ "'"
+%token LT GT LE GE NE EQ NOT
 %token <c>     MATCHING_FLAG REGEXP_FLAG
 %token <token> MATCHING_LENGTH
 %token <token> STR CHR UNI
@@ -132,6 +131,9 @@
 %left '-' '+'
 %left '*' '/'
 %precedence UMINUS
+
+%left AND OR XOR
+%precedence NEG
 
  /* %nterm <str>   args */ // non-terminal `input` use `str` to store
                            // token value as well
@@ -147,21 +149,50 @@ rule:
 ;
 
 filter_rule:
-  FILTER ':' subrules for_clause
+  FILTER ':' subrule for_clause
 ;
 
-subrules:
+subrule:
   ALL
-| number_rules
-| matching_rules
+| number_comparing_logical_expression
+| string_matching_logical_expression
 ;
 
-number_rules:
-  number_rule
-| number_rules number_rule
+number_comparing_logical_expression:
+  ncle
 ;
 
-number_rule:
+string_matching_logical_expression:
+  smle
+;
+
+ncle:
+  number_comparing_condition
+| ncle AND ncle
+| ncle OR ncle
+| ncle XOR ncle
+| NOT ncle %prec NEG
+| '(' ncle ')'
+;
+
+smle:
+  string_matching_list
+| smle AND smle
+| smle OR smle
+| smle XOR smle
+| NOT smle %prec NEG
+| '(' smle ')'
+;
+
+
+for_clause:
+  %empty
+| FOR KV
+| FOR KEY
+| FOR VALUE
+;
+
+number_comparing_condition:
   LT exp
 | GT exp
 | LE exp
@@ -170,59 +201,51 @@ number_rule:
 | EQ exp
 ;
 
-matching_rules:
-  like_rule
-| as_rule
-| matching_rules like_rule
-| matching_rules as_rule
-;
-
-like_rule:
-  LIKE pattern_expression
-;
-
-as_rule:
-  AS literal_str_exp
-;
-
-for_clause:
-  %empty
-| ',' FOR KV
-| ',' FOR KEY
-| ',' FOR VALUE
-;
-
-pattern_expression:
-  literal_str_exp
-| '/' reg_str '/'
-| '/' reg_str '/' regexp_flags
-;
-
-literal_str:
-  SQ str SQ
-;
-
-literal_str_exp:
-  literal_str
-| literal_str matching_flags
-| literal_str matching_flags max_matching_length
-| literal_str max_matching_length
-;
-
-str:
+literal_char_sequence:
   STR
 | CHR
 | UNI
-| str STR
-| str CHR
-| str UNI
+| literal_char_sequence STR
+| literal_char_sequence CHR
+| literal_char_sequence UNI
 ;
 
-reg_str:
+string_matching_list:
+  string_matching_expression
+| string_matching_list ',' string_matching_expression
+;
+
+string_matching_expression:
+  LIKE string_pattern_expression
+| AS '"' literal_char_sequence '"' matching_suffix
+;
+
+string_pattern_expression:
+  '"' wildcard_expression '"' matching_suffix
+| '/' regular_expression '/' regexp_suffix
+;
+
+wildcard_expression:
+  literal_char_sequence
+;
+
+regular_expression:
   STR
 | CHR
-| str STR
-| str CHR
+| regular_expression STR
+| regular_expression CHR
+;
+
+matching_suffix:
+  %empty
+| matching_flags
+| matching_flags max_matching_length
+| max_matching_length
+;
+
+regexp_suffix:
+  %empty
+| regexp_flags
 ;
 
 regexp_flags:

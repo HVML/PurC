@@ -121,12 +121,11 @@
 
     /* %destructor { free($$); } <str> */ // destructor for `str`
 
-%token KEY ALL LIKE FOR VALUE KV AS
-%token SQ "'"
-%token <c>      MATCHING_FLAG REGEXP_FLAG
-%token <token>  MATCHING_LENGTH
-%token <token>  INTEGER
-%token <token>  STR CHR UNI
+%token KEY ALL FOR VALUE KV LIKE AS
+%token STR CHR UNI
+%token <c>     MATCHING_FLAG REGEXP_FLAG
+%token <token> MATCHING_LENGTH
+%token <token> INTEGER NUMBER
 
  /* %nterm <str>   args */ // non-terminal `input` use `str` to store
                            // token value as well
@@ -134,72 +133,74 @@
 %% /* The grammar follows. */
 
 input:
-  rule
-;
-
-rule:
   key_rule
 ;
 
 key_rule:
-  KEY ':' subrules for_clause
+  KEY ':' clause for_clause
 ;
 
-subrules:
+clause:
   ALL
-| string_rules
-| matching_rules
-;
-
-string_rules:
-  string_rule
-| string_rules string_rule
-;
-
-string_rule:
-  AS literal_str_exp
-;
-
-matching_rules:
-  matching_rule
-| matching_rules matching_rule
-;
-
-matching_rule:
-  LIKE pattern_expression
+| key_matching_list
 ;
 
 for_clause:
   %empty
-| ',' FOR KV
-| ',' FOR KEY
-| ',' FOR VALUE
+| FOR KEY
+| FOR KV
+| FOR VALUE
 ;
 
-pattern_expression:
-  literal_str_exp
-| '/' str '/'
-| '/' str '/' regexp_flags
-;
-
-literal_str:
-  SQ str SQ
-;
-
-literal_str_exp:
-  literal_str
-| literal_str matching_flags
-| literal_str matching_flags max_matching_length
-| literal_str max_matching_length
-;
-
-str:
+literal_char_sequence:
   STR
 | CHR
 | UNI
-| str STR
-| str CHR
-| str UNI
+| literal_char_sequence STR
+| literal_char_sequence CHR
+| literal_char_sequence UNI
+;
+
+key_matching_list:
+  string_matching_list
+;
+
+string_matching_list:
+  string_matching_expression
+| string_matching_list ',' string_matching_expression
+;
+
+string_matching_expression:
+  LIKE string_pattern_expression
+| AS '"' literal_char_sequence '"' matching_suffix
+;
+
+string_pattern_expression:
+  '"' wildcard_expression '"' matching_suffix
+| '/' regular_expression '/' regexp_suffix
+;
+
+wildcard_expression:
+  literal_char_sequence
+;
+
+regular_expression:
+  STR
+| CHR
+| regular_expression STR
+| regular_expression CHR
+;
+
+matching_suffix:
+  %empty
+| matching_flags
+| matching_flags max_matching_length
+| max_matching_length
+;
+
+regexp_suffix:
+  %empty
+| regexp_flags
 ;
 
 regexp_flags:
