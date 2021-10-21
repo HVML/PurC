@@ -177,14 +177,14 @@ AS        { R(); PUSH(KW); C(); return MKT(AS); }
 {INTEGER} { R(); SET_STR(); C(); return MKT(MATCHING_LENGTH); }
 {SP}      { R(); POP(); C(); } /* eat */
 {LN}      { R(); POP(); L(); } /* eat */
-.         { R(); POP(); C(); yyless(0); }
+.         { R(); POP(); C(); yyless(0); } /* let `upper` level to handle */
 }
 
 <AFTER_REGEXP>{
 [gimsuy]  { R(); SET_CHR(*yytext); C(); return MKT(REGEXP_FLAG); }
 {SP}      { R(); POP(); C(); } /* eat */
 {LN}      { R(); POP(); L(); } /* eat */
-.         { R(); POP(); C(); yyless(0); }
+.         { R(); POP(); C(); yyless(0); } /* let `upper` level to handle */
 }
 
 
