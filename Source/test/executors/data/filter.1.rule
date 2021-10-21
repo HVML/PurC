@@ -99,6 +99,7 @@ FILTER:LIKE /hello/ XOR AS 'a';
 FILTER:LIKE /a/gimsuy;
 FILTER:AS 'a'isc789;
 FILTER: AS 'a' AND LT 3 ;
+FILTER: AS 'a' AND LT 3.4 ;
 
 
 # multiple line

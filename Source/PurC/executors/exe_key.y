@@ -121,11 +121,19 @@
 
     /* %destructor { free($$); } <str> */ // destructor for `str`
 
-%token KEY ALL FOR VALUE KV LIKE AS
-%token STR CHR UNI
+%token KEY ALL LIKE KV VALUE FOR AS
+%token NOT
 %token <c>     MATCHING_FLAG REGEXP_FLAG
 %token <token> MATCHING_LENGTH
+%token <token> STR CHR UNI
 %token <token> INTEGER NUMBER
+
+%left '-' '+'
+%left '*' '/'
+%precedence UMINUS
+
+%left AND OR XOR
+%precedence NEG
 
  /* %nterm <str>   args */ // non-terminal `input` use `str` to store
                            // token value as well
@@ -133,22 +141,35 @@
 %% /* The grammar follows. */
 
 input:
+  rule
+;
+
+rule:
   key_rule
 ;
 
 key_rule:
-  KEY ':' clause for_clause
+  KEY ':' subrule for_clause
 ;
 
-clause:
+subrule:
   ALL
-| key_matching_list
+| logical_expression
+;
+
+logical_expression:
+  string_matching_expression
+| logical_expression AND logical_expression
+| logical_expression OR logical_expression
+| logical_expression XOR logical_expression
+| NOT logical_expression %prec NEG
+| '(' logical_expression ')'
 ;
 
 for_clause:
   %empty
-| FOR KEY
 | FOR KV
+| FOR KEY
 | FOR VALUE
 ;
 
@@ -161,18 +182,23 @@ literal_char_sequence:
 | literal_char_sequence UNI
 ;
 
-key_matching_list:
-  string_matching_list
-;
-
-string_matching_list:
-  string_matching_expression
-| string_matching_list ',' string_matching_expression
-;
-
 string_matching_expression:
-  LIKE string_pattern_expression
-| AS '"' literal_char_sequence '"' matching_suffix
+  LIKE string_pattern_list
+| AS string_literal_list
+;
+
+string_literal_list:
+  string_literal_expression
+| string_literal_list ',' string_literal_expression
+;
+
+string_literal_expression:
+  '"' literal_char_sequence '"' matching_suffix
+;
+
+string_pattern_list:
+  string_pattern_expression
+| string_pattern_list ',' string_pattern_expression
 ;
 
 string_pattern_expression:
