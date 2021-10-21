@@ -121,16 +121,13 @@
 
     /* %destructor { free($$); } <str> */ // destructor for `str`
 
-%token CHAR FROM TO ADVANCE STOP ON
-%token SP SQ STR CHR UNI
-%token <token>  INTEGER
+%token CHAR FROM TO ADVANCE UNTIL
+%token SQ STR CHR UNI
+%token <token>  INTEGER NUMBER
 
-%left FROM TO ADVANCE STOP ON SQ
 %left '-' '+'
 %left '*' '/'
 %precedence NEG /* negation--unary minus */
-%precedence '\n'
-%precedence SP
 
  /* %nterm <str>   args */ // non-terminal `input` use `str` to store
                            // token value as well
@@ -142,66 +139,39 @@ input:
 ;
 
 rule:
-  char_rule ows
+  char_rule
 ;
 
 char_rule:
-  CHAR osp ':' ows from_clause
-| CHAR osp ':' ows from_clause stop_clause
-| CHAR osp ':' ows from_clause advance_clause
-| CHAR osp ':' ows from_clause advance_clause stop_clause
+  CHAR ':' from_clause to_clause advance_clause until_clause
 ;
 
 from_clause:
-  FROM sp exp
-| FROM sp exp TO sp exp
+  FROM exp
+;
+
+to_clause:
+  %empty
+| TO exp
 ;
 
 advance_clause:
-  comma ADVANCE sp exp
-;
-
-stop_clause:
-  comma STOP sp ON sp literal_str
-;
-
-ws:
-  SP
-| '\n'
-| ws SP
-| ws '\n'
-;
-
-ows:
   %empty
-| ws
+| ADVANCE exp
 ;
 
-sp:
-  SP
-| sp SP
-;
-
-osp:
+until_clause:
   %empty
-| sp
-;
-
-comma:
-  ','
-| comma SP
-| comma '\n'
+| UNTIL literal_str
 ;
 
 exp:
   INTEGER
-| exp '+' ows exp
-| exp '-' ows exp
-| exp '*' ows exp
-| exp '/' ows exp
-| '(' ows exp ')'
-| exp SP
-| exp '\n'
+| exp '+' exp
+| exp '-' exp
+| exp '*' exp
+| exp '/' exp
+| '(' exp ')'
 ;
 
 literal_str:

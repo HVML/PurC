@@ -143,17 +143,16 @@ input:
 ;
 
 rule:
-  exe_filter_rule
+  filter_rule
 ;
 
-exe_filter_rule:
+filter_rule:
   FILTER ':' subrules for_clause
 ;
 
 subrules:
   ALL
 | number_rules
-| string_rules
 | matching_rules
 ;
 
@@ -171,22 +170,19 @@ number_rule:
 | EQ exp
 ;
 
-string_rules:
-  string_rule
-| string_rules string_rule
-;
-
-string_rule:
-  AS literal_str_exp
-;
-
 matching_rules:
-  matching_rule
-| matching_rules matching_rule
+  like_rule
+| as_rule
+| matching_rules like_rule
+| matching_rules as_rule
 ;
 
-matching_rule:
+like_rule:
   LIKE pattern_expression
+;
+
+as_rule:
+  AS literal_str_exp
 ;
 
 for_clause:
@@ -198,8 +194,8 @@ for_clause:
 
 pattern_expression:
   literal_str_exp
-| '/' str '/'
-| '/' str '/' regexp_flags
+| '/' reg_str '/'
+| '/' reg_str '/' regexp_flags
 ;
 
 literal_str:
@@ -220,6 +216,13 @@ str:
 | str STR
 | str CHR
 | str UNI
+;
+
+reg_str:
+  STR
+| CHR
+| str STR
+| str CHR
 ;
 
 regexp_flags:

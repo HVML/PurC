@@ -49,6 +49,8 @@ FILTER : LT 1 - 2 - - 3 - 4 ;
 FILTER : LT 1 - 2 * - 3 - 4 ;
 FILTER : LT 1 - 2 / - 3 - 4 ;
 FILTER : LT 1 - 2 + - ( 3 - 4 ) ;
+FILTER: AS 'a' LIKE /hello/ ;
+FILTER: LIKE /hello/ AS 'a' ;
 
 # number
 FILTER : LT .3e+0 ;
@@ -63,6 +65,10 @@ FILTER : LT 0.3e-12 ;
 FILTER : LT 00 ;
 FILTER : LT 00. ;
 FILTER : LT .00 ;
+
+# flags
+FILTER: LIKE /a/gimsuy ;
+FILTER: AS 'a'isc789 ;
 
 # no SPACE in between
 FILTER:ALL;
@@ -88,6 +94,11 @@ FILTER:LIKE 'a'789 LIKE 'b' LIKE /hello/igmsuy LIKE 'world'isc789;
 FILTER:LIKE 'a'789 LIKE 'b' LIKE /hello/igmsuy LIKE 'world'isc789,FOR KEY;
 FILTER:LT 123 LT 234;
 FILTER:AS 'a' AS 'a';
+FILTER:AS 'a' LIKE /hello/;
+FILTER:LIKE /hello/ AS 'a';
+FILTER:LIKE /a/gimsuy;
+FILTER:AS 'a'isc789;
+
 
 # multiple line
 FILTER:
@@ -128,13 +139,20 @@ FILTER: LT 3 ALL ;
 FILTER: LT 3 AS 'a' ;
 FILTER: LT 3 LIKE /hello/ ;
 FILTER: AS 'a' ALL ;
-FILTER: AS 'a' LIKE /hello/ ;
 FILTER: AS 'a' LT 3 ;
 FILTER: LIKE /hello/ ALL ;
-FILTER: LIKE /hello/ AS 'a' ;
 FILTER: LIKE /hello/ LT 3 ;
 
 # number
 FILTER : LT . ;
 FILTER : LT 0.3e ;
+
+# flags
+FILTER: AS 'a'789isc;
+FILTER: AS 'a'i s c;
+FILTER: AS 'a'7 8 9;
+FILTER: AS 'a'isc 789;
+FILTER: AS 'a'x;
+FILTER: LIKE /a/gim suy;
+FILTER: LIKE /a/x;
 
