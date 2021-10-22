@@ -16,65 +16,34 @@ P: # bellow are positive samples
                       
 
 # all seperated with a SPACE
-FORMULA : FROM 0 ;
-FORMULA : FROM 0 TO 10 ;
-FORMULA : FROM 0 TO 10 , ADVANCE 2 ;
-FORMULA : FROM 0 TO 10 , ADVANCE 1 + 2 ;
-FORMULA : FROM 0 TO 10 , ADVANCE 1 + 2 / 4 - 3 * 5 ;
-FORMULA : FROM 0 TO 10 , ADVANCE 1 + 2 / ( 4 - 3 ) * 5 ;
+FORMULA : LT 100 BY -3 ;
+
 # no SPACE in between
-FORMULA:FROM 0 TO 10,ADVANCE 1+2/(4-3)*5;
+FORMULA:LT 100 BY -3;
+
 # multiple line
 FORMULA:
-        FROM 0
-        TO 1
-        +
-        2
-        /
-        (
-        4
-        -
-        3
-        )
-        *
-        5
-        ,
-        ADVANCE 1
-        +
-        2
-        /
-        (
-        4
-        -
-        3
-        )
-        *
-        5
-        ;
+LT
+100
+BY
+-
+3
+;
+
+# with variable and expression
+FORMULA: LT ( 4 + 6 ) * 10 BY ( x * 2 - 50 ) ;
+FORMULA:LT (4+6)*10 BY (x*2-50);
 
 N: # bellow are negative samples
 # blank lines
                       
 
 # SPACE required
-FORMULA:FROM0 TO 10,ADVANCE 1;
-FORMULA:FROM 0TO 10,ADVANCE 1;
-FORMULA:FROM 0 TO10,ADVANCE 1;
-FORMULA:FROM 0 TO 10,ADVANCE1;
+FORMULA:LT100 BY -3;
+FORMULA:LT 100BY -3;
+FORMULA:LT 100 BY-3;
 
 # '\n' in wrong place
 FORMULA
-:FROM 0 TO 10,ADVANCE 1;
-
-FORMULA: FROM
-0 TO 10,ADVANCE 1;
-
-FORMULA: FROM 0 TO
-10,ADVANCE 1;
-
-FORMULA: FROM 0 TO 10, ADVANCE
-1;
-
-FORMULA: FROM 0TO 10, ADVANCE
-1;
+:LT 100 BY -3;
 

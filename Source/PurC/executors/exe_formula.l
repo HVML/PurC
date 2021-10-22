@@ -82,12 +82,14 @@ do {                                              \
 %option perf-report
 %option 8bit
 
-%x FORMULA
-%x AFTER_INT
+%x KW
+%x AFTER_NUM AFTER_ID
 
 SP       [ \t]
 LN       [\r\n]|[\f\r\n]
 INTEGER  [0-9]+
+NUMBER   ([.][0-9]+(e[-+][0-9]+)?)|([0-9]+[.][0-9]*(e[-+][0-9]+)?)
+ID       [_[:alpha:]][_[:alnum:]]*
 
 %%
 
@@ -95,26 +97,38 @@ INTEGER  [0-9]+
           if (state != INITIAL) return -1;
           yyterminate(); }
 
-FORMULA     { R(); PUSH(FORMULA); C(); return MKT(FORMULA); }
-FROM      { R(); C(); return MKT(FROM); }
-TO        { R(); C(); return MKT(TO); }
-ADVANCE   { R(); C(); return MKT(ADVANCE); }
-{INTEGER} { R(); PUSH(AFTER_INT); SET_STR(); C(); return MKT(INTEGER); }
-{SP}      { R(); C(); return MKT(SP); }
-{LN}      { R(); L(); return '\n'; }
+FORMULA/[ \t]*:    { R(); C(); return MKT(FORMULA); }
+BY        { R(); PUSH(KW); C(); return MKT(BY); }
+LT        { R(); PUSH(KW); C(); return MKT(LT); }
+GT        { R(); PUSH(KW); C(); return MKT(GT); }
+LE        { R(); PUSH(KW); C(); return MKT(LE); }
+GE        { R(); PUSH(KW); C(); return MKT(GE); }
+NE        { R(); PUSH(KW); C(); return MKT(NE); }
+EQ        { R(); PUSH(KW); C(); return MKT(EQ); }
+{ID}      { R(); PUSH(AFTER_ID); C(); return MKT(ID); }
+{INTEGER} { R(); PUSH(AFTER_NUM); SET_STR(); C(); return MKT(INTEGER); }
+{NUMBER}  { R(); PUSH(AFTER_NUM); SET_STR(); C(); return MKT(NUMBER); }
+{SP}      { R(); C(); } /* eat */
+{LN}      { R(); L(); } /* eat */
 .         { R(); C(); return *yytext; } /* let bison to handle */
 
-<FORMULA>{
-[:]       { R(); POP(); C(); return *yytext; }
-{SP}      { R(); C(); return MKT(SP); }
-{LN}      { R(); L(); return '\n'; }
+<KW>{
+{SP}      { R(); POP(); C(); } /* eat */
+{LN}      { R(); POP(); L(); } /* eat */
 .         { R(); C(); return *yytext; } /* let bison to handle */
 }
 
-<AFTER_INT>{
-[-+*/(),] { R(); POP(); C(); return *yytext; }
-{SP}      { R(); POP(); C(); return MKT(SP); }
-{LN}      { R(); POP(); L(); return '\n'; }
+<AFTER_NUM>{
+[-+*/)]   { R(); POP(); C(); yyless(0); }
+{SP}      { R(); POP(); C(); } /* eat */
+{LN}      { R(); POP(); L(); } /* eat */
+.         { R(); C(); return *yytext; } /* let bison to handle */
+}
+
+<AFTER_ID>{
+[-+*/)]   { R(); POP(); C(); yyless(0); }
+{SP}      { R(); POP(); C(); } /* eat */
+{LN}      { R(); POP(); L(); } /* eat */
 .         { R(); C(); return *yytext; } /* let bison to handle */
 }
 

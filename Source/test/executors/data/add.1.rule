@@ -16,65 +16,30 @@ P: # bellow are positive samples
                       
 
 # all seperated with a SPACE
-ADD : FROM 0 ;
-ADD : FROM 0 TO 10 ;
-ADD : FROM 0 TO 10 , ADVANCE 2 ;
-ADD : FROM 0 TO 10 , ADVANCE 1 + 2 ;
-ADD : FROM 0 TO 10 , ADVANCE 1 + 2 / 4 - 3 * 5 ;
-ADD : FROM 0 TO 10 , ADVANCE 1 + 2 / ( 4 - 3 ) * 5 ;
+ADD : LT 100 BY -3 ;
+
 # no SPACE in between
-ADD:FROM 0 TO 10,ADVANCE 1+2/(4-3)*5;
+ADD:LT 100 BY -3;
+
 # multiple line
 ADD:
-        FROM 0
-        TO 1
-        +
-        2
-        /
-        (
-        4
-        -
-        3
-        )
-        *
-        5
-        ,
-        ADVANCE 1
-        +
-        2
-        /
-        (
-        4
-        -
-        3
-        )
-        *
-        5
-        ;
+LT
+100
+BY
+-
+3
+;
 
 N: # bellow are negative samples
 # blank lines
                       
 
 # SPACE required
-ADD:FROM0 TO 10,ADVANCE 1;
-ADD:FROM 0TO 10,ADVANCE 1;
-ADD:FROM 0 TO10,ADVANCE 1;
-ADD:FROM 0 TO 10,ADVANCE1;
+ADD:LT100 BY -3;
+ADD:LT 100BY -3;
+ADD:LT 100 BY-3;
 
 # '\n' in wrong place
 ADD
-:FROM 0 TO 10,ADVANCE 1;
-
-ADD: FROM
-0 TO 10,ADVANCE 1;
-
-ADD: FROM 0 TO
-10,ADVANCE 1;
-
-ADD: FROM 0 TO 10, ADVANCE
-1;
-
-ADD: FROM 0TO 10, ADVANCE
-1;
+:LT 100 BY -3;
 

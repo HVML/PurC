@@ -121,16 +121,13 @@
 
     /* %destructor { free($$); } <str> */ // destructor for `str`
 
-%token MUL FROM TO ADVANCE
-%token SP
-%token <token>  INTEGER
+%token MUL BY
+%token LT GT LE GE NE EQ
+%token <token> INTEGER NUMBER
 
-%left FROM TO ADVANCE
 %left '-' '+'
 %left '*' '/'
-%precedence NEG /* negation--unary minus */
-%precedence '\n'
-%precedence SP
+%precedence UMINUS
 
  /* %nterm <str>   args */ // non-terminal `input` use `str` to store
                            // token value as well
@@ -138,64 +135,31 @@
 %% /* The grammar follows. */
 
 input:
-  rule
+  mul_rule
 ;
 
-rule:
-  exe_mul_rule ows
+mul_rule:
+  MUL ':' number_comparing_condition BY exp
 ;
 
-exe_mul_rule:
-  MUL osp ':' ows FROM sp exp
-| MUL osp ':' ows FROM sp exp to_clause
-| MUL osp ':' ows FROM sp exp to_clause comma advance_clause
-;
-
-to_clause:
-  TO sp exp
-;
-
-advance_clause:
-  ADVANCE sp exp
-;
-
-ws:
-  SP
-| '\n'
-| ws SP
-| ws '\n'
-;
-
-ows:
-  %empty
-| ws
-;
-
-sp:
-  SP
-| sp SP
-;
-
-osp:
-  %empty
-| sp
-;
-
-comma:
-  ','
-| comma SP
-| comma '\n'
+number_comparing_condition:
+  LT exp
+| GT exp
+| LE exp
+| GE exp
+| NE exp
+| EQ exp
 ;
 
 exp:
   INTEGER
-| exp '+' ows exp
-| exp '-' ows exp
-| exp '*' ows exp
-| exp '/' ows exp
-| '(' ows exp ')'
-| exp SP
-| exp '\n'
+| NUMBER
+| exp '+' exp
+| exp '-' exp
+| exp '*' exp
+| exp '/' exp
+| '-' exp %prec UMINUS
+| '(' exp ')'
 ;
 
 %%
