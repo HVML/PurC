@@ -97,7 +97,7 @@ NUMBER   ([.][0-9]+(e[-+][0-9]+)?)|([0-9]+[.][0-9]*(e[-+][0-9]+)?)
           if (state != INITIAL) return -1;
           yyterminate(); }
 
-FILTER/[ \t]*:    { R(); C(); yyless(6); return MKT(FILTER); }
+FILTER/[ \t]*:    { R(); C(); return MKT(FILTER); }
 LT        { R(); PUSH(KW); C(); return MKT(LT); }
 GT        { R(); PUSH(KW); C(); return MKT(GT); }
 LE        { R(); PUSH(KW); C(); return MKT(LE); }
