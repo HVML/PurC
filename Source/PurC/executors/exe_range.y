@@ -122,7 +122,7 @@
     /* %destructor { free($$); } <str> */ // destructor for `str`
 
 %token RANGE FROM TO ADVANCE
-%token <token>  INTEGER NUMBER
+%token <token> INTEGER NUMBER
 
 %left '-' '+'
 %left '*' '/'
@@ -131,28 +131,36 @@
  /* %nterm <str>   args */ // non-terminal `input` use `str` to store
                            // token value as well
 
-%% /* The grammar foll. */
+%% /* The grammar follows. */
 
 input:
   rule
 ;
 
 rule:
-  exe_range_rule
+  range_rule
 ;
 
-exe_range_rule:
-  RANGE ':' FROM exp to_clause advance_clause
+range_rule:
+  RANGE ':' subrule
+;
+
+subrule:
+  FROM integer_expression to_clause advance_clause
 ;
 
 to_clause:
   %empty
-| TO exp
+| TO integer_expression
 ;
 
 advance_clause:
   %empty
-| ',' ADVANCE exp
+| ADVANCE integer_expression
+;
+
+integer_expression:
+  exp
 ;
 
 exp:

@@ -82,8 +82,9 @@ do {                                              \
 %option perf-report
 %option 8bit
 
-%x AFTER_NUM
+%x IN_STR IN_REGEXP IN_LIKE
 %x KW
+%x AFTER_STR AFTER_NUM AFTER_REGEXP
 
 SP       [ \t]
 LN       [\r\n]|[\f\r\n]
@@ -107,6 +108,7 @@ ADVANCE   { R(); PUSH(KW); C(); return MKT(ADVANCE); }
 .         { R(); C(); return *yytext; } /* let bison to handle */
 
 <KW>{
+[,]       { R(); POP(); C(); return *yytext; }
 {SP}      { R(); POP(); C(); } /* eat */
 {LN}      { R(); POP(); L(); } /* eat */
 .         { R(); C(); return *yytext; } /* let bison to handle */
@@ -118,7 +120,6 @@ ADVANCE   { R(); PUSH(KW); C(); return MKT(ADVANCE); }
 {LN}      { R(); POP(); L(); } /* eat */
 .         { R(); C(); return *yytext; } /* let bison to handle */
 }
-
 
 %%
 

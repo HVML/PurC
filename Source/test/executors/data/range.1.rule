@@ -18,15 +18,15 @@ P: # bellow are positive samples
 # all seperated with a SPACE
 RANGE : FROM 0 ;
 RANGE : FROM 0 TO 10 ;
-RANGE : FROM 0 TO 10 , ADVANCE 2 ;
-RANGE : FROM 0 TO 10 , ADVANCE 1 + 2 ;
-RANGE : FROM 0 TO 10 , ADVANCE 1 + 2 / 4 - 3 * 5 ;
-RANGE : FROM 0 TO 10 , ADVANCE 1 + 2 / ( 4 - 3 ) * 5 ;
-RANGE : FROM 0 TO 10 , ADVANCE 1 + 2 / - ( 4 - 3 ) * 5 ;
+RANGE : FROM 0 TO 10 ADVANCE 2 ;
+RANGE : FROM 0 TO 10 ADVANCE 1 + 2 ;
+RANGE : FROM 0 TO 10 ADVANCE 1 + 2 / 4 - 3 * 5 ;
+RANGE : FROM 0 TO 10 ADVANCE 1 + 2 / ( 4 - 3 ) * 5 ;
+RANGE : FROM 0 TO 10 ADVANCE 1 + 2 / - ( 4 - 3 ) * 5 ;
 RANGE : FROM 0.e+1 ;
 
 # no SPACE in between
-RANGE:FROM 0 TO 10,ADVANCE 1+2/(4-3)*5;
+RANGE:FROM 0 TO 10 ADVANCE 1+2/(4-3)*5;
 # multiple line
 RANGE:
         FROM 0
@@ -41,7 +41,6 @@ RANGE:
         )
         *
         5
-        ,
         ADVANCE 1
         +
         2
@@ -56,12 +55,12 @@ RANGE:
         ;
 
 RANGE: FROM
-0 TO 10,ADVANCE 1;
+0 TO 10 ADVANCE 1;
 
 RANGE: FROM 0 TO
-10,ADVANCE 1;
+10 ADVANCE 1;
 
-RANGE: FROM 0 TO 10, ADVANCE
+RANGE: FROM 0 TO 10 ADVANCE
 1;
 
 
@@ -70,15 +69,15 @@ N: # bellow are negative samples
                       
 
 # SPACE required
-RANGE:FROM0 TO 10,ADVANCE 1;
-RANGE:FROM 0TO 10,ADVANCE 1;
-RANGE:FROM 0 TO10,ADVANCE 1;
-RANGE:FROM 0 TO 10,ADVANCE1;
+RANGE:FROM0 TO 10 ADVANCE 1;
+RANGE:FROM 0TO 10 ADVANCE 1;
+RANGE:FROM 0 TO10 ADVANCE 1;
+RANGE:FROM 0 TO 10 ADVANCE1;
 
 # '\n' in wrong place
 RANGE
-:FROM 0 TO 10,ADVANCE 1;
+:FROM 0 TO 10 ADVANCE 1;
 
-RANGE: FROM 0TO 10, ADVANCE
+RANGE: FROM 0TO 10 ADVANCE
 1;
 
