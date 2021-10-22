@@ -103,6 +103,10 @@ TO          { R(); PUSH(KW); C(); return MKT(TO); }
 ADVANCE     { R(); PUSH(KW); C(); return MKT(ADVANCE); }
 DELIMETERS  { R(); PUSH(KW); C(); return MKT(DELIMETERS); }
 UNTIL       { R(); PUSH(KW); C(); return MKT(UNTIL); }
+AND         { R(); PUSH(KW); C(); return MKT(AND); }
+OR          { R(); PUSH(KW); C(); return MKT(OR); }
+XOR         { R(); PUSH(KW); C(); return MKT(XOR); }
+NOT         { R(); PUSH(KW); C(); return MKT(NOT); }
 LIKE        { R(); PUSH(IN_LIKE); PUSH(KW); C(); return MKT(LIKE); }
 AS          { R(); PUSH(KW); C(); return MKT(AS); }
 [']         { R(); PUSH(IN_SQ); C(); return '"'; }

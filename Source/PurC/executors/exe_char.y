@@ -122,12 +122,13 @@
     /* %destructor { free($$); } <str> */ // destructor for `str`
 
 %token CHAR FROM TO ADVANCE UNTIL
-%token SQ STR CHR UNI
+%token STR CHR UNI
 %token <token>  INTEGER NUMBER
 
 %left '-' '+'
 %left '*' '/'
-%precedence NEG /* negation--unary minus */
+%precedence UMINUS
+
 
  /* %nterm <str>   args */ // non-terminal `input` use `str` to store
                            // token value as well
@@ -135,19 +136,11 @@
 %% /* The grammar follows. */
 
 input:
-  rule
-;
-
-rule:
   char_rule
 ;
 
 char_rule:
-  CHAR ':' from_clause to_clause advance_clause until_clause
-;
-
-from_clause:
-  FROM exp
+  CHAR ':' FROM exp to_clause advance_clause until_clause
 ;
 
 to_clause:
@@ -171,18 +164,21 @@ exp:
 | exp '-' exp
 | exp '*' exp
 | exp '/' exp
+| '-' exp %prec UMINUS
 | '(' exp ')'
 ;
 
 literal_str:
-  SQ sq_str SQ
+  '"' str '"'
 ;
 
-sq_str:
+str:
   STR
 | CHR
-| sq_str STR
-| sq_str CHR
+| UNI
+| str STR
+| str CHR
+| str UNI
 ;
 
 %%

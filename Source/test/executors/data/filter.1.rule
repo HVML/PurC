@@ -36,7 +36,7 @@ FILTER : LIKE 'a'isc ;
 FILTER : LIKE 'a'789 ;
 FILTER : LIKE 'a'789  AND LIKE 'b' ;
 FILTER : LIKE 'a'789  AND LIKE 'b' AND LIKE /hello/igmsuy ;
-FILTER : LIKE 'a'789  AND LIKE 'b' AND LIKE /hello/igmsuy AND LIKE 'world'isc789 ;
+FILTER : LIKE 'a'789  AND LIKE 'b' AND LIKE /hello/igmsuy AND LIKE "world"isc789 ;
 FILTER : LIKE 'a'789  AND LIKE 'b' AND LIKE /hello/igmsuy AND LIKE 'world'isc789 FOR KEY ;
 FILTER : LT 123 ;
 FILTER : AS 'a' OR AS 'a' ;
@@ -51,6 +51,9 @@ FILTER : LT 1 - 2 / - 3 - 4 ;
 FILTER : LT 1 - 2 + - ( 3 - 4 ) ;
 FILTER: AS 'a' AND LIKE /hello/ ;
 FILTER: LIKE /hello/ AND AS 'a' ;
+FILTER: AS "a" AND LIKE /hello/ ;
+FILTER: LIKE /hello/ AND AS "a" ;
+FILTER: AS "a\"\f\t\r\n\u0a0a" ;
 
 # number
 FILTER : LT .3e+0 ;

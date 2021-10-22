@@ -82,9 +82,8 @@ do {                                              \
 %option perf-report
 %option 8bit
 
-%x IN_STR IN_REGEXP IN_LIKE
 %x KW
-%x AFTER_STR AFTER_NUM AFTER_REGEXP
+%x AFTER_NUM
 
 SP       [ \t]
 LN       [\r\n]|[\f\r\n]
