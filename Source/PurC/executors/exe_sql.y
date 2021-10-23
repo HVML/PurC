@@ -123,9 +123,9 @@
 
 %token SQL SELECT WHERE GROUP BY ORDER TRAVEL IN LIKE UNION AS ASC DESC
 %token SIBLINGS DEPTH BREADTH LEAVES
-%token NOT GE LE NE
+%token NOT GE LE NE AT
 %token <c> CHR UNI
-%token <token> STR
+%token <token> STR INTERIOR
 %token <token> INTEGER NUMBER ID
 
 %left UNION
@@ -214,7 +214,9 @@ exp:
 | NUMBER
 | var
 | '*'
+| '&'
 | '"' str '"'
+| AT ID
 | exp LIKE exp
 | exp IN '(' exp_list ')'
 | exp AND exp

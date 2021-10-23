@@ -29,6 +29,9 @@ SQL: ( SELECT * WHERE locale LIKE 'zh_*' UNION SELECT locale WHERE rank > 70 ) U
 SQL: SELECT a AS A, b AS B WHERE (age>3 AND age<10) AND (name='hello' OR name='world');
 SQL: SELECT (a+b) AS AB WHERE (age>3 AND age<10) AND (name='hello' OR name='world');
 
+SQL: SELECT & WHERE id = 'foo';
+SQL: SELECT tag, attr.id, textContent WHERE @__depth > 0 AND @__depth < 3 TRAVEL IN DEPTH;
+
 # no SPACE in between
 # multiple line
 

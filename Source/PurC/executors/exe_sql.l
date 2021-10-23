@@ -90,7 +90,7 @@ LN       [\r\n]|[\f\r\n]
 INTEGER  [0-9]+
 NUMBER   ([.][0-9]+(e[-+][0-9]+)?)|([0-9]+[.][0-9]*(e[-+][0-9]+)?)
 ID       [_[:alpha:]][_[:alnum:]]*
-OP       [-+*/,()=<>!.:]
+OP       [-+*/,()=<>!.:&@]
 
 %%
 
@@ -122,6 +122,7 @@ NOT       { R(); PUSH(KW); C(); return MKT(NOT); }
 "<="      { R(); C(); return MKT(LE); }
 "<>"      { R(); C(); return MKT(NE); }
 {OP}      { R(); C(); return *yytext; }
+[@]/{ID}  { R(); C(); yyless(1); return MKT(AT); }
 [']       { R(); PUSH(IN_SQ); C(); return '"'; }
 ["]       { R(); PUSH(IN_DQ); C(); return '"'; }
 {INTEGER} { R(); PUSH(AFTER_NUM); SET_STR(); C(); return MKT(INTEGER); }
