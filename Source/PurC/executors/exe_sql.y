@@ -121,16 +121,21 @@
 
     /* %destructor { free($$); } <str> */ // destructor for `str`
 
-%token SQL FROM TO ADVANCE
-%token SP
-%token <token>  INTEGER
+%token SQL SELECT WHERE GROUP BY ORDER TRAVEL IN LIKE UNION AS ASC DESC
+%token SIBLINGS DEPTH BREADTH LEAVES
+%token NOT GE LE NE
+%token <c> CHR UNI
+%token <token> STR
+%token <token> INTEGER NUMBER ID
 
-%left FROM TO ADVANCE
+%left UNION
+%left IN LIKE
+%left AND OR
+%right '=' '<' '>' GE LE NE
 %left '-' '+'
 %left '*' '/'
-%precedence NEG /* negation--unary minus */
-%precedence '\n'
-%precedence SP
+%precedence UMINUS
+%precedence NEG
 
  /* %nterm <str>   args */ // non-terminal `input` use `str` to store
                            // token value as well
@@ -142,60 +147,105 @@ input:
 ;
 
 rule:
-  exe_sql_rule ows
+  sql_rule
 ;
 
-exe_sql_rule:
-  SQL osp ':' ows FROM sp exp
-| SQL osp ':' ows FROM sp exp to_clause
-| SQL osp ':' ows FROM sp exp to_clause comma advance_clause
+sql_rule:
+  SQL ':' union_clause
 ;
 
-to_clause:
-  TO sp exp
+select_clause:
+  SELECT select_list where_clause group_by_clause order_by_clause travel_in_clause
 ;
 
-advance_clause:
-  ADVANCE sp exp
+union_clause:
+  select_clause
+| '(' union_clause ')'
+| union_clause UNION union_clause
 ;
 
-ws:
-  SP
-| '\n'
-| ws SP
-| ws '\n'
+select_list:
+  select_item
+| select_list ',' select_item
 ;
 
-ows:
+select_item:
+  exp
+| exp AS ID
+;
+
+var:
+  ID
+| ID '.' ID
+;
+
+var_list:
+  var
+| var_list ',' var
+;
+
+where_clause:
   %empty
-| ws
+| WHERE exp
 ;
 
-sp:
-  SP
-| sp SP
-;
-
-osp:
+group_by_clause:
   %empty
-| sp
+| GROUP BY var_list
 ;
 
-comma:
-  ','
-| comma SP
-| comma '\n'
+order_by_clause:
+  %empty
+| ORDER BY var_list
+| ORDER BY var_list ASC
+| ORDER BY var_list DESC
+;
+
+travel_in_clause:
+  %empty
+| TRAVEL IN SIBLINGS
+| TRAVEL IN DEPTH
+| TRAVEL IN BREADTH
+| TRAVEL IN LEAVES
 ;
 
 exp:
   INTEGER
-| exp '+' ows exp
-| exp '-' ows exp
-| exp '*' ows exp
-| exp '/' ows exp
-| '(' ows exp ')'
-| exp SP
-| exp '\n'
+| NUMBER
+| var
+| '*'
+| '"' str '"'
+| exp LIKE exp
+| exp IN '(' exp_list ')'
+| exp AND exp
+| exp OR exp
+| NOT exp %prec NEG
+| exp '=' exp
+| exp NE exp
+| exp LE exp
+| exp GE exp
+| exp '>' exp
+| exp '<' exp
+| exp '+' exp
+| exp '-' exp
+| exp '*' exp
+| exp '/' exp
+| '-' exp %prec UMINUS
+| '(' exp ')'
+;
+
+exp_list:
+  exp
+| exp ',' exp
+;
+
+str:
+  STR
+| CHR
+| UNI
+| str STR
+| str CHR
+| str UNI
 ;
 
 %%

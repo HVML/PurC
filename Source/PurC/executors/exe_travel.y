@@ -121,16 +121,15 @@
 
     /* %destructor { free($$); } <str> */ // destructor for `str`
 
-%token TRAVEL FROM TO ADVANCE
-%token SP
-%token <token>  INTEGER
+%token TRAVEL
+%token SIBLINGS DEPTH BREADTH LEAVES
 
-%left FROM TO ADVANCE
 %left '-' '+'
 %left '*' '/'
-%precedence NEG /* negation--unary minus */
-%precedence '\n'
-%precedence SP
+%precedence UMINUS
+
+%left AND OR XOR
+%precedence NEG
 
  /* %nterm <str>   args */ // non-terminal `input` use `str` to store
                            // token value as well
@@ -142,60 +141,18 @@ input:
 ;
 
 rule:
-  exe_travel_rule ows
+  travel_rule
 ;
 
-exe_travel_rule:
-  TRAVEL osp ':' ows FROM sp exp
-| TRAVEL osp ':' ows FROM sp exp to_clause
-| TRAVEL osp ':' ows FROM sp exp to_clause comma advance_clause
+travel_rule:
+  TRAVEL ':' subrule
 ;
 
-to_clause:
-  TO sp exp
-;
-
-advance_clause:
-  ADVANCE sp exp
-;
-
-ws:
-  SP
-| '\n'
-| ws SP
-| ws '\n'
-;
-
-ows:
-  %empty
-| ws
-;
-
-sp:
-  SP
-| sp SP
-;
-
-osp:
-  %empty
-| sp
-;
-
-comma:
-  ','
-| comma SP
-| comma '\n'
-;
-
-exp:
-  INTEGER
-| exp '+' ows exp
-| exp '-' ows exp
-| exp '*' ows exp
-| exp '/' ows exp
-| '(' ows exp ')'
-| exp SP
-| exp '\n'
+subrule:
+  SIBLINGS
+| DEPTH
+| BREADTH
+| LEAVES
 ;
 
 %%

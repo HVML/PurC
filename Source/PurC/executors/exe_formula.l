@@ -105,7 +105,7 @@ LE        { R(); PUSH(KW); C(); return MKT(LE); }
 GE        { R(); PUSH(KW); C(); return MKT(GE); }
 NE        { R(); PUSH(KW); C(); return MKT(NE); }
 EQ        { R(); PUSH(KW); C(); return MKT(EQ); }
-{ID}      { R(); PUSH(AFTER_ID); C(); return MKT(ID); }
+{ID}      { R(); PUSH(AFTER_ID); SET_STR(); C(); return MKT(ID); }
 {INTEGER} { R(); PUSH(AFTER_NUM); SET_STR(); C(); return MKT(INTEGER); }
 {NUMBER}  { R(); PUSH(AFTER_NUM); SET_STR(); C(); return MKT(NUMBER); }
 {SP}      { R(); C(); } /* eat */

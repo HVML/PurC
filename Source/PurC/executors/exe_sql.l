@@ -82,12 +82,15 @@ do {                                              \
 %option perf-report
 %option 8bit
 
-%x SQL
-%x AFTER_INT
+%x KW
+%x IN_SQ IN_DQ AFTER_NUM AFTER_STR AFTER_ID
 
 SP       [ \t]
 LN       [\r\n]|[\f\r\n]
 INTEGER  [0-9]+
+NUMBER   ([.][0-9]+(e[-+][0-9]+)?)|([0-9]+[.][0-9]*(e[-+][0-9]+)?)
+ID       [_[:alpha:]][_[:alnum:]]*
+OP       [-+*/,()=<>!.:]
 
 %%
 
@@ -95,26 +98,71 @@ INTEGER  [0-9]+
           if (state != INITIAL) return -1;
           yyterminate(); }
 
-SQL     { R(); PUSH(SQL); C(); return MKT(SQL); }
-FROM      { R(); C(); return MKT(FROM); }
-TO        { R(); C(); return MKT(TO); }
-ADVANCE   { R(); C(); return MKT(ADVANCE); }
-{INTEGER} { R(); PUSH(AFTER_INT); SET_STR(); C(); return MKT(INTEGER); }
-{SP}      { R(); C(); return MKT(SP); }
-{LN}      { R(); L(); return '\n'; }
+SQL/[ \t]*:    { R(); C(); return MKT(SQL); }
+UNION     { R(); PUSH(KW); C(); return MKT(UNION); }
+SELECT    { R(); PUSH(KW); C(); return MKT(SELECT); }
+AS        { R(); PUSH(KW); C(); return MKT(AS); }
+WHERE     { R(); PUSH(KW); C(); return MKT(WHERE); }
+GROUP     { R(); PUSH(KW); C(); return MKT(GROUP); }
+ORDER     { R(); PUSH(KW); C(); return MKT(ORDER); }
+BY        { R(); PUSH(KW); C(); return MKT(BY); }
+ASC       { R(); PUSH(KW); C(); return MKT(ASC); }
+DESC      { R(); PUSH(KW); C(); return MKT(DESC); }
+TRAVEL    { R(); PUSH(KW); C(); return MKT(TRAVEL); }
+IN        { R(); PUSH(KW); C(); return MKT(IN); }
+SIBLINGS  { R(); PUSH(KW); C(); return MKT(SIBLINGS); }
+DEPTH     { R(); PUSH(KW); C(); return MKT(DEPTH); }
+BREADTH   { R(); PUSH(KW); C(); return MKT(BREADTH); }
+LEAVES    { R(); PUSH(KW); C(); return MKT(LEAVES); }
+LIKE      { R(); PUSH(KW); C(); return MKT(LIKE); }
+AND       { R(); PUSH(KW); C(); return MKT(AND); }
+OR        { R(); PUSH(KW); C(); return MKT(OR); }
+NOT       { R(); PUSH(KW); C(); return MKT(NOT); }
+">="      { R(); C(); return MKT(GE); }
+"<="      { R(); C(); return MKT(LE); }
+"<>"      { R(); C(); return MKT(NE); }
+{OP}      { R(); C(); return *yytext; }
+[']       { R(); PUSH(IN_SQ); C(); return '"'; }
+["]       { R(); PUSH(IN_DQ); C(); return '"'; }
+{INTEGER} { R(); PUSH(AFTER_NUM); SET_STR(); C(); return MKT(INTEGER); }
+{NUMBER}  { R(); PUSH(AFTER_NUM); SET_STR(); C(); return MKT(NUMBER); }
+{ID}      { R(); PUSH(AFTER_ID); SET_STR(); C(); return MKT(ID); }
+{SP}      { R(); C(); } /* eat */
+{LN}      { R(); L(); } /* eat */
 .         { R(); C(); return *yytext; } /* let bison to handle */
 
-<SQL>{
-[:]       { R(); POP(); C(); return *yytext; }
-{SP}      { R(); C(); return MKT(SP); }
-{LN}      { R(); L(); return '\n'; }
-.         { R(); C(); return *yytext; } /* let bison to handle */
+<IN_SQ>{
+[']{2}             { R(); SET_CHR('\''); C(); return MKT(CHR); }
+[']                { R(); CHG(AFTER_STR); C(); return '"'; }
+[^'\\\f\r\n]+      { R(); SET_STR(); C(); return MKT(STR); }
+\\['\\]            { R(); SET_CHR(yytext[1]); C(); return MKT(CHR); }
 }
 
-<AFTER_INT>{
-[-+*/(),] { R(); POP(); C(); return *yytext; }
-{SP}      { R(); POP(); C(); return MKT(SP); }
-{LN}      { R(); POP(); L(); return '\n'; }
+<IN_DQ>{
+["]{2}             { R(); SET_CHR('"'); C(); return MKT(CHR); }
+["]                { R(); CHG(AFTER_STR); C(); return '"'; }
+[^"\\\f\r\n]+      { R(); SET_STR(); C(); return MKT(STR); }
+\\["\\]            { R(); SET_CHR(yytext[1]); C(); return MKT(CHR); }
+}
+
+<IN_SQ,IN_DQ>{
+\\f                { R(); SET_CHR('\f'); C(); return MKT(CHR); }
+\\r                { R(); SET_CHR('\r'); C(); return MKT(CHR); }
+\\n                { R(); SET_CHR('\n'); C(); return MKT(CHR); }
+\\b                { R(); SET_CHR('\b'); C(); return MKT(CHR); }
+\\t                { R(); SET_CHR('\t'); C(); return MKT(CHR); }
+\\u[[:xdigit:]]{4} { R(); SET_STR(); C(); return MKT(UNI); }
+{LN}               { R(); L(); return '\n'; } /* let bison to handle */
+.                  { R(); C(); return *yytext; } /* let bison to handle */
+}
+
+<KW,AFTER_NUM,AFTER_STR,AFTER_ID>{
+">="      { R(); POP(); C(); return MKT(GE); }
+"<="      { R(); POP(); C(); return MKT(LE); }
+"<>"      { R(); POP(); C(); return MKT(NE); }
+{OP}      { R(); POP(); C(); return *yytext; }
+{SP}      { R(); POP(); C(); } /* eat */
+{LN}      { R(); POP(); L(); } /* eat */
 .         { R(); C(); return *yytext; } /* let bison to handle */
 }
 

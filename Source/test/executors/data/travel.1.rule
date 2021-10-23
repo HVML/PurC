@@ -16,65 +16,23 @@ P: # bellow are positive samples
                       
 
 # all seperated with a SPACE
-TRAVEL : FROM 0 ;
-TRAVEL : FROM 0 TO 10 ;
-TRAVEL : FROM 0 TO 10 , ADVANCE 2 ;
-TRAVEL : FROM 0 TO 10 , ADVANCE 1 + 2 ;
-TRAVEL : FROM 0 TO 10 , ADVANCE 1 + 2 / 4 - 3 * 5 ;
-TRAVEL : FROM 0 TO 10 , ADVANCE 1 + 2 / ( 4 - 3 ) * 5 ;
+TRAVEL : SIBLINGS ;
+
+# number
+# flags
 # no SPACE in between
-TRAVEL:FROM 0 TO 10,ADVANCE 1+2/(4-3)*5;
+TRAVEL:SIBLINGS;
+
 # multiple line
-TRAVEL:
-        FROM 0
-        TO 1
-        +
-        2
-        /
-        (
-        4
-        -
-        3
-        )
-        *
-        5
-        ,
-        ADVANCE 1
-        +
-        2
-        /
-        (
-        4
-        -
-        3
-        )
-        *
-        5
-        ;
+# logical expression
 
 N: # bellow are negative samples
 # blank lines
                       
 
 # SPACE required
-TRAVEL:FROM0 TO 10,ADVANCE 1;
-TRAVEL:FROM 0TO 10,ADVANCE 1;
-TRAVEL:FROM 0 TO10,ADVANCE 1;
-TRAVEL:FROM 0 TO 10,ADVANCE1;
-
 # '\n' in wrong place
-TRAVEL
-:FROM 0 TO 10,ADVANCE 1;
-
-TRAVEL: FROM
-0 TO 10,ADVANCE 1;
-
-TRAVEL: FROM 0 TO
-10,ADVANCE 1;
-
-TRAVEL: FROM 0 TO 10, ADVANCE
-1;
-
-TRAVEL: FROM 0TO 10, ADVANCE
-1;
+# sub clauses
+# number
+# flags
 
