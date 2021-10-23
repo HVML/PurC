@@ -45,6 +45,7 @@ set(_targets
         mul
         div
         formula
+        objformula
         sql
         travel)
 

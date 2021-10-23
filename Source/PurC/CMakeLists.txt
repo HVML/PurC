@@ -93,7 +93,7 @@ unset(dvobjs_PARSERS)
 set(executors_PARSERS
         exe_key exe_range exe_filter
         exe_char exe_token
-        exe_add exe_sub exe_mul exe_div exe_formula
+        exe_add exe_sub exe_mul exe_div exe_formula exe_objformula
         exe_sql exe_travel)
 PURC_FLEX_BISON(PurC executors "${executors_PARSERS}")
 unset(executors_PARSERS)

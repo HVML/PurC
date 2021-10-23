@@ -37,6 +37,7 @@
 #include "exe_mul.h"
 #include "exe_div.h"
 #include "exe_formula.h"
+#include "exe_objformula.h"
 #include "exe_sql.h"
 #include "exe_travel.h"
 
@@ -109,6 +110,7 @@ void pcexecutor_init_instance(struct pcinst *inst)
     pcexec_exe_mul_register();
     pcexec_exe_div_register();
     pcexec_exe_formula_register();
+    pcexec_exe_objformula_register();
     pcexec_exe_sql_register();
     pcexec_exe_travel_register();
 }
