@@ -1,5 +1,5 @@
 /*
- * @file helper.c
+ * @file pcexe-helper.c
  * @author Xu Xiaohong
  * @date 2021/10/23
  * @brief
@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "helper.h"
+#include "pcexe-helper.h"
 
 #include <stdio.h>
 #include <stdlib.h>

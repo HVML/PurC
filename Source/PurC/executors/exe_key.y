@@ -33,7 +33,7 @@
     #define _GNU_SOURCE
     #include <stdio.h>
     #include <stddef.h>
-    #include "helper.h"
+    #include "pcexe-helper.h"
 }
 
 %code requires {
@@ -43,7 +43,7 @@
     #define _GNU_SOURCE
     #include <stdio.h>
     #include <stddef.h>
-    #include "helper.h"
+    #include "pcexe-helper.h"
     // related struct/function decls
     // especially, for struct exe_key_param
     // and parse function for example:

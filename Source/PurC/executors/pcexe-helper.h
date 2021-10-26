@@ -1,5 +1,5 @@
 /*
- * @file helper.h
+ * @file pcexe-helper.h
  * @author Xu Xiaohong
  * @date 2021/10/23
  * @brief
@@ -23,8 +23,8 @@
  */
 
 
-#ifndef PURC_EXECUTOR_HELPER_H
-#define PURC_EXECUTOR_HELPER_H
+#ifndef PURC_EXECUTOR_PCEXE_HELPER_H
+#define PURC_EXECUTOR_PCEXE_HELPER_H
 
 #include "config.h"
 
@@ -84,5 +84,5 @@ pcexe_strlist_append_uni(struct pcexe_strlist *list,
 
 PCA_EXTERN_C_END
 
-#endif // PURC_EXECUTOR_HELPER_H
+#endif // PURC_EXECUTOR_PCEXE_HELPER_H
 
