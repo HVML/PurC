@@ -27,6 +27,13 @@
 
 %code top {
     // here to include header files required for generated exe_key.tab.c
+    #ifdef _GNU_SOURCE
+    #undef _GNU_SOURCE
+    #endif
+    #define _GNU_SOURCE
+    #include <stdio.h>
+    #include <stddef.h>
+    #include "helper.h"
 }
 
 %code requires {
@@ -36,6 +43,7 @@
     #define _GNU_SOURCE
     #include <stdio.h>
     #include <stddef.h>
+    #include "helper.h"
     // related struct/function decls
     // especially, for struct exe_key_param
     // and parse function for example:
@@ -80,22 +88,43 @@
         const char *errsg
     );
 
-    #define SET_ARGS(_r, _a) do {              \
-        _r = strndup(_a.text, _a.leng);        \
-        if (!_r)                               \
-            YYABORT;                           \
+    #define STRLIST_INIT_STR(_list, _s) do {                          \
+        pcexe_strlist_init(&_list);                                   \
+        if (pcexe_strlist_append_buf(&_list, _s.text, _s.leng)) {     \
+            YYABORT;                                                  \
+        }                                                             \
     } while (0)
 
-    #define APPEND_ARGS(_r, _a, _b) do {       \
-        size_t len = strlen(_a);               \
-        size_t n   = len + _b.leng;            \
-        char *s = (char*)realloc(_a, n+1);     \
-        if (!s) {                              \
-            free(_r);                          \
-            YYABORT;                           \
-        }                                      \
-        memcpy(s+len, _b.text, _b.leng);       \
-        _r = s;                                \
+    #define STRLIST_INIT_CHR(_list, _c) do {                          \
+        pcexe_strlist_init(&_list);                                   \
+        if (pcexe_strlist_append_chr(&_list, _c)) {                   \
+            YYABORT;                                                  \
+        }                                                             \
+    } while (0)
+
+    #define STRLIST_INIT_UNI(_list, _u) do {                          \
+        pcexe_strlist_init(&_list);                                   \
+        if (pcexe_strlist_append_uni(&_list, _u.text, _u.leng)) {     \
+            YYABORT;                                                  \
+        }                                                             \
+    } while (0)
+
+    #define STRLIST_APPEND_STR(_list, _s) do {                        \
+        if (pcexe_strlist_append_buf(&_list, _s.text, _s.leng)) {     \
+            YYABORT;                                                  \
+        }                                                             \
+    } while (0)
+
+    #define STRLIST_APPEND_CHR(_list, _c) do {                        \
+        if (pcexe_strlist_append_chr(&_list, _c)) {                   \
+            YYABORT;                                                  \
+        }                                                             \
+    } while (0)
+
+    #define STRLIST_APPEND_UNI(_list, _u) do {                        \
+        if (pcexe_strlist_append_uni(&_list, _u.text, _u.leng)) {     \
+            YYABORT;                                                  \
+        }                                                             \
     } while (0)
 }
 
@@ -118,14 +147,16 @@
 %union { struct exe_key_token token; }
 %union { char *str; }
 %union { char c; }
+%union { struct pcexe_strlist slist; }
 
-    /* %destructor { free($$); } <str> */ // destructor for `str`
+%destructor { pcexe_strlist_reset(&$$); } <slist>
 
 %token KEY ALL LIKE KV VALUE FOR AS
 %token NOT
 %token <c>     MATCHING_FLAG REGEXP_FLAG
+%token <c>     CHR
 %token <token> MATCHING_LENGTH
-%token <token> STR CHR UNI
+%token <token> STR UNI
 %token <token> INTEGER NUMBER
 
 %left '-' '+'
@@ -135,8 +166,9 @@
 %left AND OR XOR
 %precedence NEG
 
- /* %nterm <str>   args */ // non-terminal `input` use `str` to store
-                           // token value as well
+%nterm <slist>  literal_char_sequence
+%nterm <slist>  regular_expression
+
 
 %% /* The grammar follows. */
 
@@ -174,12 +206,12 @@ for_clause:
 ;
 
 literal_char_sequence:
-  STR
-| CHR
-| UNI
-| literal_char_sequence STR
-| literal_char_sequence CHR
-| literal_char_sequence UNI
+  STR  { STRLIST_INIT_STR($$, $1); }
+| CHR  { STRLIST_INIT_CHR($$, $1); }
+| UNI  { STRLIST_INIT_UNI($$, $1); }
+| literal_char_sequence STR    { STRLIST_APPEND_STR($1, $2); $$ = $1; }
+| literal_char_sequence CHR    { STRLIST_APPEND_CHR($1, $2); $$ = $1; }
+| literal_char_sequence UNI    { STRLIST_APPEND_UNI($1, $2); $$ = $1; }
 ;
 
 string_matching_expression:
@@ -193,7 +225,7 @@ string_literal_list:
 ;
 
 string_literal_expression:
-  '"' literal_char_sequence '"' matching_suffix
+  '"' literal_char_sequence '"' matching_suffix  { pcexe_strlist_reset(&$2); }
 ;
 
 string_pattern_list:
@@ -203,18 +235,18 @@ string_pattern_list:
 
 string_pattern_expression:
   '"' wildcard_expression '"' matching_suffix
-| '/' regular_expression '/' regexp_suffix
+| '/' regular_expression '/' regexp_suffix      { pcexe_strlist_reset(&$2); }
 ;
 
 wildcard_expression:
-  literal_char_sequence
+  literal_char_sequence     { pcexe_strlist_reset(&$1); }
 ;
 
 regular_expression:
-  STR
-| CHR
-| regular_expression STR
-| regular_expression CHR
+  STR  { STRLIST_INIT_STR($$, $1); }
+| CHR  { STRLIST_INIT_CHR($$, $1); }
+| regular_expression STR    { STRLIST_APPEND_STR($1, $2); $$ = $1; }
+| regular_expression CHR    { STRLIST_APPEND_CHR($1, $2); $$ = $1; }
 ;
 
 matching_suffix:
@@ -244,6 +276,7 @@ max_matching_length:
 ;
 
 %%
+
 
 /* Called by yyparse on error. */
 static void

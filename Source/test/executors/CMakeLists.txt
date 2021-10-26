@@ -14,6 +14,7 @@ macro(GEN_TEST _name)
         ${CMAKE_BINARY_DIR}
         ${CMAKE_BINARY_DIR}/Source/PurC/executors
         ${WTF_DIR}
+        ${PURC_DIR}/executors
     )
 
     PURC_EXECUTABLE(test_exe${_name})
