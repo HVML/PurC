@@ -29,9 +29,13 @@
 #include "config.h"
 
 #include "purc-macros.h"
+#include "purc-variant.h"
+#include "private/list.h"
+#include "private/tree.h"
 
 #include <stddef.h>
 #include <string.h>
+#include <stdlib.h>
 
 PCA_EXTERN_C_BEGIN
 
@@ -81,6 +85,290 @@ pcexe_strlist_append_uni(struct pcexe_strlist *list,
 
     return pcexe_strlist_append_str(list, utf8);
 }
+
+char* pcexe_strlist_to_str(struct pcexe_strlist *list);
+
+// typedef unsigned char     matching_flags;
+#define MATCHING_FLAG_C 0x01
+#define MATCHING_FLAG_I 0x02
+#define MATCHING_FLAG_S 0x04
+
+#define MATCHING_FLAGS_SET(_flags, _c) switch (_c) {          \
+    case 'c':                                                 \
+        _flags &= MATCHING_FLAG_C;                            \
+        break;                                                \
+    case 'i':                                                 \
+        _flags &= MATCHING_FLAG_I;                            \
+        break;                                                \
+    case 's':                                                 \
+        _flags &= MATCHING_FLAG_S;                            \
+        break;                                                \
+    default:                                                  \
+        /* ignore */                                          \
+        break;                                                \
+};
+#define MATCHING_FLAGS_IS_SET_WITH(_flags, _flag) ((_flags) & (_flag))
+
+// typedef unsigned char     regexp_flags;
+#define REGEXP_FLAG_G 0x01
+#define REGEXP_FLAG_I 0x02
+#define REGEXP_FLAG_M 0x04
+#define REGEXP_FLAG_S 0x08
+#define REGEXP_FLAG_U 0x10
+#define REGEXP_FLAG_Y 0x20
+
+#define REGEXP_FLAGS_SET(_flags, _c) switch (_c) {           \
+    case 'g':                                                \
+        _flags &= REGEXP_FLAG_G;                             \
+        break;                                               \
+    case 'i':                                                \
+        _flags &= REGEXP_FLAG_I;                             \
+        break;                                               \
+    case 'm':                                                \
+        _flags &= REGEXP_FLAG_M;                             \
+        break;                                               \
+    case 's':                                                \
+        _flags &= REGEXP_FLAG_S;                             \
+        break;                                               \
+    case 'u':                                                \
+        _flags &= REGEXP_FLAG_U;                             \
+        break;                                               \
+    case 'y':                                                \
+        _flags &= REGEXP_FLAG_Y;                             \
+        break;                                               \
+    default:                                                 \
+        /* ignore */                                         \
+        break;                                               \
+};
+#define REGEXP_FLAGS_IS_SET_WITH(_flags, _flag) ((_flags) & (_flag))
+
+struct matching_suffix
+{
+    unsigned char        matching_flags;
+    long int             max_matching_length; // non-positive: unset
+};
+
+struct literal_expression
+{
+    char                   *literal;
+    struct matching_suffix  suffix;
+
+    struct list_head        node;
+};
+
+static inline void
+literal_expression_reset(struct literal_expression *lexp)
+{
+    if (!lexp)
+        return;
+
+    free(lexp->literal);
+}
+
+struct wildcard_expression
+{
+    char                   *wildcard;
+    struct matching_suffix  suffix;
+};
+
+struct regular_expression
+{
+    char                   *regexp;
+    unsigned char           flags;
+};
+
+enum STRING_PATTERN_TYPE {
+    STRING_PATTERN_WILDCARD,
+    STRING_PATTERN_REGEXP,
+};
+
+struct string_pattern_expression
+{
+    enum STRING_PATTERN_TYPE    type;
+    union {
+        struct wildcard_expression       wildcard;
+        struct regular_expression        regexp;
+    };
+
+    struct list_head            node;
+};
+
+static inline void
+string_pattern_expression_reset(struct string_pattern_expression *spexp)
+{
+    if (!spexp)
+        return;
+    switch (spexp->type)
+    {
+        case STRING_PATTERN_WILDCARD:
+            free(spexp->wildcard.wildcard);
+            break;
+        case STRING_PATTERN_REGEXP:
+            free(spexp->regexp.regexp);
+            break;
+    }
+}
+
+struct string_literal_list
+{
+    struct list_head              list;
+};
+
+static inline struct string_literal_list*
+string_literal_list_create(void)
+{
+    struct string_literal_list *list;
+    list = (struct string_literal_list*)calloc(1, sizeof(*list));
+    if (!list)
+        return NULL;
+
+    INIT_LIST_HEAD(&list->list);
+
+    return list;
+}
+
+static inline void
+string_literal_list_destroy(struct string_literal_list *list)
+{
+    if (!list)
+        return;
+
+    struct list_head *p, *n;
+    list_for_each_safe(p, n, &list->list) {
+        struct literal_expression *lexp;
+        lexp = container_of(p, struct literal_expression, node);
+        list_del(p);
+        literal_expression_reset(lexp);
+        free(lexp);
+    }
+
+    free(list);
+}
+
+struct string_pattern_list
+{
+    struct list_head              list;
+};
+
+static inline struct string_pattern_list*
+string_pattern_list_create(void)
+{
+    struct string_pattern_list *list;
+    list = (struct string_pattern_list*)calloc(1, sizeof(*list));
+    if (!list)
+        return NULL;
+
+    INIT_LIST_HEAD(&list->list);
+
+    return list;
+}
+
+static inline void
+string_pattern_list_destroy(struct string_pattern_list *list)
+{
+    if (!list)
+        return;
+
+    struct list_head *p, *n;
+    list_for_each_safe(p, n, &list->list) {
+        struct string_pattern_expression *lexp;
+        lexp = container_of(p, struct string_pattern_expression, node);
+        list_del(p);
+        string_pattern_expression_reset(lexp);
+        free(lexp);
+    }
+
+    free(list);
+}
+
+enum string_matching_type
+{
+    STRING_MATCHING_PATTERN,
+    STRING_MATCHING_LITERAL,
+};
+
+struct string_matching_expression
+{
+    enum string_matching_type       type;
+    union {
+        struct string_pattern_list          *patterns;
+        struct string_literal_list          *literals;
+    };
+};
+
+static inline void
+string_matching_expression_reset(struct string_matching_expression *mexp)
+{
+    if (!mexp)
+        return;
+
+    switch(mexp->type)
+    {
+        case STRING_MATCHING_PATTERN:
+            string_pattern_list_destroy(mexp->patterns);
+            break;
+        case STRING_MATCHING_LITERAL:
+            string_literal_list_destroy(mexp->literals);
+            break;
+    }
+}
+
+enum for_clause_type {
+    FOR_CLAUSE_VALUE,
+    FOR_CLAUSE_KEY,
+    FOR_CLAUSE_KV,
+};
+
+
+enum logical_expression_node_type
+{
+    LOGICAL_EXPRESSION_OP,
+    LOGICAL_EXPRESSION_EXP,
+};
+
+struct logical_expression
+{
+    enum logical_expression_node_type          type;
+
+    union {
+        int (*op)(struct logical_expression *);
+        struct string_matching_expression mexp;
+    };
+
+    struct pctree_node              node;
+
+    bool                            result;
+};
+
+static inline struct logical_expression*
+logical_expression_create(void)
+{
+    struct logical_expression *exp;
+    exp = (struct logical_expression*)calloc(1, sizeof(*exp));
+    return exp;
+}
+
+void logical_expression_reset(struct logical_expression *exp);
+
+static inline void
+logical_expression_destroy(struct logical_expression *exp)
+{
+    if (!exp)
+        return;
+
+    logical_expression_reset(exp);
+    free(exp);
+}
+
+int logical_expression_eval(struct logical_expression *exp,
+        purc_variant_t val, bool *result);
+
+int logical_and(struct logical_expression *exp);
+int logical_or(struct logical_expression *exp);
+int logical_xor(struct logical_expression *exp);
+int logical_not(struct logical_expression *exp);
+
+
 
 PCA_EXTERN_C_END
 

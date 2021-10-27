@@ -259,3 +259,7 @@ KEY: 'z'
 FOR 
 KV     ;
 
+P:
+KEY: AS 'abc\ua1a2def', 'def';
+KEY: LIKE 'abc\ua1a2def', 'def', /hello/;
+

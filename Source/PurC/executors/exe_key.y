@@ -27,13 +27,6 @@
 
 %code top {
     // here to include header files required for generated exe_key.tab.c
-    #ifdef _GNU_SOURCE
-    #undef _GNU_SOURCE
-    #endif
-    #define _GNU_SOURCE
-    #include <stdio.h>
-    #include <stddef.h>
-    #include "pcexe-helper.h"
 }
 
 %code requires {
@@ -41,9 +34,11 @@
     #undef _GNU_SOURCE
     #endif
     #define _GNU_SOURCE
+    #include <assert.h>
     #include <stdio.h>
     #include <stddef.h>
     #include "pcexe-helper.h"
+    #include "exe_key.h"
     // related struct/function decls
     // especially, for struct exe_key_param
     // and parse function for example:
@@ -91,6 +86,7 @@
     #define STRLIST_INIT_STR(_list, _s) do {                          \
         pcexe_strlist_init(&_list);                                   \
         if (pcexe_strlist_append_buf(&_list, _s.text, _s.leng)) {     \
+            pcexe_strlist_reset(&_list);                              \
             YYABORT;                                                  \
         }                                                             \
     } while (0)
@@ -98,6 +94,7 @@
     #define STRLIST_INIT_CHR(_list, _c) do {                          \
         pcexe_strlist_init(&_list);                                   \
         if (pcexe_strlist_append_chr(&_list, _c)) {                   \
+            pcexe_strlist_reset(&_list);                              \
             YYABORT;                                                  \
         }                                                             \
     } while (0)
@@ -105,26 +102,245 @@
     #define STRLIST_INIT_UNI(_list, _u) do {                          \
         pcexe_strlist_init(&_list);                                   \
         if (pcexe_strlist_append_uni(&_list, _u.text, _u.leng)) {     \
+            pcexe_strlist_reset(&_list);                              \
             YYABORT;                                                  \
         }                                                             \
     } while (0)
 
     #define STRLIST_APPEND_STR(_list, _s) do {                        \
         if (pcexe_strlist_append_buf(&_list, _s.text, _s.leng)) {     \
+            pcexe_strlist_reset(&_list);                              \
             YYABORT;                                                  \
         }                                                             \
     } while (0)
 
     #define STRLIST_APPEND_CHR(_list, _c) do {                        \
         if (pcexe_strlist_append_chr(&_list, _c)) {                   \
+            pcexe_strlist_reset(&_list);                              \
             YYABORT;                                                  \
         }                                                             \
     } while (0)
 
     #define STRLIST_APPEND_UNI(_list, _u) do {                        \
         if (pcexe_strlist_append_uni(&_list, _u.text, _u.leng)) {     \
+            pcexe_strlist_reset(&_list);                              \
             YYABORT;                                                  \
         }                                                             \
+    } while (0)
+
+    #define STRLIST_TO_STR(_str, _list) do {                          \
+        _str = pcexe_strlist_to_str(&_list);                          \
+        pcexe_strlist_reset(&_list);                                  \
+        if (!_str) {                                                  \
+            YYABORT;                                                  \
+        }                                                             \
+    } while (0)
+
+    #define STRTOL(_v, _s) do {                     \
+        long int v;                                 \
+        char *s = (char*)malloc(_s.leng+1);         \
+        if (!s) {                                   \
+            YYABORT;                                \
+        }                                           \
+        memcpy(s, _s.text, _s.leng);                \
+        s[_s.leng] = '\0';                          \
+        char *end;                                  \
+        v = strtol(s, &end, 0);                     \
+        if (end && *end) {                          \
+            free(s);                                \
+            YYABORT;                                \
+        }                                           \
+        free(s);                                    \
+        _v = v;                                     \
+    } while (0)
+
+    #define STR_LITERAL_RESET(_l) do {              \
+        literal_expression_reset(&_l);              \
+    } while (0)
+
+    #define STR_LITERAL_SET(_l, _slist, _sfx) do {     \
+        _l.literal = pcexe_strlist_to_str(&_slist);    \
+        pcexe_strlist_reset(&_slist);                  \
+        _l.suffix = _sfx;                              \
+        if (!_l.literal) {                             \
+            YYABORT;                                   \
+        }                                              \
+    } while (0)
+
+    #define STR_PATTERN_RESET(_sp) do {             \
+        string_pattern_expression_reset(&_sp);      \
+    } while (0)
+
+    #define STR_PATTERN_SET_WILDCARD(_sp, _s, _sfx) do {     \
+        _sp.type = STRING_PATTERN_WILDCARD;                  \
+        _sp.wildcard.wildcard = _s;                          \
+        _sp.wildcard.suffix = _sfx;                          \
+    } while (0)
+
+    #define STR_PATTERN_SET_REGEXP(_sp, _slist, _flags) do { \
+        _sp.type = STRING_PATTERN_WILDCARD;                  \
+        _sp.regexp.regexp = pcexe_strlist_to_str(&_slist);   \
+        pcexe_strlist_reset(&_slist);                        \
+        _sp.regexp.flags = _flags;                           \
+        if (!_sp.regexp.regexp) {                            \
+            YYABORT;                                         \
+        }                                                    \
+    } while (0)
+
+    #define STR_LITERAL_DUP(_dst, _src) do {                           \
+        _dst = (struct literal_expression*)calloc(1, sizeof(*_dst));   \
+        if (!_dst)                                                     \
+            break;                                                     \
+        memcpy(_dst, _src, sizeof(*_src));                             \
+    } while (0)
+
+    #define STR_LITERAL_LIST_INIT(_literals, _l) do {        \
+        _literals = string_literal_list_create();            \
+        if (!_literals) {                                    \
+            literal_expression_reset(&_l);                   \
+            YYABORT;                                         \
+        }                                                    \
+        struct literal_expression *lexp;                     \
+        STR_LITERAL_DUP(lexp, &_l);                          \
+        if (!lexp) {                                         \
+            literal_expression_reset(&_l);                   \
+            string_literal_list_destroy(_literals);          \
+            YYABORT;                                         \
+        }                                                    \
+        list_add(&lexp->node, &_literals->list);             \
+    } while (0)
+
+    #define STR_LITERAL_LIST_APPEND(_literals, _l) do {      \
+        struct literal_expression *lexp;                     \
+        STR_LITERAL_DUP(lexp, &_l);                          \
+        if (!lexp) {                                         \
+            literal_expression_reset(&_l);                   \
+            string_literal_list_destroy(_literals);          \
+            YYABORT;                                         \
+        }                                                    \
+        list_add(&lexp->node, &_literals->list);             \
+    } while (0)
+
+    #define STR_PATTERN_DUP(_dst, _src) do {                                  \
+        _dst = (struct string_pattern_expression*)calloc(1, sizeof(*_dst));   \
+        if (!_dst)                                                            \
+            break;                                                            \
+        memcpy(_dst, _src, sizeof(*_src));                                    \
+    } while (0)
+
+    #define STR_PATTERN_LIST_INIT(_patterns, _l) do {        \
+        _patterns = string_pattern_list_create();            \
+        if (!_patterns) {                                    \
+            string_pattern_expression_reset(&_l);            \
+            YYABORT;                                         \
+        }                                                    \
+        struct string_pattern_expression *lexp;              \
+        STR_PATTERN_DUP(lexp, &_l);                          \
+        if (!lexp) {                                         \
+            string_pattern_expression_reset(&_l);            \
+            string_pattern_list_destroy(_patterns);          \
+            YYABORT;                                         \
+        }                                                    \
+        list_add(&lexp->node, &_patterns->list);             \
+    } while (0)
+
+    #define STR_PATTERN_LIST_APPEND(_patterns, _l) do {      \
+        struct string_pattern_expression *lexp;              \
+        STR_PATTERN_DUP(lexp, &_l);                          \
+        if (!lexp) {                                         \
+            string_pattern_expression_reset(&_l);            \
+            string_pattern_list_destroy(_patterns);          \
+            YYABORT;                                         \
+        }                                                    \
+        list_add(&lexp->node, &_patterns->list);             \
+    } while (0)
+
+    #define LOGICAL_EXP_INIT(_logic, _mexp) do {              \
+        _logic = logical_expression_create();                 \
+        if (!_logic) {                                        \
+            string_matching_expression_reset(&_mexp);         \
+            YYABORT;                                          \
+        }                                                     \
+        _logic->type = LOGICAL_EXPRESSION_EXP;                \
+        _logic->mexp = _mexp;                                 \
+    } while (0)
+
+    #define LOGICAL_EXP_AND(_logic, _l, _r) do {                        \
+        _logic = logical_expression_create();                           \
+        if (!_logic) {                                                  \
+            logical_expression_destroy(_l);                             \
+            logical_expression_destroy(_r);                             \
+            YYABORT;                                                    \
+        }                                                               \
+        _logic->type = LOGICAL_EXPRESSION_OP;                           \
+        bool ok = pctree_node_append_child(&_logic->node, &_l->node);   \
+        if (ok) {                                                       \
+            ok = pctree_node_append_child(&_logic->node, &_r->node);    \
+            if (ok)                                                     \
+                break;                                                  \
+        } else {                                                        \
+            logical_expression_destroy(_l);                             \
+        }                                                               \
+        logical_expression_destroy(_r);                                 \
+        logical_expression_destroy(_logic);                             \
+        YYABORT;                                                        \
+    } while (0)
+
+    #define LOGICAL_EXP_OR(_logic, _l, _r) do {                         \
+        _logic = logical_expression_create();                           \
+        if (!_logic) {                                                  \
+            logical_expression_destroy(_l);                             \
+            logical_expression_destroy(_r);                             \
+            YYABORT;                                                    \
+        }                                                               \
+        _logic->type = LOGICAL_EXPRESSION_OP;                           \
+        bool ok = pctree_node_append_child(&_logic->node, &_l->node);   \
+        if (ok) {                                                       \
+            ok = pctree_node_append_child(&_logic->node, &_r->node);    \
+            if (ok)                                                     \
+                break;                                                  \
+        } else {                                                        \
+            logical_expression_destroy(_l);                             \
+        }                                                               \
+        logical_expression_destroy(_r);                                 \
+        logical_expression_destroy(_logic);                             \
+        YYABORT;                                                        \
+    } while (0)
+
+    #define LOGICAL_EXP_XOR(_logic, _l, _r) do {                        \
+        _logic = logical_expression_create();                           \
+        if (!_logic) {                                                  \
+            logical_expression_destroy(_l);                             \
+            logical_expression_destroy(_r);                             \
+            YYABORT;                                                    \
+        }                                                               \
+        _logic->type = LOGICAL_EXPRESSION_OP;                           \
+        bool ok = pctree_node_append_child(&_logic->node, &_l->node);   \
+        if (ok) {                                                       \
+            ok = pctree_node_append_child(&_logic->node, &_r->node);    \
+            if (ok)                                                     \
+                break;                                                  \
+        } else {                                                        \
+            logical_expression_destroy(_l);                             \
+        }                                                               \
+        logical_expression_destroy(_r);                                 \
+        logical_expression_destroy(_logic);                             \
+        YYABORT;                                                        \
+    } while (0)
+
+    #define LOGICAL_EXP_NOT(_logic, _l) do {                            \
+        _logic = logical_expression_create();                           \
+        if (!_logic) {                                                  \
+            logical_expression_destroy(_l);                             \
+            YYABORT;                                                    \
+        }                                                               \
+        bool ok = pctree_node_append_child(&_logic->node, &_l->node);   \
+        if (ok) {                                                       \
+            break;                                                      \
+        }                                                               \
+        logical_expression_destroy(_l);                                 \
+        logical_expression_destroy(_logic);                             \
+        YYABORT;                                                        \
     } while (0)
 }
 
@@ -148,8 +364,24 @@
 %union { char *str; }
 %union { char c; }
 %union { struct pcexe_strlist slist; }
+%union { unsigned char matching_flags; } // cis
+%union { unsigned char regexp_flags; }   // gimsuy
+%union { struct matching_suffix msfx; }
+%union { long int max_matching_length; }
+%union { struct string_pattern_expression spexp; }
+%union { struct literal_expression lexp; }
+%union { struct string_literal_list *literals; }
+%union { struct string_pattern_list *patterns; }
+%union { struct string_matching_expression mexp; }
+%union { struct logical_expression *logic; }
 
 %destructor { pcexe_strlist_reset(&$$); } <slist>
+%destructor { free($$); } <str>
+%destructor { STR_PATTERN_RESET($$); } <spexp>
+%destructor { string_literal_list_destroy($$); } <literals>
+%destructor { string_pattern_list_destroy($$); } <patterns>
+%destructor { string_matching_expression_reset(&$$); } <mexp>
+%destructor { logical_expression_destroy($$); } <logic>
 
 %token KEY ALL LIKE KV VALUE FOR AS
 %token NOT
@@ -168,6 +400,17 @@
 
 %nterm <slist>  literal_char_sequence
 %nterm <slist>  regular_expression
+%nterm <str>    wildcard_expression
+%nterm <matching_flags>   matching_flags;
+%nterm <regexp_flags>     regexp_flags regexp_suffix;
+%nterm <msfx>             matching_suffix;
+%nterm <max_matching_length> max_matching_length;
+%nterm <spexp>  string_pattern_expression;
+%nterm <lexp>   string_literal_expression;
+%nterm <literals> string_literal_list;
+%nterm <patterns> string_pattern_list;
+%nterm <mexp> string_matching_expression;
+%nterm <logic> logical_expression;
 
 
 %% /* The grammar follows. */
@@ -186,16 +429,16 @@ key_rule:
 
 subrule:
   ALL
-| logical_expression
+| logical_expression       { logical_expression_destroy($1); }
 ;
 
 logical_expression:
-  string_matching_expression
-| logical_expression AND logical_expression
-| logical_expression OR logical_expression
-| logical_expression XOR logical_expression
-| NOT logical_expression %prec NEG
-| '(' logical_expression ')'
+  string_matching_expression   { LOGICAL_EXP_INIT($$, $1); }
+| logical_expression AND logical_expression { LOGICAL_EXP_AND($$, $1, $3); }
+| logical_expression OR logical_expression  { LOGICAL_EXP_OR($$, $1, $3); }
+| logical_expression XOR logical_expression { LOGICAL_EXP_XOR($$, $1, $3); }
+| NOT logical_expression %prec NEG  { LOGICAL_EXP_NOT($$, $2); }
+| '(' logical_expression ')'   { $$ = $2; }
 ;
 
 for_clause:
@@ -215,31 +458,31 @@ literal_char_sequence:
 ;
 
 string_matching_expression:
-  LIKE string_pattern_list
-| AS string_literal_list
+  LIKE string_pattern_list  { $$.type = STRING_MATCHING_PATTERN; $$.patterns = $2; }
+| AS string_literal_list    { $$.type = STRING_MATCHING_LITERAL; $$.literals = $2; }
 ;
 
 string_literal_list:
-  string_literal_expression
-| string_literal_list ',' string_literal_expression
+  string_literal_expression { STR_LITERAL_LIST_INIT($$, $1); }
+| string_literal_list ',' string_literal_expression { STR_LITERAL_LIST_APPEND($1, $3); $$ = $1; }
 ;
 
 string_literal_expression:
-  '"' literal_char_sequence '"' matching_suffix  { pcexe_strlist_reset(&$2); }
+  '"' literal_char_sequence '"' matching_suffix  { STR_LITERAL_SET($$, $2, $4); }
 ;
 
 string_pattern_list:
-  string_pattern_expression
-| string_pattern_list ',' string_pattern_expression
+  string_pattern_expression  { STR_PATTERN_LIST_INIT($$, $1); }
+| string_pattern_list ',' string_pattern_expression { STR_PATTERN_LIST_APPEND($1, $3); $$ = $1; }
 ;
 
 string_pattern_expression:
-  '"' wildcard_expression '"' matching_suffix
-| '/' regular_expression '/' regexp_suffix      { pcexe_strlist_reset(&$2); }
+  '"' wildcard_expression '"' matching_suffix   { STR_PATTERN_SET_WILDCARD($$, $2, $4); }
+| '/' regular_expression '/' regexp_suffix      { STR_PATTERN_SET_REGEXP($$, $2, $4); }
 ;
 
 wildcard_expression:
-  literal_char_sequence     { pcexe_strlist_reset(&$1); }
+  literal_char_sequence  { STRLIST_TO_STR($$, $1); }
 ;
 
 regular_expression:
@@ -250,29 +493,29 @@ regular_expression:
 ;
 
 matching_suffix:
-  %empty
-| matching_flags
-| matching_flags max_matching_length
-| max_matching_length
+  %empty { $$.matching_flags = '\0'; $$.max_matching_length = 0; }
+| matching_flags { $$.matching_flags = $1; $$.max_matching_length = 0; }
+| matching_flags max_matching_length { $$.matching_flags = $1; $$.max_matching_length = $2; }
+| max_matching_length { $$.matching_flags = '\0'; $$.max_matching_length = $1; }
 ;
 
 regexp_suffix:
-  %empty
-| regexp_flags
+  %empty          { $$ = 0; }
+| regexp_flags    { $$ = $1; }
 ;
 
 regexp_flags:
-  REGEXP_FLAG
-| regexp_flags REGEXP_FLAG
+  REGEXP_FLAG                  { REGEXP_FLAGS_SET($$, $1); }
+| regexp_flags REGEXP_FLAG     { REGEXP_FLAGS_SET($1, $2); $$ = $1; }
 ;
 
 matching_flags:
-  MATCHING_FLAG
-| matching_flags MATCHING_FLAG
+  MATCHING_FLAG                { MATCHING_FLAGS_SET($$, $1); }
+| matching_flags MATCHING_FLAG { MATCHING_FLAGS_SET($1, $2); $$ = $1; }
 ;
 
 max_matching_length:
-  MATCHING_LENGTH
+  MATCHING_LENGTH    { STRTOL($$, $1); }
 ;
 
 %%

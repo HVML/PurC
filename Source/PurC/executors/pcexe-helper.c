@@ -133,3 +133,247 @@ pcexe_strlist_append_buf(struct pcexe_strlist *list, const char *buf, size_t len
     return 0;
 }
 
+char* pcexe_strlist_to_str(struct pcexe_strlist *list)
+{
+    if (!list || !list->strings)
+        return NULL;
+
+    size_t n = 0;
+    for (size_t i=0; i<list->size; ++i) {
+        n += strlen(list->strings[i]);
+    }
+
+    char *buf = (char*)malloc(n+1);
+    if (!buf)
+        return NULL;
+
+    buf[0] = '\0';
+    for (size_t i=0; i<list->size; ++i) {
+        strcat(buf, list->strings[i]);
+    }
+
+    return buf;
+}
+
+void logical_expression_reset(struct logical_expression *exp)
+{
+    if (!exp)
+        return;
+
+    struct pctree_node *top = &exp->node;
+    struct pctree_node *node, *next;
+    pctree_for_each_post_order(top, node, next) {
+        struct logical_expression *p;
+        p = container_of(node, struct logical_expression, node);
+        pctree_node_remove(node);
+        switch (p->type)
+        {
+            case LOGICAL_EXPRESSION_OP:
+                break;
+            case LOGICAL_EXPRESSION_EXP:
+                string_matching_expression_reset(&p->mexp);
+                break;
+        }
+        if (p!=exp)
+            free(p);
+    }
+}
+
+static int
+eval_by_matching_literal(struct literal_expression *lexp,
+    struct logical_expression *exp, purc_variant_t val)
+{
+    UNUSED_PARAM(lexp);
+    UNUSED_PARAM(exp);
+    UNUSED_PARAM(val);
+    return -1;
+}
+
+static int
+eval_by_matching_literals(struct logical_expression *exp,
+    purc_variant_t val)
+{
+    struct list_head *p;
+    list_for_each(p, &exp->mexp.literals->list) {
+        struct literal_expression *lexp;
+        lexp = container_of(p, struct literal_expression, node);
+        int r = eval_by_matching_literal(lexp, exp, val);
+        if (r)
+            return r;
+        if (!exp->result)
+            return 0;
+    }
+
+    return true;
+}
+
+static int
+eval_by_matching_wildcard(struct wildcard_expression *wildcard,
+    struct logical_expression *exp, purc_variant_t val)
+{
+    UNUSED_PARAM(wildcard);
+    UNUSED_PARAM(exp);
+    UNUSED_PARAM(val);
+    return -1;
+}
+
+static int
+eval_by_matching_regexp(struct regular_expression *regexp,
+    struct logical_expression *exp, purc_variant_t val)
+{
+    UNUSED_PARAM(regexp);
+    UNUSED_PARAM(exp);
+    UNUSED_PARAM(val);
+    return -1;
+}
+
+static int
+eval_by_matching_pattern(struct string_pattern_expression *pexp,
+    struct logical_expression *exp, purc_variant_t val)
+{
+    switch (pexp->type)
+    {
+        case STRING_PATTERN_WILDCARD:
+        {
+            return eval_by_matching_wildcard(&pexp->wildcard, exp, val);
+        } break;
+        case STRING_PATTERN_REGEXP:
+        {
+            return eval_by_matching_regexp(&pexp->regexp, exp, val);
+        } break;
+    }
+
+    return -1;
+}
+
+static int
+eval_by_matching_patterns(struct logical_expression *exp,
+    purc_variant_t val)
+{
+    struct list_head *p;
+    list_for_each(p, &exp->mexp.literals->list) {
+        struct string_pattern_expression *pexp;
+        pexp = container_of(p, struct string_pattern_expression, node);
+        int r = eval_by_matching_pattern(pexp, exp, val);
+        if (r)
+            return r;
+        if (!exp->result)
+            return 0;
+    }
+
+    return true;
+}
+
+static int
+eval_by_matching_expression(struct logical_expression *exp,
+    purc_variant_t val)
+{
+    switch (exp->mexp.type)
+    {
+        case STRING_MATCHING_PATTERN:
+        {
+            return eval_by_matching_patterns(exp, val);
+        } break;
+        case STRING_MATCHING_LITERAL:
+        {
+            return eval_by_matching_literals(exp, val);
+        } break;
+        default:
+        {
+            return -1;
+        } break;
+    }
+}
+
+int logical_expression_eval(struct logical_expression *exp,
+        purc_variant_t val, bool *result)
+{
+    if (!exp)
+        return -1;
+
+    struct pctree_node *top = &exp->node;
+    struct pctree_node *node, *next;
+    pctree_for_each_post_order(top, node, next) {
+        struct logical_expression *p;
+        p = container_of(node, struct logical_expression, node);
+
+        int r = 0;
+        switch (p->type)
+        {
+            case LOGICAL_EXPRESSION_OP:
+            {
+                r = p->op(p);
+            } break;
+            case LOGICAL_EXPRESSION_EXP:
+            {
+                r = eval_by_matching_expression(p, val);
+            } break;
+        }
+
+        if (r)
+            return r;
+    }
+
+    if (result)
+        *result = exp->result;
+
+    return 0;
+}
+
+int logical_and(struct logical_expression *exp)
+{
+    size_t nr = pctree_node_children_number(&exp->node);
+    if (nr != 2)
+        return -1;
+    struct logical_expression *l, *r;
+    l = container_of(exp->node.first_child, struct logical_expression, node);
+    r = container_of(exp->node.last_child, struct logical_expression, node);
+
+    exp->result = l->result && r->result;
+
+    return 0;
+}
+
+int logical_or(struct logical_expression *exp)
+{
+    size_t nr = pctree_node_children_number(&exp->node);
+    if (nr != 2)
+        return -1;
+    struct logical_expression *l, *r;
+    l = container_of(exp->node.first_child, struct logical_expression, node);
+    r = container_of(exp->node.last_child, struct logical_expression, node);
+
+    exp->result = l->result || r->result;
+
+    return 0;
+}
+
+int logical_xor(struct logical_expression *exp)
+{
+    size_t nr = pctree_node_children_number(&exp->node);
+    if (nr != 2)
+        return -1;
+
+    struct logical_expression *l, *r;
+    l = container_of(exp->node.first_child, struct logical_expression, node);
+    r = container_of(exp->node.last_child, struct logical_expression, node);
+
+    exp->result = l->result ^ r->result;
+
+    return 0;
+}
+
+int logical_not(struct logical_expression *exp)
+{
+    size_t nr = pctree_node_children_number(&exp->node);
+    if (nr != 1)
+        return -1;
+
+    struct logical_expression *l;
+    l = container_of(exp->node.first_child, struct logical_expression, node);
+
+    exp->result = !l->result;
+
+    return 0;
+}
+
