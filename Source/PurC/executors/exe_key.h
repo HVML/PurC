@@ -30,9 +30,17 @@
 
 #include "purc-macros.h"
 
+#include "pcexe-helper.h"
+
 PCA_EXTERN_C_BEGIN
 
 int pcexec_exe_key_register(void);
+
+struct key_rule
+{
+    struct logical_expression       *lexp;
+    enum for_clause_type             for_clause;
+};
 
 PCA_EXTERN_C_END
 

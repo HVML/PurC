@@ -50,6 +50,8 @@
         char *err_msg;
         int debug_flex;
         int debug_bison;
+
+        struct key_rule       rule;
     };
 
     struct exe_key_token {
@@ -342,6 +344,14 @@
         logical_expression_destroy(_logic);                             \
         YYABORT;                                                        \
     } while (0)
+
+    #define SET_RULE(_rule) do {                            \
+        if (param) {                                        \
+            param->rule = _rule;                            \
+        } else {                                            \
+            logical_expression_destroy(_rule.lexp);         \
+        }                                                   \
+    } while (0)
 }
 
 /* Bison declarations. */
@@ -374,6 +384,8 @@
 %union { struct string_pattern_list *patterns; }
 %union { struct string_matching_expression mexp; }
 %union { struct logical_expression *logic; }
+%union { struct key_rule rule; }
+%union { enum for_clause_type for_clause; }
 
 %destructor { pcexe_strlist_reset(&$$); } <slist>
 %destructor { free($$); } <str>
@@ -382,6 +394,7 @@
 %destructor { string_pattern_list_destroy($$); } <patterns>
 %destructor { string_matching_expression_reset(&$$); } <mexp>
 %destructor { logical_expression_destroy($$); } <logic>
+%destructor { logical_expression_destroy($$.lexp); } <rule>
 
 %token KEY ALL LIKE KV VALUE FOR AS
 %token NOT
@@ -411,12 +424,15 @@
 %nterm <patterns> string_pattern_list;
 %nterm <mexp> string_matching_expression;
 %nterm <logic> logical_expression;
+%nterm <logic> subrule;
+%nterm <rule>  rule key_rule;
+%nterm <for_clause>  for_clause;
 
 
 %% /* The grammar follows. */
 
 input:
-  rule
+  rule         { SET_RULE($1); }
 ;
 
 rule:
@@ -424,12 +440,12 @@ rule:
 ;
 
 key_rule:
-  KEY ':' subrule for_clause
+  KEY ':' subrule for_clause   { $$.lexp = $3; $$.for_clause = $4; }
 ;
 
 subrule:
-  ALL
-| logical_expression       { logical_expression_destroy($1); }
+  ALL                      { $$ = NULL; }
+| logical_expression       { $$ = $1; }
 ;
 
 logical_expression:
@@ -442,10 +458,10 @@ logical_expression:
 ;
 
 for_clause:
-  %empty
-| FOR KV
-| FOR KEY
-| FOR VALUE
+  %empty           { $$ = FOR_CLAUSE_VALUE; }
+| FOR KV           { $$ = FOR_CLAUSE_KV; }
+| FOR KEY          { $$ = FOR_CLAUSE_KEY; }
+| FOR VALUE        { $$ = FOR_CLAUSE_VALUE; }
 ;
 
 literal_char_sequence:
