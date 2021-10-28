@@ -24,8 +24,13 @@
 
 #include "pcexe-helper.h"
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#if HAVE(GLIB)
+#include <glib.h>
+#endif // HAVE(GLIB)
 
 int pcexe_unitoutf8(char *utf8, const char *uni, size_t n)
 {
@@ -375,5 +380,115 @@ int logical_not(struct logical_expression *exp)
     exp->result = !l->result;
 
     return 0;
+}
+
+static inline void
+normalize_space(char *s)
+{
+    size_t n = strlen(s);
+    for (size_t i=0; i<n; ++i) {
+        const char c = s[i];
+        if (isspace(c)) {
+            s[i] = ' ';
+        }
+    }
+}
+
+static inline void
+compress_spaces(char *s)
+{
+    size_t n = strlen(s);
+    if (n==0)
+        return;
+
+    if (isspace(*s)) {
+        *s = ' ';
+    }
+
+    if (n==1)
+        return;
+
+    char *t = s;
+
+    for (size_t i=1; i<n; ++i) {
+        const char c = s[i];
+        if (isspace(c)) {
+            if (*t == ' ') {
+                continue;
+            }
+        }
+        *++t = c;
+    }
+
+    *++t = '\0';
+}
+
+int
+literal_expression_eval(struct literal_expression *lexp, const char *s,
+    bool *result)
+{
+    if (!lexp || !s)
+        return -1;
+
+    int r = -1;
+    int (*cmp)(const char *s1, const char *s2, size_t n) = NULL;
+    char *literal = NULL;
+    char *target  = NULL;
+    size_t n = 0;
+
+    if (MATCHING_FLAGS_IS_SET_WITH(lexp->suffix.matching_flags, MATCHING_FLAG_I)) {
+        cmp = strncasecmp;
+    } else {
+        cmp = strncmp;
+    }
+
+    if (MATCHING_FLAGS_IS_SET_WITH(lexp->suffix.matching_flags, MATCHING_FLAG_S)) {
+        literal = strdup(lexp->literal);
+        target  = strdup(s);
+        if (!literal || !target)
+            goto end;
+
+        normalize_space(literal);
+        normalize_space(target);
+    }
+
+    if (MATCHING_FLAGS_IS_SET_WITH(lexp->suffix.matching_flags, MATCHING_FLAG_C)) {
+        if (!literal)
+            literal = strdup(lexp->literal);
+        if (!target)
+            target = strdup(s);
+        if (!literal || !target)
+            goto end;
+
+        compress_spaces(literal);
+        compress_spaces(target);
+    }
+
+    if (lexp->suffix.max_matching_length > 0) {
+        n = lexp->suffix.max_matching_length;
+    } else {
+        if (literal) {
+            n = strlen(literal);
+        } else {
+            n = strlen(lexp->literal);
+        }
+    }
+
+    if (literal && target) {
+        r = cmp(literal, target, n);
+    } else {
+        r = cmp(lexp->literal, s, n);
+    }
+
+    if (result)
+        *result = r == 0 ? true : false;
+
+    r = 0;
+
+end:
+    free(literal);
+    free(target);
+
+    return r ? -1 : 0;
 }
 

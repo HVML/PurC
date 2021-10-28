@@ -165,6 +165,10 @@ literal_expression_reset(struct literal_expression *lexp)
     free(lexp->literal);
 }
 
+int
+literal_expression_eval(struct literal_expression *lexp, const char *s,
+    bool *result);
+
 struct wildcard_expression
 {
     char                   *wildcard;
@@ -367,8 +371,6 @@ int logical_and(struct logical_expression *exp);
 int logical_or(struct logical_expression *exp);
 int logical_xor(struct logical_expression *exp);
 int logical_not(struct logical_expression *exp);
-
-
 
 PCA_EXTERN_C_END
 
