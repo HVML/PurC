@@ -67,6 +67,8 @@ parse_ex(const char *rule, purc_variant_t input, char **err_msg)
         return false;
     }
 
+    pcexecutor_set_debug(debug_flex, debug_bison);
+
     purc_exec_inst_t inst = ops.create(PURC_EXEC_TYPE_CHOOSE,
             input, true);
 
