@@ -158,6 +158,11 @@ exe_key_choose(purc_exec_inst_t inst, const char* rule)
         return PURC_VARIANT_INVALID;
     }
 
+    if (inst->type != PURC_EXEC_TYPE_CHOOSE) {
+        pcinst_set_error(PCEXECUTOR_ERROR_NOT_ALLOWED);
+        return PURC_VARIANT_INVALID;
+    }
+
     if (!exe_key_parse_rule(inst, rule))
         return PURC_VARIANT_INVALID;
 
@@ -221,6 +226,11 @@ exe_key_it_begin(purc_exec_inst_t inst, const char* rule)
         return NULL;
     }
 
+    if (inst->type != PURC_EXEC_TYPE_ITERATE) {
+        pcinst_set_error(PCEXECUTOR_ERROR_NOT_ALLOWED);
+        return NULL;
+    }
+
     inst->it.curr = 0;
     if (!exe_key_parse_rule(inst, rule))
         return NULL;
@@ -240,7 +250,12 @@ exe_key_it_value(purc_exec_inst_t inst, purc_exec_iter_t it)
 {
     if (!inst || !it) {
         pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
-        return NULL;
+        return PURC_VARIANT_INVALID;
+    }
+
+    if (inst->type != PURC_EXEC_TYPE_ITERATE) {
+        pcinst_set_error(PCEXECUTOR_ERROR_NOT_ALLOWED);
+        return PURC_VARIANT_INVALID;
     }
 
     PC_ASSERT(&inst->it == it);
@@ -263,6 +278,11 @@ exe_key_it_next(purc_exec_inst_t inst, purc_exec_iter_t it, const char* rule)
 {
     if (!inst || !it) {
         pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
+        return NULL;
+    }
+
+    if (inst->type != PURC_EXEC_TYPE_ITERATE) {
+        pcinst_set_error(PCEXECUTOR_ERROR_NOT_ALLOWED);
         return NULL;
     }
 
@@ -296,6 +316,11 @@ exe_key_reduce(purc_exec_inst_t inst, const char* rule)
 {
     if (!inst || !rule) {
         pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if (inst->type != PURC_EXEC_TYPE_REDUCE) {
+        pcinst_set_error(PCEXECUTOR_ERROR_NOT_ALLOWED);
         return PURC_VARIANT_INVALID;
     }
 

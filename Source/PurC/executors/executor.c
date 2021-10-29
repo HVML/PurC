@@ -68,6 +68,8 @@ static const char* executor_err_msgs[] = {
     "Executor: No keys selected previously",
     /* PCEXECUTOR_ERROR_NO_KEYS_SELECTED */
     "Executor: No keys selected",
+    /* PCEXECUTOR_ERROR_NOT_ALLOWED */
+    "Executor: Not allowed",
     /* PCEXECUTOR_ERROR_BAD_SYNTAX */
     "Executor: Bad syntax",
 };
