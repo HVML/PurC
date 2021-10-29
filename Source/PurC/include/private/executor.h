@@ -37,6 +37,9 @@ PCA_EXTERN_C_BEGIN
 
 struct pcexecutor_heap {
     struct pcutils_map *executors;
+
+    unsigned int       debug_flex:1;
+    unsigned int       debug_bison:1;
 };
 
 // 用于迭代的迭代器
@@ -46,12 +49,14 @@ struct purc_exec_iter {
 
 // 执行器实例
 struct purc_exec_inst {
-   enum purc_exec_type         type;
-   purc_variant_t              input;
-   bool                        asc_desc;
+    enum purc_exec_type         type;
+    purc_variant_t              input;
+    bool                        asc_desc;
 
-   purc_variant_t              selected_keys;
-   struct purc_exec_iter       it; // FIXME: one `it` for one `exec_inst`
+    purc_variant_t              selected_keys;
+    struct purc_exec_iter       it; // FIXME: one `it` for one `exec_inst`
+
+    char                       *err_msg;
 };
 
 
@@ -64,6 +69,15 @@ struct pcinst;
 void pcexecutor_init_instance(struct pcinst* inst) WTF_INTERNAL;
 // clean up the executor module for a PurC instance.
 void pcexecutor_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
+
+
+
+
+
+
+void pcexecutor_set_debug(int debug_flex, int debug_bison);
+void pcexecutor_get_debug(int *debug_flex, int *debug_bison);
+
 
 PCA_EXTERN_C_END
 

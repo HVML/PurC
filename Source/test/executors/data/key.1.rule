@@ -16,6 +16,7 @@ P: # bellow are positive samples
                       
 
 # all seperated with a SPACE
+KEY : AS 'zh_CN' AND AS 'zh_HK' ;
 KEY : ALL ;
 KEY : AS 'zh_CN' ;
 KEY : AS 'zh_CN'isc ;

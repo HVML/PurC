@@ -165,6 +165,10 @@ macro(_PURC_FLEX_BISON _target _relpath _parser)
         PROPERTIES COMPILE_FLAGS "${_flags}"
     )
     unset(_flags)
+    # FIXME: better remove this
+    list(APPEND ${_target}_PRIVATE_INCLUDE_DIRECTORIES
+        ${CMAKE_CURRENT_BINARY_DIR}/${_relpath}
+    )
 endmacro()
 
 macro(PURC_FLEX_BISON _target _relpath _parsers)

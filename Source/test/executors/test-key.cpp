@@ -1,7 +1,6 @@
 #include "purc.h"
 
-#include "purc-executor.h"
-
+#include "private/executor.h"
 #include "private/utils.h"
 
 #include <gtest/gtest.h>
@@ -12,6 +11,8 @@
 #include "../helpers.h"
 
 extern "C" {
+#include "pcexe-helper.h"
+#include "exe_key.h"
 #include "exe_key.tab.h"
 }
 
@@ -54,6 +55,47 @@ parse(const char *rule, char **err_msg)
     return r;
 }
 
+static inline bool
+parse_ex(const char *rule, purc_variant_t input, char **err_msg)
+{
+    purc_exec_ops ops;
+    bool ok = purc_get_executor("KEY", &ops);
+    if (!ok) {
+        if (err_msg) {
+            *err_msg = strdup("failed to get executor of [KEY]");
+        }
+        return false;
+    }
+
+    purc_exec_inst_t inst = ops.create(PURC_EXEC_TYPE_CHOOSE,
+            input, true);
+
+    if (!inst) {
+        if (err_msg) {
+            *err_msg = strdup("failed to create [KEY] instance");
+        }
+        return false;
+    }
+
+    ok = true;
+
+    purc_variant_t v = ops.choose(inst, rule);
+    if (v == PURC_VARIANT_INVALID) {
+        if (inst->err_msg) {
+            if (err_msg) {
+                *err_msg = strdup(inst->err_msg);
+            }
+            ok = false;
+        }
+    } else {
+        purc_variant_unref(v);
+    }
+
+    ops.destroy(inst);
+
+    return ok;
+}
+
 TEST(exe_key, files)
 {
     int r = 0;
@@ -70,10 +112,18 @@ TEST(exe_key, files)
     const char *rel = "data/key.*.rule";
     get_option_from_env(rel, false);
 
+    purc_variant_t key = purc_variant_make_string_static("hello", true);
+    purc_variant_t val = purc_variant_make_string_static("world", true);
+    purc_variant_t obj = purc_variant_make_object(1, key, val);
+    purc_variant_unref(val);
+    purc_variant_unref(key);
+
     process_sample_files(sample_files,
-            [](const char *rule, char **err_msg) -> bool {
-        return parse(rule, err_msg);
+            [&](const char *rule, char **err_msg) -> bool {
+        return parse_ex(rule, obj, err_msg);
     });
+
+    purc_variant_unref(obj);
 
     bool ok = purc_cleanup ();
 

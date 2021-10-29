@@ -68,6 +68,8 @@ static const char* executor_err_msgs[] = {
     "Executor: No keys selected previously",
     /* PCEXECUTOR_ERROR_NO_KEYS_SELECTED */
     "Executor: No keys selected",
+    /* PCEXECUTOR_ERROR_BAD_SYNTAX */
+    "Executor: Bad syntax",
 };
 
 /* Make sure the number of error messages matches the number of error codes */
@@ -98,7 +100,8 @@ void pcexecutor_init_once(void)
 void pcexecutor_init_instance(struct pcinst *inst)
 {
     struct pcexecutor_heap *heap = &inst->executor_heap;
-    UNUSED_PARAM(heap);
+    heap->debug_flex = 0;
+    heap->debug_bison = 0;
 
     pcexec_exe_key_register();
     pcexec_exe_range_register();
@@ -118,11 +121,31 @@ void pcexecutor_init_instance(struct pcinst *inst)
 void pcexecutor_cleanup_instance(struct pcinst *inst)
 {
     struct pcexecutor_heap *heap = &inst->executor_heap;
-    UNUSED_PARAM(heap);
+
     if (heap->executors) {
         pcutils_map_destroy(heap->executors);
         heap->executors = NULL;
     }
+}
+
+void pcexecutor_set_debug(int debug_flex, int debug_bison)
+{
+    struct pcexecutor_heap *heap;
+    heap = &pcinst_current()->executor_heap;
+
+    heap->debug_flex  = debug_flex;
+    heap->debug_bison = debug_bison;
+}
+
+void pcexecutor_get_debug(int *debug_flex, int *debug_bison)
+{
+    struct pcexecutor_heap *heap;
+    heap = &pcinst_current()->executor_heap;
+
+    if (debug_flex)
+        *debug_flex  = heap->debug_flex;
+    if (debug_bison)
+        *debug_bison = heap->debug_bison;
 }
 
 bool purc_register_executor(const char* name, purc_exec_ops_t ops)

@@ -33,6 +33,7 @@
 #include "private/list.h"
 #include "private/tree.h"
 
+#include <regex.h>
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
@@ -165,20 +166,22 @@ literal_expression_reset(struct literal_expression *lexp)
     free(lexp->literal);
 }
 
-int
-literal_expression_eval(struct literal_expression *lexp, const char *s,
-    bool *result);
-
 struct wildcard_expression
 {
     char                   *wildcard;
     struct matching_suffix  suffix;
+
+    void                   *pattern_spec;
 };
 
 struct regular_expression
 {
     char                   *regexp;
     unsigned char           flags;
+
+    int                     eflags;
+    regex_t                 reg;
+    unsigned int            reg_valid:1;
 };
 
 enum STRING_PATTERN_TYPE {
@@ -197,21 +200,8 @@ struct string_pattern_expression
     struct list_head            node;
 };
 
-static inline void
-string_pattern_expression_reset(struct string_pattern_expression *spexp)
-{
-    if (!spexp)
-        return;
-    switch (spexp->type)
-    {
-        case STRING_PATTERN_WILDCARD:
-            free(spexp->wildcard.wildcard);
-            break;
-        case STRING_PATTERN_REGEXP:
-            free(spexp->regexp.regexp);
-            break;
-    }
-}
+void
+string_pattern_expression_reset(struct string_pattern_expression *spexp);
 
 struct string_literal_list
 {
@@ -344,6 +334,9 @@ struct logical_expression
     bool                            result;
 };
 
+int is_logical_expression_all(struct logical_expression *lexp);
+struct logical_expression* logical_expression_all(void);
+
 static inline struct logical_expression*
 logical_expression_create(void)
 {
@@ -360,12 +353,96 @@ logical_expression_destroy(struct logical_expression *exp)
     if (!exp)
         return;
 
+    if (is_logical_expression_all(exp))
+        return;
+
     logical_expression_reset(exp);
     free(exp);
 }
 
+int
+literal_expression_eval(struct literal_expression *lexp, const char *s,
+    bool *result);
+int
+wildcard_expression_eval(struct wildcard_expression *wexp, const char *s,
+    bool *result);
+int
+regular_expression_eval(struct regular_expression *rexp, const char *s,
+    bool *result);
+
+static inline int
+string_pattern_expression_eval(struct string_pattern_expression *spexp,
+    const char *s, bool *result)
+{
+    switch (spexp->type)
+    {
+        case STRING_PATTERN_WILDCARD:
+            return wildcard_expression_eval(&spexp->wildcard, s, result);
+        case STRING_PATTERN_REGEXP:
+            return regular_expression_eval(&spexp->regexp, s, result);
+    }
+    return -1;
+}
+
+static inline int
+string_pattern_list_eval(struct string_pattern_list *list, const char *s,
+    bool *result)
+{
+    struct list_head *p;
+    list_for_each(p, &list->list) {
+        struct string_pattern_expression *lexp;
+        lexp = container_of(p, struct string_pattern_expression, node);
+        int r = string_pattern_expression_eval(lexp, s, result);
+        if (r)
+            return -1;
+        if (result && *result)
+            return 0;
+    }
+
+    if (result)
+        *result = false;
+
+    return 0;
+}
+
+static inline int
+string_literal_list_eval(struct string_literal_list *list, const char *s,
+    bool *result)
+{
+    struct list_head *p;
+    list_for_each(p, &list->list) {
+        struct literal_expression *lexp;
+        lexp = container_of(p, struct literal_expression, node);
+        int r = literal_expression_eval(lexp, s, result);
+        if (r)
+            return -1;
+        if (result && *result)
+            return 0;
+    }
+
+    if (result)
+        *result = false;
+
+    return 0;
+}
+
+static inline int
+string_matching_expression_eval(struct string_matching_expression *mexp,
+    const char *s, bool *result)
+{
+    switch(mexp->type)
+    {
+        case STRING_MATCHING_PATTERN:
+            return string_pattern_list_eval(mexp->patterns, s, result);
+        case STRING_MATCHING_LITERAL:
+            return string_literal_list_eval(mexp->literals, s, result);
+    }
+
+    return -1;
+}
+
 int logical_expression_eval(struct logical_expression *exp,
-        purc_variant_t val, bool *result);
+        const char *s, bool *result);
 
 int logical_and(struct logical_expression *exp);
 int logical_or(struct logical_expression *exp);

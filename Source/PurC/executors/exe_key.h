@@ -30,6 +30,8 @@
 
 #include "purc-macros.h"
 
+#include "private/debug.h"
+
 #include "pcexe-helper.h"
 
 struct key_rule
@@ -38,9 +40,27 @@ struct key_rule
     enum for_clause_type             for_clause;
 };
 
+struct exe_key_param {
+    char *err_msg;
+    int debug_flex;
+    int debug_bison;
+
+    struct key_rule       rule;
+};
+
 PCA_EXTERN_C_BEGIN
 
 int pcexec_exe_key_register(void);
+
+int exe_key_parse(const char *input, size_t len,
+        struct exe_key_param *param);
+
+static inline int
+key_rule_eval(struct key_rule *rule, const char *s, bool *result)
+{
+    PC_ASSERT(rule);
+    return logical_expression_eval(rule->lexp, s, result);
+}
 
 PCA_EXTERN_C_END
 

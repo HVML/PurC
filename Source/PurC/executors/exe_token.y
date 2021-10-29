@@ -300,6 +300,6 @@ int exe_token_parse(const char *input, size_t len,
     exe_token_yy_scan_bytes(input ? input : "", input ? len : 0, arg);
     int ret =exe_token_yyparse(arg, param);
     exe_token_yylex_destroy(arg);
-    return ret ? 1 : 0;
+    return ret ? -1 : 0;
 }
 

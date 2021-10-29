@@ -24,6 +24,8 @@
 
 #include "pcexe-helper.h"
 
+#include "private/debug.h"
+
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -160,9 +162,25 @@ char* pcexe_strlist_to_str(struct pcexe_strlist *list)
     return buf;
 }
 
+struct logical_expression* logical_expression_all(void)
+{
+    static struct logical_expression all = {0};
+    return &all;
+}
+
+int is_logical_expression_all(struct logical_expression *lexp)
+{
+    if (logical_expression_all() == lexp)
+        return 1;
+    return 0;
+}
+
 void logical_expression_reset(struct logical_expression *exp)
 {
     if (!exp)
+        return;
+
+    if (is_logical_expression_all(exp))
         return;
 
     struct pctree_node *top = &exp->node;
@@ -184,117 +202,14 @@ void logical_expression_reset(struct logical_expression *exp)
     }
 }
 
-static int
-eval_by_matching_literal(struct literal_expression *lexp,
-    struct logical_expression *exp, purc_variant_t val)
-{
-    UNUSED_PARAM(lexp);
-    UNUSED_PARAM(exp);
-    UNUSED_PARAM(val);
-    return -1;
-}
-
-static int
-eval_by_matching_literals(struct logical_expression *exp,
-    purc_variant_t val)
-{
-    struct list_head *p;
-    list_for_each(p, &exp->mexp.literals->list) {
-        struct literal_expression *lexp;
-        lexp = container_of(p, struct literal_expression, node);
-        int r = eval_by_matching_literal(lexp, exp, val);
-        if (r)
-            return r;
-        if (!exp->result)
-            return 0;
-    }
-
-    return true;
-}
-
-static int
-eval_by_matching_wildcard(struct wildcard_expression *wildcard,
-    struct logical_expression *exp, purc_variant_t val)
-{
-    UNUSED_PARAM(wildcard);
-    UNUSED_PARAM(exp);
-    UNUSED_PARAM(val);
-    return -1;
-}
-
-static int
-eval_by_matching_regexp(struct regular_expression *regexp,
-    struct logical_expression *exp, purc_variant_t val)
-{
-    UNUSED_PARAM(regexp);
-    UNUSED_PARAM(exp);
-    UNUSED_PARAM(val);
-    return -1;
-}
-
-static int
-eval_by_matching_pattern(struct string_pattern_expression *pexp,
-    struct logical_expression *exp, purc_variant_t val)
-{
-    switch (pexp->type)
-    {
-        case STRING_PATTERN_WILDCARD:
-        {
-            return eval_by_matching_wildcard(&pexp->wildcard, exp, val);
-        } break;
-        case STRING_PATTERN_REGEXP:
-        {
-            return eval_by_matching_regexp(&pexp->regexp, exp, val);
-        } break;
-    }
-
-    return -1;
-}
-
-static int
-eval_by_matching_patterns(struct logical_expression *exp,
-    purc_variant_t val)
-{
-    struct list_head *p;
-    list_for_each(p, &exp->mexp.literals->list) {
-        struct string_pattern_expression *pexp;
-        pexp = container_of(p, struct string_pattern_expression, node);
-        int r = eval_by_matching_pattern(pexp, exp, val);
-        if (r)
-            return r;
-        if (!exp->result)
-            return 0;
-    }
-
-    return true;
-}
-
-static int
-eval_by_matching_expression(struct logical_expression *exp,
-    purc_variant_t val)
-{
-    switch (exp->mexp.type)
-    {
-        case STRING_MATCHING_PATTERN:
-        {
-            return eval_by_matching_patterns(exp, val);
-        } break;
-        case STRING_MATCHING_LITERAL:
-        {
-            return eval_by_matching_literals(exp, val);
-        } break;
-        default:
-        {
-            return -1;
-        } break;
-    }
-}
-
 int logical_expression_eval(struct logical_expression *exp,
-        purc_variant_t val, bool *result)
+        const char *s, bool *result)
 {
     if (!exp)
         return -1;
+
+    if (is_logical_expression_all(exp))
+        return 0;
 
     struct pctree_node *top = &exp->node;
     struct pctree_node *node, *next;
@@ -307,11 +222,16 @@ int logical_expression_eval(struct logical_expression *exp,
         {
             case LOGICAL_EXPRESSION_OP:
             {
+                fprintf(stderr, "%d:%s()\n", __LINE__, __func__);
+                PC_ASSERT(p->op);
                 r = p->op(p);
             } break;
             case LOGICAL_EXPRESSION_EXP:
             {
-                r = eval_by_matching_expression(p, val);
+                fprintf(stderr, "%d:%s()\n", __LINE__, __func__);
+                struct string_matching_expression *mexp;
+                mexp = &p->mexp;
+                r = string_matching_expression_eval(mexp, s, &p->result);
             } break;
         }
 
@@ -382,6 +302,30 @@ int logical_not(struct logical_expression *exp)
     return 0;
 }
 
+void
+string_pattern_expression_reset(struct string_pattern_expression *spexp)
+{
+    if (!spexp)
+        return;
+    switch (spexp->type)
+    {
+        case STRING_PATTERN_WILDCARD:
+            free(spexp->wildcard.wildcard);
+            if (spexp->wildcard.pattern_spec) {
+                GPatternSpec* ps = spexp->wildcard.pattern_spec;
+                g_pattern_spec_free(ps);
+                spexp->wildcard.pattern_spec = NULL;
+            }
+            break;
+        case STRING_PATTERN_REGEXP:
+            free(spexp->regexp.regexp);
+            if (spexp->regexp.reg_valid) {
+                regfree(&spexp->regexp.reg);
+                spexp->regexp.reg_valid = 0;
+            }
+            break;
+    }
+}
 static inline void
 normalize_space(char *s)
 {
@@ -391,6 +335,16 @@ normalize_space(char *s)
         if (isspace(c)) {
             s[i] = ' ';
         }
+    }
+}
+
+static inline void
+normalize_toupper(char *s)
+{
+    size_t n = strlen(s);
+    for (size_t i=0; i<n; ++i) {
+        const char c = s[i];
+        s[i] = toupper(c);
     }
 }
 
@@ -436,32 +390,43 @@ literal_expression_eval(struct literal_expression *lexp, const char *s,
     char *target  = NULL;
     size_t n = 0;
 
-    if (MATCHING_FLAGS_IS_SET_WITH(lexp->suffix.matching_flags, MATCHING_FLAG_I)) {
-        cmp = strncasecmp;
-    } else {
-        cmp = strncmp;
+    if (MATCHING_FLAGS_IS_SET_WITH(lexp->suffix.matching_flags, MATCHING_FLAG_C)) {
+        if (!literal) {
+            literal = strdup(lexp->literal);
+            if (!literal)
+                goto end;
+        }
+        if (!target) {
+            target = strdup(s);
+            if (!target)
+                goto end;
+        }
+
+        compress_spaces(literal);
+        compress_spaces(target);
     }
 
     if (MATCHING_FLAGS_IS_SET_WITH(lexp->suffix.matching_flags, MATCHING_FLAG_S)) {
-        literal = strdup(lexp->literal);
-        target  = strdup(s);
-        if (!literal || !target)
-            goto end;
+        if (!literal) {
+            literal = strdup(lexp->literal);
+            if (!literal)
+                goto end;
+        }
+        if (!target) {
+            target = strdup(s);
+            if (!target)
+                goto end;
+        }
+
 
         normalize_space(literal);
         normalize_space(target);
     }
 
-    if (MATCHING_FLAGS_IS_SET_WITH(lexp->suffix.matching_flags, MATCHING_FLAG_C)) {
-        if (!literal)
-            literal = strdup(lexp->literal);
-        if (!target)
-            target = strdup(s);
-        if (!literal || !target)
-            goto end;
-
-        compress_spaces(literal);
-        compress_spaces(target);
+    if (MATCHING_FLAGS_IS_SET_WITH(lexp->suffix.matching_flags, MATCHING_FLAG_I)) {
+        cmp = strncasecmp;
+    } else {
+        cmp = strncmp;
     }
 
     if (lexp->suffix.max_matching_length > 0) {
@@ -488,6 +453,228 @@ literal_expression_eval(struct literal_expression *lexp, const char *s,
 end:
     free(literal);
     free(target);
+
+    return r ? -1 : 0;
+}
+
+static inline int
+wildcard_expression_init_pattern_spec(struct wildcard_expression *wexp)
+{
+    GPatternSpec *ps = NULL;
+    char *wildcard = NULL;
+
+    if (MATCHING_FLAGS_IS_SET_WITH(wexp->suffix.matching_flags, MATCHING_FLAG_C)) {
+        if (!wildcard) {
+            wildcard = strdup(wexp->wildcard);
+            if (!wildcard)
+                goto end;
+        }
+
+        compress_spaces(wildcard);
+    }
+
+    if (MATCHING_FLAGS_IS_SET_WITH(wexp->suffix.matching_flags, MATCHING_FLAG_S)) {
+        if (!wildcard) {
+            wildcard = strdup(wexp->wildcard);
+            if (!wildcard)
+                goto end;
+        }
+
+        normalize_space(wildcard);
+    }
+
+    if (MATCHING_FLAGS_IS_SET_WITH(wexp->suffix.matching_flags, MATCHING_FLAG_I)) {
+        if (!wildcard) {
+            wildcard = strdup(wexp->wildcard);
+            if (!wildcard)
+                goto end;
+        }
+        normalize_toupper(wildcard);
+    }
+
+    if (wexp->suffix.max_matching_length > 0) {
+        size_t n = wexp->suffix.max_matching_length;
+        if (!wildcard) {
+            size_t len = strlen(wexp->wildcard);
+            if (len > n) {
+                wildcard = strndup(wexp->wildcard, n);
+                if (!wildcard)
+                    goto end;
+            } else {
+                n = len;
+            }
+        } else {
+            size_t len = strlen(wildcard);
+            if (len > n) {
+                wildcard[n] = '\0';
+            } else {
+                n = len;
+            }
+        }
+    }
+
+    if (wildcard) {
+        ps = g_pattern_spec_new(wildcard);
+        if (!ps)
+            goto end;
+    } else {
+        ps = g_pattern_spec_new(wexp->wildcard);
+        if (!ps)
+            goto end;
+    }
+
+    wexp->pattern_spec = ps;
+
+end:
+    free(wildcard);
+
+    return ps ? 0 : -1;
+}
+
+
+int
+wildcard_expression_eval(struct wildcard_expression *wexp, const char *s,
+    bool *result)
+{
+    if (!wexp || !s)
+        return -1;
+
+    GPatternSpec *ps = NULL;
+    char *target  = NULL;
+    const char *t = NULL;
+
+    int r = -1;
+    int v = 0;
+
+    if (wexp->pattern_spec == NULL) {
+        if (wildcard_expression_init_pattern_spec(wexp))
+            goto end;
+    }
+
+    ps = (GPatternSpec*)wexp->pattern_spec;
+
+    if (MATCHING_FLAGS_IS_SET_WITH(wexp->suffix.matching_flags, MATCHING_FLAG_C)) {
+        if (!target) {
+            target  = strdup(s);
+            if (!target)
+                goto end;
+        }
+
+        compress_spaces(target);
+    }
+
+    if (MATCHING_FLAGS_IS_SET_WITH(wexp->suffix.matching_flags, MATCHING_FLAG_S)) {
+        if (!target) {
+            target  = strdup(s);
+            if (!target)
+                goto end;
+        }
+
+        normalize_space(target);
+    }
+
+    if (MATCHING_FLAGS_IS_SET_WITH(wexp->suffix.matching_flags, MATCHING_FLAG_I)) {
+        if (!target) {
+            target  = strdup(s);
+            if (!target)
+                goto end;
+        }
+
+        normalize_toupper(target);
+    }
+
+    if (wexp->suffix.max_matching_length > 0) {
+        size_t n = wexp->suffix.max_matching_length;
+        if (!target) {
+            size_t len = strlen(s);
+            if (len > n) {
+                target = strndup(s, n);
+                if (!target)
+                    goto end;
+            } else {
+                n = len;
+            }
+        } else {
+            size_t len = strlen(target);
+            if (len > n) {
+                target[n] = '\0';
+            } else {
+                n = len;
+            }
+        }
+    }
+
+    r = 0;
+
+    if (target) {
+        t = target;
+    } else {
+        t = s;
+    }
+
+    v = g_pattern_match(ps, strlen(t), t, NULL);
+
+    if (result)
+        *result = (v) ? true : false;
+
+end:
+    free(target);
+
+    return r ? -1 : 0;
+}
+
+static inline int
+regular_expression_init_reg(struct regular_expression *rexp)
+{
+    int cflags = REG_EXTENDED | REG_NOSUB | REG_NEWLINE;
+    int eflags = REG_NOTBOL | REG_NOTEOL;
+
+    if (REGEXP_FLAGS_IS_SET_WITH(rexp->flags, REGEXP_FLAG_I)) {
+        cflags |= REG_ICASE;
+    }
+
+    if (REGEXP_FLAGS_IS_SET_WITH(rexp->flags, REGEXP_FLAG_S)) {
+        cflags &= ~REG_NEWLINE;
+    }
+
+    if (REGEXP_FLAGS_IS_SET_WITH(rexp->flags, REGEXP_FLAG_M)) {
+        eflags &= ~(REG_NOTBOL|REG_NOTEOL);
+    }
+
+    // TODO: other flags
+
+    int r = regcomp(&rexp->reg, rexp->regexp, cflags);
+    if (r)
+        return -1;
+
+    rexp->eflags = eflags;
+    rexp->reg_valid = 1;
+
+    return 0;
+}
+
+int
+regular_expression_eval(struct regular_expression *rexp, const char *s,
+    bool *result)
+{
+    if (!rexp || !s)
+        return -1;
+
+    int r = -1;
+    int v = 0;
+
+    if (!rexp->reg_valid) {
+        if (regular_expression_init_reg(rexp))
+            goto end;
+    }
+
+    r = 0;
+    v = regexec(&rexp->reg, s, 0, NULL, rexp->eflags);
+
+    if (result)
+        *result = (v == 0) ? true : false;
+
+end:
 
     return r ? -1 : 0;
 }

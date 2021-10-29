@@ -211,6 +211,6 @@ int exe_range_parse(const char *input, size_t len,
     exe_range_yy_scan_bytes(input ? input : "", input ? len : 0, arg);
     int ret =exe_range_yyparse(arg, param);
     exe_range_yylex_destroy(arg);
-    return ret ? 1 : 0;
+    return ret ? -1 : 0;
 }
 

@@ -27,18 +27,21 @@
 
 %code top {
     // here to include header files required for generated exe_key.tab.c
+    #define _GNU_SOURCE
+    #include <assert.h>
+    #include <stddef.h>
+    #include <stdio.h>
+    #include <string.h>
+
+    #include "purc-errors.h"
+
+    #include "pcexe-helper.h"
+    #include "exe_key.h"
 }
 
 %code requires {
-    #ifdef _GNU_SOURCE
-    #undef _GNU_SOURCE
-    #endif
-    #define _GNU_SOURCE
-    #include <assert.h>
-    #include <stdio.h>
-    #include <stddef.h>
-    #include "pcexe-helper.h"
-    #include "exe_key.h"
+    // #include "pcexe-helper.h"
+    // #include "exe_key.h"
     // related struct/function decls
     // especially, for struct exe_key_param
     // and parse function for example:
@@ -46,13 +49,6 @@
     //        struct exe_key_param *param);
     // #include "exe_key.h"
     // here we define them locally
-    struct exe_key_param {
-        char *err_msg;
-        int debug_flex;
-        int debug_bison;
-
-        struct key_rule       rule;
-    };
 
     struct exe_key_token {
         const char      *text;
@@ -65,9 +61,6 @@
     #define YY_TYPEDEF_YY_SCANNER_T
     typedef void* yyscan_t;
     #endif
-
-    int exe_key_parse(const char *input, size_t len,
-            struct exe_key_param *param);
 }
 
 %code provides {
@@ -174,12 +167,14 @@
     } while (0)
 
     #define STR_PATTERN_SET_WILDCARD(_sp, _s, _sfx) do {     \
+        memset(&_sp, 0, sizeof(_sp));                        \
         _sp.type = STRING_PATTERN_WILDCARD;                  \
         _sp.wildcard.wildcard = _s;                          \
         _sp.wildcard.suffix = _sfx;                          \
     } while (0)
 
     #define STR_PATTERN_SET_REGEXP(_sp, _slist, _flags) do { \
+        memset(&_sp, 0, sizeof(_sp));                        \
         _sp.type = STRING_PATTERN_WILDCARD;                  \
         _sp.regexp.regexp = pcexe_strlist_to_str(&_slist);   \
         pcexe_strlist_reset(&_slist);                        \
@@ -275,6 +270,7 @@
             YYABORT;                                                    \
         }                                                               \
         _logic->type = LOGICAL_EXPRESSION_OP;                           \
+        _logic->op = logical_and;                                       \
         bool ok = pctree_node_append_child(&_logic->node, &_l->node);   \
         if (ok) {                                                       \
             ok = pctree_node_append_child(&_logic->node, &_r->node);    \
@@ -296,6 +292,7 @@
             YYABORT;                                                    \
         }                                                               \
         _logic->type = LOGICAL_EXPRESSION_OP;                           \
+        _logic->op = logical_or;                                        \
         bool ok = pctree_node_append_child(&_logic->node, &_l->node);   \
         if (ok) {                                                       \
             ok = pctree_node_append_child(&_logic->node, &_r->node);    \
@@ -317,6 +314,7 @@
             YYABORT;                                                    \
         }                                                               \
         _logic->type = LOGICAL_EXPRESSION_OP;                           \
+        _logic->op = logical_xor;                                       \
         bool ok = pctree_node_append_child(&_logic->node, &_l->node);   \
         if (ok) {                                                       \
             ok = pctree_node_append_child(&_logic->node, &_r->node);    \
@@ -336,6 +334,8 @@
             logical_expression_destroy(_l);                             \
             YYABORT;                                                    \
         }                                                               \
+        _logic->type = LOGICAL_EXPRESSION_OP;                           \
+        _logic->op = logical_not;                                       \
         bool ok = pctree_node_append_child(&_logic->node, &_l->node);   \
         if (ok) {                                                       \
             break;                                                      \
@@ -436,7 +436,7 @@ input:
 ;
 
 rule:
-  key_rule
+  key_rule     { $$ = $1; }
 ;
 
 key_rule:
@@ -444,7 +444,7 @@ key_rule:
 ;
 
 subrule:
-  ALL                      { $$ = NULL; }
+  ALL                      { $$ = logical_expression_all(); }
 | logical_expression       { $$ = $1; }
 ;
 
@@ -572,6 +572,13 @@ int exe_key_parse(const char *input, size_t len,
     exe_key_yy_scan_bytes(input ? input : "", input ? len : 0, arg);
     int ret =exe_key_yyparse(arg, param);
     exe_key_yylex_destroy(arg);
-    return ret ? 1 : 0;
+    if (ret) {
+        if (param->err_msg==NULL) {
+            purc_set_error(PCEXECUTOR_ERROR_OOM);
+        } else {
+            purc_set_error(PCEXECUTOR_ERROR_BAD_SYNTAX);
+        }
+    }
+    return ret ? -1 : 0;
 }
 

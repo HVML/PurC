@@ -199,6 +199,6 @@ int exe_add_parse(const char *input, size_t len,
     exe_add_yy_scan_bytes(input ? input : "", input ? len : 0, arg);
     int ret =exe_add_yyparse(arg, param);
     exe_add_yylex_destroy(arg);
-    return ret ? 1 : 0;
+    return ret ? -1 : 0;
 }
 

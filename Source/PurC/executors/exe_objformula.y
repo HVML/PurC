@@ -227,6 +227,6 @@ int exe_objformula_parse(const char *input, size_t len,
     exe_objformula_yy_scan_bytes(input ? input : "", input ? len : 0, arg);
     int ret =exe_objformula_yyparse(arg, param);
     exe_objformula_yylex_destroy(arg);
-    return ret ? 1 : 0;
+    return ret ? -1 : 0;
 }
 
