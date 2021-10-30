@@ -12,7 +12,7 @@
 # KEY: ALL;
 #
 # O: # output value to compare, can be predefined-error-code or json
-# { 'hello': 'world' };
+# [{ 'hello': 'world' }];
 
 
 I:
@@ -128,17 +128,4 @@ R:
 KEY: LIKE /name\/age/;
 O:
 ['li/3'];
-
-
-## # R:
-## # KEY: AS 'zh';
-## 
-## O:
-## undefined;
-## 
-## # R:
-## # EY: AS 'zh';
-## 
-## O:
-## undefined;
 
