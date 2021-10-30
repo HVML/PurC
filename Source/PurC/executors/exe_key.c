@@ -164,8 +164,6 @@ exe_key_choose(purc_exec_inst_t inst, const char* rule)
     if (!exe_key_parse_rule(inst, rule))
         return PURC_VARIANT_INVALID;
 
-    size_t sz = purc_variant_array_get_size(inst->selected_keys);
-
     purc_variant_t vals = purc_variant_make_array(0, PURC_VARIANT_INVALID);
     if (vals == PURC_VARIANT_INVALID) {
         return PURC_VARIANT_INVALID;
@@ -176,6 +174,7 @@ exe_key_choose(purc_exec_inst_t inst, const char* rule)
     struct pcexec_exe_key_inst *exe_key_inst;
     exe_key_inst = (struct pcexec_exe_key_inst*)inst;
 
+    size_t sz = purc_variant_array_get_size(inst->selected_keys);
     for (size_t i=0; i<sz; ++i) {
         purc_variant_t k, v;
         foreach_value_in_variant_array(inst->selected_keys, k)
@@ -205,7 +204,7 @@ exe_key_choose(purc_exec_inst_t inst, const char* rule)
                 break;
         end_foreach;
         if (!ok)
-            break;
+           break;
     }
 
     if (ok)

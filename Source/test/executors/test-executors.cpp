@@ -14,11 +14,19 @@
 
 #define ENV(env)      #env
 
+struct statistics
+{
+    size_t                 nr_success;
+    size_t                 nr_failure;
+};
+
 struct config {
     bool debug_flex;                // trace flex
     bool debug_bison;               // trace bison
     bool verbose_neg;               // if print err_msg when neg 'succeeds'
     char sample_files[PATH_MAX+1];  // sample files searching pattern
+
+    struct statistics stat;
 };
 
 static inline void
@@ -60,6 +68,11 @@ config_print(struct config *cfg)
     env = ENV(VERBOSE_NEG);
     std::cerr << "env: export " << env << "=" << cfg->verbose_neg;
     std::cerr << std::endl;
+
+    std::cerr << "test result(total/success/failure):"
+        << cfg->stat.nr_success + cfg->stat.nr_failure << "/"
+        << cfg->stat.nr_success << "/"
+        << cfg->stat.nr_failure << std::endl;
 }
 
 enum parser_state {
@@ -581,10 +594,10 @@ process_sample_file(struct config *cfg, FILE *file, const char *fn)
 
                     ctx.result = 1;
                     process_output(cfg, fn, &ctx);
-
-                    if (ctx.result == 0) {
-                        ok = false;
-                        break;
+                    if (ctx.result) {
+                        ++cfg->stat.nr_success;
+                    } else {
+                        ++cfg->stat.nr_failure;
                     }
 
                     parser_ctx_clear_rule(&ctx);
