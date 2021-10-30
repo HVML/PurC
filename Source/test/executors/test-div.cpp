@@ -39,16 +39,20 @@ TEST(exe_div, basic)
 }
 
 static inline bool
-parse(const char *rule, char **err_msg)
+parse(const char *rule, char *err_msg, size_t sz_err_msg)
 {
-    struct exe_div_param param = {
-        .err_msg            = nullptr,
-        .debug_flex         = debug_flex,
-        .debug_bison        = debug_bison,
-    };
+    struct exe_div_param param;
+    memset(&param, 0, sizeof(param));
+    param.debug_flex         = debug_flex;
+    param.debug_bison        = debug_bison;
+
     bool r;
     r = exe_div_parse(rule, strlen(rule), &param) == 0;
-    *err_msg = param.err_msg;
+    if (param.err_msg) {
+        snprintf(err_msg, sz_err_msg, "%s", param.err_msg);
+        free(param.err_msg);
+    }
+
     return r;
 }
 
@@ -69,8 +73,8 @@ TEST(exe_div, files)
     get_option_from_env(rel, false);
 
     process_sample_files(sample_files,
-            [](const char *rule, char **err_msg) -> bool {
-        return parse(rule, err_msg);
+            [](const char *rule, char *err_msg, size_t sz_err_msg) -> bool {
+        return parse(rule, err_msg, sz_err_msg);
     });
 
     bool ok = purc_cleanup ();

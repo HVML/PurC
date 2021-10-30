@@ -73,51 +73,49 @@ is_blank_line(const char *line)
     return true;
 }
 
+typedef bool (on_rule_f)(const char *rule, char *err_msg, size_t sz_err_msg);
+
 static inline bool
 process_positive(const struct sample *sample,
-        std::function<bool(const char *rule, char **err_msg)> on_rule)
+        std::function<on_rule_f> on_rule)
 {
     const char *rule   = sample->rule;
     const char *fn     = sample->fn;
     size_t      lineno = sample->lineno;
 
-    char *err_msg = nullptr;
-    bool r = on_rule(rule, &err_msg);
+    char err_msg[1024];
+    err_msg[0] = '\0';
+    bool r = on_rule(rule, err_msg, sizeof(err_msg));
 
     ++counter.positives;
 
     if (!r) {
         ++counter.positives_fail;
 
-        const char *err = err_msg ? err_msg : "";
         std::cerr << fn << "[" << lineno << "]:Not postive:[" << rule << "]:"
-            << err << std::endl;
+            << err_msg << std::endl;
     }
-
-    if (err_msg)
-        free(err_msg);
 
     return r;
 }
 
 static inline bool
 process_negative(const struct sample *sample,
-        std::function<bool(const char *rule, char **err_msg)> on_rule)
+        std::function<on_rule_f> on_rule)
 {
     const char *rule   = sample->rule;
     const char *fn     = sample->fn;
     size_t      lineno = sample->lineno;
 
-    char *err_msg = nullptr;
-    bool r = on_rule(rule, &err_msg);
+    char err_msg[1024];
+    err_msg[0] = '\0';
+    bool r = on_rule(rule, err_msg, sizeof(err_msg));
 
     ++counter.negatives;
 
     if (!r && verbose_neg) {
-        const char *err = err_msg ? err_msg : "";
-
         std::cerr << "As expected:[" << rule << "]:"
-            << err << std::endl;
+            << err_msg << std::endl;
     } else if (r) {
         ++counter.negatives_fail;
 
@@ -125,15 +123,12 @@ process_negative(const struct sample *sample,
             << std::endl;
     }
 
-    if (err_msg)
-        free(err_msg);
-
     return !r;
 }
 
 static inline void
 process_rule(const struct sample *sample, enum sample_type st,
-        std::function<bool(const char *rule, char **err_msg)> on_rule)
+        std::function<on_rule_f> on_rule)
 {
     if (st == POSITIVE_SAMPLE) {
         const char *rule = sample->rule;
@@ -153,7 +148,7 @@ process_rule(const struct sample *sample, enum sample_type st,
 
 static inline void
 process_file(FILE *f, const char *fn,
-        std::function<bool(const char *rule, char **err_msg)> on_rule)
+        std::function<on_rule_f> on_rule)
 {
     struct sample v;
     v.fn = fn;
@@ -252,7 +247,7 @@ again:
 
 static inline void
 process_sample_files(const char *pattern,
-        std::function<bool(const char *rule, char **err_msg)> on_rule)
+        std::function<on_rule_f> on_rule)
 {
     glob_t gbuf;
     memset(&gbuf, 0, sizeof(gbuf));

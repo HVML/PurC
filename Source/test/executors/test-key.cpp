@@ -56,14 +56,14 @@ parse(const char *rule, char **err_msg)
 }
 
 static inline bool
-parse_ex(const char *rule, purc_variant_t input, char **err_msg)
+parse_ex(const char *rule, purc_variant_t input,
+    char *err_msg, size_t sz_err_msg)
 {
     purc_exec_ops ops;
     bool ok = purc_get_executor("KEY", &ops);
     if (!ok) {
-        if (err_msg) {
-            *err_msg = strdup("failed to get executor of [KEY]");
-        }
+        snprintf(err_msg, sz_err_msg,
+            "%s", "failed to get executor of [KEY]");
         return false;
     }
 
@@ -73,9 +73,8 @@ parse_ex(const char *rule, purc_variant_t input, char **err_msg)
             input, true);
 
     if (!inst) {
-        if (err_msg) {
-            *err_msg = strdup("failed to create [KEY] instance");
-        }
+        snprintf(err_msg, sz_err_msg,
+            "%s", "failed to create [KEY] instance");
         return false;
     }
 
@@ -84,9 +83,7 @@ parse_ex(const char *rule, purc_variant_t input, char **err_msg)
     purc_variant_t v = ops.choose(inst, rule);
     if (v == PURC_VARIANT_INVALID) {
         if (inst->err_msg) {
-            if (err_msg) {
-                *err_msg = strdup(inst->err_msg);
-            }
+            snprintf(err_msg, sz_err_msg, "%s", inst->err_msg);
             ok = false;
         }
     } else {
@@ -121,8 +118,8 @@ TEST(exe_key, files)
     purc_variant_unref(key);
 
     process_sample_files(sample_files,
-            [&](const char *rule, char **err_msg) -> bool {
-        return parse_ex(rule, obj, err_msg);
+            [&](const char *rule, char *err_msg, size_t sz_err_msg) -> bool {
+        return parse_ex(rule, obj, err_msg, sz_err_msg);
     });
 
     purc_variant_unref(obj);
