@@ -56,3 +56,31 @@ endforeach()
 
 unset(_targets)
 
+# test_executors
+PURC_EXECUTABLE_DECLARE(test_executors)
+
+list(APPEND test_executors_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_executors)
+
+set(test_executors_SOURCES
+    test-executors.cpp
+)
+
+set(test_executors_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_executors)
+PURC_FRAMEWORK(test_executors)
+GTEST_DISCOVER_TESTS(test_executors)
+

@@ -1,0 +1,144 @@
+# # check json only
+# I: # input json value
+# { "hello": "world" };
+# O: # output value to compare, can be predefined-error-code or json
+# { 'hello': 'world' };
+
+# # check executor
+# I: # input json value
+# { "hello": "world" };
+#
+# R: # rule to use
+# KEY: ALL;
+#
+# O: # output value to compare, can be predefined-error-code or json
+# { 'hello': 'world' };
+
+
+I:
+undefined;
+O:
+undefined;
+
+I:
+null;
+O:
+null;
+
+I:
+;
+O:
+null;
+
+I:
+1234;
+O:
+1234;
+
+I:
+"hello";
+O:
+"hello";
+
+I:
+"hello";
+O:
+'hello';
+
+I:
+{ "hello": "world" };
+O:
+{ 'hello': 'world' };
+
+I:
+{ 'hello': [], 'name': { 'h' : 123.4 } };
+O:
+{ "hello": [], 'name': { 'h' : 123.40 } };
+
+I: # input json value
+{ "hello": "world" };
+
+R: # rule to use
+KEY: ALL;
+O: # output value to compare, can be predefined-error-code or json
+['world'];
+
+R: # rule to use
+KEY: ALL FOR VALUE;
+O: # output value to compare, can be predefined-error-code or json
+['world'];
+
+R: # rule to use
+KEY: ALL FOR KEY;
+O: # output value to compare, can be predefined-error-code or json
+['hello'];
+
+R: # rule to use
+KEY: ALL FOR KV;
+O: # output value to compare, can be predefined-error-code or json
+[{'hello':'world'}];
+
+I:
+{ 'hello': 'world',
+  'foo': 'bar',
+  'name/age': 'li/3',
+  'great': 'wall' };
+
+R:
+KEY: AS 'foo';
+O:
+['bar'];
+
+R:
+KEY: AS 'gReat'i;
+O:
+['wall'];
+
+R:
+KEY: LIKE 'gR*'i;
+O:
+['wall'];
+
+R:
+KEY: LIKE 'gR??t'i;
+O:
+['wall'];
+
+R:
+KEY: LIKE /great/;
+O:
+['wall'];
+
+R:
+KEY: LIKE /gr..t/m;
+O:
+['wall'];
+
+R:
+KEY: LIKE /^great$/;
+O:
+['wall'];
+
+R:
+KEY: LIKE /name/;
+O:
+['li/3'];
+
+R:
+KEY: LIKE /name\/age/;
+O:
+['li/3'];
+
+
+## # R:
+## # KEY: AS 'zh';
+## 
+## O:
+## undefined;
+## 
+## # R:
+## # EY: AS 'zh';
+## 
+## O:
+## undefined;
+

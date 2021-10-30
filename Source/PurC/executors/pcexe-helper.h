@@ -96,13 +96,13 @@ char* pcexe_strlist_to_str(struct pcexe_strlist *list);
 
 #define MATCHING_FLAGS_SET(_flags, _c) switch (_c) {          \
     case 'c':                                                 \
-        _flags &= MATCHING_FLAG_C;                            \
+        _flags |= MATCHING_FLAG_C;                            \
         break;                                                \
     case 'i':                                                 \
-        _flags &= MATCHING_FLAG_I;                            \
+        _flags |= MATCHING_FLAG_I;                            \
         break;                                                \
     case 's':                                                 \
-        _flags &= MATCHING_FLAG_S;                            \
+        _flags |= MATCHING_FLAG_S;                            \
         break;                                                \
     default:                                                  \
         /* ignore */                                          \
@@ -120,22 +120,22 @@ char* pcexe_strlist_to_str(struct pcexe_strlist *list);
 
 #define REGEXP_FLAGS_SET(_flags, _c) switch (_c) {           \
     case 'g':                                                \
-        _flags &= REGEXP_FLAG_G;                             \
+        _flags |= REGEXP_FLAG_G;                             \
         break;                                               \
     case 'i':                                                \
-        _flags &= REGEXP_FLAG_I;                             \
+        _flags |= REGEXP_FLAG_I;                             \
         break;                                               \
     case 'm':                                                \
-        _flags &= REGEXP_FLAG_M;                             \
+        _flags |= REGEXP_FLAG_M;                             \
         break;                                               \
     case 's':                                                \
-        _flags &= REGEXP_FLAG_S;                             \
+        _flags |= REGEXP_FLAG_S;                             \
         break;                                               \
     case 'u':                                                \
-        _flags &= REGEXP_FLAG_U;                             \
+        _flags |= REGEXP_FLAG_U;                             \
         break;                                               \
     case 'y':                                                \
-        _flags &= REGEXP_FLAG_Y;                             \
+        _flags |= REGEXP_FLAG_Y;                             \
         break;                                               \
     default:                                                 \
         /* ignore */                                         \

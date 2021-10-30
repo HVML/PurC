@@ -113,7 +113,6 @@ exe_key_parse_rule(purc_exec_inst_t inst, const char* rule)
     if (r)
         return false;
 
-    fprintf(stderr, "rule: [%s]\n", rule);
     PC_ASSERT(exe_key_inst->param.rule.lexp);
 
     inst->selected_keys = purc_variant_make_array(0, PURC_VARIANT_INVALID);
@@ -143,7 +142,6 @@ exe_key_parse_rule(purc_exec_inst_t inst, const char* rule)
 
         if (r)
             break;
-
     end_foreach;
 
     return r ? false : true;
@@ -173,7 +171,7 @@ exe_key_choose(purc_exec_inst_t inst, const char* rule)
         return PURC_VARIANT_INVALID;
     }
 
-    bool ok = false;
+    bool ok = true;
 
     struct pcexec_exe_key_inst *exe_key_inst;
     exe_key_inst = (struct pcexec_exe_key_inst*)inst;

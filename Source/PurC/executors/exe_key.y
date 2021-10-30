@@ -175,7 +175,7 @@
 
     #define STR_PATTERN_SET_REGEXP(_sp, _slist, _flags) do { \
         memset(&_sp, 0, sizeof(_sp));                        \
-        _sp.type = STRING_PATTERN_WILDCARD;                  \
+        _sp.type = STRING_PATTERN_REGEXP;                    \
         _sp.regexp.regexp = pcexe_strlist_to_str(&_slist);   \
         pcexe_strlist_reset(&_slist);                        \
         _sp.regexp.flags = _flags;                           \
@@ -521,12 +521,12 @@ regexp_suffix:
 ;
 
 regexp_flags:
-  REGEXP_FLAG                  { REGEXP_FLAGS_SET($$, $1); }
+  REGEXP_FLAG                  { $$ = 0; REGEXP_FLAGS_SET($$, $1); }
 | regexp_flags REGEXP_FLAG     { REGEXP_FLAGS_SET($1, $2); $$ = $1; }
 ;
 
 matching_flags:
-  MATCHING_FLAG                { MATCHING_FLAGS_SET($$, $1); }
+  MATCHING_FLAG                { $$ = 0; MATCHING_FLAGS_SET($$, $1); }
 | matching_flags MATCHING_FLAG { MATCHING_FLAGS_SET($1, $2); $$ = $1; }
 ;
 

@@ -205,11 +205,12 @@ void logical_expression_reset(struct logical_expression *exp)
 int logical_expression_eval(struct logical_expression *exp,
         const char *s, bool *result)
 {
-    if (!exp)
-        return -1;
-
-    if (is_logical_expression_all(exp))
+    if (is_logical_expression_all(exp)) {
+        exp->result = true;
+        if (result)
+            *result = exp->result;
         return 0;
+    }
 
     struct pctree_node *top = &exp->node;
     struct pctree_node *node, *next;
@@ -222,13 +223,11 @@ int logical_expression_eval(struct logical_expression *exp,
         {
             case LOGICAL_EXPRESSION_OP:
             {
-                fprintf(stderr, "%d:%s()\n", __LINE__, __func__);
                 PC_ASSERT(p->op);
                 r = p->op(p);
             } break;
             case LOGICAL_EXPRESSION_EXP:
             {
-                fprintf(stderr, "%d:%s()\n", __LINE__, __func__);
                 struct string_matching_expression *mexp;
                 mexp = &p->mexp;
                 r = string_matching_expression_eval(mexp, s, &p->result);
@@ -381,9 +380,6 @@ int
 literal_expression_eval(struct literal_expression *lexp, const char *s,
     bool *result)
 {
-    if (!lexp || !s)
-        return -1;
-
     int r = -1;
     int (*cmp)(const char *s1, const char *s2, size_t n) = NULL;
     char *literal = NULL;
@@ -536,9 +532,6 @@ int
 wildcard_expression_eval(struct wildcard_expression *wexp, const char *s,
     bool *result)
 {
-    if (!wexp || !s)
-        return -1;
-
     GPatternSpec *ps = NULL;
     char *target  = NULL;
     const char *t = NULL;
@@ -626,15 +619,15 @@ end:
 static inline int
 regular_expression_init_reg(struct regular_expression *rexp)
 {
-    int cflags = REG_EXTENDED | REG_NOSUB | REG_NEWLINE;
-    int eflags = REG_NOTBOL | REG_NOTEOL;
+    int cflags = REG_EXTENDED | REG_NOSUB; /* REG_NEWLINE */
+    int eflags = 0; /* REG_NOTBOL | REG_NOTEOL */
 
     if (REGEXP_FLAGS_IS_SET_WITH(rexp->flags, REGEXP_FLAG_I)) {
         cflags |= REG_ICASE;
     }
 
     if (REGEXP_FLAGS_IS_SET_WITH(rexp->flags, REGEXP_FLAG_S)) {
-        cflags &= ~REG_NEWLINE;
+        cflags |= REG_NEWLINE;
     }
 
     if (REGEXP_FLAGS_IS_SET_WITH(rexp->flags, REGEXP_FLAG_M)) {
@@ -657,9 +650,6 @@ int
 regular_expression_eval(struct regular_expression *rexp, const char *s,
     bool *result)
 {
-    if (!rexp || !s)
-        return -1;
-
     int r = -1;
     int v = 0;
 
