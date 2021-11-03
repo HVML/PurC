@@ -27,6 +27,8 @@
 
 
 %{
+#include "pcexe-helper.h"
+#include "exe_range.h"
 #include "exe_range.tab.h"
 
 #define MKT(x)    TOK_EXE_RANGE_##x

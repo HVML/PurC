@@ -27,15 +27,18 @@
 
 %code top {
     // here to include header files required for generated exe_range.tab.c
+    #define _GNU_SOURCE
+    #include <stddef.h>
+    #include <stdio.h>
+    #include <string.h>
+
+    #include "purc-errors.h"
+
+    #include "pcexe-helper.h"
+    #include "exe_range.h"
 }
 
 %code requires {
-    #ifdef _GNU_SOURCE
-    #undef _GNU_SOURCE
-    #endif
-    #define _GNU_SOURCE
-    #include <stdio.h>
-    #include <stddef.h>
     // related struct/function decls
     // especially, for struct exe_range_param
     // and parse function for example:
@@ -43,12 +46,6 @@
     //        struct exe_range_param *param);
     // #include "exe_range.h"
     // here we define them locally
-    struct exe_range_param {
-        char *err_msg;
-        int debug_flex;
-        int debug_bison;
-    };
-
     struct exe_range_token {
         const char      *text;
         size_t           leng;
@@ -60,9 +57,6 @@
     #define YY_TYPEDEF_YY_SCANNER_T
     typedef void* yyscan_t;
     #endif
-
-    int exe_range_parse(const char *input, size_t len,
-            struct exe_range_param *param);
 }
 
 %code provides {
@@ -80,22 +74,173 @@
         const char *errsg
     );
 
-    #define SET_ARGS(_r, _a) do {              \
-        _r = strndup(_a.text, _a.leng);        \
-        if (!_r)                               \
-            YYABORT;                           \
+    #define STRTOLD(_v, _s) do {                    \
+        long double v;                              \
+        char *s = (char*)malloc(_s.leng+1);         \
+        if (!s) {                                   \
+            YYABORT;                                \
+        }                                           \
+        memcpy(s, _s.text, _s.leng);                \
+        s[_s.leng] = '\0';                          \
+        char *end;                                  \
+        v = strtold(s, &end);                       \
+        if (end && *end) {                          \
+            free(s);                                \
+            YYABORT;                                \
+        }                                           \
+        free(s);                                    \
+        _v = v;                                     \
     } while (0)
 
-    #define APPEND_ARGS(_r, _a, _b) do {       \
-        size_t len = strlen(_a);               \
-        size_t n   = len + _b.leng;            \
-        char *s = (char*)realloc(_a, n+1);     \
-        if (!s) {                              \
-            free(_r);                          \
-            YYABORT;                           \
-        }                                      \
-        memcpy(s+len, _b.text, _b.leng);       \
-        _r = s;                                \
+    #define STRTOLL(_v, _s) do {                    \
+        long long int v;                            \
+        char *s = (char*)malloc(_s.leng+1);         \
+        if (!s) {                                   \
+            YYABORT;                                \
+        }                                           \
+        memcpy(s, _s.text, _s.leng);                \
+        s[_s.leng] = '\0';                          \
+        char *end;                                  \
+        v = strtoll(s, &end, 0);                    \
+        if (end && *end) {                          \
+            free(s);                                \
+            YYABORT;                                \
+        }                                           \
+        free(s);                                    \
+        _v = v;                                     \
+    } while (0)
+
+    #define RULE_INIT_FROM(_rule, _from) do {        \
+        _rule.from    = _from;                       \
+        _rule.has_to = 0;                            \
+        _rule.has_advance = 0;                       \
+    } while (0)
+
+    #define RULE_INIT_FROM_TO(_rule, _from, _to) do {        \
+        _rule.from    = _from;                               \
+        _rule.to      = _to;                                 \
+        _rule.has_to = 1;                                    \
+        _rule.has_advance = 0;                               \
+    } while (0)
+
+    #define RULE_INIT_FROM_TO_ADVANCE(_rule, _from, _to, _advance) do {  \
+        _rule.from    = _from;                                           \
+        _rule.to      = _to;                                             \
+        _rule.advance = _advance;                                        \
+        _rule.has_to = 1;                                                \
+        _rule.has_advance = 1;                                           \
+    } while (0)
+
+    #define RULE_INIT_FROM_ADVANCE(_rule, _from, _advance) do {        \
+        _rule.from    = _from;                                         \
+        _rule.advance = _advance;                                      \
+        _rule.has_to = 0;                                              \
+        _rule.has_advance = 1;                                         \
+    } while (0)
+
+    #define NUMERIC_EXP_INIT_I64(_nexp, _i64) do {               \
+        _nexp.type = NUMERIC_EXPRESSION_INTEGER;                 \
+        STRTOLL(_nexp.i64, _i64);                                \
+    } while (0)
+
+    #define NUMERIC_EXP_INIT_LD(_nexp, _ld) do {                 \
+        _nexp.type = NUMERIC_EXPRESSION_NUMERIC;                 \
+        STRTOLD(_nexp.ld, _ld);                                  \
+    } while (0)
+
+    #define NUMERIC_EXP_VAL(_n)                                  \
+        (_n.type == NUMERIC_EXPRESSION_NUMERIC ? _n.ld : _n.i64)                                                    \
+
+    #define NUMERIC_EXP_ADD(_nexp, _l, _r) do {                  \
+        if (_l.type == NUMERIC_EXPRESSION_NUMERIC ||             \
+            _r.type == NUMERIC_EXPRESSION_NUMERIC)               \
+        {                                                        \
+            _l.ld = NUMERIC_EXP_VAL(_l) +                        \
+                    NUMERIC_EXP_VAL(_r);                         \
+            _l.type = NUMERIC_EXPRESSION_NUMERIC;                \
+        } else {                                                 \
+            _l.i64 = NUMERIC_EXP_VAL(_l) +                       \
+                     NUMERIC_EXP_VAL(_r);                        \
+            _l.type = NUMERIC_EXPRESSION_INTEGER;                \
+        }                                                        \
+        _nexp = _l;                                              \
+    } while (0)
+
+    #define NUMERIC_EXP_SUB(_nexp, _l, _r) do {                  \
+        if (_l.type == NUMERIC_EXPRESSION_NUMERIC ||             \
+            _r.type == NUMERIC_EXPRESSION_NUMERIC)               \
+        {                                                        \
+            _l.ld = NUMERIC_EXP_VAL(_l) -                        \
+                    NUMERIC_EXP_VAL(_r);                         \
+            _l.type = NUMERIC_EXPRESSION_NUMERIC;                \
+        } else {                                                 \
+            _l.i64 = NUMERIC_EXP_VAL(_l) -                       \
+                     NUMERIC_EXP_VAL(_r);                        \
+            _l.type = NUMERIC_EXPRESSION_INTEGER;                \
+        }                                                        \
+        _nexp = _l;                                              \
+    } while (0)
+
+    #define NUMERIC_EXP_MUL(_nexp, _l, _r) do {                  \
+        if (_l.type == NUMERIC_EXPRESSION_NUMERIC ||             \
+            _r.type == NUMERIC_EXPRESSION_NUMERIC)               \
+        {                                                        \
+            _l.ld = NUMERIC_EXP_VAL(_l) *                        \
+                    NUMERIC_EXP_VAL(_r);                         \
+            _l.type = NUMERIC_EXPRESSION_NUMERIC;                \
+        } else {                                                 \
+            _l.i64 = NUMERIC_EXP_VAL(_l) *                       \
+                     NUMERIC_EXP_VAL(_r);                        \
+            _l.type = NUMERIC_EXPRESSION_INTEGER;                \
+        }                                                        \
+        _nexp = _l;                                              \
+    } while (0)
+
+    #define NUMERIC_EXP_DIV(_nexp, _l, _r) do {                  \
+        if (_l.type == NUMERIC_EXPRESSION_NUMERIC ||             \
+            _r.type == NUMERIC_EXPRESSION_NUMERIC)               \
+        {                                                        \
+            _l.ld = NUMERIC_EXP_VAL(_l) /                        \
+                    NUMERIC_EXP_VAL(_r);                         \
+            _l.type = NUMERIC_EXPRESSION_NUMERIC;                \
+        } else {                                                 \
+            if (_r.type == NUMERIC_EXPRESSION_INTEGER &&         \
+                _r.i64 == 0)                                     \
+            {                                                    \
+                YYABORT;                                         \
+            }                                                    \
+            _l.i64 = NUMERIC_EXP_VAL(_l) +                       \
+                     NUMERIC_EXP_VAL(_r);                        \
+            _l.type = NUMERIC_EXPRESSION_INTEGER;                \
+        }                                                        \
+        _nexp = _l;                                              \
+    } while (0)
+
+    #define NUMERIC_EXP_UMINUS(_nexp, _l) do {                   \
+        if (_l.type == NUMERIC_EXPRESSION_NUMERIC)               \
+        {                                                        \
+            _l.ld = -NUMERIC_EXP_VAL(_l);                        \
+        } else {                                                 \
+            _l.i64 = -NUMERIC_EXP_VAL(_l);                       \
+        }                                                        \
+        _nexp = _l;                                              \
+    } while (0)
+
+    #define SET_RULE(_rule) do {                                          \
+        if (param) {                                                      \
+            param->rule.from.type = NUMERIC_EXPRESSION_INTEGER;           \
+            param->rule.from.i64 = NUMERIC_EXP_VAL(_rule.from);           \
+            param->rule.has_to = _rule.has_to;                            \
+            if (param->rule.has_to) {                                     \
+                param->rule.to.type = NUMERIC_EXPRESSION_INTEGER;         \
+                param->rule.to.i64 = NUMERIC_EXP_VAL(_rule.to);           \
+            }                                                             \
+            param->rule.has_advance = _rule.has_advance;                  \
+            if (param->rule.has_advance) {                                \
+                param->rule.advance.type = NUMERIC_EXPRESSION_INTEGER;    \
+                param->rule.advance.i64 = NUMERIC_EXP_VAL(_rule.advance); \
+            }                                                             \
+        }                                                                 \
     } while (0)
 }
 
@@ -118,8 +263,8 @@
 %union { struct exe_range_token token; }
 %union { char *str; }
 %union { char c; }
-
-    /* %destructor { free($$); } <str> */ // destructor for `str`
+%union { struct numeric_expression nexp; }
+%union { struct range_rule rule; }
 
 %token RANGE FROM TO ADVANCE
 %token <token> INTEGER NUMBER
@@ -128,50 +273,35 @@
 %left '*' '/'
 %precedence UMINUS
 
- /* %nterm <str>   args */ // non-terminal `input` use `str` to store
-                           // token value as well
+%nterm <rule> range_rule subrule
+%nterm <nexp> exp
 
 %% /* The grammar follows. */
 
 input:
-  rule
-;
-
-rule:
-  range_rule
+  range_rule        { SET_RULE($1); }
 ;
 
 range_rule:
-  RANGE ':' subrule
+  RANGE ':' subrule { $$ = $3; }
 ;
 
 subrule:
-  FROM integer_expression to_clause advance_clause
-;
-
-to_clause:
-  %empty
-| TO integer_expression
-;
-
-advance_clause:
-  %empty
-| ADVANCE integer_expression
-;
-
-integer_expression:
-  exp
+  FROM exp                    { RULE_INIT_FROM($$, $2); }
+| FROM exp TO exp             { RULE_INIT_FROM_TO($$, $2, $4); }
+| FROM exp TO exp ADVANCE exp { RULE_INIT_FROM_TO_ADVANCE($$, $2, $4, $6); }
+| FROM exp ADVANCE exp        { RULE_INIT_FROM_ADVANCE($$, $2, $4); }
 ;
 
 exp:
-  INTEGER
-| NUMBER
-| exp '+' exp
-| exp '-' exp
-| exp '*' exp
-| exp '/' exp
-| '-' exp %prec UMINUS
-| '(' exp ')'
+  INTEGER               { NUMERIC_EXP_INIT_I64($$, $1); }
+| NUMBER                { NUMERIC_EXP_INIT_LD($$, $1); }
+| exp '+' exp           { NUMERIC_EXP_ADD($$, $1, $3); }
+| exp '-' exp           { NUMERIC_EXP_SUB($$, $1, $3); }
+| exp '*' exp           { NUMERIC_EXP_MUL($$, $1, $3); }
+| exp '/' exp           { NUMERIC_EXP_DIV($$, $1, $3); }
+| '-' exp %prec UMINUS  { NUMERIC_EXP_UMINUS($$, $2); }
+| '(' exp ')'           { $$ = $2; }
 ;
 
 %%
@@ -211,6 +341,13 @@ int exe_range_parse(const char *input, size_t len,
     exe_range_yy_scan_bytes(input ? input : "", input ? len : 0, arg);
     int ret =exe_range_yyparse(arg, param);
     exe_range_yylex_destroy(arg);
+    if (ret) {
+        if (param->err_msg==NULL) {
+            purc_set_error(PCEXECUTOR_ERROR_OOM);
+        } else {
+            purc_set_error(PCEXECUTOR_ERROR_BAD_SYNTAX);
+        }
+    }
     return ret ? -1 : 0;
 }
 

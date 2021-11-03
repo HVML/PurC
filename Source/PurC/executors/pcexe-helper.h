@@ -360,6 +360,31 @@ logical_expression_destroy(struct logical_expression *exp)
     free(exp);
 }
 
+enum numeric_expression_node_type
+{
+    NUMERIC_EXPRESSION_INTEGER,
+    NUMERIC_EXPRESSION_NUMERIC,
+};
+
+struct numeric_expression
+{
+    enum numeric_expression_node_type          type;
+
+    union {
+        int64_t      i64;
+        long double  ld;
+    };
+};
+
+static inline void
+numeric_expression_destroy(struct numeric_expression *exp)
+{
+    if (!exp)
+        return;
+
+    free(exp);
+}
+
 int
 literal_expression_eval(struct literal_expression *lexp, const char *s,
     bool *result);

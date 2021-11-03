@@ -129,3 +129,12 @@ KEY: LIKE /name\/age/;
 O:
 ['li/3'];
 
+I:
+[ "zh_CN", 100, "zh_TW", 90, "zh_HK", 90, "zh_SG", 90,
+  "zh_MO", 80, "en_US", 30, "en_UK", 20 ];
+R:
+RANGE: FROM 0;
+O:
+[ "zh_CN", 100, "zh_TW", 90, "zh_HK", 90, "zh_SG", 90,
+  "zh_MO", 80, "en_US", 30, "en_UK", 20 ];
+

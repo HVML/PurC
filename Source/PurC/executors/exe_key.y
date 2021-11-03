@@ -28,7 +28,6 @@
 %code top {
     // here to include header files required for generated exe_key.tab.c
     #define _GNU_SOURCE
-    #include <assert.h>
     #include <stddef.h>
     #include <stdio.h>
     #include <string.h>
