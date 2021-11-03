@@ -149,7 +149,7 @@
     } while (0)
 
     #define NUMERIC_EXP_VAL(_n)                                  \
-        (_n.type == NUMERIC_EXPRESSION_NUMERIC ? _n.ld : _n.i64)                                                    \
+        (_n.type == NUMERIC_EXPRESSION_NUMERIC ? _n.ld : _n.i64)
 
     #define NUMERIC_EXP_ADD(_nexp, _l, _r) do {                  \
         if (_l.type == NUMERIC_EXPRESSION_NUMERIC ||             \
