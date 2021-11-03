@@ -257,7 +257,7 @@
             string_matching_expression_reset(&_mexp);         \
             YYABORT;                                          \
         }                                                     \
-        _logic->type = LOGICAL_EXPRESSION_EXP;                \
+        _logic->type = LOGICAL_EXPRESSION_STR;                \
         _logic->mexp = _mexp;                                 \
     } while (0)
 
@@ -424,18 +424,14 @@
 %nterm <mexp> string_matching_expression;
 %nterm <logic> logical_expression;
 %nterm <logic> subrule;
-%nterm <rule>  rule key_rule;
+%nterm <rule>  key_rule;
 %nterm <for_clause>  for_clause;
 
 
 %% /* The grammar follows. */
 
 input:
-  rule         { SET_RULE($1); }
-;
-
-rule:
-  key_rule     { $$ = $1; }
+  key_rule     { SET_RULE($1); }
 ;
 
 key_rule:

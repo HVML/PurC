@@ -12,6 +12,8 @@
 #include "../helpers.h"
 
 extern "C" {
+#include "pcexe-helper.h"
+#include "exe_filter.h"
 #include "exe_filter.tab.h"
 }
 
@@ -86,4 +88,5 @@ TEST(exe_filter, files)
 
     ASSERT_TRUE(ok);
 }
+
 

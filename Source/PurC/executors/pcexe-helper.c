@@ -25,6 +25,7 @@
 #include "pcexe-helper.h"
 
 #include "private/debug.h"
+#include "private/errors.h"
 
 #include <ctype.h>
 #include <stdio.h>
@@ -193,12 +194,108 @@ void logical_expression_reset(struct logical_expression *exp)
         {
             case LOGICAL_EXPRESSION_OP:
                 break;
-            case LOGICAL_EXPRESSION_EXP:
+            case LOGICAL_EXPRESSION_STR:
                 string_matching_expression_reset(&p->mexp);
+                break;
+            case LOGICAL_EXPRESSION_NUM:
                 break;
         }
         if (p!=exp)
             free(p);
+    }
+}
+
+static inline int
+ncc_eval_by_integer(struct number_comparing_condition *ncc,
+    const char *s, bool *result)
+{
+    long long int v;
+    char *end;
+    v = strtoll(s, &end, 0);
+    if (end && *end) {
+        pcinst_set_error(PCEXECUTOR_ERROR_UNEXPECTED_DATA);
+        return -1;
+    }
+
+    switch (ncc->op_type)
+    {
+        case NUMBER_COMPARING_LT:
+            *result = v < ncc->nexp.i64;
+            return 0;
+        case NUMBER_COMPARING_GT:
+            *result = v > ncc->nexp.i64;
+            return 0;
+        case NUMBER_COMPARING_LE:
+            *result = v <= ncc->nexp.i64;
+            return 0;
+        case NUMBER_COMPARING_GE:
+            *result = v >= ncc->nexp.i64;
+            return 0;
+        case NUMBER_COMPARING_EQ:
+            *result = v == ncc->nexp.i64;
+            return 0;
+        case NUMBER_COMPARING_NE:
+            *result = v != ncc->nexp.i64;
+            return 0;
+        default:
+            return -1;
+    }
+}
+
+static inline int
+ncc_eval_by_number(struct number_comparing_condition *ncc,
+    const char *s, bool *result)
+{
+    long double v;
+    char *end;
+    v = strtold(s, &end);
+    if (end && *end) {
+        pcinst_set_error(PCEXECUTOR_ERROR_UNEXPECTED_DATA);
+        return -1;
+    }
+
+    switch (ncc->op_type)
+    {
+        case NUMBER_COMPARING_LT:
+            *result = v < ncc->nexp.ld;
+            return 0;
+        case NUMBER_COMPARING_GT:
+            *result = v > ncc->nexp.ld;
+            return 0;
+        case NUMBER_COMPARING_LE:
+            *result = v <= ncc->nexp.ld;
+            return 0;
+        case NUMBER_COMPARING_GE:
+            *result = v >= ncc->nexp.ld;
+            return 0;
+        case NUMBER_COMPARING_EQ:
+            *result = v == ncc->nexp.ld;
+            return 0;
+        case NUMBER_COMPARING_NE:
+            *result = v != ncc->nexp.ld;
+            return 0;
+        default:
+            return -1;
+    }
+}
+
+int number_comparing_condition_eval(struct number_comparing_condition *ncc,
+    const char *s, bool *result)
+{
+    switch (ncc->nexp.type)
+    {
+        case NUMERIC_EXPRESSION_INTEGER:
+        {
+            return ncc_eval_by_integer(ncc, s, result);
+        } break;
+        case NUMERIC_EXPRESSION_NUMERIC:
+        {
+            return ncc_eval_by_number(ncc, s, result);
+        } break;
+        default:
+        {
+            return -1;
+        } break;
     }
 }
 
@@ -226,11 +323,17 @@ int logical_expression_eval(struct logical_expression *exp,
                 PC_ASSERT(p->op);
                 r = p->op(p);
             } break;
-            case LOGICAL_EXPRESSION_EXP:
+            case LOGICAL_EXPRESSION_STR:
             {
                 struct string_matching_expression *mexp;
                 mexp = &p->mexp;
                 r = string_matching_expression_eval(mexp, s, &p->result);
+            } break;
+            case LOGICAL_EXPRESSION_NUM:
+            {
+                struct number_comparing_condition *ncc;
+                ncc = &p->ncc;
+                r = number_comparing_condition_eval(ncc, s, &p->result);
             } break;
         }
 

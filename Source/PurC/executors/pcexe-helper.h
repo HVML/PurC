@@ -307,6 +307,47 @@ string_matching_expression_reset(struct string_matching_expression *mexp)
     }
 }
 
+enum numeric_expression_node_type
+{
+    NUMERIC_EXPRESSION_INTEGER,
+    NUMERIC_EXPRESSION_NUMERIC,
+};
+
+struct numeric_expression
+{
+    enum numeric_expression_node_type          type;
+
+    union {
+        int64_t      i64;
+        long double  ld;
+    };
+};
+
+static inline void
+numeric_expression_destroy(struct numeric_expression *exp)
+{
+    if (!exp)
+        return;
+
+    free(exp);
+}
+
+enum number_comparing_op_type
+{
+    NUMBER_COMPARING_LT,
+    NUMBER_COMPARING_GT,
+    NUMBER_COMPARING_LE,
+    NUMBER_COMPARING_GE,
+    NUMBER_COMPARING_EQ,
+    NUMBER_COMPARING_NE,
+};
+
+struct number_comparing_condition
+{
+    enum number_comparing_op_type         op_type;
+    struct numeric_expression nexp;
+};
+
 enum for_clause_type {
     FOR_CLAUSE_VALUE,
     FOR_CLAUSE_KEY,
@@ -317,7 +358,8 @@ enum for_clause_type {
 enum logical_expression_node_type
 {
     LOGICAL_EXPRESSION_OP,
-    LOGICAL_EXPRESSION_EXP,
+    LOGICAL_EXPRESSION_STR,
+    LOGICAL_EXPRESSION_NUM,
 };
 
 struct logical_expression
@@ -327,6 +369,7 @@ struct logical_expression
     union {
         int (*op)(struct logical_expression *);
         struct string_matching_expression mexp;
+        struct number_comparing_condition ncc;
     };
 
     struct pctree_node              node;
@@ -357,31 +400,6 @@ logical_expression_destroy(struct logical_expression *exp)
         return;
 
     logical_expression_reset(exp);
-    free(exp);
-}
-
-enum numeric_expression_node_type
-{
-    NUMERIC_EXPRESSION_INTEGER,
-    NUMERIC_EXPRESSION_NUMERIC,
-};
-
-struct numeric_expression
-{
-    enum numeric_expression_node_type          type;
-
-    union {
-        int64_t      i64;
-        long double  ld;
-    };
-};
-
-static inline void
-numeric_expression_destroy(struct numeric_expression *exp)
-{
-    if (!exp)
-        return;
-
     free(exp);
 }
 
@@ -465,6 +483,9 @@ string_matching_expression_eval(struct string_matching_expression *mexp,
 
     return -1;
 }
+
+int number_comparing_condition_eval(struct number_comparing_condition *ncc,
+    const char *s, bool *result);
 
 int logical_expression_eval(struct logical_expression *exp,
         const char *s, bool *result);
