@@ -48,6 +48,7 @@ struct exe_range_param {
     int debug_bison;
 
     struct range_rule         rule;
+    unsigned int              rule_valid:1;
 };
 
 PCA_EXTERN_C_BEGIN

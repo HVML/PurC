@@ -30,13 +30,19 @@
 #include "private/variant.h"
 
 
+#define CLR_VAR(_v) do {                          \
+    if (_v != PURC_VARIANT_INVALID) {             \
+        purc_variant_unref(_v);                   \
+        _v = PURC_VARIANT_INVALID;                \
+    }                                             \
+} while (0)
+
 struct pcexec_exe_range_inst {
     struct purc_exec_inst       super;
 
     struct exe_range_param        param;
 
-
-    purc_variant_t        vals;
+    purc_variant_t        cache;
 
     int64_t       from;
     int64_t       to;
@@ -58,24 +64,132 @@ exe_range_reset(struct pcexec_exe_range_inst *exe_range_inst)
         free(exe_range_inst->super.err_msg);
         exe_range_inst->super.err_msg = NULL;
     }
+}
 
-    if (exe_range_inst->vals != PURC_VARIANT_INVALID) {
-        purc_variant_unref(exe_range_inst->vals);
-        exe_range_inst->vals = PURC_VARIANT_INVALID;
+static inline purc_variant_t
+cache_array(purc_variant_t input, bool asc_desc)
+{
+    size_t sz = purc_variant_array_get_size(input);
+
+    purc_variant_t cache = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    if (cache == PURC_VARIANT_INVALID) {
+        return PURC_VARIANT_INVALID;
     }
+
+    bool ok = true;
+    for (size_t i=0; i<sz; ++i) {
+        purc_variant_t v = purc_variant_array_get(input, i);
+        PC_ASSERT(v != PURC_VARIANT_INVALID);
+        if (asc_desc) {
+            ok = purc_variant_array_append(cache, v);
+        } else {
+            ok = purc_variant_array_prepend(cache, v);
+        }
+        if (!ok)
+            break;
+    }
+
+    if (!ok) {
+        purc_variant_unref(cache);
+        return PURC_VARIANT_INVALID;
+    }
+
+    return cache;
+}
+
+static inline purc_variant_t
+cache_object(purc_variant_t input, bool asc_desc)
+{
+    purc_variant_t cache = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    if (cache == PURC_VARIANT_INVALID) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    bool ok = true;
+    purc_variant_t k, v;
+    foreach_key_value_in_variant_object(input, k, v)
+        purc_variant_t o = purc_variant_make_object(1, k, v);
+        if (o == PURC_VARIANT_INVALID) {
+            ok = false;
+            break;
+        }
+        if (asc_desc) {
+            ok = purc_variant_array_append(cache, o);
+        } else {
+            ok = purc_variant_array_prepend(cache, o);
+        }
+    end_foreach;
+
+    if (!ok) {
+        purc_variant_unref(cache);
+        return PURC_VARIANT_INVALID;
+    }
+
+    return cache;
+}
+
+static inline purc_variant_t
+cache_set(purc_variant_t input, bool asc_desc)
+{
+    purc_variant_t cache = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    if (cache == PURC_VARIANT_INVALID) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    bool ok = true;
+    purc_variant_t v;
+    foreach_value_in_variant_set(input, v)
+        if (asc_desc) {
+            ok = purc_variant_array_append(cache, v);
+        } else {
+            ok = purc_variant_array_prepend(cache, v);
+        }
+    end_foreach;
+
+    if (!ok) {
+        purc_variant_unref(cache);
+        return PURC_VARIANT_INVALID;
+    }
+
+    return cache;
 }
 
 // 创建一个执行器实例
 static purc_exec_inst_t
 exe_range_create(enum purc_exec_type type, purc_variant_t input, bool asc_desc)
 {
-    if (!purc_variant_is_array(input) && !purc_variant_is_set(input))
+    purc_variant_t cache;
+    enum purc_variant_type vt = purc_variant_get_type(input);
+    switch (vt)
+    {
+        case PURC_VARIANT_TYPE_OBJECT:
+        {
+            cache = cache_object(input, asc_desc);
+        } break;
+        case PURC_VARIANT_TYPE_ARRAY:
+        {
+            cache = cache_array(input, asc_desc);
+        } break;
+        case PURC_VARIANT_TYPE_SET:
+        {
+            cache = cache_set(input, asc_desc);
+        } break;
+        default:
+        {
+            pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
+            return NULL;
+        }
+    }
+
+    if (cache == PURC_VARIANT_INVALID) {
         return NULL;
+    }
 
     struct pcexec_exe_range_inst *inst;
     inst = calloc(1, sizeof(*inst));
     if (!inst) {
         pcinst_set_error(PCEXECUTOR_ERROR_OOM);
+        purc_variant_unref(cache);
         return NULL;
     }
 
@@ -87,6 +201,8 @@ exe_range_create(enum purc_exec_type type, purc_variant_t input, bool asc_desc)
     pcexecutor_get_debug(&debug_flex, &debug_bison);
     inst->param.debug_flex  = debug_flex;
     inst->param.debug_bison = debug_bison;
+
+    inst->cache = cache;
 
     purc_variant_ref(input);
 
@@ -110,6 +226,8 @@ exe_range_parse_rule(purc_exec_inst_t inst, const char* rule)
         inst->err_msg = NULL;
     }
 
+    struct exe_range_param *param = &exe_range_inst->param;
+    param->rule_valid = 0;
     int r = exe_range_parse(rule, strlen(rule), &exe_range_inst->param);
     inst->err_msg = exe_range_inst->param.err_msg;
     exe_range_inst->param.err_msg = NULL;
@@ -117,69 +235,35 @@ exe_range_parse_rule(purc_exec_inst_t inst, const char* rule)
     if (r)
         return false;
 
-    if (purc_variant_is_array(inst->input)) {
-        exe_range_inst->vals = inst->input;
-        purc_variant_ref(exe_range_inst->vals);
-    } else {
-        purc_variant_t vals = purc_variant_make_array(0, PURC_VARIANT_INVALID);
-        if (vals != PURC_VARIANT_INVALID) {
-            purc_variant_t val;
-            foreach_value_in_variant_set(inst->input, val);
-            if (!purc_variant_array_append(vals, val)) {
-                purc_variant_unref(vals);
-                break;
-            }
-            end_foreach;
-        }
-        exe_range_inst->vals = vals;
-    }
-
-    if (exe_range_inst->vals == PURC_VARIANT_INVALID)
-        return false;
-
-    return true;
-}
-
-static inline bool
-exe_range_refresh_from_to_advance(purc_exec_inst_t inst)
-{
-    struct pcexec_exe_range_inst *exe_range_inst;
-    exe_range_inst = (struct pcexec_exe_range_inst*)inst;
-
-    int64_t from = exe_range_inst->param.rule.from.i64;
-    int64_t to = INT64_MAX;
-    int64_t advance = 1;
-
-    if (from < 0) {
-        return false; // out of range
-    }
-
-    if (exe_range_inst->param.rule.has_advance) {
-        advance = exe_range_inst->param.rule.has_advance;
+    struct range_rule *rr = &param->rule;
+    int64_t from, to, advance;
+    from = rr->from.i64;
+    if (rr->has_advance) {
+        advance = rr->advance.i64;
         if (advance == 0) {
-            return false; // potentially infinite loop
-        }
-    }
-
-    if (exe_range_inst->param.rule.has_to) {
-        to = exe_range_inst->param.rule.to.i64;
-        if (advance > 0) {
-            if (to == INT64_MAX) {
-                return false; // out of range
-            }
-            ++to;
-        } else {
-            if (to == INT64_MIN) {
-                return false; // out of range
-            }
-            --to;
+            pcinst_set_error(PCEXECUTOR_ERROR_NOT_ALLOWED);
+            return false;
         }
     } else {
-        if (advance < 0) {
+        advance = 1;
+    }
+    if (rr->has_to) {
+        to = rr->to.i64;
+    } else {
+        purc_variant_t cache = exe_range_inst->cache;
+        size_t sz = purc_variant_array_get_size(cache);
+        if (advance > 0) {
+            to = sz - 1;
+        } else {
             to = 0;
         }
     }
 
+    exe_range_inst->from             = from;
+    exe_range_inst->to               = to;
+    exe_range_inst->advance          = advance;
+
+    param->rule_valid = 1;
     return true;
 }
 
@@ -197,15 +281,47 @@ exe_range_choose(purc_exec_inst_t inst, const char* rule)
         return PURC_VARIANT_INVALID;
     }
 
-    if (!exe_range_parse_rule(inst, rule))
-        return PURC_VARIANT_INVALID;
-
     struct pcexec_exe_range_inst *exe_range_inst;
     exe_range_inst = (struct pcexec_exe_range_inst*)inst;
 
-    purc_variant_ref(exe_range_inst->vals);
+    purc_variant_t cache = exe_range_inst->cache;
+    PC_ASSERT(cache != PURC_VARIANT_INVALID);
+    PC_ASSERT(purc_variant_is_array(cache));
 
-    return exe_range_inst->vals;
+    if (!exe_range_parse_rule(inst, rule))
+        return PURC_VARIANT_INVALID;
+
+    purc_variant_t vals = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    if (vals == PURC_VARIANT_INVALID) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    int64_t from    = exe_range_inst->from;
+    int64_t to      = exe_range_inst->to;
+    int64_t advance = exe_range_inst->advance;
+    size_t sz = purc_variant_array_get_size(cache);
+    bool ok = false;
+    for (int64_t i=from; i>=0 && (size_t)i<sz; i += advance) {
+        if (advance > 0) {
+            if (i > to)
+                break;
+        } else {
+            if (i < to)
+                break;
+        }
+        purc_variant_t v = purc_variant_array_get(cache, i);
+        PC_ASSERT(v != PURC_VARIANT_INVALID);
+        ok = purc_variant_array_append(vals, v);
+        if (!ok)
+            break;
+    }
+
+    if (!ok) {
+        purc_variant_unref(vals);
+        return PURC_VARIANT_INVALID;
+    }
+
+    return vals;
 }
 
 // 获得用于迭代的初始迭代子
@@ -224,108 +340,121 @@ exe_range_it_begin(purc_exec_inst_t inst, const char* rule)
 
     struct pcexec_exe_range_inst *exe_range_inst;
     exe_range_inst = (struct pcexec_exe_range_inst*)inst;
-    exe_range_inst->from = 0;
-    exe_range_inst->to = 0;
-    exe_range_inst->advance = 0;
+
+    purc_variant_t cache = exe_range_inst->cache;
+    PC_ASSERT(cache != PURC_VARIANT_INVALID);
+    PC_ASSERT(purc_variant_is_array(cache));
+
     if (!exe_range_parse_rule(inst, rule))
         return NULL;
 
-    if (!exe_range_refresh_from_to_advance(inst)) {
+    size_t sz = purc_variant_array_get_size(cache);
+    int64_t from = exe_range_inst->from;
+    if (from < 0 || (size_t)from >= sz) {
+        pcinst_set_error(PCEXECUTOR_ERROR_OUT_OF_RANGE);
+        exe_range_inst->curr = -1;
         return NULL;
     }
 
-    size_t sz = purc_variant_array_get_size(exe_range_inst->vals);
-    if (exe_range_inst->from <0 || (size_t)exe_range_inst->from>=sz) {
-        return NULL; // out of range
-    }
-    if (exe_range_inst->advance > 0) {
-        if (exe_range_inst->from >= exe_range_inst->to) {
-            return NULL; // out of range
+    int64_t to = exe_range_inst->to;
+    int64_t advance = exe_range_inst->advance;
+    if (advance > 0) {
+        if (from <= to) {
+            pcinst_set_error(PCEXECUTOR_ERROR_OUT_OF_RANGE);
+            exe_range_inst->curr = -1;
+            return NULL;
         }
     } else {
-        if (exe_range_inst->from <= exe_range_inst->to) {
-            return NULL; // out of range
+        if (from >= to) {
+            pcinst_set_error(PCEXECUTOR_ERROR_OUT_OF_RANGE);
+            exe_range_inst->curr = -1;
+            return NULL;
         }
     }
-    exe_range_inst->curr = exe_range_inst->from;
-    return &inst->it;
+
+    exe_range_inst->curr = exe_range_inst->param.rule.from.i64;
+
+    return &exe_range_inst->super.it;
 }
 
 // 根据迭代子获得对应的变体值
 static purc_variant_t
 exe_range_it_value(purc_exec_inst_t inst, purc_exec_iter_t it)
 {
-    if (!inst || !it) {
-        pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if (inst->type != PURC_EXEC_TYPE_ITERATE) {
-        pcinst_set_error(PCEXECUTOR_ERROR_NOT_ALLOWED);
-        return PURC_VARIANT_INVALID;
-    }
-
+    PC_ASSERT(inst && it);
+    PC_ASSERT(inst->type == PURC_EXEC_TYPE_ITERATE);
     PC_ASSERT(&inst->it == it);
-    PC_ASSERT(inst->input != PURC_VARIANT_INVALID);
 
     struct pcexec_exe_range_inst *exe_range_inst;
     exe_range_inst = (struct pcexec_exe_range_inst*)inst;
-    PC_ASSERT(exe_range_inst->vals != PURC_VARIANT_INVALID);
 
-    purc_variant_t vals = exe_range_inst->vals;
-    PC_ASSERT(vals != PURC_VARIANT_INVALID);
-    PC_ASSERT(exe_range_inst->curr >=0);
-    PC_ASSERT((size_t)exe_range_inst->curr < purc_variant_array_get_size(vals));
+    purc_variant_t cache = exe_range_inst->cache;
+    PC_ASSERT(cache != PURC_VARIANT_INVALID);
+    PC_ASSERT(purc_variant_is_array(cache));
 
-    return purc_variant_array_get(vals, exe_range_inst->curr);
+    int64_t curr = exe_range_inst->curr;
+    PC_ASSERT(curr >= 0 && (size_t)curr < purc_variant_array_get_size(cache));
+
+    return purc_variant_array_get(cache, curr);
 }
 
 // 获得下一个迭代子
-// 注意: 规则字符串可能在前后两次迭代中发生变化，比如在规则中引用了变量的情形下。
+// 注意: 规则字符串可能在前后两次迭代中发生变化，
+// 比如在规则中引用了变量的情形下。
 // 如果规则并没有发生变化，则对 `rule` 参数传递 NULL。
 static purc_exec_iter_t
 exe_range_it_next(purc_exec_inst_t inst, purc_exec_iter_t it, const char* rule)
 {
-    if (!inst || !it) {
-        pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
-        return NULL;
-    }
-
-    if (inst->type != PURC_EXEC_TYPE_ITERATE) {
-        pcinst_set_error(PCEXECUTOR_ERROR_NOT_ALLOWED);
-        return NULL;
-    }
-
+    PC_ASSERT(inst && it);
+    PC_ASSERT(inst->type == PURC_EXEC_TYPE_ITERATE);
     PC_ASSERT(&inst->it == it);
 
     struct pcexec_exe_range_inst *exe_range_inst;
     exe_range_inst = (struct pcexec_exe_range_inst*)inst;
 
+    purc_variant_t cache = exe_range_inst->cache;
+    PC_ASSERT(cache != PURC_VARIANT_INVALID);
+    PC_ASSERT(purc_variant_is_array(cache));
+
+    struct exe_range_param *param = &exe_range_inst->param;
+    PC_ASSERT(param->rule_valid);
+
     if (rule) {
-        int64_t curr = exe_range_inst->curr;
-        purc_exec_iter_t it = exe_range_it_begin(inst, rule);
-        if (!it) {
+        if (!exe_range_parse_rule(inst, rule))
+            return NULL;
+    }
+
+    size_t sz = purc_variant_array_get_size(cache);
+    if (exe_range_inst->curr<0 || (size_t)exe_range_inst->curr>=sz) {
+        pcinst_set_error(PCEXECUTOR_ERROR_OUT_OF_RANGE);
+        exe_range_inst->curr = -1;
+        return NULL;
+    }
+
+    int64_t to = exe_range_inst->to;
+    int64_t advance = exe_range_inst->advance;
+
+    int64_t next = exe_range_inst->curr + advance;
+    if (next<0 || (size_t)next>=sz) {
+        pcinst_set_error(PCEXECUTOR_ERROR_OUT_OF_RANGE);
+        exe_range_inst->curr = -1;
+        return NULL;
+    }
+    if (advance > 0) {
+        if (next > to) {
+            pcinst_set_error(PCEXECUTOR_ERROR_OUT_OF_RANGE);
             exe_range_inst->curr = -1;
             return NULL;
         }
-        PC_ASSERT(it == &inst->it);
-        exe_range_inst->curr = curr;
+    } else {
+        if (next < to) {
+            pcinst_set_error(PCEXECUTOR_ERROR_OUT_OF_RANGE);
+            exe_range_inst->curr = -1;
+            return NULL;
+        }
     }
 
-    PC_ASSERT(&inst->it == it);
-    PC_ASSERT(inst->input != PURC_VARIANT_INVALID);
-
-    PC_ASSERT(exe_range_inst->vals != PURC_VARIANT_INVALID);
-
-    purc_variant_t vals = exe_range_inst->vals;
-    PC_ASSERT(vals != PURC_VARIANT_INVALID);
-    size_t sz = purc_variant_array_get_size(vals);
-    if (exe_range_inst->curr<0 || (size_t)exe_range_inst->curr>=sz)
-        return NULL;
-
-    exe_range_inst->curr += exe_range_inst->advance;
-    if (exe_range_inst->curr<0 || (size_t)exe_range_inst->curr>=sz)
-        return NULL;
+    exe_range_inst->curr = next;
 
     return it;
 }
@@ -386,13 +515,15 @@ exe_range_destroy(purc_exec_inst_t inst)
         return false;
     }
 
-    struct pcexec_exe_range_inst *exe_range_inst = (struct pcexec_exe_range_inst*)inst;
+    struct pcexec_exe_range_inst *exe_range_inst;
+    exe_range_inst = (struct pcexec_exe_range_inst*)inst;
     exe_range_reset(exe_range_inst);
 
     if (inst->input) {
         purc_variant_unref(inst->input);
         inst->input = PURC_VARIANT_INVALID;
     }
+    CLR_VAR(exe_range_inst->cache);
 
     free(exe_range_inst);
     return true;

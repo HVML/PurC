@@ -70,6 +70,8 @@ static const char* executor_err_msgs[] = {
     "Executor: No keys selected",
     /* PCEXECUTOR_ERROR_NOT_ALLOWED */
     "Executor: Not allowed",
+    /* PCEXECUTOR_ERROR_OUT_OF_RANGE */
+    "Executor: Out of range",
     /* PCEXECUTOR_ERROR_BAD_SYNTAX */
     "Executor: Bad syntax",
 };

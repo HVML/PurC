@@ -138,3 +138,18 @@ O:
 [ "zh_CN", 100, "zh_TW", 90, "zh_HK", 90, "zh_SG", 90,
   "zh_MO", 80, "en_US", 30, "en_UK", 20 ];
 
+R:
+RANGE: FROM 0 TO 4;
+O:
+[ "zh_CN", 100, "zh_TW", 90, "zh_HK" ];
+
+R:
+RANGE: FROM 0 ADVANCE 2;
+O:
+[ "zh_CN", "zh_TW", "zh_HK", "zh_SG", "zh_MO", "en_US", "en_UK" ];
+
+R:
+RANGE: FROM 1 ADVANCE 2;
+O:
+[ 100, 90, 90, 90, 80, 30, 20 ];
+
