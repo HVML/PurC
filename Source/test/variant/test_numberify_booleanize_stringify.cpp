@@ -141,3 +141,79 @@ TEST(variant, booleanize)
     ASSERT_EQ (cleanup, true);
 }
 
+struct stringify_record
+{
+    const char                *str;
+    const char                *chk;
+};
+
+static inline void
+do_stringify(struct stringify_record *p)
+{
+    purc_variant_t v;
+    v = load_variant(p->str);
+    if (v == PURC_VARIANT_INVALID) {
+        EXPECT_NE(v,PURC_VARIANT_INVALID);
+        return;
+    }
+
+    purc_variant_t vs = purc_variant_stringify(v);
+    purc_variant_unref(v);
+    ASSERT_NE(vs, nullptr) << "[" << p->str << "]";
+
+    const char *s;
+    if (purc_variant_is_atomstring(vs)) {
+        s = purc_variant_get_atom_string_const(vs);
+    }
+    else if (purc_variant_is_string(vs)) {
+        s = purc_variant_get_string_const(vs);
+    }
+    else {
+        FAIL() << "[" << p->str << "]";
+    }
+
+    ASSERT_STREQ(s, p->chk) << "[" << p->str << "]";
+
+    purc_variant_unref(vs);
+}
+
+TEST(variant, stringify)
+{
+    purc_instance_extra_info info = {0, 0};
+    int ret;
+    bool cleanup;
+
+    // initial purc
+    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    struct stringify_record records[] = {
+        /*
+        { "undefined",          "undefined" },
+        { "null",               "null" },
+        { "true",               "true" },
+        { "false",              "false" },
+        */
+        { "10 ",                  "10" },
+        /*
+        { "0.0",                "0.0" },
+        { "''",                 "" },
+        { "' '",                " " },
+        { "'0'",                "0" },
+        { "'0.0'",              "0.0" },
+        { "'123.34'",           "123.34" },
+        { "'abcd'",             "abcd" },
+        { "[1,2,3,4]",          "1\n2\n3\n4\n" },
+        { "{'a':10,'b':20,'c':30,'d':40}", "a:10\nb:20\nc:30\nd:40\n" },
+        */
+    };
+
+    for (size_t i=0; i<PCA_TABLESIZE(records); ++i) {
+        struct stringify_record *p = records + i;
+        do_stringify(p);
+    }
+
+    cleanup = purc_cleanup ();
+    ASSERT_EQ (cleanup, true);
+}
+
