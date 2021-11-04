@@ -1405,8 +1405,8 @@ stringify_bs(const unsigned char *bs, size_t nr)
         return v;
 
     char *p = buf;
-    for (size_t i=0; i<sz; ++i) {
-        int h = bs[i] > 4;
+    for (size_t i=0; i<nr; ++i) {
+        int h = bs[i] >> 4;
         int l = bs[i] & 0x0F;
         *p++ = chars[h];
         *p++ = chars[l];

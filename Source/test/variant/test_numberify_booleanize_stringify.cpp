@@ -219,3 +219,64 @@ TEST(variant, stringify)
     ASSERT_EQ (cleanup, true);
 }
 
+struct stringify_bs_record
+{
+    const char                *str;
+    const char                *chk;
+};
+
+static inline void
+do_stringify_bs(struct stringify_bs_record *p)
+{
+    purc_variant_t v;
+    v = purc_variant_make_byte_sequence(p->str, strlen(p->str));
+    if (v == PURC_VARIANT_INVALID) {
+        EXPECT_NE(v,PURC_VARIANT_INVALID);
+        return;
+    }
+
+    purc_variant_t vs = purc_variant_stringify(v);
+    purc_variant_unref(v);
+    ASSERT_NE(vs, nullptr) << "[" << p->str << "]";
+
+    const char *s;
+    if (purc_variant_is_atomstring(vs)) {
+        s = purc_variant_get_atom_string_const(vs);
+    }
+    else if (purc_variant_is_string(vs)) {
+        s = purc_variant_get_string_const(vs);
+    }
+    else {
+        FAIL() << "[" << p->str << "]";
+    }
+
+    ASSERT_STREQ(s, p->chk) << "[" << p->str << "]";
+
+    purc_variant_unref(vs);
+}
+
+TEST(variant, stringify_bs)
+{
+    purc_instance_extra_info info = {0, 0};
+    int ret;
+    bool cleanup;
+
+    // initial purc
+    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    struct stringify_bs_record records[] = {
+        { "1234",          "31323334" },
+        { "abcd",          "61626364" },
+        { "abcd\xe7""ef",          "61626364E76566" },
+    };
+
+    for (size_t i=0; i<PCA_TABLESIZE(records); ++i) {
+        struct stringify_bs_record *p = records + i;
+        do_stringify_bs(p);
+    }
+
+    cleanup = purc_cleanup ();
+    ASSERT_EQ (cleanup, true);
+}
+
