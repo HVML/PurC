@@ -1471,9 +1471,18 @@ collect_variant(purc_variant_t vals, purc_variant_t v, size_t *nr)
         return false;
 
     size_t n;
-    if (!purc_variant_string_bytes(vs, &n))
+    if (purc_variant_is_atomstring(vs)) {
+        const char *s = purc_variant_get_atom_string_const(vs);
+        *nr += strlen(s);
+    }
+    else if (purc_variant_is_string(vs)) {
+        if (!purc_variant_string_bytes(vs, &n))
+            return false;
+        *nr += n;
+    }
+    else {
         return false;
-    *nr += n;
+    }
 
     return true;
 }
@@ -1482,12 +1491,11 @@ static inline purc_variant_t
 stringify_array(purc_variant_t value)
 {
     size_t sz;
-    if (!purc_variant_array_size(value, &sz)) {
+    if (!purc_variant_array_size(value, &sz))
         return PURC_VARIANT_INVALID;
-    }
 
     purc_variant_t vals = purc_variant_make_array(0, PURC_VARIANT_INVALID);
-    if (vals != PURC_VARIANT_INVALID)
+    if (vals == PURC_VARIANT_INVALID)
         return PURC_VARIANT_INVALID;
 
     purc_variant_t newline = purc_variant_make_atom_string("\n", false);

@@ -188,16 +188,13 @@ TEST(variant, stringify)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     struct stringify_record records[] = {
-        /*
         { "undefined",          "undefined" },
         { "null",               "null" },
         { "true",               "true" },
         { "false",              "false" },
-        */
-        { "10 ",                  "10" },
-        /*
-        { "0.0",                "0.0" },
-        { "''",                 "" },
+        { "10 ",                  "10" },  // TODO: no tail space required
+        { "0.0 ",                "0" },
+        { "''",                 "null" },
         { "' '",                " " },
         { "'0'",                "0" },
         { "'0.0'",              "0.0" },
@@ -205,7 +202,12 @@ TEST(variant, stringify)
         { "'abcd'",             "abcd" },
         { "[1,2,3,4]",          "1\n2\n3\n4\n" },
         { "{'a':10,'b':20,'c':30,'d':40}", "a:10\nb:20\nc:30\nd:40\n" },
-        */
+        { "[{'id':'1','name': 'Tom', 'age': 2, 'male': true },"
+          "{'id':'2','name':'Jerry','age':3,'male':true}]",
+          "id:1\nname:Tom\nage:2\nmale:true\n"
+          "\n"
+          "id:2\nname:Jerry\nage:3\nmale:true\n"
+          "\n" },
     };
 
     for (size_t i=0; i<PCA_TABLESIZE(records); ++i) {
