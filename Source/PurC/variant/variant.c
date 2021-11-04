@@ -1157,3 +1157,235 @@ bool purc_variant_unload_dvobj (purc_variant_t dvobj)
 
     return ret;
 }
+
+static inline long double
+numberify_str(const char *s)
+{
+    if (!s || !*s)
+        return 0.0L;
+
+    return strtold(s, NULL);
+}
+
+static inline long double
+numberify_bs(const unsigned char *s, size_t nr)
+{
+    if (!s || nr == 0)
+        return 0.0L;
+
+    long double ld = 0.0L;
+    if (nr > sizeof(ld))
+        nr = sizeof(ld);
+
+    memcpy(&ld, s, nr);
+
+    return ld;
+}
+
+static inline long double
+numberify_dynamic(purc_variant_t value)
+{
+    purc_dvariant_method getter;
+    getter = purc_variant_dynamic_get_getter(value);
+
+    if (!getter)
+        return 0.0L;
+
+    purc_variant_t v = getter(value, 0, NULL);
+    if (v == PURC_VARIANT_INVALID)
+        return 0.0L;
+
+    long double ld = purc_variant_numberify(v);
+    purc_variant_unref(v);
+
+    return ld;
+}
+
+static inline long double
+numberify_native(purc_variant_t value)
+{
+    void *native = value->ptr_ptr[0];
+
+    struct purc_native_ops *ops;
+    ops = (struct purc_native_ops*)value->ptr_ptr[1];
+
+    if (!ops || !ops->property_getter)
+        return 0.0L;
+
+    purc_nvariant_method getter = (ops->property_getter)("__number");
+    if (!getter)
+        return 0.0L;
+
+    purc_variant_t v = getter(native, 0, NULL);
+    if (v == PURC_VARIANT_INVALID)
+        return 0.0L;
+
+    long double ld = purc_variant_numberify(v);
+    purc_variant_unref(v);
+
+    return ld;
+}
+
+static inline long double
+numberify_array(purc_variant_t value)
+{
+    size_t sz;
+    if (!purc_variant_array_size(value, &sz))
+        return 0.0L;
+
+    long double ld = 0.0L;
+
+    for (size_t i=0; i<sz; ++i) {
+        purc_variant_t v = purc_variant_array_get(value, i);
+        ld += purc_variant_numberify(v);
+    }
+
+    return ld;
+}
+
+static inline long double
+numberify_object(purc_variant_t value)
+{
+    long double ld = 0.0L;
+
+    purc_variant_t v;
+    foreach_value_in_variant_object(value, v)
+        ld += purc_variant_numberify(v);
+    end_foreach;
+
+    return ld;
+}
+
+static inline long double
+numberify_set(purc_variant_t value)
+{
+    long double ld = 0.0L;
+
+    purc_variant_t v;
+    foreach_value_in_variant_array(value, v)
+        ld += purc_variant_numberify(v);
+    end_foreach;
+
+    return ld;
+}
+
+long double
+purc_variant_numberify(purc_variant_t value)
+{
+    PC_ASSERT(value != PURC_VARIANT_INVALID);
+
+    const char *s;
+    const unsigned char *bs;
+    size_t nr;
+    enum purc_variant_type type = purc_variant_get_type(value);
+
+    switch (type)
+    {
+        case PURC_VARIANT_TYPE_UNDEFINED:
+            return 0.0L;
+        case PURC_VARIANT_TYPE_NULL:
+            return 0.0L;
+        case PURC_VARIANT_TYPE_BOOLEAN:
+            return value->b ? 1.0L : 0.0L;
+        case PURC_VARIANT_TYPE_NUMBER:
+            return value->d;
+        case PURC_VARIANT_TYPE_LONGINT:
+            return value->i64;
+        case PURC_VARIANT_TYPE_ULONGINT:
+            return value->u64;
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+            return value->ld;
+        case PURC_VARIANT_TYPE_ATOMSTRING:
+            s = purc_variant_get_atom_string_const(value);
+            return numberify_str(s);
+        case PURC_VARIANT_TYPE_STRING:
+            s = purc_variant_get_string_const(value);
+            return numberify_str(s);
+        case PURC_VARIANT_TYPE_BSEQUENCE:
+            bs = purc_variant_get_bytes_const(value, &nr);
+            return numberify_bs(bs, nr);
+        case PURC_VARIANT_TYPE_DYNAMIC:
+            return numberify_dynamic(value);
+        case PURC_VARIANT_TYPE_NATIVE:
+            return numberify_native(value);
+        case PURC_VARIANT_TYPE_OBJECT:
+            return numberify_object(value);
+        case PURC_VARIANT_TYPE_ARRAY:
+            return numberify_array(value);
+        case PURC_VARIANT_TYPE_SET:
+            return numberify_set(value);
+        default:
+            PC_ASSERT(0);
+            break;
+    }
+}
+
+static inline bool
+booleanize_str(const char *s)
+{
+    if (!s || !*s)
+        return false;
+
+    return numberify_str(s) != 0.0L ? true : false;
+}
+
+static inline bool
+booleanize_bs(const unsigned char *s, size_t nr)
+{
+    if (!s || nr == 0)
+        return false;
+
+    return numberify_bs(s, nr) != 0.0L ? true : false;
+}
+
+bool
+purc_variant_booleanize(purc_variant_t value)
+{
+    PC_ASSERT(value != PURC_VARIANT_INVALID);
+
+    const char *s;
+    const unsigned char *bs;
+    size_t nr;
+    enum purc_variant_type type = purc_variant_get_type(value);
+
+    switch (type)
+    {
+        case PURC_VARIANT_TYPE_UNDEFINED:
+            return false;
+        case PURC_VARIANT_TYPE_NULL:
+            return false;
+        case PURC_VARIANT_TYPE_BOOLEAN:
+            return value->b;
+        case PURC_VARIANT_TYPE_NUMBER:
+            return value->d != 0.0L ? true : false;
+        case PURC_VARIANT_TYPE_LONGINT:
+            return value->i64 ? true : false;
+        case PURC_VARIANT_TYPE_ULONGINT:
+            return value->u64 ? true : false;
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+            return value->ld != 0.0L ? true : false;
+        case PURC_VARIANT_TYPE_ATOMSTRING:
+            s = purc_variant_get_atom_string_const(value);
+            return booleanize_str(s);
+        case PURC_VARIANT_TYPE_STRING:
+            s = purc_variant_get_string_const(value);
+            return booleanize_str(s);
+        case PURC_VARIANT_TYPE_BSEQUENCE:
+            bs = purc_variant_get_bytes_const(value, &nr);
+            return booleanize_bs(bs, nr);
+        case PURC_VARIANT_TYPE_DYNAMIC:
+            return numberify_dynamic(value) != 0.0L ? true : false;
+        case PURC_VARIANT_TYPE_NATIVE:
+            return numberify_native(value) != 0.0L ? true : false;
+        case PURC_VARIANT_TYPE_OBJECT:
+            return numberify_object(value) != 0.0L ? true : false;
+        case PURC_VARIANT_TYPE_ARRAY:
+            return numberify_array(value) != 0.0L ? true : false;
+        case PURC_VARIANT_TYPE_SET:
+            return numberify_set(value) != 0.0L ? true : false;
+        default:
+            PC_ASSERT(0);
+            break;
+    }
+}
+
