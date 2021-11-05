@@ -1,5 +1,6 @@
 #include "purc.h"
 
+#include "private/ejson-parser.h"
 #include "private/executor.h"
 #include "private/utils.h"
 
@@ -688,5 +689,110 @@ TEST(executors, full)
 
     ASSERT_TRUE(ok);
 
+}
+
+struct ejson_parser_record
+{
+    bool                     positive;
+    const char              *in;
+    const char              *out;
+};
+
+static inline int
+do_serialize(purc_variant_t value, char *buf, size_t sz)
+{
+    purc_rwstream_t out = purc_rwstream_new_from_mem(buf, sz);
+    if (out == NULL)
+        return -1;
+
+    size_t len = 0;
+    ssize_t r = purc_variant_serialize(value, out, 0, 0, &len);
+    purc_rwstream_destroy(out);
+
+    if (r>=0)
+        buf[r] = '\0';
+
+    return r<0 ? -1 : 0;
+}
+
+static inline void
+do_ejson_parser_parse(struct ejson_parser_record *record)
+{
+    bool positive = record->positive;
+    const char *in = record->in;
+    const char *out = record->out;
+    purc_variant_t v = pcejson_parser_parse_string(in);
+    if (v == PURC_VARIANT_INVALID) {
+        if (positive) {
+            FAIL() << "failed to parse positive: [" << in << "]";
+        }
+        return;
+    }
+
+    if (!positive) {
+        FAIL() << "unexpected success parse for negative: [" << in << "]";
+        purc_variant_unref(v);
+        return;
+    }
+
+    char buf[8192];
+    int r = do_serialize(v, buf, sizeof(buf)-1);
+    purc_variant_unref(v);
+
+    if (r) {
+        FAIL() << "serialize failed:" << std::endl
+            << "[" << in << "]";
+        return;
+    }
+
+    if (strcmp(buf, out)) {
+        FAIL() << "compare failed: in/serialize/out" << std::endl
+            << "[" << in << "]" << std::endl
+            << "[" << buf << "]" << std::endl
+            << "[" << out << "]";
+        return;
+    }
+}
+
+TEST(executors, ejson_parser)
+{
+    purc_instance_extra_info info = {0, 0};
+    int r = purc_init("cn.fmsoft.hybridos.test",
+        "vdom_gen", &info);
+    ASSERT_EQ(r, PURC_ERROR_OK);
+
+    struct ejson_parser_record records[] = {
+        { true, "undefined", "undefined" },
+        { true, "null", "null" },
+        { true, "true", "true" },
+        { true, "false", "false" },
+        { true, "''", "\"\"" },
+        { true, "[]", "[]" },
+        { true, "{}", "{}" },
+        { true, "0", "0FL" },
+        { true, "0.0", "0FL" },
+        { true, "0FL", "0FL" },
+        { true, "0.0FL", "0FL" },
+        { true, "undefined", "undefined" },
+        { true, "undefined", "undefined" },
+        { true, "undefined", "undefined" },
+        { true, "undefined", "undefined" },
+        { true, "undefined", "undefined" },
+        { true, "undefined", "undefined" },
+        { true, "undefined", "undefined" },
+        { true, "undefined", "undefined" },
+        { true, "undefined", "undefined" },
+        { true, "undefined", "undefined" },
+        { true, "undefined", "undefined" },
+    };
+
+    for (size_t i=0; i<PCA_TABLESIZE(records); ++i) {
+        struct ejson_parser_record *record = records + i;
+        do_ejson_parser_parse(record);
+    }
+
+    bool ok = purc_cleanup ();
+
+    ASSERT_TRUE(ok);
 }
 
