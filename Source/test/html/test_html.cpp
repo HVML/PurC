@@ -146,7 +146,7 @@ void test_html_file(char * data_path, char * file_name)
     purc_rwstream_destroy (rwstream);
 
     // create rwstream object with buffer for serilization
-    rwstream = purc_rwstream_new_from_mem(test_file, 8192);
+    rwstream = purc_rwstream_new_from_mem(test_file, sizeof(test_file) - 1);
 
     // serialize documnet
     ret = pchtml_doc_write_to_stream(document, rwstream);
@@ -250,7 +250,7 @@ void test_html_chunk(char * data_path, char * file_name)
     ASSERT_EQ(ret, 0);
 
     // create rwstream object with buffer for serilization
-    rwstream = purc_rwstream_new_from_mem(test_file, 8192);
+    rwstream = purc_rwstream_new_from_mem(test_file, sizeof(test_file) - 1);
 
     // serialize documnet
     ret = pchtml_doc_write_to_stream(document, rwstream);
@@ -372,8 +372,8 @@ void test_parser_fragment(char * data_path, char * file_name)
 
     /* Print Result */
     // create rwstream object with buffer for serilization
-    memset(test_file, 0, 8192);
-    rwstream = purc_rwstream_new_from_mem(test_file, 8192);
+    memset(test_file, 0, sizeof(test_file));
+    rwstream = purc_rwstream_new_from_mem(test_file, sizeof(test_file) - 1);
     ret = pchtml_doc_write_to_stream(document, rwstream);
     ASSERT_EQ(ret, 0);
     serialization = (const char*)purc_rwstream_get_mem_buffer (rwstream, &size);
@@ -503,8 +503,8 @@ void test_parser_attribution(char * data_path, char * file_name)
     ASSERT_NE(attr, nullptr);
 
     // serialize document
-    memset(test_file, 0, 8192);
-    rwstream = purc_rwstream_new_from_mem(test_file, 8192);
+    memset(test_file, 0, sizeof(test_file));
+    rwstream = purc_rwstream_new_from_mem(test_file, sizeof(test_file));
     ret = pchtml_doc_write_to_stream(document, rwstream);
     ASSERT_EQ(ret, 0);
     serialization = (const char*)purc_rwstream_get_mem_buffer (rwstream, &size);
@@ -547,8 +547,8 @@ void test_parser_attribution(char * data_path, char * file_name)
     pcedom_element_remove_attribute(element, name, name_size);
 
     // serialize document
-    memset(test_file, 0, 8192);
-    rwstream = purc_rwstream_new_from_mem(test_file, 8192);
+    memset(test_file, 0, sizeof(test_file));
+    rwstream = purc_rwstream_new_from_mem(test_file, sizeof(test_file));
     ret = pchtml_doc_write_to_stream(document, rwstream);
     ASSERT_EQ(ret, 0);
     serialization = (const char*)purc_rwstream_get_mem_buffer (rwstream, &size);

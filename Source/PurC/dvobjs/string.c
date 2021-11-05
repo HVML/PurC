@@ -175,7 +175,7 @@ string_explode (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
         strncpy (buf, head, length + 1);
         *(buf + length)= 0x00;
-        val = purc_variant_make_string_reuse_buff (buf, length + 1, true);
+        val = purc_variant_make_string_reuse_buff (buf, length, true);
         purc_variant_array_append (ret_var, val);
         purc_variant_unref (val);
 
@@ -214,7 +214,7 @@ string_shuffle (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    char *src = malloc (size);
+    char *src = malloc (size+1);
     if (src == NULL) {
         pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         return PURC_VARIANT_INVALID;
@@ -325,12 +325,14 @@ string_format_c (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_rwstream_t rwstream = purc_rwstream_new_buffer (32, STREAM_SIZE);
 
     if ((argv == NULL) || (nr_args == 0)) {
+        purc_rwstream_destroy (rwstream);
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
+        purc_rwstream_destroy (rwstream);
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     } else
@@ -485,12 +487,14 @@ string_format_p (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_rwstream_t serialize = NULL;     // used for serialize
 
     if ((argv == NULL) || (nr_args == 0)) {
+        purc_rwstream_destroy(rwstream);
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
+        purc_rwstream_destroy(rwstream);
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     } else {
@@ -505,6 +509,7 @@ string_format_p (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             (purc_variant_is_object (argv[1])))
         type = 1;
     else {
+        purc_rwstream_destroy(rwstream);
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -593,7 +598,7 @@ string_format_p (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         ret_var = PURC_VARIANT_INVALID;
     else {
         ret_var = purc_variant_make_string_reuse_buff (rw_string,
-                rw_size, false);
+                content_size, false);
         if(ret_var == PURC_VARIANT_INVALID) {
             pcinst_set_error (PURC_ERROR_INVALID_VALUE);
             ret_var = PURC_VARIANT_INVALID;

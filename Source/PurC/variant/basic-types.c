@@ -266,6 +266,8 @@ purc_variant_t purc_variant_make_string_reuse_buff(char* str_utf8,
     value->sz_ptr[1] = (uintptr_t)(str_utf8);
     pcvariant_stat_set_extra_size (value, sz_buff);
 
+    str_utf8[sz_buff] = '\0'; // FIXME: if str_utf8 is comming from rwstream!!!
+
     return value;
 }
 
