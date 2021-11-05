@@ -273,7 +273,7 @@
         bool ok = pctree_node_append_child(&_logic->node, &_l->node);   \
         if (ok) {                                                       \
             ok = pctree_node_append_child(&_logic->node, &_r->node);    \
-            if (ok)                                                     \
+            if (ok)                                                      \
                 break;                                                  \
         } else {                                                        \
             logical_expression_destroy(_l);                             \

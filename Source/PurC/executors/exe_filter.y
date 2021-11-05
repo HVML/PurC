@@ -57,9 +57,6 @@
     #define YY_TYPEDEF_YY_SCANNER_T
     typedef void* yyscan_t;
     #endif
-
-    int exe_filter_parse(const char *input, size_t len,
-            struct exe_filter_param *param);
 }
 
 %code provides {
@@ -140,6 +137,24 @@
         s[_s.leng] = '\0';                          \
         char *end;                                  \
         v = strtol(s, &end, 0);                     \
+        if (end && *end) {                          \
+            free(s);                                \
+            YYABORT;                                \
+        }                                           \
+        free(s);                                    \
+        _v = v;                                     \
+    } while (0)
+
+    #define STRTOD(_v, _s) do {                     \
+        double v;                                   \
+        char *s = (char*)malloc(_s.leng+1);         \
+        if (!s) {                                   \
+            YYABORT;                                \
+        }                                           \
+        memcpy(s, _s.text, _s.leng);                \
+        s[_s.leng] = '\0';                          \
+        char *end;                                  \
+        v = strtod(s, &end);                        \
         if (end && *end) {                          \
             free(s);                                \
             YYABORT;                                \
@@ -390,91 +405,38 @@
     } while (0)
 
     #define NUMERIC_EXP_INIT_I64(_nexp, _i64) do {               \
-        _nexp.type = NUMERIC_EXPRESSION_INTEGER;                 \
-        STRTOLL(_nexp.i64, _i64);                                \
+        int64_t i64;                                             \
+        STRTOLL(i64, _i64);                                      \
+        _nexp = i64;                                             \
     } while (0)
 
     #define NUMERIC_EXP_INIT_LD(_nexp, _ld) do {                 \
-        _nexp.type = NUMERIC_EXPRESSION_NUMERIC;                 \
-        STRTOLD(_nexp.ld, _ld);                                  \
+        long double ld;                                          \
+        STRTOLD(ld, _ld);                                        \
+        _nexp = ld;                                              \
     } while (0)
 
     #define NUMERIC_EXP_VAL(_n)                                  \
         (_n.type == NUMERIC_EXPRESSION_NUMERIC ? _n.ld : _n.i64)
 
     #define NUMERIC_EXP_ADD(_nexp, _l, _r) do {                  \
-        if (_l.type == NUMERIC_EXPRESSION_NUMERIC ||             \
-            _r.type == NUMERIC_EXPRESSION_NUMERIC)               \
-        {                                                        \
-            _l.ld = NUMERIC_EXP_VAL(_l) +                        \
-                    NUMERIC_EXP_VAL(_r);                         \
-            _l.type = NUMERIC_EXPRESSION_NUMERIC;                \
-        } else {                                                 \
-            _l.i64 = NUMERIC_EXP_VAL(_l) +                       \
-                     NUMERIC_EXP_VAL(_r);                        \
-            _l.type = NUMERIC_EXPRESSION_INTEGER;                \
-        }                                                        \
-        _nexp = _l;                                              \
+        _nexp = _l + _r;                                         \
     } while (0)
 
     #define NUMERIC_EXP_SUB(_nexp, _l, _r) do {                  \
-        if (_l.type == NUMERIC_EXPRESSION_NUMERIC ||             \
-            _r.type == NUMERIC_EXPRESSION_NUMERIC)               \
-        {                                                        \
-            _l.ld = NUMERIC_EXP_VAL(_l) -                        \
-                    NUMERIC_EXP_VAL(_r);                         \
-            _l.type = NUMERIC_EXPRESSION_NUMERIC;                \
-        } else {                                                 \
-            _l.i64 = NUMERIC_EXP_VAL(_l) -                       \
-                     NUMERIC_EXP_VAL(_r);                        \
-            _l.type = NUMERIC_EXPRESSION_INTEGER;                \
-        }                                                        \
-        _nexp = _l;                                              \
+        _nexp = _l - _r;                                         \
     } while (0)
 
     #define NUMERIC_EXP_MUL(_nexp, _l, _r) do {                  \
-        if (_l.type == NUMERIC_EXPRESSION_NUMERIC ||             \
-            _r.type == NUMERIC_EXPRESSION_NUMERIC)               \
-        {                                                        \
-            _l.ld = NUMERIC_EXP_VAL(_l) *                        \
-                    NUMERIC_EXP_VAL(_r);                         \
-            _l.type = NUMERIC_EXPRESSION_NUMERIC;                \
-        } else {                                                 \
-            _l.i64 = NUMERIC_EXP_VAL(_l) *                       \
-                     NUMERIC_EXP_VAL(_r);                        \
-            _l.type = NUMERIC_EXPRESSION_INTEGER;                \
-        }                                                        \
-        _nexp = _l;                                              \
+        _nexp = _l * _r;                                         \
     } while (0)
 
     #define NUMERIC_EXP_DIV(_nexp, _l, _r) do {                  \
-        if (_l.type == NUMERIC_EXPRESSION_NUMERIC ||             \
-            _r.type == NUMERIC_EXPRESSION_NUMERIC)               \
-        {                                                        \
-            _l.ld = NUMERIC_EXP_VAL(_l) /                        \
-                    NUMERIC_EXP_VAL(_r);                         \
-            _l.type = NUMERIC_EXPRESSION_NUMERIC;                \
-        } else {                                                 \
-            if (_r.type == NUMERIC_EXPRESSION_INTEGER &&         \
-                _r.i64 == 0)                                     \
-            {                                                    \
-                YYABORT;                                         \
-            }                                                    \
-            _l.i64 = NUMERIC_EXP_VAL(_l) +                       \
-                     NUMERIC_EXP_VAL(_r);                        \
-            _l.type = NUMERIC_EXPRESSION_INTEGER;                \
-        }                                                        \
-        _nexp = _l;                                              \
+        _nexp = _l / _r;                                         \
     } while (0)
 
     #define NUMERIC_EXP_UMINUS(_nexp, _l) do {                   \
-        if (_l.type == NUMERIC_EXPRESSION_NUMERIC)               \
-        {                                                        \
-            _l.ld = -NUMERIC_EXP_VAL(_l);                        \
-        } else {                                                 \
-            _l.i64 = -NUMERIC_EXP_VAL(_l);                       \
-        }                                                        \
-        _nexp = _l;                                              \
+        _nexp = -_l;                                             \
     } while (0)
 
     #define SET_RULE(_rule) do {                            \
@@ -518,7 +480,7 @@
 %union { struct logical_expression *logic; }
 %union { struct filter_rule rule; }
 %union { enum for_clause_type for_clause; }
-%union { struct numeric_expression nexp; }
+%union { double nexp; }
 %union { struct number_comparing_condition ncc; }
 
 %destructor { pcexe_strlist_reset(&$$); } <slist>
@@ -736,6 +698,8 @@ int exe_filter_parse(const char *input, size_t len,
         } else {
             purc_set_error(PCEXECUTOR_ERROR_BAD_SYNTAX);
         }
+    } else {
+        param->rule_valid = 1;
     }
     return ret ? -1 : 0;
 }

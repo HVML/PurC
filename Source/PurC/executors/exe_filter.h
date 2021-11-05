@@ -51,6 +51,11 @@ PCA_EXTERN_C_BEGIN
 
 int pcexec_exe_filter_register(void);
 
+int exe_filter_parse(const char *input, size_t len,
+        struct exe_filter_param *param);
+
+void exe_filter_param_reset(struct exe_filter_param *param);
+
 PCA_EXTERN_C_END
 
 #endif // PURC_EXECUTOR_FILTER_H

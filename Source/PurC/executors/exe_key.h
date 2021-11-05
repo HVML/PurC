@@ -56,10 +56,10 @@ int exe_key_parse(const char *input, size_t len,
         struct exe_key_param *param);
 
 static inline int
-key_rule_eval(struct key_rule *rule, const char *s, bool *result)
+key_rule_eval(struct key_rule *rule, purc_variant_t key, bool *result)
 {
     PC_ASSERT(rule);
-    return logical_expression_eval(rule->lexp, s, result);
+    return logical_expression_eval(rule->lexp, key, result);
 }
 
 PCA_EXTERN_C_END

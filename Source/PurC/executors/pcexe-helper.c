@@ -26,6 +26,7 @@
 
 #include "private/debug.h"
 #include "private/errors.h"
+#include "private/variant.h"
 
 #include <ctype.h>
 #include <stdio.h>
@@ -34,6 +35,49 @@
 #if HAVE(GLIB)
 #include <glib.h>
 #endif // HAVE(GLIB)
+
+static inline const char*
+stringify(purc_variant_t val, purc_variant_t *vs)
+{
+    purc_variant_t v = purc_variant_stringify(val);
+    if (v == PURC_VARIANT_INVALID)
+        return NULL;
+
+    const char *s = NULL;
+    if (purc_variant_is_atomstring(v)) {
+        s = purc_variant_get_atom_string_const(v);
+    }
+    if (purc_variant_is_string(v)) {
+        s = purc_variant_get_string_const(v);
+    }
+
+    if (s == NULL) {
+        purc_variant_unref(v);
+        return NULL;
+    }
+
+    *vs = v;
+    return s;
+}
+static inline char*
+stringify_and_strdup(purc_variant_t val)
+{
+    purc_variant_t v = purc_variant_stringify(val);
+    if (v == PURC_VARIANT_INVALID)
+        return NULL;
+
+    char *s = NULL;
+    if (purc_variant_is_atomstring(v)) {
+        s = strdup(purc_variant_get_atom_string_const(v));
+    }
+    if (purc_variant_is_string(v)) {
+        s = strdup(purc_variant_get_string_const(v));
+    }
+
+    purc_variant_unref(v);
+
+    return s;
+}
 
 int pcexe_unitoutf8(char *utf8, const char *uni, size_t n)
 {
@@ -163,6 +207,94 @@ char* pcexe_strlist_to_str(struct pcexe_strlist *list)
     return buf;
 }
 
+purc_variant_t
+pcexe_cache_array(purc_variant_t input, bool asc_desc)
+{
+    size_t sz = purc_variant_array_get_size(input);
+
+    purc_variant_t cache = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    if (cache == PURC_VARIANT_INVALID) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    bool ok = true;
+    for (size_t i=0; i<sz; ++i) {
+        purc_variant_t v = purc_variant_array_get(input, i);
+        PC_ASSERT(v != PURC_VARIANT_INVALID);
+        if (asc_desc) {
+            ok = purc_variant_array_append(cache, v);
+        } else {
+            ok = purc_variant_array_prepend(cache, v);
+        }
+        if (!ok)
+            break;
+    }
+
+    if (!ok) {
+        purc_variant_unref(cache);
+        return PURC_VARIANT_INVALID;
+    }
+
+    return cache;
+}
+
+purc_variant_t
+pcexe_cache_object(purc_variant_t input, bool asc_desc)
+{
+    purc_variant_t cache = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    if (cache == PURC_VARIANT_INVALID) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    bool ok = true;
+    purc_variant_t k, v;
+    foreach_key_value_in_variant_object(input, k, v)
+        purc_variant_t o = purc_variant_make_object(1, k, v);
+        if (o == PURC_VARIANT_INVALID) {
+            ok = false;
+            break;
+        }
+        if (asc_desc) {
+            ok = purc_variant_array_append(cache, o);
+        } else {
+            ok = purc_variant_array_prepend(cache, o);
+        }
+    end_foreach;
+
+    if (!ok) {
+        purc_variant_unref(cache);
+        return PURC_VARIANT_INVALID;
+    }
+
+    return cache;
+}
+
+purc_variant_t
+pcexe_cache_set(purc_variant_t input, bool asc_desc)
+{
+    purc_variant_t cache = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    if (cache == PURC_VARIANT_INVALID) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    bool ok = true;
+    purc_variant_t v;
+    foreach_value_in_variant_set(input, v)
+        if (asc_desc) {
+            ok = purc_variant_array_append(cache, v);
+        } else {
+            ok = purc_variant_array_prepend(cache, v);
+        }
+    end_foreach;
+
+    if (!ok) {
+        purc_variant_unref(cache);
+        return PURC_VARIANT_INVALID;
+    }
+
+    return cache;
+}
+
 struct logical_expression* logical_expression_all(void)
 {
     static struct logical_expression all = {0};
@@ -205,102 +337,38 @@ void logical_expression_reset(struct logical_expression *exp)
     }
 }
 
-static inline int
-ncc_eval_by_integer(struct number_comparing_condition *ncc,
-    const char *s, bool *result)
-{
-    long long int v;
-    char *end;
-    v = strtoll(s, &end, 0);
-    if (end && *end) {
-        pcinst_set_error(PCEXECUTOR_ERROR_UNEXPECTED_DATA);
-        return -1;
-    }
-
-    switch (ncc->op_type)
-    {
-        case NUMBER_COMPARING_LT:
-            *result = v < ncc->nexp.i64;
-            return 0;
-        case NUMBER_COMPARING_GT:
-            *result = v > ncc->nexp.i64;
-            return 0;
-        case NUMBER_COMPARING_LE:
-            *result = v <= ncc->nexp.i64;
-            return 0;
-        case NUMBER_COMPARING_GE:
-            *result = v >= ncc->nexp.i64;
-            return 0;
-        case NUMBER_COMPARING_EQ:
-            *result = v == ncc->nexp.i64;
-            return 0;
-        case NUMBER_COMPARING_NE:
-            *result = v != ncc->nexp.i64;
-            return 0;
-        default:
-            return -1;
-    }
-}
-
-static inline int
-ncc_eval_by_number(struct number_comparing_condition *ncc,
-    const char *s, bool *result)
-{
-    long double v;
-    char *end;
-    v = strtold(s, &end);
-    if (end && *end) {
-        pcinst_set_error(PCEXECUTOR_ERROR_UNEXPECTED_DATA);
-        return -1;
-    }
-
-    switch (ncc->op_type)
-    {
-        case NUMBER_COMPARING_LT:
-            *result = v < ncc->nexp.ld;
-            return 0;
-        case NUMBER_COMPARING_GT:
-            *result = v > ncc->nexp.ld;
-            return 0;
-        case NUMBER_COMPARING_LE:
-            *result = v <= ncc->nexp.ld;
-            return 0;
-        case NUMBER_COMPARING_GE:
-            *result = v >= ncc->nexp.ld;
-            return 0;
-        case NUMBER_COMPARING_EQ:
-            *result = v == ncc->nexp.ld;
-            return 0;
-        case NUMBER_COMPARING_NE:
-            *result = v != ncc->nexp.ld;
-            return 0;
-        default:
-            return -1;
-    }
-}
-
 int number_comparing_condition_eval(struct number_comparing_condition *ncc,
-    const char *s, bool *result)
+        purc_variant_t val, bool *result)
 {
-    switch (ncc->nexp.type)
+    double v = purc_variant_numberify(val);
+
+    switch (ncc->op_type)
     {
-        case NUMERIC_EXPRESSION_INTEGER:
-        {
-            return ncc_eval_by_integer(ncc, s, result);
-        } break;
-        case NUMERIC_EXPRESSION_NUMERIC:
-        {
-            return ncc_eval_by_number(ncc, s, result);
-        } break;
+        case NUMBER_COMPARING_LT:
+            *result = v < ncc->nexp;
+            return 0;
+        case NUMBER_COMPARING_GT:
+            *result = v > ncc->nexp;
+            return 0;
+        case NUMBER_COMPARING_LE:
+            *result = v <= ncc->nexp;
+            return 0;
+        case NUMBER_COMPARING_GE:
+            *result = v >= ncc->nexp;
+            return 0;
+        case NUMBER_COMPARING_EQ:
+            *result = v == ncc->nexp;
+            return 0;
+        case NUMBER_COMPARING_NE:
+            *result = v != ncc->nexp;
+            return 0;
         default:
-        {
             return -1;
-        } break;
     }
 }
 
 int logical_expression_eval(struct logical_expression *exp,
-        const char *s, bool *result)
+        purc_variant_t val, bool *result)
 {
     if (is_logical_expression_all(exp)) {
         exp->result = true;
@@ -327,13 +395,13 @@ int logical_expression_eval(struct logical_expression *exp,
             {
                 struct string_matching_expression *mexp;
                 mexp = &p->mexp;
-                r = string_matching_expression_eval(mexp, s, &p->result);
+                r = string_matching_expression_eval(mexp, val, &p->result);
             } break;
             case LOGICAL_EXPRESSION_NUM:
             {
                 struct number_comparing_condition *ncc;
                 ncc = &p->ncc;
-                r = number_comparing_condition_eval(ncc, s, &p->result);
+                r = number_comparing_condition_eval(ncc, val, &p->result);
             } break;
         }
 
@@ -428,6 +496,7 @@ string_pattern_expression_reset(struct string_pattern_expression *spexp)
             break;
     }
 }
+
 static inline void
 normalize_space(char *s)
 {
@@ -480,8 +549,8 @@ compress_spaces(char *s)
 }
 
 int
-literal_expression_eval(struct literal_expression *lexp, const char *s,
-    bool *result)
+literal_expression_eval(struct literal_expression *lexp,
+        purc_variant_t val, bool *result)
 {
     int r = -1;
     int (*cmp)(const char *s1, const char *s2, size_t n) = NULL;
@@ -496,7 +565,7 @@ literal_expression_eval(struct literal_expression *lexp, const char *s,
                 goto end;
         }
         if (!target) {
-            target = strdup(s);
+            target = stringify_and_strdup(val);
             if (!target)
                 goto end;
         }
@@ -512,7 +581,7 @@ literal_expression_eval(struct literal_expression *lexp, const char *s,
                 goto end;
         }
         if (!target) {
-            target = strdup(s);
+            target = stringify_and_strdup(val);
             if (!target)
                 goto end;
         }
@@ -541,7 +610,14 @@ literal_expression_eval(struct literal_expression *lexp, const char *s,
     if (literal && target) {
         r = cmp(literal, target, n);
     } else {
-        r = cmp(lexp->literal, s, n);
+        purc_variant_t v;
+        const char *s = stringify(val, &v);
+        if (s) {
+            r = cmp(lexp->literal, s, n);
+            purc_variant_unref(v);
+        } else {
+            r = -1;
+        }
     }
 
     if (result)
@@ -630,17 +706,21 @@ end:
     return ps ? 0 : -1;
 }
 
-
 int
-wildcard_expression_eval(struct wildcard_expression *wexp, const char *s,
-    bool *result)
+wildcard_expression_eval(struct wildcard_expression *wexp,
+        purc_variant_t val, bool *result)
 {
     GPatternSpec *ps = NULL;
     char *target  = NULL;
     const char *t = NULL;
 
+    purc_variant_t v = PURC_VARIANT_INVALID;
+    const char *s = stringify(val, &v);
+    if (!s)
+        return -1;
+
     int r = -1;
-    int v = 0;
+    int rr = 0;
 
     if (wexp->pattern_spec == NULL) {
         if (wildcard_expression_init_pattern_spec(wexp))
@@ -651,7 +731,7 @@ wildcard_expression_eval(struct wildcard_expression *wexp, const char *s,
 
     if (MATCHING_FLAGS_IS_SET_WITH(wexp->suffix.matching_flags, MATCHING_FLAG_C)) {
         if (!target) {
-            target  = strdup(s);
+            target = strdup(s);
             if (!target)
                 goto end;
         }
@@ -661,7 +741,7 @@ wildcard_expression_eval(struct wildcard_expression *wexp, const char *s,
 
     if (MATCHING_FLAGS_IS_SET_WITH(wexp->suffix.matching_flags, MATCHING_FLAG_S)) {
         if (!target) {
-            target  = strdup(s);
+            target = strdup(s);
             if (!target)
                 goto end;
         }
@@ -671,7 +751,7 @@ wildcard_expression_eval(struct wildcard_expression *wexp, const char *s,
 
     if (MATCHING_FLAGS_IS_SET_WITH(wexp->suffix.matching_flags, MATCHING_FLAG_I)) {
         if (!target) {
-            target  = strdup(s);
+            target = strdup(s);
             if (!target)
                 goto end;
         }
@@ -685,8 +765,10 @@ wildcard_expression_eval(struct wildcard_expression *wexp, const char *s,
             size_t len = strlen(s);
             if (len > n) {
                 target = strndup(s, n);
-                if (!target)
+                if (!target) {
+                    purc_variant_unref(v);
                     goto end;
+                }
             } else {
                 n = len;
             }
@@ -708,13 +790,13 @@ wildcard_expression_eval(struct wildcard_expression *wexp, const char *s,
         t = s;
     }
 
-    v = g_pattern_match(ps, strlen(t), t, NULL);
+    rr = g_pattern_match(ps, strlen(t), t, NULL);
 
     if (result)
-        *result = (v) ? true : false;
-
+        *result = (rr) ? true : false;
 end:
     free(target);
+    purc_variant_unref(v);
 
     return r ? -1 : 0;
 }
@@ -750,11 +832,15 @@ regular_expression_init_reg(struct regular_expression *rexp)
 }
 
 int
-regular_expression_eval(struct regular_expression *rexp, const char *s,
-    bool *result)
+regular_expression_eval(struct regular_expression *rexp,
+        purc_variant_t val, bool *result)
 {
     int r = -1;
     int v = 0;
+    purc_variant_t vs;
+    const char *s = stringify(val, &vs);
+    if (s == NULL)
+        return -1;
 
     if (!rexp->reg_valid) {
         if (regular_expression_init_reg(rexp))
@@ -768,6 +854,7 @@ regular_expression_eval(struct regular_expression *rexp, const char *s,
         *result = (v == 0) ? true : false;
 
 end:
+    purc_variant_unref(vs);
 
     return r ? -1 : 0;
 }

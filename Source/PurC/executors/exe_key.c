@@ -123,13 +123,8 @@ exe_key_parse_rule(purc_exec_inst_t inst, const char* rule)
     purc_variant_t key, val;
     UNUSED_PARAM(val);
     foreach_key_value_in_variant_object(inst->input, key, val)
-        const char *k = purc_variant_get_string_const(key);
-        if (!k) {
-            r = -1;
-            break;
-        }
         bool result = false;
-        r = key_rule_eval(&exe_key_inst->param.rule, k, &result);
+        r = key_rule_eval(&exe_key_inst->param.rule, key, &result);
         if (r)
             break;
 

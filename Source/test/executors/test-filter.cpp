@@ -53,7 +53,9 @@ parse(const char *rule, char *err_msg, size_t sz_err_msg)
     if (param.err_msg) {
         snprintf(err_msg, sz_err_msg, "%s", param.err_msg);
         free(param.err_msg);
+        param.err_msg = NULL;
     }
+    exe_filter_param_reset(&param);
 
     return r;
 }

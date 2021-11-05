@@ -31,25 +31,77 @@
 
 struct pcexec_exe_filter_inst {
     struct purc_exec_inst       super;
+
+    struct exe_filter_param     param;
+
+    purc_variant_t              cache;
 };
+
+// clear internal data except `input`
+static inline void
+exe_filter_reset(struct pcexec_exe_filter_inst *exe_filter_inst)
+{
+    if (exe_filter_inst->param.err_msg) {
+        free(exe_filter_inst->param.err_msg);
+        exe_filter_inst->param.err_msg = NULL;
+    }
+
+    if (exe_filter_inst->super.err_msg) {
+        free(exe_filter_inst->super.err_msg);
+        exe_filter_inst->super.err_msg = NULL;
+    }
+}
 
 // 创建一个执行器实例
 static purc_exec_inst_t
-exe_filter_create(enum purc_exec_type type, purc_variant_t input, bool asc_desc)
+exe_filter_create(enum purc_exec_type type,
+        purc_variant_t input, bool asc_desc)
 {
-    if (!purc_variant_is_object(input))
+    purc_variant_t cache;
+    enum purc_variant_type vt = purc_variant_get_type(input);
+    switch (vt)
+    {
+        case PURC_VARIANT_TYPE_OBJECT:
+        {
+            cache = pcexe_cache_object(input, asc_desc);
+        } break;
+        case PURC_VARIANT_TYPE_ARRAY:
+        {
+            cache = pcexe_cache_array(input, asc_desc);
+        } break;
+        case PURC_VARIANT_TYPE_SET:
+        {
+            cache = pcexe_cache_set(input, asc_desc);
+        } break;
+        default:
+        {
+            pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
+            return NULL;
+        }
+    }
+
+    if (cache == PURC_VARIANT_INVALID) {
         return NULL;
+    }
 
     struct pcexec_exe_filter_inst *inst;
     inst = calloc(1, sizeof(*inst));
     if (!inst) {
         pcinst_set_error(PCEXECUTOR_ERROR_OOM);
+        purc_variant_unref(cache);
         return NULL;
     }
 
     inst->super.type        = type;
     inst->super.input       = input;
     inst->super.asc_desc    = asc_desc;
+
+    int debug_flex, debug_bison;
+    pcexecutor_get_debug(&debug_flex, &debug_bison);
+    inst->param.debug_flex  = debug_flex;
+    inst->param.debug_bison = debug_bison;
+
+    inst->cache = cache;
 
     purc_variant_ref(input);
 
@@ -59,23 +111,26 @@ exe_filter_create(enum purc_exec_type type, purc_variant_t input, bool asc_desc)
 static inline bool
 exe_filter_parse_rule(purc_exec_inst_t inst, const char* rule)
 {
-    // parse and fill the internal fields from rule
-    // for example, generating the `selected_keys` which contains all
-    // selected keys.
+    struct pcexec_exe_filter_inst *exe_filter_inst;
+    exe_filter_inst = (struct pcexec_exe_filter_inst*)inst;
 
-    // clear previously-selected-keys
-    if (inst->selected_keys) {
-        purc_variant_unref(inst->selected_keys);
-        inst->selected_keys = PURC_VARIANT_INVALID;
+    exe_filter_reset(exe_filter_inst);
+    if (inst->err_msg) {
+        free(inst->err_msg);
+        inst->err_msg = NULL;
     }
 
-    // TODO: parse rule and eval to selected_keys
+    struct exe_filter_param *param = &exe_filter_inst->param;
+    param->rule_valid = 0;
+    int r = exe_filter_parse(rule, strlen(rule), &exe_filter_inst->param);
+    inst->err_msg = exe_filter_inst->param.err_msg;
+    exe_filter_inst->param.err_msg = NULL;
 
-    UNUSED_PARAM(inst);
-    UNUSED_PARAM(rule);
+    if (r)
+        return false;
 
-    pcinst_set_error(PCEXECUTOR_ERROR_NOT_IMPLEMENTED);
-    return false;
+    param->rule_valid = 1;
+    return true;
 }
 
 // 用于执行选择
@@ -118,6 +173,17 @@ exe_filter_choose(purc_exec_inst_t inst, const char* rule)
     return PURC_VARIANT_INVALID;
 }
 
+static inline bool
+fetch_next(struct pcexec_exe_filter_inst *exe_filter_inst, size_t idx)
+{
+    purc_variant_t cache = exe_filter_inst->cache;
+    size_t sz = purc_variant_array_get_size(cache);
+    for (; idx <sz; ++idx) {
+        // purc_variant_t v = purc_variant_array_get(cache, idx);
+    }
+    return false;
+}
+
 // 获得用于迭代的初始迭代子
 static purc_exec_iter_t
 exe_filter_it_begin(purc_exec_inst_t inst, const char* rule)
@@ -127,17 +193,26 @@ exe_filter_it_begin(purc_exec_inst_t inst, const char* rule)
         return NULL;
     }
 
-    inst->it.curr = 0;
-    if (!exe_filter_parse_rule(inst, rule))
-        return NULL;
-
-    size_t sz = purc_variant_array_get_size(inst->selected_keys);
-    if (sz<=0) {
-        pcinst_set_error(PCEXECUTOR_ERROR_NO_KEYS_SELECTED);
+    if (inst->type != PURC_EXEC_TYPE_ITERATE) {
+        pcinst_set_error(PCEXECUTOR_ERROR_NOT_ALLOWED);
         return NULL;
     }
 
-    return &inst->it;
+    struct pcexec_exe_filter_inst *exe_filter_inst;
+    exe_filter_inst = (struct pcexec_exe_filter_inst*)inst;
+
+    purc_variant_t cache = exe_filter_inst->cache;
+    PC_ASSERT(cache != PURC_VARIANT_INVALID);
+    PC_ASSERT(purc_variant_is_array(cache));
+
+    if (!exe_filter_parse_rule(inst, rule))
+        return NULL;
+
+    if (!fetch_next(exe_filter_inst, 0)) {
+        return NULL;
+    }
+
+    return &exe_filter_inst->super.it;
 }
 
 // 根据迭代子获得对应的变体值
@@ -247,16 +322,15 @@ exe_filter_destroy(purc_exec_inst_t inst)
         return false;
     }
 
-    struct pcexec_exe_filter_inst *exe_filter_inst = (struct pcexec_exe_filter_inst*)inst;
+    struct pcexec_exe_filter_inst *exe_filter_inst;
+    exe_filter_inst = (struct pcexec_exe_filter_inst*)inst;
+    exe_filter_reset(exe_filter_inst);
 
-    if (exe_filter_inst->super.input) {
-        purc_variant_unref(exe_filter_inst->super.input);
-        exe_filter_inst->super.input = PURC_VARIANT_INVALID;
+    if (inst->input) {
+        purc_variant_unref(inst->input);
+        inst->input = PURC_VARIANT_INVALID;
     }
-    if (exe_filter_inst->super.selected_keys) {
-        purc_variant_unref(exe_filter_inst->super.selected_keys);
-        exe_filter_inst->super.selected_keys = PURC_VARIANT_INVALID;
-    }
+    PCEXE_CLR_VAR(exe_filter_inst->cache);
 
     free(exe_filter_inst);
     return true;
@@ -276,5 +350,21 @@ int pcexec_exe_filter_register(void)
 {
     bool ok = purc_register_executor("FILTER", &exe_filter_ops);
     return ok ? 0 : -1;
+}
+
+void exe_filter_param_reset(struct exe_filter_param *param)
+{
+    if (param->err_msg) {
+        free(param->err_msg);
+        param->err_msg = NULL;
+    }
+
+    if (param->rule_valid) {
+        if (param->rule.lexp) {
+            logical_expression_destroy(param->rule.lexp);
+            param->rule.lexp = NULL;
+        }
+        param->rule_valid = 0;
+    }
 }
 

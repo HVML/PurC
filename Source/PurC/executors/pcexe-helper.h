@@ -38,6 +38,13 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define PCEXE_CLR_VAR(_v) do {                    \
+    if (_v != PURC_VARIANT_INVALID) {             \
+        purc_variant_unref(_v);                   \
+        _v = PURC_VARIANT_INVALID;                \
+    }                                             \
+} while (0)
+
 PCA_EXTERN_C_BEGIN
 
 int pcexe_unitoutf8(char *utf, const char *uni, size_t n);
@@ -88,6 +95,13 @@ pcexe_strlist_append_uni(struct pcexe_strlist *list,
 }
 
 char* pcexe_strlist_to_str(struct pcexe_strlist *list);
+
+purc_variant_t
+pcexe_cache_array(purc_variant_t input, bool asc_desc);
+purc_variant_t
+pcexe_cache_object(purc_variant_t input, bool asc_desc);
+purc_variant_t
+pcexe_cache_set(purc_variant_t input, bool asc_desc);
 
 // typedef unsigned char     matching_flags;
 #define MATCHING_FLAG_C 0x01
@@ -307,31 +321,6 @@ string_matching_expression_reset(struct string_matching_expression *mexp)
     }
 }
 
-enum numeric_expression_node_type
-{
-    NUMERIC_EXPRESSION_INTEGER,
-    NUMERIC_EXPRESSION_NUMERIC,
-};
-
-struct numeric_expression
-{
-    enum numeric_expression_node_type          type;
-
-    union {
-        int64_t      i64;
-        long double  ld;
-    };
-};
-
-static inline void
-numeric_expression_destroy(struct numeric_expression *exp)
-{
-    if (!exp)
-        return;
-
-    free(exp);
-}
-
 enum number_comparing_op_type
 {
     NUMBER_COMPARING_LT,
@@ -345,7 +334,7 @@ enum number_comparing_op_type
 struct number_comparing_condition
 {
     enum number_comparing_op_type         op_type;
-    struct numeric_expression nexp;
+    double                                nexp;
 };
 
 enum for_clause_type {
@@ -404,38 +393,38 @@ logical_expression_destroy(struct logical_expression *exp)
 }
 
 int
-literal_expression_eval(struct literal_expression *lexp, const char *s,
-    bool *result);
+literal_expression_eval(struct literal_expression *lexp,
+        purc_variant_t val, bool *result);
 int
-wildcard_expression_eval(struct wildcard_expression *wexp, const char *s,
-    bool *result);
+wildcard_expression_eval(struct wildcard_expression *wexp,
+        purc_variant_t val, bool *result);
 int
-regular_expression_eval(struct regular_expression *rexp, const char *s,
-    bool *result);
+regular_expression_eval(struct regular_expression *rexp,
+        purc_variant_t val, bool *result);
 
 static inline int
 string_pattern_expression_eval(struct string_pattern_expression *spexp,
-    const char *s, bool *result)
+        purc_variant_t val, bool *result)
 {
     switch (spexp->type)
     {
         case STRING_PATTERN_WILDCARD:
-            return wildcard_expression_eval(&spexp->wildcard, s, result);
+            return wildcard_expression_eval(&spexp->wildcard, val, result);
         case STRING_PATTERN_REGEXP:
-            return regular_expression_eval(&spexp->regexp, s, result);
+            return regular_expression_eval(&spexp->regexp, val, result);
     }
     return -1;
 }
 
 static inline int
-string_pattern_list_eval(struct string_pattern_list *list, const char *s,
-    bool *result)
+string_pattern_list_eval(struct string_pattern_list *list,
+        purc_variant_t val, bool *result)
 {
     struct list_head *p;
     list_for_each(p, &list->list) {
         struct string_pattern_expression *lexp;
         lexp = container_of(p, struct string_pattern_expression, node);
-        int r = string_pattern_expression_eval(lexp, s, result);
+        int r = string_pattern_expression_eval(lexp, val, result);
         if (r)
             return -1;
         if (result && *result)
@@ -449,14 +438,14 @@ string_pattern_list_eval(struct string_pattern_list *list, const char *s,
 }
 
 static inline int
-string_literal_list_eval(struct string_literal_list *list, const char *s,
-    bool *result)
+string_literal_list_eval(struct string_literal_list *list,
+        purc_variant_t val, bool *result)
 {
     struct list_head *p;
     list_for_each(p, &list->list) {
         struct literal_expression *lexp;
         lexp = container_of(p, struct literal_expression, node);
-        int r = literal_expression_eval(lexp, s, result);
+        int r = literal_expression_eval(lexp, val, result);
         if (r)
             return -1;
         if (result && *result)
@@ -471,24 +460,24 @@ string_literal_list_eval(struct string_literal_list *list, const char *s,
 
 static inline int
 string_matching_expression_eval(struct string_matching_expression *mexp,
-    const char *s, bool *result)
+        purc_variant_t val, bool *result)
 {
     switch(mexp->type)
     {
         case STRING_MATCHING_PATTERN:
-            return string_pattern_list_eval(mexp->patterns, s, result);
+            return string_pattern_list_eval(mexp->patterns, val, result);
         case STRING_MATCHING_LITERAL:
-            return string_literal_list_eval(mexp->literals, s, result);
+            return string_literal_list_eval(mexp->literals, val, result);
     }
 
     return -1;
 }
 
 int number_comparing_condition_eval(struct number_comparing_condition *ncc,
-    const char *s, bool *result);
+        purc_variant_t val, bool *result);
 
 int logical_expression_eval(struct logical_expression *exp,
-        const char *s, bool *result);
+        purc_variant_t val, bool *result);
 
 int logical_and(struct logical_expression *exp);
 int logical_or(struct logical_expression *exp);
