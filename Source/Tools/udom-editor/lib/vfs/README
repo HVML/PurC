@@ -1,0 +1,70 @@
+NOTE: Although vfs has been meant to be implemented as a separate
+entity redistributable under the LGPL in its current implementation it
+uses GPLed code from src/. So there are two possibilities if you want
+to use vfs:
+
+1. Distribute your copy of vfs under the GPL. Then you can freely
+include the GPLed functions from the rest of the mc source code.
+
+2. Distribute your copy of vfs under the LGPL. Then you cannot include
+the functions outside the vfs subdirectory. You must then either
+rewrite them or work around them in other ways.
+
+========================================================================
+
+Hi!
+
+I'm midnight commander's vfs layer. Before you start hacking me,
+please read this file. I'm integral part of midnight commander, but I
+try to go out and live my life myself as a shared library, too. That
+means that I should try to use as little functions from midnight as
+possible (so I'm tiny, nice and people like me), that I should not
+pollute name space by unnecessary symbols (so I do not crash fellow
+programs) and that I should have a clean interface between myself and
+midnight.
+
+Because I'm rather close to midnight, try to:
+
+* Keep the indentation as the rest of the code. Following could help
+you with your friend emacs:
+
+(defun mc-c-mode ()
+	"C mode with adjusted defaults for use with the Midnight commander."
+	(interactive)
+	(c-mode)
+	(c-set-style "K&R")
+	(setq	c-indent-level 4
+		c-continued-statement-offset 4
+		c-brace-offset 0
+		c-argdecl-indent 4
+		c-label-offset -4
+		c-brace-imaginary-offset 0
+		c-continued-brace-offset 0
+		c-tab-always-indent nil
+		c-basic-offset 4
+		tab-width 8
+		comment-column 60))
+
+(setq auto-mode-alist (cons '(".*/mc/.*\\.[ch]$" . mc-c-mode)
+                       auto-mode-alist))
+
+And because I'm trying to live life on my own as libvfs.so, try to:
+
+* Make sure all exported symbols are defined in vfs.h and begin with
+'vfs_'.
+
+* Do not make any references from midnight into modules like tar. It
+would probably pollute name space and midnight would depend on concrete
+configuration of libvfs. mc_setctl() and mc_ctl() are your
+friends. (And mine too :-).
+
+							 Pavel Machek
+							 pavel@ucw.cz
+
+PS: If you'd like to use my features in whole operating system, you
+might want to link me to rpc.nfsd. On
+http://atrey.karlin.mff.cuni.cz/~pavel/podfuk/podfuk.html you'll find
+how to do it.
+
+PPS: I have a friend, shared library called avfs, which is LD_PRELOAD
+capable. You can reach her at http://www.inf.bme.hu/~mszeredi/avfs.

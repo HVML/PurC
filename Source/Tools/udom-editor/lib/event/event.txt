@@ -1,0 +1,153 @@
+= EVENTS =
+
+The subsystem of events used in mc is based on fast binary trees engine.
+
+
+== Introduction ==
+
+Subsystem of events is primarily designed to detach event source and event
+handler in source code level. For example, VFS module uses function to show
+messages, which is defined in the source code (not in the lib). In the lib,
+definition of this function will be difficult (because the function does
+a lot of calls of other functions from src). In this case, the transform
+of this function to event handler is needed, and the display messages process
+can be used as an event. Function as event handler should be registered
+at early stage of mc start. Later just call the event, absolutely without
+worrying whether the handler is tied to the event, and which function
+is an event handler now (in some situation, plugin will load and reassign
+this event handler to itself).
+
+
+=== Usage ===
+
+Events are applicable in any case. Sometimes it is hard to decide whether
+it should be a common function or it should be an event handler. The replacement
+of all functions used in keybindings process to event handler is good choice
+(or parts of the 'switch () {case:}' in keybindings handlers). All keybindings
+are described in lib/keybind.h.
+
+The second argument to choose the solution (event handler or function) should be
+thought whether that transformation of function to the event handler is easy,
+the inverse process (handler to function) would be more difficult because
+one event can have multiple handlers and each handler may depend to another.
+
+A third argument in the choice in favor of the event handlers can be a plug-ins
+(in future). In this case events is a way to give access to internal application
+resources without providing a low-level API. All plug-ins need is to know what and how
+call the event with proper structure type (#include "lib/event.h").
+
+
+== Structure ==
+
+In general, the subsystem of events can be represented as following:
+
+   ------------------------------------            }
+   |Group1        Group2   ...   GroupN|            }   Event groups (GTree)
+   -------------------------------------           }
+       |             |             |
+      /|\           /|\           /|\
+     / | \         / | ...       ... eventN        }
+    /  |  \       /  ...                            }
+   /   |   \      ...                                } Events by groups
+   |   |    event3                                   } (GTree for any group)
+   |   event2                                       }
+   event1                                          }
+   | | |  |
+   f1f2...fN                                       } list of event handlers (GPtrArray for any event)
+
+
+This scheme allows to group events, and perform several handlers for one event.
+
+
+== Requirements for event handlers ==
+
+The following function prototype is event handler:
+
+gboolean mc_event_callback_func_t (
+    const gchar *event_group,
+    const gchar *event_name,
+    gpointer init_data,
+    gpointer event_data
+);
+
+where:
+ event_group:
+    name of the group, where event was initiated
+
+ event_name:
+    event name. event_name ans event_group uniquely identify an event.
+    These parameters can be useful if event handler is tied to several events
+    and the distinguish between different events (for example, function of logging)
+    is required.
+
+ init_data:
+    Arbitrary data, provided to the event handler.
+    This data is provided by adding a handler to the event (the initialization data).
+
+ event_data:
+    Data provided to the handler when the event occurred.
+
+Handler should return TRUE to allow running all other handlers tied to this event;
+or FALSE if it is necessary to stop further processing of event (the remaining
+handlers are not called).
+
+If one event will have multiple handlers, the order of execution is "Last added - first
+executed". This allows to override the standard event handlers (eg, in plug-ins).
+
+
+=== Passing parameters to event handlers. Returning rezults ==
+
+Due to the unification of the event handlers, there is no possibility to pass
+a certain number of parameters and get the results of execution. Pass of a single
+parameter (or get one result of an event handler) can be made as simple type casting
+for one variable when event is called. But this way isn't applicable if pass
+of several parameters (or get multiple return values) is required.
+
+To solve this problem, you can pass the previously defined structure as universal
+pointer event_data. All structures used in the event handlers should be defined
+in the lib/event-types.h.
+
+This way (the pass parameters as pointer to structure) has advantages and disadvantages.
+
+Advantages:
+ * any number of parameters and their types;
+ * any number of return values and their types.
+
+Disadvantages:
+ * probability of error: call the event with the wrong structure. In this case,
+   the handler will cast pointer to the structure on which it was designed.
+   At this point funny bugs and very long debugging process (especially if segfault
+   doesn't occur immediately) are possible;
+ * in order for an event handler and the initiator of the event to "communicate"
+   with each other, previously defined structures is needed.
+
+
+== Examples ==
+
+=== Logging ===
+
+Consider the example of a temporary handler which simply logged the order
+of certain events (for example, to detect infinite loop).
+
+Here event handler:
+
+gboolean
+mc_temp_event_logger (const gchar *event_group, const gchar *event_name,
+                      gpointer init_data, gpointer data)
+{
+    (void) init_data;
+    (void) data;
+
+    mc_log("Event: %s:%s",event_group,event_name);
+    return TRUE;
+}
+
+Add the following lines into src/event_init.c before "{NULL, NULL, NULL, NULL}" line
+as one record to the initialization structure.
+
+{MCEVENT_GROUP_CORE, "clipboard_file_to_ext_clip", mc_temp_event_logger, NULL},
+{MCEVENT_GROUP_CORE, "clipboard_file_from_ext_clip", mc_temp_event_logger, NULL},
+{MCEVENT_GROUP_CORE, "clipboard_text_to_file", mc_temp_event_logger, NULL},
+{MCEVENT_GROUP_CORE, "clipboard_text_from_file", mc_temp_event_logger, NULL},
+
+...(there any other events which you want to monitor)...

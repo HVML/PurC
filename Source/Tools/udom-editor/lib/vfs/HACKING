@@ -1,0 +1,104 @@
+Intended audience
+=================
+
+This document is intended for everybody who wants to understand VFS
+code.  Knowledge of programming is a must.
+
+
+Preface
+=======
+
+While VFS should be considered an excellent idea, which came ahead of
+its time, the implementation used in GNU Midnight Commander is now
+showing its age.
+
+The VFS code was left us without any decent documentation.  Most
+functions don't have comments explaining what they do.  Most comments
+describe quirks and implementation details, rather than the intended
+functionality of the code.  This document is an attempt to reconstruct
+understanding of the VFS code and help its future developers.
+
+Being the part of GNU Midnight Commander most exposed to potential
+security threats, the VFS code needs to be kept is a good shape. 
+Understanding the code is the key to making and keeping it secure.
+
+
+Basics of code organization
+===========================
+
+VFS code it to a certain extent object oriented.  The code dealing with
+a certain type of data (e.g. tar archives) can be thought
+of as a class in the terms of object oriented programming.  They may
+reuse some code from their parent classes.  For instance, tar and cpio
+archives have a common parent class direntry, which contains some common
+code for archives.
+
+Individual archives or connections can be considered as instances of
+those classes.  They provide POSIX like interface to their structure,
+but don't expose that structure directly to the common VFS layer.
+
+Each VFS object has a directory tree associated with it.  The tree
+consists of entries for files and directories.  In some VFS classes, the
+entries have names and a are associated with nameless inodes, which
+contain information such as size, timestamps and other data normally
+contained in POSIX "struct stat".
+
+File vfs.c serves as a multiplexor.  It exports functions similar to
+POSIX but with "mc_" prepended to them.  For example, mc_open() will act
+like open(), but will treat VFS names in a special way.
+
+Common utility functions not intended to be used outside the VFS code
+should go to utilvfs.c and possibly to other files.  Presently, there is
+a lot of such code in vfs.c.
+
+
+Hierarchy of classes
+====================
+
+vfs ---- direntry ---- cpio  } archives
+   |            | ---- tar   }
+   |            |
+   |            | ---- fish  } remote systems
+   |            | ---- ftpfs }
+   |
+   |---- extfs ---- extfs archives
+   |---- localfs ---- sfs ---- sfs archives
+   |---- undelfs
+
+
+Properties of classes
+=====================
+
+                   read only    inode->entry   local cache   full tree
+                                mapping                      loaded
+
+cpio               yes*         yes*           no            yes
+tar                yes*         yes*           no            yes
+fish               no           yes            yes           no
+ftpfs              no           yes            yes           no
+extfs              no           no             yes           yes
+localfs            no           no             N/A           N/A
+sfs                no           yes            yes           N/A
+undelfs            no           yes            no            yes
+
+
+"*" means that this property should change during further development.
+Mapping from inode to entry prevents implementing hard links.  It is
+permissible for directories, which cannot be hardlinked.  Not loading
+the full tree speeds up access to large archives and conserves memory.
+
+
+Stamping
+========
+
+Stamping is the VFS equivalent of garbage collection.  It's purpose is
+to destroy unreferenced VFS objects, in other words close archives or
+connections once they are unused for some time.  There is a tree of
+items representing VFS objects.  The common layer doesn't know the
+structure of the pointers, but it knows the class that should handle the
+pointer.  Every item has a timestamp.  Once the timestamp becomes too
+old, the object is freed.
+
+There are ways to keep objects alive if they are used.  Also, objects
+can have parent objects, which are freed together with there original
+object if they are otherwise unreferenced.
