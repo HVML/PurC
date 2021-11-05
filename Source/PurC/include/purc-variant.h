@@ -1670,18 +1670,23 @@ PCA_EXPORT bool
 purc_variant_booleanize(purc_variant_t value);
 
 /**
- * Stringify a variant value to string
+ * Stringify a variant value to buffer
+ *
+ * @param buf: the pointer that points to the buffer to store result content
+ *
+ * @param len: the size of the above buffer
  *
  * @param value: variant value to be operated
  *
- * Returns: a string-type of variant that is stringified from the variant value
+ * Returns: totol # of result content that has been succesfully written
+ *          or shall be written if buffer is large enough
  *
- * Note: the returned variant shall be unref'd afterwards
+ * Note: API is similar to `snprintf`
  *
  * Since: 0.0.3
  */
-PCA_EXPORT purc_variant_t
-purc_variant_stringify(purc_variant_t value);
+PCA_EXPORT int
+purc_variant_stringify(char *buf, size_t len, purc_variant_t value);
 
 PCA_EXTERN_C_END
 

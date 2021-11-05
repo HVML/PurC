@@ -1390,294 +1390,183 @@ purc_variant_booleanize(purc_variant_t value)
     }
 }
 
-static inline purc_variant_t
-stringify_bs(const unsigned char *bs, size_t nr)
+static inline int
+snwrite_buf(char *buf, size_t len, const char *src, size_t nr)
+{
+    if (nr < len) {
+        len = nr;
+    } else if (len==0) {
+        return nr;
+    } else {
+        len = len - 1;
+    }
+    memcpy(buf, src, len);
+    buf[len] = '\0';
+    return nr;
+}
+
+#define ADJUST() ({             \
+    total += n;                 \
+    len -= n;                   \
+    if (len > 0) {              \
+        buf += n;               \
+    } else {                    \
+        buf = NULL;             \
+        len = 0;                \
+    }                           \
+})
+
+static inline int
+stringify_bs(char *buf, size_t len, const unsigned char *bs, size_t nr)
 {
     static const char chars[] = "0123456789ABCDEF";
 
-    size_t sz = nr * 2;
-    char *buf = (char*)malloc(sz + 1);
-    if (!buf)
-        return PURC_VARIANT_INVALID;
+    size_t total = 0;
+    char buffer[512]; // must be an even number!!!
 
-    purc_variant_t v = purc_variant_make_string_reuse_buff(buf, sz, false);
-    if (v == PURC_VARIANT_INVALID)
-        return v;
+    char *p = buffer;
+    char *end = p + sizeof(buffer);
 
-    char *p = buf;
     for (size_t i=0; i<nr; ++i) {
         int h = bs[i] >> 4;
         int l = bs[i] & 0x0F;
+
         *p++ = chars[h];
         *p++ = chars[l];
+        if (p == end) {
+            int n = snwrite_buf(buf, len, buffer, p - buffer);
+            ADJUST();
+        }
     }
-    *p = '\0';
 
-    return v;
+    if (p>buffer) {
+        int n = snwrite_buf(buf, len, buffer, p - buffer);
+        ADJUST();
+    }
+
+    return total;
 }
 
-static inline purc_variant_t
-stringify_collect(purc_variant_t vals, size_t nr)
+static inline int
+stringify_array(char *buf, size_t len, purc_variant_t value)
 {
-    char *buf = (char*)malloc(nr + 1);
-    PC_ASSERT(buf); // FIXME:
-    *buf = '\0';
-    char *p = buf;
-    size_t len = nr;
-    size_t sz;
-    PC_ASSERT(purc_variant_array_size(vals, &sz)); // FIXME:
+    size_t total = 0;
 
-    purc_variant_t val;
-    val = purc_variant_make_string_reuse_buff(buf, nr, false);
-    PC_ASSERT(val != PURC_VARIANT_INVALID); // FIXME:
+    size_t sz = 0;
+    purc_variant_array_size(value, &sz);
 
     for (size_t i=0; i<sz; ++i) {
-        purc_variant_t v = purc_variant_array_get(vals, i);
-        const char *s;
-        if (purc_variant_is_atomstring(v)) {
-            s = purc_variant_get_atom_string_const(v);
-        }
-        else if (purc_variant_is_string(v)) {
-            s = purc_variant_get_string_const(v);
-        }
-        else {
-            PC_ASSERT(0); // FIXME:
-        }
-        PC_ASSERT(s); // FIXME:
-        size_t n = strlen(s);
-        PC_ASSERT(n <= len);
-        strcpy(p, s);
-        p += n;
-        len -= n;
-    }
-    *p = '\0';
-
-    return val;
-}
-
-static inline bool
-collect_variant(purc_variant_t vals, purc_variant_t v, size_t *nr)
-{
-    if (v == PURC_VARIANT_INVALID)
-        return false;
-
-    purc_variant_t vs = purc_variant_stringify(v);
-    if (vs == PURC_VARIANT_INVALID)
-        return false;
-
-    bool ok = purc_variant_array_append(vals, vs);
-    purc_variant_unref(vs);
-    if (!ok)
-        return false;
-
-    size_t n;
-    if (purc_variant_is_atomstring(vs)) {
-        const char *s = purc_variant_get_atom_string_const(vs);
-        *nr += strlen(s);
-    }
-    else if (purc_variant_is_string(vs)) {
-        if (!purc_variant_string_bytes(vs, &n))
-            return false;
-        *nr += n;
-    }
-    else {
-        return false;
-    }
-
-    return true;
-}
-
-static inline purc_variant_t
-stringify_array(purc_variant_t value)
-{
-    size_t sz;
-    if (!purc_variant_array_size(value, &sz))
-        return PURC_VARIANT_INVALID;
-
-    purc_variant_t vals = purc_variant_make_array(0, PURC_VARIANT_INVALID);
-    if (vals == PURC_VARIANT_INVALID)
-        return PURC_VARIANT_INVALID;
-
-    purc_variant_t newline = purc_variant_make_atom_string("\n", false);
-
-    bool ok = true;
-    size_t nr = 0;
-
-    for (size_t i=0; i<sz; ++i) {
+        int n;
         purc_variant_t v = purc_variant_array_get(value, i);
-        if (!collect_variant(vals, v, &nr)) {
-            ok = false;
-            break;
-        }
-        if (!collect_variant(vals, newline, &nr)) {
-            ok = false;
-            break;
-        }
+        n = purc_variant_stringify(buf, len, v);
+        ADJUST();
+        n = snprintf(buf, len, "\n");
+        ADJUST();
     }
 
-    purc_variant_unref(newline);
-
-    purc_variant_t val = PURC_VARIANT_INVALID;
-    if (ok)
-        val = stringify_collect(vals, nr);
-    purc_variant_unref(vals);
-
-    return val;
+    return total;
 }
 
-static inline purc_variant_t
-stringify_object(purc_variant_t value)
+static inline int
+stringify_object(char *buf, size_t len, purc_variant_t value)
 {
-    purc_variant_t vals = purc_variant_make_array(0, PURC_VARIANT_INVALID);
-    PC_ASSERT(vals != PURC_VARIANT_INVALID); // FIXME:
+    size_t total = 0;
 
-    purc_variant_t newline = purc_variant_make_atom_string("\n", false);
-    purc_variant_t colon = purc_variant_make_atom_string(":", false);
-
-    bool ok = true;
-    size_t nr = 0;
     purc_variant_t k, v;
-
     foreach_key_value_in_variant_object(value, k, v)
-        if (!collect_variant(vals, k, &nr)) {
-            ok = false;
-            break;
-        }
-        if (!collect_variant(vals, colon, &nr)) {
-            ok = false;
-            break;
-        }
-        if (!collect_variant(vals, v, &nr)) {
-            ok = false;
-            break;
-        }
-        if (!collect_variant(vals, newline, &nr)) {
-            ok = false;
-            break;
-        }
+        int n;
+        n = purc_variant_stringify(buf, len, k);
+        ADJUST();
+        n = snprintf(buf, len, ":");
+        ADJUST();
+        n = purc_variant_stringify(buf, len, v);
+        ADJUST();
+        n = snprintf(buf, len, "\n");
+        ADJUST();
     end_foreach;
 
-    purc_variant_unref(newline);
-    purc_variant_unref(colon);
-
-    purc_variant_t val = PURC_VARIANT_INVALID;
-    if (ok)
-        val = stringify_collect(vals, nr);
-    purc_variant_unref(vals);
-
-    return val;
+    return total;
 }
 
-static inline purc_variant_t
-stringify_set(purc_variant_t value)
+static inline int
+stringify_set(char *buf, size_t len, purc_variant_t value)
 {
-    purc_variant_t vals = purc_variant_make_array(0, PURC_VARIANT_INVALID);
-    PC_ASSERT(vals != PURC_VARIANT_INVALID); // FIXME:
-
-    purc_variant_t newline = purc_variant_make_atom_string("\n", false);
-
-    bool ok = true;
-    size_t nr = 0;
+    size_t total = 0;
     purc_variant_t v;
-
     foreach_value_in_variant_set(value, v)
-        if (!collect_variant(vals, v, &nr)) {
-            ok = false;
-            break;
-        }
-        if (!collect_variant(vals, newline, &nr)) {
-            ok = false;
-            break;
-        }
+        int n;
+        n = purc_variant_stringify(buf, len, v);
+        ADJUST();
+        n = snprintf(buf, len, "\n");
+        ADJUST();
     end_foreach;
 
-    purc_variant_unref(newline);
-
-    purc_variant_t val = PURC_VARIANT_INVALID;
-    if (ok)
-        val = stringify_collect(vals, nr);
-    purc_variant_unref(vals);
-
-    return val;
+    return total;
 }
 
-static inline purc_variant_t
-stringify_dynamic(purc_variant_t value)
+static inline int
+stringify_dynamic(char *buf, size_t len, purc_variant_t value)
 {
     purc_dvariant_method getter = purc_variant_dynamic_get_getter(value);
     purc_dvariant_method setter = purc_variant_dynamic_get_setter(value);
 
-    char buf[128];
-    snprintf(buf, sizeof(buf), "<dynamic: %p, %p>", getter, setter);
-
-    return purc_variant_make_string(buf, false);
+    return snprintf(buf, len, "<dynamic: %p, %p>", getter, setter);
 }
 
-static inline purc_variant_t
-stringify_native(purc_variant_t value)
+static inline int
+stringify_native(char *buf, size_t len, purc_variant_t value)
 {
     void *native = purc_variant_native_get_entity(value);
 
-    char buf[128];
-    snprintf(buf, sizeof(buf), "<native: %p>", native);
-
-    return purc_variant_make_string(buf, false);
+    return snprintf(buf, len, "<native: %p>", native);
 }
 
-purc_variant_t
-purc_variant_stringify(purc_variant_t value)
+int
+purc_variant_stringify(char *buf, size_t len, purc_variant_t value)
 {
-    if (value == PURC_VARIANT_INVALID)
-        return PURC_VARIANT_INVALID;
-
     const unsigned char *bs;
     size_t nr;
     enum purc_variant_type type = purc_variant_get_type(value);
-    char buf[64];
 
     switch (type)
     {
         case PURC_VARIANT_TYPE_UNDEFINED:
-            return purc_variant_make_atom_string("undefined", false);
+            return snprintf(buf, len, "undefined");
         case PURC_VARIANT_TYPE_NULL:
-            return purc_variant_make_atom_string("null", false);
+            return snprintf(buf, len, "null");
         case PURC_VARIANT_TYPE_BOOLEAN:
             if (value->b) {
-                return purc_variant_make_atom_string("true", false);
+                return snprintf(buf, len, "true");
             } else {
-                return purc_variant_make_atom_string("false", false);
+                return snprintf(buf, len, "false");
             }
         case PURC_VARIANT_TYPE_NUMBER:
-            snprintf(buf, sizeof(buf), "%g", value->d);
-            return purc_variant_make_string(buf, false);
+            return snprintf(buf, len, "%g", value->d);
         case PURC_VARIANT_TYPE_LONGINT:
-            snprintf(buf, sizeof(buf), "%" PRId64 "", value->i64);
-            return purc_variant_make_string(buf, false);
+            return snprintf(buf, len, "%" PRId64 "", value->i64);
         case PURC_VARIANT_TYPE_ULONGINT:
-            snprintf(buf, sizeof(buf), "%" PRIu64 "", value->u64);
-            return purc_variant_make_string(buf, false);
+            return snprintf(buf, len, "%" PRIu64 "", value->u64);
         case PURC_VARIANT_TYPE_LONGDOUBLE:
-            snprintf(buf, sizeof(buf), "%Lg", value->ld);
-            return purc_variant_make_string(buf, false);
+            return snprintf(buf, len, "%Lg", value->ld);
         case PURC_VARIANT_TYPE_ATOMSTRING:
-            purc_variant_ref(value);
-            return value;
+            return snprintf(buf, len, "%s",
+                    purc_variant_get_atom_string_const(value));
         case PURC_VARIANT_TYPE_STRING:
-            purc_variant_ref(value);
-            return value;
+            return snprintf(buf, len, "%s",
+                    purc_variant_get_string_const(value));
         case PURC_VARIANT_TYPE_BSEQUENCE:
             bs = purc_variant_get_bytes_const(value, &nr);
-            return stringify_bs(bs, nr);
+            return stringify_bs(buf, len, bs, nr);
         case PURC_VARIANT_TYPE_DYNAMIC:
-            return stringify_dynamic(value);
+            return stringify_dynamic(buf, len, value);
         case PURC_VARIANT_TYPE_NATIVE:
-            return stringify_native(value);
+            return stringify_native(buf, len, value);
         case PURC_VARIANT_TYPE_OBJECT:
-            return stringify_object(value);
+            return stringify_object(buf, len, value);
         case PURC_VARIANT_TYPE_ARRAY:
-            return stringify_array(value);
+            return stringify_array(buf, len, value);
         case PURC_VARIANT_TYPE_SET:
-            return stringify_set(value);
+            return stringify_set(buf, len, value);
         default:
             PC_ASSERT(0);
             break;
