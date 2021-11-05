@@ -7,6 +7,12 @@
 #include <stdio.h>
 #include <gtest/gtest.h>
 
+static inline purc_rwstream_t
+create_rwstream(void)
+{
+    return purc_rwstream_new_buffer(1024, 10240);
+}
+
 struct numberify_record
 {
     double                     d;
@@ -153,28 +159,18 @@ do_stringify(struct stringify_record *p)
     purc_variant_t v;
     v = load_variant(p->str);
     if (v == PURC_VARIANT_INVALID) {
-        EXPECT_NE(v,PURC_VARIANT_INVALID);
+        EXPECT_NE(v,PURC_VARIANT_INVALID)
+            << "Failed to load variant: [" << p->str << "]";
         return;
     }
 
-    purc_variant_t vs = purc_variant_stringify(v);
+    char buf[8192];
+    int r = purc_variant_snstringify(buf, sizeof(buf), v);
     purc_variant_unref(v);
-    ASSERT_NE(vs, nullptr) << "[" << p->str << "]";
 
-    const char *s;
-    if (purc_variant_is_atomstring(vs)) {
-        s = purc_variant_get_atom_string_const(vs);
-    }
-    else if (purc_variant_is_string(vs)) {
-        s = purc_variant_get_string_const(vs);
-    }
-    else {
-        FAIL() << "[" << p->str << "]";
-    }
+    ASSERT_LT(r, sizeof(buf)) << "Buffer too small";
 
-    ASSERT_STREQ(s, p->chk) << "[" << p->str << "]";
-
-    purc_variant_unref(vs);
+    ASSERT_STREQ(buf, p->chk) << "[" << p->str << "]";
 }
 
 TEST(variant, stringify)
@@ -235,24 +231,13 @@ do_stringify_bs(struct stringify_bs_record *p)
         return;
     }
 
-    purc_variant_t vs = purc_variant_stringify(v);
+    char buf[8192];
+    int r = purc_variant_snstringify(buf, sizeof(buf), v);
     purc_variant_unref(v);
-    ASSERT_NE(vs, nullptr) << "[" << p->str << "]";
 
-    const char *s;
-    if (purc_variant_is_atomstring(vs)) {
-        s = purc_variant_get_atom_string_const(vs);
-    }
-    else if (purc_variant_is_string(vs)) {
-        s = purc_variant_get_string_const(vs);
-    }
-    else {
-        FAIL() << "[" << p->str << "]";
-    }
+    ASSERT_LT(r, sizeof(buf)) << "Buffer too small";
 
-    ASSERT_STREQ(s, p->chk) << "[" << p->str << "]";
-
-    purc_variant_unref(vs);
+    ASSERT_STREQ(buf, p->chk) << "[" << p->str << "]";
 }
 
 TEST(variant, stringify_bs)
