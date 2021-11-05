@@ -1686,7 +1686,7 @@ purc_variant_booleanize(purc_variant_t value);
  * Since: 0.0.3
  */
 PCA_EXPORT int
-purc_variant_snstringify(char *buf, size_t len, purc_variant_t value);
+purc_variant_stringify(char *buf, size_t len, purc_variant_t value);
 
 PCA_EXTERN_C_END
 

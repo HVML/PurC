@@ -1417,7 +1417,7 @@ snwrite_buf(char *buf, size_t len, const char *src, size_t nr)
 })
 
 static inline int
-snstringify_bs(char *buf, size_t len, const unsigned char *bs, size_t nr)
+stringify_bs(char *buf, size_t len, const unsigned char *bs, size_t nr)
 {
     static const char chars[] = "0123456789ABCDEF";
 
@@ -1448,7 +1448,7 @@ snstringify_bs(char *buf, size_t len, const unsigned char *bs, size_t nr)
 }
 
 static inline int
-snstringify_array(char *buf, size_t len, purc_variant_t value)
+stringify_array(char *buf, size_t len, purc_variant_t value)
 {
     size_t total = 0;
 
@@ -1458,7 +1458,7 @@ snstringify_array(char *buf, size_t len, purc_variant_t value)
     for (size_t i=0; i<sz; ++i) {
         int n;
         purc_variant_t v = purc_variant_array_get(value, i);
-        n = purc_variant_snstringify(buf, len, v);
+        n = purc_variant_stringify(buf, len, v);
         ADJUST();
         n = snprintf(buf, len, "\n");
         ADJUST();
@@ -1468,18 +1468,18 @@ snstringify_array(char *buf, size_t len, purc_variant_t value)
 }
 
 static inline int
-snstringify_object(char *buf, size_t len, purc_variant_t value)
+stringify_object(char *buf, size_t len, purc_variant_t value)
 {
     size_t total = 0;
 
     purc_variant_t k, v;
     foreach_key_value_in_variant_object(value, k, v)
         int n;
-        n = purc_variant_snstringify(buf, len, k);
+        n = purc_variant_stringify(buf, len, k);
         ADJUST();
         n = snprintf(buf, len, ":");
         ADJUST();
-        n = purc_variant_snstringify(buf, len, v);
+        n = purc_variant_stringify(buf, len, v);
         ADJUST();
         n = snprintf(buf, len, "\n");
         ADJUST();
@@ -1489,13 +1489,13 @@ snstringify_object(char *buf, size_t len, purc_variant_t value)
 }
 
 static inline int
-snstringify_set(char *buf, size_t len, purc_variant_t value)
+stringify_set(char *buf, size_t len, purc_variant_t value)
 {
     size_t total = 0;
     purc_variant_t v;
     foreach_value_in_variant_set(value, v)
         int n;
-        n = purc_variant_snstringify(buf, len, v);
+        n = purc_variant_stringify(buf, len, v);
         ADJUST();
         n = snprintf(buf, len, "\n");
         ADJUST();
@@ -1505,7 +1505,7 @@ snstringify_set(char *buf, size_t len, purc_variant_t value)
 }
 
 static inline int
-snstringify_dynamic(char *buf, size_t len, purc_variant_t value)
+stringify_dynamic(char *buf, size_t len, purc_variant_t value)
 {
     purc_dvariant_method getter = purc_variant_dynamic_get_getter(value);
     purc_dvariant_method setter = purc_variant_dynamic_get_setter(value);
@@ -1514,7 +1514,7 @@ snstringify_dynamic(char *buf, size_t len, purc_variant_t value)
 }
 
 static inline int
-snstringify_native(char *buf, size_t len, purc_variant_t value)
+stringify_native(char *buf, size_t len, purc_variant_t value)
 {
     void *native = purc_variant_native_get_entity(value);
 
@@ -1522,7 +1522,7 @@ snstringify_native(char *buf, size_t len, purc_variant_t value)
 }
 
 int
-purc_variant_snstringify(char *buf, size_t len, purc_variant_t value)
+purc_variant_stringify(char *buf, size_t len, purc_variant_t value)
 {
     const unsigned char *bs;
     size_t nr;
@@ -1556,17 +1556,17 @@ purc_variant_snstringify(char *buf, size_t len, purc_variant_t value)
                     purc_variant_get_string_const(value));
         case PURC_VARIANT_TYPE_BSEQUENCE:
             bs = purc_variant_get_bytes_const(value, &nr);
-            return snstringify_bs(buf, len, bs, nr);
+            return stringify_bs(buf, len, bs, nr);
         case PURC_VARIANT_TYPE_DYNAMIC:
-            return snstringify_dynamic(buf, len, value);
+            return stringify_dynamic(buf, len, value);
         case PURC_VARIANT_TYPE_NATIVE:
-            return snstringify_native(buf, len, value);
+            return stringify_native(buf, len, value);
         case PURC_VARIANT_TYPE_OBJECT:
-            return snstringify_object(buf, len, value);
+            return stringify_object(buf, len, value);
         case PURC_VARIANT_TYPE_ARRAY:
-            return snstringify_array(buf, len, value);
+            return stringify_array(buf, len, value);
         case PURC_VARIANT_TYPE_SET:
-            return snstringify_set(buf, len, value);
+            return stringify_set(buf, len, value);
         default:
             PC_ASSERT(0);
             break;
