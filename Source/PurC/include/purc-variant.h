@@ -1645,6 +1645,44 @@ struct purc_variant_stat {
  */
 PCA_EXPORT struct purc_variant_stat*  purc_variant_usage_stat(void);
 
+/**
+ * Numberify a variant value to double
+ *
+ * @param value: variant value to be operated
+ *
+ * Returns: a double number that is numberified from the variant value
+ *
+ * Since: 0.0.3
+ */
+PCA_EXPORT double
+purc_variant_numberify(purc_variant_t value);
+
+/**
+ * Booleanize a variant value to boolean
+ *
+ * @param value: variant value to be operated
+ *
+ * Returns: a boolean value that is booleanized from the variant value
+ *
+ * Since: 0.0.3
+ */
+PCA_EXPORT bool
+purc_variant_booleanize(purc_variant_t value);
+
+/**
+ * Stringify a variant value to string
+ *
+ * @param value: variant value to be operated
+ *
+ * Returns: a string-type of variant that is stringified from the variant value
+ *
+ * Note: the returned variant shall be unref'd afterwards
+ *
+ * Since: 0.0.3
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_stringify(purc_variant_t value);
+
 PCA_EXTERN_C_END
 
 #endif /* not defined PURC_PURC_VARIANT_H */
