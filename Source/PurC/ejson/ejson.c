@@ -142,6 +142,15 @@ static const char* ejson_err_msgs[] = {
     "pcejson max depth exceeded",
 };
 
+/* Make sure the number of error messages matches the number of error codes */
+#define _COMPILE_TIME_ASSERT(name, x)               \
+       typedef int _dummy_ ## name[(x) * 2 - 1]
+
+_COMPILE_TIME_ASSERT(msgs,
+        PCA_TABLESIZE(ejson_err_msgs) == PCEJSON_ERROR_NR);
+
+#undef _COMPILE_TIME_ASSERT
+
 static struct err_msg_seg _ejson_err_msgs_seg = {
     { NULL, NULL },
     PURC_ERROR_FIRST_EJSON,

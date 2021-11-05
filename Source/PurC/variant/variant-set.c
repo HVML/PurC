@@ -597,15 +597,18 @@ purc_variant_set_remove_member_by_key_values(purc_variant_t set,
     return v;
 }
 
-size_t purc_variant_set_get_size(const purc_variant_t set)
+bool purc_variant_set_size(purc_variant_t set, size_t *sz)
 {
-    PCVARIANT_CHECK_FAIL_RET(set && set->type==PVT(_SET),
-        -1);
+    PC_ASSERT(set && sz);
+
+    PCVARIANT_CHECK_FAIL_RET(set->type == PVT(_SET), false);
 
     variant_set_t data = _pcv_set_get_data(set);
-    PC_ASSERT(data);
 
-    return data->objs.count;
+    PC_ASSERT(data);
+    *sz = data->objs.count;
+
+    return true;
 }
 
 struct purc_variant_set_iterator {

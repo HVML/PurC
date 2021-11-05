@@ -41,7 +41,7 @@ TEST(dvobjs, dvobjs_ejson_type)
     const char *env = "DVOBJS_TEST_PATH";
     test_getpath_from_env_or_rel(data_path, sizeof(data_path),
         env, "test_files");
-    std::cout << "env: " << env << "=" << data_path << std::endl;
+    std::cerr << "env: " << env << "=" << data_path << std::endl;
 
     // get and function
     purc_instance_extra_info info = {0, 0};
@@ -205,7 +205,7 @@ TEST(dvobjs, dvobjs_ejson_number)
     const char *env = "DVOBJS_TEST_PATH";
     test_getpath_from_env_or_rel(data_path, sizeof(data_path),
         env, "test_files");
-    std::cout << "env: " << env << "=" << data_path << std::endl;
+    std::cerr << "env: " << env << "=" << data_path << std::endl;
 
     // get and function
     purc_instance_extra_info info = {0, 0};

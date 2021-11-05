@@ -21,7 +21,7 @@ set(FS_LIBRARIES
 )
 
 link_directories (${CMAKE_BINARY_DIR}/Source/PurC)
-list(APPEND FS_LIBRARIES purc)
+list(APPEND FS_LIBRARIES PurC::PurC)
 
 PURC_FRAMEWORK_DECLARE(FS)
 

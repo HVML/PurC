@@ -639,7 +639,7 @@ TEST(dvobjs, dvobjs_sys_get_random)
             &nr_reserved_before);
 
     printf ("TEST get_random: nr_args = 0, param = 125.0d:\n");
-    param[0] = purc_variant_make_number (125.0d);
+    param[0] = purc_variant_make_number (125.0);
     ret_var = func (NULL, 0, param);
     ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
@@ -653,11 +653,11 @@ TEST(dvobjs, dvobjs_sys_get_random)
     purc_variant_unref (param[0]);
 
     printf ("TEST get_random: nr_args = 1, param = 125.0d:\n");
-    param[0] = purc_variant_make_number (125.0d);
+    param[0] = purc_variant_make_number (125.0);
     ret_var = func (NULL, 1, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_number (ret_var), true);
-    double number = 0.0d;
+    double number = 0.0;
     purc_variant_cast_to_number (ret_var, &number, false);
     printf("\t\tReturn random: %lf\n", number);
     purc_variant_unref (param[0]);

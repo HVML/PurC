@@ -39,28 +39,35 @@ test_end
 
 test_begin
 param_begin
+undefined:;
+param_end
+ulongint:0;
+test_end
+
+test_begin
+param_begin
 null:;
 param_end
-invalid:;
+ulongint:1;
 test_end
 
 test_begin
 param_begin
 object:2:"key1";boolean:true;"key2";boolean:false;
 param_end
-ulongint:3;
+ulongint:2;
 test_end
 
 test_begin
 param_begin
 array:3:boolean:true;boolean:false;object:2:"key1";boolean:true;"key2";boolean:false;
 param_end
-ulongint:6;
+ulongint:3;
 test_end
 
 test_begin
 param_begin
 set:2:object:2:"key1";boolean:false;"key2";boolean:false;object:2:"key1";boolean:true;"key2";boolean:true;
 param_end
-ulongint:7;
+ulongint:2;
 test_end

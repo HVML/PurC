@@ -34,7 +34,12 @@
 
     #define YYSTYPE       LOGICAL_YYSTYPE
     #define YYLTYPE       LOGICAL_YYLTYPE
-    typedef void *yyscan_t;
+
+    #ifndef YY_TYPEDEF_YY_SCANNER_T
+    #define YY_TYPEDEF_YY_SCANNER_T
+    typedef void* yyscan_t;
+    #endif
+
     struct logical_funcs; // forward declaration
 }
 
@@ -404,7 +409,7 @@ yyerror(
         errsg);
 }
 
-int logical_parse(const char *input,
+int pcdvobjs_logical_parse(const char *input,
         struct pcdvobjs_logical_param *param)
 {
     int r;

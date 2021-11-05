@@ -47,15 +47,16 @@ enum pcvdom_nodetype {
     PCVDOM_NODE_COMMENT,
 };
 
-enum pcvdom_attr_op {
-    PCVDOM_ATTR_OP_EQ,                        /*  = */
-    PCVDOM_ATTR_OP_ADD,                       /* += */
-    PCVDOM_ATTR_OP_DEL,                       /* -= */
-    PCVDOM_ATTR_OP_PATTERN_MATCH_REPLACE,     /* %= */
-    PCVDOM_ATTR_OP_REGEX_MATCH_REPLACE,       /* ~= */
-    PCVDOM_ATTR_OP_PREPEND,                   /* ^= */
-    PCVDOM_ATTR_OP_APPEND,                    /* $= */
-    PCVDOM_ATTR_OP_MAX
+enum pchvml_attr_assignment {
+    PCHVML_ATTRIBUTE_ASSIGNMENT,             //  =
+    PCHVML_ATTRIBUTE_ADDITION_ASSIGNMENT,    // +=
+    PCHVML_ATTRIBUTE_SUBTRACTION_ASSIGNMENT, // -=
+    PCHVML_ATTRIBUTE_REMAINDER_ASSIGNMENT,   // %=
+    PCHVML_ATTRIBUTE_REPLACE_ASSIGNMENT,     // ~=
+    PCHVML_ATTRIBUTE_HEAD_ASSIGNMENT,        // ^=
+    PCHVML_ATTRIBUTE_TAIL_ASSIGNMENT,        // $=
+    PCHVML_ATTRIBUTE_REGEX_ASSIGNMENT,        // /=
+    PCHVML_ATTRIBUTE_MAX,
 };
 
 #define PCVDOM_NODE_IS_DOCUMENT(_n) \
@@ -129,7 +130,7 @@ struct pcvdom_attr {
     char                     *key;
 
     // operator
-    enum pcvdom_attr_op       op;
+    enum pchvml_attr_assignment       op;
 
     // text/jsonnee/no-value
     struct pcvcm_node        *val;
@@ -186,7 +187,7 @@ pcvdom_comment_create(const char *text);
 
 // for modification operators, such as +=|-=|%=|~=|^=|$=
 struct pcvdom_attr*
-pcvdom_attr_create(const char *key, enum pcvdom_attr_op op,
+pcvdom_attr_create(const char *key, enum pchvml_attr_assignment op,
     struct pcvcm_node *vcm);
 
 // key = vcm
@@ -195,7 +196,7 @@ pcvdom_attr_create(const char *key, enum pcvdom_attr_op op,
 static inline struct pcvdom_attr*
 pcvdom_attr_create_simple(const char *key, struct pcvcm_node *vcm)
 {
-    return pcvdom_attr_create(key, PCVDOM_ATTR_OP_EQ, vcm);
+    return pcvdom_attr_create(key, PCHVML_ATTRIBUTE_ASSIGNMENT, vcm);
 }
 
 void

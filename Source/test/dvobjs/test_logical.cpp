@@ -42,7 +42,7 @@ TEST(dvobjs, dvobjs_logical)
     const char *env = "DVOBJS_TEST_PATH";
     test_getpath_from_env_or_rel(data_path, sizeof(data_path),
         env, "test_files");
-    std::cout << "env: " << env << "=" << data_path << std::endl;
+    std::cerr << "env: " << env << "=" << data_path << std::endl;
 
     // get and function
     purc_instance_extra_info info = {0, 0};
@@ -380,12 +380,9 @@ TEST(dvobjs, dvobjs_logical_bc)
     const char *env = "DVOBJS_TEST_PATH";
     test_getpath_from_env_or_rel(logical_path, sizeof(logical_path),
         env, "test_files");
-    std::cout << "env: " << env << "=" << logical_path << std::endl;
+    std::cerr << "env: " << env << "=" << logical_path << std::endl;
     EXPECT_NE(logical_path, nullptr) << "You shall specify via env `"
         << env << "`" << std::endl;
-    if (!logical_path)
-        goto end;
-
     strcpy (path, logical_path);
     strcat (path, "/logical_bc");
 
@@ -412,7 +409,6 @@ TEST(dvobjs, dvobjs_logical_bc)
         closedir(d);
     }
 
-end:
     if (logical)
         purc_variant_unref(logical);
 

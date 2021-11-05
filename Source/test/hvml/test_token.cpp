@@ -254,7 +254,7 @@ std::vector<hvml_token_test_data> read_hvml_token_test_data()
     getpath_from_env_or_rel(data_path, sizeof(data_path), env,
             "test_token_files");
 
-    if (data_path) {
+    if (strlen(data_path)) {
         char file_path[1024] = {0};
         strcpy (file_path, data_path);
         strcat (file_path, "/test_token_list");

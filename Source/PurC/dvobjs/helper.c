@@ -28,7 +28,7 @@
 #include "purc-variant.h"
 #include "helper.h"
 
-const char * pcdvobjs_get_next_option (const char *data,
+const char *pcdvobjs_get_next_option (const char *data,
         const char *delims, size_t *length)
 {
     const char *head = data;
@@ -57,7 +57,7 @@ const char * pcdvobjs_get_next_option (const char *data,
     return head;
 }
 
-const char * pcdvobjs_get_prev_option (const char *data,
+const char *pcdvobjs_get_prev_option (const char *data,
         size_t str_len, const char *delims, size_t *length)
 {
     const char *head = NULL;
@@ -91,7 +91,7 @@ const char * pcdvobjs_get_prev_option (const char *data,
     return head;
 }
 
-const char * pcdvobjs_remove_space (char *buffer)
+const char *pcdvobjs_remove_space (char *buffer)
 {
     int i = 0;
     int j = 0;
@@ -107,7 +107,7 @@ const char * pcdvobjs_remove_space (char *buffer)
     return buffer;
 }
 
-bool wildcard_cmp (const char *str1, const char *pattern)
+bool pcdvobjs_wildcard_cmp (const char *str1, const char *pattern)
 {
     if (str1 == NULL)
         return false;

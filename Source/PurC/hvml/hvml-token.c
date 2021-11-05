@@ -30,6 +30,7 @@
 #include "config.h"
 #include "purc-utils.h"
 #include "purc-errors.h"
+#include "private/debug.h"
 #include "private/errors.h"
 #include "private/vcm.h"
 #include "hvml-token.h"
@@ -447,6 +448,13 @@ struct pchvml_buffer* pchvml_token_attr_to_string(
     case PCHVML_ATTRIBUTE_TAIL_ASSIGNMENT:
         pchvml_buffer_append_bytes(buffer, "$=", 2);
         break;
+
+    case PCHVML_ATTRIBUTE_REGEX_ASSIGNMENT:
+        pchvml_buffer_append_bytes(buffer, "/=", 2);
+        break;
+
+    default:
+        PC_ASSERT(0);
     }
     // value
     size_t nr_vcm_buffer = 0;

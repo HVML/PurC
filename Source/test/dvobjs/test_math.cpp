@@ -13,6 +13,13 @@
 #include <stdio.h>
 #include <dirent.h>
 #include <errno.h>
+
+#ifndef __USE_GNU
+#define __USE_GNU                       /* for M_PIl when using glibc */
+#endif
+#ifndef __MATH_LONG_DOUBLE_CONSTANTS
+#define __MATH_LONG_DOUBLE_CONSTANTS    /* for M_PIl when using MacOSX SDK */
+#endif
 #include <math.h>
 #include <sstream>
 #include <gtest/gtest.h>
@@ -40,12 +47,12 @@ TEST(dvobjs, dvobjs_math_pi_e)
     {
         {
             "pi",
-            0.0d,
+            0.0,
             M_PI,
         },
         {
             "e",
-            0.0d,
+            0.0,
             M_E,
         }
     };
@@ -54,12 +61,12 @@ TEST(dvobjs, dvobjs_math_pi_e)
     {
         {
             "pi_l",
-            0.0d,
+            0.0L,
             M_PIl
         },
         {
             "e_l",
-            0.0d,
+            0.0L,
             M_El
         }
     };
@@ -89,7 +96,7 @@ TEST(dvobjs, dvobjs_math_pi_e)
     env = "DVOBJS_SO_PATH";
     test_getpath_from_env_or_rel(so_path, sizeof(so_path),
         env, "../../../build/Source/ExtDVObjs");
-    std::cout << "env: " << env << "=" << so_path << std::endl;
+    std::cerr << "env: " << env << "=" << so_path << std::endl;
 
     strncat(so_path, "/math/libpurc-dvobj-MATH.so", sizeof(so_path)-1);
     so_path[sizeof(so_path)-1] = '\0';
@@ -158,62 +165,62 @@ TEST(dvobjs, dvobjs_math_const)
     {
         {
             "e",
-            0.0d,
+            0.0,
             M_E,
         },
         {
             "log2e",
-            0.0d,
+            0.0,
             M_LOG2E,
         },
         {
             "log10e",
-            0.0d,
+            0.0,
             M_LOG10E,
         },
         {
             "ln2",
-            0.0d,
+            0.0,
             M_LN2,
         },
         {
             "ln10",
-            0.0d,
+            0.0,
             M_LN10,
         },
         {
             "pi",
-            0.0d,
+            0.0,
             M_PI,
         },
         {
             "pi/2",
-            0.0d,
+            0.0,
             M_PI_2,
         },
         {
             "pi/4",
-            0.0d,
+            0.0,
             M_PI_4,
         },
         {
             "1/pi",
-            0.0d,
+            0.0,
             M_1_PI,
         },
         {
             "1/sqrt(2)",
-            0.0d,
+            0.0,
             M_SQRT1_2,
         },
         {
             "2/pi",
-            0.0d,
+            0.0,
             M_2_PI,
         },
         {
             "sqrt(2)",
-            0.0d,
+            0.0,
             M_SQRT2,
         }
     };
@@ -222,62 +229,62 @@ TEST(dvobjs, dvobjs_math_const)
     {
         {
             "e",
-            0.0d,
+            0.0L,
             M_El
         },
         {
             "log2e",
-            0.0d,
+            0.0L,
             M_LOG2El
         },
         {
             "log10e",
-            0.0d,
+            0.0L,
             M_LOG10El
         },
         {
             "ln2",
-            0.0d,
+            0.0L,
             M_LN2l
         },
         {
             "ln10",
-            0.0d,
+            0.0L,
             M_LN10l
         },
         {
             "pi",
-            0.0d,
+            0.0L,
             M_PIl
         },
         {
             "pi/2",
-            0.0d,
+            0.0L,
             M_PI_2l
         },
         {
             "pi/4",
-            0.0d,
+            0.0L,
             M_PI_4l
         },
         {
             "1/pi",
-            0.0d,
+            0.0L,
             M_1_PIl
         },
         {
             "1/sqrt(2)",
-            0.0d,
+            0.0L,
             M_SQRT1_2l
         },
         {
             "2/pi",
-            0.0d,
+            0.0L,
             M_2_PIl
         },
         {
             "sqrt(2)",
-            0.0d,
+            0.0L,
             M_SQRT2l
         }
     };
@@ -308,7 +315,7 @@ TEST(dvobjs, dvobjs_math_const)
     env = "DVOBJS_SO_PATH";
     test_getpath_from_env_or_rel(so_path, sizeof(so_path),
         env, "../../../build/Source/ExtDVObjs");
-    std::cout << "env: " << env << "=" << so_path << std::endl;
+    std::cerr << "env: " << env << "=" << so_path << std::endl;
 
     strncat(so_path, "/math/libpurc-dvobj-MATH.so", sizeof(so_path)-1);
     so_path[sizeof(so_path)-1] = '\0';
@@ -381,17 +388,17 @@ TEST(dvobjs, dvobjs_math_func)
         {
             "sin",
             M_PI / 2,
-            1.0d,
+            1.0,
         },
         {
             "cos",
             M_PI,
-            -1.0d,
+            -1.0,
         },
         {
             "sqrt",
-            9.0d,
-            3.0d,
+            9.0,
+            3.0,
         }
     };
 
@@ -400,17 +407,17 @@ TEST(dvobjs, dvobjs_math_func)
         {
             "sin_l",
             M_PIl / 2,
-            1.0d
+            1.0L
         },
         {
             "cos_l",
             M_PIl,
-            -1.0
+            -1.0L
         },
         {
             "sqrt_l",
-            9.0d,
-            3.0d
+            9.0L,
+            3.0L
         }
     };
 
@@ -439,7 +446,7 @@ TEST(dvobjs, dvobjs_math_func)
     env = "DVOBJS_SO_PATH";
     test_getpath_from_env_or_rel(so_path, sizeof(so_path),
         env, "../../../build/Source/ExtDVObjs");
-    std::cout << "env: " << env << "=" << so_path << std::endl;
+    std::cerr << "env: " << env << "=" << so_path << std::endl;
 
     strncat(so_path, "/math/libpurc-dvobj-MATH.so", sizeof(so_path)-1);
     so_path[sizeof(so_path)-1] = '\0';
@@ -528,7 +535,7 @@ TEST(dvobjs, dvobjs_math_eval)
     env = "DVOBJS_SO_PATH";
     test_getpath_from_env_or_rel(so_path, sizeof(so_path),
         env, "../../../build/Source/ExtDVObjs");
-    std::cout << "env: " << env << "=" << so_path << std::endl;
+    std::cerr << "env: " << env << "=" << so_path << std::endl;
 
     strncat(so_path, "/math/libpurc-dvobj-MATH.so", sizeof(so_path)-1);
     so_path[sizeof(so_path)-1] = '\0';
@@ -670,7 +677,7 @@ TEST(dvobjs, dvobjs_math_assignment)
     env = "DVOBJS_SO_PATH";
     test_getpath_from_env_or_rel(so_path, sizeof(so_path),
         env, "../../../build/Source/ExtDVObjs");
-    std::cout << "env: " << env << "=" << so_path << std::endl;
+    std::cerr << "env: " << env << "=" << so_path << std::endl;
 
     strncat(so_path, "/math/libpurc-dvobj-MATH.so", sizeof(so_path)-1);
     so_path[sizeof(so_path)-1] = '\0';
@@ -752,7 +759,7 @@ TEST(dvobjs, dvobjs_math_samples)
     env = "DVOBJS_SO_PATH";
     test_getpath_from_env_or_rel(so_path, sizeof(so_path),
         env, "../../../build/Source/ExtDVObjs");
-    std::cout << "env: " << env << "=" << so_path << std::endl;
+    std::cerr << "env: " << env << "=" << so_path << std::endl;
 
     strncat(so_path, "/math/libpurc-dvobj-MATH.so", sizeof(so_path)-1);
     so_path[sizeof(so_path)-1] = '\0';
@@ -936,7 +943,7 @@ TEST(dvobjs, dvobjs_math_bc)
     env = "DVOBJS_SO_PATH";
     test_getpath_from_env_or_rel(so_path, sizeof(so_path),
         env, "../../../build/Source/ExtDVObjs");
-    std::cout << "env: " << env << "=" << so_path << std::endl;
+    std::cerr << "env: " << env << "=" << so_path << std::endl;
 
     strncat(so_path, "/math/libpurc-dvobj-MATH.so", sizeof(so_path)-1);
     so_path[sizeof(so_path)-1] = '\0';
@@ -959,7 +966,7 @@ TEST(dvobjs, dvobjs_math_bc)
     env = "DVOBJS_TEST_PATH";
     test_getpath_from_env_or_rel(math_path, sizeof(math_path),
         env, "test_files");
-    std::cout << "env: " << env << "=" << math_path << std::endl;
+    std::cerr << "env: " << env << "=" << math_path << std::endl;
 
     strcpy (path, math_path);
     strcat (path, "/math_bc");

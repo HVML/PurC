@@ -31,25 +31,21 @@
 
 #include <assert.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif  /* __cplusplus */
-
-#define VARIANT_STRING_NULL         "null"
-#define VARIANT_STRING_UNDEFINED    "undefined"
-#define VARIANT_STRING_BOOLEAN      "boolean"
-#define VARIANT_STRING_NUMBER       "number"
-#define VARIANT_STRING_LONGINT      "longint"
-#define VARIANT_STRING_ULONGINT     "ulongint"
-#define VARIANT_STRING_LONGDOUBLE   "longdouble"
-#define VARIANT_STRING_ATOMSTRING   "atomstring"
-#define VARIANT_STRING_STRING       "string"
-#define VARIANT_STRING_BYTESEQUENCE "bsequence"
-#define VARIANT_STRING_DYNAMIC      "dynamic"
-#define VARIANT_STRING_NATIVE       "native"
-#define VARIANT_STRING_OBJECT       "object"
-#define VARIANT_STRING_ARRAY        "array"
-#define VARIANT_STRING_SET          "set"
+#define VARIANT_TYPE_NAME_UNDEFINED     "undefined"
+#define VARIANT_TYPE_NAME_NULL          "null"
+#define VARIANT_TYPE_NAME_BOOLEAN       "boolean"
+#define VARIANT_TYPE_NAME_NUMBER        "number"
+#define VARIANT_TYPE_NAME_LONGINT       "longint"
+#define VARIANT_TYPE_NAME_ULONGINT      "ulongint"
+#define VARIANT_TYPE_NAME_LONGDOUBLE    "longdouble"
+#define VARIANT_TYPE_NAME_ATOMSTRING    "atomstring"
+#define VARIANT_TYPE_NAME_STRING        "string"
+#define VARIANT_TYPE_NAME_BYTESEQUENCE  "bsequence"
+#define VARIANT_TYPE_NAME_DYNAMIC       "dynamic"
+#define VARIANT_TYPE_NAME_NATIVE        "native"
+#define VARIANT_TYPE_NAME_OBJECT        "object"
+#define VARIANT_TYPE_NAME_ARRAY         "array"
+#define VARIANT_TYPE_NAME_SET           "set"
 
 #define STRING_COMP_MODE_CASELESS   "caseless"
 #define STRING_COMP_MODE_CASE       "case"
@@ -81,6 +77,9 @@ extern "C" {
 #define LOCALE_MEASUREMENT          "measurement"
 #define LOCALE_IDENTIFICATION       "identification"
 
+#ifdef __cplusplus
+extern "C" {
+#endif  /* __cplusplus */
 
 // initialize dvobjs module (once)
 void pcdvobjs_init_once(void) WTF_INTERNAL;

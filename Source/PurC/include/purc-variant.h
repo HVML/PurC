@@ -37,11 +37,8 @@ typedef struct purc_variant purc_variant;
 typedef struct purc_variant* purc_variant_t;
 
 #define PURC_VARIANT_INVALID            ((purc_variant_t)(0))
-#define PURC_VARIANT_UNDEFINED          ((purc_variant_t)(-1))
-#define PURC_VARIANT_NULL               ((purc_variant_t)(-2))
-#define PURC_VARIANT_TRUE               ((purc_variant_t)(1))
-#define PURC_VARIANT_FALSE              ((purc_variant_t)(2))
 
+#define PURC_VARIANT_BADSIZE            ((size_t)(-1))
 
 PCA_EXTERN_C_BEGIN
 
@@ -168,7 +165,6 @@ PCA_EXPORT purc_variant_t
 purc_variant_make_string(const char* str_utf8, bool check_encoding);
 
 /**
- * VWNOTE: new API.
  * Creates a variant value of string type from a static C string.
  *
  * @param str_utf8: the pointer of a string which is in UTF-8 encoding
@@ -183,7 +179,6 @@ PCA_EXPORT purc_variant_t
 purc_variant_make_string_static(const char* str_utf8, bool check_encoding);
 
 /**
- * VWNOTE: new API.
  * Creates a variant value of string type by reusing the string buffer.
  * The buffer will be released by calling free() when the variant is destroyed.
  *
@@ -211,18 +206,40 @@ purc_variant_make_string_reuse_buff(char* str_utf8, size_t sz_buff,
  */
 PCA_EXPORT const char* purc_variant_get_string_const(purc_variant_t value);
 
-
 /**
- * Get the number of characters in an string variant value.
+ * Get the length in bytes of a string variant value.
  *
  * @param value: the variant value of string type
+ * @param length: the buffer to receive the length (including the terminating
+ *  null byte) of the string.
  *
- * Returns: The number of characters in an string variant value.
+ * Returns: True on success, otherwise False (the variant is not a string).
  *
  * Since: 0.0.1
  */
-PCA_EXPORT size_t purc_variant_string_length(const purc_variant_t value);
+PCA_EXPORT bool
+purc_variant_string_bytes(purc_variant_t value, size_t *length);
 
+/**
+ * Get the length in bytes of a string variant value.
+ *
+ * @param value: the variant value of string type
+ *
+ * Returns: The length in bytes of the string variant;
+ *  \PURC_VARIANT_BADSIZE (-1) if the variant is not a string.
+ *
+ * Note: This function is deprecated, use \purc_variant_string_bytes
+ *  instead.
+ *
+ * Since: 0.0.1
+ */
+static inline size_t purc_variant_string_length(purc_variant_t value)
+{
+    size_t len;
+    if (!purc_variant_string_bytes(value, &len))
+        return PURC_VARIANT_BADSIZE;
+    return len;
+}
 
 /**
  * Creates a variant value of atom string type.
@@ -235,8 +252,8 @@ PCA_EXPORT size_t purc_variant_string_length(const purc_variant_t value);
  *
  * Since: 0.0.1
  */
-PCA_EXPORT purc_variant_t
-purc_variant_make_atom_string(const char* str_utf8, bool check_encoding);
+PCA_EXPORT purc_variant_t purc_variant_make_atom_string(const char* str_utf8,
+        bool check_encoding);
 
 
 /**
@@ -283,7 +300,6 @@ PCA_EXPORT purc_variant_t
 purc_variant_make_byte_sequence(const void* bytes, size_t nr_bytes);
 
 /**
- * VWNOTE: new API.
  * Creates a variant value of byte sequence type from a static C byte array.
  *
  * @param bytes: the pointer of a byte sequence.
@@ -298,7 +314,6 @@ PCA_EXPORT purc_variant_t
 purc_variant_make_byte_sequence_static(const void* bytes, size_t nr_bytes);
 
 /**
- * VWNOTE: new API.
  * Creates a variant value of byte sequence type by reusing the bytes buffer.
  * The buffer will be released by calling free() when the variant is destroyed.
  *
@@ -319,7 +334,7 @@ purc_variant_make_byte_sequence_reuse_buff(void* bytes, size_t nr_bytes,
  * Gets the pointer of byte array which is encapsulated in byte sequence type.
  *
  * @param value: the data of byte sequence type
- * @param nr_bytes: the size of byte sequence
+ * @param nr_bytes: the buffer to receive the size of byte sequence
  *
  * Returns: the pointer of byte array on success, or NULL on failure.
  *
@@ -328,17 +343,40 @@ purc_variant_make_byte_sequence_reuse_buff(void* bytes, size_t nr_bytes,
 PCA_EXPORT const unsigned char*
 purc_variant_get_bytes_const(purc_variant_t value, size_t* nr_bytes);
 
-
 /**
- * Get the number of bytes in an sequence variant value.
+ * Get the number of bytes in a byte sequence variant value.
  *
  * @param sequence: the variant value of sequence type
+ * @param length: the buffer receiving the length in bytes of the byte
+ *  sequence.
  *
- * Returns: The number of bytes in an sequence variant value.
+ * Returns: True on success, otherwise False.
  *
  * Since: 0.0.1
  */
-PCA_EXPORT size_t purc_variant_sequence_length(const purc_variant_t sequence);
+PCA_EXPORT bool
+purc_variant_sequence_bytes(purc_variant_t sequence, size_t *length);
+
+/**
+ * Get the number of bytes in a byte sequence variant value.
+ *
+ * @param sequence: the variant value of sequence type
+ *
+ * Returns: The number of bytes in an sequence variant value;
+ *  \PURC_VARIANT_BADSIZE (-1) if the variant is not a byte sequence.
+ *
+ * Note: This function is deprecated, use \purc_variant_sequence_bytes
+ *  instead.
+ *
+ * Since: 0.0.1
+ */
+static inline size_t purc_variant_sequence_length(purc_variant_t sequence)
+{
+    size_t len;
+    if (!purc_variant_sequence_bytes(sequence, &len))
+        return PURC_VARIANT_BADSIZE;
+    return len;
+}
 
 typedef purc_variant_t (*purc_dvariant_method) (purc_variant_t root,
         size_t nr_args, purc_variant_t * argv);
@@ -369,7 +407,7 @@ purc_variant_make_dynamic(purc_dvariant_method getter,
  * Since: 0.0.1
  */
 PCA_EXPORT purc_dvariant_method
-purc_variant_dynamic_get_getter(const purc_variant_t dynamic);
+purc_variant_dynamic_get_getter(purc_variant_t dynamic);
 
 
 /**
@@ -382,7 +420,7 @@ purc_variant_dynamic_get_getter(const purc_variant_t dynamic);
  * Since: 0.0.1
  */
 PCA_EXPORT purc_dvariant_method
-purc_variant_dynamic_get_setter(const purc_variant_t dynamic);
+purc_variant_dynamic_get_setter(purc_variant_t dynamic);
 
 
 typedef purc_variant_t (*purc_nvariant_method) (void* native_entity,
@@ -437,7 +475,7 @@ purc_variant_t purc_variant_make_native (void *native_entity,
  * Since: 0.0.1
  */
 PCA_EXPORT void *
-purc_variant_native_get_entity(const purc_variant_t native);
+purc_variant_native_get_entity(purc_variant_t native);
 
 
 /**
@@ -567,23 +605,38 @@ PCA_EXPORT bool
 purc_variant_array_insert_after(purc_variant_t array,
         int idx, purc_variant_t value);
 
+/**
+ * Get the number of elements in an array variant value.
+ *
+ * @param array: the variant value of array type
+ * @param sz: the buffer receiving the number of elements of the array.
+ *
+ * Returns: True on success, otherwise False.
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT bool
+purc_variant_array_size(purc_variant_t array, size_t *sz);
 
 /**
  * Get the number of elements in an array variant value.
  *
  * @param array: the variant value of array type
  *
- * Returns: The number of elements in the array; -1 on failure:
- *      - the variant value is not an array.
+ * Returns: The number of elements in the array;
+ *  \PURC_VARIANT_BADSIZE (-1) if the variant is not an array.
  *
- * VWNOTE: the prototype of this function should be changed to:
- *
- *      ssize_t purc_variant_array_get_size(const purc_variant_t set);
+ * Note: This function is deprecated, use \purc_variant_array_size instead.
  *
  * Since: 0.0.1
  */
-PCA_EXPORT size_t purc_variant_array_get_size(const purc_variant_t array);
-
+static inline size_t purc_variant_array_get_size(purc_variant_t array)
+{
+    size_t sz;
+    if (!purc_variant_array_size(array, &sz))
+        return PURC_VARIANT_BADSIZE;
+    return sz;
+}
 
 /**
  * Creates a variant value of object type with key as c string
@@ -731,18 +784,35 @@ purc_variant_object_remove_by_static_ckey(purc_variant_t obj, const char* key)
  * Get the number of key-value pairs in an object variant value.
  *
  * @param obj: the variant value of object type
+ * @param sz: the buffer receiving the number of the key-value pairs
+ *  in the object
  *
- * Returns: The number of key-value pairs in the object; -1 on failure:
- *      - the variant value is not an object.
- *
- * VWNOTE: the prototype of this function should be changed to:
- *
- *      ssize_t purc_variant_object_get_size(const purc_variant_t set);
+ * Returns: True on success, otherwise False if the variant is not an object.
  *
  * Since: 0.0.1
  */
-PCA_EXPORT size_t
-purc_variant_object_get_size(const purc_variant_t obj);
+PCA_EXPORT bool
+purc_variant_object_size(purc_variant_t obj, size_t *sz);
+
+/**
+ * Get the number of key-value pairs in an object variant value.
+ *
+ * @param obj: the variant value of object type
+ *
+ * Returns: The number of the key-value pairs in the object;
+ *  \PURC_VARIANT_BADSIZE (-1) if the variant is not an object.
+ *
+ * Note: This function is deprecated, use \purc_variant_object_size instead.
+ *
+ * Since: 0.0.1
+ */
+static inline size_t purc_variant_object_get_size(purc_variant_t obj)
+{
+    size_t sz;
+    if (!purc_variant_object_size(obj, &sz))
+        return PURC_VARIANT_BADSIZE;
+    return sz;
+}
 
 /**
  * object iterator usage example:
@@ -868,7 +938,7 @@ purc_variant_object_iterator_get_key(struct purc_variant_object_iterator* it);
  */
 PCA_EXPORT purc_variant_t
 purc_variant_object_iterator_get_value(
-    struct purc_variant_object_iterator* it);
+        struct purc_variant_object_iterator* it);
 
 /**
  * Creates a variant value of set type.
@@ -912,28 +982,22 @@ purc_variant_make_set(size_t sz, purc_variant_t unique_key,
  *
  * @param set: the variant value of the set type.
  * @param value: the value to be added.
- *
  * Returns: @true on success, @false if:
  *      - there is already such a value in the set.
  *      - the value is not an object if the set is managed by unique keys.
+ * @param override: If the set is managed by unique keys and @overwrite is
+ *  true, the function will override the old value which is equal to
+ *  the new value under the unique keys, and return true. otherwise,
+ *  it returns false.
  *
- * VWNOTE: We should change the prototype of this function:
- *
- * bool purc_variant_set_add(purc_variant_t obj, purc_variant_t value,
- *      bool override)
- *
- * @param override: If the set is managed by unique keys and @override is true,
- *  the function will override the old value which is equal to the new value
- *  under the unique keys, and return true. otherwise, it returns false.
- *
- * VWNOTE: If the new value has not a property (a key-value pair) under
+ * @note If the new value has not a property (a key-value pair) under
  *  a specific unique key, the value of the key should be treated
  *  as `undefined`.
  *
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_set_add(purc_variant_t obj, purc_variant_t value, bool override);
+purc_variant_set_add(purc_variant_t obj, purc_variant_t value, bool overwrite);
 
 /**
  * Remove a variant value from a set.
@@ -944,9 +1008,7 @@ purc_variant_set_add(purc_variant_t obj, purc_variant_t value, bool override);
  * Returns: @true on success, @false if:
  *      - no any matching member in the set.
  *
- * VWNOTE: See notes below.
- *
- * Notes: This function works if the set is not managed by unique keys, or
+ * @note This function works if the set is not managed by unique keys, or
  *  there is only one unique key. If there are multiple unique keys,
  *  use @purc_variant_set_remove_member_by_key_values() instead.
  *
@@ -967,8 +1029,6 @@ purc_variant_set_remove(purc_variant_t obj, purc_variant_t value);
  *      - the set does not managed by the unique keys, or
  *      - no any matching member.
  *
- * VWNOTE: new API (replacement of old purc_variant_set_get_value).
- *
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t
@@ -988,8 +1048,6 @@ purc_variant_set_get_member_by_key_values(purc_variant_t set,
  *      - the set does not managed by unique keys, or
  *      - no any matching member.
  *
- * VWNOTE: new API.
- *
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t
@@ -1000,17 +1058,33 @@ purc_variant_set_remove_member_by_key_values(purc_variant_t set,
  * Get the number of elements in a set variant value.
  *
  * @param set: the variant value of set type
+ * @param sz: the variant value of set type
  *
- * Returns: The number of elements in a set variant value; -1 on failure:
- *      - the variant value is not a set.
- *
- * VWNOTE: the prototype of this function should be changed to:
- *
- *      ssize_t purc_variant_set_get_size(const purc_variant_t set);
+ * Returns: True on success, otherwise False if the variant is not a set.
  *
  * Since: 0.0.1
  */
-PCA_EXPORT size_t purc_variant_set_get_size(const purc_variant_t set);
+PCA_EXPORT bool purc_variant_set_size(purc_variant_t set, size_t *sz);
+
+/**
+ * Get the number of elements in a set variant value.
+ *
+ * @param set: the variant value of set type
+ *
+ * Returns: The number of elements in a set variant value;
+ *  \PURC_VARIANT_BADSIZE (-1) if the variant is not a set.
+ *
+ * Note: This function is deprecated, use \purc_variant_set_size instead.
+ *
+ * Since: 0.0.1
+ */
+static inline size_t purc_variant_set_get_size(purc_variant_t set)
+{
+    size_t sz;
+    if (!purc_variant_set_size(set, &sz))
+        return PURC_VARIANT_BADSIZE;
+    return sz;
+}
 
 /**
  * set iterator usage example:
@@ -1134,9 +1208,8 @@ purc_variant_set_iterator_get_value(struct purc_variant_set_iterator* it);
  *
  * Since: 0.0.1
  */
-PCA_EXPORT purc_variant_t purc_variant_make_from_json_string
-(const char* json, size_t sz);
-
+PCA_EXPORT purc_variant_t
+purc_variant_make_from_json_string(const char* json, size_t sz);
 
 /**
  * Creates a variant value from Json file
@@ -1429,8 +1502,10 @@ PCA_EXPORT bool purc_variant_unload_dvobj (purc_variant_t dvobj);
 
 typedef enum purc_variant_type
 {
-    /* critical: keep order as is */
-    PURC_VARIANT_TYPE_UNDEFINED,
+    PURC_VARIANT_TYPE_FIRST = 0,
+
+    /* XXX: keep consistency with type names */
+    PURC_VARIANT_TYPE_UNDEFINED = PURC_VARIANT_TYPE_FIRST,
     PURC_VARIANT_TYPE_NULL,
     PURC_VARIANT_TYPE_BOOLEAN,
     PURC_VARIANT_TYPE_NUMBER,
@@ -1445,9 +1520,13 @@ typedef enum purc_variant_type
     PURC_VARIANT_TYPE_OBJECT,
     PURC_VARIANT_TYPE_ARRAY,
     PURC_VARIANT_TYPE_SET,
-    /* critical: this MUST be the last enum */
-    PURC_VARIANT_TYPE_MAX,
+
+    /* XXX: change this if you append a new type. */
+    PURC_VARIANT_TYPE_LAST = PURC_VARIANT_TYPE_SET,
 } purc_variant_type;
+
+#define PURC_VARIANT_TYPE_NR \
+    (PURC_VARIANT_TYPE_LAST - PURC_VARIANT_TYPE_FIRST + 1)
 
 /**
  * Whether the vairant is indicated type.
@@ -1459,9 +1538,8 @@ typedef enum purc_variant_type
  *
  * Since: 0.0.1
  */
-PCA_EXPORT bool purc_variant_is_type(const purc_variant_t value,
+PCA_EXPORT bool purc_variant_is_type(purc_variant_t value,
         enum purc_variant_type type);
-
 
 /**
  * Get the type of a vairant value.
@@ -1472,8 +1550,7 @@ PCA_EXPORT bool purc_variant_is_type(const purc_variant_t value,
  *
  * Since: 0.0.1
  */
-PCA_EXPORT enum purc_variant_type
-purc_variant_get_type(const purc_variant_t value);
+PCA_EXPORT enum purc_variant_type purc_variant_get_type(purc_variant_t value);
 
 
 /**
@@ -1551,8 +1628,8 @@ static inline bool purc_variant_is_set(purc_variant_t v)
 }
 
 struct purc_variant_stat {
-    size_t nr_values[PURC_VARIANT_TYPE_MAX];
-    size_t sz_mem[PURC_VARIANT_TYPE_MAX];
+    size_t nr_values[PURC_VARIANT_TYPE_NR];
+    size_t sz_mem[PURC_VARIANT_TYPE_NR];
     size_t nr_total_values;
     size_t sz_total_mem;
     size_t nr_reserved;
@@ -1567,6 +1644,44 @@ struct purc_variant_stat {
  * Since: 0.0.1
  */
 PCA_EXPORT struct purc_variant_stat*  purc_variant_usage_stat(void);
+
+/**
+ * Numberify a variant value to double
+ *
+ * @param value: variant value to be operated
+ *
+ * Returns: a double number that is numberified from the variant value
+ *
+ * Since: 0.0.3
+ */
+PCA_EXPORT double
+purc_variant_numberify(purc_variant_t value);
+
+/**
+ * Booleanize a variant value to boolean
+ *
+ * @param value: variant value to be operated
+ *
+ * Returns: a boolean value that is booleanized from the variant value
+ *
+ * Since: 0.0.3
+ */
+PCA_EXPORT bool
+purc_variant_booleanize(purc_variant_t value);
+
+/**
+ * Stringify a variant value to string
+ *
+ * @param value: variant value to be operated
+ *
+ * Returns: a string-type of variant that is stringified from the variant value
+ *
+ * Note: the returned variant shall be unref'd afterwards
+ *
+ * Since: 0.0.3
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_stringify(purc_variant_t value);
 
 PCA_EXTERN_C_END
 

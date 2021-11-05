@@ -28,22 +28,29 @@
 #include "purc-variant.h"
 #include "helper.h"
 
-static uint64_t get_variant_number (purc_variant_t var)
+#include <assert.h>
+
+static purc_variant_t
+number_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
-    if (var == PURC_VARIANT_INVALID)
-        return 0;
+    UNUSED_PARAM(root);
 
-    uint64_t number = 1;
-    struct purc_variant_object_iterator *it_obj = NULL;
-    struct purc_variant_set_iterator *it_set = NULL;
-    purc_variant_t val = PURC_VARIANT_INVALID;
-    size_t i = 0;
-    bool having = false;
-    enum purc_variant_type type = purc_variant_get_type (var);
+    purc_variant_t ret_var;
+    size_t number;
 
-    switch ((int)type) {
-        case PURC_VARIANT_TYPE_NULL:
+    if ((argv == NULL) || (nr_args == 0)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    assert (argv[0] != PURC_VARIANT_INVALID);
+
+    switch (purc_variant_get_type (argv[0])) {
         case PURC_VARIANT_TYPE_UNDEFINED:
+            number = 0;
+            break;
+
+        case PURC_VARIANT_TYPE_NULL:
         case PURC_VARIANT_TYPE_BOOLEAN:
         case PURC_VARIANT_TYPE_NUMBER:
         case PURC_VARIANT_TYPE_LONGINT:
@@ -54,150 +61,73 @@ static uint64_t get_variant_number (purc_variant_t var)
         case PURC_VARIANT_TYPE_BSEQUENCE:
         case PURC_VARIANT_TYPE_DYNAMIC:
         case PURC_VARIANT_TYPE_NATIVE:
+            number = 1;
             break;
+
         case PURC_VARIANT_TYPE_OBJECT:
-            it_obj = purc_variant_object_make_iterator_begin(var);
-            while (it_obj) {
-                val = purc_variant_object_iterator_get_value(it_obj);
-                number += get_variant_number (val);
-
-                having = purc_variant_object_iterator_next(it_obj);
-                if (!having)
-                    break;
-            }
-            if (it_obj)
-                purc_variant_object_release_iterator(it_obj);
-
+            number = purc_variant_object_get_size (argv[0]);
             break;
 
         case PURC_VARIANT_TYPE_ARRAY:
-            for (i = 0; i < purc_variant_array_get_size (var); ++i) {
-                val = purc_variant_array_get(var, i);
-                number += get_variant_number (val);
-            }
-
+            number = purc_variant_array_get_size (argv[0]);
             break;
 
         case PURC_VARIANT_TYPE_SET:
-            it_set = purc_variant_set_make_iterator_begin(var);
-            while (it_set) {
-                val = purc_variant_set_iterator_get_value(it_set);
-                number += get_variant_number (val);
-                having = purc_variant_set_iterator_next(it_set);
-                if (!having)
-                    break;
-            }
-            if (it_set)
-                purc_variant_set_release_iterator(it_set);
-            break;
-        default:
-            number = 0;
+            number = purc_variant_set_get_size (argv[0]);
             break;
     }
 
-    return number;
-}
-
-static purc_variant_t
-number_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
-{
-    UNUSED_PARAM(root);
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    uint64_t number = 0;
-
-    if ((argv == NULL) || (nr_args == 0)) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if ((argv[0] != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_array (argv[0])) &&
-             (!purc_variant_is_object (argv[0])) &&
-             (!purc_variant_is_set (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
-
-    number = get_variant_number (argv[0]);
     ret_var = purc_variant_make_ulongint (number);
-
     return ret_var;
 }
+
+static const char *type_names[] = {
+    VARIANT_TYPE_NAME_UNDEFINED,
+    VARIANT_TYPE_NAME_NULL,
+    VARIANT_TYPE_NAME_BOOLEAN,
+    VARIANT_TYPE_NAME_NUMBER,
+    VARIANT_TYPE_NAME_LONGINT,
+    VARIANT_TYPE_NAME_ULONGINT,
+    VARIANT_TYPE_NAME_LONGDOUBLE,
+    VARIANT_TYPE_NAME_ATOMSTRING,
+    VARIANT_TYPE_NAME_STRING,
+    VARIANT_TYPE_NAME_BYTESEQUENCE,
+    VARIANT_TYPE_NAME_DYNAMIC,
+    VARIANT_TYPE_NAME_NATIVE,
+    VARIANT_TYPE_NAME_OBJECT,
+    VARIANT_TYPE_NAME_ARRAY,
+    VARIANT_TYPE_NAME_SET,
+};
+
+/* Make sure the number of variant types matches the size of `type_names` */
+#define _COMPILE_TIME_ASSERT(name, x)               \
+       typedef int _dummy_ ## name[(x) * 2 - 1]
+
+_COMPILE_TIME_ASSERT(types, PCA_TABLESIZE(type_names) == PURC_VARIANT_TYPE_NR);
+
+#undef _COMPILE_TIME_ASSERT
 
 static purc_variant_t
 type_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
     if ((argv == NULL) || (nr_args == 0)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if (argv[0] == PURC_VARIANT_INVALID) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
+    assert (argv[0] != PURC_VARIANT_INVALID);
 
-    switch ((int)purc_variant_get_type (argv[0])) {
-        case PURC_VARIANT_TYPE_NULL:
-            ret_var = purc_variant_make_string (VARIANT_STRING_NULL, false);
-            break;
-        case PURC_VARIANT_TYPE_UNDEFINED:
-            ret_var = purc_variant_make_string (VARIANT_STRING_UNDEFINED,
-                    false);
-            break;
-        case PURC_VARIANT_TYPE_BOOLEAN:
-            ret_var = purc_variant_make_string (VARIANT_STRING_BOOLEAN, false);
-            break;
-        case PURC_VARIANT_TYPE_NUMBER:
-            ret_var = purc_variant_make_string (VARIANT_STRING_NUMBER, false);
-            break;
-        case PURC_VARIANT_TYPE_LONGINT:
-            ret_var = purc_variant_make_string (VARIANT_STRING_LONGINT, false);
-            break;
-        case PURC_VARIANT_TYPE_ULONGINT:
-            ret_var = purc_variant_make_string (VARIANT_STRING_ULONGINT, false);
-            break;
-        case PURC_VARIANT_TYPE_LONGDOUBLE:
-            ret_var = purc_variant_make_string (VARIANT_STRING_LONGDOUBLE,
-                    false);
-            break;
-        case PURC_VARIANT_TYPE_ATOMSTRING:
-            ret_var = purc_variant_make_string (VARIANT_STRING_ATOMSTRING,
-                    false);
-            break;
-        case PURC_VARIANT_TYPE_STRING:
-            ret_var = purc_variant_make_string (VARIANT_STRING_STRING, false);
-            break;
-        case PURC_VARIANT_TYPE_BSEQUENCE:
-            ret_var = purc_variant_make_string (VARIANT_STRING_BYTESEQUENCE,
-                    false);
-            break;
-        case PURC_VARIANT_TYPE_DYNAMIC:
-            ret_var = purc_variant_make_string (VARIANT_STRING_DYNAMIC, false);
-            break;
-        case PURC_VARIANT_TYPE_NATIVE:
-            ret_var = purc_variant_make_string (VARIANT_STRING_NATIVE, false);
-            break;
-        case PURC_VARIANT_TYPE_OBJECT:
-            ret_var = purc_variant_make_string (VARIANT_STRING_OBJECT, false);
-            break;
-        case PURC_VARIANT_TYPE_ARRAY:
-            ret_var = purc_variant_make_string (VARIANT_STRING_ARRAY, false);
-            break;
-        case PURC_VARIANT_TYPE_SET:
-            ret_var = purc_variant_make_string (VARIANT_STRING_SET, false);
-            break;
-        default:
-            break;
-    }
+    /* make sure that the first one is `undefined` */
+    assert (strcmp (type_names[PURC_VARIANT_TYPE_FIRST], "undefined") == 0);
+    /* make sure that the last one is `set` */
+    assert (strcmp (type_names[PURC_VARIANT_TYPE_LAST], "set") == 0);
 
-    return ret_var;
-
+    return purc_variant_make_string_static (
+            type_names [purc_variant_get_type (argv[0])], false);
 }
+
 // only for test now.
 purc_variant_t pcdvojbs_get_ejson (void)
 {
