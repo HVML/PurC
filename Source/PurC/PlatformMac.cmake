@@ -6,6 +6,7 @@ if (HAVE_GLIB)
     )
     list(APPEND PurC_LIBRARIES
         ${GLIB_LIBRARIES}
+        ${GLIB_GMODULE_LIBRARIES}
     )
 endif ()
 
