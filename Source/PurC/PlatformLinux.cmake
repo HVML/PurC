@@ -1,5 +1,14 @@
 set(PurC_OUTPUT_NAME purc)
 
+if (HAVE_GLIB)
+    list(APPEND PurC_SYSTEM_INCLUDE_DIRECTORIES
+        ${GLIB_INCLUDE_DIRS}
+    )
+    list(APPEND PurC_LIBRARIES
+        ${GLIB_LIBRARIES}
+    )
+endif ()
+
 list(APPEND PurC_PRIVATE_INCLUDE_DIRECTORIES
 )
 
@@ -18,13 +27,8 @@ list(APPEND PurC_LIBRARIES
 )
 
 if (ENABLE_SOCKET_STREAM)
-    list(APPEND PurC_SYSTEM_INCLUDE_DIRECTORIES
-        ${GLIB_INCLUDE_DIRS}
-    )
-
     list(APPEND PurC_LIBRARIES
         ${GLIB_GIO_LIBRARIES}
-        ${GLIB_LIBRARIES}
     )
 endif ()
 
