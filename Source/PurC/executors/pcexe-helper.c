@@ -36,48 +36,7 @@
 #include <glib.h>
 #endif // HAVE(GLIB)
 
-static inline const char*
-stringify(purc_variant_t val, purc_variant_t *vs)
-{
-    purc_variant_t v = purc_variant_stringify(val);
-    if (v == PURC_VARIANT_INVALID)
-        return NULL;
-
-    const char *s = NULL;
-    if (purc_variant_is_atomstring(v)) {
-        s = purc_variant_get_atom_string_const(v);
-    }
-    if (purc_variant_is_string(v)) {
-        s = purc_variant_get_string_const(v);
-    }
-
-    if (s == NULL) {
-        purc_variant_unref(v);
-        return NULL;
-    }
-
-    *vs = v;
-    return s;
-}
-static inline char*
-stringify_and_strdup(purc_variant_t val)
-{
-    purc_variant_t v = purc_variant_stringify(val);
-    if (v == PURC_VARIANT_INVALID)
-        return NULL;
-
-    char *s = NULL;
-    if (purc_variant_is_atomstring(v)) {
-        s = strdup(purc_variant_get_atom_string_const(v));
-    }
-    if (purc_variant_is_string(v)) {
-        s = strdup(purc_variant_get_string_const(v));
-    }
-
-    purc_variant_unref(v);
-
-    return s;
-}
+#define BUF_SIZE           8192
 
 int pcexe_unitoutf8(char *utf8, const char *uni, size_t n)
 {
@@ -557,6 +516,7 @@ literal_expression_eval(struct literal_expression *lexp,
     char *literal = NULL;
     char *target  = NULL;
     size_t n = 0;
+    char buf[BUF_SIZE];
 
     if (MATCHING_FLAGS_IS_SET_WITH(lexp->suffix.matching_flags, MATCHING_FLAG_C)) {
         if (!literal) {
@@ -565,9 +525,10 @@ literal_expression_eval(struct literal_expression *lexp,
                 goto end;
         }
         if (!target) {
-            target = stringify_and_strdup(val);
-            if (!target)
+            int n = purc_variant_stringify(buf, sizeof(buf), val);
+            if (n < 0 || (size_t)n >= sizeof(buf))
                 goto end;
+            target = buf;
         }
 
         compress_spaces(literal);
@@ -581,11 +542,11 @@ literal_expression_eval(struct literal_expression *lexp,
                 goto end;
         }
         if (!target) {
-            target = stringify_and_strdup(val);
-            if (!target)
+            int n = purc_variant_stringify(buf, sizeof(buf), val);
+            if (n < 0 || (size_t)n >= sizeof(buf))
                 goto end;
+            target = buf;
         }
-
 
         normalize_space(literal);
         normalize_space(target);
@@ -610,12 +571,11 @@ literal_expression_eval(struct literal_expression *lexp,
     if (literal && target) {
         r = cmp(literal, target, n);
     } else {
-        purc_variant_t v;
-        const char *s = stringify(val, &v);
-        if (s) {
-            r = cmp(lexp->literal, s, n);
-            purc_variant_unref(v);
+        r = purc_variant_stringify(buf, sizeof(buf), val);
+        if (r < 0 || (size_t)r >= sizeof(buf)) {
+            r = cmp(lexp->literal, buf, n);
         } else {
+            // FIXME:
             r = -1;
         }
     }
@@ -627,7 +587,6 @@ literal_expression_eval(struct literal_expression *lexp,
 
 end:
     free(literal);
-    free(target);
 
     return r ? -1 : 0;
 }
@@ -714,12 +673,15 @@ wildcard_expression_eval(struct wildcard_expression *wexp,
     char *target  = NULL;
     const char *t = NULL;
 
-    purc_variant_t v = PURC_VARIANT_INVALID;
-    const char *s = stringify(val, &v);
-    if (!s)
-        return -1;
+    char buf[BUF_SIZE];
 
     int r = -1;
+    r = purc_variant_stringify(buf, sizeof(buf), val);
+    if (r < 0 || (size_t)r >= sizeof(buf))
+        return -1;
+
+    r = -1;
+    const char *s = buf;
     int rr = 0;
 
     if (wexp->pattern_spec == NULL) {
@@ -765,10 +727,8 @@ wildcard_expression_eval(struct wildcard_expression *wexp,
             size_t len = strlen(s);
             if (len > n) {
                 target = strndup(s, n);
-                if (!target) {
-                    purc_variant_unref(v);
+                if (!target)
                     goto end;
-                }
             } else {
                 n = len;
             }
@@ -796,7 +756,6 @@ wildcard_expression_eval(struct wildcard_expression *wexp,
         *result = (rr) ? true : false;
 end:
     free(target);
-    purc_variant_unref(v);
 
     return r ? -1 : 0;
 }
@@ -837,10 +796,13 @@ regular_expression_eval(struct regular_expression *rexp,
 {
     int r = -1;
     int v = 0;
-    purc_variant_t vs;
-    const char *s = stringify(val, &vs);
-    if (s == NULL)
+
+    char buf[BUF_SIZE];
+    r = purc_variant_stringify(buf, sizeof(buf), val);
+    if (r < 0 || (size_t)r >= sizeof(buf))
         return -1;
+    const char *s = buf;
+    r = -1;
 
     if (!rexp->reg_valid) {
         if (regular_expression_init_reg(rexp))
@@ -854,8 +816,6 @@ regular_expression_eval(struct regular_expression *rexp,
         *result = (v == 0) ? true : false;
 
 end:
-    purc_variant_unref(vs);
-
     return r ? -1 : 0;
 }
 
