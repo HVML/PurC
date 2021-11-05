@@ -164,7 +164,7 @@ The source tree of PurC contains the following modules:
 - `Source/Samples/`: Examples for using the interfaces of PurC.
 - `Tools/`: The tools (executables), e.g., the command line program.
 - `Tools/purc`: The standalone HVML interpreter/debugger based-on PurC, which is an interactive command line program.
-- `Tools/visual-udom`: A visual uDOM editor in text mode, which runs as a simple HVML renderer.
+- `Tools/udom-editor`: A uDOM editor in text mode, which runs as a simple HVML renderer.
 - `Documents/`: Some documents for developers.
 
 Note that the HTML parser and DOM operations of PurC are derived from:
@@ -218,6 +218,10 @@ GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+Note that the software in `Tools/` may use other open source licenses.
+Please refer the COPYING file or LICENSE file for the licenses in
+the source directories under `Tools/`.
 
 ## Tradmarks
 
