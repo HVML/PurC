@@ -9,7 +9,7 @@
 
 struct numberify_record
 {
-    long double                ld;
+    double                     d;
     const char                *str;
 };
 
@@ -41,10 +41,10 @@ do_numberify(struct numberify_record *p)
         return;
     }
 
-    long double ld = purc_variant_numberify(v);
+    double d = purc_variant_numberify(v);
     purc_variant_unref(v);
 
-    ASSERT_EQ(ld, p->ld) << "[" << p->str << "]";
+    ASSERT_EQ(d, p->d) << "[" << p->str << "]";
 }
 
 TEST(variant, numberify)
@@ -58,20 +58,20 @@ TEST(variant, numberify)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     struct numberify_record records[] = {
-        { 0.0L, "undefined" },
-        { 0.0L, "null" },
-        { 1.0L, "true" },
-        { 0.0L, "false" },
-        { 0.0L, "0" },
-        { 0.0L, "0.0" },
-        { 0.0L, "''" },
-        { 0.0L, "' '" },
-        { 0.0L, "'0'" },
-        { 0.0L, "'0.0'" },
-        { 123.34L, "'123.34'" },
-        { 0.0L, "'abcd'" },
-        { 10.0L, "[1,2,3,4]" },
-        { 100.0L, "{'a':10,'b':20,'c':30,'d':40}" },
+        { 0.0, "undefined" },
+        { 0.0, "null" },
+        { 1.0, "true" },
+        { 0.0, "false" },
+        { 0.0, "0" },
+        { 0.0, "0.0" },
+        { 0.0, "''" },
+        { 0.0, "' '" },
+        { 0.0, "'0'" },
+        { 0.0, "'0.0'" },
+        { 123.34, "'123.34'" },
+        { 0.0, "'abcd'" },
+        { 10.0, "[1,2,3,4]" },
+        { 100.0, "{'a':10,'b':20,'c':30,'d':40}" },
     };
 
     for (size_t i=0; i<PCA_TABLESIZE(records); ++i) {

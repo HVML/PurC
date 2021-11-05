@@ -1646,15 +1646,15 @@ struct purc_variant_stat {
 PCA_EXPORT struct purc_variant_stat*  purc_variant_usage_stat(void);
 
 /**
- * Numberify a variant value to long double
+ * Numberify a variant value to double
  *
  * @param value: variant value to be operated
  *
- * Returns: a long double number that is numberified from the variant value
+ * Returns: a double number that is numberified from the variant value
  *
  * Since: 0.0.3
  */
-PCA_EXPORT long double
+PCA_EXPORT double
 purc_variant_numberify(purc_variant_t value);
 
 /**

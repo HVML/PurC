@@ -1159,50 +1159,50 @@ bool purc_variant_unload_dvobj (purc_variant_t dvobj)
     return ret;
 }
 
-static inline long double
+static inline double
 numberify_str(const char *s)
 {
     if (!s || !*s)
-        return 0.0L;
+        return 0.0;
 
-    return strtold(s, NULL);
+    return strtod(s, NULL);
 }
 
-static inline long double
+static inline double
 numberify_bs(const unsigned char *s, size_t nr)
 {
     if (!s || nr == 0)
-        return 0.0L;
+        return 0.0;
 
-    long double ld = 0.0L;
-    if (nr > sizeof(ld))
-        nr = sizeof(ld);
+    double d = 0.0;
+    if (nr > sizeof(d))
+        nr = sizeof(d);
 
-    memcpy(&ld, s, nr);
+    memcpy(&d, s, nr);
 
-    return ld;
+    return d;
 }
 
-static inline long double
+static inline double
 numberify_dynamic(purc_variant_t value)
 {
     purc_dvariant_method getter;
     getter = purc_variant_dynamic_get_getter(value);
 
     if (!getter)
-        return 0.0L;
+        return 0.0;
 
     purc_variant_t v = getter(value, 0, NULL);
     if (v == PURC_VARIANT_INVALID)
-        return 0.0L;
+        return 0.0;
 
-    long double ld = purc_variant_numberify(v);
+    double d = purc_variant_numberify(v);
     purc_variant_unref(v);
 
-    return ld;
+    return d;
 }
 
-static inline long double
+static inline double
 numberify_native(purc_variant_t value)
 {
     void *native = value->ptr_ptr[0];
@@ -1211,66 +1211,66 @@ numberify_native(purc_variant_t value)
     ops = (struct purc_native_ops*)value->ptr_ptr[1];
 
     if (!ops || !ops->property_getter)
-        return 0.0L;
+        return 0.0;
 
     purc_nvariant_method getter = (ops->property_getter)("__number");
     if (!getter)
-        return 0.0L;
+        return 0.0;
 
     purc_variant_t v = getter(native, 0, NULL);
     if (v == PURC_VARIANT_INVALID)
-        return 0.0L;
+        return 0.0;
 
-    long double ld = purc_variant_numberify(v);
+    double d = purc_variant_numberify(v);
     purc_variant_unref(v);
 
-    return ld;
+    return d;
 }
 
-static inline long double
+static inline double
 numberify_array(purc_variant_t value)
 {
     size_t sz;
     if (!purc_variant_array_size(value, &sz))
-        return 0.0L;
+        return 0.0;
 
-    long double ld = 0.0L;
+    double d = 0.0;
 
     for (size_t i=0; i<sz; ++i) {
         purc_variant_t v = purc_variant_array_get(value, i);
-        ld += purc_variant_numberify(v);
+        d += purc_variant_numberify(v);
     }
 
-    return ld;
+    return d;
 }
 
-static inline long double
+static inline double
 numberify_object(purc_variant_t value)
 {
-    long double ld = 0.0L;
+    double d = 0.0;
 
     purc_variant_t v;
     foreach_value_in_variant_object(value, v)
-        ld += purc_variant_numberify(v);
+        d += purc_variant_numberify(v);
     end_foreach;
 
-    return ld;
+    return d;
 }
 
-static inline long double
+static inline double
 numberify_set(purc_variant_t value)
 {
-    long double ld = 0.0L;
+    double d = 0.0;
 
     purc_variant_t v;
     foreach_value_in_variant_array(value, v)
-        ld += purc_variant_numberify(v);
+        d += purc_variant_numberify(v);
     end_foreach;
 
-    return ld;
+    return d;
 }
 
-long double
+double
 purc_variant_numberify(purc_variant_t value)
 {
     PC_ASSERT(value != PURC_VARIANT_INVALID);
@@ -1283,11 +1283,11 @@ purc_variant_numberify(purc_variant_t value)
     switch (type)
     {
         case PURC_VARIANT_TYPE_UNDEFINED:
-            return 0.0L;
+            return 0.0;
         case PURC_VARIANT_TYPE_NULL:
-            return 0.0L;
+            return 0.0;
         case PURC_VARIANT_TYPE_BOOLEAN:
-            return value->b ? 1.0L : 0.0L;
+            return value->b ? 1.0 : 0.0;
         case PURC_VARIANT_TYPE_NUMBER:
             return value->d;
         case PURC_VARIANT_TYPE_LONGINT:
@@ -1327,7 +1327,7 @@ booleanize_str(const char *s)
     if (!s || !*s)
         return false;
 
-    return numberify_str(s) != 0.0L ? true : false;
+    return numberify_str(s) != 0.0 ? true : false;
 }
 
 static inline bool
@@ -1336,7 +1336,7 @@ booleanize_bs(const unsigned char *s, size_t nr)
     if (!s || nr == 0)
         return false;
 
-    return numberify_bs(s, nr) != 0.0L ? true : false;
+    return numberify_bs(s, nr) != 0.0 ? true : false;
 }
 
 bool
@@ -1358,13 +1358,13 @@ purc_variant_booleanize(purc_variant_t value)
         case PURC_VARIANT_TYPE_BOOLEAN:
             return value->b;
         case PURC_VARIANT_TYPE_NUMBER:
-            return value->d != 0.0L ? true : false;
+            return value->d != 0.0 ? true : false;
         case PURC_VARIANT_TYPE_LONGINT:
             return value->i64 ? true : false;
         case PURC_VARIANT_TYPE_ULONGINT:
             return value->u64 ? true : false;
         case PURC_VARIANT_TYPE_LONGDOUBLE:
-            return value->ld != 0.0L ? true : false;
+            return value->ld != 0.0 ? true : false;
         case PURC_VARIANT_TYPE_ATOMSTRING:
             s = purc_variant_get_atom_string_const(value);
             return booleanize_str(s);
@@ -1375,15 +1375,15 @@ purc_variant_booleanize(purc_variant_t value)
             bs = purc_variant_get_bytes_const(value, &nr);
             return booleanize_bs(bs, nr);
         case PURC_VARIANT_TYPE_DYNAMIC:
-            return numberify_dynamic(value) != 0.0L ? true : false;
+            return numberify_dynamic(value) != 0.0 ? true : false;
         case PURC_VARIANT_TYPE_NATIVE:
-            return numberify_native(value) != 0.0L ? true : false;
+            return numberify_native(value) != 0.0 ? true : false;
         case PURC_VARIANT_TYPE_OBJECT:
-            return numberify_object(value) != 0.0L ? true : false;
+            return numberify_object(value) != 0.0 ? true : false;
         case PURC_VARIANT_TYPE_ARRAY:
-            return numberify_array(value) != 0.0L ? true : false;
+            return numberify_array(value) != 0.0 ? true : false;
         case PURC_VARIANT_TYPE_SET:
-            return numberify_set(value) != 0.0L ? true : false;
+            return numberify_set(value) != 0.0 ? true : false;
         default:
             PC_ASSERT(0);
             break;
