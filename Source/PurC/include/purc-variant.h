@@ -1680,6 +1680,7 @@ purc_variant_booleanize(purc_variant_t value);
  *
  * Returns: totol # of result content that has been succesfully written
  *          or shall be written if buffer is large enough
+ *          or -1 in case of other failure
  *
  * Note: API is similar to `snprintf`
  *
@@ -1687,6 +1688,24 @@ purc_variant_booleanize(purc_variant_t value);
  */
 PCA_EXPORT int
 purc_variant_stringify(char *buf, size_t len, purc_variant_t value);
+
+/**
+ * Stringify a variant value in the similar way as `asprintf` does
+ *
+ * @param strp: the newly allocated space would be stored in *strp
+ *
+ * @param value: variant value to be operated
+ *
+ * Returns: totol # of result content that has been succesfully written
+ *          or shall be written if buffer is large enough
+ *          or -1 in case of other failure, such of OOM
+ *
+ * Note: API is similar to `asprintf`
+ *
+ * Since: 0.0.3
+ */
+PCA_EXPORT int
+purc_variant_stringify_alloc(char **strp, purc_variant_t value);
 
 PCA_EXTERN_C_END
 
