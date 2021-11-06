@@ -1,6 +1,8 @@
 #include "purc.h"
 
 #include "private/ejson.h"
+#include "private/list.h"
+#include "private/stringbuilder.h"
 #include "private/utils.h"
 #include "purc-rwstream.h"
 
@@ -153,6 +155,29 @@ struct stringify_record
     const char                *chk;
 };
 
+struct stringify_record records[] = {
+    { "undefined",          "undefined" },
+    { "null",               "null" },
+    { "true",               "true" },
+    { "false",              "false" },
+    { "10 ",                  "10" },  // TODO: no tail space required
+    { "0.0 ",                "0" },
+    { "''",                 "null" },
+    { "' '",                " " },
+    { "'0'",                "0" },
+    { "'0.0'",              "0.0" },
+    { "'123.34'",           "123.34" },
+    { "'abcd'",             "abcd" },
+    { "[1,2,3,4]",          "1\n2\n3\n4\n" },
+    { "{'a':10,'b':20,'c':30,'d':40}", "a:10\nb:20\nc:30\nd:40\n" },
+    { "[{'id':'1','name': 'Tom', 'age': 2, 'male': true },"
+        "{'id':'2','name':'Jerry','age':3,'male':true}]",
+        "id:1\nname:Tom\nage:2\nmale:true\n"
+            "\n"
+            "id:2\nname:Jerry\nage:3\nmale:true\n"
+            "\n" },
+};
+
 static inline void
 do_stringify(struct stringify_record *p)
 {
@@ -183,32 +208,50 @@ TEST(variant, stringify)
     ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    struct stringify_record records[] = {
-        { "undefined",          "undefined" },
-        { "null",               "null" },
-        { "true",               "true" },
-        { "false",              "false" },
-        { "10 ",                  "10" },  // TODO: no tail space required
-        { "0.0 ",                "0" },
-        { "''",                 "null" },
-        { "' '",                " " },
-        { "'0'",                "0" },
-        { "'0.0'",              "0.0" },
-        { "'123.34'",           "123.34" },
-        { "'abcd'",             "abcd" },
-        { "[1,2,3,4]",          "1\n2\n3\n4\n" },
-        { "{'a':10,'b':20,'c':30,'d':40}", "a:10\nb:20\nc:30\nd:40\n" },
-        { "[{'id':'1','name': 'Tom', 'age': 2, 'male': true },"
-          "{'id':'2','name':'Jerry','age':3,'male':true}]",
-          "id:1\nname:Tom\nage:2\nmale:true\n"
-          "\n"
-          "id:2\nname:Jerry\nage:3\nmale:true\n"
-          "\n" },
-    };
-
     for (size_t i=0; i<PCA_TABLESIZE(records); ++i) {
         struct stringify_record *p = records + i;
         do_stringify(p);
+    }
+
+    cleanup = purc_cleanup ();
+    ASSERT_EQ (cleanup, true);
+}
+
+static inline void
+do_stringify_alloc(struct stringify_record *p)
+{
+    purc_variant_t v;
+    v = load_variant(p->str);
+    if (v == PURC_VARIANT_INVALID) {
+        EXPECT_NE(v,PURC_VARIANT_INVALID)
+            << "Failed to load variant: [" << p->str << "]";
+        return;
+    }
+
+    char *buf;
+    int r = purc_variant_stringify_alloc(&buf, v);
+    purc_variant_unref(v);
+
+    ASSERT_GE(r, 0) << "Buffer too small";
+
+    ASSERT_STREQ(buf, p->chk) << "[" << p->str << "]";
+
+    free(buf);
+}
+
+TEST(variant, stringify_alloc)
+{
+    purc_instance_extra_info info = {0, 0};
+    int ret;
+    bool cleanup;
+
+    // initial purc
+    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    for (size_t i=0; i<PCA_TABLESIZE(records); ++i) {
+        struct stringify_record *p = records + i;
+        do_stringify_alloc(p);
     }
 
     cleanup = purc_cleanup ();
@@ -263,5 +306,54 @@ TEST(variant, stringify_bs)
 
     cleanup = purc_cleanup ();
     ASSERT_EQ (cleanup, true);
+}
+
+
+TEST(variant, vsnprintf)
+{
+    purc_instance_extra_info info = {0, 0};
+    int ret;
+    bool cleanup;
+
+    // initial purc
+    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    const char *strs[] = {
+        "hello",
+        "d",
+        "world",
+        "great wall",
+        "yes",
+        "world",
+        "xyz",
+        "dddddddddddddf",
+    };
+
+    struct pcutils_stringbuilder sb;
+    pcutils_stringbuilder_init(&sb, 7);
+
+    size_t total = 0;
+    for (size_t i=0; i<PCA_TABLESIZE(strs); ++i) {
+        const char *s = strs[i];
+        total += strlen(s);
+        pcutils_stringbuilder_snprintf(&sb, "%s", s);
+    }
+    char *s = pcutils_stringbuilder_build(&sb);
+
+    char *t = (char*)malloc(total + 1);
+    *t = '\0';
+    for (size_t i=0; i<PCA_TABLESIZE(strs); ++i) {
+        const char *s = strs[i];
+        strcat(t, s);
+    }
+
+    EXPECT_STREQ(s, t);
+    free(s);
+    free(t);
+    pcutils_stringbuilder_reset(&sb);
+
+    cleanup = purc_cleanup ();
+    ASSERT_EQ(cleanup, true);
 }
 
