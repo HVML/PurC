@@ -1,6 +1,6 @@
 #!/bin/sh
 
-TEST_PROGS=`find Source/test/ -name test_* -executable -type f`
+TEST_PROGS=`find Source/test/ -name test_* -perm -0111 -type f`
 
 total_passed=0
 total_failed=0
