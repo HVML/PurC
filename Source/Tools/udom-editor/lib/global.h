@@ -240,10 +240,8 @@ typedef struct
         /* If using a subshell for evaluating commands this is true */
         gboolean use_subshell;
 
-#ifdef ENABLE_SUBSHELL
         /* File descriptors of the pseudoterminal used by the subshell */
         int subshell_pty;
-#endif                          /* !ENABLE_SUBSHELL */
 
         /* This flag is set by xterm detection routine in function main() */
         /* It is used by function toggle_subshell() */
