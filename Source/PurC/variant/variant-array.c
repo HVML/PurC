@@ -25,7 +25,7 @@
 
 #include "config.h"
 #include "private/variant.h"
-#include "private/arraylist.h"
+#include "purc-arraylist.h"
 #include "private/errors.h"
 #include "variant-internals.h"
 #include "purc-errors.h"
