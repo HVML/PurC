@@ -27,7 +27,6 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include <purc-arraylist.h>
 #include <private/vdom.h>
 #include "hvml-buffer.h"
 

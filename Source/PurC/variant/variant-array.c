@@ -25,10 +25,10 @@
 
 #include "config.h"
 #include "private/variant.h"
-#include "purc-arraylist.h"
 #include "private/errors.h"
 #include "variant-internals.h"
 #include "purc-errors.h"
+#include "purc-utils.h"
 
 
 #include <limits.h>

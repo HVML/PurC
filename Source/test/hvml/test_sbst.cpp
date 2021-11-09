@@ -2,7 +2,6 @@
 
 #include "hvml-buffer.h"
 #include "hvml-sbst.h"
-#include "purc-arraylist.h"
 
 #include <stdio.h>
 #include <errno.h>

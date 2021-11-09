@@ -1,6 +1,5 @@
 #include "purc.h"
 #include "private/avl.h"
-#include "purc-arraylist.h"
 #include "private/hashtable.h"
 #include "purc-variant.h"
 #include "private/variant.h"

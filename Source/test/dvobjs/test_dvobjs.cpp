@@ -2,7 +2,6 @@
 #include "purc-variant.h"
 
 #include "private/avl.h"
-#include "purc-arraylist.h"
 #include "private/hashtable.h"
 #include "private/variant.h"
 #include "private/errors.h"

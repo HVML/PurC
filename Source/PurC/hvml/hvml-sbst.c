@@ -27,7 +27,6 @@
 #include "hvml-sbst.h"
 #include "config.h"
 #include "purc-utils.h"
-#include "purc-arraylist.h"
 
 #include "html/sbst.h"
 #define PCHTML_HTML_TOKENIZER_RES_ENTITIES_SBST

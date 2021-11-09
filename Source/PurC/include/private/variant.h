@@ -27,7 +27,6 @@
 
 #include "config.h"
 #include "purc-variant.h"
-#include "purc-arraylist.h"
 #include "avl.h"
 #include "hashtable.h"
 

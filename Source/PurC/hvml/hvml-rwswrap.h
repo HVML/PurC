@@ -29,7 +29,6 @@
 #include "purc-utils.h"
 #include "purc-rwstream.h"
 #include "private/list.h"
-#include "purc-arraylist.h"
 
 #include <stddef.h>
 #include <stdint.h>

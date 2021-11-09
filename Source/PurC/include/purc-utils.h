@@ -161,6 +161,74 @@ int pcutils_get_random_seed(void);
  */
 size_t pcutils_get_next_fibonacci_number(size_t n);
 
+/**
+ * SECTION:arraylist
+ * @title: Array List
+ * @short_description: A basic Array implementation.
+ *
+ */
+
+#define ARRAY_LIST_DEFAULT_SIZE 32
+
+typedef void(array_list_free_fn)(void *data);
+
+struct pcutils_arrlist {
+    void **array;
+    size_t length;
+    size_t size;
+    array_list_free_fn *free_fn;
+};
+typedef struct pcutils_arrlist pcutils_arrlist;
+
+/**
+ * Allocate an pcutils_arrlist of the desired size.
+ *
+ * If possible, the size should be chosen to closely match
+ * the actual number of elements expected to be used.
+ * If the exact size is unknown, there are tradeoffs to be made:
+ * - too small - the pcutils_arrlist code will need to call realloc() more
+ *   often (which might incur an additional memory copy).
+ * - too large - will waste memory, but that can be mitigated
+ *   by calling pcutils_arrlist_shrink() once the final size is known.
+ *
+ * VW: @free_fn is nullable.
+ *
+ * @see pcutils_arrlist_shrink
+ */
+struct pcutils_arrlist *pcutils_arrlist_new_ex(array_list_free_fn *free_fn, int initial_size);
+
+/**
+ * Allocate an pcutils_arrlist of the default size (32).
+ * @deprecated Use pcutils_arrlist_new_ex() instead.
+ */
+static inline struct pcutils_arrlist *pcutils_arrlist_new(array_list_free_fn *free_fn) {
+    return pcutils_arrlist_new_ex(free_fn, ARRAY_LIST_DEFAULT_SIZE);
+}
+
+void pcutils_arrlist_free(struct pcutils_arrlist *al);
+
+void *pcutils_arrlist_get_idx(struct pcutils_arrlist *al, size_t i);
+
+int pcutils_arrlist_put_idx(struct pcutils_arrlist *al, size_t i, void *data);
+
+int pcutils_arrlist_add(struct pcutils_arrlist *al, void *data);
+
+size_t pcutils_arrlist_length(struct pcutils_arrlist *al);
+
+void pcutils_arrlist_sort(struct pcutils_arrlist *arr, int (*compar)(const void *, const void *));
+
+void *pcutils_arrlist_bsearch(const void **key, struct pcutils_arrlist *arr,
+                                int (*compar)(const void *, const void *));
+
+int pcutils_arrlist_del_idx(struct pcutils_arrlist *arr, size_t idx, size_t count);
+
+/**
+ * Shrink the array list to just enough to fit the number of elements in it,
+ * plus empty_slots.
+ */
+int pcutils_arrlist_shrink(struct pcutils_arrlist *arr, size_t empty_slots);
+
+
 PCA_EXTERN_C_END
 
 #endif /* not defined PURC_PURC_UTILS_H */

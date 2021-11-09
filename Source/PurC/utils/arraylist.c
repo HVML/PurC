@@ -39,7 +39,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include "purc-arraylist.h"
+#include "purc-utils.h"
 
 #include <limits.h>
 #include <stdlib.h>
