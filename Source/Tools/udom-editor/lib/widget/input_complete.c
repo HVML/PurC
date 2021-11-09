@@ -30,7 +30,7 @@
  *  \brief Source: Input line filename/username/hostname/variable/command completion
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <ctype.h>
 #include <limits.h>             /* MB_LEN_MAX */

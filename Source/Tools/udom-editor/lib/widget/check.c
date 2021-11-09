@@ -32,7 +32,7 @@
  *  \brief Source: WCheck widget (checkbutton)
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <stdlib.h>
 

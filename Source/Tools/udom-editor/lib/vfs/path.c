@@ -32,7 +32,7 @@
  */
 
 
-#include "ue-config.h"
+#include <config.h>
 
 #include "lib/global.h"
 #include "lib/strutil.h"

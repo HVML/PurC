@@ -25,7 +25,7 @@
  * \brief Source: Virtual File System: Network utilities
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <stdlib.h>
 #include <signal.h>

@@ -5,7 +5,7 @@
 #ifndef MC__SETUP_H
 #define MC__SETUP_H
 
-#include "ue-config.h"
+#include <config.h>
 
 #include "lib/global.h"         /* GError */
 
@@ -110,7 +110,6 @@ extern int quit;
 /* Set to TRUE to suppress printing the last directory */
 extern gboolean print_last_revert;
 
-#ifdef USE_INTERNAL_EDIT
 /* index to record_macro_buf[], -1 if not recording a macro */
 extern int macro_index;
 
@@ -118,7 +117,6 @@ extern int macro_index;
 extern struct macro_action_t record_macro_buf[MAX_MACRO_LENGTH];
 
 extern GArray *macros_list;
-#endif /* USE_INTERNAL_EDIT */
 
 extern int saving_setup;
 

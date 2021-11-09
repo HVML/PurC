@@ -17,7 +17,7 @@
    along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <sys/types.h>
 #include <stdlib.h>

@@ -47,7 +47,7 @@
  */
 
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <errno.h>
 #include <limits.h>             /* MB_LEN_MAX */

@@ -27,7 +27,7 @@
  *  \brief Source: internal stuff of the terminal controlling library.
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <stdio.h>
 #include <stdlib.h>

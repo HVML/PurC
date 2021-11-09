@@ -32,7 +32,7 @@
  *  \brief Source: WGauge widget (progress indicator)
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <stdlib.h>
 #include <string.h>

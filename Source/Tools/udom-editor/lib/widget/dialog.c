@@ -24,7 +24,7 @@
  *  \brief Source: dialog box features module
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <ctype.h>
 #include <errno.h>

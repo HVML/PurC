@@ -26,7 +26,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ue-config.h"
+#include <config.h>
 #include <stdlib.h>
 #include <string.h>             /* strcmp() */
 #include <sys/types.h>          /* size_t */

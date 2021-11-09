@@ -27,7 +27,7 @@
  *  \brief Header: High-level mouse API
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include "lib/global.h"
 #include "lib/widget.h"

@@ -30,7 +30,7 @@
  *  provide compatibility with older versions of glib.
  */
 
-#include "ue-config.h"
+#include <config.h>
 #include <string.h>
 
 #include "global.h"

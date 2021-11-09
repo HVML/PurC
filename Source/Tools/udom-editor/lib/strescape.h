@@ -1,7 +1,7 @@
 #ifndef MC__STRUTILS_ESCAPE_H
 #define MC__STRUTILS_ESCAPE_H
 
-#include "ue-config.h"
+#include <config.h>
 
 #include "lib/global.h"         /* <glib.h> */
 

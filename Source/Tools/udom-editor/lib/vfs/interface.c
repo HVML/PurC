@@ -31,7 +31,7 @@
  */
 
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <stdio.h>
 #include <stdlib.h>             /* For atol() */

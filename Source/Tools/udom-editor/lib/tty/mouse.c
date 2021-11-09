@@ -29,7 +29,7 @@
  *  Events received by clients of this library have their coordinates 0 based
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <stdio.h>
 #include <sys/types.h>

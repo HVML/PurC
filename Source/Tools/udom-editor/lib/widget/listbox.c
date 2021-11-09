@@ -32,7 +32,7 @@
  *  \brief Source: WListbox widget
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <stdlib.h>
 

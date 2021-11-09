@@ -24,7 +24,7 @@
  *  \brief Source: prints features specific for this build
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <limits.h>
 #include <stdio.h>

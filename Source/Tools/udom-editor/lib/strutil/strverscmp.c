@@ -37,7 +37,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <ctype.h>
 #ifdef HAVE_STRVERSCMP

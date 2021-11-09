@@ -28,7 +28,7 @@
  *  \brief Source: %interface to the terminal controlling library
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <errno.h>
 #include <signal.h>

@@ -29,7 +29,7 @@
  *  \brief Source: NCUrses-specific color setup
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <stdio.h>
 #include <stdlib.h>

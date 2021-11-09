@@ -28,7 +28,7 @@
  *
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include "ue-version.h"
 

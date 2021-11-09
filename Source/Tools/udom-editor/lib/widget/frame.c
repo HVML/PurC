@@ -27,7 +27,7 @@
  *  \brief Source: WFrame widget (frame of dialogs)
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <stdlib.h>
 

@@ -27,7 +27,7 @@
  *  \brief Source: widget group features module
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <assert.h>
 #include <stdlib.h>

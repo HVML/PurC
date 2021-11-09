@@ -32,7 +32,7 @@
  *  \brief Source: save and load history
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <stdlib.h>
 #include <sys/types.h>

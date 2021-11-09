@@ -34,7 +34,7 @@
  *  \brief Source: time formatting functions
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <stdlib.h>
 #include <limits.h>             /* MB_LEN_MAX */

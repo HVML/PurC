@@ -27,7 +27,7 @@
  *  \brief Source: provides a functions for working with shell.
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <pwd.h>                /* for username in xterm title */
 #include <stdarg.h>

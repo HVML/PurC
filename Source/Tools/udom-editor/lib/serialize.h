@@ -1,7 +1,7 @@
 #ifndef MC__SERIALIZE_H
 #define MC__SERIALIZE_H
 
-#include "ue-config.h"
+#include <config.h>
 
 #include "lib/global.h"
 #include "lib/mcconfig.h"

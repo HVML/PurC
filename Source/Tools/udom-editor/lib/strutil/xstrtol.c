@@ -18,7 +18,7 @@
 
 /* Written by Jim Meyering. */
 
-#include "ue-config.h"
+#include <config.h>
 
 /* Some pre-ANSI implementations (e.g. SunOS 4)
    need stderr defined if assertion checking is enabled.  */

@@ -25,6 +25,12 @@ enum
     VISIBLY
 };
 
+enum cd_enum
+{
+    cd_parse_command,
+    cd_exact
+};
+
 /*** structures declarations (and typedefs of structures)*****************************************/
 
 /*** global variables defined in .c file *********************************************************/
@@ -49,6 +55,8 @@ gboolean exit_subshell (void);
 void do_subshell_chdir (const vfs_path_t * vpath, gboolean update_prompt);
 void subshell_get_console_attributes (void);
 void sigchld_handler (int sig);
+
+gboolean subshell_cd (const vfs_path_t * vpath, enum cd_enum cd_type);
 
 /*** inline functions ****************************************************************************/
 

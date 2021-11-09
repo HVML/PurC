@@ -31,7 +31,7 @@
  *  \brief Source: widget based utility functions
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <stdarg.h>
 #include <stdlib.h>

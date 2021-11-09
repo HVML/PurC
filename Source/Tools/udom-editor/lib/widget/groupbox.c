@@ -32,7 +32,7 @@
  *  \brief Source: WGroupbox widget
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include "lib/global.h"
 

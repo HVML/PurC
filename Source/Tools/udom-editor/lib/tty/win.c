@@ -27,7 +27,7 @@
  *  \brief Source: Terminal management xterm and rxvt support
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <stdio.h>
 #include <stdlib.h>

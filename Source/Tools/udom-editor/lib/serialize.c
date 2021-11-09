@@ -27,7 +27,7 @@
  *  \brief Source: serialize/unserialize functionality for INI-like formats.
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <string.h>
 #include <stdlib.h>

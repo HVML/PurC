@@ -29,7 +29,7 @@
  *  \brief Source: Internal stuff of color setup
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <string.h>             /* strcmp */
 

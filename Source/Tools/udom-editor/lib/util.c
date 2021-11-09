@@ -32,7 +32,7 @@
  *  \brief Source: various utilities
  */
 
-#include "ue-config.h"
+#include <config.h>
 #include "ue-features.h"
 
 #include <ctype.h>

@@ -40,7 +40,7 @@
  *  by the process specified by the link.
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <signal.h>             /* kill() */
 #include <stdio.h>

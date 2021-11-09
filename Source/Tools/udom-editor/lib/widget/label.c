@@ -32,7 +32,7 @@
  *  \brief Source: WLabel widget
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <stdarg.h>
 #include <stdlib.h>

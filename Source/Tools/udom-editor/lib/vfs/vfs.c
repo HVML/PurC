@@ -40,7 +40,7 @@
  * parse_ls_lga and friends which do not have that prefix.
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <errno.h>
 #include <stdlib.h>

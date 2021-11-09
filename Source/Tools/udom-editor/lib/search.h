@@ -1,7 +1,7 @@
 #ifndef MC__SEARCH_H
 #define MC__SEARCH_H
 
-#include "ue-config.h"
+#include <config.h>
 
 #include "lib/global.h"         /* <glib.h> */
 

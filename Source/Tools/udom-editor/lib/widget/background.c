@@ -27,7 +27,7 @@
  *  \brief Source: WBackground widget (background area of dialog)
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <stdlib.h>
 

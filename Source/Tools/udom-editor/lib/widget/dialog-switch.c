@@ -30,7 +30,7 @@
  *  \brief Source: support of multiply editors and viewers.
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include "lib/global.h"
 #include "lib/tty/tty.h"        /* LINES, COLS */

@@ -55,7 +55,7 @@
  *
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <errno.h>
 #include <inttypes.h>           /* uintmax_t */

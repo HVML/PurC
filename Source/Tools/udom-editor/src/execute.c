@@ -27,7 +27,7 @@
  *  \brief Source: execution routines
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <signal.h>
 #include <string.h>
@@ -45,12 +45,13 @@
 #include "lib/strutil.h"        /* str_replace_all_substrings() */
 #include "lib/widget.h"
 
+#include "udommanager/udommanager.h"
+#include "udommanager/layout.h" /* use_dash() */
 #include "consaver/cons.saver.h"
 #include "subshell/subshell.h"
 #include "setup.h"              /* clear_before_exec */
 
 #include "execute.h"
-#include "workingdir.h"
 
 /*** global variables ****************************************************************************/
 
@@ -127,7 +128,7 @@ edition_pre_exec (void)
 static void
 do_possible_cd (const vfs_path_t * new_dir_vpath)
 {
-    if (!workingdir_cd (new_dir_vpath, cd_exact))
+    if (!subshell_cd (new_dir_vpath, cd_exact))
         message (D_ERROR, _("Warning"), "%s",
                  _("The Commander can't change to the directory that\n"
                    "the subshell claims you are in. Perhaps you have\n"

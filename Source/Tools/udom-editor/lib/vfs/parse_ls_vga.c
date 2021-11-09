@@ -33,7 +33,7 @@
  * \date 1995, 1996
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <ctype.h>
 #include <stdio.h>

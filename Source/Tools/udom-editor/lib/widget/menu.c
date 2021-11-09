@@ -27,7 +27,7 @@
  *  \brief Source: pulldown menu code
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <ctype.h>
 #include <stdarg.h>

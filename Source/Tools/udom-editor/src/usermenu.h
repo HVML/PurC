@@ -1,38 +1,30 @@
-/** \file  workingdir.h
- *  \brief Header: management of working directory
+/** \file usermenu.h
+ *  \brief Header: user menu implementation
  */
 
-#ifndef MC__WORKINGDIR_H
-#define MC__WORKINGDIR_H
+#ifndef MC__USERMENU_H
+#define MC__USERMENU_H
 
-#include "lib/utilunix.h"
-#include "lib/vfs/vfs.h"
+#include "lib/global.h"
+
+#include "src/editor/edit.h"    /* WEdit */
 
 /*** typedefs(not structures) and defined constants **********************************************/
 
 /*** enums ***************************************************************************************/
-enum cd_enum
-{
-    cd_parse_command,
-    cd_exact
-};
 
 /*** structures declarations (and typedefs of structures)*****************************************/
 
 /*** global variables defined in .c file *********************************************************/
-extern const char *mc_prompt;
-extern int output_lines;
 
 /*** declarations of public functions ************************************************************/
 
-/* replacement of panel_cd */
-gboolean workingdir_cd (const vfs_path_t * new_dir_vpath, enum cd_enum exact);
-
-void update_xterm_title_path (void);
-void use_dash (gboolean flag);
-gboolean quiet_quit_cmd (void);
-gboolean do_nc (void);
+gboolean user_menu_cmd (const WEdit * edit_widget, const char *menu_file, int selected_entry);
+char *expand_format (const WEdit * edit_widget, char c, gboolean do_quote);
+int check_format_view (const char *p);
+int check_format_var (const char *p, char **v);
+int check_format_cd (const char *p);
 
 /*** inline functions ****************************************************************************/
 
-#endif /* MC__WORKINGDIR_H */
+#endif /* MC__USERMENU_H */

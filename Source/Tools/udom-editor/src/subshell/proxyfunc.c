@@ -23,7 +23,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <signal.h>             /* kill() */
 #include <sys/types.h>

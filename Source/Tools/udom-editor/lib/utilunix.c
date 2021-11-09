@@ -34,7 +34,7 @@
  *  \brief Source: various utilities - Unix variant
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <ctype.h>
 #include <errno.h>

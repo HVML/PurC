@@ -24,7 +24,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include "lib/global.h"
 #include "lib/strutil.h"

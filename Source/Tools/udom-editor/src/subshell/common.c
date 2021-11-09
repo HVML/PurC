@@ -52,7 +52,7 @@
  *  \brief Source: concurrent shell support
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE 1
@@ -108,9 +108,11 @@
 #include "lib/util.h"
 #include "lib/widget.h"
 
+#include "src/udommanager/layout.h"     /* setup_cmdline() */
+#include "src/udommanager/command.h"    /* cmdline */
+
 #include "subshell.h"
 #include "internal.h"
-#include "command.h"
 
 /*** global variables ****************************************************************************/
 

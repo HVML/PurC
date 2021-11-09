@@ -31,7 +31,7 @@
  *  \brief Source: Listbox widget, a listbox within dialog window
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <stdlib.h>
 

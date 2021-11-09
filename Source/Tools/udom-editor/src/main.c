@@ -29,7 +29,7 @@
  *  \brief Source: this is a main module
  */
 
-#include "ue-config.h"
+#include <config.h>
 #include "ue-features.h"
 
 #include <ctype.h>
@@ -58,7 +58,10 @@
 #include "lib/util.h"
 #include "lib/vfs/vfs.h"        /* vfs_init(), vfs_shut() */
 
-#include "workingdir.h"
+#include "udommanager/udommanager.h"
+#include "udommanager/layout.h"
+#include "udommanager/command.h"        /* cmdline */
+#include "udommanager/panel.h"  /* panalized_panel */
 
 #include "events_init.h"
 #include "args.h"

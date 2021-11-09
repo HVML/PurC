@@ -28,7 +28,7 @@
  *  \brief Source: provides a log file to ease tracing the program
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <stdarg.h>
 #include <stdio.h>

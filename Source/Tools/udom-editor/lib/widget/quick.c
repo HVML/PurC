@@ -31,7 +31,7 @@
  *  \brief Source: quick dialog engine
  */
 
-#include "ue-config.h"
+#include <config.h>
 
 #include <stdlib.h>
 #include <stdio.h>              /* fprintf() */
