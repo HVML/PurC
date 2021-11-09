@@ -166,7 +166,7 @@ char* pcexe_strlist_to_str(struct pcexe_strlist *list)
     return buf;
 }
 
-purc_variant_t
+static inline purc_variant_t
 pcexe_cache_array(purc_variant_t input, bool asc_desc)
 {
     size_t sz = purc_variant_array_get_size(input);
@@ -197,7 +197,7 @@ pcexe_cache_array(purc_variant_t input, bool asc_desc)
     return cache;
 }
 
-purc_variant_t
+static inline purc_variant_t
 pcexe_cache_object(purc_variant_t input, bool asc_desc)
 {
     purc_variant_t cache = purc_variant_make_array(0, PURC_VARIANT_INVALID);
@@ -218,6 +218,7 @@ pcexe_cache_object(purc_variant_t input, bool asc_desc)
         } else {
             ok = purc_variant_array_prepend(cache, o);
         }
+        purc_variant_unref(o);
     end_foreach;
 
     if (!ok) {
@@ -228,7 +229,7 @@ pcexe_cache_object(purc_variant_t input, bool asc_desc)
     return cache;
 }
 
-purc_variant_t
+static inline purc_variant_t
 pcexe_cache_set(purc_variant_t input, bool asc_desc)
 {
     purc_variant_t cache = purc_variant_make_array(0, PURC_VARIANT_INVALID);
@@ -249,6 +250,35 @@ pcexe_cache_set(purc_variant_t input, bool asc_desc)
     if (!ok) {
         purc_variant_unref(cache);
         return PURC_VARIANT_INVALID;
+    }
+
+    return cache;
+}
+
+purc_variant_t
+pcexe_make_cache(purc_variant_t input, bool asc_desc)
+{
+    purc_variant_t cache;
+    enum purc_variant_type vt = purc_variant_get_type(input);
+    switch (vt)
+    {
+        case PURC_VARIANT_TYPE_OBJECT:
+        {
+            cache = pcexe_cache_object(input, asc_desc);
+        } break;
+        case PURC_VARIANT_TYPE_ARRAY:
+        {
+            cache = pcexe_cache_array(input, asc_desc);
+        } break;
+        case PURC_VARIANT_TYPE_SET:
+        {
+            cache = pcexe_cache_set(input, asc_desc);
+        } break;
+        default:
+        {
+            pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
+            return PURC_VARIANT_INVALID;
+        }
     }
 
     return cache;
@@ -573,10 +603,10 @@ literal_expression_eval(struct literal_expression *lexp,
     } else {
         r = purc_variant_stringify(buf, sizeof(buf), val);
         if (r < 0 || (size_t)r >= sizeof(buf)) {
-            r = cmp(lexp->literal, buf, n);
-        } else {
             // FIXME:
             r = -1;
+        } else {
+            r = cmp(lexp->literal, buf, n);
         }
     }
 

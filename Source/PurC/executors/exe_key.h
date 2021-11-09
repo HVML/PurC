@@ -46,6 +46,7 @@ struct exe_key_param {
     int debug_bison;
 
     struct key_rule       rule;
+    unsigned int          rule_valid:1;
 };
 
 PCA_EXTERN_C_BEGIN

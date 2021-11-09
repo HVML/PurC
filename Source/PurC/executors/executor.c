@@ -27,6 +27,8 @@
 #include "private/errors.h"
 #include "private/instance.h"
 
+#include "pcexe-helper.h"
+
 #include "exe_key.h"
 #include "exe_range.h"
 #include "exe_filter.h"
@@ -238,5 +240,18 @@ bool purc_get_executor(const char* name, purc_exec_ops_t ops)
         *ops = record->ops;
 
     return true;
+}
+
+void
+pcexecutor_inst_reset(struct purc_exec_inst *inst)
+{
+    if (inst->selected_keys != PURC_VARIANT_INVALID) {
+        purc_variant_unref(inst->selected_keys);
+        inst->selected_keys = PURC_VARIANT_INVALID;
+    }
+    if (inst->err_msg) {
+        free(inst->err_msg);
+        inst->err_msg = NULL;
+    }
 }
 

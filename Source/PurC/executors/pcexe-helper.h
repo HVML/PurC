@@ -97,11 +97,7 @@ pcexe_strlist_append_uni(struct pcexe_strlist *list,
 char* pcexe_strlist_to_str(struct pcexe_strlist *list);
 
 purc_variant_t
-pcexe_cache_array(purc_variant_t input, bool asc_desc);
-purc_variant_t
-pcexe_cache_object(purc_variant_t input, bool asc_desc);
-purc_variant_t
-pcexe_cache_set(purc_variant_t input, bool asc_desc);
+pcexe_make_cache(purc_variant_t input, bool asc_desc);
 
 // typedef unsigned char     matching_flags;
 #define MATCHING_FLAG_C 0x01

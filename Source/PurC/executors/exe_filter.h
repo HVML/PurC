@@ -30,6 +30,8 @@
 
 #include "purc-macros.h"
 
+#include "private/debug.h"
+
 #include "pcexe-helper.h"
 
 struct filter_rule
@@ -55,6 +57,13 @@ int exe_filter_parse(const char *input, size_t len,
         struct exe_filter_param *param);
 
 void exe_filter_param_reset(struct exe_filter_param *param);
+
+static inline int
+filter_rule_eval(struct filter_rule *rule, purc_variant_t val, bool *result)
+{
+    PC_ASSERT(rule);
+    return logical_expression_eval(rule->lexp, val, result);
+}
 
 PCA_EXTERN_C_END
 

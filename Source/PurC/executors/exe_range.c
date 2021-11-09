@@ -35,8 +35,6 @@ struct pcexec_exe_range_inst {
 
     struct exe_range_param        param;
 
-    purc_variant_t        cache;
-
     int64_t       from;
     int64_t       to;
     int64_t       advance;
@@ -63,32 +61,9 @@ exe_range_reset(struct pcexec_exe_range_inst *exe_range_inst)
 static purc_exec_inst_t
 exe_range_create(enum purc_exec_type type, purc_variant_t input, bool asc_desc)
 {
-    purc_variant_t cache;
-    enum purc_variant_type vt = purc_variant_get_type(input);
-    switch (vt)
-    {
-        case PURC_VARIANT_TYPE_OBJECT:
-        {
-            cache = pcexe_cache_object(input, asc_desc);
-        } break;
-        case PURC_VARIANT_TYPE_ARRAY:
-        {
-            cache = pcexe_cache_array(input, asc_desc);
-        } break;
-        case PURC_VARIANT_TYPE_SET:
-        {
-            cache = pcexe_cache_set(input, asc_desc);
-        } break;
-        default:
-        {
-            pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
-            return NULL;
-        }
-    }
-
-    if (cache == PURC_VARIANT_INVALID) {
+    purc_variant_t cache = pcexe_make_cache(input, asc_desc);
+    if (cache == PURC_VARIANT_INVALID)
         return NULL;
-    }
 
     struct pcexec_exe_range_inst *inst;
     inst = calloc(1, sizeof(*inst));
@@ -107,7 +82,7 @@ exe_range_create(enum purc_exec_type type, purc_variant_t input, bool asc_desc)
     inst->param.debug_flex  = debug_flex;
     inst->param.debug_bison = debug_bison;
 
-    inst->cache = cache;
+    inst->super.cache = cache;
 
     purc_variant_ref(input);
 
@@ -152,7 +127,7 @@ exe_range_parse_rule(purc_exec_inst_t inst, const char* rule)
     if (rr->has_to) {
         to = rr->to;
     } else {
-        purc_variant_t cache = exe_range_inst->cache;
+        purc_variant_t cache = exe_range_inst->super.cache;
         size_t sz = purc_variant_array_get_size(cache);
         if (advance > 0) {
             to = sz - 1;
@@ -186,7 +161,7 @@ exe_range_choose(purc_exec_inst_t inst, const char* rule)
     struct pcexec_exe_range_inst *exe_range_inst;
     exe_range_inst = (struct pcexec_exe_range_inst*)inst;
 
-    purc_variant_t cache = exe_range_inst->cache;
+    purc_variant_t cache = exe_range_inst->super.cache;
     PC_ASSERT(cache != PURC_VARIANT_INVALID);
     PC_ASSERT(purc_variant_is_array(cache));
 
@@ -243,7 +218,7 @@ exe_range_it_begin(purc_exec_inst_t inst, const char* rule)
     struct pcexec_exe_range_inst *exe_range_inst;
     exe_range_inst = (struct pcexec_exe_range_inst*)inst;
 
-    purc_variant_t cache = exe_range_inst->cache;
+    purc_variant_t cache = exe_range_inst->super.cache;
     PC_ASSERT(cache != PURC_VARIANT_INVALID);
     PC_ASSERT(purc_variant_is_array(cache));
 
@@ -290,7 +265,7 @@ exe_range_it_value(purc_exec_inst_t inst, purc_exec_iter_t it)
     struct pcexec_exe_range_inst *exe_range_inst;
     exe_range_inst = (struct pcexec_exe_range_inst*)inst;
 
-    purc_variant_t cache = exe_range_inst->cache;
+    purc_variant_t cache = exe_range_inst->super.cache;
     PC_ASSERT(cache != PURC_VARIANT_INVALID);
     PC_ASSERT(purc_variant_is_array(cache));
 
@@ -314,7 +289,7 @@ exe_range_it_next(purc_exec_inst_t inst, purc_exec_iter_t it, const char* rule)
     struct pcexec_exe_range_inst *exe_range_inst;
     exe_range_inst = (struct pcexec_exe_range_inst*)inst;
 
-    purc_variant_t cache = exe_range_inst->cache;
+    purc_variant_t cache = exe_range_inst->super.cache;
     PC_ASSERT(cache != PURC_VARIANT_INVALID);
     PC_ASSERT(purc_variant_is_array(cache));
 
@@ -425,7 +400,7 @@ exe_range_destroy(purc_exec_inst_t inst)
         purc_variant_unref(inst->input);
         inst->input = PURC_VARIANT_INVALID;
     }
-    PCEXE_CLR_VAR(exe_range_inst->cache);
+    PCEXE_CLR_VAR(exe_range_inst->super.cache);
 
     free(exe_range_inst);
     return true;

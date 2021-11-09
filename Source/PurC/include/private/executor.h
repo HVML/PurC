@@ -50,15 +50,18 @@ struct purc_exec_iter {
 // 执行器实例
 struct purc_exec_inst {
     enum purc_exec_type         type;
+    struct purc_exec_iter       it; // FIXME: one `it` for one `exec_inst`
+
     purc_variant_t              input;
     bool                        asc_desc;
 
     purc_variant_t              selected_keys;
-    struct purc_exec_iter       it; // FIXME: one `it` for one `exec_inst`
 
     char                       *err_msg;
-};
 
+    purc_variant_t              cache;
+    purc_variant_t              value;
+};
 
 // initialize executor module (once)
 void pcexecutor_init_once(void) WTF_INTERNAL;
@@ -70,13 +73,10 @@ void pcexecutor_init_instance(struct pcinst* inst) WTF_INTERNAL;
 // clean up the executor module for a PurC instance.
 void pcexecutor_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 
-
-
-
-
-
 void pcexecutor_set_debug(int debug_flex, int debug_bison);
 void pcexecutor_get_debug(int *debug_flex, int *debug_bison);
+
+void pcexecutor_inst_reset(struct purc_exec_inst *inst);
 
 
 PCA_EXTERN_C_END
