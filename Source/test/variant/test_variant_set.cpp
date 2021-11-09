@@ -115,6 +115,50 @@ TEST(variant_set, init_0_elem)
     ASSERT_EQ (cleanup, true);
 }
 
+TEST(variant_set, add_1_str)
+{
+    purc_instance_extra_info info = {0, 0};
+    int ret = 0;
+    bool cleanup = false;
+    struct purc_variant_stat *stat;
+
+    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ(ret, PURC_ERROR_OK);
+
+    stat = purc_variant_usage_stat();
+    ASSERT_NE(stat, nullptr);
+
+    purc_variant_t var = purc_variant_make_set_by_ckey(0, "hello", NULL);
+    ASSERT_NE(var, nullptr);
+    ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
+    ASSERT_EQ(var->refc, 1);
+
+    purc_variant_t s = purc_variant_make_string("world", false);
+    ASSERT_NE(s, nullptr);
+    purc_variant_t obj;
+    obj = purc_variant_make_object_by_static_ckey(1, "hello", s);
+    ASSERT_NE(obj, nullptr);
+    ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], 1);
+    bool t = purc_variant_set_add(var, obj, false);
+    ASSERT_EQ(t, true);
+    purc_variant_unref(obj);
+    purc_variant_unref(s);
+    ASSERT_EQ(obj->refc, 1);
+
+    ASSERT_EQ(stat->nr_values[PVT(_STRING)], 2);
+    ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], 1);
+    ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
+
+    ASSERT_EQ(var->refc, 1);
+    purc_variant_unref(var);
+    ASSERT_EQ(stat->nr_values[PVT(_SET)], 0);
+    ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], 0);
+    ASSERT_EQ(stat->nr_values[PVT(_STRING)], 0);
+
+    cleanup = purc_cleanup ();
+    ASSERT_EQ (cleanup, true);
+}
+
 TEST(variant_set, add_n_str)
 {
     purc_instance_extra_info info = {0, 0};

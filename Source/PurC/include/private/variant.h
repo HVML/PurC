@@ -28,8 +28,8 @@
 #include "config.h"
 #include "purc-variant.h"
 #include "arraylist.h"
-#include "avl.h"
 #include "hashtable.h"
+#include "rbtree.h"
 
 #include <assert.h>
 
@@ -135,7 +135,7 @@ void pcvariant_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 typedef struct variant_set      *variant_set_t;
 
 struct obj_node {
-    struct avl_node  avl;
+    struct rb_node   node;
     purc_variant_t   obj;       // actual variant-object
     purc_variant_t  *kvs;
 };
@@ -144,7 +144,8 @@ struct variant_set {
     char                   *unique_key; // unique-key duplicated
     char                  **keynames;
     size_t                  nr_keynames;
-    struct avl_tree         objs;       // multiple-variant-objects stored in set
+    struct rb_root          objs;       // multiple-variant-objects stored in set
+    size_t                  count;
 };
 
 void pcvariant_set_release_obj(struct obj_node *p);
@@ -218,25 +219,35 @@ void pcvariant_set_release_obj(struct obj_node *p);
 #define foreach_value_in_variant_set(_set, _val)                        \
     do {                                                                \
         variant_set_t _data;                                            \
-        struct avl_tree *_tree;                                         \
-        struct obj_node *_elem;                                         \
+        struct rb_root *_root;                                          \
+        struct rb_node *_node;                                          \
         _data = (variant_set_t)_set->sz_ptr[1];                         \
-        _tree = &_data->objs;                                           \
-        avl_for_each_element(_tree, _elem, avl) {                       \
-            _val = _elem->obj;                                          \
+        _root = &_data->objs;                                           \
+        for (_node = pcutils_rbtree_first(_root);                       \
+             _node;                                                     \
+             _node = pcutils_rbtree_next(_node))                        \
+        {                                                               \
+            struct obj_node *_p;                                        \
+            _p = container_of(_node, struct obj_node, node);            \
+            _val = _p->obj;                                             \
      /* } */                                                            \
   /* } while (0) */
 
-#define foreach_value_in_variant_set_safe(_set, _val, _curr)            \
-    do {                                                                \
-        variant_set_t _data;                                            \
-        struct avl_tree *_tree;                                         \
-        struct obj_node *_tmp;                                          \
-        _data = (variant_set_t)_set->sz_ptr[1];                         \
-        _tree = &_data->objs;                                           \
-        avl_for_each_element_safe(_tree, _curr, avl, _tmp) {            \
-            _val = _curr->obj;                                          \
-     /* } */                                                            \
+#define foreach_value_in_variant_set_safe(_set, _val, _curr)                 \
+    do {                                                                     \
+        variant_set_t _data;                                                 \
+        struct rb_root *_root;                                               \
+        struct rb_node *_node, *_next;                                       \
+        _data = (variant_set_t)_set->sz_ptr[1];                              \
+        _root = &_data->objs;                                                \
+        for (_node = pcutils_rbtree_first(_root);                            \
+             ({_next = _node ? pcutils_rbtree_next(_node) : NULL; _node; }); \
+             _next = _node)                                                  \
+        {                                                                    \
+            struct obj_node *_p;                                             \
+            _p = container_of(_node, struct obj_node, node);                 \
+            _val = _p->obj;                                                  \
+     /* } */                                                                 \
   /* } while (0) */
 
 #define end_foreach                                                     \
