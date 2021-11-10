@@ -15,7 +15,8 @@ set(PURC_HEADER_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}/purc" CACHE PATH "Absol
 add_definitions(-DBUILDING_LINUX__=1)
 # add_definitions(-DPURC_API_VERSION_STRING="${PURC_API_VERSION}")
 
-find_package(GLIB 2.44.0 COMPONENTS gio gio-unix)
+find_package(GLIB 2.44.0 COMPONENTS gio gio-unix gmodule)
+find_package(Ncurses 5.0)
 find_package(HiBus 100)
 find_package(LibXml2 2.8.0)
 find_package(LibSoup 2.54.0)
@@ -33,6 +34,12 @@ if (NOT GLIB_FOUND)
 else ()
     set(ENABLE_SOCKET_STREAM_DEFAULT ON)
     SET_AND_EXPOSE_TO_BUILD(HAVE_GLIB ON)
+endif ()
+
+if (NOT Ncurses_FOUND)
+    SET_AND_EXPOSE_TO_BUILD(HAVE_NCURSES OFF)
+else ()
+    SET_AND_EXPOSE_TO_BUILD(HAVE_NCURSES ON)
 endif ()
 
 if (NOT LIBXML2_FOUND)

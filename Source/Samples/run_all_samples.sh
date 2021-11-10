@@ -1,6 +1,6 @@
 #!/bin/sh
 
-SAMPLE_PROGS=`find Source/Samples/ -executable -type f`
+SAMPLE_PROGS=`find Source/Samples/ -perm -0111 -type f`
 
 total_passed=0
 total_failed=0
