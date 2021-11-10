@@ -134,9 +134,9 @@ void pcvariant_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 // internal struct used by variant-set object
 typedef struct variant_set      *variant_set_t;
 
-struct obj_node {
+struct elem_node {
     struct rb_node   node;
-    purc_variant_t   obj;       // actual variant-object
+    purc_variant_t   elem;  // actual variant-element
     purc_variant_t  *kvs;
     size_t           idx;
 };
@@ -145,11 +145,9 @@ struct variant_set {
     char                   *unique_key; // unique-key duplicated
     char                  **keynames;
     size_t                  nr_keynames;
-    struct rb_root          objs;   // multiple-variant-objects stored in set
+    struct rb_root          elems;  // multiple-variant-elements stored in set
     struct pcutils_arrlist *arr;    // also stored in arraylist
 };
-
-void pcvariant_set_release_obj(struct obj_node *p);
 
 #ifdef __cplusplus
 }
@@ -223,14 +221,14 @@ void pcvariant_set_release_obj(struct obj_node *p);
         struct rb_root *_root;                                          \
         struct rb_node *_node;                                          \
         _data = (variant_set_t)_set->sz_ptr[1];                         \
-        _root = &_data->objs;                                           \
+        _root = &_data->elems;                                          \
         for (_node = pcutils_rbtree_first(_root);                       \
              _node;                                                     \
              _node = pcutils_rbtree_next(_node))                        \
         {                                                               \
-            struct obj_node *_p;                                        \
-            _p = container_of(_node, struct obj_node, node);            \
-            _val = _p->obj;                                             \
+            struct elem_node *_p;                                       \
+            _p = container_of(_node, struct elem_node, node);           \
+            _val = _p->elem;                                            \
      /* } */                                                            \
   /* } while (0) */
 
@@ -240,14 +238,14 @@ void pcvariant_set_release_obj(struct obj_node *p);
         struct rb_root *_root;                                               \
         struct rb_node *_node, *_next;                                       \
         _data = (variant_set_t)_set->sz_ptr[1];                              \
-        _root = &_data->objs;                                                \
+        _root = &_data->elems;                                               \
         for (_node = pcutils_rbtree_first(_root);                            \
              ({_next = _node ? pcutils_rbtree_next(_node) : NULL; _node; }); \
              _next = _node)                                                  \
         {                                                                    \
-            struct obj_node *_p;                                             \
-            _p = container_of(_node, struct obj_node, node);                 \
-            _val = _p->obj;                                                  \
+            struct elem_node *_p;                                            \
+            _p = container_of(_node, struct elem_node, node);                \
+            _val = _p->elem;                                                 \
      /* } */                                                                 \
   /* } while (0) */
 
