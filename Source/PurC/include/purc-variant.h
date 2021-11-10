@@ -1087,6 +1087,19 @@ static inline size_t purc_variant_set_get_size(purc_variant_t set)
 }
 
 /**
+ * Gets an element from set by index.
+ *
+ * @param array: the variant value of set type
+ * @param idx: the index of wanted element
+ *
+ * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_set_get(purc_variant_t set, int idx);
+
+/**
  * set iterator usage example:
  *
  * purc_variant_t obj;

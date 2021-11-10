@@ -24,6 +24,24 @@ static int _get_random(int max)
     return (max<0) ? rand() : rand() % max;
 }
 
+static inline bool
+sanity_check(purc_variant_t set)
+{
+    size_t sz;
+    bool ok;
+    ok = purc_variant_set_size(set, &sz);
+    if (!ok)
+        return false;
+
+    for (size_t i=0; i<sz; ++i) {
+        purc_variant_t v = purc_variant_set_get(set, i);
+        if (v == PURC_VARIANT_INVALID)
+            return false;
+    }
+
+    return true;
+}
+
 TEST(variant_set, init_with_1_str)
 {
     purc_instance_extra_info info = {0, 0};
@@ -55,6 +73,7 @@ TEST(variant_set, init_with_1_str)
     purc_variant_t var = purc_variant_make_set_by_ckey(0, "hello", NULL);
     ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
     ASSERT_EQ(stat->nr_values[PVT(_STRING)], 1);
+    ASSERT_TRUE(sanity_check(var));
 
     purc_variant_ref(var);
     ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
@@ -96,6 +115,8 @@ TEST(variant_set, init_0_elem)
     ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
     ASSERT_EQ(var->refc, 1);
 
+    ASSERT_TRUE(sanity_check(var));
+
     purc_variant_ref(var);
     ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
     purc_variant_unref(var);
@@ -133,6 +154,8 @@ TEST(variant_set, add_1_str)
     ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
     ASSERT_EQ(var->refc, 1);
 
+    ASSERT_TRUE(sanity_check(var));
+
     purc_variant_t s = purc_variant_make_string("world", false);
     ASSERT_NE(s, nullptr);
     purc_variant_t obj;
@@ -141,6 +164,9 @@ TEST(variant_set, add_1_str)
     ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], 1);
     bool t = purc_variant_set_add(var, obj, false);
     ASSERT_EQ(t, true);
+
+    ASSERT_TRUE(sanity_check(var));
+
     purc_variant_unref(obj);
     purc_variant_unref(s);
     ASSERT_EQ(obj->refc, 1);
@@ -177,6 +203,8 @@ TEST(variant_set, add_n_str)
     ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
     ASSERT_EQ(var->refc, 1);
 
+    ASSERT_TRUE(sanity_check(var));
+
     int count = 1024;
     char buf[64];
     for (int j=0; j<count; ++j) {
@@ -189,6 +217,9 @@ TEST(variant_set, add_n_str)
         ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], j+1);
         bool t = purc_variant_set_add(var, obj, false);
         ASSERT_EQ(t, true);
+
+        ASSERT_TRUE(sanity_check(var));
+
         purc_variant_unref(obj);
         purc_variant_unref(s);
         ASSERT_EQ(obj->refc, 1);
@@ -222,6 +253,8 @@ TEST(variant_set, add_n_str)
         if (1) {
             bool ok = purc_variant_set_remove(var, v);
             ASSERT_EQ(ok, true);
+
+            ASSERT_TRUE(sanity_check(var));
         }
         break;
     }
@@ -238,6 +271,8 @@ TEST(variant_set, add_n_str)
         v = purc_variant_set_get_member_by_key_values(var, q);
         ASSERT_EQ(v, nullptr);
         purc_variant_unref(q);
+
+        ASSERT_TRUE(sanity_check(var));
     }
 
     if (1) {
@@ -251,6 +286,8 @@ TEST(variant_set, add_n_str)
         v = purc_variant_set_get_member_by_key_values(var, q);
         ASSERT_EQ(v, nullptr);
         purc_variant_unref(q);
+
+        ASSERT_TRUE(sanity_check(var));
     }
 
     // int idx = _get_random(count);

@@ -138,14 +138,15 @@ struct obj_node {
     struct rb_node   node;
     purc_variant_t   obj;       // actual variant-object
     purc_variant_t  *kvs;
+    size_t           idx;
 };
 
 struct variant_set {
     char                   *unique_key; // unique-key duplicated
     char                  **keynames;
     size_t                  nr_keynames;
-    struct rb_root          objs;       // multiple-variant-objects stored in set
-    size_t                  count;
+    struct rb_root          objs;   // multiple-variant-objects stored in set
+    struct pcutils_arrlist *arr;    // also stored in arraylist
 };
 
 void pcvariant_set_release_obj(struct obj_node *p);
