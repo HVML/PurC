@@ -180,11 +180,3 @@ endif ()
 
 check_type_size("uintmax_t" SIZEOF_UINTMAX_T)
 
-check_type_size("mode_t" SIZEOF_MODE_T)
-check_type_size("int" SIZEOF_INT)
-if (${SIZEOF_MODE_T} LESS ${SIZEOF_INT})
-  SET_AND_EXPOSE_TO_BUILD(HAVE_MODE_T_LT_INT ON)
-else ()
-  SET_AND_EXPOSE_TO_BUILD(HAVE_MODE_T_LT_INT OFF)
-endif ()
-
