@@ -55,6 +55,8 @@ variant_set_get_extra_size(variant_set_t set)
         sizeof(purc_variant_t) * set->nr_keynames;
     size_t count = pcutils_arrlist_length(set->arr);
     extra += sz_record * count;
+    extra += sizeof(*set->arr);
+    extra += sizeof(struct elem_node*)*(set->arr->size);
 
     return extra;
 }
@@ -89,8 +91,6 @@ variant_set_keyvals_cmp (const void *k1, const void *k2, void *ptr)
 static int
 variant_set_init(variant_set_t set, const char *unique_key)
 {
-    PC_ASSERT(unique_key);
-
     set->elems = RB_ROOT;
 
     size_t initial_size = ARRAY_LIST_DEFAULT_SIZE;
@@ -100,7 +100,7 @@ variant_set_init(variant_set_t set, const char *unique_key)
         return -1;
     }
 
-    if (!*unique_key) {
+    if (!unique_key || !*unique_key) {
         // empty key
         set->nr_keynames = 1;
         return 0;
@@ -524,9 +524,6 @@ pv_make_set_by_ckey_n (size_t sz, const char* unique_key,
     PCVARIANT_CHECK_FAIL_RET((sz==0 && value0==NULL) || (sz>0 && value0),
         PURC_VARIANT_INVALID);
 
-    if (!unique_key)
-        unique_key = "";
-
     purc_variant_t v = make_set_c(sz, unique_key, value0, ap);
 
     return v;
@@ -556,22 +553,13 @@ pv_make_set_n (size_t sz, purc_variant_t unique_key,
     PCVARIANT_CHECK_FAIL_RET(!unique_key || unique_key->type==PVT(_STRING),
         PURC_VARIANT_INVALID);
 
-    if (!unique_key) {
-        unique_key = purc_variant_make_string("", false);
-        if (!unique_key) {
-            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            return PURC_VARIANT_INVALID;
-        }
-    } else {
-        purc_variant_ref(unique_key);
+    const char *uk = NULL;
+    if (unique_key) {
+        uk = purc_variant_get_string_const(unique_key);
+        PC_ASSERT(uk);
     }
 
-    const char *uk = purc_variant_get_string_const(unique_key);
-    PC_ASSERT(uk);
-
     purc_variant_t v = make_set_c(sz, uk, value0, ap);
-
-    purc_variant_unref(unique_key);
 
     return v;
 }

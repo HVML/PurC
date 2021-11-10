@@ -97,6 +97,59 @@ TEST(variant_set, init_with_1_str)
     ASSERT_EQ (cleanup, true);
 }
 
+TEST(variant_set, non_object)
+{
+    purc_instance_extra_info info = {0, 0};
+    int ret = 0;
+    bool cleanup = false;
+
+    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ(ret, PURC_ERROR_OK);
+
+    const char *elems[] = {
+        "hello",
+        "world",
+        "foo",
+        "bar",
+        "great",
+        "wall",
+    };
+    const char *expect = "bar\nfoo\ngreat\nhello\nwall\nworld\n";
+
+    purc_variant_t set;
+    set = purc_variant_make_set_by_ckey(0, NULL, PURC_VARIANT_INVALID);
+    ASSERT_NE(set, PURC_VARIANT_INVALID);
+
+    for (size_t i=0; i<PCA_TABLESIZE(elems); ++i) {
+        const char *elem = elems[i];
+        purc_variant_t s;
+        s = purc_variant_make_string_static(elem, false);
+        ASSERT_NE(s, PURC_VARIANT_INVALID);
+        bool ok = purc_variant_set_add(set, s, false);
+        ASSERT_TRUE(ok);
+        purc_variant_unref(s);
+    }
+
+    for (size_t i=0; i<PCA_TABLESIZE(elems); ++i) {
+        const char *elem = elems[i];
+        purc_variant_t s;
+        s = purc_variant_make_string_static(elem, false);
+        ASSERT_NE(s, PURC_VARIANT_INVALID);
+        bool ok = purc_variant_set_add(set, s, false);
+        ASSERT_FALSE(ok);
+        purc_variant_unref(s);
+    }
+
+    char buf[8192];
+    int r = purc_variant_stringify(buf, sizeof(buf), set);
+    ASSERT_GT(r, 0);
+    ASSERT_STREQ(buf, expect);
+
+    purc_variant_unref(set);
+    cleanup = purc_cleanup ();
+    ASSERT_EQ (cleanup, true);
+}
+
 TEST(variant_set, init_0_elem)
 {
     purc_instance_extra_info info = {0, 0};
