@@ -702,7 +702,7 @@ purc_variant_set_size(purc_variant_t set, size_t *sz)
 }
 
 purc_variant_t
-purc_variant_set_get(purc_variant_t set, int idx)
+purc_variant_set_get_by_index(purc_variant_t set, int idx)
 {
     PC_ASSERT(set);
 

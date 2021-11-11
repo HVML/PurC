@@ -34,7 +34,7 @@ sanity_check(purc_variant_t set)
         return false;
 
     for (size_t i=0; i<sz; ++i) {
-        purc_variant_t v = purc_variant_set_get(set, i);
+        purc_variant_t v = purc_variant_set_get_by_index(set, i);
         if (v == PURC_VARIANT_INVALID)
             return false;
     }
