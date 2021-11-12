@@ -218,16 +218,13 @@ struct variant_set {
 #define foreach_value_in_variant_set(_set, _val)                        \
     do {                                                                \
         variant_set_t _data;                                            \
-        struct rb_root *_root;                                          \
-        struct rb_node *_node;                                          \
+        struct pcutils_arrlist *_arr;                                   \
         _data = (variant_set_t)_set->sz_ptr[1];                         \
-        _root = &_data->elems;                                          \
-        for (_node = pcutils_rbtree_first(_root);                       \
-             _node;                                                     \
-             _node = pcutils_rbtree_next(_node))                        \
-        {                                                               \
+        _arr  = _data->arr;                                             \
+        size_t _i;                                                      \
+        for (_i=0; _i<_arr->length; ++_i) {                             \
             struct elem_node *_p;                                       \
-            _p = container_of(_node, struct elem_node, node);           \
+            _p = (struct elem_node*)pcutils_arrlist_get_idx(_arr, _i);  \
             _val = _p->elem;                                            \
      /* } */                                                            \
   /* } while (0) */

@@ -68,6 +68,8 @@ static pcvariant_release_fn variant_releasers[PURC_VARIANT_TYPE_NR] = {
 static const char* variant_err_msgs[] = {
     /* PCVARIANT_ERROR_INVALID_TYPE */
     "Invalid variant type",
+    /* PCVARIANT_ERROR_OUT_OF_BOUNDS */
+    "Index out of bounds",
     /* PCVARIANT_ERROR_NOT_FOUND */
     "Element not found",
 };

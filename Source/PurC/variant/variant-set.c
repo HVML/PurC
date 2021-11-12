@@ -413,7 +413,7 @@ insert_or_replace(variant_set_t set, struct elem_node *node, bool override)
     curr->kvs = node->kvs;
     node->kvs = NULL;
     curr->elem = node->elem;
-    purc_variant_ref(curr->elem);
+    node->elem = PURC_VARIANT_INVALID;
     set_release(node);
     free(node);
 
@@ -719,6 +719,62 @@ purc_variant_set_get_by_index(purc_variant_t set, int idx)
     PC_ASSERT(node->elem != PURC_VARIANT_INVALID);
 
     return node->elem;
+}
+
+PCA_EXPORT purc_variant_t
+purc_variant_set_remove_by_index(purc_variant_t set, int idx)
+{
+    PC_ASSERT(set);
+
+    variant_set_t data = pcv_set_get_data(set);
+    size_t count = pcutils_arrlist_length(data->arr);
+
+    if (idx < 0 || (size_t)idx >= count) {
+        pcinst_set_error(PCVARIANT_ERROR_OUT_OF_BOUNDS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    struct elem_node *elem;
+    elem = (struct elem_node*)pcutils_arrlist_get_idx(data->arr, idx);
+    PC_ASSERT(elem);
+    PC_ASSERT(elem->idx == (size_t)idx);
+
+    pcutils_rbtree_erase(&elem->node, &data->elems);
+    int r = pcutils_arrlist_del_idx(data->arr, elem->idx, 1);
+    PC_ASSERT(r==0);
+    refresh_arr(data->arr, elem->idx);
+    purc_variant_t v = elem->elem;
+    elem->elem = PURC_VARIANT_INVALID;
+    set_release(elem);
+    free(elem);
+
+    return v;
+}
+
+PCA_EXPORT bool
+purc_variant_set_set_by_index(purc_variant_t set, int idx, purc_variant_t val)
+{
+    PC_ASSERT(set);
+
+    variant_set_t data = pcv_set_get_data(set);
+    size_t count = pcutils_arrlist_length(data->arr);
+
+    if (idx < 0 || (size_t)idx >= count) {
+        pcinst_set_error(PCVARIANT_ERROR_OUT_OF_BOUNDS);
+        return false;
+    }
+
+    struct elem_node *elem;
+    elem = (struct elem_node*)pcutils_arrlist_get_idx(data->arr, idx);
+    if (elem->elem == val)
+        return true;
+
+    purc_variant_t v = purc_variant_set_remove_by_index(set, idx);
+    PC_ASSERT(v != PURC_VARIANT_INVALID);
+    bool ok = purc_variant_set_add(set, val, true);
+    PC_ASSERT(ok);
+    purc_variant_unref(v);
+    return ok;
 }
 
 struct purc_variant_set_iterator {

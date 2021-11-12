@@ -86,6 +86,7 @@ enum {
     PCVARIANT_ERROR_FIRST           = PURC_ERROR_FIRST_VARIANT,
 
     PCVARIANT_ERROR_INVALID_TYPE    = PCVARIANT_ERROR_FIRST,
+    PCVARIANT_ERROR_OUT_OF_BOUNDS,
     PCVARIANT_ERROR_NOT_FOUND,
 
     /* XXX: change this when you append a new error code */

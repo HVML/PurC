@@ -1100,6 +1100,33 @@ PCA_EXPORT purc_variant_t
 purc_variant_set_get_by_index(purc_variant_t set, int idx);
 
 /**
+ * Remove the element in set by index and return
+ *
+ * @param array: the variant value of set type
+ * @param idx: the index of the element to be removed
+ *
+ * Returns: the variant removed at the index or PURC_VARIANT_INVALID if failed
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_set_remove_by_index(purc_variant_t set, int idx);
+
+/**
+ * Set an element in set by index.
+ *
+ * @param array: the variant value of set type
+ * @param idx: the index of the element to be replaced
+ * @val: the val that's to be set in the set
+ *
+ * Returns: A boolean that indicates if it succeeds or not
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT bool
+purc_variant_set_set_by_index(purc_variant_t set, int idx, purc_variant_t val);
+
+/**
  * set iterator usage example:
  *
  * purc_variant_t obj;
