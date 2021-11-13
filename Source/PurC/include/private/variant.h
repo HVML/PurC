@@ -29,6 +29,7 @@
 #include "purc-variant.h"
 #include "arraylist.h"
 #include "hashtable.h"
+#include "list.h"
 #include "rbtree.h"
 
 #include <assert.h>
@@ -49,6 +50,23 @@ extern "C" {
 
 #define EXOBJ_LOAD_ENTRY        "__purcex_load_dynamic_variant"
 #define EXOBJ_LOAD_HANDLE_KEY   "__intr_dlhandle"
+
+
+
+struct pcvar_listener {
+    // the name of the listener; using atom
+    purc_atom_t         name;
+
+    // the context for the listener
+    void*               ctxt;
+
+    // the message callback
+    pcvar_msg_handler   handler;
+
+    // list node
+    struct list_head    list_node;
+};
+
 // structure for variant
 struct purc_variant {
 
@@ -65,6 +83,9 @@ struct purc_variant {
 
     /* reference count */
     unsigned int refc;
+
+    /* observer listeners */
+    struct list_head        listeners;
 
     /* value */
     union {

@@ -327,6 +327,9 @@ purc_variant_t pcvariant_get(enum purc_variant_type type)
     stat->nr_values[type]++;
     stat->nr_total_values++;
 
+    // init listeners
+    INIT_LIST_HEAD(&value->listeners);
+
     return value;
 }
 
@@ -337,6 +340,7 @@ void pcvariant_put(purc_variant_t value)
     struct purc_variant_stat *stat = &(heap->stat);
 
     PC_ASSERT(value);
+    PC_ASSERT(list_empty(&value->listeners));
 
     // set stat information
     stat->nr_values[value->type]--;

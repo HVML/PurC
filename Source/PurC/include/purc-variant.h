@@ -31,6 +31,7 @@
 
 #include "purc-macros.h"
 #include "purc-rwstream.h"
+#include "purc-utils.h"
 
 struct purc_variant;
 typedef struct purc_variant purc_variant;
@@ -41,6 +42,10 @@ typedef struct purc_variant* purc_variant_t;
 #define PURC_VARIANT_BADSIZE            ((size_t)(-1))
 
 PCA_EXTERN_C_BEGIN
+
+typedef bool (*pcvar_msg_handler) (purc_variant_t source,
+        purc_atom_t msg_type, void *ctxt,
+        size_t nr_args, purc_variant_t *argv);
 
 /**
  * Adds ref for a variant value
@@ -1746,6 +1751,41 @@ purc_variant_stringify(char *buf, size_t len, purc_variant_t value);
  */
 PCA_EXPORT int
 purc_variant_stringify_alloc(char **strp, purc_variant_t value);
+
+/**
+ * Register a variant listener
+ *
+ * @param v: the variant that is to be observed
+ *
+ * @param name: the name of the observer
+ *
+ * @param handler: the callback that is to be called upon when the observed
+ *                 event is fired
+ * @param ctxt: the context belongs to the callback
+ *
+ * Returns: boolean that designates if the operation succeeds or not
+ *
+ * Since: 0.0.4
+ */
+PCA_EXPORT bool
+purc_variant_register_listener(purc_variant_t v, purc_atom_t name,
+        pcvar_msg_handler handler, void *ctxt);
+
+/**
+ * Revoke a variant listener
+ *
+ * @param v: the variant whose listener is to be revoked
+ *
+ * @param name: the name of the listener that is to be revoked
+ *
+ * Returns: boolean that designates if the operation succeeds or not
+ *
+ * Since: 0.0.4
+ */
+
+PCA_EXPORT bool
+purc_variant_revoke_listener(purc_variant_t v, purc_atom_t name);
+
 
 PCA_EXTERN_C_END
 
