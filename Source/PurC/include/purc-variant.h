@@ -1782,7 +1782,6 @@ purc_variant_register_listener(purc_variant_t v, purc_atom_t name,
  *
  * Since: 0.0.4
  */
-
 PCA_EXPORT bool
 purc_variant_revoke_listener(purc_variant_t v, purc_atom_t name);
 
