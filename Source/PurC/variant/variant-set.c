@@ -37,6 +37,83 @@
 #include <stdlib.h>
 #include <string.h>
 
+static inline void
+grown(purc_variant_t set, purc_variant_t value)
+{
+    if (!list_empty(&set->listeners))
+        return;
+    purc_atom_t msg_type = purc_atom_from_string("grown");
+    PC_ASSERT(msg_type);
+
+    struct list_head *p;
+    list_for_each(p, &set->listeners) {
+        struct pcvar_listener *l;
+        l = container_of(p, struct pcvar_listener, list_node);
+        PC_ASSERT(l->handler);
+        if (l->name != msg_type)
+            continue;
+
+        purc_variant_t args[] = {
+            value,
+        };
+        bool ok = l->handler(set, msg_type, l->ctxt,
+            PCA_TABLESIZE(args), args);
+        PC_ASSERT(ok);
+    }
+}
+
+static inline void
+shrunk(purc_variant_t set, purc_variant_t value)
+{
+    if (!list_empty(&set->listeners))
+        return;
+    purc_atom_t msg_type = purc_atom_from_string("shrunk");
+    PC_ASSERT(msg_type);
+
+    struct list_head *p;
+    list_for_each(p, &set->listeners) {
+        struct pcvar_listener *l;
+        l = container_of(p, struct pcvar_listener, list_node);
+        PC_ASSERT(l->handler);
+        if (l->name != msg_type)
+            continue;
+
+        purc_variant_t args[] = {
+            value,
+        };
+        bool ok = l->handler(set, msg_type, l->ctxt,
+            PCA_TABLESIZE(args), args);
+        PC_ASSERT(ok);
+    }
+}
+
+static inline void
+change(purc_variant_t set,
+        purc_variant_t o, purc_variant_t n)
+{
+    if (!list_empty(&set->listeners))
+        return;
+    purc_atom_t msg_type = purc_atom_from_string("change");
+    PC_ASSERT(msg_type);
+
+    struct list_head *p;
+    list_for_each(p, &set->listeners) {
+        struct pcvar_listener *l;
+        l = container_of(p, struct pcvar_listener, list_node);
+        PC_ASSERT(l->handler);
+        if (l->name != msg_type)
+            continue;
+
+        purc_variant_t args[] = {
+            n,
+            o,
+        };
+        bool ok = l->handler(set, msg_type, l->ctxt,
+            PCA_TABLESIZE(args), args);
+        PC_ASSERT(ok);
+    }
+}
+
 static inline variant_set_t
 pcv_set_get_data(purc_variant_t set)
 {
@@ -365,15 +442,16 @@ find_element(variant_set_t set, void *key)
 }
 
 static inline int
-insert_or_replace(variant_set_t set, struct elem_node *node, bool override)
+insert_or_replace(purc_variant_t set,
+        variant_set_t data, struct elem_node *node, bool override)
 {
-    struct rb_node **pnode = &set->elems.rb_node;
+    struct rb_node **pnode = &data->elems.rb_node;
     struct rb_node *parent = NULL;
     struct rb_node *entry = NULL;
     while (*pnode) {
         struct elem_node *on;
         on = container_of(*pnode, struct elem_node, node);
-        int ret = variant_set_keyvals_cmp(node->kvs, on->kvs, set);
+        int ret = variant_set_keyvals_cmp(node->kvs, on->kvs, data);
 
         parent = *pnode;
 
@@ -388,16 +466,19 @@ insert_or_replace(variant_set_t set, struct elem_node *node, bool override)
     }
 
     if (!entry) {
-        int r = pcutils_arrlist_add(set->arr, node);
+        int r = pcutils_arrlist_add(data->arr, node);
         if (r)
             return -1;
-        size_t count = pcutils_arrlist_length(set->arr);
+        size_t count = pcutils_arrlist_length(data->arr);
         node->idx = count - 1;
 
         entry = &node->node;
 
         pcutils_rbtree_link_node(entry, parent, pnode);
-        pcutils_rbtree_insert_color(entry, &set->elems);
+        pcutils_rbtree_insert_color(entry, &data->elems);
+
+        grown(set, node->elem);
+
         return 0;
     }
 
@@ -410,6 +491,9 @@ insert_or_replace(variant_set_t set, struct elem_node *node, bool override)
     PC_ASSERT(curr != node);
     PC_ASSERT(curr->kvs != node->kvs);
     PC_ASSERT(curr->elem != node->elem);
+
+    change(set, curr->elem, node->elem);
+
     curr->kvs = node->kvs;
     node->kvs = NULL;
     curr->elem = node->elem;
@@ -420,39 +504,38 @@ insert_or_replace(variant_set_t set, struct elem_node *node, bool override)
     return 0;
 }
 
-static inline int
-set_remove_by_key(variant_set_t set, void *key)
+static inline void
+set_remove(purc_variant_t set, variant_set_t data, struct elem_node *node)
 {
-    struct elem_node *p;
-    p = find_element(set, key);
-    if (!p)
-        return -1;
-    pcutils_rbtree_erase(&p->node, &set->elems);
-    int r = pcutils_arrlist_del_idx(set->arr, p->idx, 1);
+    pcutils_rbtree_erase(&node->node, &data->elems);
+    int r = pcutils_arrlist_del_idx(data->arr, node->idx, 1);
     PC_ASSERT(r==0);
-    refresh_arr(set->arr, p->idx);
-    p->idx = -1;
-    set_release(p);
-    free(p);
-    return 0;
+
+    shrunk(set, node->elem);
+
+    refresh_arr(data->arr, node->idx);
+    node->idx = -1;
+    set_release(node);
+    free(node);
 }
 
 static int
-variant_set_add_val(variant_set_t set, purc_variant_t val, bool override)
+variant_set_add_val(purc_variant_t set,
+        variant_set_t data, purc_variant_t val, bool override)
 {
     if (!val) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return -1;
     }
     struct elem_node *_new;
-    _new = variant_set_create_elem_node(set, val);
+    _new = variant_set_create_elem_node(data, val);
 
     if (!_new) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return -1;
     }
 
-    if (insert_or_replace(set, _new, override)) {
+    if (insert_or_replace(set, data, _new, override)) {
         set_release(_new);
         free(_new);
         return -1;
@@ -462,7 +545,7 @@ variant_set_add_val(variant_set_t set, purc_variant_t val, bool override)
 }
 
 static int
-variant_set_add_valsn(variant_set_t set, bool override,
+variant_set_add_valsn(purc_variant_t set, variant_set_t data, bool override,
     size_t sz, va_list ap)
 {
     size_t i = 0;
@@ -473,7 +556,7 @@ variant_set_add_valsn(variant_set_t set, bool override,
             break;
         }
 
-        if (variant_set_add_val(set, v, override)) {
+        if (variant_set_add_val(set, data, v, override)) {
             break;
         }
 
@@ -498,10 +581,10 @@ make_set_c(size_t sz, const char *unique_key,
 
         if (sz>0) {
             purc_variant_t  v = value0;
-            if (variant_set_add_val(data, v, true))
+            if (variant_set_add_val(set, data, v, true))
                 break;
 
-            int r = variant_set_add_valsn(data, true, sz-1, ap);
+            int r = variant_set_add_valsn(set, data, true, sz-1, ap);
             if (r)
                 break;
         }
@@ -586,7 +669,7 @@ purc_variant_set_add (purc_variant_t set, purc_variant_t value, bool override)
     variant_set_t data = pcv_set_get_data(set);
     PC_ASSERT(data);
 
-    if (variant_set_add_val(data, value, override))
+    if (variant_set_add_val(set, data, value, override))
         return false;
 
     size_t extra = variant_set_get_extra_size(data);
@@ -608,9 +691,14 @@ purc_variant_set_remove (purc_variant_t set, purc_variant_t value)
     if (!kvs)
         return false;
 
-    int r = set_remove_by_key(data, kvs);
+    struct elem_node *p;
+    p = find_element(data, kvs);
+    if (p) {
+        set_remove(set, data, p);
+    }
     free(kvs);
-    return r ? false : true;
+
+    return p ? true : false;
 }
 
 purc_variant_t
@@ -657,7 +745,7 @@ purc_variant_set_remove_member_by_key_values(purc_variant_t set,
     purc_variant_t *kvs = variant_set_create_kvs_n(data, v1, ap);
     va_end(ap);
     if (!kvs)
-        return false;
+        return PURC_VARIANT_INVALID;
 
     struct elem_node *p;
     p = find_element(data, kvs);
@@ -671,13 +759,7 @@ purc_variant_set_remove_member_by_key_values(purc_variant_t set,
     purc_variant_t v = p->elem;
     purc_variant_ref(v);
 
-    pcutils_rbtree_erase(&p->node, &data->elems);
-    int r = pcutils_arrlist_del_idx(data->arr, p->idx, 1);
-    PC_ASSERT(r==0);
-    refresh_arr(data->arr, p->idx);
-    p->idx = -1;
-    set_release(p);
-    free(p);
+    set_remove(set, data, p);
 
     size_t extra = variant_set_get_extra_size(data);
     pcvariant_stat_set_extra_size(set, extra);
@@ -739,14 +821,10 @@ purc_variant_set_remove_by_index(purc_variant_t set, int idx)
     PC_ASSERT(elem);
     PC_ASSERT(elem->idx == (size_t)idx);
 
-    pcutils_rbtree_erase(&elem->node, &data->elems);
-    int r = pcutils_arrlist_del_idx(data->arr, elem->idx, 1);
-    PC_ASSERT(r==0);
-    refresh_arr(data->arr, elem->idx);
     purc_variant_t v = elem->elem;
-    elem->elem = PURC_VARIANT_INVALID;
-    set_release(elem);
-    free(elem);
+    purc_variant_ref(v);
+
+    set_remove(set, data, elem);
 
     return v;
 }
