@@ -133,6 +133,8 @@ struct pcvariant_heap {
     struct purc_variant v_false;
     struct purc_variant v_true;
 
+    struct pcvariant_timers *timers;
+
     // the statistics of memory usage of variant values
     struct purc_variant_stat stat;
 
