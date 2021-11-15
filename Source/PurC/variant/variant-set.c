@@ -325,15 +325,15 @@ variant_set_release_elems(variant_set_t set)
 }
 
 static inline void
-variant_set_release(variant_set_t set)
+variant_set_release(variant_set_t data)
 {
-    variant_set_release_elems(set);
+    variant_set_release_elems(data);
 
-    free(set->keynames);
-    set->keynames = NULL;
-    set->nr_keynames = 0;
-    free(set->unique_key);
-    set->unique_key = NULL;
+    free(data->keynames);
+    data->keynames = NULL;
+    data->nr_keynames = 0;
+    free(data->unique_key);
+    data->unique_key = NULL;
 }
 
 static inline purc_variant_t*

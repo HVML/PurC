@@ -126,6 +126,28 @@ static void _fill_empty_with_undefined(struct pcutils_arrlist *al)
     }
 }
 
+static inline void
+array_release (purc_variant_t value)
+{
+    struct pcutils_arrlist *al = (struct pcutils_arrlist*)value->sz_ptr[1];
+    if (!al)
+        return;
+
+    size_t curr;
+    purc_variant_t variant = NULL;
+    foreach_value_in_variant_array_safe(value, variant, curr) {
+        purc_variant_unref(variant);
+        int r = pcutils_arrlist_del_idx(_al, curr, 1);
+        PC_ASSERT(r==0);
+        --curr;
+    } end_foreach;
+
+    pcutils_arrlist_free(al);
+    value->sz_ptr[1] = (uintptr_t)NULL;
+
+    pcvariant_stat_set_extra_size(value, 0);
+}
+
 static purc_variant_t
 pv_make_array_n (size_t sz, purc_variant_t value0, va_list ap)
 {
@@ -193,7 +215,7 @@ pv_make_array_n (size_t sz, purc_variant_t value0, va_list ap)
 
     } while (0);
 
-    pcvariant_array_release(var);
+    array_release(var);
     pcvariant_put(var);
 
     return PURC_VARIANT_INVALID;
@@ -213,22 +235,9 @@ purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
 void pcvariant_array_release (purc_variant_t value)
 {
     struct pcutils_arrlist *al = (struct pcutils_arrlist*)value->sz_ptr[1];
-    if (!al)
-        return;
+    PC_ASSERT(al);
 
-    size_t curr;
-    purc_variant_t variant = NULL;
-    foreach_value_in_variant_array_safe(value, variant, curr) {
-        purc_variant_unref(variant);
-        int r = pcutils_arrlist_del_idx(_al, curr, 1);
-        PC_ASSERT(r==0);
-        --curr;
-    } end_foreach;
-
-    pcutils_arrlist_free(al);
-    value->sz_ptr[1] = (uintptr_t)NULL;
-
-    pcvariant_stat_set_extra_size(value, 0);
+    array_release(value);
 }
 
 /* VWNOTE: unnecessary
