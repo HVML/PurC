@@ -11,11 +11,13 @@ add_subdirectory(PurC)
 
 add_subdirectory(ExtDVObjs)
 
+add_subdirectory(Samples)
+
+add_subdirectory(Tools)
+
 if (ENABLE_API_TESTS)
     add_subdirectory(ThirdParty/gtest)
     add_subdirectory(test)
 endif ()
-
-add_subdirectory(Samples)
 
 PURC_INCLUDE_CONFIG_FILES_IF_EXISTS()
