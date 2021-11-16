@@ -30,7 +30,6 @@
 #include "private/debug.h"
 #include "private/stringbuilder.h"
 #include "private/utils.h"
-#include "timers.h"
 #include "variant-internals.h"
 
 #include <stdlib.h>
@@ -158,13 +157,6 @@ void pcvariant_init_instance(struct pcinst *inst)
     inst->variant_heap.v_true.flags = PCVARIANT_FLAG_NOFREE;
     inst->variant_heap.v_true.b = true;
 
-    struct pcvariant_heap *heap;
-    heap = &inst->variant_heap;
-
-    heap->timers = (struct pcvariant_timers*)calloc(1, sizeof(*heap->timers));
-    PC_ASSERT(heap->timers);
-    pcvariant_timers_init(heap->timers);
-
     /* VWNOTE: there are two values of boolean.  */
     struct purc_variant_stat *stat = &(inst->variant_heap.stat);
     stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED] = 0;
@@ -203,8 +195,6 @@ void pcvariant_cleanup_instance(struct pcinst *inst)
 
     heap->headpos = 0;
     heap->tailpos = 0;
-
-    pcvariant_timers_release(heap->timers);
 }
 
 bool purc_variant_is_type(purc_variant_t value, enum purc_variant_type type)
