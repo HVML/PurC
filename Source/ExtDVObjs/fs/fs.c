@@ -46,14 +46,14 @@ purc_variant_t pcdvobjs_create_file (void);
 typedef purc_variant_t (*pcdvobjs_create) (void);
 
 // as FILE, FS, MATH
-struct pcdvojbs_dvobjs_object {
+struct pcdvobjs_dvobjs_object {
     const char *name;
     const char *description;
     pcdvobjs_create create_func;
 };
 
 // dynamic variant in dynamic object
-struct pcdvojbs_dvobjs {
+struct pcdvobjs_dvobjs {
     const char *name;
     purc_dvariant_method getter;
     purc_dvariant_method setter;
@@ -153,7 +153,7 @@ static bool wildcard_cmp (const char *str1, const char *pattern)
 }
 
 purc_variant_t pcdvobjs_make_dvobjs (
-        const struct pcdvojbs_dvobjs *method, size_t size)
+        const struct pcdvobjs_dvobjs *method, size_t size)
 {
     size_t i = 0;
     purc_variant_t val = PURC_VARIANT_INVALID;
@@ -1020,7 +1020,7 @@ rm_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
 static purc_variant_t pcdvobjs_create_fs(void)
 {
-    static struct pcdvojbs_dvobjs method [] = {
+    static struct pcdvobjs_dvobjs method [] = {
         {"list",     list_getter, NULL},
         {"list_prt", list_prt_getter, NULL},
         {"mkdir",    mkdir_getter, NULL},
@@ -1032,7 +1032,7 @@ static purc_variant_t pcdvobjs_create_fs(void)
     return pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));
 }
 
-static struct pcdvojbs_dvobjs_object dynamic_objects [] = {
+static struct pcdvobjs_dvobjs_object dynamic_objects [] = {
     {
         "FS",                                   // name
         "For File System Operations in PURC",   // description

@@ -34,7 +34,7 @@ extern "C" {
 typedef purc_variant_t (*pcdvobjs_create) (void);
 
 // dynamic variant in dynamic object
-struct pcdvojbs_dvobjs {
+struct pcdvobjs_dvobjs {
     const char * name;
     purc_dvariant_method getter;
     purc_dvariant_method setter;

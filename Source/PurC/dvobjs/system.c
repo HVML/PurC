@@ -1118,9 +1118,9 @@ time_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 // only for test now.
-purc_variant_t pcdvojbs_get_system (void)
+purc_variant_t pcdvobjs_get_system (void)
 {
-    static struct pcdvojbs_dvobjs method [] = {
+    static struct pcdvobjs_dvobjs method [] = {
         {"uname",     uname_getter,     NULL},
         {"uname_prt", uname_prt_getter, NULL},
         {"locale",    locale_getter,    locale_setter},

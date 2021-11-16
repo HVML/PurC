@@ -37,14 +37,14 @@
 #define ENDIAN_BIG          2
 
 // dynamic variant in dynamic object
-struct pcdvojbs_dvobjs {
+struct pcdvobjs_dvobjs {
     const char *name;
     purc_dvariant_method getter;
     purc_dvariant_method setter;
 };
 
 extern purc_variant_t pcdvobjs_make_dvobjs (
-        const struct pcdvojbs_dvobjs *method, size_t size);
+        const struct pcdvobjs_dvobjs *method, size_t size);
 
 static const char * pcdvobjs_get_next_option (const char *data,
         const char *delims, size_t *length)
@@ -1568,15 +1568,15 @@ purc_variant_t pcdvobjs_create_file (void)
     purc_variant_t file_stream = PURC_VARIANT_INVALID;
     purc_variant_t file = PURC_VARIANT_INVALID;
 
-    static struct pcdvojbs_dvobjs text [] = {
+    static struct pcdvobjs_dvobjs text [] = {
         {"head",     text_head_getter, NULL},
         {"tail",     text_tail_getter, NULL} };
 
-    static struct pcdvojbs_dvobjs  bin[] = {
+    static struct pcdvobjs_dvobjs  bin[] = {
         {"head",     bin_head_getter, NULL},
         {"tail",     bin_tail_getter, NULL} };
 
-    static struct pcdvojbs_dvobjs  stream[] = {
+    static struct pcdvobjs_dvobjs  stream[] = {
         {"open",        stream_open_getter,        NULL},
         {"readstruct",  stream_readstruct_getter,  NULL},
         {"writestruct", stream_writestruct_getter, NULL},
