@@ -99,7 +99,10 @@ eval_const(void* native_entity, size_t nr_args, purc_variant_t* argv)
     struct pcintr_stack *stack = NULL;
     // FIXME: struct pcintr_stack *stack = purc_get_stack();
 
-    return pcvcm_eval(tree, stack);
+    purc_variant_t v = pcvcm_eval(tree, stack);
+    vcm->evalued = v;
+
+    return v;
 }
 
 // query the getter for a specific property.
