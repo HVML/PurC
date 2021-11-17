@@ -71,6 +71,11 @@ vcm_clean(struct pcintr_vcm *vcm)
     if (!vcm)
         return;
 
+    if (vcm->vcm) {
+        pcvcm_node_destroy(vcm->vcm);
+        vcm->vcm = NULL;
+    }
+
     struct avl_tree *values = &vcm->values;
 
     if (avl_is_empty(values))
@@ -82,20 +87,6 @@ vcm_clean(struct pcintr_vcm *vcm)
         evalued_constant_release(p);
         free(p);
     }
-}
-
-static inline void
-vcm_release(struct pcintr_vcm *vcm)
-{
-    if (!vcm)
-        return;
-
-    if (vcm->vcm) {
-        pcvcm_node_destroy(vcm->vcm);
-        vcm->vcm = NULL;
-    }
-
-    vcm_clean(vcm);
 }
 
 static purc_variant_t
@@ -203,7 +194,9 @@ eraser(void* native_entity)
     PC_ASSERT(native_entity);
 
     struct pcintr_vcm *vcm = (struct pcintr_vcm*)native_entity;
-    vcm_release(vcm);
+    vcm_clean(vcm);
+
+    free(vcm);
 
     return true;
 }
@@ -258,7 +251,7 @@ pcintr_create_vcm_variant(struct pcvcm_node *vcm_node)
     purc_variant_t v;
     v = purc_variant_make_native(vcm, &ops);
     if (v == PURC_VARIANT_INVALID) {
-        vcm_release(vcm);
+        vcm_clean(vcm);
         free(vcm);
         return PURC_VARIANT_INVALID;
     }
