@@ -135,7 +135,7 @@ eval_const(void* native_entity, size_t nr_args, purc_variant_t* argv)
     struct pcintr_stack *stack = NULL;
     // FIXME: struct pcintr_stack *stack = purc_get_stack();
     // check if already evalued
-    // step 1: with key set to stack->scope, search vcm->values
+    // step 1: with key set to stack->bm_frame->scope, search vcm->values
     // step 2: if found, return found_evalued_constant->const_value
     // otherwise as follows:
 
