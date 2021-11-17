@@ -9,11 +9,13 @@
 #include <stdio.h>
 #include <gtest/gtest.h>
 
+#if 0
 static inline purc_rwstream_t
 create_rwstream(void)
 {
     return purc_rwstream_new_buffer(1024, 10240);
 }
+#endif
 
 struct numberify_record
 {
