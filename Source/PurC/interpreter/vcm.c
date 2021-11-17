@@ -239,6 +239,9 @@ pcintr_create_vcm_variant(struct pcvcm_node *vcm_node)
 
     static struct purc_native_ops ops = {
         .property_getter          = property_getter,
+        .property_setter          = NULL,
+        .property_eraser          = NULL,
+        .property_cleaner         = NULL,
         .cleaner                  = cleaner,
         .eraser                   = eraser,
         .observe                  = observe,
