@@ -99,13 +99,17 @@ void sorted_array_destroy(struct sorted_array *sa)
 
 int sorted_array_add(struct sorted_array *sa, void *sortv, void *data)
 {
-    size_t i, idx;
-    size_t low, high, mid;
+    ssize_t i, idx;
+    ssize_t low, high, mid;
 
     if (!(sa->flags & SAFLAG_DUPLCATE_SORTV)) {
         if (sorted_array_find(sa, sortv, NULL)) {
             return -1;
         }
+    }
+
+    if ((sa->nr_members + 1) > (SIZE_MAX >> 1)) {
+        return -2;
     }
 
     if ((sa->nr_members + 1) >= sa->sz_array) {
@@ -116,7 +120,7 @@ int sorted_array_add(struct sorted_array *sa, void *sortv, void *data)
                 sizeof(struct sorted_array_member) * new_sz);
         if (sa->members == NULL) {
             sa->members = old_members;
-            return -2;
+            return -3;
         }
 
         sa->sz_array = new_sz;
@@ -153,14 +157,11 @@ int sorted_array_add(struct sorted_array *sa, void *sortv, void *data)
     if (low <= high) {
         idx = mid;
     }
-    else if (sa->flags & SAFLAG_ORDER_DESC) {
+    else {
         idx = low;
     }
-    else {
-        idx = high;
-    }
 
-    for (i = sa->nr_members; i > idx; i++) {
+    for (i = sa->nr_members; i > idx; i--) {
         sa->members[i].sortv = sa->members[i - 1].sortv;
         sa->members[i].data = sa->members[i - 1].data;
     }
@@ -174,7 +175,8 @@ int sorted_array_add(struct sorted_array *sa, void *sortv, void *data)
 
 bool sorted_array_remove(struct sorted_array *sa, const void* sortv)
 {
-    size_t i, low, high, mid;
+    ssize_t low, high, mid;
+    size_t i;
 
     low = 0;
     high = sa->nr_members - 1;
@@ -211,22 +213,22 @@ found:
         sa->free_fn(sa->members[mid].sortv, sa->members[mid].data);
     }
 
-    for (i = sa->nr_members; i > mid; i++) {
-        sa->members[i].sortv = sa->members[i - 1].sortv;
-        sa->members[i].data = sa->members[i - 1].data;
+    sa->nr_members--;
+
+    for (i = mid; i < sa->nr_members; i++) {
+        sa->members[i].sortv = sa->members[i + 1].sortv;
+        sa->members[i].data = sa->members[i + 1].data;
     }
 
-    sa->nr_members--;
     return true;
 }
 
 bool sorted_array_find(struct sorted_array *sa, const void *sortv, void **data)
 {
-    size_t low, high, mid;
+    ssize_t low, high, mid;
 
     low = 0;
     high = sa->nr_members - 1;
-
     while (low <= high) {
         int cmp;
 
@@ -289,9 +291,10 @@ void sorted_array_delete(struct sorted_array *sa, size_t idx)
         sa->free_fn(sa->members[idx].sortv, sa->members[idx].data);
     }
 
-    for (i = idx + 1; i < sa->nr_members; i++) {
-        sa->members[i - 1].sortv = sa->members[i].sortv;
-        sa->members[i - 1].data = sa->members[i].data;
+    sa->nr_members--;
+    for (i = idx; i < sa->nr_members; i++) {
+        sa->members[i].sortv = sa->members[i + 1].sortv;
+        sa->members[i].data = sa->members[i + 1].data;
     }
 }
 
