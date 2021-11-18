@@ -28,136 +28,119 @@
 #include "element.h"
 #include "private/interpreter.h"
 
-static inline bool
-obj_add_element(purc_variant_t obj, struct pcedom_element *elem)
+struct pcintr_element
 {
-    uint64_t u64 = (uint64_t)elem;
-    purc_variant_t v;
-    v = purc_variant_make_ulongint(u64);
-    if (v == PURC_VARIANT_INVALID)
-        return PURC_VARIANT_INVALID;
+    struct pcedom_element          *elem;       // NOTE: no ownership
+};
 
-    bool ok = purc_variant_object_set_by_static_ckey(obj, "__elem", v);
-    if (!ok) {
-        purc_variant_unref(v);
-        return false;
-    }
-
+static inline bool
+element_eraser(struct pcintr_element *element)
+{
+    element->elem = NULL;
+    free(element);
     return true;
 }
 
-static inline struct pcedom_element*
-attr_get_element(purc_variant_t root)
+static inline bool
+eraser(void *native_entity)
 {
-    PC_ASSERT(root != PURC_VARIANT_INVALID);
+    PC_ASSERT(native_entity);
 
-    purc_variant_t v_elem;
-    v_elem = purc_variant_object_get_by_ckey(root, "__elem");
-    PC_ASSERT(v_elem != PURC_VARIANT_INVALID);
-    PC_ASSERT(purc_variant_is_ulongint(v_elem));
+    struct pcintr_element *element;
+    element = (struct pcintr_element*)native_entity;
 
-    uint64_t u64;
-    bool ok;
-    ok = purc_variant_cast_to_ulongint(v_elem, &u64, false);
-    PC_ASSERT(ok);
-    PC_ASSERT(u64);
-
-    struct pcedom_element *elem;
-    elem = (struct pcedom_element*)u64;
-
-    return elem;
+    return element_eraser(element);
 }
 
 static inline purc_variant_t
-attr_get_first(purc_variant_t root)
+element_attr_getter_by_type(struct pcintr_element *element,
+        purc_variant_t tn)
 {
-    struct pcedom_element *elem = attr_get_element(root);
-    PC_ASSERT(elem);
-    // TODO: get first attr value from elem
-    PC_ASSERT(0);
-    return PURC_VARIANT_INVALID;
-}
-
-static inline purc_variant_t
-attr_get_by_name(purc_variant_t root, purc_variant_t name)
-{
-    struct pcedom_element *elem = attr_get_element(root);
-    PC_ASSERT(elem);
-
-    if (name == PURC_VARIANT_INVALID) {
-        pcinst_set_error(PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
+    UNUSED_PARAM(element);
+    const char *name = purc_variant_get_string_const(tn);
+    if (strcmp(name, "class") == 0) {
+        const char *v_class = "attr.class:not_implemented_yet";
+        // TODO: fetch element's attribute value with `class` matched
+        // FIXME: static or else? who lives longer, element or v_class?
+        return purc_variant_make_string_static(v_class, true);
     }
-    if (!purc_variant_is_string(name)) {
-        pcinst_set_error(PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
-
-    const char *s_name = purc_variant_get_string_const(name);
-    PC_ASSERT(s_name);
-    // TODO: get attr value from elem by s_name
-    PC_ASSERT(0);
-    return PURC_VARIANT_INVALID;
-}
-
-static inline purc_variant_t
-attr_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv)
-{
-    if (nr_args == 0) {
-        if (argv != NULL) {
-            pcinst_set_error(PURC_ERROR_WRONG_ARGS);
-            return PURC_VARIANT_INVALID;
-        }
-        return attr_get_first(root);
-    }
-
-    if (nr_args == 1) {
-        if (argv == NULL || argv[0] == PURC_VARIANT_INVALID) {
-            pcinst_set_error(PURC_ERROR_WRONG_ARGS);
-            return PURC_VARIANT_INVALID;
-        }
-        purc_variant_t v = argv[0];
-        if (!purc_variant_is_string(v)) {
-            pcinst_set_error(PURC_ERROR_WRONG_ARGS);
-            return PURC_VARIANT_INVALID;
-        }
-        return attr_get_by_name(root, argv[0]);
-    }
-
-    return PURC_VARIANT_INVALID;
-}
-
-static inline purc_variant_t
-style_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv)
-{
-    UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
-
     PC_ASSERT(0); // Not implemented yet
     return PURC_VARIANT_INVALID;
 }
 
 static inline purc_variant_t
+element_attr_getter(struct pcintr_element *element,
+        size_t nr_args, purc_variant_t* argv)
+{
+    if (nr_args == 1) {
+        if (argv == NULL || argv[0] == PURC_VARIANT_INVALID) {
+            pcinst_set_error(PURC_ERROR_WRONG_ARGS);
+            return PURC_VARIANT_INVALID;
+        }
+        purc_variant_t tn = argv[0]; // type name
+        if (!purc_variant_is_string(tn)) {
+            pcinst_set_error(PURC_ERROR_WRONG_ARGS);
+            return PURC_VARIANT_INVALID;
+        }
+        return element_attr_getter_by_type(element, tn);
+    }
+
+    pcinst_set_error(PURC_ERROR_WRONG_ARGS);
+    return PURC_VARIANT_INVALID;
+}
+
+static inline purc_variant_t
+attr_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
+{
+    PC_ASSERT(native_entity);
+
+    struct pcintr_element *element;
+    element = (struct pcintr_element*)native_entity;
+
+    return element_attr_getter(element, nr_args, argv);
+}
+
+static inline purc_nvariant_method
+property_getter(const char* key_name)
+{
+    if (strcmp(key_name, "attr") == 0) {
+        return attr_getter;
+    }
+
+    pcinst_set_error(PURC_ERROR_NOT_EXISTS);
+    return NULL;
+}
+
+static inline purc_variant_t
 make_element(struct pcedom_element *elem)
 {
-    struct pcintr_dynamic_args args[] = {
-        {"attr",     attr_getter,    NULL},
-        {"style",    style_getter,   NULL},
-    };
-
-    purc_variant_t obj;
-    obj = pcintr_make_object_of_dynamic_variants(PCA_TABLESIZE(args), args);
-    if (obj == PURC_VARIANT_INVALID)
-        return PURC_VARIANT_INVALID;
-
-    bool ok = obj_add_element(obj, elem);
-    if (!ok) {
-        purc_variant_unref(obj);
+    struct pcintr_element *element;
+    element = (struct pcintr_element*)calloc(1, sizeof(*element));
+    if (!element) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
     }
 
-    return obj;
+    struct purc_native_ops ops = {
+        .property_getter             = property_getter,
+        .property_setter             = NULL,
+        .property_eraser             = NULL,
+        .property_cleaner            = NULL,
+        .cleaner                     = NULL,
+        .eraser                      = eraser,
+        .observe                     = NULL,
+    };
+
+    purc_variant_t v;
+    v = purc_variant_make_native(element, &ops);
+    if (v == PURC_VARIANT_INVALID) {
+        free(element);
+        return PURC_VARIANT_INVALID;
+    }
+
+    element->elem = elem;
+
+    return v;
 }
 
 static inline bool
