@@ -22,6 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "element.h"
+
 #include "private/debug.h"
 #include "private/errors.h"
 #include "private/edom.h"
@@ -73,11 +75,10 @@ make_object(size_t nr_args, struct dynamic_args *args)
 }
 
 static inline purc_variant_t
-doctype_all(struct pcedom_document *doc)
+doctype_default(struct pcedom_document *doc)
 {
     UNUSED_PARAM(doc);
-    PC_ASSERT(0); // Not implemented yet
-    const char *s = "doctype:not_implemented_yet";
+    const char *s = "html";
     return purc_variant_make_string_static(s, false);
 }
 
@@ -120,7 +121,7 @@ doctype_getter(purc_variant_t root, size_t nr_args, purc_variant_t * argv)
             pcinst_set_error(PURC_ERROR_WRONG_ARGS);
             return PURC_VARIANT_INVALID;
         }
-        return doctype_all(doc);
+        return doctype_default(doc);
     }
 
     if (nr_args == 1) {
@@ -148,59 +149,6 @@ doctype_getter(purc_variant_t root, size_t nr_args, purc_variant_t * argv)
     return PURC_VARIANT_INVALID;
 }
 
-struct query_elems {
-    struct pcedom_element          **elems;
-    size_t                           nr_elems;
-};
-
-static inline bool
-eraser(void *native_entity)
-{
-    PC_ASSERT(native_entity);
-    struct query_elems *qe;
-    qe = (struct query_elems*)native_entity;
-    if (qe->elems) {
-        free(qe->elems);
-        qe->elems = NULL;
-    }
-    qe->nr_elems = 0;
-    free(qe);
-
-    return true;
-}
-
-static inline purc_variant_t
-query_make_elems(size_t nr_elems, struct pcedom_element **elems)
-{
-    static struct purc_native_ops ops = {
-        .property_getter             = NULL,
-        .property_setter             = NULL,
-        .property_eraser             = NULL,
-        .property_cleaner            = NULL,
-        .cleaner                     = NULL,
-        .eraser                      = eraser,
-        .observe                     = NULL,
-    };
-
-    struct query_elems *qe;
-    qe = (struct query_elems*)calloc(1, sizeof(*qe));
-    if (!qe) {
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return PURC_VARIANT_INVALID;
-    }
-    qe->elems    = elems;
-    qe->nr_elems = nr_elems;
-
-    purc_variant_t v;
-    v = purc_variant_make_native(qe, &ops);
-    if (v == PURC_VARIANT_INVALID) {
-        free(qe);
-        return PURC_VARIANT_INVALID;
-    }
-
-    return v;
-}
-
 static inline purc_variant_t
 query(struct pcedom_document *doc, const char *css)
 {
@@ -213,7 +161,7 @@ query(struct pcedom_document *doc, const char *css)
 
     PC_ASSERT(0); // Not implemented yet
 
-    return query_make_elems(nr_elems, elems);
+    return pcintr_make_elements(nr_elems, elems);
 }
 
 static inline purc_variant_t
@@ -250,14 +198,42 @@ query_getter(purc_variant_t root, size_t nr_args, purc_variant_t * argv)
     return PURC_VARIANT_INVALID;
 }
 
+static inline bool
+add_edom_doc(purc_variant_t doc, struct pcedom_document *edom_doc)
+{
+    uint64_t u64 = (uint64_t)edom_doc;
+    purc_variant_t v;
+    v = purc_variant_make_ulongint(u64);
+    if (v == PURC_VARIANT_INVALID)
+        return PURC_VARIANT_INVALID;
+
+    bool ok = purc_variant_object_set_by_static_ckey(doc, "__edom", v);
+    if (!ok) {
+        purc_variant_unref(v);
+        return false;
+    }
+
+    return true;
+}
+
 purc_variant_t
-pcintr_make_doc_variant(void)
+pcintr_make_doc_variant(struct pcedom_document *edom_doc)
 {
     struct dynamic_args args[] = {
         {"doctype", doctype_getter, NULL},
         {"query",   query_getter,   NULL},
     };
 
-    return make_object(PCA_TABLESIZE(args), args);
+    purc_variant_t v = make_object(PCA_TABLESIZE(args), args);
+    if (v == PURC_VARIANT_INVALID)
+        return PURC_VARIANT_INVALID;
+
+    bool ok = add_edom_doc(v, edom_doc);
+    if (!ok) {
+        purc_variant_unref(v);
+        return PURC_VARIANT_INVALID;
+    }
+
+    return v;
 }
 
