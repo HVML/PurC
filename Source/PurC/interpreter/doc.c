@@ -310,6 +310,9 @@ pcintr_create_doc_variant(struct pcedom_document *edom_doc)
     if (doc == PURC_VARIANT_INVALID)
         return PURC_VARIANT_INVALID;
 
+    // FIXME: we can make an object rather than native for easy process,
+    //        but we might suffer from being modified by accidently
+    //        calling `purc_variant_object_set...`
     purc_variant_t v;
     v = purc_variant_make_native(doc, &ops);
     if (v == PURC_VARIANT_INVALID) {
