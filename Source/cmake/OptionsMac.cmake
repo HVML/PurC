@@ -1,6 +1,18 @@
+include(GNUInstallDirs)
+
 # FIXME: These should line up with versions in Version.xcconfig
 set(PURC_MAC_VERSION 0.0.1)
 set(MACOSX_FRAMEWORK_BUNDLE_VERSION 0.0.1)
+
+# These are shared variables, but we special case their definition so that we can use the
+# CMAKE_INSTALL_* variables that are populated by the GNUInstallDirs macro.
+set(LIB_INSTALL_DIR "${CMAKE_INSTALL_FULL_LIBDIR}" CACHE PATH "Absolute path to library installation directory")
+set(EXEC_INSTALL_DIR "${CMAKE_INSTALL_FULL_BINDIR}" CACHE PATH "Absolute path to executable installation directory")
+set(LIBEXEC_INSTALL_DIR "${CMAKE_INSTALL_FULL_LIBEXECDIR}/purc" CACHE PATH "Absolute path to install executables executed by the library")
+set(HEADER_INSTALL_DIR "${CMAKE_INSTALL_FULL_INCLUDEDIR}" CACHE PATH "Absolute path to header installation directory")
+set(PURC_HEADER_INSTALL_DIR "${CMAKE_INSTALL_FULL_INCLUDEDIR}/purc" CACHE PATH "Absolute path to PurC header installation directory")
+
+add_definitions(-DBUILDING_MAC__=1)
 
 find_package(GLIB 2.44.0 COMPONENTS gio gio-unix gmodule)
 find_package(Ncurses 5.0)
