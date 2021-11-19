@@ -512,3 +512,10 @@ pchtml_doc_write_to_stream(pchtml_html_document_t *doc, purc_rwstream_t out)
     }
     return 0;
 }
+
+struct pcedom_document*
+pchtml_doc_get_document(pchtml_html_document_t *doc)
+{
+    return &doc->dom_document;
+}
+

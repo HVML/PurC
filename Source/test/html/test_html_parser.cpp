@@ -1,5 +1,6 @@
 #include "purc.h"
 #include "private/html.h"
+#include "private/edom.h"
 
 #include <limits.h>
 #include <stdio.h>
@@ -210,6 +211,62 @@ TEST(html, load_from_html)
 
     if (line) {
         free(line);
+    }
+
+    purc_cleanup ();
+}
+
+static inline void
+process_html(purc_rwstream_t in, bool *ok)
+{
+    *ok = false;
+    pchtml_html_document_t *doc = pchtml_html_document_create();
+    ASSERT_NE(doc, nullptr);
+
+    unsigned int ur = pchtml_html_document_parse(doc, in);
+    ASSERT_EQ(ur, PCHTML_STATUS_OK);
+
+    struct pcedom_document *document;
+    pcedom_document_type_t *doc_type;
+    const unsigned char *doctype;
+    size_t len;
+    document = pchtml_doc_get_document(doc);
+    ASSERT_NE(document, nullptr);
+    doc_type = document->doctype;
+    ASSERT_NE(doc_type, nullptr);
+
+    doctype = pcedom_document_type_name(doc_type, &len);
+    fprintf(stderr, "doctype: %zd[%s]\n", len, doctype);
+
+    const unsigned char *s_public;
+    s_public = pcedom_document_type_public_id(doc_type, &len);
+    fprintf(stderr, "doctype.public: %zd[%s]\n", len, s_public);
+
+    const unsigned char *s_system;
+    s_system = pcedom_document_type_system_id(doc_type, &len);
+    fprintf(stderr, "doctype.system: %zd[%s]\n", len, s_system);
+
+    pchtml_html_document_destroy(doc);
+}
+
+TEST(html, document)
+{
+    purc_instance_extra_info info = {0, 0};
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    const char *htmls[] = {
+        "<!DOCTYPE html><html></html>",
+        "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\"><html/>",
+    };
+
+    for (size_t i=0; i<PCA_TABLESIZE(htmls); ++i) {
+        const char *html = htmls[i];
+        purc_rwstream_t rs = purc_rwstream_new_from_mem((void*)html, strlen(html));
+        ASSERT_NE(rs, nullptr);
+        bool ok;
+        process_html(rs, &ok);
+        purc_rwstream_destroy(rs);
     }
 
     purc_cleanup ();
