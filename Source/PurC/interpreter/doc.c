@@ -77,26 +77,60 @@ make_object(size_t nr_args, struct dynamic_args *args)
 static inline purc_variant_t
 doctype_default(struct pcedom_document *doc)
 {
-    UNUSED_PARAM(doc);
     const char *s = "html";
+
+    pcedom_document_type_t *doc_type;
+    doc_type = doc->doctype;
+    if (doc_type) {
+        const unsigned char *doctype;
+        size_t len;
+        doctype = pcedom_document_type_name(doc_type, &len);
+        PC_ASSERT(doctype);
+        PC_ASSERT(doctype[len]=='\0');
+        s = (const char*)doctype;
+    }
+
+    // NOTE: we don't hold ownership
     return purc_variant_make_string_static(s, false);
 }
 
 static inline purc_variant_t
 doctype_system(struct pcedom_document *doc)
 {
-    UNUSED_PARAM(doc);
-    PC_ASSERT(0); // Not implemented yet
-    const char *s = "doctype.system:not_implemented_yet";
+    const char *s = "";
+
+    pcedom_document_type_t *doc_type;
+    doc_type = doc->doctype;
+    if (doc_type) {
+        const unsigned char *s_system;
+        size_t len;
+        s_system = pcedom_document_type_system_id(doc_type, &len);
+        PC_ASSERT(s_system);
+        PC_ASSERT(s_system[len]=='\0');
+        s = (const char*)s_system;
+    }
+
+    // NOTE: we don't hold ownership
     return purc_variant_make_string_static(s, false);
 }
 
 static inline purc_variant_t
 doctype_public(struct pcedom_document *doc)
 {
-    UNUSED_PARAM(doc);
-    PC_ASSERT(0); // Not implemented yet
-    const char *s = "doctype.public:not_implemented_yet";
+    const char *s = "";
+
+    pcedom_document_type_t *doc_type;
+    doc_type = doc->doctype;
+    if (doc_type) {
+        const unsigned char *s_public;
+        size_t len;
+        s_public = pcedom_document_type_public_id(doc_type, &len);
+        PC_ASSERT(s_public);
+        PC_ASSERT(s_public[len]=='\0');
+        s = (const char*)s_public;
+    }
+
+    // NOTE: we don't hold ownership
     return purc_variant_make_string_static(s, false);
 }
 
