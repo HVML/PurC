@@ -728,7 +728,7 @@ pcedom_attr_compare(pcedom_attr_t *first,
 
 const pcedom_attr_data_t *
 pcedom_attr_data_by_id(pcutils_hash_t *hash,
-                pcedom_attr_id_t attr_id) WTF_INTERNAL;
+                pcedom_attr_id_t attr_id);
 
 const pcedom_attr_data_t *
 pcedom_attr_data_by_local_name(pcutils_hash_t *hash,
@@ -739,7 +739,7 @@ pcedom_attr_data_by_qualified_name(pcutils_hash_t *hash,
                                     const unsigned char *name, size_t length);
 
 const unsigned char *
-pcedom_attr_qualified_name(pcedom_attr_t *attr, size_t *len) WTF_INTERNAL;
+pcedom_attr_qualified_name(pcedom_attr_t *attr, size_t *len);
 
 /*
  * Inline functions
@@ -1039,23 +1039,23 @@ pcedom_elements_by_attr_contain(pcedom_element_t *root,
 
 const unsigned char *
 pcedom_element_qualified_name(pcedom_element_t *element,
-                size_t *len) WTF_INTERNAL;
+                size_t *len);
 
 const unsigned char *
 pcedom_element_qualified_name_upper(pcedom_element_t *element,
-                size_t *len) WTF_INTERNAL;
+                size_t *len);
 
 const unsigned char *
 pcedom_element_local_name(pcedom_element_t *element,
-                size_t *len) WTF_INTERNAL;
+                size_t *len);
 
 const unsigned char *
 pcedom_element_prefix(pcedom_element_t *element,
-                size_t *len) WTF_INTERNAL;
+                size_t *len);
 
 const unsigned char *
 pcedom_element_tag_name(pcedom_element_t *element,
-                size_t *len) WTF_INTERNAL;
+                size_t *len);
 
 
 /*
