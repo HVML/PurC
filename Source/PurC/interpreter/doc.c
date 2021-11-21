@@ -186,16 +186,14 @@ doctype_getter(purc_variant_t root, size_t nr_args, purc_variant_t * argv)
 static inline purc_variant_t
 query(struct pcedom_document *doc, const char *css)
 {
-    struct pcedom_element **elems    = NULL;
-    size_t                  nr_elems = 0;
+    PC_ASSERT(doc);
+    PC_ASSERT(css);
 
-    // TODO:
-    UNUSED_PARAM(doc);
-    UNUSED_PARAM(css);
+    pcedom_element_t *root;
+    root = doc->element;
+    PC_ASSERT(root);
 
-    PC_ASSERT(0); // Not implemented yet
-
-    return pcintr_make_elements(nr_elems, elems);
+    return pcintr_query_elements(root, css);
 }
 
 static inline purc_variant_t

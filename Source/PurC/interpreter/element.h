@@ -39,6 +39,10 @@ purc_variant_t
 pcintr_make_elements(size_t nr_elems,
         struct pcedom_element **elems) WTF_INTERNAL;
 
+purc_variant_t
+pcintr_query_elements(struct pcedom_element *root,
+    const char *css) WTF_INTERNAL;
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_INTERPRETER_ELEMENT_H */

@@ -191,3 +191,97 @@ pcintr_make_elements(size_t nr_elems, struct pcedom_element **elems)
     return v;
 }
 
+typedef void (*traverse_cb)(struct pcedom_element *element, void *ud);
+
+struct visit_args {
+    purc_variant_t            elements;
+    const char               *css;
+};
+
+static inline int
+match_by_class(struct pcedom_element *element, struct visit_args *args)
+{
+    const unsigned char *s;
+    size_t len;
+    s = pcedom_element_class(element, &len);
+
+    if (s && s[len]=='\0' && strcmp((const char*)s, args->css+1)==0)
+        return 0;
+
+    return -1;
+}
+
+static inline int
+match_by_id(struct pcedom_element *element, struct visit_args *args)
+{
+    const unsigned char *s;
+    size_t len;
+    s = pcedom_element_id(element, &len);
+
+    if (s && s[len]=='\0' && strcmp((const char*)s, args->css+1)==0)
+        return 0;
+
+    return -1;
+}
+
+static void visit_element(struct pcedom_element *element, void *ud)
+{
+    struct visit_args *args = (struct visit_args*)ud;
+
+    if (args->css[0] == '.') {
+        if (match_by_class(element, args))
+            return;
+    }
+    else if (args->css[0] == '#') {
+        if (match_by_id(element, args))
+            return;
+    }
+
+    set_add_element(args->elements, element);
+}
+
+static inline void
+traverse_elements(struct pcedom_element *root, traverse_cb cb, void *ud)
+{
+    if (!root)
+        return;
+
+    cb(root, ud);
+
+    pcedom_node_t *node = &root->node;
+
+    pcedom_node_t *child = node->first_child;
+    for (; child; child = child->next) {
+        struct pcedom_element *element;
+        element = container_of(child, struct pcedom_element, node);
+        cb(element, ud);
+    }
+}
+
+purc_variant_t
+pcintr_query_elements(struct pcedom_element *root, const char *css)
+{
+    if (strcmp(css, "*") != 0) {
+        if (css[0] != '.' && css[0] != '#') {
+            pcinst_set_error(PURC_ERROR_WRONG_ARGS);
+            return PURC_VARIANT_INVALID;
+        }
+        if (css[1] == '\0') {
+            pcinst_set_error(PURC_ERROR_WRONG_ARGS);
+            return PURC_VARIANT_INVALID;
+        }
+    }
+
+    struct visit_args args;
+    args.elements = purc_variant_make_set_by_ckey(0,
+            NULL, PURC_VARIANT_INVALID);
+    args.css      = css;
+
+    if (args.elements == PURC_VARIANT_INVALID)
+        return PURC_VARIANT_INVALID;
+
+    traverse_elements(root, visit_element, &args);
+
+    return args.elements;
+}
+
