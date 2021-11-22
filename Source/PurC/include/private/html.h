@@ -170,6 +170,9 @@ pchtml_html_serialize_pretty_tree_cb(pcedom_node_t *node,
 int
 pchtml_doc_write_to_stream(pchtml_html_document_t *doc, purc_rwstream_t out);
 
+struct pcedom_document*
+pchtml_doc_get_document(pchtml_html_document_t *doc);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

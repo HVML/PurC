@@ -28,8 +28,9 @@
 #include "config.h"
 #include "purc-variant.h"
 #include "arraylist.h"
-#include "avl.h"
 #include "hashtable.h"
+#include "list.h"
+#include "rbtree.h"
 
 #include <assert.h>
 
@@ -49,6 +50,23 @@ extern "C" {
 
 #define EXOBJ_LOAD_ENTRY        "__purcex_load_dynamic_variant"
 #define EXOBJ_LOAD_HANDLE_KEY   "__intr_dlhandle"
+
+
+
+struct pcvar_listener {
+    // the name of the listener; using atom
+    purc_atom_t         name;
+
+    // the context for the listener
+    void*               ctxt;
+
+    // the message callback
+    pcvar_msg_handler   handler;
+
+    // list node
+    struct list_head    list_node;
+};
+
 // structure for variant
 struct purc_variant {
 
@@ -65,6 +83,9 @@ struct purc_variant {
 
     /* reference count */
     unsigned int refc;
+
+    /* observer listeners */
+    struct list_head        listeners;
 
     /* value */
     union {
@@ -134,20 +155,20 @@ void pcvariant_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 // internal struct used by variant-set object
 typedef struct variant_set      *variant_set_t;
 
-struct obj_node {
-    struct avl_node  avl;
-    purc_variant_t   obj;       // actual variant-object
+struct elem_node {
+    struct rb_node   node;
+    purc_variant_t   elem;  // actual variant-element
     purc_variant_t  *kvs;
+    size_t           idx;
 };
 
 struct variant_set {
     char                   *unique_key; // unique-key duplicated
     char                  **keynames;
     size_t                  nr_keynames;
-    struct avl_tree         objs;       // multiple-variant-objects stored in set
+    struct rb_root          elems;  // multiple-variant-elements stored in set
+    struct pcutils_arrlist *arr;    // also stored in arraylist
 };
-
-void pcvariant_set_release_obj(struct obj_node *p);
 
 #ifdef __cplusplus
 }
@@ -218,25 +239,32 @@ void pcvariant_set_release_obj(struct obj_node *p);
 #define foreach_value_in_variant_set(_set, _val)                        \
     do {                                                                \
         variant_set_t _data;                                            \
-        struct avl_tree *_tree;                                         \
-        struct obj_node *_elem;                                         \
+        struct pcutils_arrlist *_arr;                                   \
         _data = (variant_set_t)_set->sz_ptr[1];                         \
-        _tree = &_data->objs;                                           \
-        avl_for_each_element(_tree, _elem, avl) {                       \
-            _val = _elem->obj;                                          \
+        _arr  = _data->arr;                                             \
+        size_t _i;                                                      \
+        for (_i=0; _i<_arr->length; ++_i) {                             \
+            struct elem_node *_p;                                       \
+            _p = (struct elem_node*)pcutils_arrlist_get_idx(_arr, _i);  \
+            _val = _p->elem;                                            \
      /* } */                                                            \
   /* } while (0) */
 
-#define foreach_value_in_variant_set_safe(_set, _val, _curr)            \
-    do {                                                                \
-        variant_set_t _data;                                            \
-        struct avl_tree *_tree;                                         \
-        struct obj_node *_tmp;                                          \
-        _data = (variant_set_t)_set->sz_ptr[1];                         \
-        _tree = &_data->objs;                                           \
-        avl_for_each_element_safe(_tree, _curr, avl, _tmp) {            \
-            _val = _curr->obj;                                          \
-     /* } */                                                            \
+#define foreach_value_in_variant_set_safe(_set, _val, _curr)                 \
+    do {                                                                     \
+        variant_set_t _data;                                                 \
+        struct rb_root *_root;                                               \
+        struct rb_node *_node, *_next;                                       \
+        _data = (variant_set_t)_set->sz_ptr[1];                              \
+        _root = &_data->elems;                                               \
+        for (_node = pcutils_rbtree_first(_root);                            \
+             ({_next = _node ? pcutils_rbtree_next(_node) : NULL; _node; }); \
+             _next = _node)                                                  \
+        {                                                                    \
+            struct elem_node *_p;                                            \
+            _p = container_of(_node, struct elem_node, node);                \
+            _val = _p->elem;                                                 \
+     /* } */                                                                 \
   /* } while (0) */
 
 #define end_foreach                                                     \

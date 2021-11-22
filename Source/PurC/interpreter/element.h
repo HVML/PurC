@@ -1,13 +1,13 @@
-/*
- * @file math.h
- * @author Geng Yue
- * @date 2021/07/02
- * @brief The header file of math operation.
+/**
+ * @file element.h
+ * @author Xu Xiaohong
+ * @date 2021/11/18
+ * @brief The internal interfaces for interpreter/element
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- *
+ * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,36 +20,30 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
  */
 
-#ifndef _DVOJBS_MATH_H_
-#define _DVOJBS_MATH_H_
+#ifndef PURC_INTERPRETER_ELEMENT_H
+#define PURC_INTERPRETER_ELEMENT_H
 
+#include "purc-macros.h"
 #include "purc-variant.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif  /* __cplusplus */
+#include "private/debug.h"
+#include "private/errors.h"
+#include "private/edom.h"
 
-typedef purc_variant_t (*pcdvobjs_create) (void);
+PCA_EXTERN_C_BEGIN
 
-// dynamic variant in dynamic object
-struct pcdvobjs_dvobjs {
-    const char * name;
-    purc_dvariant_method getter;
-    purc_dvariant_method setter;
-};
+purc_variant_t
+pcintr_make_elements(size_t nr_elems,
+        struct pcedom_element **elems) WTF_INTERNAL;
 
-int
-math_eval(const char *input, double *d, purc_variant_t param)
-__attribute__((visibility("hidden")));
+purc_variant_t
+pcintr_query_elements(struct pcedom_element *root,
+    const char *css) WTF_INTERNAL;
 
-int
-math_eval_l(const char *input, long double *d, purc_variant_t param)
-__attribute__((visibility("hidden")));
+PCA_EXTERN_C_END
 
-#ifdef __cplusplus
-}
-#endif  /* __cplusplus */
+#endif  /* PURC_INTERPRETER_ELEMENT_H */
 
-#endif  // _DVOJBS_MATH_H_

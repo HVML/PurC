@@ -39,6 +39,7 @@ set(PurC_PLATFORM_INDEPENDENT_DIRS
     "hvml"
     "vdom"
     "executors"
+    "interpreter"
 )
 
 # This macro will append all C/CXX source files in ${PurC_PLATFORM_INDEPENDENT_DIRS}

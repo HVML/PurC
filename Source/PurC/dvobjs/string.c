@@ -611,9 +611,9 @@ string_format_p (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 // only for test now.
-purc_variant_t pcdvojbs_get_string (void)
+purc_variant_t pcdvobjs_get_string (void)
 {
-    static struct pcdvojbs_dvobjs method [] = {
+    static struct pcdvobjs_dvobjs method [] = {
         {"contains",  string_contains,  NULL},
         {"ends_with", string_ends_with, NULL},
         {"explode",   string_explode,   NULL},

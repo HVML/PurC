@@ -1,13 +1,13 @@
-/*
- * @file math.h
- * @author Geng Yue
- * @date 2021/07/02
- * @brief The header file of math operation.
+/**
+ * @file interpreter.h
+ * @author Xu Xiaohong
+ * @date 2021/11/18
+ * @brief The internal interfaces for interpreter
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- *
+ * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,36 +20,31 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
  */
 
-#ifndef _DVOJBS_MATH_H_
-#define _DVOJBS_MATH_H_
+#ifndef PURC_PRIVATE_INTERPRETER_H
+#define PURC_PRIVATE_INTERPRETER_H
 
+#include "purc-macros.h"
 #include "purc-variant.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif  /* __cplusplus */
+#include "private/debug.h"
+#include "private/errors.h"
 
-typedef purc_variant_t (*pcdvobjs_create) (void);
-
-// dynamic variant in dynamic object
-struct pcdvobjs_dvobjs {
-    const char * name;
-    purc_dvariant_method getter;
-    purc_dvariant_method setter;
+struct pcintr_dynamic_args {
+    const char                    *name;
+    purc_dvariant_method           getter;
+    purc_dvariant_method           setter;
 };
 
-int
-math_eval(const char *input, double *d, purc_variant_t param)
-__attribute__((visibility("hidden")));
+PCA_EXTERN_C_BEGIN
 
-int
-math_eval_l(const char *input, long double *d, purc_variant_t param)
-__attribute__((visibility("hidden")));
+purc_variant_t
+pcintr_make_object_of_dynamic_variants(size_t nr_args,
+    struct pcintr_dynamic_args *args);
 
-#ifdef __cplusplus
-}
-#endif  /* __cplusplus */
+PCA_EXTERN_C_END
 
-#endif  // _DVOJBS_MATH_H_
+#endif  /* PURC_PRIVATE_INTERPRETER_H */
+

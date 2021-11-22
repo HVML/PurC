@@ -36,7 +36,7 @@ extern "C" {
 
 #define STREAM_SIZE 1024
 
-struct pcdvojbs_dvobjs {
+struct pcdvobjs_dvobjs {
     const char * name;
     purc_dvariant_method getter;
     purc_dvariant_method setter;
@@ -59,7 +59,7 @@ const char *pcdvobjs_get_next_option (const char* data, const char* delims,
 const char *pcdvobjs_get_prev_option (const char* data, size_t str_len,
                             const char* delims, size_t* length) WTF_INTERNAL;
 
-purc_variant_t pcdvobjs_make_dvobjs (const struct pcdvojbs_dvobjs *method,
+purc_variant_t pcdvobjs_make_dvobjs (const struct pcdvobjs_dvobjs *method,
                                     size_t size);
 
 extern int pcdvobjs_logical_parse(const char *input,

@@ -155,7 +155,7 @@ bool pcdvobjs_wildcard_cmp (const char *str1, const char *pattern)
     return true;
 }
 
-purc_variant_t pcdvobjs_make_dvobjs (const struct pcdvojbs_dvobjs *method,
+purc_variant_t pcdvobjs_make_dvobjs (const struct pcdvobjs_dvobjs *method,
                                     size_t size)
 {
     size_t i = 0;
