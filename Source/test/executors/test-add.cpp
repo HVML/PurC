@@ -12,8 +12,11 @@
 #include "../helpers.h"
 
 extern "C" {
+#include "pcexe-helper.h"
+#include "exe_add.h"
 #include "exe_add.tab.h"
 }
+
 
 #include "utils.cpp.in"
 

@@ -27,6 +27,8 @@
 
 
 %{
+#include "pcexe-helper.h"
+#include "exe_add.h"
 #include "exe_add.tab.h"
 
 #define MKT(x)    TOK_EXE_ADD_##x
@@ -104,6 +106,10 @@ LE        { R(); PUSH(KW); C(); return MKT(LE); }
 GE        { R(); PUSH(KW); C(); return MKT(GE); }
 NE        { R(); PUSH(KW); C(); return MKT(NE); }
 EQ        { R(); PUSH(KW); C(); return MKT(EQ); }
+AND       { R(); PUSH(KW); C(); return MKT(AND); }
+OR        { R(); PUSH(KW); C(); return MKT(OR); }
+XOR       { R(); PUSH(KW); C(); return MKT(XOR); }
+NOT       { R(); PUSH(KW); C(); return MKT(NOT); }
 {INTEGER} { R(); PUSH(AFTER_NUM); SET_STR(); C(); return MKT(INTEGER); }
 {NUMBER}  { R(); PUSH(AFTER_NUM); SET_STR(); C(); return MKT(NUMBER); }
 {SP}      { R(); C(); } /* eat */

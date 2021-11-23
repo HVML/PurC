@@ -689,6 +689,7 @@ TEST(executors, full)
 
     ASSERT_TRUE(ok);
 
+    ASSERT_EQ(cfg.stat.nr_failure, 0);
 }
 
 struct ejson_parser_record

@@ -20,6 +20,7 @@ SUB : GT 100 BY -3 ;
 
 # no SPACE in between
 SUB:GT 100 BY -3;
+SUB:GT 100 AND LT 1000 BY -3;
 
 # multiple line
 SUB:

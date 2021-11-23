@@ -30,9 +30,40 @@
 
 #include "purc-macros.h"
 
+#include "private/debug.h"
+
+#include "pcexe-helper.h"
+
+struct mul_rule
+{
+    struct logical_expression       *lexp;
+    double                           nexp;
+};
+
+struct exe_mul_param {
+    char *err_msg;
+    int debug_flex;
+    int debug_bison;
+
+    struct mul_rule        rule;
+    unsigned int              rule_valid:1;
+};
+
 PCA_EXTERN_C_BEGIN
 
 int pcexec_exe_mul_register(void);
+
+int exe_mul_parse(const char *input, size_t len,
+        struct exe_mul_param *param);
+
+void exe_mul_param_reset(struct exe_mul_param *param);
+
+static inline int
+mul_rule_eval(struct mul_rule *rule, purc_variant_t val, bool *result)
+{
+    PC_ASSERT(rule);
+    return logical_expression_eval(rule->lexp, val, result);
+}
 
 PCA_EXTERN_C_END
 

@@ -20,6 +20,8 @@ ADD : LT 100 BY -3 ;
 
 # no SPACE in between
 ADD:LT 100 BY -3;
+ADD:NOT LT 100 BY 4-3;
+ADD:GT 100 AND LT 1000 BY 10-3;
 
 # multiple line
 ADD:
