@@ -30,9 +30,64 @@
 
 #include "purc-macros.h"
 
+#include "private/debug.h"
+
+#include "pcexe-helper.h"
+
+struct token_rule
+{
+    double           from;
+    double          *to;
+    double          *advance;
+    char            *delimiters;
+    struct logical_expression       *until;
+};
+
+struct exe_token_param {
+    char *err_msg;
+    int debug_flex;
+    int debug_bison;
+
+    struct token_rule        rule;
+    unsigned int            rule_valid:1;
+};
+
 PCA_EXTERN_C_BEGIN
 
 int pcexec_exe_token_register(void);
+
+int exe_token_parse(const char *input, size_t len,
+        struct exe_token_param *param);
+
+void exe_token_param_reset(struct exe_token_param *param);
+
+static inline void
+token_rule_release(struct token_rule *rule)
+{
+    PC_ASSERT(rule);
+    if (rule->to) {
+        free(rule->to);
+        rule->to = NULL;
+    }
+    if (rule->advance) {
+        free(rule->advance);
+        rule->advance = NULL;
+    }
+    if (rule->until) {
+        free(rule->until);
+        rule->until = NULL;
+    }
+}
+
+static inline int
+token_rule_eval(struct token_rule *rule, purc_variant_t val, bool *result)
+{
+    PC_ASSERT(rule);
+    UNUSED_PARAM(val);
+    UNUSED_PARAM(result);
+    PC_ASSERT(0); // Not implemented yet
+    return -1;
+}
 
 PCA_EXTERN_C_END
 

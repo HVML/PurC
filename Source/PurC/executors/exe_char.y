@@ -257,9 +257,9 @@
 
 %nterm <nexp>        exp
 %nterm <str>         literal_str
+%nterm <to>          to_clause
 %nterm <advance>     advance_clause
 %nterm <until>       until_clause
-%nterm <to>          to_clause
 %nterm <rule>        char_rule
 %nterm <slist>       literal_char_sequence
 
