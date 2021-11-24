@@ -12,6 +12,8 @@
 #include "../helpers.h"
 
 extern "C" {
+#include "pcexe-helper.h"
+#include "exe_char.h"
 #include "exe_char.tab.h"
 }
 

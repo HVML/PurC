@@ -30,9 +30,63 @@
 
 #include "purc-macros.h"
 
+#include "private/debug.h"
+
+#include "pcexe-helper.h"
+
+struct char_rule
+{
+    double           from;
+    double          *to;
+    double          *advance;
+    char            *until;
+};
+
+struct exe_char_param {
+    char *err_msg;
+    int debug_flex;
+    int debug_bison;
+
+    struct char_rule        rule;
+    unsigned int            rule_valid:1;
+};
+
 PCA_EXTERN_C_BEGIN
 
 int pcexec_exe_char_register(void);
+
+int exe_char_parse(const char *input, size_t len,
+        struct exe_char_param *param);
+
+void exe_char_param_reset(struct exe_char_param *param);
+
+static inline void
+char_rule_release(struct char_rule *rule)
+{
+    PC_ASSERT(rule);
+    if (rule->to) {
+        free(rule->to);
+        rule->to = NULL;
+    }
+    if (rule->advance) {
+        free(rule->advance);
+        rule->advance = NULL;
+    }
+    if (rule->until) {
+        free(rule->until);
+        rule->until = NULL;
+    }
+}
+
+static inline int
+char_rule_eval(struct char_rule *rule, purc_variant_t val, bool *result)
+{
+    PC_ASSERT(rule);
+    UNUSED_PARAM(val);
+    UNUSED_PARAM(result);
+    PC_ASSERT(0); // Not implemented yet
+    return -1;
+}
 
 PCA_EXTERN_C_END
 

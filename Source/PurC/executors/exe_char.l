@@ -27,6 +27,8 @@
 
 
 %{
+#include "pcexe-helper.h"
+#include "exe_char.h"
 #include "exe_char.tab.h"
 
 #define MKT(x)    TOK_EXE_CHAR_##x
