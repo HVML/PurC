@@ -602,7 +602,7 @@ purc_variant_object_iterator_prev (struct purc_variant_object_iterator* it)
     return false;
 }
 
-const char*
+purc_variant_t
 purc_variant_object_iterator_get_key (struct purc_variant_object_iterator* it)
 {
     PCVARIANT_CHECK_FAIL_RET(it, NULL);
@@ -611,7 +611,8 @@ purc_variant_object_iterator_get_key (struct purc_variant_object_iterator* it)
     PC_ASSERT(it->curr);
 
     purc_variant_t k = (purc_variant_t)pchash_entry_k(it->curr);
-    return purc_variant_get_string_const(k);
+    PC_ASSERT(purc_variant_is_string(k));
+    return k;
 }
 
 purc_variant_t
