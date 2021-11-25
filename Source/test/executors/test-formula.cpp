@@ -12,6 +12,8 @@
 #include "../helpers.h"
 
 extern "C" {
+#include "pcexe-helper.h"
+#include "exe_formula.h"
 #include "exe_formula.tab.h"
 }
 
@@ -51,7 +53,10 @@ parse(const char *rule, char *err_msg, size_t sz_err_msg)
     if (param.err_msg) {
         snprintf(err_msg, sz_err_msg, "%s", param.err_msg);
         free(param.err_msg);
+        param.err_msg = NULL;
     }
+
+    exe_formula_param_reset(&param);
 
     return r;
 }

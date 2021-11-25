@@ -234,7 +234,13 @@
         _nexp = -_l;                                             \
     } while (0)
 
-    #define SET_RULE(_x)         (void)_x
+    #define SET_RULE(_rule) do {                            \
+        if (param) {                                        \
+            param->rule = _rule;                            \
+        } else {                                            \
+            logical_expression_destroy(_rule.lexp);         \
+        }                                                   \
+    } while (0)
 }
 
 /* Bison declarations. */

@@ -59,12 +59,9 @@ int pcexec_exe_token_register(void);
 int exe_token_parse(const char *input, size_t len,
         struct exe_token_param *param);
 
-void exe_token_param_reset(struct exe_token_param *param);
-
 static inline void
 token_rule_release(struct token_rule *rule)
 {
-    PC_ASSERT(rule);
     if (rule->to) {
         free(rule->to);
         rule->to = NULL;
@@ -73,10 +70,28 @@ token_rule_release(struct token_rule *rule)
         free(rule->advance);
         rule->advance = NULL;
     }
+    if (rule->delimiters) {
+        free(rule->delimiters);
+        rule->delimiters = NULL;
+    }
     if (rule->until) {
-        free(rule->until);
+        logical_expression_destroy(rule->until);
         rule->until = NULL;
     }
+}
+
+static inline void
+exe_token_param_reset(struct exe_token_param *param)
+{
+    if (!param)
+        return;
+
+    if (param->err_msg) {
+        free(param->err_msg);
+        param->err_msg = NULL;
+    }
+
+    token_rule_release(&param->rule);
 }
 
 static inline int

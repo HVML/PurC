@@ -480,6 +480,7 @@
 %union { long int max_matching_length; }
 
 %destructor { token_rule_release(&$$); } <rule>
+%destructor { free($$); } <str>
 %destructor { free($$); } <to>
 %destructor { free($$); } <advance>
 %destructor { logical_expression_destroy($$); } <logic>
@@ -529,7 +530,7 @@
 %% /* The grammar follows. */
 
 input:
-  token_rule
+  token_rule         { SET_RULE($1); }
 ;
 
 token_rule:

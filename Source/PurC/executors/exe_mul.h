@@ -56,7 +56,28 @@ int pcexec_exe_mul_register(void);
 int exe_mul_parse(const char *input, size_t len,
         struct exe_mul_param *param);
 
-void exe_mul_param_reset(struct exe_mul_param *param);
+static inline void
+mul_rule_release(struct mul_rule *rule)
+{
+    if (rule->lexp) {
+        logical_expression_destroy(rule->lexp);
+        rule->lexp = NULL;
+    }
+}
+
+static inline void
+exe_mul_param_reset(struct exe_mul_param *param)
+{
+    if (!param)
+        return;
+
+    if (param->err_msg) {
+        free(param->err_msg);
+        param->err_msg = NULL;
+    }
+
+    mul_rule_release(&param->rule);
+}
 
 static inline int
 mul_rule_eval(struct mul_rule *rule, purc_variant_t val, bool *result)

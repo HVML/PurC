@@ -849,3 +849,111 @@ end:
     return r ? -1 : 0;
 }
 
+int iterative_formula_add(struct iterative_formula_expression *exp)
+{
+    size_t nr = pctree_node_children_number(&exp->node);
+    if (nr != 2)
+        return -1;
+    struct iterative_formula_expression *l, *r;
+    l = container_of(exp->node.first_child,
+            struct iterative_formula_expression, node);
+    r = container_of(exp->node.last_child,
+            struct iterative_formula_expression, node);
+
+    exp->result = l->result + r->result;
+
+    return 0;
+}
+
+int iterative_formula_sub(struct iterative_formula_expression *exp)
+{
+    size_t nr = pctree_node_children_number(&exp->node);
+    if (nr != 2)
+        return -1;
+    struct iterative_formula_expression *l, *r;
+    l = container_of(exp->node.first_child,
+            struct iterative_formula_expression, node);
+    r = container_of(exp->node.last_child,
+            struct iterative_formula_expression, node);
+
+    exp->result = l->result - r->result;
+
+    return 0;
+}
+
+int iterative_formula_mul(struct iterative_formula_expression *exp)
+{
+    size_t nr = pctree_node_children_number(&exp->node);
+    if (nr != 2)
+        return -1;
+    struct iterative_formula_expression *l, *r;
+    l = container_of(exp->node.first_child,
+            struct iterative_formula_expression, node);
+    r = container_of(exp->node.last_child,
+            struct iterative_formula_expression, node);
+
+    exp->result = l->result * r->result;
+
+    return 0;
+}
+
+int iterative_formula_div(struct iterative_formula_expression *exp)
+{
+    size_t nr = pctree_node_children_number(&exp->node);
+    if (nr != 2)
+        return -1;
+    struct iterative_formula_expression *l, *r;
+    l = container_of(exp->node.first_child,
+            struct iterative_formula_expression, node);
+    r = container_of(exp->node.last_child,
+            struct iterative_formula_expression, node);
+
+    exp->result = l->result / r->result;
+
+    return 0;
+}
+
+int iterative_formula_neg(struct iterative_formula_expression *exp)
+{
+    size_t nr = pctree_node_children_number(&exp->node);
+    if (nr != 1)
+        return -1;
+    struct iterative_formula_expression *l;
+    l = container_of(exp->node.first_child,
+            struct iterative_formula_expression, node);
+
+    exp->result = -l->result;
+
+    return 0;
+}
+
+void iterative_formula_expression_release(
+        struct iterative_formula_expression *exp)
+{
+    if (!exp)
+        return;
+
+    struct pctree_node *top = &exp->node;
+    struct pctree_node *node, *next;
+    pctree_for_each_post_order(top, node, next) {
+        struct iterative_formula_expression *p;
+        p = container_of(node, struct iterative_formula_expression, node);
+        pctree_node_remove(node);
+        switch (p->type)
+        {
+            case ITERATIVE_FORMULA_EXPRESSION_OP:
+                break;
+            case ITERATIVE_FORMULA_EXPRESSION_ID:
+                if (p->id) {
+                    free(p->id);
+                    p->id = NULL;
+                }
+                break;
+            case ITERATIVE_FORMULA_EXPRESSION_NUM:
+                break;
+        }
+        if (p!=exp)
+            free(p);
+    }
+}
+

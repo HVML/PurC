@@ -56,7 +56,28 @@ int pcexec_exe_add_register(void);
 int exe_add_parse(const char *input, size_t len,
         struct exe_add_param *param);
 
-void exe_add_param_reset(struct exe_add_param *param);
+static inline void
+add_rule_release(struct add_rule *rule)
+{
+    if (rule->lexp) {
+        logical_expression_destroy(rule->lexp);
+        rule->lexp = NULL;
+    }
+}
+
+static inline void
+exe_add_param_reset(struct exe_add_param *param)
+{
+    if (!param)
+        return;
+
+    if (param->err_msg) {
+        free(param->err_msg);
+        param->err_msg = NULL;
+    }
+
+    add_rule_release(&param->rule);
+}
 
 static inline int
 add_rule_eval(struct add_rule *rule, purc_variant_t val, bool *result)

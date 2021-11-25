@@ -388,6 +388,54 @@ logical_expression_destroy(struct logical_expression *exp)
     free(exp);
 }
 
+enum iterative_formula_expression_node_type
+{
+    ITERATIVE_FORMULA_EXPRESSION_OP,
+    ITERATIVE_FORMULA_EXPRESSION_NUM,
+    ITERATIVE_FORMULA_EXPRESSION_ID,
+};
+
+struct iterative_formula_expression
+{
+    enum iterative_formula_expression_node_type           type;
+    union {
+        int (*op)(struct iterative_formula_expression *);
+        double  d;
+        char   *id;
+    };
+
+    struct pctree_node                                    node;
+
+    double                                                result;
+};
+
+static inline struct iterative_formula_expression*
+iterative_formula_expression_create(void)
+{
+    struct iterative_formula_expression *exp;
+    exp = (struct iterative_formula_expression*)calloc(1, sizeof(*exp));
+    return exp;
+}
+
+void iterative_formula_expression_release(
+        struct iterative_formula_expression *exp);
+
+static inline void
+iterative_formula_expression_destroy(struct iterative_formula_expression *exp)
+{
+    if (!exp)
+        return;
+
+    iterative_formula_expression_release(exp);
+    free(exp);
+}
+
+int iterative_formula_add(struct iterative_formula_expression *exp);
+int iterative_formula_sub(struct iterative_formula_expression *exp);
+int iterative_formula_mul(struct iterative_formula_expression *exp);
+int iterative_formula_div(struct iterative_formula_expression *exp);
+int iterative_formula_neg(struct iterative_formula_expression *exp);
+
 int
 literal_expression_eval(struct literal_expression *lexp,
         purc_variant_t val, bool *result);

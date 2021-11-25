@@ -58,12 +58,9 @@ int pcexec_exe_char_register(void);
 int exe_char_parse(const char *input, size_t len,
         struct exe_char_param *param);
 
-void exe_char_param_reset(struct exe_char_param *param);
-
 static inline void
 char_rule_release(struct char_rule *rule)
 {
-    PC_ASSERT(rule);
     if (rule->to) {
         free(rule->to);
         rule->to = NULL;
@@ -77,6 +74,21 @@ char_rule_release(struct char_rule *rule)
         rule->until = NULL;
     }
 }
+
+static inline void
+exe_char_param_reset(struct exe_char_param *param)
+{
+    if (!param)
+        return;
+
+    if (param->err_msg) {
+        free(param->err_msg);
+        param->err_msg = NULL;
+    }
+
+    char_rule_release(&param->rule);
+}
+
 
 static inline int
 char_rule_eval(struct char_rule *rule, purc_variant_t val, bool *result)

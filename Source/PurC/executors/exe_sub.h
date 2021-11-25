@@ -56,7 +56,28 @@ int pcexec_exe_sub_register(void);
 int exe_sub_parse(const char *input, size_t len,
         struct exe_sub_param *param);
 
-void exe_sub_param_reset(struct exe_sub_param *param);
+static inline void
+sub_rule_release(struct sub_rule *rule)
+{
+    if (rule->lexp) {
+        logical_expression_destroy(rule->lexp);
+        rule->lexp = NULL;
+    }
+}
+
+static inline void
+exe_sub_param_reset(struct exe_sub_param *param)
+{
+    if (!param)
+        return;
+
+    if (param->err_msg) {
+        free(param->err_msg);
+        param->err_msg = NULL;
+    }
+
+    sub_rule_release(&param->rule);
+}
 
 static inline int
 sub_rule_eval(struct sub_rule *rule, purc_variant_t val, bool *result)

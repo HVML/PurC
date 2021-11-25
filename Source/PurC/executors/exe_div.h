@@ -56,7 +56,28 @@ int pcexec_exe_div_register(void);
 int exe_div_parse(const char *input, size_t len,
         struct exe_div_param *param);
 
-void exe_div_param_reset(struct exe_div_param *param);
+static inline void
+div_rule_release(struct div_rule *rule)
+{
+    if (rule->lexp) {
+        logical_expression_destroy(rule->lexp);
+        rule->lexp = NULL;
+    }
+}
+
+static inline void
+exe_div_param_reset(struct exe_div_param *param)
+{
+    if (!param)
+        return;
+
+    if (param->err_msg) {
+        free(param->err_msg);
+        param->err_msg = NULL;
+    }
+
+    div_rule_release(&param->rule);
+}
 
 static inline int
 div_rule_eval(struct div_rule *rule, purc_variant_t val, bool *result)
