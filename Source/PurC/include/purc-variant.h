@@ -924,12 +924,28 @@ purc_variant_object_iterator_prev(struct purc_variant_object_iterator* it);
  *
  * @param it: iterator of itself
  *
+ * Returns: the key of key-val-pair
+ *
+ * Since: 0.0.2
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_object_iterator_get_key(struct purc_variant_object_iterator* it);
+
+/**
+ * Get the key of key-val-pair that the iterator points to
+ *
+ * @param it: iterator of itself
+ *
  * Returns: the key of key-val-pair, not duplicated
  *
- * Since: 0.0.1
+ * Since: 0.0.2
  */
-PCA_EXPORT const char *
-purc_variant_object_iterator_get_key(struct purc_variant_object_iterator* it);
+static inline const char*
+purc_variant_object_iterator_get_ckey(struct purc_variant_object_iterator* it)
+{
+    purc_variant_t k = purc_variant_object_iterator_get_key(it);
+    return purc_variant_get_string_const(k);
+}
 
 /**
  * Get the value of key-val-pair that the iterator points to

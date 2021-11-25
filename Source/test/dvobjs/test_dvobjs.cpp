@@ -59,7 +59,7 @@ TEST(dvobjs, dvobjs_sys_uname)
     purc_variant_object_iterator *it =
         purc_variant_object_make_iterator_begin (ret_var);
     for (i = 0; i < purc_variant_object_get_size (ret_var); i++) {
-        const char     *key = purc_variant_object_iterator_get_key (it);
+        const char     *key = purc_variant_object_iterator_get_ckey (it);
         purc_variant_t  val = purc_variant_object_iterator_get_value (it);
 
         result = purc_variant_get_string_const (val);
@@ -721,7 +721,7 @@ TEST(dvobjs, dvobjs_sys_gettime)
     purc_variant_object_iterator *it =
         purc_variant_object_make_iterator_begin (ret_var);
     for (size_t i = 0; i < purc_variant_object_get_size (ret_var); i++) {
-        const char     *key = purc_variant_object_iterator_get_key (it);
+        const char     *key = purc_variant_object_iterator_get_ckey (it);
         purc_variant_t  val = purc_variant_object_iterator_get_value (it);
 
         purc_variant_cast_to_number (val, &number, false);
