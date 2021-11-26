@@ -37,8 +37,8 @@
 struct char_rule
 {
     double           from;
-    double          *to;
-    double          *advance;
+    double           to;
+    double           advance;
     char            *until;
 };
 
@@ -61,14 +61,6 @@ int exe_char_parse(const char *input, size_t len,
 static inline void
 char_rule_release(struct char_rule *rule)
 {
-    if (rule->to) {
-        free(rule->to);
-        rule->to = NULL;
-    }
-    if (rule->advance) {
-        free(rule->advance);
-        rule->advance = NULL;
-    }
     if (rule->until) {
         free(rule->until);
         rule->until = NULL;

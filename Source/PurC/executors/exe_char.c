@@ -116,15 +116,15 @@ char_string_until_match(struct pcexec_exe_char_inst *exe_char_inst)
     bool result = false;
     char buf[2];
     buf[1] = '\0';
-    if (rule->advance)
-        len -= *rule->advance;
+    if (!isnan(rule->advance))
+        len -= rule->advance;
 
     while (true) {
         if (it_pos < 0 || (size_t)it_pos >= len) {
             pcinst_set_error(PCEXECUTOR_ERROR_NOT_EXISTS);
             break;
         }
-        if (rule->to && it_pos >= *(rule->to)) {
+        if (!isnan(rule->to) && it_pos >= rule->to) {
             pcinst_set_error(PCEXECUTOR_ERROR_NOT_EXISTS);
             break;
         }
@@ -182,8 +182,8 @@ fetch_next(struct pcexec_exe_char_inst *exe_char_inst)
     switch (purc_variant_get_type(cache))
     {
         case PURC_VARIANT_TYPE_STRING:
-            if (rule->advance)
-                exe_char_inst->it_pos += *(rule->advance);
+            if (!isnan(rule->advance))
+                exe_char_inst->it_pos += rule->advance;
             return char_string_until_match(exe_char_inst);
         default:
             pcinst_set_error(PCEXECUTOR_ERROR_NOT_IMPLEMENTED);

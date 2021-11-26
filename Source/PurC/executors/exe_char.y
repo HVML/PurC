@@ -46,6 +46,7 @@
     //        struct exe_char_param *param);
     // #include "exe_char.h"
     // here we define them locally
+    #include <math.h>
     struct exe_char_token {
         const char      *text;
         size_t           leng;
@@ -195,14 +196,6 @@
         _nexp = -_l;                                             \
     } while (0)
 
-    #define SET_PDOUBLE(_l, _r) do {                        \
-        _l = (double*)malloc(sizeof(*_l));                  \
-        if (!_l) {                                          \
-            YYABORT;                                        \
-        }                                                   \
-        *_l = _r;                                           \
-    } while (0);
-
     #define SET_RULE(_rule) do {                            \
         if (param) {                                        \
             param->rule = _rule;                            \
@@ -232,15 +225,13 @@
 %union { char *str; }
 %union { char c; }
 %union { double nexp; }
-%union { double *to; }
-%union { double *advance; }
+%union { double to; }
+%union { double advance; }
 %union { char   *until; }
 %union { struct char_rule rule; }
 %union { struct pcexe_strlist slist; }
 
 %destructor { free($$); } <str>
-%destructor { free($$); } <to>
-%destructor { free($$); } <advance>
 %destructor { free($$); } <until>
 %destructor { char_rule_release(&$$); } <rule>
 %destructor { pcexe_strlist_reset(&$$); } <slist>
@@ -274,13 +265,13 @@ char_rule:
 ;
 
 to_clause:
-  %empty                 { $$ = NULL; }
-| TO exp                 { SET_PDOUBLE($$, $2); }
+  %empty                 { $$ = NAN; }
+| TO exp                 { $$ = $2; }
 ;
 
 advance_clause:
-  %empty                 { $$ = NULL; }
-| ADVANCE exp            { SET_PDOUBLE($$, $2); }
+  %empty                 { $$ = NAN; }
+| ADVANCE exp            { $$ = $2; }
 ;
 
 until_clause:
