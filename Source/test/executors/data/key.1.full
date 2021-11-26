@@ -174,4 +174,10 @@ FILTER: LIKE /0$/;
 O:
 [ 100, 80, 30, 20 ];
 
+I:
+'A brown fox jumps over a lazy cat';
+R:
+CHAR: FROM 0 TO 10 ADVANCE 2 UNTIL 'f';
+O:
+[ "A", "b", "o", "n" ];
 

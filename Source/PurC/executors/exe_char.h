@@ -90,15 +90,8 @@ exe_char_param_reset(struct exe_char_param *param)
 }
 
 
-static inline int
-char_rule_eval(struct char_rule *rule, purc_variant_t val, bool *result)
-{
-    PC_ASSERT(rule);
-    UNUSED_PARAM(val);
-    UNUSED_PARAM(result);
-    PC_ASSERT(0); // Not implemented yet
-    return -1;
-}
+int
+char_rule_eval(struct char_rule *rule, purc_variant_t val, bool *result);
 
 PCA_EXTERN_C_END
 
