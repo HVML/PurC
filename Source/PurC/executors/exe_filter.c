@@ -36,6 +36,8 @@
 
 struct pcexec_exe_filter_inst {
     struct purc_exec_inst       super;
+    struct purc_variant_object_iterator *it_obj;
+    size_t                               it_arr;
 
     struct exe_filter_param     param;
 };
@@ -63,6 +65,10 @@ reset(struct pcexec_exe_filter_inst *exe_filter_inst)
 {
     struct exe_filter_param *param = &exe_filter_inst->param;
     exe_filter_param_reset(param);
+    if (exe_filter_inst->it_obj) {
+        purc_variant_object_release_iterator(exe_filter_inst->it_obj);
+        exe_filter_inst->it_obj = NULL; 
+    }
     pcexecutor_inst_reset(&exe_filter_inst->super);
 }
 
@@ -89,66 +95,230 @@ parse_rule(struct pcexec_exe_filter_inst *exe_filter_inst,
 }
 
 static inline purc_exec_iter_t
-fetch_array_next(struct pcexec_exe_filter_inst *exe_filter_inst)
+fetch_and_cache(struct pcexec_exe_filter_inst *exe_filter_inst)
+{
+    purc_exec_inst_t inst = &exe_filter_inst->super;
+    purc_exec_iter_t it = &inst->it;
+
+    PC_ASSERT(0);
+    return it;
+}
+
+static inline purc_exec_iter_t
+filter_object_until_match(struct pcexec_exe_filter_inst *exe_filter_inst)
+{
+    purc_exec_inst_t inst = &exe_filter_inst->super;
+    purc_exec_iter_t it = &inst->it;
+    struct filter_rule *rule = &exe_filter_inst->param.rule;
+
+    PC_ASSERT(exe_filter_inst->param.rule_valid);
+    PC_ASSERT(exe_filter_inst->it_obj == NULL);
+
+    bool ok = true;
+
+    struct purc_variant_object_iterator *it_obj;
+    it_obj = exe_filter_inst->it_obj;
+    if (!it_obj) {
+        pcinst_set_error(PCEXECUTOR_ERROR_NOT_EXISTS);
+        return NULL;
+    }
+
+    PC_ASSERT(it_obj);
+
+    bool result = false;
+    purc_variant_t found = PURC_VARIANT_INVALID;
+    do {
+        purc_variant_t k = purc_variant_object_iterator_get_key(it_obj);
+
+        int r = filter_rule_eval(rule, k, &result);
+        if (r) {
+            ok = false;
+            break;
+        }
+        if (result) {
+            purc_variant_t val = PURC_VARIANT_INVALID;
+            switch (rule->for_clause)
+            {
+                case FOR_CLAUSE_VALUE:
+                    {
+                        val = purc_variant_object_iterator_get_value(it_obj);
+                        purc_variant_ref(val);
+                    } break;
+                case FOR_CLAUSE_KEY:
+                    {
+                        val = purc_variant_object_iterator_get_key(it_obj);
+                        purc_variant_ref(val);
+                    } break;
+                case FOR_CLAUSE_KV:
+                    {
+                        purc_variant_t v;
+                        v = purc_variant_object_iterator_get_value(it_obj);
+                        val = purc_variant_make_object(1, k, v);
+                        if (val == PURC_VARIANT_INVALID)
+                            return NULL;
+                    } break;
+                default:
+                    {
+                        PC_ASSERT(0);
+                    } break;
+            }
+            found = val;
+            break;
+        }
+    } while (purc_variant_object_iterator_next(it_obj));
+
+    if (!ok) {
+        return NULL;
+    }
+
+    if (!result) {
+        pcinst_set_error(PCEXECUTOR_ERROR_NOT_EXISTS);
+        return NULL;
+    }
+
+    exe_filter_inst->it_obj = it_obj;
+    PCEXE_CLR_VAR(inst->value);
+    inst->value = found;
+    return it;
+}
+
+static inline purc_exec_iter_t
+filter_array_until_match(struct pcexec_exe_filter_inst *exe_filter_inst)
+{
+    purc_exec_inst_t inst = &exe_filter_inst->super;
+    purc_exec_iter_t it = &inst->it;
+    purc_variant_t cache = inst->cache;
+    struct filter_rule *rule = &exe_filter_inst->param.rule;
+
+    PC_ASSERT(exe_filter_inst->param.rule_valid);
+    PC_ASSERT(exe_filter_inst->it_obj == NULL);
+
+    bool ok = true;
+
+    size_t nr;
+    if (!purc_variant_array_size(cache, &nr)) {
+        return NULL;
+    }
+
+    size_t it_arr = exe_filter_inst->it_arr;
+
+    bool result = false;
+    purc_variant_t found = PURC_VARIANT_INVALID;
+    do {
+        if (it_arr >= nr) {
+            pcinst_set_error(PCEXECUTOR_ERROR_NOT_EXISTS);
+            break;
+        }
+
+        purc_variant_t v = purc_variant_array_get(cache, it_arr);
+
+        int r = filter_rule_eval(rule, v, &result);
+        if (r) {
+            ok = false;
+            break;
+        }
+        if (result) {
+            found = v;
+            purc_variant_ref(found);
+            break;
+        }
+    } while (++it_arr);
+
+    if (!ok) {
+        return NULL;
+    }
+
+    if (!result) {
+        pcinst_set_error(PCEXECUTOR_ERROR_NOT_EXISTS);
+        return NULL;
+    }
+
+    exe_filter_inst->it_arr = it_arr;
+    PCEXE_CLR_VAR(inst->value);
+    inst->value = found;
+    return it;
+}
+
+static inline purc_exec_iter_t
+filter_until_match(struct pcexec_exe_filter_inst *exe_filter_inst)
 {
     purc_exec_inst_t inst = &exe_filter_inst->super;
     purc_variant_t cache = inst->cache;
-    purc_exec_iter_t it = &inst->it;
+    switch (purc_variant_get_type(cache))
+    {
+        case PURC_VARIANT_TYPE_OBJECT:
+            return filter_object_until_match(exe_filter_inst);
+        case PURC_VARIANT_TYPE_ARRAY:
+            return filter_array_until_match(exe_filter_inst);
+        default:
+            pcinst_set_error(PCEXECUTOR_ERROR_NOT_IMPLEMENTED);
+            return NULL;
+    }
+}
+
+static inline purc_exec_iter_t
+fetch_begin(struct pcexec_exe_filter_inst *exe_filter_inst)
+{
+    purc_exec_inst_t inst = &exe_filter_inst->super;
+    purc_variant_t cache = inst->cache;
+    switch (purc_variant_get_type(cache))
+    {
+        case PURC_VARIANT_TYPE_OBJECT:
+            exe_filter_inst->it_obj = purc_variant_object_make_iterator_begin(cache);
+            return filter_until_match(exe_filter_inst);
+        case PURC_VARIANT_TYPE_ARRAY:
+            exe_filter_inst->it_arr = 0;
+            return filter_until_match(exe_filter_inst);
+        default:
+            pcinst_set_error(PCEXECUTOR_ERROR_NOT_IMPLEMENTED);
+            return NULL;
+    }
+}
+
+static inline purc_exec_iter_t
+fetch_object_next(struct pcexec_exe_filter_inst *exe_filter_inst)
+{
+    purc_exec_inst_t inst = &exe_filter_inst->super;
     struct filter_rule *rule = &exe_filter_inst->param.rule;
 
     PC_ASSERT(exe_filter_inst->param.rule_valid);
 
     PCEXE_CLR_VAR(inst->value);
 
-    purc_variant_t val = PURC_VARIANT_INVALID;
-
     bool ok = true;
 
-    size_t idx = it->curr + 1;
+    struct purc_variant_object_iterator *it_obj = exe_filter_inst->it_obj;
+    PC_ASSERT(it_obj);
+    if (!purc_variant_object_iterator_next(it_obj)) {
+        return NULL;
+    }
+
+    PC_ASSERT(it_obj);
 
     bool result = false;
-    size_t sz = purc_variant_array_get_size(cache);
-    for (; idx <sz; ++idx) {
-        val = purc_variant_array_get(cache, idx);
-        PC_ASSERT(val != PURC_VARIANT_INVALID);
+    do {
+        purc_variant_t k = purc_variant_object_iterator_get_key(it_obj);
 
-        int r = filter_rule_eval(rule, val, &result);
+        int r = filter_rule_eval(rule, k, &result);
         if (r) {
             ok = false;
             break;
         }
         if (result)
             break;
+    } while (purc_variant_object_iterator_next(it_obj));
+
+    if (!ok) {
+        return NULL;
     }
 
-    if (!ok || !result)
+    if (!result) {
+        pcinst_set_error(PCEXECUTOR_ERROR_NOT_EXISTS);
         return NULL;
+    }
 
-    PC_ASSERT(val != PURC_VARIANT_INVALID);
-
-    it->curr = idx;
-    inst->value = val;
-    purc_variant_ref(val);
-
-    return it;
-}
-
-static inline purc_exec_iter_t
-fetch_object_next(struct pcexec_exe_filter_inst *exe_filter_inst)
-{
-    UNUSED_PARAM(exe_filter_inst);
-    PC_ASSERT(0); // Not implemented yet
-
-    return NULL;
-}
-
-static inline purc_exec_iter_t
-fetch_set_next(struct pcexec_exe_filter_inst *exe_filter_inst)
-{
-    UNUSED_PARAM(exe_filter_inst);
-    PC_ASSERT(0); // Not implemented yet
-
-    return NULL;
+    exe_filter_inst->it_obj = it_obj;
+    return fetch_and_cache(exe_filter_inst);
 }
 
 static inline purc_exec_iter_t
@@ -158,16 +328,18 @@ fetch_next(struct pcexec_exe_filter_inst *exe_filter_inst)
     purc_variant_t cache = inst->cache;
     switch (purc_variant_get_type(cache))
     {
-        case PURC_VARIANT_TYPE_ARRAY:
-            return fetch_array_next(exe_filter_inst);
         case PURC_VARIANT_TYPE_OBJECT:
-            return fetch_object_next(exe_filter_inst);
-        case PURC_VARIANT_TYPE_SET:
-            return fetch_set_next(exe_filter_inst);
+            if (!purc_variant_object_iterator_next(exe_filter_inst->it_obj))
+                return NULL;
+            break;
+        case PURC_VARIANT_TYPE_ARRAY:
+            ++exe_filter_inst->it_arr;
+            break;
         default:
             pcinst_set_error(PCEXECUTOR_ERROR_NOT_IMPLEMENTED);
             return NULL;
     }
+    return filter_until_match(exe_filter_inst);
 }
 
 static inline purc_variant_t
@@ -216,8 +388,8 @@ exe_filter_create(enum purc_exec_type type,
 
     enum purc_variant_type vt = purc_variant_get_type(input);
     if (vt == PURC_VARIANT_TYPE_OBJECT ||
-        vt == PURC_VARIANT_TYPE_SET ||
-        vt == PURC_VARIANT_TYPE_ARRAY)
+        vt == PURC_VARIANT_TYPE_ARRAY ||
+        vt == PURC_VARIANT_TYPE_SET)
     {
         purc_variant_t cache = pcexe_make_cache(input, asc_desc);
         if (cache != PURC_VARIANT_INVALID) {
@@ -252,10 +424,9 @@ exe_filter_choose(purc_exec_inst_t inst, const char* rule)
     if (vals == PURC_VARIANT_INVALID)
         return PURC_VARIANT_INVALID;
 
-    bool ok = true;
+    bool ok = false;
 
-    inst->it.curr = -1;
-    purc_exec_iter_t it = fetch_next(exe_filter_inst);
+    purc_exec_iter_t it = fetch_begin(exe_filter_inst);
 
     for(; it; it = fetch_next(exe_filter_inst)) {
         purc_variant_t v = fetch_value(exe_filter_inst);
@@ -296,8 +467,7 @@ exe_filter_it_begin(purc_exec_inst_t inst, const char* rule)
 
     PC_ASSERT(inst->cache != PURC_VARIANT_INVALID);
 
-    inst->it.curr = -1;
-    return fetch_next(exe_filter_inst);
+    return fetch_begin(exe_filter_inst);
 }
 
 // 根据迭代子获得对应的变体值
@@ -384,8 +554,7 @@ exe_filter_reduce(purc_exec_inst_t inst, const char* rule)
     double max   = NAN;
     double min   = NAN;
 
-    inst->it.curr = -1;
-    purc_exec_iter_t it = fetch_next(exe_filter_inst);
+    purc_exec_iter_t it = fetch_begin(exe_filter_inst);
 
     for(; it; it = fetch_next(exe_filter_inst)) {
         purc_variant_t v = fetch_value(exe_filter_inst);
@@ -459,5 +628,4 @@ int pcexec_exe_filter_register(void)
     bool ok = purc_register_executor("FILTER", &exe_filter_ops);
     return ok ? 0 : -1;
 }
-
 
