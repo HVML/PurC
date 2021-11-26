@@ -139,7 +139,9 @@ char_string_until_match(struct pcexec_exe_char_inst *exe_char_inst)
             break;
 
         purc_variant_unref(found);
-        ++it_pos;
+        if (!isnan(rule->advance)) {
+            it_pos += rule->advance;
+        }
     };
 
     if (!result) {
