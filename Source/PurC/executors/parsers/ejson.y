@@ -146,13 +146,16 @@
             size_t n = (len + 31) / 32 * 32;
             n += ss->len;
             char *p = (char*)realloc(ss->str, n + 1);
-            if (!p)
+            if (!p) {
+                string_s_reset(ss);
                 return -1;
+            }
             ss->str = p;
             ss->sz  = n;
         }
         strncpy(ss->str + ss->len, s, len);
         ss->len += len;
+        ss->str[ss->len] = '\0';
         return 0;
     }
 
@@ -183,9 +186,10 @@
         (void)ss;
         if (!end || !*end) {
             // convert UCP to utf-8
-            abort();
+            abort();  // TODO: Not implemented yet
         }
 
+        abort();  // TODO: Not implemented yet
         return -1;
     }
 
@@ -258,11 +262,12 @@
         purc_variant_t k = purc_variant_array_get(kv, 0);
         purc_variant_t v = purc_variant_array_get(kv, 1);
 
-        if (!purc_variant_array_append(vals, k) ||
-            !purc_variant_array_append(vals, v))
-        {
+        bool ok = purc_variant_array_append(vals, k) &&
+                  purc_variant_array_append(vals, v);
+        purc_variant_unref(kv);
+
+        if (!ok) {
             purc_variant_unref(vals);
-            purc_variant_unref(kv);
             return PURC_VARIANT_INVALID;
         }
 
@@ -275,7 +280,7 @@
         purc_variant_t kv = purc_variant_make_array(2, k, v);
 
         purc_variant_unref(k);
-        purc_variant_unref(k);
+        purc_variant_unref(v);
 
         return kv;
     }
@@ -315,16 +320,16 @@
     mk_vars(purc_variant_t v)
     {
         purc_variant_t vals = purc_variant_make_array(1, v);
-        if (vals == PURC_VARIANT_INVALID)
-            purc_variant_unref(v);
+        purc_variant_unref(v);
         return vals;
     }
 
     static inline purc_variant_t
     append_var(purc_variant_t vals, purc_variant_t v)
     {
-        if (!purc_variant_array_append(vals, v)) {
-            purc_variant_unref(v);
+        bool ok = purc_variant_array_append(vals, v);
+        purc_variant_unref(v);
+        if (!ok) {
             purc_variant_unref(vals);
             return PURC_VARIANT_INVALID;
         }
@@ -463,6 +468,13 @@
         if (_r == PURC_VARIANT_INVALID)                   \
             YYABORT;                                      \
     } while (0)
+
+    #define SET_NULL() do {                               \
+        param->var = purc_variant_make_null();            \
+        if (param->var == PURC_VARIANT_INVALID) {         \
+            YYABORT;                                      \
+        }                                                 \
+    } while (0)
 }
 
 /* Bison declarations. */
@@ -498,7 +510,7 @@
 %% /* The grammar follows. */
 
 input:
-  %empty             { param->var = PURC_VARIANT_INVALID; }
+  %empty             { SET_NULL(); }
 | variant            { param->var = $1; }
 ;
 
@@ -546,7 +558,6 @@ kvs:
 kv:
   ID ':' variant                   { INIT_KV_ID($$, $1, $3); }
 | '"' string '"' ':' variant       { INIT_KV_STR($$, $2, $5); }
-| '\'' string '\'' ':' variant     { INIT_KV_STR($$, $2, $5); }
 ;
 
 arr:

@@ -36,6 +36,7 @@
 
 struct pcexec_exe_key_inst {
     struct purc_exec_inst       super;
+    struct purc_variant_object_iterator *curr;
 
     struct exe_key_param     param;
 };
@@ -63,6 +64,10 @@ reset(struct pcexec_exe_key_inst *exe_key_inst)
 {
     struct exe_key_param *param = &exe_key_inst->param;
     exe_key_param_reset(param);
+    if (exe_key_inst->curr) {
+        purc_variant_object_release_iterator(exe_key_inst->curr);
+        exe_key_inst->curr = NULL; 
+    }
     pcexecutor_inst_reset(&exe_key_inst->super);
 }
 
@@ -89,80 +94,177 @@ parse_rule(struct pcexec_exe_key_inst *exe_key_inst,
 }
 
 static inline purc_exec_iter_t
-fetch_next(struct pcexec_exe_key_inst *exe_key_inst)
+fetch_and_cache(struct pcexec_exe_key_inst *exe_key_inst)
+{
+    purc_exec_inst_t inst = &exe_key_inst->super;
+    purc_exec_iter_t it = &inst->it;
+    struct key_rule *rule = &exe_key_inst->param.rule;
+
+    PC_ASSERT(exe_key_inst->param.rule_valid);
+    PC_ASSERT(exe_key_inst->curr);
+
+    purc_variant_t val = PURC_VARIANT_INVALID;
+
+    struct purc_variant_object_iterator *curr;
+    curr = exe_key_inst->curr;
+
+    switch (rule->for_clause)
+    {
+        case FOR_CLAUSE_VALUE:
+            {
+                val = purc_variant_object_iterator_get_value(curr);
+                purc_variant_ref(val);
+            } break;
+        case FOR_CLAUSE_KEY:
+            {
+                val = purc_variant_object_iterator_get_key(curr);
+                purc_variant_ref(val);
+            } break;
+        case FOR_CLAUSE_KV:
+            {
+                purc_variant_t k, v;
+                k = purc_variant_object_iterator_get_key(curr);
+                v = purc_variant_object_iterator_get_value(curr);
+                val = purc_variant_make_object(1, k, v);
+                if (val == PURC_VARIANT_INVALID)
+                    return NULL;
+            } break;
+        default:
+            {
+                PC_ASSERT(0);
+            } break;
+    }
+
+    PC_ASSERT(val != PURC_VARIANT_INVALID);
+
+    PCEXE_CLR_VAR(inst->value);
+
+    inst->value = val;
+
+    return it;
+}
+
+static inline purc_exec_iter_t
+fetch_object_begin(struct pcexec_exe_key_inst *exe_key_inst)
 {
     purc_exec_inst_t inst = &exe_key_inst->super;
     purc_variant_t cache = inst->cache;
-    purc_exec_iter_t it = &inst->it;
+    struct key_rule *rule = &exe_key_inst->param.rule;
+
+    PC_ASSERT(exe_key_inst->param.rule_valid);
+    PC_ASSERT(exe_key_inst->curr == NULL);
+
+    bool ok = true;
+
+    struct purc_variant_object_iterator *curr;
+    curr = purc_variant_object_make_iterator_begin(cache);
+    if (!curr) {
+        pcinst_set_error(PCEXECUTOR_ERROR_NOT_EXISTS);
+        return NULL;
+    }
+
+    PC_ASSERT(curr);
+
+    bool result = false;
+    do {
+        purc_variant_t k = purc_variant_object_iterator_get_key(curr);
+
+        int r = key_rule_eval(rule, k, &result);
+        if (r) {
+            ok = false;
+            break;
+        }
+        if (result)
+            break;
+    } while (purc_variant_object_iterator_next(curr));
+
+    if (!ok) {
+        return NULL;
+    }
+
+    if (!result) {
+        pcinst_set_error(PCEXECUTOR_ERROR_NOT_EXISTS);
+        return NULL;
+    }
+
+    exe_key_inst->curr = curr;
+    return fetch_and_cache(exe_key_inst);
+}
+
+static inline purc_exec_iter_t
+fetch_begin(struct pcexec_exe_key_inst *exe_key_inst)
+{
+    purc_exec_inst_t inst = &exe_key_inst->super;
+    purc_variant_t cache = inst->cache;
+    switch (purc_variant_get_type(cache))
+    {
+        case PURC_VARIANT_TYPE_OBJECT:
+            return fetch_object_begin(exe_key_inst);
+        default:
+            pcinst_set_error(PCEXECUTOR_ERROR_NOT_IMPLEMENTED);
+            return NULL;
+    }
+}
+
+static inline purc_exec_iter_t
+fetch_object_next(struct pcexec_exe_key_inst *exe_key_inst)
+{
+    purc_exec_inst_t inst = &exe_key_inst->super;
     struct key_rule *rule = &exe_key_inst->param.rule;
 
     PC_ASSERT(exe_key_inst->param.rule_valid);
 
     PCEXE_CLR_VAR(inst->value);
 
-    purc_variant_t val = PURC_VARIANT_INVALID;
-
     bool ok = true;
 
-    size_t idx = it->curr + 1;
-
-    size_t sz = purc_variant_array_get_size(cache);
-    for (; idx <sz; ++idx) {
-        purc_variant_t kv = purc_variant_array_get(cache, idx);
-        if (!purc_variant_is_object(kv))
-            continue;
-
-        purc_variant_t k, v;
-        foreach_key_value_in_variant_object(kv, k, v)
-            bool result = false;
-            int r = key_rule_eval(rule, k, &result);
-            if (r) {
-                ok = false;
-                break;
-            }
-            if (!result)
-                break;
-
-            switch (rule->for_clause)
-            {
-                case FOR_CLAUSE_VALUE:
-                {
-                    val = v;
-                } break;
-                case FOR_CLAUSE_KEY:
-                {
-                    val = k;
-                } break;
-                case FOR_CLAUSE_KV:
-                {
-                    val = kv;
-                } break;
-                default:
-                {
-                    PC_ASSERT(0);
-                } break;
-            }
-            break;
-        end_foreach;
-
-        if (!ok)
-            break;
-
-        if (val != PURC_VARIANT_INVALID)
-            break;
+    struct purc_variant_object_iterator *curr = exe_key_inst->curr;
+    PC_ASSERT(curr);
+    if (!purc_variant_object_iterator_next(curr)) {
+        return NULL;
     }
 
-    if (!ok)
+    PC_ASSERT(curr);
+
+    bool result = false;
+    do {
+        purc_variant_t k = purc_variant_object_iterator_get_key(curr);
+
+        int r = key_rule_eval(rule, k, &result);
+        if (r) {
+            ok = false;
+            break;
+        }
+        if (result)
+            break;
+    } while (purc_variant_object_iterator_next(curr));
+
+    if (!ok) {
         return NULL;
+    }
 
-    if (val == PURC_VARIANT_INVALID)
+    if (!result) {
+        pcinst_set_error(PCEXECUTOR_ERROR_NOT_EXISTS);
         return NULL;
+    }
 
-    it->curr = idx;
-    inst->value = val;
-    purc_variant_ref(val);
+    exe_key_inst->curr = curr;
+    return fetch_and_cache(exe_key_inst);
+}
 
-    return it;
+static inline purc_exec_iter_t
+fetch_next(struct pcexec_exe_key_inst *exe_key_inst)
+{
+    purc_exec_inst_t inst = &exe_key_inst->super;
+    purc_variant_t cache = inst->cache;
+    switch (purc_variant_get_type(cache))
+    {
+        case PURC_VARIANT_TYPE_OBJECT:
+            return fetch_object_next(exe_key_inst);
+        default:
+            pcinst_set_error(PCEXECUTOR_ERROR_NOT_IMPLEMENTED);
+            return NULL;
+    }
 }
 
 static inline purc_variant_t
@@ -210,8 +312,7 @@ exe_key_create(enum purc_exec_type type,
     exe_key_inst->param.debug_bison = debug_bison;
 
     enum purc_variant_type vt = purc_variant_get_type(input);
-    if (vt == PURC_VARIANT_TYPE_OBJECT ||
-        vt == PURC_VARIANT_TYPE_SET)
+    if (vt == PURC_VARIANT_TYPE_OBJECT)
     {
         purc_variant_t cache = pcexe_make_cache(input, asc_desc);
         if (cache != PURC_VARIANT_INVALID) {
@@ -248,8 +349,7 @@ exe_key_choose(purc_exec_inst_t inst, const char* rule)
 
     bool ok = true;
 
-    inst->it.curr = -1;
-    purc_exec_iter_t it = fetch_next(exe_key_inst);
+    purc_exec_iter_t it = fetch_begin(exe_key_inst);
 
     for(; it; it = fetch_next(exe_key_inst)) {
         purc_variant_t v = fetch_value(exe_key_inst);
@@ -290,8 +390,7 @@ exe_key_it_begin(purc_exec_inst_t inst, const char* rule)
 
     PC_ASSERT(inst->cache != PURC_VARIANT_INVALID);
 
-    inst->it.curr = -1;
-    return fetch_next(exe_key_inst);
+    return fetch_begin(exe_key_inst);
 }
 
 // 根据迭代子获得对应的变体值

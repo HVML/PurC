@@ -200,7 +200,10 @@ pcexe_cache_array(purc_variant_t input, bool asc_desc)
 static inline purc_variant_t
 pcexe_cache_object(purc_variant_t input, bool asc_desc)
 {
-    purc_variant_t cache = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    UNUSED_PARAM(asc_desc);
+
+    purc_variant_t cache = purc_variant_make_object(0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
     if (cache == PURC_VARIANT_INVALID) {
         return PURC_VARIANT_INVALID;
     }
@@ -208,17 +211,9 @@ pcexe_cache_object(purc_variant_t input, bool asc_desc)
     bool ok = true;
     purc_variant_t k, v;
     foreach_key_value_in_variant_object(input, k, v)
-        purc_variant_t o = purc_variant_make_object(1, k, v);
-        if (o == PURC_VARIANT_INVALID) {
-            ok = false;
+        ok = purc_variant_object_set(cache, k, v);
+        if (!ok)
             break;
-        }
-        if (asc_desc) {
-            ok = purc_variant_array_append(cache, o);
-        } else {
-            ok = purc_variant_array_prepend(cache, o);
-        }
-        purc_variant_unref(o);
     end_foreach;
 
     if (!ok) {
@@ -229,23 +224,70 @@ pcexe_cache_object(purc_variant_t input, bool asc_desc)
     return cache;
 }
 
+static inline char*
+make_unique_key(variant_set_t data)
+{
+    PC_ASSERT(data->unique_key);
+
+    size_t sz = 0;
+    for (size_t i=0; i<data->nr_keynames; ++i) {
+        if (i)
+            sz += 1;
+        sz += strlen(data->keynames[i]);
+    }
+
+    char *s = (char*)malloc(sz + 1);
+    if (!s)
+        return NULL;
+
+    char *p = s;
+    for (size_t i=0; i<data->nr_keynames; ++i) {
+        if (i) {
+            *p++ = ' ';
+        }
+        strcpy(p, data->keynames[i]);
+        p += strlen(p);
+    }
+
+    return s;
+}
+
 static inline purc_variant_t
 pcexe_cache_set(purc_variant_t input, bool asc_desc)
 {
-    purc_variant_t cache = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    UNUSED_PARAM(asc_desc);
+
+    variant_set_t data = (variant_set_t)input->sz_ptr[1];
+    char *unique_key = NULL;
+    if (data->unique_key) {
+        unique_key = make_unique_key(data);
+        if (!unique_key)
+            return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t cache = purc_variant_make_set_by_ckey(0,
+            unique_key, PURC_VARIANT_INVALID);
     if (cache == PURC_VARIANT_INVALID) {
+        if (unique_key) {
+            free(unique_key);
+            unique_key = NULL;
+        }
+
         return PURC_VARIANT_INVALID;
     }
 
     bool ok = true;
     purc_variant_t v;
     foreach_value_in_variant_set(input, v)
-        if (asc_desc) {
-            ok = purc_variant_array_append(cache, v);
-        } else {
-            ok = purc_variant_array_prepend(cache, v);
-        }
+        ok = purc_variant_set_add(cache, v, false);
+        if (!ok)
+            break;
     end_foreach;
+
+    if (unique_key) {
+        free(unique_key);
+        unique_key = NULL;
+    }
 
     if (!ok) {
         purc_variant_unref(cache);
@@ -274,10 +316,20 @@ pcexe_make_cache(purc_variant_t input, bool asc_desc)
         {
             cache = pcexe_cache_set(input, asc_desc);
         } break;
+        case PURC_VARIANT_TYPE_DYNAMIC:
+        {
+            pcinst_set_error(PCEXECUTOR_ERROR_NOT_IMPLEMENTED);
+            return PURC_VARIANT_INVALID;
+        } break;
+        case PURC_VARIANT_TYPE_NATIVE:
+        {
+            pcinst_set_error(PCEXECUTOR_ERROR_NOT_IMPLEMENTED);
+            return PURC_VARIANT_INVALID;
+        } break;
         default:
         {
-            pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
-            return PURC_VARIANT_INVALID;
+            purc_variant_ref(input);
+            return input;
         }
     }
 

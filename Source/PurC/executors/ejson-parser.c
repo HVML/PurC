@@ -28,6 +28,8 @@
 
 #include "ejson.tab.h"
 
+#include <stdlib.h>
+
 purc_variant_t
 pcejson_parser_parse_string(const char *str)
 {

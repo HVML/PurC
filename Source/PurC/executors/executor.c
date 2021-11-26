@@ -64,8 +64,6 @@ static void free_pcexec_val(void *val)
 
 
 static const char* executor_err_msgs[] = {
-    /* PCEXECUTOR_ERROR_NOT_IMPLEMENTED */
-    "Executor: NOT IMPLEMENTED",
     /* PCEXECUTOR_ERROR_NO_KEYS_SELECTED_PREVIOUSLY */
     "Executor: No keys selected previously",
     /* PCEXECUTOR_ERROR_NO_KEYS_SELECTED */

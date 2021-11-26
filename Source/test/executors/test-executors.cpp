@@ -1,5 +1,6 @@
 #include "purc.h"
 
+#include "private/variant.h"
 #include "private/ejson-parser.h"
 #include "private/executor.h"
 #include "private/utils.h"
@@ -238,6 +239,8 @@ is_blank_line(const char *line)
 static inline void
 make_variant_from_json(purc_variant_t *v, const char *s, size_t len)
 {
+    UNUSED_PARAM(len);
+
     if (strcmp(s, "undefined")==0) {
         *v = purc_variant_make_undefined();
     }
@@ -245,7 +248,8 @@ make_variant_from_json(purc_variant_t *v, const char *s, size_t len)
         *v = purc_variant_make_null();
     }
     else {
-        *v = purc_variant_make_from_json_string(s, len);
+        // *v = purc_variant_make_from_json_string(s, len);
+        *v = pcejson_parser_parse_string(s);
     }
 }
 
@@ -294,12 +298,13 @@ process_rule_output_do_choose(struct config *cfg, const char *fn,
         purc_rwstream_t rws = purc_rwstream_new_buffer(1024, -1);
         purc_variant_serialize(v, rws, 0, 0, NULL);
         const char *p = (const char*)purc_rwstream_get_mem_buffer(rws, NULL);
+
         std::cerr << src_file << "[" << __LINE__ << "]:"
             << "Failed to compare input/rule/output/actual:" << std::endl
-            << "[" << ctx->input.str << "]" << std::endl
-            << "[" << ctx->rule.str << "]" << std::endl
-            << "[" << ctx->output.str << "]" << std::endl
-            << "[" << (const char*)p << "]" << std::endl;
+            << "input:   [" << ctx->input.str << "]" << std::endl
+            << "rule:    [" << ctx->rule.str << "]" << std::endl
+            << "output:  [" << ctx->output.str << "]" << std::endl
+            << "expected:[" << (const char*)p << "]" << std::endl;
         purc_rwstream_destroy(rws);
 
         ctx->result = 0;
@@ -592,7 +597,6 @@ process_sample_file(struct config *cfg, FILE *file, const char *fn)
 
                     parser_ctx_clear_v_output(&ctx);
                     ctx.v_output = v;
-
                     ctx.result = 1;
                     process_output(cfg, fn, &ctx);
                     if (ctx.result) {
@@ -736,6 +740,27 @@ do_ejson_parser_parse(struct ejson_parser_record *record)
         return;
     }
 
+    if (0) {
+        purc_variant_t vo = pcejson_parser_parse_string(out);
+        if (vo == PURC_VARIANT_INVALID) {
+            purc_variant_unref(v);
+            FAIL() << "failed to parse positive: [" << out << "]";
+            return;
+        }
+
+        int r = purc_variant_compare(v, vo);
+
+        purc_variant_unref(v);
+        purc_variant_unref(vo);
+
+        if (r) {
+            FAIL() << "compare failed: in/serialize/out" << std::endl
+                << "[" << in << "]" << std::endl
+                << "[" << out << "]";
+        }
+        return;
+    }
+
     char buf[8192];
     int r = do_serialize(v, buf, sizeof(buf)-1);
     purc_variant_unref(v);
@@ -785,6 +810,9 @@ TEST(executors, ejson_parser)
         { true, "undefined", "undefined" },
         { true, "undefined", "undefined" },
         { true, "undefined", "undefined" },
+        { true, "[0]", "[0FL]" },
+        { true, "['ab']", "[\"ab\"]" },
+        { true, "{'hello':'world'}", "{\"hello\":\"world\"}" },
     };
 
     for (size_t i=0; i<PCA_TABLESIZE(records); ++i) {

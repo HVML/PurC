@@ -94,7 +94,7 @@ do {                                              \
 "false" { C(); R(); return MKT(T_FALSE); }
 ["]{3}  { C(); PUSH(TQ); R(); return MKT(TQ); }
 ["]     { C(); PUSH(DQ); R(); return *yytext; }
-[']     { C(); PUSH(SQ); R(); return *yytext; }
+[']     { C(); PUSH(SQ); R(); return '"'; }
 [-+]?[1-9][0-9]*(L|UL|l|ul)         { C(); SET_STR(); R(); return MKT(INTEGER); }
 [-+]?[1-9][0-9]*(FL|fl)?            { C(); SET_STR(); R(); return MKT(NUMBER); }
 [-+]?[0]?([.][0-9]+)?([eE][-+][0-9]+)?(FL|fl)?          { C(); SET_STR(); R(); return MKT(NUMBER); }
@@ -124,7 +124,7 @@ do {                                              \
 }
 
 <SQ>{
-[']       { C(); POP(); R(); return *yytext; }
+[']       { C(); POP(); R(); return '"'; }
 [^'\\\n]+ { C(); SET_STR(); R(); return MKT(STR); }
 "\\\'"    { C(); SET_CHR('\''); R(); return MKT(CHR); }
 [\\]      { C(); PUSH(ESCAPE); R(); }
