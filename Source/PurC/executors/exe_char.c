@@ -124,7 +124,7 @@ char_string_until_match(struct pcexec_exe_char_inst *exe_char_inst)
             pcinst_set_error(PCEXECUTOR_ERROR_NOT_EXISTS);
             break;
         }
-        if (!isnan(rule->to) && it_pos >= rule->to) {
+        if (!isnan(rule->to) && it_pos > rule->to) {
             pcinst_set_error(PCEXECUTOR_ERROR_NOT_EXISTS);
             break;
         }

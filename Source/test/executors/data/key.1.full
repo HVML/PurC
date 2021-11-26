@@ -183,6 +183,6 @@ O:
 R: # FIXME: is this case right?
 CHAR: FROM 0 TO 10 ADVANCE 2 UNTIL 'r';
 O:
-[ "A", "b", "o", "n", "f" ];
+[ "A", "b", "o", "n", "f", "x" ];
 
 
