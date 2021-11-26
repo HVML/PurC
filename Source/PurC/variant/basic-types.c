@@ -297,7 +297,7 @@ purc_variant_t purc_variant_make_string_static(const char* str_utf8,
     value->type = PURC_VARIANT_TYPE_STRING;
     value->flags = PCVARIANT_FLAG_STRING_STATIC;
     value->refc = 1;
-    value->sz_ptr[0] = str_size;
+    value->sz_ptr[0] = str_size + 1;
     value->sz_ptr[1] = (uintptr_t)str_utf8;
 
     return value;
