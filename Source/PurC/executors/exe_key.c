@@ -477,8 +477,7 @@ exe_key_reduce(purc_exec_inst_t inst, const char* rule)
     double max   = NAN;
     double min   = NAN;
 
-    inst->it.curr = -1;
-    purc_exec_iter_t it = fetch_next(exe_key_inst);
+    purc_exec_iter_t it = fetch_begin(exe_key_inst);
 
     for(; it; it = fetch_next(exe_key_inst)) {
         purc_variant_t v = fetch_value(exe_key_inst);
