@@ -71,7 +71,7 @@ TEST(dvobjs, dvobjs_file_text_head)
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (0);
     ret_var = func (NULL, 2, param);
-    ASSERT_EQ(purc_variant_string_length (ret_var), filestat.st_size);
+    ASSERT_EQ(purc_variant_string_length (ret_var)-1, filestat.st_size);
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
     purc_variant_unref(ret_var);
@@ -157,7 +157,7 @@ TEST(dvobjs, dvobjs_file_text_tail)
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (0);
     ret_var = func (NULL, 2, param);
-    ASSERT_EQ(purc_variant_string_length (ret_var), 0);
+    ASSERT_EQ(purc_variant_string_length (ret_var)-1, 0);
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
     purc_variant_unref(ret_var);

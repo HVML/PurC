@@ -201,6 +201,22 @@ purc_variant_make_string_reuse_buff(char* str_utf8, size_t sz_buff,
         bool check_encoding);
 
 /**
+ * Creates a variant value of string type by using non-null-terminated buffer
+ *
+ * @param str_utf8: the pointer of a string which is in UTF-8 encoding
+ * @param len: the length of string to be used at most
+ * @param check_encoding: whether check str_utf8 in UTF-8 encoding
+ *
+ * Returns: A purc_variant_t with string type,
+ *      or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.0.5
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_make_string_ex(const char* str_utf8, size_t len,
+        bool check_encoding);
+
+/**
  * Gets the pointer of string which is encapsulated in string type.
  *
  * @param value: the data of string type
