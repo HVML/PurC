@@ -470,6 +470,8 @@ TEST(dvobjs, dvobjs_string_shuffle)
                         // USER MODIFIED HERE.
                         ASSERT_EQ(purc_variant_is_type (ret_var,
                                     PURC_VARIANT_TYPE_STRING), true);
+                        ASSERT_EQ(purc_variant_is_type (param[0],
+                                    PURC_VARIANT_TYPE_STRING), true);
                         size_t number1 = purc_variant_string_length (ret_var);
                         size_t number2 = purc_variant_string_length (param[0]);
                         ASSERT_EQ(number1, number2);

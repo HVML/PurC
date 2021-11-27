@@ -392,7 +392,7 @@ text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return purc_variant_make_string ("", false);
     }
 
-    pos = fread (content, 1, pos - 1, fp);
+    pos = fread (content, 1, pos, fp);
     *(content + pos) = 0x00;
 
     ret_var = purc_variant_make_string_reuse_buff (content, pos, false);
@@ -915,7 +915,7 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
                             purc_rwstream_read (rwstream, buffer, read_number);
                             *(buffer + read_number) = 0x00;
                             val = purc_variant_make_string_reuse_buff (
-                                    (char *)buffer, read_number + 1, false);
+                                    (char *)buffer, read_number, false);
                         }
                     } else
                         val = purc_variant_make_string ("", false);
@@ -926,7 +926,9 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
 
                     buffer = malloc (mem_size);
                     for (i = 0, j = 0; ; i++, j++) {
-                        purc_rwstream_read (rwstream, buffer + i, 1);
+                        ssize_t r = purc_rwstream_read (rwstream, buffer + i, 1);
+                        if (r <= 0)
+                            break;
                         if (*(buffer + i) == 0x00)
                             break;
 
