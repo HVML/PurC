@@ -38,7 +38,7 @@
 
 #define BUF_SIZE           8192
 
-int pcexe_unitoutf8(char *utf8, const char *uni, size_t n)
+int pcexe_ucs2utf8(char *utf8, const char *uni, size_t n)
 {
     if (n != 6)
         return -1;
@@ -87,6 +87,168 @@ int pcexe_unitoutf8(char *utf8, const char *uni, size_t n)
     }
 
     return -1;
+}
+
+int pcexe_utf8_to_wchar(const char *utf8, wchar_t *wc)
+{
+    unsigned int codepoint;
+    const char *p = utf8;
+    if (*p == 0) {
+        *wc = 0;
+        return 0;
+    }
+
+    int tails = 0;
+
+    unsigned char ch = (unsigned char)(*p);
+    if (ch < 0b10000000) {
+        codepoint = ch;
+    }
+    else if (ch < 0b11000000) {
+        return -1;
+    }
+    else if (ch < 0b11100000) {
+        codepoint = ch & 0b00011111;
+        tails = 1;
+    }
+    else if (ch < 0b11110000) {
+        codepoint = (ch & 0b00001111);
+        tails = 2;
+    }
+    else if (ch < 0b11111000) {
+        codepoint = ch & 0b00000111;
+        tails = 3;
+    }
+    else if (ch < 0b11111100) {
+        codepoint = ch & 0b00000011;
+        tails = 4;
+    }
+    else if (ch < 0b11111110) {
+        codepoint = ch & 0b00000001;
+        tails = 5;
+    }
+    else {
+        return -1;
+    }
+
+    ++p;
+    for (int i=0; i<tails; ++i) {
+        unsigned char ch = (unsigned char)(*p++);
+        if ((ch & 0b10000000) == 0b10000000) {
+            codepoint <<= 6;
+            codepoint |= (ch & 0b00111111);
+        } else {
+            return -1;
+        }
+    }
+    *wc = codepoint;
+
+    return tails + 1;
+}
+
+int pcexe_wchar_to_utf8(const wchar_t wc, char *utf8, size_t n)
+{
+    if (wc < 0x80) {
+        if (n < 1)
+            return -1;
+        utf8[0] = wc;
+        return 1;
+    }
+
+    if (wc < 0x800) {
+        if (n < 2)
+            return -2;
+
+        utf8[0] = 0b11000000 | ((wc >> 6) & 0b00011111);
+        utf8[1] = 0b10000000 | (wc & 0b00111111);
+        return 2;
+    }
+
+    if ((wc < 0xd800) || ((wc >= 0xe000) && (wc < 0x010000))) {
+        if (n < 3)
+            return -3;
+
+        utf8[0] = 0b11100000 | ((wc >> 12) & 0b00001111);
+        utf8[1] = 0b10000000 | ((wc >> 6) & 0b00111111);
+        utf8[2] = 0b10000000 | (wc & 0b00111111);
+        return 3;
+    }
+
+    if ((wc >= 0x010000) && (wc < 0x110000)) {
+        if (n < 4)
+            return -4;
+
+        utf8[0] = 0b11110000 | ((wc >> 18) & 0b00000111);
+        utf8[1] = 0b10000000 | ((wc >> 12) & 0b00111111);
+        utf8[2] = 0b10000000 | ((wc >> 6) & 0b00111111);
+        utf8[3] = 0b10000000 | (wc & 0b00111111);
+        return 4;
+    }
+
+    return 0; // denote error
+}
+
+wchar_t* pcexe_wchar_from_utf8(const char *utf8, size_t *bytes, size_t *chars)
+{
+    size_t len = strlen(utf8);
+    size_t sz = len * sizeof(wchar_t);
+    wchar_t *ws = (wchar_t*)malloc(sz + sizeof(wchar_t));
+    *bytes = 0;
+    *chars = 0;
+    if (!ws)
+        return NULL;
+
+    const char *p = utf8;
+
+    size_t nc = 0;
+    size_t bc = 0;
+    while (*p) {
+        int n = pcexe_utf8_to_wchar(p, ws + nc);
+        if (n < 0)
+            break;
+
+        ++nc;
+        bc += n;
+        p  += n;
+    }
+
+    *bytes = bc;
+    *chars = nc;
+    ws[nc] = 0;
+    return ws;
+}
+
+char* pcexe_utf8_from_wchar(const wchar_t *ws, size_t *chars, size_t *bytes)
+{
+    size_t len = wcslen(ws);
+    size_t sz = len * 6;
+    char *utf8 = (char*)malloc(sz + sizeof(char));
+    *chars = 0;
+    *bytes = 0;
+    if (!utf8)
+        return NULL;
+
+    const wchar_t *s = ws;
+    char *d = utf8;
+
+    size_t nc = 0;
+    size_t bc = 0;
+    while (*s) {
+        int n = pcexe_wchar_to_utf8(*s, d, sz - bc);
+        if (n == 0)
+            break;
+        PC_ASSERT(n > 0);
+
+        ++nc;
+        bc += n;
+        d  += n;
+        ++s;
+    }
+
+    *bytes = bc;
+    *chars = nc;
+    utf8[bc] = '\0';
+    return utf8;
 }
 
 struct pcexe_strlist* pcexe_strlist_create(void)

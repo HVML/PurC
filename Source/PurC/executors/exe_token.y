@@ -46,6 +46,7 @@
     //        struct exe_token_param *param);
     // #include "exe_token.h"
     // here we define them locally
+    #include <math.h>
     struct exe_token_token {
         const char      *text;
         size_t           leng;
@@ -73,14 +74,6 @@
         struct exe_token_param *param,           // match %parse-param
         const char *errsg
     );
-
-    #define SET_PDOUBLE(_l, _r) do {                        \
-        _l = (double*)malloc(sizeof(*_l));                  \
-        if (!_l) {                                          \
-            YYABORT;                                        \
-        }                                                   \
-        *_l = _r;                                           \
-    } while (0);
 
     #define NUMERIC_EXP_INIT_I64(_nexp, _i64) do {               \
         int64_t i64;                                             \
@@ -464,8 +457,8 @@
 %union { char *str; }
 %union { char c; }
 %union { struct token_rule rule; }
-%union { double *to; }
-%union { double *advance; }
+%union { double to; }
+%union { double advance; }
 %union { double nexp; }
 %union { struct logical_expression *logic; }
 %union { struct string_matching_expression mexp; }
@@ -481,8 +474,6 @@
 
 %destructor { token_rule_release(&$$); } <rule>
 %destructor { free($$); } <str>
-%destructor { free($$); } <to>
-%destructor { free($$); } <advance>
 %destructor { logical_expression_destroy($$); } <logic>
 %destructor { string_matching_expression_reset(&$$); } <mexp>
 %destructor { pcexe_strlist_reset(&$$); } <slist>
@@ -538,13 +529,13 @@ token_rule:
 ;
 
 to_clause:
-  %empty            { $$ = NULL; }
-| TO exp            { SET_PDOUBLE($$, $2); }
+  %empty            { $$ = NAN; }
+| TO exp            { $$ = $2; }
 ;
 
 advance_clause:
-  %empty            { $$ = NULL; }
-| ADVANCE exp       { SET_PDOUBLE($$, $2); }
+  %empty            { $$ = NAN; }
+| ADVANCE exp       { $$ = $2; }
 ;
 
 delimiters_clause:

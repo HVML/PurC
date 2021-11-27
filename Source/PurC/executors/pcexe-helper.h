@@ -47,7 +47,12 @@
 
 PCA_EXTERN_C_BEGIN
 
-int pcexe_unitoutf8(char *utf, const char *uni, size_t n);
+int pcexe_ucs2utf8(char *utf, const char *uni, size_t n);
+
+int pcexe_utf8_to_wchar(const char *utf8, wchar_t *wc);
+int pcexe_wchar_to_utf8(const wchar_t wc, char *utf8, size_t n);
+wchar_t* pcexe_wchar_from_utf8(const char *utf8, size_t *bytes, size_t *chars);
+char* pcexe_utf8_from_wchar(const wchar_t *ws, size_t *chars, size_t *bytes);
 
 struct pcexe_strlist {
     char         **strings;
@@ -87,7 +92,7 @@ pcexe_strlist_append_uni(struct pcexe_strlist *list,
         const char *uni, size_t n)
 {
     char utf8[7];
-    int r = pcexe_unitoutf8(utf8, uni, n);
+    int r = pcexe_ucs2utf8(utf8, uni, n);
     if (r)
         return r;
 

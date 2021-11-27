@@ -37,8 +37,8 @@
 struct token_rule
 {
     double           from;
-    double          *to;
-    double          *advance;
+    double           to;
+    double           advance;
     char            *delimiters;
     struct logical_expression       *until;
 };
@@ -49,7 +49,6 @@ struct exe_token_param {
     int debug_bison;
 
     struct token_rule        rule;
-    unsigned int            rule_valid:1;
 };
 
 PCA_EXTERN_C_BEGIN
@@ -62,14 +61,6 @@ int exe_token_parse(const char *input, size_t len,
 static inline void
 token_rule_release(struct token_rule *rule)
 {
-    if (rule->to) {
-        free(rule->to);
-        rule->to = NULL;
-    }
-    if (rule->advance) {
-        free(rule->advance);
-        rule->advance = NULL;
-    }
     if (rule->delimiters) {
         free(rule->delimiters);
         rule->delimiters = NULL;
@@ -94,15 +85,8 @@ exe_token_param_reset(struct exe_token_param *param)
     token_rule_release(&param->rule);
 }
 
-static inline int
-token_rule_eval(struct token_rule *rule, purc_variant_t val, bool *result)
-{
-    PC_ASSERT(rule);
-    UNUSED_PARAM(val);
-    UNUSED_PARAM(result);
-    PC_ASSERT(0); // Not implemented yet
-    return -1;
-}
+int
+token_rule_eval(struct token_rule *rule, purc_variant_t val, bool *result);
 
 PCA_EXTERN_C_END
 

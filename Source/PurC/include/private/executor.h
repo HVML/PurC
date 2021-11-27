@@ -45,6 +45,7 @@ struct pcexecutor_heap {
 // 用于迭代的迭代器
 struct purc_exec_iter {
     size_t                     curr;
+    unsigned int               valid:1;
 };
 
 // 执行器实例

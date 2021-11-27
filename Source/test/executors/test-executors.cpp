@@ -825,3 +825,7 @@ TEST(executors, ejson_parser)
     ASSERT_TRUE(ok);
 }
 
+TEST(executors, utf8_wchar)
+{
+}
+
