@@ -214,7 +214,7 @@ string_shuffle (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    char *src = malloc (size+1);
+    char *src = malloc (size);
     if (src == NULL) {
         pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         return PURC_VARIANT_INVALID;
@@ -225,14 +225,14 @@ string_shuffle (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     size_t i = 0;
     int random = 0;
-    for(i =  0; i < size - 2; i++) {
-        random = i + (rand () % (size - 1 - i));
+    for(i =  0; i < size - 1; i++) {
+        random = (rand () % (size - 1));
         int tmp = *(src + random);
         *(src + random) = *(src + i);
         *(src + i) = tmp;
     }
 
-    ret_var = purc_variant_make_string_reuse_buff (src, size, false);
+    ret_var = purc_variant_make_string_reuse_buff (src, size-1, false);
 
     return ret_var;
 }
