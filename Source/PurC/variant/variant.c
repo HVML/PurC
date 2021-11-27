@@ -859,7 +859,8 @@ bool purc_variant_cast_to_byte_sequence(purc_variant_t v,
     switch (v->type) {
         case PURC_VARIANT_TYPE_ATOMSTRING:
             *bytes = purc_atom_to_string(v->sz_ptr[1]);
-            *sz = strlen(*bytes);
+            // NOTE: strlen()+1, in case when purc_variant_compare with string
+            *sz = strlen(*bytes) + 1;
             return true;
 
         case PURC_VARIANT_TYPE_STRING:
