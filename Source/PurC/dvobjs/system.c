@@ -342,11 +342,14 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         purc_rwstream_write (rwstream, name.sysname, strlen (name.sysname));
     }
 
+    purc_rwstream_write (rwstream, "\0", 1);
+
     rw_string = purc_rwstream_get_mem_buffer_ex (rwstream,
                                             &content_size, &rw_size, true);
-    if ((content_size == 0) || (rw_string == NULL) || (rw_size == 0))
+    if ((content_size <= 1) || (rw_string == NULL) || (rw_size <= 1)) {
         ret_var = PURC_VARIANT_INVALID;
-    else {
+        free(rw_string);
+    } else {
         ret_var = purc_variant_make_string_reuse_buff (rw_string,
                 rw_size, false);
         if(ret_var == PURC_VARIANT_INVALID) {
