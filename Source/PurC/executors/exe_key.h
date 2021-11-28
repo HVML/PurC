@@ -65,6 +65,20 @@ key_rule_release(struct key_rule *rule)
     }
 }
 
+static inline void
+exe_key_param_reset(struct exe_key_param *param)
+{
+    if (!param)
+        return;
+
+    if (param->err_msg) {
+        free(param->err_msg);
+        param->err_msg = NULL;
+    }
+
+    key_rule_release(&param->rule);
+}
+
 PCA_EXTERN_C_END
 
 #endif // PURC_EXECUTOR_KEY_H
