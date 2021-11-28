@@ -196,6 +196,17 @@
         _nexp = -_l;                                             \
     } while (0)
 
+    #define SET_CHAR_RULE(_rule, _from, _to, _advance, _until) do {      \
+        _rule.from    = _from;                                           \
+        _rule.to      = _to;                                             \
+        _rule.advance = _advance;                                        \
+        size_t bytes, chars;                                             \
+        _rule.until   = pcexe_wchar_from_utf8(_until, &bytes, &chars);   \
+        free(_until);                                                    \
+        if (!_rule.until)                                                \
+            YYABORT;                                                     \
+    } while (0)
+
     #define SET_RULE(_rule) do {                            \
         if (param) {                                        \
             param->rule = _rule;                            \
@@ -261,7 +272,7 @@ input:
 ;
 
 char_rule:
-  CHAR ':' FROM exp to_clause advance_clause until_clause    { $$.from = $4; $$.to = $5; $$.advance = $6; $$.until = $7; }
+  CHAR ':' FROM exp to_clause advance_clause until_clause    { SET_CHAR_RULE($$, $4, $5, $6, $7); }
 ;
 
 to_clause:

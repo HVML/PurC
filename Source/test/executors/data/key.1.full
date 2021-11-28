@@ -236,14 +236,12 @@
 
 I:
 'A brown fox jumps over a lazy cat';
-
 R:
-TOKEN: FROM 0 TO 2 DELIMETERS ' ';
+CHAR: FROM 0 TO 10 ADVANCE 2 UNTIL 'f';
 O:
-[ "A", "brown", "fox" ];
-
-R:
-TOKEN: FROM 0 TO 2 DELIMETERS ' ' UNTIL AS 'fox';
+[ "A", "b", "o", "n" ];
+R: # FIXME: is this case right?
+CHAR: FROM 0 TO 10 ADVANCE 2 UNTIL 'r';
 O:
-[ "A", "brown" ];
+[ "A", "b", "o", "n", "f", "x" ];
 

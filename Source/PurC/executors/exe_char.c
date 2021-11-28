@@ -37,9 +37,9 @@
 struct pcexec_exe_char_inst {
     struct purc_exec_inst       super;
 
-    int                       it_pos;
+    struct exe_char_param      param;
 
-    struct exe_char_param     param;
+    wchar_t                   *result_set;
 };
 
 // clear internal data except `input`
@@ -48,8 +48,28 @@ reset(struct pcexec_exe_char_inst *exe_char_inst)
 {
     struct exe_char_param *param = &exe_char_inst->param;
     exe_char_param_reset(param);
-    exe_char_inst->it_pos = 0;
     pcexecutor_inst_reset(&exe_char_inst->super);
+    PCEXE_FREE(exe_char_inst->result_set);
+}
+
+static inline bool
+prepare_result_set(struct pcexec_exe_char_inst *exe_char_inst)
+{
+    purc_exec_inst_t inst = &exe_char_inst->super;
+    purc_variant_t input = inst->input;
+    const char *s = purc_variant_get_string_const(input);
+
+    size_t bytes, chars;
+    wchar_t *ws = pcexe_wchar_from_utf8(s, &bytes, &chars);
+    if (!ws) {
+        pcinst_set_error(PCEXECUTOR_ERROR_OOM);
+        return false;
+    }
+
+    PCEXE_FREE(exe_char_inst->result_set);
+    exe_char_inst->result_set = ws;
+
+    return true;
 }
 
 static inline bool
@@ -58,20 +78,23 @@ parse_rule(struct pcexec_exe_char_inst *exe_char_inst,
 {
     purc_exec_inst_t inst = &exe_char_inst->super;
 
-    reset(exe_char_inst);
-    PCEXE_CLR_VAR(inst->value);
+    struct exe_char_param param = {0};
+    int r = exe_char_parse(rule, strlen(rule), &param);
+    if (inst->err_msg) {
+        free(inst->err_msg);
+        inst->err_msg = NULL;
+    }
 
-    struct exe_char_param *param = &exe_char_inst->param;
-    param->rule_valid = 0;
-    int r = exe_char_parse(rule, strlen(rule), &exe_char_inst->param);
-    inst->err_msg = exe_char_inst->param.err_msg;
-    exe_char_inst->param.err_msg = NULL;
-
-    if (r)
+    if (r) {
+        inst->err_msg = param.err_msg;
+        param.err_msg = NULL;
         return false;
+    }
 
-    param->rule_valid = 1;
-    return true;
+    exe_char_param_reset(&exe_char_inst->param);
+    exe_char_inst->param = param;
+
+    return prepare_result_set(exe_char_inst);
 }
 
 static inline purc_exec_iter_t
@@ -85,112 +108,116 @@ fetch_and_cache(struct pcexec_exe_char_inst *exe_char_inst)
 }
 
 int
-char_rule_eval(struct char_rule *rule, purc_variant_t val, bool *result)
+char_rule_eval(struct char_rule *rule, const wchar_t wc, bool *result)
 {
-    if (rule->until) {
-        const char *str = purc_variant_get_string_const(val);
-        if (strcmp(str, rule->until) == 0) {
-            *result = false;
-            return -1;
-        }
+    wchar_t *until = rule->until;
+    *result = false;
+    if (!until) {
+        return 0;
     }
-    *result = true;
+
+    if (wcschr(until, wc)) {
+        *result = true;
+    }
+
     return 0;
 }
 
-static inline purc_exec_iter_t
-char_string_until_match(struct pcexec_exe_char_inst *exe_char_inst)
+static inline bool
+check_curr(struct pcexec_exe_char_inst *exe_char_inst)
 {
     purc_exec_inst_t inst = &exe_char_inst->super;
     purc_exec_iter_t it = &inst->it;
-    purc_variant_t cache = inst->cache;
-    const char *str = purc_variant_get_string_const(cache);
-    size_t len = strlen(str);
     struct char_rule *rule = &exe_char_inst->param.rule;
 
-    PC_ASSERT(exe_char_inst->param.rule_valid);
+    int curr = (int)it->curr;
 
-    int it_pos = exe_char_inst->it_pos;
-
-    purc_variant_t found = PURC_VARIANT_INVALID;
-    bool result = false;
-    char buf[2];
-    buf[1] = '\0';
-    if (!isnan(rule->advance))
-        len -= rule->advance;
-
-    while (true) {
-        if (it_pos < 0 || (size_t)it_pos >= len) {
-            pcinst_set_error(PCEXECUTOR_ERROR_NOT_EXISTS);
-            break;
-        }
-        if (!isnan(rule->to) && it_pos > rule->to) {
-            pcinst_set_error(PCEXECUTOR_ERROR_NOT_EXISTS);
-            break;
-        }
-        buf[0]  = str[it_pos];
-        // TODO: better with wchar
-        found = purc_variant_make_string(buf, false);
-        int r = char_rule_eval(rule, found, &result);
-        if (r)
-            break;
-
-        if (result)
-            break;
-
-        purc_variant_unref(found);
-        if (!isnan(rule->advance)) {
-            it_pos += rule->advance;
-        }
-    };
-
-    if (!result) {
-        if (found != PURC_VARIANT_INVALID) {
-            purc_variant_unref(found);
-            found = PURC_VARIANT_INVALID;
-        }
-        return NULL;
+    if (curr < 0) {
+        pcinst_set_error(PCEXECUTOR_ERROR_NOT_EXISTS);
+        return false;
     }
 
-    exe_char_inst->it_pos = it_pos;
+    const wchar_t *result_set = exe_char_inst->result_set;
+    size_t nr = wcslen(result_set);
+
+    if ((size_t)curr >= nr) {
+        pcinst_set_error(PCEXECUTOR_ERROR_NOT_EXISTS);
+        return false;
+    }
+
+    if (!isnan(rule->to)) {
+        int to = rule->to;
+
+        int advance = 1;
+        if (!isnan(rule->advance)) {
+            advance = rule->advance;
+            PC_ASSERT(advance);
+        }
+
+        if (((advance > 0) && (curr > to)) ||
+            ((advance < 0) && (curr < to)))
+        {
+            pcinst_set_error(PCEXECUTOR_ERROR_NOT_EXISTS);
+            return false;
+        }
+    }
+
+    const wchar_t wc = result_set[curr];
+
+    bool result = false;
+    if (char_rule_eval(rule, wc, &result)) {
+        // TODO: exception
+        PC_ASSERT(0);
+        return false;
+    }
+    if (result) {
+        pcinst_set_error(PCEXECUTOR_ERROR_NOT_EXISTS);
+        return false;
+    }
+
+    char utf8[16];
+    int n = pcexe_wchar_to_utf8(wc, utf8, sizeof(utf8));
+    PC_ASSERT(n > 0 && (size_t)n<sizeof(utf8));
+    utf8[n] = '\0';
+
+    purc_variant_t val = purc_variant_make_string(utf8, false);
+    if (val == PURC_VARIANT_INVALID)
+        return false;
+
     PCEXE_CLR_VAR(inst->value);
-    inst->value = found;
-    return it;
+    inst->value = val;
+
+    return true;
 }
 
 static inline purc_exec_iter_t
 fetch_begin(struct pcexec_exe_char_inst *exe_char_inst)
 {
     purc_exec_inst_t inst = &exe_char_inst->super;
-    purc_variant_t cache = inst->cache;
+    purc_exec_iter_t it = &inst->it;
     struct char_rule *rule = &exe_char_inst->param.rule;
-    switch (purc_variant_get_type(cache))
-    {
-        case PURC_VARIANT_TYPE_STRING:
-            exe_char_inst->it_pos = rule->from;
-            return char_string_until_match(exe_char_inst);
-        default:
-            pcinst_set_error(PCEXECUTOR_ERROR_NOT_IMPLEMENTED);
-            return NULL;
+    it->curr = rule->from;
+    if (check_curr(exe_char_inst)) {
+        return it;
     }
+    return NULL;
 }
 
 static inline purc_exec_iter_t
 fetch_next(struct pcexec_exe_char_inst *exe_char_inst)
 {
     purc_exec_inst_t inst = &exe_char_inst->super;
-    purc_variant_t cache = inst->cache;
+    purc_exec_iter_t it = &inst->it;
     struct char_rule *rule = &exe_char_inst->param.rule;
-    switch (purc_variant_get_type(cache))
-    {
-        case PURC_VARIANT_TYPE_STRING:
-            if (!isnan(rule->advance))
-                exe_char_inst->it_pos += rule->advance;
-            return char_string_until_match(exe_char_inst);
-        default:
-            pcinst_set_error(PCEXECUTOR_ERROR_NOT_IMPLEMENTED);
-            return NULL;
+    if (isnan(rule->advance)) {
+        it->curr += 1;
+    } else {
+        it->curr += rule->advance;
     }
+    if (check_curr(exe_char_inst)) {
+        return it;
+    }
+    return NULL;
 }
 
 static inline purc_variant_t
@@ -239,18 +266,39 @@ exe_char_create(enum purc_exec_type type,
 
     enum purc_variant_type vt = purc_variant_get_type(input);
     if (vt == PURC_VARIANT_TYPE_STRING) {
-        purc_variant_t cache = pcexe_make_cache(input, asc_desc);
-        if (cache != PURC_VARIANT_INVALID) {
-            inst->cache = cache;
-            inst->input = input;
-            purc_variant_ref(input);
-
-            return inst;
-        }
+        inst->input = input;
+        purc_variant_ref(input);
+        return inst;
     }
 
     destroy(exe_char_inst);
     return NULL;
+}
+
+static inline purc_exec_iter_t
+it_begin(struct pcexec_exe_char_inst *exe_char_inst, const char *rule)
+{
+    if (!parse_rule(exe_char_inst, rule))
+        return NULL;
+
+    return fetch_begin(exe_char_inst);
+}
+
+static inline purc_variant_t
+it_value(struct pcexec_exe_char_inst *exe_char_inst)
+{
+    return fetch_value(exe_char_inst);
+}
+
+static inline purc_exec_iter_t
+it_next(struct pcexec_exe_char_inst *exe_char_inst, const char *rule)
+{
+    if (rule) {
+        if (!parse_rule(exe_char_inst, rule))
+            return NULL;
+    }
+
+    return fetch_next(exe_char_inst);
 }
 
 // 用于执行选择
@@ -265,19 +313,16 @@ exe_char_choose(purc_exec_inst_t inst, const char* rule)
     struct pcexec_exe_char_inst *exe_char_inst;
     exe_char_inst = (struct pcexec_exe_char_inst*)inst;
 
-    if (!parse_rule(exe_char_inst, rule))
-        return PURC_VARIANT_INVALID;
-
     purc_variant_t vals = purc_variant_make_array(0, PURC_VARIANT_INVALID);
     if (vals == PURC_VARIANT_INVALID)
         return PURC_VARIANT_INVALID;
 
     bool ok = false;
 
-    purc_exec_iter_t it = fetch_begin(exe_char_inst);
+    purc_exec_iter_t it = it_begin(exe_char_inst, rule);
 
-    for(; it; it = fetch_next(exe_char_inst)) {
-        purc_variant_t v = fetch_value(exe_char_inst);
+    for(; it; it = it_next(exe_char_inst, NULL)) {
+        purc_variant_t v = it_value(exe_char_inst);
         ok = purc_variant_array_append(vals, v);
         if (!ok)
             break;
@@ -310,12 +355,7 @@ exe_char_it_begin(purc_exec_inst_t inst, const char* rule)
     struct pcexec_exe_char_inst *exe_char_inst;
     exe_char_inst = (struct pcexec_exe_char_inst*)inst;
 
-    if (!parse_rule(exe_char_inst, rule))
-        return NULL;
-
-    PC_ASSERT(inst->cache != PURC_VARIANT_INVALID);
-
-    return fetch_begin(exe_char_inst);
+    return it_begin(exe_char_inst, rule);
 }
 
 // 根据迭代子获得对应的变体值
@@ -335,7 +375,7 @@ exe_char_it_value(purc_exec_inst_t inst, purc_exec_iter_t it)
     struct pcexec_exe_char_inst *exe_char_inst;
     exe_char_inst = (struct pcexec_exe_char_inst*)inst;
 
-    return fetch_value(exe_char_inst);
+    return it_value(exe_char_inst);
 }
 
 // 获得下一个迭代子
@@ -356,14 +396,7 @@ exe_char_it_next(purc_exec_inst_t inst, purc_exec_iter_t it, const char* rule)
     struct pcexec_exe_char_inst *exe_char_inst;
     exe_char_inst = (struct pcexec_exe_char_inst*)inst;
 
-    if (rule) {
-        if (!parse_rule(exe_char_inst, rule))
-            return NULL;
-    }
-
-    PC_ASSERT(inst->cache != PURC_VARIANT_INVALID);
-
-    return fetch_next(exe_char_inst);
+    return it_next(exe_char_inst, rule);
 }
 
 #define SET_KEY_AND_NUM(_o, _k, _d) {                        \
@@ -393,19 +426,16 @@ exe_char_reduce(purc_exec_inst_t inst, const char* rule)
     struct pcexec_exe_char_inst *exe_char_inst;
     exe_char_inst = (struct pcexec_exe_char_inst*)inst;
 
-    if (!parse_rule(exe_char_inst, rule))
-        return PURC_VARIANT_INVALID;
-
     size_t count = 0;
     double sum   = 0;
     double avg   = 0;
     double max   = NAN;
     double min   = NAN;
 
-    purc_exec_iter_t it = fetch_begin(exe_char_inst);
+    purc_exec_iter_t it = it_begin(exe_char_inst, rule);
 
-    for(; it; it = fetch_next(exe_char_inst)) {
-        purc_variant_t v = fetch_value(exe_char_inst);
+    for(; it; it = it_next(exe_char_inst, NULL)) {
+        purc_variant_t v = it_value(exe_char_inst);
         double d = purc_variant_numberify(v);
         ++count;
         if (isnan(d))

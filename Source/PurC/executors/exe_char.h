@@ -39,7 +39,7 @@ struct char_rule
     double           from;
     double           to;
     double           advance;
-    char            *until;
+    wchar_t         *until;
 };
 
 struct exe_char_param {
@@ -83,7 +83,7 @@ exe_char_param_reset(struct exe_char_param *param)
 
 
 int
-char_rule_eval(struct char_rule *rule, purc_variant_t val, bool *result);
+char_rule_eval(struct char_rule *rule, const wchar_t wc, bool *result);
 
 PCA_EXTERN_C_END
 

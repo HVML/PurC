@@ -45,6 +45,13 @@
     }                                             \
 } while (0)
 
+#define PCEXE_FREE(_v) do {                       \
+    if (_v) {                                     \
+        free(_v);                                 \
+        _v = NULL;                                \
+    }                                             \
+} while (0)
+
 PCA_EXTERN_C_BEGIN
 
 int pcexe_ucs2utf8(char *utf, const char *uni, size_t n);
