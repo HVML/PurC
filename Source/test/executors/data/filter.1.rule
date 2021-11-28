@@ -101,8 +101,6 @@ FILTER:AS 'a' XOR LIKE /hello/;
 FILTER:LIKE /hello/ XOR AS 'a';
 FILTER:LIKE /a/gimsuy;
 FILTER:AS 'a'isc789;
-FILTER: AS 'a' AND LT 3 ;
-FILTER: AS 'a' AND LT 3.4 ;
 
 
 # multiple line
@@ -163,6 +161,10 @@ FILTER: AS 'a'isc 789;
 FILTER: AS 'a'x;
 FILTER: LIKE /a/gim suy;
 FILTER: LIKE /a/x;
+
+# mixing number_comparing and string_matching
+FILTER: AS 'a' AND LT 3 ;
+FILTER: AS 'a' AND LT 3.4 ;
 
 P: # debug
 FILTER: LIKE /hello/gimsuy;

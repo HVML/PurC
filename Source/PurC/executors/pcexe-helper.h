@@ -486,7 +486,7 @@ string_matching_logical_expression_destroy(
 int
 string_matching_logical_expression_match(
         struct string_matching_logical_expression *exp,
-        const double curr, bool *match);
+        purc_variant_t curr, bool *match);
 
 //////////////////////////////////////////////
 

@@ -234,3 +234,16 @@
 ### O:
 ### [ 100, 150, 250, 450 ];
 
+I:
+'A brown fox jumps over a lazy cat';
+
+R:
+TOKEN: FROM 0 TO 2 DELIMETERS ' ';
+O:
+[ "A", "brown", "fox" ];
+
+R:
+TOKEN: FROM 0 TO 2 DELIMETERS ' ' UNTIL AS 'fox';
+O:
+[ "A", "brown" ];
+

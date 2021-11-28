@@ -807,6 +807,86 @@ string_matching_logical_expression_reset(
             free(p);
     }
 }
+static inline void
+smle_get_children(struct string_matching_logical_expression *exp,
+        struct string_matching_logical_expression **l,
+        struct string_matching_logical_expression **r)
+{
+    struct pctree_node *node = &exp->node;
+    size_t nr = pctree_node_children_number(node);
+    struct pctree_node *n;
+    PC_ASSERT(nr<=2);
+    if (nr == 0)
+        return;
+
+    n = pctree_node_child(node);
+    PC_ASSERT(n);
+    *l = container_of(n,
+            struct string_matching_logical_expression, node);
+    if (nr == 1)
+        return;
+
+    n = pctree_node_next(n);
+    PC_ASSERT(n);
+    *r = container_of(n,
+            struct string_matching_logical_expression, node);
+}
+
+
+int
+string_matching_logical_expression_match(
+        struct string_matching_logical_expression *exp,
+        purc_variant_t curr, bool *match)
+{
+    struct string_matching_logical_expression *l = NULL, *r = NULL;
+    smle_get_children(exp, &l, &r);
+
+    switch (exp->type)
+    {
+        case STRING_MATCHING_LOGICAL_EXPRESSION_AND:
+        {
+            PC_ASSERT(l && r);
+            if (string_matching_logical_expression_match(l, curr, match))
+                return -1;
+            if (*match == false)
+                return 0;
+            return string_matching_logical_expression_match(r, curr, match);
+        } break;
+        case STRING_MATCHING_LOGICAL_EXPRESSION_OR:
+        {
+            PC_ASSERT(l && r);
+            if (string_matching_logical_expression_match(l, curr, match))
+                return -1;
+            if (*match == true)
+                return 0;
+            return string_matching_logical_expression_match(r, curr, match);
+        } break;
+        case STRING_MATCHING_LOGICAL_EXPRESSION_XOR:
+        {
+            PC_ASSERT(l && r);
+            bool a, b;
+            if (string_matching_logical_expression_match(l, curr, &a))
+                return -1;
+            if (string_matching_logical_expression_match(r, curr, &b))
+                return -1;
+            *match =(a != b);
+            return 0;
+        } break;
+        case STRING_MATCHING_LOGICAL_EXPRESSION_NOT:
+        {
+            PC_ASSERT(l && !r);
+            return string_matching_logical_expression_match(l, curr, match);
+        } break;
+        case STRING_MATCHING_LOGICAL_EXPRESSION_STR:
+        {
+            PC_ASSERT(!l && !r);
+            struct string_matching_condition *smc = &exp->smc;
+            return string_matching_condition_eval(smc, curr, match);
+        } break;
+    }
+    PC_ASSERT(0);
+    return -1;
+}
 
 void
 string_pattern_expression_reset(struct string_pattern_expression *spexp)

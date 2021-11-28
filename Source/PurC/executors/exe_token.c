@@ -201,10 +201,7 @@ token_rule_eval(struct token_rule *rule, purc_variant_t val, bool *result)
         return 0;
     }
 
-    // return string_matching_logical_expression_match(until, val, result);
-    UNUSED_PARAM(val);
-    PC_ASSERT(0);
-    return -1;
+    return string_matching_logical_expression_match(until, val, result);
 }
 
 static inline bool
