@@ -15,224 +15,143 @@
 # [{ 'hello': 'world' }];
 
 
-### I:
-### undefined;
-### O:
-### undefined;
-### 
-### I:
-### null;
-### O:
-### null;
-### 
-### I:
-### ;
-### O:
-### null;
-### 
-### I:
-### 1234;
-### O:
-### 1234;
-### 
-### I:
-### "hello";
-### O:
-### "hello";
-### 
-### I:
-### "hello";
-### O:
-### 'hello';
-### 
-### I:
-### { "hello": "world" };
-### O:
-### { 'hello': 'world' };
-### 
-### I:
-### { 'hello': [], 'name': { 'h' : 123.4 } };
-### O:
-### { "hello": [], 'name': { 'h' : 123.40 } };
-### 
-### I: # input json value
-### { "hello": "world" };
-### 
-### R: # rule to use
-### KEY: ALL;
-### O: # output value to compare, can be predefined-error-code or json
-### ['world'];
-### 
-### R: # rule to use
-### KEY: ALL FOR VALUE;
-### O: # output value to compare, can be predefined-error-code or json
-### ['world'];
-### 
-### R: # rule to use
-### KEY: ALL FOR KEY;
-### O: # output value to compare, can be predefined-error-code or json
-### ['hello'];
-### 
-### R: # rule to use
-### KEY: ALL FOR KV;
-### O: # output value to compare, can be predefined-error-code or json
-### [{'hello':'world'}];
-### 
-### I:
-### { 'hello': 'world',
-###   'foo': 'bar',
-###   'name/age': 'li/3',
-###   'great': 'wall' };
-### 
-### R:
-### KEY: AS 'foo';
-### O:
-### ['bar'];
-### 
-### R:
-### KEY: AS 'gReat'i;
-### O:
-### ['wall'];
-### 
-### R:
-### KEY: LIKE 'gR*'i;
-### O:
-### ['wall'];
-### 
-### R:
-### KEY: LIKE 'gR??t'i;
-### O:
-### ['wall'];
-### 
-### R:
-### KEY: LIKE /great/;
-### O:
-### ['wall'];
-### 
-### R:
-### KEY: LIKE /gr..t/m;
-### O:
-### ['wall'];
-### 
-### R:
-### KEY: LIKE /^great$/;
-### O:
-### ['wall'];
-### 
-### R:
-### KEY: LIKE /name/;
-### O:
-### ['li/3'];
-### 
-### R:
-### KEY: LIKE /name\/age/;
-### O:
-### ['li/3'];
-### 
-### I:
-### [ "zh_CN", 100, "zh_TW", 90, "zh_HK", 90, "zh_SG", 90,
-###   "zh_MO", 80, "en_US", 30, "en_UK", 20 ];
-### R:
-### RANGE: FROM 0;
-### O:
-### [ "zh_CN", 100, "zh_TW", 90, "zh_HK", 90, "zh_SG", 90,
-###   "zh_MO", 80, "en_US", 30, "en_UK", 20 ];
-### 
-### R:
-### RANGE: FROM 0 TO 4;
-### O:
-### [ "zh_CN", 100, "zh_TW", 90, "zh_HK" ];
-### 
-### R:
-### RANGE: FROM 0 ADVANCE 2;
-### O:
-### [ "zh_CN", "zh_TW", "zh_HK", "zh_SG", "zh_MO", "en_US", "en_UK" ];
-### 
-### R:
-### RANGE: FROM 1 ADVANCE 2;
-### O:
-### [ 100, 90, 90, 90, 80, 30, 20 ];
-### 
-### I:
-### [ 100, 95, 95, 95, 80, 30, 55, 20 ];
-### R:
-### FILTER: ALL;
-### O:
-### [ 100, 95, 95, 95, 80, 30, 55, 20 ];
-### 
-### I:
-### [ 100, 95, 80, 30, 55, 20 ];
-### R:
-### FILTER: GT 30;
-### O:
-### [ 100, 95, 80, 55 ];
-### 
-### I:
-### [ 100, 95, 80, 30, 55, 20 ];
-### R:
-### FILTER: LIKE /0$/;
-### O:
-### [ 100, 80, 30, 20 ];
-### 
-### I:
-### 'A brown fox jumps over a lazy cat';
-### R:
-### CHAR: FROM 0 TO 10 ADVANCE 2 UNTIL 'f';
-### O:
-### [ "A", "b", "o", "n" ];
-### R: # FIXME: is this case right?
-### CHAR: FROM 0 TO 10 ADVANCE 2 UNTIL 'r';
-### O:
-### [ "A", "b", "o", "n", "f", "x" ];
-### 
-### R:
-### TOKEN: FROM 0 TO 2 DELIMETERS ' ';
-### O:
-### [ "A", "brown", "fox" ];
-### 
-### R:
-### TOKEN: FROM 0 TO 2 DELIMETERS ' ' UNTIL AS 'fox';
-### O:
-### [ "A", "brown" ];
-### 
-### I:
-### 'BABBCBBE';
-### R:
-### TOKEN: FROM 0 DELIMETERS 'B';
-### O:
-### [ '', 'A', '', 'C', '', 'E'];
-### 
-### I:
-### 100;
-### R:
-### ADD: GT 90 BY -3;
-### O:
-### [ 100, 97, 94, 91 ];
-### 
-### R:
-### SUB: GT 90 BY 3;
-### O:
-### [ 100, 97, 94, 91 ];
-### 
-### R:
-### MUL: LT 900 BY 3;
-### O:
-### [ 100, 300 ];
-### 
-### R:
-### DIV: GT 1 BY 2;
-### O:
-### [ 100, 50, 25, 12.5, 6.25, 3.125, 1.5625 ];
-### 
-### R:
-### MUL: LT 900 BY 1+1+1;
-### O:
-### [ 100, 300 ];
-### 
-### R:
-### FORMULA: LT 500 BY (X * 2 - 50);
-### O:
-### [ 100, 150, 250, 450 ];
+I:
+undefined;
+O:
+undefined;
+
+I:
+null;
+O:
+null;
+
+I:
+;
+O:
+null;
+
+I:
+1234;
+O:
+1234;
+
+I:
+"hello";
+O:
+"hello";
+
+I:
+"hello";
+O:
+'hello';
+
+I:
+{ "hello": "world" };
+O:
+{ 'hello': 'world' };
+
+I:
+{ 'hello': [], 'name': { 'h' : 123.4 } };
+O:
+{ "hello": [], 'name': { 'h' : 123.40 } };
+
+I: # input json value
+{ "hello": "world" };
+
+R: # rule to use
+KEY: ALL;
+O: # output value to compare, can be predefined-error-code or json
+['world'];
+
+R: # rule to use
+KEY: ALL FOR VALUE;
+O: # output value to compare, can be predefined-error-code or json
+['world'];
+
+R: # rule to use
+KEY: ALL FOR KEY;
+O: # output value to compare, can be predefined-error-code or json
+['hello'];
+
+R: # rule to use
+KEY: ALL FOR KV;
+O: # output value to compare, can be predefined-error-code or json
+[{'hello':'world'}];
+
+I:
+{ 'hello': 'world',
+  'foo': 'bar',
+  'name/age': 'li/3',
+  'great': 'wall' };
+
+R:
+KEY: AS 'foo';
+O:
+['bar'];
+
+R:
+KEY: AS 'gReat'i;
+O:
+['wall'];
+
+R:
+KEY: LIKE 'gR*'i;
+O:
+['wall'];
+
+R:
+KEY: LIKE 'gR??t'i;
+O:
+['wall'];
+
+R:
+KEY: LIKE /great/;
+O:
+['wall'];
+
+R:
+KEY: LIKE /gr..t/m;
+O:
+['wall'];
+
+R:
+KEY: LIKE /^great$/;
+O:
+['wall'];
+
+R:
+KEY: LIKE /name/;
+O:
+['li/3'];
+
+R:
+KEY: LIKE /name\/age/;
+O:
+['li/3'];
+
+I:
+[ "zh_CN", 100, "zh_TW", 90, "zh_HK", 90, "zh_SG", 90,
+  "zh_MO", 80, "en_US", 30, "en_UK", 20 ];
+R:
+RANGE: FROM 0;
+O:
+[ "zh_CN", 100, "zh_TW", 90, "zh_HK", 90, "zh_SG", 90,
+  "zh_MO", 80, "en_US", 30, "en_UK", 20 ];
+
+R:
+RANGE: FROM 0 TO 4;
+O:
+[ "zh_CN", 100, "zh_TW", 90, "zh_HK" ];
+
+R:
+RANGE: FROM 0 ADVANCE 2;
+O:
+[ "zh_CN", "zh_TW", "zh_HK", "zh_SG", "zh_MO", "en_US", "en_UK" ];
+
+R:
+RANGE: FROM 1 ADVANCE 2;
+O:
+[ 100, 90, 90, 90, 80, 30, 20 ];
 
 I:
 [ 100, 95, 95, 95, 80, 30, 55, 20 ];
@@ -254,4 +173,64 @@ R:
 FILTER: LIKE /0$/;
 O:
 [ 100, 80, 30, 20 ];
+
+I:
+'A brown fox jumps over a lazy cat';
+R:
+CHAR: FROM 0 TO 10 ADVANCE 2 UNTIL 'f';
+O:
+[ "A", "b", "o", "n" ];
+R: # FIXME: is this case right?
+CHAR: FROM 0 TO 10 ADVANCE 2 UNTIL 'r';
+O:
+[ "A", "b", "o", "n", "f", "x" ];
+
+R:
+TOKEN: FROM 0 TO 2 DELIMETERS ' ';
+O:
+[ "A", "brown", "fox" ];
+
+R:
+TOKEN: FROM 0 TO 2 DELIMETERS ' ' UNTIL AS 'fox';
+O:
+[ "A", "brown" ];
+
+I:
+'BABBCBBE';
+R:
+TOKEN: FROM 0 DELIMETERS 'B';
+O:
+[ '', 'A', '', 'C', '', 'E'];
+
+I:
+100;
+R:
+ADD: GT 90 BY -3;
+O:
+[ 100, 97, 94, 91 ];
+
+R:
+SUB: GT 90 BY 3;
+O:
+[ 100, 97, 94, 91 ];
+
+R:
+MUL: LT 900 BY 3;
+O:
+[ 100, 300 ];
+
+R:
+DIV: GT 1 BY 2;
+O:
+[ 100, 50, 25, 12.5, 6.25, 3.125, 1.5625 ];
+
+R:
+MUL: LT 900 BY 1+1+1;
+O:
+[ 100, 300 ];
+
+R:
+FORMULA: LT 500 BY (X * 2 - 50);
+O:
+[ 100, 150, 250, 450 ];
 

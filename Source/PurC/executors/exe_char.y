@@ -196,15 +196,18 @@
         _nexp = -_l;                                             \
     } while (0)
 
-    #define SET_CHAR_RULE(_rule, _from, _to, _advance, _until) do {      \
-        _rule.from    = _from;                                           \
-        _rule.to      = _to;                                             \
-        _rule.advance = _advance;                                        \
-        size_t bytes, chars;                                             \
-        _rule.until   = pcexe_wchar_from_utf8(_until, &bytes, &chars);   \
-        free(_until);                                                    \
-        if (!_rule.until)                                                \
-            YYABORT;                                                     \
+    #define SET_CHAR_RULE(_rule, _from, _to, _advance, _until) do {          \
+        _rule.from    = _from;                                               \
+        _rule.to      = _to;                                                 \
+        _rule.advance = _advance;                                            \
+        _rule.until   = NULL;                                                \
+        if (_until) {                                                        \
+            size_t bytes, chars;                                             \
+            _rule.until   = pcexe_wchar_from_utf8(_until, &bytes, &chars);   \
+            free(_until);                                                    \
+            if (!_rule.until)                                                \
+                YYABORT;                                                     \
+        }                                                                    \
     } while (0)
 
     #define SET_RULE(_rule) do {                            \

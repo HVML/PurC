@@ -67,6 +67,8 @@
     // introduce yylex decl for later use
     #include "exe_range.lex.h"
 
+    #include <math.h>
+
     static void yyerror(
         YYLTYPE *yylloc,                   // match %define locations
         yyscan_t arg,                      // match %param
@@ -112,30 +114,26 @@
 
     #define RULE_INIT_FROM(_rule, _from) do {        \
         _rule.from    = _from;                       \
-        _rule.has_to = 0;                            \
-        _rule.has_advance = 0;                       \
+        _rule.to      = NAN;                         \
+        _rule.advance = NAN;                         \
     } while (0)
 
     #define RULE_INIT_FROM_TO(_rule, _from, _to) do {        \
         _rule.from    = _from;                               \
         _rule.to      = _to;                                 \
-        _rule.has_to = 1;                                    \
-        _rule.has_advance = 0;                               \
+        _rule.advance = NAN;                                 \
     } while (0)
 
     #define RULE_INIT_FROM_TO_ADVANCE(_rule, _from, _to, _advance) do {  \
         _rule.from    = _from;                                           \
         _rule.to      = _to;                                             \
         _rule.advance = _advance;                                        \
-        _rule.has_to = 1;                                                \
-        _rule.has_advance = 1;                                           \
     } while (0)
 
     #define RULE_INIT_FROM_ADVANCE(_rule, _from, _advance) do {        \
         _rule.from    = _from;                                         \
+        _rule.to      = NAN;                                           \
         _rule.advance = _advance;                                      \
-        _rule.has_to = 0;                                              \
-        _rule.has_advance = 1;                                         \
     } while (0)
 
     #define NUMERIC_EXP_INIT_I64(_nexp, _i64) do {               \
@@ -173,18 +171,10 @@
         _nexp = -_l;                                             \
     } while (0)
 
-    #define SET_RULE(_rule) do {                                          \
-        if (param) {                                                      \
-            param->rule.from = _rule.from;                                \
-            param->rule.has_to = _rule.has_to;                            \
-            if (param->rule.has_to) {                                     \
-                param->rule.to = _rule.to;                                \
-            }                                                             \
-            param->rule.has_advance = _rule.has_advance;                  \
-            if (param->rule.has_advance) {                                \
-                param->rule.advance = _rule.advance;                      \
-            }                                                             \
-        }                                                                 \
+    #define SET_RULE(_rule) do {                                \
+        if (param) {                                            \
+            param->rule = _rule;                                \
+        }                                                       \
     } while (0)
 }
 

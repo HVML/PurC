@@ -37,9 +37,6 @@ struct range_rule
     double from;
     double to;
     double advance;
-
-    unsigned int         has_to:1;
-    unsigned int         has_advance:1;
 };
 
 struct exe_range_param {
@@ -55,8 +52,28 @@ PCA_EXTERN_C_BEGIN
 
 int pcexec_exe_range_register(void);
 
+static inline void
+range_rule_release(struct range_rule *rule)
+{
+    UNUSED_PARAM(rule);
+}
+
 int exe_range_parse(const char *input, size_t len,
         struct exe_range_param *param);
+
+static inline void
+exe_range_param_reset(struct exe_range_param *param)
+{
+    if (!param)
+        return;
+
+    if (param->err_msg) {
+        free(param->err_msg);
+        param->err_msg = NULL;
+    }
+
+    range_rule_release(&param->rule);
+}
 
 PCA_EXTERN_C_END
 
