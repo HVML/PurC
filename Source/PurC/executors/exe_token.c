@@ -195,13 +195,16 @@ fetch_and_cache(struct pcexec_exe_token_inst *exe_token_inst)
 int
 token_rule_eval(struct token_rule *rule, purc_variant_t val, bool *result)
 {
-    struct logical_expression *until = rule->until;
+    struct string_matching_logical_expression *until = rule->until;
     *result = false;
     if (!until) {
         return 0;
     }
 
-    return logical_expression_eval(until, val, result);
+    // return string_matching_logical_expression_match(until, val, result);
+    UNUSED_PARAM(val);
+    PC_ASSERT(0);
+    return -1;
 }
 
 static inline bool

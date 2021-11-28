@@ -36,8 +36,8 @@
 
 struct sub_rule
 {
-    struct logical_expression       *lexp;
-    double                           nexp;
+    struct number_comparing_logical_expression *ncle;
+    double                                      nexp;
 };
 
 struct exe_sub_param {
@@ -46,7 +46,7 @@ struct exe_sub_param {
     int debug_bison;
 
     struct sub_rule        rule;
-    unsigned int              rule_valid:1;
+    unsigned int           rule_valid:1;
 };
 
 PCA_EXTERN_C_BEGIN
@@ -59,9 +59,9 @@ int exe_sub_parse(const char *input, size_t len,
 static inline void
 sub_rule_release(struct sub_rule *rule)
 {
-    if (rule->lexp) {
-        logical_expression_destroy(rule->lexp);
-        rule->lexp = NULL;
+    if (rule->ncle) {
+        number_comparing_logical_expression_destroy(rule->ncle);
+        rule->ncle = NULL;
     }
 }
 
@@ -77,13 +77,6 @@ exe_sub_param_reset(struct exe_sub_param *param)
     }
 
     sub_rule_release(&param->rule);
-}
-
-static inline int
-sub_rule_eval(struct sub_rule *rule, purc_variant_t val, bool *result)
-{
-    PC_ASSERT(rule);
-    return logical_expression_eval(rule->lexp, val, result);
 }
 
 PCA_EXTERN_C_END

@@ -66,6 +66,7 @@
     // generated header from flex
     // introduce yylex decl for later use
     #include "exe_formula.lex.h"
+    #include "tab.h"
 
     static void yyerror(
         YYLTYPE *yylloc,                   // match %define locations
@@ -238,109 +239,6 @@
         YYABORT;                                                    \
     } while (0)
 
-
-    #define LOGICAL_EXP_INIT_NCC(_logic, _ncc) do {           \
-        _logic = logical_expression_create();                 \
-        if (!_logic) {                                        \
-            YYABORT;                                          \
-        }                                                     \
-        _logic->type = LOGICAL_EXPRESSION_NUM;                \
-        _logic->ncc  = _ncc;                                  \
-    } while (0)
-
-    #define LOGICAL_EXP_INIT_STR(_logic, _mexp) do {          \
-        _logic = logical_expression_create();                 \
-        if (!_logic) {                                        \
-            string_matching_expression_reset(&_mexp);         \
-            YYABORT;                                          \
-        }                                                     \
-        _logic->type = LOGICAL_EXPRESSION_STR;                \
-        _logic->mexp = _mexp;                                 \
-    } while (0)
-
-    #define LOGICAL_EXP_AND(_logic, _l, _r) do {                        \
-        _logic = logical_expression_create();                           \
-        if (!_logic) {                                                  \
-            logical_expression_destroy(_l);                             \
-            logical_expression_destroy(_r);                             \
-            YYABORT;                                                    \
-        }                                                               \
-        _logic->type = LOGICAL_EXPRESSION_OP;                           \
-        _logic->op = logical_and;                                       \
-        bool ok = pctree_node_append_child(&_logic->node, &_l->node);   \
-        if (ok) {                                                       \
-            ok = pctree_node_append_child(&_logic->node, &_r->node);    \
-            if (ok)                                                     \
-                break;                                                  \
-        } else {                                                        \
-            logical_expression_destroy(_l);                             \
-        }                                                               \
-        logical_expression_destroy(_r);                                 \
-        logical_expression_destroy(_logic);                             \
-        YYABORT;                                                        \
-    } while (0)
-
-    #define LOGICAL_EXP_OR(_logic, _l, _r) do {                         \
-        _logic = logical_expression_create();                           \
-        if (!_logic) {                                                  \
-            logical_expression_destroy(_l);                             \
-            logical_expression_destroy(_r);                             \
-            YYABORT;                                                    \
-        }                                                               \
-        _logic->type = LOGICAL_EXPRESSION_OP;                           \
-        _logic->op = logical_or;                                        \
-        bool ok = pctree_node_append_child(&_logic->node, &_l->node);   \
-        if (ok) {                                                       \
-            ok = pctree_node_append_child(&_logic->node, &_r->node);    \
-            if (ok)                                                     \
-                break;                                                  \
-        } else {                                                        \
-            logical_expression_destroy(_l);                             \
-        }                                                               \
-        logical_expression_destroy(_r);                                 \
-        logical_expression_destroy(_logic);                             \
-        YYABORT;                                                        \
-    } while (0)
-
-    #define LOGICAL_EXP_XOR(_logic, _l, _r) do {                        \
-        _logic = logical_expression_create();                           \
-        if (!_logic) {                                                  \
-            logical_expression_destroy(_l);                             \
-            logical_expression_destroy(_r);                             \
-            YYABORT;                                                    \
-        }                                                               \
-        _logic->type = LOGICAL_EXPRESSION_OP;                           \
-        _logic->op = logical_xor;                                       \
-        bool ok = pctree_node_append_child(&_logic->node, &_l->node);   \
-        if (ok) {                                                       \
-            ok = pctree_node_append_child(&_logic->node, &_r->node);    \
-            if (ok)                                                     \
-                break;                                                  \
-        } else {                                                        \
-            logical_expression_destroy(_l);                             \
-        }                                                               \
-        logical_expression_destroy(_r);                                 \
-        logical_expression_destroy(_logic);                             \
-        YYABORT;                                                        \
-    } while (0)
-
-    #define LOGICAL_EXP_NOT(_logic, _l) do {                            \
-        _logic = logical_expression_create();                           \
-        if (!_logic) {                                                  \
-            logical_expression_destroy(_l);                             \
-            YYABORT;                                                    \
-        }                                                               \
-        _logic->type = LOGICAL_EXPRESSION_OP;                           \
-        _logic->op = logical_not;                                       \
-        bool ok = pctree_node_append_child(&_logic->node, &_l->node);   \
-        if (ok) {                                                       \
-            break;                                                      \
-        }                                                               \
-        logical_expression_destroy(_l);                                 \
-        logical_expression_destroy(_logic);                             \
-        YYABORT;                                                        \
-    } while (0)
-
     #define STRTOL(_v, _s) do {                     \
         long int v;                                 \
         char *s = (char*)malloc(_s.leng+1);         \
@@ -476,14 +374,14 @@
 %union { struct exe_formula_token token; }
 %union { char *str; }
 %union { char c; }
-%union { struct logical_expression *logic; }
 %union { struct iterative_formula_expression *ife; }
 %union { struct number_comparing_condition ncc; }
+%union { struct number_comparing_logical_expression *ncle; }
 %union { struct formula_rule rule; }
 %union { double nexp; }
 
-%destructor { logical_expression_destroy($$); } <logic>
 %destructor { iterative_formula_expression_destroy($$); } <ife>
+%destructor { number_comparing_logical_expression_destroy($$); } <ncle>
 %destructor { formula_rule_release(&$$); } <rule>
 
 %token FORMULA BY
@@ -498,7 +396,7 @@
 %precedence NEG
 
 %nterm <rule>  formula_rule;
-%nterm <logic> logical_expression;
+%nterm <ncle>  number_comparing_logical_expression;
 %nterm <ife>   iterative_formula_expression;
 %nterm <ncc>   number_comparing_condition;
 %nterm <nexp>  exp;
@@ -510,16 +408,16 @@ input:
 ;
 
 formula_rule:
-  FORMULA ':' logical_expression BY iterative_formula_expression     { $$.lexp = $3; $$.ife = $5; }
+  FORMULA ':' number_comparing_logical_expression BY iterative_formula_expression     { $$.ncle = $3; $$.ife = $5; }
 ;
 
-logical_expression:
-  number_comparing_condition   { LOGICAL_EXP_INIT_NCC($$, $1); }
-| logical_expression AND logical_expression { LOGICAL_EXP_AND($$, $1, $3); }
-| logical_expression OR logical_expression  { LOGICAL_EXP_OR($$, $1, $3); }
-| logical_expression XOR logical_expression { LOGICAL_EXP_XOR($$, $1, $3); }
-| NOT logical_expression %prec NEG  { LOGICAL_EXP_NOT($$, $2); }
-| '(' logical_expression ')'   { $$ = $2; }
+number_comparing_logical_expression:
+  number_comparing_condition   { NCLE_INIT($$, $1); }
+| number_comparing_logical_expression AND number_comparing_logical_expression { NCLE_AND($$, $1, $3); }
+| number_comparing_logical_expression OR number_comparing_logical_expression  { NCLE_OR($$, $1, $3); }
+| number_comparing_logical_expression XOR number_comparing_logical_expression { NCLE_XOR($$, $1, $3); }
+| NOT number_comparing_logical_expression %prec NEG  { NCLE_NOT($$, $2); }
+| '(' number_comparing_logical_expression ')'   { $$ = $2; }
 ;
 
 number_comparing_condition:

@@ -51,7 +51,7 @@ parse(const char *rule, char **err_msg)
     r = exe_key_parse(rule, strlen(rule), &param) == 0;
     *err_msg = param.err_msg;
 
-    logical_expression_destroy(param.rule.lexp);
+    key_rule_release(&param.rule);
     return r;
 }
 

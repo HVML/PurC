@@ -79,22 +79,21 @@ check_curr(struct pcexec_exe_sub_inst *exe_sub_inst, const double curr)
     purc_exec_inst_t inst = &exe_sub_inst->super;
     struct exe_sub_param *param = &exe_sub_inst->param;
     struct sub_rule *rule = &param->rule;
+    struct number_comparing_logical_expression *ncle = rule->ncle;
 
     if (!isfinite(curr)) {
         pcinst_set_error(PCEXECUTOR_ERROR_OUT_OF_RANGE);
         return false;
     }
 
+    bool match = false;
+    int r = number_comparing_logical_expression_match(ncle, curr, &match);
+    if (r || !match)
+        return false;
+
     purc_variant_t v = purc_variant_make_number(curr);
     if (v == PURC_VARIANT_INVALID)
         return false;
-
-    bool result = false;
-    int r = sub_rule_eval(rule, v, &result);
-    if (r || !result) {
-        purc_variant_unref(v);
-        return false;
-    }
 
     exe_sub_inst->curr = curr;
     PCEXE_CLR_VAR(inst->value);

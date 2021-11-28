@@ -40,7 +40,7 @@ struct token_rule
     double           to;
     double           advance;
     char            *delimiters;
-    struct logical_expression       *until;
+    struct string_matching_logical_expression  *until;
 };
 
 struct exe_token_param {
@@ -66,7 +66,7 @@ token_rule_release(struct token_rule *rule)
         rule->delimiters = NULL;
     }
     if (rule->until) {
-        logical_expression_destroy(rule->until);
+        string_matching_logical_expression_destroy(rule->until);
         rule->until = NULL;
     }
 }
@@ -84,9 +84,6 @@ exe_token_param_reset(struct exe_token_param *param)
 
     token_rule_release(&param->rule);
 }
-
-int
-token_rule_eval(struct token_rule *rule, purc_variant_t val, bool *result);
 
 PCA_EXTERN_C_END
 

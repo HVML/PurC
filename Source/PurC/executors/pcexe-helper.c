@@ -498,52 +498,52 @@ pcexe_make_cache(purc_variant_t input, bool asc_desc)
     return cache;
 }
 
-struct logical_expression* logical_expression_all(void)
-{
-    static struct logical_expression all = {0};
-    return &all;
-}
-
-int is_logical_expression_all(struct logical_expression *lexp)
-{
-    if (logical_expression_all() == lexp)
-        return 1;
-    return 0;
-}
-
-void logical_expression_reset(struct logical_expression *exp)
-{
-    if (!exp)
-        return;
-
-    if (is_logical_expression_all(exp))
-        return;
-
-    struct pctree_node *top = &exp->node;
-    struct pctree_node *node, *next;
-    pctree_for_each_post_order(top, node, next) {
-        struct logical_expression *p;
-        p = container_of(node, struct logical_expression, node);
-        pctree_node_remove(node);
-        switch (p->type)
-        {
-            case LOGICAL_EXPRESSION_OP:
-                break;
-            case LOGICAL_EXPRESSION_STR:
-                string_matching_expression_reset(&p->mexp);
-                break;
-            case LOGICAL_EXPRESSION_NUM:
-                break;
-        }
-        if (p!=exp)
-            free(p);
-    }
-}
+// struct logical_expression* logical_expression_all(void)
+// {
+//     static struct logical_expression all = {0};
+//     return &all;
+// }
+// 
+// int is_logical_expression_all(struct logical_expression *lexp)
+// {
+//     if (logical_expression_all() == lexp)
+//         return 1;
+//     return 0;
+// }
+// 
+// void logical_expression_reset(struct logical_expression *exp)
+// {
+//     if (!exp)
+//         return;
+// 
+//     if (is_logical_expression_all(exp))
+//         return;
+// 
+//     struct pctree_node *top = &exp->node;
+//     struct pctree_node *node, *next;
+//     pctree_for_each_post_order(top, node, next) {
+//         struct logical_expression *p;
+//         p = container_of(node, struct logical_expression, node);
+//         pctree_node_remove(node);
+//         switch (p->type)
+//         {
+//             case LOGICAL_EXPRESSION_OP:
+//                 break;
+//             case LOGICAL_EXPRESSION_STR:
+//                 string_matching_condition_reset(&p->mexp);
+//                 break;
+//             case LOGICAL_EXPRESSION_NUM:
+//                 break;
+//         }
+//         if (p!=exp)
+//             free(p);
+//     }
+// }
 
 int number_comparing_condition_eval(struct number_comparing_condition *ncc,
-        purc_variant_t val, bool *result)
+        const double curr, bool *result)
 {
-    double v = purc_variant_numberify(val);
+    double v = curr;
 
     switch (ncc->op_type)
     {
@@ -570,109 +570,242 @@ int number_comparing_condition_eval(struct number_comparing_condition *ncc,
     }
 }
 
-int logical_expression_eval(struct logical_expression *exp,
-        purc_variant_t val, bool *result)
+// int logical_expression_eval(struct logical_expression *exp,
+//         purc_variant_t val, bool *result)
+// {
+//     if (is_logical_expression_all(exp)) {
+//         exp->result = true;
+//         if (result)
+//             *result = exp->result;
+//         return 0;
+//     }
+// 
+//     struct pctree_node *top = &exp->node;
+//     struct pctree_node *node, *next;
+//     pctree_for_each_post_order(top, node, next) {
+//         struct logical_expression *p;
+//         p = container_of(node, struct logical_expression, node);
+// 
+//         int r = 0;
+//         switch (p->type)
+//         {
+//             case LOGICAL_EXPRESSION_OP:
+//             {
+//                 PC_ASSERT(p->op);
+//                 r = p->op(p);
+//             } break;
+//             case LOGICAL_EXPRESSION_STR:
+//             {
+//                 struct string_matching_condition *mexp;
+//                 mexp = &p->mexp;
+//                 r = string_matching_condition_eval(mexp, val, &p->result);
+//             } break;
+//             case LOGICAL_EXPRESSION_NUM:
+//             {
+//                 struct number_comparing_condition *ncc;
+//                 ncc = &p->ncc;
+//                 r = number_comparing_condition_eval(ncc, val, &p->result);
+//             } break;
+//         }
+// 
+//         if (r)
+//             return r;
+//     }
+// 
+//     if (result)
+//         *result = exp->result;
+// 
+//     return 0;
+// }
+// 
+// int logical_and(struct logical_expression *exp)
+// {
+//     size_t nr = pctree_node_children_number(&exp->node);
+//     if (nr != 2)
+//         return -1;
+//     struct logical_expression *l, *r;
+//     l = container_of(exp->node.first_child, struct logical_expression, node);
+//     r = container_of(exp->node.last_child, struct logical_expression, node);
+// 
+//     exp->result = l->result && r->result;
+// 
+//     return 0;
+// }
+// 
+// int logical_or(struct logical_expression *exp)
+// {
+//     size_t nr = pctree_node_children_number(&exp->node);
+//     if (nr != 2)
+//         return -1;
+//     struct logical_expression *l, *r;
+//     l = container_of(exp->node.first_child, struct logical_expression, node);
+//     r = container_of(exp->node.last_child, struct logical_expression, node);
+// 
+//     exp->result = l->result || r->result;
+// 
+//     return 0;
+// }
+// 
+// int logical_xor(struct logical_expression *exp)
+// {
+//     size_t nr = pctree_node_children_number(&exp->node);
+//     if (nr != 2)
+//         return -1;
+// 
+//     struct logical_expression *l, *r;
+//     l = container_of(exp->node.first_child, struct logical_expression, node);
+//     r = container_of(exp->node.last_child, struct logical_expression, node);
+// 
+//     exp->result = l->result ^ r->result;
+// 
+//     return 0;
+// }
+// 
+// int logical_not(struct logical_expression *exp)
+// {
+//     size_t nr = pctree_node_children_number(&exp->node);
+//     if (nr != 1)
+//         return -1;
+// 
+//     struct logical_expression *l;
+//     l = container_of(exp->node.first_child, struct logical_expression, node);
+// 
+//     exp->result = !l->result;
+// 
+//     return 0;
+// }
+
+
+void
+number_comparing_logical_expression_reset(
+        struct number_comparing_logical_expression *exp)
 {
-    if (is_logical_expression_all(exp)) {
-        exp->result = true;
-        if (result)
-            *result = exp->result;
-        return 0;
-    }
+    if (!exp)
+        return;
 
     struct pctree_node *top = &exp->node;
     struct pctree_node *node, *next;
     pctree_for_each_post_order(top, node, next) {
-        struct logical_expression *p;
-        p = container_of(node, struct logical_expression, node);
+        struct number_comparing_logical_expression *p;
+        p = container_of(node,
+                struct number_comparing_logical_expression, node);
+        pctree_node_remove(node);
+        if (p!=exp)
+            free(p);
+    }
+}
 
-        int r = 0;
+static inline void
+ncle_get_children(struct number_comparing_logical_expression *exp,
+        struct number_comparing_logical_expression **l,
+        struct number_comparing_logical_expression **r)
+{
+    struct pctree_node *node = &exp->node;
+    size_t nr = pctree_node_children_number(node);
+    struct pctree_node *n;
+    PC_ASSERT(nr<=2);
+    if (nr == 0)
+        return;
+
+    n = pctree_node_child(node);
+    PC_ASSERT(n);
+    *l = container_of(n,
+            struct number_comparing_logical_expression, node);
+    if (nr == 1)
+        return;
+
+    n = pctree_node_next(n);
+    PC_ASSERT(n);
+    *r = container_of(n,
+            struct number_comparing_logical_expression, node);
+}
+
+int
+number_comparing_logical_expression_match(
+        struct number_comparing_logical_expression *exp,
+        const double curr, bool *match)
+{
+    struct number_comparing_logical_expression *l = NULL, *r = NULL;
+    ncle_get_children(exp, &l, &r);
+
+    switch (exp->type)
+    {
+        case NUMBER_COMPARING_LOGICAL_EXPRESSION_AND:
+        {
+            PC_ASSERT(l && r);
+            if (number_comparing_logical_expression_match(l, curr, match))
+                return -1;
+            if (*match == false)
+                return 0;
+            return number_comparing_logical_expression_match(r, curr, match);
+        } break;
+        case NUMBER_COMPARING_LOGICAL_EXPRESSION_OR:
+        {
+            PC_ASSERT(l && r);
+            if (number_comparing_logical_expression_match(l, curr, match))
+                return -1;
+            if (*match == true)
+                return 0;
+            return number_comparing_logical_expression_match(r, curr, match);
+        } break;
+        case NUMBER_COMPARING_LOGICAL_EXPRESSION_XOR:
+        {
+            PC_ASSERT(l && r);
+            bool a, b;
+            if (number_comparing_logical_expression_match(l, curr, &a))
+                return -1;
+            if (number_comparing_logical_expression_match(r, curr, &b))
+                return -1;
+            *match =(a != b);
+            return 0;
+        } break;
+        case NUMBER_COMPARING_LOGICAL_EXPRESSION_NOT:
+        {
+            PC_ASSERT(l && !r);
+            return number_comparing_logical_expression_match(l, curr, match);
+        } break;
+        case NUMBER_COMPARING_LOGICAL_EXPRESSION_NUM:
+        {
+            PC_ASSERT(!l && !r);
+            struct number_comparing_condition *ncc = &exp->ncc;
+            return number_comparing_condition_eval(ncc, curr, match);
+        } break;
+    }
+    PC_ASSERT(0);
+    return -1;
+}
+
+void
+string_matching_logical_expression_reset(
+        struct string_matching_logical_expression *exp)
+{
+    if (!exp)
+        return;
+
+    struct pctree_node *top = &exp->node;
+    struct pctree_node *node, *next;
+    pctree_for_each_post_order(top, node, next) {
+        struct string_matching_logical_expression *p;
+        p = container_of(node,
+                struct string_matching_logical_expression, node);
+        pctree_node_remove(node);
         switch (p->type)
         {
-            case LOGICAL_EXPRESSION_OP:
-            {
-                PC_ASSERT(p->op);
-                r = p->op(p);
-            } break;
-            case LOGICAL_EXPRESSION_STR:
-            {
-                struct string_matching_expression *mexp;
-                mexp = &p->mexp;
-                r = string_matching_expression_eval(mexp, val, &p->result);
-            } break;
-            case LOGICAL_EXPRESSION_NUM:
-            {
-                struct number_comparing_condition *ncc;
-                ncc = &p->ncc;
-                r = number_comparing_condition_eval(ncc, val, &p->result);
-            } break;
+            case STRING_MATCHING_LOGICAL_EXPRESSION_AND:
+                // fall-through
+            case STRING_MATCHING_LOGICAL_EXPRESSION_OR:
+                // fall-through
+            case STRING_MATCHING_LOGICAL_EXPRESSION_XOR:
+                // fall-through
+            case STRING_MATCHING_LOGICAL_EXPRESSION_NOT:
+                break;
+            case STRING_MATCHING_LOGICAL_EXPRESSION_STR:
+                string_matching_condition_reset(&p->smc);
+                break;
         }
-
-        if (r)
-            return r;
+        if (p!=exp)
+            free(p);
     }
-
-    if (result)
-        *result = exp->result;
-
-    return 0;
-}
-
-int logical_and(struct logical_expression *exp)
-{
-    size_t nr = pctree_node_children_number(&exp->node);
-    if (nr != 2)
-        return -1;
-    struct logical_expression *l, *r;
-    l = container_of(exp->node.first_child, struct logical_expression, node);
-    r = container_of(exp->node.last_child, struct logical_expression, node);
-
-    exp->result = l->result && r->result;
-
-    return 0;
-}
-
-int logical_or(struct logical_expression *exp)
-{
-    size_t nr = pctree_node_children_number(&exp->node);
-    if (nr != 2)
-        return -1;
-    struct logical_expression *l, *r;
-    l = container_of(exp->node.first_child, struct logical_expression, node);
-    r = container_of(exp->node.last_child, struct logical_expression, node);
-
-    exp->result = l->result || r->result;
-
-    return 0;
-}
-
-int logical_xor(struct logical_expression *exp)
-{
-    size_t nr = pctree_node_children_number(&exp->node);
-    if (nr != 2)
-        return -1;
-
-    struct logical_expression *l, *r;
-    l = container_of(exp->node.first_child, struct logical_expression, node);
-    r = container_of(exp->node.last_child, struct logical_expression, node);
-
-    exp->result = l->result ^ r->result;
-
-    return 0;
-}
-
-int logical_not(struct logical_expression *exp)
-{
-    size_t nr = pctree_node_children_number(&exp->node);
-    if (nr != 1)
-        return -1;
-
-    struct logical_expression *l;
-    l = container_of(exp->node.first_child, struct logical_expression, node);
-
-    exp->result = !l->result;
-
-    return 0;
 }
 
 void

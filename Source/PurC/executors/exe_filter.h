@@ -36,7 +36,8 @@
 
 struct filter_rule
 {
-    struct logical_expression       *lexp;
+    struct number_comparing_logical_expression *ncle;
+    struct string_matching_logical_expression  *smle;
     enum for_clause_type             for_clause;
 };
 
@@ -53,17 +54,23 @@ PCA_EXTERN_C_BEGIN
 
 int pcexec_exe_filter_register(void);
 
+static inline void
+filter_rule_release(struct filter_rule *rule)
+{
+    if (rule->ncle) {
+        number_comparing_logical_expression_destroy(rule->ncle);
+        rule->ncle = NULL;
+    }
+    if (rule->smle) {
+        string_matching_logical_expression_destroy(rule->smle);
+        rule->smle = NULL;
+    }
+}
+
 int exe_filter_parse(const char *input, size_t len,
         struct exe_filter_param *param);
 
 void exe_filter_param_reset(struct exe_filter_param *param);
-
-static inline int
-filter_rule_eval(struct filter_rule *rule, purc_variant_t val, bool *result)
-{
-    PC_ASSERT(rule);
-    return logical_expression_eval(rule->lexp, val, result);
-}
 
 PCA_EXTERN_C_END
 

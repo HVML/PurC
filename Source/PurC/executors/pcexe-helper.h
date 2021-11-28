@@ -296,7 +296,7 @@ enum string_matching_type
     STRING_MATCHING_LITERAL,
 };
 
-struct string_matching_expression
+struct string_matching_condition
 {
     enum string_matching_type       type;
     union {
@@ -306,7 +306,7 @@ struct string_matching_expression
 };
 
 static inline void
-string_matching_expression_reset(struct string_matching_expression *mexp)
+string_matching_condition_reset(struct string_matching_condition *mexp)
 {
     if (!mexp)
         return;
@@ -345,53 +345,161 @@ enum for_clause_type {
 };
 
 
-enum logical_expression_node_type
+// enum logical_expression_node_type
+// {
+//     LOGICAL_EXPRESSION_OP,
+//     LOGICAL_EXPRESSION_STR,
+//     LOGICAL_EXPRESSION_NUM,
+// };
+// 
+// struct logical_expression
+// {
+//     enum logical_expression_node_type          type;
+// 
+//     union {
+//         int (*op)(struct logical_expression *);
+//         struct string_matching_condition mexp;
+//         struct number_comparing_condition ncc;
+//     };
+// 
+//     struct pctree_node              node;
+// 
+//     bool                            result;
+// };
+// 
+// int is_logical_expression_all(struct logical_expression *lexp);
+// struct logical_expression* logical_expression_all(void);
+// 
+// static inline struct logical_expression*
+// logical_expression_create(void)
+// {
+//     struct logical_expression *exp;
+//     exp = (struct logical_expression*)calloc(1, sizeof(*exp));
+//     return exp;
+// }
+// 
+// void logical_expression_reset(struct logical_expression *exp);
+// 
+// static inline void
+// logical_expression_destroy(struct logical_expression *exp)
+// {
+//     if (!exp)
+//         return;
+// 
+//     if (is_logical_expression_all(exp))
+//         return;
+// 
+//     logical_expression_reset(exp);
+//     free(exp);
+// }
+
+///////////////////////////////////////////////
+enum number_comparing_logical_expression_node_type
 {
-    LOGICAL_EXPRESSION_OP,
-    LOGICAL_EXPRESSION_STR,
-    LOGICAL_EXPRESSION_NUM,
+    NUMBER_COMPARING_LOGICAL_EXPRESSION_AND,
+    NUMBER_COMPARING_LOGICAL_EXPRESSION_OR,
+    NUMBER_COMPARING_LOGICAL_EXPRESSION_XOR,
+    NUMBER_COMPARING_LOGICAL_EXPRESSION_NOT,
+    NUMBER_COMPARING_LOGICAL_EXPRESSION_NUM,
 };
 
-struct logical_expression
+struct number_comparing_logical_expression
 {
-    enum logical_expression_node_type          type;
+    enum number_comparing_logical_expression_node_type          type;
 
     union {
-        int (*op)(struct logical_expression *);
-        struct string_matching_expression mexp;
         struct number_comparing_condition ncc;
     };
 
     struct pctree_node              node;
-
-    bool                            result;
 };
 
-int is_logical_expression_all(struct logical_expression *lexp);
-struct logical_expression* logical_expression_all(void);
-
-static inline struct logical_expression*
-logical_expression_create(void)
+static inline struct number_comparing_logical_expression*
+number_comparing_logical_expression_create(void)
 {
-    struct logical_expression *exp;
-    exp = (struct logical_expression*)calloc(1, sizeof(*exp));
+    struct number_comparing_logical_expression *exp;
+    exp = (struct number_comparing_logical_expression*)calloc(1, sizeof(*exp));
     return exp;
 }
 
-void logical_expression_reset(struct logical_expression *exp);
+void number_comparing_logical_expression_reset(
+        struct number_comparing_logical_expression *exp);
 
 static inline void
-logical_expression_destroy(struct logical_expression *exp)
+number_comparing_logical_expression_destroy(
+        struct number_comparing_logical_expression *exp)
 {
     if (!exp)
         return;
 
-    if (is_logical_expression_all(exp))
-        return;
-
-    logical_expression_reset(exp);
+    number_comparing_logical_expression_reset(exp);
     free(exp);
 }
+
+int
+number_comparing_logical_expression_match(
+        struct number_comparing_logical_expression *exp,
+        const double curr, bool *match);
+
+enum string_matching_logical_expression_node_type
+{
+    STRING_MATCHING_LOGICAL_EXPRESSION_AND,
+    STRING_MATCHING_LOGICAL_EXPRESSION_OR,
+    STRING_MATCHING_LOGICAL_EXPRESSION_XOR,
+    STRING_MATCHING_LOGICAL_EXPRESSION_NOT,
+    STRING_MATCHING_LOGICAL_EXPRESSION_STR,
+};
+
+struct string_matching_logical_expression
+{
+    enum string_matching_logical_expression_node_type          type;
+
+    union {
+        struct string_matching_condition smc;
+    };
+
+    struct pctree_node              node;
+};
+
+static inline struct string_matching_logical_expression*
+string_matching_logical_expression_create(void)
+{
+    struct string_matching_logical_expression *exp;
+    exp = (struct string_matching_logical_expression*)calloc(1, sizeof(*exp));
+    return exp;
+}
+
+void string_matching_logical_expression_reset(
+        struct string_matching_logical_expression *exp);
+
+static inline void
+string_matching_logical_expression_destroy(
+        struct string_matching_logical_expression *exp)
+{
+    if (!exp)
+        return;
+
+    string_matching_logical_expression_reset(exp);
+    free(exp);
+}
+
+int
+string_matching_logical_expression_match(
+        struct string_matching_logical_expression *exp,
+        const double curr, bool *match);
+
+//////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
 
 enum iterative_formula_expression_node_type
 {
@@ -511,7 +619,7 @@ string_literal_list_eval(struct string_literal_list *list,
 }
 
 static inline int
-string_matching_expression_eval(struct string_matching_expression *mexp,
+string_matching_condition_eval(struct string_matching_condition *mexp,
         purc_variant_t val, bool *result)
 {
     switch(mexp->type)
@@ -526,15 +634,15 @@ string_matching_expression_eval(struct string_matching_expression *mexp,
 }
 
 int number_comparing_condition_eval(struct number_comparing_condition *ncc,
-        purc_variant_t val, bool *result);
+        const double curr, bool *result);
 
-int logical_expression_eval(struct logical_expression *exp,
-        purc_variant_t val, bool *result);
-
-int logical_and(struct logical_expression *exp);
-int logical_or(struct logical_expression *exp);
-int logical_xor(struct logical_expression *exp);
-int logical_not(struct logical_expression *exp);
+// int logical_expression_eval(struct logical_expression *exp,
+//         purc_variant_t val, bool *result);
+// 
+// int logical_and(struct logical_expression *exp);
+// int logical_or(struct logical_expression *exp);
+// int logical_xor(struct logical_expression *exp);
+// int logical_not(struct logical_expression *exp);
 
 PCA_EXTERN_C_END
 

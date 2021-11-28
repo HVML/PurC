@@ -67,6 +67,7 @@
     // generated header from flex
     // introduce yylex decl for later use
     #include "exe_token.lex.h"
+    #include "tab.h"
 
     static void yyerror(
         YYLTYPE *yylloc,                   // match %define locations
@@ -177,99 +178,6 @@
         }                                           \
         free(s);                                    \
         _v = v;                                     \
-    } while (0)
-
-    #define LOGICAL_EXP_INIT_STR(_logic, _mexp) do {          \
-        _logic = logical_expression_create();                 \
-        if (!_logic) {                                        \
-            string_matching_expression_reset(&_mexp);         \
-            YYABORT;                                          \
-        }                                                     \
-        _logic->type = LOGICAL_EXPRESSION_STR;                \
-        _logic->mexp = _mexp;                                 \
-    } while (0)
-
-    #define LOGICAL_EXP_AND(_logic, _l, _r) do {                        \
-        _logic = logical_expression_create();                           \
-        if (!_logic) {                                                  \
-            logical_expression_destroy(_l);                             \
-            logical_expression_destroy(_r);                             \
-            YYABORT;                                                    \
-        }                                                               \
-        _logic->type = LOGICAL_EXPRESSION_OP;                           \
-        _logic->op = logical_and;                                       \
-        bool ok = pctree_node_append_child(&_logic->node, &_l->node);   \
-        if (ok) {                                                       \
-            ok = pctree_node_append_child(&_logic->node, &_r->node);    \
-            if (ok)                                                     \
-                break;                                                  \
-        } else {                                                        \
-            logical_expression_destroy(_l);                             \
-        }                                                               \
-        logical_expression_destroy(_r);                                 \
-        logical_expression_destroy(_logic);                             \
-        YYABORT;                                                        \
-    } while (0)
-
-    #define LOGICAL_EXP_OR(_logic, _l, _r) do {                         \
-        _logic = logical_expression_create();                           \
-        if (!_logic) {                                                  \
-            logical_expression_destroy(_l);                             \
-            logical_expression_destroy(_r);                             \
-            YYABORT;                                                    \
-        }                                                               \
-        _logic->type = LOGICAL_EXPRESSION_OP;                           \
-        _logic->op = logical_or;                                        \
-        bool ok = pctree_node_append_child(&_logic->node, &_l->node);   \
-        if (ok) {                                                       \
-            ok = pctree_node_append_child(&_logic->node, &_r->node);    \
-            if (ok)                                                     \
-                break;                                                  \
-        } else {                                                        \
-            logical_expression_destroy(_l);                             \
-        }                                                               \
-        logical_expression_destroy(_r);                                 \
-        logical_expression_destroy(_logic);                             \
-        YYABORT;                                                        \
-    } while (0)
-
-    #define LOGICAL_EXP_XOR(_logic, _l, _r) do {                        \
-        _logic = logical_expression_create();                           \
-        if (!_logic) {                                                  \
-            logical_expression_destroy(_l);                             \
-            logical_expression_destroy(_r);                             \
-            YYABORT;                                                    \
-        }                                                               \
-        _logic->type = LOGICAL_EXPRESSION_OP;                           \
-        _logic->op = logical_xor;                                       \
-        bool ok = pctree_node_append_child(&_logic->node, &_l->node);   \
-        if (ok) {                                                       \
-            ok = pctree_node_append_child(&_logic->node, &_r->node);    \
-            if (ok)                                                     \
-                break;                                                  \
-        } else {                                                        \
-            logical_expression_destroy(_l);                             \
-        }                                                               \
-        logical_expression_destroy(_r);                                 \
-        logical_expression_destroy(_logic);                             \
-        YYABORT;                                                        \
-    } while (0)
-
-    #define LOGICAL_EXP_NOT(_logic, _l) do {                            \
-        _logic = logical_expression_create();                           \
-        if (!_logic) {                                                  \
-            logical_expression_destroy(_l);                             \
-            YYABORT;                                                    \
-        }                                                               \
-        _logic->type = LOGICAL_EXPRESSION_OP;                           \
-        _logic->op = logical_not;                                       \
-        bool ok = pctree_node_append_child(&_logic->node, &_l->node);   \
-        if (ok) {                                                       \
-            break;                                                      \
-        }                                                               \
-        logical_expression_destroy(_l);                                 \
-        logical_expression_destroy(_logic);                             \
-        YYABORT;                                                        \
     } while (0)
 
     #define STR_LITERAL_RESET(_l) do {              \
@@ -432,7 +340,7 @@
         if (param) {                                        \
             param->rule = _rule;                            \
         } else {                                            \
-            token_rule_release(&_rule);                      \
+            token_rule_release(&_rule);                     \
         }                                                   \
     } while (0)
 }
@@ -460,8 +368,8 @@
 %union { double to; }
 %union { double advance; }
 %union { double nexp; }
-%union { struct logical_expression *logic; }
-%union { struct string_matching_expression mexp; }
+%union { struct string_matching_logical_expression *smle; }
+%union { struct string_matching_condition mexp; }
 %union { struct pcexe_strlist slist; }
 %union { struct string_pattern_list *patterns; }
 %union { struct string_literal_list *literals; }
@@ -474,12 +382,12 @@
 
 %destructor { token_rule_release(&$$); } <rule>
 %destructor { free($$); } <str>
-%destructor { logical_expression_destroy($$); } <logic>
-%destructor { string_matching_expression_reset(&$$); } <mexp>
+%destructor { string_matching_condition_reset(&$$); } <mexp>
 %destructor { pcexe_strlist_reset(&$$); } <slist>
 %destructor { string_pattern_list_destroy($$); } <patterns>
 %destructor { string_literal_list_destroy($$); } <literals>
 %destructor { STR_PATTERN_RESET($$); } <spexp>
+%destructor { string_matching_logical_expression_destroy($$); } <smle>
 
 %token TOKEN FROM TO ADVANCE DELIMETERS UNTIL LIKE AS
 %token NOT
@@ -500,10 +408,9 @@
 %nterm <rule>  token_rule;
 %nterm <to>          to_clause
 %nterm <advance>     advance_clause
-%nterm <logic>       until_clause
+%nterm <smle>       until_clause
 %nterm <nexp>        exp
-%nterm <logic> logical_expression;
-%nterm <mexp> string_matching_expression;
+%nterm <mexp> string_matching_condition;
 %nterm <slist>  literal_char_sequence
 %nterm <patterns> string_pattern_list;
 %nterm <literals> string_literal_list;
@@ -516,6 +423,7 @@
 %nterm <matching_flags>   matching_flags;
 %nterm <max_matching_length> max_matching_length;
 %nterm <str>    delimiters_clause;
+%nterm <smle> string_matching_logical_expression
 
 
 %% /* The grammar follows. */
@@ -545,16 +453,16 @@ delimiters_clause:
 
 until_clause:
   %empty                        { $$ = NULL; }
-| UNTIL logical_expression      { $$ = $2; }
+| UNTIL string_matching_logical_expression      { $$ = $2; }
 ;
 
-logical_expression:
-  string_matching_expression   { LOGICAL_EXP_INIT_STR($$, $1); }
-| logical_expression AND logical_expression { LOGICAL_EXP_AND($$, $1, $3); }
-| logical_expression OR logical_expression  { LOGICAL_EXP_OR($$, $1, $3); }
-| logical_expression XOR logical_expression { LOGICAL_EXP_XOR($$, $1, $3); }
-| NOT logical_expression %prec NEG  { LOGICAL_EXP_NOT($$, $2); }
-| '(' logical_expression ')'   { $$ = $2; }
+string_matching_logical_expression:
+  string_matching_condition   { SMLE_INIT($$, $1); }
+| string_matching_logical_expression AND string_matching_logical_expression { SMLE_AND($$, $1, $3); }
+| string_matching_logical_expression OR string_matching_logical_expression  { SMLE_OR($$, $1, $3); }
+| string_matching_logical_expression XOR string_matching_logical_expression { SMLE_XOR($$, $1, $3); }
+| NOT string_matching_logical_expression %prec NEG  { SMLE_NOT($$, $2); }
+| '(' string_matching_logical_expression ')'   { $$ = $2; }
 ;
 
 literal_char_sequence:
@@ -566,7 +474,7 @@ literal_char_sequence:
 | literal_char_sequence UNI    { STRLIST_APPEND_UNI($1, $2); $$ = $1; }
 ;
 
-string_matching_expression:
+string_matching_condition:
   LIKE string_pattern_list  { $$.type = STRING_MATCHING_PATTERN; $$.patterns = $2; }
 | AS string_literal_list    { $$.type = STRING_MATCHING_LITERAL; $$.literals = $2; }
 ;

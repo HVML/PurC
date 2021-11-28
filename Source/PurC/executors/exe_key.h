@@ -36,8 +36,8 @@
 
 struct key_rule
 {
-    struct logical_expression       *lexp;
-    enum for_clause_type             for_clause;
+    struct string_matching_logical_expression  *smle;
+    enum for_clause_type                        for_clause;
 };
 
 struct exe_key_param {
@@ -56,11 +56,13 @@ int pcexec_exe_key_register(void);
 int exe_key_parse(const char *input, size_t len,
         struct exe_key_param *param);
 
-static inline int
-key_rule_eval(struct key_rule *rule, purc_variant_t key, bool *result)
+static inline void
+key_rule_release(struct key_rule *rule)
 {
-    PC_ASSERT(rule);
-    return logical_expression_eval(rule->lexp, key, result);
+    if (rule->smle) {
+        string_matching_logical_expression_destroy(rule->smle);
+        rule->smle = NULL;
+    }
 }
 
 PCA_EXTERN_C_END

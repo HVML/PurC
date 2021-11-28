@@ -36,8 +36,8 @@
 
 struct formula_rule
 {
-    struct logical_expression            *lexp;
-    struct iterative_formula_expression  *ife;
+    struct number_comparing_logical_expression *ncle;
+    struct iterative_formula_expression        *ife;
 };
 
 struct exe_formula_param {
@@ -45,7 +45,7 @@ struct exe_formula_param {
     int debug_flex;
     int debug_bison;
 
-    struct formula_rule        rule;
+    struct formula_rule       rule;
     unsigned int              rule_valid:1;
 };
 
@@ -59,9 +59,9 @@ int exe_formula_parse(const char *input, size_t len,
 static inline void
 formula_rule_release(struct formula_rule *rule)
 {
-    if (rule->lexp) {
-        logical_expression_destroy(rule->lexp);
-        rule->lexp = NULL;
+    if (rule->ncle) {
+        number_comparing_logical_expression_destroy(rule->ncle);
+        rule->ncle = NULL;
     }
     if (rule->ife) {
         iterative_formula_expression_destroy(rule->ife);
@@ -81,13 +81,6 @@ exe_formula_param_reset(struct exe_formula_param *param)
     }
 
     formula_rule_release(&param->rule);
-}
-
-static inline int
-formula_rule_eval(struct formula_rule *rule, purc_variant_t val, bool *result)
-{
-    PC_ASSERT(rule);
-    return logical_expression_eval(rule->lexp, val, result);
 }
 
 PCA_EXTERN_C_END

@@ -51,10 +51,7 @@ exe_filter_param_reset(struct exe_filter_param *param)
     }
 
     if (param->rule_valid) {
-        if (param->rule.lexp) {
-            logical_expression_destroy(param->rule.lexp);
-            param->rule.lexp = NULL;
-        }
+        filter_rule_release(&param->rule);
         param->rule_valid = 0;
     }
 }
@@ -130,7 +127,9 @@ filter_object_until_match(struct pcexec_exe_filter_inst *exe_filter_inst)
     do {
         purc_variant_t k = purc_variant_object_iterator_get_key(it_obj);
 
-        int r = filter_rule_eval(rule, k, &result);
+        // int r = filter_rule_eval(rule, k, &result);
+        int r = 0;
+        PC_ASSERT(0);
         if (r) {
             ok = false;
             break;
@@ -188,7 +187,7 @@ filter_array_until_match(struct pcexec_exe_filter_inst *exe_filter_inst)
     purc_exec_inst_t inst = &exe_filter_inst->super;
     purc_exec_iter_t it = &inst->it;
     purc_variant_t cache = inst->cache;
-    struct filter_rule *rule = &exe_filter_inst->param.rule;
+    // struct filter_rule *rule = &exe_filter_inst->param.rule;
 
     PC_ASSERT(exe_filter_inst->param.rule_valid);
     PC_ASSERT(exe_filter_inst->it_obj == NULL);
@@ -212,7 +211,9 @@ filter_array_until_match(struct pcexec_exe_filter_inst *exe_filter_inst)
 
         purc_variant_t v = purc_variant_array_get(cache, it_arr);
 
-        int r = filter_rule_eval(rule, v, &result);
+        // int r = filter_rule_eval(rule, v, &result);
+        int r = 0;
+        PC_ASSERT(0);
         if (r) {
             ok = false;
             break;
@@ -279,7 +280,7 @@ static inline purc_exec_iter_t
 fetch_object_next(struct pcexec_exe_filter_inst *exe_filter_inst)
 {
     purc_exec_inst_t inst = &exe_filter_inst->super;
-    struct filter_rule *rule = &exe_filter_inst->param.rule;
+    // struct filter_rule *rule = &exe_filter_inst->param.rule;
 
     PC_ASSERT(exe_filter_inst->param.rule_valid);
 
@@ -297,9 +298,11 @@ fetch_object_next(struct pcexec_exe_filter_inst *exe_filter_inst)
 
     bool result = false;
     do {
-        purc_variant_t k = purc_variant_object_iterator_get_key(it_obj);
+        // purc_variant_t k = purc_variant_object_iterator_get_key(it_obj);
 
-        int r = filter_rule_eval(rule, k, &result);
+        // int r = filter_rule_eval(rule, k, &result);
+        int r = 0;
+        PC_ASSERT(0);
         if (r) {
             ok = false;
             break;

@@ -50,9 +50,9 @@ exe_key_param_reset(struct exe_key_param *param)
     }
 
     if (param->rule_valid) {
-        if (param->rule.lexp) {
-            logical_expression_destroy(param->rule.lexp);
-            param->rule.lexp = NULL;
+        if (param->rule.smle) {
+            string_matching_logical_expression_destroy(param->rule.smle);
+            param->rule.smle = NULL;
         }
         param->rule_valid = 0;
     }
@@ -149,7 +149,7 @@ fetch_object_begin(struct pcexec_exe_key_inst *exe_key_inst)
 {
     purc_exec_inst_t inst = &exe_key_inst->super;
     purc_variant_t cache = inst->cache;
-    struct key_rule *rule = &exe_key_inst->param.rule;
+    // struct key_rule *rule = &exe_key_inst->param.rule;
 
     PC_ASSERT(exe_key_inst->param.rule_valid);
     PC_ASSERT(exe_key_inst->curr == NULL);
@@ -167,9 +167,11 @@ fetch_object_begin(struct pcexec_exe_key_inst *exe_key_inst)
 
     bool result = false;
     do {
-        purc_variant_t k = purc_variant_object_iterator_get_key(curr);
+        // purc_variant_t k = purc_variant_object_iterator_get_key(curr);
 
-        int r = key_rule_eval(rule, k, &result);
+        // int r = key_rule_eval(rule, k, &result);
+        int r = 0;
+        PC_ASSERT(0);
         if (r) {
             ok = false;
             break;
@@ -210,7 +212,7 @@ static inline purc_exec_iter_t
 fetch_object_next(struct pcexec_exe_key_inst *exe_key_inst)
 {
     purc_exec_inst_t inst = &exe_key_inst->super;
-    struct key_rule *rule = &exe_key_inst->param.rule;
+    // struct key_rule *rule = &exe_key_inst->param.rule;
 
     PC_ASSERT(exe_key_inst->param.rule_valid);
 
@@ -228,9 +230,11 @@ fetch_object_next(struct pcexec_exe_key_inst *exe_key_inst)
 
     bool result = false;
     do {
-        purc_variant_t k = purc_variant_object_iterator_get_key(curr);
+        // purc_variant_t k = purc_variant_object_iterator_get_key(curr);
 
-        int r = key_rule_eval(rule, k, &result);
+        // int r = key_rule_eval(rule, k, &result);
+        int r = 0;
+        PC_ASSERT(0);
         if (r) {
             ok = false;
             break;
