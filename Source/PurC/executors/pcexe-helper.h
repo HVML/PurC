@@ -351,56 +351,6 @@ enum for_clause_type {
     FOR_CLAUSE_KV,
 };
 
-
-// enum logical_expression_node_type
-// {
-//     LOGICAL_EXPRESSION_OP,
-//     LOGICAL_EXPRESSION_STR,
-//     LOGICAL_EXPRESSION_NUM,
-// };
-// 
-// struct logical_expression
-// {
-//     enum logical_expression_node_type          type;
-// 
-//     union {
-//         int (*op)(struct logical_expression *);
-//         struct string_matching_condition mexp;
-//         struct number_comparing_condition ncc;
-//     };
-// 
-//     struct pctree_node              node;
-// 
-//     bool                            result;
-// };
-// 
-// int is_logical_expression_all(struct logical_expression *lexp);
-// struct logical_expression* logical_expression_all(void);
-// 
-// static inline struct logical_expression*
-// logical_expression_create(void)
-// {
-//     struct logical_expression *exp;
-//     exp = (struct logical_expression*)calloc(1, sizeof(*exp));
-//     return exp;
-// }
-// 
-// void logical_expression_reset(struct logical_expression *exp);
-// 
-// static inline void
-// logical_expression_destroy(struct logical_expression *exp)
-// {
-//     if (!exp)
-//         return;
-// 
-//     if (is_logical_expression_all(exp))
-//         return;
-// 
-//     logical_expression_reset(exp);
-//     free(exp);
-// }
-
-///////////////////////////////////////////////
 enum number_comparing_logical_expression_node_type
 {
     NUMBER_COMPARING_LOGICAL_EXPRESSION_AND,
@@ -494,19 +444,6 @@ int
 string_matching_logical_expression_match(
         struct string_matching_logical_expression *exp,
         purc_variant_t curr, bool *match);
-
-//////////////////////////////////////////////
-
-
-
-
-
-
-
-
-
-
-
 
 enum iterative_formula_expression_node_type
 {
