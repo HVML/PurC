@@ -66,6 +66,7 @@
     // generated header from flex
     // introduce yylex decl for later use
     #include "exe_range.lex.h"
+    #include "tab.h"
 
     #include <math.h>
 
@@ -75,42 +76,6 @@
         struct exe_range_param *param,           // match %parse-param
         const char *errsg
     );
-
-    #define STRTOLD(_v, _s) do {                    \
-        long double v;                              \
-        char *s = (char*)malloc(_s.leng+1);         \
-        if (!s) {                                   \
-            YYABORT;                                \
-        }                                           \
-        memcpy(s, _s.text, _s.leng);                \
-        s[_s.leng] = '\0';                          \
-        char *end;                                  \
-        v = strtold(s, &end);                       \
-        if (end && *end) {                          \
-            free(s);                                \
-            YYABORT;                                \
-        }                                           \
-        free(s);                                    \
-        _v = v;                                     \
-    } while (0)
-
-    #define STRTOLL(_v, _s) do {                    \
-        long long int v;                            \
-        char *s = (char*)malloc(_s.leng+1);         \
-        if (!s) {                                   \
-            YYABORT;                                \
-        }                                           \
-        memcpy(s, _s.text, _s.leng);                \
-        s[_s.leng] = '\0';                          \
-        char *end;                                  \
-        v = strtoll(s, &end, 0);                    \
-        if (end && *end) {                          \
-            free(s);                                \
-            YYABORT;                                \
-        }                                           \
-        free(s);                                    \
-        _v = v;                                     \
-    } while (0)
 
     #define RULE_INIT_FROM(_rule, _from) do {        \
         _rule.from    = _from;                       \
@@ -134,41 +99,6 @@
         _rule.from    = _from;                                         \
         _rule.to      = NAN;                                           \
         _rule.advance = _advance;                                      \
-    } while (0)
-
-    #define NUMERIC_EXP_INIT_I64(_nexp, _i64) do {               \
-        int64_t i64;                                             \
-        STRTOLL(i64, _i64);                                      \
-        _nexp = i64;                                             \
-    } while (0)
-
-    #define NUMERIC_EXP_INIT_LD(_nexp, _ld) do {                 \
-        long double ld;                                          \
-        STRTOLD(ld, _ld);                                        \
-        _nexp = ld;                                              \
-    } while (0)
-
-    #define NUMERIC_EXP_VAL(_n)                                  \
-        (_n.type == NUMERIC_EXPRESSION_NUMERIC ? _n.ld : _n.i64)
-
-    #define NUMERIC_EXP_ADD(_nexp, _l, _r) do {                  \
-        _nexp = _l + _r;                                         \
-    } while (0)
-
-    #define NUMERIC_EXP_SUB(_nexp, _l, _r) do {                  \
-        _nexp = _l - _r;                                         \
-    } while (0)
-
-    #define NUMERIC_EXP_MUL(_nexp, _l, _r) do {                  \
-        _nexp = _l * _r;                                         \
-    } while (0)
-
-    #define NUMERIC_EXP_DIV(_nexp, _l, _r) do {                  \
-        _nexp = _l / _r;                                         \
-    } while (0)
-
-    #define NUMERIC_EXP_UMINUS(_nexp, _l) do {                   \
-        _nexp = -_l;                                             \
     } while (0)
 
     #define SET_RULE(_rule) do {                                \
