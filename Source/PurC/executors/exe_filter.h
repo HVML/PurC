@@ -70,7 +70,20 @@ filter_rule_release(struct filter_rule *rule)
 int exe_filter_parse(const char *input, size_t len,
         struct exe_filter_param *param);
 
-void exe_filter_param_reset(struct exe_filter_param *param);
+static inline void
+exe_filter_param_reset(struct exe_filter_param *param)
+{
+    if (!param)
+        return;
+
+    if (param->err_msg) {
+        free(param->err_msg);
+        param->err_msg = NULL;
+    }
+
+    filter_rule_release(&param->rule);
+}
+
 
 PCA_EXTERN_C_END
 
