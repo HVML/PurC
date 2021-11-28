@@ -580,14 +580,6 @@ string_matching_condition_eval(struct string_matching_condition *mexp,
 int number_comparing_condition_eval(struct number_comparing_condition *ncc,
         const double curr, bool *result);
 
-// int logical_expression_eval(struct logical_expression *exp,
-//         purc_variant_t val, bool *result);
-// 
-// int logical_and(struct logical_expression *exp);
-// int logical_or(struct logical_expression *exp);
-// int logical_xor(struct logical_expression *exp);
-// int logical_not(struct logical_expression *exp);
-
 PCA_EXTERN_C_END
 
 #endif // PURC_EXECUTOR_PCEXE_HELPER_H
