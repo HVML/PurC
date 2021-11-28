@@ -441,6 +441,9 @@ int iterative_formula_mul(struct iterative_formula_expression *exp);
 int iterative_formula_div(struct iterative_formula_expression *exp);
 int iterative_formula_neg(struct iterative_formula_expression *exp);
 
+int iterative_formula_iterate(struct iterative_formula_expression *exp,
+        double *curr);
+
 int
 literal_expression_eval(struct literal_expression *lexp,
         purc_variant_t val, bool *result);

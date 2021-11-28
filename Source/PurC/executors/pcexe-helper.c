@@ -1141,6 +1141,38 @@ int iterative_formula_neg(struct iterative_formula_expression *exp)
     return 0;
 }
 
+int iterative_formula_iterate(struct iterative_formula_expression *exp,
+        double *curr)
+{
+    struct pctree_node *root = &exp->node;
+    struct pctree_node *p, *n;
+    pctree_for_each_post_order(root, p, n) {
+        struct iterative_formula_expression *ife;
+        ife = container_of(p, struct iterative_formula_expression, node);
+        switch (ife->type)
+        {
+            case ITERATIVE_FORMULA_EXPRESSION_OP:
+            {
+                int r = ife->op(ife);
+                if (r)
+                    return -1;
+            } break;
+            case ITERATIVE_FORMULA_EXPRESSION_NUM:
+            {
+                ife->result = ife->d;
+            } break;
+            case ITERATIVE_FORMULA_EXPRESSION_ID:
+            {
+                PC_ASSERT(strcmp(ife->id, "X")==0);
+                ife->result = *curr;
+            } break;
+        }
+    }
+
+    *curr = exp->result;
+    return 0;
+}
+
 void iterative_formula_expression_release(
         struct iterative_formula_expression *exp)
 {
