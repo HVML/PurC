@@ -72,6 +72,8 @@ macro(PURC_OPTION_BEGIN)
         set(USE_SYSTEM_MALLOC_DEFAULT ON)
     endif ()
 
+    set(USE_SYSTEM_MALLOC_DEFAULT ON)
+
     if (DEFINED ClangTidy_EXE OR DEFINED IWYU_EXE)
         message(STATUS "Unified builds are disabled when analyzing sources")
         set(ENABLE_UNIFIED_BUILDS_DEFAULT OFF)
@@ -94,6 +96,8 @@ macro(PURC_OPTION_BEGIN)
     PURC_OPTION_DEFINE(ENABLE_API_TESTS "Enable public API unit tests" PUBLIC ON)
 
     PURC_OPTION_DEFINE(USE_SYSTEM_MALLOC "Toggle system allocator instead of PurC's custom allocator" PRIVATE ${USE_SYSTEM_MALLOC_DEFAULT})
+    PURC_OPTION_DEFINE(ENABLE_LINK_PURC_FETCHER "Enable Link Purc Fetcher Library" PUBLIC ON)
+    PURC_OPTION_DEFINE(ENABLE_ICU "Enable icu" PUBLIC OFF)
 
     #PURC_OPTION_DEPEND(ENABLE_XSLT ENABLE_XML)
 endmacro()

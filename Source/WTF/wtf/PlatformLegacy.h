@@ -28,6 +28,7 @@
 
 #pragma once
 
+
 #ifndef WTF_PLATFORM_GUARD_AGAINST_INDIRECT_INCLUSION
 #error "Please #include <wtf/Platform.h> instead of this file directly."
 #endif
@@ -49,8 +50,8 @@
 /* PLATFORM(WIN) */
 #if defined(BUILDING_GTK__)
 #define WTF_PLATFORM_GTK 1
-#elif defined(BUILDING_HBD__)
-#define WTF_PLATFORM_HBD 1
+#elif defined(BUILDING_LINUX__)
+#define WTF_PLATFORM_LINUX 1
 #elif defined(BUILDING_WPE__)
 #define WTF_PLATFORM_WPE 1
 #elif defined(BUILDING_JSCONLY__)

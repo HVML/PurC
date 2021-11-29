@@ -14,8 +14,9 @@ set(PURC_HEADER_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}/purc" CACHE PATH "Absol
 
 add_definitions(-DBUILDING_LINUX__=1)
 # add_definitions(-DPURC_API_VERSION_STRING="${PURC_API_VERSION}")
+add_definitions(-DPURC_LIBEXEC_DIR="${LIBEXEC_INSTALL_DIR}")
 
-find_package(GLIB 2.44.0 COMPONENTS gio gio-unix gmodule)
+find_package(GLIB 2.44.0 COMPONENTS gio gio-unix gmodule gobject)
 find_package(Ncurses 5.0)
 find_package(HiBus 100)
 find_package(LibXml2 2.8.0)
@@ -25,8 +26,10 @@ find_package(OpenSSL 1.1.1)
 find_package(SQLite3 3.10.0)
 find_package(MySQLClient 20.0.0)
 find_package(ZLIB 1.2.0)
+find_package(Threads REQUIRED)
 find_package(BISON 3.0 REQUIRED)
 find_package(FLEX 2.6.4 REQUIRED)
+find_package(ICU 60.2 REQUIRED COMPONENTS data i18n uc)
 
 if (NOT GLIB_FOUND)
     set(ENABLE_SOCKET_STREAM_DEFAULT OFF)
@@ -97,6 +100,8 @@ else ()
     set(ENABLE_SSL_DEFAULT ON)
     SET_AND_EXPOSE_TO_BUILD(HAVE_OPENSSL ON)
 endif ()
+
+set(ENABLE_ICU ON)
 
 # Public options specific to the HybridOS port. Do not add any options here unless
 # there is a strong reason we should support changing the value of the option,

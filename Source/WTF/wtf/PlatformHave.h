@@ -94,7 +94,7 @@
 #define USE_UIKIT_KEYBOARD_ADDITIONS 1
 #endif
 
-#if !defined(HAVE_ACCESSIBILITY) && (PLATFORM(COCOA) || PLATFORM(WIN) || PLATFORM(GTK) || PLATFORM(WPE) || PLATFORM(HBD))
+#if !defined(HAVE_ACCESSIBILITY) && (PLATFORM(COCOA) || PLATFORM(WIN) || PLATFORM(GTK) || PLATFORM(WPE) || PLATFORM(LINUX))
 #define HAVE_ACCESSIBILITY 1
 #endif
 
@@ -199,7 +199,7 @@
 #define HAVE_AUDIT_TOKEN 1
 #endif
 
-#if OS(DARWIN) && __has_include(<mach/mach_exc.defs>) && !PLATFORM(GTK) && !PLATFORM(HBD)
+#if OS(DARWIN) && __has_include(<mach/mach_exc.defs>) && !PLATFORM(GTK) && !PLATFORM(LINUX)
 #define HAVE_MACH_EXCEPTIONS 1
 #endif
 
@@ -215,7 +215,7 @@
 #define HAVE_BACKTRACE 1
 #endif
 
-#if (OS(DARWIN) || OS(LINUX)) && (PLATFORM(GTK) || PLATFORM(WPE) || PLATFORM(HBD)) && defined(__GLIBC__) && !defined(__UCLIBC__) && !CPU(MIPS)
+#if (OS(DARWIN) || OS(LINUX)) && (PLATFORM(GTK) || PLATFORM(WPE) || PLATFORM(LINUX)) && defined(__GLIBC__) && !defined(__UCLIBC__) && !CPU(MIPS)
 #define HAVE_BACKTRACE_SYMBOLS 1
 #endif
 
