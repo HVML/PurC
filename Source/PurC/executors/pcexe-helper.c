@@ -1362,10 +1362,7 @@ void iterative_formula_expression_release(
             case ITERATIVE_FORMULA_EXPRESSION_OP:
                 break;
             case ITERATIVE_FORMULA_EXPRESSION_ID:
-                if (p->key_name != PURC_VARIANT_INVALID) {
-                    purc_variant_unref(p->key_name);
-                    p->key_name = PURC_VARIANT_INVALID;
-                }
+                PCEXE_CLR_VAR(p->key_name);
                 break;
             case ITERATIVE_FORMULA_EXPRESSION_NUM:
                 break;

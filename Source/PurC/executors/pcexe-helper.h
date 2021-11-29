@@ -625,10 +625,7 @@ vncc_release(struct value_number_comparing_condition *vncc)
     if (!vncc)
         return;
 
-    if (vncc->key_name) {
-        free(vncc->key_name);
-        vncc->key_name = NULL;
-    }
+    PCEXE_CLR_VAR(vncc->key_name);
 }
 
 int vncc_match(struct value_number_comparing_condition *vncc,
@@ -679,10 +676,7 @@ iae_release(struct iterative_assignment_expression* iae)
     if (!iae)
         return;
 
-    if (iae->key_name != PURC_VARIANT_INVALID) {
-        purc_variant_unref(iae->key_name);
-        iae->key_name = PURC_VARIANT_INVALID;
-    }
+    PCEXE_CLR_VAR(iae->key_name);
     if (iae->ife) {
         iterative_formula_expression_destroy(iae->ife);
         iae->ife = NULL;
