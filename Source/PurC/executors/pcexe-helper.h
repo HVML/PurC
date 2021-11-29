@@ -584,7 +584,7 @@ int number_comparing_condition_eval(struct number_comparing_condition *ncc,
 
 struct value_number_comparing_condition
 {
-    char                                 *key_name;
+    purc_variant_t                        key_name;
     struct number_comparing_condition     ncc;
 };
 
@@ -611,7 +611,7 @@ vncc_release(struct value_number_comparing_condition *vncc)
     }
 }
 
-int vncc_eval(struct value_number_comparing_condition *vncc,
+int vncc_match(struct value_number_comparing_condition *vncc,
         purc_variant_t curr, bool *result);
 
 static inline struct value_number_comparing_logical_expression*
@@ -642,7 +642,7 @@ vncle_match(struct value_number_comparing_logical_expression *vncle,
 
 struct iterative_assignment_expression
 {
-    char                                      *key_name; // l-value
+    purc_variant_t                             key_name; // l-value
     struct iterative_formula_expression       *ife; // r-value
 
     struct list_head                           node;
@@ -659,9 +659,9 @@ iae_release(struct iterative_assignment_expression* iae)
     if (!iae)
         return;
 
-    if (iae->key_name) {
-        free(iae->key_name);
-        iae->key_name = NULL;
+    if (iae->key_name != PURC_VARIANT_INVALID) {
+        purc_variant_unref(iae->key_name);
+        iae->key_name = PURC_VARIANT_INVALID;
     }
     if (iae->ife) {
         iterative_formula_expression_destroy(iae->ife);
@@ -714,6 +714,44 @@ ial_destroy(struct iterative_assignment_list *list)
     }
 
     free(list);
+}
+
+static inline int
+iae_iterate(struct iterative_assignment_expression *iae, purc_variant_t curr)
+{
+    purc_variant_t k = iae->key_name;
+    purc_variant_t v = purc_variant_object_get(curr, k);
+    if (v == PURC_VARIANT_INVALID)
+        return -1;
+    double val = purc_variant_numberify(v);
+    struct iterative_formula_expression *ife = iae->ife;
+    int r = iterative_formula_iterate(ife, &val);
+    if (r)
+        return r;
+
+    v = purc_variant_make_number(val);
+    if (v == PURC_VARIANT_INVALID)
+        return -1;
+    bool ok = purc_variant_object_set(curr, k, v);
+    purc_variant_unref(v);
+
+    return ok ? 0 : -1;
+}
+
+static inline int
+ial_iterate(struct iterative_assignment_list *ial, purc_variant_t curr)
+{
+    int r = 0;
+    struct list_head *p;
+    list_for_each(p, &ial->list) {
+        struct iterative_assignment_expression *iae;
+        iae = container_of(p, struct iterative_assignment_expression, node);
+        r = iae_iterate(iae, curr);
+        if (r)
+            break;
+    }
+
+    return r;
 }
 
 PCA_EXTERN_C_END

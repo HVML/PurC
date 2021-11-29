@@ -77,8 +77,6 @@
 
     #define SET_RULE(_rule) do {                            \
         if (param) {                                        \
-            objformula_rule_release(&_rule);                \
-            break; \
             param->rule = _rule;                            \
         } else {                                            \
             objformula_rule_release(&_rule);                \
@@ -152,11 +150,11 @@ input:
 ;
 
 objformula_rule:
-  OBJFORMULA ':' value_number_comparing_logical_expression BY iterative_assignment_list     { $$.vncle = $3; $$.ial = $5; }
+  OBJFORMULA ':' value_number_comparing_logical_expression BY iterative_assignment_list     { $$.vncle = $3; $$.ial = $5; if ($$.vncle == NULL) abort(); }
 ;
 
 value_number_comparing_logical_expression:
-  value_number_comparing_condition   { VNCLE_INIT($$, $1); }
+  value_number_comparing_condition   { VNCLE_INIT($$, $1); if ($$ == NULL) abort(); }
 | value_number_comparing_logical_expression AND value_number_comparing_logical_expression { VNCLE_AND($$, $1, $3); }
 | value_number_comparing_logical_expression OR value_number_comparing_logical_expression  { VNCLE_OR($$, $1, $3); }
 | value_number_comparing_logical_expression XOR value_number_comparing_logical_expression { VNCLE_XOR($$, $1, $3); }

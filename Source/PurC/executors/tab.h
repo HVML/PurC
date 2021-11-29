@@ -571,12 +571,11 @@
     YYABORT;                                                       \
 } while (0)
 
-#define VNCC_INIT(_vncc, _l, _r) do {            \
-    char *id = strndup(_l.text, _l.leng);        \
-    if (!id)                                     \
-        YYABORT;                                 \
-    _vncc.key_name = id;                         \
-    _vncc.ncc      = _r;                         \
+#define VNCC_INIT(_vncc, _l, _r) do {                                       \
+    _vncc.key_name = purc_variant_make_string_ex(_l.text, _l.leng, true);   \
+    if (_vncc.key_name == PURC_VARIANT_INVALID)                             \
+        YYABORT;                                                            \
+    _vncc.ncc      = _r;                                                    \
 } while (0)
 
 #define IAL_INIT(_ial, _l) do {                  \
@@ -591,16 +590,16 @@
     _ial = _l;                                 \
 } while (0)
 
-#define IAE_INIT(_iae, _l, _r) do {                 \
-    _iae = iae_create();                            \
-    if (!_iae)                                      \
-        YYABORT;                                    \
-    _iae->key_name = strndup(_l.text, _l.leng);     \
-    if (!_iae->key_name) {                          \
-        iae_destroy(_iae);                          \
-        YYABORT;                                    \
-    }                                               \
-    _iae->ife = _r;                                 \
+#define IAE_INIT(_iae, _l, _r) do {                                        \
+    _iae = iae_create();                                                   \
+    if (!_iae)                                                             \
+        YYABORT;                                                           \
+    _iae->key_name = purc_variant_make_string_ex(_l.text, _l.leng, true);  \
+    if (_iae->key_name == PURC_VARIANT_INVALID) {                          \
+        iae_destroy(_iae);                                                 \
+        YYABORT;                                                           \
+    }                                                                      \
+    _iae->ife = _r;                                                        \
 } while (0)
 
 #endif // PURC_EXECUTOR_TAB_H

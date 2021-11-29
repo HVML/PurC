@@ -631,6 +631,106 @@ number_comparing_logical_expression_match(
     return -1;
 }
 
+static inline void
+vncle_get_children(struct value_number_comparing_logical_expression *exp,
+        struct value_number_comparing_logical_expression **l,
+        struct value_number_comparing_logical_expression **r)
+{
+    struct pctree_node *node = &exp->node;
+    size_t nr = pctree_node_children_number(node);
+    struct pctree_node *n;
+    PC_ASSERT(nr<=2);
+    if (nr == 0)
+        return;
+
+    n = pctree_node_child(node);
+    PC_ASSERT(n);
+    *l = container_of(n,
+            struct value_number_comparing_logical_expression, node);
+    if (nr == 1)
+        return;
+
+    n = pctree_node_next(n);
+    PC_ASSERT(n);
+    *r = container_of(n,
+            struct value_number_comparing_logical_expression, node);
+}
+
+int vncc_match(struct value_number_comparing_condition *vncc,
+        purc_variant_t curr, bool *result)
+{
+    purc_variant_t k = vncc->key_name;
+    PC_ASSERT(k != PURC_VARIANT_INVALID); // FIXME: error code or exception???
+    PC_ASSERT(curr != PURC_VARIANT_INVALID); // FIXME: error code or exception???
+
+    purc_variant_t v = purc_variant_object_get(curr, k);
+    PC_ASSERT(v != PURC_VARIANT_INVALID); // FIXME: error code or exception???
+    double d = purc_variant_numberify(v);
+
+    struct number_comparing_condition *ncc = &vncc->ncc;
+
+    return number_comparing_condition_eval(ncc, d, result);
+}
+
+int
+vncle_match(struct value_number_comparing_logical_expression *vncle,
+        purc_variant_t curr, bool *match)
+{
+    struct value_number_comparing_logical_expression *l = NULL, *r = NULL;
+    vncle_get_children(vncle, &l, &r);
+
+    switch (vncle->type)
+    {
+        case NUMBER_COMPARING_LOGICAL_EXPRESSION_AND:
+        {
+            PC_ASSERT(l && r);
+            if (vncle_match(l, curr, match))
+                return -1;
+            if (*match == false)
+                return 0;
+            return vncle_match(r, curr, match);
+        } break;
+        case NUMBER_COMPARING_LOGICAL_EXPRESSION_OR:
+        {
+            PC_ASSERT(l && r);
+            if (vncle_match(l, curr, match))
+                return -1;
+            if (*match == true)
+                return 0;
+            return vncle_match(r, curr, match);
+        } break;
+        case NUMBER_COMPARING_LOGICAL_EXPRESSION_XOR:
+        {
+            PC_ASSERT(l && r);
+            bool a, b;
+            if (vncle_match(l, curr, &a))
+                return -1;
+            if (vncle_match(r, curr, &b))
+                return -1;
+            *match =(a != b);
+            return 0;
+        } break;
+        case NUMBER_COMPARING_LOGICAL_EXPRESSION_NOT:
+        {
+            PC_ASSERT(l && !r);
+            int r = vncle_match(l, curr, match);
+            if (r)
+                return r;
+            *match = !*match;
+            return 0;
+        } break;
+        case NUMBER_COMPARING_LOGICAL_EXPRESSION_NUM:
+        {
+            PC_ASSERT(!l && !r);
+            struct value_number_comparing_condition *vncc = &vncle->vncc;
+            return vncc_match(vncc, curr, match);
+        } break;
+    }
+    PC_ASSERT(0);
+    return -1;
+}
+
+
 void
 string_matching_logical_expression_reset(
         struct string_matching_logical_expression *exp)

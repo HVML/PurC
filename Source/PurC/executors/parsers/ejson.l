@@ -99,7 +99,7 @@ do {                                              \
 [-+]?[1-9][0-9]*(FL|fl)?            { C(); SET_STR(); R(); return MKT(NUMBER); }
 [-+]?[0]?([.][0-9]+)?([eE][-+][0-9]+)?(FL|fl)?          { C(); SET_STR(); R(); return MKT(NUMBER); }
 [-+]?[1-9][0-9]*([.][0-9]+)?([eE][-+][0-9]+)?(FL|fl)?   { C(); SET_STR(); R(); return MKT(NUMBER); }
-[[:alpha:]][-_[:alnum:]]    { C(); SET_STR(); R(); return MKT(ID); }
+[[:alpha:]][-_[:alnum:]]*   { C(); SET_STR(); R(); return MKT(ID); }
 [{}]    { C(); R(); return *yytext; }
 "["     { C(); R(); return *yytext; }
 "]"     { C(); R(); return *yytext; }
