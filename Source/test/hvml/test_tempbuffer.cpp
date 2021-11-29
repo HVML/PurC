@@ -140,6 +140,7 @@ TEST(temp_buffer, append_temp_buffer)
     ASSERT_STREQ("12345abcde", pchvml_buffer_get_buffer(buf2));
 
     pchvml_buffer_destroy(buffer);
+    pchvml_buffer_destroy(buf2);
 }
 
 TEST(temp_buffer, append_chars)

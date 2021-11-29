@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #if OS(LINUX) || OS(UNIX)
 // get path from env or __FILE__/../<rel> otherwise
 #define test_getpath_from_env_or_rel(_path, _len, _env, _rel)        \
@@ -20,4 +22,31 @@ do {                                                                    \
 #error "Please define test_getpath_from_env_or_rel for this operating system"
 
 #endif // OS(LINUX) || OS(UNIX)
+
+// Workaround: gtest, INSTANTIATE_TEST_SUITE_P, valgrind
+class MemCollector
+{
+public:
+    ~MemCollector(void) {
+        cleanup();
+    }
+public:
+    static char* strdup(const char *s) {
+        char *p = ::strdup(s);
+        get_singleton()->allocates.push_back(p);
+        return p;
+    }
+private:
+    static MemCollector* get_singleton(void) {
+        static MemCollector         single;
+        return &single;
+    }
+    void cleanup() {
+        for (char *v : allocates) {
+            free(v);
+        }
+    }
+private:
+    std::vector<char *>         allocates;
+};
 
