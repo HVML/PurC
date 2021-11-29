@@ -97,7 +97,7 @@ exe_objformula_choose(purc_exec_inst_t inst, const char* rule)
         return vals;
     }
 
-    bool ok = false;
+    bool ok = true;
 
     for (size_t i=0; i<sz; ++i) {
         purc_variant_t k;

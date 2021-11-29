@@ -550,9 +550,13 @@ exe_filter_choose(purc_exec_inst_t inst, const char* rule)
     if (vals == PURC_VARIANT_INVALID)
         return PURC_VARIANT_INVALID;
 
-    bool ok = false;
+    bool ok = true;
 
     purc_exec_iter_t it = it_begin(exe_filter_inst, rule);
+    if (!it && inst->err_msg) {
+        purc_variant_unref(vals);
+        return false;
+    }
 
     for(; it; it = it_next(exe_filter_inst, NULL)) {
         purc_variant_t v = it_value(exe_filter_inst);
@@ -666,6 +670,9 @@ exe_filter_reduce(purc_exec_inst_t inst, const char* rule)
     double min   = NAN;
 
     purc_exec_iter_t it = it_begin(exe_filter_inst, rule);
+    if (!it && inst->err_msg) {
+        return false;
+    }
 
     for(; it; it = it_next(exe_filter_inst, NULL)) {
         purc_variant_t v = it_value(exe_filter_inst);
