@@ -55,6 +55,8 @@ parse(const char *rule, char *err_msg, size_t sz_err_msg)
         free(param.err_msg);
     }
 
+    exe_objformula_param_reset(&param);
+
     return r;
 }
 

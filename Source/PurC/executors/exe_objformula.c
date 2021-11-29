@@ -94,6 +94,30 @@ iterate(struct pcexec_exe_objformula_inst *exe_objformula_inst)
     return true;
 }
 
+static inline purc_variant_t
+duplicate(purc_variant_t curr)
+{
+    purc_variant_t obj;
+    obj = purc_variant_make_object(0, NULL, PURC_VARIANT_INVALID);
+    if (obj == PURC_VARIANT_INVALID)
+        return PURC_VARIANT_INVALID;
+
+    bool ok = true;
+    purc_variant_t k, v;
+    foreach_key_value_in_variant_object(curr, k, v)
+        ok = purc_variant_object_set(obj, k, v);
+        if (!ok)
+            break;
+    end_foreach;
+
+    if (!ok) {
+        purc_variant_unref(obj);
+        obj = PURC_VARIANT_INVALID;
+    }
+
+    return obj;
+}
+
 static inline bool
 check_curr(struct pcexec_exe_objformula_inst *exe_objformula_inst)
 {
@@ -110,7 +134,13 @@ check_curr(struct pcexec_exe_objformula_inst *exe_objformula_inst)
         return false;
 
     exe_objformula_inst->curr = curr;
-    inst->value = curr;
+
+    purc_variant_t obj = duplicate(curr);
+    if (obj == PURC_VARIANT_INVALID)
+        return false;
+
+    PCEXE_CLR_VAR(inst->value);
+    inst->value = obj;
     return true;
 }
 

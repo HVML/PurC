@@ -215,7 +215,7 @@
         string_literal_list_destroy(_literals);          \
         YYABORT;                                         \
     }                                                    \
-    list_add(&smle->node, &_literals->list);             \
+    list_add_tail(&smle->node, &_literals->list);        \
 } while (0)
 
 #define STR_LITERAL_LIST_APPEND(_literals, _l) do {      \
@@ -226,7 +226,7 @@
         string_literal_list_destroy(_literals);          \
         YYABORT;                                         \
     }                                                    \
-    list_add(&smle->node, &_literals->list);             \
+    list_add_tail(&smle->node, &_literals->list);        \
 } while (0)
 
 #define STR_PATTERN_DUP(_dst, _src) do {                                  \
@@ -249,7 +249,7 @@
         string_pattern_list_destroy(_patterns);          \
         YYABORT;                                         \
     }                                                    \
-    list_add(&smle->node, &_patterns->list);             \
+    list_add_tail(&smle->node, &_patterns->list);        \
 } while (0)
 
 #define STR_PATTERN_LIST_APPEND(_patterns, _l) do {      \
@@ -260,7 +260,7 @@
         string_pattern_list_destroy(_patterns);          \
         YYABORT;                                         \
     }                                                    \
-    list_add(&smle->node, &_patterns->list);             \
+    list_add_tail(&smle->node, &_patterns->list);        \
 } while (0)
 
 #define NUMERIC_EXP_INIT_I64(_nexp, _i64) do {               \
@@ -586,11 +586,11 @@
     _ial = ial_create();                         \
     if (!_ial)                                   \
         YYABORT;                                 \
-    list_add(&_l->node, &_ial->list);            \
+    list_add_tail(&_l->node, &_ial->list);       \
 } while (0)
 
 #define IAL_APPEND(_ial, _l, _r) do {          \
-    list_add(&_r->node, &_l->list);            \
+    list_add_tail(&_r->node, &_l->list);       \
     _ial = _l;                                 \
 } while (0)
 

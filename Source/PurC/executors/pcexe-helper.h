@@ -52,6 +52,17 @@
     }                                             \
 } while (0)
 
+#define PRINT_VAR(_v) do {                                                 \
+    char buf[4096];                                                        \
+    buf[sizeof(buf)-1] = '\0';                                             \
+    purc_rwstream_t ows = purc_rwstream_new_from_mem(buf, sizeof(buf)-1);  \
+    size_t len = 0;                                                        \
+    purc_variant_serialize(_v, ows, 0, 0, &len);                           \
+    buf[len] = '\0';                                                       \
+    purc_rwstream_destroy(ows);                                            \
+    fprintf(stderr, "V:[%s]\n", buf);                                      \
+} while (0)
+
 PCA_EXTERN_C_BEGIN
 
 int pcexe_ucs2utf8(char *utf, const char *uni, size_t n);

@@ -249,11 +249,12 @@ FORMULA: (NOT GT 1000) AND LT 500 BY (X * 2 - 50);
 O:
 [ 100, 150, 250, 450 ];
 
-# OBJFORMULA: x LT 500 AND y LT 600 BY x = (x * 2 - 50), y = y + x;
 I:
-{ x: 100, y: 0 };
+{ x: 100, y: 100 };
 R:
-OBJFORMULA: x LT 10 BY x = x + 1;
+OBJFORMULA: x LT 500 AND y LT 600 BY x = (x * 2 - 50), y = y + x;
 O:
-[];
+[{x:100, y:100},
+ {x:150, y:250},
+ {x:250, y:500}];
 
