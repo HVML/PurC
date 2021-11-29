@@ -1765,6 +1765,41 @@ TEST(ejson_token, pcejson_parse)
     purc_cleanup ();
 }
 
+TEST(ejson_token, string_variant)
+{
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "ejson", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    char key[] = "name";
+
+    purc_variant_t key_vt = purc_variant_make_string (key, false);
+    purc_variant_t value_vt = purc_variant_make_string ("tom", false);
+
+    purc_variant_t object = purc_variant_make_object (0,
+                         PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+
+    purc_variant_object_set (object, key_vt, value_vt);
+
+    purc_variant_unref(key_vt);
+    purc_variant_unref(value_vt);
+
+    char buf[1024];
+    purc_rwstream_t my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    ASSERT_NE(my_rws, nullptr);
+
+    size_t len_expected = 0;
+    ssize_t n = purc_variant_serialize(object, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+    ASSERT_GT(n, 0);
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "{\"name\":\"tom\"}");
+
+    purc_variant_unref(object);
+    purc_rwstream_destroy(my_rws);
+
+    purc_cleanup ();
+}
+
 TEST(ejson_token, pcejson_parse_longstring)
 {
     int ret = purc_init ("cn.fmsoft.hybridos.test", "ejson", NULL);
@@ -1799,41 +1834,6 @@ TEST(ejson_token, pcejson_parse_longstring)
     pcvcm_node_destroy (root);
 
     pcejson_destroy(parser);
-    purc_cleanup ();
-}
-
-TEST(ejson_token, string_variang)
-{
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "ejson", NULL);
-    ASSERT_EQ (ret, PURC_ERROR_OK);
-
-    char key[] = "name";
-
-    purc_variant_t key_vt = purc_variant_make_string (key, false);
-    purc_variant_t value_vt = purc_variant_make_string ("tom", false);
-
-    purc_variant_t object = purc_variant_make_object (0,
-                         PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-
-    purc_variant_object_set (object, key_vt, value_vt);
-
-    purc_variant_unref(key_vt);
-    purc_variant_unref(value_vt);
-
-    char buf[1024];
-    purc_rwstream_t my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
-    ASSERT_NE(my_rws, nullptr);
-
-    size_t len_expected = 0;
-    ssize_t n = purc_variant_serialize(object, my_rws,
-            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
-    ASSERT_GT(n, 0);
-    buf[n] = 0;
-    ASSERT_STREQ(buf, "{\"name\":\"tom\"}");
-
-    purc_variant_unref(object);
-    purc_rwstream_destroy(my_rws);
-
     purc_cleanup ();
 }
 
