@@ -28,11 +28,13 @@
 #include "private/vcm.h"
 #include "private/errors.h"
 #include "private/debug.h"
+#include "private/stringbuilder.h"
 #include "private/utils.h"
 #include "variant-internals.h"
 
 #include <stdlib.h>
 #include <string.h>
+#include <inttypes.h>
 #include <math.h>
 #include <float.h>
 
@@ -66,6 +68,8 @@ static pcvariant_release_fn variant_releasers[PURC_VARIANT_TYPE_NR] = {
 static const char* variant_err_msgs[] = {
     /* PCVARIANT_ERROR_INVALID_TYPE */
     "Invalid variant type",
+    /* PCVARIANT_ERROR_OUT_OF_BOUNDS */
+    "Index out of bounds",
     /* PCVARIANT_ERROR_NOT_FOUND */
     "Element not found",
 };
@@ -203,6 +207,48 @@ enum purc_variant_type purc_variant_get_type(purc_variant_t value)
     return value->type;
 }
 
+static inline void
+referenced(purc_variant_t value)
+{
+    if (!list_empty(&value->listeners))
+        return;
+    purc_atom_t msg_type = purc_atom_from_string("referenced");
+    PC_ASSERT(msg_type);
+
+    struct list_head *p;
+    list_for_each(p, &value->listeners) {
+        struct pcvar_listener *l;
+        l = container_of(p, struct pcvar_listener, list_node);
+        PC_ASSERT(l->handler);
+        if (l->name != msg_type)
+            continue;
+
+        bool ok = l->handler(value, msg_type, l->ctxt, 0, NULL);
+        PC_ASSERT(ok);
+    }
+}
+
+static inline void
+unreferenced(purc_variant_t value)
+{
+    if (!list_empty(&value->listeners))
+        return;
+    purc_atom_t msg_type = purc_atom_from_string("unreferenced");
+    PC_ASSERT(msg_type);
+
+    struct list_head *p;
+    list_for_each(p, &value->listeners) {
+        struct pcvar_listener *l;
+        l = container_of(p, struct pcvar_listener, list_node);
+        PC_ASSERT(l->handler);
+        if (l->name != msg_type)
+            continue;
+
+        bool ok = l->handler(value, msg_type, l->ctxt, 0, NULL);
+        PC_ASSERT(ok);
+    }
+}
+
 unsigned int purc_variant_ref (purc_variant_t value)
 {
     PC_ASSERT(value);
@@ -215,7 +261,31 @@ unsigned int purc_variant_ref (purc_variant_t value)
 
     value->refc++;
 
+    referenced(value);
+
     return value->refc;
+}
+
+static inline void
+destroyed(purc_variant_t value)
+{
+    if (!list_empty(&value->listeners))
+        return;
+    purc_atom_t msg_type = purc_atom_from_string("destroyed");
+    PC_ASSERT(msg_type);
+
+    struct list_head *p, *n;
+    list_for_each_safe(p, n, &value->listeners) {
+        struct pcvar_listener *l;
+        l = container_of(p, struct pcvar_listener, list_node);
+        PC_ASSERT(l->handler);
+        if (l->name == msg_type) {
+            bool ok = l->handler(value, msg_type, l->ctxt, 0, NULL);
+            PC_ASSERT(ok);
+        }
+        list_del(p);
+        free(p);
+    }
 }
 
 unsigned int purc_variant_unref(purc_variant_t value)
@@ -229,6 +299,9 @@ unsigned int purc_variant_unref(purc_variant_t value)
     }
 
     value->refc--;
+    if (value->refc == 0)
+        destroyed(value);
+
     // VWNOTE: only non-constant values has a releaser
     if (value->refc == 0 && !(value->flags & PCVARIANT_FLAG_NOFREE)) {
         // release the extra memory used by the variant
@@ -241,6 +314,7 @@ unsigned int purc_variant_unref(purc_variant_t value)
         return 0;
     }
 
+    unreferenced(value);
     return value->refc;
 }
 
@@ -323,6 +397,9 @@ purc_variant_t pcvariant_get(enum purc_variant_type type)
     stat->nr_values[type]++;
     stat->nr_total_values++;
 
+    // init listeners
+    INIT_LIST_HEAD(&value->listeners);
+
     return value;
 }
 
@@ -333,6 +410,7 @@ void pcvariant_put(purc_variant_t value)
     struct purc_variant_stat *stat = &(heap->stat);
 
     PC_ASSERT(value);
+    PC_ASSERT(list_empty(&value->listeners));
 
     // set stat information
     stat->nr_values[value->type]--;
@@ -781,7 +859,8 @@ bool purc_variant_cast_to_byte_sequence(purc_variant_t v,
     switch (v->type) {
         case PURC_VARIANT_TYPE_ATOMSTRING:
             *bytes = purc_atom_to_string(v->sz_ptr[1]);
-            *sz = strlen(*bytes);
+            // NOTE: strlen()+1, in case when purc_variant_compare with string
+            *sz = strlen(*bytes) + 1;
             return true;
 
         case PURC_VARIANT_TYPE_STRING:
@@ -1157,3 +1236,487 @@ bool purc_variant_unload_dvobj (purc_variant_t dvobj)
 
     return ret;
 }
+
+static inline double
+numberify_str(const char *s)
+{
+    if (!s || !*s)
+        return 0.0;
+
+    return strtod(s, NULL);
+}
+
+static inline double
+numberify_bs(const unsigned char *s, size_t nr)
+{
+    if (!s || nr == 0)
+        return 0.0;
+
+    double d = 0.0;
+    if (nr > sizeof(d))
+        nr = sizeof(d);
+
+    memcpy(&d, s, nr);
+
+    return d;
+}
+
+static inline double
+numberify_dynamic(purc_variant_t value)
+{
+    purc_dvariant_method getter;
+    getter = purc_variant_dynamic_get_getter(value);
+
+    if (!getter)
+        return 0.0;
+
+    purc_variant_t v = getter(value, 0, NULL);
+    if (v == PURC_VARIANT_INVALID)
+        return 0.0;
+
+    double d = purc_variant_numberify(v);
+    purc_variant_unref(v);
+
+    return d;
+}
+
+static inline double
+numberify_native(purc_variant_t value)
+{
+    void *native = value->ptr_ptr[0];
+
+    struct purc_native_ops *ops;
+    ops = (struct purc_native_ops*)value->ptr_ptr[1];
+
+    if (!ops || !ops->property_getter)
+        return 0.0;
+
+    purc_nvariant_method getter = (ops->property_getter)("__number");
+    if (!getter)
+        return 0.0;
+
+    purc_variant_t v = getter(native, 0, NULL);
+    if (v == PURC_VARIANT_INVALID)
+        return 0.0;
+
+    double d = purc_variant_numberify(v);
+    purc_variant_unref(v);
+
+    return d;
+}
+
+static inline double
+numberify_array(purc_variant_t value)
+{
+    size_t sz;
+    if (!purc_variant_array_size(value, &sz))
+        return 0.0;
+
+    double d = 0.0;
+
+    for (size_t i=0; i<sz; ++i) {
+        purc_variant_t v = purc_variant_array_get(value, i);
+        d += purc_variant_numberify(v);
+    }
+
+    return d;
+}
+
+static inline double
+numberify_object(purc_variant_t value)
+{
+    double d = 0.0;
+
+    purc_variant_t v;
+    foreach_value_in_variant_object(value, v)
+        d += purc_variant_numberify(v);
+    end_foreach;
+
+    return d;
+}
+
+static inline double
+numberify_set(purc_variant_t value)
+{
+    double d = 0.0;
+
+    purc_variant_t v;
+    foreach_value_in_variant_array(value, v)
+        d += purc_variant_numberify(v);
+    end_foreach;
+
+    return d;
+}
+
+double
+purc_variant_numberify(purc_variant_t value)
+{
+    PC_ASSERT(value != PURC_VARIANT_INVALID);
+
+    const char *s;
+    const unsigned char *bs;
+    size_t nr;
+    enum purc_variant_type type = purc_variant_get_type(value);
+
+    switch (type)
+    {
+        case PURC_VARIANT_TYPE_UNDEFINED:
+            return 0.0;
+        case PURC_VARIANT_TYPE_NULL:
+            return 0.0;
+        case PURC_VARIANT_TYPE_BOOLEAN:
+            return value->b ? 1.0 : 0.0;
+        case PURC_VARIANT_TYPE_NUMBER:
+            return value->d;
+        case PURC_VARIANT_TYPE_LONGINT:
+            return value->i64;
+        case PURC_VARIANT_TYPE_ULONGINT:
+            return value->u64;
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+            return value->ld;
+        case PURC_VARIANT_TYPE_ATOMSTRING:
+            s = purc_variant_get_atom_string_const(value);
+            return numberify_str(s);
+        case PURC_VARIANT_TYPE_STRING:
+            s = purc_variant_get_string_const(value);
+            return numberify_str(s);
+        case PURC_VARIANT_TYPE_BSEQUENCE:
+            bs = purc_variant_get_bytes_const(value, &nr);
+            return numberify_bs(bs, nr);
+        case PURC_VARIANT_TYPE_DYNAMIC:
+            return numberify_dynamic(value);
+        case PURC_VARIANT_TYPE_NATIVE:
+            return numberify_native(value);
+        case PURC_VARIANT_TYPE_OBJECT:
+            return numberify_object(value);
+        case PURC_VARIANT_TYPE_ARRAY:
+            return numberify_array(value);
+        case PURC_VARIANT_TYPE_SET:
+            return numberify_set(value);
+        default:
+            PC_ASSERT(0);
+            break;
+    }
+}
+
+static inline bool
+booleanize_str(const char *s)
+{
+    if (!s || !*s)
+        return false;
+
+    return numberify_str(s) != 0.0 ? true : false;
+}
+
+static inline bool
+booleanize_bs(const unsigned char *s, size_t nr)
+{
+    if (!s || nr == 0)
+        return false;
+
+    return numberify_bs(s, nr) != 0.0 ? true : false;
+}
+
+bool
+purc_variant_booleanize(purc_variant_t value)
+{
+    PC_ASSERT(value != PURC_VARIANT_INVALID);
+
+    const char *s;
+    const unsigned char *bs;
+    size_t nr;
+    enum purc_variant_type type = purc_variant_get_type(value);
+
+    switch (type)
+    {
+        case PURC_VARIANT_TYPE_UNDEFINED:
+            return false;
+        case PURC_VARIANT_TYPE_NULL:
+            return false;
+        case PURC_VARIANT_TYPE_BOOLEAN:
+            return value->b;
+        case PURC_VARIANT_TYPE_NUMBER:
+            return value->d != 0.0 ? true : false;
+        case PURC_VARIANT_TYPE_LONGINT:
+            return value->i64 ? true : false;
+        case PURC_VARIANT_TYPE_ULONGINT:
+            return value->u64 ? true : false;
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+            return value->ld != 0.0 ? true : false;
+        case PURC_VARIANT_TYPE_ATOMSTRING:
+            s = purc_variant_get_atom_string_const(value);
+            return booleanize_str(s);
+        case PURC_VARIANT_TYPE_STRING:
+            s = purc_variant_get_string_const(value);
+            return booleanize_str(s);
+        case PURC_VARIANT_TYPE_BSEQUENCE:
+            bs = purc_variant_get_bytes_const(value, &nr);
+            return booleanize_bs(bs, nr);
+        case PURC_VARIANT_TYPE_DYNAMIC:
+            return numberify_dynamic(value) != 0.0 ? true : false;
+        case PURC_VARIANT_TYPE_NATIVE:
+            return numberify_native(value) != 0.0 ? true : false;
+        case PURC_VARIANT_TYPE_OBJECT:
+            return numberify_object(value) != 0.0 ? true : false;
+        case PURC_VARIANT_TYPE_ARRAY:
+            return numberify_array(value) != 0.0 ? true : false;
+        case PURC_VARIANT_TYPE_SET:
+            return numberify_set(value) != 0.0 ? true : false;
+        default:
+            PC_ASSERT(0);
+            break;
+    }
+}
+
+struct stringify_arg
+{
+    void (*cb)(void *arg, const char *src);
+    void *arg;
+};
+
+static inline void
+stringify_bs(struct stringify_arg *arg, const unsigned char *bs, size_t nr)
+{
+    static const char chars[] = "0123456789ABCDEF";
+
+    char buffer[512+1]; // must be an odd number!!!
+
+    char *p = buffer;
+    char *end = p + sizeof(buffer) - 1;
+
+    for (size_t i=0; i<nr; ++i) {
+        int h = bs[i] >> 4;
+        int l = bs[i] & 0x0F;
+
+        *p++ = chars[h];
+        *p++ = chars[l];
+        if (p == end) {
+            *p = '\0';
+            arg->cb(arg->arg, buffer);
+            p = buffer;
+        }
+    }
+
+    if (p>buffer) {
+        *p = '\0';
+        arg->cb(arg->arg, buffer);
+    }
+}
+
+static inline void
+variant_stringify(struct stringify_arg *arg, purc_variant_t value);
+
+static inline void
+stringify_array(struct stringify_arg *arg, purc_variant_t value)
+{
+    size_t sz = 0;
+    purc_variant_array_size(value, &sz);
+
+    for (size_t i=0; i<sz; ++i) {
+        purc_variant_t v = purc_variant_array_get(value, i);
+        variant_stringify(arg, v);
+        arg->cb(arg->arg, "\n");
+    }
+}
+
+static inline void
+stringify_object(struct stringify_arg *arg, purc_variant_t value)
+{
+    purc_variant_t k, v;
+    foreach_key_value_in_variant_object(value, k, v)
+        variant_stringify(arg, k);
+        arg->cb(arg->arg, ":");
+        variant_stringify(arg, v);
+        arg->cb(arg->arg, "\n");
+    end_foreach;
+}
+
+static inline void
+stringify_set(struct stringify_arg *arg, purc_variant_t value)
+{
+    purc_variant_t v;
+    foreach_value_in_variant_set(value, v)
+        variant_stringify(arg, v);
+        arg->cb(arg->arg, "\n");
+    end_foreach;
+}
+
+static inline void
+stringify_dynamic(struct stringify_arg *arg, purc_variant_t value)
+{
+    purc_dvariant_method getter = purc_variant_dynamic_get_getter(value);
+    purc_dvariant_method setter = purc_variant_dynamic_get_setter(value);
+
+    char buf[128];
+    snprintf(buf, sizeof(buf), "<dynamic: %p, %p>", getter, setter);
+    arg->cb(arg->arg, buf);
+}
+
+static inline void
+stringify_native(struct stringify_arg *arg, purc_variant_t value)
+{
+    void *native = purc_variant_native_get_entity(value);
+
+    char buf[128];
+    snprintf(buf, sizeof(buf), "<native: %p>", native);
+    arg->cb(arg->arg, buf);
+}
+
+static inline void
+variant_stringify(struct stringify_arg *arg, purc_variant_t value)
+{
+    const unsigned char *bs;
+    size_t nr;
+    enum purc_variant_type type = purc_variant_get_type(value);
+    char buf[128];
+
+    switch (type)
+    {
+        case PURC_VARIANT_TYPE_UNDEFINED:
+            arg->cb(arg->arg, "undefined");
+            break;
+        case PURC_VARIANT_TYPE_NULL:
+            arg->cb(arg->arg, "null");
+            break;
+        case PURC_VARIANT_TYPE_BOOLEAN:
+            if (value->b) {
+                arg->cb(arg->arg, "true");
+            } else {
+                arg->cb(arg->arg, "false");
+            }
+            break;
+        case PURC_VARIANT_TYPE_NUMBER:
+            snprintf(buf, sizeof(buf), "%g", value->d);
+            arg->cb(arg->arg, buf);
+            break;
+        case PURC_VARIANT_TYPE_LONGINT:
+            snprintf(buf, sizeof(buf), "%" PRId64 "", value->i64);
+            arg->cb(arg->arg, buf);
+            break;
+        case PURC_VARIANT_TYPE_ULONGINT:
+            snprintf(buf, sizeof(buf), "%" PRIu64 "", value->u64);
+            arg->cb(arg->arg, buf);
+            break;
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+            snprintf(buf, sizeof(buf), "%Lg", value->ld);
+            arg->cb(arg->arg, buf);
+            break;
+        case PURC_VARIANT_TYPE_ATOMSTRING:
+            arg->cb(arg->arg,
+                    purc_variant_get_atom_string_const(value));
+            break;
+        case PURC_VARIANT_TYPE_STRING:
+            arg->cb(arg->arg,
+                    purc_variant_get_string_const(value));
+            break;
+        case PURC_VARIANT_TYPE_BSEQUENCE:
+            bs = purc_variant_get_bytes_const(value, &nr);
+            stringify_bs(arg, bs, nr);
+            break;
+        case PURC_VARIANT_TYPE_DYNAMIC:
+            stringify_dynamic(arg, value);
+            break;
+        case PURC_VARIANT_TYPE_NATIVE:
+            stringify_native(arg, value);
+            break;
+        case PURC_VARIANT_TYPE_OBJECT:
+            stringify_object(arg, value);
+            break;
+        case PURC_VARIANT_TYPE_ARRAY:
+            stringify_array(arg, value);
+            break;
+        case PURC_VARIANT_TYPE_SET:
+            stringify_set(arg, value);
+            break;
+        default:
+            PC_ASSERT(0);
+            break;
+    }
+}
+
+struct stringify_buffer
+{
+    char                 *buf;
+    size_t                len;
+
+    size_t                curr;
+};
+
+static inline void
+do_stringify_buffer(void *arg, const char *src)
+{
+    struct stringify_buffer *buffer;
+    buffer = (struct stringify_buffer *)arg;
+
+    char *p;
+    size_t len;
+    int n;
+
+    if (buffer->curr < buffer->len) {
+        p = buffer->buf + buffer->curr;
+        len = buffer->len - buffer->curr;
+        n = snprintf(p, len, "%s", src);
+        PC_ASSERT(n >= 0);
+    }
+    else {
+        n = snprintf(NULL, 0, "%s", src);
+    }
+    buffer->curr += n;
+}
+
+int
+purc_variant_stringify(char *buf, size_t len, purc_variant_t value)
+{
+    struct stringify_buffer buffer;
+    buffer.buf           = buf;
+    buffer.len           = len;
+
+    buffer.curr          = 0;
+
+    struct stringify_arg arg;
+    arg.cb    = do_stringify_buffer;
+    arg.arg   = &buffer;
+
+    variant_stringify(&arg, value);
+
+    return buffer.curr;
+}
+
+static inline void
+do_stringify_stringbuilder(void *arg, const char *src)
+{
+    struct pcutils_stringbuilder *sb;
+    sb = (struct pcutils_stringbuilder*)arg;
+
+    pcutils_stringbuilder_snprintf(sb, "%s", src);
+}
+
+int
+purc_variant_stringify_alloc(char **strp, purc_variant_t value)
+{
+    struct pcutils_stringbuilder sb;
+    pcutils_stringbuilder_init(&sb, 1024);
+
+    struct stringify_arg arg;
+    arg.cb    = do_stringify_stringbuilder;
+    arg.arg   = &sb;
+
+    variant_stringify(&arg, value);
+
+    size_t total = sb.total;
+
+    if (sb.oom) {
+        total = (size_t)-1;
+    } else {
+        if (strp) {
+            *strp = pcutils_stringbuilder_build(&sb);
+            if (!*strp)
+                total = (size_t)-1;
+        }
+    }
+
+    pcutils_stringbuilder_reset(&sb);
+
+    return total;
+}
+

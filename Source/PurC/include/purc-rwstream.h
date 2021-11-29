@@ -29,6 +29,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 #include <wchar.h>
 
 #include "purc-macros.h"
@@ -355,6 +356,12 @@ static inline void* purc_rwstream_get_mem_buffer (purc_rwstream_t rw_mem,
 {
     return purc_rwstream_get_mem_buffer_ex (rw_mem, sz_content,
             NULL, false);
+}
+
+static inline ssize_t purc_rwstream_write_str (purc_rwstream_t rws,
+        const char *str)
+{
+    return purc_rwstream_write(rws, str, strlen(str));
 }
 
 

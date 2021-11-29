@@ -48,7 +48,7 @@ TEST(dvobjs, dvobjs_ejson_type)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t ejson = pcdvojbs_get_ejson();
+    purc_variant_t ejson = pcdvobjs_get_ejson();
     ASSERT_NE(ejson, nullptr);
     ASSERT_EQ(purc_variant_is_object (ejson), true);
 
@@ -212,7 +212,7 @@ TEST(dvobjs, dvobjs_ejson_number)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t ejson = pcdvojbs_get_ejson();
+    purc_variant_t ejson = pcdvobjs_get_ejson();
     ASSERT_NE(ejson, nullptr);
     ASSERT_EQ(purc_variant_is_object (ejson), true);
 

@@ -183,13 +183,22 @@ static bool purc_variant_string_check_utf8 (const char* str_utf8)
     return (nBytes == 0);
 }
 
-purc_variant_t purc_variant_make_string(const char* str_utf8,
+purc_variant_t
+purc_variant_make_string(const char* str_utf8, bool check_encoding)
+{
+    PCVARIANT_CHECK_FAIL_RET(str_utf8, PURC_VARIANT_INVALID);
+    return purc_variant_make_string_ex(str_utf8, strlen(str_utf8),
+            check_encoding);
+}
+
+purc_variant_t
+purc_variant_make_string_ex(const char* str_utf8, size_t len,
         bool check_encoding)
 {
     PCVARIANT_CHECK_FAIL_RET(str_utf8, PURC_VARIANT_INVALID);
 
-    size_t str_size = strlen (str_utf8);
-    size_t real_size = MAX (sizeof(long double), sizeof(void*) * 2);
+    const size_t str_size = strnlen (str_utf8, len);
+    const size_t real_size = MAX (sizeof(long double), sizeof(void*) * 2);
     purc_variant_t value = NULL;
 
     if (check_encoding) {
@@ -212,7 +221,9 @@ purc_variant_t purc_variant_make_string(const char* str_utf8,
 
     if (str_size < (real_size - 1)) {
         // VWNOTE: use strcpy instead of memcpy
-        strcpy ((char *)value->bytes, str_utf8);
+        // strcpy ((char *)value->bytes, str_utf8);
+        strncpy((char *)value->bytes, str_utf8, str_size);
+        value->bytes[str_size] = '\0';
         // VWNOTE: always store the size including the terminating null byte.
         value->size = str_size + 1;
     }
@@ -230,7 +241,9 @@ purc_variant_t purc_variant_make_string(const char* str_utf8,
         // VWNOTE: sz_ptr[0] will be set in pcvariant_stat_set_extra_size
         // VWNOTE: use strcpy instead of memcpy
         //value->sz_ptr[0] = (uintptr_t)str_size;
-        strcpy (new_buf, str_utf8);
+        // strcpy (new_buf, str_utf8);
+        strncpy(new_buf, str_utf8, str_size);
+        new_buf[str_size] = '\0';
         // VWNOTE: always store the size including the terminating null byte.
         pcvariant_stat_set_extra_size (value, str_size + 1);
     }
@@ -264,7 +277,11 @@ purc_variant_t purc_variant_make_string_reuse_buff(char* str_utf8,
     value->refc = 1;
 
     value->sz_ptr[1] = (uintptr_t)(str_utf8);
-    pcvariant_stat_set_extra_size (value, sz_buff);
+    // FIXME: shall we +1 here?
+    //        what if str_utf8[sz_buff] is uninitialized or non-null?
+    pcvariant_stat_set_extra_size (value, sz_buff + 1);
+
+    str_utf8[sz_buff] = '\0'; // FIXME: if str_utf8 is comming from rwstream!!!
 
     return value;
 }
@@ -295,7 +312,7 @@ purc_variant_t purc_variant_make_string_static(const char* str_utf8,
     value->type = PURC_VARIANT_TYPE_STRING;
     value->flags = PCVARIANT_FLAG_STRING_STATIC;
     value->refc = 1;
-    value->sz_ptr[0] = str_size;
+    value->sz_ptr[0] = str_size + 1;
     value->sz_ptr[1] = (uintptr_t)str_utf8;
 
     return value;

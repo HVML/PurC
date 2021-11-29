@@ -24,6 +24,24 @@ static int _get_random(int max)
     return (max<0) ? rand() : rand() % max;
 }
 
+static inline bool
+sanity_check(purc_variant_t set)
+{
+    size_t sz;
+    bool ok;
+    ok = purc_variant_set_size(set, &sz);
+    if (!ok)
+        return false;
+
+    for (size_t i=0; i<sz; ++i) {
+        purc_variant_t v = purc_variant_set_get_by_index(set, i);
+        if (v == PURC_VARIANT_INVALID)
+            return false;
+    }
+
+    return true;
+}
+
 TEST(variant_set, init_with_1_str)
 {
     purc_instance_extra_info info = {0, 0};
@@ -55,6 +73,7 @@ TEST(variant_set, init_with_1_str)
     purc_variant_t var = purc_variant_make_set_by_ckey(0, "hello", NULL);
     ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
     ASSERT_EQ(stat->nr_values[PVT(_STRING)], 1);
+    ASSERT_TRUE(sanity_check(var));
 
     purc_variant_ref(var);
     ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
@@ -78,6 +97,157 @@ TEST(variant_set, init_with_1_str)
     ASSERT_EQ (cleanup, true);
 }
 
+TEST(variant_set, non_object)
+{
+    purc_instance_extra_info info = {0, 0};
+    int ret = 0;
+    bool cleanup = false;
+
+    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ(ret, PURC_ERROR_OK);
+
+    const char *elems[] = {
+        "hello",
+        "world",
+        "foo",
+        "bar",
+        "great",
+        "wall",
+    };
+    const char *expects[] = {
+        "hello",
+        "world",
+        "foo",
+        "bar",
+        "great",
+        "wall",
+    };
+
+    const size_t ids[] = {
+        3,
+        3,
+        3,
+        2,
+        1,
+        0,
+    };
+
+    const size_t idx_to_set = 3;
+    const char *s_to_set = "foobar";
+    const char *expects2[] = {
+        "hello",
+        "world",
+        "foo",
+        "great",
+        "wall",
+        "foobar",
+    };
+
+    purc_variant_t set;
+    set = purc_variant_make_set_by_ckey(0, NULL, PURC_VARIANT_INVALID);
+    ASSERT_NE(set, PURC_VARIANT_INVALID);
+
+    if (1) {
+        for (size_t i=0; i<PCA_TABLESIZE(elems); ++i) {
+            const char *elem = elems[i];
+            purc_variant_t s;
+            s = purc_variant_make_string_static(elem, false);
+            ASSERT_NE(s, PURC_VARIANT_INVALID);
+            bool ok = purc_variant_set_add(set, s, false);
+            ASSERT_TRUE(ok);
+            purc_variant_unref(s);
+        }
+
+        // test override
+        for (size_t i=0; i<PCA_TABLESIZE(elems); ++i) {
+            const char *elem = elems[i];
+            purc_variant_t s;
+            s = purc_variant_make_string_static(elem, false);
+            ASSERT_NE(s, PURC_VARIANT_INVALID);
+            bool ok = purc_variant_set_add(set, s, false);
+            ASSERT_FALSE(ok);
+            purc_variant_unref(s);
+        }
+
+        purc_variant_t v;
+        size_t i = 0;
+        foreach_value_in_variant_set(set, v)
+            const char *s = purc_variant_get_string_const(v);
+            const char *expect = expects[i++];
+            ASSERT_STREQ(s, expect);
+        end_foreach;
+
+        v = purc_variant_set_remove_by_index(set, -1);
+        ASSERT_EQ(v, PURC_VARIANT_INVALID);
+
+        size_t sz;
+        bool ok = purc_variant_set_size(set, &sz);
+        ASSERT_TRUE(ok);
+        ASSERT_EQ(sz, PCA_TABLESIZE(elems));
+        v = purc_variant_set_remove_by_index(set, sz);
+        ASSERT_EQ(v, PURC_VARIANT_INVALID);
+
+        for (size_t i=0; i<PCA_TABLESIZE(ids); ++i) {
+            size_t id = ids[i];
+            purc_variant_t v = purc_variant_set_remove_by_index(set, id);
+            ASSERT_NE(v, PURC_VARIANT_INVALID);
+            purc_variant_unref(v);
+        }
+
+        ok = purc_variant_set_size(set, &sz);
+        ASSERT_TRUE(ok);
+        ASSERT_EQ(sz, 0);
+    }
+
+    if (1) {
+        for (size_t i=0; i<PCA_TABLESIZE(elems); ++i) {
+            const char *elem = elems[i];
+            purc_variant_t s;
+            s = purc_variant_make_string_static(elem, false);
+            ASSERT_NE(s, PURC_VARIANT_INVALID);
+            bool ok = purc_variant_set_add(set, s, false);
+            ASSERT_TRUE(ok);
+            purc_variant_unref(s);
+        }
+
+        // test override
+        for (size_t i=0; i<PCA_TABLESIZE(elems); ++i) {
+            const char *elem = elems[i];
+            purc_variant_t s;
+            s = purc_variant_make_string_static(elem, false);
+            ASSERT_NE(s, PURC_VARIANT_INVALID);
+            bool ok = purc_variant_set_add(set, s, false);
+            ASSERT_FALSE(ok);
+            purc_variant_unref(s);
+        }
+
+        purc_variant_t v;
+        size_t i = 0;
+        foreach_value_in_variant_set(set, v)
+            const char *s = purc_variant_get_string_const(v);
+            const char *expect = expects[i++];
+            ASSERT_STREQ(s, expect);
+        end_foreach;
+
+        v = purc_variant_make_string_static(s_to_set, false);
+        ASSERT_NE(v, PURC_VARIANT_INVALID);
+        bool ok = purc_variant_set_set_by_index(set, idx_to_set, v);
+        ASSERT_TRUE(ok);
+        purc_variant_unref(v);
+        i = 0;
+        foreach_value_in_variant_set(set, v)
+            const char *s = purc_variant_get_string_const(v);
+            const char *expect = expects2[i++];
+            ASSERT_STREQ(s, expect);
+        end_foreach;
+    }
+
+
+    purc_variant_unref(set);
+    cleanup = purc_cleanup ();
+    ASSERT_EQ (cleanup, true);
+}
+
 TEST(variant_set, init_0_elem)
 {
     purc_instance_extra_info info = {0, 0};
@@ -96,6 +266,8 @@ TEST(variant_set, init_0_elem)
     ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
     ASSERT_EQ(var->refc, 1);
 
+    ASSERT_TRUE(sanity_check(var));
+
     purc_variant_ref(var);
     ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
     purc_variant_unref(var);
@@ -111,6 +283,55 @@ TEST(variant_set, init_0_elem)
     ASSERT_NE(var, nullptr);
     purc_variant_unref(var);
 #endif // 0
+    cleanup = purc_cleanup ();
+    ASSERT_EQ (cleanup, true);
+}
+
+TEST(variant_set, add_1_str)
+{
+    purc_instance_extra_info info = {0, 0};
+    int ret = 0;
+    bool cleanup = false;
+    struct purc_variant_stat *stat;
+
+    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ(ret, PURC_ERROR_OK);
+
+    stat = purc_variant_usage_stat();
+    ASSERT_NE(stat, nullptr);
+
+    purc_variant_t var = purc_variant_make_set_by_ckey(0, "hello", NULL);
+    ASSERT_NE(var, nullptr);
+    ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
+    ASSERT_EQ(var->refc, 1);
+
+    ASSERT_TRUE(sanity_check(var));
+
+    purc_variant_t s = purc_variant_make_string("world", false);
+    ASSERT_NE(s, nullptr);
+    purc_variant_t obj;
+    obj = purc_variant_make_object_by_static_ckey(1, "hello", s);
+    ASSERT_NE(obj, nullptr);
+    ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], 1);
+    bool t = purc_variant_set_add(var, obj, false);
+    ASSERT_EQ(t, true);
+
+    ASSERT_TRUE(sanity_check(var));
+
+    purc_variant_unref(obj);
+    purc_variant_unref(s);
+    ASSERT_EQ(obj->refc, 1);
+
+    ASSERT_EQ(stat->nr_values[PVT(_STRING)], 2);
+    ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], 1);
+    ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
+
+    ASSERT_EQ(var->refc, 1);
+    purc_variant_unref(var);
+    ASSERT_EQ(stat->nr_values[PVT(_SET)], 0);
+    ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], 0);
+    ASSERT_EQ(stat->nr_values[PVT(_STRING)], 0);
+
     cleanup = purc_cleanup ();
     ASSERT_EQ (cleanup, true);
 }
@@ -133,6 +354,8 @@ TEST(variant_set, add_n_str)
     ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
     ASSERT_EQ(var->refc, 1);
 
+    ASSERT_TRUE(sanity_check(var));
+
     int count = 1024;
     char buf[64];
     for (int j=0; j<count; ++j) {
@@ -145,6 +368,9 @@ TEST(variant_set, add_n_str)
         ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], j+1);
         bool t = purc_variant_set_add(var, obj, false);
         ASSERT_EQ(t, true);
+
+        ASSERT_TRUE(sanity_check(var));
+
         purc_variant_unref(obj);
         purc_variant_unref(s);
         ASSERT_EQ(obj->refc, 1);
@@ -178,6 +404,8 @@ TEST(variant_set, add_n_str)
         if (1) {
             bool ok = purc_variant_set_remove(var, v);
             ASSERT_EQ(ok, true);
+
+            ASSERT_TRUE(sanity_check(var));
         }
         break;
     }
@@ -194,6 +422,8 @@ TEST(variant_set, add_n_str)
         v = purc_variant_set_get_member_by_key_values(var, q);
         ASSERT_EQ(v, nullptr);
         purc_variant_unref(q);
+
+        ASSERT_TRUE(sanity_check(var));
     }
 
     if (1) {
@@ -207,6 +437,8 @@ TEST(variant_set, add_n_str)
         v = purc_variant_set_get_member_by_key_values(var, q);
         ASSERT_EQ(v, nullptr);
         purc_variant_unref(q);
+
+        ASSERT_TRUE(sanity_check(var));
     }
 
     // int idx = _get_random(count);

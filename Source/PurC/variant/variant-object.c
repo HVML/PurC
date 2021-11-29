@@ -39,6 +39,88 @@
 #define HT_EXTRA_SIZE(ht) sizeof(*ht) + \
     (ht->size) * sizeof(*ht->table)
 
+static inline void
+grown(purc_variant_t obj, purc_variant_t key, purc_variant_t val)
+{
+    if (!list_empty(&obj->listeners))
+        return;
+    purc_atom_t msg_type = purc_atom_from_string("grown");
+    PC_ASSERT(msg_type);
+
+    struct list_head *p;
+    list_for_each(p, &obj->listeners) {
+        struct pcvar_listener *l;
+        l = container_of(p, struct pcvar_listener, list_node);
+        PC_ASSERT(l->handler);
+        if (l->name != msg_type)
+            continue;
+
+        purc_variant_t args[] = {
+            key,
+            val,
+        };
+        bool ok = l->handler(obj, msg_type, l->ctxt,
+            PCA_TABLESIZE(args), args);
+        PC_ASSERT(ok);
+    }
+}
+
+static inline void
+shrunk(purc_variant_t obj, purc_variant_t key, purc_variant_t val)
+{
+    if (!list_empty(&obj->listeners))
+        return;
+    purc_atom_t msg_type = purc_atom_from_string("shrunk");
+    PC_ASSERT(msg_type);
+
+    struct list_head *p;
+    list_for_each(p, &obj->listeners) {
+        struct pcvar_listener *l;
+        l = container_of(p, struct pcvar_listener, list_node);
+        PC_ASSERT(l->handler);
+        if (l->name != msg_type)
+            continue;
+
+        purc_variant_t args[] = {
+            key,
+            val,
+        };
+        bool ok = l->handler(obj, msg_type, l->ctxt,
+            PCA_TABLESIZE(args), args);
+        PC_ASSERT(ok);
+    }
+}
+
+static inline void
+change(purc_variant_t obj,
+        purc_variant_t ko, purc_variant_t vo,
+        purc_variant_t kn, purc_variant_t vn)
+{
+    if (!list_empty(&obj->listeners))
+        return;
+    purc_atom_t msg_type = purc_atom_from_string("change");
+    PC_ASSERT(msg_type);
+
+    struct list_head *p;
+    list_for_each(p, &obj->listeners) {
+        struct pcvar_listener *l;
+        l = container_of(p, struct pcvar_listener, list_node);
+        PC_ASSERT(l->handler);
+        if (l->name != msg_type)
+            continue;
+
+        purc_variant_t args[] = {
+            kn,
+            vn,
+            ko,
+            vo,
+        };
+        bool ok = l->handler(obj, msg_type, l->ctxt,
+            PCA_TABLESIZE(args), args);
+        PC_ASSERT(ok);
+    }
+}
+
 static inline struct pchash_table*
 v_object_get_ht(purc_variant_t obj)
 {
@@ -109,6 +191,7 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val)
         if (old==val) {
             return 0;
         }
+        change(obj, ko, old, k, val);
         if (ko!=k) {
             purc_variant_ref(k);
             purc_variant_unref(ko);
@@ -125,6 +208,7 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val)
             pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
             return -1;
         }
+        grown(obj, k, val);
         purc_variant_ref(k);
         purc_variant_ref(val);
 
@@ -184,6 +268,7 @@ static int v_object_remove(purc_variant_t obj, purc_variant_t key)
         return false;
     }
 
+    shrunk(obj, k, v);
     purc_variant_unref(k);
     purc_variant_unref(v);
 
@@ -517,7 +602,7 @@ purc_variant_object_iterator_prev (struct purc_variant_object_iterator* it)
     return false;
 }
 
-const char*
+purc_variant_t
 purc_variant_object_iterator_get_key (struct purc_variant_object_iterator* it)
 {
     PCVARIANT_CHECK_FAIL_RET(it, NULL);
@@ -526,7 +611,8 @@ purc_variant_object_iterator_get_key (struct purc_variant_object_iterator* it)
     PC_ASSERT(it->curr);
 
     purc_variant_t k = (purc_variant_t)pchash_entry_k(it->curr);
-    return purc_variant_get_string_const(k);
+    PC_ASSERT(purc_variant_is_string(k));
+    return k;
 }
 
 purc_variant_t

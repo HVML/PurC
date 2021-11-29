@@ -1,5 +1,5 @@
 /**
- * @file dvojbs.h
+ * @file dvobjs.h
  * @author 
  * @date 2021/07/02
  * @brief The interface for dynamic variant objects.
@@ -92,10 +92,10 @@ void pcdvobjs_init_instance(struct pcinst* inst) WTF_INTERNAL;
 // clean up the dvobjs module for a PurC instance.
 void pcdvobjs_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 
-purc_variant_t pcdvojbs_get_system(void);
-purc_variant_t pcdvojbs_get_string(void);
-purc_variant_t pcdvojbs_get_logical(void);
-purc_variant_t pcdvojbs_get_ejson(void);
+purc_variant_t pcdvobjs_get_system(void);
+purc_variant_t pcdvobjs_get_string(void);
+purc_variant_t pcdvobjs_get_logical(void);
+purc_variant_t pcdvobjs_get_ejson(void);
 
 struct wildcard_list {
     char * wildcard;

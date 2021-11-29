@@ -1800,6 +1800,43 @@ TEST(ejson_token, string_variant)
     purc_cleanup ();
 }
 
+TEST(ejson_token, pcejson_parse_longstring)
+{
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "ejson", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    char json[] = "{key:[{\"a\":\"b\"},{key2:'abcdefghijklmnopq'}]}";
+    purc_rwstream_t rws = purc_rwstream_new_from_mem(json, strlen(json));
+
+    struct pcvcm_node* root = NULL;
+    struct pcejson* parser = NULL;
+    pcejson_parse (&root, &parser, rws, 0);
+    ASSERT_NE (root, nullptr);
+
+    purc_variant_t vt = pcvcm_eval (root, NULL);
+    ASSERT_NE(vt, PURC_VARIANT_INVALID);
+
+    char buf[1024];
+    purc_rwstream_t my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    ASSERT_NE(my_rws, nullptr);
+
+    size_t len_expected = 0;
+    ssize_t n = purc_variant_serialize(vt, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+    ASSERT_GT(n, 0);
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "{\"key\":[{\"a\":\"b\"},{\"key2\":\"abcdefghijklmnopq\"}]}");
+
+    purc_variant_unref(vt);
+    purc_rwstream_destroy(my_rws);
+    purc_rwstream_destroy(rws);
+
+    pcvcm_node_destroy (root);
+
+    pcejson_destroy(parser);
+    purc_cleanup ();
+}
+
 purc_variant_t make_object(const char* key, const char* value)
 {
     purc_variant_t key_vt = purc_variant_make_string (key, false);

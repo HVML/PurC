@@ -944,9 +944,9 @@ eval_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 // only for test now.
-purc_variant_t pcdvojbs_get_logical (void)
+purc_variant_t pcdvobjs_get_logical (void)
 {
-    static struct pcdvojbs_dvobjs method [] = {
+    static struct pcdvobjs_dvobjs method [] = {
         {"not",   not_getter,   NULL},
         {"and",   and_getter,   NULL},
         {"or",    or_getter,    NULL},
