@@ -4,6 +4,8 @@
 #include "private/utils.h"
 #include "purc-rwstream.h"
 
+#include "../helpers.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
@@ -29,11 +31,25 @@ using namespace std;
 #endif // OS(LINUX) || OS(UNIX)
 
 struct ejson_test_data {
-    string name;
-    string json;
-    string comp;
+    char *name;
+    char *json;
+    char *comp;
     int error;
 };
+
+static inline void
+push_back(std::vector<ejson_test_data> &vec,
+        const char *name, const char *json, const char *comp, int error)
+{
+    ejson_test_data data;
+    memset(&data, 0, sizeof(data));
+    data.name = MemCollector::strdup(name);
+    data.json = MemCollector::strdup(json);
+    data.comp = MemCollector::strdup(comp);
+    data.error = error;
+
+    vec.push_back(data);
+}
 
 class ejson_parser_vcm_eval : public testing::TestWithParam<ejson_test_data>
 {
@@ -211,6 +227,7 @@ std::vector<ejson_test_data> read_ejson_test_data()
     char data_path[PATH_MAX+1] =  {0};
     getpath_from_env_or_rel(data_path, sizeof(data_path), env, "data");
 
+    if (0) {
     if (strlen(data_path)) {
         char file_path[1024] = {0};
         strcpy (file_path, data_path);
@@ -258,10 +275,7 @@ std::vector<ejson_test_data> read_ejson_test_data()
                         continue;
                     }
 
-                    vec.push_back(
-                            ejson_test_data {
-                                name, json_buf, trim(comp_buf), error
-                                });
+                    push_back(vec, name, json_buf, trim(comp_buf), error);
 
                     free (json_buf);
                     free (comp_buf);
@@ -271,13 +285,13 @@ std::vector<ejson_test_data> read_ejson_test_data()
             fclose(fp);
         }
     }
+    }
 
     if (vec.empty()) {
-        vec.push_back(ejson_test_data {"array", "[123]", "[123]", 0});
-        vec.push_back(ejson_test_data {
-                "unquoted_key", "{key:1}", "{\"key\":1}", 0});
-        vec.push_back(ejson_test_data {
-                "single_quoted_key", "{'key':'2'}", "{\"key\":\"2\"}", 0});
+        push_back(vec, "array", "[123]", "[123]", 0);
+        push_back(vec, "unquoted_key", "{key:1}", "{\"key\":1}", 0);
+        push_back(vec,
+                "single_quoted_key", "{'key':'2'}", "{\"key\":\"2\"}", 0);
     }
     return vec;
 }

@@ -851,7 +851,7 @@ TEST(dvobjs, dvobjs_fs_touch)
 
     char file_path[1024] = {0};
     strcpy (file_path, data_path);
-    strcat (file_path, "/fs/and.test");
+    strcat (file_path, "/fs/temp.and.test");
 
     printf ("TEST list_prt: nr_args = 0, param = NULL:\n");
     ret_var = func (NULL, 0, param);
@@ -865,6 +865,7 @@ TEST(dvobjs, dvobjs_fs_touch)
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
     purc_variant_unref(param[0]);
 
+    memset(&file_stat, 0, sizeof(file_stat));
     stat(file_path, &file_stat);
     char old[128];
     sprintf (old, "%s", ctime(&file_stat.st_atime));

@@ -728,7 +728,7 @@ pcedom_attr_compare(pcedom_attr_t *first,
 
 const pcedom_attr_data_t *
 pcedom_attr_data_by_id(pcutils_hash_t *hash,
-                pcedom_attr_id_t attr_id) WTF_INTERNAL;
+                pcedom_attr_id_t attr_id);
 
 const pcedom_attr_data_t *
 pcedom_attr_data_by_local_name(pcutils_hash_t *hash,
@@ -739,7 +739,7 @@ pcedom_attr_data_by_qualified_name(pcutils_hash_t *hash,
                                     const unsigned char *name, size_t length);
 
 const unsigned char *
-pcedom_attr_qualified_name(pcedom_attr_t *attr, size_t *len) WTF_INTERNAL;
+pcedom_attr_qualified_name(pcedom_attr_t *attr, size_t *len);
 
 /*
  * Inline functions
@@ -797,32 +797,8 @@ pcedom_document_type_interface_destroy(
                 pcedom_document_type_t *document_type) WTF_INTERNAL;
 
 
-/*
- * Inline functions
- */
-static inline const unsigned char *
-pcedom_document_type_name(pcedom_document_type_t *doc_type, size_t *len)
-{
-    const pcedom_attr_data_t *data;
-
-    static const unsigned char pchtml_empty[] = "";
-
-    data = pcedom_attr_data_by_id(doc_type->node.owner_document->attrs,
-                                   doc_type->name);
-    if (data == NULL || doc_type->name == PCEDOM_ATTR__UNDEF) {
-        if (len != NULL) {
-            *len = 0;
-        }
-
-        return pchtml_empty;
-    }
-
-    if (len != NULL) {
-        *len = data->entry.length;
-    }
-
-    return pcutils_hash_entry_str(&data->entry);
-}
+const unsigned char *
+pcedom_document_type_name(pcedom_document_type_t *doc_type, size_t *len);
 
 static inline const unsigned char *
 pcedom_document_type_public_id(pcedom_document_type_t *doc_type, size_t *len)
@@ -1063,23 +1039,23 @@ pcedom_elements_by_attr_contain(pcedom_element_t *root,
 
 const unsigned char *
 pcedom_element_qualified_name(pcedom_element_t *element,
-                size_t *len) WTF_INTERNAL;
+                size_t *len);
 
 const unsigned char *
 pcedom_element_qualified_name_upper(pcedom_element_t *element,
-                size_t *len) WTF_INTERNAL;
+                size_t *len);
 
 const unsigned char *
 pcedom_element_local_name(pcedom_element_t *element,
-                size_t *len) WTF_INTERNAL;
+                size_t *len);
 
 const unsigned char *
 pcedom_element_prefix(pcedom_element_t *element,
-                size_t *len) WTF_INTERNAL;
+                size_t *len);
 
 const unsigned char *
 pcedom_element_tag_name(pcedom_element_t *element,
-                size_t *len) WTF_INTERNAL;
+                size_t *len);
 
 
 /*

@@ -79,7 +79,7 @@ TEST(object, make_object_c)
     int j = 0;
     while (it) {
         ++j;
-        const char     *key = purc_variant_object_iterator_get_key(it);
+        const char     *key = purc_variant_object_iterator_get_ckey(it);
         purc_variant_t  val = purc_variant_object_iterator_get_value(it);
         fprintf(stderr, "key%d:%s\n", j, key);
         fprintf(stderr, "val%d:%s\n", j, purc_variant_get_string_const(val));
@@ -105,7 +105,7 @@ TEST(object, make_object_c)
     j = 0;
     while (it) {
         ++j;
-        const char     *key = purc_variant_object_iterator_get_key(it);
+        const char     *key = purc_variant_object_iterator_get_ckey(it);
         purc_variant_t  val = purc_variant_object_iterator_get_value(it);
         fprintf(stderr, "key%d:%s\n", j, key);
         fprintf(stderr, "val%d:%s\n", j, purc_variant_get_string_const(val));
@@ -133,7 +133,7 @@ TEST(object, make_object_c)
     j = 0;
     while (it) {
         ++j;
-        const char     *key = purc_variant_object_iterator_get_key(it);
+        const char     *key = purc_variant_object_iterator_get_ckey(it);
         purc_variant_t  val = purc_variant_object_iterator_get_value(it);
         fprintf(stderr, "key%d:%s\n", j, key);
         fprintf(stderr, "val%d:%s\n", j, purc_variant_get_string_const(val));
@@ -154,7 +154,7 @@ TEST(object, make_object_c)
     j = 0;
     while (it) {
         ++j;
-        const char     *key = purc_variant_object_iterator_get_key(it);
+        const char     *key = purc_variant_object_iterator_get_ckey(it);
         purc_variant_t  val = purc_variant_object_iterator_get_value(it);
         fprintf(stderr, "key%d:%s\n", j, key);
         fprintf(stderr, "val%d:%s\n", j, purc_variant_get_string_const(val));
@@ -176,7 +176,7 @@ TEST(object, make_object_c)
     j = 0;
     while (it) {
         ++j;
-        const char     *key = purc_variant_object_iterator_get_key(it);
+        const char     *key = purc_variant_object_iterator_get_ckey(it);
         purc_variant_t  val = purc_variant_object_iterator_get_value(it);
         fprintf(stderr, "key%d:%s\n", j, key);
         fprintf(stderr, "val%d:%s\n", j, purc_variant_get_string_const(val));
@@ -198,7 +198,7 @@ TEST(object, make_object_c)
     j = 0;
     while (it) {
         ++j;
-        const char     *key = purc_variant_object_iterator_get_key(it);
+        const char     *key = purc_variant_object_iterator_get_ckey(it);
         purc_variant_t  val = purc_variant_object_iterator_get_value(it);
         fprintf(stderr, "key%d:%s\n", j, key);
         fprintf(stderr, "val%d:%s\n", j, purc_variant_get_string_const(val));
@@ -221,7 +221,7 @@ TEST(object, make_object_c)
     j = 0;
     while (it) {
         ++j;
-        const char     *key = purc_variant_object_iterator_get_key(it);
+        const char     *key = purc_variant_object_iterator_get_ckey(it);
         purc_variant_t  val = purc_variant_object_iterator_get_value(it);
         fprintf(stderr, "key%d:%s\n", j, key);
         fprintf(stderr, "val%d:%s\n", j, purc_variant_get_string_const(val));

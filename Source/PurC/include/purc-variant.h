@@ -31,6 +31,7 @@
 
 #include "purc-macros.h"
 #include "purc-rwstream.h"
+#include "purc-utils.h"
 
 struct purc_variant;
 typedef struct purc_variant purc_variant;
@@ -41,6 +42,10 @@ typedef struct purc_variant* purc_variant_t;
 #define PURC_VARIANT_BADSIZE            ((size_t)(-1))
 
 PCA_EXTERN_C_BEGIN
+
+typedef bool (*pcvar_msg_handler) (purc_variant_t source,
+        purc_atom_t msg_type, void *ctxt,
+        size_t nr_args, purc_variant_t *argv);
 
 /**
  * Adds ref for a variant value
@@ -193,6 +198,22 @@ purc_variant_make_string_static(const char* str_utf8, bool check_encoding);
  */
 PCA_EXPORT purc_variant_t
 purc_variant_make_string_reuse_buff(char* str_utf8, size_t sz_buff,
+        bool check_encoding);
+
+/**
+ * Creates a variant value of string type by using non-null-terminated buffer
+ *
+ * @param str_utf8: the pointer of a string which is in UTF-8 encoding
+ * @param len: the length of string to be used at most
+ * @param check_encoding: whether check str_utf8 in UTF-8 encoding
+ *
+ * Returns: A purc_variant_t with string type,
+ *      or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.0.5
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_make_string_ex(const char* str_utf8, size_t len,
         bool check_encoding);
 
 /**
@@ -919,12 +940,28 @@ purc_variant_object_iterator_prev(struct purc_variant_object_iterator* it);
  *
  * @param it: iterator of itself
  *
+ * Returns: the key of key-val-pair
+ *
+ * Since: 0.0.2
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_object_iterator_get_key(struct purc_variant_object_iterator* it);
+
+/**
+ * Get the key of key-val-pair that the iterator points to
+ *
+ * @param it: iterator of itself
+ *
  * Returns: the key of key-val-pair, not duplicated
  *
- * Since: 0.0.1
+ * Since: 0.0.2
  */
-PCA_EXPORT const char *
-purc_variant_object_iterator_get_key(struct purc_variant_object_iterator* it);
+static inline const char*
+purc_variant_object_iterator_get_ckey(struct purc_variant_object_iterator* it)
+{
+    purc_variant_t k = purc_variant_object_iterator_get_key(it);
+    return purc_variant_get_string_const(k);
+}
 
 /**
  * Get the value of key-val-pair that the iterator points to
@@ -1085,6 +1122,46 @@ static inline size_t purc_variant_set_get_size(purc_variant_t set)
         return PURC_VARIANT_BADSIZE;
     return sz;
 }
+
+/**
+ * Get an element from set by index.
+ *
+ * @param array: the variant value of set type
+ * @param idx: the index of wanted element
+ *
+ * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_set_get_by_index(purc_variant_t set, int idx);
+
+/**
+ * Remove the element in set by index and return
+ *
+ * @param array: the variant value of set type
+ * @param idx: the index of the element to be removed
+ *
+ * Returns: the variant removed at the index or PURC_VARIANT_INVALID if failed
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_set_remove_by_index(purc_variant_t set, int idx);
+
+/**
+ * Set an element in set by index.
+ *
+ * @param array: the variant value of set type
+ * @param idx: the index of the element to be replaced
+ * @val: the val that's to be set in the set
+ *
+ * Returns: A boolean that indicates if it succeeds or not
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT bool
+purc_variant_set_set_by_index(purc_variant_t set, int idx, purc_variant_t val);
 
 /**
  * set iterator usage example:
@@ -1706,6 +1783,40 @@ purc_variant_stringify(char *buf, size_t len, purc_variant_t value);
  */
 PCA_EXPORT int
 purc_variant_stringify_alloc(char **strp, purc_variant_t value);
+
+/**
+ * Register a variant listener
+ *
+ * @param v: the variant that is to be observed
+ *
+ * @param name: the name of the observer
+ *
+ * @param handler: the callback that is to be called upon when the observed
+ *                 event is fired
+ * @param ctxt: the context belongs to the callback
+ *
+ * Returns: boolean that designates if the operation succeeds or not
+ *
+ * Since: 0.0.4
+ */
+PCA_EXPORT bool
+purc_variant_register_listener(purc_variant_t v, purc_atom_t name,
+        pcvar_msg_handler handler, void *ctxt);
+
+/**
+ * Revoke a variant listener
+ *
+ * @param v: the variant whose listener is to be revoked
+ *
+ * @param name: the name of the listener that is to be revoked
+ *
+ * Returns: boolean that designates if the operation succeeds or not
+ *
+ * Since: 0.0.4
+ */
+PCA_EXPORT bool
+purc_variant_revoke_listener(purc_variant_t v, purc_atom_t name);
+
 
 PCA_EXTERN_C_END
 

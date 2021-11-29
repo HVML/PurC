@@ -36,6 +36,82 @@
 #include <stdlib.h>
 #include <string.h>
 
+static inline void
+grown(purc_variant_t array, purc_variant_t value)
+{
+    if (!list_empty(&array->listeners))
+        return;
+    purc_atom_t msg_type = purc_atom_from_string("grown");
+    PC_ASSERT(msg_type);
+
+    struct list_head *p;
+    list_for_each(p, &array->listeners) {
+        struct pcvar_listener *l;
+        l = container_of(p, struct pcvar_listener, list_node);
+        PC_ASSERT(l->handler);
+        if (l->name != msg_type)
+            continue;
+
+        purc_variant_t args[] = {
+            value,
+        };
+        bool ok = l->handler(array, msg_type, l->ctxt,
+            PCA_TABLESIZE(args), args);
+        PC_ASSERT(ok);
+    }
+}
+
+static inline void
+shrunk(purc_variant_t array, purc_variant_t value)
+{
+    if (!list_empty(&array->listeners))
+        return;
+    purc_atom_t msg_type = purc_atom_from_string("shrunk");
+    PC_ASSERT(msg_type);
+
+    struct list_head *p;
+    list_for_each(p, &array->listeners) {
+        struct pcvar_listener *l;
+        l = container_of(p, struct pcvar_listener, list_node);
+        PC_ASSERT(l->handler);
+        if (l->name != msg_type)
+            continue;
+
+        purc_variant_t args[] = {
+            value,
+        };
+        bool ok = l->handler(array, msg_type, l->ctxt,
+            PCA_TABLESIZE(args), args);
+        PC_ASSERT(ok);
+    }
+}
+
+static inline void
+change(purc_variant_t array,
+        purc_variant_t o, purc_variant_t n)
+{
+    if (!list_empty(&array->listeners))
+        return;
+    purc_atom_t msg_type = purc_atom_from_string("change");
+    PC_ASSERT(msg_type);
+
+    struct list_head *p;
+    list_for_each(p, &array->listeners) {
+        struct pcvar_listener *l;
+        l = container_of(p, struct pcvar_listener, list_node);
+        PC_ASSERT(l->handler);
+        if (l->name != msg_type)
+            continue;
+
+        purc_variant_t args[] = {
+            n,
+            o,
+        };
+        bool ok = l->handler(array, msg_type, l->ctxt,
+            PCA_TABLESIZE(args), args);
+        PC_ASSERT(ok);
+    }
+}
 
 static void _fill_empty_with_undefined(struct pcutils_arrlist *al)
 {
@@ -44,9 +120,32 @@ static void _fill_empty_with_undefined(struct pcutils_arrlist *al)
         purc_variant_t val = (purc_variant_t)al->array[i];
         if (!val) {
             val = purc_variant_make_undefined();
+            // shall we call `grown`?
             al->array[i] = val;
         }
     }
+}
+
+static inline void
+array_release (purc_variant_t value)
+{
+    struct pcutils_arrlist *al = (struct pcutils_arrlist*)value->sz_ptr[1];
+    if (!al)
+        return;
+
+    size_t curr;
+    purc_variant_t variant = NULL;
+    foreach_value_in_variant_array_safe(value, variant, curr) {
+        purc_variant_unref(variant);
+        int r = pcutils_arrlist_del_idx(_al, curr, 1);
+        PC_ASSERT(r==0);
+        --curr;
+    } end_foreach;
+
+    pcutils_arrlist_free(al);
+    value->sz_ptr[1] = (uintptr_t)NULL;
+
+    pcvariant_stat_set_extra_size(value, 0);
 }
 
 static purc_variant_t
@@ -116,7 +215,7 @@ pv_make_array_n (size_t sz, purc_variant_t value0, va_list ap)
 
     } while (0);
 
-    pcvariant_array_release(var);
+    array_release(var);
     pcvariant_put(var);
 
     return PURC_VARIANT_INVALID;
@@ -136,22 +235,9 @@ purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
 void pcvariant_array_release (purc_variant_t value)
 {
     struct pcutils_arrlist *al = (struct pcutils_arrlist*)value->sz_ptr[1];
-    if (!al)
-        return;
+    PC_ASSERT(al);
 
-    size_t curr;
-    purc_variant_t variant = NULL;
-    foreach_value_in_variant_array_safe(value, variant, curr) {
-        purc_variant_unref(variant);
-        int r = pcutils_arrlist_del_idx(_al, curr, 1);
-        PC_ASSERT(r==0);
-        --curr;
-    } end_foreach;
-
-    pcutils_arrlist_free(al);
-    value->sz_ptr[1] = (uintptr_t)NULL;
-
-    pcvariant_stat_set_extra_size(value, 0);
+    array_release(value);
 }
 
 /* VWNOTE: unnecessary
@@ -244,6 +330,8 @@ bool purc_variant_array_set (purc_variant_t array, int idx,
         // since value is put into array
         purc_variant_ref(value);
 
+        grown(array, value);
+
         size_t extra = sizeof(*al) + al->size * sizeof(*al->array);
         pcvariant_stat_set_extra_size(array, extra);
 
@@ -251,6 +339,7 @@ bool purc_variant_array_set (purc_variant_t array, int idx,
     } else {
         purc_variant_t v = (purc_variant_t)al->array[idx];
         if (v!=value) {
+            change(array, v, value);
             purc_variant_unref(v);
             al->array[idx] = value;
         }
@@ -275,6 +364,9 @@ bool purc_variant_array_remove (purc_variant_t array, int idx)
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return false;
     }
+
+    shrunk(array, v);
+
     purc_variant_unref(v);
 
     size_t extra = sizeof(*al) + al->size * sizeof(*al->array);
@@ -311,6 +403,8 @@ bool purc_variant_array_insert_before (purc_variant_t array, int idx,
     }
     al->array[idx] = value;
     al->length    += 1;
+
+    shrunk(array, value);
 
     purc_variant_ref(value);
 

@@ -1,12 +1,11 @@
 #include "purc.h"
 #include "private/avl.h"
-#include "private/hashtable.h"
-#include "purc-variant.h"
-#include "private/variant.h"
-//#include "private/instance.h"
-#include "private/errors.h"
 #include "private/debug.h"
+#include "private/errors.h"
+#include "private/hashtable.h"
+#include "private/rbtree.h"
 #include "private/utils.h"
+#include "private/variant.h"
 
 #include <stdio.h>
 #include <errno.h>
@@ -118,17 +117,6 @@ TEST(variant, list)
     }
 }
 
-/*
-void pcutils_avl_init(struct avl_tree *, avl_tree_comp, bool, void *);
-struct avl_node *pcutils_avl_find(const struct avl_tree *, const void *);
-struct avl_node *pcutils_avl_find_greaterequal(const struct avl_tree *tree, const void *key);
-struct avl_node *pcutils_avl_find_lessequal(const struct avl_tree *tree, const void *key);
-int pcutils_avl_insert(struct avl_tree *, struct avl_node *);
-void pcutils_avl_delete(struct avl_tree *, struct avl_node *);
-
-int pcutils_avl_strcmp(const void *k1, const void *k2, void *ptr);
-*/
-
 struct name_s {
     struct avl_node   node;
     char             *s;
@@ -174,6 +162,101 @@ TEST(variant, avl)
         free(name->s);
         free(name);
     }
+}
+
+struct str_node {
+    struct rb_node  node;
+    const char     *str;
+};
+
+int cmp(const void *key, struct rb_node *node)
+{
+    struct str_node *p = container_of(node, struct str_node, node);
+    const char *k = (const char*)key;
+    return strcmp(k, p->str);
+}
+
+static inline void
+do_insert(struct rb_root *root, const char *str, bool *ok)
+{
+    struct rb_node **pnode = &root->rb_node;
+    struct rb_node *parent = NULL;
+    struct rb_node *entry = NULL;
+    while (*pnode) {
+        int ret = cmp(str, *pnode);
+
+        parent = *pnode;
+
+        if (ret < 0)
+            pnode = &parent->rb_left;
+        else if (ret > 0)
+            pnode = &parent->rb_right;
+        else{
+            entry = *pnode;
+            break;
+        }
+    }
+
+    if (!entry) { //new the entry
+        struct str_node *snode = (struct str_node*)calloc(1, sizeof(*snode));
+        if (!snode) {
+            *ok = false;
+            return;
+        }
+        snode->str = str;
+        entry = &snode->node;
+
+        pcutils_rbtree_link_node(entry, parent, pnode);
+        pcutils_rbtree_insert_color(entry, root);
+        *ok = true;
+        return;
+    }
+
+    struct str_node *p = container_of(entry, struct str_node, node);
+    p->str = str;
+    *ok = true;
+}
+
+TEST(variant, rbtree)
+{
+    const char *samples[] = {
+        "hello",
+        "world",
+        "foo",
+        "bar",
+        "great",
+        "wall",
+    };
+
+    bool ok = true;
+
+    struct rb_root root = RB_ROOT;
+    struct rb_node *node;
+    node = pcutils_rbtree_first(&root);
+    ASSERT_EQ(node, nullptr);
+
+    for (size_t i=0; i<PCA_TABLESIZE(samples); ++i) {
+        const char *sample = samples[i];
+        do_insert(&root, sample, &ok);
+        if (!ok)
+            break;
+    }
+
+    node = pcutils_rbtree_first(&root);
+    for (; node; node = pcutils_rbtree_next(node)) {
+        struct str_node *p = container_of(node, struct str_node, node);
+        ASSERT_NE(p, nullptr);
+    }
+
+    node = pcutils_rbtree_first(&root);
+    struct rb_node *next;
+    for (; ({node && (next = pcutils_rbtree_next(node)); node;}); node=next) {
+        struct str_node *p = container_of(node, struct str_node, node);
+        pcutils_rbtree_erase(node, &root);
+        free(p);
+    }
+
+    ASSERT_TRUE(ok);
 }
 
 TEST(variant, pcvariant_init_once)

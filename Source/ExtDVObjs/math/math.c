@@ -457,7 +457,7 @@ eval_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t pcdvobjs_make_dvobjs (
-        const struct pcdvojbs_dvobjs *method, size_t size)
+        const struct pcdvobjs_dvobjs *method, size_t size)
 {
     size_t i = 0;
     purc_variant_t val = PURC_VARIANT_INVALID;
@@ -492,7 +492,7 @@ error:
 
 static purc_variant_t pcdvobjs_create_math (void)
 {
-    static struct pcdvojbs_dvobjs method [] = {
+    static struct pcdvobjs_dvobjs method [] = {
         {"pi",      pi_getter, NULL},
         {"pi_l",    pi_l_getter, NULL},
         {"e",       e_getter, NULL},

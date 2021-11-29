@@ -35,7 +35,7 @@ TEST(dvobjs, dvobjs_sys_uname)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t sys = pcdvojbs_get_system();
+    purc_variant_t sys = pcdvobjs_get_system();
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 
@@ -58,7 +58,7 @@ TEST(dvobjs, dvobjs_sys_uname)
     purc_variant_object_iterator *it =
         purc_variant_object_make_iterator_begin (ret_var);
     for (i = 0; i < purc_variant_object_get_size (ret_var); i++) {
-        const char     *key = purc_variant_object_iterator_get_key (it);
+        const char     *key = purc_variant_object_iterator_get_ckey (it);
         purc_variant_t  val = purc_variant_object_iterator_get_value (it);
 
         result = purc_variant_get_string_const (val);
@@ -103,7 +103,7 @@ TEST(dvobjs, dvobjs_sys_uname_prt)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t sys = pcdvojbs_get_system();
+    purc_variant_t sys = pcdvobjs_get_system();
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 
@@ -211,7 +211,7 @@ TEST(dvobjs, dvobjs_sys_get_locale)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t sys = pcdvojbs_get_system();
+    purc_variant_t sys = pcdvobjs_get_system();
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 
@@ -388,7 +388,7 @@ TEST(dvobjs, dvobjs_sys_set_locale)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t sys = pcdvojbs_get_system();
+    purc_variant_t sys = pcdvobjs_get_system();
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 
@@ -622,7 +622,7 @@ TEST(dvobjs, dvobjs_sys_get_random)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t sys = pcdvojbs_get_system();
+    purc_variant_t sys = pcdvobjs_get_system();
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 
@@ -689,7 +689,7 @@ TEST(dvobjs, dvobjs_sys_gettime)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t sys = pcdvojbs_get_system();
+    purc_variant_t sys = pcdvobjs_get_system();
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 
@@ -720,7 +720,7 @@ TEST(dvobjs, dvobjs_sys_gettime)
     purc_variant_object_iterator *it =
         purc_variant_object_make_iterator_begin (ret_var);
     for (size_t i = 0; i < purc_variant_object_get_size (ret_var); i++) {
-        const char     *key = purc_variant_object_iterator_get_key (it);
+        const char     *key = purc_variant_object_iterator_get_ckey (it);
         purc_variant_t  val = purc_variant_object_iterator_get_value (it);
 
         purc_variant_cast_to_number (val, &number, false);
@@ -832,3 +832,34 @@ TEST(dvobjs, dvobjs_sys_gettime)
     purc_variant_unref (sys);
     purc_cleanup ();
 }
+
+TEST(dvobjs, reuse_buff)
+{
+    purc_instance_extra_info info = {0, 0};
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    purc_rwstream_t rws;
+    rws = purc_rwstream_new_buffer (32, 1024);
+    purc_rwstream_write(rws, "hello", 5);
+    purc_rwstream_write(rws, "\0", 1);
+
+    size_t content_size, raw_size;
+    char *s;
+    s = (char*)purc_rwstream_get_mem_buffer_ex(rws,
+            &content_size, &raw_size, true);
+
+    ASSERT_NE(s, nullptr);
+    ASSERT_EQ(content_size, 6);
+    ASSERT_GT(raw_size, content_size);
+    ASSERT_EQ(memcmp("hello", s, 5), 0);
+
+    purc_rwstream_destroy(rws);
+
+    purc_variant_t v;
+    v = purc_variant_make_string_reuse_buff(s, content_size, false);
+    purc_variant_unref(v);
+
+    purc_cleanup ();
+}
+

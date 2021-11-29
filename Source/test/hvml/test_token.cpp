@@ -5,6 +5,8 @@
 #include "purc-rwstream.h"
 #include "hvml/hvml-token.h"
 
+#include "../helpers.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
@@ -36,11 +38,25 @@ using namespace std;
 #endif // OS(LINUX) || OS(UNIX)
 
 struct hvml_token_test_data {
-    string name;
-    string hvml;
-    string comp;
+    char *name;
+    char *hvml;
+    char *comp;
     int error;
 };
+
+static inline void
+push_back(std::vector<hvml_token_test_data> &vec,
+        const char *name, const char *hvml, const char *comp, int error)
+{
+    hvml_token_test_data data;
+    memset(&data, 0, sizeof(data));
+    data.name = MemCollector::strdup(name);
+    data.hvml = MemCollector::strdup(hvml);
+    data.comp = MemCollector::strdup(comp);
+    data.error = error;
+
+    vec.push_back(data);
+}
 
 char* trim(char *str)
 {
@@ -302,10 +318,7 @@ std::vector<hvml_token_test_data> read_hvml_token_test_data()
                         continue;
                     }
 
-                    vec.push_back(
-                            hvml_token_test_data {
-                                name, buf, trim(comp_buf), error
-                                });
+                    push_back(vec, name, buf, trim(comp_buf), error);
 
                     free (buf);
                     free (comp_buf);
@@ -317,8 +330,7 @@ std::vector<hvml_token_test_data> read_hvml_token_test_data()
     }
 
     if (vec.empty()) {
-        vec.push_back(hvml_token_test_data {"hvml", "<hvml></hvml>",
-                "<hvml></hvml>", 0});
+        push_back(vec, "hvml", "<hvml></hvml>", "<hvml></hvml>", 0);
     }
     return vec;
 }

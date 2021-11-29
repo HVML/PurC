@@ -68,6 +68,8 @@ static pcvariant_release_fn variant_releasers[PURC_VARIANT_TYPE_NR] = {
 static const char* variant_err_msgs[] = {
     /* PCVARIANT_ERROR_INVALID_TYPE */
     "Invalid variant type",
+    /* PCVARIANT_ERROR_OUT_OF_BOUNDS */
+    "Index out of bounds",
     /* PCVARIANT_ERROR_NOT_FOUND */
     "Element not found",
 };
@@ -205,6 +207,48 @@ enum purc_variant_type purc_variant_get_type(purc_variant_t value)
     return value->type;
 }
 
+static inline void
+referenced(purc_variant_t value)
+{
+    if (!list_empty(&value->listeners))
+        return;
+    purc_atom_t msg_type = purc_atom_from_string("referenced");
+    PC_ASSERT(msg_type);
+
+    struct list_head *p;
+    list_for_each(p, &value->listeners) {
+        struct pcvar_listener *l;
+        l = container_of(p, struct pcvar_listener, list_node);
+        PC_ASSERT(l->handler);
+        if (l->name != msg_type)
+            continue;
+
+        bool ok = l->handler(value, msg_type, l->ctxt, 0, NULL);
+        PC_ASSERT(ok);
+    }
+}
+
+static inline void
+unreferenced(purc_variant_t value)
+{
+    if (!list_empty(&value->listeners))
+        return;
+    purc_atom_t msg_type = purc_atom_from_string("unreferenced");
+    PC_ASSERT(msg_type);
+
+    struct list_head *p;
+    list_for_each(p, &value->listeners) {
+        struct pcvar_listener *l;
+        l = container_of(p, struct pcvar_listener, list_node);
+        PC_ASSERT(l->handler);
+        if (l->name != msg_type)
+            continue;
+
+        bool ok = l->handler(value, msg_type, l->ctxt, 0, NULL);
+        PC_ASSERT(ok);
+    }
+}
+
 unsigned int purc_variant_ref (purc_variant_t value)
 {
     PC_ASSERT(value);
@@ -217,7 +261,31 @@ unsigned int purc_variant_ref (purc_variant_t value)
 
     value->refc++;
 
+    referenced(value);
+
     return value->refc;
+}
+
+static inline void
+destroyed(purc_variant_t value)
+{
+    if (!list_empty(&value->listeners))
+        return;
+    purc_atom_t msg_type = purc_atom_from_string("destroyed");
+    PC_ASSERT(msg_type);
+
+    struct list_head *p, *n;
+    list_for_each_safe(p, n, &value->listeners) {
+        struct pcvar_listener *l;
+        l = container_of(p, struct pcvar_listener, list_node);
+        PC_ASSERT(l->handler);
+        if (l->name == msg_type) {
+            bool ok = l->handler(value, msg_type, l->ctxt, 0, NULL);
+            PC_ASSERT(ok);
+        }
+        list_del(p);
+        free(p);
+    }
 }
 
 unsigned int purc_variant_unref(purc_variant_t value)
@@ -231,6 +299,9 @@ unsigned int purc_variant_unref(purc_variant_t value)
     }
 
     value->refc--;
+    if (value->refc == 0)
+        destroyed(value);
+
     // VWNOTE: only non-constant values has a releaser
     if (value->refc == 0 && !(value->flags & PCVARIANT_FLAG_NOFREE)) {
         // release the extra memory used by the variant
@@ -243,6 +314,7 @@ unsigned int purc_variant_unref(purc_variant_t value)
         return 0;
     }
 
+    unreferenced(value);
     return value->refc;
 }
 
@@ -325,6 +397,9 @@ purc_variant_t pcvariant_get(enum purc_variant_type type)
     stat->nr_values[type]++;
     stat->nr_total_values++;
 
+    // init listeners
+    INIT_LIST_HEAD(&value->listeners);
+
     return value;
 }
 
@@ -335,6 +410,7 @@ void pcvariant_put(purc_variant_t value)
     struct purc_variant_stat *stat = &(heap->stat);
 
     PC_ASSERT(value);
+    PC_ASSERT(list_empty(&value->listeners));
 
     // set stat information
     stat->nr_values[value->type]--;
@@ -783,7 +859,8 @@ bool purc_variant_cast_to_byte_sequence(purc_variant_t v,
     switch (v->type) {
         case PURC_VARIANT_TYPE_ATOMSTRING:
             *bytes = purc_atom_to_string(v->sz_ptr[1]);
-            *sz = strlen(*bytes);
+            // NOTE: strlen()+1, in case when purc_variant_compare with string
+            *sz = strlen(*bytes) + 1;
             return true;
 
         case PURC_VARIANT_TYPE_STRING:

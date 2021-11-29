@@ -37,14 +37,14 @@
 #define ENDIAN_BIG          2
 
 // dynamic variant in dynamic object
-struct pcdvojbs_dvobjs {
+struct pcdvobjs_dvobjs {
     const char *name;
     purc_dvariant_method getter;
     purc_dvariant_method setter;
 };
 
 extern purc_variant_t pcdvobjs_make_dvobjs (
-        const struct pcdvojbs_dvobjs *method, size_t size);
+        const struct pcdvobjs_dvobjs *method, size_t size);
 
 static const char * pcdvobjs_get_next_option (const char *data,
         const char *delims, size_t *length)
@@ -392,7 +392,7 @@ text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return purc_variant_make_string ("", false);
     }
 
-    pos = fread (content, 1, pos - 1, fp);
+    pos = fread (content, 1, pos, fp);
     *(content + pos) = 0x00;
 
     ret_var = purc_variant_make_string_reuse_buff (content, pos, false);
@@ -915,7 +915,7 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
                             purc_rwstream_read (rwstream, buffer, read_number);
                             *(buffer + read_number) = 0x00;
                             val = purc_variant_make_string_reuse_buff (
-                                    (char *)buffer, read_number + 1, false);
+                                    (char *)buffer, read_number, false);
                         }
                     } else
                         val = purc_variant_make_string ("", false);
@@ -926,7 +926,9 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
 
                     buffer = malloc (mem_size);
                     for (i = 0, j = 0; ; i++, j++) {
-                        purc_rwstream_read (rwstream, buffer + i, 1);
+                        ssize_t r = purc_rwstream_read (rwstream, buffer + i, 1);
+                        if (r <= 0)
+                            break;
                         if (*(buffer + i) == 0x00)
                             break;
 
@@ -1568,15 +1570,15 @@ purc_variant_t pcdvobjs_create_file (void)
     purc_variant_t file_stream = PURC_VARIANT_INVALID;
     purc_variant_t file = PURC_VARIANT_INVALID;
 
-    static struct pcdvojbs_dvobjs text [] = {
+    static struct pcdvobjs_dvobjs text [] = {
         {"head",     text_head_getter, NULL},
         {"tail",     text_tail_getter, NULL} };
 
-    static struct pcdvojbs_dvobjs  bin[] = {
+    static struct pcdvobjs_dvobjs  bin[] = {
         {"head",     bin_head_getter, NULL},
         {"tail",     bin_tail_getter, NULL} };
 
-    static struct pcdvojbs_dvobjs  stream[] = {
+    static struct pcdvobjs_dvobjs  stream[] = {
         {"open",        stream_open_getter,        NULL},
         {"readstruct",  stream_readstruct_getter,  NULL},
         {"writestruct", stream_writestruct_getter, NULL},
