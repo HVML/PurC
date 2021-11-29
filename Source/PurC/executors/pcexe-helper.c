@@ -1312,7 +1312,7 @@ int iterative_formula_neg(struct iterative_formula_expression *exp)
 }
 
 int iterative_formula_iterate(struct iterative_formula_expression *exp,
-        double *curr)
+        purc_variant_t curr, double *result)
 {
     struct pctree_node *root = &exp->node;
     struct pctree_node *p, *n;
@@ -1333,13 +1333,15 @@ int iterative_formula_iterate(struct iterative_formula_expression *exp,
             } break;
             case ITERATIVE_FORMULA_EXPRESSION_ID:
             {
-                PC_ASSERT(strcmp(ife->id, "X")==0);
-                ife->result = *curr;
+                purc_variant_t k = ife->key_name;
+                purc_variant_t v = purc_variant_object_get(curr, k);
+                double d = purc_variant_numberify(v);
+                ife->result = d;
             } break;
         }
     }
 
-    *curr = exp->result;
+    *result = exp->result;
     return 0;
 }
 
@@ -1360,9 +1362,9 @@ void iterative_formula_expression_release(
             case ITERATIVE_FORMULA_EXPRESSION_OP:
                 break;
             case ITERATIVE_FORMULA_EXPRESSION_ID:
-                if (p->id) {
-                    free(p->id);
-                    p->id = NULL;
+                if (p->key_name != PURC_VARIANT_INVALID) {
+                    purc_variant_unref(p->key_name);
+                    p->key_name = PURC_VARIANT_INVALID;
                 }
                 break;
             case ITERATIVE_FORMULA_EXPRESSION_NUM:

@@ -316,13 +316,17 @@
     STRTOD(_l->d, _r);                                    \
 } while (0)
 
-#define IFE_INIT_ID(_l, _r) do {                          \
-    _l = iterative_formula_expression_create();           \
-    if (!_l) {                                            \
-        YYABORT;                                          \
-    }                                                     \
-    _l->type = ITERATIVE_FORMULA_EXPRESSION_ID;           \
-    TOKEN_DUP_STR(_l->id, _r);                            \
+#define IFE_INIT_ID(_l, _r) do {                                        \
+    _l = iterative_formula_expression_create();                         \
+    if (!_l) {                                                          \
+        YYABORT;                                                        \
+    }                                                                   \
+    _l->type = ITERATIVE_FORMULA_EXPRESSION_ID;                         \
+    _l->key_name = purc_variant_make_string_ex(_r.text, _r.leng, true); \
+    if (_l->key_name == PURC_VARIANT_INVALID) {                         \
+        iterative_formula_expression_destroy(_l);                       \
+        YYABORT;                                                        \
+    }                                                                   \
 } while (0)
 
 #define IFE_OP(_l, _ra, _rb, _op) do {                          \

@@ -61,6 +61,15 @@ int pcexe_wchar_to_utf8(const wchar_t wc, char *utf8, size_t n);
 wchar_t* pcexe_wchar_from_utf8(const char *utf8, size_t *bytes, size_t *chars);
 char* pcexe_utf8_from_wchar(const wchar_t *ws, size_t *chars, size_t *bytes);
 
+static inline int
+pcexe_obj_set(purc_variant_t obj, purc_variant_t k, double v)
+{
+    purc_variant_t t = purc_variant_make_number(v);
+    bool ok = purc_variant_object_set(obj, k, t);
+    purc_variant_unref(t);
+    return ok ? 0 : -1;
+}
+
 struct pcexe_strlist {
     char         **strings;
     size_t         size;
@@ -458,7 +467,7 @@ struct iterative_formula_expression
     union {
         int (*op)(struct iterative_formula_expression *);
         double  d;
-        char   *id;
+        purc_variant_t key_name;
     };
 
     struct pctree_node                                    node;
@@ -494,7 +503,7 @@ int iterative_formula_div(struct iterative_formula_expression *exp);
 int iterative_formula_neg(struct iterative_formula_expression *exp);
 
 int iterative_formula_iterate(struct iterative_formula_expression *exp,
-        double *curr);
+        purc_variant_t curr, double *result);
 
 int
 literal_expression_eval(struct literal_expression *lexp,
@@ -719,19 +728,16 @@ ial_destroy(struct iterative_assignment_list *list)
 static inline int
 iae_iterate(struct iterative_assignment_expression *iae, purc_variant_t curr)
 {
-    purc_variant_t k = iae->key_name;
-    purc_variant_t v = purc_variant_object_get(curr, k);
-    if (v == PURC_VARIANT_INVALID)
-        return -1;
-    double val = purc_variant_numberify(v);
-    struct iterative_formula_expression *ife = iae->ife;
-    int r = iterative_formula_iterate(ife, &val);
+    double result;
+    int r = iterative_formula_iterate(iae->ife, curr, &result);
     if (r)
         return r;
 
-    v = purc_variant_make_number(val);
+    purc_variant_t v = purc_variant_make_number(result);
     if (v == PURC_VARIANT_INVALID)
         return -1;
+
+    purc_variant_t k = iae->key_name;
     bool ok = purc_variant_object_set(curr, k, v);
     purc_variant_unref(v);
 

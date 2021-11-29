@@ -36,7 +36,7 @@ struct pcexec_exe_formula_inst {
 
     struct exe_formula_param        param;
 
-    double                      curr;
+    purc_variant_t              curr;
 };
 
 // clear internal data except `input`
@@ -46,6 +46,7 @@ reset(struct pcexec_exe_formula_inst *exe_formula_inst)
     struct exe_formula_param *param = &exe_formula_inst->param;
     exe_formula_param_reset(param);
     pcexecutor_inst_reset(&exe_formula_inst->super);
+    PCEXE_CLR_VAR(exe_formula_inst->curr);
 }
 
 static inline bool
@@ -74,52 +75,76 @@ parse_rule(struct pcexec_exe_formula_inst *exe_formula_inst,
 }
 
 static inline bool
-iterate(struct pcexec_exe_formula_inst *exe_formula_inst, double *curr)
+iterate(struct pcexec_exe_formula_inst *exe_formula_inst)
 {
     struct exe_formula_param *param = &exe_formula_inst->param;
     struct formula_rule *rule = &param->rule;
-    *curr = exe_formula_inst->curr;
+    purc_variant_t curr = exe_formula_inst->curr;
+    purc_variant_t k = purc_variant_make_string_static("X", false);
+    purc_variant_t v = purc_variant_object_get(curr, k);
+    double d = purc_variant_numberify(v);
 
-    if (!isfinite(*curr)) {
-        pcinst_set_error(PCEXECUTOR_ERROR_OUT_OF_RANGE);
-        return false;
-    }
+    bool ok = false;
+    do {
+        if (!isfinite(d)) {
+            pcinst_set_error(PCEXECUTOR_ERROR_OUT_OF_RANGE);
+            break;
+        }
 
-    int r = iterative_formula_iterate(rule->ife, curr);
-    if (r) {
-        pcinst_set_error(PCEXECUTOR_ERROR_OUT_OF_RANGE);
-        return false;
-    }
+        double result;
+        int r = iterative_formula_iterate(rule->ife, curr, &result);
+        if (r) {
+            pcinst_set_error(PCEXECUTOR_ERROR_OUT_OF_RANGE);
+            break;
+        }
 
-    return true;
+        if (d == result) {
+            ok = true;
+            break;
+        }
+        if (pcexe_obj_set(curr, k, result))
+            break;
+
+        ok = true;
+    } while (0);
+
+    purc_variant_unref(k);
+    return ok;
 }
 
 static inline bool
-check_curr(struct pcexec_exe_formula_inst *exe_formula_inst, const double curr)
+check_curr(struct pcexec_exe_formula_inst *exe_formula_inst)
 {
     purc_exec_inst_t inst = &exe_formula_inst->super;
     struct exe_formula_param *param = &exe_formula_inst->param;
     struct formula_rule *rule = &param->rule;
     struct number_comparing_logical_expression *ncle = rule->ncle;
+    purc_variant_t curr = exe_formula_inst->curr;
+    purc_variant_t k = purc_variant_make_string_static("X", false);
+    purc_variant_t v = purc_variant_object_get(curr, k);
+    double d = purc_variant_numberify(v);
 
-    if (!isfinite(curr)) {
-        pcinst_set_error(PCEXECUTOR_ERROR_OUT_OF_RANGE);
-        return false;
-    }
+    bool ok = false;
+    do {
+        if (!isfinite(d)) {
+            pcinst_set_error(PCEXECUTOR_ERROR_OUT_OF_RANGE);
+            break;
+        }
 
-    bool match = false;
-    int r = number_comparing_logical_expression_match(ncle, curr, &match);
-    if (r || !match)
-        return false;
+        bool match = false;
+        int r = number_comparing_logical_expression_match(ncle, d, &match);
+        if (r || !match)
+            break;
 
-    purc_variant_t v = purc_variant_make_number(curr);
-    if (v == PURC_VARIANT_INVALID)
-        return false;
+        PCEXE_CLR_VAR(inst->value);
+        inst->value = v;
+        purc_variant_ref(v);
 
-    exe_formula_inst->curr = curr;
-    PCEXE_CLR_VAR(inst->value);
-    inst->value = v;
-    return true;
+        ok = true;
+    } while (0);
+
+    purc_variant_unref(k);
+    return ok;
 }
 
 static inline purc_exec_iter_t
@@ -129,9 +154,32 @@ fetch_begin(struct pcexec_exe_formula_inst *exe_formula_inst)
     purc_exec_iter_t it = &inst->it;
     purc_variant_t input = inst->input;
 
-    double curr = purc_variant_numberify(input);
+    double d = purc_variant_numberify(input);
 
-    if (!check_curr(exe_formula_inst, curr))
+    purc_variant_t curr;
+    curr = purc_variant_make_object(0, NULL, PURC_VARIANT_INVALID);
+    PC_ASSERT(curr != PURC_VARIANT_INVALID); // FIXME: exception or not?
+
+    bool ok = false;
+
+    purc_variant_t k = purc_variant_make_string_static("X", false);
+    purc_variant_t v = purc_variant_make_number(d);
+    PC_ASSERT(v != PURC_VARIANT_INVALID); // FIXME: exception or not?
+    ok = purc_variant_object_set(curr, k, v);
+    purc_variant_unref(k);
+    purc_variant_unref(v);
+
+    if (!ok) {
+        purc_variant_unref(curr);
+    }
+    if (!ok) {
+        PC_ASSERT(0); // FIXME: exception or not?
+    }
+
+    PCEXE_CLR_VAR(exe_formula_inst->curr);
+    exe_formula_inst->curr = curr;
+
+    if (!check_curr(exe_formula_inst))
         return NULL;
 
     return it;
@@ -149,11 +197,10 @@ fetch_next(struct pcexec_exe_formula_inst *exe_formula_inst)
 {
     purc_exec_inst_t inst = &exe_formula_inst->super;
     purc_exec_iter_t it = &inst->it;
-    double curr;
-    if (!iterate(exe_formula_inst, &curr))
+    if (!iterate(exe_formula_inst))
         return NULL;
 
-    if (!check_curr(exe_formula_inst, curr))
+    if (!check_curr(exe_formula_inst))
         return NULL;
 
     return it;
