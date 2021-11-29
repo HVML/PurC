@@ -235,7 +235,7 @@ exe_formula_choose(purc_exec_inst_t inst, const char* rule)
     if (vals == PURC_VARIANT_INVALID)
         return PURC_VARIANT_INVALID;
 
-    bool ok = false;
+    bool ok = true;
 
     purc_exec_iter_t it = it_begin(exe_formula_inst, rule);
 

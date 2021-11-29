@@ -614,7 +614,11 @@ number_comparing_logical_expression_match(
         case NUMBER_COMPARING_LOGICAL_EXPRESSION_NOT:
         {
             PC_ASSERT(l && !r);
-            return number_comparing_logical_expression_match(l, curr, match);
+            int r = number_comparing_logical_expression_match(l, curr, match);
+            if (r)
+                return r;
+            *match = !*match;
+            return 0;
         } break;
         case NUMBER_COMPARING_LOGICAL_EXPRESSION_NUM:
         {
