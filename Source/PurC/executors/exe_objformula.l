@@ -27,6 +27,8 @@
 
 
 %{
+#include "pcexe-helper.h"
+#include "exe_objformula.h"
 #include "exe_objformula.tab.h"
 
 #define MKT(x)    TOK_EXE_OBJFORMULA_##x
@@ -89,7 +91,7 @@ SP       [ \t]
 LN       [\r\n]|[\f\r\n]
 INTEGER  [0-9]+
 NUMBER   ([.][0-9]+(e[-+][0-9]+)?)|([0-9]+[.][0-9]*(e[-+][0-9]+)?)
-ID       [_[:alpha:]][_[:alnum:]]*
+ID       [[:alpha:]][_[:alnum:]]*
 OP       [-+*/,()=:]
 
 %%

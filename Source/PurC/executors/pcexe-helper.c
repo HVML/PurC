@@ -659,6 +659,7 @@ string_matching_logical_expression_reset(
             free(p);
     }
 }
+
 static inline void
 smle_get_children(struct string_matching_logical_expression *exp,
         struct string_matching_logical_expression **l,
@@ -1268,3 +1269,23 @@ void iterative_formula_expression_release(
     }
 }
 
+void
+vncle_release(struct value_number_comparing_logical_expression *vncle)
+{
+    if (!vncle)
+        return;
+
+    struct pctree_node *top = &vncle->node;
+    struct pctree_node *node, *next;
+    pctree_for_each_post_order(top, node, next) {
+        struct value_number_comparing_logical_expression *p;
+        p = container_of(node,
+                struct value_number_comparing_logical_expression, node);
+        pctree_node_remove(node);
+
+        vncc_release(&p->vncc);
+
+        if (p!=vncle)
+            free(p);
+    }
+}

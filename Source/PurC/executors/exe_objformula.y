@@ -27,15 +27,18 @@
 
 %code top {
     // here to include header files required for generated exe_objformula.tab.c
+    #define _GNU_SOURCE
+    #include <stddef.h>
+    #include <stdio.h>
+    #include <string.h>
+
+    #include "purc-errors.h"
+
+    #include "pcexe-helper.h"
+    #include "exe_objformula.h"
 }
 
 %code requires {
-    #ifdef _GNU_SOURCE
-    #undef _GNU_SOURCE
-    #endif
-    #define _GNU_SOURCE
-    #include <stdio.h>
-    #include <stddef.h>
     // related struct/function decls
     // especially, for struct exe_objformula_param
     // and parse function for example:
@@ -43,12 +46,6 @@
     //        struct exe_objformula_param *param);
     // #include "exe_objformula.h"
     // here we define them locally
-    struct exe_objformula_param {
-        char *err_msg;
-        int debug_flex;
-        int debug_bison;
-    };
-
     struct exe_objformula_token {
         const char      *text;
         size_t           leng;
@@ -60,9 +57,6 @@
     #define YY_TYPEDEF_YY_SCANNER_T
     typedef void* yyscan_t;
     #endif
-
-    int exe_objformula_parse(const char *input, size_t len,
-            struct exe_objformula_param *param);
 }
 
 %code provides {
@@ -72,6 +66,7 @@
     // generated header from flex
     // introduce yylex decl for later use
     #include "exe_objformula.lex.h"
+    #include "tab.h"
 
     static void yyerror(
         YYLTYPE *yylloc,                   // match %define locations
@@ -80,22 +75,14 @@
         const char *errsg
     );
 
-    #define SET_ARGS(_r, _a) do {              \
-        _r = strndup(_a.text, _a.leng);        \
-        if (!_r)                               \
-            YYABORT;                           \
-    } while (0)
-
-    #define APPEND_ARGS(_r, _a, _b) do {       \
-        size_t len = strlen(_a);               \
-        size_t n   = len + _b.leng;            \
-        char *s = (char*)realloc(_a, n+1);     \
-        if (!s) {                              \
-            free(_r);                          \
-            YYABORT;                           \
-        }                                      \
-        memcpy(s+len, _b.text, _b.leng);       \
-        _r = s;                                \
+    #define SET_RULE(_rule) do {                            \
+        if (param) {                                        \
+            objformula_rule_release(&_rule);                \
+            break; \
+            param->rule = _rule;                            \
+        } else {                                            \
+            objformula_rule_release(&_rule);                \
+        }                                                   \
     } while (0)
 }
 
@@ -118,77 +105,109 @@
 %union { struct exe_objformula_token token; }
 %union { char *str; }
 %union { char c; }
+%union { struct iterative_formula_expression *ife; }
+%union { struct iterative_assignment_list *ial; }
+%union { struct iterative_assignment_expression *iae; }
+%union { struct number_comparing_condition ncc; }
+%union { struct value_number_comparing_condition vncc; }
+%union { struct value_number_comparing_logical_expression *vncle; }
+%union { struct objformula_rule rule; }
+%union { double nexp; }
 
-    /* %destructor { free($$); } <str> */ // destructor for `str`
+%destructor { iterative_formula_expression_destroy($$); } <ife>
+%destructor { ial_destroy($$); } <ial>
+%destructor { iae_destroy($$); } <iae>
+%destructor { vncc_release(&$$); } <vncc>
+%destructor { vncle_destroy($$); } <vncle>
+%destructor { objformula_rule_release(&$$); } <rule>
+
+%left AND OR XOR
 
 %token OBJFORMULA BY
 %token LT GT LE GE NE EQ NOT
 %token <token> INTEGER NUMBER ID
 
-%left AND OR XOR
-%left LT GT LE GE NE EQ
-%right NOT
 %right '='
+%left ','
 %left '-' '+'
 %left '*' '/'
 %precedence UMINUS
 
- /* %nterm <str>   args */ // non-terminal `input` use `str` to store
-                           // token value as well
+%precedence NEG
+
+
+%nterm <rule>  objformula_rule;
+%nterm <vncle> value_number_comparing_logical_expression;
+%nterm <ife>   iterative_formula_expression;
+%nterm <ial>   iterative_assignment_list;
+%nterm <iae>   iterative_assignment_expression;
+%nterm <ncc>   number_comparing_condition;
+%nterm <vncc>  value_number_comparing_condition;
+%nterm <nexp>  exp;
 
 %% /* The grammar follows. */
 
 input:
-  objformula_rule
+  objformula_rule      { SET_RULE($1); }
 ;
 
 objformula_rule:
-  OBJFORMULA ':' value_number_comparing_logical_expression BY iterative_assignment_list
+  OBJFORMULA ':' value_number_comparing_logical_expression BY iterative_assignment_list     { $$.vncle = $3; $$.ial = $5; }
 ;
 
 value_number_comparing_logical_expression:
-  value_number_comparing_condition
-| value_number_comparing_condition AND value_number_comparing_condition
-| value_number_comparing_condition OR value_number_comparing_condition
-| value_number_comparing_condition XOR value_number_comparing_condition
-| NOT value_number_comparing_condition
-| '(' value_number_comparing_condition ')'
+  value_number_comparing_condition   { VNCLE_INIT($$, $1); }
+| value_number_comparing_logical_expression AND value_number_comparing_logical_expression { VNCLE_AND($$, $1, $3); }
+| value_number_comparing_logical_expression OR value_number_comparing_logical_expression  { VNCLE_OR($$, $1, $3); }
+| value_number_comparing_logical_expression XOR value_number_comparing_logical_expression { VNCLE_XOR($$, $1, $3); }
+| NOT value_number_comparing_logical_expression %prec NEG  { VNCLE_NOT($$, $2); }
+| '(' value_number_comparing_logical_expression ')'   { $$ = $2; }
 ;
 
 value_number_comparing_condition:
-  key_name LT exp
-| key_name GT exp
-| key_name LE exp
-| key_name GE exp
-| key_name NE exp
-| key_name EQ exp
+  ID number_comparing_condition      { VNCC_INIT($$, $1, $2); }
+;
+
+number_comparing_condition:
+  LT exp           { $$.op_type = NUMBER_COMPARING_LT; $$.nexp = $2; }
+| GT exp           { $$.op_type = NUMBER_COMPARING_GT; $$.nexp = $2; }
+| LE exp           { $$.op_type = NUMBER_COMPARING_LE; $$.nexp = $2; }
+| GE exp           { $$.op_type = NUMBER_COMPARING_GE; $$.nexp = $2; }
+| NE exp           { $$.op_type = NUMBER_COMPARING_NE; $$.nexp = $2; }
+| EQ exp           { $$.op_type = NUMBER_COMPARING_EQ; $$.nexp = $2; }
 ;
 
 exp:
-  INTEGER
-| NUMBER
-| ID
-| exp '+' exp
-| exp '-' exp
-| exp '*' exp
-| exp '/' exp
-| '-' exp %prec UMINUS
-| '(' exp ')'
+  INTEGER               { NUMERIC_EXP_INIT_I64($$, $1); }
+| NUMBER                { NUMERIC_EXP_INIT_LD($$, $1); }
+| exp '+' exp           { NUMERIC_EXP_ADD($$, $1, $3); }
+| exp '-' exp           { NUMERIC_EXP_SUB($$, $1, $3); }
+| exp '*' exp           { NUMERIC_EXP_MUL($$, $1, $3); }
+| exp '/' exp           { NUMERIC_EXP_DIV($$, $1, $3); }
+| '-' exp %prec UMINUS  { NUMERIC_EXP_UMINUS($$, $2); }
+| '(' exp ')'           { $$ = $2; }
+;
+
+iterative_formula_expression:
+  INTEGER           { IFE_INIT_INTEGER($$, $1); }
+| NUMBER            { IFE_INIT_NUMBER($$, $1); }
+| ID                { IFE_INIT_ID($$, $1); }
+| iterative_formula_expression '+' iterative_formula_expression     { IFE_ADD($$, $1, $3); }
+| iterative_formula_expression '-' iterative_formula_expression     { IFE_SUB($$, $1, $3); }
+| iterative_formula_expression '*' iterative_formula_expression     { IFE_MUL($$, $1, $3); }
+| iterative_formula_expression '/' iterative_formula_expression     { IFE_DIV($$, $1, $3); }
+| '-' iterative_formula_expression %prec UMINUS    { IFE_NEG($$, $2); }
+| '(' iterative_formula_expression ')'             { $$ = $2; }
 ;
 
 iterative_assignment_list:
-  iterative_assignment_expression
-| iterative_assignment_list ',' iterative_assignment_expression
+  iterative_assignment_expression            { IAL_INIT($$, $1); }
+| iterative_assignment_list ',' iterative_assignment_expression    { IAL_APPEND($$, $1, $3); }
 ;
 
 iterative_assignment_expression:
-  key_name '=' exp
+  ID '=' iterative_formula_expression        { IAE_INIT($$, $1, $3); }
 ;
-
-key_name:
-  ID
-;
-
 
 %%
 

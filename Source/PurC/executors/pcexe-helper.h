@@ -580,6 +580,142 @@ string_matching_condition_eval(struct string_matching_condition *mexp,
 int number_comparing_condition_eval(struct number_comparing_condition *ncc,
         const double curr, bool *result);
 
+///////////////////////////////////////////////////
+
+struct value_number_comparing_condition
+{
+    char                                 *key_name;
+    struct number_comparing_condition     ncc;
+};
+
+struct value_number_comparing_logical_expression
+{
+    enum number_comparing_logical_expression_node_type          type;
+
+    union {
+        struct value_number_comparing_condition vncc;
+    };
+
+    struct pctree_node              node;
+};
+
+static inline void
+vncc_release(struct value_number_comparing_condition *vncc)
+{
+    if (!vncc)
+        return;
+
+    if (vncc->key_name) {
+        free(vncc->key_name);
+        vncc->key_name = NULL;
+    }
+}
+
+int vncc_eval(struct value_number_comparing_condition *vncc,
+        purc_variant_t curr, bool *result);
+
+static inline struct value_number_comparing_logical_expression*
+vncle_create(void)
+{
+    struct value_number_comparing_logical_expression *vncle;
+    vncle = (struct value_number_comparing_logical_expression*)calloc(1,
+            sizeof(*vncle));
+    return vncle;
+}
+
+void
+vncle_release(struct value_number_comparing_logical_expression *vncle);
+
+static inline void
+vncle_destroy(struct value_number_comparing_logical_expression *vncle)
+{
+    if (!vncle)
+        return;
+
+    vncle_release(vncle);
+    free(vncle);
+}
+
+int
+vncle_match(struct value_number_comparing_logical_expression *vncle,
+        purc_variant_t curr, bool *match);
+
+struct iterative_assignment_expression
+{
+    char                                      *key_name; // l-value
+    struct iterative_formula_expression       *ife; // r-value
+
+    struct list_head                           node;
+};
+
+struct iterative_assignment_list
+{
+    struct list_head              list;
+};
+
+static inline void
+iae_release(struct iterative_assignment_expression* iae)
+{
+    if (!iae)
+        return;
+
+    if (iae->key_name) {
+        free(iae->key_name);
+        iae->key_name = NULL;
+    }
+    if (iae->ife) {
+        iterative_formula_expression_destroy(iae->ife);
+        iae->ife = NULL;
+    }
+}
+
+static inline void
+iae_destroy(struct iterative_assignment_expression* iae)
+{
+    if (!iae)
+        return;
+
+    iae_release(iae);
+    free(iae);
+}
+
+static inline struct iterative_assignment_expression*
+iae_create(void) {
+    struct iterative_assignment_expression *iae;
+    iae = (struct iterative_assignment_expression*)calloc(1, sizeof(*iae));
+    return iae;
+}
+
+static inline struct iterative_assignment_list*
+ial_create(void)
+{
+    struct iterative_assignment_list *list;
+    list = (struct iterative_assignment_list*)calloc(1, sizeof(*list));
+    if (!list)
+        return NULL;
+
+    INIT_LIST_HEAD(&list->list);
+
+    return list;
+}
+
+static inline void
+ial_destroy(struct iterative_assignment_list *list)
+{
+    if (!list)
+        return;
+
+    struct list_head *p, *n;
+    list_for_each_safe(p, n, &list->list) {
+        struct iterative_assignment_expression *iae;
+        iae = container_of(p, struct iterative_assignment_expression, node);
+        list_del(p);
+        iae_destroy(iae);
+    }
+
+    free(list);
+}
+
 PCA_EXTERN_C_END
 
 #endif // PURC_EXECUTOR_PCEXE_HELPER_H

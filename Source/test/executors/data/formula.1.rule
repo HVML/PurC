@@ -33,6 +33,7 @@ BY
 # with variable and expression
 FORMULA: LT ( 4 + 6 ) * 10 BY ( x * 2 - 50 ) ;
 FORMULA:LT (4+6)*10 BY (x*2-50);
+FORMULA: LT 10 AND GT 3 BY -4;
 
 N: # bellow are negative samples
 # blank lines

@@ -91,7 +91,7 @@ SP       [ \t]
 LN       [\r\n]|[\f\r\n]
 INTEGER  [0-9]+
 NUMBER   ([.][0-9]+(e[-+][0-9]+)?)|([0-9]+[.][0-9]*(e[-+][0-9]+)?)
-ID       [_[:alpha:]][_[:alnum:]]*
+ID       [[:alpha:]][_[:alnum:]]*
 
 %%
 
@@ -107,6 +107,10 @@ LE        { R(); PUSH(KW); C(); return MKT(LE); }
 GE        { R(); PUSH(KW); C(); return MKT(GE); }
 NE        { R(); PUSH(KW); C(); return MKT(NE); }
 EQ        { R(); PUSH(KW); C(); return MKT(EQ); }
+NOT       { R(); PUSH(KW); C(); return MKT(NOT); }
+AND       { R(); PUSH(KW); C(); return MKT(AND); }
+XOR       { R(); PUSH(KW); C(); return MKT(XOR); }
+OR        { R(); PUSH(KW); C(); return MKT(OR); }
 {ID}      { R(); PUSH(AFTER_ID); SET_STR(); C(); return MKT(ID); }
 {INTEGER} { R(); PUSH(AFTER_NUM); SET_STR(); C(); return MKT(INTEGER); }
 {NUMBER}  { R(); PUSH(AFTER_NUM); SET_STR(); C(); return MKT(NUMBER); }

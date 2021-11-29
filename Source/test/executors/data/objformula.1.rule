@@ -16,7 +16,10 @@ P: # bellow are positive samples
                       
 
 # all seperated with a SPACE
-OBJFORMULA : x LT 500 AND y LT 600 BY x = (x * 2 - 50), y = y + x ;
+# OBJFORMULA : x LT 500 AND y LT 600 BY x = (x * 2 - 50), y = y + x ;
+OBJFORMULA : NOT x LT 500 BY x = x + 3;
+OBJFORMULA : NOT x LT 100 AND y GT 3 OR z EQ 3 OR m NE 4 BY x = x + 3;
+OBJFORMULA : NOT x LT 500 BY x = x + 3, y = x + 4;
 
 # no SPACE in between
 # multiple line

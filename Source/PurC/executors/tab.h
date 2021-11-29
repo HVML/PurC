@@ -412,7 +412,7 @@
     if (ok)                                                        \
         break;                                                     \
     if (_ncle)                                                     \
-        number_comparing_logical_expression_destroy(_l);           \
+        number_comparing_logical_expression_destroy(_ncle);        \
     YYABORT;                                                       \
 } while (0)
 
@@ -440,7 +440,7 @@
     if (ok)                                                        \
         break;                                                     \
     if (_ncle)                                                     \
-        number_comparing_logical_expression_destroy(_l);           \
+        number_comparing_logical_expression_destroy(_ncle);        \
     YYABORT;                                                       \
 } while (0)
 
@@ -508,6 +508,100 @@
     YYABORT;                                                       \
 } while (0)
 
+#define VNCLE_INIT(_vncle, _r) do {                             \
+    _vncle = vncle_create();                                    \
+    if (!_vncle) {                                              \
+        YYABORT;                                                \
+    }                                                           \
+    _vncle->type = NUMBER_COMPARING_LOGICAL_EXPRESSION_NUM;     \
+    _vncle->vncc  = _r;                                         \
+} while (0)
+
+#define VNCLE_OP(_vncle, _l, _r, _op) do {                         \
+    _vncle = vncle_create();                                       \
+    bool ok = false;                                               \
+    do {                                                           \
+        if (!_vncle)                                               \
+            break;                                                 \
+        _vncle->type = _op;                                        \
+        if (!pctree_node_append_child(&_vncle->node, &_l->node))   \
+            break;                                                 \
+        _l = NULL;                                                 \
+        if (!pctree_node_append_child(&_vncle->node, &_r->node))   \
+            break;                                                 \
+        _r = NULL;                                                 \
+        ok = true;                                                 \
+    } while (0);                                                   \
+    if (ok)                                                        \
+        break;                                                     \
+    if (_l)                                                        \
+        vncle_destroy(_l);                                         \
+    if (_r)                                                        \
+        vncle_destroy(_r);                                         \
+    if (_vncle)                                                    \
+        vncle_destroy(_vncle);                                     \
+    YYABORT;                                                       \
+} while (0)
+
+#define VNCLE_AND(_vncle, _l, _r)                          \
+    VNCLE_OP(_vncle, _l, _r, NUMBER_COMPARING_LOGICAL_EXPRESSION_AND)
+#define VNCLE_OR(_vncle, _l, _r)                           \
+    VNCLE_OP(_vncle, _l, _r, NUMBER_COMPARING_LOGICAL_EXPRESSION_OR)
+#define VNCLE_XOR(_vncle, _l, _r)                          \
+    VNCLE_OP(_vncle, _l, _r, NUMBER_COMPARING_LOGICAL_EXPRESSION_XOR)
+
+#define VNCLE_NOT(_vncle, _l) do {                                 \
+    _vncle = vncle_create();                                       \
+    bool ok = false;                                               \
+    do {                                                           \
+        if (!_vncle)                                               \
+            break;                                                 \
+        _vncle->type = NUMBER_COMPARING_LOGICAL_EXPRESSION_NOT;    \
+        if (!pctree_node_append_child(&_vncle->node, &_l->node))   \
+            break;                                                 \
+        _l = NULL;                                                 \
+        ok = true;                                                 \
+    } while (0);                                                   \
+    if (ok)                                                        \
+        break;                                                     \
+    if (_l)                                                        \
+        vncle_destroy(_l);                                         \
+    if (_vncle)                                                    \
+        vncle_destroy(_vncle);                                     \
+    YYABORT;                                                       \
+} while (0)
+
+#define VNCC_INIT(_vncc, _l, _r) do {            \
+    char *id = strndup(_l.text, _l.leng);        \
+    if (!id)                                     \
+        YYABORT;                                 \
+    _vncc.key_name = id;                         \
+    _vncc.ncc      = _r;                         \
+} while (0)
+
+#define IAL_INIT(_ial, _l) do {                  \
+    _ial = ial_create();                         \
+    if (!_ial)                                   \
+        YYABORT;                                 \
+    list_add(&_l->node, &_ial->list);            \
+} while (0)
+
+#define IAL_APPEND(_ial, _l, _r) do {          \
+    list_add(&_r->node, &_l->list);            \
+    _ial = _l;                                 \
+} while (0)
+
+#define IAE_INIT(_iae, _l, _r) do {                 \
+    _iae = iae_create();                            \
+    if (!_iae)                                      \
+        YYABORT;                                    \
+    _iae->key_name = strndup(_l.text, _l.leng);     \
+    if (!_iae->key_name) {                          \
+        iae_destroy(_iae);                          \
+        YYABORT;                                    \
+    }                                               \
+    _iae->ife = _r;                                 \
+} while (0)
 
 #endif // PURC_EXECUTOR_TAB_H
 

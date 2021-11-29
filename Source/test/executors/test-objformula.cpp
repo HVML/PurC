@@ -12,6 +12,8 @@
 #include "../helpers.h"
 
 extern "C" {
+#include "pcexe-helper.h"
+#include "exe_objformula.h"
 #include "exe_objformula.tab.h"
 }
 
