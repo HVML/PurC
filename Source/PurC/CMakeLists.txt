@@ -196,6 +196,7 @@ list(APPEND PurC_INTERFACE_DEPENDENCIES PurC_CopyPrivateHeaders)
 # will be generated in both projects.
 if (NOT INTERNAL_BUILD)
     add_dependencies(PurC_CopyPrivateHeaders PurC)
+    add_dependencies(PurC WTF)
 endif ()
 
 
