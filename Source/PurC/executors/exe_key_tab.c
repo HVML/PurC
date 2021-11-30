@@ -1,8 +1,8 @@
 /*
- * @file ejson.c
+ * @file exe_key_tab.c
  * @author Xu Xiaohong
- * @date 2021/11/05
- * @brief The impl for eJSON-parser parser
+ * @date 2021/11/30
+ * @brief The implementation of public part for KEY parser.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -22,25 +22,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "config.h"
+#define _GNU_SOURCE
+#include <stddef.h>
+#include <stdio.h>
+#include <string.h>
 
-#include "private/ejson-parser.h"
+#include "purc-errors.h"
 
-#include "ejson.tab.h"
+#include "pcexe-helper.h"
+#include "exe_key.h"
+#include "tab.h"
 
-#include <stdlib.h>
+#include "exe_key.tab.h"
+#include "exe_key.lex.h"
 
-purc_variant_t
-pcejson_parser_parse_string(const char *str)
-{
-    struct ejson_param param;
-    param.var = PURC_VARIANT_INVALID;
-
-    int r = ejson_parse(str, &param);
-
-    if (r)
-        return PURC_VARIANT_INVALID;
-
-    return param.var;
-}
+#include "exe_key.tab.c"
 

@@ -30,19 +30,6 @@
 }
 
 %code requires {
-    #ifdef _GNU_SOURCE
-    #undef _GNU_SOURCE
-    #endif
-    #define _GNU_SOURCE
-    #include <stdio.h>
-    #include <stddef.h>
-    // related struct/function decls
-    // especially, for struct exe_sql_param
-    // and parse function for example:
-    // int exe_sql_parse(const char *input,
-    //        struct exe_sql_param *param);
-    // #include "exe_sql.h"
-    // here we define them locally
     struct exe_sql_param {
         char *err_msg;
         int debug_flex;
@@ -71,8 +58,6 @@
 %code {
     // generated header from flex
     // introduce yylex decl for later use
-    #include "exe_sql.lex.h"
-
     static void yyerror(
         YYLTYPE *yylloc,                   // match %define locations
         yyscan_t arg,                      // match %param

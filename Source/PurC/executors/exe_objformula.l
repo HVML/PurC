@@ -27,10 +27,6 @@
 
 
 %{
-#include "pcexe-helper.h"
-#include "exe_objformula.h"
-#include "exe_objformula.tab.h"
-
 #define MKT(x)    TOK_EXE_OBJFORMULA_##x
 
 #define PUSH(state)      yy_push_state(state, yyscanner)

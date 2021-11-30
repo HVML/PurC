@@ -27,25 +27,9 @@
 
 %code top {
     // here to include header files required for generated exe_range.tab.c
-    #define _GNU_SOURCE
-    #include <stddef.h>
-    #include <stdio.h>
-    #include <string.h>
-
-    #include "purc-errors.h"
-
-    #include "pcexe-helper.h"
-    #include "exe_range.h"
 }
 
 %code requires {
-    // related struct/function decls
-    // especially, for struct exe_range_param
-    // and parse function for example:
-    // int exe_range_parse(const char *input,
-    //        struct exe_range_param *param);
-    // #include "exe_range.h"
-    // here we define them locally
     struct exe_range_token {
         const char      *text;
         size_t           leng;
@@ -65,9 +49,6 @@
 %code {
     // generated header from flex
     // introduce yylex decl for later use
-    #include "exe_range.lex.h"
-    #include "tab.h"
-
     #include <math.h>
 
     static void yyerror(

@@ -27,10 +27,6 @@
 
 
 %{
-#include "pcexe-helper.h"
-#include "exe_key.h"
-#include "exe_key.tab.h"
-
 #define MKT(x)    TOK_EXE_KEY_##x
 
 #define PUSH(state)      yy_push_state(state, yyscanner)

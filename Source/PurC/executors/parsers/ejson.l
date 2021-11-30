@@ -27,8 +27,6 @@
 
 
 %{
-#include "ejson.tab.h"
-
 #define MKT(x)    TOK_EJSON_##x
 
 #define PUSH(state)      yy_push_state(state, yyscanner)

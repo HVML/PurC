@@ -31,15 +31,6 @@
 }
 
 %code requires {
-    #include <stddef.h>
-    #include "purc-variant.h"
-    // related struct/function decls
-    // especially, for struct ejson_param
-    // and parse function for example:
-    // int ejson_parse(const char *input,
-    //        struct ejson_param *param);
-    // #include "ejson.h"
-    // here we define them locally
     struct ejson_param {
         char      placeholder[0];
 
@@ -607,5 +598,19 @@ int ejson_parse(const char *input,
     int ret =ejson_yyparse(arg, param);
     ejson_yylex_destroy(arg);
     return ret ? 1 : 0;
+}
+
+purc_variant_t
+pcejson_parser_parse_string(const char *str)
+{
+    struct ejson_param param;
+    param.var = PURC_VARIANT_INVALID;
+
+    int r = ejson_parse(str, &param);
+
+    if (r)
+        return PURC_VARIANT_INVALID;
+
+    return param.var;
 }
 

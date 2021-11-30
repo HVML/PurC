@@ -27,25 +27,9 @@
 
 %code top {
     // here to include header files required for generated exe_sub.tab.c
-    #define _GNU_SOURCE
-    #include <stddef.h>
-    #include <stdio.h>
-    #include <string.h>
-
-    #include "purc-errors.h"
-
-    #include "pcexe-helper.h"
-    #include "exe_sub.h"
 }
 
 %code requires {
-    // related struct/function decls
-    // especially, for struct exe_sub_param
-    // and parse function for example:
-    // int exe_sub_parse(const char *input,
-    //        struct exe_sub_param *param);
-    // #include "exe_sub.h"
-    // here we define them locally
     struct exe_sub_token {
         const char      *text;
         size_t           leng;
@@ -65,9 +49,6 @@
 %code {
     // generated header from flex
     // introduce yylex decl for later use
-    #include "exe_sub.lex.h"
-    #include "tab.h"
-
     static void yyerror(
         YYLTYPE *yylloc,                   // match %define locations
         yyscan_t arg,                      // match %param

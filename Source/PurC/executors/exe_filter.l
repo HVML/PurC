@@ -27,10 +27,6 @@
 
 
 %{
-#include "pcexe-helper.h"
-#include "exe_filter.h"
-#include "exe_filter.tab.h"
-
 #define MKT(x)    TOK_EXE_FILTER_##x
 
 #define PUSH(state)      yy_push_state(state, yyscanner)

@@ -27,8 +27,6 @@
 
 
 %{
-#include "exe_travel.tab.h"
-
 #define MKT(x)    TOK_EXE_TRAVEL_##x
 
 #define PUSH(state)      yy_push_state(state, yyscanner)

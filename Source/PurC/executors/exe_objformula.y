@@ -27,25 +27,9 @@
 
 %code top {
     // here to include header files required for generated exe_objformula.tab.c
-    #define _GNU_SOURCE
-    #include <stddef.h>
-    #include <stdio.h>
-    #include <string.h>
-
-    #include "purc-errors.h"
-
-    #include "pcexe-helper.h"
-    #include "exe_objformula.h"
 }
 
 %code requires {
-    // related struct/function decls
-    // especially, for struct exe_objformula_param
-    // and parse function for example:
-    // int exe_objformula_parse(const char *input,
-    //        struct exe_objformula_param *param);
-    // #include "exe_objformula.h"
-    // here we define them locally
     struct exe_objformula_token {
         const char      *text;
         size_t           leng;
@@ -65,9 +49,6 @@
 %code {
     // generated header from flex
     // introduce yylex decl for later use
-    #include "exe_objformula.lex.h"
-    #include "tab.h"
-
     static void yyerror(
         YYLTYPE *yylloc,                   // match %define locations
         yyscan_t arg,                      // match %param

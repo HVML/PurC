@@ -27,26 +27,9 @@
 
 %code top {
     // here to include header files required for generated exe_char.tab.c
-    #define _GNU_SOURCE
-    #include <stddef.h>
-    #include <stdio.h>
-    #include <string.h>
-
-    #include "purc-errors.h"
-
-    #include "pcexe-helper.h"
-    #include "exe_char.h"
 }
 
 %code requires {
-    // related struct/function decls
-    // especially, for struct exe_char_param
-    // and parse function for example:
-    // int exe_char_parse(const char *input,
-    //        struct exe_char_param *param);
-    // #include "exe_char.h"
-    // here we define them locally
-    #include <math.h>
     struct exe_char_token {
         const char      *text;
         size_t           leng;
@@ -66,8 +49,7 @@
 %code {
     // generated header from flex
     // introduce yylex decl for later use
-    #include "exe_char.lex.h"
-    #include "tab.h"
+    #include <math.h>
 
     static void yyerror(
         YYLTYPE *yylloc,                   // match %define locations

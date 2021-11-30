@@ -27,10 +27,6 @@
 
 
 %{
-#include "pcexe-helper.h"
-#include "exe_div.h"
-#include "exe_div.tab.h"
-
 #define MKT(x)    TOK_EXE_DIV_##x
 
 #define PUSH(state)      yy_push_state(state, yyscanner)

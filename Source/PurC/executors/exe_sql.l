@@ -27,8 +27,6 @@
 
 
 %{
-#include "exe_sql.tab.h"
-
 #define MKT(x)    TOK_EXE_SQL_##x
 
 #define PUSH(state)      yy_push_state(state, yyscanner)
