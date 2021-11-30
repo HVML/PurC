@@ -32,7 +32,10 @@
 #include "SharedBuffer.h"
 #include "ResourceError.h"
 #include "ResourceRequest.h"
+#include "ResourceResponse.h"
 #include "SecurityOrigin.h"
+#include "CertificateInfo.h"
+#include "NetworkProxySettings.h"
 
 #include <wtf/URL.h>
 #include <wtf/text/CString.h>
@@ -242,152 +245,194 @@ bool ArgumentCoder<Vector<RefPtr<SecurityOrigin>>>::decode(Decoder& decoder, Vec
     return true;
 }
 
-#if 0
-void ArgumentCoder<CacheQueryOptions>::encode(Encoder& encoder, const CacheQueryOptions& options)
+void ArgumentCoder<ResourceRequest>::encodePlatformData(Encoder& encoder, const ResourceRequest& resourceRequest)
 {
-    encoder << options.ignoreSearch;
-    encoder << options.ignoreMethod;
-    encoder << options.ignoreVary;
-    encoder << options.cacheName;
+    resourceRequest.encodeWithPlatformData(encoder);
 }
 
-bool ArgumentCoder<CacheQueryOptions>::decode(Decoder& decoder, CacheQueryOptions& options)
+bool ArgumentCoder<ResourceRequest>::decodePlatformData(Decoder& decoder, ResourceRequest& resourceRequest)
 {
-    bool ignoreSearch;
-    if (!decoder.decode(ignoreSearch))
-        return false;
-    bool ignoreMethod;
-    if (!decoder.decode(ignoreMethod))
-        return false;
-    bool ignoreVary;
-    if (!decoder.decode(ignoreVary))
-        return false;
-    String cacheName;
-    if (!decoder.decode(cacheName))
+    return resourceRequest.decodeWithPlatformData(decoder);
+}
+
+void ArgumentCoder<CertificateInfo>::encode(Encoder& encoder, const CertificateInfo& certificateInfo)
+{
+    auto* certificate = certificateInfo.certificate();
+    if (!certificate) {
+        encoder << 0;
+        return;
+    }
+
+    Vector<GRefPtr<GByteArray>> certificatesDataList;
+    for (; certificate; certificate = g_tls_certificate_get_issuer(certificate)) {
+        GByteArray* certificateData = nullptr;
+        g_object_get(G_OBJECT(certificate), "certificate", &certificateData, nullptr);
+
+        if (!certificateData) {
+            certificatesDataList.clear();
+            break;
+        }
+
+        certificatesDataList.append(adoptGRef(certificateData));
+    }
+
+    encoder << static_cast<uint32_t>(certificatesDataList.size());
+
+    if (certificatesDataList.isEmpty())
+        return;
+
+    // Encode starting from the root certificate.
+    for (size_t i = certificatesDataList.size(); i > 0; --i) {
+        GByteArray* certificate = certificatesDataList[i - 1].get();
+        encoder.encodeVariableLengthByteArray(IPC::DataReference(certificate->data, certificate->len));
+    }
+
+    encoder << static_cast<uint32_t>(certificateInfo.tlsErrors());
+}
+
+bool ArgumentCoder<CertificateInfo>::decode(Decoder& decoder, CertificateInfo& certificateInfo)
+{
+    uint32_t chainLength;
+    if (!decoder.decode(chainLength))
         return false;
 
-    options.ignoreSearch = ignoreSearch;
-    options.ignoreMethod = ignoreMethod;
-    options.ignoreVary = ignoreVary;
-    options.cacheName = WTFMove(cacheName);
+    if (!chainLength)
+        return true;
+
+    GType certificateType = g_tls_backend_get_certificate_type(g_tls_backend_get_default());
+    GRefPtr<GTlsCertificate> certificate;
+    for (uint32_t i = 0; i < chainLength; i++) {
+        IPC::DataReference certificateDataReference;
+        if (!decoder.decodeVariableLengthByteArray(certificateDataReference))
+            return false;
+
+        GByteArray* certificateData = g_byte_array_sized_new(certificateDataReference.size());
+        GRefPtr<GByteArray> certificateBytes = adoptGRef(g_byte_array_append(certificateData, certificateDataReference.data(), certificateDataReference.size()));
+
+        certificate = adoptGRef(G_TLS_CERTIFICATE(g_initable_new(
+            certificateType, nullptr, nullptr, "certificate", certificateBytes.get(), "issuer", certificate.get(), nullptr)));
+    }
+
+    uint32_t tlsErrors;
+    if (!decoder.decode(tlsErrors))
+        return false;
+
+    certificateInfo.setCertificate(certificate.get());
+    certificateInfo.setTLSErrors(static_cast<GTlsCertificateFlags>(tlsErrors));
+
     return true;
 }
 
-
-void ArgumentCoder<DOMCacheEngine::CacheInfo>::encode(Encoder& encoder, const DOMCacheEngine::CacheInfo& info)
+void ArgumentCoder<ResourceError>::encodePlatformData(Encoder& encoder, const ResourceError& resourceError)
 {
-    encoder << info.identifier;
-    encoder << info.name;
+    encoder << resourceError.domain();
+    encoder << resourceError.errorCode();
+    encoder << resourceError.failingURL().string();
+    encoder << resourceError.localizedDescription();
+
+    encoder << CertificateInfo(resourceError);
 }
 
-auto ArgumentCoder<DOMCacheEngine::CacheInfo>::decode(Decoder& decoder) -> Optional<DOMCacheEngine::CacheInfo>
+bool ArgumentCoder<ResourceError>::decodePlatformData(Decoder& decoder, ResourceError& resourceError)
 {
-    Optional<uint64_t> identifier;
-    decoder >> identifier;
-    if (!identifier)
-        return WTF::nullopt;
-    
-    Optional<String> name;
-    decoder >> name;
-    if (!name)
-        return WTF::nullopt;
-    
-    return {{ WTFMove(*identifier), WTFMove(*name) }};
+    String domain;
+    if (!decoder.decode(domain))
+        return false;
+
+    int errorCode;
+    if (!decoder.decode(errorCode))
+        return false;
+
+    String failingURL;
+    if (!decoder.decode(failingURL))
+        return false;
+
+    String localizedDescription;
+    if (!decoder.decode(localizedDescription))
+        return false;
+
+    resourceError = ResourceError(domain, errorCode, URL(URL(), failingURL), localizedDescription);
+
+    CertificateInfo certificateInfo;
+    if (!decoder.decode(certificateInfo))
+        return false;
+
+    resourceError.setCertificate(certificateInfo.certificate());
+    resourceError.setTLSErrors(certificateInfo.tlsErrors());
+    return true;
 }
 
-void ArgumentCoder<DOMCacheEngine::Record>::encode(Encoder& encoder, const DOMCacheEngine::Record& record)
+#if USE(SOUP)
+void ArgumentCoder<NetworkProxySettings>::encode(Encoder& encoder, const NetworkProxySettings& settings)
 {
-    encoder << record.identifier;
+    ASSERT(!settings.isEmpty());
+    encoder << settings.mode;
+    if (settings.mode != NetworkProxySettings::Mode::Custom)
+        return;
 
-    encoder << record.requestHeadersGuard;
-    encoder << record.request;
-    encoder << record.options;
-    encoder << record.referrer;
-
-    encoder << record.responseHeadersGuard;
-    encoder << record.response;
-    encoder << record.updateResponseCounter;
-    encoder << record.responseBodySize;
-
-    WTF::switchOn(record.responseBody, [&](const Ref<SharedBuffer>& buffer) {
-        encoder << true;
-        encodeSharedBuffer(encoder, buffer.ptr());
-    }, [&](const Ref<FormData>& formData) {
-        encoder << false;
-        encoder << true;
-        formData->encode(encoder);
-    }, [&](const std::nullptr_t&) {
-        encoder << false;
-        encoder << false;
-    });
+    encoder << settings.defaultProxyURL;
+    uint32_t ignoreHostsCount = settings.ignoreHosts ? g_strv_length(settings.ignoreHosts.get()) : 0;
+    encoder << ignoreHostsCount;
+    if (ignoreHostsCount) {
+        for (uint32_t i = 0; settings.ignoreHosts.get()[i]; ++i)
+            encoder << CString(settings.ignoreHosts.get()[i]);
+    }
+    encoder << settings.proxyMap;
 }
 
-Optional<DOMCacheEngine::Record> ArgumentCoder<DOMCacheEngine::Record>::decode(Decoder& decoder)
+bool ArgumentCoder<NetworkProxySettings>::decode(Decoder& decoder, NetworkProxySettings& settings)
 {
-    uint64_t identifier;
-    if (!decoder.decode(identifier))
-        return WTF::nullopt;
+    if (!decoder.decode(settings.mode))
+        return false;
 
-    FetchHeaders::Guard requestHeadersGuard;
-    if (!decoder.decode(requestHeadersGuard))
-        return WTF::nullopt;
+    if (settings.mode != NetworkProxySettings::Mode::Custom)
+        return true;
 
-    PurCFetcher::ResourceRequest request;
-    if (!decoder.decode(request))
-        return WTF::nullopt;
+    if (!decoder.decode(settings.defaultProxyURL))
+        return false;
 
-    Optional<PurCFetcher::FetchOptions> options;
-    decoder >> options;
-    if (!options)
-        return WTF::nullopt;
+    uint32_t ignoreHostsCount;
+    if (!decoder.decode(ignoreHostsCount))
+        return false;
 
-    String referrer;
-    if (!decoder.decode(referrer))
-        return WTF::nullopt;
+    if (ignoreHostsCount) {
+        settings.ignoreHosts.reset(g_new0(char*, ignoreHostsCount + 1));
+        for (uint32_t i = 0; i < ignoreHostsCount; ++i) {
+            CString host;
+            if (!decoder.decode(host))
+                return false;
 
-    FetchHeaders::Guard responseHeadersGuard;
-    if (!decoder.decode(responseHeadersGuard))
-        return WTF::nullopt;
-
-    PurCFetcher::ResourceResponse response;
-    if (!decoder.decode(response))
-        return WTF::nullopt;
-
-    uint64_t updateResponseCounter;
-    if (!decoder.decode(updateResponseCounter))
-        return WTF::nullopt;
-
-    uint64_t responseBodySize;
-    if (!decoder.decode(responseBodySize))
-        return WTF::nullopt;
-
-    PurCFetcher::DOMCacheEngine::ResponseBody responseBody;
-    bool hasSharedBufferBody;
-    if (!decoder.decode(hasSharedBufferBody))
-        return WTF::nullopt;
-
-    if (hasSharedBufferBody) {
-        RefPtr<SharedBuffer> buffer;
-        if (!decodeSharedBuffer(decoder, buffer))
-            return WTF::nullopt;
-        if (buffer)
-            responseBody = buffer.releaseNonNull();
-    } else {
-        bool hasFormDataBody;
-        if (!decoder.decode(hasFormDataBody))
-            return WTF::nullopt;
-        if (hasFormDataBody) {
-            auto formData = FormData::decode(decoder);
-            if (!formData)
-                return WTF::nullopt;
-            responseBody = formData.releaseNonNull();
+            settings.ignoreHosts.get()[i] = g_strdup(host.data());
         }
     }
 
-    return {{ WTFMove(identifier), WTFMove(updateResponseCounter), WTFMove(requestHeadersGuard), WTFMove(request), WTFMove(options.value()), WTFMove(referrer), WTFMove(responseHeadersGuard), WTFMove(response), WTFMove(responseBody), responseBodySize }};
+    if (!decoder.decode(settings.proxyMap))
+        return false;
+
+    return !settings.isEmpty();
+}
+#endif
+
+void ArgumentCoder<ProtectionSpace>::encodePlatformData(Encoder&, const ProtectionSpace&)
+{
+    ASSERT_NOT_REACHED();
 }
 
+bool ArgumentCoder<ProtectionSpace>::decodePlatformData(Decoder&, ProtectionSpace&)
+{
+    ASSERT_NOT_REACHED();
+    return false;
+}
 
-#endif
+void ArgumentCoder<Credential>::encodePlatformData(Encoder&, const Credential&)
+{
+    ASSERT_NOT_REACHED();
+}
+
+bool ArgumentCoder<Credential>::decodePlatformData(Decoder&, Credential&)
+{
+    ASSERT_NOT_REACHED();
+    return false;
+}
 
 } // namespace IPC

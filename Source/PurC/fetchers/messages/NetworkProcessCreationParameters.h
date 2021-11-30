@@ -33,7 +33,7 @@
 #include <wtf/text/WTFString.h>
 
 #if USE(SOUP)
-#include "SoupNetworkProxySettings.h"
+#include "NetworkProxySettings.h"
 #endif
 
 namespace IPC {
@@ -76,7 +76,7 @@ struct NetworkProcessCreationParameters {
     PurCFetcher::HTTPCookieAcceptPolicy cookieAcceptPolicy { PurCFetcher::HTTPCookieAcceptPolicy::AlwaysAccept };
     bool ignoreTLSErrors { false };
     Vector<String> languages;
-    PurCFetcher::SoupNetworkProxySettings proxySettings;
+    PurCFetcher::NetworkProxySettings proxySettings;
 #endif
 
     Vector<String> urlSchemesRegisteredAsSecure;

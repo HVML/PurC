@@ -45,7 +45,7 @@ class ResourceResponse;
 struct CacheQueryOptions;
 
 #if USE(SOUP)
-struct SoupNetworkProxySettings;
+struct NetworkProxySettings;
 #endif
 
 namespace DOMCacheEngine {
@@ -113,9 +113,9 @@ template<> struct ArgumentCoder<PurCFetcher::CacheQueryOptions> {
 };
 
 #if USE(SOUP)
-template<> struct ArgumentCoder<PurCFetcher::SoupNetworkProxySettings> {
-    static void encode(Encoder&, const PurCFetcher::SoupNetworkProxySettings&);
-    static WARN_UNUSED_RETURN bool decode(Decoder&, PurCFetcher::SoupNetworkProxySettings&);
+template<> struct ArgumentCoder<PurCFetcher::NetworkProxySettings> {
+    static void encode(Encoder&, const PurCFetcher::NetworkProxySettings&);
+    static WARN_UNUSED_RETURN bool decode(Decoder&, PurCFetcher::NetworkProxySettings&);
 };
 #endif
 

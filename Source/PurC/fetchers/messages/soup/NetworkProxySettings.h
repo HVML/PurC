@@ -32,17 +32,17 @@
 
 namespace PurCFetcher {
 
-struct SoupNetworkProxySettings {
+struct NetworkProxySettings {
     enum class Mode { Default, NoProxy, Custom };
 
-    SoupNetworkProxySettings() = default;
+    NetworkProxySettings() = default;
 
-    explicit SoupNetworkProxySettings(Mode proxyMode)
+    explicit NetworkProxySettings(Mode proxyMode)
         : mode(proxyMode)
     {
     }
 
-    SoupNetworkProxySettings(const PurCFetcher::SoupNetworkProxySettings& other)
+    NetworkProxySettings(const PurCFetcher::NetworkProxySettings& other)
         : mode(other.mode)
         , defaultProxyURL(other.defaultProxyURL)
         , ignoreHosts(g_strdupv(other.ignoreHosts.get()))
@@ -50,7 +50,7 @@ struct SoupNetworkProxySettings {
     {
     }
 
-    SoupNetworkProxySettings& operator=(const PurCFetcher::SoupNetworkProxySettings& other)
+    NetworkProxySettings& operator=(const PurCFetcher::NetworkProxySettings& other)
     {
         mode = other.mode;
         defaultProxyURL = other.defaultProxyURL;
@@ -71,12 +71,12 @@ struct SoupNetworkProxySettings {
 
 namespace WTF {
 
-template<> struct EnumTraits<PurCFetcher::SoupNetworkProxySettings::Mode> {
+template<> struct EnumTraits<PurCFetcher::NetworkProxySettings::Mode> {
     using values = EnumValues<
-        PurCFetcher::SoupNetworkProxySettings::Mode,
-        PurCFetcher::SoupNetworkProxySettings::Mode::Default,
-        PurCFetcher::SoupNetworkProxySettings::Mode::NoProxy,
-        PurCFetcher::SoupNetworkProxySettings::Mode::Custom
+        PurCFetcher::NetworkProxySettings::Mode,
+        PurCFetcher::NetworkProxySettings::Mode::Default,
+        PurCFetcher::NetworkProxySettings::Mode::NoProxy,
+        PurCFetcher::NetworkProxySettings::Mode::Custom
     >;
 };
 
