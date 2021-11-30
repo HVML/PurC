@@ -27,7 +27,6 @@
 
 #include "ResourceResponseBase.h"
 
-#include <libsoup/soup.h>
 #include <wtf/glib/GRefPtr.h>
 
 namespace PurCFetcher {
@@ -36,41 +35,15 @@ class ResourceResponse : public ResourceResponseBase {
 public:
     ResourceResponse()
         : ResourceResponseBase()
-        , m_soupFlags(static_cast<SoupMessageFlags>(0))
-        , m_tlsErrors(static_cast<GTlsCertificateFlags>(0))
+        , m_flags(0)
     {
     }
 
     ResourceResponse(const URL& url, const String& mimeType, long long expectedLength, const String& textEncodingName)
         : ResourceResponseBase(url, mimeType, expectedLength, textEncodingName)
-        , m_soupFlags(static_cast<SoupMessageFlags>(0))
-        , m_tlsErrors(static_cast<GTlsCertificateFlags>(0))
+        , m_flags(0)
     {
     }
-
-    ResourceResponse(SoupMessage* soupMessage)
-        : ResourceResponseBase()
-        , m_soupFlags(static_cast<SoupMessageFlags>(0))
-        , m_tlsErrors(static_cast<GTlsCertificateFlags>(0))
-    {
-        updateFromSoupMessage(soupMessage);
-    }
-
-    void updateSoupMessageHeaders(SoupMessageHeaders*) const;
-    void updateFromSoupMessage(SoupMessage*);
-    void updateFromSoupMessageHeaders(const SoupMessageHeaders*);
-
-    SoupMessageFlags soupMessageFlags() const { return m_soupFlags; }
-    void setSoupMessageFlags(SoupMessageFlags soupFlags) { m_soupFlags = soupFlags; }
-
-    const String& sniffedContentType() const { return m_sniffedContentType; }
-    void setSniffedContentType(const String& value) { m_sniffedContentType = value; }
-
-    GTlsCertificate* soupMessageCertificate() const { return m_certificate.get(); }
-    void setSoupMessageCertificate(GTlsCertificate* certificate) { m_certificate = certificate; }
-
-    GTlsCertificateFlags soupMessageTLSErrors() const { return m_tlsErrors; }
-    void setSoupMessageTLSErrors(GTlsCertificateFlags tlsErrors) { m_tlsErrors = tlsErrors; }
 
     template<class Encoder> void encode(Encoder&) const;
     template<class Decoder> static WARN_UNUSED_RETURN bool decode(Decoder&, ResourceResponse&);
@@ -78,21 +51,14 @@ public:
 private:
     friend class ResourceResponseBase;
 
-    SoupMessageFlags m_soupFlags;
-    String m_sniffedContentType;
-    GRefPtr<GTlsCertificate> m_certificate;
-    GTlsCertificateFlags m_tlsErrors;
-
-    void doUpdateResourceResponse() { }
-    String platformSuggestedFilename() const;
-    CertificateInfo platformCertificateInfo() const;
+    uint64_t m_flags;
 };
 
 template<class Encoder>
 void ResourceResponse::encode(Encoder& encoder) const
 {
     ResourceResponseBase::encode(encoder);
-    encoder << static_cast<uint64_t>(m_soupFlags);
+    encoder << m_flags;
 }
 
 template<class Decoder>
@@ -104,8 +70,7 @@ bool ResourceResponse::decode(Decoder& decoder, ResourceResponse& response)
     decoder >> soupFlags;
     if (!soupFlags)
         return false;
-    // FIXME: Verify that this is a valid value for SoupMessageFlags.
-    response.m_soupFlags = static_cast<SoupMessageFlags>(*soupFlags);
+    response.m_flags = *soupFlags;
     return true;
 }
 

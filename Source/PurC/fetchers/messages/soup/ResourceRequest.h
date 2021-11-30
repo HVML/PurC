@@ -29,7 +29,6 @@
 
 #include "fetcher-messages-basic.h"
 #include "ResourceRequestBase.h"
-#include "URLSoup.h"
 
 namespace PurCFetcher {
 
@@ -40,21 +39,21 @@ namespace PurCFetcher {
         ResourceRequest(const String& url)
             : ResourceRequestBase(URL({ }, url), ResourceRequestCachePolicy::UseProtocolCachePolicy)
             , m_acceptEncoding(true)
-            , m_soupFlags(static_cast<SoupMessageFlags>(0))
+            , m_flags(0)
         {
         }
 
         ResourceRequest(const URL& url)
             : ResourceRequestBase(url, ResourceRequestCachePolicy::UseProtocolCachePolicy)
             , m_acceptEncoding(true)
-            , m_soupFlags(static_cast<SoupMessageFlags>(0))
+            , m_flags(0)
         {
         }
 
         ResourceRequest(const URL& url, const String& referrer, ResourceRequestCachePolicy policy = ResourceRequestCachePolicy::UseProtocolCachePolicy)
             : ResourceRequestBase(url, policy)
             , m_acceptEncoding(true)
-            , m_soupFlags(static_cast<SoupMessageFlags>(0))
+            , m_flags(0)
         {
             setHTTPReferrer(referrer);
         }
@@ -62,43 +61,9 @@ namespace PurCFetcher {
         ResourceRequest()
             : ResourceRequestBase(URL(), ResourceRequestCachePolicy::UseProtocolCachePolicy)
             , m_acceptEncoding(true)
-            , m_soupFlags(static_cast<SoupMessageFlags>(0))
+            , m_flags(0)
         {
         }
-
-        ResourceRequest(SoupMessage* soupMessage)
-            : ResourceRequestBase(URL(), ResourceRequestCachePolicy::UseProtocolCachePolicy)
-            , m_acceptEncoding(true)
-            , m_soupFlags(static_cast<SoupMessageFlags>(0))
-        {
-            updateFromSoupMessage(soupMessage);
-        }
-
-        ResourceRequest(SoupRequest* soupRequest)
-            : ResourceRequestBase(soupURIToURL(soup_request_get_uri(soupRequest)), ResourceRequestCachePolicy::UseProtocolCachePolicy)
-            , m_acceptEncoding(true)
-            , m_soupFlags(static_cast<SoupMessageFlags>(0))
-        {
-            updateFromSoupRequest(soupRequest);
-        }
-
-        void setAcceptEncoding(bool acceptEncoding) { m_acceptEncoding = acceptEncoding; }
-
-        void updateSoupMessageHeaders(SoupMessageHeaders*) const;
-        void updateFromSoupMessageHeaders(SoupMessageHeaders*);
-        void updateSoupMessage(SoupMessage*) const;
-        void updateFromSoupMessage(SoupMessage*);
-        void updateSoupRequest(SoupRequest*) const;
-        void updateFromSoupRequest(SoupRequest*);
-
-        SoupMessageFlags soupMessageFlags() const { return m_soupFlags; }
-        void setSoupMessageFlags(SoupMessageFlags soupFlags) { m_soupFlags = soupFlags; }
-
-        // WebPageProxyIdentifier.
-        Optional<uint64_t> initiatingPageID() const { return m_initiatingPageID; }
-        void setInitiatingPageID(uint64_t pageID) { m_initiatingPageID = pageID; }
-
-        GUniquePtr<SoupURI> createSoupURI() const;
 
         template<class Encoder> void encodeWithPlatformData(Encoder&) const;
         template<class Decoder> WARN_UNUSED_RETURN bool decodeWithPlatformData(Decoder&);
@@ -107,15 +72,8 @@ namespace PurCFetcher {
         friend class ResourceRequestBase;
 
         bool m_acceptEncoding : 1;
-        SoupMessageFlags m_soupFlags;
+        uint32_t m_flags;
         Optional<uint64_t> m_initiatingPageID;
-
-        void doUpdatePlatformRequest() { }
-        void doUpdateResourceRequest() { }
-        void doUpdatePlatformHTTPBody() { }
-        void doUpdateResourceHTTPBody() { }
-
-        void doPlatformSetAsIsolatedCopy(const ResourceRequest&) { }
     };
 
 template<class Encoder>
@@ -130,7 +88,7 @@ void ResourceRequest::encodeWithPlatformData(Encoder& encoder) const
     if (m_httpBody)
         encoder << m_httpBody->flattenToString();
 
-    encoder << static_cast<uint32_t>(m_soupFlags);
+    encoder << m_flags;
     encoder << m_initiatingPageID;
     encoder << static_cast<bool>(m_acceptEncoding);
 }
@@ -154,7 +112,7 @@ bool ResourceRequest::decodeWithPlatformData(Decoder& decoder)
     uint32_t soupMessageFlags;
     if (!decoder.decode(soupMessageFlags))
         return false;
-    m_soupFlags = static_cast<SoupMessageFlags>(soupMessageFlags);
+    m_flags = soupMessageFlags;
 
     Optional<Optional<uint64_t>> initiatingPageID;
     decoder >> initiatingPageID;

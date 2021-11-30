@@ -26,7 +26,7 @@
 
 #pragma once
 
-#include <libsoup/soup.h>
+#include <gio/gio.h>
 
 #include <wtf/Optional.h>
 #include <wtf/Seconds.h>

@@ -25,24 +25,15 @@
 
 #include "config.h"
 
-#if USE(SOUP)
-
 #include "CertificateInfo.h"
 
 #include <ResourceError.h>
 #include <ResourceResponse.h>
-#include <libsoup/soup.h>
 
 namespace PurCFetcher {
 
 CertificateInfo::CertificateInfo()
     : m_tlsErrors(static_cast<GTlsCertificateFlags>(0))
-{
-}
-
-CertificateInfo::CertificateInfo(const ResourceResponse& response)
-    : m_certificate(response.soupMessageCertificate())
-    , m_tlsErrors(response.soupMessageTLSErrors())
 {
 }
 
@@ -62,4 +53,3 @@ CertificateInfo::~CertificateInfo() = default;
 
 } // namespace PurCFetcher
 
-#endif

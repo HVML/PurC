@@ -700,13 +700,11 @@ void ResourceRequestBase::updatePlatformRequest(HTTPBodyUpdatePolicy bodyPolicy)
 {
     if (!m_platformRequestUpdated) {
         ASSERT(m_resourceRequestUpdated);
-        const_cast<ResourceRequest&>(asResourceRequest()).doUpdatePlatformRequest();
         m_platformRequestUpdated = true;
     }
 
     if (!m_platformRequestBodyUpdated && bodyPolicy == HTTPBodyUpdatePolicy::UpdateHTTPBody) {
         ASSERT(m_resourceRequestBodyUpdated);
-        const_cast<ResourceRequest&>(asResourceRequest()).doUpdatePlatformHTTPBody();
         m_platformRequestBodyUpdated = true;
     }
 }
@@ -715,13 +713,11 @@ void ResourceRequestBase::updateResourceRequest(HTTPBodyUpdatePolicy bodyPolicy)
 {
     if (!m_resourceRequestUpdated) {
         ASSERT(m_platformRequestUpdated);
-        const_cast<ResourceRequest&>(asResourceRequest()).doUpdateResourceRequest();
         m_resourceRequestUpdated = true;
     }
 
     if (!m_resourceRequestBodyUpdated && bodyPolicy == HTTPBodyUpdatePolicy::UpdateHTTPBody) {
         ASSERT(m_platformRequestBodyUpdated);
-        const_cast<ResourceRequest&>(asResourceRequest()).doUpdateResourceHTTPBody();
         m_resourceRequestBodyUpdated = true;
     }
 }

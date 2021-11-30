@@ -28,13 +28,9 @@
 
 #include "ResourceErrorBase.h"
 
-#if USE(SOUP)
-
 #include <wtf/glib/GRefPtr.h>
 
 typedef struct _GTlsCertificate GTlsCertificate;
-typedef struct _SoupRequest SoupRequest;
-typedef struct _SoupMessage SoupMessage;
 
 namespace PurCFetcher {
 
@@ -53,30 +49,30 @@ public:
     {
     }
 
-    static ResourceError httpError(SoupMessage*, GError*, SoupRequest*);
-    static ResourceError transportError(SoupRequest*, int statusCode, const String& reasonPhrase);
-    static ResourceError genericGError(GError*, SoupRequest*);
-    static ResourceError tlsError(const URL&, unsigned tlsErrors, GTlsCertificate*);
-    static ResourceError timeoutError(const URL& failingURL);
-    static ResourceError authenticationError(SoupMessage*);
-
     unsigned tlsErrors() const { return m_tlsErrors; }
     void setTLSErrors(unsigned tlsErrors) { m_tlsErrors = tlsErrors; }
     GTlsCertificate* certificate() const { return m_certificate.get(); }
     void setCertificate(GTlsCertificate* certificate) { m_certificate = certificate; }
 
-    static bool platformCompare(const ResourceError& a, const ResourceError& b);
+    static bool platformCompare(const ResourceError& a, const ResourceError& b)
+    {
+        return a.tlsErrors() == b.tlsErrors();
+    }
+
+private:
+    void doPlatformIsolatedCopy(const ResourceError& other)
+    {
+        m_certificate = other.m_certificate;
+        m_tlsErrors = other.m_tlsErrors;
+    }
 
 private:
     friend class ResourceErrorBase;
-    void doPlatformIsolatedCopy(const ResourceError&);
 
     unsigned m_tlsErrors;
     GRefPtr<GTlsCertificate> m_certificate;
 };
 
 }
-
-#endif
 
 #endif // ResourceError_h_
