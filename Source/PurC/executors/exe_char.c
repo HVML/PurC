@@ -97,16 +97,6 @@ parse_rule(struct pcexec_exe_char_inst *exe_char_inst,
     return prepare_result_set(exe_char_inst);
 }
 
-static inline purc_exec_iter_t
-fetch_and_cache(struct pcexec_exe_char_inst *exe_char_inst)
-{
-    purc_exec_inst_t inst = &exe_char_inst->super;
-    purc_exec_iter_t it = &inst->it;
-
-    PC_ASSERT(0);
-    return it;
-}
-
 int
 char_rule_eval(struct char_rule *rule, const wchar_t wc, bool *result)
 {

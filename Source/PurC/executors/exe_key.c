@@ -152,16 +152,6 @@ parse_rule(struct pcexec_exe_key_inst *exe_key_inst,
     return prepare_result_set(exe_key_inst);
 }
 
-static inline purc_exec_iter_t
-fetch_and_cache(struct pcexec_exe_key_inst *exe_key_inst)
-{
-    purc_exec_inst_t inst = &exe_key_inst->super;
-    purc_exec_iter_t it = &inst->it;
-
-    PC_ASSERT(0);
-    return it;
-}
-
 int
 key_rule_eval(struct key_rule *rule, purc_variant_t val, bool *result)
 {

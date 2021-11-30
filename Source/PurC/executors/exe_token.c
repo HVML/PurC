@@ -182,16 +182,6 @@ parse_rule(struct pcexec_exe_token_inst *exe_token_inst,
     return prepare_result_set(exe_token_inst);
 }
 
-static inline purc_exec_iter_t
-fetch_and_cache(struct pcexec_exe_token_inst *exe_token_inst)
-{
-    purc_exec_inst_t inst = &exe_token_inst->super;
-    purc_exec_iter_t it = &inst->it;
-
-    PC_ASSERT(0);
-    return it;
-}
-
 int
 token_rule_eval(struct token_rule *rule, purc_variant_t val, bool *result)
 {
