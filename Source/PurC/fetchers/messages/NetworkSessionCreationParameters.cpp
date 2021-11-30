@@ -57,10 +57,10 @@ void NetworkSessionCreationParameters::encode(IPC::Encoder& encoder) const
     encoder << alternativeServiceDirectoryExtensionHandle;
     encoder << http3Enabled;
 #endif
-#if USE(SOUP)
+
     encoder << cookiePersistentStoragePath;
     encoder << cookiePersistentStorageType;
-#endif
+
 #if USE(CURL)
     encoder << cookiePersistentStorageFile;
     encoder << proxySettings;
@@ -152,17 +152,15 @@ Optional<NetworkSessionCreationParameters> NetworkSessionCreationParameters::dec
         return WTF::nullopt;
 #endif
 
-#if USE(SOUP)
     Optional<String> cookiePersistentStoragePath;
     decoder >> cookiePersistentStoragePath;
     if (!cookiePersistentStoragePath)
         return WTF::nullopt;
 
-    Optional<SoupCookiePersistentStorageType> cookiePersistentStorageType;
+    Optional<CookiePersistentStorageType> cookiePersistentStorageType;
     decoder >> cookiePersistentStorageType;
     if (!cookiePersistentStorageType)
         return WTF::nullopt;
-#endif
 
 #if USE(CURL)
     Optional<String> cookiePersistentStorageFile;
@@ -269,10 +267,8 @@ Optional<NetworkSessionCreationParameters> NetworkSessionCreationParameters::dec
         , WTFMove(*alternativeServiceDirectoryExtensionHandle)
         , WTFMove(*http3Enabled)
 #endif
-#if USE(SOUP)
         , WTFMove(*cookiePersistentStoragePath)
         , WTFMove(*cookiePersistentStorageType)
-#endif
 #if USE(CURL)
         , WTFMove(*cookiePersistentStorageFile)
         , WTFMove(*proxySettings)

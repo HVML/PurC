@@ -362,7 +362,6 @@ bool ArgumentCoder<ResourceError>::decodePlatformData(Decoder& decoder, Resource
     return true;
 }
 
-#if USE(SOUP)
 void ArgumentCoder<NetworkProxySettings>::encode(Encoder& encoder, const NetworkProxySettings& settings)
 {
     ASSERT(!settings.isEmpty());
@@ -411,7 +410,6 @@ bool ArgumentCoder<NetworkProxySettings>::decode(Decoder& decoder, NetworkProxyS
 
     return !settings.isEmpty();
 }
-#endif
 
 void ArgumentCoder<ProtectionSpace>::encodePlatformData(Encoder&, const ProtectionSpace&)
 {

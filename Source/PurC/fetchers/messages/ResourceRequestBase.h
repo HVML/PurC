@@ -274,7 +274,6 @@ bool equalIgnoringHeaderFields(const ResourceRequestBase&, const ResourceRequest
 inline bool operator==(const ResourceRequest& a, const ResourceRequest& b) { return ResourceRequestBase::equal(a, b); }
 inline bool operator!=(ResourceRequest& a, const ResourceRequest& b) { return !(a == b); }
 
-PURC_EXPORT unsigned initializeMaximumHTTPConnectionCountPerHost();
 #if PLATFORM(IOS_FAMILY)
 PURC_EXPORT void initializeHTTPConnectionSettingsOnStartup();
 #endif

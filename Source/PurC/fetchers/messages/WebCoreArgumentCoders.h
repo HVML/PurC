@@ -43,10 +43,7 @@ class ResourceError;
 class ResourceRequest;
 class ResourceResponse;
 struct CacheQueryOptions;
-
-#if USE(SOUP)
 struct NetworkProxySettings;
-#endif
 
 namespace DOMCacheEngine {
 struct CacheInfo;
@@ -112,12 +109,10 @@ template<> struct ArgumentCoder<PurCFetcher::CacheQueryOptions> {
     static WARN_UNUSED_RETURN bool decode(Decoder&, PurCFetcher::CacheQueryOptions&);
 };
 
-#if USE(SOUP)
 template<> struct ArgumentCoder<PurCFetcher::NetworkProxySettings> {
     static void encode(Encoder&, const PurCFetcher::NetworkProxySettings&);
     static WARN_UNUSED_RETURN bool decode(Decoder&, PurCFetcher::NetworkProxySettings&);
 };
-#endif
 
 template<> struct ArgumentCoder<Vector<RefPtr<PurCFetcher::SecurityOrigin>>> {
     static void encode(Encoder&, const Vector<RefPtr<PurCFetcher::SecurityOrigin>>&);

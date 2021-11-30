@@ -722,15 +722,6 @@ void ResourceRequestBase::updateResourceRequest(HTTPBodyUpdatePolicy bodyPolicy)
     }
 }
 
-#if !PLATFORM(COCOA) && !USE(CFURLCONNECTION) && !USE(SOUP)
-unsigned initializeMaximumHTTPConnectionCountPerHost()
-{
-    // This is used by the loader to control the number of issued parallel load requests. 
-    // Four seems to be a common default in HTTP frameworks.
-    return 4;
-}
-#endif
-
 void ResourceRequestBase::setCachePartition(const String& cachePartition)
 {
 #if ENABLE(CACHE_PARTITIONING)

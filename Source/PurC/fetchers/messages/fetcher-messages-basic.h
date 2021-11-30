@@ -115,7 +115,7 @@ enum class ResourceLoadPriority : uint8_t {
     Highest = VeryHigh,
 };
 
-enum class SoupCookiePersistentStorageType : bool {
+enum class CookiePersistentStorageType : bool {
     Text,
     SQLite
 };

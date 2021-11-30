@@ -57,12 +57,11 @@ void NetworkProcessCreationParameters::encode(IPC::Encoder& encoder) const
     encoder << storageAccessAPIEnabled;
 #endif
     encoder << defaultDataStoreParameters;
-#if USE(SOUP)
+
     encoder << cookieAcceptPolicy;
     encoder << ignoreTLSErrors;
     encoder << languages;
     encoder << proxySettings;
-#endif
 
     encoder << urlSchemesRegisteredAsSecure;
     encoder << urlSchemesRegisteredAsBypassingContentSecurityPolicy;
@@ -127,7 +126,6 @@ bool NetworkProcessCreationParameters::decode(IPC::Decoder& decoder, NetworkProc
         return false;
     result.defaultDataStoreParameters = WTFMove(*defaultDataStoreParameters);
 
-#if USE(SOUP)
     if (!decoder.decode(result.cookieAcceptPolicy))
         return false;
     if (!decoder.decode(result.ignoreTLSErrors))
@@ -136,7 +134,6 @@ bool NetworkProcessCreationParameters::decode(IPC::Decoder& decoder, NetworkProc
         return false;
     if (!decoder.decode(result.proxySettings))
         return false;
-#endif
 
     if (!decoder.decode(result.urlSchemesRegisteredAsSecure))
         return false;

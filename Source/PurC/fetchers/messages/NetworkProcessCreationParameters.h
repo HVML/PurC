@@ -28,13 +28,12 @@
 #include "fetcher-messages-basic.h"
 #include "SandboxExtension.h"
 #include "WebsiteDataStoreParameters.h"
+#include "NetworkProxySettings.h"
+
 #include <wtf/ProcessID.h>
 #include <wtf/Vector.h>
 #include <wtf/text/WTFString.h>
 
-#if USE(SOUP)
-#include "NetworkProxySettings.h"
-#endif
 
 namespace IPC {
 class Decoder;
@@ -71,13 +70,11 @@ struct NetworkProcessCreationParameters {
 #endif
 
     WebsiteDataStoreParameters defaultDataStoreParameters;
-    
-#if USE(SOUP)
+
     PurCFetcher::HTTPCookieAcceptPolicy cookieAcceptPolicy { PurCFetcher::HTTPCookieAcceptPolicy::AlwaysAccept };
     bool ignoreTLSErrors { false };
     Vector<String> languages;
     PurCFetcher::NetworkProxySettings proxySettings;
-#endif
 
     Vector<String> urlSchemesRegisteredAsSecure;
     Vector<String> urlSchemesRegisteredAsBypassingContentSecurityPolicy;

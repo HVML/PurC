@@ -66,10 +66,8 @@ struct NetworkSessionCreationParameters {
     SandboxExtension::Handle alternativeServiceDirectoryExtensionHandle;
     bool http3Enabled { false };
 #endif
-#if USE(SOUP)
     String cookiePersistentStoragePath;
-    SoupCookiePersistentStorageType cookiePersistentStorageType { SoupCookiePersistentStorageType::Text };
-#endif
+    CookiePersistentStorageType cookiePersistentStorageType { CookiePersistentStorageType::Text };
 #if USE(CURL)
     String cookiePersistentStorageFile;
     PurCFetcher::CurlProxySettings proxySettings;
