@@ -384,9 +384,7 @@ enum class MessageName : uint16_t {
     , WebCookieManager_GetHTTPCookieAcceptPolicyReply = 194
     , WebCookieManager_StartObservingCookieChanges = 195
     , WebCookieManager_StopObservingCookieChanges = 196
-#if USE(SOUP)
     , WebCookieManager_SetCookiePersistentStorage = 197
-#endif
     , WebIDBServer_DeleteDatabase = 198
     , WebIDBServer_OpenDatabase = 199
     , WebIDBServer_AbortTransaction = 200
@@ -501,18 +499,10 @@ enum class MessageName : uint16_t {
     , NetworkProcess_InitializeNetworkProcess = 289
     , NetworkProcess_CreateNetworkConnectionToWebProcess = 290
     , NetworkProcess_CreateNetworkConnectionToWebProcessReply = 291
-#if USE(SOUP)
     , NetworkProcess_SetIgnoreTLSErrors = 292
-#endif
-#if USE(SOUP)
     , NetworkProcess_UserPreferredLanguagesChanged = 293
-#endif
-#if USE(SOUP)
     , NetworkProcess_SetNetworkProxySettings = 294
-#endif
-#if USE(SOUP)
     , NetworkProcess_PrefetchDNS = 295
-#endif
 #if USE(CURL)
     , NetworkProcess_SetNetworkProxySettings = 296
 #endif

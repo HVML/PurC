@@ -471,10 +471,8 @@ const char* description(MessageName name)
         return "WebCookieManager::StartObservingCookieChanges";
     case MessageName::WebCookieManager_StopObservingCookieChanges:
         return "WebCookieManager::StopObservingCookieChanges";
-#if USE(SOUP)
     case MessageName::WebCookieManager_SetCookiePersistentStorage:
         return "WebCookieManager::SetCookiePersistentStorage";
-#endif
     case MessageName::WebIDBServer_DeleteDatabase:
         return "WebIDBServer::DeleteDatabase";
     case MessageName::WebIDBServer_OpenDatabase:
@@ -683,22 +681,14 @@ const char* description(MessageName name)
         return "NetworkProcess::CreateNetworkConnectionToWebProcess";
     case MessageName::NetworkProcess_CreateNetworkConnectionToWebProcessReply:
         return "NetworkProcess::CreateNetworkConnectionToWebProcessReply";
-#if USE(SOUP)
     case MessageName::NetworkProcess_SetIgnoreTLSErrors:
         return "NetworkProcess::SetIgnoreTLSErrors";
-#endif
-#if USE(SOUP)
     case MessageName::NetworkProcess_UserPreferredLanguagesChanged:
         return "NetworkProcess::UserPreferredLanguagesChanged";
-#endif
-#if USE(SOUP)
     case MessageName::NetworkProcess_SetNetworkProxySettings:
         return "NetworkProcess::SetNetworkProxySettings";
-#endif
-#if USE(SOUP)
     case MessageName::NetworkProcess_PrefetchDNS:
         return "NetworkProcess::PrefetchDNS";
-#endif
 #if USE(CURL)
     case MessageName::NetworkProcess_SetNetworkProxySettings:
         return "NetworkProcess::SetNetworkProxySettings";
@@ -5436,9 +5426,7 @@ ReceiverName receiverName(MessageName messageName)
     case MessageName::WebCookieManager_GetHTTPCookieAcceptPolicy:
     case MessageName::WebCookieManager_StartObservingCookieChanges:
     case MessageName::WebCookieManager_StopObservingCookieChanges:
-#if USE(SOUP)
     case MessageName::WebCookieManager_SetCookiePersistentStorage:
-#endif
         return ReceiverName::WebCookieManager;
     case MessageName::WebIDBServer_DeleteDatabase:
     case MessageName::WebIDBServer_OpenDatabase:
@@ -5550,18 +5538,10 @@ ReceiverName receiverName(MessageName messageName)
         return ReceiverName::NetworkContentRuleListManager;
     case MessageName::NetworkProcess_InitializeNetworkProcess:
     case MessageName::NetworkProcess_CreateNetworkConnectionToWebProcess:
-#if USE(SOUP)
     case MessageName::NetworkProcess_SetIgnoreTLSErrors:
-#endif
-#if USE(SOUP)
     case MessageName::NetworkProcess_UserPreferredLanguagesChanged:
-#endif
-#if USE(SOUP)
     case MessageName::NetworkProcess_SetNetworkProxySettings:
-#endif
-#if USE(SOUP)
     case MessageName::NetworkProcess_PrefetchDNS:
-#endif
 #if USE(CURL)
     case MessageName::NetworkProcess_SetNetworkProxySettings:
 #endif
@@ -9144,10 +9124,8 @@ bool isValidMessageName(MessageName messageName)
         return true;
     if (messageName == IPC::MessageName::WebCookieManager_StopObservingCookieChanges)
         return true;
-#if USE(SOUP)
     if (messageName == IPC::MessageName::WebCookieManager_SetCookiePersistentStorage)
         return true;
-#endif
     if (messageName == IPC::MessageName::WebIDBServer_DeleteDatabase)
         return true;
     if (messageName == IPC::MessageName::WebIDBServer_OpenDatabase)
@@ -9356,22 +9334,14 @@ bool isValidMessageName(MessageName messageName)
         return true;
     if (messageName == IPC::MessageName::NetworkProcess_CreateNetworkConnectionToWebProcessReply)
         return true;
-#if USE(SOUP)
     if (messageName == IPC::MessageName::NetworkProcess_SetIgnoreTLSErrors)
         return true;
-#endif
-#if USE(SOUP)
     if (messageName == IPC::MessageName::NetworkProcess_UserPreferredLanguagesChanged)
         return true;
-#endif
-#if USE(SOUP)
     if (messageName == IPC::MessageName::NetworkProcess_SetNetworkProxySettings)
         return true;
-#endif
-#if USE(SOUP)
     if (messageName == IPC::MessageName::NetworkProcess_PrefetchDNS)
         return true;
-#endif
 #if USE(CURL)
     if (messageName == IPC::MessageName::NetworkProcess_SetNetworkProxySettings)
         return true;
