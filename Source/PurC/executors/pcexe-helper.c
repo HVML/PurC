@@ -1164,7 +1164,7 @@ wildcard_expression_eval(struct wildcard_expression *wexp,
         t = s;
     }
 
-    rr = g_pattern_match(ps, strlen(t), t, NULL);
+    rr = g_pattern_spec_match(ps, strlen(t), t, NULL);
 
     if (result)
         *result = (rr) ? true : false;

@@ -52,37 +52,6 @@ reset(struct pcexec_exe_key_inst *exe_key_inst)
     PCEXE_CLR_VAR(exe_key_inst->result_set);
 }
 
-static inline const char* 
-get_next_key_w(const char *s, const wchar_t *delimiters,
-        size_t *len, size_t *next)
-{
-    PC_ASSERT(s);
-    PC_ASSERT(delimiters);
-    PC_ASSERT(len);
-    PC_ASSERT(next);
-    PC_ASSERT(*s);
-
-    const char *head = s;
-
-    const char *p = s;
-    while (*p) {
-        wchar_t wc;
-        int n = pcexe_utf8_to_wchar(p, &wc);
-        PC_ASSERT(n > 0);
-        if (wcschr(delimiters, wc)) {
-            *len = p - head;
-            *next = *len + n;
-            return head;
-        }
-        p += n;
-    }
-
-    *len = p - head;
-    *next = *len;
-
-    return head;
-}
-
 static inline bool
 init_result_set(struct pcexec_exe_key_inst *exe_key_inst,
         purc_variant_t result_set)
