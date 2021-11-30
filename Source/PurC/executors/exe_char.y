@@ -214,10 +214,11 @@ yyerror(
     (void)param;
     if (!param)
         return;
-    asprintf(&param->err_msg, "(%d,%d)->(%d,%d): %s",
+    int r = asprintf(&param->err_msg, "(%d,%d)->(%d,%d): %s",
         yylloc->first_line, yylloc->first_column,
         yylloc->last_line, yylloc->last_column - 1,
         errsg);
+    (void)r;
 }
 
 int exe_char_parse(const char *input, size_t len,

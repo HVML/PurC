@@ -40,22 +40,6 @@ TEST(exe_key, basic)
 }
 
 static inline bool
-parse(const char *rule, char **err_msg)
-{
-    struct exe_key_param param;
-    memset(&param, 0, sizeof(param));
-    param.debug_flex         = debug_flex;
-    param.debug_bison        = debug_bison;
-
-    bool r;
-    r = exe_key_parse(rule, strlen(rule), &param) == 0;
-    *err_msg = param.err_msg;
-
-    key_rule_release(&param.rule);
-    return r;
-}
-
-static inline bool
 parse_ex(const char *rule, purc_variant_t input,
     char *err_msg, size_t sz_err_msg)
 {
