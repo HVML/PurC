@@ -115,6 +115,11 @@ enum class ResourceLoadPriority : uint8_t {
     Highest = VeryHigh,
 };
 
+enum class SoupCookiePersistentStorageType : bool {
+    Text,
+    SQLite
+};
+
 } // namespace PurCFetcher
 
 namespace WTF {

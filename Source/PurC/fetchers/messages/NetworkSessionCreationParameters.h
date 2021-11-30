@@ -32,10 +32,6 @@
 #include <wtf/Seconds.h>
 #include <wtf/URL.h>
 
-#if USE(SOUP)
-#include "SoupCookiePersistentStorageType.h"
-#endif
-
 #if USE(CURL)
 #include "CurlProxySettings.h"
 #endif
