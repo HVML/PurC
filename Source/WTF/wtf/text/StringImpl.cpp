@@ -348,6 +348,7 @@ UChar32 StringImpl::characterStartingAt(unsigned i)
     return 0;
 }
 
+#if ENABLE(ICU)
 Ref<StringImpl> StringImpl::convertToLowercaseWithoutLocale()
 {
     // Note: At one time this was a hot function in the Dromaeo benchmark, specifically the
@@ -527,6 +528,7 @@ upconvert:
         return *this;
     return newImpl;
 }
+#endif
 
 static inline bool needsTurkishCasingRules(const AtomString& localeIdentifier)
 {
@@ -538,6 +540,7 @@ static inline bool needsTurkishCasingRules(const AtomString& localeIdentifier)
         && (localeIdentifier.length() == 2 || localeIdentifier[2] == '-');
 }
 
+#if ENABLE(ICU)
 Ref<StringImpl> StringImpl::convertToLowercaseWithLocale(const AtomString& localeIdentifier)
 {
     // Use the more-optimized code path most of the time.
@@ -604,7 +607,9 @@ Ref<StringImpl> StringImpl::convertToUppercaseWithLocale(const AtomString& local
         return *this;
     return newString;
 }
+#endif
 
+#if ENABLE(ICU)
 Ref<StringImpl> StringImpl::foldCase()
 {
     if (is8Bit()) {
@@ -687,6 +692,7 @@ SlowPath:
         return *this;
     return folded;
 }
+#endif
 
 template<StringImpl::CaseConvertType type, typename CharacterType>
 ALWAYS_INLINE Ref<StringImpl> StringImpl::convertASCIICase(StringImpl& impl, const CharacterType* data, unsigned length)
@@ -1706,6 +1712,7 @@ bool equalIgnoringASCIICaseNonNull(const StringImpl* a, const StringImpl* b)
     return equalIgnoringASCIICase(*a, *b);
 }
 
+#if ENABLE(ICU)
 UCharDirection StringImpl::defaultWritingDirection(bool* hasStrongDirectionality)
 {
     for (unsigned i = 0; i < m_length; ++i) {
@@ -1725,6 +1732,7 @@ UCharDirection StringImpl::defaultWritingDirection(bool* hasStrongDirectionality
         *hasStrongDirectionality = false;
     return U_LEFT_TO_RIGHT;
 }
+#endif
 
 Ref<StringImpl> StringImpl::adopt(StringBuffer<LChar>&& buffer)
 {

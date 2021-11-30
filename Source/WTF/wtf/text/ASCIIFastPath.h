@@ -22,9 +22,13 @@
 #pragma once
 
 #include <stdint.h>
-#include <unicode/utypes.h>
 #include <wtf/StdLibExtras.h>
 #include <wtf/text/LChar.h>
+#include <wtf/text/UChar.h>
+
+#if ENABLE(ICU)
+#include <unicode/utypes.h>
+#endif
 
 #if CPU(X86_SSE2)
 #include <emmintrin.h>

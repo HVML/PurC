@@ -26,8 +26,11 @@
 #pragma once
 
 #include <tuple>
+#if ENABLE(ICU)
 #include <unicode/utypes.h>
+#endif
 #include <wtf/Forward.h>
+#include <wtf/text/UChar.h>
 
 namespace WTF {
 

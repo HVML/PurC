@@ -30,6 +30,7 @@
 
 namespace WTF {
 
+#if ENABLE(ICU)
 template<AtomString::CaseConvertType type>
 ALWAYS_INLINE AtomString AtomString::convertASCIICase() const
 {
@@ -79,6 +80,7 @@ AtomString AtomString::convertToASCIIUppercase() const
 {
     return convertASCIICase<CaseConvertType::Upper>();
 }
+#endif
 
 AtomString AtomString::number(int number)
 {

@@ -36,7 +36,9 @@ namespace URLHelpers {
 
 using URLDecodeFunction = String(*)(const String&);
 
+#if ENABLE(ICU)
 WTF_EXPORT_PRIVATE String userVisibleURL(const CString& URL);
+#endif
 void loadIDNScriptWhiteList();
 void whiteListIDNScript(const char* scriptName);
 void initializeDefaultIDNScriptWhiteList();

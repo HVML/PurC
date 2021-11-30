@@ -337,6 +337,7 @@ String String::convertToASCIIUppercase() const
     return m_impl ? m_impl->convertToASCIIUppercase() : String { };
 }
 
+#if ENABLE(ICU)
 String String::convertToLowercaseWithoutLocale() const
 {
     // FIXME: Should this function, and the many others like it, be inlined?
@@ -366,6 +367,7 @@ String String::convertToUppercaseWithLocale(const AtomString& localeIdentifier) 
     // FIXME: Should this function, and the many others like it, be inlined?
     return m_impl ? m_impl->convertToUppercaseWithLocale(localeIdentifier) : String { };
 }
+#endif
 
 String String::stripWhiteSpace() const
 {
@@ -405,11 +407,13 @@ String String::removeCharacters(CodeUnitMatchFunction findMatch) const
     return m_impl ? m_impl->removeCharacters(findMatch) : String { };
 }
 
+#if ENABLE(ICU)
 String String::foldCase() const
 {
     // FIXME: Should this function, and the many others like it, be inlined?
     return m_impl ? m_impl->foldCase() : String { };
 }
+#endif
 
 bool String::percentage(int& result) const
 {

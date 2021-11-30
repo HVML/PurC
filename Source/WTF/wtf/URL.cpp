@@ -29,7 +29,9 @@
 
 #include "URLParser.h"
 #include <stdio.h>
+#if ENABLE(ICU)
 #include <unicode/uidna.h>
+#endif
 #include <wtf/HashMap.h>
 #include <wtf/NeverDestroyed.h>
 #include <wtf/PrintStream.h>
@@ -39,6 +41,7 @@
 #include <wtf/text/StringBuilder.h>
 #include <wtf/text/StringHash.h>
 #include <wtf/text/TextStream.h>
+#include <wtf/text/UChar.h>
 
 namespace WTF {
 
@@ -383,6 +386,7 @@ static bool appendEncodedHostname(Vector<UChar, 512>& buffer, StringView string)
         return true;
     }
 
+#if ENABLE(ICU)
     UChar hostnameBuffer[hostnameBufferLength];
     UErrorCode error = U_ZERO_ERROR;
     UIDNAInfo processingDetails = UIDNA_INFO_INITIALIZER;
@@ -393,6 +397,7 @@ static bool appendEncodedHostname(Vector<UChar, 512>& buffer, StringView string)
         buffer.append(hostnameBuffer, numCharactersConverted);
         return true;
     }
+#endif
     return false;
 }
 

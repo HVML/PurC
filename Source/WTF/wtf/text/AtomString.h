@@ -131,8 +131,10 @@ public:
     bool endsWith(UChar character) const { return m_string.endsWith(character); }
     template<unsigned matchLength> bool endsWith(const char (&prefix)[matchLength]) const { return m_string.endsWith<matchLength>(prefix); }
 
+#if ENABLE(ICU)
     WTF_EXPORT_PRIVATE AtomString convertToASCIILowercase() const;
     WTF_EXPORT_PRIVATE AtomString convertToASCIIUppercase() const;
+#endif
 
     int toInt(bool* ok = nullptr) const { return m_string.toInt(ok); }
     double toDouble(bool* ok = nullptr) const { return m_string.toDouble(ok); }
@@ -171,8 +173,10 @@ private:
     // The explicit constructors with AtomString::ConstructFromLiteral must be used for literals.
     AtomString(ASCIILiteral);
 
+#if ENABLE(ICU)
     enum class CaseConvertType { Upper, Lower };
     template<CaseConvertType> AtomString convertASCIICase() const;
+#endif
 
     WTF_EXPORT_PRIVATE static AtomString fromUTF8Internal(const char*, const char*);
 

@@ -34,9 +34,12 @@
 #if !UCONFIG_NO_COLLATION
 
 #include <mutex>
+#if ENABLE(ICU)
 #include <unicode/ucol.h>
+#endif
 #include <wtf/Lock.h>
 #include <wtf/text/StringView.h>
+#include <wtf/text/UChar.h>
 
 #if OS(DARWIN) && USE(CF)
 #include <CoreFoundation/CoreFoundation.h>

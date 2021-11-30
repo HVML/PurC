@@ -48,7 +48,9 @@ public:
     WTF_EXPORT_PRIVATE static bool isSpecialScheme(const String& scheme);
     WTF_EXPORT_PRIVATE static Optional<String> maybeCanonicalizeScheme(const String& scheme);
 
+#if ENABLE(ICU)
     static const UIDNA& internationalDomainNameTranscoder();
+#endif
     static bool isInUserInfoEncodeSet(UChar);
 
     static Optional<uint16_t> defaultPortForProtocol(StringView);

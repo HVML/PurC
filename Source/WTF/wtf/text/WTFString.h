@@ -248,11 +248,13 @@ public:
 
     WTF_EXPORT_PRIVATE String convertToASCIILowercase() const;
     WTF_EXPORT_PRIVATE String convertToASCIIUppercase() const;
+#if ENABLE(ICU)
     WTF_EXPORT_PRIVATE String convertToLowercaseWithoutLocale() const;
     WTF_EXPORT_PRIVATE String convertToLowercaseWithoutLocaleStartingAtFailingIndex8Bit(unsigned) const;
     WTF_EXPORT_PRIVATE String convertToUppercaseWithoutLocale() const;
     WTF_EXPORT_PRIVATE String convertToLowercaseWithLocale(const AtomString& localeIdentifier) const;
     WTF_EXPORT_PRIVATE String convertToUppercaseWithLocale(const AtomString& localeIdentifier) const;
+#endif
 
     WTF_EXPORT_PRIVATE String stripWhiteSpace() const;
     WTF_EXPORT_PRIVATE String simplifyWhiteSpace() const;
@@ -263,7 +265,9 @@ public:
 
     // Returns the string with case folded for case insensitive comparison.
     // Use convertToASCIILowercase instead if ASCII case insensitive comparison is desired.
+#if ENABLE(ICU)
     WTF_EXPORT_PRIVATE String foldCase() const;
+#endif
 
     // Returns an uninitialized string. The characters needs to be written
     // into the buffer returned in data before the returned string is used.
@@ -356,8 +360,10 @@ public:
 
     WTF_EXPORT_PRIVATE static String fromCodePoint(UChar32 codePoint);
 
+#if ENABLE(ICU)
     // Determines the writing direction using the Unicode Bidi Algorithm rules P2 and P3.
     UCharDirection defaultWritingDirection(bool* hasStrongDirectionality = nullptr) const;
+#endif
 
     bool isAllASCII() const { return !m_impl || m_impl->isAllASCII(); }
     bool isAllLatin1() const { return !m_impl || m_impl->isAllLatin1(); }
@@ -565,6 +571,7 @@ template<size_t inlineCapacity> inline String String::make8BitFrom16BitSource(co
     return make8BitFrom16BitSource(buffer.data(), buffer.size());
 }
 
+#if ENABLE(ICU)
 inline UCharDirection String::defaultWritingDirection(bool* hasStrongDirectionality) const
 {
     if (m_impl)
@@ -573,6 +580,7 @@ inline UCharDirection String::defaultWritingDirection(bool* hasStrongDirectional
         *hasStrongDirectionality = false;
     return U_LEFT_TO_RIGHT;
 }
+#endif
 
 inline void String::clearImplIfNotShared()
 {

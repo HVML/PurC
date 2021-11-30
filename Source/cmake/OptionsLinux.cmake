@@ -29,7 +29,6 @@ find_package(ZLIB 1.2.0)
 find_package(Threads REQUIRED)
 find_package(BISON 3.0 REQUIRED)
 find_package(FLEX 2.6.4 REQUIRED)
-find_package(ICU 60.2 REQUIRED COMPONENTS data i18n uc)
 
 if (NOT GLIB_FOUND)
     set(ENABLE_SOCKET_STREAM_DEFAULT OFF)
@@ -100,8 +99,6 @@ else ()
     set(ENABLE_SSL_DEFAULT ON)
     SET_AND_EXPOSE_TO_BUILD(HAVE_OPENSSL ON)
 endif ()
-
-set(ENABLE_ICU ON)
 
 # Public options specific to the HybridOS port. Do not add any options here unless
 # there is a strong reason we should support changing the value of the option,

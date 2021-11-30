@@ -25,8 +25,11 @@
 
 #pragma once
 
+#if ENABLE(ICU)
 #include <unicode/utext.h>
+#endif
 #include <wtf/text/LChar.h>
+#include <wtf/text/UChar.h>
 
 namespace WTF {
 

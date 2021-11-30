@@ -20,10 +20,14 @@
 
 #pragma once
 
+#if ENABLE(ICU)
 #include <unicode/ubrk.h>
+#endif
+
 #include <wtf/Optional.h>
 #include <wtf/text/StringView.h>
 #include <wtf/text/icu/UTextProviderLatin1.h>
+#include <wtf/text/UChar.h>
 
 namespace WTF {
 

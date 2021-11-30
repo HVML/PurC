@@ -32,10 +32,13 @@
 
 #include "URLParser.h"
 #include <mutex>
+#if ENABLE(ICU)
 #include <unicode/uidna.h>
 #include <unicode/uscript.h>
+#endif
 #include <wtf/Optional.h>
 #include <wtf/text/WTFString.h>
+#include <wtf/text/UChar.h>
 
 namespace WTF {
 namespace URLHelpers {
@@ -52,9 +55,11 @@ constexpr unsigned urlBytesBufferLength = 2048;
 //    PurCFetcher was compiled.
 // This is only really important for platforms that load an external ICU whitelist.
 // Not important for the compiled-in one.
+#if ENABLE(ICU)
 constexpr auto scriptCodeLimit = static_cast<UScriptCode>(256);
 
 static uint32_t IDNScriptWhiteList[(scriptCodeLimit + 31) / 32];
+#endif
 
 #if !PLATFORM(COCOA)
 
@@ -67,6 +72,7 @@ void loadIDNScriptWhiteList()
 
 #endif // !PLATFORM(COCOA)
 
+#if ENABLE(ICU)
 static bool isArmenianLookalikeCharacter(UChar32 codePoint)
 {
     return codePoint == 0x0548 || codePoint == 0x054D || codePoint == 0x0578 || codePoint == 0x057D;
@@ -83,6 +89,7 @@ static bool isArmenianScriptCharacter(UChar32 codePoint)
 
     return script == USCRIPT_ARMENIAN;
 }
+#endif
 
 template<typename CharacterType> inline bool isASCIIDigitOrValidHostCharacter(CharacterType charCode)
 {
@@ -106,6 +113,7 @@ template<typename CharacterType> inline bool isASCIIDigitOrValidHostCharacter(Ch
     }
 }
 
+#if ENABLE(ICU)
 static bool isLookalikeCharacter(const Optional<UChar32>& previousCodePoint, UChar32 charCode)
 {
     // This function treats the following as unsafe, lookalike characters:
@@ -263,7 +271,9 @@ static bool isLookalikeCharacter(const Optional<UChar32>& previousCodePoint, UCh
             && !(isArmenianScriptCharacter(charCode) || isASCIIDigitOrValidHostCharacter(charCode));
     }
 }
+#endif
 
+#if ENABLE(ICU)
 static void whiteListIDNScript(int32_t script)
 {
     if (script >= 0 && script < scriptCodeLimit) {
@@ -310,7 +320,9 @@ void initializeDefaultIDNScriptWhiteList()
     for (auto script : defaultIDNScriptWhiteList)
         whiteListIDNScript(script);
 }
+#endif
 
+#if ENABLE(ICU)
 static bool allCharactersInIDNScriptWhiteList(const UChar* buffer, int32_t length)
 {
     loadIDNScriptWhiteList();
@@ -343,6 +355,7 @@ static bool allCharactersInIDNScriptWhiteList(const UChar* buffer, int32_t lengt
     }
     return true;
 }
+#endif
 
 template<typename Func>
 static inline bool isSecondLevelDomainNameAllowedByTLDRules(const UChar* buffer, int32_t length, Func characterIsAllowed)
@@ -371,6 +384,7 @@ static inline bool isSecondLevelDomainNameAllowedByTLDRules(const UChar* buffer,
             return isSecondLevelDomainNameAllowedByTLDRules(buffer, length - suffixLength, function); \
     }
 
+#if ENABLE(ICU)
 static bool isRussianDomainNameCharacter(UChar ch)
 {
     // Only modern Russian letters, digits and dashes are allowed.
@@ -541,6 +555,7 @@ static bool allCharactersAllowedByTLDRules(const UChar* buffer, int32_t length)
     // Not a known top level domain with special rules.
     return false;
 }
+#endif
 
 // Return value of null means no mapping is necessary.
 Optional<String> mapHostName(const String& hostName, URLDecodeFunction decodeFunction)
@@ -557,10 +572,11 @@ Optional<String> mapHostName(const String& hostName, URLDecodeFunction decodeFun
     else
         string = hostName;
 
+#if ENABLE(ICU)
     unsigned length = string.length();
 
     auto sourceBuffer = string.charactersWithNullTermination();
-    
+
     UChar destinationBuffer[hostNameBufferLength];
     UErrorCode uerror = U_ZERO_ERROR;
     UIDNAInfo processingDetails = UIDNA_INFO_INITIALIZER;
@@ -576,6 +592,9 @@ Optional<String> mapHostName(const String& hostName, URLDecodeFunction decodeFun
         return String();
 
     return String(destinationBuffer, numCharactersConverted);
+#else
+    return String();
+#endif
 }
 
 using MappingRangesVector = Optional<Vector<std::tuple<unsigned, unsigned, String>>>;
@@ -738,6 +757,7 @@ String mapHostNames(const String& string, URLDecodeFunction decodeFunction)
     return result;
 }
 
+#if ENABLE(ICU)
 static String escapeUnsafeCharacters(const String& sourceBuffer)
 {
     unsigned length = sourceBuffer.length();
@@ -876,6 +896,7 @@ String userVisibleURL(const CString& url)
 
     return escapeUnsafeCharacters(normalizedNFC(result));
 }
+#endif
 
 } // namespace URLHelpers
 } // namespace WTF

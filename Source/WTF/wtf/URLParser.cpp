@@ -28,8 +28,11 @@
 
 #include <array>
 #include <mutex>
+#if ENABLE(ICU)
 #include <unicode/uidna.h>
 #include <unicode/utypes.h>
+#endif
+#include <wtf/text/UChar.h>
 
 namespace WTF {
 
@@ -2539,7 +2542,8 @@ template<typename CharacterType> Optional<URLParser::LCharBuffer> URLParser::dom
         }
         return ascii;
     }
-    
+
+#if ENABLE(ICU)
     const size_t maxDomainLength = 64;
     UChar hostnameBuffer[maxDomainLength];
     UErrorCode error = U_ZERO_ERROR;
@@ -2560,6 +2564,7 @@ template<typename CharacterType> Optional<URLParser::LCharBuffer> URLParser::dom
             syntaxViolation(iteratorForSyntaxViolationPosition);
         return ascii;
     }
+#endif
     return WTF::nullopt;
 }
 
@@ -2833,6 +2838,7 @@ String URLParser::serialize(const URLEncodedForm& tuples)
     return String::adopt(WTFMove(output));
 }
 
+#if ENABLE(ICU)
 const UIDNA& URLParser::internationalDomainNameTranscoder()
 {
     static UIDNA* encoder;
@@ -2845,6 +2851,7 @@ const UIDNA& URLParser::internationalDomainNameTranscoder()
     });
     return *encoder;
 }
+#endif
 
 bool URLParser::allValuesEqual(const URL& a, const URL& b)
 {

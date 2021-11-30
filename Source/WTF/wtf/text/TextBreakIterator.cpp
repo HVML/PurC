@@ -27,7 +27,10 @@
 #include <wtf/text/icu/UTextProviderLatin1.h>
 #include <wtf/text/icu/UTextProviderUTF16.h>
 #include <atomic>
+#if ENABLE(ICU)
 #include <unicode/ubrk.h>
+#endif
+#include <wtf/text/UChar.h>
 
 namespace WTF {
 

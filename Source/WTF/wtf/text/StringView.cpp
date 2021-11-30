@@ -27,15 +27,21 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "config.h"
 #include <wtf/text/StringView.h>
 
+#if ENABLE(ICU)
 #include <unicode/ubrk.h>
 #include <unicode/unorm2.h>
+#include <wtf/unicode/icu/ICUHelpers.h>
+#endif
 #include <wtf/ASCIICType.h>
 #include <wtf/HashMap.h>
 #include <wtf/Lock.h>
 #include <wtf/Optional.h>
 #include <wtf/text/StringToIntegerConversion.h>
+#include <wtf/text/UChar.h>
+
+#if ENABLE(ICU)
 #include <wtf/text/TextBreakIterator.h>
-#include <wtf/unicode/icu/ICUHelpers.h>
+#endif
 
 namespace WTF {
 
@@ -135,6 +141,7 @@ auto StringView::SplitResult::Iterator::operator++() -> Iterator&
     return *this;
 }
 
+#if ENABLE(ICU)
 class StringView::GraphemeClusters::Iterator::Impl {
     WTF_MAKE_FAST_ALLOCATED;
 public:
@@ -218,6 +225,7 @@ bool StringView::GraphemeClusters::Iterator::operator!=(const Iterator& other) c
 {
     return !(*this == other);
 }
+#endif
 
 enum class ASCIICase { Lower, Upper };
 
@@ -274,6 +282,7 @@ void StringView::getCharactersWithASCIICase(CaseConvertType type, UChar* destina
     getCharactersWithASCIICaseInternal(type, destination, characters16(), m_length);
 }
 
+#if ENABLE(ICU)
 StringViewWithUnderlyingString normalizedNFC(StringView string)
 {
     // Latin-1 characters are unaffected by normalization.
@@ -310,6 +319,7 @@ String normalizedNFC(const String& string)
         return string;
     return result.underlyingString;
 }
+#endif
 
 // FIXME: Should this be named parseNumber<uint16_t> instead?
 // FIXME: Should we replace the toInt family of functions with this style?

@@ -26,10 +26,13 @@
 #pragma once
 
 #include <algorithm>
+#if ENABLE(ICU)
 #include <unicode/uchar.h>
+#endif
 #include <wtf/ASCIICType.h>
 #include <wtf/NotFound.h>
 #include <wtf/UnalignedAccess.h>
+#include <wtf/text/UChar.h>
 
 namespace WTF {
 

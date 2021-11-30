@@ -25,13 +25,17 @@
 
 #pragma once
 
-#include <unicode/uloc.h>
+
 #include <wtf/HashMap.h>
 #include <wtf/NeverDestroyed.h>
 #include <wtf/ThreadSpecific.h>
 #include <wtf/text/AtomString.h>
 #include <wtf/text/TextBreakIterator.h>
+#if ENABLE(ICU)
+#include <unicode/uloc.h>
 #include <wtf/unicode/icu/ICUHelpers.h>
+#endif
+#include <wtf/text/UChar.h>
 
 namespace WTF {
 

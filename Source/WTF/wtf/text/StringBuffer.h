@@ -29,11 +29,14 @@
 #pragma once
 
 #include <limits>
+#if ENABLE(ICU)
 #include <unicode/utypes.h>
+#endif
 #include <wtf/Assertions.h>
 #include <wtf/DebugHeap.h>
 #include <wtf/MallocPtr.h>
 #include <wtf/Noncopyable.h>
+#include <wtf/text/UChar.h>
 
 namespace WTF {
 

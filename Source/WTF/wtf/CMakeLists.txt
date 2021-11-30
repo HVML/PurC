@@ -326,6 +326,7 @@ set(WTF_PUBLIC_HEADERS
     text/ExternalStringImpl.h
     text/IntegerToStringConversion.h
     text/LChar.h
+    text/UChar.h
     text/LineBreakIteratorPoolICU.h
     text/LineEnding.h
     text/NullTextBreakIterator.h
@@ -343,7 +344,6 @@ set(WTF_PUBLIC_HEADERS
     text/StringView.h
     text/SymbolImpl.h
     text/SymbolRegistry.h
-    text/TextBreakIterator.h
     text/TextBreakIteratorInternalICU.h
     text/TextPosition.h
     text/TextStream.h
@@ -483,7 +483,6 @@ set(WTF_SOURCES
     text/StringView.cpp
     text/SymbolImpl.cpp
     text/SymbolRegistry.cpp
-    text/TextBreakIterator.cpp
     text/TextStream.cpp
     text/WTFString.cpp
 
@@ -521,6 +520,7 @@ if (ENABLE_ICU)
         text/icu/UTextProviderUTF16.cpp
 
         unicode/icu/CollatorICU.cpp
+        text/TextBreakIterator.cpp
     )
 
     list(APPEND WTF_PRIVATE_INCLUDE_DIRECTORIES

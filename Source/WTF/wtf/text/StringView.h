@@ -26,7 +26,9 @@
 #pragma once
 
 #include <limits.h>
+#if ENABLE(ICU)
 #include <unicode/utypes.h>
+#endif
 #include <wtf/Forward.h>
 #include <wtf/Optional.h>
 #include <wtf/RetainPtr.h>
@@ -36,6 +38,7 @@
 #include <wtf/text/LChar.h>
 #include <wtf/text/StringCommon.h>
 #include <wtf/text/UTF8ConversionError.h>
+#include <wtf/text/UChar.h>
 
 // FIXME: Enabling the StringView lifetime checking causes the MSVC build to fail. Figure out why.
 #if defined(NDEBUG) || COMPILER(MSVC)
@@ -85,8 +88,10 @@ public:
     class CodePoints;
     CodePoints codePoints() const;
 
+#if ENABLE(ICU)
     class GraphemeClusters;
     GraphemeClusters graphemeClusters() const;
+#endif
 
     bool is8Bit() const;
     const LChar* characters8() const;
@@ -234,6 +239,7 @@ inline bool operator!=(const char*a, StringView b) { return !equal(b, a); }
 
 struct StringViewWithUnderlyingString;
 
+#if ENABLE(ICU)
 // This returns a StringView of the normalized result, and a String that is either
 // null, if the input was already normalized, or contains the normalized result
 // and needs to be kept around so the StringView remains valid. Typically the
@@ -241,6 +247,7 @@ struct StringViewWithUnderlyingString;
 WTF_EXPORT_PRIVATE StringViewWithUnderlyingString normalizedNFC(StringView);
 
 WTF_EXPORT_PRIVATE String normalizedNFC(const String&);
+#endif
 
 WTF_EXPORT_PRIVATE Optional<uint16_t> parseUInt16(StringView);
 
@@ -710,6 +717,7 @@ private:
     bool m_allowEmptyEntries;
 };
 
+#if ENABLE(ICU)
 class StringView::GraphemeClusters {
     WTF_MAKE_FAST_ALLOCATED;
 public:
@@ -722,6 +730,7 @@ public:
 private:
     StringView m_stringView;
 };
+#endif
 
 class StringView::CodePoints {
     WTF_MAKE_FAST_ALLOCATED;
@@ -774,6 +783,7 @@ private:
     bool m_isDone;
 };
 
+#if ENABLE(ICU)
 class StringView::GraphemeClusters::Iterator {
     WTF_MAKE_FAST_ALLOCATED;
 public:
@@ -797,6 +807,7 @@ private:
 
     std::unique_ptr<Impl> m_impl;
 };
+#endif
 
 class StringView::CodePoints::Iterator {
     WTF_MAKE_FAST_ALLOCATED;
@@ -831,10 +842,12 @@ private:
     unsigned m_index;
 };
 
+#if ENABLE(ICU)
 inline auto StringView::graphemeClusters() const -> GraphemeClusters
 {
     return GraphemeClusters(*this);
 }
+#endif
 
 inline auto StringView::codePoints() const -> CodePoints
 {
@@ -846,6 +859,7 @@ inline auto StringView::codeUnits() const -> CodeUnits
     return CodeUnits(*this);
 }
 
+#if ENABLE(ICU)
 inline StringView::GraphemeClusters::GraphemeClusters(const StringView& stringView)
     : m_stringView(stringView)
 {
@@ -860,6 +874,7 @@ inline auto StringView::GraphemeClusters::end() const -> Iterator
 {
     return Iterator(m_stringView, m_stringView.length());
 }
+#endif
 
 inline StringView::CodePoints::CodePoints(const StringView& stringView)
     : m_stringView(stringView)

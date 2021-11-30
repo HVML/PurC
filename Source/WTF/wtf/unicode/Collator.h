@@ -28,8 +28,11 @@
 
 #pragma once
 
+#if ENABLE(ICU)
 #include <unicode/uconfig.h>
+#endif
 #include <wtf/Noncopyable.h>
+#include <wtf/text/UChar.h>
 
 struct UCharIterator;
 struct UCollator;

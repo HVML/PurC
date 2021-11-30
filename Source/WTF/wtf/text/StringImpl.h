@@ -23,7 +23,9 @@
 #pragma once
 
 #include <limits.h>
+#if ENABLE(ICU)
 #include <unicode/ustring.h>
+#endif
 #include <wtf/ASCIICType.h>
 #include <wtf/CheckedArithmetic.h>
 #include <wtf/DebugHeap.h>
@@ -37,6 +39,7 @@
 #include <wtf/text/StringCommon.h>
 #include <wtf/text/StringHasher.h>
 #include <wtf/text/UTF8ConversionError.h>
+#include <wtf/text/UChar.h>
 
 #if USE(CF)
 typedef const struct __CFString * CFStringRef;
@@ -410,13 +413,17 @@ public:
 
     WTF_EXPORT_PRIVATE Ref<StringImpl> convertToASCIILowercase();
     WTF_EXPORT_PRIVATE Ref<StringImpl> convertToASCIIUppercase();
+#if ENABLE(ICU)
     WTF_EXPORT_PRIVATE Ref<StringImpl> convertToLowercaseWithoutLocale();
     WTF_EXPORT_PRIVATE Ref<StringImpl> convertToLowercaseWithoutLocaleStartingAtFailingIndex8Bit(unsigned);
     WTF_EXPORT_PRIVATE Ref<StringImpl> convertToUppercaseWithoutLocale();
     WTF_EXPORT_PRIVATE Ref<StringImpl> convertToLowercaseWithLocale(const AtomString& localeIdentifier);
     WTF_EXPORT_PRIVATE Ref<StringImpl> convertToUppercaseWithLocale(const AtomString& localeIdentifier);
+#endif
 
+#if ENABLE(ICU)
     Ref<StringImpl> foldCase();
+#endif
 
     Ref<StringImpl> stripWhiteSpace();
     WTF_EXPORT_PRIVATE Ref<StringImpl> simplifyWhiteSpace();
@@ -471,7 +478,9 @@ public:
     WTF_EXPORT_PRIVATE Ref<StringImpl> replace(StringImpl*, StringImpl*);
     WTF_EXPORT_PRIVATE Ref<StringImpl> replace(unsigned index, unsigned length, StringImpl*);
 
+#if ENABLE(ICU)
     WTF_EXPORT_PRIVATE UCharDirection defaultWritingDirection(bool* hasStrongDirectionality = nullptr);
+#endif
 
 #if USE(CF)
     RetainPtr<CFStringRef> createCFString();
@@ -777,7 +786,11 @@ inline int codePointCompare(const StringImpl* string1, const StringImpl* string2
 inline bool isSpaceOrNewline(UChar32 character)
 {
     // Use isASCIISpace() for all Latin-1 characters. This will include newlines, which aren't included in Unicode DirWS.
+#if ENABLE(ICU)
     return isLatin1(character) ? isASCIISpace(character) : u_charDirection(character) == U_WHITE_SPACE_NEUTRAL;
+#else
+    return isLatin1(character) ? isASCIISpace(character) : false;
+#endif
 }
 
 template<typename CharacterType> inline unsigned lengthOfNullTerminatedString(const CharacterType* string)
