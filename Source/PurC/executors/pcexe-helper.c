@@ -1164,7 +1164,14 @@ wildcard_expression_eval(struct wildcard_expression *wexp,
         t = s;
     }
 
+// TODO: better use cmake to check which function exists
+#if OS(MAC_OS_X)
     rr = g_pattern_spec_match(ps, strlen(t), t, NULL);
+#elif OS(LINUX)
+    rr = g_pattern_match(ps, strlen(t), t, NULL);
+#else
+#error you have to import GLIB
+#endif
 
     if (result)
         *result = (rr) ? true : false;
