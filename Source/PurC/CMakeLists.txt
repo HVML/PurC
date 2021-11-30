@@ -36,11 +36,12 @@ set(PurC_PLATFORM_INDEPENDENT_DIRS
     "html"
     "edom"
     "dvobjs"
+    "dvobjs/parsers"
     "hvml"
     "vdom"
     "executors"
-    "interpreter"
     "executors/parsers"
+    "interpreter"
 )
 
 # This macro will append all C/CXX source files in ${PurC_PLATFORM_INDEPENDENT_DIRS}
@@ -88,10 +89,6 @@ set(PurC_INTERFACE_INCLUDE_DIRECTORIES ${PurC_PRIVATE_FRAMEWORK_HEADERS_DIR})
 PURC_FRAMEWORK_DECLARE(PurC)
 PURC_INCLUDE_CONFIG_FILES_IF_EXISTS()
 
-set(dvobjs_PARSERS logical)
-PURC_FLEX_BISON(PurC dvobjs "${dvobjs_PARSERS}")
-unset(dvobjs_PARSERS)
-
 set(_parsers
         exe_key exe_range exe_filter
         exe_char exe_token
@@ -102,6 +99,10 @@ unset(_parsers)
 
 set(_parsers ejson)
 PURC_PARSERS_GEN(executors/parsers "${_parsers}")
+unset(_parsers)
+
+set(_parsers logical)
+PURC_PARSERS_GEN(dvobjs/parsers "${_parsers}")
 unset(_parsers)
 
 # Generate constants for HTML ns/tags/interfaces

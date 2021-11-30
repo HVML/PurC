@@ -27,8 +27,6 @@
 
 
 %{
-#include "logical.tab.h"
-
 #define MKT(x)    TOK_LOGICAL_##x
 
 #define PUSH(state)      yy_push_state(state, yyscanner)
