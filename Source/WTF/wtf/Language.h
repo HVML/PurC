@@ -28,7 +28,7 @@
 #include <wtf/Forward.h>
 #include <wtf/Vector.h>
 
-#if PLATFORM(COCOA)
+#if 0//PLATFORM(COCOA)
 #import <CoreFoundation/CoreFoundation.h>
 #import <wtf/RetainPtr.h>
 #endif
@@ -50,7 +50,7 @@ WTF_EXPORT_PRIVATE void addLanguageChangeObserver(void* context, LanguageChangeO
 WTF_EXPORT_PRIVATE void removeLanguageChangeObserver(void* context);
 WTF_EXPORT_PRIVATE String displayNameForLanguageLocale(const String&);
 
-#if PLATFORM(COCOA)
+#if 0//PLATFORM(COCOA)
 bool canMinimizeLanguages();
 RetainPtr<CFArrayRef> minimizedLanguagesFromLanguages(CFArrayRef);
 #endif

@@ -85,7 +85,7 @@
 #endif
 
 #if PLATFORM(COCOA)
-#define USE_CF 1
+#define USE_CF 0
 #endif
 
 #if PLATFORM(COCOA) || (PLATFORM(GTK) || PLATFORM(WPE) || PLATFORM(LINUX))
@@ -93,7 +93,7 @@
 #endif
 
 #if PLATFORM(COCOA)
-#define USE_FOUNDATION 1
+#define USE_FOUNDATION 0
 #endif
 
 #if PLATFORM(MAC)
@@ -165,7 +165,7 @@
 #endif
 
 #if PLATFORM(COCOA)
-#define USE_AVFOUNDATION 1
+#define USE_AVFOUNDATION 0
 #endif
 
 #if PLATFORM(COCOA)

@@ -200,7 +200,7 @@
 #endif
 
 #if OS(DARWIN) && __has_include(<mach/mach_exc.defs>) && !PLATFORM(GTK) && !PLATFORM(LINUX)
-#define HAVE_MACH_EXCEPTIONS 1
+#define HAVE_MACH_EXCEPTIONS 0
 #endif
 
 #if PLATFORM(MAC)

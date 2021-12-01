@@ -62,7 +62,7 @@ struct NetworkProcessCreationParameters {
 
     Vector<String> urlSchemesRegisteredForCustomProtocols;
 
-#if PLATFORM(COCOA)
+#if 0//PLATFORM(COCOA)
     String uiProcessBundleIdentifier;
     uint32_t uiProcessSDKVersion { 0 };
     RetainPtr<CFDataRef> networkATSContext;
