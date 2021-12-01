@@ -46,7 +46,9 @@ namespace URLHelpers {
 // Needs to be big enough to hold an IDN-encoded name.
 // For host names bigger than this, we won't do IDN encoding, which is almost certainly OK.
 constexpr unsigned hostNameBufferLength = 2048;
+#if ENABLE(ICU)
 constexpr unsigned urlBytesBufferLength = 2048;
+#endif
 
 // This needs to be higher than the UScriptCode for any of the scripts on the IDN whitelist.
 // At one point we used USCRIPT_CODE_LIMIT from ICU, but there are two reasons not to use it.
