@@ -31,6 +31,7 @@
 
 #include "private/variant.h"
 #include "private/map.h"
+#include "private/executor.h"
 
 struct pcinst {
     int errcode;
@@ -41,6 +42,7 @@ struct pcinst {
     pcutils_map* local_data_map;
 
     struct pcvariant_heap variant_heap;
+    struct pcexecutor_heap executor_heap;
 };
 
 /* gets the current instance */

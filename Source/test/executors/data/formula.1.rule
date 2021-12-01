@@ -1,0 +1,50 @@
+# state: `begin` | `in_sample`
+# sample type: `undefined` | `positive` | `negative`
+# <begin>/comment_line:  ^'#' .* '\n'
+# <begin>/sample_type:   ^('P'|'N') ':' .* '\n' { set sample_type; }
+# <begin>/blank_line:    ^[ \t]* '\n'
+# <begin>/@default:                             { switch to in_sample; }
+# <sample>sample_record: ^(.* '\n')* ';' '\n'   { process sample;
+#                                                 switch to begin; }
+
+
+# blank lines
+                      
+
+P: # bellow are positive samples
+# blank lines
+                      
+
+# all seperated with a SPACE
+FORMULA : LT 100 BY -3 ;
+
+# no SPACE in between
+FORMULA:LT 100 BY -3;
+
+# multiple line
+FORMULA:
+LT
+100
+BY
+-
+3
+;
+
+# with variable and expression
+FORMULA: LT ( 4 + 6 ) * 10 BY ( x * 2 - 50 ) ;
+FORMULA:LT (4+6)*10 BY (x*2-50);
+FORMULA: LT 10 AND GT 3 BY -4;
+
+N: # bellow are negative samples
+# blank lines
+                      
+
+# SPACE required
+FORMULA:LT100 BY -3;
+FORMULA:LT 100BY -3;
+FORMULA:LT 100 BY-3;
+
+# '\n' in wrong place
+FORMULA
+:LT 100 BY -3;
+

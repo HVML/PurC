@@ -36,8 +36,11 @@ set(PurC_PLATFORM_INDEPENDENT_DIRS
     "html"
     "edom"
     "dvobjs"
+    "dvobjs/parsers"
     "hvml"
     "vdom"
+    "executors"
+    "executors/parsers"
     "interpreter"
     "fetchers"
 )
@@ -87,9 +90,21 @@ set(PurC_INTERFACE_INCLUDE_DIRECTORIES ${PurC_PRIVATE_FRAMEWORK_HEADERS_DIR})
 PURC_FRAMEWORK_DECLARE(PurC)
 PURC_INCLUDE_CONFIG_FILES_IF_EXISTS()
 
-set(dvobjs_PARSERS logical)
-PURC_FLEX_BISON(PurC dvobjs "${dvobjs_PARSERS}")
-unset(dvobjs_PARSERS)
+set(_parsers
+        exe_key exe_range exe_filter
+        exe_char exe_token
+        exe_add exe_sub exe_mul exe_div exe_formula exe_objformula
+        exe_sql exe_travel)
+PURC_PARSERS_GEN(executors "${_parsers}")
+unset(_parsers)
+
+set(_parsers ejson)
+PURC_PARSERS_GEN(executors/parsers "${_parsers}")
+unset(_parsers)
+
+set(_parsers logical)
+PURC_PARSERS_GEN(dvobjs/parsers "${_parsers}")
+unset(_parsers)
 
 # Generate constants for HTML ns/tags/interfaces
 add_custom_command(
@@ -184,6 +199,7 @@ list(APPEND PurC_INTERFACE_DEPENDENCIES PurC_CopyPrivateHeaders)
 # will be generated in both projects.
 if (NOT INTERNAL_BUILD)
     add_dependencies(PurC_CopyPrivateHeaders PurC)
+    add_dependencies(PurC WTF)
 endif ()
 
 

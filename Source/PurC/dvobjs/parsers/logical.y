@@ -30,8 +30,6 @@
 }
 
 %code requires {
-    #include "helper.h"
-
     #define YYSTYPE       LOGICAL_YYSTYPE
     #define YYLTYPE       LOGICAL_YYLTYPE
 
@@ -49,10 +47,6 @@
 %code {
     // generated header from flex
     // introduce yylex decl for later use
-    #include "logical.lex.h"
-    #include "private/dvobjs.h"
-    #include "private/variant.h"
-
     static void yyerror(
         YYLTYPE *yylloc,                   // match %define locations
         yyscan_t arg,                      // match %param

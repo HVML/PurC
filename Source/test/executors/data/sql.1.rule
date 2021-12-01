@@ -1,0 +1,44 @@
+# state: `begin` | `in_sample`
+# sample type: `undefined` | `positive` | `negative`
+# <begin>/comment_line:  ^'#' .* '\n'
+# <begin>/sample_type:   ^('P'|'N') ':' .* '\n' { set sample_type; }
+# <begin>/blank_line:    ^[ \t]* '\n'
+# <begin>/@default:                             { switch to in_sample; }
+# <sample>sample_record: ^(.* '\n')* ';' '\n'   { process sample;
+#                                                 switch to begin; }
+
+
+# blank lines
+                      
+
+P: # bellow are positive samples
+# blank lines
+                      
+
+# all seperated with a SPACE
+SQL: SELECT * WHERE locale LIKE 'zh_*' ;
+SQL: SELECT * WHERE locale IN ('zh_CN', 'zh_TW') ;
+SQL: SELECT locale WHERE rank > 70 ;
+SQL: SELECT locale WHERE locale LIKE 'zh_*' AND rank > 70 ;
+SQL: SELECT locale WHERE rank > 70 GROUP BY age ORDER BY name ;
+SQL: SELECT locale WHERE rank > 70 GROUP BY age ORDER BY name DESC ;
+SQL: SELECT locale WHERE (rank + 10) <= 70 GROUP BY age ORDER BY name DESC TRAVEL IN BREADTH ;
+
+SQL: SELECT * WHERE locale LIKE 'zh_*' UNION SELECT locale WHERE rank > 70 ;
+SQL: ( SELECT * WHERE locale LIKE 'zh_*' UNION SELECT locale WHERE rank > 70 ) UNION SELECT locale WHERE locale LIKE 'zh_*' AND rank > 70 ;
+SQL: SELECT a AS A, b AS B WHERE (age>3 AND age<10) AND (name='hello' OR name='world');
+SQL: SELECT (a+b) AS AB WHERE (age>3 AND age<10) AND (name='hello' OR name='world');
+
+SQL: SELECT & WHERE id = 'foo';
+SQL: SELECT tag, attr.id, textContent WHERE @__depth > 0 AND @__depth < 3 TRAVEL IN DEPTH;
+
+# no SPACE in between
+# multiple line
+
+N: # bellow are negative samples
+# blank lines
+                      
+
+# SPACE required
+# '\n' in wrong place
+

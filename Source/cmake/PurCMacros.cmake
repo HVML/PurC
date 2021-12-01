@@ -146,7 +146,8 @@ endmacro()
 macro(_PURC_FLEX_BISON _target _relpath _parser)
     BISON_TARGET(${_parser}Parser
         ${CMAKE_CURRENT_SOURCE_DIR}/${_relpath}/${_parser}.y
-        ${CMAKE_CURRENT_BINARY_DIR}/${_relpath}/${_parser}.tab.c)
+        ${CMAKE_CURRENT_BINARY_DIR}/${_relpath}/${_parser}.tab.c
+        COMPILE_FLAGS "--warnings=error")
     FLEX_TARGET(${_parser}Scanner
         ${CMAKE_CURRENT_SOURCE_DIR}/${_relpath}/${_parser}.l
         ${CMAKE_CURRENT_BINARY_DIR}/${_relpath}/${_parser}.lex.c
@@ -164,6 +165,10 @@ macro(_PURC_FLEX_BISON _target _relpath _parser)
         PROPERTIES COMPILE_FLAGS "${_flags}"
     )
     unset(_flags)
+    # FIXME: better remove this
+    list(APPEND ${_target}_PRIVATE_INCLUDE_DIRECTORIES
+        ${CMAKE_CURRENT_BINARY_DIR}/${_relpath}
+    )
 endmacro()
 
 macro(PURC_FLEX_BISON _target _relpath _parsers)
@@ -173,6 +178,36 @@ macro(PURC_FLEX_BISON _target _relpath _parsers)
         _PURC_FLEX_BISON(${_target} ${_relpath} ${_parser})
     endforeach()
     unset(_var)
+endmacro()
+
+macro(PURC_PARSER_GEN _name _rel)
+    set(_src_path ${CMAKE_CURRENT_SOURCE_DIR}/${_rel})
+    set(_dst_path ${CMAKE_CURRENT_BINARY_DIR}/${_rel})
+    set(_src_name ${_src_path}/${_name})
+    set(_dst_name ${_dst_path}/${_name})
+    BISON_TARGET(${_name}_parser ${_src_name}.y ${_dst_name}.tab.c)
+    FLEX_TARGET(${_name}_scanner ${_src_name}.l ${_dst_name}.lex.c
+        COMPILE_FLAGS "--header-file=${_dst_name}.lex.h")
+    ADD_FLEX_BISON_DEPENDENCY(${_name}_scanner ${_name}_parser)
+    set_source_files_properties(${_src_name}_tab.c ${_src_name}_lex.c
+            ${BISON_${_name}_parser_OUTPUTS}
+            PROPERTY COMPILE_FLAGS "-I${_dst_path}")
+
+    set_source_files_properties(${_src_name}_tab.c ${_src_name}_lex.c
+            OBJECT_DEPENDS "${BISON_${_name}_parser_OUTPUTS};${FLEX_${_name}_scanner_OUTPUTS}")
+    unset(_src_path)
+    unset(_dst_path)
+    unset(_src_name)
+    unset(_dst_name)
+endmacro()
+
+macro(PURC_PARSERS_GEN _rel _names)
+    add_subdirectory(${_rel}) # you shall add an empty CMakeLists.txt in <path-to-relpath>
+    set(_arr "${ARGV1}")
+    foreach (_name IN LISTS _arr)
+        PURC_PARSER_GEN(${_name} ${_rel})
+    endforeach()
+    unset(_arr)
 endmacro()
 
 # Private macro for setting the properties of a target.

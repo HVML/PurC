@@ -1,0 +1,38 @@
+# state: `begin` | `in_sample`
+# sample type: `undefined` | `positive` | `negative`
+# <begin>/comment_line:  ^'#' .* '\n'
+# <begin>/sample_type:   ^('P'|'N') ':' .* '\n' { set sample_type; }
+# <begin>/blank_line:    ^[ \t]* '\n'
+# <begin>/@default:                             { switch to in_sample; }
+# <sample>sample_record: ^(.* '\n')* ';' '\n'   { process sample;
+#                                                 switch to begin; }
+
+
+# blank lines
+                      
+
+P: # bellow are positive samples
+# blank lines
+                      
+
+# all seperated with a SPACE
+TRAVEL : SIBLINGS ;
+
+# number
+# flags
+# no SPACE in between
+TRAVEL:SIBLINGS;
+
+# multiple line
+# logical expression
+
+N: # bellow are negative samples
+# blank lines
+                      
+
+# SPACE required
+# '\n' in wrong place
+# sub clauses
+# number
+# flags
+

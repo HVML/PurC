@@ -1,0 +1,172 @@
+# state: `begin` | `in_sample`
+# sample type: `undefined` | `positive` | `negative`
+# <begin>/comment_line:  ^'#' .* '\n'
+# <begin>/sample_type:   ^('P'|'N') ':' .* '\n' { set sample_type; }
+# <begin>/blank_line:    ^[ \t]* '\n'
+# <begin>/@default:                             { switch to in_sample; }
+# <sample>sample_record: ^(.* '\n')* ';' '\n'   { process sample;
+#                                                 switch to begin; }
+
+
+# blank lines
+                      
+
+P: # bellow are positive samples
+# blank lines
+                      
+
+# all seperated with a SPACE
+FILTER : ALL ;
+FILTER : GT 30 ;
+FILTER : LIKE /0$/ ;
+FILTER : ALL  FOR KEY ;
+FILTER : ALL  FOR KEY ;
+FILTER : LT 0 ;
+FILTER : GT 0 ;
+FILTER : LE  2 ;
+FILTER : GE  1 + 2 ;
+FILTER : EQ  1 + 2 / 4 - 3 * 5 ;
+FILTER : NE  1 + 2 / ( 4 - 3 ) * 5 ;
+FILTER : LIKE 'a' AND LIKE 'b' AND LIKE 'de*f' ;
+FILTER : LIKE 'a' AND LIKE 'b' AND LIKE 'de*f' AND LIKE 'fadf?f' ;
+FILTER : LIKE 'a' AND LIKE 'b' AND LIKE 'de*f' AND LIKE 'fadf?f' AND LIKE /hello/ ;
+FILTER : LIKE 'a\b\f\r\n\t\\\u4e2dx' ;
+FILTER : LIKE 'a'isc789 ;
+FILTER : LIKE 'a'isc ;
+FILTER : LIKE 'a'789 ;
+FILTER : LIKE 'a'789  AND LIKE 'b' ;
+FILTER : LIKE 'a'789  AND LIKE 'b' AND LIKE /hello/igmsuy ;
+FILTER : LIKE 'a'789  AND LIKE 'b' AND LIKE /hello/igmsuy AND LIKE "world"isc789 ;
+FILTER : LIKE 'a'789  AND LIKE 'b' AND LIKE /hello/igmsuy AND LIKE 'world'isc789 FOR KEY ;
+FILTER : LT 123 ;
+FILTER : AS 'a' OR AS 'a' ;
+FILTER : LIKE 'a' AND LIKE 'a' ;
+FILTER : LIKE 'a'sc OR LIKE 'a'is ;
+FILTER : AS 'a'  FOR KEY ;
+FILTER : AS 'a'  FOR KEY ;
+FILTER : LT 1 - 2 + - 3 - 4 ;
+FILTER : LT 1 - 2 - - 3 - 4 ;
+FILTER : LT 1 - 2 * - 3 - 4 ;
+FILTER : LT 1 - 2 / - 3 - 4 ;
+FILTER : LT 1 - 2 + - ( 3 - 4 ) ;
+FILTER: AS 'a' AND LIKE /hello/ ;
+FILTER: LIKE /hello/ AND AS 'a' ;
+FILTER: AS "a" AND LIKE /hello/ ;
+FILTER: LIKE /hello/ AND AS "a" ;
+FILTER: AS "a\"\f\t\r\n\u000a" ;
+
+# number
+FILTER : LT .3e+0 ;
+FILTER : LT .3 ;
+FILTER : LT .3e-0 ;
+FILTER : LT .3e-10 ;
+FILTER : LT .3e+10 ;
+FILTER : LT 0. ;
+FILTER : LT 0.3 ;
+FILTER : LT 0.3e+12 ;
+FILTER : LT 0.3e-12 ;
+FILTER : LT 00 ;
+FILTER : LT 00. ;
+FILTER : LT .00 ;
+
+# flags
+FILTER: LIKE /a/gimsuy ;
+FILTER: AS 'a'isc789 ;
+
+# no SPACE in between
+FILTER:ALL;
+FILTER:GT 30;
+FILTER:LIKE /0$/;
+FILTER:ALL FOR KEY;
+FILTER:LT 0;
+FILTER:GT 0;
+FILTER:LE 2;
+FILTER:GE 1+2;
+FILTER:EQ 1+2/4-3*5;
+FILTER:NE 1+2/(4-3)*5;
+FILTER:LIKE 'a' XOR LIKE 'b' XOR LIKE 'de*f';
+FILTER:LIKE 'a' XOR LIKE 'b' XOR LIKE 'de*f' XOR LIKE 'fadf?f';
+FILTER:LIKE 'a' XOR LIKE 'b' XOR LIKE 'de*f' XOR LIKE 'fadf?f' XOR LIKE /hello/;
+FILTER:LIKE 'a\b\f\r\n\t\\\u6211\u662f\u4e2d\u56fd\u4ebax';
+FILTER:LIKE 'a'isc789;
+FILTER:LIKE 'a'isc;
+FILTER:LIKE 'a'789;
+FILTER:LIKE 'a'789 XOR LIKE 'b';
+FILTER:LIKE 'a'789 XOR LIKE 'b' XOR LIKE /hello/igmsuy;
+FILTER:LIKE 'a'789 XOR LIKE 'b' XOR LIKE /hello/igmsuy XOR LIKE 'world'isc789;
+FILTER:LIKE 'a'789 XOR LIKE 'b' XOR LIKE /hello/igmsuy XOR LIKE 'world'isc789 FOR KEY;
+FILTER:LT 123;
+FILTER:AS 'a' XOR AS 'a';
+FILTER:AS 'a' XOR LIKE /hello/;
+FILTER:LIKE /hello/ XOR AS 'a';
+FILTER:LIKE /a/gimsuy;
+FILTER:AS 'a'isc789;
+
+
+# multiple line
+FILTER:
+LIKE /0$/
+;
+FILTER: LIKE
+/0$/;
+
+FILTER:
+ALL FOR KEY;
+FILTER:
+ALL
+    FOR KEY;
+
+# logical expression
+FILTER: NOT (GE 0 AND LT 10);
+FILTER: NOT NOT (GE 0 AND LT 10);
+FILTER: NOT (GE (3+4)*2 AND LT (40-10)/30);
+
+N: # bellow are negative samples
+# blank lines
+                      
+
+# SPACE required
+FILTER : GT30 ;
+FILTER : LIKE/0$/ ;
+FILTER : AS'a' ;
+FILTER:LIKE 'a'LIKE 'a' ;
+FILTER:LIKE 'a'scLIKE 'a'is ;
+FILTER : AS'a'LIKE 'a' ;
+
+# '\n' in wrong place
+FILTER
+: LIKE /0$/;
+
+# sub clauses
+FILTER: ALL ALL ;
+FILTER: ALL AS 'a' ;
+FILTER: ALL LIKE /hello/ ;
+FILTER: ALL LT 3 ;
+FILTER: LT 3 ALL ;
+FILTER: LT 3 AS 'a' ;
+FILTER: LT 3 LIKE /hello/ ;
+FILTER: AS 'a' ALL ;
+FILTER: LIKE /hello/ ALL ;
+FILTER: LIKE /hello/ LT 3 ;
+
+# number
+FILTER : LT . ;
+FILTER : LT 0.3e ;
+
+# flags
+FILTER: AS 'a'789isc;
+FILTER: AS 'a'i s c;
+FILTER: AS 'a'7 8 9;
+FILTER: AS 'a'isc 789;
+FILTER: AS 'a'x;
+FILTER: LIKE /a/gim suy;
+FILTER: LIKE /a/x;
+
+# mixing number_comparing and string_matching
+FILTER: AS 'a' AND LT 3 ;
+FILTER: AS 'a' AND LT 3.4 ;
+
+P: # debug
+FILTER: LIKE /hello/gimsuy;
+FILTER: LIKE /hello/gimsuy, /hello/, 'h*d', /h*/i, 'h*'i9;
+

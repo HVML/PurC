@@ -1,0 +1,95 @@
+# state: `begin` | `in_sample`
+# sample type: `undefined` | `positive` | `negative`
+# <begin>/comment_line:  ^'#' .* '\n'
+# <begin>/sample_type:   ^('P'|'N') ':' .* '\n' { set sample_type; }
+# <begin>/blank_line:    ^[ \t]* '\n'
+# <begin>/@default:                             { switch to in_sample; }
+# <sample>sample_record: ^(.* '\n')* ';' '\n'   { process sample;
+#                                                 switch to begin; }
+
+
+# blank lines
+                      
+
+P: # bellow are positive samples
+# blank lines
+                      
+
+# all seperated with a SPACE
+CHAR : FROM 0 ;
+CHAR : FROM 0 TO 10 ;
+CHAR : FROM 0 TO 10 ADVANCE 2 ;
+CHAR : FROM 0 TO 10 ADVANCE 1 + 2 ;
+CHAR : FROM 0 TO 10 ADVANCE 1 + 2 / 4 - 3 * 5 ;
+CHAR : FROM 0 TO 10 ADVANCE 1 + 2 / ( 4 - 3 ) * 5 ;
+CHAR : FROM 0 TO 10 ADVANCE 1 + 2 / ( 4 - 3 ) * 5 UNTIL 'f' ;
+CHAR : FROM 0 TO 10 UNTIL 'hello' ;
+CHAR : FROM 0 TO 10 UNTIL '中' ;
+CHAR : FROM 0 ADVANCE 1 + 2 / ( 4 - 3 ) * 5 UNTIL 'f' ;
+CHAR : FROM 0 UNTIL 'hello' ;
+CHAR : FROM 0 UNTIL '中' ;
+# no SPACE in between
+CHAR:FROM 0 TO 10 ADVANCE 1+2/(4-3)*5;
+CHAR:FROM 0;
+CHAR:FROM 0 TO 10;
+CHAR:FROM 0 TO 10 ADVANCE 2;
+CHAR:FROM 0 TO 10 ADVANCE 1+2;
+CHAR:FROM 0 TO 10 ADVANCE 1+2/4-3*5;
+CHAR:FROM 0 TO 10 ADVANCE 1+2/(4-3)*5;
+CHAR:FROM 0 TO 10 ADVANCE 1+2/(4-3)*5 UNTIL 'f';
+CHAR:FROM 0 TO 10 UNTIL 'hello';
+CHAR:FROM 0 TO 10 UNTIL '中';
+CHAR:FROM 0 ADVANCE 1+2/( 4-3 )*5 UNTIL 'f';
+CHAR:FROM 0 UNTIL 'hello';
+CHAR:FROM 0 UNTIL '中';
+# multiple line
+CHAR: FROM 0 TO 10 ADVANCE
+1;
+
+CHAR:
+        FROM 0
+        TO 1
+        +
+        2
+        /
+        (
+        4
+        -
+        3
+        )
+        *
+        5
+        
+        ADVANCE 1
+        +
+        2
+        /
+        (
+        4
+        -
+        3
+        )
+        *
+        5
+        ;
+
+N: # bellow are negative samples
+# blank lines
+                      
+
+# SPACE required
+CHAR:FROM0 TO 10ADVANCE 1;
+CHAR:FROM 0TO 10ADVANCE 1;
+CHAR:FROM 0 TO10ADVANCE 1;
+CHAR:FROM 0 TO 10ADVANCE1;
+
+# '\n' in wrong place
+CHAR
+:FROM 0 TO 10ADVANCE 1;
+
+CHAR: FROM
+0 TO 10ADVANCE 1;
+
+CHAR: FROM 0 TO
+10ADVANCE 1;
+

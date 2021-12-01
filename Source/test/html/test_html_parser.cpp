@@ -188,6 +188,8 @@ TEST(html, load_from_html)
         n = snprintf(cmd, sizeof(cmd), "curl --no-progress-meter %s", line);
         ASSERT_LT(n, sizeof(cmd));
 
+        std::cerr << "curling: [" << line << "]" << std::endl;
+        std::cerr << "curling: [" << cmd << "]" << std::endl;
         fin = popen(cmd, "r");
         ASSERT_NE(fin, nullptr);
 

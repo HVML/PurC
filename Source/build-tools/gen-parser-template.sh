@@ -20,7 +20,7 @@ cat > "${RELPATH}/${NAME}.l" << EOF
  * @file ${NAME}.l
  * @author
  * @date
- * @brief The implementation of public part for vdom.
+ * @brief The implementation of public part for ${NAME}.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -51,35 +51,39 @@ cat > "${RELPATH}/${NAME}.l" << EOF
 #define PUSH(state)      yy_push_state(state, yyscanner)
 #define POP()            yy_pop_state(yyscanner)
 
-#define CHG(state) do {                      \\
-    yy_pop_state(yyscanner);                 \\
-    yy_push_state(state, yyscanner);         \\
+#define CHG(state) do {                           \\
+    yy_pop_state(yyscanner);                      \\
+    yy_push_state(state, yyscanner);              \\
 } while (0)
 
-#define TOP_STATE()                         \\
-    ({  yy_push_state(INITIAL, yyscanner);  \\
-        int _top = yy_top_state(yyscanner); \\
-        yy_pop_state(yyscanner);            \\
+#define TOP_STATE()                               \\
+    ({  yy_push_state(INITIAL, yyscanner);        \\
+        int _top = yy_top_state(yyscanner);       \\
+        yy_pop_state(yyscanner);                  \\
         _top; })
 
-#define C() do {                               \\
-    yylloc->last_column += strlen(yytext);      \\
-} while (0)
-
-#define L() do {                                \\
-    yylloc->last_line   += 1;                   \\
-    yylloc->last_column  = 1;                   \\
-} while (0)
-
-#define R()                                       \\
-do {                                              \\
+#define R() do {                                  \\
     yylloc->first_column = yylloc->last_column ;  \\
     yylloc->first_line   = yylloc->last_line;     \\
 } while (0)
 
-#define SET_STR() do {               \\
-    yylval->sval.text = yytext;      \\
-    yylval->sval.leng = yyleng;      \\
+#define L() do {                                  \\
+    yylloc->last_line   += 1;                     \\
+    yylloc->last_column  = 1;                     \\
+} while (0)
+
+#define C()                                       \\
+do {                                              \\
+    yylloc->last_column += yyleng;                \\
+} while (0)
+
+#define SET_STR() do {                            \\
+    yylval->token.text = yytext;                  \\
+    yylval->token.leng = yyleng;                  \\
+} while (0)
+
+#define SET_CHR(chr) do {                         \\
+    yylval->c = chr;                              \\
 } while (0)
 
 %}
@@ -102,15 +106,15 @@ do {                                              \\
           if (state != INITIAL) return -1;
           yyterminate(); }
 
-["]     { C(); PUSH(STR); R(); return *yytext; }
-[ \t]   { C(); R(); } /* eat */
-\n      { L(); R(); } /* eat */
-.       { C(); R(); return *yytext; } /* let bison to handle */
+["]     { R(); PUSH(STR); C(); return *yytext; }
+[ \t]   { R(); C(); } /* eat */
+\n      { R(); L(); } /* eat */
+.       { R(); C(); return *yytext; } /* let bison to handle */
 
 <STR>{
-["]       { C(); POP(); R(); return *yytext; }
-[^"\n]+   { C(); SET_STR(); R(); return MKT(STR); }
-\n        { L(); R(); return *yytext; } /* let bison to handle */
+["]       { R(); POP(); C(); return *yytext; }
+[^"\n]+   { R(); SET_STR(); C(); return MKT(STR); }
+\n        { R(); L(); return *yytext; } /* let bison to handle */
 }
 
 %%
@@ -125,7 +129,7 @@ cat > "${RELPATH}/${NAME}.y" << EOF
  * @file ${NAME}.y
  * @author
  * @date
- * @brief The implementation of public part for vdom.
+ * @brief The implementation of public part for ${NAME}.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -152,6 +156,11 @@ cat > "${RELPATH}/${NAME}.y" << EOF
 }
 
 %code requires {
+    #ifdef _GNU_SOURCE
+    #undef _GNU_SOURCE
+    #endif
+    #define _GNU_SOURCE
+    #include <stdio.h>
     #include <stddef.h>
     // related struct/function decls
     // especially, for struct ${NAME}_param
@@ -164,7 +173,7 @@ cat > "${RELPATH}/${NAME}.y" << EOF
         char      placeholder[0];
     };
 
-    struct ${NAME}_semantic {
+    struct ${NAME}_token {
         const char      *text;
         size_t           leng;
     };
@@ -185,6 +194,7 @@ cat > "${RELPATH}/${NAME}.y" << EOF
     static void yyerror(
         YYLTYPE *yylloc,                   // match %define locations
         yyscan_t arg,                      // match %param
+        char **err_msg,                    // match %parse-param
         struct ${NAME}_param *param,       // match %parse-param
         const char *errsg
     );
@@ -215,32 +225,35 @@ cat > "${RELPATH}/${NAME}.y" << EOF
 %define api.token.prefix {TOK_${NAME^^}_}
 %define locations
 %define parse.error verbose
+%define parse.lac full
 %defines
 %verbose
 
 %param { yyscan_t arg }
+%parse-param { char **err_msg }
 %parse-param { struct ${NAME}_param *param }
 
-%union { struct ${NAME}_semantic sval; } // union member
-%union { char *str; }                    // union member
+// union members
+%union { struct ${NAME}_token token; }
+%union { char *str; }
 
 %destructor { free(\$\$); } <str> // destructor for \`str\`
 
-%token <sval>  STR         // token STR use \`str\` to store semantic value
+%token <token>  STR        // token STR use \`str\` to store token value
 %nterm <str>   args        // non-terminal \`input\` use \`str\` to store
-                           // semantic value as well
+                           // token value as well
 
 
 %% /* The grammar follows. */
 
 input:
   %empty
-| args        { free(\$1); }
+| args            { free(\$1); }
 ;
 
 args:
-  STR      { SET_ARGS(\$\$, \$1); }
-| args STR { APPEND_ARGS(\$\$, \$1, \$2); }
+  '"' STR  '"'    { SET_ARGS(\$\$, \$2); }
+| args STR        { APPEND_ARGS(\$\$, \$1, \$2); }
 ;
 
 %%
@@ -250,6 +263,7 @@ static void
 yyerror(
     YYLTYPE *yylloc,                   // match %define locations
     yyscan_t arg,                      // match %param
+    char **err_msg,                    // match %parse-param
     struct ${NAME}_param *param,       // match %parse-param
     const char *errsg
 )
@@ -257,23 +271,26 @@ yyerror(
     // to implement it here
     (void)yylloc;
     (void)arg;
+    (void)err_msg;
     (void)param;
-    fprintf(stderr, "(%d,%d)->(%d,%d): %s\n",
+    int r = asprintf(&param->err_msg, "(%d,%d)->(%d,%d): %s",
         yylloc->first_line, yylloc->first_column,
-        yylloc->last_line, yylloc->last_column,
+        yylloc->last_line, yylloc->last_column - 1,
         errsg);
+    (void)r;
 }
 
 int ${NAME}_parse(const char *input,
+        char **err_msg,
         struct ${NAME}_param *param)
 {
     yyscan_t arg = {0};
     ${NAME}_yylex_init(&arg);
     // ${NAME}_yyset_in(in, arg);
-    // ${NAME}_yyset_debug(debug, arg);
+    // ${NAME}_yyset_debug(1, arg);
     // ${NAME}_yyset_extra(param, arg);
     ${NAME}_yy_scan_string(input, arg);
-    int ret =${NAME}_yyparse(arg, param);
+    int ret =${NAME}_yyparse(arg, err_msg, param);
     ${NAME}_yylex_destroy(arg);
     return ret ? 1 : 0;
 }
