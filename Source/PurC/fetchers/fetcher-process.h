@@ -138,11 +138,11 @@ protected:
 
     virtual bool shouldSendPendingMessage(const PendingMessage&) { return true; }
 
-    void didReceiveMessage(IPC::Connection&, IPC::Decoder&);
-    void didReceiveSyncMessage(IPC::Connection&, IPC::Decoder&, std::unique_ptr<IPC::Encoder>&);
-    void didClose(IPC::Connection&);
-    void didReceiveInvalidMessage(IPC::Connection&, IPC::MessageName);
-    const char* connectionName(void) { return "PcFetcherProcess"; }
+    void didReceiveMessage(IPC::Connection&, IPC::Decoder&) override;
+    void didReceiveSyncMessage(IPC::Connection&, IPC::Decoder&, std::unique_ptr<IPC::Encoder>&) override;
+    void didClose(IPC::Connection&) override;
+    void didReceiveInvalidMessage(IPC::Connection&, IPC::MessageName) override;
+    const char* connectionName(void) override { return "PcFetcherProcess"; }
 
 private:
     struct pcfetcher* m_fetcher;
