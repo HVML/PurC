@@ -463,7 +463,6 @@ void WTFLog(WTFLogChannel* channel, const char* format, ...)
 
 void WTFLogVerboseLinux(const char* file, int line, const char* function, WTFLogChannel* channel, const char* format, ...)
 {
-#if PLATFORM(LINUX)
     va_list args;
     va_start(args, format);
 
@@ -474,7 +473,6 @@ void WTFLogVerboseLinux(const char* file, int line, const char* function, WTFLog
     va_end(args);
 
     printCallSite(file, line, function);
-#endif
 }
 
 void WTFLogVerbose(const char* file, int line, const char* function, WTFLogChannel* channel, const char* format, ...)

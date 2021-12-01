@@ -530,6 +530,7 @@ upconvert:
 }
 #endif
 
+#if ENABLE(ICU)
 static inline bool needsTurkishCasingRules(const AtomString& localeIdentifier)
 {
     // Either "tr" or "az" locale, with case sensitive comparison and allowing for an ignored subtag.
@@ -539,6 +540,7 @@ static inline bool needsTurkishCasingRules(const AtomString& localeIdentifier)
         || (isASCIIAlphaCaselessEqual(first, 'a') && isASCIIAlphaCaselessEqual(second, 'z')))
         && (localeIdentifier.length() == 2 || localeIdentifier[2] == '-');
 }
+#endif
 
 #if ENABLE(ICU)
 Ref<StringImpl> StringImpl::convertToLowercaseWithLocale(const AtomString& localeIdentifier)

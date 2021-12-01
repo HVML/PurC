@@ -272,7 +272,7 @@
 #endif
 
 #if !defined(HAVE_QOS_CLASSES) && PLATFORM(COCOA)
-#define HAVE_QOS_CLASSES 1
+#define HAVE_QOS_CLASSES 0
 #endif
 
 #if PLATFORM(COCOA)

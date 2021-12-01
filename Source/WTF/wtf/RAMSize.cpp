@@ -44,6 +44,32 @@ namespace WTF {
 static constexpr size_t ramSizeGuess = 512 * MB;
 #endif
 
+#if OS(DARWIN)
+static constexpr size_t availableMemoryGuess = 512 * MB;
+static size_t memorySizeAccordingToKernel()
+{
+#if PLATFORM(IOS_FAMILY_SIMULATOR)
+    BUNUSED_PARAM(availableMemoryGuess);
+    // Pretend we have 1024MB of memory to make cache sizes behave like on device.
+    return 1024 * bmalloc::MB;
+#else
+    host_basic_info_data_t hostInfo;
+
+    mach_port_t host = mach_host_self();
+    mach_msg_type_number_t count = HOST_BASIC_INFO_COUNT;
+    kern_return_t r = host_info(host, HOST_BASIC_INFO, (host_info_t)&hostInfo, &count);
+    mach_port_deallocate(mach_task_self(), host);
+    if (r != KERN_SUCCESS)
+        return availableMemoryGuess;
+
+    if (hostInfo.max_mem > std::numeric_limits<size_t>::max())
+        return std::numeric_limits<size_t>::max();
+
+    return static_cast<size_t>(hostInfo.max_mem);
+#endif
+}
+#endif
+
 static size_t computeRAMSize()
 {
 #if OS(WINDOWS)
@@ -58,6 +84,12 @@ static size_t computeRAMSize()
     struct sysinfo si;
     sysinfo(&si);
     return si.totalram * si.mem_unit;
+#elif OS(DARWIN)
+    size_t sizeAccordingToKernel = memorySizeAccordingToKernel();
+    size_t multiple = 128 * MB;
+    // Round up the memory size to a multiple of 128MB because max_mem may not be exactly 512MB
+    // (for example) and we have code that depends on those boundaries.
+    return ((sizeAccordingToKernel + multiple - 1) / multiple) * multiple;
 #else
 #error "Missing a platform specific way of determining the available RAM"
 #endif // OS(LINUX) || OS(FREEBSD)

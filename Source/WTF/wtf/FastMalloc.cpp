@@ -125,8 +125,12 @@ bool isFastMallocEnabled()
 
 size_t fastMallocGoodSize(size_t bytes)
 {
+#if 0
 #if OS(DARWIN)
     return malloc_good_size(bytes);
+#else
+    return bytes;
+#endif
 #else
     return bytes;
 #endif
@@ -244,10 +248,15 @@ FastMallocStatistics fastMallocStatistics()
 
 size_t fastMallocSize(const void* p)
 {
+#if 0
 #if OS(DARWIN)
     return malloc_size(p);
 #elif OS(WINDOWS)
     return _msize(const_cast<void*>(p));
+#else
+    UNUSED_PARAM(p);
+    return 1;
+#endif
 #else
     UNUSED_PARAM(p);
     return 1;
