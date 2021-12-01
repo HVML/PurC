@@ -1,8 +1,8 @@
 /*
- * @file exe_sql_lex.c
+ * @file exe_sql_tab.c
  * @author Xu Xiaohong
  * @date 2021/11/30
- * @brief The implementation of public part for SQL scanner.
+ * @brief The implementation of public part for SQL parser.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -29,10 +29,12 @@
 
 #include "purc-errors.h"
 
-#include "pcexe-helper.h"
-#include "exe_sql.h"
+#include "../pcexe-helper.h"
+#include "../exe_sql.h"
+#include "../tab.h"
 
 #include "exe_sql.tab.h"
+#include "exe_sql.lex.h"
 
-#include "exe_sql.lex.c"
+#include "exe_sql.tab.c"
 

@@ -1,8 +1,8 @@
 /*
- * @file exe_sub_lex.c
+ * @file exe_travel_tab.c
  * @author Xu Xiaohong
  * @date 2021/11/30
- * @brief The implementation of public part for SUB scanner.
+ * @brief The implementation of public part for TRAVEL parser.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -29,10 +29,12 @@
 
 #include "purc-errors.h"
 
-#include "pcexe-helper.h"
-#include "exe_sub.h"
+#include "../pcexe-helper.h"
+#include "../exe_travel.h"
+#include "../tab.h"
 
-#include "exe_sub.tab.h"
+#include "exe_travel.tab.h"
+#include "exe_travel.lex.h"
 
-#include "exe_sub.lex.c"
+#include "exe_travel.tab.c"
 

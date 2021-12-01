@@ -1,8 +1,8 @@
 /*
- * @file exe_filter_lex.c
+ * @file exe_char_lex.c
  * @author Xu Xiaohong
  * @date 2021/11/30
- * @brief The implementation of public part for FILTER scanner.
+ * @brief The implementation of public part for CHAR scanner.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -29,10 +29,10 @@
 
 #include "purc-errors.h"
 
-#include "pcexe-helper.h"
-#include "exe_filter.h"
+#include "../pcexe-helper.h"
+#include "../exe_char.h"
 
-#include "exe_filter.tab.h"
+#include "exe_char.tab.h"
 
-#include "exe_filter.lex.c"
+#include "exe_char.lex.c"
 

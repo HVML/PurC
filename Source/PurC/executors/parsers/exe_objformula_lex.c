@@ -1,8 +1,8 @@
 /*
- * @file exe_formula_tab.c
+ * @file exe_objformula_lex.c
  * @author Xu Xiaohong
  * @date 2021/11/30
- * @brief The implementation of public part for FORMULA parser.
+ * @brief The implementation of public part for OBJFORMULA scanner.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -29,12 +29,10 @@
 
 #include "purc-errors.h"
 
-#include "pcexe-helper.h"
-#include "exe_formula.h"
-#include "tab.h"
+#include "../pcexe-helper.h"
+#include "../exe_objformula.h"
 
-#include "exe_formula.tab.h"
-#include "exe_formula.lex.h"
+#include "exe_objformula.tab.h"
 
-#include "exe_formula.tab.c"
+#include "exe_objformula.lex.c"
 

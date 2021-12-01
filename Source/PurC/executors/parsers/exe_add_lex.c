@@ -29,8 +29,8 @@
 
 #include "purc-errors.h"
 
-#include "pcexe-helper.h"
-#include "exe_add.h"
+#include "../pcexe-helper.h"
+#include "../exe_add.h"
 
 #include "exe_add.tab.h"
 

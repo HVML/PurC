@@ -1,8 +1,8 @@
 /*
- * @file exe_char_tab.c
+ * @file exe_add_tab.c
  * @author Xu Xiaohong
  * @date 2021/11/30
- * @brief The implementation of public part for CHAR parser.
+ * @brief The implementation of public part for ADD parser.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -29,12 +29,12 @@
 
 #include "purc-errors.h"
 
-#include "pcexe-helper.h"
-#include "exe_char.h"
-#include "tab.h"
+#include "../pcexe-helper.h"
+#include "../exe_add.h"
+#include "../tab.h"
 
-#include "exe_char.tab.h"
-#include "exe_char.lex.h"
+#include "exe_add.tab.h"
+#include "exe_add.lex.h"
 
-#include "exe_char.tab.c"
+#include "exe_add.tab.c"
 

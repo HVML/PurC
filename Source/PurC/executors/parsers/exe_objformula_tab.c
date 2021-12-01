@@ -1,8 +1,8 @@
 /*
- * @file exe_key_lex.c
+ * @file exe_objformula_tab.c
  * @author Xu Xiaohong
  * @date 2021/11/30
- * @brief The implementation of public part for KEY scanner.
+ * @brief The implementation of public part for OBJFORMULA parser.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -29,10 +29,12 @@
 
 #include "purc-errors.h"
 
-#include "pcexe-helper.h"
-#include "exe_key.h"
+#include "../pcexe-helper.h"
+#include "../exe_objformula.h"
+#include "../tab.h"
 
-#include "exe_key.tab.h"
+#include "exe_objformula.tab.h"
+#include "exe_objformula.lex.h"
 
-#include "exe_key.lex.c"
+#include "exe_objformula.tab.c"
 

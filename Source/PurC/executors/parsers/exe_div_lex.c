@@ -1,8 +1,8 @@
 /*
- * @file exe_token_lex.c
+ * @file exe_div_lex.c
  * @author Xu Xiaohong
  * @date 2021/11/30
- * @brief The implementation of public part for TOKEN scanner.
+ * @brief The implementation of public part for DIV scanner.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -29,10 +29,10 @@
 
 #include "purc-errors.h"
 
-#include "pcexe-helper.h"
-#include "exe_token.h"
+#include "../pcexe-helper.h"
+#include "../exe_div.h"
 
-#include "exe_token.tab.h"
+#include "exe_div.tab.h"
 
-#include "exe_token.lex.c"
+#include "exe_div.lex.c"
 

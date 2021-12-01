@@ -1,8 +1,8 @@
 /*
- * @file exe_mul_tab.c
+ * @file exe_range_tab.c
  * @author Xu Xiaohong
  * @date 2021/11/30
- * @brief The implementation of public part for MUL parser.
+ * @brief The implementation of public part for RANGE parser.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -29,12 +29,12 @@
 
 #include "purc-errors.h"
 
-#include "pcexe-helper.h"
-#include "exe_mul.h"
-#include "tab.h"
+#include "../pcexe-helper.h"
+#include "../exe_range.h"
+#include "../tab.h"
 
-#include "exe_mul.tab.h"
-#include "exe_mul.lex.h"
+#include "exe_range.tab.h"
+#include "exe_range.lex.h"
 
-#include "exe_mul.tab.c"
+#include "exe_range.tab.c"
 

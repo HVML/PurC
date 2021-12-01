@@ -1,8 +1,8 @@
 /*
- * @file exe_range_tab.c
+ * @file exe_sub_tab.c
  * @author Xu Xiaohong
  * @date 2021/11/30
- * @brief The implementation of public part for RANGE parser.
+ * @brief The implementation of public part for SUB parser.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -29,12 +29,12 @@
 
 #include "purc-errors.h"
 
-#include "pcexe-helper.h"
-#include "exe_range.h"
-#include "tab.h"
+#include "../pcexe-helper.h"
+#include "../exe_sub.h"
+#include "../tab.h"
 
-#include "exe_range.tab.h"
-#include "exe_range.lex.h"
+#include "exe_sub.tab.h"
+#include "exe_sub.lex.h"
 
-#include "exe_range.tab.c"
+#include "exe_sub.tab.c"
 

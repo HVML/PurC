@@ -1,8 +1,8 @@
 /*
- * @file exe_mul_lex.c
+ * @file exe_travel_lex.c
  * @author Xu Xiaohong
  * @date 2021/11/30
- * @brief The implementation of public part for MUL scanner.
+ * @brief The implementation of public part for TRAVEL scanner.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -29,10 +29,10 @@
 
 #include "purc-errors.h"
 
-#include "pcexe-helper.h"
-#include "exe_mul.h"
+#include "../pcexe-helper.h"
+#include "../exe_travel.h"
 
-#include "exe_mul.tab.h"
+#include "exe_travel.tab.h"
 
-#include "exe_mul.lex.c"
+#include "exe_travel.lex.c"
 

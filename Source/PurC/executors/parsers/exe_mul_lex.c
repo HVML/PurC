@@ -1,8 +1,8 @@
 /*
- * @file exe_sub_tab.c
+ * @file exe_mul_lex.c
  * @author Xu Xiaohong
  * @date 2021/11/30
- * @brief The implementation of public part for SUB parser.
+ * @brief The implementation of public part for MUL scanner.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -29,12 +29,10 @@
 
 #include "purc-errors.h"
 
-#include "pcexe-helper.h"
-#include "exe_sub.h"
-#include "tab.h"
+#include "../pcexe-helper.h"
+#include "../exe_mul.h"
 
-#include "exe_sub.tab.h"
-#include "exe_sub.lex.h"
+#include "exe_mul.tab.h"
 
-#include "exe_sub.tab.c"
+#include "exe_mul.lex.c"
 

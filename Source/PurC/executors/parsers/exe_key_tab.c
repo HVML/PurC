@@ -1,8 +1,8 @@
 /*
- * @file exe_formula_lex.c
+ * @file exe_key_tab.c
  * @author Xu Xiaohong
  * @date 2021/11/30
- * @brief The implementation of public part for FORMULA scanner.
+ * @brief The implementation of public part for KEY parser.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -29,10 +29,12 @@
 
 #include "purc-errors.h"
 
-#include "pcexe-helper.h"
-#include "exe_formula.h"
+#include "../pcexe-helper.h"
+#include "../exe_key.h"
+#include "../tab.h"
 
-#include "exe_formula.tab.h"
+#include "exe_key.tab.h"
+#include "exe_key.lex.h"
 
-#include "exe_formula.lex.c"
+#include "exe_key.tab.c"
 

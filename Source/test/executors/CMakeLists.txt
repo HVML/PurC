@@ -12,7 +12,7 @@ macro(GEN_TEST _name)
         ${PurC_DERIVED_SOURCES_DIR}
         ${PURC_DIR}
         ${CMAKE_BINARY_DIR}
-        ${CMAKE_BINARY_DIR}/Source/PurC/executors
+        ${CMAKE_BINARY_DIR}/Source/PurC/executors/parsers
         ${WTF_DIR}
         ${PURC_DIR}/executors
     )

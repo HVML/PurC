@@ -1,8 +1,8 @@
 /*
- * @file exe_token_tab.c
+ * @file exe_formula_tab.c
  * @author Xu Xiaohong
  * @date 2021/11/30
- * @brief The implementation of public part for TOKEN parser.
+ * @brief The implementation of public part for FORMULA parser.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -29,12 +29,12 @@
 
 #include "purc-errors.h"
 
-#include "pcexe-helper.h"
-#include "exe_token.h"
-#include "tab.h"
+#include "../pcexe-helper.h"
+#include "../exe_formula.h"
+#include "../tab.h"
 
-#include "exe_token.tab.h"
-#include "exe_token.lex.h"
+#include "exe_formula.tab.h"
+#include "exe_formula.lex.h"
 
-#include "exe_token.tab.c"
+#include "exe_formula.tab.c"
 

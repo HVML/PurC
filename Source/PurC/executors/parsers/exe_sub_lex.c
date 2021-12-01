@@ -1,8 +1,8 @@
 /*
- * @file exe_char_lex.c
+ * @file exe_sub_lex.c
  * @author Xu Xiaohong
  * @date 2021/11/30
- * @brief The implementation of public part for CHAR scanner.
+ * @brief The implementation of public part for SUB scanner.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -29,10 +29,10 @@
 
 #include "purc-errors.h"
 
-#include "pcexe-helper.h"
-#include "exe_char.h"
+#include "../pcexe-helper.h"
+#include "../exe_sub.h"
 
-#include "exe_char.tab.h"
+#include "exe_sub.tab.h"
 
-#include "exe_char.lex.c"
+#include "exe_sub.lex.c"
 

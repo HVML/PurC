@@ -1,8 +1,8 @@
 /*
- * @file exe_div_tab.c
+ * @file exe_range_lex.c
  * @author Xu Xiaohong
  * @date 2021/11/30
- * @brief The implementation of public part for DIV parser.
+ * @brief The implementation of public part for RANGE scanner.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -29,12 +29,10 @@
 
 #include "purc-errors.h"
 
-#include "pcexe-helper.h"
-#include "exe_div.h"
-#include "tab.h"
+#include "../pcexe-helper.h"
+#include "../exe_range.h"
 
-#include "exe_div.tab.h"
-#include "exe_div.lex.h"
+#include "exe_range.tab.h"
 
-#include "exe_div.tab.c"
+#include "exe_range.lex.c"
 

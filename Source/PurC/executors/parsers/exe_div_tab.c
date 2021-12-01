@@ -1,8 +1,8 @@
 /*
- * @file exe_travel_tab.c
+ * @file exe_div_tab.c
  * @author Xu Xiaohong
  * @date 2021/11/30
- * @brief The implementation of public part for TRAVEL parser.
+ * @brief The implementation of public part for DIV parser.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -29,12 +29,12 @@
 
 #include "purc-errors.h"
 
-#include "pcexe-helper.h"
-#include "exe_travel.h"
-#include "tab.h"
+#include "../pcexe-helper.h"
+#include "../exe_div.h"
+#include "../tab.h"
 
-#include "exe_travel.tab.h"
-#include "exe_travel.lex.h"
+#include "exe_div.tab.h"
+#include "exe_div.lex.h"
 
-#include "exe_travel.tab.c"
+#include "exe_div.tab.c"
 

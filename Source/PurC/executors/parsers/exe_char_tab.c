@@ -1,8 +1,8 @@
 /*
- * @file exe_key_tab.c
+ * @file exe_char_tab.c
  * @author Xu Xiaohong
  * @date 2021/11/30
- * @brief The implementation of public part for KEY parser.
+ * @brief The implementation of public part for CHAR parser.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -29,12 +29,12 @@
 
 #include "purc-errors.h"
 
-#include "pcexe-helper.h"
-#include "exe_key.h"
-#include "tab.h"
+#include "../pcexe-helper.h"
+#include "../exe_char.h"
+#include "../tab.h"
 
-#include "exe_key.tab.h"
-#include "exe_key.lex.h"
+#include "exe_char.tab.h"
+#include "exe_char.lex.h"
 
-#include "exe_key.tab.c"
+#include "exe_char.tab.c"
 

@@ -1,8 +1,8 @@
 /*
- * @file exe_filter_tab.c
+ * @file exe_formula_lex.c
  * @author Xu Xiaohong
  * @date 2021/11/30
- * @brief The implementation of public part for FILTER parser.
+ * @brief The implementation of public part for FORMULA scanner.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -29,12 +29,10 @@
 
 #include "purc-errors.h"
 
-#include "pcexe-helper.h"
-#include "exe_filter.h"
-#include "tab.h"
+#include "../pcexe-helper.h"
+#include "../exe_formula.h"
 
-#include "exe_filter.tab.h"
-#include "exe_filter.lex.h"
+#include "exe_formula.tab.h"
 
-#include "exe_filter.tab.c"
+#include "exe_formula.lex.c"
 

@@ -1,8 +1,8 @@
 /*
- * @file exe_range_lex.c
+ * @file exe_sql_lex.c
  * @author Xu Xiaohong
  * @date 2021/11/30
- * @brief The implementation of public part for RANGE scanner.
+ * @brief The implementation of public part for SQL scanner.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -29,10 +29,10 @@
 
 #include "purc-errors.h"
 
-#include "pcexe-helper.h"
-#include "exe_range.h"
+#include "../pcexe-helper.h"
+#include "../exe_sql.h"
 
-#include "exe_range.tab.h"
+#include "exe_sql.tab.h"
 
-#include "exe_range.lex.c"
+#include "exe_sql.lex.c"
 
