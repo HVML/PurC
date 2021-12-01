@@ -66,7 +66,7 @@ String HTTPHeaderMap::getUncommonHeader(const String& name) const
     return index != notFound ? m_uncommonHeaders[index].value : String();
 }
 
-#if USE(CF)
+#if 0//USE(CF)
 
 void HTTPHeaderMap::set(CFStringRef name, const String& value)
 {

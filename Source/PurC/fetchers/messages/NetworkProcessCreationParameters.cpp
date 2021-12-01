@@ -29,10 +29,6 @@
 #include "ArgumentCoders.h"
 #include "WebCoreArgumentCoders.h"
 
-#if PLATFORM(COCOA)
-#include "ArgumentCodersCF.h"
-#endif
-
 namespace PurCFetcher {
 
 NetworkProcessCreationParameters::NetworkProcessCreationParameters() = default;
@@ -50,12 +46,6 @@ void NetworkProcessCreationParameters::encode(IPC::Encoder& encoder) const
 #endif
     encoder << shouldSuppressMemoryPressureHandler;
     encoder << urlSchemesRegisteredForCustomProtocols;
-#if PLATFORM(COCOA)
-    encoder << uiProcessBundleIdentifier;
-    encoder << uiProcessSDKVersion;
-    IPC::encode(encoder, networkATSContext.get());
-    encoder << storageAccessAPIEnabled;
-#endif
     encoder << defaultDataStoreParameters;
 
     encoder << cookieAcceptPolicy;
@@ -109,16 +99,6 @@ bool NetworkProcessCreationParameters::decode(IPC::Decoder& decoder, NetworkProc
         return false;
     if (!decoder.decode(result.urlSchemesRegisteredForCustomProtocols))
         return false;
-#if PLATFORM(COCOA)
-    if (!decoder.decode(result.uiProcessBundleIdentifier))
-        return false;
-    if (!decoder.decode(result.uiProcessSDKVersion))
-        return false;
-    if (!IPC::decode(decoder, result.networkATSContext))
-        return false;
-    if (!decoder.decode(result.storageAccessAPIEnabled))
-        return false;
-#endif
 
     Optional<WebsiteDataStoreParameters> defaultDataStoreParameters;
     decoder >> defaultDataStoreParameters;

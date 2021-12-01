@@ -401,12 +401,10 @@ void makeSafeToUseMemoryMapForPath(const String&)
 }
 #endif
 
-#if !PLATFORM(COCOA)
 String createTemporaryZipArchive(const String&)
 {
     return { };
 }
-#endif
 
 } // namespace FileSystemImpl
 } // namespace WTF

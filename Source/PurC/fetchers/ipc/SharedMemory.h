@@ -73,8 +73,10 @@ public:
 
         bool isNull() const;
 
+#if !USE(UNIX_DOMAIN_SOCKETS)
 #if OS(DARWIN) || OS(WINDOWS)
         size_t size() const { return m_size; }
+#endif
 #endif
 
         void clear();

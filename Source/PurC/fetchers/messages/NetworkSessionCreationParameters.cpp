@@ -28,10 +28,6 @@
 
 #include "ArgumentCoders.h"
 
-#if PLATFORM(COCOA)
-#include "ArgumentCodersCF.h"
-#endif
-
 #if USE(CURL)
 #include "WebCoreArgumentCoders.h"
 #endif
@@ -43,15 +39,6 @@ void NetworkSessionCreationParameters::encode(IPC::Encoder& encoder) const
     encoder << sessionID;
     encoder << boundInterfaceIdentifier;
     encoder << allowsCellularAccess;
-#if PLATFORM(COCOA)
-    IPC::encode(encoder, proxyConfiguration.get());
-    encoder << sourceApplicationBundleIdentifier;
-    encoder << sourceApplicationSecondaryIdentifier;
-    encoder << shouldLogCookieInformation;
-    encoder << loadThrottleLatency;
-    encoder << httpProxy;
-    encoder << httpsProxy;
-#endif
 #if HAVE(CFNETWORK_ALTERNATIVE_SERVICE)
     encoder << alternativeServiceDirectory;
     encoder << alternativeServiceDirectoryExtensionHandle;
@@ -99,42 +86,6 @@ Optional<NetworkSessionCreationParameters> NetworkSessionCreationParameters::dec
     if (!allowsCellularAccess)
         return WTF::nullopt;
     
-#if PLATFORM(COCOA)
-    RetainPtr<CFDictionaryRef> proxyConfiguration;
-    if (!IPC::decode(decoder, proxyConfiguration))
-        return WTF::nullopt;
-    
-    Optional<String> sourceApplicationBundleIdentifier;
-    decoder >> sourceApplicationBundleIdentifier;
-    if (!sourceApplicationBundleIdentifier)
-        return WTF::nullopt;
-    
-    Optional<String> sourceApplicationSecondaryIdentifier;
-    decoder >> sourceApplicationSecondaryIdentifier;
-    if (!sourceApplicationSecondaryIdentifier)
-        return WTF::nullopt;
-
-    Optional<bool> shouldLogCookieInformation;
-    decoder >> shouldLogCookieInformation;
-    if (!shouldLogCookieInformation)
-        return WTF::nullopt;
-    
-    Optional<Seconds> loadThrottleLatency;
-    decoder >> loadThrottleLatency;
-    if (!loadThrottleLatency)
-        return WTF::nullopt;
-    
-    Optional<URL> httpProxy;
-    decoder >> httpProxy;
-    if (!httpProxy)
-        return WTF::nullopt;
-
-    Optional<URL> httpsProxy;
-    decoder >> httpsProxy;
-    if (!httpsProxy)
-        return WTF::nullopt;
-#endif
-
 #if HAVE(CFNETWORK_ALTERNATIVE_SERVICE)
     Optional<String> alternativeServiceDirectory;
     decoder >> alternativeServiceDirectory;
@@ -253,15 +204,6 @@ Optional<NetworkSessionCreationParameters> NetworkSessionCreationParameters::dec
         *sessionID
         , WTFMove(*boundInterfaceIdentifier)
         , WTFMove(*allowsCellularAccess)
-#if PLATFORM(COCOA)
-        , WTFMove(proxyConfiguration)
-        , WTFMove(*sourceApplicationBundleIdentifier)
-        , WTFMove(*sourceApplicationSecondaryIdentifier)
-        , WTFMove(*shouldLogCookieInformation)
-        , WTFMove(*loadThrottleLatency)
-        , WTFMove(*httpProxy)
-        , WTFMove(*httpsProxy)
-#endif
 #if HAVE(CFNETWORK_ALTERNATIVE_SERVICE)
         , WTFMove(*alternativeServiceDirectory)
         , WTFMove(*alternativeServiceDirectoryExtensionHandle)

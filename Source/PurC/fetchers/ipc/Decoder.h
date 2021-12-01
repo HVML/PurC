@@ -63,7 +63,7 @@ public:
     bool shouldUseFullySynchronousModeForTesting() const;
 
 #if PLATFORM(MAC)
-    void setImportanceAssertion(std::unique_ptr<ImportanceAssertion>);
+//    void setImportanceAssertion(std::unique_ptr<ImportanceAssertion>);
 #endif
 
 #if HAVE(QOS_CLASSES)
@@ -188,7 +188,7 @@ private:
     uint64_t m_destinationID;
 
 #if PLATFORM(MAC)
-    std::unique_ptr<ImportanceAssertion> m_importanceAssertion;
+//    std::unique_ptr<ImportanceAssertion> m_importanceAssertion;
 #endif
 
 #if HAVE(QOS_CLASSES)

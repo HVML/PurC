@@ -120,6 +120,8 @@ enum class CookiePersistentStorageType : bool {
     SQLite
 };
 
+enum class SameSiteStrictEnforcementEnabled : bool { Yes, No };
+
 } // namespace PurCFetcher
 
 namespace WTF {

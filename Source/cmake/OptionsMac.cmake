@@ -13,8 +13,9 @@ set(HEADER_INSTALL_DIR "${CMAKE_INSTALL_FULL_INCLUDEDIR}" CACHE PATH "Absolute p
 set(PURC_HEADER_INSTALL_DIR "${CMAKE_INSTALL_FULL_INCLUDEDIR}/purc" CACHE PATH "Absolute path to PurC header installation directory")
 
 add_definitions(-DBUILDING_MAC__=1)
+add_definitions(-DPURC_LIBEXEC_DIR="${LIBEXEC_INSTALL_DIR}")
 
-find_package(GLIB 2.44.0 COMPONENTS gio gio-unix gmodule)
+find_package(GLIB 2.44.0 COMPONENTS gio gio-unix gmodule gobject)
 find_package(Ncurses 5.0)
 find_package(LibXml2 2.8.0)
 find_package(LibXslt 1.1.7)

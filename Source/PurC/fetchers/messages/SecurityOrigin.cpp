@@ -38,8 +38,6 @@
 
 namespace PurCFetcher {
 
-constexpr unsigned maximumURLSize = 0x04000000;
-
 static bool schemeRequiresHost(const URL& url)
 {
     // We expect URLs with these schemes to have authority components. If the

@@ -76,7 +76,7 @@ WTF_ATTRIBUTE_PRINTF(1, 0) static String createWithFormatAndArguments(const char
 
     ALLOW_NONLITERAL_FORMAT_BEGIN
 
-#if USE(CF) && !OS(WINDOWS)
+#if 0 //USE(CF) && !OS(WINDOWS)
     if (strstr(format, "%@")) {
         auto cfFormat = adoptCF(CFStringCreateWithCString(kCFAllocatorDefault, format, kCFStringEncodingUTF8));
         auto result = adoptCF(CFStringCreateWithFormatAndArguments(kCFAllocatorDefault, nullptr, cfFormat.get(), args));

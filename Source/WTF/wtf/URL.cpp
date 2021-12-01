@@ -209,7 +209,7 @@ URL URL::truncatedForUseAsBase() const
     return URL(URL(), m_string.left(m_pathAfterLastSlash));
 }
 
-#if !USE(CF)
+//#if !USE(CF)
 
 String URL::fileSystemPath() const
 {
@@ -219,7 +219,7 @@ String URL::fileSystemPath() const
     return decodeEscapeSequencesFromParsedURL(path());
 }
 
-#endif
+//#endif
 
 #if !ENABLE_ASSERTS
 

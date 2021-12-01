@@ -183,9 +183,8 @@ public:
     PURC_EXPORT void setSystemPreviewInfo(const SystemPreviewInfo&);
 #endif
 
-#if !PLATFORM(COCOA)
     bool encodingRequiresPlatformData() const { return true; }
-#endif
+
     template<class Encoder> void encodeWithoutPlatformData(Encoder&) const;
     template<class Decoder> WARN_UNUSED_RETURN bool decodeWithoutPlatformData(Decoder&);
 

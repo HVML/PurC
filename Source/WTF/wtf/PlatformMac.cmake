@@ -2,12 +2,30 @@ find_library(COCOA_LIBRARY Cocoa)
 find_library(COREFOUNDATION_LIBRARY CoreFoundation)
 find_library(READLINE_LIBRARY Readline)
 list(APPEND WTF_LIBRARIES
+    ${GLIB_GIO_LIBRARIES}
+    ${GLIB_GOBJECT_LIBRARIES}
+    ${GLIB_LIBRARIES}
     ${COREFOUNDATION_LIBRARY}
     ${COCOA_LIBRARY}
     ${READLINE_LIBRARY}
 )
 
+list(APPEND WTF_SYSTEM_INCLUDE_DIRECTORIES
+    ${GIO_UNIX_INCLUDE_DIRS}
+    ${GLIB_INCLUDE_DIRS}
+)
+
 list(APPEND WTF_PUBLIC_HEADERS
+    glib/GLibUtilities.h
+    glib/GMutexLocker.h
+    glib/GRefPtr.h
+    glib/GSocketMonitor.h
+    glib/GTypedefs.h
+    glib/GUniquePtr.h
+    glib/RunLoopSourcePriority.h
+    glib/SocketConnection.h
+    glib/WTFGType.h
+
     WeakObjCPtr.h
 
     cf/CFURLExtras.h
@@ -44,48 +62,68 @@ list(APPEND WTF_PUBLIC_HEADERS
 )
 
 list(APPEND WTF_SOURCES
-    BlockObjCExceptions.mm
+    generic/MainThreadGeneric.cpp
+    generic/WorkQueueGeneric.cpp
 
-    cf/CFURLExtras.cpp
-    cf/FileSystemCF.cpp
-    cf/LanguageCF.cpp
-    cf/RunLoopCF.cpp
-    cf/RunLoopTimerCF.cpp
-    cf/SchedulePairCF.cpp
-    cf/URLCF.cpp
+    glib/FileSystemGlib.cpp
+    glib/GLibUtilities.cpp
+    glib/GRefPtr.cpp
+    glib/GSocketMonitor.cpp
+    glib/RunLoopGLib.cpp
+    glib/SocketConnection.cpp
+    glib/URLGLib.cpp
 
-    cocoa/AutodrainedPool.cpp
-    cocoa/CPUTimeCocoa.cpp
-    cocoa/CrashReporter.cpp
-    cocoa/Entitlements.mm
-    cocoa/FileSystemCocoa.mm
-    cocoa/LanguageCocoa.mm
-    cocoa/MachSendRight.cpp
-    cocoa/MainThreadCocoa.mm
-    cocoa/MemoryFootprintCocoa.cpp
-    cocoa/MemoryPressureHandlerCocoa.mm
-    cocoa/NSURLExtras.mm
-    cocoa/ResourceUsageCocoa.cpp
-    cocoa/RuntimeApplicationChecksCocoa.cpp
-    cocoa/SystemTracingCocoa.cpp
-    cocoa/URLCocoa.mm
-    cocoa/WorkQueueCocoa.cpp
-
-    mac/FileSystemMac.mm
-    mac/SchedulePairMac.mm
-
-    posix/FileSystemPOSIX.cpp
     posix/OSAllocatorPOSIX.cpp
     posix/ThreadingPOSIX.cpp
 
-    text/cf/AtomStringImplCF.cpp
-    text/cf/StringCF.cpp
-    text/cf/StringImplCF.cpp
-    text/cf/StringViewCF.cpp
+    text/unix/TextBreakIteratorInternalICUUnix.cpp
 
-    text/cocoa/StringCocoa.mm
-    text/cocoa/StringImplCocoa.mm
-    text/cocoa/StringViewCocoa.mm
+    unix/CPUTimeUnix.cpp
+    unix/LanguageUnix.cpp
+    unix/UniStdExtrasUnix.cpp
+
+#    BlockObjCExceptions.mm
+#
+#    cf/CFURLExtras.cpp
+#    cf/FileSystemCF.cpp
+#    cf/LanguageCF.cpp
+#    cf/RunLoopCF.cpp
+#    cf/RunLoopTimerCF.cpp
+#    cf/SchedulePairCF.cpp
+#    cf/URLCF.cpp
+#
+#    cocoa/AutodrainedPool.cpp
+#    cocoa/CPUTimeCocoa.cpp
+#    cocoa/CrashReporter.cpp
+#    cocoa/Entitlements.mm
+#    cocoa/FileSystemCocoa.mm
+#    cocoa/LanguageCocoa.mm
+#    cocoa/MachSendRight.cpp
+#    cocoa/MainThreadCocoa.mm
+#    cocoa/MemoryFootprintCocoa.cpp
+#    cocoa/MemoryPressureHandlerCocoa.mm
+#    cocoa/NSURLExtras.mm
+#    cocoa/ResourceUsageCocoa.cpp
+#    cocoa/RuntimeApplicationChecksCocoa.cpp
+#    cocoa/SystemTracingCocoa.cpp
+#    cocoa/URLCocoa.mm
+#    cocoa/WorkQueueCocoa.cpp
+#
+#    mac/FileSystemMac.mm
+#    mac/SchedulePairMac.mm
+#
+#    posix/FileSystemPOSIX.cpp
+#    posix/OSAllocatorPOSIX.cpp
+#    posix/ThreadingPOSIX.cpp
+#
+#    text/cf/AtomStringImplCF.cpp
+#    text/cf/StringCF.cpp
+#    text/cf/StringImplCF.cpp
+#    text/cf/StringViewCF.cpp
+#
+#    text/cocoa/StringCocoa.mm
+#    text/cocoa/StringImplCocoa.mm
+#    text/cocoa/StringViewCocoa.mm
 )
 
 file(COPY mac/MachExceptions.defs DESTINATION ${WTF_DERIVED_SOURCES_DIR})

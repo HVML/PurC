@@ -316,7 +316,7 @@ public:
     operator UnspecifiedBoolTypeA() const;
     operator UnspecifiedBoolTypeB() const;
 
-#if USE(CF)
+#if 0 //USE(CF)
     WTF_EXPORT_PRIVATE String(CFStringRef);
     WTF_EXPORT_PRIVATE RetainPtr<CFStringRef> createCFString() const;
 #endif

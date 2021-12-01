@@ -33,7 +33,7 @@
 #include <wtf/StdLibExtras.h>
 
 #if PLATFORM(MAC)
-#include "ImportanceAssertion.h"
+//#include "ImportanceAssertion.h"
 #endif
 
 namespace IPC {
@@ -111,10 +111,10 @@ bool Decoder::shouldUseFullySynchronousModeForTesting() const
 }
 
 #if PLATFORM(MAC)
-void Decoder::setImportanceAssertion(std::unique_ptr<ImportanceAssertion> assertion)
-{
-    m_importanceAssertion = WTFMove(assertion);
-}
+//void Decoder::setImportanceAssertion(std::unique_ptr<ImportanceAssertion> assertion)
+//{
+//    m_importanceAssertion = WTFMove(assertion);
+//}
 #endif
 
 std::unique_ptr<Decoder> Decoder::unwrapForTesting(Decoder& decoder)

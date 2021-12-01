@@ -377,7 +377,7 @@ void StringBuilder::appendCharacters(const LChar* characters, unsigned length)
     }
 }
 
-#if USE(CF)
+#if 0//USE(CF)
 
 void StringBuilder::append(CFStringRef string)
 {
