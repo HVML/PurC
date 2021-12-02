@@ -3,6 +3,8 @@ set(MATH_LIBRARY_TYPE SHARED)
 
 set(MATH_SOURCES
     math.c
+    parsers/math_tab.c
+    parsers/math_l_tab.c
 )
 
 macro(MATH_FLEX_BISON _target _suffix _relpath _parser)
@@ -28,8 +30,9 @@ macro(MATH_FLEX_BISON _target _suffix _relpath _parser)
     unset(_flags)
 endmacro()
 
-MATH_FLEX_BISON(MATH "" parsers math)
-MATH_FLEX_BISON(MATH "_l" parsers math)
+set(_parsers math)
+PURC_PARSERS_GEN_IN(parsers "${_parsers}" "_l")
+unset(_parsers)
 
 set(MATH_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR}/include
