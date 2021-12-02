@@ -309,6 +309,7 @@ TEST(dvobjs, dvobjs_sys_get_locale)
     purc_variant_unref (ret_var);
     purc_variant_unref (param[0]);
 
+#ifdef LC_PAPER
     printf ("TEST get_locale: nr_args = 1, param = paper:\n");
     param[0] = purc_variant_make_string ("paper", true);
     ret_var = func (NULL, 1, param);
@@ -317,7 +318,9 @@ TEST(dvobjs, dvobjs_sys_get_locale)
     printf("\t\tpaper : %s\n", purc_variant_get_string_const (ret_var));
     purc_variant_unref (ret_var);
     purc_variant_unref (param[0]);
+#endif // LC_PAPER
 
+#ifdef LC_NAME
     printf ("TEST get_locale: nr_args = 1, param = name:\n");
     param[0] = purc_variant_make_string ("name", true);
     ret_var = func (NULL, 1, param);
@@ -326,7 +329,9 @@ TEST(dvobjs, dvobjs_sys_get_locale)
     printf("\t\tname : %s\n", purc_variant_get_string_const (ret_var));
     purc_variant_unref (ret_var);
     purc_variant_unref (param[0]);
+#endif // LC_NAME
 
+#ifdef LC_ADDRESS
     printf ("TEST get_locale: nr_args = 1, param = address:\n");
     param[0] = purc_variant_make_string ("address", true);
     ret_var = func (NULL, 1, param);
@@ -335,7 +340,9 @@ TEST(dvobjs, dvobjs_sys_get_locale)
     printf("\t\taddress : %s\n", purc_variant_get_string_const (ret_var));
     purc_variant_unref (ret_var);
     purc_variant_unref (param[0]);
+#endif // LC_ADDRESS
 
+#ifdef LC_TELEPHONE
     printf ("TEST get_locale: nr_args = 1, param = telephone:\n");
     param[0] = purc_variant_make_string ("telephone", true);
     ret_var = func (NULL, 1, param);
@@ -344,7 +351,9 @@ TEST(dvobjs, dvobjs_sys_get_locale)
     printf("\t\ttelephone : %s\n", purc_variant_get_string_const (ret_var));
     purc_variant_unref (ret_var);
     purc_variant_unref (param[0]);
+#endif // LC_TELEPHONE
 
+#ifdef LC_MEASUREMENT
     printf ("TEST get_locale: nr_args = 1, param = measurement:\n");
     param[0] = purc_variant_make_string ("measurement", true);
     ret_var = func (NULL, 1, param);
@@ -353,7 +362,9 @@ TEST(dvobjs, dvobjs_sys_get_locale)
     printf("\t\tmeasurement : %s\n", purc_variant_get_string_const (ret_var));
     purc_variant_unref (ret_var);
     purc_variant_unref (param[0]);
+#endif // LC_MEASUREMENT
 
+#ifdef LC_IDENTIFICATION
     printf ("TEST get_locale: nr_args = 1, param = identification:\n");
     param[0] = purc_variant_make_string ("identification", true);
     ret_var = func (NULL, 1, param);
@@ -362,6 +373,7 @@ TEST(dvobjs, dvobjs_sys_get_locale)
     printf("\t\tidentification : %s\n", purc_variant_get_string_const (ret_var));
     purc_variant_unref (ret_var);
     purc_variant_unref (param[0]);
+#endif // LC_IDENTIFICATION
 
     get_variant_total_info (&sz_total_mem_after,
             &sz_total_values_after, &nr_reserved_after);

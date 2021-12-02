@@ -98,8 +98,13 @@ TEST(dvobjs, dvobjs_math_pi_e)
         env, "../../../build/Source/ExtDVObjs");
     std::cerr << "env: " << env << "=" << so_path << std::endl;
 
+#ifndef __APPLE__
     strncat(so_path, "/math/libpurc-dvobj-MATH.so", sizeof(so_path)-1);
     so_path[sizeof(so_path)-1] = '\0';
+#else
+    strncat(so_path, "/math/purc-dvobj-MATH.framework/purc-dvobj-MATH", sizeof(so_path)-1);
+    so_path[sizeof(so_path)-1] = '\0';
+#endif
     purc_variant_t math = purc_variant_load_dvobj_from_so (
         so_path, "MATH");
     ASSERT_EQ(purc_variant_is_object (math), true);
@@ -317,8 +322,13 @@ TEST(dvobjs, dvobjs_math_const)
         env, "../../../build/Source/ExtDVObjs");
     std::cerr << "env: " << env << "=" << so_path << std::endl;
 
+#ifndef __APPLE__
     strncat(so_path, "/math/libpurc-dvobj-MATH.so", sizeof(so_path)-1);
     so_path[sizeof(so_path)-1] = '\0';
+#else
+    strncat(so_path, "/math/purc-dvobj-MATH.framework/purc-dvobj-MATH", sizeof(so_path)-1);
+    so_path[sizeof(so_path)-1] = '\0';
+#endif
     purc_variant_t math = purc_variant_load_dvobj_from_so (
         so_path, "MATH");
     ASSERT_EQ(purc_variant_is_object (math), true);
@@ -448,8 +458,13 @@ TEST(dvobjs, dvobjs_math_func)
         env, "../../../build/Source/ExtDVObjs");
     std::cerr << "env: " << env << "=" << so_path << std::endl;
 
+#ifndef __APPLE__
     strncat(so_path, "/math/libpurc-dvobj-MATH.so", sizeof(so_path)-1);
     so_path[sizeof(so_path)-1] = '\0';
+#else
+    strncat(so_path, "/math/purc-dvobj-MATH.framework/purc-dvobj-MATH", sizeof(so_path)-1);
+    so_path[sizeof(so_path)-1] = '\0';
+#endif
     purc_variant_t math = purc_variant_load_dvobj_from_so (
         so_path, "MATH");
     ASSERT_EQ(purc_variant_is_object (math), true);
@@ -537,8 +552,13 @@ TEST(dvobjs, dvobjs_math_eval)
         env, "../../../build/Source/ExtDVObjs");
     std::cerr << "env: " << env << "=" << so_path << std::endl;
 
+#ifndef __APPLE__
     strncat(so_path, "/math/libpurc-dvobj-MATH.so", sizeof(so_path)-1);
     so_path[sizeof(so_path)-1] = '\0';
+#else
+    strncat(so_path, "/math/purc-dvobj-MATH.framework/purc-dvobj-MATH", sizeof(so_path)-1);
+    so_path[sizeof(so_path)-1] = '\0';
+#endif
     purc_variant_t math = purc_variant_load_dvobj_from_so (
         so_path, "MATH");
     ASSERT_EQ(purc_variant_is_object (math), true);
@@ -679,8 +699,13 @@ TEST(dvobjs, dvobjs_math_assignment)
         env, "../../../build/Source/ExtDVObjs");
     std::cerr << "env: " << env << "=" << so_path << std::endl;
 
+#ifndef __APPLE__
     strncat(so_path, "/math/libpurc-dvobj-MATH.so", sizeof(so_path)-1);
     so_path[sizeof(so_path)-1] = '\0';
+#else
+    strncat(so_path, "/math/purc-dvobj-MATH.framework/purc-dvobj-MATH", sizeof(so_path)-1);
+    so_path[sizeof(so_path)-1] = '\0';
+#endif
     purc_variant_t math = purc_variant_load_dvobj_from_so (
         so_path, "MATH");
     ASSERT_EQ(purc_variant_is_object (math), true);
@@ -761,8 +786,13 @@ TEST(dvobjs, dvobjs_math_samples)
         env, "../../../build/Source/ExtDVObjs");
     std::cerr << "env: " << env << "=" << so_path << std::endl;
 
+#ifndef __APPLE__
     strncat(so_path, "/math/libpurc-dvobj-MATH.so", sizeof(so_path)-1);
     so_path[sizeof(so_path)-1] = '\0';
+#else
+    strncat(so_path, "/math/purc-dvobj-MATH.framework/purc-dvobj-MATH", sizeof(so_path)-1);
+    so_path[sizeof(so_path)-1] = '\0';
+#endif
     purc_variant_t math = purc_variant_load_dvobj_from_so (
         so_path, "MATH");
     ASSERT_EQ(purc_variant_is_object (math), true);
@@ -945,8 +975,13 @@ TEST(dvobjs, dvobjs_math_bc)
         env, "../../../build/Source/ExtDVObjs");
     std::cerr << "env: " << env << "=" << so_path << std::endl;
 
+#ifndef __APPLE__
     strncat(so_path, "/math/libpurc-dvobj-MATH.so", sizeof(so_path)-1);
     so_path[sizeof(so_path)-1] = '\0';
+#else
+    strncat(so_path, "/math/purc-dvobj-MATH.framework/purc-dvobj-MATH", sizeof(so_path)-1);
+    so_path[sizeof(so_path)-1] = '\0';
+#endif
     purc_variant_t math = purc_variant_load_dvobj_from_so (
         so_path, "MATH");
     ASSERT_EQ(purc_variant_is_object (math), true);
