@@ -289,7 +289,6 @@
 
 /* Bison declarations. */
 %require "3.0.4"
-%define api.prefix {logical_yy}
 %define api.pure full
 %define api.token.prefix {TOK_LOGICAL_}
 %define locations
@@ -417,13 +416,13 @@ int pcdvobjs_logical_parse(const char *input,
     if (r)
         return 1;
 
-    logical_yylex_init(&arg);
-    // logical_yyset_in(in, arg);
-    // logical_yyset_debug(debug, arg);
-    logical_yyset_extra(param, arg);
-    logical_yy_scan_string(input, arg);
-    int ret =logical_yyparse(arg, &funcs, param);
-    logical_yylex_destroy(arg);
+    yylex_init(&arg);
+    // yyset_in(in, arg);
+    // yyset_debug(debug, arg);
+    yyset_extra(param, arg);
+    yy_scan_string(input, arg);
+    int ret =yyparse(arg, &funcs, param);
+    yylex_destroy(arg);
     if (param->variables) {
         purc_variant_unref(param->variables);
         param->variables = NULL;

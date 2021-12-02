@@ -34,7 +34,10 @@
 #include "../tab.h"
 
 #include "exe_formula.tab.h"
-#include "exe_formula.lex.h"
+#include "exe_formula.lex.c"
 
+#include "exe_formula.lex.h"
+#undef yylloc
+#undef yylval
 #include "exe_formula.tab.c"
 

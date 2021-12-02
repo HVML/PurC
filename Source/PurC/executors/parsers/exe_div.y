@@ -67,7 +67,6 @@
 
 /* Bison declarations. */
 %require "3.0.4"
-%define api.prefix {exe_div_yy}
 %define api.pure full
 %define api.token.prefix {TOK_EXE_DIV_}
 %define locations
@@ -181,16 +180,16 @@ int exe_div_parse(const char *input, size_t len,
         struct exe_div_param *param)
 {
     yyscan_t arg = {0};
-    exe_div_yylex_init(&arg);
-    // exe_div_yyset_in(in, arg);
+    yylex_init(&arg);
+    // yyset_in(in, arg);
     int debug_flex = param ? param->debug_flex : 0;
     int debug_bison = param ? param->debug_bison: 0;
-    exe_div_yyset_debug(debug_flex, arg);
+    yyset_debug(debug_flex, arg);
     yydebug = debug_bison;
-    // exe_div_yyset_extra(param, arg);
-    exe_div_yy_scan_bytes(input ? input : "", input ? len : 0, arg);
-    int ret =exe_div_yyparse(arg, param);
-    exe_div_yylex_destroy(arg);
+    // yyset_extra(param, arg);
+    yy_scan_bytes(input ? input : "", input ? len : 0, arg);
+    int ret =yyparse(arg, param);
+    yylex_destroy(arg);
     return ret ? -1 : 0;
 }
 

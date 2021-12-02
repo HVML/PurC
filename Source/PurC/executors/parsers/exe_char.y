@@ -83,7 +83,6 @@
 
 /* Bison declarations. */
 %require "3.0.4"
-%define api.prefix {exe_char_yy}
 %define api.pure full
 %define api.token.prefix {TOK_EXE_CHAR_}
 %define locations
@@ -207,16 +206,16 @@ int exe_char_parse(const char *input, size_t len,
         struct exe_char_param *param)
 {
     yyscan_t arg = {0};
-    exe_char_yylex_init(&arg);
-    // exe_char_yyset_in(in, arg);
+    yylex_init(&arg);
+    // yyset_in(in, arg);
     int debug_flex = param ? param->debug_flex : 0;
     int debug_bison = param ? param->debug_bison: 0;
-    exe_char_yyset_debug(debug_flex, arg);
+    yyset_debug(debug_flex, arg);
     yydebug = debug_bison;
-    // exe_char_yyset_extra(param, arg);
-    exe_char_yy_scan_bytes(input ? input : "", input ? len : 0, arg);
-    int ret =exe_char_yyparse(arg, param);
-    exe_char_yylex_destroy(arg);
+    // yyset_extra(param, arg);
+    yy_scan_bytes(input ? input : "", input ? len : 0, arg);
+    int ret =yyparse(arg, param);
+    yylex_destroy(arg);
     return ret ? -1 : 0;
 }
 

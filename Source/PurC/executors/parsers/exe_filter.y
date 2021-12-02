@@ -67,7 +67,6 @@
 
 /* Bison declarations. */
 %require "3.0.4"
-%define api.prefix {exe_filter_yy}
 %define api.pure full
 %define api.token.prefix {TOK_EXE_FILTER_}
 %define locations
@@ -305,16 +304,16 @@ int exe_filter_parse(const char *input, size_t len,
         struct exe_filter_param *param)
 {
     yyscan_t arg = {0};
-    exe_filter_yylex_init(&arg);
-    // exe_filter_yyset_in(in, arg);
+    yylex_init(&arg);
+    // yyset_in(in, arg);
     int debug_flex = param ? param->debug_flex : 0;
     int debug_bison = param ? param->debug_bison: 0;
-    exe_filter_yyset_debug(debug_flex, arg);
+    yyset_debug(debug_flex, arg);
     yydebug = debug_bison;
-    // exe_filter_yyset_extra(param, arg);
-    exe_filter_yy_scan_bytes(input ? input : "", input ? len : 0, arg);
-    int ret =exe_filter_yyparse(arg, param);
-    exe_filter_yylex_destroy(arg);
+    // yyset_extra(param, arg);
+    yy_scan_bytes(input ? input : "", input ? len : 0, arg);
+    int ret =yyparse(arg, param);
+    yylex_destroy(arg);
     if (ret) {
         if (param->err_msg==NULL) {
             purc_set_error(PCEXECUTOR_ERROR_OOM);

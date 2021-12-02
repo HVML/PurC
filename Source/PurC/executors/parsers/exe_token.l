@@ -69,7 +69,6 @@ do {                                              \
 
 %}
 
-%option prefix="exe_token_yy"
 %option bison-bridge bison-locations reentrant
 %option noyywrap noinput nounput
 %option verbose

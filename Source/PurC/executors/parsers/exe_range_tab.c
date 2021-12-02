@@ -34,7 +34,10 @@
 #include "../tab.h"
 
 #include "exe_range.tab.h"
-#include "exe_range.lex.h"
+#include "exe_range.lex.c"
 
+#include "exe_range.lex.h"
+#undef yylloc
+#undef yylval
 #include "exe_range.tab.c"
 

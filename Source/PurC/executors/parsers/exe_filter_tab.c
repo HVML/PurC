@@ -34,7 +34,10 @@
 #include "../tab.h"
 
 #include "exe_filter.tab.h"
-#include "exe_filter.lex.h"
+#include "exe_filter.lex.c"
 
+#include "exe_filter.lex.h"
+#undef yylloc
+#undef yylval
 #include "exe_filter.tab.c"
 

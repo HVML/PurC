@@ -34,7 +34,10 @@
 #include "../tab.h"
 
 #include "exe_travel.tab.h"
-#include "exe_travel.lex.h"
+#include "exe_travel.lex.c"
 
+#include "exe_travel.lex.h"
+#undef yylloc
+#undef yylval
 #include "exe_travel.tab.c"
 

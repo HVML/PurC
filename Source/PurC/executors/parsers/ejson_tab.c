@@ -32,7 +32,10 @@
 #include "private/ejson-parser.h"
 
 #include "ejson.tab.h"
-#include "ejson.lex.h"
+#include "ejson.lex.c"
 
+#include "ejson.lex.h"
+#undef yylloc
+#undef yylval
 #include "ejson.tab.c"
 

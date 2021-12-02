@@ -34,7 +34,10 @@
 #include "../tab.h"
 
 #include "exe_sql.tab.h"
-#include "exe_sql.lex.h"
+#include "exe_sql.lex.c"
 
+#include "exe_sql.lex.h"
+#undef yylloc
+#undef yylval
 #include "exe_sql.tab.c"
 

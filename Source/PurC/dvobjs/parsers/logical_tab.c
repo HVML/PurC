@@ -36,7 +36,10 @@
 #include "../helper.h"
 
 #include "logical.tab.h"
-#include "logical.lex.h"
+#include "logical.lex.c"
 
+#include "logical.lex.h"
+#undef yylloc
+#undef yylval
 #include "logical.tab.c"
 

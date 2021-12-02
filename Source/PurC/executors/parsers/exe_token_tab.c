@@ -34,7 +34,10 @@
 #include "../tab.h"
 
 #include "exe_token.tab.h"
-#include "exe_token.lex.h"
+#include "exe_token.lex.c"
 
+#include "exe_token.lex.h"
+#undef yylloc
+#undef yylval
 #include "exe_token.tab.c"
 
