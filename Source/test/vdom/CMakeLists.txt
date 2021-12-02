@@ -30,7 +30,7 @@ set(test_vdom_LIBRARIES
 
 PURC_COMPUTE_SOURCES(test_vdom)
 PURC_FRAMEWORK(test_vdom)
-GTEST_DISCOVER_TESTS(test_vdom)
+GTEST_DISCOVER_TESTS(test_vdom DISCOVERY_TIMEOUT 10)
 
 # test_vdom_gen
 PURC_EXECUTABLE_DECLARE(test_vdom_gen)
@@ -60,5 +60,5 @@ set(test_vdom_gen_LIBRARIES
 
 PURC_COMPUTE_SOURCES(test_vdom_gen)
 PURC_FRAMEWORK(test_vdom_gen)
-GTEST_DISCOVER_TESTS(test_vdom_gen)
+GTEST_DISCOVER_TESTS(test_vdom_gen DISCOVERY_TIMEOUT 10)
 

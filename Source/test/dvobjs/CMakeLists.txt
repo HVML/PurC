@@ -31,7 +31,7 @@ set(test_dvobjs_LIBRARIES
 
 PURC_COMPUTE_SOURCES(test_dvobjs)
 PURC_FRAMEWORK(test_dvobjs)
-GTEST_DISCOVER_TESTS(test_dvobjs)
+GTEST_DISCOVER_TESTS(test_dvobjs DISCOVERY_TIMEOUT 10)
 
 
 # test_math
@@ -61,7 +61,7 @@ set(test_math_LIBRARIES
 
 PURC_COMPUTE_SOURCES(test_math)
 PURC_FRAMEWORK(test_math)
-GTEST_DISCOVER_TESTS(test_math)
+GTEST_DISCOVER_TESTS(test_math DISCOVERY_TIMEOUT 10)
 
 
 # test_logical
@@ -91,7 +91,7 @@ set(test_logical_LIBRARIES
 
 PURC_COMPUTE_SOURCES(test_logical)
 PURC_FRAMEWORK(test_logical)
-GTEST_DISCOVER_TESTS(test_logical)
+GTEST_DISCOVER_TESTS(test_logical DISCOVERY_TIMEOUT 10)
 
 
 # test_string
@@ -121,7 +121,7 @@ set(test_string_LIBRARIES
 
 PURC_COMPUTE_SOURCES(test_string)
 PURC_FRAMEWORK(test_string)
-GTEST_DISCOVER_TESTS(test_string)
+GTEST_DISCOVER_TESTS(test_string DISCOVERY_TIMEOUT 10)
 
 
 # test_fs
@@ -151,7 +151,7 @@ set(test_fs_LIBRARIES
 
 PURC_COMPUTE_SOURCES(test_fs)
 PURC_FRAMEWORK(test_fs)
-GTEST_DISCOVER_TESTS(test_fs)
+GTEST_DISCOVER_TESTS(test_fs DISCOVERY_TIMEOUT 10)
 
 
 # test_file
@@ -181,7 +181,7 @@ set(test_file_LIBRARIES
 
 PURC_COMPUTE_SOURCES(test_file)
 PURC_FRAMEWORK(test_file)
-GTEST_DISCOVER_TESTS(test_file)
+GTEST_DISCOVER_TESTS(test_file DISCOVERY_TIMEOUT 10)
 
 
 
@@ -212,4 +212,4 @@ set(test_dvobjejson_LIBRARIES
 
 PURC_COMPUTE_SOURCES(test_dvobjejson)
 PURC_FRAMEWORK(test_dvobjejson)
-GTEST_DISCOVER_TESTS(test_dvobjejson)
+GTEST_DISCOVER_TESTS(test_dvobjejson DISCOVERY_TIMEOUT 10)

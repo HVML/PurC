@@ -30,7 +30,7 @@ set(test_hvml_LIBRARIES
 
 PURC_COMPUTE_SOURCES(test_hvml)
 PURC_FRAMEWORK(test_hvml)
-GTEST_DISCOVER_TESTS(test_hvml)
+GTEST_DISCOVER_TESTS(test_hvml DISCOVERY_TIMEOUT 10)
 
 # test_tempbuffer
 PURC_EXECUTABLE_DECLARE(test_tempbuffer)
@@ -59,7 +59,7 @@ set(test_tempbuffer_LIBRARIES
 
 PURC_COMPUTE_SOURCES(test_tempbuffer)
 PURC_FRAMEWORK(test_tempbuffer)
-GTEST_DISCOVER_TESTS(test_tempbuffer)
+GTEST_DISCOVER_TESTS(test_tempbuffer DISCOVERY_TIMEOUT 10)
 
 # test_sbst
 PURC_EXECUTABLE_DECLARE(test_sbst)
@@ -89,7 +89,7 @@ set(test_sbst_LIBRARIES
 
 PURC_COMPUTE_SOURCES(test_sbst)
 PURC_FRAMEWORK(test_sbst)
-GTEST_DISCOVER_TESTS(test_sbst)
+GTEST_DISCOVER_TESTS(test_sbst DISCOVERY_TIMEOUT 10)
 
 # test_rwswrap
 PURC_EXECUTABLE_DECLARE(test_rwswrap)
@@ -118,7 +118,7 @@ set(test_rwswrap_LIBRARIES
 
 PURC_COMPUTE_SOURCES(test_rwswrap)
 PURC_FRAMEWORK(test_rwswrap)
-GTEST_DISCOVER_TESTS(test_rwswrap)
+GTEST_DISCOVER_TESTS(test_rwswrap DISCOVERY_TIMEOUT 10)
 
 # test_token
 PURC_EXECUTABLE_DECLARE(test_token)
@@ -147,4 +147,4 @@ set(test_token_LIBRARIES
 
 PURC_COMPUTE_SOURCES(test_token)
 PURC_FRAMEWORK(test_token)
-GTEST_DISCOVER_TESTS(test_token)
+GTEST_DISCOVER_TESTS(test_token DISCOVERY_TIMEOUT 10)

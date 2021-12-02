@@ -30,7 +30,7 @@ set(test_html_LIBRARIES
 
 PURC_COMPUTE_SOURCES(test_html)
 PURC_FRAMEWORK(test_html)
-GTEST_DISCOVER_TESTS(test_html)
+GTEST_DISCOVER_TESTS(test_html DISCOVERY_TIMEOUT 10)
 
 # test_html_parser
 PURC_EXECUTABLE_DECLARE(test_html_parser)
@@ -58,5 +58,5 @@ set(test_html_parser_LIBRARIES
 
 PURC_COMPUTE_SOURCES(test_html_parser)
 PURC_FRAMEWORK(test_html_parser)
-GTEST_DISCOVER_TESTS(test_html_parser)
+GTEST_DISCOVER_TESTS(test_html_parser DISCOVERY_TIMEOUT 10)
 

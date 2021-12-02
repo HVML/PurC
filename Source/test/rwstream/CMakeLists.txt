@@ -30,5 +30,5 @@ set(test_rwstream_LIBRARIES
 
 PURC_COMPUTE_SOURCES(test_rwstream)
 PURC_FRAMEWORK(test_rwstream)
-GTEST_DISCOVER_TESTS(test_rwstream)
+GTEST_DISCOVER_TESTS(test_rwstream DISCOVERY_TIMEOUT 10)
 

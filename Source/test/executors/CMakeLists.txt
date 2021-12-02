@@ -82,5 +82,5 @@ set(test_executors_LIBRARIES
 
 PURC_COMPUTE_SOURCES(test_executors)
 PURC_FRAMEWORK(test_executors)
-GTEST_DISCOVER_TESTS(test_executors)
+GTEST_DISCOVER_TESTS(test_executors DISCOVERY_TIMEOUT 10)
 
