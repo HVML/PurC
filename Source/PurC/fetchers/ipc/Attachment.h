@@ -26,15 +26,6 @@
 
 #pragma once
 
-#if OS(DARWIN) && !USE(UNIX_DOMAIN_SOCKETS)
-#include <mach/mach_init.h>
-#include <mach/mach_traps.h>
-#endif
-
-#if OS(WINDOWS)
-#include <windows.h>
-#endif
-
 #include <stdio.h>
 
 namespace IPC {
@@ -51,8 +42,6 @@ public:
 #if USE(UNIX_DOMAIN_SOCKETS)
         SocketType,
         MappedMemoryType,
-#elif OS(DARWIN)
-        MachPortType
 #endif
     };
 
@@ -62,12 +51,6 @@ public:
     Attachment(int fileDescriptor, size_t);
     Attachment(int fileDescriptor);
     ~Attachment();
-#elif OS(DARWIN)
-    Attachment(mach_port_name_t, mach_msg_type_name_t disposition);
-#elif OS(WINDOWS)
-    Attachment(HANDLE handle)
-        : m_handle(handle)
-    { }
 #endif
 
     Type type() const { return m_type; }
@@ -77,14 +60,6 @@ public:
 
     int releaseFileDescriptor() { int temp = m_fileDescriptor; m_fileDescriptor = -1; return temp; }
     int fileDescriptor() const { return m_fileDescriptor; }
-#elif OS(DARWIN)
-    void release();
-
-    // MachPortType
-    mach_port_name_t port() const { return m_port; }
-    mach_msg_type_name_t disposition() const { return m_disposition; }
-#elif OS(WINDOWS)
-    HANDLE handle() const { return m_handle; }
 #endif
 
     void encode(Encoder&) const;
@@ -96,11 +71,6 @@ private:
 #if USE(UNIX_DOMAIN_SOCKETS)
     int m_fileDescriptor { -1 };
     size_t m_size;
-#elif OS(DARWIN)
-    mach_port_name_t m_port;
-    mach_msg_type_name_t m_disposition;
-#elif OS(WINDOWS)
-    HANDLE m_handle { INVALID_HANDLE_VALUE };
 #endif
 };
 

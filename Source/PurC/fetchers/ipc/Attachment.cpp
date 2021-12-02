@@ -36,21 +36,6 @@ Attachment::Attachment()
 {
 }
 
-#if OS(DARWIN) && !USE(UNIX_DOMAIN_SOCKETS)
-Attachment::Attachment(mach_port_name_t port, mach_msg_type_name_t disposition)
-    : m_type(MachPortType)
-    , m_port(port)
-    , m_disposition(disposition)
-{
-}
-
-void Attachment::release()
-{
-    m_type = Uninitialized;
-}
-#endif
-
-#if !OS(WINDOWS)
 void Attachment::encode(Encoder& encoder) const
 {
     encoder.addAttachment(WTFMove(*const_cast<Attachment*>(this)));
@@ -62,6 +47,5 @@ bool Attachment::decode(Decoder& decoder, Attachment& attachment)
         return false;
     return true;
 }
-#endif
 
 } // namespace IPC

@@ -57,20 +57,6 @@ SharedBuffer::SharedBuffer(Vector<char>&& data)
     append(WTFMove(data));
 }
 
-#if USE(GSTREAMER)
-Ref<SharedBuffer> SharedBuffer::create(GstMappedBuffer& mappedBuffer)
-{
-    ASSERT(mappedBuffer.isSharable());
-    return adoptRef(*new SharedBuffer(mappedBuffer));
-}
-
-SharedBuffer::SharedBuffer(GstMappedBuffer& mappedBuffer)
-    : m_size(mappedBuffer.size())
-{
-    m_segments.append({0, DataSegment::create(&mappedBuffer)});
-}
-#endif
-
 RefPtr<SharedBuffer> SharedBuffer::createWithContentsOfFile(const String& filePath)
 {
     bool mappingSuccess;
@@ -210,25 +196,17 @@ const char* SharedBuffer::DataSegment::data() const
 {
     auto visitor = WTF::makeVisitor(
         [](const Vector<char>& data) { return data.data(); },
-#if USE(CF)
-        [](const RetainPtr<CFDataRef>& data) { return reinterpret_cast<const char*>(CFDataGetBytePtr(data.get())); },
-#endif
 #if USE(GLIB)
         [](const GRefPtr<GBytes>& data) { return reinterpret_cast<const char*>(g_bytes_get_data(data.get(), nullptr)); },
-#endif
-#if USE(GSTREAMER)
-        [](const RefPtr<GstMappedBuffer>& data) { return reinterpret_cast<const char*>(data->data()); },
 #endif
         [](const FileSystem::MappedFileData& data) { return reinterpret_cast<const char*>(data.data()); }
     );
     return WTF::visit(visitor, m_immutableData);
 }
 
-#if !USE(CF)
 void SharedBuffer::hintMemoryNotNeededSoon() const
 {
 }
-#endif
 
 WTF::Persistence::Decoder SharedBuffer::decoder() const
 {
@@ -288,14 +266,8 @@ size_t SharedBuffer::DataSegment::size() const
 {
     auto visitor = WTF::makeVisitor(
         [](const Vector<char>& data) { return data.size(); },
-#if USE(CF)
-        [](const RetainPtr<CFDataRef>& data) { return CFDataGetLength(data.get()); },
-#endif
 #if USE(GLIB)
         [](const GRefPtr<GBytes>& data) { return g_bytes_get_size(data.get()); },
-#endif
-#if USE(GSTREAMER)
-        [](const RefPtr<GstMappedBuffer>& data) { return data->size(); },
 #endif
         [](const FileSystem::MappedFileData& data) { return data.size(); }
     );

@@ -32,10 +32,6 @@
 #include <stdio.h>
 #include <wtf/StdLibExtras.h>
 
-#if PLATFORM(MAC)
-//#include "ImportanceAssertion.h"
-#endif
-
 namespace IPC {
 
 static const uint8_t* copyBuffer(const uint8_t* buffer, size_t bufferSize)
@@ -82,13 +78,6 @@ Decoder::~Decoder()
         m_bufferDeallocator(m_buffer, m_bufferEnd - m_buffer);
     else
         fastFree(const_cast<uint8_t*>(m_buffer));
-
-    // FIXME: We need to dispose of the mach ports in cases of failure.
-
-#if HAVE(QOS_CLASSES)
-    if (m_qosClassOverride)
-        pthread_override_qos_class_end_np(m_qosClassOverride);
-#endif
 }
 
 bool Decoder::isSyncMessage() const
@@ -109,13 +98,6 @@ bool Decoder::shouldUseFullySynchronousModeForTesting() const
 {
     return m_messageFlags.contains(MessageFlags::UseFullySynchronousModeForTesting);
 }
-
-#if PLATFORM(MAC)
-//void Decoder::setImportanceAssertion(std::unique_ptr<ImportanceAssertion> assertion)
-//{
-//    m_importanceAssertion = WTFMove(assertion);
-//}
-#endif
 
 std::unique_ptr<Decoder> Decoder::unwrapForTesting(Decoder& decoder)
 {

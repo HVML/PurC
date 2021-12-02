@@ -29,13 +29,8 @@
 #include "Attachment.h"
 #include "MessageNames.h"
 #include "StringReference.h"
-//#include <PurCFetcher/ContextMenuItem.h>
 #include <wtf/OptionSet.h>
 #include <wtf/Vector.h>
-
-#if HAVE(QOS_CLASSES)
-#include <pthread/qos.h>
-#endif
 
 namespace IPC {
 
@@ -61,14 +56,6 @@ public:
     bool isSyncMessage() const;
     ShouldDispatchWhenWaitingForSyncReply shouldDispatchMessageWhenWaitingForSyncReply() const;
     bool shouldUseFullySynchronousModeForTesting() const;
-
-#if PLATFORM(MAC)
-//    void setImportanceAssertion(std::unique_ptr<ImportanceAssertion>);
-#endif
-
-#if HAVE(QOS_CLASSES)
-    void setQOSClassOverride(pthread_override_t override) { m_qosClassOverride = override; }
-#endif
 
     static std::unique_ptr<Decoder> unwrapForTesting(Decoder&);
 
@@ -154,7 +141,7 @@ public:
         t = ArgumentCoder<T>::decode(*this);
         return *this;
     }
-    
+
     template<typename T, std::enable_if_t<!std::is_enum<T>::value && !std::is_arithmetic<T>::value && !UsesModernDecoder<T>::value>* = nullptr>
     Decoder& operator>>(Optional<T>& optional)
     {
@@ -186,14 +173,6 @@ private:
     MessageName m_messageName;
 
     uint64_t m_destinationID;
-
-#if PLATFORM(MAC)
-//    std::unique_ptr<ImportanceAssertion> m_importanceAssertion;
-#endif
-
-#if HAVE(QOS_CLASSES)
-    pthread_override_t m_qosClassOverride { nullptr };
-#endif
 };
 
 } // namespace IPC

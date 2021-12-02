@@ -31,10 +31,6 @@
 #include <algorithm>
 #include <wtf/OptionSet.h>
 
-#if OS(DARWIN)
-#include <sys/mman.h>
-#endif
-
 namespace IPC {
 
 static const uint8_t defaultMessageFlags = 0;
@@ -42,23 +38,14 @@ static const uint8_t defaultMessageFlags = 0;
 template <typename T>
 static inline bool allocBuffer(T*& buffer, size_t size)
 {
-#if OS(DARWIN)
-    buffer = static_cast<T*>(mmap(0, size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0));
-    return buffer != MAP_FAILED;
-#else
     buffer = static_cast<T*>(fastMalloc(size));
     return !!buffer;
-#endif
 }
 
 static inline void freeBuffer(void* addr, size_t size)
 {
-#if OS(DARWIN)
-    munmap(addr, size);
-#else
     UNUSED_PARAM(size);
     fastFree(addr);
-#endif
 }
 
 Encoder::Encoder(MessageName messageName, uint64_t destinationID)

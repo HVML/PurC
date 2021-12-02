@@ -35,10 +35,6 @@
 #include <wtf/Optional.h>
 #endif
 
-#if OS(WINDOWS)
-#include <windows.h>
-#endif
-
 namespace IPC {
 class Decoder;
 class Encoder;
@@ -47,12 +43,6 @@ class Encoder;
 namespace PurCFetcher {
 class SharedBuffer;
 }
-
-#if OS(DARWIN)
-namespace WTF {
-class MachSendRight;
-}
-#endif
 
 namespace PurCFetcher {
 
@@ -73,12 +63,6 @@ public:
 
         bool isNull() const;
 
-#if !USE(UNIX_DOMAIN_SOCKETS)
-#if OS(DARWIN) || OS(WINDOWS)
-        size_t size() const { return m_size; }
-#endif
-#endif
-
         void clear();
 
         void encode(IPC::Encoder&) const;
@@ -88,20 +72,10 @@ public:
         IPC::Attachment releaseAttachment() const;
         void adoptAttachment(IPC::Attachment&&);
 #endif
-#if OS(WINDOWS)
-        static void encodeHandle(IPC::Encoder&, HANDLE);
-        static Optional<HANDLE> decodeHandle(IPC::Decoder&);
-#endif
     private:
         friend class SharedMemory;
 #if USE(UNIX_DOMAIN_SOCKETS)
         mutable IPC::Attachment m_attachment;
-#elif OS(DARWIN)
-        mutable mach_port_t m_port { MACH_PORT_NULL };
-        size_t m_size;
-#elif OS(WINDOWS)
-        mutable HANDLE m_handle;
-        size_t m_size;
 #endif
     };
 
@@ -111,11 +85,6 @@ public:
     static RefPtr<SharedMemory> map(const Handle&, Protection);
 #if USE(UNIX_DOMAIN_SOCKETS)
     static RefPtr<SharedMemory> wrapMap(void*, size_t, int fileDescriptor);
-#elif OS(DARWIN)
-    static RefPtr<SharedMemory> wrapMap(void*, size_t, Protection);
-#endif
-#if OS(WINDOWS)
-    static RefPtr<SharedMemory> adopt(HANDLE, size_t, Protection);
 #endif
 
     ~SharedMemory();
@@ -129,31 +98,16 @@ public:
         return m_data;
     }
 
-#if OS(WINDOWS)
-    HANDLE handle() const { return m_handle; }
-#endif
-
     // Return the system page size in bytes.
     static unsigned systemPageSize();
 
 private:
-#if OS(DARWIN)
-    WTF::MachSendRight createSendRight(Protection) const;
-#endif
-
     size_t m_size;
     void* m_data;
-#if PLATFORM(COCOA)
-    Protection m_protection;
-#endif
 
 #if USE(UNIX_DOMAIN_SOCKETS)
     Optional<int> m_fileDescriptor;
     bool m_isWrappingMap { false };
-#elif OS(DARWIN)
-    mach_port_t m_port { MACH_PORT_NULL };
-#elif OS(WINDOWS)
-    HANDLE m_handle;
 #endif
 };
 

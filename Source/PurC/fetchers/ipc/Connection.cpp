@@ -265,11 +265,6 @@ Connection::Connection(Identifier identifier, bool isServer, Client& client)
     allConnections().add(m_uniqueID, this);
 
     platformInitialize(identifier);
-
-#if HAVE(QOS_CLASSES)
-    ASSERT(pthread_main_np());
-    m_mainThread = pthread_self();
-#endif
 }
 
 Connection::~Connection()
@@ -396,7 +391,7 @@ void Connection::setDidCloseOnConnectionWorkQueueCallback(DidCloseOnConnectionWo
 {
     ASSERT(!m_isConnected);
 
-    m_didCloseOnConnectionWorkQueueCallback = callback;    
+    m_didCloseOnConnectionWorkQueueCallback = callback;
 }
 
 void Connection::invalidate()
@@ -407,7 +402,7 @@ void Connection::invalidate()
         // Someone already called invalidate().
         return;
     }
-    
+
     m_isValid = false;
 
     m_connectionQueue->dispatch([protectedThis = makeRef(*this)]() mutable {
@@ -459,7 +454,7 @@ bool Connection::sendMessage(std::unique_ptr<Encoder> encoder, OptionSet<SendOpt
         auto locker = holdLock(m_outgoingMessagesMutex);
         m_outgoingMessages.append(WTFMove(encoder));
     }
-    
+
     // FIXME: We should add a boolean flag so we don't call this when work has already been scheduled.
     m_connectionQueue->dispatch([protectedThis = makeRef(*this)]() mutable {
         protectedThis->sendOutgoingMessages();
@@ -616,21 +611,21 @@ std::unique_ptr<Decoder> Connection::waitForSyncReply(uint64_t syncRequestID, Me
     MonotonicTime absoluteTime = MonotonicTime::now() + timeout;
 
     willSendSyncMessage(sendSyncOptions);
-    
+
     bool timedOut = false;
     while (!timedOut) {
         // First, check if we have any messages that we need to process.
         SyncMessageState::singleton().dispatchMessages();
-        
+
         {
             LockHolder locker(m_syncReplyStateMutex);
 
             // Second, check if there is a sync reply at the top of the stack.
             ASSERT(!m_pendingSyncReplies.isEmpty());
-            
+
             PendingSyncReply& pendingSyncReply = m_pendingSyncReplies.last();
             ASSERT_UNUSED(syncRequestID, pendingSyncReply.syncRequestID == syncRequestID);
-            
+
             // We found the sync reply, or the connection was closed.
             if (pendingSyncReply.didReceiveReply || !m_shouldWaitForSyncReplies) {
                 didReceiveSyncReply(sendSyncOptions);
@@ -712,13 +707,6 @@ void Connection::processIncomingMessage(std::unique_ptr<Decoder> message)
     if (dispatchMessageToThreadReceiver(message))
         return;
 
-#if HAVE(QOS_CLASSES)
-    if (message->isSyncMessage() && m_shouldBoostMainThreadOnSyncMessage) {
-        pthread_override_t override = pthread_override_qos_class_start_np(m_mainThread, Thread::adjustedQOSClass(QOS_CLASS_USER_INTERACTIVE), 0);
-        message->setQOSClassOverride(override);
-    }
-#endif
-
     if (message->isSyncMessage()) {
         auto locker = holdLock(m_incomingSyncMessageCallbackMutex);
 
@@ -791,7 +779,7 @@ bool Connection::hasIncomingSyncMessage()
         if (message->isSyncMessage())
             return true;
     }
-    
+
     return false;
 }
 
@@ -1029,7 +1017,7 @@ void Connection::dispatchMessage(std::unique_ptr<Decoder> message)
     }
 
     m_inDispatchMessageCount++;
-    
+
     bool isDispatchingMessageWhileWaitingForSyncReply = (message->shouldDispatchMessageWhenWaitingForSyncReply() == ShouldDispatchWhenWaitingForSyncReply::Yes)
         || (message->shouldDispatchMessageWhenWaitingForSyncReply() == ShouldDispatchWhenWaitingForSyncReply::YesDuringUnboundedIPC && UnboundedSynchronousIPCScope::hasOngoingUnboundedSyncIPC());
 

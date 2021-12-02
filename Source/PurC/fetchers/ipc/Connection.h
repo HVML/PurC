@@ -150,7 +150,7 @@ public:
     void setOnlySendMessagesAsDispatchWhenWaitingForSyncReplyWhenProcessingSuchAMessage(bool);
     void setShouldExitOnSyncMessageSendFailure(bool);
 
-    // The set callback will be called on the connection work queue when the connection is closed, 
+    // The set callback will be called on the connection work queue when the connection is closed,
     // before didCall is called on the client thread. Must be called before the connection is opened.
     // In the future we might want a more generic way to handle sync or async messages directly
     // on the work queue, for example if we want to handle them on some other thread we could avoid
@@ -174,14 +174,14 @@ public:
     template<typename T> bool send(T&& message, uint64_t destinationID, OptionSet<SendOption> sendOptions = { }); // Thread-safe.
     template<typename T> bool sendSync(T&& message, typename T::Reply&& reply, uint64_t destinationID, Seconds timeout = Seconds::infinity(), OptionSet<SendSyncOption> sendSyncOptions = { }); // Main thread only.
     template<typename T> bool waitForAndDispatchImmediately(uint64_t destinationID, Seconds timeout, OptionSet<WaitForOption> waitForOptions = { }); // Main thread only.
-    
+
     // Thread-safe.
     template<typename T, typename C, typename U>
     void sendWithAsyncReply(T&& message, C&& completionHandler, ObjectIdentifier<U> destinationID = { }, OptionSet<SendOption> sendOptions = { })
     {
         sendWithAsyncReply<T, C>(WTFMove(message), WTFMove(completionHandler), destinationID.toUInt64(), sendOptions);
     }
-    
+
     // Thread-safe.
     template<typename T, typename U>
     bool send(T&& message, ObjectIdentifier<U> destinationID, OptionSet<SendOption> sendOptions = { })
@@ -195,7 +195,7 @@ public:
     {
         return sendSync<T>(WTFMove(message), WTFMove(reply), destinationID.toUInt64(), timeout, sendSyncOptions);
     }
-    
+
     // Main thread only.
     template<typename T, typename U>
     bool waitForAndDispatchImmediately(ObjectIdentifier<U> destinationID, Seconds timeout, OptionSet<WaitForOption> waitForOptions = { })
@@ -219,10 +219,6 @@ public:
 
     bool isValid() const { return m_isValid; }
 
-#if HAVE(QOS_CLASSES)
-    void setShouldBoostMainThreadOnSyncMessage(bool b) { m_shouldBoostMainThreadOnSyncMessage = b; }
-#endif
-
     uint64_t installIncomingSyncMessageCallback(WTF::Function<void()>&&);
     void uninstallIncomingSyncMessageCallback(uint64_t);
     bool hasIncomingSyncMessage();
@@ -237,9 +233,9 @@ private:
     Connection(Identifier, bool isServer, Client&);
     void platformInitialize(Identifier);
     void platformInvalidate();
-    
+
     std::unique_ptr<Decoder> waitForMessage(MessageName, uint64_t destinationID, Seconds timeout, OptionSet<WaitForOption>);
-    
+
     std::unique_ptr<Decoder> waitForSyncReply(uint64_t syncRequestID, MessageName, Seconds timeout, OptionSet<SendSyncOption>);
 
     bool dispatchMessageToWorkQueueReceiver(std::unique_ptr<Decoder>&);
@@ -257,7 +253,7 @@ private:
     void sendOutgoingMessages();
     bool sendOutgoingMessage(std::unique_ptr<Encoder>);
     void connectionDidClose();
-    
+
     // Called on the listener thread.
     void dispatchOneIncomingMessage();
     void dispatchIncomingMessages();
@@ -329,7 +325,7 @@ private:
     // Outgoing messages.
     Lock m_outgoingMessagesMutex;
     Deque<std::unique_ptr<Encoder>> m_outgoingMessages;
-    
+
     Condition m_waitForMessageCondition;
     Lock m_waitForMessageMutex;
 
@@ -348,11 +344,6 @@ private:
     HashMap<uint64_t, WTF::Function<void()>> m_incomingSyncMessageCallbacks;
     RefPtr<WorkQueue> m_incomingSyncMessageCallbackQueue;
     uint64_t m_nextIncomingSyncMessageCallbackID { 0 };
-
-#if HAVE(QOS_CLASSES)
-    pthread_t m_mainThread { 0 };
-    bool m_shouldBoostMainThreadOnSyncMessage { false };
-#endif
 
 #if USE(UNIX_DOMAIN_SOCKETS)
     // Called on the connection queue.
