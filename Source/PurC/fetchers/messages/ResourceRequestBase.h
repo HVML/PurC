@@ -73,10 +73,10 @@ public:
 
     PURC_EXPORT ResourceRequestCachePolicy cachePolicy() const;
     PURC_EXPORT void setCachePolicy(ResourceRequestCachePolicy cachePolicy);
-    
+
     PURC_EXPORT double timeoutInterval() const; // May return 0 when using platform default.
     void setTimeoutInterval(double timeoutInterval);
-    
+
     PURC_EXPORT const URL& firstPartyForCookies() const;
     PURC_EXPORT void setFirstPartyForCookies(const URL&);
 
@@ -93,7 +93,7 @@ public:
 
     PURC_EXPORT const String& httpMethod() const;
     PURC_EXPORT void setHTTPMethod(const String& httpMethod);
-    
+
     PURC_EXPORT const HTTPHeaderMap& httpHeaderFields() const;
     PURC_EXPORT void setHTTPHeaderFields(HTTPHeaderMap);
 
@@ -176,13 +176,6 @@ public:
     const Optional<int>& inspectorInitiatorNodeIdentifier() const { return m_inspectorInitiatorNodeIdentifier; }
     void setInspectorInitiatorNodeIdentifier(int inspectorInitiatorNodeIdentifier) { m_inspectorInitiatorNodeIdentifier = inspectorInitiatorNodeIdentifier; }
 
-#if USE(SYSTEM_PREVIEW)
-    PURC_EXPORT bool isSystemPreview() const;
-
-    PURC_EXPORT SystemPreviewInfo systemPreviewInfo() const;
-    PURC_EXPORT void setSystemPreviewInfo(const SystemPreviewInfo&);
-#endif
-
     bool encodingRequiresPlatformData() const { return true; }
 
     template<class Encoder> void encodeWithoutPlatformData(Encoder&) const;
@@ -255,9 +248,6 @@ protected:
     mutable bool m_platformRequestBodyUpdated : 1;
     bool m_hiddenFromInspector : 1;
     bool m_isTopSite : 1;
-#if USE(SYSTEM_PREVIEW)
-    Optional<SystemPreviewInfo> m_systemPreviewInfo;
-#endif
 
     // gengyue
     bool m_isJson {false};
@@ -272,10 +262,6 @@ bool equalIgnoringHeaderFields(const ResourceRequestBase&, const ResourceRequest
 
 inline bool operator==(const ResourceRequest& a, const ResourceRequest& b) { return ResourceRequestBase::equal(a, b); }
 inline bool operator!=(ResourceRequest& a, const ResourceRequest& b) { return !(a == b); }
-
-#if PLATFORM(IOS_FAMILY)
-PURC_EXPORT void initializeHTTPConnectionSettingsOnStartup();
-#endif
 
 template<class Encoder>
 ALWAYS_INLINE void ResourceRequestBase::encodeBase(Encoder& encoder) const

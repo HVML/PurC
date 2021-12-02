@@ -32,10 +32,6 @@
 #include <wtf/Seconds.h>
 #include <wtf/URL.h>
 
-#if USE(CURL)
-#include "CurlProxySettings.h"
-#endif
-
 namespace PurCFetcher {
 
 enum class AllowsCellularAccess : bool { No, Yes };
@@ -43,21 +39,13 @@ enum class AllowsCellularAccess : bool { No, Yes };
 struct NetworkSessionCreationParameters {
     void encode(IPC::Encoder&) const;
     static Optional<NetworkSessionCreationParameters> decode(IPC::Decoder&);
-    
+
     PAL::SessionID sessionID { PAL::SessionID::defaultSessionID() };
     String boundInterfaceIdentifier;
     AllowsCellularAccess allowsCellularAccess { AllowsCellularAccess::Yes };
-#if HAVE(CFNETWORK_ALTERNATIVE_SERVICE)
-    String alternativeServiceDirectory;
-    SandboxExtension::Handle alternativeServiceDirectoryExtensionHandle;
-    bool http3Enabled { false };
-#endif
+
     String cookiePersistentStoragePath;
     CookiePersistentStorageType cookiePersistentStorageType { CookiePersistentStorageType::Text };
-#if USE(CURL)
-    String cookiePersistentStorageFile;
-    PurCFetcher::CurlProxySettings proxySettings;
-#endif
     bool deviceManagementRestrictionsEnabled { false };
     bool allLoadsBlockedByDeviceManagementRestrictionsForTesting { false };
 
@@ -73,7 +61,7 @@ struct NetworkSessionCreationParameters {
     bool allowsServerPreconnect { true };
     bool requiresSecureHTTPSProxyConnection { false };
     bool preventsSystemHTTPProxyAuthentication { false };
-    
+
     ResourceLoadStatisticsParameters resourceLoadStatisticsParameters;
 };
 

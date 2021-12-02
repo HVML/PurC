@@ -264,15 +264,9 @@ protected:
     unsigned m_initLevel : 3; // Controlled by ResourceResponse.
     mutable UsedLegacyTLS m_usedLegacyTLS : bitWidthOfUsedLegacyTLS;
 private:
-#if 0
-    Tainting m_tainting : bitWidthOfTainting;
-    Source m_source : bitWidthOfSource;
-    Type m_type : bitWidthOfType;
-#else
     Tainting m_tainting;
     Source m_source;
     Type m_type;
-#endif
 protected:
     short m_httpStatusCode { 0 };
 };

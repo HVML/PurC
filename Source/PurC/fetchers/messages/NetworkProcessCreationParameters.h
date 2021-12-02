@@ -50,24 +50,9 @@ struct NetworkProcessCreationParameters {
 
     CacheModel cacheModel { CacheModel::DocumentViewer };
 
-#if PLATFORM(MAC) || PLATFORM(MACCATALYST)
-    Vector<uint8_t> uiProcessCookieStorageIdentifier;
-#endif
-#if PLATFORM(IOS_FAMILY)
-    SandboxExtension::Handle cookieStorageDirectoryExtensionHandle;
-    SandboxExtension::Handle containerCachesDirectoryExtensionHandle;
-    SandboxExtension::Handle parentBundleDirectoryExtensionHandle;
-#endif
     bool shouldSuppressMemoryPressureHandler { false };
 
     Vector<String> urlSchemesRegisteredForCustomProtocols;
-
-#if 0//PLATFORM(COCOA)
-    String uiProcessBundleIdentifier;
-    uint32_t uiProcessSDKVersion { 0 };
-    RetainPtr<CFDataRef> networkATSContext;
-    bool storageAccessAPIEnabled;
-#endif
 
     WebsiteDataStoreParameters defaultDataStoreParameters;
 
@@ -81,11 +66,6 @@ struct NetworkProcessCreationParameters {
     Vector<String> urlSchemesRegisteredAsLocal;
     Vector<String> urlSchemesRegisteredAsNoAccess;
 
-#if ENABLE(SERVICE_WORKER)
-    String serviceWorkerRegistrationDirectory;
-    SandboxExtension::Handle serviceWorkerRegistrationDirectoryExtensionHandle;
-    bool shouldDisableServiceWorkerProcessTerminationDelay { false };
-#endif
     bool shouldEnableITPDatabase { false };
     bool enableAdClickAttributionDebugMode { false };
     String hstsStorageDirectory;

@@ -34,10 +34,6 @@
 #include <wtf/persistence/PersistentCoder.h>
 #include <wtf/text/WTFString.h>
 
-#if PLATFORM(COCOA)
-OBJC_CLASS NSDictionary;
-#endif
-
 namespace PurCFetcher {
 
 enum class NetworkLoadPriority : uint8_t {
@@ -178,10 +174,6 @@ public:
     uint64_t responseBodyBytesReceived { std::numeric_limits<uint64_t>::max() };
     uint64_t responseBodyDecodedSize { std::numeric_limits<uint64_t>::max() };
 };
-
-#if PLATFORM(COCOA)
-PURC_EXPORT Box<NetworkLoadMetrics> copyTimingData(NSDictionary *timingData);
-#endif
 
 template<class Encoder>
 void NetworkLoadMetrics::encode(Encoder& encoder) const

@@ -606,13 +606,6 @@ Optional<WallTime> ResourceResponseBase::lastModified() const
 
     if (!m_haveParsedLastModifiedHeader) {
         m_lastModified = parseDateValueInHeader(m_httpHeaderFields, HTTPHeaderName::LastModified);
-#if PLATFORM(COCOA)
-        // CFNetwork converts malformed dates into Epoch so we need to treat Epoch as
-        // an invalid value (rdar://problem/22352838).
-        const WallTime epoch = WallTime::fromRawSeconds(0);
-        if (m_lastModified && m_lastModified.value() == epoch)
-            m_lastModified = WTF::nullopt;
-#endif
         m_haveParsedLastModifiedHeader = true;
     }
     return m_lastModified;

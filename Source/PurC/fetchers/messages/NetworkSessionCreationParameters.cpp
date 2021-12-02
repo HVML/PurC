@@ -28,10 +28,6 @@
 
 #include "ArgumentCoders.h"
 
-#if USE(CURL)
-#include "WebCoreArgumentCoders.h"
-#endif
-
 namespace PurCFetcher {
 
 void NetworkSessionCreationParameters::encode(IPC::Encoder& encoder) const
@@ -39,19 +35,10 @@ void NetworkSessionCreationParameters::encode(IPC::Encoder& encoder) const
     encoder << sessionID;
     encoder << boundInterfaceIdentifier;
     encoder << allowsCellularAccess;
-#if HAVE(CFNETWORK_ALTERNATIVE_SERVICE)
-    encoder << alternativeServiceDirectory;
-    encoder << alternativeServiceDirectoryExtensionHandle;
-    encoder << http3Enabled;
-#endif
 
     encoder << cookiePersistentStoragePath;
     encoder << cookiePersistentStorageType;
 
-#if USE(CURL)
-    encoder << cookiePersistentStorageFile;
-    encoder << proxySettings;
-#endif
     encoder << networkCacheDirectory << networkCacheDirectoryExtensionHandle;
 
     encoder << deviceManagementRestrictionsEnabled;
@@ -75,33 +62,16 @@ Optional<NetworkSessionCreationParameters> NetworkSessionCreationParameters::dec
     decoder >> sessionID;
     if (!sessionID)
         return WTF::nullopt;
-    
+
     Optional<String> boundInterfaceIdentifier;
     decoder >> boundInterfaceIdentifier;
     if (!boundInterfaceIdentifier)
         return WTF::nullopt;
-    
+
     Optional<AllowsCellularAccess> allowsCellularAccess;
     decoder >> allowsCellularAccess;
     if (!allowsCellularAccess)
         return WTF::nullopt;
-    
-#if HAVE(CFNETWORK_ALTERNATIVE_SERVICE)
-    Optional<String> alternativeServiceDirectory;
-    decoder >> alternativeServiceDirectory;
-    if (!alternativeServiceDirectory)
-        return WTF::nullopt;
-
-    Optional<SandboxExtension::Handle> alternativeServiceDirectoryExtensionHandle;
-    decoder >> alternativeServiceDirectoryExtensionHandle;
-    if (!alternativeServiceDirectoryExtensionHandle)
-        return WTF::nullopt;
-    
-    Optional<bool> http3Enabled;
-    decoder >> http3Enabled;
-    if (!http3Enabled)
-        return WTF::nullopt;
-#endif
 
     Optional<String> cookiePersistentStoragePath;
     decoder >> cookiePersistentStoragePath;
@@ -113,23 +83,11 @@ Optional<NetworkSessionCreationParameters> NetworkSessionCreationParameters::dec
     if (!cookiePersistentStorageType)
         return WTF::nullopt;
 
-#if USE(CURL)
-    Optional<String> cookiePersistentStorageFile;
-    decoder >> cookiePersistentStorageFile;
-    if (!cookiePersistentStorageFile)
-        return WTF::nullopt;
-
-    Optional<PurCFetcher::CurlProxySettings> proxySettings;
-    decoder >> proxySettings;
-    if (!proxySettings)
-        return WTF::nullopt;
-#endif
-
     Optional<String> networkCacheDirectory;
     decoder >> networkCacheDirectory;
     if (!networkCacheDirectory)
         return WTF::nullopt;
-    
+
     Optional<SandboxExtension::Handle> networkCacheDirectoryExtensionHandle;
     decoder >> networkCacheDirectoryExtensionHandle;
     if (!networkCacheDirectoryExtensionHandle)
@@ -149,17 +107,17 @@ Optional<NetworkSessionCreationParameters> NetworkSessionCreationParameters::dec
     decoder >> dataConnectionServiceType;
     if (!dataConnectionServiceType)
         return WTF::nullopt;
-    
+
     Optional<bool> fastServerTrustEvaluationEnabled;
     decoder >> fastServerTrustEvaluationEnabled;
     if (!fastServerTrustEvaluationEnabled)
         return WTF::nullopt;
-    
+
     Optional<bool> networkCacheSpeculativeValidationEnabled;
     decoder >> networkCacheSpeculativeValidationEnabled;
     if (!networkCacheSpeculativeValidationEnabled)
         return WTF::nullopt;
-    
+
     Optional<bool> shouldUseTestingNetworkSession;
     decoder >> shouldUseTestingNetworkSession;
     if (!shouldUseTestingNetworkSession)
@@ -174,7 +132,7 @@ Optional<NetworkSessionCreationParameters> NetworkSessionCreationParameters::dec
     decoder >> testSpeedMultiplier;
     if (!testSpeedMultiplier)
         return WTF::nullopt;
-    
+
     Optional<bool> suppressesConnectionTerminationOnSystemChange;
     decoder >> suppressesConnectionTerminationOnSystemChange;
     if (!suppressesConnectionTerminationOnSystemChange)
@@ -189,7 +147,7 @@ Optional<NetworkSessionCreationParameters> NetworkSessionCreationParameters::dec
     decoder >> requiresSecureHTTPSProxyConnection;
     if (!requiresSecureHTTPSProxyConnection)
         return WTF::nullopt;
-    
+
     Optional<bool> preventsSystemHTTPProxyAuthentication;
     decoder >> preventsSystemHTTPProxyAuthentication;
     if (!preventsSystemHTTPProxyAuthentication)
@@ -199,22 +157,13 @@ Optional<NetworkSessionCreationParameters> NetworkSessionCreationParameters::dec
     decoder >> resourceLoadStatisticsParameters;
     if (!resourceLoadStatisticsParameters)
         return WTF::nullopt;
-    
+
     return {{
         *sessionID
         , WTFMove(*boundInterfaceIdentifier)
         , WTFMove(*allowsCellularAccess)
-#if HAVE(CFNETWORK_ALTERNATIVE_SERVICE)
-        , WTFMove(*alternativeServiceDirectory)
-        , WTFMove(*alternativeServiceDirectoryExtensionHandle)
-        , WTFMove(*http3Enabled)
-#endif
         , WTFMove(*cookiePersistentStoragePath)
         , WTFMove(*cookiePersistentStorageType)
-#if USE(CURL)
-        , WTFMove(*cookiePersistentStorageFile)
-        , WTFMove(*proxySettings)
-#endif
         , WTFMove(*deviceManagementRestrictionsEnabled)
         , WTFMove(*allLoadsBlockedByDeviceManagementRestrictionsForTesting)
         , WTFMove(*networkCacheDirectory)
