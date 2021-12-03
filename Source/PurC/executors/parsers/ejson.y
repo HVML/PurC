@@ -473,7 +473,6 @@
 
 /* Bison declarations. */
 %require "3.0.4"
-%define api.prefix {ejson_yy}
 %define api.pure full
 %define api.token.prefix {TOK_EJSON_}
 %define locations
@@ -590,13 +589,13 @@ int ejson_parse(const char *input,
         struct ejson_param *param)
 {
     yyscan_t arg = {0};
-    ejson_yylex_init(&arg);
-    // ejson_yyset_in(in, arg);
-    // ejson_yyset_debug(debug, arg);
-    // ejson_yyset_extra(param, arg);
-    ejson_yy_scan_string(input, arg);
-    int ret =ejson_yyparse(arg, param);
-    ejson_yylex_destroy(arg);
+    yylex_init(&arg);
+    // yyset_in(in, arg);
+    // yyset_debug(debug, arg);
+    // yyset_extra(param, arg);
+    yy_scan_string(input, arg);
+    int ret =yyparse(arg, param);
+    yylex_destroy(arg);
     return ret ? 1 : 0;
 }
 

@@ -32,34 +32,39 @@
 %code requires {
     #include "mathlib.h"
 
+    #if defined(M_math)
+        #define YYSTYPE        MATH_YYSTYPE
+        #define YYLTYPE        MATH_YYLTYPE
+
+        #define VALUE_TYPE     double
+        #define FUNC_NAME      math_eval
+
+        #define POW            pow
+        #define STRTOD         strtod
+        #define CAST_TO_NUMBER purc_variant_cast_to_number
+        #define MAKE_NUMBER    purc_variant_make_number
+    #elif defined(M_math_l)
+        #define YYSTYPE        MATH_L_YYSTYPE
+        #define YYLTYPE        MATH_L_YYLTYPE
+
+        #define VALUE_TYPE     long double
+        #define FUNC_NAME      math_eval_l
+
+        #define POW            powl
+        #define STRTOD         strtold
+        #define CAST_TO_NUMBER purc_variant_cast_to_long_double
+        #define MAKE_NUMBER    purc_variant_make_longdouble
+    #endif
+
     struct internal_value {
-#ifdef M_math
-        double d;
-#endif
-#ifdef M_math_l
-        long double d;
-#endif
+        VALUE_TYPE      d;
     };
 
     struct internal_param {
         purc_variant_t param;
         purc_variant_t variables;
-#ifdef M_math
-        double d;
-#endif
-#ifdef M_math_l
-        long double d;
-#endif
+        VALUE_TYPE     d;
     };
-
-#ifdef M_math
-    #define YYSTYPE       MATH_YYSTYPE
-    #define YYLTYPE       MATH_YYLTYPE
-#endif
-#ifdef M_math_l
-    #define YYSTYPE       MATH_L_YYSTYPE
-    #define YYLTYPE       MATH_L_YYLTYPE
-#endif
 
     #ifndef YY_TYPEDEF_YY_SCANNER_T
     #define YY_TYPEDEF_YY_SCANNER_T
@@ -73,12 +78,6 @@
 %code {
     // generated header from flex
     // introduce yylex decl for later use
-#ifdef M_math
-    #include "math.lex.h"
-#endif
-#ifdef M_math_l
-    #include "math_l.lex.h"
-#endif
     #include <math.h>
 
     static void yyerror(
@@ -87,25 +86,6 @@
         struct internal_param *param,      // match %parse-param
         const char *errsg
     );
-
-#ifdef M_math
-    #define POW pow
-    #define STRTOD         strtod
-    #define CAST_TO_NUMBER purc_variant_cast_to_number
-    #define MAKE_NUMBER    purc_variant_make_number
-#endif
-#ifdef M_math_l
-    #define POW powl
-    #define STRTOD         strtold
-    #define CAST_TO_NUMBER purc_variant_cast_to_long_double
-    #define MAKE_NUMBER    purc_variant_make_longdouble
-#endif
-
-    #define PL(x,y)                                            \
-      fprintf(stderr, "location[%d]: (%d,%d)->(%d,%d)\n",      \
-                            x,                                 \
-                            y.first_line, y.first_column-1,    \
-                            y.last_line,  y.last_column-1)
 
     #define SET(_r, _a) do {                           \
             _r->d = _a.d;                              \
@@ -284,55 +264,28 @@ yyerror(
         errsg);
 }
 
-#ifdef M_math
-int math_eval(const char *input, double *d, purc_variant_t param)
+int FUNC_NAME(const char *input, VALUE_TYPE *d, purc_variant_t param)
 {
     struct internal_param ud = {0};
     ud.param = param;
     ud.variables = PURC_VARIANT_INVALID;
 
     yyscan_t arg = {0};
-    math_yylex_init(&arg);
-    // math_yyset_in(in, arg);
-    // math_yyset_debug(debug, arg);
-    math_yyset_extra(param, arg);
-    math_yy_scan_string(input, arg);
-    int ret =math_yyparse(arg, &ud);
+    yylex_init(&arg);
+    // yyset_in(in, arg);
+    // yyset_debug(debug, arg);
+    yyset_extra(param, arg);
+    yy_scan_string(input, arg);
+    int ret =yyparse(arg, &ud);
     if (ud.variables) {
         purc_variant_unref(ud.variables);
         ud.variables = PURC_VARIANT_INVALID;
     }
-    math_yylex_destroy(arg);
+    yylex_destroy(arg);
     if (ret==0 && d) {
         *d = ud.d;
     }
     return ret ? 1 : 0;
 }
-#endif
-#ifdef M_math_l
-int math_eval_l(const char *input, long double *d, purc_variant_t param)
-{
-    struct internal_param ud = {0};
-    ud.param = param;
-    ud.variables = PURC_VARIANT_INVALID;
-
-    yyscan_t arg = {0};
-    math_l_yylex_init(&arg);
-    // math_l_yyset_in(in, arg);
-    // math_l_yyset_debug(debug, arg);
-    math_l_yyset_extra(param, arg);
-    math_l_yy_scan_string(input, arg);
-    int ret =math_l_yyparse(arg, &ud);
-    if (ud.variables) {
-        purc_variant_unref(ud.variables);
-        ud.variables = PURC_VARIANT_INVALID;
-    }
-    math_l_yylex_destroy(arg);
-    if (ret==0 && d) {
-        *d = ud.d;
-    }
-    return ret ? 1 : 0;
-}
-#endif
 
 

@@ -68,7 +68,6 @@ do {                                              \
 } while (0)
 %}
 
-%option prefix="ejson_yy"
 %option bison-bridge bison-locations reentrant
 %option noyywrap noinput nounput
 %option verbose debug

@@ -30,7 +30,7 @@ set(test_stack_LIBRARIES
 
 PURC_COMPUTE_SOURCES(test_stack)
 PURC_FRAMEWORK(test_stack)
-GTEST_DISCOVER_TESTS(test_stack)
+GTEST_DISCOVER_TESTS(test_stack DISCOVERY_TIMEOUT 10)
 
 # test_ejson
 PURC_EXECUTABLE_DECLARE(test_ejson)
@@ -57,7 +57,7 @@ set(test_ejson_LIBRARIES
 
 PURC_COMPUTE_SOURCES(test_ejson)
 PURC_FRAMEWORK(test_ejson)
-GTEST_DISCOVER_TESTS(test_ejson)
+GTEST_DISCOVER_TESTS(test_ejson DISCOVERY_TIMEOUT 10)
 
 # test_ejson_vcm
 PURC_EXECUTABLE_DECLARE(test_ejson_vcm)
@@ -84,7 +84,7 @@ set(test_ejson_vcm_LIBRARIES
 
 PURC_COMPUTE_SOURCES(test_ejson_vcm)
 PURC_FRAMEWORK(test_ejson_vcm)
-GTEST_DISCOVER_TESTS(test_ejson_vcm)
+GTEST_DISCOVER_TESTS(test_ejson_vcm DISCOVERY_TIMEOUT 10)
 
 # test_ref
 PURC_EXECUTABLE_DECLARE(test_ref)
@@ -111,5 +111,5 @@ set(test_ref_LIBRARIES
 
 PURC_COMPUTE_SOURCES(test_ref)
 PURC_FRAMEWORK(test_ref)
-GTEST_DISCOVER_TESTS(test_ref)
+GTEST_DISCOVER_TESTS(test_ref DISCOVERY_TIMEOUT 10)
 

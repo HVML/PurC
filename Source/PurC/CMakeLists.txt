@@ -94,16 +94,13 @@ set(_parsers
         exe_key exe_range exe_filter
         exe_char exe_token
         exe_add exe_sub exe_mul exe_div exe_formula exe_objformula
-        exe_sql exe_travel)
-PURC_PARSERS_GEN(executors "${_parsers}")
-unset(_parsers)
-
-set(_parsers ejson)
-PURC_PARSERS_GEN(executors/parsers "${_parsers}")
+        exe_sql exe_travel
+        ejson)
+PURC_PARSERS_GEN_IN(executors/parsers "${_parsers}" "")
 unset(_parsers)
 
 set(_parsers logical)
-PURC_PARSERS_GEN(dvobjs/parsers "${_parsers}")
+PURC_PARSERS_GEN_IN(dvobjs/parsers "${_parsers}" "")
 unset(_parsers)
 
 # Generate constants for HTML ns/tags/interfaces

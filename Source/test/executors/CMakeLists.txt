@@ -12,7 +12,7 @@ macro(GEN_TEST _name)
         ${PurC_DERIVED_SOURCES_DIR}
         ${PURC_DIR}
         ${CMAKE_BINARY_DIR}
-        ${CMAKE_BINARY_DIR}/Source/PurC/executors
+        ${CMAKE_BINARY_DIR}/Source/PurC/executors/parsers
         ${WTF_DIR}
         ${PURC_DIR}/executors
     )
@@ -32,7 +32,7 @@ macro(GEN_TEST _name)
 
     PURC_COMPUTE_SOURCES(test_exe${_name})
     PURC_FRAMEWORK(test_exe${_name})
-    GTEST_DISCOVER_TESTS(test_exe${_name})
+    GTEST_DISCOVER_TESTS(test_exe${_name} DISCOVERY_TIMEOUT 10)
 endmacro()
 
 set(_targets
@@ -82,5 +82,5 @@ set(test_executors_LIBRARIES
 
 PURC_COMPUTE_SOURCES(test_executors)
 PURC_FRAMEWORK(test_executors)
-GTEST_DISCOVER_TESTS(test_executors)
+GTEST_DISCOVER_TESTS(test_executors DISCOVERY_TIMEOUT 10)
 

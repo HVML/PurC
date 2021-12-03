@@ -143,71 +143,63 @@ macro(PURC_EXECUTABLE_DECLARE _target)
     add_executable(${_target} "${CMAKE_BINARY_DIR}/cmakeconfig.h")
 endmacro()
 
-macro(_PURC_FLEX_BISON _target _relpath _parser)
-    BISON_TARGET(${_parser}Parser
-        ${CMAKE_CURRENT_SOURCE_DIR}/${_relpath}/${_parser}.y
-        ${CMAKE_CURRENT_BINARY_DIR}/${_relpath}/${_parser}.tab.c
-        COMPILE_FLAGS "--warnings=error")
-    FLEX_TARGET(${_parser}Scanner
-        ${CMAKE_CURRENT_SOURCE_DIR}/${_relpath}/${_parser}.l
-        ${CMAKE_CURRENT_BINARY_DIR}/${_relpath}/${_parser}.lex.c
-        COMPILE_FLAGS "--header-file=${CMAKE_CURRENT_BINARY_DIR}/${_relpath}/${_parser}.lex.h")
-    ADD_FLEX_BISON_DEPENDENCY(${_parser}Scanner ${_parser}Parser)
-    list(APPEND ${_target}_SOURCES
-        ${BISON_${_parser}Parser_OUTPUTS}
-        ${FLEX_${_parser}Scanner_OUTPUTS}
-    )
-    set(_flags "-I${CMAKE_CURRENT_SOURCE_DIR}/${_relpath}")
-    set_source_files_properties(${BISON_${_parser}Parser_OUTPUTS}
-        PROPERTIES COMPILE_FLAGS "${_flags}"
-    )
-    set_source_files_properties(${FLEX_${_parser}Scanner_OUTPUTS}
-        PROPERTIES COMPILE_FLAGS "${_flags}"
-    )
-    unset(_flags)
-    # FIXME: better remove this
-    list(APPEND ${_target}_PRIVATE_INCLUDE_DIRECTORIES
-        ${CMAKE_CURRENT_BINARY_DIR}/${_relpath}
-    )
-endmacro()
-
-macro(PURC_FLEX_BISON _target _relpath _parsers)
-    add_subdirectory(${_relpath}) # you shall add an empty CMakeLists.txt in <paath-to-relpath>
-    set(_var "${ARGV2}")
-    foreach (_parser IN LISTS _var)
-        _PURC_FLEX_BISON(${_target} ${_relpath} ${_parser})
-    endforeach()
-    unset(_var)
-endmacro()
-
-macro(PURC_PARSER_GEN _name _rel)
+macro(PURC_PARSER_GEN_IN _rel _name _auxilary)
     set(_src_path ${CMAKE_CURRENT_SOURCE_DIR}/${_rel})
     set(_dst_path ${CMAKE_CURRENT_BINARY_DIR}/${_rel})
+    set(_fullname ${_name}${_auxilary})
     set(_src_name ${_src_path}/${_name})
-    set(_dst_name ${_dst_path}/${_name})
-    BISON_TARGET(${_name}_parser ${_src_name}.y ${_dst_name}.tab.c)
-    FLEX_TARGET(${_name}_scanner ${_src_name}.l ${_dst_name}.lex.c
-        COMPILE_FLAGS "--header-file=${_dst_name}.lex.h")
-    ADD_FLEX_BISON_DEPENDENCY(${_name}_scanner ${_name}_parser)
-    set_source_files_properties(${_src_name}_tab.c ${_src_name}_lex.c
-            ${BISON_${_name}_parser_OUTPUTS}
-            PROPERTY COMPILE_FLAGS "-I${_dst_path}")
+    set(_dst_name ${_dst_path}/${_fullname})
+    set(_y        ${_src_name}.y)
+    set(_l        ${_src_name}.l)
+    set(_tab_c ${_src_path}/${_fullname}_tab.c)
+    set(_lex_c ${_src_path}/${_fullname}_lex.c)
+    set(_parser ${_fullname}_parser)
+    set(_scanner ${_fullname}_scanner)
 
-    set_source_files_properties(${_src_name}_tab.c ${_src_name}_lex.c
-            OBJECT_DEPENDS "${BISON_${_name}_parser_OUTPUTS};${FLEX_${_name}_scanner_OUTPUTS}")
+    BISON_TARGET(${_parser} ${_y} ${_dst_name}.tab.c
+        COMPILE_FLAGS "--warnings=error -Dapi.prefix={${_fullname}_yy}")
+    FLEX_TARGET(${_scanner} ${_l} ${_dst_name}.lex.c
+        COMPILE_FLAGS "--header-file=${_dst_name}.lex.h --prefix=${_fullname}_yy")
+    ADD_FLEX_BISON_DEPENDENCY(${_scanner} ${_parser})
+
+    set(_bison_outputs ${BISON_${_fullname}_parser_OUTPUTS})
+    set(_flex_outputs ${FLEX_${_fullname}_scanner_OUTPUTS})
+    set(_outputs ${_bison_outputs} ${_flex_outputs})
+
+    set_source_files_properties(${_tab_c}
+            PROPERTY COMPILE_FLAGS "-I${_dst_path}")
+    set_source_files_properties(${_tab_c}
+            PROPERTY OBJECT_DEPENDS "${_outputs}")
+
+    unset(_bison_outputs)
+    unset(_flex_outputs)
+    unset(_outputs)
+
     unset(_src_path)
     unset(_dst_path)
+    unset(_fullname)
     unset(_src_name)
     unset(_dst_name)
+    unset(_y)
+    unset(_l)
+    unset(_tab_c)
+    unset(_lex_c)
+    unset(_parser)
+    unset(_scanner)
 endmacro()
 
-macro(PURC_PARSERS_GEN _rel _names)
+macro(PURC_PARSERS_GEN_IN _rel _names _auxilaries)
     add_subdirectory(${_rel}) # you shall add an empty CMakeLists.txt in <path-to-relpath>
-    set(_arr "${ARGV1}")
-    foreach (_name IN LISTS _arr)
-        PURC_PARSER_GEN(${_name} ${_rel})
+    set(_arr_names "${ARGV1}")
+    foreach (_name IN LISTS _arr_names)
+        PURC_PARSER_GEN_IN(${_rel} ${_name} "")
+        set(_arr_auxilaries "${ARGV2}")
+        foreach (_auxilary IN LISTS _arr_auxilaries)
+            PURC_PARSER_GEN_IN(${_rel} ${_name} ${_auxilary})
+        endforeach()
+        unset(_arr_auxilaries)
     endforeach()
-    unset(_arr)
+    unset(_arr_names)
 endmacro()
 
 # Private macro for setting the properties of a target.
