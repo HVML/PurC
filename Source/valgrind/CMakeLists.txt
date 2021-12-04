@@ -1,0 +1,5 @@
+PURC_COPY_FILES(VALGRIND_Suppressions
+    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/
+    FILES valgrind.supp
+)
+

@@ -17,6 +17,7 @@ add_subdirectory(Tools)
 
 if (ENABLE_API_TESTS)
     add_subdirectory(ThirdParty/gtest)
+    add_subdirectory(valgrind)
     add_subdirectory(test)
 endif ()
 
