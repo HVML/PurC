@@ -490,10 +490,20 @@ insert_or_replace(purc_variant_t set,
     curr = container_of(entry, struct elem_node, node);
     PC_ASSERT(curr != node);
     PC_ASSERT(curr->kvs != node->kvs);
+
+    if (curr->elem == node->elem) {
+        purc_variant_t v = (purc_variant_t)curr->elem;
+        purc_variant_ref(v);
+        set_release(node);
+        free(node);
+        return 0;
+    }
+
     PC_ASSERT(curr->elem != node->elem);
 
     change(set, curr->elem, node->elem);
 
+    set_release(curr);
     curr->kvs = node->kvs;
     node->kvs = NULL;
     curr->elem = node->elem;

@@ -467,6 +467,63 @@ TEST(variant_set, add_n_str)
     ASSERT_EQ (cleanup, true);
 }
 
+TEST(variant_set, dup)
+{
+    purc_instance_extra_info info = {0, 0};
+    int ret = 0;
+    bool cleanup = false;
+
+    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ(ret, PURC_ERROR_OK);
+
+    purc_variant_t set = purc_variant_make_set_by_ckey(0, "hello",
+            PURC_VARIANT_INVALID);
+    ASSERT_NE(set, nullptr);
+
+    if (1) {
+        purc_variant_t v;
+        v = purc_variant_make_object_by_static_ckey(0,
+                NULL, PURC_VARIANT_INVALID);
+        ASSERT_NE(v, nullptr);
+        bool ok;
+        ok = purc_variant_set_add(set, v, true);
+        purc_variant_unref(v);
+        ASSERT_TRUE(ok);
+    }
+    if (1) {
+        purc_variant_t v;
+        v = purc_variant_make_object_by_static_ckey(0,
+                NULL, PURC_VARIANT_INVALID);
+        ASSERT_NE(v, nullptr);
+        bool ok;
+        ok = purc_variant_set_add(set, v, true);
+        purc_variant_unref(v);
+        ASSERT_TRUE(ok);
+    }
+    if (1) {
+        purc_variant_t foo = purc_variant_make_string_static("foo", false);
+        ASSERT_NE(foo, nullptr);
+        purc_variant_t v;
+        v = purc_variant_make_object_by_static_ckey(1,
+                "hello", foo);
+        purc_variant_unref(foo);
+        ASSERT_NE(v, nullptr);
+        bool ok;
+        ok = purc_variant_set_add(set, v, true);
+        purc_variant_unref(v);
+        ASSERT_TRUE(ok);
+        ok = purc_variant_set_add(set, v, true);
+        purc_variant_unref(v);
+        ASSERT_TRUE(ok);
+    }
+
+
+    purc_variant_unref(set);
+
+    cleanup = purc_cleanup ();
+    ASSERT_EQ (cleanup, true);
+}
+
 struct _avl_node {
     struct avl_node          node;
     size_t                   key;
