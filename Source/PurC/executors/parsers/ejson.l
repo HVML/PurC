@@ -101,6 +101,7 @@ do {                                              \
 "["     { C(); R(); return *yytext; }
 "]"     { C(); R(); return *yytext; }
 ","     { C(); R(); return *yytext; }
+"!"     { C(); R(); return *yytext; }
 [ \t]   { C(); R(); } /* eat */
 \n      { L(); R(); } /* eat */
 .       { C(); R(); return *yytext; } /* let bison to handle */

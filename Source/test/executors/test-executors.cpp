@@ -237,7 +237,8 @@ is_blank_line(const char *line)
 }
 
 static inline void
-make_variant_from_json(purc_variant_t *v, const char *s, size_t len)
+make_variant_from_json(purc_variant_t *v, const char *s, size_t len,
+        struct config *cfg)
 {
     UNUSED_PARAM(len);
 
@@ -249,7 +250,8 @@ make_variant_from_json(purc_variant_t *v, const char *s, size_t len)
     }
     else {
         // *v = purc_variant_make_from_json_string(s, len);
-        *v = pcejson_parser_parse_string(s);
+        *v = pcejson_parser_parse_string(s,
+                cfg->debug_flex, cfg->debug_bison);
     }
 }
 
@@ -525,7 +527,8 @@ process_sample_file(struct config *cfg, FILE *file, const char *fn)
                         break;
 
                     purc_variant_t v;
-                    make_variant_from_json(&v, ctx.input.str, ctx.input.len);
+                    make_variant_from_json(&v, ctx.input.str, ctx.input.len,
+                        cfg);
                     if (v == PURC_VARIANT_INVALID) {
                         std::cerr << src_file << "[" << __LINE__ << "]:"
                             << "Failed to parse input: @"
@@ -584,7 +587,8 @@ process_sample_file(struct config *cfg, FILE *file, const char *fn)
                         break;
 
                     purc_variant_t v;
-                    make_variant_from_json(&v, ctx.output.str, ctx.output.len);
+                    make_variant_from_json(&v, ctx.output.str, ctx.output.len,
+                            cfg);
                     if (v == PURC_VARIANT_INVALID) {
                         std::cerr << src_file << "[" << __LINE__ << "]:"
                             << "Failed to parse output: @"
@@ -721,12 +725,15 @@ do_serialize(purc_variant_t value, char *buf, size_t sz)
 }
 
 static inline void
-do_ejson_parser_parse(struct ejson_parser_record *record)
+do_ejson_parser_parse(struct ejson_parser_record *record, struct config *cfg)
 {
+    int debug_flex = cfg->debug_flex;
+    int debug_bison = cfg->debug_bison;
     bool positive = record->positive;
     const char *in = record->in;
     const char *out = record->out;
-    purc_variant_t v = pcejson_parser_parse_string(in);
+    purc_variant_t v;
+    v = pcejson_parser_parse_string(in, debug_flex, debug_bison);
     if (v == PURC_VARIANT_INVALID) {
         if (positive) {
             FAIL() << "failed to parse positive: [" << in << "]";
@@ -741,7 +748,8 @@ do_ejson_parser_parse(struct ejson_parser_record *record)
     }
 
     if (0) {
-        purc_variant_t vo = pcejson_parser_parse_string(out);
+        purc_variant_t vo;
+        vo = pcejson_parser_parse_string(out, debug_flex, debug_bison);
         if (vo == PURC_VARIANT_INVALID) {
             purc_variant_unref(v);
             FAIL() << "failed to parse positive: [" << out << "]";
@@ -782,10 +790,14 @@ do_ejson_parser_parse(struct ejson_parser_record *record)
 
 TEST(executors, ejson_parser)
 {
+    const char *rel = "dummy";
+    struct config cfg;
     purc_instance_extra_info info = {0, 0};
     int r = purc_init("cn.fmsoft.hybridos.test",
         "vdom_gen", &info);
     ASSERT_EQ(r, PURC_ERROR_OK);
+
+    config_from_env(&cfg, rel);
 
     struct ejson_parser_record records[] = {
         { true, "undefined", "undefined" },
@@ -817,7 +829,7 @@ TEST(executors, ejson_parser)
 
     for (size_t i=0; i<PCA_TABLESIZE(records); ++i) {
         struct ejson_parser_record *record = records + i;
-        do_ejson_parser_parse(record);
+        do_ejson_parser_parse(record, &cfg);
     }
 
     bool ok = purc_cleanup ();

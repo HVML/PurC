@@ -33,6 +33,8 @@
 %code requires {
     struct ejson_param {
         char      placeholder[0];
+        int debug_flex;
+        int debug_bison;
 
         purc_variant_t        var;
     };
@@ -463,6 +465,55 @@
             YYABORT;                                      \
     } while (0)
 
+    #define MK_EMPTY_SET(_r) do {                                         \
+        purc_variant_t _k = PURC_VARIANT_INVALID;                         \
+        purc_variant_t _v = PURC_VARIANT_INVALID;                         \
+        _r = purc_variant_make_set(0, _k, _v);                            \
+        if (_r == PURC_VARIANT_INVALID)                                   \
+            YYABORT;                                                      \
+    } while (0)
+
+    #define MK_SET(_r, _k, _a) do {                                       \
+        _r = purc_variant_make_set(0, _k, PURC_VARIANT_INVALID);          \
+        if (_k != PURC_VARIANT_INVALID)                                   \
+            purc_variant_unref(_k);                                       \
+        bool ok = true;                                                   \
+        purc_variant_t _v;                                                \
+        foreach_value_in_variant_array(_a, _v)                            \
+            ok = purc_variant_set_add(_r, _v, true);                      \
+            if (!ok)                                                      \
+                break;                                                    \
+        end_foreach;                                                      \
+        purc_variant_unref(_a);                                           \
+        if (!ok) {                                                        \
+            purc_variant_unref(_r);                                       \
+            YYABORT;                                                      \
+        }                                                                 \
+    } while (0)                                                           \
+
+    #define MK_STRING(_r, _id) do {                                       \
+        _r = purc_variant_make_string_ex(_id.text, _id.leng, true);       \
+        if (_r == PURC_VARIANT_INVALID)                                   \
+            YYABORT;                                                      \
+    } while (0)
+
+    #define MK_OBJS(_r, _obj) do {                        \
+        _r = purc_variant_make_array(1, _obj);            \
+        purc_variant_unref(_obj);                         \
+        if (_r == PURC_VARIANT_INVALID)                   \
+            YYABORT;                                      \
+    } while (0)
+
+    #define OBJS_APPEND(_r, _objs, _obj) do {                   \
+        bool _ok = purc_variant_array_append(_objs, _obj);      \
+        purc_variant_unref(_obj);                               \
+        if (!_ok) {                                             \
+            purc_variant_unref(_objs);                          \
+            YYABORT;                                            \
+        }                                                       \
+        _r = _objs;                                             \
+    } while (0)
+
     #define SET_NULL() do {                               \
         param->var = purc_variant_make_null();            \
         if (param->var == PURC_VARIANT_INVALID) {         \
@@ -477,6 +528,8 @@
 %define api.token.prefix {TOK_EJSON_}
 %define locations
 %define parse.error verbose
+%define parse.lac full
+%define parse.trace true
 %defines
 %verbose
 
@@ -485,6 +538,7 @@
 
 %union { struct ejson_semantic sval; } // union member
 %union { char c; }                     // union member
+%union { char *str; }
 %union { purc_variant_t v; }
 %union { struct string_s ss; }
 
@@ -497,6 +551,7 @@
 %nterm <v> variant str
 %nterm <v> obj kvs kv
 %nterm <v> arr variants
+%nterm <v> set set_key objs
 %nterm <ss> string
 
 
@@ -517,6 +572,7 @@ variant:
 | str                { $$ = $1; }
 | obj                { $$ = $1; }
 | arr                { $$ = $1; }
+| set                { $$ = $1; }
 ;
 
 str:
@@ -564,6 +620,23 @@ variants:
 | variants ',' variant     { APPEND_VAR($$, $1, $3); }
 ;
 
+set:
+  '{' '!' '}'                   { MK_EMPTY_SET($$); }
+| '{' '!' ',' objs '}'          { MK_SET($$, PURC_VARIANT_INVALID, $4); }
+| '{' '!' set_key ',' objs '}'  { MK_SET($$, $3, $5); }
+;
+
+set_key:
+  ID                            { MK_STRING($$, $1); }
+| '"' string '"'                { COLLECT_STR($$, $2); }
+;
+
+objs:
+  obj                { MK_OBJS($$, $1); }
+| objs ','           { $$ = $1; }
+| objs ',' obj       { OBJS_APPEND($$, $1, $3); }
+;
+
 %%
 
 /* Called by yyparse on error. */
@@ -588,22 +661,28 @@ yyerror(
 int ejson_parse(const char *input,
         struct ejson_param *param)
 {
+    size_t len = strlen(input);
     yyscan_t arg = {0};
     yylex_init(&arg);
     // yyset_in(in, arg);
-    // yyset_debug(debug, arg);
+    int debug_flex = param ? param->debug_flex : 0;
+    int debug_bison = param ? param->debug_bison: 0;
+    yyset_debug(debug_flex, arg);
+    yydebug = debug_bison;
     // yyset_extra(param, arg);
-    yy_scan_string(input, arg);
+    yy_scan_bytes(input ? input : "", input ? len : 0, arg);
     int ret =yyparse(arg, param);
     yylex_destroy(arg);
-    return ret ? 1 : 0;
+    return ret ? -1 : 0;
 }
 
 purc_variant_t
-pcejson_parser_parse_string(const char *str)
+pcejson_parser_parse_string(const char *str, int debug_flex, int debug_bison)
 {
     struct ejson_param param;
     param.var = PURC_VARIANT_INVALID;
+    param.debug_flex = debug_flex;
+    param.debug_bison = debug_bison;
 
     int r = ejson_parse(str, &param);
 
