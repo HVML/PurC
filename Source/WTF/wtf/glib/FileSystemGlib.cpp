@@ -316,7 +316,11 @@ Vector<String> listDirectory(const String& path, const String& filter)
 
     GUniquePtr<GPatternSpec> pspec(g_pattern_spec_new((filter.utf8()).data()));
     while (const char* name = g_dir_read_name(dir.get())) {
+#if HAVE(GLIB_LESS_2_70)
         if (!g_pattern_match_string(pspec.get(), name))
+#else
+        if (!g_pattern_spec_match_string(pspec.get(), name))
+#endif
             continue;
 
         GUniquePtr<gchar> entry(g_build_filename(filename.data(), name, nullptr));
