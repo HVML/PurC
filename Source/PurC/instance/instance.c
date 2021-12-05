@@ -121,6 +121,7 @@ static void init_modules(void)
     pchtml_init_once();
     pcedom_init_once();
     pcexecutor_init_once();
+    pcintr_stack_init_once();
 }
 
 #if USE(PTHREADS)
@@ -228,6 +229,7 @@ int purc_init(const char* app_name, const char* runner_name,
     pchtml_init_instance(curr_inst);
     pcedom_init_instance(curr_inst);
     pcexecutor_init_instance(curr_inst);
+    pcintr_stack_init_instance(curr_inst);
     return PURC_ERROR_OK;
 
 failed:

@@ -32,6 +32,9 @@
 #include "private/variant.h"
 #include "private/map.h"
 #include "private/executor.h"
+#include "private/interpreter.h"
+
+struct pcinst;
 
 struct pcinst {
     int errcode;
@@ -43,6 +46,7 @@ struct pcinst {
 
     struct pcvariant_heap variant_heap;
     struct pcexecutor_heap executor_heap;
+    struct pcintr_stack intr_stack;
 };
 
 /* gets the current instance */

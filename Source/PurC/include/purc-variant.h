@@ -1817,7 +1817,13 @@ purc_variant_register_listener(purc_variant_t v, purc_atom_t name,
 PCA_EXPORT bool
 purc_variant_revoke_listener(purc_variant_t v, purc_atom_t name);
 
-
 PCA_EXTERN_C_END
+
+#define PURC_VARIANT_SAFE_CLEAR(_v) do {          \
+    if (_v != PURC_VARIANT_INVALID) {             \
+        purc_variant_unref(_v);                   \
+        _v = PURC_VARIANT_INVALID;                \
+    }                                             \
+} while (0)
 
 #endif /* not defined PURC_PURC_VARIANT_H */

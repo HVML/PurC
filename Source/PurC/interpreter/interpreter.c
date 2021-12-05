@@ -24,7 +24,66 @@
  */
 
 #include "config.h"
+
+#include "private/debug.h"
+#include "private/instance.h"
 #include "private/interpreter.h"
+
+void pcintr_stack_init_once(void)
+{
+}
+
+void pcintr_stack_init_instance(struct pcinst* inst)
+{
+    struct pcintr_stack *intr_stack = &inst->intr_stack;
+    memset(intr_stack, 0, sizeof(*intr_stack));
+
+    struct list_head *frames = &intr_stack->frames;
+    INIT_LIST_HEAD(frames);
+    intr_stack->ret_var = PURC_VARIANT_INVALID;
+}
+
+static inline void
+intr_stack_frame_release(struct pcintr_stack_frame *frame)
+{
+    frame->scope = NULL;
+    frame->pos   = NULL;
+
+    frame->ctxt  = NULL;
+
+    for (size_t i=0; i<PCA_TABLESIZE(frame->symbol_vars); ++i) {
+        PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[i]);
+    }
+
+    PURC_VARIANT_SAFE_CLEAR(frame->attr_vars);
+
+    PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
+
+    PURC_VARIANT_SAFE_CLEAR(frame->mid_vars);
+}
+
+void pcintr_stack_cleanup_instance(struct pcinst* inst)
+{
+    struct pcintr_stack *intr_stack = &inst->intr_stack;
+    struct list_head *frames = &intr_stack->frames;
+    if (!list_empty(frames)) {
+        struct pcintr_stack_frame *p, *n;
+        list_for_each_entry_safe(p, n, frames, node) {
+            list_del(&p->node);
+            --intr_stack->nr_frames;
+            intr_stack_frame_release(p);
+            free(p);
+        }
+        PC_ASSERT(intr_stack->nr_frames == 0);
+    }
+}
+
+pcintr_stack_t purc_get_stack(void)
+{
+    struct pcinst *inst = pcinst_current();
+    struct pcintr_stack *intr_stack = &inst->intr_stack;
+    return intr_stack;
+}
 
 static inline bool
 set_object_by(purc_variant_t obj, struct pcintr_dynamic_args *arg)
