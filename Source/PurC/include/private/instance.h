@@ -32,6 +32,7 @@
 #include "private/variant.h"
 #include "private/map.h"
 #include "private/executor.h"
+#include "private/var-mgr.h"
 
 struct pcinst {
     int errcode;
@@ -40,6 +41,7 @@ struct pcinst {
     char* runner_name;
 
     pcutils_map* local_data_map;
+    pcvarmgr_list_t var_mgr;
 
     struct pcvariant_heap variant_heap;
     struct pcexecutor_heap executor_heap;

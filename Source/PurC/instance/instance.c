@@ -167,6 +167,11 @@ static void cleanup_instance (struct pcinst *curr_inst)
         curr_inst->local_data_map = NULL;
     }
 
+    if (curr_inst->var_mgr) {
+        pcvarmgr_list_destroy(curr_inst->var_mgr);
+        curr_inst->var_mgr = NULL;
+    }
+
     if (curr_inst->app_name) {
         free (curr_inst->app_name);
         curr_inst->app_name = NULL;
@@ -217,9 +222,13 @@ int purc_init(const char* app_name, const char* runner_name,
         pcutils_map_create (copy_key_string,
                 free_key_string, NULL, NULL, comp_key_string, false);
 
+
+    curr_inst->var_mgr = pcvarmgr_list_create();
+
     if (curr_inst->app_name == NULL ||
             curr_inst->runner_name == NULL ||
-            curr_inst->local_data_map == NULL)
+            curr_inst->local_data_map == NULL ||
+            curr_inst->var_mgr == NULL)
         goto failed;
 
     // TODO: init other fields
