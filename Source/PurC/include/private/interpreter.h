@@ -135,12 +135,11 @@ void pcintr_stack_init_once(void) WTF_INTERNAL;
 void pcintr_stack_init_instance(struct pcinst* inst) WTF_INTERNAL;
 void pcintr_stack_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 pcintr_stack_t purc_get_stack (void);
+struct pcintr_stack_frame*
+pcintr_stack_get_bottom_frame(pcintr_stack_t stack);
 
 struct pcintr_element_ops*
 pcintr_get_element_ops(pcvdom_element_t element);
-
-// experiment:
-int pcintr_run_first(purc_vdom_t vdom);
 
 purc_variant_t
 pcintr_make_object_of_dynamic_variants(size_t nr_args,

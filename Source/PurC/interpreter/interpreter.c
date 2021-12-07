@@ -87,6 +87,53 @@ pcintr_stack_t purc_get_stack(void)
     return intr_stack;
 }
 
+struct pcintr_stack_frame*
+pcintr_stack_get_bottom_frame(pcintr_stack_t stack)
+{
+    if (!stack)
+        return NULL;
+
+    if (stack->nr_frames < 1)
+        return NULL;
+
+    struct list_head *tail = stack->frames.prev;
+    return container_of(tail, struct pcintr_stack_frame, node);
+}
+
+static inline struct pcintr_stack_frame*
+push_stack_frame(pcintr_stack_t stack)
+{
+    PC_ASSERT(stack);
+    struct pcintr_stack_frame *frame;
+    frame = (struct pcintr_stack_frame*)calloc(1, sizeof(*frame));
+    if (!frame)
+        return NULL;
+
+    list_add_tail(&frame->node, &stack->frames);
+    ++stack->nr_frames;
+
+    return 0;
+}
+
+static inline void
+pop_stack_frame(pcintr_stack_t stack)
+{
+    PC_ASSERT(stack);
+    PC_ASSERT(stack->nr_frames > 0);
+
+    struct list_head *tail = stack->frames.prev;
+    PC_ASSERT(tail != NULL);
+    PC_ASSERT(tail != &stack->frames);
+
+    list_del(tail);
+
+    struct pcintr_stack_frame *frame;
+    frame = container_of(tail, struct pcintr_stack_frame, node);
+
+    intr_stack_frame_release(frame);
+    free(frame);
+}
+
 struct pcintr_element_ops*
 pcintr_get_element_ops(pcvdom_element_t element)
 {
@@ -100,6 +147,151 @@ pcintr_get_element_ops(pcvdom_element_t element)
     }
 }
 
+static inline int
+init_frame_symbol_vars(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element, struct pcvdom_document *document)
+{
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(element);
+    UNUSED_PARAM(document);
+    PC_ASSERT(0); // Not implemented yet
+    return -1;
+}
+
+
+static inline int
+init_frame_append_attr(pcutils_map_entry *entry, void *ud)
+{
+    PC_ASSERT(ud);
+    PC_ASSERT(entry);
+
+    purc_variant_t attr_vars = (purc_variant_t)ud;
+
+    struct pcvdom_attr *attr = (struct pcvdom_attr*)entry->val;
+    (void)attr;
+    (void)attr_vars;
+    // TODO:
+    PC_ASSERT(0); // Not implemented yet
+    return -1;
+}
+
+static inline int
+init_frame_attr_vars(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element, struct pcvdom_document *document)
+{
+    UNUSED_PARAM(document);
+
+    frame->attr_vars = purc_variant_make_object(0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+
+    if (frame->attr_vars == PURC_VARIANT_INVALID)
+        return -1;
+
+    struct pcutils_map *attrs = element->attrs;
+    if (!attrs)
+        return 0;
+
+    int r = pcutils_map_traverse(attrs,
+            frame->attr_vars, init_frame_append_attr);
+
+    return r ? -1 : 0;
+}
+
+static inline int
+init_frame_by_element(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element, struct pcvdom_document *document)
+{
+    frame->scope = element; // FIXME: archetype, where to store `scope`
+    frame->pos = element;
+    if (init_frame_symbol_vars(frame, element, document))
+        return -1;
+
+    if (init_frame_attr_vars(frame, element, document))
+        return -1;
+
+    // TODO:
+    // frame->ctnt_vars = ????;
+    return 0;
+}
+
+static inline int
+element_post_load(struct pcvdom_document *document,
+        struct pcvdom_element *element);
+
+static inline int
+element_post_load_in_frame(struct pcvdom_document *document,
+        struct pcvdom_element *element,
+        struct pcintr_element_ops *ops,
+        pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame)
+{
+    PC_ASSERT(document);
+    PC_ASSERT(element);
+
+    int r = init_frame_by_element(frame, element, document);
+    if (r) {
+        pop_stack_frame(stack);
+        return -1;
+    }
+
+    if (ops->after_pushed) {
+        void *ctxt = ops->after_pushed(stack, element);
+        frame->ctxt = ctxt;
+    }
+
+rerun:
+    if (ops->select_child) {
+        struct pcvdom_element *child;
+        child = ops->select_child(stack, frame->ctxt);
+        while (child) {
+            r = element_post_load(document, child);
+            PC_ASSERT(r==0); // TODO: what if failed????
+            child = ops->select_child(stack, frame->ctxt);
+        }
+    }
+
+    if (ops->on_popping) {
+        bool ok = ops->on_popping(stack, frame->ctxt);
+        if (ok) {
+            return 0;
+        }
+    }
+
+    if (ops->rerun) {
+        bool ok = ops->rerun(stack, frame->ctxt);
+        PC_ASSERT(ok); // TODO: what if failed????
+        goto rerun;
+    }
+
+    return 0;
+}
+
+static inline int
+element_post_load(struct pcvdom_document *document,
+        struct pcvdom_element *element)
+{
+    PC_ASSERT(document);
+    PC_ASSERT(element);
+
+    struct pcintr_element_ops *ops;
+    ops = pcintr_get_element_ops(element);
+    if (!ops)
+        return 0;
+
+    pcintr_stack_t stack = purc_get_stack();
+    PC_ASSERT(stack);
+
+    struct pcintr_stack_frame *frame;
+    frame = push_stack_frame(stack);
+    if (!frame)
+        return -1;
+
+    int r = element_post_load_in_frame(document, element, ops, stack, frame);
+
+    pop_stack_frame(stack);
+
+    return r ? -1 : 0;
+}
 
 static inline int
 document_post_load(struct pcvdom_document *document)
@@ -109,12 +301,40 @@ document_post_load(struct pcvdom_document *document)
     (void)p;
     PC_ASSERT(0); // Not implemented yet
 
+    struct pcvdom_element *element;
+    int r = 0;
+    for (; p; p = pcvdom_node_next_sibling(p)) {
+        switch (p->type) {
+            case PCVDOM_NODE_DOCUMENT:
+                PC_ASSERT(0);
+                return -1;
+            case PCVDOM_NODE_ELEMENT:
+                element = container_of(p, struct pcvdom_element, node);
+                r = element_post_load(document, element);
+                break;
+            case PCVDOM_NODE_CONTENT:
+                // FIXME: output to edom?
+                break;
+            case PCVDOM_NODE_COMMENT:
+                // FIXME:
+                break;
+            default:
+                PC_ASSERT(0);
+                return -1;
+        }
+        if (r)
+            return -1;
+    }
+
     return -1;
 }
 
 int pcintr_post_load(purc_vdom_t vdom)
 {
     PC_ASSERT(vdom);
+    pcintr_stack_t stack = purc_get_stack();
+    PC_ASSERT(stack->nr_frames == 0);
+
     struct pcvdom_document *document = vdom->document;
     return document_post_load(document);
 }
