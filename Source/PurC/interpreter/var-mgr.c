@@ -80,12 +80,3 @@ bool pcvarmgr_list_remove(pcvarmgr_list_t list, const char* name)
     return false;
 }
 
-bool purc_bind_variable(const char* name, purc_variant_t variant)
-{
-    struct pcinst* inst = pcinst_current();
-    if (inst == NULL)
-        return false;
-
-    return pcvarmgr_list_add(inst->var_list, name, variant);
-}
-
