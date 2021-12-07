@@ -22,6 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+# include <math.h>
+
 #include "private/instance.h"
 #include "private/errors.h"
 #include "private/dvobjs.h"
@@ -185,5 +187,196 @@ purc_variant_t pcdvobjs_make_dvobjs (const struct pcdvobjs_dvobjs *method,
 error:
     purc_variant_unref (ret_var);
     return PURC_VARIANT_INVALID;
+}
+
+long double pcdvobjs_get_variant_value (purc_variant_t var)
+{
+    if (var == PURC_VARIANT_INVALID)
+        return 0.0;
+
+    size_t i = 0;
+    size_t length = 0;
+    long double number = 0.0;
+    long int templongint = 0;
+    struct purc_variant_object_iterator *it_obj = NULL;
+    struct purc_variant_set_iterator *it_set = NULL;
+    purc_variant_t val = PURC_VARIANT_INVALID;
+    bool having = false;
+    enum purc_variant_type type = purc_variant_get_type (var);
+    purc_dvariant_method dynamic_func = NULL;
+    purc_nvariant_method native_func = NULL;
+    struct purc_native_ops *ops = NULL;
+
+    switch ((int)type) {
+        case PURC_VARIANT_TYPE_NULL:
+        case PURC_VARIANT_TYPE_UNDEFINED:
+            break;
+
+        case PURC_VARIANT_TYPE_BOOLEAN:
+            purc_variant_cast_to_long_double (var, &number, false);
+            if (number)
+                number = 1.0;
+            break;
+
+        case PURC_VARIANT_TYPE_NUMBER:
+        case PURC_VARIANT_TYPE_LONGINT:
+        case PURC_VARIANT_TYPE_ULONGINT:
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+            purc_variant_cast_to_long_double (var, &number, false);
+            break;
+
+        case PURC_VARIANT_TYPE_ATOMSTRING:
+            number = strtold (purc_variant_get_atom_string_const (var), NULL);
+            break;
+
+        case PURC_VARIANT_TYPE_STRING:
+            number = strtold (purc_variant_get_string_const (var), NULL);
+            break;
+
+        case PURC_VARIANT_TYPE_BSEQUENCE:
+            length = purc_variant_sequence_length (var);
+            if (length > 8)
+                memcpy (&templongint, purc_variant_get_bytes_const (var,
+                                            &length) + length - 8, 8);
+            else
+                memcpy (&templongint, purc_variant_get_bytes_const (var,
+                                            &length), length);
+            number = (long double) templongint;
+            break;
+
+        case PURC_VARIANT_TYPE_DYNAMIC:
+            dynamic_func = purc_variant_dynamic_get_getter (var);
+            if (dynamic_func) {
+                val = dynamic_func (NULL, 0, NULL);
+                number = pcdvobjs_get_variant_value (val);
+            }
+            break;
+
+        case PURC_VARIANT_TYPE_NATIVE:
+            ops = purc_variant_native_get_ops (var);
+            if (ops) {
+                native_func = ops->property_getter("__number");
+                if (native_func) {
+                    val = native_func (purc_variant_native_get_entity (var),
+                            0, NULL);
+                    number = pcdvobjs_get_variant_value (val);
+                }
+            }
+            break;
+
+        case PURC_VARIANT_TYPE_OBJECT:
+            it_obj = purc_variant_object_make_iterator_begin(var);
+            while (it_obj) {
+                val = purc_variant_object_iterator_get_value(it_obj);
+                number += pcdvobjs_get_variant_value (val);
+
+                having = purc_variant_object_iterator_next(it_obj);
+                if (!having)
+                    break;
+            }
+            if (it_obj)
+                purc_variant_object_release_iterator(it_obj);
+
+            break;
+
+        case PURC_VARIANT_TYPE_ARRAY:
+            for (i = 0; i < purc_variant_array_get_size (var); ++i) {
+                val = purc_variant_array_get(var, i);
+
+                number += pcdvobjs_get_variant_value (val);
+            }
+
+            break;
+
+        case PURC_VARIANT_TYPE_SET:
+            it_set = purc_variant_set_make_iterator_begin(var);
+            while (it_set) {
+                val = purc_variant_set_iterator_get_value(it_set);
+
+                number += pcdvobjs_get_variant_value (val);
+
+                having = purc_variant_set_iterator_next(it_set);
+                if (!having)
+                    break;
+            }
+            if (it_set)
+                purc_variant_set_release_iterator(it_set);
+
+            break;
+
+        default:
+            break;
+    }
+
+    return number;
+}
+
+bool pcdvobjs_test_variant (purc_variant_t var)
+{
+    if (var == PURC_VARIANT_INVALID)
+        return false;
+
+    long double number = 0.0L;
+    bool ret = false;
+    enum purc_variant_type type = purc_variant_get_type (var);
+
+    // in this step, ret = true, means: need numberify
+    switch ((int)type) {
+        case PURC_VARIANT_TYPE_NULL:
+        case PURC_VARIANT_TYPE_UNDEFINED:
+            break;
+
+        case PURC_VARIANT_TYPE_BOOLEAN:
+        case PURC_VARIANT_TYPE_NUMBER:
+        case PURC_VARIANT_TYPE_LONGINT:
+        case PURC_VARIANT_TYPE_ULONGINT:
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+        case PURC_VARIANT_TYPE_DYNAMIC:
+        case PURC_VARIANT_TYPE_NATIVE:
+            ret = true;
+            break;
+
+        case PURC_VARIANT_TYPE_ATOMSTRING:
+            if (strlen (purc_variant_get_atom_string_const (var)) > 0)
+                ret = true;
+            break;
+
+        case PURC_VARIANT_TYPE_STRING:
+            if (purc_variant_string_length (var) > 1)
+                ret = true;
+            break;
+
+        case PURC_VARIANT_TYPE_BSEQUENCE:
+            if (purc_variant_sequence_length (var) > 0)
+                ret = true;
+            break;
+
+        case PURC_VARIANT_TYPE_OBJECT:
+            if (purc_variant_object_get_size (var))
+                ret = true;
+            break;
+
+        case PURC_VARIANT_TYPE_ARRAY:
+            if (purc_variant_array_get_size (var))
+                ret = true;
+            break;
+
+        case PURC_VARIANT_TYPE_SET:
+            if (purc_variant_set_get_size (var))
+                ret = true;
+            break;
+
+        default:
+            break;
+    }
+
+    if (ret) {
+        ret = false;
+        number = pcdvobjs_get_variant_value (var);
+        if (fabs (number) > 1.0E-10)
+            ret = true;
+    }
+
+    return ret;
 }
 

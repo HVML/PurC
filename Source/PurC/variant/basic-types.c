@@ -706,3 +706,18 @@ void *purc_variant_native_get_entity(purc_variant_t native)
     return ret;
 }
 
+struct purc_native_ops *purc_variant_native_get_ops(purc_variant_t native)
+{
+    PC_ASSERT(native);
+
+    struct purc_native_ops *ret = NULL;
+
+    if (IS_TYPE(native, PURC_VARIANT_TYPE_NATIVE)) {
+        ret = native->ptr_ptr[1];
+    }
+    else
+        pcinst_set_error (PCVARIANT_ERROR_INVALID_TYPE);
+
+    return ret;
+}
+

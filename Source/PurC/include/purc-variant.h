@@ -498,6 +498,18 @@ purc_variant_t purc_variant_make_native (void *native_entity,
 PCA_EXPORT void *
 purc_variant_native_get_entity(purc_variant_t native);
 
+/**
+ * Get the ops pointer of native variant value
+ *
+ * @param native: the variant value of native type
+ *
+ * Returns: the ops pointer
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT struct purc_native_ops *
+purc_variant_native_get_ops(purc_variant_t native);
+
 
 /**
  * Creates a variant value of array type.
