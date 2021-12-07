@@ -59,6 +59,7 @@ static inline int comp_key_string (const void *key1, const void *key2)
 }
 
 typedef struct pcutils_map pcutils_map;
+typedef struct pcutils_map *pcutils_map_t;
 typedef struct pcutils_map_entry {
     struct rb_node  node;
     void*           key;

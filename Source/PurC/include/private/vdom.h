@@ -28,6 +28,8 @@
 
 #include "config.h"
 
+#include "purc.h"
+
 #include "purc-macros.h"
 #include "purc-errors.h"
 #include "purc-variant.h"
@@ -86,6 +88,8 @@ enum pchvml_attr_assignment {
 struct pcvdom_node;
 struct pcvdom_document;
 struct pcvdom_element;
+typedef struct pcvdom_element     pcvdom_element;
+typedef struct pcvdom_element    *pcvdom_element_t;
 struct pcvdom_content;
 struct pcvdom_comment;
 typedef enum pchvml_tag_id   pcvdom_tag_id;
@@ -165,6 +169,9 @@ struct pcvdom_comment {
     char                   *text;
 };
 
+struct purc_vdom {
+    struct pcvdom_document          *document;
+};
 
 // creating and destroying api
 void
