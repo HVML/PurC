@@ -29,6 +29,8 @@
 #include "private/instance.h"
 #include "private/interpreter.h"
 
+#include "iterate.h"
+
 void pcintr_stack_init_once(void)
 {
 }
@@ -83,6 +85,51 @@ pcintr_stack_t purc_get_stack(void)
     struct pcinst *inst = pcinst_current();
     struct pcintr_stack *intr_stack = &inst->intr_stack;
     return intr_stack;
+}
+
+struct pcintr_element_ops*
+pcintr_get_element_ops(pcvdom_element_t element)
+{
+    PC_ASSERT(element);
+
+    switch (element->tag_id) {
+        case PCHVML_TAG_ITERATE:
+            return pcintr_iterate_get_ops();
+        default:
+            return NULL;
+    }
+}
+
+static inline int
+vdom_node_post_load(struct pcvdom_node *top,
+        struct pcvdom_node *node, void *ctx)
+{
+    struct pcvdom_document *document;
+    document = (struct pcvdom_document*)ctx;
+    PC_ASSERT(top == &document->node);
+
+    enum pcvdom_nodetype type = node->type;
+    switch (type) {
+        case PCVDOM_NODE_DOCUMENT:
+            return 0; // FIXME: generate anything?
+        case PCVDOM_NODE_ELEMENT:
+            return -1; // TODO
+        case PCVDOM_NODE_CONTENT:
+            return -1; // TODO
+        case PCVDOM_NODE_COMMENT:
+            return 0; // FIXME: bypass
+        default:
+            PC_ASSERT(0);
+            return -1;
+    }
+}
+
+int pcintr_post_load(purc_vdom_t vdom)
+{
+    PC_ASSERT(vdom);
+    struct pcvdom_document *document = vdom->document;
+    struct pcvdom_node *node = &document->node;
+    return pcvdom_node_traverse(node, document, vdom_node_post_load);
 }
 
 static inline bool

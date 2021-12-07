@@ -1,8 +1,8 @@
-/*
- * @file instance.h
- * @author Vincent Wei (https://github.com/VincentWei)
- * @date 2021/07/05
- * @brief The structures for PurC instance.
+/**
+ * @file iterate.h
+ * @author Xu Xiaohong
+ * @date 2021/12/06
+ * @brief
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -20,35 +20,24 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
  */
 
-#ifndef PURC_PRIVATE_INSTANCE_H
-#define PURC_PRIVATE_INSTANCE_H
+#ifndef PURC_PRIVATE_INTERPRETER_ITERATE_H
+#define PURC_PRIVATE_INTERPRETER_ITERATE_H
 
 #include "purc.h"
 
-#include "config.h"
+#include "purc-macros.h"
 
-#include "private/variant.h"
-#include "private/map.h"
-#include "private/executor.h"
 #include "private/interpreter.h"
 
-struct pcinst {
-    int errcode;
+PCA_EXTERN_C_BEGIN
 
-    char* app_name;
-    char* runner_name;
+struct pcintr_element_ops* pcintr_iterate_get_ops(void);
 
-    pcutils_map* local_data_map;
+PCA_EXTERN_C_END
 
-    struct pcvariant_heap variant_heap;
-    struct pcexecutor_heap executor_heap;
-    struct pcintr_stack intr_stack;
-};
+#endif  /* PURC_PRIVATE_INTERPRETER_ITERATE_H */
 
-/* gets the current instance */
-struct pcinst* pcinst_current(void) WTF_INTERNAL;
-
-#endif /* not defined PURC_PRIVATE_INSTANCE_H */
 
