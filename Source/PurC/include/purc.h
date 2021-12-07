@@ -171,7 +171,7 @@ purc_get_local_data(const char* data_name, uintptr_t *local_data,
         cb_free_local_data* cb_free);
 
 /**
- * purc_bind_session_variable:
+ * purc_bind_variable:
  *
  * @name: The pointer to the string contains the name for the variable.
  * @variant: The variant.
@@ -183,7 +183,7 @@ purc_get_local_data(const char* data_name, uintptr_t *local_data,
  * Since 0.0.1
  */
 PCA_EXPORT bool
-purc_bind_session_variable(const char* name, purc_variant_t variant);
+purc_bind_variable(const char* name, purc_variant_t variant);
 
 struct purc_vdom;
 typedef struct purc_vdom  purc_vdom;
