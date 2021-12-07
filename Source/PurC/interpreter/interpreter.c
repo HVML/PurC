@@ -100,36 +100,23 @@ pcintr_get_element_ops(pcvdom_element_t element)
     }
 }
 
-static inline int
-vdom_node_post_load(struct pcvdom_node *top,
-        struct pcvdom_node *node, void *ctx)
-{
-    struct pcvdom_document *document;
-    document = (struct pcvdom_document*)ctx;
-    PC_ASSERT(top == &document->node);
 
-    enum pcvdom_nodetype type = node->type;
-    switch (type) {
-        case PCVDOM_NODE_DOCUMENT:
-            return 0; // FIXME: generate anything?
-        case PCVDOM_NODE_ELEMENT:
-            return -1; // TODO
-        case PCVDOM_NODE_CONTENT:
-            return -1; // TODO
-        case PCVDOM_NODE_COMMENT:
-            return 0; // FIXME: bypass
-        default:
-            PC_ASSERT(0);
-            return -1;
-    }
+static inline int
+document_post_load(struct pcvdom_document *document)
+{
+    struct pcvdom_node *node = &document->node;
+    struct pcvdom_node *p = pcvdom_node_first_child(node);
+    (void)p;
+    PC_ASSERT(0); // Not implemented yet
+
+    return -1;
 }
 
 int pcintr_post_load(purc_vdom_t vdom)
 {
     PC_ASSERT(vdom);
     struct pcvdom_document *document = vdom->document;
-    struct pcvdom_node *node = &document->node;
-    return pcvdom_node_traverse(node, document, vdom_node_post_load);
+    return document_post_load(document);
 }
 
 static inline bool
