@@ -432,4 +432,39 @@ int pcutils_map_find_replace_or_insert (pcutils_map* map, const void* key,
     return 0;
 }
 
+static int traverse_node (pcutils_map *map, struct rb_node* node,
+        void *ud, int (*cb)(pcutils_map_entry *entry, void *ud))
+{
+    if (node) {
+        pcutils_map_entry *entry = (pcutils_map_entry*)node;
+
+        int r = cb(entry, ud);
+        if (r)
+            return r;
+
+        r = traverse_node (map, node->rb_left, ud, cb);
+        if (r)
+            return r;
+
+        r = traverse_node (map, node->rb_right, ud, cb);
+        if (r)
+            return r;
+    }
+
+    return 0;
+}
+
+int pcutils_map_traverse (pcutils_map *map, void *ud,
+        int (*cb)(pcutils_map_entry *entry, void *ud))
+{
+    if (map == NULL)
+        return -1;
+
+    WRLOCK_MAP (map);
+
+    int r = traverse_node (map, map->root.rb_node, ud, cb);
+
+    WRUNLOCK_MAP (map);
+    return r;
+}
 

@@ -148,13 +148,149 @@ pcintr_get_element_ops(pcvdom_element_t element)
 }
 
 static inline int
+init_frame_symbol_vars(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element, struct pcvdom_document *document)
+{
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(element);
+    UNUSED_PARAM(document);
+    PC_ASSERT(0); // Not implemented yet
+    return -1;
+}
+
+
+static inline int
+init_frame_append_attr(pcutils_map_entry *entry, void *ud)
+{
+    PC_ASSERT(ud);
+    PC_ASSERT(entry);
+
+    purc_variant_t attr_vars = (purc_variant_t)ud;
+
+    struct pcvdom_attr *attr = (struct pcvdom_attr*)entry->val;
+    (void)attr;
+    (void)attr_vars;
+    // TODO:
+    PC_ASSERT(0); // Not implemented yet
+    return -1;
+}
+
+static inline int
+init_frame_attr_vars(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element, struct pcvdom_document *document)
+{
+    UNUSED_PARAM(document);
+
+    frame->attr_vars = purc_variant_make_object(0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+
+    if (frame->attr_vars == PURC_VARIANT_INVALID)
+        return -1;
+
+    struct pcutils_map *attrs = element->attrs;
+    if (!attrs)
+        return 0;
+
+    int r = pcutils_map_traverse(attrs,
+            frame->attr_vars, init_frame_append_attr);
+
+    return r ? -1 : 0;
+}
+
+static inline int
+init_frame_by_element(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element, struct pcvdom_document *document)
+{
+    frame->scope = element; // FIXME: archetype, where to store `scope`
+    frame->pos = element;
+    if (init_frame_symbol_vars(frame, element, document))
+        return -1;
+
+    if (init_frame_attr_vars(frame, element, document))
+        return -1;
+
+    // TODO:
+    // frame->ctnt_vars = ????;
+    return 0;
+}
+
+static inline int
+element_post_load(struct pcvdom_document *document,
+        struct pcvdom_element *element);
+
+static inline int
+element_post_load_in_frame(struct pcvdom_document *document,
+        struct pcvdom_element *element,
+        struct pcintr_element_ops *ops,
+        pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame)
+{
+    PC_ASSERT(document);
+    PC_ASSERT(element);
+
+    int r = init_frame_by_element(frame, element, document);
+    if (r) {
+        pop_stack_frame(stack);
+        return -1;
+    }
+
+    if (ops->after_pushed) {
+        void *ctxt = ops->after_pushed(stack, element);
+        frame->ctxt = ctxt;
+    }
+
+rerun:
+    if (ops->select_child) {
+        struct pcvdom_element *child;
+        child = ops->select_child(stack, frame->ctxt);
+        while (child) {
+            r = element_post_load(document, child);
+            PC_ASSERT(r==0); // TODO: what if failed????
+            child = ops->select_child(stack, frame->ctxt);
+        }
+    }
+
+    if (ops->on_popping) {
+        bool ok = ops->on_popping(stack, frame->ctxt);
+        if (ok) {
+            return 0;
+        }
+    }
+
+    if (ops->rerun) {
+        bool ok = ops->rerun(stack, frame->ctxt);
+        PC_ASSERT(ok); // TODO: what if failed????
+        goto rerun;
+    }
+
+    return 0;
+}
+
+static inline int
 element_post_load(struct pcvdom_document *document,
         struct pcvdom_element *element)
 {
-    UNUSED_PARAM(document);
-    UNUSED_PARAM(element);
-    PC_ASSERT(0); // Not implemented yet
-    return -1;
+    PC_ASSERT(document);
+    PC_ASSERT(element);
+
+    struct pcintr_element_ops *ops;
+    ops = pcintr_get_element_ops(element);
+    if (!ops)
+        return 0;
+
+    pcintr_stack_t stack = purc_get_stack();
+    PC_ASSERT(stack);
+
+    struct pcintr_stack_frame *frame;
+    frame = push_stack_frame(stack);
+    if (!frame)
+        return -1;
+
+    int r = element_post_load_in_frame(document, element, ops, stack, frame);
+
+    pop_stack_frame(stack);
+
+    return r ? -1 : 0;
 }
 
 static inline int
@@ -199,16 +335,8 @@ int pcintr_post_load(purc_vdom_t vdom)
     pcintr_stack_t stack = purc_get_stack();
     PC_ASSERT(stack->nr_frames == 0);
 
-    struct pcintr_stack_frame *frame;
-    frame = push_stack_frame(stack);
-    if (!frame)
-        return -1;
     struct pcvdom_document *document = vdom->document;
-    int r = document_post_load(document);
-    PC_ASSERT(stack->nr_frames == 1);
-    pop_stack_frame(stack);
-
-    return r ? -1 : 0;
+    return document_post_load(document);
 }
 
 static inline bool
