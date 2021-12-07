@@ -337,17 +337,8 @@ int pcintr_post_load(purc_vdom_t vdom)
     PC_ASSERT(stack->nr_frames == 0);
     PC_ASSERT(stack->except == 0);
 
-    int r = setjmp(stack->jb);
-    if (r == 0) {
-        struct pcvdom_document *document = vdom->document;
-        return document_post_load(document);
-    } else {
-        PC_ASSERT(stack->except);
-        while (stack->nr_frames > 0) {
-            pop_stack_frame(stack);
-        }
-        return -1;
-    }
+    struct pcvdom_document *document = vdom->document;
+    return document_post_load(document);
 }
 
 static inline bool
