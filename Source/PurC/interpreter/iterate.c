@@ -30,7 +30,6 @@
 
 #include "iterate.h"
 
-#if 0
 struct ctxt_for_iterate {
     // the instance of the current executor.
     purc_exec_inst_t exec_inst;
@@ -105,11 +104,3 @@ struct pcintr_element_ops* pcintr_iterate_get_ops(void)
     return &ops;
 }
 
-#else
-
-struct pcintr_element_ops* pcintr_iterate_get_ops(void)
-{
-    return NULL;
-}
-
-#endif
