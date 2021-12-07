@@ -94,12 +94,82 @@ bool pcvarmgr_list_remove(pcvarmgr_list_t list, const char* name)
     return false;
 }
 
+static purc_variant_t
+_find_named_scope_var(pcvdom_element_t elem, const char* name)
+{
+    if (!elem || !name) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t v = pcvarmgr_list_get(elem->variables, name);
+    if (v) {
+        return v;
+    }
+
+    pcvdom_element_t parent = pcvdom_element_parent(elem);
+    if (parent) {
+        return _find_named_scope_var(parent, name);
+    }
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+_find_doc_buildin_var(struct pcvdom_document *doc, const char* name)
+{
+    if (!doc|| !name) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t v = pcvarmgr_list_get(doc->variables, name);
+    if (v) {
+        return v;
+    }
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t _find_inst_var(const char* name)
+{
+    if (!name) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    struct pcinst* inst = pcinst_current();
+    if (inst == NULL) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t v = pcvarmgr_list_get(inst->var_list, name);
+    if (v) {
+        return v;
+    }
+    return PURC_VARIANT_INVALID;
+}
+
 purc_variant_t
 pcintr_find_named_var(pcintr_stack_t stack, const char* name)
 {
-    UNUSED_PARAM(stack);
-    UNUSED_PARAM(name);
-    return PURC_VARIANT_INVALID;
+    if (!stack || !name) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    struct pcintr_stack_frame* frame = pcintr_stack_get_bottom_frame(stack);
+
+    purc_variant_t v = _find_named_scope_var(frame->pos, name);
+    if (v) {
+        return v;
+    }
+
+    v = _find_doc_buildin_var(stack->vdom->document, name);
+    if (v) {
+        return v;
+    }
+
+    v = _find_inst_var(name);
+    if (v) {
+        return v;
+    }
+
+    return purc_variant_make_undefined();
 }
 
 purc_variant_t
