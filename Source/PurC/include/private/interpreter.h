@@ -36,6 +36,8 @@
 #include "private/list.h"
 #include "private/vdom.h"
 
+#include <setjmp.h>
+
 struct pcintr_stack;
 typedef struct pcintr_stack pcintr_stack;
 typedef struct pcintr_stack *pcintr_stack_t;
@@ -61,6 +63,7 @@ struct pcintr_stack {
     // error or except info
     purc_atom_t     error_except;
     purc_variant_t  err_except_info;
+    jmp_buf         jb;
 
     // executing statistics
     struct timespec time_executed;
