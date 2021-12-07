@@ -320,6 +320,27 @@ pcvdom_document_append_comment(struct pcvdom_document *doc,
     return 0;
 }
 
+bool
+pcvdom_document_bind_variable(struct pcvdom_document *doc,
+        const char *name, purc_variant_t variant)
+{
+    if (!doc || !name || !variant) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+    return pcvarmgr_list_add(doc->variables, name, variant);
+}
+
+bool
+pcvdom_document_unbind_variable(struct pcvdom_document *doc,
+        const char *name)
+{
+    if (!doc || !name) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+    return pcvarmgr_list_remove(doc->variables, name);
+}
 
 int
 pcvdom_element_append_attr(struct pcvdom_element *elem,
@@ -385,6 +406,28 @@ pcvdom_element_append_comment(struct pcvdom_element *elem,
     PC_ASSERT(b);
 
     return 0;
+}
+
+bool
+pcvdom_element_bind_variable(struct pcvdom_element *elem,
+        const char *name, purc_variant_t variant)
+{
+    if (!elem || !name || !variant) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+    return pcvarmgr_list_add(elem->variables, name, variant);
+}
+
+bool
+pcvdom_element_unbind_variable(struct pcvdom_element *elem,
+        const char *name)
+{
+    if (!elem || !name) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+    return pcvarmgr_list_remove(elem->variables, name);
 }
 
 // accessor api
@@ -806,39 +849,6 @@ element_attr_free_val(void *val)
     struct pcvdom_attr *attr = (struct pcvdom_attr*)val;
     attr->parent = NULL;
     attr_destroy(attr);
-}
-
-static void*
-element_copy_key(const void *key)
-{
-    return (void*)key;
-}
-
-static void
-element_free_key(void *key)
-{
-    UNUSED_PARAM(key);
-}
-
-static void*
-element_copy_val(const void *val)
-{
-    return (void*)val;
-}
-
-static int
-element_comp_key(const void *key1, const void *key2)
-{
-    const char *s1 = (const char*)key1;
-    const char *s2 = (const char*)key2;
-
-    return strcmp(s1, s2);
-}
-
-static void
-element_free_val(void *val)
-{
-    UNUSED_PARAM(val);    
 }
 
 static struct pcvdom_element*
