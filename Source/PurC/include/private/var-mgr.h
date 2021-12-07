@@ -34,6 +34,8 @@
 
 typedef struct pcutils_map*  pcvarmgr_list_t;
 
+PCA_EXTERN_C_BEGIN
+
 pcvarmgr_list_t pcvarmgr_list_create(void);
 
 int pcvarmgr_list_destroy(pcvarmgr_list_t list);
@@ -44,6 +46,8 @@ bool pcvarmgr_list_add(pcvarmgr_list_t list, const char* name,
 purc_variant_t pcvarmgr_list_get(pcvarmgr_list_t list, const char* name);
 
 bool pcvarmgr_list_remove(pcvarmgr_list_t list, const char* name);
+
+PCA_EXTERN_C_END
 
 #endif /* not defined PURC_PRIVATE_VAR_MGR_H */
 
