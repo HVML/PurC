@@ -31,18 +31,23 @@
 
 #include "private/variant.h"
 #include "private/map.h"
-#include "private/executor.h"
+#include "private/vdom.h"
+#include "private/interpreter.h"
 
 typedef struct pcutils_map*  pcvarmgr_list_t;
 
 pcvarmgr_list_t pcvarmgr_list_create(void);
+
 void pcvarmgr_list_destroy(pcvarmgr_list_t list);
+
 bool pcvarmgr_list_add(pcvarmgr_list_t list, const char* name,
         purc_variant_t variant);
+
 purc_variant_t pcvarmgr_list_get(pcvarmgr_list_t list, const char* name);
+
 bool pcvarmgr_list_remove(pcvarmgr_list_t list, const char* name);
 
-#if 0
+
 bool pcintr_bind_scope_variable (pcvdom_element_t ele, const char* name,
         purc_variant_t variant);
 
@@ -52,10 +57,6 @@ purc_variant_t pcintr_find_named_var (pcintr_stack_t stack, const char* name);
 
 purc_variant_t pcintr_get_symbolized_var (pcintr_stack_t stack,
         unsigned int number, char symbol);
-#endif
-
-
-
 
 #endif /* not defined PURC_PRIVATE_VAR_MGR_H */
 
