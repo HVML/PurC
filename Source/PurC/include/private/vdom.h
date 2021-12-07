@@ -246,6 +246,18 @@ pcvdom_element_append_comment(struct pcvdom_element *elem,
 struct pcvdom_node*
 pcvdom_node_parent(struct pcvdom_node *node);
 
+struct pcvdom_node*
+pcvdom_node_first_child(struct pcvdom_node *node);
+
+struct pcvdom_node*
+pcvdom_node_last_child(struct pcvdom_node *node);
+
+struct pcvdom_node*
+pcvdom_node_next_sibling(struct pcvdom_node *node);
+
+struct pcvdom_node*
+pcvdom_node_prev_sibling(struct pcvdom_node *node);
+
 struct pcvdom_element*
 pcvdom_element_parent(struct pcvdom_element *elem);
 

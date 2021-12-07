@@ -41,7 +41,14 @@ struct ctxt_for_iterate {
 
 void *
 iterate_after_pushed(pcintr_stack_t stack, pcvdom_element_t pos,
-        struct ctxt_for_iterate *ctxt);
+        struct ctxt_for_iterate *ctxt)
+{
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(pos);
+    UNUSED_PARAM(ctxt);
+    PC_ASSERT(0); // Not implemented yet
+    return NULL;
+}
 
 // called after pushed
 static inline void *
@@ -56,16 +63,34 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 }
 
 // called on popping
-bool
-on_popping(pcintr_stack_t stack, void* ctxt);
+static inline bool
+on_popping(pcintr_stack_t stack, void* ctxt)
+{
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(ctxt);
+    PC_ASSERT(0); // Not implemented yet
+    return false;
+}
 
 // called to rerun
-bool
-rerun(pcintr_stack_t stack, void* ctxt);
+static inline bool
+rerun(pcintr_stack_t stack, void* ctxt)
+{
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(ctxt);
+    PC_ASSERT(0); // Not implemented yet
+    return false;
+}
 
 // called after executed
 pcvdom_element_t
-select_child(pcintr_stack_t stack, void* ctxt);
+select_child(pcintr_stack_t stack, void* ctxt)
+{
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(ctxt);
+    PC_ASSERT(0); // Not implemented yet
+    return NULL;
+}
 
 static struct pcintr_element_ops
 ops = {

@@ -399,6 +399,50 @@ pcvdom_node_parent(struct pcvdom_node *node)
     return container_of(node->node.parent, struct pcvdom_node, node);
 }
 
+struct pcvdom_node*
+pcvdom_node_first_child(struct pcvdom_node *node)
+{
+    if (!node || !node->node.first_child) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return NULL;
+    }
+
+    return container_of(node->node.first_child, struct pcvdom_node, node);
+}
+
+struct pcvdom_node*
+pcvdom_node_last_child(struct pcvdom_node *node)
+{
+    if (!node || !node->node.last_child) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return NULL;
+    }
+
+    return container_of(node->node.last_child, struct pcvdom_node, node);
+}
+
+struct pcvdom_node*
+pcvdom_node_next_sibling(struct pcvdom_node *node)
+{
+    if (!node || !node->node.next) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return NULL;
+    }
+
+    return container_of(node->node.next, struct pcvdom_node, node);
+}
+
+struct pcvdom_node*
+pcvdom_node_prev_sibling(struct pcvdom_node *node)
+{
+    if (!node || !node->node.prev) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return NULL;
+    }
+
+    return container_of(node->node.prev, struct pcvdom_node, node);
+}
+
 struct pcvdom_element*
 pcvdom_element_parent(struct pcvdom_element *elem)
 {
