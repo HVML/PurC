@@ -37,6 +37,7 @@
 #include "private/tree.h"
 #include "private/map.h"
 #include "private/vcm.h"
+#include "private/var-mgr.h"
 
 #include "hvml-tag.h"
 
@@ -119,7 +120,7 @@ struct pcvdom_document {
 
     // document-variables
     // such as `$REQUEST`、`$TIMERS`、`$T` and etc.
-    pcutils_map            *variables;
+    pcvarmgr_list_t        *variables;
 
     unsigned int            quirks:1;
 };
@@ -153,8 +154,8 @@ struct pcvdom_element {
     struct pcutils_map     *attrs;
 
     // FIXME: scoped-variables
-    //        for those `defined` in `init`
-    pcutils_map            *variables;
+    //  for those `defined` in `init`、`bind`、`connect`、`load`、`define`
+    pcvarmgr_list_t        *variables;
 };
 
 struct pcvdom_content {

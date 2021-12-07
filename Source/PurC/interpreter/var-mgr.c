@@ -34,15 +34,29 @@
 #include <stdlib.h>
 #include <string.h>
 
-pcvarmgr_list_t pcvarmgr_list_create(void)
+static void* pcvarmgr_list_copy_val(const void* val)
 {
-    return pcutils_map_create (copy_key_string,
-                free_key_string, NULL, NULL, comp_key_string, false);
+    purc_variant_t var = (purc_variant_t)val;
+    purc_variant_ref(var);
+    return var;
 }
 
-void pcvarmgr_list_destroy(pcvarmgr_list_t list)
+static void pcvarmgr_list_free_val(void* val)
 {
-    pcutils_map_destroy(list);
+    purc_variant_t var = (purc_variant_t)val;
+    purc_variant_unref(var);
+}
+
+pcvarmgr_list_t pcvarmgr_list_create(void)
+{
+    return pcutils_map_create (copy_key_string, free_key_string,
+            pcvarmgr_list_copy_val, pcvarmgr_list_free_val,
+            comp_key_string, false);
+}
+
+int pcvarmgr_list_destroy(pcvarmgr_list_t list)
+{
+    return pcutils_map_destroy(list);
 }
 
 bool pcvarmgr_list_add(pcvarmgr_list_t list, const char* name,

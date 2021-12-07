@@ -666,7 +666,7 @@ document_reset(struct pcvdom_document *doc)
     }
 
     if (doc->variables) {
-        r = pcutils_map_destroy(doc->variables);
+        r = pcvarmgr_list_destroy(doc->variables);
         PC_ASSERT(r==0);
         doc->variables = NULL;
     }
@@ -678,42 +678,6 @@ document_destroy(struct pcvdom_document *doc)
     document_reset(doc);
     PC_ASSERT(doc->node.node.first_child == NULL);
     free(doc);
-}
-
-static void*
-document_copy_key(const void *key)
-{
-    return (void*)key;
-}
-
-static void
-document_free_key(void *key)
-{
-    UNUSED_PARAM(key);
-}
-
-static void*
-document_copy_val(const void *val)
-{
-    purc_variant_t var = (purc_variant_t)val;
-    purc_variant_ref(var);
-    return var;
-}
-
-static int
-document_comp_key(const void *key1, const void *key2)
-{
-    const char *s1 = (const char*)key1;
-    const char *s2 = (const char*)key2;
-
-    return strcmp(s1, s2);
-}
-
-static void
-document_free_val(void *val)
-{
-    purc_variant_t var = (purc_variant_t)val;
-    purc_variant_unref(var);
 }
 
 static void
@@ -742,9 +706,7 @@ document_create(void)
     doc->node.type = VDT(DOCUMENT);
     doc->node.remove_child = document_remove_child;
 
-    doc->variables = pcutils_map_create(document_copy_key, document_free_key,
-        document_copy_val, document_free_val,
-        document_comp_key, false); // non-thread-safe
+    doc->variables = pcvarmgr_list_create();
     if (!doc->variables) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         document_destroy(doc);
@@ -797,7 +759,7 @@ element_reset(struct pcvdom_element *elem)
     }
 
     if (elem->variables) {
-        r = pcutils_map_destroy(elem->variables);
+        r = pcvarmgr_list_destroy(elem->variables);
         PC_ASSERT(r==0);
         elem->variables = NULL;
     }
@@ -903,9 +865,7 @@ element_create(void)
         return NULL;
     }
 
-    elem->variables = pcutils_map_create(element_copy_key, element_free_key,
-        element_copy_val, element_free_val,
-        element_comp_key, false); // non-thread-safe
+    elem->variables = pcvarmgr_list_create();
     if (!elem->variables) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         element_destroy(elem);

@@ -36,7 +36,7 @@ typedef struct pcutils_map*  pcvarmgr_list_t;
 
 pcvarmgr_list_t pcvarmgr_list_create(void);
 
-void pcvarmgr_list_destroy(pcvarmgr_list_t list);
+int pcvarmgr_list_destroy(pcvarmgr_list_t list);
 
 bool pcvarmgr_list_add(pcvarmgr_list_t list, const char* name,
         purc_variant_t variant);
