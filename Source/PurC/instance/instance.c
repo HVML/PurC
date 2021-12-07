@@ -167,9 +167,9 @@ static void cleanup_instance (struct pcinst *curr_inst)
         curr_inst->local_data_map = NULL;
     }
 
-    if (curr_inst->var_mgr) {
-        pcvarmgr_list_destroy(curr_inst->var_mgr);
-        curr_inst->var_mgr = NULL;
+    if (curr_inst->var_list) {
+        pcvarmgr_list_destroy(curr_inst->var_list);
+        curr_inst->var_list = NULL;
     }
 
     if (curr_inst->app_name) {
@@ -223,12 +223,12 @@ int purc_init(const char* app_name, const char* runner_name,
                 free_key_string, NULL, NULL, comp_key_string, false);
 
 
-    curr_inst->var_mgr = pcvarmgr_list_create();
+    curr_inst->var_list = pcvarmgr_list_create();
 
     if (curr_inst->app_name == NULL ||
             curr_inst->runner_name == NULL ||
             curr_inst->local_data_map == NULL ||
-            curr_inst->var_mgr == NULL)
+            curr_inst->var_list == NULL)
         goto failed;
 
     // TODO: init other fields
@@ -329,3 +329,11 @@ purc_get_local_data(const char* data_name, uintptr_t *local_data,
     return 0;
 }
 
+bool purc_bind_variable(const char* name, purc_variant_t variant)
+{
+    struct pcinst* inst = pcinst_current();
+    if (inst == NULL)
+        return false;
+
+    return pcvarmgr_list_add(inst->var_list, name, variant);
+}

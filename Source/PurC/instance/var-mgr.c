@@ -86,6 +86,6 @@ bool purc_bind_variable(const char* name, purc_variant_t variant)
     if (inst == NULL)
         return false;
 
-    return pcvarmgr_list_add(inst->var_mgr, name, variant);
+    return pcvarmgr_list_add(inst->var_list, name, variant);
 }
 
