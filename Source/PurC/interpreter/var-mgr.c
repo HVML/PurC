@@ -94,3 +94,20 @@ bool pcvarmgr_list_remove(pcvarmgr_list_t list, const char* name)
     return false;
 }
 
+purc_variant_t
+pcintr_find_named_var(pcintr_stack_t stack, const char* name)
+{
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(name);
+    return PURC_VARIANT_INVALID;
+}
+
+purc_variant_t
+pcintr_get_symbolized_var (pcintr_stack_t stack, unsigned int number,
+        char symbol)
+{
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(number);
+    UNUSED_PARAM(symbol);
+    return PURC_VARIANT_INVALID;
+}

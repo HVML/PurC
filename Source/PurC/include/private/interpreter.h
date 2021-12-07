@@ -160,6 +160,13 @@ pcintr_bind_scope_variable(pcvdom_element_t elem, const char* name,
 bool
 pcintr_unbind_scope_variable(pcvdom_element_t elem, const char* name);
 
+purc_variant_t
+pcintr_find_named_var(pcintr_stack_t stack, const char* name);
+
+purc_variant_t
+pcintr_get_symbolized_var (pcintr_stack_t stack, unsigned int number,
+        char symbol);
+
 
 PCA_EXTERN_C_END
 
