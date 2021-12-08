@@ -214,3 +214,19 @@ pcintr_get_symbolized_var (pcintr_stack_t stack, unsigned int number,
     purc_variant_t v = frame->symbol_vars[symbol_var];
     return v ? v : purc_variant_make_undefined();
 }
+
+purc_variant_t
+pcintr_get_numbered_var (pcintr_stack_t stack, unsigned int number)
+{
+    struct pcintr_stack_frame* frame = pcintr_stack_get_bottom_frame(stack);
+    for (unsigned int i = 0; i < number; i++) {
+        frame = pcintr_stack_frame_get_parent(frame);
+    }
+
+    if (!frame) {
+        return purc_variant_make_undefined();
+    }
+
+    purc_variant_t v = frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK];
+    return v ? v : purc_variant_make_undefined();
+}
