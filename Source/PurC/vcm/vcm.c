@@ -34,6 +34,7 @@
 #include "private/errors.h"
 #include "private/vcm.h"
 #include "private/stack.h"
+#include "private/interpreter.h"
 
 static struct pcvcm_node* pcvcm_node_new (enum pcvcm_node_type type)
 {
@@ -693,10 +694,30 @@ purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node)
     return purc_variant_make_null();
 }
 
+purc_variant_t _stack_find_named_var (void* ctxt, const char* name)
+{
+    return pcintr_find_named_var((struct pcintr_stack*)ctxt, name);
+}
+
+purc_variant_t _stack_get_symbolized_var (void* ctxt, unsigned int number,
+        char symbol)
+{
+    return pcintr_get_symbolized_var((struct pcintr_stack*)ctxt, number,
+            symbol);
+}
+
+purc_variant_t _stack_get_numbered_var (void* ctxt, unsigned int number)
+{
+    return pcintr_get_numbered_var((struct pcintr_stack*)ctxt, number);
+}
+
 purc_variant_t pcvcm_eval (struct pcvcm_node* tree, struct pcintr_stack* stack)
 {
-    UNUSED_PARAM(stack);
-    return pcvcm_eval_ex(tree, NULL, NULL, NULL, NULL, NULL, NULL);
+    return pcvcm_eval_ex(tree,
+            _stack_find_named_var, stack,
+            _stack_get_symbolized_var, stack,
+            _stack_get_numbered_var, stack
+            );
 }
 
 purc_variant_t pcvcm_eval_ex (struct pcvcm_node* tree,
