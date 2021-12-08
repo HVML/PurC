@@ -83,7 +83,7 @@ not_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if (pcdvobjs_test_variant (argv[0]))
+    if (purc_variant_booleanize (argv[0]))
         ret_var = purc_variant_make_boolean (false);
     else
         ret_var = purc_variant_make_boolean (true);
@@ -106,7 +106,7 @@ and_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     }
 
     for (i = 0; i < nr_args; i++) {
-        if ((argv[i] != PURC_VARIANT_INVALID) && (!pcdvobjs_test_variant (argv[i]))) {
+        if ((argv[i] != PURC_VARIANT_INVALID) && (!purc_variant_booleanize (argv[i]))) {
             judge = false;
             break;
         }
@@ -135,7 +135,7 @@ or_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     }
 
     for (i = 0; i < nr_args; i++) {
-        if ((argv[i] != PURC_VARIANT_INVALID) && (pcdvobjs_test_variant (argv[i]))) {
+        if ((argv[i] != PURC_VARIANT_INVALID) && (purc_variant_booleanize (argv[i]))) {
             judge = true;
             break;
         }
@@ -169,10 +169,10 @@ xor_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if (pcdvobjs_test_variant (argv[0]))
+    if (purc_variant_booleanize (argv[0]))
         judge1 = 0x01;
 
-    if (pcdvobjs_test_variant (argv[1]))
+    if (purc_variant_booleanize (argv[1]))
         judge2 = 0x01;
 
     judge1 ^= judge2;
@@ -191,8 +191,8 @@ eq_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    long double value1 = 0.0L;
-    long double value2 = 0.0L;
+    double value1 = 0.0L;
+    double value2 = 0.0L;
 
     if ((argv == NULL) || (nr_args != 2)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
@@ -205,10 +205,10 @@ eq_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    value1 = pcdvobjs_get_variant_value (argv[0]);
-    value2 = pcdvobjs_get_variant_value (argv[1]);
+    value1 = purc_variant_numberify (argv[0]);
+    value2 = purc_variant_numberify (argv[1]);
 
-    if (fabsl (value1 - value2) < 1.0E-10)
+    if (fabs (value1 - value2) < 1.0E-10)
         ret_var = purc_variant_make_boolean (true);
     else
         ret_var = purc_variant_make_boolean (false);
@@ -222,8 +222,8 @@ ne_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    long double value1 = 0.0L;
-    long double value2 = 0.0L;
+    double value1 = 0.0L;
+    double value2 = 0.0L;
 
     if ((argv == NULL) || (nr_args != 2)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
@@ -236,10 +236,10 @@ ne_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    value1 = pcdvobjs_get_variant_value (argv[0]);
-    value2 = pcdvobjs_get_variant_value (argv[1]);
+    value1 = purc_variant_numberify (argv[0]);
+    value2 = purc_variant_numberify (argv[1]);
 
-    if (fabsl (value1 - value2) >= 1.0E-10)
+    if (fabs (value1 - value2) >= 1.0E-10)
         ret_var = purc_variant_make_boolean (true);
     else
         ret_var = purc_variant_make_boolean (false);
@@ -253,8 +253,8 @@ gt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    long double value1 = 0.0L;
-    long double value2 = 0.0L;
+    double value1 = 0.0L;
+    double value2 = 0.0L;
 
     if ((argv == NULL) || (nr_args != 2)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
@@ -267,8 +267,8 @@ gt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    value1 = pcdvobjs_get_variant_value (argv[0]);
-    value2 = pcdvobjs_get_variant_value (argv[1]);
+    value1 = purc_variant_numberify (argv[0]);
+    value2 = purc_variant_numberify (argv[1]);
 
     if (value1 > value2)
         ret_var = purc_variant_make_boolean (true);
@@ -284,8 +284,8 @@ ge_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    long double value1 = 0.0L;
-    long double value2 = 0.0L;
+    double value1 = 0.0L;
+    double value2 = 0.0L;
 
     if ((argv == NULL) || (nr_args != 2)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
@@ -298,8 +298,8 @@ ge_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    value1 = pcdvobjs_get_variant_value (argv[0]);
-    value2 = pcdvobjs_get_variant_value (argv[1]);
+    value1 = purc_variant_numberify (argv[0]);
+    value2 = purc_variant_numberify (argv[1]);
 
     if (value1 >= value2)
         ret_var = purc_variant_make_boolean (true);
@@ -315,8 +315,8 @@ lt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    long double value1 = 0.0L;
-    long double value2 = 0.0L;
+    double value1 = 0.0L;
+    double value2 = 0.0L;
 
     if ((argv == NULL) || (nr_args != 2)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
@@ -329,8 +329,8 @@ lt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    value1 = pcdvobjs_get_variant_value (argv[0]);
-    value2 = pcdvobjs_get_variant_value (argv[1]);
+    value1 = purc_variant_numberify (argv[0]);
+    value2 = purc_variant_numberify (argv[1]);
 
     if (value1 < value2)
         ret_var = purc_variant_make_boolean (true);
@@ -346,8 +346,8 @@ le_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    long double value1 = 0.0L;
-    long double value2 = 0.0L;
+    double value1 = 0.0L;
+    double value2 = 0.0L;
 
     if ((argv == NULL) || (nr_args != 2)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
@@ -360,8 +360,8 @@ le_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    value1 = pcdvobjs_get_variant_value (argv[0]);
-    value2 = pcdvobjs_get_variant_value (argv[1]);
+    value1 = purc_variant_numberify (argv[0]);
+    value2 = purc_variant_numberify (argv[1]);
 
     if (value1 <= value2)
         ret_var = purc_variant_make_boolean (true);

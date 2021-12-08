@@ -29,13 +29,26 @@
 #include "helper.h"
 
 #include <assert.h>
+#include <stdlib.h>
+
+typedef struct __dvobjs_ejson_element {
+    int index;
+    char *name;
+} dvobjs_ejson_element;
+
+typedef struct __dvobjs_ejson_sort {
+    bool asc;
+    bool caseless;
+} dvobjs_ejson_sort;
+
+static dvobjs_ejson_sort sort_type;
 
 static purc_variant_t
 count_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
-    purc_variant_t ret_var;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
     size_t number;
 
     if ((argv == NULL) || (nr_args == 0)) {
@@ -133,16 +146,16 @@ numberify_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
-    purc_variant_t ret_var;
-    long double number = 0.0;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    double number = 0.0;
 
     if ((argv == NULL) || (nr_args == 0)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    number = pcdvobjs_get_variant_value (argv[0]);
-    ret_var = purc_variant_make_longdouble (number);
+    number = purc_variant_numberify (argv[0]);
+    ret_var = purc_variant_make_number (number);
 
     return ret_var;
 }
@@ -152,14 +165,14 @@ booleanize_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
-    purc_variant_t ret_var;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if ((argv == NULL) || (nr_args == 0)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    if (pcdvobjs_test_variant (argv[0]))
+    if (purc_variant_booleanize (argv[0]))
         ret_var = purc_variant_make_boolean (true);
     else
         ret_var = purc_variant_make_boolean (false);
@@ -172,7 +185,7 @@ stringify_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
-    purc_variant_t ret_var;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
     char *buffer = NULL;
     int total = 0;
 
@@ -192,7 +205,7 @@ serialize_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
-    purc_variant_t ret_var;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_rwstream_t serialize = NULL;
     char *buf = NULL;
     size_t sz_stream = 0;
@@ -212,24 +225,206 @@ serialize_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     return ret_var;
 }
 
+static int mycompare (const void *elem1, const void *elem2)
+{
+    int ret = 0;
+    dvobjs_ejson_element *p1 = (dvobjs_ejson_element *)elem1;
+    dvobjs_ejson_element *p2 = (dvobjs_ejson_element *)elem2;
+
+    if (sort_type.caseless)
+        ret = strcasecmp (p1->name, p2->name);
+    else
+        ret = strcmp (p1->name, p2->name);
+
+    if (!sort_type.asc)
+        ret = -1 * ret;
+
+    return ret;
+}
+
 static purc_variant_t
 sort_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
 
-    return NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    purc_variant_t val = PURC_VARIANT_INVALID;
+    size_t i = 0;
+    size_t totalsize = 0;
+    struct purc_variant_set_iterator *it_set = NULL;
+    bool having = false;
+    const char *option = NULL;
+    const char *order = NULL;
+    dvobjs_ejson_element *elements = NULL;
+
+    sort_type.asc = true;
+    sort_type.caseless = false;
+
+    if ((argv == NULL) || (nr_args < 2)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[0] != PURC_VARIANT_INVALID) && !(purc_variant_is_array (argv[0])
+                || purc_variant_is_set (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    // get sort order: asc, desc
+    if ((argv[1] == PURC_VARIANT_INVALID) ||
+                (!purc_variant_is_string (argv[1]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+    order = purc_variant_get_string_const (argv[1]);
+    if (strcasecmp (order, STRING_COMP_MODE_DESC) == 0)
+        sort_type.asc = false;
+
+    // get sort option: case, caseless
+    if ((nr_args == 3) && (argv[2] != PURC_VARIANT_INVALID) &&
+                (purc_variant_is_string (argv[2]))) {
+        option = purc_variant_get_string_const (argv[2]);
+        if (strcasecmp (option, STRING_COMP_MODE_CASELESS) == 0)
+            sort_type.caseless = true;
+    }
+
+    // it is the array
+    if (purc_variant_is_array (argv[0])) {
+        totalsize = purc_variant_array_get_size (argv[0]);
+        elements = calloc ((unsigned)totalsize, sizeof(dvobjs_ejson_element));
+        if (elements == NULL) {
+            pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+            return PURC_VARIANT_INVALID;
+        }
+
+        for (i = 0; i < totalsize; ++i) {
+            val = purc_variant_array_get(argv[0], i);
+            elements[i].index = i;
+            purc_variant_stringify_alloc (&elements[i].name, val);
+        }
+
+        qsort (elements, totalsize, sizeof(dvobjs_ejson_element), mycompare);
+
+        // get new sort
+        // original: 0, 1, 2, 3, 4, 5
+        // now:      3, 2, 0, 5, 4, 1
+
+
+        for (i = 0; i < totalsize; ++i) {
+            if (elements[i].name)
+                free (elements[i].name);
+        }
+        free (elements);
+
+    } else {    // it is the set
+        totalsize = purc_variant_set_get_size (argv[0]);
+        elements = calloc ((unsigned)totalsize, sizeof(dvobjs_ejson_element));
+        if (elements == NULL) {
+            pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+            return PURC_VARIANT_INVALID;
+        }
+
+        it_set = purc_variant_set_make_iterator_begin(argv[0]);
+        while (it_set) {
+            val = purc_variant_set_iterator_get_value(it_set);
+
+            elements[i].index = i;
+            purc_variant_stringify_alloc (&elements[i].name, val);
+
+            having = purc_variant_set_iterator_next(it_set);
+            if (!having)
+                break;
+        }
+        if (it_set)
+            purc_variant_set_release_iterator(it_set);
+
+        qsort (elements, totalsize, sizeof(dvobjs_ejson_element), mycompare);
+
+        // get new sort
+        // original: 0, 1, 2, 3, 4, 5
+        // now:      3, 2, 0, 5, 4, 1
+
+        for (i = 0; i < totalsize; ++i) {
+            if (elements[i].name)
+                free (elements[i].name);
+        }
+        free (elements);
+    }
+
+    return ret_var;
 }
 
 static purc_variant_t
 compare_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
 
-    return NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    const char *option = NULL;
+    double number1 = 0.0L;
+    double number2 = 0.0L;
+    char *buf1 = NULL;
+    char *buf2 = NULL;
+    int compare = 0;
+
+    if ((argv == NULL) || (nr_args < 3)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    option = purc_variant_get_string_const (argv[2]);
+
+    if (strcasecmp (option, STRING_COMP_MODE_CASELESS) == 0) {
+        purc_variant_stringify_alloc (&buf1, argv[0]);
+        purc_variant_stringify_alloc (&buf2, argv[1]);
+        compare = strcasecmp (buf1, buf2);
+        free (buf1);
+        free (buf2);
+    } else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0) {
+        purc_variant_stringify_alloc (&buf1, argv[0]);
+        purc_variant_stringify_alloc (&buf2, argv[1]);
+        compare = strcmp (buf1, buf2);
+        free (buf1);
+        free (buf2);
+    } else if (strcasecmp (option, STRING_COMP_MODE_NUMBER) == 0) {
+        number1 = purc_variant_numberify (argv[0]);
+        number2 = purc_variant_numberify (argv[1]);
+
+        if (number1 == number2)
+            compare = 0;
+        else if (number1 < number2)
+            compare = -1;
+        else
+            compare = 1;
+    } else if (strcasecmp (option, STRING_COMP_MODE_AUTO) == 0) {
+        int type1 = purc_variant_get_type (argv[0]);
+        int type2 = purc_variant_get_type (argv[1]);
+        if ((type1 > PURC_VARIANT_TYPE_BOOLEAN) &&
+                (type1 < PURC_VARIANT_TYPE_ATOMSTRING) &&
+                (type2 > PURC_VARIANT_TYPE_BOOLEAN) &&
+                (type2 < PURC_VARIANT_TYPE_ATOMSTRING)) {
+            number1 = purc_variant_numberify (argv[0]);
+            number2 = purc_variant_numberify (argv[1]);
+
+            if (number1 == number2)
+                compare = 0;
+            else if (number1 < number2)
+                compare = -1;
+            else
+                compare = 1;
+        } else {
+            purc_variant_stringify_alloc (&buf1, argv[0]);
+            purc_variant_stringify_alloc (&buf2, argv[1]);
+            compare = strcmp (buf1, buf2);
+            free (buf1);
+            free (buf2);
+        }
+    }
+
+    ret_var = purc_variant_make_longint (compare);
+
+    return ret_var;
 }
 
 // only for test now.
