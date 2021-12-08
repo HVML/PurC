@@ -54,13 +54,18 @@ bool pcdvobjs_wildcard_cmp (const char *str1,
 
 const char *pcdvobjs_remove_space (char * buffer);
 
-const char *pcdvobjs_get_next_option (const char* data, const char* delims,
-                                            size_t* length) WTF_INTERNAL;
-const char *pcdvobjs_get_prev_option (const char* data, size_t str_len,
-                            const char* delims, size_t* length) WTF_INTERNAL;
+const char *pcdvobjs_get_next_option (const char* data,
+        const char* delims, size_t* length) WTF_INTERNAL;
 
-purc_variant_t pcdvobjs_make_dvobjs (const struct pcdvobjs_dvobjs *method,
-                                    size_t size);
+const char *pcdvobjs_get_prev_option (const char* data,
+        size_t str_len, const char* delims, size_t* length) WTF_INTERNAL;
+
+long double pcdvobjs_get_variant_value (purc_variant_t var) WTF_INTERNAL;
+
+bool pcdvobjs_test_variant (purc_variant_t var) WTF_INTERNAL;
+
+purc_variant_t pcdvobjs_make_dvobjs (
+        const struct pcdvobjs_dvobjs *method, size_t size);
 
 extern int pcdvobjs_logical_parse(const char *input,
         struct pcdvobjs_logical_param *param) WTF_INTERNAL;

@@ -67,176 +67,6 @@ error:
     return false;
 }
 
-static bool test_variant (purc_variant_t var)
-{
-    if (var == PURC_VARIANT_INVALID)
-        return false;
-
-    double number = 0.0L;
-    bool ret = false;
-    enum purc_variant_type type = purc_variant_get_type (var);
-
-    switch ((int)type) {
-        case PURC_VARIANT_TYPE_NULL:
-        case PURC_VARIANT_TYPE_UNDEFINED:
-            break;
-        case PURC_VARIANT_TYPE_BOOLEAN:
-            purc_variant_cast_to_number (var, &number, false);
-            if (number)
-                ret = true;
-            break;
-        case PURC_VARIANT_TYPE_NUMBER:
-        case PURC_VARIANT_TYPE_LONGINT:
-        case PURC_VARIANT_TYPE_ULONGINT:
-        case PURC_VARIANT_TYPE_LONGDOUBLE:
-            purc_variant_cast_to_number (var, &number, false);
-            if (fabs (number) > 1.0E-10)
-                ret = true;
-            break;
-        case PURC_VARIANT_TYPE_ATOMSTRING:
-            if (strlen (purc_variant_get_atom_string_const (var)) > 0)
-                ret = true;
-            break;
-        case PURC_VARIANT_TYPE_STRING:
-            if (purc_variant_string_length (var) > 1)
-                ret = true;
-            break;
-        case PURC_VARIANT_TYPE_BSEQUENCE:
-            if (purc_variant_sequence_length (var) > 0)
-                ret = true;
-            break;
-        case PURC_VARIANT_TYPE_DYNAMIC:
-            if ((purc_variant_dynamic_get_getter (var)) ||
-                (purc_variant_dynamic_get_setter (var)))
-                ret = true;
-            break;
-        case PURC_VARIANT_TYPE_NATIVE:
-            if (purc_variant_native_get_entity (var))
-                ret = true;
-            break;
-        case PURC_VARIANT_TYPE_OBJECT:
-            if (purc_variant_object_get_size (var))
-                ret = true;
-            break;
-        case PURC_VARIANT_TYPE_ARRAY:
-            if (purc_variant_array_get_size (var))
-                ret = true;
-            break;
-        case PURC_VARIANT_TYPE_SET:
-            if (purc_variant_set_get_size (var))
-                ret = true;
-            break;
-        default:
-            break;
-    }
-
-    return ret;
-}
-
-
-static long double get_variant_value (purc_variant_t var)
-{
-    if (var == PURC_VARIANT_INVALID)
-        return false;
-
-    size_t i = 0;
-    size_t length = 0;
-    long double number = 0.0L;
-    long int templongint = 0;
-    uintptr_t temppointer = 0;
-    struct purc_variant_object_iterator *it_obj = NULL;
-    struct purc_variant_set_iterator *it_set = NULL;
-    purc_variant_t val = PURC_VARIANT_INVALID;
-    bool having = false;
-    enum purc_variant_type type = purc_variant_get_type (var);
-
-    switch ((int)type) {
-        case PURC_VARIANT_TYPE_NULL:
-        case PURC_VARIANT_TYPE_UNDEFINED:
-            break;
-        case PURC_VARIANT_TYPE_BOOLEAN:
-            purc_variant_cast_to_long_double (var, &number, false);
-            if (number)
-                number = 1.0L;
-            break;
-        case PURC_VARIANT_TYPE_NUMBER:
-        case PURC_VARIANT_TYPE_LONGINT:
-        case PURC_VARIANT_TYPE_ULONGINT:
-        case PURC_VARIANT_TYPE_LONGDOUBLE:
-            purc_variant_cast_to_long_double (var, &number, false);
-            break;
-        case PURC_VARIANT_TYPE_ATOMSTRING:
-            number = strtold (purc_variant_get_atom_string_const (var), NULL);
-            break;
-        case PURC_VARIANT_TYPE_STRING:
-            number = strtold (purc_variant_get_string_const (var), NULL);
-            break;
-        case PURC_VARIANT_TYPE_BSEQUENCE:
-            length = purc_variant_sequence_length (var);
-            if (length > 8)
-                memcpy (&templongint, purc_variant_get_bytes_const (var,
-                                            &length) + length - 8, 8);
-            else
-                memcpy (&templongint, purc_variant_get_bytes_const (var,
-                                            &length), length);
-            number = (long double) templongint;
-            break;
-        case PURC_VARIANT_TYPE_DYNAMIC:
-            temppointer = (uintptr_t)purc_variant_dynamic_get_getter (var);
-            temppointer += (uintptr_t)purc_variant_dynamic_get_setter (var);
-            number = (long double) temppointer;
-            break;
-        case PURC_VARIANT_TYPE_NATIVE:
-            temppointer = (uintptr_t)purc_variant_native_get_entity (var);
-            number = (long double) temppointer;
-            break;
-        case PURC_VARIANT_TYPE_OBJECT:
-            it_obj = purc_variant_object_make_iterator_begin(var);
-            while (it_obj) {
-                val = purc_variant_object_iterator_get_value(it_obj);
-                number += get_variant_value (val);
-
-                having = purc_variant_object_iterator_next(it_obj);
-                if (!having)
-                    break;
-            }
-            if (it_obj)
-                purc_variant_object_release_iterator(it_obj);
-
-            break;
-
-        case PURC_VARIANT_TYPE_ARRAY:
-            for (i = 0; i < purc_variant_array_get_size (var); ++i) {
-                val = purc_variant_array_get(var, i);
-
-                number += get_variant_value (val);
-            }
-
-            break;
-
-        case PURC_VARIANT_TYPE_SET:
-            it_set = purc_variant_set_make_iterator_begin(var);
-            while (it_set) {
-                val = purc_variant_set_iterator_get_value(it_set);
-
-                number += get_variant_value (val);
-
-                having = purc_variant_set_iterator_next(it_set);
-                if (!having)
-                    break;
-            }
-            if (it_set)
-                purc_variant_set_release_iterator(it_set);
-
-            break;
-
-        default:
-            break;
-    }
-
-    return number;
-}
-
 static purc_variant_t
 not_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
@@ -253,7 +83,7 @@ not_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if (test_variant (argv[0]))
+    if (pcdvobjs_test_variant (argv[0]))
         ret_var = purc_variant_make_boolean (false);
     else
         ret_var = purc_variant_make_boolean (true);
@@ -276,7 +106,7 @@ and_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     }
 
     for (i = 0; i < nr_args; i++) {
-        if ((argv[i] != PURC_VARIANT_INVALID) && (!test_variant (argv[i]))) {
+        if ((argv[i] != PURC_VARIANT_INVALID) && (!pcdvobjs_test_variant (argv[i]))) {
             judge = false;
             break;
         }
@@ -305,7 +135,7 @@ or_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     }
 
     for (i = 0; i < nr_args; i++) {
-        if ((argv[i] != PURC_VARIANT_INVALID) && (test_variant (argv[i]))) {
+        if ((argv[i] != PURC_VARIANT_INVALID) && (pcdvobjs_test_variant (argv[i]))) {
             judge = true;
             break;
         }
@@ -339,10 +169,10 @@ xor_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if (test_variant (argv[0]))
+    if (pcdvobjs_test_variant (argv[0]))
         judge1 = 0x01;
 
-    if (test_variant (argv[1]))
+    if (pcdvobjs_test_variant (argv[1]))
         judge2 = 0x01;
 
     judge1 ^= judge2;
@@ -375,8 +205,8 @@ eq_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    value1 = get_variant_value (argv[0]);
-    value2 = get_variant_value (argv[1]);
+    value1 = pcdvobjs_get_variant_value (argv[0]);
+    value2 = pcdvobjs_get_variant_value (argv[1]);
 
     if (fabsl (value1 - value2) < 1.0E-10)
         ret_var = purc_variant_make_boolean (true);
@@ -406,8 +236,8 @@ ne_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    value1 = get_variant_value (argv[0]);
-    value2 = get_variant_value (argv[1]);
+    value1 = pcdvobjs_get_variant_value (argv[0]);
+    value2 = pcdvobjs_get_variant_value (argv[1]);
 
     if (fabsl (value1 - value2) >= 1.0E-10)
         ret_var = purc_variant_make_boolean (true);
@@ -437,8 +267,8 @@ gt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    value1 = get_variant_value (argv[0]);
-    value2 = get_variant_value (argv[1]);
+    value1 = pcdvobjs_get_variant_value (argv[0]);
+    value2 = pcdvobjs_get_variant_value (argv[1]);
 
     if (value1 > value2)
         ret_var = purc_variant_make_boolean (true);
@@ -468,8 +298,8 @@ ge_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    value1 = get_variant_value (argv[0]);
-    value2 = get_variant_value (argv[1]);
+    value1 = pcdvobjs_get_variant_value (argv[0]);
+    value2 = pcdvobjs_get_variant_value (argv[1]);
 
     if (value1 >= value2)
         ret_var = purc_variant_make_boolean (true);
@@ -499,8 +329,8 @@ lt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    value1 = get_variant_value (argv[0]);
-    value2 = get_variant_value (argv[1]);
+    value1 = pcdvobjs_get_variant_value (argv[0]);
+    value2 = pcdvobjs_get_variant_value (argv[1]);
 
     if (value1 < value2)
         ret_var = purc_variant_make_boolean (true);
@@ -530,8 +360,8 @@ le_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    value1 = get_variant_value (argv[0]);
-    value2 = get_variant_value (argv[1]);
+    value1 = pcdvobjs_get_variant_value (argv[0]);
+    value2 = pcdvobjs_get_variant_value (argv[1]);
 
     if (value1 <= value2)
         ret_var = purc_variant_make_boolean (true);

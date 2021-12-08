@@ -31,7 +31,7 @@
 #include <assert.h>
 
 static purc_variant_t
-number_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+count_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -128,12 +128,122 @@ type_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             type_names [purc_variant_get_type (argv[0])], false);
 }
 
+static purc_variant_t
+numberify_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var;
+    long double number = 0.0;
+
+    if ((argv == NULL) || (nr_args == 0)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    number = pcdvobjs_get_variant_value (argv[0]);
+    ret_var = purc_variant_make_longdouble (number);
+
+    return ret_var;
+}
+
+static purc_variant_t
+booleanize_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var;
+
+    if ((argv == NULL) || (nr_args == 0)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if (pcdvobjs_test_variant (argv[0]))
+        ret_var = purc_variant_make_boolean (true);
+    else
+        ret_var = purc_variant_make_boolean (false);
+
+    return ret_var;
+}
+
+static purc_variant_t
+stringify_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var;
+    char *buffer = NULL;
+    int total = 0;
+
+    if ((argv == NULL) || (nr_args == 0)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    total = purc_variant_stringify_alloc (&buffer, argv[0]);
+    ret_var = purc_variant_make_string_reuse_buff (buffer, total + 1, false);
+
+    return ret_var;
+}
+
+static purc_variant_t
+serialize_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var;
+    purc_rwstream_t serialize = NULL;
+    char *buf = NULL;
+    size_t sz_stream = 0;
+
+    if ((argv == NULL) || (nr_args == 0)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    serialize = purc_rwstream_new_buffer (32, STREAM_SIZE);
+    purc_variant_serialize (argv[0], serialize, 3, 0, &sz_stream);
+    buf = purc_rwstream_get_mem_buffer (serialize, &sz_stream);
+    purc_rwstream_destroy (serialize);
+
+    ret_var = purc_variant_make_string_reuse_buff (buf, sz_stream + 1, false);
+
+    return ret_var;
+}
+
+static purc_variant_t
+sort_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    return NULL;
+}
+
+static purc_variant_t
+compare_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    return NULL;
+}
+
 // only for test now.
 purc_variant_t pcdvobjs_get_ejson (void)
 {
     static struct pcdvobjs_dvobjs method [] = {
-        {"type",     type_getter, NULL},
-        {"number",   number_getter, NULL}
+        {"type",        type_getter, NULL},
+        {"count",       count_getter, NULL},
+        {"numberify",   numberify_getter, NULL},
+        {"booleanize",  booleanize_getter, NULL},
+        {"stringify",   stringify_getter, NULL},
+        {"serialize",   serialize_getter, NULL},
+        {"sort",        sort_getter, NULL},
+        {"compare",     compare_getter, NULL}
     };
 
     return pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));
