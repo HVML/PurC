@@ -191,10 +191,25 @@ static purc_variant_t
 serialize_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
 
-    return NULL;
+    purc_variant_t ret_var;
+    purc_rwstream_t serialize = NULL;
+    char *buf = NULL;
+    size_t sz_stream = 0;
+
+    if ((argv == NULL) || (nr_args == 0)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    serialize = purc_rwstream_new_buffer (32, STREAM_SIZE);
+    purc_variant_serialize (argv[0], serialize, 3, 0, &sz_stream);
+    buf = purc_rwstream_get_mem_buffer (serialize, &sz_stream);
+    purc_rwstream_destroy (serialize);
+
+    ret_var = purc_variant_make_string_reuse_buff (buf, sz_stream + 1, false);
+
+    return ret_var;
 }
 
 static purc_variant_t
