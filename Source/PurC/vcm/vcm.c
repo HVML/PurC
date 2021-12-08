@@ -674,7 +674,46 @@ purc_variant_t pcvcm_node_concat_string_to_variant (struct pcvcm_node* node,
     UNUSED_PARAM(node);
     UNUSED_PARAM(ops);
 
-    return purc_variant_make_null();
+    purc_rwstream_t rws = purc_rwstream_new_buffer(32, SIZE_MAX);
+    if (!rws) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    struct pctree_node* child = NULL;
+    struct pctree_node* tree_node = (struct pctree_node*) (node);
+    child = tree_node->first_child;
+    while (child) {
+        purc_variant_t v = pcvcm_node_to_variant((struct pcvcm_node*)child, ops);
+        if (v) {
+            size_t len_expected = 0;
+            purc_variant_serialize(v, rws, 0, PCVARIANT_SERIALIZE_OPT_PLAIN,
+                &len_expected);
+        }
+        else {
+            goto err;
+        }
+    }
+
+    size_t rw_size = 0;
+    size_t content_size = 0;
+    char *rw_string = purc_rwstream_get_mem_buffer_ex (rws,
+            &content_size, &rw_size, true);
+
+    if ((rw_size == 0) || (rw_string == NULL))
+        ret_var = PURC_VARIANT_INVALID;
+    else {
+        ret_var = purc_variant_make_string_reuse_buff (rw_string,
+                rw_size, false);
+        if(ret_var == PURC_VARIANT_INVALID) {
+            pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+            ret_var = PURC_VARIANT_INVALID;
+        }
+    }
+
+err:
+    purc_rwstream_destroy(rws);
+    return ret_var;
 }
 
 purc_variant_t pcvcm_node_get_variable_to_variant (struct pcvcm_node* node,
