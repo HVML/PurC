@@ -137,6 +137,8 @@ void pcintr_stack_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 pcintr_stack_t purc_get_stack (void);
 struct pcintr_stack_frame*
 pcintr_stack_get_bottom_frame(pcintr_stack_t stack);
+struct pcintr_stack_frame*
+pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame);
 
 struct pcintr_element_ops*
 pcintr_get_element_ops(pcvdom_element_t element);
