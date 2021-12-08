@@ -37,7 +37,7 @@
 #include "private/interpreter.h"
 
 struct pcvcm_node_op {
-    cb_find_named_var find_name_var;
+    cb_find_named_var find_named_var;
     void* find_named_var_ctxt;
 
     cb_get_symbolized_var get_symbolized_var;
@@ -650,7 +650,7 @@ purc_variant_t pcvcm_node_object_to_variant (struct pcvcm_node* node,
     return object;
 }
 
-purc_variant_t pcvcm_node_array_to_variant (struct pcvcm_node* node, 
+purc_variant_t pcvcm_node_array_to_variant (struct pcvcm_node* node,
        struct pcvcm_node_op* ops)
 {
     struct pctree_node* tree_node = (struct pctree_node*) (node);
@@ -680,10 +680,38 @@ purc_variant_t pcvcm_node_concat_string_to_variant (struct pcvcm_node* node,
 purc_variant_t pcvcm_node_get_variable_to_variant (struct pcvcm_node* node,
        struct pcvcm_node_op* ops)
 {
-    UNUSED_PARAM(node);
-    UNUSED_PARAM(ops);
+    if (!ops) {
+        return PURC_VARIANT_INVALID;
+    }
 
-    return purc_variant_make_null();
+    struct pctree_node* tree_node = (struct pctree_node*) (node);
+    struct pctree_node* name_node = tree_node->first_child;
+    if (!name_node) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    size_t nr_name = (size_t)node->sz_ptr[0];
+    char* name = (char*)node->sz_ptr[1];
+    if (!name || nr_name == 0) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    char last_c = name[nr_name - 1];
+    if(name[0] >= '0' && name[0] <= '9') {
+        unsigned int number = atoi(name);
+        if (last_c >= '0' && last_c <= '9') {
+            return ops->get_numbered_var ?
+                ops->get_numbered_var(ops->find_named_var_ctxt, number) :
+                PURC_VARIANT_INVALID;
+        }
+        else {
+            return ops->get_symbolized_var ?
+                ops->get_symbolized_var(ops->get_numbered_var_ctxt, number,
+                        last_c) : PURC_VARIANT_INVALID;
+        }
+    }
+    return ops->find_named_var ?  ops->find_named_var(ops->find_named_var_ctxt,
+            name) : PURC_VARIANT_INVALID;
 }
 
 purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
@@ -765,7 +793,7 @@ purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node,
         case PCVCM_NODE_TYPE_FUNC_CALL_SETTER:
             return pcvcm_node_call_setter_to_variant(node, ops);
 
-        default:  //TODO
+        default:
             return purc_variant_make_null();
     }
     return purc_variant_make_null();
@@ -812,9 +840,8 @@ purc_variant_t pcvcm_eval_ex (struct pcvcm_node* tree,
         get_numbered_var_ctxt
     };
 
-    UNUSED_VARIABLE(ops);
     if (!tree) {
-        return PURC_VARIANT_INVALID;
+        return purc_variant_make_null();
     }
     return pcvcm_node_to_variant (tree, &ops);
 }
