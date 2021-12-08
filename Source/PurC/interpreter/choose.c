@@ -82,7 +82,7 @@ rerun(pcintr_stack_t stack, void* ctxt)
 }
 
 // called after executed
-pcvdom_element_t
+static pcvdom_element_t
 select_child(pcintr_stack_t stack, void* ctxt)
 {
     UNUSED_PARAM(stack);

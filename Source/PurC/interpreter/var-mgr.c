@@ -172,12 +172,45 @@ pcintr_find_named_var(pcintr_stack_t stack, const char* name)
     return purc_variant_make_undefined();
 }
 
+enum purc_symbol_var _to_symbol(char symbol)
+{
+    switch (symbol) {
+    case '?':
+        return PURC_SYMBOL_VAR_QUESTION_MARK;
+    case '@':
+        return PURC_SYMBOL_VAR_AT_SIGN;
+    case '#':
+        return PURC_SYMBOL_VAR_NUMBER_SIGN;
+    case '*':
+        return PURC_SYMBOL_VAR_ASTERISK;
+    case ':':
+        return PURC_SYMBOL_VAR_COLON;
+    case '&':
+        return PURC_SYMBOL_VAR_AMPERSAND;
+    case '%':
+        return PURC_SYMBOL_VAR_PERCENT_SIGN;
+    }
+    return PURC_SYMBOL_VAR_MAX;
+}
+
 purc_variant_t
 pcintr_get_symbolized_var (pcintr_stack_t stack, unsigned int number,
         char symbol)
 {
-    UNUSED_PARAM(stack);
-    UNUSED_PARAM(number);
-    UNUSED_PARAM(symbol);
-    return PURC_VARIANT_INVALID;
+    enum purc_symbol_var symbol_var = _to_symbol(symbol);
+    if (symbol_var == PURC_SYMBOL_VAR_MAX) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    struct pcintr_stack_frame* frame = pcintr_stack_get_bottom_frame(stack);
+    for (unsigned int i = 0; i < number; i++) {
+        frame = pcintr_stack_frame_get_parent(frame);
+    }
+
+    if (!frame) {
+        return purc_variant_make_undefined();
+    }
+
+    purc_variant_t v = frame->symbol_vars[symbol_var];
+    return v ? v : purc_variant_make_undefined();
 }
