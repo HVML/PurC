@@ -420,3 +420,21 @@ bool purc_variant_array_insert_after (purc_variant_t array, int idx,
     return purc_variant_array_insert_before(array, idx+1, value);
 }
 
+int pcvariant_array_swap(purc_variant_t value, int i, int j)
+{
+    if (!value || value->type != PURC_VARIANT_TYPE_ARRAY)
+        return -1;
+
+    struct pcutils_arrlist *al = (struct pcutils_arrlist*)value->sz_ptr[1];
+    if (i<0 || (size_t)i>=al->length)
+        return -1;
+    if (j<0 || (size_t)j>=al->length)
+        return -1;
+
+    void *tmp = al->array[i];
+    al->array[i] = al->array[j];
+    al->array[j] = tmp;
+
+    return 0;
+}
+

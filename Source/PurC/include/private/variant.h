@@ -273,3 +273,7 @@ struct variant_set {
     } while (0)
 #endif  /* PURC_PRIVATE_VARIANT_H */
 
+int pcvariant_array_swap(purc_variant_t value, int i, int j);
+int pcvariant_set_swap(purc_variant_t value, int i, int j);
+
+
