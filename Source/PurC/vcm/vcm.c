@@ -36,6 +36,17 @@
 #include "private/stack.h"
 #include "private/interpreter.h"
 
+struct pcvcm_node_op {
+    cb_find_named_var find_name_var;
+    void* find_named_var_ctxt;
+
+    cb_get_symbolized_var get_symbolized_var;
+    void* get_symbolized_var_ctxt;
+
+    cb_get_numbered_var get_numbered_var;
+    void* get_numbered_var_ctxt;
+};
+
 static struct pcvcm_node* pcvcm_node_new (enum pcvcm_node_type type)
 {
     struct pcvcm_node* node = (struct pcvcm_node*) calloc (1,
@@ -609,9 +620,11 @@ void pcvcm_stack_destroy (struct pcvcm_stack* stack)
     free (stack);
 }
 
-purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node);
+purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node,
+        struct pcvcm_node_op* ops);
 
-purc_variant_t pcvcm_node_object_to_variant (struct pcvcm_node* node)
+purc_variant_t pcvcm_node_object_to_variant (struct pcvcm_node* node,
+        struct pcvcm_node_op* ops)
 {
     struct pctree_node* tree_node = (struct pctree_node*) (node);
     purc_variant_t object = purc_variant_make_object (0,
@@ -620,9 +633,10 @@ purc_variant_t pcvcm_node_object_to_variant (struct pcvcm_node* node)
     struct pctree_node* k_node = tree_node->first_child;
     struct pctree_node* v_node = k_node ? k_node->next : NULL;
     while (k_node && v_node) {
-        purc_variant_t key = pcvcm_node_to_variant ((struct pcvcm_node*)k_node);
-        purc_variant_t value = pcvcm_node_to_variant (
-                (struct pcvcm_node*)v_node);
+        purc_variant_t key = pcvcm_node_to_variant ((struct pcvcm_node*)k_node,
+                ops);
+        purc_variant_t value = pcvcm_node_to_variant(
+                (struct pcvcm_node*)v_node, ops);
 
         purc_variant_object_set (object, key, value);
 
@@ -636,7 +650,8 @@ purc_variant_t pcvcm_node_object_to_variant (struct pcvcm_node* node)
     return object;
 }
 
-purc_variant_t pcvcm_node_array_to_variant (struct pcvcm_node* node)
+purc_variant_t pcvcm_node_array_to_variant (struct pcvcm_node* node, 
+       struct pcvcm_node_op* ops)
 {
     struct pctree_node* tree_node = (struct pctree_node*) (node);
     purc_variant_t array = purc_variant_make_array (0, PURC_VARIANT_INVALID);
@@ -644,7 +659,7 @@ purc_variant_t pcvcm_node_array_to_variant (struct pcvcm_node* node)
     struct pctree_node* array_node = tree_node->first_child;
     while (array_node) {
         purc_variant_t vt = pcvcm_node_to_variant (
-                (struct pcvcm_node*)array_node);
+                (struct pcvcm_node*)array_node, ops);
         purc_variant_array_append (array, vt);
         purc_variant_unref (vt);
 
@@ -653,15 +668,61 @@ purc_variant_t pcvcm_node_array_to_variant (struct pcvcm_node* node)
     return array;
 }
 
-purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node)
+purc_variant_t pcvcm_node_concat_string_to_variant (struct pcvcm_node* node,
+       struct pcvcm_node_op* ops)
+{
+    UNUSED_PARAM(node);
+    UNUSED_PARAM(ops);
+
+    return purc_variant_make_null();
+}
+
+purc_variant_t pcvcm_node_get_variable_to_variant (struct pcvcm_node* node,
+       struct pcvcm_node_op* ops)
+{
+    UNUSED_PARAM(node);
+    UNUSED_PARAM(ops);
+
+    return purc_variant_make_null();
+}
+
+purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
+       struct pcvcm_node_op* ops)
+{
+    UNUSED_PARAM(node);
+    UNUSED_PARAM(ops);
+
+    return purc_variant_make_null();
+}
+
+purc_variant_t pcvcm_node_call_getter_to_variant (struct pcvcm_node* node,
+       struct pcvcm_node_op* ops)
+{
+    UNUSED_PARAM(node);
+    UNUSED_PARAM(ops);
+
+    return purc_variant_make_null();
+}
+
+purc_variant_t pcvcm_node_call_setter_to_variant (struct pcvcm_node* node,
+       struct pcvcm_node_op* ops)
+{
+    UNUSED_PARAM(node);
+    UNUSED_PARAM(ops);
+
+    return purc_variant_make_null();
+}
+
+purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node,
+        struct pcvcm_node_op* ops)
 {
     switch (node->type)
     {
         case PCVCM_NODE_TYPE_OBJECT:
-            return pcvcm_node_object_to_variant (node);
+            return pcvcm_node_object_to_variant (node, ops);
 
         case PCVCM_NODE_TYPE_ARRAY:
-            return pcvcm_node_array_to_variant (node);
+            return pcvcm_node_array_to_variant (node, ops);
 
         case PCVCM_NODE_TYPE_STRING:
             return purc_variant_make_string ((char*)node->sz_ptr[1],
@@ -688,6 +749,22 @@ purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node)
         case PCVCM_NODE_TYPE_BYTE_SEQUENCE:
             return purc_variant_make_byte_sequence(
                     (void*)node->sz_ptr[1], node->sz_ptr[0]);
+
+        case PCVCM_NODE_TYPE_FUNC_CONCAT_STRING:
+            return pcvcm_node_concat_string_to_variant(node, ops);
+
+        case PCVCM_NODE_TYPE_FUNC_GET_VARIABLE:
+            return pcvcm_node_get_variable_to_variant(node, ops);
+
+        case PCVCM_NODE_TYPE_FUNC_GET_ELEMENT:
+            return pcvcm_node_get_element_to_variant(node, ops);
+
+        case PCVCM_NODE_TYPE_FUNC_CALL_GETTER:
+            return pcvcm_node_call_getter_to_variant(node, ops);
+
+        case PCVCM_NODE_TYPE_FUNC_CALL_SETTER:
+            return pcvcm_node_call_setter_to_variant(node, ops);
+
         default:  //TODO
             return purc_variant_make_null();
     }
@@ -726,14 +803,18 @@ purc_variant_t pcvcm_eval_ex (struct pcvcm_node* tree,
         cb_get_numbered_var get_numbered_var, void* get_numbered_var_ctxt
         )
 {
-    UNUSED_PARAM(find_named_var);
-    UNUSED_PARAM(find_named_var_ctxt);
-    UNUSED_PARAM(get_symbolized_var);
-    UNUSED_PARAM(get_symbolized_var_ctxt);
-    UNUSED_PARAM(get_numbered_var);
-    UNUSED_PARAM(get_numbered_var_ctxt);
+    struct pcvcm_node_op ops = {
+        find_named_var,
+        find_named_var_ctxt,
+        get_symbolized_var,
+        get_symbolized_var_ctxt,
+        get_numbered_var,
+        get_numbered_var_ctxt
+    };
+
+    UNUSED_VARIABLE(ops);
     if (!tree) {
-        return purc_variant_make_null();
+        return PURC_VARIANT_INVALID;
     }
-    return pcvcm_node_to_variant (tree);
+    return pcvcm_node_to_variant (tree, &ops);
 }
