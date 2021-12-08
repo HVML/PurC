@@ -171,10 +171,20 @@ static purc_variant_t
 stringify_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
 
-    return NULL;
+    purc_variant_t ret_var;
+    char *buffer = NULL;
+    int total = 0;
+
+    if ((argv == NULL) || (nr_args == 0)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    total = purc_variant_stringify_alloc (&buffer, argv[0]);
+    ret_var = purc_variant_make_string_reuse_buff (buffer, total + 1, false);
+
+    return ret_var;
 }
 
 static purc_variant_t
@@ -223,6 +233,3 @@ purc_variant_t pcdvobjs_get_ejson (void)
 
     return pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));
 }
-
-https://gitlab.fmsoft.cn/hvml/hvml-docs/blob/master/zh/hvml-spec-v1.0-zh.md
-https://gitlab.fmsoft.cn/hvml/hvml-docs/blob/master/zh/hvml-spec-predefined-variables-v1.0-zh.md#34-ejson

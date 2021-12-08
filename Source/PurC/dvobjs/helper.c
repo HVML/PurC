@@ -373,7 +373,7 @@ bool pcdvobjs_test_variant (purc_variant_t var)
     if (ret) {
         ret = false;
         number = pcdvobjs_get_variant_value (var);
-        if (fabs (number) > 1.0E-10)
+        if (fabsl (number) > 1.0E-10)
             ret = true;
     }
 
