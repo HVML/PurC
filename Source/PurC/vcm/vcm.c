@@ -693,10 +693,24 @@ purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node)
     return purc_variant_make_null();
 }
 
-// TODO : need pcintr_stack_t
 purc_variant_t pcvcm_eval (struct pcvcm_node* tree, struct pcintr_stack* stack)
 {
     UNUSED_PARAM(stack);
+    return pcvcm_eval_ex(tree, NULL, NULL, NULL, NULL, NULL, NULL);
+}
+
+purc_variant_t pcvcm_eval_ex (struct pcvcm_node* tree,
+        cb_find_named_var find_named_var, void* find_named_var_ctxt,
+        cb_get_symbolized_var get_symbolized_var, void* get_symbolized_var_ctxt,
+        cb_get_numbered_var get_numbered_var, void* get_numbered_var_ctxt
+        )
+{
+    UNUSED_PARAM(find_named_var);
+    UNUSED_PARAM(find_named_var_ctxt);
+    UNUSED_PARAM(get_symbolized_var);
+    UNUSED_PARAM(get_symbolized_var_ctxt);
+    UNUSED_PARAM(get_numbered_var);
+    UNUSED_PARAM(get_numbered_var_ctxt);
     if (!tree) {
         return purc_variant_make_null();
     }

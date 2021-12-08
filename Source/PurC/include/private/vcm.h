@@ -140,9 +140,20 @@ struct pcvcm_node* pcvcm_stack_bottommost (struct pcvcm_stack* stack);
 
 void pcvcm_stack_destroy (struct pcvcm_stack* stack);
 
+typedef purc_variant_t (*cb_find_named_var) (void* ctxt, const char* name);
+typedef purc_variant_t (*cb_get_symbolized_var) (void* ctxt, unsigned int number,
+        char symbol);
+typedef purc_variant_t (*cb_get_numbered_var) (void* ctxt, unsigned int number);
+
+purc_variant_t pcvcm_eval_ex (struct pcvcm_node* tree,
+        cb_find_named_var find_named_var, void* find_named_var_ctxt,
+        cb_get_symbolized_var get_symbolized_var, void* get_symbolized_var_ctxt,
+        cb_get_numbered_var get_numbered_var, void* get_numbered_var_ctxt
+        );
+
 struct pcintr_stack;
-purc_variant_t pcvcm_eval (struct pcvcm_node* tree,
-        struct pcintr_stack* stack);
+purc_variant_t pcvcm_eval (struct pcvcm_node* tree, struct pcintr_stack* stack);
+
 
 #ifdef __cplusplus
 }
