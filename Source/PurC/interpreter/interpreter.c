@@ -128,7 +128,7 @@ push_stack_frame(pcintr_stack_t stack)
     return 0;
 }
 
-static inline void
+void
 pop_stack_frame(pcintr_stack_t stack)
 {
     PC_ASSERT(stack);
@@ -161,17 +161,24 @@ pcintr_get_element_ops(pcvdom_element_t element)
     }
 }
 
-static inline int
-init_frame_symbol_vars(struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element, struct pcvdom_document *document)
+struct frame_element_doc
 {
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(element);
-    UNUSED_PARAM(document);
-    PC_ASSERT(0); // Not implemented yet
-    return -1;
-}
+    struct pcintr_stack_frame     *frame;
+    struct pcvdom_element         *element;
+    struct pcvdom_document        *document;
+};
 
+static inline purc_variant_t
+fed_eval_attr(struct frame_element_doc *fed,
+        enum pchvml_attr_assignment  op,
+        struct pcvcm_node           *val)
+{
+    UNUSED_PARAM(fed);
+    UNUSED_PARAM(op);
+    UNUSED_PARAM(val);
+    PC_ASSERT(0); // Not implemented yet
+    return PURC_VARIANT_INVALID;
+}
 
 static inline int
 init_frame_append_attr(pcutils_map_entry *entry, void *ud)
@@ -179,14 +186,32 @@ init_frame_append_attr(pcutils_map_entry *entry, void *ud)
     PC_ASSERT(ud);
     PC_ASSERT(entry);
 
-    purc_variant_t attr_vars = (purc_variant_t)ud;
+    struct frame_element_doc *fed = (struct frame_element_doc*)ud;
+
+    purc_variant_t attr_vars = fed->frame->attr_vars;
 
     struct pcvdom_attr *attr = (struct pcvdom_attr*)entry->val;
-    (void)attr;
-    (void)attr_vars;
-    // TODO:
-    PC_ASSERT(0); // Not implemented yet
-    return -1;
+    const char *key = attr->key;
+    enum pchvml_attr_assignment  op  = attr->op;
+    struct pcvcm_node           *val = attr->val;
+
+    purc_variant_t k = purc_variant_make_string(key, true);
+    purc_variant_t v = fed_eval_attr(fed, op, val);
+
+    PC_ASSERT(k!=PURC_VARIANT_INVALID);
+    PC_ASSERT(v!=PURC_VARIANT_INVALID);
+
+    purc_variant_t o = purc_variant_make_object(1, k, v);
+    purc_variant_unref(k);
+    purc_variant_unref(v);
+    PC_ASSERT(o!=PURC_VARIANT_INVALID);
+
+    bool ok = purc_variant_array_append(attr_vars, o);
+    purc_variant_unref(o);
+
+    PC_ASSERT(ok);
+
+    return 0;
 }
 
 static inline int
@@ -205,8 +230,13 @@ init_frame_attr_vars(struct pcintr_stack_frame *frame,
     if (!attrs)
         return 0;
 
-    int r = pcutils_map_traverse(attrs,
-            frame->attr_vars, init_frame_append_attr);
+    struct frame_element_doc ud = {
+        .frame          = frame,
+        .element        = element,
+        .document       = document,
+    };
+
+    int r = pcutils_map_traverse(attrs, &ud, init_frame_append_attr);
 
     return r ? -1 : 0;
 }
@@ -217,8 +247,6 @@ init_frame_by_element(struct pcintr_stack_frame *frame,
 {
     frame->scope = element; // FIXME: archetype, where to store `scope`
     frame->pos = element;
-    if (init_frame_symbol_vars(frame, element, document))
-        return -1;
 
     if (init_frame_attr_vars(frame, element, document))
         return -1;

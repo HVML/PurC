@@ -43,6 +43,8 @@
 #include "exe_sql.h"
 #include "exe_travel.h"
 
+#include <ctype.h>
+
 struct pcexec_record {
     char                      *name;
     struct purc_exec_ops       ops;
@@ -210,13 +212,9 @@ failure:
     return false;
 }
 
-bool purc_get_executor(const char* name, purc_exec_ops_t ops)
+static inline bool
+get_executor(const char* name, purc_exec_ops_t ops)
 {
-    if (!name) {
-        pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
-        return false;
-    }
-
     pcutils_map_entry *entry = NULL;
 
     struct pcexecutor_heap *heap;
@@ -238,6 +236,33 @@ bool purc_get_executor(const char* name, purc_exec_ops_t ops)
         *ops = record->ops;
 
     return true;
+}
+
+bool purc_get_executor(const char* name, purc_exec_ops_t ops)
+{
+    if (!name) {
+        pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
+        return false;
+    }
+
+    const char *h = name;
+    while (*h && isspace(*h))
+        ++h;
+
+    if (!*h)
+        return false;
+
+    const char *t = h + 1;
+    while (*t && !isspace(*t) && *t != ':')
+        ++t;
+
+    char *s = strndup(h, t-h);
+    PC_ASSERT(s);
+
+    bool ok = get_executor(s, ops);
+    free(s);
+
+    return ok;
 }
 
 void

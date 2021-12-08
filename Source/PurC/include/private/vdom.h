@@ -280,6 +280,54 @@ pcvdom_node_prev_sibling(struct pcvdom_node *node);
 struct pcvdom_element*
 pcvdom_element_parent(struct pcvdom_element *elem);
 
+static inline struct pcvdom_element*
+pcvdom_element_first_child(struct pcvdom_element *elem)
+{
+    if (!elem)
+        return NULL;
+    struct pcvdom_node *node = pcvdom_node_first_child(&elem->node);
+    if (!node)
+        return NULL;
+
+    return container_of(node, struct pcvdom_element, node);
+}
+
+static inline struct pcvdom_element*
+pcvdom_element_last_child(struct pcvdom_element *elem)
+{
+    if (!elem)
+        return NULL;
+    struct pcvdom_node *node = pcvdom_node_last_child(&elem->node);
+    if (!node)
+        return NULL;
+
+    return container_of(node, struct pcvdom_element, node);
+}
+
+static inline struct pcvdom_element*
+pcvdom_element_next_sibling(struct pcvdom_element *elem)
+{
+    if (!elem)
+        return NULL;
+    struct pcvdom_node *node = pcvdom_node_next_sibling(&elem->node);
+    if (!node)
+        return NULL;
+
+    return container_of(node, struct pcvdom_element, node);
+}
+
+static inline struct pcvdom_element*
+pcvdom_element_prev_sibling(struct pcvdom_element *elem)
+{
+    if (!elem)
+        return NULL;
+    struct pcvdom_node *node = pcvdom_node_prev_sibling(&elem->node);
+    if (!node)
+        return NULL;
+
+    return container_of(node, struct pcvdom_element, node);
+}
+
 struct pcvdom_element*
 pcvdom_content_parent(struct pcvdom_content *content);
 
@@ -319,6 +367,9 @@ int pcvdom_element_traverse(struct pcvdom_element *elem, void *ctx,
         }                                                         \
     }                                                             \
     doc; })
+
+purc_variant_t
+pcvdom_element_get_attr_val(pcvdom_element_t element, const char *key);
 
 PCA_EXTERN_C_END
 

@@ -38,7 +38,7 @@ struct ctxt_for_iterate {
     purc_exec_iter_t it;
 };
 
-void *
+static inline void *
 iterate_after_pushed(pcintr_stack_t stack, pcvdom_element_t pos,
         struct ctxt_for_iterate *ctxt)
 {
@@ -82,7 +82,7 @@ rerun(pcintr_stack_t stack, void* ctxt)
 }
 
 // called after executed
-pcvdom_element_t
+static inline pcvdom_element_t
 select_child(pcintr_stack_t stack, void* ctxt)
 {
     UNUSED_PARAM(stack);
