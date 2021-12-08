@@ -103,9 +103,14 @@ pcintr_stack_get_bottom_frame(pcintr_stack_t stack)
 struct pcintr_stack_frame*
 pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame)
 {
-    UNUSED_PARAM(frame);
-    PC_ASSERT(0); // Not implemented yet
-    return NULL;
+    if (!frame)
+        return NULL;
+
+    struct list_head *n = frame->node.prev;
+    if (!n)
+        return NULL;
+
+    return container_of(n, struct pcintr_stack_frame, node);
 }
 
 static inline struct pcintr_stack_frame*

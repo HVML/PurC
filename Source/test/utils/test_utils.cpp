@@ -1,4 +1,5 @@
 #include "purc.h"
+#include "private/list.h"
 #include "private/sorted-array.h"
 
 #include <stdio.h>
@@ -180,5 +181,36 @@ TEST(utils, sorted_array_desc)
     }
 
     sorted_array_destroy(sa);
+}
+
+struct node
+{
+    struct list_head          node;
+    int                       v;
+};
+
+TEST(utils, list_head)
+{
+    struct list_head list;
+    INIT_LIST_HEAD(&list);
+
+    struct node n1, n2, n3, n4;
+    n1.v = 1;
+    n2.v = 2;
+    n3.v = 3;
+    n4.v = 4;
+
+    list_add_tail(&n1.node, &list);
+    list_add_tail(&n2.node, &list);
+    list_add_tail(&n3.node, &list);
+    list_add_tail(&n4.node, &list);
+
+    int v = 1;
+    struct list_head *p;
+    list_for_each(p, &list) {
+        struct node *node;
+        node = container_of(p, struct node, node);
+        ASSERT_EQ(node->v, v++);
+    }
 }
 
