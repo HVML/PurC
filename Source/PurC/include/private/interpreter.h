@@ -139,6 +139,8 @@ struct pcintr_stack_frame*
 pcintr_stack_get_bottom_frame(pcintr_stack_t stack);
 struct pcintr_stack_frame*
 pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame);
+void
+pop_stack_frame(pcintr_stack_t stack);
 
 struct pcintr_element_ops*
 pcintr_get_element_ops(pcvdom_element_t element);

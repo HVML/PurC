@@ -128,7 +128,7 @@ push_stack_frame(pcintr_stack_t stack)
     return 0;
 }
 
-static inline void
+void
 pop_stack_frame(pcintr_stack_t stack)
 {
     PC_ASSERT(stack);
