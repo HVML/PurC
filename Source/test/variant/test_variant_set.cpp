@@ -547,19 +547,20 @@ make_set(const int *vals, size_t nr)
 }
 
 static inline int
-cmp(const char *keynames[], size_t nr_keynames,
-        purc_variant_t l, purc_variant_t r, void *ud)
+cmp(size_t nr_keynames,
+        purc_variant_t l[], purc_variant_t r[], void *ud)
 {
-    (void)keynames;
-    (void)nr_keynames;
     (void)ud;
-    // NOTE: this is simple sort where we sort the whole value
-    // in some case, you might sort against key-fields of the value
-    char lbuf[1024], rbuf[1024];
-    purc_variant_stringify(lbuf, sizeof(lbuf), l);
-    purc_variant_stringify(rbuf, sizeof(rbuf), r);
+    for (size_t i=0; i<nr_keynames; ++i) {
+        char lbuf[1024], rbuf[1024];
+        purc_variant_stringify(lbuf, sizeof(lbuf), l[i]);
+        purc_variant_stringify(rbuf, sizeof(rbuf), r[i]);
+        int r = strcmp(lbuf, rbuf);
+        if (r)
+            return r;
+    }
 
-    return strcmp(lbuf, rbuf);
+    return 0;
 }
 
 TEST(variant_set, sort)
