@@ -31,17 +31,11 @@
 #include <assert.h>
 #include <stdlib.h>
 
-typedef struct __dvobjs_ejson_element {
-    int index;
-    char *name;
-} dvobjs_ejson_element;
-
-typedef struct __dvobjs_ejson_sort {
+typedef struct __dvobjs_ejson_arg {
     bool asc;
     bool caseless;
-} dvobjs_ejson_sort;
-
-static dvobjs_ejson_sort sort_type;
+    pcutils_map *map;
+} dvobjs_ejson_arg;
 
 static purc_variant_t
 count_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
@@ -202,8 +196,13 @@ stringify_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         case PURC_VARIANT_TYPE_ARRAY:
         case PURC_VARIANT_TYPE_SET:
             total = purc_variant_stringify_alloc (&buffer, argv[0]);
-            ret_var = purc_variant_make_string_reuse_buff (
-                    buffer, total + 1, false);
+            if (total == -1) {
+                pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+                ret_var = PURC_VARIANT_INVALID;
+            }
+            else
+                ret_var = purc_variant_make_string_reuse_buff (
+                        buffer, total, false);
             break;
         case PURC_VARIANT_TYPE_ATOMSTRING:
         case PURC_VARIANT_TYPE_STRING:
@@ -215,9 +214,15 @@ stringify_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             else
                 total = strlen (purc_variant_get_atom_string_const (argv[0]));
             buffer = malloc (total);
-            purc_variant_stringify (buffer, total, argv[0]);
-            ret_var = purc_variant_make_string_reuse_buff (
-                    buffer, total, false);
+            if (buffer == NULL) {
+                pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+                ret_var = PURC_VARIANT_INVALID;
+            }
+            else {
+                purc_variant_stringify (buffer, total, argv[0]);
+                ret_var = purc_variant_make_string_reuse_buff (
+                        buffer, total, false);
+            }
             break;
         default:
             buffer = stackbuf;
@@ -254,21 +259,90 @@ serialize_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     return ret_var;
 }
 
-static int mycompare (const void *elem1, const void *elem2)
+static int my_array_sort (purc_variant_t v1, purc_variant_t v2, void *ud)
 {
     int ret = 0;
-    dvobjs_ejson_element *p1 = (dvobjs_ejson_element *)elem1;
-    dvobjs_ejson_element *p2 = (dvobjs_ejson_element *)elem2;
+    char *p1 = NULL;
+    char *p2 = NULL;
+    pcutils_map_entry *entry = NULL;
 
-    if (sort_type.caseless)
-        ret = strcasecmp (p1->name, p2->name);
+    dvobjs_ejson_arg *sort_arg = (dvobjs_ejson_arg *)ud;
+    entry = pcutils_map_find (sort_arg->map, v1);
+    p1 = (char *)entry->val;
+    entry = pcutils_map_find (sort_arg->map, v2);
+    p2 = (char *)entry->val;
+
+    if (sort_arg->caseless)
+        ret = strcasecmp (p1, p2);
     else
-        ret = strcmp (p1->name, p2->name);
+        ret = strcmp (p1, p2);
 
-    if (!sort_type.asc)
+    if (!sort_arg->asc)
         ret = -1 * ret;
 
     return ret;
+}
+
+static int my_set_sort (size_t nr_keynames,
+        purc_variant_t v1[], purc_variant_t v2[], void *ud)
+{
+    size_t i = 0;
+    int ret = 0;
+    char *p1 = NULL;
+    char *p2 = NULL;
+    pcutils_map_entry *entry = NULL;
+
+    dvobjs_ejson_arg *sort_arg = (dvobjs_ejson_arg *)ud;
+
+
+    for (i = 0; i < nr_keynames; ++i) {
+        entry = pcutils_map_find (sort_arg->map, v1[i]);
+        p1 = (char *)entry->val;
+        entry = pcutils_map_find (sort_arg->map, v2[i]);
+        p2 = (char *)entry->val;
+
+        if (sort_arg->caseless)
+            ret = strcasecmp (p1, p2);
+        else
+            ret = strcmp (p1, p2);
+
+        if (!sort_arg->asc)
+            ret = -1 * ret;
+
+        if (ret)
+            return ret;
+    }
+
+    return 0;
+}
+
+static void * map_copy_key(const void *key)
+{
+    return (void *)key;
+}
+
+static void map_free_key(void *key)
+{
+    UNUSED_PARAM(key);
+}
+
+static void *map_copy_val(const void *val)
+{
+    return (void *)val;
+}
+
+static int map_comp_key(const void *key1, const void *key2)
+{
+    const char *s1 = (const char*)key1;
+    const char *s2 = (const char*)key2;
+
+    return strcmp(s1, s2);
+}
+
+static void map_free_val(void *val)
+{
+    if (val)
+        free (val);
 }
 
 static purc_variant_t
@@ -284,10 +358,12 @@ sort_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     bool having = false;
     const char *option = NULL;
     const char *order = NULL;
-    dvobjs_ejson_element *elements = NULL;
+    dvobjs_ejson_arg sort_arg;
+    char *buf = NULL;
 
-    sort_type.asc = true;
-    sort_type.caseless = false;
+    sort_arg.asc = true;
+    sort_arg.caseless = false;
+    sort_arg.map = NULL;
 
     if ((argv == NULL) || (nr_args < 2)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
@@ -308,59 +384,38 @@ sort_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     }
     order = purc_variant_get_string_const (argv[1]);
     if (strcasecmp (order, STRING_COMP_MODE_DESC) == 0)
-        sort_type.asc = false;
+        sort_arg.asc = false;
 
     // get sort option: case, caseless
     if ((nr_args == 3) && (argv[2] != PURC_VARIANT_INVALID) &&
                 (purc_variant_is_string (argv[2]))) {
         option = purc_variant_get_string_const (argv[2]);
         if (strcasecmp (option, STRING_COMP_MODE_CASELESS) == 0)
-            sort_type.caseless = true;
+            sort_arg.caseless = true;
     }
+
+    sort_arg.map = pcutils_map_create (map_copy_key, map_free_key,
+            map_copy_val, map_free_val, map_comp_key, false);
 
     // it is the array
     if (purc_variant_is_array (argv[0])) {
         totalsize = purc_variant_array_get_size (argv[0]);
-        elements = calloc ((unsigned)totalsize, sizeof(dvobjs_ejson_element));
-        if (elements == NULL) {
-            pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-            return PURC_VARIANT_INVALID;
-        }
 
         for (i = 0; i < totalsize; ++i) {
             val = purc_variant_array_get(argv[0], i);
-            elements[i].index = i;
-            purc_variant_stringify_alloc (&elements[i].name, val);
+            purc_variant_stringify_alloc (&buf, val);
+            pcutils_map_insert (sort_arg.map, val, buf);
         }
-
-        qsort (elements, totalsize, sizeof(dvobjs_ejson_element), mycompare);
-
-        // get new sort
-        // original: 0, 1, 2, 3, 4, 5
-        // now:      3, 2, 0, 5, 4, 1
-
-
-        for (i = 0; i < totalsize; ++i) {
-            if (elements[i].name)
-                free (elements[i].name);
-        }
-        free (elements);
-
+        pcvariant_array_sort (argv[0], (void *)&sort_arg, my_array_sort);
     }
     else {    // it is the set
         totalsize = purc_variant_set_get_size (argv[0]);
-        elements = calloc ((unsigned)totalsize, sizeof(dvobjs_ejson_element));
-        if (elements == NULL) {
-            pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-            return PURC_VARIANT_INVALID;
-        }
 
         it_set = purc_variant_set_make_iterator_begin(argv[0]);
         while (it_set) {
             val = purc_variant_set_iterator_get_value(it_set);
-
-            elements[i].index = i;
-            purc_variant_stringify_alloc (&elements[i].name, val);
+            purc_variant_stringify_alloc (&buf, val);
+            pcutils_map_insert (sort_arg.map, val, buf);
 
             having = purc_variant_set_iterator_next(it_set);
             if (!having)
@@ -369,18 +424,10 @@ sort_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         if (it_set)
             purc_variant_set_release_iterator(it_set);
 
-        qsort (elements, totalsize, sizeof(dvobjs_ejson_element), mycompare);
-
-        // get new sort
-        // original: 0, 1, 2, 3, 4, 5
-        // now:      3, 2, 0, 5, 4, 1
-
-        for (i = 0; i < totalsize; ++i) {
-            if (elements[i].name)
-                free (elements[i].name);
-        }
-        free (elements);
+        pcvariant_set_sort (argv[0], (void *)&sort_arg, my_set_sort);
     }
+
+    pcutils_map_destroy (sort_arg.map);
 
     return ret_var;
 }
@@ -392,11 +439,8 @@ compare_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     const char *option = NULL;
-    double number1 = 0.0L;
-    double number2 = 0.0L;
-    char *buf1 = NULL;
-    char *buf2 = NULL;
     double compare = 0.0L;
+    unsigned int flag = PCVARIANT_COMPARE_OPT_AUTO;
 
     if ((argv == NULL) || (nr_args < 3)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
@@ -405,44 +449,16 @@ compare_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     option = purc_variant_get_string_const (argv[2]);
 
-    if (strcasecmp (option, STRING_COMP_MODE_CASELESS) == 0) {
-        purc_variant_stringify_alloc (&buf1, argv[0]);
-        purc_variant_stringify_alloc (&buf2, argv[1]);
-        compare = (double)strcasecmp (buf1, buf2);
-        free (buf1);
-        free (buf2);
-    }
-    else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0) {
-        purc_variant_stringify_alloc (&buf1, argv[0]);
-        purc_variant_stringify_alloc (&buf2, argv[1]);
-        compare = (double)strcmp (buf1, buf2);
-        free (buf1);
-        free (buf2);
-    }
-    else if (strcasecmp (option, STRING_COMP_MODE_NUMBER) == 0) {
-        number1 = purc_variant_numberify (argv[0]);
-        number2 = purc_variant_numberify (argv[1]);
-        compare = number1 - number2;
-    }
-    else if (strcasecmp (option, STRING_COMP_MODE_AUTO) == 0) {
-        int type = purc_variant_get_type (argv[0]);
-        if ((type == PURC_VARIANT_TYPE_NUMBER) ||
-                (type == PURC_VARIANT_TYPE_LONGINT) ||
-                (type == PURC_VARIANT_TYPE_ULONGINT) ||
-                (type == PURC_VARIANT_TYPE_LONGDOUBLE)) {
-            number1 = purc_variant_numberify (argv[0]);
-            number2 = purc_variant_numberify (argv[1]);
+    if (strcasecmp (option, STRING_COMP_MODE_CASELESS) == 0)
+        flag = PCVARIANT_COMPARE_OPT_CASELESS;
+    else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0)
+        flag = PCVARIANT_COMPARE_OPT_CASE;
+    else if (strcasecmp (option, STRING_COMP_MODE_NUMBER) == 0)
+        flag = PCVARIANT_COMPARE_OPT_NUMBER;
+    else
+        flag = PCVARIANT_COMPARE_OPT_AUTO;
 
-            compare = number1 - number2;
-        }
-        else {
-            purc_variant_stringify_alloc (&buf1, argv[0]);
-            purc_variant_stringify_alloc (&buf2, argv[1]);
-            compare = (double)strcmp (buf1, buf2);
-            free (buf1);
-            free (buf2);
-        }
-    }
+    compare = purc_variant_compare_ex (argv[0], argv[1], flag);
 
     ret_var = purc_variant_make_number (compare);
 

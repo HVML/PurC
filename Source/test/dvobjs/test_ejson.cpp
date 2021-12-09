@@ -186,7 +186,7 @@ TEST(dvobjs, dvobjs_ejson_type)
 
 TEST(dvobjs, dvobjs_ejson_number)
 {
-    const char *function[] = {"number"};
+    const char *function[] = {"count"};
     purc_variant_t param[MAX_PARAM_NR] = {0};
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t ret_result = PURC_VARIANT_INVALID;
