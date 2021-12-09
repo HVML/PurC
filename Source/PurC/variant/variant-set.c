@@ -1088,8 +1088,10 @@ struct set_user_data {
 static inline int
 cmp_variant(const void *l, const void *r, void *ud)
 {
-    purc_variant_t vl = (purc_variant_t)l;
-    purc_variant_t vr = (purc_variant_t)r;
+    struct elem_node *nl = (struct elem_node*)l;
+    struct elem_node *nr = (struct elem_node*)r;
+    purc_variant_t vl = nl->elem;
+    purc_variant_t vr = nr->elem;
     struct set_user_data *d = (struct set_user_data*)ud;
     return d->cmp(vl, vr, d->ud);
 }
