@@ -22,6 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#define _GNU_SOURCE       // qsort_r
 
 #include "config.h"
 #include "private/variant.h"
@@ -190,7 +191,7 @@ variant_set_init(variant_set_t set, const char *unique_key)
     }
 
     size_t n = strlen(set->unique_key);
-    set->keynames = (char**)calloc(n, sizeof(*set->keynames));
+    set->keynames = (const char**)calloc(n, sizeof(*set->keynames));
     if (!set->keynames) {
         free(set->unique_key);
         set->unique_key = NULL;
@@ -1053,4 +1054,74 @@ int pcvariant_set_compare (purc_variant_t lv, purc_variant_t rv)
     return ln ? 1 : -1;
 }
 */
+
+int pcvariant_set_swap(purc_variant_t value, int i, int j)
+{
+    if (!value || value->type != PURC_VARIANT_TYPE_SET)
+        return -1;
+
+    variant_set_t set = (variant_set_t)value->sz_ptr[1];
+    if (!set)
+        return -1;
+
+    struct pcutils_arrlist *al = set->arr;
+    if (i<0 || (size_t)i>=al->length)
+        return -1;
+    if (j<0 || (size_t)j>=al->length)
+        return -1;
+
+    struct elem_node *l = (struct elem_node*)al->array[i];
+    struct elem_node *r = (struct elem_node*)al->array[j];
+    l->idx = j;
+    r->idx = i;
+    al->array[i] = r;
+    al->array[j] = l;
+
+    return 0;
+}
+
+struct set_user_data {
+    int (*cmp)(size_t nr_keynames,
+            purc_variant_t l[], purc_variant_t r[], void *ud);
+    void *ud;
+    size_t               nr_keynames;
+};
+
+static inline int
+cmp_variant(const void *l, const void *r, void *ud)
+{
+    struct elem_node *nl = *(struct elem_node**)l;
+    struct elem_node *nr = *(struct elem_node**)r;
+    purc_variant_t *vl = nl->kvs;
+    purc_variant_t *vr = nr->kvs;
+    struct set_user_data *d = (struct set_user_data*)ud;
+    return d->cmp(d->nr_keynames, vl, vr, d->ud);
+}
+
+int pcvariant_set_sort(purc_variant_t value, void *ud,
+        int (*cmp)(size_t nr_keynames,
+            purc_variant_t l[], purc_variant_t r[], void *ud))
+{
+    if (!value || value->type != PURC_VARIANT_TYPE_SET)
+        return -1;
+
+    variant_set_t data = pcv_set_get_data(value);
+    struct pcutils_arrlist *al = data->arr;
+    if (!al)
+        return -1;
+    void *arr = al->array;
+
+    struct set_user_data d = {
+        .cmp         = cmp,
+        .ud          = ud,
+        .nr_keynames = data->nr_keynames,
+    };
+
+    qsort_r(arr, al->length, sizeof(struct elem_node*),
+            cmp_variant, &d);
+
+    refresh_arr(al, 0);
+
+    return 0;
+}
 

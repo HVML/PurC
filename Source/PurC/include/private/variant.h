@@ -163,11 +163,20 @@ struct elem_node {
 
 struct variant_set {
     char                   *unique_key; // unique-key duplicated
-    char                  **keynames;
+    const char            **keynames;
     size_t                  nr_keynames;
     struct rb_root          elems;  // multiple-variant-elements stored in set
     struct pcutils_arrlist *arr;    // also stored in arraylist
 };
+
+int pcvariant_array_swap(purc_variant_t value, int i, int j);
+int pcvariant_set_swap(purc_variant_t value, int i, int j);
+
+int pcvariant_array_sort(purc_variant_t value, void *ud,
+        int (*cmp)(purc_variant_t l, purc_variant_t r, void *ud));
+int pcvariant_set_sort(purc_variant_t value, void *ud,
+        int (*cmp)(size_t nr_keynames, purc_variant_t l[], purc_variant_t r[],
+            void *ud));
 
 #ifdef __cplusplus
 }

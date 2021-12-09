@@ -1647,3 +1647,57 @@ TEST(variant, empty_object)
 }
 
 
+TEST(variant, variant_compare)
+{
+    purc_variant_t value1 = NULL;
+    purc_variant_t value2 = NULL;
+    double compare= 0.0L;
+    purc_instance_extra_info info = {0, 0};
+
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    value1 = purc_variant_make_object (0, PURC_VARIANT_INVALID,
+            PURC_VARIANT_INVALID);
+    purc_variant_t key1 = purc_variant_make_string ("beijing", false);
+    purc_variant_t val1 = purc_variant_make_string ("guangzhou", false);
+    purc_variant_object_set (value1, key1, val1);
+
+    value2 = purc_variant_make_object (0, PURC_VARIANT_INVALID,
+            PURC_VARIANT_INVALID);
+    purc_variant_t key2 = purc_variant_make_string ("beijing", false);
+    purc_variant_t val2 = purc_variant_make_string ("guangzhou", false);
+    purc_variant_object_set (value2, key2, val2);
+
+    compare = purc_variant_compare_ex (value1, value2, PCVARIANT_COMPARE_OPT_CASELESS);
+    ASSERT_EQ(compare, 0.0L);
+
+    compare = purc_variant_compare_ex (value1, value2, PCVARIANT_COMPARE_OPT_CASE);
+    ASSERT_EQ(compare, 0.0L);
+
+    compare = purc_variant_compare_ex (value1, value2, PCVARIANT_COMPARE_OPT_NUMBER);
+    ASSERT_EQ(compare, 0.0L);
+
+    compare = purc_variant_compare_ex (value1, value2, PCVARIANT_COMPARE_OPT_AUTO);
+    ASSERT_EQ(compare, 0.0L);
+
+    purc_variant_unref (key1);
+    purc_variant_unref (val1);
+    purc_variant_unref (key2);
+    purc_variant_unref (val2);
+    purc_variant_unref (value1);
+    purc_variant_unref (value2);
+
+
+    value1 = purc_variant_make_number (1.0);
+    value2 = purc_variant_make_number (2.0);
+    compare = purc_variant_compare_ex (value1, value2, PCVARIANT_COMPARE_OPT_AUTO);
+    ASSERT_LT(compare, 0.0L);
+    compare = purc_variant_compare_ex (value1, value2, PCVARIANT_COMPARE_OPT_CASE);
+    ASSERT_LT(compare, 0.0L);
+    purc_variant_unref (value1);
+    purc_variant_unref (value2);
+
+
+    purc_cleanup ();
+}

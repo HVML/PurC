@@ -22,6 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#define _GNU_SOURCE       // qsort_r
 
 #include "config.h"
 #include "private/variant.h"
@@ -418,5 +419,61 @@ bool purc_variant_array_insert_after (purc_variant_t array, int idx,
         purc_variant_t value)
 {
     return purc_variant_array_insert_before(array, idx+1, value);
+}
+
+int pcvariant_array_swap(purc_variant_t value, int i, int j)
+{
+    if (!value || value->type != PURC_VARIANT_TYPE_ARRAY)
+        return -1;
+
+    struct pcutils_arrlist *al = (struct pcutils_arrlist*)value->sz_ptr[1];
+    if (!al)
+        return -1;
+
+    if (i<0 || (size_t)i>=al->length)
+        return -1;
+    if (j<0 || (size_t)j>=al->length)
+        return -1;
+
+    void *tmp = al->array[i];
+    al->array[i] = al->array[j];
+    al->array[j] = tmp;
+
+    return 0;
+}
+
+struct arr_user_data {
+    int (*cmp)(purc_variant_t l, purc_variant_t r, void *ud);
+    void *ud;
+};
+
+static inline int
+cmp_variant(const void *l, const void *r, void *ud)
+{
+    purc_variant_t vl = *(purc_variant_t*)l;
+    purc_variant_t vr = *(purc_variant_t*)r;
+    struct arr_user_data *d = (struct arr_user_data*)ud;
+    return d->cmp(vl, vr, d->ud);
+}
+
+int pcvariant_array_sort(purc_variant_t value, void *ud,
+        int (*cmp)(purc_variant_t l, purc_variant_t r, void *ud))
+{
+    if (!value || value->type != PURC_VARIANT_TYPE_ARRAY)
+        return -1;
+
+    struct pcutils_arrlist *al = (struct pcutils_arrlist*)value->sz_ptr[1];
+    if (!al)
+        return -1;
+    void *arr = al->array;
+
+    struct arr_user_data d = {
+        .cmp = cmp,
+        .ud  = ud,
+    };
+    qsort_r(arr, al->length, sizeof(purc_variant_t),
+            cmp_variant, &d);
+
+    return 0;
 }
 
