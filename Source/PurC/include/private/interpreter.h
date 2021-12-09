@@ -171,6 +171,8 @@ purc_variant_t
 pcintr_get_symbolized_var (pcintr_stack_t stack, unsigned int number,
         char symbol);
 
+purc_variant_t
+pcintr_get_numbered_var (pcintr_stack_t stack, unsigned int number);
 
 PCA_EXTERN_C_END
 
