@@ -1437,8 +1437,10 @@ purc_variant_cast_to_byte_sequence(purc_variant_t v,
  * Since: 0.0.1
  */
 PCA_EXPORT double
-purc_variant_compare(purc_variant_t v1, purc_variant_t v2, unsigned int flag);
+purc_variant_compare_ex(purc_variant_t v1, purc_variant_t v2, unsigned int flag);
 
+PCA_EXPORT int
+purc_variant_compare(purc_variant_t v1, purc_variant_t v2);
 /**
  * A flag for the purc_variant_serialize() function which causes the output
  * to have no extra whitespace or formatting applied.

@@ -144,7 +144,7 @@ key_equal(const void *k1, const void *k2)
 
     purc_variant_t key1 = (purc_variant_t)k1;
     purc_variant_t key2 = (purc_variant_t)k2;
-    return purc_variant_compare(key1, key2, PCVARIANT_COMPARE_OPT_AUTO) ? 0 : 1;
+    return purc_variant_compare(key1, key2) ? 0 : 1;
 }
 
 static purc_variant_t v_object_new_with_capacity(size_t initial_size)
