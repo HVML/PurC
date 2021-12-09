@@ -547,5 +547,6 @@ TEST(utils, map)
 
     r = pcutils_map_traverse(map, NULL, map_visit);
     pcutils_map_destroy(map);
+    ASSERT_EQ(r, 0);
 }
 
