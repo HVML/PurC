@@ -687,6 +687,7 @@ purc_variant_t pcvcm_node_concat_string_to_variant (struct pcvcm_node* node,
         else {
             goto err;
         }
+        child = child->next;
     }
 
     size_t rw_size = 0;
@@ -734,13 +735,121 @@ purc_variant_t pcvcm_node_get_variable_to_variant (struct pcvcm_node* node,
 
 }
 
+static bool is_action_node(struct pcvcm_node* node)
+{
+    return (node && (
+                node->type == PCVCM_NODE_TYPE_FUNC_GET_ELEMENT ||
+                node->type == PCVCM_NODE_TYPE_FUNC_CALL_GETTER ||
+                node->type == PCVCM_NODE_TYPE_FUNC_CALL_SETTER
+                )
+            );
+}
+
+purc_variant_t call_dvariant_getter_method(purc_variant_t root,
+        size_t nr_args, purc_variant_t* argv)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    return PURC_VARIANT_INVALID;
+}
+
+purc_variant_t call_dvariant_setter_method(purc_variant_t root,
+        size_t nr_args, purc_variant_t* argv)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    return PURC_VARIANT_INVALID;
+}
+
+purc_variant_t call_nvariant_getter_method(purc_variant_t root,
+        size_t nr_args, purc_variant_t* argv)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    return PURC_VARIANT_INVALID;
+}
+
+purc_variant_t call_nvariant_setter_method(purc_variant_t root,
+        size_t nr_args, purc_variant_t* argv)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    return PURC_VARIANT_INVALID;
+}
+
 purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
        struct pcvcm_node_op* ops)
 {
     UNUSED_PARAM(node);
     UNUSED_PARAM(ops);
 
-    return purc_variant_make_null();
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    struct pctree_node* tree_node = (struct pctree_node*) (node);
+    struct pctree_node* first_param_node = tree_node->first_child;
+    if (!first_param_node) {
+        goto exit;
+    }
+
+    purc_variant_t first_param_var = pcvcm_node_to_variant(
+            (struct pcvcm_node*)first_param_node, ops);
+    if (!first_param_var) {
+        goto exit;
+    }
+
+    purc_variant_t last_param_var = pcvcm_node_to_variant(
+            (struct pcvcm_node*)(first_param_node->next), ops);
+    if (!last_param_var) {
+        goto clean_first_param_var;
+    }
+
+    if (purc_variant_is_object(first_param_var)) {
+        purc_variant_t val = purc_variant_object_get(first_param_var,
+                last_param_var);
+        if (!val) {
+            goto clean_last_param_var;
+        }
+
+        if (!purc_variant_is_dynamic(val)
+                && !purc_variant_is_native(val)) {
+            ret_var = val;
+            goto clean_last_param_var;
+        }
+
+        struct pctree_node* parent_node = pctree_node_parent(tree_node);
+        if (is_action_node((struct pcvcm_node*)parent_node)) {
+            ret_var = val;
+            goto clean_last_param_var;
+        }
+
+        if (purc_variant_is_dynamic(val)) {
+            ret_var = call_dvariant_getter_method(val, 0, NULL);
+        }
+        else {
+            ret_var = call_nvariant_getter_method(val, 0, NULL);
+        }
+        purc_variant_unref(val);
+    }
+    else if (purc_variant_is_dynamic(first_param_var)) {
+        ret_var = call_dvariant_getter_method(first_param_var, 1,
+                &last_param_var);
+        goto clean_last_param_var;
+    }
+    else if (purc_variant_is_native(first_param_var)) {
+        ret_var = call_nvariant_getter_method(first_param_var, 1,
+                &last_param_var);
+        goto clean_last_param_var;
+    }
+
+clean_last_param_var:
+    purc_variant_unref(last_param_var);
+clean_first_param_var:
+    purc_variant_unref(first_param_var);
+exit:
+    return ret_var;
 }
 
 purc_variant_t pcvcm_node_call_getter_to_variant (struct pcvcm_node* node,
