@@ -22,6 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#define _GNU_SOURCE       // qsort_r
 
 #include "config.h"
 #include "private/variant.h"
@@ -1060,6 +1061,8 @@ int pcvariant_set_swap(purc_variant_t value, int i, int j)
         return -1;
 
     variant_set_t set = (variant_set_t)value->sz_ptr[1];
+    if (!set)
+        return -1;
 
     struct pcutils_arrlist *al = set->arr;
     if (i<0 || (size_t)i>=al->length)
@@ -1073,6 +1076,43 @@ int pcvariant_set_swap(purc_variant_t value, int i, int j)
     r->idx = i;
     al->array[i] = r;
     al->array[j] = l;
+
+    return 0;
+}
+
+struct set_user_data {
+    int (*cmp)(purc_variant_t l, purc_variant_t r, void *ud);
+    void *ud;
+};
+
+static inline int
+cmp_variant(const void *l, const void *r, void *ud)
+{
+    purc_variant_t vl = (purc_variant_t)l;
+    purc_variant_t vr = (purc_variant_t)r;
+    struct set_user_data *d = (struct set_user_data*)ud;
+    return d->cmp(vl, vr, d->ud);
+}
+
+int pcvariant_set_sort(purc_variant_t value, void *ud,
+        int (*cmp)(purc_variant_t l, purc_variant_t r, void *ud))
+{
+    if (!value || value->type != PURC_VARIANT_TYPE_SET)
+        return -1;
+
+    variant_set_t data = pcv_set_get_data(value);
+    struct pcutils_arrlist *al = data->arr;
+    if (!al)
+        return -1;
+
+    struct set_user_data d = {
+        .cmp = cmp,
+        .ud  = ud,
+    };
+    qsort_r(al, al->length, sizeof(struct elem_node*),
+            cmp_variant, &d);
+
+    refresh_arr(al, 0);
 
     return 0;
 }

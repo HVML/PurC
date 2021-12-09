@@ -276,4 +276,9 @@ struct variant_set {
 int pcvariant_array_swap(purc_variant_t value, int i, int j);
 int pcvariant_set_swap(purc_variant_t value, int i, int j);
 
+int pcvariant_array_sort(purc_variant_t value, void *ud,
+        int (*cmp)(purc_variant_t l, purc_variant_t r, void *ud));
+int pcvariant_set_sort(purc_variant_t value, void *ud,
+        int (*cmp)(purc_variant_t l, purc_variant_t r, void *ud));
+
 
