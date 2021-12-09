@@ -575,28 +575,39 @@ TEST(variant_set, sort)
     stat = purc_variant_usage_stat();
     ASSERT_NE(stat, nullptr);
 
-    const int vals[] = {
+    const int ins[] = {
         3,2,4,1,7,9,6,8,5
     };
+    const int outs[] = {
+        1,2,3,4,5,6,7,8,9
+    };
 
-    purc_variant_t set = make_set(vals, PCA_TABLESIZE(vals));
-    ASSERT_NE(set, nullptr);
-    char inbuf[8192];
-    int r = purc_variant_stringify(inbuf, sizeof(inbuf), set);
-    ASSERT_GT(r, 0);
-    fprintf(stderr, "==[%s]==\n", inbuf);
+    char inbuf[8192]; {
+        purc_variant_t set = make_set(ins, PCA_TABLESIZE(ins));
+        ASSERT_NE(set, nullptr);
 
-    r = pcvariant_set_sort(set, NULL, cmp);
-    ASSERT_EQ(r, 0);
+        int r = pcvariant_set_sort(set, NULL, cmp);
+        ASSERT_EQ(r, 0);
 
-    char outbuf[8192];
-    r = purc_variant_stringify(outbuf, sizeof(outbuf), set);
-    ASSERT_GT(r, 0);
-    fprintf(stderr, "==[%s]==\n", outbuf);
+        r = purc_variant_stringify(inbuf, sizeof(inbuf), set);
+        ASSERT_GT(r, 0);
 
-    purc_variant_unref(set);
+        purc_variant_unref(set);
+    }
+
+    char outbuf[8192]; {
+        purc_variant_t set = make_set(outs, PCA_TABLESIZE(outs));
+        ASSERT_NE(set, nullptr);
+
+        int r = purc_variant_stringify(outbuf, sizeof(outbuf), set);
+        ASSERT_GT(r, 0);
+
+        purc_variant_unref(set);
+    }
 
     cleanup = purc_cleanup ();
     ASSERT_EQ (cleanup, true);
+
+    ASSERT_STREQ(inbuf, outbuf);
 }
 
