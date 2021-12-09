@@ -175,8 +175,8 @@ int pcvariant_set_swap(purc_variant_t value, int i, int j);
 int pcvariant_array_sort(purc_variant_t value, void *ud,
         int (*cmp)(purc_variant_t l, purc_variant_t r, void *ud));
 int pcvariant_set_sort(purc_variant_t value, void *ud,
-        int (*cmp)(const char *keynames[], size_t nr_keynames,
-            purc_variant_t l, purc_variant_t r, void *ud));
+        int (*cmp)(size_t nr_keynames, purc_variant_t l[], purc_variant_t r[],
+            void *ud));
 
 #ifdef __cplusplus
 }

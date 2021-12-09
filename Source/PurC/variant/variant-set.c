@@ -1081,10 +1081,9 @@ int pcvariant_set_swap(purc_variant_t value, int i, int j)
 }
 
 struct set_user_data {
-    int (*cmp)(const char *keynames[], size_t nr_keynames,
-            purc_variant_t l, purc_variant_t r, void *ud);
+    int (*cmp)(size_t nr_keynames,
+            purc_variant_t l[], purc_variant_t r[], void *ud);
     void *ud;
-    const char         **keynames;
     size_t               nr_keynames;
 };
 
@@ -1093,15 +1092,15 @@ cmp_variant(const void *l, const void *r, void *ud)
 {
     struct elem_node *nl = *(struct elem_node**)l;
     struct elem_node *nr = *(struct elem_node**)r;
-    purc_variant_t vl = nl->elem;
-    purc_variant_t vr = nr->elem;
+    purc_variant_t *vl = nl->kvs;
+    purc_variant_t *vr = nr->kvs;
     struct set_user_data *d = (struct set_user_data*)ud;
-    return d->cmp(d->keynames, d->nr_keynames, vl, vr, d->ud);
+    return d->cmp(d->nr_keynames, vl, vr, d->ud);
 }
 
 int pcvariant_set_sort(purc_variant_t value, void *ud,
-        int (*cmp)(const char *keynames[], size_t nr_keynames,
-            purc_variant_t l, purc_variant_t r, void *ud))
+        int (*cmp)(size_t nr_keynames,
+            purc_variant_t l[], purc_variant_t r[], void *ud))
 {
     if (!value || value->type != PURC_VARIANT_TYPE_SET)
         return -1;
@@ -1115,7 +1114,6 @@ int pcvariant_set_sort(purc_variant_t value, void *ud,
     struct set_user_data d = {
         .cmp         = cmp,
         .ud          = ud,
-        .keynames    = (const char**)data->keynames,
         .nr_keynames = data->nr_keynames,
     };
 
