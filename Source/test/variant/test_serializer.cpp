@@ -844,7 +844,7 @@ TEST(variant, serialize_object_with_empty_key2)
 
     buf[n] = 0;
     fprintf(stderr, "%ld[%s]\n", n, buf);
-    ASSERT_STREQ(buf, "{\"x\":123,\"\":123}");
+    ASSERT_STREQ(buf, "{\"\":123,\"x\":123}");
 
     ASSERT_EQ(my_variant->refc, 1);
     purc_variant_unref(my_variant);

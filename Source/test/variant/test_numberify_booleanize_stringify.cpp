@@ -174,9 +174,9 @@ struct stringify_record records[] = {
     { "{'a':10,'b':20,'c':30,'d':40}", "a:10\nb:20\nc:30\nd:40\n" },
     { "[{'id':'1','name': 'Tom', 'age': 2, 'male': true },"
         "{'id':'2','name':'Jerry','age':3,'male':true}]",
-        "id:1\nname:Tom\nage:2\nmale:true\n"
+        "age:2\nid:1\nmale:true\nname:Tom\n"
             "\n"
-            "id:2\nname:Jerry\nage:3\nmale:true\n"
+            "age:3\nid:2\nmale:true\nname:Jerry\n"
             "\n" },
 };
 
