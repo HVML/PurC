@@ -3,6 +3,7 @@
 #include "purc-variant.h"
 #include "private/variant.h"
 
+#include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
@@ -598,6 +599,98 @@ TEST(variant_set, sort)
 
     char outbuf[8192]; {
         purc_variant_t set = make_set(outs, PCA_TABLESIZE(outs));
+        ASSERT_NE(set, nullptr);
+
+        int r = purc_variant_stringify(outbuf, sizeof(outbuf), set);
+        ASSERT_GT(r, 0);
+
+        purc_variant_unref(set);
+    }
+
+    cleanup = purc_cleanup ();
+    ASSERT_EQ (cleanup, true);
+
+    ASSERT_STREQ(inbuf, outbuf);
+}
+
+static inline purc_variant_t
+make_generic_set(size_t nr, ...)
+{
+    purc_variant_t obj;
+    obj = purc_variant_make_object_by_static_ckey(0,
+            NULL, PURC_VARIANT_INVALID);
+    if (obj == PURC_VARIANT_INVALID)
+        return PURC_VARIANT_INVALID;
+
+    bool ok = true;
+    va_list ap;
+    va_start(ap, nr);
+    for (size_t i=0; i<nr; ++i) {
+        const char *k = va_arg(ap, const char*);
+        const char *v = va_arg(ap, const char*);
+        if (!k || !v) {
+            ok = false;
+            break;
+        }
+        purc_variant_t val = purc_variant_make_string_static(v, false);
+        if (val == PURC_VARIANT_INVALID) {
+            ok = false;
+            break;
+        }
+        ok = purc_variant_object_set_by_static_ckey(obj, k, val);
+        purc_variant_unref(val);
+        if (!ok)
+            break;
+    }
+    va_end(ap);
+
+    if (!ok) {
+        purc_variant_unref(obj);
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t set;
+    set = purc_variant_make_set_by_ckey(0, NULL, PURC_VARIANT_INVALID);
+    if (set == PURC_VARIANT_INVALID) {
+        purc_variant_unref(obj);
+        return PURC_VARIANT_INVALID;
+    }
+
+    ok = purc_variant_set_add(set, obj, false);
+    purc_variant_unref(obj);
+    if (!ok) {
+        purc_variant_unref(set);
+        return PURC_VARIANT_INVALID;
+    }
+
+    return set;
+}
+
+TEST(variant_set, generic)
+{
+    purc_instance_extra_info info = {0, 0};
+    int ret = 0;
+    bool cleanup = false;
+    struct purc_variant_stat *stat;
+
+    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ(ret, PURC_ERROR_OK);
+
+    stat = purc_variant_usage_stat();
+    ASSERT_NE(stat, nullptr);
+
+    char inbuf[8192]; {
+        purc_variant_t set = make_generic_set(2, "id", "1", "name", "foo");
+        ASSERT_NE(set, nullptr);
+
+        int r = purc_variant_stringify(inbuf, sizeof(inbuf), set);
+        ASSERT_GT(r, 0);
+
+        purc_variant_unref(set);
+    }
+
+    char outbuf[8192]; {
+        purc_variant_t set = make_generic_set(2, "name", "foo", "id", "1");
         ASSERT_NE(set, nullptr);
 
         int r = purc_variant_stringify(outbuf, sizeof(outbuf), set);
