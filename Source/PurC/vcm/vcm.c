@@ -858,7 +858,65 @@ purc_variant_t pcvcm_node_call_getter_to_variant (struct pcvcm_node* node,
     UNUSED_PARAM(node);
     UNUSED_PARAM(ops);
 
-    return purc_variant_make_null();
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    struct pctree_node* tree_node = (struct pctree_node*) (node);
+    struct pctree_node* first_param_node = tree_node->first_child;
+    if (!first_param_node) {
+        goto exit;
+    }
+
+    purc_variant_t first_param_var = pcvcm_node_to_variant(
+            (struct pcvcm_node*)first_param_node, ops);
+    if (!first_param_var) {
+        goto exit;
+    }
+
+    if (!purc_variant_is_dynamic(first_param_var)
+            && !purc_variant_is_native(first_param_var)) {
+        goto clean_first_param_var;
+    }
+
+    purc_variant_t* params = NULL;
+    size_t nr_params = pctree_node_children_number(tree_node) - 1;
+    if (nr_params) {
+        params = (purc_variant_t*) calloc(nr_params, sizeof(purc_variant_t));
+
+        int i = 0;
+        struct pctree_node* param_node = first_param_node->next;
+        while (param_node) {
+            purc_variant_t vt = pcvcm_node_to_variant (
+                    (struct pcvcm_node*)param_node, ops);
+            if (!vt) {
+                goto clean_params;
+            }
+
+            params[i] = vt;
+            i++;
+            param_node = param_node->next;
+        }
+    }
+
+    if (purc_variant_is_dynamic(first_param_var)) {
+        ret_var = call_dvariant_getter_method(first_param_var, nr_params,
+                params);
+    }
+    else if (purc_variant_is_native(first_param_var)) {
+        ret_var = call_nvariant_getter_method(first_param_var, nr_params,
+                params);
+    }
+
+clean_params:
+    for (size_t i = 0; i < nr_params; i++) {
+        if (params[i]) {
+            purc_variant_unref(params[i]);
+        }
+    }
+    free(params);
+
+clean_first_param_var:
+    purc_variant_unref(first_param_var);
+exit:
+    return ret_var;
 }
 
 purc_variant_t pcvcm_node_call_setter_to_variant (struct pcvcm_node* node,
@@ -867,7 +925,65 @@ purc_variant_t pcvcm_node_call_setter_to_variant (struct pcvcm_node* node,
     UNUSED_PARAM(node);
     UNUSED_PARAM(ops);
 
-    return purc_variant_make_null();
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    struct pctree_node* tree_node = (struct pctree_node*) (node);
+    struct pctree_node* first_param_node = tree_node->first_child;
+    if (!first_param_node) {
+        goto exit;
+    }
+
+    purc_variant_t first_param_var = pcvcm_node_to_variant(
+            (struct pcvcm_node*)first_param_node, ops);
+    if (!first_param_var) {
+        goto exit;
+    }
+
+    if (!purc_variant_is_dynamic(first_param_var)
+            && !purc_variant_is_native(first_param_var)) {
+        goto clean_first_param_var;
+    }
+
+    purc_variant_t* params = NULL;
+    size_t nr_params = pctree_node_children_number(tree_node) - 1;
+    if (nr_params) {
+        params = (purc_variant_t*) calloc(nr_params, sizeof(purc_variant_t));
+
+        int i = 0;
+        struct pctree_node* param_node = first_param_node->next;
+        while (param_node) {
+            purc_variant_t vt = pcvcm_node_to_variant (
+                    (struct pcvcm_node*)param_node, ops);
+            if (!vt) {
+                goto clean_params;
+            }
+
+            params[i] = vt;
+            i++;
+            param_node = param_node->next;
+        }
+    }
+
+    if (purc_variant_is_dynamic(first_param_var)) {
+        ret_var = call_dvariant_setter_method(first_param_var, nr_params,
+                params);
+    }
+    else if (purc_variant_is_native(first_param_var)) {
+        ret_var = call_nvariant_setter_method(first_param_var, nr_params,
+                params);
+    }
+
+clean_params:
+    for (size_t i = 0; i < nr_params; i++) {
+        if (params[i]) {
+            purc_variant_unref(params[i]);
+        }
+    }
+    free(params);
+
+clean_first_param_var:
+    purc_variant_unref(first_param_var);
+exit:
+    return ret_var;
 }
 
 purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node,
