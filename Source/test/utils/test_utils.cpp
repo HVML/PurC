@@ -1,5 +1,7 @@
 #include "purc.h"
 #include "private/avl.h"
+#include "private/hashtable.h"
+#include "private/rbtree.h"
 #include "private/sorted-array.h"
 
 #include <stdio.h>
@@ -246,5 +248,249 @@ TEST(avl, init)
         prev = p->key;
         free(p);
     }
+}
+
+/* test arrlist.double_free */
+static size_t _arrlist_items_free = 0;
+static void _arrlist_item_free(void *data)
+{
+    free(data);
+    ++_arrlist_items_free;
+}
+
+TEST(arrlist, double_free)
+{
+    int t;
+    // reset
+    _arrlist_items_free = 0;
+
+    struct pcutils_arrlist *al = pcutils_arrlist_new_ex(_arrlist_item_free, 3);
+
+    char *s1 = strdup("hello");
+    t = pcutils_arrlist_put_idx(al, 0, s1);
+    ASSERT_EQ(t, 0);
+    // double-free intentionally
+    t = pcutils_arrlist_put_idx(al, 0, s1);
+    ASSERT_EQ(t, 0);
+
+    pcutils_arrlist_free(al);
+
+    // test check
+    ASSERT_EQ(_arrlist_items_free, 1);
+}
+
+/* test hashtable.double_free */
+static size_t _hash_table_items_free = 0;
+static void _hash_table_item_free(pchash_entry *e)
+{
+    free(pchash_entry_k(e));
+    free(pchash_entry_v(e));
+    ++_hash_table_items_free;
+}
+
+TEST(hashtable, double_free)
+{
+    int t;
+    // reset
+    _hash_table_items_free = 0;
+
+    struct pchash_table *ht = pchash_kchar_table_new(3, _hash_table_item_free);
+
+    const char *k1 = "hello";
+    t = pchash_table_insert(ht, strdup(k1), strdup(k1));
+    ASSERT_EQ(t, 0);
+
+    struct pchash_entry *e = pchash_table_lookup_entry(ht, k1);
+    EXPECT_NE(e, nullptr);
+    const char *kk = (const char*)pchash_entry_k(e);
+    ASSERT_NE(k1, kk);
+    EXPECT_STREQ(k1, kk);
+    ASSERT_EQ(0, strcmp(k1, kk));
+    pchash_table_free(ht);
+
+    // test check
+    ASSERT_EQ(_hash_table_items_free, 1);
+}
+
+struct string_s {
+    struct list_head      list;
+    char                 *s;
+};
+
+struct strings_s {
+    struct list_head      head;
+};
+
+TEST(utils, list)
+{
+    struct strings_s     strings;
+    INIT_LIST_HEAD(&strings.head);
+    for (int i=0; i<10; ++i) {
+        struct string_s *str = (struct string_s*)malloc(sizeof(*str));
+        char buf[20];
+        snprintf(buf, sizeof(buf), "%d", i+1);
+        str->s = strdup(buf);
+        list_add_tail(&str->list, &strings.head);
+    }
+
+    struct list_head *p, *n;
+    int i = 0;
+    list_for_each(p, &strings.head) {
+        struct string_s *str = list_entry(p, struct string_s, list);
+        char buf[20];
+        snprintf(buf, sizeof(buf), "%d", ++i);
+        EXPECT_STREQ(buf, str->s);
+    }
+
+    i = 0;
+    list_for_each_safe(p, n, &strings.head) {
+        struct string_s *str = list_entry(p, struct string_s, list);
+        n = str->list.next;
+        list_del_init(&str->list);
+        free(str->s);
+        free(str);
+    }
+}
+
+struct name_s {
+    struct avl_node   node;
+    char             *s;
+};
+
+struct names_s {
+    struct avl_tree   root;
+};
+
+static int _avl_cmp (const void *k1, const void *k2, void *ptr) {
+    const char *s1 = (const char*)k1;
+    const char *s2 = (const char*)k2;
+    (void)ptr;
+    return strcmp(s1, s2);
+}
+
+TEST(utils, avl)
+{
+    struct names_s names;
+    pcutils_avl_init(&names.root, _avl_cmp, false, nullptr);
+    for (int i=0; i<10; ++i) {
+        struct name_s *name = (struct name_s*)malloc(sizeof(*name));
+        char buf[20];
+        snprintf(buf, sizeof(buf), "%d", i+1);
+        name->s = strdup(buf);
+        name->node.key = name->s;
+        int t = pcutils_avl_insert(&names.root, &name->node);
+        ASSERT_EQ(t, 0);
+    }
+
+    struct name_s *name;
+    avl_for_each_element(&names.root, name, node) {
+        fprintf(stderr, "%s\n", name->s);
+    }
+
+    name = avl_find_element(&names.root, "9", name, node);
+    ASSERT_NE(name, nullptr);
+    ASSERT_STREQ((const char*)name->node.key, "9");
+
+    struct name_s *ptr;
+    avl_for_each_element_safe(&names.root, name, node, ptr) {
+        ptr = avl_next_element(name, node);
+        free(name->s);
+        free(name);
+    }
+}
+
+struct str_node {
+    struct rb_node  node;
+    const char     *str;
+};
+
+int cmp(const void *key, struct rb_node *node)
+{
+    struct str_node *p = container_of(node, struct str_node, node);
+    const char *k = (const char*)key;
+    return strcmp(k, p->str);
+}
+
+static inline void
+do_insert(struct rb_root *root, const char *str, bool *ok)
+{
+    struct rb_node **pnode = &root->rb_node;
+    struct rb_node *parent = NULL;
+    struct rb_node *entry = NULL;
+    while (*pnode) {
+        int ret = cmp(str, *pnode);
+
+        parent = *pnode;
+
+        if (ret < 0)
+            pnode = &parent->rb_left;
+        else if (ret > 0)
+            pnode = &parent->rb_right;
+        else{
+            entry = *pnode;
+            break;
+        }
+    }
+
+    if (!entry) { //new the entry
+        struct str_node *snode = (struct str_node*)calloc(1, sizeof(*snode));
+        if (!snode) {
+            *ok = false;
+            return;
+        }
+        snode->str = str;
+        entry = &snode->node;
+
+        pcutils_rbtree_link_node(entry, parent, pnode);
+        pcutils_rbtree_insert_color(entry, root);
+        *ok = true;
+        return;
+    }
+
+    struct str_node *p = container_of(entry, struct str_node, node);
+    p->str = str;
+    *ok = true;
+}
+
+TEST(utils, rbtree)
+{
+    const char *samples[] = {
+        "hello",
+        "world",
+        "foo",
+        "bar",
+        "great",
+        "wall",
+    };
+
+    bool ok = true;
+
+    struct rb_root root = RB_ROOT;
+    struct rb_node *node;
+    node = pcutils_rbtree_first(&root);
+    ASSERT_EQ(node, nullptr);
+
+    for (size_t i=0; i<PCA_TABLESIZE(samples); ++i) {
+        const char *sample = samples[i];
+        do_insert(&root, sample, &ok);
+        if (!ok)
+            break;
+    }
+
+    node = pcutils_rbtree_first(&root);
+    for (; node; node = pcutils_rbtree_next(node)) {
+        struct str_node *p = container_of(node, struct str_node, node);
+        ASSERT_NE(p, nullptr);
+    }
+
+    node = pcutils_rbtree_first(&root);
+    struct rb_node *next;
+    for (; ({node && (next = pcutils_rbtree_next(node)); node;}); node=next) {
+        struct str_node *p = container_of(node, struct str_node, node);
+        pcutils_rbtree_erase(node, &root);
+        free(p);
+    }
+
+    ASSERT_TRUE(ok);
 }
 
