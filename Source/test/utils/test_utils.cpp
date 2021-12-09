@@ -1,4 +1,5 @@
 #include "purc.h"
+#include "private/avl.h"
 #include "private/sorted-array.h"
 
 #include <stdio.h>
@@ -180,5 +181,70 @@ TEST(utils, sorted_array_desc)
     }
 
     sorted_array_destroy(sa);
+}
+
+struct _avl_node {
+    struct avl_node          node;
+    size_t                   key;
+    size_t                   val;
+};
+static struct _avl_node* _make_avl_node(int key, int val)
+{
+    struct _avl_node *p;
+    p = (struct _avl_node*)calloc(1, sizeof(*p));
+    if (!p) return nullptr;
+    p->key = key;
+    p->val = val;
+    p->node.key = &p->key;
+    return p;
+}
+
+static int _avl_tree_comp(const void *k1, const void *k2, void *ptr)
+{
+    (void)ptr;
+    int delta = (*(size_t*)k1) - (*(size_t*)k2);
+    return delta;
+}
+
+static int _get_random(int max)
+{
+    static int seeded = 0;
+    if (!seeded) {
+        srand(time(0));
+        seeded = 1;
+    }
+
+    if (max==0)
+        return 0;
+
+    return (max<0) ? rand() : rand() % max;
+}
+
+TEST(avl, init)
+{
+    struct avl_tree avl;
+    pcutils_avl_init(&avl, _avl_tree_comp, false, NULL);
+    int r;
+    int count = 10240;
+    for (int i=0; i<count; ++i) {
+        size_t key = _get_random(-1);
+        if (pcutils_avl_find(&avl, &key)) {
+            --i;
+            continue;
+        }
+        struct _avl_node *p = _make_avl_node(key, _get_random(0));
+        r = pcutils_avl_insert(&avl, &p->node);
+        ASSERT_EQ(r, 0);
+    }
+    struct _avl_node *p, *tmp;
+    int i = 0;
+    size_t prev;
+    avl_remove_all_elements(&avl, p, node, tmp) {
+        if (i>0) {
+            ASSERT_GT(p->key, prev);
+        }
+        prev = p->key;
+        free(p);
+    }
 }
 
