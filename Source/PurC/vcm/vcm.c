@@ -37,14 +37,8 @@
 #include "private/interpreter.h"
 
 struct pcvcm_node_op {
-    cb_find_named_var find_named_var;
-    void* find_named_var_ctxt;
-
-    cb_get_symbolized_var get_symbolized_var;
-    void* get_symbolized_var_ctxt;
-
-    cb_get_numbered_var get_numbered_var;
-    void* get_numbered_var_ctxt;
+    cb_find_var find_var;
+    void* find_var_ctxt;
 };
 
 static struct pcvcm_node* pcvcm_node_new (enum pcvcm_node_type type)
@@ -735,22 +729,9 @@ purc_variant_t pcvcm_node_get_variable_to_variant (struct pcvcm_node* node,
         return PURC_VARIANT_INVALID;
     }
 
-    char last_c = name[nr_name - 1];
-    if(name[0] >= '0' && name[0] <= '9') {
-        unsigned int number = atoi(name);
-        if (last_c >= '0' && last_c <= '9') {
-            return ops->get_numbered_var ?
-                ops->get_numbered_var(ops->find_named_var_ctxt, number) :
-                PURC_VARIANT_INVALID;
-        }
-        else {
-            return ops->get_symbolized_var ?
-                ops->get_symbolized_var(ops->get_numbered_var_ctxt, number,
-                        last_c) : PURC_VARIANT_INVALID;
-        }
-    }
-    return ops->find_named_var ?  ops->find_named_var(ops->find_named_var_ctxt,
+    return ops->find_var ?  ops->find_var(ops->find_var_ctxt,
             name) : PURC_VARIANT_INVALID;
+
 }
 
 purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
@@ -838,45 +819,38 @@ purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node,
     return purc_variant_make_null();
 }
 
-purc_variant_t _stack_find_named_var (void* ctxt, const char* name)
+PCA_INLINE UNUSED_FUNCTION bool is_digit (char c)
 {
-    return pcintr_find_named_var((struct pcintr_stack*)ctxt, name);
+    return c >= '0' && c <= '9';
 }
 
-purc_variant_t _stack_get_symbolized_var (void* ctxt, unsigned int number,
-        char symbol)
+static
+purc_variant_t find_stack_var (void* ctxt, const char* name)
 {
-    return pcintr_get_symbolized_var((struct pcintr_stack*)ctxt, number,
-            symbol);
-}
+    struct pcintr_stack* stack = (struct pcintr_stack*) ctxt;
+    size_t nr_name = strlen(name);
+    char last = name[nr_name - 1];
 
-purc_variant_t _stack_get_numbered_var (void* ctxt, unsigned int number)
-{
-    return pcintr_get_numbered_var((struct pcintr_stack*)ctxt, number);
+    if(is_digit(name[0])) {
+        unsigned int number = atoi(name);
+        return is_digit(last) ?
+            pcintr_get_numbered_var(stack, number) :
+            pcintr_get_symbolized_var(stack, number, last);
+    }
+    return pcintr_find_named_var(ctxt, name);
 }
 
 purc_variant_t pcvcm_eval (struct pcvcm_node* tree, struct pcintr_stack* stack)
 {
-    return pcvcm_eval_ex(tree,
-            _stack_find_named_var, stack,
-            _stack_get_symbolized_var, stack,
-            _stack_get_numbered_var, stack
-            );
+    return pcvcm_eval_ex(tree, find_stack_var, stack);
 }
 
 purc_variant_t pcvcm_eval_ex (struct pcvcm_node* tree,
-        cb_find_named_var find_named_var, void* find_named_var_ctxt,
-        cb_get_symbolized_var get_symbolized_var, void* get_symbolized_var_ctxt,
-        cb_get_numbered_var get_numbered_var, void* get_numbered_var_ctxt
-        )
+        cb_find_var find_var, void* ctxt)
 {
     struct pcvcm_node_op ops = {
-        find_named_var,
-        find_named_var_ctxt,
-        get_symbolized_var,
-        get_symbolized_var_ctxt,
-        get_numbered_var,
-        get_numbered_var_ctxt
+        find_var,
+        ctxt
     };
 
     if (!tree) {
