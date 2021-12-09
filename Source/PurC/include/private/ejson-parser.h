@@ -37,7 +37,7 @@
 PCA_EXTERN_C_BEGIN
 
 purc_variant_t
-pcejson_parser_parse_string(const char *str);
+pcejson_parser_parse_string(const char *str, int debug_flex, int debug_bison);
 
 PCA_EXTERN_C_END
 

@@ -29,6 +29,8 @@
 
 #include "purc-errors.h"
 
+#include "private/debug.h"
+#include "private/variant.h"
 #include "private/ejson-parser.h"
 
 #include "ejson.tab.h"
