@@ -1414,11 +1414,21 @@ PCA_EXPORT bool
 purc_variant_cast_to_byte_sequence(purc_variant_t v,
         const void **bytes, size_t *sz);
 
+
+/**
+ * flagfor the purc_variant_compare() function.
+ */
+#define PCVARIANT_COMPARE_OPT_AUTO           0x0000
+#define PCVARIANT_COMPARE_OPT_NUMBER         0x0001
+#define PCVARIANT_COMPARE_OPT_CASE           0x0002
+#define PCVARIANT_COMPARE_OPT_CASELESS       0x0003
+
 /**
  * Compares two variant value
  *
  * @param v1: one of compared variant value
  * @param v2: the other variant value to be compared
+ * @param flags: comparation flags
  *
  * Returns: The function returns an integer less than, equal to, or greater
  *      than zero if v1 is found, respectively, to be less than, to match,
@@ -1426,8 +1436,8 @@ purc_variant_cast_to_byte_sequence(purc_variant_t v,
  *
  * Since: 0.0.1
  */
-PCA_EXPORT int
-purc_variant_compare(purc_variant_t v1, purc_variant_t v2);
+PCA_EXPORT double
+purc_variant_compare(purc_variant_t v1, purc_variant_t v2, unsigned int flag);
 
 /**
  * A flag for the purc_variant_serialize() function which causes the output

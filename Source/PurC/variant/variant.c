@@ -445,6 +445,7 @@ static inline bool equal_long_doubles(long double a, long double b)
     return (fabsl(a - b) <= max_val * LDBL_EPSILON);
 }
 
+#if 0
 static int compare_objects(purc_variant_t v1, purc_variant_t v2)
 {
     int diff;
@@ -520,6 +521,7 @@ ret:
     purc_variant_set_release_iterator(it);
     return diff;
 }
+#endif
 
 bool
 purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool parse_str)
@@ -886,6 +888,128 @@ bool purc_variant_cast_to_byte_sequence(purc_variant_t v,
     return false;
 }
 
+static inline double compare_number (purc_variant_t v1, purc_variant_t v2)
+{
+    double number1 = 0.0L;
+    double number2 = 0.0L;
+
+    if (v1)
+        number1 = purc_variant_numberify (v1);
+
+    if (v2)
+        number2 = purc_variant_numberify (v2);
+
+    return number1 - number2;
+}
+
+static inline char *compare_stringify (purc_variant_t v, char *stackbuffer)
+{
+    char * buffer = NULL;
+    size_t total = 0;
+
+    switch (v->type) {
+        case PURC_VARIANT_TYPE_OBJECT:
+        case PURC_VARIANT_TYPE_ARRAY:
+        case PURC_VARIANT_TYPE_SET:
+            purc_variant_stringify_alloc (&buffer, v);
+            break;
+        case PURC_VARIANT_TYPE_ATOMSTRING:
+        case PURC_VARIANT_TYPE_STRING:
+        case PURC_VARIANT_TYPE_BSEQUENCE:
+            if (v->type == PURC_VARIANT_TYPE_STRING)
+                total = purc_variant_string_length (v);
+            else if (v->type == PURC_VARIANT_TYPE_BSEQUENCE)
+                total = purc_variant_sequence_length (v);
+            else
+                total = strlen (purc_variant_get_atom_string_const (v));
+
+            buffer = malloc (total);
+            purc_variant_stringify (buffer, total, 0);
+            break;
+        default:
+            purc_variant_stringify (stackbuffer, 128, v);
+            break;
+    }
+    return buffer;
+}
+
+static inline double compare_string (purc_variant_t v1,
+        purc_variant_t v2, unsigned int flag)
+{
+    double compare = 0.0L;
+    char *buf1 = NULL;
+    char *buf2 = NULL;
+    char stackbuf1[128] = {0,};
+    char stackbuf2[128] = {0,};
+    char *pcompare1 = NULL;
+    char *pcompare2 = NULL;
+
+    if (v1) {
+        buf1 = compare_stringify (v1, stackbuf1);
+        if (buf1)
+            pcompare1 = buf1;
+        else
+            pcompare1 = stackbuf1;
+    }
+
+    if (v2) {
+        buf2 = compare_stringify (v2, stackbuf2);
+        if (buf2)
+            pcompare2 = buf2;
+        else
+            pcompare2 = stackbuf2;
+    }
+
+    if (v1 && v2) {
+        if (flag == PCVARIANT_COMPARE_OPT_CASE)
+            compare = (double)strcmp (pcompare1, pcompare2);
+        else
+            compare = (double)strcasecmp (pcompare1, pcompare2);
+        if (buf1)
+            free (buf1);
+        if (buf2)
+            free (buf2);
+    }
+    else if ((v1 == NULL) && v2) {
+        compare = -1.0L;
+        if (buf2)
+            free (buf2);
+    }
+    else if (v1 && (v2 == NULL)) {
+        compare = 1.0L;
+        if (buf1)
+            free (buf1);
+    }
+    else
+        compare = 0.0L;
+
+    return compare;
+}
+
+double purc_variant_compare(purc_variant_t v1,
+        purc_variant_t v2, unsigned int flag)
+{
+    double compare = 0.0L;
+
+    if ((flag == PCVARIANT_COMPARE_OPT_CASELESS) ||
+            (flag == PCVARIANT_COMPARE_OPT_CASE))
+        compare = compare_string (v1, v2, flag);
+    else if (flag == PCVARIANT_COMPARE_OPT_NUMBER)
+        compare = compare_number (v1, v2);
+    else if (flag == PCVARIANT_COMPARE_OPT_AUTO) {
+        if (v1 && ((v1->type == PURC_VARIANT_TYPE_NUMBER) ||
+                (v1->type == PURC_VARIANT_TYPE_LONGINT) ||
+                (v1->type == PURC_VARIANT_TYPE_ULONGINT) ||
+                (v1->type == PURC_VARIANT_TYPE_LONGDOUBLE)))
+            compare = compare_number (v1, v2);
+        else
+            compare = compare_string (v1, v2, flag);
+    }
+
+    return compare;
+}
+
+#if 0
 int purc_variant_compare(purc_variant_t v1, purc_variant_t v2)
 {
     int i;
@@ -1039,6 +1163,7 @@ int purc_variant_compare(purc_variant_t v1, purc_variant_t v2)
 
     return 0;
 }
+#endif
 
 purc_variant_t purc_variant_load_from_json_stream(purc_rwstream_t stream)
 {

@@ -158,7 +158,7 @@ variant_set_keyvals_cmp (const void *k1, const void *k2, void *ptr)
         purc_variant_t kv2 = kvs2[i];
         PC_ASSERT(kv1 != PURC_VARIANT_INVALID);
         PC_ASSERT(kv2 != PURC_VARIANT_INVALID);
-        diff = purc_variant_compare(kv1, kv2);
+        diff = purc_variant_compare(kv1, kv2, PCVARIANT_COMPARE_OPT_AUTO);
         if (diff)
             break;
     }
