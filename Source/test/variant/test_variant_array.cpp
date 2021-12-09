@@ -412,3 +412,81 @@ TEST(variant_array, make_ref_add_unref_unref)
     ASSERT_EQ (cleanup, true);
 }
 
+static inline purc_variant_t
+make_array(const int *vals, size_t nr)
+{
+    purc_variant_t arr = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    if (arr == PURC_VARIANT_INVALID)
+        return PURC_VARIANT_INVALID;
+
+    bool ok = true;
+
+    for (size_t i=0; i<nr; ++i) {
+        purc_variant_t t;
+        t = purc_variant_make_longint(vals[i]);
+        if (t == PURC_VARIANT_INVALID) {
+            ok = false;
+            break;
+        }
+        ok = purc_variant_array_append(arr, t);
+        purc_variant_unref(t);
+        if (!ok)
+            break;
+    }
+
+    if (!ok) {
+        purc_variant_unref(arr);
+        return PURC_VARIANT_INVALID;
+    }
+
+    return arr;
+}
+
+static inline int
+cmp(purc_variant_t l, purc_variant_t r, void *ud)
+{
+    (void)ud;
+    double dl = purc_variant_numberify(l);
+    double dr = purc_variant_numberify(r);
+
+    if (dl < dr)
+        return -1;
+    if (dl == dr)
+        return 0;
+    return 1;
+}
+
+TEST(variant_array, sort)
+{
+    purc_instance_extra_info info = {0, 0};
+    int ret = 0;
+    bool cleanup = false;
+    struct purc_variant_stat *stat;
+
+    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ(ret, PURC_ERROR_OK);
+
+    stat = purc_variant_usage_stat();
+    ASSERT_NE(stat, nullptr);
+
+    const int vals[] = {
+        3,2,4,1,7,9,6,8,5
+    };
+
+    purc_variant_t arr = make_array(vals, PCA_TABLESIZE(vals));
+    ASSERT_NE(arr, nullptr);
+
+    int r = pcvariant_array_sort(arr, NULL, cmp);
+    ASSERT_EQ(r, 0);
+
+    char buf[8192];
+    r = purc_variant_stringify(buf, sizeof(buf), arr);
+    ASSERT_GT(r, 0);
+    fprintf(stderr, "==[%s]==\n", buf);
+
+    purc_variant_unref(arr);
+
+    cleanup = purc_cleanup ();
+    ASSERT_EQ (cleanup, true);
+}
+

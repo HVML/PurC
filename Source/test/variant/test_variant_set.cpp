@@ -517,6 +517,97 @@ TEST(variant_set, dup)
         ASSERT_TRUE(ok);
     }
 
+    purc_variant_unref(set);
+
+    cleanup = purc_cleanup ();
+    ASSERT_EQ (cleanup, true);
+}
+
+static inline purc_variant_t
+make_set(const int *vals, size_t nr)
+{
+    purc_variant_t set = purc_variant_make_set_by_ckey(0,
+            NULL, PURC_VARIANT_INVALID);
+    if (set == PURC_VARIANT_INVALID)
+        return PURC_VARIANT_INVALID;
+
+    bool ok = true;
+
+    for (size_t i=0; i<nr; ++i) {
+        purc_variant_t v;
+        v = purc_variant_make_longint(vals[i]);
+        if (v == PURC_VARIANT_INVALID) {
+            ok = false;
+            break;
+        }
+        purc_variant_t o;
+        o = purc_variant_make_object_by_static_ckey(1, "id", v);
+        purc_variant_unref(v);
+        if (o == PURC_VARIANT_INVALID) {
+            ok = false;
+            break;
+        }
+        ok = purc_variant_set_add(set, o, true);
+        purc_variant_unref(o);
+        if (!ok)
+            break;
+    }
+
+    if (!ok) {
+        purc_variant_unref(set);
+        return PURC_VARIANT_INVALID;
+    }
+
+    return set;
+}
+
+static inline int
+cmp(const char *keynames[], size_t nr_keynames,
+        purc_variant_t l, purc_variant_t r, void *ud)
+{
+    (void)keynames;
+    (void)nr_keynames;
+    (void)ud;
+    // NOTE: this is simple sort where we sort the whole value
+    // in some case, you might sort against key-fields of the value
+    char lbuf[1024], rbuf[1024];
+    purc_variant_stringify(lbuf, sizeof(lbuf), l);
+    purc_variant_stringify(rbuf, sizeof(rbuf), r);
+
+    return strcmp(lbuf, rbuf);
+}
+
+TEST(variant_set, sort)
+{
+    purc_instance_extra_info info = {0, 0};
+    int ret = 0;
+    bool cleanup = false;
+    struct purc_variant_stat *stat;
+
+    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ(ret, PURC_ERROR_OK);
+
+    stat = purc_variant_usage_stat();
+    ASSERT_NE(stat, nullptr);
+
+    const int vals[] = {
+        3,2,4,1,7,9,6,8,5
+    };
+
+    purc_variant_t set = make_set(vals, PCA_TABLESIZE(vals));
+    ASSERT_NE(set, nullptr);
+    char inbuf[8192];
+    int r = purc_variant_stringify(inbuf, sizeof(inbuf), set);
+    ASSERT_GT(r, 0);
+    fprintf(stderr, "==[%s]==\n", inbuf);
+
+    r = pcvariant_set_sort(set, NULL, cmp);
+    ASSERT_EQ(r, 0);
+
+    char outbuf[8192];
+    r = purc_variant_stringify(outbuf, sizeof(outbuf), set);
+    ASSERT_GT(r, 0);
+    fprintf(stderr, "==[%s]==\n", outbuf);
 
     purc_variant_unref(set);
 

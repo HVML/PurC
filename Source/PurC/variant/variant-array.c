@@ -450,8 +450,8 @@ struct arr_user_data {
 static inline int
 cmp_variant(const void *l, const void *r, void *ud)
 {
-    purc_variant_t vl = (purc_variant_t)l;
-    purc_variant_t vr = (purc_variant_t)r;
+    purc_variant_t vl = *(purc_variant_t*)l;
+    purc_variant_t vr = *(purc_variant_t*)r;
     struct arr_user_data *d = (struct arr_user_data*)ud;
     return d->cmp(vl, vr, d->ud);
 }
@@ -465,12 +465,13 @@ int pcvariant_array_sort(purc_variant_t value, void *ud,
     struct pcutils_arrlist *al = (struct pcutils_arrlist*)value->sz_ptr[1];
     if (!al)
         return -1;
+    void *arr = al->array;
 
     struct arr_user_data d = {
         .cmp = cmp,
         .ud  = ud,
     };
-    qsort_r(al, al->length, sizeof(purc_variant_t),
+    qsort_r(arr, al->length, sizeof(purc_variant_t),
             cmp_variant, &d);
 
     return 0;

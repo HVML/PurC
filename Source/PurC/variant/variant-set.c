@@ -191,7 +191,7 @@ variant_set_init(variant_set_t set, const char *unique_key)
     }
 
     size_t n = strlen(set->unique_key);
-    set->keynames = (char**)calloc(n, sizeof(*set->keynames));
+    set->keynames = (const char**)calloc(n, sizeof(*set->keynames));
     if (!set->keynames) {
         free(set->unique_key);
         set->unique_key = NULL;
@@ -1081,23 +1081,27 @@ int pcvariant_set_swap(purc_variant_t value, int i, int j)
 }
 
 struct set_user_data {
-    int (*cmp)(purc_variant_t l, purc_variant_t r, void *ud);
+    int (*cmp)(const char *keynames[], size_t nr_keynames,
+            purc_variant_t l, purc_variant_t r, void *ud);
     void *ud;
+    const char         **keynames;
+    size_t               nr_keynames;
 };
 
 static inline int
 cmp_variant(const void *l, const void *r, void *ud)
 {
-    struct elem_node *nl = (struct elem_node*)l;
-    struct elem_node *nr = (struct elem_node*)r;
+    struct elem_node *nl = *(struct elem_node**)l;
+    struct elem_node *nr = *(struct elem_node**)r;
     purc_variant_t vl = nl->elem;
     purc_variant_t vr = nr->elem;
     struct set_user_data *d = (struct set_user_data*)ud;
-    return d->cmp(vl, vr, d->ud);
+    return d->cmp(d->keynames, d->nr_keynames, vl, vr, d->ud);
 }
 
 int pcvariant_set_sort(purc_variant_t value, void *ud,
-        int (*cmp)(purc_variant_t l, purc_variant_t r, void *ud))
+        int (*cmp)(const char *keynames[], size_t nr_keynames,
+            purc_variant_t l, purc_variant_t r, void *ud))
 {
     if (!value || value->type != PURC_VARIANT_TYPE_SET)
         return -1;
@@ -1106,12 +1110,16 @@ int pcvariant_set_sort(purc_variant_t value, void *ud,
     struct pcutils_arrlist *al = data->arr;
     if (!al)
         return -1;
+    void *arr = al->array;
 
     struct set_user_data d = {
-        .cmp = cmp,
-        .ud  = ud,
+        .cmp         = cmp,
+        .ud          = ud,
+        .keynames    = (const char**)data->keynames,
+        .nr_keynames = data->nr_keynames,
     };
-    qsort_r(al, al->length, sizeof(struct elem_node*),
+
+    qsort_r(arr, al->length, sizeof(struct elem_node*),
             cmp_variant, &d);
 
     refresh_arr(al, 0);
