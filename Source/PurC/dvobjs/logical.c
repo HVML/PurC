@@ -49,7 +49,8 @@ static bool reg_cmp (const char *buf1, const char *buf2)
 
     if (err == REG_NOMATCH) {
         goto error_free;
-    } else if (err) {
+    }
+    else if (err) {
         goto error_free;
     }
 
@@ -412,17 +413,20 @@ streq_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             ret_var = purc_variant_make_boolean (true);
         else
             ret_var = purc_variant_make_boolean (false);
-    } else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0) {
+    }
+    else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0) {
         if (strcmp (buf1, buf2) == 0)
             ret_var = purc_variant_make_boolean (true);
         else
             ret_var = purc_variant_make_boolean (false);
-    } else if (strcasecmp (option, STRING_COMP_MODE_WILDCARD) == 0) {
+    }
+    else if (strcasecmp (option, STRING_COMP_MODE_WILDCARD) == 0) {
         if (pcdvobjs_wildcard_cmp (buf2, buf1))
             ret_var = purc_variant_make_boolean (true);
         else
             ret_var = purc_variant_make_boolean (false);
-    } else if (strcasecmp (option, STRING_COMP_MODE_REG) == 0) {
+    }
+    else if (strcasecmp (option, STRING_COMP_MODE_REG) == 0) {
         if (reg_cmp (buf1, buf2))
             ret_var = purc_variant_make_boolean (true);
         else
@@ -476,17 +480,20 @@ strne_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             ret_var = purc_variant_make_boolean (false);
         else
             ret_var = purc_variant_make_boolean (true);
-    } else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0) {
+    }
+    else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0) {
         if (strcmp (buf1, buf2) == 0)
             ret_var = purc_variant_make_boolean (false);
         else
             ret_var = purc_variant_make_boolean (true);
-    } else if (strcasecmp (option, STRING_COMP_MODE_WILDCARD) == 0) {
+    }
+    else if (strcasecmp (option, STRING_COMP_MODE_WILDCARD) == 0) {
         if (pcdvobjs_wildcard_cmp (buf2, buf1))
             ret_var = purc_variant_make_boolean (false);
         else
             ret_var = purc_variant_make_boolean (true);
-    } else if (strcasecmp (option, STRING_COMP_MODE_REG) == 0) {
+    }
+    else if (strcasecmp (option, STRING_COMP_MODE_REG) == 0) {
         if (reg_cmp (buf1, buf2))
             ret_var = purc_variant_make_boolean (false);
         else
@@ -540,7 +547,8 @@ strgt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             ret_var = purc_variant_make_boolean (true);
         else
             ret_var = purc_variant_make_boolean (false);
-    } else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0) {
+    }
+    else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0) {
         if (strcmp (buf1, buf2) > 0)
             ret_var = purc_variant_make_boolean (true);
         else
@@ -595,7 +603,8 @@ strge_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             ret_var = purc_variant_make_boolean (true);
         else
             ret_var = purc_variant_make_boolean (false);
-    } else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0) {
+    }
+    else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0) {
         if (strcmp (buf1, buf2) >= 0)
             ret_var = purc_variant_make_boolean (true);
         else
@@ -650,7 +659,8 @@ strlt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             ret_var = purc_variant_make_boolean (true);
         else
             ret_var = purc_variant_make_boolean (false);
-    } else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0) {
+    }
+    else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0) {
         if (strcmp (buf1, buf2) < 0)
             ret_var = purc_variant_make_boolean (true);
         else
@@ -704,7 +714,8 @@ strle_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             ret_var = purc_variant_make_boolean (true);
         else
             ret_var = purc_variant_make_boolean (false);
-    } else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0) {
+    }
+    else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0) {
         if (strcmp (buf1, buf2) <= 0)
             ret_var = purc_variant_make_boolean (true);
         else

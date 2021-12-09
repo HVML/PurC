@@ -46,7 +46,8 @@ const char *pcdvobjs_get_next_option (const char *data,
         if (temp) {
             if (head == data) {
                 head = data + 1;
-            } else
+            }
+            else
                 break;
         }
         data++;
@@ -78,7 +79,8 @@ const char *pcdvobjs_get_prev_option (const char *data,
             if (tail == str_len) {
                 str_len--;
                 tail = str_len;
-            } else 
+            }
+            else
                 break;
         }
         str_len--;

@@ -188,14 +188,43 @@ stringify_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     char *buffer = NULL;
     int total = 0;
+    char stackbuf[64] = {0,};
 
     if ((argv == NULL) || (nr_args == 0)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
 
-    total = purc_variant_stringify_alloc (&buffer, argv[0]);
-    ret_var = purc_variant_make_string_reuse_buff (buffer, total + 1, false);
+    int type = purc_variant_get_type (argv[0]);
+
+    switch (type) {
+        case PURC_VARIANT_TYPE_OBJECT:
+        case PURC_VARIANT_TYPE_ARRAY:
+        case PURC_VARIANT_TYPE_SET:
+            total = purc_variant_stringify_alloc (&buffer, argv[0]);
+            ret_var = purc_variant_make_string_reuse_buff (
+                    buffer, total + 1, false);
+            break;
+        case PURC_VARIANT_TYPE_ATOMSTRING:
+        case PURC_VARIANT_TYPE_STRING:
+        case PURC_VARIANT_TYPE_BSEQUENCE:
+            if (type == PURC_VARIANT_TYPE_STRING)
+                total = purc_variant_string_length (argv[0]);
+            else if (type == PURC_VARIANT_TYPE_BSEQUENCE)
+                total = purc_variant_sequence_length (argv[0]);
+            else
+                total = strlen (purc_variant_get_atom_string_const (argv[0]));
+            buffer = malloc (total);
+            purc_variant_stringify (buffer, total, argv[0]);
+            ret_var = purc_variant_make_string_reuse_buff (
+                    buffer, total, false);
+            break;
+        default:
+            buffer = stackbuf;
+            purc_variant_stringify (buffer, 64, argv[0]);
+            ret_var = purc_variant_make_string (buffer, false);
+            break;
+    }
 
     return ret_var;
 }
@@ -317,7 +346,8 @@ sort_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         }
         free (elements);
 
-    } else {    // it is the set
+    }
+    else {    // it is the set
         totalsize = purc_variant_set_get_size (argv[0]);
         elements = calloc ((unsigned)totalsize, sizeof(dvobjs_ejson_element));
         if (elements == NULL) {
@@ -366,7 +396,7 @@ compare_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     double number2 = 0.0L;
     char *buf1 = NULL;
     char *buf2 = NULL;
-    int compare = 0;
+    double compare = 0.0L;
 
     if ((argv == NULL) || (nr_args < 3)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
@@ -378,51 +408,43 @@ compare_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     if (strcasecmp (option, STRING_COMP_MODE_CASELESS) == 0) {
         purc_variant_stringify_alloc (&buf1, argv[0]);
         purc_variant_stringify_alloc (&buf2, argv[1]);
-        compare = strcasecmp (buf1, buf2);
+        compare = (double)strcasecmp (buf1, buf2);
         free (buf1);
         free (buf2);
-    } else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0) {
+    }
+    else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0) {
         purc_variant_stringify_alloc (&buf1, argv[0]);
         purc_variant_stringify_alloc (&buf2, argv[1]);
-        compare = strcmp (buf1, buf2);
+        compare = (double)strcmp (buf1, buf2);
         free (buf1);
         free (buf2);
-    } else if (strcasecmp (option, STRING_COMP_MODE_NUMBER) == 0) {
+    }
+    else if (strcasecmp (option, STRING_COMP_MODE_NUMBER) == 0) {
         number1 = purc_variant_numberify (argv[0]);
         number2 = purc_variant_numberify (argv[1]);
-
-        if (number1 == number2)
-            compare = 0;
-        else if (number1 < number2)
-            compare = -1;
-        else
-            compare = 1;
-    } else if (strcasecmp (option, STRING_COMP_MODE_AUTO) == 0) {
-        int type1 = purc_variant_get_type (argv[0]);
-        int type2 = purc_variant_get_type (argv[1]);
-        if ((type1 > PURC_VARIANT_TYPE_BOOLEAN) &&
-                (type1 < PURC_VARIANT_TYPE_ATOMSTRING) &&
-                (type2 > PURC_VARIANT_TYPE_BOOLEAN) &&
-                (type2 < PURC_VARIANT_TYPE_ATOMSTRING)) {
+        compare = number1 - number2;
+    }
+    else if (strcasecmp (option, STRING_COMP_MODE_AUTO) == 0) {
+        int type = purc_variant_get_type (argv[0]);
+        if ((type == PURC_VARIANT_TYPE_NUMBER) ||
+                (type == PURC_VARIANT_TYPE_LONGINT) ||
+                (type == PURC_VARIANT_TYPE_ULONGINT) ||
+                (type == PURC_VARIANT_TYPE_LONGDOUBLE)) {
             number1 = purc_variant_numberify (argv[0]);
             number2 = purc_variant_numberify (argv[1]);
 
-            if (number1 == number2)
-                compare = 0;
-            else if (number1 < number2)
-                compare = -1;
-            else
-                compare = 1;
-        } else {
+            compare = number1 - number2;
+        }
+        else {
             purc_variant_stringify_alloc (&buf1, argv[0]);
             purc_variant_stringify_alloc (&buf2, argv[1]);
-            compare = strcmp (buf1, buf2);
+            compare = (double)strcmp (buf1, buf2);
             free (buf1);
             free (buf2);
         }
     }
 
-    ret_var = purc_variant_make_longint (compare);
+    ret_var = purc_variant_make_number (compare);
 
     return ret_var;
 }

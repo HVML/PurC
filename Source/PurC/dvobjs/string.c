@@ -46,7 +46,8 @@ static const char * get_next_segment (const char *data,
 
     if (temp) {
         *length =  temp - head;
-    } else {
+    }
+    else {
         *length = strlen (head);
     }
 
@@ -120,7 +121,8 @@ string_ends_with (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     if ((len_source == 0) || (len_sub == 0) || (len_source < len_sub)) {
         ret_var = purc_variant_make_boolean (false);
-    } else {
+    }
+    else {
         if (strncmp (source + len_source - len_sub, sub, len_sub) != 0)
             ret_var = purc_variant_make_boolean (false);
         else
@@ -335,7 +337,8 @@ string_format_c (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         purc_rwstream_destroy (rwstream);
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
-    } else
+    }
+    else
         format = purc_variant_get_string_const (argv[0]);
 
     char buffer[16];
@@ -497,7 +500,8 @@ string_format_p (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         purc_rwstream_destroy(rwstream);
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
-    } else {
+    }
+    else {
         format = purc_variant_get_string_const (argv[0]);
         format_size = purc_variant_string_length (argv[0]);
     }
@@ -551,7 +555,8 @@ string_format_p (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
         if (end != NULL)
             purc_rwstream_write (rwstream, end, strlen (end));
-    } else {
+    }
+    else {
         const char *start = NULL;
         const char *end = NULL;
         size_t length = 0;
