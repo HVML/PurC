@@ -1,6 +1,7 @@
 #include "purc.h"
 #include "private/avl.h"
 #include "private/hashtable.h"
+#include "private/map.h"
 #include "private/rbtree.h"
 #include "private/sorted-array.h"
 
@@ -492,5 +493,59 @@ TEST(utils, rbtree)
     }
 
     ASSERT_TRUE(ok);
+}
+
+static inline int
+map_cmp(const void *key1, const void *key2)
+{
+    const char *s1 = (const char*)key1;
+    const char *s2 = (const char*)key2;
+    return strcmp(s1, s2);
+}
+
+static inline int
+map_visit(void *key, void *val, void *ud)
+{
+    (void)ud;
+
+    int r;
+    r = strcmp((const char*)key, "name");
+    if (r)
+        return r;
+
+    size_t v = (size_t)val;
+    if (v < 12)
+        return -1;
+    if (v == 12)
+        return 0;
+    return 1;
+}
+
+TEST(utils, map)
+{
+    pcutils_map *map;
+    map = pcutils_map_create(NULL, NULL, NULL, NULL,
+            map_cmp, false);
+    ASSERT_NE(map, nullptr);
+
+    pcutils_map_entry *entry;
+    int r;
+
+    r = pcutils_map_insert(map, "name", (const void*)(size_t)1);
+    ASSERT_EQ(r, 0);
+    entry = pcutils_map_find(map, "name");
+    ASSERT_NE(entry, nullptr);
+    ASSERT_EQ((const char*)entry->key, "name");
+    ASSERT_EQ((size_t)entry->val, 1);
+
+    r = pcutils_map_insert(map, "name", (const void*)(size_t)12);
+    ASSERT_EQ(r, 0);
+    entry = pcutils_map_find(map, "name");
+    ASSERT_NE(entry, nullptr);
+    ASSERT_EQ((const char*)entry->key, "name");
+    ASSERT_EQ((size_t)entry->val, 12);
+
+    r = pcutils_map_traverse(map, NULL, map_visit);
+    pcutils_map_destroy(map);
 }
 

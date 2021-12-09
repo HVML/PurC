@@ -432,4 +432,42 @@ int pcutils_map_find_replace_or_insert (pcutils_map* map, const void* key,
     return 0;
 }
 
+struct user_data {
+    int (*cb)(void *key, void *val, void *ud);
+    void *ud;
+};
+
+static inline int
+visit_node(struct rb_node *node, void *ud)
+{
+    struct user_data *data = (struct user_data*)ud;
+    pcutils_map_entry *entry;
+    entry = container_of(node, pcutils_map_entry, node);
+    return data->cb(entry->key, entry->val, data->ud);
+}
+
+static inline int
+map_traverse (pcutils_map *map, void *ud,
+        int (*cb)(void *key, void *val, void *ud))
+{
+    struct rb_root *root = &map->root;
+    if (!root)
+        return 0;
+
+    struct user_data data = {
+        .cb         = cb,
+        .ud         = ud,
+    };
+    return pcutils_rbtree_traverse(root, &data, visit_node);
+}
+
+int pcutils_map_traverse (pcutils_map *map, void *ud,
+        int (*cb)(void *key, void *val, void *ud))
+{
+    WRLOCK_MAP (map);
+    int r = map_traverse(map, ud, cb);
+    WRUNLOCK_MAP (map);
+    return r;
+}
+
 

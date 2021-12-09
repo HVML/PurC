@@ -91,6 +91,9 @@ int pcutils_map_replace (pcutils_map* map, const void* key,
 
 int pcutils_map_erase (pcutils_map* map, void* key);
 
+int pcutils_map_traverse (pcutils_map *map, void *ud,
+        int (*cb)(void *key, void *val, void *ud));
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
