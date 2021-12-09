@@ -1,5 +1,4 @@
 #include "purc.h"
-#include "private/avl.h"
 #include "private/hashtable.h"
 #include "purc-variant.h"
 #include "private/variant.h"
@@ -8,20 +7,6 @@
 #include <string.h>
 #include <errno.h>
 #include <gtest/gtest.h>
-
-static int _get_random(int max)
-{
-    static int seeded = 0;
-    if (!seeded) {
-        srand(time(0));
-        seeded = 1;
-    }
-
-    if (max==0)
-        return 0;
-
-    return (max<0) ? rand() : rand() % max;
-}
 
 static inline bool
 sanity_check(purc_variant_t set)
@@ -517,61 +502,112 @@ TEST(variant_set, dup)
         ASSERT_TRUE(ok);
     }
 
-
     purc_variant_unref(set);
 
     cleanup = purc_cleanup ();
     ASSERT_EQ (cleanup, true);
 }
 
-struct _avl_node {
-    struct avl_node          node;
-    size_t                   key;
-    size_t                   val;
-};
-static struct _avl_node* _make_avl_node(int key, int val)
+static inline purc_variant_t
+make_set(const int *vals, size_t nr)
 {
-    struct _avl_node *p;
-    p = (struct _avl_node*)calloc(1, sizeof(*p));
-    if (!p) return nullptr;
-    p->key = key;
-    p->val = val;
-    p->node.key = &p->key;
-    return p;
-}
+    purc_variant_t set = purc_variant_make_set_by_ckey(0,
+            NULL, PURC_VARIANT_INVALID);
+    if (set == PURC_VARIANT_INVALID)
+        return PURC_VARIANT_INVALID;
 
-static int _avl_tree_comp(const void *k1, const void *k2, void *ptr)
-{
-    UNUSED_PARAM(ptr);
-    int delta = (*(size_t*)k1) - (*(size_t*)k2);
-    return delta;
-}
+    bool ok = true;
 
-TEST(avl, init)
-{
-    struct avl_tree avl;
-    pcutils_avl_init(&avl, _avl_tree_comp, false, NULL);
-    int r;
-    int count = 10240;
-    for (int i=0; i<count; ++i) {
-        size_t key = _get_random(-1);
-        if (pcutils_avl_find(&avl, &key)) {
-            --i;
-            continue;
+    for (size_t i=0; i<nr; ++i) {
+        purc_variant_t v;
+        v = purc_variant_make_longint(vals[i]);
+        if (v == PURC_VARIANT_INVALID) {
+            ok = false;
+            break;
         }
-        struct _avl_node *p = _make_avl_node(key, _get_random(0));
-        r = pcutils_avl_insert(&avl, &p->node);
+        purc_variant_t o;
+        o = purc_variant_make_object_by_static_ckey(1, "id", v);
+        purc_variant_unref(v);
+        if (o == PURC_VARIANT_INVALID) {
+            ok = false;
+            break;
+        }
+        ok = purc_variant_set_add(set, o, true);
+        purc_variant_unref(o);
+        if (!ok)
+            break;
+    }
+
+    if (!ok) {
+        purc_variant_unref(set);
+        return PURC_VARIANT_INVALID;
+    }
+
+    return set;
+}
+
+static inline int
+cmp(const char *keynames[], size_t nr_keynames,
+        purc_variant_t l, purc_variant_t r, void *ud)
+{
+    (void)keynames;
+    (void)nr_keynames;
+    (void)ud;
+    // NOTE: this is simple sort where we sort the whole value
+    // in some case, you might sort against key-fields of the value
+    char lbuf[1024], rbuf[1024];
+    purc_variant_stringify(lbuf, sizeof(lbuf), l);
+    purc_variant_stringify(rbuf, sizeof(rbuf), r);
+
+    return strcmp(lbuf, rbuf);
+}
+
+TEST(variant_set, sort)
+{
+    purc_instance_extra_info info = {0, 0};
+    int ret = 0;
+    bool cleanup = false;
+    struct purc_variant_stat *stat;
+
+    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ(ret, PURC_ERROR_OK);
+
+    stat = purc_variant_usage_stat();
+    ASSERT_NE(stat, nullptr);
+
+    const int ins[] = {
+        3,2,4,1,7,9,6,8,5
+    };
+    const int outs[] = {
+        1,2,3,4,5,6,7,8,9
+    };
+
+    char inbuf[8192]; {
+        purc_variant_t set = make_set(ins, PCA_TABLESIZE(ins));
+        ASSERT_NE(set, nullptr);
+
+        int r = pcvariant_set_sort(set, NULL, cmp);
         ASSERT_EQ(r, 0);
+
+        r = purc_variant_stringify(inbuf, sizeof(inbuf), set);
+        ASSERT_GT(r, 0);
+
+        purc_variant_unref(set);
     }
-    struct _avl_node *p, *tmp;
-    int i = 0;
-    size_t prev;
-    avl_remove_all_elements(&avl, p, node, tmp) {
-        if (i>0) {
-            ASSERT_GT(p->key, prev);
-        }
-        prev = p->key;
-        free(p);
+
+    char outbuf[8192]; {
+        purc_variant_t set = make_set(outs, PCA_TABLESIZE(outs));
+        ASSERT_NE(set, nullptr);
+
+        int r = purc_variant_stringify(outbuf, sizeof(outbuf), set);
+        ASSERT_GT(r, 0);
+
+        purc_variant_unref(set);
     }
+
+    cleanup = purc_cleanup ();
+    ASSERT_EQ (cleanup, true);
+
+    ASSERT_STREQ(inbuf, outbuf);
 }
 
