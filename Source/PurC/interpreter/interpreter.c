@@ -271,7 +271,6 @@ element_post_load_in_frame(struct pcvdom_document *document,
 
     int r = init_frame_by_element(frame, element, document);
     if (r) {
-        pop_stack_frame(stack);
         return -1;
     }
 
