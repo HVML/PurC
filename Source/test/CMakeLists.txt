@@ -9,6 +9,7 @@ add_subdirectory(hvml)
 add_subdirectory(vcm)
 add_subdirectory(vdom)
 add_subdirectory(executors)
+add_subdirectory(interpreter)
 
 PURC_COPY_FILES(TEST_Script
     DESTINATION ${CMAKE_BINARY_DIR}/
