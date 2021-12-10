@@ -36,6 +36,14 @@
 #include "private/stack.h"
 #include "private/interpreter.h"
 
+
+#define TO_TREE_NODE(node)  ((struct pctree_node*)(node))
+#define TO_VCM_NODE(node)  ((struct pcvcm_node*)(node))
+
+#define APPEND_CHILD(parent, child)  \
+    pctree_node_append_child(TO_TREE_NODE(parent), TO_TREE_NODE(child))
+
+
 struct pcvcm_node_op {
     cb_find_var find_var;
     void* find_var_ctxt;
@@ -64,7 +72,7 @@ struct pcvcm_node* pcvcm_node_new_object (size_t nr_nodes,
 
     for (size_t i = 0; i < nr_nodes; i++) {
         struct pcvcm_node *v = nodes[i];
-        pctree_node_append_child(&n->tree_node, &v->tree_node);
+        APPEND_CHILD(n, v);
     }
 
     return n;
@@ -80,7 +88,7 @@ struct pcvcm_node* pcvcm_node_new_array (size_t nr_nodes,
 
     for (size_t i = 0; i < nr_nodes; i++) {
         struct pcvcm_node *v = nodes[i];
-        pctree_node_append_child(&n->tree_node, &v->tree_node);
+        APPEND_CHILD(n, v);
     }
 
     return n;
@@ -303,8 +311,7 @@ struct pcvcm_node* pcvcm_node_new_concat_string (size_t nr_nodes,
     }
 
     for (size_t i = 0; i < nr_nodes; i++) {
-        pctree_node_append_child ((struct pctree_node*)n,
-                (struct pctree_node*)(nodes  + i));
+        APPEND_CHILD(n, nodes  + i);
     }
 
     return n;
@@ -318,8 +325,7 @@ struct pcvcm_node* pcvcm_node_new_get_variable (struct pcvcm_node* node)
     }
 
     if (node) {
-        pctree_node_append_child ((struct pctree_node*)n,
-                (struct pctree_node*)(node));
+        APPEND_CHILD(n, node);
     }
 
     return n;
@@ -334,13 +340,11 @@ struct pcvcm_node* pcvcm_node_new_get_element (struct pcvcm_node* variable,
     }
 
     if (variable) {
-        pctree_node_append_child ((struct pctree_node*)n,
-                (struct pctree_node*)(variable));
+        APPEND_CHILD(n, variable);
     }
 
     if (identifier) {
-        pctree_node_append_child ((struct pctree_node*)n,
-                (struct pctree_node*)(identifier));
+        APPEND_CHILD(n, identifier);
     }
 
     return n;
@@ -355,13 +359,11 @@ struct pcvcm_node* pcvcm_node_new_call_getter (struct pcvcm_node* variable,
     }
 
     if (variable) {
-        pctree_node_append_child ((struct pctree_node*)n,
-                (struct pctree_node*)(variable));
+        APPEND_CHILD(n, variable);
     }
 
     for (size_t i = 0; i < nr_params; i++) {
-        pctree_node_append_child ((struct pctree_node*)n,
-                (struct pctree_node*)(params + i));
+        APPEND_CHILD(n, params + i);
     }
 
     return n;
@@ -376,22 +378,20 @@ struct pcvcm_node* pcvcm_node_new_call_setter (struct pcvcm_node* variable,
     }
 
     if (variable) {
-        pctree_node_append_child ((struct pctree_node*)n,
-                (struct pctree_node*)variable);
+        APPEND_CHILD(n, variable);
     }
 
     for (size_t i = 0; i < nr_params; i++) {
-        pctree_node_append_child ((struct pctree_node*)n,
-                (struct pctree_node*)(params + i));
+        APPEND_CHILD(n, params + i);
     }
 
     return n;
 }
 
-#define APPEND_CHILD_NODE()                                                 \
+#define WRITE_CHILD_NODE()                                                  \
     do {                                                                    \
         struct pctree_node* child = NULL;                                   \
-        struct pctree_node* tree_node = (struct pctree_node*) (node);       \
+        struct pctree_node* tree_node = TO_TREE_NODE(node);                 \
         child = tree_node->first_child;                                     \
         while (child) {                                                     \
             pcvcm_node_write_to_rwstream(rws,                               \
@@ -403,7 +403,7 @@ struct pcvcm_node* pcvcm_node_new_call_setter (struct pcvcm_node* variable,
         }                                                                   \
     } while (false)
 
-#define APPEND_VARIANT()                                                    \
+#define WRITE_VARIANT()                                                     \
     do {                                                                    \
         size_t len_expected = 0;                                            \
         purc_variant_serialize(v, rws, 0, PCVARIANT_SERIALIZE_OPT_PLAIN,    \
@@ -417,13 +417,13 @@ void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node* node)
     {
     case PCVCM_NODE_TYPE_OBJECT:
         purc_rwstream_write(rws, "make_object(", 12);
-        APPEND_CHILD_NODE();
+        WRITE_CHILD_NODE();
         purc_rwstream_write(rws, ")", 1);
         break;
 
     case PCVCM_NODE_TYPE_ARRAY:
         purc_rwstream_write(rws, "make_array(", 11);
-        APPEND_CHILD_NODE();
+        WRITE_CHILD_NODE();
         purc_rwstream_write(rws, ")", 1);
         break;
 
@@ -441,7 +441,7 @@ void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node* node)
     case PCVCM_NODE_TYPE_BOOLEAN:
     {
         purc_variant_t v = purc_variant_make_boolean (node->b);
-        APPEND_VARIANT();
+        WRITE_VARIANT();
         purc_variant_unref(v);
         break;
     }
@@ -449,7 +449,7 @@ void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node* node)
     case PCVCM_NODE_TYPE_NUMBER:
     {
         purc_variant_t v = purc_variant_make_number (node->d);
-        APPEND_VARIANT();
+        WRITE_VARIANT();
         purc_variant_unref(v);
         break;
     }
@@ -457,7 +457,7 @@ void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node* node)
     case PCVCM_NODE_TYPE_LONG_INT:
     {
         purc_variant_t v = purc_variant_make_longint (node->i64);
-        APPEND_VARIANT();
+        WRITE_VARIANT();
         purc_variant_unref(v);
         break;
     }
@@ -465,7 +465,7 @@ void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node* node)
     case PCVCM_NODE_TYPE_ULONG_INT:
     {
         purc_variant_t v = purc_variant_make_ulongint (node->u64);
-        APPEND_VARIANT();
+        WRITE_VARIANT();
         purc_variant_unref(v);
         break;
     }
@@ -473,7 +473,7 @@ void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node* node)
     case PCVCM_NODE_TYPE_LONG_DOUBLE:
     {
         purc_variant_t v = purc_variant_make_longdouble (node->ld);
-        APPEND_VARIANT();
+        WRITE_VARIANT();
         purc_variant_unref(v);
         break;
     }
@@ -482,38 +482,38 @@ void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node* node)
     {
         purc_variant_t v = purc_variant_make_byte_sequence(
                 (void*)node->sz_ptr[1], node->sz_ptr[0]);
-        APPEND_VARIANT();
+        WRITE_VARIANT();
         purc_variant_unref(v);
         break;
     }
 
     case PCVCM_NODE_TYPE_FUNC_CONCAT_STRING:
         purc_rwstream_write(rws, "concat_string(", 14);
-        APPEND_CHILD_NODE();
+        WRITE_CHILD_NODE();
         purc_rwstream_write(rws, ")", 1);
         break;
 
     case PCVCM_NODE_TYPE_FUNC_GET_VARIABLE:
         purc_rwstream_write(rws, "get_variable(", 13);
-        APPEND_CHILD_NODE();
+        WRITE_CHILD_NODE();
         purc_rwstream_write(rws, ")", 1);
         break;
 
     case PCVCM_NODE_TYPE_FUNC_GET_ELEMENT:
         purc_rwstream_write(rws, "get_element(", 12);
-        APPEND_CHILD_NODE();
+        WRITE_CHILD_NODE();
         purc_rwstream_write(rws, ")", 1);
         break;
 
     case PCVCM_NODE_TYPE_FUNC_CALL_GETTER:
         purc_rwstream_write(rws, "call_getter(", 12);
-        APPEND_CHILD_NODE();
+        WRITE_CHILD_NODE();
         purc_rwstream_write(rws, ")", 1);
         break;
 
     case PCVCM_NODE_TYPE_FUNC_CALL_SETTER:
         purc_rwstream_write(rws, "call_setter(", 12);
-        APPEND_CHILD_NODE();
+        WRITE_CHILD_NODE();
         purc_rwstream_write(rws, ")", 1);
         break;
     }
@@ -564,7 +564,7 @@ static void pcvcm_node_destroy_callback (struct pctree_node* n,  void* data)
 void pcvcm_node_destroy (struct pcvcm_node* root)
 {
     if (root) {
-        pctree_node_post_order_traversal ((struct pctree_node*) root,
+        pctree_node_post_order_traversal (TO_TREE_NODE(root),
                 pcvcm_node_destroy_callback, NULL);
     }
 }
@@ -620,7 +620,7 @@ purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node,
 purc_variant_t pcvcm_node_object_to_variant (struct pcvcm_node* node,
         struct pcvcm_node_op* ops)
 {
-    struct pctree_node* tree_node = (struct pctree_node*) (node);
+    struct pctree_node* tree_node = TO_TREE_NODE(node);
     purc_variant_t object = purc_variant_make_object (0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
 
@@ -647,7 +647,7 @@ purc_variant_t pcvcm_node_object_to_variant (struct pcvcm_node* node,
 purc_variant_t pcvcm_node_array_to_variant (struct pcvcm_node* node,
        struct pcvcm_node_op* ops)
 {
-    struct pctree_node* tree_node = (struct pctree_node*) (node);
+    struct pctree_node* tree_node = TO_TREE_NODE(node);
     purc_variant_t array = purc_variant_make_array (0, PURC_VARIANT_INVALID);
 
     struct pctree_node* array_node = tree_node->first_child;
@@ -675,7 +675,7 @@ purc_variant_t pcvcm_node_concat_string_to_variant (struct pcvcm_node* node,
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     struct pctree_node* child = NULL;
-    struct pctree_node* tree_node = (struct pctree_node*) (node);
+    struct pctree_node* tree_node = TO_TREE_NODE(node);
     child = tree_node->first_child;
     while (child) {
         purc_variant_t v = pcvcm_node_to_variant((struct pcvcm_node*)child, ops);
@@ -683,6 +683,7 @@ purc_variant_t pcvcm_node_concat_string_to_variant (struct pcvcm_node* node,
             size_t len_expected = 0;
             purc_variant_serialize(v, rws, 0, PCVARIANT_SERIALIZE_OPT_PLAIN,
                 &len_expected);
+            purc_variant_unref(v);
         }
         else {
             goto err;
@@ -718,7 +719,7 @@ purc_variant_t pcvcm_node_get_variable_to_variant (struct pcvcm_node* node,
         return PURC_VARIANT_INVALID;
     }
 
-    struct pctree_node* tree_node = (struct pctree_node*) (node);
+    struct pctree_node* tree_node = TO_TREE_NODE(node);
     struct pctree_node* name_node = tree_node->first_child;
     if (!name_node) {
         return PURC_VARIANT_INVALID;
@@ -796,31 +797,28 @@ purc_variant_t call_nvariant_setter_method(purc_variant_t var,
 purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
        struct pcvcm_node_op* ops)
 {
-    UNUSED_PARAM(node);
-    UNUSED_PARAM(ops);
-
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    struct pctree_node* tree_node = (struct pctree_node*) (node);
-    struct pctree_node* first_param_node = tree_node->first_child;
-    if (!first_param_node) {
+    struct pctree_node* tree_node = TO_TREE_NODE(node);
+    struct pctree_node* caller_node = tree_node->first_child;
+    if (!caller_node) {
         goto exit;
     }
 
-    purc_variant_t first_param_var = pcvcm_node_to_variant(
-            (struct pcvcm_node*)first_param_node, ops);
-    if (!first_param_var) {
+    purc_variant_t caller_var = pcvcm_node_to_variant(
+            (struct pcvcm_node*)caller_node, ops);
+    if (!caller_var) {
         goto exit;
     }
 
     purc_variant_t last_param_var = pcvcm_node_to_variant(
-            (struct pcvcm_node*)(first_param_node->next), ops);
+            (struct pcvcm_node*)(caller_node->next), ops);
     if (!last_param_var) {
-        goto clean_first_param_var;
+        goto clean_caller_var;
     }
 
     struct pctree_node* parent_node = pctree_node_parent(tree_node);
-    if (purc_variant_is_object(first_param_var)) {
-        purc_variant_t val = purc_variant_object_get(first_param_var,
+    if (purc_variant_is_object(caller_var)) {
+        purc_variant_t val = purc_variant_object_get(caller_var,
                 last_param_var);
         if (!val) {
             goto clean_last_param_var;
@@ -838,25 +836,25 @@ purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
         ret_var = call_dvariant_getter_method(val, 0, NULL);
         purc_variant_unref(val);
     }
-    else if (purc_variant_is_dynamic(first_param_var)) {
-        ret_var = call_dvariant_getter_method(first_param_var, 1,
+    else if (purc_variant_is_dynamic(caller_var)) {
+        ret_var = call_dvariant_getter_method(caller_var, 1,
                 &last_param_var);
         goto clean_last_param_var;
     }
-    else if (purc_variant_is_native(first_param_var)) {
+    else if (purc_variant_is_native(caller_var)) {
         if (is_action_node((struct pcvcm_node*)parent_node)) {
-            ret_var = purc_variant_make_array(2, first_param_var, last_param_var);
+            ret_var = purc_variant_make_array(2, caller_var, last_param_var);
             goto clean_last_param_var;
         }
-        ret_var = call_nvariant_getter_method(first_param_var,
+        ret_var = call_nvariant_getter_method(caller_var,
                 purc_variant_get_string_const(last_param_var), 0, NULL);
         goto clean_last_param_var;
     }
 
 clean_last_param_var:
     purc_variant_unref(last_param_var);
-clean_first_param_var:
-    purc_variant_unref(first_param_var);
+clean_caller_var:
+    purc_variant_unref(caller_var);
 exit:
     return ret_var;
 }
@@ -868,7 +866,7 @@ purc_variant_t pcvcm_node_call_getter_to_variant (struct pcvcm_node* node,
     UNUSED_PARAM(ops);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    struct pctree_node* tree_node = (struct pctree_node*) (node);
+    struct pctree_node* tree_node = TO_TREE_NODE(node);
     struct pctree_node* first_param_node = tree_node->first_child;
     if (!first_param_node) {
         goto exit;
@@ -941,7 +939,7 @@ purc_variant_t pcvcm_node_call_setter_to_variant (struct pcvcm_node* node,
     UNUSED_PARAM(ops);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    struct pctree_node* tree_node = (struct pctree_node*) (node);
+    struct pctree_node* tree_node = TO_TREE_NODE(node);
     struct pctree_node* first_param_node = tree_node->first_child;
     if (!first_param_node) {
         goto exit;
