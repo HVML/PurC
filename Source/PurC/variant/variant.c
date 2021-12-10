@@ -1405,7 +1405,7 @@ stringify_bs(struct stringify_arg *arg, const unsigned char *bs, size_t nr)
         *p++ = chars[l];
         if (p == end) {
             *p = '\0';
-            buf->len = 2 * i + 1;
+            buf->len = 2 * (i + 1) + 1;
             arg->cb(arg->arg, buffer);
             p = buffer;
         }
