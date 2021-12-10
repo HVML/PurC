@@ -240,7 +240,8 @@ static inline void
 make_variant_from_json(purc_variant_t *v, const char *s, size_t len,
         struct config *cfg)
 {
-    UNUSED_PARAM(len);
+    if (s[len] != '\0')
+        abort();
 
     if (strcmp(s, "undefined")==0) {
         *v = purc_variant_make_undefined();
@@ -262,7 +263,8 @@ process_input_output(struct config *cfg, const char *fn, struct parser_ctx *ctx)
     (void)fn;
 
     int r = 0;
-    r = purc_variant_compare_st(ctx->v_input, ctx->v_output);
+    r = purc_variant_compare_ex(ctx->v_input, ctx->v_output,
+            PCVARIANT_COMPARE_OPT_AUTO);
     if (r) {
         const char *src_file = basename((char*)__FILE__);
         std::cerr << src_file << "[" << __LINE__ << "]:"
@@ -295,7 +297,7 @@ process_rule_output_do_choose(struct config *cfg, const char *fn,
     }
 
     int r = 0;
-    r = purc_variant_compare_st(v, ctx->v_output);
+    r = purc_variant_compare_ex(v, ctx->v_output, PCVARIANT_COMPARE_OPT_AUTO);
     if (r) {
         purc_rwstream_t rws = purc_rwstream_new_buffer(1024, -1);
         purc_variant_serialize(v, rws, 0, 0, NULL);
@@ -747,7 +749,7 @@ do_ejson_parser_parse(struct ejson_parser_record *record, struct config *cfg)
         return;
     }
 
-    if (0) {
+    if (1) {
         purc_variant_t vo;
         vo = pcejson_parser_parse_string(out, debug_flex, debug_bison);
         if (vo == PURC_VARIANT_INVALID) {
@@ -756,7 +758,7 @@ do_ejson_parser_parse(struct ejson_parser_record *record, struct config *cfg)
             return;
         }
 
-        int r = purc_variant_compare_st(v, vo);
+        int r = purc_variant_compare_ex(v, vo, PCVARIANT_COMPARE_OPT_AUTO);
 
         purc_variant_unref(v);
         purc_variant_unref(vo);
@@ -825,6 +827,7 @@ TEST(executors, ejson_parser)
         { true, "[0]", "[0FL]" },
         { true, "['ab']", "[\"ab\"]" },
         { true, "{'hello':'world'}", "{\"hello\":\"world\"}" },
+        { true, "'hello'", "'hello'"},
     };
 
     for (size_t i=0; i<PCA_TABLESIZE(records); ++i) {
