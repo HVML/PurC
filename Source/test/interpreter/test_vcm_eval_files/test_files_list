@@ -3,3 +3,4 @@ jsonee_001_get_variable
 jsonee_002_system
 jsonee_003_get_element
 jsonee_004_call_getter
+jsonee_005_call_getter_with_param
