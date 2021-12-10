@@ -68,7 +68,7 @@ ctxt_destroy(struct ctxt_for_choose *ctxt)
     }
 }
 
-static inline void *
+static inline int
 choose_after_pushed_on_by(pcintr_stack_t stack,
         struct ctxt_for_choose *ctxt, purc_variant_t on, purc_variant_t by)
 {
@@ -78,17 +78,17 @@ choose_after_pushed_on_by(pcintr_stack_t stack,
     struct purc_exec_ops *ops = &ctxt->ops;
     bool ok = purc_get_executor(rule, ops);
     if (!ok)
-        return false;
+        return -1;
 
     if (!ops->create)
-        return false;
+        return -1;
 
     ctxt->exec_inst = ops->create(PURC_EXEC_TYPE_CHOOSE, on, true);
     if (!ctxt->exec_inst)
-        return false;
+        return -1;
 
     if (!ops->choose)
-        return false;
+        return -1;
 
     purc_variant_t result = ops->choose(ctxt->exec_inst, rule);
 
@@ -99,21 +99,21 @@ choose_after_pushed_on_by(pcintr_stack_t stack,
             == PURC_VARIANT_INVALID);
     frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK] = result;
 
-    return ctxt;
+    return 0;
 }
 
-static inline bool
+static inline int
 choose_after_pushed(pcintr_stack_t stack, pcvdom_element_t pos,
         struct ctxt_for_choose *ctxt)
 {
     purc_variant_t on = pcvdom_element_get_attr_val(pos, "on");
     purc_variant_t by = pcvdom_element_get_attr_val(pos, "by");
 
-    bool ok = choose_after_pushed_on_by(stack, ctxt, on, by);
+    int r = choose_after_pushed_on_by(stack, ctxt, on, by);
     purc_variant_unref(on);
     purc_variant_unref(by);
 
-    return ok;
+    return r ? -1 : 0;
 }
 
 // called after pushed
@@ -125,8 +125,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (!ctxt)
         return NULL;
 
-    bool ok = choose_after_pushed(stack, pos, ctxt);
-    if (!ok) {
+    int r = choose_after_pushed(stack, pos, ctxt);
+    if (r) {
         ctxt_destroy(ctxt);
         return NULL;
     }
@@ -148,8 +148,6 @@ on_popping(pcintr_stack_t stack, void* ctxt)
     ctxt_destroy(choose_ctxt);
     frame->ctxt = NULL;
 
-    pop_stack_frame(stack);
-
     return false;
 }
 
@@ -163,18 +161,14 @@ rerun(pcintr_stack_t stack, void* ctxt)
     return false;
 }
 
-// called after executed
 static inline pcvdom_element_t
-select_child(pcintr_stack_t stack, void* ctxt)
+choose_select_child(pcintr_stack_t stack, struct ctxt_for_choose *ctxt)
 {
-    struct ctxt_for_choose *choose_ctxt;
-    choose_ctxt = (struct ctxt_for_choose*)ctxt;
-
-    if (choose_ctxt->curr) {
+    if (ctxt->curr) {
         struct pcvdom_element *next;
-        next = pcvdom_element_next_sibling(choose_ctxt->curr);
+        next = pcvdom_element_next_sibling(ctxt->curr);
         if (next) {
-            choose_ctxt->curr = next;
+            ctxt->curr = next;
         }
         return next;
     }
@@ -183,10 +177,21 @@ select_child(pcintr_stack_t stack, void* ctxt)
     frame = pcintr_stack_get_bottom_frame(stack);
     pcvdom_element_t element = frame->pos;
 
-    choose_ctxt->curr = pcvdom_element_first_child(element);
+    ctxt->curr = pcvdom_element_first_child(element);
 
-    return choose_ctxt->curr;
+    return ctxt->curr;
 }
+
+// called after executed
+static inline pcvdom_element_t
+select_child(pcintr_stack_t stack, void* ctxt)
+{
+    struct ctxt_for_choose *choose_ctxt;
+    choose_ctxt = (struct ctxt_for_choose*)ctxt;
+
+    return choose_select_child(stack, choose_ctxt);
+}
+
 
 static struct pcintr_element_ops
 ops = {
