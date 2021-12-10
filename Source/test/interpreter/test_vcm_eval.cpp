@@ -3,6 +3,7 @@
 #include "private/hvml.h"
 #include "private/utils.h"
 #include "purc-rwstream.h"
+#include "purc-variant.h"
 #include "hvml/hvml-token.h"
 
 #include "../helpers.h"
@@ -192,6 +193,19 @@ int to_error(const char* err)
     return -1;
 }
 
+purc_variant_t find_var(void* ctxt, const char* name)
+{
+    UNUSED_PARAM(ctxt);
+    if (strcmp(name, "TEST_OBJ") == 0) {
+        return purc_variant_make_object(2,
+               purc_variant_make_string("name", false),
+               purc_variant_make_string("test object", false),
+               purc_variant_make_string("value", false),
+               purc_variant_make_ulongint(1000));
+    }
+    return purc_variant_make_string(name, false);
+}
+
 TEST_P(test_vcm_eval, parse_and_serialize)
 {
     const char* hvml = get_hvml();
@@ -219,7 +233,7 @@ TEST_P(test_vcm_eval, parse_and_serialize)
 
     struct pcvcm_node* root = pchvml_token_get_vcm(token);
 
-    purc_variant_t vt = pcvcm_eval (root, NULL);
+    purc_variant_t vt = pcvcm_eval_ex (root, find_var, NULL);
     ASSERT_NE(vt, PURC_VARIANT_INVALID) << "Test Case : "<< get_name();
 
     char buf[1024] = {0};
