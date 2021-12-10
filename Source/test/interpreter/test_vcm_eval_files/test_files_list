@@ -7,3 +7,4 @@ jsonee_005_call_getter_with_param
 jsonee_006_call_getter_by_get_element
 jsonee_007_system_time_format
 jsonee_008_system_locale
+jsonee_009_call_set_system_locale
