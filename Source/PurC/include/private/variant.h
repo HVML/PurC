@@ -27,7 +27,6 @@
 
 #include "config.h"
 #include "purc-variant.h"
-#include "hashtable.h"
 #include "list.h"
 #include "rbtree.h"
 
@@ -169,6 +168,21 @@ struct variant_set {
     struct pcutils_arrlist *arr;    // also stored in arraylist
 };
 
+// internal struct used by variant-obj object
+typedef struct variant_obj      *variant_obj_t;
+
+struct obj_node {
+    struct rb_node   node;
+    purc_variant_t   key;
+    purc_variant_t   val;
+};
+
+struct variant_obj {
+    struct rb_root          kvs;  // struct obj_node*
+    size_t                  size;
+};
+
+
 int pcvariant_array_swap(purc_variant_t value, int i, int j);
 int pcvariant_set_swap(purc_variant_t value, int i, int j);
 
@@ -213,28 +227,34 @@ int pcvariant_set_sort(purc_variant_t value, void *ud,
 
 #define foreach_value_in_variant_object(_obj, _val)                 \
     do {                                                            \
-        struct pchash_table *_ht;                                   \
-        _ht = (struct pchash_table*)_obj->sz_ptr[1];                \
-        struct pchash_entry *_entry;                                \
-        pchash_foreach(_ht, _entry)                                 \
+        variant_obj_t _data;                                        \
+        _data = (variant_obj_t)_obj->sz_ptr[1];                     \
+        struct rb_root *_root = &_data->kvs;                        \
+        struct rb_node *_p = pcutils_rbtree_first(_root);           \
+        for (; _p; _p = pcutils_rbtree_next(_p))                    \
         {                                                           \
-            _val = (purc_variant_t)_entry->v;                       \
+            struct obj_node *node;                                  \
+            node = container_of(_p, struct obj_node, node);         \
+            _val = node->val;                                       \
      /* } */                                                        \
  /* } while (0) */
 
 #define foreach_key_value_in_variant_object(_obj, _key, _val)       \
     do {                                                            \
-        struct pchash_table *_ht;                                   \
-        _ht = (struct pchash_table*)_obj->sz_ptr[1];                \
-        struct pchash_entry *_entry;                                \
-        pchash_foreach(_ht, _entry)                                 \
+        variant_obj_t _data;                                        \
+        _data = (variant_obj_t)_obj->sz_ptr[1];                     \
+        struct rb_root *_root = &_data->kvs;                        \
+        struct rb_node *_p = pcutils_rbtree_first(_root);           \
+        for (; _p; _p = pcutils_rbtree_next(_p))                    \
         {                                                           \
-            _key = (purc_variant_t)_entry->k;                       \
-            _val = (purc_variant_t)_entry->v;                       \
+            struct obj_node *node;                                  \
+            node = container_of(_p, struct obj_node, node);         \
+            _key = node->key;                                       \
+            _val = node->val;                                       \
      /* } */                                                        \
  /* } while (0) */
 
-#define foreach_in_variant_object_safe(_obj, _curr)                     \
+#define foreach_in_variant_object_safe_x(_obj, _curr)                   \
     do {                                                                \
         struct pchash_table *_ht;                                       \
         _ht = (struct pchash_table*)_obj->sz_ptr[1];                    \
@@ -258,7 +278,7 @@ int pcvariant_set_sort(purc_variant_t value, void *ud,
      /* } */                                                            \
   /* } while (0) */
 
-#define foreach_value_in_variant_set_safe(_set, _val, _curr)                 \
+#define foreach_value_in_variant_set_safe_x(_set, _val, _curr)               \
     do {                                                                     \
         variant_set_t _data;                                                 \
         struct rb_root *_root;                                               \

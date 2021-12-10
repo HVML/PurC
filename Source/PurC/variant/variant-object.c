@@ -25,7 +25,6 @@
 
 #include "config.h"
 #include "private/variant.h"
-#include "private/hashtable.h"
 #include "private/errors.h"
 #include "purc-errors.h"
 #include "variant-internals.h"
@@ -36,8 +35,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define HT_EXTRA_SIZE(ht) sizeof(*ht) + \
-    (ht->size) * sizeof(*ht->table)
+#define OBJ_EXTRA_SIZE(data) (sizeof(*data) + \
+        (data->size) * sizeof(struct obj_node))
 
 static inline void
 grown(purc_variant_t obj, purc_variant_t key, purc_variant_t val)
@@ -121,33 +120,14 @@ change(purc_variant_t obj,
     }
 }
 
-static inline struct pchash_table*
-v_object_get_ht(purc_variant_t obj)
+static inline variant_obj_t
+object_get_data(purc_variant_t obj)
 {
-    struct pchash_table *ht = (struct pchash_table*)obj->sz_ptr[1];
-    return ht;
+    variant_obj_t data = (variant_obj_t)obj->sz_ptr[1];
+    return data;
 }
 
-static unsigned long
-key_hash(const void *k)
-{
-    const char *key;
-    key = purc_variant_get_string_const((purc_variant_t)k);
-    return pchash_default_char_hash(key);
-}
-
-static int
-key_equal(const void *k1, const void *k2)
-{
-    if (k1==k2)
-        return 1;
-
-    purc_variant_t key1 = (purc_variant_t)k1;
-    purc_variant_t key2 = (purc_variant_t)k2;
-    return purc_variant_compare(key1, key2) ? 0 : 1;
-}
-
-static purc_variant_t v_object_new_with_capacity(size_t initial_size)
+static purc_variant_t v_object_new_with_capacity(void)
 {
     purc_variant_t var = pcvariant_get(PVT(_OBJECT));
     if (!var) {
@@ -158,19 +138,18 @@ static purc_variant_t v_object_new_with_capacity(size_t initial_size)
     var->type          = PVT(_OBJECT);
     var->flags         = PCVARIANT_FLAG_EXTRA_SIZE;
 
-    if (initial_size==0)
-        initial_size = HASHTABLE_DEFAULT_SIZE;
+    variant_obj_t data;
+    data = (variant_obj_t)calloc(1, sizeof(*data));
 
-    struct pchash_table *ht;
-    ht = pchash_table_new(initial_size, NULL,
-            key_hash, key_equal);
-
-    if (!ht) {
+    if (!data) {
         pcvariant_put(var);
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
     }
-    var->sz_ptr[1]     = (uintptr_t)ht;
+
+    data->kvs = RB_ROOT;
+
+    var->sz_ptr[1]     = (uintptr_t)data;
     var->refc          = 1;
 
     return var;
@@ -183,37 +162,64 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val)
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return -1;
     }
-    struct pchash_table *ht = v_object_get_ht(obj);
-    struct pchash_entry *e  = pchash_table_lookup_entry(ht, k);
-    if (e) {
-        purc_variant_t ko  = (purc_variant_t)pchash_entry_k(e);
-        purc_variant_t old = (purc_variant_t)pchash_entry_v(e);
-        if (old==val) {
-            return 0;
+    variant_obj_t data = object_get_data(obj);
+    PC_ASSERT(data);
+
+    struct rb_root *root = &data->kvs;
+    struct rb_node **pnode = &root->rb_node;
+    struct rb_node *parent = NULL;
+    struct rb_node *entry = NULL;
+    while (*pnode) {
+        struct obj_node *node;
+        node = container_of(*pnode, struct obj_node, node);
+        int ret = purc_variant_compare_st(k, node->key);
+
+        parent = *pnode;
+
+        if (ret < 0)
+            pnode = &parent->rb_left;
+        else if (ret > 0)
+            pnode = &parent->rb_right;
+        else{
+            entry = *pnode;
+            break;
         }
-        change(obj, ko, old, k, val);
-        if (ko!=k) {
-            purc_variant_ref(k);
-            purc_variant_unref(ko);
-        }
-        e->k = k;
-        e->v = val;
-        purc_variant_ref(val);
-        purc_variant_unref(old);
-        return 0;
-    } else {
-        if (pchash_table_resize(ht, ht->count + 1) ||
-            pchash_table_insert(ht, k, val))
-        {
+    }
+
+    if (!entry) { //new the entry
+        struct obj_node *node = (struct obj_node*)calloc(1, sizeof(*node));
+        if (!node) {
             pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
             return -1;
         }
-        grown(obj, k, val);
+        node->key = k;
+        node->val = val;
         purc_variant_ref(k);
         purc_variant_ref(val);
+        entry = &node->node;
 
+        pcutils_rbtree_link_node(entry, parent, pnode);
+        pcutils_rbtree_insert_color(entry, root);
+
+        ++data->size;
+
+        grown(obj, k, val);
         return 0;
     }
+
+    struct obj_node *node;
+    node = container_of(entry, struct obj_node, node);
+
+    change(obj, node->key, node->val, k, val);
+
+    purc_variant_ref(k);
+    purc_variant_unref(node->key);
+    node->key = k;
+    purc_variant_ref(val);
+    purc_variant_unref(node->val);
+    node->val = val;
+
+    return 0;
 }
 
 static int
@@ -249,30 +255,51 @@ v_object_set_kvs_n(purc_variant_t obj, size_t nr_kv_pairs,
     return i<nr_kv_pairs ? -1 : 0;
 }
 
-static int v_object_remove(purc_variant_t obj, purc_variant_t key)
+static int
+v_object_remove(purc_variant_t obj, purc_variant_t key)
 {
-    struct pchash_table *ht = v_object_get_ht(obj);
-    struct pchash_entry *e  = pchash_table_lookup_entry(ht, key);
-    if (!e) {
+    variant_obj_t data = object_get_data(obj);
+    struct rb_root *root = &data->kvs;
+    struct rb_node **pnode = &root->rb_node;
+    struct rb_node *parent = NULL;
+    struct rb_node *entry = NULL;
+    while (*pnode) {
+        struct obj_node *node;
+        node = container_of(*pnode, struct obj_node, node);
+        int ret = purc_variant_compare_st(key, node->key);
+
+        parent = *pnode;
+
+        if (ret < 0)
+            pnode = &parent->rb_left;
+        else if (ret > 0)
+            pnode = &parent->rb_right;
+        else{
+            entry = *pnode;
+            break;
+        }
+    }
+
+    if (!entry) {
         pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
-        return false;
+        return -1;
     }
 
-    purc_variant_t k = (purc_variant_t)pchash_entry_k(e);
-    PC_ASSERT(k);
-    purc_variant_t v = (purc_variant_t)pchash_entry_v(e);
-    PC_ASSERT(v);
+    pcutils_rbtree_erase(entry, root);
+    --data->size;
 
-    if (pchash_table_delete_entry(ht, e)) {
-        PC_ASSERT(0);
-        return false;
-    }
+    struct obj_node *node;
+    node = container_of(entry, struct obj_node, node);
+    purc_variant_t k = node->key;
+    purc_variant_t v = node->val;
 
     shrunk(obj, k, v);
     purc_variant_unref(k);
     purc_variant_unref(v);
 
-    return true;
+    free(node);
+
+    return 0;
 }
 
 static purc_variant_t
@@ -283,12 +310,12 @@ pv_make_object_by_static_ckey_n (size_t nr_kv_pairs,
                          (nr_kv_pairs>0 && key0 && value0),
         PURC_VARIANT_INVALID);
 
-    purc_variant_t obj = v_object_new_with_capacity(nr_kv_pairs);
+    purc_variant_t obj = v_object_new_with_capacity();
     if (!obj)
         return PURC_VARIANT_INVALID;
 
-    struct pchash_table *ht = v_object_get_ht(obj);
-    PC_ASSERT(ht);
+    variant_obj_t data = object_get_data(obj);
+    PC_ASSERT(data);
 
     do {
         int r;
@@ -307,7 +334,7 @@ pv_make_object_by_static_ckey_n (size_t nr_kv_pairs,
                 break;
         }
 
-        size_t extra = HT_EXTRA_SIZE(ht);
+        size_t extra = OBJ_EXTRA_SIZE(data);
         pcvariant_stat_set_extra_size(obj, extra);
 
         return obj;
@@ -340,12 +367,12 @@ pv_make_object_n(size_t nr_kv_pairs,
                          (nr_kv_pairs>0 && key0 && value0),
         PURC_VARIANT_INVALID);
 
-    purc_variant_t obj = v_object_new_with_capacity(nr_kv_pairs);
+    purc_variant_t obj = v_object_new_with_capacity();
     if (!obj)
         return PURC_VARIANT_INVALID;
 
-    struct pchash_table *ht = v_object_get_ht(obj);
-    PC_ASSERT(ht);
+    variant_obj_t data = object_get_data(obj);
+    PC_ASSERT(data);
 
     do {
         if (nr_kv_pairs > 0) {
@@ -360,8 +387,8 @@ pv_make_object_n(size_t nr_kv_pairs,
                 break;
         }
 
-        struct pchash_table *ht = v_object_get_ht(obj);
-        size_t extra = HT_EXTRA_SIZE(ht);
+        variant_obj_t data = object_get_data(obj);
+        size_t extra = OBJ_EXTRA_SIZE(data);
         pcvariant_stat_set_extra_size(obj, extra);
 
         return obj;
@@ -388,18 +415,23 @@ purc_variant_make_object (size_t nr_kv_pairs,
 
 void pcvariant_object_release (purc_variant_t value)
 {
-    struct pchash_table *ht = v_object_get_ht(value);
+    variant_obj_t data = object_get_data(value);
 
-    struct pchash_entry *e, *tmp;
-    pchash_foreach_safe(ht, e, tmp) {
-        purc_variant_t k = (purc_variant_t)pchash_entry_k(e);
-        purc_variant_t v = (purc_variant_t)pchash_entry_v(e);
-        int r = pchash_table_delete_entry(ht, e);
-        PC_ASSERT(r==0);
-        purc_variant_unref(k);
-        purc_variant_unref(v);
+    struct rb_root *root = &data->kvs;
+
+    struct rb_node *p = pcutils_rbtree_first(root);
+    while (p) {
+        struct rb_node *next = pcutils_rbtree_next(p);
+        pcutils_rbtree_erase(p, root);
+        struct obj_node *node;
+        node = container_of(p, struct obj_node, node);
+        purc_variant_unref(node->key);
+        purc_variant_unref(node->val);
+        free(node);
+        p = next;
     }
-    pchash_table_free(ht);
+    free(data);
+
     value->sz_ptr[1] = (uintptr_t)NULL; // say no to double free
 
     pcvariant_stat_set_extra_size(value, 0);
@@ -409,8 +441,8 @@ void pcvariant_object_release (purc_variant_t value)
 int pcvariant_object_compare (purc_variant_t lv, purc_variant_t rv)
 {
     // only called via purc_variant_compare
-    struct pchash_table *lht = v_object_get_ht(lv);
-    struct pchash_table *rht = v_object_get_ht(rv);
+    struct pchash_table *lht = object_get_data(lv);
+    struct pchash_table *rht = object_get_data(rv);
 
     struct pchash_entry *lcurr = lht->head;
     struct pchash_entry *rcurr = rht->head;
@@ -433,16 +465,37 @@ purc_variant_t purc_variant_object_get(purc_variant_t obj, purc_variant_t key)
         obj->sz_ptr[1] && key),
         PURC_VARIANT_INVALID);
 
-    struct pchash_table *ht = v_object_get_ht(obj);
-    struct pchash_entry *e  = pchash_table_lookup_entry(ht, key);
-    if (!e) {
+    variant_obj_t data = object_get_data(obj);
+    struct rb_root *root = &data->kvs;
+
+    struct rb_node **pnode = &root->rb_node;
+    struct rb_node *parent = NULL;
+    struct rb_node *entry = NULL;
+    while (*pnode) {
+        struct obj_node *node;
+        node = container_of(*pnode, struct obj_node, node);
+        int ret = purc_variant_compare_st(key, node->key);
+
+        parent = *pnode;
+
+        if (ret < 0)
+            pnode = &parent->rb_left;
+        else if (ret > 0)
+            pnode = &parent->rb_right;
+        else{
+            entry = *pnode;
+            break;
+        }
+    }
+
+    if (!entry) {
         pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
         return PURC_VARIANT_INVALID;
     }
-    purc_variant_t v = (purc_variant_t)pchash_entry_v(e);
-    PC_ASSERT(v);
 
-    return v;
+    struct obj_node *node;
+    node = container_of(entry, struct obj_node, node);
+    return node->val;
 }
 
 bool purc_variant_object_set (purc_variant_t obj,
@@ -476,11 +529,8 @@ bool purc_variant_object_size (purc_variant_t obj, size_t *sz)
     PCVARIANT_CHECK_FAIL_RET(obj->type == PVT(_OBJECT) && obj->sz_ptr[1],
         false);
 
-    struct pchash_table *ht = v_object_get_ht(obj);
-    int nr = pchash_table_length(ht);
-
-    PC_ASSERT(nr >= 0);
-    *sz = (size_t)nr;
+    variant_obj_t data = object_get_data(obj);
+    *sz = (size_t)data->size;
 
     return true;
 }
@@ -488,25 +538,26 @@ bool purc_variant_object_size (purc_variant_t obj, size_t *sz)
 struct purc_variant_object_iterator {
     purc_variant_t           obj;
 
-    struct pchash_entry     *curr;
-    struct pchash_entry     *next, *prev;
+    struct rb_node          *curr;
+    struct rb_node          *next, *prev;
 };
 
-#define refresh_iterator(it) do {            \
-    if (it->curr) {                          \
-        it->next = it->curr->next;           \
-        it->prev = it->curr->prev;           \
-    }                                        \
+#define refresh_iterator(it) do {                           \
+    if (it->curr) {                                         \
+        it->next = pcutils_rbtree_next(it->curr);           \
+        it->prev = pcutils_rbtree_prev(it->curr);           \
+    }                                                       \
 } while (0)
 
 struct purc_variant_object_iterator*
-purc_variant_object_make_iterator_begin (purc_variant_t object) {
+purc_variant_object_make_iterator_begin (purc_variant_t object)
+{
     PCVARIANT_CHECK_FAIL_RET((object && object->type==PVT(_OBJECT) &&
         object->sz_ptr[1]),
         NULL);
 
-    struct pchash_table *ht = v_object_get_ht(object);
-    if (ht->count==0) {
+    variant_obj_t data = object_get_data(object);
+    if (data->size==0) {
         pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
         return NULL;
     }
@@ -518,8 +569,10 @@ purc_variant_object_make_iterator_begin (purc_variant_t object) {
         return NULL;
     }
 
+    struct rb_root *root = &data->kvs;
+
     it->obj = object;
-    it->curr = ht->head;
+    it->curr = pcutils_rbtree_first(root);
     refresh_iterator(it);
 
     return it;
@@ -531,8 +584,8 @@ purc_variant_object_make_iterator_end (purc_variant_t object) {
         object->sz_ptr[1]),
         NULL);
 
-    struct pchash_table *ht = v_object_get_ht(object);
-    if (ht->count==0) {
+    variant_obj_t data = object_get_data(object);
+    if (data->size==0) {
         pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
         return NULL;
     }
@@ -544,8 +597,10 @@ purc_variant_object_make_iterator_end (purc_variant_t object) {
         return NULL;
     }
 
+    struct rb_root *root = &data->kvs;
+
     it->obj = object;
-    it->curr = ht->tail;
+    it->curr = pcutils_rbtree_last(root);
     refresh_iterator(it);
 
     return it;
@@ -574,7 +629,7 @@ purc_variant_object_iterator_next (struct purc_variant_object_iterator* it)
     PC_ASSERT(it->obj);
 
     if (it->curr) {
-        it->curr = it->curr->next;
+        it->curr = it->next;
     }
     refresh_iterator(it);
 
@@ -592,7 +647,7 @@ purc_variant_object_iterator_prev (struct purc_variant_object_iterator* it)
     PC_ASSERT(it->obj);
 
     if (it->curr) {
-        it->curr = it->curr->prev;
+        it->curr = it->prev;
     }
     refresh_iterator(it);
 
@@ -610,7 +665,10 @@ purc_variant_object_iterator_get_key (struct purc_variant_object_iterator* it)
     PC_ASSERT(it->obj);
     PC_ASSERT(it->curr);
 
-    purc_variant_t k = (purc_variant_t)pchash_entry_k(it->curr);
+    struct obj_node *node;
+    node = container_of(it->curr, struct obj_node, node);
+
+    purc_variant_t k = node->key;
     PC_ASSERT(purc_variant_is_string(k));
     return k;
 }
@@ -623,7 +681,10 @@ purc_variant_object_iterator_get_value(struct purc_variant_object_iterator* it)
     PC_ASSERT(it->obj);
     PC_ASSERT(it->curr);
 
-    purc_variant_t  v = (purc_variant_t)pchash_entry_v(it->curr);
+    struct obj_node *node;
+    node = container_of(it->curr, struct obj_node, node);
+
+    purc_variant_t  v = node->val;
     return v;
 }
 

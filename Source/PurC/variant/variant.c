@@ -458,7 +458,7 @@ static int compare_objects(purc_variant_t v1, purc_variant_t v2)
 
     foreach_key_value_in_variant_object(v1, key, m1)
         m2 = purc_variant_object_get(v2, key);
-        diff = purc_variant_compare(m1, m2);
+        diff = purc_variant_compare_st(m1, m2);
         if (diff != 0)
             return diff;
     end_foreach;
@@ -481,7 +481,7 @@ static int compare_arrays(purc_variant_t v1, purc_variant_t v2)
     foreach_value_in_variant_array(v1, m1)
 
         m2 = purc_variant_array_get(v2, idx);
-        diff = purc_variant_compare(m1, m2);
+        diff = purc_variant_compare_st(m1, m2);
         if (diff != 0)
             return diff;
 
@@ -506,7 +506,7 @@ static int compare_sets(purc_variant_t v1, purc_variant_t v2)
     foreach_value_in_variant_set(v1, m1)
 
         m2 = purc_variant_set_iterator_get_value(it);
-        diff = purc_variant_compare(m1, m2);
+        diff = purc_variant_compare_st(m1, m2);
         if (diff != 0)
             goto ret;
 
@@ -886,21 +886,21 @@ bool purc_variant_cast_to_byte_sequence(purc_variant_t v,
     return false;
 }
 
-static inline double compare_number (purc_variant_t v1, purc_variant_t v2)
+static int compare_number_method (purc_variant_t v1, purc_variant_t v2)
 {
-    double number1 = 0.0L;
-    double number2 = 0.0L;
+    int ret = 0;
+    double number1 = purc_variant_numberify (v1);
+    double number2 = purc_variant_numberify (v2);
 
-    if (v1)
-        number1 = purc_variant_numberify (v1);
+    if (equal_doubles (number1, number2))
+        ret = 0;
+    else
+        ret = number1 < number2 ? -1: 1;
 
-    if (v2)
-        number2 = purc_variant_numberify (v2);
-
-    return number1 - number2;
+    return ret;
 }
 
-static inline char *compare_stringify (purc_variant_t v, char *stackbuffer)
+static char *compare_stringify (purc_variant_t v, char *stackbuffer)
 {
     char * buffer = NULL;
     size_t total = 0;
@@ -945,83 +945,63 @@ static inline char *compare_stringify (purc_variant_t v, char *stackbuffer)
     return buffer;
 }
 
-static inline double compare_string (purc_variant_t v1,
-        purc_variant_t v2, unsigned int flag)
+static int compare_string_method (purc_variant_t v1,
+        purc_variant_t v2, purc_variant_compare_opt opt)
 {
-    double compare = 0.0L;
+    int compare = 0.0L;
     char *buf1 = NULL;
     char *buf2 = NULL;
-    char stackbuf1[128] = {0,};
-    char stackbuf2[128] = {0,};
-    char *pcompare1 = NULL;
-    char *pcompare2 = NULL;
+    char stackbuf1[128];
+    char stackbuf2[128];
 
-    if (v1) {
-        buf1 = compare_stringify (v1, stackbuf1);
-        if (buf1)
-            pcompare1 = buf1;
-        else
-            pcompare1 = stackbuf1;
-    }
+    buf1 = compare_stringify (v1, stackbuf1);
+    if (buf1 == NULL)
+        buf1 = stackbuf1;
 
-    if (v2) {
-        buf2 = compare_stringify (v2, stackbuf2);
-        if (buf2)
-            pcompare2 = buf2;
-        else
-            pcompare2 = stackbuf2;
-    }
+    buf2 = compare_stringify (v2, stackbuf2);
+    if (buf2 == NULL)
+        buf2 = stackbuf2;
 
-    if (v1 && v2) {
-        if (flag == PCVARIANT_COMPARE_OPT_CASE)
-            compare = (double)strcmp (pcompare1, pcompare2);
-        else
-            compare = (double)strcasecmp (pcompare1, pcompare2);
-        if (buf1)
-            free (buf1);
-        if (buf2)
-            free (buf2);
-    }
-    else if ((v1 == NULL) && v2) {
-        compare = -1.0L;
-        if (buf2)
-            free (buf2);
-    }
-    else if (v1 && (v2 == NULL)) {
-        compare = 1.0L;
-        if (buf1)
-            free (buf1);
-    }
+    if (opt == PCVARIANT_COMPARE_OPT_CASE)
+        compare = (double)strcmp (buf1, buf2);
     else
-        compare = 0.0L;
+        compare = (double)strcasecmp (buf1, buf2);
+
+    if (buf1 != stackbuf1)
+        free (buf1);
+    if (buf2 != stackbuf2)
+        free (buf2);
 
     return compare;
 }
 
-double purc_variant_compare_ex(purc_variant_t v1,
-        purc_variant_t v2, unsigned int flag)
+int purc_variant_compare_ex (purc_variant_t v1,
+        purc_variant_t v2, purc_variant_compare_opt opt)
 {
-    double compare = 0.0L;
+    int compare = 0;
 
-    if ((flag == PCVARIANT_COMPARE_OPT_CASELESS) ||
-            (flag == PCVARIANT_COMPARE_OPT_CASE))
-        compare = compare_string (v1, v2, flag);
-    else if (flag == PCVARIANT_COMPARE_OPT_NUMBER)
-        compare = compare_number (v1, v2);
-    else if (flag == PCVARIANT_COMPARE_OPT_AUTO) {
+    PC_ASSERT(v1);
+    PC_ASSERT(v2);
+
+    if ((opt == PCVARIANT_COMPARE_OPT_CASELESS) ||
+            (opt == PCVARIANT_COMPARE_OPT_CASE))
+        compare = compare_string_method (v1, v2, opt);
+    else if (opt == PCVARIANT_COMPARE_OPT_NUMBER)
+        compare = compare_number_method (v1, v2);
+    else if (opt == PCVARIANT_COMPARE_OPT_AUTO) {
         if (v1 && ((v1->type == PURC_VARIANT_TYPE_NUMBER) ||
                 (v1->type == PURC_VARIANT_TYPE_LONGINT) ||
                 (v1->type == PURC_VARIANT_TYPE_ULONGINT) ||
                 (v1->type == PURC_VARIANT_TYPE_LONGDOUBLE)))
-            compare = compare_number (v1, v2);
+            compare = compare_number_method (v1, v2);
         else
-            compare = compare_string (v1, v2, flag);
+            compare = compare_string_method (v1, v2, opt);
     }
 
     return compare;
 }
 
-int purc_variant_compare(purc_variant_t v1, purc_variant_t v2)
+int purc_variant_compare_st(purc_variant_t v1, purc_variant_t v2)
 {
     int i;
     const char *str1, *str2;
@@ -1387,13 +1367,24 @@ numberify_bs(const unsigned char *s, size_t nr)
     if (!s || nr == 0)
         return 0.0;
 
-    double d = 0.0;
-    if (nr > sizeof(d))
-        nr = sizeof(d);
+    long int number = 0;
+    size_t size = sizeof(long int);
 
-    memcpy(&d, s, nr);
+    if (nr > size) {
+        s += (nr - size);
+        nr = size;
+    }
 
-    return d;
+#if CPU(BIG_ENDIAN)
+    char buffer[size] = {0,};
+    for (int i = 0; i < nr; i++)
+        buffer[size - 1 - i] = *(s + i);
+    memcpy(&number, buffer, nr);
+#elif CPU(LITTLE_ENDIAN)
+    memcpy(&number, s, nr);
+#endif
+
+    return (double)number;
 }
 
 static inline double
