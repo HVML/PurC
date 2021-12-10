@@ -876,7 +876,7 @@ static int compare_string_method (purc_variant_t v1,
     int compare = 0.0L;
     char *buf1 = NULL;
     char *buf2 = NULL;
-    char stackbuf1[1];
+    char stackbuf1[128];
     char stackbuf2[sizeof(stackbuf1)];
 
     buf1 = compare_stringify (v1, stackbuf1, sizeof(stackbuf1));
