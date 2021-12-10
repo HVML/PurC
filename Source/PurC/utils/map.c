@@ -432,39 +432,42 @@ int pcutils_map_find_replace_or_insert (pcutils_map* map, const void* key,
     return 0;
 }
 
-static int traverse_node (pcutils_map *map, struct rb_node* node,
-        void *ud, int (*cb)(pcutils_map_entry *entry, void *ud))
+struct user_data {
+    int (*cb)(void *key, void *val, void *ud);
+    void *ud;
+};
+
+static inline int
+visit_node(struct rb_node *node, void *ud)
 {
-    if (node) {
-        pcutils_map_entry *entry = (pcutils_map_entry*)node;
+    struct user_data *data = (struct user_data*)ud;
+    pcutils_map_entry *entry;
+    entry = container_of(node, pcutils_map_entry, node);
+    return data->cb(entry->key, entry->val, data->ud);
+}
 
-        int r = cb(entry, ud);
-        if (r)
-            return r;
+static inline int
+map_traverse (pcutils_map *map, void *ud,
+        int (*cb)(void *key, void *val, void *ud))
+{
+    struct rb_root *root = &map->root;
+    if (!root)
+        return 0;
 
-        r = traverse_node (map, node->rb_left, ud, cb);
-        if (r)
-            return r;
-
-        r = traverse_node (map, node->rb_right, ud, cb);
-        if (r)
-            return r;
-    }
-
-    return 0;
+    struct user_data data = {
+        .cb         = cb,
+        .ud         = ud,
+    };
+    return pcutils_rbtree_traverse(root, &data, visit_node);
 }
 
 int pcutils_map_traverse (pcutils_map *map, void *ud,
-        int (*cb)(pcutils_map_entry *entry, void *ud))
+        int (*cb)(void *key, void *val, void *ud))
 {
-    if (map == NULL)
-        return -1;
-
     WRLOCK_MAP (map);
-
-    int r = traverse_node (map, map->root.rb_node, ud, cb);
-
+    int r = map_traverse(map, ud, cb);
     WRUNLOCK_MAP (map);
     return r;
 }
+
 

@@ -109,6 +109,9 @@ static inline void pcutils_rbtree_link_node(struct rb_node * node, struct rb_nod
     *rb_link = node;
 }
 
+int pcutils_rbtree_traverse(struct rb_root *root, void *ud,
+        int (*cb)(struct rb_node *node, void *ud));
+
 #ifdef __cplusplus
 }
 #endif

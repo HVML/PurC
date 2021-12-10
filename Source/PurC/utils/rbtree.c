@@ -459,3 +459,24 @@ void pcutils_rbtree_replace_node(struct rb_node *victim, struct rb_node *newnode
     *newnode = *victim;
 }
 
+static inline int
+rbtree_traverse(struct rb_node *node, void *ud,
+        int (*cb)(struct rb_node *node, void *ud))
+{
+    while (node) {
+        int r = cb(node, ud);
+        if (r)
+            return r;
+        node = pcutils_rbtree_next(node);
+    }
+    return 0;
+}
+
+int pcutils_rbtree_traverse(struct rb_root *root, void *ud,
+        int (*cb)(struct rb_node *node, void *ud))
+{
+    struct rb_node *node = pcutils_rbtree_first(root);
+
+    return rbtree_traverse(node, ud, cb);
+}
+

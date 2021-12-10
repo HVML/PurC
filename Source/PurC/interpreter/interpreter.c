@@ -181,22 +181,21 @@ fed_eval_attr(struct frame_element_doc *fed,
 }
 
 static inline int
-init_frame_append_attr(pcutils_map_entry *entry, void *ud)
+init_frame_append_attr(void *key, void *val, void *ud)
 {
     PC_ASSERT(ud);
-    PC_ASSERT(entry);
 
     struct frame_element_doc *fed = (struct frame_element_doc*)ud;
 
     purc_variant_t attr_vars = fed->frame->attr_vars;
 
-    struct pcvdom_attr *attr = (struct pcvdom_attr*)entry->val;
-    const char *key = attr->key;
-    enum pchvml_attr_assignment  op  = attr->op;
-    struct pcvcm_node           *val = attr->val;
+    struct pcvdom_attr *attr = (struct pcvdom_attr*)val;
+    PC_ASSERT(key == attr->key);
+    enum pchvml_attr_assignment  op   = attr->op;
+    struct pcvcm_node           *node = attr->val;
 
-    purc_variant_t k = purc_variant_make_string(key, true);
-    purc_variant_t v = fed_eval_attr(fed, op, val);
+    purc_variant_t k = purc_variant_make_string(attr->key, true);
+    purc_variant_t v = fed_eval_attr(fed, op, node);
 
     PC_ASSERT(k!=PURC_VARIANT_INVALID);
     PC_ASSERT(v!=PURC_VARIANT_INVALID);
