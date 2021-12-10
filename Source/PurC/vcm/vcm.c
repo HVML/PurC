@@ -727,8 +727,12 @@ purc_variant_t pcvcm_node_get_variable_to_variant (struct pcvcm_node* node,
         return PURC_VARIANT_INVALID;
     }
 
-    return ops->find_var ?  ops->find_var(ops->find_var_ctxt,
+    purc_variant_t ret =  ops->find_var ?  ops->find_var(ops->find_var_ctxt,
             name) : PURC_VARIANT_INVALID;
+    if (ret) {
+        purc_variant_ref(ret);
+    }
+    return ret;
 }
 
 static bool is_action_node(struct pcvcm_node* node)

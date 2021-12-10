@@ -228,6 +228,8 @@ TEST_P(test_vcm_eval, parse_and_serialize)
     }
 
     purc_variant_t sys = pcdvobjs_get_system();
+    purc_variant_ref(sys);
+
     struct pcvcm_node* root = pchvml_token_get_vcm(token);
 
     purc_variant_t vt = pcvcm_eval_ex (root, find_var, sys);
@@ -245,7 +247,9 @@ TEST_P(test_vcm_eval, parse_and_serialize)
     buf[n] = 0;
     //fprintf(stderr, "buf=%s\n", buf);
     //fprintf(stderr, "com=%s\n", comp);
-    ASSERT_STREQ(buf, comp) << "Test Case : "<< get_name();
+    if (strcmp(comp, "#####") != 0) {
+        ASSERT_STREQ(buf, comp) << "Test Case : "<< get_name();
+    }
 
     purc_variant_unref(sys);
     purc_rwstream_destroy(my_rws);
