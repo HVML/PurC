@@ -2711,7 +2711,7 @@ next_state:
 
     BEGIN_STATE(PCHVML_EJSON_LEFT_BRACKET_STATE)
         if (character == '[') {
-            if (ejson_stack_is_empty()) {
+            if (parser->vcm_node && ejson_stack_is_empty()) {
                 ejson_stack_push('[');
                 struct pcvcm_node* node = pcvcm_node_new_get_element(NULL,
                         NULL);
@@ -2731,7 +2731,7 @@ next_state:
                 ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
             }
             uint32_t uc = pcutils_stack_top (parser->ejson_stack);
-            if (uc == '(' || uc == '<' || uc == '[' || uc == ':') {
+            if (uc == '(' || uc == '<' || uc == '[' || uc == ':' || uc == 0) {
                 ejson_stack_push('[');
                 if (parser->vcm_node) {
                     vcm_stack_push(parser->vcm_node);

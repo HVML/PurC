@@ -729,7 +729,6 @@ purc_variant_t pcvcm_node_get_variable_to_variant (struct pcvcm_node* node,
 
     return ops->find_var ?  ops->find_var(ops->find_var_ctxt,
             name) : PURC_VARIANT_INVALID;
-
 }
 
 static bool is_action_node(struct pcvcm_node* node)
@@ -742,46 +741,32 @@ static bool is_action_node(struct pcvcm_node* node)
             );
 }
 
-purc_variant_t call_dvariant_getter_method(purc_variant_t var,
-        size_t nr_args, purc_variant_t* argv)
+enum method_type {
+    GETTER_METHOD,
+    SETTER_METHOD
+};
+
+purc_variant_t call_dvariant_method(purc_variant_t var,
+        size_t nr_args, purc_variant_t* argv, enum method_type type)
 {
-    purc_dvariant_method func = purc_variant_dynamic_get_getter (var);
+    purc_dvariant_method func = (type == GETTER_METHOD) ?
+         purc_variant_dynamic_get_getter (var) :
+         purc_variant_dynamic_get_setter (var);
     if (func) {
         return func (var, nr_args, argv);
     }
     return PURC_VARIANT_INVALID;
 }
 
-purc_variant_t call_dvariant_setter_method(purc_variant_t var,
-        size_t nr_args, purc_variant_t* argv)
-{
-    purc_dvariant_method func = purc_variant_dynamic_get_setter (var);
-    if (func) {
-        return func (var, nr_args, argv);
-    }
-    return PURC_VARIANT_INVALID;
-}
-
-purc_variant_t call_nvariant_getter_method(purc_variant_t var,
-        const char* key_name, size_t nr_args, purc_variant_t* argv)
+purc_variant_t call_nvariant_method(purc_variant_t var,
+        const char* key_name, size_t nr_args, purc_variant_t* argv,
+        enum method_type type)
 {
     struct purc_native_ops *ops = purc_variant_native_get_ops (var);
     if (ops) {
-        purc_nvariant_method native_func = ops->property_getter(key_name);
-        if (native_func) {
-            return  native_func (purc_variant_native_get_entity (var),
-                    nr_args, argv);
-        }
-    }
-    return PURC_VARIANT_INVALID;
-}
-
-purc_variant_t call_nvariant_setter_method(purc_variant_t var,
-        const char* key_name, size_t nr_args, purc_variant_t* argv)
-{
-    struct purc_native_ops *ops = purc_variant_native_get_ops (var);
-    if (ops) {
-         purc_nvariant_method native_func = ops->property_setter(key_name);
+        purc_nvariant_method native_func = (type == GETTER_METHOD) ?
+            ops->property_getter(key_name) :
+            ops->property_setter(key_name);
         if (native_func) {
             return  native_func (purc_variant_native_get_entity (var),
                     nr_args, argv);
@@ -826,11 +811,11 @@ purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
             ret_var = val;
             goto clear_param_var;
         }
-        ret_var = call_dvariant_getter_method(val, 0, NULL);
+        ret_var = call_dvariant_method(val, 0, NULL, GETTER_METHOD);
         purc_variant_unref(val);
     }
     else if (purc_variant_is_dynamic(caller_var)) {
-        ret_var = call_dvariant_getter_method(caller_var, 1, &param_var);
+        ret_var = call_dvariant_method(caller_var, 1, &param_var, GETTER_METHOD);
         goto clear_param_var;
     }
     else if (purc_variant_is_native(caller_var)) {
@@ -838,8 +823,8 @@ purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
             ret_var = purc_variant_make_array(2, caller_var, param_var);
             goto clear_param_var;
         }
-        ret_var = call_nvariant_getter_method(caller_var,
-                purc_variant_get_string_const(param_var), 0, NULL);
+        ret_var = call_nvariant_method(caller_var,
+                purc_variant_get_string_const(param_var), 0, NULL, GETTER_METHOD);
         goto clear_param_var;
     }
 
@@ -851,8 +836,8 @@ err:
     return ret_var;
 }
 
-purc_variant_t pcvcm_node_call_getter_to_variant (struct pcvcm_node* node,
-       struct pcvcm_node_op* ops)
+purc_variant_t pcvcm_node_call_method_to_variant (struct pcvcm_node* node,
+       struct pcvcm_node_op* ops, enum method_type type)
 {
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     struct pcvcm_node* caller_node = FIRST_CHILD(node);
@@ -890,81 +875,16 @@ purc_variant_t pcvcm_node_call_getter_to_variant (struct pcvcm_node* node,
     }
 
     if (purc_variant_is_dynamic(caller_var)) {
-        ret_var = call_dvariant_getter_method(caller_var, nr_params, params);
+        ret_var = call_dvariant_method(caller_var, nr_params, params, type);
     }
     else if (purc_variant_is_array(caller_var)) {
         purc_variant_t nv = purc_variant_array_get(caller_var, 0);
         if (purc_variant_is_native(nv)) {
             purc_variant_t name = purc_variant_array_get(caller_var, 1);
             if (name) {
-                ret_var = call_nvariant_getter_method(nv,
-                        purc_variant_get_string_const(name), nr_params, params);
-            }
-        }
-    }
-
-clean_params:
-    for (size_t i = 0; i < nr_params; i++) {
-        if (params[i]) {
-            purc_variant_unref(params[i]);
-        }
-    }
-    free(params);
-
-clean_caller_var:
-    purc_variant_unref(caller_var);
-err:
-    return ret_var;
-}
-
-purc_variant_t pcvcm_node_call_setter_to_variant (struct pcvcm_node* node,
-       struct pcvcm_node_op* ops)
-{
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    struct pcvcm_node* caller_node = FIRST_CHILD(node);
-    if (!caller_node) {
-        goto err;
-    }
-
-    purc_variant_t caller_var = pcvcm_node_to_variant(caller_node, ops);
-    if (!caller_var) {
-        goto err;
-    }
-
-    if (!purc_variant_is_dynamic(caller_var)
-            && !purc_variant_is_native(caller_var)) {
-        goto clean_caller_var;
-    }
-
-    purc_variant_t* params = NULL;
-    size_t nr_params = CHILDREN_NUMBER(node) - 1;
-    if (nr_params > 0) {
-        params = (purc_variant_t*) calloc(nr_params, sizeof(purc_variant_t));
-
-        int i = 0;
-        struct pcvcm_node* param_node = NEXT_CHILD(caller_node);
-        while (param_node) {
-            purc_variant_t vt = pcvcm_node_to_variant (param_node, ops);
-            if (!vt) {
-                goto clean_params;
-            }
-
-            params[i] = vt;
-            i++;
-            param_node = NEXT_CHILD(param_node);
-        }
-    }
-
-    if (purc_variant_is_dynamic(caller_var)) {
-        ret_var = call_dvariant_setter_method(caller_var, nr_params, params);
-    }
-    else if (purc_variant_is_array(caller_var)) {
-        purc_variant_t nv = purc_variant_array_get(caller_var, 0);
-        if (purc_variant_is_native(nv)) {
-            purc_variant_t name = purc_variant_array_get(caller_var, 1);
-            if (name) {
-                ret_var = call_nvariant_setter_method(nv,
-                        purc_variant_get_string_const(name), nr_params, params);
+                ret_var = call_nvariant_method(nv,
+                        purc_variant_get_string_const(name), nr_params,
+                        params, type);
             }
         }
     }
@@ -1030,10 +950,10 @@ purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node,
             return pcvcm_node_get_element_to_variant(node, ops);
 
         case PCVCM_NODE_TYPE_FUNC_CALL_GETTER:
-            return pcvcm_node_call_getter_to_variant(node, ops);
+            return pcvcm_node_call_method_to_variant(node, ops, GETTER_METHOD);
 
         case PCVCM_NODE_TYPE_FUNC_CALL_SETTER:
-            return pcvcm_node_call_setter_to_variant(node, ops);
+            return pcvcm_node_call_method_to_variant(node, ops, SETTER_METHOD);
 
         default:
             return purc_variant_make_null();
