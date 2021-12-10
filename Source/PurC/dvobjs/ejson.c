@@ -216,7 +216,7 @@ stringify_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                 buffer = malloc (total * 2 + 1);
             }
             else {
-                total = strlen (purc_variant_get_atom_string_const (argv[0]));
+                total = strlen (purc_variant_get_atom_string_const (argv[0])) + 1;
                 buffer = malloc (total);
             }
 
@@ -275,6 +275,7 @@ static int my_array_sort (purc_variant_t v1, purc_variant_t v2, void *ud)
     dvobjs_ejson_arg *sort_arg = (dvobjs_ejson_arg *)ud;
     entry = pcutils_map_find (sort_arg->map, v1);
     p1 = (char *)entry->val;
+    entry = NULL;
     entry = pcutils_map_find (sort_arg->map, v2);
     p2 = (char *)entry->val;
 
@@ -286,6 +287,8 @@ static int my_array_sort (purc_variant_t v1, purc_variant_t v2, void *ud)
     if (!sort_arg->asc)
         ret = -1 * ret;
 
+    if (ret != 0)
+        ret = ret > 0? 1: -1;
     return ret;
 }
 
@@ -339,10 +342,10 @@ static void *map_copy_val(const void *val)
 
 static int map_comp_key(const void *key1, const void *key2)
 {
-    const char *s1 = (const char*)key1;
-    const char *s2 = (const char*)key2;
-
-    return strcmp(s1, s2);
+    int ret = 0;
+    if (key1 != key2)
+        ret = key1 > key2? 1: -1;
+    return ret;
 }
 
 static void map_free_val(void *val)
@@ -434,6 +437,8 @@ sort_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     }
 
     pcutils_map_destroy (sort_arg.map);
+
+    ret_var = argv[0];
 
     return ret_var;
 }

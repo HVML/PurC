@@ -327,7 +327,7 @@ test_end
 
 test_begin
 param_begin
-array:2:number:0;ulongint:-3;
+array:2:number:0;ulongint:3;
 null:;
 param_end
 boolean:false;
