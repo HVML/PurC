@@ -327,7 +327,7 @@ test_end
 
 test_begin
 param_begin
-array:2:number:0;ulongint:-3;
+array:2:number:0;ulongint:3;
 null:;
 param_end
 boolean:false;
@@ -354,7 +354,7 @@ param_begin
 object:2:"key1";boolean:false;"key2";number:1;
 set:2:object:2:"key1";boolean:false;"key2";boolean:false;object:2:"key1";boolean:true;"key2";boolean:false;
 param_end
-boolean:true;
+boolean:false;
 test_end
 
 test_begin

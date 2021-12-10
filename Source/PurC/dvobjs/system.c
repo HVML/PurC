@@ -312,7 +312,8 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
                         purc_rwstream_write (rwstream,
                                 name.sysname, strlen (name.sysname));
-                    } else if (strncasecmp (head,
+                    }
+                    else if (strncasecmp (head,
                                 UNAME_KERRELEASE, length) == 0) {
                         if (first)
                             first = false;
@@ -322,7 +323,8 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
                         purc_rwstream_write (rwstream,
                                 name.release, strlen (name.release));
-                    } else if (strncasecmp (head,
+                    }
+                    else if (strncasecmp (head,
                                 UNAME_KERVERSION, length) == 0) {
                         if (first)
                             first = false;
@@ -338,7 +340,8 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
             head = pcdvobjs_get_next_option (head + length, " ", &length);
         }
-    } else {
+    }
+    else {
         purc_rwstream_write (rwstream, name.sysname, strlen (name.sysname));
     }
 
@@ -349,7 +352,8 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     if ((content_size <= 1) || (rw_string == NULL) || (rw_size <= 1)) {
         ret_var = PURC_VARIANT_INVALID;
         free(rw_string);
-    } else {
+    }
+    else {
         ret_var = purc_variant_make_string_reuse_buff (rw_string,
                 rw_size, false);
         if(ret_var == PURC_VARIANT_INVALID) {
@@ -504,7 +508,8 @@ locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
             head = pcdvobjs_get_next_option (head + length, " ", &length);
         }
-    } else
+    }
+    else
         ret_var = purc_variant_make_string (
                 setlocale (LC_MESSAGES, NULL), true);
 
@@ -558,7 +563,8 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                         ret_var = purc_variant_make_boolean (true);
                     else
                         ret_var = purc_variant_make_boolean (false);
-                } else if (strncasecmp (head, LOCALE_ADDRESS, length) == 0) {
+                }
+                else if (strncasecmp (head, LOCALE_ADDRESS, length) == 0) {
 #ifdef LC_ADDRESS
                     if (setlocale (LC_ADDRESS,
                                 purc_variant_get_string_const (argv[1])))
@@ -580,7 +586,8 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                         ret_var = purc_variant_make_boolean (true);
                     else
                         ret_var = purc_variant_make_boolean (false);
-                } else if (strncasecmp (head, LOCALE_COLLATE, length) == 0) {
+                }
+                else if (strncasecmp (head, LOCALE_COLLATE, length) == 0) {
                     if (setlocale (LC_COLLATE,
                                 purc_variant_get_string_const (argv[1])))
                         ret_var = purc_variant_make_boolean (true);
@@ -597,7 +604,8 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                         ret_var = purc_variant_make_boolean (true);
                     else
                         ret_var = purc_variant_make_boolean (false);
-                } else if (strncasecmp (head, LOCALE_NAME, length) == 0) {
+                }
+                else if (strncasecmp (head, LOCALE_NAME, length) == 0) {
 #ifdef LC_NAME
                     if (setlocale (LC_NAME,
                                 purc_variant_get_string_const (argv[1])))
@@ -619,7 +627,8 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                         ret_var = purc_variant_make_boolean (true);
                     else
                         ret_var = purc_variant_make_boolean (false);
-                } else if (strncasecmp (head, LOCALE_TELEPHONE, length) == 0) {
+                }
+                else if (strncasecmp (head, LOCALE_TELEPHONE, length) == 0) {
 #ifdef LC_TELEPHONE
                     if (setlocale (LC_TELEPHONE,
                                 purc_variant_get_string_const (argv[1])))
@@ -641,13 +650,15 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                         ret_var = purc_variant_make_boolean (true);
                     else
                         ret_var = purc_variant_make_boolean (false);
-                } else if (strncasecmp (head, LOCALE_MESSAGE, length) == 0) {
+                }
+                else if (strncasecmp (head, LOCALE_MESSAGE, length) == 0) {
                     if (setlocale (LC_MESSAGES,
                                 purc_variant_get_string_const (argv[1])))
                         ret_var = purc_variant_make_boolean (true);
                     else
                         ret_var = purc_variant_make_boolean (false);
-                } else if (strncasecmp (head, LOCALE_MEASUREMENT,
+                }
+                else if (strncasecmp (head, LOCALE_MEASUREMENT,
                             length) == 0) {
 #ifdef LC_MEASUREMENT
                     if (setlocale (LC_MEASUREMENT,
@@ -771,7 +782,8 @@ get_time_format (int type, double epoch, const char *timezone)
                 pcinst_set_error (PURC_ERROR_INVALID_VALUE);
                 return PURC_VARIANT_INVALID;
             }
-        } else {
+        }
+        else {
             setenv ("TZ", timezone, 0);
             t_time = time (NULL);
             t_tm = localtime(&t_time);
@@ -797,7 +809,8 @@ get_time_format (int type, double epoch, const char *timezone)
                 return PURC_VARIANT_INVALID;
             }
         }
-    } else {
+    }
+    else {
         if (timezone == NULL) {
             t_time = epoch;
             t_tm = localtime(&t_time);
@@ -817,7 +830,8 @@ get_time_format (int type, double epoch, const char *timezone)
                 pcinst_set_error (PURC_ERROR_INVALID_VALUE);
                 return PURC_VARIANT_INVALID;
             }
-        } else {
+        }
+        else {
             setenv ("TZ", timezone, 0);
 
             t_time = epoch;
@@ -873,7 +887,8 @@ time_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                     (!purc_variant_is_string (argv[0]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
-    } else
+    }
+    else
         name = purc_variant_get_string_const (argv[0]);
 
     if ((nr_args >= 2) && (argv[1] != PURC_VARIANT_INVALID) &&
@@ -883,14 +898,16 @@ time_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                (purc_variant_is_number (argv[1]))))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
-    } else if (nr_args >= 2)
+    }
+    else if (nr_args >= 2)
         purc_variant_cast_to_number (argv[1], &epoch, false);
 
     if ((nr_args >= 3) && (argv[2] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[2]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
-    } else if (nr_args >= 3)
+    }
+    else if (nr_args >= 3)
         timezone = purc_variant_get_string_const (argv[2]);
 
     if (strcasecmp (name, "tm") == 0) {
@@ -939,11 +956,14 @@ time_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         val = purc_variant_make_number (t_tm->tm_isdst);
         purc_variant_object_set_by_static_ckey (ret_var, "isdst", val);
         purc_variant_unref (val);
-    } else if (strcasecmp (name, "iso8601") == 0) {
+    }
+    else if (strcasecmp (name, "iso8601") == 0) {
         ret_var = get_time_format (FORMAT_ISO8601, epoch, timezone);
-    } else if (strcasecmp (name, "rfc822") == 0) {
+    }
+    else if (strcasecmp (name, "rfc822") == 0) {
         ret_var = get_time_format (FORMAT_RFC822, epoch, timezone);
-    } else {
+    }
+    else {
         /* replace 
            %Y: year
            %m: month
@@ -966,7 +986,8 @@ time_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                     pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
                     return PURC_VARIANT_INVALID;
                 }
-            } else {
+            }
+            else {
                 setenv ("TZ", timezone, 0);
                 t_time = time (NULL);
                 t_tm = localtime(&t_time);
@@ -979,7 +1000,8 @@ time_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                 else
                     unsetenv ("TZ");
             }
-        } else {
+        }
+        else {
             if (timezone == NULL) {
                 t_time = epoch;
                 t_tm = localtime(&t_time);
@@ -987,7 +1009,8 @@ time_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                     pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
                     return PURC_VARIANT_INVALID;
                 }
-            } else {
+            }
+            else {
                 setenv ("TZ", timezone, 0);
 
                 t_time = epoch;

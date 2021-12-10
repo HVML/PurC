@@ -51,6 +51,10 @@
 #define STRING_COMP_MODE_CASE       "case"
 #define STRING_COMP_MODE_REG        "reg"
 #define STRING_COMP_MODE_WILDCARD   "wildcard"
+#define STRING_COMP_MODE_NUMBER     "number"
+#define STRING_COMP_MODE_AUTO       "auto"
+#define STRING_COMP_MODE_ASC        "asc"
+#define STRING_COMP_MODE_DESC       "desc"
 
 #define UNAME_SYSTEM                "operating-system"
 #define UNAME_KERNAME               "kernel-name"

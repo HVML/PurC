@@ -116,6 +116,6 @@ object:2:"key1";boolean:true;"key2";boolean:false;
 set:2:object:2:"key1";boolean:false;"key2";boolean:false;object:2:"key1";boolean:false;"key2";boolean:false;
 boolean:true;
 param_end
-boolean:true;
+boolean:false;
 test_end
 

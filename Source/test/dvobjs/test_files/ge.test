@@ -274,7 +274,7 @@ param_begin
 null:;
 native:;
 param_end
-boolean:false;
+boolean:true;
 test_end
 
 test_begin
