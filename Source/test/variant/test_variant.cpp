@@ -1403,7 +1403,7 @@ TEST(variant, variant_compare)
 {
     purc_variant_t value1 = NULL;
     purc_variant_t value2 = NULL;
-    double compare= 0.0L;
+    int compare= 0;
     purc_instance_extra_info info = {0, 0};
 
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
@@ -1422,16 +1422,16 @@ TEST(variant, variant_compare)
     purc_variant_object_set (value2, key2, val2);
 
     compare = purc_variant_compare_ex (value1, value2, PCVARIANT_COMPARE_OPT_CASELESS);
-    ASSERT_EQ(compare, 0.0L);
+    ASSERT_EQ(compare, 0);
 
     compare = purc_variant_compare_ex (value1, value2, PCVARIANT_COMPARE_OPT_CASE);
-    ASSERT_EQ(compare, 0.0L);
+    ASSERT_EQ(compare, 0);
 
     compare = purc_variant_compare_ex (value1, value2, PCVARIANT_COMPARE_OPT_NUMBER);
-    ASSERT_EQ(compare, 0.0L);
+    ASSERT_EQ(compare, 0);
 
     compare = purc_variant_compare_ex (value1, value2, PCVARIANT_COMPARE_OPT_AUTO);
-    ASSERT_EQ(compare, 0.0L);
+    ASSERT_EQ(compare, 0);
 
     purc_variant_unref (key1);
     purc_variant_unref (val1);
@@ -1444,9 +1444,9 @@ TEST(variant, variant_compare)
     value1 = purc_variant_make_number (1.0);
     value2 = purc_variant_make_number (2.0);
     compare = purc_variant_compare_ex (value1, value2, PCVARIANT_COMPARE_OPT_AUTO);
-    ASSERT_LT(compare, 0.0L);
+    ASSERT_LT(compare, 0);
     compare = purc_variant_compare_ex (value1, value2, PCVARIANT_COMPARE_OPT_CASE);
-    ASSERT_LT(compare, 0.0L);
+    ASSERT_LT(compare, 0);
     purc_variant_unref (value1);
     purc_variant_unref (value2);
 

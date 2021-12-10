@@ -1427,13 +1427,13 @@ purc_variant_cast_to_byte_sequence(purc_variant_t v,
         const void **bytes, size_t *sz);
 
 
-/**
- * flagfor the purc_variant_compare() function.
- */
-#define PCVARIANT_COMPARE_OPT_AUTO           0x0000
-#define PCVARIANT_COMPARE_OPT_NUMBER         0x0001
-#define PCVARIANT_COMPARE_OPT_CASE           0x0002
-#define PCVARIANT_COMPARE_OPT_CASELESS       0x0003
+typedef enum purc_variant_compare_opt
+{
+    PCVARIANT_COMPARE_OPT_AUTO,
+    PCVARIANT_COMPARE_OPT_NUMBER,
+    PCVARIANT_COMPARE_OPT_CASE,
+    PCVARIANT_COMPARE_OPT_CASELESS,
+} purc_variant_compare_opt;
 
 /**
  * Compares two variant value
@@ -1448,11 +1448,10 @@ purc_variant_cast_to_byte_sequence(purc_variant_t v,
  *
  * Since: 0.0.1
  */
-PCA_EXPORT double
-purc_variant_compare_ex(purc_variant_t v1, purc_variant_t v2, unsigned int flag);
-
 PCA_EXPORT int
-purc_variant_compare(purc_variant_t v1, purc_variant_t v2);
+purc_variant_compare_ex(purc_variant_t v1,
+        purc_variant_t v2, purc_variant_compare_opt opt);
+
 /**
  * A flag for the purc_variant_serialize() function which causes the output
  * to have no extra whitespace or formatting applied.
