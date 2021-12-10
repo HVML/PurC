@@ -257,7 +257,7 @@ param_begin
 null:;
 bsequence:"\01\00\00";
 param_end
-boolean:false;
+boolean:true;
 test_end
 
 test_begin
@@ -265,7 +265,7 @@ param_begin
 null:;
 bsequence:"\01\01\01\01\01\00\00\00\00\00\00\00";
 param_end
-boolean:false;
+boolean:true;
 test_end
 
 test_begin

@@ -83,5 +83,5 @@ param_begin
 string:"hello world";
 object:0:;
 param_end
-boolean:true;
+boolean:false;
 test_end

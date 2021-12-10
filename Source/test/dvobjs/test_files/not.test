@@ -140,7 +140,7 @@ test_begin
 param_begin
 string:"hello";
 param_end
-boolean:false;
+boolean:true;
 test_end
 
 test_begin
@@ -154,7 +154,7 @@ test_begin
 param_begin
 atomstring:"hello";
 param_end
-boolean:false;
+boolean:true;
 test_end
 
 test_begin
@@ -175,7 +175,7 @@ test_begin
 param_begin
 native:;
 param_end
-boolean:false;
+boolean:true;
 test_end
 
 test_begin
@@ -217,6 +217,6 @@ test_begin
 param_begin
 set:2:object:2:"key1";boolean:false;"key2";boolean:false;object:2:"key1";boolean:false;"key2";boolean:false;
 param_end
-boolean:false;
+boolean:true;
 test_end
 
