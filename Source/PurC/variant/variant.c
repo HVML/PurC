@@ -904,6 +904,7 @@ static char *compare_stringify (purc_variant_t v, char *stackbuffer)
 {
     char * buffer = NULL;
     size_t total = 0;
+    size_t length = 0;
     int num_write = 0;
 
     switch (v->type) {
@@ -920,22 +921,28 @@ static char *compare_stringify (purc_variant_t v, char *stackbuffer)
         case PURC_VARIANT_TYPE_ATOMSTRING:
         case PURC_VARIANT_TYPE_STRING:
         case PURC_VARIANT_TYPE_BSEQUENCE:
-            if (v->type == PURC_VARIANT_TYPE_STRING)
-                total = purc_variant_string_length (v);
-            else if (v->type == PURC_VARIANT_TYPE_BSEQUENCE)
-                total = purc_variant_sequence_length (v);
-            else
-                total = strlen (purc_variant_get_atom_string_const (v));
+            if (v->type == PURC_VARIANT_TYPE_STRING) {
+                length = purc_variant_string_length (v);
+                total = length;
+            }
+            else if (v->type == PURC_VARIANT_TYPE_BSEQUENCE) {
+                length = purc_variant_sequence_length (v);
+                total = length * 2  + 1;
+            }
+            else {
+                length = strlen (purc_variant_get_atom_string_const (v));
+                total = length;
+            }
 
             if (total > 128) {
                 buffer = malloc (total);
                 if (buffer == NULL)
                     stackbuffer[0] = '\0';
                 else
-                    purc_variant_stringify (buffer, total, v);
+                    purc_variant_stringify (buffer, length, v);
             }
             else
-                purc_variant_stringify (stackbuffer, total, v);
+                purc_variant_stringify (stackbuffer, length, v);
             break;
 
         default:
@@ -1600,12 +1607,21 @@ struct stringify_arg
     void *arg;
 };
 
+struct stringify_buffer
+{
+    char                 *buf;
+    size_t                len;
+
+    size_t                curr;
+};
+
 static inline void
 stringify_bs(struct stringify_arg *arg, const unsigned char *bs, size_t nr)
 {
     static const char chars[] = "0123456789ABCDEF";
 
     char buffer[512+1]; // must be an odd number!!!
+    struct stringify_buffer *buf = arg->arg;
 
     char *p = buffer;
     char *end = p + sizeof(buffer) - 1;
@@ -1618,6 +1634,7 @@ stringify_bs(struct stringify_arg *arg, const unsigned char *bs, size_t nr)
         *p++ = chars[l];
         if (p == end) {
             *p = '\0';
+            buf->len = 2 * i + 1;
             arg->cb(arg->arg, buffer);
             p = buffer;
         }
@@ -1625,6 +1642,7 @@ stringify_bs(struct stringify_arg *arg, const unsigned char *bs, size_t nr)
 
     if (p>buffer) {
         *p = '\0';
+        buf->len = 2 * nr + 1;
         arg->cb(arg->arg, buffer);
     }
 }
@@ -1759,14 +1777,6 @@ variant_stringify(struct stringify_arg *arg, purc_variant_t value)
             break;
     }
 }
-
-struct stringify_buffer
-{
-    char                 *buf;
-    size_t                len;
-
-    size_t                curr;
-};
 
 static inline void
 do_stringify_buffer(void *arg, const char *src)
