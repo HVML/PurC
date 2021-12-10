@@ -806,6 +806,7 @@ purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
             goto clear_param_var;
         }
 
+        purc_variant_ref(val);
         if (!purc_variant_is_dynamic(val)) {
             ret_var = val;
             goto clear_param_var;

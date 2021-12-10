@@ -255,7 +255,7 @@ purc_variant_t find_var(void* ctxt, const char* name)
     else if (strcmp(name, "NOBJ") == 0) {
         return find_ctxt->nobj;
     }
-    return purc_variant_make_string(name, false);
+    return PURC_VARIANT_INVALID;
 }
 
 TEST_P(test_vcm_eval, parse_and_serialize)
@@ -280,14 +280,13 @@ TEST_P(test_vcm_eval, parse_and_serialize)
     {
         purc_rwstream_destroy(rws);
         pchvml_destroy(parser);
+        pchvml_token_destroy(token);
         return;
     }
 
     purc_variant_t sys = pcdvobjs_get_system();
-    purc_variant_ref(sys);
 
     purc_variant_t nobj = purc_variant_make_native((void*)1, &native_ops);
-    purc_variant_ref(nobj);
 
     struct pcvcm_node* root = pchvml_token_get_vcm(token);
 
@@ -312,6 +311,8 @@ TEST_P(test_vcm_eval, parse_and_serialize)
         ASSERT_STREQ(buf, comp) << "Test Case : "<< get_name();
     }
 
+    purc_variant_unref(vt);
+    pchvml_token_destroy(token);
     purc_variant_unref(nobj);
     purc_variant_unref(sys);
     purc_rwstream_destroy(my_rws);
