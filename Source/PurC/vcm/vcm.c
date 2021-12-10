@@ -855,7 +855,7 @@ purc_variant_t pcvcm_node_call_method_to_variant (struct pcvcm_node* node,
     }
 
     if (!purc_variant_is_dynamic(caller_var)
-            && !purc_variant_is_native(caller_var)) {
+            && !purc_variant_is_array(caller_var)) {
         goto clean_caller_var;
     }
 

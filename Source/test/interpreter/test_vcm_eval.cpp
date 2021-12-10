@@ -194,10 +194,66 @@ int to_error(const char* err)
     return -1;
 }
 
+
+static inline purc_variant_t
+attr_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    return purc_variant_make_string("call get success!", false);
+}
+
+static inline purc_variant_t
+attr_setter(void* native_entity, size_t nr_args, purc_variant_t* argv)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    return purc_variant_make_string("call setter success!", false);
+}
+
+static inline purc_nvariant_method property_getter(const char* key_name)
+{
+    if (strcmp(key_name, "attr") == 0) {
+        return attr_getter;
+    }
+
+    return NULL;
+}
+
+static inline purc_nvariant_method property_setter(const char* key_name)
+{
+    if (strcmp(key_name, "attr") == 0) {
+        return attr_setter;
+    }
+
+    return NULL;
+}
+
+struct purc_native_ops native_ops = {
+    .property_getter             = property_getter,
+    .property_setter             = property_setter,
+    .property_eraser             = NULL,
+    .property_cleaner            = NULL,
+    .cleaner                     = NULL,
+    .eraser                      = NULL,
+    .observe                     = NULL,
+};
+
+struct find_var_ctxt {
+    purc_variant_t dsystem;
+    purc_variant_t nobj;
+};
+
 purc_variant_t find_var(void* ctxt, const char* name)
 {
+    struct find_var_ctxt* find_ctxt = (struct find_var_ctxt*) ctxt;
     if (strcmp(name, "SYSTEM") == 0) {
-        return (purc_variant_t) ctxt;
+        return find_ctxt->dsystem;
+    }
+    else if (strcmp(name, "NOBJ") == 0) {
+        return find_ctxt->nobj;
     }
     return purc_variant_make_string(name, false);
 }
@@ -230,9 +286,14 @@ TEST_P(test_vcm_eval, parse_and_serialize)
     purc_variant_t sys = pcdvobjs_get_system();
     purc_variant_ref(sys);
 
+    purc_variant_t nobj = purc_variant_make_native((void*)1, &native_ops);
+    purc_variant_ref(nobj);
+
     struct pcvcm_node* root = pchvml_token_get_vcm(token);
 
-    purc_variant_t vt = pcvcm_eval_ex (root, find_var, sys);
+    struct find_var_ctxt ctxt = { sys, nobj};
+
+    purc_variant_t vt = pcvcm_eval_ex (root, find_var, &ctxt);
     ASSERT_NE(vt, PURC_VARIANT_INVALID) << "Test Case : "<< get_name();
 
     char buf[1024] = {0};
@@ -251,6 +312,7 @@ TEST_P(test_vcm_eval, parse_and_serialize)
         ASSERT_STREQ(buf, comp) << "Test Case : "<< get_name();
     }
 
+    purc_variant_unref(nobj);
     purc_variant_unref(sys);
     purc_rwstream_destroy(my_rws);
     purc_rwstream_destroy(rws);
