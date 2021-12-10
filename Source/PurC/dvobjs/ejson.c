@@ -207,13 +207,19 @@ stringify_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         case PURC_VARIANT_TYPE_ATOMSTRING:
         case PURC_VARIANT_TYPE_STRING:
         case PURC_VARIANT_TYPE_BSEQUENCE:
-            if (type == PURC_VARIANT_TYPE_STRING)
+            if (type == PURC_VARIANT_TYPE_STRING) {
                 total = purc_variant_string_length (argv[0]);
-            else if (type == PURC_VARIANT_TYPE_BSEQUENCE)
+                buffer = malloc (total);
+            }
+            else if (type == PURC_VARIANT_TYPE_BSEQUENCE) {
                 total = purc_variant_sequence_length (argv[0]);
-            else
+                buffer = malloc (total * 2 + 1);
+            }
+            else {
                 total = strlen (purc_variant_get_atom_string_const (argv[0]));
-            buffer = malloc (total);
+                buffer = malloc (total);
+            }
+
             if (buffer == NULL) {
                 pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
                 ret_var = PURC_VARIANT_INVALID;
@@ -443,6 +449,12 @@ compare_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     unsigned int flag = PCVARIANT_COMPARE_OPT_AUTO;
 
     if ((argv == NULL) || (nr_args < 3)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[2] != PURC_VARIANT_INVALID) &&
+         (!purc_variant_is_string (argv[2]))) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }

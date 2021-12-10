@@ -58,7 +58,7 @@ param_begin
 undefined:;
 boolean:false;
 param_end
-boolean:false;
+invalid:;
 test_end
 
 test_begin
@@ -66,7 +66,7 @@ param_begin
 undefined:;
 boolean:true;
 param_end
-boolean:true;
+invalid:;
 test_end
 
 test_begin
@@ -74,31 +74,113 @@ param_begin
 null:;
 undefined:;
 param_end
-boolean:false;
+invalid:;
 test_end
 
 test_begin
 param_begin
-null:;
 boolean:true;
+number:1;
+string:"number";
 param_end
-boolean:true;
-test_end
-
-test_begin
-param_begin
-null:;
 number:0;
-param_end
-boolean:false;
 test_end
 
 test_begin
 param_begin
+number:0;
 null:;
-number:23;
+string:"number";
 param_end
-boolean:true;
+number:0;
+test_end
+
+test_begin
+param_begin
+number:3.1415926;
+string:"3.1415926";
+string:"number";
+param_end
+number:0;
+test_end
+
+test_begin
+param_begin
+number:3.1415926;
+string:"3.1415926";
+string:"case";
+param_end
+number:-1;
+test_end
+
+test_begin
+param_begin
+number:3.1415926;
+string:"3.1415926";
+string:"caseless";
+param_end
+number:-1;
+test_end
+
+test_begin
+param_begin
+number:3.1415926;
+string:"3.1415926";
+string:"auto";
+param_end
+number:0;
+test_end
+
+test_begin
+param_begin
+string:"3.1415926";
+number:3.1415926;
+string:"auto";
+param_end
+number:1;
+test_end
+
+test_begin
+param_begin
+bsequence:"\00\01\02";
+number:3.1415926;
+string:"case";
+param_end
+number:-1;
+test_end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+test_begin
+param_begin
+null:;
+number:-23;
+param_end
+boolean:false;
 test_end
 
 test_begin
@@ -106,7 +188,7 @@ param_begin
 null:;
 longint:0;
 param_end
-boolean:false;
+boolean:true;
 test_end
 
 test_begin
@@ -114,7 +196,7 @@ param_begin
 null:;
 longint:-23;
 param_end
-boolean:true;
+boolean:false;
 test_end
 
 test_begin
@@ -122,7 +204,7 @@ param_begin
 null:;
 ulongint:0;
 param_end
-boolean:false;
+boolean:true;
 test_end
 
 test_begin
@@ -138,7 +220,7 @@ param_begin
 null:;
 longdouble:0.0;
 param_end
-boolean:false;
+boolean:true;
 test_end
 
 test_begin
@@ -146,7 +228,7 @@ param_begin
 null:;
 longdouble:-23.0;
 param_end
-boolean:true;
+boolean:false;
 test_end
 
 test_begin
@@ -154,7 +236,7 @@ param_begin
 null:;
 atomstring:"";
 param_end
-boolean:false;
+boolean:true;
 test_end
 
 test_begin
@@ -162,7 +244,7 @@ param_begin
 null:;
 atomstring:"hello world";
 param_end
-boolean:false;
+boolean:true;
 test_end
 
 test_begin
@@ -170,37 +252,13 @@ param_begin
 null:;
 atomstring:"0";
 param_end
-boolean:false;
-test_end
-
-test_begin
-param_begin
-null:;
-atomstring:"0.0";
-param_end
-boolean:false;
-test_end
-
-test_begin
-param_begin
-null:;
-atomstring:"1";
-param_end
 boolean:true;
 test_end
 
 test_begin
 param_begin
+atomstring:"23.0";
 null:;
-atomstring:"1.0";
-param_end
-boolean:true;
-test_end
-
-test_begin
-param_begin
-null:;
-string:"";
 param_end
 boolean:false;
 test_end
@@ -208,7 +266,7 @@ test_end
 test_begin
 param_begin
 null:;
-string:"hello world";
+atomstring:"-23.0";
 param_end
 boolean:false;
 test_end
@@ -216,7 +274,7 @@ test_end
 test_begin
 param_begin
 null:;
-string:"0";
+string:"-23";
 param_end
 boolean:false;
 test_end
@@ -226,7 +284,7 @@ param_begin
 null:;
 string:"0.0";
 param_end
-boolean:false;
+boolean:true;
 test_end
 
 test_begin
@@ -240,9 +298,9 @@ test_end
 test_begin
 param_begin
 null:;
-string:"1.0";
+string:"-23.0";
 param_end
-boolean:true;
+boolean:false;
 test_end
 
 test_begin
@@ -250,7 +308,7 @@ param_begin
 null:;
 bsequence:"\00\00\00";
 param_end
-boolean:false;
+boolean:true;
 test_end
 
 test_begin
@@ -258,23 +316,23 @@ param_begin
 null:;
 bsequence:"\01\01\01\01\00\00\00\00\00\00\00\00";
 param_end
+boolean:true;
+test_end
+
+test_begin
+param_begin
+bsequence:"\01\00\00";
+null:;
+param_end
 boolean:false;
 test_end
 
 test_begin
 param_begin
-null:;
-bsequence:"\01\00\00";
-param_end
-boolean:true;
-test_end
-
-test_begin
-param_begin
-null:;
 bsequence:"\01\01\01\01\01\00\00\00\00\00\00\00";
+null:;
 param_end
-boolean:true;
+boolean:false;
 test_end
 
 test_begin
@@ -290,7 +348,7 @@ param_begin
 null:;
 native:;
 param_end
-boolean:false;
+boolean:true;
 test_end
 
 test_begin
@@ -298,31 +356,31 @@ param_begin
 null:;
 object:2:"key1";boolean:false;"key2";boolean:false;
 param_end
+boolean:true;
+test_end
+
+test_begin
+param_begin
+object:2:"key1";boolean:true;"key2";boolean:false;
+null:;
+param_end
 boolean:false;
 test_end
 
 test_begin
 param_begin
-null:;
-object:2:"key1";boolean:true;"key2";boolean:false;
-param_end
-boolean:true;
-test_end
-
-test_begin
-param_begin
-null:;
 object:2:"key1";boolean:true;"key2";number:1;
+null:;
 param_end
-boolean:true;
+boolean:false;
 test_end
 
 test_begin
 param_begin
-null:;
 object:2:"key1";boolean:false;"key2";number:1;
+null:;
 param_end
-boolean:true;
+boolean:false;
 test_end
 
 test_begin
@@ -335,24 +393,24 @@ test_end
 
 test_begin
 param_begin
-null:;
 array:2:boolean:false;boolean:false;
+null:;
+param_end
+boolean:true;
+test_end
+
+test_begin
+param_begin
+array:2:number:0;ulongint:-3;
+null:;
 param_end
 boolean:false;
 test_end
 
 test_begin
 param_begin
+array:2:number:0;longdouble:-1.0;
 null:;
-array:2:number:0;ulongint:0;
-param_end
-boolean:false;
-test_end
-
-test_begin
-param_begin
-null:;
-array:2:number:0;longdouble:1.0;
 param_end
 boolean:true;
 test_end
@@ -362,7 +420,7 @@ param_begin
 null:;
 set:2:object:2:"key1";boolean:false;"key2";boolean:false;object:2:"key1";boolean:false;"key2";boolean:false;
 param_end
-boolean:false;
+boolean:true;
 test_end
 
 test_begin
@@ -370,7 +428,7 @@ param_begin
 object:2:"key1";boolean:false;"key2";number:1;
 set:2:object:2:"key1";boolean:false;"key2";boolean:false;object:2:"key1";boolean:true;"key2";boolean:false;
 param_end
-boolean:true;
+boolean:false;
 test_end
 
 test_begin
@@ -378,5 +436,5 @@ param_begin
 object:2:"key1";boolean:false;"key2";number:3;
 set:2:object:2:"key1";boolean:false;"key2";boolean:false;object:2:"key1";boolean:true;"key2";boolean:false;
 param_end
-boolean:true;
+boolean:false;
 test_end
