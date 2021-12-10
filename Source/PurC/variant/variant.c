@@ -829,6 +829,7 @@ compare_stringify (purc_variant_t v, char *stackbuffer, size_t size)
 {
     char * buffer = NULL;
     size_t total = 0;
+    size_t length = 0;
     int num_write = 0;
 
     switch (v->type) {
@@ -845,12 +846,18 @@ compare_stringify (purc_variant_t v, char *stackbuffer, size_t size)
         case PURC_VARIANT_TYPE_ATOMSTRING:
         case PURC_VARIANT_TYPE_STRING:
         case PURC_VARIANT_TYPE_BSEQUENCE:
-            if (v->type == PURC_VARIANT_TYPE_STRING)
-                total = purc_variant_string_length (v);
-            else if (v->type == PURC_VARIANT_TYPE_BSEQUENCE)
-                total = purc_variant_sequence_length (v);
-            else
-                total = strlen (purc_variant_get_atom_string_const (v));
+            if (v->type == PURC_VARIANT_TYPE_STRING) {
+                length = purc_variant_string_length (v);
+                total = length;
+            }
+            else if (v->type == PURC_VARIANT_TYPE_BSEQUENCE) {
+                length = purc_variant_sequence_length (v);
+                total = length * 2;
+            }
+            else {
+                length = strlen (purc_variant_get_atom_string_const (v));
+                total = length;
+            }
 
             if (total + 1 > size) {
                 buffer = malloc (total + 1);
@@ -1371,6 +1378,14 @@ struct stringify_arg
     void *arg;
 };
 
+struct stringify_buffer
+{
+    char                 *buf;
+    const size_t          len;
+
+    size_t                curr;
+};
+
 static inline void
 stringify_bs(struct stringify_arg *arg, const unsigned char *bs, size_t nr)
 {
@@ -1534,14 +1549,6 @@ variant_stringify(struct stringify_arg *arg, purc_variant_t value)
     }
 }
 
-struct stringify_buffer
-{
-    char                 *buf;
-    size_t                len;
-
-    size_t                curr;
-};
-
 static inline void
 do_stringify_buffer(void *arg, const char *src)
 {
@@ -1567,9 +1574,10 @@ do_stringify_buffer(void *arg, const char *src)
 int
 purc_variant_stringify(char *buf, size_t len, purc_variant_t value)
 {
-    struct stringify_buffer buffer;
-    buffer.buf           = buf;
-    buffer.len           = len;
+    struct stringify_buffer buffer = {
+        .buf           = buf,
+        .len           = len,
+    };
 
     buffer.curr          = 0;
 
