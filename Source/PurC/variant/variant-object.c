@@ -172,7 +172,8 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val)
     while (*pnode) {
         struct obj_node *node;
         node = container_of(*pnode, struct obj_node, node);
-        int ret = purc_variant_compare_st(k, node->key);
+        int ret = purc_variant_compare_ex(k, node->key,
+                PCVARIANT_COMPARE_OPT_AUTO);
 
         parent = *pnode;
 
@@ -266,7 +267,8 @@ v_object_remove(purc_variant_t obj, purc_variant_t key)
     while (*pnode) {
         struct obj_node *node;
         node = container_of(*pnode, struct obj_node, node);
-        int ret = purc_variant_compare_st(key, node->key);
+        int ret = purc_variant_compare_ex(key, node->key,
+                PCVARIANT_COMPARE_OPT_AUTO);
 
         parent = *pnode;
 
@@ -474,7 +476,8 @@ purc_variant_t purc_variant_object_get(purc_variant_t obj, purc_variant_t key)
     while (*pnode) {
         struct obj_node *node;
         node = container_of(*pnode, struct obj_node, node);
-        int ret = purc_variant_compare_st(key, node->key);
+        int ret = purc_variant_compare_ex(key, node->key,
+                PCVARIANT_COMPARE_OPT_AUTO);
 
         parent = *pnode;
 

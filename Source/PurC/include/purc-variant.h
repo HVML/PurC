@@ -1452,12 +1452,6 @@ PCA_EXPORT int
 purc_variant_compare_ex(purc_variant_t v1,
         purc_variant_t v2, purc_variant_compare_opt opt);
 
-PCA_EXPORT int
-purc_variant_compare_st(purc_variant_t v1, purc_variant_t v2);
-PCA_EXPORT int
-purc_variant_compare(purc_variant_t v1, purc_variant_t v2);
-
-
 /**
  * A flag for the purc_variant_serialize() function which causes the output
  * to have no extra whitespace or formatting applied.
