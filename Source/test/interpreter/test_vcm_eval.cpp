@@ -5,6 +5,7 @@
 #include "purc-rwstream.h"
 #include "purc-variant.h"
 #include "hvml/hvml-token.h"
+#include "private/dvobjs.h"
 
 #include "../helpers.h"
 
@@ -195,13 +196,8 @@ int to_error(const char* err)
 
 purc_variant_t find_var(void* ctxt, const char* name)
 {
-    UNUSED_PARAM(ctxt);
-    if (strcmp(name, "TEST_OBJ") == 0) {
-        return purc_variant_make_object(2,
-               purc_variant_make_string("name", false),
-               purc_variant_make_string("test object", false),
-               purc_variant_make_string("value", false),
-               purc_variant_make_ulongint(1000));
+    if (strcmp(name, "SYSTEM") == 0) {
+        return (purc_variant_t) ctxt;
     }
     return purc_variant_make_string(name, false);
 }
@@ -231,9 +227,10 @@ TEST_P(test_vcm_eval, parse_and_serialize)
         return;
     }
 
+    purc_variant_t sys = pcdvobjs_get_system();
     struct pcvcm_node* root = pchvml_token_get_vcm(token);
 
-    purc_variant_t vt = pcvcm_eval_ex (root, find_var, NULL);
+    purc_variant_t vt = pcvcm_eval_ex (root, find_var, sys);
     ASSERT_NE(vt, PURC_VARIANT_INVALID) << "Test Case : "<< get_name();
 
     char buf[1024] = {0};
@@ -250,6 +247,7 @@ TEST_P(test_vcm_eval, parse_and_serialize)
     //fprintf(stderr, "com=%s\n", comp);
     ASSERT_STREQ(buf, comp) << "Test Case : "<< get_name();
 
+    purc_variant_unref(sys);
     purc_rwstream_destroy(my_rws);
     purc_rwstream_destroy(rws);
     pchvml_destroy(parser);
