@@ -233,7 +233,7 @@ const_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                 number = (long double)M_2_PIl;
             else if (strcasecmp (option, "2/sqrt(2)") == 0)
                 number = (long double)M_2_SQRTPIl;
-            else 
+            else
                 goto error;
             break;
         case 's':
@@ -431,7 +431,8 @@ internal_eval_getter (int is_long_double, purc_variant_t root,
             return PURC_VARIANT_INVALID;
         }
         return purc_variant_make_number(v);
-    } else {
+    }
+    else {
         long double v = 0;
         int r = math_eval_l(input, &v, param);
         if (r) {
