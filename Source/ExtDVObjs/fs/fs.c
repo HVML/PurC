@@ -40,6 +40,10 @@
 #include <fcntl.h>
 #include <time.h>
 
+#if USE(GLIB)
+#include <glib.h>
+#endif
+
 #define FS_DVOBJ_VERSION    0
 
 purc_variant_t pcdvobjs_create_file (void);
@@ -105,6 +109,18 @@ static const char * pcdvobjs_remove_space (char *buffer)
     return buffer;
 }
 
+#if USE(GLIB)
+static bool wildcard_cmp (const char *str1, const char *pattern)
+{
+    GPatternSpec *glib_pattern = g_pattern_spec_new (pattern);
+
+    gboolean result = g_pattern_match_string (glib_pattern, str1);
+
+    g_pattern_spec_free (glib_pattern);
+
+    return (bool)result;
+}
+#else
 static bool wildcard_cmp (const char *str1, const char *pattern)
 {
     if (str1 == NULL)
@@ -152,6 +168,7 @@ static bool wildcard_cmp (const char *str1, const char *pattern)
     }
     return true;
 }
+#endif
 
 purc_variant_t pcdvobjs_make_dvobjs (
         const struct pcdvobjs_dvobjs *method, size_t size)
