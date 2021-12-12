@@ -281,11 +281,16 @@ struct pcvdom_element*
 pcvdom_element_parent(struct pcvdom_element *elem);
 
 static inline struct pcvdom_element*
-pcvdom_element_first_child(struct pcvdom_element *elem)
+pcvdom_element_first_child_element(struct pcvdom_element *elem)
 {
     if (!elem)
         return NULL;
     struct pcvdom_node *node = pcvdom_node_first_child(&elem->node);
+
+    while (node && !PCVDOM_NODE_IS_ELEMENT(node)) {
+        node = pcvdom_node_next_sibling(node);
+    }
+
     if (!node)
         return NULL;
 
@@ -293,11 +298,16 @@ pcvdom_element_first_child(struct pcvdom_element *elem)
 }
 
 static inline struct pcvdom_element*
-pcvdom_element_last_child(struct pcvdom_element *elem)
+pcvdom_element_last_child_element(struct pcvdom_element *elem)
 {
     if (!elem)
         return NULL;
     struct pcvdom_node *node = pcvdom_node_last_child(&elem->node);
+
+    while (node && !PCVDOM_NODE_IS_ELEMENT(node)) {
+        node = pcvdom_node_prev_sibling(node);
+    }
+
     if (!node)
         return NULL;
 
@@ -305,11 +315,16 @@ pcvdom_element_last_child(struct pcvdom_element *elem)
 }
 
 static inline struct pcvdom_element*
-pcvdom_element_next_sibling(struct pcvdom_element *elem)
+pcvdom_element_next_sibling_element(struct pcvdom_element *elem)
 {
     if (!elem)
         return NULL;
     struct pcvdom_node *node = pcvdom_node_next_sibling(&elem->node);
+
+    while (node && !PCVDOM_NODE_IS_ELEMENT(node)) {
+        node = pcvdom_node_next_sibling(node);
+    }
+
     if (!node)
         return NULL;
 
@@ -317,11 +332,16 @@ pcvdom_element_next_sibling(struct pcvdom_element *elem)
 }
 
 static inline struct pcvdom_element*
-pcvdom_element_prev_sibling(struct pcvdom_element *elem)
+pcvdom_element_prev_sibling_element(struct pcvdom_element *elem)
 {
     if (!elem)
         return NULL;
     struct pcvdom_node *node = pcvdom_node_prev_sibling(&elem->node);
+
+    while (node && !PCVDOM_NODE_IS_ELEMENT(node)) {
+        node = pcvdom_node_prev_sibling(node);
+    }
+
     if (!node)
         return NULL;
 

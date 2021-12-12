@@ -1,5 +1,5 @@
 /**
- * @file choose.h
+ * @file init.h
  * @author Xu Xiaohong
  * @date 2021/12/06
  * @brief
@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef PURC_PRIVATE_INTERPRETER_CHOOSE_H
-#define PURC_PRIVATE_INTERPRETER_CHOOSE_H
+#ifndef PURC_PRIVATE_INTERPRETER_INIT_H
+#define PURC_PRIVATE_INTERPRETER_INIT_H
 
 #include "purc.h"
 
@@ -34,10 +34,10 @@
 
 PCA_EXTERN_C_BEGIN
 
-struct pcintr_element_ops* pcintr_choose_get_ops(void);
+struct pcintr_element_ops* pcintr_init_get_ops(void);
 
 PCA_EXTERN_C_END
 
-#endif  /* PURC_PRIVATE_INTERPRETER_CHOOSE_H */
+#endif  /* PURC_PRIVATE_INTERPRETER_INIT_H */
 
 
