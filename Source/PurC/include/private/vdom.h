@@ -67,11 +67,9 @@ enum pchvml_attr_assignment {
 #define PCVDOM_NODE_IS_ELEMENT(_n) \
     (((_n) && (_n)->type==PCVDOM_NODE_ELEMENT))
 #define PCVDOM_NODE_IS_CONTENT(_n) \
-    (((_n) && (_n)->type==PCVDOM_VDOM_CONTENT))
+    (((_n) && (_n)->type==PCVDOM_NODE_CONTENT))
 #define PCVDOM_NODE_IS_COMMENT(_n) \
-    (((_n) && (_n)->type==PCVDOM_VDOM_COMMENT))
-#define PCVDOM_NODE_IS_EXP(_n) \
-    (((_n) && (_n)->type==PCVDOM_VDOM_EXP))
+    (((_n) && (_n)->type==PCVDOM_NODE_COMMENT))
 
 #define PCVDOM_DOCUMENT_FROM_NODE(_node) \
     (PCVDOM_NODE_IS_DOCUMENT(_node) ? \
@@ -348,6 +346,9 @@ pcvdom_element_prev_sibling_element(struct pcvdom_element *elem)
     return container_of(node, struct pcvdom_element, node);
 }
 
+struct pcvdom_attr*
+pcvdom_element_find_attr(struct pcvdom_element *element, const char *key);
+
 struct pcvdom_element*
 pcvdom_content_parent(struct pcvdom_content *content);
 
@@ -389,7 +390,7 @@ int pcvdom_element_traverse(struct pcvdom_element *elem, void *ctx,
     doc; })
 
 purc_variant_t
-pcvdom_element_get_attr_val(pcvdom_element_t element, const char *key);
+pcvdom_element_eval_attr_val(pcvdom_element_t element, const char *key);
 
 PCA_EXTERN_C_END
 

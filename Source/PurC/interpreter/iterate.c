@@ -136,9 +136,9 @@ static inline int
 iterate_after_pushed(pcintr_stack_t stack, pcvdom_element_t pos,
         struct ctxt_for_iterate *ctxt)
 {
-    purc_variant_t on = pcvdom_element_get_attr_val(pos, "on");
-    purc_variant_t in = pcvdom_element_get_attr_val(pos, "in");
-    purc_variant_t by = pcvdom_element_get_attr_val(pos, "by");
+    purc_variant_t on = pcvdom_element_eval_attr_val(pos, "on");
+    purc_variant_t in = pcvdom_element_eval_attr_val(pos, "in");
+    purc_variant_t by = pcvdom_element_eval_attr_val(pos, "by");
 
     int r = iterate_after_pushed_on_in_by(stack, ctxt, on, in, by);
     purc_variant_unref(on);
