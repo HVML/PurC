@@ -106,8 +106,8 @@ static inline int
 choose_after_pushed(pcintr_stack_t stack, pcvdom_element_t pos,
         struct ctxt_for_choose *ctxt)
 {
-    purc_variant_t on = pcvdom_element_get_attr_val(pos, "on");
-    purc_variant_t by = pcvdom_element_get_attr_val(pos, "by");
+    purc_variant_t on = pcvdom_element_eval_attr_val(pos, "on");
+    purc_variant_t by = pcvdom_element_eval_attr_val(pos, "by");
 
     int r = choose_after_pushed_on_by(stack, ctxt, on, by);
     purc_variant_unref(on);
@@ -166,7 +166,7 @@ choose_select_child(pcintr_stack_t stack, struct ctxt_for_choose *ctxt)
 {
     if (ctxt->curr) {
         struct pcvdom_element *next;
-        next = pcvdom_element_next_sibling(ctxt->curr);
+        next = pcvdom_element_next_sibling_element(ctxt->curr);
         if (next) {
             ctxt->curr = next;
         }
@@ -177,7 +177,7 @@ choose_select_child(pcintr_stack_t stack, struct ctxt_for_choose *ctxt)
     frame = pcintr_stack_get_bottom_frame(stack);
     pcvdom_element_t element = frame->pos;
 
-    ctxt->curr = pcvdom_element_first_child(element);
+    ctxt->curr = pcvdom_element_first_child_element(element);
 
     return ctxt->curr;
 }

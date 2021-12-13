@@ -1048,21 +1048,32 @@ vdom_node_destroy(struct pcvdom_node *node)
     }
 }
 
-purc_variant_t
-pcvdom_element_get_attr_val(pcvdom_element_t element, const char *key)
+struct pcvdom_attr*
+pcvdom_element_find_attr(struct pcvdom_element *element, const char *key)
 {
     struct pcutils_map *attrs = element->attrs;
     if (!attrs)
-        return purc_variant_make_undefined();
+        return NULL;
 
     pcutils_map_entry *entry;
     entry = pcutils_map_find(attrs, key);
     if (!entry)
-        return purc_variant_make_undefined();
+        return NULL;
     PC_ASSERT(entry->val);
 
     struct pcvdom_attr *attr;
     attr = (struct pcvdom_attr*)entry->val;
+
+    return attr;
+}
+
+purc_variant_t
+pcvdom_element_eval_attr_val(pcvdom_element_t element, const char *key)
+{
+    struct pcvdom_attr *attr;
+    attr = pcvdom_element_find_attr(element, key);
+    if (!attr)
+        return purc_variant_make_undefined();
 
     enum pchvml_attr_assignment  op  = attr->op;
     struct pcvcm_node           *val = attr->val;
