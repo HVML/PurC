@@ -35,6 +35,7 @@
 #include "private/vcm.h"
 #include "private/stack.h"
 #include "private/interpreter.h"
+#include "private/utils.h"
 
 
 #define TREE_NODE(node)              ((struct pctree_node*)(node))
@@ -800,9 +801,8 @@ purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
     }
 
     int64_t index = -1;
-    //XSM
     if (param_var->type == PCVCM_NODE_TYPE_STRING) {
-        if (pcutils_parse_int64(param_node->sz_ptr[1], param_node->sz_ptr[0],
+        if (pcutils_parse_int64((const char*)param_node->sz_ptr[1], param_node->sz_ptr[0],
                     &index) != 0) {
             index = -1;
         }
