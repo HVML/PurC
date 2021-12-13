@@ -245,6 +245,7 @@ struct find_var_ctxt {
     purc_variant_t dsystem;
     purc_variant_t nobj;
     purc_variant_t array_var;
+    purc_variant_t set_var;
 };
 
 purc_variant_t find_var(void* ctxt, const char* name)
@@ -258,6 +259,9 @@ purc_variant_t find_var(void* ctxt, const char* name)
     }
     else if (strcmp(name, "VARRAY") == 0) {
         return find_ctxt->array_var;
+    }
+    else if (strcmp(name, "VSET") == 0) {
+        return find_ctxt->set_var;
     }
     return PURC_VARIANT_INVALID;
 }
@@ -297,10 +301,15 @@ TEST_P(test_vcm_eval, parse_and_serialize)
     purc_variant_t array_var = purc_variant_make_array(2, array_member_0,
             array_member_1);
 
+    purc_variant_t set_value_0 = purc_variant_make_string("value 0", false);
+    purc_variant_t set_value_1 = purc_variant_make_string("value 1", false);
+    purc_variant_t set_var = purc_variant_make_set_by_ckey(0, NULL, NULL);
+    purc_variant_set_add(set_var, set_value_0, false);
+    purc_variant_set_add(set_var, set_value_1, false);
 
     struct pcvcm_node* root = pchvml_token_get_vcm(token);
 
-    struct find_var_ctxt ctxt = { sys, nobj, array_var};
+    struct find_var_ctxt ctxt = { sys, nobj, array_var, set_var};
 
     purc_variant_t vt = pcvcm_eval_ex (root, find_var, &ctxt);
     ASSERT_NE(vt, PURC_VARIANT_INVALID) << "Test Case : "<< get_name();
@@ -320,6 +329,10 @@ TEST_P(test_vcm_eval, parse_and_serialize)
     if (strcmp(comp, "#####") != 0) {
         ASSERT_STREQ(buf, comp) << "Test Case : "<< get_name();
     }
+
+    purc_variant_unref(set_value_0);
+    purc_variant_unref(set_value_1);
+    purc_variant_unref(set_var);
 
     purc_variant_unref(array_member_0);
     purc_variant_unref(array_member_1);
