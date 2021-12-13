@@ -793,10 +793,22 @@ purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
         goto err;
     }
 
-    purc_variant_t param_var = pcvcm_node_to_variant(
-            NEXT_CHILD(caller_node), ops);
+    struct pcvcm_node* param_node  = NEXT_CHILD(caller_node);
+    purc_variant_t param_var = pcvcm_node_to_variant(param_node, ops);
     if (!param_var) {
         goto clean_caller_var;
+    }
+
+    int64_t index = -1;
+    //XSM
+    if (param_var->type == PCVCM_NODE_TYPE_STRING) {
+        if (pcutils_parse_int64(param_node->sz_ptr[1], param_node->sz_ptr[0],
+                    &index) != 0) {
+            index = -1;
+        }
+    }
+    else if (!purc_variant_cast_to_longint(param_var, &index, false)) {
+        index = -1;
     }
 
     struct pcvcm_node* parent_node = PARENT_NODE(node);
@@ -804,6 +816,57 @@ purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
         purc_variant_t val = purc_variant_object_get(caller_var, param_var);
         if (!val) {
             goto clear_param_var;
+        }
+
+        purc_variant_ref(val);
+        if (!purc_variant_is_dynamic(val)) {
+            ret_var = val;
+            goto clear_param_var;
+        }
+
+        if (is_action_node(parent_node)) {
+            ret_var = val;
+            goto clear_param_var;
+        }
+        ret_var = call_dvariant_method(val, 0, NULL, GETTER_METHOD);
+        purc_variant_unref(val);
+    }
+    else if (purc_variant_is_array(caller_var)) {
+        if (index < 0) {
+            goto clear_param_var;
+        }
+
+        purc_variant_t val = purc_variant_array_get(caller_var, index);
+        if (!val) {
+            goto clear_param_var;
+        }
+
+        purc_variant_ref(val);
+        if (!purc_variant_is_dynamic(val)) {
+            ret_var = val;
+            goto clear_param_var;
+        }
+
+        if (is_action_node(parent_node)) {
+            ret_var = val;
+            goto clear_param_var;
+        }
+        ret_var = call_dvariant_method(val, 0, NULL, GETTER_METHOD);
+        purc_variant_unref(val);
+    }
+    else if (purc_variant_is_set(caller_var)) {
+        purc_variant_t val;
+        if (index >= 0) {
+            val = purc_variant_set_get_by_index(caller_var, index);
+            if (!val) {
+                goto clear_param_var;
+            }
+        }
+        else  {
+            val = purc_variant_set_get_member_by_key_values(caller_var, param_var);
+            if (!val) {
+                goto clear_param_var;
+            }
         }
 
         purc_variant_ref(val);
