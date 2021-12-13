@@ -12,3 +12,5 @@ jsonee_010_nvariant_get_variable
 jsonee_011_nvariant_get_element
 jsonee_012_nvariant_call_getter
 jsonee_013_nvariant_call_setter
+jsonee_014_array_get_variable
+jsonee_015_array_get_element

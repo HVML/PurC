@@ -819,6 +819,34 @@ purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
         ret_var = call_dvariant_method(val, 0, NULL, GETTER_METHOD);
         purc_variant_unref(val);
     }
+    else if (purc_variant_is_array(caller_var)) {
+        if (!purc_variant_is_number(param_var)) {
+            goto clear_param_var;
+        }
+
+        uint64_t index = 0;
+        if (!purc_variant_cast_to_ulongint(param_var, &index, false)) {
+            goto clear_param_var;
+        }
+
+        purc_variant_t val = purc_variant_array_get(caller_var, index);
+        if (!val) {
+            goto clear_param_var;
+        }
+
+        purc_variant_ref(val);
+        if (!purc_variant_is_dynamic(val)) {
+            ret_var = val;
+            goto clear_param_var;
+        }
+
+        if (is_action_node(parent_node)) {
+            ret_var = val;
+            goto clear_param_var;
+        }
+        ret_var = call_dvariant_method(val, 0, NULL, GETTER_METHOD);
+        purc_variant_unref(val);
+    }
     else if (purc_variant_is_dynamic(caller_var)) {
         ret_var = call_dvariant_method(caller_var, 1, &param_var, GETTER_METHOD);
         goto clear_param_var;

@@ -244,6 +244,7 @@ struct purc_native_ops native_ops = {
 struct find_var_ctxt {
     purc_variant_t dsystem;
     purc_variant_t nobj;
+    purc_variant_t array_var;
 };
 
 purc_variant_t find_var(void* ctxt, const char* name)
@@ -254,6 +255,9 @@ purc_variant_t find_var(void* ctxt, const char* name)
     }
     else if (strcmp(name, "NOBJ") == 0) {
         return find_ctxt->nobj;
+    }
+    else if (strcmp(name, "VARRAY") == 0) {
+        return find_ctxt->array_var;
     }
     return PURC_VARIANT_INVALID;
 }
@@ -288,9 +292,15 @@ TEST_P(test_vcm_eval, parse_and_serialize)
 
     purc_variant_t nobj = purc_variant_make_native((void*)1, &native_ops);
 
+    purc_variant_t array_member_0 = purc_variant_make_string("array member 0", false);
+    purc_variant_t array_member_1 = purc_variant_make_string("array member 1", false);
+    purc_variant_t array_var = purc_variant_make_array(2, array_member_0,
+            array_member_1);
+
+
     struct pcvcm_node* root = pchvml_token_get_vcm(token);
 
-    struct find_var_ctxt ctxt = { sys, nobj};
+    struct find_var_ctxt ctxt = { sys, nobj, array_var};
 
     purc_variant_t vt = pcvcm_eval_ex (root, find_var, &ctxt);
     ASSERT_NE(vt, PURC_VARIANT_INVALID) << "Test Case : "<< get_name();
@@ -310,6 +320,10 @@ TEST_P(test_vcm_eval, parse_and_serialize)
     if (strcmp(comp, "#####") != 0) {
         ASSERT_STREQ(buf, comp) << "Test Case : "<< get_name();
     }
+
+    purc_variant_unref(array_member_0);
+    purc_variant_unref(array_member_1);
+    purc_variant_unref(array_var);
 
     purc_variant_unref(vt);
     pchvml_token_destroy(token);
