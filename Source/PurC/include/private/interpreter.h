@@ -40,7 +40,40 @@ struct pcintr_stack;
 typedef struct pcintr_stack pcintr_stack;
 typedef struct pcintr_stack *pcintr_stack_t;
 
+struct pcintr_stack_mgr;
+typedef struct pcintr_stack_mgr pcintr_stack_mgr;
+typedef struct pcintr_stack_mgr *pcintr_stack_mgr_t;
+
+// one instance per pcinst
+struct pcintr_stack_mgr {
+    struct list_head            stacks;
+};
+
+// continuation prototype
+// ctxt: context for continuation to follow with
+// is_abort: let `continuation` know if it's going to run or abortion
+//           if `is_abort` is set, don't forget to free resources wrapped
+//           within `ctxt`
+typedef int (*continuation_f)(void *ctxt, int is_abort);
+
+// yield from current running coroutine
+// if there's no running coroutine in current thread, this will fail with -1
+// otherwise,
+// store `ctxt` and `continuation` into current running coroutine
+// and return
+// NOTE: runloop issue
+// for normal yield, such as yield while in iteration,
+// caller might create a one-time-no-delay timer
+// in runloop with pcintr_stack bounded, and then call purc_yield;
+// for other yield, such as fd-related
+// caller might fire fd-related-async-api, then create a bounded callback-stuff
+// as required by RunLoop, and then call purc-yield;
+int purc_yield(void *ctxt, continuation_f continuation);
+
+
 struct pcintr_stack {
+    struct list_head         node; // pcintr_stack_mgr::stacks
+
     struct list_head frames;
 
     // the number of stack frames.
@@ -67,6 +100,14 @@ struct pcintr_stack {
     struct timespec time_idle;
     size_t          peak_mem_use;
     size_t          peak_nr_variants;
+
+    // for yield purposes
+    void           *ctxt;     // context which will be used when
+                              // `continuation` is called
+    // when is_abort is set, which means purc is no longer going to run
+    // current stack in thread, `continuation` is responsible to free
+    // resources stored in `ctxt`
+    int (*continuation)(void *ctxt, int is_abort);
 };
 
 enum purc_symbol_var {
