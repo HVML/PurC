@@ -42,7 +42,7 @@ struct pcinst {
     char* runner_name;
 
     pcutils_map* local_data_map;
-    pcvarmgr_list_t var_list;
+    pcvarmgr_list_t variables;
 
     struct pcvariant_heap variant_heap;
     struct pcexecutor_heap executor_heap;

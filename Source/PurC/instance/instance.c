@@ -33,6 +33,7 @@
 #include "private/rwstream.h"
 #include "private/ejson.h"
 #include "private/html.h"
+#include "private/vdom.h"
 #include "private/edom.h"
 #include "private/dvobjs.h"
 #include "private/executor.h"
@@ -168,9 +169,9 @@ static void cleanup_instance (struct pcinst *curr_inst)
         curr_inst->local_data_map = NULL;
     }
 
-    if (curr_inst->var_list) {
-        pcvarmgr_list_destroy(curr_inst->var_list);
-        curr_inst->var_list = NULL;
+    if (curr_inst->variables) {
+        pcvarmgr_list_destroy(curr_inst->variables);
+        curr_inst->variables = NULL;
     }
 
     if (curr_inst->app_name) {
@@ -224,12 +225,12 @@ int purc_init(const char* app_name, const char* runner_name,
                 free_key_string, NULL, NULL, comp_key_string, false);
 
 
-    curr_inst->var_list = pcvarmgr_list_create();
+    curr_inst->variables = pcvarmgr_list_create();
 
     if (curr_inst->app_name == NULL ||
             curr_inst->runner_name == NULL ||
             curr_inst->local_data_map == NULL ||
-            curr_inst->var_list == NULL)
+            curr_inst->variables == NULL)
         goto failed;
 
     // TODO: init other fields
@@ -337,5 +338,37 @@ bool purc_bind_variable(const char* name, purc_variant_t variant)
     if (inst == NULL)
         return false;
 
-    return pcvarmgr_list_add(inst->var_list, name, variant);
+    return pcvarmgr_list_add(inst->variables, name, variant);
 }
+
+#if 0
+bool purc_unbind_variable(const char* name)
+{
+    struct pcinst* inst = pcinst_current();
+    if (inst == NULL)
+        return false;
+
+    return pcvarmgr_list_remove(inst->variables, name);
+}
+#endif
+
+bool
+purc_bind_document_variable(purc_vdom_t vdom, const char* name,
+        purc_variant_t variant)
+{
+    if (vdom == NULL) {
+        return false;
+    }
+    return pcvdom_document_bind_variable(vdom->document, name, variant);
+}
+
+#if 0
+bool
+purc_unbind_document_variable(purc_vdom_t vdom, const char* name)
+{
+    if (vdom == NULL) {
+        return false;
+    }
+    return pcvdom_document_unbind_variable(vdom->document, name);
+}
+#endif
