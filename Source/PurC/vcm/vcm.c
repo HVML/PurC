@@ -801,7 +801,7 @@ purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
     }
 
     int64_t index = -1;
-    if (param_var->type == PCVCM_NODE_TYPE_STRING) {
+    if (param_node->type == PCVCM_NODE_TYPE_STRING) {
         if (pcutils_parse_int64((const char*)param_node->sz_ptr[1], param_node->sz_ptr[0],
                     &index) != 0) {
             index = -1;
@@ -855,18 +855,13 @@ purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
         purc_variant_unref(val);
     }
     else if (purc_variant_is_set(caller_var)) {
-        purc_variant_t val;
-        if (index >= 0) {
-            val = purc_variant_set_get_by_index(caller_var, index);
-            if (!val) {
-                goto clear_param_var;
-            }
+        if (index < 0) {
+            goto clear_param_var;
         }
-        else  {
-            val = purc_variant_set_get_member_by_key_values(caller_var, param_var);
-            if (!val) {
-                goto clear_param_var;
-            }
+
+        purc_variant_t val = purc_variant_set_get_by_index(caller_var, index);
+        if (!val) {
+            goto clear_param_var;
         }
 
         purc_variant_ref(val);

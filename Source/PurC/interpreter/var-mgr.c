@@ -138,7 +138,7 @@ static purc_variant_t _find_inst_var(const char* name)
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t v = pcvarmgr_list_get(inst->var_list, name);
+    purc_variant_t v = pcvarmgr_list_get(inst->variables, name);
     if (v) {
         return v;
     }
