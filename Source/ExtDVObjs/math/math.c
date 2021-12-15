@@ -306,7 +306,8 @@ error:
               purc_variant_is_type (x, PURC_VARIANT_TYPE_LONGDOUBLE))) { \
         purc_set_error (PURC_ERROR_WRONG_ARGS); \
         return PURC_VARIANT_INVALID; \
-    }
+    } \
+    feclearexcept(FE_ALL_EXCEPT);
 
 #define GET_PARAM_NUMBER(x) \
     if (nr_args < x) { \
@@ -441,6 +442,7 @@ sin_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_long_double (argv[0], &number, false);
+    number = sinl (number);
     GET_EXCEPTION_LONGDOUBLE(number);
 
     return ret_var;
@@ -459,6 +461,7 @@ cos_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_long_double (argv[0], &number, false);
+    number = cosl (number);
     GET_EXCEPTION_LONGDOUBLE(number);
 
     return ret_var;
@@ -477,6 +480,7 @@ tan_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_long_double (argv[0], &number, false);
+    number = tanl (number);
     GET_EXCEPTION_LONGDOUBLE(number);
 
     return ret_var;
@@ -553,6 +557,7 @@ sqrt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_number (argv[0], &number, false);
+    number = sqrt (number);
     GET_EXCEPTION_DOUBLE(number);
 
     return ret_var;
@@ -571,6 +576,7 @@ sqrt_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_long_double (argv[0], &number, false);
+    number = sqrtl (number);
     GET_EXCEPTION_LONGDOUBLE(number);
 
     return ret_var;
@@ -1058,10 +1064,9 @@ const char * __purcex_get_dynamic_variant_desc (size_t idx)
     return MATH_DESCRIPTION;
 }
 
-
 /*
 #undef div
 #undef frexp
 #undef ldexp
 #undef modf
-
+*/
