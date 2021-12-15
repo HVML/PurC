@@ -509,11 +509,6 @@ purc_load_hvml_from_rwstream(purc_rwstream_t stream)
     PC_ASSERT(runloop);
     pcrunloop_dispatch(runloop, vdom_main, vdom);
 
-    // TODO:
-    // wrap vdom into a hvml-main-entrance, register into runloop,
-    // and let purc_run to collect and dispatch
-    // PC_ASSERT(0); // Not implemented yet
-
     return vdom;
 }
 
