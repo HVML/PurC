@@ -30,6 +30,10 @@
 #include "purc-variant.h"
 #include "helper.h"
 
+#if USE(GLIB)
+#include <glib.h>
+#endif
+
 const char *pcdvobjs_get_next_option (const char *data,
         const char *delims, size_t *length)
 {
@@ -111,6 +115,18 @@ const char *pcdvobjs_remove_space (char *buffer)
     return buffer;
 }
 
+#if USE(GLIB)
+bool pcdvobjs_wildcard_cmp (const char *str1, const char *pattern)
+{
+    GPatternSpec *glib_pattern = g_pattern_spec_new (pattern);
+
+    gboolean result = g_pattern_match_string (glib_pattern, str1);
+
+    g_pattern_spec_free (glib_pattern);
+
+    return (bool)result;
+}
+#else
 bool pcdvobjs_wildcard_cmp (const char *str1, const char *pattern)
 {
     if (str1 == NULL)
@@ -158,6 +174,7 @@ bool pcdvobjs_wildcard_cmp (const char *str1, const char *pattern)
     }
     return true;
 }
+#endif
 
 purc_variant_t pcdvobjs_make_dvobjs (const struct pcdvobjs_dvobjs *method,
                                     size_t size)

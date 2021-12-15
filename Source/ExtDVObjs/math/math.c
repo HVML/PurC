@@ -35,6 +35,7 @@
 #define __MATH_LONG_DOUBLE_CONSTANTS    /* for M_PIl when using MacOSX SDK */
 #endif
 #include <math.h>
+#include <fenv.h>
 
 #define UNUSED_PARAM (void)
 #define MATH_DVOBJ_VERSION  0
@@ -233,7 +234,7 @@ const_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                 number = (long double)M_2_PIl;
             else if (strcasecmp (option, "2/sqrt(2)") == 0)
                 number = (long double)M_2_SQRTPIl;
-            else 
+            else
                 goto error;
             break;
         case 's':
@@ -255,6 +256,64 @@ error:
     return PURC_VARIANT_INVALID;
 }
 
+#define GET_EXCEPTION_DOUBLE(x) \
+    if (isnan (x)) { \
+        purc_set_error (PURC_ERROR_WRONG_ARGS); \
+        ret_var = PURC_VARIANT_INVALID; \
+    } \
+    else if ((x) == HUGE_VAL) { \
+        if (fetestexcept (FE_DIVBYZERO)) \
+            purc_set_error (PURC_ERROR_DIVBYZERO); \
+        else if (fetestexcept (FE_OVERFLOW)) \
+            purc_set_error (PURC_ERROR_OVERFLOW); \
+        else \
+            purc_set_error (PURC_ERROR_UNKNOWN); \
+        ret_var = PURC_VARIANT_INVALID; \
+    } \
+    else if (fetestexcept (FE_UNDERFLOW)) { \
+        purc_set_error (PURC_ERROR_UNDERFLOW); \
+        ret_var = PURC_VARIANT_INVALID; \
+    } \
+    else \
+        ret_var = purc_variant_make_number (x);
+
+#define GET_EXCEPTION_LONGDOUBLE(x) \
+    if (isnan (x)) { \
+        purc_set_error (PURC_ERROR_WRONG_ARGS); \
+        ret_var = PURC_VARIANT_INVALID; \
+    } \
+    else if ((x) == HUGE_VALL) { \
+        if (fetestexcept (FE_DIVBYZERO)) \
+            purc_set_error (PURC_ERROR_DIVBYZERO); \
+        else if (fetestexcept (FE_OVERFLOW)) \
+            purc_set_error (PURC_ERROR_OVERFLOW); \
+        else \
+            purc_set_error (PURC_ERROR_UNKNOWN); \
+        ret_var = PURC_VARIANT_INVALID; \
+    } \
+    else if (fetestexcept (FE_UNDERFLOW)) { \
+        purc_set_error (PURC_ERROR_UNDERFLOW); \
+        ret_var = PURC_VARIANT_INVALID; \
+    } \
+    else \
+        ret_var = purc_variant_make_longdouble (x);
+
+#define GET_VARIANT_NUMBER_TYPE(x) \
+    if ((x == PURC_VARIANT_INVALID) || \
+            !(purc_variant_is_type (x, PURC_VARIANT_TYPE_NUMBER)  || \
+              purc_variant_is_type (x, PURC_VARIANT_TYPE_LONGINT) || \
+              purc_variant_is_type (x, PURC_VARIANT_TYPE_ULONGINT) || \
+              purc_variant_is_type (x, PURC_VARIANT_TYPE_LONGDOUBLE))) { \
+        purc_set_error (PURC_ERROR_WRONG_ARGS); \
+        return PURC_VARIANT_INVALID; \
+    }
+
+#define GET_PARAM_NUMBER(x) \
+    if (nr_args < x) { \
+        purc_set_error (PURC_ERROR_WRONG_ARGS); \
+        return PURC_VARIANT_INVALID; \
+    }
+
 
 static purc_variant_t
 sin_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
@@ -264,17 +323,12 @@ sin_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     double number = 0.0;
 
-    if (nr_args == 0) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
-    if (argv[0] == PURC_VARIANT_INVALID) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
+    GET_PARAM_NUMBER(1);
+    GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_number (argv[0], &number, false);
-    ret_var = purc_variant_make_number (sin (number));
+    number = sin (number);
+    GET_EXCEPTION_DOUBLE(number);
 
     return ret_var;
 }
@@ -288,41 +342,88 @@ cos_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     double number = 0.0;
 
-    if (nr_args == 0) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
-    if (argv[0] == PURC_VARIANT_INVALID) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
+    GET_PARAM_NUMBER(1);
+    GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_number (argv[0], &number, false);
-    ret_var = purc_variant_make_number (cos (number));
+    number = cos (number);
+    GET_EXCEPTION_DOUBLE(number);
 
     return ret_var;
 }
 
-
 static purc_variant_t
-sqrt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+tan_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     double number = 0.0;
 
-    if (nr_args == 0) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
-    if (argv[0] == PURC_VARIANT_INVALID) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
+    GET_PARAM_NUMBER(1);
+    GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_number (argv[0], &number, false);
-    ret_var = purc_variant_make_number (sqrt (number));
+    number = tan (number);
+    GET_EXCEPTION_DOUBLE(number);
+
+    return ret_var;
+}
+
+static purc_variant_t
+asin_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    double number = 0.0;
+
+    GET_PARAM_NUMBER(1);
+    GET_VARIANT_NUMBER_TYPE (argv[0]);
+
+    purc_variant_cast_to_number (argv[0], &number, false);
+
+    number = asin (number);
+    GET_EXCEPTION_DOUBLE(number);
+
+    return ret_var;
+}
+
+
+static purc_variant_t
+acos_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    double number = 0.0;
+
+    GET_PARAM_NUMBER(1);
+    GET_VARIANT_NUMBER_TYPE (argv[0]);
+
+    purc_variant_cast_to_number (argv[0], &number, false);
+
+    number = acos (number);
+    GET_EXCEPTION_DOUBLE(number);
+
+    return ret_var;
+}
+
+static purc_variant_t
+atan_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    double number = 0.0;
+
+    GET_PARAM_NUMBER(1);
+    GET_VARIANT_NUMBER_TYPE (argv[0]);
+
+    purc_variant_cast_to_number (argv[0], &number, false);
+
+    number = atan (number);
+    GET_EXCEPTION_DOUBLE(number);
 
     return ret_var;
 }
@@ -336,17 +437,11 @@ sin_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     long double number = 0.0L;
 
-    if (nr_args == 0) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
-    if (argv[0] == PURC_VARIANT_INVALID) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
+    GET_PARAM_NUMBER(1);
+    GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_long_double (argv[0], &number, false);
-    ret_var = purc_variant_make_longdouble (sinl (number));
+    GET_EXCEPTION_LONGDOUBLE(number);
 
     return ret_var;
 }
@@ -360,17 +455,105 @@ cos_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     long double number = 0.0L;
 
-    if (nr_args == 0) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
-    if (argv[0] == PURC_VARIANT_INVALID) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
+    GET_PARAM_NUMBER(1);
+    GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_long_double (argv[0], &number, false);
-    ret_var = purc_variant_make_longdouble (cosl (number));
+    GET_EXCEPTION_LONGDOUBLE(number);
+
+    return ret_var;
+}
+
+
+static purc_variant_t
+tan_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    long double number = 0.0L;
+
+    GET_PARAM_NUMBER(1);
+    GET_VARIANT_NUMBER_TYPE (argv[0]);
+
+    purc_variant_cast_to_long_double (argv[0], &number, false);
+    GET_EXCEPTION_LONGDOUBLE(number);
+
+    return ret_var;
+}
+
+static purc_variant_t
+asin_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    long double number = 0.0L;
+
+    GET_PARAM_NUMBER(1);
+    GET_VARIANT_NUMBER_TYPE (argv[0]);
+
+    purc_variant_cast_to_long_double (argv[0], &number, false);
+
+    number = asinl (number);
+    GET_EXCEPTION_LONGDOUBLE(number);
+
+    return ret_var;
+}
+
+
+static purc_variant_t
+acos_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    long double number = 0.0L;
+
+    GET_PARAM_NUMBER(1);
+    GET_VARIANT_NUMBER_TYPE (argv[0]);
+
+    purc_variant_cast_to_long_double (argv[0], &number, false);
+
+    number = acosl (number);
+    GET_EXCEPTION_LONGDOUBLE(number);
+
+    return ret_var;
+}
+
+
+static purc_variant_t
+atan_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    long double number = 0.0L;
+
+    GET_PARAM_NUMBER(1);
+    GET_VARIANT_NUMBER_TYPE (argv[0]);
+
+    purc_variant_cast_to_long_double (argv[0], &number, false);
+
+    number = atanl (number);
+    GET_EXCEPTION_LONGDOUBLE(number);
+
+    return ret_var;
+}
+
+static purc_variant_t
+sqrt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    double number = 0.0;
+
+    GET_PARAM_NUMBER(1);
+    GET_VARIANT_NUMBER_TYPE (argv[0]);
+
+    purc_variant_cast_to_number (argv[0], &number, false);
+    GET_EXCEPTION_DOUBLE(number);
 
     return ret_var;
 }
@@ -384,17 +567,327 @@ sqrt_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     long double number = 0.0L;
 
-    if (nr_args == 0) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
-    if (argv[0] == PURC_VARIANT_INVALID) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
+    GET_PARAM_NUMBER(1);
+    GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_long_double (argv[0], &number, false);
-    ret_var = purc_variant_make_longdouble (sqrtl (number));
+    GET_EXCEPTION_LONGDOUBLE(number);
+
+    return ret_var;
+}
+
+static purc_variant_t
+fmod_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    double number1 = 0.0;
+    double number2 = 0.0;
+
+    GET_PARAM_NUMBER(2);
+    GET_VARIANT_NUMBER_TYPE (argv[0]);
+    GET_VARIANT_NUMBER_TYPE (argv[1]);
+
+    purc_variant_cast_to_number (argv[0], &number1, false);
+    purc_variant_cast_to_number (argv[1], &number2, false);
+
+    number1 = fmod (number1, number2);
+    GET_EXCEPTION_DOUBLE(number1);
+
+    return ret_var;
+}
+
+static purc_variant_t
+fmod_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    long double number1 = 0.0L;
+    long double number2 = 0.0L;
+
+    GET_PARAM_NUMBER(2);
+    GET_VARIANT_NUMBER_TYPE (argv[0]);
+    GET_VARIANT_NUMBER_TYPE (argv[1]);
+
+    purc_variant_cast_to_long_double (argv[0], &number1, false);
+    purc_variant_cast_to_long_double (argv[1], &number2, false);
+
+    number1 = fmodl (number1, number2);
+    GET_EXCEPTION_LONGDOUBLE(number1);
+
+    return ret_var;
+}
+
+static purc_variant_t
+fabs_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    double number = 0.0;
+
+    GET_PARAM_NUMBER(1);
+    GET_VARIANT_NUMBER_TYPE (argv[0]);
+
+    purc_variant_cast_to_number (argv[0], &number, false);
+
+    number = fabs (number);
+    GET_EXCEPTION_DOUBLE(number);
+
+    return ret_var;
+}
+
+static purc_variant_t
+fabs_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    long double number = 0.0L;
+
+    GET_PARAM_NUMBER(1);
+    GET_VARIANT_NUMBER_TYPE (argv[0]);
+
+    purc_variant_cast_to_long_double (argv[0], &number, false);
+
+    number = fabsl (number);
+    GET_EXCEPTION_LONGDOUBLE(number);
+
+    return ret_var;
+}
+
+static purc_variant_t
+log_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    double number = 0.0;
+
+    GET_PARAM_NUMBER(1);
+    GET_VARIANT_NUMBER_TYPE (argv[0]);
+
+    purc_variant_cast_to_number (argv[0], &number, false);
+
+    number = log (number);
+    GET_EXCEPTION_DOUBLE(number);
+
+    return ret_var;
+}
+
+static purc_variant_t
+log_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    long double number = 0.0L;
+
+    GET_PARAM_NUMBER(1);
+    GET_VARIANT_NUMBER_TYPE (argv[0]);
+
+    purc_variant_cast_to_long_double (argv[0], &number, false);
+
+    number = logl (number);
+    GET_EXCEPTION_LONGDOUBLE(number);
+
+    return ret_var;
+}
+
+static purc_variant_t
+log10_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    double number = 0.0;
+
+    GET_PARAM_NUMBER(1);
+    GET_VARIANT_NUMBER_TYPE (argv[0]);
+
+    purc_variant_cast_to_number (argv[0], &number, false);
+
+    number = log10 (number);
+    GET_EXCEPTION_DOUBLE(number);
+
+    return ret_var;
+}
+
+static purc_variant_t
+log10_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    long double number = 0.0L;
+
+    GET_PARAM_NUMBER(1);
+    GET_VARIANT_NUMBER_TYPE (argv[0]);
+
+    purc_variant_cast_to_long_double (argv[0], &number, false);
+
+    number = log10l (number);
+    GET_EXCEPTION_LONGDOUBLE(number);
+
+    return ret_var;
+}
+
+static purc_variant_t
+pow_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    double number1 = 0.0;
+    double number2 = 0.0;
+
+    GET_PARAM_NUMBER(2);
+    GET_VARIANT_NUMBER_TYPE (argv[0]);
+    GET_VARIANT_NUMBER_TYPE (argv[1]);
+
+    purc_variant_cast_to_number (argv[0], &number1, false);
+    purc_variant_cast_to_number (argv[1], &number2, false);
+
+    number1 = pow (number1, number2);
+    GET_EXCEPTION_DOUBLE(number1);
+
+    return ret_var;
+}
+
+static purc_variant_t
+pow_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    long double number1 = 0.0L;
+    long double number2 = 0.0L;
+
+    GET_PARAM_NUMBER(2);
+    GET_VARIANT_NUMBER_TYPE (argv[0]);
+    GET_VARIANT_NUMBER_TYPE (argv[1]);
+
+    purc_variant_cast_to_long_double (argv[0], &number1, false);
+    purc_variant_cast_to_long_double (argv[1], &number2, false);
+
+    number1 = powl (number1, number2);
+    GET_EXCEPTION_LONGDOUBLE(number1);
+
+    return ret_var;
+}
+
+static purc_variant_t
+exp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    double number = 0.0;
+
+    GET_PARAM_NUMBER(1);
+    GET_VARIANT_NUMBER_TYPE (argv[0]);
+
+    purc_variant_cast_to_number (argv[0], &number, false);
+
+    number = exp (number);
+    GET_EXCEPTION_DOUBLE(number);
+
+    return ret_var;
+}
+
+static purc_variant_t
+exp_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    long double number = 0.0L;
+
+    GET_PARAM_NUMBER(1);
+    GET_VARIANT_NUMBER_TYPE (argv[0]);
+
+    purc_variant_cast_to_long_double (argv[0], &number, false);
+
+    number = expl (number);
+    GET_EXCEPTION_LONGDOUBLE(number);
+
+    return ret_var;
+}
+
+static purc_variant_t
+floor_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    double number = 0.0;
+
+    GET_PARAM_NUMBER(1);
+    GET_VARIANT_NUMBER_TYPE (argv[0]);
+
+    purc_variant_cast_to_number (argv[0], &number, false);
+
+    number = floor (number);
+    GET_EXCEPTION_DOUBLE(number);
+
+    return ret_var;
+}
+
+static purc_variant_t
+floor_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    long double number = 0.0L;
+
+    GET_PARAM_NUMBER(1);
+    GET_VARIANT_NUMBER_TYPE (argv[0]);
+
+    purc_variant_cast_to_long_double (argv[0], &number, false);
+
+    number = floorl (number);
+    GET_EXCEPTION_LONGDOUBLE(number);
+
+    return ret_var;
+}
+
+static purc_variant_t
+ceil_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    double number = 0.0;
+
+    GET_PARAM_NUMBER(1);
+    GET_VARIANT_NUMBER_TYPE (argv[0]);
+
+    purc_variant_cast_to_number (argv[0], &number, false);
+
+    number = ceil (number);
+    GET_EXCEPTION_DOUBLE(number);
+
+    return ret_var;
+}
+
+static purc_variant_t
+ceil_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    long double number = 0.0L;
+
+    GET_PARAM_NUMBER(1);
+    GET_VARIANT_NUMBER_TYPE (argv[0]);
+
+    purc_variant_cast_to_long_double (argv[0], &number, false);
+
+    number = ceill (number);
+    GET_EXCEPTION_LONGDOUBLE(number);
 
     return ret_var;
 }
@@ -427,21 +920,21 @@ internal_eval_getter (int is_long_double, purc_variant_t root,
         double v = 0;
         int r = math_eval(input, &v, param);
         if (r) {
-            purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+            purc_set_error (PURC_ERROR_UNKNOWN);
             return PURC_VARIANT_INVALID;
         }
         return purc_variant_make_number(v);
-    } else {
+    }
+    else {
         long double v = 0;
         int r = math_eval_l(input, &v, param);
         if (r) {
-            purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+            purc_set_error (PURC_ERROR_UNKNOWN);
             return PURC_VARIANT_INVALID;
         }
         return purc_variant_make_longdouble(v);
     }
 }
-
 
 static purc_variant_t
 eval_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
@@ -505,8 +998,32 @@ static purc_variant_t pcdvobjs_create_math (void)
         {"sin_l",   sin_l_getter, NULL},
         {"cos",     cos_getter, NULL},
         {"cos_l",   cos_l_getter, NULL},
+        {"tan",     tan_getter, NULL},
+        {"tan_l",   tan_l_getter, NULL},
+        {"asin",    asin_getter, NULL},
+        {"asin_l",  asin_l_getter, NULL},
+        {"acos",    acos_getter, NULL},
+        {"acos_l",  acos_l_getter, NULL},
+        {"atan",    atan_getter, NULL},
+        {"atan_l",  atan_l_getter, NULL},
         {"sqrt",    sqrt_getter, NULL},
-        {"sqrt_l",  sqrt_l_getter, NULL} 
+        {"sqrt_l",  sqrt_l_getter, NULL},
+        {"fmod",    fmod_getter, NULL},
+        {"fmod_l",  fmod_l_getter, NULL},
+        {"fabs",    fabs_getter, NULL},
+        {"fabs_l",  fabs_l_getter, NULL},
+        {"log",     log_getter, NULL},
+        {"log_l",   log_l_getter, NULL},
+        {"log10",   log10_getter, NULL},
+        {"log10_l", log10_l_getter, NULL},
+        {"pow",     pow_getter, NULL},
+        {"pow_l",   pow_l_getter, NULL},
+        {"exp",     exp_getter, NULL},
+        {"exp_l",   exp_l_getter, NULL},
+        {"floor",   floor_getter, NULL},
+        {"floor_l", floor_l_getter, NULL},
+        {"ceil",    ceil_getter, NULL},
+        {"ceil_l",  ceil_l_getter, NULL},
     };
 
     return pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));
@@ -540,3 +1057,11 @@ const char * __purcex_get_dynamic_variant_desc (size_t idx)
 
     return MATH_DESCRIPTION;
 }
+
+
+/*
+#undef div
+#undef frexp
+#undef ldexp
+#undef modf
+

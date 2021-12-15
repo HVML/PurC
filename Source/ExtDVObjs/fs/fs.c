@@ -40,6 +40,10 @@
 #include <fcntl.h>
 #include <time.h>
 
+#if USE(GLIB)
+#include <glib.h>
+#endif
+
 #define FS_DVOBJ_VERSION    0
 
 purc_variant_t pcdvobjs_create_file (void);
@@ -75,7 +79,8 @@ static const char * pcdvobjs_get_next_option (const char *data,
         if (temp) {
             if (head == data) {
                 head = data + 1;
-            } else
+            }
+            else
                 break;
         }
         data++;
@@ -104,6 +109,18 @@ static const char * pcdvobjs_remove_space (char *buffer)
     return buffer;
 }
 
+#if USE(GLIB)
+static bool wildcard_cmp (const char *str1, const char *pattern)
+{
+    GPatternSpec *glib_pattern = g_pattern_spec_new (pattern);
+
+    gboolean result = g_pattern_match_string (glib_pattern, str1);
+
+    g_pattern_spec_free (glib_pattern);
+
+    return (bool)result;
+}
+#else
 static bool wildcard_cmp (const char *str1, const char *pattern)
 {
     if (str1 == NULL)
@@ -151,6 +168,7 @@ static bool wildcard_cmp (const char *str1, const char *pattern)
     }
     return true;
 }
+#endif
 
 purc_variant_t pcdvobjs_make_dvobjs (
         const struct pcdvobjs_dvobjs *method, size_t size)
@@ -213,7 +231,8 @@ static bool remove_dir (char *dir)
         closedir(dirp);
 
         rmdir(dir);
-    } else
+    }
+    else
         ret = false;
 
     return ret;
@@ -274,7 +293,8 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                 if (wildcard == NULL)
                     goto error;
                 temp_wildcard = wildcard;
-            } else {
+            }
+            else {
                 temp_wildcard->next = malloc (sizeof(struct wildcard_list));
                 if (temp_wildcard->next == NULL)
                     goto error;
@@ -348,31 +368,38 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             val = purc_variant_make_string ("b", false);
             purc_variant_object_set_by_static_ckey (obj_var, "type", val);
             purc_variant_unref (val);
-        } else if(ptr->d_type == DT_CHR) {
+        }
+        else if(ptr->d_type == DT_CHR) {
             val = purc_variant_make_string ("c", false);
             purc_variant_object_set_by_static_ckey (obj_var, "type", val);
             purc_variant_unref (val);
-        } else if(ptr->d_type == DT_DIR) {
+        }
+        else if(ptr->d_type == DT_DIR) {
             val = purc_variant_make_string ("d", false);
             purc_variant_object_set_by_static_ckey (obj_var, "type", val);
             purc_variant_unref (val);
-        } else if(ptr->d_type == DT_FIFO) {
+        }
+        else if(ptr->d_type == DT_FIFO) {
             val = purc_variant_make_string ("f", false);
             purc_variant_object_set_by_static_ckey (obj_var, "type", val);
             purc_variant_unref (val);
-        } else if(ptr->d_type == DT_LNK) {
+        }
+        else if(ptr->d_type == DT_LNK) {
             val = purc_variant_make_string ("l", false);
             purc_variant_object_set_by_static_ckey (obj_var, "type", val);
             purc_variant_unref (val);
-        } else if(ptr->d_type == DT_REG) {
+        }
+        else if(ptr->d_type == DT_REG) {
             val = purc_variant_make_string ("r", false);
             purc_variant_object_set_by_static_ckey (obj_var, "type", val);
             purc_variant_unref (val);
-        } else if(ptr->d_type == DT_SOCK) {
+        }
+        else if(ptr->d_type == DT_SOCK) {
             val = purc_variant_make_string ("s", false);
             purc_variant_object_set_by_static_ckey (obj_var, "type", val);
             purc_variant_unref (val);
-        } else if(ptr->d_type == DT_UNKNOWN) {
+        }
+        else if(ptr->d_type == DT_UNKNOWN) {
             val = purc_variant_make_string ("u", false);
             purc_variant_object_set_by_static_ckey (obj_var, "type", val);
             purc_variant_unref (val);
@@ -545,7 +572,8 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                 if (wildcard == NULL)
                     goto error;
                 temp_wildcard = wildcard;
-            } else {
+            }
+            else {
                 temp_wildcard->next = malloc (sizeof(struct wildcard_list));
                 if (temp_wildcard->next == NULL)
                     goto error;
@@ -583,7 +611,8 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                     if (strncasecmp (head, "mode", length) == 0) {
                         display[i] = DISPLAY_MODE;
                         i++;
-                    } else if (strncasecmp (head, "mtime", length) == 0) {
+                    }
+                    else if (strncasecmp (head, "mtime", length) == 0) {
                         display[i] = DISPLAY_MTIME;
                         i++;
                     }
@@ -593,7 +622,8 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                     if (strncasecmp (head, "nlink", length) == 0) {
                         display[i] = DISPLAY_NLINK;
                         i++;
-                    } else if (strncasecmp (head, "name", length) == 0) {
+                    }
+                    else if (strncasecmp (head, "name", length) == 0) {
                         display[i] = DISPLAY_NAME;
                         i++;
                     }
@@ -631,7 +661,8 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                     if (strncasecmp (head, "atime", length) == 0) {
                         display[i] = DISPLAY_ATIME;
                         i++;
-                    } else if (strncasecmp (head, "all", length) == 0) {
+                    }
+                    else if (strncasecmp (head, "all", length) == 0) {
                         for (i = 0; i < (DISPLAY_MAX - 1); i++)
                             display[i] = i + 1;
                         quit = true;
@@ -658,7 +689,8 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                 break;
             head = pcdvobjs_get_next_option (head + length + 1, " ", &length);
         }
-    } else {
+    }
+    else {
         for (i = 0; i < (DISPLAY_MAX - 1); i++)
             display[i] = i + 1;
     }
@@ -703,17 +735,23 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                     // type
                     if (ptr->d_type == DT_BLK) {
                         sprintf (info + strlen (info), "b");
-                    } else if(ptr->d_type == DT_CHR) {
+                    }
+                    else if(ptr->d_type == DT_CHR) {
                         sprintf (info + strlen (info), "c");
-                    } else if(ptr->d_type == DT_DIR) {
+                    }
+                    else if(ptr->d_type == DT_DIR) {
                         sprintf (info + strlen (info), "d");
-                    } else if(ptr->d_type == DT_FIFO) {
+                    }
+                    else if(ptr->d_type == DT_FIFO) {
                         sprintf (info + strlen (info), "f");
-                    } else if(ptr->d_type == DT_LNK) {
+                    }
+                    else if(ptr->d_type == DT_LNK) {
                         sprintf (info + strlen (info), "l");
-                    } else if(ptr->d_type == DT_REG) {
+                    }
+                    else if(ptr->d_type == DT_REG) {
                         sprintf (info + strlen (info), "-");
-                    } else if(ptr->d_type == DT_SOCK) {
+                    }
+                    else if(ptr->d_type == DT_SOCK) {
                         sprintf (info + strlen (info), "s");
                     }
 
@@ -930,13 +968,15 @@ touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         }
         else
             ret_var = purc_variant_make_boolean (false);
-    } else {      // change time
+    }
+    else {      // change time
         struct timespec newtime[2];
         newtime[0].tv_nsec = UTIME_NOW;
         newtime[1].tv_nsec = UTIME_NOW;
         if (utimensat(AT_FDCWD, filename, newtime, 0) == 0) {
             ret_var = purc_variant_make_boolean (true);
-        } else {
+        }
+        else {
             ret_var = purc_variant_make_boolean (false);
         }
     }
@@ -981,7 +1021,8 @@ unlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             ret_var = purc_variant_make_boolean (false);
         else
             ret_var = purc_variant_make_boolean (true);
-    } else
+    }
+    else
         ret_var = purc_variant_make_boolean (false);
 
     return ret_var;

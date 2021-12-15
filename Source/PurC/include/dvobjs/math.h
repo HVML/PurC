@@ -74,7 +74,7 @@ long double e_l;
 
 
 /**
- * @brief       Get usually const with double value 
+ * @brief       Get usually const with double value
  *
  * @param[in]   keywords : which const you will get.\n
  *              e | log2e | log10e | ln2 | ln10 | pi | pi/2 | pi/4 | 1/pi | 2/pi | sqrt(2) | 2/sqrt(pi) | 1/sqrt(2)
@@ -94,7 +94,7 @@ double const(string);
 
 
 /**
- * @brief       Get usually const with long double value 
+ * @brief       Get usually const with long double value
  *
  * @param[in]   keywords : which const you will get.\n
  *              e | log2e | log10e | ln2 | ln10 | pi | pi/2 | pi/4 | 1/pi | 2/pi | sqrt(2) | 2/sqrt(pi) | 1/sqrt(2)
@@ -114,11 +114,11 @@ long double const_l(string);
 
 
 /**
- * @brief       Get sin value with double type 
+ * @brief       Get sin value with double type
  *
  * @param[in]   angle : the angle given in radians
  *
- * @return      sin value with double type.
+ * @return      sin value with double type, or PURC_VARIANT_INVALID when any exception occurs.
  *
  * @par sample
  * @code
@@ -127,17 +127,20 @@ long double const_l(string);
  *
  * @note        The angle is given in RADIANS.
  *
+ * @exception   PURC_ERROR_WRONG_ARGS
+ *              PURC_ERROR_UNKNOWN
+ *
  * @sa          sin_l()
  */
-double sin(double angle);
+double sin(number | longint | ulongint | long double angle);
 
 
 /**
- * @brief       Get sin value with long double type 
+ * @brief       Get sin value with long double type
  *
  * @param[in]   angle : the angle given in radians
  *
- * @return      sin value with long double type.
+ * @return      sin value with long double type, or PURC_VARIANT_INVALID when any exception occurs.
  *
  * @par sample
  * @code
@@ -146,17 +149,63 @@ double sin(double angle);
  *
  * @note        The angle is given in RADIANS.
  *
+ * @exception   PURC_ERROR_WRONG_ARGS
+ *              PURC_ERROR_UNKNOWN
+ *
  * @sa          sin()
  */
-long double sin_l(long double angle);
+long double sin_l(number | longint | ulongint | long double angle);
+
+/**
+ * @brief       Get arcsin value with double type
+ *
+ * @param[in]   value: sin value of wanted angle
+ *
+ * @return      angle with double type, or PURC_VARIANT_INVALID when any exception occurs.
+ *
+ * @par sample
+ * @code
+ *              $MATH.asin(0.5)
+ * @endcode
+ *
+ * @note        The returned angle is given in RADIANS.
+ *
+ * @exception   PURC_ERROR_WRONG_ARGS
+ *              PURC_ERROR_UNKNOWN
+ *
+ * @sa          asin_l()
+ */
+double asin(number | longint | ulongint | long double value);
 
 
 /**
- * @brief       Get cos value with double type 
+ * @brief       Get arcsin value with double type
+ *
+ * @param[in]   value: sin value of wanted angle
+ *
+ * @return      angle with long double type, or PURC_VARIANT_INVALID when any exception occurs.
+ *
+ * @par sample
+ * @code
+ *              $MATH.asin_l(1.0)
+ * @endcode
+ *
+ * @note        The returned angle is given in RADIANS.
+ *
+ * @exception   PURC_ERROR_WRONG_ARGS
+ *              PURC_ERROR_UNKNOWN
+ *
+ * @sa          asin()
+ */
+long double asin_l(number | longint | ulongint | long double value);
+
+
+/**
+ * @brief       Get cos value with double type
  *
  * @param[in]   angle : the angle given in radians
  *
- * @return      cos value with double type.
+ * @return      cos value with double type, or PURC_VARIANT_INVALID when any exception occurs.
  *
  * @par sample
  * @code
@@ -165,9 +214,12 @@ long double sin_l(long double angle);
  *
  * @note        The angle is given in RADIANS.
  *
+ * @exception   PURC_ERROR_WRONG_ARGS
+ *              PURC_ERROR_UNKNOWN
+ *
  * @sa          cos_l()
  */
-double cos(double angle);
+double cos(number | longint | ulongint | long double angle);
 
 
 /**
@@ -175,7 +227,7 @@ double cos(double angle);
  *
  * @param[in]   angle : the angle given in radians
  *
- * @return      sin value with long double type.
+ * @return      cos value with long double type, or PURC_VARIANT_INVALID when any exception occurs.
  *
  * @par sample
  * @code
@@ -184,13 +236,147 @@ double cos(double angle);
  *
  * @note        The angle is given in RADIANS.
  *
+ * @exception   PURC_ERROR_WRONG_ARGS
+ *              PURC_ERROR_UNKNOWN
+ *
  * @sa          cos()
  */
-long double cos_l(long double angle);
+long double cos_l(number | longint | ulongint | long double angle);
 
 
 /**
- * @brief       Get sqrt value with double type 
+ * @brief       Get arccos value with double type
+ *
+ * @param[in]   value: cos value of wanted angle
+ *
+ * @return      angle with double type, or PURC_VARIANT_INVALID when any exception occurs.
+ *
+ * @par sample
+ * @code
+ *              $MATH.acos(0.5)
+ * @endcode
+ *
+ * @note        The returned angle is given in RADIANS.
+ *
+ * @exception   PURC_ERROR_WRONG_ARGS
+ *              PURC_ERROR_UNKNOWN
+ *
+ * @sa          acos_l()
+ */
+double acos(number | longint | ulongint | long double value);
+
+
+/**
+ * @brief       Get arccos value with double type
+ *
+ * @param[in]   value: cos value of wanted angle
+ *
+ * @return      angle with long double type, or PURC_VARIANT_INVALID when any exception occurs.
+ *
+ * @par sample
+ * @code
+ *              $MATH.acos_l(1.0)
+ * @endcode
+ *
+ * @note        The returned angle is given in RADIANS.
+ *
+ * @exception   PURC_ERROR_WRONG_ARGS
+ *              PURC_ERROR_UNKNOWN
+ *
+ * @sa          acos()
+ */
+long double acos_l(number | longint | ulongint | long double value);
+
+/**
+ * @brief       Get tan value with double type
+ *
+ * @param[in]   angle : the angle given in radians
+ *
+ * @return      cos value with double type, or PURC_VARIANT_INVALID when any exception occurs.
+ *
+ * @par sample
+ * @code
+ *              $MATH.tan(1.0)
+ * @endcode
+ *
+ * @note        The angle is given in RADIANS.
+ *
+ * @exception   PURC_ERROR_WRONG_ARGS
+ *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_OVERFLOW
+ *
+ * @sa          tan_l()
+ */
+double tan(number | longint | ulongint | long double angle);
+
+
+/**
+ * @brief       Get tan value with long double type
+ *
+ * @param[in]   angle : the angle given in radians
+ *
+ * @return      cos value with long double type, or PURC_VARIANT_INVALID when any exception occurs.
+ *
+ * @par sample
+ * @code
+ *              $MATH.tan_l(1.0)
+ * @endcode
+ *
+ * @note        The angle is given in RADIANS.
+ *
+ * @exception   PURC_ERROR_WRONG_ARGS
+ *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_OVERFLOW
+ *
+ * @sa          tan()
+ */
+long double tan_l(number | longint | ulongint | long double angle);
+
+/**
+ * @brief       Get arctan value with double type
+ *
+ * @param[in]   value: tan value of wanted angle
+ *
+ * @return      angle with double type, or PURC_VARIANT_INVALID when any exception occurs.
+ *
+ * @par sample
+ * @code
+ *              $MATH.atan(0.5)
+ * @endcode
+ *
+ * @note        The returned angle is given in RADIANS.
+ *
+ * @exception   PURC_ERROR_WRONG_ARGS
+ *              PURC_ERROR_UNKNOWN
+ *
+ * @sa          atan_l()
+ */
+double atan(number | longint | ulongint | long double value);
+
+
+/**
+ * @brief       Get arctan value with double type
+ *
+ * @param[in]   value: tan value of wanted angle
+ *
+ * @return      angle with long double type, or PURC_VARIANT_INVALID when any exception occurs.
+ *
+ * @par sample
+ * @code
+ *              $MATH.atan_l(1.0)
+ * @endcode
+ *
+ * @note        The returned angle is given in RADIANS.
+ *
+ * @exception   PURC_ERROR_WRONG_ARGS
+ *              PURC_ERROR_UNKNOWN
+ *
+ * @sa          atan()
+ */
+long double atan_l(number | longint | ulongint | long double value);
+
+/**
+ * @brief       Get sqrt value with double type
  *
  * @param[in]   number : number to be sqrt-ed
  *
@@ -201,11 +387,14 @@ long double cos_l(long double angle);
  *              $MATH.sqrt(2.0)
  * @endcode
  *
- * @note        
+ * @note
+ *
+ * @exception   PURC_ERROR_WRONG_ARGS
+ *              PURC_ERROR_UNKNOWN
  *
  * @sa          sqrt_l()
  */
-double sqrt(double number);
+double sqrt(number | longint | ulongint | long double number);
 
 
 /**
@@ -222,10 +411,377 @@ double sqrt(double number);
  *
  * @note
  *
+ * @exception   PURC_ERROR_WRONG_ARGS
+ *              PURC_ERROR_UNKNOWN
+ *
  * @sa          sqrt()
  */
-long double sqrt_l(long double number);
+long double sqrt_l(number | longint | ulongint | long double number);
 
+
+/**
+ * @brief       Compute the floating-point remainder of dividing value1 by value2.
+ *
+ * @param[in]   value1: divider
+ * @param[in]   value2: dividend
+ *
+ * @return      remainder with double type, or PURC_VARIANT_INVALID when any exception occurs.
+ *
+ * @par sample
+ * @code
+ *              $MATH.fmod(0.5, 0.2)
+ * @endcode
+ *
+ * @note
+ *
+ * @exception   PURC_ERROR_WRONG_ARGS
+ *              PURC_ERROR_UNKNOWN
+ *
+ * @sa          fmod_l()
+ */
+double fmod(number | longint | ulongint | long double value1, number | longintlong | ulongint | long double value2);
+
+
+/**
+ * @brief       Compute the floating-point remainder of dividing value1 by value2.
+ *
+ * @param[in]   value1: divider
+ * @param[in]   value2: dividend
+ *
+ * @return      remainder with long double type, or PURC_VARIANT_INVALID when any exception occurs.
+ *
+ * @par sample
+ * @code
+ *              $MATH.fmod_l(1.0, 2.0)
+ * @endcode
+ *
+ * @note
+ *
+ * @exception   PURC_ERROR_WRONG_ARGS
+ *              PURC_ERROR_UNKNOWN
+ *
+ * @sa          fmod()
+ */
+long double fmod_l(number | longint | ulongint | long double value1, number | longintlong | ulongint | long double value2);
+
+/**
+ * @brief       Get absolute value
+ *
+ * @param[in]   value: input value
+ *
+ * @return      absolute value with double type, or PURC_VARIANT_INVALID when any exception occurs.
+ *
+ * @par sample
+ * @code
+ *              $MATH.fabs(0.5)
+ * @endcode
+ *
+ * @note
+ *
+ * @exception   PURC_ERROR_WRONG_ARGS
+ *              PURC_ERROR_UNKNOWN
+ *
+ * @sa          fabs_l()
+ */
+double fabs(number | longint | ulongint | long double value);
+
+
+/**
+ * @brief       Get absolute value
+ *
+ * @param[in]   value: input value
+ *
+ * @return      absolute value with long double type, or PURC_VARIANT_INVALID when any exception occurs.
+ *
+ * @par sample
+ * @code
+ *              $MATH.fabs_l(-1.0)
+ * @endcode
+ *
+ * @note
+ *
+ * @exception   PURC_ERROR_WRONG_ARGS
+ *              PURC_ERROR_UNKNOWN
+ *
+ * @sa          fabs()
+ */
+long double fabs_l(number | longint | ulongint | long double value);
+
+/**
+ * @brief       Get natural logarithmic value
+ *
+ * @param[in]   value: input value
+ *
+ * @return      natural logarithmic value with double type, or PURC_VARIANT_INVALID when any exception occurs.
+ *
+ * @par sample
+ * @code
+ *              $MATH.log(0.5)
+ * @endcode
+ *
+ * @note
+ *
+ * @exception   PURC_ERROR_WRONG_ARGS
+ *              PURC_ERROR_DIVBYZERO
+ *              PURC_ERROR_UNKNOWN
+ *
+ * @sa          log_l()
+ */
+double log(number | longint | ulongint | long double value);
+
+
+/**
+ * @brief       Get natural logarithmic value
+ *
+ * @param[in]   value: input value
+ *
+ * @return      natural logarithmic value with long double type, or PURC_VARIANT_INVALID when any exception occurs.
+ *
+ * @par sample
+ * @code
+ *              $MATH.log_l(1.0)
+ * @endcode
+ *
+ * @note
+ *
+ * @exception   PURC_ERROR_WRONG_ARGS
+ *              PURC_ERROR_DIVBYZERO
+ *              PURC_ERROR_UNKNOWN
+ *
+ * @sa          log()
+ */
+long double log_l(number | longint | ulongint | long double value);
+
+/**
+ * @brief       Get base-10 logarithmic value
+ *
+ * @param[in]   value: input value
+ *
+ * @return      base-10 logarithmic value with double type, or PURC_VARIANT_INVALID when any exception occurs.
+ *
+ * @par sample
+ * @code
+ *              $MATH.log10(0.5)
+ * @endcode
+ *
+ * @note
+ *
+ * @exception   PURC_ERROR_WRONG_ARGS
+ *              PURC_ERROR_DIVBYZERO
+ *              PURC_ERROR_UNKNOWN
+ *
+ * @sa          log10_l()
+ */
+double log10(number | longint | ulongint | long double value);
+
+
+/**
+ * @brief       Get base-10 logarithmic value
+ *
+ * @param[in]   value: input value
+ *
+ * @return      base-10 logarithmic value with long double type, or PURC_VARIANT_INVALID when any exception occurs.
+ *
+ * @par sample
+ * @code
+ *              $MATH.log10_l(1.0)
+ * @endcode
+ *
+ * @note
+ *
+ * @exception   PURC_ERROR_WRONG_ARGS
+ *              PURC_ERROR_DIVBYZERO
+ *              PURC_ERROR_UNKNOWN
+ *
+ * @sa          log10()
+ */
+long double log10_l(number | longint | ulongint | long double value);
+
+/**
+ * @brief       Power function
+ *
+ * @param[in]   value1: basic number
+ * @param[in]   value2: exponent
+ *
+ * @return      power value with double type, or PURC_VARIANT_INVALID when any exception occurs.
+ *
+ * @par sample
+ * @code
+ *              $MATH.pow(0.5, 0.2)
+ * @endcode
+ *
+ * @note
+ *
+ * @exception   PURC_ERROR_WRONG_ARGS
+ *              PURC_ERROR_OVERFLOW
+ *              PURC_ERROR_UNDERFLOW
+ *              PURC_ERROR_DIVBYZERO
+ *              PURC_ERROR_UNKNOWN
+ *
+ * @sa          pow_l()
+ */
+double pow(number | longint | ulongint | long double value1, number | longintlong | ulongint | long double value2);
+
+
+/**
+ * @brief       Power function
+ *
+ * @param[in]   value1: basic number
+ * @param[in]   value2: exponent
+ *
+ * @return      power value with long double type, or PURC_VARIANT_INVALID when any exception occurs.
+ *
+ * @par sample
+ * @code
+ *              $MATH.pow_l(1.0, 2.0)
+ * @endcode
+ *
+ * @note
+ *
+ * @exception   PURC_ERROR_WRONG_ARGS
+ *              PURC_ERROR_OVERFLOW
+ *              PURC_ERROR_UNDERFLOW
+ *              PURC_ERROR_DIVBYZERO
+ *              PURC_ERROR_UNKNOWN
+ *
+ * @sa          pow()
+ */
+long double pow_l(number | longint | ulongint | long double value1, number | longintlong | ulongint | long double value2);
+
+/**
+ * @brief       Base-e power function
+ *
+ * @param[in]   value: exponent
+ *
+ * @return      power value with double type, or PURC_VARIANT_INVALID when any exception occurs.
+ *
+ * @par sample
+ * @code
+ *              $MATH.exp(0.2)
+ * @endcode
+ *
+ * @note
+ *
+ * @exception   PURC_ERROR_WRONG_ARGS
+ *              PURC_ERROR_OVERFLOW
+ *              PURC_ERROR_UNDERFLOW
+ *              PURC_ERROR_DIVBYZERO
+ *              PURC_ERROR_UNKNOWN
+ *
+ * @sa          exp_l()
+ */
+double exp(number | longint | ulongint | long double value);
+
+
+/**
+ * @brief       Base-e power functions
+ *
+ * @param[in]   value: exponent
+ *
+ * @return      power value with long double type, or PURC_VARIANT_INVALID when any exception occurs.
+ *
+ * @par sample
+ * @code
+ *              $MATH.exp_l(2.0)
+ * @endcode
+ *
+ * @note
+ *
+ * @exception   PURC_ERROR_WRONG_ARGS
+ *              PURC_ERROR_OVERFLOW
+ *              PURC_ERROR_UNDERFLOW
+ *              PURC_ERROR_DIVBYZERO
+ *              PURC_ERROR_UNKNOWN
+ *
+ * @sa          exp()
+ */
+long double exp_l(number | longint | ulongint | long double value);
+
+/**
+ * @brief       Get largest integral value not greater than argument
+ *
+ * @param[in]   value: input value
+ *
+ * @return      result value with double type, or PURC_VARIANT_INVALID when any exception occurs.
+ *
+ * @par sample
+ * @code
+ *              $MATH.floor(0.2)
+ * @endcode
+ *
+ * @note
+ *
+ * @exception   PURC_ERROR_WRONG_ARGS
+ *              PURC_ERROR_UNKNOWN
+ *
+ * @sa          floor_l()
+ */
+double floor(number | longint | ulongint | long double value);
+
+
+/**
+ * @brief       Get largest integral value not greater than argument
+ *
+ * @param[in]   value: input value
+ *
+ * @return      result value with long double type, or PURC_VARIANT_INVALID when any exception occurs.
+ *
+ * @par sample
+ * @code
+ *              $MATH.floor_l(2.2)
+ * @endcode
+ *
+ * @note
+ *
+ * @exception   PURC_ERROR_WRONG_ARGS
+ *              PURC_ERROR_UNKNOWN
+ *
+ * @sa          floor()
+ */
+long double floor_l(number | longint | ulongint | long double value);
+
+/**
+ * @brief       Get smallest integral value not less than argument
+ *
+ * @param[in]   value: input value
+ *
+ * @return      result value with double type, or PURC_VARIANT_INVALID when any exception occurs.
+ *
+ * @par sample
+ * @code
+ *              $MATH.ceil(0.2)
+ * @endcode
+ *
+ * @note
+ *
+ * @exception   PURC_ERROR_WRONG_ARGS
+ *              PURC_ERROR_UNKNOWN
+ *
+ * @sa          ceil_l()
+ */
+double ceil(number | longint | ulongint | long double value);
+
+
+/**
+ * @brief       Get smallest integral value not less than argument
+ *
+ * @param[in]   value: input value
+ *
+ * @return      result value with long double type, or PURC_VARIANT_INVALID when any exception occurs.
+ *
+ * @par sample
+ * @code
+ *              $MATH.ceil_l(2.2)
+ * @endcode
+ *
+ * @note
+ *
+ * @exception   PURC_ERROR_WRONG_ARGS
+ *              PURC_ERROR_UNKNOWN
+ *
+ * @sa          ceil()
+ */
+long double ceil_l(number | longint | ulongint | long double value);
 
 /**
  * @brief       Get evaluation of a  expression with double type
