@@ -478,6 +478,16 @@ static inline int vdom_main(void* ctxt)
     purc_vdom_t vdom = (purc_vdom_t)ctxt;
 
     // QUESTION: when to stop????
+    if (1) {
+        pcvdom_document_destroy(vdom->document);
+        free(vdom);
+
+        pcrunloop_t runloop = pcrunloop_get_current();
+        PC_ASSERT(runloop);
+        pcrunloop_stop(runloop);
+
+        return 0;
+    }
 
     int nr_events = pcintr_post_load(vdom);
     if (nr_events <= 0) {
