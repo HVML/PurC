@@ -263,6 +263,37 @@ enum pcexecutor_error
 
 PCA_EXTERN_C_BEGIN
 
+extern purc_atom_t purc_except_bad_name;
+extern purc_atom_t purc_except_no_data;
+extern purc_atom_t purc_except_not_ready;
+extern purc_atom_t purc_except_unauthorized;
+extern purc_atom_t purc_except_timeout;
+extern purc_atom_t purc_except_syntax_error;
+extern purc_atom_t purc_except_not_iterable;
+extern purc_atom_t purc_except_index_error;
+extern purc_atom_t purc_except_key_error;
+extern purc_atom_t purc_except_zero_division;
+extern purc_atom_t purc_except_overflow;
+extern purc_atom_t purc_except_floating_point;
+extern purc_atom_t purc_except_not_implemented;
+extern purc_atom_t purc_except_max_recursion_depth;
+extern purc_atom_t purc_except_bad_encoding;
+extern purc_atom_t purc_except_bad_value;
+extern purc_atom_t purc_except_wrong_data_type;
+extern purc_atom_t purc_except_wrong_domain;
+extern purc_atom_t purc_except_os_error;
+extern purc_atom_t purc_except_access_denied;
+extern purc_atom_t purc_except_io_error;
+extern purc_atom_t purc_except_too_many;
+extern purc_atom_t purc_except_too_long;
+extern purc_atom_t purc_except_not_desired_entity;
+extern purc_atom_t purc_except_entity_not_found;
+extern purc_atom_t purc_except_entity_exists;
+extern purc_atom_t purc_except_broken_pipe;
+extern purc_atom_t purc_except_connection_aborted;
+extern purc_atom_t purc_except_connection_refused;
+extern purc_atom_t purc_except_connection_reset;
+
 /**
  * purc_get_last_error:
  *

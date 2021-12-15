@@ -27,6 +27,77 @@
 #include "private/errors.h"
 #include "private/instance.h"
 
+purc_atom_t purc_except_bad_name;
+purc_atom_t purc_except_no_data;
+purc_atom_t purc_except_not_ready;
+purc_atom_t purc_except_unauthorized;
+purc_atom_t purc_except_timeout;
+purc_atom_t purc_except_syntax_error;
+purc_atom_t purc_except_not_iterable;
+purc_atom_t purc_except_index_error;
+purc_atom_t purc_except_key_error;
+purc_atom_t purc_except_zero_division;
+purc_atom_t purc_except_overflow;
+purc_atom_t purc_except_floating_point;
+purc_atom_t purc_except_not_implemented;
+purc_atom_t purc_except_max_recursion_depth;
+purc_atom_t purc_except_bad_encoding;
+purc_atom_t purc_except_bad_value;
+purc_atom_t purc_except_wrong_data_type;
+purc_atom_t purc_except_wrong_domain;
+purc_atom_t purc_except_os_error;
+purc_atom_t purc_except_access_denied;
+purc_atom_t purc_except_io_error;
+purc_atom_t purc_except_too_many;
+purc_atom_t purc_except_too_long;
+purc_atom_t purc_except_not_desired_entity;
+purc_atom_t purc_except_entity_not_found;
+purc_atom_t purc_except_entity_exists;
+purc_atom_t purc_except_broken_pipe;
+purc_atom_t purc_except_connection_aborted;
+purc_atom_t purc_except_connection_refused;
+purc_atom_t purc_except_connection_reset;
+
+void purc_error_init_once(void)
+{
+    purc_except_bad_name = purc_atom_from_static_string("BadName");
+    purc_except_no_data = purc_atom_from_static_string("NoData");
+    purc_except_not_ready = purc_atom_from_static_string("NotReady");
+    purc_except_unauthorized = purc_atom_from_static_string("Unauthorized");
+    purc_except_timeout = purc_atom_from_static_string("Timeout");
+    purc_except_syntax_error = purc_atom_from_static_string("SyntaxError");
+    purc_except_not_iterable = purc_atom_from_static_string("NotIterable");
+    purc_except_index_error = purc_atom_from_static_string("IndexError");
+    purc_except_key_error = purc_atom_from_static_string("KeyError");
+    purc_except_zero_division = purc_atom_from_static_string("ZeroDivision");
+    purc_except_overflow = purc_atom_from_static_string("Overflow");
+    purc_except_floating_point = purc_atom_from_static_string("FloatingPoint");
+    purc_except_not_implemented = purc_atom_from_static_string("NotImplemented");
+    purc_except_max_recursion_depth = purc_atom_from_static_string(
+            "MaxRecursionDepth");
+    purc_except_bad_encoding = purc_atom_from_static_string("BadEncoding");
+    purc_except_bad_value = purc_atom_from_static_string("BadValue");
+    purc_except_wrong_data_type = purc_atom_from_static_string("WrongDataType");
+    purc_except_wrong_domain = purc_atom_from_static_string("WrongDomain");
+    purc_except_os_error = purc_atom_from_static_string("OSError");
+    purc_except_access_denied = purc_atom_from_static_string("AccessDenied");
+    purc_except_io_error = purc_atom_from_static_string("IOError");
+    purc_except_too_many = purc_atom_from_static_string("TooMany");
+    purc_except_too_long = purc_atom_from_static_string("TooLong");
+    purc_except_not_desired_entity = purc_atom_from_static_string(
+            "NotDesiredEntity");
+    purc_except_entity_not_found = purc_atom_from_static_string(
+            "EntityNotFound");
+    purc_except_entity_exists = purc_atom_from_static_string("EntityExists");
+    purc_except_broken_pipe = purc_atom_from_static_string("BrokenPipe");
+    purc_except_connection_aborted = purc_atom_from_static_string(
+            "ConnectionAborted");
+    purc_except_connection_refused = purc_atom_from_static_string(
+            "ConnectionRefused");
+    purc_except_connection_reset = purc_atom_from_static_string(
+            "ConnectionReset");
+}
+
 int purc_get_last_error(void)
 {
     const struct pcinst* inst = pcinst_current();

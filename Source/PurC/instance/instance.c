@@ -116,10 +116,12 @@ static struct err_msg_seg _generic_err_msgs_seg = {
 
 static void init_modules(void)
 {
+    pcutils_atom_init_once();
+    purc_error_init_once();
+
     pcinst_register_error_message_segment(&_generic_err_msgs_seg);
 
     // TODO: init other modules here.
-    pcutils_atom_init_once();
     pcrwstream_init_once();
     pcvariant_init_once();
     pcdvobjs_init_once();

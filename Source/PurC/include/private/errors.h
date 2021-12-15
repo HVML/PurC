@@ -45,5 +45,7 @@ void pcinst_register_error_message_segment(struct err_msg_seg* seg) WTF_INTERNAL
 #define pcinst_set_error_ex(x, exinfo)     purc_set_error_ex(x, exinfo)
 // pcinst_set_error(int err_code) WTF_INTERNAL;
 
+void purc_error_init_once(void);
+
 #endif /* not defined PURC_PRIVATE_ERRORS_H */
 
