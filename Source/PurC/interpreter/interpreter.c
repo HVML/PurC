@@ -478,6 +478,10 @@ static inline int vdom_main(void* ctxt)
     pcvdom_document_destroy(vdom->document);
     free(vdom);
 
+    pcrunloop_t runloop = pcrunloop_get_current();
+    PC_ASSERT(runloop);
+    pcrunloop_stop(runloop);
+
     return 0;
 }
 
