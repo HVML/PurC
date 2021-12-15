@@ -88,6 +88,10 @@ static const char* generic_err_msgs[] = {
     "Unexpected data",
     /* PURC_ERROR_OVERFLOW */
     "Overflow",
+    /* PURC_ERROR_UNDERFLOW */
+    "Underflow",
+    /* PURC_ERROR_DIVBYZERO*/
+    "Divide by zero",
     /* PURC_ERROR_UNKNOWN */
     "Unknown",
     /* PURC_ERROR_BAD_LOCALE_CATEGORY */
@@ -190,8 +194,6 @@ int purc_init(const char* app_name, const char* runner_name,
 {
     struct pcinst* curr_inst;
 
-    UNUSED_PARAM(extra_info);
-
     init_once();
 
     curr_inst = PURC_GET_THREAD_LOCAL(inst);
@@ -240,6 +242,9 @@ int purc_init(const char* app_name, const char* runner_name,
     pcedom_init_instance(curr_inst);
     pcexecutor_init_instance(curr_inst);
     pcintr_stack_init_instance(curr_inst);
+
+    /* TODO: connnect to renderer */
+    UNUSED_PARAM(extra_info);
     return PURC_ERROR_OK;
 
 failed:

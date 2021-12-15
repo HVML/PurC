@@ -19,7 +19,7 @@ extern "C" {
 
 TEST(exe_travel, basic)
 {
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     bool cleanup = false;
 
     // initial purc
@@ -63,7 +63,7 @@ TEST(exe_travel, files)
     glob_t globbuf;
     memset(&globbuf, 0, sizeof(globbuf));
 
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     r = purc_init("cn.fmsoft.hybridos.test",
         "vdom_gen", &info);
     EXPECT_EQ(r, PURC_ERROR_OK);

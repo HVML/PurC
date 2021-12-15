@@ -39,14 +39,8 @@
 #include "purc-utils.h"
 
 typedef struct purc_instance_extra_info {
-    int foo;
-    int bar;
+    const char *renderer_uri;
 } purc_instance_extra_info;
-
-typedef struct purc_rdr_extra_info {
-    int foo;
-    int bar;
-} purc_rdr_extra_info;
 
 PCA_EXTERN_C_BEGIN
 
@@ -58,10 +52,11 @@ PCA_EXTERN_C_BEGIN
  *      line will be used for the app name.
  * @runner_name: a pointer to the string contains the runner name.
  *      If this argument is null, `unknown` will be used for the runner name.
- * @extra_info: a pointer (nullable) to the extra information for
- *      the new PurC instance.
+ * @extra_info: a pointer (nullable) to the extra information for the new
+ *      PurC instance, e.g., the URI of the renderer.
  *
- * Initializes a new PurC instance for the current thread.
+ * Initializes a new PurC instance for the current thread, and creates a new
+ * renderer session for this PurC instance.
  *
  * Returns: the error code:
  *  - @PURC_ERROR_OK: success
@@ -234,9 +229,9 @@ purc_load_hvml_from_url(const char* url);
 /**
  * purc_load_hvml_from_rwstream:
  *
- * @stream: The RWSTream object.
+ * @stream: The purc_rwstream object.
  *
- * Loads a HVML program from the specified RWStream object.
+ * Loads a HVML program from the specified purc_rwstream object.
  *
  * Returns: A valid pointer to the vDOM tree for success; @NULL for failure.
  *
@@ -261,39 +256,43 @@ PCA_EXPORT bool
 purc_bind_document_variable(purc_vdom_t vdom, const char* name,
         purc_variant_t variant);
 
+typedef struct purc_window_info {
+    const char *classes;
+    const char *box_styles;
+} purc_window_info;
+
 /**
- * purc_connnect_vdom_to_renderer:
+ * purc_attach_vdom_to_renderer:
  *
- * @vdom: The pointer to the string contains the name for the variable.
- * @type: The pointer to the string contains the type of the expected renderer.
- * @classes: The pointer to the string contains the classes of the expected
- *      renderer.
- * @name: The pointer to the string contains the name of the expected renderer.
- * @extra_info: The structure pointer to the extra information of the expected
- *      renderer.
+ * @vdom: The vDOM entity returned by @purc_load_hvml_from_rwstream or
+ *      its brother functions.
  *
- * Connects a vDOM tree to an renderer.
+ * Attaches a vDOM tree to a plain window or a tabbed page in
+ * the connected renderer.
  *
- * Returns: @true for success; @false for failure.
+ * Returns: the error code:
+ *  - @PURC_ERROR_OK: success
+ *  - TODO
  *
  * Since 0.0.1
  */
 PCA_EXPORT bool
-purc_connnect_vdom_to_renderer(purc_vdom_t vdom,
-        const char* type, const char* name,
-        const purc_rdr_extra_info* extra_info);
+purc_attach_vdom_to_renderer(purc_vdom_t vdom,
+        const char *target_workspace, const char* workspace_name,
+        const char *target_window, const char *window_name,
+        const char *target_page, const char *page_name,
+        purc_window_info *window_info);
 
 typedef int (*purc_event_handler)(purc_vdom_t vdom, purc_variant_t event);
 
 /**
  * purc_run:
  *
- * @request: The variant which will be used for request data.
+ * @request: The variant which will be used as the request data.
  * @handler: The pointer to a call-back function which handles
  *      the session events.
  *
- * Runs all HVML programs which has connected to a renderer in
- * the current PurC instance.
+ * Runs all HVML programs which are ready in the current PurC instance.
  *
  * Returns: @true for success; @false for failure.
  *
@@ -305,3 +304,4 @@ purc_run(purc_variant_t request, purc_event_handler handler);
 PCA_EXTERN_C_END
 
 #endif /* not defined PURC_PURC_H */
+

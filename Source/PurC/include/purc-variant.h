@@ -1451,6 +1451,12 @@ typedef enum purc_variant_compare_opt
 PCA_EXPORT int
 purc_variant_compare_ex(purc_variant_t v1,
         purc_variant_t v2, purc_variant_compare_opt opt);
+/**
+ * Compares two variant value, staled-ver, use \purc_variant_compare_ex instead
+ */
+PCA_EXPORT int
+purc_variant_compare_st(purc_variant_t v1, purc_variant_t v2);
+
 
 /**
  * A flag for the purc_variant_serialize() function which causes the output

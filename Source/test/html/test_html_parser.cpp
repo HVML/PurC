@@ -15,7 +15,7 @@
 // test html parser for whole html file
 TEST(html, html_parser_html_file_x)
 {
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -86,7 +86,7 @@ TEST(html, html_parser_html_file_x)
 
 TEST(html, html_parser_chunk)
 {
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -146,7 +146,7 @@ TEST(html, html_parser_chunk)
 
 TEST(html, load_from_html)
 {
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -254,7 +254,7 @@ process_html_document(purc_rwstream_t in, bool *ok)
 
 TEST(html, document)
 {
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -498,7 +498,7 @@ process_html_element(purc_rwstream_t in, bool *ok)
 
 TEST(html, element)
 {
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -580,7 +580,7 @@ process_html_collection(purc_rwstream_t in, bool *ok)
 
 TEST(html, collection)
 {
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 

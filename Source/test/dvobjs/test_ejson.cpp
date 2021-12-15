@@ -43,7 +43,7 @@ TEST(dvobjs, dvobjs_ejson_type)
     std::cerr << "env: " << env << "=" << data_path << std::endl;
 
     // get and function
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -207,7 +207,7 @@ TEST(dvobjs, dvobjs_ejson_number)
     std::cerr << "env: " << env << "=" << data_path << std::endl;
 
     // get and function
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -369,7 +369,7 @@ TEST(dvobjs, dvobjs_ejson_compare)
     std::cerr << "env: " << env << "=" << data_path << std::endl;
 
     // get and function
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -534,7 +534,7 @@ TEST(dvobjs, dvobjs_ejson_sort)
     std::cerr << "env: " << env << "=" << data_path << std::endl;
 
     // get and function
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 

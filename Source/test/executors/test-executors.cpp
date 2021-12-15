@@ -682,7 +682,7 @@ TEST(executors, full)
     struct config cfg;
     memset(&cfg, 0, sizeof(cfg));
 
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     r = purc_init("cn.fmsoft.hybridos.test",
         "vdom_gen", &info);
     ASSERT_EQ(r, PURC_ERROR_OK);
@@ -794,7 +794,7 @@ TEST(executors, ejson_parser)
 {
     const char *rel = "dummy";
     struct config cfg;
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int r = purc_init("cn.fmsoft.hybridos.test",
         "vdom_gen", &info);
     ASSERT_EQ(r, PURC_ERROR_OK);

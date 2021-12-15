@@ -445,6 +445,236 @@ static inline bool equal_long_doubles(long double a, long double b)
     return (fabsl(a - b) <= max_val * LDBL_EPSILON);
 }
 
+static int compare_objects(purc_variant_t v1, purc_variant_t v2)
+{
+    int diff;
+    purc_variant_t key;
+    purc_variant_t m1, m2;
+    size_t sz1 = purc_variant_object_get_size(v1);
+    size_t sz2 = purc_variant_object_get_size(v2);
+
+    if (sz1 != sz2)
+        return (int)(sz1 - sz2);
+
+    foreach_key_value_in_variant_object(v1, key, m1)
+        m2 = purc_variant_object_get(v2, key);
+        diff = purc_variant_compare_st(m1, m2);
+        if (diff != 0)
+            return diff;
+    end_foreach;
+
+    return 0;
+}
+
+static int compare_arrays(purc_variant_t v1, purc_variant_t v2)
+{
+    int diff;
+    size_t idx;
+    size_t sz1 = purc_variant_array_get_size(v1);
+    size_t sz2 = purc_variant_array_get_size(v2);
+    purc_variant_t m1, m2;
+
+    if (sz1 != sz2)
+        return (int)(sz1 - sz2);
+
+    idx = 0;
+    foreach_value_in_variant_array(v1, m1)
+
+        m2 = purc_variant_array_get(v2, idx);
+        diff = purc_variant_compare_st(m1, m2);
+        if (diff != 0)
+            return diff;
+
+        idx++;
+    end_foreach;
+
+    return 0;
+}
+
+static int compare_sets(purc_variant_t v1, purc_variant_t v2)
+{
+    int diff;
+    size_t sz1 = purc_variant_set_get_size(v1);
+    size_t sz2 = purc_variant_set_get_size(v2);
+    struct purc_variant_set_iterator* it;
+    purc_variant_t m1, m2;
+
+    if (sz1 != sz2)
+        return (int)(sz1 - sz2);
+
+    it = purc_variant_set_make_iterator_begin(v2);
+    foreach_value_in_variant_set(v1, m1)
+
+        m2 = purc_variant_set_iterator_get_value(it);
+        diff = purc_variant_compare_st(m1, m2);
+        if (diff != 0)
+            goto ret;
+
+    purc_variant_set_iterator_next(it);
+    end_foreach;
+
+    purc_variant_set_release_iterator(it);
+    return 0;
+
+ret:
+    purc_variant_set_release_iterator(it);
+    return diff;
+}
+
+int purc_variant_compare_st(purc_variant_t v1, purc_variant_t v2)
+{
+    int i;
+    const char *str1, *str2;
+    size_t len1, len2;
+
+    if (v1 == NULL)
+        return v2 ? 1 : 0;
+    if (v2 == NULL)
+        return v1 ? 1 : 0;
+
+    if (v1->type == v2->type) {
+    switch (v1->type) {
+        case PURC_VARIANT_TYPE_UNDEFINED:
+        case PURC_VARIANT_TYPE_NULL:
+            return 0;
+
+        case PURC_VARIANT_TYPE_BOOLEAN:
+            return (int)v1->b - (int)v2->b;
+
+        case PURC_VARIANT_TYPE_NUMBER:
+            if (equal_doubles(v1->d, v2->d))
+                return 0;
+            // VWNOTE: this may get zero because of too small difference:
+            // return (int)(v1->d - v2->d);
+            if (v1->d > v2->d)
+                return 1;
+            return -1;
+
+        case PURC_VARIANT_TYPE_LONGINT:
+            return (int)(v1->i64 - v2->i64);
+
+        case PURC_VARIANT_TYPE_ULONGINT:
+            return (int)(v1->u64 - v2->u64);
+
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+            if (equal_long_doubles(v1->ld, v2->ld))
+                return 0;
+            // VWNOTE: this may get zero because of too small difference:
+            // return (int)(v1->d - v2->d);
+            if (v1->ld > v2->ld)
+                return 1;
+            return -1;
+
+        case PURC_VARIANT_TYPE_ATOMSTRING:
+            str1 = purc_atom_to_string(v1->sz_ptr[1]);
+            str2 = purc_atom_to_string(v2->sz_ptr[1]);
+            return strcmp(str1, str2);
+
+        case PURC_VARIANT_TYPE_STRING:
+        case PURC_VARIANT_TYPE_BSEQUENCE:
+            if (v1->flags & PCVARIANT_FLAG_STRING_STATIC) {
+                str1 = (const char*)v1->sz_ptr[1];
+                len1 = strlen(str1);
+            }
+            else if (v1->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
+                str1 = (const char*)v1->sz_ptr[1];
+                len1 = v1->sz_ptr[0];
+            }
+            else {
+                str1 = (const char*)v1->bytes;
+                len1 = v1->size;
+            }
+
+            if (v2->flags & PCVARIANT_FLAG_STRING_STATIC) {
+                str2 = (const char*)v2->sz_ptr[1];
+                len2 = strlen(str2);
+            }
+            else if (v2->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
+                str2 = (const char*)v2->sz_ptr[1];
+                len2 = v2->sz_ptr[0];
+            }
+            else {
+                str2 = (const char*)v2->bytes;
+                len2 = v2->size;
+            }
+
+            if (v1->type == PURC_VARIANT_TYPE_STRING)
+                return strcmp(str1, str2);
+
+            i = memcmp(str1, str2, (len1 > len2)?len2:len1);
+            if (i == 0 && len1 != len2) {
+                return (int)(len1 - len2);
+            }
+            return i;
+
+        case PURC_VARIANT_TYPE_DYNAMIC:
+        case PURC_VARIANT_TYPE_NATIVE:
+            return memcmp(v1->ptr_ptr, v2->ptr_ptr, sizeof(void *) * 2);
+
+        case PURC_VARIANT_TYPE_OBJECT:
+            return compare_objects(v1, v2);
+
+        case PURC_VARIANT_TYPE_ARRAY:
+            return compare_arrays(v1, v2);
+
+        case PURC_VARIANT_TYPE_SET:
+            return compare_sets(v1, v2);
+
+        default:
+            PC_ASSERT(0);
+            break;
+    }
+    }
+    else {
+        long double ld1, ld2;
+        if (purc_variant_cast_to_long_double(v1, &ld1, false) &&
+                purc_variant_cast_to_long_double(v2, &ld2, false)) {
+            if (equal_long_doubles(ld1, ld2))
+                return 0;
+
+            // VWNOTE: this may get zero because of too small difference:
+            // return (int)(ld1 - ld2);
+            if (ld1 > ld2)
+                return 1;
+            return -1;
+        }
+
+        const void *bytes1, *bytes2;
+        size_t sz1, sz2;
+        if (purc_variant_cast_to_byte_sequence(v1, &bytes1, &sz1) &&
+                purc_variant_cast_to_byte_sequence(v2, &bytes2, &sz2)) {
+
+            int i = memcmp(bytes1, bytes2, (sz1 > sz2) ? sz2 : sz1);
+            if (i == 0 && sz2 != sz1) {
+                return (int)(sz1 - sz2);
+            }
+            return i;
+        }
+
+        static const char* type_names[PURC_VARIANT_TYPE_NR] = {
+            "undefined",        // PURC_VARIANT_TYPE_UNDEFINED
+            "null",             // PURC_VARIANT_TYPE_NULL
+            "boolean",          // PURC_VARIANT_TYPE_BOOLEAN
+            "0",                // PURC_VARIANT_TYPE_NUMBER
+            "0",                // PURC_VARIANT_TYPE_LONGINT
+            "0",                // PURC_VARIANT_TYPE_ULONGINT
+            "0",                // PURC_VARIANT_TYPE_LONGDOUBLE
+            "\"\"",             // PURC_VARIANT_TYPE_ATOM_STRING
+            "\"\"",             // PURC_VARIANT_TYPE_STRING
+            "b",                // PURC_VARIANT_TYPE_SEQUENCE
+            "<dynamic>",        // PURC_VARIANT_TYPE_DYNAMIC
+            "<native>",         // PURC_VARIANT_TYPE_NATIVE
+            "{}",               // PURC_VARIANT_TYPE_OBJECT
+            "[]",               // PURC_VARIANT_TYPE_ARRAY
+            "[<set>]",          // PURC_VARIANT_TYPE_SET
+        };
+
+        return strcmp(type_names[v1->type], type_names[v2->type]);
+    }
+
+    return 0;
+}
+
 bool
 purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool parse_str)
 {

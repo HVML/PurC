@@ -29,7 +29,7 @@ sanity_check(purc_variant_t set)
 
 TEST(variant_set, init_with_1_str)
 {
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = 0;
     bool cleanup = false;
     struct purc_variant_stat *stat;
@@ -84,7 +84,7 @@ TEST(variant_set, init_with_1_str)
 
 TEST(variant_set, non_object)
 {
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = 0;
     bool cleanup = false;
 
@@ -235,7 +235,7 @@ TEST(variant_set, non_object)
 
 TEST(variant_set, init_0_elem)
 {
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = 0;
     bool cleanup = false;
     struct purc_variant_stat *stat;
@@ -274,7 +274,7 @@ TEST(variant_set, init_0_elem)
 
 TEST(variant_set, add_1_str)
 {
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = 0;
     bool cleanup = false;
     struct purc_variant_stat *stat;
@@ -323,7 +323,7 @@ TEST(variant_set, add_1_str)
 
 TEST(variant_set, add_n_str)
 {
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = 0;
     bool cleanup = false;
     struct purc_variant_stat *stat;
@@ -455,7 +455,7 @@ TEST(variant_set, add_n_str)
 
 TEST(variant_set, dup)
 {
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = 0;
     bool cleanup = false;
 
@@ -566,7 +566,7 @@ cmp(size_t nr_keynames,
 
 TEST(variant_set, sort)
 {
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = 0;
     bool cleanup = false;
     struct purc_variant_stat *stat;
@@ -668,7 +668,7 @@ make_generic_set(size_t nr, ...)
 
 TEST(variant_set, generic)
 {
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = 0;
     bool cleanup = false;
     struct purc_variant_stat *stat;

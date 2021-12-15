@@ -9,7 +9,7 @@ TEST(interpreter, basic)
         "<hvml><head/></hvml>",
     };
 
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = 0;
     bool cleanup = false;
 
