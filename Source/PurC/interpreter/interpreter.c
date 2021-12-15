@@ -158,6 +158,7 @@ pcintr_get_element_ops(pcvdom_element_t element)
         case PCHVML_TAG_ITERATE:
             return pcintr_iterate_get_ops();
         default:
+            PC_ASSERT(0); // Not implemented yet
             return NULL;
     }
 }
@@ -482,6 +483,14 @@ purc_load_hvml_from_rwstream(purc_rwstream_t stream)
     }
 
     vdom->document = doc;
+
+    pcintr_stack_t stack = purc_get_stack();
+    PC_ASSERT(stack);
+
+    // TODO:
+    // wrap vdom into runloop, and let purc_run to collect and dispatch
+    PC_ASSERT(0); // Not implemented yet
+
     return vdom;
 }
 
