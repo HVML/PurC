@@ -105,8 +105,35 @@ void init_except_exinfo_map(void)
 
 void init_error_except_map(void)
 {
+    // generic
     MAP_EE(PURC_ERROR_OK, 0);
     MAP_EE(PURC_ERROR_BAD_SYSTEM_CALL, purc_except_os_error);
+    MAP_EE(PURC_ERROR_BAD_STDC_CALL, purc_except_os_error);
+    MAP_EE(PURC_ERROR_OUT_OF_MEMORY, purc_except_os_error);
+    MAP_EE(PURC_ERROR_INVALID_VALUE, purc_except_bad_value);
+    MAP_EE(PURC_ERROR_DUPLICATED, purc_except_bad_value);
+    MAP_EE(PURC_ERROR_NOT_IMPLEMENTED, purc_except_not_implemented);
+    MAP_EE(PURC_ERROR_NO_INSTANCE, purc_except_not_ready);
+    MAP_EE(PURC_ERROR_TOO_LARGE_ENTITY, purc_except_too_long);
+    MAP_EE(PURC_ERROR_BAD_ENCODING, purc_except_bad_encoding);
+    MAP_EE(PURC_ERROR_NOT_SUPPORTED, purc_except_not_implemented);
+    MAP_EE(PURC_ERROR_OUTPUT, purc_except_io_error);
+    MAP_EE(PURC_ERROR_TOO_SMALL_BUFF, purc_except_io_error);
+    MAP_EE(PURC_ERROR_TOO_SMALL_SIZE, purc_except_io_error);
+    MAP_EE(PURC_ERROR_NULL_OBJECT, purc_except_bad_value);
+    MAP_EE(PURC_ERROR_INCOMPLETE_OBJECT, purc_except_bad_value);
+    MAP_EE(PURC_ERROR_NO_FREE_SLOT, purc_except_io_error);
+    MAP_EE(PURC_ERROR_NOT_EXISTS, purc_except_entity_exists);
+    MAP_EE(PURC_ERROR_WRONG_ARGS, purc_except_bad_value);
+    MAP_EE(PURC_ERROR_WRONG_STAGE, purc_except_bad_value);
+    MAP_EE(PURC_ERROR_UNEXPECTED_RESULT, purc_except_bad_value);
+    MAP_EE(PURC_ERROR_UNEXPECTED_DATA, purc_except_bad_value);
+    MAP_EE(PURC_ERROR_OVERFLOW, purc_except_overflow);
+    MAP_EE(PURC_ERROR_UNDERFLOW, purc_except_bad_value);
+    MAP_EE(PURC_ERROR_DIVBYZERO, purc_except_zero_division);
+    MAP_EE(PURC_ERROR_UNKNOWN, purc_except_os_error);
+    MAP_EE(PURC_ERROR_BAD_LOCALE_CATEGORY, purc_except_bad_value);
+
 }
 
 void purc_error_init_once(void)
