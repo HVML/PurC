@@ -133,7 +133,12 @@ void init_error_except_map(void)
     MAP_EE(PURC_ERROR_DIVBYZERO, purc_except_zero_division);
     MAP_EE(PURC_ERROR_UNKNOWN, purc_except_os_error);
     MAP_EE(PURC_ERROR_BAD_LOCALE_CATEGORY, purc_except_bad_value);
+}
 
+void pcinst_add_error_except_map(int error, purc_atom_t except)
+{
+    pcutils_map_insert(purc_error_except_map, (void*)(uintptr_t)error,
+            (void*)except);
 }
 
 void purc_error_init_once(void)
