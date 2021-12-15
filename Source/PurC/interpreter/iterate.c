@@ -27,8 +27,9 @@
 
 #include "private/debug.h"
 #include "private/executor.h"
+#include "private/interpreter.h"
 
-#include "iterate.h"
+#include "element-ops.h"
 
 struct ctxt_for_iterate {
     struct purc_exec_ops     ops;

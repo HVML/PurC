@@ -27,8 +27,9 @@
 
 #include "private/debug.h"
 #include "private/executor.h"
+#include "private/interpreter.h"
 
-#include "choose.h"
+#include "element-ops.h"
 
 struct ctxt_for_choose {
     struct purc_exec_ops     ops;

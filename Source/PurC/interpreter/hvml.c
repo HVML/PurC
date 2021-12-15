@@ -1,5 +1,5 @@
 /**
- * @file init.c
+ * @file hvml.c
  * @author Xu Xiaohong
  * @date 2021/12/06
  * @brief
@@ -32,13 +32,13 @@
 #include "element-ops.h"
 
 
-struct ctxt_for_init {
+struct ctxt_for_hvml {
     struct purc_exec_ops     ops;
 
     // the instance of the current executor.
     purc_exec_inst_t exec_inst;
 
-    // the iterator if the current element is `init`.
+    // the iterator if the current element is `hvml`.
     purc_exec_iter_t it;
 
     struct pcvdom_element       *curr;
@@ -48,7 +48,7 @@ struct ctxt_for_init {
 };
 
 static inline void
-ctxt_release(struct ctxt_for_init *ctxt)
+ctxt_release(struct ctxt_for_hvml *ctxt)
 {
     if (!ctxt)
         return;
@@ -65,7 +65,7 @@ ctxt_release(struct ctxt_for_init *ctxt)
 }
 
 static inline void
-ctxt_destroy(struct ctxt_for_init *ctxt)
+ctxt_destroy(struct ctxt_for_hvml *ctxt)
 {
     if (ctxt) {
         ctxt_release(ctxt);
@@ -74,8 +74,8 @@ ctxt_destroy(struct ctxt_for_init *ctxt)
 }
 
 static inline int
-init_after_pushed_as_via(pcintr_stack_t stack, pcvdom_element_t pos,
-        struct ctxt_for_init *ctxt,
+hvml_after_pushed_as_via(pcintr_stack_t stack, pcvdom_element_t pos,
+        struct ctxt_for_hvml *ctxt,
         purc_variant_t as, purc_variant_t via)
 {
     PC_ASSERT(as && purc_variant_is_type(as, PURC_VARIANT_TYPE_STRING));
@@ -105,8 +105,8 @@ init_after_pushed_as_via(pcintr_stack_t stack, pcvdom_element_t pos,
 }
 
 static inline int
-init_after_pushed(pcintr_stack_t stack, pcvdom_element_t pos,
-        struct ctxt_for_init *ctxt)
+hvml_after_pushed(pcintr_stack_t stack, pcvdom_element_t pos,
+        struct ctxt_for_hvml *ctxt)
 {
     struct pcvdom_attr *from = pcvdom_element_find_attr(pos, "from");
     PC_ASSERT(from == NULL); // Not implemented yet
@@ -123,7 +123,7 @@ init_after_pushed(pcintr_stack_t stack, pcvdom_element_t pos,
     purc_variant_t as  = pcvdom_element_eval_attr_val(pos, "as");
     purc_variant_t via = pcvdom_element_eval_attr_val(pos, "via");
 
-    int r = init_after_pushed_as_via(stack, pos, ctxt, as, via);
+    int r = hvml_after_pushed_as_via(stack, pos, ctxt, as, via);
 
     purc_variant_unref(as);
     purc_variant_unref(via);
@@ -135,12 +135,12 @@ init_after_pushed(pcintr_stack_t stack, pcvdom_element_t pos,
 static inline void *
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
-    struct ctxt_for_init *ctxt;
-    ctxt = (struct ctxt_for_init*)calloc(1, sizeof(*ctxt));
+    struct ctxt_for_hvml *ctxt;
+    ctxt = (struct ctxt_for_hvml*)calloc(1, sizeof(*ctxt));
     if (!ctxt)
         return NULL;
 
-    int r = init_after_pushed(stack, pos, ctxt);
+    int r = hvml_after_pushed(stack, pos, ctxt);
     if (r) {
         ctxt_destroy(ctxt);
         return NULL;
@@ -157,10 +157,10 @@ on_popping(pcintr_stack_t stack, void* ctxt)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame->ctxt == ctxt);
 
-    struct ctxt_for_init *init_ctxt;
-    init_ctxt = (struct ctxt_for_init*)ctxt;
+    struct ctxt_for_hvml *hvml_ctxt;
+    hvml_ctxt = (struct ctxt_for_hvml*)ctxt;
 
-    ctxt_destroy(init_ctxt);
+    ctxt_destroy(hvml_ctxt);
     frame->ctxt = NULL;
 
     return false;
@@ -174,8 +174,9 @@ ops = {
     .select_child       = NULL,
 };
 
-struct pcintr_element_ops* pcintr_init_get_ops(void)
+struct pcintr_element_ops* pcintr_hvml_get_ops(void)
 {
     return &ops;
 }
+
 

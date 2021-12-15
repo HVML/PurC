@@ -30,7 +30,7 @@
 #include "private/interpreter.h"
 #include "private/runloop.h"
 
-#include "iterate.h"
+#include "element-ops.h"
 #include "../hvml/hvml-gen.h"
 
 void pcintr_stack_init_once(void)
@@ -159,9 +159,12 @@ pcintr_get_element_ops(pcvdom_element_t element)
     PC_ASSERT(element);
 
     switch (element->tag_id) {
+        case PCHVML_TAG_HVML:
+            return pcintr_hvml_get_ops();
         case PCHVML_TAG_ITERATE:
             return pcintr_iterate_get_ops();
         default:
+            fprintf(stderr, "==tag_id:%d==\n", element->tag_id);
             PC_ASSERT(0); // Not implemented yet
             return NULL;
     }
@@ -344,8 +347,6 @@ document_post_load(struct pcvdom_document *document)
 {
     struct pcvdom_node *node = &document->node;
     struct pcvdom_node *p = pcvdom_node_first_child(node);
-    (void)p;
-    PC_ASSERT(0); // Not implemented yet
 
     struct pcvdom_element *element;
     int r = 0;
@@ -475,12 +476,18 @@ static inline int vdom_main(void* ctxt)
 {
     fprintf(stderr, "======%s[%d]=====\n", __FILE__, __LINE__);
     purc_vdom_t vdom = (purc_vdom_t)ctxt;
-    pcvdom_document_destroy(vdom->document);
-    free(vdom);
 
-    pcrunloop_t runloop = pcrunloop_get_current();
-    PC_ASSERT(runloop);
-    pcrunloop_stop(runloop);
+    // QUESTION: when to stop????
+
+    int nr_events = pcintr_post_load(vdom);
+    if (nr_events <= 0) {
+        pcvdom_document_destroy(vdom->document);
+        free(vdom);
+
+        pcrunloop_t runloop = pcrunloop_get_current();
+        PC_ASSERT(runloop);
+        pcrunloop_stop(runloop);
+    }
 
     return 0;
 }

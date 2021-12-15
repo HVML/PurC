@@ -1,8 +1,8 @@
 /**
- * @file iterate.h
+ * @file element-ops.h
  * @author Xu Xiaohong
- * @date 2021/12/06
- * @brief
+ * @date 2021/11/18
+ * @brief The internal interfaces for interpreter/element-ops
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -23,21 +23,21 @@
  *
  */
 
-#ifndef PURC_PRIVATE_INTERPRETER_ITERATE_H
-#define PURC_PRIVATE_INTERPRETER_ITERATE_H
-
-#include "purc.h"
+#ifndef PURC_INTERPRETER_ELEMENT_H
+#define PURC_INTERPRETER_ELEMENT_H
 
 #include "purc-macros.h"
 
-#include "private/interpreter.h"
-
 PCA_EXTERN_C_BEGIN
 
+struct pcintr_element_ops* pcintr_archetype_get_ops(void);
+struct pcintr_element_ops* pcintr_choose_get_ops(void);
+struct pcintr_element_ops* pcintr_hvml_get_ops(void);
+struct pcintr_element_ops* pcintr_init_get_ops(void);
 struct pcintr_element_ops* pcintr_iterate_get_ops(void);
 
 PCA_EXTERN_C_END
 
-#endif  /* PURC_PRIVATE_INTERPRETER_ITERATE_H */
+#endif  /* PURC_INTERPRETER_ELEMENT_H */
 
 
