@@ -28,12 +28,16 @@
 #include "private/debug.h"
 #include "private/instance.h"
 #include "private/interpreter.h"
+#include "private/runloop.h"
 
 #include "iterate.h"
 #include "../hvml/hvml-gen.h"
 
 void pcintr_stack_init_once(void)
 {
+    pcrunloop_init_main();
+    pcrunloop_t runloop = pcrunloop_get_main();
+    fprintf(stderr, "runloop: [%p]\n", runloop);
 }
 
 void pcintr_stack_init_instance(struct pcinst* inst)
@@ -467,6 +471,20 @@ end:
     return doc;
 }
 
+static inline int vdom_main(void* ctxt)
+{
+    fprintf(stderr, "======%s[%d]=====\n", __FILE__, __LINE__);
+    purc_vdom_t vdom = (purc_vdom_t)ctxt;
+    pcvdom_document_destroy(vdom->document);
+    free(vdom);
+
+    pcrunloop_t runloop = pcrunloop_get_current();
+    PC_ASSERT(runloop);
+    pcrunloop_stop(runloop);
+
+    return 0;
+}
+
 purc_vdom_t
 purc_load_hvml_from_rwstream(purc_rwstream_t stream)
 {
@@ -487,11 +505,28 @@ purc_load_hvml_from_rwstream(purc_rwstream_t stream)
     pcintr_stack_t stack = purc_get_stack();
     PC_ASSERT(stack);
 
+    pcrunloop_t runloop = pcrunloop_get_current();
+    PC_ASSERT(runloop);
+    pcrunloop_dispatch(runloop, vdom_main, vdom);
+
     // TODO:
-    // wrap vdom into runloop, and let purc_run to collect and dispatch
-    PC_ASSERT(0); // Not implemented yet
+    // wrap vdom into a hvml-main-entrance, register into runloop,
+    // and let purc_run to collect and dispatch
+    // PC_ASSERT(0); // Not implemented yet
 
     return vdom;
+}
+
+bool
+purc_run(purc_variant_t request, purc_event_handler handler)
+{
+    UNUSED_PARAM(request);
+    UNUSED_PARAM(handler);
+    fprintf(stderr, "======%s[%d]=====\n", __FILE__, __LINE__);
+    pcrunloop_run();
+    fprintf(stderr, "======%s[%d]=====\n", __FILE__, __LINE__);
+
+    return true;
 }
 
 static inline bool
