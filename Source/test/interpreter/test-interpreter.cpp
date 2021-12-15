@@ -6,7 +6,7 @@ TEST(interpreter, basic)
 {
     const char *hvmls[] = {
         "<hvml></hvml>",
-        "<hvml><head/></hvml>",
+        "<hvml><head/><body/></hvml>",
     };
 
     purc_instance_extra_info info = {};
