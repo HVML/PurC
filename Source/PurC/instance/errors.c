@@ -106,8 +106,7 @@ void init_except_exinfo_map(void)
 void init_error_except_map(void)
 {
     MAP_EE(PURC_ERROR_OK, 0);
-    MAP_EE(PURC_ERROR_BAD_SYSTEM_CALL,
-            purc_except_os_error);
+    MAP_EE(PURC_ERROR_BAD_SYSTEM_CALL, purc_except_os_error);
 }
 
 void purc_error_init_once(void)
