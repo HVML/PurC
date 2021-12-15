@@ -30,6 +30,7 @@
 #include "private/interpreter.h"
 
 #include "iterate.h"
+#include "../hvml/hvml-gen.h"
 
 void pcintr_stack_init_once(void)
 {
@@ -378,6 +379,110 @@ int pcintr_post_load(purc_vdom_t vdom)
 
     struct pcvdom_document *document = vdom->document;
     return document_post_load(document);
+}
+
+purc_vdom_t
+purc_load_hvml_from_string(const char* string)
+{
+    purc_rwstream_t in;
+    in = purc_rwstream_new_from_mem ((void*)string, strlen(string));
+    if (!in)
+        return NULL;
+    purc_vdom_t vdom = purc_load_hvml_from_rwstream(in);
+    purc_rwstream_destroy(in);
+    return vdom;
+}
+
+purc_vdom_t
+purc_load_hvml_from_file(const char* file)
+{
+    purc_rwstream_t in;
+    in = purc_rwstream_new_from_file(file, "r");
+    if (!in)
+        return NULL;
+    purc_vdom_t vdom = purc_load_hvml_from_rwstream(in);
+    purc_rwstream_destroy(in);
+    return vdom;
+}
+
+PCA_EXPORT purc_vdom_t
+purc_load_hvml_from_url(const char* url)
+{
+    UNUSED_PARAM(url);
+    PC_ASSERT(0); // Not implemented yet
+    return NULL;
+}
+
+static inline struct pcvdom_document*
+load_document(purc_rwstream_t in)
+{
+    struct pchvml_parser *parser = NULL;
+    struct pcvdom_gen *gen = NULL;
+    struct pcvdom_document *doc = NULL;
+    struct pchvml_token *token = NULL;
+    parser = pchvml_create(0, 0);
+    if (!parser)
+        goto error;
+
+    gen = pcvdom_gen_create();
+    if (!gen)
+        goto error;
+
+again:
+    if (token)
+        pchvml_token_destroy(token);
+
+    token = pchvml_next_token(parser, in);
+    if (!token)
+        goto error;
+
+    if (pcvdom_gen_push_token(gen, parser, token))
+        goto error;
+
+    if (!pchvml_token_is_type(token, PCHVML_TOKEN_EOF)) {
+        goto again;
+    }
+
+    doc = pcvdom_gen_end(gen);
+    goto end;
+
+error:
+    doc = pcvdom_gen_end(gen);
+    if (doc) {
+        pcvdom_document_destroy(doc);
+        doc = NULL;
+    }
+
+end:
+    if (token)
+        pchvml_token_destroy(token);
+
+    if (gen)
+        pcvdom_gen_destroy(gen);
+
+    if (parser)
+        pchvml_destroy(parser);
+
+    return doc;
+}
+
+purc_vdom_t
+purc_load_hvml_from_rwstream(purc_rwstream_t stream)
+{
+    struct pcvdom_document *doc = NULL;
+    doc = load_document(stream);
+    if (!doc)
+        return NULL;
+
+    purc_vdom_t vdom = (purc_vdom_t)calloc(1, sizeof(*vdom));
+    if (!vdom) {
+        pcvdom_document_destroy(doc);
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    vdom->document = doc;
+    return vdom;
 }
 
 static inline bool
