@@ -37,15 +37,41 @@ int purc_get_last_error(void)
     return PURC_ERROR_NO_INSTANCE;
 }
 
-int purc_set_error(int errcode)
+purc_variant_t purc_get_last_error_ex(void)
 {
-    struct pcinst* inst = pcinst_current();
+    const struct pcinst* inst = pcinst_current();
     if (inst) {
-        inst->errcode = errcode;
-        return PURC_ERROR_OK;
+        return inst->err_exinfo;
     }
 
     return PURC_ERROR_NO_INSTANCE;
+}
+
+int purc_set_error(int errcode)
+{
+    return purc_set_error_ex(errcode, PURC_VARIANT_INVALID);
+}
+
+int purc_set_error_ex(int errcode, purc_variant_t exinfo)
+{
+    UNUSED_PARAM(exinfo);
+    struct pcinst* inst = pcinst_current();
+    if (inst == NULL) {
+        return PURC_ERROR_NO_INSTANCE;
+    }
+
+    inst->errcode = errcode;
+    inst->err_exinfo = exinfo;
+
+    // TODO:
+    // set the exception info into stack
+#if 0
+    pcintr_stack_t stack = purc_get_stack();
+    if (stack) {
+        purc_atom_t exception = purc_get_error_exception(errcode);
+    }
+#endif
+    return PURC_ERROR_OK;
 }
 
 static LIST_HEAD(_err_msg_seg_list);

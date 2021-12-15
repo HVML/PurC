@@ -37,6 +37,7 @@
 
 struct pcinst {
     int errcode;
+    purc_variant_t err_exinfo;
 
     char* app_name;
     char* runner_name;

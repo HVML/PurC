@@ -30,6 +30,7 @@
 
 #include "purc-macros.h"
 #include "purc-utils.h"
+#include "purc-variant.h"
 
 // the first error codes for modules:
 #define PURC_ERROR_FIRST_GENERIC        0
@@ -277,6 +278,14 @@ purc_get_last_error (void);
  */
 PCA_EXPORT int
 purc_set_error(int err_code);
+
+/**
+ * purc_set_error_ex:
+ *
+ * Returns: PURC_ERROR_OK or PURC_ERROR_NO_INSTANCE.
+ */
+PCA_EXPORT int
+purc_set_error_ex(int err_code, purc_variant_t exinfo);
 
 /**
  * purc_get_error_message:

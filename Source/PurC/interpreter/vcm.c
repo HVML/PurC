@@ -27,6 +27,7 @@
 #include "private/vcm.h"
 #include "private/avl.h"
 
+#include "purc-errors.h"
 #include "purc-variant.h"
 
 struct evalued_constant {

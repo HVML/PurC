@@ -33,8 +33,6 @@
 #include <wchar.h>
 
 #include "purc-macros.h"
-#include "purc-errors.h"
-
 
 struct purc_rwstream;
 typedef struct purc_rwstream purc_rwstream;

@@ -24,6 +24,7 @@
 
 #include "pcexe-helper.h"
 
+#include "purc-errors.h"
 #include "private/debug.h"
 #include "private/errors.h"
 #include "private/variant.h"

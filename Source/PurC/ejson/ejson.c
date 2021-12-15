@@ -25,6 +25,7 @@
 #include "private/ejson.h"
 #include "private/errors.h"
 #include "purc-utils.h"
+#include "purc-errors.h"
 #include "config.h"
 
 #include <math.h>

@@ -22,6 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "purc-errors.h"
 #include "purc-variant.h"
 #include "mathlib.h"
 #include "purc-version.h"
