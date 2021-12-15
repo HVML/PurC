@@ -37,7 +37,7 @@ void pcintr_stack_init_once(void)
 {
     pcrunloop_init_main();
     pcrunloop_t runloop = pcrunloop_get_main();
-    fprintf(stderr, "runloop: [%p]\n", runloop);
+    PC_ASSERT(runloop);
 }
 
 void pcintr_stack_init_instance(struct pcinst* inst)
@@ -265,11 +265,11 @@ init_frame_by_element(struct pcintr_stack_frame *frame,
 }
 
 static inline int
-element_post_load(struct pcvdom_document *document,
+element_eval(struct pcvdom_document *document,
         struct pcvdom_element *element);
 
 static inline int
-element_post_load_in_frame(struct pcvdom_document *document,
+element_eval_in_frame(struct pcvdom_document *document,
         struct pcvdom_element *element,
         struct pcintr_element_ops *ops,
         pcintr_stack_t stack,
@@ -293,7 +293,7 @@ rerun:
         struct pcvdom_element *child;
         child = ops->select_child(stack, frame->ctxt);
         while (child) {
-            r = element_post_load(document, child);
+            r = element_eval(document, child);
             PC_ASSERT(r==0); // TODO: what if failed????
             child = ops->select_child(stack, frame->ctxt);
         }
@@ -316,7 +316,7 @@ rerun:
 }
 
 static inline int
-element_post_load(struct pcvdom_document *document,
+element_eval(struct pcvdom_document *document,
         struct pcvdom_element *element)
 {
     PC_ASSERT(document);
@@ -335,7 +335,7 @@ element_post_load(struct pcvdom_document *document,
     if (!frame)
         return -1;
 
-    int r = element_post_load_in_frame(document, element, ops, stack, frame);
+    int r = element_eval_in_frame(document, element, ops, stack, frame);
 
     pop_stack_frame(stack);
 
@@ -343,40 +343,106 @@ element_post_load(struct pcvdom_document *document,
 }
 
 static inline int
-document_post_load(struct pcvdom_document *document)
+doctype_eval(struct pcvdom_doctype *doctype)
 {
-    struct pcvdom_node *node = &document->node;
-    struct pcvdom_node *p = pcvdom_node_first_child(node);
-
-    struct pcvdom_element *element;
-    int r = 0;
-    for (; p; p = pcvdom_node_next_sibling(p)) {
-        switch (p->type) {
-            case PCVDOM_NODE_DOCUMENT:
-                PC_ASSERT(0);
-                return -1;
-            case PCVDOM_NODE_ELEMENT:
-                element = container_of(p, struct pcvdom_element, node);
-                r = element_post_load(document, element);
-                break;
-            case PCVDOM_NODE_CONTENT:
-                // FIXME: output to edom?
-                break;
-            case PCVDOM_NODE_COMMENT:
-                // FIXME:
-                break;
-            default:
-                PC_ASSERT(0);
-                return -1;
-        }
-        if (r)
-            return -1;
-    }
-
-    return -1;
+    const char *system_info = doctype->system_info;
+    fprintf(stderr, "system_info: [%s]\n", system_info);
+    return 0;
 }
 
-int pcintr_post_load(purc_vdom_t vdom)
+static inline int
+head_eval(struct pcvdom_element *head)
+{
+    UNUSED_PARAM(head);
+    return 0;
+}
+
+static inline int
+body_eval(struct pcvdom_element *body)
+{
+    UNUSED_PARAM(body);
+    return 0;
+}
+
+static inline int
+hvml_eval(struct pcvdom_element *hvml)
+{
+    int r = 0;
+    struct pcvdom_element *p;
+    p = pcvdom_element_first_child_element(hvml);
+
+    for (; p; p = pcvdom_element_next_sibling_element(p)) {
+        pcvdom_tag_id tag_id = p->tag_id;
+        if (tag_id != PCHVML_TAG_HEAD)
+            continue;
+
+        r = head_eval(p);
+        if (r)
+            return r;
+
+        p = pcvdom_element_next_sibling_element(p);
+        break;
+    }
+
+    if (!p)
+        return 0;
+
+    for (; p; p = pcvdom_element_next_sibling_element(p)) {
+        pcvdom_tag_id tag_id = p->tag_id;
+        if (tag_id != PCHVML_TAG_BODY)
+            continue;
+        // TODO: check id
+        r = body_eval(p);
+        return r;
+    }
+
+    return 0;
+}
+
+static inline int
+document_eval(struct pcvdom_document *document)
+{
+    struct pcvdom_doctype *doctype = &document->doctype;
+    int r = doctype_eval(doctype);
+    if (r)
+        return r;
+    struct pcvdom_element *hvml = document->root;
+    PC_ASSERT(hvml);
+    r = hvml_eval(hvml);
+    return r;
+
+    // struct pcvdom_node *node = &document->node;
+    // struct pcvdom_node *p = pcvdom_node_first_child(node);
+
+    // struct pcvdom_element *element;
+    // int r = 0;
+    // for (; p; p = pcvdom_node_next_sibling(p)) {
+    //     switch (p->type) {
+    //         case PCVDOM_NODE_DOCUMENT:
+    //             PC_ASSERT(0);
+    //             return -1;
+    //         case PCVDOM_NODE_ELEMENT:
+    //             element = container_of(p, struct pcvdom_element, node);
+    //             r = element_eval(document, element);
+    //             break;
+    //         case PCVDOM_NODE_CONTENT:
+    //             // FIXME: output to edom?
+    //             break;
+    //         case PCVDOM_NODE_COMMENT:
+    //             // FIXME:
+    //             break;
+    //         default:
+    //             PC_ASSERT(0);
+    //             return -1;
+    //     }
+    //     if (r)
+    //         return -1;
+    // }
+
+    // return -1;
+}
+
+int vdom_eval(purc_vdom_t vdom)
 {
     PC_ASSERT(vdom);
     pcintr_stack_t stack = purc_get_stack();
@@ -384,7 +450,7 @@ int pcintr_post_load(purc_vdom_t vdom)
     PC_ASSERT(stack->except == 0);
 
     struct pcvdom_document *document = vdom->document;
-    return document_post_load(document);
+    return document_eval(document);
 }
 
 purc_vdom_t
@@ -474,30 +540,17 @@ end:
 
 static inline int vdom_main(void* ctxt)
 {
-    fprintf(stderr, "======%s[%d]=====\n", __FILE__, __LINE__);
     purc_vdom_t vdom = (purc_vdom_t)ctxt;
 
     // QUESTION: when to stop????
-    if (1) {
-        pcvdom_document_destroy(vdom->document);
-        free(vdom);
+    vdom_eval(vdom);
 
-        pcrunloop_t runloop = pcrunloop_get_current();
-        PC_ASSERT(runloop);
-        pcrunloop_stop(runloop);
+    pcvdom_document_destroy(vdom->document);
+    free(vdom);
 
-        return 0;
-    }
-
-    int nr_events = pcintr_post_load(vdom);
-    if (nr_events <= 0) {
-        pcvdom_document_destroy(vdom->document);
-        free(vdom);
-
-        pcrunloop_t runloop = pcrunloop_get_current();
-        PC_ASSERT(runloop);
-        pcrunloop_stop(runloop);
-    }
+    pcrunloop_t runloop = pcrunloop_get_current();
+    PC_ASSERT(runloop);
+    pcrunloop_stop(runloop);
 
     return 0;
 }
@@ -534,9 +587,7 @@ purc_run(purc_variant_t request, purc_event_handler handler)
 {
     UNUSED_PARAM(request);
     UNUSED_PARAM(handler);
-    fprintf(stderr, "======%s[%d]=====\n", __FILE__, __LINE__);
     pcrunloop_run();
-    fprintf(stderr, "======%s[%d]=====\n", __FILE__, __LINE__);
 
     return true;
 }
