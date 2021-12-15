@@ -67,6 +67,21 @@ const char* purc_get_error_message(int errcode)
     return UNKNOWN_ERR_CODE;
 }
 
+purc_atom_t purc_get_error_exception(int errcode)
+{
+    struct list_head *p;
+
+    list_for_each(p, &_err_msg_seg_list) {
+        struct err_msg_seg *seg = container_of (p, struct err_msg_seg, list);
+        if (seg->exceptions && errcode >= seg->first_errcode &&
+                errcode <= seg->last_errcode) {
+            return seg->exceptions[errcode - seg->first_errcode];
+        }
+    }
+
+    return 0;
+}
+
 void pcinst_register_error_message_segment(struct err_msg_seg* seg)
 {
     list_add(&seg->list, &_err_msg_seg_list);
