@@ -126,8 +126,7 @@ bool is_except_exinfo_requited(purc_atom_t except)
 {
     const pcutils_map_entry* entry = NULL;
     if ((entry = pcutils_map_find(purc_except_exinfo_required_map,
-                    (const void*)except)))
-    {
+                    (const void*)except))) {
         return (bool) entry->val;
     }
     return false;
