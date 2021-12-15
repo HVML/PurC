@@ -48,7 +48,7 @@ _check_get_by_key(purc_variant_t obj, purc_variant_t key, purc_variant_t val,
 
 TEST(object, make_object_c)
 {
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = 0;
     bool cleanup = false;
     struct purc_variant_stat *stat;
@@ -255,7 +255,7 @@ TEST(object, make_object_c)
 
 TEST(object, make_object)
 {
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = 0;
     bool cleanup = false;
     struct purc_variant_stat *stat;
@@ -352,7 +352,7 @@ TEST(object, make_object)
 
 TEST(object, unref)
 {
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = 0;
     bool cleanup = false;
     struct purc_variant_stat *stat;

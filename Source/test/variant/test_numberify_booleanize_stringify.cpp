@@ -59,7 +59,7 @@ do_numberify(struct numberify_record *p)
 
 TEST(variant, numberify)
 {
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret;
     bool cleanup;
 
@@ -117,7 +117,7 @@ do_booleanize(struct booleanize_record *p)
 
 TEST(variant, booleanize)
 {
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret;
     bool cleanup;
 
@@ -202,7 +202,7 @@ do_stringify(struct stringify_record *p)
 
 TEST(variant, stringify)
 {
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret;
     bool cleanup;
 
@@ -243,7 +243,7 @@ do_stringify_alloc(struct stringify_record *p)
 
 TEST(variant, stringify_alloc)
 {
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret;
     bool cleanup;
 
@@ -287,7 +287,7 @@ do_stringify_bs(struct stringify_bs_record *p)
 
 TEST(variant, stringify_bs)
 {
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret;
     bool cleanup;
 
@@ -313,7 +313,7 @@ TEST(variant, stringify_bs)
 
 TEST(variant, vsnprintf)
 {
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret;
     bool cleanup;
 

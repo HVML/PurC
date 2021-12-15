@@ -504,7 +504,7 @@ TEST(random, make)
         free(s);
     }
 
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
 
     r = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ(r, PURC_ERROR_OK);

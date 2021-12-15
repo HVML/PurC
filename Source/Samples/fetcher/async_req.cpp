@@ -70,7 +70,7 @@ int main(int argc, char** argv)
     (void)argc;
     (void)argv;
 
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     purc_init ("cn.fmsoft.hybridos.sample", "pcfetcher", &info);
 
     RunLoop::initializeMain();

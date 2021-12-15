@@ -183,8 +183,6 @@ int purc_init(const char* app_name, const char* runner_name,
 {
     struct pcinst* curr_inst;
 
-    UNUSED_PARAM(extra_info);
-
     init_once();
 
     curr_inst = PURC_GET_THREAD_LOCAL(inst);
@@ -228,6 +226,9 @@ int purc_init(const char* app_name, const char* runner_name,
     pchtml_init_instance(curr_inst);
     pcedom_init_instance(curr_inst);
     pcexecutor_init_instance(curr_inst);
+
+    /* TODO: connnect to renderer */
+    UNUSED_PARAM(extra_info);
     return PURC_ERROR_OK;
 
 failed:
