@@ -323,7 +323,7 @@ sin_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     double number = 0.0;
 
-    GET_PARAM_NUMBER(nr_args);
+    GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_number (argv[0], &number, false);
@@ -342,7 +342,7 @@ cos_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     double number = 0.0;
 
-    GET_PARAM_NUMBER(nr_args);
+    GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_number (argv[0], &number, false);
@@ -360,7 +360,7 @@ tan_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     double number = 0.0;
 
-    GET_PARAM_NUMBER(nr_args);
+    GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_number (argv[0], &number, false);
@@ -378,7 +378,7 @@ asin_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     double number = 0.0;
 
-    GET_PARAM_NUMBER(nr_args);
+    GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_number (argv[0], &number, false);
@@ -398,7 +398,7 @@ acos_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     double number = 0.0;
 
-    GET_PARAM_NUMBER(nr_args);
+    GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_number (argv[0], &number, false);
@@ -417,7 +417,7 @@ atan_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     double number = 0.0;
 
-    GET_PARAM_NUMBER(nr_args);
+    GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_number (argv[0], &number, false);
@@ -437,7 +437,7 @@ sin_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     long double number = 0.0L;
 
-    GET_PARAM_NUMBER(nr_args);
+    GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_long_double (argv[0], &number, false);
@@ -455,7 +455,7 @@ cos_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     long double number = 0.0L;
 
-    GET_PARAM_NUMBER(nr_args);
+    GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_long_double (argv[0], &number, false);
@@ -473,7 +473,7 @@ tan_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     long double number = 0.0L;
 
-    GET_PARAM_NUMBER(nr_args);
+    GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_long_double (argv[0], &number, false);
@@ -490,7 +490,7 @@ asin_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     long double number = 0.0L;
 
-    GET_PARAM_NUMBER(nr_args);
+    GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_long_double (argv[0], &number, false);
@@ -510,7 +510,7 @@ acos_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     long double number = 0.0L;
 
-    GET_PARAM_NUMBER(nr_args);
+    GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_long_double (argv[0], &number, false);
@@ -530,7 +530,7 @@ atan_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     long double number = 0.0L;
 
-    GET_PARAM_NUMBER(nr_args);
+    GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_long_double (argv[0], &number, false);
@@ -549,7 +549,7 @@ sqrt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     double number = 0.0;
 
-    GET_PARAM_NUMBER(nr_args);
+    GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_number (argv[0], &number, false);
@@ -567,7 +567,7 @@ sqrt_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     long double number = 0.0L;
 
-    GET_PARAM_NUMBER(nr_args);
+    GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_long_double (argv[0], &number, false);
@@ -585,7 +585,7 @@ fmod_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     double number1 = 0.0;
     double number2 = 0.0;
 
-    GET_PARAM_NUMBER(nr_args);
+    GET_PARAM_NUMBER(2);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
     GET_VARIANT_NUMBER_TYPE (argv[1]);
 
@@ -607,7 +607,7 @@ fmod_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     long double number1 = 0.0L;
     long double number2 = 0.0L;
 
-    GET_PARAM_NUMBER(nr_args);
+    GET_PARAM_NUMBER(2);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
     GET_VARIANT_NUMBER_TYPE (argv[1]);
 
@@ -628,7 +628,7 @@ fabs_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     double number = 0.0;
 
-    GET_PARAM_NUMBER(nr_args);
+    GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_number (argv[0], &number, false);
@@ -647,7 +647,7 @@ fabs_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     long double number = 0.0L;
 
-    GET_PARAM_NUMBER(nr_args);
+    GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_long_double (argv[0], &number, false);
@@ -666,7 +666,7 @@ log_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     double number = 0.0;
 
-    GET_PARAM_NUMBER(nr_args);
+    GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_number (argv[0], &number, false);
@@ -685,7 +685,7 @@ log_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     long double number = 0.0L;
 
-    GET_PARAM_NUMBER(nr_args);
+    GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_long_double (argv[0], &number, false);
@@ -704,7 +704,7 @@ log10_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     double number = 0.0;
 
-    GET_PARAM_NUMBER(nr_args);
+    GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_number (argv[0], &number, false);
@@ -723,7 +723,7 @@ log10_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     long double number = 0.0L;
 
-    GET_PARAM_NUMBER(nr_args);
+    GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_long_double (argv[0], &number, false);
@@ -743,7 +743,7 @@ pow_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     double number1 = 0.0;
     double number2 = 0.0;
 
-    GET_PARAM_NUMBER(nr_args);
+    GET_PARAM_NUMBER(2);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
     GET_VARIANT_NUMBER_TYPE (argv[1]);
 
@@ -765,7 +765,7 @@ pow_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     long double number1 = 0.0L;
     long double number2 = 0.0L;
 
-    GET_PARAM_NUMBER(nr_args);
+    GET_PARAM_NUMBER(2);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
     GET_VARIANT_NUMBER_TYPE (argv[1]);
 
@@ -786,7 +786,7 @@ exp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     double number = 0.0;
 
-    GET_PARAM_NUMBER(nr_args);
+    GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_number (argv[0], &number, false);
@@ -805,7 +805,7 @@ exp_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     long double number = 0.0L;
 
-    GET_PARAM_NUMBER(nr_args);
+    GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_long_double (argv[0], &number, false);
@@ -824,7 +824,7 @@ floor_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     double number = 0.0;
 
-    GET_PARAM_NUMBER(nr_args);
+    GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_number (argv[0], &number, false);
@@ -843,7 +843,7 @@ floor_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     long double number = 0.0L;
 
-    GET_PARAM_NUMBER(nr_args);
+    GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_long_double (argv[0], &number, false);
@@ -862,7 +862,7 @@ ceil_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     double number = 0.0;
 
-    GET_PARAM_NUMBER(nr_args);
+    GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_number (argv[0], &number, false);
@@ -881,7 +881,7 @@ ceil_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     long double number = 0.0L;
 
-    GET_PARAM_NUMBER(nr_args);
+    GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
     purc_variant_cast_to_long_double (argv[0], &number, false);
