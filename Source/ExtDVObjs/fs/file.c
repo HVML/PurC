@@ -62,7 +62,8 @@ static const char * pcdvobjs_get_next_option (const char *data,
         if (temp) {
             if (head == data) {
                 head = data + 1;
-            } else
+            }
+            else
                 break;
         }
         data++;
@@ -169,7 +170,8 @@ static ssize_t find_line (FILE *fp, int line_num, ssize_t file_length)
             if (line_num == 0)
                 break;
         }
-    } else {
+    }
+    else {
         line_num = -1 * line_num;
         file_length --;                     // the last is 0x0A
         pos = file_length;
@@ -459,7 +461,8 @@ bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     else {
         if ((-1 * byte_num) > filestat.st_size) {
             return PURC_VARIANT_INVALID;
-        } else
+        }
+        else
             pos = filestat.st_size + byte_num;
     }
 
@@ -537,7 +540,8 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     else {
         if ((-1 * byte_num) > filestat.st_size) {
             return PURC_VARIANT_INVALID;
-        } else
+        }
+        else
             pos = filestat.st_size + byte_num;
     }
 
@@ -875,9 +879,11 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
                             val = purc_variant_make_byte_sequence_reuse_buff(
                                         buffer, read_number, read_number);
                         }
-                    } else
+                    }
+                    else
                         val = purc_variant_make_null();
-                } else
+                }
+                else
                     val = purc_variant_make_null();
 
                 break;
@@ -917,9 +923,11 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
                             val = purc_variant_make_string_reuse_buff (
                                     (char *)buffer, read_number, false);
                         }
-                    } else
+                    }
+                    else
                         val = purc_variant_make_string ("", false);
-                } else {
+                }
+                else {
                     int i = 0;
                     int j = 0;
                     size_t mem_size = BUFFER_SIZE;
@@ -1462,7 +1470,8 @@ stream_readbytes_getter (purc_variant_t root, size_t nr_args,
     if (byte_num == 0) {
         purc_set_error (PURC_ERROR_WRONG_ARGS);
         ret_var = PURC_VARIANT_INVALID;
-    } else {
+    }
+    else {
         char * content = malloc (byte_num);
         size_t size = 0;
 
