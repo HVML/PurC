@@ -128,7 +128,7 @@ long double const_l(string);
  * @note        The angle is given in RADIANS.
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_BAD_SYSTEM_CALL
+ *              PURC_ERROR_UNKNOWN
  *
  * @sa          sin_l()
  */
@@ -150,7 +150,7 @@ double sin(number | longint | ulongint | long double angle);
  * @note        The angle is given in RADIANS.
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_BAD_SYSTEM_CALL
+ *              PURC_ERROR_UNKNOWN
  *
  * @sa          sin()
  */
@@ -171,7 +171,7 @@ long double sin_l(number | longint | ulongint | long double angle);
  * @note        The returned angle is given in RADIANS.
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_BAD_SYSTEM_CALL
+ *              PURC_ERROR_UNKNOWN
  *
  * @sa          asin_l()
  */
@@ -193,7 +193,7 @@ double asin(number | longint | ulongint | long double value);
  * @note        The returned angle is given in RADIANS.
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_BAD_SYSTEM_CALL
+ *              PURC_ERROR_UNKNOWN
  *
  * @sa          asin()
  */
@@ -215,7 +215,7 @@ long double asin_l(number | longint | ulongint | long double value);
  * @note        The angle is given in RADIANS.
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_BAD_SYSTEM_CALL
+ *              PURC_ERROR_UNKNOWN
  *
  * @sa          cos_l()
  */
@@ -237,7 +237,7 @@ double cos(number | longint | ulongint | long double angle);
  * @note        The angle is given in RADIANS.
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_BAD_SYSTEM_CALL
+ *              PURC_ERROR_UNKNOWN
  *
  * @sa          cos()
  */
@@ -259,7 +259,7 @@ long double cos_l(number | longint | ulongint | long double angle);
  * @note        The returned angle is given in RADIANS.
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_BAD_SYSTEM_CALL
+ *              PURC_ERROR_UNKNOWN
  *
  * @sa          acos_l()
  */
@@ -281,7 +281,7 @@ double acos(number | longint | ulongint | long double value);
  * @note        The returned angle is given in RADIANS.
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_BAD_SYSTEM_CALL
+ *              PURC_ERROR_UNKNOWN
  *
  * @sa          acos()
  */
@@ -302,7 +302,7 @@ long double acos_l(number | longint | ulongint | long double value);
  * @note        The angle is given in RADIANS.
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_BAD_SYSTEM_CALL
+ *              PURC_ERROR_UNKNOWN
  *              PURC_ERROR_OVERFLOW
  *
  * @sa          tan_l()
@@ -325,7 +325,7 @@ double tan(number | longint | ulongint | long double angle);
  * @note        The angle is given in RADIANS.
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_BAD_SYSTEM_CALL
+ *              PURC_ERROR_UNKNOWN
  *              PURC_ERROR_OVERFLOW
  *
  * @sa          tan()
@@ -347,7 +347,7 @@ long double tan_l(number | longint | ulongint | long double angle);
  * @note        The returned angle is given in RADIANS.
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_BAD_SYSTEM_CALL
+ *              PURC_ERROR_UNKNOWN
  *
  * @sa          atan_l()
  */
@@ -369,7 +369,7 @@ double atan(number | longint | ulongint | long double value);
  * @note        The returned angle is given in RADIANS.
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_BAD_SYSTEM_CALL
+ *              PURC_ERROR_UNKNOWN
  *
  * @sa          atan()
  */
@@ -390,7 +390,7 @@ long double atan_l(number | longint | ulongint | long double value);
  * @note
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_BAD_SYSTEM_CALL
+ *              PURC_ERROR_UNKNOWN
  *
  * @sa          sqrt_l()
  */
@@ -412,7 +412,7 @@ double sqrt(number | longint | ulongint | long double number);
  * @note
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_BAD_SYSTEM_CALL
+ *              PURC_ERROR_UNKNOWN
  *
  * @sa          sqrt()
  */
@@ -435,7 +435,7 @@ long double sqrt_l(number | longint | ulongint | long double number);
  * @note
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_BAD_SYSTEM_CALL
+ *              PURC_ERROR_UNKNOWN
  *
  * @sa          fmod_l()
  */
@@ -458,7 +458,7 @@ double fmod(number | longint | ulongint | long double value1, number | longintlo
  * @note
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_BAD_SYSTEM_CALL
+ *              PURC_ERROR_UNKNOWN
  *
  * @sa          fmod()
  */
@@ -479,7 +479,7 @@ long double fmod_l(number | longint | ulongint | long double value1, number | lo
  * @note
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_BAD_SYSTEM_CALL
+ *              PURC_ERROR_UNKNOWN
  *
  * @sa          fabs_l()
  */
@@ -501,7 +501,7 @@ double fabs(number | longint | ulongint | long double value);
  * @note
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_BAD_SYSTEM_CALL
+ *              PURC_ERROR_UNKNOWN
  *
  * @sa          fabs()
  */
@@ -523,7 +523,7 @@ long double fabs_l(number | longint | ulongint | long double value);
  *
  * @exception   PURC_ERROR_WRONG_ARGS
  *              PURC_ERROR_DIVBYZERO
- *              PURC_ERROR_BAD_SYSTEM_CALL
+ *              PURC_ERROR_UNKNOWN
  *
  * @sa          log_l()
  */
@@ -546,7 +546,7 @@ double log(number | longint | ulongint | long double value);
  *
  * @exception   PURC_ERROR_WRONG_ARGS
  *              PURC_ERROR_DIVBYZERO
- *              PURC_ERROR_BAD_SYSTEM_CALL
+ *              PURC_ERROR_UNKNOWN
  *
  * @sa          log()
  */
@@ -568,7 +568,7 @@ long double log_l(number | longint | ulongint | long double value);
  *
  * @exception   PURC_ERROR_WRONG_ARGS
  *              PURC_ERROR_DIVBYZERO
- *              PURC_ERROR_BAD_SYSTEM_CALL
+ *              PURC_ERROR_UNKNOWN
  *
  * @sa          log10_l()
  */
@@ -591,7 +591,7 @@ double log10(number | longint | ulongint | long double value);
  *
  * @exception   PURC_ERROR_WRONG_ARGS
  *              PURC_ERROR_DIVBYZERO
- *              PURC_ERROR_BAD_SYSTEM_CALL
+ *              PURC_ERROR_UNKNOWN
  *
  * @sa          log10()
  */
@@ -616,7 +616,7 @@ long double log10_l(number | longint | ulongint | long double value);
  *              PURC_ERROR_OVERFLOW
  *              PURC_ERROR_UNDERFLOW
  *              PURC_ERROR_DIVBYZERO
- *              PURC_ERROR_BAD_SYSTEM_CALL
+ *              PURC_ERROR_UNKNOWN
  *
  * @sa          pow_l()
  */
@@ -642,7 +642,7 @@ double pow(number | longint | ulongint | long double value1, number | longintlon
  *              PURC_ERROR_OVERFLOW
  *              PURC_ERROR_UNDERFLOW
  *              PURC_ERROR_DIVBYZERO
- *              PURC_ERROR_BAD_SYSTEM_CALL
+ *              PURC_ERROR_UNKNOWN
  *
  * @sa          pow()
  */
@@ -666,7 +666,7 @@ long double pow_l(number | longint | ulongint | long double value1, number | lon
  *              PURC_ERROR_OVERFLOW
  *              PURC_ERROR_UNDERFLOW
  *              PURC_ERROR_DIVBYZERO
- *              PURC_ERROR_BAD_SYSTEM_CALL
+ *              PURC_ERROR_UNKNOWN
  *
  * @sa          exp_l()
  */
@@ -691,7 +691,7 @@ double exp(number | longint | ulongint | long double value);
  *              PURC_ERROR_OVERFLOW
  *              PURC_ERROR_UNDERFLOW
  *              PURC_ERROR_DIVBYZERO
- *              PURC_ERROR_BAD_SYSTEM_CALL
+ *              PURC_ERROR_UNKNOWN
  *
  * @sa          exp()
  */
@@ -712,7 +712,7 @@ long double exp_l(number | longint | ulongint | long double value);
  * @note
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_BAD_SYSTEM_CALL
+ *              PURC_ERROR_UNKNOWN
  *
  * @sa          floor_l()
  */
@@ -734,7 +734,7 @@ double floor(number | longint | ulongint | long double value);
  * @note
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_BAD_SYSTEM_CALL
+ *              PURC_ERROR_UNKNOWN
  *
  * @sa          floor()
  */
@@ -755,7 +755,7 @@ long double floor_l(number | longint | ulongint | long double value);
  * @note
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_BAD_SYSTEM_CALL
+ *              PURC_ERROR_UNKNOWN
  *
  * @sa          ceil_l()
  */
@@ -777,7 +777,7 @@ double ceil(number | longint | ulongint | long double value);
  * @note
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_BAD_SYSTEM_CALL
+ *              PURC_ERROR_UNKNOWN
  *
  * @sa          ceil()
  */
