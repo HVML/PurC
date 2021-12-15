@@ -155,7 +155,8 @@ static struct err_msg_seg _ejson_err_msgs_seg = {
     { NULL, NULL },
     PURC_ERROR_FIRST_EJSON,
     PURC_ERROR_FIRST_EJSON + PCA_TABLESIZE(ejson_err_msgs) - 1,
-    ejson_err_msgs
+    ejson_err_msgs,
+    NULL
 };
 
 void pcejson_init_once (void)

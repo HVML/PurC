@@ -27,12 +27,14 @@
 
 #include "config.h"
 
+#include "purc-utils.h"
 #include "private/list.h"
 
 struct err_msg_seg {
     struct list_head list;
     int first_errcode, last_errcode;
     const char **msgs;
+    purc_atom_t *exceptions;
 };
 
 /* registers the messages for a segment of error codes */

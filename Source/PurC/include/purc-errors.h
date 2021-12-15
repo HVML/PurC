@@ -29,6 +29,7 @@
 #include <stddef.h>
 
 #include "purc-macros.h"
+#include "purc-utils.h"
 
 // the first error codes for modules:
 #define PURC_ERROR_FIRST_GENERIC        0
@@ -286,6 +287,16 @@ purc_set_error(int err_code);
  */
 PCA_EXPORT const char*
 purc_get_error_message (int errcode);
+
+/**
+ * purc_get_error_exceptions:
+ *
+ * @errcode: the error code.
+ *
+ * Returns: The exception atom string for the specified error code.
+ */
+PCA_EXPORT purc_atom_t
+purc_get_error_exception (int errcode);
 
 PCA_EXTERN_C_END
 
