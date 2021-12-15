@@ -58,6 +58,7 @@ purc_atom_t purc_except_connection_aborted;
 purc_atom_t purc_except_connection_refused;
 purc_atom_t purc_except_connection_reset;
 
+static pcutils_map* purc_error_except_map;
 static pcutils_map* purc_except_exinfo_required_map;
 
 #define DEFINE_EXCEPT(name, value, requied_exinfo)          \
@@ -65,11 +66,11 @@ static pcutils_map* purc_except_exinfo_required_map;
     pcutils_map_insert(purc_except_exinfo_required_map,     \
             (void*)name, (void*)requied_exinfo);
 
-void purc_error_init_once(void)
-{
-    purc_except_exinfo_required_map = pcutils_map_create(NULL, NULL, NULL,
-            NULL, NULL, false);
+#define MAP_EE(error, except)                 \
+    pcutils_map_insert(purc_error_except_map, (void*)error, (void*)except);
 
+void init_except_exinfo_map(void)
+{
     DEFINE_EXCEPT(purc_except_bad_name, "BadName", false);
     DEFINE_EXCEPT(purc_except_no_data, "NoData", false);
     DEFINE_EXCEPT(purc_except_not_ready, "NotReady", false);
@@ -102,10 +103,30 @@ void purc_error_init_once(void)
     DEFINE_EXCEPT(purc_except_connection_reset, "ConnectionReset", false);
 }
 
+void init_error_except_map(void)
+{
+    MAP_EE(PURC_ERROR_OK, 0);
+    MAP_EE(PURC_ERROR_BAD_SYSTEM_CALL,
+            purc_except_os_error);
+}
+
+void purc_error_init_once(void)
+{
+    purc_error_except_map = pcutils_map_create(NULL, NULL, NULL, NULL, NULL,
+            false);
+
+    purc_except_exinfo_required_map = pcutils_map_create(NULL, NULL, NULL,
+            NULL, NULL, false);
+
+    init_except_exinfo_map();
+    init_error_except_map();
+}
+
 bool is_except_exinfo_requited(purc_atom_t except)
 {
     const pcutils_map_entry* entry = NULL;
-    if ((entry = pcutils_map_find(purc_except_exinfo_required_map, except))) {
+    if ((entry = pcutils_map_find(purc_except_exinfo_required_map,
+                    (void*)except))) {
         return (bool) entry->val;
     }
     return false;
@@ -182,16 +203,11 @@ const char* purc_get_error_message(int errcode)
 
 purc_atom_t purc_get_error_exception(int errcode)
 {
-    struct list_head *p;
-
-    list_for_each(p, &_err_msg_seg_list) {
-        struct err_msg_seg *seg = container_of (p, struct err_msg_seg, list);
-        if (seg->exceptions && errcode >= seg->first_errcode &&
-                errcode <= seg->last_errcode) {
-            return seg->exceptions[errcode - seg->first_errcode];
-        }
+    const pcutils_map_entry* entry = NULL;
+    if ((entry = pcutils_map_find(purc_error_except_map,
+                    (const void*)(uintptr_t)errcode))) {
+        return (purc_atom_t) entry->val;
     }
-
     return 0;
 }
 

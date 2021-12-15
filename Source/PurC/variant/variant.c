@@ -87,8 +87,7 @@ static struct err_msg_seg _variant_err_msgs_seg = {
     { NULL, NULL },
     PURC_ERROR_FIRST_VARIANT,
     PURC_ERROR_FIRST_VARIANT + PCA_TABLESIZE(variant_err_msgs) - 1,
-    variant_err_msgs,
-    NULL
+    variant_err_msgs
 };
 
 /*

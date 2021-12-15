@@ -508,8 +508,7 @@ static struct err_msg_seg _hvml_err_msgs_seg = {
     { NULL, NULL },
     PURC_ERROR_FIRST_HVML,
     PURC_ERROR_FIRST_HVML + PCA_TABLESIZE(hvml_err_msgs) - 1,
-    hvml_err_msgs,
-    NULL
+    hvml_err_msgs
 };
 
 static const uint32_t numeric_char_ref_extension_array[32] = {

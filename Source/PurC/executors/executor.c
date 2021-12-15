@@ -91,8 +91,7 @@ static struct err_msg_seg _executor_err_msgs_seg = {
     { NULL, NULL },
     PURC_ERROR_FIRST_EXECUTOR,
     PURC_ERROR_FIRST_EXECUTOR + PCA_TABLESIZE(executor_err_msgs) - 1,
-    executor_err_msgs,
-    NULL
+    executor_err_msgs
 };
 
 

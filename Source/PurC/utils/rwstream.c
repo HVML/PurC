@@ -85,8 +85,7 @@ static struct err_msg_seg _rwstream_err_msgs_seg = {
     { NULL, NULL },
     PURC_ERROR_FIRST_RWSTREAM,
     PURC_ERROR_FIRST_RWSTREAM + PCA_TABLESIZE(rwstream_err_msgs) - 1,
-    rwstream_err_msgs,
-    NULL
+    rwstream_err_msgs
 };
 
 void pcrwstream_init_once(void)
