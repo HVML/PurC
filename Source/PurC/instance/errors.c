@@ -58,44 +58,57 @@ purc_atom_t purc_except_connection_aborted;
 purc_atom_t purc_except_connection_refused;
 purc_atom_t purc_except_connection_reset;
 
+static pcutils_map* purc_except_exinfo_required_map;
+
+#define DEFINE_EXCEPT(name, value, requied_exinfo)          \
+    name =  purc_atom_from_static_string(value);            \
+    pcutils_map_insert(purc_except_exinfo_required_map,     \
+            (void*)name, (void*)requied_exinfo);
+
 void purc_error_init_once(void)
 {
-    purc_except_bad_name = purc_atom_from_static_string("BadName");
-    purc_except_no_data = purc_atom_from_static_string("NoData");
-    purc_except_not_ready = purc_atom_from_static_string("NotReady");
-    purc_except_unauthorized = purc_atom_from_static_string("Unauthorized");
-    purc_except_timeout = purc_atom_from_static_string("Timeout");
-    purc_except_syntax_error = purc_atom_from_static_string("SyntaxError");
-    purc_except_not_iterable = purc_atom_from_static_string("NotIterable");
-    purc_except_index_error = purc_atom_from_static_string("IndexError");
-    purc_except_key_error = purc_atom_from_static_string("KeyError");
-    purc_except_zero_division = purc_atom_from_static_string("ZeroDivision");
-    purc_except_overflow = purc_atom_from_static_string("Overflow");
-    purc_except_floating_point = purc_atom_from_static_string("FloatingPoint");
-    purc_except_not_implemented = purc_atom_from_static_string("NotImplemented");
-    purc_except_max_recursion_depth = purc_atom_from_static_string(
-            "MaxRecursionDepth");
-    purc_except_bad_encoding = purc_atom_from_static_string("BadEncoding");
-    purc_except_bad_value = purc_atom_from_static_string("BadValue");
-    purc_except_wrong_data_type = purc_atom_from_static_string("WrongDataType");
-    purc_except_wrong_domain = purc_atom_from_static_string("WrongDomain");
-    purc_except_os_error = purc_atom_from_static_string("OSError");
-    purc_except_access_denied = purc_atom_from_static_string("AccessDenied");
-    purc_except_io_error = purc_atom_from_static_string("IOError");
-    purc_except_too_many = purc_atom_from_static_string("TooMany");
-    purc_except_too_long = purc_atom_from_static_string("TooLong");
-    purc_except_not_desired_entity = purc_atom_from_static_string(
-            "NotDesiredEntity");
-    purc_except_entity_not_found = purc_atom_from_static_string(
-            "EntityNotFound");
-    purc_except_entity_exists = purc_atom_from_static_string("EntityExists");
-    purc_except_broken_pipe = purc_atom_from_static_string("BrokenPipe");
-    purc_except_connection_aborted = purc_atom_from_static_string(
-            "ConnectionAborted");
-    purc_except_connection_refused = purc_atom_from_static_string(
-            "ConnectionRefused");
-    purc_except_connection_reset = purc_atom_from_static_string(
-            "ConnectionReset");
+    purc_except_exinfo_required_map = pcutils_map_create(NULL, NULL, NULL,
+            NULL, NULL, false);
+
+    DEFINE_EXCEPT(purc_except_bad_name, "BadName", false);
+    DEFINE_EXCEPT(purc_except_no_data, "NoData", false);
+    DEFINE_EXCEPT(purc_except_not_ready, "NotReady", false);
+    DEFINE_EXCEPT(purc_except_unauthorized, "Unauthorized", false);
+    DEFINE_EXCEPT(purc_except_timeout, "Timeout", false);
+    DEFINE_EXCEPT(purc_except_syntax_error, "SyntaxError", false);
+    DEFINE_EXCEPT(purc_except_not_iterable, "NotIterable", false);
+    DEFINE_EXCEPT(purc_except_index_error, "IndexError", false);
+    DEFINE_EXCEPT(purc_except_key_error, "KeyError", false);
+    DEFINE_EXCEPT(purc_except_zero_division, "ZeroDivision", false);
+    DEFINE_EXCEPT(purc_except_overflow, "Overflow", false);
+    DEFINE_EXCEPT(purc_except_floating_point, "FloatingPoint", false);
+    DEFINE_EXCEPT(purc_except_not_implemented, "NotImplemented", false);
+    DEFINE_EXCEPT(purc_except_max_recursion_depth, "MaxRecursionDepth", false);
+    DEFINE_EXCEPT(purc_except_bad_encoding, "BadEncoding", false);
+    DEFINE_EXCEPT(purc_except_bad_value, "BadValue", false);
+    DEFINE_EXCEPT(purc_except_wrong_data_type, "WrongDataType", false);
+    DEFINE_EXCEPT(purc_except_wrong_domain, "WrongDomain", false);
+    DEFINE_EXCEPT(purc_except_os_error, "OSError", false);
+    DEFINE_EXCEPT(purc_except_access_denied, "AccessDenied", false);
+    DEFINE_EXCEPT(purc_except_io_error, "IOError", false);
+    DEFINE_EXCEPT(purc_except_too_many, "TooMany", false);
+    DEFINE_EXCEPT(purc_except_too_long, "TooLong", false);
+    DEFINE_EXCEPT(purc_except_not_desired_entity, "NotDesiredEntity", false);
+    DEFINE_EXCEPT(purc_except_entity_not_found, "EntityNotFound", false);
+    DEFINE_EXCEPT(purc_except_entity_exists, "EntityExists", false);
+    DEFINE_EXCEPT(purc_except_broken_pipe, "BrokenPipe", false);
+    DEFINE_EXCEPT(purc_except_connection_aborted, "ConnectionAborted", false);
+    DEFINE_EXCEPT(purc_except_connection_refused, "ConnectionRefused", false);
+    DEFINE_EXCEPT(purc_except_connection_reset, "ConnectionReset", false);
+}
+
+bool is_except_exinfo_requited(purc_atom_t except)
+{
+    const pcutils_map_entry* entry = NULL;
+    if ((entry = pcutils_map_find(purc_except_exinfo_required_map, except))) {
+        return (bool) entry->val;
+    }
+    return false;
 }
 
 int purc_get_last_error(void)
@@ -139,7 +152,10 @@ int purc_set_error_ex(int errcode, purc_variant_t exinfo)
 #if 0
     pcintr_stack_t stack = purc_get_stack();
     if (stack) {
-        purc_atom_t exception = purc_get_error_exception(errcode);
+        purc_atom_t except = purc_get_error_exception(errcode);
+        if (is_except_exinfo_requited(except) && !exinfo) {
+            // error
+        }
     }
 #endif
     return PURC_ERROR_OK;
