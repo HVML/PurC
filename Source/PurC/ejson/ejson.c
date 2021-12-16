@@ -106,41 +106,41 @@
         return ""#state_name;                                               \
 
 
-static const char* ejson_err_msgs[] = {
+static struct err_msg_info ejson_err_msgs[] = {
     /* PCEJSON_ERROR_UNEXPECTED_CHARACTER */
-    "pcejson unexpected character parse error",
+    { "pcejson unexpected character parse error", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
     /* PCEJSON_ERROR_UNEXPECTED_NULL_CHARACTER */
-    "pcejson unexpected null character parse error",
+    { "pcejson unexpected null character parse error", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
     /* PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_EXPONENT */
-    "pcejson unexpected json number exponent parse error",
+    { "pcejson unexpected json number exponent parse error", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
     /* PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_FRACTION */
-    "pcejson unexpected json number fraction parse error",
+    { "pcejson unexpected json number fraction parse error", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
     /* PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_INTEGER */
-    "pcejson unexpected json number integer parse error",
+    { "pcejson unexpected json number integer parse error", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
     /* PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER */
-    "pcejson unexpected json number parse error",
+    { "pcejson unexpected json number parse error", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
     /* PCEJSON_ERROR_UNEXPECTED_RIGHT_BRACE */
-    "pcejson unexpected right brace parse error",
+    { "pcejson unexpected right brace parse error", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
     /* PCEJSON_ERROR_UNEXPECTED_RIGHT_BRACKET */
-    "pcejson unexpected right bracket parse error",
+    { "pcejson unexpected right bracket parse error", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
     /* PCEJSON_ERROR_UNEXPECTED_JSON_KEY_NAME */
-    "pcejson unexpected json key name parse error",
+    { "pcejson unexpected json key name parse error", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
     /* PCEJSON_ERROR_UNEXPECTED_COMMA */
-    "pcejson unexpected comma parse error",
+    { "pcejson unexpected comma parse error", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
     /* PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD */
-    "pcejson unexpected json keyword parse error",
+    { "pcejson unexpected json keyword parse error", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
     /* PCEJSON_ERROR_UNEXPECTED_BASE64 */
-    "pcejson unexpected base64 parse error",
+    { "pcejson unexpected base64 parse error", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
     /* PCEJSON_ERROR_UNEXPECTED_EOF */
-    "pcejson unexpected eof parse error",
+    { "pcejson unexpected eof parse error", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
     /* PCEJSON_ERROR_BAD_JSON_NUMBER */
-    "pcejson bad json number parse error",
+    { "pcejson bad json number parse error", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
     /* PCEJSON_ERROR_BAD_JSON_STRING_ESCAPE_ENTITY */
-    "pcejson bad json string escape entity parse error",
+    { "pcejson bad json string escape entity parse error", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
     /* PCEJSON_ERROR_BAD_JSON */
-    "pcejson bad json parse error",
+    { "pcejson bad json parse error", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
     /* PCEJSON_ERROR_MAX_DEPTH_EXCEEDED */
-    "pcejson max depth exceeded",
+    { "pcejson max depth exceeded", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
 };
 
 /* Make sure the number of error messages matches the number of error codes */

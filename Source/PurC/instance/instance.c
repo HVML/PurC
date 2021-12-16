@@ -41,61 +41,66 @@
 #include <stdlib.h>
 #include <string.h>
 
-static const char* generic_err_msgs[] = {
+static struct err_msg_info generic_err_msgs[] = {
     /* PURC_ERROR_OK */
-    "Ok",
+    { "Ok", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_BAD_SYSTEM_CALL */
-    "Bad system call",
+    { "Bad system call", PURC_EXCEPT_OS_ERROR, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_BAD_STDC_CALL */
-    "Bad STDC call",
+    { "Bad STDC call", PURC_EXCEPT_OS_ERROR, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_OUT_OF_MEMORY */
-    "Out of memory",
+    { "Out of memory", PURC_EXCEPT_MEMORY_ERROR, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_INVALID_VALUE */
-    "Invalid value",
+    { "Invalid value", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_DUPLICATED */
-    "Duplicated",
+    { "Duplicated", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_NOT_IMPLEMENTED */
-    "Not implemented",
+    { "Not implemented", PURC_EXCEPT_NOT_IMPLEMENTED, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_NO_INSTANCE */
-    "No instance",
+    { "No instance", PURC_EXCEPT_NOT_READY, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_TOO_LARGE_ENTITY */
-    "Tool large entity",
+    { "Tool large entity", PURC_EXCEPT_TOO_LONG, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_BAD_ENCODING */
-    "Bad encoding",
+    { "Bad encoding", PURC_EXCEPT_BAD_ENCODING, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_NOT_SUPPORTED */
-    "Not supported",
+    { "Not supported", PURC_EXCEPT_NOT_IMPLEMENTED, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_OUTPUT */
-    "An output error is encountered",
+    {
+        "An output error is encountered",
+        PURC_EXCEPT_IO_ERROR,
+        PURC_EXCEPT_FLAGS_NULL,
+        0
+    },
     /* PURC_ERROR_TOO_SMALL_BUFF */
-    "Too small buffer",
+    { "Too small buffer", PURC_EXCEPT_BUFFER_ERROR, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_NULL_OBJECT */
-    "Null object",
+    { "Null object", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_TOO_SMALL_SIZE */
-    "Too small size",
+    { "Too small size", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_INCOMPLETE_OBJECT */
-    "Incomplete object",
+    { "Incomplete object", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_NO_FREE_SLOT */
-    "No free slot",
+    { "No free slot", PURC_EXCEPT_BUFFER_ERROR, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_NOT_EXISTS */
-    "Does not exist",
+    { "Does not exist", PURC_EXCEPT_ENTITY_EXISTS, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_WRONG_ARGS */
-    "Wrong arguments",
+    { "Wrong arguments", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_WRONG_STAGE */
-    "Wrong stage",
+    { "Wrong stage", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_UNEXPECTED_RESULT */
-    "Unexpected result",
+    { "Unexpected result", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_UNEXPECTED_DATA */
-    "Unexpected data",
+    { "Unexpected data", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_OVERFLOW */
-    "Overflow",
+    { "Overflow", PURC_EXCEPT_OVERFLOW, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_UNDERFLOW */
-    "Underflow",
+    { "Underflow", PURC_EXCEPT_OVERFLOW, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_DIVBYZERO*/
-    "Divide by zero",
+    { "Divide by zero", PURC_EXCEPT_ZERO_DIVISION, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_UNKNOWN */
-    "Unknown",
+    { "Unknown", PURC_EXCEPT_OS_ERROR, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_BAD_LOCALE_CATEGORY */
-    "Bad locale category",
+    { "Bad locale category", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NULL, 0},
 };
 
 /* Make sure the number of error messages matches the number of error codes */
@@ -110,13 +115,12 @@ _COMPILE_TIME_ASSERT(msgs,
 static struct err_msg_seg _generic_err_msgs_seg = {
     { NULL, NULL },
     PURC_ERROR_OK, PURC_ERROR_OK + PCA_TABLESIZE(generic_err_msgs) - 1,
-    generic_err_msgs
+    generic_err_msgs,
 };
 
 static void init_modules(void)
 {
     pcutils_atom_init_once();
-    purc_error_init_once();
 
     pcinst_register_error_message_segment(&_generic_err_msgs_seg);
 

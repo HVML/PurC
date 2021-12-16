@@ -32,6 +32,42 @@
 #include "purc-utils.h"
 #include "purc-variant.h"
 
+#define PURC_EXCEPT_BADNAME             "BadName"
+#define PURC_EXCEPT_NO_DATA             "NoData"
+#define PURC_EXCEPT_NOT_READY           "NotReady"
+#define PURC_EXCEPT_UNAUTHORIZED        "Unauthorized"
+#define PURC_EXCEPT_TIMEOUT             "Timeout"
+#define PURC_EXCEPT_SYNTAX_ERROR        "SyntaxError"
+#define PURC_EXCEPT_NOT_ITERABLE        "NotIterable"
+#define PURC_EXCEPT_INDEX_ERROR         "IndexError"
+#define PURC_EXCEPT_KEY_ERROR           "KeyError"
+#define PURC_EXCEPT_ZERO_DIVISION       "ZeroDivision"
+#define PURC_EXCEPT_OVERFLOW            "Overflow"
+#define PURC_EXCEPT_FLOATING_POINT      "FloatingPoint"
+#define PURC_EXCEPT_NOT_IMPLEMENTED     "NotImplemented"
+#define PURC_EXCEPT_MAX_RECURSION_DEPTH "MaxRecursionDepth"
+#define PURC_EXCEPT_BAD_ENCODING        "BadEncoding"
+#define PURC_EXCEPT_BAD_VALUE           "BadValue"
+#define PURC_EXCEPT_WRONG_DATA_TYPE     "WrongDataType"
+#define PURC_EXCEPT_WRONG_DOMAIN        "WrongDomain"
+#define PURC_EXCEPT_OS_ERROR            "OSError"
+#define PURC_EXCEPT_ACCESS_DENIED       "AccessDenied"
+#define PURC_EXCEPT_IO_ERROR            "IOError"
+#define PURC_EXCEPT_TOO_MANY            "TooMany"
+#define PURC_EXCEPT_TOO_LONG            "TooLong"
+#define PURC_EXCEPT_NOT_DESIRED_ENTITY  "NotDesiredEntity"
+#define PURC_EXCEPT_ENTITY_NOTFOUND     "EntityNotFound"
+#define PURC_EXCEPT_ENTITY_EXISTS       "EntityExists"
+#define PURC_EXCEPT_BROKEN_PIPE         "BrokenPipe"
+#define PURC_EXCEPT_CONNECTION_ABORTED  "ConnectionAborted"
+#define PURC_EXCEPT_CONNECTION_REFUSED  "ConnectionRefused"
+#define PURC_EXCEPT_CONNECTION_RESET    "ConnectionReset"
+#define PURC_EXCEPT_MEMORY_ERROR        "MemoryError"
+#define PURC_EXCEPT_BUFFER_ERROR        "BufferError"
+
+#define PURC_EXCEPT_FLAGS_NULL          0x0000
+#define PURC_EXCEPT_FLAGS_REQUIRED      0x0001
+
 // the first error codes for modules:
 #define PURC_ERROR_FIRST_GENERIC        0
 #define PURC_ERROR_FIRST_VARIANT        100
@@ -303,20 +339,23 @@ PCA_EXPORT int
 purc_get_last_error (void);
 
 /**
- * purc_set_error:
- *
- * Returns: PURC_ERROR_OK or PURC_ERROR_NO_INSTANCE.
- */
-PCA_EXPORT int
-purc_set_error(int err_code);
-
-/**
  * purc_set_error_ex:
  *
  * Returns: PURC_ERROR_OK or PURC_ERROR_NO_INSTANCE.
  */
 PCA_EXPORT int
 purc_set_error_ex(int err_code, purc_variant_t exinfo);
+
+/**
+ * purc_set_error:
+ *
+ * Returns: PURC_ERROR_OK or PURC_ERROR_NO_INSTANCE.
+ */
+static inline int
+purc_set_error(int err_code)
+{
+    return purc_set_error_ex(err_code, PURC_VARIANT_INVALID);
+}
 
 /**
  * purc_get_error_message:

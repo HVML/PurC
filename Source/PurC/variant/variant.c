@@ -65,13 +65,28 @@ static pcvariant_release_fn variant_releasers[PURC_VARIANT_TYPE_NR] = {
 };
 
 
-static const char* variant_err_msgs[] = {
+static struct err_msg_info variant_err_msgs[] = {
     /* PCVARIANT_ERROR_INVALID_TYPE */
-    "Invalid variant type",
+    {
+        "Invalid variant type",
+        PURC_EXCEPT_WRONG_DATA_TYPE,
+        PURC_EXCEPT_FLAGS_NULL,
+        0
+    },
     /* PCVARIANT_ERROR_OUT_OF_BOUNDS */
-    "Index out of bounds",
+    {
+        "Index out of bounds",
+        PURC_EXCEPT_INDEX_ERROR,
+        PURC_EXCEPT_FLAGS_NULL,
+        0
+    },
     /* PCVARIANT_ERROR_NOT_FOUND */
-    "Element not found",
+    {
+        "Element not found",
+        PURC_EXCEPT_NOT_DESIRED_ENTITY,
+        PURC_EXCEPT_FLAGS_NULL,
+        0
+    },
 };
 
 /* Make sure the number of error messages matches the number of error codes */
