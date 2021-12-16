@@ -46,7 +46,7 @@ purc_variant_t purc_get_last_error_ex(void)
         return inst->err_exinfo;
     }
 
-    return PURC_VARIANT_INVALID; // FIXME: or make_undefined?
+    return PURC_VARIANT_INVALID;
 }
 
 int purc_set_error_ex(int errcode, purc_variant_t exinfo)
