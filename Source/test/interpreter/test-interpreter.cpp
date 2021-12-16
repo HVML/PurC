@@ -5,7 +5,6 @@
 TEST(interpreter, basic)
 {
     const char *hvmls[] = {
-        "<hvml></hvml>",
         "<hvml><head/><body/></hvml>",
     };
 

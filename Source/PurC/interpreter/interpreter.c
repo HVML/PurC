@@ -130,7 +130,7 @@ push_stack_frame(pcintr_stack_t stack)
     list_add_tail(&frame->node, &stack->frames);
     ++stack->nr_frames;
 
-    return 0;
+    return frame;
 }
 
 void
@@ -369,8 +369,8 @@ hvml_eval(struct pcvdom_element *hvml)
 {
     int r = 0;
     struct pcvdom_element *p;
-    p = pcvdom_element_first_child_element(hvml);
 
+    p = pcvdom_element_first_child_element(hvml);
     for (; p; p = pcvdom_element_next_sibling_element(p)) {
         pcvdom_tag_id tag_id = p->tag_id;
         if (tag_id != PCHVML_TAG_HEAD)
@@ -379,14 +379,9 @@ hvml_eval(struct pcvdom_element *hvml)
         r = head_eval(p);
         if (r)
             return r;
-
-        p = pcvdom_element_next_sibling_element(p);
-        break;
     }
 
-    if (!p)
-        return 0;
-
+    p = pcvdom_element_first_child_element(hvml);
     for (; p; p = pcvdom_element_next_sibling_element(p)) {
         pcvdom_tag_id tag_id = p->tag_id;
         if (tag_id != PCHVML_TAG_BODY)
@@ -406,9 +401,26 @@ document_eval(struct pcvdom_document *document)
     int r = doctype_eval(doctype);
     if (r)
         return r;
+
+    pcintr_stack_t stack = purc_get_stack();
+    PC_ASSERT(stack);
+    struct pcintr_stack_frame *frame;
+    frame = push_stack_frame(stack);
+    PC_ASSERT(frame);
+
     struct pcvdom_element *hvml = document->root;
     PC_ASSERT(hvml);
     r = hvml_eval(hvml);
+
+    if (r==0) {
+        if (pcintr_stack_is_waiting(stack)==0) {
+            pop_stack_frame(stack);
+            if (stack->nr_frames == 0) {
+                stack->state |= STACK_STATE_TERMINATED;
+            }
+        }
+    }
+
     return r;
 
     // struct pcvdom_node *node = &document->node;
@@ -450,7 +462,8 @@ int vdom_eval(purc_vdom_t vdom)
     PC_ASSERT(stack->except == 0);
 
     struct pcvdom_document *document = vdom->document;
-    return document_eval(document);
+    int r = document_eval(document);
+    return r ? -1 : 0;
 }
 
 purc_vdom_t
@@ -542,15 +555,21 @@ static inline int vdom_main(void* ctxt)
 {
     purc_vdom_t vdom = (purc_vdom_t)ctxt;
 
-    // QUESTION: when to stop????
-    vdom_eval(vdom);
+    pcintr_stack_t stack = purc_get_stack();
+    PC_ASSERT(stack);
+    PC_ASSERT(stack->state == 0);
 
-    pcvdom_document_destroy(vdom->document);
-    free(vdom);
+    int r = vdom_eval(vdom);
+    if (r == 0) {
+        if (pcintr_stack_is_terminated(stack)) {
+            pcvdom_document_destroy(vdom->document);
+            free(vdom);
 
-    pcrunloop_t runloop = pcrunloop_get_current();
-    PC_ASSERT(runloop);
-    pcrunloop_stop(runloop);
+            pcrunloop_t runloop = pcrunloop_get_current();
+            PC_ASSERT(runloop);
+            pcrunloop_stop(runloop);
+        }
+    }
 
     return 0;
 }
