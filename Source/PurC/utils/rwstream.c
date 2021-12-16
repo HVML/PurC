@@ -62,9 +62,19 @@ static struct err_msg_info rwstream_err_msgs[] = {
         0
     },
     /* PCRWSTREAM_ERROR_FILE_TOO_BIG */
-    { "File too large", PURC_EXCEPT_TOO_LONG, PURC_EXCEPT_FLAGS_NULL, 0 },
+    {
+        "File too large",
+        PURC_EXCEPT_TOO_LONG,
+        PURC_EXCEPT_FLAGS_NULL,
+        0
+    },
     /* PCRWSTREAM_ERROR_IO */
-    { "IO error", PURC_EXCEPT_IO_ERROR, PURC_EXCEPT_FLAGS_NULL, 0 },
+    {
+        "IO error",
+        PURC_EXCEPT_IO_ERROR,
+        PURC_EXCEPT_FLAGS_NULL,
+        0
+    },
     /* PCRWSTREAM_ERROR_IS_DIR */
     {
         "File is a directory.",
@@ -94,7 +104,12 @@ static struct err_msg_info rwstream_err_msgs[] = {
         0
     },
     /* PCRWSTREAM_ERROR_PIPE */
-    { "Broken pipe", PURC_EXCEPT_BROKEN_PIPE, PURC_EXCEPT_FLAGS_NULL, 0 },
+    {
+        "Broken pipe",
+        PURC_EXCEPT_BROKEN_PIPE,
+        PURC_EXCEPT_FLAGS_NULL,
+        0
+    },
 };
 
 /* Make sure the number of error messages matches the number of error codes */
