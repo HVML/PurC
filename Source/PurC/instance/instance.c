@@ -49,7 +49,7 @@ static struct err_msg_info generic_err_msgs[] = {
     /* PURC_ERROR_BAD_STDC_CALL */
     { "Bad STDC call", PURC_EXCEPT_OS_ERROR, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_OUT_OF_MEMORY */
-    { "Out of memory", PURC_EXCEPT_OVERFLOW, PURC_EXCEPT_FLAGS_NULL, 0},
+    { "Out of memory", PURC_EXCEPT_MEMORY_ERROR, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_INVALID_VALUE */
     { "Invalid value", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_DUPLICATED */
@@ -72,15 +72,15 @@ static struct err_msg_info generic_err_msgs[] = {
         0
     },
     /* PURC_ERROR_TOO_SMALL_BUFF */
-    { "Too small buffer", PURC_EXCEPT_IO_ERROR, PURC_EXCEPT_FLAGS_NULL, 0},
+    { "Too small buffer", PURC_EXCEPT_BUFFER_ERROR, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_NULL_OBJECT */
     { "Null object", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_TOO_SMALL_SIZE */
-    { "Too small size", PURC_EXCEPT_IO_ERROR, PURC_EXCEPT_FLAGS_NULL, 0},
+    { "Too small size", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_INCOMPLETE_OBJECT */
     { "Incomplete object", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_NO_FREE_SLOT */
-    { "No free slot", PURC_EXCEPT_IO_ERROR, PURC_EXCEPT_FLAGS_NULL, 0},
+    { "No free slot", PURC_EXCEPT_BUFFER_ERROR, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_NOT_EXISTS */
     { "Does not exist", PURC_EXCEPT_ENTITY_EXISTS, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_WRONG_ARGS */
