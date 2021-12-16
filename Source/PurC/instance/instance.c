@@ -91,6 +91,8 @@ static const char* generic_err_msgs[] = {
     "Underflow",
     /* PURC_ERROR_DIVBYZERO*/
     "Divide by zero",
+    /* PURC_ERROR_FEINVALID */
+    "Float point invalid",
     /* PURC_ERROR_UNKNOWN */
     "Unknown",
     /* PURC_ERROR_BAD_LOCALE_CATEGORY */
