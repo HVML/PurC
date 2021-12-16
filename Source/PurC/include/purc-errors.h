@@ -65,7 +65,7 @@
 #define PURC_EXCEPT_MEMORY_ERROR        "MemoryError"
 #define PURC_EXCEPT_BUFFER_ERROR        "BufferError"
 
-#define PURC_EXCEPT_FLAGS_NULL          0x0000
+#define PURC_EXCEPT_FLAGS_NONE          0x0000
 #define PURC_EXCEPT_FLAGS_REQUIRED      0x0001
 
 // the first error codes for modules:

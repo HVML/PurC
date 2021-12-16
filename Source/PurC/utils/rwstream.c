@@ -58,56 +58,56 @@ static struct err_msg_info rwstream_err_msgs[] = {
     {
         "Rwstream failed with some other error",
         PURC_EXCEPT_OS_ERROR,
-        PURC_EXCEPT_FLAGS_NULL,
+        PURC_EXCEPT_FLAGS_NONE,
         0
     },
     /* PCRWSTREAM_ERROR_FILE_TOO_BIG */
     {
         "File too large",
         PURC_EXCEPT_TOO_LONG,
-        PURC_EXCEPT_FLAGS_NULL,
+        PURC_EXCEPT_FLAGS_NONE,
         0
     },
     /* PCRWSTREAM_ERROR_IO */
     {
         "IO error",
         PURC_EXCEPT_IO_ERROR,
-        PURC_EXCEPT_FLAGS_NULL,
+        PURC_EXCEPT_FLAGS_NONE,
         0
     },
     /* PCRWSTREAM_ERROR_IS_DIR */
     {
         "File is a directory.",
         PURC_EXCEPT_NOT_DESIRED_ENTITY,
-        PURC_EXCEPT_FLAGS_NULL,
+        PURC_EXCEPT_FLAGS_NONE,
         0
     },
     /* PCRWSTREAM_ERROR_NO_SPACE */
     {
         "No space left on device.",
         PURC_EXCEPT_IO_ERROR,
-        PURC_EXCEPT_FLAGS_NULL,
+        PURC_EXCEPT_FLAGS_NONE,
         0
     },
     /* PCRWSTREAM_ERROR_NO_DEVICE_OR_ADDRESS */
     {
         "No such device or address",
         PURC_EXCEPT_NOT_DESIRED_ENTITY,
-        PURC_EXCEPT_FLAGS_NULL,
+        PURC_EXCEPT_FLAGS_NONE,
         0
     },
     /* PCRWSTREAM_ERROR_OVERFLOW */
     {
         "Value too large for defined datatype",
         PURC_EXCEPT_OVERFLOW,
-        PURC_EXCEPT_FLAGS_NULL,
+        PURC_EXCEPT_FLAGS_NONE,
         0
     },
     /* PCRWSTREAM_ERROR_PIPE */
     {
         "Broken pipe",
         PURC_EXCEPT_BROKEN_PIPE,
-        PURC_EXCEPT_FLAGS_NULL,
+        PURC_EXCEPT_FLAGS_NONE,
         0
     },
 };
