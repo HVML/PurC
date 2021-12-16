@@ -47,7 +47,7 @@ invalid param type and number   PURC_ERROR_WRONG_ARGS
 output                          PURC_ERROR_DIVBYZERO    FloatingPoint
                                 PURC_ERROR_OVERFLOW     Overflow
                                 PURC_ERROR_UNDERFLOW    Underflow
-                                PURC_ERROR_FEINVALID    FloatingPoint
+                                PURC_ERROR_INV_FLOATPOINT    FloatingPoint
 */
 
 // map for const and const_l
@@ -65,7 +65,7 @@ struct const_struct {
 
 #define GET_EXCEPTION_OR_CREATE_VARIANT(x, y) \
     if (isnan (x)) { \
-        purc_set_error (PURC_ERROR_FEINVALID); \
+        purc_set_error (PURC_ERROR_INV_FLOATPOINT); \
         ret_var = PURC_VARIANT_INVALID; \
     } \
     else { \
@@ -82,7 +82,7 @@ struct const_struct {
             ret_var = PURC_VARIANT_INVALID; \
         } \
         else if (fetestexcept (FE_INVALID)) { \
-            purc_set_error (PURC_ERROR_FEINVALID); \
+            purc_set_error (PURC_ERROR_INV_FLOATPOINT); \
             ret_var = PURC_VARIANT_INVALID; \
         } \
         else { \
@@ -95,7 +95,7 @@ struct const_struct {
 
 #define GET_EXCEPTION(x) \
     if (isnan (x)) { \
-        purc_set_error (PURC_ERROR_FEINVALID); \
+        purc_set_error (PURC_ERROR_INV_FLOATPOINT); \
         return PURC_VARIANT_INVALID; \
     } \
     else { \
@@ -112,7 +112,7 @@ struct const_struct {
             return PURC_VARIANT_INVALID; \
         } \
         else if (fetestexcept (FE_INVALID)) { \
-            purc_set_error (PURC_ERROR_FEINVALID); \
+            purc_set_error (PURC_ERROR_INV_FLOATPOINT); \
             return PURC_VARIANT_INVALID; \
         } \
     }
