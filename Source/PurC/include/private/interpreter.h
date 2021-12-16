@@ -81,6 +81,7 @@ struct pcintr_stack {
     struct timespec time_idle;
     size_t          peak_mem_use;
     size_t          peak_nr_variants;
+
 };
 
 enum purc_symbol_var {

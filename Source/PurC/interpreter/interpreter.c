@@ -170,204 +170,232 @@ pcintr_get_element_ops(pcvdom_element_t element)
     }
 }
 
-struct frame_element_doc
+struct frame_element
 {
     struct pcintr_stack_frame     *frame;
     struct pcvdom_element         *element;
-    struct pcvdom_document        *document;
 };
 
-static inline purc_variant_t
-fed_eval_attr(struct frame_element_doc *fed,
-        enum pchvml_attr_assignment  op,
-        struct pcvcm_node           *val)
+// static inline purc_variant_t
+// fed_eval_attr(struct frame_element *fed,
+//         enum pchvml_attr_assignment  op,
+//         struct pcvcm_node           *val)
+// {
+//     UNUSED_PARAM(fed);
+//     UNUSED_PARAM(op);
+//     UNUSED_PARAM(val);
+//     PC_ASSERT(0); // Not implemented yet
+//     return PURC_VARIANT_INVALID;
+// }
+
+// static inline int
+// init_frame_append_attr(void *key, void *val, void *ud)
+// {
+//     PC_ASSERT(ud);
+// 
+//     struct frame_element *fed = (struct frame_element*)ud;
+// 
+//     purc_variant_t attr_vars = fed->frame->attr_vars;
+// 
+//     struct pcvdom_attr *attr = (struct pcvdom_attr*)val;
+//     PC_ASSERT(key == attr->key);
+//     enum pchvml_attr_assignment  op   = attr->op;
+//     struct pcvcm_node           *node = attr->val;
+// 
+//     purc_variant_t k = purc_variant_make_string(attr->key, true);
+//     purc_variant_t v = fed_eval_attr(fed, op, node);
+// 
+//     PC_ASSERT(k!=PURC_VARIANT_INVALID);
+//     PC_ASSERT(v!=PURC_VARIANT_INVALID);
+// 
+//     purc_variant_t o = purc_variant_make_object(1, k, v);
+//     purc_variant_unref(k);
+//     purc_variant_unref(v);
+//     PC_ASSERT(o!=PURC_VARIANT_INVALID);
+// 
+//     bool ok = purc_variant_array_append(attr_vars, o);
+//     purc_variant_unref(o);
+// 
+//     PC_ASSERT(ok);
+// 
+//     return 0;
+// }
+
+// static inline int
+// init_frame_attr_vars(struct pcintr_stack_frame *frame,
+//         struct pcvdom_element *element)
+// {
+//     frame->attr_vars = purc_variant_make_object(0,
+//             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+// 
+//     if (frame->attr_vars == PURC_VARIANT_INVALID)
+//         return -1;
+// 
+//     struct pcutils_map *attrs = element->attrs;
+//     if (!attrs)
+//         return 0;
+// 
+//     struct frame_element ud = {
+//         .frame          = frame,
+//         .element        = element,
+//     };
+// 
+//     int r = pcutils_map_traverse(attrs, &ud, init_frame_append_attr);
+// 
+//     return r ? -1 : 0;
+// }
+// 
+// static inline int
+// init_frame_by_element(struct pcintr_stack_frame *frame,
+//         struct pcvdom_element *element)
+// {
+//     frame->scope = element; // FIXME: archetype, where to store `scope`
+//     frame->pos = element;
+// 
+//     if (init_frame_attr_vars(frame, element))
+//         return -1;
+// 
+//     // TODO:
+//     // frame->ctnt_vars = ????;
+//     return 0;
+// }
+
+static inline void
+comment_eval(struct pcvdom_comment *comment)
 {
-    UNUSED_PARAM(fed);
-    UNUSED_PARAM(op);
-    UNUSED_PARAM(val);
-    PC_ASSERT(0); // Not implemented yet
-    return PURC_VARIANT_INVALID;
+    UNUSED_PARAM(comment);
 }
 
-static inline int
-init_frame_append_attr(void *key, void *val, void *ud)
+static inline void
+content_eval(struct pcvdom_content *content)
 {
-    PC_ASSERT(ud);
-
-    struct frame_element_doc *fed = (struct frame_element_doc*)ud;
-
-    purc_variant_t attr_vars = fed->frame->attr_vars;
-
-    struct pcvdom_attr *attr = (struct pcvdom_attr*)val;
-    PC_ASSERT(key == attr->key);
-    enum pchvml_attr_assignment  op   = attr->op;
-    struct pcvcm_node           *node = attr->val;
-
-    purc_variant_t k = purc_variant_make_string(attr->key, true);
-    purc_variant_t v = fed_eval_attr(fed, op, node);
-
-    PC_ASSERT(k!=PURC_VARIANT_INVALID);
-    PC_ASSERT(v!=PURC_VARIANT_INVALID);
-
-    purc_variant_t o = purc_variant_make_object(1, k, v);
-    purc_variant_unref(k);
-    purc_variant_unref(v);
-    PC_ASSERT(o!=PURC_VARIANT_INVALID);
-
-    bool ok = purc_variant_array_append(attr_vars, o);
-    purc_variant_unref(o);
-
-    PC_ASSERT(ok);
-
-    return 0;
+    UNUSED_PARAM(content);
+    abort();
 }
 
-static inline int
-init_frame_attr_vars(struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element, struct pcvdom_document *document)
+static inline void
+element_eval(struct pcvdom_element *element)
 {
-    UNUSED_PARAM(document);
-
-    frame->attr_vars = purc_variant_make_object(0,
-            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-
-    if (frame->attr_vars == PURC_VARIANT_INVALID)
-        return -1;
-
-    struct pcutils_map *attrs = element->attrs;
-    if (!attrs)
-        return 0;
-
-    struct frame_element_doc ud = {
-        .frame          = frame,
-        .element        = element,
-        .document       = document,
-    };
-
-    int r = pcutils_map_traverse(attrs, &ud, init_frame_append_attr);
-
-    return r ? -1 : 0;
+    UNUSED_PARAM(element);
 }
 
-static inline int
-init_frame_by_element(struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element, struct pcvdom_document *document)
-{
-    frame->scope = element; // FIXME: archetype, where to store `scope`
-    frame->pos = element;
+// static inline int
+// element_eval_in_frame(struct pcvdom_element *element,
+//         struct pcintr_element_ops *ops,
+//         pcintr_stack_t stack,
+//         struct pcintr_stack_frame *frame)
+// {
+//     PC_ASSERT(element);
+// 
+//     int r = init_frame_by_element(frame, element);
+//     if (r) {
+//         return -1;
+//     }
+// 
+//     if (ops->after_pushed) {
+//         void *ctxt = ops->after_pushed(stack, element);
+//         frame->ctxt = ctxt;
+//     }
+// 
+// rerun:
+//     if (ops->select_child) {
+//         struct pcvdom_element *child;
+//         child = ops->select_child(stack, frame->ctxt);
+//         while (child) {
+//             r = element_eval(child);
+//             PC_ASSERT(r==0); // TODO: what if failed????
+//             child = ops->select_child(stack, frame->ctxt);
+//         }
+//     }
+// 
+//     if (ops->on_popping) {
+//         bool ok = ops->on_popping(stack, frame->ctxt);
+//         if (ok) {
+//             return 0;
+//         }
+//     }
+// 
+//     if (ops->rerun) {
+//         bool ok = ops->rerun(stack, frame->ctxt);
+//         PC_ASSERT(ok); // TODO: what if failed????
+//         goto rerun;
+//     }
+// 
+//     return 0;
+// }
 
-    if (init_frame_attr_vars(frame, element, document))
-        return -1;
+// static inline int
+// element_eval(struct pcvdom_element *element)
+// {
+//     PC_ASSERT(element);
+// 
+//     struct pcintr_element_ops *ops;
+//     ops = pcintr_get_element_ops(element);
+//     if (!ops)
+//         return 0;
+// 
+//     pcintr_stack_t stack = purc_get_stack();
+//     PC_ASSERT(stack);
+// 
+//     struct pcintr_stack_frame *frame;
+//     frame = push_stack_frame(stack);
+//     if (!frame)
+//         return -1;
+// 
+//     int r = element_eval_in_frame(element, ops, stack, frame);
+// 
+//     pop_stack_frame(stack);
+// 
+//     return r ? -1 : 0;
+// }
 
-    // TODO:
-    // frame->ctnt_vars = ????;
-    return 0;
-}
-
-static inline int
-element_eval(struct pcvdom_document *document,
-        struct pcvdom_element *element);
-
-static inline int
-element_eval_in_frame(struct pcvdom_document *document,
-        struct pcvdom_element *element,
-        struct pcintr_element_ops *ops,
-        pcintr_stack_t stack,
-        struct pcintr_stack_frame *frame)
-{
-    PC_ASSERT(document);
-    PC_ASSERT(element);
-
-    int r = init_frame_by_element(frame, element, document);
-    if (r) {
-        return -1;
-    }
-
-    if (ops->after_pushed) {
-        void *ctxt = ops->after_pushed(stack, element);
-        frame->ctxt = ctxt;
-    }
-
-rerun:
-    if (ops->select_child) {
-        struct pcvdom_element *child;
-        child = ops->select_child(stack, frame->ctxt);
-        while (child) {
-            r = element_eval(document, child);
-            PC_ASSERT(r==0); // TODO: what if failed????
-            child = ops->select_child(stack, frame->ctxt);
-        }
-    }
-
-    if (ops->on_popping) {
-        bool ok = ops->on_popping(stack, frame->ctxt);
-        if (ok) {
-            return 0;
-        }
-    }
-
-    if (ops->rerun) {
-        bool ok = ops->rerun(stack, frame->ctxt);
-        PC_ASSERT(ok); // TODO: what if failed????
-        goto rerun;
-    }
-
-    return 0;
-}
-
-static inline int
-element_eval(struct pcvdom_document *document,
-        struct pcvdom_element *element)
-{
-    PC_ASSERT(document);
-    PC_ASSERT(element);
-
-    struct pcintr_element_ops *ops;
-    ops = pcintr_get_element_ops(element);
-    if (!ops)
-        return 0;
-
-    pcintr_stack_t stack = purc_get_stack();
-    PC_ASSERT(stack);
-
-    struct pcintr_stack_frame *frame;
-    frame = push_stack_frame(stack);
-    if (!frame)
-        return -1;
-
-    int r = element_eval_in_frame(document, element, ops, stack, frame);
-
-    pop_stack_frame(stack);
-
-    return r ? -1 : 0;
-}
-
-static inline int
+static inline void
 doctype_eval(struct pcvdom_doctype *doctype)
 {
     const char *system_info = doctype->system_info;
     fprintf(stderr, "system_info: [%s]\n", system_info);
-    return 0;
 }
 
-static inline int
+static inline void
+children_eval(struct pcvdom_element *parent)
+{
+    struct pcvdom_node *p;
+    p = pcvdom_node_first_child(&parent->node);
+    for (; p; p = pcvdom_node_next_sibling(p)) {
+        switch (p->type) {
+            case PCVDOM_NODE_COMMENT:
+                comment_eval(PCVDOM_COMMENT_FROM_NODE(p));
+                break;
+            case PCVDOM_NODE_CONTENT:
+                content_eval(PCVDOM_CONTENT_FROM_NODE(p));
+                break;
+            case PCVDOM_NODE_ELEMENT:
+                element_eval(PCVDOM_ELEMENT_FROM_NODE(p));
+                break;
+            default:
+                PC_ASSERT(0);
+        }
+    }
+}
+
+static inline void
 head_eval(struct pcvdom_element *head)
 {
-    UNUSED_PARAM(head);
-    return 0;
+    children_eval(head);
 }
 
-static inline int
+static inline void
 body_eval(struct pcvdom_element *body)
 {
-    UNUSED_PARAM(body);
-    return 0;
+    children_eval(body);
 }
 
-static inline int
+static inline void
 hvml_eval(struct pcvdom_element *hvml)
 {
-    int r = 0;
+    pcintr_stack_t stack = purc_get_stack();
+    PC_ASSERT(stack);
+
     struct pcvdom_element *p;
 
     p = pcvdom_element_first_child_element(hvml);
@@ -376,9 +404,14 @@ hvml_eval(struct pcvdom_element *hvml)
         if (tag_id != PCHVML_TAG_HEAD)
             continue;
 
-        r = head_eval(p);
-        if (r)
-            return r;
+        struct pcintr_stack_frame *frame;
+        frame = push_stack_frame(stack);
+        PC_ASSERT(frame);
+        frame->scope = hvml;
+        head_eval(p);
+        if (pcintr_stack_is_waiting(stack))
+            return;
+        pop_stack_frame(stack);
     }
 
     p = pcvdom_element_first_child_element(hvml);
@@ -386,42 +419,42 @@ hvml_eval(struct pcvdom_element *hvml)
         pcvdom_tag_id tag_id = p->tag_id;
         if (tag_id != PCHVML_TAG_BODY)
             continue;
-        // TODO: check id
-        r = body_eval(p);
-        return r;
-    }
 
-    return 0;
+        struct pcintr_stack_frame *frame;
+        frame = push_stack_frame(stack);
+        PC_ASSERT(frame);
+        frame->scope = hvml;
+        // TODO: check id
+        body_eval(p);
+        if (pcintr_stack_is_waiting(stack))
+            return;
+        pop_stack_frame(stack);
+    }
 }
 
-static inline int
+static inline void
 document_eval(struct pcvdom_document *document)
 {
-    struct pcvdom_doctype *doctype = &document->doctype;
-    int r = doctype_eval(doctype);
-    if (r)
-        return r;
-
     pcintr_stack_t stack = purc_get_stack();
     PC_ASSERT(stack);
+
+    struct pcvdom_doctype *doctype = &document->doctype;
+    doctype_eval(doctype);
+    if (pcintr_stack_is_waiting(stack))
+        return;
+
     struct pcintr_stack_frame *frame;
     frame = push_stack_frame(stack);
     PC_ASSERT(frame);
 
     struct pcvdom_element *hvml = document->root;
     PC_ASSERT(hvml);
-    r = hvml_eval(hvml);
+    hvml_eval(hvml);
+    if (pcintr_stack_is_waiting(stack))
+        return;
 
-    if (r==0) {
-        if (pcintr_stack_is_waiting(stack)==0) {
-            pop_stack_frame(stack);
-            if (stack->nr_frames == 0) {
-                stack->state |= STACK_STATE_TERMINATED;
-            }
-        }
-    }
-
-    return r;
+    pop_stack_frame(stack);
+    return;
 
     // struct pcvdom_node *node = &document->node;
     // struct pcvdom_node *p = pcvdom_node_first_child(node);
@@ -454,7 +487,8 @@ document_eval(struct pcvdom_document *document)
     // return -1;
 }
 
-int vdom_eval(purc_vdom_t vdom)
+static inline void
+vdom_eval(purc_vdom_t vdom)
 {
     PC_ASSERT(vdom);
     pcintr_stack_t stack = purc_get_stack();
@@ -462,8 +496,7 @@ int vdom_eval(purc_vdom_t vdom)
     PC_ASSERT(stack->except == 0);
 
     struct pcvdom_document *document = vdom->document;
-    int r = document_eval(document);
-    return r ? -1 : 0;
+    document_eval(document);
 }
 
 purc_vdom_t
@@ -559,16 +592,21 @@ static inline int vdom_main(void* ctxt)
     PC_ASSERT(stack);
     PC_ASSERT(stack->state == 0);
 
-    int r = vdom_eval(vdom);
-    if (r == 0) {
-        if (pcintr_stack_is_terminated(stack)) {
-            pcvdom_document_destroy(vdom->document);
-            free(vdom);
+    vdom_eval(vdom);
+    if (pcintr_stack_is_waiting(stack))
+        return 0;
 
-            pcrunloop_t runloop = pcrunloop_get_current();
-            PC_ASSERT(runloop);
-            pcrunloop_stop(runloop);
-        }
+    PC_ASSERT(stack->nr_frames == 0);
+
+    stack->state |= STACK_STATE_TERMINATED;
+
+    if (pcintr_stack_is_terminated(stack)) {
+        pcvdom_document_destroy(vdom->document);
+        free(vdom);
+
+        pcrunloop_t runloop = pcrunloop_get_current();
+        PC_ASSERT(runloop);
+        pcrunloop_stop(runloop);
     }
 
     return 0;
