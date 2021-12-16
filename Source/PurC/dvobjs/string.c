@@ -707,6 +707,88 @@ strcpy_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     return ret_var;
 }
 
+
+static purc_variant_t
+lower_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if ((argv == NULL) || (nr_args < 1)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
+            (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    size_t length = 0;
+    purc_variant_string_bytes (argv[0], &length);
+    const char * src = purc_variant_get_string_const (argv[0]);
+    char *buf = malloc (length);
+    if (buf == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
+        ret_var = PURC_VARIANT_INVALID;
+    }
+    else {
+        for (size_t i = 0; i < length - 1; i++) {
+            if (*(src + i) >= 'A' && *(src + i) <= 'Z')
+                *(buf + i) = *(src + i) + 32;
+            else
+                *(buf + i) = *(src + i);
+        }
+        *(buf + length - 1) = 0x00;
+        ret_var = purc_variant_make_string_reuse_buff (buf, length, false);
+    }
+
+    return ret_var;
+}
+
+
+static purc_variant_t
+upper_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if ((argv == NULL) || (nr_args < 1)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
+            (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    size_t length = 0;
+    purc_variant_string_bytes (argv[0], &length);
+    const char * src = purc_variant_get_string_const (argv[0]);
+    char *buf = malloc (length);
+    if (buf == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
+        ret_var = PURC_VARIANT_INVALID;
+    }
+    else {
+        for (size_t i = 0; i < length - 1; i++) {
+            if (*(src + i) >= 'a' && *(src + i) <= 'z')
+                *(buf + i) = *(src + i) - 32;
+            else
+                *(buf + i) = *(src + i);
+        }
+        *(buf + length - 1) = 0x00;
+        ret_var = purc_variant_make_string_reuse_buff (buf, length, false);
+    }
+
+    return ret_var;
+}
+
 // only for test now.
 purc_variant_t pcdvobjs_get_string (void)
 {
@@ -721,6 +803,8 @@ purc_variant_t pcdvobjs_get_string (void)
         {"strcat",    strcat_getter,    NULL},
         {"strlen",    strlen_getter,    NULL},
         {"strcpy",    strcpy_getter,    NULL},
+        {"upper",     upper_getter,     NULL},
+        {"lower",     lower_getter,     NULL},
     };
 
     return pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));
