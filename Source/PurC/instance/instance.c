@@ -97,6 +97,8 @@ static struct err_msg_info generic_err_msgs[] = {
     { "Underflow", PURC_EXCEPT_OVERFLOW, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_DIVBYZERO*/
     { "Divide by zero", PURC_EXCEPT_ZERO_DIVISION, PURC_EXCEPT_FLAGS_NULL, 0},
+    /* PURC_ERROR_FEINVALID */
+    { "Float point invalid", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
     /* PURC_ERROR_UNKNOWN */
     { "Unknown", PURC_EXCEPT_OS_ERROR, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_BAD_LOCALE_CATEGORY */
