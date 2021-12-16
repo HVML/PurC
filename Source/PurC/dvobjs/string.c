@@ -55,7 +55,7 @@ static const char * get_next_segment (const char *data,
 }
 
 static purc_variant_t
-string_contains (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+contains_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -91,7 +91,7 @@ string_contains (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
 
 static purc_variant_t
-string_ends_with (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+ends_with_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -134,7 +134,7 @@ string_ends_with (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
 
 static purc_variant_t
-string_explode (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+explode_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -193,7 +193,7 @@ string_explode (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
 
 static purc_variant_t
-string_shuffle (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+shuffle_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -241,7 +241,7 @@ string_shuffle (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
 
 static purc_variant_t
-string_replace (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+replace_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -318,7 +318,7 @@ string_replace (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-string_format_c (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+format_c_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -473,7 +473,7 @@ string_format_c (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-string_format_p (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+format_p_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -615,17 +615,113 @@ string_format_p (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     return ret_var;
 }
 
+static purc_variant_t
+strcat_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if ((argv == NULL) || (nr_args < 2)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
+            (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+    if ((argv[1] != PURC_VARIANT_INVALID) &&
+            (!purc_variant_is_string (argv[1]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    size_t size = purc_variant_string_length (argv[0]) +
+        purc_variant_string_length (argv[1]);
+
+    if (size <= 2 || size == PURC_VARIANT_BADSIZE) {
+        ret_var = purc_variant_make_string("", false);
+    }
+    else {
+        char *dest = malloc (size - 1);
+        if (dest == NULL) {
+            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
+            ret_var = PURC_VARIANT_INVALID;
+        }
+        else {
+            strcpy(dest, purc_variant_get_string_const (argv[0]));
+            strcat(dest, purc_variant_get_string_const (argv[1]));
+            ret_var = purc_variant_make_string_reuse_buff (dest, size - 1, false);
+        }
+    }
+
+    return ret_var;
+}
+
+static purc_variant_t
+strlen_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if ((argv == NULL) || (nr_args < 1)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
+            (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    ret_var = purc_variant_make_ulongint (purc_variant_string_length (argv[0]));
+
+    return ret_var;
+}
+
+static purc_variant_t
+strcpy_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if ((argv == NULL) || (nr_args < 1)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
+            (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    ret_var = purc_variant_make_string (
+            purc_variant_get_string_const (argv[0]), false);
+
+    return ret_var;
+}
+
 // only for test now.
 purc_variant_t pcdvobjs_get_string (void)
 {
     static struct pcdvobjs_dvobjs method [] = {
-        {"contains",  string_contains,  NULL},
-        {"ends_with", string_ends_with, NULL},
-        {"explode",   string_explode,   NULL},
-        {"shuffle",   string_shuffle,   NULL},
-        {"replace",   string_replace,   NULL},
-        {"format_c",  string_format_c,  NULL},
-        {"format_p",  string_format_p,  NULL} };
+        {"contains",  contains_getter,  NULL},
+        {"ends_with", ends_with_getter, NULL},
+        {"explode",   explode_getter,   NULL},
+        {"shuffle",   shuffle_getter,   NULL},
+        {"replace",   replace_getter,   NULL},
+        {"format_c",  format_c_getter,  NULL},
+        {"format_p",  format_p_getter,  NULL},
+        {"strcat",    strcat_getter,    NULL},
+        {"strlen",    strlen_getter,    NULL},
+        {"strcpy",    strcpy_getter,    NULL},
+    };
 
     return pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));
 }

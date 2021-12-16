@@ -22,6 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "private/map.h"
 #include "purc-variant.h"
 #include "mathlib.h"
 #include "purc-version.h"
@@ -48,6 +49,19 @@ output                          PURC_ERROR_DIVBYZERO    FloatingPoint
                                 PURC_ERROR_UNDERFLOW    Underflow
                                 PURC_ERROR_FEINVALID    FloatingPoint
 */
+
+// map for const and const_l
+static pcutils_map *const_map = NULL;
+
+struct const_value {
+    double d;
+    long double ld;
+};
+
+struct const_struct {
+    const char *key;
+    struct const_value value;
+};
 
 #define GET_EXCEPTION_OR_CREATE_VARIANT(x, y) \
     if (isnan (x)) { \
@@ -168,7 +182,7 @@ const_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
-    double number = 0.0;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     GET_PARAM_NUMBER(1);
 
@@ -179,71 +193,82 @@ const_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     }
 
     const char *option = purc_variant_get_string_const (argv[0]);
-    switch (*option) {
-        case 'e':
-        case 'E':
-            if (strcasecmp (option, "e") == 0)
-                number = M_E;
-            else
-                goto error;
-            break;
-        case 'l':
-        case 'L':
-            if (strcasecmp (option, "log2e") == 0)
-                number = M_LOG2E;
-            else if (strcasecmp (option, "log10e") == 0)
-                number = M_LOG10E;
-            else if (strcasecmp (option, "ln2") == 0)
-                number = M_LN2;
-            else if (strcasecmp (option, "ln10") == 0)
-                number = M_LN10;
-            else
-                goto error;
-            break;
-        case 'p':
-        case 'P':
-            if (strcasecmp (option, "pi") == 0)
-                number = M_PI;
-            else if (strcasecmp (option, "pi/2") == 0)
-                number = M_PI_2;
-            else if (strcasecmp (option, "pi/4") == 0)
-                number = M_PI_4;
-            else
-                goto error;
-            break;
-        case '1':
-            if (strcasecmp (option, "1/pi") == 0)
-                number = M_1_PI;
-            else if (strcasecmp (option, "1/sqrt(2)") == 0)
-                number = M_SQRT1_2;
-            else
-                goto error;
-            break;
-        case '2':
-            if (strcasecmp (option, "2/pi") == 0)
-                number = M_2_PI;
-            else if (strcasecmp (option, "2/sqrt(2)") == 0)
-                number = M_2_SQRTPI;
-            else
-                goto error;
-            break;
-        case 's':
-        case 'S':
-            if (strcasecmp (option, "sqrt(2)") == 0)
-                number = M_SQRT2;
-            else
-                goto error;
-            break;
-        default:
-            goto error;
+    if (const_map) {
+        pcutils_map_entry *entry = pcutils_map_find (const_map, option);
+        if (entry)
+            ret_var = purc_variant_make_number (
+                    ((struct const_value *)entry->val)->d);
+        else
+            purc_set_error (PURC_ERROR_WRONG_ARGS);
+    }
+    else
+        purc_set_error (PURC_ERROR_WRONG_ARGS);
+
+    return ret_var;
+}
+
+static purc_variant_t
+const_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    if (const_map == NULL) {
+        purc_set_error (PURC_ERROR_OUT_OF_MEMORY);
+        return PURC_VARIANT_INVALID;
     }
 
-    return purc_variant_make_number (number);
+    GET_PARAM_NUMBER(2);
 
-error:
-    purc_set_error (PURC_ERROR_WRONG_ARGS);
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
+            (!purc_variant_is_string (argv[0]))) {
+        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
 
-    return PURC_VARIANT_INVALID;
+    if ((argv[1] != PURC_VARIANT_INVALID) &&
+            (!(purc_variant_is_number (argv[1]) ||
+               purc_variant_is_longdouble (argv[1])))) {
+        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+    // empty string
+    if (purc_variant_string_length (argv[0]) < 2) {
+        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    double number = 0.0;
+    purc_variant_cast_to_number (argv[1], &number, false);
+
+    // get the key
+    const char *option = purc_variant_get_string_const (argv[0]);
+    pcutils_map_entry *entry = pcutils_map_find (const_map, option);
+
+    if (entry) {    // replace
+        ((struct const_value *)(entry->val))->d = number;
+    }
+    else {          // insert
+        // create key
+        char *key = malloc (purc_variant_string_length (argv[0]));
+        if (key == NULL) {
+            purc_set_error (PURC_ERROR_OUT_OF_MEMORY);
+            return purc_variant_make_boolean (false);;
+        }
+        strcpy (key, option);
+
+        // create the entry
+        struct const_value *value = malloc (sizeof(struct const_value));
+        if (value == NULL) {
+            free (key);
+            purc_set_error (PURC_ERROR_OUT_OF_MEMORY);
+            return purc_variant_make_boolean (false);;
+        }
+        value->d = number;
+
+        pcutils_map_insert (const_map, key, value);
+    }
+
+    return purc_variant_make_boolean (true);;
 }
 
 
@@ -252,7 +277,7 @@ const_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
-    long double number = 0.0L;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     GET_PARAM_NUMBER(1);
 
@@ -263,71 +288,82 @@ const_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     }
 
     const char *option = purc_variant_get_string_const (argv[0]);
-    switch (*option) {
-        case 'e':
-        case 'E':
-            if (strcasecmp (option, "e") == 0)
-                number = (long double)M_El;
-            else
-                goto error;
-            break;
-        case 'l':
-        case 'L':
-            if (strcasecmp (option, "log2e") == 0)
-                number = (long double)M_LOG2El;
-            else if (strcasecmp (option, "log10e") == 0)
-                number = (long double)M_LOG10El;
-            else if (strcasecmp (option, "ln2") == 0)
-                number = (long double)M_LN2l;
-            else if (strcasecmp (option, "ln10") == 0)
-                number = (long double)M_LN10l;
-            else
-                goto error;
-            break;
-        case 'p':
-        case 'P':
-            if (strcasecmp (option, "pi") == 0)
-                number = (long double)M_PIl;
-            else if (strcasecmp (option, "pi/2") == 0)
-                number = (long double)M_PI_2l;
-            else if (strcasecmp (option, "pi/4") == 0)
-                number = (long double)M_PI_4l;
-            else
-                goto error;
-            break;
-        case '1':
-            if (strcasecmp (option, "1/pi") == 0)
-                number = (long double)M_1_PIl;
-            else if (strcasecmp (option, "1/sqrt(2)") == 0)
-                number = (long double)M_SQRT1_2l;
-            else
-                goto error;
-            break;
-        case '2':
-            if (strcasecmp (option, "2/pi") == 0)
-                number = (long double)M_2_PIl;
-            else if (strcasecmp (option, "2/sqrt(2)") == 0)
-                number = (long double)M_2_SQRTPIl;
-            else
-                goto error;
-            break;
-        case 's':
-        case 'S':
-            if (strcasecmp (option, "sqrt(2)") == 0)
-                number = (long double)M_SQRT2l;
-            else
-                goto error;
-            break;
-        default:
-            goto error;
+    if (const_map) {
+        pcutils_map_entry *entry = pcutils_map_find (const_map, option);
+        if (entry)
+            ret_var = purc_variant_make_longdouble (
+                    ((struct const_value *)entry->val)->ld);
+        else
+            purc_set_error (PURC_ERROR_WRONG_ARGS);
+    }
+    else
+        purc_set_error (PURC_ERROR_WRONG_ARGS);
+
+    return ret_var;
+}
+
+static purc_variant_t
+const_l_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    if (const_map == NULL) {
+        purc_set_error (PURC_ERROR_OUT_OF_MEMORY);
+        return PURC_VARIANT_INVALID;
     }
 
-    return purc_variant_make_longdouble (number);
+    GET_PARAM_NUMBER(2);
 
-error:
-    purc_set_error (PURC_ERROR_WRONG_ARGS);
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
+            (!purc_variant_is_string (argv[0]))) {
+        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
 
-    return PURC_VARIANT_INVALID;
+    if ((argv[1] != PURC_VARIANT_INVALID) &&
+            (!(purc_variant_is_number (argv[1]) ||
+               purc_variant_is_longdouble (argv[1])))) {
+        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+    // empty string
+    if (purc_variant_string_length (argv[0]) < 2) {
+        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    long double number = 0.0;
+    purc_variant_cast_to_long_double (argv[1], &number, false);
+
+    // get the key
+    const char *option = purc_variant_get_string_const (argv[0]);
+    pcutils_map_entry *entry = pcutils_map_find (const_map, option);
+
+    if (entry) {    // replace
+        ((struct const_value *)(entry->val))->ld = number;
+    }
+    else {          // insert
+        // create key
+        char *key = malloc (purc_variant_string_length (argv[0]));
+        if (key == NULL) {
+            purc_set_error (PURC_ERROR_OUT_OF_MEMORY);
+            return purc_variant_make_boolean (false);;
+        }
+        strcpy (key, option);
+
+        // create the entry
+        struct const_value *value = malloc (sizeof(struct const_value));
+        if (value == NULL) {
+            free (key);
+            purc_set_error (PURC_ERROR_OUT_OF_MEMORY);
+            return purc_variant_make_boolean (false);;
+        }
+        value->ld = number;
+
+        pcutils_map_insert (const_map, key, value);
+    }
+
+    return purc_variant_make_boolean (true);;
 }
 
 
@@ -1173,15 +1209,70 @@ error:
 }
 
 
+static void * map_copy_key(const void *key)
+{
+    return (void *)key;
+}
+
+static void map_free_key(void *key)
+{
+    UNUSED_PARAM(key);
+}
+
+static void *map_copy_val(const void *val)
+{
+    return (void *)val;
+}
+
+static int map_comp_key(const void *key1, const void *key2)
+{
+    return strcmp (key1, key2);
+}
+
+static void map_free_val(void *val)
+{
+    UNUSED_PARAM(val);
+    return;
+}
+
+// todo: release const_map
 static purc_variant_t pcdvobjs_create_math (void)
 {
+    // set const map
+    size_t i = 0;
+    static struct const_struct const_key_value [] = {
+        {"e",         {M_E,        M_El}},
+        {"log2e",     {M_LOG2E,    M_LOG2El}},
+        {"log10e",    {M_LOG10E,   M_LOG10El}},
+        {"ln2",       {M_LN2,      M_LN2l}},
+        {"ln10",      {M_LN10,     M_LN10l}},
+        {"pi",        {M_PI,       M_PIl}},
+        {"pi/2",      {M_PI_2,     M_PI_2l}},
+        {"pi/4",      {M_PI_4,     M_PI_4l}},
+        {"1/pi",      {M_1_PI,     M_1_PIl}},
+        {"1/sqrt(2)", {M_SQRT1_2,  M_SQRT1_2l}},
+        {"2/pi",      {M_2_PI,     M_2_PIl}},
+        {"2/sqrt(2)", {M_2_SQRTPI, M_2_SQRTPIl}},
+        {"sqrt(2)",   {M_SQRT2,    M_SQRT2l}},
+    };
+    const_map = pcutils_map_create (map_copy_key, map_free_key,
+            map_copy_val, map_free_val, map_comp_key, false);
+
+    if (const_map) {
+        for (i = 0; i < PCA_TABLESIZE(const_key_value); i++) {
+            pcutils_map_insert (const_map, const_key_value[i].key,
+                    &const_key_value[i].value);
+        }
+    }
+
+    // set dynamic
     static struct pcdvobjs_dvobjs method [] = {
         {"pi",      pi_getter, NULL},
         {"pi_l",    pi_l_getter, NULL},
         {"e",       e_getter, NULL},
         {"e_l",     e_l_getter, NULL},
-        {"const",   const_getter, NULL},
-        {"const_l", const_l_getter, NULL},
+        {"const",   const_getter, const_setter},
+        {"const_l", const_l_getter, const_l_setter},
         {"eval",    eval_getter, NULL},
         {"eval_l",  eval_l_getter, NULL},
         {"sin",     sin_getter, NULL},
