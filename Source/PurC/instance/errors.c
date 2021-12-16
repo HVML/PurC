@@ -60,17 +60,17 @@ int purc_set_error_ex(int errcode, purc_variant_t exinfo)
     inst->errcode = errcode;
     inst->err_exinfo = exinfo;
 
-    // TODO:
     // set the exception info into stack
-#if 0
     pcintr_stack_t stack = purc_get_stack();
     if (stack) {
         const struct err_msg_info* info = get_error_info(errcode);
-        if (info && (info->flags & PURC_EXCEPT_FLAGS_REQUIRED) && !exinfo) {
-            // error
+        if (info == NULL ||
+                ((info->flags & PURC_EXCEPT_FLAGS_REQUIRED) && !exinfo)) {
+            return PURC_ERROR_INVALID_VALUE;
         }
+        stack->error_except = info->except;
+        stack->err_except_info = exinfo;
     }
-#endif
     return PURC_ERROR_OK;
 }
 
