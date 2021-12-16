@@ -110,13 +110,13 @@ _COMPILE_TIME_ASSERT(msgs,
 static struct err_msg_seg _generic_err_msgs_seg = {
     { NULL, NULL },
     PURC_ERROR_OK, PURC_ERROR_OK + PCA_TABLESIZE(generic_err_msgs) - 1,
-    generic_err_msgs
+    generic_err_msgs,
+    NULL
 };
 
 static void init_modules(void)
 {
     pcutils_atom_init_once();
-    purc_error_init_once();
 
     pcinst_register_error_message_segment(&_generic_err_msgs_seg);
 

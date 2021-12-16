@@ -303,20 +303,23 @@ PCA_EXPORT int
 purc_get_last_error (void);
 
 /**
- * purc_set_error:
- *
- * Returns: PURC_ERROR_OK or PURC_ERROR_NO_INSTANCE.
- */
-PCA_EXPORT int
-purc_set_error(int err_code);
-
-/**
  * purc_set_error_ex:
  *
  * Returns: PURC_ERROR_OK or PURC_ERROR_NO_INSTANCE.
  */
 PCA_EXPORT int
 purc_set_error_ex(int err_code, purc_variant_t exinfo);
+
+/**
+ * purc_set_error:
+ *
+ * Returns: PURC_ERROR_OK or PURC_ERROR_NO_INSTANCE.
+ */
+static inline int
+purc_set_error(int err_code)
+{
+    return purc_set_error_ex(err_code, PURC_VARIANT_INVALID);
+}
 
 /**
  * purc_get_error_message:

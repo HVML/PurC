@@ -30,10 +30,18 @@
 #include "purc-utils.h"
 #include "private/list.h"
 
+struct err_msg_info {
+    const char* msg;
+    const char* except_str;
+    purc_atom_t except;
+    uint32_t flags;
+};
+
 struct err_msg_seg {
     struct list_head list;
     int first_errcode, last_errcode;
     const char **msgs;
+    struct err_msg_info* infos;
 };
 
 /* registers the messages for a segment of error codes */
@@ -43,10 +51,6 @@ void pcinst_register_error_message_segment(struct err_msg_seg* seg) WTF_INTERNAL
 #define pcinst_set_error(x)     purc_set_error(x)
 #define pcinst_set_error_ex(x, exinfo)     purc_set_error_ex(x, exinfo)
 // pcinst_set_error(int err_code) WTF_INTERNAL;
-
-void pcinst_add_error_except_map(int error, purc_atom_t except);
-
-void purc_error_init_once(void);
 
 #endif /* not defined PURC_PRIVATE_ERRORS_H */
 
