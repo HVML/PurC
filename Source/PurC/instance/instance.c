@@ -45,57 +45,62 @@ static struct err_msg_info generic_err_msgs[] = {
     /* PURC_ERROR_OK */
     { "Ok", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_BAD_SYSTEM_CALL */
-    { "Bad system call", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
+    { "Bad system call", PURC_EXCEPT_OS_ERROR, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_BAD_STDC_CALL */
-    { "Bad STDC call", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
+    { "Bad STDC call", PURC_EXCEPT_OS_ERROR, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_OUT_OF_MEMORY */
-    { "Out of memory", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
+    { "Out of memory", PURC_EXCEPT_OVERFLOW, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_INVALID_VALUE */
-    { "Invalid value", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
+    { "Invalid value", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_DUPLICATED */
-    { "Duplicated", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
+    { "Duplicated", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_NOT_IMPLEMENTED */
-    { "Not implemented", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
+    { "Not implemented", PURC_EXCEPT_NOT_IMPLEMENTED, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_NO_INSTANCE */
-    { "No instance", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
+    { "No instance", PURC_EXCEPT_NOT_READY, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_TOO_LARGE_ENTITY */
-    { "Tool large entity", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
+    { "Tool large entity", PURC_EXCEPT_TOO_LONG, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_BAD_ENCODING */
-    { "Bad encoding", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
+    { "Bad encoding", PURC_EXCEPT_BAD_ENCODING, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_NOT_SUPPORTED */
-    { "Not supported", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
+    { "Not supported", PURC_EXCEPT_NOT_IMPLEMENTED, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_OUTPUT */
-    { "An output error is encountered", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
+    {
+        "An output error is encountered",
+        PURC_EXCEPT_IO_ERROR,
+        PURC_EXCEPT_FLAGS_NULL,
+        0
+    },
     /* PURC_ERROR_TOO_SMALL_BUFF */
-    { "Too small buffer", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
+    { "Too small buffer", PURC_EXCEPT_IO_ERROR, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_NULL_OBJECT */
-    { "Null object", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
+    { "Null object", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_TOO_SMALL_SIZE */
-    { "Too small size", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
+    { "Too small size", PURC_EXCEPT_IO_ERROR, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_INCOMPLETE_OBJECT */
-    { "Incomplete object", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
+    { "Incomplete object", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_NO_FREE_SLOT */
-    { "No free slot", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
+    { "No free slot", PURC_EXCEPT_IO_ERROR, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_NOT_EXISTS */
-    { "Does not exist", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
+    { "Does not exist", PURC_EXCEPT_ENTITY_EXISTS, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_WRONG_ARGS */
-    { "Wrong arguments", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
+    { "Wrong arguments", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_WRONG_STAGE */
-    { "Wrong stage", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
+    { "Wrong stage", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_UNEXPECTED_RESULT */
-    { "Unexpected result", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
+    { "Unexpected result", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_UNEXPECTED_DATA */
-    { "Unexpected data", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
+    { "Unexpected data", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_OVERFLOW */
-    { "Overflow", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
+    { "Overflow", PURC_EXCEPT_OVERFLOW, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_UNDERFLOW */
-    { "Underflow", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
+    { "Underflow", PURC_EXCEPT_OVERFLOW, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_DIVBYZERO*/
-    { "Divide by zero", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
+    { "Divide by zero", PURC_EXCEPT_ZERO_DIVISION, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_UNKNOWN */
-    { "Unknown", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
+    { "Unknown", PURC_EXCEPT_OS_ERROR, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_BAD_LOCALE_CATEGORY */
-    { "Bad locale category", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
+    { "Bad locale category", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NULL, 0},
 };
 
 /* Make sure the number of error messages matches the number of error codes */
