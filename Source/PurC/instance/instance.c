@@ -41,61 +41,61 @@
 #include <stdlib.h>
 #include <string.h>
 
-static const char* generic_err_msgs[] = {
+static struct err_msg_info generic_err_msgs[] = {
     /* PURC_ERROR_OK */
-    "Ok",
+    { "Ok", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_BAD_SYSTEM_CALL */
-    "Bad system call",
+    { "Bad system call", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_BAD_STDC_CALL */
-    "Bad STDC call",
+    { "Bad STDC call", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_OUT_OF_MEMORY */
-    "Out of memory",
+    { "Out of memory", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_INVALID_VALUE */
-    "Invalid value",
+    { "Invalid value", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_DUPLICATED */
-    "Duplicated",
+    { "Duplicated", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_NOT_IMPLEMENTED */
-    "Not implemented",
+    { "Not implemented", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_NO_INSTANCE */
-    "No instance",
+    { "No instance", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_TOO_LARGE_ENTITY */
-    "Tool large entity",
+    { "Tool large entity", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_BAD_ENCODING */
-    "Bad encoding",
+    { "Bad encoding", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_NOT_SUPPORTED */
-    "Not supported",
+    { "Not supported", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_OUTPUT */
-    "An output error is encountered",
+    { "An output error is encountered", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_TOO_SMALL_BUFF */
-    "Too small buffer",
+    { "Too small buffer", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_NULL_OBJECT */
-    "Null object",
+    { "Null object", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_TOO_SMALL_SIZE */
-    "Too small size",
+    { "Too small size", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_INCOMPLETE_OBJECT */
-    "Incomplete object",
+    { "Incomplete object", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_NO_FREE_SLOT */
-    "No free slot",
+    { "No free slot", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_NOT_EXISTS */
-    "Does not exist",
+    { "Does not exist", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_WRONG_ARGS */
-    "Wrong arguments",
+    { "Wrong arguments", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_WRONG_STAGE */
-    "Wrong stage",
+    { "Wrong stage", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_UNEXPECTED_RESULT */
-    "Unexpected result",
+    { "Unexpected result", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_UNEXPECTED_DATA */
-    "Unexpected data",
+    { "Unexpected data", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_OVERFLOW */
-    "Overflow",
+    { "Overflow", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_UNDERFLOW */
-    "Underflow",
+    { "Underflow", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_DIVBYZERO*/
-    "Divide by zero",
+    { "Divide by zero", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_UNKNOWN */
-    "Unknown",
+    { "Unknown", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
     /* PURC_ERROR_BAD_LOCALE_CATEGORY */
-    "Bad locale category",
+    { "Bad locale category", NULL, PURC_EXCEPT_FLAGS_NULL, 0},
 };
 
 /* Make sure the number of error messages matches the number of error codes */
@@ -111,7 +111,6 @@ static struct err_msg_seg _generic_err_msgs_seg = {
     { NULL, NULL },
     PURC_ERROR_OK, PURC_ERROR_OK + PCA_TABLESIZE(generic_err_msgs) - 1,
     generic_err_msgs,
-    NULL
 };
 
 static void init_modules(void)

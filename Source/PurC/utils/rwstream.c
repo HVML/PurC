@@ -53,23 +53,23 @@
 } while (0)
 #endif
 
-static const char* rwstream_err_msgs[] = {
+static struct err_msg_info rwstream_err_msgs[] = {
     /* PCRWSTREAM_ERROR_FAILED (200) */
-    "Rwstream failed with some other error",
+    { "Rwstream failed with some other error", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
     /* PCRWSTREAM_ERROR_FILE_TOO_BIG */
-    "File too large",
+    { "File too large", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
     /* PCRWSTREAM_ERROR_IO */
-    "IO error",
+    { "IO error", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
     /* PCRWSTREAM_ERROR_IS_DIR */
-    "File is a directory.",
+    { "File is a directory.", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
     /* PCRWSTREAM_ERROR_NO_SPACE */
-    "No space left on device.",
+    { "No space left on device.", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
     /* PCRWSTREAM_ERROR_NO_DEVICE_OR_ADDRESS */
-    "No such device or address",
+    { "No such device or address", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
     /* PCRWSTREAM_ERROR_OVERFLOW */
-    "Value too large for defined datatype",
+    { "Value too large for defined datatype", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
     /* PCRWSTREAM_ERROR_PIPE */
-    "Broken pipe",
+    { "Broken pipe", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
 };
 
 /* Make sure the number of error messages matches the number of error codes */
@@ -85,8 +85,7 @@ static struct err_msg_seg _rwstream_err_msgs_seg = {
     { NULL, NULL },
     PURC_ERROR_FIRST_RWSTREAM,
     PURC_ERROR_FIRST_RWSTREAM + PCA_TABLESIZE(rwstream_err_msgs) - 1,
-    rwstream_err_msgs,
-    NULL
+    rwstream_err_msgs
 };
 
 void pcrwstream_init_once(void)

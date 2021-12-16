@@ -63,6 +63,7 @@
 #define PURC_EXCEPT_CONNECTION_REFUSED  "ConnectionRefused"
 #define PURC_EXCEPT_CONNECTION_RESET    "ConnectionReset"
 
+#define PURC_EXCEPT_FLAGS_NULL          0x0000
 #define PURC_EXCEPT_FLAGS_REQUIRED      0x0001
 
 // the first error codes for modules:

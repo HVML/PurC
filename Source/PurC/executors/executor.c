@@ -65,17 +65,17 @@ static void free_pcexec_val(void *val)
 }
 
 
-static const char* executor_err_msgs[] = {
+static struct err_msg_info executor_err_msgs[] = {
     /* PCEXECUTOR_ERROR_NO_KEYS_SELECTED_PREVIOUSLY */
-    "Executor: No keys selected previously",
+    { "Executor: No keys selected previously", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
     /* PCEXECUTOR_ERROR_NO_KEYS_SELECTED */
-    "Executor: No keys selected",
+    { "Executor: No keys selected", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
     /* PCEXECUTOR_ERROR_NOT_ALLOWED */
-    "Executor: Not allowed",
+    { "Executor: Not allowed", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
     /* PCEXECUTOR_ERROR_OUT_OF_RANGE */
-    "Executor: Out of range",
+    { "Executor: Out of range", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
     /* PCEXECUTOR_ERROR_BAD_SYNTAX */
-    "Executor: Bad syntax",
+    { "Executor: Bad syntax", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
 };
 
 /* Make sure the number of error messages matches the number of error codes */
@@ -91,8 +91,7 @@ static struct err_msg_seg _executor_err_msgs_seg = {
     { NULL, NULL },
     PURC_ERROR_FIRST_EXECUTOR,
     PURC_ERROR_FIRST_EXECUTOR + PCA_TABLESIZE(executor_err_msgs) - 1,
-    executor_err_msgs,
-    NULL
+    executor_err_msgs
 };
 
 

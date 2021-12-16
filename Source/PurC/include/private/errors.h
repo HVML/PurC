@@ -33,14 +33,13 @@
 struct err_msg_info {
     const char* msg;
     const char* except_str;
+    uint64_t flags;     // alignment
     purc_atom_t except;
-    uint32_t flags;
 };
 
 struct err_msg_seg {
     struct list_head list;
     int first_errcode, last_errcode;
-    const char **msgs;
     struct err_msg_info* infos;
 };
 
