@@ -66,7 +66,7 @@ int purc_set_error_ex(int errcode, purc_variant_t exinfo)
     pcintr_stack_t stack = purc_get_stack();
     if (stack) {
         const struct err_msg_info* info = get_error_info(errcode);
-        if (is_except_exinfo_requited(info) && !exinfo) {
+        if (info && (info->flags & PURC_EXCEPT_FLAGS_REQUIRED) && !exinfo) {
             // error
         }
     }
