@@ -62,6 +62,8 @@
 #define PURC_EXCEPT_CONNECTION_ABORTED  "ConnectionAborted"
 #define PURC_EXCEPT_CONNECTION_REFUSED  "ConnectionRefused"
 #define PURC_EXCEPT_CONNECTION_RESET    "ConnectionReset"
+#define PURC_EXCEPT_MEMORY_ERROR        "MemoryError"
+#define PURC_EXCEPT_BUFFER_ERROR        "BufferError"
 
 #define PURC_EXCEPT_FLAGS_NULL          0x0000
 #define PURC_EXCEPT_FLAGS_REQUIRED      0x0001
