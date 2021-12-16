@@ -55,21 +55,46 @@
 
 static struct err_msg_info rwstream_err_msgs[] = {
     /* PCRWSTREAM_ERROR_FAILED (200) */
-    { "Rwstream failed with some other error", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
+    {
+        "Rwstream failed with some other error",
+        PURC_EXCEPT_OS_ERROR,
+        PURC_EXCEPT_FLAGS_NULL,
+        0
+    },
     /* PCRWSTREAM_ERROR_FILE_TOO_BIG */
-    { "File too large", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
+    { "File too large", PURC_EXCEPT_TOO_LONG, PURC_EXCEPT_FLAGS_NULL, 0 },
     /* PCRWSTREAM_ERROR_IO */
-    { "IO error", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
+    { "IO error", PURC_EXCEPT_IO_ERROR, PURC_EXCEPT_FLAGS_NULL, 0 },
     /* PCRWSTREAM_ERROR_IS_DIR */
-    { "File is a directory.", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
+    {
+        "File is a directory.",
+        PURC_EXCEPT_NOT_DESIRED_ENTITY,
+        PURC_EXCEPT_FLAGS_NULL,
+        0
+    },
     /* PCRWSTREAM_ERROR_NO_SPACE */
-    { "No space left on device.", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
+    {
+        "No space left on device.",
+        PURC_EXCEPT_IO_ERROR,
+        PURC_EXCEPT_FLAGS_NULL,
+        0
+    },
     /* PCRWSTREAM_ERROR_NO_DEVICE_OR_ADDRESS */
-    { "No such device or address", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
+    {
+        "No such device or address",
+        PURC_EXCEPT_NOT_DESIRED_ENTITY,
+        PURC_EXCEPT_FLAGS_NULL,
+        0
+    },
     /* PCRWSTREAM_ERROR_OVERFLOW */
-    { "Value too large for defined datatype", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
+    {
+        "Value too large for defined datatype",
+        PURC_EXCEPT_OVERFLOW,
+        PURC_EXCEPT_FLAGS_NULL,
+        0
+    },
     /* PCRWSTREAM_ERROR_PIPE */
-    { "Broken pipe", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
+    { "Broken pipe", PURC_EXCEPT_BROKEN_PIPE, PURC_EXCEPT_FLAGS_NULL, 0 },
 };
 
 /* Make sure the number of error messages matches the number of error codes */
