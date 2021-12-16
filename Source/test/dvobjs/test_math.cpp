@@ -380,6 +380,18 @@ TEST(dvobjs, dvobjs_math_const)
     purc_variant_unref(ret_var);
     purc_variant_unref(param[0]);
 
+    // restore e for test const_l
+    param[0] = purc_variant_make_string ("e", true);
+    param[1] = purc_variant_make_number(M_E);
+    param[2] = purc_variant_make_longdouble(M_El);
+    ret_var = setter (NULL, 3, param);
+    ASSERT_NE(ret_var, nullptr);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN),
+                true);
+    purc_variant_unref (ret_var);
+    purc_variant_unref(param[0]);
+    purc_variant_unref(param[1]);
+    purc_variant_unref(param[2]);
     // test setter to create
     param[0] = purc_variant_make_string ("newone", true);
     param[1] = purc_variant_make_number(123);
@@ -430,7 +442,7 @@ TEST(dvobjs, dvobjs_math_const)
 
     // test setter to create
     param[0] = purc_variant_make_string ("newone", true);
-    param[1] = purc_variant_make_number(123);
+    param[1] = purc_variant_make_longdouble(123);
     ret_var = setter (NULL, 2, param);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN),

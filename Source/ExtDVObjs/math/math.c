@@ -141,9 +141,21 @@ pi_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
-    return purc_variant_make_number ((double)M_PI);
-}
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
+    if (const_map) {
+        pcutils_map_entry *entry = pcutils_map_find (const_map, "pi");
+        if (entry)
+            ret_var = purc_variant_make_number (
+                    ((struct const_value *)entry->val)->d);
+        else
+            ret_var = purc_variant_make_number ((double)M_PI);
+    }
+    else
+        ret_var = purc_variant_make_number ((double)M_PI);
+
+    return ret_var;
+}
 
 static purc_variant_t
 pi_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
@@ -152,9 +164,21 @@ pi_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
-    return purc_variant_make_longdouble ((long double)M_PIl);
-}
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
+    if (const_map) {
+        pcutils_map_entry *entry = pcutils_map_find (const_map, "pi");
+        if (entry)
+            ret_var = purc_variant_make_longdouble (
+                    ((struct const_value *)entry->val)->ld);
+        else
+            ret_var = purc_variant_make_longdouble ((long double)M_PIl);
+    }
+    else
+        ret_var = purc_variant_make_longdouble ((long double)M_PIl);
+
+    return ret_var;
+}
 
 static purc_variant_t
 e_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
@@ -163,9 +187,21 @@ e_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
-    return purc_variant_make_number ((double)M_E);
-}
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
+    if (const_map) {
+        pcutils_map_entry *entry = pcutils_map_find (const_map, "e");
+        if (entry)
+            ret_var = purc_variant_make_number (
+                    ((struct const_value *)entry->val)->d);
+        else
+            ret_var = purc_variant_make_number ((double)M_E);
+    }
+    else
+        ret_var = purc_variant_make_number ((double)M_E);
+
+    return ret_var;
+}
 
 static purc_variant_t
 e_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
@@ -174,7 +210,20 @@ e_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
-    return purc_variant_make_longdouble ((long double)M_El);
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (const_map) {
+        pcutils_map_entry *entry = pcutils_map_find (const_map, "e");
+        if (entry)
+            ret_var = purc_variant_make_longdouble (
+                    ((struct const_value *)entry->val)->ld);
+        else
+            ret_var = purc_variant_make_longdouble ((long double)M_El);
+    }
+    else
+        ret_var = purc_variant_make_longdouble ((long double)M_El);
+
+    return ret_var;
 }
 
 static purc_variant_t
@@ -226,8 +275,12 @@ const_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     }
 
     if ((argv[1] != PURC_VARIANT_INVALID) &&
-            (!(purc_variant_is_number (argv[1]) ||
-               purc_variant_is_longdouble (argv[1])))) {
+            !purc_variant_is_number (argv[1])) {
+        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+    if ((nr_args > 2) && (argv[2] != PURC_VARIANT_INVALID) &&
+            !purc_variant_is_longdouble (argv[2])) {
         purc_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -238,7 +291,12 @@ const_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     }
 
     double number = 0.0;
+    long double ld = 0.0;
     purc_variant_cast_to_number (argv[1], &number, false);
+    if (nr_args > 2)
+        purc_variant_cast_to_long_double (argv[2], &ld, false);
+    else
+        ld = (long double)number;
 
     // get the key
     const char *option = purc_variant_get_string_const (argv[0]);
@@ -246,13 +304,14 @@ const_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     if (entry) {    // replace
         ((struct const_value *)(entry->val))->d = number;
+        ((struct const_value *)(entry->val))->ld = ld;
     }
     else {          // insert
         // create key
         char *key = malloc (purc_variant_string_length (argv[0]));
         if (key == NULL) {
             purc_set_error (PURC_ERROR_OUT_OF_MEMORY);
-            return purc_variant_make_boolean (false);;
+            return PURC_VARIANT_INVALID;
         }
         strcpy (key, option);
 
@@ -261,9 +320,10 @@ const_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         if (value == NULL) {
             free (key);
             purc_set_error (PURC_ERROR_OUT_OF_MEMORY);
-            return purc_variant_make_boolean (false);;
+            return PURC_VARIANT_INVALID;
         }
         value->d = number;
+        value->ld = ld;
 
         pcutils_map_insert (const_map, key, value);
     }
@@ -321,8 +381,12 @@ const_l_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     }
 
     if ((argv[1] != PURC_VARIANT_INVALID) &&
-            (!(purc_variant_is_number (argv[1]) ||
-               purc_variant_is_longdouble (argv[1])))) {
+            !purc_variant_is_longdouble (argv[1])) {
+        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+    if ((nr_args > 2) && (argv[2] != PURC_VARIANT_INVALID) &&
+            !purc_variant_is_number (argv[2])) {
         purc_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
     }
@@ -332,22 +396,28 @@ const_l_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    long double number = 0.0;
-    purc_variant_cast_to_long_double (argv[1], &number, false);
+    double number = 0.0;
+    long double ld = 0.0;
+    purc_variant_cast_to_long_double (argv[1], &ld, false);
+    if (nr_args > 2)
+        purc_variant_cast_to_number (argv[2], &number, false);
+    else
+        number = (double)ld;
 
     // get the key
     const char *option = purc_variant_get_string_const (argv[0]);
     pcutils_map_entry *entry = pcutils_map_find (const_map, option);
 
     if (entry) {    // replace
-        ((struct const_value *)(entry->val))->ld = number;
+        ((struct const_value *)(entry->val))->ld = ld;
+        ((struct const_value *)(entry->val))->d = number;
     }
     else {          // insert
         // create key
         char *key = malloc (purc_variant_string_length (argv[0]));
         if (key == NULL) {
             purc_set_error (PURC_ERROR_OUT_OF_MEMORY);
-            return purc_variant_make_boolean (false);;
+            return PURC_VARIANT_INVALID;
         }
         strcpy (key, option);
 
@@ -356,9 +426,10 @@ const_l_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         if (value == NULL) {
             free (key);
             purc_set_error (PURC_ERROR_OUT_OF_MEMORY);
-            return purc_variant_make_boolean (false);;
+            return PURC_VARIANT_INVALID;
         }
-        value->ld = number;
+        value->ld = ld;
+        value->d = number;
 
         pcutils_map_insert (const_map, key, value);
     }
