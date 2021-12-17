@@ -50,13 +50,53 @@ test_begin
 param_begin
 string:"";
 param_end
-string:"";
+invalid:;
 test_end
 
 test_begin
 param_begin
-string:"hello world";
+string:"";
+array:3:string:"beijing";string:"shanghai";string:"guangzhou";
 param_end
-string:"hello world";
+string:"beijingshanghaiguangzhou";
 test_end
 
+test_begin
+param_begin
+string:"shenzhen";
+array:3:string:"beijing";string:"shanghai";string:"guangzhou";
+param_end
+string:"beijingshenzhenshanghaishenzhenguangzhou";
+test_end
+
+test_begin
+param_begin
+string:"shenzhen";
+array:3:string:"beijing";string:"";string:"guangzhou";
+param_end
+string:"beijingshenzhenguangzhou";
+test_end
+
+test_begin
+param_begin
+string:"shenzhen";
+array:3:string:"";string:"shanghai";string:"guangzhou";
+param_end
+string:"shanghaishenzhenguangzhou";
+test_end
+
+test_begin
+param_begin
+string:"shenzhen";
+array:3:string:"beijing";string:"shanghai";string:"";
+param_end
+string:"beijingshenzhenshanghaishenzhen";
+test_end
+
+test_begin
+param_begin
+string:"shenzhen";
+array:3:string:"";string:"";string:"";
+param_end
+string:"";
+test_end
