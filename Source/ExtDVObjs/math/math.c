@@ -1376,7 +1376,7 @@ internal_eval_getter (int is_long_double, purc_variant_t root,
         double v = 0;
         int r = math_eval(input, &v, param);
         if (r) {
-            purc_set_error (PURC_ERROR_UNKNOWN);
+            purc_set_error (PURC_ERROR_INV_FLOATPOINT);
             return PURC_VARIANT_INVALID;
         }
         return purc_variant_make_number(v);
@@ -1385,7 +1385,7 @@ internal_eval_getter (int is_long_double, purc_variant_t root,
         long double v = 0;
         int r = math_eval_l(input, &v, param);
         if (r) {
-            purc_set_error (PURC_ERROR_UNKNOWN);
+            purc_set_error (PURC_ERROR_INV_FLOATPOINT);
             return PURC_VARIANT_INVALID;
         }
         return purc_variant_make_longdouble(v);
