@@ -82,7 +82,7 @@ static void quit_on_error(int errcode)
 
 int main(void)
 {
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     purc_init ("cn.fmsoft.hybridos.sample", "make_dynamic_object", &info);
 
     purc_variant_t fibonacci = make_fibonacci_array();

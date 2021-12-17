@@ -13,7 +13,7 @@
 
 TEST(variant, pcvariant_init_once)
 {
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int i = 0;
     size_t size = sizeof(purc_variant);
     int ret = 0;
@@ -54,7 +54,7 @@ TEST(variant, pcvariant_init_once)
 
 TEST(variant, pcvariant_init_10_times)
 {
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int i = 0;
     size_t size = sizeof(purc_variant);
     int ret = 0;
@@ -111,7 +111,7 @@ TEST(variant, pcvariant_null)
     // init and deinit module for 10 times
     for (module_times = 0; module_times < 10; module_times++) {
 
-        purc_instance_extra_info info = {0, 0};
+        purc_instance_extra_info info = {};
         int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
         ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -195,7 +195,7 @@ TEST(variant, pcvariant_undefined)
     // init and deinit module for 10 times
     for (module_times = 0; module_times < 10; module_times++) {
 
-        purc_instance_extra_info info = {0, 0};
+        purc_instance_extra_info info = {};
         int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
         ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -281,7 +281,7 @@ TEST(variant, pcvariant_boolean)
     // init and deinit module for 10 times
     for (module_times = 0; module_times < 10; module_times++) {
 
-        purc_instance_extra_info info = {0, 0};
+        purc_instance_extra_info info = {};
         int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
         ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -386,7 +386,7 @@ TEST(variant, pcvariant_boolean)
 TEST(variant, pcvariant_number)
 {
     purc_variant_t value = NULL;
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -421,7 +421,7 @@ TEST(variant, pcvariant_number)
 TEST(variant, pcvariant_ulongint)
 {
     purc_variant_t value = NULL;
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
 
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
@@ -477,7 +477,7 @@ TEST(variant, pcvariant_ulongint)
 TEST(variant, pcvariant_longint)
 {
     purc_variant_t value = NULL;
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
 
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
@@ -535,7 +535,7 @@ TEST(variant, pcvariant_longint)
 TEST(variant, pcvariant_longdouble)
 {
     purc_variant_t value = NULL;
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
 
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
@@ -573,7 +573,7 @@ TEST(variant, pcvariant_longdouble)
 TEST(variant, pcvariant_string)
 {
     purc_variant_t value = NULL;
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
 
     const char short_ok[] = "\x61\x62\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\x00";   // ab北京上海
     const char short_err[] = "\x61\x62\xE5\x02\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\x00";   // ab北京上海
@@ -666,7 +666,7 @@ TEST(variant, pcvariant_atom_string)
 {
     purc_variant_t value = NULL;
     purc_variant_t dup = NULL;
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
 
     const char string_ok[] = "\x61\x62\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\x00";   // ab北京上海北京上海
     const char string_err[] = "\x61\x62\xE5\x02\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\x00";   // ab北京上海北京上海
@@ -782,7 +782,7 @@ TEST(variant, pcvariant_atom_string)
 TEST(variant, pcvariant_sequence)
 {
     purc_variant_t value = NULL;
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     size_t length = 0;
     size_t real_size = MAX (sizeof(long double), sizeof(void*) * 2);
 
@@ -851,7 +851,7 @@ purc_variant_t setter(purc_variant_t root, size_t nr_args, purc_variant_t * argv
 TEST(variant, pcvariant_dynamic)
 {
     purc_variant_t value = NULL;
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
 
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
@@ -898,7 +898,7 @@ static struct purc_native_ops _rws_ops = {
 TEST(variant, pcvariant_native)
 {
     purc_variant_t value = NULL;
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
 
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
@@ -934,7 +934,7 @@ TEST(variant, pcvariant_loopbuffer_one)
 {
     int times = 0;
     purc_variant_t value = NULL;
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     const char long_str[] = "\x61\x62\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\x00";   // ab北京上海北京上海
     size_t old_size = 0;
     size_t new_size = 0;
@@ -984,7 +984,7 @@ TEST(variant, pcvariant_loopbuffer_all)
     if (1) return;
     int i = 0;
     purc_variant_t value[MAX_RESERVED_VARIANTS];
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     const char long_str[] = "\x61\x62\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\x00";   // ab北京上海北京上海
     size_t old_size = 0;
     size_t calc_size = 0;
@@ -1098,7 +1098,7 @@ static struct purc_native_ops _nr_ops = {
 
 TEST(variant, api_edge_case_bad_arg)
 {
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -1213,7 +1213,7 @@ TEST(variant, api_edge_case_bad_arg)
 TEST(variant, four_constants)
 {
     if (1) return;
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -1333,7 +1333,7 @@ TEST(variant, four_constants)
 TEST(variant, load_from_so)
 {
     purc_variant_t value = NULL;
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
 
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
@@ -1372,7 +1372,7 @@ TEST(variant, empty_object)
     size_t nr_reserved_after = 0;
 
     purc_variant_t value = NULL;
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
 
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
@@ -1404,7 +1404,7 @@ TEST(variant, variant_compare)
     purc_variant_t value1 = NULL;
     purc_variant_t value2 = NULL;
     int compare= 0;
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
 
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);

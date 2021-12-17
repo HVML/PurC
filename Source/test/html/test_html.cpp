@@ -125,7 +125,7 @@ void test_html_file(char * data_path, char * file_name)
     }
     
     // initialize the instance
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -214,7 +214,7 @@ void test_html_chunk(char * data_path, char * file_name)
     }
     
     // initialize the instance
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -332,7 +332,7 @@ void test_parser_fragment(char * data_path, char * file_name)
     }
     
     // initialize the instance
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -457,7 +457,7 @@ void test_parser_attribution(char * data_path, char * file_name)
     }
 
     // initialize instance
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 

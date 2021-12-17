@@ -33,7 +33,7 @@ TEST(dvobjs, dvobjs_fs_list)
     size_t sz_total_values_after = 0;
     size_t nr_reserved_after = 0;
 
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -323,7 +323,7 @@ TEST(dvobjs, dvobjs_fs_list_prt)
     size_t sz_total_values_after = 0;
     size_t nr_reserved_after = 0;
 
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -463,7 +463,7 @@ TEST(dvobjs, dvobjs_fs_mkdir)
     size_t sz_total_values_after = 0;
     size_t nr_reserved_after = 0;
 
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -558,7 +558,7 @@ TEST(dvobjs, dvobjs_fs_rmdir)
     size_t sz_total_values_after = 0;
     size_t nr_reserved_after = 0;
 
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -654,7 +654,7 @@ TEST(dvobjs, dvobjs_fs_rm)
     size_t sz_total_values_after = 0;
     size_t nr_reserved_after = 0;
 
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -750,7 +750,7 @@ TEST(dvobjs, dvobjs_fs_unlink)
     size_t sz_total_values_after = 0;
     size_t nr_reserved_after = 0;
 
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -843,7 +843,7 @@ TEST(dvobjs, dvobjs_fs_touch)
     size_t sz_total_values_after = 0;
     size_t nr_reserved_after = 0;
 
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 

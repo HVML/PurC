@@ -83,7 +83,7 @@ TEST(dvobjs, dvobjs_math_pi_e)
     size_t sz_total_values_after = 0;
     size_t nr_reserved_after = 0;
 
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -307,7 +307,7 @@ TEST(dvobjs, dvobjs_math_const)
     size_t nr_reserved_after = 0;
 
 
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -525,7 +525,7 @@ TEST(dvobjs, dvobjs_math_func)
     size_t sz_total_values_after = 0;
     size_t nr_reserved_after = 0;
 
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -619,7 +619,7 @@ TEST(dvobjs, dvobjs_math_eval)
     size_t sz_total_values_after = 0;
     size_t nr_reserved_after = 0;
 
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -766,7 +766,7 @@ TEST(dvobjs, dvobjs_math_assignment)
     size_t sz_total_values_after = 0;
     size_t nr_reserved_after = 0;
 
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -853,7 +853,7 @@ TEST(dvobjs, dvobjs_math_samples)
     size_t sz_total_values_after = 0;
     size_t nr_reserved_after = 0;
 
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -1042,7 +1042,7 @@ TEST(dvobjs, dvobjs_math_bc)
     struct dirent *dir = NULL;
     char path[1024] = {0};
 
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     r = purc_init("cn.fmsoft.hybridos.test",
         "dvobjs_math_bc", &info);
     EXPECT_EQ(r, PURC_ERROR_OK);

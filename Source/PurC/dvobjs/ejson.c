@@ -127,9 +127,11 @@ type_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     assert (argv[0] != PURC_VARIANT_INVALID);
 
     /* make sure that the first one is `undefined` */
-    assert (strcmp (type_names[PURC_VARIANT_TYPE_FIRST], "undefined") == 0);
+    assert (strcmp (type_names[PURC_VARIANT_TYPE_FIRST],
+                VARIANT_TYPE_NAME_UNDEFINED) == 0);
     /* make sure that the last one is `set` */
-    assert (strcmp (type_names[PURC_VARIANT_TYPE_LAST], "set") == 0);
+    assert (strcmp (type_names[PURC_VARIANT_TYPE_LAST],
+                VARIANT_TYPE_NAME_SET) == 0);
 
     return purc_variant_make_string_static (
             type_names [purc_variant_get_type (argv[0])], false);

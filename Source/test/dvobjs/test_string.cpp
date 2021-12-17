@@ -40,7 +40,7 @@ TEST(dvobjs, dvobjs_string_contains)
     std::cerr << "env: " << env << "=" << data_path << std::endl;
 
     // get and function
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -200,7 +200,7 @@ TEST(dvobjs, dvobjs_string_explode)
     std::cerr << "env: " << env << "=" << data_path << std::endl;
 
     // get and function
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -374,7 +374,7 @@ TEST(dvobjs, dvobjs_string_shuffle)
     std::cerr << "env: " << env << "=" << data_path << std::endl;
 
     // get and function
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -551,7 +551,7 @@ TEST(dvobjs, dvobjs_string_replace)
     std::cerr << "env: " << env << "=" << data_path << std::endl;
 
     // get and function
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -716,7 +716,7 @@ TEST(dvobjs, dvobjs_string_format_c)
     std::cerr << "env: " << env << "=" << data_path << std::endl;
 
     // get and function
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -880,7 +880,7 @@ TEST(dvobjs, dvobjs_string_format_p)
     std::cerr << "env: " << env << "=" << data_path << std::endl;
 
     // get and function
-    purc_instance_extra_info info = {0, 0};
+    purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
