@@ -87,10 +87,6 @@ static struct err_msg_info generic_err_msgs[] = {
     { "Wrong arguments", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NONE, 0},
     /* PURC_ERROR_WRONG_STAGE */
     { "Wrong stage", PURC_EXCEPT_BAD_HTML, PURC_EXCEPT_FLAGS_NONE, 0},
-    /* PURC_ERROR_UNEXPECTED_RESULT */
-    { "Unexpected result", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NONE, 0},
-    /* PURC_ERROR_UNEXPECTED_DATA */
-    { "Unexpected data", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NONE, 0},
     /* PURC_ERROR_OVERFLOW */
     { "Overflow", PURC_EXCEPT_OVERFLOW, PURC_EXCEPT_FLAGS_NONE, 0},
     /* PURC_ERROR_UNDERFLOW */
