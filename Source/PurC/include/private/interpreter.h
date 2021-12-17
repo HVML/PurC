@@ -71,6 +71,7 @@ struct pcintr_coroutine {
     struct pcintr_stack        *stack;
 
     enum pcintr_coroutine_state state;
+    int                         waits;
 
     void (*execute)(pcintr_coroutine_t co);
 };
@@ -129,9 +130,6 @@ struct pcintr_stack_frame {
     // the current execution position.
     pcvdom_element_t pos;
 
-    // context for current action
-    void *ctxt;
-
     // the symbolized variables
     purc_variant_t symbol_vars[PURC_SYMBOL_VAR_MAX];
 
@@ -143,6 +141,10 @@ struct pcintr_stack_frame {
 
     // all intermediate variants are managed by an array.
     purc_variant_t mid_vars;
+
+    // context for current action
+    void *ctxt;
+    void (*next_step)(pcintr_coroutine_t co, struct pcintr_stack_frame *frame);
 };
 
 struct pcintr_element_ops {
