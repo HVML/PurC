@@ -25,6 +25,8 @@
 
 #include "purc.h"
 
+#include "internal.h"
+
 #include "private/debug.h"
 #include "private/interpreter.h"
 

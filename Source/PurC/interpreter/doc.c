@@ -24,6 +24,8 @@
 
 #include "element.h"
 
+#include "internal.h"
+
 #include "private/debug.h"
 #include "private/errors.h"
 #include "private/edom.h"

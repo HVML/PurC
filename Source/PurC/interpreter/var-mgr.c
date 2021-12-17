@@ -26,10 +26,12 @@
 
 #include "config.h"
 
+#include "internal.h"
+
 #include "private/var-mgr.h"
 #include "private/errors.h"
-#include "private/utils.h"
 #include "private/instance.h"
+#include "private/utils.h"
 
 #include <stdlib.h>
 #include <string.h>

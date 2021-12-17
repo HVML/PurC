@@ -25,9 +25,10 @@
 
 #include "config.h"
 
+#include "internal.h"
+
 #include "private/debug.h"
 #include "private/instance.h"
-#include "private/interpreter.h"
 #include "private/runloop.h"
 
 #include "ops.h"
