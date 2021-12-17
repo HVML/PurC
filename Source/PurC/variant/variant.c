@@ -46,6 +46,8 @@
     #include <gmodule.h>
 #endif
 
+#include "variant_err_msgs.inc"
+
 static pcvariant_release_fn variant_releasers[PURC_VARIANT_TYPE_NR] = {
     NULL,                           // PURC_VARIANT_TYPE_UNDEFINED
     NULL,                           // PURC_VARIANT_TYPE_NULL
@@ -64,30 +66,6 @@ static pcvariant_release_fn variant_releasers[PURC_VARIANT_TYPE_NR] = {
     pcvariant_set_release,          // PURC_VARIANT_TYPE_SET
 };
 
-
-static struct err_msg_info variant_err_msgs[] = {
-    /* PCVARIANT_ERROR_INVALID_TYPE */
-    {
-        "Invalid variant type",
-        PURC_EXCEPT_WRONG_DATA_TYPE,
-        PURC_EXCEPT_FLAGS_NONE,
-        0
-    },
-    /* PCVARIANT_ERROR_OUT_OF_BOUNDS */
-    {
-        "Index out of bounds",
-        PURC_EXCEPT_INDEX_ERROR,
-        PURC_EXCEPT_FLAGS_NONE,
-        0
-    },
-    /* PCVARIANT_ERROR_NOT_FOUND */
-    {
-        "Element not found",
-        PURC_EXCEPT_ENTITY_NOT_FOUND,
-        PURC_EXCEPT_FLAGS_NONE,
-        0
-    },
-};
 
 /* Make sure the number of error messages matches the number of error codes */
 #define _COMPILE_TIME_ASSERT(name, x)               \
