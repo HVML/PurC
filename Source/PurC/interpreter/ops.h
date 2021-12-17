@@ -1,8 +1,8 @@
 /**
- * @file element-ops.h
+ * @file ops.h
  * @author Xu Xiaohong
  * @date 2021/11/18
- * @brief The internal interfaces for interpreter/element-ops
+ * @brief The internal interfaces for interpreter/ops
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -23,21 +23,32 @@
  *
  */
 
-#ifndef PURC_INTERPRETER_ELEMENT_H
-#define PURC_INTERPRETER_ELEMENT_H
+#ifndef PURC_INTERPRETER_OPS_H
+#define PURC_INTERPRETER_OPS_H
 
 #include "purc-macros.h"
 
 PCA_EXTERN_C_BEGIN
 
+void init_ops(void);
+
+struct pcintr_element_ops* pcintr_get_undefined_ops(void);
+
+struct pcintr_element_ops pcintr_get_ops_by_tag_id(enum pchvml_tag_id tag_id);
+struct pcintr_element_ops pcintr_get_ops_by_element(pcvdom_element_t element);
+
+struct pcintr_element_ops pcintr_document_get_ops(void);
+struct pcintr_element_ops pcintr_hvml_get_ops(void);
+struct pcintr_element_ops pcintr_head_get_ops(void);
+struct pcintr_element_ops pcintr_body_get_ops(void);
+
 struct pcintr_element_ops* pcintr_archetype_get_ops(void);
 struct pcintr_element_ops* pcintr_choose_get_ops(void);
-struct pcintr_element_ops* pcintr_hvml_get_ops(void);
 struct pcintr_element_ops* pcintr_init_get_ops(void);
 struct pcintr_element_ops* pcintr_iterate_get_ops(void);
 
 PCA_EXTERN_C_END
 
-#endif  /* PURC_INTERPRETER_ELEMENT_H */
+#endif  /* PURC_INTERPRETER_OPS_H */
 
 

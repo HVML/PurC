@@ -40,6 +40,10 @@ struct pcintr_stack;
 typedef struct pcintr_stack pcintr_stack;
 typedef struct pcintr_stack *pcintr_stack_t;
 
+struct pcintr_stack_frame;
+typedef struct pcintr_stack_frame pcintr_stack_frame;
+typedef struct pcintr_stack_frame *pcintr_stack_frame_t;
+
 enum pcintr_stack_state {
     STACK_STATE_WAITING    = 0x01,
     STACK_STATE_TERMINATED = 0x02,
@@ -72,8 +76,6 @@ struct pcintr_coroutine {
 
     enum pcintr_coroutine_state state;
     int                         waits;
-
-    void (*execute)(pcintr_coroutine_t co);
 };
 
 struct pcintr_stack {
@@ -120,6 +122,32 @@ enum purc_symbol_var {
     PURC_SYMBOL_VAR_MAX
 };
 
+struct pcintr_element_ops {
+    // called after pushed
+    void (*after_pushed) (pcintr_coroutine_t co,
+            struct pcintr_stack_frame *frame);
+
+    // called on popping
+    void (*on_popping) (pcintr_coroutine_t co,
+            struct pcintr_stack_frame *frame);
+
+    // called to rerun
+    void (*rerun) (pcintr_coroutine_t co,
+            struct pcintr_stack_frame *frame);
+
+    // called after executed
+    void (*select_child) (pcintr_coroutine_t co,
+            struct pcintr_stack_frame *frame);
+};
+
+enum pcintr_stack_frame_next_step {
+    NEXT_STEP_AFTER_PUSHED = 0,
+    NEXT_STEP_ON_POPPING,
+    NEXT_STEP_RERUN,
+    NEXT_STEP_SELECT_CHILD,
+    NEXT_STEP_CUSTOMIZED,
+};
+
 struct pcintr_stack_frame {
     // pointers to sibling frames.
     struct list_head node;
@@ -142,23 +170,11 @@ struct pcintr_stack_frame {
     // all intermediate variants are managed by an array.
     purc_variant_t mid_vars;
 
+    struct pcintr_element_ops ops;
+
     // context for current action
     void *ctxt;
-    void (*next_step)(pcintr_coroutine_t co, struct pcintr_stack_frame *frame);
-};
-
-struct pcintr_element_ops {
-    // called after pushed
-    void *(*after_pushed) (pcintr_stack_t stack, pcvdom_element_t pos);
-
-    // called on popping
-    bool (*on_popping) (pcintr_stack_t stack, void* ctxt);
-
-    // called to rerun
-    bool (*rerun) (pcintr_stack_t stack, void* ctxt);
-
-    // called after executed
-    pcvdom_element_t (*select_child) (pcintr_stack_t stack, void* ctxt);
+    int   next_step;
 };
 
 struct pcintr_dynamic_args {
@@ -181,6 +197,8 @@ struct pcintr_stack_frame*
 pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame);
 void
 pop_stack_frame(pcintr_stack_t stack);
+struct pcintr_stack_frame*
+push_stack_frame(pcintr_stack_t stack);
 
 struct pcintr_element_ops*
 pcintr_get_element_ops(pcvdom_element_t element);

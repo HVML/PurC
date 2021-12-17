@@ -30,7 +30,7 @@
 #include "private/interpreter.h"
 #include "private/runloop.h"
 
-#include "element-ops.h"
+#include "ops.h"
 #include "../hvml/hvml-gen.h"
 
 void pcintr_stack_init_once(void)
@@ -38,6 +38,7 @@ void pcintr_stack_init_once(void)
     pcrunloop_init_main();
     pcrunloop_t runloop = pcrunloop_get_main();
     PC_ASSERT(runloop);
+    init_ops();
 }
 
 void pcintr_stack_init_instance(struct pcinst* inst)
@@ -155,7 +156,7 @@ pcintr_stack_t purc_get_stack(void)
     return co->stack;
 }
 
-static struct pcintr_stack_frame*
+struct pcintr_stack_frame*
 push_stack_frame(pcintr_stack_t stack)
 {
     PC_ASSERT(stack);
@@ -190,7 +191,7 @@ pop_stack_frame(pcintr_stack_t stack)
     --stack->nr_frames;
 }
 
-static void
+static inline void
 on_hvml_popped(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     fprintf(stderr, "==%s[%d]:%s()==\n", __FILE__, __LINE__, __func__);
@@ -241,7 +242,7 @@ element_eval_attrs(struct pcintr_stack_frame *frame,
     return 0;
 }
 
-static void
+static inline void
 on_element_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     fprintf(stderr, "==%s[%d]:%s()==\n", __FILE__, __LINE__, __func__);
@@ -251,11 +252,20 @@ on_element_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (r)
         return;
 
-    pop_stack_frame(stack);
-    co->state = CO_STATE_READY;
+    struct pcintr_element_ops *ops;
+    ops = pcintr_get_element_ops(element);
+    if (!ops) {
+        pop_stack_frame(stack);
+        co->state = CO_STATE_READY;
+        return;
+    }
+
+    if (ops->after_pushed) {
+    }
+
 }
 
-static void
+static inline void
 on_hvml_body_popped(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     fprintf(stderr, "==%s[%d]:%s()==\n", __FILE__, __LINE__, __func__);
@@ -266,7 +276,7 @@ on_hvml_body_popped(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     co->state = CO_STATE_READY;
 }
 
-static void
+static inline void
 on_hvml_head_popped(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     fprintf(stderr, "==%s[%d]:%s()==\n", __FILE__, __LINE__, __func__);
@@ -279,7 +289,7 @@ on_hvml_head_popped(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         if (tag_id != PCHVML_TAG_HEAD)
             continue;
         frame->ctxt = p;
-        frame->next_step = on_hvml_head_popped;
+        // frame->next_step = on_hvml_head_popped;
         // push frame
         frame = push_stack_frame(stack);
         if (!frame) {
@@ -287,7 +297,7 @@ on_hvml_head_popped(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             return;
         }
         frame->scope = p;
-        frame->next_step = on_element_pushed;
+        // frame->next_step = on_element_pushed;
         co->state = CO_STATE_READY;
         return;
     }
@@ -304,7 +314,7 @@ on_hvml_head_popped(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         if (tag_id != PCHVML_TAG_BODY)
             continue;
         frame->ctxt = p;
-        frame->next_step = on_hvml_body_popped;
+        // frame->next_step = on_hvml_body_popped;
         // push frame
         frame = push_stack_frame(stack);
         if (!frame) {
@@ -312,7 +322,7 @@ on_hvml_head_popped(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             return;
         }
         frame->scope = p;
-        frame->next_step = on_element_pushed;
+        // frame->next_step = on_element_pushed;
         co->state = CO_STATE_READY;
         return;
     }
@@ -321,7 +331,7 @@ on_hvml_head_popped(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     co->state = CO_STATE_READY;
 }
 
-static void
+static inline void
 on_hvml_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     fprintf(stderr, "==%s[%d]:%s()==\n", __FILE__, __LINE__, __func__);
@@ -339,7 +349,7 @@ on_hvml_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         if (tag_id != PCHVML_TAG_HEAD)
             continue;
         frame->ctxt = p;
-        frame->next_step = on_hvml_head_popped;
+        // frame->next_step = on_hvml_head_popped;
         // push frame
         frame = push_stack_frame(stack);
         if (!frame) {
@@ -347,7 +357,7 @@ on_hvml_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             return;
         }
         frame->scope = p;
-        frame->next_step = on_element_pushed;
+        // frame->next_step = on_element_pushed;
         co->state = CO_STATE_READY;
         return;
     }
@@ -363,7 +373,7 @@ on_hvml_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         if (tag_id != PCHVML_TAG_BODY)
             continue;
         frame->ctxt = p;
-        frame->next_step = on_hvml_body_popped;
+        // frame->next_step = on_hvml_body_popped;
         // push frame
         frame = push_stack_frame(stack);
         if (!frame) {
@@ -371,7 +381,7 @@ on_hvml_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             return;
         }
         frame->scope = p;
-        frame->next_step = on_element_pushed;
+        // frame->next_step = on_element_pushed;
         co->state = CO_STATE_READY;
         return;
     }
@@ -380,7 +390,7 @@ on_hvml_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     co->state = CO_STATE_READY;
 }
 
-static void
+static inline void
 on_vdom_start(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     fprintf(stderr, "==%s[%d]:%s()==\n", __FILE__, __LINE__, __func__);
@@ -394,7 +404,7 @@ on_vdom_start(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     }
     struct pcvdom_element *hvml = document->root;
     if (hvml) {
-        frame->next_step = on_hvml_popped;
+        // frame->next_step = on_hvml_popped;
         // push frame
         frame = push_stack_frame(stack);
         if (!frame) {
@@ -402,11 +412,60 @@ on_vdom_start(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             return;
         }
         frame->scope = hvml;
-        frame->next_step = on_hvml_pushed;
+        // frame->next_step = on_hvml_pushed;
         co->state = CO_STATE_READY;
         return;
     }
-    frame->next_step = on_hvml_popped;
+    // frame->next_step = on_hvml_popped;
+    co->state = CO_STATE_READY;
+}
+
+static void
+after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+{
+    if (frame->ops.after_pushed) {
+        frame->ops.after_pushed(co, frame);
+        return;
+    }
+
+    frame->next_step = NEXT_STEP_SELECT_CHILD;
+    co->state = CO_STATE_READY;
+}
+
+static void
+on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+{
+    if (frame->ops.on_popping) {
+        frame->ops.on_popping(co, frame);
+        return;
+    }
+
+    pcintr_stack_t stack = co->stack;
+    pop_stack_frame(stack);
+    co->state = CO_STATE_READY;
+}
+
+static void
+on_rerun(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+{
+    if (frame->ops.rerun) {
+        frame->ops.rerun(co, frame);
+        return;
+    }
+
+    frame->next_step = NEXT_STEP_SELECT_CHILD;
+    co->state = CO_STATE_READY;
+}
+
+static void
+on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+{
+    if (frame->ops.select_child) {
+        frame->ops.select_child(co, frame);
+        return;
+    }
+
+    frame->next_step = NEXT_STEP_ON_POPPING;
     co->state = CO_STATE_READY;
 }
 
@@ -417,7 +476,25 @@ run_coroutine(pcintr_coroutine_t co)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
-    frame->next_step(co, frame);
+    // frame->next_step(co, frame);
+
+    switch (frame->next_step) {
+        case NEXT_STEP_AFTER_PUSHED:
+            after_pushed(co, frame);
+            break;
+        case NEXT_STEP_ON_POPPING:
+            on_popping(co, frame);
+            break;
+        case NEXT_STEP_RERUN:
+            on_rerun(co, frame);
+            break;
+        case NEXT_STEP_SELECT_CHILD:
+            on_select_child(co, frame);
+            break;
+        default:
+            PC_ASSERT(0);
+    }
+
     if (co->waits)
         return;
     struct list_head *frames = &stack->frames;
@@ -500,20 +577,25 @@ pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame)
     return container_of(n, struct pcintr_stack_frame, node);
 }
 
+static struct pcintr_element_ops default_ops = {
+//     .after_pushed = default_element_pushed,
+//     .on_popping   = default_element_popping,
+//     .rerun        = NULL,
+//     .select_child = default_element_select_child,
+};
+
 struct pcintr_element_ops*
 pcintr_get_element_ops(pcvdom_element_t element)
 {
     PC_ASSERT(element);
 
     switch (element->tag_id) {
-        case PCHVML_TAG_HVML:
-            return pcintr_hvml_get_ops();
-        case PCHVML_TAG_ITERATE:
-            return pcintr_iterate_get_ops();
+        // case PCHVML_TAG_HVML:
+        //     return pcintr_hvml_get_ops();
+        // case PCHVML_TAG_ITERATE:
+        //     return pcintr_iterate_get_ops();
         default:
-            fprintf(stderr, "==tag_id:%d==\n", element->tag_id);
-            PC_ASSERT(0); // Not implemented yet
-            return NULL;
+            return &default_ops;
     }
 }
 
@@ -798,7 +880,8 @@ purc_load_hvml_from_rwstream(purc_rwstream_t stream)
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
-    frame->next_step = on_vdom_start;
+    // frame->next_step = on_vdom_start;
+    frame->ops = pcintr_document_get_ops();
 
     struct pcinst *inst = pcinst_current();
     struct list_head *coroutines = &inst->coroutines;

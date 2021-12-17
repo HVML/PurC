@@ -1,0 +1,81 @@
+/**
+ * @file ops.c
+ * @author Xu Xiaohong
+ * @date 2021/12/17
+ * @brief The internal interfaces for interpreter/ops
+ *
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
+#include "config.h"
+
+#include "private/debug.h"
+#include "private/executor.h"
+#include "private/interpreter.h"
+
+#include "ops.h"
+
+static struct pcintr_element_ops *all_ops[PCHVML_TAG_LAST_ENTRY];
+
+struct tag_id_ops {
+    enum pchvml_tag_id         tag_id;
+    struct pcintr_element_ops* (*get)(void);
+};
+
+// const struct tag_id_ops maps[] = {
+//     // {PCHVML_TAG_HVML,
+//     // {hvml_pushed, hvml_popping, hvml_rerun, hvml_select_child}},
+// };
+
+void init_ops(void)
+{
+    static int inited = 0;
+    if (inited)
+        return;
+
+    for (size_t i=0; i<PCA_TABLESIZE(all_ops); ++i) {
+        all_ops[i] = pcintr_get_undefined_ops();
+    }
+
+    // for (size_t i=0; i<PCA_TABLESIZE(maps); ++i) {
+    //     struct tag_id_ops *p = maps+i;
+    //     if (p->tag_id < 0 || p->tag_id >= PCA_TABLESIZE(all_ops))
+    //         continue;
+    //     all_ops[p->tag_id] = &p->ops;
+    // }
+
+    inited = 1;
+}
+
+struct pcintr_element_ops
+pcintr_get_ops_by_tag_id(enum pchvml_tag_id tag_id)
+{
+    PC_ASSERT(tag_id >= 0);
+    PC_ASSERT(tag_id < PCA_TABLESIZE(all_ops));
+    struct pcintr_element_ops *ops = all_ops[tag_id];
+    PC_ASSERT(ops);
+    return *ops;
+}
+
+struct pcintr_element_ops pcintr_get_ops_by_element(pcvdom_element_t element)
+{
+    enum pchvml_tag_id tag_id = element->tag_id;
+    return pcintr_get_ops_by_tag_id(tag_id);
+}
+
