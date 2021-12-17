@@ -180,7 +180,7 @@ pcedom_element_qualified_name_set(pcedom_element_t *element,
     tag_data = pchtml_tag_append(element->node.owner_document->tags,
                               element->node.local_name, key, lname_len);
     if (tag_data == NULL) {
-        return PURC_ERROR_UNKNOWN;
+        return PURC_ERROR_OUT_OF_MEMORY;
     }
 
     element->qualified_name = (pchtml_tag_id_t) tag_data;
