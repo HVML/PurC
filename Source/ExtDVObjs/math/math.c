@@ -1096,7 +1096,7 @@ fabs_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             break;
         case PURC_VARIANT_TYPE_LONGINT:
             purc_variant_cast_to_longint (argv[0], &i64, false);
-            i64 = fabsl (i64);
+            i64 = fabsl ((long double)i64);
             ret_var = purc_variant_make_longint (i64);
             break;
         case PURC_VARIANT_TYPE_ULONGINT:
