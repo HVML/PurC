@@ -53,6 +53,28 @@ enum pcintr_stack_state {
 #define pcintr_stack_is_paused(stack)      \
     (stack->state & STACK_STATE_PAUSED)
 
+enum pcintr_coroutine_state {
+    CO_STATE_READY,
+    CO_STATE_RUN,
+    CO_STATE_WAIT,
+    CO_STATE_TERMINATED,
+    /* STATE_PAUSED, */
+};
+
+struct pcintr_coroutine;
+typedef struct pcintr_coroutine pcintr_coroutine;
+typedef struct pcintr_coroutine *pcintr_coroutine_t;
+
+struct pcintr_coroutine {
+    struct list_head            node;
+
+    struct pcintr_stack        *stack;
+
+    enum pcintr_coroutine_state state;
+
+    void (*execute)(pcintr_coroutine_t co);
+};
+
 struct pcintr_stack {
     struct list_head frames;
 
@@ -82,6 +104,7 @@ struct pcintr_stack {
     size_t          peak_mem_use;
     size_t          peak_nr_variants;
 
+    struct pcintr_coroutine        co;
 };
 
 enum purc_symbol_var {

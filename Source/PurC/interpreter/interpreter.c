@@ -42,16 +42,19 @@ void pcintr_stack_init_once(void)
 
 void pcintr_stack_init_instance(struct pcinst* inst)
 {
-    struct pcintr_stack *intr_stack = &inst->intr_stack;
-    memset(intr_stack, 0, sizeof(*intr_stack));
+    INIT_LIST_HEAD(&inst->coroutines);
+    inst->running_coroutine = NULL;
 
-    struct list_head *frames = &intr_stack->frames;
-    INIT_LIST_HEAD(frames);
-    intr_stack->ret_var = PURC_VARIANT_INVALID;
+    // struct pcintr_stack *intr_stack = &inst->intr_stack;
+    // memset(intr_stack, 0, sizeof(*intr_stack));
+
+    // struct list_head *frames = &intr_stack->frames;
+    // INIT_LIST_HEAD(frames);
+    // intr_stack->ret_var = PURC_VARIANT_INVALID;
 }
 
 static inline void
-intr_stack_frame_release(struct pcintr_stack_frame *frame)
+stack_frame_release(struct pcintr_stack_frame *frame)
 {
     frame->scope = NULL;
     frame->pos   = NULL;
@@ -69,28 +72,138 @@ intr_stack_frame_release(struct pcintr_stack_frame *frame)
     PURC_VARIANT_SAFE_CLEAR(frame->mid_vars);
 }
 
+static inline void
+vdom_release(purc_vdom_t vdom)
+{
+    if (vdom->document) {
+        pcvdom_document_destroy(vdom->document);
+        vdom->document = NULL;
+    }
+}
+
+static inline void
+vdom_destroy(purc_vdom_t vdom)
+{
+    if (!vdom)
+        return;
+
+    vdom_release(vdom);
+
+    free(vdom);
+}
+
+static inline void
+stack_release(pcintr_stack_t stack)
+{
+    struct list_head *frames = &stack->frames;
+    if (!list_empty(frames)) {
+        struct list_head *p, *n;
+        list_for_each_safe(p, n, frames) {
+            struct pcintr_stack_frame *frame;
+            frame = container_of(p, struct pcintr_stack_frame, node);
+            list_del(p);
+            --stack->nr_frames;
+            stack_frame_release(frame);
+            free(frame);
+        }
+        PC_ASSERT(stack->nr_frames == 0);
+    }
+
+    if (stack->vdom) {
+        vdom_destroy(stack->vdom);
+        stack->vdom = NULL;
+    }
+}
+
+static inline void
+stack_init(pcintr_stack_t stack)
+{
+    INIT_LIST_HEAD(&stack->frames);
+}
+
 void pcintr_stack_cleanup_instance(struct pcinst* inst)
 {
-    struct pcintr_stack *intr_stack = &inst->intr_stack;
-    struct list_head *frames = &intr_stack->frames;
-    if (!list_empty(frames)) {
-        struct pcintr_stack_frame *p, *n;
-        list_for_each_entry_safe(p, n, frames, node) {
-            list_del(&p->node);
-            --intr_stack->nr_frames;
-            intr_stack_frame_release(p);
-            free(p);
-        }
-        PC_ASSERT(intr_stack->nr_frames == 0);
+    struct list_head *coroutines = &inst->coroutines;
+    if (list_empty(coroutines))
+        return;
+
+    struct list_head *p, *n;
+    list_for_each_safe(p, n, coroutines) {
+        pcintr_coroutine_t co;
+        co = container_of(p, struct pcintr_coroutine, node);
+        list_del(p);
+        struct pcintr_stack *stack = co->stack;
+        stack_release(stack);
+        free(stack);
     }
+}
+
+
+static inline pcintr_coroutine_t
+coroutine_get_current(void)
+{
+    struct pcinst *inst = pcinst_current();
+    return inst->running_coroutine;
 }
 
 pcintr_stack_t purc_get_stack(void)
 {
-    struct pcinst *inst = pcinst_current();
-    struct pcintr_stack *intr_stack = &inst->intr_stack;
-    return intr_stack;
+    struct pcintr_coroutine *co = coroutine_get_current();
+    if (!co)
+        return NULL;
+
+    return co->stack;
 }
+
+static inline void
+run_coroutine(pcintr_coroutine_t co)
+{
+    co->execute(co);
+}
+
+static inline int run_coroutines(void *ctxt)
+{
+    UNUSED_PARAM(ctxt);
+
+    fprintf(stderr, "===%s[%d]===\n", __FILE__, __LINE__);
+    struct pcinst *inst = pcinst_current();
+    struct list_head *coroutines = &inst->coroutines;
+    size_t readies = 0;
+    size_t waits = 0;
+    if (!list_empty(coroutines)) {
+        struct list_head *p, *n;
+        list_for_each_safe(p, n, coroutines) {
+            struct pcintr_coroutine *co;
+            co = container_of(p, struct pcintr_coroutine, node);
+            switch (co->state) {
+                case CO_STATE_READY:
+                    co->state = CO_STATE_RUN;
+                    run_coroutine(co);
+                    ++readies;
+                    break;
+                case CO_STATE_WAIT:
+                    ++waits;
+                    break;
+                default:
+                    PC_ASSERT(0);
+            }
+        }
+    }
+
+    if (readies) {
+        pcrunloop_t runloop = pcrunloop_get_current();
+        PC_ASSERT(runloop);
+        pcrunloop_dispatch(runloop, run_coroutines, NULL);
+    }
+    else if (waits==0) {
+        pcrunloop_t runloop = pcrunloop_get_current();
+        PC_ASSERT(runloop);
+        pcrunloop_stop(runloop);
+    }
+
+    return 0;
+}
+
 
 struct pcintr_stack_frame*
 pcintr_stack_get_bottom_frame(pcintr_stack_t stack)
@@ -148,7 +261,7 @@ pop_stack_frame(pcintr_stack_t stack)
     struct pcintr_stack_frame *frame;
     frame = container_of(tail, struct pcintr_stack_frame, node);
 
-    intr_stack_frame_release(frame);
+    stack_frame_release(frame);
     free(frame);
     --stack->nr_frames;
 }
@@ -584,32 +697,35 @@ end:
     return doc;
 }
 
-static inline int vdom_main(void* ctxt)
+static inline void vdom_main(pcintr_coroutine_t co)
 {
-    purc_vdom_t vdom = (purc_vdom_t)ctxt;
-
-    pcintr_stack_t stack = purc_get_stack();
+    PC_ASSERT(co->state == CO_STATE_RUN);
+    pcintr_stack_t stack = co->stack;
     PC_ASSERT(stack);
-    PC_ASSERT(stack->state == 0);
 
-    vdom_eval(vdom);
-    if (pcintr_stack_is_waiting(stack))
-        return 0;
+    list_del(&co->node);
+    // TODO: who's responsible to free resources???
+    stack_release(stack);
+    free(stack);
 
-    PC_ASSERT(stack->nr_frames == 0);
+    // vdom_eval(vdom);
+    // if (pcintr_stack_is_waiting(stack))
+    //     return 0;
 
-    stack->state |= STACK_STATE_TERMINATED;
+    // PC_ASSERT(stack->nr_frames == 0);
 
-    if (pcintr_stack_is_terminated(stack)) {
-        pcvdom_document_destroy(vdom->document);
-        free(vdom);
+    // stack->state |= STACK_STATE_TERMINATED;
 
-        pcrunloop_t runloop = pcrunloop_get_current();
-        PC_ASSERT(runloop);
-        pcrunloop_stop(runloop);
-    }
+    // if (pcintr_stack_is_terminated(stack)) {
+    //     pcvdom_document_destroy(vdom->document);
+    //     free(vdom);
 
-    return 0;
+    //     pcrunloop_t runloop = pcrunloop_get_current();
+    //     PC_ASSERT(runloop);
+    //     pcrunloop_stop(runloop);
+    // }
+
+    // return 0;
 }
 
 purc_vdom_t
@@ -629,13 +745,28 @@ purc_load_hvml_from_rwstream(purc_rwstream_t stream)
 
     vdom->document = doc;
 
-    pcintr_stack_t stack = purc_get_stack();
-    PC_ASSERT(stack);
+    pcintr_stack_t stack = (pcintr_stack_t)calloc(1, sizeof(*stack));
+    if (!stack) {
+        vdom_destroy(vdom);
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+    stack_init(stack);
+
+    stack->vdom = vdom;
+    stack->co.stack = stack;
+    stack->co.state = CO_STATE_READY;
+    stack->co.execute = vdom_main;
+
+    struct pcinst *inst = pcinst_current();
+    struct list_head *coroutines = &inst->coroutines;
+    list_add_tail(&stack->co.node, coroutines);
 
     pcrunloop_t runloop = pcrunloop_get_current();
     PC_ASSERT(runloop);
-    pcrunloop_dispatch(runloop, vdom_main, vdom);
+    pcrunloop_dispatch(runloop, run_coroutines, NULL);
 
+    // FIXME: double-free, potentially!!!
     return vdom;
 }
 
