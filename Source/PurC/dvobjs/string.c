@@ -723,23 +723,19 @@ strcat_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    size_t size = purc_variant_string_length (argv[0]) +
-        purc_variant_string_length (argv[1]);
+    size_t len1 = purc_variant_string_length (argv[0]);
+    size_t len2 = purc_variant_string_length (argv[1]);
+    size_t len = len1 + len2;
 
-    if (size <= 2 || size == PURC_VARIANT_BADSIZE) {
-        ret_var = purc_variant_make_string("", false);
+    char *dest = malloc (len + 1);
+    if (dest == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
+        ret_var = PURC_VARIANT_INVALID;
     }
     else {
-        char *dest = malloc (size - 1);
-        if (dest == NULL) {
-            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
-            ret_var = PURC_VARIANT_INVALID;
-        }
-        else {
-            strcpy(dest, purc_variant_get_string_const (argv[0]));
-            strcat(dest, purc_variant_get_string_const (argv[1]));
-            ret_var = purc_variant_make_string_reuse_buff (dest, size - 1, false);
-        }
+        strcpy(dest, purc_variant_get_string_const (argv[0]));
+        strcat(dest, purc_variant_get_string_const (argv[1]));
+        ret_var = purc_variant_make_string_reuse_buff (dest, len, false);
     }
 
     return ret_var;
@@ -789,19 +785,19 @@ lower_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     size_t length = 0;
     purc_variant_string_bytes (argv[0], &length);
     const char * src = purc_variant_get_string_const (argv[0]);
-    char *buf = malloc (length);
+    char *buf = malloc (length + 1);
     if (buf == NULL) {
         pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         ret_var = PURC_VARIANT_INVALID;
     }
     else {
-        for (size_t i = 0; i < length - 1; i++) {
+        for (size_t i = 0; i < length; i++) {
             if (*(src + i) >= 'A' && *(src + i) <= 'Z')
                 *(buf + i) = *(src + i) + 32;
             else
                 *(buf + i) = *(src + i);
         }
-        *(buf + length - 1) = 0x00;
+        *(buf + length) = 0x00;
         ret_var = purc_variant_make_string_reuse_buff (buf, length, false);
     }
 
@@ -830,19 +826,19 @@ upper_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     size_t length = 0;
     purc_variant_string_bytes (argv[0], &length);
     const char * src = purc_variant_get_string_const (argv[0]);
-    char *buf = malloc (length);
+    char *buf = malloc (length + 1);
     if (buf == NULL) {
         pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         ret_var = PURC_VARIANT_INVALID;
     }
     else {
-        for (size_t i = 0; i < length - 1; i++) {
+        for (size_t i = 0; i < length; i++) {
             if (*(src + i) >= 'a' && *(src + i) <= 'z')
                 *(buf + i) = *(src + i) - 32;
             else
                 *(buf + i) = *(src + i);
         }
-        *(buf + length - 1) = 0x00;
+        *(buf + length) = 0x00;
         ret_var = purc_variant_make_string_reuse_buff (buf, length, false);
     }
 
