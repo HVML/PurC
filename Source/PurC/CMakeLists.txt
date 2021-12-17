@@ -183,10 +183,12 @@ list(APPEND PurC_SOURCES ${PurC_DERIVED_SOURCES_DIR}/hvml-tag-foo.c)
 add_custom_command(
     OUTPUT "${PurC_DERIVED_SOURCES_DIR}/purc-error-except.c"
            "${PurC_DERIVED_SOURCES_DIR}/generic_err_msgs.inc"
+           "${PurC_DERIVED_SOURCES_DIR}/executor_err_msgs.inc"
     MAIN_DEPENDENCY ${BUILD_TOOLS_DIR}/make-error-info.py
     DEPENDS "${PURC_DIR}/instance/generic.error.in"
     COMMAND ${Python3_EXECUTABLE} ${BUILD_TOOLS_DIR}/make-error-info.py "${PurC_DERIVED_SOURCES_DIR}"
             ${PURC_DIR}/instance/generic.error.in
+            ${PURC_DIR}/executors/executor.error.in
     COMMAND touch "${PurC_DERIVED_SOURCES_DIR}/purc-error-except.c"
     COMMENT "Generating xxx-error-except.inc by using ${Python3_EXECUTABLE}"
     WORKING_DIRECTORY "${PURC_DIR}/instance/"

@@ -45,6 +45,8 @@
 
 #include <ctype.h>
 
+#include "executor_err_msgs.inc"
+
 struct pcexec_record {
     char                      *name;
     struct purc_exec_ops       ops;
@@ -63,45 +65,6 @@ static void free_pcexec_val(void *val)
     }
     free(record);
 }
-
-
-static struct err_msg_info executor_err_msgs[] = {
-    /* PCEXECUTOR_ERROR_NO_KEYS_SELECTED_PREVIOUSLY */
-    {
-        "Executor: No keys selected previously",
-        PURC_EXCEPT_KEY_ERROR,
-        PURC_EXCEPT_FLAGS_NONE,
-        0
-    },
-    /* PCEXECUTOR_ERROR_NO_KEYS_SELECTED */
-    {
-        "Executor: No keys selected",
-        PURC_EXCEPT_KEY_ERROR,
-        PURC_EXCEPT_FLAGS_NONE,
-        0
-    },
-    /* PCEXECUTOR_ERROR_NOT_ALLOWED */
-    {
-        "Executor: Not allowed",
-        PURC_EXCEPT_ACCESS_DENIED,
-        PURC_EXCEPT_FLAGS_NONE,
-        0
-    },
-    /* PCEXECUTOR_ERROR_OUT_OF_RANGE */
-    {
-        "Executor: Out of range",
-        PURC_EXCEPT_INDEX_ERROR,
-        PURC_EXCEPT_FLAGS_NONE,
-        0
-    },
-    /* PCEXECUTOR_ERROR_BAD_SYNTAX */
-    {
-        "Executor: Bad syntax",
-        PURC_EXCEPT_SYNTAX_ERROR,
-        PURC_EXCEPT_FLAGS_NONE,
-        0
-    },
-};
 
 /* Make sure the number of error messages matches the number of error codes */
 #define _COMPILE_TIME_ASSERT(name, x)               \
