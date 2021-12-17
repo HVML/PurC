@@ -32,15 +32,15 @@
 
 struct err_msg_info {
     const char* msg;
-    const char* except_str;
-    uint64_t flags;     // alignment
-    purc_atom_t except;
+    const char* except_name;
+    unsigned int flags;
+    purc_atom_t except_atom;
 };
 
 struct err_msg_seg {
     struct list_head list;
     int first_errcode, last_errcode;
-    struct err_msg_info* infos;
+    struct err_msg_info* info;
 };
 
 /* registers the messages for a segment of error codes */
