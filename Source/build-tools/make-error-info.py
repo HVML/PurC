@@ -90,7 +90,7 @@ def generate_inc(var_name, messages):
         result.append('        %s,\n' % message[2])
         result.append('        0\n')
         result.append('    },\n')
-    result.append('};\n')
+    result.append('};\n\n')
     return ''.join(result)
 
 if __name__ == "__main__":
