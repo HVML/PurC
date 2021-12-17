@@ -37,6 +37,8 @@
 #include <stdlib.h>
 #endif
 
+#include "ejson_err_msgs.inc"
+
 #define EJSON_MAX_DEPTH         32
 #define EJSON_MIN_BUFFER_SIZE   128
 #define EJSON_MAX_BUFFER_SIZE   1024 * 1024 * 1024
@@ -104,129 +106,6 @@
 #define STATE_DESC(state_name)                                              \
     case state_name:                                                        \
         return ""#state_name;                                               \
-
-
-static struct err_msg_info ejson_err_msgs[] = {
-    /* PCEJSON_ERROR_UNEXPECTED_CHARACTER */
-    {
-        "pcejson unexpected character parse error",
-        PURC_EXCEPT_BAD_EJSON,
-        PURC_EXCEPT_FLAGS_NONE,
-        0
-    },
-    /* PCEJSON_ERROR_UNEXPECTED_NULL_CHARACTER */
-    {
-        "pcejson unexpected null character parse error",
-        PURC_EXCEPT_BAD_EJSON,
-        PURC_EXCEPT_FLAGS_NONE,
-        0
-    },
-    /* PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_EXPONENT */
-    {
-        "pcejson unexpected json number exponent parse error",
-        PURC_EXCEPT_BAD_EJSON,
-        PURC_EXCEPT_FLAGS_NONE,
-        0
-    },
-    /* PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_FRACTION */
-    {
-        "pcejson unexpected json number fraction parse error",
-        PURC_EXCEPT_BAD_EJSON,
-        PURC_EXCEPT_FLAGS_NONE,
-        0
-    },
-    /* PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_INTEGER */
-    {
-        "pcejson unexpected json number integer parse error",
-        PURC_EXCEPT_BAD_EJSON,
-        PURC_EXCEPT_FLAGS_NONE,
-        0
-    },
-    /* PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER */
-    {
-        "pcejson unexpected json number parse error",
-        PURC_EXCEPT_BAD_EJSON,
-        PURC_EXCEPT_FLAGS_NONE,
-        0
-    },
-    /* PCEJSON_ERROR_UNEXPECTED_RIGHT_BRACE */
-    {
-        "pcejson unexpected right brace parse error",
-        PURC_EXCEPT_BAD_EJSON,
-        PURC_EXCEPT_FLAGS_NONE,
-        0
-    },
-    /* PCEJSON_ERROR_UNEXPECTED_RIGHT_BRACKET */
-    {
-        "pcejson unexpected right bracket parse error",
-        PURC_EXCEPT_BAD_EJSON,
-        PURC_EXCEPT_FLAGS_NONE,
-        0
-    },
-    /* PCEJSON_ERROR_UNEXPECTED_JSON_KEY_NAME */
-    {
-        "pcejson unexpected json key name parse error",
-        PURC_EXCEPT_BAD_EJSON,
-        PURC_EXCEPT_FLAGS_NONE,
-        0
-    },
-    /* PCEJSON_ERROR_UNEXPECTED_COMMA */
-    {
-        "pcejson unexpected comma parse error",
-        PURC_EXCEPT_BAD_EJSON,
-        PURC_EXCEPT_FLAGS_NONE,
-        0
-    },
-    /* PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD */
-    {
-        "pcejson unexpected json keyword parse error",
-        PURC_EXCEPT_BAD_EJSON,
-        PURC_EXCEPT_FLAGS_NONE,
-        0
-    },
-    /* PCEJSON_ERROR_UNEXPECTED_BASE64 */
-    {
-        "pcejson unexpected base64 parse error",
-        PURC_EXCEPT_BAD_EJSON,
-        PURC_EXCEPT_FLAGS_NONE,
-        0
-    },
-    /* PCEJSON_ERROR_UNEXPECTED_EOF */
-    {
-        "pcejson unexpected eof parse error",
-        PURC_EXCEPT_BAD_EJSON,
-        PURC_EXCEPT_FLAGS_NONE,
-        0
-    },
-    /* PCEJSON_ERROR_BAD_JSON_NUMBER */
-    {
-        "pcejson bad json number parse error",
-        PURC_EXCEPT_BAD_EJSON,
-        PURC_EXCEPT_FLAGS_NONE,
-        0
-    },
-    /* PCEJSON_ERROR_BAD_JSON_STRING_ESCAPE_ENTITY */
-    {
-        "pcejson bad json string escape entity parse error",
-        PURC_EXCEPT_BAD_EJSON,
-        PURC_EXCEPT_FLAGS_NONE,
-        0
-    },
-    /* PCEJSON_ERROR_BAD_JSON */
-    {
-        "pcejson bad json parse error",
-        PURC_EXCEPT_BAD_EJSON,
-        PURC_EXCEPT_FLAGS_NONE,
-        0
-    },
-    /* PCEJSON_ERROR_MAX_DEPTH_EXCEEDED */
-    {
-        "pcejson max depth exceeded",
-        PURC_EXCEPT_OVERFLOW,
-        PURC_EXCEPT_FLAGS_NONE,
-        0
-    },
-};
 
 /* Make sure the number of error messages matches the number of error codes */
 #define _COMPILE_TIME_ASSERT(name, x)               \
