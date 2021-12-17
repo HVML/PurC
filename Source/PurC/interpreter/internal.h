@@ -1,8 +1,8 @@
-/*
- * @file instance.h
- * @author Vincent Wei (https://github.com/VincentWei)
- * @date 2021/07/05
- * @brief The structures for PurC instance.
+/**
+ * @file internal.h
+ * @author Xu Xiaohong
+ * @date 2021/12/18
+ * @brief The internal interfaces for interpreter/internal
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -20,39 +20,21 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
  */
 
-#ifndef PURC_PRIVATE_INSTANCE_H
-#define PURC_PRIVATE_INSTANCE_H
+#ifndef PURC_INTERPRETER_INTERNAL_H
+#define PURC_INTERPRETER_INTERNAL_H
 
-#include "purc.h"
+#include "purc-macros.h"
 
-#include "config.h"
-
-#include "private/variant.h"
-#include "private/map.h"
-#include "private/executor.h"
 #include "private/interpreter.h"
-#include "private/var-mgr.h"
 
-struct pcinst {
-    int errcode;
-    purc_variant_t err_exinfo;
+PCA_EXTERN_C_BEGIN
 
-    char* app_name;
-    char* runner_name;
+PCA_EXTERN_C_END
 
-    pcutils_map* local_data_map;
-    pcvarmgr_list_t variables;
+#endif  /* PURC_INTERPRETER_INTERNAL_H */
 
-    struct pcvariant_heap variant_heap;
-    struct pcexecutor_heap executor_heap;
 
-    struct pcintr_heap    intr_heap;
-};
-
-/* gets the current instance */
-struct pcinst* pcinst_current(void) WTF_INTERNAL;
-
-#endif /* not defined PURC_PRIVATE_INSTANCE_H */
 

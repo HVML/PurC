@@ -43,8 +43,9 @@ void pcintr_stack_init_once(void)
 
 void pcintr_stack_init_instance(struct pcinst* inst)
 {
-    INIT_LIST_HEAD(&inst->coroutines);
-    inst->running_coroutine = NULL;
+    struct pcintr_heap *heap = &inst->intr_heap;
+    INIT_LIST_HEAD(&heap->coroutines);
+    heap->running_coroutine = NULL;
 
     // struct pcintr_stack *intr_stack = &inst->intr_stack;
     // memset(intr_stack, 0, sizeof(*intr_stack));
@@ -124,7 +125,8 @@ stack_init(pcintr_stack_t stack)
 
 void pcintr_stack_cleanup_instance(struct pcinst* inst)
 {
-    struct list_head *coroutines = &inst->coroutines;
+    struct pcintr_heap *heap = &inst->intr_heap;
+    struct list_head *coroutines = &heap->coroutines;
     if (list_empty(coroutines))
         return;
 
@@ -144,7 +146,8 @@ static pcintr_coroutine_t
 coroutine_get_current(void)
 {
     struct pcinst *inst = pcinst_current();
-    return inst->running_coroutine;
+    struct pcintr_heap *heap = &inst->intr_heap;
+    return heap->running_coroutine;
 }
 
 pcintr_stack_t purc_get_stack(void)
@@ -511,7 +514,8 @@ static int run_coroutines(void *ctxt)
     UNUSED_PARAM(ctxt);
 
     struct pcinst *inst = pcinst_current();
-    struct list_head *coroutines = &inst->coroutines;
+    struct pcintr_heap *heap = &inst->intr_heap;
+    struct list_head *coroutines = &heap->coroutines;
     size_t readies = 0;
     size_t waits = 0;
     if (!list_empty(coroutines)) {
@@ -884,7 +888,8 @@ purc_load_hvml_from_rwstream(purc_rwstream_t stream)
     frame->ops = pcintr_document_get_ops();
 
     struct pcinst *inst = pcinst_current();
-    struct list_head *coroutines = &inst->coroutines;
+    struct pcintr_heap *heap = &inst->intr_heap;
+    struct list_head *coroutines = &heap->coroutines;
     list_add_tail(&stack->co.node, coroutines);
 
     pcrunloop_t runloop = pcrunloop_get_current();

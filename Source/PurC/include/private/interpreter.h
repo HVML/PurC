@@ -36,6 +36,15 @@
 #include "private/list.h"
 #include "private/vdom.h"
 
+struct pcintr_coroutine;
+typedef struct pcintr_coroutine pcintr_coroutine;
+typedef struct pcintr_coroutine *pcintr_coroutine_t;
+
+struct pcintr_heap {
+    struct list_head      coroutines;
+    pcintr_coroutine_t    running_coroutine;
+};
+
 struct pcintr_stack;
 typedef struct pcintr_stack pcintr_stack;
 typedef struct pcintr_stack *pcintr_stack_t;
@@ -64,10 +73,6 @@ enum pcintr_coroutine_state {
     CO_STATE_TERMINATED,
     /* STATE_PAUSED, */
 };
-
-struct pcintr_coroutine;
-typedef struct pcintr_coroutine pcintr_coroutine;
-typedef struct pcintr_coroutine *pcintr_coroutine_t;
 
 struct pcintr_coroutine {
     struct list_head            node;
