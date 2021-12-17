@@ -100,8 +100,6 @@ static struct err_msg_info generic_err_msgs[] = {
         PURC_EXCEPT_FLAGS_NONE,
         0
     },
-    /* PURC_ERROR_UNKNOWN */
-    { "Unknown", PURC_EXCEPT_OS_ERROR, PURC_EXCEPT_FLAGS_NONE, 0},
     /* PURC_ERROR_BAD_LOCALE_CATEGORY */
     { "Bad locale category", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NONE, 0},
 };

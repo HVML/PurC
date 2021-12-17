@@ -119,7 +119,6 @@ enum {
     PURC_ERROR_UNDERFLOW,
     PURC_ERROR_DIVBYZERO,
     PURC_ERROR_INV_FLOATPOINT,
-    PURC_ERROR_UNKNOWN,
     PURC_ERROR_BAD_LOCALE_CATEGORY,
 
     /* XXX: change this when you append a new error code */
