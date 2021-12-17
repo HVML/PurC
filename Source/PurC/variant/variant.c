@@ -83,7 +83,7 @@ static struct err_msg_info variant_err_msgs[] = {
     /* PCVARIANT_ERROR_NOT_FOUND */
     {
         "Element not found",
-        PURC_EXCEPT_NOT_DESIRED_ENTITY,
+        PURC_EXCEPT_ENTITY_NOT_FOUND,
         PURC_EXCEPT_FLAGS_NONE,
         0
     },
