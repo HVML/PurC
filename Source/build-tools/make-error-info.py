@@ -94,27 +94,28 @@ def generate_inc(var_name, messages):
     return ''.join(result)
 
 if __name__ == "__main__":
-    src_dir = None
     src_filename= None
     output_filename = None
     output_var_name = None
     messages = None
     if len(sys.argv) < 2:
-        raise Exception('expecting *.error.in')
+        raise Exception('expecting output_dir input.error.in')
 
     first_arg = True
+    second_arg = False
     for parameter in sys.argv:
         if first_arg:
             first_arg = False
+            second_arg = True
             continue
-        src_dir = os.path.dirname(parameter)
+        if second_arg:
+            base_dir = parameter
+            second_arg = False
+            continue
         src_filename = os.path.basename(parameter)
 
-        if not src_dir:
-            src_dir="."
-
-        with open('%s/%s' % (src_dir, src_filename)) as source_file:
+        with open('%s' % parameter) as source_file:
             output_filename, output_var_name, messages  = parse(source_file)
 
-        with open('%s/%s' % (src_dir, ''.join(output_filename)), "w+") as output_file:
+        with open('%s/%s' % (base_dir, ''.join(output_filename)), "w+") as output_file:
             output_file.write(generate_inc(output_var_name, messages))
