@@ -420,8 +420,6 @@ TEST(dvobjs, dvobjs_math_const)
 
     getter = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(getter, nullptr);
-    setter = purc_variant_dynamic_get_setter (dynamic);
-    ASSERT_NE(getter, nullptr);
 
     for (i = 0; i < size; i++) {
         param[0] = purc_variant_make_string (math_ld[i].func, true);
@@ -438,27 +436,6 @@ TEST(dvobjs, dvobjs_math_const)
     param[0] = purc_variant_make_string ("abcd", true);
     ret_var = getter (NULL, 1, param);
     ASSERT_EQ(ret_var, nullptr);
-    purc_variant_unref(param[0]);
-
-    // test setter to create
-    param[0] = purc_variant_make_string ("newone", true);
-    param[1] = purc_variant_make_longdouble(123);
-    ret_var = setter (NULL, 2, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN),
-                true);
-    purc_variant_unref (ret_var);
-    purc_variant_unref(param[0]);
-    purc_variant_unref(param[1]);
-
-    param[0] = purc_variant_make_string ("newone", true);
-    ret_var = getter (NULL, 1, param);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE),
-                true);
-    purc_variant_cast_to_long_double (ret_var, &numberl, false);
-    ASSERT_EQ(numberl, 123);
-    purc_variant_unref(ret_var);
     purc_variant_unref(param[0]);
 
     purc_variant_unload_dvobj (math);
