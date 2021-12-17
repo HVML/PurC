@@ -49,7 +49,7 @@ static struct err_msg_info generic_err_msgs[] = {
     /* PURC_ERROR_BAD_STDC_CALL */
     { "Bad STDC call", PURC_EXCEPT_OS_ERROR, PURC_EXCEPT_FLAGS_NONE, 0},
     /* PURC_ERROR_OUT_OF_MEMORY */
-    { "Out of memory", PURC_EXCEPT_MEMORY_ERROR, PURC_EXCEPT_FLAGS_NONE, 0},
+    { "Out of memory", PURC_EXCEPT_OUT_OF_MEMORY, PURC_EXCEPT_FLAGS_NONE, 0},
     /* PURC_ERROR_INVALID_VALUE */
     { "Invalid value", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NONE, 0},
     /* PURC_ERROR_DUPLICATED */
@@ -72,7 +72,7 @@ static struct err_msg_info generic_err_msgs[] = {
         0
     },
     /* PURC_ERROR_TOO_SMALL_BUFF */
-    { "Too small buffer", PURC_EXCEPT_BUFFER_ERROR, PURC_EXCEPT_FLAGS_NONE, 0},
+    { "Too small buffer", PURC_EXCEPT_TOO_SMALL_BUFFER, PURC_EXCEPT_FLAGS_NONE, 0},
     /* PURC_ERROR_NULL_OBJECT */
     { "Null object", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NONE, 0},
     /* PURC_ERROR_TOO_SMALL_SIZE */
@@ -80,13 +80,13 @@ static struct err_msg_info generic_err_msgs[] = {
     /* PURC_ERROR_INCOMPLETE_OBJECT */
     { "Incomplete object", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NONE, 0},
     /* PURC_ERROR_NO_FREE_SLOT */
-    { "No free slot", PURC_EXCEPT_BUFFER_ERROR, PURC_EXCEPT_FLAGS_NONE, 0},
+    { "No free slot", PURC_EXCEPT_OUT_OF_MEMORY, PURC_EXCEPT_FLAGS_NONE, 0},
     /* PURC_ERROR_NOT_EXISTS */
-    { "Does not exist", PURC_EXCEPT_ENTITY_EXISTS, PURC_EXCEPT_FLAGS_NONE, 0},
+    { "Does not exist", PURC_EXCEPT_ENTITY_NOT_FOUND, PURC_EXCEPT_FLAGS_NONE, 0},
     /* PURC_ERROR_WRONG_ARGS */
     { "Wrong arguments", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NONE, 0},
     /* PURC_ERROR_WRONG_STAGE */
-    { "Wrong stage", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NONE, 0},
+    { "Wrong stage", PURC_EXCEPT_BAD_HTML, PURC_EXCEPT_FLAGS_NONE, 0},
     /* PURC_ERROR_UNEXPECTED_RESULT */
     { "Unexpected result", PURC_EXCEPT_BAD_VALUE, PURC_EXCEPT_FLAGS_NONE, 0},
     /* PURC_ERROR_UNEXPECTED_DATA */
@@ -94,7 +94,7 @@ static struct err_msg_info generic_err_msgs[] = {
     /* PURC_ERROR_OVERFLOW */
     { "Overflow", PURC_EXCEPT_OVERFLOW, PURC_EXCEPT_FLAGS_NONE, 0},
     /* PURC_ERROR_UNDERFLOW */
-    { "Underflow", PURC_EXCEPT_OVERFLOW, PURC_EXCEPT_FLAGS_NONE, 0},
+    { "Underflow", PURC_EXCEPT_UNDERFLOW, PURC_EXCEPT_FLAGS_NONE, 0},
     /* PURC_ERROR_DIVBYZERO*/
     { "Divide by zero", PURC_EXCEPT_ZERO_DIVISION, PURC_EXCEPT_FLAGS_NONE, 0},
     /* PURC_ERROR_INV_FLOATPOINT */
