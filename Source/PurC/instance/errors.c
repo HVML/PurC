@@ -27,7 +27,7 @@
 #include "private/errors.h"
 #include "private/instance.h"
 
-const struct err_msg_info* get_error_info(int errcode);
+static const struct err_msg_info* get_error_info(int errcode);
 
 int purc_get_last_error(void)
 {
