@@ -133,6 +133,10 @@ struct pcintr_element_ops {
     // called after executed
     void (*select_child) (pcintr_coroutine_t co,
             struct pcintr_stack_frame *frame);
+
+    // called for customized
+    void (*on_customized) (pcintr_coroutine_t co,
+            struct pcintr_stack_frame *frame);
 };
 
 enum pcintr_stack_frame_next_step {
@@ -177,6 +181,8 @@ PCA_EXTERN_C_BEGIN
 int
 pcintr_element_eval_attrs(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element);
+
+void pcintr_coroutine_ready(void);
 
 PCA_EXTERN_C_END
 

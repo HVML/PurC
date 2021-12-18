@@ -191,8 +191,6 @@ pop_stack_frame(pcintr_stack_t stack)
 static int
 visit_attr(void *key, void *val, void *ud)
 {
-    fprintf(stderr, "==%s[%d]:%s()==\n", __FILE__, __LINE__, __func__);
-
     struct pcintr_stack_frame *frame;
     frame = (struct pcintr_stack_frame*)ud;
     if (frame->attr_vars == PURC_VARIANT_INVALID) {
@@ -212,13 +210,10 @@ int
 pcintr_element_eval_attrs(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element)
 {
-    fprintf(stderr, "==%s[%d]:%s(%s)==\n", __FILE__, __LINE__, __func__, element->tag_name);
     struct pcutils_map *attrs = element->attrs;
     if (!attrs)
         return 0;
 
-    size_t n = pcutils_map_get_size(attrs);
-    fprintf(stderr, "==%s[%d]:%s()%zd==\n", __FILE__, __LINE__, __func__, n);
     int r = pcutils_map_traverse(attrs, frame, visit_attr);
     if (r)
         return r;
@@ -276,6 +271,13 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 }
 
 static void
+on_customized(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+{
+    PC_ASSERT(frame->ops.on_customized);
+    frame->ops.on_customized(co, frame);
+}
+
+static void
 run_coroutine(pcintr_coroutine_t co)
 {
     pcintr_stack_t stack = co->stack;
@@ -296,6 +298,9 @@ run_coroutine(pcintr_coroutine_t co)
             break;
         case NEXT_STEP_SELECT_CHILD:
             on_select_child(co, frame);
+            break;
+        case NEXT_STEP_CUSTOMIZED:
+            on_customized(co, frame);
             break;
         default:
             PC_ASSERT(0);
@@ -356,6 +361,13 @@ static int run_coroutines(void *ctxt)
     }
 
     return 0;
+}
+
+void pcintr_coroutine_ready(void)
+{
+    pcrunloop_t runloop = pcrunloop_get_current();
+    PC_ASSERT(runloop);
+    pcrunloop_dispatch(runloop, run_coroutines, NULL);
 }
 
 struct pcintr_stack_frame*

@@ -45,7 +45,6 @@ ctxt_for_hvml_destroy(struct ctxt_for_hvml *ctxt)
 static void
 after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
-    fprintf(stderr, "==%s[%d]==\n", __FILE__, __LINE__);
 
     struct ctxt_for_hvml *ctxt;
     ctxt = (struct ctxt_for_hvml*)calloc(1, sizeof(*ctxt));
@@ -64,7 +63,6 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 static void
 on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
-    fprintf(stderr, "==%s[%d]==\n", __FILE__, __LINE__);
     pcintr_stack_t stack = co->stack;
     struct ctxt_for_hvml *ctxt;
     ctxt = (struct ctxt_for_hvml*)frame->ctxt;
@@ -79,8 +77,6 @@ on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 static void
 select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
-    fprintf(stderr, "==%s[%d]==\n", __FILE__, __LINE__);
-
     struct ctxt_for_hvml *ctxt;
     ctxt = (struct ctxt_for_hvml*)frame->ctxt;
 

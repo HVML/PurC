@@ -28,8 +28,54 @@
 #include "internal.h"
 
 #include "private/debug.h"
+#include "private/runloop.h"
 
 #include "ops.h"
+
+#include <pthread.h>
+#include <unistd.h>
+#include <libgen.h>
+
+static int
+timeout_cb(void *ctxt)
+{
+    pcintr_coroutine_t co = (pcintr_coroutine_t)ctxt;
+    co->state = CO_STATE_READY;
+    pcintr_coroutine_ready();
+    return 0;
+}
+
+struct thread_arg {
+    pcintr_coroutine_t co;
+    int                secs;
+};
+
+static void* timer_thread(void *ctxt)
+{
+    struct thread_arg *arg = (struct thread_arg*)ctxt;
+    sleep(arg->secs);
+
+    pcrunloop_t runloop = pcrunloop_get_main();
+    PC_ASSERT(runloop);
+    pcrunloop_dispatch(runloop, timeout_cb, arg->co);
+
+    free(arg);
+
+    return NULL;
+}
+
+static void simulate_timeout(pcintr_coroutine_t co, int secs)
+{
+    struct thread_arg *arg = (struct thread_arg*)malloc(sizeof(*arg));
+    PC_ASSERT(arg);
+    arg->co = co;
+    arg->secs = secs;
+
+    pthread_t thread;
+    int r = pthread_create(&thread, NULL, timer_thread, arg);
+    PC_ASSERT(r == 0);
+    pthread_detach(thread);
+}
 
 struct ctxt_for_undefined {
     struct pcvdom_node           *curr;
@@ -43,15 +89,24 @@ ctxt_for_undefined_destroy(struct ctxt_for_undefined *ctxt)
 }
 
 static void
-after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+on_customized(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
-    fprintf(stderr, "==%s[%d]:%s()==\n", __FILE__, __LINE__, __func__);
+    fprintf(stderr, "==co[%p]@%s[%d]:%s()==\n", co, basename((char*)__FILE__), __LINE__, __func__);
 
     struct pcvdom_element *element = frame->scope;
     PC_ASSERT(element);
 
-    fprintf(stderr, "==%s[%d]:%s()[%s]==\n",
-            __FILE__, __LINE__, __func__, element->tag_name);
+    frame->next_step = NEXT_STEP_SELECT_CHILD;
+    co->state = CO_STATE_READY;
+}
+
+static void
+after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+{
+    struct pcvdom_element *element = frame->scope;
+    PC_ASSERT(element);
+
+    fprintf(stderr, "==co[%p]<%s>@%s[%d]:%s()==\n", co, element->tag_name, basename((char*)__FILE__), __LINE__, __func__);
 
     int r = pcintr_element_eval_attrs(frame, element);
     if (r) {
@@ -70,6 +125,25 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return;
     }
 
+    if (strcmp(element->tag_name, "timeout1") == 0) {
+        frame->ctxt = ctxt;
+        frame->next_step = NEXT_STEP_CUSTOMIZED;
+        co->state = CO_STATE_WAIT;
+        // simulate
+        simulate_timeout(co, 1);
+        return;
+    }
+
+    if (strcmp(element->tag_name, "timeout3") == 0) {
+        frame->ctxt = ctxt;
+        frame->next_step = NEXT_STEP_CUSTOMIZED;
+        co->state = CO_STATE_WAIT;
+        // simulate
+        simulate_timeout(co, 3);
+        return;
+    }
+
+
     frame->ctxt = ctxt;
     frame->next_step = NEXT_STEP_SELECT_CHILD;
     co->state = CO_STATE_READY;
@@ -78,7 +152,8 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 static void
 on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
-    fprintf(stderr, "==%s[%d]:%s()==\n", __FILE__, __LINE__, __func__);
+    struct pcvdom_element *element = frame->scope;
+    fprintf(stderr, "==co[%p]<%s>@%s[%d]:%s()==\n", co, element->tag_name, basename((char*)__FILE__), __LINE__, __func__);
     pcintr_stack_t stack = co->stack;
     struct ctxt_for_undefined *ctxt;
     ctxt = (struct ctxt_for_undefined*)frame->ctxt;
@@ -94,8 +169,6 @@ static void
 on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_element *element)
 {
-    fprintf(stderr, "==%s[%d]:%s()==\n", __FILE__, __LINE__, __func__);
-
     struct ctxt_for_undefined *ctxt;
     ctxt = (struct ctxt_for_undefined*)frame->ctxt;
 
@@ -118,8 +191,6 @@ static void
 on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_content *content)
 {
-    fprintf(stderr, "==%s[%d]:%s()==\n", __FILE__, __LINE__, __func__);
-
     struct ctxt_for_undefined *ctxt;
     ctxt = (struct ctxt_for_undefined*)frame->ctxt;
 
@@ -132,8 +203,6 @@ static void
 on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_comment *comment)
 {
-    fprintf(stderr, "==%s[%d]:%s()==\n", __FILE__, __LINE__, __func__);
-
     struct ctxt_for_undefined *ctxt;
     ctxt = (struct ctxt_for_undefined*)frame->ctxt;
 
@@ -145,8 +214,6 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 static void
 select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
-    fprintf(stderr, "==%s[%d]:%s()==\n", __FILE__, __LINE__, __func__);
-
     struct ctxt_for_undefined *ctxt;
     ctxt = (struct ctxt_for_undefined*)frame->ctxt;
 
@@ -192,6 +259,7 @@ ops = {
     .on_popping         = on_popping,
     .rerun              = NULL,
     .select_child       = select_child,
+    .on_customized      = on_customized,
 };
 
 struct pcintr_element_ops* pcintr_get_undefined_ops(void)
