@@ -45,12 +45,13 @@ ctxt_for_undefined_destroy(struct ctxt_for_undefined *ctxt)
 static void
 after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
-    fprintf(stderr, "==%s[%d]==\n", __FILE__, __LINE__);
+    fprintf(stderr, "==%s[%d]:%s()==\n", __FILE__, __LINE__, __func__);
 
     struct pcvdom_element *element = frame->scope;
     PC_ASSERT(element);
 
-    fprintf(stderr, "==%s[%d]%s==\n", __FILE__, __LINE__, element->tag_name);
+    fprintf(stderr, "==%s[%d]:%s()[%s]==\n",
+            __FILE__, __LINE__, __func__, element->tag_name);
 
     int r = pcintr_element_eval_attrs(frame, element);
     if (r) {
@@ -77,7 +78,7 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 static void
 on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
-    fprintf(stderr, "==%s[%d]==\n", __FILE__, __LINE__);
+    fprintf(stderr, "==%s[%d]:%s()==\n", __FILE__, __LINE__, __func__);
     pcintr_stack_t stack = co->stack;
     struct ctxt_for_undefined *ctxt;
     ctxt = (struct ctxt_for_undefined*)frame->ctxt;
@@ -93,7 +94,7 @@ static void
 on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_element *element)
 {
-    fprintf(stderr, "==%s[%d]==\n", __FILE__, __LINE__);
+    fprintf(stderr, "==%s[%d]:%s()==\n", __FILE__, __LINE__, __func__);
 
     struct ctxt_for_undefined *ctxt;
     ctxt = (struct ctxt_for_undefined*)frame->ctxt;
@@ -117,7 +118,7 @@ static void
 on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_content *content)
 {
-    fprintf(stderr, "==%s[%d]==\n", __FILE__, __LINE__);
+    fprintf(stderr, "==%s[%d]:%s()==\n", __FILE__, __LINE__, __func__);
 
     struct ctxt_for_undefined *ctxt;
     ctxt = (struct ctxt_for_undefined*)frame->ctxt;
@@ -131,7 +132,7 @@ static void
 on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_comment *comment)
 {
-    fprintf(stderr, "==%s[%d]==\n", __FILE__, __LINE__);
+    fprintf(stderr, "==%s[%d]:%s()==\n", __FILE__, __LINE__, __func__);
 
     struct ctxt_for_undefined *ctxt;
     ctxt = (struct ctxt_for_undefined*)frame->ctxt;
@@ -144,7 +145,7 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 static void
 select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
-    fprintf(stderr, "==%s[%d]==\n", __FILE__, __LINE__);
+    fprintf(stderr, "==%s[%d]:%s()==\n", __FILE__, __LINE__, __func__);
 
     struct ctxt_for_undefined *ctxt;
     ctxt = (struct ctxt_for_undefined*)frame->ctxt;

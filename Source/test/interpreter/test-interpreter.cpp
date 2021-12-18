@@ -5,7 +5,7 @@
 TEST(interpreter, basic)
 {
     const char *hvmls[] = {
-        "<hvml><head x=\"y\"><init a=\"b\"/></head><body/></hvml>",
+        "<hvml><head x=\"y\">hello<xinit a=\"b\">world<!--yes-->solid</xinit></head><body/></hvml>",
     };
 
     purc_instance_extra_info info = {};
