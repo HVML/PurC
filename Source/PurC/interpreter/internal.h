@@ -44,20 +44,20 @@ enum pcintr_stack_state {
     (stack->state & STACK_STATE_PAUSED)
 
 enum pcintr_coroutine_state {
-    CO_STATE_READY,
-    CO_STATE_RUN,
-    CO_STATE_WAIT,
-    CO_STATE_TERMINATED,
+    CO_STATE_READY,            /* ready to run next step */
+    CO_STATE_RUN,              /* is running */
+    CO_STATE_WAIT,             /* is waiting for event */
+    CO_STATE_TERMINATED,       /* can never execute any hvml code */
     /* STATE_PAUSED, */
 };
 
 struct pcintr_coroutine {
-    struct list_head            node;
+    struct list_head            node;   /* sibling coroutines */
 
-    struct pcintr_stack        *stack;
+    struct pcintr_stack        *stack;  /* stack that holds this coroutine */
 
     enum pcintr_coroutine_state state;
-    int                         waits;
+    int                         waits;  /* FIXME: nr of registered events */
 };
 
 struct pcintr_stack {
@@ -73,11 +73,12 @@ struct pcintr_stack {
     purc_variant_t ret_var;
 
     // executing state
+    // FIXME: move to struct pcintr_coroutine?
     uint32_t        error:1;
     uint32_t        except:1;
     /* uint32_t        paused:1; */
 
-    uint32_t        state;
+    uint32_t        state; /* TODO: remove */
 
     // error or except info
     purc_atom_t     error_except;
@@ -89,7 +90,9 @@ struct pcintr_stack {
     size_t          peak_mem_use;
     size_t          peak_nr_variants;
 
-    struct pcintr_coroutine        co;
+    /* coroutine that this stack `owns` */
+    /* FIXME: switch owner-ship ? */
+    struct pcintr_coroutine        co; 
 };
 
 enum purc_symbol_var {
@@ -105,7 +108,17 @@ enum purc_symbol_var {
 };
 
 struct pcintr_element_ops {
+    // FIXME:
+    // all function returns nothing
+    // let's take `after_pushed` as an example to explain:
+    // specifically, during after_pushed call, the coroutine might yield
+    // it's execution(eg.: <init ... from=<url> .../>),
+    // thus caller can not simply rely on return'd status to determine
+    // what next step shall take. thus, return'd value means nothing
     // called after pushed
+    // NOTE: because all functions returns, the implementer of these
+    //       functions shall set coroutine's next step correctly
+    // eg.: ref. Source/PurC/interpreter/undefined.c
     void (*after_pushed) (pcintr_coroutine_t co,
             struct pcintr_stack_frame *frame);
 
