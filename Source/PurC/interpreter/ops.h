@@ -38,7 +38,7 @@ struct pcintr_element_ops pcintr_get_ops_by_tag_id(enum pchvml_tag_id tag_id);
 struct pcintr_element_ops pcintr_get_ops_by_element(pcvdom_element_t element);
 
 struct pcintr_element_ops pcintr_get_document_ops(void);
-struct pcintr_element_ops pcintr_get_hvml_ops(void);
+struct pcintr_element_ops* pcintr_get_hvml_ops(void);
 struct pcintr_element_ops pcintr_get_head_ops(void);
 struct pcintr_element_ops pcintr_get_body_ops(void);
 

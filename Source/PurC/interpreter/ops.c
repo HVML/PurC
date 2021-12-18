@@ -39,10 +39,9 @@ struct tag_id_ops {
     struct pcintr_element_ops* (*get)(void);
 };
 
-// const struct tag_id_ops maps[] = {
-//     // {PCHVML_TAG_HVML,
-//     // {hvml_pushed, hvml_popping, hvml_rerun, hvml_select_child}},
-// };
+const struct tag_id_ops maps[] = {
+    {PCHVML_TAG_HVML, pcintr_get_hvml_ops},
+};
 
 void init_ops(void)
 {
@@ -54,12 +53,12 @@ void init_ops(void)
         all_ops[i] = pcintr_get_undefined_ops();
     }
 
-    // for (size_t i=0; i<PCA_TABLESIZE(maps); ++i) {
-    //     struct tag_id_ops *p = maps+i;
-    //     if (p->tag_id < 0 || p->tag_id >= PCA_TABLESIZE(all_ops))
-    //         continue;
-    //     all_ops[p->tag_id] = &p->ops;
-    // }
+    for (size_t i=0; i<PCA_TABLESIZE(maps); ++i) {
+        const struct tag_id_ops *p = maps+i;
+        if (p->tag_id < 0 || p->tag_id >= PCA_TABLESIZE(all_ops))
+            continue;
+        all_ops[p->tag_id] = p->get();
+    }
 
     inited = 1;
 }
