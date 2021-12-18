@@ -125,24 +125,15 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return;
     }
 
-    if (strcmp(element->tag_name, "timeout1") == 0) {
+    if (strstr(element->tag_name, "timeout") == element->tag_name) {
         frame->ctxt = ctxt;
         frame->next_step = NEXT_STEP_CUSTOMIZED;
         co->state = CO_STATE_WAIT;
         // simulate
-        simulate_timeout(co, 1);
+        int secs = atol(element->tag_name + 7);
+        simulate_timeout(co, secs);
         return;
     }
-
-    if (strcmp(element->tag_name, "timeout3") == 0) {
-        frame->ctxt = ctxt;
-        frame->next_step = NEXT_STEP_CUSTOMIZED;
-        co->state = CO_STATE_WAIT;
-        // simulate
-        simulate_timeout(co, 3);
-        return;
-    }
-
 
     frame->ctxt = ctxt;
     frame->next_step = NEXT_STEP_SELECT_CHILD;
