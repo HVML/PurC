@@ -81,7 +81,7 @@ ops = {
     .select_child       = NULL,
 };
 
-struct pcintr_element_ops pcintr_document_get_ops(void)
+struct pcintr_element_ops pcintr_get_document_ops(void)
 {
     return ops;
 }

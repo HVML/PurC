@@ -204,7 +204,7 @@ ops = {
 //     .select_child       = select_child,
 };
 
-struct pcintr_element_ops* pcintr_choose_get_ops(void)
+struct pcintr_element_ops* pcintr_get_choose_ops(void)
 {
     return &ops;
 }

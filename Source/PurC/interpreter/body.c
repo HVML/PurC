@@ -42,7 +42,7 @@ ops = {
 //     .select_child       = select_child,
 };
 
-struct pcintr_element_ops pcintr_body_get_ops(void)
+struct pcintr_element_ops pcintr_get_body_ops(void)
 {
     return ops;
 }

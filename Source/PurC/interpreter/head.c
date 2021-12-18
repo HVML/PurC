@@ -41,7 +41,7 @@ ops = {
 //     .select_child       = select_child,
 };
 
-struct pcintr_element_ops pcintr_head_get_ops(void)
+struct pcintr_element_ops pcintr_get_head_ops(void)
 {
     return ops;
 }

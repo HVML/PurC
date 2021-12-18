@@ -175,7 +175,7 @@ ops = {
 //     .select_child       = NULL,
 };
 
-struct pcintr_element_ops pcintr_hvml_get_ops(void)
+struct pcintr_element_ops pcintr_get_hvml_ops(void)
 {
     return ops;
 }

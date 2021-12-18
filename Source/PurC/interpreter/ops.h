@@ -37,15 +37,15 @@ struct pcintr_element_ops* pcintr_get_undefined_ops(void);
 struct pcintr_element_ops pcintr_get_ops_by_tag_id(enum pchvml_tag_id tag_id);
 struct pcintr_element_ops pcintr_get_ops_by_element(pcvdom_element_t element);
 
-struct pcintr_element_ops pcintr_document_get_ops(void);
-struct pcintr_element_ops pcintr_hvml_get_ops(void);
-struct pcintr_element_ops pcintr_head_get_ops(void);
-struct pcintr_element_ops pcintr_body_get_ops(void);
+struct pcintr_element_ops pcintr_get_document_ops(void);
+struct pcintr_element_ops pcintr_get_hvml_ops(void);
+struct pcintr_element_ops pcintr_get_head_ops(void);
+struct pcintr_element_ops pcintr_get_body_ops(void);
 
-struct pcintr_element_ops* pcintr_archetype_get_ops(void);
-struct pcintr_element_ops* pcintr_choose_get_ops(void);
-struct pcintr_element_ops* pcintr_init_get_ops(void);
-struct pcintr_element_ops* pcintr_iterate_get_ops(void);
+struct pcintr_element_ops* pcintr_get_archetype_ops(void);
+struct pcintr_element_ops* pcintr_get_choose_ops(void);
+struct pcintr_element_ops* pcintr_get_init_ops(void);
+struct pcintr_element_ops* pcintr_get_iterate_ops(void);
 
 PCA_EXTERN_C_END
 

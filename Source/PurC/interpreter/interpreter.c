@@ -886,7 +886,7 @@ purc_load_hvml_from_rwstream(purc_rwstream_t stream)
         return NULL;
     }
     // frame->next_step = on_vdom_start;
-    frame->ops = pcintr_document_get_ops();
+    frame->ops = pcintr_get_document_ops();
 
     struct pcinst *inst = pcinst_current();
     struct pcintr_heap *heap = &inst->intr_heap;
