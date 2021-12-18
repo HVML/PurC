@@ -228,8 +228,8 @@ visit_attr(void *key, void *val, void *ud)
     return -1;
 }
 
-static int
-element_eval_attrs(struct pcintr_stack_frame *frame,
+int
+pcintr_element_eval_attrs(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element)
 {
     fprintf(stderr, "==%s[%d]:%s(%s)==\n", __FILE__, __LINE__, __func__, element->tag_name);
@@ -252,7 +252,7 @@ on_element_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     fprintf(stderr, "==%s[%d]:%s()==\n", __FILE__, __LINE__, __func__);
     pcintr_stack_t stack = co->stack;
     struct pcvdom_element *element = frame->scope;
-    int r = element_eval_attrs(frame, element);
+    int r = pcintr_element_eval_attrs(frame, element);
     if (r)
         return;
 

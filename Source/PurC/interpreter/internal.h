@@ -161,6 +161,10 @@ struct pcintr_stack_frame {
 
 PCA_EXTERN_C_BEGIN
 
+int
+pcintr_element_eval_attrs(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_INTERPRETER_INTERNAL_H */

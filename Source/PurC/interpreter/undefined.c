@@ -47,6 +47,19 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     fprintf(stderr, "==%s[%d]==\n", __FILE__, __LINE__);
 
+    struct pcvdom_element *element = frame->scope;
+    PC_ASSERT(element);
+
+    fprintf(stderr, "==%s[%d]%s==\n", __FILE__, __LINE__, element->tag_name);
+
+    int r = pcintr_element_eval_attrs(frame, element);
+    if (r) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        frame->next_step = -1;
+        co->state = CO_STATE_TERMINATED;
+        return;
+    }
+
     struct ctxt_for_undefined *ctxt;
     ctxt = (struct ctxt_for_undefined*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
@@ -77,6 +90,58 @@ on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 }
 
 static void
+on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element)
+{
+    fprintf(stderr, "==%s[%d]==\n", __FILE__, __LINE__);
+
+    struct ctxt_for_undefined *ctxt;
+    ctxt = (struct ctxt_for_undefined*)frame->ctxt;
+
+    pcintr_stack_t stack = co->stack;
+    struct pcintr_stack_frame *child_frame;
+    child_frame = push_stack_frame(stack);
+    if (!child_frame) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return;
+    }
+    child_frame->ops = pcintr_get_ops_by_element(element);
+    child_frame->scope = element;
+
+    ctxt->curr = &element->node;
+    frame->next_step = NEXT_STEP_SELECT_CHILD;
+    co->state = CO_STATE_READY;
+}
+
+static void
+on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        struct pcvdom_content *content)
+{
+    fprintf(stderr, "==%s[%d]==\n", __FILE__, __LINE__);
+
+    struct ctxt_for_undefined *ctxt;
+    ctxt = (struct ctxt_for_undefined*)frame->ctxt;
+
+    ctxt->curr = &content->node;
+    frame->next_step = NEXT_STEP_SELECT_CHILD;
+    co->state = CO_STATE_READY;
+}
+
+static void
+on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        struct pcvdom_comment *comment)
+{
+    fprintf(stderr, "==%s[%d]==\n", __FILE__, __LINE__);
+
+    struct ctxt_for_undefined *ctxt;
+    ctxt = (struct ctxt_for_undefined*)frame->ctxt;
+
+    ctxt->curr = &comment->node;
+    frame->next_step = NEXT_STEP_SELECT_CHILD;
+    co->state = CO_STATE_READY;
+}
+
+static void
 select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     fprintf(stderr, "==%s[%d]==\n", __FILE__, __LINE__);
@@ -100,26 +165,24 @@ select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return;
     }
 
-    if (!PCVDOM_NODE_IS_ELEMENT(ctxt->curr)) {
-        co->state = CO_STATE_READY;
-        return;
+    switch (ctxt->curr->type) {
+        case PCVDOM_NODE_DOCUMENT:
+            PC_ASSERT(0); // Not implemented yet
+            break;
+        case PCVDOM_NODE_ELEMENT:
+            on_element(co, frame, PCVDOM_ELEMENT_FROM_NODE(ctxt->curr));
+            return;
+        case PCVDOM_NODE_CONTENT:
+            on_content(co, frame, PCVDOM_CONTENT_FROM_NODE(ctxt->curr));
+            return;
+        case PCVDOM_NODE_COMMENT:
+            on_comment(co, frame, PCVDOM_COMMENT_FROM_NODE(ctxt->curr));
+            return;
+        default:
+            PC_ASSERT(0); // Not implemented yet
     }
 
-    struct pcvdom_element *element = PCVDOM_ELEMENT_FROM_NODE(ctxt->curr);
-
-    pcintr_stack_t stack = co->stack;
-    struct pcintr_stack_frame *child_frame;
-    child_frame = push_stack_frame(stack);
-    if (!child_frame) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return;
-    }
-    child_frame->ops = pcintr_get_ops_by_element(element);
-    child_frame->scope = element;
-
-    ctxt->curr = &element->node;
-    frame->next_step = NEXT_STEP_SELECT_CHILD;
-    co->state = CO_STATE_READY;
+    PC_ASSERT(0);
 }
 
 static struct pcintr_element_ops
