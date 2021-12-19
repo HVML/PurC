@@ -51,6 +51,7 @@ output                          PURC_ERROR_DIVBYZERO    FloatingPoint
 */
 
 // map for const and const_l
+// char* :: struct const_value*
 static pcutils_map *const_map = NULL;
 
 struct const_value {
@@ -308,24 +309,26 @@ const_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     }
     else {          // insert
         // create key
-        char *key = malloc (purc_variant_string_length (argv[0]));
+        char *key = strdup(option);
         if (key == NULL) {
             purc_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PURC_VARIANT_INVALID;
         }
-        strcpy (key, option);
 
         // create the entry
-        struct const_value *value = malloc (sizeof(struct const_value));
-        if (value == NULL) {
+        struct const_value *val = malloc (sizeof(*val));
+        if (val == NULL) {
             free (key);
             purc_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PURC_VARIANT_INVALID;
         }
-        value->d = number;
-        value->ld = ld;
+        val->d = number;
+        val->ld = ld;
 
-        pcutils_map_insert (const_map, key, value);
+        if (pcutils_map_insert (const_map, key, val)) {
+            free(key);
+            free(val);
+        }
     }
 
     return purc_variant_make_boolean (true);;
@@ -1441,12 +1444,12 @@ error:
 
 static void * map_copy_key(const void *key)
 {
-    return (void *)key;
+    return (void*)key;
 }
 
 static void map_free_key(void *key)
 {
-    UNUSED_PARAM(key);
+    free(key);
 }
 
 static void *map_copy_val(const void *val)
@@ -1456,13 +1459,21 @@ static void *map_copy_val(const void *val)
 
 static int map_comp_key(const void *key1, const void *key2)
 {
-    return strcmp (key1, key2);
+    return strcmp ((const char*)key1, (const char*)key2);
 }
 
 static void map_free_val(void *val)
 {
-    UNUSED_PARAM(val);
-    return;
+    struct const_value *value = (struct const_value*)val;
+    free(value);
+}
+
+void __attribute__ ((destructor)) math_fini(void)
+{
+    if (const_map) {
+        pcutils_map_destroy (const_map);
+        const_map = NULL;
+    }
 }
 
 // todo: release const_map
@@ -1490,8 +1501,24 @@ static purc_variant_t pcdvobjs_create_math (void)
 
     if (const_map) {
         for (i = 0; i < PCA_TABLESIZE(const_key_value); i++) {
-            pcutils_map_insert (const_map, const_key_value[i].key,
-                    &const_key_value[i].value);
+            struct const_struct *p = const_key_value + i;
+
+            char *k = strdup(p->key);
+            if (!p)
+                continue;
+
+            struct const_value *v;
+            v = (struct const_value*)malloc(sizeof(*v));
+            if (!v) {
+                free(k);
+                continue;
+            }
+            *v = const_key_value[i].value;
+
+            if (pcutils_map_insert (const_map, k, v)) {
+                free(k);
+                free(v);
+            }
         }
     }
 
