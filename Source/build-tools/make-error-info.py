@@ -55,6 +55,10 @@ def parse(file):
     output_file = ""
     output_var = ""
     messages = []
+    error = None
+    except_name = None
+    flags = None
+    msg = None
     for line in file:
         line = line.strip()
         match = re.search(r'OUTPUT_FILE=(.*)\s*', line)
@@ -67,10 +71,30 @@ def parse(file):
             output_var = match.groups()
             continue
 
-        match = re.search(r'([A-Za-z_0-9]+)\s+([A-Za-z_0-9]+)\s+([A-Za-z_0-9]+)\s+(.*)\s*', line)
+        match = re.search(r'(P[A-Z_]+ERROR[A-Z_0-9]+)\s*', line)
         if match:
-            error, except_name, flag, msg = match.groups()
-            messages.append((error, except_name, flag, msg))
+            if error is not None:
+                messages.append((error, except_name, flags, msg))
+                error = None
+                except_name = None
+                flags = None
+                msg = None
+            error=match.groups()
+
+        match = re.search(r'except=\s*([A-Za-z_0-9]+)\s*', line)
+        if match:
+            except_name=match.groups()
+
+        match = re.search(r'flags=\s*([A-Za-z_0-9]+)\s*', line)
+        if match:
+            flags=match.groups()
+
+        match = re.search(r'msg=\s*(.*)\s*', line)
+        if match:
+            msg=match.groups()
+
+    if error is not None:
+        messages.append((error, except_name, flags, msg))
     return output_file, output_var, messages
 
 def generate_inc(var_name, messages):

@@ -1,68 +1,328 @@
 OUTPUT_FILE=hvml_err_msgs.inc
 OUTPUT_VAR=hvml_err_msgs
 
-PCHVML_ERROR_UNEXPECTED_NULL_CHARACTER PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error unexpected null character"
-PCHVML_ERROR_UNEXPECTED_QUESTION_MARK_INSTEAD_OF_TAG_NAME PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error unexpected question mark instead of tag name"
-PCHVML_ERROR_EOF_BEFORE_TAG_NAME PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error eof before tag name"
-PCHVML_ERROR_MISSING_END_TAG_NAME PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error missing end tag name"
-PCHVML_ERROR_INVALID_FIRST_CHARACTER_OF_TAG_NAME PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error invalid first character of tag name"
-PCHVML_ERROR_EOF_IN_TAG PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error eof in tag"
-PCHVML_ERROR_UNEXPECTED_EQUALS_SIGN_BEFORE_ATTRIBUTE_NAME PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error unexpected equals sign before attribute name"
-PCHVML_ERROR_UNEXPECTED_CHARACTER_IN_ATTRIBUTE_NAME PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error unexpected character in attribute name"
-PCHVML_ERROR_UNEXPECTED_CHARACTER_IN_UNQUOTED_ATTRIBUTE_VALUE PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error unexpected character in unquoted attribute value"
-PCHVML_ERROR_MISSING_WHITESPACE_BETWEEN_ATTRIBUTES PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error missing whitespace between attributes"
-PCHVML_ERROR_UNEXPECTED_SOLIDUS_IN_TAG PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error unexpected solidus in tag"
-PCHVML_ERROR_CDATA_IN_HTML_CONTENT PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error cdata in html content"
-PCHVML_ERROR_INCORRECTLY_OPENED_COMMENT PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error incorrectly opened comment"
-PCHVML_ERROR_ABRUPT_CLOSING_OF_EMPTY_COMMENT PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error abrupt closing of empty comment"
-PCHVML_ERROR_EOF_IN_COMMENT PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error eof in comment"
-PCHVML_ERROR_EOF_IN_DOCTYPE PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error eof in doctype"
-PCHVML_ERROR_MISSING_WHITESPACE_BEFORE_DOCTYPE_NAME PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error missing whitespace before doctype name"
-PCHVML_ERROR_MISSING_DOCTYPE_NAME PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error missing doctype name"
-PCHVML_ERROR_INVALID_CHARACTER_SEQUENCE_AFTER_DOCTYPE_NAME PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error invalid character sequence after doctype name"
-PCHVML_ERROR_MISSING_WHITESPACE_AFTER_DOCTYPE_PUBLIC_KEYWORD PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error missing whitespace after doctype public keyword"
-PCHVML_ERROR_MISSING_DOCTYPE_PUBLIC_ID PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error missing doctype public identifier"
-PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_PUBLIC_ID PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error missing quote before doctype public identifier"
-PCHVML_ERROR_ABRUPT_DOCTYPE_PUBLIC_ID PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error abrupt doctype public identifier"
-PCHVML_ERROR_MISSING_WHITESPACE_BETWEEN_DOCTYPE_PUB_AND_SYS PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error missing whitespace between doctype public and system informations"
-PCHVML_ERROR_MISSING_WHITESPACE_AFTER_DOCTYPE_SYSTEM_KEYWORD PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error missing whitespace after doctype system keyword"
-PCHVML_ERROR_MISSING_DOCTYPE_SYSTEM PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error missing doctype system information"
-PCHVML_ERROR_ABRUPT_DOCTYPE_SYSTEM PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error abrupt doctype system information"
-PCHVML_ERROR_UNEXPECTED_CHARACTER_AFTER_DOCTYPE_SYSTEM PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error unexpected character after doctype system information"
-PCHVML_ERROR_EOF_IN_CDATA PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error eof in cdata"
-PCHVML_ERROR_UNKNOWN_NAMED_CHARACTER_REFERENCE PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error unknown named character reference"
-PCHVML_ERROR_ABSENCE_OF_DIGITS_IN_NUMERIC_CHARACTER_REFERENCE PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error absence of digits in numeric character reference"
-PCHVML_ERROR_UNEXPECTED_CHARACTER PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error unexpected character"
-PCHVML_ERROR_UNEXPECTED_JSON_NUMBER_EXPONENT PURC_EXCEPT_BAD_EJSON PURC_EXCEPT_FLAGS_NONE "pchvml error unexpected json number exponent"
-PCHVML_ERROR_UNEXPECTED_JSON_NUMBER_FRACTION PURC_EXCEPT_BAD_EJSON PURC_EXCEPT_FLAGS_NONE "pchvml error unexpected json number fraction"
-PCHVML_ERROR_UNEXPECTED_JSON_NUMBER_INTEGER PURC_EXCEPT_BAD_EJSON PURC_EXCEPT_FLAGS_NONE "pchvml error unexpected json number integer"
-PCHVML_ERROR_UNEXPECTED_JSON_NUMBER PURC_EXCEPT_BAD_EJSON PURC_EXCEPT_FLAGS_NONE "pchvml error unexpected json number"
-PCHVML_ERROR_UNEXPECTED_RIGHT_BRACE PURC_EXCEPT_BAD_EJSON PURC_EXCEPT_FLAGS_NONE "pchvml error unexpected right brace"
-PCHVML_ERROR_UNEXPECTED_RIGHT_BRACKET PURC_EXCEPT_BAD_EJSON PURC_EXCEPT_FLAGS_NONE "pchvml error unexpected right bracket"
-PCHVML_ERROR_UNEXPECTED_JSON_KEY_NAME PURC_EXCEPT_BAD_EJSON PURC_EXCEPT_FLAGS_NONE "pchvml error unexpected json key name"
-PCHVML_ERROR_UNEXPECTED_COMMA PURC_EXCEPT_BAD_EJSON PURC_EXCEPT_FLAGS_NONE "pchvml error unexpected comma"
-PCHVML_ERROR_UNEXPECTED_JSON_KEYWORD PURC_EXCEPT_BAD_EJSON PURC_EXCEPT_FLAGS_NONE "pchvml error unexpected json keyword"
-PCHVML_ERROR_UNEXPECTED_BASE64 PURC_EXCEPT_BAD_EJSON PURC_EXCEPT_FLAGS_NONE "pchvml error unexpected base64"
-PCHVML_ERROR_BAD_JSON_NUMBER PURC_EXCEPT_BAD_EJSON PURC_EXCEPT_FLAGS_NONE "pchvml error bad json number"
-PCHVML_ERROR_BAD_JSON_STRING_ESCAPE_ENTITY PURC_EXCEPT_BAD_EJSON PURC_EXCEPT_FLAGS_NONE "pchvml error bad json string escape entity"
-PCHVML_ERROR_BAD_JSONEE PURC_EXCEPT_BAD_EJSON PURC_EXCEPT_FLAGS_NONE "pchvml error bad jsonee"
-PCHVML_ERROR_BAD_JSONEE_ESCAPE_ENTITY PURC_EXCEPT_BAD_EJSON PURC_EXCEPT_FLAGS_NONE "pchvml error bad jsonee escape entity"
-PCHVML_ERROR_BAD_JSONEE_VARIABLE_NAME PURC_EXCEPT_BAD_EJSON PURC_EXCEPT_FLAGS_NONE "pchvml error bad jsonee variable name"
-PCHVML_ERROR_EMPTY_JSONEE_NAME PURC_EXCEPT_BAD_EJSON PURC_EXCEPT_FLAGS_NONE "pchvml error empty jsonee name"
-PCHVML_ERROR_BAD_JSONEE_NAME PURC_EXCEPT_BAD_EJSON PURC_EXCEPT_FLAGS_NONE "pchvml error bad jsonee name"
-PCHVML_ERROR_BAD_JSONEE_KEYWORD PURC_EXCEPT_BAD_EJSON PURC_EXCEPT_FLAGS_NONE "pchvml error bad jsonee keyword"
-PCHVML_ERROR_EMPTY_JSONEE_KEYWORD PURC_EXCEPT_BAD_EJSON PURC_EXCEPT_FLAGS_NONE "pchvml error empty jsonee keyword"
-PCHVML_ERROR_BAD_JSONEE_UNEXPECTED_COMMA PURC_EXCEPT_BAD_EJSON PURC_EXCEPT_FLAGS_NONE "pchvml error bad jsonee unexpected comma"
-PCHVML_ERROR_BAD_JSONEE_UNEXPECTED_PARENTHESIS PURC_EXCEPT_BAD_EJSON PURC_EXCEPT_FLAGS_NONE "pchvml error bad jsonee unexpected parenthesis"
-PCHVML_ERROR_BAD_JSONEE_UNEXPECTED_LEFT_ANGLE_BRACKET PURC_EXCEPT_BAD_EJSON PURC_EXCEPT_FLAGS_NONE "pchvml error bad jsonee unexpected left angle bracket"
-PCHVML_ERROR_MISSING_MISSING_ATTRIBUTE_VALUE PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error missing missing attribute value"
-PCHVML_ERROR_NESTED_COMMENT PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error nested comment"
-PCHVML_ERROR_INCORRECTLY_CLOSED_COMMENT PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error incorrectly closed comment"
-PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error missing quote before doctype system information"
-PCHVML_ERROR_MISSING_SEMICOLON_AFTER_CHARACTER_REFERENCE PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error missing semicolon after character reference"
-PCHVML_ERROR_CHARACTER_REFERENCE_OUTSIDE_UNICODE_RANGE PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error character reference outside unicode range"
-PCHVML_ERROR_SURROGATE_CHARACTER_REFERENCE PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error surrogate character reference"
-PCHVML_ERROR_NONCHARACTER_CHARACTER_REFERENCE PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error noncharacter character reference"
-PCHVML_ERROR_NULL_CHARACTER_REFERENCE PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error null character reference"
-PCHVML_ERROR_CONTROL_CHARACTER_REFERENCE  PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error control character reference"
-PCHVML_ERROR_INVALID_UTF8_CHARACTER PURC_EXCEPT_BAD_HVML PURC_EXCEPT_FLAGS_NONE "pchvml error invalid utf8 character"
+
+PCHVML_ERROR_UNEXPECTED_NULL_CHARACTER
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error unexpected null character"
+
+PCHVML_ERROR_UNEXPECTED_QUESTION_MARK_INSTEAD_OF_TAG_NAME
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error unexpected question mark instead of tag name"
+
+PCHVML_ERROR_EOF_BEFORE_TAG_NAME
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error eof before tag name"
+
+PCHVML_ERROR_MISSING_END_TAG_NAME
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error missing end tag name"
+
+PCHVML_ERROR_INVALID_FIRST_CHARACTER_OF_TAG_NAME
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error invalid first character of tag name"
+
+PCHVML_ERROR_EOF_IN_TAG
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error eof in tag"
+
+PCHVML_ERROR_UNEXPECTED_EQUALS_SIGN_BEFORE_ATTRIBUTE_NAME
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error unexpected equals sign before attribute name"
+
+PCHVML_ERROR_UNEXPECTED_CHARACTER_IN_ATTRIBUTE_NAME
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error unexpected character in attribute name"
+
+PCHVML_ERROR_UNEXPECTED_CHARACTER_IN_UNQUOTED_ATTRIBUTE_VALUE
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error unexpected character in unquoted attribute value"
+
+PCHVML_ERROR_MISSING_WHITESPACE_BETWEEN_ATTRIBUTES
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error missing whitespace between attributes"
+
+PCHVML_ERROR_UNEXPECTED_SOLIDUS_IN_TAG
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error unexpected solidus in tag"
+
+PCHVML_ERROR_CDATA_IN_HTML_CONTENT
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error cdata in html content"
+
+PCHVML_ERROR_INCORRECTLY_OPENED_COMMENT
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error incorrectly opened comment"
+
+PCHVML_ERROR_ABRUPT_CLOSING_OF_EMPTY_COMMENT
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error abrupt closing of empty comment"
+
+PCHVML_ERROR_EOF_IN_COMMENT
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error eof in comment"
+
+PCHVML_ERROR_EOF_IN_DOCTYPE
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error eof in doctype"
+
+PCHVML_ERROR_MISSING_WHITESPACE_BEFORE_DOCTYPE_NAME
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error missing whitespace before doctype name"
+
+PCHVML_ERROR_MISSING_DOCTYPE_NAME
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error missing doctype name"
+
+PCHVML_ERROR_INVALID_CHARACTER_SEQUENCE_AFTER_DOCTYPE_NAME
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error invalid character sequence after doctype name"
+
+PCHVML_ERROR_MISSING_WHITESPACE_AFTER_DOCTYPE_PUBLIC_KEYWORD
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error missing whitespace after doctype public keyword"
+
+PCHVML_ERROR_MISSING_DOCTYPE_PUBLIC_ID
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error missing doctype public identifier"
+
+PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_PUBLIC_ID
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error missing quote before doctype public identifier"
+
+PCHVML_ERROR_ABRUPT_DOCTYPE_PUBLIC_ID
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error abrupt doctype public identifier"
+
+PCHVML_ERROR_MISSING_WHITESPACE_BETWEEN_DOCTYPE_PUB_AND_SYS
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error missing whitespace between doctype public and system informations"
+
+PCHVML_ERROR_MISSING_WHITESPACE_AFTER_DOCTYPE_SYSTEM_KEYWORD
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error missing whitespace after doctype system keyword"
+
+PCHVML_ERROR_MISSING_DOCTYPE_SYSTEM
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error missing doctype system information"
+
+PCHVML_ERROR_ABRUPT_DOCTYPE_SYSTEM
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error abrupt doctype system information"
+
+PCHVML_ERROR_UNEXPECTED_CHARACTER_AFTER_DOCTYPE_SYSTEM
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error unexpected character after doctype system information"
+
+PCHVML_ERROR_EOF_IN_CDATA
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error eof in cdata"
+
+PCHVML_ERROR_UNKNOWN_NAMED_CHARACTER_REFERENCE
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error unknown named character reference"
+
+PCHVML_ERROR_ABSENCE_OF_DIGITS_IN_NUMERIC_CHARACTER_REFERENCE
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error absence of digits in numeric character reference"
+
+PCHVML_ERROR_UNEXPECTED_CHARACTER
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error unexpected character"
+
+PCHVML_ERROR_UNEXPECTED_JSON_NUMBER_EXPONENT
+    except=PURC_EXCEPT_BAD_EJSON
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error unexpected json number exponent"
+
+PCHVML_ERROR_UNEXPECTED_JSON_NUMBER_FRACTION
+    except=PURC_EXCEPT_BAD_EJSON
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error unexpected json number fraction"
+
+PCHVML_ERROR_UNEXPECTED_JSON_NUMBER_INTEGER
+    except=PURC_EXCEPT_BAD_EJSON
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error unexpected json number integer"
+
+PCHVML_ERROR_UNEXPECTED_JSON_NUMBER
+    except=PURC_EXCEPT_BAD_EJSON
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error unexpected json number"
+
+PCHVML_ERROR_UNEXPECTED_RIGHT_BRACE
+    except=PURC_EXCEPT_BAD_EJSON
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error unexpected right brace"
+
+PCHVML_ERROR_UNEXPECTED_RIGHT_BRACKET
+    except=PURC_EXCEPT_BAD_EJSON
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error unexpected right bracket"
+
+PCHVML_ERROR_UNEXPECTED_JSON_KEY_NAME
+    except=PURC_EXCEPT_BAD_EJSON
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error unexpected json key name"
+
+PCHVML_ERROR_UNEXPECTED_COMMA
+    except=PURC_EXCEPT_BAD_EJSON
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error unexpected comma"
+
+PCHVML_ERROR_UNEXPECTED_JSON_KEYWORD
+    except=PURC_EXCEPT_BAD_EJSON
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error unexpected json keyword"
+
+PCHVML_ERROR_UNEXPECTED_BASE64
+    except=PURC_EXCEPT_BAD_EJSON
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error unexpected base64"
+
+PCHVML_ERROR_BAD_JSON_NUMBER
+    except=PURC_EXCEPT_BAD_EJSON
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error bad json number"
+
+PCHVML_ERROR_BAD_JSON_STRING_ESCAPE_ENTITY
+    except=PURC_EXCEPT_BAD_EJSON
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error bad json string escape entity"
+
+PCHVML_ERROR_BAD_JSONEE
+    except=PURC_EXCEPT_BAD_EJSON
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error bad jsonee"
+
+PCHVML_ERROR_BAD_JSONEE_ESCAPE_ENTITY
+    except=PURC_EXCEPT_BAD_EJSON
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error bad jsonee escape entity"
+
+PCHVML_ERROR_BAD_JSONEE_VARIABLE_NAME
+    except=PURC_EXCEPT_BAD_EJSON
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error bad jsonee variable name"
+
+PCHVML_ERROR_EMPTY_JSONEE_NAME
+    except=PURC_EXCEPT_BAD_EJSON
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error empty jsonee name"
+
+PCHVML_ERROR_BAD_JSONEE_NAME
+    except=PURC_EXCEPT_BAD_EJSON
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error bad jsonee name"
+
+PCHVML_ERROR_BAD_JSONEE_KEYWORD
+    except=PURC_EXCEPT_BAD_EJSON
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error bad jsonee keyword"
+
+PCHVML_ERROR_EMPTY_JSONEE_KEYWORD
+    except=PURC_EXCEPT_BAD_EJSON
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error empty jsonee keyword"
+
+PCHVML_ERROR_BAD_JSONEE_UNEXPECTED_COMMA
+    except=PURC_EXCEPT_BAD_EJSON
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error bad jsonee unexpected comma"
+
+PCHVML_ERROR_BAD_JSONEE_UNEXPECTED_PARENTHESIS
+    except=PURC_EXCEPT_BAD_EJSON
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error bad jsonee unexpected parenthesis"
+
+PCHVML_ERROR_BAD_JSONEE_UNEXPECTED_LEFT_ANGLE_BRACKET
+    except=PURC_EXCEPT_BAD_EJSON
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error bad jsonee unexpected left angle bracket"
+
+PCHVML_ERROR_MISSING_MISSING_ATTRIBUTE_VALUE
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error missing missing attribute value"
+
+PCHVML_ERROR_NESTED_COMMENT
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error nested comment"
+
+PCHVML_ERROR_INCORRECTLY_CLOSED_COMMENT
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error incorrectly closed comment"
+
+PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error missing quote before doctype system information"
+
+PCHVML_ERROR_MISSING_SEMICOLON_AFTER_CHARACTER_REFERENCE
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error missing semicolon after character reference"
+
+PCHVML_ERROR_CHARACTER_REFERENCE_OUTSIDE_UNICODE_RANGE
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error character reference outside unicode range"
+
+PCHVML_ERROR_SURROGATE_CHARACTER_REFERENCE
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error surrogate character reference"
+
+PCHVML_ERROR_NONCHARACTER_CHARACTER_REFERENCE
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error noncharacter character reference"
+
+PCHVML_ERROR_NULL_CHARACTER_REFERENCE
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error null character reference"
+
+PCHVML_ERROR_CONTROL_CHARACTER_REFERENCE
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error control character reference"
+
+PCHVML_ERROR_INVALID_UTF8_CHARACTER
+    except=PURC_EXCEPT_BAD_HVML
+    flags=PURC_EXCEPT_FLAGS_NONE
+    msg="pchvml error invalid utf8 character"
