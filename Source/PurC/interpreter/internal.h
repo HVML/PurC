@@ -114,10 +114,10 @@ struct pcintr_element_ops {
     // specifically, during after_pushed call, the coroutine might yield
     // it's execution(eg.: <init ... from=<url> .../>),
     // thus caller can not simply rely on return'd status to determine
-    // what next step shall take. thus, return'd value means nothing
-    // called after pushed
-    // NOTE: because all functions returns, the implementer of these
-    //       functions shall set coroutine's next step correctly
+    // what next step it shall take. as a result, return'd value means nothing
+    // to caller
+    // NOTE: because all functions returns nothing, these functions shall
+    // set coroutine's next step correctly when returning.
     // eg.: ref. Source/PurC/interpreter/undefined.c
     void (*after_pushed) (pcintr_coroutine_t co,
             struct pcintr_stack_frame *frame);
