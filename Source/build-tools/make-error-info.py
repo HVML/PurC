@@ -67,10 +67,6 @@ def parse(file):
             output_var = match.groups()
             continue
 
-        match = re.search(r'OUTPUT=(.*)\s*', line)
-        if match:
-            filename = match.groups()
-
         match = re.search(r'([A-Za-z_0-9]+)\s+([A-Za-z_0-9]+)\s+([A-Za-z_0-9]+)\s+(.*)\s*', line)
         if match:
             error, except_name, flag, msg = match.groups()
