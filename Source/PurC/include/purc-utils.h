@@ -57,7 +57,7 @@
  * A purc_atom_t is a non-zero integer which uniquely identifies a
  * particular string. A purc_atom_t value of zero is associated to %NULL.
  */
-typedef uintptr_t purc_atom_t;
+typedef unsigned int purc_atom_t;
 
 PCA_EXTERN_C_BEGIN
 

@@ -339,13 +339,17 @@ TEST(dvobjs, dvobjs_math_const)
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
-    purc_dvariant_method func = NULL;
-    func = purc_variant_dynamic_get_getter (dynamic);
-    ASSERT_NE(func, nullptr);
+    purc_dvariant_method getter = NULL;
+    getter = purc_variant_dynamic_get_getter (dynamic);
+    ASSERT_NE(getter, nullptr);
+
+    purc_dvariant_method setter = NULL;
+    setter = purc_variant_dynamic_get_setter (dynamic);
+    ASSERT_NE(setter, nullptr);
 
     for (i = 0; i < size; i++) {
         param[0] = purc_variant_make_string (math_d[i].func, true);
-        ret_var = func (NULL, 1, param);
+        ret_var = getter (NULL, 1, param);
         ASSERT_NE(ret_var, nullptr);
         ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER),
                 true);
@@ -355,16 +359,71 @@ TEST(dvobjs, dvobjs_math_const)
         purc_variant_unref(param[0]);
     }
 
+    // test setter to replace
+    param[0] = purc_variant_make_string ("e", true);
+    param[1] = purc_variant_make_number(123);
+    ret_var = setter (NULL, 2, param);
+    ASSERT_NE(ret_var, nullptr);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN),
+                true);
+    purc_variant_unref (ret_var);
+    purc_variant_unref(param[0]);
+    purc_variant_unref(param[1]);
+
+    param[0] = purc_variant_make_string ("e", true);
+    ret_var = getter (NULL, 1, param);
+    ASSERT_NE(ret_var, nullptr);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER),
+                true);
+    purc_variant_cast_to_number (ret_var, &number, false);
+    ASSERT_EQ(number, 123);
+    purc_variant_unref(ret_var);
+    purc_variant_unref(param[0]);
+
+    // restore e for test const_l
+    param[0] = purc_variant_make_string ("e", true);
+    param[1] = purc_variant_make_number(M_E);
+    param[2] = purc_variant_make_longdouble(M_El);
+    ret_var = setter (NULL, 3, param);
+    ASSERT_NE(ret_var, nullptr);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN),
+                true);
+    purc_variant_unref (ret_var);
+    purc_variant_unref(param[0]);
+    purc_variant_unref(param[1]);
+    purc_variant_unref(param[2]);
+    // test setter to create
+    param[0] = purc_variant_make_string ("newone", true);
+    param[1] = purc_variant_make_number(123);
+    ret_var = setter (NULL, 2, param);
+    ASSERT_NE(ret_var, nullptr);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN),
+                true);
+    purc_variant_unref (ret_var);
+    purc_variant_unref(param[0]);
+    purc_variant_unref(param[1]);
+
+    param[0] = purc_variant_make_string ("newone", true);
+    ret_var = getter (NULL, 1, param);
+    ASSERT_NE(ret_var, nullptr);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER),
+                true);
+    purc_variant_cast_to_number (ret_var, &number, false);
+    ASSERT_EQ(number, 123);
+    purc_variant_unref(ret_var);
+    purc_variant_unref(param[0]);
+
+    // test const_l
     dynamic = purc_variant_object_get_by_ckey (math, "const_l");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
-    func = purc_variant_dynamic_get_getter (dynamic);
-    ASSERT_NE(func, nullptr);
+    getter = purc_variant_dynamic_get_getter (dynamic);
+    ASSERT_NE(getter, nullptr);
 
     for (i = 0; i < size; i++) {
         param[0] = purc_variant_make_string (math_ld[i].func, true);
-        ret_var = func (NULL, 1, param);
+        ret_var = getter (NULL, 1, param);
         ASSERT_NE(ret_var, nullptr);
         ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE),
                 true);
@@ -375,7 +434,7 @@ TEST(dvobjs, dvobjs_math_const)
     }
 
     param[0] = purc_variant_make_string ("abcd", true);
-    ret_var = func (NULL, 1, param);
+    ret_var = getter (NULL, 1, param);
     ASSERT_EQ(ret_var, nullptr);
     purc_variant_unref(param[0]);
 
@@ -395,6 +454,11 @@ TEST(dvobjs, dvobjs_math_func)
     static struct dvobjs_math_method_d math_d[] =
     {
         {
+            "sqrt",
+            9.0,
+            3.0,
+        },
+        {
             "sin",
             M_PI / 2,
             1.0,
@@ -405,28 +469,183 @@ TEST(dvobjs, dvobjs_math_func)
             -1.0,
         },
         {
-            "sqrt",
-            9.0,
-            3.0,
+            "tan",
+            M_PI / 4,
+            1.0,
+        },
+        {
+            "sinh",
+            1.0,
+            1.175201,
+        },
+        {
+            "cosh",
+            1.0,
+            1.543081,
+        },
+        {
+            "tanh",
+            1.0,
+            0.761594,
+        },
+        {
+            "asin",
+            0.707107,
+            0.785398,
+        },
+        {
+            "acos",
+            0.707107,
+            0.785398,
+        },
+        {
+            "atan",
+            1.0,
+            0.785398,
+        },
+        {
+            "asinh",
+            1.0,
+            0.881374,
+        },
+        {
+            "acosh",
+            1.0,
+            0.0,
+        },
+        {
+            "atanh",
+            0.5,
+            0.549306,
+        },
+        {
+            "fabs",
+            -0.5,
+            0.5,
+        },
+        {
+            "log",
+            M_E,
+            1.0,
+        },
+        {
+            "log10",
+            10,
+            1.0,
+        },
+        {
+            "exp",
+            1.0,
+            2.718282,
+        },
+        {
+            "floor",
+            -2.5,
+            -3,
+        },
+        {
+            "ceil",
+            -2.5,
+            -2,
         }
     };
 
     static struct dvobjs_math_method_ld math_ld[] =
     {
         {
+            "sqrt_l",
+            9.0,
+            3.0,
+        },
+        {
             "sin_l",
-            M_PIl / 2,
-            1.0L
+            M_PI / 2,
+            1.0,
         },
         {
             "cos_l",
-            M_PIl,
-            -1.0L
+            M_PI,
+            -1.0,
         },
         {
-            "sqrt_l",
-            9.0L,
-            3.0L
+            "tan_l",
+            M_PI / 4,
+            1.0,
+        },
+        {
+            "sinh_l",
+            1.0,
+            1.175201,
+        },
+        {
+            "cosh_l",
+            1.0,
+            1.543081,
+        },
+        {
+            "tanh_l",
+            1.0,
+            0.761594,
+        },
+        {
+            "asin_l",
+            0.707107,
+            0.785398,
+        },
+        {
+            "acos_l",
+            0.707107,
+            0.785398,
+        },
+        {
+            "atan_l",
+            1.0,
+            0.785398,
+        },
+        {
+            "asinh_l",
+            1.0,
+            0.881374,
+        },
+        {
+            "acosh_l",
+            1.0,
+            0.0,
+        },
+        {
+            "atanh_l",
+            0.5,
+            0.549306,
+        },
+        {
+            "fabs",
+            -0.5,
+            0.5,
+        },
+        {
+            "log_l",
+            M_E,
+            1.0,
+        },
+        {
+            "log10_l",
+            10,
+            1.0,
+        },
+        {
+            "exp_l",
+            1.0,
+            2.718282,
+        },
+        {
+            "floor_l",
+            -2.5,
+            -3,
+        },
+        {
+            "ceil_l",
+            -2.5,
+            -2,
         }
     };
 
@@ -488,7 +707,7 @@ TEST(dvobjs, dvobjs_math_func)
         ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER),
                 true);
         purc_variant_cast_to_number (ret_var, &number, false);
-        ASSERT_EQ(number, math_d[i].d);
+        ASSERT_LT(fabs(number - math_d[i].d), 0.0001);
 
         purc_variant_unref(ret_var);
         purc_variant_unref(param[0]);
@@ -507,7 +726,7 @@ TEST(dvobjs, dvobjs_math_func)
         ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE),
                 true);
         purc_variant_cast_to_long_double (ret_var, &numberl, false);
-        ASSERT_EQ(numberl, math_ld[i].ld);
+        ASSERT_LT(fabs (numberl - math_ld[i].ld), 0.0001);
 
         purc_variant_unref(ret_var);
         purc_variant_unref(param[0]);

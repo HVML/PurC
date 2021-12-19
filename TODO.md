@@ -28,3 +28,17 @@ pcintr_get_element_ops(pcvdom_element_t element)
 }
 
 ```
+
+## [2020.12.18]
+concerning about variant loaded from external dynamic library:
+1. only object-variant can be loaded, which results in both dev-friendly problem
+   and running-performance
+2. isolation problem: internally-hidden-field in object to store the handle.
+3. performance problem: when refcount reaches 0, bunch of steps shall be take
+   to check if it's loaded-variant
+4. currently, `purc_variant_unload_dvobj` was introduced to tackle such issue,
+   which tastes bad and failed with life-time conflicts reported by `valgrind`
+
+we might solve this problem by introducing an internal type of variant, called
+PHANTOM...
+

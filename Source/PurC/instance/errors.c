@@ -27,7 +27,7 @@
 #include "private/errors.h"
 #include "private/instance.h"
 
-const struct err_msg_info* get_error_info(int errcode);
+static const struct err_msg_info* get_error_info(int errcode);
 
 int purc_get_last_error(void)
 {
@@ -46,7 +46,7 @@ purc_variant_t purc_get_last_error_ex(void)
         return inst->err_exinfo;
     }
 
-    return PURC_VARIANT_INVALID; // FIXME: or make_undefined?
+    return PURC_VARIANT_INVALID;
 }
 
 int purc_set_error_ex(int errcode, purc_variant_t exinfo)
@@ -60,17 +60,17 @@ int purc_set_error_ex(int errcode, purc_variant_t exinfo)
     inst->errcode = errcode;
     inst->err_exinfo = exinfo;
 
-    // TODO:
     // set the exception info into stack
-#if 0
     pcintr_stack_t stack = purc_get_stack();
     if (stack) {
         const struct err_msg_info* info = get_error_info(errcode);
-        if (info && (info->flags & PURC_EXCEPT_FLAGS_REQUIRED) && !exinfo) {
-            // error
+        if (info == NULL ||
+                ((info->flags & PURC_EXCEPT_FLAGS_REQUIRED) && !exinfo)) {
+            return PURC_ERROR_INVALID_VALUE;
         }
+        stack->error_except = info->except_atom;
+        stack->err_except_info = exinfo;
     }
-#endif
     return PURC_ERROR_OK;
 }
 
@@ -86,7 +86,7 @@ const struct err_msg_info* get_error_info(int errcode)
     list_for_each(p, &_err_msg_seg_list) {
         struct err_msg_seg *seg = container_of (p, struct err_msg_seg, list);
         if (errcode >= seg->first_errcode && errcode <= seg->last_errcode) {
-            return &seg->infos[errcode - seg->first_errcode];
+            return &seg->info[errcode - seg->first_errcode];
         }
     }
 
@@ -103,20 +103,20 @@ const char* purc_get_error_message(int errcode)
 purc_atom_t purc_get_error_exception(int errcode)
 {
     const struct err_msg_info* info = get_error_info(errcode);
-    return info ? info->except : 0;
+    return info ? info->except_atom : 0;
 }
 
 void pcinst_register_error_message_segment(struct err_msg_seg* seg)
 {
     list_add(&seg->list, &_err_msg_seg_list);
-    if (seg->infos == NULL) {
+    if (seg->info == NULL) {
         return;
     }
 
     int count = seg->last_errcode - seg->first_errcode + 1;
     for (int i = 0; i < count; i++) {
-        seg->infos[i].except = purc_atom_from_static_string(
-                seg->infos[i].except_str);
+        seg->info[i].except_atom = purc_atom_from_static_string(
+                seg->info[i].except_name);
     }
 }
 

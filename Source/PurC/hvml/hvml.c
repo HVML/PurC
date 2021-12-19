@@ -46,6 +46,8 @@
 #include <stdlib.h>
 #endif
 
+#include "hvml_err_msgs.inc"
+
 //#define HVML_DEBUG_PRINT
 
 #define PCHVML_END_OF_FILE       0
@@ -360,140 +362,6 @@
 #define vcm_stack_is_empty() pcvcm_stack_is_empty(parser->vcm_stack)
 #define vcm_stack_push(c) pcvcm_stack_push(parser->vcm_stack, c)
 #define vcm_stack_pop() pcvcm_stack_pop(parser->vcm_stack)
-
-static struct err_msg_info hvml_err_msgs[] = {
-    /* PCHVML_ERROR_UNEXPECTED_NULL_CHARACTER */
-    { "pchvml error unexpected null character", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_UNEXPECTED_QUESTION_MARK_INSTEAD_OF_TAG_NAME */
-    { "pchvml error unexpected question mark instead of tag name", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_EOF_BEFORE_TAG_NAME */
-    { "pchvml error eof before tag name", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_MISSING_END_TAG_NAME */
-    { "pchvml error missing end tag name", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_INVALID_FIRST_CHARACTER_OF_TAG_NAME */
-    { "pchvml error invalid first character of tag name", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_EOF_IN_TAG */
-    { "pchvml error eof in tag", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_UNEXPECTED_EQUALS_SIGN_BEFORE_ATTRIBUTE_NAME */
-    { "pchvml error unexpected equals sign before attribute name", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_UNEXPECTED_CHARACTER_IN_ATTRIBUTE_NAME */
-    { "pchvml error unexpected character in attribute name", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_UNEXPECTED_CHARACTER_IN_UNQUOTED_ATTRIBUTE_VALUE */
-    { "pchvml error unexpected character in unquoted attribute value", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_MISSING_WHITESPACE_BETWEEN_ATTRIBUTES */
-    { "pchvml error missing whitespace between attributes", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_UNEXPECTED_SOLIDUS_IN_TAG */
-    { "pchvml error unexpected solidus in tag", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_CDATA_IN_HTML_CONTENT */
-    { "pchvml error cdata in html content", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_INCORRECTLY_OPENED_COMMENT */
-    { "pchvml error incorrectly opened comment", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_ABRUPT_CLOSING_OF_EMPTY_COMMENT */
-    { "pchvml error abrupt closing of empty comment", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_EOF_IN_COMMENT */
-    { "pchvml error eof in comment", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_EOF_IN_DOCTYPE */
-    { "pchvml error eof in doctype", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_MISSING_WHITESPACE_BEFORE_DOCTYPE_NAME */
-    { "pchvml error missing whitespace before doctype name", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_MISSING_DOCTYPE_NAME */
-    { "pchvml error missing doctype name", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_INVALID_CHARACTER_SEQUENCE_AFTER_DOCTYPE_NAME */
-    { "pchvml error invalid character sequence after doctype name", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_MISSING_WHITESPACE_AFTER_DOCTYPE_PUBLIC_KEYWORD */
-    { "pchvml error missing whitespace after doctype public keyword", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_MISSING_DOCTYPE_PUBLIC_ID */
-    { "pchvml error missing doctype public identifier", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_PUBLIC_ID */
-    { "pchvml error missing quote before doctype public identifier", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_ABRUPT_DOCTYPE_PUBLIC_ID */
-    { "pchvml error abrupt doctype public identifier", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_MISSING_WHITESPACE_BETWEEN_DOCTYPE_PUB_AND_SYS */
-    { "pchvml error missing whitespace between doctype public and system\
-        informations", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_MISSING_WHITESPACE_AFTER_DOCTYPE_SYSTEM_KEYWORD */
-    { "pchvml error missing whitespace after doctype system keyword", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_MISSING_DOCTYPE_SYSTEM */
-    { "pchvml error missing doctype system information", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_ABRUPT_DOCTYPE_SYSTEM */
-    { "pchvml error abrupt doctype system information", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_UNEXPECTED_CHARACTER_AFTER_DOCTYPE_SYSTEM */
-    { "pchvml error unexpected character after doctype system information", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_EOF_IN_CDATA */
-    { "pchvml error eof in cdata", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_UNKNOWN_NAMED_CHARACTER_REFERENCE */
-    { "pchvml error unknown named character reference", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_ABSENCE_OF_DIGITS_IN_NUMERIC_CHARACTER_REFERENCE */
-    { "pchvml error absence of digits in numeric character reference", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_UNEXPECTED_CHARACTER */
-    { "pchvml error unexpected character", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_UNEXPECTED_JSON_NUMBER_EXPONENT */
-    { "pchvml error unexpected json number exponent", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_UNEXPECTED_JSON_NUMBER_FRACTION */
-    { "pchvml error unexpected json number fraction", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_UNEXPECTED_JSON_NUMBER_INTEGER */
-    { "pchvml error unexpected json number integer", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_UNEXPECTED_JSON_NUMBER */
-    { "pchvml error unexpected json number", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_UNEXPECTED_RIGHT_BRACE */
-    { "pchvml error unexpected right brace", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_UNEXPECTED_RIGHT_BRACKET */
-    { "pchvml error unexpected right bracket", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_UNEXPECTED_JSON_KEY_NAME */
-    { "pchvml error unexpected json key name", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_UNEXPECTED_COMMA */
-    { "pchvml error unexpected comma", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_UNEXPECTED_JSON_KEYWORD */
-    { "pchvml error unexpected json keyword", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_UNEXPECTED_BASE64 */
-    { "pchvml error unexpected base64", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_BAD_JSON_NUMBER */
-    { "pchvml error bad json number", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_BAD_JSON_STRING_ESCAPE_ENTITY */
-    { "pchvml error bad json string escape entity", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_BAD_JSONEE */
-    { "pchvml error bad jsonee", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_BAD_JSONEE_ESCAPE_ENTITY */
-    { "pchvml error bad jsonee escape entity", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_BAD_JSONEE_VARIABLE_NAME */
-    { "pchvml error bad jsonee variable name", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_EMPTY_JSONEE_NAME */
-    { "pchvml error empty jsonee name", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_BAD_JSONEE_NAME */
-    { "pchvml error bad jsonee name", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_BAD_JSONEE_KEYWORD */
-    { "pchvml error bad jsonee keyword", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_EMPTY_JSONEE_KEYWORD */
-    { "pchvml error empty jsonee keyword", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_BAD_JSONEE_UNEXPECTED_COMMA */
-    { "pchvml error bad jsonee unexpected comma", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_BAD_JSONEE_UNEXPECTED_PARENTHESIS */
-    { "pchvml error bad jsonee unexpected parenthesis", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_BAD_JSONEE_UNEXPECTED_LEFT_ANGLE_BRACKET */
-    { "pchvml error bad jsonee unexpected left angle bracket", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_MISSING_MISSING_ATTRIBUTE_VALUE */
-    { "pchvml error missing missing attribute value", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_NESTED_COMMENT */
-    { "pchvml error nested comment", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_INCORRECTLY_CLOSED_COMMENT */
-    { "pchvml error incorrectly closed comment", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM */
-    { "pchvml error missing quote before doctype system information", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_MISSING_SEMICOLON_AFTER_CHARACTER_REFERENCE */
-    { "pchvml error missing semicolon after character reference", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_CHARACTER_REFERENCE_OUTSIDE_UNICODE_RANGE */
-    { "pchvml error character reference outside unicode range", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_SURROGATE_CHARACTER_REFERENCE */
-    { "pchvml error surrogate character reference", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_NONCHARACTER_CHARACTER_REFERENCE */
-    { "pchvml error noncharacter character reference", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_NULL_CHARACTER_REFERENCE */
-    { "pchvml error null character reference", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_CONTROL_CHARACTER_REFERENCE*/
-    { "pchvml error control character reference", NULL, PURC_EXCEPT_FLAGS_NULL, 0 },
-    /* PCHVML_ERROR_INVALID_UTF8_CHARACTER */
-    { "pchvml error invalid utf8 character", NULL, PURC_EXCEPT_FLAGS_NULL, 0 }
-};
 
 /* Make sure the number of error messages matches the number of error codes */
 #define _COMPILE_TIME_ASSERT(name, x)               \

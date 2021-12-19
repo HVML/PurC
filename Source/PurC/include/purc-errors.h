@@ -32,17 +32,17 @@
 #include "purc-utils.h"
 #include "purc-variant.h"
 
-#define PURC_EXCEPT_BADNAME             "BadName"
+#define PURC_EXCEPT_BAD_NAME            "BadName"
 #define PURC_EXCEPT_NO_DATA             "NoData"
 #define PURC_EXCEPT_NOT_READY           "NotReady"
 #define PURC_EXCEPT_UNAUTHORIZED        "Unauthorized"
 #define PURC_EXCEPT_TIMEOUT             "Timeout"
-#define PURC_EXCEPT_SYNTAX_ERROR        "SyntaxError"
 #define PURC_EXCEPT_NOT_ITERABLE        "NotIterable"
 #define PURC_EXCEPT_INDEX_ERROR         "IndexError"
 #define PURC_EXCEPT_KEY_ERROR           "KeyError"
 #define PURC_EXCEPT_ZERO_DIVISION       "ZeroDivision"
 #define PURC_EXCEPT_OVERFLOW            "Overflow"
+#define PURC_EXCEPT_UNDERFLOW           "Underflow"
 #define PURC_EXCEPT_FLOATING_POINT      "FloatingPoint"
 #define PURC_EXCEPT_NOT_IMPLEMENTED     "NotImplemented"
 #define PURC_EXCEPT_MAX_RECURSION_DEPTH "MaxRecursionDepth"
@@ -56,16 +56,23 @@
 #define PURC_EXCEPT_TOO_MANY            "TooMany"
 #define PURC_EXCEPT_TOO_LONG            "TooLong"
 #define PURC_EXCEPT_NOT_DESIRED_ENTITY  "NotDesiredEntity"
-#define PURC_EXCEPT_ENTITY_NOTFOUND     "EntityNotFound"
+#define PURC_EXCEPT_ENTITY_NOT_FOUND    "EntityNotFound"
 #define PURC_EXCEPT_ENTITY_EXISTS       "EntityExists"
 #define PURC_EXCEPT_BROKEN_PIPE         "BrokenPipe"
 #define PURC_EXCEPT_CONNECTION_ABORTED  "ConnectionAborted"
 #define PURC_EXCEPT_CONNECTION_REFUSED  "ConnectionRefused"
 #define PURC_EXCEPT_CONNECTION_RESET    "ConnectionReset"
-#define PURC_EXCEPT_MEMORY_ERROR        "MemoryError"
-#define PURC_EXCEPT_BUFFER_ERROR        "BufferError"
+#define PURC_EXCEPT_OUT_OF_MEMORY       "OutOfMemory"
+#define PURC_EXCEPT_TOO_SMALL_BUFFER    "ToSmallBuffer"
+#define PURC_EXCEPT_NO_SPACE            "NoSpace"
+#define PURC_EXCEPT_TO_LARGE            "ToLarge"
+#define PURC_EXCEPT_IS_A_DIRECTOR       "IsADirector"
+#define PURC_EXCEPT_BAD_EJSON           "BadEJSON"
+#define PURC_EXCEPT_BAD_HVML            "BadHVML"
+#define PURC_EXCEPT_BAD_HTML            "BadHTML"
+#define PURC_EXCEPT_SYNTAX_ERROR        "SyntaxError"
 
-#define PURC_EXCEPT_FLAGS_NULL          0x0000
+#define PURC_EXCEPT_FLAGS_NONE          0x0000
 #define PURC_EXCEPT_FLAGS_REQUIRED      0x0001
 
 // the first error codes for modules:
@@ -108,12 +115,10 @@ enum {
     PURC_ERROR_NOT_EXISTS,
     PURC_ERROR_WRONG_ARGS,
     PURC_ERROR_WRONG_STAGE,
-    PURC_ERROR_UNEXPECTED_RESULT,
-    PURC_ERROR_UNEXPECTED_DATA,
     PURC_ERROR_OVERFLOW,
     PURC_ERROR_UNDERFLOW,
     PURC_ERROR_DIVBYZERO,
-    PURC_ERROR_UNKNOWN,
+    PURC_ERROR_INV_FLOATPOINT,
     PURC_ERROR_BAD_LOCALE_CATEGORY,
 
     /* XXX: change this when you append a new error code */
@@ -281,7 +286,6 @@ enum pcexecutor_error
     PCEXECUTOR_ERROR_ALREAD_EXISTS   = PURC_ERROR_DUPLICATED,
     PCEXECUTOR_ERROR_NOT_EXISTS      = PURC_ERROR_NOT_EXISTS,
     PCEXECUTOR_ERROR_NOT_FOUND       = PCVARIANT_ERROR_NOT_FOUND,
-    PCEXECUTOR_ERROR_UNEXPECTED_DATA = PURC_ERROR_UNEXPECTED_DATA,
     PCEXECUTOR_ERROR_NOT_IMPLEMENTED = PURC_ERROR_NOT_IMPLEMENTED,
 
     PCEXECUTOR_ERROR_NO_KEYS_SELECTED_PREVIOUSLY = PCEXECUTOR_ERROR_FIRST,
@@ -298,37 +302,6 @@ enum pcexecutor_error
     (PCEXECUTOR_ERROR_LAST - PCEXECUTOR_ERROR_FIRST + 1)
 
 PCA_EXTERN_C_BEGIN
-
-extern purc_atom_t purc_except_bad_name;
-extern purc_atom_t purc_except_no_data;
-extern purc_atom_t purc_except_not_ready;
-extern purc_atom_t purc_except_unauthorized;
-extern purc_atom_t purc_except_timeout;
-extern purc_atom_t purc_except_syntax_error;
-extern purc_atom_t purc_except_not_iterable;
-extern purc_atom_t purc_except_index_error;
-extern purc_atom_t purc_except_key_error;
-extern purc_atom_t purc_except_zero_division;
-extern purc_atom_t purc_except_overflow;
-extern purc_atom_t purc_except_floating_point;
-extern purc_atom_t purc_except_not_implemented;
-extern purc_atom_t purc_except_max_recursion_depth;
-extern purc_atom_t purc_except_bad_encoding;
-extern purc_atom_t purc_except_bad_value;
-extern purc_atom_t purc_except_wrong_data_type;
-extern purc_atom_t purc_except_wrong_domain;
-extern purc_atom_t purc_except_os_error;
-extern purc_atom_t purc_except_access_denied;
-extern purc_atom_t purc_except_io_error;
-extern purc_atom_t purc_except_too_many;
-extern purc_atom_t purc_except_too_long;
-extern purc_atom_t purc_except_not_desired_entity;
-extern purc_atom_t purc_except_entity_not_found;
-extern purc_atom_t purc_except_entity_exists;
-extern purc_atom_t purc_except_broken_pipe;
-extern purc_atom_t purc_except_connection_aborted;
-extern purc_atom_t purc_except_connection_refused;
-extern purc_atom_t purc_except_connection_reset;
 
 /**
  * purc_get_last_error:

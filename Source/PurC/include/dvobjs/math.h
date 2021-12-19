@@ -128,11 +128,11 @@ long double const_l(string);
  * @note        The angle is given in RADIANS.
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_FEINVALID
  *
  * @sa          sin_l()
  */
-double sin(number | longint | ulongint | long double angle);
+double sin(<number | longint | ulongint | long double> angle);
 
 
 /**
@@ -150,11 +150,11 @@ double sin(number | longint | ulongint | long double angle);
  * @note        The angle is given in RADIANS.
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_FEINVALID
  *
  * @sa          sin()
  */
-long double sin_l(number | longint | ulongint | long double angle);
+long double sin_l(<number | longint | ulongint | long double> angle);
 
 /**
  * @brief       Get arcsin value with double type
@@ -171,11 +171,11 @@ long double sin_l(number | longint | ulongint | long double angle);
  * @note        The returned angle is given in RADIANS.
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_FEINVALID
  *
  * @sa          asin_l()
  */
-double asin(number | longint | ulongint | long double value);
+double asin(<number | longint | ulongint | long double> value);
 
 
 /**
@@ -193,11 +193,11 @@ double asin(number | longint | ulongint | long double value);
  * @note        The returned angle is given in RADIANS.
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_FEINVALID
  *
  * @sa          asin()
  */
-long double asin_l(number | longint | ulongint | long double value);
+long double asin_l(<number | longint | ulongint | long double> value);
 
 
 /**
@@ -215,11 +215,11 @@ long double asin_l(number | longint | ulongint | long double value);
  * @note        The angle is given in RADIANS.
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_FEINVALID
  *
  * @sa          cos_l()
  */
-double cos(number | longint | ulongint | long double angle);
+double cos(<number | longint | ulongint | long double> angle);
 
 
 /**
@@ -237,11 +237,11 @@ double cos(number | longint | ulongint | long double angle);
  * @note        The angle is given in RADIANS.
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_FEINVALID
  *
  * @sa          cos()
  */
-long double cos_l(number | longint | ulongint | long double angle);
+long double cos_l(<number | longint | ulongint | long double> angle);
 
 
 /**
@@ -259,11 +259,11 @@ long double cos_l(number | longint | ulongint | long double angle);
  * @note        The returned angle is given in RADIANS.
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_FEINVALID
  *
  * @sa          acos_l()
  */
-double acos(number | longint | ulongint | long double value);
+double acos(<number | longint | ulongint | long double> value);
 
 
 /**
@@ -281,11 +281,11 @@ double acos(number | longint | ulongint | long double value);
  * @note        The returned angle is given in RADIANS.
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_FEINVALID
  *
  * @sa          acos()
  */
-long double acos_l(number | longint | ulongint | long double value);
+long double acos_l(<number | longint | ulongint | long double> value);
 
 /**
  * @brief       Get tan value with double type
@@ -302,12 +302,12 @@ long double acos_l(number | longint | ulongint | long double value);
  * @note        The angle is given in RADIANS.
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_FEINVALID
  *              PURC_ERROR_OVERFLOW
  *
  * @sa          tan_l()
  */
-double tan(number | longint | ulongint | long double angle);
+double tan(<number | longint | ulongint | long double> angle);
 
 
 /**
@@ -325,12 +325,12 @@ double tan(number | longint | ulongint | long double angle);
  * @note        The angle is given in RADIANS.
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_FEINVALID
  *              PURC_ERROR_OVERFLOW
  *
  * @sa          tan()
  */
-long double tan_l(number | longint | ulongint | long double angle);
+long double tan_l(<number | longint | ulongint | long double> angle);
 
 /**
  * @brief       Get arctan value with double type
@@ -347,11 +347,11 @@ long double tan_l(number | longint | ulongint | long double angle);
  * @note        The returned angle is given in RADIANS.
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_FEINVALID
  *
  * @sa          atan_l()
  */
-double atan(number | longint | ulongint | long double value);
+double atan(<number | longint | ulongint | long double> value);
 
 
 /**
@@ -369,11 +369,11 @@ double atan(number | longint | ulongint | long double value);
  * @note        The returned angle is given in RADIANS.
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_FEINVALID
  *
  * @sa          atan()
  */
-long double atan_l(number | longint | ulongint | long double value);
+long double atan_l(<number | longint | ulongint | long double> value);
 
 /**
  * @brief       Get sqrt value with double type
@@ -390,11 +390,11 @@ long double atan_l(number | longint | ulongint | long double value);
  * @note
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_FEINVALID
  *
  * @sa          sqrt_l()
  */
-double sqrt(number | longint | ulongint | long double number);
+double sqrt(<number | longint | ulongint | long double> number);
 
 
 /**
@@ -412,11 +412,11 @@ double sqrt(number | longint | ulongint | long double number);
  * @note
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_FEINVALID
  *
  * @sa          sqrt()
  */
-long double sqrt_l(number | longint | ulongint | long double number);
+long double sqrt_l(<number | longint | ulongint | long double> number);
 
 
 /**
@@ -435,11 +435,11 @@ long double sqrt_l(number | longint | ulongint | long double number);
  * @note
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_FEINVALID
  *
  * @sa          fmod_l()
  */
-double fmod(number | longint | ulongint | long double value1, number | longintlong | ulongint | long double value2);
+double fmod(<number | longint | ulongint | long double> value1, <number | longintlong | ulongint | long double> value2);
 
 
 /**
@@ -458,11 +458,11 @@ double fmod(number | longint | ulongint | long double value1, number | longintlo
  * @note
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_FEINVALID
  *
  * @sa          fmod()
  */
-long double fmod_l(number | longint | ulongint | long double value1, number | longintlong | ulongint | long double value2);
+long double fmod_l(<number | longint | ulongint | long double> value1, <number | longintlong | ulongint | long double> value2);
 
 /**
  * @brief       Get absolute value
@@ -479,11 +479,11 @@ long double fmod_l(number | longint | ulongint | long double value1, number | lo
  * @note
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_FEINVALID
  *
  * @sa          fabs_l()
  */
-double fabs(number | longint | ulongint | long double value);
+double fabs(<number | longint | ulongint | long double> value);
 
 
 /**
@@ -501,11 +501,11 @@ double fabs(number | longint | ulongint | long double value);
  * @note
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_FEINVALID
  *
  * @sa          fabs()
  */
-long double fabs_l(number | longint | ulongint | long double value);
+long double fabs_l(<number | longint | ulongint | long double> value);
 
 /**
  * @brief       Get natural logarithmic value
@@ -523,11 +523,11 @@ long double fabs_l(number | longint | ulongint | long double value);
  *
  * @exception   PURC_ERROR_WRONG_ARGS
  *              PURC_ERROR_DIVBYZERO
- *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_FEINVALID
  *
  * @sa          log_l()
  */
-double log(number | longint | ulongint | long double value);
+double log(<number | longint | ulongint | long double> value);
 
 
 /**
@@ -546,11 +546,11 @@ double log(number | longint | ulongint | long double value);
  *
  * @exception   PURC_ERROR_WRONG_ARGS
  *              PURC_ERROR_DIVBYZERO
- *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_FEINVALID
  *
  * @sa          log()
  */
-long double log_l(number | longint | ulongint | long double value);
+long double log_l(<number | longint | ulongint | long double> value);
 
 /**
  * @brief       Get base-10 logarithmic value
@@ -568,11 +568,11 @@ long double log_l(number | longint | ulongint | long double value);
  *
  * @exception   PURC_ERROR_WRONG_ARGS
  *              PURC_ERROR_DIVBYZERO
- *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_FEINVALID
  *
  * @sa          log10_l()
  */
-double log10(number | longint | ulongint | long double value);
+double log10(<number | longint | ulongint | long double> value);
 
 
 /**
@@ -591,11 +591,11 @@ double log10(number | longint | ulongint | long double value);
  *
  * @exception   PURC_ERROR_WRONG_ARGS
  *              PURC_ERROR_DIVBYZERO
- *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_FEINVALID
  *
  * @sa          log10()
  */
-long double log10_l(number | longint | ulongint | long double value);
+long double log10_l(<number | longint | ulongint | long double> value);
 
 /**
  * @brief       Power function
@@ -616,11 +616,11 @@ long double log10_l(number | longint | ulongint | long double value);
  *              PURC_ERROR_OVERFLOW
  *              PURC_ERROR_UNDERFLOW
  *              PURC_ERROR_DIVBYZERO
- *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_FEINVALID
  *
  * @sa          pow_l()
  */
-double pow(number | longint | ulongint | long double value1, number | longintlong | ulongint | long double value2);
+double pow(<number | longint | ulongint | long double> value1, <number | longintlong | ulongint | long double> value2);
 
 
 /**
@@ -642,11 +642,11 @@ double pow(number | longint | ulongint | long double value1, number | longintlon
  *              PURC_ERROR_OVERFLOW
  *              PURC_ERROR_UNDERFLOW
  *              PURC_ERROR_DIVBYZERO
- *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_FEINVALID
  *
  * @sa          pow()
  */
-long double pow_l(number | longint | ulongint | long double value1, number | longintlong | ulongint | long double value2);
+long double pow_l(<number | longint | ulongint | long double> value1, <number | longintlong | ulongint | long double> value2);
 
 /**
  * @brief       Base-e power function
@@ -666,11 +666,11 @@ long double pow_l(number | longint | ulongint | long double value1, number | lon
  *              PURC_ERROR_OVERFLOW
  *              PURC_ERROR_UNDERFLOW
  *              PURC_ERROR_DIVBYZERO
- *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_FEINVALID
  *
  * @sa          exp_l()
  */
-double exp(number | longint | ulongint | long double value);
+double exp(<number | longint | ulongint | long double> value);
 
 
 /**
@@ -691,11 +691,11 @@ double exp(number | longint | ulongint | long double value);
  *              PURC_ERROR_OVERFLOW
  *              PURC_ERROR_UNDERFLOW
  *              PURC_ERROR_DIVBYZERO
- *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_FEINVALID
  *
  * @sa          exp()
  */
-long double exp_l(number | longint | ulongint | long double value);
+long double exp_l(<number | longint | ulongint | long double> value);
 
 /**
  * @brief       Get largest integral value not greater than argument
@@ -712,11 +712,11 @@ long double exp_l(number | longint | ulongint | long double value);
  * @note
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_FEINVALID
  *
  * @sa          floor_l()
  */
-double floor(number | longint | ulongint | long double value);
+double floor(<number | longint | ulongint | long double> value);
 
 
 /**
@@ -734,11 +734,11 @@ double floor(number | longint | ulongint | long double value);
  * @note
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_FEINVALID
  *
  * @sa          floor()
  */
-long double floor_l(number | longint | ulongint | long double value);
+long double floor_l(<number | longint | ulongint | long double> value);
 
 /**
  * @brief       Get smallest integral value not less than argument
@@ -755,11 +755,11 @@ long double floor_l(number | longint | ulongint | long double value);
  * @note
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_FEINVALID
  *
  * @sa          ceil_l()
  */
-double ceil(number | longint | ulongint | long double value);
+double ceil(<number | longint | ulongint | long double> value);
 
 
 /**
@@ -777,11 +777,11 @@ double ceil(number | longint | ulongint | long double value);
  * @note
  *
  * @exception   PURC_ERROR_WRONG_ARGS
- *              PURC_ERROR_UNKNOWN
+ *              PURC_ERROR_FEINVALID
  *
  * @sa          ceil()
  */
-long double ceil_l(number | longint | ulongint | long double value);
+long double ceil_l(<number | longint | ulongint | long double> value);
 
 /**
  * @brief       Get evaluation of a  expression with double type
