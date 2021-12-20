@@ -1,28 +1,29 @@
 OUTPUT_FILE=executor_err_msgs.inc
 OUTPUT_VAR=executor_err_msgs
+PREFIX=PCEXECUTOR_ERROR
 
 
-PCEXECUTOR_ERROR_NO_KEYS_SELECTED_PREVIOUSLY
-    except=PURC_EXCEPT_KEY_ERROR
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="Executor: No keys selected previously"
+NoKeysSelectedPreviously
+    except: KeyError
+    flags: None
+    msg: "Executor: No keys selected previously"
 
-PCEXECUTOR_ERROR_NO_KEYS_SELECTED
-    except=PURC_EXCEPT_KEY_ERROR
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="Executor: No keys selected"
+NoKeysSelected
+    except: KeyError
+    flags: None
+    msg: "Executor: No keys selected"
 
-PCEXECUTOR_ERROR_NOT_ALLOWED
-    except=PURC_EXCEPT_ACCESS_DENIED
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="Executor: Not allowed"
+NotAllowed
+    except: AccessDenied
+    flags: None
+    msg: "Executor: Not allowed"
 
-PCEXECUTOR_ERROR_OUT_OF_RANGE
-    except=PURC_EXCEPT_INDEX_ERROR
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="Executor: Out of range"
+OutOfRange
+    except: IndexError
+    flags: None
+    msg: "Executor: Out of range"
 
-PCEXECUTOR_ERROR_BAD_SYNTAX
-    except=PURC_EXCEPT_SYNTAX_ERROR
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="Executor: Bad syntax"
+BadSyntax
+    except: SyntaxError
+    flags: None
+    msg: "Executor: Bad syntax"

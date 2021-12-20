@@ -1,19 +1,20 @@
 OUTPUT_FILE=variant_err_msgs.inc
 OUTPUT_VAR=variant_err_msgs
+PREFIX=PCVARIANT_ERROR
 
 
-PCVARIANT_ERROR_INVALID_TYPE
-    except=PURC_EXCEPT_WRONG_DATA_TYPE
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="Invalid variant type"
+InvalidType
+    except: WrongDataType
+    flags: None
+    msg: "Invalid variant type"
 
-PCVARIANT_ERROR_OUT_OF_BOUNDS
-    except=PURC_EXCEPT_INDEX_ERROR
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="Index out of bounds"
+OutOfBounds
+    except: IndexError
+    flags: None
+    msg: "Index out of bounds"
 
-PCVARIANT_ERROR_NOT_FOUND
-    except=PURC_EXCEPT_ENTITY_NOT_FOUND
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="Element not found"
+NotFound
+    except: EntityNotFound
+    flags: None
+    msg: "Element not found"
 

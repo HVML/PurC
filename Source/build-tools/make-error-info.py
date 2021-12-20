@@ -23,6 +23,7 @@
 import os
 import sys
 import re
+import collections
 
 _license_header = """/*
  * Author: XueShuming
@@ -51,63 +52,167 @@ _license_header = """/*
 
 """
 
-def parse(file):
+RE_START_WITH_EXCEPT = re.compile(r"^\s+except:")
+def start_with_except(line):
+    if RE_START_WITH_EXCEPT.match(line) == None:
+        return False
+    return True
+
+RE_START_WITH_FLAGS = re.compile(r"^\s+flags:")
+def start_with_flags(line):
+    if RE_START_WITH_FLAGS.match(line) == None:
+        return False
+    return True
+
+RE_START_WITH_MSG = re.compile(r"^\s+msg:")
+def start_with_msg(line):
+    if RE_START_WITH_MSG.match(line) == None:
+        return False
+    return True
+
+RE_START_WITH_SPACE = re.compile(r"^\s")
+def start_with_space(line):
+    if RE_START_WITH_SPACE.match(line) == None:
+        return False
+    return True
+
+def get_value(line):
+    fragments = line.split(":", 1)
+
+    if len(fragments) == 2:
+        value = fragments[1].strip()
+        if len(value) == 0:
+            return None
+        return value
+
+    return None
+
+def get_header_value(line):
+    fragments = line.split("=")
+
+    if len(fragments) == 2:
+        value = fragments[1].strip()
+        if len(value) == 0:
+            return None
+        return value
+
+    return None
+
+def scan_src_file(fsrc):
+    error_info = collections.OrderedDict()
+
+    error_code = ""
+    value_line = ""
+    line_no = 1
     output_file = ""
     output_var = ""
-    messages = []
-    error = None
-    except_name = None
-    flags = None
-    msg = None
-    for line in file:
-        line = line.strip()
-        match = re.search(r'OUTPUT_FILE=(.*)\s*', line)
-        if match:
-            output_file = match.groups()
+    prefix = ""
+    org_line = fsrc.readline()
+    while org_line:
+        stripped_line = org_line.strip()
+        if stripped_line == "" or stripped_line[0] == '#':
+            line_no = line_no + 1
+            org_line = fsrc.readline()
             continue
 
-        match = re.search(r'OUTPUT_VAR=(.*)\s*', line)
+        match = re.search(r'OUTPUT_FILE=(.*)\s*', stripped_line)
         if match:
-            output_var = match.groups()
+            output_file = get_header_value(stripped_line)
+            line_no = line_no + 1
+            org_line = fsrc.readline()
             continue
 
-        match = re.search(r'(P[A-Z_]+ERROR[A-Z_0-9]+)\s*', line)
+        match = re.search(r'OUTPUT_VAR=(.*)\s*', stripped_line)
         if match:
-            if error is not None:
-                messages.append((error, except_name, flags, msg))
-                error = None
-                except_name = None
-                flags = None
-                msg = None
-            error=match.groups()
+            output_var = get_header_value(stripped_line)
+            line_no = line_no + 1
+            org_line = fsrc.readline()
+            continue
 
-        match = re.search(r'except=\s*([A-Za-z_0-9]+)\s*', line)
+        match = re.search(r'PREFIX=(.*)\s*', stripped_line)
         if match:
-            except_name=match.groups()
+            prefix = get_header_value(stripped_line)
+            line_no = line_no + 1
+            org_line = fsrc.readline()
+            continue
 
-        match = re.search(r'flags=\s*([A-Za-z_0-9]+)\s*', line)
-        if match:
-            flags=match.groups()
+        tokens = stripped_line.split(":")
+        if start_with_except (org_line):
+            except_value = get_value(stripped_line)
+            if except_value is None:
+                print("scan_src_file (Line %d): except value expected (%s)" % (line_no, stripped_line, ))
+                return None
+            else:
+                error_info[error_code]['except'] = except_value
 
-        match = re.search(r'msg=\s*(.*)\s*', line)
-        if match:
-            msg=match.groups()
+        elif start_with_flags (org_line):
+            flags_value = get_value(stripped_line)
+            if flags_value is None:
+                print("scan_src_file (Line %d): flags list expected (%s)" % (line_no, stripped_line, ))
+                return None
+            else:
+                error_info[error_code]['flags'] = flags_value.split()
 
-    if error is not None:
-        messages.append((error, except_name, flags, msg))
-    return output_file, output_var, messages
+        elif start_with_msg (org_line):
+            msg_value = get_value(stripped_line)
+            if msg_value is None:
+                print("scan_src_file (Line %d): except value expected (%s)" % (line_no, stripped_line, ))
+                return None
+            else:
+                error_info[error_code]['msg'] = msg_value
 
-def generate_inc(var_name, messages):
+        elif not start_with_space (org_line):
+            error_code = stripped_line
+            if error_code in error_info:
+                print("scan_src_file (Line %d): duplicated property name (%s)" % (line_no, stripped_line, ))
+                return None
+            error_info[error_code] = {}
+        else:
+            print("scan_src_file (Line %d): syntax error %s (%s)" % (line_no, error_code, stripped_line, ))
+            return None
+
+        line_no = line_no + 1
+        org_line = fsrc.readline()
+
+    return output_file, output_var, prefix, error_info
+
+def make_snake_name(prefix, name):
+    name = prefix + '_' + re.sub(r'([a-z])([A-Z])', r'\1_\2', name)
+    return name.upper().replace("_OSERROR", "_OS_ERROR").replace("_IOERROR", "_IO_ERROR").replace("UTF8CHAR", "UTF8_CHAR")
+
+def make_error_code(prefix, name):
+    return make_snake_name(prefix, name)
+
+def make_except(except_value):
+    if except_value <> 'NULL':
+        return make_snake_name('PURC_EXCEPT', except_value)
+    return except_value
+
+def make_flag_value(flag):
+    return make_snake_name('PURC_EXCEPT_FLAGS', flag)
+
+def make_flags(flags_value):
+    value = ""
+    idx = 0
+    for c in flags_value:
+        if idx > 0:
+            value += " | "
+        value += make_flag_value (c)
+        idx += 1
+
+    return value
+
+def gen_inc(var_name, prefix, messages):
     result = []
     result.append(_license_header)
     result.append('\n')
     result.append('static struct err_msg_info %s[] = {\n' % var_name)
-    for message in messages:
-        result.append('    /* %s */\n' % message[0])
+    for error_code in messages:
+        result.append('    /* %s */\n' % make_error_code(prefix, error_code))
         result.append('    {\n')
-        result.append('        %s,\n' % message[3])
-        result.append('        %s,\n' % message[1])
-        result.append('        %s,\n' % message[2])
+        result.append('        %s,\n' % messages[error_code]['msg'])
+        result.append('        %s,\n' % make_except(messages[error_code]['except']))
+        result.append('        %s,\n' % make_flags(messages[error_code]['flags']))
         result.append('        0\n')
         result.append('    },\n')
     result.append('};\n\n')
@@ -135,7 +240,9 @@ if __name__ == "__main__":
         src_filename = os.path.basename(parameter)
 
         with open('%s' % parameter) as source_file:
-            output_filename, output_var_name, messages  = parse(source_file)
+            output_filename, output_var_name, prefix, messages = scan_src_file(source_file)
 
         with open('%s/%s' % (base_dir, ''.join(output_filename)), "w+") as output_file:
-            output_file.write(generate_inc(output_var_name, messages))
+            output_file.write(gen_inc(output_var_name, prefix, messages))
+
+

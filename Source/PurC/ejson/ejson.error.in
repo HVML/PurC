@@ -1,89 +1,90 @@
 OUTPUT_FILE=ejson_err_msgs.inc
 OUTPUT_VAR=ejson_err_msgs
+PREFIX=PCEJSON_ERROR
 
 
-PCEJSON_ERROR_UNEXPECTED_CHARACTER
-    except=PURC_EXCEPT_BAD_EJSON
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="pcejson unexpected character parse error"
+UnexpectedCharacter
+    except: BadEjson
+    flags: None
+    msg: "pcejson unexpected character parse error"
 
-PCEJSON_ERROR_UNEXPECTED_NULL_CHARACTER
-    except=PURC_EXCEPT_BAD_EJSON
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="pcejson unexpected null character parse error"
+UnexpectedNullCharacter
+    except: BadEjson
+    flags: None
+    msg: "pcejson unexpected null character parse error"
 
-PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_EXPONENT
-    except=PURC_EXCEPT_BAD_EJSON
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="pcejson unexpected json number exponent parse error"
+UnexpectedJsonNumberExponent
+    except: BadEjson
+    flags: None
+    msg: "pcejson unexpected json number exponent parse error"
 
-PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_FRACTION
-    except=PURC_EXCEPT_BAD_EJSON
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="pcejson unexpected json number fraction parse error"
+UnexpectedJsonNumberFraction
+    except: BadEjson
+    flags: None
+    msg: "pcejson unexpected json number fraction parse error"
 
-PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_INTEGER
-    except=PURC_EXCEPT_BAD_EJSON
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="pcejson unexpected json number integer parse error"
+UnexpectedJsonNumberInteger
+    except: BadEjson
+    flags: None
+    msg: "pcejson unexpected json number integer parse error"
 
-PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER
-    except=PURC_EXCEPT_BAD_EJSON
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="pcejson unexpected json number parse error"
+UnexpectedJsonNumber
+    except: BadEjson
+    flags: None
+    msg: "pcejson unexpected json number parse error"
 
-PCEJSON_ERROR_UNEXPECTED_RIGHT_BRACE
-    except=PURC_EXCEPT_BAD_EJSON
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="pcejson unexpected right brace parse error"
+UnexpectedRightBrace
+    except: BadEjson
+    flags: None
+    msg: "pcejson unexpected right brace parse error"
 
-PCEJSON_ERROR_UNEXPECTED_RIGHT_BRACKET
-    except=PURC_EXCEPT_BAD_EJSON
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="pcejson unexpected right bracket parse error"
+UnexpectedRightBracket
+    except: BadEjson
+    flags: None
+    msg: "pcejson unexpected right bracket parse error"
 
-PCEJSON_ERROR_UNEXPECTED_JSON_KEY_NAME
-    except=PURC_EXCEPT_BAD_EJSON
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="pcejson unexpected json key name parse error"
+UnexpectedJsonKeyName
+    except: BadEjson
+    flags: None
+    msg: "pcejson unexpected json key name parse error"
 
-PCEJSON_ERROR_UNEXPECTED_COMMA
-    except=PURC_EXCEPT_BAD_EJSON
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="pcejson unexpected comma parse error"
+UnexpectedComma
+    except: BadEjson
+    flags: None
+    msg: "pcejson unexpected comma parse error"
 
-PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD
-    except=PURC_EXCEPT_BAD_EJSON
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="pcejson unexpected json keyword parse error"
+UnexpectedJsonKeyword
+    except: BadEjson
+    flags: None
+    msg: "pcejson unexpected json keyword parse error"
 
-PCEJSON_ERROR_UNEXPECTED_BASE64
-    except=PURC_EXCEPT_BAD_EJSON
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="pcejson unexpected base64 parse error"
+UnexpectedBase64
+    except: BadEjson
+    flags: None
+    msg: "pcejson unexpected base64 parse error"
 
-PCEJSON_ERROR_UNEXPECTED_EOF
-    except=PURC_EXCEPT_BAD_EJSON
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="pcejson unexpected eof parse error"
+UnexpectedEof
+    except: BadEjson
+    flags: None
+    msg: "pcejson unexpected eof parse error"
 
-PCEJSON_ERROR_BAD_JSON_NUMBER
-    except=PURC_EXCEPT_BAD_EJSON
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="pcejson bad json number parse error"
+BadJsonNumber
+    except: BadEjson
+    flags: None
+    msg: "pcejson bad json number parse error"
 
-PCEJSON_ERROR_BAD_JSON_STRING_ESCAPE_ENTITY
-    except=PURC_EXCEPT_BAD_EJSON
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="pcejson bad json string escape entity parse error"
+BadJsonStringEscapeEntity
+    except: BadEjson
+    flags: None
+    msg: "pcejson bad json string escape entity parse error"
 
-PCEJSON_ERROR_BAD_JSON
-    except=PURC_EXCEPT_BAD_EJSON
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="pcejson bad json parse error"
+BadJson
+    except: BadEjson
+    flags: None
+    msg: "pcejson bad json parse error"
 
-PCEJSON_ERROR_MAX_DEPTH_EXCEEDED
-    except=PURC_EXCEPT_OVERFLOW
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="pcejson max depth exceeded"
+MaxDepthExceeded
+    except: Overflow
+    flags: None
+    msg: "pcejson max depth exceeded"
 

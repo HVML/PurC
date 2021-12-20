@@ -1,11 +1,13 @@
 OUTPUT_FILE=test.inc
 OUTPUT_VAR=test_err_msg
+PREFIX=PURC_ERROR
 
-PURC_ERROR_OK 
-    except=NULL 
-    flags=PURC_EXCEPT_FLAGS_NONE 
-    msg="ok"
-PURC_ERROR_BAD_SYSTEM_CALL 
-    except=PURC_EXCEPT_BAD_VALUE 
-    flags=PURC_EXCEPT_FLAGS_NONE 
-    msg="bad system call"
+ok
+    except: NULL
+    flags: none
+    msg: "ok"
+
+BadSystemCall
+    except: BadValue
+    flags: none
+    msg: "bad system call"

@@ -66,7 +66,7 @@
 #define PURC_EXCEPT_TOO_SMALL_BUFFER    "ToSmallBuffer"
 #define PURC_EXCEPT_NO_SPACE            "NoSpace"
 #define PURC_EXCEPT_TO_LARGE            "ToLarge"
-#define PURC_EXCEPT_IS_A_DIRECTOR       "IsADirector"
+#define PURC_EXCEPT_IS_ADIRECTOR        "IsADirector"
 #define PURC_EXCEPT_BAD_EJSON           "BadEJSON"
 #define PURC_EXCEPT_BAD_HVML            "BadHVML"
 #define PURC_EXCEPT_BAD_HTML            "BadHTML"

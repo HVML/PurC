@@ -1,128 +1,129 @@
 OUTPUT_FILE=generic_err_msgs.inc
 OUTPUT_VAR=generic_err_msgs
+PREFIX=PURC_ERROR
 
 
-PURC_ERROR_OK
-    except=NULL
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="Ok"
+Ok
+    except: NULL
+    flags: None
+    msg: "Ok"
 
-PURC_ERROR_BAD_SYSTEM_CALL
-    except=PURC_EXCEPT_OS_ERROR
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="Bad system call"
+BadSystemCall
+    except: OSError
+    flags: None
+    msg: "Bad system call"
 
-PURC_ERROR_BAD_STDC_CALL
-    except=PURC_EXCEPT_OS_ERROR
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="Bad STDC call"
+BadStdcCall
+    except: OSError
+    flags: None
+    msg: "Bad STDC call"
 
-PURC_ERROR_OUT_OF_MEMORY
-    except=PURC_EXCEPT_OUT_OF_MEMORY
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="Out of memory"
+OutOfMemory
+    except: OutOfMemory
+    flags: None
+    msg: "Out of memory"
 
-PURC_ERROR_INVALID_VALUE
-    except=PURC_EXCEPT_BAD_VALUE
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="Invalid value"
+InvalidValue
+    except: BadValue
+    flags: None
+    msg: "Invalid value"
 
-PURC_ERROR_DUPLICATED
-    except=PURC_EXCEPT_BAD_VALUE
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="Duplicated"
+Duplicated
+    except: BadValue
+    flags: None
+    msg: "Duplicated"
 
-PURC_ERROR_NOT_IMPLEMENTED
-    except=PURC_EXCEPT_NOT_IMPLEMENTED
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="Not implemented"
+NotImplemented
+    except: NotImplemented
+    flags: None
+    msg: "Not implemented"
 
-PURC_ERROR_NO_INSTANCE
-    except=PURC_EXCEPT_NOT_READY
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="No instance"
+NoInstance
+    except: NotReady
+    flags: None
+    msg: "No instance"
 
-PURC_ERROR_TOO_LARGE_ENTITY
-    except=PURC_EXCEPT_TOO_LONG
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="Tool large entity"
+TooLargeEntity
+    except: TooLong
+    flags: None
+    msg: "Tool large entity"
 
-PURC_ERROR_BAD_ENCODING
-    except=PURC_EXCEPT_BAD_ENCODING
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="Bad encoding"
+BadEncoding
+    except: BadEncoding
+    flags: None
+    msg: "Bad encoding"
 
-PURC_ERROR_NOT_SUPPORTED
-    except=PURC_EXCEPT_NOT_IMPLEMENTED
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="Not supported"
+NotSupported
+    except: NotImplemented
+    flags: None
+    msg: "Not supported"
 
-PURC_ERROR_OUTPUT
-    except=PURC_EXCEPT_IO_ERROR
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="An output error is encountered"
+Output
+    except: IOError
+    flags: None
+    msg: "An output error is encountered"
 
-PURC_ERROR_TOO_SMALL_BUFF
-    except=PURC_EXCEPT_TOO_SMALL_BUFFER
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="Too small buffer"
+TooSmallBuff
+    except: TooSmallBuffer
+    flags: None
+    msg: "Too small buffer"
 
-PURC_ERROR_NULL_OBJECT
-    except=PURC_EXCEPT_BAD_VALUE
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="Null object"
+NullObject
+    except: BadValue
+    flags: None
+    msg: "Null object"
 
-PURC_ERROR_TOO_SMALL_SIZE
-    except=PURC_EXCEPT_BAD_VALUE
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="Too small size"
+TooSmallSize
+    except: BadValue
+    flags: None
+    msg: "Too small size"
 
-PURC_ERROR_INCOMPLETE_OBJECT
-    except=PURC_EXCEPT_BAD_VALUE
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="Incomplete object"
+IncompleteObject
+    except: BadValue
+    flags: None
+    msg: "Incomplete object"
 
-PURC_ERROR_NO_FREE_SLOT
-    except=PURC_EXCEPT_OUT_OF_MEMORY
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="No free slot"
+NoFreeSlot
+    except: OutOfMemory
+    flags: None
+    msg: "No free slot"
 
-PURC_ERROR_NOT_EXISTS
-    except=PURC_EXCEPT_ENTITY_NOT_FOUND
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="Does not exist"
+NotExists
+    except: EntityNotFound
+    flags: None
+    msg: "Does not exist"
 
-PURC_ERROR_WRONG_ARGS
-    except=PURC_EXCEPT_BAD_VALUE
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="Wrong arguments"
+WrongArgs
+    except: BadValue
+    flags: None
+    msg: "Wrong arguments"
 
-PURC_ERROR_WRONG_STAGE
-    except=PURC_EXCEPT_BAD_HTML
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="Wrong stage"
+WrongStage
+    except: BadHtml
+    flags: None
+    msg: "Wrong stage"
 
-PURC_ERROR_OVERFLOW
-    except=PURC_EXCEPT_OVERFLOW
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="Overflow"
+Overflow
+    except: Overflow
+    flags: None
+    msg: "Overflow"
 
-PURC_ERROR_UNDERFLOW
-    except=PURC_EXCEPT_UNDERFLOW
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="Underflow"
+Underflow
+    except: Underflow
+    flags: None
+    msg: "Underflow"
 
-PURC_ERROR_DIVBYZERO
-    except=PURC_EXCEPT_ZERO_DIVISION
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="Divide by zero"
+Divbyzero
+    except: ZeroDivision
+    flags: None
+    msg: "Divide by zero"
 
-PURC_ERROR_INV_FLOATPOINT
-    except=PURC_EXCEPT_FLOATING_POINT
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="Float point invalid"
+InvFloatpoint
+    except: FloatingPoint
+    flags: None
+    msg: "Float point invalid"
 
-PURC_ERROR_BAD_LOCALE_CATEGORY
-    except=PURC_EXCEPT_BAD_VALUE
-    flags=PURC_EXCEPT_FLAGS_NONE
-    msg="Bad locale category"
+BadLocaleCategory
+    except: BadValue
+    flags: None
+    msg: "Bad locale category"
