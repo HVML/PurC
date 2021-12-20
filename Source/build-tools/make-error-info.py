@@ -184,7 +184,7 @@ def make_error_code(prefix, name):
     return make_snake_name(prefix, name)
 
 def make_except(except_value):
-    if except_value <> 'NULL':
+    if except_value != 'NULL':
         return make_snake_name('PURC_EXCEPT', except_value)
     return except_value
 
@@ -244,5 +244,7 @@ if __name__ == "__main__":
 
         with open('%s/%s' % (base_dir, ''.join(output_filename)), "w+") as output_file:
             output_file.write(gen_inc(output_var_name, prefix, messages))
+
+    print("Done.")
 
 
