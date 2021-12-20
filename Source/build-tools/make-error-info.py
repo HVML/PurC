@@ -245,6 +245,8 @@ if __name__ == "__main__":
         with open('%s/%s' % (base_dir, ''.join(output_filename)), "w+") as output_file:
             output_file.write(gen_inc(output_var_name, prefix, messages))
 
+        print("%s : %d" % (output_var_name, len(messages)))
+
     print("Done.")
 
 
