@@ -242,10 +242,11 @@ if __name__ == "__main__":
         with open('%s' % parameter) as source_file:
             output_filename, output_var_name, prefix, messages = scan_src_file(source_file)
 
-        with open('%s/%s' % (base_dir, ''.join(output_filename)), "w+") as output_file:
+        dst_file = '%s/%s' % (base_dir, ''.join(output_filename))
+        with open(dst_file, "w+") as output_file:
             output_file.write(gen_inc(output_var_name, prefix, messages))
 
-        print("%s : %d" % (output_var_name, len(messages)))
+        print("Generating %s with %d error messages defined" % (dst_file, len(messages)))
 
     print("Done.")
 

@@ -203,7 +203,7 @@ add_custom_command(
             ${PURC_DIR}/utils/rwstream.error.in
             ${PURC_DIR}/hvml/hvml.error.in
     COMMAND touch "${PurC_DERIVED_SOURCES_DIR}/purc-error-except.c"
-    COMMENT "Generating xxx-error-except.inc by using ${Python3_EXECUTABLE}"
+    COMMENT "Generating *_err_msgs.inc by using ${Python3_EXECUTABLE}"
     WORKING_DIRECTORY "${PURC_DIR}/instance/"
     VERBATIM)
 list(APPEND PurC_SOURCES ${PurC_DERIVED_SOURCES_DIR}/purc-error-except.c)
