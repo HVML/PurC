@@ -52,7 +52,7 @@ TEST(dvobjs, dvobjs_ejson_type)
     ASSERT_EQ(purc_variant_is_object (ejson), true);
 
     for (i = 0; i < function_size; i++) {
-        printf ("test _L.%s:\n", function[i]);
+        printf ("test _ejson.%s:\n", function[i]);
 
         purc_variant_t dynamic = purc_variant_object_get_by_ckey (ejson,
                 function[i]);
@@ -216,7 +216,7 @@ TEST(dvobjs, dvobjs_ejson_number)
     ASSERT_EQ(purc_variant_is_object (ejson), true);
 
     for (i = 0; i < function_size; i++) {
-        printf ("test _L.%s:\n", function[i]);
+        printf ("test _ejson.%s:\n", function[i]);
 
         purc_variant_t dynamic = purc_variant_object_get_by_ckey (ejson,
                 function[i]);
@@ -378,7 +378,7 @@ TEST(dvobjs, dvobjs_ejson_compare)
     ASSERT_EQ(purc_variant_is_object (ejson), true);
 
     for (i = 0; i < function_size; i++) {
-        printf ("test _L.%s:\n", function[i]);
+        printf ("test _ejson.%s:\n", function[i]);
 
         purc_variant_t dynamic = purc_variant_object_get_by_ckey (ejson,
                 function[i]);
@@ -543,7 +543,7 @@ TEST(dvobjs, dvobjs_ejson_sort)
     ASSERT_EQ(purc_variant_is_object (ejson), true);
 
     for (i = 0; i < function_size; i++) {
-        printf ("test _L.%s:\n", function[i]);
+        printf ("test _ejson.%s:\n", function[i]);
 
         purc_variant_t dynamic = purc_variant_object_get_by_ckey (ejson,
                 function[i]);
