@@ -25,33 +25,33 @@
 
 #include "config.h"
 
+#include "internal.h"
+
 #include "private/debug.h"
 #include "private/instance.h"
-#include "private/interpreter.h"
 #include "private/runloop.h"
 
-#include "element-ops.h"
+#include "ops.h"
 #include "../hvml/hvml-gen.h"
+#include "hvml-attr.h"
 
 void pcintr_stack_init_once(void)
 {
     pcrunloop_init_main();
     pcrunloop_t runloop = pcrunloop_get_main();
     PC_ASSERT(runloop);
+    init_ops();
 }
 
 void pcintr_stack_init_instance(struct pcinst* inst)
 {
-    struct pcintr_stack *intr_stack = &inst->intr_stack;
-    memset(intr_stack, 0, sizeof(*intr_stack));
-
-    struct list_head *frames = &intr_stack->frames;
-    INIT_LIST_HEAD(frames);
-    intr_stack->ret_var = PURC_VARIANT_INVALID;
+    struct pcintr_heap *heap = &inst->intr_heap;
+    INIT_LIST_HEAD(&heap->coroutines);
+    heap->running_coroutine = NULL;
 }
 
-static inline void
-intr_stack_frame_release(struct pcintr_stack_frame *frame)
+static void
+stack_frame_release(struct pcintr_stack_frame *frame)
 {
     frame->scope = NULL;
     frame->pos   = NULL;
@@ -69,27 +69,330 @@ intr_stack_frame_release(struct pcintr_stack_frame *frame)
     PURC_VARIANT_SAFE_CLEAR(frame->mid_vars);
 }
 
+static void
+vdom_release(purc_vdom_t vdom)
+{
+    if (vdom->document) {
+        pcvdom_document_destroy(vdom->document);
+        vdom->document = NULL;
+    }
+}
+
+static void
+vdom_destroy(purc_vdom_t vdom)
+{
+    if (!vdom)
+        return;
+
+    vdom_release(vdom);
+
+    free(vdom);
+}
+
+static void
+stack_release(pcintr_stack_t stack)
+{
+    struct list_head *frames = &stack->frames;
+    if (!list_empty(frames)) {
+        struct list_head *p, *n;
+        list_for_each_safe(p, n, frames) {
+            struct pcintr_stack_frame *frame;
+            frame = container_of(p, struct pcintr_stack_frame, node);
+            list_del(p);
+            --stack->nr_frames;
+            stack_frame_release(frame);
+            free(frame);
+        }
+        PC_ASSERT(stack->nr_frames == 0);
+    }
+
+    if (stack->vdom) {
+        vdom_destroy(stack->vdom);
+        stack->vdom = NULL;
+    }
+}
+
+static void
+stack_init(pcintr_stack_t stack)
+{
+    INIT_LIST_HEAD(&stack->frames);
+}
+
 void pcintr_stack_cleanup_instance(struct pcinst* inst)
 {
-    struct pcintr_stack *intr_stack = &inst->intr_stack;
-    struct list_head *frames = &intr_stack->frames;
-    if (!list_empty(frames)) {
-        struct pcintr_stack_frame *p, *n;
-        list_for_each_entry_safe(p, n, frames, node) {
-            list_del(&p->node);
-            --intr_stack->nr_frames;
-            intr_stack_frame_release(p);
-            free(p);
-        }
-        PC_ASSERT(intr_stack->nr_frames == 0);
+    struct pcintr_heap *heap = &inst->intr_heap;
+    struct list_head *coroutines = &heap->coroutines;
+    if (list_empty(coroutines))
+        return;
+
+    struct list_head *p, *n;
+    list_for_each_safe(p, n, coroutines) {
+        pcintr_coroutine_t co;
+        co = container_of(p, struct pcintr_coroutine, node);
+        list_del(p);
+        struct pcintr_stack *stack = co->stack;
+        stack_release(stack);
+        free(stack);
     }
+}
+
+
+static pcintr_coroutine_t
+coroutine_get_current(void)
+{
+    struct pcinst *inst = pcinst_current();
+    struct pcintr_heap *heap = &inst->intr_heap;
+    return heap->running_coroutine;
 }
 
 pcintr_stack_t purc_get_stack(void)
 {
+    struct pcintr_coroutine *co = coroutine_get_current();
+    if (!co)
+        return NULL;
+
+    return co->stack;
+}
+
+struct pcintr_stack_frame*
+push_stack_frame(pcintr_stack_t stack)
+{
+    PC_ASSERT(stack);
+    struct pcintr_stack_frame *frame;
+    frame = (struct pcintr_stack_frame*)calloc(1, sizeof(*frame));
+    if (!frame)
+        return NULL;
+
+    list_add_tail(&frame->node, &stack->frames);
+    ++stack->nr_frames;
+
+    return frame;
+}
+
+void
+pop_stack_frame(pcintr_stack_t stack)
+{
+    PC_ASSERT(stack);
+    PC_ASSERT(stack->nr_frames > 0);
+
+    struct list_head *tail = stack->frames.prev;
+    PC_ASSERT(tail != NULL);
+    PC_ASSERT(tail != &stack->frames);
+
+    list_del(tail);
+
+    struct pcintr_stack_frame *frame;
+    frame = container_of(tail, struct pcintr_stack_frame, node);
+
+    stack_frame_release(frame);
+    free(frame);
+    --stack->nr_frames;
+}
+
+static int
+visit_attr(void *key, void *val, void *ud)
+{
+    struct pcintr_stack_frame *frame;
+    frame = (struct pcintr_stack_frame*)ud;
+    if (frame->attr_vars == PURC_VARIANT_INVALID) {
+        frame->attr_vars = purc_variant_make_object(0,
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        if (frame->attr_vars == PURC_VARIANT_INVALID)
+            return -1;
+    }
+
+    struct pcvdom_attr *attr = (struct pcvdom_attr*)val;
+    PC_ASSERT(attr->key == key);
+    struct pcvcm_node *vcm = attr->val;
+    PC_ASSERT(vcm);
+
+    pcintr_stack_t stack = purc_get_stack();
+    purc_variant_t value;
+    value = pcvcm_eval(vcm, stack);
+    PC_ASSERT(value != PURC_VARIANT_INVALID);
+    const struct pchvml_attr_entry *pre_defined = attr->pre_defined;
+    bool ok;
+    if (pre_defined) {
+        ok = purc_variant_object_set_by_static_ckey(frame->attr_vars,
+                pre_defined->name, value);
+        purc_variant_unref(value);
+    }
+    else {
+        PC_ASSERT(attr->key);
+        purc_variant_t k = purc_variant_make_string(attr->key, true);
+        if (k == PURC_VARIANT_INVALID) {
+            purc_variant_unref(value);
+            return -1;
+        }
+        ok = purc_variant_object_set(frame->attr_vars, k, value);
+        purc_variant_unref(value);
+        purc_variant_unref(k);
+    }
+
+    return ok ? 0 : -1;
+}
+
+int
+pcintr_element_eval_attrs(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element)
+{
+    struct pcutils_map *attrs = element->attrs;
+    if (!attrs)
+        return 0;
+
+    int r = pcutils_map_traverse(attrs, frame, visit_attr);
+    if (r)
+        return r;
+
+    return 0;
+}
+
+static void
+after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+{
+    if (frame->ops.after_pushed) {
+        frame->ops.after_pushed(co, frame);
+        return;
+    }
+
+    frame->next_step = NEXT_STEP_SELECT_CHILD;
+    co->state = CO_STATE_READY;
+}
+
+static void
+on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+{
+    if (frame->ops.on_popping) {
+        frame->ops.on_popping(co, frame);
+        return;
+    }
+
+    pcintr_stack_t stack = co->stack;
+    pop_stack_frame(stack);
+    co->state = CO_STATE_READY;
+}
+
+static void
+on_rerun(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+{
+    if (frame->ops.rerun) {
+        frame->ops.rerun(co, frame);
+        return;
+    }
+
+    frame->next_step = NEXT_STEP_SELECT_CHILD;
+    co->state = CO_STATE_READY;
+}
+
+static void
+on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+{
+    if (frame->ops.select_child) {
+        frame->ops.select_child(co, frame);
+        return;
+    }
+
+    frame->next_step = NEXT_STEP_ON_POPPING;
+    co->state = CO_STATE_READY;
+}
+
+static void
+run_coroutine(pcintr_coroutine_t co)
+{
+    pcintr_stack_t stack = co->stack;
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
+
+    if (frame->preemptor) {
+        preemptor_f preemptor = frame->preemptor;
+        frame->preemptor = NULL;
+        preemptor(co, frame);
+        return;
+    }
+
+    switch (frame->next_step) {
+        case NEXT_STEP_AFTER_PUSHED:
+            after_pushed(co, frame);
+            break;
+        case NEXT_STEP_ON_POPPING:
+            on_popping(co, frame);
+            break;
+        case NEXT_STEP_RERUN:
+            on_rerun(co, frame);
+            break;
+        case NEXT_STEP_SELECT_CHILD:
+            on_select_child(co, frame);
+            break;
+        default:
+            PC_ASSERT(0);
+    }
+
+    if (co->waits)
+        return;
+    struct list_head *frames = &stack->frames;
+    if (!list_empty(frames))
+        return;
+    co->state = CO_STATE_TERMINATED;
+    list_del(&co->node);
+    stack_release(stack);
+    free(stack);
+}
+
+static int run_coroutines(void *ctxt)
+{
+    UNUSED_PARAM(ctxt);
+
     struct pcinst *inst = pcinst_current();
-    struct pcintr_stack *intr_stack = &inst->intr_stack;
-    return intr_stack;
+    struct pcintr_heap *heap = &inst->intr_heap;
+    struct list_head *coroutines = &heap->coroutines;
+    size_t readies = 0;
+    size_t waits = 0;
+    if (!list_empty(coroutines)) {
+        struct list_head *p, *n;
+        list_for_each_safe(p, n, coroutines) {
+            struct pcintr_coroutine *co;
+            co = container_of(p, struct pcintr_coroutine, node);
+            switch (co->state) {
+                case CO_STATE_READY:
+                    co->state = CO_STATE_RUN;
+                    run_coroutine(co);
+                    ++readies;
+                    break;
+                case CO_STATE_WAIT:
+                    ++waits;
+                    break;
+                case CO_STATE_RUN:
+                    PC_ASSERT(0);
+                    break;
+                case CO_STATE_TERMINATED:
+                    PC_ASSERT(0);
+                    break;
+                default:
+                    PC_ASSERT(0);
+            }
+        }
+    }
+
+    if (readies) {
+        pcrunloop_t runloop = pcrunloop_get_current();
+        PC_ASSERT(runloop);
+        pcrunloop_dispatch(runloop, run_coroutines, NULL);
+    }
+    else if (waits==0) {
+        pcrunloop_t runloop = pcrunloop_get_current();
+        PC_ASSERT(runloop);
+        pcrunloop_stop(runloop);
+    }
+
+    return 0;
+}
+
+void pcintr_coroutine_ready(void)
+{
+    pcrunloop_t runloop = pcrunloop_get_current();
+    PC_ASSERT(runloop);
+    pcrunloop_dispatch(runloop, run_coroutines, NULL);
 }
 
 struct pcintr_stack_frame*
@@ -118,40 +421,12 @@ pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame)
     return container_of(n, struct pcintr_stack_frame, node);
 }
 
-static inline struct pcintr_stack_frame*
-push_stack_frame(pcintr_stack_t stack)
-{
-    PC_ASSERT(stack);
-    struct pcintr_stack_frame *frame;
-    frame = (struct pcintr_stack_frame*)calloc(1, sizeof(*frame));
-    if (!frame)
-        return NULL;
-
-    list_add_tail(&frame->node, &stack->frames);
-    ++stack->nr_frames;
-
-    return 0;
-}
-
-void
-pop_stack_frame(pcintr_stack_t stack)
-{
-    PC_ASSERT(stack);
-    PC_ASSERT(stack->nr_frames > 0);
-
-    struct list_head *tail = stack->frames.prev;
-    PC_ASSERT(tail != NULL);
-    PC_ASSERT(tail != &stack->frames);
-
-    list_del(tail);
-
-    struct pcintr_stack_frame *frame;
-    frame = container_of(tail, struct pcintr_stack_frame, node);
-
-    intr_stack_frame_release(frame);
-    free(frame);
-    --stack->nr_frames;
-}
+static struct pcintr_element_ops default_ops = {
+//     .after_pushed = default_element_pushed,
+//     .on_popping   = default_element_popping,
+//     .rerun        = NULL,
+//     .select_child = default_element_select_child,
+};
 
 struct pcintr_element_ops*
 pcintr_get_element_ops(pcvdom_element_t element)
@@ -159,299 +434,174 @@ pcintr_get_element_ops(pcvdom_element_t element)
     PC_ASSERT(element);
 
     switch (element->tag_id) {
-        case PCHVML_TAG_HVML:
-            return pcintr_hvml_get_ops();
-        case PCHVML_TAG_ITERATE:
-            return pcintr_iterate_get_ops();
+        // case PCHVML_TAG_HVML:
+        //     return pcintr_hvml_get_ops();
+        // case PCHVML_TAG_ITERATE:
+        //     return pcintr_iterate_get_ops();
         default:
-            fprintf(stderr, "==tag_id:%d==\n", element->tag_id);
-            PC_ASSERT(0); // Not implemented yet
-            return NULL;
+            return &default_ops;
     }
 }
 
-struct frame_element_doc
+struct frame_element
 {
     struct pcintr_stack_frame     *frame;
     struct pcvdom_element         *element;
-    struct pcvdom_document        *document;
 };
 
-static inline purc_variant_t
-fed_eval_attr(struct frame_element_doc *fed,
-        enum pchvml_attr_assignment  op,
-        struct pcvcm_node           *val)
-{
-    UNUSED_PARAM(fed);
-    UNUSED_PARAM(op);
-    UNUSED_PARAM(val);
-    PC_ASSERT(0); // Not implemented yet
-    return PURC_VARIANT_INVALID;
-}
+// static purc_variant_t
+// fed_eval_attr(struct frame_element *fed,
+//         enum pchvml_attr_assignment  op,
+//         struct pcvcm_node           *val)
+// {
+//     UNUSED_PARAM(fed);
+//     UNUSED_PARAM(op);
+//     UNUSED_PARAM(val);
+//     PC_ASSERT(0); // Not implemented yet
+//     return PURC_VARIANT_INVALID;
+// }
 
-static inline int
-init_frame_append_attr(void *key, void *val, void *ud)
-{
-    PC_ASSERT(ud);
+// static int
+// init_frame_append_attr(void *key, void *val, void *ud)
+// {
+//     PC_ASSERT(ud);
+// 
+//     struct frame_element *fed = (struct frame_element*)ud;
+// 
+//     purc_variant_t attr_vars = fed->frame->attr_vars;
+// 
+//     struct pcvdom_attr *attr = (struct pcvdom_attr*)val;
+//     PC_ASSERT(key == attr->key);
+//     enum pchvml_attr_assignment  op   = attr->op;
+//     struct pcvcm_node           *node = attr->val;
+// 
+//     purc_variant_t k = purc_variant_make_string(attr->key, true);
+//     purc_variant_t v = fed_eval_attr(fed, op, node);
+// 
+//     PC_ASSERT(k!=PURC_VARIANT_INVALID);
+//     PC_ASSERT(v!=PURC_VARIANT_INVALID);
+// 
+//     purc_variant_t o = purc_variant_make_object(1, k, v);
+//     purc_variant_unref(k);
+//     purc_variant_unref(v);
+//     PC_ASSERT(o!=PURC_VARIANT_INVALID);
+// 
+//     bool ok = purc_variant_array_append(attr_vars, o);
+//     purc_variant_unref(o);
+// 
+//     PC_ASSERT(ok);
+// 
+//     return 0;
+// }
 
-    struct frame_element_doc *fed = (struct frame_element_doc*)ud;
+// static int
+// init_frame_attr_vars(struct pcintr_stack_frame *frame,
+//         struct pcvdom_element *element)
+// {
+//     frame->attr_vars = purc_variant_make_object(0,
+//             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+// 
+//     if (frame->attr_vars == PURC_VARIANT_INVALID)
+//         return -1;
+// 
+//     struct pcutils_map *attrs = element->attrs;
+//     if (!attrs)
+//         return 0;
+// 
+//     struct frame_element ud = {
+//         .frame          = frame,
+//         .element        = element,
+//     };
+// 
+//     int r = pcutils_map_traverse(attrs, &ud, init_frame_append_attr);
+// 
+//     return r ? -1 : 0;
+// }
+// 
+// static int
+// init_frame_by_element(struct pcintr_stack_frame *frame,
+//         struct pcvdom_element *element)
+// {
+//     frame->scope = element; // FIXME: archetype, where to store `scope`
+//     frame->pos = element;
+// 
+//     if (init_frame_attr_vars(frame, element))
+//         return -1;
+// 
+//     // TODO:
+//     // frame->ctnt_vars = ????;
+//     return 0;
+// }
 
-    purc_variant_t attr_vars = fed->frame->attr_vars;
+// static int
+// element_eval_in_frame(struct pcvdom_element *element,
+//         struct pcintr_element_ops *ops,
+//         pcintr_stack_t stack,
+//         struct pcintr_stack_frame *frame)
+// {
+//     PC_ASSERT(element);
+// 
+//     int r = init_frame_by_element(frame, element);
+//     if (r) {
+//         return -1;
+//     }
+// 
+//     if (ops->after_pushed) {
+//         void *ctxt = ops->after_pushed(stack, element);
+//         frame->ctxt = ctxt;
+//     }
+// 
+// rerun:
+//     if (ops->select_child) {
+//         struct pcvdom_element *child;
+//         child = ops->select_child(stack, frame->ctxt);
+//         while (child) {
+//             r = element_eval(child);
+//             PC_ASSERT(r==0); // TODO: what if failed????
+//             child = ops->select_child(stack, frame->ctxt);
+//         }
+//     }
+// 
+//     if (ops->on_popping) {
+//         bool ok = ops->on_popping(stack, frame->ctxt);
+//         if (ok) {
+//             return 0;
+//         }
+//     }
+// 
+//     if (ops->rerun) {
+//         bool ok = ops->rerun(stack, frame->ctxt);
+//         PC_ASSERT(ok); // TODO: what if failed????
+//         goto rerun;
+//     }
+// 
+//     return 0;
+// }
 
-    struct pcvdom_attr *attr = (struct pcvdom_attr*)val;
-    PC_ASSERT(key == attr->key);
-    enum pchvml_attr_assignment  op   = attr->op;
-    struct pcvcm_node           *node = attr->val;
-
-    purc_variant_t k = purc_variant_make_string(attr->key, true);
-    purc_variant_t v = fed_eval_attr(fed, op, node);
-
-    PC_ASSERT(k!=PURC_VARIANT_INVALID);
-    PC_ASSERT(v!=PURC_VARIANT_INVALID);
-
-    purc_variant_t o = purc_variant_make_object(1, k, v);
-    purc_variant_unref(k);
-    purc_variant_unref(v);
-    PC_ASSERT(o!=PURC_VARIANT_INVALID);
-
-    bool ok = purc_variant_array_append(attr_vars, o);
-    purc_variant_unref(o);
-
-    PC_ASSERT(ok);
-
-    return 0;
-}
-
-static inline int
-init_frame_attr_vars(struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element, struct pcvdom_document *document)
-{
-    UNUSED_PARAM(document);
-
-    frame->attr_vars = purc_variant_make_object(0,
-            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-
-    if (frame->attr_vars == PURC_VARIANT_INVALID)
-        return -1;
-
-    struct pcutils_map *attrs = element->attrs;
-    if (!attrs)
-        return 0;
-
-    struct frame_element_doc ud = {
-        .frame          = frame,
-        .element        = element,
-        .document       = document,
-    };
-
-    int r = pcutils_map_traverse(attrs, &ud, init_frame_append_attr);
-
-    return r ? -1 : 0;
-}
-
-static inline int
-init_frame_by_element(struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element, struct pcvdom_document *document)
-{
-    frame->scope = element; // FIXME: archetype, where to store `scope`
-    frame->pos = element;
-
-    if (init_frame_attr_vars(frame, element, document))
-        return -1;
-
-    // TODO:
-    // frame->ctnt_vars = ????;
-    return 0;
-}
-
-static inline int
-element_eval(struct pcvdom_document *document,
-        struct pcvdom_element *element);
-
-static inline int
-element_eval_in_frame(struct pcvdom_document *document,
-        struct pcvdom_element *element,
-        struct pcintr_element_ops *ops,
-        pcintr_stack_t stack,
-        struct pcintr_stack_frame *frame)
-{
-    PC_ASSERT(document);
-    PC_ASSERT(element);
-
-    int r = init_frame_by_element(frame, element, document);
-    if (r) {
-        return -1;
-    }
-
-    if (ops->after_pushed) {
-        void *ctxt = ops->after_pushed(stack, element);
-        frame->ctxt = ctxt;
-    }
-
-rerun:
-    if (ops->select_child) {
-        struct pcvdom_element *child;
-        child = ops->select_child(stack, frame->ctxt);
-        while (child) {
-            r = element_eval(document, child);
-            PC_ASSERT(r==0); // TODO: what if failed????
-            child = ops->select_child(stack, frame->ctxt);
-        }
-    }
-
-    if (ops->on_popping) {
-        bool ok = ops->on_popping(stack, frame->ctxt);
-        if (ok) {
-            return 0;
-        }
-    }
-
-    if (ops->rerun) {
-        bool ok = ops->rerun(stack, frame->ctxt);
-        PC_ASSERT(ok); // TODO: what if failed????
-        goto rerun;
-    }
-
-    return 0;
-}
-
-static inline int
-element_eval(struct pcvdom_document *document,
-        struct pcvdom_element *element)
-{
-    PC_ASSERT(document);
-    PC_ASSERT(element);
-
-    struct pcintr_element_ops *ops;
-    ops = pcintr_get_element_ops(element);
-    if (!ops)
-        return 0;
-
-    pcintr_stack_t stack = purc_get_stack();
-    PC_ASSERT(stack);
-
-    struct pcintr_stack_frame *frame;
-    frame = push_stack_frame(stack);
-    if (!frame)
-        return -1;
-
-    int r = element_eval_in_frame(document, element, ops, stack, frame);
-
-    pop_stack_frame(stack);
-
-    return r ? -1 : 0;
-}
-
-static inline int
-doctype_eval(struct pcvdom_doctype *doctype)
-{
-    const char *system_info = doctype->system_info;
-    fprintf(stderr, "system_info: [%s]\n", system_info);
-    return 0;
-}
-
-static inline int
-head_eval(struct pcvdom_element *head)
-{
-    UNUSED_PARAM(head);
-    return 0;
-}
-
-static inline int
-body_eval(struct pcvdom_element *body)
-{
-    UNUSED_PARAM(body);
-    return 0;
-}
-
-static inline int
-hvml_eval(struct pcvdom_element *hvml)
-{
-    int r = 0;
-    struct pcvdom_element *p;
-    p = pcvdom_element_first_child_element(hvml);
-
-    for (; p; p = pcvdom_element_next_sibling_element(p)) {
-        pcvdom_tag_id tag_id = p->tag_id;
-        if (tag_id != PCHVML_TAG_HEAD)
-            continue;
-
-        r = head_eval(p);
-        if (r)
-            return r;
-
-        p = pcvdom_element_next_sibling_element(p);
-        break;
-    }
-
-    if (!p)
-        return 0;
-
-    for (; p; p = pcvdom_element_next_sibling_element(p)) {
-        pcvdom_tag_id tag_id = p->tag_id;
-        if (tag_id != PCHVML_TAG_BODY)
-            continue;
-        // TODO: check id
-        r = body_eval(p);
-        return r;
-    }
-
-    return 0;
-}
-
-static inline int
-document_eval(struct pcvdom_document *document)
-{
-    struct pcvdom_doctype *doctype = &document->doctype;
-    int r = doctype_eval(doctype);
-    if (r)
-        return r;
-    struct pcvdom_element *hvml = document->root;
-    PC_ASSERT(hvml);
-    r = hvml_eval(hvml);
-    return r;
-
-    // struct pcvdom_node *node = &document->node;
-    // struct pcvdom_node *p = pcvdom_node_first_child(node);
-
-    // struct pcvdom_element *element;
-    // int r = 0;
-    // for (; p; p = pcvdom_node_next_sibling(p)) {
-    //     switch (p->type) {
-    //         case PCVDOM_NODE_DOCUMENT:
-    //             PC_ASSERT(0);
-    //             return -1;
-    //         case PCVDOM_NODE_ELEMENT:
-    //             element = container_of(p, struct pcvdom_element, node);
-    //             r = element_eval(document, element);
-    //             break;
-    //         case PCVDOM_NODE_CONTENT:
-    //             // FIXME: output to edom?
-    //             break;
-    //         case PCVDOM_NODE_COMMENT:
-    //             // FIXME:
-    //             break;
-    //         default:
-    //             PC_ASSERT(0);
-    //             return -1;
-    //     }
-    //     if (r)
-    //         return -1;
-    // }
-
-    // return -1;
-}
-
-int vdom_eval(purc_vdom_t vdom)
-{
-    PC_ASSERT(vdom);
-    pcintr_stack_t stack = purc_get_stack();
-    PC_ASSERT(stack->nr_frames == 0);
-    PC_ASSERT(stack->except == 0);
-
-    struct pcvdom_document *document = vdom->document;
-    return document_eval(document);
-}
+// static int
+// element_eval(struct pcvdom_element *element)
+// {
+//     PC_ASSERT(element);
+// 
+//     struct pcintr_element_ops *ops;
+//     ops = pcintr_get_element_ops(element);
+//     if (!ops)
+//         return 0;
+// 
+//     pcintr_stack_t stack = purc_get_stack();
+//     PC_ASSERT(stack);
+// 
+//     struct pcintr_stack_frame *frame;
+//     frame = push_stack_frame(stack);
+//     if (!frame)
+//         return -1;
+// 
+//     int r = element_eval_in_frame(element, ops, stack, frame);
+// 
+//     pop_stack_frame(stack);
+// 
+//     return r ? -1 : 0;
+// }
 
 purc_vdom_t
 purc_load_hvml_from_string(const char* string)
@@ -485,7 +635,7 @@ purc_load_hvml_from_url(const char* url)
     return NULL;
 }
 
-static inline struct pcvdom_document*
+static struct pcvdom_document*
 load_document(purc_rwstream_t in)
 {
     struct pchvml_parser *parser = NULL;
@@ -538,23 +688,6 @@ end:
     return doc;
 }
 
-static inline int vdom_main(void* ctxt)
-{
-    purc_vdom_t vdom = (purc_vdom_t)ctxt;
-
-    // QUESTION: when to stop????
-    vdom_eval(vdom);
-
-    pcvdom_document_destroy(vdom->document);
-    free(vdom);
-
-    pcrunloop_t runloop = pcrunloop_get_current();
-    PC_ASSERT(runloop);
-    pcrunloop_stop(runloop);
-
-    return 0;
-}
-
 purc_vdom_t
 purc_load_hvml_from_rwstream(purc_rwstream_t stream)
 {
@@ -572,13 +705,38 @@ purc_load_hvml_from_rwstream(purc_rwstream_t stream)
 
     vdom->document = doc;
 
-    pcintr_stack_t stack = purc_get_stack();
-    PC_ASSERT(stack);
+    pcintr_stack_t stack = (pcintr_stack_t)calloc(1, sizeof(*stack));
+    if (!stack) {
+        vdom_destroy(vdom);
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+    stack_init(stack);
+
+    stack->vdom = vdom;
+    stack->co.stack = stack;
+    stack->co.state = CO_STATE_READY;
+
+    struct pcintr_stack_frame *frame;
+    frame = push_stack_frame(stack);
+    if (!frame) {
+        stack_release(stack);
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+    // frame->next_step = on_vdom_start;
+    frame->ops = pcintr_get_document_ops();
+
+    struct pcinst *inst = pcinst_current();
+    struct pcintr_heap *heap = &inst->intr_heap;
+    struct list_head *coroutines = &heap->coroutines;
+    list_add_tail(&stack->co.node, coroutines);
 
     pcrunloop_t runloop = pcrunloop_get_current();
     PC_ASSERT(runloop);
-    pcrunloop_dispatch(runloop, vdom_main, vdom);
+    pcrunloop_dispatch(runloop, run_coroutines, NULL);
 
+    // FIXME: double-free, potentially!!!
     return vdom;
 }
 
@@ -592,7 +750,7 @@ purc_run(purc_variant_t request, purc_event_handler handler)
     return true;
 }
 
-static inline bool
+static bool
 set_object_by(purc_variant_t obj, struct pcintr_dynamic_args *arg)
 {
     purc_variant_t dynamic;

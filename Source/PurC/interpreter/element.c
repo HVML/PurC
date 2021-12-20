@@ -26,7 +26,6 @@
 #include "config.h"
 
 #include "element.h"
-#include "private/interpreter.h"
 
 struct pcintr_element
 {

@@ -24,6 +24,8 @@
 
 #include "private/rbtree.h"
 
+#include <stdio.h>
+
 static void __rb_rotate_left(struct rb_node *node, struct rb_root *root)
 {
     struct rb_node *right = node->rb_right;

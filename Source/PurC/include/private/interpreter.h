@@ -36,90 +36,22 @@
 #include "private/list.h"
 #include "private/vdom.h"
 
+struct pcintr_coroutine;
+typedef struct pcintr_coroutine pcintr_coroutine;
+typedef struct pcintr_coroutine *pcintr_coroutine_t;
+
+struct pcintr_heap {
+    struct list_head      coroutines;
+    pcintr_coroutine_t    running_coroutine;
+};
+
 struct pcintr_stack;
 typedef struct pcintr_stack pcintr_stack;
 typedef struct pcintr_stack *pcintr_stack_t;
 
-struct pcintr_stack {
-    struct list_head frames;
-
-    // the number of stack frames.
-    size_t nr_frames;
-
-    // the pointer to the vDOM tree.
-    purc_vdom_t vdom;
-
-    // the returned variant
-    purc_variant_t ret_var;
-
-    // executing state
-    uint32_t        error:1;
-    uint32_t        except:1;
-    uint32_t        paused:1;
-    uint32_t        terminated:1;
-
-    // error or except info
-    purc_atom_t     error_except;
-    purc_variant_t  err_except_info;
-
-    // executing statistics
-    struct timespec time_executed;
-    struct timespec time_idle;
-    size_t          peak_mem_use;
-    size_t          peak_nr_variants;
-};
-
-enum purc_symbol_var {
-    PURC_SYMBOL_VAR_QUESTION_MARK = 0,  // ?
-    PURC_SYMBOL_VAR_AT_SIGN,            // @
-    PURC_SYMBOL_VAR_NUMBER_SIGN,        // #
-    PURC_SYMBOL_VAR_ASTERISK,           // *
-    PURC_SYMBOL_VAR_COLON,              // :
-    PURC_SYMBOL_VAR_AMPERSAND,          // &
-    PURC_SYMBOL_VAR_PERCENT_SIGN,       // %
-
-    PURC_SYMBOL_VAR_MAX
-};
-
-struct pcintr_stack_frame {
-    // pointers to sibling frames.
-    struct list_head node;
-
-    // the current scope.
-    pcvdom_element_t scope;
-
-    // the current execution position.
-    pcvdom_element_t pos;
-
-    // context for current action
-    void *ctxt;
-
-    // the symbolized variables
-    purc_variant_t symbol_vars[PURC_SYMBOL_VAR_MAX];
-
-    // all attribute variants are managed by a map (attribute name -> variant).
-    purc_variant_t attr_vars;
-
-    // the evaluated content variant
-    purc_variant_t ctnt_var;
-
-    // all intermediate variants are managed by an array.
-    purc_variant_t mid_vars;
-};
-
-struct pcintr_element_ops {
-    // called after pushed
-    void *(*after_pushed) (pcintr_stack_t stack, pcvdom_element_t pos);
-
-    // called on popping
-    bool (*on_popping) (pcintr_stack_t stack, void* ctxt);
-
-    // called to rerun
-    bool (*rerun) (pcintr_stack_t stack, void* ctxt);
-
-    // called after executed
-    pcvdom_element_t (*select_child) (pcintr_stack_t stack, void* ctxt);
-};
+struct pcintr_stack_frame;
+typedef struct pcintr_stack_frame pcintr_stack_frame;
+typedef struct pcintr_stack_frame *pcintr_stack_frame_t;
 
 struct pcintr_dynamic_args {
     const char                    *name;
@@ -144,6 +76,8 @@ struct pcintr_stack_frame*
 pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame);
 void
 pop_stack_frame(pcintr_stack_t stack);
+struct pcintr_stack_frame*
+push_stack_frame(pcintr_stack_t stack);
 
 struct pcintr_element_ops*
 pcintr_get_element_ops(pcvdom_element_t element);

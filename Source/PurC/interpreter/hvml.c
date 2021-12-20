@@ -23,147 +23,99 @@
  *
  */
 
-#include "config.h"
+#include "purc.h"
+
+#include "internal.h"
 
 #include "private/debug.h"
-#include "private/executor.h"
-#include "private/interpreter.h"
 
-#include "element-ops.h"
-
+#include "ops.h"
 
 struct ctxt_for_hvml {
-    struct purc_exec_ops     ops;
-
-    // the instance of the current executor.
-    purc_exec_inst_t exec_inst;
-
-    // the iterator if the current element is `hvml`.
-    purc_exec_iter_t it;
-
-    struct pcvdom_element       *curr;
-
-    unsigned int                uniquely:1;
-    unsigned int                case_insensitive:1;
+    struct pcvdom_node           *curr;
 };
 
-static inline void
-ctxt_release(struct ctxt_for_hvml *ctxt)
+static void
+ctxt_for_hvml_destroy(struct ctxt_for_hvml *ctxt)
 {
-    if (!ctxt)
-        return;
-
-    if (ctxt->exec_inst) {
-        struct purc_exec_ops *ops = &ctxt->ops;
-
-        if (ops->destroy) {
-            ops->destroy(ctxt->exec_inst);
-        }
-
-        ctxt->exec_inst = NULL;
-    }
-}
-
-static inline void
-ctxt_destroy(struct ctxt_for_hvml *ctxt)
-{
-    if (ctxt) {
-        ctxt_release(ctxt);
+    if (ctxt)
         free(ctxt);
-    }
 }
 
-static inline int
-hvml_after_pushed_as_via(pcintr_stack_t stack, pcvdom_element_t pos,
-        struct ctxt_for_hvml *ctxt,
-        purc_variant_t as, purc_variant_t via)
+static void
+after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
-    PC_ASSERT(as && purc_variant_is_type(as, PURC_VARIANT_TYPE_STRING));
-    PC_ASSERT(via && purc_variant_is_type(via, PURC_VARIANT_TYPE_STRING));
 
-    const char *s_as  = purc_variant_get_string_const(as);
-    const char *s_via = purc_variant_get_string_const(via);
-
-    struct pcvdom_node *vdom_node = &pos->node;
-    struct pctree_node *tree_node = &vdom_node->node;
-    size_t nr_children;
-    nr_children = pctree_node_children_number(tree_node);
-    PC_ASSERT(nr_children == 1);
-
-    vdom_node = pcvdom_node_first_child(vdom_node);
-    PC_ASSERT(PCVDOM_NODE_IS_CONTENT(vdom_node));
-
-    struct pcvdom_content *content;
-    content = PCVDOM_CONTENT_FROM_NODE(vdom_node);
-
-    PC_ASSERT(content);
-    UNUSED_PARAM(s_as);
-    UNUSED_PARAM(s_via);
-    UNUSED_PARAM(stack);
-    UNUSED_PARAM(ctxt);
-    return -1;
-}
-
-static inline int
-hvml_after_pushed(pcintr_stack_t stack, pcvdom_element_t pos,
-        struct ctxt_for_hvml *ctxt)
-{
-    struct pcvdom_attr *from = pcvdom_element_find_attr(pos, "from");
-    PC_ASSERT(from == NULL); // Not implemented yet
-    struct pcvdom_attr *with = pcvdom_element_find_attr(pos, "with");
-    PC_ASSERT(with == NULL); // Not implemented yet
-
-    if (pcvdom_element_find_attr(pos, "uniquely")) {
-        ctxt->uniquely = 1;
-    }
-    if (pcvdom_element_find_attr(pos, "caseinsensitively")) {
-        ctxt->case_insensitive = 1;
-    }
-
-    purc_variant_t as  = pcvdom_element_eval_attr_val(pos, "as");
-    purc_variant_t via = pcvdom_element_eval_attr_val(pos, "via");
-
-    int r = hvml_after_pushed_as_via(stack, pos, ctxt, as, via);
-
-    purc_variant_unref(as);
-    purc_variant_unref(via);
-
-    return r ? -1 : 0;
-}
-
-// called after pushed
-static inline void *
-after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
-{
     struct ctxt_for_hvml *ctxt;
     ctxt = (struct ctxt_for_hvml*)calloc(1, sizeof(*ctxt));
-    if (!ctxt)
-        return NULL;
-
-    int r = hvml_after_pushed(stack, pos, ctxt);
-    if (r) {
-        ctxt_destroy(ctxt);
-        return NULL;
+    if (!ctxt) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        frame->next_step = -1;
+        co->state = CO_STATE_TERMINATED;
+        return;
     }
 
-    return ctxt;
+    frame->ctxt = ctxt;
+    frame->next_step = NEXT_STEP_SELECT_CHILD;
+    co->state = CO_STATE_READY;
 }
 
-// called on popping
-static inline bool
-on_popping(pcintr_stack_t stack, void* ctxt)
+static void
+on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame->ctxt == ctxt);
+    pcintr_stack_t stack = co->stack;
+    struct ctxt_for_hvml *ctxt;
+    ctxt = (struct ctxt_for_hvml*)frame->ctxt;
+    if (ctxt) {
+        ctxt_for_hvml_destroy(ctxt);
+        frame->ctxt = NULL;
+    }
+    pop_stack_frame(stack);
+    co->state = CO_STATE_READY;
+}
 
-    struct ctxt_for_hvml *hvml_ctxt;
-    hvml_ctxt = (struct ctxt_for_hvml*)ctxt;
+static void
+select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+{
+    struct ctxt_for_hvml *ctxt;
+    ctxt = (struct ctxt_for_hvml*)frame->ctxt;
 
-    ctxt_destroy(hvml_ctxt);
-    frame->ctxt = NULL;
+    if (ctxt->curr == NULL) {
+        struct pcvdom_element *element = frame->scope;
+        struct pcvdom_node *node = &element->node;
+        node = pcvdom_node_first_child(node);
+        ctxt->curr = node;
+    }
+    else {
+        ctxt->curr = pcvdom_node_next_sibling(ctxt->curr);
+    }
 
-    return false;
+    if (ctxt->curr == NULL) {
+        frame->next_step = NEXT_STEP_ON_POPPING;
+        co->state = CO_STATE_READY;
+        return;
+    }
+
+    if (!PCVDOM_NODE_IS_ELEMENT(ctxt->curr)) {
+        co->state = CO_STATE_READY;
+        return;
+    }
+
+    struct pcvdom_element *element = PCVDOM_ELEMENT_FROM_NODE(ctxt->curr);
+
+    pcintr_stack_t stack = co->stack;
+    struct pcintr_stack_frame *child_frame;
+    child_frame = push_stack_frame(stack);
+    if (!child_frame) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return;
+    }
+    child_frame->ops = pcintr_get_ops_by_element(element);
+    child_frame->scope = element;
+
+    ctxt->curr = &element->node;
+    frame->next_step = NEXT_STEP_SELECT_CHILD;
+    co->state = CO_STATE_READY;
 }
 
 static struct pcintr_element_ops
@@ -171,12 +123,13 @@ ops = {
     .after_pushed       = after_pushed,
     .on_popping         = on_popping,
     .rerun              = NULL,
-    .select_child       = NULL,
+    .select_child       = select_child,
 };
 
-struct pcintr_element_ops* pcintr_hvml_get_ops(void)
+struct pcintr_element_ops* pcintr_get_hvml_ops(void)
 {
     return &ops;
 }
+
 
 

@@ -47,7 +47,8 @@ struct pcinst {
 
     struct pcvariant_heap variant_heap;
     struct pcexecutor_heap executor_heap;
-    struct pcintr_stack intr_stack;
+
+    struct pcintr_heap    intr_heap;
 };
 
 /* gets the current instance */
