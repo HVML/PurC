@@ -276,10 +276,6 @@ create_element(struct pcvdom_gen *gen, struct pchvml_token *token)
 
         struct pcvdom_attr *vattr;
         vattr = pcvdom_attr_create(name, op, vcm);
-        if (vattr) {
-            pcvdom_attr_destroy(vattr);
-            continue;
-        }
 
         if (!vattr) {
             r = -1;

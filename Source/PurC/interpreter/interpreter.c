@@ -33,6 +33,7 @@
 
 #include "ops.h"
 #include "../hvml/hvml-gen.h"
+#include "hvml-attr.h"
 
 void pcintr_stack_init_once(void)
 {
@@ -202,8 +203,33 @@ visit_attr(void *key, void *val, void *ud)
 
     struct pcvdom_attr *attr = (struct pcvdom_attr*)val;
     PC_ASSERT(attr->key == key);
+    struct pcvcm_node *vcm = attr->val;
+    PC_ASSERT(vcm);
 
-    return -1;
+    pcintr_stack_t stack = purc_get_stack();
+    purc_variant_t value;
+    value = pcvcm_eval(vcm, stack);
+    PC_ASSERT(value != PURC_VARIANT_INVALID);
+    const struct pchvml_attr_entry *pre_defined = attr->pre_defined;
+    bool ok;
+    if (pre_defined) {
+        ok = purc_variant_object_set_by_static_ckey(frame->attr_vars,
+                pre_defined->name, value);
+        purc_variant_unref(value);
+    }
+    else {
+        PC_ASSERT(attr->key);
+        purc_variant_t k = purc_variant_make_string(attr->key, true);
+        if (k == PURC_VARIANT_INVALID) {
+            purc_variant_unref(value);
+            return -1;
+        }
+        ok = purc_variant_object_set(frame->attr_vars, k, value);
+        purc_variant_unref(value);
+        purc_variant_unref(k);
+    }
+
+    return ok ? 0 : -1;
 }
 
 int
@@ -337,6 +363,9 @@ static int run_coroutines(void *ctxt)
                     ++waits;
                     break;
                 case CO_STATE_RUN:
+                    PC_ASSERT(0);
+                    break;
+                case CO_STATE_TERMINATED:
                     PC_ASSERT(0);
                     break;
                 default:

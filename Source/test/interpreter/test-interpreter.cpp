@@ -5,9 +5,10 @@
 TEST(interpreter, basic)
 {
     const char *hvmls[] = {
-        "<hvml><head x=\"y\">hello<xinit a=\"b\">world<!--yes-->solid</xinit></head><body><timeout1/><timeout3/></body></hvml>",
-        "<hvml><head x=\"y\">hello<xinit a=\"b\">w<timeout3/>orld<!--yes-->solid</xinit></head><body><timeout1/></body></hvml>",
-        "<hvml><body><timeout1/><timeout9/><timeout2/></body></hvml>",
+        // "<hvml><head x=\"y\">hello<xinit a=\"b\">world<!--yes-->solid</xinit></head><body><timeout1/><timeout3/></body></hvml>",
+        // "<hvml><head x=\"y\">hello<xinit a=\"b\">w<timeout3/>orld<!--yes-->solid</xinit></head><body><timeout1/></body></hvml>",
+        // "<hvml><body><timeout1/><timeout9/><timeout2/></body></hvml>",
+        "<hvml><body><test a='b'/></body></hvml>",
     };
 
     purc_instance_extra_info info = {};
