@@ -129,6 +129,9 @@ struct pcintr_dynamic_args {
 
 struct pcinst;
 
+typedef void* pcintr_timer_t;
+typedef void (*pcintr_timer_fire_func)(const char* id, void* ctxt);
+
 PCA_EXTERN_C_BEGIN
 
 void pcintr_stack_init_once(void) WTF_INTERNAL;
@@ -173,6 +176,27 @@ pcintr_get_symbolized_var (pcintr_stack_t stack, unsigned int number,
 
 purc_variant_t
 pcintr_get_numbered_var (pcintr_stack_t stack, unsigned int number);
+
+pcintr_timer_t
+pcintr_timer_create(const char* id, void* ctxt, pcintr_timer_fire_func func);
+
+void
+pcintr_timer_set_interval(pcintr_timer_t timer, uint32_t interval);
+
+uint32_t
+pcintr_timer_get_interval(pcintr_timer_t timer);
+
+void
+pcintr_timer_start(pcintr_timer_t timer);
+
+void
+pcintr_timer_start_oneshot(pcintr_timer_t timer);
+
+void
+pcintr_timer_stop(pcintr_timer_t timer);
+
+void
+pcintr_timer_destroy(pcintr_timer_t timer);
 
 PCA_EXTERN_C_END
 
