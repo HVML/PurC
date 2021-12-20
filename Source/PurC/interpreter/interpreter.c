@@ -271,20 +271,19 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 }
 
 static void
-on_customized(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
-{
-    PC_ASSERT(frame->ops.on_customized);
-    frame->ops.on_customized(co, frame);
-}
-
-static void
 run_coroutine(pcintr_coroutine_t co)
 {
     pcintr_stack_t stack = co->stack;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
-    // frame->next_step(co, frame);
+
+    if (frame->preemptor) {
+        preemptor_f preemptor = frame->preemptor;
+        frame->preemptor = NULL;
+        preemptor(co, frame);
+        return;
+    }
 
     switch (frame->next_step) {
         case NEXT_STEP_AFTER_PUSHED:
@@ -298,9 +297,6 @@ run_coroutine(pcintr_coroutine_t co)
             break;
         case NEXT_STEP_SELECT_CHILD:
             on_select_child(co, frame);
-            break;
-        case NEXT_STEP_CUSTOMIZED:
-            on_customized(co, frame);
             break;
         default:
             PC_ASSERT(0);

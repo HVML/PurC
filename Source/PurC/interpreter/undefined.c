@@ -89,7 +89,7 @@ ctxt_for_undefined_destroy(struct ctxt_for_undefined *ctxt)
 }
 
 static void
-on_customized(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+on_timedout(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     fprintf(stderr, "==co[%p]@%s[%d]:%s()==\n", co, basename((char*)__FILE__), __LINE__, __func__);
 
@@ -127,7 +127,7 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     if (strstr(element->tag_name, "timeout") == element->tag_name) {
         frame->ctxt = ctxt;
-        frame->next_step = NEXT_STEP_CUSTOMIZED;
+        frame->preemptor = on_timedout;
         co->state = CO_STATE_WAIT;
         // simulate
         int secs = atol(element->tag_name + 7);
@@ -250,7 +250,6 @@ ops = {
     .on_popping         = on_popping,
     .rerun              = NULL,
     .select_child       = select_child,
-    .on_customized      = on_customized,
 };
 
 struct pcintr_element_ops* pcintr_get_undefined_ops(void)

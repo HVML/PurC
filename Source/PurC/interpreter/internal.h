@@ -133,10 +133,6 @@ struct pcintr_element_ops {
     // called after executed
     void (*select_child) (pcintr_coroutine_t co,
             struct pcintr_stack_frame *frame);
-
-    // called for customized
-    void (*on_customized) (pcintr_coroutine_t co,
-            struct pcintr_stack_frame *frame);
 };
 
 enum pcintr_stack_frame_next_step {
@@ -144,8 +140,10 @@ enum pcintr_stack_frame_next_step {
     NEXT_STEP_ON_POPPING,
     NEXT_STEP_RERUN,
     NEXT_STEP_SELECT_CHILD,
-    NEXT_STEP_CUSTOMIZED,
 };
+
+typedef void (*preemptor_f) (pcintr_coroutine_t co,
+            struct pcintr_stack_frame *frame);
 
 struct pcintr_stack_frame {
     // pointers to sibling frames.
@@ -174,6 +172,8 @@ struct pcintr_stack_frame {
     // context for current action
     void *ctxt;
     int   next_step;
+
+    preemptor_f        preemptor;
 };
 
 PCA_EXTERN_C_BEGIN
