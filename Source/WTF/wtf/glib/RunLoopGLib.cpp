@@ -69,16 +69,41 @@ RunLoop::RunLoop()
         return G_SOURCE_CONTINUE;
     }, this, nullptr);
     g_source_attach(m_source.get(), m_mainContext.get());
+
+    m_idleSource = adoptGRef(g_idle_source_new());
+    g_source_set_priority(m_idleSource.get(), RunLoopSourcePriority::RunLoopDispatcher);
+    g_source_set_name(m_idleSource.get(), "[PurCFetcher] RunLoop idle");
+    g_source_set_can_recurse(m_idleSource.get(), TRUE);
+    g_source_set_callback(m_idleSource.get(), [](gpointer userData) -> gboolean {
+        RunLoop* runloop = static_cast<RunLoop*>(userData);
+        if (runloop->m_idleCallback) {
+            runloop->m_idleCallback();
+        }
+        return G_SOURCE_CONTINUE;
+    }, this, nullptr);
 }
 
 RunLoop::~RunLoop()
 {
     g_source_destroy(m_source.get());
+    g_source_destroy(m_idleSource.get());
 
     for (int i = m_mainLoops.size() - 1; i >= 0; --i) {
         if (!g_main_loop_is_running(m_mainLoops[i].get()))
             continue;
         g_main_loop_quit(m_mainLoops[i].get());
+    }
+}
+
+void RunLoop::setIdleCallback(WTF::Function<void()>&& function)
+{
+    RunLoop& runloop = RunLoop::current();
+    runloop.m_idleCallback = WTFMove(function);
+    if (runloop.m_idleCallback) {
+        g_source_attach(runloop.m_idleSource.get(), runloop.m_mainContext.get());
+    }
+    else {
+        g_source_destroy(m_idleSource.get());
     }
 }
 

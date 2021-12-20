@@ -61,6 +61,8 @@ void pcrunloop_warkup(pcrunloop_t runloop);
 typedef int (*pcrunloop_func)(void* ctxt);
 void pcrunloop_dispatch(pcrunloop_t runloop, pcrunloop_func func, void* ctxt);
 
+void pcrunloop_set_idle_func(pcrunloop_t runloop, pcrunloop_func func, void* ctxt);
+
 PCA_EXTERN_C_END
 
 #endif /* not defined PURC_PRIVATE_RUNLOOP_H */

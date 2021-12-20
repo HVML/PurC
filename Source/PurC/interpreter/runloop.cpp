@@ -82,3 +82,11 @@ void pcrunloop_dispatch(pcrunloop_t runloop, pcrunloop_func func, void* ctxt)
     }
 }
 
+void pcrunloop_set_idle_func(pcrunloop_t runloop, pcrunloop_func func, void* ctxt)
+{
+    if (runloop) {
+        ((RunLoop*)runloop)->setIdleCallback([func, ctxt]() {
+            func(ctxt);
+        });
+    }
+}
