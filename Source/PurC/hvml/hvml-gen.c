@@ -467,7 +467,15 @@ create_comment(struct pcvdom_gen *gen, struct pchvml_token *token)
 
     int r = 0;
 
-    r = pcvdom_document_append_comment(gen->doc, comment);
+    struct pcvdom_node *node = top_node(gen);
+    PC_ASSERT(node);
+    if (PCVDOM_NODE_IS_DOCUMENT(node)) {
+        r = pcvdom_document_append_comment(gen->doc, comment);
+    }
+    else if (PCVDOM_NODE_IS_ELEMENT(node)) {
+        struct pcvdom_element *element = PCVDOM_ELEMENT_FROM_NODE(node);
+        r = pcvdom_element_append_comment(element, comment);
+    }
 
     // TODO: check r
 
@@ -493,7 +501,16 @@ append_content(struct pcvdom_gen *gen, struct pchvml_token *token)
 
     int r = 0;
 
-    r = pcvdom_document_append_content(gen->doc, content);
+    struct pcvdom_node *node = top_node(gen);
+    PC_ASSERT(node);
+    if (PCVDOM_NODE_IS_DOCUMENT(node)) {
+        r = pcvdom_document_append_content(gen->doc, content);
+    }
+    else if (PCVDOM_NODE_IS_ELEMENT(node)) {
+        struct pcvdom_element *element = PCVDOM_ELEMENT_FROM_NODE(node);
+        r = pcvdom_element_append_content(element, content);
+    }
+
 
     // TODO: check r
 
