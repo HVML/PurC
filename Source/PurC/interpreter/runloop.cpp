@@ -66,7 +66,7 @@ void pcrunloop_stop(pcrunloop_t runloop)
     }
 }
 
-void pcrunloop_warkup(pcrunloop_t runloop)
+void pcrunloop_wakeup(pcrunloop_t runloop)
 {
     if (runloop) {
         ((RunLoop*)runloop)->wakeUp();

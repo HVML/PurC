@@ -55,7 +55,7 @@ void pcrunloop_run(void);
 void pcrunloop_stop(pcrunloop_t runloop);
 
 // warkup the runloop
-void pcrunloop_warkup(pcrunloop_t runloop);
+void pcrunloop_wakeup(pcrunloop_t runloop);
 
 // dispatch function
 typedef int (*pcrunloop_func)(void* ctxt);
