@@ -26,54 +26,110 @@
 
 #include "config.h"
 
-#include "private/timer.h"
 #include "private/errors.h"
 #include "private/interpreter.h"
 #include "private/runloop.h"
+
+#include <wtf/RunLoop.h>
+#include <wtf/Seconds.h>
 
 #include <stdlib.h>
 #include <string.h>
 
 
+class PurcTimer : public WTF::RunLoop::TimerBase {
+    public:
+        PurcTimer(const char* id, void* ctxt, pcintr_timer_fire_func func,
+                RunLoop& runLoop)
+            : TimerBase(runLoop)
+            , m_id(NULL)
+            , m_ctxt(ctxt)
+            , m_func(func)
+        {
+            m_id = strdup(id);
+        }
+
+        ~PurcTimer()
+        {
+            if (m_id) {
+                free(m_id);
+            }
+        }
+
+        void setInterval(uint32_t interval) { m_interval = interval; }
+        uint32_t getInterval() { return m_interval; }
+    private:
+        void fired() final { m_func(m_id, m_ctxt); }
+
+    private:
+        char* m_id;
+        void* m_ctxt;
+        pcintr_timer_fire_func m_func;
+
+        uint32_t m_interval;
+};
+
 pcintr_timer_t
-pcintr_timer_create(const char* id, void* ctxt, pcintr_timer_fire_func func);
+pcintr_timer_create(const char* id, void* ctxt, pcintr_timer_fire_func func)
 {
-    UNUSED_PARAM(id);
+    PurcTimer* timer = new PurcTimer(id, ctxt, func, RunLoop::current());
+    if (!timer) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+    return timer;
 }
 
 void
-pcintr_timer_set_interval(pcintr_timer_t timer, uint32_t interval);
+pcintr_timer_set_interval(pcintr_timer_t timer, uint32_t interval)
 {
-    UNUSED_PARAM(timer);
-    UNUSED_PARAM(interval);
+    if (timer) {
+        ((PurcTimer*)timer)->setInterval(interval);
+    }
 }
 
 uint32_t
-pcintr_timer_get_interval(pcintr_timer_t timer);
+pcintr_timer_get_interval(pcintr_timer_t timer)
 {
-    UNUSED_PARAM(timer);
+    if (timer) {
+        return ((PurcTimer*)timer)->getInterval();
+    }
+    return 0;
 }
 
 void
-pcintr_timer_start(pcintr_timer_t timer);
+pcintr_timer_start(pcintr_timer_t timer)
 {
-    UNUSED_PARAM(timer);
+    if (timer) {
+        PurcTimer* tm = (PurcTimer*)timer;
+        return tm->startRepeating(
+                WTF::Seconds::fromMilliseconds(tm->getInterval()));
+    }
 }
 
 void
 pcintr_timer_start_oneshot(pcintr_timer_t timer)
 {
-    UNUSED_PARAM(timer);
+    if (timer) {
+        PurcTimer* tm = (PurcTimer*)timer;
+        return tm->startOneShot(
+                WTF::Seconds::fromMilliseconds(tm->getInterval()));
+    }
 }
 
 void
 pcintr_timer_stop(pcintr_timer_t timer)
 {
-    UNUSED_PARAM(timer);
+    if (timer) {
+        return ((PurcTimer*)timer)->stop();
+    }
 }
 
 void
 pcintr_timer_destroy(pcintr_timer_t timer)
 {
-    UNUSED_PARAM(timer);
+    if (timer) {
+        PurcTimer* tm = (PurcTimer*)timer;
+        delete tm;
+    }
 }
