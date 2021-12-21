@@ -196,7 +196,7 @@ on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         ctxt_for_init_destroy(ctxt);
         frame->ctxt = NULL;
     }
-    pop_stack_frame(stack);
+    pcintr_pop_stack_frame(stack);
     co->state = CO_STATE_READY;
 }
 
@@ -209,7 +209,7 @@ on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
     pcintr_stack_t stack = co->stack;
     struct pcintr_stack_frame *child_frame;
-    child_frame = push_stack_frame(stack);
+    child_frame = pcintr_push_stack_frame(stack);
     if (!child_frame) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return;

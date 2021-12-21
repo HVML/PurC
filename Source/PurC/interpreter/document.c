@@ -58,7 +58,7 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     PC_ASSERT(hvml->tag_id == PCHVML_TAG_HVML);
 
     struct pcintr_stack_frame *child_frame;
-    child_frame = push_stack_frame(stack);
+    child_frame = pcintr_push_stack_frame(stack);
     if (!child_frame) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return;
@@ -79,7 +79,7 @@ on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     UNUSED_PARAM(frame);
     frame->ctxt = NULL;
     pcintr_stack_t stack = co->stack;
-    pop_stack_frame(stack);
+    pcintr_pop_stack_frame(stack);
 }
 
 static struct pcintr_element_ops
