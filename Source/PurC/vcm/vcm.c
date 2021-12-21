@@ -676,10 +676,10 @@ purc_variant_t pcvcm_node_concat_string_to_variant (struct pcvcm_node* node,
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     struct pcvcm_node* child = FIRST_CHILD(node);
     while (child) {
-        switch (node->type)
+        switch (child->type)
         {
             case PCVCM_NODE_TYPE_STRING:
-                purc_rwstream_write(rws, (char*)node->sz_ptr[1], node->sz_ptr[0]);
+                purc_rwstream_write(rws, (char*)child->sz_ptr[1], child->sz_ptr[0]);
                 break;
 
             case PCVCM_NODE_TYPE_OBJECT:
