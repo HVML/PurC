@@ -1,0 +1,55 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+        <base href="$HVML.base(! 'https://gitlab.fmsoft.cn/hvml/purc/raw/master/Source/Samples/hvml/calculator/' )" />
+
+        <update on="$T.map" from="{$SYSTEM.locale}.json" to="merge" />
+
+        <init as="buttons" from="buttons.json" />
+
+        <title>$T.get('Calculator')</title>
+
+        <update on="$TIMERS" to="displace">
+            [
+                { "id" : "clock", "interval" : 1000, "active" : "yes" },
+            ]
+        </update>
+
+        <link rel="stylesheet" type="text/css" href="calculator.css" />
+    </head>
+
+    <body>
+        <div id="calculator">
+
+            <div id="c_title">
+                <h2 id="c_title">$T.get('Calculator')<br/>
+                    <span id="clock">$SYSTEM.time('%H:%m')</span>
+                </h2>
+                <observe on="$TIMERS" for="expired:clock">
+                    <update on="#clock" at="textContent" with="$SYSTEM.time('%H:%m')" />
+                </observe>
+            </div>
+
+            <div id="c_text">
+                <input type="text" id="text" value="0" readonly="readonly" />
+            </div>
+
+            <div id="c_value">
+                <archetype name="button">
+                    <li class="$?.class">$?.letters</li>
+                </archetype>
+
+                <ul>
+                    <iterate on="$buttons">
+                        <update on="$@" to="append" with="$button" />
+                        <except type="NoData" raw>
+                            <p>Bad data!</p>
+                        </except>
+                    </iterate>
+                </ul>
+            </div>
+        </div>
+    </body>
+
+</hvml>
+
