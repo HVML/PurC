@@ -114,6 +114,21 @@ stack_release(pcintr_stack_t stack)
         vdom_destroy(stack->vdom);
         stack->vdom = NULL;
     }
+
+    if (stack->common_observer_list) {
+        pcutils_arrlist_free(stack->common_observer_list);
+        stack->common_observer_list = NULL;
+    }
+
+    if (stack->special_observer_list) {
+        pcutils_arrlist_free(stack->special_observer_list);
+        stack->special_observer_list = NULL;
+    }
+
+    if (stack->native_observer_list) {
+        pcutils_arrlist_free(stack->native_observer_list);
+        stack->native_observer_list = NULL;
+    }
 }
 
 static void
@@ -855,11 +870,11 @@ pcintr_unbind_scope_variable(pcvdom_element_t elem, const char* name)
 }
 
 
-void add_observer_into_list(struct pcutils_arrlist* list,
+int add_observer_into_list(struct pcutils_arrlist* list,
         struct pcintr_observer* observer)
 {
     observer->list = list;
-    pcutils_arrlist_add(list, observer);
+    return pcutils_arrlist_add(list, observer);
 }
 
 void del_observer_from_list(struct pcutils_arrlist* list,
@@ -880,13 +895,78 @@ void del_observer_from_list(struct pcutils_arrlist* list,
 }
 
 struct pcintr_observer*
-pcintr_register_observer(purc_variant_t observed, purc_variant_t for_value,
-        pcvdom_element_t ele)
+pcintr_register_observer(enum pcintr_observer_type type, purc_variant_t observed,
+        purc_variant_t for_value, pcvdom_element_t ele)
 {
-    UNUSED_PARAM(observed);
     UNUSED_PARAM(for_value);
-    UNUSED_PARAM(ele);
-    return NULL;
+
+    pcintr_stack_t stack = purc_get_stack();
+    struct pcutils_arrlist* list = NULL;
+    switch (type) {
+        case PCINTR_OBSERVER_TYPE_SPECIAL:
+            if (!stack->special_observer_list) {
+                stack->special_observer_list =  pcutils_arrlist_new(NULL);
+            }
+            list = stack->special_observer_list;
+            break;
+
+        case PCINTR_OBSERVER_TYPE_NATIVE:
+            if (!stack->native_observer_list) {
+                stack->native_observer_list =  pcutils_arrlist_new(NULL);
+            }
+            list = stack->native_observer_list;
+            break;
+
+        case PCINTR_OBSERVER_TYPE_COMMON:
+        default:
+            if (!stack->common_observer_list) {
+                stack->common_observer_list =  pcutils_arrlist_new(NULL);
+            }
+            list = stack->common_observer_list;
+            break;
+    }
+
+    if (!list) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    const char* for_value_str = purc_variant_get_string_const(for_value);
+    char* value = strdup(for_value_str);
+    if (!value) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    char* msg_type = strtok(value, ":");
+    if (!msg_type) {
+        //TODO : purc_set_error();
+        free(value);
+        return NULL;
+    }
+
+    char* sub_type = strtok(NULL, ":");
+    if (!sub_type) {
+        //TODO : purc_set_error();
+        free(value);
+        return NULL;
+    }
+
+    struct pcintr_observer* observer =  (struct pcintr_observer*)calloc(1,
+            sizeof(struct pcintr_observer));
+    if (!observer) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        free(value);
+        return NULL;
+    }
+    observer->observed = observed;
+    observer->obs_ele = ele;
+    observer->msg_type = strdup(msg_type);
+    observer->sub_type = strdup(sub_type);
+    add_observer_into_list(list, observer);
+
+    free(value);
+    return observer;
 }
 
 bool
@@ -896,12 +976,9 @@ pcintr_revoke_observer(struct pcintr_observer* observer)
         return true;
     }
 
-    // clear observer
-    // common variant
-
-    // TIMERS
-
     del_observer_from_list(observer->list, observer);
+    free(observer->msg_type);
+    free(observer->sub_type);
     free(observer);
     return true;
 }
