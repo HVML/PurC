@@ -67,9 +67,7 @@ stack_frame_release(struct pcintr_stack_frame *frame)
     }
 
     PURC_VARIANT_SAFE_CLEAR(frame->attr_vars);
-
     PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
-
     PURC_VARIANT_SAFE_CLEAR(frame->mid_vars);
 }
 

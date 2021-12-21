@@ -72,11 +72,11 @@ TEST(interpreter, basic)
         // "<hvml><head x=\"y\">hello<xinit a=\"b\">world<!--yes-->solid</xinit></head><body><timeout1/><timeout3/></body></hvml>",
         // "<hvml><head x=\"y\">hello<xinit a=\"b\">w<timeout3/>orld<!--yes-->solid</xinit></head><body><timeout1/></body></hvml>",
         // "<hvml><body><timeout1/><timeout9/><timeout2/></body></hvml>",
-        "<hvml><body><test a='b'>hello<!--yes--></test></body></hvml>",
+        // "<hvml><body><test a='b'>hello<!--yes--></test></body></hvml>",
         // "<hvml><body><archetype name=\"$?.button\"><li class=\"class\">letters</li></archetype></body></hvml>",
-        "<hvml><body><archetype name=\"button\"><li class=\"class\">letters</li></archetype></body></hvml>",
-        "<hvml><body><a><b><c></c></b></a></body></hvml>",
-        // calculator_1,
+        // "<hvml><body><archetype name=\"button\"><li class=\"class\">letters</li></archetype></body></hvml>",
+        // "<hvml><body><a><b><c></c></b></a></body></hvml>",
+        calculator_1,
     };
 
     purc_instance_extra_info info = {};
