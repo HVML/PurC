@@ -676,15 +676,39 @@ purc_variant_t pcvcm_node_concat_string_to_variant (struct pcvcm_node* node,
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     struct pcvcm_node* child = FIRST_CHILD(node);
     while (child) {
-        purc_variant_t v = pcvcm_node_to_variant(child, ops);
-        if (v) {
-            size_t len_expected = 0;
-            purc_variant_serialize(v, rws, 0, PCVARIANT_SERIALIZE_OPT_PLAIN,
-                &len_expected);
-            purc_variant_unref(v);
-        }
-        else {
-            goto err;
+        switch (node->type)
+        {
+            case PCVCM_NODE_TYPE_STRING:
+                purc_rwstream_write(rws, (char*)node->sz_ptr[1], node->sz_ptr[0]);
+                break;
+
+            case PCVCM_NODE_TYPE_OBJECT:
+            case PCVCM_NODE_TYPE_ARRAY:
+            case PCVCM_NODE_TYPE_NULL:
+            case PCVCM_NODE_TYPE_BOOLEAN:
+            case PCVCM_NODE_TYPE_NUMBER:
+            case PCVCM_NODE_TYPE_LONG_INT:
+            case PCVCM_NODE_TYPE_ULONG_INT:
+            case PCVCM_NODE_TYPE_LONG_DOUBLE:
+            case PCVCM_NODE_TYPE_FUNC_CONCAT_STRING:
+            case PCVCM_NODE_TYPE_FUNC_GET_VARIABLE:
+            case PCVCM_NODE_TYPE_FUNC_GET_ELEMENT:
+            case PCVCM_NODE_TYPE_FUNC_CALL_GETTER:
+            case PCVCM_NODE_TYPE_FUNC_CALL_SETTER:
+            case PCVCM_NODE_TYPE_BYTE_SEQUENCE:
+            default:
+                {
+                    purc_variant_t v = pcvcm_node_to_variant(child, ops);
+                    if (v) {
+                        size_t len_expected = 0;
+                        purc_variant_serialize(v, rws, 0,
+                                PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+                        purc_variant_unref(v);
+                    }
+                    else {
+                        goto err;
+                    }
+                }
         }
         child = NEXT_CHILD(child);
     }
