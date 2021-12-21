@@ -1,5 +1,5 @@
 /**
- * @file head.c
+ * @file except.c
  * @author Xu Xiaohong
  * @date 2021/12/06
  * @brief
@@ -36,12 +36,12 @@
 #include <unistd.h>
 #include <libgen.h>
 
-struct ctxt_for_head {
+struct ctxt_for_except {
     struct pcvdom_node           *curr;
 };
 
 static void
-ctxt_for_head_destroy(struct ctxt_for_head *ctxt)
+ctxt_for_except_destroy(struct ctxt_for_except *ctxt)
 {
     if (ctxt)
         free(ctxt);
@@ -57,12 +57,14 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             basename((char*)__FILE__), __LINE__, __func__);
 
     int r;
+    if (0) { // TODO:
     r = pcintr_element_eval_attrs(frame, element);
     if (r) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         frame->next_step = -1;
         co->state = CO_STATE_TERMINATED;
         return;
+    }
     }
 
     r = pcintr_element_eval_vcm_content(frame, element);
@@ -73,8 +75,8 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return;
     }
 
-    struct ctxt_for_head *ctxt;
-    ctxt = (struct ctxt_for_head*)calloc(1, sizeof(*ctxt));
+    struct ctxt_for_except *ctxt;
+    ctxt = (struct ctxt_for_except*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         frame->next_step = -1;
@@ -94,10 +96,10 @@ on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     fprintf(stderr, "==co[%p]</%s>@%s[%d]:%s()==\n", co, element->tag_name,
             basename((char*)__FILE__), __LINE__, __func__);
     pcintr_stack_t stack = co->stack;
-    struct ctxt_for_head *ctxt;
-    ctxt = (struct ctxt_for_head*)frame->ctxt;
+    struct ctxt_for_except *ctxt;
+    ctxt = (struct ctxt_for_except*)frame->ctxt;
     if (ctxt) {
-        ctxt_for_head_destroy(ctxt);
+        ctxt_for_except_destroy(ctxt);
         frame->ctxt = NULL;
     }
     pop_stack_frame(stack);
@@ -108,8 +110,8 @@ static void
 on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_element *element)
 {
-    struct ctxt_for_head *ctxt;
-    ctxt = (struct ctxt_for_head*)frame->ctxt;
+    struct ctxt_for_except *ctxt;
+    ctxt = (struct ctxt_for_except*)frame->ctxt;
 
     pcintr_stack_t stack = co->stack;
     struct pcintr_stack_frame *child_frame;
@@ -134,8 +136,8 @@ static void
 on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_content *content)
 {
-    struct ctxt_for_head *ctxt;
-    ctxt = (struct ctxt_for_head*)frame->ctxt;
+    struct ctxt_for_except *ctxt;
+    ctxt = (struct ctxt_for_except*)frame->ctxt;
 
     fprintf(stderr, "==co[%p]@%s[%d]:%s():content[%s]==\n",
             co, basename((char*)__FILE__), __LINE__, __func__,
@@ -150,8 +152,8 @@ static void
 on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_comment *comment)
 {
-    struct ctxt_for_head *ctxt;
-    ctxt = (struct ctxt_for_head*)frame->ctxt;
+    struct ctxt_for_except *ctxt;
+    ctxt = (struct ctxt_for_except*)frame->ctxt;
 
     fprintf(stderr, "==co[%p]@%s[%d]:%s():content[%s]==\n",
             co, basename((char*)__FILE__), __LINE__, __func__,
@@ -165,8 +167,8 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 static void
 select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
-    struct ctxt_for_head *ctxt;
-    ctxt = (struct ctxt_for_head*)frame->ctxt;
+    struct ctxt_for_except *ctxt;
+    ctxt = (struct ctxt_for_except*)frame->ctxt;
 
     if (ctxt->curr == NULL) {
         struct pcvdom_element *element = frame->scope;
@@ -212,7 +214,7 @@ ops = {
     .select_child       = select_child,
 };
 
-struct pcintr_element_ops* pcintr_get_head_ops(void)
+struct pcintr_element_ops* pcintr_get_except_ops(void)
 {
     return &ops;
 }

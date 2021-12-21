@@ -40,10 +40,14 @@ struct tag_id_ops {
 };
 
 const struct tag_id_ops maps[] = {
-    {PCHVML_TAG_HVML, pcintr_get_hvml_ops},
-    {PCHVML_TAG_HEAD, pcintr_get_head_ops},
-    {PCHVML_TAG_BODY, pcintr_get_body_ops},
-    {PCHVML_TAG_INIT, pcintr_get_init_ops},
+    {PCHVML_TAG_HVML,              pcintr_get_hvml_ops},
+    {PCHVML_TAG_HEAD,              pcintr_get_head_ops},
+    {PCHVML_TAG_BODY,              pcintr_get_body_ops},
+    {PCHVML_TAG_INIT,              pcintr_get_init_ops},
+    {PCHVML_TAG_ARCHETYPE,         pcintr_get_archetype_ops},
+    {PCHVML_TAG_ITERATE,           pcintr_get_iterate_ops},
+    {PCHVML_TAG_UPDATE,            pcintr_get_update_ops},
+    {PCHVML_TAG_EXCEPT,            pcintr_get_except_ops},
 };
 
 void init_ops(void)
