@@ -188,6 +188,12 @@ void pcvariant_cleanup_instance(struct pcinst *inst)
 
     heap->headpos = 0;
     heap->tailpos = 0;
+
+    PC_ASSERT(heap->gc == NULL || heap->nr == 0);
+    free(heap->gc);
+    heap->gc = NULL;
+    heap->sz = 0;
+    heap->nr = 0;
 }
 
 bool purc_variant_is_type(purc_variant_t value, enum purc_variant_type type)
@@ -1849,5 +1855,68 @@ purc_variant_stringify_alloc(char **strp, purc_variant_t value)
     pcutils_stringbuilder_reset(&sb);
 
     return total;
+}
+
+// experiment
+static void gc_push(struct pcvariant_heap *heap, purc_variant_t arr)
+{
+    if (heap->gc == NULL) {
+        heap->sz = 16;
+        heap->gc = (purc_variant_t*)calloc(heap->sz, sizeof(*heap->gc));
+        PC_ASSERT(heap->gc);
+    }
+    PC_ASSERT(heap->nr <= heap->sz);
+    if (heap->nr == heap->sz) {
+        heap->sz += 16;
+        heap->gc = (purc_variant_t*)realloc(heap->gc,
+                heap->sz*sizeof(*heap->gc));
+        PC_ASSERT(heap->gc);
+    }
+    heap->gc[heap->nr++] = arr;
+}
+
+void pcvariant_push_gc(void)
+{
+    struct pcinst *instance = pcinst_current();
+    struct pcvariant_heap *heap = &(instance->variant_heap);
+    purc_variant_t arr = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    PC_ASSERT(arr != PURC_VARIANT_INVALID);
+    gc_push(heap, arr);
+}
+
+void pcvariant_pop_gc(void)
+{
+    struct pcinst *instance = pcinst_current();
+    struct pcvariant_heap *heap = &(instance->variant_heap);
+    PC_ASSERT(heap->gc);
+    PC_ASSERT(heap->sz > 0);
+    PC_ASSERT(heap->nr <= heap->sz);
+    PC_ASSERT(heap->nr >= 1);
+
+    purc_variant_t arr = heap->gc[--heap->nr];
+    heap->gc[heap->nr] = PURC_VARIANT_INVALID;
+    PC_ASSERT(arr != PURC_VARIANT_INVALID);
+    purc_variant_unref(arr);
+}
+
+void pcvariant_gc_add(purc_variant_t val)
+{
+    PC_ASSERT(val != PURC_VARIANT_INVALID);
+    struct pcinst *instance = pcinst_current();
+    struct pcvariant_heap *heap = &(instance->variant_heap);
+    PC_ASSERT(heap->gc);
+    PC_ASSERT(heap->sz > 0);
+    PC_ASSERT(heap->nr <= heap->sz);
+    PC_ASSERT(heap->nr >= 1);
+    purc_variant_t arr = heap->gc[heap->nr-1];
+    PC_ASSERT(arr != PURC_VARIANT_INVALID);
+    PC_ASSERT(purc_variant_array_append(arr, val));
+}
+
+void pcvariant_gc_mov(purc_variant_t val)
+{
+    PC_ASSERT(val != PURC_VARIANT_INVALID);
+    pcvariant_gc_add(val);
+    purc_variant_unref(val);
 }
 

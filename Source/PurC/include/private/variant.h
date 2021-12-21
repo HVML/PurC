@@ -138,10 +138,21 @@ struct pcvariant_heap {
     purc_variant_t v_reserved [MAX_RESERVED_VARIANTS];
     int headpos;
     int tailpos;
+
+    // experiment
+    purc_variant_t      *gc;
+    size_t               sz;
+    size_t               nr;
 };
 
 // initialize variant module (once)
 void pcvariant_init_once(void) WTF_INTERNAL;
+
+// experiment
+void pcvariant_push_gc(void);
+void pcvariant_pop_gc(void);
+void pcvariant_gc_add(purc_variant_t val);
+void pcvariant_gc_mov(purc_variant_t val);
 
 struct pcinst;
 

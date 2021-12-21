@@ -11,7 +11,7 @@ TEST(interpreter, basic)
     "        <title>计算器</title>"
     "        <link rel=\"stylesheet\" type=\"text/css\" href=\"calculator.css\" />"
     ""
-    "        <init as=\"buttons\">"
+    "        <init as=\"buttons\" uniquely>"
     "            ["
     "                { \"letters\": \"7\", \"class\": \"number\" },"
     "                { \"letters\": \"8\", \"class\": \"number\" },"

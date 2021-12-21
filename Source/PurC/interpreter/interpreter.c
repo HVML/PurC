@@ -219,15 +219,23 @@ visit_attr(void *key, void *val, void *ud)
     }
 
     struct pcvdom_attr *attr = (struct pcvdom_attr*)val;
-    PC_ASSERT(attr->key == key);
     struct pcvcm_node *vcm = attr->val;
-    PC_ASSERT(vcm);
-
-    pcintr_stack_t stack = purc_get_stack();
     purc_variant_t value;
-    value = pcvcm_eval(vcm, stack);
-    if (value == PURC_VARIANT_INVALID) {
-        return -1;
+    if (!vcm) {
+        value = purc_variant_make_undefined();
+        if (value == PURC_VARIANT_INVALID) {
+            return -1;
+        }
+    }
+    else {
+        PC_ASSERT(attr->key == key);
+        PC_ASSERT(vcm);
+
+        pcintr_stack_t stack = purc_get_stack();
+        value = pcvcm_eval(vcm, stack);
+        if (value == PURC_VARIANT_INVALID) {
+            return -1;
+        }
     }
 
     const char *s = purc_variant_get_string_const(value);
@@ -397,7 +405,9 @@ static int run_coroutines(void *ctxt)
             switch (co->state) {
                 case CO_STATE_READY:
                     co->state = CO_STATE_RUN;
+                    pcvariant_push_gc();
                     run_coroutine(co);
+                    pcvariant_pop_gc();
                     ++readies;
                     break;
                 case CO_STATE_WAIT:
