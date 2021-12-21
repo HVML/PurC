@@ -290,11 +290,6 @@ pcintr_element_eval_vcm_content(struct pcintr_stack_frame *frame,
     PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
     frame->ctnt_var = v;
 
-    const char *s = purc_variant_get_string_const(v);
-    fprintf(stderr, "==%s[%d]:%s()==[%s]\n",
-            __FILE__, __LINE__, __func__,
-            s);
-
     return 0;
 }
 
