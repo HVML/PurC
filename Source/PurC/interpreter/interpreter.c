@@ -867,7 +867,7 @@ void del_observer_from_list(struct pcutils_arrlist* list,
 {
     size_t n = pcutils_arrlist_length(list);
     int pos = -1;
-    for (int i = 0; i < n; i++) {
+    for (size_t i = 0; i < n; i++) {
         if (observer == pcutils_arrlist_get_idx(list, i)) {
             pos = i;
             break;
