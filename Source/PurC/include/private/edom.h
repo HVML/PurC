@@ -351,10 +351,10 @@ pcedom_node_t *
 pcedom_node_interface_destroy(pcedom_node_t *node) WTF_INTERNAL;
 
 pcedom_node_t *
-pcedom_node_destroy(pcedom_node_t *node) WTF_INTERNAL;
+pcedom_node_destroy(pcedom_node_t *node);
 
 pcedom_node_t *
-pcedom_node_destroy_deep(pcedom_node_t *root) WTF_INTERNAL;
+pcedom_node_destroy_deep(pcedom_node_t *root);
 
 const unsigned char *
 pcedom_node_name(pcedom_node_t *node,
@@ -362,7 +362,7 @@ pcedom_node_name(pcedom_node_t *node,
 
 void
 pcedom_node_insert_child(pcedom_node_t *to,
-                pcedom_node_t *node) WTF_INTERNAL;
+                pcedom_node_t *node);
 
 void
 pcedom_node_insert_before(pcedom_node_t *to,
@@ -373,7 +373,7 @@ pcedom_node_insert_after(pcedom_node_t *to,
                 pcedom_node_t *node) WTF_INTERNAL;
 
 void
-pcedom_node_remove(pcedom_node_t *node) WTF_INTERNAL;
+pcedom_node_remove(pcedom_node_t *node);
 
 unsigned int
 pcedom_node_replace_all(pcedom_node_t *parent,

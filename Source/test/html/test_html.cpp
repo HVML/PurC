@@ -658,3 +658,207 @@ TEST(html, html_parser_attribution)
 }
 
 
+
+// an example for how to replace a node with a new edom tree.
+static pcedom_node_t * get_node (pcedom_node_t *node, unsigned int tag, int *index)
+{
+    if (node && node->local_name == tag) {
+        (*index)--;
+        if ((*index) < 0)
+            return node;
+    }
+
+    node = node->first_child;
+    pcedom_node_t *return_node = NULL;
+
+    while (node != NULL) {
+        return_node = get_node (node, tag, index);
+        if (return_node)
+            return return_node;
+
+        node = node->next;
+    }
+
+    return return_node;
+}
+
+
+static unsigned int replace_node_with_fragment_chunk (
+        pchtml_html_document_t *document, pcedom_node_t *root_node,
+        const char fragment[][64])
+{
+    purc_rwstream_t rwstream = NULL;
+    unsigned int status = PCHTML_STATUS_OK;
+    pcedom_element_t *root_element = pcedom_interface_element (root_node);
+
+    // start parse fragment chunk
+    status = pchtml_html_document_parse_fragment_chunk_begin (document, root_element);
+    if (status != PCHTML_STATUS_OK) {
+        printf ("Failed to start parse HTML chunk");
+        return status;
+    }
+
+    // parse fragment chunk
+    for (size_t i = 0; fragment[i][0] != '\0'; i++) {
+        rwstream = purc_rwstream_new_from_mem((void*)fragment[i],
+                strlen((const char *) fragment[i]));
+
+        status = pchtml_html_document_parse_fragment_chunk (document, rwstream);
+        if (status != PCHTML_STATUS_OK) {
+            printf ("Failed to parse HTML chunk");
+            purc_rwstream_destroy (rwstream);
+            return status;
+        }
+
+        purc_rwstream_destroy (rwstream);
+    }
+
+    // end parse fragment chunk, get the tree, which root is 'html'
+    pcedom_node_t *fragment_root = pchtml_html_document_parse_fragment_chunk_end (document);
+    if (fragment_root == NULL) {
+        printf ("Failed to parse HTML");
+        status = PCHTML_STATUS_ERROR;
+        return status;
+    }
+
+    // remove all sons of root node
+    while (root_node->first_child != NULL) {
+        pcedom_node_destroy_deep(root_node->first_child);
+    }
+
+    pcedom_node_t *child = NULL;
+    while (fragment_root->first_child != NULL) {
+        child = fragment_root->first_child;
+
+        pcedom_node_remove(child);
+        pcedom_node_insert_child(root_node, child);
+    }
+
+    pcedom_node_destroy(fragment_root);
+
+    return status;
+}
+
+static unsigned int replace_node_with_fragment (
+        pcedom_node_t *node, const char *fragment, size_t size)
+{
+    purc_rwstream_t rwstream = NULL;
+    unsigned int status = PCHTML_STATUS_OK;
+
+    pchtml_html_element_t *html_element = pchtml_html_interface_element (node);
+    rwstream = purc_rwstream_new_from_mem((void*)fragment, size);
+    if (pchtml_html_element_inner_html_set (html_element, rwstream) == NULL)
+        status = PCHTML_STATUS_ERROR;
+
+    purc_rwstream_destroy (rwstream);
+    return status;
+}
+
+static unsigned int serializer_callback(const unsigned char *data,  long unsigned int len, void *ctx)
+{
+    UNUSED_PARAM(ctx);
+    printf("%.*s", (int) len, (const char *) data);
+
+    return 0;
+}
+
+enum pchtml_html_serialize_opt {
+    PCHTML_HTML_SERIALIZE_OPT_UNDEF               = 0x00,
+    PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES       = 0x01,
+    PCHTML_HTML_SERIALIZE_OPT_SKIP_COMMENT        = 0x02,
+    PCHTML_HTML_SERIALIZE_OPT_RAW                 = 0x04,
+    PCHTML_HTML_SERIALIZE_OPT_WITHOUT_CLOSING     = 0x08,
+    PCHTML_HTML_SERIALIZE_OPT_TAG_WITH_NS         = 0x10,
+    PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT = 0x20,
+    PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE        = 0x40
+};
+
+TEST(html, html_parser_replace)
+//int
+//main(int argc, const char *argv[])
+{
+    purc_rwstream_t rwstream = NULL;
+    unsigned int status;
+    pchtml_html_document_t *doc;
+
+    // original html
+    static const char html[] = "<div><p>First<p>second</div><div><p>third<p>fourth</div>";
+    size_t html_len = sizeof(html) - 1;
+
+    // html fragment1, in string array
+    static const char fragment1[][64] = {
+        "<p cla",
+        "ss=",
+        "\"bestof",
+        "class",
+        "\">",
+        "good for me",
+        "</p>",
+        "<p cla",
+        "ss=",
+        "\"bestof",
+        "class",
+        "\">",
+        "good for you",
+        "</p>",
+        "\0"
+    };
+
+    // html fragment2, in one string
+    static const char fragment2[] = "<h2>Flower</h2><img src=\"img_white_flower.jpg\" width=\"214\" height=\"204\">";
+
+    int index = 0;
+
+    // parse html file, get original edom tree
+    // create document
+    doc = pchtml_html_document_create();
+    if (doc == NULL)
+        return;
+
+    rwstream = purc_rwstream_new_from_mem((void*)html, html_len);
+    status = pchtml_html_document_parse(doc, rwstream);
+    if (status != PCHTML_STATUS_OK) {
+        printf ("Failed to parse HTML file");
+    }
+    purc_rwstream_destroy (rwstream);
+
+    /* Serialization html*/
+    printf("HTML Document:\n");
+
+    status = pchtml_html_serialize_pretty_tree_cb(pcedom_interface_node(doc),
+                                               PCHTML_HTML_SERIALIZE_OPT_UNDEF,
+                                               0, serializer_callback, NULL);
+    if (status != PCHTML_STATUS_OK) {
+        printf ("Failed to serialization HTML tree");
+    }
+
+
+    // method 1: parse the fragment in string arry, replace the first div node
+    // get the parent node, first div
+    pcedom_node_t *div = get_node (&(doc->dom_document.node), PCHTML_TAG_DIV, &index);
+    status = replace_node_with_fragment_chunk (doc, div, fragment1);
+    if (status != PCHTML_STATUS_OK) {
+        printf ("Failed to replace HTML tree");
+    }
+
+    // method 2: parse the fragment in one string, replace second div node
+    // get the parent node, the second div
+    index = 1;
+    div = get_node (&(doc->dom_document.node), PCHTML_TAG_DIV, &index);
+    status = replace_node_with_fragment (div, fragment2, strlen ((char *)fragment2));
+    if (status != PCHTML_STATUS_OK) {
+        printf ("Failed to replace HTML tree");
+    }
+
+    // print the result
+    printf("\n\nAfter replace, HTML Document:\n");
+    status = pchtml_html_serialize_pretty_tree_cb(pcedom_interface_node(doc),
+                                               PCHTML_HTML_SERIALIZE_OPT_UNDEF,
+                                               0, serializer_callback, NULL);
+    if (status != PCHTML_STATUS_OK) {
+        printf ("Failed to serialization HTML tree");
+    }
+
+    /* Destroy document*/
+    pchtml_html_document_destroy(doc);
+}
