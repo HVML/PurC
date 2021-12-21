@@ -102,7 +102,7 @@ struct pcintr_stack {
 
     /* coroutine that this stack `owns` */
     /* FIXME: switch owner-ship ? */
-    struct pcintr_coroutine        co; 
+    struct pcintr_coroutine        co;
 };
 
 enum purc_symbol_var {
