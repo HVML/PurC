@@ -326,7 +326,7 @@ TEST_P(test_vcm_eval, parse_and_serialize)
             "okey", obj_set_val_0, obj_set_val_1);
 
 
-    struct pcvcm_node* root = pchvml_token_get_vcm(token);
+    struct pcvcm_node* root = pchvml_token_get_vcm_content(token);
 
     struct find_var_ctxt ctxt = { sys, nobj, array_var, set_var, obj_set_var};
 

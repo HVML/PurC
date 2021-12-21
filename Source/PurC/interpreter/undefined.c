@@ -117,6 +117,19 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return;
     }
 
+    if (element->vcm_content) {
+        purc_variant_t value;
+        value = pcvcm_eval(element->vcm_content, co->stack);
+        PC_ASSERT(value != PURC_VARIANT_INVALID);
+        const char *s = purc_variant_get_string_const(value);
+        fprintf(stderr, "===============[%s]\n", s);
+        fprintf(stderr, "==co[%p]<%s>@%s[%d]:%s()vcm_content[%s]==\n",
+                co, element->tag_name,
+                basename((char*)__FILE__), __LINE__, __func__,
+                "s");
+        purc_variant_unref(value);
+    }
+
     struct ctxt_for_undefined *ctxt;
     ctxt = (struct ctxt_for_undefined*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {

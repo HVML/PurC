@@ -151,6 +151,9 @@ struct pcvdom_element {
     // val: struct pcvdom_attr*
     struct pcutils_map     *attrs;
 
+    // for those wrapped in `archetype`
+    struct pcvcm_node      *vcm_content;
+
     // FIXME: scoped-variables
     //  for those `defined` in `init`、`bind`、`connect`、`load`、`define`
     pcvarmgr_list_t         variables;
@@ -249,6 +252,10 @@ pcvdom_element_append_content(struct pcvdom_element *elem,
 int
 pcvdom_element_append_comment(struct pcvdom_element *elem,
         struct pcvdom_comment *child);
+
+int
+pcvdom_element_set_vcm_content(struct pcvdom_element *elem,
+        struct pcvcm_node *vcm_content);
 
 // custom variable : init、bind、connect、load、define
 bool

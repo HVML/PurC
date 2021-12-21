@@ -120,7 +120,11 @@ bool pchvml_token_is_type (struct pchvml_token* token,
 
 enum pchvml_token_type pchvml_token_get_type(struct pchvml_token* token);
 
-struct pcvcm_node* pchvml_token_get_vcm(struct pchvml_token* token);
+struct pcvcm_node*
+pchvml_token_get_vcm_content (struct pchvml_token* token);
+
+struct pcvcm_node*
+pchvml_token_detach_vcm_content (struct pchvml_token* token);
 
 void pchvml_token_set_self_closing (struct pchvml_token* token, bool b);
 

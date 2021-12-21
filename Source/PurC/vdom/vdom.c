@@ -408,6 +408,27 @@ pcvdom_element_append_comment(struct pcvdom_element *elem,
     return 0;
 }
 
+int
+pcvdom_element_set_vcm_content(struct pcvdom_element *elem,
+        struct pcvcm_node *vcm_content)
+{
+    if (!elem || !vcm_content) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+
+    if (elem->vcm_content == vcm_content)
+        return 0;
+
+    if (elem->vcm_content) {
+        pcvcm_node_destroy(elem->vcm_content);
+        elem->vcm_content = NULL;
+    }
+    elem->vcm_content = vcm_content;
+
+    return 0;
+}
+
 bool
 pcvdom_element_bind_variable(struct pcvdom_element *elem,
         const char *name, purc_variant_t variant)
@@ -799,6 +820,11 @@ element_reset(struct pcvdom_element *elem)
         r = pcutils_map_destroy(elem->attrs);
         PC_ASSERT(r==0);
         elem->attrs = NULL;
+    }
+
+    if (elem->vcm_content) {
+        pcvcm_node_destroy(elem->vcm_content);
+        elem->vcm_content = NULL;
     }
 
     if (elem->variables) {
