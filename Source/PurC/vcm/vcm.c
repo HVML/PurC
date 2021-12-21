@@ -689,6 +689,9 @@ purc_variant_t pcvcm_node_concat_string_to_variant (struct pcvcm_node* node,
         child = NEXT_CHILD(child);
     }
 
+    // do not forget tailing-null-terminator
+    purc_rwstream_write(rws, "", 1);
+
     size_t rw_size = 0;
     size_t content_size = 0;
     char *rw_string = purc_rwstream_get_mem_buffer_ex (rws,

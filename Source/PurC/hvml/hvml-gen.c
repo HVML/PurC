@@ -534,7 +534,8 @@ set_vcm_tree(struct pcvdom_gen *gen, struct pchvml_token *token)
     struct pcvdom_element *element = PCVDOM_ELEMENT_FROM_NODE(node);
     struct pcvcm_node *vcm_content;
     vcm_content = pchvml_token_detach_vcm_content(token);
-    PC_ASSERT(vcm_content);
+    if (!vcm_content) // FIXME: why?
+        return 0;
     r = pcvdom_element_set_vcm_content(element, vcm_content);
     PC_ASSERT(r == 0);
 
