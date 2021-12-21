@@ -36,47 +36,6 @@
 #include <unistd.h>
 #include <libgen.h>
 
-static int
-timeout_cb(void *ctxt)
-{
-    pcintr_coroutine_t co = (pcintr_coroutine_t)ctxt;
-    co->state = CO_STATE_READY;
-    pcintr_coroutine_ready();
-    return 0;
-}
-
-struct thread_arg {
-    pcintr_coroutine_t co;
-    int                secs;
-};
-
-static void* timer_thread(void *ctxt)
-{
-    struct thread_arg *arg = (struct thread_arg*)ctxt;
-    sleep(arg->secs);
-
-    pcrunloop_t runloop = pcrunloop_get_main();
-    PC_ASSERT(runloop);
-    pcrunloop_dispatch(runloop, timeout_cb, arg->co);
-
-    free(arg);
-
-    return NULL;
-}
-
-static void simulate_timeout(pcintr_coroutine_t co, int secs)
-{
-    struct thread_arg *arg = (struct thread_arg*)malloc(sizeof(*arg));
-    PC_ASSERT(arg);
-    arg->co = co;
-    arg->secs = secs;
-
-    pthread_t thread;
-    int r = pthread_create(&thread, NULL, timer_thread, arg);
-    PC_ASSERT(r == 0);
-    pthread_detach(thread);
-}
-
 struct ctxt_for_undefined {
     struct pcvdom_node           *curr;
 };
@@ -86,18 +45,6 @@ ctxt_for_undefined_destroy(struct ctxt_for_undefined *ctxt)
 {
     if (ctxt)
         free(ctxt);
-}
-
-static void
-on_timedout(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
-{
-    fprintf(stderr, "==co[%p]@%s[%d]:%s()==\n", co, basename((char*)__FILE__), __LINE__, __func__);
-
-    struct pcvdom_element *element = frame->scope;
-    PC_ASSERT(element);
-
-    frame->next_step = NEXT_STEP_SELECT_CHILD;
-    co->state = CO_STATE_READY;
 }
 
 static void
@@ -117,35 +64,12 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return;
     }
 
-    if (element->vcm_content) {
-        purc_variant_t value;
-        value = pcvcm_eval(element->vcm_content, co->stack);
-        PC_ASSERT(value != PURC_VARIANT_INVALID);
-        const char *s = purc_variant_get_string_const(value);
-        fprintf(stderr, "===============[%s]\n", s);
-        fprintf(stderr, "==co[%p]<%s>@%s[%d]:%s()vcm_content[%s]==\n",
-                co, element->tag_name,
-                basename((char*)__FILE__), __LINE__, __func__,
-                "s");
-        purc_variant_unref(value);
-    }
-
     struct ctxt_for_undefined *ctxt;
     ctxt = (struct ctxt_for_undefined*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         frame->next_step = -1;
         co->state = CO_STATE_TERMINATED;
-        return;
-    }
-
-    if (strstr(element->tag_name, "timeout") == element->tag_name) {
-        frame->ctxt = ctxt;
-        frame->preemptor = on_timedout;
-        co->state = CO_STATE_WAIT;
-        // simulate
-        int secs = atol(element->tag_name + 7);
-        simulate_timeout(co, secs);
         return;
     }
 
@@ -283,6 +207,4 @@ struct pcintr_element_ops* pcintr_get_undefined_ops(void)
 {
     return &ops;
 }
-
-
 
