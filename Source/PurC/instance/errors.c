@@ -27,7 +27,7 @@
 #include "private/errors.h"
 #include "private/instance.h"
 
-#include "../interpreter/internal.h" // FIXME:
+#include "private/interpreter.h" // FIXME:
 
 static const struct err_msg_info* get_error_info(int errcode);
 
