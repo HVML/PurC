@@ -194,6 +194,23 @@ struct pcintr_dynamic_args {
     purc_dvariant_method           setter;
 };
 
+struct pcintr_observer {
+    // the observed variant.
+    purc_variant_t observed;
+
+    // the type of the message observed (cloned from the `for` attribute)
+    char* msg_type;
+
+    // the sub type of the message observed (cloned from the `for` attribute; nullable).
+    char* sub_type;
+
+    // the `observe` element who creates this observer.
+    pcvdom_element_t obs_ele;
+
+    // the arraylist containing this struct pointer
+    struct pcutils_arrlist* list;
+};
+
 struct pcinst;
 
 typedef void* pcintr_timer_t;
@@ -266,6 +283,14 @@ pcintr_timer_stop(pcintr_timer_t timer);
 
 void
 pcintr_timer_destroy(pcintr_timer_t timer);
+
+struct pcintr_observer*
+pcintr_register_observer(purc_variant_t observed, purc_variant_t for_value,
+        pcvdom_element_t ele);
+
+bool
+pcintr_revoke_observer(struct pcintr_observer* observer);
+
 
 PCA_EXTERN_C_END
 

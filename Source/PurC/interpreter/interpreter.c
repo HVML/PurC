@@ -853,3 +853,55 @@ pcintr_unbind_scope_variable(pcvdom_element_t elem, const char* name)
 {
     return pcvdom_element_unbind_variable(elem, name);
 }
+
+
+void add_observer_into_list(struct pcutils_arrlist* list,
+        struct pcintr_observer* observer)
+{
+    observer->list = list;
+    pcutils_arrlist_add(list, observer);
+}
+
+void del_observer_from_list(struct pcutils_arrlist* list,
+        struct pcintr_observer* observer)
+{
+    size_t n = pcutils_arrlist_length(list);
+    int pos = -1;
+    for (int i = 0; i < n; i++) {
+        if (observer == pcutils_arrlist_get_idx(list, i)) {
+            pos = i;
+            break;
+        }
+    }
+
+    if (pos > -1) {
+        pcutils_arrlist_del_idx(list, pos, 1);
+    }
+}
+
+struct pcintr_observer*
+pcintr_register_observer(purc_variant_t observed, purc_variant_t for_value,
+        pcvdom_element_t ele)
+{
+    UNUSED_PARAM(observed);
+    UNUSED_PARAM(for_value);
+    UNUSED_PARAM(ele);
+    return NULL;
+}
+
+bool
+pcintr_revoke_observer(struct pcintr_observer* observer)
+{
+    if (!observer) {
+        return true;
+    }
+
+    // clear observer
+    // common variant
+
+    // TIMERS
+
+    del_observer_from_list(observer->list, observer);
+    free(observer);
+    return true;
+}
