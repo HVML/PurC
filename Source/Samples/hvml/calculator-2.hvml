@@ -15,7 +15,6 @@
             ]
         </update>
 
-        <title>$T.get('Calculator')</title>
         <link rel="stylesheet" type="text/css" href="calculator.css" />
     </head>
 
@@ -37,7 +36,7 @@
 
             <div id="c_value">
                 <archetype name="button">
-                    <li class="$?.class">$?.letters</li></li>
+                    <li class="$?.class">$?.letters</li>
                 </archetype>
 
                 <ul>
