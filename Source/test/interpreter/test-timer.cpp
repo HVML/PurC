@@ -38,7 +38,7 @@ TEST(timer, oneShot)
     pcintr_timer_t timer = pcintr_timer_create("oneShot", NULL, one_shot_timer_fire);
     ASSERT_NE (timer, nullptr);
 
-    pcintr_timer_set_interval(timer, 500);
+    pcintr_timer_set_interval(timer, 200);
     pcintr_timer_start_oneshot(timer);
 
     purc_run(PURC_VARIANT_INVALID, NULL);
@@ -63,7 +63,7 @@ TEST(timer, interval)
     pcintr_timer_t timer = pcintr_timer_create("oneShot", NULL, interval_timer_fire);
     ASSERT_NE (timer, nullptr);
 
-    pcintr_timer_set_interval(timer, 500);
+    pcintr_timer_set_interval(timer, 100);
     pcintr_timer_start(timer);
 
     purc_run(PURC_VARIANT_INVALID, NULL);

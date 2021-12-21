@@ -10,7 +10,7 @@ int on_idle_callback(void* ctxt)
 {
     UNUSED_PARAM(ctxt);
     static int i = 0;
-    if (i > 100000) {
+    if (i > 1000) {
         pcrunloop_stop(pcrunloop_get_current());
     }
     i++;
