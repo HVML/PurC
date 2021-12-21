@@ -247,6 +247,25 @@ pcintr_element_eval_attrs(struct pcintr_stack_frame *frame,
     return 0;
 }
 
+int
+pcintr_element_eval_vcm_content(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element)
+{
+    struct pcvcm_node *vcm_content = element->vcm_content;
+    if (vcm_content == NULL)
+        return 0;
+
+    pcintr_stack_t stack = purc_get_stack();
+    purc_variant_t v = pcvcm_eval(vcm_content, stack);
+    if (v == PURC_VARIANT_INVALID)
+        return -1;
+
+    PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
+    frame->ctnt_var = v;
+
+    return 0;
+}
+
 static void
 after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {

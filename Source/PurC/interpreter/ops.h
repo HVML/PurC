@@ -42,6 +42,10 @@ struct pcintr_element_ops* pcintr_get_hvml_ops(void);
 struct pcintr_element_ops* pcintr_get_head_ops(void);
 struct pcintr_element_ops* pcintr_get_body_ops(void);
 struct pcintr_element_ops* pcintr_get_init_ops(void);
+struct pcintr_element_ops* pcintr_get_archetype_ops(void);
+struct pcintr_element_ops* pcintr_get_iterate_ops(void);
+struct pcintr_element_ops* pcintr_get_update_ops(void);
+struct pcintr_element_ops* pcintr_get_except_ops(void);
 
 PCA_EXTERN_C_END
 
