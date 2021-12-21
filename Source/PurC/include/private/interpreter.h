@@ -103,6 +103,11 @@ struct pcintr_stack {
     /* coroutine that this stack `owns` */
     /* FIXME: switch owner-ship ? */
     struct pcintr_coroutine        co;
+
+    // for observe
+    struct pcutils_arrlist* common_observer_list;
+    struct pcutils_arrlist* special_observer_list;
+    struct pcutils_arrlist* native_observer_list;
 };
 
 enum purc_symbol_var {
@@ -194,7 +199,15 @@ struct pcintr_dynamic_args {
     purc_dvariant_method           setter;
 };
 
+enum pcintr_observer_type {
+    PCINTR_OBSERVER_TYPE_COMMON,
+    PCINTR_OBSERVER_TYPE_SPECIAL,
+    PCINTR_OBSERVER_TYPE_NATIVE,
+};
+
 struct pcintr_observer {
+    enum pcintr_observer_type type;
+
     // the observed variant.
     purc_variant_t observed;
 
@@ -285,8 +298,8 @@ void
 pcintr_timer_destroy(pcintr_timer_t timer);
 
 struct pcintr_observer*
-pcintr_register_observer(purc_variant_t observed, purc_variant_t for_value,
-        pcvdom_element_t ele);
+pcintr_register_observer(enum pcintr_observer_type type, purc_variant_t observed,
+        purc_variant_t for_value, pcvdom_element_t ele);
 
 bool
 pcintr_revoke_observer(struct pcintr_observer* observer);
