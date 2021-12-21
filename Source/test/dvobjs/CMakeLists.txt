@@ -213,3 +213,33 @@ set(test_dvobjejson_LIBRARIES
 PURC_COMPUTE_SOURCES(test_dvobjejson)
 PURC_FRAMEWORK(test_dvobjejson)
 GTEST_DISCOVER_TESTS(test_dvobjejson DISCOVERY_TIMEOUT 10)
+
+
+# test_dvobjhvml
+PURC_EXECUTABLE_DECLARE(test_dvobjhvml)
+
+list(APPEND test_dvobjhvml_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_dvobjhvml)
+
+set(test_dvobjhvml_SOURCES
+    test_hvml.cpp
+    test_helper.cpp
+)
+
+set(test_dvobjhvml_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_dvobjhvml)
+PURC_FRAMEWORK(test_dvobjhvml)
+GTEST_DISCOVER_TESTS(test_dvobjhvml DISCOVERY_TIMEOUT 10)

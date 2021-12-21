@@ -100,6 +100,7 @@ purc_variant_t pcdvobjs_get_system(void);
 purc_variant_t pcdvobjs_get_string(void);
 purc_variant_t pcdvobjs_get_logical(void);
 purc_variant_t pcdvobjs_get_ejson(void);
+purc_variant_t pcdvobjs_get_hvml(void);
 
 struct wildcard_list {
     char * wildcard;

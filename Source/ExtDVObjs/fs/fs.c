@@ -275,7 +275,7 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     }
 
     // get the filter
-    if ((nr_args > 1) && (argv[1] != NULL) && 
+    if ((nr_args > 1) && (argv[1] != NULL) &&
             (!purc_variant_is_string (argv[1]))) {
         purc_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
