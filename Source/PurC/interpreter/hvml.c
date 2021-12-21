@@ -36,16 +36,24 @@ struct ctxt_for_hvml {
 };
 
 static void
-ctxt_for_hvml_destroy(struct ctxt_for_hvml *ctxt)
+ctxt_for_hvml_destroy(struct ctxt_for_hvml *hvml_ctxt)
 {
-    if (ctxt)
-        free(ctxt);
+    if (hvml_ctxt) {
+        free(hvml_ctxt);
+    }
+}
+
+static void
+ctxt_destroy(void *ctxt)
+{
+    struct ctxt_for_hvml *hvml_ctxt;
+    hvml_ctxt = (struct ctxt_for_hvml*)ctxt;
+    ctxt_for_hvml_destroy(hvml_ctxt);
 }
 
 static void
 after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
-
     struct ctxt_for_hvml *ctxt;
     ctxt = (struct ctxt_for_hvml*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
@@ -57,6 +65,7 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     frame->ctxt = ctxt;
     frame->next_step = NEXT_STEP_SELECT_CHILD;
+    frame->ctxt_destroy = ctxt_destroy;
     co->state = CO_STATE_READY;
 }
 

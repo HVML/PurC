@@ -56,7 +56,11 @@ stack_frame_release(struct pcintr_stack_frame *frame)
     frame->scope = NULL;
     frame->pos   = NULL;
 
-    frame->ctxt  = NULL;
+    if (frame->ctxt) {
+        PC_ASSERT(frame->ctxt_destroy);
+        frame->ctxt_destroy(frame->ctxt);
+        frame->ctxt  = NULL;
+    }
 
     for (size_t i=0; i<PCA_TABLESIZE(frame->symbol_vars); ++i) {
         PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[i]);
@@ -209,7 +213,15 @@ visit_attr(void *key, void *val, void *ud)
     pcintr_stack_t stack = purc_get_stack();
     purc_variant_t value;
     value = pcvcm_eval(vcm, stack);
-    PC_ASSERT(value != PURC_VARIANT_INVALID);
+    if (value == PURC_VARIANT_INVALID) {
+        return -1;
+    }
+
+    const char *s = purc_variant_get_string_const(value);
+    fprintf(stderr, "==%s[%d]:%s()==[%s/%s]\n",
+            __FILE__, __LINE__, __func__,
+            attr->key, s);
+
     const struct pchvml_attr_entry *pre_defined = attr->pre_defined;
     bool ok;
     if (pre_defined) {
@@ -358,9 +370,6 @@ run_coroutine(pcintr_coroutine_t co)
     if (!list_empty(frames))
         return;
     co->state = CO_STATE_TERMINATED;
-    list_del(&co->node);
-    stack_release(stack);
-    free(stack);
 }
 
 static int run_coroutines(void *ctxt)
@@ -394,6 +403,11 @@ static int run_coroutines(void *ctxt)
                     break;
                 default:
                     PC_ASSERT(0);
+            }
+            if (co->state == CO_STATE_TERMINATED) {
+                list_del(&co->node);
+                stack_release(co->stack);
+                free(co->stack);
             }
         }
     }

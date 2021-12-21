@@ -172,6 +172,7 @@ struct pcintr_stack_frame {
     // context for current action
     void *ctxt;
     int   next_step;
+    void (*ctxt_destroy)(void *);
 
     preemptor_f        preemptor;
 };

@@ -43,8 +43,15 @@ struct ctxt_for_head {
 static void
 ctxt_for_head_destroy(struct ctxt_for_head *ctxt)
 {
-    if (ctxt)
+    if (ctxt) {
         free(ctxt);
+    }
+}
+
+static void
+ctxt_destroy(void *ctxt)
+{
+    ctxt_for_head_destroy((struct ctxt_for_head*)ctxt);
 }
 
 static void
@@ -84,6 +91,7 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     frame->ctxt = ctxt;
     frame->next_step = NEXT_STEP_SELECT_CHILD;
+    frame->ctxt_destroy = ctxt_destroy;
     co->state = CO_STATE_READY;
 }
 

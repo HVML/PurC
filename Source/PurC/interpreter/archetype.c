@@ -43,8 +43,15 @@ struct ctxt_for_archetype {
 static void
 ctxt_for_archetype_destroy(struct ctxt_for_archetype *ctxt)
 {
-    if (ctxt)
+    if (ctxt) {
         free(ctxt);
+    }
+}
+
+static void
+ctxt_destroy(void *ctxt)
+{
+    ctxt_for_archetype_destroy((struct ctxt_for_archetype*)ctxt);
 }
 
 static void
@@ -65,14 +72,12 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return;
     }
 
-    if (1) { // TODO:
     r = pcintr_element_eval_vcm_content(frame, element);
     if (r) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         frame->next_step = -1;
         co->state = CO_STATE_TERMINATED;
         return;
-    }
     }
 
     struct ctxt_for_archetype *ctxt;
@@ -86,6 +91,7 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     frame->ctxt = ctxt;
     frame->next_step = NEXT_STEP_SELECT_CHILD;
+    frame->ctxt_destroy = ctxt_destroy;
     co->state = CO_STATE_READY;
 }
 

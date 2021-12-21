@@ -33,6 +33,13 @@
 #include "ops.h"
 
 static void
+ctxt_destroy(void *ctxt)
+{
+    UNUSED_PARAM(ctxt);
+}
+
+
+static void
 after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     fprintf(stderr, "==%s[%d]==\n", __FILE__, __LINE__);
@@ -61,6 +68,7 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     frame->ctxt = hvml;
     frame->next_step = NEXT_STEP_ON_POPPING;
+    frame->ctxt_destroy = ctxt_destroy;
     co->state = CO_STATE_READY;
 }
 
@@ -69,6 +77,7 @@ on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     fprintf(stderr, "==%s[%d]==\n", __FILE__, __LINE__);
     UNUSED_PARAM(frame);
+    frame->ctxt = NULL;
     pcintr_stack_t stack = co->stack;
     pop_stack_frame(stack);
 }
