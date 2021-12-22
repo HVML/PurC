@@ -24,10 +24,12 @@
 
 #include "private/instance.h"
 #include "private/errors.h"
+#include "private/interpreter.h"
 #include "private/dvobjs.h"
 #include "purc-variant.h"
 
 #include <time.h>
+#include <limits.h>
 
 void pcdvobjs_init_once(void)
 {
@@ -45,3 +47,24 @@ void pcdvobjs_cleanup_instance(struct pcinst* inst)
     UNUSED_PARAM(inst);
 }
 
+void dvobjs_init (pcintr_stack_t stack)
+{
+    if (stack) {
+        stack->dvobjs.hvml.url = NULL;
+        stack->dvobjs.hvml.maxIterationCount = ULONG_MAX;
+        stack->dvobjs.hvml.maxRecursionDepth = USHRT_MAX;
+
+        stack->dvobjs.t.dict = purc_variant_make_object (0,
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    }
+}
+
+void dvobjs_release (pcintr_stack_t stack)
+{
+    if (stack) {
+        if (stack->dvobjs.hvml.url)
+            free (stack->dvobjs.hvml.url);
+
+        purc_variant_unref (stack->dvobjs.t.dict);
+    }
+}

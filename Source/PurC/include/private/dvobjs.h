@@ -28,6 +28,7 @@
 #include "config.h"
 #include "purc-rwstream.h"
 #include "purc-variant.h"
+#include "interpreter.h"
 
 #include <assert.h>
 
@@ -81,6 +82,10 @@
 #define LOCALE_MEASUREMENT          "measurement"
 #define LOCALE_IDENTIFICATION       "identification"
 
+#define HVML_MAP_APPEND             "append"
+#define HVML_MAP_DISPLACE           "displace"
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
@@ -101,6 +106,10 @@ purc_variant_t pcdvobjs_get_string(void);
 purc_variant_t pcdvobjs_get_logical(void);
 purc_variant_t pcdvobjs_get_ejson(void);
 purc_variant_t pcdvobjs_get_hvml(void);
+
+// initialize and deinitialize dvobjs in stack
+void dvobjs_init (pcintr_stack_t stack);
+void dvobjs_release (pcintr_stack_t stack);
 
 struct wildcard_list {
     char * wildcard;

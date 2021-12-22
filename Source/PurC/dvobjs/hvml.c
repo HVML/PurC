@@ -24,19 +24,12 @@
 
 #include "private/instance.h"
 #include "private/errors.h"
+#include "private/interpreter.h"
 #include "private/dvobjs.h"
 #include "purc-variant.h"
 #include "helper.h"
 
 #include <limits.h>
-
-struct hvml_interpret_param {
-    char                *url;
-    unsigned long int   maxIterationCount;
-    unsigned short      maxRecursionDepth;
-};
-
-static struct hvml_interpret_param *hvml_param = NULL;
 
 static purc_variant_t
 base_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
@@ -47,12 +40,12 @@ base_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if (hvml_param) {
-        if (hvml_param->url)
-            // do no use purc_variant_make_string_reuse_buff
-            // if change url, the old url will be freed, and create new buffer.
-            // it is too dangerous.
-            ret_var = purc_variant_make_string (hvml_param->url, false);
+    pcintr_stack_t stack = purc_get_stack();
+    if (stack) {
+        if (stack->dvobjs.hvml.url)
+            ret_var = purc_variant_make_string_reuse_buff (
+                    stack->dvobjs.hvml.url,
+                    strlen (stack->dvobjs.hvml.url), false);
     }
 
     return ret_var;
@@ -80,15 +73,18 @@ base_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     size_t length = 0;
     purc_variant_string_bytes (argv[0], &length);
 
-    if (hvml_param) {
-        if (hvml_param->url)
-            hvml_param->url = realloc (hvml_param->url, length);
+    pcintr_stack_t stack = purc_get_stack();
+    if (stack) {
+        if (stack->dvobjs.hvml.url)
+            stack->dvobjs.hvml.url = realloc (stack->dvobjs.hvml.url, length);
         else
-            hvml_param->url = malloc (length);
+            stack->dvobjs.hvml.url = malloc (length);
 
-        if (hvml_param->url) {
-            strcpy (hvml_param->url, url);
-            ret_var = purc_variant_make_string (hvml_param->url, false);
+        if (stack->dvobjs.hvml.url) {
+            strcpy (stack->dvobjs.hvml.url, url);
+            ret_var = purc_variant_make_string_reuse_buff (
+                    stack->dvobjs.hvml.url,
+                    strlen (stack->dvobjs.hvml.url), false);
         }
     }
 
@@ -97,7 +93,8 @@ base_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
 
 static purc_variant_t
-maxIterationCount_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+maxIterationCount_getter (
+        purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
@@ -107,8 +104,9 @@ maxIterationCount_getter (purc_variant_t root, size_t nr_args, purc_variant_t *a
 
     uint64_t u64 = ULONG_MAX;
 
-    if (hvml_param) {
-        u64 = hvml_param->maxIterationCount;
+    pcintr_stack_t stack = purc_get_stack();
+    if (stack) {
+        u64 = stack->dvobjs.hvml.maxIterationCount;
         ret_var = purc_variant_make_ulongint (u64);
     }
 
@@ -117,7 +115,8 @@ maxIterationCount_getter (purc_variant_t root, size_t nr_args, purc_variant_t *a
 
 
 static purc_variant_t
-maxIterationCount_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+maxIterationCount_setter (
+        purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -137,8 +136,9 @@ maxIterationCount_setter (purc_variant_t root, size_t nr_args, purc_variant_t *a
     uint64_t u64;
     purc_variant_cast_to_ulongint (argv[0], &u64, false);
 
-    if (hvml_param) {
-        hvml_param->maxIterationCount = u64;
+    pcintr_stack_t stack = purc_get_stack();
+    if (stack) {
+        stack->dvobjs.hvml.maxIterationCount = u64;
         ret_var = purc_variant_make_ulongint (u64);
     }
 
@@ -147,7 +147,8 @@ maxIterationCount_setter (purc_variant_t root, size_t nr_args, purc_variant_t *a
 
 
 static purc_variant_t
-maxRecursionDepth_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+maxRecursionDepth_getter (
+        purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
@@ -157,8 +158,9 @@ maxRecursionDepth_getter (purc_variant_t root, size_t nr_args, purc_variant_t *a
 
     uint64_t u64 = USHRT_MAX;
 
-    if (hvml_param) {
-        u64 = hvml_param->maxRecursionDepth;
+    pcintr_stack_t stack = purc_get_stack();
+    if (stack) {
+        u64 = stack->dvobjs.hvml.maxRecursionDepth;
         ret_var = purc_variant_make_ulongint (u64);
     }
 
@@ -167,7 +169,8 @@ maxRecursionDepth_getter (purc_variant_t root, size_t nr_args, purc_variant_t *a
 
 
 static purc_variant_t
-maxRecursionDepth_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+maxRecursionDepth_setter (
+        purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
@@ -187,11 +190,14 @@ maxRecursionDepth_setter (purc_variant_t root, size_t nr_args, purc_variant_t *a
     uint64_t u64;
     purc_variant_cast_to_ulongint (argv[0], &u64, false);
 
-    if (u64 > USHRT_MAX)
+    if (u64 > USHRT_MAX) {
+        // send an exception?
         u64 = USHRT_MAX;
+    }
 
-    if (hvml_param) {
-        hvml_param->maxRecursionDepth = u64;
+    pcintr_stack_t stack = purc_get_stack();
+    if (stack) {
+        stack->dvobjs.hvml.maxRecursionDepth = u64;
         ret_var = purc_variant_make_ulongint (u64);
     }
 
@@ -206,13 +212,5 @@ purc_variant_t pcdvobjs_get_hvml (void)
         {"maxRecursionDepth",  maxRecursionDepth_getter, maxRecursionDepth_setter},
     };
 
-    if (hvml_param == NULL) {
-        hvml_param = malloc (sizeof(struct hvml_interpret_param));
-        if (hvml_param) {
-            hvml_param->url = NULL;
-            hvml_param->maxIterationCount = ULONG_MAX;
-            hvml_param->maxRecursionDepth = USHRT_MAX;
-        }
-    }
     return pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));
 }
