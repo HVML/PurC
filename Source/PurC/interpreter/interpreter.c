@@ -359,7 +359,7 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 }
 
 static void
-run_coroutine(pcintr_coroutine_t co)
+execute_one_step(pcintr_coroutine_t co)
 {
     pcintr_stack_t stack = co->stack;
     struct pcintr_stack_frame *frame;
@@ -417,7 +417,7 @@ static int run_coroutines(void *ctxt)
                     co->state = CO_STATE_RUN;
                     coroutine_set_current(co);
                     pcvariant_push_gc();
-                    run_coroutine(co);
+                    execute_one_step(co);
                     pcvariant_pop_gc();
                     coroutine_set_current(NULL);
                     ++readies;
