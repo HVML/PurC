@@ -1069,20 +1069,24 @@ purc_variant_t find_stack_var (void* ctxt, const char* name)
             pcintr_get_numbered_var(stack, number) :
             pcintr_get_symbolized_var(stack, number, last);
     }
+
     return pcintr_find_named_var(ctxt, name);
 }
 
 purc_variant_t pcvcm_eval (struct pcvcm_node* tree, struct pcintr_stack* stack)
 {
-    return pcvcm_eval_ex(tree, find_stack_var, stack);
+    if (stack) {
+        return pcvcm_eval_ex(tree, find_stack_var, stack);
+    }
+    return pcvcm_eval_ex(tree, NULL, NULL);
 }
 
 purc_variant_t pcvcm_eval_ex (struct pcvcm_node* tree,
         cb_find_var find_var, void* ctxt)
 {
     struct pcvcm_node_op ops = {
-        find_var,
-        ctxt
+        .find_var = find_var,
+        .find_var_ctxt = ctxt,
     };
 
     if (!tree) {

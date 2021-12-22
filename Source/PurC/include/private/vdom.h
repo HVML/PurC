@@ -237,6 +237,10 @@ bool
 pcvdom_document_unbind_variable(struct pcvdom_document *doc,
         const char *name);
 
+purc_variant_t
+pcvdom_document_get_variable(struct pcvdom_document *doc,
+        const char *name);
+
 int
 pcvdom_element_append_attr(struct pcvdom_element *elem,
         struct pcvdom_attr *attr);

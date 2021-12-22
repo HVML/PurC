@@ -9,7 +9,7 @@ InvalidType
     msg: "Invalid variant type"
 
 OutOfBounds
-    except: IndexError
+    except: BadIndex
     flags: None
     msg: "Index out of bounds"
 

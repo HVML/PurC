@@ -11,7 +11,7 @@ TEST(interpreter, basic)
     "        <title>计算器</title>"
     "        <link rel=\"stylesheet\" type=\"text/css\" href=\"calculator.css\" />"
     ""
-    "        <init as=\"buttons\">"
+    "        <init as=\"buttons\" uniquely>"
     "            ["
     "                { \"letters\": \"7\", \"class\": \"number\" },"
     "                { \"letters\": \"8\", \"class\": \"number\" },"
@@ -38,7 +38,7 @@ TEST(interpreter, basic)
     "    </head>"
     ""
     "    <body>"
-    "        <div id=\"calculator\">"
+    "        <div id=\"calculator\" test=\"$buttons\">"
     ""
     "            <div id=\"c_title\">"
     "                <h2>计算器</h2>"
@@ -72,11 +72,11 @@ TEST(interpreter, basic)
         // "<hvml><head x=\"y\">hello<xinit a=\"b\">world<!--yes-->solid</xinit></head><body><timeout1/><timeout3/></body></hvml>",
         // "<hvml><head x=\"y\">hello<xinit a=\"b\">w<timeout3/>orld<!--yes-->solid</xinit></head><body><timeout1/></body></hvml>",
         // "<hvml><body><timeout1/><timeout9/><timeout2/></body></hvml>",
-        "<hvml><body><test a='b'>hello<!--yes--></test></body></hvml>",
+        // "<hvml><body><test a='b'>hello<!--yes--></test></body></hvml>",
         // "<hvml><body><archetype name=\"$?.button\"><li class=\"class\">letters</li></archetype></body></hvml>",
-        "<hvml><body><archetype name=\"button\"><li class=\"class\">letters</li></archetype></body></hvml>",
-        "<hvml><body><a><b><c></c></b></a></body></hvml>",
-        // calculator_1,
+        // "<hvml><body><archetype name=\"button\"><li class=\"class\">letters</li></archetype></body></hvml>",
+        // "<hvml><body><a><b><c></c></b></a></body></hvml>",
+        calculator_1,
     };
 
     purc_instance_extra_info info = {};

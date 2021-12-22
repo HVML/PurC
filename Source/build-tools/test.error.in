@@ -8,6 +8,6 @@ ok
     msg: "ok"
 
 BadSystemCall
-    except: BadValue
+    except: OSFailure
     flags: none
     msg: "bad system call"
