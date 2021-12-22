@@ -462,6 +462,17 @@ pcvdom_element_unbind_variable(struct pcvdom_element *elem,
     return pcvarmgr_list_remove(elem->variables, name);
 }
 
+purc_variant_t
+pcvdom_element_get_variable(struct pcvdom_element *elem,
+        const char *name)
+{
+    if (!elem || !name) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+    return pcvarmgr_list_get(elem->variables, name);
+}
+
 // accessor api
 struct pcvdom_node*
 pcvdom_node_parent(struct pcvdom_node *node)

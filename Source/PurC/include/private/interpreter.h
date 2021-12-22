@@ -262,6 +262,10 @@ bool
 pcintr_unbind_scope_variable(pcvdom_element_t elem, const char* name);
 
 purc_variant_t
+pcintr_get_scope_variable(pcvdom_element_t elem, const char* name);
+
+
+purc_variant_t
 pcintr_find_named_var(pcintr_stack_t stack, const char* name);
 
 purc_variant_t
