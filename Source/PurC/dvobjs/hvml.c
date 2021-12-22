@@ -41,11 +41,16 @@ base_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     pcintr_stack_t stack = purc_get_stack();
-    if (stack) {
-        if (stack->dvobj_hvml.url)
-            ret_var = purc_variant_make_string_reuse_buff (
-                    stack->dvobj_hvml.url,
-                    strlen (stack->dvobj_hvml.url), false);
+    if (stack && stack->vdom) {
+        purc_variant_t var = pcvdom_document_get_variable (
+                stack->vdom, "HVML");
+        if (var) {
+            var = purc_variant_object_get_by_ckey (var, "base");
+            if (var) {
+                ret_var = var;
+                purc_variant_ref (var);
+            }
+        }
     }
 
     return ret_var;
@@ -74,17 +79,16 @@ base_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_string_bytes (argv[0], &length);
 
     pcintr_stack_t stack = purc_get_stack();
-    if (stack) {
-        if (stack->dvobj_hvml.url)
-            stack->dvobj_hvml.url = realloc (stack->dvobj_hvml.url, length);
-        else
-            stack->dvobj_hvml.url = malloc (length);
-
-        if (stack->dvobj_hvml.url) {
-            strcpy (stack->dvobj_hvml.url, url);
-            ret_var = purc_variant_make_string_reuse_buff (
-                    stack->dvobj_hvml.url,
-                    strlen (stack->dvobj_hvml.url), false);
+    if (stack && stack->vdom) {
+        purc_variant_t var = pcvdom_document_get_variable (
+                stack->vdom, "HVML");
+        if (var) {
+            var = purc_variant_object_get_by_ckey (var, "base");
+            if (var) {
+                ret_var = purc_variant_make_string (url, false);
+                purc_variant_object_set_by_static_ckey (
+                        var, "maxIterationCount", ret_var);
+            }
         }
     }
 
@@ -102,12 +106,17 @@ maxIterationCount_getter (
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    uint64_t u64 = ULONG_MAX;
-
     pcintr_stack_t stack = purc_get_stack();
-    if (stack) {
-        u64 = stack->dvobj_hvml.maxIterationCount;
-        ret_var = purc_variant_make_ulongint (u64);
+    if (stack && stack->vdom) {
+        purc_variant_t var = pcvdom_document_get_variable (
+                stack->vdom, "HVML");
+        if (var) {
+            var = purc_variant_object_get_by_ckey (var, "maxIterationCount");
+            if (var) {
+                ret_var = var;
+                purc_variant_ref (var);
+            }
+        }
     }
 
     return ret_var;
@@ -137,9 +146,17 @@ maxIterationCount_setter (
     purc_variant_cast_to_ulongint (argv[0], &u64, false);
 
     pcintr_stack_t stack = purc_get_stack();
-    if (stack) {
-        stack->dvobj_hvml.maxIterationCount = u64;
-        ret_var = purc_variant_make_ulongint (u64);
+    if (stack && stack->vdom) {
+        purc_variant_t var = pcvdom_document_get_variable (
+                stack->vdom, "HVML");
+        if (var) {
+            var = purc_variant_object_get_by_ckey (var, "maxIterationCount");
+            if (var) {
+                ret_var = purc_variant_make_ulongint (u64);
+                purc_variant_object_set_by_static_ckey (
+                        var, "maxIterationCount", ret_var);
+            }
+        }
     }
 
     return ret_var;
@@ -156,12 +173,17 @@ maxRecursionDepth_getter (
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    uint64_t u64 = 0;
-
     pcintr_stack_t stack = purc_get_stack();
-    if (stack) {
-        u64 = stack->dvobj_hvml.maxRecursionDepth;
-        ret_var = purc_variant_make_ulongint (u64);
+    if (stack && stack->vdom) {
+        purc_variant_t var = pcvdom_document_get_variable (
+                stack->vdom, "HVML");
+        if (var) {
+            var = purc_variant_object_get_by_ckey (var, "maxRecursionDepth");
+            if (var) {
+                ret_var = var;
+                purc_variant_ref (var);
+            }
+        }
     }
 
     return ret_var;
@@ -191,9 +213,91 @@ maxRecursionDepth_setter (
     purc_variant_cast_to_ulongint (argv[0], &u64, false);
 
     pcintr_stack_t stack = purc_get_stack();
-    if (stack) {
-        stack->dvobj_hvml.maxRecursionDepth = u64;
-        ret_var = purc_variant_make_ulongint (u64);
+    if (stack && stack->vdom) {
+        purc_variant_t var = pcvdom_document_get_variable (
+                stack->vdom, "HVML");
+        if (var) {
+            var = purc_variant_object_get_by_ckey (var, "maxRecursionDepth");
+            if (var) {
+                ret_var = purc_variant_make_ulongint (u64);
+                purc_variant_object_set_by_static_ckey (
+                        var, "maxRecursionDepth", ret_var);
+            }
+        }
+    }
+
+    return ret_var;
+}
+
+static purc_variant_t
+timeout_getter (
+        purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    pcintr_stack_t stack = purc_get_stack();
+    if (stack && stack->vdom) {
+        purc_variant_t var = pcvdom_document_get_variable (
+                stack->vdom, "HVML");
+        if (var) {
+            var = purc_variant_object_get_by_ckey (var, "timeout");
+            if (var) {
+                ret_var = var;
+                purc_variant_ref (var);
+            }
+        }
+    }
+
+    return ret_var;
+}
+
+
+static purc_variant_t
+timeout_setter (
+        purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if ((argv == NULL) || (nr_args < 1)) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
+            (!purc_variant_is_ulongint (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    double number = 0.0;
+    purc_variant_cast_to_number (argv[0], &number, false);
+
+    pcintr_stack_t stack = purc_get_stack();
+    if (stack && stack->vdom) {
+        purc_variant_t var = pcvdom_document_get_variable (
+                stack->vdom, "HVML");
+        if (var) {
+            var = purc_variant_object_get_by_ckey (var, "timeout");
+            if (var) {
+                if (number > 0) {
+                    ret_var = purc_variant_make_number (number);
+                    purc_variant_object_set_by_static_ckey (
+                            var, "timeout", ret_var);
+                }
+                else
+                {
+                    ret_var = var;
+                    // ret_var is a reference of value
+                    purc_variant_ref (var);
+                }
+            }
+        }
     }
 
     return ret_var;
@@ -201,11 +305,37 @@ maxRecursionDepth_setter (
 
 purc_variant_t pcdvobjs_get_hvml (void)
 {
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
     static struct pcdvobjs_dvobjs method [] = {
-        {"base",               base_getter,  base_setter},
+        {"base",               base_getter,              base_setter},
         {"maxIterationCount",  maxIterationCount_getter, maxIterationCount_setter},
         {"maxRecursionDepth",  maxRecursionDepth_getter, maxRecursionDepth_setter},
+        {"timeout",            timeout_getter,           timeout_setter},
     };
+
+    ret_var = pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));
+
+    if (ret_var) {
+        purc_variant_t val = purc_variant_make_string ("", false);
+        purc_variant_object_set_by_static_ckey (ret_var, "base", val);
+        purc_variant_unref (val);
+
+        val = purc_variant_make_ulongint (ULONG_MAX);
+        purc_variant_object_set_by_static_ckey (
+                ret_var, "maxIterationCount", val);
+        purc_variant_unref (val);
+
+        val = purc_variant_make_ulongint (USHRT_MAX);
+        purc_variant_object_set_by_static_ckey (
+                ret_var, "maxRecursionDepth", val);
+        purc_variant_unref (val);
+
+        val = purc_variant_make_number (10.0);
+        purc_variant_object_set_by_static_ckey (
+                ret_var, "timeout", val);
+        purc_variant_unref (val);
+    }
 
     return pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));
 }

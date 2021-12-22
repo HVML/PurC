@@ -46,20 +46,3 @@ void pcdvobjs_cleanup_instance(struct pcinst* inst)
 {
     UNUSED_PARAM(inst);
 }
-
-void dvobjs_init (pcintr_stack_t stack)
-{
-    if (stack) {
-        stack->dvobj_hvml.url = NULL;
-        stack->dvobj_hvml.maxIterationCount = ULONG_MAX;
-        stack->dvobj_hvml.maxRecursionDepth = USHRT_MAX;
-    }
-}
-
-void dvobjs_release (pcintr_stack_t stack)
-{
-    if (stack) {
-        if (stack->dvobj_hvml.url)
-            free (stack->dvobj_hvml.url);
-    }
-}

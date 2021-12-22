@@ -28,75 +28,6 @@
 #include "purc-variant.h"
 #include "helper.h"
 
-#include <limits.h>
-
-#if 0
-static purc_variant_t
-map_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
-{
-    UNUSED_PARAM(root);
-
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    size_t size = 0;
-
-    if ((argv == NULL) || (nr_args < 2)) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if ((argv[0] != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_object (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
-    purc_variant_object_size (argv[0], &size);
-
-    if ((argv[1] != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_string (argv[1]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
-    const char *option = purc_variant_get_string_const (argv[1]);
-    size_t length = 0;
-    purc_variant_string_bytes (argv[1], &length);
-
-    pcintr_stack_t stack = purc_get_stack();
-    if (stack && stack->dvobjs.t.dict == PURC_VARIANT_INVALID) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
-
-    switch (*option) {
-        case 'a':
-        case 'A':
-        case 'd':
-        case 'D':
-            if ((strncasecmp (option, HVML_MAP_APPEND, length) == 0) ||
-                    (strncasecmp (option, HVML_MAP_DISPLACE, length) == 0)) {
-                struct purc_variant_object_iterator *it;
-                it = purc_variant_object_make_iterator_begin(argv[0]);
-                while (it) {
-                    purc_variant_t key = purc_variant_object_iterator_get_key(it);
-                    purc_variant_t val =
-                        purc_variant_object_iterator_get_value(it);
-
-                    purc_variant_object_set (stack->dvobjs.t.dict, key, val);
-
-                    bool having = purc_variant_object_iterator_next(it);
-                    if (!having) {
-                        break;
-                    }
-                }
-                if (it)
-                    purc_variant_object_release_iterator(it);
-            }
-            break;
-    }
-
-    return ret_var;
-}
-#endif
-
 static purc_variant_t
 get_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
@@ -115,13 +46,18 @@ get_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-//    pcintr_stack_t stack = purc_get_stack();
-//    if (stack && stack->dvobjs.t.dict == PURC_VARIANT_INVALID) {
-//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-//        return PURC_VARIANT_INVALID;
-//    }
-
-//    ret_var = purc_variant_object_get (stack->dvobjs.t.dict, argv[0]);
+    pcintr_stack_t stack = purc_get_stack();
+    if (stack && stack->vdom) {
+        purc_variant_t var = pcvdom_document_get_variable (stack->vdom, "T");
+        if (var) {
+            var = purc_variant_object_get_by_ckey (var, "map");
+            if (var) {
+                ret_var = purc_variant_object_get (var, argv[0]);
+                // ret_var is a reference of value
+                purc_variant_ref (ret_var);
+            }
+        }
+    }
 
     return ret_var;
 }
@@ -132,7 +68,6 @@ purc_variant_t pcdvobjs_get_t (void)
 
     static struct pcdvobjs_dvobjs method [] = {
         {"get",          get_getter,          NULL},
-//        {"release_self", release_self_getter, NULL},
     };
 
     ret_var = pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));
@@ -141,6 +76,7 @@ purc_variant_t pcdvobjs_get_t (void)
         purc_variant_t dict = purc_variant_make_object (0,
                 PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
         purc_variant_object_set_by_static_ckey (ret_var, "map", dict);
+        purc_variant_unref (dict);
     }
 
     return ret_var;

@@ -30,7 +30,6 @@
 #include "private/debug.h"
 #include "private/instance.h"
 #include "private/runloop.h"
-#include "private/dvobjs.h"
 
 #include "ops.h"
 #include "../hvml/hvml-gen.h"
@@ -128,16 +127,12 @@ stack_release(pcintr_stack_t stack)
         pcutils_arrlist_free(stack->native_observer_list);
         stack->native_observer_list = NULL;
     }
-
-    dvobjs_release (stack);
 }
 
 static void
 stack_init(pcintr_stack_t stack)
 {
     INIT_LIST_HEAD(&stack->frames);
-
-    dvobjs_init (stack);
 }
 
 void pcintr_stack_cleanup_instance(struct pcinst* inst)

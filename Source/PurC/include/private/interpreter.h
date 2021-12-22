@@ -70,11 +70,12 @@ struct pcintr_coroutine {
     int                         waits;  /* FIXME: nr of registered events */
 };
 
-struct pcintr_dvobj_hvml {        // add for $HVML
-    char                *url;
-    unsigned long int   maxIterationCount;
-    unsigned short      maxRecursionDepth;
-};
+//struct pcintr_dvobj_hvml {        // add for $HVML
+//    char                *url;
+//    unsigned long int   maxIterationCount;
+//    unsigned long int   maxRecursionDepth;
+//    double              timeout;
+//};
 
 struct pcintr_stack {
     struct list_head frames;
@@ -116,7 +117,7 @@ struct pcintr_stack {
     struct pcutils_arrlist* native_observer_list;
 
     // for dynamic variant, such as DOC, T, HVML, TIMER, REQUEST
-    struct pcintr_dvobj_hvml dvobj_hvml;
+//    struct pcintr_dvobj_hvml dvobj_hvml;
 };
 
 enum purc_symbol_var {

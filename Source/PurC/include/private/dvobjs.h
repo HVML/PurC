@@ -106,10 +106,7 @@ purc_variant_t pcdvobjs_get_string(void);
 purc_variant_t pcdvobjs_get_logical(void);
 purc_variant_t pcdvobjs_get_ejson(void);
 purc_variant_t pcdvobjs_get_hvml(void);
-
-// initialize and deinitialize dvobjs in stack
-void dvobjs_init (pcintr_stack_t stack);
-void dvobjs_release (pcintr_stack_t stack);
+purc_variant_t pcdvobjs_get_t(void);
 
 struct wildcard_list {
     char * wildcard;
