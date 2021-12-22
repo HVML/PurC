@@ -390,12 +390,13 @@ execute_one_step(pcintr_coroutine_t co)
             PC_ASSERT(0);
     }
 
+    bool no_frames = list_empty(&co->stack->frames);
+    if (no_frames)
+        co->stack->stage = STACK_STAGE_EVENT_LOOP;
     if (co->waits)
         return;
-    struct list_head *frames = &stack->frames;
-    if (!list_empty(frames))
-        return;
-    co->state = CO_STATE_TERMINATED;
+    if (no_frames)
+        co->state = CO_STATE_TERMINATED;
 }
 
 static int run_coroutines(void *ctxt)
@@ -441,12 +442,6 @@ static int run_coroutines(void *ctxt)
                 list_del(&co->node);
                 stack_release(co->stack);
                 free(co->stack);
-            }
-            else if (co->state == CO_STATE_READY) {
-                if (list_empty(&co->stack->frames)) {
-                    co->stack->stage = STACK_STAGE_EVENT_LOOP;
-                    abort();
-                }
             }
         }
     }
