@@ -342,6 +342,17 @@ pcvdom_document_unbind_variable(struct pcvdom_document *doc,
     return pcvarmgr_list_remove(doc->variables, name);
 }
 
+purc_variant_t
+pcvdom_document_get_variable(struct pcvdom_document *doc,
+        const char *name)
+{
+    if (!doc || !name) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+    return pcvarmgr_list_get(doc->variables, name);
+}
+
 int
 pcvdom_element_append_attr(struct pcvdom_element *elem,
         struct pcvdom_attr *attr)

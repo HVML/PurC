@@ -677,20 +677,6 @@ pcintr_make_object_of_dynamic_variants(size_t nr_args,
 }
 
 bool
-pcintr_bind_buildin_variable(struct pcvdom_document* doc, const char* name,
-        purc_variant_t variant)
-{
-    return pcvdom_document_bind_variable(doc, name, variant);
-}
-
-bool
-pcintr_unbind_buildin_variable(struct pcvdom_document* doc,
-        const char* name)
-{
-    return pcvdom_document_unbind_variable(doc, name);
-}
-
-bool
 pcintr_bind_scope_variable(pcvdom_element_t elem, const char* name,
         purc_variant_t variant)
 {
