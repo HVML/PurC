@@ -88,8 +88,10 @@ static void
 post_process_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t name)
 {
+    purc_variant_t via;
+    via = purc_variant_object_get_by_ckey(frame->attr_vars, "via");
     purc_variant_t set;
-    set = purc_variant_make_set(0, PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    set = purc_variant_make_set(0, via, PURC_VARIANT_INVALID);
     if (set == PURC_VARIANT_INVALID) {
         frame->next_step = -1;
         co->state = CO_STATE_TERMINATED;
@@ -187,7 +189,7 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     }
 
     frame->ctxt = ctxt;
-    frame->next_step = NEXT_STEP_SELECT_CHILD;
+    frame->next_step = NEXT_STEP_ON_POPPING;
     frame->ctxt_destroy = ctxt_destroy;
     co->state = CO_STATE_READY;
 
