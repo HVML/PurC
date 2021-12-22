@@ -28,6 +28,7 @@
 #include "private/vcm.h"
 #include "private/errors.h"
 #include "private/debug.h"
+#include "private/dvobjs.h"
 #include "private/stringbuilder.h"
 #include "private/utils.h"
 #include "variant-internals.h"
@@ -173,6 +174,38 @@ void pcvariant_init_instance(struct pcinst *inst)
     // inst->variant_heap.tailpos = 0;
 
     // initialize others
+}
+
+static const char *typenames[] = {
+    VARIANT_TYPE_NAME_UNDEFINED,
+    VARIANT_TYPE_NAME_NULL,
+    VARIANT_TYPE_NAME_BOOLEAN,
+    VARIANT_TYPE_NAME_NUMBER,
+    VARIANT_TYPE_NAME_LONGINT,
+    VARIANT_TYPE_NAME_ULONGINT,
+    VARIANT_TYPE_NAME_LONGDOUBLE,
+    VARIANT_TYPE_NAME_ATOMSTRING,
+    VARIANT_TYPE_NAME_STRING,
+    VARIANT_TYPE_NAME_BYTESEQUENCE,
+    VARIANT_TYPE_NAME_DYNAMIC,
+    VARIANT_TYPE_NAME_NATIVE,
+    VARIANT_TYPE_NAME_OBJECT,
+    VARIANT_TYPE_NAME_ARRAY,
+    VARIANT_TYPE_NAME_SET,
+};
+
+/* Make sure the number of variant types matches the size of `type_names` */
+#define _COMPILE_TIME_ASSERT(name, x)               \
+       typedef int _dummy_ ## name[(x) * 2 - 1]
+
+_COMPILE_TIME_ASSERT(types, PCA_TABLESIZE(typenames) == PURC_VARIANT_TYPE_NR);
+
+#undef _COMPILE_TIME_ASSERT
+
+const char* pcvariant_get_typename(enum purc_variant_type type)
+{
+    PC_ASSERT(type >= 0 && type < PURC_VARIANT_TYPE_NR);
+    return typenames[type];
 }
 
 // experiment

@@ -201,6 +201,8 @@ int pcvariant_set_sort(purc_variant_t value, void *ud,
         int (*cmp)(size_t nr_keynames, purc_variant_t l[], purc_variant_t r[],
             void *ud));
 
+const char* pcvariant_get_typename(enum purc_variant_type type);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

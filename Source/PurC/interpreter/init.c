@@ -38,6 +38,8 @@
 
 struct ctxt_for_init {
     struct pcvdom_node           *curr;
+
+    unsigned int                  under_head:1;
 };
 
 static void
@@ -61,13 +63,19 @@ post_process_bind_scope_var(pcintr_coroutine_t co,
 {
     struct pcvdom_element *element = frame->scope;
     PC_ASSERT(element);
-    element = pcvdom_element_parent(element);
-    PC_ASSERT(element);
 
     const char *s_name = purc_variant_get_string_const(name);
     PC_ASSERT(s_name);
 
-    bool ok = pcintr_bind_scope_variable(element, s_name, val);
+    bool ok;
+    struct ctxt_for_init *ctxt = (struct ctxt_for_init*)frame->ctxt;
+    if (ctxt->under_head) {
+        ok = purc_bind_document_variable(co->stack->vdom, s_name, val);
+    } else {
+        element = pcvdom_element_parent(element);
+        PC_ASSERT(element);
+        ok = pcintr_bind_scope_variable(element, s_name, val);
+    }
     purc_variant_unref(val);
     if (!ok) {
         frame->next_step = -1;
@@ -179,6 +187,12 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     frame->next_step = NEXT_STEP_SELECT_CHILD;
     frame->ctxt_destroy = ctxt_destroy;
     co->state = CO_STATE_READY;
+
+    while ((element=pcvdom_element_parent(element))) {
+        if (element->tag_id == PCHVML_TAG_HEAD) {
+            ctxt->under_head = 1;
+        }
+    }
 
     post_process(co, frame);
 }

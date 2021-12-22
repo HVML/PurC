@@ -162,6 +162,14 @@ coroutine_get_current(void)
     return heap->running_coroutine;
 }
 
+static void
+coroutine_set_current(struct pcintr_coroutine *co)
+{
+    struct pcinst *inst = pcinst_current();
+    struct pcintr_heap *heap = &inst->intr_heap;
+    heap->running_coroutine = co;
+}
+
 pcintr_stack_t purc_get_stack(void)
 {
     struct pcintr_coroutine *co = coroutine_get_current();
@@ -232,6 +240,7 @@ visit_attr(void *key, void *val, void *ud)
         PC_ASSERT(vcm);
 
         pcintr_stack_t stack = purc_get_stack();
+        PC_ASSERT(stack);
         value = pcvcm_eval(vcm, stack);
         if (value == PURC_VARIANT_INVALID) {
             return -1;
@@ -239,9 +248,9 @@ visit_attr(void *key, void *val, void *ud)
     }
 
     const char *s = purc_variant_get_string_const(value);
-    fprintf(stderr, "==%s[%d]:%s()==[%s/%s]\n",
+    fprintf(stderr, "==%s[%d]:%s()==[%s/<%s>%s]\n",
             __FILE__, __LINE__, __func__,
-            attr->key, s);
+            attr->key, pcvariant_get_typename(purc_variant_get_type(value)), s);
 
     const struct pchvml_attr_entry *pre_defined = attr->pre_defined;
     bool ok;
@@ -405,9 +414,11 @@ static int run_coroutines(void *ctxt)
             switch (co->state) {
                 case CO_STATE_READY:
                     co->state = CO_STATE_RUN;
+                    coroutine_set_current(co);
                     pcvariant_push_gc();
                     run_coroutine(co);
                     pcvariant_pop_gc();
+                    coroutine_set_current(NULL);
                     ++readies;
                     break;
                 case CO_STATE_WAIT:
@@ -423,6 +434,8 @@ static int run_coroutines(void *ctxt)
                     PC_ASSERT(0);
             }
             if (co->state == CO_STATE_TERMINATED) {
+                fprintf(stderr, "==%s[%d]:%s()==terminating...\n",
+                        __FILE__, __LINE__, __func__);
                 list_del(&co->node);
                 stack_release(co->stack);
                 free(co->stack);
