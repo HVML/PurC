@@ -230,16 +230,14 @@ pcvdom_document_append_comment(struct pcvdom_document *doc,
 
 // build-in variable : DOC, TIMERS
 bool
-pcvdom_document_bind_variable(struct pcvdom_document *doc,
-        const char *name, purc_variant_t variant);
+pcvdom_document_bind_variable(purc_vdom_t vdom, const char *name,
+        purc_variant_t variant);
 
 bool
-pcvdom_document_unbind_variable(struct pcvdom_document *doc,
-        const char *name);
+pcvdom_document_unbind_variable(purc_vdom_t vdom, const char *name);
 
 purc_variant_t
-pcvdom_document_get_variable(struct pcvdom_document *doc,
-        const char *name);
+pcvdom_document_get_variable(purc_vdom_t vdom, const char *name);
 
 int
 pcvdom_element_append_attr(struct pcvdom_element *elem,
