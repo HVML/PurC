@@ -103,7 +103,7 @@ _find_named_scope_var(pcvdom_element_t elem, const char* name)
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t v = pcvarmgr_list_get(elem->variables, name);
+    purc_variant_t v = pcintr_get_scope_variable(elem, name);
     if (v) {
         fprintf(stderr, "==%s[%d]:%s()==[%s/<%s>]\n",
                 __FILE__, __LINE__, __func__,
@@ -119,13 +119,13 @@ _find_named_scope_var(pcvdom_element_t elem, const char* name)
 }
 
 static purc_variant_t
-_find_doc_buildin_var(struct pcvdom_document *doc, const char* name)
+_find_doc_buildin_var(purc_vdom_t vdom, const char* name)
 {
-    if (!doc|| !name) {
+    if (!vdom || !name) {
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t v = pcvarmgr_list_get(doc->variables, name);
+    purc_variant_t v = pcvdom_document_get_variable(vdom, name);
     if (v) {
         fprintf(stderr, "==%s[%d]:%s()==[%s/<%s>]\n",
                 __FILE__, __LINE__, __func__,
@@ -167,7 +167,7 @@ pcintr_find_named_var(pcintr_stack_t stack, const char* name)
         return v;
     }
 
-    v = _find_doc_buildin_var(stack->vdom->document, name);
+    v = _find_doc_buildin_var(stack->vdom, name);
     if (v) {
         return v;
     }
