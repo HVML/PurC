@@ -728,6 +728,16 @@ void del_observer_from_list(struct pcutils_arrlist* list,
     }
 }
 
+void observer_free_func(void *data)
+{
+    if (data) {
+        struct pcintr_observer* observer = (struct pcintr_observer*)data;
+        free(observer->msg_type);
+        free(observer->sub_type);
+        free(observer);
+    }
+}
+
 struct pcintr_observer*
 pcintr_register_observer(enum pcintr_observer_type type, purc_variant_t observed,
         purc_variant_t for_value, pcvdom_element_t ele)
@@ -739,14 +749,16 @@ pcintr_register_observer(enum pcintr_observer_type type, purc_variant_t observed
     switch (type) {
         case PCINTR_OBSERVER_TYPE_SPECIAL:
             if (!stack->special_observer_list) {
-                stack->special_observer_list =  pcutils_arrlist_new(NULL);
+                stack->special_observer_list =  pcutils_arrlist_new(
+                        observer_free_func);
             }
             list = stack->special_observer_list;
             break;
 
         case PCINTR_OBSERVER_TYPE_NATIVE:
             if (!stack->native_observer_list) {
-                stack->native_observer_list =  pcutils_arrlist_new(NULL);
+                stack->native_observer_list =  pcutils_arrlist_new(
+                        observer_free_func);
             }
             list = stack->native_observer_list;
             break;
@@ -754,7 +766,8 @@ pcintr_register_observer(enum pcintr_observer_type type, purc_variant_t observed
         case PCINTR_OBSERVER_TYPE_COMMON:
         default:
             if (!stack->common_observer_list) {
-                stack->common_observer_list =  pcutils_arrlist_new(NULL);
+                stack->common_observer_list =  pcutils_arrlist_new(
+                        observer_free_func);
             }
             list = stack->common_observer_list;
             break;
@@ -811,8 +824,5 @@ pcintr_revoke_observer(struct pcintr_observer* observer)
     }
 
     del_observer_from_list(observer->list, observer);
-    free(observer->msg_type);
-    free(observer->sub_type);
-    free(observer);
     return true;
 }
