@@ -133,6 +133,7 @@ static void
 stack_init(pcintr_stack_t stack)
 {
     INIT_LIST_HEAD(&stack->frames);
+    stack->stage = STACK_STAGE_FIRST_ROUND;
 }
 
 void pcintr_stack_cleanup_instance(struct pcinst* inst)
@@ -436,9 +437,16 @@ static int run_coroutines(void *ctxt)
             if (co->state == CO_STATE_TERMINATED) {
                 fprintf(stderr, "==%s[%d]:%s()==terminating...\n",
                         __FILE__, __LINE__, __func__);
+                co->stack->stage = STACK_STAGE_TERMINATING;
                 list_del(&co->node);
                 stack_release(co->stack);
                 free(co->stack);
+            }
+            else if (co->state == CO_STATE_READY) {
+                if (list_empty(&co->stack->frames)) {
+                    co->stack->stage = STACK_STAGE_EVENT_LOOP;
+                    abort();
+                }
             }
         }
     }

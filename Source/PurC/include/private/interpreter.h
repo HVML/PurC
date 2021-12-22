@@ -70,6 +70,12 @@ struct pcintr_coroutine {
     int                         waits;  /* FIXME: nr of registered events */
 };
 
+enum pcintr_stack_stage {
+    STACK_STAGE_FIRST_ROUND,
+    STACK_STAGE_EVENT_LOOP,
+    STACK_STAGE_TERMINATING,
+};
+
 struct pcintr_stack {
     struct list_head frames;
 
@@ -88,7 +94,7 @@ struct pcintr_stack {
     uint32_t        except:1;
     /* uint32_t        paused:1; */
 
-    uint32_t        state; /* TODO: remove */
+    enum pcintr_stack_stage       stage;
 
     // error or except info
     purc_atom_t     error_except;
