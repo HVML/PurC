@@ -321,25 +321,36 @@ pcvdom_document_append_comment(struct pcvdom_document *doc,
 }
 
 bool
-pcvdom_document_bind_variable(struct pcvdom_document *doc,
-        const char *name, purc_variant_t variant)
+pcvdom_document_bind_variable(purc_vdom_t vdom, const char *name,
+        purc_variant_t variant)
 {
-    if (!doc || !name || !variant) {
+    if (!vdom || !vdom->document || !name || !variant) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return -1;
+        return false;
     }
-    return pcvarmgr_list_add(doc->variables, name, variant);
+    return pcvarmgr_list_add(vdom->document->variables, name, variant);
 }
 
 bool
-pcvdom_document_unbind_variable(struct pcvdom_document *doc,
+pcvdom_document_unbind_variable(purc_vdom_t vdom,
         const char *name)
 {
-    if (!doc || !name) {
+    if (!vdom || !vdom->document || !name) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return -1;
+        return false;
     }
-    return pcvarmgr_list_remove(doc->variables, name);
+    return pcvarmgr_list_remove(vdom->document->variables, name);
+}
+
+purc_variant_t
+pcvdom_document_get_variable(purc_vdom_t vdom,
+        const char *name)
+{
+    if (!vdom || vdom->document || !name) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+    return pcvarmgr_list_get(vdom->document->variables, name);
 }
 
 int

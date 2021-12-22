@@ -307,19 +307,13 @@ bool
 purc_bind_document_variable(purc_vdom_t vdom, const char* name,
         purc_variant_t variant)
 {
-    if (vdom == NULL) {
-        return false;
-    }
-    return pcvdom_document_bind_variable(vdom->document, name, variant);
+    return pcvdom_document_bind_variable(vdom, name, variant);
 }
 
 #if 0
 bool
 purc_unbind_document_variable(purc_vdom_t vdom, const char* name)
 {
-    if (vdom == NULL) {
-        return false;
-    }
-    return pcvdom_document_unbind_variable(vdom->document, name);
+    return pcvdom_document_unbind_variable(vdom, name);
 }
 #endif
