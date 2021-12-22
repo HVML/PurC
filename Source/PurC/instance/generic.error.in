@@ -9,27 +9,27 @@ Ok
     msg: "Ok"
 
 BadSystemCall
-    except: OSError
+    except: OSFailure
     flags: None
     msg: "Bad system call"
 
 BadStdcCall
-    except: OSError
+    except: OSFailure
     flags: None
     msg: "Bad STDC call"
 
 OutOfMemory
-    except: OutOfMemory
+    except: MemoryFailure
     flags: None
     msg: "Out of memory"
 
 InvalidValue
-    except: BadValue
+    except: InvalidValue
     flags: None
     msg: "Invalid value"
 
 Duplicated
-    except: BadValue
+    except: InternalFailure
     flags: None
     msg: "Duplicated"
 
@@ -39,12 +39,12 @@ NotImplemented
     msg: "Not implemented"
 
 NoInstance
-    except: NotReady
+    except: InternalFailure
     flags: None
     msg: "No instance"
 
 TooLargeEntity
-    except: TooLong
+    except: TooLarge
     flags: None
     msg: "Tool large entity"
 
@@ -59,32 +59,32 @@ NotSupported
     msg: "Not supported"
 
 Output
-    except: IOError
+    except: IOFailure
     flags: None
     msg: "An output error is encountered"
 
 TooSmallBuff
-    except: TooSmallBuffer
+    except: InternalFailure
     flags: None
     msg: "Too small buffer"
 
 NullObject
-    except: BadValue
+    except: InternalFailure
     flags: None
     msg: "Null object"
 
 TooSmallSize
-    except: BadValue
+    except: InternalFailure
     flags: None
     msg: "Too small size"
 
 IncompleteObject
-    except: BadValue
+    except: InvalidValue
     flags: None
     msg: "Incomplete object"
 
 NoFreeSlot
-    except: OutOfMemory
+    except: MemoryFailure
     flags: None
     msg: "No free slot"
 
@@ -94,12 +94,12 @@ NotExists
     msg: "Does not exist"
 
 WrongArgs
-    except: BadValue
+    except: ArgumentMissed
     flags: None
     msg: "Wrong arguments"
 
 WrongStage
-    except: BadHtml
+    except: BadTargetHTML
     flags: None
     msg: "Wrong stage"
 
@@ -119,11 +119,11 @@ Divbyzero
     msg: "Divide by zero"
 
 InvFloatpoint
-    except: FloatingPoint
+    except: InvalidFloat
     flags: None
     msg: "Float point invalid"
 
 BadLocaleCategory
-    except: BadValue
+    except: InternalFailure
     flags: None
     msg: "Bad locale category"

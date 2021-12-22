@@ -4,87 +4,87 @@ PREFIX=PCEJSON_ERROR
 
 
 UnexpectedCharacter
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pcejson unexpected character parse error"
 
 UnexpectedNullCharacter
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pcejson unexpected null character parse error"
 
 UnexpectedJsonNumberExponent
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pcejson unexpected json number exponent parse error"
 
 UnexpectedJsonNumberFraction
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pcejson unexpected json number fraction parse error"
 
 UnexpectedJsonNumberInteger
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pcejson unexpected json number integer parse error"
 
 UnexpectedJsonNumber
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pcejson unexpected json number parse error"
 
 UnexpectedRightBrace
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pcejson unexpected right brace parse error"
 
 UnexpectedRightBracket
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pcejson unexpected right bracket parse error"
 
 UnexpectedJsonKeyName
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pcejson unexpected json key name parse error"
 
 UnexpectedComma
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pcejson unexpected comma parse error"
 
 UnexpectedJsonKeyword
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pcejson unexpected json keyword parse error"
 
 UnexpectedBase64
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pcejson unexpected base64 parse error"
 
 UnexpectedEof
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pcejson unexpected eof parse error"
 
 BadJsonNumber
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pcejson bad json number parse error"
 
 BadJsonStringEscapeEntity
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pcejson bad json string escape entity parse error"
 
 BadJson
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pcejson bad json parse error"
 
 MaxDepthExceeded
-    except: Overflow
+    except: MaxRecursionDepth
     flags: None
     msg: "pcejson max depth exceeded"
 

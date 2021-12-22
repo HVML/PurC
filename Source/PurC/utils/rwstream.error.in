@@ -4,27 +4,27 @@ PREFIX=PCRWSTREAM_ERROR
 
 
 Failed
-    except: OSError
+    except: OSFailure
     flags: None
     msg: "Rwstream failed with some other error"
 
 FileTooBig
-    except: ToLarge
+    except: TooLarge
     flags: None
     msg: "File too large"
 
 IO
-    except: IOError
+    except: IOFailure
     flags: None
     msg: "IO error"
 
 IsDir
-    except: IsADirector
+    except: NotDesiredEntity
     flags: None
     msg: "File is a directory."
 
 NoSpace
-    except: NoSpace
+    except: NoStorageSpace
     flags: None
     msg: "No space left on device."
 

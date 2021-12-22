@@ -4,326 +4,326 @@ PREFIX=PCHVML_ERROR
 
 
 UnexpectedNullCharacter
-    except: BadHvml
+    except: BadHVMLContent
     flags: None
     msg: "pchvml error unexpected null character"
 
 UnexpectedQuestionMarkInsteadOfTagName
-    except: BadHvml
+    except: BadHvmlTag
     flags: None
     msg: "pchvml error unexpected question mark instead of tag name"
 
 EofBeforeTagName
-    except: BadHvml
+    except: BadHvmlTag
     flags: None
     msg: "pchvml error eof before tag name"
 
 MissingEndTagName
-    except: BadHvml
+    except: BadHvmlTag
     flags: None
     msg: "pchvml error missing end tag name"
 
 InvalidFirstCharacterOfTagName
-    except: BadHvml
+    except: BadHvmlTag
     flags: None
     msg: "pchvml error invalid first character of tag name"
 
 EofInTag
-    except: BadHvml
+    except: BadHvmlTag
     flags: None
     msg: "pchvml error eof in tag"
 
 UnexpectedEqualsSignBeforeAttributeName
-    except: BadHvml
+    except: BadHVMLAttrName
     flags: None
     msg: "pchvml error unexpected equals sign before attribute name"
 
 UnexpectedCharacterInAttributeName
-    except: BadHvml
+    except: BadHVMLAttrName
     flags: None
     msg: "pchvml error unexpected character in attribute name"
 
 UnexpectedCharacterInUnquotedAttributeValue
-    except: BadHvml
+    except: BadHVMLAttrValue
     flags: None
     msg: "pchvml error unexpected character in unquoted attribute value"
 
 MissingWhitespaceBetweenAttributes
-    except: BadHvml
+    except: BadHVMLTag
     flags: None
     msg: "pchvml error missing whitespace between attributes"
 
 UnexpectedSolidusInTag
-    except: BadHvml
+    except: BadHVMLTag
     flags: None
     msg: "pchvml error unexpected solidus in tag"
 
 CdataInHtmlContent
-    except: BadHvml
+    except: BadHVMLContent
     flags: None
     msg: "pchvml error cdata in html content"
 
 IncorrectlyOpenedComment
-    except: BadHvml
+    except: BadHvmlTag
     flags: None
     msg: "pchvml error incorrectly opened comment"
 
 AbruptClosingOfEmptyComment
-    except: BadHvml
+    except: BadHVMLTag
     flags: None
     msg: "pchvml error abrupt closing of empty comment"
 
 EofInComment
-    except: BadHvml
+    except: BadHVMLContent
     flags: None
     msg: "pchvml error eof in comment"
 
 EofInDoctype
-    except: BadHvml
+    except: BadHVMLTag
     flags: None
     msg: "pchvml error eof in doctype"
 
 MissingWhitespaceBeforeDoctypeName
-    except: BadHvml
+    except: BadHVMLTag
     flags: None
     msg: "pchvml error missing whitespace before doctype name"
 
 MissingDoctypeName
-    except: BadHvml
+    except: BadHVMLTag
     flags: None
     msg: "pchvml error missing doctype name"
 
 InvalidCharacterSequenceAfterDoctypeName
-    except: BadHvml
+    except: BadHVMLTag
     flags: None
     msg: "pchvml error invalid character sequence after doctype name"
 
 MissingWhitespaceAfterDoctypePublicKeyword
-    except: BadHvml
+    except: BadHVMLTag
     flags: None
     msg: "pchvml error missing whitespace after doctype public keyword"
 
 MissingDoctypePublicId
-    except: BadHvml
+    except: BadHVMLTag
     flags: None
     msg: "pchvml error missing doctype public identifier"
 
 MissingQuoteBeforeDoctypePublicId
-    except: BadHvml
+    except: BadHVMLTag
     flags: None
     msg: "pchvml error missing quote before doctype public identifier"
 
 AbruptDoctypePublicId
-    except: BadHvml
+    except: BadHVMLTag
     flags: None
     msg: "pchvml error abrupt doctype public identifier"
 
 MissingWhitespaceBetweenDoctypePubAndSys
-    except: BadHvml
+    except: BadHVMLTag
     flags: None
     msg: "pchvml error missing whitespace between doctype public and system informations"
 
 MissingWhitespaceAfterDoctypeSystemKeyword
-    except: BadHvml
+    except: BadHVMLTag
     flags: None
     msg: "pchvml error missing whitespace after doctype system keyword"
 
 MissingDoctypeSystem
-    except: BadHvml
+    except: BadHVMLTag
     flags: None
     msg: "pchvml error missing doctype system information"
 
 AbruptDoctypeSystem
-    except: BadHvml
+    except: BadHVMLTag
     flags: None
     msg: "pchvml error abrupt doctype system information"
 
 UnexpectedCharacterAfterDoctypeSystem
-    except: BadHvml
+    except: BadHVMLTag
     flags: None
     msg: "pchvml error unexpected character after doctype system information"
 
 EofInCdata
-    except: BadHvml
+    except: BadHVMLContent
     flags: None
     msg: "pchvml error eof in cdata"
 
 UnknownNamedCharacterReference
-    except: BadHvml
+    except: BadHVMLContent
     flags: None
     msg: "pchvml error unknown named character reference"
 
 AbsenceOfDigitsInNumericCharacterReference
-    except: BadHvml
+    except: BadHVMLContent
     flags: None
     msg: "pchvml error absence of digits in numeric character reference"
 
 UnexpectedCharacter
-    except: BadHvml
+    except: BadHVMLContent
     flags: None
     msg: "pchvml error unexpected character"
 
 UnexpectedJsonNumberExponent
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pchvml error unexpected json number exponent"
 
 UnexpectedJsonNumberFraction
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pchvml error unexpected json number fraction"
 
 UnexpectedJsonNumberInteger
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pchvml error unexpected json number integer"
 
 UnexpectedJsonNumber
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pchvml error unexpected json number"
 
 UnexpectedRightBrace
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pchvml error unexpected right brace"
 
 UnexpectedRightBracket
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pchvml error unexpected right bracket"
 
 UnexpectedJsonKeyName
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pchvml error unexpected json key name"
 
 UnexpectedComma
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pchvml error unexpected comma"
 
 UnexpectedJsonKeyword
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pchvml error unexpected json keyword"
 
 UnexpectedBase64
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pchvml error unexpected base64"
 
 BadJsonNumber
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pchvml error bad json number"
 
 BadJsonStringEscapeEntity
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pchvml error bad json string escape entity"
 
 BadJsonee
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pchvml error bad jsonee"
 
 BadJsoneeEscapeEntity
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pchvml error bad jsonee escape entity"
 
 BadJsoneeVariableName
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pchvml error bad jsonee variable name"
 
 EmptyJsoneeName
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pchvml error empty jsonee name"
 
 BadJsoneeName
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pchvml error bad jsonee name"
 
 BadJsoneeKeyword
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pchvml error bad jsonee keyword"
 
 EmptyJsoneeKeyword
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pchvml error empty jsonee keyword"
 
 BadJsoneeUnexpectedComma
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pchvml error bad jsonee unexpected comma"
 
 BadJsoneeUnexpectedParenthesis
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pchvml error bad jsonee unexpected parenthesis"
 
 BadJsoneeUnexpectedLeftAngleBracket
-    except: BadEjson
+    except: BadExpression
     flags: None
     msg: "pchvml error bad jsonee unexpected left angle bracket"
 
 MissingMissingAttributeValue
-    except: BadHvml
+    except: BadHVMLAttrValue
     flags: None
     msg: "pchvml error missing missing attribute value"
 
 NestedComment
-    except: BadHvml
+    except: BadHVMLTag
     flags: None
     msg: "pchvml error nested comment"
 
 IncorrectlyClosedComment
-    except: BadHvml
+    except: BadHVMLTag
     flags: None
     msg: "pchvml error incorrectly closed comment"
 
 MissingQuoteBeforeDoctypeSystem
-    except: BadHvml
+    except: BadHVMLTag
     flags: None
     msg: "pchvml error missing quote before doctype system information"
 
 MissingSemicolonAfterCharacterReference
-    except: BadHvml
+    except: BadHVMLContent
     flags: None
     msg: "pchvml error missing semicolon after character reference"
 
 CharacterReferenceOutsideUnicodeRange
-    except: BadHvml
+    except: BadHVMLContent
     flags: None
     msg: "pchvml error character reference outside unicode range"
 
 SurrogateCharacterReference
-    except: BadHvml
+    except: BadHVMLContent
     flags: None
     msg: "pchvml error surrogate character reference"
 
 NoncharacterCharacterReference
-    except: BadHvml
+    except: BadHVMLContent
     flags: None
     msg: "pchvml error noncharacter character reference"
 
 NullCharacterReference
-    except: BadHvml
+    except: BadHVMLContent
     flags: None
     msg: "pchvml error null character reference"
 
 ControlCharacterReference
-    except: BadHvml
+    except: BadHVMLContent
     flags: None
     msg: "pchvml error control character reference"
 
 InvalidUtf8Character
-    except: BadHvml
+    except: BadEncoding
     flags: None
     msg: "pchvml error invalid utf8 character"

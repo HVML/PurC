@@ -3,13 +3,8 @@ OUTPUT_VAR=executor_err_msgs
 PREFIX=PCEXECUTOR_ERROR
 
 
-NoKeysSelectedPreviously
-    except: KeyError
-    flags: None
-    msg: "Executor: No keys selected previously"
-
 NoKeysSelected
-    except: KeyError
+    except: NoSuchKey
     flags: None
     msg: "Executor: No keys selected"
 
@@ -19,11 +14,11 @@ NotAllowed
     msg: "Executor: Not allowed"
 
 OutOfRange
-    except: IndexError
+    except: BadIndex
     flags: None
     msg: "Executor: Out of range"
 
 BadSyntax
-    except: SyntaxError
+    except: BadExecutor
     flags: None
     msg: "Executor: Bad syntax"
