@@ -1075,8 +1075,10 @@ purc_variant_t find_stack_var (void* ctxt, const char* name)
 
 purc_variant_t pcvcm_eval (struct pcvcm_node* tree, struct pcintr_stack* stack)
 {
-    PC_ASSERT(stack);
-    return pcvcm_eval_ex(tree, find_stack_var, stack);
+    if (stack) {
+        return pcvcm_eval_ex(tree, find_stack_var, stack);
+    }
+    return pcvcm_eval_ex(tree, NULL, NULL);
 }
 
 purc_variant_t pcvcm_eval_ex (struct pcvcm_node* tree,
