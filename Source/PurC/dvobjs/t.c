@@ -1,8 +1,8 @@
 /*
- * @file string.c
+ * @file t.c
  * @author Geng Yue
  * @date 2021/07/02
- * @brief The implementation of string dynamic variant object.
+ * @brief The implementation of T dynamic variant object.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -30,6 +30,7 @@
 
 #include <limits.h>
 
+#if 0
 static purc_variant_t
 map_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
@@ -94,7 +95,7 @@ map_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     return ret_var;
 }
-
+#endif
 
 static purc_variant_t
 get_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
@@ -114,23 +115,33 @@ get_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    pcintr_stack_t stack = purc_get_stack();
-    if (stack && stack->dvobjs.t.dict == PURC_VARIANT_INVALID) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
+//    pcintr_stack_t stack = purc_get_stack();
+//    if (stack && stack->dvobjs.t.dict == PURC_VARIANT_INVALID) {
+//        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+//        return PURC_VARIANT_INVALID;
+//    }
 
-    ret_var = purc_variant_object_get (stack->dvobjs.t.dict, argv[0]);
+//    ret_var = purc_variant_object_get (stack->dvobjs.t.dict, argv[0]);
 
     return ret_var;
 }
 
 purc_variant_t pcdvobjs_get_t (void)
 {
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
     static struct pcdvobjs_dvobjs method [] = {
-        {"map",  NULL,  map_setter},
-        {"get",  get_getter, NULL},
+        {"get",          get_getter,          NULL},
+//        {"release_self", release_self_getter, NULL},
     };
 
-    return pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));
+    ret_var = pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));
+
+    if (ret_var) {
+        purc_variant_t dict = purc_variant_make_object (0,
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        purc_variant_object_set_by_static_ckey (ret_var, "map", dict);
+    }
+
+    return ret_var;
 }

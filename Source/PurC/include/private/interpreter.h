@@ -70,31 +70,10 @@ struct pcintr_coroutine {
     int                         waits;  /* FIXME: nr of registered events */
 };
 
-struct pcintr_doc_timer {       // add for $TIMER
-};
-
-struct pcintr_doc_request {     // add for $REQUEST
-};
-
-struct pcintr_doc_hvml {        // add for $HVML
+struct pcintr_dvobj_hvml {        // add for $HVML
     char                *url;
     unsigned long int   maxIterationCount;
     unsigned short      maxRecursionDepth;
-};
-
-struct pcintr_doc_doc {         // add for $DOC
-};
-
-struct pcintr_doc_t {           // add for $T
-    purc_variant_t  dict;
-};
-
-struct pcintr_doc_dvobjs {
-    struct pcintr_doc_timer   timer;
-    struct pcintr_doc_request request;
-    struct pcintr_doc_hvml    hvml;
-    struct pcintr_doc_doc     doc;
-    struct pcintr_doc_t       t;
 };
 
 struct pcintr_stack {
@@ -132,7 +111,7 @@ struct pcintr_stack {
     struct pcintr_coroutine        co; 
 
     // for dynamic variant, such as DOC, T, HVML, TIMER, REQUEST
-    struct pcintr_doc_dvobjs dvobjs;
+    struct pcintr_dvobj_hvml dvobj_hvml;
 };
 
 enum purc_symbol_var {

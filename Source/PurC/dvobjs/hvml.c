@@ -1,8 +1,8 @@
 /*
- * @file string.c
+ * @file hvml.c
  * @author Geng Yue
  * @date 2021/07/02
- * @brief The implementation of string dynamic variant object.
+ * @brief The implementation of HVML dynamic variant object.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -42,10 +42,10 @@ base_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     pcintr_stack_t stack = purc_get_stack();
     if (stack) {
-        if (stack->dvobjs.hvml.url)
+        if (stack->dvobj_hvml.url)
             ret_var = purc_variant_make_string_reuse_buff (
-                    stack->dvobjs.hvml.url,
-                    strlen (stack->dvobjs.hvml.url), false);
+                    stack->dvobj_hvml.url,
+                    strlen (stack->dvobj_hvml.url), false);
     }
 
     return ret_var;
@@ -75,16 +75,16 @@ base_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     pcintr_stack_t stack = purc_get_stack();
     if (stack) {
-        if (stack->dvobjs.hvml.url)
-            stack->dvobjs.hvml.url = realloc (stack->dvobjs.hvml.url, length);
+        if (stack->dvobj_hvml.url)
+            stack->dvobj_hvml.url = realloc (stack->dvobj_hvml.url, length);
         else
-            stack->dvobjs.hvml.url = malloc (length);
+            stack->dvobj_hvml.url = malloc (length);
 
-        if (stack->dvobjs.hvml.url) {
-            strcpy (stack->dvobjs.hvml.url, url);
+        if (stack->dvobj_hvml.url) {
+            strcpy (stack->dvobj_hvml.url, url);
             ret_var = purc_variant_make_string_reuse_buff (
-                    stack->dvobjs.hvml.url,
-                    strlen (stack->dvobjs.hvml.url), false);
+                    stack->dvobj_hvml.url,
+                    strlen (stack->dvobj_hvml.url), false);
         }
     }
 
@@ -106,7 +106,7 @@ maxIterationCount_getter (
 
     pcintr_stack_t stack = purc_get_stack();
     if (stack) {
-        u64 = stack->dvobjs.hvml.maxIterationCount;
+        u64 = stack->dvobj_hvml.maxIterationCount;
         ret_var = purc_variant_make_ulongint (u64);
     }
 
@@ -138,7 +138,7 @@ maxIterationCount_setter (
 
     pcintr_stack_t stack = purc_get_stack();
     if (stack) {
-        stack->dvobjs.hvml.maxIterationCount = u64;
+        stack->dvobj_hvml.maxIterationCount = u64;
         ret_var = purc_variant_make_ulongint (u64);
     }
 
@@ -156,11 +156,11 @@ maxRecursionDepth_getter (
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    uint64_t u64 = USHRT_MAX;
+    uint64_t u64 = 0;
 
     pcintr_stack_t stack = purc_get_stack();
     if (stack) {
-        u64 = stack->dvobjs.hvml.maxRecursionDepth;
+        u64 = stack->dvobj_hvml.maxRecursionDepth;
         ret_var = purc_variant_make_ulongint (u64);
     }
 
@@ -190,14 +190,9 @@ maxRecursionDepth_setter (
     uint64_t u64;
     purc_variant_cast_to_ulongint (argv[0], &u64, false);
 
-    if (u64 > USHRT_MAX) {
-        // send an exception?
-        u64 = USHRT_MAX;
-    }
-
     pcintr_stack_t stack = purc_get_stack();
     if (stack) {
-        stack->dvobjs.hvml.maxRecursionDepth = u64;
+        stack->dvobj_hvml.maxRecursionDepth = u64;
         ret_var = purc_variant_make_ulongint (u64);
     }
 
