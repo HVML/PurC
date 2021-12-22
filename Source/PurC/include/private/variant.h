@@ -140,9 +140,7 @@ struct pcvariant_heap {
     int tailpos;
 
     // experiment
-    purc_variant_t      *gc;
-    size_t               sz;
-    size_t               nr;
+    struct pcvariant_gc       *gc;
 };
 
 // initialize variant module (once)
