@@ -255,6 +255,25 @@ pcintr_make_object_of_dynamic_variants(size_t nr_args,
     struct pcintr_dynamic_args *args);
 
 inline bool
+pcintr_bind_document_variable(purc_vdom_t vdom, const char* name,
+        purc_variant_t variant)
+{
+    return pcvdom_document_bind_variable(vdom, name, variant);
+}
+
+inline bool
+pcintr_unbind_document_variable(purc_vdom_t vdom, const char* name)
+{
+    return pcvdom_document_unbind_variable(vdom, name);
+}
+
+inline purc_variant_t
+pcintr_get_document_variable(purc_vdom_t vdom, const char* name)
+{
+    return pcvdom_document_get_variable(vdom, name);
+}
+
+inline bool
 pcintr_bind_scope_variable(pcvdom_element_t elem, const char* name,
         purc_variant_t variant)
 {
