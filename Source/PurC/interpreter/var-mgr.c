@@ -105,6 +105,9 @@ _find_named_scope_var(pcvdom_element_t elem, const char* name)
 
     purc_variant_t v = pcvarmgr_list_get(elem->variables, name);
     if (v) {
+        fprintf(stderr, "==%s[%d]:%s()==[%s/<%s>]\n",
+                __FILE__, __LINE__, __func__,
+                name, pcvariant_get_typename(purc_variant_get_type(v)));
         return v;
     }
 
@@ -124,6 +127,9 @@ _find_doc_buildin_var(struct pcvdom_document *doc, const char* name)
 
     purc_variant_t v = pcvarmgr_list_get(doc->variables, name);
     if (v) {
+        fprintf(stderr, "==%s[%d]:%s()==[%s/<%s>]\n",
+                __FILE__, __LINE__, __func__,
+                name, pcvariant_get_typename(purc_variant_get_type(v)));
         return v;
     }
     return PURC_VARIANT_INVALID;

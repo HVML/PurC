@@ -111,6 +111,9 @@ post_process_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         }
     end_foreach;
 
+    fprintf(stderr, "==%s[%d]:%s()==[<%s>]\n",
+            __FILE__, __LINE__, __func__,
+            pcvariant_get_typename(purc_variant_get_type(set)));
     post_process_bind_scope_var(co, frame, name, set);
 }
 
