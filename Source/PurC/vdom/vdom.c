@@ -348,7 +348,7 @@ pcvdom_document_get_variable(struct pcvdom_document *doc,
 {
     if (!doc || !name) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return -1;
+        return PURC_VARIANT_INVALID;
     }
     return pcvarmgr_list_get(doc->variables, name);
 }
