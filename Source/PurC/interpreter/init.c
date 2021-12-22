@@ -38,6 +38,8 @@
 
 struct ctxt_for_init {
     struct pcvdom_node           *curr;
+
+    unsigned int                  under_head:1;
 };
 
 static void
@@ -52,6 +54,98 @@ static void
 ctxt_destroy(void *ctxt)
 {
     ctxt_for_init_destroy((struct ctxt_for_init*)ctxt);
+}
+
+static void
+post_process_bind_scope_var(pcintr_coroutine_t co,
+        struct pcintr_stack_frame *frame,
+        purc_variant_t name, purc_variant_t val)
+{
+    struct pcvdom_element *element = frame->scope;
+    PC_ASSERT(element);
+
+    const char *s_name = purc_variant_get_string_const(name);
+    PC_ASSERT(s_name);
+
+    bool ok;
+    struct ctxt_for_init *ctxt = (struct ctxt_for_init*)frame->ctxt;
+    if (ctxt->under_head) {
+        ok = purc_bind_document_variable(co->stack->vdom, s_name, val);
+    } else {
+        element = pcvdom_element_parent(element);
+        PC_ASSERT(element);
+        ok = pcintr_bind_scope_variable(element, s_name, val);
+    }
+    purc_variant_unref(val);
+    if (!ok) {
+        frame->next_step = -1;
+        co->state = CO_STATE_TERMINATED;
+        return;
+    }
+}
+
+static void
+post_process_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        purc_variant_t name)
+{
+    purc_variant_t set;
+    set = purc_variant_make_set(0, PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    if (set == PURC_VARIANT_INVALID) {
+        frame->next_step = -1;
+        co->state = CO_STATE_TERMINATED;
+        return;
+    }
+
+    purc_variant_t val;
+    foreach_value_in_variant_array(frame->ctnt_var, val)
+        bool ok = purc_variant_is_type(val, PURC_VARIANT_TYPE_OBJECT);
+        if (ok) {
+            ok = purc_variant_set_add(set, val, true);
+        }
+        if (!ok) {
+            purc_variant_unref(set);
+            purc_set_error(PURC_ERROR_WRONG_ARGS);
+            frame->next_step = -1;
+            co->state = CO_STATE_TERMINATED;
+            return;
+        }
+    end_foreach;
+
+    post_process_bind_scope_var(co, frame, name, set);
+}
+
+static void
+post_process_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        purc_variant_t name)
+{
+    purc_variant_t val = frame->ctnt_var;
+
+    purc_variant_ref(val);
+    post_process_bind_scope_var(co, frame, name, val);
+}
+
+static void
+post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+{
+    purc_variant_t name;
+    name = purc_variant_object_get_by_ckey(frame->attr_vars, "as");
+    if (name == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_NOT_EXISTS);
+        frame->next_step = -1;
+        co->state = CO_STATE_TERMINATED;
+        return;
+    }
+
+    if (purc_variant_is_type(frame->ctnt_var, PURC_VARIANT_TYPE_ARRAY)) {
+        post_process_array(co, frame, name);
+        return;
+    }
+    if (purc_variant_is_type(frame->ctnt_var, PURC_VARIANT_TYPE_OBJECT)) {
+        post_process_object(co, frame, name);
+        return;
+    }
+
+    PC_ASSERT(0);
 }
 
 static void
@@ -93,6 +187,14 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     frame->next_step = NEXT_STEP_SELECT_CHILD;
     frame->ctxt_destroy = ctxt_destroy;
     co->state = CO_STATE_READY;
+
+    while ((element=pcvdom_element_parent(element))) {
+        if (element->tag_id == PCHVML_TAG_HEAD) {
+            ctxt->under_head = 1;
+        }
+    }
+
+    post_process(co, frame);
 }
 
 static void
@@ -108,7 +210,7 @@ on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         ctxt_for_init_destroy(ctxt);
         frame->ctxt = NULL;
     }
-    pop_stack_frame(stack);
+    pcintr_pop_stack_frame(stack);
     co->state = CO_STATE_READY;
 }
 
@@ -121,7 +223,7 @@ on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
     pcintr_stack_t stack = co->stack;
     struct pcintr_stack_frame *child_frame;
-    child_frame = push_stack_frame(stack);
+    child_frame = pcintr_push_stack_frame(stack);
     if (!child_frame) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return;
