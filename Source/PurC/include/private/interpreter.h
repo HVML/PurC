@@ -327,6 +327,9 @@ pcintr_timer_stop(pcintr_timer_t timer);
 void
 pcintr_timer_destroy(pcintr_timer_t timer);
 
+bool
+pcintr_init_timers(void);
+
 struct pcintr_observer*
 pcintr_register_observer(enum pcintr_observer_type type, purc_variant_t observed,
         purc_variant_t for_value, pcvdom_element_t ele);
