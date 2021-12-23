@@ -96,14 +96,12 @@ stack_release(pcintr_stack_t stack)
 {
     struct list_head *frames = &stack->frames;
     if (!list_empty(frames)) {
-        struct list_head *p, *n;
-        list_for_each_safe(p, n, frames) {
-            struct pcintr_stack_frame *frame;
-            frame = container_of(p, struct pcintr_stack_frame, node);
-            list_del(p);
+        struct pcintr_stack_frame *p, *n;
+        list_for_each_entry_reverse_safe(p, n, frames, node) {
+            list_del(&p->node);
             --stack->nr_frames;
-            stack_frame_release(frame);
-            free(frame);
+            stack_frame_release(p);
+            free(p);
         }
         PC_ASSERT(stack->nr_frames == 0);
     }
@@ -399,6 +397,77 @@ execute_one_step(pcintr_coroutine_t co)
         co->state = CO_STATE_TERMINATED;
 }
 
+static void
+dump_stack_frame(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+        size_t level)
+{
+    UNUSED_PARAM(stack);
+
+    if (level == 0) {
+        fprintf(stderr, "document\n");
+        return;
+    }
+    pcvdom_element_t scope = frame->scope;
+    PC_ASSERT(scope);
+    pcvdom_element_t pos = frame->pos;
+    for (size_t i=0; i<level; ++i) {
+        fprintf(stderr, "  ");
+    }
+    fprintf(stderr, "scope:<%s>; pos:<%s>\n",
+        scope->tag_name, pos ? pos->tag_name : NULL);
+}
+
+static void
+dump_err_except_info(purc_variant_t err_except_info)
+{
+    if (purc_variant_is_type(err_except_info, PURC_VARIANT_TYPE_STRING)) {
+        fprintf(stderr, "err_except_info: %s\n",
+                purc_variant_get_string_const(err_except_info));
+    }
+    else {
+        char buf[1024];
+        buf[0] = '\0';
+        int r = pcvariant_serialize(buf, sizeof(buf), err_except_info);
+        PC_ASSERT(r >= 0);
+        if ((size_t)r>=sizeof(buf)) {
+            buf[sizeof(buf)-1] = '\0';
+            buf[sizeof(buf)-2] = '.';
+            buf[sizeof(buf)-3] = '.';
+            buf[sizeof(buf)-4] = '.';
+        }
+        fprintf(stderr, "err_except_info: %s\n", buf);
+    }
+}
+
+static void
+dump_stack(pcintr_stack_t stack)
+{
+    fprintf(stderr, "dumping stack @[%p]\n", stack);
+    PC_ASSERT(stack);
+    fprintf(stderr, "error_except: generated @%s[%d]:%s()\n",
+            basename((char*)stack->file), stack->lineno, stack->func);
+    purc_atom_t     error_except = stack->error_except;
+    purc_variant_t  err_except_info = stack->err_except_info;
+    if (error_except) {
+        fprintf(stderr, "error_except: %s\n",
+                purc_atom_to_string(error_except));
+    }
+    if (err_except_info) {
+        dump_err_except_info(err_except_info);
+    }
+    fprintf(stderr, "nr_frames: %zd\n", stack->nr_frames);
+    struct list_head *frames = &stack->frames;
+    size_t level = 0;
+    if (!list_empty(frames)) {
+        struct list_head *p;
+        list_for_each(p, frames) {
+            struct pcintr_stack_frame *frame;
+            frame = container_of(p, struct pcintr_stack_frame, node);
+            dump_stack_frame(stack, frame, level++);
+        }
+    }
+}
+
 static int run_coroutines(void *ctxt)
 {
     UNUSED_PARAM(ctxt);
@@ -435,13 +504,23 @@ static int run_coroutines(void *ctxt)
                 default:
                     PC_ASSERT(0);
             }
+            pcintr_stack_t stack = co->stack;
+            PC_ASSERT(stack);
+                fprintf(stderr, "==%s[%d]:%s()==\n",
+                        __FILE__, __LINE__, __func__);
+            if (stack->except) {
+                fprintf(stderr, "==%s[%d]:%s()==\n",
+                        __FILE__, __LINE__, __func__);
+                dump_stack(stack);
+                co->state = CO_STATE_TERMINATED;
+            }
             if (co->state == CO_STATE_TERMINATED) {
                 fprintf(stderr, "==%s[%d]:%s()==terminating...\n",
                         __FILE__, __LINE__, __func__);
-                co->stack->stage = STACK_STAGE_TERMINATING;
+                stack->stage = STACK_STAGE_TERMINATING;
                 list_del(&co->node);
-                stack_release(co->stack);
-                free(co->stack);
+                stack_release(stack);
+                free(stack);
             }
         }
     }

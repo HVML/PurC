@@ -99,6 +99,9 @@ struct pcintr_stack {
     // error or except info
     purc_atom_t     error_except;
     purc_variant_t  err_except_info;
+    const char     *file;
+    int             lineno;
+    const char     *func;
 
     // executing statistics
     struct timespec time_executed;

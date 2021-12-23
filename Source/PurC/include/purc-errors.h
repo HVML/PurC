@@ -320,23 +320,54 @@ PCA_EXPORT int
 purc_get_last_error (void);
 
 /**
- * purc_set_error_ex:
+ * purc_set_error_with_location:
  *
  * Returns: PURC_ERROR_OK or PURC_ERROR_NO_INSTANCE.
  */
 PCA_EXPORT int
-purc_set_error_ex(int err_code, purc_variant_t exinfo);
+purc_set_error_with_location(int err_code, purc_variant_t exinfo,
+        const char *file, int lineno, const char *func);
+
+/**
+ * purc_set_error_ex:
+ *
+ * Returns: PURC_ERROR_OK or PURC_ERROR_NO_INSTANCE.
+ */
+#define purc_set_error_ex(err_code, exinfo)                 \
+        purc_set_error_with_location(err_code, exinfo,      \
+                __FILE__, __LINE__, __func__)
 
 /**
  * purc_set_error:
  *
  * Returns: PURC_ERROR_OK or PURC_ERROR_NO_INSTANCE.
  */
-static inline int
-purc_set_error(int err_code)
-{
-    return purc_set_error_ex(err_code, PURC_VARIANT_INVALID);
-}
+#define purc_set_error(err_code) \
+        purc_set_error_ex(err_code, PURC_VARIANT_INVALID)
+
+#define purc_clr_error() \
+        purc_set_error(0)
+
+/**
+ * purc_set_error_exinfo_printf
+ *
+ * Returns: PURC_ERROR_OK or PURC_ERROR_NO_INSTANCE.
+ */
+PCA_EXPORT int
+__attribute__ ((format (printf, 5, 6)))
+purc_set_error_exinfo_printf(int err_code,
+        const char *file, int lineno, const char *func,
+        const char *fmt, ...);
+
+/**
+ * purc_set_error_exinfo
+ *
+ * Returns: PURC_ERROR_OK or PURC_ERROR_NO_INSTANCE.
+ */
+#define purc_set_error_exinfo(err_code, fmt, ...)       \
+        purc_set_error_exinfo_printf(err_code,          \
+                __FILE__, __LINE__, __func__,           \
+                "%s" fmt "", "", ##__VA_ARGS__)
 
 /**
  * purc_get_error_message:

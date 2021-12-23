@@ -74,7 +74,6 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     r = pcintr_element_eval_vcm_content(frame, element);
     if (r) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         frame->next_step = -1;
         co->state = CO_STATE_TERMINATED;
         return;

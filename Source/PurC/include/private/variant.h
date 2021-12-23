@@ -203,6 +203,14 @@ int pcvariant_set_sort(purc_variant_t value, void *ud,
 
 const char* pcvariant_get_typename(enum purc_variant_type type);
 
+int pcvariant_serialize(char *buf, size_t sz, purc_variant_t val);
+char* pcvariant_serialize_alloc(char *buf, size_t sz, purc_variant_t val);
+
+purc_variant_t pcvariant_make_object(size_t nr_kvs, ...);
+
+__attribute__ ((format (printf, 1, 2)))
+purc_variant_t pcvariant_make_with_printf(const char *fmt, ...);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
