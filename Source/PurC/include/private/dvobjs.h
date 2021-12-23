@@ -86,6 +86,7 @@
 #define HVML_MAP_DISPLACE           "displace"
 
 #define DEFAULT_HVML_BASE           ""
+#define DEFAULT_HVML_TIMEOUT        10.0
 #define DVOBJ_HVML_DATA_NAME        "__dvobj_hvml_data"
 
 #ifdef __cplusplus

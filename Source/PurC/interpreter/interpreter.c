@@ -133,6 +133,7 @@ static void
 stack_init(pcintr_stack_t stack)
 {
     INIT_LIST_HEAD(&stack->frames);
+    stack->stage = STACK_STAGE_FIRST_ROUND;
 }
 
 void pcintr_stack_cleanup_instance(struct pcinst* inst)
@@ -358,7 +359,7 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 }
 
 static void
-run_coroutine(pcintr_coroutine_t co)
+execute_one_step(pcintr_coroutine_t co)
 {
     pcintr_stack_t stack = co->stack;
     struct pcintr_stack_frame *frame;
@@ -389,12 +390,13 @@ run_coroutine(pcintr_coroutine_t co)
             PC_ASSERT(0);
     }
 
+    bool no_frames = list_empty(&co->stack->frames);
+    if (no_frames)
+        co->stack->stage = STACK_STAGE_EVENT_LOOP;
     if (co->waits)
         return;
-    struct list_head *frames = &stack->frames;
-    if (!list_empty(frames))
-        return;
-    co->state = CO_STATE_TERMINATED;
+    if (no_frames)
+        co->state = CO_STATE_TERMINATED;
 }
 
 static int run_coroutines(void *ctxt)
@@ -416,7 +418,7 @@ static int run_coroutines(void *ctxt)
                     co->state = CO_STATE_RUN;
                     coroutine_set_current(co);
                     pcvariant_push_gc();
-                    run_coroutine(co);
+                    execute_one_step(co);
                     pcvariant_pop_gc();
                     coroutine_set_current(NULL);
                     ++readies;
@@ -436,6 +438,7 @@ static int run_coroutines(void *ctxt)
             if (co->state == CO_STATE_TERMINATED) {
                 fprintf(stderr, "==%s[%d]:%s()==terminating...\n",
                         __FILE__, __LINE__, __func__);
+                co->stack->stage = STACK_STAGE_TERMINATING;
                 list_del(&co->node);
                 stack_release(co->stack);
                 free(co->stack);
@@ -689,6 +692,11 @@ pcintr_unbind_scope_variable(pcvdom_element_t elem, const char* name)
     return pcvdom_element_unbind_variable(elem, name);
 }
 
+purc_variant_t
+pcintr_get_scope_variable(pcvdom_element_t elem, const char* name)
+{
+    return pcvdom_element_get_variable(elem, name);
+}
 
 int add_observer_into_list(struct pcutils_arrlist* list,
         struct pcintr_observer* observer)

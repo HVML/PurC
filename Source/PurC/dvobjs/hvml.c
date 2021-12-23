@@ -111,7 +111,8 @@ base_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                 ret_var = purc_variant_make_string (url, false);
             }
             else {
-                // send error code
+                pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
+                ret_var = purc_variant_make_string (dvobj_hvml->url, false);
             }
         }
     }
@@ -323,16 +324,20 @@ purc_variant_t pcdvobjs_get_hvml (void * param)
     int length = strlen (DEFAULT_HVML_BASE) + 1;
     dvobj_hvml->url = malloc (length);
     if (dvobj_hvml->url == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
+        purc_variant_unref (ret_var);
+        return PURC_VARIANT_INVALID;
     }
 
     strcpy (dvobj_hvml->url, DEFAULT_HVML_BASE);
     dvobj_hvml->maxIterationCount = ULONG_MAX;
     dvobj_hvml->maxRecursionDepth = USHRT_MAX;
-    dvobj_hvml->timeout.tv_sec = 10.0;
-    dvobj_hvml->timeout.tv_usec = 0;
+    dvobj_hvml->timeout.tv_sec = (long) DEFAULT_HVML_TIMEOUT;
+    dvobj_hvml->timeout.tv_usec = (long) ((DEFAULT_HVML_TIMEOUT -
+                dvobj_hvml->timeout.tv_sec) * 1000000);
 
     purc_variant_t val = purc_variant_make_ulongint ((uint64_t)param);
-    purc_variant_object_set_by_static_ckey (ret_var, "__dvobj_hvml_data", val);
+    purc_variant_object_set_by_static_ckey (ret_var, DVOBJ_HVML_DATA_NAME, val);
     purc_variant_unref (val);
 
     return pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));

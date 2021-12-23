@@ -278,6 +278,10 @@ bool
 pcvdom_element_unbind_variable(struct pcvdom_element *elem,
         const char *name);
 
+purc_variant_t
+pcvdom_element_get_variable(struct pcvdom_element *elem,
+        const char *name);
+
 // accessor api
 struct pcvdom_node*
 pcvdom_node_parent(struct pcvdom_node *node);

@@ -303,6 +303,15 @@ bool purc_unbind_variable(const char* name)
 }
 #endif
 
+purc_variant_t purc_get_variable(const char* name)
+{
+    struct pcinst* inst = pcinst_current();
+    if (inst == NULL)
+        return false;
+
+    return pcvarmgr_list_get(inst->variables, name);
+}
+
 bool
 purc_bind_document_variable(purc_vdom_t vdom, const char* name,
         purc_variant_t variant)

@@ -30,6 +30,24 @@
 
 #include "private/interpreter.h"
 
+#include <libgen.h>
+
+#define TO_DEBUG
+
+#ifdef TO_DEBUG
+#ifndef D
+#define D(fmt, ...)                                           \
+    fprintf(stderr, "%s[%d]:%s(): " fmt "\n",                 \
+        basename((char*)__FILE__), __LINE__, __func__,        \
+        ##__VA_ARGS__);
+#endif // D
+#else // ! TO_DEBUG
+#define D(fmt, ...) ({                                        \
+    UNUSED_PARAM(vtt_to_string);                              \
+    UNUSED_PARAM(vgim_to_string);                             \
+    })
+#endif // TO_DEBUG
+
 PCA_EXTERN_C_BEGIN
 
 int

@@ -70,12 +70,11 @@ struct pcintr_coroutine {
     int                         waits;  /* FIXME: nr of registered events */
 };
 
-//struct pcintr_dvobj_hvml {        // add for $HVML
-//    char                *url;
-//    unsigned long int   maxIterationCount;
-//    unsigned long int   maxRecursionDepth;
-//    double              timeout;
-//};
+enum pcintr_stack_stage {
+    STACK_STAGE_FIRST_ROUND,
+    STACK_STAGE_EVENT_LOOP,
+    STACK_STAGE_TERMINATING,
+};
 
 struct pcintr_stack {
     struct list_head frames;
@@ -95,7 +94,7 @@ struct pcintr_stack {
     uint32_t        except:1;
     /* uint32_t        paused:1; */
 
-    uint32_t        state; /* TODO: remove */
+    enum pcintr_stack_stage       stage;
 
     // error or except info
     purc_atom_t     error_except;
@@ -115,9 +114,6 @@ struct pcintr_stack {
     struct pcutils_arrlist* common_observer_list;
     struct pcutils_arrlist* special_observer_list;
     struct pcutils_arrlist* native_observer_list;
-
-    // for dynamic variant, such as DOC, T, HVML, TIMER, REQUEST
-//    struct pcintr_dvobj_hvml dvobj_hvml;
 };
 
 enum purc_symbol_var {
@@ -264,6 +260,10 @@ pcintr_bind_scope_variable(pcvdom_element_t elem, const char* name,
 
 bool
 pcintr_unbind_scope_variable(pcvdom_element_t elem, const char* name);
+
+purc_variant_t
+pcintr_get_scope_variable(pcvdom_element_t elem, const char* name);
+
 
 purc_variant_t
 pcintr_find_named_var(pcintr_stack_t stack, const char* name);

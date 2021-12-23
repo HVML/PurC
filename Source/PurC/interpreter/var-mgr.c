@@ -177,6 +177,7 @@ pcintr_find_named_var(pcintr_stack_t stack, const char* name)
         return v;
     }
 
+    D("no variable for [%s]", name);
     return purc_variant_make_undefined();
 }
 
