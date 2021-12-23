@@ -172,7 +172,7 @@ is_euqal(purc_variant_t var, const char* comp)
     return false;
 }
 
-pcintr_timer_t
+static pcintr_timer_t
 get_inner_timer(purc_vdom_t vdom, purc_variant_t timer_var)
 {
     purc_variant_t tm = purc_variant_object_get_by_ckey(timer_var,
@@ -200,7 +200,7 @@ get_inner_timer(purc_vdom_t vdom, purc_variant_t timer_var)
     return timer;
 }
 
-void
+static void
 destroy_inner_timer(purc_variant_t timer_var)
 {
     purc_variant_t tm = purc_variant_object_get_by_ckey(timer_var,
