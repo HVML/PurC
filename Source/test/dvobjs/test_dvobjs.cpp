@@ -35,7 +35,7 @@ TEST(dvobjs, dvobjs_sys_uname)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t sys = pcdvobjs_get_system();
+    purc_variant_t sys = pcdvobjs_get_system(NULL);
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 
@@ -103,7 +103,7 @@ TEST(dvobjs, dvobjs_sys_uname_prt)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t sys = pcdvobjs_get_system();
+    purc_variant_t sys = pcdvobjs_get_system(NULL);
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 
@@ -211,7 +211,7 @@ TEST(dvobjs, dvobjs_sys_get_locale)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t sys = pcdvobjs_get_system();
+    purc_variant_t sys = pcdvobjs_get_system(NULL);
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 
@@ -400,7 +400,7 @@ TEST(dvobjs, dvobjs_sys_set_locale)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t sys = pcdvobjs_get_system();
+    purc_variant_t sys = pcdvobjs_get_system(NULL);
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 
@@ -634,7 +634,7 @@ TEST(dvobjs, dvobjs_sys_get_random)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t sys = pcdvobjs_get_system();
+    purc_variant_t sys = pcdvobjs_get_system(NULL);
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 
@@ -701,7 +701,7 @@ TEST(dvobjs, dvobjs_sys_gettime)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t sys = pcdvobjs_get_system();
+    purc_variant_t sys = pcdvobjs_get_system(NULL);
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 

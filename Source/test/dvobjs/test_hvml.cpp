@@ -47,7 +47,7 @@ TEST(dvobjs, dvobjs_hvml_setter)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t hvml = pcdvobjs_get_hvml();
+    purc_variant_t hvml = pcdvobjs_get_hvml(NULL);
     ASSERT_NE(hvml, nullptr);
     ASSERT_EQ(purc_variant_is_object (hvml), true);
 

@@ -46,8 +46,8 @@
 
 #define FS_DVOBJ_VERSION    0
 
-purc_variant_t pcdvobjs_create_file (void);
-typedef purc_variant_t (*pcdvobjs_create) (void);
+purc_variant_t pcdvobjs_create_file (void *);
+typedef purc_variant_t (*pcdvobjs_create) (void *);
 
 // as FILE, FS, MATH
 struct pcdvobjs_dvobjs_object {
@@ -1059,8 +1059,9 @@ rm_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
 }
 
-static purc_variant_t pcdvobjs_create_fs(void)
+static purc_variant_t pcdvobjs_create_fs(void *param)
 {
+    UNUSED_PARAM(param);
     static struct pcdvobjs_dvobjs method [] = {
         {"list",     list_getter, NULL},
         {"list_prt", list_prt_getter, NULL},
@@ -1098,7 +1099,7 @@ purc_variant_t __purcex_load_dynamic_variant (const char *name, int *ver_code)
         return PURC_VARIANT_INVALID;
     else {
         *ver_code = FS_DVOBJ_VERSION;
-        return dynamic_objects[i].create_func();
+        return dynamic_objects[i].create_func(NULL);
     }
 }
 

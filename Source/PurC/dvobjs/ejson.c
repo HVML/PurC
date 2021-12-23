@@ -485,8 +485,10 @@ compare_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 // only for test now.
-purc_variant_t pcdvobjs_get_ejson (void)
+purc_variant_t pcdvobjs_get_ejson (void *param)
 {
+    UNUSED_PARAM(param);
+
     static struct pcdvobjs_dvobjs method [] = {
         {"type",        type_getter, NULL},
         {"count",       count_getter, NULL},

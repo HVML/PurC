@@ -1478,8 +1478,10 @@ void __attribute__ ((destructor)) math_fini(void)
 }
 
 // todo: release const_map
-static purc_variant_t pcdvobjs_create_math (void)
+static purc_variant_t pcdvobjs_create_math (void *param)
 {
+    UNUSED_PARAM(param);
+
     // set const map
     size_t i = 0;
     static struct const_struct const_key_value [] = {
@@ -1588,7 +1590,7 @@ purc_variant_t __purcex_load_dynamic_variant (const char *name, int *ver_code)
     UNUSED_PARAM(name);
     *ver_code = MATH_DVOBJ_VERSION;
 
-    return pcdvobjs_create_math ();
+    return pcdvobjs_create_math (NULL);
 }
 
 size_t __purcex_get_number_of_dynamic_variants (void)

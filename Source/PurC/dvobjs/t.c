@@ -35,6 +35,12 @@ get_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
+    if ((root != PURC_VARIANT_INVALID) &&
+            (!purc_variant_is_object (root))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
     if ((argv == NULL) || (nr_args < 1)) {
         pcinst_set_error (PURC_ERROR_WRONG_ARGS);
         return PURC_VARIANT_INVALID;
@@ -46,24 +52,21 @@ get_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    pcintr_stack_t stack = purc_get_stack();
-    if (stack && stack->vdom) {
-        purc_variant_t var = pcvdom_document_get_variable (stack->vdom, "T");
-        if (var) {
-            var = purc_variant_object_get_by_ckey (var, "map");
-            if (var) {
-                ret_var = purc_variant_object_get (var, argv[0]);
-                // ret_var is a reference of value
-                purc_variant_ref (ret_var);
-            }
-        }
+    purc_variant_t var = purc_variant_object_get_by_ckey (root, "map");
+    if (var) {
+        ret_var = purc_variant_object_get (var, argv[0]);
+        // ret_var is a reference of value
+        if (ret_var)
+            purc_variant_ref (ret_var);
     }
 
     return ret_var;
 }
 
-purc_variant_t pcdvobjs_get_t (void)
+purc_variant_t pcdvobjs_get_t (void *param)
 {
+    UNUSED_PARAM(param);
+
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     static struct pcdvobjs_dvobjs method [] = {

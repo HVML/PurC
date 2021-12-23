@@ -85,6 +85,8 @@
 #define HVML_MAP_APPEND             "append"
 #define HVML_MAP_DISPLACE           "displace"
 
+#define DEFAULT_HVML_BASE           ""
+#define DVOBJ_HVML_DATA_NAME        "__dvobj_hvml_data"
 
 #ifdef __cplusplus
 extern "C" {
@@ -101,12 +103,12 @@ void pcdvobjs_init_instance(struct pcinst* inst) WTF_INTERNAL;
 // clean up the dvobjs module for a PurC instance.
 void pcdvobjs_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 
-purc_variant_t pcdvobjs_get_system(void);
-purc_variant_t pcdvobjs_get_string(void);
-purc_variant_t pcdvobjs_get_logical(void);
-purc_variant_t pcdvobjs_get_ejson(void);
-purc_variant_t pcdvobjs_get_hvml(void);
-purc_variant_t pcdvobjs_get_t(void);
+purc_variant_t pcdvobjs_get_system(void *);
+purc_variant_t pcdvobjs_get_string(void *);
+purc_variant_t pcdvobjs_get_logical(void *);
+purc_variant_t pcdvobjs_get_ejson(void *);
+purc_variant_t pcdvobjs_get_hvml(void *);
+purc_variant_t pcdvobjs_get_t(void *);
 
 struct wildcard_list {
     char * wildcard;

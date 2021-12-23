@@ -106,6 +106,13 @@ struct pcvdom_doctype {
     char                   *system_info;
 };
 
+struct pcvdom_dvobj_hvml {
+    char                   *url;
+    unsigned long int      maxIterationCount;
+    unsigned long int      maxRecursionDepth;
+    struct timeval         timeout;
+};
+
 struct pcvdom_document {
     struct pcvdom_node      node;
 
@@ -119,6 +126,9 @@ struct pcvdom_document {
     // document-variables
     // such as `$REQUEST`、`$TIMERS`、`$T` and etc.
     pcvarmgr_list_t         variables;
+
+    // for dvobj hvml
+    struct pcvdom_dvobj_hvml dvobj_hvml;
 
     unsigned int            quirks:1;
 };

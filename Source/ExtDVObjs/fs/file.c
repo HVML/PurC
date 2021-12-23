@@ -1572,8 +1572,10 @@ stream_close_getter (purc_variant_t root, size_t nr_args,
     return ret_var;
 }
 
-purc_variant_t pcdvobjs_create_file (void)
+purc_variant_t pcdvobjs_create_file (void *param)
 {
+    UNUSED_PARAM(param);
+
     purc_variant_t file_text = PURC_VARIANT_INVALID;
     purc_variant_t file_bin = PURC_VARIANT_INVALID;
     purc_variant_t file_stream = PURC_VARIANT_INVALID;
