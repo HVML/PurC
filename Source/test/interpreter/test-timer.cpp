@@ -74,3 +74,38 @@ TEST(timer, interval)
     ASSERT_EQ (cleanup, true);
 }
 
+int init_timers(void *ctxt)
+{
+    UNUSED_PARAM(ctxt);
+    pcintr_init_timers();
+    return 0;
+}
+
+TEST(TIMER, init)
+{
+    const char* hvml =
+        "<hvml><body><a><b><c></c></b></a></body></hvml>";
+
+    purc_instance_extra_info info = {};
+    int ret = 0;
+    bool cleanup = false;
+
+    // initial purc
+    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    // get statitics information
+    struct purc_variant_stat * stat = purc_variant_usage_stat ();
+    ASSERT_NE(stat, nullptr);
+
+    purc_vdom_t vdom = purc_load_hvml_from_string(hvml);
+    ASSERT_NE(vdom, nullptr);
+
+    pcrunloop_dispatch(pcrunloop_get_current(), init_timers, NULL);
+
+    purc_run(PURC_VARIANT_INVALID, NULL);
+
+
+    cleanup = purc_cleanup ();
+    ASSERT_EQ (cleanup, true);
+}
