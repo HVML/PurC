@@ -148,7 +148,7 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     if ((nr_args >= 1) && (argv[0] != PURC_VARIANT_INVALID) &&
          (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
@@ -377,13 +377,13 @@ locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if ((nr_args != 0) && (argv == NULL)) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
     if ((nr_args == 1) && ((argv[0] != PURC_VARIANT_INVALID) &&
                 (!purc_variant_is_string (argv[0])))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
@@ -521,7 +521,7 @@ locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     return ret_var;
 
 bad_category:
-    pcinst_set_error (PURC_ERROR_BAD_LOCALE_CATEGORY);
+    pcinst_set_error (PURC_ERROR_INVALID_VALUE);
     return PURC_VARIANT_INVALID;
 }
 
@@ -534,19 +534,19 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args != 2) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[1] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[1]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
@@ -722,13 +722,13 @@ random_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     double number = 0.0;
 
     if (nr_args == 0) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_number (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
@@ -885,7 +885,7 @@ time_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     if ((nr_args >= 1) && (argv[0] != PURC_VARIANT_INVALID) &&
                     (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
     else
@@ -896,7 +896,7 @@ time_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                (purc_variant_is_longdouble (argv[1])) ||
                (purc_variant_is_longint (argv[1]))    ||
                (purc_variant_is_number (argv[1]))))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
     else if (nr_args >= 2)
@@ -904,7 +904,7 @@ time_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     if ((nr_args >= 3) && (argv[2] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[2]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
     else if (nr_args >= 3)
@@ -1126,7 +1126,7 @@ time_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_number (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 

@@ -106,7 +106,7 @@ post_process_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         }
         if (!ok) {
             purc_variant_unref(set);
-            purc_set_error(PURC_ERROR_WRONG_ARGS);
+            purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
             frame->next_step = -1;
             co->state = CO_STATE_TERMINATED;
             return;

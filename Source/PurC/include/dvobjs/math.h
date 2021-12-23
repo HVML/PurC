@@ -127,7 +127,7 @@ long double const_l(string);
  *
  * @note        The angle is given in RADIANS.
  *
- * @exception   PURC_ERROR_WRONG_ARGS
+ * @exception   PURC_ERROR_ARGUMENT_MISSED
  *              PURC_ERROR_FEINVALID
  *
  * @sa          sin_l()
@@ -149,7 +149,7 @@ double sin(<number | longint | ulongint | long double> angle);
  *
  * @note        The angle is given in RADIANS.
  *
- * @exception   PURC_ERROR_WRONG_ARGS
+ * @exception   PURC_ERROR_ARGUMENT_MISSED
  *              PURC_ERROR_FEINVALID
  *
  * @sa          sin()
@@ -170,7 +170,7 @@ long double sin_l(<number | longint | ulongint | long double> angle);
  *
  * @note        The returned angle is given in RADIANS.
  *
- * @exception   PURC_ERROR_WRONG_ARGS
+ * @exception   PURC_ERROR_ARGUMENT_MISSED
  *              PURC_ERROR_FEINVALID
  *
  * @sa          asin_l()
@@ -192,7 +192,7 @@ double asin(<number | longint | ulongint | long double> value);
  *
  * @note        The returned angle is given in RADIANS.
  *
- * @exception   PURC_ERROR_WRONG_ARGS
+ * @exception   PURC_ERROR_ARGUMENT_MISSED
  *              PURC_ERROR_FEINVALID
  *
  * @sa          asin()
@@ -214,7 +214,7 @@ long double asin_l(<number | longint | ulongint | long double> value);
  *
  * @note        The angle is given in RADIANS.
  *
- * @exception   PURC_ERROR_WRONG_ARGS
+ * @exception   PURC_ERROR_ARGUMENT_MISSED
  *              PURC_ERROR_FEINVALID
  *
  * @sa          cos_l()
@@ -236,7 +236,7 @@ double cos(<number | longint | ulongint | long double> angle);
  *
  * @note        The angle is given in RADIANS.
  *
- * @exception   PURC_ERROR_WRONG_ARGS
+ * @exception   PURC_ERROR_ARGUMENT_MISSED
  *              PURC_ERROR_FEINVALID
  *
  * @sa          cos()
@@ -258,7 +258,7 @@ long double cos_l(<number | longint | ulongint | long double> angle);
  *
  * @note        The returned angle is given in RADIANS.
  *
- * @exception   PURC_ERROR_WRONG_ARGS
+ * @exception   PURC_ERROR_ARGUMENT_MISSED
  *              PURC_ERROR_FEINVALID
  *
  * @sa          acos_l()
@@ -280,7 +280,7 @@ double acos(<number | longint | ulongint | long double> value);
  *
  * @note        The returned angle is given in RADIANS.
  *
- * @exception   PURC_ERROR_WRONG_ARGS
+ * @exception   PURC_ERROR_ARGUMENT_MISSED
  *              PURC_ERROR_FEINVALID
  *
  * @sa          acos()
@@ -301,7 +301,7 @@ long double acos_l(<number | longint | ulongint | long double> value);
  *
  * @note        The angle is given in RADIANS.
  *
- * @exception   PURC_ERROR_WRONG_ARGS
+ * @exception   PURC_ERROR_ARGUMENT_MISSED
  *              PURC_ERROR_FEINVALID
  *              PURC_ERROR_OVERFLOW
  *
@@ -324,7 +324,7 @@ double tan(<number | longint | ulongint | long double> angle);
  *
  * @note        The angle is given in RADIANS.
  *
- * @exception   PURC_ERROR_WRONG_ARGS
+ * @exception   PURC_ERROR_ARGUMENT_MISSED
  *              PURC_ERROR_FEINVALID
  *              PURC_ERROR_OVERFLOW
  *
@@ -346,7 +346,7 @@ long double tan_l(<number | longint | ulongint | long double> angle);
  *
  * @note        The returned angle is given in RADIANS.
  *
- * @exception   PURC_ERROR_WRONG_ARGS
+ * @exception   PURC_ERROR_ARGUMENT_MISSED
  *              PURC_ERROR_FEINVALID
  *
  * @sa          atan_l()
@@ -368,7 +368,7 @@ double atan(<number | longint | ulongint | long double> value);
  *
  * @note        The returned angle is given in RADIANS.
  *
- * @exception   PURC_ERROR_WRONG_ARGS
+ * @exception   PURC_ERROR_ARGUMENT_MISSED
  *              PURC_ERROR_FEINVALID
  *
  * @sa          atan()
@@ -389,7 +389,7 @@ long double atan_l(<number | longint | ulongint | long double> value);
  *
  * @note
  *
- * @exception   PURC_ERROR_WRONG_ARGS
+ * @exception   PURC_ERROR_ARGUMENT_MISSED
  *              PURC_ERROR_FEINVALID
  *
  * @sa          sqrt_l()
@@ -411,7 +411,7 @@ double sqrt(<number | longint | ulongint | long double> number);
  *
  * @note
  *
- * @exception   PURC_ERROR_WRONG_ARGS
+ * @exception   PURC_ERROR_ARGUMENT_MISSED
  *              PURC_ERROR_FEINVALID
  *
  * @sa          sqrt()
@@ -434,7 +434,7 @@ long double sqrt_l(<number | longint | ulongint | long double> number);
  *
  * @note
  *
- * @exception   PURC_ERROR_WRONG_ARGS
+ * @exception   PURC_ERROR_ARGUMENT_MISSED
  *              PURC_ERROR_FEINVALID
  *
  * @sa          fmod_l()
@@ -457,7 +457,7 @@ double fmod(<number | longint | ulongint | long double> value1, <number | longin
  *
  * @note
  *
- * @exception   PURC_ERROR_WRONG_ARGS
+ * @exception   PURC_ERROR_ARGUMENT_MISSED
  *              PURC_ERROR_FEINVALID
  *
  * @sa          fmod()
@@ -478,7 +478,7 @@ long double fmod_l(<number | longint | ulongint | long double> value1, <number |
  *
  * @note
  *
- * @exception   PURC_ERROR_WRONG_ARGS
+ * @exception   PURC_ERROR_ARGUMENT_MISSED
  *              PURC_ERROR_FEINVALID
  *
  * @sa          fabs_l()
@@ -500,7 +500,7 @@ double fabs(<number | longint | ulongint | long double> value);
  *
  * @note
  *
- * @exception   PURC_ERROR_WRONG_ARGS
+ * @exception   PURC_ERROR_ARGUMENT_MISSED
  *              PURC_ERROR_FEINVALID
  *
  * @sa          fabs()
@@ -521,7 +521,7 @@ long double fabs_l(<number | longint | ulongint | long double> value);
  *
  * @note
  *
- * @exception   PURC_ERROR_WRONG_ARGS
+ * @exception   PURC_ERROR_ARGUMENT_MISSED
  *              PURC_ERROR_DIVBYZERO
  *              PURC_ERROR_FEINVALID
  *
@@ -544,7 +544,7 @@ double log(<number | longint | ulongint | long double> value);
  *
  * @note
  *
- * @exception   PURC_ERROR_WRONG_ARGS
+ * @exception   PURC_ERROR_ARGUMENT_MISSED
  *              PURC_ERROR_DIVBYZERO
  *              PURC_ERROR_FEINVALID
  *
@@ -566,7 +566,7 @@ long double log_l(<number | longint | ulongint | long double> value);
  *
  * @note
  *
- * @exception   PURC_ERROR_WRONG_ARGS
+ * @exception   PURC_ERROR_ARGUMENT_MISSED
  *              PURC_ERROR_DIVBYZERO
  *              PURC_ERROR_FEINVALID
  *
@@ -589,7 +589,7 @@ double log10(<number | longint | ulongint | long double> value);
  *
  * @note
  *
- * @exception   PURC_ERROR_WRONG_ARGS
+ * @exception   PURC_ERROR_ARGUMENT_MISSED
  *              PURC_ERROR_DIVBYZERO
  *              PURC_ERROR_FEINVALID
  *
@@ -612,7 +612,7 @@ long double log10_l(<number | longint | ulongint | long double> value);
  *
  * @note
  *
- * @exception   PURC_ERROR_WRONG_ARGS
+ * @exception   PURC_ERROR_ARGUMENT_MISSED
  *              PURC_ERROR_OVERFLOW
  *              PURC_ERROR_UNDERFLOW
  *              PURC_ERROR_DIVBYZERO
@@ -638,7 +638,7 @@ double pow(<number | longint | ulongint | long double> value1, <number | longint
  *
  * @note
  *
- * @exception   PURC_ERROR_WRONG_ARGS
+ * @exception   PURC_ERROR_ARGUMENT_MISSED
  *              PURC_ERROR_OVERFLOW
  *              PURC_ERROR_UNDERFLOW
  *              PURC_ERROR_DIVBYZERO
@@ -662,7 +662,7 @@ long double pow_l(<number | longint | ulongint | long double> value1, <number | 
  *
  * @note
  *
- * @exception   PURC_ERROR_WRONG_ARGS
+ * @exception   PURC_ERROR_ARGUMENT_MISSED
  *              PURC_ERROR_OVERFLOW
  *              PURC_ERROR_UNDERFLOW
  *              PURC_ERROR_DIVBYZERO
@@ -687,7 +687,7 @@ double exp(<number | longint | ulongint | long double> value);
  *
  * @note
  *
- * @exception   PURC_ERROR_WRONG_ARGS
+ * @exception   PURC_ERROR_ARGUMENT_MISSED
  *              PURC_ERROR_OVERFLOW
  *              PURC_ERROR_UNDERFLOW
  *              PURC_ERROR_DIVBYZERO
@@ -711,7 +711,7 @@ long double exp_l(<number | longint | ulongint | long double> value);
  *
  * @note
  *
- * @exception   PURC_ERROR_WRONG_ARGS
+ * @exception   PURC_ERROR_ARGUMENT_MISSED
  *              PURC_ERROR_FEINVALID
  *
  * @sa          floor_l()
@@ -733,7 +733,7 @@ double floor(<number | longint | ulongint | long double> value);
  *
  * @note
  *
- * @exception   PURC_ERROR_WRONG_ARGS
+ * @exception   PURC_ERROR_ARGUMENT_MISSED
  *              PURC_ERROR_FEINVALID
  *
  * @sa          floor()
@@ -754,7 +754,7 @@ long double floor_l(<number | longint | ulongint | long double> value);
  *
  * @note
  *
- * @exception   PURC_ERROR_WRONG_ARGS
+ * @exception   PURC_ERROR_ARGUMENT_MISSED
  *              PURC_ERROR_FEINVALID
  *
  * @sa          ceil_l()
@@ -776,7 +776,7 @@ double ceil(<number | longint | ulongint | long double> value);
  *
  * @note
  *
- * @exception   PURC_ERROR_WRONG_ARGS
+ * @exception   PURC_ERROR_ARGUMENT_MISSED
  *              PURC_ERROR_FEINVALID
  *
  * @sa          ceil()
