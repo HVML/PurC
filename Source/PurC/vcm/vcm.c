@@ -778,14 +778,14 @@ enum method_type {
     SETTER_METHOD
 };
 
-purc_variant_t call_dvariant_method(purc_variant_t var,
+purc_variant_t call_dvariant_method(purc_variant_t root, purc_variant_t var,
         size_t nr_args, purc_variant_t* argv, enum method_type type)
 {
     purc_dvariant_method func = (type == GETTER_METHOD) ?
          purc_variant_dynamic_get_getter (var) :
          purc_variant_dynamic_get_setter (var);
     if (func) {
-        return func (var, nr_args, argv);
+        return func (root, nr_args, argv);
     }
     return PURC_VARIANT_INVALID;
 }
@@ -805,6 +805,11 @@ purc_variant_t call_nvariant_method(purc_variant_t var,
         }
     }
     return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t get_attach_variant(struct pcvcm_node* node)
+{
+    return node ? (purc_variant_t)node->attach : PURC_VARIANT_INVALID;
 }
 
 purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
@@ -855,7 +860,7 @@ purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
             ret_var = val;
             goto clear_param_var;
         }
-        ret_var = call_dvariant_method(val, 0, NULL, GETTER_METHOD);
+        ret_var = call_dvariant_method(caller_var, val, 0, NULL, GETTER_METHOD);
         purc_variant_unref(val);
     }
     else if (purc_variant_is_array(caller_var)) {
@@ -878,7 +883,7 @@ purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
             ret_var = val;
             goto clear_param_var;
         }
-        ret_var = call_dvariant_method(val, 0, NULL, GETTER_METHOD);
+        ret_var = call_dvariant_method(caller_var, val, 0, NULL, GETTER_METHOD);
         purc_variant_unref(val);
     }
     else if (purc_variant_is_set(caller_var)) {
@@ -901,11 +906,13 @@ purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
             ret_var = val;
             goto clear_param_var;
         }
-        ret_var = call_dvariant_method(val, 0, NULL, GETTER_METHOD);
+        ret_var = call_dvariant_method(caller_var, val, 0, NULL, GETTER_METHOD);
         purc_variant_unref(val);
     }
     else if (purc_variant_is_dynamic(caller_var)) {
-        ret_var = call_dvariant_method(caller_var, 1, &param_var, GETTER_METHOD);
+        ret_var = call_dvariant_method(
+                get_attach_variant(FIRST_CHILD(caller_node)),
+                caller_var, 1, &param_var, GETTER_METHOD);
         goto clear_param_var;
     }
     else if (purc_variant_is_native(caller_var)) {
@@ -965,7 +972,9 @@ purc_variant_t pcvcm_node_call_method_to_variant (struct pcvcm_node* node,
     }
 
     if (purc_variant_is_dynamic(caller_var)) {
-        ret_var = call_dvariant_method(caller_var, nr_params, params, type);
+        ret_var = call_dvariant_method(
+                get_attach_variant(FIRST_CHILD(caller_node)),
+                caller_var, nr_params, params, type);
     }
     else if (purc_variant_is_array(caller_var)) {
         purc_variant_t nv = purc_variant_array_get(caller_var, 0);
@@ -996,59 +1005,75 @@ err:
 purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node,
         struct pcvcm_node_op* ops)
 {
+    purc_variant_t ret = PURC_VARIANT_INVALID;
     switch (node->type)
     {
         case PCVCM_NODE_TYPE_OBJECT:
-            return pcvcm_node_object_to_variant (node, ops);
+            ret = pcvcm_node_object_to_variant (node, ops);
+            break;
 
         case PCVCM_NODE_TYPE_ARRAY:
-            return pcvcm_node_array_to_variant (node, ops);
+            ret = pcvcm_node_array_to_variant (node, ops);
+            break;
 
         case PCVCM_NODE_TYPE_STRING:
             return purc_variant_make_string ((char*)node->sz_ptr[1],
                     false);
 
         case PCVCM_NODE_TYPE_NULL:
-            return purc_variant_make_null ();
+            ret = purc_variant_make_null ();
+            break;
 
         case PCVCM_NODE_TYPE_BOOLEAN:
-            return purc_variant_make_boolean (node->b);
+            ret = purc_variant_make_boolean (node->b);
+            break;
 
         case PCVCM_NODE_TYPE_NUMBER:
-            return purc_variant_make_number (node->d);
+            ret = purc_variant_make_number (node->d);
+            break;
 
         case PCVCM_NODE_TYPE_LONG_INT:
-            return purc_variant_make_longint (node->i64);
+            ret = purc_variant_make_longint (node->i64);
+            break;
 
         case PCVCM_NODE_TYPE_ULONG_INT:
-            return purc_variant_make_ulongint (node->u64);
+            ret = purc_variant_make_ulongint (node->u64);
+            break;
 
         case PCVCM_NODE_TYPE_LONG_DOUBLE:
-            return purc_variant_make_longdouble (node->ld);
+            ret = purc_variant_make_longdouble (node->ld);
+            break;
 
         case PCVCM_NODE_TYPE_BYTE_SEQUENCE:
             return purc_variant_make_byte_sequence(
                     (void*)node->sz_ptr[1], node->sz_ptr[0]);
 
         case PCVCM_NODE_TYPE_FUNC_CONCAT_STRING:
-            return pcvcm_node_concat_string_to_variant(node, ops);
+            ret = pcvcm_node_concat_string_to_variant(node, ops);
+            break;
 
         case PCVCM_NODE_TYPE_FUNC_GET_VARIABLE:
-            return pcvcm_node_get_variable_to_variant(node, ops);
+            ret = pcvcm_node_get_variable_to_variant(node, ops);
+            break;
 
         case PCVCM_NODE_TYPE_FUNC_GET_ELEMENT:
-            return pcvcm_node_get_element_to_variant(node, ops);
+            ret = pcvcm_node_get_element_to_variant(node, ops);
+            break;
 
         case PCVCM_NODE_TYPE_FUNC_CALL_GETTER:
-            return pcvcm_node_call_method_to_variant(node, ops, GETTER_METHOD);
+            ret = pcvcm_node_call_method_to_variant(node, ops, GETTER_METHOD);
+            break;
 
         case PCVCM_NODE_TYPE_FUNC_CALL_SETTER:
-            return pcvcm_node_call_method_to_variant(node, ops, SETTER_METHOD);
+            ret = pcvcm_node_call_method_to_variant(node, ops, SETTER_METHOD);
+            break;
 
         default:
-            return purc_variant_make_null();
+            ret = purc_variant_make_null();
+            break;
     }
-    return purc_variant_make_null();
+    node->attach = (uintptr_t) ret;
+    return ret;
 }
 
 PCA_INLINE UNUSED_FUNCTION bool is_digit (char c)

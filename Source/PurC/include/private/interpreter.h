@@ -257,15 +257,43 @@ purc_variant_t
 pcintr_make_object_of_dynamic_variants(size_t nr_args,
     struct pcintr_dynamic_args *args);
 
-bool
+static inline bool
+pcintr_bind_document_variable(purc_vdom_t vdom, const char* name,
+        purc_variant_t variant)
+{
+    return pcvdom_document_bind_variable(vdom, name, variant);
+}
+
+static inline bool
+pcintr_unbind_document_variable(purc_vdom_t vdom, const char* name)
+{
+    return pcvdom_document_unbind_variable(vdom, name);
+}
+
+static inline purc_variant_t
+pcintr_get_document_variable(purc_vdom_t vdom, const char* name)
+{
+    return pcvdom_document_get_variable(vdom, name);
+}
+
+static inline bool
 pcintr_bind_scope_variable(pcvdom_element_t elem, const char* name,
-        purc_variant_t variant);
+        purc_variant_t variant)
+{
+    return pcvdom_element_bind_variable(elem, name, variant);
+}
 
-bool
-pcintr_unbind_scope_variable(pcvdom_element_t elem, const char* name);
+static inline bool
+pcintr_unbind_scope_variable(pcvdom_element_t elem, const char* name)
+{
+    return pcvdom_element_unbind_variable(elem, name);
+}
 
-purc_variant_t
-pcintr_get_scope_variable(pcvdom_element_t elem, const char* name);
+static inline purc_variant_t
+pcintr_get_scope_variable(pcvdom_element_t elem, const char* name)
+{
+    return pcvdom_element_get_variable(elem, name);
+}
 
 
 purc_variant_t

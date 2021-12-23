@@ -154,7 +154,7 @@ doctype_getter(purc_variant_t root, size_t nr_args, purc_variant_t * argv)
 
     if (nr_args == 0) {
         if (argv != NULL) {
-            pcinst_set_error(PURC_ERROR_WRONG_ARGS);
+            pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
             return PURC_VARIANT_INVALID;
         }
         return doctype_default(doc);
@@ -162,12 +162,12 @@ doctype_getter(purc_variant_t root, size_t nr_args, purc_variant_t * argv)
 
     if (nr_args == 1) {
         if (argv == NULL || argv[0] == PURC_VARIANT_INVALID) {
-            pcinst_set_error(PURC_ERROR_WRONG_ARGS);
+            pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
             return PURC_VARIANT_INVALID;
         }
         purc_variant_t v = argv[0];
         if (!purc_variant_is_string(v)) {
-            pcinst_set_error(PURC_ERROR_WRONG_ARGS);
+            pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
             return PURC_VARIANT_INVALID;
         }
         const char *name = purc_variant_get_string_const(v);
@@ -181,7 +181,7 @@ doctype_getter(purc_variant_t root, size_t nr_args, purc_variant_t * argv)
         return PURC_VARIANT_INVALID;
     }
 
-    pcinst_set_error(PURC_ERROR_WRONG_ARGS);
+    pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
     return PURC_VARIANT_INVALID;
 }
 
@@ -216,19 +216,19 @@ query_getter(purc_variant_t root, size_t nr_args, purc_variant_t * argv)
 
     if (nr_args == 1) {
         if (argv == NULL || argv[0] == PURC_VARIANT_INVALID) {
-            pcinst_set_error(PURC_ERROR_WRONG_ARGS);
+            pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
             return PURC_VARIANT_INVALID;
         }
         purc_variant_t v = argv[0];
         if (!purc_variant_is_string(v)) {
-            pcinst_set_error(PURC_ERROR_WRONG_ARGS);
+            pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
             return PURC_VARIANT_INVALID;
         }
         const char *css = purc_variant_get_string_const(v);
         return query(doc, css);
     }
 
-    pcinst_set_error(PURC_ERROR_WRONG_ARGS);
+    pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
     return PURC_VARIANT_INVALID;
 }
 
