@@ -74,13 +74,6 @@ TEST(timer, interval)
     ASSERT_EQ (cleanup, true);
 }
 
-int init_timers(void *ctxt)
-{
-    UNUSED_PARAM(ctxt);
-    pcintr_init_timers();
-    return 0;
-}
-
 TEST(TIMER, init)
 {
     const char* hvml =
@@ -101,10 +94,10 @@ TEST(TIMER, init)
     purc_vdom_t vdom = purc_load_hvml_from_string(hvml);
     ASSERT_NE(vdom, nullptr);
 
-    pcrunloop_dispatch(pcrunloop_get_current(), init_timers, NULL);
+    bool init = pcintr_init_timers(vdom);
+    ASSERT_EQ(init, true);
 
     purc_run(PURC_VARIANT_INVALID, NULL);
-
 
     cleanup = purc_cleanup ();
     ASSERT_EQ (cleanup, true);

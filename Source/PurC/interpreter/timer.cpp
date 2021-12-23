@@ -282,7 +282,7 @@ timers_listener_handler(purc_variant_t source, purc_atom_t msg_type,
 }
 
 bool
-pcintr_init_timers(void)
+pcintr_init_timers(purc_vdom_t vdom)
 {
     // TODO: remove
     pcatom_grown = purc_atom_from_string(TIMERS_STR_GROWN);
@@ -291,10 +291,8 @@ pcintr_init_timers(void)
     pcatom_timers = purc_atom_from_string(TIMERS_STR_TIMERS);
     pcatom_timer = purc_atom_from_string(TIMERS_STR_TIMER);
 
-
-    pcintr_stack_t stack = purc_get_stack();
-    if (stack == NULL || stack->vdom == NULL) {
-        purc_set_error(PURC_ERROR_NO_INSTANCE);
+    if (vdom == NULL) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         return false;
     }
 
@@ -304,14 +302,14 @@ pcintr_init_timers(void)
         return false;
     }
 
-    if (!pcintr_bind_document_variable(stack->vdom, TIMERS_STR_TIMERS, ret)) {
+    if (!pcintr_bind_document_variable(vdom, TIMERS_STR_TIMERS, ret)) {
         purc_variant_unref(ret);
         return false;
     }
 
     // regist listener
     bool regist = purc_variant_register_listener(ret, pcatom_timers,
-            timers_listener_handler, stack->vdom);
+            timers_listener_handler, vdom);
     if (!regist) {
         purc_variant_unref(ret);
         return false;
