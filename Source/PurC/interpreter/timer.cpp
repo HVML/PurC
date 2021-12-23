@@ -150,11 +150,13 @@ pcintr_timer_destroy(pcintr_timer_t timer)
 #define TIMERS_STR_CHANGE           "change"
 #define TIMERS_STR_HANDLE           "__handle"
 
+// TODO: remove  after
 purc_atom_t pcatom_grown;
 purc_atom_t pcatom_shrunk;
+purc_atom_t pcatom_change;
+
 purc_atom_t pcatom_timers;
 purc_atom_t pcatom_timer;
-purc_atom_t pcatom_change;
 
 
 void timer_fire_func(const char* id, void* ctxt)
@@ -282,6 +284,14 @@ timers_listener_handler(purc_variant_t source, purc_atom_t msg_type,
 bool
 pcintr_init_timers(void)
 {
+    // TODO: remove
+    pcatom_grown = purc_atom_from_string(TIMERS_STR_GROWN);
+    pcatom_shrunk = purc_atom_from_string(TIMERS_STR_SHRUNK);
+    pcatom_change = purc_atom_from_string(TIMERS_STR_CHANGE);
+    pcatom_timers = purc_atom_from_string(TIMERS_STR_TIMERS);
+    pcatom_timer = purc_atom_from_string(TIMERS_STR_TIMER);
+
+
     pcintr_stack_t stack = purc_get_stack();
     if (stack == NULL || stack->vdom == NULL) {
         purc_set_error(PURC_ERROR_NO_INSTANCE);
