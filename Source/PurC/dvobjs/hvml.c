@@ -255,7 +255,7 @@ timeout_getter (
     struct pcvdom_dvobj_hvml *dvobj_hvml = get_dvobj_html_in_vdom (root);
     if (dvobj_hvml) {
         double number = (double)dvobj_hvml->timeout.tv_sec +
-                (double)dvobj_hvml->timeout.tv_usec / 1000000;
+                (double)dvobj_hvml->timeout.tv_usec / 1000000.0;
         ret_var = purc_variant_make_number (number);
     }
 
