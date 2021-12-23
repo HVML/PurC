@@ -44,11 +44,11 @@
 #define MATH_DESCRIPTION    "For MATH Operations in PURC"
 
 /*                              error_number            exception
-invalid param type and number   PURC_ERROR_WRONG_ARGS   
+invalid param type and number   PURC_ERROR_ARGUMENT_MISSED   
 output                          PURC_ERROR_DIVBYZERO    FloatingPoint
                                 PURC_ERROR_OVERFLOW     Overflow
                                 PURC_ERROR_UNDERFLOW    Underflow
-                                PURC_ERROR_INV_FLOATPOINT    FloatingPoint
+                                PURC_ERROR_INVALID_FLOAT    FloatingPoint
 */
 
 // map for const and const_l
@@ -67,7 +67,7 @@ struct const_struct {
 
 #define GET_EXCEPTION_OR_CREATE_VARIANT(x, y) \
     if (isnan (x)) { \
-        purc_set_error (PURC_ERROR_INV_FLOATPOINT); \
+        purc_set_error (PURC_ERROR_INVALID_FLOAT); \
         ret_var = PURC_VARIANT_INVALID; \
     } \
     else { \
@@ -84,7 +84,7 @@ struct const_struct {
             ret_var = PURC_VARIANT_INVALID; \
         } \
         else if (fetestexcept (FE_INVALID)) { \
-            purc_set_error (PURC_ERROR_INV_FLOATPOINT); \
+            purc_set_error (PURC_ERROR_INVALID_FLOAT); \
             ret_var = PURC_VARIANT_INVALID; \
         } \
         else { \
@@ -97,7 +97,7 @@ struct const_struct {
 
 #define GET_EXCEPTION(x) \
     if (isnan (x)) { \
-        purc_set_error (PURC_ERROR_INV_FLOATPOINT); \
+        purc_set_error (PURC_ERROR_INVALID_FLOAT); \
         return PURC_VARIANT_INVALID; \
     } \
     else { \
@@ -114,7 +114,7 @@ struct const_struct {
             return PURC_VARIANT_INVALID; \
         } \
         else if (fetestexcept (FE_INVALID)) { \
-            purc_set_error (PURC_ERROR_INV_FLOATPOINT); \
+            purc_set_error (PURC_ERROR_INVALID_FLOAT); \
             return PURC_VARIANT_INVALID; \
         } \
     }
@@ -125,14 +125,14 @@ struct const_struct {
               purc_variant_is_type (x, PURC_VARIANT_TYPE_LONGINT) || \
               purc_variant_is_type (x, PURC_VARIANT_TYPE_ULONGINT) || \
               purc_variant_is_type (x, PURC_VARIANT_TYPE_LONGDOUBLE))) { \
-        purc_set_error (PURC_ERROR_WRONG_ARGS); \
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED); \
         return PURC_VARIANT_INVALID; \
     } \
     feclearexcept(FE_ALL_EXCEPT);
 
 #define GET_PARAM_NUMBER(x) \
     if (nr_args < x) { \
-        purc_set_error (PURC_ERROR_WRONG_ARGS); \
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED); \
         return PURC_VARIANT_INVALID; \
     }
 
@@ -239,7 +239,7 @@ const_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
@@ -250,10 +250,10 @@ const_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             ret_var = purc_variant_make_number (
                     ((struct const_value *)entry->val)->d);
         else
-            purc_set_error (PURC_ERROR_WRONG_ARGS);
+            purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
     }
     else
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
 
     return ret_var;
 }
@@ -272,23 +272,23 @@ const_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[1] != PURC_VARIANT_INVALID) &&
             !purc_variant_is_number (argv[1])) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
     if ((nr_args > 2) && (argv[2] != PURC_VARIANT_INVALID) &&
             !purc_variant_is_longdouble (argv[2])) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
     // empty string
     if (purc_variant_string_length (argv[0]) < 2) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
@@ -347,7 +347,7 @@ const_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
@@ -358,10 +358,10 @@ const_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             ret_var = purc_variant_make_longdouble (
                     ((struct const_value *)entry->val)->ld);
         else
-            purc_set_error (PURC_ERROR_WRONG_ARGS);
+            purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
     }
     else
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
 
     return ret_var;
 }
@@ -1359,18 +1359,18 @@ internal_eval_getter (int is_long_double, purc_variant_t root,
     UNUSED_PARAM(root);
 
     if (nr_args < 1) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
     if (nr_args >= 2 && !purc_variant_is_object(argv[1])) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
     const char *input = purc_variant_get_string_const(argv[0]);
     if (!input) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
@@ -1380,7 +1380,7 @@ internal_eval_getter (int is_long_double, purc_variant_t root,
         double v = 0;
         int r = math_eval(input, &v, param);
         if (r) {
-            purc_set_error (PURC_ERROR_INV_FLOATPOINT);
+            purc_set_error (PURC_ERROR_INVALID_FLOAT);
             return PURC_VARIANT_INVALID;
         }
         return purc_variant_make_number(v);
@@ -1389,7 +1389,7 @@ internal_eval_getter (int is_long_double, purc_variant_t root,
         long double v = 0;
         int r = math_eval_l(input, &v, param);
         if (r) {
-            purc_set_error (PURC_ERROR_INV_FLOATPOINT);
+            purc_set_error (PURC_ERROR_INVALID_FLOAT);
             return PURC_VARIANT_INVALID;
         }
         return purc_variant_make_longdouble(v);

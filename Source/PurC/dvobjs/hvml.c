@@ -79,13 +79,13 @@ base_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if ((argv == NULL) || (nr_args < 1)) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
@@ -157,13 +157,13 @@ maxIterationCount_setter (
         return PURC_VARIANT_INVALID;
     }
     if ((argv == NULL) || (nr_args < 1)) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_ulongint (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
@@ -216,13 +216,13 @@ maxRecursionDepth_setter (
         return PURC_VARIANT_INVALID;
     }
     if ((argv == NULL) || (nr_args < 1)) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_ulongint (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 

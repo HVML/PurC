@@ -38,6 +38,9 @@
 struct pcinst {
     int errcode;
     purc_variant_t err_exinfo;
+    const char *file;
+    int lineno;
+    const char *func;
 
     char* app_name;
     char* runner_name;

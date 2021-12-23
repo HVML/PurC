@@ -59,6 +59,7 @@ struct pcvcm_node {
     struct pctree_node tree_node;
     enum pcvcm_node_type type;
     uint32_t extra;
+    uintptr_t attach;
     union {
         bool        b;
         double      d;

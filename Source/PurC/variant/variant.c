@@ -1407,12 +1407,12 @@ bool purc_variant_unload_dvobj (purc_variant_t dvobj)
     bool ret = true;
 
     if (dvobj == PURC_VARIANT_INVALID)  {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return false;
     }
 
     if (!purc_variant_is_type (dvobj, PURC_VARIANT_TYPE_OBJECT)) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return false;
     }
 
@@ -1420,12 +1420,12 @@ bool purc_variant_unload_dvobj (purc_variant_t dvobj)
     purc_variant_t val = purc_variant_object_get_by_ckey (dvobj,
             EXOBJ_LOAD_HANDLE_KEY);
     if (val == PURC_VARIANT_INVALID) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return false;
     }
 
     if (!purc_variant_cast_to_ulongint (val, &u64, false)) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return false;
     }
 
@@ -2041,5 +2041,119 @@ void pcvariant_gc_mov(purc_variant_t val)
     PC_ASSERT(val != PURC_VARIANT_INVALID);
     pcvariant_gc_add(val);
     purc_variant_unref(val);
+}
+
+int pcvariant_serialize(char *buf, size_t sz, purc_variant_t val)
+{
+    PC_ASSERT(val != PURC_VARIANT_INVALID);
+    purc_rwstream_t out = purc_rwstream_new_from_mem(buf, sz);
+    PC_ASSERT(out); // FIXME:
+
+    size_t len_expected = 0;
+    ssize_t n;
+    n = purc_variant_serialize(val, out,
+            0, PCVARIANT_SERIALIZE_OPT_PLAIN,
+            &len_expected);
+    PC_ASSERT(n > 0); // FIXME:
+
+    // FIXME: add-null-terminator?
+    n = purc_rwstream_write(out, "", 1);
+    PC_ASSERT(n > 0); // FIXME:
+
+    purc_rwstream_destroy(out);
+
+    return len_expected + 1; // FIXME: len_expected counts null-terminator?
+}
+
+char* pcvariant_serialize_alloc(char *buf, size_t sz, purc_variant_t val)
+{
+    int r = pcvariant_serialize(buf, sz, val);
+    PC_ASSERT(r > 0); // FIXME:
+
+    if ((size_t)r < sz)
+        return buf;
+
+    char *p = (char*)malloc(r + 1);
+    PC_ASSERT(p); // FIXME:
+    r = pcvariant_serialize(p, r+1, val);
+    PC_ASSERT(r > 0);
+
+    return p;
+}
+
+static int
+pcvariant_object_set_va(purc_variant_t obj, size_t nr_kvs, va_list ap)
+{
+    while (nr_kvs--) {
+        const char *key = va_arg(ap, const char*);
+        const char *val = va_arg(ap, const char*);
+        PC_ASSERT(key);
+        PC_ASSERT(val);
+        purc_variant_t k = purc_variant_make_string(key, true);
+        if (k == PURC_VARIANT_INVALID)
+            return -1;
+        purc_variant_t v = purc_variant_make_string(val, true);
+        if (v == PURC_VARIANT_INVALID) {
+            purc_variant_unref(k);
+            return -1;
+        }
+        bool ok = purc_variant_object_set(obj, k, v);
+        purc_variant_unref(k);
+        purc_variant_unref(v);
+        if (!ok)
+            return -1;
+    }
+
+    return 0;
+}
+
+purc_variant_t pcvariant_make_object(size_t nr_kvs, ...)
+{
+    purc_variant_t obj = purc_variant_make_object_by_static_ckey(0,
+                NULL, PURC_VARIANT_INVALID);
+    if (obj == PURC_VARIANT_INVALID)
+        return PURC_VARIANT_INVALID;
+
+    if (nr_kvs == 0) {
+        return obj;
+    }
+
+    va_list ap;
+    va_start(ap, nr_kvs);
+    int r = pcvariant_object_set_va(obj, nr_kvs, ap);
+    va_end(ap);
+    if (r) {
+        purc_variant_unref(obj);
+        return PURC_VARIANT_INVALID;
+    }
+
+    return obj;
+}
+
+purc_variant_t pcvariant_make_with_printf(const char *fmt, ...)
+{
+    char buf[1024];
+
+    va_list ap, ap1;
+    va_start(ap, fmt);
+    va_copy(ap1, ap);
+    int r = vsnprintf(buf, sizeof(buf), fmt, ap);
+    PC_ASSERT(r >= 0);
+    va_end(ap);
+
+    if ((size_t)r >= sizeof(buf)) {
+        char *p = (char*)malloc(r);
+        if (!p) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            return PURC_VARIANT_INVALID;
+        }
+        r = vsnprintf(p, r, fmt, ap1);
+        PC_ASSERT(r >= 0);
+        purc_variant_t v = purc_variant_make_string(p, true);
+        free(p);
+        return v;
+    }
+
+    return purc_variant_make_string(buf, true);
 }
 

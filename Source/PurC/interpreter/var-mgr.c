@@ -77,6 +77,7 @@ purc_variant_t pcvarmgr_list_get(pcvarmgr_list_t list, const char* name)
     const pcutils_map_entry* entry = NULL;
 
     if (name == NULL) {
+        PC_ASSERT(0); // FIXME: still recoverable???
         return PURC_VARIANT_INVALID;
     }
 
@@ -84,6 +85,7 @@ purc_variant_t pcvarmgr_list_get(pcvarmgr_list_t list, const char* name)
         return (purc_variant_t) entry->val;
     }
 
+    purc_set_error_exinfo(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
     return PURC_VARIANT_INVALID;
 }
 
@@ -100,10 +102,12 @@ static purc_variant_t
 _find_named_scope_var(pcvdom_element_t elem, const char* name)
 {
     if (!elem || !name) {
+        PC_ASSERT(name); // FIXME: still recoverable???
+        purc_set_error_exinfo(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t v = pcvarmgr_list_get(elem->variables, name);
+    purc_variant_t v = pcintr_get_scope_variable(elem, name);
     if (v) {
         fprintf(stderr, "==%s[%d]:%s()==[%s/<%s>]\n",
                 __FILE__, __LINE__, __func__,
@@ -115,34 +119,40 @@ _find_named_scope_var(pcvdom_element_t elem, const char* name)
     if (parent) {
         return _find_named_scope_var(parent, name);
     }
+    purc_set_error_exinfo(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
     return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
-_find_doc_buildin_var(struct pcvdom_document *doc, const char* name)
+_find_doc_buildin_var(purc_vdom_t vdom, const char* name)
 {
-    if (!doc|| !name) {
+    PC_ASSERT(name);
+    if (!vdom) {
+        purc_set_error_exinfo(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t v = pcvarmgr_list_get(doc->variables, name);
+    purc_variant_t v = pcvdom_document_get_variable(vdom, name);
     if (v) {
         fprintf(stderr, "==%s[%d]:%s()==[%s/<%s>]\n",
                 __FILE__, __LINE__, __func__,
                 name, pcvariant_get_typename(purc_variant_get_type(v)));
         return v;
     }
+    purc_set_error_exinfo(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
     return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t _find_inst_var(const char* name)
 {
     if (!name) {
+        PC_ASSERT(0); // FIXME: still recoverable???
         return PURC_VARIANT_INVALID;
     }
 
     struct pcinst* inst = pcinst_current();
     if (inst == NULL) {
+        PC_ASSERT(0); // FIXME: still recoverable???
         return PURC_VARIANT_INVALID;
     }
 
@@ -150,6 +160,7 @@ static purc_variant_t _find_inst_var(const char* name)
     if (v) {
         return v;
     }
+    purc_set_error_exinfo(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
     return PURC_VARIANT_INVALID;
 }
 
@@ -157,17 +168,19 @@ purc_variant_t
 pcintr_find_named_var(pcintr_stack_t stack, const char* name)
 {
     if (!stack || !name) {
+        PC_ASSERT(0); // FIXME: still recoverable???
         return PURC_VARIANT_INVALID;
     }
 
     struct pcintr_stack_frame* frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
 
     purc_variant_t v = _find_named_scope_var(frame->pos, name);
     if (v) {
         return v;
     }
 
-    v = _find_doc_buildin_var(stack->vdom->document, name);
+    v = _find_doc_buildin_var(stack->vdom, name);
     if (v) {
         return v;
     }
@@ -199,6 +212,8 @@ enum purc_symbol_var _to_symbol(char symbol)
     case '%':
         return PURC_SYMBOL_VAR_PERCENT_SIGN;
     }
+    // FIXME: NotFound???
+    purc_set_error_exinfo(PCVARIANT_ERROR_NOT_FOUND, "symbol:%c", symbol);
     return PURC_SYMBOL_VAR_MAX;
 }
 

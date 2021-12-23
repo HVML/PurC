@@ -26,6 +26,8 @@
 
 #include "config.h"
 
+#include "internal.h"
+
 #include "private/errors.h"
 #include "private/interpreter.h"
 #include "private/runloop.h"
@@ -133,3 +135,178 @@ pcintr_timer_destroy(pcintr_timer_t timer)
         delete tm;
     }
 }
+
+//  $TIMERS begin
+
+#define TIMERS_STR_ID               "id"
+#define TIMERS_STR_INTERVAL         "interval"
+#define TIMERS_STR_ACTIVE           "active"
+#define TIMERS_STR_ON               "on"
+
+#define TIMERS_STR_GROWN            "grown"
+#define TIMERS_STR_SHRUNK           "shrunk"
+#define TIMERS_STR_TIMERS           "timers"
+#define TIMERS_STR_TIMER            "timer"
+#define TIMERS_STR_CHANGE           "change"
+#define TIMERS_STR_HANDLE           "__handle"
+
+purc_atom_t pcatom_grown;
+purc_atom_t pcatom_shrunk;
+purc_atom_t pcatom_timers;
+purc_atom_t pcatom_timer;
+purc_atom_t pcatom_change;
+
+
+void timer_fire_func(const char* id, void* ctxt)
+{
+    UNUSED_PARAM(id);
+    UNUSED_PARAM(ctxt);  // vdom
+}
+
+static bool
+is_euqal(purc_variant_t var, const char* comp)
+{
+    if (var && comp) {
+        return (strcmp(purc_variant_get_string_const(var), comp) == 0);
+    }
+    return false;
+}
+
+static pcintr_timer_t
+get_inner_timer(purc_vdom_t vdom, purc_variant_t timer_var)
+{
+    purc_variant_t tm = purc_variant_object_get_by_ckey(timer_var,
+            TIMERS_STR_HANDLE);
+    if (tm) {
+        uint64_t ret = 0;
+        purc_variant_cast_to_ulongint(tm, &ret, false);
+        return (pcintr_timer_t)ret;
+    }
+
+    purc_variant_t id = purc_variant_object_get_by_ckey(timer_var, TIMERS_STR_ID);
+    if (!id) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return NULL;
+    }
+
+    pcintr_timer_t timer = pcintr_timer_create(
+            purc_variant_get_string_const(id), vdom, timer_fire_func);
+    if (timer == NULL) {
+        return NULL;
+    }
+
+    purc_variant_object_set_by_static_ckey(timer_var, TIMERS_STR_HANDLE,
+            purc_variant_make_ulongint((uint64_t)timer));
+    return timer;
+}
+
+static void
+destroy_inner_timer(purc_variant_t timer_var)
+{
+    purc_variant_t tm = purc_variant_object_get_by_ckey(timer_var,
+            TIMERS_STR_HANDLE);
+    if (tm) {
+        uint64_t ret = 0;
+        purc_variant_cast_to_ulongint(tm, &ret, false);
+        pcintr_timer_destroy((pcintr_timer_t)ret);
+    }
+}
+
+bool
+timer_listener_handler(purc_variant_t source, purc_atom_t msg_type,
+        void* ctxt, size_t nr_args, purc_variant_t* argv)
+{
+    UNUSED_PARAM(nr_args);
+    if (msg_type != pcatom_change) {
+        return true;
+    }
+    purc_vdom_t dom = (purc_vdom_t) ctxt;
+    pcintr_timer_t timer = get_inner_timer(dom, source);
+    if (!timer) {
+        return false;
+    }
+
+    // argv key-new, value-new, key-old, value-old
+    if (is_euqal(argv[0], TIMERS_STR_INTERVAL)) {
+        uint64_t ret = 0;
+        purc_variant_cast_to_ulongint(argv[0], &ret, false);
+        pcintr_timer_set_interval(timer, ret);
+    }
+    else if (is_euqal(argv[0], TIMERS_STR_ACTIVE)) {
+        if (is_euqal(argv[1], TIMERS_STR_ON)) {
+            pcintr_timer_start(timer);
+        }
+        else {
+            pcintr_timer_stop(timer);
+        }
+    }
+    return true;
+}
+
+bool
+timers_listener_handler(purc_variant_t source, purc_atom_t msg_type,
+        void* ctxt, size_t nr_args, purc_variant_t* argv)
+{
+    UNUSED_PARAM(source);
+    purc_vdom_t dom = (purc_vdom_t) ctxt;
+    if (msg_type == pcatom_grown) {
+        for (size_t i = 0; i < nr_args; i++) {
+            purc_variant_t interval = purc_variant_object_get_by_ckey(argv[i],
+                    TIMERS_STR_INTERVAL);
+            purc_variant_t active = purc_variant_object_get_by_ckey(argv[i],
+                    TIMERS_STR_ACTIVE);
+
+            pcintr_timer_t timer = get_inner_timer(dom, argv[i]);
+            if (!timer) {
+                return false;
+            }
+            uint64_t ret = 0;
+            purc_variant_cast_to_ulongint(interval, &ret, false);
+            pcintr_timer_set_interval(timer, ret);
+            if (is_euqal(active, TIMERS_STR_ON)) {
+                pcintr_timer_start(timer);
+            }
+            purc_variant_register_listener(argv[i], pcatom_timer,
+                    timer_listener_handler, ctxt);
+        }
+    }
+    else if (msg_type == pcatom_shrunk) {
+        for (size_t i = 0; i < nr_args; i++) {
+            purc_variant_revoke_listener(argv[i], pcatom_timer);
+            destroy_inner_timer(argv[1]);
+        }
+    }
+    return true;
+}
+
+bool
+pcintr_init_timers(void)
+{
+    pcintr_stack_t stack = purc_get_stack();
+    if (stack == NULL || stack->vdom == NULL) {
+        purc_set_error(PURC_ERROR_NO_INSTANCE);
+        return false;
+    }
+
+    purc_variant_t ret = purc_variant_make_set_by_ckey(0, TIMERS_STR_ID, NULL);
+    if (!ret) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return false;
+    }
+
+    if (!pcintr_bind_document_variable(stack->vdom, TIMERS_STR_TIMERS, ret)) {
+        purc_variant_unref(ret);
+        return false;
+    }
+
+    // regist listener
+    bool regist = purc_variant_register_listener(ret, pcatom_timers,
+            timers_listener_handler, stack->vdom);
+    if (!regist) {
+        purc_variant_unref(ret);
+        return false;
+    }
+
+    return true;
+}
+

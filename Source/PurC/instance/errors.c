@@ -29,6 +29,8 @@
 
 #include "private/interpreter.h" // FIXME:
 
+#include <stdarg.h>
+
 static const struct err_msg_info* get_error_info(int errcode);
 
 int purc_get_last_error(void)
@@ -51,16 +53,20 @@ purc_variant_t purc_get_last_error_ex(void)
     return PURC_VARIANT_INVALID;
 }
 
-int purc_set_error_ex(int errcode, purc_variant_t exinfo)
+int purc_set_error_with_location(int errcode, purc_variant_t exinfo,
+        const char *file, int lineno, const char *func)
 {
-    UNUSED_PARAM(exinfo);
     struct pcinst* inst = pcinst_current();
     if (inst == NULL) {
         return PURC_ERROR_NO_INSTANCE;
     }
 
     inst->errcode = errcode;
+    PURC_VARIANT_SAFE_CLEAR(inst->err_exinfo);
     inst->err_exinfo = exinfo;
+    inst->file       = file;
+    inst->lineno     = lineno;
+    inst->func       = func;
 
     // set the exception info into stack
     pcintr_stack_t stack = purc_get_stack();
@@ -71,9 +77,43 @@ int purc_set_error_ex(int errcode, purc_variant_t exinfo)
             return PURC_ERROR_INVALID_VALUE;
         }
         stack->error_except = info->except_atom;
+        PURC_VARIANT_SAFE_CLEAR(stack->err_except_info);
         stack->err_except_info = exinfo;
+        if (exinfo != PURC_VARIANT_INVALID) {
+            purc_variant_ref(exinfo);
+        }
+        stack->file = file;
+        stack->lineno = lineno;
+        stack->func = func;
+        stack->except = errcode ? 1 : 0; // FIXME: when to set stack->error???
     }
     return PURC_ERROR_OK;
+}
+
+int
+purc_set_error_exinfo_printf(int err_code,
+        const char *file, int lineno, const char *func,
+        const char *fmt, ...)
+{
+    char buf[1024];
+
+    va_list ap;
+    va_start(ap, fmt);
+    int r = vsnprintf(buf, sizeof(buf), fmt, ap);
+    // TODO: remove below 2 lines
+    PC_ASSERT(r >= 0);
+    PC_ASSERT((size_t)r < sizeof(buf));
+    (void)r;
+    va_end(ap);
+
+    purc_variant_t v;
+    v = purc_variant_make_string(buf, true);
+    PC_ASSERT(v != PURC_VARIANT_INVALID);
+
+    r = purc_set_error_with_location(err_code, v,
+            file, lineno, func);
+
+    return r;
 }
 
 static LIST_HEAD(_err_msg_seg_list);

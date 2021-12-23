@@ -265,13 +265,13 @@ text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args != 2) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
@@ -336,13 +336,13 @@ text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args != 2) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
@@ -417,13 +417,13 @@ bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args != 2) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
@@ -496,13 +496,13 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args != 2) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
@@ -569,7 +569,7 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     UNUSED_PARAM(root);
 
     if (nr_args != 2) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
@@ -580,13 +580,13 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[0]))) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[1] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_string (argv[1]))) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
@@ -745,13 +745,13 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
     int read_number = 0;
 
     if (nr_args != 2) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_native (argv[0]))) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
     rwstream = purc_variant_native_get_entity (argv[0]);
@@ -762,7 +762,7 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
 
     if ((argv[1] != PURC_VARIANT_INVALID) &&
                         (!purc_variant_is_string (argv[1]))) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
     format = purc_variant_get_string_const (argv[1]);
@@ -1078,13 +1078,13 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
     size_t write_length = 0;
 
     if (nr_args != 3) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_native (argv[0]))) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
     rwstream = purc_variant_native_get_entity (argv[0]);
@@ -1095,13 +1095,13 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
 
     if ((argv[1] != PURC_VARIANT_INVALID) &&
                         (!purc_variant_is_string (argv[1]))) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[2] != PURC_VARIANT_INVALID) &&
                         (!purc_variant_is_array (argv[2]))) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
@@ -1398,13 +1398,13 @@ stream_readlines_getter (purc_variant_t root, size_t nr_args,
     int64_t line_num = 0;
 
     if (nr_args != 2) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_native (argv[0]))) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
     rwstream = purc_variant_native_get_entity (argv[0]);
@@ -1449,12 +1449,12 @@ stream_readbytes_getter (purc_variant_t root, size_t nr_args,
     uint64_t byte_num = 0;
 
     if (nr_args != 2) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_native (argv[0]))) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
     rwstream = purc_variant_native_get_entity (argv[0]);
@@ -1468,7 +1468,7 @@ stream_readbytes_getter (purc_variant_t root, size_t nr_args,
     }
 
     if (byte_num == 0) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         ret_var = PURC_VARIANT_INVALID;
     }
     else {
@@ -1507,13 +1507,13 @@ stream_seek_getter (purc_variant_t root, size_t nr_args,
     int64_t whence = 0;
 
     if (nr_args != 3) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_native (argv[0]))) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
     rwstream = purc_variant_native_get_entity (argv[0]);
@@ -1547,13 +1547,13 @@ stream_close_getter (purc_variant_t root, size_t nr_args,
     int close = 0;
 
     if (nr_args != 1) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[0] != PURC_VARIANT_INVALID) &&
             (!purc_variant_is_native (argv[0]))) {
-        purc_set_error (PURC_ERROR_WRONG_ARGS);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
     rwstream = purc_variant_native_get_entity (argv[0]);

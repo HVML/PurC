@@ -73,18 +73,18 @@ element_attr_getter(struct pcintr_element *element,
 {
     if (nr_args == 1) {
         if (argv == NULL || argv[0] == PURC_VARIANT_INVALID) {
-            pcinst_set_error(PURC_ERROR_WRONG_ARGS);
+            pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
             return PURC_VARIANT_INVALID;
         }
         purc_variant_t tn = argv[0]; // type name
         if (!purc_variant_is_string(tn)) {
-            pcinst_set_error(PURC_ERROR_WRONG_ARGS);
+            pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
             return PURC_VARIANT_INVALID;
         }
         return element_attr_getter_by_type(element, tn);
     }
 
-    pcinst_set_error(PURC_ERROR_WRONG_ARGS);
+    pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
     return PURC_VARIANT_INVALID;
 }
 
@@ -262,11 +262,11 @@ pcintr_query_elements(struct pcedom_element *root, const char *css)
 {
     if (strcmp(css, "*") != 0) {
         if (css[0] != '.' && css[0] != '#') {
-            pcinst_set_error(PURC_ERROR_WRONG_ARGS);
+            pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
             return PURC_VARIANT_INVALID;
         }
         if (css[1] == '\0') {
-            pcinst_set_error(PURC_ERROR_WRONG_ARGS);
+            pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
             return PURC_VARIANT_INVALID;
         }
     }

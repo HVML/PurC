@@ -90,6 +90,7 @@ post_process_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 {
     purc_variant_t via;
     via = purc_variant_object_get_by_ckey(frame->attr_vars, "via");
+    purc_clr_error();
     purc_variant_t set;
     set = purc_variant_make_set(0, via, PURC_VARIANT_INVALID);
     if (set == PURC_VARIANT_INVALID) {
@@ -106,7 +107,7 @@ post_process_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         }
         if (!ok) {
             purc_variant_unref(set);
-            purc_set_error(PURC_ERROR_WRONG_ARGS);
+            purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
             frame->next_step = -1;
             co->state = CO_STATE_TERMINATED;
             return;
@@ -173,7 +174,6 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     r = pcintr_element_eval_vcm_content(frame, element);
     if (r) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         frame->next_step = -1;
         co->state = CO_STATE_TERMINATED;
         return;
@@ -294,6 +294,7 @@ select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     }
 
     if (ctxt->curr == NULL) {
+        purc_clr_error();
         frame->next_step = NEXT_STEP_ON_POPPING;
         co->state = CO_STATE_READY;
         return;
