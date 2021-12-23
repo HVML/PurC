@@ -1143,6 +1143,77 @@ time_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     return ret_var;
 }
 
+static purc_variant_t
+env_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args < 1) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
+            (!purc_variant_is_array (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    char *result = getenv (purc_variant_get_string_const (argv[0]));
+    if (result)
+        ret_var = purc_variant_make_string (result, false);
+    else
+        ret_var = purc_variant_make_undefined ();
+
+    return ret_var;
+}
+
+
+static purc_variant_t
+env_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args < 2) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[0] != PURC_VARIANT_INVALID) &&
+            (!purc_variant_is_array (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+    const char * name = purc_variant_get_string_const (argv[0]);
+
+    if ((argv[1] != PURC_VARIANT_INVALID) &&
+            (!purc_variant_is_array (argv[1]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        return PURC_VARIANT_INVALID;
+    }
+    const char * value = purc_variant_get_string_const (argv[1]);
+
+    char * result = getenv (name);
+    if (result) {       // overwrite
+        if (setenv (name, value, 1) == 0)
+            ret_var = purc_variant_make_boolean (true);
+        else
+            ret_var = purc_variant_make_boolean (false);
+    }
+    else {              // new
+        if (setenv (name, value, 1) == 0)
+            ret_var = purc_variant_make_boolean (false);
+        else
+            ret_var = purc_variant_make_boolean (false);
+    }
+
+    return ret_var;
+}
+
 // only for test now.
 purc_variant_t pcdvobjs_get_system (void)
 {
@@ -1151,7 +1222,9 @@ purc_variant_t pcdvobjs_get_system (void)
         {"uname_prt", uname_prt_getter, NULL},
         {"locale",    locale_getter,    locale_setter},
         {"random",    random_getter,    NULL},
-        {"time",      time_getter,      time_setter} };
+        {"time",      time_getter,      time_setter},
+        {"env",       env_getter,       env_setter}
+    };
 
     return pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));
 }
