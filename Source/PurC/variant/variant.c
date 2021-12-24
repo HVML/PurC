@@ -122,6 +122,15 @@ static inline void free_variant(purc_variant *v) {
 }
 #endif
 
+purc_atom_t pcvariant_atom_grown;
+purc_atom_t pcvariant_atom_shrunk;
+purc_atom_t pcvariant_atom_change;
+purc_atom_t pcvariant_atom_referenced;
+purc_atom_t pcvariant_atom_unreferenced;
+purc_atom_t pcvariant_atom_destroyed;
+purc_atom_t pcvariant_atom_timers;
+purc_atom_t pcvariant_atom_timer;
+
 void pcvariant_init_once(void)
 {
     // register error message

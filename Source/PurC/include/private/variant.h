@@ -212,14 +212,14 @@ __attribute__ ((format (printf, 1, 2)))
 purc_variant_t pcvariant_make_with_printf(const char *fmt, ...);
 
 // TODO: better generate with tool
-purc_atom_t pcvariant_atom_grown;
-purc_atom_t pcvariant_atom_shrunk;
-purc_atom_t pcvariant_atom_change;
-purc_atom_t pcvariant_atom_referenced;
-purc_atom_t pcvariant_atom_unreferenced;
-purc_atom_t pcvariant_atom_destroyed;
-purc_atom_t pcvariant_atom_timers;
-purc_atom_t pcvariant_atom_timer;
+extern purc_atom_t pcvariant_atom_grown;
+extern purc_atom_t pcvariant_atom_shrunk;
+extern purc_atom_t pcvariant_atom_change;
+extern purc_atom_t pcvariant_atom_referenced;
+extern purc_atom_t pcvariant_atom_unreferenced;
+extern purc_atom_t pcvariant_atom_destroyed;
+extern purc_atom_t pcvariant_atom_timers;
+extern purc_atom_t pcvariant_atom_timer;
 
 #ifdef __cplusplus
 }
