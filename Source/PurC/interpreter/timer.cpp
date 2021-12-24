@@ -150,11 +150,13 @@ pcintr_timer_destroy(pcintr_timer_t timer)
 #define TIMERS_STR_CHANGE           "change"
 #define TIMERS_STR_HANDLE           "__handle"
 
+// TODO: remove  after
 purc_atom_t pcatom_grown;
 purc_atom_t pcatom_shrunk;
+purc_atom_t pcatom_change;
+
 purc_atom_t pcatom_timers;
 purc_atom_t pcatom_timer;
-purc_atom_t pcatom_change;
 
 
 void timer_fire_func(const char* id, void* ctxt)
@@ -172,15 +174,29 @@ is_euqal(purc_variant_t var, const char* comp)
     return false;
 }
 
+static purc_variant_t
+pointer_to_variant(void* p)
+{
+    return p ? purc_variant_make_native(p, NULL) : PURC_VARIANT_INVALID;
+}
+
+static void*
+variant_to_pointer(purc_variant_t var)
+{
+    if (var && purc_variant_is_type(var, PURC_VARIANT_TYPE_NATIVE)) {
+        return purc_variant_native_get_entity(var);
+    }
+    return NULL;
+}
+
 static pcintr_timer_t
 get_inner_timer(purc_vdom_t vdom, purc_variant_t timer_var)
 {
     purc_variant_t tm = purc_variant_object_get_by_ckey(timer_var,
             TIMERS_STR_HANDLE);
-    if (tm) {
-        uint64_t ret = 0;
-        purc_variant_cast_to_ulongint(tm, &ret, false);
-        return (pcintr_timer_t)ret;
+    pcintr_timer_t timer = variant_to_pointer(tm);
+    if (timer) {
+        return timer;
     }
 
     purc_variant_t id = purc_variant_object_get_by_ckey(timer_var, TIMERS_STR_ID);
@@ -189,14 +205,15 @@ get_inner_timer(purc_vdom_t vdom, purc_variant_t timer_var)
         return NULL;
     }
 
-    pcintr_timer_t timer = pcintr_timer_create(
-            purc_variant_get_string_const(id), vdom, timer_fire_func);
+    timer = pcintr_timer_create(purc_variant_get_string_const(id),
+            vdom, timer_fire_func);
     if (timer == NULL) {
         return NULL;
     }
 
-    purc_variant_object_set_by_static_ckey(timer_var, TIMERS_STR_HANDLE,
-            purc_variant_make_ulongint((uint64_t)timer));
+    purc_variant_t native = pointer_to_variant(timer);
+    purc_variant_object_set_by_static_ckey(timer_var, TIMERS_STR_HANDLE, native);
+    purc_variant_unref(native);
     return timer;
 }
 
@@ -205,10 +222,9 @@ destroy_inner_timer(purc_variant_t timer_var)
 {
     purc_variant_t tm = purc_variant_object_get_by_ckey(timer_var,
             TIMERS_STR_HANDLE);
-    if (tm) {
-        uint64_t ret = 0;
-        purc_variant_cast_to_ulongint(tm, &ret, false);
-        pcintr_timer_destroy((pcintr_timer_t)ret);
+    pcintr_timer_t timer = variant_to_pointer(tm);
+    if (timer) {
+        pcintr_timer_destroy(timer);
     }
 }
 
@@ -280,11 +296,17 @@ timers_listener_handler(purc_variant_t source, purc_atom_t msg_type,
 }
 
 bool
-pcintr_init_timers(void)
+pcintr_init_timers(purc_vdom_t vdom)
 {
-    pcintr_stack_t stack = purc_get_stack();
-    if (stack == NULL || stack->vdom == NULL) {
-        purc_set_error(PURC_ERROR_NO_INSTANCE);
+    // TODO: remove
+    pcatom_grown = purc_atom_from_string(TIMERS_STR_GROWN);
+    pcatom_shrunk = purc_atom_from_string(TIMERS_STR_SHRUNK);
+    pcatom_change = purc_atom_from_string(TIMERS_STR_CHANGE);
+    pcatom_timers = purc_atom_from_string(TIMERS_STR_TIMERS);
+    pcatom_timer = purc_atom_from_string(TIMERS_STR_TIMER);
+
+    if (vdom == NULL) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         return false;
     }
 
@@ -294,14 +316,14 @@ pcintr_init_timers(void)
         return false;
     }
 
-    if (!pcintr_bind_document_variable(stack->vdom, TIMERS_STR_TIMERS, ret)) {
+    if (!pcintr_bind_document_variable(vdom, TIMERS_STR_TIMERS, ret)) {
         purc_variant_unref(ret);
         return false;
     }
 
     // regist listener
     bool regist = purc_variant_register_listener(ret, pcatom_timers,
-            timers_listener_handler, stack->vdom);
+            timers_listener_handler, vdom);
     if (!regist) {
         purc_variant_unref(ret);
         return false;
