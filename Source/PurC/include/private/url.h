@@ -122,41 +122,41 @@ extern "C" {
 
 struct __tag_pcutils_url {
    GString *url_string;
-   const gchar *buffer;
-   const gchar *scheme;            //
-   const gchar *authority;         //
-   const gchar *path;              // These are references only
-   const gchar *query;             // (no need to free them)
-   const gchar *fragment;          //
-   const gchar *hostname;          //
+   const char *buffer;
+   const char *scheme;            //
+   const char *authority;         //
+   const char *path;              // These are references only
+   const char *query;             // (no need to free them)
+   const char *fragment;          //
+   const char *hostname;          //
    gint port;
    gint flags;
-   const gchar *data;              /* POST */
-   const gchar *alt;               /* "alt" text (used by image maps) */
-   const gchar *target;            /* target frame/window */
+   const char *data;              /* POST */
+   const char *alt;               /* "alt" text (used by image maps) */
+   const char *target;            /* target frame/window */
    gint ismap_url_len;             /* Used by server side image maps */
                                    /* remember position of visited urls */
    gint illegal_chars;             /* number of illegal chars */
-   const gchar *referer;           /* The URL that refered to this one */
+   const char *referer;           /* The URL that refered to this one */
 };
 
 
-pcutils_url* pcutils_url_new(const gchar *url_str, const gchar *base_url,
+pcutils_url* pcutils_url_new(const char *url_str, const char *base_url,
                     gint flags);
 void pcutils_url_free(pcutils_url *u);
-gchar *pcutils_url_str(const pcutils_url *url);
-const gchar *pcutils_url_hostname(const pcutils_url *u);
+char *pcutils_url_str(const pcutils_url *url);
+const char *pcutils_url_hostname(const pcutils_url *u);
 pcutils_url* pcutils_url_dup(const pcutils_url *u);
 gint pcutils_url_cmp(const pcutils_url *A, const pcutils_url *B);
 void pcutils_url_set_flags(pcutils_url *u, gint flags);
-void pcutils_url_set_data(pcutils_url *u, gchar *data);
-void pcutils_url_set_alt(pcutils_url *u, const gchar *alt);
-void pcutils_url_set_target(pcutils_url *u, const gchar *target);
+void pcutils_url_set_data(pcutils_url *u, char *data);
+void pcutils_url_set_alt(pcutils_url *u, const char *alt);
+void pcutils_url_set_target(pcutils_url *u, const char *target);
 void pcutils_url_set_referer(pcutils_url *u, pcutils_url *ref);
-void pcutils_url_set_ismap_coords(pcutils_url *u, gchar *coord_str);
-gchar *pcutils_url_decode_hex_str(const gchar *str);
-gchar *pcutils_url_encode_hex_str(const gchar *str);
-gchar *pcutils_url_string_strip_delimiters(gchar *str);
+void pcutils_url_set_ismap_coords(pcutils_url *u, char *coord_str);
+char *pcutils_url_decode_hex_str(const char *str);
+char *pcutils_url_encode_hex_str(const char *str);
+char *pcutils_url_string_strip_delimiters(char *str);
 
 char *pcutils_url_parse_hex_path(const pcutils_url *u);
 #ifdef __cplusplus

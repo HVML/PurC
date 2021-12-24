@@ -59,7 +59,7 @@
  * Return the url as a string.
  * (initializing 'url_string' camp if necessary)
  */
-gchar *pcutils_url_str(const pcutils_url *u)
+char *pcutils_url_str(const pcutils_url *u)
 {
     /* Internal url handling IS transparent to the caller */
     pcutils_url *url = (pcutils_url *) u;
@@ -92,9 +92,9 @@ gchar *pcutils_url_str(const pcutils_url *u)
  * (initializing 'hostname' and 'port' camps if necessary)
  * Note: a similar approach can be taken for user:password auth.
  */
-const gchar *pcutils_url_hostname(const pcutils_url *u)
+const char *pcutils_url_hostname(const pcutils_url *u)
 {
-    gchar *p;
+    char *p;
     /* Internal url handling IS transparent to the caller */
     pcutils_url *url = (pcutils_url *) u;
 
@@ -114,10 +114,10 @@ const gchar *pcutils_url_hostname(const pcutils_url *u)
  *  Create a pcutils_url object and initialize it.
  *  (buffer, scheme, authority, path, query and fragment).
  */
-static pcutils_url *Url_object_new(const gchar *uri_str)
+static pcutils_url *Url_object_new(const char *uri_str)
 {
     pcutils_url *url;
-    gchar *s, *p, *x;
+    char *s, *p, *x;
     GString *tmpstr;
 
     g_return_val_if_fail (uri_str != NULL, NULL);
@@ -126,7 +126,7 @@ static pcutils_url *Url_object_new(const gchar *uri_str)
 
 
     /* remove leading & trailing space from buffer */
-    for (p = (gchar *)uri_str; isspace(*p); ++p);
+    for (p = (char *)uri_str; isspace(*p); ++p);
 
     tmpstr = g_string_sized_new (128);
     for (x = p; *x; x++) {
@@ -140,7 +140,7 @@ static pcutils_url *Url_object_new(const gchar *uri_str)
 
     g_string_free(tmpstr, TRUE);
 
-    s = (gchar *) url->buffer;
+    s = (char *) url->buffer;
     p = strpbrk(s, ":/?#");
     if (p && p[0] == ':' && p > s) {                /* scheme */
         *p = 0;
@@ -196,12 +196,12 @@ void pcutils_url_free(pcutils_url *url)
         if (url->url_string)
             g_string_free(url->url_string, TRUE);
         if (url->hostname != url->authority)
-            g_free((gchar *)url->hostname);
-        g_free((gchar *)url->buffer);
-        g_free((gchar *)url->data);
-        g_free((gchar *)url->alt);
-        g_free((gchar *)url->target);
-        g_free((gchar *)url->referer);
+            g_free((char *)url->hostname);
+        g_free((char *)url->buffer);
+        g_free((char *)url->data);
+        g_free((char *)url->alt);
+        g_free((char *)url->target);
+        g_free((char *)url->referer);
         g_free(url);
     }
 }
@@ -209,11 +209,11 @@ void pcutils_url_free(pcutils_url *url)
 /*
  * Resolve the URL as RFC2396 suggests.
  */
-static GString *Url_resolve_relative(const gchar *RelStr,
+static GString *Url_resolve_relative(const char *RelStr,
                                      pcutils_url **BaseUrlPar,
-                                     const gchar *BaseStr)
+                                     const char *BaseStr)
 {
-    gchar *p, *s, *e;
+    char *p, *s, *e;
     gint i;
     GString *SolvedUrl, *Path;
     pcutils_url *RelUrl, *BaseUrl = NULL;
@@ -359,18 +359,18 @@ done:
  *
  *  Return NULL if URL is badly formed.
  */
-pcutils_url* pcutils_url_new(const gchar *url_str, const gchar *base_url,
+pcutils_url* pcutils_url_new(const char *url_str, const char *base_url,
                     gint flags)
 {
     pcutils_url *url, *BaseUrl = NULL;
-    gchar *urlstring, *p, *s;
+    char *urlstring, *p, *s;
     GString *SolvedUrl;
     gint n_ic;
 
     g_return_val_if_fail (url_str != NULL, NULL);
 
     /* denounce illegal characters (0x00-0x1F, 0x7F and space) */
-    urlstring = (gchar *)url_str;
+    urlstring = (char *)url_str;
     for (p = s = urlstring; *s; s++)
         if (*s > 0x1F && *s != 0x7F/* && *s != ' '*/)
             p++;
@@ -469,10 +469,10 @@ void pcutils_url_set_flags(pcutils_url *u, gint flags)
 /*
  * Set pcutils_url data (like POST info, etc.)
  */
-void pcutils_url_set_data(pcutils_url *u, gchar *data)
+void pcutils_url_set_data(pcutils_url *u, char *data)
 {
     if (u) {
-        g_free((gchar *)u->data);
+        g_free((char *)u->data);
         u->data = g_strdup(data);
     }
 }
@@ -480,10 +480,10 @@ void pcutils_url_set_data(pcutils_url *u, gchar *data)
 /*
  * Set pcutils_url alt (alternate text to the URL. Used by image maps)
  */
-void pcutils_url_set_alt(pcutils_url *u, const gchar *alt)
+void pcutils_url_set_alt(pcutils_url *u, const char *alt)
 {
     if (u) {
-        g_free((gchar *)u->alt);
+        g_free((char *)u->alt);
         u->alt = g_strdup(alt);
     }
 }
@@ -491,11 +491,11 @@ void pcutils_url_set_alt(pcutils_url *u, const gchar *alt)
 /*
  * Set pcutils_url target (used to target link at specific frame or window)
  */
-void pcutils_url_set_target(pcutils_url *u, const gchar *target)
+void pcutils_url_set_target(pcutils_url *u, const char *target)
 {
     if (u) {
         if (u->target)
-            g_free((gchar *)u->target);
+            g_free((char *)u->target);
         u->target = g_strdup(target);
     }
 }
@@ -507,7 +507,7 @@ void pcutils_url_set_referer(pcutils_url *u, pcutils_url *ref)
 {
     if (u && ref) {
         if (u->referer)
-            g_free((gchar *)u->referer);
+            g_free((char *)u->referer);
         u->referer = g_strdup(pcutils_url_str(ref));
     }
 }
@@ -516,7 +516,7 @@ void pcutils_url_set_referer(pcutils_url *u, pcutils_url *ref)
  * Set pcutils_url ismap coordinates
  * (this is optimized for not hogging the CPU)
  */
-void pcutils_url_set_ismap_coords(pcutils_url *u, gchar *coord_str)
+void pcutils_url_set_ismap_coords(pcutils_url *u, char *coord_str)
 {
     g_return_if_fail(u && coord_str);
 
@@ -536,10 +536,10 @@ void pcutils_url_set_ismap_coords(pcutils_url *u, gchar *coord_str)
  * Given an hex octet (e.g., e3, 2F, 20), return the corresponding
  * character if the octet is valid, and -1 otherwise
  */
-static int Url_decode_hex_octet(const gchar *s)
+static int Url_decode_hex_octet(const char *s)
 {
     gint hex_value;
-    gchar *tail, hex[3];
+    char *tail, hex[3];
 
     if (s && (hex[0] = s[0]) && (hex[1] = s[1])) {
         hex[2] = 0;
@@ -554,9 +554,9 @@ static int Url_decode_hex_octet(const gchar *s)
  * Parse possible hexadecimal octets in the URI path.
  * Returns a new allocated string.
  */
-gchar *pcutils_url_decode_hex_str(const char *str)
+char *pcutils_url_decode_hex_str(const char *str)
 {
-    gchar *new_str, *dest;
+    char *new_str, *dest;
     int i, val;
 
     if (!str)
@@ -566,7 +566,7 @@ gchar *pcutils_url_decode_hex_str(const char *str)
     if (!strchr(str, '%'))
         return g_strdup(str);
 
-    dest = new_str = g_new(gchar, strlen(str) + 1);
+    dest = new_str = g_new(char, strlen(str) + 1);
 
     for (i = 0; str[i]; i++) {
         *dest++ = (str[i] == '%' && (val = Url_decode_hex_octet(str+i+1)) >= 0) ?
@@ -574,7 +574,7 @@ gchar *pcutils_url_decode_hex_str(const char *str)
     }
     *dest++ = 0;
 
-    new_str = g_realloc(new_str, sizeof(gchar) * (dest - new_str));
+    new_str = g_realloc(new_str, sizeof(char) * (dest - new_str));
     return new_str;
 }
 
@@ -588,7 +588,7 @@ gchar *pcutils_url_decode_hex_str(const char *str)
  * Note: the content type "application/x-www-form-urlencoded" is used:
  *       i.e., ' ' -> '+' and '\n' -> CR LF (see HTML 4.01, Sec. 17.13.4)
  */
-gchar *pcutils_url_encode_hex_str(const gchar *str)
+char *pcutils_url_encode_hex_str(const char *str)
 {
     static const char *verbatim = "-_.*";
     static const char *hex = "0123456789ABCDEF";
@@ -627,9 +627,9 @@ gchar *pcutils_url_encode_hex_str(const gchar *str)
  * Strip: "URL:", enclosing < >, and embedded whitespace.
  * (We also strip illegal chars: 00-1F and 7F)
  */
-gchar *pcutils_url_string_strip_delimiters(gchar *str)
+char *pcutils_url_string_strip_delimiters(char *str)
 {
-    gchar *p, *new_str, *text;
+    char *p, *new_str, *text;
 
     new_str = text = g_strdup(str);
 
@@ -653,10 +653,10 @@ gchar *pcutils_url_string_strip_delimiters(gchar *str)
  * Given an hex octet (e3, 2F, 20), return the corresponding
  * character if the octet is valid, and -1 otherwise
  */
-static int Url_parse_hex_octet(const gchar *s)
+static int Url_parse_hex_octet(const char *s)
 {
     gint hex_value;
-    gchar *tail, hex[3];
+    char *tail, hex[3];
 
     if ( (hex[0] = s[0]) && (hex[1] = s[1]) ) {
         hex[2] = 0;
@@ -671,10 +671,10 @@ static int Url_parse_hex_octet(const gchar *s)
  * Parse possible hexadecimal octets in the URI path
  * Returns new allocated string.
  */
-gchar *pcutils_url_parse_hex_path(const pcutils_url *u)
+char *pcutils_url_parse_hex_path(const pcutils_url *u)
 {
-    const gchar *src;
-    gchar *new_uri, *dest;
+    const char *src;
+    char *new_uri, *dest;
     int i, val;
 
     if (!u || !u->path || !u->path[0])
@@ -685,7 +685,7 @@ gchar *pcutils_url_parse_hex_path(const pcutils_url *u)
         return g_strdup(u->path);
 
     src = u->path;
-    dest = new_uri = g_new(gchar, strlen(src) + 1);
+    dest = new_uri = g_new(char, strlen(src) + 1);
 
     for (i = 0; src[i]; i++) {
         *dest++ = (src[i] == '%' && (val = Url_parse_hex_octet(src+i+1)) >= 0) ?
@@ -693,6 +693,6 @@ gchar *pcutils_url_parse_hex_path(const pcutils_url *u)
     }
     *dest++ = 0;
 
-    new_uri = g_realloc(new_uri, sizeof(gchar) * (dest - new_uri));
+    new_uri = g_realloc(new_uri, sizeof(char) * (dest - new_uri));
     return new_uri;
 }
