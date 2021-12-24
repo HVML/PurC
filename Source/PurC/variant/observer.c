@@ -28,11 +28,60 @@
 
 #include <stdlib.h>
 
-void*
+bool
 purc_variant_register_listener(purc_variant_t v, purc_atom_t name,
-        pcvar_msg_handler handler, void *ctxt)
+        pcvar_op_handler handler, void *ctxt)
 {
     if (v == PURC_VARIANT_INVALID || !name || !handler) {
+        pcinst_set_error(PCVARIANT_ERROR_WRONG_ARGS);
+        return false;
+    }
+
+    enum purc_variant_type type;
+    type = purc_variant_get_type(v);
+
+    switch (type)
+    {
+        case PURC_VARIANT_TYPE_OBJECT:
+            break;
+        case PURC_VARIANT_TYPE_ARRAY:
+            break;
+        case PURC_VARIANT_TYPE_SET:
+            break;
+        default:
+            pcinst_set_error(PCVARIANT_ERROR_NOT_SUPPORTED);
+            return false;
+    }
+
+    struct list_head *p, *n;
+    list_for_each_safe(p, n, &v->listeners) {
+        struct pcvar_listener *listener;
+        listener = container_of(p, struct pcvar_listener, list_node);
+        if (listener->name == name) {
+            pcinst_set_error(PCVARIANT_ERROR_DUPLICATED);
+            return false;
+        }
+    }
+
+    struct pcvar_listener *listener;
+    listener = (struct pcvar_listener*)calloc(1, sizeof(*listener));
+    if (!listener) {
+        pcinst_set_error(PCVARIANT_ERROR_OUT_OF_MEMORY);
+        return false;
+    }
+
+    listener->name           = name;
+    listener->ctxt           = ctxt;
+    listener->handler        = handler;
+    list_add_tail(&listener->list_node, &v->listeners);
+
+    return true;
+}
+
+pcvar_op_handler
+purc_variant_get_listener(purc_variant_t v, purc_atom_t name)
+{
+    if (v == PURC_VARIANT_INVALID || !name) {
         pcinst_set_error(PCVARIANT_ERROR_WRONG_ARGS);
         return NULL;
     }
@@ -58,30 +107,17 @@ purc_variant_register_listener(purc_variant_t v, purc_atom_t name,
         struct pcvar_listener *listener;
         listener = container_of(p, struct pcvar_listener, list_node);
         if (listener->name == name) {
-            pcinst_set_error(PCVARIANT_ERROR_DUPLICATED);
-            return NULL;
+            return listener->handler;
         }
     }
 
-    struct pcvar_listener *listener;
-    listener = (struct pcvar_listener*)calloc(1, sizeof(*listener));
-    if (!listener) {
-        pcinst_set_error(PCVARIANT_ERROR_OUT_OF_MEMORY);
-        return false;
-    }
-
-    listener->name           = name;
-    listener->ctxt           = ctxt;
-    listener->handler        = handler;
-    list_add_tail(&listener->list_node, &v->listeners);
-
-    return listener;
+    return NULL;
 }
 
 bool
-purc_variant_revoke_listener(purc_variant_t v, void *handle)
+purc_variant_revoke_listener(purc_variant_t v, purc_atom_t name)
 {
-    if (v == PURC_VARIANT_INVALID || !handle) {
+    if (v == PURC_VARIANT_INVALID || !name) {
         pcinst_set_error(PCVARIANT_ERROR_WRONG_ARGS);
         return false;
     }
@@ -106,7 +142,7 @@ purc_variant_revoke_listener(purc_variant_t v, void *handle)
     list_for_each_safe(p, n, &v->listeners) {
         struct pcvar_listener *listener;
         listener = container_of(p, struct pcvar_listener, list_node);
-        if (listener == handle) {
+        if (listener->name == name) {
             list_del(p);
             free(listener);
             return true;

@@ -59,7 +59,7 @@ struct pcvar_listener {
     void*               ctxt;
 
     // the message callback
-    pcvar_msg_handler   handler;
+    pcvar_op_handler    handler;
 
     // list node
     struct list_head    list_node;

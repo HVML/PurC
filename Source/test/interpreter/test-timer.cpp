@@ -76,6 +76,7 @@ TEST(timer, interval)
 
 TEST(TIMER, init)
 {
+#if 0
     const char* hvml =
         "<hvml><body><a><b><c></c></b></a></body></hvml>";
 
@@ -101,4 +102,5 @@ TEST(TIMER, init)
 
     cleanup = purc_cleanup ();
     ASSERT_EQ (cleanup, true);
+#endif // 0
 }
