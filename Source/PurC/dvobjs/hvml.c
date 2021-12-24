@@ -92,6 +92,9 @@ base_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     size_t length = 0;
     purc_variant_string_bytes (argv[0], &length);
 
+    // TODO: url is valid.
+    // bool pcutils_url_valid (char *url, struct purc_broken_down_url *);
+
     struct pcvdom_dvobj_hvml *dvobj_hvml = get_dvobj_html_in_vdom (root);
     if (dvobj_hvml) {
         if (length <= (strlen (dvobj_hvml->url) + 1)) {
