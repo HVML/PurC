@@ -174,15 +174,29 @@ is_euqal(purc_variant_t var, const char* comp)
     return false;
 }
 
+static purc_variant_t
+pointer_to_variant(void* p)
+{
+    return p ? purc_variant_make_native(p, NULL) : PURC_VARIANT_INVALID;
+}
+
+static void*
+variant_to_pointer(purc_variant_t var)
+{
+    if (var && purc_variant_is_type(var, PURC_VARIANT_TYPE_NATIVE)) {
+        return purc_variant_native_get_entity(var);
+    }
+    return NULL;
+}
+
 static pcintr_timer_t
 get_inner_timer(purc_vdom_t vdom, purc_variant_t timer_var)
 {
     purc_variant_t tm = purc_variant_object_get_by_ckey(timer_var,
             TIMERS_STR_HANDLE);
-    if (tm) {
-        uint64_t ret = 0;
-        purc_variant_cast_to_ulongint(tm, &ret, false);
-        return (pcintr_timer_t)ret;
+    pcintr_timer_t timer = variant_to_pointer(tm);
+    if (timer) {
+        return timer;
     }
 
     purc_variant_t id = purc_variant_object_get_by_ckey(timer_var, TIMERS_STR_ID);
@@ -191,14 +205,15 @@ get_inner_timer(purc_vdom_t vdom, purc_variant_t timer_var)
         return NULL;
     }
 
-    pcintr_timer_t timer = pcintr_timer_create(
-            purc_variant_get_string_const(id), vdom, timer_fire_func);
+    timer = pcintr_timer_create(purc_variant_get_string_const(id),
+            vdom, timer_fire_func);
     if (timer == NULL) {
         return NULL;
     }
 
-    purc_variant_object_set_by_static_ckey(timer_var, TIMERS_STR_HANDLE,
-            purc_variant_make_ulongint((uint64_t)timer));
+    purc_variant_t native = pointer_to_variant(timer);
+    purc_variant_object_set_by_static_ckey(timer_var, TIMERS_STR_HANDLE, native);
+    purc_variant_unref(native);
     return timer;
 }
 
@@ -207,10 +222,9 @@ destroy_inner_timer(purc_variant_t timer_var)
 {
     purc_variant_t tm = purc_variant_object_get_by_ckey(timer_var,
             TIMERS_STR_HANDLE);
-    if (tm) {
-        uint64_t ret = 0;
-        purc_variant_cast_to_ulongint(tm, &ret, false);
-        pcintr_timer_destroy((pcintr_timer_t)ret);
+    pcintr_timer_t timer = variant_to_pointer(tm);
+    if (timer) {
+        pcintr_timer_destroy(timer);
     }
 }
 
