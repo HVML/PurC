@@ -7,6 +7,7 @@
 #include "private/debug.h"
 #include "private/utils.h"
 #include "private/dvobjs.h"
+#include "private/url.h"
 
 #include "../helpers.h"
 
@@ -22,6 +23,18 @@ extern void get_variant_total_info (size_t *mem, size_t *value, size_t *resv);
 
 TEST(dvobjs, dvobjs_ejson_type)
 {
+    pcutils_url *url = pcutils_url_new ("https://mspider.sf.net:8080/index.html?long#part2", NULL, 0);
+
+    printf ("%s\n", url->scheme);
+    printf ("%s\n", url->authority);
+    printf ("%s\n", url->path);
+    printf ("%s\n", url->query);
+    printf ("%s\n", url->fragment);
+    printf ("%s\n", url->hostname);
+    printf ("%d\n", url->port);
+
+
+
     const char *function[] = {"type"};
     purc_variant_t param[MAX_PARAM_NR] = {0};
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
@@ -47,7 +60,7 @@ TEST(dvobjs, dvobjs_ejson_type)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t ejson = pcdvobjs_get_ejson(NULL);
+    purc_variant_t ejson = pcdvobjs_get_ejson();
     ASSERT_NE(ejson, nullptr);
     ASSERT_EQ(purc_variant_is_object (ejson), true);
 
@@ -211,7 +224,7 @@ TEST(dvobjs, dvobjs_ejson_number)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t ejson = pcdvobjs_get_ejson(NULL);
+    purc_variant_t ejson = pcdvobjs_get_ejson();
     ASSERT_NE(ejson, nullptr);
     ASSERT_EQ(purc_variant_is_object (ejson), true);
 
@@ -373,7 +386,7 @@ TEST(dvobjs, dvobjs_ejson_compare)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t ejson = pcdvobjs_get_ejson(NULL);
+    purc_variant_t ejson = pcdvobjs_get_ejson();
     ASSERT_NE(ejson, nullptr);
     ASSERT_EQ(purc_variant_is_object (ejson), true);
 
@@ -538,7 +551,7 @@ TEST(dvobjs, dvobjs_ejson_sort)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t ejson = pcdvobjs_get_ejson(NULL);
+    purc_variant_t ejson = pcdvobjs_get_ejson();
     ASSERT_NE(ejson, nullptr);
     ASSERT_EQ(purc_variant_is_object (ejson), true);
 

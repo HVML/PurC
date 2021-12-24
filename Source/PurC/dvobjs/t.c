@@ -46,22 +46,25 @@ get_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
+
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t var = purc_variant_object_get_by_ckey (root, "map");
     if (var) {
         ret_var = purc_variant_object_get (var, argv[0]);
         // ret_var is a reference of value
-        if (ret_var)
-            purc_variant_ref (ret_var);
+        if (ret_var == PURC_VARIANT_INVALID)
+            ret_var = argv[0];
     }
+    else
+        ret_var = argv[0];
+
+    purc_variant_ref (ret_var);
 
     return ret_var;
 }
 
-purc_variant_t pcdvobjs_get_t (void *param)
+purc_variant_t pcdvobjs_get_t (void)
 {
-    UNUSED_PARAM(param);
-
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     static struct pcdvobjs_dvobjs method [] = {

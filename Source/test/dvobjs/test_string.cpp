@@ -44,7 +44,7 @@ TEST(dvobjs, dvobjs_string_contains)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t string = pcdvobjs_get_string(NULL);
+    purc_variant_t string = pcdvobjs_get_string();
     ASSERT_NE(string, nullptr);
     ASSERT_EQ(purc_variant_is_object (string), true);
 
@@ -204,7 +204,7 @@ TEST(dvobjs, dvobjs_string_explode)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t string = pcdvobjs_get_string(NULL);
+    purc_variant_t string = pcdvobjs_get_string();
     ASSERT_NE(string, nullptr);
     ASSERT_EQ(purc_variant_is_object (string), true);
 
@@ -378,7 +378,7 @@ TEST(dvobjs, dvobjs_string_shuffle)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t string = pcdvobjs_get_string(NULL);
+    purc_variant_t string = pcdvobjs_get_string();
     ASSERT_NE(string, nullptr);
     ASSERT_EQ(purc_variant_is_object (string), true);
 
@@ -555,7 +555,7 @@ TEST(dvobjs, dvobjs_string_replace)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t string = pcdvobjs_get_string(NULL);
+    purc_variant_t string = pcdvobjs_get_string();
     ASSERT_NE(string, nullptr);
     ASSERT_EQ(purc_variant_is_object (string), true);
 
@@ -720,7 +720,7 @@ TEST(dvobjs, dvobjs_string_format_c)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t string = pcdvobjs_get_string(NULL);
+    purc_variant_t string = pcdvobjs_get_string();
     ASSERT_NE(string, nullptr);
     ASSERT_EQ(purc_variant_is_object (string), true);
 
@@ -884,7 +884,7 @@ TEST(dvobjs, dvobjs_string_format_p)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t string = pcdvobjs_get_string(NULL);
+    purc_variant_t string = pcdvobjs_get_string();
     ASSERT_NE(string, nullptr);
     ASSERT_EQ(purc_variant_is_object (string), true);
 
@@ -1048,7 +1048,7 @@ TEST(dvobjs, dvobjs_string_strcat)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t string = pcdvobjs_get_string(NULL);
+    purc_variant_t string = pcdvobjs_get_string();
     ASSERT_NE(string, nullptr);
     ASSERT_EQ(purc_variant_is_object (string), true);
 
@@ -1212,7 +1212,7 @@ TEST(dvobjs, dvobjs_string_lower)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t string = pcdvobjs_get_string(NULL);
+    purc_variant_t string = pcdvobjs_get_string();
     ASSERT_NE(string, nullptr);
     ASSERT_EQ(purc_variant_is_object (string), true);
 
@@ -1376,7 +1376,7 @@ TEST(dvobjs, dvobjs_string_upper)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t string = pcdvobjs_get_string(NULL);
+    purc_variant_t string = pcdvobjs_get_string();
     ASSERT_NE(string, nullptr);
     ASSERT_EQ(purc_variant_is_object (string), true);
 
@@ -1540,7 +1540,7 @@ TEST(dvobjs, dvobjs_string_strlen)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t string = pcdvobjs_get_string(NULL);
+    purc_variant_t string = pcdvobjs_get_string();
     ASSERT_NE(string, nullptr);
     ASSERT_EQ(purc_variant_is_object (string), true);
 
@@ -1704,7 +1704,7 @@ TEST(dvobjs, dvobjs_string_implode)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t string = pcdvobjs_get_string(NULL);
+    purc_variant_t string = pcdvobjs_get_string();
     ASSERT_NE(string, nullptr);
     ASSERT_EQ(purc_variant_is_object (string), true);
 

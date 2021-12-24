@@ -194,6 +194,8 @@ list(APPEND test_dvobjejson_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR}
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    ${GLIB_INCLUDE_DIR}
+    ${GLIBCONFIG_INCLUDE_DIR}
 )
 
 PURC_EXECUTABLE(test_dvobjejson)

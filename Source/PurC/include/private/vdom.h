@@ -110,7 +110,7 @@ struct pcvdom_dvobj_hvml {
     char                   *url;
     unsigned long int      maxIterationCount;
     unsigned long int      maxRecursionDepth;
-    struct timeval         timeout;
+    struct timespec        timeout;
 };
 
 struct pcvdom_document {

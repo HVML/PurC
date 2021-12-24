@@ -1215,10 +1215,8 @@ env_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 // only for test now.
-purc_variant_t pcdvobjs_get_system (void *param)
+purc_variant_t pcdvobjs_get_system (void)
 {
-    UNUSED_PARAM(param);
-
     static struct pcdvobjs_dvobjs method [] = {
         {"uname",     uname_getter,     NULL},
         {"uname_prt", uname_prt_getter, NULL},

@@ -407,7 +407,7 @@ int pcdvobjs_logical_parse(const char *input,
 {
     int r;
     yyscan_t arg = {0};
-    purc_variant_t logical = pcdvobjs_get_logical(NULL);
+    purc_variant_t logical = pcdvobjs_get_logical();
     if (logical == PURC_VARIANT_INVALID)
         return 1;
 

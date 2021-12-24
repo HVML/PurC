@@ -296,7 +296,7 @@ TEST_P(test_vcm_eval, parse_and_serialize)
         return;
     }
 
-    purc_variant_t sys = pcdvobjs_get_system(NULL);
+    purc_variant_t sys = pcdvobjs_get_system();
 
     purc_variant_t nobj = purc_variant_make_native((void*)1, &native_ops);
 
