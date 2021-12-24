@@ -146,9 +146,9 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     size_t content_size = 0;
     char *rw_string = NULL;
 
-    if ((nr_args >= 1) && (argv[0] != PURC_VARIANT_INVALID) &&
-         (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
+    if ((nr_args >= 1) && ((argv[0] == PURC_VARIANT_INVALID) ||
+         (!purc_variant_is_string (argv[0])))) {
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 
@@ -381,9 +381,9 @@ locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((nr_args == 1) && ((argv[0] != PURC_VARIANT_INVALID) &&
+    if ((nr_args == 1) && ((argv[0] == PURC_VARIANT_INVALID) ||
                 (!purc_variant_is_string (argv[0])))) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 
@@ -538,15 +538,15 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) &&
+    if ((argv[0] == PURC_VARIANT_INVALID) ||
             (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[1] != PURC_VARIANT_INVALID) &&
+    if ((argv[1] == PURC_VARIANT_INVALID) ||
             (!purc_variant_is_string (argv[1]))) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 
@@ -726,9 +726,9 @@ random_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) &&
+    if ((argv[0] == PURC_VARIANT_INVALID) ||
             (!purc_variant_is_number (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 
@@ -772,7 +772,7 @@ get_time_format (int type, double epoch, const char *timezone)
             }
 
             if(strftime(local_time, 32, str_format, t_tm) == 0) {
-                pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+                pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
                 return PURC_VARIANT_INVALID;
             }
 
@@ -793,7 +793,7 @@ get_time_format (int type, double epoch, const char *timezone)
             }
 
             if(strftime(local_time, 32, str_format, t_tm) == 0) {
-                pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+                pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
                 return PURC_VARIANT_INVALID;
             }
 
@@ -820,7 +820,7 @@ get_time_format (int type, double epoch, const char *timezone)
             }
 
             if(strftime(local_time, 32, str_format, t_tm) == 0) {
-                pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+                pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
                 return PURC_VARIANT_INVALID;
             }
 
@@ -843,7 +843,7 @@ get_time_format (int type, double epoch, const char *timezone)
             }
 
             if(strftime(local_time, 32, str_format, t_tm) == 0) {
-                pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+                pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
                 return PURC_VARIANT_INVALID;
             }
 
@@ -883,28 +883,28 @@ time_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return purc_variant_make_ulongint ((uint64_t) t_time);
     }
 
-    if ((nr_args >= 1) && (argv[0] != PURC_VARIANT_INVALID) &&
-                    (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
+    if ((nr_args >= 1) && (argv[0] == PURC_VARIANT_INVALID ||
+                    (!purc_variant_is_string (argv[0])))) {
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
     else
         name = purc_variant_get_string_const (argv[0]);
 
-    if ((nr_args >= 2) && (argv[1] != PURC_VARIANT_INVALID) &&
+    if ((nr_args >= 2) && (argv[1] == PURC_VARIANT_INVALID ||
             (!((purc_variant_is_ulongint (argv[1]))   ||
                (purc_variant_is_longdouble (argv[1])) ||
                (purc_variant_is_longint (argv[1]))    ||
-               (purc_variant_is_number (argv[1]))))) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
+               (purc_variant_is_number (argv[1])))))) {
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
     else if (nr_args >= 2)
         purc_variant_cast_to_number (argv[1], &epoch, false);
 
-    if ((nr_args >= 3) && (argv[2] != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_string (argv[2]))) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
+    if ((nr_args >= 3) && (argv[2] == PURC_VARIANT_INVALID ||
+            (!purc_variant_is_string (argv[2])))) {
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
     else if (nr_args >= 3)
@@ -1124,9 +1124,9 @@ time_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     struct timeval stime;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if ((argv[0] != PURC_VARIANT_INVALID) &&
+    if ((argv[0] == PURC_VARIANT_INVALID) ||
             (!purc_variant_is_number (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 
@@ -1151,13 +1151,13 @@ env_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_array (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+    if (argv[0] == PURC_VARIANT_INVALID ||
+            (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 
@@ -1179,20 +1179,20 @@ env_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args < 2) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_array (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+    if (argv[0] == PURC_VARIANT_INVALID ||
+            (!purc_variant_is_string (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
     const char * name = purc_variant_get_string_const (argv[0]);
 
-    if ((argv[1] != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_array (argv[1]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+    if ((argv[1] == PURC_VARIANT_INVALID) ||
+            (!purc_variant_is_string (argv[1]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
     const char * value = purc_variant_get_string_const (argv[1]);

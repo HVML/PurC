@@ -33,25 +33,20 @@ get_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
 
+    if ((root == PURC_VARIANT_INVALID) || (argv == NULL) || (nr_args < 1)) {
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+    if (!purc_variant_is_object (root)) {
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
+    if (!purc_variant_is_string (argv[0])) {
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
+
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
-    if ((root != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_object (root))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if ((argv == NULL) || (nr_args < 1)) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if ((argv[0] != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
-
     purc_variant_t var = purc_variant_object_get_by_ckey (root, "map");
     if (var) {
         ret_var = purc_variant_object_get (var, argv[0]);

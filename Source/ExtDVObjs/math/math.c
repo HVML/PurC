@@ -125,7 +125,7 @@ struct const_struct {
               purc_variant_is_type (x, PURC_VARIANT_TYPE_LONGINT) || \
               purc_variant_is_type (x, PURC_VARIANT_TYPE_ULONGINT) || \
               purc_variant_is_type (x, PURC_VARIANT_TYPE_LONGDOUBLE))) { \
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED); \
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE); \
         return PURC_VARIANT_INVALID; \
     } \
     feclearexcept(FE_ALL_EXCEPT);
@@ -237,9 +237,9 @@ const_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     GET_PARAM_NUMBER(1);
 
-    if ((argv[0] != PURC_VARIANT_INVALID) &&
+    if ((argv[0] == PURC_VARIANT_INVALID) ||
             (!purc_variant_is_string (argv[0]))) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 
@@ -250,10 +250,10 @@ const_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             ret_var = purc_variant_make_number (
                     ((struct const_value *)entry->val)->d);
         else
-            purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+            purc_set_error (PURC_ERROR_INVALID_VALUE);
     }
     else
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error (PURC_ERROR_INVALID_VALUE);
 
     return ret_var;
 }
@@ -270,25 +270,25 @@ const_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     GET_PARAM_NUMBER(2);
 
-    if ((argv[0] != PURC_VARIANT_INVALID) &&
+    if ((argv[0] == PURC_VARIANT_INVALID) ||
             (!purc_variant_is_string (argv[0]))) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[1] != PURC_VARIANT_INVALID) &&
+    if ((argv[1] == PURC_VARIANT_INVALID) ||
             !purc_variant_is_number (argv[1])) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
-    if ((nr_args > 2) && (argv[2] != PURC_VARIANT_INVALID) &&
-            !purc_variant_is_longdouble (argv[2])) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+    if ((nr_args > 2) && (argv[2] == PURC_VARIANT_INVALID ||
+            !purc_variant_is_longdouble (argv[2]))) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
     // empty string
     if (purc_variant_string_length (argv[0]) < 2) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
 
@@ -345,9 +345,9 @@ const_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     GET_PARAM_NUMBER(1);
 
-    if ((argv[0] != PURC_VARIANT_INVALID) &&
+    if ((argv[0] == PURC_VARIANT_INVALID) ||
             (!purc_variant_is_string (argv[0]))) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 
@@ -358,10 +358,10 @@ const_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             ret_var = purc_variant_make_longdouble (
                     ((struct const_value *)entry->val)->ld);
         else
-            purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+            purc_set_error (PURC_ERROR_INVALID_VALUE);
     }
     else
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error (PURC_ERROR_INVALID_VALUE);
 
     return ret_var;
 }
@@ -1363,14 +1363,15 @@ internal_eval_getter (int is_long_double, purc_variant_t root,
         return PURC_VARIANT_INVALID;
     }
 
-    if (nr_args >= 2 && !purc_variant_is_object(argv[1])) {
+    if (nr_args >= 2 && (argv[1] == PURC_VARIANT_INVALID ||
+                !purc_variant_is_object(argv[1]))) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
     const char *input = purc_variant_get_string_const(argv[0]);
     if (!input) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
 

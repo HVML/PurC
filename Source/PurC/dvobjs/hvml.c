@@ -51,15 +51,18 @@ base_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
-    if ((root != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_object (root))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+    if (root == PURC_VARIANT_INVALID) {
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+    if (!purc_variant_is_object (root)) {
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
     struct pcvdom_dvobj_hvml *dvobj_hvml = get_dvobj_html_in_vdom (root);
+
     if (dvobj_hvml) {
         ret_var = purc_variant_make_string (dvobj_hvml->url, false);
     }
@@ -70,24 +73,20 @@ base_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 static purc_variant_t
 base_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
-    if ((root != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_object (root))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+    if ((root == PURC_VARIANT_INVALID) || (argv == NULL) || (nr_args < 1)) {
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+    if (!purc_variant_is_object (root)) {
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
+    if (!purc_variant_is_string (argv[0])) {
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
-    if ((argv == NULL) || (nr_args < 1)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if ((argv[0] != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_string (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
-    }
 
     const char *url = purc_variant_get_string_const (argv[0]);
     size_t length = 0;
@@ -128,13 +127,16 @@ maxIterationCount_getter (
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
-    if ((root != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_object (root))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+    if (root == PURC_VARIANT_INVALID) {
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
+    if (!purc_variant_is_object (root)) {
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     struct pcvdom_dvobj_hvml *dvobj_hvml = get_dvobj_html_in_vdom (root);
     if (dvobj_hvml) {
@@ -149,24 +151,20 @@ static purc_variant_t
 maxIterationCount_setter (
         purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
+    if ((root == PURC_VARIANT_INVALID) || (argv == NULL) || (nr_args < 1)) {
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+    if (!purc_variant_is_object (root)) {
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
+    if (!purc_variant_is_ulongint (argv[0])) {
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
+
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
-    if ((root != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_object (root))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
-    if ((argv == NULL) || (nr_args < 1)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if ((argv[0] != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_ulongint (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
-    }
-
     uint64_t u64;
     purc_variant_cast_to_ulongint (argv[0], &u64, false);
 
@@ -187,14 +185,16 @@ maxRecursionDepth_getter (
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
-    if ((root != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_object (root))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+    if (root == PURC_VARIANT_INVALID) {
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+    if (!purc_variant_is_object (root)) {
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
     struct pcvdom_dvobj_hvml *dvobj_hvml = get_dvobj_html_in_vdom (root);
     if (dvobj_hvml) {
         ret_var = purc_variant_make_ulongint (dvobj_hvml->maxRecursionDepth);
@@ -208,24 +208,20 @@ static purc_variant_t
 maxRecursionDepth_setter (
         purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
+    if ((root == PURC_VARIANT_INVALID) || (argv == NULL) || (nr_args < 1)) {
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+    if (!purc_variant_is_object (root)) {
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
+    if (!purc_variant_is_ulongint (argv[0])) {
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
+
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
-    if ((root != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_object (root))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
-    if ((argv == NULL) || (nr_args < 1)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if ((argv[0] != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_ulongint (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
-    }
-
     uint64_t u64;
     purc_variant_cast_to_ulongint (argv[0], &u64, false);
 
@@ -245,11 +241,15 @@ timeout_getter (
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
-    if ((root != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_object (root))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
+    if (root == PURC_VARIANT_INVALID) {
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
+    if (!purc_variant_is_object (root)) {
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
+
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     struct pcvdom_dvobj_hvml *dvobj_hvml = get_dvobj_html_in_vdom (root);
@@ -267,24 +267,20 @@ static purc_variant_t
 timeout_setter (
         purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
+    if ((root == PURC_VARIANT_INVALID) || (argv == NULL) || (nr_args < 1)) {
+        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+    if (!purc_variant_is_object (root)) {
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
+    if (!purc_variant_is_ulongint (argv[0])) {
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
+
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
-    if ((root != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_object (root))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
-    if ((argv == NULL) || (nr_args < 1)) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if ((argv[0] != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_ulongint (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_ARGS);
-        return PURC_VARIANT_INVALID;
-    }
-
     double number = 0.0;
     purc_variant_cast_to_number (argv[0], &number, false);
 
