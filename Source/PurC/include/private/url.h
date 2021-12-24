@@ -129,26 +129,26 @@ struct __tag_pcutils_url {
    const char *query;             // (no need to free them)
    const char *fragment;          //
    const char *hostname;          //
-   gint port;
-   gint flags;
+   unsigned int port;
+   unsigned int flags;
    const char *data;              /* POST */
    const char *alt;               /* "alt" text (used by image maps) */
    const char *target;            /* target frame/window */
-   gint ismap_url_len;             /* Used by server side image maps */
+   unsigned int ismap_url_len;             /* Used by server side image maps */
                                    /* remember position of visited urls */
-   gint illegal_chars;             /* number of illegal chars */
+   unsigned int illegal_chars;             /* number of illegal chars */
    const char *referer;           /* The URL that refered to this one */
 };
 
 
 pcutils_url* pcutils_url_new(const char *url_str, const char *base_url,
-                    gint flags);
+                    unsigned int flags);
 void pcutils_url_free(pcutils_url *u);
 char *pcutils_url_str(const pcutils_url *url);
 const char *pcutils_url_hostname(const pcutils_url *u);
 pcutils_url* pcutils_url_dup(const pcutils_url *u);
-gint pcutils_url_cmp(const pcutils_url *A, const pcutils_url *B);
-void pcutils_url_set_flags(pcutils_url *u, gint flags);
+int pcutils_url_cmp(const pcutils_url *A, const pcutils_url *B);
+void pcutils_url_set_flags(pcutils_url *u, unsigned int flags);
 void pcutils_url_set_data(pcutils_url *u, char *data);
 void pcutils_url_set_alt(pcutils_url *u, const char *alt);
 void pcutils_url_set_target(pcutils_url *u, const char *target);

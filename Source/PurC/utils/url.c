@@ -214,7 +214,7 @@ static GString *Url_resolve_relative(const char *RelStr,
                                      const char *BaseStr)
 {
     char *p, *s, *e;
-    gint i;
+    int i;
     GString *SolvedUrl, *Path;
     pcutils_url *RelUrl, *BaseUrl = NULL;
 
@@ -360,12 +360,12 @@ done:
  *  Return NULL if URL is badly formed.
  */
 pcutils_url* pcutils_url_new(const char *url_str, const char *base_url,
-                    gint flags)
+                    unsigned int flags)
 {
     pcutils_url *url, *BaseUrl = NULL;
     char *urlstring, *p, *s;
     GString *SolvedUrl;
-    gint n_ic;
+    int n_ic;
 
     g_return_val_if_fail (url_str != NULL, NULL);
 
@@ -442,7 +442,7 @@ pcutils_url* pcutils_url_dup(const pcutils_url *ori)
  *
  *  Return value: 0 if equal, 1 otherwise
  */
-gint pcutils_url_cmp(const pcutils_url *A, const pcutils_url *B)
+int pcutils_url_cmp(const pcutils_url *A, const pcutils_url *B)
 {
     if (!A || !B)
         return 1;
@@ -460,7 +460,7 @@ gint pcutils_url_cmp(const pcutils_url *A, const pcutils_url *B)
 /*
  * Set pcutils_url flags
  */
-void pcutils_url_set_flags(pcutils_url *u, gint flags)
+void pcutils_url_set_flags(pcutils_url *u, unsigned int flags)
 {
     if (u)
         u->flags = flags;
@@ -538,7 +538,7 @@ void pcutils_url_set_ismap_coords(pcutils_url *u, char *coord_str)
  */
 static int Url_decode_hex_octet(const char *s)
 {
-    gint hex_value;
+    unsigned int hex_value;
     char *tail, hex[3];
 
     if (s && (hex[0] = s[0]) && (hex[1] = s[1])) {
@@ -655,7 +655,7 @@ char *pcutils_url_string_strip_delimiters(char *str)
  */
 static int Url_parse_hex_octet(const char *s)
 {
-    gint hex_value;
+    unsigned int hex_value;
     char *tail, hex[3];
 
     if ( (hex[0] = s[0]) && (hex[1] = s[1]) ) {
